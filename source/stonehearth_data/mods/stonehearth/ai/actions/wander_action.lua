@@ -42,8 +42,6 @@ function Wander:run(ai, entity)
    destination.z = destination.z + dz
    
    ai:execute('stonehearth:goto_location', destination)
-   --TODO: I hear this line is going away soon. 
-   --self._ai:set_action_priority(self, 0)
 end
 
 

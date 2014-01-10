@@ -1,22 +1,22 @@
 {
-    "name": "growing",
-    "duration": 1,
+    "name": "popping",
+    "duration": 50,
     "particle": {
         "lifetime": {
             "start": {
                 "kind": "RANDOM_BETWEEN",
-                "values": [0.7, 0.7]
+                "values": [0.4, 0.9]
             }
         },
         "speed": {
             "start": {
                 "kind": "RANDOM_BETWEEN",
-                "values": [7.0, 8.0]
+                "values": [8.0, 10.5]
             },
             "over_lifetime": {
                 "kind": "CURVE",
                 "values": [
-                    [0.0, 1.0], [0.2, 1.0], [0.3, 0.0], [1.0, 0.0]
+                    [0.0, 1.0], [0.3, 0.5], [1.0, 0.1]
                 ]
             }
         },
@@ -24,25 +24,25 @@
         "color": {
             "start": {
                 "kind": "CONSTANT",
-                "values": [0.93, 0.91, 0.85, 0.8]
+                "values": [1.0, 1.0, 1.0, 1.0]
             },
             "over_lifetime_a": {
                 "kind": "CURVE",
                 "values": [
-                    [0.0, 0.8], [0.2, 0.8], [1.0, 0.0]
+                    [0.0, 0.8], [0.8, 0.5], [1.0, 0.0]
                 ]
             }
         },
         "scale": {
             "start": {
                 "kind": "RANDOM_BETWEEN",
-                "values": [0.2, 0.3]
+                "values": [0.1, 0.8]
             },
             "over_lifetime": {
                 "kind": "RANDOM_BETWEEN_CURVES",
                 "values": [
-                    [[0.0, 1.0],[1.0, 2.5]],
-                    [[0.0, 1.8],[1.0, 3.8]]
+                    [[0.0, 0.3],[1.0, 0.08]],
+                    [[0.0, 0.9], [1.0, 0.1]]
                 ]
             }
         },
@@ -54,19 +54,25 @@
         },
         "velocity": {
             "over_lifetime_x": {
-                "kind": "CONSTANT",
-                "values": [0]
+                "kind": "RANDOM_BETWEEN",
+                "values": [-1.0, 1.0]
+            },
+            "over_lifetime_z": {
+                "kind": "RANDOM_BETWEEN",
+                "values": [-1.0, 1.0]
             },
             "over_lifetime_y": {
-                "kind": "CONSTANT",
-                "values": [0.0]
+                "kind": "CURVE",
+                "values": [
+                    [0.0, 1.0], [0.3, 0.0], [1.0, -1.0]
+                ]
             }
         }        
     },
     "emission": {
         "rate": {
             "kind": "CONSTANT",
-            "values": [1600]
+            "values": [200]
         },
         "origin": {
             "surface": "POINT",
