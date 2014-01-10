@@ -1,15 +1,18 @@
 local ExecutionUnitV2 = require 'components.ai.execution_unit_v2'
 local CompoundAction = class()
 
+local NEXT_ID = 1
+
 function CompoundAction:__init(action_unit, activities, think_output_placeholders)
    -- initialize metadata   
+   self._log = radiant.log.create_logger('ai.compound_action')
    self._execution_unit = action_unit
    self._activities = activities
    self._think_output_placeholders = think_output_placeholders
    self._run_frames = {}
    self._think_frames = {}
    local action = self._execution_unit:get_action()
-   action.name = 'ca(' .. action.name .. ')'
+   action.name = action.name
    self.name = action.name
    self.does = action.does
    self.priority = action.priority
@@ -18,10 +21,16 @@ function CompoundAction:__init(action_unit, activities, think_output_placeholder
    self.args = action.args
    self.think_output = action.think_output
    self.version = 2
+   
+   self._id = NEXT_ID
+   NEXT_ID = NEXT_ID + 1   
 end
 
 function CompoundAction:set_debug_route(debug_route)
-   self._execution_unit:set_debug_route(debug_route)
+   self._debug_route = debug_route .. ' ca:' .. tostring(self._id)
+   local prefix = string.format('%s (%s)', self._debug_route, self.name)
+   self._log:set_prefix(prefix)
+   self._execution_unit:set_debug_route(self._debug_route)
 end
 
 function CompoundAction:start_thinking(ai, entity, args)
@@ -33,10 +42,10 @@ function CompoundAction:start_thinking(ai, entity, args)
    self._previous_frames = {}
    self._current_activity = 1
    
-   -- compound actions are not allowed to think so calling start_thinking
+   -- compound actions are not allowed to think so calling short_circuit_thinking
    -- should put it into the ready state
    self._execution_unit:initialize(self._args)
-   self._execution_unit:start_thinking()
+   self._execution_unit:short_circuit_thinking()
    assert(self._execution_unit:get_state() == 'ready')
    
    -- now wait until all the chained actions are ready
@@ -50,6 +59,8 @@ function CompoundAction:_start_processing_next_activity()
    table.insert(self._think_frames, frame)
    
    radiant.events.listen(frame, 'state_changed', self, self._on_execution_frame_state_change)
+   self._log:spam('CURRENT.location currently %s before thinking new frame', self._ai.CURRENT.location)
+   frame:set_current_entity_state(self._ai.CURRENT)
    frame:start_thinking()
 end
 
@@ -69,7 +80,7 @@ function CompoundAction:_on_execution_frame_state_change(frame, state)
          -- base action
          local think_output = self._args
          if self._think_output_placeholders then
-            think_output= self:_replace_placeholders(self._think_output_placeholders)
+            think_output = self:_replace_placeholders(self._think_output_placeholders)
          end
          self._ai:set_think_output(think_output)
       end
@@ -86,7 +97,6 @@ function CompoundAction:stop_thinking(ai, entity, ...)
       radiant.events.unlisten(frame, 'state_changed', self, self._on_execution_frame_state_change)      
       frame:stop_thinking()
    end  
-   self._execution_unit:stop_thinking()
    
    self._think_frames = {}
    self._previous_think_output = nil

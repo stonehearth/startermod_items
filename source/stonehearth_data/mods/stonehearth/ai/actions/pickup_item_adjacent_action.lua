@@ -2,7 +2,7 @@ local Entity = _radiant.om.Entity
 local PickupItemAdjacent = class()
 
 PickupItemAdjacent.name = 'pickup an item'
-PickupItemAdjacent.does = 'stonehearth:pickup_item'
+PickupItemAdjacent.does = 'stonehearth:pickup_item_adjacent'
 PickupItemAdjacent.args = {
    item = Entity
 }
@@ -18,11 +18,14 @@ function PickupItemAdjacent:run(ai, entity, args)
    if radiant.entities.get_carrying(entity) ~= nil then
       ai:abort('cannot pick up another item while carrying one!')
    end
+   if not radiant.entities.is_adjacent_to(entity, item) then
+      ai:abort('%s is not adjacent to %s', entity, item)
+   end
 
-   log:info("picking up item at %s", tostring(obj_location))
+   log:info("%s picking up %s", tostring(entity), tostring(item))
    radiant.entities.turn_to_face(entity, item)
    radiant.entities.pickup_item(entity, item)
-   ai:execute('stonehearth:run_effect', 'carry_pickup')
+   ai:execute('stonehearth:run_effect', { effect = 'carry_pickup'})
 end
 
 return PickupItemAdjacent

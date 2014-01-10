@@ -228,7 +228,7 @@ function StockpileComponent:_add_to_region(entity)
       cursor:subtract_point(pt)
    end)
    if not was_full and self:is_full() then
-      radiant.events.trigger(self, 'space_available', false)
+      radiant.events.trigger(self, 'space_available', self, false)
    end
    
    log:debug('finished adding point %s to region', tostring(pt))
@@ -247,7 +247,7 @@ function StockpileComponent:_remove_from_region(id)
    log:debug('finished removing point %s from region', tostring(pt))
    
    if was_full and not self:is_full() then
-      radiant.events.trigger(self, 'space_available', true)
+      radiant.events.trigger(self, 'space_available', self, true)
    end
 end
 
@@ -450,12 +450,11 @@ function StockpileComponent:_create_worker_tasks()
       self._task:destroy()
       self._task = nil
    end
-   --[[
+
    self._task = stonehearth.tasks:get_scheduler('stonehearth:workers')
                                    :create_task('stonehearth:restock_stockpile', { stockpile = self })
                                    :set_name('restock task')
                                    :start()
-                                   ]]
 end
 
 function StockpileComponent:get_item_filter_fn()

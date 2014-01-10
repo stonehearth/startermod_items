@@ -32,7 +32,12 @@ function PLACEHOLDER_mt.__index(t, key)
    local ftab = {
       eval = function (p, compound_action)         
          local obj = t:__eval(compound_action)
-         return obj[key]
+         local result = obj[key]
+         if not result and type(obj) == 'table' and obj.__index then
+            result = obj.__index[key]
+         end
+         assert(result, string.format('could not find key "%s" in placeholder object', key))
+         return result
       end,
       tostring = function ()
          return tostring(t) .. '.' .. key

@@ -27,21 +27,35 @@ end
 function util.tostring(value)
    local t = type(value)
    if t == 'userdata' then
+      local v = tostring(value)
+      if true then
+         return v
+      end
       if value.get_type_name then
          return value:get_type_name()
       end
       return class_info(value).name
-   elseif t == 'table' and t.__classsname then
-      return t.__classname
+   elseif util.is_class(value) then
+      return value.__classname or '*anonymous class*'
+   elseif util.is_instance(value) then
+      return util.tostring(value.__class)
    end
    return tostring(value)
 end
 
-function util.is_type(var, cls)
+function util.is_instance(maybe_instance)
+   return type(maybe_instance) == 'table' and maybe_instance.__type == 'object'
+end
+
+function util.is_class(maybe_cls)
+   return type(maybe_cls) == 'table' and maybe_cls.__type == 'class'
+end
+
+function util.is_a(var, cls)
    local t = type(var)
    if t == 'userdata' then
       return var:get_type_id() == cls.get_type_id()
-   elseif t == 'table' and type(cls) == 'table' and var.__type == 'object' and cls.__type == 'class' then
+   elseif util.is_instance(var) and util.is_class(cls) then
       return var:is_a(cls)
    end
    return t == cls

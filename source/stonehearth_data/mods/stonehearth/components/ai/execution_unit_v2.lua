@@ -47,7 +47,7 @@ function ExecutionUnitV2:__init(ai_component, entity, injecting_entity)
    self._entity = entity
    self._ai_component = ai_component
    self._execute_frame = nil
-   self._processing = false
+   self._thinking = false
    self._state = IDLE
    self._id = NEXT_UNIT_ID
    NEXT_UNIT_ID = NEXT_UNIT_ID + 1
@@ -88,6 +88,7 @@ function ExecutionUnitV2:get_action_interface()
 end
 
 function ExecutionUnitV2:__set_think_output(think_output)
+   self._log:spam('set_think_output: %s', stonehearth.ai:format_args(think_output))
    assert(think_output == nil or type(think_output) == 'table')
    assert(self._state == PROCESSING)
    if not think_output then
@@ -125,6 +126,7 @@ function ExecutionUnitV2:__execute(name, args)
    self._log:spam('execute %s %s called', name, stonehearth.ai:format_args(args))
    assert(not self._execute_frame)
    self._execute_frame = self._ai_component:spawn_debug_route(self._debug_route, name, args)
+   self._execute_frame:set_current_entity_state(self._current_entity_state)
    self._execute_frame:run()
    
    -- execute_frame can be nil here if we got terminated early, usually because
@@ -247,33 +249,54 @@ function ExecutionUnitV2:initialize(args)
    end
 end
 
-function ExecutionUnitV2:start_thinking()
-   self._log:spam('start_thinking (state:%s processing:%s)', self._state, tostring(self._processing))
+-- used by the compound action...
+function ExecutionUnitV2:short_circuit_thinking()
+   self._log:spam('short_circuit_thinking')
+   assert(not self._thinking)
    
-   if not self._processing then
-      self._processing = true
-      self:_initialize_entity_current_state()
-      if not self._think_output then
-         self:_set_state(PROCESSING)
-         if self._action.start_thinking then
-            self._action:start_thinking(self._ai_interface, self._entity, self._args)
-         else
-            self._log:spam('action does not implement start_thinking')
-            self:__set_think_output(self._args)
-         end
+   self._log:spam('short-circuiting think by request.  going right to ready!')
+   if self._state ~= READY then
+      self:_set_state(READY)
+   end
+   self._think_output = {}
+end
+
+function ExecutionUnitV2:start_thinking(current_entity_state)
+   self._log:spam('start_thinking (state:%s processing:%s)', self._state, tostring(self._thinking))
+
+   if self._thinking then
+      self._log:spam('call to start_thinking (%s) while already thinking with (%s).  stopping...',
+                     tostring(current_entity_state.location), tostring(self._current_entity_state.location))
+      self:stop_thinking()
+      self._log:spam('resuming start_thinking, now that we stopped.')
+   end
+   
+   assert(current_entity_state)
+   assert(not self._thinking)
+   self._log:spam('CURRENT.location predicted to be %s', current_entity_state.location)
+   
+   self._thinking = true
+   self._current_entity_state = current_entity_state
+   self._ai_interface.CURRENT = current_entity_state
+   if not self._think_output then
+      self:_set_state(PROCESSING)
+      if self._action.start_thinking then
+         self._action:start_thinking(self._ai_interface, self._entity, self._args)
       else
-         self._log:spam('ignoring start_thinking call.  already have args!')
+         self._log:spam('action does not implement start_thinking')
+         self:__set_think_output(self._args)
       end
    else
-      self._log:spam('ignoring start_thinking call.  already thinking...')
+      self._log:spam('ignoring start_thinking call.  already have args!')
    end
 end
 
 function ExecutionUnitV2:stop_thinking()
-   self._log:spam('stop_thinking (state:%s processing:%s)', tostring(self._state), tostring(self._processing))
+   self._log:spam('stop_thinking (state:%s processing:%s)', tostring(self._state), tostring(self._thinking))
    
-   if self._processing then
-      self._processing = false
+   if self._thinking then
+      self._thinking = false
+      self._think_output = nil
       if self._action.stop_thinking then
          self._action:stop_thinking(self._ai_interface, self._entity)
       else
@@ -282,7 +305,7 @@ function ExecutionUnitV2:stop_thinking()
       if self._state == PROCESSING then
          self:_set_state(IDLE)
       end
-      self:_clear_entity_current_state()
+      self._ai_interface.CURRENT = nil
    else
       self._log:spam('ignoring stop_thinking call.  not thinking...')
    end
@@ -303,7 +326,6 @@ end
 
 function ExecutionUnitV2:run()
    self._log:spam('run')
-   assert(self._think_output)
    assert(self:get_priority() > 0)
    assert(self._state == STARTED)
    
@@ -312,7 +334,7 @@ function ExecutionUnitV2:run()
    if self._action.run then
       self._log:debug('%s coroutine starting action: %s (%s)',
                       self._entity, self:get_name(), stonehearth.ai:format_args(self._think_output))
-      result = { self._action:run(self._ai_interface, self._entity, self._think_output) }      
+      result = { self._action:run(self._ai_interface, self._entity, self._args) }      
       self._log:debug('%s coroutine finished: %s', self._entity, tostring(self:get_name()))
    else
       self._log:debug('action does not implement run.  (this is not an error, but is certainly weird)')
@@ -336,7 +358,7 @@ function ExecutionUnitV2:stop()
       else
          self._log:spam('action does not implement stop')
       end
-      self._think_output = nil
+      self._current_entity_state = nil
       self:_set_state(IDLE)
    end
 end
@@ -348,7 +370,7 @@ function ExecutionUnitV2:_verify_arguments(args, args_prototype)
       self:__abort('activity arguments contains numeric elements (invalid!)')
       return false
    end
-   if args.__type then
+   if radiant.util.is_instance(args) then
       self:__abort('attempt to pass instance for arguments (not using associative array?)')
       return false
    end
@@ -360,16 +382,25 @@ function ExecutionUnitV2:_verify_arguments(args, args_prototype)
          self:__abort('unexpected argument "%s" passed to "%s".', name, self:get_name())
          return false
       end
-      if not radiant.util.is_type(value, expected_type) then
+      if type(expected_type) == 'table' and not radiant.util.is_class(expected_type) then
+         assert(expected_type.type, 'missing key "type" in complex args specified "%s"', name)
+         expected_type = expected_type.type
+      end
+      if not radiant.util.is_a(value, expected_type) then
          self:__abort('wrong type for argument "%s" in "%s" (expected:%s got %s)', name,
                       self:get_name(), tostring(expected_type), tostring(type(value)))
          return false                      
       end      
    end
-   for name, value in pairs(args_prototype) do
-      if not args[name] then
+   for name, expected_type in pairs(args_prototype) do
+      if args[name] == nil then
+         if type(expected_type) == 'table' and not radiant.util.is_instance(expected_type) then
+            args[name] = expected_type.default
+         end
+      end
+      if args[name] == nil then
          self:__abort('missing argument "%s" in "%s".', name, self:get_name())
-         return false                      
+         return false
       end
    end
 end
@@ -384,6 +415,11 @@ function ExecutionUnitV2:_in_state(...)
    return false
 end
 
+function ExecutionUnitV2:get_current_entity_state()
+   assert(self._current_entity_state)
+   return self._current_entity_state
+end
+
 function ExecutionUnitV2:_set_state(state)
    self._log:spam('state change %s -> %s', tostring(self._state), state)
    assert(state and self._state ~= state)
@@ -391,31 +427,6 @@ function ExecutionUnitV2:_set_state(state)
    self._state = state
    radiant.events.trigger(self, self._state, self)
    radiant.events.trigger(self, 'state_changed', self, self._state)
-end
-
-function ExecutionUnitV2:_initialize_entity_current_state()
-   self._entity_current_state = {
-      location = radiant.entities.get_world_grid_location(self._entity)
-   }
-   self._ai_interface.CURRENT = self._entity_current_state
-end
-
-function ExecutionUnitV2:_clear_entity_current_state()
-   self._entity_current_state = nil
-   self._ai_interface.CURRENT = nil
-end
-
-function ExecutionUnitV2:_get_entity_current_state()
-   if not self._entity_current_state then
-      self:__abort('cannot read CURRENT at this time')
-      return
-   end
-   
-   local result = self._entity_current_state[key]
-   if not result then
-      self:__abort('unknown state CURRENT.%s', key)      
-   end
-   return result
 end
 
 return ExecutionUnitV2

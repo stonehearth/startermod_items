@@ -18,12 +18,13 @@ function RunTaskAction:__init(ai, task, scheduler_activity)
 end
 
 function RunTaskAction:set_debug_route(debug_route)
-   self._execution_frame:set_debug_route(debug_route .. ' task')
+   self._execution_frame:set_debug_route(debug_route .. ' ' .. self._task:get_name())
 end
 
 function RunTaskAction:_on_task_started()
    if self._should_think then
-      self._execution_frame:start_thinking(self._task:get_args())
+      self._execution_frame:capture_entity_state()
+      self._execution_frame:start_thinking()
    end
 end
 
@@ -36,7 +37,8 @@ end
 function RunTaskAction:start_thinking(ai, entity)
    self._should_think = true
    if self._task:get_state() == 'started' then
-      self._execution_frame:start_thinking(self._task:get_args())
+      self._execution_frame:capture_entity_state()
+      self._execution_frame:start_thinking()
    end
 end
 

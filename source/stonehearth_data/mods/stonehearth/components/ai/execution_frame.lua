@@ -1,3 +1,4 @@
+local Point3 = _radiant.csg.Point3
 local ExecutionFrame = class()
 
 local SET_ACTIVE_UNIT = { __comment = 'change active running unit' }
@@ -11,6 +12,7 @@ local RUNNING = 'running'
 local HALTED = 'halted'
 local STOPPING = 'stopping'
 local STOPPED = 'stopped'
+local DYING = 'dying'
 local DEAD = 'dead'
 
 local NEXT_FRAME_ID = 1
@@ -50,7 +52,7 @@ function ExecutionFrame:_on_action_added(key, entry, does)
       self:_prime_execution_unit(unit)
       if self:_is_thinking() then
          if self:_is_better_execution_unit(unit) then
-            unit:start_thinking()
+            unit:start_thinking(self:_clone_entity_state())
          end
       end
    end
@@ -98,24 +100,21 @@ end
 
 function ExecutionFrame:destroy()
    self._log:debug('destroy')
-   if self._state ~= DEAD then
-      self._log:debug('terminating execution frame')
+   if self._state ~= DEAD and self._state ~= DYING then
       assert(not self._co_running, 'destroy of a running execution frame not implemented (yet)')
+      local execution_units = self._execution_units
       
-      if self._state ~= STOPPED then
-         self:stop()
-      end
+      -- mark our state as dead first, to prevent the subsequent cleanup from doing
+      -- anything wasteful
+      self:_set_state(DYING)
       
-      if self._co then
-         self._co = nil
-      end
-      
-      for _, unit in pairs(self._execution_units) do
-         unit:destroy()
-      end
+      self._co = nil
       self._active_unit = nil
       self._execution_units = {}
-
+      for _, unit in pairs(execution_units) do
+         unit:stop()
+         unit:destroy()
+      end     
       self:_set_state(DEAD)
       radiant.events.unpublish(self)
       radiant.events.unlisten(self._ai_component, 'action_added', self, self._on_action_added)
@@ -137,7 +136,7 @@ function ExecutionFrame:on_unit_state_change(unit)
    if not self._lock_active_unit then
       if self:_in_state(PROCESSING, READY, RUNNING) then
          if unit:is_runnable() and self:_is_better_execution_unit(unit) then
-            self._log:spam('active unit %s being replaced by unit %s', self:_get_active_unit_name(), unit:get_name())
+            self._log:spam('active unit "%s" being replaced by unit "%s"', self:_get_active_unit_name(), unit:get_name())
             self:_set_active_unit(unit)
          elseif unit == self._active_unit and not self._active_unit:is_runnable() then
             local new_unit = self:_get_best_execution_unit()
@@ -165,7 +164,7 @@ function ExecutionFrame:start_thinking()
    self:_set_state(PROCESSING)
    for _, unit in pairs(self._execution_units) do
       if self:_is_better_execution_unit(unit) then
-         unit:start_thinking()
+         unit:start_thinking(self:_clone_entity_state())
       end
    end
    self._lock_active_unit = false
@@ -200,6 +199,7 @@ function ExecutionFrame:start()
    assert(self._active_unit)
 
    self:_set_state(STARTING)
+   self._current_entity_state = nil
    for _, unit in pairs(self._execution_units) do
       if unit == self._active_unit then
          -- XXXXXXXXXXXXXXXXXXXXXX
@@ -227,7 +227,7 @@ function ExecutionFrame:start()
          unit:stop_thinking()
       else
          -- let better ones keep processing.  they may prempt in the future
-         unit:start_thinking()
+         -- unit:start_thinking(self:_clone_entity_state())
       end
    end
    
@@ -237,6 +237,27 @@ function ExecutionFrame:start()
          self._active_unit:run()
       end)   
    self:_set_state(RUNNING)
+end
+
+function ExecutionFrame:set_current_entity_state(state)
+   self._log:spam('set_current_entity_state')
+   assert(state)
+   assert(self._state == CONSTRUCTED)
+   self._log:spam('CURRENT.location predicted to be %s', state.location)
+
+   -- we explicitly do not clone this state.  compound actions expect us
+   -- to propogate side-effects of executing this frame back in the state
+   -- parameter.
+   self._current_entity_state = state
+   self._saved_entity_state = self:_clone_entity_state()   
+end
+
+function ExecutionFrame:_clone_entity_state()
+   assert(self._current_entity_state)
+   local s = self._current_entity_state
+   return {
+      location = Point3(s.location.x, s.location.y, s.location.z)
+   }
 end
 
 function ExecutionFrame:run()
@@ -260,12 +281,29 @@ function ExecutionFrame:run()
    self._log:spam('end run (state is %s)', self._state)
 end
 
+function ExecutionFrame:capture_entity_state()
+   self._log:spam('capture_entity_state')
+   assert(self:_in_state(CONSTRUCTED, STOPPED))
+   
+   local state = {
+      location = radiant.entities.get_world_grid_location(self._entity)
+   }
+   self:set_current_entity_state(state)
+end
+
 function ExecutionFrame:loop()
    while true do
+      self:capture_entity_state()
       self:run()
       self._active_unit:stop()
-      self._active_unit:start_thinking()
       self:_set_active_unit(nil)
+      
+      -- at this point, there may still be tasks hanging around still thinking
+      -- because they were higher priority than the unit that just completed.
+      -- that's ok, because we're about to spin around and 'start_thinking' again.
+      -- the execution unit is smart enough to stop/start in this case.
+      --self._active_unit:start_thinking(self:_clone_entity_state())
+      
       self:_set_state(CONSTRUCTED)
    end
 end
@@ -362,6 +400,24 @@ function ExecutionFrame:_set_active_unit(unit)
    if unit then
       assert(unit:is_runnable() and unit:get_priority() > 0)
    end
+
+   local set_active_unit = function(u)
+      self._active_unit = u
+      self._log:spam('switched execution unit to "%s"', self:_get_active_unit_name())
+      -- don't kill the table.  it's a shared reference
+      local new_entity_state
+      if u then
+         new_entity_state = unit:get_current_entity_state()
+      else
+         new_entity_state = self._saved_entity_state
+      end
+      if self._current_entity_state then
+         for name, value in pairs(new_entity_state) do
+            self._log:spam('set CURRENT.%s to %s', name, tostring(value))
+            self._current_entity_state[name] = value
+         end
+      end
+   end
    
    self._lock_active_unit = true
    if self._state == CONSTRUCTED then
@@ -369,7 +425,7 @@ function ExecutionFrame:_set_active_unit(unit)
       assert(not self._active_unit)
       assert(not self._co)
    elseif self._state == PROCESSING then
-      self._active_unit = unit
+      set_active_unit(unit)
       if unit then
          self:_set_state(READY)
       end
@@ -385,25 +441,26 @@ function ExecutionFrame:_set_active_unit(unit)
          
          self._co = nil
          self._co_running = false
-         self._active_unit = nil
+         set_active_unit(unit)
 
-         outgoing_unit:stop()   
-         self._active_unit = unit
-         
-         self._log:spam('switched active unit to %s', self._active_unit:get_name())
+
+         outgoing_unit:stop()
+         set_active_unit(unit)
+         -- would it be better to go into processing from here and call start_thinking on the unit?
+         -- almost certainly yes.  who are we to judge that it doesn't want to do something differently?
          self:_set_state(READY)
       else
          self._log:spam('terminating %s while running (by request)', self._active_unit:get_name())
          self._co = nil
          self._co_running = false
-         self._active_unit = nil
+         set_active_unit(nil)
       end
       self._ai_component:resume_thread()
    elseif self._state == HALTED then
       assert(not unit)
       assert(not self._co)
       assert(not self._co_running)
-      self._active_unit = nil
+      set_active_unit(nil)
    elseif self._state == STOPPED then
       assert(not self._co)
       assert(not self._active_unit)
