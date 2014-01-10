@@ -2,7 +2,6 @@ local TerrainType = require 'services.world_generation.terrain_type'
 
 local TerrainInfo = class()
 
--- TODO: get rid of min_heights. they are poorly defined
 function TerrainInfo:__init()
    local base_step_size = 8
 
@@ -10,7 +9,6 @@ function TerrainInfo:__init()
    grassland_info.step_size = 2
    grassland_info.mean_height = 18
    grassland_info.std_dev = 6
-   grassland_info.min_height = 14
    grassland_info.max_height = 16
    self[TerrainType.Grassland] = grassland_info
    assert(grassland_info.max_height % grassland_info.step_size == 0)
@@ -21,7 +19,6 @@ function TerrainInfo:__init()
    foothills_info.step_size = base_step_size
    foothills_info.mean_height = 29
    foothills_info.std_dev = 8
-   foothills_info.min_height = grassland_info.max_height
    foothills_info.max_height = 32
    self[TerrainType.Foothills] = foothills_info
    assert(foothills_info.max_height % foothills_info.step_size == 0)
@@ -31,13 +28,14 @@ function TerrainInfo:__init()
    mountains_info.step_size = base_step_size*2
    mountains_info.mean_height = 80
    mountains_info.std_dev = 64
-   mountains_info.min_height = foothills_info.max_height
    self[TerrainType.Mountains] = mountains_info
    assert(mountains_info.mean_height % mountains_info.step_size ~= mountains_info.step_size/2)
 
    -- make sure that next step size is a multiple of the prior max height
    assert(grassland_info.max_height % foothills_info.step_size == 0)
    assert(foothills_info.max_height % mountains_info.step_size == 0)
+
+   self.min_height = grassland_info.max_height - grassland_info.step_size
 
    -- tree lines
    --self.tree_line = foothills_info.max_height+mountains_info.step_size*2
