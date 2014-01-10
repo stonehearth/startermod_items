@@ -16,22 +16,20 @@ local WorldGenerator = class()
 local log = radiant.log.create_logger('world_generation')
 
 function WorldGenerator:__init(async, game_seed)
-   -- game seed should be integer
-   assert(game_seed % 1 == 0)
-
    self._async = async
    self._game_seed = game_seed
    self._rng = RandomNumberGenerator(self._game_seed)
    self._progress = 0
+   self._enable_scenarios = radiant.util.get_config('enable_scenarios', false)
 
-   log:info('WorldGenerator using seed %.0f', self._game_seed)
+   log:info('WorldGenerator using seed %d', self._game_seed)
 
    local tg = TerrainGenerator(self._rng, self._async)
    self._terrain_generator = tg
    self._height_map_renderer = HeightMapRenderer(tg.tile_size, tg.terrain_info)
    self._landscaper = Landscaper(tg.terrain_info, tg.tile_size, tg.tile_size, self._rng, self._async)
    self._terrain_info = tg.terrain_info
-   self._scenario_service = ScenarioManager(self._landscaper:get_feature_cell_size(), self._rng)
+   self._scenario_manager = ScenarioManager(self._landscaper:get_feature_cell_size(), self._rng)
    self._habitat_manager = HabitatManager(self._terrain_info, self._landscaper)
 
    radiant.events.listen(radiant.events, 'stonehearth:slow_poll', self, self.on_poll)
@@ -56,7 +54,8 @@ function WorldGenerator:create_world()
 
       local tiles
       --tiles = self:_create_world_blueprint()
-      tiles = self:_get_empty_blueprint(1, 1) -- useful for debugging real world scenarios without waiting for the load time
+      --tiles = self:_get_empty_blueprint(1, 1) -- useful for debugging real world scenarios without waiting for the load time
+      tiles = self:_create_world_blueprint_static()
       self:_generate_world(tiles)
 
       cpu_timer:stop()
@@ -120,7 +119,6 @@ function WorldGenerator:_generate_world(tiles)
 
       -- update progress bar
       self._progress = (n / num_tiles) * 100
-
    end
 
    radiant.events.trigger(radiant.events, 'stonehearth:generate_world_progress', {
@@ -158,13 +156,15 @@ function WorldGenerator:_place_flora(tile_map, offset_x, offset_y)
 end
 
 function WorldGenerator:_place_scenarios(micro_map, offset_x, offset_y)
+   if not self._enable_scenarios then return end
+
    local feature_map, habitat_map, elevation_map
    local timer = Timer(Timer.CPU_TIME)
    timer:start()
 
    feature_map = self._landscaper:get_feature_map()
    habitat_map, elevation_map = self._habitat_manager:derive_habitat_map(feature_map, micro_map)
-   self._scenario_service:place_scenarios(habitat_map, elevation_map, offset_x, offset_y)
+   self._scenario_manager:place_scenarios(habitat_map, elevation_map, offset_x, offset_y)
 
    timer:stop()
    log:info('ScenarioManager time: %.3fs', timer:seconds())

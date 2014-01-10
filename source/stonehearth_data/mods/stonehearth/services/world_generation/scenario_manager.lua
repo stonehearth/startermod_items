@@ -9,38 +9,28 @@ local log = radiant.log.create_logger('world_generation')
 local ScenarioManager = class()
 
 function ScenarioManager:__init(feature_cell_size, rng)
-   self._enabled = radiant.util.get_config('enable_scenarios', false)
-   if not self._enabled then
-      return
-   end
-
    self._feature_cell_size = feature_cell_size
    self._rng = rng
 
    local scenario_index = radiant.resources.load_json('stonehearth:scenarios:scenario_index')
-   local scenarios = {}
-   self._scenarios = scenarios
+   local categories = {}
+   self._categories = categories
 
    -- load all the categories
-   for key, value in pairs(scenario_index.categories) do
-      scenarios[key] = ScenarioCategory(key, value.frequency, value.priority, self._rng)
+   for name, properties in pairs(scenario_index.categories) do
+      categories[name] = ScenarioCategory(name, properties.frequency, properties.priority, self._rng)
    end
 
    -- load the scenarios into the categories
-   for _, value in pairs(scenario_index.scenarios) do
-      local item = radiant.resources.load_json(value)
-      local key = item.category
-      scenarios[key]:add(item)
+   for _, file in pairs(scenario_index.scenarios) do
+      local scenario = radiant.resources.load_json(file)
+      categories[scenario.category]:add(scenario)
    end
 end
 
 -- TODO: sort scenarios by priority then area
 -- TODO: randomize orientation in place_entity
 function ScenarioManager:place_scenarios(habitat_map, elevation_map, tile_offset_x, tile_offset_y)
-   if not self._enabled then
-      return
-   end
-   
    local rng = self._rng
    local feature_cell_size = self._feature_cell_size
    local scenarios, scenario_script, services
@@ -70,33 +60,67 @@ function ScenarioManager:place_scenarios(habitat_map, elevation_map, tile_offset
          offset_x = (site.x-1)*feature_cell_size + tile_offset_x - 1
          offset_y = (site.y-1)*feature_cell_size + tile_offset_y - 1
 
+         -- set parameters that are needed by ScenarioServices
          services:_set_scenario_properties(properties, offset_x, offset_y)
 
          scenario_script = radiant.mods.load_script(properties.script)
          scenario_script:initialize(properties, services)
          
-         self:_mark_scenario_site(habitat_map, site.x, site.y, feature_width, feature_length)
+         self:_mark_site_occupied(habitat_map, site.x, site.y, feature_width, feature_length)
+
+         if properties.unique then
+            self:_remove_scenario(properties)
+         end
       end
    end
 end
 
 -- get a list of scenarios from all the categories
 function ScenarioManager:_select_scenarios()
-   local scenarios = self._scenarios
-   local selected_scenarios = {}
+   local categories = self._categories
+   local scenarios = {}
    local list
 
-   for key, _ in pairs(scenarios) do
-      list = scenarios[key]:select_scenarios()
-      for _, value in pairs(list) do
-         table.insert(selected_scenarios, value)
+   for key, _ in pairs(categories) do
+      list = categories[key]:select_scenarios()
+      for _, item in pairs(list) do
+         table.insert(scenarios, item)
       end
    end
 
-   return selected_scenarios
+   self:_sort_scenarios(scenarios)
+
+   return scenarios
 end
 
-function ScenarioManager:_mark_scenario_site(habitat_map, i, j, width, length)
+-- order first by priority then by area
+function ScenarioManager:_sort_scenarios(scenarios)
+   local comparator = function(a, b)
+      local category_a = a.category
+      local category_b = b.category
+
+      if category_a ~= category_b then
+         local categories = self._categories
+         -- higher priority sorted to lower index
+         return categories[category_a].priority > categories[category_b].priority
+      end
+
+      local area_a = a.size.width * a.size.length
+      local area_b = b.size.width * b.size.length
+      -- larger area sorted to lower index
+      return area_a > area_b 
+   end
+
+   table.sort(scenarios, comparator)
+end
+
+function ScenarioManager:_remove_scenario(scenario)
+   local name = scenario.name
+   local category = scenario.category
+   self._categories[category]:remove(name)
+end
+
+function ScenarioManager:_mark_site_occupied(habitat_map, i, j, width, length)
    habitat_map:set_block(i, j, width, length, HabitatType.Occupied)
 end
 
