@@ -24,6 +24,7 @@ function ScenarioManager:__init(feature_cell_size, rng)
    -- load the scenarios into the categories
    for _, file in pairs(scenario_index.scenarios) do
       local scenario = radiant.resources.load_json(file)
+      scenario.habitat_types_as_enum = HabitatType.parse_string_array(scenario.habitat_types)
       categories[scenario.category]:add(scenario)
    end
 end
@@ -35,20 +36,20 @@ function ScenarioManager:place_scenarios(habitat_map, elevation_map, tile_offset
    local feature_cell_size = self._feature_cell_size
    local scenarios, scenario_script, services
    local feature_width, feature_length, voxel_width, voxel_length
-   local site, sites, num_sites, roll, offset_x, offset_y, habitat_type
+   local site, sites, num_sites, roll, offset_x, offset_y, habitat_types
    
    services = ScenarioServices(rng)
 
    scenarios = self:_select_scenarios()
 
    for _, properties in pairs(scenarios) do
-      habitat_type = HabitatType.from_string(properties.habitat_type)
+      habitat_types = properties.habitat_types_as_enum
       voxel_width = properties.size.width
       voxel_length = properties.size.length
       feature_width, feature_length = self:_get_dimensions_in_feature_units(voxel_width, voxel_length)
 
       -- get a list of valid locations
-      sites = self:_find_valid_sites(habitat_map, elevation_map, habitat_type, feature_width, feature_length)
+      sites = self:_find_valid_sites(habitat_map, elevation_map, habitat_types, feature_width, feature_length)
       num_sites = #sites
 
       if num_sites > 0 then
@@ -73,6 +74,41 @@ function ScenarioManager:place_scenarios(habitat_map, elevation_map, tile_offset
          end
       end
    end
+end
+
+function ScenarioManager:_find_valid_sites(habitat_map, elevation_map, habitat_types, width, length)
+   local i, j, is_habitat_type, is_flat, elevation
+   local sites = {}
+
+   local is_target_habitat_type = function(value)
+      for _, habitat_type in pairs(habitat_types) do
+         if value == habitat_type then
+            return true
+         end
+      end
+      return false
+   end
+
+   for j=1, habitat_map.height-(length-1) do
+      for i=1, habitat_map.width-(width-1) do
+         -- check if block meets habitat requirements
+         is_habitat_type = habitat_map:visit_block(i, j, width, length, is_target_habitat_type)
+         if is_habitat_type then
+            -- check if block is flat
+            elevation = elevation_map:get(i, j)
+            is_flat = elevation_map:visit_block(i, j, width, length,
+               function (value)
+                  return value == elevation
+               end
+            )
+            if is_flat then
+               table.insert(sites, Point2(i, j))
+            end
+         end
+      end
+   end
+
+   return sites
 end
 
 -- get a list of scenarios from all the categories
@@ -101,8 +137,10 @@ function ScenarioManager:_sort_scenarios(scenarios)
 
       if category_a ~= category_b then
          local categories = self._categories
+         local priority_a = categories[category_a].priority
+         local priority_b = categories[category_b].priority
          -- higher priority sorted to lower index
-         return categories[category_a].priority > categories[category_b].priority
+         return priority_a > priority_b
       end
 
       local area_a = a.size.width * a.size.length
@@ -122,36 +160,6 @@ end
 
 function ScenarioManager:_mark_site_occupied(habitat_map, i, j, width, length)
    habitat_map:set_block(i, j, width, length, HabitatType.Occupied)
-end
-
-function ScenarioManager:_find_valid_sites(habitat_map, elevation_map, habitat_type, width, length)
-   local i, j, is_habitat_type, is_flat, elevation
-   local sites = {}
-
-   local is_target_habitat_type = function(value)
-      return value == habitat_type
-   end
-
-   for j=1, habitat_map.height-(length-1) do
-      for i=1, habitat_map.width-(width-1) do
-         -- check if block meets habitat requirements
-         is_habitat_type = habitat_map:visit_block(i, j, width, length, is_target_habitat_type)
-         if is_habitat_type then
-            -- check if block is flat
-            elevation = elevation_map:get(i, j)
-            is_flat = elevation_map:visit_block(i, j, width, length,
-               function (value)
-                  return value == elevation
-               end
-            )
-            if is_flat then
-               table.insert(sites, Point2(i, j))
-            end
-         end
-      end
-   end
-
-   return sites
 end
 
 function ScenarioManager:_get_dimensions_in_feature_units(width, length)

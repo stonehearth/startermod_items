@@ -16,9 +16,21 @@ local string_enum_map = {
    forest    = HabitatType.Forest
 }
 
-function HabitatType.from_string(string)
+function HabitatType.parse_string(string)
    -- could return HabitatType[string], but we want the json to be all lower case
    return string_enum_map[string]
+end
+
+function HabitatType.parse_string_array(strings)
+   local habitat_types = {}
+   local habitat_type
+
+   for _, value in pairs(strings) do
+      habitat_type = HabitatType.parse_string(value)
+      table.insert(habitat_types, habitat_type)
+   end
+
+   return habitat_types
 end
 
 return HabitatType
