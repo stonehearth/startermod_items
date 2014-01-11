@@ -97,9 +97,10 @@ Renderer::Renderer() :
    }
 
    glfwMakeContextCurrent(window);
+   glfwGetWindowSize(window, &windowWidth_, &windowHeight_);
 
    if (!config_.enable_fullscreen.value) {
-      glfwSetWindowPos(window, windowX, windowY);
+      SetWindowPos(GetWindowHandle(), NULL, windowX, windowY, 0, 0, SWP_NOSIZE);
    }
    // Init Horde, looking for OpenGL 2.0 minimum.
    std::string s = (radiant::core::System::GetInstance().GetTempDirectory() / "horde3d_log.html").string();
@@ -218,12 +219,11 @@ Renderer::Renderer() :
    });
    
    glfwSetWindowCloseCallback(window, [](GLFWwindow* window) -> void {
-      int xpos, ypos;
-      glfwGetWindowPos(glfwGetCurrentContext(), &xpos, &ypos);
+      RECT rect;
+      GetWindowRect(Renderer::GetInstance().GetWindowHandle(), &rect);
 
-
-      Renderer::GetInstance().config_.last_window_x.value = std::max(0, xpos);
-      Renderer::GetInstance().config_.last_window_y.value = std::max(0, ypos);
+      Renderer::GetInstance().config_.last_window_x.value = std::max(0, (int)rect.left);
+      Renderer::GetInstance().config_.last_window_y.value = std::max(0, (int)rect.top);
       Renderer::GetInstance().config_.screen_width.value = Renderer::GetInstance().windowWidth_;
       Renderer::GetInstance().config_.screen_height.value = Renderer::GetInstance().windowHeight_;
       Renderer::GetInstance().ApplyConfig(Renderer::GetInstance().config_, true);

@@ -1,4 +1,3 @@
--include local.mk
 include make/settings.mk
 
 STONEHEARTH_ROOT   = ${CURDIR}
@@ -51,6 +50,7 @@ submodules:
 
 .PHONY: configure
 configure:
+	rm build/CMakeCache.txt
 	cmd.exe /c "$(CMAKE) -H. -Bbuild -G\"Visual Studio 11\""
 
 .PHONY: stonehearth

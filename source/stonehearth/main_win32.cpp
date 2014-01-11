@@ -1,5 +1,7 @@
-//#define OVERRIDE_NEW_DELETE
-//#include "MemProLib/src_combined/MemPro.cpp"
+#if defined(ENABLE_MEMPRO)
+#define OVERRIDE_NEW_DELETE
+#include "C:\\Program Files\\PureDevSoftware\\MemPro\\MemProLib\\src_combined\MemPro.cpp"
+#endif
 
 #include <signal.h>
 #include <boost/filesystem.hpp>

@@ -192,13 +192,39 @@ ScriptHost::~ScriptHost()
 {
 }
 
+/*
+ * The type of the memory-allocation function used by Lua states. The allocator function must
+ * provide a functionality similar to realloc, but not exactly the same. Its arguments are ud,
+ * an opaque pointer passed to lua_newstate; ptr, a pointer to the block being
+ * allocated/reallocated/freed; osize, the original size of the block; nsize, the new size
+ * of the block. ptr is NULL if and only if osize is zero. When nsize is zero, the allocator
+ * must return NULL; if osize is not zero, it should free the block pointed to by ptr. When
+ * nsize is not zero, the allocator returns NULL if and only if it cannot fill the request.
+ * When nsize is not zero and osize is zero, the allocator should behave like malloc. When
+ * nsize and osize are not zero, the allocator behaves like realloc. Lua assumes that the
+ * allocator never fails when osize >= nsize.
+ */
+
 void* ScriptHost::LuaAllocFn(void *ud, void *ptr, size_t osize, size_t nsize)
 {
+#if !defined(ENABLE_MEMPRO)
    if (nsize == 0) {
       free(ptr);
       return NULL;
    }
    return realloc(ptr, nsize);
+#else
+   if (nsize == 0) {
+      delete [] ptr;
+      return NULL;
+   }
+   void *realloced = new char[nsize];
+   if (osize) {
+      memcpy(realloced, ptr, std::min(nsize, osize));
+      delete [] ptr;
+   }
+   return realloced;
+#endif
 }
 
 
