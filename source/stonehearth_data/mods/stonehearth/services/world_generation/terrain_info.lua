@@ -42,15 +42,15 @@ function TerrainInfo:__init()
 end
 
 function TerrainInfo:get_terrain_type(height)
-   if height > self[TerrainType.Foothills].max_height then
-      return TerrainType.Mountains
+   if height <= self[TerrainType.Grassland].max_height then
+      return TerrainType.Grassland
    end
 
-   if height > self[TerrainType.Grassland].max_height then
+   if height <= self[TerrainType.Foothills].max_height then
       return TerrainType.Foothills
    end
 
-   return TerrainType.Grassland
+   return TerrainType.Mountains
 end
 
 return TerrainInfo

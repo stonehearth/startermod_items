@@ -182,11 +182,6 @@ function TerrainDetailer:_is_edge(tile_map, x, y, threshold)
    end
 end
 
-function TerrainDetailer:add_grassland_details_new(tile_map, micro_map)
-   local noise_map = Array2D(micro_map.width, micro_map.height)
-
-end
-
 -- makes lots of assumptions about how grasslands are quantized
 -- ok since this will change anyway if grasslands are quantized differently
 function TerrainDetailer:add_grassland_details(tile_map)
