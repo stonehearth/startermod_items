@@ -66,6 +66,7 @@ function ExecutionUnitV2:__init(ai_component, entity, injecting_entity)
    chain_function('suspend')
    chain_function('resume')
    chain_function('abort')
+   chain_function('get_log')
 end
 
 function ExecutionUnitV2:get_state()
@@ -108,6 +109,10 @@ function ExecutionUnitV2:__clear_think_output(...)
    else
       assert(not self._think_output, string.format('unexpected stated %s in clear_think_output', self._state))
    end
+end
+
+function ExecutionUnitV2:__get_log()
+   return self._log
 end
 
 function ExecutionUnitV2:__set_priority(action, priority)

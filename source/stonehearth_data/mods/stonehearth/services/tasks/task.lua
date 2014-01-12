@@ -88,17 +88,12 @@ function Task:_is_work_available()
    if not self._times then
       return true
    end
-   local work_remaining = self._times - self._complete_count - #self._running_actions
+   local work_remaining = self._times - self._complete_count - self._running_actions_count
    return work_remaining > 0
 end
 
 function Task:_action_is_running(action)
-   for _, a in ipairs(self._running_actions) do
-      if action == a then
-         return true
-      end
-   end
-   return false
+   return self._running_actions[action] ~= nil
 end
 
 function Task:__action_can_start()
@@ -122,7 +117,8 @@ function Task:__action_try_start(action)
    end
    
    if not self:_action_is_running() then
-      table.insert(self._running_actions, action)
+      self._running_actions[action] = true
+      self._running_actions_count = self._running_actions_count + 1
    end
    
    if not self:_is_work_available() then
@@ -133,7 +129,10 @@ end
 
 
 function Task:__action_stopped(action)
-   table.remove(self._running_actions, action)
+   if self:_action_is_running(action) then
+      self._running_actions[action] = nil
+      self._running_actions_count = self._running_actions_count - 1
+   end
    if self:_is_work_available() then
       radiant.events.trigger(self, 'work_available', self, true)
    end
