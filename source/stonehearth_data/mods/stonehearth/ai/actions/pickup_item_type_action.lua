@@ -12,4 +12,5 @@ PickupItemType.priority = 1
 local ai = stonehearth.ai
 return ai:create_compound_action(PickupItemType)
          :execute('stonehearth:goto_entity_type', { filter_fn = ai.ARGS.filter_fn })
-         :execute('stonehearth:pickup_item_adjacent', { item = ai.PREV.destination_entity })
+         :execute('stonehearth:reserve_entity', { entity = ai.PREV.destination_entity })
+         :execute('stonehearth:pickup_item_adjacent', { item = ai.PREV.entity })

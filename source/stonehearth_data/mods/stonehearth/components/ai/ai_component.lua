@@ -39,7 +39,8 @@ end
 function AIComponent:add_action(key, action_ctor, injecting_entity)
    local does = action_ctor.does
    assert(does)
-   assert(not action_key_to_activity[key])
+   assert(not action_key_to_activity[key] or action_key_to_activity[key] == does)
+   
    action_key_to_activity[key] = does
    local action_index = self._action_index[does]
    if not action_index then
@@ -124,9 +125,8 @@ end
 
 function AIComponent:_terminate_thread()
    if self._execution_frame then
-      self._execution_frame:abort('terminating thread')
+      self._execution_frame:destroy('terminating thread')
    end
-
    if self._co then
       local co = self._co
       self._co = nil

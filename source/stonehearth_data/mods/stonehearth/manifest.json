@@ -177,6 +177,8 @@
          "actions:pickup_item_action" : "file(ai/actions/pickup_item_action.lua)",
          "actions:pickup_item_adjacent" : "file(ai/actions/pickup_item_adjacent_action.lua)",
          "actions:pickup_item_type" : "file(ai/actions/pickup_item_type_action.lua)",
+         "actions:reserve_entity" : "file(ai/actions/reserve_entity.lua)",
+         "actions:reserve_entity_destination" : "file(ai/actions/reserve_entity_destination.lua)",
          "actions:pickup_item_on_ground_action" : "file(ai/actions/pickup_item_on_ground_action.lua)",
          "actions:pickup_item_on_table_action" : "file(ai/actions/pickup_item_on_table_action.lua)",
          "actions:run_to_entity" : "file(ai/actions/run_to_entity_action.lua)",

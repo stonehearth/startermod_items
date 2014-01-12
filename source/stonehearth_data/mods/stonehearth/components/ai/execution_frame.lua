@@ -84,6 +84,7 @@ function ExecutionFrame:_prime_execution_unit(unit)
    unit:initialize(self._activity.args)
    radiant.events.listen(unit, 'ready', self, self.on_unit_state_change)
    radiant.events.listen(unit, 'idle', self, self.on_unit_state_change)
+   radiant.events.listen(unit, 'processing', self, self.on_unit_state_change)
    radiant.events.listen(unit, 'dead', self, self.on_unit_state_change)
    radiant.events.listen(unit, 'priority_changed', self, self.on_unit_state_change)
 end
@@ -145,9 +146,8 @@ function ExecutionFrame:on_unit_state_change(unit)
                               self:_get_active_unit_name(), new_unit and new_unit:get_name() or 'nil')
                self:_set_active_unit(new_unit)
             else
-               self._log:spam('no more runable units in frame!  terminating.')
+               self._log:spam('no more runable units in frame!')
                self:_set_active_unit(nil)
-               self:_set_state(HALTED)            
             end
          end
       end
@@ -428,6 +428,12 @@ function ExecutionFrame:_set_active_unit(unit)
       set_active_unit(unit)
       if unit then
          self:_set_state(READY)
+      end
+   elseif self._state == READY then
+      set_active_unit(unit)
+      if not unit then
+         self._state = CONSTRUCTED
+         self:start_thinking()
       end
    elseif self._state == RUNNING then
       -- suspend the current running unit.

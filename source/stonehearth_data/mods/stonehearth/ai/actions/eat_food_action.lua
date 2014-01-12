@@ -84,7 +84,7 @@ function EatFoodAction:find_seat()
 
    local solved_cb = function(path)
       local seat = path:get_destination()
-      if seat:add_component('stonehearth:lease_component'):try_to_acquire_lease(self._entity) then 
+      if seat:add_component('stonehearth:lease_component'):try_lease('eat food', self._entity) then 
          self._seat = seat
          self._path_to_seat = path
          self:stop_looking_for_seat()

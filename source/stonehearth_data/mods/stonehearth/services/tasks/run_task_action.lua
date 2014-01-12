@@ -10,10 +10,22 @@ function RunTaskAction:__init(ai, task, scheduler_activity)
          ai:set_think_output()
       end)
 
-   radiant.events.listen(task, 'started', self, self._on_task_started)
-   radiant.events.listen(task, 'stopped', self, self._on_task_stopped)   
-   if task:get_state() == 'started' then
-      self:_on_task_started()
+   radiant.events.listen(task, 'started', self, self._start_stop_thinking)
+   radiant.events.listen(task, 'stopped', self, self._start_stop_thinking)
+   radiant.events.listen(task, 'work_available', self, self._start_stop_thinking)
+end
+
+function RunTaskAction:_start_stop_thinking()
+   if not self._starting then
+      local should_think = self._should_think and self._task:__action_can_start(self)
+      if should_think and not self._thinking then
+         self._thinking = true
+         self._execution_frame:capture_entity_state()
+         self._execution_frame:start_thinking()
+      elseif not should_think and self._thinking then      
+         self._thinking = false
+         self._execution_frame:stop_thinking()
+      end
    end
 end
 
@@ -21,43 +33,33 @@ function RunTaskAction:set_debug_route(debug_route)
    self._execution_frame:set_debug_route(debug_route .. ' ' .. self._task:get_name())
 end
 
-function RunTaskAction:_on_task_started()
-   if self._should_think then
-      self._execution_frame:capture_entity_state()
-      self._execution_frame:start_thinking()
-   end
-end
-
-function RunTaskAction:_on_task_stopped()
-   if self._should_think then
-      self._execution_frame:stop_thinking()
-   end
-end
-
 function RunTaskAction:start_thinking(ai, entity)
    self._should_think = true
-   if self._task:get_state() == 'started' then
-      self._execution_frame:capture_entity_state()
-      self._execution_frame:start_thinking()
-   end
+   self:_start_stop_thinking()
 end
 
 function RunTaskAction:stop_thinking(ai, entity)
-   self._execution_frame:stop_thinking(ai, entity)
    self._should_think = false
+   self:_start_stop_thinking()
 end
 
-function RunTaskAction:start()
+function RunTaskAction:start(ai)
+   self._starting = true
+   if not self._task:__action_try_start(self) then
+      ai:abort('task would not allow us to start (max running reached?)')
+   end
+   self._starting = false
    self._execution_frame:start()
 end
 
 function RunTaskAction:run(...)
    self._execution_frame:run(...)
-   self._task:__completed()
+   self._task:__action_completed(self)
 end
 
 function RunTaskAction:stop()
    self._execution_frame:stop()
+   self._task:__action_stopped(self)
 end
 
 function RunTaskAction:destroy()

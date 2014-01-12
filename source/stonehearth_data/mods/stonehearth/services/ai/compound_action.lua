@@ -136,10 +136,11 @@ function CompoundAction:run(ai, entity, ...)
       -- stop each action immediately after it completes.
       -- this lets it release resources after they are no longer needed
       -- instead of waiting until the entire action sequence completes
+      -- xxx: i don't think this is actually desired -- tony
       self._run_frames[i]:run()
-      self._run_frames[i]:stop()
+      --self._run_frames[i]:stop()
    end
-   self._execution_unit:stop()
+   --self._execution_unit:stop()
 end
 
 function CompoundAction:stop()

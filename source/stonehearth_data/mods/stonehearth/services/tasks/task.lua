@@ -15,6 +15,8 @@ function Task:__init(scheduler, activity)
    self._commited = false
    self._name = activity.name .. ' task'
    self._complete_count = 0
+   self._running_actions = {}
+   self._running_actions_count = 0
    self:_set_state(STOPPED)
 end
 
@@ -82,11 +84,58 @@ function Task:_set_state(state)
    radiant.events.trigger(self, 'state_changed', self, self._state)
 end
 
-function Task:__completed()
+function Task:_is_work_available()
+   if not self._times then
+      return true
+   end
+   local work_remaining = self._times - self._complete_count - #self._running_actions
+   return work_remaining > 0
+end
+
+function Task:_action_is_running(action)
+   for _, a in ipairs(self._running_actions) do
+      if action == a then
+         return true
+      end
+   end
+   return false
+end
+
+function Task:__action_can_start()
+   if self:_action_is_running() then
+      return true
+   end
+   return self._state == 'started' and self:_is_work_available()
+end
+
+function Task:__action_completed()
    self._complete_count = self._complete_count + 1
-   if self._complete_count == self._times then
+   if not self:_is_work_available() then
       self._log:debug('task reached max number of completions (%d).  stopping', self._times)
       self:stop()
+   end
+end
+
+function Task:__action_try_start(action)
+   if not self:_is_work_available() then
+      return false
+   end
+   
+   if not self:_action_is_running() then
+      table.insert(self._running_actions, action)
+   end
+   
+   if not self:_is_work_available() then
+      radiant.events.trigger(self, 'work_available', self, false)
+   end
+   return true
+end
+
+
+function Task:__action_stopped(action)
+   table.remove(self._running_actions, action)
+   if self:_is_work_available() then
+      radiant.events.trigger(self, 'work_available', self, true)
    end
 end
 

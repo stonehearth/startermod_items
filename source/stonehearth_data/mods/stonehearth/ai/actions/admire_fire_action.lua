@@ -127,7 +127,7 @@ function AdmireFire:_start_looking_for_fire()
 
       --If we can lease the seat, great! If not restart
       local seat_lease = firepit_seat:get_component('stonehearth:lease_component')
-      if seat_lease:try_to_acquire_lease(self._entity) then
+      if seat_lease:try_lease('admire fire seat', self._entity) then
          self._firepit_seat = firepit_seat
          self._path_to_fire = path
          self._ai:set_action_priority(self, 3)

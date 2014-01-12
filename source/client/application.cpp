@@ -56,7 +56,7 @@ void Application::InitializeCrashReporting()
 
    core::Config& config = core::Config::GetInstance();
 
-   if (!config.Get("support.disable_crash_dump_server", false)) {
+   if (config.Get("support.enable_crash_dump_server", true)) {
       std::string const crash_dump_path = core::System::GetInstance().GetTempDirectory().string();
       std::string const userid = config.GetUserID();
       crash_dump_uri_ = config.Get("support.crash_dump_server", REPORT_CRASHDUMP_URI);

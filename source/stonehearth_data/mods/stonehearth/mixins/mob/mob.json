@@ -23,6 +23,8 @@
             "stonehearth:actions:pickup_item_action",
             "stonehearth:actions:pickup_item_adjacent",
             "stonehearth:actions:pickup_item_type",
+            "stonehearth:actions:reserve_entity",
+            "stonehearth:actions:reserve_entity_destination",
             "stonehearth:actions:run_effect_action",
             "stonehearth:actions:run_effect_timed_action",
             "stonehearth:actions:attack_action",

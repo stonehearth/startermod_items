@@ -40,6 +40,8 @@ function FollowPathAction:run(ai, entity, args)
 
    self._effect = radiant.effects.run_effect(entity, 'run')
    local arrived_fn = function()
+      self._postures_trace:destroy()
+      self._postures_trace = nil
       ai:resume()
    end
    

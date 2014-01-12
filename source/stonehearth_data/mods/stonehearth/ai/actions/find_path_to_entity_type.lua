@@ -19,10 +19,15 @@ local log = radiant.log.create_logger('ai.find_path_to_entity_type')
 function FindPathToEntityType:start_thinking(ai, entity, args)
    local filter_fn = args.filter_fn
 
-   local on_added = function(id, entity)
-      if filter_fn(entity) then
-         log:spam('adding entity %s to pathfinder', tostring(entity))
-         self._pathfinder:add_destination(entity)
+   local on_added = function(id, target)
+      if filter_fn(target) then
+         local lease = target:get_component('stonehearth:lease_component')
+         if lease and not lease:can_acquire('ai_reservation', entity) then
+            log:spam('ignoring %s (cannot acquire ai lease)', tostring(target))
+            return
+         end
+         log:spam('adding entity %s to pathfinder', tostring(target))
+         self._pathfinder:add_destination(target)
       end
    end
    local on_removed = function(id)

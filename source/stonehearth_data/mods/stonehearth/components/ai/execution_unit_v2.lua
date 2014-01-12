@@ -161,7 +161,7 @@ function ExecutionUnitV2:__abort(reason, ...)
    self:stop_thinking()
    self:stop()
    -- why not destroy? -- tony
-   error(reason)
+   self._ai_component:_terminate_thread()
 end
 
 function ExecutionUnitV2:spawn(...)
@@ -317,7 +317,7 @@ function ExecutionUnitV2:start()
    assert(self._state == READY)
    
    if self._action.start then
-      self._action:start(self._ai_interface, self._entity)
+      self._action:start(self._ai_interface, self._entity, self._args)
    else
       self._log:spam('action does not implement start')         
    end
@@ -354,7 +354,7 @@ function ExecutionUnitV2:stop()
       end
       
       if self._action.stop then
-         self._action:stop(self._ai_interface, self._entity)
+         self._action:stop(self._ai_interface, self._entity, self._args)
       else
          self._log:spam('action does not implement stop')
       end
