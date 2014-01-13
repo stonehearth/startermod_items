@@ -2,7 +2,7 @@
    "type" : "command",
 
    "name": "move_item",
-   "tooltip": "Move Item",
+   "tooltip": "Move item",
    "description" : "Move this thing somewhere else in the world.",
    "disabled_description": "This item is in use. Try moving it later.",
    "default_enabled": true,
