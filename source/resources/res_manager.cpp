@@ -409,17 +409,17 @@ std::string ResourceManager2::ConvertToAbsolutePath(std::string const& path, std
    return std::string("/") + boost::algorithm::join(newpath, "/");
 }
 
-std::string ResourceManager2::GetEntityUri(std::string const& mod_name, std::string const& entity_name) const
+std::string ResourceManager2::GetAliasUri(std::string const& mod_name, std::string const& alias_name) const
 {
    std::lock_guard<std::recursive_mutex> lock(mutex_);
 
    json::Node manifest = res::ResourceManager2::GetInstance().LookupManifest(mod_name);
-   json::Node entities = manifest.get_node("radiant.entities");
-   std::string uri = entities.get<std::string>(entity_name, "");
+   json::Node aliases = manifest.get_node("radiant.aliases");
+   std::string uri = aliases.get<std::string>(alias_name, "");
 
    if (uri.empty()) {
       std::ostringstream error;
-      error << "'" << mod_name << "' has no entity named '" << entity_name << "' in the manifest.";
+      error << "'" << mod_name << "' has no alias named '" << alias_name << "' in the manifest.";
       throw res::Exception(error.str());
    }
    return uri;
@@ -434,7 +434,7 @@ std::string ResourceManager2::ExpandMacro(std::string const& current, std::strin
    }
    if (full) {
       if (std::regex_match(current, match, entity_macro_regex__)) {
-         return GetEntityUri(match[1], match[2]);
+         return GetAliasUri(match[1], match[2]);
       }
    }
    return current;
