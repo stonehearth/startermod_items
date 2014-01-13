@@ -3,6 +3,8 @@
 
    "name": "shear_sheep",
    "tooltip": "Shear Sheep",
+   "description" : "Harvest the wool from this sheep. Don't worry, it doesn't hurt...much.",
+   "disabled_description" : "You'll be able to harvest this sheep again once its wool has grown back.",
    "icon": "file(shear_sheep.png)",
 
    "action": "call",
