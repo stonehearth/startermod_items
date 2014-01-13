@@ -5,11 +5,19 @@
    left: 0px;
    font-size: 16px;
    line-height: 13px;
-   padding: 8px;
    min-width: 250px;
    background: rgba(0,0,0,0.5);
    color: #fff;
    font-family: "Munro Small";
+
+   #header {
+      padding: 2px;
+      padding-left: 10px;
+      background: #ccc;
+   }
+   #content {
+      padding: 2px;
+   }
 
    input {
       width: 130px;
@@ -31,11 +39,36 @@
       right: 4px;
    }
 
-   .executionFrame {
+   .row {
       padding-left: 16px;
+      &:hover {
+         background: rgba(1,1,1,0.2);
+      }
    }
 
    .executionUnit {
       padding-left: 16px;
+   }
+
+   .running {
+      color: #00FF30;
+   }
+   .thinking {
+      color: #088074;
+   }
+   .ready {
+      color: #B2D11E;
+   }
+   .idle {
+      color: #C0C0C0;
+   }
+   .stopped {
+      color: #E54128;
+   }
+   .finished {
+      color: #FF9536;
+   }
+   .delete {
+      color: #FF0000;
    }
 }

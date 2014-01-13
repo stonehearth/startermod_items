@@ -173,7 +173,7 @@ end
 
 function ExecutionUnitV1:get_debug_info()
    return {
-      state = 'kill me!',
+      state = 'delete',
       action = {
          name = 'V1 ' .. self._action.name,
       }

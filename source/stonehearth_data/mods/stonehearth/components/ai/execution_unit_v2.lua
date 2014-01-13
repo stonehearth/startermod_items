@@ -1,11 +1,11 @@
 local ExecutionUnitV2 = class()
 
 local IDLE = 'idle'
-local PROCESSING = 'processing'
+local THINKING = 'thinking'
 local READY = 'ready'
 local STARTED = 'started'
 local RUNNING = 'running'
-local HALTED = 'halted'
+local FINISHED = 'finished'
 local DEAD = 'dead'
 
 local NEXT_UNIT_ID = 1
@@ -91,7 +91,7 @@ end
 function ExecutionUnitV2:__set_think_output(think_output)
    self._log:spam('set_think_output: %s', stonehearth.ai:format_args(think_output))
    assert(think_output == nil or type(think_output) == 'table')
-   assert(self._state == PROCESSING)
+   assert(self._state == THINKING)
    if not think_output then
       think_output = self._args
    end
@@ -103,7 +103,7 @@ end
 function ExecutionUnitV2:__clear_think_output(...)
    if self._state == READY then
       self._think_output = nil
-      self:_set_state(PROCESSING)
+      self:_set_state(THINKING)
    elseif self._state == RUNNING then
       self:__abort('action is no longer ready to run')
    else
@@ -238,7 +238,7 @@ function ExecutionUnitV2:is_runnable()
 end
 
 function ExecutionUnitV2:is_active()
-   return self:is_runnable() or self._state == STARTED or self._state == RUNNING or self._state == HALTED
+   return self:is_runnable() or self._state == STARTED or self._state == RUNNING or self._state == FINISHED
 end
 
 function ExecutionUnitV2:initialize(args)
@@ -292,7 +292,7 @@ function ExecutionUnitV2:start_thinking(current_entity_state)
    self._current_entity_state = current_entity_state
    self._ai_interface.CURRENT = current_entity_state
    if not self._think_output then
-      self:_set_state(PROCESSING)
+      self:_set_state(THINKING)
       if self._action.start_thinking then
          self._action:start_thinking(self._ai_interface, self._entity, self._args)
       else
@@ -315,7 +315,7 @@ function ExecutionUnitV2:stop_thinking()
       else
          self._log:spam('action does not implement stop_thinking')      
       end
-      if self._state == PROCESSING then
+      if self._state == THINKING then
          self:_set_state(IDLE)
       end
       self._ai_interface.CURRENT = nil
@@ -352,14 +352,14 @@ function ExecutionUnitV2:run()
    else
       self._log:debug('action does not implement run.  (this is not an error, but is certainly weird)')
    end
-   self:_set_state(HALTED)
+   self:_set_state(FINISHED)
    return result
 end
 
 function ExecutionUnitV2:stop()
    self._log:spam('stop')
    
-   if self:_in_state(RUNNING, HALTED) then
+   if self:_in_state(RUNNING, FINISHED) then
       self._log:debug('stop requested.')
       if self._execute_frame then
          self._execute_frame:destroy()

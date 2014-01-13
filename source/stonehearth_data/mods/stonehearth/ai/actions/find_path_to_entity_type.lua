@@ -47,14 +47,14 @@ function FindPathToEntityType:_consider_destination(ai, entity, target)
    end
 end
 
-function FindPathToEntityType:_remove_destination(ai, id)
+function FindPathToEntityType:_remove_destination(ai, _, id)
    if self._solution_entity_id then
       if id == self._solution_entity_id then
          -- rats!  the thing we found earlier is no longer in the world.  revoke our
          -- current solution and restart the pathfinder
          ai:clear_think_output()
-         self:_stop_pathfinder()
-         self:_start_pathfinder()
+         self:_stop_pathfinder(ai, entity)
+         self:_start_pathfinder(ai, entity)
       else
          -- a destination was removed, but it's not our current solution.  just
          -- ignore it
@@ -71,7 +71,7 @@ function FindPathToEntityType:_start_pathfinder(ai, entity)
       self:_consider_destination(ai, entity, target)
    end   
    local on_removed = function(id)
-      self:_remove_destination(ai, id)
+      self:_remove_destination(ai, entity, id)
    end   
    local solved = function(path)
       self._solution_path = path

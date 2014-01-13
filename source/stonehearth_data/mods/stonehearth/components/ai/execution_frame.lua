@@ -5,11 +5,11 @@ local SET_ACTIVE_UNIT = { __comment = 'change active running unit' }
 
 -- these values are in the interface, since we trigger them as events.  don't change them!
 local CONSTRUCTED = 'constructed'
-local PROCESSING = 'processing'
+local THINKING = 'thinking'
 local READY = 'ready'
 local STARTING = 'starting'
 local RUNNING = 'running'
-local HALTED = 'halted'
+local FINISHED = 'finished'
 local STOPPING = 'stopping'
 local STOPPED = 'stopped'
 local DYING = 'dying'
@@ -59,10 +59,10 @@ function ExecutionFrame:_on_action_added(key, entry, does)
 end
 
 function ExecutionFrame:_is_thinking()
-   return self._state == PROCESSING or
+   return self._state == THINKING or
           self._state == READY or
           self._state == RUNNING or
-          self._state == HALTED
+          self._state == FINISHED
 end
 
 function ExecutionFrame:_add_execution_unit(key, entry)
@@ -135,7 +135,7 @@ end
 -- xxx
 function ExecutionFrame:on_unit_state_change(unit)   
    if not self._lock_active_unit then
-      if self:_in_state(PROCESSING, READY, RUNNING) then
+      if self:_in_state(THINKING, READY, RUNNING) then
          if unit:is_runnable() and self:_is_better_execution_unit(unit) then
             self._log:spam('active unit "%s" being replaced by unit "%s"', self:_get_active_unit_name(), unit:get_name())
             self:_set_active_unit(unit)
@@ -161,7 +161,7 @@ function ExecutionFrame:start_thinking()
    assert(self._state == CONSTRUCTED)
    
    self._lock_active_unit = true
-   self:_set_state(PROCESSING)
+   self:_set_state(THINKING)
    for _, unit in pairs(self._execution_units) do
       if self:_is_better_execution_unit(unit) then
          unit:start_thinking(self:_clone_entity_state())
@@ -178,7 +178,7 @@ function ExecutionFrame:stop_thinking()
    
    if self._state == CONSTRUCTED  then
       assert(self._active_unit == nil)
-   elseif self:_in_state(PROCESSING, READY, STARTING, RUNNING, HALTED, STOPPING, STOPPED) then
+   elseif self:_in_state(THINKING, READY, STARTING, RUNNING, FINISHED, STOPPING, STOPPED) then
       for _, unit in pairs(self._execution_units) do
          unit:stop_thinking()
       end
@@ -267,7 +267,7 @@ function ExecutionFrame:run()
       self:start_thinking()
    end
    repeat
-      if self._state == PROCESSING then
+      if self._state == THINKING then
          self:_suspend_until_ready()         
       elseif self._state == READY then
          self:start()
@@ -277,7 +277,7 @@ function ExecutionFrame:run()
       else
          assert(false, string.format('unknown state %s in state machine', self._state))
       end
-   until self._state == HALTED or self._state == DEAD   
+   until self._state == FINISHED or self._state == DEAD   
    self._log:spam('end run (state is %s)', self._state)
 end
 
@@ -324,7 +324,7 @@ function ExecutionFrame:_suspend_until_ready()
    assert(not self._co)
    assert(not self._co_running)
    assert(not self._active_unit)
-   assert(self._state == PROCESSING)
+   assert(self._state == THINKING)
 
    self._log:info('suspending thread until ready to go')
    radiant.events.listen(self, 'ready', function()
@@ -424,7 +424,7 @@ function ExecutionFrame:_set_active_unit(unit)
       assert(not unit)
       assert(not self._active_unit)
       assert(not self._co)
-   elseif self._state == PROCESSING then
+   elseif self._state == THINKING then
       set_active_unit(unit)
       if unit then
          self:_set_state(READY)
@@ -462,7 +462,7 @@ function ExecutionFrame:_set_active_unit(unit)
          set_active_unit(nil)
       end
       self._ai_component:resume_thread()
-   elseif self._state == HALTED then
+   elseif self._state == FINISHED then
       assert(not unit)
       assert(not self._co)
       assert(not self._co_running)
@@ -525,9 +525,9 @@ function ExecutionFrame:_protected_call()
       self._co = nil
       -- we explicity do not call stop here.  make the caller do it, so they have
       -- explicit control of the destruction of many spawned execution frames.
-      -- use the state HALTED to indicate run is finished but stop has not been
+      -- use the state FINISHED to indicate run is finished but stop has not been
       -- called
-      self:_set_state(HALTED)
+      self:_set_state(FINISHED)
    elseif status == 'suspended' then
       -- the coroutine's status is suspended when the run method yields.  this
       -- almost always happens because the run method called ai:suspend(). 

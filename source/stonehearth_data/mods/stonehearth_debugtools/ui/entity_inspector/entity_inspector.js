@@ -57,6 +57,7 @@ App.StonehearthEntityInspectorView = App.View.extend({
    fetch: function(entity) {
       var self = this;
       self.set('context.state', 'fetching ai component uri');
+      self.set('context.ai', Ember.Object.create());
       
       if (self.trace) {
          self.trace.destroy();
@@ -78,12 +79,23 @@ App.StonehearthEntityInspectorView = App.View.extend({
          });
    },
 
+   _processDebugInfo: function(node, indent) {
+      var self = this;
+      indent = indent ? indent : 0;
+      if (node instanceof Array || node instanceof Object) {
+         node.styleOverride = 'padding-left: ' + (indent * 4) + 'px';
+         $.each(node, function(k, v) { self._processDebugInfo(v, indent+1); });
+      }
+   },
+
    fetchAiComponent: function() {
       var self = this;
       self.set('context.state', 'updating...');
       radiant.call_obj(self._aiComponent, 'get_debug_info')
         .done(function(debugInfo) {
            self.set('context.state', 'updating..');
+           //self.updateContext(self.get('context.ai'), debugInfo)
+           self._processDebugInfo(debugInfo)
            self.set('context.ai', debugInfo)
            if (self._aiComponent) {
               self.set('context.state', 'updating. ' + new Date().getTime());
