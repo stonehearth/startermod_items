@@ -81,8 +81,8 @@ Renderer::Renderer() :
    GLFWmonitor* monitor;
    int windowX, windowY;
    SelectSaneVideoMode(config_.enable_fullscreen.value, &windowWidth_, &windowHeight_, &windowX, &windowY, &monitor);
-   config_.last_window_x.value = std::max(0, windowX);
-   config_.last_window_y.value = std::max(0, windowY);
+   config_.last_window_x.value = windowX;
+   config_.last_window_y.value = windowY;
    config_.screen_height.value = windowHeight_;
    config_.screen_width.value = windowWidth_;
 
@@ -112,7 +112,7 @@ Renderer::Renderer() :
    // Set options
    h3dSetOption(H3DOptions::LoadTextures, 1);
    h3dSetOption(H3DOptions::TexCompression, 0);
-   h3dSetOption(H3DOptions::MaxAnisotropy, 4);
+   h3dSetOption(H3DOptions::MaxAnisotropy, 1);
    h3dSetOption(H3DOptions::FastAnimation, 1);
    h3dSetOption(H3DOptions::DumpFailedShaders, 1);
 
@@ -222,8 +222,8 @@ Renderer::Renderer() :
       RECT rect;
       GetWindowRect(Renderer::GetInstance().GetWindowHandle(), &rect);
 
-      Renderer::GetInstance().config_.last_window_x.value = std::max(0, (int)rect.left);
-      Renderer::GetInstance().config_.last_window_y.value = std::max(0, (int)rect.top);
+      Renderer::GetInstance().config_.last_window_x.value = (int)rect.left;
+      Renderer::GetInstance().config_.last_window_y.value = (int)rect.top;
       Renderer::GetInstance().config_.screen_width.value = Renderer::GetInstance().windowWidth_;
       Renderer::GetInstance().config_.screen_height.value = Renderer::GetInstance().windowHeight_;
       Renderer::GetInstance().ApplyConfig(Renderer::GetInstance().config_, true);
@@ -395,8 +395,8 @@ void Renderer::GetConfigOptions()
 
    config_.draw_distance.value = config.Get("renderer.draw_distance", 1000.0f);
 
-   config_.last_window_x.value = std::max(0, config.Get("renderer.last_window_x", 0));
-   config_.last_window_y.value = std::max(0, config.Get("renderer.last_window_y", 0));
+   config_.last_window_x.value = config.Get("renderer.last_window_x", 0);
+   config_.last_window_y.value = config.Get("renderer.last_window_y", 0);
 }
 
 void Renderer::ApplyConfig(const RendererConfig& newConfig, bool persistConfig)
@@ -478,19 +478,18 @@ void Renderer::SelectSaneVideoMode(bool fullscreen, int* width, int* height, int
 
    GLFWmonitor** monitors = glfwGetMonitors(&numMonitors);
 
-   int lastMonitorX = 0, lastMonitorY = 0;
    GLFWmonitor *desiredMonitor = NULL;
    for (int i = 0; i < numMonitors; i++) 
    {
       int monitorX, monitorY;
       glfwGetMonitorPos(monitors[i], &monitorX, &monitorY);
+      const GLFWvidmode* m = glfwGetVideoMode(monitors[i]);
       
       if ((lastX >= monitorX && lastY >= monitorY) && 
-         (monitorX >= lastMonitorX && monitorY >= lastMonitorY)) 
+         (lastX < monitorX + m->width && lastY < monitorY + m->height)) 
       {
          desiredMonitor = monitors[i];
-         lastMonitorX = monitorX;
-         lastMonitorY = monitorY;
+         break;
       }
    }
    if (desiredMonitor == NULL) {
@@ -499,10 +498,10 @@ void Renderer::SelectSaneVideoMode(bool fullscreen, int* width, int* height, int
       desiredMonitor = glfwGetPrimaryMonitor();
    }
 
+   // At this point, we have a valid monitor, and a position.
    *monitor = desiredMonitor;
    *windowX = lastX;
    *windowY = lastY;
-   // At this point, we have a valid monitor, and a position.
 
    int last_res_width = config_.screen_width.value;
    int last_res_height = config_.screen_height.value;
