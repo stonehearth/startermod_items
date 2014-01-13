@@ -1,5 +1,6 @@
 local MathFns = require 'services.world_generation.math.math_fns'
 local ScenarioCategory = require 'services.world_generation.scenario_category'
+local ScenarioServices = require 'services.world_generation.scenario_services'
 local HabitatType = require 'services.world_generation.habitat_type'
 local Point2 = _radiant.csg.Point2
 local Point3 = _radiant.csg.Point3
@@ -8,113 +9,93 @@ local log = radiant.log.create_logger('world_generation')
 local ScenarioManager = class()
 
 function ScenarioManager:__init(feature_cell_size, rng)
-   self._enabled = radiant.util.get_config('enable_scenarios', false)
-   if not self._enabled then
-      return
-   end
    self._feature_cell_size = feature_cell_size
    self._rng = rng
+
    local scenario_index = radiant.resources.load_json('stonehearth:scenarios:scenario_index')
+   local categories = {}
 
-   self._scenarios = {}
-   local scenarios = self._scenarios
-
-   for key, value in pairs(scenario_index.categories) do
-      scenarios[key] = ScenarioCategory(key, value.frequency, value.priority, self._rng)
+   -- load all the categories
+   for name, properties in pairs(scenario_index.categories) do
+      categories[name] = ScenarioCategory(name, properties.frequency, properties.priority, self._rng)
    end
 
-   for _, value in pairs(scenario_index.scenarios) do
-      local item = radiant.resources.load_json(value)
-      local key = item.category
-      scenarios[key]:add(item)
+   -- load the scenarios into the categories
+   for _, file in pairs(scenario_index.scenarios) do
+      local scenario = radiant.resources.load_json(file)
+      scenario.habitat_types_as_enum = HabitatType.parse_string_array(scenario.habitat_types)
+      categories[scenario.category]:add(scenario)
    end
+
+   self._categories = categories
 end
 
 -- TODO: sort scenarios by priority then area
 -- TODO: randomize orientation in place_entity
-function ScenarioManager:place_scenarios(habitat_map, elevation_map, world_offset_x, world_offset_y)
-   if not self._enabled then
-      return
-   end
-   
+function ScenarioManager:place_scenarios(habitat_map, elevation_map, tile_offset_x, tile_offset_y)
    local rng = self._rng
    local feature_cell_size = self._feature_cell_size
-   local scenarios, scenario_script
-   local scenario_feature_width, scenario_feature_length, scenario_voxel_width, scenario_voxel_length
-   local site, sites, num_sites, roll, offset_x, offset_y, habitat_type
-   local context = {}
+   local scenarios, scenario_script, services
+   local feature_width, feature_length, voxel_width, voxel_length
+   local site, sites, num_sites, roll, offset_x, offset_y, habitat_types
+   
+   services = ScenarioServices(rng)
 
-   context.rng = self._rng
+   scenarios = self:_select_scenarios()
 
-   scenarios = self:_get_scenarios()
+   for _, properties in pairs(scenarios) do
+      habitat_types = properties.habitat_types_as_enum
+      voxel_width = properties.size.width
+      voxel_length = properties.size.length
+      feature_width, feature_length = self:_get_dimensions_in_feature_units(voxel_width, voxel_length)
 
-   for _, scenario in pairs(scenarios) do
-      habitat_type = HabitatType.from_string(scenario.habitat_type)
-      scenario_voxel_width = scenario.size.width
-      scenario_voxel_length = scenario.size.length
-      scenario_feature_width, scenario_feature_length = 
-         self:_get_dimensions_in_feature_units(scenario_voxel_width, scenario_voxel_length)
-      sites = self:_find_valid_sites(habitat_map, elevation_map, habitat_type, scenario_feature_width, scenario_feature_length)
+      -- get a list of valid locations
+      sites = self:_find_valid_sites(habitat_map, elevation_map, habitat_types, feature_width, feature_length)
       num_sites = #sites
 
       if num_sites > 0 then
+         -- pick a random location
          roll = rng:get_int(1, num_sites)
          site = sites[roll]
 
          -- -1 to convert to C++ base 0 array coordinates
-         offset_x = (site.x-1)*feature_cell_size + world_offset_x - 1
-         offset_y = (site.y-1)*feature_cell_size + world_offset_y - 1
+         offset_x = (site.x-1)*feature_cell_size + tile_offset_x - 1
+         offset_y = (site.y-1)*feature_cell_size + tile_offset_y - 1
 
-         context.scenario = scenario
+         -- set parameters that are needed by ScenarioServices
+         services:_set_scenario_properties(properties, offset_x, offset_y)
 
-         context.place_entity = function(uri, x, y)
-            x, y = self:_bounds_check(x, y, scenario_voxel_width, scenario_voxel_length)
+         scenario_script = radiant.mods.load_script(properties.script)
+         scenario_script:initialize(properties, services)
+         
+         self:_mark_site_occupied(habitat_map, site.x, site.y, feature_width, feature_length)
 
-            local entity = radiant.entities.create_entity(uri)
-            radiant.terrain.place_entity(entity, Point3(x + offset_x, 1, y + offset_y))
-            self:_set_random_facing(entity)
-            return entity
+         if properties.unique then
+            self:_remove_scenario(properties)
          end
-
-         scenario_script = radiant.mods.load_script(scenario.script)
-         scenario_script:initialize(context)
-         self:_mark_scenario_site(habitat_map, site.x, site.y, scenario_feature_width, scenario_feature_length)
-         table.remove(sites, roll)
       end
    end
 end
 
-function ScenarioManager:_get_scenarios()
-   local scenarios = self._scenarios
-   local selected_scenarios = {}
-   local list
-
-   for key, _ in pairs(scenarios) do
-      list = scenarios[key]:pick_scenarios()
-      for _, value in pairs(list) do
-         table.insert(selected_scenarios, value)
-      end
-   end
-
-   return selected_scenarios
-end
-
-function ScenarioManager:_mark_scenario_site(habitat_map, i, j, width, length)
-   habitat_map:set_block(i, j, width, length, HabitatType.Occupied)
-end
-
-function ScenarioManager:_find_valid_sites(habitat_map, elevation_map, habitat_type, width, length)
+function ScenarioManager:_find_valid_sites(habitat_map, elevation_map, habitat_types, width, length)
    local i, j, is_habitat_type, is_flat, elevation
    local sites = {}
 
    local is_target_habitat_type = function(value)
-      return value == habitat_type
+      for _, habitat_type in pairs(habitat_types) do
+         if value == habitat_type then
+            return true
+         end
+      end
+      return false
    end
 
    for j=1, habitat_map.height-(length-1) do
       for i=1, habitat_map.width-(width-1) do
+         -- check if block meets habitat requirements
          is_habitat_type = habitat_map:visit_block(i, j, width, length, is_target_habitat_type)
          if is_habitat_type then
+            -- check if block is flat
             elevation = elevation_map:get(i, j)
             is_flat = elevation_map:visit_block(i, j, width, length,
                function (value)
@@ -131,16 +112,59 @@ function ScenarioManager:_find_valid_sites(habitat_map, elevation_map, habitat_t
    return sites
 end
 
+-- get a list of scenarios from all the categories
+function ScenarioManager:_select_scenarios()
+   local categories = self._categories
+   local scenarios = {}
+   local list
+
+   for key, _ in pairs(categories) do
+      list = categories[key]:select_scenarios()
+      for _, item in pairs(list) do
+         table.insert(scenarios, item)
+      end
+   end
+
+   self:_sort_scenarios(scenarios)
+
+   return scenarios
+end
+
+-- order first by priority then by area
+function ScenarioManager:_sort_scenarios(scenarios)
+   local comparator = function(a, b)
+      local category_a = a.category
+      local category_b = b.category
+
+      if category_a ~= category_b then
+         local categories = self._categories
+         local priority_a = categories[category_a].priority
+         local priority_b = categories[category_b].priority
+         -- higher priority sorted to lower index
+         return priority_a > priority_b
+      end
+
+      local area_a = a.size.width * a.size.length
+      local area_b = b.size.width * b.size.length
+      -- larger area sorted to lower index
+      return area_a > area_b 
+   end
+
+   table.sort(scenarios, comparator)
+end
+
+function ScenarioManager:_remove_scenario(scenario)
+   local name = scenario.name
+   local category = scenario.category
+   self._categories[category]:remove(name)
+end
+
+function ScenarioManager:_mark_site_occupied(habitat_map, i, j, width, length)
+   habitat_map:set_block(i, j, width, length, HabitatType.Occupied)
+end
+
 function ScenarioManager:_get_dimensions_in_feature_units(width, length)
    return math.ceil(width/self._feature_cell_size), math.ceil(length/self._feature_cell_size)
-end
-
-function ScenarioManager:_bounds_check(x, y, width, length)
-   return MathFns.bound(x, 1, width), MathFns.bound(y, 1, length)
-end
-
-function ScenarioManager:_set_random_facing(entity)
-   entity:add_component('mob'):turn_to(90*self._rng:get_int(0, 3))
 end
 
 return ScenarioManager

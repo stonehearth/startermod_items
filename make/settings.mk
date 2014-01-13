@@ -1,3 +1,8 @@
+ifeq ($(MAKE_ROOT),)
+-include local.mk
+else
+-include $(MAKE_ROOT)/../local.mk
+endif
 
 ifeq ($(BUILD_TYPE),)
   ifneq ($(BAMBOO_PRODUCT_BUILDTYPE),)
@@ -24,14 +29,20 @@ ifeq (_$(MSBUILD_CONFIGURATION)_, __)
    $(error Unknown BUILD_TYPE=$(BUILD_TYPE). Must be debug, opt, or release.)
 endif
 
+ifneq ($(ENABLE_MEMPRO),)
+	MEMPRO_CMAKE_FLAGS=-DENABLE_MEMPRO=ON
+	MEMPRO_MSBUILD_FLAGS=-p:DefineConstants="ENABLE_MEMPRO"
+endif
+
+
 # default commands and such
 7ZA=7za
-MSBUILD='/c/windows/Microsoft.NET/Framework/v4.0.30319/msbuild.exe' -nologo -maxcpucount -p:PlatformToolset=$(RADIANT_VISUAL_STUDIO_PLATFORM_TOOLS_VERSION)
+MSBUILD='/c/windows/Microsoft.NET/Framework/v4.0.30319/msbuild.exe' -nologo -maxcpucount -p:PlatformToolset=$(RADIANT_VISUAL_STUDIO_PLATFORM_TOOLS_VERSION) $(MEMPRO_MSBUILD_FLAGS)
 
 CMAKE_C_FLAG_OVERRIDE=-DCMAKE_USER_MAKE_RULES_OVERRIDE=${MAKE_ROOT_DOS}/c_flag_overrides.cmake
 CMAKE_CXX_FLAG_OVERRIDE=-DCMAKE_USER_MAKE_RULES_OVERRIDE_CXX=${MAKE_ROOT_DOS}/cxx_flag_overrides.cmake
 CMAKE_FLAG_OVERRIDE=$(CMAKE_C_FLAG_OVERRIDE) $(CMAKE_CXX_FLAG_OVERRIDE)
-CMAKE=cmake.exe -T $(RADIANT_VISUAL_STUDIO_PLATFORM_TOOLS_VERSION) $(CMAKE_FLAG_OVERRIDE)
+CMAKE=cmake.exe -T $(RADIANT_VISUAL_STUDIO_PLATFORM_TOOLS_VERSION) $(CMAKE_FLAG_OVERRIDE) $(MEMPRO_CMAKE_FLAGS)
 
 #CMAKE=cmake.exe
 VCUPGRADE=vcupgrade -overwrite

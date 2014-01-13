@@ -5,28 +5,33 @@ local MathFns = require 'services.world_generation.math.math_fns'
 local InverseGaussianRandom = require 'services.world_generation.math.inverse_gaussian_random'
 local Point2 = _radiant.csg.Point2
 
-local EdgeDetailer = class()
+local TerrainDetailer = class()
 
-function EdgeDetailer:__init(terrain_info, rng)
-   self.terrain_info = terrain_info
+-- note that the tile_width and tile_height passed in are currently the oversize width and height
+function TerrainDetailer:__init(terrain_info, tile_width, tile_height, rng)
+   self._terrain_info = terrain_info
+   self._tile_width = tile_width
+   self._tile_height = tile_height
    self.detail_seed_probability = 0.10
    self.detail_grow_probability = 0.85
    self.edge_threshold = 4
    self._rng = rng
    self._inverse_gaussian_random = InverseGaussianRandom(self._rng)
+
+   self._edge_map_buffer = Array2D(self._tile_width, self._tile_height)
 end
 
-function EdgeDetailer:add_detail_blocks(height_map)
+function TerrainDetailer:add_detail_blocks(tile_map)
    local rng = self._rng
    local i, j, edge
    local edge_threshold = self.edge_threshold
-   local edge_map = Array2D(height_map.width, height_map.height)
+   local edge_map = self._edge_map_buffer
    local detail_seeds = {}
    local num_seeds = 0
 
-   for j=1, height_map.height do
-      for i=1, height_map.width do
-         edge = self:_is_edge(height_map, i, j, edge_threshold)
+   for j=1, tile_map.height do
+      for i=1, tile_map.width do
+         edge = self:_is_edge(tile_map, i, j, edge_threshold)
          edge_map:set(i, j, edge)
 
          if edge then
@@ -41,22 +46,22 @@ function EdgeDetailer:add_detail_blocks(height_map)
    local point
    for i=1, num_seeds do
       point = detail_seeds[i]
-      self:_grow_seed(height_map, edge_map, point.x, point.y)
+      self:_grow_seed(tile_map, edge_map, point.x, point.y)
    end
 end
 
-function EdgeDetailer:_grow_seed(height_map, edge_map, x, y)
+function TerrainDetailer:_grow_seed(tile_map, edge_map, x, y)
    local edge = edge_map:get(x, y)
    if edge == false then return end
 
    local i, j, continue, base_height, detail_height
 
-   base_height = height_map:get(x, y)
+   base_height = tile_map:get(x, y)
 
    -- if edge is not false, edge is the delta to the highest neighbor
    detail_height = self:_generate_detail_height(edge, base_height)
 
-   height_map:set(x, y, base_height+detail_height)
+   tile_map:set(x, y, base_height+detail_height)
    edge_map:set(x, y, false)
 
    i = x
@@ -65,7 +70,7 @@ function EdgeDetailer:_grow_seed(height_map, edge_map, x, y)
       -- grow left
       i = i - 1
       if i < 1 then break end
-      continue = self:_try_grow(height_map, edge_map, i, j, detail_height)
+      continue = self:_try_grow(tile_map, edge_map, i, j, detail_height)
       if not continue then break end
    end
 
@@ -74,8 +79,8 @@ function EdgeDetailer:_grow_seed(height_map, edge_map, x, y)
    while true do
       -- grow right
       i = i + 1
-      if i > height_map.width then break end
-      continue = self:_try_grow(height_map, edge_map, i, j, detail_height)
+      if i > tile_map.width then break end
+      continue = self:_try_grow(tile_map, edge_map, i, j, detail_height)
       if not continue then break end
    end
 
@@ -85,7 +90,7 @@ function EdgeDetailer:_grow_seed(height_map, edge_map, x, y)
       -- grow up
       j = j - 1
       if j < 1 then break end
-      continue = self:_try_grow(height_map, edge_map, i, j, detail_height)
+      continue = self:_try_grow(tile_map, edge_map, i, j, detail_height)
       if not continue then break end
    end
 
@@ -94,15 +99,15 @@ function EdgeDetailer:_grow_seed(height_map, edge_map, x, y)
    while true do
       -- grow down
       j = j + 1
-      if j > height_map.height then break end
-      continue = self:_try_grow(height_map, edge_map, i, j, detail_height)
+      if j > tile_map.height then break end
+      continue = self:_try_grow(tile_map, edge_map, i, j, detail_height)
       if not continue then break end
    end
 end
 
 -- inverse bell curve from 1 to quantization size
-function EdgeDetailer:_generate_detail_height(max_delta, base_height)
-   if base_height >= self.terrain_info[TerrainType.Foothills].max_height then
+function TerrainDetailer:_generate_detail_height(max_delta, base_height)
+   if base_height >= self._terrain_info[TerrainType.Foothills].max_height then
       -- if rng:get_real(0, 1) <= 0.50 then
          return max_delta
       -- else
@@ -117,11 +122,11 @@ function EdgeDetailer:_generate_detail_height(max_delta, base_height)
    end
 end
 
-function EdgeDetailer:_generate_detail_height_uniform(max_delta)
+function TerrainDetailer:_generate_detail_height_uniform(max_delta)
    return self._rng:get_int(1, max_delta)
 end
 
-function EdgeDetailer:_try_grow(height_map, edge_map, x, y, detail_height)
+function TerrainDetailer:_try_grow(tile_map, edge_map, x, y, detail_height)
    local rng = self._rng
    local edge, value
 
@@ -131,41 +136,41 @@ function EdgeDetailer:_try_grow(height_map, edge_map, x, y, detail_height)
 
    if edge < detail_height then detail_height = edge end
 
-   value = height_map:get(x, y)
-   height_map:set(x, y, value+detail_height)
+   value = tile_map:get(x, y)
+   tile_map:set(x, y, value+detail_height)
    edge_map:set(x, y, false)
    return true
 end
 
 -- returns false is no non-diagonal neighbor higher by more then threshold
 -- othrewise returns the height delta to the highest neighbor
-function EdgeDetailer:_is_edge(height_map, x, y, threshold)
+function TerrainDetailer:_is_edge(tile_map, x, y, threshold)
    local neighbor
-   local offset = height_map:get_offset(x, y)
-   local value = height_map[offset]
-   local width = height_map.width
-   local height = height_map.height
+   local offset = tile_map:get_offset(x, y)
+   local value = tile_map[offset]
+   local width = tile_map.width
+   local height = tile_map.height
    local delta, max_delta
 
    max_delta = threshold
 
    if x > 1 then
-      neighbor = height_map[offset-1]
+      neighbor = tile_map[offset-1]
       delta = neighbor - value
       if delta > max_delta then max_delta = delta end
    end
    if x < width then
-      neighbor = height_map[offset+1]
+      neighbor = tile_map[offset+1]
       delta = neighbor - value
       if delta > max_delta then max_delta = delta end
    end
    if y > 1 then
-      neighbor = height_map[offset-width]
+      neighbor = tile_map[offset-width]
       delta = neighbor - value
       if delta > max_delta then max_delta = delta end
    end
    if y < height then
-      neighbor = height_map[offset+width]
+      neighbor = tile_map[offset+width]
       delta = neighbor - value
       if delta > max_delta then max_delta = delta end
    end
@@ -179,55 +184,55 @@ end
 
 -- makes lots of assumptions about how grasslands are quantized
 -- ok since this will change anyway if grasslands are quantized differently
-function EdgeDetailer:add_grassland_details(height_map)
+function TerrainDetailer:add_grassland_details(tile_map)
    local edge_threshold = 2
    local i, j
 
-   for j=1, height_map.width do
-      for i=1, height_map.height do
-         if self:_is_grassland_edge(height_map, i, j, edge_threshold) then
-            local offset = height_map:get_offset(i, j)
-            height_map[offset] = height_map[offset] + 1
+   for j=1, tile_map.width do
+      for i=1, tile_map.height do
+         if self:_is_grassland_edge(tile_map, i, j, edge_threshold) then
+            local offset = tile_map:get_offset(i, j)
+            tile_map[offset] = tile_map[offset] + 1
          end
       end
    end
 end
 
-function EdgeDetailer:_is_grassland_edge(height_map, x, y, threshold)
-   local offset = height_map:get_offset(x, y)
-   local value = height_map[offset]
-   local width = height_map.width
-   local height = height_map.height
+function TerrainDetailer:_is_grassland_edge(tile_map, x, y, threshold)
+   local offset = tile_map:get_offset(x, y)
+   local value = tile_map[offset]
+   local width = tile_map.width
+   local height = tile_map.height
    local neighbor
 
-   if value >= self.terrain_info[TerrainType.Grassland].max_height then
+   if value >= self._terrain_info[TerrainType.Grassland].max_height then
       return false
    end
 
    if x > 1 then
-      neighbor = height_map[offset-1]
+      neighbor = tile_map[offset-1]
       if neighbor - value == threshold then return true end
    end
    if x < width then
-      neighbor = height_map[offset+1]
+      neighbor = tile_map[offset+1]
       if neighbor - value == threshold then return true end
    end
    if y > 1 then
-      neighbor = height_map[offset-width]
+      neighbor = tile_map[offset-width]
       if neighbor - value == threshold then return true end
    end
    if y < height then
-      neighbor = height_map[offset+width]
+      neighbor = tile_map[offset+width]
       if neighbor - value == threshold then return true end
    end
 
    return false
 end
 
-function EdgeDetailer:remove_mountain_chunks(height_map, micro_map)
+function TerrainDetailer:remove_mountain_chunks(tile_map, micro_map)
    local rng = self._rng
    local chunk_probability = 0.5
-   local foothills_max_height = self.terrain_info[TerrainType.Foothills].max_height
+   local foothills_max_height = self._terrain_info[TerrainType.Foothills].max_height
    local height, removed
 
    -- TODO: resolve chunks on edge macro_blocks
@@ -244,7 +249,7 @@ function EdgeDetailer:remove_mountain_chunks(height_map, micro_map)
 
             -- check all 4 directions unless chunk is removed
             for dir=1, 4 do
-               removed = self:_remove_chunk(height_map, micro_map, i, j, dx, dy)
+               removed = self:_remove_chunk(tile_map, micro_map, i, j, dx, dy)
                if removed then break end
                dx, dy = _rotate_90(dx, dy)
             end
@@ -265,8 +270,8 @@ function _rotate_90(x, y)
    return -y, x
 end
 
-function EdgeDetailer:_remove_chunk(height_map, micro_map, x, y, dx, dy)
-   local mountains_step_size = self.terrain_info[TerrainType.Mountains].step_size
+function TerrainDetailer:_remove_chunk(tile_map, micro_map, x, y, dx, dy)
+   local mountains_step_size = self._terrain_info[TerrainType.Mountains].step_size
    local height, adj_height
    local macro_block_size, macro_block_x, macro_block_y, chunk_x, chunk_y
    local chunk_length, chunk_offset, chunk_depth
@@ -283,7 +288,7 @@ function EdgeDetailer:_remove_chunk(height_map, micro_map, x, y, dx, dy)
       end
    end
 
-   macro_block_size = height_map.width / micro_map.width
+   macro_block_size = tile_map.width / micro_map.width
    macro_block_x = (x-1)*macro_block_size+1
    macro_block_y = (y-1)*macro_block_size+1
 
@@ -319,7 +324,7 @@ function EdgeDetailer:_remove_chunk(height_map, micro_map, x, y, dx, dy)
       chunk_height = chunk_length
    end
 
-   height_map:process_block(chunk_x, chunk_y, chunk_width, chunk_height,
+   tile_map:process_block(chunk_x, chunk_y, chunk_width, chunk_height,
       function (value)
          if value > new_height then return new_height end
          return value
@@ -329,7 +334,7 @@ function EdgeDetailer:_remove_chunk(height_map, micro_map, x, y, dx, dy)
    return true
 end
 
-function EdgeDetailer:_generate_chunk_length_and_offset(macro_block_size)
+function TerrainDetailer:_generate_chunk_length_and_offset(macro_block_size)
    local rng = self._rng
    local quarter_macro_block_size = macro_block_size * 0.25
    local chunk_length = quarter_macro_block_size * rng:get_int(1, 4)
@@ -337,4 +342,4 @@ function EdgeDetailer:_generate_chunk_length_and_offset(macro_block_size)
    return chunk_length, chunk_offset
 end
 
-return EdgeDetailer
+return TerrainDetailer

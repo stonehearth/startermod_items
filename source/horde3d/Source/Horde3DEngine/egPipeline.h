@@ -134,10 +134,6 @@ typedef std::shared_ptr<PipelineStage> PipelineStagePtr;
 
 struct RenderTarget
 {
-   // We need to multi-buffer the render targets so that we don't block the current
-   // frame on them.
-   static const int NumRenderObjects = 3;
-
 	std::string           id;
 	uint32                numColBufs;
 	TextureFormats::List  format;
@@ -146,17 +142,13 @@ struct RenderTarget
 	float                 scale;  // Scale factor for FB width and height
 	bool                  hasDepthBuf;
 
-   uint32                rendBuf[NumRenderObjects];
-   uint32                curRendBuf;
+   uint32                rendBuf;
 
 	RenderTarget()
 	{
 		hasDepthBuf = false;
 		numColBufs = 0;
-      for (int i = 0; i < NumRenderObjects; i++) {
-		   rendBuf[i] = 0;
-      }
-      curRendBuf = 0;
+		rendBuf = 0;
 	}
 };
 

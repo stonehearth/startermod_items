@@ -55,12 +55,12 @@ function CommandsComponent:_set_defaults(data_table)
       data_table.enabled = data_table.default_enabled
    end
 
-   --If no tooltip was specified, then enabled/disabled tooltips may be specified instead
-   if not data_table.tooltip then
-      data_table.tooltip = data_table.enabled_tooltip
-      if not data_table.enabled and data_table.disabled_tooltip then
-         data_table.tooltip = data_table.disabled_tooltip
-      end
+   --Tuck away the description so we'll have it around when we overwrite it as the command
+   -- is enabled and disabled
+   data_table.enabled_description = data_table.description
+
+   if not data_table.enabled and data_table.disabled_description then
+      data_table.description = data_table.disabled_description
    end
 end
 
@@ -89,11 +89,11 @@ function CommandsComponent:enable_command(name, status)
    local command = self:_find_command_by_name(name)
    if command then
       command.enabled = status
-      if status and command.enabled_tooltip then
-         command.tooltip = command.enabled_tooltip
+      if status  then
+         command.description = command.enabled_description
       else
-         if not status and command.disabled_tooltip then
-            command.tooltip = command.disabled_tooltip
+         if not status and command.disabled_description then
+            command.description = command.disabled_description
          end
       end
       self._data_binding:mark_changed()

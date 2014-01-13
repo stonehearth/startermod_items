@@ -2,8 +2,9 @@
    "type" : "command",
 
    "name": "show_workshop_from_crafter",
-   "enabled_tooltip": "Craft!",
-   "disabled_tooltip": "",
+   "tooltip": "Craft!",
+   "description": "Your crafter uses the workshop to construct useful items for your settlement.",
+   "disabled_description": "Your crafter uses the workshop to construct useful items for your settlement. Before you can craft you need to assign a crafter to this workshop.",
    "default_enabled": true,
    "icon": "file(../show_workshop/show_workshop.png)",
 

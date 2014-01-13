@@ -2,8 +2,10 @@
    "type" : "command",
 
    "name": "harvest_berries",
-   "enabled_tooltip": "Gather Berries",
-   "disabled_tooltip": "Not ripe yet!",
+   "tooltip" : "Gather Berries",
+   "description" : "This bush produces berries that can be gathered to feed your settlers.",
+   "disabled_description" : "The berries on this bush aren't ripe yet!",
+
    "default_enabled": true,  
    "icon": "file(gather_berries.png)",
 

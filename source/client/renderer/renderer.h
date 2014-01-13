@@ -23,6 +23,7 @@
 #include "core/input.h"
 #include "core/buffered_slot.h"
 #include "ui_buffer.h"
+#include "glfw3.h"
 
 BEGIN_RADIANT_CLIENT_NAMESPACE
 
@@ -76,6 +77,9 @@ struct RendererConfig {
    RendererConfigEntry<int> screen_width;
    RendererConfigEntry<int> screen_height;
 
+   RendererConfigEntry<int> last_window_x;
+   RendererConfigEntry<int> last_window_y;
+
    RendererConfigEntry<bool> enable_debug_keys;
 };
 
@@ -114,6 +118,7 @@ class Renderer
       const RendererConfig& GetRendererConfig() const { return config_; }
       void ApplyConfig(const RendererConfig& newConfig, bool persistConfig);
 
+      void SelectSaneVideoMode(bool fullscreen, int* width, int* height, int* windowX, int* windowY, GLFWmonitor** monitor);
       void GetViewportMouseCoords(double& x, double& y);
       csg::Point2 GetMousePosition() const;
       csg::Matrix4 GetNodeTransform(H3DNode node) const;
