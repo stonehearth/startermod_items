@@ -243,7 +243,7 @@ end
 
 function ExecutionUnitV2:initialize(args)
    self._log:spam('initialize')
-   self._args = args
+
    if self:_verify_arguments(args, self._action.args) then
       self._think_output = nil
       if self._state == IDLE then
@@ -252,6 +252,14 @@ function ExecutionUnitV2:initialize(args)
          self:_set_state(IDLE)
       end
    end
+   if self._action.eval_arguments then
+      self._log:spam('eval_arguments...')
+      self._args = self._action:eval_arguments(self, self._entity, args)
+      self._log:spam('eval_arguments returned %s', stonehearth.ai:format_args(self._args))
+   else
+      self._args = args
+   end   
+   return self._args
 end
 
 -- used by the compound action...

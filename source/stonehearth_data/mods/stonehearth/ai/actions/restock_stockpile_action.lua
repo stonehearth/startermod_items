@@ -1,6 +1,6 @@
-local RestockStockpileAction = class()
 StockpileComponent = require 'components.stockpile.stockpile_component'
 
+local RestockStockpileAction = class()
 RestockStockpileAction.name = 'restock stockpile'
 RestockStockpileAction.does = 'stonehearth:restock_stockpile'
 RestockStockpileAction.args = {

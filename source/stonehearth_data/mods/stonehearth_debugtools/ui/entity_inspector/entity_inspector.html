@@ -1,0 +1,27 @@
+<script type="text/x-handlebars" data-template-name="entityInspector">
+   <div id="ai">
+      This is the entity inspector!
+      This is the entity inspector!
+      This is the entity inspector!
+      This is the entity inspector!
+      This is the entity inspector!
+      
+      <!-- {{ view App.StonehearthAiExecutionFrame frameBinding="this.ai.executionFrame" }} -->
+   </div> 
+</script>
+
+<script type="text/x-handlebars" data-template-name="executionFrame">
+   <div id="executionFrame">
+      {{#each frame.executionUnits}}
+         {{view App.StonehearthAiExecutionUnit unitBinding="this"}}
+      {{/each}}
+   </div> 
+</script>
+
+<script type="text/x-handlebars" data-template-name="executionUnit">
+   <div id="executionUnit">
+      {{#if unit.executionFrame}}
+         {{view App.StonehearthAiExecutionFrame frameBinding="this.executionFrame"}}
+      {{/if}}
+   </div> 
+</script>

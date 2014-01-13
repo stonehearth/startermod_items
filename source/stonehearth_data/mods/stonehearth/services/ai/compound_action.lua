@@ -35,7 +35,6 @@ end
 
 function CompoundAction:start_thinking(ai, entity, args)
    self._ai = ai
-   self._args = args
    assert(#self._run_frames == 0)
    assert(#self._think_frames == 0)
    self._previous_think_output = {}
@@ -44,7 +43,7 @@ function CompoundAction:start_thinking(ai, entity, args)
    
    -- compound actions are not allowed to think so calling short_circuit_thinking
    -- should put it into the ready state
-   self._execution_unit:initialize(self._args)
+   self._args = self._execution_unit:initialize(args)
    self._execution_unit:short_circuit_thinking()
    assert(self._execution_unit:get_state() == 'ready')
    

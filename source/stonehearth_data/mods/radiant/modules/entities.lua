@@ -358,6 +358,15 @@ function entities.drop_carrying_on_ground(entity, location)
    end
 end
 
+function entities.put_carrying_into_entity(entity, target)
+   radiant.check.is_entity(entity)
+
+   local item = entities._remove_carrying(entity)
+   if item then
+      entities.add_child(target, item)
+   end
+end
+
 --Uses up the thing a person is carrying
 function entities.consume_carrying(entity)
    radiant.check.is_entity(entity)

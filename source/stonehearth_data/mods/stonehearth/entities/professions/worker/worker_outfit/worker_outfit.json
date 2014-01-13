@@ -36,7 +36,7 @@
                "stonehearth:actions:reserve_stockpile_space",
                "stonehearth:actions:worker_place_action",
                "stonehearth:actions:worker_place_workshop",
-               "stonehearth:actions:worker_light_fire_action",
+               "stonehearth:actions:light_firepit",
                "stonehearth:actions:worker_harvest_plant_action",
                "stonehearth:actions:shear_sheep_action"
             ]

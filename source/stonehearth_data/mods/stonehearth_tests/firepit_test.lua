@@ -9,14 +9,14 @@ function FirePitTest:__init()
    local tree = self:place_tree(-12, -12)
    local tree = self:place_tree(0, -12)
    local worker = self:place_citizen(12, 12)
-   local worker2 = self:place_citizen(11, 12)
+   --local worker2 = self:place_citizen(11, 12)
 
    self:place_item_cluster('stonehearth:oak_log', -10, 0, 3, 3)
 
    local faction = radiant.entities.get_faction(worker)
    self:place_item('stonehearth:firepit_proxy', 1, 1, faction)
-   self:place_item('stonehearth:firepit', 8, 8, faction)
-
+   local firepit = self:place_item('stonehearth:firepit', 8, 8, faction)
+   firepit:get_component('stonehearth:firepit'):_init_gather_wood_task()
 end
 
 return FirePitTest

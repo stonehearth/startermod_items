@@ -6,6 +6,7 @@ local Cube3 = _radiant.csg.Cube3
 
 local log = radiant.log.create_logger('firepit')
 local FirepitComponent = class()
+FirepitComponent.__classname = 'FirepitComponent'
 
 function FirepitComponent:__init(entity, data_store)
    radiant.check.is_entity(entity)
@@ -47,6 +48,11 @@ function FirepitComponent:extend(json)
       self._effective_raidus = json.effective_radius
    end
 end
+
+function FirepitComponent:get_fuel_material()
+   return 'wood resource'
+end
+
 
 --- If WE are added to the universe, register for events, etc/
 function FirepitComponent:_on_entity_add(id, entity)
@@ -191,7 +197,19 @@ end
 
 --- Create a worker task to gather wood
 function FirepitComponent:_init_gather_wood_task()
-   if not self._light_task then
+   if self._light_task then
+      self._light_task:destroy()
+      self._light_task = nil
+   end
+
+   self._light_task = stonehearth.tasks:get_scheduler('stonehearth:workers')
+                                   :create_task('stonehearth:light_firepit', { firepit = self })
+                                   :set_name('light firepit')
+                                   :once()
+                                   :start()
+
+   --[[   
+   self._light_task = 
       local ws = stonehearth.worker_scheduler
       local faction = radiant.entities.get_faction(self._entity)
       assert(faction, "missing a faction on this firepit!")
@@ -235,6 +253,7 @@ function FirepitComponent:_init_gather_wood_task()
       )
    end
    self._light_task:start()
+   ]]
 end
 
 --- Returns whether or not the firepit is lit
