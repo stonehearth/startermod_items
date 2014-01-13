@@ -16,14 +16,15 @@ App.StonehearthEntityInspectorView = App.View.extend({
    didInsertElement: function() {
       var self = this;
 
-      $(top).on("radiant_selection_changed.object_browser", function (_, data) {
+      self.set('context.state', 'no entity selected');
+      $(top).on("radiant_selection_changed.entity_inspector", function (_, data) {
          var uri = data.selected_entity;
          if (uri) {
             self.fetch(uri);
          }
       });
 
-      
+      /*
       $("#body").on("click", "a", function(event) {
          event.preventDefault();
          var uri = $(this).attr('href');
@@ -35,10 +36,11 @@ App.StonehearthEntityInspectorView = App.View.extend({
             $(this).blur();
             self.fetch($(this).val());
         }
-    });
+      });
 
       this.goHome();
       this.collapse();
+      */
    },
 
    formatJson: function(json) {
@@ -52,24 +54,47 @@ App.StonehearthEntityInspectorView = App.View.extend({
                  .replace(/"(mod:\/\/[^"]*)"/g, '<a href="$1">$1</a>')
    },
 
-   fetch: function(uri) {
+   fetch: function(entity) {
       var self = this;
-      self.set('loading', true);
-      self.history.push(uri);
+      self.set('context.state', 'fetching ai component uri');
       
       if (self.trace) {
          self.trace.destroy();
+         self.trace = null;
       }
-
-      self.trace = radiant.trace(uri)
+      self.trace = radiant.trace(entity);
+      self.trace
          .progress(function(json) {
-            self.set('context.loading', false);
-            self.set('context.objectHtml', self.formatJson(json));
-            self.set('context.uri', uri);
+            if (self.trace) {
+              self.trace.destroy();
+              self.trace = null;
+            }
+            self.set('context.state', 'updating')
+            self._aiComponent = json['stonehearth:ai']
+            self.fetchAiComponent()
          })
          .fail(function(e) {
             console.log(e);
          });
+   },
+
+   fetchAiComponent: function() {
+      var self = this;
+      self.set('context.state', 'updating...');
+      radiant.call_obj(self._aiComponent, 'get_debug_info')
+        .done(function(debugInfo) {
+           self.set('context.state', 'updating..');
+           self.set('context.ai', debugInfo)
+           if (self._aiComponent) {
+              self.set('context.state', 'updating. ' + new Date().getTime());
+              self._fetchTimer = setTimeout(function() {
+                self.fetchAiComponent()
+              }, 500);
+              self.set('context.state', 'updating');
+           } else {
+              self.set('context.state', 'idle.');
+           }
+        });
    },
 
    collapse: function() {

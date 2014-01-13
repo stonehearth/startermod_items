@@ -1,27 +1,29 @@
 <script type="text/x-handlebars" data-template-name="entityInspector">
-   <div id="ai">
-      This is the entity inspector!
-      This is the entity inspector!
-      This is the entity inspector!
-      This is the entity inspector!
-      This is the entity inspector!
-      
-      <!-- {{ view App.StonehearthAiExecutionFrame frameBinding="this.ai.executionFrame" }} -->
+   <div id="entityInspector">
+      state: {{state}}<br>
+      {{#if ai.execution_frame}}
+      {{ render executionFrame ai.execution_frame }}
+      {{/if}}
    </div> 
 </script>
 
 <script type="text/x-handlebars" data-template-name="executionFrame">
-   <div id="executionFrame">
-      {{#each frame.executionUnits}}
-         {{view App.StonehearthAiExecutionUnit unitBinding="this"}}
+   <div class="executionFrame">
+      {{{state}}} - {{{activity.name}}}      
+      {{#each unit in execution_units}}
+         {{ render executionUnit unit}}
       {{/each}}
    </div> 
 </script>
 
 <script type="text/x-handlebars" data-template-name="executionUnit">
-   <div id="executionUnit">
-      {{#if unit.executionFrame}}
-         {{view App.StonehearthAiExecutionFrame frameBinding="this.executionFrame"}}
-      {{/if}}
+   <div class="executionUnit">
+      {{{state}}} - {{{action.name}}}
+      {{#each frame in action.execution_frames}}
+         {{ render executionFrame frame}}
+      {{/each}}
+      {{#each frame in execution_frames}}
+         {{ render executionFrame frame}}
+      {{/each}}
    </div> 
 </script>

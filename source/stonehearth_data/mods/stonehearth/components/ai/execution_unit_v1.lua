@@ -171,4 +171,13 @@ function ExecutionUnitV1:wait_for_path_finder(pf)
    return path
 end
 
+function ExecutionUnitV1:get_debug_info()
+   return {
+      state = 'kill me!',
+      action = {
+         name = 'V1 ' .. self._action.name,
+      }
+   }
+end
+
 return ExecutionUnitV1

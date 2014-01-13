@@ -150,6 +150,23 @@ function CompoundAction:stop()
    self._execution_unit:stop()
 end
 
+function CompoundAction:get_debug_info()
+   local info = {
+      name = self.name,
+      does = self.does,
+      priority = self.priority,
+      execution_frames = {}
+   }
+   local ef = self._think_frames
+   if #ef == 0 then
+      ef = self._run_frames
+   end
+   for _, f in ipairs(ef) do
+      table.insert(info.execution_frames, f:get_debug_info())
+   end
+   return info
+end
+
 function CompoundAction:_get_args()
    return self._args
 end

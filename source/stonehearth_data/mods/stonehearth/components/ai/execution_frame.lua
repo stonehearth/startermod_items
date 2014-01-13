@@ -544,5 +544,21 @@ function ExecutionFrame:_protected_call()
    end         
 end
 
+function ExecutionFrame:get_debug_info()
+   local info = {
+      id = self._id,
+      state = self._state,
+      activity = {
+         name = self._activity.name,
+         args = stonehearth.ai:format_args(self._activity.args),
+      },
+      execution_units = {}
+   }
+   for _, unit in pairs(self._execution_units) do
+      table.insert(info.execution_units, unit:get_debug_info())
+   end
+   return info
+end
+
 return ExecutionFrame
  

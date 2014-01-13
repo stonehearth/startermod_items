@@ -29,6 +29,17 @@ function RunTaskAction:_start_stop_thinking()
    end
 end
 
+function RunTaskAction:get_debug_info(debug_route)
+   return {
+      name = self.name,
+      does = self.does,
+      priority = self.priority,
+      execution_frames = {
+         self._execution_frame:get_debug_info()
+      }
+   }
+end
+
 function RunTaskAction:set_debug_route(debug_route)
    self._execution_frame:set_debug_route(debug_route .. ' ' .. self._task:get_name())
 end

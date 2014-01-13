@@ -21,6 +21,15 @@ function AIComponent:get_entity()
    return self._entity
 end
 
+function AIComponent:get_debug_info()
+   if self._execution_frame then
+      return {
+         execution_frame = self._execution_frame:get_debug_info(),
+      } 
+   end
+   return {}
+end
+
 function AIComponent:destroy()
    self._ai_system:stop_ai(self._entity:get_id(), self)
 

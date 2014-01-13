@@ -442,4 +442,29 @@ function ExecutionUnitV2:_set_state(state)
    radiant.events.trigger(self, 'state_changed', self, self._state)
 end
 
+function ExecutionUnitV2:_get_action_debug_info()
+   if self._action.get_debug_info then
+      return self._action:get_debug_info(self, self._entity)
+   end
+   return {
+      name = self._action.name,
+      does = self._action.does,
+      priority = self._action.priority,
+   }
+end
+
+function ExecutionUnitV2:get_debug_info()
+   local info = {
+      id = self._id,
+      state = self._state,
+      action = self:_get_action_debug_info(),
+      think_output = stonehearth.ai:format_args(self._think_output),
+      execution_frames = {}
+   }
+   if self._execute_frame then
+      table.insert(info.execution_frames, self._execute_frame:get_debug_info())
+   end
+   return info
+end
+
 return ExecutionUnitV2
