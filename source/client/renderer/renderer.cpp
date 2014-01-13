@@ -103,7 +103,7 @@ Renderer::Renderer() :
       SetWindowPos(GetWindowHandle(), NULL, windowX, windowY, 0, 0, SWP_NOSIZE);
    }
    // Init Horde, looking for OpenGL 2.0 minimum.
-   std::string s = (radiant::core::System::GetInstance().GetTempDirectory() / "horde3d_log.html").string();
+   std::string s = (radiant::core::System::GetInstance().GetTempDirectory() / "gfx.log").string();
    if (!h3dInit(2, 0, config_.enable_gl_logging.value, s.c_str())) {
       h3dutDumpMessages();
       throw std::runtime_error("Unable to initialize renderer.  Check horde log for details.");
