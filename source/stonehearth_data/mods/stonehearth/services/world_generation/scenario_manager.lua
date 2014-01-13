@@ -14,7 +14,6 @@ function ScenarioManager:__init(feature_cell_size, rng)
 
    local scenario_index = radiant.resources.load_json('stonehearth:scenarios:scenario_index')
    local categories = {}
-   self._categories = categories
 
    -- load all the categories
    for name, properties in pairs(scenario_index.categories) do
@@ -27,6 +26,8 @@ function ScenarioManager:__init(feature_cell_size, rng)
       scenario.habitat_types_as_enum = HabitatType.parse_string_array(scenario.habitat_types)
       categories[scenario.category]:add(scenario)
    end
+
+   self._categories = categories
 end
 
 -- TODO: sort scenarios by priority then area

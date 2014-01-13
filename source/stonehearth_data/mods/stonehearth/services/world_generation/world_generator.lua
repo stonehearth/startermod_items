@@ -53,9 +53,9 @@ function WorldGenerator:create_world()
       wall_clock_timer:start()
 
       local tiles
-      --tiles = self:_create_world_blueprint()
+      tiles = self:_create_world_blueprint()
       --tiles = self:_get_empty_blueprint(1, 1) -- useful for debugging real world scenarios without waiting for the load time
-      tiles = self:_create_world_blueprint_static()
+      --tiles = self:_create_world_blueprint_static()
       self:_generate_world(tiles)
 
       cpu_timer:stop()

@@ -2,10 +2,11 @@ local TerrainType = require 'services.world_generation.terrain_type'
 local TerrainInfo = require 'services.world_generation.terrain_info'
 local Array2D = require 'services.world_generation.array_2D'
 local MathFns = require 'services.world_generation.math.math_fns'
+local NonUniformQuantizer = require 'services.world_generation.math.non_uniform_quantizer'
 local FilterFns = require 'services.world_generation.filter.filter_fns'
 local Wavelet = require 'services.world_generation.filter.wavelet'
 local WaveletFns = require 'services.world_generation.filter.wavelet_fns'
-local EdgeDetailer = require 'services.world_generation.edge_detailer'
+local TerrainDetailer = require 'services.world_generation.terrain_detailer'
 local MacroBlock = require 'services.world_generation.macro_block'
 local Timer = require 'services.world_generation.timer'
 
@@ -39,7 +40,41 @@ function TerrainGenerator:__init(rng, async)
    self._blend_map_buffer = self:_create_blend_map(micro_size, micro_size)
    self._noise_map_buffer = Array2D(micro_size, micro_size)
 
-   self._edge_detailer = EdgeDetailer(self.terrain_info, self._rng)
+   self._terrain_detailer = TerrainDetailer(self.terrain_info, oversize_tile_size, oversize_tile_size, self._rng)
+
+   self:_initialize_quantizer()
+end
+
+function TerrainGenerator:_initialize_quantizer()
+   local terrain_info = self.terrain_info
+   local grassland_info = terrain_info[TerrainType.Grassland]
+   local foothills_info = terrain_info[TerrainType.Foothills]
+   local mountains_info = terrain_info[TerrainType.Mountains]
+   local centroids = {}
+   local min, max, step_size
+   
+   min = terrain_info.min_height
+   max = grassland_info.max_height
+   step_size = grassland_info.step_size
+   for value = min, max, step_size do
+      table.insert(centroids, value)
+   end
+
+   min = grassland_info.max_height + foothills_info.step_size
+   max = foothills_info.max_height
+   step_size = foothills_info.step_size
+   for value = min, max, step_size do
+      table.insert(centroids, value)
+   end
+
+   min = foothills_info.max_height + mountains_info.step_size
+   max = min + mountains_info.step_size*10
+   step_size = mountains_info.step_size
+   for value = min, max, step_size do
+      table.insert(centroids, value)
+   end
+
+   self._quantizer = NonUniformQuantizer(centroids)
 end
 
 function TerrainGenerator:_create_blend_map(width, height)
@@ -155,7 +190,7 @@ function TerrainGenerator:_fill_blend_map(blend_map, tiles, x, y)
    if terrain_type == TerrainType.Grassland and
       self:_surrounded_by_terrain(TerrainType.Grassland, tiles, x, y) then
       terrain_mean = terrain_mean - self.terrain_info[TerrainType.Grassland].step_size
-      assert(terrain_mean >= self.terrain_info[TerrainType.Grassland].min_height)
+      assert(terrain_mean >= self.terrain_info.min_height)
    end
 
    for j=1, height do
@@ -338,6 +373,7 @@ function TerrainGenerator:_fill_noise_map(noise_map, blend_map)
    noise_map:fill(noise_fn)
 end
 
+-- must return a new micro_map each time
 function TerrainGenerator:_filter_noise_map(noise_map)
    local terrain_type = noise_map.terrain_type
    local width = noise_map.width
@@ -580,47 +616,36 @@ function TerrainGenerator:_quantize_height_map(height_map, is_micro_map)
    local terrain_info = self.terrain_info
    local terrain_type = height_map.terrain_type
    local enable_fancy_quantizer = not is_micro_map
-   local global_min_height = terrain_info[TerrainType.Grassland].min_height
-   local recommended_min_height = terrain_info[terrain_type].min_height
-   local i, j, offset, value, min_height, quantized_value
+   local i, j, offset, value, quantized_value
 
    for j=1, height_map.height do
       for i=1, height_map.width do
          offset = height_map:get_offset(i, j)
          value = height_map[offset]
 
-         if false then -- CHECKCHECK
-         --if is_micro_map and not height_map:is_boundary(i, j) then
-            -- must relax height requirements on edges to match forced macro_blocks
-            -- don't have to do this for edges adjacent to tiles that are not generated yet
-            min_height = recommended_min_height
-         else
-            min_height = global_min_height
-         end
-
-         quantized_value = self:_quantize_value(value, min_height, enable_fancy_quantizer)
+         quantized_value = self:_quantize_value(value, enable_fancy_quantizer)
          height_map[offset] = quantized_value
       end
    end
 end
 
-function TerrainGenerator:_quantize_value(value, min_height, enable_fancy_quantizer)
+-- TODO: replace this with a generalized quantizer class
+function TerrainGenerator:_quantize_value(value, enable_fancy_quantizer)
+   local quantized_value = self._quantizer:quantize(value)
+
+   if not enable_fancy_quantizer then
+      return quantized_value
+   end
+
    local terrain_info = self.terrain_info
-
-   if value <= min_height then return min_height end
-
-   -- step_size depends on altitude and tile type
-   -- replace this with a real non-uniform quantizer
-   local step_size = self:_get_step_size(value)
-   local quantized_value = MathFns.quantize(value, step_size)
-   if not enable_fancy_quantizer then return quantized_value end
-
    -- disable fancy mode for Grassland
    if quantized_value <= terrain_info[TerrainType.Grassland].max_height then
       return quantized_value
    end
 
-   -- non-uniform quantizer
+   -- fancy mode
+   local terrain_type = terrain_info:get_terrain_type(value)
+   local step_size = terrain_info[terrain_type].step_size
    local rounded_value = MathFns.round(value)
    local diff = quantized_value - rounded_value
 
@@ -631,20 +656,16 @@ function TerrainGenerator:_quantize_value(value, min_height, enable_fancy_quanti
    end
 end
 
-function TerrainGenerator:_get_step_size(value)
-   local terrain_type = self.terrain_info:get_terrain_type(value)
-   return self.terrain_info[terrain_type].step_size
-end
-
 function TerrainGenerator:_add_additional_details(height_map, micro_map)
-   self._edge_detailer:remove_mountain_chunks(height_map, micro_map)
+   self._terrain_detailer:remove_mountain_chunks(height_map, micro_map)
 
-   self._edge_detailer:add_detail_blocks(height_map)
+   self._terrain_detailer:add_detail_blocks(height_map)
 
    -- handle grassland separately - don't screw up edge detailer code
-   self._edge_detailer:add_grassland_details(height_map)
+   self._terrain_detailer:add_grassland_details(height_map)
 end
 
+-- must return a new tile_map each time
 function TerrainGenerator:_extract_tile_map(oversize_map)
    local tile_map_origin = self.macro_block_size/2 + 1
    local tile_map = Array2D(self.tile_size, self.tile_size)

@@ -55,7 +55,14 @@ App.StonehearthUnitFrameView = App.View.extend({
         this.hide();
       }
       
-      $('[title]').each(function() {
+      $('#unitFrame > #buffs').find('.item').each(function() {
+        $(this).tooltipster({
+            content: $('<div class=title>' + $(this).attr('title') + '</div>' + 
+                       '<div class=description>' + $(this).attr('description') + '</div>')
+         });
+      });
+
+      $('#unitFrame > #commandButtons').find('[title]').each(function() {
         $(this).tooltipster({
             content: $('<div class=title>' + $(this).attr('title') + '</div>' + 
                        '<div class=description>' + $(this).attr('description') + '</div>' + 
