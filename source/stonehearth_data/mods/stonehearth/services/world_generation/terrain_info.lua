@@ -35,6 +35,10 @@ function TerrainInfo:__init()
    assert(grassland_info.max_height % foothills_info.step_size == 0)
    assert(foothills_info.max_height % mountains_info.step_size == 0)
 
+   -- fancy mode quantization needs to be modified if step size is not even
+   assert(foothills_info.step_size % 2 == 0)
+   assert(mountains_info.step_size % 2 == 0)
+
    self.min_height = grassland_info.max_height - grassland_info.step_size
 
    -- tree lines

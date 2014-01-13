@@ -2,6 +2,7 @@ local TerrainType = require 'services.world_generation.terrain_type'
 local TerrainInfo = require 'services.world_generation.terrain_info'
 local Array2D = require 'services.world_generation.array_2D'
 local MathFns = require 'services.world_generation.math.math_fns'
+local NonUniformQuantizer = require 'services.world_generation.math.non_uniform_quantizer'
 local FilterFns = require 'services.world_generation.filter.filter_fns'
 local Wavelet = require 'services.world_generation.filter.wavelet'
 local WaveletFns = require 'services.world_generation.filter.wavelet_fns'
@@ -40,6 +41,40 @@ function TerrainGenerator:__init(rng, async)
    self._noise_map_buffer = Array2D(micro_size, micro_size)
 
    self._terrain_detailer = TerrainDetailer(self.terrain_info, oversize_tile_size, oversize_tile_size, self._rng)
+
+   self:_initialize_quantizer()
+end
+
+function TerrainGenerator:_initialize_quantizer()
+   local terrain_info = self.terrain_info
+   local grassland_info = terrain_info[TerrainType.Grassland]
+   local foothills_info = terrain_info[TerrainType.Foothills]
+   local mountains_info = terrain_info[TerrainType.Mountains]
+   local centroids = {}
+   local min, max, step_size
+   
+   min = terrain_info.min_height
+   max = grassland_info.max_height
+   step_size = grassland_info.step_size
+   for value = min, max, step_size do
+      table.insert(centroids, value)
+   end
+
+   min = grassland_info.max_height + foothills_info.step_size
+   max = foothills_info.max_height
+   step_size = foothills_info.step_size
+   for value = min, max, step_size do
+      table.insert(centroids, value)
+   end
+
+   min = foothills_info.max_height + mountains_info.step_size
+   max = min + mountains_info.step_size*10
+   step_size = mountains_info.step_size
+   for value = min, max, step_size do
+      table.insert(centroids, value)
+   end
+
+   self._quantizer = NonUniformQuantizer(centroids)
 end
 
 function TerrainGenerator:_create_blend_map(width, height)
@@ -581,7 +616,6 @@ function TerrainGenerator:_quantize_height_map(height_map, is_micro_map)
    local terrain_info = self.terrain_info
    local terrain_type = height_map.terrain_type
    local enable_fancy_quantizer = not is_micro_map
-   local global_min_height = terrain_info.min_height
    local i, j, offset, value, quantized_value
 
    for j=1, height_map.height do
@@ -589,30 +623,29 @@ function TerrainGenerator:_quantize_height_map(height_map, is_micro_map)
          offset = height_map:get_offset(i, j)
          value = height_map[offset]
 
-         quantized_value = self:_quantize_value(value, global_min_height, enable_fancy_quantizer)
+         quantized_value = self:_quantize_value(value, enable_fancy_quantizer)
          height_map[offset] = quantized_value
       end
    end
 end
 
 -- TODO: replace this with a generalized quantizer class
-function TerrainGenerator:_quantize_value(value, min_height, enable_fancy_quantizer)
+function TerrainGenerator:_quantize_value(value, enable_fancy_quantizer)
+   local quantized_value = self._quantizer:quantize(value)
+
+   if not enable_fancy_quantizer then
+      return quantized_value
+   end
+
    local terrain_info = self.terrain_info
-
-   if value <= min_height then return min_height end
-
-   -- step_size depends on altitude and tile type
-   -- replace this with a real non-uniform quantizer
-   local step_size = self:_get_step_size(value)
-   local quantized_value = MathFns.quantize(value, step_size)
-   if not enable_fancy_quantizer then return quantized_value end
-
    -- disable fancy mode for Grassland
    if quantized_value <= terrain_info[TerrainType.Grassland].max_height then
       return quantized_value
    end
 
-   -- non-uniform quantizer
+   -- fancy mode
+   local terrain_type = terrain_info:get_terrain_type(value)
+   local step_size = terrain_info[terrain_type].step_size
    local rounded_value = MathFns.round(value)
    local diff = quantized_value - rounded_value
 
@@ -621,16 +654,6 @@ function TerrainGenerator:_quantize_value(value, min_height, enable_fancy_quanti
    else
       return quantized_value
    end
-end
-
-function TerrainGenerator:_get_step_size(value)
-   local terrain_type = self.terrain_info:get_terrain_type(value)
-   return self.terrain_info[terrain_type].step_size
-end
-
-function TerrainGenerator:_vary_grassland_height(micro_map)
-   local noise_map = self.noise_map_buffer
-   
 end
 
 function TerrainGenerator:_add_additional_details(height_map, micro_map)
