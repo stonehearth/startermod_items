@@ -289,7 +289,7 @@ JSONNode ResourceManager2::LoadJson(std::string const& canonical_path) const
    }
 
    ExpandMacros(canonical_path, node, false);
-   ParseNodeExtension(canonical_path, node);
+   ParseNodeMixin(canonical_path, node);
 
    return node;
 }
@@ -307,25 +307,42 @@ void ResourceManager2::ExpandMacros(std::string const& base_path, JSONNode& node
    }
 }
 
-void ResourceManager2::ParseNodeExtension(std::string const& path, JSONNode& n) const
+void ResourceManager2::ParseNodeMixin(std::string const& path, JSONNode& n) const
 {
    json::Node node(n);
-   if (node.has("extends")) {
-      std::string extends = node.get<std::string>("extends");
-      JSONNode parent;
-      std::string uri = ExpandMacro(extends, extends, true);
-
-      try {
-         parent = LookupJson(uri);
-      } catch (InvalidFilePath &) {
-         throw InvalidFilePath(extends);
+   if (node.has("mixins")) {
+      json::Node mixins = node.get_node("mixins");
+      if (mixins.type() == JSON_STRING) {
+         std::string mixin = node.get<std::string>("mixins");
+         // if the node is an array, load this shit in in a loop
+         ApplyMixin(mixin, n, node);
+      } else if (mixins.type() == JSON_ARRAY) {
+         for (JSONNode const &child : mixins.get_internal_node()) {
+            std::string mixin = child.as_string();
+            ApplyMixin(mixin, n, node);
+         }
+      } else {
+         throw json::InvalidJson("invalid json node type in mixin. Mixins must be a string or an array.");
       }
-
-      RES_LOG(7) << "node pre-extend: " << node.write_formatted();
-      RES_LOG(7) << "extending with: " << parent.write_formatted();
-      ExtendNode(n, parent);
-      RES_LOG(7) << "node post-extend: " << node.write_formatted();
    }
+}
+
+void ResourceManager2::ApplyMixin(std::string const& mixin, JSONNode& n, json::Node node) const
+{
+   JSONNode parent;
+   std::string uri = ExpandMacro(mixin, mixin, true);
+
+   try {
+      parent = LookupJson(uri);
+   } catch (InvalidFilePath &) {
+      throw InvalidFilePath(mixin);
+   }
+
+   RES_LOG(7) << "node pre-mixin: " << node.write_formatted();
+   RES_LOG(7) << "mixing with: " << parent.write_formatted();
+   ExtendNode(n, parent);
+   RES_LOG(7) << "node post-mixin: " << node.write_formatted();
+
 }
 
 void ResourceManager2::ExtendNode(JSONNode& node, const JSONNode& parent) const

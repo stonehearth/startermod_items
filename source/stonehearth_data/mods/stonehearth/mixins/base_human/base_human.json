@@ -1,6 +1,6 @@
 {
    "type" : "entity",
-   "extends" : "stonehearth:mixins:mob",
+   "mixins" : "stonehearth:mixins:mob",
    "components" : {
       "stonehearth:ai" : {
          "actions" : [
