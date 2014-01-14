@@ -395,7 +395,7 @@ float StatManager::getStat( int param, bool reset )
 {
 	float value;	
    float sum = 0.0;
-	int availableMem = 0;
+	float availableMem = 0;
    int integerV[4];
    int c;
 
