@@ -3,6 +3,7 @@
 
    "name": "promote_to_profession",
    "tooltip": "Promote!",
+   "descrption" : "Assign a citizen to become this profession.",
    "icon": "file(promote_to_profession.png)",
 
    "action": "fire_event",

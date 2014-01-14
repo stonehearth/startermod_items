@@ -2,7 +2,8 @@
    "type" : "command",
 
    "name": "place_item",
-   "tooltip": "Place this item",
+   "tooltip": "Place item",
+   "description" : "Place this item in the world.",
    "icon": "file(place_item.png)",
 
    "action": "fire_event",

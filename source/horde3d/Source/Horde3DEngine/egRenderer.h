@@ -149,7 +149,7 @@ public:
 	
 	unsigned char *useScratchBuf( uint32 minSize );
 	
-	bool init(int glMajor, int glMinor, bool enable_gl_logging);
+	bool init(int glMajor, int glMinor, bool msaaWindowSupported, bool enable_gl_logging);
 	void initStates();
 
    void collectOneDebugFrame();
@@ -202,7 +202,7 @@ public:
    uint32 getPosColTexLayout() { return _vlPosColTex; }
 
    void setCurrentTime(float time) { _currentTime = time; }
-   uint32 getShadowRendBuf() const { return _shadowRB[_frameID % 3]; }
+   uint32 getShadowRendBuf() const { return _shadowRB; }
 
    void getEngineCapabilities(EngineRendererCaps* rendererCaps, EngineGpuCaps* gpuCaps) const;
 
@@ -246,7 +246,6 @@ protected:
    void setGpuCompatibility();
 
 protected:
-   const static int MaxShadowbufferNum = 1;
 	unsigned char                      *_scratchBuf;
 	uint32                             _scratchBufSize;
 
@@ -261,7 +260,7 @@ protected:
 	OverlayVert                        *_overlayVerts;
 	uint32                             _overlayVB;
 	
-	uint32                             _shadowRB[MaxShadowbufferNum];
+	uint32                             _shadowRB;
 	uint32                             _frameID;
 	uint32                             _defShadowMap;
 	uint32                             _quadIdxBuf;

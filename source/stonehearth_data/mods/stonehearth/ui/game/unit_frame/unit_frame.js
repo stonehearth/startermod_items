@@ -55,8 +55,27 @@ App.StonehearthUnitFrameView = App.View.extend({
         this.hide();
       }
       
-      $('[title]').tipsy();
-      
+      $('#unitFrame > #buffs').find('.item').each(function() {
+        $(this).tooltipster({
+            content: $('<div class=title>' + $(this).attr('title') + '</div>' + 
+                       '<div class=description>' + $(this).attr('description') + '</div>')
+         });
+      });
+
+      $('#unitFrame > #commandButtons').find('[title]').each(function() {
+        $(this).tooltipster({
+            content: $('<div class=title>' + $(this).attr('title') + '</div>' + 
+                       '<div class=description>' + $(this).attr('description') + '</div>' + 
+                       '<div class=hotkey>' + $.t('hotkey') + ' <span class=key>' + $(this).attr('hotkey') + '</span></div>')
+         });
+      });
+
+      /*
+      $('[title]').tooltipster({
+        content: $('<span>hi - ' + $(this).attr(title) + '</span>')
+      });
+  */
+
       /*
       $('#commandButtons')
          .off('mouseover', '.commandButton')

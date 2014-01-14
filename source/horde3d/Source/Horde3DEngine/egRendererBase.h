@@ -348,7 +348,7 @@ public:
 	virtual ~RenderDevice();
 	
 	void initStates();
-	virtual bool init(int glMajor, int glMinor, bool enable_gl_logging);
+	virtual bool init(int glMajor, int glMinor, bool msaaWindowSupported, bool enable_gl_logging);
 	
 // -----------------------------------------------------------------------------
 // Resources
@@ -495,6 +495,7 @@ protected:
 	int           _outputBufferIndex;  // Left and right eye for stereo rendering
 	uint32        _textureMem, _bufferMem;
    float         _shadowFactor, _shadowUnits;
+   bool          _msaaFramebuffer;
 
 	uint32                         _numVertexLayouts;
 	RDIVertexLayout                _vertexLayouts[MaxNumVertexLayouts];

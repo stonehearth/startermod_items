@@ -729,7 +729,7 @@ DLL bool h3dGetError();
 	Returns:
 		true in case of success, otherwise false
 */
-DLL bool h3dInit(int glMajor, int glMinor, bool enable_gl_logging, const char* logFilePath);
+DLL bool h3dInit(int glMajor, int glMinor, bool msaaWindowSupported, bool enable_gl_logging, const char* logFilePath);
 
 /* Function: h3dRelease
 		Releases the engine.

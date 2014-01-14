@@ -108,9 +108,10 @@ void _stdcall glDebugCallback(unsigned int source, unsigned int type, unsigned i
 }
 
 
-bool RenderDevice::init(int glMajor, int glMinor, bool enable_gl_logging)
+bool RenderDevice::init(int glMajor, int glMinor, bool msaaWindowSupported, bool enable_gl_logging)
 {
 	bool failed = false;
+   _msaaFramebuffer = msaaWindowSupported;
    _enable_gl_validation = enable_gl_logging;
 
 	char *vendor = (char *)glGetString( GL_VENDOR );
@@ -1127,7 +1128,12 @@ void RenderDevice::setRenderBuffer( uint32 rbObj )
 		glDrawBuffer( _outputBufferIndex == 1 ? GL_BACK_RIGHT : GL_BACK_LEFT );
 		_fbWidth = _vpWidth + _vpX;
 		_fbHeight = _vpHeight + _vpY;
-		glDisable( GL_MULTISAMPLE );
+
+      if (_msaaFramebuffer && _caps.rtMultisampling) {
+   		glEnable( GL_MULTISAMPLE );
+      } else {
+   		glDisable( GL_MULTISAMPLE );
+      }
 	}
 	else
 	{

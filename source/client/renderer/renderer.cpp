@@ -69,9 +69,6 @@ Renderer::Renderer() :
    assert(renderer_.get() == nullptr);
    renderer_.reset(this);
 
-   windowWidth_ = config_.screen_width.value;
-   windowHeight_ = config_.screen_height.value;
-
    glfwSetErrorCallback([](int errorCode, const char* errorString) {
       Renderer::GetInstance().lastGlfwError_ = BUILD_STRING(errorString << " (code: " << std::to_string(errorCode) << ")");
    });
@@ -81,21 +78,37 @@ Renderer::Renderer() :
       throw std::runtime_error(BUILD_STRING("Unable to initialize glfw: " << lastGlfwError_));
    }
 
+   inFullscreen_ = config_.enable_fullscreen.value;
+   GLFWmonitor* monitor;
+   int windowX, windowY;
+   SelectSaneVideoMode(config_.enable_fullscreen.value, &windowWidth_, &windowHeight_, &windowX, &windowY, &monitor);
+
+   if (!inFullscreen_) {
+      config_.last_window_x.value = windowX;
+      config_.last_window_y.value = windowY;
+      config_.screen_height.value = windowHeight_;
+      config_.screen_width.value = windowWidth_;
+   }
+
    glfwWindowHint(GLFW_SAMPLES, config_.num_msaa_samples.value);
    glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, config_.enable_gl_logging.value ? 1 : 0);
 
    GLFWwindow *window;
    if (!(window = glfwCreateWindow(windowWidth_, windowHeight_, "Stonehearth", 
-        config_.enable_fullscreen.value ? glfwGetPrimaryMonitor() : nullptr, nullptr))) {
+        config_.enable_fullscreen.value ? monitor : nullptr, nullptr))) {
       glfwTerminate();
       throw std::runtime_error(BUILD_STRING("Unable to create glfw window: " << lastGlfwError_));
    }
 
    glfwMakeContextCurrent(window);
-
+   glfwGetWindowSize(window, &windowWidth_, &windowHeight_);
+   int numWindowSamples = glfwGetWindowAttrib(window, GLFW_SAMPLES);
+   if (!inFullscreen_) {
+      SetWindowPos(GetWindowHandle(), NULL, windowX, windowY, 0, 0, SWP_NOSIZE);
+   }
    // Init Horde, looking for OpenGL 2.0 minimum.
-   std::string s = (radiant::core::System::GetInstance().GetTempDirectory() / "horde3d_log.html").string();
-   if (!h3dInit(2, 0, config_.enable_gl_logging.value, s.c_str())) {
+   std::string s = (radiant::core::System::GetInstance().GetTempDirectory() / "gfx.log").string();
+   if (!h3dInit(2, 0, numWindowSamples > 0, config_.enable_gl_logging.value, s.c_str())) {
       h3dutDumpMessages();
       throw std::runtime_error("Unable to initialize renderer.  Check horde log for details.");
    }
@@ -103,7 +116,7 @@ Renderer::Renderer() :
    // Set options
    h3dSetOption(H3DOptions::LoadTextures, 1);
    h3dSetOption(H3DOptions::TexCompression, 0);
-   h3dSetOption(H3DOptions::MaxAnisotropy, 4);
+   h3dSetOption(H3DOptions::MaxAnisotropy, 1);
    h3dSetOption(H3DOptions::FastAnimation, 1);
    h3dSetOption(H3DOptions::DumpFailedShaders, 1);
 
@@ -210,11 +223,21 @@ Renderer::Renderer() :
    });
    
    glfwSetWindowCloseCallback(window, [](GLFWwindow* window) -> void {
-      // die RIGHT NOW!!
+      RECT rect;
+      GetWindowRect(Renderer::GetInstance().GetWindowHandle(), &rect);
+
+      if (!Renderer::GetInstance().inFullscreen_) {
+         Renderer::GetInstance().config_.last_window_x.value = (int)rect.left;
+         Renderer::GetInstance().config_.last_window_y.value = (int)rect.top;
+
+         Renderer::GetInstance().config_.screen_width.value = Renderer::GetInstance().windowWidth_;
+         Renderer::GetInstance().config_.screen_height.value = Renderer::GetInstance().windowHeight_;
+      }
+      Renderer::GetInstance().ApplyConfig(Renderer::GetInstance().config_, true);
+
       R_LOG(0) << "window closed.  exiting process";
       TerminateProcess(GetCurrentProcess(), 1);
    });
-   SetWindowPos(GetWindowHandle(), NULL, 0, 0 , 0, 0, SWP_NOSIZE);
 
    fileWatcher_.addWatch(strutil::utf8_to_unicode("horde"), [](FW::WatchID watchid, const std::wstring& dir, const std::wstring& filename, FW::Action action) -> void {
       Renderer::GetInstance().FlushMaterials();
@@ -378,6 +401,9 @@ void Renderer::GetConfigOptions()
    config_.enable_debug_keys.value = config.Get("enable_debug_keys", false);
 
    config_.draw_distance.value = config.Get("renderer.draw_distance", 1000.0f);
+
+   config_.last_window_x.value = config.Get("renderer.last_window_x", 0);
+   config_.last_window_y.value = config.Get("renderer.last_window_y", 0);
 }
 
 void Renderer::ApplyConfig(const RendererConfig& newConfig, bool persistConfig)
@@ -442,10 +468,60 @@ void Renderer::ApplyConfig(const RendererConfig& newConfig, bool persistConfig)
       config.Set("renderer.screen_width", config_.screen_width.value);
       config.Set("renderer.screen_height", config_.screen_height.value);
       config.Set("renderer.draw_distance", config_.draw_distance.value);
+
+      config.Set("renderer.last_window_x", config_.last_window_x.value);
+      config.Set("renderer.last_window_y", config_.last_window_y.value);
    }
 
    // We just flushed/loaded our pipeline, so don't forget to reset the draw bits!
    SetDrawWorld(drawWorld_);
+}
+
+void Renderer::SelectSaneVideoMode(bool fullscreen, int* width, int* height, int* windowX, int* windowY, GLFWmonitor** monitor) 
+{
+   int lastX = config_.last_window_x.value;
+   int lastY = config_.last_window_y.value;
+   int numMonitors;
+
+   GLFWmonitor** monitors = glfwGetMonitors(&numMonitors);
+
+   GLFWmonitor *desiredMonitor = NULL;
+   for (int i = 0; i < numMonitors; i++) 
+   {
+      int monitorX, monitorY;
+      glfwGetMonitorPos(monitors[i], &monitorX, &monitorY);
+      const GLFWvidmode* m = glfwGetVideoMode(monitors[i]);
+      
+      if ((lastX >= monitorX && lastY >= monitorY) && 
+         (lastX < monitorX + m->width && lastY < monitorY + m->height)) 
+      {
+         desiredMonitor = monitors[i];
+         break;
+      }
+   }
+   if (desiredMonitor == NULL) {
+      lastX = 0;
+      lastY = 0;
+      desiredMonitor = glfwGetPrimaryMonitor();
+   }
+
+   // At this point, we have a valid monitor, and a position.
+   *monitor = desiredMonitor;
+   *windowX = lastX;
+   *windowY = lastY;
+
+   int last_res_width = config_.screen_width.value;
+   int last_res_height = config_.screen_height.value;
+   const GLFWvidmode* m = glfwGetVideoMode(desiredMonitor);
+
+   if (!fullscreen) {
+      // If we're not fullscreen, then just ensure the size of the window <= the res of the monitor.
+      *width = std::max(320, std::min(last_res_width, m->width));
+      *height = std::max(240, std::min(last_res_height, m->height));
+   } else {
+      *width = m->width;
+      *height = m->height;
+   }
 }
 
 SystemStats Renderer::GetStats()
@@ -1141,7 +1217,7 @@ void Renderer::SetUITextureSize(int width, int height)
 {
    uiWidth_ = 1920;
    uiHeight_ = 1080;
-   if (width > 1920 && height > 1080) {
+   if (width >= 1920 && height >= 1080) {
       uiWidth_ = width;
       uiHeight_ = height;
    }

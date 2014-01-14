@@ -1,7 +1,7 @@
 {
    "name" : "bunny_nest",
    "category" : "wildlife",
-   "habitat_type" : "grassland",
+   "habitat_types" : ["grassland", "foothills"],
    "size" : {
       "width" : 16,
       "length" : 16

@@ -3,6 +3,18 @@ local Timer = class()
 Timer.WALL_CLOCK = 1
 Timer.CPU_TIME = 2
 
+function Timer.measure(fn, mode)
+   if mode == nil then
+      mode = Timer.CPU_TIME
+   end
+
+   local timer = Timer(mode)
+   timer:start()
+   fn()
+   timer:stop()
+   return timer:seconds()
+end
+
 function Timer:__init(mode)
    assert(mode ~= nil)
    self.mode = mode
