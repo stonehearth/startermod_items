@@ -77,7 +77,7 @@ function WorldGenerator:_generate_world(blueprint)
    local terrain_info = self._terrain_generator.terrain_info
    local tile_size = self._terrain_generator.tile_size
    local tile_map, micro_map, tile_info, tile_seed
-   local origin_x, origin_y, offset_x, offset_y
+   local origin_x, origin_y, offset_x, offset_y, offset
    local i, j, n, tile_order_list, num_tiles
 
    tile_order_list = self:_build_tile_order_list(blueprint)
@@ -92,6 +92,14 @@ function WorldGenerator:_generate_world(blueprint)
       tile_info = blueprint:get(i, j)
       assert(not tile_info.generated)
 
+      -- calculate the world offset of the tile
+      offset_x = (i-1)*tile_size-origin_x
+      offset_y = (j-1)*tile_size-origin_y
+
+      -- convert to world coordinate system
+      offset = Point3(offset_x, 0, offset_y)
+      tile_info.offset = offset
+
       -- make each tile deterministic on its coordinates (and game seed)
       tile_seed = self:_get_tile_seed(i, j)
       self._rng:set_seed(tile_seed)
@@ -99,24 +107,25 @@ function WorldGenerator:_generate_world(blueprint)
       -- generate the heightmap for the tile
       tile_map, micro_map = self._terrain_generator:generate_tile(tile_info.terrain_type, blueprint, i, j)
       tile_info.micro_map = micro_map
-      tile_info.generated = true
       self:_yield()
-
-      -- calculate the world offset of the tile
-      offset_x = (i-1)*tile_size-origin_x
-      offset_y = (j-1)*tile_size-origin_y
 
       -- clear features for new tile
       self._landscaper:clear_feature_map()
 
       -- render heightmap to region3
-      self:_render_heightmap_to_region3(tile_map, offset_x, offset_y)
+      self:_render_heightmap_to_region3(tile_map, offset)
 
       -- place flora
-      self:_place_flora(tile_map, offset_x, offset_y)
+      self:_place_flora(tile_map, offset)
+
+      -- derive habitat maps
+      tile_info.habitat_map, tile_info.elevation_map =
+         self._habitat_manager:derive_habitat_map(self._landscaper:get_feature_map(), micro_map)
 
       -- place initial scenarios
-      self:_place_scenarios(micro_map, offset_x, offset_y)
+      self:_place_scenarios(tile_info.habitat_map, tile_info.elevation_map, offset)
+
+      tile_info.generated = true
 
       -- update progress bar
       self._progress = (n / num_tiles) * 100
@@ -128,9 +137,8 @@ function WorldGenerator:_generate_world(blueprint)
    })
 end
 
-function WorldGenerator:_render_heightmap_to_region3(tile_map, offset_x, offset_y)
+function WorldGenerator:_render_heightmap_to_region3(tile_map, offset)
    local renderer = self._height_map_renderer
-   local offset_pt = Point3(offset_x, 0, offset_y)
    local region3_boxed
    local timer = Timer(Timer.CPU_TIME)
    timer:start()
@@ -138,34 +146,31 @@ function WorldGenerator:_render_heightmap_to_region3(tile_map, offset_x, offset_
    region3_boxed = renderer:create_new_region()
    renderer:render_height_map_to_region(region3_boxed, tile_map)
    self._landscaper:place_boulders(region3_boxed, tile_map)
-   renderer:add_region_to_terrain(region3_boxed, offset_pt)
+   renderer:add_region_to_terrain(region3_boxed, offset)
 
    timer:stop()
    log:info('HeightMapRenderer time: %.3fs', timer:seconds())
    self:_yield()
 end
 
-function WorldGenerator:_place_flora(tile_map, offset_x, offset_y)
+function WorldGenerator:_place_flora(tile_map, offset)
    local timer = Timer(Timer.CPU_TIME)
    timer:start()
 
-   self._landscaper:place_flora(tile_map, offset_x, offset_y)
+   self._landscaper:place_flora(tile_map, offset.x, offset.z)
 
    timer:stop()
    log:info('Landscaper time: %.3fs', timer:seconds())
    self:_yield()
 end
 
-function WorldGenerator:_place_scenarios(micro_map, offset_x, offset_y)
+function WorldGenerator:_place_scenarios(habitat_map, elevation_map, offset)
    if not self._enable_scenarios then return end
 
-   local feature_map, habitat_map, elevation_map
    local timer = Timer(Timer.CPU_TIME)
    timer:start()
 
-   feature_map = self._landscaper:get_feature_map()
-   habitat_map, elevation_map = self._habitat_manager:derive_habitat_map(feature_map, micro_map)
-   self._scenario_manager:place_scenarios(habitat_map, elevation_map, offset_x, offset_y)
+   self._scenario_manager:place_scenarios(habitat_map, elevation_map, offset.x, offset.z)
 
    timer:stop()
    log:info('ScenarioManager time: %.3fs', timer:seconds())

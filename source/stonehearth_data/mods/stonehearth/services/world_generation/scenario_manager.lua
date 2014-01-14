@@ -23,11 +23,24 @@ function ScenarioManager:__init(feature_cell_size, rng)
    -- load the scenarios into the categories
    for _, file in pairs(scenario_index.scenarios) do
       local scenario = radiant.resources.load_json(file)
-      scenario.habitat_types_as_enum = HabitatType.parse_string_array(scenario.habitat_types)
+      scenario.habitat_types = self:_parse_habitat_strings(scenario.habitat_types)
       categories[scenario.category]:add(scenario)
    end
 
    self._categories = categories
+end
+
+-- returns a table with the set of valid habitat_types
+function ScenarioManager:_parse_habitat_strings(strings)
+   local habitat_type
+   local habitat_types = {}
+
+   for _, value in pairs(strings) do
+      habitat_type = HabitatType.parse_string(value)
+      habitat_types[habitat_type] = true
+   end
+
+   return habitat_types
 end
 
 -- TODO: sort scenarios by priority then area
@@ -44,7 +57,7 @@ function ScenarioManager:place_scenarios(habitat_map, elevation_map, tile_offset
    scenarios = self:_select_scenarios()
 
    for _, properties in pairs(scenarios) do
-      habitat_types = properties.habitat_types_as_enum
+      habitat_types = properties.habitat_types
       voxel_width = properties.size.width
       voxel_length = properties.size.length
       feature_width, feature_length = self:_get_dimensions_in_feature_units(voxel_width, voxel_length)
@@ -82,12 +95,8 @@ function ScenarioManager:_find_valid_sites(habitat_map, elevation_map, habitat_t
    local sites = {}
 
    local is_target_habitat_type = function(value)
-      for _, habitat_type in pairs(habitat_types) do
-         if value == habitat_type then
-            return true
-         end
-      end
-      return false
+      local found = habitat_types[value]
+      return found
    end
 
    for j=1, habitat_map.height-(length-1) do

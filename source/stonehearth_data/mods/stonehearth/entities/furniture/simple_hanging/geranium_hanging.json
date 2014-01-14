@@ -3,13 +3,13 @@
    "type": "entity",
    "components": {
       "unit_info": {
-         "name": "Camp Standard",
-         "description": "Use to mark territory, civilizedly.",
+         "name": "Flower Hanging",
+         "description": "A very Rayyan pattern.",
          "icon" : "file(/entities/generic/default_object/default_object.png)"
       },
 
       "stonehearth:placed_item" : {
-         "proxy_entity" : "stonehearth:camp_standard_proxy"
+         "proxy_entity" : "stonehearth:geranium_hanging_proxy"
       },
 
       "stonehearth:material" : {
@@ -18,7 +18,7 @@
       "model_variants": [
          {
             "models": [
-               "file(camp_standard.qb)"
+               "file(geranium_hanging.qb)"
             ]
          }
       ],

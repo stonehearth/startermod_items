@@ -11,6 +11,7 @@ function RabbitTest:__init()
    
    self:place_citizen(6, 6) 
    self:place_citizen(6, 8) 
+   self:place_citizen(6, 10) 
    local sheep = self:place_item('stonehearth:sheep', -3, -6)
    local sheep = self:place_item('stonehearth:sheep', 0, -6)
    local sheep = self:place_item('stonehearth:sheep', 3, -6)
