@@ -6,7 +6,7 @@ function HarvestTest:__init()
    self:create_world()
 
    self:place_tree(-9, -9)
-   self:place_tree(12, -9)
+   self:place_item('stonehearth:medium_juniper_tree', 12, -9)
    self:place_citizen(12, 12)
    self:place_citizen(8, 10)
    self:place_citizen(0, 0)

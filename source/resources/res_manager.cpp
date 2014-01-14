@@ -8,6 +8,7 @@
 #include <boost/tokenizer.hpp>
 #include "radiant.h"
 #include "radiant_file.h"
+#include "radiant_stdutil.h"
 #include "lib/json/node.h"
 #include "lib/json/json.h"
 #include "res_manager.h"
@@ -122,60 +123,115 @@ ResourceManager2& ResourceManager2::GetInstance()
    return *singleton_;
 }
 
-static std::vector<fs::path> GetPaths(fs::path const& directory, std::function<bool(fs::path const&)> filter_function)
-{
-   fs::directory_iterator const end;
-   std::vector<fs::path> paths;
-
-   for (fs::directory_iterator i(directory); i != end; i++) {
-      fs::path const path = i->path();
-      if (filter_function(path)) {
-         paths.push_back(path);
-      }
-   }
-   return paths;
-}
-
 ResourceManager2::ResourceManager2()
 {
    ASSERT(!singleton_);
 
    resource_dir_ = "mods";
+   LoadModules();
+   ImportModuleManifests();
+}
 
-   // get a list of zip modules
-   std::vector<fs::path> zip_paths;
-   zip_paths = GetPaths(resource_dir_, [](fs::path const& path) {
-      if (fs::is_regular_file(path) &&
-          path.filename().extension() == ".smod") {
-         return true;
+void ResourceManager2::LoadModules()
+{
+   fs::directory_iterator const end;
+   std::vector<fs::path> paths;
+   
+   for (fs::directory_iterator i(resource_dir_); i != end; i++) {
+      fs::path const path = i->path();
+
+      // zip modules have priority - install them first
+      if (fs::is_regular_file(path) && path.filename().extension() == ".smod") {
+         std::string const module_name = path.filename().stem().string();
+         
+         ASSERT(!stdutil::contains(modules_, module_name));
+         modules_[module_name] = std::unique_ptr<IModule>(new ZipModule(module_name, path));
+      } 
+
+      // load directories only if the coresponding zip file does not exist
+      if (fs::is_directory(path)) {
+         std::string const module_name = path.filename().string();
+         std::string const potential_smod = module_name + ".smod";
+         if (!fs::is_regular_file(resource_dir_ / (module_name + ".smod"))) {
+            ASSERT(!stdutil::contains(modules_, module_name));
+            modules_[module_name] = std::unique_ptr<IModule>(new DirectoryModule(path));
+         }
       }
-      return false;
-   });
-
-   // get a list of directory modules
-   std::vector<fs::path> directory_paths;
-   directory_paths = GetPaths(resource_dir_, [](fs::path const& path) {
-      return fs::is_directory(path);
-   });
-
-   // zip modules have priority - install them first
-   for (int i=0; i < zip_paths.size(); i++) {
-      fs::path const& path = zip_paths[i];
-      std::string const module_name = path.filename().stem().string();
-      modules_[module_name] = std::unique_ptr<IModule>(new ZipModule(module_name, path));
-      module_names_.push_back(module_name);
    }
+   // Compute the module names last so we ensure the list is in sorted order
+   for (const auto& entry : modules_) {
+      module_names_.push_back(entry.first);
+   }
+}
 
-   // install directory module only if zip module doesn't exist
-   for (int i=0; i < directory_paths.size(); i++) {
-      fs::path const& path = directory_paths[i];
-      // don't stem - allow directories with '.'
-      std::string const module_name = path.filename().string();
+void ResourceManager2::ImportModMixintoEntry(std::string const& modname, std::string const& name, std::string const& path)
+{
+   std::string resource_path;
+   try {
+      resource_path = ConvertToCanonicalPath(path, nullptr);
+   } catch (std::exception const& e) {
+      RES_LOG(1) << "could not find resource for " << path << " while processing mixintos for " << modname << ".  ignoring.";
+      return;
+   }
+   mixintos_[name].push_back(resource_path);
+   RES_LOG(3) << "adding " << resource_path << " to mixins for " << name;
+}
 
-      if (modules_.find(module_name) == modules_.end()) {
-         modules_[module_name] = std::unique_ptr<IModule>(new DirectoryModule(path));
-         module_names_.push_back(module_name);
+void ResourceManager2::ImportModMixintos(std::string const& modname, json::Node const& mixintos)
+{
+   for (json::Node const& mixinto : mixintos) {
+      // by now all the modules have been loaded, so we have a complete alias map.
+      // break the alias for the left-hand-side all the way down to a file before
+      // storing.
+      std::string mixinto_path;
+      try {
+         mixinto_path = ConvertToCanonicalPath(mixinto.name(), ".json");
+      } catch (std::exception const& e) {
+         RES_LOG(1) << "could not find resource for " << mixinto.name() << " while processing mixintos for " << modname << ".  ignoring.";
+         return;
       }
+      if (mixinto.type() == JSON_STRING) {
+         ImportModMixintoEntry(modname, mixinto_path, mixinto.as<std::string>());
+      } else if (mixinto.type() == JSON_ARRAY) {
+         for (json::Node const& path : mixinto) {
+            ImportModMixintoEntry(modname, mixinto_path, path.as<std::string>());
+         }
+      } else {
+         RES_LOG(1) << "mixintos entry " << mixinto_path << " in mod " << modname << " is not a string or array.  ignoring";
+      }
+   }
+}
+
+void ResourceManager2::ImportModOverrides(std::string const& modname, json::Node const& overrides)
+{
+   for (json::Node const& over : overrides) {
+      std::string override_path, resource_path;
+      try {
+         override_path = ConvertToCanonicalPath(over.name(), ".json");
+      } catch (std::exception const& e) {
+         RES_LOG(1) << "could not find resource for " << over.name() << " while processing overrides for " << modname << ".  ignoring.";
+         return;
+      }
+      try {
+         resource_path = ConvertToCanonicalPath(over.as<std::string>(), ".json");
+      } catch (std::exception const& e) {
+         RES_LOG(1) << "could not find resource for " << over.as<std::string>() << " while processing mixintos for " << modname << ".  ignoring.";
+         return;
+      }
+      overrides_[override_path] = resource_path;
+      RES_LOG(3) << "adding " << resource_path << " to overrides for " << over.name();
+   }
+}
+
+void ResourceManager2::ImportModuleManifests()
+{
+   // modules_ is a std::map<>, so this will process modules in alphabetical order.
+   // While not ideal, at least it's deterministic!  We can try to do better in a
+   // future version if modders need it
+   for (std::string const& modname : module_names_) {
+      json::Node manifest = LookupManifest(modname);
+      ImportModOverrides(modname, manifest.get_node("overrides"));
+      ImportModMixintos(modname, manifest.get_node("mixintos"));
    }
 }
 
@@ -271,7 +327,16 @@ std::string ResourceManager2::ConvertToCanonicalPath(std::string path, const cha
          throw InvalidFilePath(path);
       }
    }
-   return modname + "/" + boost::algorithm::join(parts, "/");
+
+   std::string canonical_path = modname + "/" + boost::algorithm::join(parts, "/");
+
+   // finally, see if this resource has been overridden.  If so, use that path instead
+   auto j = overrides_.find(canonical_path);
+   if (j != overrides_.end()) {
+      RES_LOG(3) << "overriding path " << path << " with " << j->second;
+      canonical_path = j->second;
+   }
+   return canonical_path;
 }
 
 JSONNode ResourceManager2::LoadJson(std::string const& canonical_path) const
@@ -310,6 +375,7 @@ void ResourceManager2::ExpandMacros(std::string const& base_path, JSONNode& node
 void ResourceManager2::ParseNodeMixin(std::string const& path, JSONNode& n) const
 {
    json::Node node(n);
+   // Parse the node mixins first
    if (node.has("mixins")) {
       json::Node mixins = node.get_node("mixins");
       if (mixins.type() == JSON_STRING) {
@@ -323,6 +389,14 @@ void ResourceManager2::ParseNodeMixin(std::string const& path, JSONNode& n) cons
          }
       } else {
          throw json::InvalidJson("invalid json node type in mixin. Mixins must be a string or an array.");
+      }
+   }
+
+   // Now apply the mixintos from other modules
+   auto i = mixintos_.find(path);
+   if (i != mixintos_.end()) {
+      for (std::string const& mixin : i->second) {
+         ApplyMixin(mixin, n, node);
       }
    }
 }
@@ -413,8 +487,8 @@ std::string ResourceManager2::GetAliasUri(std::string const& mod_name, std::stri
 {
    std::lock_guard<std::recursive_mutex> lock(mutex_);
 
-   json::Node manifest = res::ResourceManager2::GetInstance().LookupManifest(mod_name);
-   json::Node aliases = manifest.get_node("radiant.aliases");
+   json::Node manifest = LookupManifest(mod_name);
+   json::Node aliases = manifest.get_node("aliases");
    std::string uri = aliases.get<std::string>(alias_name, "");
 
    if (uri.empty()) {
@@ -433,9 +507,11 @@ std::string ResourceManager2::ExpandMacro(std::string const& current, std::strin
       return ConvertToAbsolutePath(match[1], base_path);
    }
    if (full) {
+      std::string translated = current;
       if (std::regex_match(current, match, entity_macro_regex__)) {
-         return GetAliasUri(match[1], match[2]);
+         translated = GetAliasUri(match[1], match[2]);
       }
+      return translated;
    }
    return current;
 }

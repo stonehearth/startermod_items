@@ -1,8 +1,10 @@
 {
    "components" : {
+      "unit_info" : {
+         "name" : "GIANT tree"
+      },
       "render_info" : {
          "scale" : 5
       }
 	}
 }
-

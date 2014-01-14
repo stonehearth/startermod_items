@@ -46,12 +46,19 @@ private:
    std::string ExpandMacro(std::string const& current, std::string const& base_path, bool full) const;
    void ExpandMacros(std::string const& base_path, JSONNode& node, bool full) const;
    std::string ConvertToAbsolutePath(std::string const& current, std::string const& base_path) const;
+   void LoadModules();
+   void ImportModuleManifests();
+   void ImportModMixintos(std::string const& modname, json::Node const& mixintos);
+   void ImportModMixintoEntry(std::string const& modname, std::string const& name, std::string const& path);
+   void ImportModOverrides(std::string const& modname, json::Node const& overrides);
 
 private:
-   boost::filesystem::path                       resource_dir_;
-   std::unordered_map<std::string, std::unique_ptr<IModule>>     modules_;
-   std::vector<std::string>                      module_names_;
-   mutable std::recursive_mutex                  mutex_;
+   boost::filesystem::path                         resource_dir_;
+   std::map<std::string, std::unique_ptr<IModule>> modules_;
+   std::vector<std::string>                        module_names_;
+   std::unordered_map<std::string, std::vector<std::string>> mixintos_;
+   std::unordered_map<std::string, std::string>    overrides_;
+   mutable std::recursive_mutex                    mutex_;
    mutable std::unordered_map<std::string, AnimationPtr> animations_;
    mutable std::unordered_map<std::string, JSONNode>     jsons_;
 };

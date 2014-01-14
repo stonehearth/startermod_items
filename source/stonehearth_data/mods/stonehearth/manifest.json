@@ -7,425 +7,422 @@
       "script" : "start_game.lua"
    },
 
-   "radiant": {
-      "aliases" : {
-         "cursors:arrow" : "file(data/cursors/arrow.cur)",
-         "cursors:camera_pan" : "file(data/cursors/camera_pan.cur)",
-         "cursors:camera_move_down" : "file(data/cursors/camera_move_down.cur)",
-         "cursors:camera_move_left" : "file(data/cursors/camera_move_left.cur)",
-         "cursors:camera_move_right" : "file(data/cursors/camera_move_right.cur)",
-         "cursors:camera_move_up" : "file(data/cursors/camera_move_up.cur)",
-         "cursors:create_door" : "file(data/cursors/create_door.cur)",
-         "cursors:create_roof" : "file(data/cursors/create_roof.cur)",
-         "cursors:create_stockpile" : "file(data/cursors/create_stockpile.cur)",
-         "cursors:create_walls" : "file(data/cursors/create_walls.cur)",
-         "cursors:default" : "file(data/cursors/default.cur)",
-         "cursors:hover" : "file(data/cursors/hover.cur)",
-         "cursors:over_selection" : "file(data/cursors/over_selection.cur)",
+   "aliases" : {
+      "cursors:arrow" : "file(data/cursors/arrow.cur)",
+      "cursors:camera_pan" : "file(data/cursors/camera_pan.cur)",
+      "cursors:camera_move_down" : "file(data/cursors/camera_move_down.cur)",
+      "cursors:camera_move_left" : "file(data/cursors/camera_move_left.cur)",
+      "cursors:camera_move_right" : "file(data/cursors/camera_move_right.cur)",
+      "cursors:camera_move_up" : "file(data/cursors/camera_move_up.cur)",
+      "cursors:create_door" : "file(data/cursors/create_door.cur)",
+      "cursors:create_roof" : "file(data/cursors/create_roof.cur)",
+      "cursors:create_stockpile" : "file(data/cursors/create_stockpile.cur)",
+      "cursors:create_walls" : "file(data/cursors/create_walls.cur)",
+      "cursors:default" : "file(data/cursors/default.cur)",
+      "cursors:hover" : "file(data/cursors/hover.cur)",
+      "cursors:over_selection" : "file(data/cursors/over_selection.cur)",
 
-         "mixins:mob" : "file(mixins/mob)",
-         "mixins:base_human" : "file(mixins/base_human)",
-         "mixins:crafter_workbench" : "file(mixins/crafter_workbench)",
-         "mixins:tree" : "file(mixins/tree)",
-         "mixins:item_properties" : "file(mixins/item_properties)",
-         "mixins:placed_properties" : "file(mixins/placed_properties)",
+      "mixins:mob" : "file(mixins/mob)",
+      "mixins:base_human" : "file(mixins/base_human)",
+      "mixins:crafter_workbench" : "file(mixins/crafter_workbench)",
+      "mixins:tree" : "file(mixins/tree)",
+      "mixins:item_properties" : "file(mixins/item_properties)",
+      "mixins:placed_properties" : "file(mixins/placed_properties)",
 
-         "factions:ascendancy" : "file(services/population/data/ascendancy.json)",
-         "factions:northern_alliance" : "file(services/population/data/northern_alliance.json)",
-         "factions:rayyas_children" : "file(services/population/data/rayyas_children.json)",
+      "factions:ascendancy" : "file(services/population/data/ascendancy.json)",
+      "factions:northern_alliance" : "file(services/population/data/northern_alliance.json)",
+      "factions:rayyas_children" : "file(services/population/data/rayyas_children.json)",
 
-         "default_object" : "file(entities/generic/default_object)",
+      "default_object" : "file(entities/generic/default_object)",
 
-         "under_construction_proxy" : "file(entities/build/under_construction_proxy)",
-         "wooden_wall" : "file(entities/build/wooden_wall)",
-         "wooden_column" : "file(entities/build/wooden_column)",
-         "wooden_peaked_roof" : "file(entities/build/wooden_peaked_roof)",
-         "scaffolding" : "file(entities/build/scaffolding)",
+      "under_construction_proxy" : "file(entities/build/under_construction_proxy)",
+      "wooden_wall" : "file(entities/build/wooden_wall)",
+      "wooden_column" : "file(entities/build/wooden_column)",
+      "wooden_peaked_roof" : "file(entities/build/wooden_peaked_roof)",
+      "scaffolding" : "file(entities/build/scaffolding)",
 
-         "worker:profession_description" : "file(entities/professions/worker/profession_description.json)",
+      "worker:profession_description" : "file(entities/professions/worker/profession_description.json)",
 
-         "carpenter:profession_description" : "file(entities/professions/carpenter/profession_description.json)",
-         "carpenter:workbench" : "file(entities/professions/carpenter/carpenter_workbench)",
-         "carpenter:outfit" : "file(entities/professions/carpenter/carpenter_outfit)",
-         "carpenter:saw" : "file(entities/professions/carpenter/carpenter_saw)",
+      "carpenter:profession_description" : "file(entities/professions/carpenter/profession_description.json)",
+      "carpenter:workbench" : "file(entities/professions/carpenter/carpenter_workbench)",
+      "carpenter:outfit" : "file(entities/professions/carpenter/carpenter_outfit)",
+      "carpenter:saw" : "file(entities/professions/carpenter/carpenter_saw)",
 
-         "weaver:profession_description" : "file(entities/professions/weaver/profession_description.json)",
-         "weaver:workbench" : "file(entities/professions/weaver/weaver_workbench)",
-         "weaver:outfit" : "file(entities/professions/weaver/weaver_outfit)",
-         "weaver:spindle" : "file(entities/professions/weaver/weaver_spindle)",
+      "weaver:profession_description" : "file(entities/professions/weaver/profession_description.json)",
+      "weaver:workbench" : "file(entities/professions/weaver/weaver_workbench)",
+      "weaver:outfit" : "file(entities/professions/weaver/weaver_outfit)",
+      "weaver:spindle" : "file(entities/professions/weaver/weaver_spindle)",
 
-         "stockpile" : "file(entities/construction/stockpile)",
+      "stockpile" : "file(entities/construction/stockpile)",
 
-         "worker_outfit" : "file(entities/professions/worker/worker_outfit)",
-         "worker_axe" : "file(entities/tools/worker_axe)",
-         "worker_hammer" : "file(entities/tools/worker_hammer)",
-         "rabbit" : "file(entities/critters/rabbit)",
-         "sheep" : "file(entities/critters/sheep)",
-         "wolf" : "file(entities/critters/wolf)",
-         "wolf:teeth_weapon" : "file(entities/critters/wolf/wolf_teeth.json)",
-         "male_1" : "file(entities/humans/male_1)",
-         "male_2" : "file(entities/humans/male_2)",
-         "male_3" : "file(entities/humans/male_3)",
-         "female_1" : "file(entities/humans/female_1)",
-         "female_2" : "file(entities/humans/female_2)",
-         "female_3" : "file(entities/humans/female_3)",
-         "workshop_outbox" : "file(entities/crafting/workshop_outbox)",
+      "worker_outfit" : "file(entities/professions/worker/worker_outfit)",
+      "worker_axe" : "file(entities/tools/worker_axe)",
+      "worker_hammer" : "file(entities/tools/worker_hammer)",
+      "rabbit" : "file(entities/critters/rabbit)",
+      "sheep" : "file(entities/critters/sheep)",
+      "wolf" : "file(entities/critters/wolf)",
+      "wolf:teeth_weapon" : "file(entities/critters/wolf/wolf_teeth.json)",
+      "male_1" : "file(entities/humans/male_1)",
+      "male_2" : "file(entities/humans/male_2)",
+      "male_3" : "file(entities/humans/male_3)",
+      "female_1" : "file(entities/humans/female_1)",
+      "female_2" : "file(entities/humans/female_2)",
+      "female_3" : "file(entities/humans/female_3)",
+      "workshop_outbox" : "file(entities/crafting/workshop_outbox)",
 
-         "effects:talisman_glow" : "file(data/effects/talisman_glow)",
+      "effects:talisman_glow" : "file(data/effects/talisman_glow)",
 
-         "wool_bundle" : "file(entities/cloth/wool/wool_bundle)",
+      "wool_bundle" : "file(entities/cloth/wool/wool_bundle)",
 
-         "oak_log" : "file(entities/trees/oak_tree/oak_log)",
-         "small_oak_tree" : "file(entities/trees/oak_tree/small_oak_tree)",
-         "medium_oak_tree" : "file(entities/trees/oak_tree/medium_oak_tree)",
-         "large_oak_tree" : "file(entities/trees/oak_tree/large_oak_tree)",
-         "juniper_log" : "file(entities/trees/juniper_tree/juniper_log)",
-         "small_juniper_tree" : "file(entities/trees/juniper_tree/small_juniper_tree)",
-         "medium_juniper_tree" : "file(entities/trees/juniper_tree/medium_juniper_tree)",
-         "large_juniper_tree" : "file(entities/trees/juniper_tree/large_juniper_tree)",
+      "oak_log" : "file(entities/trees/oak_tree/oak_log)",
+      "small_oak_tree" : "file(entities/trees/oak_tree/small_oak_tree)",
+      "medium_oak_tree" : "file(entities/trees/oak_tree/medium_oak_tree)",
+      "large_oak_tree" : "file(entities/trees/oak_tree/large_oak_tree)",
+      "juniper_log" : "file(entities/trees/juniper_tree/juniper_log)",
+      "small_juniper_tree" : "file(entities/trees/juniper_tree/small_juniper_tree)",
+      "medium_juniper_tree" : "file(entities/trees/juniper_tree/medium_juniper_tree)",
+      "large_juniper_tree" : "file(entities/trees/juniper_tree/large_juniper_tree)",
 
-         "berry_bush" : "file(entities/plants/berry_bush)",
+      "berry_bush" : "file(entities/plants/berry_bush)",
 
-         "pink_flower" : "file(entities/ground_clutter/pink_flower)",
+      "pink_flower" : "file(entities/ground_clutter/pink_flower)",
 
-         "berry_basket" : "file(entities/plants/berry_basket)",
-         "berry_plate" : "file(entities/plants/berry_plate)",
+      "berry_basket" : "file(entities/plants/berry_basket)",
+      "berry_plate" : "file(entities/plants/berry_plate)",
 
-         "arch_backed_chair" :       "file(entities/furniture/arch_backed_chair)",
-         "arch_backed_chair_proxy" : "file(entities/furniture/arch_backed_chair/arch_backed_chair_proxy.json)",
+      "arch_backed_chair" :       "file(entities/furniture/arch_backed_chair)",
+      "arch_backed_chair_proxy" : "file(entities/furniture/arch_backed_chair/arch_backed_chair_proxy.json)",
 
-         "cloth_bolt" : "file(entities/crafting_materials/cloth_bolt)",
+      "cloth_bolt" : "file(entities/crafting_materials/cloth_bolt)",
 
-         "comfy_bed" :       "file(entities/furniture/comfy_bed)",
-         "comfy_bed_proxy" : "file(entities/furniture/comfy_bed/comfy_bed_proxy.json)",
+      "comfy_bed" :       "file(entities/furniture/comfy_bed)",
+      "comfy_bed_proxy" : "file(entities/furniture/comfy_bed/comfy_bed_proxy.json)",
 
-         "dining_table" : "file(entities/furniture/dining_table)",
-         "dining_table_proxy" : "file(entities/furniture/dining_table/dining_table_proxy.json)",
+      "dining_table" : "file(entities/furniture/dining_table)",
+      "dining_table_proxy" : "file(entities/furniture/dining_table/dining_table_proxy.json)",
 
-         "camp_standard" : "file(entities/gizmos/camp_standard)",
-         "camp_standard_proxy" : "file(entities/gizmos/camp_standard/camp_standard_proxy.json)",
+      "camp_standard" : "file(entities/gizmos/camp_standard)",
+      "camp_standard_proxy" : "file(entities/gizmos/camp_standard/camp_standard_proxy.json)",
 
-         "firepit" : "file(entities/gizmos/firepit)",
-         "firepit_proxy" : "file(entities/gizmos/firepit/firepit_proxy.json)",
-         "firepit_seat" : "file(entities/gizmos/firepit/firepit_seat.json)",
+      "firepit" : "file(entities/gizmos/firepit)",
+      "firepit_proxy" : "file(entities/gizmos/firepit/firepit_proxy.json)",
+      "firepit_seat" : "file(entities/gizmos/firepit/firepit_seat.json)",
 
-         "not_much_of_a_bed" : "file(entities/furniture/not_much_of_a_bed)",
-         "not_much_of_a_bed_proxy" : "file(entities/furniture/not_much_of_a_bed/not_much_of_a_bed_proxy.json)",
+      "not_much_of_a_bed" : "file(entities/furniture/not_much_of_a_bed)",
+      "not_much_of_a_bed_proxy" : "file(entities/furniture/not_much_of_a_bed/not_much_of_a_bed_proxy.json)",
 
-         "picket_fence" : "file(entities/construction/picket_fence)",
-         "picket_fence_proxy" : "file(entities/construction/picket_fence/picket_fence_proxy.json)",
+      "picket_fence" : "file(entities/construction/picket_fence)",
+      "picket_fence_proxy" : "file(entities/construction/picket_fence/picket_fence_proxy.json)",
 
-         "picket_fence_gate" : "file(entities/construction/picket_fence_gate)",
-         "picket_fence_gate_proxy" : "file(entities/construction/picket_fence_gate/picket_fence_gate_proxy.json)",
+      "picket_fence_gate" : "file(entities/construction/picket_fence_gate)",
+      "picket_fence_gate_proxy" : "file(entities/construction/picket_fence_gate/picket_fence_gate_proxy.json)",
 
-         "simple_wooden_chair" : "file(entities/furniture/simple_wooden_chair)",
-         "simple_wooden_chair_proxy" : "file(entities/furniture/simple_wooden_chair/simple_wooden_chair_proxy.json)",
+      "simple_wooden_chair" : "file(entities/furniture/simple_wooden_chair)",
+      "simple_wooden_chair_proxy" : "file(entities/furniture/simple_wooden_chair/simple_wooden_chair_proxy.json)",
 
-         "spindle" : "file(entities/tools/spindle)",
+      "spindle" : "file(entities/tools/spindle)",
 
-         "spool_of_thread" : "file(entities/crafting_materials/spool_of_thread)",
+      "spool_of_thread" : "file(entities/crafting_materials/spool_of_thread)",
 
-         "table_for_one" : "file(entities/furniture/table_for_one)",
-         "table_for_one_proxy" : "file(entities/furniture/table_for_one/table_for_one_proxy.json)",
+      "table_for_one" : "file(entities/furniture/table_for_one)",
+      "table_for_one_proxy" : "file(entities/furniture/table_for_one/table_for_one_proxy.json)",
 
-         "wooden_buckler" : "file(entities/armor/wooden_buckler)",
+      "wooden_buckler" : "file(entities/armor/wooden_buckler)",
 
-         "wooden_door" : "file(entities/construction/wooden_door)",
-         "wooden_door_proxy" : "file(entities/construction/wooden_door/wooden_door_proxy.json)",
+      "wooden_door" : "file(entities/construction/wooden_door)",
+      "wooden_door_proxy" : "file(entities/construction/wooden_door/wooden_door_proxy.json)",
 
-         "wooden_sword" : "file(entities/weapons/wooden_sword)",
+      "wooden_sword" : "file(entities/weapons/wooden_sword)",
 
-         "wooden_window_frame" : "file(entities/construction/wooden_window_frame)",
-         "wooden_window_frame_proxy" : "file(entities/construction/wooden_window_frame/wooden_window_frame_proxy.json)",
+      "wooden_window_frame" : "file(entities/construction/wooden_window_frame)",
+      "wooden_window_frame_proxy" : "file(entities/construction/wooden_window_frame/wooden_window_frame_proxy.json)",
 
-         "ball" : "file(entities/toys/ball)",
+      "ball" : "file(entities/toys/ball)",
 
-         "buffs:groggy" : "file(data/buffs/groggy/groggy_buff.json)",
-         "buffs:carrying" : "file(data/buffs/carrying/carrying_buff.json)",
-         "buffs:sleeping" : "file(data/buffs/sleeping/sleeping_buff.json)",
-         "buffs:starving" : "file(data/buffs/starving/starving_buff.json)",
+      "buffs:groggy" : "file(data/buffs/groggy/groggy_buff.json)",
+      "buffs:carrying" : "file(data/buffs/carrying/carrying_buff.json)",
+      "buffs:sleeping" : "file(data/buffs/sleeping/sleeping_buff.json)",
+      "buffs:starving" : "file(data/buffs/starving/starving_buff.json)",
 
-         "actions:attack_action" : "file(ai/actions/combat/attack_action.lua)",
-         "actions:attack_top_aggro_action" : "file(ai/actions/combat/attack_top_aggro_action.lua)",
-         "actions:attack_closest_enemy" : "file(ai/actions/combat/attack_closest_enemy_action.lua)",
-         "actions:attack:melee_action" : "file(ai/actions/combat/melee_attack_action.lua)",
-         "actions:chase_target_action" : "file(ai/actions/combat/chase_target_action.lua)",
-         "actions:flee_action" : "file(ai/actions/combat/flee_action.lua)",
-         "actions:run_away_from_entity" : "file(ai/actions/run_away_from_entity_action.lua)",
-         "actions:run_towards_entity" : "file(ai/actions/run_towards_entity_action.lua)",
-         "actions:goto_location_action" : "file(ai/actions/goto_location_action.lua)",
-         "actions:fear_fire" : "file(ai/actions/fear_fire_action.lua)",
-         "actions:run_effect_action" : "file(ai/actions/run_effect_action.lua)",
-         "actions:idle_top_action" : "file(ai/actions/idle_top_action.lua)",
-         "actions:idle_action" : "file(ai/actions/idle_action.lua)",
-         "actions:idle_breathe_action" : "file(ai/actions/idle_breathe_action.lua)",
-         "actions:sleep_action" : "file(ai/actions/sleep_action.lua)",
-         "actions:sleep_in_bed_action" : "file(ai/actions/sleep_in_bed_action.lua)",
-         "actions:sleep_on_ground_action" : "file(ai/actions/sleep_on_ground_action.lua)",
-         "actions:death_action" : "file(ai/actions/death_action.lua)",
-         "actions:drop_carrying_action" : "file(ai/actions/drop_carrying_action.lua)",
-         "actions:drop_carrying_in_entity" : "file(ai/actions/drop_carrying_in_entity.lua)",
-         "actions:follow_leash" : "file(ai/actions/follow_leash_action.lua)",
-         "actions:wander" : "file(ai/actions/wander_action.lua)",
-         "actions:follow_path_action" : "file(ai/actions/follow_path_action.lua)",
-         "actions:pickup_item_action" : "file(ai/actions/pickup_item_action.lua)",
-         "actions:pickup_item_on_ground_action" : "file(ai/actions/pickup_item_on_ground_action.lua)",
-         "actions:pickup_item_on_table_action" : "file(ai/actions/pickup_item_on_table_action.lua)",
-         "actions:goto_entity_action" : "file(ai/actions/goto_entity_action.lua)",
-         "actions:pickup_item_on_path" : "file(ai/actions/pickup_item_on_path.lua)",
-         "actions:check_craftable_action" : "file(ai/actions/check_craftable_action.lua)",
-         "actions:craft_action" : "file(ai/actions/craft_action.lua)",
-         "actions:fill_outbox_action" : "file(ai/actions/fill_outbox_action.lua)",
-         "actions:gather_and_craft_action" : "file(ai/actions/gather_and_craft_action.lua)",
-         "actions:grab_talisman_action" : "file(ai/actions/grab_talisman_action.lua)",
-         "actions:admire_fire_action" : "file(ai/actions/admire_fire_action.lua)",
-         "actions:find_food_action" : "file(ai/actions/find_food_action.lua)",
-         "actions:get_food_action" : "file(ai/actions/get_food_action.lua)",
-         "actions:eat_food_action" : "file(ai/actions/eat_food_action.lua)",
-         "actions:chop_tree_action" : "file(ai/actions/chop_tree_action.lua)",
-         "actions:worker_harvest_plant_action" : "file(ai/actions/worker_harvest_plants_action.lua)",
-         "actions:shear_sheep_action" : "file(ai/actions/shear_sheep_action.lua)",
-         "actions:carry_item_on_path_to" : "file(ai/actions/carry_item_on_path_to.lua)",
-         "actions:worker_task_dispatcher" : "file(ai/actions/worker_task_dispatcher.lua)",
-         "actions:worker_restock_action" : "file(ai/actions/worker_restock_action.lua)",
-         "actions:worker_place_action" : "file(ai/actions/worker_place_action.lua)",
-         "actions:worker_place_workshop" : "file(ai/actions/worker_place_workshop.lua)",
-         "actions:worker_light_fire_action" : "file(ai/actions/worker_light_fire_action.lua)",
-         "actions:play_with_ball_action" : "file(ai/actions/play_with_ball_action.lua)",
-         "actions:fabricate" : "file(ai/actions/fabricate_action.lua)",
-         "actions:teardown" : "file(ai/actions/teardown_action.lua)",
-         "actions:idle:despair" : "file(ai/actions/idle_despair_action.lua)",
-         "actions:idle:look_around" : "file(ai/actions/idle_look_around_action.lua)",
-         "actions:idle:sway" : "file(ai/actions/idle_sway_action.lua)",
-         "actions:idle:warm_hands" : "file(ai/actions/idle_warm_hands_action.lua)",
+      "actions:attack_action" : "file(ai/actions/combat/attack_action.lua)",
+      "actions:attack_top_aggro_action" : "file(ai/actions/combat/attack_top_aggro_action.lua)",
+      "actions:attack_closest_enemy" : "file(ai/actions/combat/attack_closest_enemy_action.lua)",
+      "actions:attack:melee_action" : "file(ai/actions/combat/melee_attack_action.lua)",
+      "actions:chase_target_action" : "file(ai/actions/combat/chase_target_action.lua)",
+      "actions:flee_action" : "file(ai/actions/combat/flee_action.lua)",
+      "actions:run_away_from_entity" : "file(ai/actions/run_away_from_entity_action.lua)",
+      "actions:run_towards_entity" : "file(ai/actions/run_towards_entity_action.lua)",
+      "actions:goto_location_action" : "file(ai/actions/goto_location_action.lua)",
+      "actions:fear_fire" : "file(ai/actions/fear_fire_action.lua)",
+      "actions:run_effect_action" : "file(ai/actions/run_effect_action.lua)",
+      "actions:idle_top_action" : "file(ai/actions/idle_top_action.lua)",
+      "actions:idle_action" : "file(ai/actions/idle_action.lua)",
+      "actions:idle_breathe_action" : "file(ai/actions/idle_breathe_action.lua)",
+      "actions:sleep_action" : "file(ai/actions/sleep_action.lua)",
+      "actions:sleep_in_bed_action" : "file(ai/actions/sleep_in_bed_action.lua)",
+      "actions:sleep_on_ground_action" : "file(ai/actions/sleep_on_ground_action.lua)",
+      "actions:death_action" : "file(ai/actions/death_action.lua)",
+      "actions:drop_carrying_action" : "file(ai/actions/drop_carrying_action.lua)",
+      "actions:drop_carrying_in_entity" : "file(ai/actions/drop_carrying_in_entity.lua)",
+      "actions:follow_leash" : "file(ai/actions/follow_leash_action.lua)",
+      "actions:wander" : "file(ai/actions/wander_action.lua)",
+      "actions:follow_path_action" : "file(ai/actions/follow_path_action.lua)",
+      "actions:pickup_item_action" : "file(ai/actions/pickup_item_action.lua)",
+      "actions:pickup_item_on_ground_action" : "file(ai/actions/pickup_item_on_ground_action.lua)",
+      "actions:pickup_item_on_table_action" : "file(ai/actions/pickup_item_on_table_action.lua)",
+      "actions:goto_entity_action" : "file(ai/actions/goto_entity_action.lua)",
+      "actions:pickup_item_on_path" : "file(ai/actions/pickup_item_on_path.lua)",
+      "actions:check_craftable_action" : "file(ai/actions/check_craftable_action.lua)",
+      "actions:craft_action" : "file(ai/actions/craft_action.lua)",
+      "actions:fill_outbox_action" : "file(ai/actions/fill_outbox_action.lua)",
+      "actions:gather_and_craft_action" : "file(ai/actions/gather_and_craft_action.lua)",
+      "actions:grab_talisman_action" : "file(ai/actions/grab_talisman_action.lua)",
+      "actions:admire_fire_action" : "file(ai/actions/admire_fire_action.lua)",
+      "actions:find_food_action" : "file(ai/actions/find_food_action.lua)",
+      "actions:get_food_action" : "file(ai/actions/get_food_action.lua)",
+      "actions:eat_food_action" : "file(ai/actions/eat_food_action.lua)",
+      "actions:chop_tree_action" : "file(ai/actions/chop_tree_action.lua)",
+      "actions:worker_harvest_plant_action" : "file(ai/actions/worker_harvest_plants_action.lua)",
+      "actions:shear_sheep_action" : "file(ai/actions/shear_sheep_action.lua)",
+      "actions:carry_item_on_path_to" : "file(ai/actions/carry_item_on_path_to.lua)",
+      "actions:worker_task_dispatcher" : "file(ai/actions/worker_task_dispatcher.lua)",
+      "actions:worker_restock_action" : "file(ai/actions/worker_restock_action.lua)",
+      "actions:worker_place_action" : "file(ai/actions/worker_place_action.lua)",
+      "actions:worker_place_workshop" : "file(ai/actions/worker_place_workshop.lua)",
+      "actions:worker_light_fire_action" : "file(ai/actions/worker_light_fire_action.lua)",
+      "actions:play_with_ball_action" : "file(ai/actions/play_with_ball_action.lua)",
+      "actions:fabricate" : "file(ai/actions/fabricate_action.lua)",
+      "actions:teardown" : "file(ai/actions/teardown_action.lua)",
+      "actions:idle:despair" : "file(ai/actions/idle_despair_action.lua)",
+      "actions:idle:look_around" : "file(ai/actions/idle_look_around_action.lua)",
+      "actions:idle:sway" : "file(ai/actions/idle_sway_action.lua)",
+      "actions:idle:warm_hands" : "file(ai/actions/idle_warm_hands_action.lua)",
 
-         "observers:look_for_enemies" : "file(ai/observers/look_for_enemies.lua)",
-         "observers:sleep" : "file(ai/observers/sleep_observer.lua)",
-         "observers:hunger" : "file(ai/observers/hunger_observer.lua)",
+      "observers:look_for_enemies" : "file(ai/observers/look_for_enemies.lua)",
+      "observers:sleep" : "file(ai/observers/sleep_observer.lua)",
+      "observers:hunger" : "file(ai/observers/hunger_observer.lua)",
 
-         "class_info" : "file(entities/class_info)",
-         "personality_types" : "file(data/personality/personality_types.json)",
-         "personal_logs:chopping_wood" : "file(data/personality/chopping_wood.json)",
-         "personal_logs:embarking" :     "file(data/personality/embarking.json)",
-         "personal_logs:eating_berries" :"file(data/personality/eating_berries.json)",
-         "personal_logs:promote_carpenter" :"file(data/personality/carpenter_promote.json)",
-         "personal_logs:promote_weaver" :"file(data/personality/weaver_promote.json)",
+      "class_info" : "file(entities/class_info)",
+      "personality_types" : "file(data/personality/personality_types.json)",
+      "personal_logs:chopping_wood" : "file(data/personality/chopping_wood.json)",
+      "personal_logs:embarking" :     "file(data/personality/embarking.json)",
+      "personal_logs:eating_berries" :"file(data/personality/eating_berries.json)",
+      "personal_logs:promote_carpenter" :"file(data/personality/carpenter_promote.json)",
+      "personal_logs:promote_weaver" :"file(data/personality/weaver_promote.json)",
 
-         "sounds:ui:action_hover" : "file(data/sounds/ui/action/action_hover.wav)",
-         "sounds:ui:action_click" : "file(data/sounds/ui/action/action_click.wav)",
-         "sounds:ui:start_menu:trigger_click" : "file(data/sounds/ui/start_menu/trigger_click.wav)",
-         "sounds:ui:start_menu:paper_menu" : "file(data/sounds/ui/start_menu/ui_paper_menu.wav)",
-         "sounds:ui:start_menu:sub_menu" : "file(data/sounds/ui/start_menu/ui_mm_submenu_select.wav)",
-         "sounds:ui:start_menu:embark" : "file(data/sounds/ui/start_menu/ui_mm_embark.wav)",
-         "sounds:ui:start_menu:popup" : "file(data/sounds/ui/start_menu/ui_popup_menu.wav)",
-         "sounds:ui:start_menu:page_up_right" : "file(data/sounds/ui/start_menu/ui_page_up_right.wav)",
-         "sounds:ui:start_menu:page_down_right" : "file(data/sounds/ui/start_menu/ui_page_down_right.wav)",
-         "sounds:ui:start_menu:page_up_right_pause" : "file(data/sounds/ui/start_menu/ui_page_up_right_pause.wav)",
-         "sounds:ui:start_menu:journal_up" : "file(data/sounds/ui/start_menu/ui_journal_up_left.wav)",
-         "sounds:ui:start_menu:journal_down" : "file(data/sounds/ui/start_menu/ui_journal_down_left.wav)",
-         "sounds:ui:start_menu:page_up" : "file(data/sounds/ui/start_menu/ui_page_up.wav)",
-         "sounds:ui:start_menu:page_down" : "file(data/sounds/ui/start_menu/ui_page_down.wav)",
-         "sounds:ui:start_menu:loading_tick" : "file(data/sounds/ui/start_menu/ui_loading_tick.wav)",
-         "sounds:ui:start_menu:loading_screen_success" : "file(data/sounds/ui/start_menu/ui_loading_screen_success.wav)",
-         "sounds:ui:carpenter_menu:add_remove" : "file(data/sounds/ui/carpenter_menu/sh_carp_add_remove.wav)",
-         "sounds:ui:carpenter_menu:closed" : "file(data/sounds/ui/carpenter_menu/sh_carp_closed.wav)",
-         "sounds:ui:carpenter_menu:confirm" : "file(data/sounds/ui/carpenter_menu/sh_carp_confirm.wav)",
-         "sounds:ui:carpenter_menu:highlight" : "file(data/sounds/ui/carpenter_menu/sh_carp_highlight.wav)",
-         "sounds:ui:carpenter_menu:menu_closed" : "file(data/sounds/ui/carpenter_menu/sh_carp_menu_closed.wav)",
-         "sounds:ui:carpenter_menu:menu_open" : "file(data/sounds/ui/carpenter_menu/sh_carp_menu_open.wav)",
-         "sounds:ui:carpenter_menu:open" : "file(data/sounds/ui/carpenter_menu/sh_carp_open.wav)",
-         "sounds:ui:carpenter_menu:slide_down" : "file(data/sounds/ui/carpenter_menu/sh_carp_slide_down.wav)",
-         "sounds:ui:carpenter_menu:slide_up" : "file(data/sounds/ui/carpenter_menu/sh_carp_slide_up.wav)",
-         "sounds:ui:carpenter_menu:small_click" : "file(data/sounds/ui/carpenter_menu/sh_carp_small_click.wav)",
-         "sounds:ui:carpenter_menu:trash" : "file(data/sounds/ui/carpenter_menu/sh_carp_trash.wav)",
-         "sounds:ui:carpenter_menu:window_popup" : "file(data/sounds/ui/carpenter_menu/sh_carp_window_popup.wav)",
-         "sounds:ui:promotion_menu:select" : "file(data/sounds/ui/promotion_menu/ui_prom_select.wav)",
-         "sounds:ui:promotion_menu:scroll_open" : "file(data/sounds/ui/promotion_menu/ui_prom_scroll_open.wav)",
-         "sounds:ui:promotion_menu:stamp" : "file(data/sounds/ui/promotion_menu/ui_prom_stamp.wav)",
-         "sounds:ui:promotion_menu:sub_menu" : "file(data/sounds/ui/promotion_menu/ui_prom_submenu.wav)",
+      "sounds:ui:action_hover" : "file(data/sounds/ui/action/action_hover.wav)",
+      "sounds:ui:action_click" : "file(data/sounds/ui/action/action_click.wav)",
+      "sounds:ui:start_menu:trigger_click" : "file(data/sounds/ui/start_menu/trigger_click.wav)",
+      "sounds:ui:start_menu:paper_menu" : "file(data/sounds/ui/start_menu/ui_paper_menu.wav)",
+      "sounds:ui:start_menu:sub_menu" : "file(data/sounds/ui/start_menu/ui_mm_submenu_select.wav)",
+      "sounds:ui:start_menu:embark" : "file(data/sounds/ui/start_menu/ui_mm_embark.wav)",
+      "sounds:ui:start_menu:popup" : "file(data/sounds/ui/start_menu/ui_popup_menu.wav)",
+      "sounds:ui:start_menu:page_up_right" : "file(data/sounds/ui/start_menu/ui_page_up_right.wav)",
+      "sounds:ui:start_menu:page_down_right" : "file(data/sounds/ui/start_menu/ui_page_down_right.wav)",
+      "sounds:ui:start_menu:page_up_right_pause" : "file(data/sounds/ui/start_menu/ui_page_up_right_pause.wav)",
+      "sounds:ui:start_menu:journal_up" : "file(data/sounds/ui/start_menu/ui_journal_up_left.wav)",
+      "sounds:ui:start_menu:journal_down" : "file(data/sounds/ui/start_menu/ui_journal_down_left.wav)",
+      "sounds:ui:start_menu:page_up" : "file(data/sounds/ui/start_menu/ui_page_up.wav)",
+      "sounds:ui:start_menu:page_down" : "file(data/sounds/ui/start_menu/ui_page_down.wav)",
+      "sounds:ui:start_menu:loading_tick" : "file(data/sounds/ui/start_menu/ui_loading_tick.wav)",
+      "sounds:ui:start_menu:loading_screen_success" : "file(data/sounds/ui/start_menu/ui_loading_screen_success.wav)",
+      "sounds:ui:carpenter_menu:add_remove" : "file(data/sounds/ui/carpenter_menu/sh_carp_add_remove.wav)",
+      "sounds:ui:carpenter_menu:closed" : "file(data/sounds/ui/carpenter_menu/sh_carp_closed.wav)",
+      "sounds:ui:carpenter_menu:confirm" : "file(data/sounds/ui/carpenter_menu/sh_carp_confirm.wav)",
+      "sounds:ui:carpenter_menu:highlight" : "file(data/sounds/ui/carpenter_menu/sh_carp_highlight.wav)",
+      "sounds:ui:carpenter_menu:menu_closed" : "file(data/sounds/ui/carpenter_menu/sh_carp_menu_closed.wav)",
+      "sounds:ui:carpenter_menu:menu_open" : "file(data/sounds/ui/carpenter_menu/sh_carp_menu_open.wav)",
+      "sounds:ui:carpenter_menu:open" : "file(data/sounds/ui/carpenter_menu/sh_carp_open.wav)",
+      "sounds:ui:carpenter_menu:slide_down" : "file(data/sounds/ui/carpenter_menu/sh_carp_slide_down.wav)",
+      "sounds:ui:carpenter_menu:slide_up" : "file(data/sounds/ui/carpenter_menu/sh_carp_slide_up.wav)",
+      "sounds:ui:carpenter_menu:small_click" : "file(data/sounds/ui/carpenter_menu/sh_carp_small_click.wav)",
+      "sounds:ui:carpenter_menu:trash" : "file(data/sounds/ui/carpenter_menu/sh_carp_trash.wav)",
+      "sounds:ui:carpenter_menu:window_popup" : "file(data/sounds/ui/carpenter_menu/sh_carp_window_popup.wav)",
+      "sounds:ui:promotion_menu:select" : "file(data/sounds/ui/promotion_menu/ui_prom_select.wav)",
+      "sounds:ui:promotion_menu:scroll_open" : "file(data/sounds/ui/promotion_menu/ui_prom_scroll_open.wav)",
+      "sounds:ui:promotion_menu:stamp" : "file(data/sounds/ui/promotion_menu/ui_prom_stamp.wav)",
+      "sounds:ui:promotion_menu:sub_menu" : "file(data/sounds/ui/promotion_menu/ui_prom_submenu.wav)",
 
-         "sounds:banner_plant" : "file(data/sounds/effects/sh_banner_plant.wav)",
-         "sounds:banner_grab" : "file(data/sounds/effects/sh_banner_grab.wav)",
-         "sounds:box_grab" : "file(data/sounds/effects/sh_box_grab.wav)",
-         "sounds:banner_bounce" : "file(data/sounds/effects/sh_banner_bounce_small.wav)",
-         "sounds:box_bounce" : "file(data/sounds/effects/sh_box_bounce_small.wav)",
-         "sounds:axe_chopping_sound_01" : "file(data/sounds/effects/sh_axe_01.wav)",
-         "sounds:axe_chopping_sound_02" : "file(data/sounds/effects/sh_axe_02.wav)",
-         "sounds:axe_chopping_sound_03" : "file(data/sounds/effects/sh_axe_03.wav)",
-         "sounds:firepit_ignite_sound" : "file(data/sounds/effects/sh_firepit_ignite_01.wav)",
-         "sounds:firepit_loop_sound" : "file(data/sounds/effects/sh_firepit_loop.wav)",
-         "sounds:hammer_sound_01" : "file(data/sounds/effects/sh_hammer_01.wav)",
-         "sounds:hammer_sound_02" : "file(data/sounds/effects/sh_hammer_02.wav)",
-         "sounds:hammer_sound_03" : "file(data/sounds/effects/sh_hammer_03.wav)",
-         "sounds:flint_01_sound" : "file(data/sounds/effects/sh_flint_02.wav)",
-         "sounds:flint_02_sound" : "file(data/sounds/effects/sh_flint_03.wav)",
-         "sounds:flint_03_sound" : "file(data/sounds/effects/sh_flint_04.wav)",
-         "sounds:drop_wood_sound_01" : "file(data/sounds/effects/sh_drop_wood_01.wav)",
-         "sounds:drop_wood_sound_02" : "file(data/sounds/effects/sh_drop_wood_02.wav)",
-         "sounds:drop_wood_sound_03" : "file(data/sounds/effects/sh_drop_wood_03.wav)",
-         "sounds:footsteps_walk_sound" : "file(data/sounds/effects/sh_footsteps_walk.wav)",
-         "sounds:footsteps_run_sound" : "file(data/sounds/effects/sh_footsteps_run.wav)",
-         "sounds:prom_angel_sound" : "file(data/sounds/effects/sh_prom_angel.wav)",
-         "sounds:prom_angel_jingle_sound" : "file(data/sounds/effects/sh_prom_angel_jingle.wav)",
-         "sounds:prom_whoosh_jingle_sound" : "file(data/sounds/effects/sh_prom_whoosh_jingle.wav)",
-         "sounds:footsteps_small_sound" : "file(data/sounds/effects/sh_footsteps_small.wav)",
-         "sounds:saw_light_01_sound" : "file(data/sounds/effects/sh_saw_light_01.wav)",
-         "sounds:saw_light_02_sound" : "file(data/sounds/effects/sh_saw_light_02.wav)",
-         "sounds:saw_light_03_sound" : "file(data/sounds/effects/sh_saw_light_03.wav)",
-         "sounds:place_structure" : "file(data/sounds/effects/sh_place_structure.wav)",
-         "sounds:owl_call" : "file(data/sounds/effects/sh_owl_call.wav)",
-         "sounds:rooster_call" : "file(data/sounds/effects/sh_rooster_call.wav)",
-         "sounds:workshop_bench" : "file(data/sounds/effects/sh_workshop_bench.wav)",
-         "sounds:weaver_bench" : "file(data/sounds/effects/sh_weaver_bench.wav)",
-         "sounds:sleeping_lullaby" : "file(data/sounds/effects/sleeping_lullaby.wav)",
-         "sounds:eating" : "file(data/sounds/effects/sh_eating.wav)",
-         "sounds:twinkle" : "file(data/sounds/effects/sh_twinkle.wav)",
-         "sounds:object_appear_01" : "file(data/sounds/effects/sh_object_appear_01.wav)",
-         "sounds:object_appear_02" : "file(data/sounds/effects/sh_object_appear_02.wav)",
-         "sounds:object_appear_03" : "file(data/sounds/effects/sh_object_appear_03.wav)",
-         "sounds:object_appear_04" : "file(data/sounds/effects/sh_object_appear_04.wav)",
-         "sounds:wolf_howl" : "file(data/sounds/effects/sh_wolf_howl.wav)",
+      "sounds:banner_plant" : "file(data/sounds/effects/sh_banner_plant.wav)",
+      "sounds:banner_grab" : "file(data/sounds/effects/sh_banner_grab.wav)",
+      "sounds:box_grab" : "file(data/sounds/effects/sh_box_grab.wav)",
+      "sounds:banner_bounce" : "file(data/sounds/effects/sh_banner_bounce_small.wav)",
+      "sounds:box_bounce" : "file(data/sounds/effects/sh_box_bounce_small.wav)",
+      "sounds:axe_chopping_sound_01" : "file(data/sounds/effects/sh_axe_01.wav)",
+      "sounds:axe_chopping_sound_02" : "file(data/sounds/effects/sh_axe_02.wav)",
+      "sounds:axe_chopping_sound_03" : "file(data/sounds/effects/sh_axe_03.wav)",
+      "sounds:firepit_ignite_sound" : "file(data/sounds/effects/sh_firepit_ignite_01.wav)",
+      "sounds:firepit_loop_sound" : "file(data/sounds/effects/sh_firepit_loop.wav)",
+      "sounds:hammer_sound_01" : "file(data/sounds/effects/sh_hammer_01.wav)",
+      "sounds:hammer_sound_02" : "file(data/sounds/effects/sh_hammer_02.wav)",
+      "sounds:hammer_sound_03" : "file(data/sounds/effects/sh_hammer_03.wav)",
+      "sounds:flint_01_sound" : "file(data/sounds/effects/sh_flint_02.wav)",
+      "sounds:flint_02_sound" : "file(data/sounds/effects/sh_flint_03.wav)",
+      "sounds:flint_03_sound" : "file(data/sounds/effects/sh_flint_04.wav)",
+      "sounds:drop_wood_sound_01" : "file(data/sounds/effects/sh_drop_wood_01.wav)",
+      "sounds:drop_wood_sound_02" : "file(data/sounds/effects/sh_drop_wood_02.wav)",
+      "sounds:drop_wood_sound_03" : "file(data/sounds/effects/sh_drop_wood_03.wav)",
+      "sounds:footsteps_walk_sound" : "file(data/sounds/effects/sh_footsteps_walk.wav)",
+      "sounds:footsteps_run_sound" : "file(data/sounds/effects/sh_footsteps_run.wav)",
+      "sounds:prom_angel_sound" : "file(data/sounds/effects/sh_prom_angel.wav)",
+      "sounds:prom_angel_jingle_sound" : "file(data/sounds/effects/sh_prom_angel_jingle.wav)",
+      "sounds:prom_whoosh_jingle_sound" : "file(data/sounds/effects/sh_prom_whoosh_jingle.wav)",
+      "sounds:footsteps_small_sound" : "file(data/sounds/effects/sh_footsteps_small.wav)",
+      "sounds:saw_light_01_sound" : "file(data/sounds/effects/sh_saw_light_01.wav)",
+      "sounds:saw_light_02_sound" : "file(data/sounds/effects/sh_saw_light_02.wav)",
+      "sounds:saw_light_03_sound" : "file(data/sounds/effects/sh_saw_light_03.wav)",
+      "sounds:place_structure" : "file(data/sounds/effects/sh_place_structure.wav)",
+      "sounds:owl_call" : "file(data/sounds/effects/sh_owl_call.wav)",
+      "sounds:rooster_call" : "file(data/sounds/effects/sh_rooster_call.wav)",
+      "sounds:workshop_bench" : "file(data/sounds/effects/sh_workshop_bench.wav)",
+      "sounds:weaver_bench" : "file(data/sounds/effects/sh_weaver_bench.wav)",
+      "sounds:sleeping_lullaby" : "file(data/sounds/effects/sleeping_lullaby.wav)",
+      "sounds:eating" : "file(data/sounds/effects/sh_eating.wav)",
+      "sounds:twinkle" : "file(data/sounds/effects/sh_twinkle.wav)",
+      "sounds:object_appear_01" : "file(data/sounds/effects/sh_object_appear_01.wav)",
+      "sounds:object_appear_02" : "file(data/sounds/effects/sh_object_appear_02.wav)",
+      "sounds:object_appear_03" : "file(data/sounds/effects/sh_object_appear_03.wav)",
+      "sounds:object_appear_04" : "file(data/sounds/effects/sh_object_appear_04.wav)",
+      "sounds:wolf_howl" : "file(data/sounds/effects/sh_wolf_howl.wav)",
                   
-         "music:title_screen"    : "file(data/music/startmenumusic.ogg)",
-         "music:world_start"     : "file(data/music/levelmusic.ogg)",
+      "music:title_screen"    : "file(data/music/startmenumusic.ogg)",
+      "music:world_start"     : "file(data/music/levelmusic.ogg)",
 
-         "ambient:summer_day"   : "file(data/ambient/sh_amb_summer_day.ogg)",
-         "ambient:summer_night" : "file(data/ambient/sh_amb_summer_night.ogg)",
-         "ambient:dusk_wolves" : "file(data/ambient/sh_amb_dusk_wolves.ogg)",
+      "ambient:summer_day"   : "file(data/ambient/sh_amb_summer_day.ogg)",
+      "ambient:summer_night" : "file(data/ambient/sh_amb_summer_night.ogg)",
+      "ambient:dusk_wolves" : "file(data/ambient/sh_amb_dusk_wolves.ogg)",
 
-         "indicators:sleepy" : "file(/stonehearth/data/effects/unit_status_effects/sleepy_indicator)",
-         "indicators:hungry" : "file(/stonehearth/data/effects/unit_status_effects/hungry_indicator)",
+      "indicators:sleepy" : "file(/stonehearth/data/effects/unit_status_effects/sleepy_indicator)",
+      "indicators:hungry" : "file(/stonehearth/data/effects/unit_status_effects/hungry_indicator)",
 
-         "scenarios:scenario_index" : "file(scenarios/index.json)"
+      "scenarios:scenario_index" : "file(scenarios/index.json)"
+   },
+   "functions" : {
+      "get_world_generation_progress": {
+         "controller" : "file(call_handlers/world_generation_call_handler.lua)",
+         "endpoint" : "server"
       },
-      "functions" : {
-         "get_world_generation_progress": {
-            "controller" : "file(call_handlers/world_generation_call_handler.lua)",
-            "endpoint" : "server"
-         },
-         "new_game": {
-            "controller" : "file(call_handlers/new_game_call_handler.lua)",
-            "endpoint" : "server"
-         },
-         "choose_camp_location": {
-            "controller" : "file(call_handlers/new_game_call_handler.lua)",
-            "endpoint" : "client"
-         },
-         "create_camp": {
-            "controller" : "file(call_handlers/new_game_call_handler.lua)",
-            "endpoint" : "server"
-         },
-         "set_display_name": {
-            "controller" : "file(call_handlers/entities_call_handler.lua)",
-            "endpoint" : "server"
-         },
-         "destroy_entity": {
-            "controller" : "file(call_handlers/entities_call_handler.lua)",
-            "endpoint" : "server"
-         },
-         "get_clock_object": {
-            "controller" : "file(call_handlers/calendar_call_handler.lua)",
-            "endpoint" : "server"
-         },
-         "choose_workbench_location" : {
-            "controller" : "file(call_handlers/workshop_call_handler.lua)",
-            "endpoint" : "client"
-         },
-         "create_ghost_workbench" : {
-            "controller" : "file(call_handlers/workshop_call_handler.lua)",
-            "endpoint" : "server"
-         },
-         "destroy_ghost_workbench" : {
-            "controller" : "file(call_handlers/workshop_call_handler.lua)",
-            "endpoint" : "server"
-         },
-         "choose_outbox_location" : {
-            "controller" : "file(call_handlers/workshop_call_handler.lua)",
-            "endpoint" : "client"
-         },
-         "create_outbox" : {
-            "controller" : "file(call_handlers/workshop_call_handler.lua)",
-            "endpoint" : "server"
-         },
-         "harvest_tree" : {
-            "controller": "file(call_handlers/resource_call_handler.lua)",
-            "endpoint" : "server"
-         },
-         "harvest_plant" : {
-            "controller": "file(call_handlers/resource_call_handler.lua)",
-            "endpoint" : "server"
-         },
-         "shear_sheep" : {
-            "controller": "file(call_handlers/resource_call_handler.lua)",
-            "endpoint" : "server"
-         },
+      "new_game": {
+         "controller" : "file(call_handlers/new_game_call_handler.lua)",
+         "endpoint" : "server"
+      },
+      "choose_camp_location": {
+         "controller" : "file(call_handlers/new_game_call_handler.lua)",
+         "endpoint" : "client"
+      },
+      "create_camp": {
+         "controller" : "file(call_handlers/new_game_call_handler.lua)",
+         "endpoint" : "server"
+      },
+      "set_display_name": {
+         "controller" : "file(call_handlers/entities_call_handler.lua)",
+         "endpoint" : "server"
+      },
+      "destroy_entity": {
+         "controller" : "file(call_handlers/entities_call_handler.lua)",
+         "endpoint" : "server"
+      },
+      "get_clock_object": {
+         "controller" : "file(call_handlers/calendar_call_handler.lua)",
+         "endpoint" : "server"
+      },
+      "choose_workbench_location" : {
+         "controller" : "file(call_handlers/workshop_call_handler.lua)",
+         "endpoint" : "client"
+      },
+      "create_ghost_workbench" : {
+         "controller" : "file(call_handlers/workshop_call_handler.lua)",
+         "endpoint" : "server"
+      },
+      "destroy_ghost_workbench" : {
+         "controller" : "file(call_handlers/workshop_call_handler.lua)",
+         "endpoint" : "server"
+      },
+      "choose_outbox_location" : {
+         "controller" : "file(call_handlers/workshop_call_handler.lua)",
+         "endpoint" : "client"
+      },
+      "create_outbox" : {
+         "controller" : "file(call_handlers/workshop_call_handler.lua)",
+         "endpoint" : "server"
+      },
+      "harvest_tree" : {
+         "controller": "file(call_handlers/resource_call_handler.lua)",
+         "endpoint" : "server"
+      },
+      "harvest_plant" : {
+         "controller": "file(call_handlers/resource_call_handler.lua)",
+         "endpoint" : "server"
+      },
+      "shear_sheep" : {
+         "controller": "file(call_handlers/resource_call_handler.lua)",
+         "endpoint" : "server"
+      },
 
-         "get_worker_tracker" : {
-            "endpoint" : "server",
-            "controller" : "file(call_handlers/object_tracker_call_handler.lua)"
-         },
-         "get_placable_items_tracker" : {
-            "endpoint" : "server",
-            "controller" : "file(call_handlers/object_tracker_call_handler.lua)"
-         },
-         "get_resource_tracker" : {
-            "endpoint" : "server",
-            "controller" : "file(call_handlers/object_tracker_call_handler.lua)"
-         },
-         "get_event_tracker": {
-            "controller" : "file(call_handlers/event_call_handler.lua)",
-            "endpoint" : "server"
-         },         
-         "grab_promotion_talisman" : {
-            "endpoint" : "server",
-            "controller" : "file(call_handlers/profession_call_handler.lua)"
-         },
-         "choose_place_item_location" : {
-            "endpoint" : "client",
-            "controller" : "file(call_handlers/place_item_call_handler.lua)"
-         },
-         "place_item_in_world" : {
-            "endpoint" : "server",
-            "controller" : "file(call_handlers/place_item_call_handler.lua)"
-         },
-         "move_item_in_world" : {
-            "endpoint" : "server",
-            "controller" : "file(call_handlers/place_item_call_handler.lua)"
-         },
-         "place_item_type_in_world" : {
-            "endpoint" : "server",
-            "controller" : "file(call_handlers/place_item_call_handler.lua)"
-         },
-         "choose_stockpile_location": {
-            "controller" : "file(call_handlers/inventory_call_handler.lua)",
-            "endpoint" : "client"
-         },
-         "create_stockpile": {
-            "controller" : "file(call_handlers/inventory_call_handler.lua)",
-            "endpoint" : "server"
-         },
-         "get_build_editor": {
-            "controller" : "file(call_handlers/build_call_handler.lua)",
-            "endpoint" : "client"
-         },
-         "build_structures": {
-            "controller" : "file(call_handlers/build_call_handler.lua)",
-            "endpoint" : "server"
-         },
-         "set_stockpile_filter": {
-            "controller" : "file(call_handlers/stockpile_call_handler.lua)",
-            "endpoint" : "server"
-         },
-         "camera_look_at_entity": {
-            "controller" : "file(call_handlers/camera_call_handler.lua)",
-            "endpoint" : "client"
-         },
-         "get_camera_tracker": {
-            "controller" : "file(call_handlers/camera_call_handler.lua)",
-            "endpoint" : "client"
-         }         
-
-      }
+      "get_worker_tracker" : {
+         "endpoint" : "server",
+         "controller" : "file(call_handlers/object_tracker_call_handler.lua)"
+      },
+      "get_placable_items_tracker" : {
+         "endpoint" : "server",
+         "controller" : "file(call_handlers/object_tracker_call_handler.lua)"
+      },
+      "get_resource_tracker" : {
+         "endpoint" : "server",
+         "controller" : "file(call_handlers/object_tracker_call_handler.lua)"
+      },
+      "get_event_tracker": {
+         "controller" : "file(call_handlers/event_call_handler.lua)",
+         "endpoint" : "server"
+      },         
+      "grab_promotion_talisman" : {
+         "endpoint" : "server",
+         "controller" : "file(call_handlers/profession_call_handler.lua)"
+      },
+      "choose_place_item_location" : {
+         "endpoint" : "client",
+         "controller" : "file(call_handlers/place_item_call_handler.lua)"
+      },
+      "place_item_in_world" : {
+         "endpoint" : "server",
+         "controller" : "file(call_handlers/place_item_call_handler.lua)"
+      },
+      "move_item_in_world" : {
+         "endpoint" : "server",
+         "controller" : "file(call_handlers/place_item_call_handler.lua)"
+      },
+      "place_item_type_in_world" : {
+         "endpoint" : "server",
+         "controller" : "file(call_handlers/place_item_call_handler.lua)"
+      },
+      "choose_stockpile_location": {
+         "controller" : "file(call_handlers/inventory_call_handler.lua)",
+         "endpoint" : "client"
+      },
+      "create_stockpile": {
+         "controller" : "file(call_handlers/inventory_call_handler.lua)",
+         "endpoint" : "server"
+      },
+      "get_build_editor": {
+         "controller" : "file(call_handlers/build_call_handler.lua)",
+         "endpoint" : "client"
+      },
+      "build_structures": {
+         "controller" : "file(call_handlers/build_call_handler.lua)",
+         "endpoint" : "server"
+      },
+      "set_stockpile_filter": {
+         "controller" : "file(call_handlers/stockpile_call_handler.lua)",
+         "endpoint" : "server"
+      },
+      "camera_look_at_entity": {
+         "controller" : "file(call_handlers/camera_call_handler.lua)",
+         "endpoint" : "client"
+      },
+      "get_camera_tracker": {
+         "controller" : "file(call_handlers/camera_call_handler.lua)",
+         "endpoint" : "client"
+      }         
    },
    "components" :  {
       "ai" : "file(components/ai/ai_component.lua)",
