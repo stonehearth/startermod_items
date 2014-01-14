@@ -147,7 +147,8 @@ struct H3DStats
 		ParticleSimTime,
 		TextureVMem,
 		GeometryVMem,
-      AverageFrameTime
+      AverageFrameTime,
+      AvailableGpuMemory
 	};
 };
 

@@ -541,9 +541,14 @@ DLLEXP void h3dutShowFrameStats( H3DRes fontMaterialRes, H3DRes boxMaterialRes, 
 	if( mode > 1 )
 	{
 		// Video memory
-		beginInfoBox( 0.03f, 0.30f, 0.32f, 2, "VMem", fontMaterialRes, boxMaterialRes );
+		beginInfoBox( 0.03f, 0.30f, 0.32f, 3, "VMem", fontMaterialRes, boxMaterialRes );
 		
-		// Textures
+		// Available
+		text.str( "" );
+      text << h3dGetStat( H3DStats::AvailableGpuMemory, false ) << "mb";
+		addInfoBoxRow( "Available", text.str().c_str() );
+
+      // Textures
 		text.str( "" );
 		text << h3dGetStat( H3DStats::TextureVMem, false ) << "mb";
 		addInfoBoxRow( "Textures", text.str().c_str() );

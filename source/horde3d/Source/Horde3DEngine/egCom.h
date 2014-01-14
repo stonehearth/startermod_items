@@ -160,7 +160,8 @@ struct EngineStats
 		ParticleSimTime,
 		TextureVMem,
 		GeometryVMem,
-      AverageFrameTime
+      AverageFrameTime,
+      AvailableGpuMemory
 	};
 };
 

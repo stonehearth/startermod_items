@@ -395,7 +395,9 @@ float StatManager::getStat( int param, bool reset )
 {
 	float value;	
    float sum = 0.0;
-	int c;
+	int availableMem = 0;
+   int integerV[4];
+   int c;
 
 	switch( param )
 	{
@@ -439,6 +441,16 @@ float StatManager::getStat( int param, bool reset )
 		return (gRDI->getTextureMem() / 1024) / 1024.0f;
 	case EngineStats::GeometryVMem:
 		return (gRDI->getBufferMem() / 1024) / 1024.0f;
+   case EngineStats::AvailableGpuMemory:
+      if (gRDI->getCaps().cardType == NVIDIA) {
+         glGetIntegerv(GPU_MEMORY_INFO_CURRENT_AVAILABLE_VIDMEM_NVX, integerV);
+         availableMem = integerV[0] / 1024.0f;
+      } else if (gRDI->getCaps().cardType == ATI) {
+         glGetIntegerv(VBO_FREE_MEMORY_ATI, integerV);
+         availableMem = integerV[0] / 1024.0f;
+      }
+      glGetError();
+      return availableMem;
 	default:
 		Modules::setError( "Invalid param for h3dGetStat" );
 		return Math::NaN;
