@@ -1,0 +1,13 @@
+{
+   "info" : {
+      "name" : "Flagstone"
+   },
+
+   "extensions" : {
+      "mixinto" : {
+         "stonehearth:medium_oak_tree" : [
+            "file(/mixintos/big_tree.json)"
+         ]
+      },
+   }
+}
