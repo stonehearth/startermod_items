@@ -1,0 +1,26 @@
+{
+   "type":"recipe",
+
+   "work_units"  : 3,
+   "recipe_name" : "Green Hanging",
+   "description" : "Aspirational",
+   "flavor"      : "If you can't see the bear on the other side of the tapestry, is it really there?  --Jonah Bearbait, Epitaph.",
+   "portrait"    : "/stonehearth/entities/generic/default_object/default_object.png",
+   "category"    : "decoration",
+
+   "ingredients": [
+      {
+         "material" : "wood resource",
+         "count" : 1
+      },
+      {
+         "material" : "cloth resource",
+         "count" : 1
+      }
+  ],
+  "produces": [
+      {
+         "item":"stonehearth:green_hanging_proxy"
+      }
+  ]
+}

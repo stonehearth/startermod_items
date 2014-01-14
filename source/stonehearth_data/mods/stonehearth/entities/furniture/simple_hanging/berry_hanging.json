@@ -3,13 +3,13 @@
    "type": "entity",
    "components": {
       "unit_info": {
-         "name": "Camp Standard",
-         "description": "Use to mark territory, civilizedly.",
+         "name": "Berry-Colored Hanging",
+         "description": "Doubles as stain-resistant napkin.",
          "icon" : "file(/entities/generic/default_object/default_object.png)"
       },
 
       "stonehearth:placed_item" : {
-         "proxy_entity" : "stonehearth:camp_standard_proxy"
+         "proxy_entity" : "stonehearth:berry_hanging_proxy"
       },
 
       "stonehearth:material" : {
@@ -18,7 +18,7 @@
       "model_variants": [
          {
             "models": [
-               "file(camp_standard.qb)"
+               "file(berry_hanging.qb)"
             ]
          }
       ],
