@@ -172,6 +172,18 @@ DLLEXP float h3dGetStat( EngineStats::List param, bool reset )
 	return Modules::stats().getStat( param, reset );
 }
 
+DLLEXP void h3dResetStats()
+{
+   Modules::stats().getStat(EngineStats::AnimationTime, true);
+   Modules::stats().getStat(EngineStats::AverageFrameTime, true);
+   Modules::stats().getStat(EngineStats::BatchCount, true);
+   Modules::stats().getStat(EngineStats::FrameTime, true);
+   Modules::stats().getStat(EngineStats::GeoUpdateTime, true);
+   Modules::stats().getStat(EngineStats::LightPassCount, true);
+   Modules::stats().getStat(EngineStats::ParticleSimTime, true);
+   Modules::stats().getStat(EngineStats::TriCount, true);
+}
+
 DLLEXP void h3dSetGlobalShaderFlag(const char* flagName, bool value)
 {
    Modules::config().setGlobalShaderFlag(flagName, value);

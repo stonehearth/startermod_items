@@ -47,6 +47,7 @@ EngineConfig::EngineConfig()
 	gatherTimeStats = true;
    enableShadows = true;
    overlayAspect = 1.0;
+   enableStatsLogging = false;
 }
 
 
@@ -84,6 +85,8 @@ float EngineConfig::getOption( EngineOptions::List param )
 		return gatherTimeStats ? 1.0f : 0.0f;
    case EngineOptions::EnableShadows:
       return enableShadows ? 1.0f : 0.0f;
+   case EngineOptions::EnableStatsLogging:
+      return enableStatsLogging ? 1.0f : 0.0f;
 	default:
 		Modules::setError( "Invalid param for h3dGetOption" );
 		return Math::NaN;
@@ -168,6 +171,9 @@ bool EngineConfig::setOption( EngineOptions::List param, float value )
       enableShadows = (value != 0);
       setGlobalShaderFlag("DISABLE_SHADOWS", !enableShadows);
       return true;
+   case EngineOptions::EnableStatsLogging:
+      enableStatsLogging = (value != 0);
+      return true;
 	default:
 		Modules::setError( "Invalid param for h3dSetOption" );
 		return false;
@@ -232,6 +238,13 @@ void EngineLog::dumpMessages()
          break;
       case 3:
          _outf << "INF]";
+         break;
+      case 4:
+         _outf << "DBG]";
+         break;
+      case 5:
+         _outf << "PRF]";
+         break;
       break;
          default:
          _outf << "DBG]";
@@ -331,6 +344,18 @@ void EngineLog::writeDebugInfo( const char *msg, ... )
 	va_list args;
 	va_start( args, msg );
 	pushMessage( 4, msg, args );
+	va_end( args );
+}
+
+void EngineLog::writePerfInfo(const char *msg, ...)
+{
+   if(!Modules::config().enableStatsLogging) {
+      return;
+   }
+
+	va_list args;
+	va_start( args, msg );
+	pushMessage( 5, msg, args );
 	va_end( args );
 }
 

@@ -242,7 +242,7 @@ protected:
    static void drawVoxelMesh_Instances_WithoutInstancing(const RenderableQueue& renderableQueue, const VoxelMeshNode* vmn);
 	void renderDebugView();
 	void finishRendering();
-
+   void logPerformanceData();
    void setGpuCompatibility();
 
 protected:

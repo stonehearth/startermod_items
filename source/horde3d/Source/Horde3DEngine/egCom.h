@@ -48,7 +48,8 @@ struct EngineOptions
 		DebugViewMode,
 		DumpFailedShaders,
 		GatherTimeStats,
-      EnableShadows
+      EnableShadows,
+      EnableStatsLogging
 	};
 };
 
@@ -80,6 +81,7 @@ public:
 	bool  gatherTimeStats;
    bool  enableShadows;
    float overlayAspect;
+   bool  enableStatsLogging;
    std::set<std::string> shaderFlags;
 };
 
@@ -115,6 +117,7 @@ public:
 	void writeWarning( const char *msg, ... );
 	void writeInfo( const char *msg, ... );
 	void writeDebugInfo( const char *msg, ... );
+   void writePerfInfo(const char *msg, ...);
 
    void dumpMessages();
 

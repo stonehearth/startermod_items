@@ -2976,11 +2976,25 @@ void Renderer::finalizeFrame()
 	// Reset frame timer
 	Timer *timer = Modules::stats().getTimer( EngineStats::FrameTime );
 	ASSERT( timer != 0x0 );
-	Modules::stats().getStat( EngineStats::FrameTime, true );  // Reset
+
+   logPerformanceData();
+   Modules::stats().getStat( EngineStats::FrameTime, true );  // Reset
 	Modules::stats().incStat( EngineStats::FrameTime, timer->getElapsedTimeMS() );
 	timer->reset();
    Modules::sceneMan().clearQueryCache();
    gRDI->_frameDebugInfo.endFrame();
+}
+
+
+void Renderer::logPerformanceData()
+{
+   float curFrameTime = Modules::stats().getStat(EngineStats::AverageFrameTime, false);
+	float curFPS = 1000.0f / curFrameTime;
+	
+   float triCount = Modules::stats().getStat(EngineStats::TriCount, false);
+   float numBatches = Modules::stats().getStat(EngineStats::BatchCount, false);
+
+   Modules::log().writePerfInfo("%d, %d, %d", (int)curFPS, (int)triCount, (int)numBatches);
 }
 
 

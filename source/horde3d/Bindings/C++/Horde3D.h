@@ -116,7 +116,8 @@ struct H3DOptions
 		DebugViewMode,
 		DumpFailedShaders,
 		GatherTimeStats,
-      EnableShadows
+      EnableShadows,
+      EnableStatsLogging
 	};
 };
 
@@ -858,6 +859,7 @@ DLL bool h3dSetOption( H3DOptions::List param, float value );
 */
 DLL float h3dGetStat( H3DStats::List param, bool reset );
 
+DLL void h3dResetStats();
 
 DLL void h3dSetGlobalShaderFlag(const char* flagName, bool value);
 
