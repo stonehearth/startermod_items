@@ -17,8 +17,10 @@ local log = radiant.log.create_logger('world_generation')
 -- Block = atomic unit of terrain that cannot be subdivided
 -- MacroBlock = square unit of flat land, 32x32, but can shift a bit due to toplogy
 -- Tile = 2D array of MacroBlocks fitting a theme (grassland, foothills, mountains)
+--        These 256x256 terrain tiles are different from nav grid tiles which are 16x16.
 -- World = the entire playspace of a game
 
+-- TODO: remove terrain_type from all the micro_maps
 function TerrainGenerator:__init(rng, async)
    if async == nil then async = false end
 
@@ -90,19 +92,19 @@ function TerrainGenerator:_create_blend_map(width, height)
    return blend_map
 end
 
-function TerrainGenerator:generate_tile(terrain_type, tiles, x, y)
+function TerrainGenerator:generate_tile(terrain_type, blueprint, x, y)
    local micro_map, tile_map
    local tile_timer = Timer(Timer.CPU_TIME)
    local micro_map_timer = Timer(Timer.CPU_TIME)
 
-   if tiles ~= nil then
+   if blueprint ~= nil then
       log:info('Generating tile %d, %d', x, y)
    end
 
    tile_timer:start()
    micro_map_timer:start()
 
-   micro_map = self:_create_micro_map(terrain_type, tiles, x, y)
+   micro_map = self:_create_micro_map(terrain_type, blueprint, x, y)
    micro_map_timer:stop()
    log:debug('Micromap generation time: %.3fs', micro_map_timer:seconds())
 
@@ -113,7 +115,7 @@ function TerrainGenerator:generate_tile(terrain_type, tiles, x, y)
    return tile_map, micro_map
 end
 
-function TerrainGenerator:_create_micro_map(terrain_type, tiles, x, y)
+function TerrainGenerator:_create_micro_map(terrain_type, blueprint, x, y)
    local blend_map = self._blend_map_buffer
    local noise_map = self._noise_map_buffer
    local micro_map
@@ -121,7 +123,7 @@ function TerrainGenerator:_create_micro_map(terrain_type, tiles, x, y)
    blend_map.terrain_type = terrain_type
    noise_map.terrain_type = terrain_type
 
-   self:_fill_blend_map(blend_map, tiles, x, y)
+   self:_fill_blend_map(blend_map, blueprint, x, y)
    -- log:debug('Blend map:'); _print_blend_map(blend_map)
 
    self:_fill_noise_map(noise_map, blend_map)
@@ -130,20 +132,20 @@ function TerrainGenerator:_create_micro_map(terrain_type, tiles, x, y)
    micro_map = self:_filter_noise_map(noise_map)
    -- log:debug('Filtered Noise map:'); micro_map:print()
 
-   --self:_consolidate_mountain_blocks(micro_map, tiles, x, y)
+   --self:_consolidate_mountain_blocks(micro_map, blueprint, x, y)
    -- log:debug('Consolidated Micro map:'); micro_map:print()
 
    self:_quantize_height_map(micro_map, true)
    -- log:debug('Quantized Micro map:'); micro_map:print()
 
-   self:_copy_forced_edge_values(micro_map, tiles, x, y)
+   self:_copy_forced_edge_values(micro_map, blueprint, x, y)
    -- log:debug('Forced edge Micro map:'); micro_map:print()
 
    self:_postprocess_micro_map(micro_map)
    -- log:debug('Postprocessed Micro map:'); micro_map:print()
 
    -- copy edges again in case postprocessing changed them
-   self:_copy_forced_edge_values(micro_map, tiles, x, y)
+   self:_copy_forced_edge_values(micro_map, blueprint, x, y)
    -- log:debug('Final Micro map:'); micro_map:print()
 
    self:_yield()
@@ -174,8 +176,8 @@ function TerrainGenerator:_create_tile_map(micro_map)
    return tile_map
 end
 
-function TerrainGenerator:_fill_blend_map(blend_map, tiles, x, y)
-   local i, j, adj_tile, macro_block
+function TerrainGenerator:_fill_blend_map(blend_map, blueprint, x, y)
+   local i, j, adj_tile_info, macro_block
    local width = blend_map.width
    local height = blend_map.height
    local terrain_type = blend_map.terrain_type
@@ -183,12 +185,12 @@ function TerrainGenerator:_fill_blend_map(blend_map, tiles, x, y)
    local terrain_std_dev = self.terrain_info[terrain_type].std_dev
 
    if terrain_type == TerrainType.Mountains and
-      self:_surrounded_by_terrain(TerrainType.Mountains, tiles, x, y) then
+      self:_surrounded_by_terrain(TerrainType.Mountains, blueprint, x, y) then
       terrain_mean = terrain_mean + self.terrain_info[TerrainType.Mountains].step_size
    end
 
    if terrain_type == TerrainType.Grassland and
-      self:_surrounded_by_terrain(TerrainType.Grassland, tiles, x, y) then
+      self:_surrounded_by_terrain(TerrainType.Grassland, blueprint, x, y) then
       terrain_mean = terrain_mean - self.terrain_info[TerrainType.Grassland].step_size
       assert(terrain_mean >= self.terrain_info.min_height)
    end
@@ -204,22 +206,22 @@ function TerrainGenerator:_fill_blend_map(blend_map, tiles, x, y)
       end
    end
 
-   if tiles ~= nil then
+   if blueprint ~= nil then
       -- blend values with left tile
-      adj_tile = self:_get_tile(tiles, x-1, y)
-      self:_blend_tile(blend_map, adj_tile, height,      1,  1,  width, 1)
+      adj_tile_info = self:_get_tile_info(blueprint, x-1, y)
+      self:_blend_tile(blend_map, adj_tile_info, height,      1,  1,  width, 1)
 
       -- blend values with right tile
-      adj_tile = self:_get_tile(tiles, x+1, y)
-      self:_blend_tile(blend_map, adj_tile, height,  width, -1,      1, 1)
+      adj_tile_info = self:_get_tile_info(blueprint, x+1, y)
+      self:_blend_tile(blend_map, adj_tile_info, height,  width, -1,      1, 1)
 
       -- blend values with top tile
-      adj_tile = self:_get_tile(tiles, x, y-1)
-      self:_blend_tile(blend_map, adj_tile,  width,      1,  1, height, 2)
+      adj_tile_info = self:_get_tile_info(blueprint, x, y-1)
+      self:_blend_tile(blend_map, adj_tile_info,  width,      1,  1, height, 2)
 
       -- blend values with bottom tile
-      adj_tile = self:_get_tile(tiles, x, y+1)
-      self:_blend_tile(blend_map, adj_tile,  width, height, -1,      1, 2)
+      adj_tile_info = self:_get_tile_info(blueprint, x, y+1)
+      self:_blend_tile(blend_map, adj_tile_info,  width, height, -1,      1, 2)
    end
 
    -- avoid extreme values along edges by halving std_dev
@@ -234,20 +236,20 @@ function TerrainGenerator:_fill_blend_map(blend_map, tiles, x, y)
    return blend_map
 end
 
-function TerrainGenerator:_surrounded_by_terrain(terrain_type, tiles, x, y)
-   local tile
+function TerrainGenerator:_surrounded_by_terrain(terrain_type, blueprint, x, y)
+   local tile_info
 
-   tile = self:_get_tile(tiles, x-1, y)
-   if tile ~= nil and tile.terrain_type ~= terrain_type then return false end
+   tile_info = self:_get_tile_info(blueprint, x-1, y)
+   if tile_info ~= nil and tile_info.terrain_type ~= terrain_type then return false end
 
-   tile = self:_get_tile(tiles, x+1, y)
-   if tile ~= nil and tile.terrain_type ~= terrain_type then return false end
+   tile_info = self:_get_tile_info(blueprint, x+1, y)
+   if tile_info ~= nil and tile_info.terrain_type ~= terrain_type then return false end
 
-   tile = self:_get_tile(tiles, x, y-1)
-   if tile ~= nil and tile.terrain_type ~= terrain_type then return false end
+   tile_info = self:_get_tile_info(blueprint, x, y-1)
+   if tile_info ~= nil and tile_info.terrain_type ~= terrain_type then return false end
 
-   tile = self:_get_tile(tiles, x, y+1)
-   if tile ~= nil and tile.terrain_type ~= terrain_type then return false end
+   tile_info = self:_get_tile_info(blueprint, x, y+1)
+   if tile_info ~= nil and tile_info.terrain_type ~= terrain_type then return false end
 
    return true
 end
@@ -273,14 +275,14 @@ local blend_filter             = { [0] = 1.0000, 0.7797, 0.3451, 0.0653, 0.0003 
 local forced_edge_blend_filter = { [0] =    nil, 3.0000, 2.3390, 1.0354, 0.1959 }
 
 
-function TerrainGenerator:_blend_tile(blend_map, adj_tile,
+function TerrainGenerator:_blend_tile(blend_map, adj_tile_info,
    edge_length, edge_index, inc, adj_edge_index, orientation)
-   if adj_tile == nil then return end
+   if adj_tile_info == nil then return end
 
    local terrain_info = self.terrain_info
    local cur_terrain_type = blend_map.terrain_type
    local cur_mean = terrain_info[cur_terrain_type].mean_height
-   local adj_terrain_type = adj_tile.terrain_type
+   local adj_terrain_type = adj_tile_info.terrain_type
    local adj_mean = terrain_info[adj_terrain_type].mean_height
    local adj_std_dev = terrain_info[adj_terrain_type].std_dev
    local cur_macro_block = MacroBlock()
@@ -293,11 +295,11 @@ function TerrainGenerator:_blend_tile(blend_map, adj_tile,
       for d=0, #blend_filter do
          cur_macro_block:clear()
 
-         if adj_tile.generated then
+         if adj_tile_info.generated then
             if d == 0 then
                -- force edge values since they are shared
                x, y = _get_coords(adj_edge_index, i, orientation)
-               edge_value = adj_tile:get(x, y)
+               edge_value = adj_tile_info.micro_map:get(x, y)
                edge_std_dev = self:_calc_std_dev(edge_value)
                cur_macro_block.forced_value = edge_value
                -- value is forced, no need to set std_dev
@@ -382,7 +384,6 @@ function TerrainGenerator:_filter_noise_map(noise_map)
 
    filtered_map.terrain_type = terrain_type
    FilterFns.filter_2D_025(filtered_map, noise_map, width, height, 8)
-   filtered_map.generated = true
 
    return filtered_map
 
@@ -418,18 +419,18 @@ function TerrainGenerator:_postprocess_micro_map(micro_map)
    self:_fill_holes(micro_map)
 end
 
-function TerrainGenerator:_consolidate_mountain_blocks(micro_map, tiles, x, y)
+function TerrainGenerator:_consolidate_mountain_blocks(micro_map, blueprint, x, y)
    local max_foothills_height = self.terrain_info[TerrainType.Foothills].max_height
    local start_x = 1
    local start_y = 1
    local i, j, value
 
    -- skip edges that have already been defined
-   if self:_get_generated_tile(tiles, x-1, y) ~= nil then
+   if self:_get_micro_map(blueprint, x-1, y) ~= nil then
       start_x = 2
    end
 
-   if self:_get_generated_tile(tiles, x, y-1) ~= nil then
+   if self:_get_micro_map(blueprint, x, y-1) ~= nil then
       start_y = 2
    end
 
@@ -540,51 +541,51 @@ function TerrainGenerator:_fill_hole(height_map, x, y)
    height_map[offset] = new_value
 end
 
-function TerrainGenerator:_copy_forced_edge_values(micro_map, tiles, x, y)
-   if tiles == nil then return end
+function TerrainGenerator:_copy_forced_edge_values(micro_map, blueprint, x, y)
+   if blueprint == nil then return end
 
    local width = micro_map.width
    local height = micro_map.height
-   local adj_map
+   local adj_micro_map
 
    -- left tile
-   adj_map = self:_get_generated_tile(tiles, x-1, y)
-   if adj_map then
-      adj_map:copy_block(micro_map, adj_map, 1, 1, width, 1, 1, height)
+   adj_micro_map = self:_get_micro_map(blueprint, x-1, y)
+   if adj_micro_map then
+      adj_micro_map:copy_block(micro_map, adj_micro_map, 1, 1, width, 1, 1, height)
    end
 
    -- right tile
-   adj_map = self:_get_generated_tile(tiles, x+1, y)
-   if adj_map then
-      adj_map:copy_block(micro_map, adj_map, width, 1, 1, 1, 1, height)
+   adj_micro_map = self:_get_micro_map(blueprint, x+1, y)
+   if adj_micro_map then
+      adj_micro_map:copy_block(micro_map, adj_micro_map, width, 1, 1, 1, 1, height)
    end
 
    -- top tile
-   adj_map = self:_get_generated_tile(tiles, x, y-1)
-   if adj_map then
-      adj_map:copy_block(micro_map, adj_map, 1, 1, 1, height, width, 1)
+   adj_micro_map = self:_get_micro_map(blueprint, x, y-1)
+   if adj_micro_map then
+      adj_micro_map:copy_block(micro_map, adj_micro_map, 1, 1, 1, height, width, 1)
    end
 
    -- bottom tile
-   adj_map = self:_get_generated_tile(tiles, x, y+1)
-   if adj_map then
-      adj_map:copy_block(micro_map, adj_map, 1, height, 1, 1, width, 1)
+   adj_micro_map = self:_get_micro_map(blueprint, x, y+1)
+   if adj_micro_map then
+      adj_micro_map:copy_block(micro_map, adj_micro_map, 1, height, 1, 1, width, 1)
    end
 end
 
-function TerrainGenerator:_get_tile(tiles, x, y)
-   if tiles:in_bounds(x, y) then
-      return tiles:get(x, y)
+function TerrainGenerator:_get_tile_info(blueprint, x, y)
+   if blueprint:in_bounds(x, y) then
+      return blueprint:get(x, y)
    end
    return nil
 end
 
-function TerrainGenerator:_get_generated_tile(tiles, x, y)
-   local tile = self:_get_tile(tiles, x, y)
-   if tile == nil or not tile.generated then
+function TerrainGenerator:_get_micro_map(blueprint, x, y)
+   local tile_info = self:_get_tile_info(blueprint, x, y)
+   if tile_info == nil or not tile_info.generated then
       return nil
    end
-   return tile
+   return tile_info.micro_map
 end
 
 function TerrainGenerator:_create_oversize_map_from_micro_map(oversize_map, micro_map)

@@ -52,11 +52,11 @@ function WorldGenerator:create_world()
       cpu_timer:start()
       wall_clock_timer:start()
 
-      local tiles
-      tiles = self:_create_world_blueprint()
-      --tiles = self:_get_empty_blueprint(1, 1) -- useful for debugging real world scenarios without waiting for the load time
-      --tiles = self:_create_world_blueprint_static()
-      self:_generate_world(tiles)
+      local blueprint
+      blueprint = self:_create_world_blueprint()
+      --blueprint = self:_get_empty_blueprint(1, 1) -- useful for debugging real world scenarios without waiting for the load time
+      --blueprint = self:_create_world_blueprint_static()
+      self:_generate_world(blueprint)
 
       cpu_timer:stop()
       wall_clock_timer:stop()
@@ -71,16 +71,16 @@ function WorldGenerator:create_world()
    end
 end
 
-function WorldGenerator:_generate_world(tiles)
-   local num_tiles_x = tiles.width
-   local num_tiles_y = tiles.height
+function WorldGenerator:_generate_world(blueprint)
+   local num_tiles_x = blueprint.width
+   local num_tiles_y = blueprint.height
    local terrain_info = self._terrain_generator.terrain_info
    local tile_size = self._terrain_generator.tile_size
    local tile_map, micro_map, tile_info, tile_seed
    local origin_x, origin_y, offset_x, offset_y
    local i, j, n, tile_order_list, num_tiles
 
-   tile_order_list = self:_build_tile_order_list(tiles)
+   tile_order_list = self:_build_tile_order_list(blueprint)
    num_tiles = #tile_order_list
 
    origin_x = num_tiles_x * tile_size / 2
@@ -89,7 +89,7 @@ function WorldGenerator:_generate_world(tiles)
    for n=1, num_tiles do
       i = tile_order_list[n].x
       j = tile_order_list[n].y 
-      tile_info = tiles:get(i, j)
+      tile_info = blueprint:get(i, j)
       assert(not tile_info.generated)
 
       -- make each tile deterministic on its coordinates (and game seed)
@@ -97,8 +97,9 @@ function WorldGenerator:_generate_world(tiles)
       self._rng:set_seed(tile_seed)
 
       -- generate the heightmap for the tile
-      tile_map, micro_map = self._terrain_generator:generate_tile(tile_info.terrain_type, tiles, i, j)
-      tiles:set(i, j, micro_map)
+      tile_map, micro_map = self._terrain_generator:generate_tile(tile_info.terrain_type, blueprint, i, j)
+      tile_info.micro_map = micro_map
+      tile_info.generated = true
       self:_yield()
 
       -- calculate the world offset of the tile
@@ -183,7 +184,7 @@ function WorldGenerator:_create_world_blueprint()
    local foothills_threshold = 50
    local num_tiles_x = 5
    local num_tiles_y = 5
-   local tiles = self:_get_empty_blueprint(num_tiles_x, num_tiles_y)
+   local blueprint = self:_get_empty_blueprint(num_tiles_x, num_tiles_y)
    local noise_map = Array2D(num_tiles_x, num_tiles_y)
    local height_map = Array2D(num_tiles_x, num_tiles_y)
    local i, j, value, terrain_type
@@ -211,31 +212,31 @@ function WorldGenerator:_create_world_blueprint()
             else
                terrain_type = TerrainType.Grassland
             end
-            tiles:get(i, j).terrain_type = terrain_type
+            blueprint:get(i, j).terrain_type = terrain_type
          end
       end
 
       -- need this for maps with small sample size
-      if self:_is_playable_map(tiles) then
+      if self:_is_playable_map(blueprint) then
          break
       end
    end
 
-   return tiles
+   return blueprint
 end
 
-function WorldGenerator:_is_playable_map(tiles)
+function WorldGenerator:_is_playable_map(blueprint)
    local i, j, terrain_type, percent_mountains
-   local total_tiles = tiles.width * tiles.height
+   local total_tiles = blueprint.width * blueprint.height
    local stats = {}
 
    stats[TerrainType.Grassland] = 0
    stats[TerrainType.Foothills] = 0
    stats[TerrainType.Mountains] = 0
 
-   for j=1, tiles.height do
-      for i=1, tiles.width do
-         terrain_type = tiles:get(i, j).terrain_type
+   for j=1, blueprint.height do
+      for i=1, blueprint.width do
+         terrain_type = blueprint:get(i, j).terrain_type
          stats[terrain_type] = stats[terrain_type] + 1
       end
    end
@@ -250,57 +251,57 @@ function WorldGenerator:_is_playable_map(tiles)
 end
 
 function WorldGenerator:_create_world_blueprint_static()
-   local tiles = self:_get_empty_blueprint(5, 5)
+   local blueprint = self:_get_empty_blueprint(5, 5)
 
-   tiles:get(1, 1).terrain_type = TerrainType.Grassland
-   tiles:get(2, 1).terrain_type = TerrainType.Grassland
-   tiles:get(3, 1).terrain_type = TerrainType.Foothills
-   tiles:get(4, 1).terrain_type = TerrainType.Mountains
-   tiles:get(5, 1).terrain_type = TerrainType.Mountains
+   blueprint:get(1, 1).terrain_type = TerrainType.Grassland
+   blueprint:get(2, 1).terrain_type = TerrainType.Grassland
+   blueprint:get(3, 1).terrain_type = TerrainType.Foothills
+   blueprint:get(4, 1).terrain_type = TerrainType.Mountains
+   blueprint:get(5, 1).terrain_type = TerrainType.Mountains
 
-   tiles:get(1, 2).terrain_type = TerrainType.Grassland
-   tiles:get(2, 2).terrain_type = TerrainType.Grassland
-   tiles:get(3, 2).terrain_type = TerrainType.Grassland
-   tiles:get(4, 2).terrain_type = TerrainType.Foothills
-   tiles:get(5, 2).terrain_type = TerrainType.Mountains
+   blueprint:get(1, 2).terrain_type = TerrainType.Grassland
+   blueprint:get(2, 2).terrain_type = TerrainType.Grassland
+   blueprint:get(3, 2).terrain_type = TerrainType.Grassland
+   blueprint:get(4, 2).terrain_type = TerrainType.Foothills
+   blueprint:get(5, 2).terrain_type = TerrainType.Mountains
 
-   tiles:get(1, 3).terrain_type = TerrainType.Foothills
-   tiles:get(2, 3).terrain_type = TerrainType.Grassland
-   tiles:get(3, 3).terrain_type = TerrainType.Grassland
-   tiles:get(4, 3).terrain_type = TerrainType.Grassland
-   tiles:get(5, 3).terrain_type = TerrainType.Foothills
+   blueprint:get(1, 3).terrain_type = TerrainType.Foothills
+   blueprint:get(2, 3).terrain_type = TerrainType.Grassland
+   blueprint:get(3, 3).terrain_type = TerrainType.Grassland
+   blueprint:get(4, 3).terrain_type = TerrainType.Grassland
+   blueprint:get(5, 3).terrain_type = TerrainType.Foothills
 
-   tiles:get(1, 4).terrain_type = TerrainType.Mountains
-   tiles:get(2, 4).terrain_type = TerrainType.Foothills
-   tiles:get(3, 4).terrain_type = TerrainType.Foothills
-   tiles:get(4, 4).terrain_type = TerrainType.Grassland
-   tiles:get(5, 4).terrain_type = TerrainType.Grassland
+   blueprint:get(1, 4).terrain_type = TerrainType.Mountains
+   blueprint:get(2, 4).terrain_type = TerrainType.Foothills
+   blueprint:get(3, 4).terrain_type = TerrainType.Foothills
+   blueprint:get(4, 4).terrain_type = TerrainType.Grassland
+   blueprint:get(5, 4).terrain_type = TerrainType.Grassland
 
-   tiles:get(1, 5).terrain_type = TerrainType.Mountains
-   tiles:get(2, 5).terrain_type = TerrainType.Mountains
-   tiles:get(3, 5).terrain_type = TerrainType.Mountains
-   tiles:get(4, 5).terrain_type = TerrainType.Foothills
-   tiles:get(5, 5).terrain_type = TerrainType.Grassland
+   blueprint:get(1, 5).terrain_type = TerrainType.Mountains
+   blueprint:get(2, 5).terrain_type = TerrainType.Mountains
+   blueprint:get(3, 5).terrain_type = TerrainType.Mountains
+   blueprint:get(4, 5).terrain_type = TerrainType.Foothills
+   blueprint:get(5, 5).terrain_type = TerrainType.Grassland
 
-   return tiles
+   return blueprint
 end
 
 function WorldGenerator:_get_empty_blueprint(width, height, terrain_type)
    if terrain_type == nil then terrain_type = TerrainType.Grassland end
 
-   local tiles = Array2D(width, height)
+   local blueprint = Array2D(width, height)
    local i, j, tile_info
 
-   for j=1, tiles.height do
-      for i=1, tiles.width do
+   for j=1, blueprint.height do
+      for i=1, blueprint.width do
          tile_info = {}
          tile_info.terrain_type = terrain_type
          tile_info.generated = false
-         tiles:set(i, j, tile_info)
+         blueprint:set(i, j, tile_info)
       end
    end
 
-   return tiles
+   return blueprint
 end
 
 function WorldGenerator:_build_tile_order_list(map)
