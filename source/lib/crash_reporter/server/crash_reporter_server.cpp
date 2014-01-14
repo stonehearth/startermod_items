@@ -22,7 +22,7 @@ using namespace radiant;
 using namespace radiant::crash_reporter::server;
 
 static std::string const CRASH_DUMP_FILENAME = "crash.dmp";
-static std::string const HORDE_LOG_FILENAME = "horde3d_log.html";
+static std::string const HORDE_LOG_FILENAME = "gfx.log";
 
 DEFINE_SINGLETON(CrashReporterServer);
 
