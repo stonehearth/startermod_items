@@ -1,7 +1,6 @@
 local MathFns = require 'services.world_generation.math.math_fns'
 
 local NonUniformQuantizer = class()
-local Point2 = _radiant.csg.Point2
 
 -- centroids must be an array of integers
 function NonUniformQuantizer:__init(centroids)
@@ -17,7 +16,8 @@ function NonUniformQuantizer:__init(centroids)
    for i=1, self._count-1 do
       lower = centroids[i]
       upper = centroids[i+1]
-      interval = Point2(lower, upper)
+      -- use a lua type instead of a C type so luajit can extremely agressively optimze it.
+      interval = { x = lower, y = upper }
 
       for x=lower, upper-1 do
          interval_map[x] = interval
