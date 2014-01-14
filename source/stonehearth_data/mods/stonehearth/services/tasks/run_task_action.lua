@@ -1,6 +1,7 @@
 local RunTaskAction = class()
 
 function RunTaskAction:__init(ai, task, scheduler_activity)
+   self._id = stonehearth.ai:get_next_object_id()   
    self._ai = ai
    self._task = task
    
@@ -9,6 +10,7 @@ function RunTaskAction:__init(ai, task, scheduler_activity)
    radiant.events.listen(self._execution_frame, 'ready', function()
          ai:set_think_output()
       end)
+   self._args = activity.args
 
    radiant.events.listen(task, 'started', self, self._start_stop_thinking)
    radiant.events.listen(task, 'stopped', self, self._start_stop_thinking)
@@ -31,7 +33,9 @@ end
 
 function RunTaskAction:get_debug_info(debug_route)
    return {
+      id = self._id,
       name = self.name,
+      args = stonehearth.ai:format_args(self._args),
       does = self.does,
       priority = self.priority,
       execution_frames = {

@@ -9,7 +9,7 @@ PickupMaterial.args = {
 PickupMaterial.version = 2
 PickupMaterial.priority = 1
 
-function PickupMaterial:eval_arguments(ai, entity, args)
+function PickupMaterial:transform_arguments(ai, entity, args)
    return {
       filter_fn = function(item)
             return radiant.entities.is_material(item, args.material)
@@ -19,4 +19,4 @@ end
 
 local ai = stonehearth.ai
 return ai:create_compound_action(PickupMaterial)
-         :execute('stonehearth:pickup_item_type', { filter_fn = ai.ARGS.filter_fn })
+         :execute('stonehearth:pickup_item_type', { filter_fn = ai.XFORMED_ARG.filter_fn })

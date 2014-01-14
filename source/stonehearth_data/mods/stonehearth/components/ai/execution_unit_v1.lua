@@ -8,6 +8,7 @@ local RUNNING = 'RUNNING'
 function ExecutionUnitV1:__init(ai_component, entity, injecting_entity)
    self._entity = entity
    self._ai_component = ai_component
+   self._id = stonehearth.ai:get_next_object_id()
    self._state = IDLE
 end
 
@@ -173,6 +174,7 @@ end
 
 function ExecutionUnitV1:get_debug_info()
    return {
+      id = 'id',
       state = 'delete',
       action = {
          name = 'V1 ' .. self._action.name,

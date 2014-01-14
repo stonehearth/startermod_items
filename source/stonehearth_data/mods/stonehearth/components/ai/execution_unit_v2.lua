@@ -8,8 +8,6 @@ local RUNNING = 'running'
 local FINISHED = 'finished'
 local DEAD = 'dead'
 
-local NEXT_UNIT_ID = 1
-
 --[[
 
          idle
@@ -49,8 +47,7 @@ function ExecutionUnitV2:__init(ai_component, entity, injecting_entity)
    self._execute_frame = nil
    self._thinking = false
    self._state = IDLE
-   self._id = NEXT_UNIT_ID
-   NEXT_UNIT_ID = NEXT_UNIT_ID + 1
+   self._id = stonehearth.ai:get_next_object_id()
    
    self._log = radiant.log.create_logger('ai.exec_unit')
    
@@ -252,13 +249,7 @@ function ExecutionUnitV2:initialize(args)
          self:_set_state(IDLE)
       end
    end
-   if self._action.eval_arguments then
-      self._log:spam('eval_arguments...')
-      self._args = self._action:eval_arguments(self, self._entity, args)
-      self._log:spam('eval_arguments returned %s', stonehearth.ai:format_args(self._args))
-   else
-      self._args = args
-   end   
+   self._args = args
    return self._args
 end
 
@@ -450,6 +441,7 @@ function ExecutionUnitV2:_get_action_debug_info()
       name = self._action.name,
       does = self._action.does,
       priority = self._action.priority,
+      args = stonehearth.ai:format_args(self._args),
    }
 end
 

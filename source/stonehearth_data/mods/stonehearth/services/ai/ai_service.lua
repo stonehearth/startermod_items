@@ -273,5 +273,10 @@ function AiService:create_activity(name, args)
    }
 end
 
+local LAST_ID = 0
+function AiService:get_next_object_id()
+   LAST_ID = LAST_ID + 1
+   return LAST_ID
+end
 
 return AiService()

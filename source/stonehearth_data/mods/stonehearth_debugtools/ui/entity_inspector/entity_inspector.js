@@ -1,28 +1,50 @@
-App.StonehearthAiExecutionFrame = App.View.extend({
-   templateName: 'executionFrame',
-})
-
-App.StonehearthAiExecutionUnit = App.View.extend({
-   templateName: 'executionUnit',
-})
-
 App.StonehearthEntityInspectorView = App.View.extend({
    templateName: 'entityInspector',
 
    init: function() {
+      var self = this;
       this._super();
+      $(top).on("radiant_selection_changed.entity_inspector", function (_, data) {
+         var uri = data.selected_entity;
+         if (uri) {
+            self.fetch(uri);
+         } else {
+            self.set('context.state', 'no entity selected');
+         }
+      });
+   },
+
+   _updateToolTip: function(id, row) {
+      var self = this;
+      self._inspect_frame_id = id
+      var frame = self._frames[self._inspect_frame_id];
+      if (frame) {
+        var offset = row.offset();
+        self.set('context.ai.inspect_frame', frame)
+        this.$().find("#entityInspectorFrameInfo").offset({
+          top: offset.top,
+          left: offset.left + row.width() + 32,
+        })
+      } else {
+        self.set('context.ai.inspect_frame', null)
+      }
    },
 
    didInsertElement: function() {
       var self = this;
 
-      self.set('context.state', 'no entity selected');
-      $(top).on("radiant_selection_changed.entity_inspector", function (_, data) {
-         var uri = data.selected_entity;
-         if (uri) {
-            self.fetch(uri);
-         }
-      });
+      this.$().on('click', '.row', function() {
+        /*
+        self._updateToolTip($(this), '<div class=title>' + 'title' + '</div>' + 
+                       '<div class=description>' + 'description' + '</div>');
+        */
+        var id = $(this).attr('row_id');
+        var cls  = $(this).attr('class');
+        var i = $(this).attr('id');
+        if (id) {
+          self._updateToolTip(id, $(this))
+        }
+      })
 
       /*
       $("#body").on("click", "a", function(event) {
@@ -85,6 +107,11 @@ App.StonehearthEntityInspectorView = App.View.extend({
       if (node instanceof Array || node instanceof Object) {
          node.styleOverride = 'padding-left: ' + (indent * 4) + 'px';
          $.each(node, function(k, v) { self._processDebugInfo(v, indent+1); });
+         if (node instanceof Object) {
+            if (node.id) {
+              self._frames[node.id] = node
+            }
+         }
       }
    },
 
@@ -94,8 +121,11 @@ App.StonehearthEntityInspectorView = App.View.extend({
       radiant.call_obj(self._aiComponent, 'get_debug_info')
         .done(function(debugInfo) {
            self.set('context.state', 'updating..');
-           //self.updateContext(self.get('context.ai'), debugInfo)
+           self._frames = {}
            self._processDebugInfo(debugInfo)
+           if (self._frames[self._inspect_frame_id]) {
+            debugInfo.inspect_frame = self._frames[self._inspect_frame_id];
+           }
            self.set('context.ai', debugInfo)
            if (self._aiComponent) {
               self.set('context.state', 'updating. ' + new Date().getTime());

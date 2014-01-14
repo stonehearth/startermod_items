@@ -42,6 +42,10 @@ function FirepitComponent:__init(entity, data_store)
    end)
 end
 
+function FirepitComponent:get_entity()
+      return self._entity
+end
+
 function FirepitComponent:extend(json)
    -- TODO: replace this with firepit made of fire, wolves won't go near fire
    if json and json.effective_radius then

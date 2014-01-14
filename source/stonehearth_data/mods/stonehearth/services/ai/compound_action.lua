@@ -1,8 +1,6 @@
 local ExecutionUnitV2 = require 'components.ai.execution_unit_v2'
 local CompoundAction = class()
 
-local NEXT_ID = 1
-
 function CompoundAction:__init(action_unit, activities, think_output_placeholders)
    -- initialize metadata   
    self._log = radiant.log.create_logger('ai.compound_action')
@@ -11,19 +9,16 @@ function CompoundAction:__init(action_unit, activities, think_output_placeholder
    self._think_output_placeholders = think_output_placeholders
    self._run_frames = {}
    self._think_frames = {}
-   local action = self._execution_unit:get_action()
-   action.name = action.name
-   self.name = action.name
-   self.does = action.does
-   self.priority = action.priority
-   self.weight = action.weight
-   self.name = action.name
-   self.args = action.args
-   self.think_output = action.think_output
+   self._action = self._execution_unit:get_action()
+   self.name = self._action.name
+   self.does = self._action.does
+   self.priority = self._action.priority
+   self.weight = self._action.weight
+   self.name = self._action.name
+   self.args = self._action.args
+   self.think_output = self._action.think_output
    self.version = 2
-   
-   self._id = NEXT_ID
-   NEXT_ID = NEXT_ID + 1   
+   self._id = stonehearth.ai:get_next_object_id()   
 end
 
 function CompoundAction:set_debug_route(debug_route)
@@ -35,6 +30,7 @@ end
 
 function CompoundAction:start_thinking(ai, entity, args)
    self._ai = ai
+   self._args = args
    assert(#self._run_frames == 0)
    assert(#self._think_frames == 0)
    self._previous_think_output = {}
@@ -46,6 +42,12 @@ function CompoundAction:start_thinking(ai, entity, args)
    self._args = self._execution_unit:initialize(args)
    self._execution_unit:short_circuit_thinking()
    assert(self._execution_unit:get_state() == 'ready')
+   
+   if self._action.transform_arguments then
+      self._log:spam('transform_arguments...')
+      self._transformed_args = self._action:transform_arguments(self, self._entity, args)
+      self._log:spam('transform_arguments returned %s', stonehearth.ai:format_args(self._args))
+   end
    
    -- now wait until all the chained actions are ready
    self:_start_processing_next_activity()
@@ -154,6 +156,7 @@ function CompoundAction:get_debug_info()
    local info = {
       name = self.name,
       does = self.does,
+      args = stonehearth.ai:format_args(self._args),
       priority = self.priority,
       execution_frames = {}
    }
@@ -165,6 +168,11 @@ function CompoundAction:get_debug_info()
       table.insert(info.execution_frames, f:get_debug_info())
    end
    return info
+end
+
+
+function CompoundAction:_get_transformed_args()
+   return self._transformed_args
 end
 
 function CompoundAction:_get_args()

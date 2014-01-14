@@ -15,17 +15,13 @@ local STOPPED = 'stopped'
 local DYING = 'dying'
 local DEAD = 'dead'
 
-local NEXT_FRAME_ID = 1
-
 function ExecutionFrame:__init(ai_component, actions, activity, debug_route)
    self._ai_component = ai_component
    self._entity = self._ai_component:get_entity()
    self._activity = activity
    self._state = CONSTRUCTED
    self._execution_units = {}
-   
-   self._id = NEXT_FRAME_ID
-   NEXT_FRAME_ID = NEXT_FRAME_ID + 1
+   self._id = stonehearth.ai:get_next_object_id()
 
    self._log = radiant.log.create_logger('ai.exec_frame')
    if not debug_route then
@@ -550,8 +546,8 @@ function ExecutionFrame:get_debug_info()
       state = self._state,
       activity = {
          name = self._activity.name,
-         args = stonehearth.ai:format_args(self._activity.args),
       },
+      args = stonehearth.ai:format_args(self._activity.args),
       execution_units = {}
    }
    for _, unit in pairs(self._execution_units) do
