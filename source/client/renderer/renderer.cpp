@@ -98,13 +98,13 @@ Renderer::Renderer() :
 
    glfwMakeContextCurrent(window);
    glfwGetWindowSize(window, &windowWidth_, &windowHeight_);
-
+   int numWindowSamples = glfwGetWindowAttrib(window, GLFW_SAMPLES);
    if (!config_.enable_fullscreen.value) {
       SetWindowPos(GetWindowHandle(), NULL, windowX, windowY, 0, 0, SWP_NOSIZE);
    }
    // Init Horde, looking for OpenGL 2.0 minimum.
    std::string s = (radiant::core::System::GetInstance().GetTempDirectory() / "gfx.log").string();
-   if (!h3dInit(2, 0, config_.enable_gl_logging.value, s.c_str())) {
+   if (!h3dInit(2, 0, numWindowSamples > 0, config_.enable_gl_logging.value, s.c_str())) {
       h3dutDumpMessages();
       throw std::runtime_error("Unable to initialize renderer.  Check horde log for details.");
    }

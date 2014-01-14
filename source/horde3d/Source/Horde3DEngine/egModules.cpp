@@ -77,7 +77,7 @@ void Modules::installExtensions()
 }
 
 
-bool Modules::init(int glMajor, int glMinor, bool enable_gl_logging, const std::string& logFilePath)
+bool Modules::init(int glMajor, int glMinor, bool msaaWindowSupported, bool enable_gl_logging, const std::string& logFilePath)
 {
 	// Create modules (order is important because of dependencies)
 	if( _extensionManager == 0x0 ) _extensionManager = new ExtensionManager();
@@ -94,7 +94,7 @@ bool Modules::init(int glMajor, int glMinor, bool enable_gl_logging, const std::
 	if( _statManager == 0x0 ) _statManager = new StatManager();
 
 	// Init modules
-	if( !renderer().init(glMajor, glMinor, enable_gl_logging) ) return false;
+	if( !renderer().init(glMajor, glMinor, msaaWindowSupported, enable_gl_logging) ) return false;
 
 	// Register resource types
 	resMan().registerType( ResourceTypes::SceneGraph, "SceneGraph", 0x0, 0x0,

@@ -141,10 +141,10 @@ void Renderer::getEngineCapabilities(EngineRendererCaps* rendererCaps, EngineGpu
 }
 
 
-bool Renderer::init(int glMajor, int glMinor, bool enable_gl_logging)
+bool Renderer::init(int glMajor, int glMinor, bool msaaWindowSupported, bool enable_gl_logging)
 {
 	// Init Render Device Interface
-	if( !gRDI->init(glMajor, glMinor, enable_gl_logging) ) return false;
+	if( !gRDI->init(glMajor, glMinor, msaaWindowSupported, enable_gl_logging) ) return false;
 
    setGpuCompatibility();
 
