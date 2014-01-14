@@ -15,8 +15,7 @@ LightFirepit.priority = 1
 
 local ai = stonehearth.ai
 return ai:create_compound_action(LightFirepit)
-            :execute('stonehearth:pickup_material', { material = ai.ARGS.firepit:get_fuel_material() })
+            :execute('stonehearth:pickup_item_made_of', { material = ai.ARGS.firepit:get_fuel_material() })
             :execute('stonehearth:drop_carrying_into_entity', { entity = ai.ARGS.firepit:get_entity() })
             :execute('stonehearth:run_effect', { effect = 'light_fire' })
-            :execute('stonehearth:trigger_event', { source = ai.ARGS.firepit, event_name = 'stonehearth:firepit_light_up' })
-
+            :execute('stonehearth:call_function', { fn = ai.ARGS.firepit.light, args = { ai.ARGS.firepit } })

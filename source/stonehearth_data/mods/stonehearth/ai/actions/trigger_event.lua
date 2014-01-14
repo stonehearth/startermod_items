@@ -6,9 +6,7 @@ TriggerEvent.does = 'stonehearth:trigger_event'
 TriggerEvent.args = {
    source = stonehearth.ai.ANY,  -- the source of the trigger
    event_name = 'string',        -- the event to trigger
-   event_args = {                -- the arguments to pass in the event
-      default = {}
-   }
+   event_args = 'table',         -- the arguments to pass in the event
 }
 TriggerEvent.version = 2
 TriggerEvent.priority = 1

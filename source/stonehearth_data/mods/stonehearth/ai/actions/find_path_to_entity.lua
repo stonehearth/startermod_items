@@ -36,6 +36,7 @@ function FindPathToEntity:start_thinking(ai, entity, args)
       end)
 
    local solved = function(path)
+      ai:get_log():spam('solved! %s', tostring(path))
       self._pathfinder:stop()
       self._pathfinder = nil
       ai:set_think_output({path = path})

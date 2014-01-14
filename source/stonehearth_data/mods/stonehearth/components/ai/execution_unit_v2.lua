@@ -7,6 +7,7 @@ local STARTED = 'started'
 local RUNNING = 'running'
 local FINISHED = 'finished'
 local DEAD = 'dead'
+local placeholders = require 'services.ai.placeholders'
 
 --[[
 
@@ -63,7 +64,7 @@ function ExecutionUnitV2:__init(ai_component, entity, injecting_entity)
    chain_function('suspend')
    chain_function('resume')
    chain_function('abort')
-   chain_function('get_log')
+   chain_function('get_log')   
 end
 
 function ExecutionUnitV2:get_state()
@@ -78,6 +79,9 @@ function ExecutionUnitV2:set_debug_route(debug_route)
    -- for compoundaction...
    if self._action.set_debug_route then
       self._action:set_debug_route(self._debug_route)
+   end
+   if self._execute_frame then
+      self._execute_frame:set_debug_route(debug_route)
    end
 end
 
@@ -319,8 +323,8 @@ function ExecutionUnitV2:start()
    self._log:spam('start')
    assert(self:is_runnable())
    assert(self._state == READY)
-   
-   if self._action.start then
+
+   if self._action.start then      
       self._action:start(self._ai_interface, self._entity, self._args)
    else
       self._log:spam('action does not implement start')         
@@ -338,7 +342,7 @@ function ExecutionUnitV2:run()
    if self._action.run then
       self._log:debug('%s coroutine starting action: %s (%s)',
                       self._entity, self:get_name(), stonehearth.ai:format_args(self._think_output))
-      result = { self._action:run(self._ai_interface, self._entity, self._args) }      
+      result = { self._action:run(self._ai_interface, self._entity, self._args) }
       self._log:debug('%s coroutine finished: %s', self._entity, tostring(self:get_name()))
    else
       self._log:debug('action does not implement run.  (this is not an error, but is certainly weird)')
@@ -386,15 +390,17 @@ function ExecutionUnitV2:_verify_arguments(args, args_prototype)
          self:__abort('unexpected argument "%s" passed to "%s".', name, self:get_name())
          return false
       end
-      if type(expected_type) == 'table' and not radiant.util.is_class(expected_type) then
-         assert(expected_type.type, 'missing key "type" in complex args specified "%s"', name)
-         expected_type = expected_type.type
+      if expected_type ~= stonehearth.ai.ANY then
+         if type(expected_type) == 'table' and not radiant.util.is_class(expected_type) then
+            assert(expected_type.type, 'missing key "type" in complex args specified "%s"', name)
+            expected_type = expected_type.type
+         end
+         if not radiant.util.is_a(value, expected_type) then
+            self:__abort('wrong type for argument "%s" in "%s" (expected:%s got %s)', name,
+                         self:get_name(), tostring(expected_type), tostring(type(value)))
+            return false                      
+         end
       end
-      if not radiant.util.is_a(value, expected_type) then
-         self:__abort('wrong type for argument "%s" in "%s" (expected:%s got %s)', name,
-                      self:get_name(), tostring(expected_type), tostring(type(value)))
-         return false                      
-      end      
    end
    for name, expected_type in pairs(args_prototype) do
       if args[name] == nil then

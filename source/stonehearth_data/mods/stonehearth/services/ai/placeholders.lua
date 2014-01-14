@@ -3,7 +3,7 @@ PLACEHOLDER_mt = {}
 function PLACEHOLDER_mt.__call(t, ...)
    local call_args = {...}
    local ftab = {
-      eval = function (p, compound_action)         
+      eval = function (p, compound_action)
          local obj = t:__eval(compound_action)
          local args = {}
          for _, arg in ipairs(call_args) do

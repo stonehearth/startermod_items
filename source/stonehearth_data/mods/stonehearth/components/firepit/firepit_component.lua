@@ -12,7 +12,6 @@ function FirepitComponent:__init(entity, data_store)
    radiant.check.is_entity(entity)
    self._entity = entity
 
-   self._my_wood = nil
    self._light_task = nil
    self._curr_fire_effect = nil
    self._am_lighting_fire = false
@@ -56,7 +55,6 @@ end
 function FirepitComponent:get_fuel_material()
    return 'wood resource'
 end
-
 
 --- If WE are added to the universe, register for events, etc/
 function FirepitComponent:_on_entity_add(id, entity)
@@ -270,10 +268,9 @@ end
 -- that, we'd have to reparent the log to the fireplace.
 -- Add the seats now, since we don't want the admire fire pf to start till the fire is lit.
 -- @param log_entity to add to the fire
-function FirepitComponent:light(log_entity)
+function FirepitComponent:light()
    log:debug('lighting the fire')
 
-   self._my_wood = log_entity
    self._curr_fire_effect =
       radiant.effects.run_effect(self._entity, '/stonehearth/data/effects/firepit_effect')
    if not self._seats then
@@ -282,16 +279,19 @@ function FirepitComponent:light(log_entity)
    self._data.is_lit = true
    radiant.events.trigger(self._entity, 'stonehearth:fire:lit', { lit = true})
    self._data_store:mark_changed()
+   self:extinguish()
 end
 
 --- If there is wood, destroy it and extinguish the particles
 function FirepitComponent:extinguish()
    log:debug('extinguishing the fire')
 
-   if self._my_wood then
-      radiant.entities.remove_child(self._entity, self._my_wood)
-      radiant.entities.destroy_entity(self._my_wood)
-      self._my_wood = nil
+   local ec = self._entity:get_component('entity_container')
+   while ec:num_children() > 0 do
+      for id, log in ec:each_child() do
+         radiant.entities.destroy_entity(log)
+         break
+      end
    end
 
    if self._curr_fire_effect then

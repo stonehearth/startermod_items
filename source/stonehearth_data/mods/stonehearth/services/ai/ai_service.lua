@@ -26,6 +26,7 @@ function AiService:__init()
    for name, value in pairs(placeholders) do
       AiService[name] = value
    end
+   AiService.ANY = { ANY = 'Any lua value will do' }
 
    radiant.events.listen(radiant.events, 'stonehearth:gameloop', self, self._on_event_loop)
 end
