@@ -78,13 +78,17 @@ Renderer::Renderer() :
       throw std::runtime_error(BUILD_STRING("Unable to initialize glfw: " << lastGlfwError_));
    }
 
+   inFullscreen_ = config_.enable_fullscreen.value;
    GLFWmonitor* monitor;
    int windowX, windowY;
    SelectSaneVideoMode(config_.enable_fullscreen.value, &windowWidth_, &windowHeight_, &windowX, &windowY, &monitor);
-   config_.last_window_x.value = windowX;
-   config_.last_window_y.value = windowY;
-   config_.screen_height.value = windowHeight_;
-   config_.screen_width.value = windowWidth_;
+
+   if (!inFullscreen_) {
+      config_.last_window_x.value = windowX;
+      config_.last_window_y.value = windowY;
+      config_.screen_height.value = windowHeight_;
+      config_.screen_width.value = windowWidth_;
+   }
 
    glfwWindowHint(GLFW_SAMPLES, config_.num_msaa_samples.value);
    glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, config_.enable_gl_logging.value ? 1 : 0);
@@ -99,7 +103,7 @@ Renderer::Renderer() :
    glfwMakeContextCurrent(window);
    glfwGetWindowSize(window, &windowWidth_, &windowHeight_);
    int numWindowSamples = glfwGetWindowAttrib(window, GLFW_SAMPLES);
-   if (!config_.enable_fullscreen.value) {
+   if (!inFullscreen_) {
       SetWindowPos(GetWindowHandle(), NULL, windowX, windowY, 0, 0, SWP_NOSIZE);
    }
    // Init Horde, looking for OpenGL 2.0 minimum.
@@ -222,10 +226,13 @@ Renderer::Renderer() :
       RECT rect;
       GetWindowRect(Renderer::GetInstance().GetWindowHandle(), &rect);
 
-      Renderer::GetInstance().config_.last_window_x.value = (int)rect.left;
-      Renderer::GetInstance().config_.last_window_y.value = (int)rect.top;
-      Renderer::GetInstance().config_.screen_width.value = Renderer::GetInstance().windowWidth_;
-      Renderer::GetInstance().config_.screen_height.value = Renderer::GetInstance().windowHeight_;
+      if (!Renderer::GetInstance().inFullscreen_) {
+         Renderer::GetInstance().config_.last_window_x.value = (int)rect.left;
+         Renderer::GetInstance().config_.last_window_y.value = (int)rect.top;
+
+         Renderer::GetInstance().config_.screen_width.value = Renderer::GetInstance().windowWidth_;
+         Renderer::GetInstance().config_.screen_height.value = Renderer::GetInstance().windowHeight_;
+      }
       Renderer::GetInstance().ApplyConfig(Renderer::GetInstance().config_, true);
 
       R_LOG(0) << "window closed.  exiting process";
