@@ -37,7 +37,7 @@ Browser::Browser(HWND parentWindow, std::string const& docroot, int width, int h
 { 
    uiWidth_ = 1920;
    uiHeight_ = 1080;
-   if (screenWidth_ > 1920 && screenHeight_ > 1080) {
+   if (screenWidth_ >= 1920 && screenHeight_ >= 1080) {
       uiWidth_ = screenWidth_;
       uiHeight_ = screenHeight_;
    }
@@ -597,7 +597,7 @@ void Browser::OnScreenResize(int w, int h)
 
    uiWidth_ = 1920;
    uiHeight_ = 1080;
-   if (screenWidth_ > 1920 && screenHeight_ > 1080) {
+   if (screenWidth_ >= 1920 && screenHeight_ >= 1080) {
       uiHeight_ = screenHeight_;
       uiWidth_ = screenWidth_;
    }

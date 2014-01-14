@@ -1210,7 +1210,7 @@ void Renderer::SetUITextureSize(int width, int height)
 {
    uiWidth_ = 1920;
    uiHeight_ = 1080;
-   if (width > 1920 && height > 1080) {
+   if (width >= 1920 && height >= 1080) {
       uiWidth_ = width;
       uiHeight_ = height;
    }
