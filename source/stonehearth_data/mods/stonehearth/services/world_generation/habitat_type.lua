@@ -1,24 +1,17 @@
+local StringFns = require 'services.world_generation.string_fns'
+
 local HabitatType = {}
 
--- initial definitions
+-- initial enumerations
 -- these will almost certainly change
-HabitatType.Occupied  = 0
-HabitatType.Grassland = 1
-HabitatType.Foothills = 2
-HabitatType.Mountains = 3
-HabitatType.Forest    = 4
+HabitatType.occupied  = 'occupied'
+HabitatType.grassland = 'grassland'
+HabitatType.foothills = 'foothills'
+HabitatType.mountains = 'mountains'
+HabitatType.forest    = 'forest'
 
-local string_enum_map = {
-   occupied  = HabitatType.Occupied,
-   grassland = HabitatType.Grassland,
-   foothills = HabitatType.Foothills,
-   mountains = HabitatType.Mountains,
-   forest    = HabitatType.Forest
-}
-
-function HabitatType.parse_string(string)
-   -- could return HabitatType[string], but we want the json to be all lower case
-   return string_enum_map[string]
+function HabitatType.is_valid(value)
+   return HabitatType[value] ~= nil
 end
 
 return HabitatType

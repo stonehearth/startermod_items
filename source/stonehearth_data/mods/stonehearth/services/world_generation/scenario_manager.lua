@@ -2,6 +2,7 @@ local MathFns = require 'services.world_generation.math.math_fns'
 local ScenarioCategory = require 'services.world_generation.scenario_category'
 local ScenarioServices = require 'services.world_generation.scenario_services'
 local HabitatType = require 'services.world_generation.habitat_type'
+local StringFns = require 'services.world_generation.string_fns'
 local Point2 = _radiant.csg.Point2
 local Point3 = _radiant.csg.Point3
 local log = radiant.log.create_logger('world_generation')
@@ -14,6 +15,7 @@ function ScenarioManager:__init(feature_cell_size, rng)
 
    local scenario_index = radiant.resources.load_json('stonehearth:scenarios:scenario_index')
    local categories = {}
+   local scenario, scenario_category, error_message
 
    -- load all the categories
    for name, properties in pairs(scenario_index.categories) do
@@ -22,9 +24,19 @@ function ScenarioManager:__init(feature_cell_size, rng)
 
    -- load the scenarios into the categories
    for _, file in pairs(scenario_index.scenarios) do
-      local scenario = radiant.resources.load_json(file)
-      scenario.habitat_types = self:_parse_habitat_strings(scenario.habitat_types)
-      categories[scenario.category]:add(scenario)
+      scenario = radiant.resources.load_json(file)
+      scenario.habitat_types, error_message = self:_parse_habitat_strings(scenario.habitat_types)
+
+      if error_message then
+         log:error('Error parsing %s: %s', file, error_message)
+      end
+
+      scenario_category = categories[scenario.category]
+      if scenario_category then
+         scenario_category:add(scenario)
+      else
+         log:error('Error parsing %s: Invalid category "%s".', file, scenario.category)
+      end
    end
 
    self._categories = categories
@@ -34,13 +46,21 @@ end
 function ScenarioManager:_parse_habitat_strings(strings)
    local habitat_type
    local habitat_types = {}
+   local error_message = nil
 
    for _, value in pairs(strings) do
-      habitat_type = HabitatType.parse_string(value)
-      habitat_types[habitat_type] = true
+      if HabitatType.is_valid(value) then
+         habitat_types[value] = true
+      else
+         -- concatenate multiple errors into a single string
+         if error_message == nil then
+            error_message = ''
+         end
+         error_message = string.format('%s Invalid habitat type "%s".', error_message, value)
+      end
    end
 
-   return habitat_types
+   return habitat_types, error_message
 end
 
 -- TODO: sort scenarios by priority then area
@@ -169,7 +189,7 @@ function ScenarioManager:_remove_scenario(scenario)
 end
 
 function ScenarioManager:_mark_site_occupied(habitat_map, i, j, width, length)
-   habitat_map:set_block(i, j, width, length, HabitatType.Occupied)
+   habitat_map:set_block(i, j, width, length, HabitatType.occupied)
 end
 
 function ScenarioManager:_get_dimensions_in_feature_units(width, length)

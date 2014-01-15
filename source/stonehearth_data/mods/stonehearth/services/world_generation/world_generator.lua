@@ -211,11 +211,11 @@ function WorldGenerator:_create_world_blueprint()
          for j=1, num_tiles_x do
             value = height_map:get(i, j)
             if value >= mountains_threshold then
-               terrain_type = TerrainType.Mountains
+               terrain_type = TerrainType.mountains
             elseif value >= foothills_threshold then
-               terrain_type = TerrainType.Foothills
+               terrain_type = TerrainType.foothills
             else
-               terrain_type = TerrainType.Grassland
+               terrain_type = TerrainType.grassland
             end
             blueprint:get(i, j).terrain_type = terrain_type
          end
@@ -235,9 +235,9 @@ function WorldGenerator:_is_playable_map(blueprint)
    local total_tiles = blueprint.width * blueprint.height
    local stats = {}
 
-   stats[TerrainType.Grassland] = 0
-   stats[TerrainType.Foothills] = 0
-   stats[TerrainType.Mountains] = 0
+   stats[TerrainType.grassland] = 0
+   stats[TerrainType.foothills] = 0
+   stats[TerrainType.mountains] = 0
 
    for j=1, blueprint.height do
       for i=1, blueprint.width do
@@ -247,10 +247,10 @@ function WorldGenerator:_is_playable_map(blueprint)
    end
 
    log:debug('Terrain distribution:')
-   log:debug('Grasslands: %d, Foothills: %d, Mountains: %d', stats[TerrainType.Grassland],
-      stats[TerrainType.Foothills], stats[TerrainType.Mountains])
+   log:debug('grassland: %d, foothills: %d, mountains: %d', stats[TerrainType.grassland],
+      stats[TerrainType.foothills], stats[TerrainType.mountains])
 
-   percent_mountains = stats[TerrainType.Mountains] / total_tiles
+   percent_mountains = stats[TerrainType.mountains] / total_tiles
 
    return MathFns.in_bounds(percent_mountains, 0.20, 0.40)
 end
@@ -258,41 +258,41 @@ end
 function WorldGenerator:_create_world_blueprint_static()
    local blueprint = self:_get_empty_blueprint(5, 5)
 
-   blueprint:get(1, 1).terrain_type = TerrainType.Grassland
-   blueprint:get(2, 1).terrain_type = TerrainType.Grassland
-   blueprint:get(3, 1).terrain_type = TerrainType.Foothills
-   blueprint:get(4, 1).terrain_type = TerrainType.Mountains
-   blueprint:get(5, 1).terrain_type = TerrainType.Mountains
+   blueprint:get(1, 1).terrain_type = TerrainType.grassland
+   blueprint:get(2, 1).terrain_type = TerrainType.grassland
+   blueprint:get(3, 1).terrain_type = TerrainType.foothills
+   blueprint:get(4, 1).terrain_type = TerrainType.mountains
+   blueprint:get(5, 1).terrain_type = TerrainType.mountains
 
-   blueprint:get(1, 2).terrain_type = TerrainType.Grassland
-   blueprint:get(2, 2).terrain_type = TerrainType.Grassland
-   blueprint:get(3, 2).terrain_type = TerrainType.Grassland
-   blueprint:get(4, 2).terrain_type = TerrainType.Foothills
-   blueprint:get(5, 2).terrain_type = TerrainType.Mountains
+   blueprint:get(1, 2).terrain_type = TerrainType.grassland
+   blueprint:get(2, 2).terrain_type = TerrainType.grassland
+   blueprint:get(3, 2).terrain_type = TerrainType.grassland
+   blueprint:get(4, 2).terrain_type = TerrainType.foothills
+   blueprint:get(5, 2).terrain_type = TerrainType.mountains
 
-   blueprint:get(1, 3).terrain_type = TerrainType.Foothills
-   blueprint:get(2, 3).terrain_type = TerrainType.Grassland
-   blueprint:get(3, 3).terrain_type = TerrainType.Grassland
-   blueprint:get(4, 3).terrain_type = TerrainType.Grassland
-   blueprint:get(5, 3).terrain_type = TerrainType.Foothills
+   blueprint:get(1, 3).terrain_type = TerrainType.foothills
+   blueprint:get(2, 3).terrain_type = TerrainType.grassland
+   blueprint:get(3, 3).terrain_type = TerrainType.grassland
+   blueprint:get(4, 3).terrain_type = TerrainType.grassland
+   blueprint:get(5, 3).terrain_type = TerrainType.foothills
 
-   blueprint:get(1, 4).terrain_type = TerrainType.Mountains
-   blueprint:get(2, 4).terrain_type = TerrainType.Foothills
-   blueprint:get(3, 4).terrain_type = TerrainType.Foothills
-   blueprint:get(4, 4).terrain_type = TerrainType.Grassland
-   blueprint:get(5, 4).terrain_type = TerrainType.Grassland
+   blueprint:get(1, 4).terrain_type = TerrainType.mountains
+   blueprint:get(2, 4).terrain_type = TerrainType.foothills
+   blueprint:get(3, 4).terrain_type = TerrainType.foothills
+   blueprint:get(4, 4).terrain_type = TerrainType.grassland
+   blueprint:get(5, 4).terrain_type = TerrainType.grassland
 
-   blueprint:get(1, 5).terrain_type = TerrainType.Mountains
-   blueprint:get(2, 5).terrain_type = TerrainType.Mountains
-   blueprint:get(3, 5).terrain_type = TerrainType.Mountains
-   blueprint:get(4, 5).terrain_type = TerrainType.Foothills
-   blueprint:get(5, 5).terrain_type = TerrainType.Grassland
+   blueprint:get(1, 5).terrain_type = TerrainType.mountains
+   blueprint:get(2, 5).terrain_type = TerrainType.mountains
+   blueprint:get(3, 5).terrain_type = TerrainType.mountains
+   blueprint:get(4, 5).terrain_type = TerrainType.foothills
+   blueprint:get(5, 5).terrain_type = TerrainType.grassland
 
    return blueprint
 end
 
 function WorldGenerator:_get_empty_blueprint(width, height, terrain_type)
-   if terrain_type == nil then terrain_type = TerrainType.Grassland end
+   if terrain_type == nil then terrain_type = TerrainType.grassland end
 
    local blueprint = Array2D(width, height)
    local i, j, tile_info
