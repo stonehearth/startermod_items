@@ -25,7 +25,7 @@ function ResourceCallHandler:harvest_tree(session, response, tree)
                                 :start()
       radiant.effects.run_effect(tree, '/stonehearth/data/effects/chop_overlay_effect')
    end
-   
+
    return true
 end
 

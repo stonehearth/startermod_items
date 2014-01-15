@@ -90,7 +90,8 @@ function ExecutionUnitV2:get_action_interface()
 end
 
 function ExecutionUnitV2:__set_think_output(think_output)
-   self._log:spam('set_think_output: %s', stonehearth.ai:format_args(think_output))
+   self:_spam_current_state('set_think_output: ' .. stonehearth.ai:format_args(think_output))  
+   
    assert(think_output == nil or type(think_output) == 'table')
    assert(self._state == THINKING)
    if not think_output then
@@ -273,19 +274,19 @@ function ExecutionUnitV2:start_thinking(current_entity_state)
    self._log:spam('start_thinking (state:%s processing:%s)', self._state, tostring(self._thinking))
 
    if self._thinking then
-      self._log:spam('call to start_thinking (%s) while already thinking with (%s).  stopping...',
-                     tostring(current_entity_state.location), tostring(self._current_entity_state.location))
+      self._log:spam('call to start_thinking while already thinking.  stopping...')
       self:stop_thinking()
       self._log:spam('resuming start_thinking, now that we stopped.')
    end
    
    assert(current_entity_state)
    assert(not self._thinking)
-   self._log:spam('CURRENT.location predicted to be %s', current_entity_state.location)
    
    self._thinking = true
    self._current_entity_state = current_entity_state
    self._ai_interface.CURRENT = current_entity_state
+   
+   self:_spam_current_state('before action start_thinking')  
    if not self._think_output then
       self:_set_state(THINKING)
       if self._action.start_thinking then
@@ -297,11 +298,13 @@ function ExecutionUnitV2:start_thinking(current_entity_state)
    else
       self._log:spam('ignoring start_thinking call.  already have args!')
    end
+   self:_spam_current_state('after action start_thinking')
 end
 
 function ExecutionUnitV2:stop_thinking()
    self._log:spam('stop_thinking (state:%s processing:%s)', tostring(self._state), tostring(self._thinking))
-   
+
+   self:_spam_current_state('before action stop_thinking')
    if self._thinking then
       self._thinking = false
       self._think_output = nil
@@ -317,6 +320,7 @@ function ExecutionUnitV2:stop_thinking()
    else
       self._log:spam('ignoring stop_thinking call.  not thinking...')
    end
+   self:_spam_current_state('after action stop_thinking')
 end
 
 function ExecutionUnitV2:start()
@@ -464,5 +468,18 @@ function ExecutionUnitV2:get_debug_info()
    end
    return info
 end
+
+function ExecutionUnitV2:_spam_current_state(msg)
+   self._log:spam(msg)
+   if self._current_entity_state then
+      self._log:spam('  CURRENT is %s', tostring(self._current_entity_state))
+      for key, value in pairs(self._current_entity_state) do      
+         self._log:spam('  CURRENT.%s = %s', key, tostring(value))
+      end   
+   else
+      self._log:spam('  no CURRENT state!')
+   end
+end
+
 
 return ExecutionUnitV2

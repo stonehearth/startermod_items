@@ -261,6 +261,7 @@ function Fabricator:_start_pickup_task()
    end
 
    local name = 'pickup to fabricate ' .. self.name
+   assert(false)
    self._pickup_task = self._worker_scheduler:add_worker_task(name)
                            :set_action('stonehearth:pickup_item_on_path')
                            :set_worker_filter_fn(worker_filter_fn)

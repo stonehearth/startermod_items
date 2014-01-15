@@ -9,13 +9,12 @@ DropCarryingAdjacent.args = {
 DropCarryingAdjacent.version = 2
 DropCarryingAdjacent.priority = 1
 
---[[
-   Put the object we're carrying down at a location
-   location: the coordinates at which to drop off the object
-]]
 function DropCarryingAdjacent:start_thinking(ai, entity, args)
-   -- todo: ASSERT we're adjacent!
-   ai:set_think_output()
+   if ai.CURRENT.carrying ~= nil then
+      -- todo: ASSERT we're adjacent!
+      ai.CURRENT.carrying = nil
+      ai:set_think_output()
+   end
 end
 
 function DropCarryingAdjacent:run(ai, entity, args)

@@ -85,6 +85,12 @@ static dm::ObjectId WeakGetObjectId(std::weak_ptr<T> o)
    return SharedGetObjectId(o.lock());
 }
 
+template<typename T>
+static bool operator==(std::weak_ptr<T> lhs, std::weak_ptr<T> rhs)
+{
+   return lhs.lock() == rhs.lock();
+}
+
 template <class T>
 std::string WeakGameObjectToJson(std::weak_ptr<T> o, luabind::object state)
 {
@@ -149,6 +155,7 @@ luabind::class_<T, std::weak_ptr<T>> RegisterWeakGameObject(const char* name = n
       .def("get_id",         &WeakGetObjectId<T>)
       .def("get_type_id",    &GetTypeId<T>)
       .def("get_type_name",  &GetTypeName<T>)
+      .def("equals",         (bool (*)(std::weak_ptr<T>, std::weak_ptr<T>))&operator==)
       .scope [
          def("get_type_id",   &GetClassTypeId<T>),
          def("get_type_name", &GetClassTypeName<T>) 
