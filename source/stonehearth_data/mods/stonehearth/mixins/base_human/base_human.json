@@ -8,8 +8,6 @@
             "stonehearth:actions:idle:look_around",
             "stonehearth:actions:sleep_action",
             "stonehearth:actions:sleep_on_ground_action",
-            "stonehearth:actions:grab_talisman_action",
-            "stonehearth:actions:admire_fire_action",
             "stonehearth:actions:find_food_action",
             "stonehearth:actions:get_food_action",
             "stonehearth:actions:eat_food_action",

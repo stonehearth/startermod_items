@@ -13,14 +13,14 @@ function SleepOnGroundAction:__init(ai, entity)
 end
 
 function SleepOnGroundAction:start_thinking(ai, entity)
-   radiant.events.listen(entity, 'stonehearth:attribute_changed:sleepiness', self, self._keep_think)
+   radiant.events.listen(entity, 'stonehearth:attribute_changed:sleepiness', self, self._sleepiness_changed)
 end
 
 function SleepOnGroundAction:stop_thinking(ai, entity)
-   radiant.events.unlisten(entity, 'stonehearth:attribute_changed:sleepiness', self, self._keep_think)
+   radiant.events.unlisten(entity, 'stonehearth:attribute_changed:sleepiness', self, self._sleepiness_changed)
 end
 
-function SleepOnGroundAction:_keep_think(e)
+function SleepOnGroundAction:_sleepiness_changed(e)
    if e.value >= 120 then
       self._ai:set_think_output()
    else

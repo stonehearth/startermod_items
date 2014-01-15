@@ -7,19 +7,40 @@
    has to eat again. 
 --]]
 local priorities = require('constants').priorities.needs
+local event_service = stonehearth.events
+local personality_service = stonehearth.personality
+local Point3 = _radiant.csg.Point3
 
-local EatFood = class()
-EatFood.name = 'eat food'
-EatFood.does = 'stonehearth:eat_food'
-EatFood.version = 2
-EatFood.priority = 5       --The minute this is called, it runs. 
+local EatFoodAction = class()
+local log = radiant.log.create_logger('actions.eat_food')
 
-local ai = stonehearth.ai
-return ai.create_compound_action(EatFood)
-   :execute("stonehearth:eat_carrying")
+EatFoodAction.name = 'eat food'
+EatFoodAction.does = 'stonehearth:eat_food'
+EatFoodAction.version = 1
+EatFoodAction.priority = 5       --The minute this is called, it runs. 
+
+--Some constants
+local CLOSE_DISTANCE = 3         --Sit somewhere nearby to eat
+local FAR_DISTANCE = 6           --Sit a little further away to eat
+local HURRIED_MODIFIER = 0.80    --Eating in a hurry is less satisfying
+local CHAIR_MODIFIER = 1.2       --Eating while sitting is more satisfying
+
+function EatFoodAction:__init(ai, entity)
+   radiant.check.is_entity(entity)
+   self._entity = entity         
+   self._ai = ai
+   self._looking_for_seat = false
+   self._seat = nil
+   self._path_to_seat = nil
+   self._pathfinder = nil
+   self._hunger = nil
+   self._food = nil
+
+   radiant.events.listen(entity, 'stonehearth:attribute_changed:hunger', self, self.on_hunger_changed)
+ end
 
 --- Whenever the entity is hungry, subliminally start looking for a seat
-function EatFood:on_hunger_changed(e)
+function EatFoodAction:on_hunger_changed(e)
    self._hunger = e.value
    if self._hunger >= 80  then
       self:start_looking_for_seat()
@@ -28,7 +49,7 @@ function EatFood:on_hunger_changed(e)
    end
 end
 
-function EatFood:start_looking_for_seat()
+function EatFoodAction:start_looking_for_seat()
    if self._looking_for_seat then
       return
    end
@@ -39,7 +60,7 @@ function EatFood:start_looking_for_seat()
    end
 end
 
-function EatFood:stop_looking_for_seat()
+function EatFoodAction:stop_looking_for_seat()
    if self._pathfinder then
       self._pathfinder:stop()
       self._pathfinder = nil
@@ -48,7 +69,7 @@ function EatFood:stop_looking_for_seat()
 end
 
 --- Create a pathfinder that will look for unleased chairs in the background
-function EatFood:find_seat()
+function EatFoodAction:find_seat()
    assert(not self._pathfinder)
 
    local filter_fn = function(item)
@@ -87,7 +108,7 @@ end
 --  grants a bonus to how full we feel after eating. 
 --  If we're moderately hungry and don't have a chair, find a random location at
 --  moderate distance and eat leisurely. This has no effect on satiation. 
-function EatFood:run(ai, entity, food)
+function EatFoodAction:run(ai, entity, food)
    local attributes_component = entity:add_component('stonehearth:attributes')
    local hunger = attributes_component:get_attribute('hunger')
    local entity_loc = entity:get_component('mob'):get_world_grid_location()
@@ -157,7 +178,7 @@ function EatFood:run(ai, entity, food)
 end
 
 --- Make sure we hear if the chair is moved while we're eating
-function EatFood:_register_for_chair_events()
+function EatFoodAction:_register_for_chair_events()
    assert(self._seat, 'register_for_chair_events called without chair')
    -- If the chair moves or is destroyed while we're eating, abort
    self._chair_moved_promise = radiant.entities.on_entity_moved(self._seat, function()
@@ -170,7 +191,7 @@ function EatFood:_register_for_chair_events()
 end
 
 --- If we reserved the chair to eat on, release the reservation
-function EatFood:_release_seat_reservation()
+function EatFoodAction:_release_seat_reservation()
    if self._seat then
       local seat_lease = self._seat:get_component('stonehearth:lease_component')
       seat_lease:release_lease(self._entity)
@@ -184,7 +205,7 @@ end
 -- Note: We don't stop the pf etc here because the only
 -- reason to stop looking for somewhere to eat is
 -- because we're no longer hungry
-function EatFood:stop()
+function EatFoodAction:stop()
    --Drop carrying and destroy
    radiant.entities.drop_carrying_on_ground(self._entity, 
       self._entity:get_component('mob'):get_world_grid_location())
@@ -208,3 +229,5 @@ function EatFood:stop()
       self._pre_eating_location = nil
    end
 end
+
+return EatFoodAction

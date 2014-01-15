@@ -5,64 +5,58 @@ local Flee = class()
 local Point3 = _radiant.csg.Point3
 local Vec3 = _radiant.csg.Point3f
 
-Flee.name = 'stonehearth:actions:flee'
+Flee.name = 'flee danger'
 Flee.does = 'stonehearth:top'
-Flee.version = 1
-Flee.priority = 0
+Flee.args = {}
+Flee.version = 2
+Flee.priority = 8
 
 function Flee:__init(ai, entity)
    self._entity = entity
    self._ai = ai
    self._enemies = {}
-   radiant.events.listen(radiant.events, 'stonehearth:gameloop', self, self.on_gameloop)
 end
 
-function Flee:on_gameloop()
-   radiant.events.unlisten(radiant.events, 'stonehearth:gameloop', self, self.on_gameloop)
-   self:init_sight_sensor()
-end
-
-function Flee:init_sight_sensor()
+function Flee:start_thinking(ai, entity)
    assert(not self._sensor)
 
-   local list = self._entity:get_component('sensor_list')
+   local list = entity:get_component('sensor_list')
    if not list then
       return
    end
-
    self._sensor = list:get_sensor('sight')
    self.promise = self._sensor:trace_contents('flee')
                                  :on_added(
-                                    function (id)
-                                       self:on_added_to_sensor(id)
+                                    function (id, foe)
+                                       self:on_added_to_sensor(ai, entity, id, foe)
                                     end
                                  )
                                  :on_removed(
                                     function (id)
-                                       self:on_removed_from_sensor(id)
+                                       self:on_removed_from_sensor(ai, entity, id)
                                     end
                                  ) 
 end
 
-function Flee:on_added_to_sensor(entity_id)
-   local entity = radiant.entities.get_entity(entity_id)
-
-   if radiant.entities.is_hostile(self._entity, entity) then         
-      table.insert(self._enemies, entity_id)
-      self._ai:set_action_priority(self, 90)
+function Flee:on_added_to_sensor(ai, entity, foe_id, foe)
+   if radiant.entities.is_hostile(entity, foe) then
+      table.insert(self._enemies, foe_id)
+      ai:set_think_output({})
    end
 end
 
-function Flee:on_removed_from_sensor(entity_id)
-   for i, enemy_id in ipairs(self._enemies) do
-      if enemy_id == entity_id then
-         table.remove(self._enemies, i)
-         break
+function Flee:on_removed_from_sensor(ai, entity, foe_id)
+   if #self._enemies > 0 then
+      for i, enemy_id in ipairs(self._enemies) do
+         if enemy_id == foe_id then
+            table.remove(self._enemies, i)
+            break
+         end
       end
-   end
-   
-   if #self._enemies == 0 then
-      self._ai:set_action_priority(self, 0)
+      
+      if #self._enemies == 0 then
+         ai:revoke_think_output()
+      end
    end
 end
 
