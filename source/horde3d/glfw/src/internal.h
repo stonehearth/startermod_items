@@ -202,6 +202,7 @@ struct _GLFWwindow
     void*               userPointer;
     GLFWvidmode         videoMode;
     _GLFWmonitor*       monitor;
+    int                 samples;
 
     // Window input state
     GLboolean           stickyKeys;

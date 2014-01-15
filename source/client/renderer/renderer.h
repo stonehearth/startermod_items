@@ -250,6 +250,7 @@ class Renderer
       std::unique_ptr<PerfHud>            perf_hud_;
       int                                 last_render_time_;
       bool                                resize_pending_;
+      bool                                inFullscreen_;
       int                                 nextWidth_, nextHeight_;
       
       std::string                         lastGlfwError_;

@@ -36,7 +36,7 @@ class ExtensionManager;
 class Modules
 {
 public:
-	static bool init(int glMajor, int glMinor, bool enable_gl_logging, const std::string& logFilePath);
+	static bool init(int glMajor, int glMinor, bool msaaWindowSupported, bool enable_gl_logging, const std::string& logFilePath);
 	static void release();
 
 	static void setError( const char *errorStr1 = 0x0, const char *errorStr2 = 0x0 );

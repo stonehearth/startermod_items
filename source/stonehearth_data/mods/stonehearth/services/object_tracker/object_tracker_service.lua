@@ -60,9 +60,9 @@ function ObjectTrackerService:get_resource_tracker(faction)
          --TODO: Generic icons!
          --TODO: other things can be included generically, but till then, will be
          --tracked by uri
-         if radiant.entities.is_material(item, 'wood') then
+         if radiant.entities.is_material(item, 'wood resource') then
             return 'wood', 'Wood', '/stonehearth/data/images/resources/log.png'
-         elseif radiant.entities.is_material(item, 'food') then
+         elseif radiant.entities.is_material(item, 'food resource') then
             return 'food', 'Food', '/stonehearth/data/images/resources/food.png'
          else
             return item:get_uri(), nil, nil

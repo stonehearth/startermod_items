@@ -149,7 +149,7 @@ public:
 	
 	unsigned char *useScratchBuf( uint32 minSize );
 	
-	bool init(int glMajor, int glMinor, bool enable_gl_logging);
+	bool init(int glMajor, int glMinor, bool msaaWindowSupported, bool enable_gl_logging);
 	void initStates();
 
    void collectOneDebugFrame();
@@ -242,7 +242,7 @@ protected:
    static void drawVoxelMesh_Instances_WithoutInstancing(const RenderableQueue& renderableQueue, const VoxelMeshNode* vmn);
 	void renderDebugView();
 	void finishRendering();
-
+   void logPerformanceData();
    void setGpuCompatibility();
 
 protected:

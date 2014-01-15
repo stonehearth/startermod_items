@@ -89,7 +89,7 @@ DLLEXP bool h3dGetError()
 }
 
 
-DLLEXP bool h3dInit(int glMajor, int glMinor, bool enable_gl_logging, const char* logFilePath)
+DLLEXP bool h3dInit(int glMajor, int glMinor, bool msaaWindowSupported, bool enable_gl_logging, const char* logFilePath)
 {
 	if( initialized )
 	{	
@@ -99,7 +99,7 @@ DLLEXP bool h3dInit(int glMajor, int glMinor, bool enable_gl_logging, const char
 	}
 	initialized = true;
 
-	return Modules::init(glMajor, glMinor, enable_gl_logging, std::string(logFilePath));
+	return Modules::init(glMajor, glMinor, msaaWindowSupported, enable_gl_logging, std::string(logFilePath));
 }
 
 DLLEXP void h3dRelease()
@@ -170,6 +170,18 @@ DLLEXP void h3dGetCapabilities(EngineRendererCaps* rendererCaps, EngineGpuCaps* 
 DLLEXP float h3dGetStat( EngineStats::List param, bool reset )
 {
 	return Modules::stats().getStat( param, reset );
+}
+
+DLLEXP void h3dResetStats()
+{
+   Modules::stats().getStat(EngineStats::AnimationTime, true);
+   Modules::stats().getStat(EngineStats::AverageFrameTime, true);
+   Modules::stats().getStat(EngineStats::BatchCount, true);
+   Modules::stats().getStat(EngineStats::FrameTime, true);
+   Modules::stats().getStat(EngineStats::GeoUpdateTime, true);
+   Modules::stats().getStat(EngineStats::LightPassCount, true);
+   Modules::stats().getStat(EngineStats::ParticleSimTime, true);
+   Modules::stats().getStat(EngineStats::TriCount, true);
 }
 
 DLLEXP void h3dSetGlobalShaderFlag(const char* flagName, bool value)

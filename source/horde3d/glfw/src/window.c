@@ -213,6 +213,7 @@ GLFWAPI GLFWwindow* glfwCreateWindow(int width, int height,
         window->videoMode.refreshRate = Max(_glfw.hints.refreshRate, 0);
     }
 
+    window->samples     = fbconfig.samples;
     window->monitor     = wndconfig.monitor;
     window->resizable   = wndconfig.resizable;
     window->decorated   = wndconfig.decorated;
@@ -570,6 +571,8 @@ GLFWAPI int glfwGetWindowAttrib(GLFWwindow* handle, int attrib)
             return window->glDebug;
         case GLFW_OPENGL_PROFILE:
             return window->glProfile;
+        case GLFW_SAMPLES:
+            return window->samples;
     }
 
     _glfwInputError(GLFW_INVALID_ENUM, NULL);

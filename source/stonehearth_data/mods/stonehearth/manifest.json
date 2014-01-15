@@ -102,6 +102,15 @@
          "dining_table" : "file(entities/furniture/dining_table)",
          "dining_table_proxy" : "file(entities/furniture/dining_table/dining_table_proxy.json)",
 
+         "berry_hanging" : "file(entities/furniture/simple_hanging/berry_hanging.json)",
+         "berry_hanging_proxy" : "file(entities/furniture/simple_hanging/berry_hanging_proxy.json)",
+
+         "geranium_hanging" : "file(entities/furniture/simple_hanging/geranium_hanging.json)",
+         "geranium_hanging_proxy" : "file(entities/furniture/simple_hanging/geranium_hanging_proxy.json)",
+
+         "green_hanging" : "file(entities/furniture/simple_hanging/green_hanging.json)",
+         "green_hanging_proxy" : "file(entities/furniture/simple_hanging/green_hanging_proxy.json)",
+
          "camp_standard" : "file(entities/gizmos/camp_standard)",
          "camp_standard_proxy" : "file(entities/gizmos/camp_standard/camp_standard_proxy.json)",
 

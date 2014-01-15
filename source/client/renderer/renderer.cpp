@@ -78,13 +78,17 @@ Renderer::Renderer() :
       throw std::runtime_error(BUILD_STRING("Unable to initialize glfw: " << lastGlfwError_));
    }
 
+   inFullscreen_ = config_.enable_fullscreen.value;
    GLFWmonitor* monitor;
    int windowX, windowY;
    SelectSaneVideoMode(config_.enable_fullscreen.value, &windowWidth_, &windowHeight_, &windowX, &windowY, &monitor);
-   config_.last_window_x.value = std::max(0, windowX);
-   config_.last_window_y.value = std::max(0, windowY);
-   config_.screen_height.value = windowHeight_;
-   config_.screen_width.value = windowWidth_;
+
+   if (!inFullscreen_) {
+      config_.last_window_x.value = windowX;
+      config_.last_window_y.value = windowY;
+      config_.screen_height.value = windowHeight_;
+      config_.screen_width.value = windowWidth_;
+   }
 
    glfwWindowHint(GLFW_SAMPLES, config_.num_msaa_samples.value);
    glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, config_.enable_gl_logging.value ? 1 : 0);
@@ -98,13 +102,13 @@ Renderer::Renderer() :
 
    glfwMakeContextCurrent(window);
    glfwGetWindowSize(window, &windowWidth_, &windowHeight_);
-
-   if (!config_.enable_fullscreen.value) {
+   int numWindowSamples = glfwGetWindowAttrib(window, GLFW_SAMPLES);
+   if (!inFullscreen_) {
       SetWindowPos(GetWindowHandle(), NULL, windowX, windowY, 0, 0, SWP_NOSIZE);
    }
    // Init Horde, looking for OpenGL 2.0 minimum.
-   std::string s = (radiant::core::System::GetInstance().GetTempDirectory() / "horde3d_log.html").string();
-   if (!h3dInit(2, 0, config_.enable_gl_logging.value, s.c_str())) {
+   std::string s = (radiant::core::System::GetInstance().GetTempDirectory() / "gfx.log").string();
+   if (!h3dInit(2, 0, numWindowSamples > 0, config_.enable_gl_logging.value, s.c_str())) {
       h3dutDumpMessages();
       throw std::runtime_error("Unable to initialize renderer.  Check horde log for details.");
    }
@@ -112,7 +116,7 @@ Renderer::Renderer() :
    // Set options
    h3dSetOption(H3DOptions::LoadTextures, 1);
    h3dSetOption(H3DOptions::TexCompression, 0);
-   h3dSetOption(H3DOptions::MaxAnisotropy, 4);
+   h3dSetOption(H3DOptions::MaxAnisotropy, 1);
    h3dSetOption(H3DOptions::FastAnimation, 1);
    h3dSetOption(H3DOptions::DumpFailedShaders, 1);
 
@@ -222,10 +226,13 @@ Renderer::Renderer() :
       RECT rect;
       GetWindowRect(Renderer::GetInstance().GetWindowHandle(), &rect);
 
-      Renderer::GetInstance().config_.last_window_x.value = std::max(0, (int)rect.left);
-      Renderer::GetInstance().config_.last_window_y.value = std::max(0, (int)rect.top);
-      Renderer::GetInstance().config_.screen_width.value = Renderer::GetInstance().windowWidth_;
-      Renderer::GetInstance().config_.screen_height.value = Renderer::GetInstance().windowHeight_;
+      if (!Renderer::GetInstance().inFullscreen_) {
+         Renderer::GetInstance().config_.last_window_x.value = (int)rect.left;
+         Renderer::GetInstance().config_.last_window_y.value = (int)rect.top;
+
+         Renderer::GetInstance().config_.screen_width.value = Renderer::GetInstance().windowWidth_;
+         Renderer::GetInstance().config_.screen_height.value = Renderer::GetInstance().windowHeight_;
+      }
       Renderer::GetInstance().ApplyConfig(Renderer::GetInstance().config_, true);
 
       R_LOG(0) << "window closed.  exiting process";
@@ -395,8 +402,8 @@ void Renderer::GetConfigOptions()
 
    config_.draw_distance.value = config.Get("renderer.draw_distance", 1000.0f);
 
-   config_.last_window_x.value = std::max(0, config.Get("renderer.last_window_x", 0));
-   config_.last_window_y.value = std::max(0, config.Get("renderer.last_window_y", 0));
+   config_.last_window_x.value = config.Get("renderer.last_window_x", 0);
+   config_.last_window_y.value = config.Get("renderer.last_window_y", 0);
 }
 
 void Renderer::ApplyConfig(const RendererConfig& newConfig, bool persistConfig)
@@ -478,19 +485,18 @@ void Renderer::SelectSaneVideoMode(bool fullscreen, int* width, int* height, int
 
    GLFWmonitor** monitors = glfwGetMonitors(&numMonitors);
 
-   int lastMonitorX = 0, lastMonitorY = 0;
    GLFWmonitor *desiredMonitor = NULL;
    for (int i = 0; i < numMonitors; i++) 
    {
       int monitorX, monitorY;
       glfwGetMonitorPos(monitors[i], &monitorX, &monitorY);
+      const GLFWvidmode* m = glfwGetVideoMode(monitors[i]);
       
       if ((lastX >= monitorX && lastY >= monitorY) && 
-         (monitorX >= lastMonitorX && monitorY >= lastMonitorY)) 
+         (lastX < monitorX + m->width && lastY < monitorY + m->height)) 
       {
          desiredMonitor = monitors[i];
-         lastMonitorX = monitorX;
-         lastMonitorY = monitorY;
+         break;
       }
    }
    if (desiredMonitor == NULL) {
@@ -499,10 +505,10 @@ void Renderer::SelectSaneVideoMode(bool fullscreen, int* width, int* height, int
       desiredMonitor = glfwGetPrimaryMonitor();
    }
 
+   // At this point, we have a valid monitor, and a position.
    *monitor = desiredMonitor;
    *windowX = lastX;
    *windowY = lastY;
-   // At this point, we have a valid monitor, and a position.
 
    int last_res_width = config_.screen_width.value;
    int last_res_height = config_.screen_height.value;
@@ -692,7 +698,15 @@ void Renderer::RenderOneFrame(int now, float alpha)
       // show stats
       h3dCollectDebugFrame();
       h3dutShowFrameStats( fontMatRes_, panelMatRes_, H3DUTMaxStatMode );
+
+      if (config_.enable_gl_logging.value) {
+         h3dSetOption(H3DOptions::EnableStatsLogging, 1.0f);
+      }
+   } else {
+      h3dSetOption(H3DOptions::EnableStatsLogging, 0.0f);
    }
+
+   h3dResetStats();
 
    perfmon::SwitchToCounter("render load res");
    fileWatcher_.update();
@@ -1211,7 +1225,7 @@ void Renderer::SetUITextureSize(int width, int height)
 {
    uiWidth_ = 1920;
    uiHeight_ = 1080;
-   if (width > 1920 && height > 1080) {
+   if (width >= 1920 && height >= 1080) {
       uiWidth_ = width;
       uiHeight_ = height;
    }

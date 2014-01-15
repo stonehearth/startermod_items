@@ -1,6 +1,13 @@
 {
    "craftable_recipes" : [
       {
+         "category" : "Construction & Furnishings",
+         "recipes" : [
+            "file(berry_hanging_recipe.json)",
+            "file(green_hanging_recipe.json)"
+         ]
+      },
+      {
          "category" : "Tools & Goods",
          "recipes" : [
             "file(spool_of_thread_recipe.json)",

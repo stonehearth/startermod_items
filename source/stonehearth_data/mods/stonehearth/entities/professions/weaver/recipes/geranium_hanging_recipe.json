@@ -1,0 +1,26 @@
+{
+   "type":"recipe",
+
+   "work_units"  : 3,
+   "recipe_name" : "Flower Hanging",
+   "description" : "Pattern(TM) Rayya's Children Weavers Guild.",
+   "flavor"      : "Beauty is in the mind of the banner-holder.",
+   "portrait"    : "/stonehearth/entities/generic/default_object/default_object.png",
+   "category"    : "decoration",
+
+   "ingredients": [
+      {
+         "material" : "wood resource",
+         "count" : 1
+      },
+      {
+         "material" : "cloth resource",
+         "count" : 1
+      }
+  ],
+  "produces": [
+      {
+         "item":"stonehearth:geranium_hanging_proxy"
+      }
+  ]
+}

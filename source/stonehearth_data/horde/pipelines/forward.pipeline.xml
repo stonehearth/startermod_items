@@ -1,16 +1,13 @@
 <!-- Forward Shading Pipeline -->
 <Pipeline>
    <Setup>
-      <RenderTarget id="OUTPUT" depthBuf="true" numColBufs="1" format="RGBA8" scale="1.0" maxSamples="16"/>
       <RenderTarget id="SelectedTemp" numColBufs="1" depthBuf="true" format="RGBA8" scale="1.0"/>
       <RenderTarget id="SkyTemp" numColBufs="1" depthBuf="false" format="RGBA8" scale="0.125"/>
    </Setup>
    <CommandQueue>
       <Stage id="Init">
          <SwitchTarget target="" />
-         <ClearTarget colBuf0="true"/>
-         <SwitchTarget target="OUTPUT" />
-         <ClearTarget depthBuf="true"/>
+         <ClearTarget colBuf0="true" depthBuf="true"/>
       </Stage>
       
       <Stage id="Sky">
@@ -21,7 +18,7 @@
       </Stage>
 
       <Stage id="Starfield">
-         <SwitchTarget target="OUTPUT" />
+         <SwitchTarget target="" />
          <DrawGeometry context="STARFIELD"/>
       </Stage>
 
@@ -56,7 +53,7 @@
          <ClearTarget colBuf0="true" depthBuf="true"/>
          <DrawSelected context="SELECTED_SCREENSPACE" />
 
-         <SwitchTarget target="OUTPUT" />
+         <SwitchTarget target="" />
          <BindBuffer sampler="outlineSampler" sourceRT="SelectedTemp" bufIndex="0"/>
          <BindBuffer sampler="outlineDepth" sourceRT="SelectedTemp" bufIndex="32"/>
          <DrawQuad material="materials/default_material.xml" context="SELECTED_SCREENSPACE_OUTLINER" />
@@ -67,11 +64,5 @@
 			<DrawOverlays context="OVERLAY"/>
 		</Stage>
 
-      <Stage id="Final">
-         <SwitchTarget target="" />
-         <BindBuffer sampler="buf0" sourceRT="OUTPUT" bufIndex="0" />
-         <DrawQuad material="materials/fullscreen_quad.material.xml" context="FSQUAD_COPY" />
-         <UnbindBuffers />
-      </Stage>
 	</CommandQueue>
 </Pipeline>

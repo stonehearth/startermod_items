@@ -116,7 +116,8 @@ struct H3DOptions
 		DebugViewMode,
 		DumpFailedShaders,
 		GatherTimeStats,
-      EnableShadows
+      EnableShadows,
+      EnableStatsLogging
 	};
 };
 
@@ -147,7 +148,8 @@ struct H3DStats
 		ParticleSimTime,
 		TextureVMem,
 		GeometryVMem,
-      AverageFrameTime
+      AverageFrameTime,
+      AvailableGpuMemory
 	};
 };
 
@@ -729,7 +731,7 @@ DLL bool h3dGetError();
 	Returns:
 		true in case of success, otherwise false
 */
-DLL bool h3dInit(int glMajor, int glMinor, bool enable_gl_logging, const char* logFilePath);
+DLL bool h3dInit(int glMajor, int glMinor, bool msaaWindowSupported, bool enable_gl_logging, const char* logFilePath);
 
 /* Function: h3dRelease
 		Releases the engine.
@@ -857,6 +859,7 @@ DLL bool h3dSetOption( H3DOptions::List param, float value );
 */
 DLL float h3dGetStat( H3DStats::List param, bool reset );
 
+DLL void h3dResetStats();
 
 DLL void h3dSetGlobalShaderFlag(const char* flagName, bool value);
 
