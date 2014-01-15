@@ -15,39 +15,49 @@ EatCarrying.priority = 1
 --  If we're moderately hungry and don't have a chair, find a random location at
 --  moderate distance and eat leisurely. This has no effect on satiation. 
 function EatCarrying:run(ai, entity)
-   local food = radiant.entities.get_carrying(entity)
-   if not food then
+   self._food = radiant.entities.get_carrying(entity)
+   if not self._food then
       ai:abort('cannot eat.  not carrying anything!')
    end
 
-   self:_get_eat_data()
+   local food_data = self:_get_food_data(entity, self._food)
 
-   local times = self._eat_data.effect_loops and self._eat_data.effect_loops or 3
+   local times = food_data.effect_loops and food_data.effect_loops or 3
    for i = 1, times do
-      ai:execute('stonehearth:run_effect', 'eat')
+      ai:execute('stonehearth:run_effect', { effect = 'eat' })
    end
    local attributes_component = entity:add_component('stonehearth:attributes')
    local hunger = attributes_component:get_attribute('hunger')
-   entity_attribute_comp:set_attribute('hunger', hunger - eat_data.satisfaction)
+   attributes_component:set_attribute('hunger', hunger - food_data.satisfaction)
 
-   if self._eat_data.journal_message then
-      radiant.events.trigger(personality_service, 'stonehearth:journal_event', 
-                             {entity = entity, description = eat_data.journal_message})
+   if food_data.journal_message then
+      radiant.events.trigger(stonehearth.personality, 'stonehearth:journal_event', 
+                             {entity = entity, description = food_data.journal_message})
    end
 end
 
-function EatCarrying:_get_eat_data()
-   local posture = radiant.entities.get_posture(entity)
-   local food_data = radiant.entities.get_entity_data(food, 'stonehearth:food')
-   if food_data then
-      self._eat_data = food_data[posture]
-      if not eat_data then
-         self._eat_data = food_data.default
+function EatCarrying:stop(ai, entity, args)
+   if self._food then
+      radiant.entities.remove_carrying(entity)
+      radiant.entities.destroy_entity(self._food)
+      self._food = nil
+   end
+end
+
+function EatCarrying:_get_food_data(entity, food)
+   local food_data
+   local food_entity_data = radiant.entities.get_entity_data(food, 'stonehearth:food')
+   if food_entity_data then
+      local posture = radiant.entities.get_posture(entity)
+      food_data = food_entity_data[posture]
+      if not food_data then
+         food_data = food_entity_data.default
       end
    end
-   if not self._eat_data then
+   if not food_data then
       ai:abort('no eat data for posture "%s" and no default!', tostring(posture))
    end
+   return food_data
 end
 
 return EatCarrying

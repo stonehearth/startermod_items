@@ -1,6 +1,5 @@
 local AiService = class()
 local AiInjector = require 'services.ai.ai_injector'
-local ExecutionUnitV1 = require 'components.ai.execution_unit_v1'
 local ExecutionUnitV2 = require 'components.ai.execution_unit_v2'
 local CompoundActionFactory = require 'services.ai.compound_action_factory'
 local placeholders = require 'services.ai.placeholders'
@@ -224,12 +223,8 @@ end
 
 function AiService:create_execution_unit(ai_component, debug_route, action_ctor, entity, injecting_entity)
    local execution_unit_ctor
-   if not action_ctor.version or action_ctor.version == 1 then
-      execution_unit_ctor = ExecutionUnitV1
-   else
-      execution_unit_ctor = ExecutionUnitV2
-   end
-   local unit = execution_unit_ctor(ai_component, entity, injecting_entity)
+   assert (action_ctor.version == 2)
+   local unit = ExecutionUnitV2(ai_component, entity, injecting_entity)
    local ai_interface = unit:get_action_interface()
 
    local action

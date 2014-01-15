@@ -69,10 +69,10 @@ end
 function AIComponent:remove_action(key)
    local does = action_key_to_activity[key]
    if does then
+      local entry = self._action_index[does][key]
       self._action_index[does][key] = nil
-      assert(false) -- need to find the lowest execution_frame that contains this action and restart it
+      radiant.events.trigger(self, 'action_removed', key, entry, does)
    end
-   assert(false, 'gotta walk up the stack and remove it from all the running frames')
 end
 
 function AIComponent:add_observer(key, observer)

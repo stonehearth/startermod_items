@@ -39,7 +39,8 @@ function ExecutionFrame:__init(ai_component, actions, activity, debug_route)
    for _, unit in pairs(self._execution_units) do
       self:_prime_execution_unit(unit)
    end
-   radiant.events.listen(self._ai_component, 'action_added', self, self._on_action_added)
+   radiant.events.listen(self._ai_component, 'action_added',   self, self._on_action_added)
+   radiant.events.listen(self._ai_component, 'action_removed', self, self._on_action_removed)
 end
 
 function ExecutionFrame:_on_action_added(key, entry, does)
@@ -49,6 +50,22 @@ function ExecutionFrame:_on_action_added(key, entry, does)
       if self:_is_thinking() then
          if self:_is_better_execution_unit(unit) then
             unit:start_thinking(self:_clone_entity_state())
+         end
+      end
+   end
+end
+
+function ExecutionFrame:_on_action_removed(removed_key, entry, does)
+   if self._activity.name == does then
+      for key, unit in pairs(self._execution_units) do
+         if key == removed_key then
+            if unit == self._active_unit then
+               self:stop()
+            end
+            unit:stop()
+            unit:destroy()
+            self._execution_units[key] = nil
+            break
          end
       end
    end
@@ -115,6 +132,7 @@ function ExecutionFrame:destroy()
       self:_set_state(DEAD)
       radiant.events.unpublish(self)
       radiant.events.unlisten(self._ai_component, 'action_added', self, self._on_action_added)
+      radiant.events.unlisten(self._ai_component, 'action_removed', self, self._on_action_removed)
    else
       self._log:spam('ignoring redundant destroy call (this is not an error, just letting you know)')
    end
@@ -403,7 +421,7 @@ function ExecutionFrame:_set_active_unit(unit)
       -- don't kill the table.  it's a shared reference
       local new_entity_state
       if u then
-         new_entity_state = unit:get_current_entity_state()
+         new_entity_state = u:get_current_entity_state()
       else
          new_entity_state = self._saved_entity_state
       end

@@ -23,11 +23,8 @@
          "icon" : "file(arch_backed_chair.png)"
       },
       "stonehearth:material" : {
-         "tags" : "wood furniture crafted"
+         "tags" : "wood furniture chair crafted"
       },
       "stonehearth:lease_component" : {}
-   },
-    "entity_data" : {
-      "stonehearth:chair" : {}
    }
 }

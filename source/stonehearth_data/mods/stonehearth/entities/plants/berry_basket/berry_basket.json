@@ -3,7 +3,7 @@
    "type": "entity",
    "components": {
       "item": {
-         "stacks" : 3,
+         "stacks" : 1,
          "maxStacks" : 3
       },
       "model_variants": [
@@ -19,10 +19,14 @@
          "icon" : "file(berry_basket.png)"
       },
       "stonehearth:material" : {
-         "tags" :  "resource fruit food"
+         "tags" :  "resource fruit food_container"
       }
    },
    "entity_data" : {
-      "stonehearth:serving_item" : "stonehearth:berry_plate"
+      "stonehearth:food_container" : {
+         "effect": "fiddle",
+         "food": "stonehearth:berry_plate",
+         "consume_stacks": true
+      }
    }
 }

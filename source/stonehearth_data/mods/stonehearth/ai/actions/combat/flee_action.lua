@@ -38,6 +38,10 @@ function Flee:start_thinking(ai, entity)
                                  ) 
 end
 
+function Flee:stop_thinking(ai, entity)
+   self._sensor = nil
+end
+
 function Flee:on_added_to_sensor(ai, entity, foe_id, foe)
    if radiant.entities.is_hostile(entity, foe) then
       table.insert(self._enemies, foe_id)
@@ -77,10 +81,13 @@ function Flee:get_closest_enemy()
    return closest_enemy
 end
 
+function Flee:start(ai, entity)
+   radiant.entities.set_posture(entity, 'panic')
+end
+
 function Flee:run(ai, entity)
    assert(#self._enemies > 0)
    radiant.entities.drop_carrying_on_ground(entity)
-   radiant.entities.set_posture(entity, 'panic')
 
    local entity_name = radiant.entities.get_display_name(entity)
    event_service:add_entry(entity_name .. ' is in trouble!')
@@ -91,4 +98,5 @@ end
 function Flee:stop(ai, entity)
    radiant.entities.unset_posture(self._entity, 'panic')
 end
+
 return Flee

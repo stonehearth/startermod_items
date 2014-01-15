@@ -5,9 +5,6 @@
          "name": "Plate of berries",
          "description": "TODO: invent whipped cream."
       },
-      "stonehearth:attributes" : {
-         "sates_hunger" : 100
-      },
       "model_variants": [
          {
             "models": [
@@ -21,7 +18,7 @@
       "stonehearth:food" : {
          "sitting_on_chair" : {
             "satisfaction" : 100,
-            "journal_message" : "Mmmm! Berries are delicious!",
+            "journal_message" : "Mmmm! Berries are delicious!"
          },
          "default" : {
             "satisfaction" : 50,

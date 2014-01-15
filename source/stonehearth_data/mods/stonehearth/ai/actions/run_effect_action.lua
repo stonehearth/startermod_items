@@ -12,8 +12,10 @@ function RunEffectAction:run(ai, entity, args)
    local effect_name = args.effect
    -- create the effect and register a callback to resume the ai thread
    -- when it finishes.
+
    self._effect = radiant.effects.run_effect(entity, effect_name)
    self._effect:on_finished(function()
+         self._effect:stop()
          self._effect = nil
          ai:resume('effect %s finished', effect_name)
       end)

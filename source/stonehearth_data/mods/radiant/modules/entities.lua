@@ -352,7 +352,7 @@ function entities.drop_carrying_on_ground(entity, location)
    end
    radiant.check.is_a(location, Point3)
 
-   local item = entities._remove_carrying(entity)
+   local item = entities.remove_carrying(entity)
    if item then
       radiant.terrain.place_entity(item, location)
    end
@@ -361,7 +361,7 @@ end
 function entities.put_carrying_into_entity(entity, target)
    radiant.check.is_entity(entity)
 
-   local item = entities._remove_carrying(entity)
+   local item = entities.remove_carrying(entity)
    if item then
       entities.add_child(target, item)
    end
@@ -377,18 +377,28 @@ function entities.consume_carrying(entity)
    local item = entities.get_carrying(entity)
    if item then
       local item_component = item:get_component('item')
-      if item_component and item_component:get_stacks() > 0 then
+      if item_component and item_component:get_stacks() > 1 then
          local stacks = item_component:get_stacks() - 1
          item_component:set_stacks(stacks)
          return item
       end
    end
 
-   local item = entities._remove_carrying(entity)
+   local item = entities.remove_carrying(entity)
    if item then
       entities.destroy_entity(item)
    end
    return nil
+end
+
+function entities.consume_stack(item)
+   local item_component = item:get_component('item')
+   if item_component and item_component:get_stacks() > 1 then
+      local stacks = item_component:get_stacks() - 1
+      item_component:set_stacks(stacks)
+      return item
+   end
+   entities.destroy_entity(item)
 end
 
 function entities.increment_carrying(entity)
@@ -417,7 +427,7 @@ function entities.put_carrying_in_entity(entity, target, location)
    if not target_loc then
       target_loc = Point3(0,0,0)
    end
-   local item = entities._remove_carrying(entity)
+   local item = entities.remove_carrying(entity)
    if item then
       entities.add_child(target, item, target_loc)
    end
@@ -426,7 +436,7 @@ end
 --- Helper for the drop functions.
 -- Determines the carried item from the entity
 -- @param entity The entity that is carrying the droppable item
-function entities._remove_carrying(entity)
+function entities.remove_carrying(entity)
    local carry_block = entity:get_component('stonehearth:carry_block')
    if carry_block then
       local item = carry_block:get_carrying()

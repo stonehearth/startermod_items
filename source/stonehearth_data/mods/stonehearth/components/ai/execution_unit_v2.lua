@@ -306,7 +306,7 @@ function ExecutionUnitV2:stop_thinking()
       self._thinking = false
       self._think_output = nil
       if self._action.stop_thinking then
-         self._action:stop_thinking(self._ai_interface, self._entity)
+         self._action:stop_thinking(self._ai_interface, self._entity, self._args)
       else
          self._log:spam('action does not implement stop_thinking')      
       end

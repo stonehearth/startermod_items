@@ -18,21 +18,11 @@ function ResourceCallHandler:harvest_tree(session, response, tree)
 
    local id = tree:get_id()
    if not all_harvest_tasks[id] then
-      --[[
-      all_harvest_tasks[id] = worker_scheduler:add_worker_task('chop_tree')
-                                                 :set_worker_filter_fn(not_carrying_fn)
-                                                 :add_work_object(tree)
-                                                 :set_action('stonehearth:chop_tree')
-                                                 :set_max_workers(1)
-                                                 :set_priority(priorities.CHOP_TREE)
-                                                 :start()
-      ]]
       all_harvest_tasks[id] = stonehearth.tasks:get_scheduler('stonehearth:workers')
                                 :create_task('stonehearth:chop_tree', { tree = tree })
                                 :set_name('chop tree task')
                                 :once()
                                 :start()
-
       radiant.effects.run_effect(tree, '/stonehearth/data/effects/chop_overlay_effect')
    end
    
@@ -47,19 +37,11 @@ function ResourceCallHandler:harvest_plant(session, response, plant)
       return radiant.entities.get_carrying(worker) == nil
    end
 
-   local harvest_task = worker_scheduler:add_worker_task('harvest_berries')
-                   :set_worker_filter_fn(not_carrying_fn)
-                   :add_work_object(plant)
-                   :set_priority(priorities.GATHER_FOOD)
-
-   harvest_task:set_action_fn(
-      function (path)
-         return 'stonehearth:harvest_plant', path, harvest_task
-      end
-   )
-
-   harvest_task:start()
-
+   stonehearth.tasks:get_scheduler('stonehearth:workers')
+                              :create_task('stonehearth:harvest_plant', { plant = plant })
+                              :set_name('harvest plant task')
+                              :once()
+                              :start()
    return true
 end
 
