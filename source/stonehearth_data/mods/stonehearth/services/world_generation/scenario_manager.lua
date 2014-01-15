@@ -2,7 +2,6 @@ local MathFns = require 'services.world_generation.math.math_fns'
 local ScenarioCategory = require 'services.world_generation.scenario_category'
 local ScenarioServices = require 'services.world_generation.scenario_services'
 local HabitatType = require 'services.world_generation.habitat_type'
-local StringFns = require 'services.world_generation.string_fns'
 local Point2 = _radiant.csg.Point2
 local Point3 = _radiant.csg.Point3
 local log = radiant.log.create_logger('world_generation')

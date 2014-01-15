@@ -1,5 +1,3 @@
-local StringFns = require 'services.world_generation.string_fns'
-
 local HabitatType = {}
 
 -- initial enumerations
