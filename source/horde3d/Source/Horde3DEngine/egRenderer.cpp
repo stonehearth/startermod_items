@@ -2977,9 +2977,9 @@ void Renderer::finalizeFrame()
 	Timer *timer = Modules::stats().getTimer( EngineStats::FrameTime );
 	ASSERT( timer != 0x0 );
 
-   logPerformanceData();
    Modules::stats().getStat( EngineStats::FrameTime, true );  // Reset
 	Modules::stats().incStat( EngineStats::FrameTime, timer->getElapsedTimeMS() );
+   logPerformanceData();
 	timer->reset();
    Modules::sceneMan().clearQueryCache();
    gRDI->_frameDebugInfo.endFrame();
