@@ -11,14 +11,14 @@
          "text" : "On Arriving:",
          "type" : "random",
          "logs_by_personality" : {
-            "belaguered_leader" : {
+            "beleaguered_leader" : {
                "logs" : [
                "Everyone seems to have gotten here OK! Well... almost everyone..."
                ]
             },
             "hopeless_optimist" : {
                "logs" : [
-               "Wooo! Fresh air and new land! And lots and lots of trees! I'm going to love it here!" 
+               "I'm so psyched to be here, I could __action_verb__ with joy!!!" 
                ]
             },
             "lovable_rogue" : {
@@ -45,6 +45,22 @@
             }
          }
       }
-   ]
+   ], 
+   "dictionaries" : {
+      "action_verb" : {
+         "type" : "random_array", 
+         "entries" : [
+            "polka", 
+            "yowl",
+            "cartwheel"
+         ]
+      },
+      "deity" : {
+         "type" : "subst_table",
+         "entries" : {
+            "ascendency" : "Cid"
+         }
+      }
+   }
 }
             

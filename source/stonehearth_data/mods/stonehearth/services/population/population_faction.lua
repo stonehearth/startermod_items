@@ -8,6 +8,7 @@ function PopulationFaction:__init(faction, kingdom)
    self._faction = faction
    self._data = radiant.resources.load_json(kingdom)
    self._faction_name = faction --TODO: differentiate b/w user id and name?
+   self._kingdom = self._data.kingdom_id
 end
 
 function PopulationFaction:create_new_citizen()   
@@ -30,6 +31,7 @@ function PopulationFaction:create_new_citizen()
    local citizen = radiant.entities.create_entity(kind)
 
    citizen:add_component('unit_info'):set_faction(self._faction_name) -- xxx: for now...
+   --citizen:add_component('unit_info'):set_kingdom(self.kingdom)
 
    self:_set_citizen_initial_state(citizen, gender)
    return citizen
@@ -42,7 +44,10 @@ function PopulationFaction:_set_citizen_initial_state(citizen, gender)
 
    -- pesonality
    local personality = personality_service:get_new_personality()
-   citizen:add_component('stonehearth:personality'):set_personality(personality)
+   local personality_component = citizen:add_component('stonehearth:personality')
+   personality_component:set_personality(personality)
+   --For the deity field, assign the one appropriate for this kingdom
+   personality_component:add_substitution_by_parameter('deity', self._kingdom)
 
    local mind = rng:get_int(1, 6)
    local body = rng:get_int(1, 6)
