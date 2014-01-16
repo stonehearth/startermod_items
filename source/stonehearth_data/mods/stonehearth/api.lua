@@ -18,6 +18,7 @@ if radiant.is_server then
       population = get_service('population'),
       object_tracker = get_service('object_tracker'),
       worker_scheduler = get_service('worker_scheduler'),
+      scenario = get_service('scenario'),
       world_generation = get_service('world_generation'),
       build = get_service('build'),   
       game_master = get_service('game_master'),

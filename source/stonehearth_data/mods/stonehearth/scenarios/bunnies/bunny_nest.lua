@@ -10,6 +10,7 @@ function BunnyNest:initialize(properties, services)
    local length = properties.size.length
    local offset = width/4
    local increment = offset*2
+   local margin = 2
    local dx, dy
 
    -- place_entity is valid from (1, 1) to (width, length) inclusive
@@ -17,8 +18,8 @@ function BunnyNest:initialize(properties, services)
 
    for j=offset, length, increment do
       for i=offset, length, increment do
-         dx = rng:get_int(0, offset-1)
-         dy = rng:get_int(0, offset-1)
+         dx = rng:get_int(0, offset-margin)
+         dy = rng:get_int(0, offset-margin)
          services:place_entity(rabbit_name, i+dx, j+dy)
       end
    end

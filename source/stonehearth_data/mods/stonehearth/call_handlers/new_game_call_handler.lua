@@ -2,11 +2,15 @@ local NewGameCallHandler = class()
 local game_master = require 'services.game_master.game_master_service'
 local personality_service = require 'services.personality.personality_service'
 
+local Point2 = _radiant.csg.Point2
 local Point3 = _radiant.csg.Point3
+local Rect2 = _radiant.csg.Rect2
+local Region2 = _radiant.csg.Region2
 
 function NewGameCallHandler:new_game(session, response, seed)
    local wgs = radiant.mods.load('stonehearth').world_generation
-   local wg = wgs:create_world(true, seed)
+   wgs:initialize(true, seed)
+   wgs:create_world()
    return {}
 end
 
@@ -141,6 +145,15 @@ function NewGameCallHandler:create_camp(session, response, pt)
 
    -- start the game master service
    --game_master.start()
+
+   -- reveal the area around the banner
+   local reveal_distance = 128
+   local scenario_service = radiant.mods.load('stonehearth').scenario
+   local rect = Rect2(Point2(pt.x-reveal_distance, pt.z-reveal_distance),
+                      Point2(pt.x+reveal_distance, pt.z+reveal_distance))
+   local region = Region2()
+   region:add_cube(rect)
+   scenario_service:reveal_region(region)
 
    return {}
 end
