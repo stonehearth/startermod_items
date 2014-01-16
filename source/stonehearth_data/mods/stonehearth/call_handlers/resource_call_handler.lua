@@ -18,7 +18,7 @@ function ResourceCallHandler:harvest_tree(session, response, tree)
 
    local id = tree:get_id()
    if not all_harvest_tasks[id] then
-      all_harvest_tasks[id] = stonehearth.tasks:get_scheduler('stonehearth:workers')
+      all_harvest_tasks[id] = stonehearth.tasks:get_scheduler('stonehearth:workers', session.faction)
                                 :create_task('stonehearth:chop_tree', { tree = tree })
                                 :set_name('chop tree task')
                                 :once()
@@ -37,7 +37,7 @@ function ResourceCallHandler:harvest_plant(session, response, plant)
       return radiant.entities.get_carrying(worker) == nil
    end
 
-   stonehearth.tasks:get_scheduler('stonehearth:workers')
+   stonehearth.tasks:get_scheduler('stonehearth:workers', session.faction)
                               :create_task('stonehearth:harvest_plant', { plant = plant })
                               :set_name('harvest plant task')
                               :once()

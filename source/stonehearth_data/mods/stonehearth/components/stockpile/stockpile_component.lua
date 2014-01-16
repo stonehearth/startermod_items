@@ -451,7 +451,7 @@ function StockpileComponent:_create_worker_tasks()
       self._task = nil
    end
 
-   self._task = stonehearth.tasks:get_scheduler('stonehearth:workers')
+   self._task = stonehearth.tasks:get_scheduler('stonehearth:workers', self._faction)
                                    :create_task('stonehearth:restock_stockpile', { stockpile = self })
                                    :set_name('restock task')
                                    :start()

@@ -8,6 +8,11 @@ function PopulationFaction:__init(faction, kingdom)
    self._faction = faction
    self._data = radiant.resources.load_json(kingdom)
    self._faction_name = faction --TODO: differentiate b/w user id and name?
+
+   -- xxx: move this somewhere else, probably...
+   stonehearth.tasks:get_scheduler('stonehearth:workers', faction)
+                     :set_activity('stonehearth:work')
+
 end
 
 function PopulationFaction:create_new_citizen()   

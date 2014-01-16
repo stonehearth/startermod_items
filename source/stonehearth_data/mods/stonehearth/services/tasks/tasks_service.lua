@@ -5,7 +5,7 @@ function TasksService:__init()
    self._schedulers = {}
 end
 
-function TasksService:get_scheduler(name)
+function TasksService:get_scheduler(name, faction)
    -- todo: break out by faction, too!
    local scheduler = self._schedulers[name]
    if not scheduler then
