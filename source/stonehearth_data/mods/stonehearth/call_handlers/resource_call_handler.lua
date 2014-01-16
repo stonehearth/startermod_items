@@ -9,13 +9,6 @@ local ResourceCallHandler = class()
 local all_harvest_tasks = {}
 
 function ResourceCallHandler:harvest_tree(session, response, tree)
-   local worker_scheduler = stonehearth.worker_scheduler:get_worker_scheduler(session.faction)
-
-   -- Any worker that's not carrying anything will do...
-   local not_carrying_fn = function (worker)
-      return radiant.entities.get_carrying(worker) == nil
-   end
-
    local id = tree:get_id()
    if not all_harvest_tasks[id] then
       all_harvest_tasks[id] = stonehearth.tasks:get_scheduler('stonehearth:workers', session.faction)
@@ -30,13 +23,6 @@ function ResourceCallHandler:harvest_tree(session, response, tree)
 end
 
 function ResourceCallHandler:harvest_plant(session, response, plant)
-   local worker_scheduler = stonehearth.worker_scheduler:get_worker_scheduler(session.faction)
-
-   -- Any worker that's not carrying anything will do...
-   local not_carrying_fn = function (worker)
-      return radiant.entities.get_carrying(worker) == nil
-   end
-
    stonehearth.tasks:get_scheduler('stonehearth:workers', session.faction)
                               :create_task('stonehearth:harvest_plant', { plant = plant })
                               :set_name('harvest plant task')
@@ -46,13 +32,6 @@ function ResourceCallHandler:harvest_plant(session, response, plant)
 end
 
 function ResourceCallHandler:shear_sheep(session, response, sheep)
-   local worker_scheduler = stonehearth.worker_scheduler:get_worker_scheduler(session.faction)
-
-   -- Any worker that's not carrying anything will do...
-   local not_carrying_fn = function (worker)
-      return radiant.entities.get_carrying(worker) == nil
-   end
-
    local id = sheep:get_id()
    if not all_harvest_tasks [id] then
       local harvest_task = worker_scheduler:add_worker_task('shear_sheep')
