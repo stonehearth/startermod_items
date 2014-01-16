@@ -12,5 +12,6 @@ ChopTreeAction.priority = 1
 
 local ai = stonehearth.ai
 return ai:create_compound_action(ChopTreeAction)
+         :when( function (ai) return ai.CURRENT.carrying == nil end )
          :execute('stonehearth:goto_entity', { entity = ai.ARGS.tree })
          :execute('stonehearth:chop_tree_adjacent', { tree = ai.ARGS.tree })
