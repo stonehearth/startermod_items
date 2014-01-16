@@ -9,8 +9,11 @@ function ClientPerfTest:__init()
   self._frame_trace = nil
   self._running_time = 0
   self._last_now = 0
-    -- Make sure we draw the world.
+  -- Make sure we draw the world.
   _radiant.call('perf_test:get_world_generation_done'):done(function(response)
+      if not response.result then
+        return
+      end
       _radiant.call('radiant:set_draw_world', {["draw_world"] = true})
       _radiant.renderer.enable_perf_logging(true)
 

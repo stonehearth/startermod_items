@@ -240,12 +240,13 @@ bool Renderer::init(int glMajor, int glMinor, bool msaaWindowSupported, bool ena
 	_defColShader_color = gRDI->getShaderConstLoc( _defColorShader.shaderObj, "color" );
 	
 	// Create shadow map render target
-	if( !createShadowRB( Modules::config().shadowMapSize, Modules::config().shadowMapSize ) )
-	{
-		Modules::log().writeError( "Failed to create shadow map" );
-		return false;
-	}
-
+   if (Modules::config().getOption(EngineOptions::EnableShadows)) {
+      if(!createShadowRB( Modules::config().shadowMapSize, Modules::config().shadowMapSize ) )
+	   {
+		   Modules::log().writeError( "Failed to create shadow map" );
+		   return false;
+	   }
+   }
 	// Create default shadow map
 	float shadowTex[16] = { 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 };
 	_defShadowMap = gRDI->createTexture( TextureTypes::Tex2D, 4, 4, 1, TextureFormats::DEPTH, false, false, false, false );

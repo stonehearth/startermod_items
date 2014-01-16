@@ -39,7 +39,7 @@ EngineConfig::EngineConfig()
 	sRGBLinearization = false;
 	loadTextures = true;
 	fastAnimation = true;
-	shadowMapSize = 1024;
+	shadowMapSize = 256;
 	sampleCount = 0;
 	wireframeMode = false;
 	debugViewMode = false;
@@ -53,6 +53,9 @@ EngineConfig::EngineConfig()
 
 float EngineConfig::getOption( EngineOptions::List param )
 {
+   EngineRendererCaps rendererCaps;
+   EngineGpuCaps gpuCaps;
+   Modules::renderer().getEngineCapabilities(&rendererCaps, &gpuCaps);
 	switch( param )
 	{
 	case EngineOptions::MaxLogLevel:
@@ -84,7 +87,7 @@ float EngineConfig::getOption( EngineOptions::List param )
 	case EngineOptions::GatherTimeStats:
 		return gatherTimeStats ? 1.0f : 0.0f;
    case EngineOptions::EnableShadows:
-      return enableShadows ? 1.0f : 0.0f;
+      return rendererCaps.ShadowsSupported && enableShadows ? 1.0f : 0.0f;
    case EngineOptions::EnableStatsLogging:
       return enableStatsLogging ? 1.0f : 0.0f;
 	default:
@@ -97,6 +100,9 @@ float EngineConfig::getOption( EngineOptions::List param )
 bool EngineConfig::setOption( EngineOptions::List param, float value )
 {
 	int size;
+   EngineRendererCaps rendererCaps;
+   EngineGpuCaps gpuCaps;
+   Modules::renderer().getEngineCapabilities(&rendererCaps, &gpuCaps);
 	
 	switch( param )
 	{
@@ -125,6 +131,9 @@ bool EngineConfig::setOption( EngineOptions::List param, float value )
 		fastAnimation = (value != 0);
 		return true;
 	case EngineOptions::ShadowMapSize:
+      if (!enableShadows || !rendererCaps.ShadowsSupported) {
+         return true;
+      }
 		size = ftoi_r( value );
 
 		if( size == shadowMapSize ) return true;

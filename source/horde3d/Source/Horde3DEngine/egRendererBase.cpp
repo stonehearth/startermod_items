@@ -336,13 +336,16 @@ void RenderDevice::updateBufferData( uint32 bufObj, uint32 offset, uint32 size, 
 		// Replacing the whole buffer can help the driver to avoid pipeline stalls
 		glBufferData( buf.type, size, NULL, buf.usage );
 		glBufferData( buf.type, size, data, buf.usage );
-   	glBindBuffer( buf.type, 0 );
-		return;
-	}
-
-	glBufferData( buf.type, buf.size, NULL, buf.usage );
-	glBufferSubData( buf.type, offset, size, data );
-
+	} else {
+      if (getCaps().cardType == NVIDIA) {
+         // nVidia cards are a touch faster using an explicit orphan.
+         glBufferData( buf.type, buf.size, NULL, buf.usage );
+         glBufferSubData( buf.type, offset, size, data );
+      } else {
+         // AMD and Intel cards are happier with just the buffer call.
+         glBufferData( buf.type, size, data, buf.usage );
+      }
+   }
 	glBindBuffer( buf.type, 0 );
 }
 
