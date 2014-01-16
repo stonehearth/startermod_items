@@ -54,12 +54,6 @@
             "yowl",
             "cartwheel"
          ]
-      },
-      "deity" : {
-         "type" : "subst_table",
-         "entries" : {
-            "ascendency" : "Cid"
-         }
       }
    }
 }

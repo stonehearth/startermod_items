@@ -5,7 +5,7 @@
          "trigger_policy" : [
             {
                "trigger_id" : "dreams",
-               "probability" : 100
+               "probability" : 10
             }
          ],
          "text" : "On Dreaming:",
@@ -36,7 +36,7 @@
             },
             "psychopathic_misanthrope" : {
                "logs" : [
-               "Went to sleep hungry again last night and dreamed for ten consecutivie hours about __awesome_food__!!! Raaargh!!! All the __animals__ will come to fear my devouring mouth!!!!",
+               "Went to sleep hungry again last night and dreamed for ten consecutivie hours about __awesome_food__!!! Raaargh!!! Fear my devouring mouth!!!!",
                "In heaven, I hope I get a lake of __awesome_food__ to swim in. Swim forever!!!!"
                ]
             },
@@ -124,7 +124,7 @@
       "awesome_food" : {
          "type" : "random_array",
          "entries" : [
-            "apple_pie",
+            "apple pie",
             "steak",
             "turkey drumsticks",
             "beef ribs",
@@ -136,6 +136,7 @@
       "deity" : {
          "type" : "subst_table",
          "entries" : {
+            "ascendency" : "Cid",
             "rayyas_children" : "Rayya",
             "northern_alliance" : "Valin"
          }
