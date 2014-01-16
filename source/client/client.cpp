@@ -479,12 +479,15 @@ void Client::run(int server_port)
 
    res::ResourceManager2 &resource_manager = res::ResourceManager2::GetInstance();
    scriptHost_->Require("radiant.client");
-   for (std::string const& name : resource_manager.GetModuleNames()) {
-      std::string script_name = BUILD_STRING(name << "." << name << "_client");
-      try {
-         luabind::globals(L)[name] = scriptHost_->Require(script_name);
-      } catch (std::exception const& e) {
-         CLIENT_LOG(1) << "module " << name << " failed to load " << script_name << ": " << e.what();
+   for (std::string const& mod_name : resource_manager.GetModuleNames()) {
+      json::Node manifest = resource_manager.LookupManifest(mod_name);
+      std::string script_name = manifest.get<std::string>("client_init_script", "");
+      if (!script_name.empty()) {
+         try {
+            luabind::globals(L)[mod_name] = scriptHost_->Require(script_name);
+         } catch (std::exception const& e) {
+            CLIENT_LOG(1) << "module " << mod_name << " failed to load " << script_name << ": " << e.what();
+         }
       }
    }
    // this locks down the environment!  all types must be registered by now!!

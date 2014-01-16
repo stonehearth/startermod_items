@@ -1,10 +1,7 @@
 local calendar = stonehearth.calendar
 
 local SleepObserver = class()
-
-SleepObserver.does = 'stonehearth:top'
-SleepObserver.version = 1
-SleepObserver.priority = 0
+SleepObserver.version = 2
 
 function SleepObserver:__init(entity)
    self._entity = entity

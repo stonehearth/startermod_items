@@ -7,7 +7,7 @@ local personality_service = require 'services.personality.personality_service'
 local GrabTalismanAction = class()
 
 GrabTalismanAction.name = 'grab talisman'
-GrabTalismanAction.does = 'stonehearth:top'
+GrabTalismanAction.does = 'stonehearth:grab_talisman'
 GrabTalismanAction.args = { }
 GrabTalismanAction.version = 1
 GrabTalismanAction.priority = 0

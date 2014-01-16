@@ -622,7 +622,6 @@ function ExecutionFrame:_push_modified_state()
 end
 
 function ExecutionFrame:_buffer_state_changes(fn)
-   assert(self._buffer_changes_depth == 0)
    self._buffer_changes_depth = self._buffer_changes_depth + 1
    self._log:spam('throttling all state changes (depth is now %d)', self._buffer_changes_depth)
    fn()

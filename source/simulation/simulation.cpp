@@ -170,12 +170,15 @@ void Simulation::CreateNew()
    base_walk_speed_ = base_walk_speed_ * game_tick_interval_ / 1000.0f;
 
    game_api_ = scriptHost_->Require("radiant.server");
-   for (std::string const& name : resource_manager.GetModuleNames()) {
-      std::string script_name = BUILD_STRING(name << "." << name << "_server");
-      try {
-         luabind::globals(L)[name] = scriptHost_->Require(script_name);
-      } catch (std::exception const& e) {
-         SIM_LOG(1) << "module " << name << " failed to load " << script_name << ": " << e.what();
+   for (std::string const& mod_name : resource_manager.GetModuleNames()) {
+      json::Node manifest = resource_manager.LookupManifest(mod_name);
+      std::string script_name = manifest.get<std::string>("server_init_script", "");
+      if (!script_name.empty()) {
+         try {
+            luabind::globals(L)[mod_name] = scriptHost_->Require(script_name);
+         } catch (std::exception const& e) {
+            SIM_LOG(1) << "module " << mod_name << " failed to load " << script_name << ": " << e.what();
+         }
       }
    }
    scriptHost_->Require("radiant.lualibs.strict");

@@ -12,10 +12,7 @@ local time_constants = radiant.resources.load_json('/stonehearth/services/calend
    Note: When an attribute is first created, its value is 0
 ]]
 local HungerObserver = class()
-
-HungerObserver.does = 'stonehearth:top'
-HungerObserver.version = 1
-HungerObserver.priority = 0
+HungerObserver.version = 2
 
 function HungerObserver:__init(entity)
    self._entity = entity
