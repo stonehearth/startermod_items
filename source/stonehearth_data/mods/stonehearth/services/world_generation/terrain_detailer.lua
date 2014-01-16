@@ -3,8 +3,6 @@ local TerrainInfo = require 'services.world_generation.terrain_info'
 local Array2D = require 'services.world_generation.array_2D'
 local MathFns = require 'services.world_generation.math.math_fns'
 local InverseGaussianRandom = require 'services.world_generation.math.inverse_gaussian_random'
-local Point2 = _radiant.csg.Point2
-
 local TerrainDetailer = class()
 
 -- note that the tile_width and tile_height passed in are currently the oversize width and height
@@ -37,7 +35,8 @@ function TerrainDetailer:add_detail_blocks(tile_map)
          if edge then
             if rng:get_real(0, 1) < self.detail_seed_probability then
                num_seeds = num_seeds + 1
-               detail_seeds[num_seeds] = Point2(i, j)
+               -- use a lua type instead of a C type so luajit can extremely agressively optimze it.
+               detail_seeds[num_seeds] = { x = i, y = j }
             end
          end
       end
