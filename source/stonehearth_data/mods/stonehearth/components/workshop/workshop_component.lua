@@ -10,7 +10,6 @@
 local Point3 = _radiant.csg.Point3
 local CraftOrder = require 'components.workshop.craft_order'
 local CraftOrderList = require 'components.workshop.craft_order_list'
-local Analytics = stonehearth.analytics
 
 local WorkshopComponent = class()
 
@@ -22,9 +21,8 @@ function WorkshopComponent:__init(entity, data_binding)
                                          -- TODO: revise all three of these to use entity-container
    self._bench_outputs = {}              -- An array of finished products on the bench, to be added to the outbox. Nil if nothing.
    self._outbox_entity = nil
-   self._outbox_component = nil          -- The outbox
    self._promotion_talisman_entity = nil -- The talisman for the bench, available when there is no craftsman
-   self._promotion_talisman_offset = {0, 3, 0}  -- Default offset for the talisman (on the bench)
+   self._promotion_talisman_offset = Point3(0, 3, 0)  -- Default offset for the talisman (on the bench)
 
    self._data = data_binding:get_data()
    self._data.crafter = nil
@@ -36,11 +34,15 @@ end
 
 function WorkshopComponent:extend(json)
    if json then
+      self._construction_ingredients = json.ingredients
+      self._build_sound_effect = json.build_sound_effect
+
       if json.promotion_talisman.entity then
          self._promotion_talisman_entity_uri = json.promotion_talisman.entity
       end
       if json.promotion_talisman.offset then
-         self._promotion_talisman_offset = json.promotion_talisman.offset
+         local o = json.promotion_talisman.offset
+         self._promotion_talisman_offset = Point3(o.x, o.y, o.z)
       end
 
       if json.skin_class then 
@@ -195,27 +197,23 @@ function WorkshopComponent:set_crafter(crafter)
    end
 end
 
-function WorkshopComponent:init_from_scratch()
-   return self:init_promotion_talisman()
-end
-
---[[
-   Associate a promotion talisman with the workbench. A worker will use the talisman
-   to promote himself to a crafter
-   If the talisman is nil, and a talisman currently exists, remove the talisman from the bench
-]]
-function WorkshopComponent:init_promotion_talisman()
+-- Associate a promotion talisman with the workbench. A worker will use the talisman
+-- to promote himself to a crafter
+-- If the talisman is nil, and a talisman currently exists, remove the talisman from the bench
+function WorkshopComponent:_create_promotion_talisman(faction)
    local offset = self._promotion_talisman_offset
 
    self._promotion_talisman_entity = radiant.entities.create_entity(self._promotion_talisman_entity_uri)
    self._entity:add_component('entity_container'):add_child(self._promotion_talisman_entity)
-   self._promotion_talisman_entity:add_component('mob'):set_location_grid_aligned(Point3(offset[1], offset[2], offset[3]))
+   self._promotion_talisman_entity:add_component('mob'):set_location_grid_aligned(offset)
 
    local promotion_talisman_component = self._promotion_talisman_entity:get_component('stonehearth:promotion_talisman')
    if promotion_talisman_component then
       promotion_talisman_component:set_workshop(self)
       promotion_talisman_component:set_profession_name(self._profession_name)
    end
+
+   self._promotion_talisman_entity:get_component('unit_info'):set_faction(faction)
 
    return self._promotion_talisman_entity
 end
@@ -224,13 +222,6 @@ function WorkshopComponent:get_promotion_talisman_entity_uri()
    return self._promotion_talisman_entity_uri
 end
 
---- Add an existing outbox to the workshop
---  Note: outbox should have a faction already
-function WorkshopComponent:associate_outbox(outbox_entity)
-   self._outbox_entity = outbox_entity
-   self._outbox_component = self._outbox_entity:get_component('stonehearth:stockpile')
-   return self._outbox_entity
-end
 
 function WorkshopComponent:get_outbox_entity()
    return self._outbox_entity
@@ -412,5 +403,21 @@ end
 function WorkshopComponent:ui_get_todo_list()
    return self._todo_list
 end
+
+function WorkshopComponent:clear_the_bench()
+   for id, ingredient in self:add_component('entity_container'):each_child() do
+      radiant.entities.destroy_entity(ingredient)
+   end
+end
+
+
+function WorkshopComponent:finish_construction(faction, outbox)
+   self._entity:add_component('unit_info'):set_faction(faction)
+   
+   -- Place the promotion talisman on the workbench, if there is one
+   self:_create_promotion_talisman(faction)
+   self._outbox_entity = outbox
+end
+
 
 return WorkshopComponent

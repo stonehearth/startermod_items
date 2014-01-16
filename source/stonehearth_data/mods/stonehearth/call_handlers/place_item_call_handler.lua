@@ -158,7 +158,7 @@ function PlaceItemCallHandler:_init_pickup_worker_task(session, full_sized_uri, 
    local location = Point3(coor_location.x, coor_location.y, coor_location.z)
    local ghost_entity = radiant.entities.create_entity()
    local ghost_entity_component = ghost_entity:add_component('stonehearth:ghost_item')
-   ghost_entity_component:set_object_data(full_sized_uri, location, rotation)
+   ghost_entity_component:set_object_data(full_sized_uri, rotation)
    radiant.terrain.place_entity(ghost_entity, location)
 
    --Summon the worker scheduler

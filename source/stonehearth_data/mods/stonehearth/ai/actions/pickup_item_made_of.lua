@@ -6,6 +6,9 @@ PickupItemMadeOf.does = 'stonehearth:pickup_item_made_of'
 PickupItemMadeOf.args = {
    material = 'string',      -- the material tags we need
 }
+PickupItemMadeOf.think_output = {
+   item = Entity,            -- what was actually picked up
+}
 PickupItemMadeOf.version = 2
 PickupItemMadeOf.priority = 1
 
@@ -20,3 +23,4 @@ end
 local ai = stonehearth.ai
 return ai:create_compound_action(PickupItemMadeOf)
          :execute('stonehearth:pickup_item_type', { filter_fn = ai.XFORMED_ARG.filter_fn })
+         :set_think_output({ item = ai.PREV.item })

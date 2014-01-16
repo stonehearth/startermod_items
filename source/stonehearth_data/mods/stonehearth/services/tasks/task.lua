@@ -3,6 +3,7 @@ local Task = class()
 local NEXT_TASK_ID = 1
 local STARTED = 'started'
 local STOPPED = 'stopped'
+local COMPLETED = 'completed'
 
 function Task:__init(scheduler, activity)
    self._scheduler = scheduler
@@ -106,8 +107,9 @@ end
 function Task:__action_completed()
    self._complete_count = self._complete_count + 1
    if not self:_is_work_available() then
-      self._log:debug('task reached max number of completions (%d).  stopping', self._times)
+      self._log:debug('task reached max number of completions (%d).  stopping and completing!', self._times)
       self:stop()
+      self:_set_state(COMPLETED)
    end
 end
 

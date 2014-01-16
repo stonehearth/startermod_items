@@ -137,8 +137,10 @@ function WorkshopCallHandler:create_ghost_workbench(session, response, workbench
    local location = Point3(pt.x, pt.y, pt.z)
    local ghost_entity = radiant.entities.create_entity()
    local ghost_entity_component = ghost_entity:add_component('stonehearth:ghost_item')
-   ghost_entity_component:set_object_data(workbench_entity_uri, location, rotation)
+   radiant.entities.set_faction(ghost_entity, session.faction)
+   ghost_entity_component:set_full_sized_mod_uri(workbench_entity_uri)
    radiant.terrain.place_entity(ghost_entity, location)
+   radiant.entities.turn_to(ghost_entity, rotation)
    return {
       workbench_entity = ghost_entity
    }
@@ -222,70 +224,21 @@ function WorkshopCallHandler:choose_outbox_location(session, response, workbench
 end
 
 --- Create the outbox the user specified and tell a worker to build the workbench
-function WorkshopCallHandler:create_outbox(session, response, location, size, workbench_entity_id)
+function WorkshopCallHandler:create_outbox(session, response, location, size, ghost_workshop_entity_id)
    local outbox_entity = radiant.entities.create_entity('stonehearth:workshop_outbox')
    radiant.terrain.place_entity(outbox_entity, location)
    outbox_entity:get_component('unit_info'):set_faction(session.faction)
+
    local outbox_component = outbox_entity:get_component('stonehearth:stockpile')
    outbox_component:set_size(size)
    outbox_component:set_outbox(true)
-   self:_start_worker_create_task(session, outbox_entity, workbench_entity_id)
+
+   local ghost_workshop = radiant.entities.get_entity(ghost_workshop_entity_id)
+
+   -- todo: stick this in a taskmaster manager somewhere so we can show it (and cancel it!)
+   local CreateWorkshopTaskMaster = require 'services.tasks.task_masters.create_workshop'   
+   CreateWorkshopTaskMaster(ghost_workshop, outbox_entity)
    return true
 end
-
---- Create the worker task that will build the outbox. 
-function WorkshopCallHandler:_start_worker_create_task(session, outbox_entity, workbench_entity_id)
-   local ghost_entity = radiant.entities.get_entity(workbench_entity_id)
-
-   --Summon the worker scheduler
-   local ws = stonehearth.worker_scheduler
-   local worker_scheduler = ws:get_worker_scheduler(session.faction)
-
-   -- Who can do this task? Any worker that's not carrying anything will do...
-   local not_carrying_fn = function (worker)
-      return radiant.entities.get_carrying(worker) == nil
-   end
-
-   --What object is suitable to build a workshop? By default, wood. 
-   local ghost_object_data = ghost_entity:get_component('stonehearth:ghost_item'):get_object_data()
-   local real_item_uri = ghost_object_data.full_sized_mod_url
-   local json = radiant.resources.load_json(real_item_uri)
-
-   local ingredient_list_object = nil 
-
-   local workshop_material = 'wood resource'
-   if json and json.components then
-      workshop_material = json.components['stonehearth:workshop'].ingredients[1].material
-      ingredient_list_object = IngredientList(ghost_entity, {}, json.components['stonehearth:workshop'].ingredients)
-      local remaining = ingredient_list_object:remove_item_at(1)
-      if remaining == 0 then
-         ingredient_list_object = nil
-      else 
-         ingredient_list_object:search_for_ingredients()
-      end
-   end
-
-   local object_filter_fn = function(entity)
-      local material = entity:get_component('stonehearth:material')
-      if material and material:is(workshop_material) then
-         return true
-      end
-      return false
-   end
-
-   --Actually create the worker task 
-   local place_workshop_task = worker_scheduler:add_worker_task('placing_workshop_task')
-      :set_worker_filter_fn(not_carrying_fn)
-      :set_priority(priorities.PLACE_WORKSHOP)
-      :set_work_object_filter_fn(object_filter_fn)
-
-   place_workshop_task:set_action_fn(
-      function(path)
-         return 'stonehearth:place_workshop', path, ghost_entity, outbox_entity, ingredient_list_object, place_workshop_task
-      end)
-
-   place_workshop_task:start()
-end
-
 
 return WorkshopCallHandler

@@ -31,7 +31,7 @@
          "skin_class" : "carpenter",
          "promotion_talisman" : {
             "entity" : "stonehearth:carpenter:saw",
-            "offset" : [0, 3, 0]
+            "offset" : { "x" : 0, "y" : 3, "z" : 0 }
          }, 
          "ingredients" : [
             {

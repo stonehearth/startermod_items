@@ -15,14 +15,14 @@ function PLACEHOLDER_mt.__call(t, ...)
          return obj(unpack(args))
       end,
       tostring = function ()
-         local args = ''
+         local msg = ''
          for _, arg in ipairs(call_args) do
             if #msg > 0 then
                msg = msg .. ', '
             end
             msg = msg .. radiant.util.tostring(arg)
          end      
-         return tostring(t) .. '(' .. args .. ')'
+         return tostring(t) .. '(' .. msg .. ')'
       end
    }
    return create_placeholder(ftab)

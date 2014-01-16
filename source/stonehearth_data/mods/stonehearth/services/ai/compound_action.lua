@@ -65,6 +65,8 @@ end
 
 function CompoundAction:_start_processing_next_activity()
    while self._current_activity <= #self._activities do
+      assert(self._current_activity)
+      
       local activity = self._activities[self._current_activity]
       local replaced = self:_replace_placeholders(activity.args)
       

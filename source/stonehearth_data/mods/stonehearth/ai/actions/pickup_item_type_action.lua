@@ -6,6 +6,9 @@ PickupItemType.does = 'stonehearth:pickup_item_type'
 PickupItemType.args = {
    filter_fn = 'function',
 }
+PickupItemType.think_output = {
+   item = Entity,          -- what actually got picked up
+}
 PickupItemType.version = 2
 PickupItemType.priority = 1
 
@@ -17,4 +20,5 @@ return ai:create_compound_action(PickupItemType)
          :execute('stonehearth:goto_entity_type', { filter_fn = ai.ARGS.filter_fn })
          :execute('stonehearth:reserve_entity', { entity = ai.PREV.destination_entity })
          :execute('stonehearth:pickup_item_adjacent', { item = ai.PREV.entity })
+         :set_think_output({ item = ai.PREV.item })
          
