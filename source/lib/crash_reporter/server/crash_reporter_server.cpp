@@ -117,7 +117,6 @@ void CrashReporterServer::SendCrashReport(std::string const& dump_filename)
    std::string path(uri.getPathAndQuery());
    Poco::Net::HTTPClientSession session(uri.getHost(), uri.getPort());
    Poco::Net::HTTPRequest request(Poco::Net::HTTPRequest::HTTP_POST, path, Poco::Net::HTTPMessage::HTTP_1_1);
-   
 
    request.setContentType("application/octet-stream");
    request.setContentLength(zip_file_length);
@@ -126,6 +125,9 @@ void CrashReporterServer::SendCrashReport(std::string const& dump_filename)
    std::ostream& request_stream = session.sendRequest(request);
    Poco::StreamCopier::copyStream(zip_file, request_stream);
    zip_file.close();
+
+   // Delete the zip file
+   boost::filesystem::remove(zip_path);
 
    // Get response
    Poco::Net::HTTPResponse response;
