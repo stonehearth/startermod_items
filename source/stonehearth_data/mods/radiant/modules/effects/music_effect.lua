@@ -1,7 +1,7 @@
 local Effect = require 'modules.effects.effect'
 local MusicEffect = class(Effect)
 
-function MusicEffect:__init(start_time, handler, info, effect)
+function MusicEffect:__init(start_time, info)
    self[Effect]:__init(info)
    self._info = info
    self._loop = false

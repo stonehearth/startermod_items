@@ -14,8 +14,8 @@ function PromoteWithTalisman:__init(person, talisman)
 
    local talisman_component = talisman:get_component('stonehearth:promotion_talisman')
    local workshop = talisman_component:get_workshop():get_entity();
-   local trigger_fn = function(e)
-      if e.info.info.event == "change_outfit" then
+   local trigger_fn = function(info)
+      if info.event == "change_outfit" then
          self:_change_profession(person, talisman)
       end
    end

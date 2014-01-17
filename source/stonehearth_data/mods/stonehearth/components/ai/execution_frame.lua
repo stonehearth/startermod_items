@@ -4,7 +4,6 @@ local ExecutionFrame = class()
 local SET_ACTIVE_UNIT = { __comment = 'change active running unit' }
 
 -- these values are in the interface, since we trigger them as events.  don't change them!
-local CONSTRUCTED = 'constructed'
 local THINKING = 'thinking'
 local READY = 'ready'
 local STARTING = 'starting'
@@ -19,7 +18,7 @@ function ExecutionFrame:__init(ai_component, actions, activity, debug_route)
    self._ai_component = ai_component
    self._entity = self._ai_component:get_entity()
    self._activity = activity
-   self._state = CONSTRUCTED
+   self._state = STOPPED
    self._execution_units = {}
    self._id = stonehearth.ai:get_next_object_id()
    self._buffer_changes_depth = 0
@@ -189,7 +188,7 @@ function ExecutionFrame:start_thinking()
    self._log:spam('start_thinking (current unit:%s)', self:_get_active_unit_name())
    assert(not self._co)
    assert(not self._co_running)
-   assert(self._state == CONSTRUCTED)
+   assert(self._state == STOPPED)
 
    self:_set_state(THINKING)
    self:_buffer_state_changes(function()   
@@ -205,7 +204,7 @@ function ExecutionFrame:stop_thinking()
    self._log:spam('stop_thinking (state:%s)', self._state)
    
    self:_buffer_state_changes(function()   
-         if self._state == CONSTRUCTED  then
+         if self._state == STOPPED  then
             assert(self._active_unit == nil)
          elseif self:_in_state(THINKING, READY, STARTING, RUNNING, FINISHED, STOPPING, STOPPED) then
             for _, unit in pairs(self._execution_units) do
@@ -253,7 +252,7 @@ end
 function ExecutionFrame:set_current_entity_state(state)
    self._log:spam('set_current_entity_state')
    assert(state)
-   assert(self._state == CONSTRUCTED)
+   assert(self._state == STOPPED)
    for key, value in pairs(state) do
       self._log:spam('  CURRENT.%s = %s', key, tostring(value))
    end
@@ -279,7 +278,7 @@ end
 function ExecutionFrame:run()
    self._log:spam('begin run')
    
-   if self._state == CONSTRUCTED then
+   if self._state == STOPPED then
       self:start_thinking()
    end
    repeat
@@ -299,7 +298,7 @@ end
 
 function ExecutionFrame:capture_entity_state()
    self._log:spam('capture_entity_state')
-   assert(self:_in_state(CONSTRUCTED, STOPPED))
+   assert(self:_in_state(STOPPED))
    
    local state = {
       location = radiant.entities.get_world_grid_location(self._entity),
@@ -321,7 +320,7 @@ function ExecutionFrame:loop()
       -- the execution unit is smart enough to stop/start in this case.
       --self._active_unit:start_thinking(self:_clone_entity_state())
       
-      self:_set_state(CONSTRUCTED)
+      self:_set_state(STOPPED)
    end
 end
 
@@ -443,7 +442,7 @@ function ExecutionFrame:_set_active_unit(unit)
       self:_spam_current_state('after switching active units')
    end
    
-   if self._state == CONSTRUCTED then
+   if self._state == STOPPED then
       assert(not unit)
       assert(not self._active_unit)
       assert(not self._co)
@@ -489,10 +488,6 @@ function ExecutionFrame:_set_active_unit(unit)
       assert(not self._co)
       assert(not self._co_running)
       set_active_unit(nil)
-   elseif self._state == STOPPED then
-      assert(not self._co)
-      assert(not self._active_unit)
-      assert(not unit)
    else
       -- not yet implemented or error
       assert(false, string.format('invalid state %s in set_active_unit', self._state))

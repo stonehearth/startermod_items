@@ -196,7 +196,6 @@ function ExecutionUnitV2:destroy()
    else
       self._log:spam('action does not implement destroy')
    end
-   self._action = nil
    self:_set_state(DEAD)
    radiant.events.unpublish(self)   
 end
@@ -408,13 +407,17 @@ function ExecutionUnitV2:_verify_arguments(args, args_prototype)
    end
    for name, expected_type in pairs(args_prototype) do
       if args[name] == nil then
-         if type(expected_type) == 'table' and not radiant.util.is_instance(expected_type) then
-            args[name] = expected_type.default
+         if expected_type.default == stonehearth.ai.NIL then
+            -- this one's ok.  keep going
+         else
+            if type(expected_type) == 'table' and not radiant.util.is_instance(expected_type) then
+               args[name] = expected_type.default
+            end
+            if args[name] == nil then
+               self:__abort('missing argument "%s" in "%s".', name, self:get_name())
+               return false
+            end
          end
-      end
-      if args[name] == nil then
-         self:__abort('missing argument "%s" in "%s".', name, self:get_name())
-         return false
       end
    end
 end

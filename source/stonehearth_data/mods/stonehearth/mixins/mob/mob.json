@@ -7,6 +7,7 @@
          "actions" : [
             "stonehearth:actions:death_action",
             "stonehearth:actions:drop_carrying_action",
+            "stonehearth:actions:drop_carrying_now",
             "stonehearth:actions:drop_carrying_adjacent",
             "stonehearth:actions:drop_carrying_into_entity",
             "stonehearth:actions:drop_carrying_into_entity_adjacent",

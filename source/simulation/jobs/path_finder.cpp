@@ -50,14 +50,16 @@ void PathFinder::SetSource(csg::Point3 const& location)
    RestartSearch("source location changed");
 }
 
-void PathFinder::SetSolvedCb(luabind::object solved_cb)
+void PathFinder::SetSolvedCb(luabind::object unsafe_solved_cb)
 {
-   solved_cb_ = solved_cb;
+   lua_State* cb_thread = lua::ScriptHost::GetCallbackThread(unsafe_solved_cb.interpreter());  
+   solved_cb_ = luabind::object(cb_thread, unsafe_solved_cb);
 }
 
-void PathFinder::SetFilterFn(luabind::object dst_filter)
+void PathFinder::SetFilterFn(luabind::object unsafe_dst_filter)
 {
-   dst_filter_ = dst_filter;
+   lua_State* cb_thread = lua::ScriptHost::GetCallbackThread(unsafe_dst_filter.interpreter());  
+   dst_filter_ = luabind::object(cb_thread, unsafe_dst_filter);
    RestartSearch("filter function changed");
 }
 
@@ -472,9 +474,13 @@ void PathFinder::SolveSearch(const csg::Point3& last, PathFinderDst* dst)
    solution_ = std::make_shared<Path>(points, entity_.lock(), dst->GetEntity(), dst_point_of_interest);
    if (solved_cb_.is_valid()) {
       PF_LOG(5) << "calling lua solved callback";
-      auto L = solved_cb_.interpreter();
-      luabind::object path(L, solution_);
-      luabind::call_function<void>(solved_cb_, path);
+      try {
+         solved_cb_(luabind::object(solved_cb_.interpreter(), solution_));
+      } catch (std::exception const& e) {
+         LUA_LOG(1) << "exception delivering solved cb: " << e.what();
+         lua::ScriptHost::ReportCStackException(solved_cb_.interpreter(), e);
+      }
+
       PF_LOG(5) << "finished calling lua solved callback";
    }
 

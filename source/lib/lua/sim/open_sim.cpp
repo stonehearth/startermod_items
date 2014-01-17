@@ -185,13 +185,13 @@ std::shared_ptr<PathFinder> PathFinder_RemoveDestination(lua_State* L, std::shar
 
 std::shared_ptr<PathFinder> PathFinder_SetSolvedCb(lua_State* L, std::shared_ptr<PathFinder> pf, luabind::object cb)
 {
-   pf->SetSolvedCb(object(lua::ScriptHost::GetCallbackThread(L), cb));
+   pf->SetSolvedCb(cb);
    return pf;
 }
 
 std::shared_ptr<PathFinder> PathFinder_SetFilterFn(lua_State* L, std::shared_ptr<PathFinder> pf, luabind::object cb)
 {
-   pf->SetFilterFn(object(lua::ScriptHost::GetCallbackThread(L), cb));
+   pf->SetFilterFn(cb);
    return pf;
 }
 

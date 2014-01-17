@@ -25,6 +25,8 @@
          "render_type" : "merge_with_model",
          "injected_ai" : {
             "actions" : [
+            ],
+            "actions_old" : [
                "stonehearth:actions:check_craftable_action",
                "stonehearth:actions:craft_action",
                "stonehearth:actions:fill_outbox_action",

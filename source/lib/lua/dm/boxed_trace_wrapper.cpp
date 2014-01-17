@@ -19,37 +19,42 @@ BoxedTraceWrapper<T>::~BoxedTraceWrapper()
 }
 
 template <typename T>
-std::shared_ptr<BoxedTraceWrapper<T>> BoxedTraceWrapper<T>::OnDestroyed(lua_State* L, luabind::object destroyed_cb)
+std::shared_ptr<BoxedTraceWrapper<T>> BoxedTraceWrapper<T>::OnDestroyed(luabind::object unsafe_destroyed_cb)
 {
    if (!trace_) {
       throw std::logic_error("called on_added on invalid trace");
    }
 
-   lua_State* cb_thread = lua::ScriptHost::GetCallbackThread(L);
-   trace_->OnDestroyed([this, L, cb_thread, destroyed_cb]() {
+   lua_State* cb_thread = lua::ScriptHost::GetCallbackThread(unsafe_destroyed_cb.interpreter());
+   luabind::object destroyed_cb(cb_thread, unsafe_destroyed_cb);
+
+   trace_->OnDestroyed([destroyed_cb]() mutable {
       try {
-         luabind::object(cb_thread, destroyed_cb)();
+         destroyed_cb();
       } catch (std::exception const& e) {
          LUA_LOG(1) << "exception delivering lua trace: " << e.what();
-         lua::ScriptHost::ReportCStackException(L, e);
+         lua::ScriptHost::ReportCStackException(destroyed_cb.interpreter(), e);
       }
    });
    return shared_from_this();
 }
 
 template <typename T>
-std::shared_ptr<BoxedTraceWrapper<T>> BoxedTraceWrapper<T>::OnChanged(lua_State* L, luabind::object changed_cb)
+std::shared_ptr<BoxedTraceWrapper<T>> BoxedTraceWrapper<T>::OnChanged(luabind::object unsafe_changed_cb)
 {
    if (!trace_) {
       throw std::logic_error("called on_changed on invalid trace");
    }
-   lua_State* cb_thread = lua::ScriptHost::GetCallbackThread(L);
-   trace_->OnChanged([this, L, cb_thread, changed_cb](typename T::Value const& value) {
+
+   lua_State* cb_thread = lua::ScriptHost::GetCallbackThread(unsafe_changed_cb.interpreter());
+   luabind::object changed_cb(cb_thread, unsafe_changed_cb);
+
+   trace_->OnChanged([changed_cb](typename T::Value const& value) mutable {
       try {
-         luabind::object(cb_thread, changed_cb)(value);
+         changed_cb(value);
       } catch (std::exception const& e) {
          LUA_LOG(1) << "exception delivering lua trace: " << e.what();
-         lua::ScriptHost::ReportCStackException(L, e);
+         lua::ScriptHost::ReportCStackException(changed_cb.interpreter(), e);
       }
    });
    return shared_from_this();
