@@ -134,26 +134,12 @@ function NewGameCallHandler:create_camp(session, response, pt)
 
    self:place_item('stonehearth:firepit', camp_x, camp_z+3, 'civ')
 
-   --self:place_citizen(camp_x+0, camp_z+3)
-   --self:place_citizen(camp_x+3, camp_z+3)
-   --self:place_citizen(camp_x-3, camp_z+0)
-   --self:place_citizen(camp_x+3, camp_z+0)
-
    radiant.entities.pickup_item(worker1, faction:create_entity('stonehearth:oak_log'))
    radiant.entities.pickup_item(worker2, faction:create_entity('stonehearth:oak_log'))
    radiant.entities.pickup_item(worker3, faction:create_entity('stonehearth:oak_log'))
 
    -- start the game master service
    --game_master.start()
-
-   -- reveal the area around the banner
-   local reveal_distance = 128
-   local scenario_service = radiant.mods.load('stonehearth').scenario
-   local rect = Rect2(Point2(pt.x-reveal_distance, pt.z-reveal_distance),
-                      Point2(pt.x+reveal_distance, pt.z+reveal_distance))
-   local region = Region2()
-   region:add_cube(rect)
-   scenario_service:reveal_region(region)
 
    return {}
 end

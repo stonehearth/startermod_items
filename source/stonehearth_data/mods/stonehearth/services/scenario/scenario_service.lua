@@ -3,10 +3,10 @@ local HabitatType = require 'services.world_generation.habitat_type'
 local ActivationType = require 'services.scenario.activation_type'
 local ScenarioSelector = require 'services.scenario.scenario_selector'
 local ScenarioModderServices = require 'services.scenario.scenario_modder_services'
+local Timer = require 'services.world_generation.timer'
 local Point2 = _radiant.csg.Point2
-local Point3 = _radiant.csg.Point3
-local Region2 = _radiant.csg.Region2
 local Rect2 = _radiant.csg.Rect2
+local Region2 = _radiant.csg.Region2
 local log = radiant.log.create_logger('scenario_service')
 
 local ScenarioService = class()
@@ -55,15 +55,44 @@ function ScenarioService:initialize(feature_cell_size, rng)
    end
 
    self._categories = categories
+
+   self:_register_events()
+end
+
+function ScenarioService:_register_events()
+   local population_service = radiant.mods.load('stonehearth').population
+   self._faction = population_service:get_faction('civ', 'stonehearth:factions:ascendancy')
+
+   radiant.events.listen(radiant.events, 'stonehearth:very_slow_poll', self, self._on_poll)
+end
+
+function ScenarioService:_on_poll()
+   local reveal_distance = radiant.util.get_config('game.scenario_reveal_distance', 128)
+   local citizens = self._faction:get_citizens()
+   local region = Region2()
+   local pt, rect
+
+   for _, entity in pairs(citizens) do
+      pt = radiant.entities.get_world_grid_location(entity)
+
+      -- remember +1 on max
+      rect = Rect2(Point2(pt.x-reveal_distance, pt.z-reveal_distance),
+                   Point2(pt.x+reveal_distance+1, pt.z+reveal_distance+1))
+      region:add_cube(rect)
+   end
+
+   self:reveal_region(region)
 end
 
 function ScenarioService:reveal_region(world_space_region)
    local unrevealed_region, new_region, num_rects, rect, key, dormant_scenario, properties
+   local cpu_timer = Timer(Timer.CPU_TIME)
+   cpu_timer:start()
 
    new_region = self:_region_to_habitat_space(world_space_region)
 
    -- this gets expensive as self._revealed_region grows
-   -- we could just forget the subtraction and just iterate over the incoming region instead
+   -- if this takes too much time, we have several other strategies
    unrevealed_region = new_region - self._revealed_region
    num_rects = unrevealed_region:get_num_rects()
 
@@ -91,6 +120,10 @@ function ScenarioService:reveal_region(world_space_region)
    end
 
    self._revealed_region:add_region(unrevealed_region)
+
+   cpu_timer:stop()
+   log:info('%d rects in revealed region', self._revealed_region:get_num_rects())
+   log:info('ScenarioService:reveal_region time: %.3fs', cpu_timer:seconds())
 end
 
 function ScenarioService:_mark_dormant_scenario_map(value, world_offset_x, world_offset_y, width, length)
