@@ -1,5 +1,6 @@
 #include "pch.h"
 #include <stdexcept>
+#include "lauxlib.h"
 #include "radiant_file.h"
 #include "core/config.h"
 #include "script_host.h"
@@ -161,6 +162,14 @@ ScriptHost::ScriptHost()
 
    luabind::open(L_);
    luabind::bind_class_info(L_);
+
+   if (!core::Config::GetInstance().Get<bool>("lua.enable_luajit", true)) {
+      if (luaL_dostring(L_, "jit.off()") != 0) {
+         LUA_LOG(0) << "Failed to disable jit. " << lua_tostring(L_, -1);
+      } else {
+         LUA_LOG(0) << "luajit disabled.";
+      }
+   }
 
    set_pcall_callback(PCallCallbackFn);
 

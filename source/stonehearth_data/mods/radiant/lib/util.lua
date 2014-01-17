@@ -51,6 +51,10 @@ function util.is_class(maybe_cls)
    return type(maybe_cls) == 'table' and maybe_cls.__type == 'class'
 end
 
+function util.table_is_empty(t)
+   return #t == 0 and next(t) == nil
+end
+
 function util.is_a(var, cls)
    local t = type(var)
    if t == 'userdata' then

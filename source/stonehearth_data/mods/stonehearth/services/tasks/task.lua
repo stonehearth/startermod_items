@@ -21,6 +21,13 @@ function Task:__init(scheduler, activity)
    self:_set_state(STOPPED)
 end
 
+function Task:destroy()
+   if self._state ~= COMPLETED then
+      self:_set_state(COMPLETED)
+      self._scheduler:_decommit_task(self)
+   end
+end
+
 function Task:get_id()
    return self._id
 end
@@ -104,12 +111,12 @@ function Task:__action_can_start()
    return self._state == 'started' and self:_is_work_available()
 end
 
-function Task:__action_completed()
+function Task:__action_completed(action)
    self._complete_count = self._complete_count + 1
    if not self:_is_work_available() then
       self._log:debug('task reached max number of completions (%d).  stopping and completing!', self._times)
       self:stop()
-      self:_set_state(COMPLETED)
+      self._ultimate_running_action = action -- 'ultimate' in the sense that it's the last action that will ever run
    end
 end
 
@@ -137,6 +144,11 @@ function Task:__action_stopped(action)
    end
    if self:_is_work_available() then
       radiant.events.trigger(self, 'work_available', self, true)
+   end
+   if self._ultimate_running_action then
+      self._log:spam('destroying task, since last possible action has stopped')
+      self._ultimate_running_action = nil
+      self:destroy()
    end
 end
 

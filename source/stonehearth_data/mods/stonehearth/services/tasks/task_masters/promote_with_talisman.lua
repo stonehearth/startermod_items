@@ -4,9 +4,7 @@ local PromoteWithTalisman = class()
 function PromoteWithTalisman:__init(person, talisman)
    -- XXXXXXXXXX
    -- need a 'create entity scheduler' thingy
-   local name = string.format('promote-%s-via-%s', tostring(person), tostring(talisman))
-   local faction = radiant.entities.get_faction(person)
-   local scheduler = stonehearth.tasks:get_scheduler(name, faction)
+   local scheduler = stonehearth.tasks:create_scheduler()
                         :set_activity('stonehearth:top')
                         :join(person)
 
@@ -32,6 +30,7 @@ function PromoteWithTalisman:__init(person, talisman)
    radiant.events.listen(task, 'completed', function()
          radiant.entities.destroy_entity(talisman)
          stonehearth.ai:remove_action(person, 'stonehearth:actions:grab_promotion_talisman')
+         stonehearth.tasks:destroy_scheduler(scheduler)
          return radiant.events.UNLISTEN
       end)
 

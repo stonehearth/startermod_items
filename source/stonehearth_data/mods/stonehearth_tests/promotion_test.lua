@@ -29,8 +29,8 @@ function PromoteTest:__init()
    outbox_component:set_outbox(true)
    workshop_component:finish_construction(faction, outbox_entity)
 
-   local tree = self:place_tree(-12, 0)
-   local tree2 = self:place_tree(-12, 12)
+   local tree = self:place_tree(-8, 0)
+   local tree2 = self:place_tree(-8, 8)
 end
 
 return PromoteTest
