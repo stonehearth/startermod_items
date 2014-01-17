@@ -631,7 +631,8 @@ struct H3DCamera
 		ViewportWidthI,
 		ViewportHeightI,
 		OrthoI,
-		OccCullingI
+		OccCullingI,
+      FOVf
 	};
 };
 

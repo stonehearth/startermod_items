@@ -44,7 +44,8 @@ struct CameraNodeParams
 		ViewportWidthI,
 		ViewportHeightI,
 		OrthoI,
-		OccCullingI
+		OccCullingI,
+      FOVf
 	};
 };
 

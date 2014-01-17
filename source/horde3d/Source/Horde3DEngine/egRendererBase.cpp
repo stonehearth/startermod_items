@@ -336,13 +336,16 @@ void RenderDevice::updateBufferData( uint32 bufObj, uint32 offset, uint32 size, 
 		// Replacing the whole buffer can help the driver to avoid pipeline stalls
 		glBufferData( buf.type, size, NULL, buf.usage );
 		glBufferData( buf.type, size, data, buf.usage );
-   	glBindBuffer( buf.type, 0 );
-		return;
-	}
-
-	glBufferData( buf.type, buf.size, NULL, buf.usage );
-	glBufferSubData( buf.type, offset, size, data );
-
+	} else {
+      if (getCaps().cardType == NVIDIA) {
+         // nVidia cards are a touch faster using an explicit orphan.
+         glBufferData( buf.type, buf.size, NULL, buf.usage );
+         glBufferSubData( buf.type, offset, size, data );
+      } else {
+         // AMD and Intel cards are happier with just the buffer call.
+         glBufferData( buf.type, size, data, buf.usage );
+      }
+   }
 	glBindBuffer( buf.type, 0 );
 }
 
@@ -965,7 +968,8 @@ uint32 RenderDevice::createRenderBuffer( uint32 width, uint32 height, TextureFor
 
       RDITexture &tex = _textures.getRef(texObj);
       glBindTexture(GL_TEXTURE_2D, tex.glObj);
-		glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_COMPARE_MODE, GL_NONE );
+      glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_COMPARE_MODE, GL_NONE );
+      glTexParameteri(GL_TEXTURE_2D, GL_DEPTH_TEXTURE_MODE, GL_INTENSITY);
       glBindTexture(GL_TEXTURE_2D, 0);
 		
       uploadTextureData( texObj, 0, 0, 0x0 );
