@@ -1775,9 +1775,15 @@ void Renderer::drawFSQuad( Resource *matRes, const std::string &shaderContext )
 
 
 void Renderer::drawGeometry( const std::string &shaderContext, const std::string &theClass,
-                             RenderingOrder::List order, int filterRequried, int occSet )
+                             RenderingOrder::List order, int filterRequried, int occSet, float frustStart, float frustEnd )
 {
-	Modules::sceneMan().updateQueues("drawing geometry", _curCamera->getFrustum(), 0x0, order,
+   Frustum f = _curCamera->getFrustum();
+   if (frustStart != 0.0f || frustEnd != 1.0) {
+      float fStart = (1.0f - frustStart) * _curCamera->_frustNear + (frustStart * _curCamera->_frustFar);
+      float fEnd = (1.0f - frustEnd) * _curCamera->_frustNear + (frustEnd * _curCamera->_frustFar);
+      f.buildViewFrustum(_curCamera->getAbsTrans(), _curCamera->getParamF(CameraNodeParams::FOVf, 0), _curCamera->_vpWidth / (float)_curCamera->_vpHeight, fStart, fEnd);
+   }
+	Modules::sceneMan().updateQueues("drawing geometry", f, 0x0, order,
 	                                 SceneNodeFlags::NoDraw, filterRequried, false, true );
 	
 	setupViewMatrices( _curCamera->getViewMat(), _curCamera->getProjMat() );
@@ -2933,7 +2939,7 @@ void Renderer::render( CameraNode *camNode )
 			case PipelineCommands::DrawGeometry:
 				drawGeometry( pc.params[0].getString(), pc.params[1].getString(),
 				              (RenderingOrder::List)pc.params[2].getInt(),
-                          pc.params[3].getInt(), _curCamera->_occSet );
+                          pc.params[3].getInt(), _curCamera->_occSet, pc.params[4].getFloat(), pc.params[5].getFloat() );
 				break;
 
 			case PipelineCommands::DrawOverlays:

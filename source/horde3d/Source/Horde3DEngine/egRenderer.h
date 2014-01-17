@@ -231,7 +231,7 @@ protected:
 	void clear( bool depth, bool buf0, bool buf1, bool buf2, bool buf3, float r, float g, float b, float a );
 	void drawFSQuad( Resource *matRes, const std::string &shaderContext );
 	void drawGeometry( const std::string &shaderContext, const std::string &theClass,
-	                   RenderingOrder::List order, int filterRequired, int occSet );
+	                   RenderingOrder::List order, int filterRequired, int occSet, float frustStart, float frustEnd );
 	void drawLightGeometry( const std::string &shaderContext, const std::string &theClass,
 	                        bool noShadows, RenderingOrder::List order, int occSet, bool selectedOnly );
 	void drawLightShapes( const std::string &shaderContext, bool noShadows, int occSet );
