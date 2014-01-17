@@ -29,6 +29,20 @@
                "stonehearth:sounds:axe_chopping_sound_03"
             ]    
          }
+      },
+      "scattering": {
+         "type": "cubemitter",
+         "start_time" : 200,
+         "end_time" : 300,
+         "cubemitter": "particles/leaves/leafsplosion.cubemitter.json",
+         "transforms": {
+            "x":0.0,
+            "y":7.0,
+            "z":3.0,
+            "rx":90,
+            "ry":0,
+            "rz":0
+         }
       }
    }
 }
