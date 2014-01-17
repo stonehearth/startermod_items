@@ -18,6 +18,7 @@ end
 function TaskScheduler:set_activity(name, args)
    self._activity = stonehearth.ai:create_activity(name, args)
    self._log:debug('setting activity to %s', stonehearth.ai:format_activity(self._activity))
+   return self
 end
 
 function TaskScheduler:create_task(name, args)
@@ -53,6 +54,7 @@ function TaskScheduler:join(entity)
       end
       self._entities[id] = entry
    end
+   return self
 end
 
 function TaskScheduler:leave(entity) 
@@ -67,6 +69,7 @@ function TaskScheduler:leave(entity)
          self._entities[id] = nil
       end
    end
+   return self
 end
 
 function TaskScheduler:_add_action_to_entity(task, entry)

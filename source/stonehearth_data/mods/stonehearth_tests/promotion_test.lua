@@ -21,16 +21,13 @@ function PromoteTest:__init()
    --TODO: we need a way to add unitinfo to these all these guys
    bench:add_component('unit_info'):set_faction(faction)
 
-   local saw = workshop_component:init_from_scratch()
-   saw:add_component('unit_info'):set_faction(faction)
-
    local outbox_entity = radiant.entities.create_entity('stonehearth:workshop_outbox')
    radiant.terrain.place_entity(outbox_entity, Point3(-9,0,-9))
    outbox_entity:get_component('unit_info'):set_faction(faction)
    local outbox_component = outbox_entity:get_component('stonehearth:stockpile')
    outbox_component:set_size({3, 3})
    outbox_component:set_outbox(true)
-   workshop_component:associate_outbox(outbox_entity)
+   workshop_component:finish_construction(faction, outbox_entity)
 
    local tree = self:place_tree(-12, 0)
    local tree2 = self:place_tree(-12, 12)

@@ -410,7 +410,6 @@ function WorkshopComponent:clear_the_bench()
    end
 end
 
-
 function WorkshopComponent:finish_construction(faction, outbox)
    self._entity:add_component('unit_info'):set_faction(faction)
    

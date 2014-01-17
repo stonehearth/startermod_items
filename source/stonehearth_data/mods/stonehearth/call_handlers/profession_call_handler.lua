@@ -5,7 +5,6 @@ local ProfessionCallHandler = class()
 -- by doing a POST to the route for this file specified in the manifest.
 
 function ProfessionCallHandler:grab_promotion_talisman(session, response, person, entity)
-
    local talisman
    local workshop_component = entity:get_component("stonehearth:workshop")
    if workshop_component then
@@ -15,8 +14,9 @@ function ProfessionCallHandler:grab_promotion_talisman(session, response, person
       talisman = entity
    end
 
-   radiant.events.trigger(person, 'stonehearth:grab_talisman', talisman)
-
+   -- todo: stick this in a taskmaster manager somewhere so we can show it (and cancel it!)
+   local PromoteTaskMaster = require 'services.tasks.task_masters.promote_with_talisman'   
+   PromoteTaskMaster(person, talisman)
    return true
 end
 
