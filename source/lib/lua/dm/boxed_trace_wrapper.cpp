@@ -33,7 +33,6 @@ std::shared_ptr<BoxedTraceWrapper<T>> BoxedTraceWrapper<T>::OnDestroyed(luabind:
          destroyed_cb();
       } catch (std::exception const& e) {
          LUA_LOG(1) << "exception delivering lua trace: " << e.what();
-         lua::ScriptHost::ReportCStackException(destroyed_cb.interpreter(), e);
       }
    });
    return shared_from_this();
@@ -54,7 +53,6 @@ std::shared_ptr<BoxedTraceWrapper<T>> BoxedTraceWrapper<T>::OnChanged(luabind::o
          changed_cb(value);
       } catch (std::exception const& e) {
          LUA_LOG(1) << "exception delivering lua trace: " << e.what();
-         lua::ScriptHost::ReportCStackException(changed_cb.interpreter(), e);
       }
    });
    return shared_from_this();

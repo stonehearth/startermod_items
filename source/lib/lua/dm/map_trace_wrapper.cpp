@@ -34,7 +34,6 @@ std::shared_ptr<MapTraceWrapper<T>> MapTraceWrapper<T>::OnDestroyed(luabind::obj
          destroyed_cb();
       } catch (std::exception const& e) {
          LUA_LOG(1) << "exception delivering lua trace: " << e.what();
-         lua::ScriptHost::ReportCStackException(destroyed_cb.interpreter(), e);
       }
    });
    return shared_from_this();
@@ -55,7 +54,6 @@ std::shared_ptr<MapTraceWrapper<T>> MapTraceWrapper<T>::OnAdded(luabind::object 
          changed_cb(key, value);
       } catch (std::exception const& e) {
          LUA_LOG(1) << "exception delivering lua trace: " << e.what();
-         lua::ScriptHost::ReportCStackException(changed_cb.interpreter(), e);
       }
    });
    return shared_from_this();
@@ -76,7 +74,6 @@ std::shared_ptr<MapTraceWrapper<T>> MapTraceWrapper<T>::OnRemoved(luabind::objec
          removed_cb(key);
       } catch (std::exception const& e) {
          LUA_LOG(1) << "exception delivering lua trace: " << e.what();
-         lua::ScriptHost::ReportCStackException(removed_cb.interpreter(), e);
       }
    });
    return shared_from_this();

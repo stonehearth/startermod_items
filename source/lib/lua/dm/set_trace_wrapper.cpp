@@ -27,7 +27,6 @@ std::shared_ptr<SetTraceWrapper<T>> SetTraceWrapper<T>::OnDestroyed(luabind::obj
          destroyed_cb();
       } catch (std::exception const& e) {
          LUA_LOG(1) << "exception delivering lua trace: " << e.what();
-         lua::ScriptHost::ReportCStackException(destroyed_cb.interpreter(), e);
       }
    });
    return shared_from_this();
@@ -48,7 +47,6 @@ std::shared_ptr<SetTraceWrapper<T>> SetTraceWrapper<T>::OnAdded(luabind::object 
          added_cb(value);
       } catch (std::exception const& e) {
          LUA_LOG(1) << "exception delivering lua trace: " << e.what();
-         lua::ScriptHost::ReportCStackException(added_cb.interpreter(), e);
       }
    });
    return shared_from_this();
@@ -69,7 +67,6 @@ std::shared_ptr<SetTraceWrapper<T>> SetTraceWrapper<T>::OnRemoved(luabind::objec
          removed_cb(value);
       } catch (std::exception const& e) {
          LUA_LOG(1) << "exception delivering lua trace: " << e.what();
-         lua::ScriptHost::ReportCStackException(removed_cb.interpreter(), e);
       }
    });
    return shared_from_this();

@@ -138,7 +138,6 @@ void PathFinder::AddDestination(om::EntityRef e)
             ok = lua::ScriptHost::CoerseToBool(dst_filter_(e));
             PF_LOG(5) << "finished calling lua solution callback";
          } catch (std::exception& e) {
-            lua::ScriptHost::ReportCStackException(L, e);
          }
          if (!ok) {
             return;
@@ -478,7 +477,6 @@ void PathFinder::SolveSearch(const csg::Point3& last, PathFinderDst* dst)
          solved_cb_(luabind::object(solved_cb_.interpreter(), solution_));
       } catch (std::exception const& e) {
          LUA_LOG(1) << "exception delivering solved cb: " << e.what();
-         lua::ScriptHost::ReportCStackException(solved_cb_.interpreter(), e);
       }
 
       PF_LOG(5) << "finished calling lua solved callback";
