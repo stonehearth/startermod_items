@@ -968,7 +968,8 @@ uint32 RenderDevice::createRenderBuffer( uint32 width, uint32 height, TextureFor
 
       RDITexture &tex = _textures.getRef(texObj);
       glBindTexture(GL_TEXTURE_2D, tex.glObj);
-		glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_COMPARE_MODE, GL_NONE );
+      glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_COMPARE_MODE, GL_NONE );
+      glTexParameteri(GL_TEXTURE_2D, GL_DEPTH_TEXTURE_MODE, GL_INTENSITY);
       glBindTexture(GL_TEXTURE_2D, 0);
 		
       uploadTextureData( texObj, 0, 0, 0x0 );

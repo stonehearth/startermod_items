@@ -2855,7 +2855,7 @@ void Renderer::render( CameraNode *camNode )
 		return;
 	}
 
-   bool drawShadows = Modules::config().enableShadows && gpuCompatibility_.canDoShadows;
+   bool drawShadows = Modules::config().getOption(EngineOptions::EnableShadows);
 	
 	// Initialize
 	gRDI->_outputBufferIndex = _curCamera->_outputBufferIndex;
