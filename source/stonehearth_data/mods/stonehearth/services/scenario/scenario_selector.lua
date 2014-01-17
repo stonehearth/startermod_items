@@ -1,11 +1,10 @@
-local ScenarioCategory = class()
-local log = radiant.log.create_logger('world_generation')
+local ScenarioSelector = class()
+local log = radiant.log.create_logger('scenario_service')
 
 -- frequency - The probability or expected number of scenarios in the category
 --             that will (attempt to) be placed in a tile. Frequencies > 1.00 are supported.
 -- priority - The order in which the scenarios will be placed (lower priorites may not find a site).
-function ScenarioCategory:__init(name, frequency, priority, rng)
-   self.name = name
+function ScenarioSelector:__init(frequency, priority, rng)
    self.frequency = frequency
    self.priority = priority
    self._rng = rng
@@ -16,19 +15,19 @@ function ScenarioCategory:__init(name, frequency, priority, rng)
    self._total_weight = 0
 end
 
-function ScenarioCategory:add(scenario)
+function ScenarioSelector:add(scenario)
    self._scenarios[scenario.name] = scenario
 end
 
-function ScenarioCategory:get(name)
+function ScenarioSelector:get(name)
    return self._scenarios[name]
 end
 
-function ScenarioCategory:remove(name)
+function ScenarioSelector:remove(name)
    self._scenarios[name] = nil
 end
 
-function ScenarioCategory:select_scenarios()
+function ScenarioSelector:select_scenarios()
    local rng = self._rng
    local frequency = self.frequency
    local scenario
@@ -55,7 +54,7 @@ end
 
 -- Pick a random scenario based on their weighted probabilities.
 -- This is O(n) on the number of scenarios. Could be O(1) if necessary.
-function ScenarioCategory:_pick_scenario()
+function ScenarioSelector:_pick_scenario()
    local roll = self._rng:get_int(1, self._total_weight)
    local sum = 0
 
@@ -66,11 +65,11 @@ function ScenarioCategory:_pick_scenario()
       end
    end
 
-   log:error('Total weight in ScenarioCategory %s is incorrect!', self.name)
+   log:error('Total weight in ScenarioSelector is incorrect!')
    return nil
 end
 
-function ScenarioCategory:_calculate_statistics()
+function ScenarioSelector:_calculate_statistics()
    local count = 0
    local sum = 0
 
@@ -83,4 +82,4 @@ function ScenarioCategory:_calculate_statistics()
    self._total_weight = sum
 end
 
-return ScenarioCategory
+return ScenarioSelector

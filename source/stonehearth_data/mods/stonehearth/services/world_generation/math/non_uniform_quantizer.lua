@@ -2,6 +2,13 @@ local MathFns = require 'services.world_generation.math.math_fns'
 
 local NonUniformQuantizer = class()
 
+local Interval = class()
+
+function Interval:__init(lower, upper)
+   self.lower = lower
+   self.upper = upper
+end
+
 -- centroids must be an array of integers
 function NonUniformQuantizer:__init(centroids)
    table.sort(centroids)
@@ -17,7 +24,7 @@ function NonUniformQuantizer:__init(centroids)
       lower = centroids[i]
       upper = centroids[i+1]
       -- use a lua type instead of a C type so luajit can extremely agressively optimze it.
-      interval = { x = lower, y = upper }
+      interval = Interval(lower, upper)
 
       for x=lower, upper-1 do
          interval_map[x] = interval
@@ -42,8 +49,8 @@ function NonUniformQuantizer:quantize(value)
 
    key = MathFns.round(value)
    interval = self._interval_map[key]
-   lower = interval.x
-   upper = interval.y
+   lower = interval.lower
+   upper = interval.upper
 
    lower_delta = value - lower
    upper_delta = upper - value

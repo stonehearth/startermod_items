@@ -1,12 +1,12 @@
 local MathFns = require 'services.world_generation.math.math_fns'
 local Point3 = _radiant.csg.Point3
-local log = radiant.log.create_logger('world_generation')
+local log = radiant.log.create_logger('scenario_service')
 
-local ScenarioServices = class()
+local ScenarioModderServices = class()
 
 -- Modder API starts here
 -- methods and properties starting with _ are not intended for modder use
-function ScenarioServices:place_entity(uri, x, y)
+function ScenarioModderServices:place_entity(uri, x, y)
    x, y = self:_bounds_check(x, y)
 
    local entity = radiant.entities.create_entity(uri)
@@ -16,24 +16,24 @@ function ScenarioServices:place_entity(uri, x, y)
 end
 
 -- Private API starts here
-function ScenarioServices:__init(rng)
+function ScenarioModderServices:__init(rng)
    self.rng = rng
 end
 
-function ScenarioServices:_set_scenario_properties(properties, offset_x, offset_y)
+function ScenarioModderServices:_set_scenario_properties(properties, offset_x, offset_y)
    self._properties = properties
    self._offset_x = offset_x
    self._offset_y = offset_y
 end
 
-function ScenarioServices:_bounds_check(x, y)
+function ScenarioModderServices:_bounds_check(x, y)
    return MathFns.bound(x, 1, self._properties.size.width),
           MathFns.bound(y, 1, self._properties.size.length)
 end
 
-function ScenarioServices:_set_random_facing(entity)
+function ScenarioModderServices:_set_random_facing(entity)
    local facing = self.rng:get_int(0, 3)
    entity:add_component('mob'):turn_to(90*facing)
 end
 
-return ScenarioServices
+return ScenarioModderServices
