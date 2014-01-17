@@ -50,15 +50,20 @@ end
 
 function ExecutionFrame:_on_action_added(key, entry, does)
    if self._activity.name == does then
+      self:_buffer_state_changes(function()
       local unit = self:_add_execution_unit(key, entry)
       self:_init_execution_unit(unit)
-      if self:_is_better_execution_unit(unit) and unit:is_runnable() then
+         
          if self:_in_state(THINKING, READY) then
             unit:start_thinking(self:_clone_entity_state())
          elseif self:_in_state(RUNNING) then
-            self:_set_active_unit(unit)
+            if self:_is_better_execution_unit(unit) then
+               self:stop()
+               self:capture_entity_state()
+               self:start_thinking()
          end
       end
+      end)
    end
 end
 
