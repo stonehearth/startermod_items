@@ -11,6 +11,7 @@ function HerdOfSheep:initialize(properties, services)
    local offset = width/4
    local increment = offset*2
    local margin = 2
+   local child_density = 0.7
    local dx, dy
 
    -- place_entity is valid from (1, 1) to (width, length) inclusive
@@ -18,9 +19,11 @@ function HerdOfSheep:initialize(properties, services)
 
    for j=offset, length, increment do
       for i=offset, length, increment do
-         dx = rng:get_int(0, offset-margin)
-         dy = rng:get_int(0, offset-margin)
-         services:place_entity(sheep_name, i+dx, j+dy)
+         if rng:get_real(0, 1) < child_density then
+            dx = rng:get_int(0, offset-margin)
+            dy = rng:get_int(0, offset-margin)
+            services:place_entity(sheep_name, i+dx, j+dy)
+         end
       end
    end
 end
