@@ -65,6 +65,7 @@ App.StonehearthSettingsView = App.View.extend({
       $('#opt_numSamples').change(anythingChangedCallback);
       $('#opt_enableVsync').change(anythingChangedCallback);
       $('#opt_enableFullscreen').change(anythingChangedCallback);
+      $('#opt_useFastHilite').change(anythingChangedCallback);
       $('#opt_shadowRes').change(anythingChangedCallback);
 
       $('#opt_numSamples').change(reloadableCallback);
@@ -78,7 +79,8 @@ App.StonehearthSettingsView = App.View.extend({
                "shadow_res" : o.shadow_res.value,
                "fullscreen" : o.fullscreen.value,
                "msaa" : o.msaa.value,
-               "draw_distance" : o.draw_distance.value
+               "draw_distance" : o.draw_distance.value,
+               "use_fast_hilite" : o.use_fast_hilite.value
             };
 
             self.set('context.shadows_forbidden', !o.shadows.allowed);
@@ -100,6 +102,8 @@ App.StonehearthSettingsView = App.View.extend({
             self.set('context.num_msaa_samples', self.fromSamplesToVal(o.msaa.value, o.msaa.allowed));
 
             self.set('context.draw_distance', o.draw_distance.value);
+
+            self.set('context.use_fast_hilite', o.use_fast_hilite.value);
 
             $('#gfxCardString').html(i18n.t('stonehearth:settings_gfx_cardinfo', {
                "gpuRenderer": o.gfx_card_renderer, 
@@ -155,7 +159,8 @@ App.StonehearthSettingsView = App.View.extend({
          "msaa" : this.fromValToSamples($( "#aaNumSlider" ).slider( "value" )),
          "shadow_res" :  this.fromValToRes($( "#shadowResSlider" ).slider( "value" )),
          "persistConfig" : persistConfig,
-         "draw_distance" : $( "#drawDistSlider" ).slider( "value" )
+         "draw_distance" : $( "#drawDistSlider" ).slider( "value" ),
+         "use_fast_hilite" : $('#opt_useFastHilite').is(':checked')
       };
       return newConfig;
    },
