@@ -938,22 +938,21 @@ void SceneManager::clearQueryCache()
 {
    // Do a pass to see if we have too many renderable queues.  TODO(klochek): collect some stats
    // for each queue, so that we can more-intelligently get rid of disused queues.
-   int totalRQs = 0;
    for (int i = 0; i < _queryCacheCount; i++) {
+      int totalRQs = 0;
       for (const auto& iqs : _queryCache[i].instanceRenderableQueues) {
          totalRQs += iqs.second.size();
       }
 
       totalRQs += _queryCache[i].renderableQueues.size();
-   }
 
-   if (totalRQs > MaxActiveRenderQueues) {
-      Modules::log().writeWarning("Total RQs exceeds maximum; flushing.");
-      for (int i = 0; i < _queryCacheCount; i++) {
+      if (totalRQs > MaxActiveRenderQueues) {
+         Modules::log().writeWarning("Total RQs for query %d exceeds maximum; flushing.", i);
          _queryCache[i].instanceRenderableQueues.clear();
          _queryCache[i].renderableQueues.clear();
       }
    }
+
    _queryCacheCount = 0;
    _currentQuery = -1;
 }

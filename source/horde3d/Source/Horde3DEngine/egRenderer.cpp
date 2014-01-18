@@ -240,12 +240,13 @@ bool Renderer::init(int glMajor, int glMinor, bool msaaWindowSupported, bool ena
 	_defColShader_color = gRDI->getShaderConstLoc( _defColorShader.shaderObj, "color" );
 	
 	// Create shadow map render target
-	if( !createShadowRB( Modules::config().shadowMapSize, Modules::config().shadowMapSize ) )
-	{
-		Modules::log().writeError( "Failed to create shadow map" );
-		return false;
-	}
-
+   if (Modules::config().getOption(EngineOptions::EnableShadows)) {
+      if(!createShadowRB( Modules::config().shadowMapSize, Modules::config().shadowMapSize ) )
+	   {
+		   Modules::log().writeError( "Failed to create shadow map" );
+		   return false;
+	   }
+   }
 	// Create default shadow map
 	float shadowTex[16] = { 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 };
 	_defShadowMap = gRDI->createTexture( TextureTypes::Tex2D, 4, 4, 1, TextureFormats::DEPTH, false, false, false, false );
@@ -1774,9 +1775,15 @@ void Renderer::drawFSQuad( Resource *matRes, const std::string &shaderContext )
 
 
 void Renderer::drawGeometry( const std::string &shaderContext, const std::string &theClass,
-                             RenderingOrder::List order, int filterRequried, int occSet )
+                             RenderingOrder::List order, int filterRequried, int occSet, float frustStart, float frustEnd )
 {
-	Modules::sceneMan().updateQueues("drawing geometry", _curCamera->getFrustum(), 0x0, order,
+   Frustum f = _curCamera->getFrustum();
+   if (frustStart != 0.0f || frustEnd != 1.0) {
+      float fStart = (1.0f - frustStart) * _curCamera->_frustNear + (frustStart * _curCamera->_frustFar);
+      float fEnd = (1.0f - frustEnd) * _curCamera->_frustNear + (frustEnd * _curCamera->_frustFar);
+      f.buildViewFrustum(_curCamera->getAbsTrans(), _curCamera->getParamF(CameraNodeParams::FOVf, 0), _curCamera->_vpWidth / (float)_curCamera->_vpHeight, fStart, fEnd);
+   }
+	Modules::sceneMan().updateQueues("drawing geometry", f, 0x0, order,
 	                                 SceneNodeFlags::NoDraw, filterRequried, false, true );
 	
 	setupViewMatrices( _curCamera->getViewMat(), _curCamera->getProjMat() );
@@ -2854,7 +2861,7 @@ void Renderer::render( CameraNode *camNode )
 		return;
 	}
 
-   bool drawShadows = Modules::config().enableShadows && gpuCompatibility_.canDoShadows;
+   bool drawShadows = Modules::config().getOption(EngineOptions::EnableShadows) == 1.0f;
 	
 	// Initialize
 	gRDI->_outputBufferIndex = _curCamera->_outputBufferIndex;
@@ -2932,7 +2939,7 @@ void Renderer::render( CameraNode *camNode )
 			case PipelineCommands::DrawGeometry:
 				drawGeometry( pc.params[0].getString(), pc.params[1].getString(),
 				              (RenderingOrder::List)pc.params[2].getInt(),
-                          pc.params[3].getInt(), _curCamera->_occSet );
+                          pc.params[3].getInt(), _curCamera->_occSet, pc.params[4].getFloat(), pc.params[5].getFloat() );
 				break;
 
 			case PipelineCommands::DrawOverlays:
@@ -2977,9 +2984,9 @@ void Renderer::finalizeFrame()
 	Timer *timer = Modules::stats().getTimer( EngineStats::FrameTime );
 	ASSERT( timer != 0x0 );
 
-   logPerformanceData();
    Modules::stats().getStat( EngineStats::FrameTime, true );  // Reset
 	Modules::stats().incStat( EngineStats::FrameTime, timer->getElapsedTimeMS() );
+   logPerformanceData();
 	timer->reset();
    Modules::sceneMan().clearQueryCache();
    gRDI->_frameDebugInfo.endFrame();

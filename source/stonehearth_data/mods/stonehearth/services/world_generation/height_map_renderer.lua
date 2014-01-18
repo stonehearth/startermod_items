@@ -3,7 +3,6 @@ local TerrainType = require 'services.world_generation.terrain_type'
 
 local Terrain = _radiant.om.Terrain
 local Cube3 = _radiant.csg.Cube3
-local Point2 = _radiant.csg.Point2
 local Point3 = _radiant.csg.Point3
 local Region2 = _radiant.csg.Region2
 local Region3 = _radiant.csg.Region3
@@ -19,8 +18,8 @@ function HeightMapRenderer:__init(tile_size, terrain_info)
 
    -- rock layers
    local rock_layers = { {}, {}, {} }
-   local foothills_info = self.terrain_info[TerrainType.Foothills]
-   local mountains_info = self.terrain_info[TerrainType.Mountains]
+   local foothills_info = self.terrain_info[TerrainType.foothills]
+   local mountains_info = self.terrain_info[TerrainType.mountains]
    rock_layers[1].terrain_tag = Terrain.ROCK_LAYER_1
    rock_layers[1].max_height  = foothills_info.max_height + mountains_info.step_size
    rock_layers[2].terrain_tag = Terrain.ROCK_LAYER_2
@@ -91,17 +90,17 @@ function HeightMapRenderer:_add_land_to_region(region3, rect, height)
 
    -- as we grow TerrainTypes, put this in a table and dynamically call the function
 
-   if terrain_type == TerrainType.Grassland then
+   if terrain_type == TerrainType.grassland then
       self:_add_grassland_to_region(region3, rect, height)
       return
    end
 
-   if terrain_type == TerrainType.Foothills then
+   if terrain_type == TerrainType.foothills then
       self:_add_foothills_to_region(region3, rect, height)
       return
    end
 
-   if terrain_type == TerrainType.Mountains then
+   if terrain_type == TerrainType.mountains then
       self:_add_mountains_to_region(region3, rect, height)
       return
    end
@@ -132,7 +131,7 @@ function HeightMapRenderer:_add_mountains_to_region(region3, rect, height)
 end
 
 function HeightMapRenderer:_add_foothills_to_region(region3, rect, height)
-   local foothills_step_size = self.terrain_info[TerrainType.Foothills].step_size
+   local foothills_step_size = self.terrain_info[TerrainType.foothills].step_size
 
    if height % foothills_step_size == 0 then
 

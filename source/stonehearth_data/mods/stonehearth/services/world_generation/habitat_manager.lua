@@ -38,23 +38,23 @@ end
 
 -- This is likely to change
 function HabitatManager:_get_habitat_type(terrain_type, feature_name)
-   if terrain_type == TerrainType.Mountains then
-      return HabitatType.Mountains
+   if terrain_type == TerrainType.mountains then
+      return HabitatType.mountains
    end
    if self._landscaper:is_forest_feature(feature_name) then
-      return HabitatType.Forest
+      return HabitatType.forest
    end
    if feature_name ~= nil then
-      return HabitatType.Occupied
+      return HabitatType.occupied
    end
-   if terrain_type == TerrainType.Grassland then
-      return HabitatType.Grassland
+   if terrain_type == TerrainType.grassland then
+      return HabitatType.grassland
    end
-   if terrain_type == TerrainType.Foothills then
-      return HabitatType.Foothills
+   if terrain_type == TerrainType.foothills then
+      return HabitatType.foothills
    end
    log:error('Unable to deduce HabitatType')
-   return HabitatType.Occupied
+   return HabitatType.occupied
 end
 
 function _habitat_map_to_micro_map_coords(i, j)

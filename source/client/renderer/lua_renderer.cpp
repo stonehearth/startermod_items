@@ -116,6 +116,11 @@ static void Sky_SetStarfieldBrightness(float brightness) {
    Renderer::GetInstance().SetStarfieldBrightness(brightness);
 }
 
+static void Renderer_EnablePerfLogging(bool enable)
+{
+   h3dSetOption(H3DOptions::EnableStatsLogging, enable ? 1.0f : 0.0f);
+}
+
 std::ostream& operator<<(std::ostream& os, const RayCastResult& in)
 {
    os << in.is_valid << ", " << in.point;
@@ -129,6 +134,8 @@ void LuaRenderer::RegisterType(lua_State* L)
    module(L) [
       namespace_("_radiant") [
          namespace_("renderer") [
+            def("enable_perf_logging", &Renderer_EnablePerfLogging),
+
             namespace_("camera") [
                def("translate",    &Camera_Translate),
                def("get_forward",  &Camera_GetForward),

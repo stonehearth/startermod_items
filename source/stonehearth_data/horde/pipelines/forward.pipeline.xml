@@ -30,13 +30,9 @@
          <DoForwardLightLoop class="~Translucent" noShadows="false"/>
       </Stage>
 
-      <Stage id="Clouds">
-         <DrawGeometry class="~Translucent" context="CLOUDS" noShadows="true"/>
-      </Stage>
-
       <Stage id="Fog">
          <BindBuffer sampler="skySampler" sourceRT="SkyTemp" bufIndex="0"/>
-         <DrawGeometry class="~Translucent" context="FOG" noShadows="true"/>
+         <DrawGeometry class="~Translucent" context="FOG" noShadows="true" frustum_start="0.7"/>
          <UnbindBuffers />
       </Stage>
 

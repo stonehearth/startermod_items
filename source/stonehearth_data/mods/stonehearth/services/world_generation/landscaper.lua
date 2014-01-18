@@ -82,7 +82,7 @@ function Landscaper:place_flora(tile_map, tile_offset_x, tile_offset_y)
       local entity = radiant.entities.create_entity(uri)
       -- switch from lua height_map base 1 coordinates to c++ base 0 coordinates
       -- swtich from tile coordinates to world coordinates
-      radiant.terrain.place_entity(entity, Point3(x+tile_offset_x-1, 1, y+tile_offset_y-1))
+      radiant.terrain.place_entity(entity, Point3(x-1+tile_offset_x, 1, y-1+tile_offset_y))
       self:_set_random_facing(entity)
       return entity
    end
@@ -125,11 +125,11 @@ function Landscaper:_place_trees(tile_map, place_item)
 
       local terrain_type = terrain_info:get_terrain_type(elevation)
 
-      if terrain_type == TerrainType.Mountains then
+      if terrain_type == TerrainType.mountains then
          --mean = mean + 0
          std_dev = std_dev * 0.30
-      elseif terrain_type == TerrainType.Grassland then
-         local grassland_info = self._terrain_info[TerrainType.Grassland]
+      elseif terrain_type == TerrainType.grassland then
+         local grassland_info = self._terrain_info[TerrainType.grassland]
 
          if elevation == grassland_info.max_height then
             -- sparse groves with large trees in the middle
@@ -141,8 +141,8 @@ function Landscaper:_place_trees(tile_map, place_item)
             --std_dev = std_dev * 1.00
          end
       else
-         -- TerrainType.Foothills
-         local foothills_info = self._terrain_info[TerrainType.Foothills]
+         -- TerrainType.foothills
+         local foothills_info = self._terrain_info[TerrainType.foothills]
 
          if elevation == foothills_info.max_height then
             -- lots of continuous forest with low variance
@@ -183,7 +183,7 @@ function Landscaper:_place_trees(tile_map, place_item)
                      else                                       tree_name = get_tree_name(tree_type, small)
                      end
 
-                     if value >= medium_tree_threshold or terrain_type == TerrainType.Mountains then
+                     if value >= medium_tree_threshold or terrain_type == TerrainType.mountains then
                         -- place (at most) a single tree in the cell
                         if rng:get_real(0, 1) < normal_tree_density then
                            place_item(tree_name, x, y)
@@ -239,7 +239,7 @@ function Landscaper:_place_berry_bushes(tile_map, place_item)
    local try_place_item = function(x, y)
       local elevation = tile_map:get(x, y)
       local terrain_type = terrain_info:get_terrain_type(elevation)
-      if terrain_type == TerrainType.Mountains then
+      if terrain_type == TerrainType.mountains then
          return false
       end
       place_item(berry_bush_name, x, y)
@@ -262,8 +262,8 @@ function Landscaper:_place_berry_bushes(tile_map, place_item)
 
       local terrain_type = terrain_info:get_terrain_type(elevation)
 
-      if terrain_type == TerrainType.Foothills then
-         local foothills_info = terrain_info[TerrainType.Foothills]
+      if terrain_type == TerrainType.foothills then
+         local foothills_info = terrain_info[TerrainType.foothills]
          if elevation == foothills_info.max_height then
             mean = mean + 50
          end
@@ -356,7 +356,7 @@ function Landscaper:_place_flowers(tile_map, place_item)
                      elevation = tile_map:get(x, y)
                      terrain_type = terrain_info:get_terrain_type(elevation)
 
-                     if terrain_type == TerrainType.Grassland then
+                     if terrain_type == TerrainType.grassland then
                         place_item(pink_flower_name, x, y)
                         feature_map:set(i, j, pink_flower_name)
 
@@ -472,9 +472,9 @@ function Landscaper:_get_tree_type(elevation)
 
    local terrain_type = terrain_info:get_terrain_type(elevation)
 
-   if terrain_type == TerrainType.Grassland then return oak end
+   if terrain_type == TerrainType.grassland then return oak end
 
-   if terrain_type == TerrainType.Mountains then
+   if terrain_type == TerrainType.mountains then
       -- this logic doesn't belong here
       if rng:get_real(0, 1) < mountains_juniper_chance then
          return juniper
@@ -483,7 +483,7 @@ function Landscaper:_get_tree_type(elevation)
       end
    end
 
-   local foothills_info = terrain_info[TerrainType.Foothills]
+   local foothills_info = terrain_info[TerrainType.foothills]
 
    if elevation >= foothills_info.max_height then
       if rng:get_real(0, 1) < high_foothills_juniper_chance then
@@ -558,15 +558,15 @@ function Landscaper:_should_place_boulder(elevation)
    local grassland_boulder_probability = 0.02
 
    -- drive this from a table later
-   if terrain_type == TerrainType.Mountains then
+   if terrain_type == TerrainType.mountains then
       return rng:get_real(0, 1) <= mountain_boulder_probability
    end
 
-   if terrain_type == TerrainType.Foothills then
+   if terrain_type == TerrainType.foothills then
       return rng:get_real(0, 1) <= foothills_boulder_probability
    end
 
-   if terrain_type == TerrainType.Grassland then
+   if terrain_type == TerrainType.grassland then
       return rng:get_real(0, 1) <= grassland_boulder_probability
    end
 
@@ -617,9 +617,9 @@ function Landscaper:_get_boulder_dimensions(terrain_type)
    local rng = self._rng
    local half_length, half_width, half_height, aspect_ratio
 
-   if     terrain_type == TerrainType.Mountains then half_width = rng:get_int(4, 9)
-   elseif terrain_type == TerrainType.Foothills then half_width = rng:get_int(3, 6)
-   elseif terrain_type == TerrainType.Grassland then half_width = rng:get_int(1, 3)
+   if     terrain_type == TerrainType.mountains then half_width = rng:get_int(4, 9)
+   elseif terrain_type == TerrainType.foothills then half_width = rng:get_int(3, 6)
+   elseif terrain_type == TerrainType.grassland then half_width = rng:get_int(1, 3)
    else return nil, nil, nil
    end
 

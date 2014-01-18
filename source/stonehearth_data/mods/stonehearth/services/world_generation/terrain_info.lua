@@ -10,7 +10,7 @@ function TerrainInfo:__init()
    grassland_info.mean_height = 18
    grassland_info.std_dev = 6
    grassland_info.max_height = 16
-   self[TerrainType.Grassland] = grassland_info
+   self[TerrainType.grassland] = grassland_info
    assert(grassland_info.max_height % grassland_info.step_size == 0)
    -- don't place means on quantization ("rounding") boundaries
    assert(grassland_info.mean_height % grassland_info.step_size ~= grassland_info.step_size/2)
@@ -20,7 +20,7 @@ function TerrainInfo:__init()
    foothills_info.mean_height = 29
    foothills_info.std_dev = 8
    foothills_info.max_height = 32
-   self[TerrainType.Foothills] = foothills_info
+   self[TerrainType.foothills] = foothills_info
    assert(foothills_info.max_height % foothills_info.step_size == 0)
    assert(foothills_info.mean_height % foothills_info.step_size ~= foothills_info.step_size/2)
 
@@ -28,7 +28,7 @@ function TerrainInfo:__init()
    mountains_info.step_size = base_step_size*2
    mountains_info.mean_height = 80
    mountains_info.std_dev = 64
-   self[TerrainType.Mountains] = mountains_info
+   self[TerrainType.mountains] = mountains_info
    assert(mountains_info.mean_height % mountains_info.step_size ~= mountains_info.step_size/2)
 
    -- make sure that next step size is a multiple of the prior max height
@@ -46,15 +46,15 @@ function TerrainInfo:__init()
 end
 
 function TerrainInfo:get_terrain_type(height)
-   if height <= self[TerrainType.Grassland].max_height then
-      return TerrainType.Grassland
+   if height <= self[TerrainType.grassland].max_height then
+      return TerrainType.grassland
    end
 
-   if height <= self[TerrainType.Foothills].max_height then
-      return TerrainType.Foothills
+   if height <= self[TerrainType.foothills].max_height then
+      return TerrainType.foothills
    end
 
-   return TerrainType.Mountains
+   return TerrainType.mountains
 end
 
 return TerrainInfo

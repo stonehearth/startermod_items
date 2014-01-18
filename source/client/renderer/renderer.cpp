@@ -698,12 +698,6 @@ void Renderer::RenderOneFrame(int now, float alpha)
       // show stats
       h3dCollectDebugFrame();
       h3dutShowFrameStats( fontMatRes_, panelMatRes_, H3DUTMaxStatMode );
-
-      if (config_.enable_gl_logging.value) {
-         h3dSetOption(H3DOptions::EnableStatsLogging, 1.0f);
-      }
-   } else {
-      h3dSetOption(H3DOptions::EnableStatsLogging, 0.0f);
    }
 
    h3dResetStats();
