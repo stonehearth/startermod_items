@@ -60,9 +60,7 @@ function ScenarioService:initialize(feature_cell_size, rng)
 end
 
 function ScenarioService:_register_events()
-   local population_service = radiant.mods.load('stonehearth').population
-   self._faction = population_service:get_faction('civ', 'stonehearth:factions:ascendancy')
-
+   self._faction = stonehearth.population:get_faction('civ', 'stonehearth:factions:ascendancy')
    radiant.events.listen(radiant.events, 'stonehearth:very_slow_poll', self, self._on_poll)
 end
 

@@ -47,7 +47,7 @@ function FindPathToEntityType:_consider_destination(ai, entity, target)
    end
 end
 
-function FindPathToEntityType:_remove_destination(ai, _, id)
+function FindPathToEntityType:_remove_destination(ai, entity, id)
    if self._solution_entity_id then
       if id == self._solution_entity_id then
          -- rats!  the thing we found earlier is no longer in the world.  revoke our

@@ -1,3 +1,4 @@
+local rng = _radiant.csg.get_default_random_number_generator()
 local Idle = class()
 
 Idle.name = 'idle'
@@ -7,11 +8,11 @@ Idle.version = 2
 Idle.priority = 1
 
 function Idle:run(ai, entity)
-   local countdown = math.random(1, 3)
+   local countdown = rng:get_int(1, 4)
    while true do
       if countdown <= 0 then
          ai:execute('stonehearth:idle:bored')
-         countdown = math.random(1, 3)
+         countdown = rng:get_int(1, 4)
       else
          ai:execute('stonehearth:idle:breathe')
          if not radiant.entities.is_carrying(entity) then

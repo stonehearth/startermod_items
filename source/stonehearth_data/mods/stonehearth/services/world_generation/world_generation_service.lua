@@ -33,7 +33,7 @@ function WorldGenerationService:initialize(async, game_seed)
    self._landscaper = Landscaper(tg.terrain_info, tg.tile_size, tg.tile_size, self._rng, self._async)
    self._terrain_info = tg.terrain_info
    
-   self._scenario_service = radiant.mods.load('stonehearth').scenario
+   self._scenario_service = stonehearth.scenario
    self._scenario_service:initialize(self._landscaper:get_feature_cell_size(), self._rng)
    self._habitat_manager = HabitatManager(self._terrain_info, self._landscaper)
 
