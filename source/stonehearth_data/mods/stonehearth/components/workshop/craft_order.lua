@@ -70,10 +70,7 @@ function CraftOrder:__init(recipe, enabled, condition, workshop)
 
    self._status = {is_crafting = false}
 
-   self._ingredient_list_object = IngredientList(
-      self._workshop:get_entity(), 
-      self._workshop:get_items_on_bench(), 
-      self._recipe.ingredients)
+   self._ingredient_list_object = IngredientList(self._recipe.ingredients)
 end
 
 function CraftOrder:__tojson()
@@ -128,11 +125,6 @@ function CraftOrder:set_crafting_status(status)
    self._status.is_crafting = status;
 end
 
---- Look into the world for the ingredients and claim them
-function CraftOrder:search_for_ingredients()
-   self._ingredient_list_object:search_for_ingredients()
-end
-
 --[[
    Used to determine if we should proceed with executing the order.
    If this order has a condition which are unsatisfied, (ie, less than x amount
@@ -156,12 +148,6 @@ function CraftOrder:should_execute_order()
       end
       return false
    end
-end
-
---- Check if the ingredients for an order are available in the inventory and workbench.
---  If so, return them. 
-function CraftOrder:get_all_ingredients()
-   return self._ingredient_list_object:get_all_ingredients()
 end
 
 --- Call whenever a part of an order is finished. (ie, built 2 of 4)

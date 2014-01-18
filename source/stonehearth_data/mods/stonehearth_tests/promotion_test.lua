@@ -14,6 +14,7 @@ function PromoteTest:__init()
    self:place_citizen(0,0)
    local worker = self:place_citizen(12, 12)
 
+   self:place_item_cluster('stonehearth:oak_log', 6, 6, 2, 2);
    local bench = self:place_item('stonehearth:carpenter:workbench', -12, -12)
    local workshop_component = bench:get_component('stonehearth:workshop')
    local faction = worker:get_component('unit_info'):get_faction()

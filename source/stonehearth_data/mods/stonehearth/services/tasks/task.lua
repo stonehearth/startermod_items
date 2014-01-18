@@ -52,8 +52,8 @@ function Task:get_args()
    return self._activity[2] or {}
 end
 
-function Task:set_name(name)
-   self._name = name
+function Task:set_name(format, ...)
+   self._name = string.format(format, ...)
    return self
 end
 

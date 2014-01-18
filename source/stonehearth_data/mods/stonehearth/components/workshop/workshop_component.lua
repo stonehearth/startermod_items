@@ -14,7 +14,7 @@ local CraftOrderList = require 'components.workshop.craft_order_list'
 local WorkshopComponent = class()
 
 function WorkshopComponent:__init(entity, data_binding)
-   self._todo_list = CraftOrderList(data_binding)  -- The list of things we need to work on
+   self._craft_order_list = CraftOrderList(data_binding)  -- The list of things we need to work on
    self._entity = entity                 -- The entity associated with this component
    self._curr_order = nil                -- The order currently being worked on. Nil until we get an order from the todo list
    self._curernt_item_progress = nil
@@ -26,7 +26,7 @@ function WorkshopComponent:__init(entity, data_binding)
 
    self._data = data_binding:get_data()
    self._data.crafter = nil
-   self._data.order_list = self._todo_list
+   self._data.order_list = self._craft_order_list
 
    self._data_binding = data_binding
    self._data_binding:mark_changed()
@@ -82,7 +82,7 @@ end
 --]]
 function WorkshopComponent:add_order(session, response, recipe, condition)
    local order = CraftOrder(recipe, true,  condition, self)
-   self._todo_list:add_order(order)
+   self._craft_order_list:add_order(order)
    --TODO: if something fails and we know it, send error("string explaining the error") anywhere
    --to be caught by the result variable
    return true
@@ -120,7 +120,7 @@ end
    order_list_data.newPos.
 ]]
 function WorkshopComponent:move_order(session, response, id, newPos)
-   self._todo_list:change_order_position(newPos, id)
+   self._craft_order_list:change_order_position(newPos, id)
    return true
 end
 
@@ -128,7 +128,7 @@ end
    Delete an order and clean up if it's the current order
 ]]
 function WorkshopComponent:delete_order(session, response, id)
-   self._todo_list:remove_order(id)
+   self._craft_order_list:remove_order(id)
    if self._curr_order and id == self._curr_order:get_id() then
       self._current_item_status = nil
       self._curr_order = nil
@@ -194,6 +194,7 @@ function WorkshopComponent:set_crafter(crafter)
       local crafter_name = radiant.entities.get_name(crafter)
       radiant.entities.set_description(self._entity, 'owned by ' .. crafter_name)
 
+      self:_create_scheduler(crafter)
    end
 end
 
@@ -269,7 +270,7 @@ end
 ]]
 function WorkshopComponent:establish_next_craftable_recipe()
    if self._curr_order == nil then
-      local order, ingredients = self._todo_list:get_next_task()
+      local order, ingredients = self._craft_order_list:get_next_task()
       self._curr_order = order
       self._current_ingredients = ingredients
    end
@@ -353,7 +354,7 @@ function WorkshopComponent:_crafting_complete()
    self._current_status = nil  
    self:_produce_outputs()
 
-   self._todo_list:chunk_complete(self._curr_order)
+   self._craft_order_list:chunk_complete(self._curr_order)
    self._curr_order = nil
 
 end
@@ -400,8 +401,8 @@ end
    ui. Other gameplay modules shouldn't actually be able
    to access the todo list.
 ]]
-function WorkshopComponent:ui_get_todo_list()
-   return self._todo_list
+function WorkshopComponent:ui_get_craft_order_list()
+   return self._craft_order_list
 end
 
 function WorkshopComponent:clear_the_bench()
@@ -418,5 +419,10 @@ function WorkshopComponent:finish_construction(faction, outbox)
    self._outbox_entity = outbox
 end
 
+function WorkshopComponent:_create_scheduler(crafter)
+   self._scheduler = stonehearth.tasks:create_scheduler()
+                        :set_activity('stonehearth:craft_item')
+                        :join(crafter)
+end
 
 return WorkshopComponent

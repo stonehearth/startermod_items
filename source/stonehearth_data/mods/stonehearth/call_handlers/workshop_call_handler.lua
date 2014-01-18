@@ -237,7 +237,9 @@ function WorkshopCallHandler:create_outbox(session, response, location, size, gh
 
    -- todo: stick this in a taskmaster manager somewhere so we can show it (and cancel it!)
    local CreateWorkshopTaskMaster = require 'services.tasks.task_masters.create_workshop'   
-   CreateWorkshopTaskMaster(ghost_workshop, outbox_entity)
+   local scheduler = stonehearth.tasks:get_scheduler('stonehearth:workers', session.faction)
+   local task_master = CreateWorkshopTaskMaster(scheduler, ghost_workshop, outbox_entity, session.faction)
+   task_master:start()
    return true
 end
 
