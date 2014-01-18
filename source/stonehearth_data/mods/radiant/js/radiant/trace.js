@@ -3,7 +3,7 @@ var RadiantTrace;
 (function () {
    RadiantTrace = SimpleClass.extend({
 
-      _debug : true,
+      _debug : false,
 
       init: function() {
          this._traces = {};
