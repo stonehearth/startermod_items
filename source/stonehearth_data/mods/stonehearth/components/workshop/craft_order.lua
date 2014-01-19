@@ -31,7 +31,6 @@
    }
 ]]
 
-local object_tracker = stonehearth.object_tracker
 local IngredientList = require 'components.workshop.ingredient_list'
 
 local CraftOrder = class()
@@ -49,28 +48,23 @@ Create a new CraftOrder
    ingredients:TODO: the ingredients chosen by the user for the object
 ]]
 
-function CraftOrder:__init(recipe, enabled, condition, workshop)
+function CraftOrder:__init(recipe, condition, faction, on_change_cb)
    self._id = craft_order_id
    craft_order_id = craft_order_id + 1
 
+   self._enabled = true
+   self._is_crafting = false
    self._recipe = recipe
-   self._enabled = enabled
+   self._faction = faction
+   self._on_change_cb = on_change_cb   
+
    self._condition = condition
-   if self._condition.inventory_below then
-      self._condition.inventory_below = tonumber(self._condition.inventory_below)
+   if self._condition.type == "make" then
+      self._condition.amount = tonumber(self._condition.amount)
+      self._condition.remaining = self._condition.amount
+   elseif self._condition.type == "maintain" then
+      self._condition.at_least = tonumber(self._condition.at_least)
    end
-
-   self._workshop = workshop
-
-   --TODO: call a function to figure out the queue art from the ingredients
-   self._portrait = recipe.portrait
-
-   self._faction = self._workshop:get_entity():add_component('unit_info'):get_faction()
-   assert(self._faction and (#self._faction > 0), "workshop has no faction.")
-
-   self._status = {is_crafting = false}
-
-   self._ingredient_list_object = IngredientList(self._recipe.ingredients)
 end
 
 function CraftOrder:__tojson()
@@ -79,16 +73,9 @@ function CraftOrder:__tojson()
       recipe = self._recipe,
       condition = self._condition,
       enabled = self._enabled,
-      portrait = self._portrait,
-      status = self._status
+      portrait = self._recipe.portrait,
+      is_crafting = self._is_crafting
    }
-   if self._condition.amount then
-      self._condition.amount = tonumber(self._condition.amount)
-      json.remaining = self._condition.amount
-      if self._status.amount_made then
-         json.remaining = self._condition.amount - self._status.amount_made
-      end
-   end
    return radiant.json.encode(json)
 end
 
@@ -96,8 +83,7 @@ end
    Destructor??
 ]]
 function CraftOrder:destroy()
-   --Clean up any other things, for example:
-   self._pathfinder = nil
+   self._on_change_cb()
 end
 
 -- Getters and Setters
@@ -115,6 +101,7 @@ end
 
 function CraftOrder:toggle_enabled()
    self._enabled = not self._enabled
+   self._on_change_cb()
 end
 
 function CraftOrder:get_condition()
@@ -122,7 +109,10 @@ function CraftOrder:get_condition()
 end
 
 function CraftOrder:set_crafting_status(status)
-   self._status.is_crafting = status;
+   if status ~= self._is_crafting then
+      self._is_crafting = status
+      self._on_change_cb()
+   end
 end
 
 --[[
@@ -134,19 +124,16 @@ end
    returns: true if conditions are not yet met, false if conditions are met
 ]]
 function CraftOrder:should_execute_order()
-   if self._condition.amount then
-      return true
-   elseif self._condition.inventory_below > 0 then
-      local craftable_tracker = object_tracker:get_craftable_tracker(self._faction)
+   if self._condition.type == "make" then
+      return self._condition.remaining > 0 
+   elseif self._condition.type == "maintain" then
+      local craftable_tracker = stonehearth.object_tracker:get_craftable_tracker(self._faction)
       local target = self._recipe.produces[1].item
       local num_targets = craftable_tracker:get_quantity(target)
       if num_targets == nil then
          num_targets = 0
       end
-      if num_targets < self._condition.inventory_below then
-         return true
-      end
-      return false
+      return num_targets < self._condition.at_least
    end
 end
 
@@ -156,24 +143,11 @@ end
 --   they should be making more.
 --   @returns: true if the order is complete and can be removed from
 --             the list, false otherwise.
-function CraftOrder:check_complete()
-   self._ingredient_list_object = IngredientList(
-      self._workshop:get_entity(), 
-      self._workshop:get_items_on_bench(), 
-      self._recipe.ingredients)
-
-   self:set_crafting_status(false)
-
+function CraftOrder:is_complete()
    --check if we're done with the whole order
-   if self._condition.amount then
-      if not self._status.amount_made then
-         self._status.amount_made = 1
-      else
-         self._status.amount_made = self._status.amount_made + 1
-      end
-      return self._status.amount_made == self._condition.amount
-
-   elseif self._condition.inventory_below then
+   if self._condition.type == "make" then
+      return self._condition.remaining == 0
+   elseif self._condition.type == "maintain" then
       return false
    end
 

@@ -23,8 +23,8 @@ end
 
 function Task:destroy()
    if self._state ~= COMPLETED then
-      self:_set_state(COMPLETED)
       self._scheduler:_decommit_task(self)
+      self:_set_state(COMPLETED)
    end
 end
 

@@ -18,9 +18,6 @@ function AiService:__init()
    self._observer_registry = {}
    self._entities = {}
    self._ai_components = {}
-   self._scheduled = {}
-   self._co_to_ai_component = {}
-   self._waiting_until = {}
    
    for name, value in pairs(placeholders) do
       AiService[name] = value
@@ -36,50 +33,6 @@ function AiService:_on_event_loop(e)
    -- xxx: this is O(n) of entities with self. UG. make the intention notify the ai_component when its priorities change
    for id, ai_component in pairs(self._ai_components) do
       ai_component:restart_if_terminated()
-   end
-
-   for co, pred in pairs(self._waiting_until) do
-      local run = false
-      if type(pred) == 'function' then
-         run = pred(now)
-      elseif type(pred) == 'number' then
-         run = radiant.gamestate.now() >= pred
-      elseif pred == self.SUSPEND_THREAD then
-         run = false
-      else
-         assert(false)
-      end
-      if run then
-         self:_schedule(co)
-      end
-   end
-
-   local dead = {}
-   for co, _ in pairs(self._scheduled) do
-      -- run it
-      self._running_thread = co
-      local success, wait_obj = coroutine.resume(co)
-      self._running_thread = nil
-      
-      if not success then
-         radiant.check.report_thread_error(co, 'entity ai error: ' .. tostring(wait_obj))
-         self._scheduled[co] = nil
-      end
-
-      local status = coroutine.status(co)
-      if status == 'suspended' and wait_obj and wait_obj ~= self.KILL_THREAD then
-         self._scheduled[co] = nil
-         self._waiting_until[co] = wait_obj
-      else
-         table.insert(dead, co)
-      end
-   end
-  
-   for _, co in ipairs(dead) do
-      local ai_component = self._co_to_ai_component[co]
-      if ai_component then
-         ai_component:restart()
-      end
    end
 end
 
@@ -159,49 +112,6 @@ end
 function AiService:stop_ai(id)
    self._entities[id] = nil
    self._ai_components[id] = nil
-end
-
-function AiService:_create_thread(ai_component, fn)
-   local co = coroutine.create(fn)
-   self._scheduled[co] = true
-   self._co_to_ai_component[co] = ai_component
-   return co
-end
-
-function AiService:_resume_thread(co)
-   local wait_obj = self._waiting_until[co]
-   if wait_obj == self.SUSPEND_THREAD then
-      self:_schedule(co)
-   end
-end
-
--- removes the thread from the scheduler and the waiting thread
--- list.  If the thread is still running (terminate self?  is that
--- moral?), you still need to _complete_thread_termination later,
--- which will make sure the thread doesn't get rescheduled.
-function AiService:_terminate_thread(co)
-   if co then
-      self._waiting_until[co] = nil
-      self._scheduled[co] = nil
-      self._co_to_ai_component[co] = nil
-      
-      if self._running_thread ~= co then
-         log:info('killing non running thread... nothing to do.')
-      else 
-         log:info('killing running thread... yielding KILL_THREAD.')
-         coroutine.yield(self.KILL_THREAD)
-      end
-   end
-end
-
-function AiService:_wait_until(co, cb)
-   assert(self._scheduled[co] ~= nil)
-   self._waiting_until[co] = cb
-end
-
-function AiService:_schedule(co)
-   self._scheduled[co] = true
-   self._waiting_until[co] = nil
 end
 
 function AiService:format_activity(activity)

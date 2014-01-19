@@ -34,15 +34,6 @@ function CrafterComponent:set_info(info)
    end
 end
 
---[[
-   Tell the CrafterComponent to perform his work_effect (the animtion he does when he's crafting)
-   ai: the ai required for the entity to perform anything
-]]
-function CrafterComponent:perform_work_effect(ai)
-   ai:execute('stonehearth:run_effect', self._info.work_effect)
-end
-
-
 function CrafterComponent:set_workshop(workshop_component)
    self._workshop = workshop_component
 end

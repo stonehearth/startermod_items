@@ -78,12 +78,18 @@ App.StonehearthCrafterView = App.View.extend({
          var workshop = this.getWorkshop();
          var recipe = this.getCurrentRecipe();
 
-         var condition = {};
+         var condition;
          var type = $('input[name=conditionGroup]:checked').val();
          if (type == "make") {
-            condition.amount = $('#makeNumSelector').val();
-         } else {
-            condition.inventory_below = $('#mantainNumSelector').val();
+            condition = {
+               type: "make",
+               amount: this.$('#makeNumSelector').val(),
+            }            
+         } else if (type == "maintain") {
+            condition = {
+               type: "maintain",
+               at_least: this.$('#maintainNumSelector').val(),
+            }            
          }
 
          radiant.call_obj(workshop, 'add_order', recipe, condition);
@@ -145,10 +151,10 @@ App.StonehearthCrafterView = App.View.extend({
          $("#make").prop("checked", false);
       }
       if (maintainNumber) {
-         $("#mantainNumSelector").val(maintainNumber);
+         $("#maintainNumSelector").val(maintainNumber);
          $("#maintain").prop("checked", "checked");
       } else {
-         $("#mantainNumSelector").val("1");
+         $("#maintainNumSelector").val("1");
          $("#maintain").prop("checked", false);
       }
       if (!remaining && !maintainNumber) {

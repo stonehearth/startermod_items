@@ -12,6 +12,10 @@ RunEffectAction.args = {
       type = 'table',
       default = stonehearth.ai.NIL,
    },
+   times = {
+      type = 'number',
+      default = 1,
+   },
 }
 RunEffectAction.version = 2
 RunEffectAction.priority = 1
@@ -25,15 +29,18 @@ function RunEffectAction:run(ai, entity, args)
       self._trigger_fn = args.trigger_fn
       radiant.events.listen(entity, 'stonehearth:on_effect_trigger', self, self._on_effect_trigger)
    end
-   self._effect = radiant.effects.run_effect(entity, effect_name, nil, args.args)
-   self._effect:on_finished(function()
-         self._effect:stop()
-         self._effect = nil
-         ai:resume('effect %s finished', effect_name)
-      end)
+   local times = args.times
 
-   -- now suspend the thread.  we'll resume once the effect is over.
-   ai:suspend()
+   for i = 0, times do
+      self._effect = radiant.effects.run_effect(entity, effect_name, nil, args.args)
+      self._effect:on_finished(function()
+            self._effect:stop()
+            self._effect = nil
+            ai:resume('effect %s finished', effect_name)
+         end)
+      ai:suspend()
+   end
+   
    self._effect = nil 
 end
 

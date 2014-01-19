@@ -1,17 +1,15 @@
 local personality_service = require 'services.personality.personality_service'
 local PromoteWithTalisman = class()
 
-function PromoteWithTalisman:__init(person, talisman)
-   -- XXXXXXXXXX
-   -- need a 'create entity scheduler' thingy
-   local scheduler = stonehearth.tasks:create_scheduler()
-                        :set_activity('stonehearth:top')
-                        :join(person)
+function PromoteWithTalisman:run(thread, args)
+   local person = args.person
+   local talisman = args.talisman
 
    stonehearth.ai:add_action(person, 'stonehearth:actions:grab_promotion_talisman')
 
    local talisman_component = talisman:get_component('stonehearth:promotion_talisman')
    local workshop = talisman_component:get_workshop():get_entity();
+
    local trigger_fn = function(info)
       if info.event == "change_outfit" then
          self:_change_profession(person, talisman)
@@ -22,18 +20,10 @@ function PromoteWithTalisman:__init(person, talisman)
       workshop = workshop,
       trigger_fn = trigger_fn,
    }
-   local task = scheduler:create_task('stonehearth:grab_promotion_talisman', args)
-            :set_name('promote')
-            :once()
-            :start()
+   thread:run_task('stonehearth:grab_promotion_talisman', args)
 
-   radiant.events.listen(task, 'completed', function()
-         radiant.entities.destroy_entity(talisman)
-         stonehearth.ai:remove_action(person, 'stonehearth:actions:grab_promotion_talisman')
-         stonehearth.tasks:destroy_scheduler(scheduler)
-         return radiant.events.UNLISTEN
-      end)
-
+   radiant.entities.destroy_entity(talisman)
+   stonehearth.ai:remove_action(person, 'stonehearth:actions:grab_promotion_talisman')
 end
 
 function PromoteWithTalisman:_change_profession(person, talisman)
@@ -57,4 +47,4 @@ function PromoteWithTalisman:_change_profession(person, talisman)
    end
 end
 
-return PromoteWithTalisman
+stonehearth.tasks:register_compound_task('stonehearth:tasks:promote_with_talisman', PromoteWithTalisman)

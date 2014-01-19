@@ -207,7 +207,6 @@
          "actions:pickup_item_on_table_action" : "file(ai/actions/pickup_item_on_table_action.lua)",
          "actions:run_to_entity" : "file(ai/actions/run_to_entity_action.lua)",
          "actions:run_to_entity_type" : "file(ai/actions/run_to_entity_type_action.lua)",
-         "actions:check_craftable_action" : "file(ai/actions/check_craftable_action.lua)",
          "actions:craft_action" : "file(ai/actions/craft_action.lua)",
          "actions:fill_outbox_action" : "file(ai/actions/fill_outbox_action.lua)",
          "actions:gather_and_craft_action" : "file(ai/actions/gather_and_craft_action.lua)",

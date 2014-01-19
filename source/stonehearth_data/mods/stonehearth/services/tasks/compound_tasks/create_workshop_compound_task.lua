@@ -1,42 +1,26 @@
-local CollectIngredients = require 'services.tasks.task_masters.collect_ingredients_task_master'
+local CollectIngredients = require 'services.tasks.compound_tasks.collect_ingredients_compound_task'
 local CreateWorkshop = class()
 
-function CreateWorkshop:__init(scheduler, ghost_entity, outbox_entity, faction)
-   self._faction = faction
-   self._scheduler = scheduler
-   self._ghost_entity = ghost_entity
-   self._outbox_entity = outbox_entity
+function CreateWorkshop:start(scheduler, args)
+   self._faction = args.faction
+   self._ghost_entity = args.ghost_workshop
+   self._outbox_entity = args.outbox_entity
    
    local json = self._ghost_entity:get_component('stonehearth:ghost_item'):get_full_sized_json()
-   local ingredients = json.components['stonehearth:workshop'].ingredients
+   self._ingredients = json.components['stonehearth:workshop'].ingredients
    self._build_sound_effect = json.components['stonehearth:workshop'].build_sound_effect
-
-   self._gather_task_master = CollectIngredients(scheduler, ingredients, ghost_entity)
 end
 
-function CreateWorkshop:start()
-   radiant.events.listen(self._gather_task_master, 'completed', function()
-         self:_start_complete_construction_task()
-         return radiant.events.UNLISTEN
-      end)
-
-   self._gather_task_master:start()
-end
-
-function CreateWorkshop:_start_complete_construction_task()
-   local task = stonehearth.tasks:get_scheduler('stonehearth:workers', self._faction)
-                                      :create_task('stonehearth:complete_workshop_construction', {
-                                          ghost_workshop = self._ghost_entity,
-                                          sound_effect = self._build_sound_effect,
-                                      })
-                                      :set_name('finishing workshop')
-                                      :once()
-                                      :start()
-   radiant.events.listen(task, 'completed', function()
-         self:_complete_construction()
-         radiant.events.trigger(self, 'completed')
-         return radiant.events.UNLISTEN
-      end)
+function CreateWorkshop:run(thread, args)
+   thread:run_task('stonehearth:tasks:collect_ingredients', {
+      workshop = self._ghost_entity,
+      ingredients = self._ingredients,
+   })
+   thread:run_task('stonehearth:complete_workshop_construction', {
+      ghost_workshop = self._ghost_entity,
+      sound_effect = self._build_sound_effect,
+   })
+   self:_complete_construction()
 end
 
 function CreateWorkshop:_complete_construction()
@@ -58,4 +42,5 @@ function CreateWorkshop:_complete_construction()
    stonehearth.analytics:send_design_event('game:place_workshop', workshop_entity)
 end
 
-return CreateWorkshop
+stonehearth.tasks:register_compound_task('stonehearth:tasks:create_workshop', CreateWorkshop)
+

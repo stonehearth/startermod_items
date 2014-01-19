@@ -18,5 +18,5 @@ stonehearth.build = get_service('build')
 stonehearth.game_master = get_service('game_master')
 stonehearth.analytics = get_service('analytics')
 stonehearth.tasks = get_service('tasks')
-
+stonehearth.threads = get_service('threads')
 return stonehearth

@@ -10,11 +10,10 @@ function AIComponent:__init(entity)
    self._observers = {}
    self._action_index = {}
    self._execution_count = 0
-   self._ai_system = stonehearth.ai
 end
 
 function AIComponent:extend(json)
-   self._ai_system:start_ai(self._entity, json)
+   stonehearth.ai:start_ai(self._entity, json)
 end
 
 function AIComponent:get_entity()
@@ -31,7 +30,7 @@ function AIComponent:get_debug_info()
 end
 
 function AIComponent:destroy()
-   self._ai_system:stop_ai(self._entity:get_id(), self)
+   stonehearth.ai:stop_ai(self._entity:get_id(), self)
 
    self._dead = true
    self:_terminate_thread()
@@ -92,7 +91,7 @@ end
 -- shouldn't need this...  threads should restart themselves... but
 -- what if we die while trying to restart?  ug!
 function AIComponent:restart_if_terminated()
-   if not self._co then
+   if not self._thread then
       self:restart()
    end
 end
@@ -103,7 +102,7 @@ function AIComponent:restart()
    radiant.check.is_entity(self._entity)
    self:_terminate_thread()
    
-   self._co = self._ai_system:_create_thread(self, function()
+   self._thread = stonehearth.threads:start_thread(function()
       self._execution_frame = self:spawn('stonehearth:top')
       while not self._dead do
          self._execution_frame:loop()
@@ -136,14 +135,14 @@ function AIComponent:_terminate_thread()
    if self._execution_frame then
       self._execution_frame:destroy('terminating thread')
    end
-   if self._co then
-      local co = self._co
-      self._co = nil
+   if self._thread then
+      local thread = self._thread
+      self._thread = nil
       self._resume_error = nil
       
       -- If we're calling _terminate_thread() from the co-routine itself,
       -- this function MAY NOT RETURN!
-      self._ai_system:_terminate_thread(co)      
+      stonehearth.threads:terminate_thread(self.thread)
    end
 end
 
@@ -155,7 +154,8 @@ function AIComponent:abort(reason)
 end
 
 function AIComponent:suspend_thread()
-   coroutine.yield(self._ai_system.SUSPEND_THREAD)
+   assert(self._thread)
+   stonehearth.threads:suspend_thread(self._thread)
    if self._resume_error then
       local msg = self._resume_error
       self._resume_error = nil
@@ -164,7 +164,8 @@ function AIComponent:suspend_thread()
 end
 
 function AIComponent:resume_thread()
-   self._ai_system:_resume_thread(self._co)
+   assert(self._thread)
+   stonehearth.threads:resume_thread(self._thread)
 end
 
 return AIComponent

@@ -12,7 +12,7 @@ function ResourceCallHandler:harvest_tree(session, response, tree)
    local id = tree:get_id()
    if not all_harvest_tasks[id] then
       all_harvest_tasks[id] = stonehearth.tasks:get_scheduler('stonehearth:workers', session.faction)
-                                :create_task('stonehearth:chop_tree', { tree = tree })
+                                :create_task('stonehearth:chop_tree', { tree = tree }) 
                                 :set_name('chop tree task')
                                 :once()
                                 :start()

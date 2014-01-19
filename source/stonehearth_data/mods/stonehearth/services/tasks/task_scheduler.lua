@@ -1,4 +1,5 @@
 local Task = require 'services.tasks.task'
+local CompoundTask = require 'services.tasks.compound_task'
 local RunTaskActionFactory = require 'services.tasks.run_task_action_factory'
 local TaskScheduler = class()
 
@@ -6,6 +7,7 @@ function TaskScheduler:__init(name)
    self._name = name
    self._log = radiant.log.create_logger('tasks', name)
    self._tasks = {}
+   self._compound_tasks = {}
    self._entities = {}
    self._priority = 3
    self._log:debug('creating new task scheduler')
@@ -16,12 +18,17 @@ function TaskScheduler:get_name()
 end
 
 function TaskScheduler:destroy()
+   for compound_task, _ in pairs(self._compound_tasks) do
+      compound_task:destroy()
+   end
+   self._compound_tasks = {}
+
    for id, task in pairs(self._tasks) do
       task:destroy()
    end
    assert(radiant.util.table_is_empty(self._tasks))
    for id, entry in pairs(self._entities) do
-      assert(radiant.util.table_is_empty(entry.run_action_tasks))
+      assert(radiant.util.table_is_empty(entry.run_task_actions))
       self:leave(entry.entity)
    end
 end
@@ -32,15 +39,22 @@ function TaskScheduler:set_activity(name, args)
    return self
 end
 
-function TaskScheduler:create_task(name, args)
+function TaskScheduler:create_task(name, args, co)
    assert(type(name) == 'string')
    assert(args == nil or type(args) == 'table')
-   
+
    local activity = {
       name = name,
       args = args or {}
    }
-   return Task(self, activity)
+   
+   local compound_task_ctor = stonehearth.tasks:get_compound_task(name)
+   if compound_task_ctor then
+      local ct = CompoundTask(self, compound_task_ctor, activity, co)
+      self._compound_tasks[ct] = true
+      return ct
+   end
+   return Task(self, activity, co)
 end
 
 function TaskScheduler:_commit_task(task)
