@@ -48,13 +48,22 @@ function TaskScheduler:create_task(name, args, co)
       args = args or {}
    }
    
-   local compound_task_ctor = stonehearth.tasks:get_compound_task(name)
-   if compound_task_ctor then
-      local ct = CompoundTask(self, compound_task_ctor, activity, co)
-      self._compound_tasks[ct] = true
-      return ct
-   end
-   return Task(self, activity, co)
+   return Task(self, activity)
+end
+
+function TaskScheduler:create_orchestrator(name, args, co)
+   assert(type(name) == 'string')
+   assert(args == nil or type(args) == 'table')
+
+   local activity = {
+      name = name,
+      args = args or {}
+   }
+   
+   local compound_task_ctor = radiant.mods.load_script(name)
+   local ct = CompoundTask(self, compound_task_ctor, activity, co)
+   self._compound_tasks[ct] = true
+   return ct
 end
 
 function TaskScheduler:_commit_task(task)

@@ -67,6 +67,9 @@ function CraftOrderList:change_order_position(new, id)
    self:_on_order_list_changed()
 end
 
+function CraftOrderList:remove_order(order)
+   return self:remove_order_id(order:get_id())
+end
 
 --[[
    Remove a craft_order given its ID. For example, use

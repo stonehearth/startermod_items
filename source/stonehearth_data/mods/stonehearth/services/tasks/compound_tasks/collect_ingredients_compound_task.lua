@@ -16,8 +16,8 @@ function CollectIngredients:run(thread, args)
          workshop = self._workshop,
          ingredient_list = self._ingredients,
       }
-      thread:run_task('stonehearth:collect_ingredient', args)
+      thread:execute('stonehearth:collect_ingredient', args)
    end
 end
 
-stonehearth.tasks:register_compound_task('stonehearth:tasks:collect_ingredients', CollectIngredients)
+return CollectIngredients

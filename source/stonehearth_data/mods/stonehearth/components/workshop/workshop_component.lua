@@ -6,7 +6,6 @@
 
 ]]
 
--- All WorkshopComponents have a ToDo list through which the user instructs the crafter
 local Point3 = _radiant.csg.Point3
 local CraftOrderList = require 'components.workshop.craft_order_list'
 
@@ -202,7 +201,7 @@ function WorkshopComponent:_create_promotion_talisman(faction)
    return self._promotion_talisman_entity
 end
 
-function WorkshopComponent:get_outbox_entity()
+function WorkshopComponent:get_outbox()
    return self._outbox_entity
 end
 
@@ -234,18 +233,25 @@ function WorkshopComponent:ui_get_craft_order_list()
    return self._craft_order_list
 end
 
-function WorkshopComponent:finish_construction(faction, outbox)
+function WorkshopComponent:finish_construction(faction, outbox_entity)
    self._entity:add_component('unit_info'):set_faction(faction)
    
    -- Place the promotion talisman on the workbench, if there is one
    self:_create_promotion_talisman(faction)
-   self._outbox_entity = outbox
+   self._outbox_entity = outbox_entity
 end
 
 function WorkshopComponent:_create_scheduler(crafter)
    self._scheduler = stonehearth.tasks:create_scheduler()
-                        :set_activity('stonehearth:craft_item')
+                        :set_activity('stonehearth:top')
                         :join(crafter)
+                        
+   self._scheduler:create_orchestrator('stonehearth:tasks:work_at_workshop', {
+         workshop = self._entity,
+         craft_order_list = self._craft_order_list
+      })
+      :start()
+   
 end
 
 return WorkshopComponent

@@ -1,4 +1,3 @@
-local CollectIngredients = require 'services.tasks.compound_tasks.collect_ingredients_compound_task'
 local CreateWorkshop = class()
 
 function CreateWorkshop:start(scheduler, args)
@@ -12,11 +11,11 @@ function CreateWorkshop:start(scheduler, args)
 end
 
 function CreateWorkshop:run(thread, args)
-   thread:run_task('stonehearth:tasks:collect_ingredients', {
+   thread:orchestrate('stonehearth:tasks:collect_ingredients', {
       workshop = self._ghost_entity,
       ingredients = self._ingredients,
    })
-   thread:run_task('stonehearth:complete_workshop_construction', {
+   thread:orchestrate('stonehearth:complete_workshop_construction', {
       ghost_workshop = self._ghost_entity,
       sound_effect = self._build_sound_effect,
    })
@@ -42,5 +41,4 @@ function CreateWorkshop:_complete_construction()
    stonehearth.analytics:send_design_event('game:place_workshop', workshop_entity)
 end
 
-stonehearth.tasks:register_compound_task('stonehearth:tasks:create_workshop', CreateWorkshop)
-
+return CreateWorkshop

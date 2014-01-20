@@ -34,6 +34,10 @@ function CrafterComponent:set_info(info)
    end
 end
 
+function CrafterComponent:get_work_effect()
+   return self._info.work_effect
+end
+
 function CrafterComponent:set_workshop(workshop_component)
    self._workshop = workshop_component
 end

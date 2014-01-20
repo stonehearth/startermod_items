@@ -39,14 +39,31 @@ function CompoundTask:start()
    return self
 end
 
-function CompoundTask:run_task(activity, args)
+function CompoundTask:suspend()
+   coroutine.yield()
+end
+
+function CompoundTask:resume()
+   coroutine.resume(self._co)
+end
+
+function CompoundTask:execute(activity, args)
+   local task = self._scheduler:create_task(activity, args)
+                                    :once()
+   self:_run(task)
+end
+
+function CompoundTask:orchestrate(activity, args)
+   local orchestrator = self._scheduler:create_orchestrator(activity, args)
+                                    :once()
+   self:_run(orchestrator)
+end
+
+function CompoundTask:_run(task)
    assert(self._co)
 
    local finished = false
-
-   local task = self._scheduler:create_task(activity, args)
-                       :once()
-                      
+                     
    radiant.events.listen(task, 'completed', function()
          finished = true
          coroutine.resume(self._co)

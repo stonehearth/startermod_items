@@ -31,7 +31,7 @@ function RunEffectAction:run(ai, entity, args)
    end
    local times = args.times
 
-   for i = 0, times do
+   for i = 1, times do
       self._effect = radiant.effects.run_effect(entity, effect_name, nil, args.args)
       self._effect:on_finished(function()
             self._effect:stop()

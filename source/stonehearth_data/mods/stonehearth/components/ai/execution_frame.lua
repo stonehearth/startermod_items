@@ -185,7 +185,7 @@ function ExecutionFrame:on_unit_state_change(unit, state)
 end
 
 function ExecutionFrame:start_thinking()
-   self._log:spam('start_thinking (current unit:%s)', self:_get_active_unit_name())
+   self._log:spam('start_thinking (current unit:%s, %d units)', self:_get_active_unit_name(), #self._execution_units)
    assert(not self._co)
    assert(not self._co_running)
    assert(self._state == STOPPED)

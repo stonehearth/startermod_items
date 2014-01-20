@@ -106,10 +106,20 @@ local CURRENT = {
    end
 }
 
+local ENTITY = {
+   eval = function (p, compound_action)
+      return compound_action:_get_entity()
+   end,
+   tostring = function()
+      return 'ENTITY'
+   end
+}
+
 return {
    ARGS = create_placeholder(ARGS),
    PREV = create_placeholder(PREV),
    BACK = create_placeholder(BACK),
    CURRENT = create_placeholder(CURRENT),
+   ENTITY = create_placeholder(ENTITY),
    XFORMED_ARG = create_placeholder(XFORMED_ARG),
 }

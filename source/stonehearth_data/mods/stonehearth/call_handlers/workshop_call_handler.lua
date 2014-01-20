@@ -8,12 +8,6 @@ local log = radiant.log.create_logger('call_handlers.worker')
 local priorities = require('constants').priorities.worker_task
 local IngredientList = require 'components.workshop.ingredient_list'
 
--- it certainly makes more sense to break this up into client and server
--- call handlers, but till will suffice for now
-if radiant.is_server then
-   require 'services.tasks.compound_tasks.create_workshop_compound_task'
-end
-
 --- Client side object to add a new bench to the world.  this method is invoked
 --  by POSTing to the route for this file in the manifest.
 function WorkshopCallHandler:choose_workbench_location(session, response, workbench_entity)
@@ -242,8 +236,7 @@ function WorkshopCallHandler:create_outbox(session, response, location, size, gh
 
    -- todo: stick this in a taskmaster manager somewhere so we can show it (and cancel it!)
    local scheduler = stonehearth.tasks:get_scheduler('stonehearth:workers', session.faction)
-
-   scheduler:create_task('stonehearth:tasks:create_workshop', {
+   scheduler:create_orchestrator'stonehearth:tasks:create_workshop', {
          faction = session.faction,
          ghost_workshop = ghost_workshop,
          outbox_entity = outbox_entity,

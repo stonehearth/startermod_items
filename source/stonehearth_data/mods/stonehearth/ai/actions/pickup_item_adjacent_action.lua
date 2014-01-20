@@ -7,7 +7,7 @@ PickupItemAdjacent.args = {
    item = Entity
 }
 PickupItemAdjacent.version = 2
-PickupItemAdjacent.priority = 5
+PickupItemAdjacent.priority = 1
 
 local log = radiant.log.create_logger('actions.pickup_item')
 

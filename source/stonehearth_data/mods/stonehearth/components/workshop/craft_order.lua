@@ -137,6 +137,12 @@ function CraftOrder:should_execute_order()
    end
 end
 
+function CraftOrder:on_item_created()
+   if self._condition.type == "make" then
+      self._condition.remaining = self._condition.remaining - 1
+   end
+end
+
 --- Call whenever a part of an order is finished. (ie, built 2 of 4)
 --   Used to determine if an order is fully complete. Inventory_below orders
 --   are never complete, as the crafter is always monitoring if

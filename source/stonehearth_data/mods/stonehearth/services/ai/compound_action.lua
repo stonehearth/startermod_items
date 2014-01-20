@@ -31,6 +31,7 @@ end
 
 function CompoundAction:start_thinking(ai, entity, args)
    self._ai = ai
+   self._entity = entity
    self._args = args
    assert(#self._run_frames == 0)
    assert(#self._think_frames == 0)
@@ -234,6 +235,10 @@ end
 
 function CompoundAction:_get_current_entity_state()
    return self._ai.CURRENT
+end
+
+function CompoundAction:_get_entity()
+   return self._entity
 end
 
 function CompoundAction:_spam_current_state(format, ...)

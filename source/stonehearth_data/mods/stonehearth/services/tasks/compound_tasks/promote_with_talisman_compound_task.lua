@@ -47,4 +47,5 @@ function PromoteWithTalisman:_change_profession(person, talisman)
    end
 end
 
-stonehearth.tasks:register_compound_task('stonehearth:tasks:promote_with_talisman', PromoteWithTalisman)
+return PromoteWithTalisman
+

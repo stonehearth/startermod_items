@@ -38,7 +38,9 @@
                "stonehearth:actions:reserve_stockpile_space",
                "stonehearth:actions:worker_place_action",
                "stonehearth:actions:light_firepit",               
-               "stonehearth:actions:shear_sheep_action"
+               "stonehearth:actions:shear_sheep_action",
+               "stonehearth:actions:collect_ingredient",
+               "stonehearth:actions:complete_workshop_construction"
             ]
          }
       }
