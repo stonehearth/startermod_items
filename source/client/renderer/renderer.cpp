@@ -63,7 +63,7 @@ Renderer::Renderer() :
    resize_pending_(false),
    drawWorld_(false)
 {
-   terrainConfig_ = res::ResourceManager2::GetInstance().LookupJson("stonehearth/renderers/terrain/config.json");
+   terrainConfig_ = res::ResourceManager2::GetInstance().LookupJson("stonehearth/renderers/terrain/terrain_renderer.json");
    GetConfigOptions();
 
    assert(renderer_.get() == nullptr);
