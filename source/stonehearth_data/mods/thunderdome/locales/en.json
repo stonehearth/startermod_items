@@ -23,7 +23,6 @@
    "settings_gfx_msaa" : "Anti-Aliasing Level (Requires Restart)",
    "settings_gfx_shadows" : "Shadow Detail",
    "settings_gfx_drawdistance" : "Draw Distance",
-   "settings_gfx_fasthilite" : "Fast Selection Effect",
 
    "settings_shadow_0" : "off",
    "settings_shadow_1" : "just a touch",

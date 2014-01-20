@@ -67,6 +67,15 @@ context SELECTED_SCREENSPACE
   CullMode = None;
 }
 
+context SELECTED_FAST
+{
+  VertexShader = compile GLSL VS_GENERAL;
+  PixelShader = compile GLSL FS_SELECTED_FAST;
+  ZWriteEnable = false;
+  BlendMode = Add;
+  CullMode = None;
+}
+
 context SELECTED_SCREENSPACE_OUTLINER
 {
   VertexShader = compile GLSL VS_SELECTED_SCREENSPACE_OUTLINER;
@@ -340,4 +349,13 @@ void main(void)
 {
   gl_FragColor = compute_outline_color(outlineSampler, texCoords);
   gl_FragDepth = compute_outline_depth(outlineDepth, texCoords);
+}
+
+
+[[FS_SELECTED_FAST]]
+// =================================================================================================
+
+void main( void )
+{
+  gl_FragColor = vec4(0.5, 0.4, 0.0, 1.0);
 }

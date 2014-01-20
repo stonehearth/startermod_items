@@ -73,6 +73,7 @@ struct RendererConfig {
    RendererConfigEntry<int>  num_msaa_samples;
    RendererConfigEntry<int>  shadow_resolution;
    RendererConfigEntry<float> draw_distance;
+   RendererConfigEntry<bool> use_fast_hilite;
 
    RendererConfigEntry<int> screen_width;
    RendererConfigEntry<int> screen_height;

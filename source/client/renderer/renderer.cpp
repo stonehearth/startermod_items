@@ -404,6 +404,8 @@ void Renderer::GetConfigOptions()
 
    config_.last_window_x.value = config.Get("renderer.last_window_x", 0);
    config_.last_window_y.value = config.Get("renderer.last_window_y", 0);
+
+   config_.use_fast_hilite.value = config.Get("renderer.use_fast_hilite", false);
 }
 
 void Renderer::ApplyConfig(const RendererConfig& newConfig, bool persistConfig)
@@ -471,6 +473,7 @@ void Renderer::ApplyConfig(const RendererConfig& newConfig, bool persistConfig)
 
       config.Set("renderer.last_window_x", config_.last_window_x.value);
       config.Set("renderer.last_window_y", config_.last_window_y.value);
+      config.Set("renderer.use_fast_hilite", config_.use_fast_hilite.value);
    }
 
    // We just flushed/loaded our pipeline, so don't forget to reset the draw bits!
@@ -931,7 +934,14 @@ void Renderer::SetDrawWorld(bool drawWorld)
    SetStageEnable("Clouds", drawWorld);
    SetStageEnable("Fog", drawWorld);
    SetStageEnable("Translucent", drawWorld);
-   SetStageEnable("Selected", drawWorld);
+
+   if (config_.use_fast_hilite.value) {
+      SetStageEnable("Selected", false);
+      SetStageEnable("Selected_Fast", drawWorld);
+   } else {
+      SetStageEnable("Selected_Fast", false);
+      SetStageEnable("Selected", drawWorld);
+   }
 }
 
 void* Renderer::GetNextUiBuffer()

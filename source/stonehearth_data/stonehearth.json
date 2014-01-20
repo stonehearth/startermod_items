@@ -16,6 +16,7 @@
       "screen_width" : 1920,
       "screen_height" : 1080,
 
-      "enable_gl_logging" : false
+      "enable_gl_logging" : false,
+      "use_fast_hilite" : false
    }
 }
