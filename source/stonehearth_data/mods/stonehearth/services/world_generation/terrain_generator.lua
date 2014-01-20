@@ -106,7 +106,7 @@ function TerrainGenerator:generate_tile(terrain_type, blueprint, x, y)
 
    micro_map = self:_create_micro_map(terrain_type, blueprint, x, y)
    micro_map_timer:stop()
-   log:debug('Micromap generation time: %.3fs', micro_map_timer:seconds())
+   log:info('Micromap generation time: %.3fs', micro_map_timer:seconds())
 
    tile_map = self:_create_tile_map(micro_map)
    tile_timer:stop()
@@ -630,7 +630,6 @@ function TerrainGenerator:_quantize_height_map(height_map, is_micro_map)
    end
 end
 
--- TODO: replace this with a generalized quantizer class
 function TerrainGenerator:_quantize_value(value, enable_fancy_quantizer)
    local quantized_value = self._quantizer:quantize(value)
 
