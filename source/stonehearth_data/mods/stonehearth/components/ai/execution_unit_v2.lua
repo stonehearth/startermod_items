@@ -133,7 +133,13 @@ function ExecutionUnitV2:__execute(name, args)
    self._log:spam('execute %s %s called', name, stonehearth.ai:format_args(args))
    assert(not self._execute_frame)
    self._execute_frame = self._ai_component:spawn_debug_route(self._debug_route, name, args)
-   self._execute_frame:set_current_entity_state(self._current_entity_state)
+   
+   -- we have to capture, right?  the current entity state may be extremely stale...
+   -- like if we're executing from a run (which is the only place we *can* execute from,
+   -- right?)
+   --self._execute_frame:set_current_entity_state(self._current_entity_state)
+   self._execute_frame:capture_entity_state()
+   
    self._execute_frame:run()
    
    -- execute_frame can be nil here if we got terminated early, usually because
@@ -243,7 +249,7 @@ function ExecutionUnitV2:is_active()
 end
 
 function ExecutionUnitV2:initialize(args)
-   self._log:spam('initialize')
+   self._log:debug('initialize')
 
    if self:_verify_arguments(args, self._action.args) then
       self._think_output = nil
@@ -259,7 +265,7 @@ end
 
 -- used by the compound action...
 function ExecutionUnitV2:short_circuit_thinking()
-   self._log:spam('short_circuit_thinking')
+   self._log:debug('short_circuit_thinking')
    assert(not self._thinking)
    
    self._log:spam('short-circuiting think by request.  going right to ready!')
@@ -270,7 +276,7 @@ function ExecutionUnitV2:short_circuit_thinking()
 end
 
 function ExecutionUnitV2:start_thinking(current_entity_state)
-   self._log:spam('start_thinking (state:%s processing:%s)', self._state, tostring(self._thinking))
+   self._log:debug('start_thinking (state:%s processing:%s)', self._state, tostring(self._thinking))
 
    if self._thinking then
       self._log:spam('call to start_thinking while already thinking.  stopping...')
@@ -301,7 +307,7 @@ function ExecutionUnitV2:start_thinking(current_entity_state)
 end
 
 function ExecutionUnitV2:stop_thinking()
-   self._log:spam('stop_thinking (state:%s processing:%s)', tostring(self._state), tostring(self._thinking))
+   self._log:debug('stop_thinking (state:%s processing:%s)', tostring(self._state), tostring(self._thinking))
 
    self:_spam_current_state('before action stop_thinking')
    if self._thinking then
@@ -323,7 +329,7 @@ function ExecutionUnitV2:stop_thinking()
 end
 
 function ExecutionUnitV2:start()
-   self._log:spam('start')
+   self._log:debug('start')
    assert(self:is_runnable())
    assert(self._state == READY)
 
@@ -336,7 +342,7 @@ function ExecutionUnitV2:start()
 end
 
 function ExecutionUnitV2:run()
-   self._log:spam('run')
+   self._log:debug('run')
    assert(self:get_priority() > 0)
    assert(self._state == STARTED)
    
@@ -355,7 +361,7 @@ function ExecutionUnitV2:run()
 end
 
 function ExecutionUnitV2:stop()
-   self._log:spam('stop')
+   self._log:debug('stop')
    
    if self:_in_state(RUNNING, FINISHED) then
       self._log:debug('stop requested.')
@@ -438,7 +444,7 @@ function ExecutionUnitV2:get_current_entity_state()
 end
 
 function ExecutionUnitV2:_set_state(state)
-   self._log:spam('state change %s -> %s', tostring(self._state), state)
+   self._log:debug('state change %s -> %s', tostring(self._state), state)
    assert(state and self._state ~= state)
    
    self._state = state

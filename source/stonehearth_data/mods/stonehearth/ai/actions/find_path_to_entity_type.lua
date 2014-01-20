@@ -39,7 +39,7 @@ function FindPathToEntityType:_consider_destination(ai, entity, target)
    if self._filter_fn(target) then
       local lease = target:get_component('stonehearth:lease_component')
       if lease and not lease:can_acquire('ai_reservation', entity) then
-         self._log:spam('ignoring %s (cannot acquire ai lease)', tostring(target))
+         self._log:debug('ignoring %s (cannot acquire ai lease)', tostring(target))
          return
       end
       self._log:spam('adding entity %s to pathfinder', tostring(target))
@@ -76,7 +76,7 @@ function FindPathToEntityType:_start_pathfinder(ai, entity)
    local solved = function(path)
       self._solution_path = path
       self._solution_entity_id = path:get_destination():get_id()
-      self._log:spam('solved!')
+      self._log:debug('solved!')
       ai:set_think_output({path = path, destination = path:get_destination()})
    end
    

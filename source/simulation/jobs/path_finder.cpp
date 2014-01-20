@@ -137,7 +137,7 @@ void PathFinder::AddDestination(om::EntityRef e)
             PF_LOG(5) << "calling lua solution callback";
             ok = lua::ScriptHost::CoerseToBool(dst_filter_(e));
             PF_LOG(5) << "finished calling lua solution callback";
-         } catch (std::exception& e) {
+         } catch (std::exception&) {
          }
          if (!ok) {
             return;

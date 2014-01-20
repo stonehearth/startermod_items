@@ -1,6 +1,7 @@
 #include "pch.h"
 #include "path.h"
 #include "om/entity.h"
+#include "om/components/mob.ridl.h"
 
 using namespace ::radiant;
 using namespace ::radiant::simulation;
@@ -50,3 +51,22 @@ std::ostream& simulation::operator<<(std::ostream& os, const Path& in)
 {
    return in.Format(os);
 } 
+
+csg::Point3 Path::GetStartPoint() const
+{
+   return points_.empty() ? GetSourceLocation() : points_.front();
+}
+
+csg::Point3 Path::GetFinishPoint() const
+{
+   return points_.empty() ? GetSourceLocation() : points_.back();
+}
+
+csg::Point3 Path::GetSourceLocation() const
+{
+   om::EntityPtr source = source_.lock();
+   if (source) {
+      return source->GetComponent<om::Mob>()->GetWorldGridLocation();
+   }
+   return csg::Point3(0, 0, 0);
+}

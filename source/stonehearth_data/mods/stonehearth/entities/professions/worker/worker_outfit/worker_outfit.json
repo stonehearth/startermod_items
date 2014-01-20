@@ -36,11 +36,13 @@
                "stonehearth:actions:worker_task_dispatcher",
                "stonehearth:actions:restock_stockpile",
                "stonehearth:actions:reserve_stockpile_space",
-               "stonehearth:actions:worker_place_action",
+               "stonehearth:actions:place_item",
+               "stonehearth:actions:place_item_type",
                "stonehearth:actions:light_firepit",               
                "stonehearth:actions:shear_sheep_action",
                "stonehearth:actions:collect_ingredient",
-               "stonehearth:actions:complete_workshop_construction"
+               "stonehearth:actions:complete_workshop_construction",
+               "stonehearth:actions:replace_proxy_with_item"
             ]
          }
       }

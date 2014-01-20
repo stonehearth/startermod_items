@@ -91,7 +91,7 @@ end
 
 function ExecutionFrame:_add_execution_unit(key, entry)
    local name = tostring(type(key) == 'table' and key.name or key)
-   self._log:spam('adding new execution unit: %s', name)
+   self._log:debug('adding new execution unit: %s', name)
    
    assert(not self._execution_units[key])   
    local unit = stonehearth.ai:create_execution_unit(self._ai_component,
@@ -185,7 +185,7 @@ function ExecutionFrame:on_unit_state_change(unit, state)
 end
 
 function ExecutionFrame:start_thinking()
-   self._log:spam('start_thinking (current unit:%s, %d units)', self:_get_active_unit_name(), #self._execution_units)
+   self._log:debug('start_thinking (current unit:%s, %d units)', self:_get_active_unit_name(), #self._execution_units)
    assert(not self._co)
    assert(not self._co_running)
    assert(self._state == STOPPED)
@@ -201,7 +201,7 @@ function ExecutionFrame:start_thinking()
 end
 
 function ExecutionFrame:stop_thinking()
-   self._log:spam('stop_thinking (state:%s)', self._state)
+   self._log:debug('stop_thinking (state:%s)', self._state)
    
    self:_buffer_state_changes(function()   
          if self._state == STOPPED  then
@@ -218,14 +218,16 @@ function ExecutionFrame:stop_thinking()
 end
 
 function ExecutionFrame:start()
-   self._log:spam('start')
+   self._log:debug('start')
    assert(not self._co)
    assert(not self._co_running)
    assert(self._state == READY)
    assert(self._active_unit)
 
    self:_buffer_state_changes(function()   
+         assert(self._active_unit)
          self:_set_state(STARTING)
+         
          self._current_entity_state = nil
          for _, unit in pairs(self._execution_units) do
             if unit == self._active_unit then
@@ -241,6 +243,7 @@ function ExecutionFrame:start()
          end
          
          assert(not self._co)
+          assert(self._active_unit)
          self._log:spam('creating new thread for %s', self._active_unit:get_name())
          self._co = coroutine.create(function()
                self._active_unit:run()
@@ -250,7 +253,7 @@ function ExecutionFrame:start()
 end
 
 function ExecutionFrame:set_current_entity_state(state)
-   self._log:spam('set_current_entity_state')
+   self._log:debug('set_current_entity_state')
    assert(state)
    assert(self._state == STOPPED)
    for key, value in pairs(state) do
@@ -276,7 +279,7 @@ function ExecutionFrame:_clone_entity_state()
 end
 
 function ExecutionFrame:run()
-   self._log:spam('begin run')
+   self._log:debug('begin run')
    
    if self._state == STOPPED then
       self:start_thinking()
@@ -297,7 +300,7 @@ function ExecutionFrame:run()
 end
 
 function ExecutionFrame:capture_entity_state()
-   self._log:spam('capture_entity_state')
+   self._log:debug('capture_entity_state')
    assert(self:_in_state(STOPPED))
    
    local state = {
@@ -311,6 +314,7 @@ function ExecutionFrame:loop()
    while true do
       self:capture_entity_state()
       self:run()
+      assert(self._active_unit)
       self._active_unit:stop()
       self:_set_active_unit(nil)
       
@@ -325,7 +329,7 @@ function ExecutionFrame:loop()
 end
 
 function ExecutionFrame:stop()
-   self._log:spam('stop')
+   self._log:debug('stop')
 
    self:_buffer_state_changes(function()      
          if self._state ~= STOPPED then
@@ -505,7 +509,7 @@ end
 
 function ExecutionFrame:_set_state(state)
    local current_state = self._modified_state.state or self._state
-   self._log:spam('state change %s -> %s (throttle depth: %d)', tostring(current_state), state, self._buffer_changes_depth)
+   self._log:debug('state change %s -> %s (throttle depth: %d)', tostring(current_state), state, self._buffer_changes_depth)
 
    --[[
    if self._buffer_changes_depth > 0 then

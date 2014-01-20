@@ -1,10 +1,14 @@
+local Entity = _radiant.om.Entity
 local Point3 = _radiant.csg.Point3
 local DropCarryingAdjacent = class()
 
 DropCarryingAdjacent.name = 'drop carrying adjacent'
 DropCarryingAdjacent.does = 'stonehearth:drop_carrying_adjacent'
 DropCarryingAdjacent.args = {
-   location = Point3      -- where to drop it
+   location = Point3,      -- where to drop it
+}
+DropCarryingAdjacent.think_output = {
+   item = Entity,          -- what got dropped
 }
 DropCarryingAdjacent.version = 2
 DropCarryingAdjacent.priority = 1
@@ -12,8 +16,9 @@ DropCarryingAdjacent.priority = 1
 function DropCarryingAdjacent:start_thinking(ai, entity, args)
    if ai.CURRENT.carrying ~= nil then
       -- todo: ASSERT we're adjacent!
+      local carrying = ai.CURRENT.carrying
       ai.CURRENT.carrying = nil
-      ai:set_think_output()
+      ai:set_think_output({ item = carrying })
    end
 end
 

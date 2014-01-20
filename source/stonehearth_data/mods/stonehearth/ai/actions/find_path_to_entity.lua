@@ -18,8 +18,6 @@ FindPathToEntity.think_output = {
 FindPathToEntity.version = 2
 FindPathToEntity.priority = 1
 
-local log = radiant.log.create_logger('ai.find_path_to_entity')
-
 function FindPathToEntity:start_thinking(ai, entity, args)
    local destination = args.finish
    
@@ -36,12 +34,12 @@ function FindPathToEntity:start_thinking(ai, entity, args)
       end)
 
    local solved = function(path)
-      ai:get_log():spam('solved! %s', tostring(path))
+      ai:get_log():debug('solved! %s', tostring(path))
       self._pathfinder:stop()
       self._pathfinder = nil
       ai:set_think_output({path = path})
    end
-   log:spam('finding path from CURRENT.location %s to %s', tostring(ai.CURRENT.location), tostring(destination))
+   ai:get_log():debug('finding path from CURRENT.location %s to %s', tostring(ai.CURRENT.location), tostring(destination))
    self._pathfinder = _radiant.sim.create_path_finder(entity, 'find path to entity')
                          :set_source(ai.CURRENT.location)
                          :add_destination(destination)
