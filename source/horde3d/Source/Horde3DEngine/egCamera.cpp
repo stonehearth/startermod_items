@@ -218,7 +218,7 @@ float CameraNode::getParamF( int param, int compIdx )
 	case CameraNodeParams::FarPlaneF:
 		return _frustFar;
    case CameraNodeParams::FOVf:
-      return (atanf(_frustTop / _frustNear) * (360.0f / 3.14159));
+      return (atanf(_frustTop / _frustNear) * (360.0f / 3.14159f));
 	}
 
 	return SceneNode::getParamF( param, compIdx );
