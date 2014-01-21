@@ -692,6 +692,7 @@ bool ShaderResource::parseFXSection( char *data )
                else if( tok.checkToken( "Keep_Inc_Inc" ) ) context.stencilOpModes = StencilOpModes::Keep_Inc_Inc;
                else if( tok.checkToken( "Keep_Keep_Inc" ) ) context.stencilOpModes = StencilOpModes::Keep_Keep_Inc;
                else if( tok.checkToken( "Keep_Keep_Dec" ) ) context.stencilOpModes = StencilOpModes::Keep_Keep_Dec;
+               else if( tok.checkToken( "Replace_Replace_Replace" ) ) context.stencilOpModes = StencilOpModes::Replace_Replace_Replace;
 					else return raiseError( "FX: invalid enum value", tok.getLine() );
             }
 				else if( tok.checkToken( "StencilRef" ) )

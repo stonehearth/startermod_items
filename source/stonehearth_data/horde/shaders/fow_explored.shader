@@ -53,6 +53,7 @@ context FOW_DRAW_ALPHA_EXPLORED {
   CullMode = Front;
   ColorWrite = false;
   AlphaWrite = true;
+  StencilOp = Replace_Replace_Replace;
   StencilFunc = Greater;
   StencilRef = 128;
 }

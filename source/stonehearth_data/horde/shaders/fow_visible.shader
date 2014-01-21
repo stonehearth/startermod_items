@@ -54,7 +54,7 @@ context FOW_DRAW_ALPHA_VISIBLE {
   ColorWrite = false;
   AlphaWrite = true;
   StencilFunc = Greater;
-  StencilRef = 127;
+  StencilRef = 128;
 }
 
 [[VS_FOW]]

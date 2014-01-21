@@ -879,6 +879,10 @@ bool Renderer::setMaterialRec( MaterialResource *materialRes, const std::string 
          glEnable(GL_STENCIL_TEST);
          glStencilOp(GL_KEEP, GL_KEEP, GL_INCR);
          break;
+      case StencilOpModes::Replace_Replace_Replace:
+         glEnable(GL_STENCIL_TEST);
+         glStencilOp(GL_REPLACE, GL_REPLACE, GL_REPLACE);
+         break;
       }
 
       switch( context->stencilFunc )

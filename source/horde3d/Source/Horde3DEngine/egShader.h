@@ -127,7 +127,8 @@ struct StencilOpModes
       Keep_Dec_Dec,
       Keep_Inc_Inc,
       Keep_Keep_Inc,
-      Keep_Keep_Dec
+      Keep_Keep_Dec,
+      Replace_Replace_Replace
    };
 };
 
