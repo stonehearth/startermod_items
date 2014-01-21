@@ -103,7 +103,7 @@ function SubstitutionService:_fill_table_entry(table_entry, new_keys)
             for i, v in ipairs(value.entries) do
                table.insert(existing_table, v)
             end
-         elseif value.type == 'parametrized_value' then
+         elseif value.type == 'parametrized_value' or value.type == 'parametrized_variable' then
             for k, v in pairs(value.entries) do
                existing_table[k] = v
             end
@@ -143,16 +143,28 @@ end
 
 --- Given a key of type subst-table, return the value associated
 --  with the relevant parameter. For example, get_substitution(teacher, ascendency)
---  yields "Cid".
---  TODO: allow this to be a variable, not just always a value
---  TODO: allow a string of variables
+--  yields a data node with a type (either string or variable) and the value--
+--  either a string to put into the substitution, or a variable that points to 
+--  a value that can be used in the substitution
+--  If the parameter is not found but a default ('generic') parameter is defined, used
+--  that instead.
 --  @param namespace - the namespace to search
 --  @param key - the field that will appear in the text
 --  @param param   - the version of the value we want
 function SubstitutionService:get_substitution(namespace, key, param)
    local data_by_namespace = self:_find_key_data(namespace, key)
-   if data_by_namespace and data_by_namespace.type == 'parametrized_value' then 
-      return data_by_namespace.entries[param]
+   if data_by_namespace then
+      local data = {}
+      if data_by_namespace.type == 'parametrized_value' then       
+         data.type = 'string'
+      elseif data_by_namespace and data_by_namespace.type == 'parametrized_variable' then
+         data.type = 'variable'
+      end
+      data.value = data_by_namespace.entries[param]
+      if not data.value then
+         data.value = data_by_namespace.entries['generic']
+      end
+      return data
    end
 end
 
@@ -210,26 +222,33 @@ function SubstitutionService:substitute_variables(namespace, target_string, over
    local temp_sub_table  = {}
    return string.gsub(target_string,"__(.-)__", function(variable_name)
       --check the subsitution table first. If present, return
-      if overrides[variable_name] then
-         --TODO: allow the value to be a variable ptr to another set of things
-         return overrides[variable_name]
+      local override_entry = overrides[variable_name]
+      if override_entry then
+         if override_entry.type == 'string' then
+            return override_entry.value
+         elseif override_entry.type == 'variable' then
+            variable_name = override_entry.value
+         end
       elseif temp_sub_table[variable_name] then
          --Is it in the local sub table? If so, use that 
          return temp_sub_table[variable_name]
-      else 
-         --If not present in either table, find a good random value 
-         local random_value =  self:_find_one_of_random_array(namespace, variable_name, temp_sub_table)
-         if random_value then
-            --If the substitution itself contains variables, run that too
-            random_value = self:substitute_variables(namespace, random_value, overrides)
-            return random_value
-         else
-            --Indicate that we couldn't find the substitution
-            return '???' 
-         end
       end
+
+      --If we haven't yet found a substitution and returned, find a good random value 
+      local random_value =  self:_find_one_of_random_array(namespace, variable_name, temp_sub_table)
+      if random_value then
+         --If the substitution itself contains variables, run that too
+         random_value = self:substitute_variables(namespace, random_value, overrides)
+         return random_value
+      else
+         --Indicate that we couldn't find the substitution
+         return '???' 
+      end
+      
    end)
 end
+
+
 
 --TODO: Capitalize first of every sentence.
 --TODO: Functions to handle articles and plurality
@@ -245,10 +264,10 @@ end
 --  @returns - the string we found the substitution for.  
 function SubstitutionService:_find_one_of_random_array(namespace, key, temp_sub_table)
    local value_data = self:_find_key_data(namespace, key)
-   if value_data.type == 'random_array' then
+   if value_data and value_data.type == 'random_array' then
       local roll = rng:get_int(1, #value_data.entries)
       return value_data.entries[roll]
-   elseif value_data.type == 'variable' then
+   elseif value_data and value_data.type == 'variable' then
       --if the variable is of type variable, add the result to the temp sub table for use later
       local result = self:_find_one_of_random_array(namespace, value_data.value)
       temp_sub_table[key] = result

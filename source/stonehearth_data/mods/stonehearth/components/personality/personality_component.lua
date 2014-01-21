@@ -62,7 +62,10 @@ end
 --  @param key - the name of the key to look up
 --  @param value - the string value associated with the key
 function Personality:add_substitution(key, value)
-   self._data.substitutions[key] = value
+   local data = {}
+   data.type = 'string'
+   data.value = value
+   self._data.substitutions[key] = data
 end
 
 --Every night, dump the old log

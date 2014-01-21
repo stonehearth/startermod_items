@@ -1,7 +1,7 @@
 local PopulationFaction = class()
 
-local personality_service = require 'services.personality.personality_service'
 local rng = _radiant.csg.get_default_random_number_generator()
+local personality_service = require 'services.personality.personality_service'
 
 --Separate the faction name (player chosen) from the kingdom name (ascendency, etc.)
 function PopulationFaction:__init(faction, kingdom)
@@ -49,6 +49,7 @@ function PopulationFaction:_set_citizen_initial_state(citizen, gender)
 
    --For the teacher field, assign the one appropriate for this kingdom
    personality_component:add_substitution_by_parameter('teacher', self._kingdom, 'stonehearth')
+   personality_component:add_substitution_by_parameter('personality_based_exclamation', personality, 'stonehearth:settler_journals')
 
    local mind = rng:get_int(1, 6)
    local body = rng:get_int(1, 6)

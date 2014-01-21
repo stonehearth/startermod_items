@@ -63,6 +63,7 @@ function PersonalityService:_load_log_files()
    self:_load_activity('stonehearth:personal_logs:embarking')
    self:_load_activity('stonehearth:personal_logs:promote_carpenter')
    self:_load_activity('stonehearth:personal_logs:dreams')
+   self:_load_activity('stonehearth:personal_logs:gathering_supplies')
 end
 
 --- Returns a personality type. Will only return repeats if all
