@@ -11,7 +11,7 @@
          "text" : "On Hearing the Call of the Saw:",
          "type" : "random",
          "logs_by_personality" : {
-            "belaguered_leader" : {
+            "beleaguered_leader" : {
                "logs" : [
                "It is my turn to wield the saw. Too bad mom always said I was bad with power."
                ]

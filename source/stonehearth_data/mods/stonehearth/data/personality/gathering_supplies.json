@@ -1,0 +1,118 @@
+{
+   "activities" : [
+      {
+         "id" : "gathering_supplies",
+         "trigger_policy" : [
+            {
+               "trigger_id" : "gathering_supplies",
+               "probability" : 10
+            }
+         ],
+         "text" : "On Gathering:",
+         "type" : "random",
+         "default_namespace" : "stonehearth:settler_journals:gathering_supplies",
+         "logs_by_personality" : {
+            "generic" : {
+               "logs" : [
+               "__personality_based_exclamation__ __gather_statement__ __personality_gather_reaction__"
+               ]
+            }
+         }
+      }
+   ],
+   "substitution_table" : [
+      {
+         "namespace" : "stonehearth:settler_journals:gathering_supplies",
+         "keys" : {
+            "gather_statement" : {
+               "type" : "random_array", 
+               "entries" : [
+                  "Today I'll be gathering a __gather_target__!",
+                  "__gather_target__.",
+                  "Another __gather_target__!",
+                  "Time to get a __gather_target__!"
+               ]
+            },
+            "personality_gather_reaction" : {
+               "type" : "parametrized_variable", 
+               "entries" : {
+                  "generic" : "generic_reaction", 
+                  "beleaguered_leader" : "b_leader_reaction", 
+                  "hopeless_optimist" : "h_optimist_reaction" 
+               }
+            },
+            "generic_reaction" : {
+               "type" : "random_array", 
+               "entries" : [
+                  "Yaaay!",
+                  "Yaaay?",
+                  "Good stuff to have on hand.",
+                  "Off to work!",
+                  "Here goes!",
+                  "I guess I'll try not to make a mess.",
+                  ""
+               ]
+            },
+            "b_leader_reaction" : {
+               "type" : "random_array", 
+               "entries" : [
+                  "Time to get to work!",
+                  "Hi ho!",
+                  "Joy.",
+                  "Remember: I chose to be here."
+               ]
+            },
+            "h_optimist_reaction" : {
+               "type" : "random_array", 
+               "entries" : [
+                  "Who would't love this?",
+                  "Forward!",
+                  "Everyone look!"
+               ]
+            }
+         }
+      },
+      {
+         "namespace" : "stonehearth:settler_journals",
+         "keys" : {
+            "personality_based_exclamation" : {
+               "type" : "parametrized_variable", 
+               "entries" : {
+                  "generic" : "generic_exclamations", 
+                  "beleaguered_leader" : "b_leader_exclamations", 
+                  "hopeless_optimist" : "h_optimist_exclamations"
+               }
+            },
+            "generic_exclamations" : {
+               "type" : "random_array", 
+               "entries" : [
+                  "Whoa.",
+                  "Ok!",
+                  "Yup.",
+                  "Uh huh.",
+                  ""
+               ]
+            },
+            "b_leader_exclamations" : {
+               "type" : "random_array", 
+               "entries" : [
+                  "Listen up, everyone!",
+                  "Gear up, everyone!",
+                  "Taking one for the team...",
+                  "Leading the charge:",
+                  ""
+               ]
+            },
+            "h_optimist_exclamations" : {
+               "type" : "random_array", 
+               "entries" : [
+                  "Woo!!!",
+                  "So excited!!",
+                  "Oooh!"
+               ]
+            }
+         }
+      }
+   ]
+}
+            

@@ -1,4 +1,5 @@
 local event_service = require 'services.event.event_service'
+local personality_service = require 'services.personality.personality_service'
 
 local SleepOnGroundAction = class()
 
@@ -36,6 +37,12 @@ function SleepOnGroundAction:stop()
    -- xxx, localize
    local name = radiant.entities.get_display_name(self._entity)
    event_service:add_entry(name .. ' awakes groggy from sleeping on the cold, hard, unforgiving earth.', 'warning')
+
+   --When sleeping, we have a small chance of dreaming
+   --TODO: different dreams for sleeping on the ground?
+   radiant.events.trigger(personality_service, 'stonehearth:journal_event', 
+                         {entity = self._entity, description = 'dreams'})
+
 end
 
 return SleepOnGroundAction
