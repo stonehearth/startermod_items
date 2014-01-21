@@ -14,6 +14,18 @@ function NewGameCallHandler:new_game(session, response, seed)
    return {}
 end
 
+function NewGameCallHandler:get_overview_maps(session, response)
+   local wgs = radiant.mods.load('stonehearth').world_generation
+
+   local result = {
+      width = wgs.overview_map.width,
+      height = wgs.overview_map.height,
+      elevation_map = wgs.overview_map.elevation_map:clone_to_nested_arrays(),
+      forest_map = wgs.overview_map.forest_map:clone_to_nested_arrays()
+   }
+   return result
+end
+
 function NewGameCallHandler:choose_camp_location(session, response)
    self._cursor_entity = radiant.entities.create_entity('stonehearth:camp_standard')
    local re = _radiant.client.create_render_entity(1, self._cursor_entity)

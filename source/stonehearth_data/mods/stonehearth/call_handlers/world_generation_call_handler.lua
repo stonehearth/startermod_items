@@ -1,4 +1,5 @@
 local WorldGenerationCallHandler = class()
+local log = radiant.log.create_logger('world_generation')
 
 local progress = nil
 
@@ -14,9 +15,18 @@ function WorldGenerationCallHandler:get_world_generation_progress(session, reque
 end
 
 function WorldGenerationCallHandler:update_progress(e)
-   progress:update({
-      progress = e.progress   
-   })
+   local args = {}
+
+   args.progress = e.progress
+   
+   if args.progress == 100 then
+      args.width = e.width
+      args.height = e.height
+      args.elevation_map = e.elevation_map:clone_to_nested_arrays()
+      args.forest_map = e.forest_map:clone_to_nested_arrays()
+   end
+
+   progress:update(args)
 end
    
 return WorldGenerationCallHandler

@@ -723,7 +723,8 @@ PlaySoundEffect::PlaySoundEffect(RenderEntity& e, om::EffectPtr effect, const JS
    } else if (n.type() == JSON_NODE) {
       if (n.get<std::string>("type", "") == "one_of") {
          JSONNode items = n.get("items", JSONNode());
-         uint c = csg::RandomNumberGenerator::DefaultInstance().GetInt<uint>(0, items.size() - 1);
+         csg::RandomNumberGenerator &rng = csg::RandomNumberGenerator::DefaultInstance();
+         uint c = rng.GetInt<uint>(0, items.size() - 1);
          ASSERT(c < items.size());
          track = items.at(c).as_string();
       }

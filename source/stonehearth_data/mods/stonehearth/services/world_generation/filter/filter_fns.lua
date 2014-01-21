@@ -16,9 +16,9 @@ function FilterFns.filter_2D_generic(dst, src, src_width, src_height, filter_ker
    -- horizontal
    dst_width = FilterFns.calc_resampled_length(src_width, sampling_interval)
    for i=1, src_height do
-      Array2D:get_row_vector(x, src, i, src_width, src_width)
+      Array2D.get_row_vector(x, src, i, src_width, src_width)
       filter_kernel:filter(y, x, src_width, sampling_interval)
-      Array2D:set_row_vector(temp, y, i, dst_width, dst_width)
+      Array2D.set_row_vector(temp, y, i, dst_width, dst_width)
    end
 
    -- after horizontal downsampling, temp now has dimensions of dst_width x src_height
@@ -26,9 +26,9 @@ function FilterFns.filter_2D_generic(dst, src, src_width, src_height, filter_ker
    -- vertical
    dst_height = FilterFns.calc_resampled_length(src_height, sampling_interval)
    for j=1, dst_width do
-      Array2D:get_column_vector(x, temp, j, dst_width, src_height)
+      Array2D.get_column_vector(x, temp, j, dst_width, src_height)
       filter_kernel:filter(y, x, src_height, sampling_interval)
-      Array2D:set_column_vector(dst, y, j, dst_width, dst_height)
+      Array2D.set_column_vector(dst, y, j, dst_width, dst_height)
    end
 end
 

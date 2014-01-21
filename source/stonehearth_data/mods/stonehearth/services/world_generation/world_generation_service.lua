@@ -9,6 +9,7 @@ local Timer = require 'services.world_generation.timer'
 local ScenarioService = require 'services.scenario.scenario_service'
 local HabitatType = require 'services.world_generation.habitat_type'
 local HabitatManager = require 'services.world_generation.habitat_manager'
+local OverviewMap = require 'services.world_generation.overview_map'
 local RandomNumberGenerator = _radiant.csg.RandomNumberGenerator
 local Point3 = _radiant.csg.Point3
 
@@ -32,20 +33,31 @@ function WorldGenerationService:initialize(async, game_seed)
    self._height_map_renderer = HeightMapRenderer(tg.tile_size, tg.terrain_info)
    self._landscaper = Landscaper(tg.terrain_info, tg.tile_size, tg.tile_size, self._rng, self._async)
    self._terrain_info = tg.terrain_info
+   local feature_cell_size = self._landscaper:get_feature_cell_size()
    
    self._scenario_service = radiant.mods.load('stonehearth').scenario
-   self._scenario_service:initialize(self._landscaper:get_feature_cell_size(), self._rng)
+   self._scenario_service:initialize(feature_cell_size, self._rng)
    self._habitat_manager = HabitatManager(self._terrain_info, self._landscaper)
+
+   self.overview_map = OverviewMap(self._terrain_info, self._landscaper,
+      tg.tile_size, tg.macro_block_size, feature_cell_size)
 
    radiant.events.listen(radiant.events, 'stonehearth:slow_poll', self, self._on_poll_progress)
 end
 
 function WorldGenerationService:_on_poll_progress()
    local done = self._progress == 100
+   local event_args = {}
 
-   radiant.events.trigger(radiant.events, 'stonehearth:generate_world_progress', {
-      progress = self._progress
-   })
+   event_args.progress = self._progress
+   if done then
+      event_args.width = self.overview_map.width
+      event_args.height = self.overview_map.height
+      event_args.elevation_map = self.overview_map.elevation_map
+      event_args.forest_map = self.overview_map.forest_map
+   end
+
+   radiant.events.trigger(radiant.events, 'stonehearth:generate_world_progress', event_args)
 
    if done then
       radiant.events.unlisten(radiant.events, 'stonehearth:slow_poll', self, self._on_poll_progress)
@@ -70,6 +82,8 @@ function WorldGenerationService:create_world()
       log:info('World generation cpu time (excludes terrain ring tesselator): %.3fs', cpu_timer:seconds())
       log:info('World generation wall clock time: %.0fs', wall_clock_timer:seconds())
    end
+
+   self.overview_map:clear()
 
    if self._async then
       radiant.create_background_task('Terrain Generator', terrain_thread)     
@@ -125,9 +139,11 @@ function WorldGenerationService:_generate_world(blueprint)
       -- place flora
       self:_place_flora(tile_map, offset)
 
+      tile_info.feature_map = self._landscaper:get_feature_map()
+
       -- derive habitat maps
       tile_info.habitat_map, tile_info.elevation_map =
-         self._habitat_manager:derive_habitat_map(self._landscaper:get_feature_map(), micro_map)
+         self._habitat_manager:derive_habitat_map(tile_info.feature_map, micro_map)
 
       -- place initial scenarios
       self:_place_scenarios(tile_info.habitat_map, tile_info.elevation_map, offset)
@@ -138,9 +154,11 @@ function WorldGenerationService:_generate_world(blueprint)
       self._progress = (n / num_tiles) * 100
    end
 
+   self.overview_map:derive_overview_maps(blueprint)
+
    radiant.events.trigger(radiant.events, 'stonehearth:generate_world_progress', {
-      progress = 1,
-      complete = true
+      progress = 1
+      --complete = true
    })
 end
 
