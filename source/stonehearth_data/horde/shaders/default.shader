@@ -5,7 +5,7 @@ sampler2D cloudMap = sampler_state
 {
   Texture = "textures/environment/cloudmap.png";
   Address = Wrap;
-   Filter = Pixely;
+  Filter = Pixely;
 };
 
 sampler2D lightingBuffer = sampler_state
@@ -67,6 +67,15 @@ context SELECTED_SCREENSPACE
   CullMode = None;
 }
 
+context SELECTED_FAST
+{
+  VertexShader = compile GLSL VS_GENERAL;
+  PixelShader = compile GLSL FS_SELECTED_FAST;
+  ZWriteEnable = false;
+  BlendMode = Add;
+  CullMode = None;
+}
+
 context SELECTED_SCREENSPACE_OUTLINER
 {
   VertexShader = compile GLSL VS_SELECTED_SCREENSPACE_OUTLINER;
@@ -102,16 +111,6 @@ context FOG
   
   ZWriteEnable = false;
   BlendMode = Blend;
-  CullMode = Back;
-}
-
-context CLOUDS
-{
-  VertexShader = compile GLSL VS_GENERAL;
-  PixelShader = compile GLSL FS_CLOUDS;
-  
-  ZWriteEnable = false;
-  BlendMode = Mult;
   CullMode = Back;
 }
 
@@ -231,6 +230,8 @@ void main( void )
 #include "shaders/shadows.shader"
 
 uniform vec3 lightAmbientColor;
+uniform sampler2D cloudMap;
+uniform float currentTime;
 
 varying vec4 pos;
 varying vec3 albedo;
@@ -244,27 +245,15 @@ void main( void )
   // Light Color.
   vec3 lightColor = calcSimpleDirectionalLight(normalize(tsbNormal));
 
-  // Mix light and shadow and ambient light.
-  lightColor = (shadowTerm * (lightColor * albedo)) + (lightAmbientColor * albedo);
-  
-  gl_FragColor = vec4(lightColor, 1.0);
-}
-
-[[FS_CLOUDS]]
-// =================================================================================================
-
-uniform sampler2D cloudMap;
-uniform float currentTime;
-
-varying vec4 pos;
-
-void main( void )
-{
   float cloudSpeed = currentTime / 80.0;
   vec2 fragCoord = pos.xz * 0.3;
   vec3 cloudColor = texture2D(cloudMap, fragCoord.xy / 128.0 + cloudSpeed).xyz;
-  gl_FragColor.rgb = cloudColor * texture2D(cloudMap, fragCoord.yx / 192.0 + (cloudSpeed / 10.0)).xyz;
-  gl_FragColor.a = 1.0;
+  cloudColor = cloudColor * texture2D(cloudMap, fragCoord.yx / 192.0 + (cloudSpeed / 10.0)).xyz;
+
+  // Mix light and shadow and ambient light.
+  lightColor = cloudColor *((shadowTerm * (lightColor * albedo)) + (lightAmbientColor * albedo));
+  
+  gl_FragColor = vec4(lightColor, 1.0);
 }
 
 [[FS_FOG]]
@@ -360,4 +349,13 @@ void main(void)
 {
   gl_FragColor = compute_outline_color(outlineSampler, texCoords);
   gl_FragDepth = compute_outline_depth(outlineDepth, texCoords);
+}
+
+
+[[FS_SELECTED_FAST]]
+// =================================================================================================
+
+void main( void )
+{
+  gl_FragColor = vec4(0.5, 0.4, 0.0, 1.0);
 }

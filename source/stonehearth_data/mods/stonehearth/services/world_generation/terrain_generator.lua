@@ -49,9 +49,9 @@ end
 
 function TerrainGenerator:_initialize_quantizer()
    local terrain_info = self.terrain_info
-   local grassland_info = terrain_info[TerrainType.Grassland]
-   local foothills_info = terrain_info[TerrainType.Foothills]
-   local mountains_info = terrain_info[TerrainType.Mountains]
+   local grassland_info = terrain_info[TerrainType.grassland]
+   local foothills_info = terrain_info[TerrainType.foothills]
+   local mountains_info = terrain_info[TerrainType.mountains]
    local centroids = {}
    local min, max, step_size
    
@@ -106,7 +106,7 @@ function TerrainGenerator:generate_tile(terrain_type, blueprint, x, y)
 
    micro_map = self:_create_micro_map(terrain_type, blueprint, x, y)
    micro_map_timer:stop()
-   log:debug('Micromap generation time: %.3fs', micro_map_timer:seconds())
+   log:info('Micromap generation time: %.3fs', micro_map_timer:seconds())
 
    tile_map = self:_create_tile_map(micro_map)
    tile_timer:stop()
@@ -184,14 +184,14 @@ function TerrainGenerator:_fill_blend_map(blend_map, blueprint, x, y)
    local terrain_mean = self.terrain_info[terrain_type].mean_height
    local terrain_std_dev = self.terrain_info[terrain_type].std_dev
 
-   if terrain_type == TerrainType.Mountains and
-      self:_surrounded_by_terrain(TerrainType.Mountains, blueprint, x, y) then
-      terrain_mean = terrain_mean + self.terrain_info[TerrainType.Mountains].step_size
+   if terrain_type == TerrainType.mountains and
+      self:_surrounded_by_terrain(TerrainType.mountains, blueprint, x, y) then
+      terrain_mean = terrain_mean + self.terrain_info[TerrainType.mountains].step_size
    end
 
-   if terrain_type == TerrainType.Grassland and
-      self:_surrounded_by_terrain(TerrainType.Grassland, blueprint, x, y) then
-      terrain_mean = terrain_mean - self.terrain_info[TerrainType.Grassland].step_size
+   if terrain_type == TerrainType.grassland and
+      self:_surrounded_by_terrain(TerrainType.grassland, blueprint, x, y) then
+      terrain_mean = terrain_mean - self.terrain_info[TerrainType.grassland].step_size
       assert(terrain_mean >= self.terrain_info.min_height)
    end
 
@@ -338,11 +338,11 @@ function TerrainGenerator:_calc_std_dev(height)
    local prev_mean_height, prev_std_dev
    local i, ti, value
 
-   i = TerrainType.Grassland
+   i = TerrainType.grassland
    prev_mean_height = 0
    prev_std_dev = terrain_info[i].std_dev
 
-   for i=TerrainType.Grassland, TerrainType.Mountains do
+   for i=TerrainType.grassland, TerrainType.mountains do
       ti = terrain_info[i]
 
       if height <= ti.mean_height then
@@ -420,7 +420,7 @@ function TerrainGenerator:_postprocess_micro_map(micro_map)
 end
 
 function TerrainGenerator:_consolidate_mountain_blocks(micro_map, blueprint, x, y)
-   local max_foothills_height = self.terrain_info[TerrainType.Foothills].max_height
+   local max_foothills_height = self.terrain_info[TerrainType.foothills].max_height
    local start_x = 1
    local start_y = 1
    local i, j, value
@@ -630,7 +630,6 @@ function TerrainGenerator:_quantize_height_map(height_map, is_micro_map)
    end
 end
 
--- TODO: replace this with a generalized quantizer class
 function TerrainGenerator:_quantize_value(value, enable_fancy_quantizer)
    local quantized_value = self._quantizer:quantize(value)
 
@@ -640,7 +639,7 @@ function TerrainGenerator:_quantize_value(value, enable_fancy_quantizer)
 
    local terrain_info = self.terrain_info
    -- disable fancy mode for Grassland
-   if quantized_value <= terrain_info[TerrainType.Grassland].max_height then
+   if quantized_value <= terrain_info[TerrainType.grassland].max_height then
       return quantized_value
    end
 

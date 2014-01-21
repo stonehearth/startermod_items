@@ -9,6 +9,7 @@ function PopulationFaction:__init(faction, kingdom)
    self._data = radiant.resources.load_json(kingdom)
    self._faction_name = faction --TODO: differentiate b/w user id and name?
    self._kingdom = self._data.kingdom_id
+   self._citizens = {}
 end
 
 function PopulationFaction:create_new_citizen()   
@@ -34,7 +35,14 @@ function PopulationFaction:create_new_citizen()
    --citizen:add_component('unit_info'):set_kingdom(self.kingdom)
 
    self:_set_citizen_initial_state(citizen, gender)
+
+   table.insert(self._citizens, citizen)
+
    return citizen
+end
+
+function PopulationFaction:get_citizens()
+   return self._citizens
 end
 
 function PopulationFaction:_set_citizen_initial_state(citizen, gender)

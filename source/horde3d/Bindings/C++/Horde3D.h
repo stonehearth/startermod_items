@@ -116,7 +116,8 @@ struct H3DOptions
 		DebugViewMode,
 		DumpFailedShaders,
 		GatherTimeStats,
-      EnableShadows
+      EnableShadows,
+      EnableStatsLogging
 	};
 };
 
@@ -147,7 +148,8 @@ struct H3DStats
 		ParticleSimTime,
 		TextureVMem,
 		GeometryVMem,
-      AverageFrameTime
+      AverageFrameTime,
+      AvailableGpuMemory
 	};
 };
 
@@ -629,7 +631,8 @@ struct H3DCamera
 		ViewportWidthI,
 		ViewportHeightI,
 		OrthoI,
-		OccCullingI
+		OccCullingI,
+      FOVf
 	};
 };
 
@@ -857,6 +860,7 @@ DLL bool h3dSetOption( H3DOptions::List param, float value );
 */
 DLL float h3dGetStat( H3DStats::List param, bool reset );
 
+DLL void h3dResetStats();
 
 DLL void h3dSetGlobalShaderFlag(const char* flagName, bool value);
 

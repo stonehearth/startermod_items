@@ -15,7 +15,7 @@ option(GLFW_INSTALL "Generate installation target" OFF)
 
 if (WIN32)
     option(GLFW_USE_DWM_SWAP_INTERVAL "Set swap interval even when DWM compositing is enabled" ON)
-    option(GLFW_USE_OPTIMUS_HPG "Force use of high-performance GPU on Optimus systems" OFF)
+    option(GLFW_USE_OPTIMUS_HPG "Force use of high-performance GPU on Optimus systems" ON)
 endif()
 
 if (APPLE)

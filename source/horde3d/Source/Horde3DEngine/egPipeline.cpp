@@ -203,14 +203,19 @@ const std::string PipelineResource::parseStage( XMLNode const &node, PipelineSta
 			if( _stricmp( orderStr, "FRONT_TO_BACK" ) == 0 ) order = RenderingOrder::FrontToBack;
 			else if( _stricmp( orderStr, "BACK_TO_FRONT" ) == 0 ) order = RenderingOrder::BackToFront;
 			else if( _stricmp( orderStr, "NONE" ) == 0 ) order = RenderingOrder::None;
+
+         float frustStart = (float)atof(node1.getAttribute("frustum_start", "0.0"));
+         float frustEnd = (float)atof(node1.getAttribute("frustum_end", "1.0"));
 			
 			stage->commands.push_back( PipelineCommand( PipelineCommands::DrawGeometry ) );
 			vector< PipeCmdParam > &params = stage->commands.back().params;
-			params.resize( 4 );			
+			params.resize( 6 );			
 			params[0].setString( node1.getAttribute( "context" ) );
 			params[1].setString( node1.getAttribute( "class", "" ) );
 			params[2].setInt( order );
 			params[3].setInt( 0 );
+         params[4].setFloat(frustStart);
+         params[5].setFloat(frustEnd);
 		}
 		else if( strcmp( node1.getName(), "DrawSelected" ) == 0 )
 		{
@@ -224,11 +229,13 @@ const std::string PipelineResource::parseStage( XMLNode const &node, PipelineSta
 			
 			stage->commands.push_back( PipelineCommand( PipelineCommands::DrawGeometry ) );
 			vector< PipeCmdParam > &params = stage->commands.back().params;
-			params.resize( 4 );			
+			params.resize( 6 );			
 			params[0].setString( node1.getAttribute( "context" ) );
 			params[1].setString( node1.getAttribute( "class", "" ) );
 			params[2].setInt( order );
 			params[3].setInt( SceneNodeFlags::Selected );
+         params[4].setFloat(0.0);
+         params[5].setFloat(1.0);
 		}
 		else if( strcmp( node1.getName(), "DrawOverlays" ) == 0 )
 		{

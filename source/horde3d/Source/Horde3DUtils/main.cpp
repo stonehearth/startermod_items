@@ -491,7 +491,7 @@ DLLEXP void h3dutShowFrameStats( H3DRes fontMaterialRes, H3DRes boxMaterialRes, 
 	static float particleSimTime = 0;
 
 	// Calculate FPS
-	float curFrameTime = h3dGetStat(H3DStats::AverageFrameTime, true);
+	float curFrameTime = h3dGetStat(H3DStats::AverageFrameTime, false);
 	curFPS = 1000.0f / curFrameTime;
 	
 	timer += curFrameTime / 1000.0f;
@@ -499,17 +499,10 @@ DLLEXP void h3dutShowFrameStats( H3DRes fontMaterialRes, H3DRes boxMaterialRes, 
 	{	
 		fps = curFPS;
 		frameTime = curFrameTime;
-		animTime = h3dGetStat( H3DStats::AnimationTime, true );
-		geoUpdateTime = h3dGetStat( H3DStats::GeoUpdateTime, true );
-		particleSimTime = h3dGetStat( H3DStats::ParticleSimTime, true );
+		animTime = h3dGetStat( H3DStats::AnimationTime, false );
+		geoUpdateTime = h3dGetStat( H3DStats::GeoUpdateTime, false );
+		particleSimTime = h3dGetStat( H3DStats::ParticleSimTime, false );
 		timer = 0;
-	}
-	else
-	{
-		// Reset accumulative counters
-		h3dGetStat( H3DStats::AnimationTime, true );
-		h3dGetStat( H3DStats::GeoUpdateTime, true );
-		h3dGetStat( H3DStats::ParticleSimTime, true );
 	}
 	
 	if( mode > 0 )
@@ -524,26 +517,31 @@ DLLEXP void h3dutShowFrameStats( H3DRes fontMaterialRes, H3DRes boxMaterialRes, 
 		
 		// Triangle count
 		text.str( "" );
-		text << (int)h3dGetStat( H3DStats::TriCount, true );
+		text << (int)h3dGetStat( H3DStats::TriCount, false );
 		addInfoBoxRow( "Tris", text.str().c_str() );
 		
 		// Number of batches
 		text.str( "" );
-		text << (int)h3dGetStat( H3DStats::BatchCount, true );
+		text << (int)h3dGetStat( H3DStats::BatchCount, false );
 		addInfoBoxRow( "Batches", text.str().c_str() );
 		
 		// Number of lighting passes
 		text.str( "" );
-		text << (int)h3dGetStat( H3DStats::LightPassCount, true );
+		text << (int)h3dGetStat( H3DStats::LightPassCount, false );
 		addInfoBoxRow( "Lights", text.str().c_str() );
 	}
 
 	if( mode > 1 )
 	{
 		// Video memory
-		beginInfoBox( 0.03f, 0.30f, 0.32f, 2, "VMem", fontMaterialRes, boxMaterialRes );
+		beginInfoBox( 0.03f, 0.30f, 0.32f, 3, "VMem", fontMaterialRes, boxMaterialRes );
 		
-		// Textures
+		// Available
+		text.str( "" );
+      text << h3dGetStat( H3DStats::AvailableGpuMemory, false ) << "mb";
+		addInfoBoxRow( "Available", text.str().c_str() );
+
+      // Textures
 		text.str( "" );
 		text << h3dGetStat( H3DStats::TextureVMem, false ) << "mb";
 		addInfoBoxRow( "Textures", text.str().c_str() );

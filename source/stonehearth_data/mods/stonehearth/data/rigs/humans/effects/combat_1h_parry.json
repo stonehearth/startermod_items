@@ -1,0 +1,32 @@
+{
+   "type" : "effect",
+   "tracks": {
+      "grab_weapon" : {
+         "type": "attach_item_effect",
+         "start_time": 0,
+         "end_time": 0,
+         "item": "stonehearth:wooden_sword",
+         "bone": "mainHand"
+      },
+      "animation": {
+         "type": "animation_effect",
+         "start_time": 0,
+         "animation": "combat_1h_parry.json",
+         "loop": true
+      },
+      "hit_spark": {
+         "type": "cubemitter",
+         "start_time" : 200,
+         "end_time" : 240,
+         "cubemitter": "particles/combat/parry.cubemitter.json",
+         "transforms": {
+            "x":0,
+            "y":2,
+            "z":1.5,
+            "rx":90,
+            "ry":0,
+            "rz":0
+         }
+      }      
+   }
+}

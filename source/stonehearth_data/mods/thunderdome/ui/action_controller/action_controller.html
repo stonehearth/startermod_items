@@ -1,0 +1,29 @@
+<script type="text/x-handlebars" data-template-name="actionController">
+   <div id="actionController">
+
+      <div id="p1" class="player">
+         <table>
+         {{#each actionsArray}}   
+            <tr>
+               <td>{{name}}
+               <td><a {{action doAction this 'hit' 1 target="view"}} >hit</a>
+               <td><a {{action doAction this 'parry' 1 target="view"}} >parry</a>
+               <td><a {{action doAction this 'dodge' 1 target="view"}} >dodge</a>
+         {{/each}}
+         </table>
+      </div>
+
+      <div id="p2" class="player">
+         <table>
+         {{#each actionsArray}}   
+            <tr>
+               <td>{{name}}
+               <td><a {{action doAction this 'hit' 2 target="view"}} >hit</a>
+               <td><a {{action doAction this 'parry' 2 target="view"}} >parry</a>
+               <td><a {{action doAction this 'dodge' 2 target="view"}} >dodge</a>
+         {{/each}}
+         </table>
+      </div>
+</div>
+</script>
+

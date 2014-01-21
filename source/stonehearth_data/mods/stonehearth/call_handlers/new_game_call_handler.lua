@@ -2,11 +2,15 @@ local NewGameCallHandler = class()
 local game_master = require 'services.game_master.game_master_service'
 local personality_service = require 'services.personality.personality_service'
 
+local Point2 = _radiant.csg.Point2
 local Point3 = _radiant.csg.Point3
+local Rect2 = _radiant.csg.Rect2
+local Region2 = _radiant.csg.Region2
 
 function NewGameCallHandler:new_game(session, response, seed)
    local wgs = radiant.mods.load('stonehearth').world_generation
-   local wg = wgs:create_world(true, seed)
+   wgs:initialize(true, seed)
+   wgs:create_world()
    return {}
 end
 
@@ -129,11 +133,6 @@ function NewGameCallHandler:create_camp(session, response, pt)
                           {entity = worker6, description = 'person_embarks'})
 
    self:place_item('stonehearth:firepit', camp_x, camp_z+3, 'civ')
-
-   --self:place_citizen(camp_x+0, camp_z+3)
-   --self:place_citizen(camp_x+3, camp_z+3)
-   --self:place_citizen(camp_x-3, camp_z+0)
-   --self:place_citizen(camp_x+3, camp_z+0)
 
    radiant.entities.pickup_item(worker1, faction:create_entity('stonehearth:oak_log'))
    radiant.entities.pickup_item(worker2, faction:create_entity('stonehearth:oak_log'))

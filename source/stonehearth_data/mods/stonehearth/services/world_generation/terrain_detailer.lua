@@ -3,8 +3,6 @@ local TerrainInfo = require 'services.world_generation.terrain_info'
 local Array2D = require 'services.world_generation.array_2D'
 local MathFns = require 'services.world_generation.math.math_fns'
 local InverseGaussianRandom = require 'services.world_generation.math.inverse_gaussian_random'
-local Point2 = _radiant.csg.Point2
-
 local TerrainDetailer = class()
 
 -- note that the tile_width and tile_height passed in are currently the oversize width and height
@@ -37,7 +35,8 @@ function TerrainDetailer:add_detail_blocks(tile_map)
          if edge then
             if rng:get_real(0, 1) < self.detail_seed_probability then
                num_seeds = num_seeds + 1
-               detail_seeds[num_seeds] = Point2(i, j)
+               -- use a lua type instead of a C type so luajit can extremely agressively optimze it.
+               detail_seeds[num_seeds] = { x = i, y = j }
             end
          end
       end
@@ -107,7 +106,7 @@ end
 
 -- inverse bell curve from 1 to quantization size
 function TerrainDetailer:_generate_detail_height(max_delta, base_height)
-   if base_height >= self._terrain_info[TerrainType.Foothills].max_height then
+   if base_height >= self._terrain_info[TerrainType.foothills].max_height then
       -- if rng:get_real(0, 1) <= 0.50 then
          return max_delta
       -- else
@@ -205,7 +204,7 @@ function TerrainDetailer:_is_grassland_edge(tile_map, x, y, threshold)
    local height = tile_map.height
    local neighbor
 
-   if value >= self._terrain_info[TerrainType.Grassland].max_height then
+   if value >= self._terrain_info[TerrainType.grassland].max_height then
       return false
    end
 
@@ -232,7 +231,7 @@ end
 function TerrainDetailer:remove_mountain_chunks(tile_map, micro_map)
    local rng = self._rng
    local chunk_probability = 0.5
-   local foothills_max_height = self._terrain_info[TerrainType.Foothills].max_height
+   local foothills_max_height = self._terrain_info[TerrainType.foothills].max_height
    local height, removed
 
    -- TODO: resolve chunks on edge macro_blocks
@@ -271,7 +270,7 @@ function _rotate_90(x, y)
 end
 
 function TerrainDetailer:_remove_chunk(tile_map, micro_map, x, y, dx, dy)
-   local mountains_step_size = self._terrain_info[TerrainType.Mountains].step_size
+   local mountains_step_size = self._terrain_info[TerrainType.mountains].step_size
    local height, adj_height
    local macro_block_size, macro_block_x, macro_block_y, chunk_x, chunk_y
    local chunk_length, chunk_offset, chunk_depth

@@ -39,7 +39,7 @@ EngineConfig::EngineConfig()
 	sRGBLinearization = false;
 	loadTextures = true;
 	fastAnimation = true;
-	shadowMapSize = 1024;
+	shadowMapSize = 256;
 	sampleCount = 0;
 	wireframeMode = false;
 	debugViewMode = false;
@@ -47,11 +47,15 @@ EngineConfig::EngineConfig()
 	gatherTimeStats = true;
    enableShadows = true;
    overlayAspect = 1.0;
+   enableStatsLogging = false;
 }
 
 
 float EngineConfig::getOption( EngineOptions::List param )
 {
+   EngineRendererCaps rendererCaps;
+   EngineGpuCaps gpuCaps;
+   Modules::renderer().getEngineCapabilities(&rendererCaps, &gpuCaps);
 	switch( param )
 	{
 	case EngineOptions::MaxLogLevel:
@@ -83,7 +87,9 @@ float EngineConfig::getOption( EngineOptions::List param )
 	case EngineOptions::GatherTimeStats:
 		return gatherTimeStats ? 1.0f : 0.0f;
    case EngineOptions::EnableShadows:
-      return enableShadows ? 1.0f : 0.0f;
+      return rendererCaps.ShadowsSupported && enableShadows ? 1.0f : 0.0f;
+   case EngineOptions::EnableStatsLogging:
+      return enableStatsLogging ? 1.0f : 0.0f;
 	default:
 		Modules::setError( "Invalid param for h3dGetOption" );
 		return Math::NaN;
@@ -94,6 +100,9 @@ float EngineConfig::getOption( EngineOptions::List param )
 bool EngineConfig::setOption( EngineOptions::List param, float value )
 {
 	int size;
+   EngineRendererCaps rendererCaps;
+   EngineGpuCaps gpuCaps;
+   Modules::renderer().getEngineCapabilities(&rendererCaps, &gpuCaps);
 	
 	switch( param )
 	{
@@ -122,6 +131,9 @@ bool EngineConfig::setOption( EngineOptions::List param, float value )
 		fastAnimation = (value != 0);
 		return true;
 	case EngineOptions::ShadowMapSize:
+      if (!enableShadows || !rendererCaps.ShadowsSupported) {
+         return true;
+      }
 		size = ftoi_r( value );
 
 		if( size == shadowMapSize ) return true;
@@ -167,6 +179,9 @@ bool EngineConfig::setOption( EngineOptions::List param, float value )
    case EngineOptions::EnableShadows:
       enableShadows = (value != 0);
       setGlobalShaderFlag("DISABLE_SHADOWS", !enableShadows);
+      return true;
+   case EngineOptions::EnableStatsLogging:
+      enableStatsLogging = (value != 0);
       return true;
 	default:
 		Modules::setError( "Invalid param for h3dSetOption" );
@@ -232,6 +247,13 @@ void EngineLog::dumpMessages()
          break;
       case 3:
          _outf << "INF]";
+         break;
+      case 4:
+         _outf << "DBG]";
+         break;
+      case 5:
+         _outf << "PRF]";
+         break;
       break;
          default:
          _outf << "DBG]";
@@ -334,6 +356,18 @@ void EngineLog::writeDebugInfo( const char *msg, ... )
 	va_end( args );
 }
 
+void EngineLog::writePerfInfo(const char *msg, ...)
+{
+   if(!Modules::config().enableStatsLogging) {
+      return;
+   }
+
+	va_list args;
+	va_start( args, msg );
+	pushMessage( 5, msg, args );
+	va_end( args );
+}
+
 
 bool EngineLog::getMessage( LogMessage &msg )
 {
@@ -395,7 +429,9 @@ float StatManager::getStat( int param, bool reset )
 {
 	float value;	
    float sum = 0.0;
-	int c;
+	float availableMem = 0;
+   int integerV[4];
+   int c;
 
 	switch( param )
 	{
@@ -439,6 +475,16 @@ float StatManager::getStat( int param, bool reset )
 		return (gRDI->getTextureMem() / 1024) / 1024.0f;
 	case EngineStats::GeometryVMem:
 		return (gRDI->getBufferMem() / 1024) / 1024.0f;
+   case EngineStats::AvailableGpuMemory:
+      if (gRDI->getCaps().cardType == NVIDIA) {
+         glGetIntegerv(GPU_MEMORY_INFO_CURRENT_AVAILABLE_VIDMEM_NVX, integerV);
+         availableMem = integerV[0] / 1024.0f;
+      } else if (gRDI->getCaps().cardType == ATI) {
+         glGetIntegerv(VBO_FREE_MEMORY_ATI, integerV);
+         availableMem = integerV[0] / 1024.0f;
+      }
+      glGetError();
+      return availableMem;
 	default:
 		Modules::setError( "Invalid param for h3dGetStat" );
 		return Math::NaN;
