@@ -861,6 +861,7 @@ bool Renderer::setMaterialRec( MaterialResource *materialRes, const std::string 
       {
       case StencilOpModes::Off:
          glDisable(GL_STENCIL_TEST);
+         glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP);
          break;
       case StencilOpModes::Keep_Dec_Dec:
          glEnable(GL_STENCIL_TEST);
@@ -936,7 +937,8 @@ bool Renderer::setMaterialRec( MaterialResource *materialRes, const std::string 
 			break;
       case BlendModes::Whateva:
          glEnable( GL_BLEND );
-         glBlendFunc( GL_DST_ALPHA, GL_ONE);
+         glBlendFunc( GL_DST_ALPHA, GL_ONE );
+         break;
 		case BlendModes::Mult:
 			glEnable( GL_BLEND );
 			glBlendFunc( GL_DST_COLOR, GL_ZERO );
