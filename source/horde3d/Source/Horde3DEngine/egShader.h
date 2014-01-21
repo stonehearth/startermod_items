@@ -170,8 +170,12 @@ struct ShaderContext
 	TestModes::List                   depthFunc;
 	CullModes::List                   cullMode;
    StencilOpModes::List              stencilOpModes;
+   TestModes::List                   stencilFunc;
+   int                               stencilRef;
 	bool                              depthTest;
 	bool                              writeDepth;
+   bool                              writeColor;
+   bool                              writeAlpha;
 	bool                              alphaToCoverage;
 	
 	// Shaders
@@ -183,7 +187,8 @@ struct ShaderContext
 	ShaderContext() :
 		blendMode( BlendModes::Replace ), depthFunc( TestModes::LessEqual ),
 		cullMode( CullModes::Back ), depthTest( true ), writeDepth( true ), alphaToCoverage( false ),
-      vertCodeIdx( -1 ), fragCodeIdx( -1 ), compiled( false ), stencilOpModes(StencilOpModes::Off)
+      vertCodeIdx( -1 ), fragCodeIdx( -1 ), compiled( false ), stencilOpModes(StencilOpModes::Off), 
+      stencilFunc(TestModes::Always), stencilRef(0), writeColor(true), writeAlpha(true)
 	{
 	}
 };

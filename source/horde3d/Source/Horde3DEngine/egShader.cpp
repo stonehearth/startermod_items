@@ -623,6 +623,20 @@ bool ShaderResource::parseFXSection( char *data )
 					else if( tok.checkToken( "false" ) ) context.writeDepth = false;
 					else return raiseError( "FX: invalid bool value", tok.getLine() );
 				}
+				else if( tok.checkToken( "ColorWrite" ) )
+				{
+					if( !tok.checkToken( "=" ) ) return raiseError( "FX: expected '='", tok.getLine() );
+               if( tok.checkToken( "true" ) ) context.writeColor = true;
+					else if( tok.checkToken( "false" ) ) context.writeColor = false;
+					else return raiseError( "FX: invalid bool value", tok.getLine() );
+				}
+				else if( tok.checkToken( "AlphaWrite" ) )
+				{
+					if( !tok.checkToken( "=" ) ) return raiseError( "FX: expected '='", tok.getLine() );
+               if( tok.checkToken( "true" ) ) context.writeAlpha = true;
+					else if( tok.checkToken( "false" ) ) context.writeAlpha = false;
+					else return raiseError( "FX: invalid bool value", tok.getLine() );
+				}
 				else if( tok.checkToken( "ZEnable" ) )
 				{
 					if( !tok.checkToken( "=" ) ) return raiseError( "FX: expected '='", tok.getLine() );
@@ -639,6 +653,17 @@ bool ShaderResource::parseFXSection( char *data )
 					else if( tok.checkToken( "Less" ) ) context.depthFunc = TestModes::Less;
 					else if( tok.checkToken( "Greater" ) ) context.depthFunc = TestModes::Greater;
 					else if( tok.checkToken( "GreaterEqual" ) ) context.depthFunc = TestModes::GreaterEqual;
+					else return raiseError( "FX: invalid enum value", tok.getLine() );
+				}
+				else if( tok.checkToken( "StencilFunc" ) )
+				{
+					if( !tok.checkToken( "=" ) ) return raiseError( "FX: expected '='", tok.getLine() );
+               if( tok.checkToken( "LessEqual" ) ) context.stencilFunc = TestModes::LessEqual;
+					else if( tok.checkToken( "Always" ) ) context.stencilFunc = TestModes::Always;
+					else if( tok.checkToken( "Equal" ) ) context.stencilFunc = TestModes::Equal;
+					else if( tok.checkToken( "Less" ) ) context.stencilFunc = TestModes::Less;
+					else if( tok.checkToken( "Greater" ) ) context.stencilFunc = TestModes::Greater;
+					else if( tok.checkToken( "GreaterEqual" ) ) context.stencilFunc = TestModes::GreaterEqual;
 					else return raiseError( "FX: invalid enum value", tok.getLine() );
 				}
 				else if( tok.checkToken( "BlendMode" ) )
@@ -667,6 +692,11 @@ bool ShaderResource::parseFXSection( char *data )
                else if( tok.checkToken( "Keep_Keep_Dec" ) ) context.stencilOpModes = StencilOpModes::Keep_Keep_Dec;
 					else return raiseError( "FX: invalid enum value", tok.getLine() );
             }
+				else if( tok.checkToken( "StencilRef" ) )
+				{
+					if( !tok.checkToken( "=" ) ) return raiseError( "FX: expected '='", tok.getLine() );
+               context.stencilRef = atoi(tok.getToken(intnum));
+				}
 				else if( tok.checkToken( "AlphaToCoverage" ) )
 				{
 					if( !tok.checkToken( "=" ) ) return raiseError( "FX: expected '='", tok.getLine() );
