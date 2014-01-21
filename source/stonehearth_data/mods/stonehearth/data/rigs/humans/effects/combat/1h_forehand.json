@@ -1,4 +1,21 @@
 {
+
+   "effects": [
+      {
+         "entity" : "{{attacker}}",
+         "effect" : "1h_forehand",
+      },
+      {
+         "entity" : "{{defender}}",
+         "effect" : "block",
+         "start_time" : 200
+      }
+   ]
+}
+
+---
+
+{
    "type" : "effect",
    "tracks": {
       "animation" : {
@@ -28,4 +45,4 @@
          ]
       }
    }
-}
+
