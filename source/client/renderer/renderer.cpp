@@ -176,6 +176,15 @@ Renderer::Renderer() :
       ssaoSamplerData.push_back(0.0);
    }
 
+   H3DRes fowRes = h3dAddResource(H3DResTypes::Material, "materials/fow.material.xml", 0);
+   H3DNode fowNode = h3dAddModelNode(H3DRootNode, "visibleAreaModel", BuildSphereGeometry());
+   H3DNode fowMesh = h3dAddMeshNode(fowNode, "visibleArea", fowRes, 0, 2048 * 3, 0, 2045);
+   h3dSetNodeFlags(fowNode, H3DNodeFlags::NoCastShadow | H3DNodeFlags::NoRayQuery, true);
+   h3dSetNodeTransform(fowMesh, 
+      0, 0, 0,
+      0, 0.0, 0.0,
+      100, 100, 100);
+
    // Add camera   
    camera_ = new Camera(H3DRootNode, "Camera", currentPipeline_);
    h3dSetNodeParamI(camera_->GetNode(), H3DCamera::PipeResI, currentPipeline_);
@@ -253,6 +262,42 @@ void Renderer::SetSkyColors(const csg::Point3f& startCol, const csg::Point3f& en
 {
    h3dSetMaterialUniform(skysphereMat, "skycolor_start", startCol.x, startCol.y, startCol.z, 1.0f);
    h3dSetMaterialUniform(skysphereMat, "skycolor_end", endCol.x, endCol.y, endCol.z, 1.0f);
+}
+
+H3DRes Renderer::BuildSphereGeometry() {
+   float texData[2046 * 2];
+   // Unit (geodesic) sphere (created by recursively subdividing a base octahedron)
+   Horde3D::Vec3f spVerts[2046] = {  // x, y, z
+      Horde3D::Vec3f( 0.f, 1.f, 0.f ),   Horde3D::Vec3f( 0.f, -1.f, 0.f ),
+      Horde3D::Vec3f( -0.707f, 0.f, 0.707f ),   Horde3D::Vec3f( 0.707f, 0.f, 0.707f ),
+      Horde3D::Vec3f( 0.707f, 0.f, -0.707f ),   Horde3D::Vec3f( -0.707f, 0.f, -0.707f )
+   };
+   uint32 spInds[2048 * 3] = {  // Number of faces: (4 ^ iterations) * 8
+      2, 3, 0,   3, 4, 0,   4, 5, 0,   5, 2, 0,   2, 1, 3,   3, 1, 4,   4, 1, 5,   5, 1, 2
+   };
+   for( uint32 i = 0, nv = 6, ni = 24; i < 4; ++i )  // Two iterations
+   {
+      // Subdivide each face into 4 tris by bisecting each edge and push vertices onto unit sphere
+      for( uint32 j = 0, prevNumInds = ni; j < prevNumInds; j += 3 )
+      {
+         spVerts[nv++] = ((spVerts[spInds[j + 0]] + spVerts[spInds[j + 1]]) * 0.5f).normalized();
+         spVerts[nv++] = ((spVerts[spInds[j + 1]] + spVerts[spInds[j + 2]]) * 0.5f).normalized();
+         spVerts[nv++] = ((spVerts[spInds[j + 2]] + spVerts[spInds[j + 0]]) * 0.5f).normalized();
+
+         spInds[ni++] = spInds[j + 0]; spInds[ni++] = nv - 3; spInds[ni++] = nv - 1;
+         spInds[ni++] = nv - 3; spInds[ni++] = spInds[j + 1]; spInds[ni++] = nv - 2;
+         spInds[ni++] = nv - 2; spInds[ni++] = spInds[j + 2]; spInds[ni++] = nv - 1;
+         spInds[j + 0] = nv - 3; spInds[j + 1] = nv - 2; spInds[j + 2] = nv - 1;
+      }
+   }
+
+   for (int i = 0; i < 2046; i++)
+   {
+      texData[i * 2 + 0] = 0.0f;
+      texData[i * 2 + 1] = 1.0f - ((spVerts[i].y * 0.5f) + 0.5f);
+   }
+
+   return h3dutCreateGeometryRes("sphere", 2046, 2048 * 3, (float*)spVerts, spInds, nullptr, nullptr, nullptr, texData, nullptr);
 }
 
 void Renderer::BuildSkySphere()
@@ -930,6 +975,7 @@ void Renderer::SetDrawWorld(bool drawWorld)
    SetStageEnable("Sky", drawWorld);
    SetStageEnable("Starfield", drawWorld);
    SetStageEnable("Depth", drawWorld);
+   SetStageEnable("FogOfWar", drawWorld);
    SetStageEnable("Light", drawWorld);
    SetStageEnable("Clouds", drawWorld);
    SetStageEnable("Fog", drawWorld);

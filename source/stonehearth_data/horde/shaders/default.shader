@@ -45,6 +45,7 @@ context AMBIENT
   PixelShader = compile GLSL FS_FORWARD_AMBIENT;
   
   ZWriteEnable = true;
+  CullMode = Back;
 }
 
 context DEPTH_AND_LIGHT_ATTRIBUTES
@@ -56,7 +57,8 @@ context DEPTH_AND_LIGHT_ATTRIBUTES
 context MATERIAL
 {
   VertexShader = compile GLSL VS_GENERAL;
-  PixelShader = compile GLSL FS_DEFERRED_MATERIAL;  
+  PixelShader = compile GLSL FS_DEFERRED_MATERIAL;
+  CullMode = Back;
 }
 
 context SELECTED_SCREENSPACE
@@ -100,7 +102,7 @@ context DIRECTIONAL_LIGHTING
   PixelShader = compile GLSL FS_DIRECTIONAL_LIGHTING;
   
   ZWriteEnable = false;
-  BlendMode = Add;
+  BlendMode = Whateva;
   CullMode = Back;
 }
 
@@ -110,7 +112,7 @@ context FOG
   PixelShader = compile GLSL FS_FOG;
   
   ZWriteEnable = false;
-  BlendMode = Blend;
+  BlendMode = AddBlended;
   CullMode = Back;
 }
 
@@ -197,7 +199,7 @@ void main( void )
 
 void main( void )
 {
-  gl_FragColor = vec4(0, 0, 0, 1);
+  gl_FragColor = vec4(0, 0, 0, 0.0);
 }
 
 
@@ -253,7 +255,7 @@ void main( void )
   // Mix light and shadow and ambient light.
   lightColor = cloudColor *((shadowTerm * (lightColor * albedo)) + (lightAmbientColor * albedo));
   
-  gl_FragColor = vec4(lightColor, 1.0);
+  gl_FragColor = vec4(lightColor, 0.5);
 }
 
 [[FS_FOG]]

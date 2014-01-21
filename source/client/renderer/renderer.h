@@ -178,6 +178,7 @@ class Renderer
       RendererConfig config_;
 
    private:
+      H3DRes BuildSphereGeometry();
       void GetConfigOptions();
       void BuildSkySphere();
       void BuildStarfield();
