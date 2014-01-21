@@ -551,25 +551,25 @@ function TerrainGenerator:_copy_forced_edge_values(micro_map, blueprint, x, y)
    -- left tile
    adj_micro_map = self:_get_micro_map(blueprint, x-1, y)
    if adj_micro_map then
-      adj_micro_map:copy_block(micro_map, adj_micro_map, 1, 1, width, 1, 1, height)
+      Array2D.copy_block(micro_map, adj_micro_map, 1, 1, width, 1, 1, height)
    end
 
    -- right tile
    adj_micro_map = self:_get_micro_map(blueprint, x+1, y)
    if adj_micro_map then
-      adj_micro_map:copy_block(micro_map, adj_micro_map, width, 1, 1, 1, 1, height)
+      Array2D.copy_block(micro_map, adj_micro_map, width, 1, 1, 1, 1, height)
    end
 
    -- top tile
    adj_micro_map = self:_get_micro_map(blueprint, x, y-1)
    if adj_micro_map then
-      adj_micro_map:copy_block(micro_map, adj_micro_map, 1, 1, 1, height, width, 1)
+      Array2D.copy_block(micro_map, adj_micro_map, 1, 1, 1, height, width, 1)
    end
 
    -- bottom tile
    adj_micro_map = self:_get_micro_map(blueprint, x, y+1)
    if adj_micro_map then
-      adj_micro_map:copy_block(micro_map, adj_micro_map, 1, height, 1, 1, width, 1)
+      Array2D.copy_block(micro_map, adj_micro_map, 1, height, 1, 1, width, 1)
    end
 end
 
@@ -672,7 +672,7 @@ function TerrainGenerator:_extract_tile_map(oversize_map)
 
    tile_map.terrain_type = oversize_map.terrain_type
 
-   oversize_map:copy_block(tile_map, oversize_map,
+   Array2D.copy_block(tile_map, oversize_map,
       1, 1, tile_map_origin, tile_map_origin, self.tile_size, self.tile_size)
 
    return tile_map

@@ -134,7 +134,7 @@ end
 
 ----- Static functions -----
 
-function Array2D:copy_block(dst, src, dstx, dsty, srcx, srcy, block_width, block_height)
+function Array2D.copy_block(dst, src, dstx, dsty, srcx, srcy, block_width, block_height)
    local i, j
    local dst_offset = dst:get_offset(dstx, dsty)-1
    local src_offset = src:get_offset(srcx, srcy)-1
@@ -148,7 +148,7 @@ function Array2D:copy_block(dst, src, dstx, dsty, srcx, srcy, block_width, block
    end
 end
 
-function Array2D:copy_vector(dst, src, dst_start, dst_inc, src_start, src_inc, length)
+function Array2D.copy_vector(dst, src, dst_start, dst_inc, src_start, src_inc, length)
    local i
    local x = src_start
    local y = dst_start
@@ -160,20 +160,20 @@ function Array2D:copy_vector(dst, src, dst_start, dst_inc, src_start, src_inc, l
    end
 end
 
-function Array2D:get_row_vector(dst, src, row_num, row_width, length)
-   Array2D:copy_vector(dst, src, 1, 1, (row_num-1)*row_width+1, 1, length)
+function Array2D.get_row_vector(dst, src, row_num, row_width, length)
+   Array2D.copy_vector(dst, src, 1, 1, (row_num-1)*row_width+1, 1, length)
 end
 
-function Array2D:set_row_vector(dst, src, row_num, row_width, length)
-   Array2D:copy_vector(dst, src, (row_num-1)*row_width+1, 1, 1, 1, length)
+function Array2D.set_row_vector(dst, src, row_num, row_width, length)
+   Array2D.copy_vector(dst, src, (row_num-1)*row_width+1, 1, 1, 1, length)
 end
 
-function Array2D:get_column_vector(dst, src, col_num, row_width, length)
-   Array2D:copy_vector(dst, src, 1, 1, col_num, row_width, length)
+function Array2D.get_column_vector(dst, src, col_num, row_width, length)
+   Array2D.copy_vector(dst, src, 1, 1, col_num, row_width, length)
 end
 
-function Array2D:set_column_vector(dst, src, col_num, row_width, length)
-   Array2D:copy_vector(dst, src, col_num, row_width, 1, 1, length)
+function Array2D.set_column_vector(dst, src, col_num, row_width, length)
+   Array2D.copy_vector(dst, src, col_num, row_width, 1, 1, length)
 end
 
 return Array2D

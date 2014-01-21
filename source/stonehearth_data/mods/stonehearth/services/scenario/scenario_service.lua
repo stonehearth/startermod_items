@@ -251,7 +251,7 @@ function ScenarioService:_select_scenarios()
    return scenarios
 end
 
--- order first by priority then by area
+-- order first by priority, then by area, then by weight
 function ScenarioService:_sort_scenarios(scenarios)
    local comparator = function(a, b)
       local category_a = a.category
@@ -267,8 +267,12 @@ function ScenarioService:_sort_scenarios(scenarios)
 
       local area_a = a.size.width * a.size.length
       local area_b = b.size.width * b.size.length
-      -- larger area sorted to lower index
-      return area_a > area_b 
+      if area_a ~= area_b then
+         -- larger area sorted to lower index
+         return area_a > area_b 
+      end
+
+      return a.weight > b.weight
    end
 
    table.sort(scenarios, comparator)
