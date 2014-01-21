@@ -28,11 +28,17 @@
 
       <Stage id="FogOfWar">
          <!--"Carmack's Revenge"-->
-         <DrawGeometry context="FOW_RESET_FRONT" class="~Translucent" />
-         <DrawGeometry context="FOW_RESET_BACK" class="~Translucent" />
-         <DrawGeometry context="FOW_FRONT" class="~Translucent" />
-         <DrawGeometry context="FOW_BACK" class="~Translucent" />
-         <DrawGeometry context="FOW_DRAW_ALPHA" class="~Translucent" />
+         <DrawGeometry context="FOW_RESET_FRONT_EXPLORED" class="~Translucent" />
+         <DrawGeometry context="FOW_RESET_BACK_EXPLORED" class="~Translucent" />
+         <DrawGeometry context="FOW_FRONT_EXPLORED" class="~Translucent" />
+         <DrawGeometry context="FOW_BACK_EXPLORED" class="~Translucent" />
+         <DrawGeometry context="FOW_DRAW_ALPHA_EXPLORED" class="~Translucent" />
+ 
+         <DrawGeometry context="FOW_RESET_FRONT_VISIBLE" class="~Translucent" />
+         <DrawGeometry context="FOW_RESET_BACK_VISIBLE" class="~Translucent" />
+         <DrawGeometry context="FOW_FRONT_VISIBLE" class="~Translucent" />
+         <DrawGeometry context="FOW_BACK_VISIBLE" class="~Translucent" />
+         <DrawGeometry context="FOW_DRAW_ALPHA_VISIBLE" class="~Translucent" />
       </Stage>
 
       <Stage id="Light">

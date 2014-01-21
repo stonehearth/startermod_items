@@ -176,9 +176,18 @@ Renderer::Renderer() :
       ssaoSamplerData.push_back(0.0);
    }
 
-   H3DRes fowRes = h3dAddResource(H3DResTypes::Material, "materials/fow.material.xml", 0);
+   H3DRes fowRes = h3dAddResource(H3DResTypes::Material, "materials/fow_explored.material.xml", 0);
    H3DNode fowNode = h3dAddModelNode(H3DRootNode, "visibleAreaModel", BuildSphereGeometry());
    H3DNode fowMesh = h3dAddMeshNode(fowNode, "visibleArea", fowRes, 0, 2048 * 3, 0, 2045);
+   h3dSetNodeFlags(fowNode, H3DNodeFlags::NoCastShadow | H3DNodeFlags::NoRayQuery, true);
+   h3dSetNodeTransform(fowMesh, 
+      0, 0, 0,
+      0, 0.0, 0.0,
+      300, 300, 300);
+
+   fowRes = h3dAddResource(H3DResTypes::Material, "materials/fow_visible.material.xml", 0);
+   fowNode = h3dAddModelNode(H3DRootNode, "visibleAreaModel1", BuildSphereGeometry());
+   fowMesh = h3dAddMeshNode(fowNode, "visibleArea1", fowRes, 0, 2048 * 3, 0, 2045);
    h3dSetNodeFlags(fowNode, H3DNodeFlags::NoCastShadow | H3DNodeFlags::NoRayQuery, true);
    h3dSetNodeTransform(fowMesh, 
       0, 0, 0,

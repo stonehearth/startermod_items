@@ -199,7 +199,7 @@ void main( void )
 
 void main( void )
 {
-  gl_FragColor = vec4(0, 0, 0, 0.0);
+  gl_FragColor = vec4(0, 0, 0, 0.25);
 }
 
 
@@ -255,7 +255,7 @@ void main( void )
   // Mix light and shadow and ambient light.
   lightColor = cloudColor *((shadowTerm * (lightColor * albedo)) + (lightAmbientColor * albedo));
   
-  gl_FragColor = vec4(lightColor, 0.5);
+  gl_FragColor = vec4(lightColor, 0.0);
 }
 
 [[FS_FOG]]
