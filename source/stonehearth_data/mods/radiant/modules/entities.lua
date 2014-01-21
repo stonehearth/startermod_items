@@ -562,6 +562,10 @@ function entities.point_in_destination_adjacent(entity, pt)
 end
 
 function entities.is_material(entity, materials)
+   if not entity or not entity:is_valid() then
+      return false
+   end
+   
    radiant.check.is_entity(entity)
    local is_material = false
    local material_component = entity:get_component('stonehearth:material')

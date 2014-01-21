@@ -31,6 +31,7 @@
             "stonehearth:actions:pickup_item_type",
             "stonehearth:actions:pickup_item_type_trivial",
             "stonehearth:actions:pickup_item_made_of",
+            "stonehearth:actions:pickup_item_made_of_trivial",
             "stonehearth:actions:call_function",
             "stonehearth:actions:call_method",
             "stonehearth:actions:reserve_entity",

@@ -27,8 +27,6 @@
          "render_type" : "merge_with_model",
          "injected_ai" : {
             "actions" : [
-               "stonehearth:actions:fabricate",
-               "stonehearth:actions:teardown",
                "stonehearth:actions:chop_tree_action",
                "stonehearth:actions:chop_tree_adjacent_action",
                "stonehearth:actions:harvest_plant",
@@ -42,7 +40,13 @@
                "stonehearth:actions:shear_sheep_action",
                "stonehearth:actions:collect_ingredient",
                "stonehearth:actions:complete_workshop_construction",
-               "stonehearth:actions:replace_proxy_with_item"
+               "stonehearth:actions:replace_proxy_with_item",
+               "stonehearth:actions:wait_for_fabricator",
+               "stonehearth:actions:fabricate_structure",
+               "stonehearth:actions:fabricate_structure_adjacent",
+               "stonehearth:actions:wait_for_teardown",
+               "stonehearth:actions:teardown_structure",
+               "stonehearth:actions:teardown_structure_adjacent"
             ]
          }
       }

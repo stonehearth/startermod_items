@@ -1,16 +1,16 @@
 StockpileComponent = require 'components.stockpile.stockpile_component'
 
-local RestockStockpileAction = class()
-RestockStockpileAction.name = 'restock stockpile'
-RestockStockpileAction.does = 'stonehearth:restock_stockpile'
-RestockStockpileAction.args = {
+local RestockStockpile = class()
+RestockStockpile.name = 'restock stockpile'
+RestockStockpile.does = 'stonehearth:restock_stockpile'
+RestockStockpile.args = {
    stockpile = StockpileComponent
 }
-RestockStockpileAction.version = 2
-RestockStockpileAction.priority = 1
+RestockStockpile.version = 2
+RestockStockpile.priority = 1
 
 local ai = stonehearth.ai
-return ai:create_compound_action(RestockStockpileAction)
+return ai:create_compound_action(RestockStockpile)
          :execute('stonehearth:wait_for_stockpile_space', { stockpile = ai.ARGS.stockpile })
          :execute('stonehearth:pickup_item_type', { filter_fn = ai.PREV.item_filter })
          :execute('stonehearth:goto_entity', { entity = ai.ARGS.stockpile:get_entity() })

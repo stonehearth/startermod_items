@@ -89,7 +89,6 @@ function FabricatorComponent:_add_scaffolding_to_project(project, blueprint, nor
    fabricator:add_component('mob'):set_transform(transform)
    fabricator:add_component('stonehearth:fabricator')
                               :start_project(name, scaffolding)
-                              :set_debug_color(Color4(255, 192, 0, 128))
                               
    -- render fabricators in blueprint mode
    fabricator:add_component('render_info')
@@ -98,10 +97,6 @@ function FabricatorComponent:_add_scaffolding_to_project(project, blueprint, nor
    -- add the fabricator and the project to our entity container so they get rendered
    self._entity:add_component('entity_container')
                   :add_child(fabricator)
-end
-
-function FabricatorComponent:set_debug_color(c)
-   self._fabricator:set_debug_color(c)
 end
 
 return FabricatorComponent

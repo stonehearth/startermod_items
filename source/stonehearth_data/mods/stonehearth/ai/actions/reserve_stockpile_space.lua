@@ -23,12 +23,14 @@ function ReserveStockpileSpace:start_thinking(ai, entity, args)
 end
 
 function ReserveStockpileSpace:_on_space_available(stockpile, space_available)
-   if space_available then
+   if space_available and not self._ready then
+      self._ready = true
       self._ai:set_think_output({
          stockpile = self._stockpile,
          item_filter = self._stockpile:get_item_filter_fn()
       })
-   else
+   elseif not space_available and self._ready then
+      self._ready = false
       self._ai:clear_think_output()
    end
 end
