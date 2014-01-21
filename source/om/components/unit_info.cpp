@@ -14,5 +14,6 @@ void UnitInfo::ExtendObject(json::Node const& obj)
    display_name_ = obj.get<std::string>("name", *display_name_);
    description_ = obj.get<std::string>("description", *description_);
    faction_ = obj.get<std::string>("faction", *faction_);
+   kingdom_ = obj.get<std::string>("kingdom", *kingdom_);
    icon_ = obj.get<std::string>("icon", *icon_);
 }
