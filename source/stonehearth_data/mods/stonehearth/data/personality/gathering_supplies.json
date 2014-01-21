@@ -5,7 +5,7 @@
          "trigger_policy" : [
             {
                "trigger_id" : "gathering_supplies",
-               "probability" : 100
+               "probability" : 10
             }
          ],
          "text" : "On Gathering:",
