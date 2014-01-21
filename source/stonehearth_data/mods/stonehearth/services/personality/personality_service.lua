@@ -16,7 +16,7 @@
 ]]
 
 local rng = _radiant.csg.get_default_random_number_generator()
-local SubstitutionDictionary = require 'services.text_manipulation.substitution'
+local substitution_service = require 'services.substitution.substitution_service'
 
 PersonalityService = class()
 
@@ -28,7 +28,6 @@ function PersonalityService:__init()
    --Tables to store tables of potential log entries
    self._activity_logs = {}
    self._trigger_to_activity = {}
-   self._substitution_dictionary = SubstitutionDictionary()
 
    --Event that will fire every time we could note something in the log
    radiant.events.listen(self, 'stonehearth:journal_event', self, self._on_journal)
@@ -44,13 +43,14 @@ end
 function PersonalityService:_on_journal(e)
    local person = e.entity
    local description = e.description
+   local namespace = e.namespace
    if person and description then 
       local personality_component = person:get_component('stonehearth:personality')
       local trigger_data = self._trigger_to_activity[description]
       if personality_component and trigger_data then
          local probability = trigger_data.probability
          local activity_name = trigger_data.activity_id
-         personality_component:register_notable_event(activity_name, probability)
+         personality_component:register_notable_event(activity_name, probability, namespace)
       end
    end
 end
@@ -97,19 +97,19 @@ function PersonalityService:_load_activity(url)
          end
       end
    end
-   if new_activity_blob.dictionaries then
-      self._substitution_dictionary:populate_dictionary(new_activity_blob)
-      --self:_load_substitutions(new_activity_blob)
+   if new_activity_blob.substitution_table then
+      substitution_service:populate(new_activity_blob.substitution_table)
    end
 end
 
 --- Given a field of type subst-table, return the value associated
 --  with the relevant key. For example, get_substitution(deity, ascendency)
 --  yields "Cid".
---  @param field - the field that will appear in the text
---  @param key   - the version of the value we want
-function PersonalityService:get_substitution(field, key)
-   return self._substitution_dictionary:get_substitution()
+--  @param namespace - what namespace we should look in
+--  @param key - the field that will appear in the text
+--  @param param   - the version of the value we want
+function PersonalityService:get_substitution(namespace, key, param)
+   return substitution_service:get_substitution(namespace, key, param)
 end
 
 --- Given an activity name and a personality type, return an unused activity log of that type
@@ -119,10 +119,17 @@ end
 --  If there is no personality type for that activity, use the 'generic' personality type
 --  if there is one. 
 --  @return title, log
-function PersonalityService:get_activity_log(activity_name, personality_type, substitutions)
+function PersonalityService:get_activity_log(namespace, activity_name, personality_type, substitutions)
    local activity_data = self._activity_logs[activity_name]
    if activity_data then
       local prefix = activity_data.text
+      if not namespace then
+         if activity_data.default_namespace then
+            namespace = activity_data.default_namespace
+         else
+            namespace = 'stonehearth'
+         end
+      end
       local log_entry = nil
       local log_data = activity_data.logs_by_personality[personality_type]
       if not log_data then
@@ -137,8 +144,8 @@ function PersonalityService:get_activity_log(activity_name, personality_type, su
          end
          log_data.use_counter = log_data.use_counter + 1
 
-         log_entry = self._substitution_dictionary:substitute_variables(log_entry, substitutions)
-         log_entry = self._substitution_dictionary:capitalize_first(log_entry)
+         log_entry = substitution_service:substitute_variables(namespace, log_entry, substitutions)
+         log_entry = substitution_service:capitalize_first(log_entry)
       end
       return prefix, log_entry
    end
@@ -176,6 +183,7 @@ function PersonalityService:_get_sequential_unused_from_table(root_array, tracke
    -- this doesn't quite work.  tracker_var is passed in by value, so modifications we make
    -- to it don't stick.  luckily, no one uses it at all yet. =O   Fix it if it ever comes
    -- to that -tony
+   -- Thanks! TODO: do everything tony says.
    assert(false, 'not really working yet')
    tracker_var = tracker_var + 1
    if tracker_var <= (#root_array) then 

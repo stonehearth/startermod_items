@@ -43,16 +43,22 @@ end
 
 --- Call this function to add a substitution given a parameter
 --  For example, look up the deity for the ascendancy (Cid).
+--  TODO: allow for value to be a variable/ptr to other values
 --  @param key - the variable that we want to assign to
 --  @param parameter - the parameter that will help us look up the correct
 --                 string value for the key
-function Personality:add_substitution_by_parameter(key, parameter)
-   local value = personality_service:get_substitution(key, parameter)
+--  @param namespace - optional, the scope of the substitution. Defaults to stonehearth
+function Personality:add_substitution_by_parameter(key, parameter, namespace)
+   if not namespace then 
+      namespace = 'stonehearth'
+   end
+   local value = personality_service:get_substitution(namespace, key, parameter)
    self._data.substitutions[key] = value
 end
 
 --- Call this function to add a substitution when you already know the value
 --  For example, if you know that "target_food" should be "Berries"
+--  TODO: allow for value to be a variable/ptr to other values
 --  @param key - the name of the key to look up
 --  @param value - the string value associated with the key
 function Personality:add_substitution(key, value)
@@ -71,12 +77,12 @@ end
 --  add the event to todays_events and the permanent log
 --  @param event_name: name of the event to look up
 --  @param percent_chance: number between 1 and 100
---  @param substitutions: an object that contains one or more possible substitutions for strings
-function Personality:register_notable_event(event_name, percent_chance)
+--  @param namespace - The scope of the substitution. Optional
+function Personality:register_notable_event(event_name, percent_chance, namespace)
    if self._data.todays_events[event_name] == nil then
       local roll = rng:get_int(1, 100)
       if roll <= percent_chance then
-         local title, log = personality_service:get_activity_log(event_name, self._data.personality, self._data.substitutions)
+         local title, log = personality_service:get_activity_log(namespace, event_name, self._data.personality, self._data.substitutions)
          if log then
             self:_add_log_entry(title, log)
          end

@@ -34,7 +34,7 @@ function ChopTreeAction:run(ai, entity, path)
    until not tree:is_valid()
    
    radiant.events.trigger(personality_service, 'stonehearth:journal_event', 
-                        {entity = entity, description = 'chop_tree'})
+                         {entity = entity, description = 'chop_tree'})
 end
 
 return ChopTreeAction

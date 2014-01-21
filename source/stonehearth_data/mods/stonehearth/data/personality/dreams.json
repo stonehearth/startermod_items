@@ -10,6 +10,7 @@
          ],
          "text" : "On Dreaming:",
          "type" : "random",
+         "default_namespace" : "stonehearth:settler_journals:dreams",
          "logs_by_personality" : {
             "generic" : {
                "logs" : [
@@ -31,7 +32,7 @@
             "lovable_rogue" : {
                "logs" : [
                "This morning, I woke up certain that __monsters__ had stolen all the __prosaic_plural_noun__. Need to build walls!! Thicker walls!!!.",
-               "I had the dream about __material_adjective__ ladder again. I wish I knew what was at the top. I'm sure __deity__ is trying to tell me something."
+               "I had the dream about __material_adjective__ ladder again. I wish I knew what was at the top. I'm sure __teacher__ is trying to tell me something."
                ]
             },
             "psychopathic_misanthrope" : {
@@ -56,111 +57,126 @@
          }
       }
    ], 
-   "dictionaries" : {
-      "dream_parts" : {
-         "type" : "random_array",
-         "entries" : [
-            "__monsters__ were attacking our caravan.",
-            "the __prosaic_plural_noun__ grew arms and legs and began to __action_verb__",
-            "__deity__ asked me to __action_verb__ in front of a large audience",
-            "I found a __material_adjective__ mirror under my pillow"
-         ]
-      },
-      "beleaguered_leader_dream_reaction" : {
-         "type" : "random_array",
-         "entries" : [
-            "I need to get out more often.",
-            "I need to spend more time alone.",
-            "Why me?",
-            "I can't wait to wake up"
-         ]
-      },
-      "action_verb" : {
-         "type" : "random_array", 
-         "entries" : [
-            "dance",
-            "sing",
-            "spin", 
-            "attack",
-            "chant",
-            "explode"
-         ]
-      },
-      "prosaic_plural_noun" : {
-         "type" : "random_array",
-         "entries" : [
-            "sheep",
-            "hammers",
-            "trees",
-            "shoes",
-            "wooden logs",
-            "grass",
-            "berries"
-         ]
-      },
-      "material_adjective" : {
-         "type" : "random_array",
-         "entries" : [
-            "shiny",
-            "soft",
-            "pricky",
-            "fragile",
-            "nicked",
-            "dense"
-         ]
-      },
-      "monsters" : {
-         "type" : "random_array",
-         "entries" : [
-            "wolves",
-            "goblins",
-            "dragons",
-            "trolls",
-            "hedgehogs",
-            "swamp monsters",
-            "rabbits"
-         ]
-      },
-      "awesome_food" : {
-         "type" : "random_array",
-         "entries" : [
-            "apple pie",
-            "steak",
-            "turkey drumsticks",
-            "beef ribs",
-            "venison",
-            "honey glazed ham",
-            "roast raccoon"
-         ]
-      },
-      "deity" : {
-         "type" : "subst_table",
-         "entries" : {
-            "ascendency" : "Cid",
-            "rayyas_children" : "Rayya",
-            "northern_alliance" : "Valin"
+   "substitution_table" : [
+      {
+         "namespace" : "stonehearth",
+         "keys" : {
+            "material_adjective" : {
+               "type" : "random_array",
+               "entries" : [
+                  "shiny",
+                  "soft",
+                  "pricky",
+                  "fragile",
+                  "nicked",
+                  "dense"
+               ]
+            },
+            "monsters" : {
+               "type" : "random_array",
+               "entries" : [
+                  "wolves",
+                  "goblins",
+                  "dragons",
+                  "trolls",
+                  "hedgehogs",
+                  "swamp monsters",
+                  "rabbits"
+               ]
+            },
+            "teacher" : {
+               "type" : "parametrized_value",
+               "entries" : {
+                  "ascendency" : "Cid",
+                  "rayyas_children" : "Rayya",
+                  "northern_alliance" : "Valin"
+               }
+            },
+            "animals" : {
+               "type" : "random_array",
+               "entries" : [
+                  "wolves",
+                  "sheep",
+                  "rabbits",
+                  "chickens",
+                  "deer",
+                  "porcupines",
+                  "raccoons"
+               ]
+            }
          }
       },
-      "animals" : {
-         "type" : "random_array",
-         "entries" : [
-            "wolves",
-            "sheep",
-            "rabbits",
-            "chickens",
-            "deer",
-            "porcupines",
-            "raccoons"
-         ]
+      {
+         "namespace" : "stonehearth:settler_journals",
+         "keys" : {
+            "action_verb" : {
+               "type" : "random_array", 
+               "entries" : [
+                  "dance",
+                  "sing",
+                  "spin", 
+                  "attack",
+                  "chant",
+                  "explode"
+               ]
+            },
+            "prosaic_plural_noun" : {
+               "type" : "random_array",
+               "entries" : [
+                  "sheep",
+                  "hammers",
+                  "trees",
+                  "shoes",
+                  "wooden logs",
+                  "grass",
+                  "berries"
+               ]
+            },
+            "awesome_food" : {
+               "type" : "random_array",
+               "entries" : [
+                  "apple pie",
+                  "steak",
+                  "turkey drumsticks",
+                  "beef ribs",
+                  "venison",
+                  "honey glazed ham",
+                  "roast raccoon"
+               ]
+            }
+         }         
       },
-      "dream_monsters" : {
-         "type" : "variable",
-         "value" : "monsters"
-      },
-      "dream_counter" : {
-         "type" : "variable",
-         "value" : "prosaic_plural_noun"
+      {
+         "namespace" : "stonehearth:settler_journals:dreams",
+         "keys" : {
+            "dream_parts" : {
+               "type" : "random_array",
+               "entries" : [
+                  "__monsters__ were attacking our caravan.",
+                  "the __prosaic_plural_noun__ grew arms and legs and began to __action_verb__",
+                  "__teacher__ asked me to __action_verb__ in front of a large audience",
+                  "I found a __material_adjective__ mirror under my pillow"
+               ]
+            },
+            "beleaguered_leader_dream_reaction" : {
+               "type" : "random_array",
+               "entries" : [
+                  "I need to get out more often.",
+                  "I need to spend more time alone.",
+                  "Why me?",
+                  "I can't wait to wake up."
+               ]
+            },
+            "dream_monsters" : {
+               "type" : "variable",
+               "value" : "monsters"
+            },
+            "dream_counter" : {
+               "type" : "variable",
+               "value" : "prosaic_plural_noun"
+            }
+         }         
       }
-   }
+   ]
 }
             

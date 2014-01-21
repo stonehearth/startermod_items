@@ -42,12 +42,13 @@ function PopulationFaction:_set_citizen_initial_state(citizen, gender)
    local name = self:generate_random_name(gender)
    radiant.entities.set_display_name(citizen, name)
 
-   -- pesonality
+   -- personality
    local personality = personality_service:get_new_personality()
    local personality_component = citizen:add_component('stonehearth:personality')
    personality_component:set_personality(personality)
-   --For the deity field, assign the one appropriate for this kingdom
-   personality_component:add_substitution_by_parameter('deity', self._kingdom)
+
+   --For the teacher field, assign the one appropriate for this kingdom
+   personality_component:add_substitution_by_parameter('teacher', self._kingdom, 'stonehearth')
 
    local mind = rng:get_int(1, 6)
    local body = rng:get_int(1, 6)

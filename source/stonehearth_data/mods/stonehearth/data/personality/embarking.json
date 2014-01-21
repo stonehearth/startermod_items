@@ -46,15 +46,20 @@
          }
       }
    ], 
-   "dictionaries" : {
-      "action_verb" : {
-         "type" : "random_array", 
-         "entries" : [
-            "polka", 
-            "yowl",
-            "cartwheel"
-         ]
+   "substitution_table" : [
+      {
+         "namespace" : "stonehearth",
+         "keys" : {
+            "action_verb" : {
+               "type" : "random_array", 
+               "entries" : [
+                  "polka", 
+                  "yowl",
+                  "cartwheel"
+               ]
+            }
+         }
       }
-   }
+   ]
 }
             

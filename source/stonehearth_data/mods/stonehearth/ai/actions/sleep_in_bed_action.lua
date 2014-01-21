@@ -3,6 +3,9 @@
    a bed has been found. Finding a bed and managing all state related to
    sleeping is done in sleep_action
 --]]
+
+local personality_service = require 'services.personality.personality_service'
+
 local SleepInBedAction = class()
 
 SleepInBedAction.name = 'sleep in a bed'
@@ -74,6 +77,12 @@ function SleepInBedAction:stop()
    end
    radiant.entities.remove_buff(self._entity, 'stonehearth:buffs:sleeping');
    radiant.entities.unthink(self._entity, '/stonehearth/data/effects/thoughts/sleepy')
+
+   --When sleeping, we have a small chance of dreaming
+   --TODO: what if this is interrupted while we're following the path?
+   radiant.events.trigger(personality_service, 'stonehearth:journal_event', 
+                         {entity = self._entity, description = 'dreams'})
+
 end
 
 return SleepInBedAction
