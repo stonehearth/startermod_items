@@ -852,6 +852,29 @@ bool Renderer::setMaterialRec( MaterialResource *materialRes, const std::string 
 				break;
 			}
 		}
+
+      switch( context->stencilOpModes) 
+      {
+      case StencilOpModes::Off:
+         glDisable(GL_STENCIL_TEST);
+         break;
+      case StencilOpModes::Keep_Dec_Dec:
+         glEnable(GL_STENCIL_TEST);
+         glStencilOp(GL_KEEP, GL_DECR, GL_DECR);
+         break;
+      case StencilOpModes::Keep_Inc_Inc:
+         glEnable(GL_STENCIL_TEST);
+         glStencilOp(GL_KEEP, GL_INCR, GL_INCR);
+         break;
+      case StencilOpModes::Keep_Keep_Dec:
+         glEnable(GL_STENCIL_TEST);
+         glStencilOp(GL_KEEP, GL_KEEP, GL_DECR);
+         break;
+      case StencilOpModes::Keep_Keep_Inc:
+         glEnable(GL_STENCIL_TEST);
+         glStencilOp(GL_KEEP, GL_KEEP, GL_INCR);
+         break;
+      }
 		
 		// Configure blending
 		switch( context->blendMode )
@@ -1708,7 +1731,7 @@ void Renderer::bindPipeBuffer( uint32 rbObj, const std::string &sampler, uint32 
 
 
 void Renderer::clear( bool depth, bool buf0, bool buf1, bool buf2, bool buf3,
-                      float r, float g, float b, float a )
+                      float r, float g, float b, float a, int stencilVal )
 {
 	uint32 mask = 0;
 	uint32 prevBuffers[4] = { 0 };
@@ -1728,7 +1751,8 @@ void Renderer::clear( bool depth, bool buf0, bool buf1, bool buf2, bool buf3,
 		uint32 buffers[4], cnt = 0;
 
 		if( depth && rb.depthTex != 0 ) mask |= CLR_DEPTH;
-		
+      if( stencilVal >= 0 && rb.depthTex != 0 ) mask |= CLR_STENCIL;
+
 		if( buf0 && rb.colTexs[0] != 0 ) buffers[cnt++] = GL_COLOR_ATTACHMENT0_EXT;
 		if( buf1 && rb.colTexs[1] != 0 ) buffers[cnt++] = GL_COLOR_ATTACHMENT1_EXT;
 		if( buf2 && rb.colTexs[2] != 0 ) buffers[cnt++] = GL_COLOR_ATTACHMENT2_EXT;
@@ -1744,11 +1768,12 @@ void Renderer::clear( bool depth, bool buf0, bool buf1, bool buf2, bool buf3,
 	{
 		if( depth ) mask |= CLR_DEPTH;
 		if( buf0 ) mask |= CLR_COLOR;
+      if( stencilVal >= 0 ) mask |= CLR_STENCIL;
 		//gRDI->setScissorRect( _curCamera->_vpX, _curCamera->_vpY, _curCamera->_vpWidth, _curCamera->_vpHeight );
 		//glEnable( GL_SCISSOR_TEST );
 	}
 	
-	gRDI->clear( mask, clrColor, 1.f );
+	gRDI->clear( mask, clrColor, 1.f, stencilVal );
 	//glDisable( GL_SCISSOR_TEST );
 	
 	// Restore state of glDrawBuffers
@@ -2933,7 +2958,7 @@ void Renderer::render( CameraNode *camNode )
 			case PipelineCommands::ClearTarget:
 				clear( pc.params[0].getBool(), pc.params[1].getBool(), pc.params[2].getBool(),
 				       pc.params[3].getBool(), pc.params[4].getBool(), pc.params[5].getFloat(),
-				       pc.params[6].getFloat(), pc.params[7].getFloat(), pc.params[8].getFloat() );
+				       pc.params[6].getFloat(), pc.params[7].getFloat(), pc.params[8].getFloat(), pc.params[9].getInt() );
 				break;
 
 			case PipelineCommands::DrawGeometry:

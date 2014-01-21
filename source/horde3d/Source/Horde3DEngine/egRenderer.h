@@ -228,7 +228,7 @@ protected:
 	void drawOverlays( const std::string &shaderContext );
 
 	void bindPipeBuffer( uint32 rbObj, const std::string &sampler, uint32 bufIndex );
-	void clear( bool depth, bool buf0, bool buf1, bool buf2, bool buf3, float r, float g, float b, float a );
+	void clear( bool depth, bool buf0, bool buf1, bool buf2, bool buf3, float r, float g, float b, float a, int stencilVal );
 	void drawFSQuad( Resource *matRes, const std::string &shaderContext );
 	void drawGeometry( const std::string &shaderContext, const std::string &theClass,
 	                   RenderingOrder::List order, int filterRequired, int occSet, float frustStart, float frustEnd );

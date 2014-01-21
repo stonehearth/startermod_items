@@ -1506,7 +1506,7 @@ void RenderDevice::resetStates()
 // Draw calls and clears
 // =================================================================================================
 
-void RenderDevice::clear( uint32 flags, float *colorRGBA, float depth )
+void RenderDevice::clear( uint32 flags, float *colorRGBA, float depth, int stencilVal )
 {
 	uint32 mask = 0;
 	
@@ -1521,6 +1521,11 @@ void RenderDevice::clear( uint32 flags, float *colorRGBA, float depth )
 		if( colorRGBA ) glClearColor( colorRGBA[0], colorRGBA[1], colorRGBA[2], colorRGBA[3] );
 		else glClearColor( 0, 0, 0, 0 );
 	}
+   if( flags & CLR_STENCIL )
+   {
+      mask |= GL_STENCIL_BUFFER_BIT;
+      glClearStencil(stencilVal);
+   }
 	
 	if( mask )
 	{	

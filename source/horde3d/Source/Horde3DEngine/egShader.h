@@ -117,6 +117,18 @@ struct CullModes
 	};
 };
 
+struct StencilOpModes
+{
+   enum List
+   {
+      Off,
+      Keep_Dec_Dec,
+      Keep_Inc_Inc,
+      Keep_Keep_Inc,
+      Keep_Keep_Dec
+   };
+};
+
 
 struct ShaderCombination
 {
@@ -157,6 +169,7 @@ struct ShaderContext
 	BlendModes::List                  blendMode;
 	TestModes::List                   depthFunc;
 	CullModes::List                   cullMode;
+   StencilOpModes::List              stencilOpModes;
 	bool                              depthTest;
 	bool                              writeDepth;
 	bool                              alphaToCoverage;
@@ -170,7 +183,7 @@ struct ShaderContext
 	ShaderContext() :
 		blendMode( BlendModes::Replace ), depthFunc( TestModes::LessEqual ),
 		cullMode( CullModes::Back ), depthTest( true ), writeDepth( true ), alphaToCoverage( false ),
-		vertCodeIdx( -1 ), fragCodeIdx( -1 ), compiled( false )
+      vertCodeIdx( -1 ), fragCodeIdx( -1 ), compiled( false ), stencilOpModes(StencilOpModes::Off)
 	{
 	}
 };

@@ -659,6 +659,14 @@ bool ShaderResource::parseFXSection( char *data )
 					else if( tok.checkToken( "None" ) ) context.cullMode = CullModes::None;
 					else return raiseError( "FX: invalid enum value", tok.getLine() );
 				}
+            else if( tok.checkToken( "StencilOp" ) ) {
+               if( !tok.checkToken( "=" ) ) return raiseError( "FX: expected '='", tok.getLine() );
+               if( tok.checkToken( "Keep_Dec_Dec" ) ) context.stencilOpModes = StencilOpModes::Keep_Dec_Dec;
+               else if( tok.checkToken( "Keep_Inc_Inc" ) ) context.stencilOpModes = StencilOpModes::Keep_Inc_Inc;
+               else if( tok.checkToken( "Keep_Keep_Inc" ) ) context.stencilOpModes = StencilOpModes::Keep_Keep_Inc;
+               else if( tok.checkToken( "Keep_Keep_Dec" ) ) context.stencilOpModes = StencilOpModes::Keep_Keep_Dec;
+					else return raiseError( "FX: invalid enum value", tok.getLine() );
+            }
 				else if( tok.checkToken( "AlphaToCoverage" ) )
 				{
 					if( !tok.checkToken( "=" ) ) return raiseError( "FX: expected '='", tok.getLine() );
