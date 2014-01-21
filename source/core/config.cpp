@@ -97,6 +97,20 @@ void Config::ParseCmdLineOption(json::Node& node, std::string const& param) cons
       key = trimmed_param.substr(0, offset);
       value = trimmed_param.substr(offset + 1);
       if (!key.empty()) {
+         try {
+            int val = std::stoi(value);
+            node.set(key, val);
+            return;
+         } catch(...) {}
+         try {
+            float val = std::stof(value);
+            node.set(key, val);
+            return;
+         } catch(...) {}
+         if (value == "false" || value == "true") {
+            node.set(key, value == "true");
+            return;
+         }
          node.set(key, value);
       }
    } else {

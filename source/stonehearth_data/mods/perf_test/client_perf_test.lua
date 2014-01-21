@@ -29,8 +29,7 @@ function ClientPerfTest:__init()
           end
 
           if self._running_time > 30000 then
-            _radiant.renderer.enable_perf_logging(false)
-            --need a way to kill this
+            _radiant.call('radiant:exit')
           end
 
           return true
