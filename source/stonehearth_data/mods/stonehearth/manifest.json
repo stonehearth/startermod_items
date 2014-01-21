@@ -432,8 +432,7 @@
          "get_camera_tracker": {
             "controller" : "file(call_handlers/camera_call_handler.lua)",
             "endpoint" : "client"
-         }         
-
+         }
       }
    },
    "components" :  {
@@ -498,6 +497,7 @@
          "file(ui/shell/title/title.html)",
          "file(ui/shell/analytics_opt/analytics_opt.html)",
          "file(ui/shell/new_game/new_game.html)",
+         "file(ui/shell/embark/embark.html)",
          "file(ui/shell/loading_screen/loading_screen.html)",
          "file(ui/shell/settings/settings.html)",
          "file(ui/game/game.html)",
@@ -525,6 +525,7 @@
          "file(ui/shell/title/title.js)",
          "file(ui/shell/analytics_opt/analytics_opt.js)",
          "file(ui/shell/new_game/new_game.js)",
+         "file(ui/shell/embark/embark.js)",
          "file(ui/shell/loading_screen/loading_screen.js)",
          "file(ui/shell/settings/settings.js)",
          "file(ui/game/game.js)",
@@ -555,6 +556,7 @@
          "file(ui/shell/title/title.less)",
          "file(ui/shell/analytics_opt/analytics_opt.less)",
          "file(ui/shell/new_game/new_game.less)",
+         "file(ui/shell/embark/embark.less)",
          "file(ui/shell/loading_screen/loading_screen.less)",
          "file(ui/shell/settings/settings.less)",         
          "file(ui/game/game.less)",
