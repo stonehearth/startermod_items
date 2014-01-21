@@ -318,6 +318,10 @@
             "controller" : "file(call_handlers/new_game_call_handler.lua)",
             "endpoint" : "server"
          },
+         "get_overview_maps": {
+            "controller" : "file(call_handlers/new_game_call_handler.lua)",
+            "endpoint" : "server"
+         },
          "choose_camp_location": {
             "controller" : "file(call_handlers/new_game_call_handler.lua)",
             "endpoint" : "client"

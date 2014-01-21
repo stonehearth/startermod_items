@@ -56,6 +56,23 @@ function Array2D:clone()
    return dst
 end
 
+function Array2D:clone_to_nested_arrays()
+   local dst = {}
+   local offset, row
+
+   for j=1, self.height do
+      row = {}
+      offset = self:get_offset(1, j) - 1
+      for i=1, self.width do
+         row[i] = self[offset+i]
+      end
+
+      dst[j] = row
+   end
+
+   return dst
+end
+
 function Array2D:clear(value)
    local function fn() return value end
    self:process_map(fn)

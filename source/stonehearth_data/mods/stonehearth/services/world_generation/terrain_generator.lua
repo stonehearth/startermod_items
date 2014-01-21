@@ -334,16 +334,17 @@ function TerrainGenerator:_blend_tile(blend_map, adj_tile_info,
 end
 
 function TerrainGenerator:_calc_std_dev(height)
+   local terrain_order = { TerrainType.grassland, TerrainType.foothills, TerrainType.mountains }
    local terrain_info = self.terrain_info
    local prev_mean_height, prev_std_dev
-   local i, ti, value
+   local ti, terrain_type, value
 
-   i = TerrainType.grassland
+   terrain_type = terrain_order[1]
    prev_mean_height = 0
-   prev_std_dev = terrain_info[i].std_dev
+   prev_std_dev = terrain_info[terrain_type].std_dev
 
-   for i=TerrainType.grassland, TerrainType.mountains do
-      ti = terrain_info[i]
+   for _, terrain_type in ipairs(terrain_order) do
+      ti = terrain_info[terrain_type]
 
       if height <= ti.mean_height then
          value = MathFns.interpolate(height, prev_mean_height, prev_std_dev, ti.mean_height, ti.std_dev)
