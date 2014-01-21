@@ -664,6 +664,7 @@ bool ShaderResource::parseFXSection( char *data )
 					else if( tok.checkToken( "Less" ) ) context.stencilFunc = TestModes::Less;
 					else if( tok.checkToken( "Greater" ) ) context.stencilFunc = TestModes::Greater;
 					else if( tok.checkToken( "GreaterEqual" ) ) context.stencilFunc = TestModes::GreaterEqual;
+					else if( tok.checkToken( "NotEqual" ) ) context.stencilFunc = TestModes::NotEqual;
 					else return raiseError( "FX: invalid enum value", tok.getLine() );
 				}
 				else if( tok.checkToken( "BlendMode" ) )
@@ -674,6 +675,7 @@ bool ShaderResource::parseFXSection( char *data )
 					else if( tok.checkToken( "Add" ) ) context.blendMode = BlendModes::Add;
 					else if( tok.checkToken( "AddBlended" ) ) context.blendMode = BlendModes::AddBlended;
 					else if( tok.checkToken( "Mult" ) ) context.blendMode = BlendModes::Mult;
+               else if( tok.checkToken( "Whateva" ) ) context.blendMode = BlendModes::Whateva;
 					else return raiseError( "FX: invalid enum value", tok.getLine() );
 				}
 				else if( tok.checkToken( "CullMode" ) )

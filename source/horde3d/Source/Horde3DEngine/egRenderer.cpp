@@ -879,6 +879,42 @@ bool Renderer::setMaterialRec( MaterialResource *materialRes, const std::string 
          glStencilOp(GL_KEEP, GL_KEEP, GL_INCR);
          break;
       }
+
+      switch( context->stencilFunc )
+		{
+		case TestModes::LessEqual:
+         glEnable(GL_STENCIL_TEST);
+         glStencilFunc( GL_LEQUAL, context->stencilRef, 0xffffffff );
+			break;
+		case TestModes::Equal:
+         glEnable(GL_STENCIL_TEST);
+         glStencilFunc( GL_EQUAL, context->stencilRef, 0xffffffff );
+			break;
+		case TestModes::Always:
+         if (context->stencilOpModes == StencilOpModes::Off) {
+            glDisable(GL_STENCIL_TEST);
+         } else {
+            glEnable(GL_STENCIL_TEST);
+         }
+         glStencilFunc( GL_ALWAYS, context->stencilRef, 0xffffffff );
+			break;
+		case TestModes::Less:
+         glEnable(GL_STENCIL_TEST);
+         glStencilFunc( GL_LESS, context->stencilRef, 0xffffffff );
+			break;
+		case TestModes::Greater:
+         glEnable(GL_STENCIL_TEST);
+         glStencilFunc( GL_GREATER, context->stencilRef, 0xffffffff );
+			break;
+		case TestModes::GreaterEqual:
+         glEnable(GL_STENCIL_TEST);
+         glStencilFunc( GL_GEQUAL, context->stencilRef, 0xffffffff );
+			break;
+      case TestModes::NotEqual:
+         glEnable(GL_STENCIL_TEST);
+         glStencilFunc( GL_NOTEQUAL, context->stencilRef, 0xffffffff );
+			break;
+		}
 		
 		// Configure blending
 		switch( context->blendMode )
@@ -898,6 +934,9 @@ bool Renderer::setMaterialRec( MaterialResource *materialRes, const std::string 
 			glEnable( GL_BLEND );
 			glBlendFunc( GL_SRC_ALPHA, GL_ONE );
 			break;
+      case BlendModes::Whateva:
+         glEnable( GL_BLEND );
+         glBlendFunc( GL_DST_ALPHA, GL_ONE);
 		case BlendModes::Mult:
 			glEnable( GL_BLEND );
 			glBlendFunc( GL_DST_COLOR, GL_ZERO );

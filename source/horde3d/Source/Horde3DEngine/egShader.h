@@ -90,7 +90,8 @@ struct BlendModes
 		Blend,
 		Add,
 		AddBlended,
-		Mult
+		Mult,
+      Whateva
 	};
 };
 
@@ -103,7 +104,8 @@ struct TestModes
 		Less,
 		LessEqual,
 		Greater,
-		GreaterEqual
+		GreaterEqual,
+      NotEqual
 	};
 };
 
