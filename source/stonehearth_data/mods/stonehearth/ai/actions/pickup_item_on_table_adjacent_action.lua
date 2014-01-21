@@ -25,12 +25,15 @@ function PickupItemOnTableAdjacent:run(ai, entity, args)
 
    if not table then
       ai:abort('item is not on a table!')
+      return
    end   
    if radiant.entities.get_carrying(entity) ~= nil then
       ai:abort('cannot pick up another item while carrying one!')
+      return
    end
    if not radiant.entities.is_adjacent_to(entity, table) then
       ai:abort('%s is not adjacent to table %s', entity, table)
+      return
    end
 
    log:info("%s picking up %s", tostring(entity), tostring(item))

@@ -30,9 +30,11 @@ function DropCarryingAdjacent:run(ai, entity, args)
 
    if not radiant.entities.get_carrying(entity) then
       ai:abort('cannot drop item not carrying one!')
+      return
    end
    if not radiant.entities.is_adjacent_to(entity, location) then
       ai:abort('%s is not adjacent to %s', tostring(entity), tostring(location))
+      return
    end
    
    radiant.entities.turn_to_face(entity, location)

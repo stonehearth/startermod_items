@@ -129,6 +129,7 @@ function CompoundAction:_on_execution_frame_state_change(frame, state)
    else
       if self._previous_frames[frame] then
          self._ai:abort('execution frame became un-ready (state:%s).  starting over.', state)
+         return
       end
    end
 end
@@ -153,6 +154,7 @@ function CompoundAction:_replace_placeholders(args)
          local result = value:__eval(self)
          if result == nil then
             self._ai:abort('placeholder %s failed to return a value in %s', tostring(value), self.name)
+            return
          end
          replaced[name] = result
       elseif type(value) == 'table' and not radiant.util.is_instance(value) and not radiant.util.is_class(value) then

@@ -7,6 +7,7 @@ local STARTED = 'started'
 local RUNNING = 'running'
 local FINISHED = 'finished'
 local DEAD = 'dead'
+local ABORTED = 'aborted'
 local placeholders = require 'services.ai.placeholders'
 
 --[[
@@ -130,7 +131,7 @@ function ExecutionUnitV2:__set_priority(action, priority)
 end
 
 function ExecutionUnitV2:__execute(name, args)
-   self._log:spam('execute %s %s called', name, stonehearth.ai:format_args(args))
+   self._log:debug('execute %s %s called', name, stonehearth.ai:format_args(args))
    assert(not self._execute_frame)
    self._execute_frame = self._ai_component:spawn_debug_route(self._debug_route, name, args)
    
@@ -170,11 +171,15 @@ end
 
 function ExecutionUnitV2:__abort(reason, ...)
    local reason = string.format(reason, ...)
-   self._log:spam('abort %s called', tostring(reason))
-   self:stop_thinking()
-   self:stop()
-   -- why not destroy? -- tony
+   self._log:debug('abort %s called (state: %s)', tostring(reason), self._state)
+   -- the is ridiculously stupidly heavyweight.  abort is not allowed to return.
+   -- the only way to implement this is to stop the coroutine which is currently
+   -- running.  unfortunately, some actions currently are not run in a coroutine
+   -- (like start in response to a trigger).  this is really unfortunate.  it means
+   -- the *best* we can do is terminate the whole ai thread, and even that's not
+   -- good enough, since if we're not on it we'll still return here!  sigh...
    self._ai_component:_terminate_thread()
+   self:_set_state(ABORTED)
 end
 
 function ExecutionUnitV2:spawn(...)
@@ -363,7 +368,7 @@ end
 function ExecutionUnitV2:stop()
    self._log:debug('stop')
    
-   if self:_in_state(RUNNING, FINISHED) then
+   if self:_in_state(READY, RUNNING, FINISHED) then
       self._log:debug('stop requested.')
       if self._execute_frame then
          self._execute_frame:destroy()
@@ -444,8 +449,13 @@ function ExecutionUnitV2:get_current_entity_state()
 end
 
 function ExecutionUnitV2:_set_state(state)
+   if self._state == ABORTED and self._state ~= DEAD then
+      self._log:debug('ignoring state change to %s (currently %s)', tostring(state), self._state)
+      return
+   end
    self._log:debug('state change %s -> %s', tostring(self._state), state)
    assert(state and self._state ~= state)
+   assert(self._state ~= DEAD)
    
    self._state = state
    radiant.events.trigger(self, self._state, self)

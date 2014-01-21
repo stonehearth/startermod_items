@@ -15,6 +15,7 @@ function ReserveEntity:start(ai, entity, args)
    self._lease_component = target:add_component('stonehearth:lease_component')
    if not self._lease_component:acquire('ai_reservation', entity) then
       ai:abort('could not lease %s (%s has it).', tostring(target), tostring(self._lease_component:get_owner('ai_reservation')))
+      return
    end
    self._acquired_lease = true
 end

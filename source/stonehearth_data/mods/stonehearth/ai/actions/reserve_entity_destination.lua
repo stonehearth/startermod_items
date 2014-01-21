@@ -21,6 +21,7 @@ function ReserveEntityDestination:start(ai, entity, args)
    local in_region = radiant.entities.point_in_destination_region(target, location)
    if not in_region then
       ai:abort('%s is not in %s region.  cannot be reserved!', tostring(location), tostring(target))
+      return
    end
 
    -- if it's in the region, we know it can't be in the reserved region,
@@ -28,6 +29,7 @@ function ReserveEntityDestination:start(ai, entity, args)
    local in_reserved = radiant.entities.point_in_destination_reserved(target, location)
    if in_reserved then
       ai:abort('%s is in %s reserve region.  cannot be reserved again!!', tostring(location), tostring(target))
+      return
    end
 
    self._destination = target:get_component('destination')

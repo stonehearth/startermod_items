@@ -62,6 +62,7 @@ function RunTaskAction:start(ai)
    self._starting = true
    if not self._task:__action_try_start(self) then
       ai:abort('task would not allow us to start (max running reached?)')
+      return
    end
    self._starting = false
    self._execution_frame:start()

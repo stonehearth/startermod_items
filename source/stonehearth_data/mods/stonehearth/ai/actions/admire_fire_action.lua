@@ -188,6 +188,7 @@ function AdmireFire:_do_random_actions(ai)
    while true do
       if not self._firepit then
          ai:abort()
+         return
       end
       local random_action = math.random(100)
       if random_action < 30 then

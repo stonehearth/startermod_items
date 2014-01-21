@@ -119,6 +119,8 @@ function ExecutionFrame:set_debug_route(debug_route)
 end
 
 function ExecutionFrame:destroy()
+   --assert(self._activity.name ~= 'stonehearth:top')
+   
    self._log:debug('destroy')
    if self._state ~= DEAD and self._state ~= DYING then
       assert(not self._co_running, 'destroy of a running execution frame not implemented (yet)')
@@ -155,7 +157,7 @@ end
 
 -- xxx
 function ExecutionFrame:on_unit_state_change(unit, state)
-   self._log:spam('on_unit_state_change %s -> %s (throttle depth: %d)', unit:get_name(), state, self._buffer_changes_depth)
+   self._log:debug('on_unit_state_change "%s" -> %s (throttle depth: %d)', unit:get_name(), state, self._buffer_changes_depth)
    if self._buffer_changes_depth > 0 then
       self._modified_state.changed = true
       self._modified_state.units[unit] = state
@@ -508,16 +510,16 @@ function ExecutionFrame:_in_state(...)
 end
 
 function ExecutionFrame:_set_state(state)
+   assert(self._state ~= DEAD)
    local current_state = self._modified_state.state or self._state
    self._log:debug('state change %s -> %s (throttle depth: %d)', tostring(current_state), state, self._buffer_changes_depth)
 
-   --[[
    if self._buffer_changes_depth > 0 then
       self._modified_state.changed = true
       self._modified_state.state = state
       return
    end
-   ]]
+   
    self._state = state
    radiant.events.trigger(self, self._state, self)
    radiant.events.trigger(self, 'state_changed', self, self._state)

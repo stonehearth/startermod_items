@@ -17,6 +17,7 @@ function MeleeAttack:run(ai, entity, target)
       ai:execute('stonehearth:run_effect', effect)
    else 
       ai:abort('no effect supplied for weapon %s', tostring(self._weapon))
+      return
    end
 
    stonehearth.combat_service:create_damage(entity, target)

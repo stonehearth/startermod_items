@@ -23,6 +23,7 @@ function FindPathToEntity:start_thinking(ai, entity, args)
    
    if not destination or not destination:is_valid() then
       ai:abort('invalid entity reference')
+      return
    end
    
    self._trace = radiant.entities.trace_location(destination, 'find path to entity')
