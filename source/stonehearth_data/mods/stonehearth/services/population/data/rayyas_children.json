@@ -1,5 +1,6 @@
 {
-   "faction_name" : "Rayya's Children",
+   "kingdom_name" : "Rayya's Children",
+   "kingdom_id" : "rayyas_children",
    "male_entities" : [
       "stonehearth:male_2",
       "stonehearth:male_3"

@@ -1,0 +1,182 @@
+{
+   "activities" : [
+      {
+         "id" : "dreams",
+         "trigger_policy" : [
+            {
+               "trigger_id" : "dreams",
+               "probability" : 10
+            }
+         ],
+         "text" : "On Dreaming:",
+         "type" : "random",
+         "default_namespace" : "stonehearth:settler_journals:dreams",
+         "logs_by_personality" : {
+            "generic" : {
+               "logs" : [
+               "First, I dreamed that __dream_parts__. Then, __dream_parts__."
+               ]
+            },
+            "beleaguered_leader" : {
+               "logs" : [
+               "First, I dreamed that __dream_parts__. Then, __dream_parts__. __beleaguered_leader_dream_reaction__",
+               "Last night I counted __dream_counter__ to get to sleep, and when I woke up, I realized that all night my dreams were about counting __dream_counter__. Joy. "
+               ]
+            },
+            "hopeless_optimist" : {
+               "logs" : [
+               "__dream_monsters__!!!! All night I dreamed I was being chased by __dream_monsters__!!!!",
+               "I love dreams about flying. Tonight I flew by __material_adjective__ clouds and over __material_adjective__ trees. Watch out, birds!" 
+               ]
+            },
+            "lovable_rogue" : {
+               "logs" : [
+               "This morning, I woke up certain that __monsters__ had stolen all the __prosaic_plural_noun__. Need to build walls!! Thicker walls!!!.",
+               "I had the dream about __material_adjective__ ladder again. I wish I knew what was at the top. I'm sure __teacher__ is trying to tell me something."
+               ]
+            },
+            "psychopathic_misanthrope" : {
+               "logs" : [
+               "Went to sleep hungry again last night and dreamed for ten consecutivie hours about __awesome_food__!!! Raaargh!!! Fear my devouring mouth!!!!",
+               "In heaven, I hope I get a lake of __awesome_food__ to swim in. Swim forever!!!!"
+               ]
+            },
+            "insufferable_academic" : {
+               "logs" : [
+               "I wonder if anyone else has the dream where their clothes trail their bodies by several feet? Lucky for me, I always seem to have on my trusty pair of __material_adjective__ knickers.",
+               "Last night I dreamed I stood before a class of attentive __animals__. They took notes on the nature of realtity. Afterwards, we had a stirring debate.",
+               "According to the formulae in my dreams, determinism is a myth. Time to get breakfast."
+               ]
+            },
+            "diligent_sweetheart" : {
+               "logs" : [
+               "Whoa! I was out for a while! Do we still have all our __prosaic_plural_noun__?",
+               "I dreamed I fell asleep for a thousand years. Luckily(?) someone made me a __material_adjective__ glass coffin with a hatch on the inside for opening. Weird."
+               ]
+            }
+         }
+      }
+   ], 
+   "substitution_table" : [
+      {
+         "namespace" : "stonehearth",
+         "keys" : {
+            "material_adjective" : {
+               "type" : "random_array",
+               "entries" : [
+                  "shiny",
+                  "soft",
+                  "pricky",
+                  "fragile",
+                  "nicked",
+                  "dense"
+               ]
+            },
+            "monsters" : {
+               "type" : "random_array",
+               "entries" : [
+                  "wolves",
+                  "goblins",
+                  "dragons",
+                  "trolls",
+                  "hedgehogs",
+                  "swamp monsters",
+                  "rabbits"
+               ]
+            },
+            "teacher" : {
+               "type" : "parametrized_value",
+               "entries" : {
+                  "ascendency" : "Cid",
+                  "rayyas_children" : "Rayya",
+                  "northern_alliance" : "Valin"
+               }
+            },
+            "animals" : {
+               "type" : "random_array",
+               "entries" : [
+                  "wolves",
+                  "sheep",
+                  "rabbits",
+                  "chickens",
+                  "deer",
+                  "porcupines",
+                  "raccoons"
+               ]
+            }
+         }
+      },
+      {
+         "namespace" : "stonehearth:settler_journals",
+         "keys" : {
+            "action_verb" : {
+               "type" : "random_array", 
+               "entries" : [
+                  "dance",
+                  "sing",
+                  "spin", 
+                  "attack",
+                  "chant",
+                  "explode"
+               ]
+            },
+            "prosaic_plural_noun" : {
+               "type" : "random_array",
+               "entries" : [
+                  "sheep",
+                  "hammers",
+                  "trees",
+                  "shoes",
+                  "wooden logs",
+                  "grass",
+                  "berries"
+               ]
+            },
+            "awesome_food" : {
+               "type" : "random_array",
+               "entries" : [
+                  "apple pie",
+                  "steak",
+                  "turkey drumsticks",
+                  "beef ribs",
+                  "venison",
+                  "honey glazed ham",
+                  "roast raccoon"
+               ]
+            }
+         }         
+      },
+      {
+         "namespace" : "stonehearth:settler_journals:dreams",
+         "keys" : {
+            "dream_parts" : {
+               "type" : "random_array",
+               "entries" : [
+                  "__monsters__ were attacking our caravan.",
+                  "the __prosaic_plural_noun__ grew arms and legs and began to __action_verb__",
+                  "__teacher__ asked me to __action_verb__ in front of a large audience",
+                  "I found a __material_adjective__ mirror under my pillow"
+               ]
+            },
+            "beleaguered_leader_dream_reaction" : {
+               "type" : "random_array",
+               "entries" : [
+                  "I need to get out more often.",
+                  "I need to spend more time alone.",
+                  "Why me?",
+                  "I can't wait to wake up."
+               ]
+            },
+            "dream_monsters" : {
+               "type" : "variable",
+               "value" : "monsters"
+            },
+            "dream_counter" : {
+               "type" : "variable",
+               "value" : "prosaic_plural_noun"
+            }
+         }         
+      }
+   ]
+}
+            

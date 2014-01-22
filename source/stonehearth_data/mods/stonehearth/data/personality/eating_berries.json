@@ -11,7 +11,7 @@
          "text" : "On Berries:",
          "type" : "random",
          "logs_by_personality" : {
-            "belaguered_leader" : {
+            "beleaguered_leader" : {
                "logs" : [
                "Mmm, berries! Part of a healthy, regular diet.",
                "Berries again! Which is good, because they're healthy for you.",
@@ -34,7 +34,7 @@
                "logs" : [
                "Fruit. Great.",
                "I miss steak.",
-               "In theory, you can ferment fruit, right? By *Cid* I miss fermented drinks."
+               "In theory, you can ferment fruit, right? By *__deity__* I miss fermented drinks."
                ]
             },
             "psychopathic_misanthrope" : {

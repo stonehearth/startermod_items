@@ -1,5 +1,6 @@
 {
-   "faction_name" : "Northern Alliance",
+   "kingdom_name" : "Northern Alliance",
+   "kingdom_id" : "northern_alliance",
    "male_entities" : [
       "stonehearth:male_1",
       "stonehearth:male_2"

@@ -3,6 +3,8 @@
 ]]
 
 local event_service = require 'services.event.event_service'
+local personality_service = require 'services.personality.personality_service'
+
 local Point3 = _radiant.csg.Point3
 
 local ShearSheepAction = class()
@@ -34,7 +36,17 @@ function ShearSheepAction:run(ai, entity, path)
    if factory then
       ai:execute('stonehearth:run_effect','fiddle')
       local front_point = self._entity:get_component('mob'):get_location_in_front()
-      factory:spawn_resource(Point3(front_point.x, front_point.y, front_point.z))
+      local spawned_item = factory:spawn_resource(Point3(front_point.x, front_point.y, front_point.z))
+
+      --Log it in the personality component
+      local spawned_item_name = spawned_item:get_component('unit_info'):get_display_name()
+      local personality_component = entity:get_component('stonehearth:personality')
+      personality_component:add_substitution('gather_target', spawned_item_name)
+      personality_component:add_substitution_by_parameter('personality_gather_reaction', personality_component:get_personality(), 'stonehearth:settler_journals:gathering_supplies')
+
+      radiant.events.trigger(personality_service, 'stonehearth:journal_event', 
+                            {entity = entity, description = 'gathering_supplies'})
+
    end   
 
 end

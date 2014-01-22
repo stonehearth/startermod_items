@@ -18,17 +18,17 @@ function Wavelet._DWT_2D(src, src_width, src_height, max_level, current_level, y
 
    -- horizontal transform
    for i=1, level_height do
-      Array2D:get_row_vector(vec, src, i, src_width, level_width)
+      Array2D.get_row_vector(vec, src, i, src_width, level_width)
       transform.DWT_1D(vec, level_width)
-      Array2D:set_row_vector(src, vec, i, src_width, level_width)
+      Array2D.set_row_vector(src, vec, i, src_width, level_width)
       if yield then coroutine.yield() end
    end
 
    -- vertical transform
    for j=1, level_width do
-      Array2D:get_column_vector(vec, src, j, src_width, level_height)
+      Array2D.get_column_vector(vec, src, j, src_width, level_height)
       transform.DWT_1D(vec, level_height)
-      Array2D:set_column_vector(src, vec, j, src_width, level_height)
+      Array2D.set_column_vector(src, vec, j, src_width, level_height)
       if yield then coroutine.yield() end
    end
 
@@ -44,17 +44,17 @@ function Wavelet.IDWT_2D(src, src_width, src_height, current_level, yield)
 
    -- vertical transform
    for j=1, level_width do
-      Array2D:get_column_vector(vec, src, j, src_width, level_height)
+      Array2D.get_column_vector(vec, src, j, src_width, level_height)
       transform.IDWT_1D(vec, level_height)
-      Array2D:set_column_vector(src, vec, j, src_width, level_height)
+      Array2D.set_column_vector(src, vec, j, src_width, level_height)
       if yield then coroutine.yield() end
    end
 
    -- horizontal transform
    for i=1, level_height do
-      Array2D:get_row_vector(vec, src, i, src_width, level_width)
+      Array2D.get_row_vector(vec, src, i, src_width, level_width)
       transform.IDWT_1D(vec, level_width)
-      Array2D:set_row_vector(src, vec, i, src_width, level_width)
+      Array2D.set_row_vector(src, vec, i, src_width, level_width)
       if yield then coroutine.yield() end
    end
 

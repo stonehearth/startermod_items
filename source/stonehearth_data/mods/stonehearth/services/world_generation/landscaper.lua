@@ -128,10 +128,10 @@ function Landscaper:_place_trees(tile_map, place_item)
       if terrain_type == TerrainType.mountains then
          --mean = mean + 0
          std_dev = std_dev * 0.30
-      elseif terrain_type == TerrainType.grassland then
-         local grassland_info = self._terrain_info[TerrainType.grassland]
+      elseif terrain_type == TerrainType.plains then
+         local plains_info = self._terrain_info[TerrainType.plains]
 
-         if elevation == grassland_info.max_height then
+         if elevation == plains_info.max_height then
             -- sparse groves with large trees in the middle
             mean = mean - 5
             --std_dev = std_dev * 1.00
@@ -149,7 +149,7 @@ function Landscaper:_place_trees(tile_map, place_item)
             mean = mean + 30
             std_dev = std_dev * 0.30
          else
-            -- start transition to grasslands
+            -- start transition to plains
             mean = mean + 5
             std_dev = std_dev * 0.30
          end
@@ -356,7 +356,7 @@ function Landscaper:_place_flowers(tile_map, place_item)
                      elevation = tile_map:get(x, y)
                      terrain_type = terrain_info:get_terrain_type(elevation)
 
-                     if terrain_type == TerrainType.grassland then
+                     if terrain_type == TerrainType.plains then
                         place_item(pink_flower_name, x, y)
                         feature_map:set(i, j, pink_flower_name)
 
@@ -472,7 +472,7 @@ function Landscaper:_get_tree_type(elevation)
 
    local terrain_type = terrain_info:get_terrain_type(elevation)
 
-   if terrain_type == TerrainType.grassland then return oak end
+   if terrain_type == TerrainType.plains then return oak end
 
    if terrain_type == TerrainType.mountains then
       -- this logic doesn't belong here
@@ -555,7 +555,7 @@ function Landscaper:_should_place_boulder(elevation)
    local terrain_type = self._terrain_info:get_terrain_type(elevation)
    local mountain_boulder_probability = 0.02
    local foothills_boulder_probability = 0.02
-   local grassland_boulder_probability = 0.02
+   local plains_boulder_probability = 0.02
 
    -- drive this from a table later
    if terrain_type == TerrainType.mountains then
@@ -566,8 +566,8 @@ function Landscaper:_should_place_boulder(elevation)
       return rng:get_real(0, 1) <= foothills_boulder_probability
    end
 
-   if terrain_type == TerrainType.grassland then
-      return rng:get_real(0, 1) <= grassland_boulder_probability
+   if terrain_type == TerrainType.plains then
+      return rng:get_real(0, 1) <= plains_boulder_probability
    end
 
    return false
@@ -619,7 +619,7 @@ function Landscaper:_get_boulder_dimensions(terrain_type)
 
    if     terrain_type == TerrainType.mountains then half_width = rng:get_int(4, 9)
    elseif terrain_type == TerrainType.foothills then half_width = rng:get_int(3, 6)
-   elseif terrain_type == TerrainType.grassland then half_width = rng:get_int(1, 3)
+   elseif terrain_type == TerrainType.plains    then half_width = rng:get_int(1, 3)
    else return nil, nil, nil
    end
 

@@ -1,5 +1,6 @@
 {
-   "faction_name" : "Ascendancy",
+   "kingdom_name" : "Ascendancy",
+   "kingdom_id" : "ascendency",
    "male_entities" : [
       "stonehearth:male_1",
       "stonehearth:male_1",
