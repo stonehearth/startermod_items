@@ -47,17 +47,10 @@ end
 
 function WorldGenerationService:_on_poll_progress()
    local done = self._progress == 100
-   local event_args = {}
 
-   event_args.progress = self._progress
-   if done then
-      event_args.width = self.overview_map.width
-      event_args.height = self.overview_map.height
-      event_args.elevation_map = self.overview_map.elevation_map
-      event_args.forest_map = self.overview_map.forest_map
-   end
-
-   radiant.events.trigger(radiant.events, 'stonehearth:generate_world_progress', event_args)
+   radiant.events.trigger(radiant.events, 'stonehearth:generate_world_progress', {
+      progress = self._progress
+   })
 
    if done then
       radiant.events.unlisten(radiant.events, 'stonehearth:slow_poll', self, self._on_poll_progress)

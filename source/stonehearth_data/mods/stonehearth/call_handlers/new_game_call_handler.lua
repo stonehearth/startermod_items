@@ -14,14 +14,15 @@ function NewGameCallHandler:new_game(session, response, seed)
    return {}
 end
 
-function NewGameCallHandler:get_overview_maps(session, response)
+function NewGameCallHandler:get_overview_map(session, response)
    local wgs = radiant.mods.load('stonehearth').world_generation
+   local width, height = wgs.overview_map:get_dimensions()
+   local map = wgs.overview_map:get_map():clone_to_nested_arrays()
 
    local result = {
-      width = wgs.overview_map.width,
-      height = wgs.overview_map.height,
-      elevation_map = wgs.overview_map.elevation_map:clone_to_nested_arrays(),
-      forest_map = wgs.overview_map.forest_map:clone_to_nested_arrays()
+      width = width,
+      height = height,
+      map = map
    }
    return result
 end
