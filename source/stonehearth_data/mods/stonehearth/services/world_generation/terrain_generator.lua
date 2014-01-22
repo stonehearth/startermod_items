@@ -16,7 +16,7 @@ local log = radiant.log.create_logger('world_generation')
 -- Definitions
 -- Block = atomic unit of terrain that cannot be subdivided
 -- MacroBlock = square unit of flat land, 32x32, but can shift a bit due to toplogy
--- Tile = 2D array of MacroBlocks fitting a theme (grassland, foothills, mountains)
+-- Tile = 2D array of MacroBlocks fitting a theme (plains, foothills, mountains)
 --        These 256x256 terrain tiles are different from nav grid tiles which are 16x16.
 -- World = the entire playspace of a game
 
@@ -49,20 +49,20 @@ end
 
 function TerrainGenerator:_initialize_quantizer()
    local terrain_info = self.terrain_info
-   local grassland_info = terrain_info[TerrainType.grassland]
+   local plains_info = terrain_info[TerrainType.plains]
    local foothills_info = terrain_info[TerrainType.foothills]
    local mountains_info = terrain_info[TerrainType.mountains]
    local centroids = {}
    local min, max, step_size
    
    min = terrain_info.min_height
-   max = grassland_info.max_height
-   step_size = grassland_info.step_size
+   max = plains_info.max_height
+   step_size = plains_info.step_size
    for value = min, max, step_size do
       table.insert(centroids, value)
    end
 
-   min = grassland_info.max_height + foothills_info.step_size
+   min = plains_info.max_height + foothills_info.step_size
    max = foothills_info.max_height
    step_size = foothills_info.step_size
    for value = min, max, step_size do
@@ -189,9 +189,9 @@ function TerrainGenerator:_fill_blend_map(blend_map, blueprint, x, y)
       terrain_mean = terrain_mean + self.terrain_info[TerrainType.mountains].step_size
    end
 
-   if terrain_type == TerrainType.grassland and
-      self:_surrounded_by_terrain(TerrainType.grassland, blueprint, x, y) then
-      terrain_mean = terrain_mean - self.terrain_info[TerrainType.grassland].step_size
+   if terrain_type == TerrainType.plains and
+      self:_surrounded_by_terrain(TerrainType.plains, blueprint, x, y) then
+      terrain_mean = terrain_mean - self.terrain_info[TerrainType.plains].step_size
       assert(terrain_mean >= self.terrain_info.min_height)
    end
 
@@ -334,7 +334,7 @@ function TerrainGenerator:_blend_tile(blend_map, adj_tile_info,
 end
 
 function TerrainGenerator:_calc_std_dev(height)
-   local terrain_order = { TerrainType.grassland, TerrainType.foothills, TerrainType.mountains }
+   local terrain_order = { TerrainType.plains, TerrainType.foothills, TerrainType.mountains }
    local terrain_info = self.terrain_info
    local prev_mean_height, prev_std_dev
    local ti, terrain_type, value
@@ -639,8 +639,8 @@ function TerrainGenerator:_quantize_value(value, enable_fancy_quantizer)
    end
 
    local terrain_info = self.terrain_info
-   -- disable fancy mode for Grassland
-   if quantized_value <= terrain_info[TerrainType.grassland].max_height then
+   -- disable fancy mode for plains
+   if quantized_value <= terrain_info[TerrainType.plains].max_height then
       return quantized_value
    end
 
@@ -662,8 +662,8 @@ function TerrainGenerator:_add_additional_details(height_map, micro_map)
 
    self._terrain_detailer:add_detail_blocks(height_map)
 
-   -- handle grassland separately - don't screw up edge detailer code
-   self._terrain_detailer:add_grassland_details(height_map)
+   -- handle plains separately - don't screw up edge detailer code
+   self._terrain_detailer:add_plains_details(height_map)
 end
 
 -- must return a new tile_map each time

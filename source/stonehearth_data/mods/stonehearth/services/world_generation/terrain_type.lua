@@ -1,6 +1,6 @@
 local TerrainType = {}
 
-TerrainType.grassland = 'grassland'
+TerrainType.plains    = 'plains'
 TerrainType.foothills = 'foothills'
 TerrainType.mountains = 'mountains'
 
