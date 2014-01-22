@@ -339,7 +339,7 @@ end
 
 function TerrainGenerator:_calc_std_dev(height)
    local terrain_info = self.terrain_info
-   local terrain_order = terrain_info.terrain_order
+   local terrain_order = TerrainType.get_terrain_order()
    local prev_mean_height, prev_std_dev
    local ti, terrain_type, value
 

@@ -39,8 +39,6 @@ function TerrainInfo:__init()
    foothills_info.base_height = plains_info.max_height
    mountains_info.base_height = foothills_info.max_height
 
-   self.terrain_order = { TerrainType.plains, TerrainType.foothills, TerrainType.mountains }
-
    -- tree lines
    --self.tree_line = foothills_info.max_height+mountains_info.step_size*2
 end

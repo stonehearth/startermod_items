@@ -6,13 +6,18 @@ local log = radiant.log.create_logger('world_generation')
 local OverviewMap = class()
 
 function OverviewMap:__init(terrain_info, landscaper, tile_size, macro_block_size, feature_size)
+   assert(macro_block_size / feature_size == 2)
+   assert(macro_block_size % 2 == 0)
+
    self._terrain_info = terrain_info
    self._landscaper = landscaper
-
    self._tile_size = tile_size
+   self._macro_block_size = macro_block_size
+   self._feature_size = feature_size
+
+   self._margin = self._macro_block_size / 2
    self._features_per_tile = tile_size / feature_size
    self._macro_blocks_per_tile = tile_size / macro_block_size
-   assert(macro_block_size / feature_size == 2)
 
    self:clear()
 end
@@ -31,7 +36,7 @@ function OverviewMap:clear()
    self._map = nil
 end
 
-function OverviewMap:derive_overview_map(blueprint)
+function OverviewMap:derive_overview_map(blueprint, origin_x, origin_y)
    local terrain_info = self._terrain_info
    -- -1 to remove half-macroblock offset from both ends
    local overview_width = blueprint.width * self._macro_blocks_per_tile - 1
@@ -58,6 +63,23 @@ function OverviewMap:derive_overview_map(blueprint)
    self._width = overview_width
    self._height = overview_height
    self._map = overview_map
+
+   -- discard the half macro block offset on the outside
+   local margin = self._macro_block_size/2
+   -- location of the world origin in the coordinate system of the overview map
+   self._origin_x = origin_x - margin
+   self._origin_y = origin_y - margin
+end
+
+-- i, j are base 1
+function OverviewMap:get_coords_of_cell_center(i, j)
+   local macro_block_size = self._macro_block_size
+   local center_offset = macro_block_size * 0.5
+
+   local offset_x = (i-1)*macro_block_size - self._origin_x + center_offset
+   local offset_y = (j-1)*macro_block_size - self._origin_y + center_offset
+
+   return offset_x, offset_y
 end
 
 function OverviewMap:_assemble_maps(blueprint)

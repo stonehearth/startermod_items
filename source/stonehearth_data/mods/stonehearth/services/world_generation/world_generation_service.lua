@@ -97,6 +97,7 @@ function WorldGenerationService:_generate_world(blueprint)
    tile_order_list = self:_build_tile_order_list(blueprint)
    num_tiles = #tile_order_list
 
+   -- location of the world origin in the coordinate system of the blueprint
    origin_x = math.floor(num_tiles_x * tile_size / 2)
    origin_y = math.floor(num_tiles_y * tile_size / 2)
 
@@ -147,7 +148,7 @@ function WorldGenerationService:_generate_world(blueprint)
       self._progress = (n / num_tiles) * 100
    end
 
-   self.overview_map:derive_overview_map(blueprint)
+   self.overview_map:derive_overview_map(blueprint, origin_x, origin_y)
 
    radiant.events.trigger(radiant.events, 'stonehearth:generate_world_progress', {
       progress = 1
