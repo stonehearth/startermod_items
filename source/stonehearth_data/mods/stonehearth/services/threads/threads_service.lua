@@ -4,44 +4,14 @@ local log = radiant.log.create_logger('threads')
 
 local ThreadsService = class()
 
-local Base = class()
-function Base:_schedule_thread()
-   self.active = true
-end
-
-function Base:get_debug_route()
-   return nil
-end
-
-function Base:get_parent()
-   return nil
-end
-
 function ThreadsService:__init()
-   self._base = Base()
-   self._main_thread = Thread(self._base):set_debug_name('m')
-                               :set_thread_main(function()
-                                    self:_run_main_thread()
-                                 end)
-   self._main_thread:start()
-   radiant.events.listen(radiant.events, 'stonehearth:gameloop', self, self._on_event_loop)
-end
-
-function ThreadsService:_run_main_thread()
-   while true do
-      self._main_thread:suspend('suspending main thread')
-   end
-end
-
-function ThreadsService:_on_event_loop(e)
-   if self._base.active then
-      self._base.active = false
-      self._main_thread:_resume_thread('resuming main thread')
-   end
+   radiant.events.listen(radiant.events, 'stonehearth:gameloop', function()
+         Thread.loop()
+      end)
 end
 
 function ThreadsService:create_thread()
-   return self._main_thread:create_thread()
+   return Thread.new()
 end
 
 function ThreadsService:get_running_thread()

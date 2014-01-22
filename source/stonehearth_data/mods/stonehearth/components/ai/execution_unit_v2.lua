@@ -5,7 +5,6 @@ local THINKING = 'thinking'
 local READY = 'ready'
 local STARTED = 'started'
 local RUNNING = 'running'
-local FINISHED = 'finished'
 local HALTED = 'halted'
 local STOPPED = 'stopped'
 local DEAD = 'dead'
@@ -85,10 +84,6 @@ function ExecutionUnitV2:is_runnable()
    return self._action.priority > 0 and self._state == READY
 end
 
-function ExecutionUnitV2:is_active()
-   return self:is_runnable() or self._state == STARTED or self._state == RUNNING or self._state == FINISHED
-end
-
 function ExecutionUnitV2:get_current_entity_state()
    assert(self._current_entity_state)
    return self._current_entity_state
@@ -126,7 +121,7 @@ end
 
 function ExecutionUnitV2:_thread_main()
    while self._state ~= DEAD do
-      self._thread:suspend('waiting for execution unit to die')
+      self._thread:suspend('ex_unit is idle')
    end
 end
 
@@ -134,8 +129,7 @@ function ExecutionUnitV2:_dispatch_msg(msg, ...)
    local method = '_' .. msg .. '_from_' .. self._state
    local dispatch_msg_fn = self[method]
    assert(dispatch_msg_fn, string.format('unknown state transition in execution frame "%s"', method))   
-   dispatch_msg_fn(self, ...)
-end
+   dispatch_msg_fn(self, ...)end
 
 function ExecutionUnitV2:_call_action(method)
    local call_action_fn= self._action[method]
@@ -197,15 +191,16 @@ function ExecutionUnitV2:_run_from_started()
 
    self:_set_state(RUNNING)
    self:_call_action('run')
-   self:_set_state(FINISHED)
-   self:send_msg('stop')
+   self:_set_state(HALTED)
+   self._parent_thread:send_msg('unit_halted', self)
 end
 
-function ExecutionUnitV2:_stop_from_finished()
+function ExecutionUnitV2:_stop_from_halted()
    assert(not self._thinking)
 
    self:_call_action('stop')
-   self._set_state(FINISHED)
+   self:_set_state(STOPPED)
+   self._parent_thread:send_msg('unit_stopped', self)
 end
 
 function ExecutionUnitV2:_stop_thinking()
@@ -280,118 +275,6 @@ function ExecutionUnitV2:__abort(reason, ...)
    end
 end
 
---[[
-function ExecutionUnitV2:destroy()
-   self._log:spam('destroy')
-   if self._execute_frame then
-      self._execute_frame:destroy()
-      self._execute_frame = nil
-   end
-   
-   self._log:spam('destroying action')
-   self:stop_thinking()   
-   if self._state == IDLE or self._state == READY or self._state == DEAD then
-      -- nothing to do
-   elseif self._state == RUNNING or self._state == STARTED then
-      self:stop()
-   else
-      assert(false, 'unknown state in destroy')
-   end
-   if self._action.destroy then
-      self._action:destroy(self._ai_interface, self._entity)
-   else
-      self._log:spam('action does not implement destroy')
-   end
-   self:_set_state(DEAD)
-   radiant.events.unpublish(self)   
-end
-
-
-function ExecutionUnitV2:start_thinking(current_entity_state)
-   self._log:debug('start_thinking (state:%s processing:%s)', self._state, tostring(self._thinking))
-
-   if self._thinking then
-      self._log:spam('call to start_thinking while already thinking.  stopping...')
-      self:stop_thinking()
-      self._log:spam('resuming start_thinking, now that we stopped.')
-   end
-   
-   assert(current_entity_state)
-   assert(not self._thinking)
-   
-   self._thinking = true
-   self._current_entity_state = current_entity_state
-   self._ai_interface.CURRENT = current_entity_state
-   
-   self:_spam_current_state('before action start_thinking')  
-   if not self._think_output then
-      self:_set_state(THINKING)
-      if self._action.start_thinking then
-         self._action:start_thinking(self._ai_interface, self._entity, self._args)
-      else
-         self._log:spam('action does not implement start_thinking')
-         self:__set_think_output(self._args)
-      end
-   else
-      self._log:spam('ignoring start_thinking call.  already have args!')
-   end
-   self:_spam_current_state('after action start_thinking')
-end
-
-function ExecutionUnitV2:start()
-   self._log:debug('start')
-   assert(self:is_runnable())
-   assert(self._state == READY)
-
-   if self._action.start then      
-      self._action:start(self._ai_interface, self._entity, self._args)
-   else
-      self._log:spam('action does not implement start')         
-   end
-   self:_set_state(STARTED)
-end
-
-function ExecutionUnitV2:run()
-   self._log:debug('run')
-   assert(self:get_priority() > 0)
-   assert(self._state == STARTED)
-   
-   self:_set_state(RUNNING)
-   local result = nil
-   if self._action.run then
-      self._log:debug('%s coroutine starting action: %s (%s)',
-                      self._entity, self:get_name(), stonehearth.ai:format_args(self._think_output))
-      result = { self._action:run(self._ai_interface, self._entity, self._args) }
-      self._log:debug('%s coroutine finished: %s', self._entity, tostring(self:get_name()))
-   else
-      self._log:debug('action does not implement run.  (this is not an error, but is certainly weird)')
-   end
-   self:_set_state(FINISHED)
-   return result
-end
-
-function ExecutionUnitV2:stop()
-   self._log:debug('stop')
-   
-   if self:_in_state(READY, RUNNING, FINISHED) then
-      self._log:debug('stop requested.')
-      if self._execute_frame then
-         self._execute_frame:destroy()
-         self._execute_frame = nil
-      end
-      
-      if self._action.stop then
-         self._action:stop(self._ai_interface, self._entity, self._args)
-      else
-         self._log:spam('action does not implement stop')
-      end
-      self._current_entity_state = nil
-      self:_set_state(IDLE)
-   end
-end
-]]
--- helper methods
-
 function ExecutionUnitV2:_verify_arguments(args, args_prototype)
    -- special case 0 vs nil so people can leave out .args and .think_output if there are none.
    args_prototype = args_prototype and args_prototype or {}
@@ -439,6 +322,15 @@ function ExecutionUnitV2:_verify_arguments(args, args_prototype)
       end
    end
    return true
+end
+
+function ExecutionUnitV2:in_state(...)
+   for _, state in ipairs({...}) do
+      if self._state == state then
+         return true
+      end
+   end
+   return false
 end
 
 function ExecutionUnitV2:_set_state(state)

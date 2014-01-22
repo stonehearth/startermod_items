@@ -57,19 +57,16 @@ function ExecutionFrame:start_thinking(entity_state)
    return self:_protect_blocking_call(function(caller)   
          self._thread:send_msg('start_thinking', entity_state)
          self:_block_caller_until(READY)
+         
          assert(self._active_unit_think_output)
          return self._active_unit_think_output
       end)
 end
 
 function ExecutionFrame:run()
-   self._log:spam('run')
-   assert(not self._calling_thread)
-
+   self._log:spam('run')         
    self:_protect_blocking_call(function(caller)   
-         if self._state == STOPPED then
-            self._thread:send_msg('start_thinking')
-         end
+         self._thread:send_msg('start_thinking')
          self:_block_caller_until(READY)
 
          self._thread:send_msg('start')
@@ -82,16 +79,19 @@ end
 
 function ExecutionFrame:stop()
    self._log:spam('stop')
-   assert(not self._calling_thread)
-   self._calling_thread = radiant.thread:get_running_thread()
+   self:_protect_blocking_call(function(caller)
+         self._thread:send_msg('stop')
+         self:_block_caller_until(STOPPED)
+      end)
+end
 
-   if self._state == STOPPED then
-      return
-   end
-   self._thread:send_msg('stop')
-   while not self._in_state(STOPPED, DEAD) do
-      self._calling_thread:suspend()
-   end
+function ExecutionFrame:destroy()
+   self._log:spam('destroy')
+   self:_protect_blocking_call(function(caller)
+         self._thread:send_msg('destroy')
+         self:_block_caller_until(DEAD)
+      end)
+   --assert(self._name ~= 'stonehearth:top')
 end
 
 function ExecutionFrame:send_msg(...)
@@ -113,6 +113,7 @@ function ExecutionFrame:_dispatch_msg(msg, ...)
    local method = '_' .. msg .. '_from_' .. self._state
    local fn = self[method]
    assert(fn, string.format('unknown state transition in execution frame "%s"', method))
+   self._log:spam('dispatching %s', method)
    fn(self, ...)
 end
 
@@ -121,7 +122,7 @@ function ExecutionFrame:_thread_main()
    self._log:spam('starting thread main')
    self:_create_execution_units()
    while self._state ~= DEAD do
-      self._thread:suspend()
+      self._thread:suspend('ex_frame is idle')
    end
    self._log:spam('exiting thread main')
 end
@@ -177,6 +178,15 @@ function ExecutionFrame:_check_ready_from_thinking()
    end
 end
 
+function ExecutionFrame:_check_stopped_from_halted()
+   for _, unit in pairs(self._execution_units) do
+      if not unit:in_state(STOPPED) then
+         return
+      end
+   end
+   self:_set_state(STOPPED)
+end
+
 function ExecutionFrame:_start_from_ready()
    assert(self._active_unit)
 
@@ -206,15 +216,44 @@ end
 function ExecutionFrame:_unit_halted_from_running(unit)
    assert(self._active_unit)
    assert(unit == self._active_unit)
+   self._active_unit = nil
    self:_set_state(HALTED)
 end
 
-function ExecutionFrame:_stop_from_halted(unit)
-   self:_set_state(STOPPING)
+function ExecutionFrame:_stop_from_halted()
    for _, unit in pairs(self._execution_units) do
       unit:send_msg('stop')
    end
-   self:_set_state(STOPPED)
+   self:_check_stopped_from_halted()
+end
+
+function ExecutionFrame:_unit_stopped_from_halted(unit)
+   self:_check_stopped_from_halted()
+end
+
+function ExecutionFrame:_destroy_from_stopped()
+   self._active_unit = nil
+   error('to be continued, in the morning...')
+   --[[
+   HMM  NOW WHAT?
+   for _, unit in pairs(execution_units) do
+      unit:send_msg('destroy')
+      
+      --- H
+      radiant.events.unlisten(unit, 'state_changed', self, self.on_unit_state_change)
+      unit:stop()
+      unit:destroy()
+   end     
+   self._execution_units = {}
+   
+      self:_set_state(DEAD)
+      radiant.events.unpublish(self)
+      radiant.events.unlisten(self._ai_component, 'action_added', self, self._on_action_added)
+      radiant.events.unlisten(self._ai_component, 'action_removed', self, self._on_action_removed)
+   else
+      self._log:spam('ignoring redundant destroy call (this is not an error, just letting you know)')
+   end
+   ]]
 end
 
 function ExecutionFrame:_add_action_from_anystate(key, entry, does)
@@ -271,36 +310,6 @@ function ExecutionFrame:_add_execution_unit(key, entry)
                                                      self._action_index)
    self._execution_units[key] = unit
    return unit
-end
-
-function ExecutionFrame:destroy()
-   assert(false, 'meh...')
-   --assert(self._name ~= 'stonehearth:top')
-   
-   self._log:debug('destroy')
-   if self._state ~= DEAD and self._state ~= DYING then
-      assert(not self._co_running, 'destroy of a running execution frame not implemented (yet)')
-      local execution_units = self._execution_units
-      
-      -- mark our state as dead first, to prevent the subsequent cleanup from doing
-      -- anything wasteful
-      self:_set_state(DYING)
-      
-      self._co = nil
-      self._active_unit = nil
-      self._execution_units = {}
-      for _, unit in pairs(execution_units) do
-         radiant.events.unlisten(unit, 'state_changed', self, self.on_unit_state_change)
-         unit:stop()
-         unit:destroy()
-      end     
-      self:_set_state(DEAD)
-      radiant.events.unpublish(self)
-      radiant.events.unlisten(self._ai_component, 'action_added', self, self._on_action_added)
-      radiant.events.unlisten(self._ai_component, 'action_removed', self, self._on_action_removed)
-   else
-      self._log:spam('ignoring redundant destroy call (this is not an error, just letting you know)')
-   end
 end
 
 function ExecutionFrame:_set_current_entity_state(state)
@@ -364,8 +373,7 @@ function ExecutionFrame:_get_best_execution_unit()
       local name = unit:get_name()
       local priority = unit:get_priority()
       local is_runnable = unit:is_runnable()
-      local is_active = unit:is_active()
-      self._log:spam('  unit %s has priority %d (runnable: %s active: %s)', name, priority, tostring(is_runnable), tostring(is_active))
+      self._log:spam('  unit %s has priority %d (runnable: %s)', name, priority, tostring(is_runnable))
       if is_runnable or is_active then
          if priority >= best_priority then
             if priority > best_priority then
