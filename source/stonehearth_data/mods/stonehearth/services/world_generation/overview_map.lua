@@ -31,13 +31,13 @@ function OverviewMap:clear()
    self._map = nil
 end
 
-function OverviewMap:derive_overview_maps(blueprint)
+function OverviewMap:derive_overview_map(blueprint)
    local terrain_info = self._terrain_info
    -- -1 to remove half-macroblock offset from both ends
    local overview_width = blueprint.width * self._macro_blocks_per_tile - 1
    local overview_height = blueprint.height * self._macro_blocks_per_tile - 1
    local overview_map = Array2D(overview_width, overview_height)
-   local a, b, terrain_type, forest_density, macro_block_info
+   local a, b, terrain_code, forest_density, macro_block_info
    local full_feature_map, full_elevation_map
 
    full_feature_map, full_elevation_map = self:_assemble_maps(blueprint)
@@ -45,10 +45,10 @@ function OverviewMap:derive_overview_maps(blueprint)
    for j=1, overview_width do
       for i=1, overview_height do
          a, b = _overview_map_to_feature_map_coords(i, j)
-         terrain_type = self:_get_terrain_type(full_elevation_map, a, b)
+         terrain_code = self:_get_terrain_code(full_elevation_map, a, b)
          forest_density = self:_get_forest_density(full_feature_map, a, b)
          macro_block_info = {
-            terrain_type = terrain_type,
+            terrain_code = terrain_code,
             forest_density = forest_density
          }
          overview_map:set(i, j, macro_block_info)
@@ -85,11 +85,11 @@ function OverviewMap:_assemble_maps(blueprint)
    return full_feature_map, full_elevation_map
 end
 
-function OverviewMap:_get_terrain_type(elevation_map, i, j)
+function OverviewMap:_get_terrain_code(elevation_map, i, j)
    -- since macroblocks are 2x the feature size, all 4 cells have the same value
    -- if this changes, sort and return the 3rd item (one of the tied medians)
    local elevation = elevation_map:get(i, j)
-   return self._terrain_info:get_terrain_type(elevation)
+   return self._terrain_info:get_terrain_code(elevation)
 end
 
 function OverviewMap:_get_forest_density(forest_map, i, j)
@@ -97,14 +97,15 @@ function OverviewMap:_get_forest_density(forest_map, i, j)
    local value
    local count = 0
 
-   for a=0, 1 do
-      for b=0, 1 do
-         value = forest_map:get(i+a, j+b)
+   -- count the 4 feature blocks in this macro block
+   forest_map:visit_block(i, j, 2, 2,
+      function (value)
          if landscaper:is_forest_feature(value) then
             count = count + 1
          end
+         return true
       end
-   end
+   )
 
    return count
 end

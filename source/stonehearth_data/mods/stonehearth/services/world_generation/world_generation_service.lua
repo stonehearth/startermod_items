@@ -147,7 +147,7 @@ function WorldGenerationService:_generate_world(blueprint)
       self._progress = (n / num_tiles) * 100
    end
 
-   self.overview_map:derive_overview_maps(blueprint)
+   self.overview_map:derive_overview_map(blueprint)
 
    radiant.events.trigger(radiant.events, 'stonehearth:generate_world_progress', {
       progress = 1

@@ -35,6 +35,11 @@ function TerrainInfo:__init()
    assert(mountains_info.step_size % 2 == 0)
 
    self.min_height = plains_info.max_height - plains_info.step_size
+   plains_info.base_height = self.min_height
+   foothills_info.base_height = plains_info.max_height
+   mountains_info.base_height = foothills_info.max_height
+
+   self.terrain_order = { TerrainType.plains, TerrainType.foothills, TerrainType.mountains }
 
    -- tree lines
    --self.tree_line = foothills_info.max_height+mountains_info.step_size*2
@@ -50,6 +55,16 @@ function TerrainInfo:get_terrain_type(height)
    end
 
    return TerrainType.mountains
+end
+
+-- takes quantized height values
+function TerrainInfo:get_terrain_code(height)
+   local terrain_type = self:get_terrain_type(height)
+   local base_height = self[terrain_type].base_height
+   local step_size = self[terrain_type].step_size
+   local step_number = (height - base_height) / step_size
+
+   return string.format('%s_%d', terrain_type, step_number)
 end
 
 return TerrainInfo

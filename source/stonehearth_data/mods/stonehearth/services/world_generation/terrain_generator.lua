@@ -176,6 +176,10 @@ function TerrainGenerator:_create_tile_map(micro_map)
    return tile_map
 end
 
+-- TODO: replace this blend_map architecture
+-- There is a hard to fix bug when estimating the blending values at the corners where 3 maps meet
+-- Use a deterministic pseudo-random sequence to determine (and recreate if necessary) the pre-filtered
+-- values of neighboring tiles to filter across boundaries instead of trying to extend a bandlimited signal
 function TerrainGenerator:_fill_blend_map(blend_map, blueprint, x, y)
    local i, j, adj_tile_info, macro_block
    local width = blend_map.width
@@ -334,8 +338,8 @@ function TerrainGenerator:_blend_tile(blend_map, adj_tile_info,
 end
 
 function TerrainGenerator:_calc_std_dev(height)
-   local terrain_order = { TerrainType.plains, TerrainType.foothills, TerrainType.mountains }
    local terrain_info = self.terrain_info
+   local terrain_order = terrain_info.terrain_order
    local prev_mean_height, prev_std_dev
    local ti, terrain_type, value
 
