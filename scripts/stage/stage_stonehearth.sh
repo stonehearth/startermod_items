@@ -16,6 +16,7 @@ Optional:
    --b      stage dependencies require to run stonehearth
    --d      stage stonehearth run data
    --s      stage the stonehearth binary itself
+   --m      an optional module to include
 EOF
 }
 
@@ -26,8 +27,9 @@ STAGE_SELF=
 STAGE_DATA=
 STAGE_BIN=
 CLEAN_OUTPUT=
+OPT_MOD_NAME=
 
-while getopts "o:t:cabds" OPTION; do
+while getopts "o:t:cabdsm:" OPTION; do
    case $OPTION in
       o)
          OUTPUT_DIR=$STONEHEARTH_ROOT/$OPTARG
@@ -51,6 +53,9 @@ while getopts "o:t:cabds" OPTION; do
          ;;
       s) 
          STAGE_SELF=1
+         ;;
+      m)
+         OPT_MOD_NAME=$OPTARG
          ;;
       ?)
          usage
@@ -152,7 +157,7 @@ function compile_lua_and_package_module
    # zip the package
    # no silent mode for 7-zip, could save output to file and cat file if [ $? -ne 0 ] 
    rm -f $MOD_NAME.smod
-   7za a -r -tzip -mx=9 $MOD_NAME.smod $MOD_NAME/'*' > /dev/null
+   7za a -r -tzip $MOD_NAME.smod $MOD_NAME/'*' > /dev/null
 
    rm -rf $MOD_NAME
    popd > /dev/null
@@ -172,4 +177,8 @@ if [ ! -z $STAGE_DATA ]; then
 
    compile_lua_and_package_module mods/radiant
    compile_lua_and_package_module mods/stonehearth
+
+   if [ ! -z $OPT_MOD_NAME ]; then
+      compile_lua_and_package_module mods/$OPT_MOD_NAME
+   fi
 fi
