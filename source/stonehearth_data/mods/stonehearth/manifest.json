@@ -318,7 +318,7 @@
             "controller" : "file(call_handlers/new_game_call_handler.lua)",
             "endpoint" : "server"
          },
-         "get_overview_maps": {
+         "get_overview_map": {
             "controller" : "file(call_handlers/new_game_call_handler.lua)",
             "endpoint" : "server"
          },

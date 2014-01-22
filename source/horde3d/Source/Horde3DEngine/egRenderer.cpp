@@ -2995,7 +2995,7 @@ void Renderer::finalizeFrame()
 
 void Renderer::logPerformanceData()
 {
-   float curFrameTime = Modules::stats().getStat(EngineStats::AverageFrameTime, false);
+   float curFrameTime = Modules::stats().getStat(EngineStats::FrameTime, false);
 	float curFPS = 1000.0f / curFrameTime;
 	
    float triCount = Modules::stats().getStat(EngineStats::TriCount, false);
