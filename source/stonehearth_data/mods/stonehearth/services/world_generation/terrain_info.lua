@@ -35,7 +35,7 @@ function TerrainInfo:__init()
    assert(mountains_info.step_size % 2 == 0)
 
    self.min_height = plains_info.max_height - plains_info.step_size
-   plains_info.base_height = self.min_height
+   plains_info.base_height = self.min_height - plains_info.step_size -- essentially the water level
    foothills_info.base_height = plains_info.max_height
    mountains_info.base_height = foothills_info.max_height
 
