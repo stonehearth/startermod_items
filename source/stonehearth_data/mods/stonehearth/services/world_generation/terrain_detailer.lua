@@ -181,15 +181,15 @@ function TerrainDetailer:_is_edge(tile_map, x, y, threshold)
    end
 end
 
--- makes lots of assumptions about how grasslands are quantized
--- ok since this will change anyway if grasslands are quantized differently
-function TerrainDetailer:add_grassland_details(tile_map)
+-- makes lots of assumptions about how plains are quantized
+-- ok since this will change anyway if plains are quantized differently
+function TerrainDetailer:add_plains_details(tile_map)
    local edge_threshold = 2
    local i, j
 
    for j=1, tile_map.width do
       for i=1, tile_map.height do
-         if self:_is_grassland_edge(tile_map, i, j, edge_threshold) then
+         if self:_is_plains_edge(tile_map, i, j, edge_threshold) then
             local offset = tile_map:get_offset(i, j)
             tile_map[offset] = tile_map[offset] + 1
          end
@@ -197,14 +197,14 @@ function TerrainDetailer:add_grassland_details(tile_map)
    end
 end
 
-function TerrainDetailer:_is_grassland_edge(tile_map, x, y, threshold)
+function TerrainDetailer:_is_plains_edge(tile_map, x, y, threshold)
    local offset = tile_map:get_offset(x, y)
    local value = tile_map[offset]
    local width = tile_map.width
    local height = tile_map.height
    local neighbor
 
-   if value >= self._terrain_info[TerrainType.grassland].max_height then
+   if value >= self._terrain_info[TerrainType.plains].max_height then
       return false
    end
 
