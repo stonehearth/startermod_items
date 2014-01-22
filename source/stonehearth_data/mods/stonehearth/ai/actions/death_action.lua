@@ -16,6 +16,9 @@ function DeathAction:__init(ai, entity)
    --radiant.events.listen_to_entity(entity, 'stonehearth:events:on_damage', self)
 end
 
+function DeathAction:start_thinking(ai, entity)
+end
+
 function DeathAction:run(ai, entity)
    ai:execute('radiant:actions:perform', 'combat/1h_downed')
    om:destroy_entity(entity)

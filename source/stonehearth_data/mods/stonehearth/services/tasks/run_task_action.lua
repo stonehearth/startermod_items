@@ -22,7 +22,6 @@ function RunTaskAction:_start_stop_thinking()
       local should_think = self._should_think and self._task:__action_can_start(self)
       if should_think and not self._thinking then
          self._thinking = true
-         self._execution_frame:capture_entity_state()
          self._execution_frame:start_thinking()
       elseif not should_think and self._thinking then      
          self._thinking = false

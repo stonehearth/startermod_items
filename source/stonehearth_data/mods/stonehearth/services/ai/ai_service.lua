@@ -140,7 +140,7 @@ function AiService:create_execution_unit(parent_thread, entity, injecting_entity
    else
       action = action_ctor(entity, injecting_entity)
    end
-   return ExecutionUnitV2(parent_thread, entity, injecting_entity, action_ctor, args, action_index)
+   return ExecutionUnitV2(parent_thread, entity, injecting_entity, action, args, action_index)
 end
 
 -- simply used to create a different version of a function based on the arguments passed

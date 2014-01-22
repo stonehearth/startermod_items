@@ -4,11 +4,6 @@ local CompoundAction = class()
 function CompoundAction:__init(action, activities, when_predicates, think_output_placeholders)
    -- initialize metadata
    self._action = action -- just the header, really
-   self._when_predicates = when_predicates
-   self._activities = activities
-   self._think_output_placeholders = think_output_placeholders
-   self._spawned_frames = {}
-   self._previous_think_output = {}
    self.name = self._action.name
    self.does = self._action.does
    self.priority = self._action.priority
@@ -16,6 +11,12 @@ function CompoundAction:__init(action, activities, when_predicates, think_output
    self.name = self._action.name
    self.args = self._action.args
    self.think_output = self._action.think_output
+
+   self._when_predicates = when_predicates
+   self._activities = activities
+   self._think_output_placeholders = think_output_placeholders
+   self._spawned_frames = {}
+   self._previous_think_output = {}
    self.version = 2
    self._id = stonehearth.ai:get_next_object_id()   
 end
@@ -24,6 +25,7 @@ function CompoundAction:start_thinking(ai, entity, args)
    assert(#self._spawned_frames == 0)
    assert(#self._previous_think_output == 0)
    
+   self._ai = ai
    self._log = ai:get_log()   
    for i, clause_fn in ipairs(self._when_predicates) do
       if not clause_fn(ai, entity, args) then
@@ -41,7 +43,6 @@ function CompoundAction:start_thinking(ai, entity, args)
       table.insert(self._spawned_frames, frame)
 
       -- xxx: listen for when frames become unready, right?      
-
       local think_output = frame:start_thinking(ai.CURRENT)
       table.insert(self._previous_think_output, think_output)
 

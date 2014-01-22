@@ -8,16 +8,18 @@ local Base = class()
 function Base:_schedule_thread()
    self.active = true
 end
+
 function Base:get_debug_route()
-   return ''
+   return nil
 end
+
 function Base:get_parent()
    return nil
 end
 
 function ThreadsService:__init()
    self._base = Base()
-   self._main_thread = Thread(self._base):set_debug_name('main')
+   self._main_thread = Thread(self._base):set_debug_name('m')
                                :set_thread_main(function()
                                     self:_run_main_thread()
                                  end)
@@ -27,14 +29,14 @@ end
 
 function ThreadsService:_run_main_thread()
    while true do
-      self._main_thread:suspend()
+      self._main_thread:suspend('suspending main thread')
    end
 end
 
 function ThreadsService:_on_event_loop(e)
    if self._base.active then
       self._base.active = false
-      self._main_thread:_resume_thread()
+      self._main_thread:_resume_thread('resuming main thread')
    end
 end
 

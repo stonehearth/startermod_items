@@ -2,7 +2,7 @@ local event_service = stonehearth.events
 
 local SleepOnGroundAction = class()
 SleepOnGroundAction.name = 'sleep on the cold, hard, unforgiving ground'
-SleepOnGroundAction.does = 'stonehearth:sleep'
+SleepOnGroundAction.does = 'stonehearth:sleep_exhausted'
 SleepOnGroundAction.args = {}
 SleepOnGroundAction.version = 2
 SleepOnGroundAction.priority = 1
@@ -12,23 +12,7 @@ function SleepOnGroundAction:__init(ai, entity)
    self._ai = ai
 end
 
-function SleepOnGroundAction:start_thinking(ai, entity)
-   radiant.events.listen(entity, 'stonehearth:attribute_changed:sleepiness', self, self._sleepiness_changed)
-end
-
-function SleepOnGroundAction:stop_thinking(ai, entity)
-   radiant.events.unlisten(entity, 'stonehearth:attribute_changed:sleepiness', self, self._sleepiness_changed)
-end
-
-function SleepOnGroundAction:_sleepiness_changed(e)
-   if e.value >= 120 then
-      self._ai:set_think_output()
-   else
-      self._ai:clear_think_output()
-   end
-end
-
-function SleepOnGroundAction:run(ai, entity, bed, path)
+function SleepOnGroundAction:run(ai, entity)
    ai:execute('stonehearth:drop_carrying_now')
    ai:execute('stonehearth:run_effect', { effect = 'yawn' })
    ai:execute('stonehearth:run_effect', { effect = 'sit_on_ground' })

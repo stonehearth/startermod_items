@@ -1,3 +1,4 @@
+local ExecutionFrame = require 'components.ai.execution_frame'
 local ExecutionUnitV2 = class()
 
 local THINKING = 'thinking'
@@ -5,6 +6,8 @@ local READY = 'ready'
 local STARTED = 'started'
 local RUNNING = 'running'
 local FINISHED = 'finished'
+local HALTED = 'halted'
+local STOPPED = 'stopped'
 local DEAD = 'dead'
 local ABORTED = 'aborted'
 local placeholders = require 'services.ai.placeholders'
@@ -22,13 +25,14 @@ function ExecutionUnitV2:__init(parent_thread, entity, injecting_entity, action,
    self._entity = entity
    self._execute_frame = nil
    self._thinking = false
-   self._state = IDLE
    self._id = stonehearth.ai:get_next_object_id()
      
    self._ai_interface = { ___execution_unit = self }   
    local chain_function = function (fn)
       self._ai_interface[fn] = function(i, ...) return self['__'..fn](self, ...) end
    end
+   chain_function('set_think_output')
+   chain_function('revoke_think_output')
    chain_function('spawn')
    chain_function('execute')   
    chain_function('suspend')
@@ -36,22 +40,24 @@ function ExecutionUnitV2:__init(parent_thread, entity, injecting_entity, action,
    chain_function('abort')
    chain_function('get_log')   
 
-   if self:_verify_arguments(args, self._action.args) then
-      self:_set_state(STOPPED)
-   else
-      assert(false, 'put ourselves in the dead state')
-   end
-
    self._parent_thread = parent_thread
    self._thread = parent_thread:create_thread()
-                               :set_msg_handler(function (...) self._dispatch_msg(...) end)
+                               :set_debug_name('u:%d', self._id)
+                               :set_msg_handler(function (...) self:_dispatch_msg(...) end)
                                :set_thread_main(function (...) self:_thread_main(...) end)
-                               :start()
 
    self._log = radiant.log.create_logger('ai.exec_unit')
    local prefix = string.format('%s (%s)', self._thread:get_debug_route(), self:get_name())
    self._log:set_prefix(prefix)
    self._log:debug('creating execution unit')
+   
+   if self:_verify_arguments(args, self._action.args) then
+      self:_set_state(STOPPED)
+   else
+      assert(false, 'put ourselves in the dead state')
+   end
+   
+   self._thread:start()
 end
 
 function ExecutionUnitV2:get_action_interface()
@@ -120,27 +126,27 @@ end
 
 function ExecutionUnitV2:_thread_main()
    while self._state ~= DEAD do
-      self._thread:suspend()
+      self._thread:suspend('waiting for execution unit to die')
    end
 end
 
 function ExecutionUnitV2:_dispatch_msg(msg, ...)
    local method = '_' .. msg .. '_from_' .. self._state
-   local fn = self[method]
-   assert(fn)
-   fn(self, ...)
+   local dispatch_msg_fn = self[method]
+   assert(dispatch_msg_fn, string.format('unknown state transition in execution frame "%s"', method))   
+   dispatch_msg_fn(self, ...)
 end
 
 function ExecutionUnitV2:_call_action(method)
-   local fn = self._action[method]
-   if fn then
+   local call_action_fn= self._action[method]
+   if call_action_fn then
       self._calling_method = method
-      fn(self._action, self._ai_interface, self._entity, self._args)
+      call_action_fn(self._action, self._ai_interface, self._entity, self._args)
       self._calling_method = nil
    else
       self._log:detail('action does not implement %s.', method)
    end
-   return fn ~= nil
+   return call_action_fn ~= nil
 end
 
 function ExecutionUnitV2:_start_thinking_from_stopped(entity_state)
@@ -151,22 +157,38 @@ function ExecutionUnitV2:_start_thinking_from_stopped(entity_state)
    self._ai_interface.CURRENT = entity_state
 
    self:_set_state(THINKING)
-   local think_output = self._call_action('start_thinking')
+   if not self:_call_action('start_thinking') then
+      self:send_msg('set_think_output')
+   end
+end
+
+function ExecutionUnitV2:_set_think_output_from_thinking(think_output)
    if not think_output then
       think_output = self._args
    end
    self:_verify_arguments(think_output, self._think_output_types)
 
-   assert(false, 'here we trigger something to someone about what our think output is')
+   self._parent_thread:send_msg('unit_ready', self, think_output)
    self:_set_state(READY)
+end
+
+function ExecutionUnitV2:_revoke_think_output_from_thinking(entity_state)
+   self._parent_thread:send_msg('unit_not_ready', self)
+   self:_set_state(THINKING)
+end
+
+
+function ExecutionUnitV2:_stop_thinking_from_thinking()
+   assert(self._thinking)
+   self:_stop_thinking()
+   self:_set_state(STOPPED)
 end
 
 function ExecutionUnitV2:_start_from_ready()
    assert(self._thinking)
 
    self:_stop_thinking()
-
-   self._call_action('start') 
+   self:_call_action('start') 
    self:_set_state(STARTED)
 end
 
@@ -174,7 +196,7 @@ function ExecutionUnitV2:_run_from_started()
    assert(not self._thinking)
 
    self:_set_state(RUNNING)
-   self._call_action('run')
+   self:_call_action('run')
    self:_set_state(FINISHED)
    self:send_msg('stop')
 end
@@ -182,7 +204,7 @@ end
 function ExecutionUnitV2:_stop_from_finished()
    assert(not self._thinking)
 
-   self._call_action('stop')
+   self:_call_action('stop')
    self._set_state(FINISHED)
 end
 
@@ -194,7 +216,7 @@ function ExecutionUnitV2:_stop_thinking()
    self._ai_interface.CURRENT = nil
    self._thinking = false
 
-   self._call_action('stop_thinking')
+   self:_call_action('stop_thinking')
 end
 
 -- the interface facing actions (i.e. the 'ai' interface)
@@ -204,22 +226,33 @@ function ExecutionUnitV2:__get_log()
 end
 
 function ExecutionUnitV2:__execute(name, args)
-   self._log:debug('execute %s %s called', name, stonehearth.ai:format_args(args))
+   self._log:debug('__execute %s %s called', name, stonehearth.ai:format_args(args))
    assert(self._thread:is_running())
    assert(not self._execute_frame)
 
-   self._execute_frame = ExecutionFrame(self.thread, name, args, self._action_index)
+   self._execute_frame = ExecutionFrame(self._thread, self._entity, name, args, self._action_index)
 
-   self._execute_frame:capture_entity_state()
    self._execute_frame:run()
    self._execute_frame:stop()
    self._execute_frame:destroy()
    self._execute_frame = nil
 end 
 
+function ExecutionUnitV2:__set_think_output(args)
+   self._log:debug('__set_think_output %s called', stonehearth.ai:format_args(args))
+   self:send_msg('set_think_output', args)
+end
+
+function ExecutionUnitV2:__revoke_think_output()
+   self._log:debug('__revoke_think_output %s called')
+   self:send_msg('revoke_think_output')
+end
+
 function ExecutionUnitV2:__spawn(name, args)   
-   self._log:spam('__spawn %s called', name)
-   return self._ai_component:spawn_debug_route(self._debug_route, name, args)
+   self._log:debug('__spawn %s %s called', name, stonehearth.ai:format_args(args))
+   assert(self._thread:is_running())
+  
+   return ExecutionFrame(self._thread, self._entity, name, args, self._action_index)
 end
 
 function ExecutionUnitV2:__suspend(format, ...)
@@ -405,6 +438,7 @@ function ExecutionUnitV2:_verify_arguments(args, args_prototype)
          end
       end
    end
+   return true
 end
 
 function ExecutionUnitV2:_set_state(state)

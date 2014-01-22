@@ -17,7 +17,7 @@ function Thread:__init(parent)
    self._child_threads = {}
    self._msgs = {}
    self._log = radiant.log.create_logger('thread')
-   self:set_debug_name('t')
+   self:set_debug_name('')
 end
 
 function Thread:get_id()
@@ -25,14 +25,25 @@ function Thread:get_id()
 end
 
 function Thread:set_debug_name(format, ...)
+   local thread_route = ''
+   local thread = self
+   repeat
+      thread_route = string.format('t:%d ', thread._id) .. thread_route
+      thread = thread._parent
+   until not thread or not thread._id
+
    self._debug_name = string.format(format, ...)
-   self._log:set_prefix(string.format('%s thread', self:get_debug_route())
-   
+   self._log:set_prefix(thread_route .. self._debug_name)
+
    return self
 end
 
 function Thread:get_debug_route()
-   return self._parent:get_debug_route() .. ' ' .. self._debug_name
+   local route = self._parent:get_debug_route()
+   if route then
+      return route .. ' ' .. self._debug_name
+   end
+   return self._debug_name
 end
 
 function Thread:set_thread_main(fn)
@@ -47,23 +58,29 @@ function Thread:set_msg_handler(handler)
 end
 
 function Thread:send_msg(...)
-   self._parent:_schedule_thread(self)
    local msg = {...}
    self._log:detail('adding msg "%s" to queue', tostring(msg[1]))
    table.insert(self._msgs, msg)
+   self._parent:_schedule_thread(self)
 end
 
 function Thread:start(...)
    local args = {...}
    assert(self._thread_main)
    self._co = coroutine.create(function ()
-         self._parent:_schedule_thread(self)
+         self:_process_queued_items()
          self._should_resume = true
          self._thread_main(unpack(args))
          self._should_resume = false
       end)
-   self._log:detail('starting thread')
-   self:resume()
+   if self._parent.is_running and self._parent:is_running() then
+      self._log:detail('starting thread immedately')
+      self._parent:_resume_child(self)
+   else
+      self._log:detail('starting thread')
+      self:resume()
+   end
+   
    return self
 end
 
@@ -78,32 +95,26 @@ function Thread:create_thread()
 end
 
 function Thread:suspend(reason)
-   self._log:detail('suspending thread (%s)', tostring(reason or 'no reason given'))
+   reason = tostring(reason) or 'no reason given'
+   self._log:detail('suspending thread (%s)', reason)
    
+   -- try to go to sleep.  we might not make it, though.  first give all our
+   -- children a chance to run and pump all our pending messages.  anything in
+   -- there could have called :resume().  if so, just return
    self._should_resume = false
+   self:_process_queued_items()
+   if self._should_resume then
+      self._log:detail('early resumed from suspend (suspend reason: %s)', reason)
+      return
+   end
    self:_yield_thread(Thread.SUSPEND)
-
-   self._log:detail('resumed thread (suspend reason: %s)', tostring(reason or 'no reason given'))
-   
+  
    -- and we're back!
    while true do 
-      -- first, give all our children a chance to run
-      self:_resume_children()
-      assert(next(self._scheduled) == nil)
-      
-      -- now process all our messages...
-      self:_dispatch_messages()
-
-      -- sometimes we wake up just to pump messages or give our children a
-      -- go.  if that's the case, go back to sleep.  If someone actually called
-      -- :resume(), exit the loop so we can continue
+      self:_process_queued_items()
       if self._should_resume then
          break
       else
-         -- before we yield, make sure all our children have yielded and
-         -- we have completely drained the msg queue
-         assert(next(self._msgs) == nil)
-         assert(next(self._scheduled) == nil)        
          self._log:detail('going back to sleep...')
          self:_yield_thread(Thread.SUSPEND)
       end
@@ -111,13 +122,20 @@ function Thread:suspend(reason)
 
    -- finally, return.  this will resume execution of the client thread
    -- on the statement after they called suspend
+   self._log:detail('resumed thread (suspend reason: %s)', reason)
 end
 
 function Thread:resume(reason)
-   assert(not self:is_running())
-   assert(not self._should_resume)
-   self._should_resume = true
-   self._parent:_schedule_thread(self)
+   if self:is_running() then
+      if not self._should_resume then
+         self._log:detail('resume called when trying to suspend.  skipping the suspend.')
+         self._should_resume = true
+      end         
+   else
+      assert(not self._should_resume)
+      self._should_resume = true
+      self._parent:_schedule_thread(self)
+   end
 end
 
 -- removes the thread from the scheduler and the waiting thread
@@ -140,13 +158,15 @@ function Thread:wait_until(handle, cb)
 end
 ]]
 
-function Thread:_schedule_thread(thread)
+function Thread:_schedule_thread(thread)  
    local id = thread:get_id()
    assert(self._child_threads[id] == thread)
+
    if not self._scheduled[id] then
+      self._log:detail('scheduling child thread %d', id)
       self._parent:_schedule_thread(self)
+      self._scheduled[id] = thread
    end
-   self._scheduled[id] = thread
    self._waiting_until[id] = nil
 end
 
@@ -193,6 +213,27 @@ function Thread:_resume(now)
    end
 end
 
+function Thread:_resume_child(thread)
+   self._log:detail('resuming child thread %d', thread._id)
+   assert(self._child_threads[thread:get_id()] == thread)
+   
+   local status, wait_obj = thread:_resume()
+   
+   if status == Thread.DEAD then
+      self._scheduled[id] = nil
+      self._child_threads[id] = nil
+   elseif status == Thread.SUSPEND then
+      -- nothing to do...
+   elseif status == Thread.WAIT then
+      error('wait not implemented')
+      self._waiting_until[id] = wait_obj         
+   elseif status == Thread.KILL then
+      error('kill not implemented')
+   else
+      error('unknown status returned from thread')
+   end
+end
+
 function Thread:_resume_children(now)
    --[[
    for id, thread in pairs(self._waiting_until) do
@@ -212,40 +253,44 @@ function Thread:_resume_children(now)
    end
    ]]
 
+   self._log:spam('starting resume children loop.')
    repeat
       local scheduled = self._scheduled
       self._scheduled = {}
       for id, thread in pairs(scheduled) do
-      
-         local status, wait_obj = thread:_resume()
-         
-         if status == Thread.DEAD then
-            self._scheduled[id] = nil
-            self._child_threads[id] = nil
-         elseif status == Thread.SUSPEND then
-            -- nothing to do...
-         elseif status == Thread.WAIT then
-            error('wait not implemented')
-            self._waiting_until[id] = wait_obj         
-         elseif status == Thread.KILL then
-            error('kill not implemented')
-         else
-            error('unknown status returned from thread')
-         end
+         self:_resume_child(thread)
       end
+      if next(self._scheduled) then
+         self._log:detail('repeating resume children loop.')
+      end      
    until next(self._scheduled) == nil
+   self._log:spam('finished resume children loop')
 end
 
 function Thread:_dispatch_messages()
    -- keep draining the queue till it's empty
+   self._log:spam('starting dispatch message loop.')
    while #self._msgs > 0 do  
       local msgs = self._msgs
       self._msgs = {}
-      for _, msg in ipairs(self._msgs) do
+      for _, msg in ipairs(msgs) do
+         self._log:detail('dispatching msg "%s"', tostring(msg[1]))
          self._msg_handler(unpack(msg))
       end
    end
+   self._log:spam('finished dispatch message loop.')
 end
 
+function Thread:_process_queued_items()
+   repeat
+      -- first, give all our children a chance to run
+      self:_resume_children()
+      assert(next(self._scheduled) == nil)
+      
+      -- now process all our messages...
+      self:_dispatch_messages()
+      assert(next(self._msgs) == nil)
+   until next(self._scheduled) == nil and next(self._msgs) == nil
+end
 
 return Thread
