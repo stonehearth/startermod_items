@@ -3,12 +3,12 @@ local TerrainType = require 'services.world_generation.terrain_type'
 local TerrainInfo = class()
 
 function TerrainInfo:__init()
-   local grassland_info = {}
-   grassland_info.step_size = 2
-   grassland_info.mean_height = 18
-   grassland_info.std_dev = 6
-   grassland_info.max_height = 16
-   self[TerrainType.grassland] = grassland_info
+   local plains_info = {}
+   plains_info.step_size = 2
+   plains_info.mean_height = 18
+   plains_info.std_dev = 6
+   plains_info.max_height = 16
+   self[TerrainType.plains] = plains_info
 
    local foothills_info = {}
    foothills_info.step_size = 8
@@ -23,10 +23,10 @@ function TerrainInfo:__init()
    mountains_info.std_dev = 64
    self[TerrainType.mountains] = mountains_info
 
-   assert((foothills_info.max_height - grassland_info.max_height) % foothills_info.step_size == 0)
+   assert((foothills_info.max_height - plains_info.max_height) % foothills_info.step_size == 0)
 
    -- don't place means on quantization ("rounding") boundaries
-   assert(grassland_info.mean_height % grassland_info.step_size ~= grassland_info.step_size/2)
+   assert(plains_info.mean_height % plains_info.step_size ~= plains_info.step_size/2)
    assert(foothills_info.mean_height % foothills_info.step_size ~= foothills_info.step_size/2)
    assert(mountains_info.mean_height % mountains_info.step_size ~= mountains_info.step_size/2)
 
@@ -34,15 +34,18 @@ function TerrainInfo:__init()
    assert(foothills_info.step_size % 2 == 0)
    assert(mountains_info.step_size % 2 == 0)
 
-   self.min_height = grassland_info.max_height - grassland_info.step_size
+   self.min_height = plains_info.max_height - plains_info.step_size
+   plains_info.base_height = self.min_height - plains_info.step_size -- essentially the water level
+   foothills_info.base_height = plains_info.max_height
+   mountains_info.base_height = foothills_info.max_height
 
    -- tree lines
    --self.tree_line = foothills_info.max_height+mountains_info.step_size*2
 end
 
 function TerrainInfo:get_terrain_type(height)
-   if height <= self[TerrainType.grassland].max_height then
-      return TerrainType.grassland
+   if height <= self[TerrainType.plains].max_height then
+      return TerrainType.plains
    end
 
    if height <= self[TerrainType.foothills].max_height then
@@ -50,6 +53,16 @@ function TerrainInfo:get_terrain_type(height)
    end
 
    return TerrainType.mountains
+end
+
+-- takes quantized height values
+function TerrainInfo:get_terrain_code(height)
+   local terrain_type = self:get_terrain_type(height)
+   local base_height = self[terrain_type].base_height
+   local step_size = self[terrain_type].step_size
+   local step_number = (height - base_height) / step_size
+
+   return string.format('%s_%d', terrain_type, step_number)
 end
 
 return TerrainInfo

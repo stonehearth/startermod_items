@@ -47,17 +47,10 @@ end
 
 function WorldGenerationService:_on_poll_progress()
    local done = self._progress == 100
-   local event_args = {}
 
-   event_args.progress = self._progress
-   if done then
-      event_args.width = self.overview_map.width
-      event_args.height = self.overview_map.height
-      event_args.elevation_map = self.overview_map.elevation_map
-      event_args.forest_map = self.overview_map.forest_map
-   end
-
-   radiant.events.trigger(radiant.events, 'stonehearth:generate_world_progress', event_args)
+   radiant.events.trigger(radiant.events, 'stonehearth:generate_world_progress', {
+      progress = self._progress
+   })
 
    if done then
       radiant.events.unlisten(radiant.events, 'stonehearth:slow_poll', self, self._on_poll_progress)
@@ -104,6 +97,7 @@ function WorldGenerationService:_generate_world(blueprint)
    tile_order_list = self:_build_tile_order_list(blueprint)
    num_tiles = #tile_order_list
 
+   -- location of the world origin in the coordinate system of the blueprint
    origin_x = math.floor(num_tiles_x * tile_size / 2)
    origin_y = math.floor(num_tiles_y * tile_size / 2)
 
@@ -154,7 +148,7 @@ function WorldGenerationService:_generate_world(blueprint)
       self._progress = (n / num_tiles) * 100
    end
 
-   self.overview_map:derive_overview_maps(blueprint)
+   self.overview_map:derive_overview_map(blueprint, origin_x, origin_y)
 
    radiant.events.trigger(radiant.events, 'stonehearth:generate_world_progress', {
       progress = 1
@@ -238,7 +232,7 @@ function WorldGenerationService:_create_world_blueprint()
             elseif value >= foothills_threshold then
                terrain_type = TerrainType.foothills
             else
-               terrain_type = TerrainType.grassland
+               terrain_type = TerrainType.plains
             end
             blueprint:get(i, j).terrain_type = terrain_type
          end
@@ -258,7 +252,7 @@ function WorldGenerationService:_is_playable_map(blueprint)
    local total_tiles = blueprint.width * blueprint.height
    local stats = {}
 
-   stats[TerrainType.grassland] = 0
+   stats[TerrainType.plains] = 0
    stats[TerrainType.foothills] = 0
    stats[TerrainType.mountains] = 0
 
@@ -270,7 +264,7 @@ function WorldGenerationService:_is_playable_map(blueprint)
    end
 
    log:debug('Terrain distribution:')
-   log:debug('grassland: %d, foothills: %d, mountains: %d', stats[TerrainType.grassland],
+   log:debug('plains: %d, foothills: %d, mountains: %d', stats[TerrainType.plains],
       stats[TerrainType.foothills], stats[TerrainType.mountains])
 
    percent_mountains = stats[TerrainType.mountains] / total_tiles
@@ -281,41 +275,41 @@ end
 function WorldGenerationService:_create_world_blueprint_static()
    local blueprint = self:_get_empty_blueprint(5, 5)
 
-   blueprint:get(1, 1).terrain_type = TerrainType.grassland
-   blueprint:get(2, 1).terrain_type = TerrainType.grassland
+   blueprint:get(1, 1).terrain_type = TerrainType.plains
+   blueprint:get(2, 1).terrain_type = TerrainType.plains
    blueprint:get(3, 1).terrain_type = TerrainType.foothills
    blueprint:get(4, 1).terrain_type = TerrainType.mountains
    blueprint:get(5, 1).terrain_type = TerrainType.mountains
 
-   blueprint:get(1, 2).terrain_type = TerrainType.grassland
-   blueprint:get(2, 2).terrain_type = TerrainType.grassland
-   blueprint:get(3, 2).terrain_type = TerrainType.grassland
+   blueprint:get(1, 2).terrain_type = TerrainType.plains
+   blueprint:get(2, 2).terrain_type = TerrainType.plains
+   blueprint:get(3, 2).terrain_type = TerrainType.plains
    blueprint:get(4, 2).terrain_type = TerrainType.foothills
    blueprint:get(5, 2).terrain_type = TerrainType.mountains
 
    blueprint:get(1, 3).terrain_type = TerrainType.foothills
-   blueprint:get(2, 3).terrain_type = TerrainType.grassland
-   blueprint:get(3, 3).terrain_type = TerrainType.grassland
-   blueprint:get(4, 3).terrain_type = TerrainType.grassland
+   blueprint:get(2, 3).terrain_type = TerrainType.plains
+   blueprint:get(3, 3).terrain_type = TerrainType.plains
+   blueprint:get(4, 3).terrain_type = TerrainType.plains
    blueprint:get(5, 3).terrain_type = TerrainType.foothills
 
    blueprint:get(1, 4).terrain_type = TerrainType.mountains
    blueprint:get(2, 4).terrain_type = TerrainType.foothills
    blueprint:get(3, 4).terrain_type = TerrainType.foothills
-   blueprint:get(4, 4).terrain_type = TerrainType.grassland
-   blueprint:get(5, 4).terrain_type = TerrainType.grassland
+   blueprint:get(4, 4).terrain_type = TerrainType.plains
+   blueprint:get(5, 4).terrain_type = TerrainType.plains
 
    blueprint:get(1, 5).terrain_type = TerrainType.mountains
    blueprint:get(2, 5).terrain_type = TerrainType.mountains
    blueprint:get(3, 5).terrain_type = TerrainType.mountains
    blueprint:get(4, 5).terrain_type = TerrainType.foothills
-   blueprint:get(5, 5).terrain_type = TerrainType.grassland
+   blueprint:get(5, 5).terrain_type = TerrainType.plains
 
    return blueprint
 end
 
 function WorldGenerationService:_get_empty_blueprint(width, height, terrain_type)
-   if terrain_type == nil then terrain_type = TerrainType.grassland end
+   if terrain_type == nil then terrain_type = TerrainType.plains end
 
    local blueprint = Array2D(width, height)
    local i, j, tile_info

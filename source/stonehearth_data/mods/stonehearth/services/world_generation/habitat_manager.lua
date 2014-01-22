@@ -47,8 +47,8 @@ function HabitatManager:_get_habitat_type(terrain_type, feature_name)
    if feature_name ~= nil then
       return HabitatType.occupied
    end
-   if terrain_type == TerrainType.grassland then
-      return HabitatType.grassland
+   if terrain_type == TerrainType.plains then
+      return HabitatType.plains
    end
    if terrain_type == TerrainType.foothills then
       return HabitatType.foothills
