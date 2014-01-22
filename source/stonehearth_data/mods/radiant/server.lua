@@ -22,6 +22,11 @@ radiant.pathfinder = require 'modules.pathfinder'
 radiant.gamestate._start()
 radiant.log.info('server', 'radiant api initialized.')
 
+function radiant.not_reached(reason, ...)
+   local reason = reason and string.format(reason, ...) or 'no reason given'
+   assert(false, 'executed theoretically unreachable code: ' .. reason)
+end
+
 local api = {}
 
 local ProFi = require 'lib.ProFi'

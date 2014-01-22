@@ -15,6 +15,12 @@ local STOPPED = 'stopped'
 local DYING = 'dying'
 local DEAD = 'dead'
 
+function ExecutionFrame._add_nop_state_transition(msg, state)
+   local method = '_' .. msg .. '_from_' .. state
+   assert(not ExecutionFrame[method])
+   ExecutionFrame[method] = function() end
+end
+
 function ExecutionFrame:__init(parent_thread, entity, name, args, action_index)
    self._id = stonehearth.ai:get_next_object_id()
    self._name = name
@@ -42,12 +48,21 @@ end
 function ExecutionFrame:_protect_blocking_call(blocking_call_fn)
    assert(not self._calling_thread)
 
-   self._calling_thread = stonehearth.threads:get_running_thread()   
+   self._calling_thread = stonehearth.threads:get_current_thread()   
    assert(self._calling_thread ~= self._thread)
    local result = { blocking_call_fn(self._calling_thread) }
    self._calling_thread = nil
 
    return unpack(result)
+end
+
+function ExecutionFrame:set_error_handler(fn)
+   self._thread:set_exit_handler(function(_, err)
+         if (err) then
+            self._log:detail('frame thread error (%s).  calling error handler', err)
+            fn(self, err)
+         end
+      end)
 end
 
 function ExecutionFrame:start_thinking(entity_state)
@@ -89,7 +104,7 @@ function ExecutionFrame:destroy()
    self._log:spam('destroy')
    self:_protect_blocking_call(function(caller)
          self._thread:send_msg('destroy')
-         self:_block_caller_until(DEAD)
+         self._thread:wait()
       end)
    --assert(self._name ~= 'stonehearth:top')
 end
@@ -144,28 +159,44 @@ function ExecutionFrame:_start_thinking_from_stopped(entity_state)
 end
 
 function ExecutionFrame:_unit_ready_from_thinking(unit, think_output)
+   local use_unit = false
+
    if not self._active_unit then
+      use_unit = true
       self._log:detail('selecting first ready unit "%s"', unit:get_name())
-      self._active_unit = unit
-      self._active_unit_think_output = think_output
    elseif self:_is_strictly_better_than_active(unit) then
+      use_unit = true
       self._log:detail('replacing unit "%s" with better active unit "%s"',
                        self._active_unit:get_name(), unit:get_name())
+   end
+   if use_unit then
       self._active_unit = unit
       self._active_unit_think_output = think_output
+      self:send_msg('check_ready')
    end
-   self:send_msg('check_ready')
 end
 
 function ExecutionFrame:_unit_not_ready_from_thinking(unit)
    if unit == self._active_unit then
       self._log:detail('best choice for active_unit "%s" became unready...', unit:get_name())
-      self._active_unit = self:_get_best_execution_unit()
-      if self._active_unit then
-         self._log:detail('selected "%s" as a replacement...', self._active_unit)
-      else
-         self._log:detail('could not find a replacement!')
-      end
+      self:_find_replacement_for_active_unit()
+   end
+end
+
+function ExecutionFrame:_unit_error_from_thinking(unit)
+   if unit == self._active_unit then
+      self._log:detail('active_unit "%s" reported error...', unit:get_name())
+      self:_find_replacement_for_active_unit()
+   end
+   self:_remove_execution_unit(unit)
+end
+
+function ExecutionFrame:_find_replacement_for_active_unit()
+   self._active_unit = self:_get_best_execution_unit()
+   if self._active_unit then
+      self._log:detail('selected "%s" as a replacement...', self._active_unit)
+   else
+      self._log:detail('could not find a replacement!')
    end
 end
 
@@ -233,30 +264,16 @@ end
 
 function ExecutionFrame:_destroy_from_stopped()
    self._active_unit = nil
-   error('to be continued, in the morning...')
-   --[[
-   HMM  NOW WHAT?
-   for _, unit in pairs(execution_units) do
+   for _, unit in pairs(self._execution_units) do
       unit:send_msg('destroy')
-      
-      --- H
-      radiant.events.unlisten(unit, 'state_changed', self, self.on_unit_state_change)
-      unit:stop()
-      unit:destroy()
-   end     
-   self._execution_units = {}
-   
-      self:_set_state(DEAD)
-      radiant.events.unpublish(self)
-      radiant.events.unlisten(self._ai_component, 'action_added', self, self._on_action_added)
-      radiant.events.unlisten(self._ai_component, 'action_removed', self, self._on_action_removed)
-   else
-      self._log:spam('ignoring redundant destroy call (this is not an error, just letting you know)')
    end
-   ]]
+   self._execution_units = {}
+   self._thread:wait_for_children()
+   self:_set_state(DEAD)
 end
 
 function ExecutionFrame:_add_action_from_anystate(key, entry, does)
+   error('not correct...')
    local unit = self:_add_execution_unit(key, entry)
 
    if self:_in_state(THINKING, READY) then
@@ -271,6 +288,7 @@ function ExecutionFrame:_add_action_from_anystate(key, entry, does)
 end
 
 function ExecutionFrame:_remove_action_from_anystate(removed_key, entry)
+   error('not correct...')
    for key, unit in pairs(self._execution_units) do
       if key == removed_key then
          if unit == self._active_unit then
@@ -284,18 +302,23 @@ function ExecutionFrame:_remove_action_from_anystate(removed_key, entry)
    end
 end
 
-function ExecutionFrame:_on_action_added(key, entry, does)
-   if self._name == does then
-      self:send_msg('add_action', key, entry)
+function ExecutionFrame:_remove_execution_unit(unit)
+   assert(unit ~= self._active_unit)
+   for key, u in pairs(self._execution_units) do
+      if unit == u then
+         unit:stop()
+         unit:destroy()
+         self._execution_units[key] = nil
+         return
+      end
    end
 end
 
-function ExecutionFrame:_on_action_removed(key, entry, does)
+function ExecutionFrame:on_action_index_changed(add_remove, key, entry, does)
    if self._name == does then
-      self:send_msg('remove_action', key, entry)
+      self:send_msg(add_remove .. '_action', key, entry)
    end
 end
-
 
 function ExecutionFrame:_add_execution_unit(key, entry)
    local name = tostring(type(key) == 'table' and key.name or key)
@@ -308,6 +331,10 @@ function ExecutionFrame:_add_execution_unit(key, entry)
                                                      entry.action_ctor,
                                                      self._args,
                                                      self._action_index)
+   unit:set_error_handler(function (u, err)
+         self:send_msg('unit_error', u, err)
+      end)
+
    self._execution_units[key] = unit
    return unit
 end
@@ -463,6 +490,8 @@ end
 function ExecutionFrame:get_state()
    return self._state
 end
+
+ExecutionFrame._add_nop_state_transition('unit_stopped', STOPPED)
 
 return ExecutionFrame
  

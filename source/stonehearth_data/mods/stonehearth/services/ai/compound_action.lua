@@ -29,10 +29,10 @@ function CompoundAction:start_thinking(ai, entity, args)
    self._log = ai:get_log()   
    for i, clause_fn in ipairs(self._when_predicates) do
       if not clause_fn(ai, entity, args) then
-         ai:abort('when clause %d failed.', i)
-      else
-         self._log:spam('when %d succeeded', i)
+         self._log:debug('when clause %d failed.  hanging in start_thinking intentionally', i)
+         return
       end
+      self._log:spam('when %d succeeded', i)
    end
    
    for i, activity in ipairs(self._activities) do
@@ -51,9 +51,10 @@ function CompoundAction:start_thinking(ai, entity, args)
 
    if self._think_output_placeholders then
       local replaced = self:_replace_placeholders(self._think_output_placeholders)
-      return replaced
-   end
-   return self._args
+      ai:set_think_output(replaced)
+   else
+      ai:set_think_output()
+   end   
 end
 
 function CompoundAction:stop_thinking(ai, entity, ...)
@@ -95,7 +96,7 @@ function CompoundAction:run(ai, entity, ...)
 end
 
 function CompoundAction:stop()
-   for i=#self._run_frames,1,-1 do
+   for i = #self._spawned_frames, 1, -1 do
       self._spawned_frames[i]:stop()
    end
 end

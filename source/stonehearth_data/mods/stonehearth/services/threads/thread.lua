@@ -8,6 +8,7 @@ Thread.DEAD = { name = "DEAD" }
 
 Thread.scheduled = {}
 Thread.is_scheduled = {}
+Thread.waiting_for = {}
 
 function Thread.new()
    return Thread()
@@ -26,6 +27,7 @@ function Thread.loop()
 end
 
 function Thread.schedule_thread(thread)
+   assert(not thread._finished)
    if not Thread.is_scheduled[thread] then
       thread._log:detail('scheduling thread')
       Thread.is_scheduled[thread] = true
@@ -34,19 +36,45 @@ function Thread.schedule_thread(thread)
 end
 
 function Thread.resume_thread(thread)
-   local status, wait_obj = thread:_resume()
+   local status, err = thread:_resume()
    
    if status == Thread.DEAD then
-      Thread.scheduled[id] = nil
-      if thread._parent then
-         thread._parent._child_threads[id] = nil
-      end
+      Thread.terminate_thread(thread)
    elseif status == Thread.SUSPEND then
       -- nothing to do...
    elseif status == Thread.KILL then
-      error('kill not implemented')
+      Thread.terminate_thread(thread, err)
    else
       error('unknown status returned from thread')
+   end
+end
+
+function Thread.wait_thread(thread)
+   local current_thread = Thread.current_thread
+   assert(current_thread)
+   assert(not thread:is_running())
+
+   thread:wait_for_children()
+   while not thread._finished do
+      local waiters = Thread.waiting_for[thread._id]
+      if not waiters then
+         waiters = {}
+         Thread.waiting_for[thread._id] = waiters
+      end
+      waiters[current_thread._id] = current_thread
+      current_thread:suspend(string.format('waiting for thread %d to finish', thread._id))
+   end
+end
+
+function Thread.terminate_thread(thread, err)
+   Thread.scheduled[thread._id] = nil
+   thread:_on_thread_exit(err)
+
+   local waiters = Thread.waiting_for[thread._id] or {}
+   Thread.waiting_for[thread._id] = nil
+
+   for _, waiter in pairs(waiters) do
+      waiter:resume('wait for %d likely to succeed', thread._id)
    end
 end
 
@@ -98,7 +126,21 @@ function Thread:set_msg_handler(handler)
    return self
 end
 
+function Thread:set_exit_handler(handler)
+   assert(not self._finished)
+   self._exit_handler = handler
+   return self
+end
+
+function Thread:create_thread()
+   local thread = Thread(self)
+   self._child_threads[thread:get_id()] = thread
+   return thread
+end
+
 function Thread:send_msg(...)
+   assert(not self._finished)
+
    local msg = {...}
    self._log:detail('adding msg "%s" to queue', tostring(msg[1]))
    table.insert(self._msgs, msg)
@@ -114,6 +156,8 @@ end
 function Thread:start(...)
    local args = {...}
    assert(self._thread_main)
+   assert(not self._finished)
+
    self._co = coroutine.create(function ()
          self:_dispatch_messages()
          self._should_resume = true
@@ -126,17 +170,30 @@ function Thread:start(...)
    return self
 end
 
-function Thread:is_running()
-   return Thread.running_thread == self
+function Thread:wait()
+   self._log:detail('waiting for thread %d to finish', self._id)
+   Thread.wait_thread(self)
+   self._log:detail('returning from wait for %d', self._id)
 end
 
-function Thread:create_thread()
-   local thread = Thread(self)
-   self._child_threads[thread:get_id()] = thread
-   return thread
+function Thread:wait_for_children()
+   self._log:detail('waiting for children to finish...')
+   local id, first_child = next(self._child_threads)
+   while first_child do
+      first_child:wait()
+      first_child = next(self._child_threads)
+   end
+   self._log:detail('all children have finished.')
+   assert(not next(self._child_threads) )
+end
+
+function Thread:is_running()
+   return Thread.current_thread == self
 end
 
 function Thread:suspend(reason)
+   assert(not self._finished)
+
    reason = tostring(reason) or 'no reason given'
    self._log:detail('suspending thread (%s)', reason)
    
@@ -168,6 +225,8 @@ function Thread:suspend(reason)
 end
 
 function Thread:resume(reason)
+   assert(not self._finished)
+
    if self:is_running() then
       if not self._should_resume then
          self._log:detail('resume called when trying to suspend.  skipping the suspend.')
@@ -184,9 +243,13 @@ end
 -- list.  If the thread is still running (terminate self?  is that
 -- moral?), you still need to _complete_thread_termination later,
 -- which will make sure the thread doesn't get rescheduled.
-function Thread:terminate(reason)
+function Thread:terminate(err)
+   assert(err)
+   assert(not self._finished)
+   self._log:detail('terminating thread: %s', err)
    if self:is_running() then
-      self:_do_yield(Thread.DEAD)
+      self:_do_yield(Thread.KILL, err)
+      radiant.not_reached('no return after yielding Thread.DEAD')
    else
       Thread.terminate_thread(self)
    end
@@ -196,8 +259,8 @@ function Thread:_do_resume()
    assert(self._co)
    assert(not self:is_running())
 
-   self._last_running_thread = Thread.running_thread
-   Thread.running_thread = self
+   self._last_current_thread = Thread.current_thread
+   Thread.current_thread = self
 
    self._log:spam('coroutine.resume...')
    return coroutine.resume(self._co)
@@ -207,22 +270,40 @@ function Thread:_do_yield(...)
    assert(self._co)
    assert(self:is_running())
 
-   Thread.running_thread = self._last_running_thread
+   Thread.current_thread = self._last_current_thread
    coroutine.yield(...)
 
    assert(self:is_running())
 end
 
-function Thread:_resume(now)
+function Thread:_child_finished(thread)
+   local id = thread:get_id()
+   assert(self._child_threads[id] == thread)
+   self._child_threads[id] = nil
+end
+
+function Thread:_on_thread_exit(err)
+   if self._parent then
+      self._parent:_child_finished(self)
+   end
+   self._finished = true
+   if self._exit_handler then
+      self._exit_handler(self, err)
+   end
+end
+
+function Thread:_resume()
    assert(self._co)
    assert(self._suspended)
+   assert(not self._finished)
+
    self._suspended = false
 
    local success, thread_status, wait_obj = self:_do_resume()
    if not success then
       radiant.check.report_thread_error(self._co, 'thread error: ' .. tostring(thread_status))
       self._co = nil
-      return Thread.DEAD
+      return Thread.KILL, thread_status
    end
 
    local status = coroutine.status(self._co)
