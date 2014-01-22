@@ -36,9 +36,8 @@ function CompoundActionFactory:set_think_output(arg_placeholders)
    return self
 end
 
-function CompoundActionFactory:create_action(ai_component, entity, injecting_entity)
-   local unit = stonehearth.ai:create_execution_unit(ai_component, nil, self._base_action, entity, injecting_entity)
-   return CompoundAction(unit, self._activity_sequence, self._when_sequence, self._think_output_placeholders)
+function CompoundActionFactory:create_action(entity, injecting_entity)
+   return CompoundAction(self._base_action, self._activity_sequence, self._when_sequence, self._think_output_placeholders)
 end
 
 return CompoundActionFactory

@@ -5,6 +5,7 @@ local SET_ACTIVE_UNIT = { __comment = 'change active running unit' }
 
 -- these values are in the interface, since we trigger them as events.  don't change them!
 local THINKING = 'thinking'
+local CALLING_START_THINKING = 'calling_start_thinking'
 local READY = 'ready'
 local STARTING = 'starting'
 local RUNNING = 'running'
@@ -14,112 +15,230 @@ local STOPPED = 'stopped'
 local DYING = 'dying'
 local DEAD = 'dead'
 
-function ExecutionFrame:__init(ai_component, actions, activity, debug_route)
-   self._ai_component = ai_component
-   self._entity = self._ai_component:get_entity()
-   self._activity = activity
-   self._state = STOPPED
-   self._execution_units = {}
+function ExecutionFrame:__init(parent_thread, entity, name, args, action_index)
    self._id = stonehearth.ai:get_next_object_id()
-   self._buffer_changes_depth = 0
-   self._modified_state = {
-      changed = false,
-      units = {},
-   }
+   self._name = name
+   self._args = args
+   self._entity = entity
+   self._action_index = action_index
+   self._parent_thread = parent_thread
+   self._execution_units = {}
+
+   self._thread = parent_thread:create_thread()
+                               :set_debug_name("f:%d", self._id)
+                               :set_msg_handler(function (...) self._dispatch_msg(...) end)
+                               :set_thread_main(function (...) self:_thread_main(...) end)
+                               :start()
 
    self._log = radiant.log.create_logger('ai.exec_frame')
-   if not debug_route then
-      debug_route = 'e:' .. tostring(self._entity:get_id())
-   end
-   self:set_debug_route(debug_route)  
+   local prefix = string.format('%s (%s)', self._thread:get_debug_route(), self._name)
+   self._log:set_prefix(prefix)
    self._log:debug('creating execution frame')
    
-   local ai = stonehearth.ai
+   self:_set_state(STOPPED)
+end
+
+-- external interface from another thread.  blocking run (only)
+function ExecutionFrame:start_thinking(entity_state)
+      frame:set_current_entity_state(entity_state)
+end
+
+function ExecutionFrame:run()
+   self._calling_thread = stonehearth.threads:get_running_thread()
+
+   if self._state == STOPPED then
+      self._thread:send_msg('start_thinking')
+   end
+   while not self._in_state(READY, DEAD) do
+      self._calling_thread:suspend()
+   end
+   self._thread:send_msg('start')
+   while not self._in_state(STARTED, DEAD) do
+      self._calling_thread:suspend()
+   end
+   self._thread:send_msg('run')
+   while not self._in_state(HALTED, DEAD) do
+      self._calling_thread:suspend()
+   end
+end
+
+function ExecutionFrame:stop()
+   assert(not self._calling_thread)
+   self._calling_thread = radiant.thread:get_running_thread()
+
+   if self._state == STOPPED then
+      return
+   end
+   self._thread:send_msg('stop')
+   while not self._in_state(STOPPED, DEAD) do
+      self._calling_thread:suspend()
+   end
+end
+
+function ExecutionFrame:_create_execution_units()
+   local actions = self._action_index[self._name]
+   if not actions then
+      log:warning('no actions for %s at the moment.  this is actually ok for tasks (they may come later)', self._name)
+      return
+   end
    for key, entry in pairs(actions) do
       self:_add_execution_unit(key, entry)
    end
-   
-   -- notify everyone that they party's started
-   for _, unit in pairs(self._execution_units) do
-      self:_init_execution_unit(unit)
+end
+
+function ExecutionFrame:_dispatch_msg(msg, ...)
+   local method = '_' .. msg .. '_from_' .. self._state
+   local fn = self[method]
+   assert(fn)
+   fn(self, ...)
+end
+
+
+function ExecutionFrame:_thread_main()
+   self:_create_execution_units()
+   while self._state ~= DEAD do
+      self._thread:suspend()
    end
-   radiant.events.listen(self._ai_component, 'action_added',   self, self._on_action_added)
-   radiant.events.listen(self._ai_component, 'action_removed', self, self._on_action_removed)
+end
+
+function ExecutionFrame:_start_thinking_from_stopped()
+   self._log:debug('_start_thinking_from_stopped (%d units)', #self._execution_units)
+   assert(self._active_unit == nil)
+
+   self:_set_state(THINKING)
+   for _, unit in pairs(self._execution_units) do
+      unit:send_msg(START_THINKING, self:_clone_entity_state())
+   end
+end
+
+function ExecutionFrame:_unit_ready_from_thinking(unit)
+   if not self._active_unit then
+      self._log:detail('selecting first ready unit "%s"', unit:get_name())
+      self._active_unit = unit
+      self:send_msg('check_ready')
+   end
+end
+
+function ExecutionFrame:_unit_not_ready_from_thinking(unit)
+   if unit == self._active_unit then
+      self._log:detail('best choice for active_unit "%s" became unready...', unit:get_name())
+      self._active_unit = self:_get_best_execution_unit()
+      if self._active_unit then
+         self._log:detail('selected "%s" as a replacement...', self._active_unit)
+      else
+         self._log:detail('could not find a replacement!')
+      end
+   end
+end
+
+function ExecutionFrame:_check_ready_from_thinking()
+   if self._active_unit then
+      self._log:detail('ready to run!  moving to ready state')
+      self:_set_state(READY)
+   else
+      self._log:detail('not ready to run. keep thinking...')
+   end
+end
+
+function ExecutionFrame:_start_from_ready()
+   assert(self._active_unit)
+
+   self._current_entity_state = nil
+   for _, unit in pairs(self._execution_units) do
+      if unit == self._active_unit then
+         unit:send_msg('start')
+      elseif not self:_is_strictly_better_than_active(unit) then
+         unit:send_msg('stop_thinking') -- this guy has no prayer...  just stop
+      else
+         -- let better ones keep processing.  they may prempt in the future
+         -- xxx: there's a problem... once we start running the CURRENT state
+         -- will quickly become out of date.  do we stop_thinking/start_thinking
+         -- them periodically?
+      end
+   end
+   self:_set_state(STARTED)
+end
+
+function ExecutionFrame:_run_from_started()
+   assert(self._active_unit)
+
+   self._active_unit:send_msg('run')
+   self:_set_state(RUNNING)
+end
+
+function ExecutionFrame:_unit_halted_from_running(unit)
+   assert(self._active_unit)
+   assert(unit == self._active_unit)
+   self:_set_state(HALTED)
+end
+
+function ExecutionFrame:_stop_from_halted(unit)
+   self:_set_state(STOPPING)
+   for _, unit in pairs(self._execution_units) do
+      unit:send_msg('stop')
+   end
+   self:_set_state(STOPPED)
+end
+
+function ExecutionFrame:_add_action_from_anystate(key, entry, does)
+   local unit = self:_add_execution_unit(key, entry)
+
+   if self:_in_state(THINKING, READY) then
+      unit:start_thinking(self:_clone_entity_state())
+   elseif self:_in_state(RUNNING) then
+      if self:_is_strictly_better_than_active(unit) then
+         self:stop()
+         self:capture_entity_state()
+         self:start_thinking()
+      end
+   end
+end
+
+function ExecutionFrame:_remove_action_from_anystate(removed_key, entry)
+   for key, unit in pairs(self._execution_units) do
+      if key == removed_key then
+         if unit == self._active_unit then
+            self:stop()
+         end
+         unit:stop()
+         unit:destroy()
+         self._execution_units[key] = nil
+         break
+      end
+   end
 end
 
 function ExecutionFrame:_on_action_added(key, entry, does)
-   if self._activity.name == does then
-      self:_buffer_state_changes(function()
-      local unit = self:_add_execution_unit(key, entry)
-      self:_init_execution_unit(unit)
-         
-         if self:_in_state(THINKING, READY) then
-            unit:start_thinking(self:_clone_entity_state())
-         elseif self:_in_state(RUNNING) then
-            if self:_is_better_execution_unit(unit) then
-               self:stop()
-               self:capture_entity_state()
-               self:start_thinking()
-         end
-      end
-      end)
+   if self._name == does then
+      self:send_msg('add_action', key, entry)
    end
 end
 
-function ExecutionFrame:_on_action_removed(removed_key, entry, does)
-   if self._activity.name == does then
-      for key, unit in pairs(self._execution_units) do
-         if key == removed_key then
-            if unit == self._active_unit then
-               self:stop()
-            end
-            unit:stop()
-            unit:destroy()
-            self._execution_units[key] = nil
-            break
-         end
-      end
+function ExecutionFrame:_on_action_removed(key, entry, does)
+   if self._name == does then
+      self:send_msg('remove_action', key, entry)
    end
 end
 
-function ExecutionFrame:_is_thinking()
-   return self._state == THINKING or
-          self._state == READY or
-          self._state == RUNNING or
-          self._state == FINISHED
-end
 
 function ExecutionFrame:_add_execution_unit(key, entry)
    local name = tostring(type(key) == 'table' and key.name or key)
    self._log:debug('adding new execution unit: %s', name)
    
    assert(not self._execution_units[key])   
-   local unit = stonehearth.ai:create_execution_unit(self._ai_component,
-                                                     self._debug_route,
-                                                     entry.action_ctor,
+   local unit = stonehearth.ai:create_execution_unit(self._thread,
                                                      self._entity,
-                                                     entry.injecting_entity)
+                                                     entry.injecting_entity,
+                                                     entry.action_ctor,
+                                                     self._args,
+                                                     self._action_index)
    self._execution_units[key] = unit
    return unit
 end
 
-function ExecutionFrame:_init_execution_unit(unit)
-   unit:set_debug_route(self._debug_route)
-   unit:initialize(self._activity.args)
-   radiant.events.listen(unit, 'state_changed', self, self.on_unit_state_change)
-end
-
-function ExecutionFrame:set_debug_route(debug_route)
-   self._debug_route = debug_route .. ' f:' .. tostring(self._id)
-   local prefix = string.format('%s (%s)', self._debug_route, self._activity.name)
-   self._log:set_prefix(prefix)
-   for _, unit in pairs(self._execution_units) do
-      unit:set_debug_route(self._debug_route)
-   end   
-end
-
 function ExecutionFrame:destroy()
-   --assert(self._activity.name ~= 'stonehearth:top')
+   assert(false, 'meh...')
+   --assert(self._name ~= 'stonehearth:top')
    
    self._log:debug('destroy')
    if self._state ~= DEAD and self._state ~= DYING then
@@ -147,117 +266,11 @@ function ExecutionFrame:destroy()
    end
 end
 
-function ExecutionFrame:get_activity()
-   return self._activity
-end
-
-function ExecutionFrame:get_active_execution_unit()
-   return self._active_unit
-end
-
--- xxx
-function ExecutionFrame:on_unit_state_change(unit, state)
-   self._log:debug('on_unit_state_change "%s" -> %s (throttle depth: %d)', unit:get_name(), state, self._buffer_changes_depth)
-   if self._buffer_changes_depth > 0 then
-      self._modified_state.changed = true
-      self._modified_state.units[unit] = state
-      return
-   end
-   if self:_in_state(THINKING, READY, RUNNING) then
-      if unit:is_runnable() and self:_is_better_execution_unit(unit) then
-         self._log:spam('active unit "%s" being replaced by unit "%s"', self:_get_active_unit_name(), unit:get_name())
-         if self._state == RUNNING then
-            self:_set_active_unit(unit)
-         else
-            self:_set_active_unit(unit)
-            self:_set_state(READY)
-         end
-      elseif unit == self._active_unit and not self._active_unit:is_active() then
-         local new_unit = self:_get_best_execution_unit()
-         if new_unit then
-            self._log:spam('active unit %s has become unrunable.  replacing with unit %s',
-                           self:_get_active_unit_name(), new_unit and new_unit:get_name() or 'nil')
-            self:_set_active_unit(new_unit)
-         else
-            self._log:spam('no more runable units in frame!')
-            self:_set_active_unit(nil)
-         end
-      end
-   end
-end
-
-function ExecutionFrame:start_thinking()
-   self._log:debug('start_thinking (current unit:%s, %d units)', self:_get_active_unit_name(), #self._execution_units)
-   assert(not self._co)
-   assert(not self._co_running)
-   assert(self._state == STOPPED)
-
-   self:_set_state(THINKING)
-   self:_buffer_state_changes(function()   
-         for _, unit in pairs(self._execution_units) do
-            if self:_is_better_execution_unit(unit) then
-               unit:start_thinking(self:_clone_entity_state())
-            end
-         end
-      end)
-end
-
-function ExecutionFrame:stop_thinking()
-   self._log:debug('stop_thinking (state:%s)', self._state)
-   
-   self:_buffer_state_changes(function()   
-         if self._state == STOPPED  then
-            assert(self._active_unit == nil)
-         elseif self:_in_state(THINKING, READY, STARTING, RUNNING, FINISHED, STOPPING, STOPPED) then
-            for _, unit in pairs(self._execution_units) do
-               unit:stop_thinking()
-            end
-         elseif self._state == DEAD then
-         else
-            assert(false, string.format('unknown state %s in stop_thinking', self._state))
-         end
-      end)
-end
-
-function ExecutionFrame:start()
-   self._log:debug('start')
-   assert(not self._co)
-   assert(not self._co_running)
-   assert(self._state == READY)
-   assert(self._active_unit)
-
-   self:_buffer_state_changes(function()   
-         assert(self._active_unit)
-         self:_set_state(STARTING)
-         
-         self._current_entity_state = nil
-         for _, unit in pairs(self._execution_units) do
-            if unit == self._active_unit then
-               unit:start()
-               unit:stop_thinking()
-            elseif not self:_is_better_execution_unit(unit) then
-               -- this guy has no prayer...  just stop
-               unit:stop_thinking()
-            else
-               -- let better ones keep processing.  they may prempt in the future
-               -- unit:start_thinking(self:_clone_entity_state())
-            end
-         end
-         
-         assert(not self._co)
-          assert(self._active_unit)
-         self._log:spam('creating new thread for %s', self._active_unit:get_name())
-         self._co = coroutine.create(function()
-               self._active_unit:run()
-            end)   
-         self:_set_state(RUNNING)
-      end)
-end
-
 function ExecutionFrame:set_current_entity_state(state)
    self._log:debug('set_current_entity_state')
    assert(state)
    assert(self._state == STOPPED)
+
    for key, value in pairs(state) do
       self._log:spam('  CURRENT.%s = %s', key, tostring(value))
    end
@@ -280,27 +293,6 @@ function ExecutionFrame:_clone_entity_state()
   return cloned
 end
 
-function ExecutionFrame:run()
-   self._log:debug('begin run')
-   
-   if self._state == STOPPED then
-      self:start_thinking()
-   end
-   repeat
-      if self._state == THINKING then
-         self:_suspend_until_ready()
-      elseif self._state == READY then
-         self:start()
-      elseif self._state == RUNNING then
-         assert(self._co)
-         self:_protected_call()
-      else
-         assert(false, string.format('unknown state %s in state machine', self._state))
-      end
-   until self._state == FINISHED or self._state == DEAD   
-   self._log:spam('end run (state is %s)', self._state)
-end
-
 function ExecutionFrame:capture_entity_state()
    self._log:debug('capture_entity_state')
    assert(self:_in_state(STOPPED))
@@ -312,60 +304,8 @@ function ExecutionFrame:capture_entity_state()
    self:set_current_entity_state(state)
 end
 
-function ExecutionFrame:loop()
-   while true do
-      self:capture_entity_state()
-      self:run()
-      assert(self._active_unit)
-      self._active_unit:stop()
-      self:_set_active_unit(nil)
-      
-      -- at this point, there may still be tasks hanging around still thinking
-      -- because they were higher priority than the unit that just completed.
-      -- that's ok, because we're about to spin around and 'start_thinking' again.
-      -- the execution unit is smart enough to stop/start in this case.
-      --self._active_unit:start_thinking(self:_clone_entity_state())
-      
-      self:_set_state(STOPPED)
-   end
-end
-
-function ExecutionFrame:stop()
-   self._log:debug('stop')
-
-   self:_buffer_state_changes(function()      
-         if self._state ~= STOPPED then
-            self:_set_active_unit(nil)      
-            self:_set_state(STOPPING)
-            for _, unit in pairs(self._execution_units) do
-               unit:stop()
-            end
-            self:_set_state(STOPPED)
-         end
-      end)
-end
-
-function ExecutionFrame:_suspend_until_ready()
-   assert(not self._co)
-   assert(not self._co_running)
-   assert(not self._active_unit)
-   assert(self._state == THINKING)
-
-   self._log:info('suspending thread until ready to go')
-   radiant.events.listen(self, 'ready', function()
-      self._ai_component:resume_thread()
-      return radiant.events.UNLISTEN
-   end)
-   self._ai_component:suspend_thread()
-   self._log:info('ready! thread resumed')
-   
-   assert(self._active_unit)
-   assert(self._active_unit:is_runnable() and self._active_unit:get_priority() > 0)
-   assert(self._state == READY)
-end
-
 -- *strictly* better.  no run-offs for latecomers.
-function ExecutionFrame:_is_better_execution_unit(unit)
+function ExecutionFrame:_is_strictly_better_than_active(unit)
    if not self._active_unit then
       return true
    end
@@ -382,7 +322,7 @@ function ExecutionFrame:_get_best_execution_unit()
    local best_priority = 0
    local active_units = nil
    
-   self._log:spam('%s looking for best execution unit for "%s"', self._entity, self._activity.name)
+   self._log:spam('%s looking for best execution unit for "%s"', self._entity, self._name)
    for _, unit in pairs(self._execution_units) do
       local name = unit:get_name()
       local priority = unit:get_priority()
@@ -410,94 +350,9 @@ function ExecutionFrame:_get_best_execution_unit()
    
    -- choose a random unit amoung all the units with the highest priority (they all tie)
    local active_unit = active_units[math.random(#active_units)]
-   self._log:spam('%s  best unit for "%s" is "%s" (priority: %d)', self._entity, self._activity.name, active_unit:get_name(), best_priority)
+   self._log:spam('%s  best unit for "%s" is "%s" (priority: %d)', self._entity, self._name, active_unit:get_name(), best_priority)
    
    return active_unit
-end
-
-function ExecutionFrame:_get_active_unit_name()
-   return self._active_unit and self._active_unit:get_name() or 'nil'
-end
-
-function ExecutionFrame:_set_active_unit(unit)
-   assert(not self._co_running)
-   
-   self._log:spam('changing active unit "%s" -> "%s" in %s state', self:_get_active_unit_name(),
-                  unit and unit:get_name() or 'nil', self._state)
-   if unit then
-      assert(unit:is_runnable() and unit:get_priority() > 0)
-   end
-
-   local set_active_unit = function(u)
-      self:_spam_current_state('before switching active units')
-      self._active_unit = u
-      self._log:spam('switched execution unit to "%s"', self:_get_active_unit_name())
-      -- don't kill the table.  it's a shared reference
-      local new_entity_state
-      if u then
-         new_entity_state = u:get_current_entity_state()
-      else
-         new_entity_state = self._saved_entity_state
-      end
-      if self._current_entity_state then
-         self._log:spam('copying unit state %s to current state %s', tostring(new_entity_state), tostring(self._current_entity_state)) 
-         for name, value in pairs(new_entity_state) do
-            self._current_entity_state[name] = value
-         end
-      end
-      self:_spam_current_state('after switching active units')
-   end
-   
-   if self._state == STOPPED then
-      assert(not unit)
-      assert(not self._active_unit)
-      assert(not self._co)
-   elseif self._state == THINKING then
-      assert(unit)
-      assert(not self._active_unit)
-      assert(not self._co)
-      set_active_unit(unit)
-   elseif self._state == READY then
-      assert(not self._co)
-      set_active_unit(unit)
-   elseif self._state == RUNNING then
-      assert(self._co)
-      assert(not self._co_running)
-      assert(self._active_unit)
-      
-      self:_buffer_state_changes(function()
-            if unit then
-               local outgoing_unit = self._active_unit
-               local msg = string.format('terminating %s so better action %s can go.', outgoing_unit:get_name(), unit:get_name())
-               self._log:spam(msg)
-               
-               self._co = nil
-               self._co_running = false
-               set_active_unit(unit)
-
-
-               outgoing_unit:stop()
-               set_active_unit(unit)
-               -- would it be better to go into processing from here and call start_thinking on the unit?
-               -- almost certainly yes.  who are we to judge that it doesn't want to do something differently?
-               self:_set_state(READY)
-            else
-               self._log:spam('terminating %s while running (by request)', self._active_unit:get_name())
-               self._co = nil
-               self._co_running = false
-               set_active_unit(nil)
-            end
-            self._ai_component:resume_thread()
-         end)
-   elseif self._state == FINISHED then
-      assert(not unit)
-      assert(not self._co)
-      assert(not self._co_running)
-      set_active_unit(nil)
-   else
-      -- not yet implemented or error
-      assert(false, string.format('invalid state %s in set_active_unit', self._state))
-   end
 end
 
 function ExecutionFrame:_in_state(...)
@@ -511,67 +366,8 @@ end
 
 function ExecutionFrame:_set_state(state)
    assert(self._state ~= DEAD)
-   local current_state = self._modified_state.state or self._state
-   self._log:debug('state change %s -> %s (throttle depth: %d)', tostring(current_state), state, self._buffer_changes_depth)
-
-   if self._buffer_changes_depth > 0 then
-      self._modified_state.changed = true
-      self._modified_state.state = state
-      return
-   end
-   
+   self._log:debug('state change %s -> %s', tostring(self._state), state)
    self._state = state
-   radiant.events.trigger(self, self._state, self)
-   radiant.events.trigger(self, 'state_changed', self, self._state)
-end
-
-function ExecutionFrame:_protected_call()
-   assert(self._co)
-   assert(not self._co_running)
-   assert(self._active_unit)
-   
-   -- resume the co-routine...
-   local current_unit = self._active_unit
-   self._log:spam('making protected pcall for "%s"', current_unit:get_name())
-   self._co_running = true
-   local success, result = coroutine.resume(self._co)
-   self._co_running = false
-   self._log:spam('protected pcall for "%s" returned (active unit is now "%s")', 
-                  current_unit:get_name(), self:_get_active_unit_name())
-   
-   assert(self._co)
-   if not success then
-      radiant.check.report_thread_error(self._co, 'entity ai error: ' .. tostring(result))
-      self:destroy()
-      return
-   end
-
-   -- check the status...
-   local status = coroutine.status(self._co)
-   if status == 'dead' then
-      -- the coroutine's status is 'dead' when it runs off the end of its main.
-      -- this isn't an error, but we're done with the current action.
-      self._log:spam('coroutine is finished. returning from protected call')
-      self._co = nil
-      -- we explicity do not call stop here.  make the caller do it, so they have
-      -- explicit control of the destruction of many spawned execution frames.
-      -- use the state FINISHED to indicate run is finished but stop has not been
-      -- called
-      self:_set_state(FINISHED)
-   elseif status == 'suspended' then
-      -- the coroutine's status is suspended when the run method yields.  this
-      -- almost always happens because the run method called ai:suspend(). 
-      -- continue unwinding
-      self._log:spam('coroutine called thread_suspend.  suspending...')
-      assert(result)
-      coroutine.yield(result)
-      -- annnnd, we're back!  nearly anything and everything may have changed.
-      -- take extra special care to validate our current state before proceeding
-      -- further
-      self._log:spam('resuming from thread_suspend (current unit is now "%s").', self:_get_active_unit_name())
-   else  
-      assert(false, 'coroutine in unknown status %s', status)
-   end         
 end
 
 function ExecutionFrame:get_debug_info()
@@ -579,9 +375,9 @@ function ExecutionFrame:get_debug_info()
       id = self._id,
       state = self._state,
       activity = {
-         name = self._activity.name,
+         name = self._name,
       },
-      args = stonehearth.ai:format_args(self._activity.args),
+      args = stonehearth.ai:format_args(self._args),
       execution_units = {}
    }
    for _, unit in pairs(self._execution_units) do
@@ -604,39 +400,6 @@ end
 
 function ExecutionFrame:get_state()
    return self._state
-end
-
-function ExecutionFrame:_push_modified_state()
-   if self._buffer_changes_depth == 0 then
-      self._log:spam('restoring state after throttle')
-      while self._modified_state.changed do 
-         self._modified_state.changed = false
-         if self._modified_state.state and self._modified_state.state ~= self._state then
-            local new_state = self._modified_state.state
-            self._modified_state.state = nil
-            self:_set_state(new_state)
-         end
-         for modified_unit, modified_state in pairs(self._modified_state.units) do
-            self._modified_state.units[modified_unit] = nil
-            for k, v in pairs(self._execution_units) do
-               if v == modified_unit then
-                  self:on_unit_state_change(modified_unit, modified_state)
-               end
-            end
-         end
-      end
-      self._log:spam('finished restoring state')
-   end
-end
-
-function ExecutionFrame:_buffer_state_changes(fn)
-   self._buffer_changes_depth = self._buffer_changes_depth + 1
-   self._log:spam('throttling all state changes (depth is now %d)', self._buffer_changes_depth)
-   fn()
-   self._log:spam('finished throttling all state changes (depth is now %d)', self._buffer_changes_depth)
-   self._buffer_changes_depth = self._buffer_changes_depth - 1
-
-   self:_push_modified_state()
 end
 
 return ExecutionFrame

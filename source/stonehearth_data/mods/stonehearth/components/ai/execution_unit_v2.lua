@@ -1,6 +1,5 @@
 local ExecutionUnitV2 = class()
 
-local IDLE = 'idle'
 local THINKING = 'thinking'
 local READY = 'ready'
 local STARTED = 'started'
@@ -10,182 +9,245 @@ local DEAD = 'dead'
 local ABORTED = 'aborted'
 local placeholders = require 'services.ai.placeholders'
 
---[[
+function ExecutionUnitV2:__init(parent_thread, entity, injecting_entity, action, args, action_index)
+   assert(action.name)
+   assert(action.does)
+   assert(action.args)
+   assert(action.priority)
 
-         idle
-           |
-         (call action:start_thinking)
-           |
-         processing
-           |
-         (action calls ai:complete_processing)
-           |
-         ready
-           |
-         (call action:start)
-           |
-         (call action:run)
-           |
-         running
-           |
-         (action run returns)
-           |
-         (call action:stop)
-           |
-           +
-         (return to idle...)         
-]]
-
-function ExecutionUnitV2:__init(ai_component, entity, injecting_entity)
-   -- sometimes (ef -> compound_action -> ef) we get an ai_component that's actually the interface.
-   -- if so, reach through the matrix and grab the real component
-   if ai_component.___execution_unit then
-      ai_component = ai_component.___execution_unit._ai_component
-   end
-   assert(ai_component._entity)
-   
+   self._args = args
+   self._action = action
+   self._action_index = action_index
+   self._think_output_types = self._action.think_output or self._action.args
    self._entity = entity
-   self._ai_component = ai_component
    self._execute_frame = nil
    self._thinking = false
    self._state = IDLE
    self._id = stonehearth.ai:get_next_object_id()
-   
-   self._log = radiant.log.create_logger('ai.exec_unit')
-   
+     
    self._ai_interface = { ___execution_unit = self }   
    local chain_function = function (fn)
       self._ai_interface[fn] = function(i, ...) return self['__'..fn](self, ...) end
    end
-   chain_function('set_think_output')
-   chain_function('clear_think_output')
-   chain_function('set_priority')
    chain_function('spawn')
    chain_function('execute')   
    chain_function('suspend')
    chain_function('resume')
    chain_function('abort')
    chain_function('get_log')   
-end
 
-function ExecutionUnitV2:get_state()
-   return self._state
-end
+   if self:_verify_arguments(args, self._action.args) then
+      self:_set_state(STOPPED)
+   else
+      assert(false, 'put ourselves in the dead state')
+   end
 
-function ExecutionUnitV2:set_debug_route(debug_route)
-   self._debug_route = debug_route .. ' u:' .. tostring(self._id)
-   local prefix = string.format('%s (%s)', self._debug_route, self:get_name())
+   self._parent_thread = parent_thread
+   self._thread = parent_thread:create_thread()
+                               :set_msg_handler(function (...) self._dispatch_msg(...) end)
+                               :set_thread_main(function (...) self:_thread_main(...) end)
+                               :start()
+
+   self._log = radiant.log.create_logger('ai.exec_unit')
+   local prefix = string.format('%s (%s)', self._thread:get_debug_route(), self:get_name())
    self._log:set_prefix(prefix)
-   
-   -- for compoundaction...
-   if self._action.set_debug_route then
-      self._action:set_debug_route(self._debug_route)
-   end
-   if self._execute_frame then
-      self._execute_frame:set_debug_route(debug_route)
-   end
+   self._log:debug('creating execution unit')
 end
 
 function ExecutionUnitV2:get_action_interface()
    return self._ai_interface
 end
 
-function ExecutionUnitV2:__set_think_output(think_output)
-   self:_spam_current_state('set_think_output: ' .. stonehearth.ai:format_args(think_output))  
-   
-   assert(think_output == nil or type(think_output) == 'table')
-   assert(self._state == THINKING)
+function ExecutionUnitV2:get_action()
+   return self._action
+end
+
+-- ExecutionFrame facing functions...
+function ExecutionUnitV2:get_name()
+   return self._action.name
+end
+
+function ExecutionUnitV2:get_priority()
+   return self._action.priority
+end
+
+function ExecutionUnitV2:get_weight()
+   return self._action.weight or 1
+end
+
+function ExecutionUnitV2:is_runnable()
+   return self._action.priority > 0 and self._state == READY
+end
+
+function ExecutionUnitV2:is_active()
+   return self:is_runnable() or self._state == STARTED or self._state == RUNNING or self._state == FINISHED
+end
+
+function ExecutionUnitV2:get_current_entity_state()
+   assert(self._current_entity_state)
+   return self._current_entity_state
+end
+
+function ExecutionUnitV2:_get_action_debug_info()
+   if self._action.get_debug_info then
+      return self._action:get_debug_info(self, self._entity)
+   end
+   return {
+      name = self._action.name,
+      does = self._action.does,
+      priority = self._action.priority,
+      args = stonehearth.ai:format_args(self._args),
+   }
+end
+
+function ExecutionUnitV2:get_debug_info()
+   local info = {
+      id = self._id,
+      state = self._state,
+      action = self:_get_action_debug_info(),
+      think_output = stonehearth.ai:format_args(self._think_output),
+      execution_frames = {}
+   }
+   if self._execute_frame then
+      table.insert(info.execution_frames, self._execute_frame:get_debug_info())
+   end
+   return info
+end
+
+function ExecutionUnitV2:send_msg(...)
+   self._thread:send_msg(...)
+end
+
+function ExecutionUnitV2:_thread_main()
+   while self._state ~= DEAD do
+      self._thread:suspend()
+   end
+end
+
+function ExecutionUnitV2:_dispatch_msg(msg, ...)
+   local method = '_' .. msg .. '_from_' .. self._state
+   local fn = self[method]
+   assert(fn)
+   fn(self, ...)
+end
+
+function ExecutionUnitV2:_call_action(method)
+   local fn = self._action[method]
+   if fn then
+      self._calling_method = method
+      fn(self._action, self._ai_interface, self._entity, self._args)
+      self._calling_method = nil
+   else
+      self._log:detail('action does not implement %s.', method)
+   end
+   return fn ~= nil
+end
+
+function ExecutionUnitV2:_start_thinking_from_stopped(entity_state)
+   assert(not self._thinking)
+
+   self._thinking = true
+   self._current_entity_state = entity_state
+   self._ai_interface.CURRENT = entity_state
+
+   self:_set_state(THINKING)
+   local think_output = self._call_action('start_thinking')
    if not think_output then
       think_output = self._args
    end
-   self:_verify_arguments(think_output, self._action.think_output or self._action.args)
-   self._think_output = think_output
+   self:_verify_arguments(think_output, self._think_output_types)
+
+   assert(false, 'here we trigger something to someone about what our think output is')
    self:_set_state(READY)
 end
 
-function ExecutionUnitV2:__clear_think_output(...)
-   if self._state == READY then
-      self._think_output = nil
-      self:_set_state(THINKING)
-   elseif self._state == RUNNING then
-      self:__abort('action is no longer ready to run')
-   else
-      assert(not self._think_output, string.format('unexpected stated %s in clear_think_output', self._state))
-   end
+function ExecutionUnitV2:_start_from_ready()
+   assert(self._thinking)
+
+   self:_stop_thinking()
+
+   self._call_action('start') 
+   self:_set_state(STARTED)
 end
+
+function ExecutionUnitV2:_run_from_started()
+   assert(not self._thinking)
+
+   self:_set_state(RUNNING)
+   self._call_action('run')
+   self:_set_state(FINISHED)
+   self:send_msg('stop')
+end
+
+function ExecutionUnitV2:_stop_from_finished()
+   assert(not self._thinking)
+
+   self._call_action('stop')
+   self._set_state(FINISHED)
+end
+
+function ExecutionUnitV2:_stop_thinking()
+   self._log:debug('stop_thinking (state:%s)', tostring(self._state))
+   assert(self._thinking)
+
+   self._current_entity_state = nil
+   self._ai_interface.CURRENT = nil
+   self._thinking = false
+
+   self._call_action('stop_thinking')
+end
+
+-- the interface facing actions (i.e. the 'ai' interface)
 
 function ExecutionUnitV2:__get_log()
    return self._log
 end
 
-function ExecutionUnitV2:__set_priority(action, priority)
-   if not self._action then
-      self:set_action(action)
-   end
-   if priority ~= self._action.priority then
-      self._action.priority = priority
-      -- notify the frame if we're currently in one.  we might not be! legacy
-      -- actions act crazily sometimes...
-      radiant.events.trigger(self, 'priority_changed', self, priority)
-   end
-end
-
 function ExecutionUnitV2:__execute(name, args)
    self._log:debug('execute %s %s called', name, stonehearth.ai:format_args(args))
+   assert(self._thread:is_running())
    assert(not self._execute_frame)
-   self._execute_frame = self._ai_component:spawn_debug_route(self._debug_route, name, args)
-   
-   -- we have to capture, right?  the current entity state may be extremely stale...
-   -- like if we're executing from a run (which is the only place we *can* execute from,
-   -- right?)
-   --self._execute_frame:set_current_entity_state(self._current_entity_state)
+
+   self._execute_frame = ExecutionFrame(self.thread, name, args, self._action_index)
+
    self._execute_frame:capture_entity_state()
-   
    self._execute_frame:run()
-   
-   -- execute_frame can be nil here if we got terminated early, usually because
-   -- the action called ai:abort().
-   if self._execute_frame then
-      self._execute_frame:stop()
-      self._execute_frame:destroy()
-      self._execute_frame = nil
-   end
+   self._execute_frame:stop()
+   self._execute_frame:destroy()
+   self._execute_frame = nil
 end 
 
 function ExecutionUnitV2:__spawn(name, args)   
-   self._log:spam('spawn %s called', name)
+   self._log:spam('__spawn %s called', name)
    return self._ai_component:spawn_debug_route(self._debug_route, name, args)
 end
 
 function ExecutionUnitV2:__suspend(format, ...)
+   assert(self._thread:is_running())
    local reason = format and string.format(format, ...) or 'no reason given'
-   self._log:spam('suspend called (reason: %s)', reason)
-   self._ai_component:suspend_thread()
+   self._log:spam('__suspend called (reason: %s)', reason)
+   self._thread:suspend(reason)
 end
 
 function ExecutionUnitV2:__resume(format, ...)
+   assert(not self._thread:is_running())
    local reason = format and string.format(format, ...) or 'no reason given'
-   self._log:spam('resume called (reason: %s)', reason)
-   self._ai_component:resume_thread()
+   self._log:spam('__resume called (reason: %s)', reason)
+   self._thread:resume(reason)
 end
 
 function ExecutionUnitV2:__abort(reason, ...)
    local reason = string.format(reason, ...)
-   self._log:debug('abort %s called (state: %s)', tostring(reason), self._state)
-   -- the is ridiculously stupidly heavyweight.  abort is not allowed to return.
-   -- the only way to implement this is to stop the coroutine which is currently
-   -- running.  unfortunately, some actions currently are not run in a coroutine
-   -- (like start in response to a trigger).  this is really unfortunate.  it means
-   -- the *best* we can do is terminate the whole ai thread, and even that's not
-   -- good enough, since if we're not on it we'll still return here!  sigh...
-   self._ai_component:_terminate_thread()
-   self:_set_state(ABORTED)
+   self._log:debug('__abort %s called (state: %s)', tostring(reason), self._state)
+   if self._thread:is_running() then
+      assert(false, 'cleanup here...')
+      self._thread:terminate()
+   else
+      self._thread:set_msg('abort', reason)
+   end
 end
 
-function ExecutionUnitV2:spawn(...)
-   return self:__spawn(...)
-end
-
+--[[
 function ExecutionUnitV2:destroy()
    self._log:spam('destroy')
    if self._execute_frame then
@@ -211,74 +273,6 @@ function ExecutionUnitV2:destroy()
    radiant.events.unpublish(self)   
 end
 
--- AiService facing functions...
-function ExecutionUnitV2:set_action(action)
-   self._action = action
-   assert(action.name)
-   assert(action.does)
-   assert(action.args)
-   assert(action.priority)
-end
-
-function ExecutionUnitV2:get_action()
-   return self._action
-end
-
--- ExecutionFrame facing functions...
-function ExecutionUnitV2:get_name()
-   return self._action.name
-end
-
-function ExecutionUnitV2:get_version()
-   return self._action.version
-end
-
-function ExecutionUnitV2:get_priority()
-   return self._action.priority
-end
-
-function ExecutionUnitV2:get_weight()
-   return self._action.weight or 1
-end
-
-function ExecutionUnitV2:get_think_output()
-   return self._think_output
-end
-
-function ExecutionUnitV2:is_runnable()
-   return self._action.priority > 0 and self._think_output ~= nil and self._state == READY
-end
-
-function ExecutionUnitV2:is_active()
-   return self:is_runnable() or self._state == STARTED or self._state == RUNNING or self._state == FINISHED
-end
-
-function ExecutionUnitV2:initialize(args)
-   self._log:debug('initialize')
-
-   if self:_verify_arguments(args, self._action.args) then
-      self._think_output = nil
-      if self._state == IDLE then
-         assert(not self._execute_frame)
-      else
-         self:_set_state(IDLE)
-      end
-   end
-   self._args = args
-   return self._args
-end
-
--- used by the compound action...
-function ExecutionUnitV2:short_circuit_thinking()
-   self._log:debug('short_circuit_thinking')
-   assert(not self._thinking)
-   
-   self._log:spam('short-circuiting think by request.  going right to ready!')
-   if self._state ~= READY then
-      self:_set_state(READY)
-   end
-   self._think_output = {}
-end
 
 function ExecutionUnitV2:start_thinking(current_entity_state)
    self._log:debug('start_thinking (state:%s processing:%s)', self._state, tostring(self._thinking))
@@ -309,28 +303,6 @@ function ExecutionUnitV2:start_thinking(current_entity_state)
       self._log:spam('ignoring start_thinking call.  already have args!')
    end
    self:_spam_current_state('after action start_thinking')
-end
-
-function ExecutionUnitV2:stop_thinking()
-   self._log:debug('stop_thinking (state:%s processing:%s)', tostring(self._state), tostring(self._thinking))
-
-   self:_spam_current_state('before action stop_thinking')
-   if self._thinking then
-      self._thinking = false
-      self._think_output = nil
-      if self._action.stop_thinking then
-         self._action:stop_thinking(self._ai_interface, self._entity, self._args)
-      else
-         self._log:spam('action does not implement stop_thinking')      
-      end
-      if self._state == THINKING then
-         self:_set_state(IDLE)
-      end
-      self._ai_interface.CURRENT = nil
-   else
-      self._log:spam('ignoring stop_thinking call.  not thinking...')
-   end
-   self:_spam_current_state('after action stop_thinking')
 end
 
 function ExecutionUnitV2:start()
@@ -384,6 +356,8 @@ function ExecutionUnitV2:stop()
       self:_set_state(IDLE)
    end
 end
+]]
+-- helper methods
 
 function ExecutionUnitV2:_verify_arguments(args, args_prototype)
    -- special case 0 vs nil so people can leave out .args and .think_output if there are none.
@@ -433,21 +407,6 @@ function ExecutionUnitV2:_verify_arguments(args, args_prototype)
    end
 end
 
--- XXXXXXXXXXXXXXXXX: make a State helper class!!
-function ExecutionUnitV2:_in_state(...)
-   for _, state in ipairs({...}) do
-      if self._state == state then
-         return true
-      end
-   end
-   return false
-end
-
-function ExecutionUnitV2:get_current_entity_state()
-   assert(self._current_entity_state)
-   return self._current_entity_state
-end
-
 function ExecutionUnitV2:_set_state(state)
    if self._state == ABORTED and self._state ~= DEAD then
       self._log:debug('ignoring state change to %s (currently %s)', tostring(state), self._state)
@@ -456,36 +415,7 @@ function ExecutionUnitV2:_set_state(state)
    self._log:debug('state change %s -> %s', tostring(self._state), state)
    assert(state and self._state ~= state)
    assert(self._state ~= DEAD)
-   
    self._state = state
-   radiant.events.trigger(self, self._state, self)
-   radiant.events.trigger(self, 'state_changed', self, self._state)
-end
-
-function ExecutionUnitV2:_get_action_debug_info()
-   if self._action.get_debug_info then
-      return self._action:get_debug_info(self, self._entity)
-   end
-   return {
-      name = self._action.name,
-      does = self._action.does,
-      priority = self._action.priority,
-      args = stonehearth.ai:format_args(self._args),
-   }
-end
-
-function ExecutionUnitV2:get_debug_info()
-   local info = {
-      id = self._id,
-      state = self._state,
-      action = self:_get_action_debug_info(),
-      think_output = stonehearth.ai:format_args(self._think_output),
-      execution_frames = {}
-   }
-   if self._execute_frame then
-      table.insert(info.execution_frames, self._execute_frame:get_debug_info())
-   end
-   return info
 end
 
 function ExecutionUnitV2:_spam_current_state(msg)
@@ -499,6 +429,5 @@ function ExecutionUnitV2:_spam_current_state(msg)
       self._log:spam('  no CURRENT state!')
    end
 end
-
 
 return ExecutionUnitV2

@@ -34,6 +34,10 @@ function Logger:debug(format, ...)
    self:_write(radiant.log.DEBUG, format, ...)
 end
 
+function Logger:detail(format, ...)
+   self:_write(radiant.log.DETAIL, format, ...)
+end
+
 function Logger:spam(format, ...)
    self:_write(radiant.log.SPAM, format, ...)
 end

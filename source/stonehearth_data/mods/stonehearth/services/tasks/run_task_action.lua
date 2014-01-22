@@ -44,10 +44,6 @@ function RunTaskAction:get_debug_info(debug_route)
    }
 end
 
-function RunTaskAction:set_debug_route(debug_route)
-   self._execution_frame:set_debug_route(debug_route .. ' ' .. self._task:get_name())
-end
-
 function RunTaskAction:start_thinking(ai, entity)
    self._should_think = true
    self:_start_stop_thinking()

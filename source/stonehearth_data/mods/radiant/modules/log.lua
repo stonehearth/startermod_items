@@ -5,7 +5,8 @@ local Log = {
    WARNING = 3,
    INFO = 5,
    DEBUG = 7,
-   SPAM = 9,
+   DETAIL = 9,
+   SPAM = 11,
 }
 
 local LOG_LEVELS = {}

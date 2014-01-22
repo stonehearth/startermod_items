@@ -132,23 +132,35 @@ function AiService:format_args(args)
    return '{ ' .. msg .. '}'
 end
 
-function AiService:create_execution_unit(ai_component, debug_route, action_ctor, entity, injecting_entity)
-   local execution_unit_ctor
-   assert (action_ctor.version == 2)
-   local unit = ExecutionUnitV2(ai_component, entity, injecting_entity)
-   local ai_interface = unit:get_action_interface()
-
+function AiService:create_execution_unit(parent_thread, entity, injecting_entity, action_ctor, args, action_index)
    local action
+   assert (action_ctor.version == 2)
    if action_ctor.create_action then
-      action = action_ctor:create_action(ai_interface, entity, injecting_entity)
+      action = action_ctor:create_action(entity, injecting_entity)
    else
-      action = action_ctor(ai_interface, entity, injecting_entity)
+      action = action_ctor(entity, injecting_entity)
    end
-   unit:set_action(action)
-   if debug_route then
-      unit:set_debug_route(debug_route)
+   return ExecutionUnitV2(parent_thread, entity, injecting_entity, action_ctor, args, action_index)
+end
+
+-- simply used to create a different version of a function based on the arguments passed
+-- in.  used to evaluate placeholders at the time arguments are passed to an action
+function AiService:create_function(fn, ...)
+   local args = {...}
+
+   local func = function(...)
+      -- there's probably some magic we could do with currying, but this is straight
+      -- forward and i'm still on my first cup of coffee.
+      local call_args = {}
+      for _, arg in ipairs(args) do
+         table.insert(call_args, arg)
+      end
+      for _, arg in ipairs({...}) do
+         table.insert(call_args, arg)
+      end
+      return fn(unpack(call_args))
    end
-   return unit
+   return func
 end
 
 function AiService:create_compound_action(action_ctor)

@@ -102,33 +102,18 @@ function AIComponent:restart()
    radiant.check.is_entity(self._entity)
    self:_terminate_thread()
    
-   self._thread = stonehearth.threads:start_thread(function()
-      self._execution_frame = self:spawn('stonehearth:top')
+   self._thread = stonehearth.threads:create_thread()
+                                     :set_debug_name('e:%d', self._entity:get_id())
+
+   self._thread:set_thread_main(function()
       while not self._dead do
-         self._execution_frame:loop()
+         self._execution_frame = ExecutionFrame(self._thread, self._entity, 'stonehearth:top', {}, self._action_index)
+         self._execution_frame:run()
+         self._execution_frame:stop()
+         self._execution_frame:destroy()
       end
    end)
-end
-
-function AIComponent:spawn(name, args)
-   return self:spawn_debug_route(nil, name, args)
-end
-
-function AIComponent:spawn_debug_route(debug_route, name, args)
-   assert(type(name) == 'string')
-   assert(args == nil or type(args) == 'table')
-
-   local activity = stonehearth.ai:create_activity(name, args)
-  
-   -- create a new frame and return it   
-   log:spam('%s creating execution frame for %s', self._entity, name)
-   local actions = self._action_index[name]
-   if not actions then
-      log:warning('no actions for %s at the moment.  this is actually ok for tasks (they may come later)',
-                  stonehearth.ai:format_activity(activity))
-      actions = {}
-   end
-   return ExecutionFrame(self, actions, activity, debug_route)
+   self._thread:start()
 end
 
 function AIComponent:_terminate_thread()
@@ -149,7 +134,7 @@ end
 function AIComponent:abort(reason)
    -- xxx: assert that we're running inthe context of the coroutine
    if reason == nil then reason = 'no reason given' end
-   log:info('%s Aborting current action because: %s', self._entity, reason)  
+   log:info('%s aborting current action because: %s', self._entity, reason)  
    self:_terminate_thread()
 end
 

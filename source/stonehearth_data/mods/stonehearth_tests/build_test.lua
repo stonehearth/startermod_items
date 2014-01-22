@@ -11,7 +11,7 @@ function BuildTest:__init()
    self:place_item_cluster('stonehearth:oak_log', 8, 8, 6, 6)
    self:place_item_cluster('stonehearth:berry_basket', -8, -8, 2, 2)
    self:place_citizen(0, 0)
-   self:place_citizen(2, 2)
+   --self:place_citizen(2, 2)
    
    if true then
       return
