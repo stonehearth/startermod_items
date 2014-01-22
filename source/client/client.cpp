@@ -307,7 +307,7 @@ Client::Client() :
    });
 
    core_reactor_->AddRoute("radiant:exit", [this](rpc::Function const& f) {
-	  TerminateProcess(GetCurrentProcess(), 1);
+	  TerminateProcess(GetCurrentProcess(), 0);
       return nullptr;
    });
 
