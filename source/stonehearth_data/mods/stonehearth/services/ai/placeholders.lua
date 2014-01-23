@@ -1,4 +1,6 @@
 
+local INVALID_PLACEHOLDER = { name = "INVALID_PLACEHOLDER" }
+
 PLACEHOLDER_mt = {}
 function PLACEHOLDER_mt.__call(t, ...)
    local call_args = {...}
@@ -32,11 +34,17 @@ function PLACEHOLDER_mt.__index(t, key)
    local ftab = {
       eval = function (p, compound_action)         
          local obj = t:__eval(compound_action)
+         if not obj then
+            return INVALID_PLACEHOLDER
+         end
+         
          local result = obj[key]
          if not result and type(obj) == 'table' and obj.__index then
             result = obj.__index[key]
          end
-         assert(result, string.format('could not find key "%s" in placeholder object', key))
+         if not result then
+            return INVALID_VALUE
+         end
          return result
       end,
       tostring = function ()
@@ -122,4 +130,5 @@ return {
    CURRENT = create_placeholder(CURRENT),
    ENTITY = create_placeholder(ENTITY),
    XFORMED_ARG = create_placeholder(XFORMED_ARG),
+   INVALID_PLACEHOLDER = INVALID_PLACEHOLDER,
 }

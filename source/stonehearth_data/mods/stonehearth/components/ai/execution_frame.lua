@@ -1,4 +1,6 @@
+local StateMachine = require 'components.ai.state_machine'
 local Point3 = _radiant.csg.Point3
+local rng = _radiant.csg.get_default_random_number_generator()
 local ExecutionFrame = class()
 
 local SET_ACTIVE_UNIT = { __comment = 'change active running unit' }
@@ -32,7 +34,7 @@ function ExecutionFrame:__init(parent_thread, entity, name, args, action_index)
 
    self._thread = parent_thread:create_thread()
                                :set_debug_name("f:%d", self._id)
-                               :set_msg_handler(function (...) self:_dispatch_msg(...) end)
+                               :set_user_data(self)
                                :set_thread_main(function (...) self:_thread_main(...) end)
 
    self._log = radiant.log.create_logger('ai.exec_frame')
@@ -40,73 +42,69 @@ function ExecutionFrame:__init(parent_thread, entity, name, args, action_index)
    self._log:set_prefix(prefix)
    self._log:debug('creating execution frame')
    
+   self._sm = StateMachine(self, self._thread, self._log, STOPPED)
    self:_set_state(STOPPED)
+
    self._thread:start()
 end
 
--- external interface from another thread.  blocking.
-function ExecutionFrame:_protect_blocking_call(blocking_call_fn)
-   assert(not self._calling_thread)
+-- does not block until ready... just starts the thinking
+-- process...  you probably don't want this.  you probably
+-- want run.
+function ExecutionFrame:start_thinking(entity_state, ready_cb)
+   self._log:spam('start_thinking')
+   assert(entity_state)
+   assert(not self._ready_cb)
+   assert(self:_get_state() == STOPPED)
 
-   self._calling_thread = stonehearth.threads:get_current_thread()   
-   assert(self._calling_thread ~= self._thread)
-   local result = { blocking_call_fn(self._calling_thread) }
-   self._calling_thread = nil
-
-   return unpack(result)
+   self._ready_cb = ready_cb
+   self._thread:send_msg('start_thinking', entity_state)
 end
 
-function ExecutionFrame:set_error_handler(fn)
-   self._thread:set_exit_handler(function(_, err)
-         if (err) then
-            self._log:detail('frame thread error (%s).  calling error handler', err)
-            fn(self, err)
-         end
+function ExecutionFrame:stop_thinking()
+   self._log:spam('stop_thinking')
+   self._sm:protect_blocking_call(function(caller)
+         self._thread:send_msg('stop_thinking')
+         self._sm:wait_until(STOPPED)
       end)
 end
 
-function ExecutionFrame:start_thinking(entity_state)
-   self._log:spam('start_thinking')
-   assert(entity_state)
-   
-   return self:_protect_blocking_call(function(caller)   
-         self._thread:send_msg('start_thinking', entity_state)
-         self:_block_caller_until(READY)
-         
-         assert(self._active_unit_think_output)
-         return self._active_unit_think_output
+function ExecutionFrame:start()
+   self._log:spam('start')
+   self._sm:protect_blocking_call(function(caller)   
+         self._thread:send_msg('start')
+         self._sm:wait_until(STARTED)
       end)
 end
 
 function ExecutionFrame:run()
    self._log:spam('run')         
-   self:_protect_blocking_call(function(caller)   
+   self._sm:protect_blocking_call(function(caller)   
          self._thread:send_msg('start_thinking')
-         self:_block_caller_until(READY)
+         self._sm:wait_until(READY)
 
          self._thread:send_msg('start')
-         self:_block_caller_until(STARTED)
+         self._sm:wait_until(STARTED)
          
          self._thread:send_msg('run')
-         self:_block_caller_until(HALTED)
+         self._sm:wait_until(HALTED)
       end)
 end
 
 function ExecutionFrame:stop()
    self._log:spam('stop')
-   self:_protect_blocking_call(function(caller)
+   self._sm:protect_blocking_call(function(caller)   
          self._thread:send_msg('stop')
-         self:_block_caller_until(STOPPED)
+         self._sm:wait_until(STOPPED)
       end)
 end
 
-function ExecutionFrame:destroy()
-   self._log:spam('destroy')
-   self:_protect_blocking_call(function(caller)
-         self._thread:send_msg('destroy')
+function ExecutionFrame:shutdown()
+   self._log:spam('shutdown')
+   self._sm:protect_blocking_call(function(caller)
+         self._thread:send_msg('shutdown')
          self._thread:wait()
       end)
-   --assert(self._name ~= 'stonehearth:top')
 end
 
 function ExecutionFrame:send_msg(...)
@@ -124,22 +122,22 @@ function ExecutionFrame:_create_execution_units()
    end
 end
 
-function ExecutionFrame:_dispatch_msg(msg, ...)
-   local method = '_' .. msg .. '_from_' .. self._state
-   local fn = self[method]
-   assert(fn, string.format('unknown state transition in execution frame "%s"', method))
-   self._log:spam('dispatching %s', method)
-   fn(self, ...)
+function ExecutionFrame:_thread_main()
+   self:_create_execution_units()
+   self._sm:loop_until(DEAD)
 end
 
-
-function ExecutionFrame:_thread_main()
-   self._log:spam('starting thread main')
-   self:_create_execution_units()
-   while self._state ~= DEAD do
-      self._thread:suspend('ex_frame is idle')
+function ExecutionFrame:_shuffle_execution_units()
+   local units = {}
+   for _, unit in pairs(self._execution_units) do
+      table.insert(units, unit)
    end
-   self._log:spam('exiting thread main')
+   local c = #units
+   for i = c, 2, -1 do
+      local j = rng:get_int(1, i)
+      units[i], units[j] = units[j], units[i]
+   end
+   return units
 end
 
 function ExecutionFrame:_start_thinking_from_stopped(entity_state)
@@ -153,26 +151,58 @@ function ExecutionFrame:_start_thinking_from_stopped(entity_state)
    assert(self._current_entity_state)
 
    self:_set_state(THINKING)
-   for _, unit in pairs(self._execution_units) do
+
+   -- randomize the order that we tell execution units to start thinking based on the
+   -- number of shares they have.   the first execution unit we notify has a better
+   -- chance of being the active one.
+   local shuffled = self:_shuffle_execution_units()
+   for _, unit in ipairs(shuffled) do
       unit:send_msg('start_thinking', self:_clone_entity_state())
    end
 end
 
-function ExecutionFrame:_unit_ready_from_thinking(unit, think_output)
-   local use_unit = false
+function ExecutionFrame:_stop_thinking_from_ready(entity_state)
+   self._log:debug('_stop_thinking_from_ready')
 
+   assert(self._active_unit)
+   self._active_unit = nil
+   
+   for _, unit in pairs(self._execution_units) do
+      unit:send_msg('stop_thinking')
+   end
+   self:_set_state(STOPPED)
+end
+
+function ExecutionFrame:_unit_ready_from_thinking(unit, think_output)
    if not self._active_unit then
-      use_unit = true
       self._log:detail('selecting first ready unit "%s"', unit:get_name())
    elseif self:_is_strictly_better_than_active(unit) then
-      use_unit = true
       self._log:detail('replacing unit "%s" with better active unit "%s"',
                        self._active_unit:get_name(), unit:get_name())
+   else
+      return
    end
-   if use_unit then
+   self._active_unit = unit
+   self._active_unit_think_output = think_output
+   self:send_msg('check_ready')
+end
+
+function ExecutionFrame:_unit_ready_from_running(unit, think_output)
+   assert(self._active_unit)
+   if self:_is_strictly_better_than_active(unit) then
+      self._log:detail('replacing unit "%s" with better active unit "%s" while running!!',
+                       self._active_unit:get_name(), unit:get_name())
+
+      -- kill just this individual unit
+      local dead_unit = self._active_unit
+      self._active_unit = nil
+      dead_unit:send_msg('terminate', string.format('replaced by unit "%s"', unit:get_name()))
+      self:_remove_execution_unit(dead_unit)
+
+      -- go back to the ready state and start.
       self._active_unit = unit
-      self._active_unit_think_output = think_output
-      self:send_msg('check_ready')
+      self:_set_state(READY)
+      self:send_msg('start')
    end
 end
 
@@ -183,12 +213,17 @@ function ExecutionFrame:_unit_not_ready_from_thinking(unit)
    end
 end
 
-function ExecutionFrame:_unit_error_from_thinking(unit)
+function ExecutionFrame:_child_thread_exit_from_thinking(thread, err)
+   local unit = thread:get_user_data()
    if unit == self._active_unit then
       self._log:detail('active_unit "%s" reported error...', unit:get_name())
       self:_find_replacement_for_active_unit()
    end
    self:_remove_execution_unit(unit)
+end
+
+function ExecutionFrame:_child_thread_exit_from_stopped(thread, err)
+   -- nothing to do
 end
 
 function ExecutionFrame:_find_replacement_for_active_unit()
@@ -262,14 +297,43 @@ function ExecutionFrame:_unit_stopped_from_halted(unit)
    self:_check_stopped_from_halted()
 end
 
-function ExecutionFrame:_destroy_from_stopped()
-   self._active_unit = nil
+function ExecutionFrame:_shutdown_from_stopped()
+   self:_shutdown()
+end
+
+function ExecutionFrame:_shutdown_from_halted()
+   self:_shutdown()
+end
+
+-- die a horrible death.  does not return
+function ExecutionFrame:_terminate_from_anystate(reason)
+   assert(reason)
+   
+   self:_set_state(DEAD)
    for _, unit in pairs(self._execution_units) do
-      unit:send_msg('destroy')
+      unit:send_msg('terminate')
+   end
+   self:_terminate(reason)
+end
+
+function ExecutionFrame:_shutdown()
+   self._active_unit = nil
+   self:_set_state(DEAD)  
+   for _, unit in pairs(self._execution_units) do
+      unit:send_msg('shutdown')
    end
    self._execution_units = {}
    self._thread:wait_for_children()
-   self:_set_state(DEAD)
+end
+
+
+-- terminate is private because it's only valid to call it on our thread
+-- after we've called stop_thinking, stop, and destroy on the action
+function ExecutionFrame:_terminate(reason)
+   -- terminate to ensure that we process no more messeages.
+   assert(self._thread:is_running())
+   self._thread:terminate(reason)
+   radiant.not_reached()
 end
 
 function ExecutionFrame:_add_action_from_anystate(key, entry, does)
@@ -302,12 +366,12 @@ function ExecutionFrame:_remove_action_from_anystate(removed_key, entry)
    end
 end
 
+-- assumes the unit is already destroyed or aborted.  we just need to remove
+-- it from our list
 function ExecutionFrame:_remove_execution_unit(unit)
    assert(unit ~= self._active_unit)
    for key, u in pairs(self._execution_units) do
       if unit == u then
-         unit:stop()
-         unit:destroy()
          self._execution_units[key] = nil
          return
       end
@@ -331,10 +395,6 @@ function ExecutionFrame:_add_execution_unit(key, entry)
                                                      entry.action_ctor,
                                                      self._args,
                                                      self._action_index)
-   unit:set_error_handler(function (u, err)
-         self:send_msg('unit_error', u, err)
-      end)
-
    self._execution_units[key] = unit
    return unit
 end
@@ -342,7 +402,7 @@ end
 function ExecutionFrame:_set_current_entity_state(state)
    self._log:debug('set_current_entity_state')
    assert(state)
-   assert(self._state == STOPPED)
+   assert(self:_get_state() == STOPPED)
 
    for key, value in pairs(state) do
       self._log:spam('  CURRENT.%s = %s', key, tostring(value))
@@ -427,42 +487,10 @@ function ExecutionFrame:_get_best_execution_unit()
    return active_unit
 end
 
-function ExecutionFrame:_in_state(...)
-   for _, state in ipairs({...}) do
-      if self._state == state then
-         return true
-      end
-   end
-   return false
-end
-
-function ExecutionFrame:_set_state(state)
-   assert(self._state ~= DEAD)
-   self._log:debug('state change %s -> %s', tostring(self._state), state)
-   self._state = state
-   
-   if self._state == self._caller_waiting_for_state then
-      self._calling_thread:resume('transitioned to ' .. self._state)
-   end
-end
-
-function ExecutionFrame:_block_caller_until(state)
-   assert(self._calling_thread)
-   assert(self._calling_thread:is_running())
-   
-   if self._state ~= state then
-      self._caller_waiting_for_state = state
-      while self._state ~= state do
-         self._calling_thread:suspend('waiting for ' .. state)
-      end
-      self._caller_waiting_for_state = nil
-   end
-end
-
 function ExecutionFrame:get_debug_info()
    local info = {
       id = self._id,
-      state = self._state,
+      state = self:_get_state(),
       activity = {
          name = self._name,
       },
@@ -487,11 +515,20 @@ function ExecutionFrame:_spam_current_state(msg)
    end
 end
 
-function ExecutionFrame:get_state()
-   return self._state
+function ExecutionFrame:_set_state(state)
+   return self._sm:set_state(state)
 end
 
-ExecutionFrame._add_nop_state_transition('unit_stopped', STOPPED)
+function ExecutionFrame:_in_state(state)
+   return self._sm:in_state(state)
+end
+
+function ExecutionFrame:_get_state(state)
+   return self._sm:get_state(state)
+end
+
+StateMachine.add_nop_state_transition(ExecutionFrame, 'unit_stopped', STOPPED)
+StateMachine.add_nop_state_transition(ExecutionFrame, 'child_thread_exit', DEAD)
 
 return ExecutionFrame
  

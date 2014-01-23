@@ -94,6 +94,15 @@ function Thread:get_id()
    return self._id
 end
 
+function Thread:set_user_data(data)
+   self._user_data = data
+   return self
+end
+
+function Thread:get_user_data(data)
+   return self._user_data
+end
+
 function Thread:set_debug_name(format, ...)
    local thread_route = ''
    local thread = self
@@ -139,9 +148,12 @@ function Thread:create_thread()
 end
 
 function Thread:send_msg(...)
-   assert(not self._finished)
-
    local msg = {...}
+
+   if self._finished then
+      self._log:debug('ignoring msg "%s" sent to dead thread', msg[1])
+      return
+   end
    self._log:detail('adding msg "%s" to queue', tostring(msg[1]))
    table.insert(self._msgs, msg)
 
@@ -285,8 +297,10 @@ end
 function Thread:_on_thread_exit(err)
    if self._parent then
       self._parent:_child_finished(self)
+      self._parent:send_msg('child_thread_exit', self, err)
    end
    self._finished = true
+   self._msgs = {}
    if self._exit_handler then
       self._exit_handler(self, err)
    end
@@ -326,6 +340,9 @@ function Thread:_dispatch_messages()
       for _, msg in ipairs(msgs) do
          self._log:detail('dispatching msg "%s"', tostring(msg[1]))
          self._msg_handler(unpack(msg))
+         if self._finished then
+            break
+         end
       end
    end
    self._log:spam('finished dispatch message loop.')

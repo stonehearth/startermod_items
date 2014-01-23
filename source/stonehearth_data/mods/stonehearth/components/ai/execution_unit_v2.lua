@@ -48,6 +48,7 @@ function ExecutionUnitV2:__init(parent_thread, entity, injecting_entity, action,
    self._parent_thread = parent_thread
    self._thread = parent_thread:create_thread()
                                :set_debug_name('u:%d', self._id)
+                               :set_user_data(self)
                                :set_msg_handler(function (...) self:_dispatch_msg(...) end)
                                :set_thread_main(function (...) self:_thread_main(...) end)
 
@@ -119,15 +120,6 @@ function ExecutionUnitV2:get_debug_info()
       table.insert(info.execution_frames, self._execute_frame:get_debug_info())
    end
    return info
-end
-
-function ExecutionUnitV2:set_error_handler(fn)
-   self._thread:set_exit_handler(function (_, err)
-         if err then
-            self._log:detail('unit thread error (%s).  calling error handler', err)
-            fn(self, err)
-         end
-      end)
 end
 
 function ExecutionUnitV2:send_msg(...)
@@ -236,15 +228,40 @@ function ExecutionUnitV2:_stop_from_halted()
    self._parent_thread:send_msg('unit_stopped', self)
 end
 
-function ExecutionUnitV2:_destroy_from_stopped()
+function ExecutionUnitV2:_shutdown_from_stopped()
+   assert(not self._thinking)
+   assert(not self._execute_frame)
+
+   self:_call_action('destroy')
+   self:_terminate('shutting down')
+end
+
+function ExecutionUnitV2:_terminate_from_running(reason)
    assert(not self._thinking)
 
+   self:_set_state(DEAD)
    if self._execute_frame then
-      self._execute_frame:destroy()
-      self._execute_frame = nil
+      self._execute_frame:send_msg('terminate', reason)
    end
    self:_call_action('destroy')
-   self:_set_state(DEAD)
+end
+
+function ExecutionUnitV2:_child_thread_exit_from_running(thread, err)
+   local frame = thread:get_user_data()
+   assert(frame == self._execute_frame)
+   if err then
+      self._log:debug('execution frame died while running (%s)', err)
+      self._terminate(err)
+   end
+end
+
+-- terminate is private because it's only valid to call it on our thread
+-- after we've called stop_thinking, stop, and destroy on the action
+function ExecutionUnitV2:_terminate(reason)
+   -- terminate to ensure that we process no more messeages.
+   assert(self._thread:is_running())
+   self._thread:terminate(reason)
+   radiant.not_reached()
 end
 
 function ExecutionUnitV2:_stop_thinking()
@@ -270,12 +287,9 @@ function ExecutionUnitV2:__execute(name, args)
    assert(not self._execute_frame)
 
    self._execute_frame = ExecutionFrame(self._thread, self._entity, name, args, self._action_index)
-   self._execute_frame:set_error_handler(function (_, err)
-         self:__abort('execute %s failed: %s', name, err)
-      end)
    self._execute_frame:run()
    self._execute_frame:stop()
-   self._execute_frame:destroy()
+   self._execute_frame:shutdown()
    self._execute_frame = nil
 end 
 
@@ -323,7 +337,7 @@ function ExecutionUnitV2:__abort(reason, ...)
       self._thread:terminate('aborted: ' .. reason)
       radiant.not_reached('abort does not return')
    else
-      self._thread:set_msg('abort', reason)
+      self._thread:send_msg('terminate', reason)
    end
 end
 
@@ -407,6 +421,9 @@ function ExecutionUnitV2:_spam_current_state(msg)
    end
 end
 
+local ANY_STATE = 'any_state'
 ExecutionUnitV2._add_nop_state_transition('stop', STOPPED)
+ExecutionUnitV2._add_nop_state_transition('stop_thinking', STOPPED)
+ExecutionUnitV2._add_nop_state_transition('child_thread_exit', ANY_STATE)
 
 return ExecutionUnitV2
