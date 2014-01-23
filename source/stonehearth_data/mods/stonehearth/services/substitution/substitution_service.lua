@@ -68,7 +68,7 @@ More documenation can be found here:
 http://wiki.rad-ent.com/doku.php?id=journal_entries
 ]]
 
-local rng = _radiant.csg.get_default_random_number_generator()
+local rng = _radiant.csg.get_default_rng()
 
 SubstitutionService = class()
 

@@ -8,7 +8,7 @@ local Personality = class()
 local calendar = radiant.mods.load('stonehearth').calendar
 local personality_service = require 'services.personality.personality_service'
 local event_service = require 'services.event.event_service'
-local rng = _radiant.csg.get_default_random_number_generator()
+local rng = _radiant.csg.get_default_rng()
 
 --REVIEW QUESTION: when to use radiant.mods.load and when to use require?
 --Explain and I'll add it to the wiki
