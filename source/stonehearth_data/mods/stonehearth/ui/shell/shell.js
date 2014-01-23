@@ -6,8 +6,8 @@ App.StonehearthShellView = App.ContainerView.extend({
 
       var json = {
          views : [
-            //"StonehearthTitleScreenView"
-            "StonehearthEmbarkView"
+            "StonehearthTitleScreenView"
+            //"StonehearthEmbarkView"
          ]
       };
 
