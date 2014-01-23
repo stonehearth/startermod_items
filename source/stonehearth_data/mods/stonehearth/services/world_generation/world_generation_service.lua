@@ -154,7 +154,7 @@ function WorldGenerationService:_generate_world(blueprint)
    self.overview_map:derive_overview_map(blueprint, origin_x, origin_y)
 
    -- trigger finished without waiting for the next poll
-   self._on_poll_progress()
+   self:_on_poll_progress()
 end
 
 function WorldGenerationService:_render_heightmap_to_region3(tile_map, offset)
