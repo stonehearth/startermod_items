@@ -391,32 +391,6 @@ function TerrainGenerator:_filter_noise_map(noise_map)
    FilterFns.filter_2D_025(filtered_map, noise_map, width, height, 8)
 
    return filtered_map
-
-   -- local micro_map = Array2D(width, height)
-   -- micro_map.terrain_type = terrain_type
-   -- FilterFns.filter_max_slope(micro_map, filtered_map, width, height, 8)
-   -- micro_map.generated = true
-
-   -- return micro_map
-end
-
-function TerrainGenerator:_add_DC_component(micro_map, blend_map)
-   local width = micro_map.width
-   local height = micro_map.height
-   local i, j, macro_block, mean, offset
-
-   for j=1, height do
-      for i=1, width do
-         macro_block = blend_map:get(i, j)
-
-         if macro_block.forced_value then mean = macro_block.forced_value
-         else                      mean = macro_block.mean
-         end
-
-         offset = micro_map:get_offset(i, j)
-         micro_map[offset] = micro_map[offset] + mean
-      end
-   end
 end
 
 -- edge values may not change values! they are shared with the adjacent tile
