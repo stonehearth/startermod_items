@@ -76,7 +76,7 @@ function TerrainGenerator:_initialize_quantizer()
       table.insert(centroids, value)
    end
 
-   self._quantizer = NonUniformQuantizer(centroids)
+   self.quantizer = NonUniformQuantizer(centroids)
 end
 
 function TerrainGenerator:_create_blend_map(width, height)
@@ -377,7 +377,7 @@ function TerrainGenerator:_fill_noise_map(noise_map, blend_map)
       return value
    end
 
-   noise_map:fill(noise_fn)
+   noise_map:fill_ij(noise_fn)
 end
 
 -- must return a new micro_map each time
@@ -610,7 +610,7 @@ function TerrainGenerator:_quantize_height_map(height_map, is_micro_map)
 end
 
 function TerrainGenerator:_quantize_value(value, enable_fancy_quantizer)
-   local quantized_value = self._quantizer:quantize(value)
+   local quantized_value = self.quantizer:quantize(value)
 
    if not enable_fancy_quantizer then
       return quantized_value

@@ -29,7 +29,7 @@ function WorldGenerationService:initialize(async, game_seed)
 
    log:info('WorldGenerationService using seed %d', self._game_seed)
 
-   self._blueprint_generator = BlueprintGenerator(self._game_seed)
+   self._blueprint_generator = BlueprintGenerator(self._rng)
 
    local tg = TerrainGenerator(self._rng, self._async)
    self._terrain_generator = tg
@@ -37,7 +37,7 @@ function WorldGenerationService:initialize(async, game_seed)
    self._landscaper = Landscaper(tg.terrain_info, tg.tile_size, tg.tile_size, self._rng, self._async)
    self._terrain_info = tg.terrain_info
    local feature_cell_size = self._landscaper:get_feature_cell_size()
-   
+
    self._scenario_service = radiant.mods.load('stonehearth').scenario
    self._scenario_service:initialize(feature_cell_size, self._rng)
    self._habitat_manager = HabitatManager(self._terrain_info, self._landscaper)
@@ -69,8 +69,8 @@ function WorldGenerationService:create_world()
 
       local blueprint
       blueprint = self._blueprint_generator:generate_blueprint(5, 5)
-      --blueprint = blueprint = self._blueprint_generator:get_empty_blueprint(1, 1) -- useful for debugging real world scenarios without waiting for the load time
-      --blueprint = blueprint = self._blueprint_generator:get_static_blueprint()
+      --blueprint = self._blueprint_generator:get_empty_blueprint(1, 1) -- useful for debugging real world scenarios without waiting for the load time
+      --blueprint = self._blueprint_generator:get_static_blueprint()
       self:_generate_world(blueprint)
 
       cpu_timer:stop()

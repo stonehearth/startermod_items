@@ -158,7 +158,7 @@ function Landscaper:_place_trees(tile_map, place_item)
       return rng:get_gaussian(mean, std_dev)
    end
 
-   noise_map:fill(noise_fn)
+   noise_map:fill_ij(noise_fn)
    FilterFns.filter_2D_0125(density_map, noise_map, noise_map.width, noise_map.height, 10)
 
    for j=1, density_map.height do
@@ -272,7 +272,7 @@ function Landscaper:_place_berry_bushes(tile_map, place_item)
       return rng:get_gaussian(mean, std_dev)
    end
 
-   noise_map:fill(noise_fn)
+   noise_map:fill_ij(noise_fn)
    FilterFns.filter_2D_050(density_map, noise_map, noise_map.width, noise_map.height, 6)
 
    for j=1, density_map.height do
@@ -338,7 +338,7 @@ function Landscaper:_place_flowers(tile_map, place_item)
       return rng:get_gaussian(mean, std_dev)
    end
 
-   noise_map:fill(noise_fn)
+   noise_map:fill_ij(noise_fn)
    FilterFns.filter_2D_025(density_map, noise_map, noise_map.width, noise_map.height, 8)
 
    for j=1, density_map.height do

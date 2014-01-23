@@ -7,9 +7,8 @@ local RandomNumberGenerator = _radiant.csg.RandomNumberGenerator
 local BlueprintGenerator = class()
 local log = radiant.log.create_logger('world_generation')
 
-function BlueprintGenerator:__init(game_seed)
-   self._game_seed = game_seed
-   self._rng = RandomNumberGenerator(self._game_seed)
+function BlueprintGenerator:__init(rng)
+   self._rng = rng
 end
 
 function BlueprintGenerator:generate_blueprint(width, height)
@@ -25,7 +24,7 @@ function BlueprintGenerator:generate_blueprint(width, height)
    end
 
    while (true) do
-      noise_map:fill(noise_fn)
+      noise_map:fill_ij(noise_fn)
       FilterFns.filter_2D_050(height_map, noise_map, noise_map.width, noise_map.height, 4)
 
       --log:debug('blueprint noise map')
