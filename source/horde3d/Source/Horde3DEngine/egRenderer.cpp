@@ -3001,7 +3001,7 @@ void Renderer::logPerformanceData()
    float triCount = Modules::stats().getStat(EngineStats::TriCount, false);
    float numBatches = Modules::stats().getStat(EngineStats::BatchCount, false);
 
-   Modules::log().writePerfInfo("%d, %d, %d", (int)curFPS, (int)triCount, (int)numBatches);
+   Modules::log().writePerfInfo("%d %d %d", (int)curFPS, (int)triCount, (int)numBatches);
 }
 
 

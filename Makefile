@@ -98,9 +98,12 @@ stage:
 perf-stage:
 	sh $(SCRIPTS_ROOT)/stage/stage_stonehearth.sh -o $(STAGE_ROOT) -t $(MSBUILD_CONFIGURATION) -c -a -m perf_test
 
+.PHONY: perf-run
+perf-run:
+	curl -F args=$(ARGS) -F settings=@$(TEST_CONFIG) -F file=@$(ZIP_PACKAGE_ROOT)/stonehearth-game.zip -K slaveurls.txt	
+
 .PHONY: perfexp
-perfexp: perf-stage game-package
-	curl -F args=$(ARGS) -F settings=@$(TEST_CONFIG) -F file=@$(ZIP_PACKAGE_ROOT)/stonehearth-game.zip -K slaveurls.txt
+perfexp: perf-stage game-package perf-run
 
 .PHONY: game-package
 game-package:

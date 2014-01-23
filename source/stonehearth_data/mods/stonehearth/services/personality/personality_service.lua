@@ -15,7 +15,7 @@
    Improve by indexing these entries by entity_id
 ]]
 
-local rng = _radiant.csg.get_default_random_number_generator()
+local rng = _radiant.csg.get_default_rng()
 local substitution_service = require 'services.substitution.substitution_service'
 
 PersonalityService = class()
