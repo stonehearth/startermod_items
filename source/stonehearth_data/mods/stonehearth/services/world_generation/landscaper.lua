@@ -32,20 +32,19 @@ local boulder_name = "boulder"
 
 local Landscaper = class()
 
-function Landscaper:__init(terrain_info, tile_width, tile_height, rng, async)
+function Landscaper:__init(terrain_info, rng, async)
    if async == nil then async = false end
 
    self._terrain_info = terrain_info
-   self._tile_width = tile_width
-   self._tile_height = tile_height
+   self._tile_width = self._terrain_info.tile_size
+   self._tile_height = self._terrain_info.tile_size
+   self._feature_size = self._terrain_info.feature_size
    self._rng = rng
    self._async = async
 
    -- assert that macroblocks are an integer multiple of the perturbation cell size
    -- no longer support arbitrary alignments in anticipation of future features
-   local grid_spacing = 16
-   self._feature_cell_size = grid_spacing
-   self._perturbation_grid = PerturbationGrid(tile_width, tile_height, grid_spacing, self._rng)
+   self._perturbation_grid = PerturbationGrid(self._tile_width, self._tile_height, self._feature_size, self._rng)
 
    local feature_map_width, feature_map_height = self._perturbation_grid:get_dimensions()
    self._feature_map = Array2D(feature_map_width, feature_map_height)
@@ -60,10 +59,6 @@ end
 
 function Landscaper:get_feature_map()
    return self._feature_map:clone()
-end
-
-function Landscaper:get_feature_cell_size()
-   return self._feature_cell_size
 end
 
 function Landscaper:is_forest_feature(feature_name)
@@ -222,6 +217,7 @@ function Landscaper:_place_trees(tile_map, place_item)
             end
          end
       end
+      self:_yield()
    end
 end
 

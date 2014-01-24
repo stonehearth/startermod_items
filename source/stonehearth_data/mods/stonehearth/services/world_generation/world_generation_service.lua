@@ -31,22 +31,21 @@ function WorldGenerationService:initialize(game_seed, async)
    self._enable_scenarios = radiant.util.get_config('enable_scenarios', false)
 
    self._terrain_info = TerrainInfo()
-   self._tile_size = 256
-   self._macro_block_size = 32
+   self._tile_size = self._terrain_info.tile_size
+   self._macro_block_size = self._terrain_info.macro_block_size
+   self._feature_size = self._terrain_info.feature_size
 
    self._blueprint_generator = BlueprintGenerator(self._rng)
-   self._micro_map_generator = MicroMapGenerator(self._terrain_info, self._tile_size, self._macro_block_size, self._rng)
-   self._tile_generator = TileGenerator(self._terrain_info, self._tile_size, self._macro_block_size, self._rng, self._async)
-   self._height_map_renderer = HeightMapRenderer(self._tile_size, self._terrain_info)
-   self._landscaper = Landscaper(self._terrain_info, self._tile_size, self._tile_size, self._rng, self._async)
-   local feature_cell_size = self._landscaper:get_feature_cell_size()
+   self._micro_map_generator = MicroMapGenerator(self._terrain_info, self._rng)
+   self._tile_generator = TileGenerator(self._terrain_info, self._rng, self._async)
+   self._height_map_renderer = HeightMapRenderer(self._terrain_info)
+   self._landscaper = Landscaper(self._terrain_info, self._rng, self._async)
 
    self._scenario_service = radiant.mods.load('stonehearth').scenario
-   self._scenario_service:initialize(feature_cell_size, self._rng)
+   self._scenario_service:initialize(self._feature_size, self._rng)
    self._habitat_manager = HabitatManager(self._terrain_info, self._landscaper)
 
-   self.overview_map = OverviewMap(self._terrain_info, self._landscaper,
-      self._tile_size, self._macro_block_size, feature_cell_size)
+   self.overview_map = OverviewMap(self._terrain_info, self._landscaper)
 
    self._progress = 0
    radiant.events.listen(radiant.events, 'stonehearth:slow_poll', self, self._on_poll_progress)

@@ -5,19 +5,16 @@ local log = radiant.log.create_logger('world_generation')
 
 local OverviewMap = class()
 
-function OverviewMap:__init(terrain_info, landscaper, tile_size, macro_block_size, feature_size)
-   assert(macro_block_size / feature_size == 2)
-   assert(macro_block_size % 2 == 0)
-
+function OverviewMap:__init(terrain_info, landscaper)
    self._terrain_info = terrain_info
    self._landscaper = landscaper
-   self._tile_size = tile_size
-   self._macro_block_size = macro_block_size
-   self._feature_size = feature_size
+   self._tile_size = self._terrain_info.tile_size
+   self._macro_block_size = self._terrain_info.macro_block_size
+   self._feature_size = self._terrain_info.feature_size
 
    self._margin = self._macro_block_size / 2
-   self._features_per_tile = tile_size / feature_size
-   self._macro_blocks_per_tile = tile_size / macro_block_size
+   self._features_per_tile = self._tile_size / self._feature_size
+   self._macro_blocks_per_tile = self._tile_size / self._macro_block_size
 
    self:clear()
 end

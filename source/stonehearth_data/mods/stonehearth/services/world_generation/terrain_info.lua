@@ -4,6 +4,14 @@ local NonUniformQuantizer = require 'services.world_generation.math.non_uniform_
 local TerrainInfo = class()
 
 function TerrainInfo:__init()
+   -- block size constants
+   self.tile_size = 256
+   self.macro_block_size = 32
+   self.feature_size = 16
+   assert(self.tile_size % self.macro_block_size == 0)
+   assert(self.macro_block_size / self.feature_size == 2)
+
+   -- elevation constants
    local plains_info = {}
    plains_info.step_size = 2
    plains_info.mean_height = 18

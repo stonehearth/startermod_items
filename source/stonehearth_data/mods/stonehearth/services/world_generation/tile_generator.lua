@@ -19,12 +19,12 @@ local log = radiant.log.create_logger('world_generation')
 --        These 256x256 terrain tiles are different from nav grid tiles which are 16x16.
 -- World = the entire playspace of a game
 
-function TerrainGenerator:__init(terrain_info, tile_size, macro_block_size, rng, async)
+function TerrainGenerator:__init(terrain_info, rng, async)
    if async == nil then async = false end
 
    self._terrain_info = terrain_info
-   self._tile_size = tile_size
-   self._macro_block_size = macro_block_size
+   self._tile_size = self._terrain_info.tile_size
+   self._macro_block_size = self._terrain_info.macro_block_size
    self._rng = rng
    self._async = async
 

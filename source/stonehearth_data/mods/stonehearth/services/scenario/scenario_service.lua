@@ -14,8 +14,8 @@ local ScenarioService = class()
 function ScenarioService:__init()
 end
 
-function ScenarioService:initialize(feature_cell_size, rng)
-   self._feature_cell_size = feature_cell_size
+function ScenarioService:initialize(feature_size, rng)
+   self._feature_size = feature_size
    self._rng = rng
    self._revealed_region = Region2()
    self._dormant_scenarios = {}
@@ -146,7 +146,7 @@ end
 -- TODO: randomize orientation in place_entity
 function ScenarioService:place_scenarios(habitat_map, elevation_map, tile_offset_x, tile_offset_y)
    local rng = self._rng
-   local feature_cell_size = self._feature_cell_size
+   local feature_size = self._feature_size
    local feature_width, feature_length, voxel_width, voxel_length
    local scenarios, site, sites, num_sites, roll, offset_x, offset_y, habitat_types
    
@@ -168,8 +168,8 @@ function ScenarioService:place_scenarios(habitat_map, elevation_map, tile_offset
          site = sites[roll]
 
          -- these are in C++ base 0 array coordinates
-         offset_x = (site.x-1)*feature_cell_size + tile_offset_x
-         offset_y = (site.y-1)*feature_cell_size + tile_offset_y
+         offset_x = (site.x-1)*feature_size + tile_offset_x
+         offset_y = (site.y-1)*feature_size + tile_offset_y
 
          if properties.activation_type == ActivationType.static then
             self:_activate_scenario(properties, offset_x, offset_y)
@@ -305,31 +305,31 @@ function ScenarioService:_region_to_habitat_space(region)
 end
 
 function ScenarioService:_rect_to_habitat_space(rect)
-   local feature_cell_size = self._feature_cell_size
+   local feature_size = self._feature_size
    local min, max
 
-   min = Point2(math.floor(rect.min.x/feature_cell_size),
-                math.floor(rect.min.y/feature_cell_size))
+   min = Point2(math.floor(rect.min.x/feature_size),
+                math.floor(rect.min.y/feature_size))
 
    if rect:get_area() == 0 then
       max = min
    else
-      max = Point2(math.ceil(rect.max.x/feature_cell_size),
-                   math.ceil(rect.max.y/feature_cell_size))
+      max = Point2(math.ceil(rect.max.x/feature_size),
+                   math.ceil(rect.max.y/feature_size))
    end
 
    return Rect2(min, max)
 end
 
 function ScenarioService:_get_dimensions_in_feature_units(width, length)
-   local feature_cell_size = self._feature_cell_size
-   return math.ceil(width/feature_cell_size), math.ceil(length/feature_cell_size)
+   local feature_size = self._feature_size
+   return math.ceil(width/feature_size), math.ceil(length/feature_size)
 end
 
 function ScenarioService:_get_feature_space_coords(x, y)
-   local feature_cell_size = self._feature_cell_size
-   return math.floor(x/feature_cell_size),
-          math.floor(y/feature_cell_size)
+   local feature_size = self._feature_size
+   return math.floor(x/feature_size),
+          math.floor(y/feature_size)
 end
 
 function ScenarioService:_get_coordinate_key(x, y)

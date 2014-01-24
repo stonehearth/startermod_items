@@ -10,12 +10,10 @@ local MicroMapGenerator = class()
 local log = radiant.log.create_logger('world_generation')
 
 -- TODO: remove terrain_type from all the micro_maps
-function MicroMapGenerator:__init(terrain_info, tile_size, macro_block_size, rng)
-   assert(tile_size % macro_block_size == 0)
-
+function MicroMapGenerator:__init(terrain_info, rng)
    self._terrain_info = terrain_info
-   self._tile_size = tile_size
-   self._macro_block_size = macro_block_size
+   self._tile_size = self._terrain_info.tile_size
+   self._macro_block_size = self._terrain_info.macro_block_size
    self._rng = rng
 
    self._macro_blocks_per_tile = self._tile_size / self._macro_block_size
