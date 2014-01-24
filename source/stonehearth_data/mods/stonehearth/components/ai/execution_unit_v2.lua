@@ -1,4 +1,3 @@
-local ExecutionFrame = require 'components.ai.execution_frame'
 local ExecutionUnitV2 = class()
 
 local THINKING = 'thinking'
@@ -17,20 +16,22 @@ function ExecutionUnitV2._add_nop_state_transition(msg, state)
    ExecutionUnitV2[method] = function() end
 end
 
-function ExecutionUnitV2:__init(parent_thread, entity, injecting_entity, action, args, action_index)
+function ExecutionUnitV2:__init(frame, thread, debug_route, entity, injecting_entity, action, args, action_index)
    assert(action.name)
    assert(action.does)
    assert(action.args)
    assert(action.priority)
 
-   self._args = args
-   self._action = action
-   self._action_index = action_index
-   self._think_output_types = self._action.think_output or self._action.args
-   self._entity = entity
-   self._execute_frame = nil
-   self._thinking = false
    self._id = stonehearth.ai:get_next_object_id()
+   self._frame = frame
+   self._thread = thread
+   self._debug_route = debug_route .. ' u:' .. tostring(self._id)
+   self._entity = entity
+   self._action = action
+   self._args = args
+   self._action_index = action_index
+
+   self._think_output_types = self._action.think_output or self._action.args
      
    self._ai_interface = { ___execution_unit = self }   
    local chain_function = function (fn)
@@ -45,15 +46,9 @@ function ExecutionUnitV2:__init(parent_thread, entity, injecting_entity, action,
    chain_function('abort')
    chain_function('get_log')   
   
-   self._parent_thread = parent_thread
-   self._thread = parent_thread:create_thread()
-                               :set_debug_name('u:%d', self._id)
-                               :set_user_data(self)
-                               :set_msg_handler(function (...) self:_dispatch_msg(...) end)
-                               :set_thread_main(function (...) self:_thread_main(...) end)
 
    self._log = radiant.log.create_logger('ai.exec_unit')
-   local prefix = string.format('%s (%s)', self._thread:get_debug_route(), self:get_name())
+   local prefix = string.format('%s (%s)', self._debug_route, self:get_name())
    self._log:set_prefix(prefix)
    self._log:debug('creating execution unit')
    
@@ -62,8 +57,6 @@ function ExecutionUnitV2:__init(parent_thread, entity, injecting_entity, action,
    else
       assert(false, 'put ourselves in the dead state')
    end
-   
-   self._thread:start()
 end
 
 function ExecutionUnitV2:get_action_interface()
@@ -122,17 +115,7 @@ function ExecutionUnitV2:get_debug_info()
    return info
 end
 
-function ExecutionUnitV2:send_msg(...)
-   self._thread:send_msg(...)
-end
-
-function ExecutionUnitV2:_thread_main()
-   while self._state ~= DEAD do
-      self._thread:suspend('ex_unit is idle')
-   end
-end
-
-function ExecutionUnitV2:_dispatch_msg(msg, ...)
+function ExecutionUnitV2:send_msg(msg, ...)
    local method = '_' .. msg .. '_from_' .. self._state
    local invoked = method
    local dispatch_msg_fn = self[invoked]
@@ -182,13 +165,13 @@ function ExecutionUnitV2:_set_think_output_from_thinking(think_output)
    end
    self:_verify_arguments(think_output, self._think_output_types)
 
-   self._parent_thread:send_msg('unit_ready', self, think_output)
    self:_set_state(READY)
+   self._frame:send_msg('unit_ready', self, think_output)
 end
 
 function ExecutionUnitV2:_clear_think_output_from_thinking()
-   self._parent_thread:send_msg('unit_not_ready', self)
    self:_set_state(THINKING)
+   self._frame:send_msg('unit_not_ready', self)
 end
 
 function ExecutionUnitV2:_clear_think_output_from_finished()
@@ -213,8 +196,7 @@ function ExecutionUnitV2:_start_from_ready()
 
    self:_start()
    self:_set_state(STARTED)
-   self:_stop_thinking()   
-   self._parent_thread:send_msg('unit_started', self)
+   self:_stop_thinking()
 end
 
 function ExecutionUnitV2:_run_from_ready()
@@ -225,7 +207,6 @@ function ExecutionUnitV2:_run_from_ready()
    self:_stop_thinking()
    self:_call_action('run')
    self:_set_state(FINISHED)
-   self._parent_thread:send_msg('unit_finished', self)
 end
 
 function ExecutionUnitV2:_run_from_started()
@@ -234,7 +215,6 @@ function ExecutionUnitV2:_run_from_started()
    self:_set_state(RUNNING)
    self:_call_action('run')
    self:_set_state(FINISHED)
-   self._parent_thread:send_msg('unit_finished', self)
 end
 
 function ExecutionUnitV2:_stop_from_thinking()
@@ -242,7 +222,24 @@ function ExecutionUnitV2:_stop_from_thinking()
 
    self:_stop_thinking()
    self:_set_state(STOPPED)
-   self._parent_thread:send_msg('unit_stopped', self)
+end
+
+function ExecutionUnitV2:_stop_from_running(frame_will_kill_running_action)
+   assert(not self._thinking)
+   assert(self._thread:is_running())
+
+   -- assume our calling frame knows what it's doing.  if not,
+   -- we're totally going to get screwed
+   assert(frame_will_kill_running_action)
+   
+   -- our execute frame must be dead and buried if our owning frame has the
+   -- audicity to kill us while running
+   if self._execute_frame then
+      assert(self._execute_frame:get_state() == 'dead')
+      self._execute_frame =  nil
+   end
+   self:_stop()
+   self:_set_state(STOPPED)
 end
 
 function ExecutionUnitV2:_stop_from_finished()
@@ -250,14 +247,13 @@ function ExecutionUnitV2:_stop_from_finished()
 
    self:_stop()
    self:_set_state(STOPPED)
-   self._parent_thread:send_msg('unit_stopped', self)
 end
 
-function ExecutionUnitV2:_shutdown_from_anystate()
+function ExecutionUnitV2:_destroy_from_stopped()
    assert(not self._thinking)
-
-   self:_burn_it_all_down()
-   self._thread:terminate()
+   assert(not self._execute_frame)
+   self:_call_action('destroy')
+   self:_set_state(DEAD)
 end
 
 function ExecutionUnitV2:_terminate_from_anystate(reason)
@@ -319,8 +315,6 @@ function ExecutionUnitV2:_burn_it_all_down()
    assert(self._thread:is_running())
    
    self:_set_state(DEAD)
-   self._thread:set_msg_handler(nil)
-
    if self._thinking then
       assert(not self._execute_frame)
       sef:_stop_thinking()
@@ -354,16 +348,22 @@ function ExecutionUnitV2:__execute(name, args)
    assert(self._thread:is_running())
    assert(not self._execute_frame)
 
-   self._execute_frame = ExecutionFrame(self._thread, self._entity, name, args, self._action_index)
+   local ExecutionFrame = require 'components.ai.execution_frame'
+   self._execute_frame = ExecutionFrame(self._thread, self._debug_route, self._entity, name, args, self._action_index)
    self._execute_frame:run()
    self._execute_frame:stop()
-   self._execute_frame:shutdown()
+   self._execute_frame:destroy()
    self._execute_frame = nil
 end 
 
 function ExecutionUnitV2:__set_think_output(args)
    self._log:debug('__set_think_output %s called', stonehearth.ai:format_args(args))
-   self:send_msg('set_think_output', args)
+   if self._in_start_thinking then
+      -- wow, so eager!  don't send a message, just hold onto the answer for when we rewind...
+      self._reentrant_think_output = args
+   else
+      self:send_msg('set_think_output', args)
+   end
 end
 
 function ExecutionUnitV2:__clear_think_output(format, ...)
@@ -376,7 +376,8 @@ function ExecutionUnitV2:__spawn(name, args)
    self._log:debug('__spawn %s %s called', name, stonehearth.ai:format_args(args))
    assert(self._thread:is_running())
   
-   return ExecutionFrame(self._thread, self._entity, name, args, self._action_index)
+   local ExecutionFrame = require 'components.ai.execution_frame'  
+   return ExecutionFrame(self._thread, self._debug_route, self._entity, name, args, self._action_index)
 end
 
 function ExecutionUnitV2:__suspend(format, ...)
@@ -413,7 +414,7 @@ function ExecutionUnitV2:__abort(reason, ...)
       self:_terminate(reason)
       radiant.not_reached('abort does not return')
    else
-      self._thread:send_msg('terminate', reason)
+      error('need to implement abort while not running')
    end
 end
 
@@ -473,6 +474,10 @@ function ExecutionUnitV2:in_state(...)
       end
    end
    return false
+end
+
+function ExecutionUnitV2:get_state(state)
+   return self._state
 end
 
 function ExecutionUnitV2:_set_state(state)

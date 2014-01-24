@@ -1,6 +1,5 @@
 local AiService = class()
 local AiInjector = require 'services.ai.ai_injector'
-local ExecutionUnitV2 = require 'components.ai.execution_unit_v2'
 local CompoundActionFactory = require 'services.ai.compound_action_factory'
 local placeholders = require 'services.ai.placeholders'
 local log = radiant.log.create_logger('ai.service')
@@ -130,17 +129,6 @@ function AiService:format_args(args)
       end
    end
    return '{ ' .. msg .. '}'
-end
-
-function AiService:create_execution_unit(parent_thread, entity, injecting_entity, action_ctor, args, action_index)
-   local action
-   assert (action_ctor.version == 2)
-   if action_ctor.create_action then
-      action = action_ctor:create_action(entity, injecting_entity)
-   else
-      action = action_ctor(entity, injecting_entity)
-   end
-   return ExecutionUnitV2(parent_thread, entity, injecting_entity, action, args, action_index)
 end
 
 function AiService:create_compound_action(action_ctor)

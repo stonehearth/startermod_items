@@ -95,6 +95,7 @@ function Thread:__init(parent)
    self._parent = parent
    self._child_threads = {}
    self._msgs = {}
+   self._thread_data = {}
    self._log = radiant.log.create_logger('thread')
    self:set_debug_name('')
 end
@@ -104,13 +105,13 @@ function Thread:get_id()
    return self._id
 end
 
-function Thread:set_user_data(data)
-   self._user_data = data
+function Thread:set_thread_data(key, data)
+   self._thread_data[key] = data
    return self
 end
 
-function Thread:get_user_data(data)
-   return self._user_data
+function Thread:get_thread_data(key, data, default)
+   return self._thread_data[key] or default
 end
 
 function Thread:set_debug_name(format, ...)
@@ -198,14 +199,19 @@ function Thread:start(...)
    return self
 end
 
-function Thread:thunk(fn)
+function Thread:interrupt(fn)
    if not self._finished then
       if self:is_running() then
          fn()
       else
-         self:send_msg('thread:thunk', fn)
+         self:send_msg('thread:call_interrupt', fn)
       end
    end
+end
+
+function Thread:_call_interrupt(fn)
+   assert(self:is_running())
+   fn()
 end
 
 function Thread:wait()
@@ -391,7 +397,7 @@ function Thread:_dispatch_messages()
 end
 
 Thread.private_messages = {
-   ['thread:thunk'] = Thread.thunk,
+   ['thread:call_interrupt'] = Thread._call_interrupt,
 }
 
 return Thread

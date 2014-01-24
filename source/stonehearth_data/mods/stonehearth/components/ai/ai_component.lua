@@ -110,12 +110,13 @@ function AIComponent:restart()
                                      :set_debug_name('e:%d', self._entity:get_id())
 
    self._thread:set_thread_main(function()
-      self._execution_frame = ExecutionFrame(self._thread, self._entity, 'stonehearth:top', {}, self._action_index)
+      self._thread:set_thread_data('stonehearth:run_stack', {})
+      self._execution_frame = ExecutionFrame(self._thread, '', self._entity, 'stonehearth:top', {}, self._action_index)
       while not self._dead do
          self._execution_frame:run()
          self._execution_frame:stop()
       end
-      self._execution_frame:shutdown()
+      self._execution_frame:destroy()
    end)
    self._thread:start()
 end

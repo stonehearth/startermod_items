@@ -1,3 +1,20 @@
+-- xxxxxxxxxxxxxxxxxxx 
+-- xxxxxxxxxxxxxxxxxxx 
+-- xxxxxxxxxxxxxxxxxxx 
+-- xxxxxxxxxxxxxxxxxxx 
+-- xxxxxxxxxxxxxxxxxxx 
+-- xxxxxxxxxxxxxxxxxxx 
+-- xxxxxxxxxxxxxxxxxxx 
+-- xxxxxxxxxxxxxxxxxxx 
+-- xxxxxxxxxxxxxxxxxxx 
+-- xxxxxxxxxxxxxxxxxxx 
+-- xxxxxxxxxxxxxxxxxxx 
+-- xxxxxxxxxxxxxxxxxxx 
+-- xxxxxxxxxxxxxxxxxxx 
+-- xxxxxxxxxxxxxxxxxxx 
+
+-- rename this thing ExecutionSequence, cause it's more  in the framework than not!
+
 local placeholders = require 'services.ai.placeholders'
 local ExecutionUnitV2 = require 'components.ai.execution_unit_v2'
 local CompoundAction = class()
@@ -46,24 +63,31 @@ end
 function CompoundAction:_start_thinking(index)
    assert(self._thinking)
 
-   if index > #self._activities then
-      self:_set_think_output()
-      return
+   while index <= #self._activities do
+      local activity = self._activities[index]
+      self:_spam_current_state('start_thinking (%d of %d - %s)', index, #self._activities, activity.name)
+
+      local replaced = self:_replace_placeholders(activity.args)
+      local frame = self._ai:spawn(activity.name, replaced)
+      table.insert(self._thinking_frames, frame)
+
+      local think_output = frame:start_thinking(self._ai.CURRENT)
+      if think_output then
+         self:_spam_current_state('after start_thinking (%d of %d - %s)', index, #self._activities, activity.name)
+         assert(self._thinking)
+         table.insert(self._previous_think_output, think_output)
+         index = index + 1
+      else
+         frame:on_ready(function(frame, think_output)
+            assert(self._thinking)
+            table.insert(self._previous_think_output, think_output)
+            self:_start_thinking(index + 1)
+            -- xxx: listen for when frames become unready, right?      
+         end)
+         return
+      end
    end
-   local activity = self._activities[index]
-   self:_spam_current_state('start_thinking (%d of %d - %s)', index, #self._activities, activity.name)
-
-   local replaced = self:_replace_placeholders(activity.args)
-   local frame = self._ai:spawn(activity.name, replaced)
-   table.insert(self._thinking_frames, frame)
-
-   -- xxx: listen for when frames become unready, right?      
-   frame:start_thinking(self._ai.CURRENT, function(frame, think_output)
-      self:_spam_current_state('after start_thinking (%d of %d - %s)', index, #self._activities, activity.name)
-      assert(self._thinking)
-      table.insert(self._previous_think_output, think_output)
-      self:_start_thinking(index + 1)
-   end)
+   self:_set_think_output()   
 end
 
 function CompoundAction:_set_think_output()
