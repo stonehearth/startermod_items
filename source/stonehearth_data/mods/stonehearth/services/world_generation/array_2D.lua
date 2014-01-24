@@ -18,6 +18,10 @@ function Array2D:get_offset(x, y)
    return (y-1)*self.width + x
 end
 
+function Array2D:get_dimensions()
+   return self.width, self.height
+end
+
 function Array2D:is_boundary(x, y)
    if x == 1 or y == 1 then return true end
    if x == self.width or y == self.height then return true end

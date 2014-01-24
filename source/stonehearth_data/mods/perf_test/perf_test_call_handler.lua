@@ -13,7 +13,7 @@ function PerfTestCallHandler:get_world_generation_done(session, response)
 
    if is_running then
       local wgs = radiant.mods.load('stonehearth').world_generation
-      wgs:initialize(true, 1337)
+      wgs:initialize(1337, true)
       wgs:create_world()
 
       radiant.events.listen(radiant.events, 'stonehearth:generate_world_progress', self, function(s, e)

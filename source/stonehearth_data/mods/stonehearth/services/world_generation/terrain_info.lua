@@ -1,4 +1,5 @@
 local TerrainType = require 'services.world_generation.terrain_type'
+local NonUniformQuantizer = require 'services.world_generation.math.non_uniform_quantizer'
 
 local TerrainInfo = class()
 
@@ -41,6 +42,9 @@ function TerrainInfo:__init()
 
    -- tree lines
    --self.tree_line = foothills_info.max_height+mountains_info.step_size*2
+
+   local centroids = self:_get_quantization_centroids()
+   self.quantizer = NonUniformQuantizer(centroids)
 end
 
 function TerrainInfo:get_terrain_type(height)
@@ -63,6 +67,37 @@ function TerrainInfo:get_terrain_code(height)
    local step_number = (height - base_height) / step_size
 
    return string.format('%s_%d', terrain_type, step_number)
+end
+
+function TerrainInfo:_get_quantization_centroids()
+   local plains_info = self[TerrainType.plains]
+   local foothills_info = self[TerrainType.foothills]
+   local mountains_info = self[TerrainType.mountains]
+   local centroids = {}
+   local min, max, step_size
+   
+   min = self.min_height
+   max = plains_info.max_height
+   step_size = plains_info.step_size
+   for value = min, max, step_size do
+      table.insert(centroids, value)
+   end
+
+   min = plains_info.max_height + foothills_info.step_size
+   max = foothills_info.max_height
+   step_size = foothills_info.step_size
+   for value = min, max, step_size do
+      table.insert(centroids, value)
+   end
+
+   min = foothills_info.max_height + mountains_info.step_size
+   max = min + mountains_info.step_size*10
+   step_size = mountains_info.step_size
+   for value = min, max, step_size do
+      table.insert(centroids, value)
+   end
+
+   return centroids
 end
 
 return TerrainInfo

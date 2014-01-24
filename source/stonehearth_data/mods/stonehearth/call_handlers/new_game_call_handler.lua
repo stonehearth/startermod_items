@@ -9,7 +9,7 @@ local Region2 = _radiant.csg.Region2
 
 function NewGameCallHandler:new_game(session, response, seed)
    local wgs = radiant.mods.load('stonehearth').world_generation
-   wgs:initialize(true, seed)
+   wgs:initialize(seed, true)
    wgs:create_world()
    return {}
 end

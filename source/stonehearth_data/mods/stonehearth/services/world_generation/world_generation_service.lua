@@ -1,7 +1,9 @@
 local Array2D = require 'services.world_generation.array_2D'
 local BlueprintGenerator = require 'services.world_generation.blueprint_generator'
 local TerrainType = require 'services.world_generation.terrain_type'
-local TerrainGenerator = require 'services.world_generation.terrain_generator'
+local TerrainInfo = require 'services.world_generation.terrain_info'
+local TileGenerator = require 'services.world_generation.tile_generator'
+local MicroMapGenerator = require 'services.world_generation.micro_map_generator'
 local Landscaper = require 'services.world_generation.landscaper'
 local HeightMapRenderer = require 'services.world_generation.height_map_renderer'
 local FilterFns = require 'services.world_generation.filter.filter_fns'
@@ -20,22 +22,23 @@ local log = radiant.log.create_logger('world_generation')
 function WorldGenerationService:__init()
 end
 
-function WorldGenerationService:initialize(async, game_seed)
+function WorldGenerationService:initialize(game_seed, async)
+   log:info('WorldGenerationService using seed %d', game_seed)
+
    self._async = async
    self._game_seed = game_seed
    self._rng = RandomNumberGenerator(self._game_seed)
-   self._progress = 0
    self._enable_scenarios = radiant.util.get_config('enable_scenarios', false)
 
-   log:info('WorldGenerationService using seed %d', self._game_seed)
+   self._terrain_info = TerrainInfo()
+   self._tile_size = 256
+   self._macro_block_size = 32
 
    self._blueprint_generator = BlueprintGenerator(self._rng)
-
-   local tg = TerrainGenerator(self._rng, self._async)
-   self._terrain_generator = tg
-   self._height_map_renderer = HeightMapRenderer(tg.tile_size, tg.terrain_info)
-   self._landscaper = Landscaper(tg.terrain_info, tg.tile_size, tg.tile_size, self._rng, self._async)
-   self._terrain_info = tg.terrain_info
+   self._micro_map_generator = MicroMapGenerator(self._terrain_info, self._tile_size, self._macro_block_size, self._rng)
+   self._tile_generator = TileGenerator(self._terrain_info, self._tile_size, self._macro_block_size, self._rng, self._async)
+   self._height_map_renderer = HeightMapRenderer(self._tile_size, self._terrain_info)
+   self._landscaper = Landscaper(self._terrain_info, self._tile_size, self._tile_size, self._rng, self._async)
    local feature_cell_size = self._landscaper:get_feature_cell_size()
 
    self._scenario_service = radiant.mods.load('stonehearth').scenario
@@ -43,8 +46,9 @@ function WorldGenerationService:initialize(async, game_seed)
    self._habitat_manager = HabitatManager(self._terrain_info, self._landscaper)
 
    self.overview_map = OverviewMap(self._terrain_info, self._landscaper,
-      tg.tile_size, tg.macro_block_size, feature_cell_size)
+      self._tile_size, self._macro_block_size, feature_cell_size)
 
+   self._progress = 0
    radiant.events.listen(radiant.events, 'stonehearth:slow_poll', self, self._on_poll_progress)
 end
 
@@ -62,21 +66,27 @@ end
 
 function WorldGenerationService:create_world()
    local terrain_thread = function()
-      local cpu_timer = Timer(Timer.CPU_TIME)
-      local wall_clock_timer = Timer(Timer.WALL_CLOCK)
-      cpu_timer:start()
-      wall_clock_timer:start()
+      local world_seconds = Timer.measure(
+         function()
+            local blueprint
 
-      local blueprint
-      blueprint = self._blueprint_generator:generate_blueprint(5, 5)
-      --blueprint = self._blueprint_generator:get_empty_blueprint(1, 1) -- useful for debugging real world scenarios without waiting for the load time
-      --blueprint = self._blueprint_generator:get_static_blueprint()
-      self:_generate_world(blueprint)
+            local micro_map_seconds = Timer.measure(
+               function()
+                  blueprint = self._blueprint_generator:generate_blueprint(5, 5)
+                  --blueprint = self._blueprint_generator:get_empty_blueprint(1, 1,) -- useful for debugging real world scenarios without waiting for the load time
+                  --blueprint = self._blueprint_generator:get_static_blueprint()
 
-      cpu_timer:stop()
-      wall_clock_timer:stop()
-      log:info('World generation cpu time (excludes terrain ring tesselator): %.3fs', cpu_timer:seconds())
-      log:info('World generation wall clock time: %.0fs', wall_clock_timer:seconds())
+                  self._micro_map_generator:generate_micro_map(blueprint)
+               end
+            )
+
+            log:info('Micromap and blueprint generation time: %.3fs', micro_map_seconds)
+
+            self:_generate_world(blueprint)
+         end
+      )
+
+      log:info('World generation time (excludes terrain ring tesselator): %.3fs', world_seconds)
    end
 
    self.overview_map:clear()
@@ -91,8 +101,8 @@ end
 function WorldGenerationService:_generate_world(blueprint)
    local num_tiles_x = blueprint.width
    local num_tiles_y = blueprint.height
-   local terrain_info = self._terrain_generator.terrain_info
-   local tile_size = self._terrain_generator.tile_size
+   local terrain_info = self._terrain_info
+   local tile_size = self._tile_size
    local tile_map, micro_map, tile_info, tile_seed
    local origin_x, origin_y, offset_x, offset_y, offset
    local i, j, n, tile_order_list, num_tiles
@@ -106,7 +116,10 @@ function WorldGenerationService:_generate_world(blueprint)
 
    for n=1, num_tiles do
       i = tile_order_list[n].x
-      j = tile_order_list[n].y 
+      j = tile_order_list[n].y
+
+      log:info('Generating tile %d, %d', i, j)
+
       tile_info = blueprint:get(i, j)
       assert(not tile_info.generated)
 
@@ -123,8 +136,8 @@ function WorldGenerationService:_generate_world(blueprint)
       self._rng:set_seed(tile_seed)
 
       -- generate the heightmap for the tile
-      tile_map, micro_map = self._terrain_generator:generate_tile(tile_info.terrain_type, blueprint, i, j)
-      tile_info.micro_map = micro_map
+      micro_map = blueprint:get(i, j).micro_map
+      tile_map = self:_generate_tile(micro_map)
       self:_yield()
 
       -- clear features for new tile
@@ -157,43 +170,59 @@ function WorldGenerationService:_generate_world(blueprint)
    self:_on_poll_progress()
 end
 
+function WorldGenerationService:_generate_tile(micro_map)
+   local tile_map
+
+   local seconds = Timer.measure(
+      function()
+         tile_map = self._tile_generator:generate_tile(micro_map)
+      end
+   )
+
+   log:info('Tile generation time: %.3fs', seconds)
+   self:_yield()
+
+   return tile_map
+end
+
 function WorldGenerationService:_render_heightmap_to_region3(tile_map, offset)
    local renderer = self._height_map_renderer
    local region3_boxed
-   local timer = Timer(Timer.CPU_TIME)
-   timer:start()
 
-   region3_boxed = renderer:create_new_region()
-   renderer:render_height_map_to_region(region3_boxed, tile_map)
-   self._landscaper:place_boulders(region3_boxed, tile_map)
-   renderer:add_region_to_terrain(region3_boxed, offset)
+   local seconds = Timer.measure(
+      function()
+         region3_boxed = renderer:create_new_region()
+         renderer:render_height_map_to_region(region3_boxed, tile_map)
+         self._landscaper:place_boulders(region3_boxed, tile_map)
+         renderer:add_region_to_terrain(region3_boxed, offset)
+      end
+   )
 
-   timer:stop()
-   log:info('HeightMapRenderer time: %.3fs', timer:seconds())
+   log:info('HeightMapRenderer time: %.3fs', seconds)
    self:_yield()
 end
 
 function WorldGenerationService:_place_flora(tile_map, offset)
-   local timer = Timer(Timer.CPU_TIME)
-   timer:start()
+   local seconds = Timer.measure(
+      function()
+         self._landscaper:place_flora(tile_map, offset.x, offset.z)
+      end
+   )
 
-   self._landscaper:place_flora(tile_map, offset.x, offset.z)
-
-   timer:stop()
-   log:info('Landscaper time: %.3fs', timer:seconds())
+   log:info('Landscaper time: %.3fs', seconds)
    self:_yield()
 end
 
 function WorldGenerationService:_place_scenarios(habitat_map, elevation_map, offset)
    if not self._enable_scenarios then return end
 
-   local timer = Timer(Timer.CPU_TIME)
-   timer:start()
+   local seconds = Timer.measure(
+      function()
+         self._scenario_service:place_scenarios(habitat_map, elevation_map, offset.x, offset.z)
+      end
+   )
 
-   self._scenario_service:place_scenarios(habitat_map, elevation_map, offset.x, offset.z)
-
-   timer:stop()
-   log:info('ScenarioService time: %.3fs', timer:seconds())
+   log:info('ScenarioService time: %.3fs', seconds)
    self:_yield()
 end
 

@@ -99,7 +99,7 @@ function BlueprintGenerator:_is_playable_map(blueprint)
 end
 
 function BlueprintGenerator:get_static_blueprint()
-   local blueprint = self:_get_empty_blueprint(5, 5)
+   local blueprint = self:get_empty_blueprint(5, 5)
 
    blueprint:get(1, 1).terrain_type = TerrainType.plains
    blueprint:get(2, 1).terrain_type = TerrainType.plains
