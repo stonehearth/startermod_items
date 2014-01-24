@@ -11,7 +11,7 @@ FollowPathAction.priority = 1
 
 function FollowPathAction:start_thinking(ai, entity, args)
    ai.CURRENT.location = args.path:get_finish_point()
-   ai:get_log():debug('setting CURRENT.location %s (path = %s)', tostring(ai.CURRENT.location), tostring(args.path))
+   ai:get_log():debug('setting CURRENT.location %s (path = %s) %s', tostring(ai.CURRENT.location), tostring(args.path), tostring(ai.CURRENT))
    ai:set_think_output()
 end
 

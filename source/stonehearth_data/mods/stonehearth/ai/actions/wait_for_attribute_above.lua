@@ -16,6 +16,11 @@ function WaitForAttributeAbove:start_thinking(ai, entity, args)
    self._signaled = false
    local attribute = 'stonehearth:attribute_changed:' .. args.attribute
    radiant.events.listen(entity, attribute, self, self._attribute_changed)
+   
+   if radiant.entities.get_attribute(entity, args.attribute) >= args.value then
+      self._signaled = true
+      self._ai:set_think_output()
+   end
 end
 
 function WaitForAttributeAbove:stop_thinking(ai, entity, args)
@@ -28,7 +33,7 @@ function WaitForAttributeAbove:_attribute_changed(e)
       self._signaled = true
       self._ai:set_think_output()
    elseif e.value < self._above_value and self._signaled then
-      self._signaled= false
+      self._signaled = false
       self._ai:clear_think_output()
    end
 end

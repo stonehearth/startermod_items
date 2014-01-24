@@ -16,6 +16,7 @@
             "stonehearth:actions:run_to_entity",
             "stonehearth:actions:run_to_entity_type",
             "stonehearth:actions:run_to_location_action",
+            "stonehearth:actions:material_to_filter_fn",
             "stonehearth:actions:goto_item_made_of",
             "stonehearth:actions:create_proxy_entity",
             "stonehearth:actions:idle_top_action",

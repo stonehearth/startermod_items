@@ -15,9 +15,9 @@ function StateMachine:__init(instance, thread, log)
    self._thread:set_msg_handler(function (...) self:_dispatch_msg(...) end)
 end
 
-
 function StateMachine:in_state(...)
-   for _, state in ipairs({...}) do
+   local states = { ... }
+   for _, state in ipairs(states) do
       if self._state == state then
          return true
       end

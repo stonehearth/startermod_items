@@ -15,7 +15,7 @@ function GetFoodFromContainerAdjacent:run(ai, entity, args)
 
    local container_data = radiant.entities.get_entity_data(container, 'stonehearth:food_container')
    if not container_data then
-      ai:abort("%s has no stonehearth:food_container entity data", container)
+      ai:abort("%s has no stonehearth:food_container entity data", tostring(container))
       return
    end
    

@@ -143,26 +143,6 @@ function AiService:create_execution_unit(parent_thread, entity, injecting_entity
    return ExecutionUnitV2(parent_thread, entity, injecting_entity, action, args, action_index)
 end
 
--- simply used to create a different version of a function based on the arguments passed
--- in.  used to evaluate placeholders at the time arguments are passed to an action
-function AiService:create_function(fn, ...)
-   local args = {...}
-
-   local func = function(...)
-      -- there's probably some magic we could do with currying, but this is straight
-      -- forward and i'm still on my first cup of coffee.
-      local call_args = {}
-      for _, arg in ipairs(args) do
-         table.insert(call_args, arg)
-      end
-      for _, arg in ipairs({...}) do
-         table.insert(call_args, arg)
-      end
-      return fn(unpack(call_args))
-   end
-   return func
-end
-
 function AiService:create_compound_action(action_ctor)
    assert(action_ctor)
    -- cannot implement anything here.  it gets really confusing (where does start_thinking forward

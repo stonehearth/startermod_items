@@ -4,7 +4,6 @@ local next_thread_id = 1
 local Thread = class()
 Thread.SUSPEND = { name = "SUSPEND" }
 Thread.KILL = { name = "KILL" }
-Thread.DEAD = { name = "DEAD" }
 
 Thread.scheduled = {}
 Thread.is_scheduled = {}
@@ -36,16 +35,23 @@ function Thread.schedule_thread(thread)
 end
 
 function Thread.resume_thread(thread)
-   local status, err = thread:_resume()
-   
-   if status == Thread.DEAD then
+   local success, thread_status, result1 = thread:_do_resume()
+   assert(success)
+
+   local status = coroutine.status(thread._co)
+   if status == 'dead' then
       Thread.terminate_thread(thread)
-   elseif status == Thread.SUSPEND then
-      -- nothing to do...
-   elseif status == Thread.KILL then
-      Thread.terminate_thread(thread, err)
+      return
+   elseif status == 'suspended' then
+      if thread_status == Thread.SUSPEND then
+         -- nothing to do...
+      elseif thread_status == Thread.KILL then
+         Thread.terminate_thread(thread, result1)
+      else
+         error('unknown thread_status "%s" returned from resume', tostring(thread_status))
+      end
    else
-      error('unknown status returned from thread')
+      error('unknown thread state "%s" returned from resume', tostring(status))
    end
 end
 
@@ -54,7 +60,11 @@ function Thread.wait_thread(thread)
    assert(current_thread)
    assert(not thread:is_running())
 
+   local log = current_thread._log
    thread:wait_for_children()
+   if not thread._finished then
+      log:detail('thread %d still not finished.  entering spin loop', thread._id)
+   end
    while not thread._finished do
       local waiters = Thread.waiting_for[thread._id]
       if not waiters then
@@ -62,7 +72,7 @@ function Thread.wait_thread(thread)
          Thread.waiting_for[thread._id] = waiters
       end
       waiters[current_thread._id] = current_thread
-      current_thread:suspend(string.format('waiting for thread %d to finish', thread._id))
+      current_thread:suspend(string.format('%d waiting for thread %d to finish', current_thread._id, thread._id))
    end
 end
 
@@ -74,7 +84,7 @@ function Thread.terminate_thread(thread, err)
    Thread.waiting_for[thread._id] = nil
 
    for _, waiter in pairs(waiters) do
-      waiter:resume('wait for %d likely to succeed', thread._id)
+      waiter:resume('resuming thread %d (waiting for %d)', waiter._id, thread._id)
    end
 end
 
@@ -171,10 +181,16 @@ function Thread:start(...)
    assert(not self._finished)
 
    self._co = coroutine.create(function ()
-         self:_dispatch_messages()
-         self._should_resume = true
-         self._thread_main(unpack(args))
-         self._should_resume = false
+         -- make a pcall.. this only works because we've installed coco
+         local success, err = pcall(function()
+               self:_dispatch_messages()
+               self._should_resume = true
+               self._thread_main(unpack(args))
+               self._should_resume = false
+            end)
+         if not success then
+            radiant.check.report_thread_error(self._co, 'thread error: ' .. err)
+         end
       end)
    self._log:detail('starting thread')   
    Thread.resume_thread(self)
@@ -182,20 +198,36 @@ function Thread:start(...)
    return self
 end
 
+function Thread:thunk(fn)
+   if not self._finished then
+      if self:is_running() then
+         fn()
+      else
+         self:send_msg('thread:thunk', fn)
+      end
+   end
+end
+
 function Thread:wait()
-   self._log:detail('waiting for thread %d to finish', self._id)
+   local log = Thread.current_thread._log
+   log:detail('thread %d waiting for thread %d to finish', Thread.current_thread._id, self._id)
    Thread.wait_thread(self)
-   self._log:detail('returning from wait for %d', self._id)
+   log:detail('returning from wait for %d', self._id)
 end
 
 function Thread:wait_for_children()
-   self._log:detail('waiting for children to finish...')
+   local log = Thread.current_thread._log
+   
+   log:detail('waiting for children to finish...')
+   for id, _ in pairs(self._child_threads) do
+      log:spam('   %d still not finished...', id)
+   end
    local id, first_child = next(self._child_threads)
    while first_child do
       first_child:wait()
-      first_child = next(self._child_threads)
+      id, first_child = next(self._child_threads)
    end
-   self._log:detail('all children have finished.')
+   log:detail('all children have finished.')
    assert(not next(self._child_threads) )
 end
 
@@ -256,14 +288,13 @@ end
 -- moral?), you still need to _complete_thread_termination later,
 -- which will make sure the thread doesn't get rescheduled.
 function Thread:terminate(err)
-   assert(err)
    assert(not self._finished)
-   self._log:detail('terminating thread: %s', err)
+   self._log:detail('terminating thread: %s', err or '(no error)')
    if self:is_running() then
       self:_do_yield(Thread.KILL, err)
-      radiant.not_reached('no return after yielding Thread.DEAD')
+      radiant.not_reached('no return after yielding Thread.KILL')
    else
-      Thread.terminate_thread(self)
+      Thread.terminate_thread(self, err)
    end
 end
 
@@ -295,17 +326,20 @@ function Thread:_child_finished(thread)
 end
 
 function Thread:_on_thread_exit(err)
-   if self._parent then
-      self._parent:_child_finished(self)
-      self._parent:send_msg('child_thread_exit', self, err)
-   end
+   self._log:detail('thread %d has finished', self._id)
    self._finished = true
    self._msgs = {}
    if self._exit_handler then
       self._exit_handler(self, err)
    end
+   
+   if self._parent then
+      self._parent:_child_finished(self)
+      self._parent:send_msg('child_thread_exit', self, err)
+   end
 end
 
+   --[[ this should never happen, as thread main is in a coroutine!
 function Thread:_resume()
    assert(self._co)
    assert(self._suspended)
@@ -330,6 +364,7 @@ function Thread:_resume()
       error(string.format('unknown status "%s" returned from coroutine.status', status))
    end
 end
+   ]]
 
 function Thread:_dispatch_messages()
    -- keep draining the queue till it's empty
@@ -338,8 +373,15 @@ function Thread:_dispatch_messages()
       local msgs = self._msgs
       self._msgs = {}
       for _, msg in ipairs(msgs) do
-         self._log:detail('dispatching msg "%s"', tostring(msg[1]))
-         self._msg_handler(unpack(msg))
+         local msg_name = msg[1]
+         self._log:detail('dispatching msg "%s"', tostring(msg_name))
+         local private_msg = Thread.private_messages[msg_name]
+         if private_msg then
+            private_msg(self, select(2, unpack(msg)))
+         elseif self._msg_handler then
+            self._msg_handler(unpack(msg))
+         end
+         
          if self._finished then
             break
          end
@@ -347,6 +389,10 @@ function Thread:_dispatch_messages()
    end
    self._log:spam('finished dispatch message loop.')
 end
+
+Thread.private_messages = {
+   ['thread:thunk'] = Thread.thunk,
+}
 
 return Thread
 

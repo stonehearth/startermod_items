@@ -22,6 +22,8 @@ function MaterialComponent:extend(json)
 end
 
 function MaterialComponent:is(tags_string)
+   assert(type(tags_string) == 'string', 'first argument to is() must be a string')
+   
    local tags = self:_split_string(tags_string)
    for _, tag in ipairs(tags) do
       if not self._data.tags[tag] then

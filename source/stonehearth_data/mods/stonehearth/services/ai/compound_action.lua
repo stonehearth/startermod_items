@@ -16,15 +16,17 @@ function CompoundAction:__init(action, activities, when_predicates, think_output
    self._when_predicates = when_predicates
    self._activities = activities
    self._think_output_placeholders = think_output_placeholders
-   self._spawned_frames = {}
+   self._thinking_frames = {}
+   self._running_frames = {}
    self._previous_think_output = {}
    self.version = 2
    self._id = stonehearth.ai:get_next_object_id()   
 end
 
 function CompoundAction:start_thinking(ai, entity, args)
-   assert(#self._spawned_frames == 0)
+   assert(#self._thinking_frames == 0)
    assert(#self._previous_think_output == 0)
+   assert(not self._thinking)
    
    self._ai = ai
    self._args = args
@@ -37,13 +39,13 @@ function CompoundAction:start_thinking(ai, entity, args)
       self._log:spam('when %d succeeded', i)
    end
    
+   self._thinking = true
    self:_start_thinking(1)
 end
 
 function CompoundAction:_start_thinking(index)
-   assert(not self._thinking)
+   assert(self._thinking)
 
-   self._thinking = true
    if index > #self._activities then
       self:_set_think_output()
       return
@@ -53,10 +55,10 @@ function CompoundAction:_start_thinking(index)
 
    local replaced = self:_replace_placeholders(activity.args)
    local frame = self._ai:spawn(activity.name, replaced)
-   table.insert(self._spawned_frames, frame)
+   table.insert(self._thinking_frames, frame)
 
    -- xxx: listen for when frames become unready, right?      
-   frame:start_thinking(self._ai.CURRENT, function(think_output)
+   frame:start_thinking(self._ai.CURRENT, function(frame, think_output)
       self:_spam_current_state('after start_thinking (%d of %d - %s)', index, #self._activities, activity.name)
       assert(self._thinking)
       table.insert(self._previous_think_output, think_output)
@@ -65,19 +67,26 @@ function CompoundAction:_start_thinking(index)
 end
 
 function CompoundAction:_set_think_output()
-   self._thinking = false
+   assert(self._thinking)
+   
    if self._think_output_placeholders then
       local replaced = self:_replace_placeholders(self._think_output_placeholders)
-      ai:set_think_output(replaced)
+      self._ai:set_think_output(replaced)
    else
-      ai:set_think_output()
+      self._ai:set_think_output()
    end   
 end
 
 function CompoundAction:stop_thinking(ai, entity, ...)
-   for i=#self._spawned_frames,1,-1 do
-      self._spawned_frames[i]:stop_thinking()
-   end  
+   self._thinking = false
+   
+   self._previous_think_output = {}
+   for i=#self._thinking_frames,1,-1 do
+      self._thinking_frames[i]:send_msg('stop_thinking') -- must be asynchronous!
+   end
+   self._log:debug('switching thinking frames to running frames')
+   self._running_frames = self._thinking_frames
+   self._thinking_frames = {}
 end
 
 function CompoundAction:_replace_placeholders(args)
@@ -86,7 +95,7 @@ function CompoundAction:_replace_placeholders(args)
       if type(value) == 'table' and value.__placeholder then
          local result = value:__eval(self)
          if result == nil or result == placeholders.INVALID_PLACEHOLDER then
-            self._ai:abort('placeholder %s failed to return a value in %s', tostring(value), self.name)
+            self._ai:abort('placeholder %s failed to return a value in "%s" action', tostring(value), self.name)
          end
          replaced[name] = result
       elseif type(value) == 'table' and not radiant.util.is_instance(value) and not radiant.util.is_class(value) then
@@ -99,26 +108,31 @@ function CompoundAction:_replace_placeholders(args)
 end
 
 function CompoundAction:start()
-   for _, frame in ipairs(self._spawned_frames) do
-      frame:start()
+   for _, frame in ipairs(self._thinking_frames) do
+      frame:start() -- must be synchronous!
    end
+   self._log:detail('finished starting all compound action frames')
 end
 
 function CompoundAction:run(ai, entity, ...)
-   for _, frame in ipairs(self._spawned_frames) do
-      frame:run()
+   for _, frame in ipairs(self._running_frames) do
+      frame:run() -- must be synchronous!
    end
 end
 
 function CompoundAction:stop()
-   for i = #self._spawned_frames, 1, -1 do
-      self._spawned_frames[i]:stop()
+   for i = #self._running_frames, 1, -1 do
+      self._running_frames[i]:send_msg('stop') -- must be asynchronous!
    end
+   self._running_frames = {}
 end
 
 function CompoundAction:destroy()
-   for i = #self._spawned_frames, 1, -1 do
-      self._spawned_frames[i]:terminate()
+   local frames = (#self._thinking_frames > 0) and self._thinking_frames or self._running_frames
+   
+   for i = #frames, 1, -1 do
+      local frame = frames[i]
+      frame:send_msg('shutdown') -- must be asynchronous!
    end
 end
 
@@ -130,7 +144,7 @@ function CompoundAction:get_debug_info()
       priority = self.priority,
       execution_frames = {}
    }
-   for _, f in ipairs(self._spawned_frames) do
+   for _, f in ipairs(self._thinking_frames) do
       table.insert(info.execution_frames, f:get_debug_info())
    end
    return info

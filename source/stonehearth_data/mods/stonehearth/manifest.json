@@ -168,6 +168,7 @@
          "actions:run_away_from_entity" : "file(ai/actions/run_away_from_entity_action.lua)",
          "actions:run_towards_entity" : "file(ai/actions/run_towards_entity_action.lua)",
          "actions:run_to_location_action" : "file(ai/actions/run_to_location_action.lua)",
+         "actions:material_to_filter_fn" : "file(ai/actions/material_to_filter_fn_action.lua)",
          "actions:goto_item_made_of" : "file(ai/actions/goto_item_made_of.lua)",
          "actions:create_proxy_entity" : "file(ai/actions/create_proxy_entity.lua)",
          "actions:fear_fire" : "file(ai/actions/fear_fire_action.lua)",

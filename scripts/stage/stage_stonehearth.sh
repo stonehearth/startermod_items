@@ -91,7 +91,7 @@ if [ ! -z $STAGE_BIN ]; then
    echo Copying lua binaries
 
    # vanilla lua. no jit.  no fun.
-   LUA_ROOT=$STONEHEARTH_ROOT/modules/lua/package/lua
+   LUA_ROOT=$STONEHEARTH_ROOT/modules/lua/package/lua-5.1.5-coco
    cp -u $LUA_ROOT/solutions/$MODULE_BUILD_TYPE/lua-5.1.5.dll $OUTPUT_DIR
 
    # luajit up in here! party time!!

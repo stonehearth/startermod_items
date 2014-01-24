@@ -52,7 +52,7 @@ function FindPathToEntityType:_remove_destination(ai, entity, id)
       if id == self._solution_entity_id then
          -- rats!  the thing we found earlier is no longer in the world.  revoke our
          -- current solution and restart the pathfinder
-         ai:clear_think_output()
+         ai:clear_think_output('previous destination is gone!')
          self:_stop_pathfinder(ai, entity)
          self:_start_pathfinder(ai, entity)
       else
@@ -85,6 +85,10 @@ function FindPathToEntityType:_start_pathfinder(ai, entity)
                          :set_source(ai.CURRENT.location)
                          :set_solved_cb(solved)
    self._promise = radiant.terrain.trace_world_entities('find path to entity type', on_added, on_removed)
+end
+
+function FindPathToEntityType:run()
+   self:_stop_pathfinder()
 end
 
 function FindPathToEntityType:_stop_pathfinder(ai, entity)

@@ -5,7 +5,7 @@ local THINKING = 'thinking'
 local READY = 'ready'
 local STARTED = 'started'
 local RUNNING = 'running'
-local HALTED = 'halted'
+local FINISHED = 'finished'
 local STOPPED = 'stopped'
 local DEAD = 'dead'
 local ABORTED = 'aborted'
@@ -37,7 +37,7 @@ function ExecutionUnitV2:__init(parent_thread, entity, injecting_entity, action,
       self._ai_interface[fn] = function(i, ...) return self['__'..fn](self, ...) end
    end
    chain_function('set_think_output')
-   chain_function('revoke_think_output')
+   chain_function('clear_think_output')
    chain_function('spawn')
    chain_function('execute')   
    chain_function('suspend')
@@ -134,17 +134,25 @@ end
 
 function ExecutionUnitV2:_dispatch_msg(msg, ...)
    local method = '_' .. msg .. '_from_' .. self._state
-   local dispatch_msg_fn = self[method]
+   local invoked = method
+   local dispatch_msg_fn = self[invoked]
    
    if not dispatch_msg_fn and self._state == 'ready' then
       self._log:detail('no %s handler.  trying to remap to the thinking handler.', method)
       -- cheat a little bit... there's almost no distinction how transitions from 'ready' and 'thinking'
       -- are handled (with the execption of start)...  so if there's not a handler for the current
       -- msg from the ready state, try the thinking one.  that way we don't have to duplicate code
-      dispatch_msg_fn = self['_' .. msg .. '_from_thinking']
+      invoked = '_' .. msg .. '_from_thinking'
+      dispatch_msg_fn = self[invoked]
    end
-
+   if not dispatch_msg_fn then
+      -- try the 'anystate' fallback
+      invoked = '_' .. msg .. '_from_anystate'
+      dispatch_msg_fn = self[invoked]
+   end
+   
    assert(dispatch_msg_fn, string.format('unknown state transition in execution frame "%s"', method))
+   self._log:detail('calling ' .. invoked)
    dispatch_msg_fn(self, ...)
 end
 
@@ -152,6 +160,7 @@ function ExecutionUnitV2:_call_action(method)
    local call_action_fn = self._action[method]
    if call_action_fn then
       self._calling_method = method
+      self._log:detail('calling action %s', method)
       call_action_fn(self._action, self._ai_interface, self._entity, self._args)
       self._calling_method = nil
    else
@@ -163,14 +172,8 @@ end
 function ExecutionUnitV2:_start_thinking_from_stopped(entity_state)
    assert(not self._thinking)
 
-   self._thinking = true
-   self._current_entity_state = entity_state
-   self._ai_interface.CURRENT = entity_state
-
    self:_set_state(THINKING)
-   if not self:_call_action('start_thinking') then
-      self:send_msg('set_think_output')
-   end
+   self:_start_thinking(entity_state)
 end
 
 function ExecutionUnitV2:_set_think_output_from_thinking(think_output)
@@ -183,9 +186,13 @@ function ExecutionUnitV2:_set_think_output_from_thinking(think_output)
    self:_set_state(READY)
 end
 
-function ExecutionUnitV2:_revoke_think_output_from_thinking(entity_state)
+function ExecutionUnitV2:_clear_think_output_from_thinking()
    self._parent_thread:send_msg('unit_not_ready', self)
    self:_set_state(THINKING)
+end
+
+function ExecutionUnitV2:_clear_think_output_from_finished()
+   -- who cares?
 end
 
 function ExecutionUnitV2:_stop_thinking_from_thinking()
@@ -194,12 +201,31 @@ function ExecutionUnitV2:_stop_thinking_from_thinking()
    self:_set_state(STOPPED)
 end
 
+function ExecutionUnitV2:_stop_thinking_from_started()
+   if self._thinking then
+      self:_stop_thinking()
+   end
+   -- stay in the started stated.
+end
+
 function ExecutionUnitV2:_start_from_ready()
    assert(self._thinking)
 
-   self:_stop_thinking()
-   self:_call_action('start') 
+   self:_start()
    self:_set_state(STARTED)
+   self:_stop_thinking()   
+   self._parent_thread:send_msg('unit_started', self)
+end
+
+function ExecutionUnitV2:_run_from_ready()
+   assert(self._thinking)
+
+   self:_start()
+   self:_set_state(RUNNING)
+   self:_stop_thinking()
+   self:_call_action('run')
+   self:_set_state(FINISHED)
+   self._parent_thread:send_msg('unit_finished', self)
 end
 
 function ExecutionUnitV2:_run_from_started()
@@ -207,72 +233,114 @@ function ExecutionUnitV2:_run_from_started()
 
    self:_set_state(RUNNING)
    self:_call_action('run')
-   self:_set_state(HALTED)
-   self._parent_thread:send_msg('unit_halted', self)
+   self:_set_state(FINISHED)
+   self._parent_thread:send_msg('unit_finished', self)
 end
 
 function ExecutionUnitV2:_stop_from_thinking()
    assert(self._thinking)
 
    self:_stop_thinking()
-   self:_call_action('stop')
    self:_set_state(STOPPED)
    self._parent_thread:send_msg('unit_stopped', self)
 end
 
-function ExecutionUnitV2:_stop_from_halted()
+function ExecutionUnitV2:_stop_from_finished()
    assert(not self._thinking)
 
-   self:_call_action('stop')
+   self:_stop()
    self:_set_state(STOPPED)
    self._parent_thread:send_msg('unit_stopped', self)
 end
 
-function ExecutionUnitV2:_shutdown_from_stopped()
-   assert(not self._thinking)
-   assert(not self._execute_frame)
-
-   self:_call_action('destroy')
-   self:_terminate('shutting down')
-end
-
-function ExecutionUnitV2:_terminate_from_running(reason)
+function ExecutionUnitV2:_shutdown_from_anystate()
    assert(not self._thinking)
 
-   self:_set_state(DEAD)
-   if self._execute_frame then
-      self._execute_frame:send_msg('terminate', reason)
-   end
-   self:_call_action('destroy')
+   self:_burn_it_all_down()
+   self._thread:terminate()
 end
 
-function ExecutionUnitV2:_child_thread_exit_from_running(thread, err)
-   local frame = thread:get_user_data()
-   assert(frame == self._execute_frame)
+function ExecutionUnitV2:_terminate_from_anystate(reason)
+   assert(reason)
+   self:_terminate(reason)
+end
+
+function ExecutionUnitV2:_child_thread_exit_from_anystate(thread, err)
    if err then
       self._log:debug('execution frame died while running (%s)', err)
-      self._terminate(err)
+      self:_terminate(err)
    end
 end
 
--- terminate is private because it's only valid to call it on our thread
--- after we've called stop_thinking, stop, and destroy on the action
-function ExecutionUnitV2:_terminate(reason)
-   -- terminate to ensure that we process no more messeages.
-   assert(self._thread:is_running())
-   self._thread:terminate(reason)
-   radiant.not_reached()
+function ExecutionUnitV2:_start()
+   self._log:debug('_start (state:%s)', tostring(self._state))
+   assert(self._thinking)
+   assert(not self._started)
+   
+   self._started = true
+   self:_call_action('start')
+end
+
+function ExecutionUnitV2:_stop()
+   self._log:debug('_stop (state:%s)', tostring(self._state))
+   assert(not self._thinking)
+   assert(self._started)
+   
+   self._started = false
+   self:_call_action('stop')
+end
+
+function ExecutionUnitV2:_start_thinking(entity_state)
+   self._log:debug('_start_thinking (state:%s)', tostring(self._state))
+   assert(not self._thinking)
+   
+   self._thinking = true
+   self._current_entity_state = entity_state
+   self._ai_interface.CURRENT = entity_state
+
+   if not self:_call_action('start_thinking') then
+      self:send_msg('set_think_output')
+   end
 end
 
 function ExecutionUnitV2:_stop_thinking()
-   self._log:debug('stop_thinking (state:%s)', tostring(self._state))
+   self._log:debug('_stop_thinking (state:%s)', tostring(self._state))
    assert(self._thinking)
 
    self._current_entity_state = nil
    self._ai_interface.CURRENT = nil
    self._thinking = false
-
+   
    self:_call_action('stop_thinking')
+end
+
+-- we're about to die.  tear evertying down (asynchronously, of course)
+function ExecutionUnitV2:_burn_it_all_down()
+   assert(self._thread:is_running())
+   
+   self:_set_state(DEAD)
+   self._thread:set_msg_handler(nil)
+
+   if self._thinking then
+      assert(not self._execute_frame)
+      sef:_stop_thinking()
+   end   
+   if self._execute_frame then
+      self._execute_frame:send_msg('shutdown')
+      self._execute_frame = nil
+   end
+   if self._started then
+      self:_stop()
+   end
+   self:_call_action('destroy')
+end
+
+function ExecutionUnitV2:_terminate(err)
+   assert(err)
+   assert(self._thread:is_running())
+
+   self:_burn_it_all_down()   
+   error(err)
 end
 
 -- the interface facing actions (i.e. the 'ai' interface)
@@ -298,9 +366,10 @@ function ExecutionUnitV2:__set_think_output(args)
    self:send_msg('set_think_output', args)
 end
 
-function ExecutionUnitV2:__revoke_think_output()
-   self._log:debug('__revoke_think_output %s called')
-   self:send_msg('revoke_think_output')
+function ExecutionUnitV2:__clear_think_output(format, ...)
+   local reason = format and string.format(format, ...) or 'no reason given'
+   self._log:debug('__clear_think_output called (reason: %s)', reason)
+   self:send_msg('clear_think_output')
 end
 
 function ExecutionUnitV2:__spawn(name, args)   
@@ -311,18 +380,25 @@ function ExecutionUnitV2:__spawn(name, args)
 end
 
 function ExecutionUnitV2:__suspend(format, ...)
-   assert(self._thread:is_running())
+   assert(self._thread:is_running(), 'cannot call ai:suspend() when not running')
    local reason = format and string.format(format, ...) or 'no reason given'
    self._log:spam('__suspend called (reason: %s)', reason)
    self._thread:suspend(reason)
+
+   -- we should never allow the thread to comeback in the DEAD state.  that means
+   -- we've been termianted when suspended, and shouldn't be running at all!
+   assert (self._state ~= DEAD, string.format('thread resumed into DEAD state.'))
 end
 
 function ExecutionUnitV2:__resume(format, ...)
    local reason = format and string.format(format, ...) or 'no reason given'
    self._log:spam('__resume called (reason: %s)', reason)
 
-   assert(not self._thread:is_running())
-   self._thread:resume(reason)
+   if self._state == DEAD then
+      self._log:debug('ignoring call to resume in dead state')
+   else
+      self._thread:resume(reason)
+   end
 end
 
 function ExecutionUnitV2:__abort(reason, ...)
@@ -333,8 +409,8 @@ function ExecutionUnitV2:__abort(reason, ...)
       -- abort is not allowed to return.  evar!  so if the thread is currently
       -- running, we have no choice but to abort it.  if we ever leave this
       -- function, we'll break the 'abort does not return' contract we have with
-      -- the action      
-      self._thread:terminate('aborted: ' .. reason)
+      -- the action
+      self:_terminate(reason)
       radiant.not_reached('abort does not return')
    else
       self._thread:send_msg('terminate', reason)
@@ -402,11 +478,9 @@ end
 function ExecutionUnitV2:_set_state(state)
    self._log:debug('state change %s -> %s', tostring(self._state), state)
    assert(state and self._state ~= state)
-   assert(self._state ~= DEAD)
-   self._state = state
-   if self._state == DEAD then
-      self._thread:resume('time to die...')
-   end
+   assert(self._state ~= DEAD, string.format('cannot transition to %s from DEAD', state))
+   
+   self._state = state   
 end
 
 function ExecutionUnitV2:_spam_current_state(msg)

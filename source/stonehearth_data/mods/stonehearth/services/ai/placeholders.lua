@@ -43,7 +43,7 @@ function PLACEHOLDER_mt.__index(t, key)
             result = obj.__index[key]
          end
          if not result then
-            return INVALID_VALUE
+            return INVALID_PLACEHOLDER
          end
          return result
       end,

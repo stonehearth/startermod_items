@@ -12,13 +12,8 @@ PickupItemMadeOf.think_output = {
 PickupItemMadeOf.version = 2
 PickupItemMadeOf.priority = 1
 
-local is_material = function (material, item)
-   return radiant.entities.is_material(item, material)
-end
-
 local ai = stonehearth.ai
 return ai:create_compound_action(PickupItemMadeOf)
-         :execute('stonehearth:pickup_item_type', {
-            filter_fn = ai:create_function(is_material, ai.ARGS.material)
-         })            
+         :execute('stonehearth:material_to_filter_fn', { material = ai.ARGS.material })
+         :execute('stonehearth:pickup_item_type', { filter_fn = ai.PREV.filter_fn })
          :set_think_output({ item = ai.PREV.item })
