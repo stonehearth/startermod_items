@@ -1,20 +1,21 @@
 local RunTaskAction = class()
 
-function RunTaskAction:__init(ai, task, scheduler_activity)
+function RunTaskAction:__init(task, scheduler_activity)
    self._id = stonehearth.ai:get_next_object_id()   
-   self._ai = ai
    self._task = task
-   
-   local activity = task:get_activity()
-   self._execution_frame = ai:spawn(activity.name, activity.args)
-   radiant.events.listen(self._execution_frame, 'ready', function()
-         ai:set_think_output()
-      end)
-   self._args = activity.args
+end
 
-   radiant.events.listen(task, 'started', self, self._start_stop_thinking)
-   radiant.events.listen(task, 'stopped', self, self._start_stop_thinking)
-   radiant.events.listen(task, 'work_available', self, self._start_stop_thinking)
+function RunTaskAction:_create_execution_frame(ai)
+   if not self._execution_frame then
+      self._ai = ai      
+      local activity = self._task:get_activity()
+      self._args = activity.args
+
+      self._execution_frame = ai:spawn(activity.name, activity.args)
+      radiant.events.listen(self._task, 'started', self, self._start_stop_thinking)
+      radiant.events.listen(self._task, 'stopped', self, self._start_stop_thinking)
+      radiant.events.listen(self._task, 'work_available', self, self._start_stop_thinking)
+   end
 end
 
 function RunTaskAction:_start_stop_thinking()
@@ -22,7 +23,15 @@ function RunTaskAction:_start_stop_thinking()
       local should_think = self._should_think and self._task:__action_can_start(self)
       if should_think and not self._thinking then
          self._thinking = true
-         self._execution_frame:start_thinking()
+         local think_output = self._execution_frame:start_thinking(self._ai.CURRENT)
+         if think_output then
+            self._ai:set_think_output(think_output)
+         else
+            self._execution_frame:on_ready(function(frame, think_output)
+               self._ai:set_think_output()
+            end)
+         end
+
       elseif not should_think and self._thinking then      
          self._thinking = false
          self._execution_frame:stop_thinking()
@@ -44,6 +53,8 @@ function RunTaskAction:get_debug_info(debug_route)
 end
 
 function RunTaskAction:start_thinking(ai, entity)
+   self:_create_execution_frame(ai)
+
    self._should_think = true
    self:_start_stop_thinking()
 end
@@ -69,12 +80,19 @@ function RunTaskAction:run(...)
 end
 
 function RunTaskAction:stop()
-   self._execution_frame:stop()
+   if self._execution_frame then
+      self._execution_frame:stop()
+      self._execution_frame:destroy()
+      self._execution_frame = nil
+   end
    self._task:__action_stopped(self)
 end
 
 function RunTaskAction:destroy()
-   self._execution_frame:destroy()
+   if self._execution_frame then
+      self._execution_frame:destroy()
+      self._execution_frame = nil
+   end
 end
 
 return RunTaskAction

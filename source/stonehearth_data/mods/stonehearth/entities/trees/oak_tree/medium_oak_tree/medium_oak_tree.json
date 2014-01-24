@@ -22,7 +22,7 @@
       }, 
       "stonehearth:resource_node": {
          "resource": "stonehearth:oak_log", 
-         "durability": 12
+         "durability": 1
       }
    }
 }

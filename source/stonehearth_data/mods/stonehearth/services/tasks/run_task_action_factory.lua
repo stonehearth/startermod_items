@@ -12,7 +12,7 @@ function RunTaskActionFactory:__init(task, priority, scheduler_activity)
 end
 
 function RunTaskActionFactory:create_action(ai_component, entity, injecting_entity)
-   local action = RunTaskAction(ai_component, self._task, self._scheduler_activity)
+   local action = RunTaskAction(self._task, self._scheduler_activity)
    action.name = self.name
    action.does = self.does
    action.args = self.args

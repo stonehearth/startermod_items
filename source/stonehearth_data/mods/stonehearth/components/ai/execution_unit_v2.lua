@@ -249,23 +249,25 @@ function ExecutionUnitV2:_stop_from_finished()
    self:_set_state(STOPPED)
 end
 
+function ExecutionUnitV2:_destroy_from_thinking()
+   assert(self._thinking)
+   assert(not self._execute_frame)
+   self:_call_action('stop_thinking')
+   self:_call_action('destroy')
+   self:_set_state(DEAD)
+end
+
 function ExecutionUnitV2:_destroy_from_stopped()
    assert(not self._thinking)
    assert(not self._execute_frame)
    self:_call_action('destroy')
    self:_set_state(DEAD)
 end
-
-function ExecutionUnitV2:_terminate_from_anystate(reason)
-   assert(reason)
-   self:_terminate(reason)
-end
-
-function ExecutionUnitV2:_child_thread_exit_from_anystate(thread, err)
-   if err then
-      self._log:debug('execution frame died while running (%s)', err)
-      self:_terminate(err)
-   end
+function ExecutionUnitV2:_destroy_from_finished()
+   assert(not self._thinking)
+   assert(not self._execute_frame)
+   self:_call_action('destroy')
+   self:_set_state(DEAD)
 end
 
 function ExecutionUnitV2:_start()
@@ -310,35 +312,7 @@ function ExecutionUnitV2:_stop_thinking()
    self:_call_action('stop_thinking')
 end
 
--- we're about to die.  tear evertying down (asynchronously, of course)
-function ExecutionUnitV2:_burn_it_all_down()
-   assert(self._thread:is_running())
-   
-   self:_set_state(DEAD)
-   if self._thinking then
-      assert(not self._execute_frame)
-      sef:_stop_thinking()
-   end   
-   if self._execute_frame then
-      self._execute_frame:send_msg('shutdown')
-      self._execute_frame = nil
-   end
-   if self._started then
-      self:_stop()
-   end
-   self:_call_action('destroy')
-end
-
-function ExecutionUnitV2:_terminate(err)
-   assert(err)
-   assert(self._thread:is_running())
-
-   self:_burn_it_all_down()   
-   error(err)
-end
-
 -- the interface facing actions (i.e. the 'ai' interface)
-
 function ExecutionUnitV2:__get_log()
    return self._log
 end
@@ -374,7 +348,6 @@ end
 
 function ExecutionUnitV2:__spawn(name, args)   
    self._log:debug('__spawn %s %s called', name, stonehearth.ai:format_args(args))
-   assert(self._thread:is_running())
   
    local ExecutionFrame = require 'components.ai.execution_frame'  
    return ExecutionFrame(self._thread, self._debug_route, self._entity, name, args, self._action_index)
@@ -422,11 +395,11 @@ function ExecutionUnitV2:_verify_arguments(args, args_prototype)
    -- special case 0 vs nil so people can leave out .args and .think_output if there are none.
    args_prototype = args_prototype and args_prototype or {}
    if args[1] then
-      self:__abort('activity arguments contains numeric elements (invalid!)')
+      error('activity arguments contains numeric elements (invalid!)')
       return false
    end
    if radiant.util.is_instance(args) then
-      self:__abort('attempt to pass instance for arguments (not using associative array?)')
+      error('attempt to pass instance for arguments (not using associative array?)')
       return false
    end
 
@@ -434,7 +407,7 @@ function ExecutionUnitV2:_verify_arguments(args, args_prototype)
    for name, value in pairs(args) do
       local expected_type = args_prototype[name]
       if not expected_type then
-         self:__abort('unexpected argument "%s" passed to "%s".', name, self:get_name())
+         error(string.format('unexpected argument "%s" passed to "%s".', name, self:get_name()))
          return false
       end
       if expected_type ~= stonehearth.ai.ANY then
@@ -443,8 +416,8 @@ function ExecutionUnitV2:_verify_arguments(args, args_prototype)
             expected_type = expected_type.type
          end
          if not radiant.util.is_a(value, expected_type) then
-            self:__abort('wrong type for argument "%s" in "%s" (expected:%s got %s)', name,
-                         self:get_name(), tostring(expected_type), tostring(type(value)))
+            error(string.format('wrong type for argument "%s" in "%s" (expected:%s got %s)', name,
+                                self:get_name(), tostring(expected_type), tostring(type(value))))
             return false                      
          end
       end
@@ -458,7 +431,7 @@ function ExecutionUnitV2:_verify_arguments(args, args_prototype)
                args[name] = expected_type.default
             end
             if args[name] == nil then
-               self:__abort('missing argument "%s" in "%s".', name, self:get_name())
+               error(string.format('missing argument "%s" in "%s".', name, self:get_name()))
                return false
             end
          end
@@ -483,9 +456,12 @@ end
 function ExecutionUnitV2:_set_state(state)
    self._log:debug('state change %s -> %s', tostring(self._state), state)
    assert(state and self._state ~= state)
-   assert(self._state ~= DEAD, string.format('cannot transition to %s from DEAD', state))
-   
-   self._state = state   
+
+   if self._state ~= DEAD then
+      self._state = state   
+   else
+      self._log:debug('cannot transition to %s from DEAD.  remaining dead', state)
+   end   
 end
 
 function ExecutionUnitV2:_spam_current_state(msg)

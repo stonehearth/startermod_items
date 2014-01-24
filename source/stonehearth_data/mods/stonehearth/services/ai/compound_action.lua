@@ -19,9 +19,9 @@ local placeholders = require 'services.ai.placeholders'
 local ExecutionUnitV2 = require 'components.ai.execution_unit_v2'
 local CompoundAction = class()
 
-function CompoundAction:__init(action, activities, when_predicates, think_output_placeholders)
+function CompoundAction:__init(entity, injecting_entity, action_ctor, activities, when_predicates, think_output_placeholders)
    -- initialize metadata
-   self._action = action -- just the header, really
+   self._action = action_ctor(entity, injecting_entity)
    self.name = self._action.name
    self.does = self._action.does
    self.priority = self._action.priority
@@ -158,6 +158,9 @@ function CompoundAction:destroy()
       local frame = frames[i]
       frame:send_msg('shutdown') -- must be asynchronous!
    end
+   if self._action.destroy then
+      self._action:destroy()
+   end
 end
 
 function CompoundAction:get_debug_info()
@@ -168,7 +171,8 @@ function CompoundAction:get_debug_info()
       priority = self.priority,
       execution_frames = {}
    }
-   for _, f in ipairs(self._thinking_frames) do
+   local frames = (#self._thinking_frames > 0) and self._thinking_frames or self._running_frames
+   for _, f in ipairs(frames) do
       table.insert(info.execution_frames, f:get_debug_info())
    end
    return info

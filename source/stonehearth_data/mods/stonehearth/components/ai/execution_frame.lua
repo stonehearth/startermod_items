@@ -43,6 +43,12 @@ function ExecutionFrame:__init(thread, debug_route, entity, name, args, action_i
    self:_set_state(STOPPED)
 
    self:_create_execution_units()
+   self._ai_component = entity:get_component('stonehearth:ai')
+   radiant.events.listen(self._ai_component, 'stonehearth:action_index_changed', self, self._on_action_index_changed)
+end
+
+function ExecutionFrame:_destroy()
+   radiant.events.unlisten(self._ai_component, 'stonehearth:action_index_changed', self, self._on_action_index_changed)
 end
 
 function ExecutionFrame:send_msg(...)
@@ -67,9 +73,15 @@ function ExecutionFrame:on_ready(ready_cb)
    local current_thread = stonehearth.threads:get_current_thread()
    self._ready_cb = function(...)
          local args = { ... }
-         current_thread:interrupt(function()
-               ready_cb(unpack(args))
-            end)
+         if current_thread then
+            current_thread:interrupt(function()
+                  ready_cb(unpack(args))
+               end)
+         else
+            -- sometimes there is no thread (e.g. in pathfinder callbacks).
+            -- just use whatever thread we're on.
+            ready_cb(unpack(args))
+         end
       end
 end
 
@@ -79,7 +91,6 @@ function ExecutionFrame:stop_thinking()
    self._log:spam('stop_thinking')
    self:_protected_call(function()
          self:send_msg('stop_thinking')
-         self._sm:wait_until(STOPPED)
       end)
 end
 
@@ -144,12 +155,6 @@ function ExecutionFrame:destroy()
          self:send_msg('destroy')
          self._sm:wait_until(DEAD)
       end)
-end
-
-function ExecutionFrame:terminate(reason)
-   assert(self._thread:is_running())   
-   assert(reason, 'no reason passed to terminate')
-   self:send_msg('terminate', reason)
 end
 
 function ExecutionFrame:send_msg(...)
@@ -307,44 +312,6 @@ function ExecutionFrame:_unit_not_ready_from_thinking(unit)
    end
 end
 
---[[
-function ExecutionFrame:_child_thread_exit_from_thinking(thread, err)
-   local unit = thread:get_user_data()
-   if unit == self._active_unit then
-      self._log:detail('active_unit "%s" reported error...', unit:get_name())
-      self:_find_replacement_for_active_unit()
-   end
-   self:_remove_execution_unit(unit)
-end
-
-function ExecutionFrame:_child_thread_exit_from_started(thread, err)
-   local unit = thread:get_user_data()
-
-   if unit == self._active_unit then
-      assert(err, 'active until died without specifying an error')
-      -- houston, we have a problem.  that thing we were just about to do has given
-      -- up the ghost.  it's too much to try to revoke our previous think_output
-      -- upstream, so just burn it all down and start over.
-      self._log:info('child died while started.  terminating. (%s)', err)
-      self:_terminate(err)
-   else
-      -- this is ok, and sometimes expected (e.g. if one unit prempts another,
-      -- we have no choice but to kill the running until before switching)
-      self:_remove_execution_unit(unit)
-   end
-end
-
-function ExecutionFrame:_child_thread_exit_from_running(thread, err)
-   self:_child_thread_exit_from_started(thread, err)
-end
-
-function ExecutionFrame:_child_thread_exit_from_stopped(thread, err)
-   -- no worries.  just remove the unit
-   local unit = thread:get_user_data()
-   self:_remove_execution_unit(unit)
-end
-]]
-
 function ExecutionFrame:_set_active_unit(unit, think_output)
    self._active_unit = unit
    self._active_unit_think_output = think_output
@@ -404,7 +371,6 @@ function ExecutionFrame:_run_from_started()
          self._log:debug('active unit switched from "%s" to "%s" in run.  re-running',
                          running_unit:get_name(), self._active_unit:get_name())
          running_unit = self._active_unit
-         error('just checking...')
       end
    until finished
 
@@ -428,6 +394,7 @@ function ExecutionFrame:_destroy_from_stopped()
    self._execution_units = {}
    self._execution_unit_keys = {}
    self:_set_state(DEAD)
+   self:_destroy()
 end
 
 function ExecutionFrame:_destroy_from_unwinding()
@@ -438,23 +405,7 @@ function ExecutionFrame:_destroy_from_unwinding()
    self._execution_units = {}
    self._execution_unit_keys = {}
    self:_set_state(DEAD)
-end
-
--- die a horrible death.  does not return
-function ExecutionFrame:_terminate_from_anystate(err)
-   assert(err, 'no error passed in terminate msg')
-   self:_set_state(DEAD)
-   self._active_unit = nil
-   for _, unit in pairs(self._execution_units) do
-      unit:send_msg('terminate', err)
-   end
-   self:_terminate(err)
-end
-
-function ExecutionFrame:_terminate(err)
-   -- terminate to ensure that we process no more messeages.
-   error('need to implement terminate...') -- turn off dedoda errors and error with a sentinal
-   radiant.not_reached()
+   self:_destroy()
 end
 
 function ExecutionFrame:_get_top_of_stack()
@@ -487,7 +438,7 @@ function ExecutionFrame:_unwind_call_stack()
    local unit = self._active_unit
    self._active_unit = nil
    unit:send_msg('stop', true)
-   unit:send_msg('destroy')
+   unit:send_msg('destroy')  
    self:_remove_execution_unit(unit)
 
    -- switch_step(4) - unfortunately, we may be really really deep in nested calls
@@ -520,7 +471,7 @@ function ExecutionFrame:_unwind_call_stack()
    -- switch_step(7) - we have finally unwound all our called frames (destroying them
    -- along the way), and have reached the switching frame!  before doing so, make a
    -- new unit to replace the guy that just died.
-   assert(self:_in_state(SWITCHING))
+   assert(self:_in_state(SWITCHING)) 
    local actions = self._action_index[self._name]
    if actions then
       local entry = actions[current_active_key]
@@ -536,36 +487,40 @@ function ExecutionFrame:_unwind_call_stack()
    assert(self._switch_to_unit:get_state() == 'ready')
    self._active_unit, self._switch_to_unit = self._switch_to_unit, nil
    self._active_unit:send_msg('start')
+   self._thread:set_thread_data('stonehearth:unwind_to_frame', nil)
 end
 
-function ExecutionFrame:_add_action_from_anystate(key, entry, does)
-   error('not correct...')
+function ExecutionFrame:_add_action_from_stopped(key, entry)
+   self:_add_execution_unit(key, entry)
+end
+  
+function ExecutionFrame:_add_action_from_thinking(key, entry)
    local unit = self:_add_execution_unit(key, entry)
-
-   if self:_in_state(THINKING, READY) then
-      unit:start_thinking(self:_clone_entity_state('new speculation for unit'))
-   elseif self:_in_state(RUNNING) then
-      if self:_is_strictly_better_than_active(unit) then
-         self:stop()
-         self:_capture_entity_state()
-         self:start_thinking()
-      end
-   end
+   unit:send_msg('start_thinking', self:_clone_entity_state('new speculation for unit'))
 end
 
-function ExecutionFrame:_remove_action_from_anystate(removed_key, entry)
-   error('not correct...')
-   for key, unit in pairs(self._execution_units) do
-      if key == removed_key then
-         if unit == self._active_unit then
-            self:stop()
-         end
-         unit:stop()
-         unit:destroy()
-         self._execution_units[key] = nil
-         break
-      end
-   end
+function ExecutionFrame:_add_action_from_ready(key, entry)
+   self:_add_execution_unit(key, entry)
+   -- we could kick it in the pants now, but let's not bother...
+end
+
+function ExecutionFrame:_remove_action_from_stopped(key, entry)
+   local unit = self._execution_units[key]
+   unit:send_msg('destroy')   
+   self:_remove_execution_unit(unit)
+end
+
+function ExecutionFrame:_remove_action_from_finished(key, entry)
+   local unit = self._execution_units[key]
+   unit:send_msg('destroy')
+   self:_remove_execution_unit(unit)
+end
+
+function ExecutionFrame:_remove_action_from_thinking(key, entry)
+   local unit = self._execution_units[key]
+   unit:send_msg('stop_thinking')
+   unit:send_msg('destroy')   
+   self:_remove_execution_unit(unit, true)
 end
 
 -- assumes the unit is already destroyed or aborted.  we just need to remove
@@ -582,7 +537,7 @@ function ExecutionFrame:_remove_execution_unit(unit)
    end
 end
 
-function ExecutionFrame:on_action_index_changed(add_remove, key, entry, does)
+function ExecutionFrame:_on_action_index_changed(add_remove, key, entry, does)
    if self._name == does then
       self:send_msg(add_remove .. '_action', key, entry)
    end

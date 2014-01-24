@@ -62,9 +62,7 @@ function AIComponent:add_action(key, action_ctor, injecting_entity)
       injecting_entity = injecting_entity,
    }
    self._action_index[does][key] = entry
-   if self._execution_frame then
-      self._execution_frame:on_action_index_changed('add', key, entry, does)
-   end
+   radiant.events.trigger(self, 'stonehearth:action_index_changed', 'add', key, entry, does)
 end
 
 function AIComponent:remove_action(key)
@@ -72,9 +70,7 @@ function AIComponent:remove_action(key)
    if does then
       local entry = self._action_index[does][key]
       self._action_index[does][key] = nil
-      if self._execution_frame then
-         self._execution_frame:on_action_index_changed('remove', key, entry, does)
-      end
+      radiant.events.trigger(self, 'stonehearth:action_index_changed', 'remove', key, entry, does)
    end
 end
 

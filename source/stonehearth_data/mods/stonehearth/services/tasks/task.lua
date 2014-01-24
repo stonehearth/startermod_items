@@ -137,11 +137,6 @@ end
 
 function Task:__action_completed(action)
    self._complete_count = self._complete_count + 1
-   if self:_is_work_finished() then
-      self._log:debug('task reached max number of completions (%d).  stopping and completing!', self._times)
-      self:stop()
-      self._ultimate_running_action = action -- 'ultimate' in the sense that it's the last action that will ever run
-   end
 end
 
 function Task:__action_try_start(action)
@@ -160,7 +155,6 @@ function Task:__action_try_start(action)
    return true
 end
 
-
 function Task:__action_stopped(action)
    if self:_action_is_running(action) then
       self._running_actions[action] = nil
@@ -169,11 +163,11 @@ function Task:__action_stopped(action)
    if self:_is_work_available() then
       radiant.events.trigger(self, 'work_available', self, true)
    end
-   if self._ultimate_running_action then
-      self._log:spam('destroying task, since last possible action has stopped')
-      self._ultimate_running_action = nil
+   if self:_is_work_finished() then
+      self._log:debug('task reached max number of completions (%d).  stopping and completing!', self._times)
+      self:stop()
       self:destroy()
-   end
+   end  
 end
 
 return Task

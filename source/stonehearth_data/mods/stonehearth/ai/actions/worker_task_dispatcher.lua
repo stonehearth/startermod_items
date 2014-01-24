@@ -5,7 +5,7 @@ WorkerTaskDispatcher.args = {}
 WorkerTaskDispatcher.version = 2
 WorkerTaskDispatcher.priority = 3
 
-function WorkerTaskDispatcher:__init(ai, entity)
+function WorkerTaskDispatcher:__init(entity)
    self._entity = entity
    stonehearth.tasks:get_scheduler('stonehearth:workers', radiant.entities.get_faction(entity))
                         :join(entity)

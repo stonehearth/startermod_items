@@ -37,7 +37,7 @@ function CompoundActionFactory:set_think_output(arg_placeholders)
 end
 
 function CompoundActionFactory:create_action(entity, injecting_entity)
-   return CompoundAction(self._base_action, self._activity_sequence, self._when_sequence, self._think_output_placeholders)
+   return CompoundAction(entity, injecting_entity, self._base_action, self._activity_sequence, self._when_sequence, self._think_output_placeholders)
 end
 
 return CompoundActionFactory
