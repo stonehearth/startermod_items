@@ -3,7 +3,7 @@ decoda_name = "radiant server"
 
 radiant = {
    is_server = true,
-   _root_entity = _radiant.sim.create_empty_entity()
+   _root_entity = _radiant.sim.get_entity(1)
 }
 
 radiant.log = require 'modules.log'

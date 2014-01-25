@@ -36,6 +36,7 @@
 #include "lib/lua/voxel/open.h"
 #include "lib/lua/analytics/open.h"
 #include "om/lua/lua_om.h"
+#include "om/error_browser/error_browser.h"
 #include "csg/lua/lua_csg.h"
 #include "lib/rpc/session.h"
 #include "lib/rpc/function.h"
@@ -74,6 +75,15 @@ Simulation::Simulation() :
    scriptHost_.reset(new lua::ScriptHost());
 
    InitDataModel();
+
+   // Entity 1
+   root_entity_ = CreateEntity();
+   ASSERT(root_entity_->GetObjectId() == 1);
+
+   error_browser_ = store_.AllocObject<om::ErrorBrowser>();
+   scriptHost_->SetNotifyErrorCb([=](om::ErrorBrowser::Record const& r) {
+      error_browser_->AddRecord(r);
+   });
 
    // sessions (xxx: stub it out for single player)
    session_ = std::make_shared<rpc::Session>();
@@ -120,6 +130,14 @@ Simulation::Simulation() :
    core_reactor_->AddRouteV("radiant:profile_next_lua_upate", [this](rpc::Function const& f) {
       profile_next_lua_update_ = true;
       SIM_LOG(0) << "profiling next lua update";
+   });
+
+   core_reactor_->AddRoute("radiant:server:get_error_browser", [this](rpc::Function const& f) {
+      rpc::ReactorDeferredPtr d = std::make_shared<rpc::ReactorDeferred>("get error browser");
+      json::Node obj;
+      obj.set("error_browser", om::ObjectFormatter().GetPathToObject(error_browser_));
+      d->Resolve(obj);
+      return d;
    });
 
 }

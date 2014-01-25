@@ -4,6 +4,7 @@
 #include <libjson.h>
 #include "../namespace.h"
 #include "om/om.h"
+#include "om/json.h"
 #include "om/macros.h"
 #include "om/object_enums.h"
 #include "dm/set.h"
@@ -36,24 +37,24 @@ public:
       Record& SetBacktrace(std::string const& s);
       Record& SetFileType(std::string const& s);
 
-      JSONNode const& GetNode() const { return node_; }
+      json::Node const& GetNode() const { return node_; }
 
    private:
-      JSONNode         node_;
+      json::Node     node_;
    };
 
 public:
    DEFINE_OM_OBJECT_TYPE(ErrorBrowser, error_browser);
    void AddRecord(Record const& r);
 
-   dm::Set<std::shared_ptr<dm::Boxed<json::Node>>>  const& GetEntries() const { return entries_; }
+   dm::Set<std::shared_ptr<JsonBoxed>> const& GetEntries() const { return entries_; }
 
 private:
    void InitializeRecordFields() override;
 
 private:
-   dm::Set<std::shared_ptr<dm::Boxed<json::Node>>>  entries_;
-   int                        next_record_id_;
+   dm::Set<std::shared_ptr<JsonBoxed>>    entries_;
+   int                                    next_record_id_;
 };
 
 std::ostream& operator<<(std::ostream &os, ErrorBrowser::Record const& r);

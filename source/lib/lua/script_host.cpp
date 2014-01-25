@@ -268,6 +268,14 @@ void ScriptHost::ReportStackException(std::string const& category, std::string c
       }
    }
    LUA_LOG(0) << "-- Lua Error End   ------------------------------- ";
+
+   if (error_cb_) {
+      om::ErrorBrowser::Record record;
+      record.SetSummary(error);
+      record.SetCategory(record.SEVERE);
+      record.SetBacktrace(traceback);
+      error_cb_(record);
+   }
 }
 
 lua_State* ScriptHost::GetInterpreter()
@@ -374,7 +382,9 @@ void ScriptHost::Call(luabind::object fn, luabind::object arg1)
 
 void ScriptHost::Log(const char* category, int level, const char* str)
 {
-   LOG_CATEGORY_(level, BUILD_STRING("mod " << category)) << str;
+   if (category && str) {
+      LOG_CATEGORY_(level, BUILD_STRING("mod " << category)) << str;
+   }
 }
 
 int ScriptHost::GetLogLevel(std::string const& category)
@@ -421,3 +431,9 @@ bool ScriptHost::CoerseToBool(object const& o)
    }
    return result;
 }
+
+void ScriptHost::SetNotifyErrorCb(ReportErrorCb const& cb)
+{
+   error_cb_ = cb;
+}
+

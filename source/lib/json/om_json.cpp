@@ -145,3 +145,8 @@ template <> Node json::encode(om::ErrorBrowser const& obj)
 
    return node;
 }
+
+template <> json::Node json::encode(om::JsonBoxed const& obj)
+{
+   return obj.Get();
+}

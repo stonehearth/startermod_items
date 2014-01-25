@@ -104,11 +104,12 @@ Client::Client() :
    om::RegisterObjectTypes(authoringStore_);
    receiver_ = std::make_shared<dm::Receiver>(store_);
 
-   std::vector<std::pair<dm::ObjectId, dm::ObjectType>>  allocated_;
-   scriptHost_.reset(new lua::ScriptHost());
-
    error_browser_ = authoringStore_.AllocObject<om::ErrorBrowser>();
-   
+
+   scriptHost_.reset(new lua::ScriptHost());
+   scriptHost_->SetNotifyErrorCb([=](om::ErrorBrowser::Record const& r) {
+      error_browser_->AddRecord(r);
+   });
 
    // Reactors...
    core_reactor_ = std::make_shared<rpc::CoreReactor>();
@@ -380,6 +381,15 @@ Client::Client() :
       }
       return result;
    });
+
+   core_reactor_->AddRoute("radiant:client:get_error_browser", [this](rpc::Function const& f) {
+      rpc::ReactorDeferredPtr d = std::make_shared<rpc::ReactorDeferred>("get error browser");
+      json::Node obj;
+      obj.set("error_browser", om::ObjectFormatter().GetPathToObject(error_browser_));
+      d->Resolve(obj);
+      return d;
+   });
+
 }
 
 Client::~Client()

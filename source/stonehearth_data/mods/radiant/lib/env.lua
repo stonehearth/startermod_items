@@ -2,6 +2,7 @@
 local old_assert = assert
 assert = function(condition, msg)
    if not condition then
+      _host:log('env', 1, msg)
       old_assert(condition, msg)
    end
 end
@@ -22,11 +23,11 @@ __get_current_module_name = function(depth)
    local info = debug.getinfo(depth, 'S')
 
    if not info.source then
-      _host:log('could not determine module file in radiant "require"')
+      _host:log('env', 1, 'could not determine module file in radiant "require"')
       return nil
    end
    if info.source:sub(1, 1) ~= '@' then
-      _host:log('lua generated from loadstring() is not allowed to require.')
+      _host:log('env', 1, 'lua generated from loadstring() is not allowed to require.')
       return nil
    end
    local modname = info.source:match('@([^/\\]*)')
@@ -34,7 +35,7 @@ __get_current_module_name = function(depth)
       modname = info.source:match('@\\.[/\\]([^/\\]*)')
    end
    if not modname then
-      _host:log(string.format('could not determine modname from source "%s"', info.source))
+      _host:log('env', 1, string.format('could not determine modname from source "%s"', info.source))
       return nil
    end
    return modname

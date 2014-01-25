@@ -171,6 +171,8 @@ private:
    rpc::ReactorDeferredPtr             task_manager_deferred_;
    perfmon::Timeline                   perf_timeline_;
    core::Guard                         on_frame_end_guard_;
+   om::ErrorBrowserPtr                 error_browser_;
+   om::EntityPtr                       root_entity_;
 };
 
 END_RADIANT_SIMULATION_NAMESPACE

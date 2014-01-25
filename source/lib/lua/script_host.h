@@ -3,6 +3,7 @@
 
 #include "platform/utils.h"
 #include "lib/lua/bind.h"
+#include "om/error_browser/error_browser.h"
 
 class JSONNode;
 
@@ -27,6 +28,9 @@ public:
    JSONNode LuaToJson(luabind::object obj);
    void ReportCStackThreadException(lua_State* L, std::exception const& e);
    void ReportLuaStackException(std::string const& error, std::string const& traceback);
+
+   typedef std::function<void(::radiant::om::ErrorBrowser::Record const&)> ReportErrorCb;
+   void SetNotifyErrorCb(ReportErrorCb const& cb);
 
    template <typename T, typename A0, typename A1, typename A2, typename A3, typename A4>
    T CallFunction(A0 const& a0, A1 const& a1, A2 const& a2, A3 const& a3, A4 const& a4) {
@@ -87,6 +91,7 @@ private:
    std::map<std::string, luabind::object> required_;
    std::vector<JsonToLuaFn>   to_lua_converters_;
    bool                 filter_c_exceptions_;
+   ReportErrorCb        error_cb_;
 };
 
 END_RADIANT_LUA_NAMESPACE

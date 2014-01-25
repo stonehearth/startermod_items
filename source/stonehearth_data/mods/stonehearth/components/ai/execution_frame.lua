@@ -397,9 +397,7 @@ function ExecutionFrame:_stop_from_finished()
 end
 
 function ExecutionFrame:_abort_unit_from_anystate(unit)
-   self:send_msg('destroy')
-   self:_set_state(DEAD)
-   self:_exit_protected_call(ABORT_FRAME)
+   self:_abort()
 end
 
 function ExecutionFrame:_destroy_from_starting()
@@ -436,6 +434,13 @@ function ExecutionFrame:_destroy_from_unwinding()
    self._execution_unit_keys = {}
    self:_set_state(DEAD)
    self:_destroy()
+end
+
+function ExecutionFrame:_abort()
+   assert(self._thread:is_running())
+   self:send_msg('destroy')
+   self:_set_state(DEAD)
+   self:_exit_protected_call(ABORT_FRAME)
 end
 
 function ExecutionFrame:_get_top_of_stack()
@@ -520,11 +525,7 @@ function ExecutionFrame:_unwind_call_stack(exit_handler)
    self._active_unit:send_msg('start')
    self._thread:set_thread_data('stonehearth:unwind_to_frame', nil)
 end
-
-function ExecutionFrame:_add_action_from_stopped(key, entry)
-   self:_add_execution_unit(key, entry)
-end
-  
+ 
 function ExecutionFrame:_add_action_from_thinking(key, entry)
    local unit = self:_add_execution_unit(key, entry)
    unit:send_msg('start_thinking', self:_clone_entity_state('new speculation for unit'))
@@ -533,6 +534,15 @@ end
 function ExecutionFrame:_add_action_from_ready(key, entry)
    self:_add_execution_unit(key, entry)
    -- we could kick it in the pants now, but let's not bother...
+end
+
+function ExecutionFrame:_add_action_from_running(key, entry)
+   self:_add_execution_unit(key, entry)
+   -- we could kick it in the pants now, but let's not bother...
+end
+
+function ExecutionFrame:_add_action_from_stopped(key, entry)
+   self:_add_execution_unit(key, entry)
 end
 
 function ExecutionFrame:_remove_action_from_stopped(key, entry)
@@ -554,6 +564,24 @@ function ExecutionFrame:_remove_action_from_thinking(key, entry)
    self:_remove_execution_unit(unit, true)
 end
 
+function ExecutionFrame:_remove_action_from_ready(key, entry)
+   local unit = self._execution_units[key]
+   if unit == self._active_unit then
+      self:_abort()
+   else
+      self:_remove_execution_unit(unit, true)  
+   end
+end
+
+function ExecutionFrame:_remove_action_from_running(key, entry)
+   local unit = self._execution_units[key]
+   if unit == self._active_unit then
+      self:_abort()
+   else
+      self:_remove_execution_unit(unit, true)
+   end
+end
+
 -- assumes the unit is already destroyed or aborted.  we just need to remove
 -- it from our list
 function ExecutionFrame:_remove_execution_unit(unit)
@@ -569,8 +597,14 @@ function ExecutionFrame:_remove_execution_unit(unit)
 end
 
 function ExecutionFrame:_on_action_index_changed(add_remove, key, entry, does)
-   if self._name == does then
-      self:send_msg(add_remove .. '_action', key, entry)
+   if self._name == does and self:get_state() ~= DEAD then
+      if add_remove == 'add' then
+         self:send_msg('add_action', key, entry)
+      elseif add_remove == 'remove' then
+         self:send_msg('remove_action', key, entry)
+      else
+         error(string.format('unknown msg "%s" in _on_action_index-changed', add_move))
+      end
    end
 end
 

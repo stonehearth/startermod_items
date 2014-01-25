@@ -31,6 +31,7 @@ App.StonehearthErrorDialogView = App.View.extend({
    didInsertElement: function() {
       console.log('============ StonehearthErrorDialogView ================ : didInsertElement');
       //this.set('uri', '/o/stores/tmp/objects/27');
+      /*
       this._super();
       var context = this.get('context');
       if (context.file_content) {
@@ -54,5 +55,6 @@ App.StonehearthErrorDialogView = App.View.extend({
           session.setAnnotations(annotations);
         }
       }
+     */
     }
 });
