@@ -1,13 +1,21 @@
 local TerrainType = {}
 
--- change these integers to strings when terrain_generator:_calc_std_dev is removed (or fixed)
-TerrainType.ocean     = 0
-TerrainType.grassland = 1
-TerrainType.foothills = 2
-TerrainType.mountains = 3
+TerrainType.plains    = 'plains'
+TerrainType.foothills = 'foothills'
+TerrainType.mountains = 'mountains'
+
+local terrain_order = {
+   TerrainType.plains,
+   TerrainType.foothills,
+   TerrainType.mountains
+}
 
 function TerrainType.is_valid(value)
    return TerrainType[value] ~= nil
+end
+
+function TerrainType.get_terrain_order()
+   return terrain_order
 end
 
 return TerrainType

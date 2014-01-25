@@ -25,6 +25,19 @@ function HarvestPlantsAction:run(ai, entity, args)
       ai:execute('stonehearth:run_effect', { effect = 'fiddle' })
       local front_point = entity:get_component('mob'):get_location_in_front()
       factory:spawn_resource(Point3(front_point.x, front_point.y, front_point.z))
+
+      -- xxx: mucking with the personality compounent should probably be factored
+      -- into its own action entirely (iff possible.... i don't even know if that's
+      -- feasible) - tony
+      --Log it in the personality component
+      local spawned_item_name = spawned_item:get_component('unit_info'):get_display_name()
+      local personality_component = entity:get_component('stonehearth:personality')
+      personality_component:add_substitution('gather_target', spawned_item_name)
+      personality_component:add_substitution_by_parameter('personality_gather_reaction', personality_component:get_personality(), 'stonehearth:settler_journals:gathering_supplies')
+
+      radiant.events.trigger(stonehearth.personality, 'stonehearth:journal_event', 
+                            {entity = entity, description = 'gathering_supplies'})
+
    end   
 end
 

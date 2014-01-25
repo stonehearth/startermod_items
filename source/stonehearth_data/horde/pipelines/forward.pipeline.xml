@@ -56,9 +56,12 @@
          <UnbindBuffers />
       </Stage>
 
+      <Stage id="Selected_Fast">
+         <DrawSelected context="SELECTED_FAST" />
+      </Stage>
+
       <Stage id="Overlays">
 			<DrawOverlays context="OVERLAY"/>
 		</Stage>
-
 	</CommandQueue>
 </Pipeline>

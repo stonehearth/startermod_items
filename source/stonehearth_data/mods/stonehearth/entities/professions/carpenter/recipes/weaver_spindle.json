@@ -1,0 +1,21 @@
+{
+   "type":"recipe",
+
+   "work_units"  : 3,
+   "recipe_name" : "Weaver's Spindle",
+   "description" : "A mandatory component for the Weaver's Workshop.",
+   "flavor"      : "",
+   "portrait"    : "/stonehearth/entities/professions/weaver/weaver_spindle/weaver_spindle.png",
+
+   "ingredients": [
+      {
+         "material" : "wood resource",
+         "count" : 1
+      }
+  ],
+  "produces": [
+      {
+         "item" : "stonehearth:weaver:spindle"
+      }
+  ]
+}

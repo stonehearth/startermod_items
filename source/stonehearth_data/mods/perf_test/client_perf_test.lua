@@ -21,7 +21,9 @@ function ClientPerfTest:__init()
       self._frame_trace:on_frame_start('perf', function(now, interpolate)
           local delta = now - self._last_now
           if delta > 100 then
-            self._running_time = self._running_time + 100
+            if self._last_now ~= 0 then
+              self._running_time = self._running_time + delta
+            end
             self._last_now = now
             --HACKHACKHACKHACK
             camera._next_position = Vec3(math.cos(now / 5000.0) * 700, 150.0 + (math.sin(now / 1000.0) * 20), math.sin(now / 2500.0) * 700)
@@ -29,8 +31,7 @@ function ClientPerfTest:__init()
           end
 
           if self._running_time > 30000 then
-            _radiant.renderer.enable_perf_logging(false)
-            --need a way to kill this
+            _radiant.call('radiant:exit')
           end
 
           return true

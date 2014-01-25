@@ -2995,13 +2995,13 @@ void Renderer::finalizeFrame()
 
 void Renderer::logPerformanceData()
 {
-   float curFrameTime = Modules::stats().getStat(EngineStats::AverageFrameTime, false);
+   float curFrameTime = Modules::stats().getStat(EngineStats::FrameTime, false);
 	float curFPS = 1000.0f / curFrameTime;
 	
    float triCount = Modules::stats().getStat(EngineStats::TriCount, false);
    float numBatches = Modules::stats().getStat(EngineStats::BatchCount, false);
 
-   Modules::log().writePerfInfo("%d, %d, %d", (int)curFPS, (int)triCount, (int)numBatches);
+   Modules::log().writePerfInfo("%d %d %d", (int)curFPS, (int)triCount, (int)numBatches);
 }
 
 

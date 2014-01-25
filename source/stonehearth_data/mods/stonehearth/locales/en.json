@@ -23,6 +23,7 @@
    "settings_gfx_msaa" : "Anti-Aliasing Level (Requires Restart)",
    "settings_gfx_shadows" : "Shadow Detail",
    "settings_gfx_drawdistance" : "Draw Distance",
+   "settings_gfx_fasthilite" : "Fast Selection Effect",
 
    "settings_shadow_0" : "off",
    "settings_shadow_1" : "just a touch",
@@ -30,7 +31,6 @@
    "settings_shadow_3" : "a little more",
    "settings_shadow_4" : "a lot",
    "settings_shadow_5" : "a whole lot!",
-
 
    "settings_aa_slider_0" : "off",
    "settings_aa_slider_1" : "a little",
@@ -48,6 +48,8 @@
    "new_game_place_banner" : "Click me to place your banner",
    "new_game_place_stockpile" : "Click me to place your stockpile",
    "new_game_setup_finished_button" : "Ok, got it",
+
+   "embark_at_this_location" : "Embark at this location",
 
    "loading_map": "Generating World",
    "loading_map_1": "sharpening right angles...",
@@ -153,7 +155,7 @@
    "item_movement_title": "Move",
    "item_movement_description": "Move this item elsewhere. Right click to rotate.",
 
-   "belaguered_leader" : "Beleaguered Leader",
+   "beleaguered_leader" : "Beleaguered Leader",
    "hopeless_optimist" : "Hopeless Optimist",
    "lovable_rogue" : "Loveable Rogue",
    "psychopathic_misanthrope" : "Psychopathic Misanthrope",

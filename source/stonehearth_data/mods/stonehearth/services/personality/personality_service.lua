@@ -13,8 +13,10 @@
    TODO: a stub implementation for "sequential" (ie, storytelling, non-random) log entries is
    implemented here, but it doesn't yet work if multiple people have the same personality.
    Improve by indexing these entries by entity_id
-   TODO: Mad Libs! Entries should allow for %s and %d and name substitutions.
 ]]
+
+local rng = _radiant.csg.get_default_rng()
+
 PersonalityService = class()
 
 function PersonalityService:__init()
@@ -40,13 +42,14 @@ end
 function PersonalityService:_on_journal(e)
    local person = e.entity
    local description = e.description
+   local namespace = e.namespace
    if person and description then 
       local personality_component = person:get_component('stonehearth:personality')
       local trigger_data = self._trigger_to_activity[description]
       if personality_component and trigger_data then
          local probability = trigger_data.probability
          local activity_name = trigger_data.activity_id
-         personality_component:register_notable_event(activity_name, probability)
+         personality_component:register_notable_event(activity_name, probability, namespace)
       end
    end
 end
@@ -58,7 +61,8 @@ function PersonalityService:_load_log_files()
    self:_load_activity('stonehearth:personal_logs:eating_berries')
    self:_load_activity('stonehearth:personal_logs:embarking')
    self:_load_activity('stonehearth:personal_logs:promote_carpenter')
-   self:_load_activity('stonehearth:personal_logs:promote_weaver')
+   self:_load_activity('stonehearth:personal_logs:dreams')
+   self:_load_activity('stonehearth:personal_logs:gathering_supplies')
 end
 
 --- Returns a personality type. Will only return repeats if all
@@ -69,6 +73,7 @@ end
 
 --- Load in a file of new activities. 
 --  If we've already got that activity, skip
+--  Also, load the substitution tables for each activity. 
 function PersonalityService:_load_activity(url)
    local new_activity_blob = radiant.resources.load_json(url)
    for i, activity in ipairs(new_activity_blob.activities) do
@@ -92,20 +97,45 @@ function PersonalityService:_load_activity(url)
          end
       end
    end
+   if new_activity_blob.substitution_table then
+      stonehearth.substitution:populate(new_activity_blob.substitution_table)
+   end
+end
+
+--- Given a field of type subst-table, return the value associated
+--  with the relevant key. For example, get_substitution(deity, ascendency)
+--  yields "Cid".
+--  @param namespace - what namespace we should look in
+--  @param key - the field that will appear in the text
+--  @param param   - the version of the value we want
+function PersonalityService:get_substitution(namespace, key, param)
+   return stonehearth.substitution:get_substitution(namespace, key, param)
 end
 
 --- Given an activity name and a personality type, return an unused activity log of that type
 --  If the activity is random, return a random unused activity. Will re-use logs when
 --  all have been used once. 
 --  If the activity is sequential, return the next unused activity. Will never re-use logs
+--  If there is no personality type for that activity, use the 'generic' personality type
+--  if there is one. 
 --  @return title, log
-function PersonalityService:get_activity_log(activity_name, personality_type)
+function PersonalityService:get_activity_log(namespace, activity_name, personality_type, substitutions)
    local activity_data = self._activity_logs[activity_name]
    if activity_data then
       local prefix = activity_data.text
+      if not namespace then
+         if activity_data.default_namespace then
+            namespace = activity_data.default_namespace
+         else
+            namespace = 'stonehearth'
+         end
+      end
       local log_entry = nil
-      if activity_data and activity_data.logs_by_personality[personality_type] then
-         local log_data = activity_data.logs_by_personality[personality_type]
+      local log_data = activity_data.logs_by_personality[personality_type]
+      if not log_data then
+         log_data = activity_data.logs_by_personality['generic']
+      end
+      if activity_data and log_data then
          if activity_data.type == 'random' then
             log_entry = self:_get_random_unused_from_table(log_data.logs,
                                                            log_data.unused_table)
@@ -113,6 +143,9 @@ function PersonalityService:get_activity_log(activity_name, personality_type)
             log_entry = self:_get_sequential_unused_from_table(log_data.logs, log_data.use_counter)
          end
          log_data.use_counter = log_data.use_counter + 1
+
+         log_entry = stonehearth.substitution:substitute_variables(namespace, log_entry, substitutions)
+         log_entry = stonehearth.substitution:capitalize_first(log_entry)
       end
       return prefix, log_entry
    end
@@ -129,7 +162,7 @@ function PersonalityService:_get_random_unused_from_table(root_array, unused_val
       end
    end
    -- pick a random one to return
-   local i = math.random(#unused_values)
+   local i = rng:get_int(1, #unused_values)
    local value = unused_values[i]
    
    -- remove the random one from the array so we don't pick it next time.
@@ -150,6 +183,7 @@ function PersonalityService:_get_sequential_unused_from_table(root_array, tracke
    -- this doesn't quite work.  tracker_var is passed in by value, so modifications we make
    -- to it don't stick.  luckily, no one uses it at all yet. =O   Fix it if it ever comes
    -- to that -tony
+   -- Thanks! TODO: do everything tony says.
    assert(false, 'not really working yet')
    tracker_var = tracker_var + 1
    if tracker_var <= (#root_array) then 

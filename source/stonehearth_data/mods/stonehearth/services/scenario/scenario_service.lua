@@ -120,8 +120,10 @@ function ScenarioService:reveal_region(world_space_region)
    self._revealed_region:add_region(unrevealed_region)
 
    cpu_timer:stop()
-   log:info('%d rects in revealed region', self._revealed_region:get_num_rects())
-   log:info('ScenarioService:reveal_region time: %.3fs', cpu_timer:seconds())
+   if num_rects ~= 0 then
+      log:info('%d rects in revealed region', self._revealed_region:get_num_rects())
+      log:info('ScenarioService:reveal_region time: %.3fs', cpu_timer:seconds())
+   end
 end
 
 function ScenarioService:_mark_dormant_scenario_map(value, world_offset_x, world_offset_y, width, length)
@@ -247,7 +249,7 @@ function ScenarioService:_select_scenarios()
    return scenarios
 end
 
--- order first by priority then by area
+-- order first by priority, then by area, then by weight
 function ScenarioService:_sort_scenarios(scenarios)
    local comparator = function(a, b)
       local category_a = a.category
@@ -263,8 +265,12 @@ function ScenarioService:_sort_scenarios(scenarios)
 
       local area_a = a.size.width * a.size.length
       local area_b = b.size.width * b.size.length
-      -- larger area sorted to lower index
-      return area_a > area_b 
+      if area_a ~= area_b then
+         -- larger area sorted to lower index
+         return area_a > area_b 
+      end
+
+      return a.weight > b.weight
    end
 
    table.sort(scenarios, comparator)

@@ -269,6 +269,8 @@
          "personal_logs:eating_berries" :"file(data/personality/eating_berries.json)",
          "personal_logs:promote_carpenter" :"file(data/personality/carpenter_promote.json)",
          "personal_logs:promote_weaver" :"file(data/personality/weaver_promote.json)",
+         "personal_logs:dreams" :"file(data/personality/dreams.json)",
+         "personal_logs:gathering_supplies" :"file(data/personality/gathering_supplies.json)",
 
          "sounds:ui:action_hover" : "file(data/sounds/ui/action/action_hover.wav)",
          "sounds:ui:action_click" : "file(data/sounds/ui/action/action_click.wav)",
@@ -363,6 +365,10 @@
             "endpoint" : "server"
          },
          "new_game": {
+            "controller" : "file(call_handlers/new_game_call_handler.lua)",
+            "endpoint" : "server"
+         },
+         "get_overview_map": {
             "controller" : "file(call_handlers/new_game_call_handler.lua)",
             "endpoint" : "server"
          },
@@ -482,8 +488,7 @@
          "get_camera_tracker": {
             "controller" : "file(call_handlers/camera_call_handler.lua)",
             "endpoint" : "client"
-         }         
-
+         }
       }
    },
    "components" :  {
@@ -545,6 +550,7 @@
          "file(ui/shell/title/title.html)",
          "file(ui/shell/analytics_opt/analytics_opt.html)",
          "file(ui/shell/new_game/new_game.html)",
+         "file(ui/shell/embark/embark.html)",
          "file(ui/shell/loading_screen/loading_screen.html)",
          "file(ui/shell/settings/settings.html)",
          "file(ui/game/game.html)",
@@ -572,6 +578,8 @@
          "file(ui/shell/title/title.js)",
          "file(ui/shell/analytics_opt/analytics_opt.js)",
          "file(ui/shell/new_game/new_game.js)",
+         "file(ui/shell/embark/embark.js)",
+         "file(ui/shell/embark/jquery.stonehearth.map.js)",
          "file(ui/shell/loading_screen/loading_screen.js)",
          "file(ui/shell/settings/settings.js)",
          "file(ui/game/game.js)",
@@ -602,6 +610,8 @@
          "file(ui/shell/title/title.less)",
          "file(ui/shell/analytics_opt/analytics_opt.less)",
          "file(ui/shell/new_game/new_game.less)",
+         "file(ui/shell/embark/embark.less)",
+         "file(ui/shell/embark/stonehearth.map.less)",
          "file(ui/shell/loading_screen/loading_screen.less)",
          "file(ui/shell/settings/settings.less)",         
          "file(ui/game/game.less)",

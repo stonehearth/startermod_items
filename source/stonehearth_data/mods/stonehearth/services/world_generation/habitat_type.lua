@@ -3,7 +3,7 @@ local HabitatType = {}
 -- initial enumerations
 -- these will almost certainly change
 HabitatType.occupied  = 'occupied'
-HabitatType.grassland = 'grassland'
+HabitatType.plains    = 'plains'
 HabitatType.foothills = 'foothills'
 HabitatType.mountains = 'mountains'
 HabitatType.forest    = 'forest'

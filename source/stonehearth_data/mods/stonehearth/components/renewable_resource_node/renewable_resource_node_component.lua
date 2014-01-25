@@ -67,6 +67,8 @@ function RenewableResourceNodeComponent:spawn_resource(location)
          radiant.events.listen(self._entity, 'stonehearth:on_effect_trigger', self, self.on_effect_trigger)
          radiant.events.listen(self._entity, 'stonehearth:on_effect_finished', self, self.on_effect_finished)
       end
+
+      return item
    end
 end
 

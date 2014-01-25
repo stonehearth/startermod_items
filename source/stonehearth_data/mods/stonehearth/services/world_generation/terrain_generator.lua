@@ -16,7 +16,7 @@ local log = radiant.log.create_logger('world_generation')
 -- Definitions
 -- Block = atomic unit of terrain that cannot be subdivided
 -- MacroBlock = square unit of flat land, 32x32, but can shift a bit due to toplogy
--- Tile = 2D array of MacroBlocks fitting a theme (grassland, foothills, mountains)
+-- Tile = 2D array of MacroBlocks fitting a theme (plains, foothills, mountains)
 --        These 256x256 terrain tiles are different from nav grid tiles which are 16x16.
 -- World = the entire playspace of a game
 
@@ -49,20 +49,20 @@ end
 
 function TerrainGenerator:_initialize_quantizer()
    local terrain_info = self.terrain_info
-   local grassland_info = terrain_info[TerrainType.grassland]
+   local plains_info = terrain_info[TerrainType.plains]
    local foothills_info = terrain_info[TerrainType.foothills]
    local mountains_info = terrain_info[TerrainType.mountains]
    local centroids = {}
    local min, max, step_size
    
    min = terrain_info.min_height
-   max = grassland_info.max_height
-   step_size = grassland_info.step_size
+   max = plains_info.max_height
+   step_size = plains_info.step_size
    for value = min, max, step_size do
       table.insert(centroids, value)
    end
 
-   min = grassland_info.max_height + foothills_info.step_size
+   min = plains_info.max_height + foothills_info.step_size
    max = foothills_info.max_height
    step_size = foothills_info.step_size
    for value = min, max, step_size do
@@ -76,7 +76,7 @@ function TerrainGenerator:_initialize_quantizer()
       table.insert(centroids, value)
    end
 
-   self._quantizer = NonUniformQuantizer(centroids)
+   self.quantizer = NonUniformQuantizer(centroids)
 end
 
 function TerrainGenerator:_create_blend_map(width, height)
@@ -106,7 +106,7 @@ function TerrainGenerator:generate_tile(terrain_type, blueprint, x, y)
 
    micro_map = self:_create_micro_map(terrain_type, blueprint, x, y)
    micro_map_timer:stop()
-   log:debug('Micromap generation time: %.3fs', micro_map_timer:seconds())
+   log:info('Micromap generation time: %.3fs', micro_map_timer:seconds())
 
    tile_map = self:_create_tile_map(micro_map)
    tile_timer:stop()
@@ -176,6 +176,10 @@ function TerrainGenerator:_create_tile_map(micro_map)
    return tile_map
 end
 
+-- TODO: replace this blend_map architecture
+-- There is a hard to fix bug when estimating the blending values at the corners where 3 maps meet
+-- Use a deterministic pseudo-random sequence to determine (and recreate if necessary) the pre-filtered
+-- values of neighboring tiles to filter across boundaries instead of trying to extend a bandlimited signal
 function TerrainGenerator:_fill_blend_map(blend_map, blueprint, x, y)
    local i, j, adj_tile_info, macro_block
    local width = blend_map.width
@@ -189,9 +193,9 @@ function TerrainGenerator:_fill_blend_map(blend_map, blueprint, x, y)
       terrain_mean = terrain_mean + self.terrain_info[TerrainType.mountains].step_size
    end
 
-   if terrain_type == TerrainType.grassland and
-      self:_surrounded_by_terrain(TerrainType.grassland, blueprint, x, y) then
-      terrain_mean = terrain_mean - self.terrain_info[TerrainType.grassland].step_size
+   if terrain_type == TerrainType.plains and
+      self:_surrounded_by_terrain(TerrainType.plains, blueprint, x, y) then
+      terrain_mean = terrain_mean - self.terrain_info[TerrainType.plains].step_size
       assert(terrain_mean >= self.terrain_info.min_height)
    end
 
@@ -335,15 +339,16 @@ end
 
 function TerrainGenerator:_calc_std_dev(height)
    local terrain_info = self.terrain_info
+   local terrain_order = TerrainType.get_terrain_order()
    local prev_mean_height, prev_std_dev
-   local i, ti, value
+   local ti, terrain_type, value
 
-   i = TerrainType.grassland
+   terrain_type = terrain_order[1]
    prev_mean_height = 0
-   prev_std_dev = terrain_info[i].std_dev
+   prev_std_dev = terrain_info[terrain_type].std_dev
 
-   for i=TerrainType.grassland, TerrainType.mountains do
-      ti = terrain_info[i]
+   for _, terrain_type in ipairs(terrain_order) do
+      ti = terrain_info[terrain_type]
 
       if height <= ti.mean_height then
          value = MathFns.interpolate(height, prev_mean_height, prev_std_dev, ti.mean_height, ti.std_dev)
@@ -372,7 +377,7 @@ function TerrainGenerator:_fill_noise_map(noise_map, blend_map)
       return value
    end
 
-   noise_map:fill(noise_fn)
+   noise_map:fill_ij(noise_fn)
 end
 
 -- must return a new micro_map each time
@@ -386,32 +391,6 @@ function TerrainGenerator:_filter_noise_map(noise_map)
    FilterFns.filter_2D_025(filtered_map, noise_map, width, height, 8)
 
    return filtered_map
-
-   -- local micro_map = Array2D(width, height)
-   -- micro_map.terrain_type = terrain_type
-   -- FilterFns.filter_max_slope(micro_map, filtered_map, width, height, 8)
-   -- micro_map.generated = true
-
-   -- return micro_map
-end
-
-function TerrainGenerator:_add_DC_component(micro_map, blend_map)
-   local width = micro_map.width
-   local height = micro_map.height
-   local i, j, macro_block, mean, offset
-
-   for j=1, height do
-      for i=1, width do
-         macro_block = blend_map:get(i, j)
-
-         if macro_block.forced_value then mean = macro_block.forced_value
-         else                      mean = macro_block.mean
-         end
-
-         offset = micro_map:get_offset(i, j)
-         micro_map[offset] = micro_map[offset] + mean
-      end
-   end
 end
 
 -- edge values may not change values! they are shared with the adjacent tile
@@ -551,25 +530,25 @@ function TerrainGenerator:_copy_forced_edge_values(micro_map, blueprint, x, y)
    -- left tile
    adj_micro_map = self:_get_micro_map(blueprint, x-1, y)
    if adj_micro_map then
-      adj_micro_map:copy_block(micro_map, adj_micro_map, 1, 1, width, 1, 1, height)
+      Array2D.copy_block(micro_map, adj_micro_map, 1, 1, width, 1, 1, height)
    end
 
    -- right tile
    adj_micro_map = self:_get_micro_map(blueprint, x+1, y)
    if adj_micro_map then
-      adj_micro_map:copy_block(micro_map, adj_micro_map, width, 1, 1, 1, 1, height)
+      Array2D.copy_block(micro_map, adj_micro_map, width, 1, 1, 1, 1, height)
    end
 
    -- top tile
    adj_micro_map = self:_get_micro_map(blueprint, x, y-1)
    if adj_micro_map then
-      adj_micro_map:copy_block(micro_map, adj_micro_map, 1, 1, 1, height, width, 1)
+      Array2D.copy_block(micro_map, adj_micro_map, 1, 1, 1, height, width, 1)
    end
 
    -- bottom tile
    adj_micro_map = self:_get_micro_map(blueprint, x, y+1)
    if adj_micro_map then
-      adj_micro_map:copy_block(micro_map, adj_micro_map, 1, height, 1, 1, width, 1)
+      Array2D.copy_block(micro_map, adj_micro_map, 1, height, 1, 1, width, 1)
    end
 end
 
@@ -630,17 +609,16 @@ function TerrainGenerator:_quantize_height_map(height_map, is_micro_map)
    end
 end
 
--- TODO: replace this with a generalized quantizer class
 function TerrainGenerator:_quantize_value(value, enable_fancy_quantizer)
-   local quantized_value = self._quantizer:quantize(value)
+   local quantized_value = self.quantizer:quantize(value)
 
    if not enable_fancy_quantizer then
       return quantized_value
    end
 
    local terrain_info = self.terrain_info
-   -- disable fancy mode for Grassland
-   if quantized_value <= terrain_info[TerrainType.grassland].max_height then
+   -- disable fancy mode for plains
+   if quantized_value <= terrain_info[TerrainType.plains].max_height then
       return quantized_value
    end
 
@@ -662,8 +640,8 @@ function TerrainGenerator:_add_additional_details(height_map, micro_map)
 
    self._terrain_detailer:add_detail_blocks(height_map)
 
-   -- handle grassland separately - don't screw up edge detailer code
-   self._terrain_detailer:add_grassland_details(height_map)
+   -- handle plains separately - don't screw up edge detailer code
+   self._terrain_detailer:add_plains_details(height_map)
 end
 
 -- must return a new tile_map each time
@@ -673,7 +651,7 @@ function TerrainGenerator:_extract_tile_map(oversize_map)
 
    tile_map.terrain_type = oversize_map.terrain_type
 
-   oversize_map:copy_block(tile_map, oversize_map,
+   Array2D.copy_block(tile_map, oversize_map,
       1, 1, tile_map_origin, tile_map_origin, self.tile_size, self.tile_size)
 
    return tile_map

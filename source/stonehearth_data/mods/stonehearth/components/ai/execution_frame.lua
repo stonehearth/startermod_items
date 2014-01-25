@@ -1,7 +1,7 @@
 local StateMachine = require 'components.ai.state_machine'
 local ExecutionUnitV2 = require 'components.ai.execution_unit_v2'
 local Point3 = _radiant.csg.Point3
-local rng = _radiant.csg.get_default_random_number_generator()
+local rng = _radiant.csg.get_default_rng()
 local ExecutionFrame = class()
 
 local SET_ACTIVE_UNIT = { __comment = 'change active running unit' }

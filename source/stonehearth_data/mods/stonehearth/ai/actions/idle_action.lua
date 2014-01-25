@@ -1,4 +1,4 @@
-local rng = _radiant.csg.get_default_random_number_generator()
+local rng = _radiant.csg.get_default_rng()
 local Idle = class()
 
 Idle.name = 'idle'
