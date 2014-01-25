@@ -37,13 +37,14 @@ function StateMachine:set_state(state)
 end
 
 function StateMachine:wait_until(state)
-   local caller = stonehearth.threads:get_current_thread()   
+   self._calling_thread = stonehearth.threads:get_current_thread()   
    if self._state ~= state then
       self._waiting_until = state
       while self._state ~= state do
          self._calling_thread:suspend('waiting for ' .. state)
       end
       self._waiting_until = nil
+      self._calling_thread = nil
    end
 end
 
@@ -56,8 +57,8 @@ function StateMachine:dispatch_msg(msg, ...)
       local method = '_' .. msg .. '_from_anystate'
       dispatch_msg_fn = self._instance[method]
    end
-   assert(dispatch_msg_fn, string.format('unknown state transition in execution frame "%s"', method))
    self._log:spam('dispatching %s', method)
+   assert(dispatch_msg_fn, string.format('unknown state transition in execution frame "%s"', method))
    dispatch_msg_fn(self._instance, ...)
 end
 

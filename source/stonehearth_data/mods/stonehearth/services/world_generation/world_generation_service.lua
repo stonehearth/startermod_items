@@ -68,8 +68,12 @@ function WorldGenerationService:create_world()
       wall_clock_timer:start()
 
       local blueprint
-      blueprint = self._blueprint_generator:generate_blueprint(5, 5)
-      --blueprint = self._blueprint_generator:get_empty_blueprint(1, 1) -- useful for debugging real world scenarios without waiting for the load time
+      local method = radiant.util.get_config('world_generation.method', 'default')
+      if method == 'tiny' then
+         blueprint = self._blueprint_generator:get_empty_blueprint(1, 1) -- useful for debugging real world scenarios without waiting for the load time
+      else
+         blueprint = self._blueprint_generator:generate_blueprint(5, 5)
+      end
       --blueprint = self._blueprint_generator:get_static_blueprint()
       self:_generate_world(blueprint)
 

@@ -21,6 +21,7 @@ local CompoundAction = class()
 
 function CompoundAction:__init(entity, injecting_entity, action_ctor, activities, when_predicates, think_output_placeholders)
    -- initialize metadata
+   self._entity = entity
    self._action = action_ctor(entity, injecting_entity)
    self.name = self._action.name
    self.does = self._action.does
@@ -156,7 +157,7 @@ function CompoundAction:destroy()
    
    for i = #frames, 1, -1 do
       local frame = frames[i]
-      frame:send_msg('shutdown') -- must be asynchronous!
+      frame:send_msg('destroy') -- must be asynchronous!
    end
    if self._action.destroy then
       self._action:destroy()
