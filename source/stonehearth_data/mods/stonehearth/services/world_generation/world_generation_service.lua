@@ -150,9 +150,8 @@ function WorldGenerationService:_generate_world(blueprint)
 
       tile_info.feature_map = self._landscaper:get_feature_map()
 
-      -- derive habitat maps
-      tile_info.habitat_map, tile_info.elevation_map =
-         self._habitat_manager:derive_habitat_map(tile_info.feature_map, micro_map)
+      -- derive habitat map
+      tile_info.habitat_map = self._habitat_manager:derive_habitat_map(tile_info.feature_map, tile_info.elevation_map)
 
       -- place initial scenarios
       self:_place_scenarios(tile_info.habitat_map, tile_info.elevation_map, offset)

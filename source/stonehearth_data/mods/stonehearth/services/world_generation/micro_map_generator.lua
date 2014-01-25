@@ -14,9 +14,11 @@ function MicroMapGenerator:__init(terrain_info, rng)
    self._terrain_info = terrain_info
    self._tile_size = self._terrain_info.tile_size
    self._macro_block_size = self._terrain_info.macro_block_size
+   self._feature_size = self._terrain_info.feature_size
    self._rng = rng
 
    self._macro_blocks_per_tile = self._tile_size / self._macro_block_size
+   self._features_per_tile = self._tile_size / self._feature_size
 end
 
 function MicroMapGenerator:generate_micro_map(blueprint)
@@ -44,7 +46,10 @@ function MicroMapGenerator:generate_micro_map(blueprint)
    -- shard and store it
    self:_store_micro_map(blueprint, micro_map)
 
-   return micro_map
+   local elevation_map = self:_convert_to_elevation_map(micro_map)
+   self:_store_elevation_map(blueprint, elevation_map)
+
+   return micro_map, elevation_map
 end
 
 function MicroMapGenerator:generate_noise_map(blueprint)
@@ -74,7 +79,7 @@ function MicroMapGenerator:generate_noise_map(blueprint)
                assert(mean >= terrain_info.min_height)
          end
 
-         fn = function()
+         fn = function ()
             return rng:get_gaussian(mean, std_dev)
          end
 
@@ -87,12 +92,42 @@ function MicroMapGenerator:generate_noise_map(blueprint)
    return noise_map
 end
 
+function MicroMapGenerator:_convert_to_elevation_map(micro_map)
+   -- subtract the half macroblock margin from each edge
+   local elevation_map_width = (micro_map.width-1)*2
+   local elevation_map_height = (micro_map.height-1)*2
+   local elevation_map = Array2D(elevation_map_width, elevation_map_height)
+   local a, b, elevation
+
+   for j=1, elevation_map.height do
+      for i=1, elevation_map.width do
+         a, b = _elevation_map_to_micro_map_coords(i, j)
+         elevation = micro_map:get(a, b)
+         elevation_map:set(i, j, elevation)
+      end
+   end
+
+   return elevation_map
+end
+
+function _elevation_map_to_micro_map_coords(i, j)
+   return _elevation_map_to_micro_map_index(i), _elevation_map_to_micro_map_index(j)
+end
+
+-- recall that micro_maps are offset by half a macroblock for shared tiling boundaries
+function _elevation_map_to_micro_map_index(i)
+   -- offset 1 element to skip over micro_map overlap
+   -- convert to 0 based array, scale, convert back to 1 based array
+   return math.floor((i+1-1) * 0.5) + 1
+end
+
 function MicroMapGenerator:_store_micro_map(blueprint, full_micro_map)
    local macro_blocks_per_tile = self._macro_blocks_per_tile
    local local_micro_map
 
    for j=1, blueprint.height do
       for i=1, blueprint.width do
+         -- +1 for the margins
          local_micro_map = Array2D(macro_blocks_per_tile+1, macro_blocks_per_tile+1)
 
          Array2D.copy_block(local_micro_map, full_micro_map, 1, 1,
@@ -100,6 +135,23 @@ function MicroMapGenerator:_store_micro_map(blueprint, full_micro_map)
             macro_blocks_per_tile+1, macro_blocks_per_tile+1)
 
          blueprint:get(i, j).micro_map = local_micro_map
+      end
+   end
+end
+
+function MicroMapGenerator:_store_elevation_map(blueprint, full_elevation_map)
+   local features_per_tile = self._features_per_tile
+   local local_elevation_map
+
+   for j=1, blueprint.height do
+      for i=1, blueprint.width do
+         local_elevation_map = Array2D(features_per_tile, features_per_tile)
+
+         Array2D.copy_block(local_elevation_map, full_elevation_map, 1, 1,
+            (i-1)*features_per_tile+1, (j-1)*features_per_tile+1,
+            features_per_tile, features_per_tile)
+
+         blueprint:get(i, j).elevation_map = local_elevation_map
       end
    end
 end
