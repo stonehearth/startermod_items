@@ -19,6 +19,7 @@ local STOPPED = 'stopped'
 local UNWINDING = 'unwinding'
 local DEAD = 'dead'
 
+local ABORT_FRAME = ':aborted_frame:'
 local UNWIND_NEXT_FRAME = ':unwind_next_frame:'
 local UNWIND_NEXT_FRAME_2 = ':unwind_next_frame_2:'
 
@@ -86,8 +87,8 @@ function ExecutionFrame:on_ready(ready_cb)
 end
 
 function ExecutionFrame:stop_thinking()
-   assert(self._thread:is_running())
-
+   -- stop thinking can be called from any thread.  make sure we get back to 
+   -- the main thread before executing (in case we need to unwind the stack)
    self._log:spam('stop_thinking')
    self:_protected_call(function()
          self:send_msg('stop_thinking')
@@ -110,31 +111,35 @@ function ExecutionFrame:run()
    self._log:spam('run')
 
    local run_stack = self._thread:get_thread_data('stonehearth:run_stack')
-   table.insert(run_stack, self)
+   table.insert(run_stack, self)  
+   self:_log_stack('making pcall')
 
-   self:_protected_call(function()
-         if not self:_in_state(STOPPED, READY, STARTED) then
-            error(string.format('invalid initial state "%s" in run', self:get_state()))
-         end
-
-         if self:_in_state(STOPPED) then
-            self:send_msg('start_thinking')
-            self._sm:wait_until(READY)
-         end
-         if self:_in_state(READY) then
-            self:send_msg('start')
-            self._sm:wait_until(STARTED)
-         end
-         assert(self:_in_state(STARTED))
-         
-         self:send_msg('run')
-         self._sm:wait_until(FINISHED)
-      end)
-
-   local last_frame = table.remove(run_stack)
-
-   assert(run_stack == self._thread:get_thread_data('stonehearth:run_stack'))
-   assert(self == last_frame)   
+   local call_fn = function()
+      if not self:_in_state(STOPPED, READY, STARTED) then
+         error(string.format('invalid initial state "%s" in run', self:get_state()))
+      end
+      
+      if self:_in_state(STOPPED) then
+         self:send_msg('start_thinking')
+         self._sm:wait_until(READY)
+      end
+      if self:_in_state(READY) then
+         self:send_msg('start')
+         self._sm:wait_until(STARTED)
+      end
+      assert(self:_in_state(STARTED))
+      
+      self:send_msg('run')
+      self._sm:wait_until(FINISHED)
+   end   
+   local call_exit_fn = function()
+      self:_log_stack('pcall completed')
+      local last_frame = table.remove(run_stack)
+      assert(run_stack == self._thread:get_thread_data('stonehearth:run_stack'))
+      assert(self == last_frame)
+   end
+   
+   self:_protected_call(call_fn, call_exit_fn)
 end
 
 function ExecutionFrame:stop()
@@ -155,6 +160,11 @@ function ExecutionFrame:destroy()
          self:send_msg('destroy')
          self._sm:wait_until(DEAD)
       end)
+end
+
+function ExecutionFrame:abort_unit(unit)
+   assert(self._thread:is_running())
+   self:send_msg('abort_unit', unit)
 end
 
 function ExecutionFrame:send_msg(...)
@@ -386,6 +396,26 @@ function ExecutionFrame:_stop_from_finished()
    self:_set_state(STOPPED)
 end
 
+function ExecutionFrame:_abort_unit_from_anystate(unit)
+   self:send_msg('destroy')
+   self:_set_state(DEAD)
+   self:_exit_protected_call(ABORT_FRAME)
+end
+
+function ExecutionFrame:_destroy_from_starting()
+   for _, unit in pairs(self._execution_units) do
+      if unit == self._active_unit then
+         unit:send_msg('stop')   
+      end
+      unit:send_msg('stop_thinking')
+      unit:send_msg('destroy')
+   end
+   self._execution_units = {}
+   self._execution_unit_keys = {}
+   self:_set_state(DEAD)
+   self:_destroy()
+end
+
 function ExecutionFrame:_destroy_from_stopped()
    assert(not self._active_unit)
    for _, unit in pairs(self._execution_units) do
@@ -413,13 +443,17 @@ function ExecutionFrame:_get_top_of_stack()
    return runstack[#runstack]
 end
 
-function ExecutionFrame:_unwind_call_stack()
-   self._log:debug('_unwind_call_stack')
+function ExecutionFrame:_log_stack(msg)
+   self._log:detail(msg)
    local runstack = self._thread:get_thread_data('stonehearth:run_stack')
    for i = #runstack,1,-1 do
       local f = runstack[i]
       self._log:detail('  [%d] - (%5d) %s', i, f._id, f._name, stonehearth.ai.format_args(f._args))
    end
+end
+
+function ExecutionFrame:_unwind_call_stack(exit_handler)
+   self:_log_stack('_unwind_call_stack')
    
    local going_to_frame = self._thread:get_thread_data('stonehearth:unwind_to_frame')
    local current_run_frame = self:_get_top_of_stack()
@@ -453,33 +487,30 @@ function ExecutionFrame:_unwind_call_stack()
       
       -- remove our frame from the runstack, since the guy waiting for the
       -- run to finish won't have the opportunity to
-      local run_stack = self._thread:get_thread_data('stonehearth:run_stack')
-      table.remove(run_stack)
+      --local run_stack = self._thread:get_thread_data('stonehearth:run_stack')
+      --table.remove(run_stack)
       
       -- if the next frame is where we want to go, only unwind 1 frame so we
       -- end up back in the protected run loop in :_run_from_*.  otherwise,
       -- jump back 2 frames
+      exit_handler()
       local top = self:_get_top_of_stack()
       if top ~= going_to_frame then
          self:_exit_protected_call(UNWIND_NEXT_FRAME)
       else
          self:_exit_protected_call(UNWIND_NEXT_FRAME_2)
       end
-      radiant.not_reached()      
+      radiant.not_reached()
    end
 
    -- switch_step(7) - we have finally unwound all our called frames (destroying them
    -- along the way), and have reached the switching frame!  before doing so, make a
    -- new unit to replace the guy that just died.
-   assert(self:_in_state(SWITCHING)) 
-   local actions = self._action_index[self._name]
-   if actions then
-      local entry = actions[current_active_key]
-      self:_add_execution_unit(current_active_key, entry)
-      -- there's no need to start it thinking.  we're switching to a new unit, so
-      -- this one can't possibly be good for anything (at least not before we
-      -- exit running or kill that other thing...)
-   end
+   assert(self:_in_state(SWITCHING))
+   self:_add_execution_unit(current_active_key)
+   -- there's no need to start it thinking.  we're switching to a new unit, so
+   -- this one can't possibly be good for anything (at least not before we
+   -- exit running or kill that other thing...)
 
    -- switch_step(8) - yay!  now we can finally switch to the other unit. way back at step
    -- 1 we stashed that away.  take it out now!
@@ -546,7 +577,17 @@ end
 function ExecutionFrame:_add_execution_unit(key, entry)
    local name = tostring(type(key) == 'table' and key.name or key)
    self._log:debug('adding new execution unit: %s', name)
-   
+
+   if not entry then
+      local actions = self._action_index[self._name]
+      if not actions then
+         self._log:warning('no actions for %s at the moment.  this is actually ok for tasks (they may come later)', self._name)
+         return
+      end
+      entry = actions[key]
+      assert(entry)
+   end
+
    local action
    local action_ctor = entry.action_ctor
    
@@ -702,10 +743,24 @@ function ExecutionFrame:get_state(state)
    return self._sm:get_state(state)
 end
 
-function ExecutionFrame:_protected_call(fn)
-   local success, err = pcall(fn)
-   if not success then
+function ExecutionFrame:_protected_call(fn, exit_handler)
+   exit_handler = exit_handler or function() end
+   local error_handler = function(err)
       if err:find(UNWIND_NEXT_FRAME_2) then
+         return UNWIND_NEXT_FRAME_2
+      elseif err:find(UNWIND_NEXT_FRAME) then
+         return UNWIND_NEXT_FRAME
+      elseif err:find(ABORT_FRAME) then
+         return ABORT_FRAME
+      end
+      
+      local traceback = debug.traceback()
+      _host:report_error(err, traceback)
+      return err
+   end
+   local success, err = xpcall(fn, error_handler)
+   if not success then
+      if err == UNWIND_NEXT_FRAME_2 then
          self:_cleanup_protected_call_exit()      
          
          -- switch_step(5) - a frame called by the frame which needs to switch
@@ -720,18 +775,30 @@ function ExecutionFrame:_protected_call(fn)
          -- switch_step(6) - but we don't know if we've made it all the way
          -- back to the frame we want to switch to.  check it out.  _unwind_call_stack
          -- *will not return*      
-         self:_unwind_call_stack()
+         self:_unwind_call_stack(exit_handler)
          assert(self._active_unit)
          self._log:debug('finished unwinding!')
-      elseif err:find(UNWIND_NEXT_FRAME) then
+      elseif err == UNWIND_NEXT_FRAME then
          self:_cleanup_protected_call_exit()      
 
          -- it's magic.  don't question it (there's a 2nd pcall in run...
          self:_exit_protected_call(UNWIND_NEXT_FRAME_2)
       else
-         assert(success, 'error in call?  now what?')
+         self._log:info("aborting on error")
+         self:_set_state(DEAD)
+         self:_cleanup_protected_call_exit()      
+         exit_handler()
+         
+         -- we're aborting... hrm.  unwind all the way out
+         local run_stack = self._thread:get_thread_data('stonehearth:run_stack')
+         if #run_stack == 0 then
+            return false
+         end
+         self:_exit_protected_call(ABORT_FRAME)
+         radiant.not_reached()
       end
    end
+   exit_handler()
 end
 
 function ExecutionFrame:_exit_protected_call(sentinel)

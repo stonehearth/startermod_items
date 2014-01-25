@@ -106,15 +106,25 @@ function AIComponent:restart()
                                      :set_debug_name('e:%d', self._entity:get_id())
 
    self._thread:set_thread_main(function()
-      self._thread:set_thread_data('stonehearth:run_stack', {})
-      self._execution_frame = ExecutionFrame(self._thread, '', self._entity, 'stonehearth:top', {}, self._action_index)
+      self._execution_frame = self:_create_execution_frame()
       while not self._dead do
          self._execution_frame:run()
-         self._execution_frame:stop()
+         if self._execution_frame:get_state() == 'dead' then
+            self._execution_frame = self:_create_execution_frame()
+         else
+            self._execution_frame:stop()
+         end
       end
       self._execution_frame:destroy()
    end)
    self._thread:start()
+end
+
+function AIComponent:_create_execution_frame()
+   local route = string.format('e:%d %s', self._entity:get_id(), radiant.entities.get_name(self._entity))
+   self._thread:set_thread_data('stonehearth:run_stack', {})
+   self._thread:set_thread_data('stonehearth:unwind_to_frame', nil)
+   return ExecutionFrame(self._thread, route, self._entity, 'stonehearth:top', {}, self._action_index)
 end
 
 function AIComponent:_terminate_thread()
@@ -130,13 +140,6 @@ function AIComponent:_terminate_thread()
       -- this function MAY NOT RETURN!
       stonehearth.threads:terminate_thread(self.thread)
    end
-end
-
-function AIComponent:abort(reason)
-   -- xxx: assert that we're running inthe context of the coroutine
-   if reason == nil then reason = 'no reason given' end
-   log:info('%s aborting current action because: %s', self._entity, reason)  
-   self:_terminate_thread()
 end
 
 function AIComponent:suspend_thread()

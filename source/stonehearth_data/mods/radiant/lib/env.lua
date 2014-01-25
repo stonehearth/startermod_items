@@ -6,6 +6,16 @@ assert = function(condition, msg)
    end
 end
 
+-- if these variables don't exist yet, they never will.  put them in the global
+-- namespace so we can check them before using (otherwise strict.lua will kick
+-- us in the teeth just for checking against nil)
+if not decoda_break_on_error then
+   decoda_break_on_error = false
+end
+if not decoda_output then
+   decoda_output = false
+end
+
 -- this function is only valid in very specific circumstances!  specfically, the
 -- caller must be called DIRECTLY from a 3rd party module source file.
 __get_current_module_name = function(depth)

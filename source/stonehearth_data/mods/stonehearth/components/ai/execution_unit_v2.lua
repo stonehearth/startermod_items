@@ -384,7 +384,7 @@ function ExecutionUnitV2:__abort(reason, ...)
       -- running, we have no choice but to abort it.  if we ever leave this
       -- function, we'll break the 'abort does not return' contract we have with
       -- the action
-      self:_terminate(reason)
+      self._frame:abort_unit(self)
       radiant.not_reached('abort does not return')
    else
       error('need to implement abort while not running')

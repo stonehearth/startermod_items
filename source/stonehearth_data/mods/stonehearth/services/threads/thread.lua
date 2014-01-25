@@ -190,13 +190,17 @@ function Thread:start(...)
                self._should_resume = false
             end)
          if not success then
-            radiant.check.report_thread_error(self._co, 'thread error: ' .. err)
+            self:report_thread_error(err)
          end
       end)
    self._log:detail('starting thread')   
    Thread.resume_thread(self)
 
    return self
+end
+
+function Thread:report_thread_error(err)
+   radiant.check.report_thread_error(self._co, 'thread error: ' .. err)   
 end
 
 function Thread:interrupt(fn)

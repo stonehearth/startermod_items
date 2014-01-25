@@ -5,6 +5,8 @@ local STARTED = 'started'
 local STOPPED = 'stopped'
 local COMPLETED = 'completed'
 
+local INFINITE = 999999 -- infinite enough?
+
 function Task:__init(scheduler, activity)
    self._scheduler = scheduler
    self._activity = activity
@@ -20,7 +22,7 @@ function Task:__init(scheduler, activity)
    self._running_actions = {}
    self._running_actions_count = 0
    self._priority = 2
-   self._max_workers = 1
+   self._max_workers = INFINITE
    self:_set_state(STOPPED)
 end
 
