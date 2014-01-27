@@ -24,7 +24,7 @@ function HarvestPlantsAction:run(ai, entity, args)
    if factory then
       ai:execute('stonehearth:run_effect', { effect = 'fiddle' })
       local front_point = entity:get_component('mob'):get_location_in_front()
-      factory:spawn_resource(Point3(front_point.x, front_point.y, front_point.z))
+      local spawned_item = factory:spawn_resource(Point3(front_point.x, front_point.y, front_point.z))
 
       -- xxx: mucking with the personality compounent should probably be factored
       -- into its own action entirely (iff possible.... i don't even know if that's

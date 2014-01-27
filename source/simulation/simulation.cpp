@@ -617,19 +617,14 @@ void Simulation::Idle()
 {
    MEASURE_TASK_TIME("idle")
 
+   // use of advance considered harmful.  what if the server gets "stuck"?  (e.g. in the debugger)
    if (!noidle_) {
       SIM_LOG_GAMELOOP(7) << "idling";
       while (!game_loop_timer_.expired()) {
          platform::sleep(1);
       }
-      game_loop_timer_.advance(game_tick_interval_);
-   } else {
-      if (game_loop_timer_.expired()) { 
-         game_loop_timer_.advance(game_tick_interval_);
-      } else {
-         game_loop_timer_.set(game_tick_interval_);
-      }
    }
+   game_loop_timer_.set(game_tick_interval_);
 }
 
 void Simulation::SendClientUpdates()

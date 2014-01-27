@@ -10,12 +10,6 @@ local DEAD = 'dead'
 local ABORTED = 'aborted'
 local placeholders = require 'services.ai.placeholders'
 
-function ExecutionUnitV2._add_nop_state_transition(msg, state)
-   local method = '_' .. msg .. '_from_' .. state
-   assert(not ExecutionUnitV2[method])
-   ExecutionUnitV2[method] = function() end
-end
-
 function ExecutionUnitV2:__init(frame, thread, debug_route, entity, injecting_entity, action, args, action_index)
    assert(action.name)
    assert(action.does)
@@ -46,6 +40,29 @@ function ExecutionUnitV2:__init(frame, thread, debug_route, entity, injecting_en
    chain_function('abort')
    chain_function('get_log')   
   
+   local actions = {
+      'start_thinking',
+      'stop_thinking',
+      'start',
+      'stop',
+      'run',
+      'destroy'
+   }
+   for _, method in ipairs(actions) do
+      ExecutionUnitV2['_call_' .. method] = function (self)
+         local call_action_fn = self._action[method]
+         if call_action_fn then
+            self._calling_method = method
+            self._log:detail('calling action %s', method)
+            call_action_fn(self._action, self._ai_interface, self._entity, self._args)
+            self._calling_method = nil
+         else
+            self._log:detail('action does not implement %s.', method)
+         end
+         return call_action_fn ~= nil
+      end
+   end
+
 
    self._log = radiant.log.create_logger('ai.exec_unit')
    local prefix = string.format('%s (%s)', self._debug_route, self:get_name())
@@ -115,63 +132,128 @@ function ExecutionUnitV2:get_debug_info()
    return info
 end
 
-function ExecutionUnitV2:send_msg(msg, ...)
-   local method = '_' .. msg .. '_from_' .. self._state
-   local invoked = method
-   local dispatch_msg_fn = self[invoked]
-   
-   if not dispatch_msg_fn and self._state == 'ready' then
-      self._log:detail('no %s handler.  trying to remap to the thinking handler.', method)
-      -- cheat a little bit... there's almost no distinction how transitions from 'ready' and 'thinking'
-      -- are handled (with the execption of start)...  so if there's not a handler for the current
-      -- msg from the ready state, try the thinking one.  that way we don't have to duplicate code
-      invoked = '_' .. msg .. '_from_thinking'
-      dispatch_msg_fn = self[invoked]
-   end
-   if not dispatch_msg_fn then
-      -- try the 'anystate' fallback
-      invoked = '_' .. msg .. '_from_anystate'
-      dispatch_msg_fn = self[invoked]
-   end
-   
-   assert(dispatch_msg_fn, string.format('unknown state transition in execution frame "%s"', method))
-   self._log:detail('calling ' .. invoked)
-   dispatch_msg_fn(self, ...)
+function ExecutionUnitV2:_unknown_transition(msg)
+   error(string.format('unknown state transition in execution unit "%s" from_state "%s"', msg, self._state))
 end
 
-function ExecutionUnitV2:_call_action(method)
-   local call_action_fn = self._action[method]
-   if call_action_fn then
-      self._calling_method = method
-      self._log:detail('calling action %s', method)
-      call_action_fn(self._action, self._ai_interface, self._entity, self._args)
-      self._calling_method = nil
-   else
-      self._log:detail('action does not implement %s.', method)
+function ExecutionUnitV2:_start_thinking(entity_state)
+   if self._state == 'stopped' then
+      return self:_start_thinking_from_stopped(entity_state)
    end
-   return call_action_fn ~= nil
+   self:_unknown_transition('start_thinking')   
+end
+
+function ExecutionUnitV2:_set_think_output(think_output)
+   if self._state == 'thinking' then
+      return self:_set_think_output_from_thinking(think_output)
+   end
+   if self._state == 'ready' then
+      return self:_set_think_output_from_ready(think_output)
+   end
+   self:_unknown_transition('set_think_output')   
+end
+
+function ExecutionUnitV2:_clear_think_output()
+   if self:in_state('thinking', 'ready') then
+      return self:_clear_think_output_from_thinking()
+   end
+   if self._state == 'finished' then
+      return self:_clear_think_output_from_finished()
+   end
+   self:_unknown_transition('clear_think_output')   
+end
+
+function ExecutionUnitV2:_stop_thinking()
+   if self:in_state('thinking', 'ready') then
+      return self:_stop_thinking_from_thinking()
+   end
+   if self._state == 'started' then
+      return self:_stop_thinking_from_started()
+   end
+   self:_unknown_transition('stop_thinking')   
+end
+
+function ExecutionUnitV2:_start()
+   if self._state == 'ready' then
+      return self:_start_from_ready()
+   end
+   self:_unknown_transition('start')   
+end
+
+function ExecutionUnitV2:_run()
+   if self._state == 'ready' then
+      return self:_run_from_ready()
+   end
+   if self._state == 'started' then
+      return self:_run_from_started()
+   end
+   self:_unknown_transition('run')   
+end
+
+function ExecutionUnitV2:_stop(invalid_transition_ok)
+   if self:in_state('thinking', 'ready') then
+      return self:_stop_from_thinking(invalid_transition_ok)
+   end
+   if self._state == 'running' then
+      return self:_stop_from_running(invalid_transition_ok)
+   end
+   if self._state == 'finished' then
+      return self:_stop_from_finished(invalid_transition_ok)
+   end
+   if self._state == 'stopped' or self._state == 'stop_thinking' then
+      return -- nopf
+   end
+   self:_unknown_transition('stop')   
+end
+
+function ExecutionUnitV2:_destroy()
+   if self:in_state('thinking', 'ready') then
+      return self:_destroy_from_thinking()
+   end
+   if self._state == 'stopped' then
+      return self:_destroy_from_stopped()
+   end
+   if self._state == 'finished' then
+      return self:_destroy_from_finished()
+   end
+   self:_unknown_transition('destroy')   
 end
 
 function ExecutionUnitV2:_start_thinking_from_stopped(entity_state)
    assert(not self._thinking)
 
    self:_set_state(THINKING)
-   self:_start_thinking(entity_state)
+   self:_do_start_thinking(entity_state)
 end
 
 function ExecutionUnitV2:_set_think_output_from_thinking(think_output)
+   if self._state == DEAD then
+      self._log:debug('ignoring set_think_output in dead state')
+      return
+   end
+
    if not think_output then
       think_output = self._args
    end
    self:_verify_arguments(think_output, self._think_output_types)
 
    self:_set_state(READY)
-   self._frame:send_msg('unit_ready', self, think_output)
+   self._frame:_unit_ready(self, think_output)
+end
+
+function ExecutionUnitV2:_set_think_output_from_ready(think_output)
+   self._log:info('action called set_think_output from ready state.  using previous think output!')
+   return
 end
 
 function ExecutionUnitV2:_clear_think_output_from_thinking()
+   if self._state == DEAD then
+      self._log:debug('ignoring clear_think_output in dead state')
+      return
+   end
+
    self:_set_state(THINKING)
-   self._frame:send_msg('unit_not_ready', self)
+   self._frame:_unit_not_ready(self)
 end
 
 function ExecutionUnitV2:_clear_think_output_from_finished()
@@ -180,13 +262,13 @@ end
 
 function ExecutionUnitV2:_stop_thinking_from_thinking()
    assert(self._thinking)
-   self:_stop_thinking()
+   self:_do_stop_thinking()
    self:_set_state(STOPPED)
 end
 
 function ExecutionUnitV2:_stop_thinking_from_started()
    if self._thinking then
-      self:_stop_thinking()
+      self:_do_stop_thinking()
    end
    -- stay in the started stated.
 end
@@ -194,18 +276,18 @@ end
 function ExecutionUnitV2:_start_from_ready()
    assert(self._thinking)
 
-   self:_start()
+   self:_do_start()
    self:_set_state(STARTED)
-   self:_stop_thinking()
+   self:_do_stop_thinking()
 end
 
 function ExecutionUnitV2:_run_from_ready()
    assert(self._thinking)
 
-   self:_start()
+   self:_do_start()
    self:_set_state(RUNNING)
-   self:_stop_thinking()
-   self:_call_action('run')
+   self:_do_stop_thinking()
+   self:_call_run()
    self:_set_state(FINISHED)
 end
 
@@ -213,14 +295,14 @@ function ExecutionUnitV2:_run_from_started()
    assert(not self._thinking)
 
    self:_set_state(RUNNING)
-   self:_call_action('run')
+   self:_call_run()
    self:_set_state(FINISHED)
 end
 
 function ExecutionUnitV2:_stop_from_thinking()
    assert(self._thinking)
 
-   self:_stop_thinking()
+   self:_do_stop_thinking()
    self:_set_state(STOPPED)
 end
 
@@ -238,78 +320,78 @@ function ExecutionUnitV2:_stop_from_running(frame_will_kill_running_action)
       assert(self._execute_frame:get_state() == 'dead')
       self._execute_frame =  nil
    end
-   self:_stop()
+   self:_do_stop()
    self:_set_state(STOPPED)
 end
 
 function ExecutionUnitV2:_stop_from_finished()
    assert(not self._thinking)
 
-   self:_stop()
+   self:_do_stop()
    self:_set_state(STOPPED)
 end
 
 function ExecutionUnitV2:_destroy_from_thinking()
    assert(self._thinking)
    assert(not self._execute_frame)
-   self:_call_action('stop_thinking')
-   self:_call_action('destroy')
+   self:_call_stop_thinking()
+   self:_call_destroy()
    self:_set_state(DEAD)
 end
 
 function ExecutionUnitV2:_destroy_from_stopped()
    assert(not self._thinking)
    assert(not self._execute_frame)
-   self:_call_action('destroy')
+   self:_call_destroy()
    self:_set_state(DEAD)
 end
 function ExecutionUnitV2:_destroy_from_finished()
    assert(not self._thinking)
    assert(not self._execute_frame)
-   self:_call_action('destroy')
+   self:_call_destroy()
    self:_set_state(DEAD)
 end
 
-function ExecutionUnitV2:_start()
-   self._log:debug('_start (state:%s)', tostring(self._state))
+function ExecutionUnitV2:_do_start()
+   self._log:debug('_do_start (state:%s)', tostring(self._state))
    assert(self._thinking)
    assert(not self._started)
    
    self._started = true
-   self:_call_action('start')
+   self:_call_start()
 end
 
-function ExecutionUnitV2:_stop()
-   self._log:debug('_stop (state:%s)', tostring(self._state))
+function ExecutionUnitV2:_do_stop()
+   self._log:debug('_do_stop (state:%s)', tostring(self._state))
    assert(not self._thinking)
-   assert(self._started)
+   assert(self._started, '_do_stop called before start')
    
    self._started = false
-   self:_call_action('stop')
+   self:_call_stop()
 end
 
-function ExecutionUnitV2:_start_thinking(entity_state)
-   self._log:debug('_start_thinking (state:%s)', tostring(self._state))
+function ExecutionUnitV2:_do_start_thinking(entity_state)
+   self._log:debug('_do_start_thinking (state:%s)', tostring(self._state))
    assert(not self._thinking)
    
    self._thinking = true
    self._current_entity_state = entity_state
    self._ai_interface.CURRENT = entity_state
 
-   if not self:_call_action('start_thinking') then
-      self:send_msg('set_think_output')
+   if not self:_call_start_thinking() then
+      self:_set_think_output(nil)
    end
 end
 
-function ExecutionUnitV2:_stop_thinking()
-   self._log:debug('_stop_thinking (state:%s)', tostring(self._state))
+function ExecutionUnitV2:_do_stop_thinking()
+   self._log:debug('_do_stop_thinking (state:%s)', tostring(self._state))
    assert(self._thinking)
 
    self._current_entity_state = nil
    self._ai_interface.CURRENT = nil
    self._thinking = false
    
-   self:_call_action('stop_thinking')
+   self:_call_stop_thinking()
 end
 
 -- the interface facing actions (i.e. the 'ai' interface)
@@ -336,14 +418,14 @@ function ExecutionUnitV2:__set_think_output(args)
       -- wow, so eager!  don't send a message, just hold onto the answer for when we rewind...
       self._reentrant_think_output = args
    else
-      self:send_msg('set_think_output', args)
+      self:_set_think_output(args)
    end
 end
 
 function ExecutionUnitV2:__clear_think_output(format, ...)
    local reason = format and string.format(format, ...) or 'no reason given'
    self._log:debug('__clear_think_output called (reason: %s)', reason)
-   self:send_msg('clear_think_output')
+   self:_clear_think_output()
 end
 
 function ExecutionUnitV2:__spawn(name, args)   
@@ -384,7 +466,7 @@ function ExecutionUnitV2:__abort(reason, ...)
       -- running, we have no choice but to abort it.  if we ever leave this
       -- function, we'll break the 'abort does not return' contract we have with
       -- the action
-      self._frame:abort_unit(self)
+      self._frame:abort()
       radiant.not_reached('abort does not return')
    else
       error('need to implement abort while not running')
@@ -475,10 +557,5 @@ function ExecutionUnitV2:_spam_current_state(msg)
       self._log:spam('  no CURRENT state!')
    end
 end
-
-local ANY_STATE = 'any_state'
-ExecutionUnitV2._add_nop_state_transition('stop', STOPPED)
-ExecutionUnitV2._add_nop_state_transition('stop_thinking', STOPPED)
-ExecutionUnitV2._add_nop_state_transition('child_thread_exit', ANY_STATE)
 
 return ExecutionUnitV2

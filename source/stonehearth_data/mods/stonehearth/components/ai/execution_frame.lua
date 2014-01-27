@@ -1,4 +1,4 @@
-local StateMachine = require 'components.ai.state_machine'
+local ExecutionFrame = require 'components.ai.state_machine'
 local ExecutionUnitV2 = require 'components.ai.execution_unit_v2'
 local Point3 = _radiant.csg.Point3
 local rng = _radiant.csg.get_default_rng()
@@ -40,20 +40,161 @@ function ExecutionFrame:__init(thread, debug_route, entity, name, args, action_i
    self._log:set_prefix(prefix)
    self._log:debug('creating execution frame')
    
-   self._sm = StateMachine(self, self._log, STOPPED)
    self:_set_state(STOPPED)
 
    self:_create_execution_units()
    self._ai_component = entity:get_component('stonehearth:ai')
-   radiant.events.listen(self._ai_component, 'stonehearth:action_index_changed', self, self._on_action_index_changed)
+   radiant.events.listen(self._ai_component, 'stonehearth:action_index_changed', self, self._on_action_index_changed)   
+end
+
+function ExecutionFrame:_unknown_transition(msg)
+   error(string.format('unknown state transition in execution frame "%s" from_state "%s"', msg, self._state))
+end
+
+function ExecutionFrame:_start_thinking(entity_state)
+   if self._state == 'stopped' then
+      return self:_start_thinking_from_stopped(entity_state)
+   end
+   self:_unknown_transition('start_thinking')
+end
+
+function ExecutionFrame:_stop_thinking()
+   if self._state == 'thinking' then
+      return self:_stop_thinking_from_thinking()
+   end
+   if self._state == 'ready' then
+      return self:_stop_thinking_from_ready()
+   end
+   if self._state == 'started' then
+      return self:_stop_thinking_from_started()
+   end
+   self:_unknown_transition('stop_thinking')
+end
+
+function ExecutionFrame:_start()
+   if self._state == 'ready' then
+      return self:_start_from_ready()
+   end
+   self:_unknown_transition('start')
+end
+
+function ExecutionFrame:_run()
+   if self._state == 'started' then
+      return self:_run_from_started()
+   end
+   self:_unknown_transition('run')
+end
+
+function ExecutionFrame:_unit_ready(unit, think_output)
+   if self._state == 'thinking' then
+      return self:_unit_ready_from_thinking(unit, think_output)
+   end
+   if self._state == 'ready' then
+      return self:_unit_ready_from_ready(unit, think_output)
+   end
+   if self._state == 'running' then
+      return self:_unit_ready_from_running(unit, think_output)
+   end
+   if self._state == 'dead' then
+      return self:_unit_ready_from_dead(unit, think_output)
+   end
+   self:_unknown_transition('unit_ready')
+end
+
+function ExecutionFrame:_unit_not_ready()
+   if self._state == 'thinking' then
+      return self:_unit_not_ready_from_thinking()
+   end
+   if self._state == 'ready' then
+      return self:_unit_not_ready_from_ready()
+   end
+   if self._state == 'dead' then
+      return self:_unit_not_ready_from_dead(unit, think_output)
+   end
+   self:_unknown_transition('unit_not_ready')
+end
+
+function ExecutionFrame:_stop()
+   if self._state == 'finished' then
+      return self:_stop_from_finished()
+   end
+   if self._state == 'stopped' then
+      return -- nop
+   end
+   self:_unknown_transition('stop')
 end
 
 function ExecutionFrame:_destroy()
-   radiant.events.unlisten(self._ai_component, 'stonehearth:action_index_changed', self, self._on_action_index_changed)
+   if self._state == 'starting' then
+      return self:_destroy_from_starting()
+   end
+   if self._state == 'stopped' then
+      return self:_destroy_from_stopped()
+   end
+   if self._state == 'unwinding' then
+      return self:_destroy_from_unwinding()
+   end
+   self:_unknown_transition('destroy')
 end
 
-function ExecutionFrame:send_msg(...)
-   self._sm:dispatch_msg(...)
+function ExecutionFrame:_add_action(...)
+   if self._state == 'thinking' then
+      return self:_add_action_from_thinking(...)
+   end
+   if self._state == 'ready' then
+      return self:_add_action_from_ready(...)
+   end
+   if self._state == 'running' then
+      return self:_add_action_from_running(...)
+   end
+   if self._state == 'stopped' then
+      return self:_add_action_from_stopped(...)
+   end
+   self:_unknown_transition('add_action')
+end
+
+function ExecutionFrame:_remove_action(...)
+   if self._state == 'thinking' then
+      return self:_remove_action_from_thinking(...)
+   end
+   if self._state == 'ready' then
+      return self:_remove_action_from_ready(...)
+   end
+   if self._state == 'running' then
+      return self:_remove_action_from_running(...)
+   end
+   if self._state == 'stopped' then
+      return self:_remove_action_from_stopped(...)
+   end
+   if self._state == 'finished' then
+      return self:_remove_action_from_finished(...)
+   end
+   self:_unknown_transition('remove_action')
+end
+
+function ExecutionFrame:_start_thinking_from_stopped(entity_state)
+   self._log:debug('_start_thinking_from_stopped')
+   if entity_state then
+      self:_set_current_entity_state(entity_state)
+   else
+      self:_capture_entity_state()
+   end
+   assert(self._active_unit == nil)
+   assert(self._current_entity_state)
+
+   self:_set_state(THINKING)
+
+   -- randomize the order that we tell execution units to start thinking based on the
+   -- number of shares they have.   the first execution unit we notify has a better
+   -- chance of being the active one.
+   local shuffled = self:_shuffle_execution_units()
+   for _, unit in ipairs(shuffled) do
+      unit:_start_thinking(self:_clone_entity_state('new speculation for unit'))
+   end
+end
+
+function ExecutionFrame:_do_destroy()
+   radiant.events.unlisten(self._ai_component, 'stonehearth:action_index_changed', self, self._on_action_index_changed)
 end
 
 function ExecutionFrame:start_thinking(entity_state)
@@ -61,22 +202,32 @@ function ExecutionFrame:start_thinking(entity_state)
    assert(entity_state)
    assert(self:get_state() == STOPPED)
 
-   self:send_msg('start_thinking', entity_state)
-   if self:_in_state(READY) then
+   self:_start_thinking(entity_state)
+   if self:in_state(READY) then
       return self._active_unit_think_output
    end
 end
 
 function ExecutionFrame:on_ready(ready_cb)
    self._log:spam('on_ready')
-   assert(not self._ready_cb)
+   if not ready_cb then
+      self._ready_cb = nil
+      return
+   end
 
+   assert(not self._ready_cb_pending)
    local current_thread = stonehearth.threads:get_current_thread()
    self._ready_cb = function(...)
          local args = { ... }
-         if current_thread then
+         if current_thread and not current_thread:is_running() then
             current_thread:interrupt(function()
-                  ready_cb(unpack(args))
+                  self._ready_cb_pending = true
+                  if self._ready_cb then
+                     self._ready_cb(unpack(args))
+                  else
+                     self._log:detail('ready_cb became unregistered while switching thread context.')
+                  end
+                  self._ready_cb_pending = false
                end)
          else
             -- sometimes there is no thread (e.g. in pathfinder callbacks).
@@ -91,7 +242,7 @@ function ExecutionFrame:stop_thinking()
    -- the main thread before executing (in case we need to unwind the stack)
    self._log:spam('stop_thinking')
    self:_protected_call(function()
-         self:send_msg('stop_thinking')
+         self:_stop_thinking()
       end)
 end
 
@@ -100,8 +251,8 @@ function ExecutionFrame:start()
 
    self._log:spam('start')
    self:_protected_call(function()
-         self:send_msg('start')
-         self._sm:wait_until(STARTED)
+         self:_start()
+         self:wait_until(STARTED)
       end)
 end
 
@@ -115,22 +266,22 @@ function ExecutionFrame:run()
    self:_log_stack('making pcall')
 
    local call_fn = function()
-      if not self:_in_state(STOPPED, READY, STARTED) then
+      if not self:in_state(STOPPED, READY, STARTED) then
          error(string.format('invalid initial state "%s" in run', self:get_state()))
       end
       
-      if self:_in_state(STOPPED) then
-         self:send_msg('start_thinking')
-         self._sm:wait_until(READY)
+      if self:in_state(STOPPED) then
+         self:_start_thinking()
+         self:wait_until(READY)
       end
-      if self:_in_state(READY) then
-         self:send_msg('start')
-         self._sm:wait_until(STARTED)
+      if self:in_state(READY) then
+         self:_start()
+         self:wait_until(STARTED)
       end
-      assert(self:_in_state(STARTED))
+      assert(self:in_state(STARTED))
       
-      self:send_msg('run')
-      self._sm:wait_until(FINISHED)
+      self:_run()
+      self:wait_until(FINISHED)
    end   
    local call_exit_fn = function()
       self:_log_stack('pcall completed')
@@ -147,28 +298,17 @@ function ExecutionFrame:stop()
 
    self._log:spam('stop')
    self:_protected_call(function()   
-         self:send_msg('stop')
-         self._sm:wait_until(STOPPED)
+         self:_stop()
+         self:wait_until(STOPPED)
       end)
 end
 
 function ExecutionFrame:destroy()
-   assert(self._thread:is_running())
-
    self._log:spam('destroy')
    self:_protected_call(function()   
-         self:send_msg('destroy')
-         self._sm:wait_until(DEAD)
+         self:_destroy()
+         self:wait_until(DEAD)
       end)
-end
-
-function ExecutionFrame:abort_unit(unit)
-   assert(self._thread:is_running())
-   self:send_msg('abort_unit', unit)
-end
-
-function ExecutionFrame:send_msg(...)
-   self._sm:dispatch_msg(...)
 end
 
 function ExecutionFrame:_create_execution_units()
@@ -196,30 +336,9 @@ function ExecutionFrame:_shuffle_execution_units()
    return units
 end
 
-function ExecutionFrame:_start_thinking_from_stopped(entity_state)
-   self._log:debug('_start_thinking_from_stopped')
-   if entity_state then
-      self:_set_current_entity_state(entity_state)
-   else
-      self:_capture_entity_state()
-   end
-   assert(self._active_unit == nil)
-   assert(self._current_entity_state)
-
-   self:_set_state(THINKING)
-
-   -- randomize the order that we tell execution units to start thinking based on the
-   -- number of shares they have.   the first execution unit we notify has a better
-   -- chance of being the active one.
-   local shuffled = self:_shuffle_execution_units()
-   for _, unit in ipairs(shuffled) do
-      unit:send_msg('start_thinking', self:_clone_entity_state('new speculation for unit'))
-   end
-end
-
 function ExecutionFrame:_stop_thinking_from_thinking()
    for _, unit in pairs(self._execution_units) do
-      unit:send_msg('stop_thinking')
+      unit:_stop_thinking()
    end
    self:_set_state(STOPPED)
 end
@@ -231,7 +350,7 @@ function ExecutionFrame:_stop_thinking_from_ready()
    self:_set_active_unit(nil)
    
    for _, unit in pairs(self._execution_units) do
-      unit:send_msg('stop_thinking')
+      unit:_stop_thinking()
    end
    self:_set_state(STOPPED)
 end
@@ -242,7 +361,7 @@ function ExecutionFrame:_stop_thinking_from_started()
    
    for _, unit in pairs(self._execution_units) do
       if not self:_is_strictly_better_than_active(unit) then
-         unit:send_msg('stop_thinking') -- this guy has no prayer...  just stop
+         unit:_stop_thinking() -- this guy has no prayer...  just stop
       else
          -- let better ones keep processing.  they may prempt in the future
          -- xxx: there's a problem... once we start running the CURRENT state
@@ -315,7 +434,32 @@ function ExecutionFrame:_unit_ready_from_running(unit, think_output)
    end
 end
 
+function ExecutionFrame:_unit_ready_from_ready(unit, think_output)
+   assert(self._active_unit)
+   self._saved_think_output[unit] = think_output
+
+   if self:_is_strictly_better_than_active(unit) then
+      self._log:detail('replacing unit "%s" with better active unit "%s"',
+                       self._active_unit:get_name(), unit:get_name())
+   else
+      return
+   end
+   self:_set_active_unit(unit, think_output)
+end
+
+function ExecutionFrame:_unit_ready_from_dead(unit, think_output)
+   self._log:debug('ignoring ready message while dead')
+   assert(#self._execution_units == 0, 'frame still has units while dead')
+end
+
 function ExecutionFrame:_unit_not_ready_from_thinking(unit)
+   if unit == self._active_unit then
+      self._log:detail('best choice for active_unit "%s" became unready...', unit:get_name())
+      self:_find_replacement_for_active_unit()
+   end
+end
+
+function ExecutionFrame:_unit_not_ready_from_ready(unit, think_output)
    if unit == self._active_unit then
       self._log:detail('best choice for active_unit "%s" became unready...', unit:get_name())
       self:_find_replacement_for_active_unit()
@@ -358,7 +502,7 @@ function ExecutionFrame:_start_from_ready()
 
    self._current_entity_state = nil
    self:_set_state(STARTING)
-   self._active_unit:send_msg('start')
+   self._active_unit:_start()
    self:_set_state(STARTED)
 end
 
@@ -371,7 +515,7 @@ function ExecutionFrame:_run_from_started()
    repeat
       running_unit = self._active_unit
       self:_protected_call(function()
-            running_unit:send_msg('run')
+            running_unit:_run()
          end)
          
       assert(self._active_unit)
@@ -391,54 +535,50 @@ end
 function ExecutionFrame:_stop_from_finished()
    assert(not self._active_unit)
    for _, unit in pairs(self._execution_units) do
-      unit:send_msg('stop')
+      unit:_stop()
    end
    self:_set_state(STOPPED)
-end
-
-function ExecutionFrame:_abort_unit_from_anystate(unit)
-   self:_abort()
 end
 
 function ExecutionFrame:_destroy_from_starting()
    for _, unit in pairs(self._execution_units) do
       if unit == self._active_unit then
-         unit:send_msg('stop')   
+         unit:_stop()
       end
-      unit:send_msg('stop_thinking')
-      unit:send_msg('destroy')
+      unit:_stop_thinking()
+      unit:_destroy()
    end
    self._execution_units = {}
    self._execution_unit_keys = {}
    self:_set_state(DEAD)
-   self:_destroy()
+   self:_do_destroy()
 end
 
 function ExecutionFrame:_destroy_from_stopped()
    assert(not self._active_unit)
    for _, unit in pairs(self._execution_units) do
-      unit:send_msg('destroy')
+      unit:_destroy()
    end
    self._execution_units = {}
    self._execution_unit_keys = {}
    self:_set_state(DEAD)
-   self:_destroy()
+   self:_do_destroy()
 end
 
 function ExecutionFrame:_destroy_from_unwinding()
    assert(not self._active_unit)
    for _, unit in pairs(self._execution_units) do
-      unit:send_msg('destroy')
+      unit:_destroy()
    end
    self._execution_units = {}
    self._execution_unit_keys = {}
    self:_set_state(DEAD)
-   self:_destroy()
+   self:_do_destroy()
 end
 
-function ExecutionFrame:_abort()
+function ExecutionFrame:abort()
    assert(self._thread:is_running())
-   self:send_msg('destroy')
+   self:_do_destroy()
    self:_set_state(DEAD)
    self:_exit_protected_call(ABORT_FRAME)
 end
@@ -476,8 +616,8 @@ function ExecutionFrame:_unwind_call_stack(exit_handler)
    local current_active_key = self._execution_unit_keys[self._active_unit]
    local unit = self._active_unit
    self._active_unit = nil
-   unit:send_msg('stop', true)
-   unit:send_msg('destroy')  
+   unit:_stop(true)
+   unit:_destroy()
    self:_remove_execution_unit(unit)
 
    -- switch_step(4) - unfortunately, we may be really really deep in nested calls
@@ -485,10 +625,10 @@ function ExecutionFrame:_unwind_call_stack(exit_handler)
    if current_run_frame ~= going_to_frame then
       -- if we're still stuck down here, we'd best be running.  otherwise why is
       -- our thread suspended?
-      assert(self:_in_state(RUNNING))
+      assert(self:in_state(RUNNING))
       self:_set_state(UNWINDING)
-      self:send_msg('destroy')
-      assert(self:_in_state(DEAD))
+      self:_destroy()
+      assert(self:in_state(DEAD))
       
       -- remove our frame from the runstack, since the guy waiting for the
       -- run to finish won't have the opportunity to
@@ -511,7 +651,7 @@ function ExecutionFrame:_unwind_call_stack(exit_handler)
    -- switch_step(7) - we have finally unwound all our called frames (destroying them
    -- along the way), and have reached the switching frame!  before doing so, make a
    -- new unit to replace the guy that just died.
-   assert(self:_in_state(SWITCHING))
+   assert(self:in_state(SWITCHING))
    self:_add_execution_unit(current_active_key)
    -- there's no need to start it thinking.  we're switching to a new unit, so
    -- this one can't possibly be good for anything (at least not before we
@@ -522,13 +662,13 @@ function ExecutionFrame:_unwind_call_stack(exit_handler)
    assert(self._switch_to_unit)
    assert(self._switch_to_unit:get_state() == 'ready')
    self._active_unit, self._switch_to_unit = self._switch_to_unit, nil
-   self._active_unit:send_msg('start')
+   self._active_unit:_start()
    self._thread:set_thread_data('stonehearth:unwind_to_frame', nil)
 end
  
 function ExecutionFrame:_add_action_from_thinking(key, entry)
    local unit = self:_add_execution_unit(key, entry)
-   unit:send_msg('start_thinking', self:_clone_entity_state('new speculation for unit'))
+   unit:_start_thinking(self:_clone_entity_state('new speculation for unit'))
 end
 
 function ExecutionFrame:_add_action_from_ready(key, entry)
@@ -547,27 +687,27 @@ end
 
 function ExecutionFrame:_remove_action_from_stopped(key, entry)
    local unit = self._execution_units[key]
-   unit:send_msg('destroy')   
+   unit:_destroy()
    self:_remove_execution_unit(unit)
 end
 
 function ExecutionFrame:_remove_action_from_finished(key, entry)
    local unit = self._execution_units[key]
-   unit:send_msg('destroy')
+   unit:_destroy()
    self:_remove_execution_unit(unit)
 end
 
 function ExecutionFrame:_remove_action_from_thinking(key, entry)
    local unit = self._execution_units[key]
-   unit:send_msg('stop_thinking')
-   unit:send_msg('destroy')   
+   unit:_stop_thinking(0)
+   unit:_destroy()
    self:_remove_execution_unit(unit, true)
 end
 
 function ExecutionFrame:_remove_action_from_ready(key, entry)
    local unit = self._execution_units[key]
    if unit == self._active_unit then
-      self:_abort()
+      self:abort()
    else
       self:_remove_execution_unit(unit, true)  
    end
@@ -576,7 +716,7 @@ end
 function ExecutionFrame:_remove_action_from_running(key, entry)
    local unit = self._execution_units[key]
    if unit == self._active_unit then
-      self:_abort()
+      self:abort()
    else
       self:_remove_execution_unit(unit, true)
    end
@@ -599,9 +739,9 @@ end
 function ExecutionFrame:_on_action_index_changed(add_remove, key, entry, does)
    if self._name == does and self:get_state() ~= DEAD then
       if add_remove == 'add' then
-         self:send_msg('add_action', key, entry)
+         self:_add_action(key, entry)
       elseif add_remove == 'remove' then
-         self:send_msg('remove_action', key, entry)
+         self:_remove_action(key, entry)
       else
          error(string.format('unknown msg "%s" in _on_action_index-changed', add_move))
       end
@@ -674,7 +814,7 @@ end
 
 function ExecutionFrame:_capture_entity_state()
    self._log:debug('_capture_entity_state')
-   assert(self:_in_state(STOPPED))
+   assert(self:in_state(STOPPED))
    
    local state = {
       location = radiant.entities.get_world_grid_location(self._entity),
@@ -761,20 +901,44 @@ function ExecutionFrame:_spam_current_state(msg)
    end
 end
 
+
+function ExecutionFrame:in_state(...)
+   local states = { ... }
+   for _, state in ipairs(states) do
+      if self._state == state then
+         return true
+      end
+   end
+   return false
+end
+
+function ExecutionFrame:get_state()
+   return self._state
+end
+
 function ExecutionFrame:_set_state(state)
-   self._sm:set_state(state)
+   self._log:debug('state change %s -> %s', tostring(self._state), state)
+   self._state = state
+   
+   if self._state == self._waiting_until then
+      self._calling_thread:resume('transitioned to ' .. self._state)
+   end
    if self._ready_cb and state == READY then
       assert(self._active_unit_think_output)
       self._ready_cb(self, self._active_unit_think_output)
    end
 end
 
-function ExecutionFrame:_in_state(...)
-   return self._sm:in_state(...)
-end
-
-function ExecutionFrame:get_state(state)
-   return self._sm:get_state(state)
+function ExecutionFrame:wait_until(state)
+   self._calling_thread = stonehearth.threads:get_current_thread()   
+   if self._state ~= state then
+      self._waiting_until = state
+      while self._state ~= state do
+         self._calling_thread:suspend('waiting for ' .. state)
+      end
+      self._waiting_until = nil
+      self._calling_thread = nil
+   end
 end
 
 function ExecutionFrame:_protected_call(fn, exit_handler)
@@ -801,7 +965,7 @@ function ExecutionFrame:_protected_call(fn, exit_handler)
          -- units has gracefully shutdown and returned early out of run.  we
          -- should still be on the thread for this frame.
          --[[
-         assert(self:_in_state(SWITCHING, DEAD))
+         assert(self:in_state(SWITCHING, DEAD))
          assert(self._thread:is_running())
          assert(not self._active_unit)
          ]]
@@ -848,8 +1012,6 @@ function ExecutionFrame:_cleanup_protected_call_exit(sentinel)
    end
 end
 
-StateMachine.add_nop_state_transition(ExecutionFrame, 'stop', STOPPED)
-StateMachine.add_nop_state_transition(ExecutionFrame, 'unit_stopped', STOPPED)
-
 return ExecutionFrame
+
  
