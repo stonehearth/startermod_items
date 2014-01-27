@@ -40,16 +40,19 @@ function RunTaskAction:_start_stop_thinking()
 end
 
 function RunTaskAction:get_debug_info(debug_route)
-   return {
+   local info = {
       id = self._id,
       name = self.name,
       args = stonehearth.ai:format_args(self._args),
       does = self.does,
-      priority = self.priority,
-      execution_frames = {
-         self._execution_frame:get_debug_info()
-      }
+      priority = self.priority
    }
+   
+   if self._execution_frame then
+      info.execution_frames = { self._execution_frame:get_debug_info() }
+   end
+   
+   return info
 end
 
 function RunTaskAction:start_thinking(ai, entity)

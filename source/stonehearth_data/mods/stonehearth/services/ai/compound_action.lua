@@ -80,7 +80,7 @@ function CompoundAction:_start_thinking(index)
          index = index + 1
       else
          frame:on_ready(function(frame, think_output)
-            assert(self._thinking)
+            assert(self._thinking, 'received ready callback while not thinking.')
             table.insert(self._previous_think_output, think_output)
             self:_start_thinking(index + 1)
             -- xxx: listen for when frames become unready, right?      
@@ -107,7 +107,8 @@ function CompoundAction:stop_thinking(ai, entity, ...)
    
    self._previous_think_output = {}
    for i=#self._thinking_frames,1,-1 do
-      self._thinking_frames[i]:send_msg('stop_thinking') -- must be asynchronous!
+      self._thinking_frames[i]:stop_thinking() -- must be asynchronous!
+      self._thinking_frames[i]:on_ready(nil)
    end
    self._log:debug('switching thinking frames to running frames')
    self._running_frames = self._thinking_frames
@@ -147,7 +148,7 @@ end
 
 function CompoundAction:stop()
    for i = #self._running_frames, 1, -1 do
-      self._running_frames[i]:send_msg('stop') -- must be asynchronous!
+      self._running_frames[i]:stop() -- must be asynchronous!
    end
    self._running_frames = {}
 end
@@ -157,7 +158,7 @@ function CompoundAction:destroy()
    
    for i = #frames, 1, -1 do
       local frame = frames[i]
-      frame:send_msg('destroy') -- must be asynchronous!
+      frame:destroy() -- must be asynchronous!
    end
    if self._action.destroy then
       self._action:destroy()
