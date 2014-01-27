@@ -1,7 +1,7 @@
 App.StonehearthErrorBrowserView = App.View.extend({
    templateName: 'errorBrowserFrame',
    components: {
-      "entries": []
+      'entries': []
    },
 
    init: function() {
@@ -51,7 +51,8 @@ App.StonehearthErrorBrowserView = App.View.extend({
          })
 
       var self = this;
-      $("#errorBrowser").on("click", "a", function(event) {
+      $('#errorBrowser').draggable();
+      $('#errorBrowser').find('#entries').on('click', 'a', function(event) {
          var error_uri = $(this).attr('error_uri');
          if (self.currentView) {
             self.currentView.destroy();
@@ -59,4 +60,10 @@ App.StonehearthErrorBrowserView = App.View.extend({
          self.currentView = App.gameView.addView(App.StonehearthErrorDialogView, { uri : error_uri });
       });
    },
+
+   actions: {
+      toggleEntries: function () {
+         $('#errorBrowser').find('#entries').toggle();
+      }
+   }
 });

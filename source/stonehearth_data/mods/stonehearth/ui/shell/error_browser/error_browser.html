@@ -1,27 +1,16 @@
 <script type="text/x-handlebars" data-template-name="errorBrowserFrame">
    <div id="errorBrowser">
       <div id="title">
-         I AM THE Error Browser -{{errors.total}}-!
+         <a {{action toggleEntries target=view}}><div id="errorCount">{{errors.total}}</div></a>
       </div>
       <div id="entries">
-         dem entries<br>
          {{#each errors.entries}}
             <div>
-               entry:{{id}}
+               error {{id}}:
                <a href="#" {{bindAttr error_uri=__self}}>{{summary}}</a>
             </div>
          {{/each}}
       </div>
-   <div>      
-</div>
+   </div>
 </script>
 
-<script type="text/x-handlebars" data-template-name="errorBrowser">
-   i am an error browser frame
-   {{#each this.entries}}
-   <div>
-      entry:{{id}}
-      <a href="#" {{bindAttr error_uri=__self}}>{{summary}}</a>
-   </div>
-   {{/each}}
-</script>

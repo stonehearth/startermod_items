@@ -1,14 +1,26 @@
 #errorBrowser {
-   .basic;
+   .debug;
+
    position: absolute;
    top: 10px;
-   left: 500px;
-   font-size: 10px;
+   left: 10px;
    line-height: 13px;
    padding: 8px;
-   min-width: 250px;
-   background: white;
-   
+
+   #errorCount {
+      .controlFont;
+      background: red;
+      display: inline-block;
+      font-size: 14px;
+      color: #fff;
+      padding: 6px;
+   }
+
+   #entries {
+      display: none;
+      padding-top: 10px;
+   }
+
    .invisible {
       display: none;
       background: red;

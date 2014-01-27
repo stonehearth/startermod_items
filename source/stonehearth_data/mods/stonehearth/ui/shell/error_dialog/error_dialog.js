@@ -30,6 +30,15 @@ App.StonehearthErrorDialogView = App.View.extend({
    },
    didInsertElement: function() {
       console.log('============ StonehearthErrorDialogView ================ : didInsertElement');
+
+      $('#errorDialog')
+        .draggable()
+        .position({
+          my: "right top",
+          at: "right top",
+          of: "body",
+        });
+
       //this.set('uri', '/o/stores/tmp/objects/27');
       /*
       this._super();
@@ -56,5 +65,11 @@ App.StonehearthErrorDialogView = App.View.extend({
         }
       }
      */
+    },
+
+    actions:  {
+       close: function() {
+          this.destroy();
+      }
     }
 });
