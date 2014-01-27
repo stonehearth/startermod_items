@@ -7,6 +7,7 @@ local RUNNING = 'running'
 local FINISHED = 'finished'
 local STOPPED = 'stopped'
 local DEAD = 'dead'
+local ABORTING = 'aborting'
 local ABORTED = 'aborted'
 local placeholders = require 'services.ai.placeholders'
 
@@ -133,7 +134,9 @@ function ExecutionUnitV2:get_debug_info()
 end
 
 function ExecutionUnitV2:_unknown_transition(msg)
-   error(string.format('unknown state transition in execution unit "%s" from_state "%s"', msg, self._state))
+   local err = string.format('bad unit transition "%s" from  "%s"', msg, self._state)
+   self._log:info(err)
+   error(err)
 end
 
 function ExecutionUnitV2:_start_thinking(entity_state)
@@ -150,6 +153,9 @@ function ExecutionUnitV2:_set_think_output(think_output)
    if self._state == 'ready' then
       return self:_set_think_output_from_ready(think_output)
    end
+   if self._state == 'aborting' then
+      return self:_set_think_output_from_aborting(think_output)
+   end
    self:_unknown_transition('set_think_output')   
 end
 
@@ -160,6 +166,9 @@ function ExecutionUnitV2:_clear_think_output()
    if self._state == 'finished' then
       return self:_clear_think_output_from_finished()
    end
+   if self._state == 'aborting' then
+      return self:_clear_think_output_from_aborting(think_output)
+   end
    self:_unknown_transition('clear_think_output')   
 end
 
@@ -169,6 +178,10 @@ function ExecutionUnitV2:_stop_thinking()
    end
    if self._state == 'started' then
       return self:_stop_thinking_from_started()
+   end
+   if self._state == 'stopped' then
+      assert(not self._thinking)
+      return -- nop
    end
    self:_unknown_transition('stop_thinking')   
 end
@@ -193,6 +206,9 @@ end
 function ExecutionUnitV2:_stop(invalid_transition_ok)
    if self:in_state('thinking', 'ready') then
       return self:_stop_from_thinking(invalid_transition_ok)
+   end
+   if self._state == 'started' then
+      return self:_stop_from_started(invalid_transition_ok)
    end
    if self._state == 'running' then
       return self:_stop_from_running(invalid_transition_ok)
@@ -246,6 +262,10 @@ function ExecutionUnitV2:_set_think_output_from_ready(think_output)
    return
 end
 
+function ExecutionUnitV2:_set_think_output_from_aborting(think_output)
+   self._log:debug('ignoring set_think_output while aborting')
+end
+
 function ExecutionUnitV2:_clear_think_output_from_thinking()
    if self._state == DEAD then
       self._log:debug('ignoring clear_think_output in dead state')
@@ -255,6 +275,11 @@ function ExecutionUnitV2:_clear_think_output_from_thinking()
    self:_set_state(THINKING)
    self._frame:_unit_not_ready(self)
 end
+
+function ExecutionUnitV2:_clear_think_output_from_aborting(think_output)
+   self._log:debug('ignoring clear_think_output while aborting')
+end
+
 
 function ExecutionUnitV2:_clear_think_output_from_finished()
    -- who cares?
@@ -303,6 +328,13 @@ function ExecutionUnitV2:_stop_from_thinking()
    assert(self._thinking)
 
    self:_do_stop_thinking()
+   self:_set_state(STOPPED)
+end
+
+function ExecutionUnitV2:_stop_from_started()
+   assert(not self._thinking)
+
+   self:_do_stop()
    self:_set_state(STOPPED)
 end
 
@@ -414,12 +446,7 @@ end
 
 function ExecutionUnitV2:__set_think_output(args)
    self._log:debug('__set_think_output %s called', stonehearth.ai:format_args(args))
-   if self._in_start_thinking then
-      -- wow, so eager!  don't send a message, just hold onto the answer for when we rewind...
-      self._reentrant_think_output = args
-   else
-      self:_set_think_output(args)
-   end
+   self:_set_think_output(args)
 end
 
 function ExecutionUnitV2:__clear_think_output(format, ...)
@@ -443,15 +470,15 @@ function ExecutionUnitV2:__suspend(format, ...)
 
    -- we should never allow the thread to comeback in the DEAD state.  that means
    -- we've been termianted when suspended, and shouldn't be running at all!
-   assert (self._state ~= DEAD, string.format('thread resumed into DEAD state.'))
+   assert (not self:in_state(DEAD, ABORTING), string.format('thread resumed into %s state.', self._state))
 end
 
 function ExecutionUnitV2:__resume(format, ...)
    local reason = format and string.format(format, ...) or 'no reason given'
    self._log:spam('__resume called (reason: %s)', reason)
 
-   if self._state == DEAD then
-      self._log:debug('ignoring call to resume in dead state')
+   if self:in_state(DEAD, ABORTING) then
+      self._log:debug('ignoring call to resume in %s state', self._state)
    else
       self._thread:resume(reason)
    end
@@ -469,7 +496,12 @@ function ExecutionUnitV2:__abort(reason, ...)
       self._frame:abort()
       radiant.not_reached('abort does not return')
    else
-      error('need to implement abort while not running')
+      self._log:debug('not on the right thread to abort.  thunking over...')
+      self:_set_state(ABORTING)
+      self._thread:interrupt(function()
+            self._frame:abort()
+            radiant.not_reached('abort does not return')
+         end)
    end
 end
 

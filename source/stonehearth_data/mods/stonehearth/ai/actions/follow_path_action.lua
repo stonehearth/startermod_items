@@ -46,11 +46,13 @@ function FollowPathAction:run(ai, entity, args)
    end
    
    self._mover = _radiant.sim.create_follow_path(entity, speed, path, 0, arrived_fn)   
+   ai:get_log():debug('starting mover %s...', self._mover:get_name());
    ai:suspend()
 end
 
 function FollowPathAction:stop(ai, entity)
    if self._mover then
+      ai:get_log():debug('stopping mover %s in stop...', self._mover:get_name());
       self._mover:stop()
       self._mover = nil
    end
@@ -61,6 +63,14 @@ function FollowPathAction:stop(ai, entity)
    if self._postures_trace then
       self._postures_trace:destroy()
       self._postures_trace = nil
+   end
+end
+
+function FollowPathAction:destroy(ai, entity)
+   if self._mover then
+      ai:get_log():debug('stopping mover %s in destroy...', self._mover:get_name());
+      self._mover:stop()
+      self._mover = nil
    end
 end
 

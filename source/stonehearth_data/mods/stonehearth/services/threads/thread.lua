@@ -183,15 +183,17 @@ function Thread:start(...)
 
    self._co = coroutine.create(function ()
          -- make a pcall.. this only works because we've installed coco
-         local success, err = pcall(function()
+         local error_handler = function(err)
+            local traceback = debug.traceback()
+            _host:report_error(err, traceback)
+            return err         
+         end
+         xpcall(function()
                self:_dispatch_messages()
                self._should_resume = true
                self._thread_main(unpack(args))
                self._should_resume = false
-            end)
-         if not success then
-            self:report_thread_error(err)
-         end
+            end, error_handler)
       end)
    self._log:detail('starting thread')   
    Thread.resume_thread(self)

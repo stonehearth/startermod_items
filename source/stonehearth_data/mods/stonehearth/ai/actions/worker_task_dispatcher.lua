@@ -11,7 +11,7 @@ function WorkerTaskDispatcher:__init(entity)
                         :join(entity)
 end
 
-function WorkerTaskDispatcher:destroy()
+function WorkerTaskDispatcher:destroy(ai, entity)
    stonehearth.tasks:get_scheduler('stonehearth:workers', radiant.entities.get_faction(entity))
                         :leave(self._entity)
 end

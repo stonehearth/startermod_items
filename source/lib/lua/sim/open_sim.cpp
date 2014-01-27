@@ -253,6 +253,7 @@ void lua::sim::open(lua_State* L, Simulation* sim)
                .def("lock",               &WeakObjectReference<PathFinder>::Lock)
             ,
             lua::RegisterTypePtr<FollowPath>()
+               .def("get_name", &FollowPath::GetName)
                .def("stop",     &FollowPath::Stop)
             ,
             lua::RegisterTypePtr<GotoLocation>()

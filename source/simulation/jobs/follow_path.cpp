@@ -32,6 +32,11 @@ FollowPath::FollowPath(Simulation& sim, om::EntityRef e, float speed, std::share
    Report("constructor");
 }
 
+FollowPath::~FollowPath()
+{
+   Report("destroying pathfinder");
+}
+
 static float angle(const csg::Point3f &v)
 {
    return (float)(atan2(v.z, -v.x) - atan2(-1, 0));
@@ -118,7 +123,7 @@ void FollowPath::Report(std::string msg)
          auto location = entity->GetComponent<om::Mob>()->GetWorldLocation();
          FP_LOG(5) << msg << " (entity:" << entity->GetObjectId() << " " << start << " -> " << end << " currently at " << location << ")";
       } else {
-         FP_LOG(5) << msg << " ( entity:" << entity->GetObjectId() << " path has no points)";
+         FP_LOG(5) << msg << " (entity:" << entity->GetObjectId() << " path has no points)";
       }
    }
 }

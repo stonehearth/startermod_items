@@ -22,6 +22,7 @@ local CompoundAction = class()
 function CompoundAction:__init(entity, injecting_entity, action_ctor, activities, when_predicates, think_output_placeholders)
    -- initialize metadata
    self._entity = entity
+   self._injecting_entity = injecting_entity
    self._action = action_ctor(entity, injecting_entity)
    self.name = self._action.name
    self.does = self._action.does
@@ -80,6 +81,11 @@ function CompoundAction:_start_thinking(index)
          index = index + 1
       else
          frame:on_ready(function(frame, think_output)
+            if not think_output then
+               local msg = string.format('previous frame f:%d became unready.  aborting', frame:get_id())
+               self._log:debug(msg)
+               self._ai:abort(msg)
+            end
             assert(self._thinking, 'received ready callback while not thinking.')
             table.insert(self._previous_think_output, think_output)
             self:_start_thinking(index + 1)
@@ -142,7 +148,8 @@ end
 
 function CompoundAction:run(ai, entity, ...)
    for _, frame in ipairs(self._running_frames) do
-      frame:run() -- must be synchronous!
+      frame:run()  -- must be synchronous!
+      frame:stop() -- must be synchronous!
    end
 end
 
@@ -161,7 +168,7 @@ function CompoundAction:destroy()
       frame:destroy() -- must be asynchronous!
    end
    if self._action.destroy then
-      self._action:destroy()
+      self._action:destroy(self._ai, self._entity, self._injecting_entity)
    end
 end
 
@@ -208,6 +215,5 @@ function CompoundAction:_spam_current_state(format, ...)
       self._log:spam('  no CURRENT state!')
    end
 end
-
 
 return CompoundAction

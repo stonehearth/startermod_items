@@ -98,4 +98,12 @@ function RunTaskAction:destroy()
    end
 end
 
+function RunTaskAction:_frame_not_ready(frame)
+   assert(frame)
+   if self._execution_frame == frame then
+      self._log:debug('current frame became unready')
+      self._ai:clear_think_output()
+   end
+end
+
 return RunTaskAction

@@ -47,8 +47,14 @@ function ExecutionFrame:__init(thread, debug_route, entity, name, args, action_i
    radiant.events.listen(self._ai_component, 'stonehearth:action_index_changed', self, self._on_action_index_changed)   
 end
 
+function ExecutionFrame:get_id()
+   return self._id
+end
+
 function ExecutionFrame:_unknown_transition(msg)
-   error(string.format('unknown state transition in execution frame "%s" from_state "%s"', msg, self._state))
+   local err = string.format('bad frame transition "%s" from "%s"', msg, self._state)
+   self._log:info(err)
+   error(err)
 end
 
 function ExecutionFrame:_start_thinking(entity_state)
@@ -65,8 +71,11 @@ function ExecutionFrame:_stop_thinking()
    if self._state == 'ready' then
       return self:_stop_thinking_from_ready()
    end
-   if self._state == 'started' then
-      return self:_stop_thinking_from_started()
+   if self:in_state('starting', 'started') then
+      return self:_stop_thinking_from_started() -- intentionally aliased
+   end
+   if self._state == 'dead' then
+      return -- nop
    end
    self:_unknown_transition('stop_thinking')
 end
@@ -101,20 +110,23 @@ function ExecutionFrame:_unit_ready(unit, think_output)
    self:_unknown_transition('unit_ready')
 end
 
-function ExecutionFrame:_unit_not_ready()
+function ExecutionFrame:_unit_not_ready(unit)
    if self._state == 'thinking' then
-      return self:_unit_not_ready_from_thinking()
+      return self:_unit_not_ready_from_thinking(unit)
    end
    if self._state == 'ready' then
-      return self:_unit_not_ready_from_ready()
+      return self:_unit_not_ready_from_ready(unit)
    end
    if self._state == 'dead' then
-      return self:_unit_not_ready_from_dead(unit, think_output)
+      return self:_unit_not_ready_from_dead(unit)
    end
    self:_unknown_transition('unit_not_ready')
 end
 
 function ExecutionFrame:_stop()
+   if self._state == 'started' then
+      return self:_stop_from_started()
+   end
    if self._state == 'finished' then
       return self:_stop_from_finished()
    end
@@ -125,14 +137,20 @@ function ExecutionFrame:_stop()
 end
 
 function ExecutionFrame:_destroy()
-   if self._state == 'starting' then
+   if self:in_state('starting', 'started') then
       return self:_destroy_from_starting()
+   end
+   if self:in_state('switching', 'unwinding') then
+      return self:_destroy_from_switching() -- intentionally aliased
+   end
+   if self._state == 'running' then
+      return self:_destroy_from_running()
    end
    if self._state == 'stopped' then
       return self:_destroy_from_stopped()
    end
-   if self._state == 'unwinding' then
-      return self:_destroy_from_unwinding()
+   if self._state == 'dead' then
+      return -- nop
    end
    self:_unknown_transition('destroy')
 end
@@ -344,14 +362,22 @@ function ExecutionFrame:_stop_thinking_from_thinking()
 end
 
 function ExecutionFrame:_stop_thinking_from_ready()
-   self._log:debug('_stop_thinking_from_ready')
+   self._log:debug('_stop_thinking_from_ready (state: %s)', self._state)
 
-   assert(self._active_unit)
-   self:_set_active_unit(nil)
-   
    for _, unit in pairs(self._execution_units) do
       unit:_stop_thinking()
    end
+   self:_set_active_unit(nil)
+   self:_set_state(STOPPED)
+end
+
+function ExecutionFrame:_stop_thinking_from_started()
+   self._log:debug('_stop_thinking_from_started (state: %s)', self._state)
+
+   for _, unit in pairs(self._execution_units) do
+      unit:_stop()
+   end
+   self:_set_active_unit(nil)
    self:_set_state(STOPPED)
 end
 
@@ -453,17 +479,29 @@ function ExecutionFrame:_unit_ready_from_dead(unit, think_output)
 end
 
 function ExecutionFrame:_unit_not_ready_from_thinking(unit)
+   self._log:detail('_unit_not_ready_from_thinking (%s)', unit:get_name())
    if unit == self._active_unit then
       self._log:detail('best choice for active_unit "%s" became unready...', unit:get_name())
       self:_find_replacement_for_active_unit()
    end
 end
 
-function ExecutionFrame:_unit_not_ready_from_ready(unit, think_output)
+function ExecutionFrame:_unit_not_ready_from_ready(unit)
+   self._log:detail('_unit_not_ready_from_ready (%s)', unit:get_name())
    if unit == self._active_unit then
-      self._log:detail('best choice for active_unit "%s" became unready...', unit:get_name())
-      self:_find_replacement_for_active_unit()
+      self._log:debug('active unit became unready.  going back to thinking')
+      self:_set_active_unit(nil)
+      self:_set_state(THINKING)
+      if self._ready_cb then
+         self._log:debug('sending unready notification')
+         self._ready_cb(self, nil)
+      end
    end
+end
+
+function ExecutionFrame:_unit_not_ready_from_dead(unit)
+   self._log:debug('ignoring ready message while dead')
+   assert(#self._execution_units == 0, 'frame still has units while dead')
 end
 
 function ExecutionFrame:_set_active_unit(unit, think_output)
@@ -532,6 +570,14 @@ function ExecutionFrame:_run_from_started()
    self:_set_state(FINISHED)
 end
 
+function ExecutionFrame:_stop_from_started()
+   assert(self._active_unit)
+   for _, unit in pairs(self._execution_units) do
+      unit:_stop()
+   end
+   self:_set_state(STOPPED)
+end
+
 function ExecutionFrame:_stop_from_finished()
    assert(not self._active_unit)
    for _, unit in pairs(self._execution_units) do
@@ -541,6 +587,7 @@ function ExecutionFrame:_stop_from_finished()
 end
 
 function ExecutionFrame:_destroy_from_starting()
+   self._log:debug('_destroy_from_starting (state:%s)', self._state)
    for _, unit in pairs(self._execution_units) do
       if unit == self._active_unit then
          unit:_stop()
@@ -555,6 +602,7 @@ function ExecutionFrame:_destroy_from_starting()
 end
 
 function ExecutionFrame:_destroy_from_stopped()
+   self._log:debug('_destroy_from_stopped')
    assert(not self._active_unit)
    for _, unit in pairs(self._execution_units) do
       unit:_destroy()
@@ -565,8 +613,20 @@ function ExecutionFrame:_destroy_from_stopped()
    self:_do_destroy()
 end
 
-function ExecutionFrame:_destroy_from_unwinding()
-   assert(not self._active_unit)
+
+function ExecutionFrame:_destroy_from_running()
+   assert(self._thread:running())
+   for _, unit in pairs(self._execution_units) do
+      unit:_destroy()
+   end
+   self._execution_units = {}
+   self._execution_unit_keys = {}
+   self:_set_state(DEAD)
+   self:_do_destroy()
+end
+
+function ExecutionFrame:_destroy_from_switching()
+   self._log:debug('_destroy_from_switching (state: %s)', self._state)
    for _, unit in pairs(self._execution_units) do
       unit:_destroy()
    end
@@ -578,8 +638,6 @@ end
 
 function ExecutionFrame:abort()
    assert(self._thread:is_running())
-   self:_do_destroy()
-   self:_set_state(DEAD)
    self:_exit_protected_call(ABORT_FRAME)
 end
 
@@ -707,7 +765,9 @@ end
 function ExecutionFrame:_remove_action_from_ready(key, entry)
    local unit = self._execution_units[key]
    if unit == self._active_unit then
-      self:abort()
+      self._thread:interrupt(function()
+         self:abort()
+      end)
    else
       self:_remove_execution_unit(unit, true)  
    end
@@ -716,7 +776,9 @@ end
 function ExecutionFrame:_remove_action_from_running(key, entry)
    local unit = self._execution_units[key]
    if unit == self._active_unit then
-      self:abort()
+      self._thread:interrupt(function()
+         self:abort()
+      end)
    else
       self:_remove_execution_unit(unit, true)
    end
@@ -924,6 +986,7 @@ function ExecutionFrame:_set_state(state)
       self._calling_thread:resume('transitioned to ' .. self._state)
    end
    if self._ready_cb and state == READY then
+      assert(self._active_unit)
       assert(self._active_unit_think_output)
       self._ready_cb(self, self._active_unit_think_output)
    end
@@ -982,9 +1045,9 @@ function ExecutionFrame:_protected_call(fn, exit_handler)
          -- it's magic.  don't question it (there's a 2nd pcall in run...
          self:_exit_protected_call(UNWIND_NEXT_FRAME_2)
       else
-         self._log:info("aborting on error")
-         self:_set_state(DEAD)
-         self:_cleanup_protected_call_exit()      
+         self._log:info("aborting on error '%s'", err)
+         self:_destroy()
+         self:_cleanup_protected_call_exit()
          exit_handler()
          
          -- we're aborting... hrm.  unwind all the way out

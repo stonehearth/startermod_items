@@ -34,9 +34,11 @@ function RunEffectAction:run(ai, entity, args)
    for i = 1, times do
       self._effect = radiant.effects.run_effect(entity, effect_name, nil, args.args)
       self._effect:on_finished(function()
-            self._effect:stop()
-            self._effect = nil
-            ai:resume('effect %s finished', effect_name)
+            if self._effect then
+               self._effect:stop()
+               self._effect = nil
+               ai:resume('effect %s finished', effect_name)
+            end
          end)
       ai:suspend()
    end

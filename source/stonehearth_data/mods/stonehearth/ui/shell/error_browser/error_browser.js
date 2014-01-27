@@ -13,10 +13,13 @@ App.StonehearthErrorBrowserView = App.View.extend({
    _compileData: function() {
       var self = this;
       var data = {
-         total: 12,
+         total: 0,
          entries: [],
       }
       $.each(self._results, function(_, result) {
+         $.each(result.entries, function(_, entry) {
+            data.total += 1;
+         });
          data.entries = data.entries.concat(result.entries);
       });
       this.set('context.errors', data);
