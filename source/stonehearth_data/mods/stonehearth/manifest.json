@@ -49,6 +49,10 @@
          "carpenter:outfit" : "file(entities/professions/carpenter/carpenter_outfit)",
          "carpenter:saw" : "file(entities/professions/carpenter/carpenter_saw)",
 
+         "trapper:description" : "file(professions/trapper/trapper_description.json)",
+         "trapper:outfit" : "file(professions/trapper/trapper_outfit)",
+         "trapper:net" : "file(professions/trapper/trapper_net)",
+
          "weaver:profession_description" : "file(entities/professions/weaver/profession_description.json)",
          "weaver:workbench" : "file(entities/professions/weaver/weaver_workbench)",
          "weaver:outfit" : "file(entities/professions/weaver/weaver_outfit)",
