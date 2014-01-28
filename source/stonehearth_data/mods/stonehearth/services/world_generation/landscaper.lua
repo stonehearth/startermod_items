@@ -26,7 +26,6 @@ local tree_sizes = { small, medium, large }
 
 local pink_flower_name = mod_prefix .. 'pink_flower'
 local berry_bush_name = mod_prefix .. 'berry_bush'
-local rabbit_name = mod_prefix .. 'rabbit'
 local generic_vegetaion_name = "vegetation"
 local boulder_name = "boulder"
 
@@ -81,6 +80,9 @@ function Landscaper:_initialize_function_table()
       end
    end
 
+   function_table[berry_bush_name] = self._place_berry_bush
+   function_table[pink_flower_name] = self._place_flower
+
    -- need a better name for this
    self._function_table = function_table
 end
@@ -111,14 +113,9 @@ function Landscaper:place_flora(tile_map, elevation_map, feature_map, tile_offse
    end
 
    self:mark_trees(feature_map, elevation_map)
+   self:mark_berry_bushes(feature_map, elevation_map)
+   self:mark_flowers(feature_map, elevation_map)
    self:place_features(tile_map, feature_map, place_item)
-   self:_yield()
-
-   self:_place_berry_bushes(tile_map, place_item)
-   self:_yield()
-   
-   self:_place_flowers(tile_map, place_item)
-   self:_yield()
 end
 
 function Landscaper:mark_trees(feature_map, elevation_map)
@@ -177,7 +174,7 @@ function Landscaper:mark_trees(feature_map, elevation_map)
          if not occupied then
             value = density_map:get(i, j)
 
-            if value >= 0 then
+            if value > 0 then
                elevation = elevation_map:get(i, j)
                tree_type = self:_get_tree_type(elevation)
                terrain_type = terrain_info:get_terrain_type(elevation)
@@ -250,7 +247,7 @@ function Landscaper:_get_tree_size(value)
 end
 
 -- place multiple small trees in the cell
-function Landscaper:_place_small_tree(tree_name, i, j, tile_map, place_item)
+function Landscaper:_place_small_tree(feature_name, i, j, tile_map, place_item)
    local small_tree_density = 0.5
    local exclusion_radius = 2
    local factor = 0.5
@@ -264,7 +261,7 @@ function Landscaper:_place_small_tree(tree_name, i, j, tile_map, place_item)
 
    -- inner loop lambda definition - bad for performance?
    local try_place_item = function(x, y)
-      place_item(tree_name, x, y)
+      place_item(feature_name, x, y)
       return true
    end
 
@@ -274,7 +271,7 @@ function Landscaper:_place_small_tree(tree_name, i, j, tile_map, place_item)
    -- if unable to place, should we remark feature map?
 end
 
-function Landscaper:_place_normal_tree(tree_name, i, j, tile_map, place_item)
+function Landscaper:_place_normal_tree(feature_name, i, j, tile_map, place_item)
    local max_trunk_radius = 3
    local ground_radius = 2
    local normal_tree_density = 0.8
@@ -286,27 +283,20 @@ function Landscaper:_place_normal_tree(tree_name, i, j, tile_map, place_item)
 
    if self:_is_flat(tile_map, x, y, ground_radius) then
       if rng:get_real(0, 1) < normal_tree_density then
-         place_item(tree_name, x, y)
+         place_item(feature_name, x, y)
       end
       -- if tree was thinned out, should we remark feature map?
    end
 end
 
 function Landscaper:place_features(tile_map, feature_map, place_item)
-   local rng = self._rng
-   local terrain_info = self._terrain_info
-   local perturbation_grid = self._perturbation_grid
-   local max_trunk_radius = 3
-   local ground_radius = 2
-   local normal_tree_density = 0.8
-   local small_tree_density = 0.5
-   local feature_name, x, y, elevation, terrain_type, fn
+   local feature_name, fn
 
    for j=1, feature_map.height do
       for i=1, feature_map.width do
          feature_name = feature_map:get(i, j)
-
          fn = self._function_table[feature_name]
+
          if fn then
             fn(self, feature_name, i, j, tile_map, place_item)
          end
@@ -315,26 +305,13 @@ function Landscaper:place_features(tile_map, feature_map, place_item)
    end
 end
 
-function Landscaper:_place_berry_bushes(tile_map, place_item)
+function Landscaper:mark_berry_bushes(feature_map, elevation_map)
    local rng = self._rng
    local terrain_info = self._terrain_info
-   local feature_map = self._feature_map
    local perturbation_grid = self._perturbation_grid
-   local noise_map = self._noise_map_buffer
-   local density_map = self._density_map_buffer
-   local item_spacing = math.floor(perturbation_grid.grid_spacing*0.33)
-   local item_density = 0.90
-   local i, j, x, y, w, h, rows, columns, occupied, value, placed
-
-   local try_place_item = function(x, y)
-      local elevation = tile_map:get(x, y)
-      local terrain_type = terrain_info:get_terrain_type(elevation)
-      if terrain_type == TerrainType.mountains then
-         return false
-      end
-      place_item(berry_bush_name, x, y)
-      return true
-   end
+   local noise_map = Array2D(feature_map.width, feature_map.height)
+   local density_map = Array2D(feature_map.width, feature_map.height)
+   local value, occupied, elevation, terrain_type
 
    local noise_fn = function(i, j)
       local mean = -45
@@ -347,16 +324,11 @@ function Landscaper:_place_berry_bushes(tile_map, place_item)
       end
 
       -- berries grow on foothills ring near mountains
-      local x, y = perturbation_grid:get_unperturbed_coordinates(i, j)
-      local elevation = tile_map:get(x, y)
+      local elevation = elevation_map:get(i, j)
+      local terrain_type, step = terrain_info:get_terrain_type_and_step(elevation)
 
-      local terrain_type = terrain_info:get_terrain_type(elevation)
-
-      if terrain_type == TerrainType.foothills then
-         local foothills_info = terrain_info[TerrainType.foothills]
-         if elevation == foothills_info.max_height then
-            mean = mean + 50
-         end
+      if terrain_type == TerrainType.foothills and step == 2 then
+         mean = mean + 50
       end
 
       return rng:get_gaussian(mean, std_dev)
@@ -370,20 +342,42 @@ function Landscaper:_place_berry_bushes(tile_map, place_item)
          value = density_map:get(i, j)
 
          if value > 0 then
-            occupied = self._feature_map:get(i, j) ~= nil
+            occupied = feature_map:get(i, j) ~= nil
 
             if not occupied then
-               x, y, w, h = perturbation_grid:get_cell_bounds(i, j)
-               rows, columns = self:_random_berry_pattern()
+               elevation = elevation_map:get(i, j)
+               terrain_type = terrain_info:get_terrain_type(elevation)
 
-               placed = self:_place_pattern(tile_map, x, y, w, h, rows, columns, item_spacing, item_density, 1, try_place_item)
-               if placed then
-                  self._feature_map:set(i, j, berry_bush_name)
+               if terrain_type ~= TerrainType.mountains then
+                  feature_map:set(i, j, berry_bush_name)
                end
             end
          end
       end
    end
+end
+
+function Landscaper:_place_berry_bush(feature_name, i, j, tile_map, place_item)
+   local terrain_info = self._terrain_info
+   local perturbation_grid = self._perturbation_grid
+   local item_spacing = math.floor(perturbation_grid.grid_spacing*0.33)
+   local item_density = 0.90
+   local x, y, w, h, rows, columns
+
+   local try_place_item = function(x, y)
+      local elevation = tile_map:get(x, y)
+      local terrain_type = terrain_info:get_terrain_type(elevation)
+      if terrain_type == TerrainType.mountains then
+         return false
+      end
+      place_item(feature_name, x, y)
+      return true
+   end
+
+   x, y, w, h = perturbation_grid:get_cell_bounds(i, j)
+   rows, columns = self:_random_berry_pattern()
+
+   self:_place_pattern(tile_map, x, y, w, h, rows, columns, item_spacing, item_density, 1, try_place_item)
 end
 
 function Landscaper:_random_berry_pattern()
@@ -398,17 +392,13 @@ function Landscaper:_random_berry_pattern()
    end
 end
 
-function Landscaper:_place_flowers(tile_map, place_item)
+function Landscaper:mark_flowers(feature_map, elevation_map)
    local rng = self._rng
    local terrain_info = self._terrain_info
-   local feature_map = self._feature_map
    local perturbation_grid = self._perturbation_grid
-   local grid_spacing = perturbation_grid.grid_spacing
-   local exclusion_radius = 1
-   local ground_radius = 1
-   local noise_map = self._noise_map_buffer
-   local density_map = self._density_map_buffer
-   local i, j, x, y, occupied, value, elevation, terrain_type
+   local noise_map = Array2D(feature_map.width, feature_map.height)
+   local density_map = Array2D(feature_map.width, feature_map.height)
+   local value, occupied, elevation, terrain_type
 
    local noise_fn = function(i, j)
       local mean = 0
@@ -440,28 +430,29 @@ function Landscaper:_place_flowers(tile_map, place_item)
 
             if not occupied then
                if rng:get_int(1, 100) <= value then
-                  x, y = perturbation_grid:get_perturbed_coordinates(i, j, exclusion_radius)
+                  elevation = elevation_map:get(i, j)
+                  terrain_type = terrain_info:get_terrain_type(elevation)
 
-                  if self:_is_flat(tile_map, x, y, ground_radius) then
-                     elevation = tile_map:get(x, y)
-                     terrain_type = terrain_info:get_terrain_type(elevation)
-
-                     if terrain_type == TerrainType.plains then
-                        place_item(pink_flower_name, x, y)
-                        feature_map:set(i, j, pink_flower_name)
-
-                        -- randomly toss in rabbits with the flowers
-                        -- RABBIT WANDER ACTION CURRENTLY BROKEN
-                        -- if rng:get_real(0, 1) < 0.10 then
-                        --    x, y = perturbation_grid:get_perturbed_coordinates(i, j, 0)
-                        --    place_item(rabbit_name, x, y)
-                        -- end
-                     end
+                  if terrain_type == TerrainType.plains then
+                     feature_map:set(i, j, pink_flower_name)
                   end
                end
             end
          end
       end
+   end
+end
+
+function Landscaper:_place_flower(feature_name, i, j, tile_map, place_item)
+   local exclusion_radius = 1
+   local ground_radius = 1
+   local perturbation_grid = self._perturbation_grid
+   local x, y
+
+   x, y = perturbation_grid:get_perturbed_coordinates(i, j, exclusion_radius)
+
+   if self:_is_flat(tile_map, x, y, ground_radius) then
+      place_item(feature_name, x, y)
    end
 end
 
