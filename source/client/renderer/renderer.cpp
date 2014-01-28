@@ -199,13 +199,13 @@ Renderer::Renderer() :
 
    csg::Region3 fow;
    csg::Region3 cube;
-   cube.Add(csg::Region3::Cube(csg::Region3::Point(-5, -100, -5), csg::Region3::Point(5, 200, 5)));
+   cube.Add(csg::Region3::Cube(csg::Region3::Point(-50, -100, -50), csg::Region3::Point(50, 200, 50)));
    fow.Add(cube);
    fowNode_ = Pipeline::GetInstance().CreateVoxelNode(H3DRootNode, fow, "materials/fow_visible.material.xml");
 
    csg::Region3 fowv;
    csg::Region3 cubev;
-   cubev.Add(csg::Region3::Cube(csg::Region3::Point(-15, -100, -15), csg::Region3::Point(15, 200, 15)));
+   cubev.Add(csg::Region3::Cube(csg::Region3::Point(-300, -100, -300), csg::Region3::Point(300, 200, 300)));
    fowv.Add(cubev);
    fowNode2_ = Pipeline::GetInstance().CreateVoxelNode(H3DRootNode, fowv, "materials/fow_explored.material.xml");
 
@@ -319,7 +319,7 @@ void Renderer::RenderFogOfWarRT()
 {
    // Create an ortho camera covering the largest volume that can be seen of the actual possible frustum
    Horde3D::Matrix4f fowView, camProj;
-   Horde3D::Frustum camFrust;
+   Horde3D::Frustum camFrust, fowCamFrust;
 
    Horde3D::Matrix4f camView(camera_->GetMatrix().v);
    h3dGetCameraProjMat(camera_->GetNode(), camProj.x);
@@ -329,24 +329,38 @@ void Renderer::RenderFogOfWarRT()
    for (int i = 0; i < 8; i++) {
       bb.addPoint(camFrust.getCorner(i));
    }
-   Horde3D::Vec3f p = (bb.min() + bb.max()) * 0.5;
 
+   float cascadeBound = (camFrust.getCorner(0) - camFrust.getCorner(6)).length();
+   Horde3D::Vec3f boarderOffset = (Horde3D::Vec3f(cascadeBound, cascadeBound, cascadeBound) - (bb.max() - bb.min())) * 0.5f;
+   boarderOffset.z = 0;
+   Horde3D::Vec3f max = bb.max() + boarderOffset;
+   Horde3D::Vec3f min = bb.min() - boarderOffset;
+
+   // The world units per texel are used to snap the shadow the orthographic projection
+   // to texel sized increments.  This keeps the edges of the shadows from shimmering.
+   float worldUnitsPerTexel = cascadeBound / 512.0f;
+   Horde3D::Vec3f quantizer(worldUnitsPerTexel, worldUnitsPerTexel, 0.0);
+   min.quantize(quantizer);
+   max.quantize(quantizer);
+
+
+
+   Horde3D::Vec3f p = (min + max) * 0.5;
    // Construct a new camera view matrix pointing down.
    fowView.x[0] = 1;  fowView.x[1] = 0;  fowView.x[2] = 0;
    fowView.x[4] = 0;  fowView.x[5] = 0;  fowView.x[6] = 1;
    fowView.x[8] = 0;  fowView.x[9] = -1;  fowView.x[10] = 0;
    fowView.x[12] = p.x; fowView.x[13] = p.y; fowView.x[14] = p.z;  fowView.x[15] = 1.0;
 
-
    // All that crap was just so we could set up this ortho frustum + view matrix.
    h3dSetNodeTransMat(fowCamera_->GetNode(), fowView.inverted().x);
    h3dSetNodeParamI(fowCamera_->GetNode(), H3DCamera::OrthoI, 1);
-   h3dSetNodeParamF(fowCamera_->GetNode(), H3DCamera::LeftPlaneF, 0, bb.min().x);
-   h3dSetNodeParamF(fowCamera_->GetNode(), H3DCamera::RightPlaneF, 0, bb.max().x);
-   h3dSetNodeParamF(fowCamera_->GetNode(), H3DCamera::BottomPlaneF, 0, bb.min().y);
-   h3dSetNodeParamF(fowCamera_->GetNode(), H3DCamera::TopPlaneF, 0, bb.max().y);
-   h3dSetNodeParamF(fowCamera_->GetNode(), H3DCamera::NearPlaneF, 0, -bb.max().z);
-   h3dSetNodeParamF(fowCamera_->GetNode(), H3DCamera::FarPlaneF, 0, -bb.min().z);
+   h3dSetNodeParamF(fowCamera_->GetNode(), H3DCamera::LeftPlaneF, 0, min.x);
+   h3dSetNodeParamF(fowCamera_->GetNode(), H3DCamera::RightPlaneF, 0, max.x);
+   h3dSetNodeParamF(fowCamera_->GetNode(), H3DCamera::BottomPlaneF, 0, min.y);
+   h3dSetNodeParamF(fowCamera_->GetNode(), H3DCamera::TopPlaneF, 0, max.y);
+   h3dSetNodeParamF(fowCamera_->GetNode(), H3DCamera::NearPlaneF, 0, -max.z);
+   h3dSetNodeParamF(fowCamera_->GetNode(), H3DCamera::FarPlaneF, 0, -min.z);
 
    // Turn off all pipeline stages, save for 'FogOfWar_RT'
    SetEnabledStages(fowOnlyStages_);

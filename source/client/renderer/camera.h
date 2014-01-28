@@ -28,12 +28,12 @@ class Camera
 
       void Camera::SetBases(const csg::Point3f& forward, const csg::Point3f& up, const csg::Point3f& left);
       void GetBases(csg::Point3f* const forward, csg::Point3f* const up, csg::Point3f* const left) const;
+      csg::Matrix4 GetMatrix() const;
 
    private:
       NO_COPY_CONSTRUCTOR(Camera);
 
    private:
-      csg::Matrix4 GetMatrix() const;
 
       const H3DNodeUnique node_;
 };
