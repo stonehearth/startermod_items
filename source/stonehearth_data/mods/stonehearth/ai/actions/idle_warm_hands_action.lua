@@ -4,7 +4,10 @@ local IdleWarmHands = class()
 
 IdleWarmHands.name = 'warm hands'
 IdleWarmHands.does = 'stonehearth:idle:warm_hands'
-IdleWarmHands.version = 1
+IdleWarmHands.args = {
+   
+}
+IdleWarmHands.version = 2
 IdleWarmHands.priority = 0
 
 function IdleWarmHands:__init(ai, entity, fire_entity)
@@ -17,10 +20,12 @@ function IdleWarmHands:__init(ai, entity, fire_entity)
 end
 
 function IdleWarmHands:on_fire_lit(e) 
-   if e.lit then
-      self._ai:set_action_priority(self, 1)
-   else
-      self._ai:set_action_priority(self, 0)
+   if e.lit and not self._signaled then
+      self._signaled = true
+      self._ai:set_think_output()
+   elseif not e.lit and self._signaled then
+      self._signaled = false
+      self._ai:clear_think_output()
    end
 end
 
