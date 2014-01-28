@@ -18,10 +18,9 @@ function HeightMapRenderer:__init(terrain_info)
 
    -- rock layers
    local rock_layers = { {}, {}, {} }
-   local foothills_info = self._terrain_info[TerrainType.foothills]
    local mountains_info = self._terrain_info[TerrainType.mountains]
    rock_layers[1].terrain_tag = Terrain.ROCK_LAYER_1
-   rock_layers[1].max_height  = foothills_info.max_height + mountains_info.step_size
+   rock_layers[1].max_height  = mountains_info.base_height + mountains_info.step_size
    rock_layers[2].terrain_tag = Terrain.ROCK_LAYER_2
    rock_layers[2].max_height  = rock_layers[1].max_height + mountains_info.step_size
    rock_layers[3].terrain_tag = Terrain.ROCK_LAYER_3

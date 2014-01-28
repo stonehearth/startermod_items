@@ -68,13 +68,20 @@ function TerrainInfo:get_terrain_type(height)
 end
 
 -- takes quantized height values
-function TerrainInfo:get_terrain_code(height)
+function TerrainInfo:get_terrain_type_and_step(height)
    local terrain_type = self:get_terrain_type(height)
    local base_height = self[terrain_type].base_height
    local step_size = self[terrain_type].step_size
    local step_number = (height - base_height) / step_size
 
-   return string.format('%s_%d', terrain_type, step_number)
+   return terrain_type, step_number
+end
+
+-- takes quantized height values
+function TerrainInfo:get_terrain_code(height)
+   local terrain_type, step = self:get_terrain_type_and_step(height)
+
+   return string.format('%s_%d', terrain_type, step)
 end
 
 function TerrainInfo:_get_quantization_centroids()

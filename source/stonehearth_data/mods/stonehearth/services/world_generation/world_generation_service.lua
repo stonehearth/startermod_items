@@ -67,15 +67,16 @@ function WorldGenerationService:create_world()
    local terrain_thread = function()
       local world_seconds = Timer.measure(
          function()
-            local blueprint
+            local blueprint, full_micro_map, full_elevation_map, micro_map_seconds
 
-            local micro_map_seconds = Timer.measure(
+            micro_map_seconds = Timer.measure(
                function()
                   blueprint = self._blueprint_generator:generate_blueprint(5, 5)
-                  --blueprint = self._blueprint_generator:get_empty_blueprint(1, 1,) -- useful for debugging real world scenarios without waiting for the load time
+                  --blueprint = self._blueprint_generator:get_empty_blueprint(2, 2, TerrainType.mountains) -- useful for debugging real world scenarios without waiting for the load time
                   --blueprint = self._blueprint_generator:get_static_blueprint()
 
-                  self._micro_map_generator:generate_micro_map(blueprint)
+                  full_micro_map, full_elevation_map =
+                     self._micro_map_generator:generate_micro_map(blueprint)
                end
             )
 
@@ -103,6 +104,7 @@ function WorldGenerationService:_generate_world(blueprint)
    local terrain_info = self._terrain_info
    local tile_size = self._tile_size
    local tile_map, micro_map, tile_info, tile_seed
+   local elevation_map, feature_map
    local origin_x, origin_y, offset_x, offset_y, offset
    local i, j, n, tile_order_list, num_tiles
 
@@ -142,19 +144,24 @@ function WorldGenerationService:_generate_world(blueprint)
       -- clear features for new tile
       self._landscaper:clear_feature_map()
 
+      feature_map = self._landscaper._feature_map
+      tile_info.feature_map = feature_map
+      elevation_map = blueprint:get(i, j).elevation_map
+
+
       -- render heightmap to region3
-      self:_render_heightmap_to_region3(tile_map, offset)
+      self:_render_heightmap_to_region3(tile_map, elevation_map, feature_map, offset)
 
       -- place flora
-      self:_place_flora(tile_map, offset)
+      self:_place_flora(tile_map, elevation_map, feature_map, offset)
 
-      tile_info.feature_map = self._landscaper:get_feature_map()
+      --tile_info.feature_map = self._landscaper:get_feature_map()
 
       -- derive habitat map
-      tile_info.habitat_map = self._habitat_manager:derive_habitat_map(tile_info.feature_map, tile_info.elevation_map)
+      tile_info.habitat_map = self._habitat_manager:derive_habitat_map(feature_map, elevation_map)
 
       -- place initial scenarios
-      self:_place_scenarios(tile_info.habitat_map, tile_info.elevation_map, offset)
+      self:_place_scenarios(tile_info.habitat_map, elevation_map, offset)
 
       tile_info.generated = true
 
@@ -183,7 +190,7 @@ function WorldGenerationService:_generate_tile(micro_map)
    return tile_map
 end
 
-function WorldGenerationService:_render_heightmap_to_region3(tile_map, offset)
+function WorldGenerationService:_render_heightmap_to_region3(tile_map, elevation_map, feature_map, offset)
    local renderer = self._height_map_renderer
    local region3_boxed
 
@@ -191,7 +198,7 @@ function WorldGenerationService:_render_heightmap_to_region3(tile_map, offset)
       function()
          region3_boxed = renderer:create_new_region()
          renderer:render_height_map_to_region(region3_boxed, tile_map)
-         self._landscaper:place_boulders(region3_boxed, tile_map)
+         self._landscaper:place_boulders(region3_boxed, tile_map, elevation_map, feature_map)
          renderer:add_region_to_terrain(region3_boxed, offset)
       end
    )
@@ -200,10 +207,10 @@ function WorldGenerationService:_render_heightmap_to_region3(tile_map, offset)
    self:_yield()
 end
 
-function WorldGenerationService:_place_flora(tile_map, offset)
+function WorldGenerationService:_place_flora(tile_map, elevation_map, feature_map, offset)
    local seconds = Timer.measure(
       function()
-         self._landscaper:place_flora(tile_map, offset.x, offset.z)
+         self._landscaper:place_flora(tile_map, elevation_map, feature_map, offset.x, offset.z)
       end
    )
 
