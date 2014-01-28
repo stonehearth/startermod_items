@@ -25,7 +25,7 @@ function get_stockpile_containing_entity(entity)
       log:spam('checking %s pos:%s inside a stockpile', entity, location)
       if not stockpile then
          log:spam('  nil stockpile!  nope!')
-      else 
+      else
          local name = tostring(stockpile:get_entity())
          local bounds = stockpile:get_bounds();
          if not bounds:contains(location) then
@@ -57,17 +57,6 @@ function StockpileComponent:__init(entity, data_binding)
    self._destination:set_region(_radiant.sim.alloc_region())
                     :set_reserved(_radiant.sim.alloc_region())
                     :set_auto_update_adjacent(true)
-                    
-   self._adjacent_trace = self._destination:trace_adjacent('updating pickup task')
-      :on_changed(function(adjacent_region)
-         if self._pickup_task then
-            if adjacent_region:empty() then
-               self._pickup_task:stop()
-            else
-               self._pickup_task:start()
-            end
-         end
-      end)
 
    radiant.events.listen(radiant.events, 'stonehearth:gameloop', self, self.on_gameloop)
    all_stockpiles[self._entity:get_id()] = self
@@ -83,21 +72,13 @@ function StockpileComponent:destroy()
    for id, item in pairs(self._data.stocked_items) do
       self:_remove_item_from_stock(id)
    end
-   if self._pickup_task then
-      self._pickup_task:destroy()
-      self._pickup_task = nil
-   end
-   if self._restock_task then
-      self._restock_task:destroy()
-      self._restock_task = nil
+   if self._task then
+      self._task:destroy()
+      self._task = nil
    end
    if self._ec_trace then
       self._ec_trace:destroy()
       self._ec_trace = nil
-   end
-   if self._adjacent_trace then
-      self._adjacent_trace:destroy()
-      self._adjacent_trace = nil
    end
    if self._unit_info_trace then
       self._unit_info_trace:destroy()
@@ -369,26 +350,11 @@ function StockpileComponent:_assign_to_faction()
 end
 
 function StockpileComponent:_on_item_added_to_inventory(e)
-   if self._pickup_task then
-      self._pickup_task:remove_work_object(e.item:get_id())
-   end
+   -- xxx: need to poke the pathfinder in the restock task somehow... hmm..
 end
 
 function StockpileComponent:_on_item_removed_from_inventory(e)
-   if self._pickup_task then
-      local item = e.item
-      -- there are lots of reason the item can be removed from the inventory (e.g.
-      -- a stockpile containing the entity was destroyed or someone picked up an
-      -- item from a stockpile).  we only want to add the item to the pickup task
-      -- if it's valid to be restocked.  the add_work_object function will call
-      -- our filter to verify that, but it also assume the item is on the terrain!
-      -- check to make sure this is the case before calling it (xxx: shouldn't
-      -- this be done by add_work_object internally? -- tony)
-      local mob = item:get_component('mob')
-      if mob and mob:get_parent() then
-         self._pickup_task:add_work_object(item)
-      end
-   end
+   -- xxx: need to poke the pathfinder in the restock task somehow... hmm..
 end
 
 --- Returns whether or not the stockpile should stock this entity

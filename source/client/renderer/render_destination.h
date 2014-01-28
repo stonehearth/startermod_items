@@ -23,6 +23,7 @@ class RenderDestination : public RenderComponent {
    private:
       enum Regions {
          REGION = 0,
+         RESERVED,
          ADJACENT,
          COUNT,
       };

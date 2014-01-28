@@ -615,7 +615,7 @@ end
 
 
 function ExecutionFrame:_destroy_from_running()
-   assert(self._thread:running())
+   assert(self._thread:is_running())
    for _, unit in pairs(self._execution_units) do
       unit:_destroy()
    end

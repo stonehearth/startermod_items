@@ -23,6 +23,11 @@ function ReserveStockpileSpace:start_thinking(ai, entity, args)
 end
 
 function ReserveStockpileSpace:_on_space_available(stockpile, space_available)
+   if not stockpile or not stockpile:get_entity():is_valid() then
+      self._ai:abort('stockpile destroyed')
+      return
+   end
+
    if space_available and not self._ready then
       self._ready = true
       self._ai:set_think_output({

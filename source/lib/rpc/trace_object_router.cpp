@@ -93,13 +93,11 @@ void TraceObjectRouter::InstallTrace(std::string const& uri, ReactorDeferredPtr 
    entry.obj = obj;
    entry.trace = obj->TraceObjectChanges("rpc", dm::RPC_TRACES);
 
-   LOG_(0) << " installing trace on " << uri;
    entry.trace->OnModified_([this, uri, entry]() {
       auto obj = entry.obj.lock();
       auto deferred = entry.deferred.lock();
       if (obj && deferred) {
          JSONNode data = om::ObjectFormatter().ObjectToJson(obj);
-         LOG_(0) << " object changed! " << data.write_formatted();
          deferred->Notify(data);
       } else {
          traces_.erase(uri);

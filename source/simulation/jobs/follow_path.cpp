@@ -4,6 +4,7 @@
 #include "om/components/mob.ridl.h"
 #include "simulation/simulation.h"
 #include "csg/util.h" // xxx: should be csg/csg.h
+#include "lib/lua/script_host.h"
 
 using namespace ::radiant;
 using namespace ::radiant::simulation;
@@ -15,20 +16,22 @@ std::ostream& simulation::operator<<(std::ostream& os, FollowPath const& o)
    return os << "[FollowPath ...]";
 }
 
-FollowPath::FollowPath(Simulation& sim, om::EntityRef e, float speed, std::shared_ptr<Path> path, float close_to_distance, luabind::object arrived_cb) :
+FollowPath::FollowPath(Simulation& sim, om::EntityRef e, float speed, std::shared_ptr<Path> path, float close_to_distance, luabind::object unsafe_arrived_cb) :
    Task(sim, "follow path"),
    entity_(e),
    path_(path),
    pursuing_(0),
    speed_(speed),
-   close_to_distance_(close_to_distance),
-   arrived_cb_(arrived_cb)
+   close_to_distance_(close_to_distance)
 {
    auto entity = entity_.lock();
    if (entity) {
       auto mob = entity->GetComponent<om::Mob>();
       mob->SetMoving(false);
    }
+   lua_State* cb_thread = lua::ScriptHost::GetCallbackThread(unsafe_arrived_cb.interpreter());  
+   arrived_cb_ = luabind::object(cb_thread, unsafe_arrived_cb);
+
    Report("constructor");
 }
 
@@ -74,8 +77,12 @@ bool FollowPath::Work(const platform::timer &timer)
    }
    if (Arrived(mob)) {
       Report("arrived!");
-      if (luabind::type(arrived_cb_) == LUA_TFUNCTION) {
-         luabind::call_function<void>(arrived_cb_);
+      if (arrived_cb_.is_valid()) {
+         try {
+            arrived_cb_();
+         } catch (std::exception const& e) {
+            LUA_LOG(1) << "exception delivering solved cb: " << e.what();
+         }
       }
       return false;
    }

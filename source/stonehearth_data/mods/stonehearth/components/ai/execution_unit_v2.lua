@@ -179,6 +179,9 @@ function ExecutionUnitV2:_stop_thinking()
    if self._state == 'started' then
       return self:_stop_thinking_from_started()
    end
+   if self._state == 'aborting' then
+      return self:_stop_thinking_from_aborting()
+   end
    if self._state == 'stopped' then
       assert(not self._thinking)
       return -- nop
@@ -229,8 +232,14 @@ function ExecutionUnitV2:_destroy()
    if self._state == 'stopped' then
       return self:_destroy_from_stopped()
    end
+   if self._state == 'running' then
+      return self:_destroy_from_running()
+   end
    if self._state == 'finished' then
       return self:_destroy_from_finished()
+   end
+   if self._state == 'aborting' then
+      return self:_destroy_from_aborting()
    end
    self:_unknown_transition('destroy')   
 end
@@ -296,6 +305,12 @@ function ExecutionUnitV2:_stop_thinking_from_started()
       self:_do_stop_thinking()
    end
    -- stay in the started stated.
+end
+
+function ExecutionUnitV2:_stop_thinking_from_aborting()
+   if self._thinking then
+      self:_do_stop_thinking()
+   end
 end
 
 function ExecutionUnitV2:_start_from_ready()
@@ -377,9 +392,31 @@ function ExecutionUnitV2:_destroy_from_stopped()
    self:_call_destroy()
    self:_set_state(DEAD)
 end
+
+function ExecutionUnitV2:_destroy_from_running()
+   assert(not self._thinking)
+   if self._execute_frame then
+      self._execute_frame:destroy()
+   end
+   self:_call_stop_thinking()
+   self:_call_destroy()
+   self:_set_state(DEAD)
+end
+
 function ExecutionUnitV2:_destroy_from_finished()
    assert(not self._thinking)
    assert(not self._execute_frame)
+   self:_call_destroy()
+   self:_set_state(DEAD)
+end
+
+function ExecutionUnitV2:_destroy_from_aborting()
+   if self._thinking then
+      self:_call_stop_thinking()
+   end
+   if self._started then
+      self:_call_stop()
+   end
    self:_call_destroy()
    self:_set_state(DEAD)
 end

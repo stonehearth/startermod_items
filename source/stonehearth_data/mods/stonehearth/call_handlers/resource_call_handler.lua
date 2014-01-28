@@ -9,6 +9,10 @@ local ResourceCallHandler = class()
 local all_harvest_tasks = {}
 
 function ResourceCallHandler:harvest_tree(session, response, tree)
+   if not tree or not tree:is_valid() then
+      return false
+   end
+
    local id = tree:get_id()
    if not all_harvest_tasks[id] then
       all_harvest_tasks[id] = stonehearth.tasks:get_scheduler('stonehearth:workers', session.faction)
