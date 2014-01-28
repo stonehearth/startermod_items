@@ -589,7 +589,7 @@ void Simulation::Mainloop()
       ProcessJobList();
       FireLuaTraces();
    }
-   if (net_send_timer_.expired(20)) {
+   if (net_send_timer_.expired()) {
       SendClientUpdates();
       // reset the send timer.  We have a choice here of using "set" or "advance". Set
       // will set the timer to the current time + the interval.  Advance will set it to
@@ -615,13 +615,21 @@ void Simulation::LuaGC()
 
 void Simulation::Idle()
 {
-   MEASURE_TASK_TIME("idle")
-
    // use of advance considered harmful.  what if the server gets "stuck"?  (e.g. in the debugger)
    if (!noidle_) {
+      MEASURE_TASK_TIME("idle")
       SIM_LOG_GAMELOOP(7) << "idling";
       while (!game_loop_timer_.expired()) {
          platform::sleep(1);
+      }
+   } else {
+      if (!game_loop_timer_.expired()) {
+         perfmon::Counter* last_counter = perf_timeline_.GetCurrentCounter();
+         perfmon::Counter* counter = perf_timeline_.GetCounter("idle");
+         perf_timeline_.SetCounter(counter);
+         counter->Increment(perfmon::MillisecondsToCounter(game_loop_timer_.remaining()));
+         perf_timeline_.SetCounter(last_counter);
+         Sleep(0);
       }
    }
    game_loop_timer_.set(game_tick_interval_);

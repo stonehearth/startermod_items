@@ -431,7 +431,12 @@ void PathFinder::RecommendBestPath(std::vector<csg::Point3> &points) const
 
 std::string PathFinder::GetProgress() const
 {
-   return BUILD_STRING(GetName() << " " << "(open: " << open_.size() << "  closed: " << closed_.size() << ")");
+   std::string ename;
+   auto entity = entity_.lock();
+   if (entity) {
+      ename = BUILD_STRING(*entity);
+   }
+   return BUILD_STRING(GetName() << " " << ename << " (open: " << open_.size() << "  closed: " << closed_.size() << ")");
 }
 
 void PathFinder::RebuildHeap()
@@ -492,7 +497,7 @@ PathPtr PathFinder::GetSolution() const
 
 void PathFinder::RestartSearch(const char* reason)
 {
-   PF_LOG(5) << "requesting search restart: " << reason;
+   PF_LOG(3) << "requesting search restart: " << reason;
    restart_search_ = true;
    solution_ = nullptr;
 }
