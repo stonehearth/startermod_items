@@ -216,7 +216,7 @@ function ExecutionFrame:_do_destroy()
 end
 
 function ExecutionFrame:start_thinking(entity_state)
-   self._log:spam('start_thinking')
+   self._log:spam('start_thinking (state: %s)', self._state)
    assert(entity_state)
    assert(self:get_state() == STOPPED)
 
@@ -227,7 +227,7 @@ function ExecutionFrame:start_thinking(entity_state)
 end
 
 function ExecutionFrame:on_ready(ready_cb)
-   self._log:spam('on_ready')
+   self._log:spam('on_ready (state: %s)', self._state)
    if not ready_cb then
       self._ready_cb = nil
       return
@@ -735,8 +735,8 @@ function ExecutionFrame:_add_action_from_ready(key, entry)
 end
 
 function ExecutionFrame:_add_action_from_running(key, entry)
-   self:_add_execution_unit(key, entry)
-   -- we could kick it in the pants now, but let's not bother...
+   local unit = self:_add_execution_unit(key, entry)
+   unit:_start_thinking(self:_create_entity_state())
 end
 
 function ExecutionFrame:_add_action_from_stopped(key, entry)
@@ -800,6 +800,7 @@ end
 
 function ExecutionFrame:_on_action_index_changed(add_remove, key, entry, does)
    if self._name == does and self:get_state() ~= DEAD then
+      self._log:debug('on_action_index_changed %s (state:%s)', add_remove, self._state)
       if add_remove == 'add' then
          self:_add_action(key, entry)
       elseif add_remove == 'remove' then
@@ -874,14 +875,19 @@ function ExecutionFrame:_clone_entity_state(name)
   return cloned
 end
 
-function ExecutionFrame:_capture_entity_state()
-   self._log:debug('_capture_entity_state')
-   assert(self:in_state(STOPPED))
-   
+function ExecutionFrame:_create_entity_state()
    local state = {
       location = radiant.entities.get_world_grid_location(self._entity),
       carrying = radiant.entities.get_carrying(self._entity),
    }
+   return state
+end
+
+function ExecutionFrame:_capture_entity_state()
+   self._log:debug('_capture_entity_state')
+   assert(self:in_state(STOPPED))
+   
+   local state = self:_create_entity_state()
    self:_set_current_entity_state(state)
 end
 

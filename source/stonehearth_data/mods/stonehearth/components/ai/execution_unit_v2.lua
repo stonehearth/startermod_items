@@ -440,6 +440,7 @@ function ExecutionUnitV2:_do_stop()
 end
 
 function ExecutionUnitV2:_do_start_thinking(entity_state)
+   assert(entity_state, '_do_start_thinking called with no entity_state')
    self._log:debug('_do_start_thinking (state:%s)', tostring(self._state))
    assert(not self._thinking)
    

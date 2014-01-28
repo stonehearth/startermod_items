@@ -15,17 +15,19 @@ function CompoundTask:once()
 end
 
 function CompoundTask:destroy()
-   self._co = nil
+   self._thread:terminate()
+   self._thread = nil
    if self._compound_task.destroy then
       self._compound_task:destroy()
    end
 end
 
 function CompoundTask:start()
-   assert(not self._co)
+   assert(not self._thread)
    
    local args = self._activity.args
-   self._co = coroutine.create(function()
+   self._thread = stonehearth.threads:create_thread()
+   self._thread:set_thread_main(function()
          if self._compound_task.start then
             self._compound_task:start(self, args)
          end
@@ -35,16 +37,16 @@ function CompoundTask:start()
          end
          radiant.events.trigger(self, 'completed')
       end)
-   coroutine.resume(self._co)
+   self._thread:start()
    return self
 end
 
 function CompoundTask:suspend()
-   coroutine.yield()
+   self._thread:suspend()
 end
 
 function CompoundTask:resume()
-   coroutine.resume(self._co)
+   self._thread:resume()
 end
 
 function CompoundTask:execute(activity, args)
@@ -60,19 +62,19 @@ function CompoundTask:orchestrate(activity, args)
 end
 
 function CompoundTask:_run(task)
-   assert(self._co)
+   assert(self._thread)
 
    local finished = false
                      
    radiant.events.listen(task, 'completed', function()
          finished = true
-         coroutine.resume(self._co)
+         self:resume()
          return radiant.events.UNLISTEN
       end)
 
    task:start()      
    while not finished do
-      coroutine.yield()
+      self:suspend()
    end
    return task
 end

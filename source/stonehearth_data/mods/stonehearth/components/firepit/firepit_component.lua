@@ -115,6 +115,7 @@ function FirepitComponent:_stop_functionality()
       log:debug('stopping light fire task')
       self._light_task:stop()
       self._light_task:destroy()
+      self._light_task = nil
    end
 end
 
@@ -209,7 +210,7 @@ function FirepitComponent:_init_gather_wood_task()
                                    :set_name('light firepit')
                                    :once()
                                    :start()
-
+ 
    --[[   
    self._light_task = 
       local ws = stonehearth.worker_scheduler
@@ -297,6 +298,12 @@ function FirepitComponent:extinguish()
    if self._curr_fire_effect then
       self._curr_fire_effect:stop()
    end
+   
+   if self._light_task then
+      self._light_task:destroy()
+      self._light_task = nil
+   end
+
    self._data.is_lit = false
    radiant.events.trigger(self._entity, 'stonehearth:fire:lit', { lit = false})
 end
