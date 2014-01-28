@@ -20,6 +20,7 @@ public:
    luabind::object Require(std::string const& name);
    luabind::object RequireScript(std::string const& path);
    void GC(platform::timer &timer);
+   int GetAllocBytesCount() const;
 
    typedef std::function<luabind::object(lua_State* L, JSONNode const& json)> JsonToLuaFn;
    void AddJsonToLuaConverter(JsonToLuaFn fn);
@@ -92,6 +93,7 @@ private:
    std::vector<JsonToLuaFn>   to_lua_converters_;
    bool                 filter_c_exceptions_;
    ReportErrorCb        error_cb_;
+   int                  bytes_allocated_;
 };
 
 END_RADIANT_LUA_NAMESPACE

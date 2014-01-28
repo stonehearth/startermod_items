@@ -154,6 +154,7 @@ IMPLEMENT_TRIVIAL_TOSTRING(ScriptHost);
 
 ScriptHost::ScriptHost()
 {
+   bytes_allocated_ = 0;
    filter_c_exceptions_ = core::Config::GetInstance().Get<bool>("lua.filter_exceptions", true);
 
    L_ = lua_newstate(LuaAllocFn, this);
@@ -216,6 +217,10 @@ ScriptHost::~ScriptHost()
 
 void* ScriptHost::LuaAllocFn(void *ud, void *ptr, size_t osize, size_t nsize)
 {
+   ScriptHost* host = static_cast<ScriptHost*>(ud);
+
+   host->bytes_allocated_ += (nsize - osize);
+   
 #if !defined(ENABLE_MEMPRO)
    if (nsize == 0) {
       free(ptr);
@@ -291,6 +296,7 @@ lua_State* ScriptHost::GetCallbackThread()
 void ScriptHost::GC(platform::timer &timer)
 {
    bool finished = false;
+
    while (!timer.expired() && !finished) {
       finished = (lua_gc(L_, LUA_GCSTEP, 1) != 0);
    }
@@ -437,3 +443,7 @@ void ScriptHost::SetNotifyErrorCb(ReportErrorCb const& cb)
    error_cb_ = cb;
 }
 
+int ScriptHost::GetAllocBytesCount() const
+{
+   return bytes_allocated_;
+}
