@@ -67,20 +67,15 @@ function WorldGenerationService:create_world()
    local terrain_thread = function()
       local world_seconds = Timer.measure(
          function()
-            local blueprint, full_micro_map, full_elevation_map, micro_map_seconds
+            local blueprint_seconds, blueprint
 
-            micro_map_seconds = Timer.measure(
+            blueprint_seconds = Timer.measure(
                function()
-                  blueprint = self._blueprint_generator:generate_blueprint(5, 5)
-                  --blueprint = self._blueprint_generator:get_empty_blueprint(2, 2, TerrainType.mountains) -- useful for debugging real world scenarios without waiting for the load time
-                  --blueprint = self._blueprint_generator:get_static_blueprint()
-
-                  full_micro_map, full_elevation_map =
-                     self._micro_map_generator:generate_micro_map(blueprint)
+                  blueprint = self:_generate_blueprint()
                end
             )
 
-            log:info('Micromap and blueprint generation time: %.3fs', micro_map_seconds)
+            log:info('Blueprint generation time: %.3fs', blueprint_seconds)
 
             self:_generate_world(blueprint)
          end
@@ -92,28 +87,61 @@ function WorldGenerationService:create_world()
    self.overview_map:clear()
 
    if self._async then
-      radiant.create_background_task('Terrain Generator', terrain_thread)     
+      radiant.create_background_task('World Generation', terrain_thread)     
    else
       terrain_thread()
    end
 end
 
+function WorldGenerationService:_generate_blueprint()
+   local tile_size = self._tile_size
+   local macro_blocks_per_tile = self._tile_size / self._macro_block_size
+   local blueprint_generator = self._blueprint_generator
+   local micro_map_generator = self._micro_map_generator
+   local landscaper = self._landscaper
+   local blueprint, full_micro_map, full_elevation_map, full_feature_map
+
+   --blueprint = blueprint_generator:generate_blueprint(5, 5)
+   blueprint = blueprint_generator:get_empty_blueprint(2, 2) -- (2,2) is minimum size
+   --blueprint = blueprint_generator:get_static_blueprint()
+
+   full_micro_map, full_elevation_map = micro_map_generator:generate_micro_map(blueprint)
+
+   full_feature_map = Array2D(full_elevation_map.width, full_elevation_map.height)
+
+   -- determine which features will be placed in which cells
+   landscaper:mark_boulders(full_elevation_map, full_feature_map)
+   landscaper:mark_trees(full_elevation_map, full_feature_map)
+   landscaper:mark_berry_bushes(full_elevation_map, full_feature_map)
+   landscaper:mark_flowers(full_elevation_map, full_feature_map)
+
+   -- shard the maps and store in the blueprint
+   -- micro_maps are overlapping so they need a different sharding function
+   blueprint_generator:store_micro_map(blueprint, full_micro_map, macro_blocks_per_tile)
+   blueprint_generator:shard_and_store_map(blueprint, "elevation_map", full_elevation_map)
+   blueprint_generator:shard_and_store_map(blueprint, "feature_map", full_feature_map)
+
+   -- location of the world origin in the coordinate system of the blueprint
+   blueprint.origin_x = math.floor(blueprint.width * tile_size / 2)
+   blueprint.origin_y = math.floor(blueprint.height * tile_size / 2)
+
+   -- create the overview map
+   self.overview_map:derive_overview_map(full_elevation_map, full_feature_map,
+                                         blueprint.origin_x, blueprint.origin_y)
+
+   return blueprint
+end
+
 function WorldGenerationService:_generate_world(blueprint)
-   local num_tiles_x = blueprint.width
-   local num_tiles_y = blueprint.height
    local terrain_info = self._terrain_info
    local tile_size = self._tile_size
    local tile_map, micro_map, tile_info, tile_seed
    local elevation_map, feature_map
-   local origin_x, origin_y, offset_x, offset_y, offset
+   local offset_x, offset_y, offset
    local i, j, n, tile_order_list, num_tiles
 
    tile_order_list = self:_build_tile_order_list(blueprint)
    num_tiles = #tile_order_list
-
-   -- location of the world origin in the coordinate system of the blueprint
-   origin_x = math.floor(num_tiles_x * tile_size / 2)
-   origin_y = math.floor(num_tiles_y * tile_size / 2)
 
    for n=1, num_tiles do
       i = tile_order_list[n].x
@@ -122,11 +150,10 @@ function WorldGenerationService:_generate_world(blueprint)
       log:info('Generating tile %d, %d', i, j)
 
       tile_info = blueprint:get(i, j)
-      assert(not tile_info.generated)
 
       -- calculate the world offset of the tile
-      offset_x = (i-1)*tile_size-origin_x
-      offset_y = (j-1)*tile_size-origin_y
+      offset_x = (i-1)*tile_size - blueprint.origin_x
+      offset_y = (j-1)*tile_size - blueprint.origin_y
 
       -- convert to world coordinate system
       offset = Point3(offset_x, 0, offset_y)
@@ -136,26 +163,20 @@ function WorldGenerationService:_generate_world(blueprint)
       tile_seed = self:_get_tile_seed(i, j)
       self._rng:set_seed(tile_seed)
 
-      -- generate the heightmap for the tile
+      -- get the various maps from the blueprint
       micro_map = blueprint:get(i, j).micro_map
+      elevation_map = blueprint:get(i, j).elevation_map
+      feature_map = blueprint:get(i, j).feature_map
+
+      -- generate the high resolution heightmap for the tile
       tile_map = self:_generate_tile(micro_map)
       self:_yield()
 
-      -- clear features for new tile
-      self._landscaper:clear_feature_map()
-
-      feature_map = self._landscaper._feature_map
-      tile_info.feature_map = feature_map
-      elevation_map = blueprint:get(i, j).elevation_map
-
-
       -- render heightmap to region3
-      self:_render_heightmap_to_region3(tile_map, elevation_map, feature_map, offset)
+      self:_render_heightmap_to_region3(tile_map, feature_map, offset)
 
       -- place flora
-      self:_place_flora(tile_map, elevation_map, feature_map, offset)
-
-      --tile_info.feature_map = self._landscaper:get_feature_map()
+      self:_place_flora(tile_map, feature_map, offset)
 
       -- derive habitat map
       tile_info.habitat_map = self._habitat_manager:derive_habitat_map(feature_map, elevation_map)
@@ -163,13 +184,9 @@ function WorldGenerationService:_generate_world(blueprint)
       -- place initial scenarios
       self:_place_scenarios(tile_info.habitat_map, elevation_map, offset)
 
-      tile_info.generated = true
-
       -- update progress bar
       self._progress = (n / num_tiles) * 100
    end
-
-   self.overview_map:derive_overview_map(blueprint, origin_x, origin_y)
 
    -- trigger finished without waiting for the next poll
    self:_on_poll_progress()
@@ -190,7 +207,7 @@ function WorldGenerationService:_generate_tile(micro_map)
    return tile_map
 end
 
-function WorldGenerationService:_render_heightmap_to_region3(tile_map, elevation_map, feature_map, offset)
+function WorldGenerationService:_render_heightmap_to_region3(tile_map, feature_map, offset)
    local renderer = self._height_map_renderer
    local region3_boxed
 
@@ -198,7 +215,7 @@ function WorldGenerationService:_render_heightmap_to_region3(tile_map, elevation
       function()
          region3_boxed = renderer:create_new_region()
          renderer:render_height_map_to_region(region3_boxed, tile_map)
-         self._landscaper:place_boulders(region3_boxed, tile_map, elevation_map, feature_map)
+         self._landscaper:place_boulders(region3_boxed, tile_map, feature_map)
          renderer:add_region_to_terrain(region3_boxed, offset)
       end
    )
@@ -207,10 +224,10 @@ function WorldGenerationService:_render_heightmap_to_region3(tile_map, elevation
    self:_yield()
 end
 
-function WorldGenerationService:_place_flora(tile_map, elevation_map, feature_map, offset)
+function WorldGenerationService:_place_flora(tile_map, feature_map, offset)
    local seconds = Timer.measure(
       function()
-         self._landscaper:place_flora(tile_map, elevation_map, feature_map, offset.x, offset.z)
+         self._landscaper:place_flora(tile_map, feature_map, offset.x, offset.z)
       end
    )
 

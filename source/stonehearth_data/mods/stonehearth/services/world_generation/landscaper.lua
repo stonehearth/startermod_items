@@ -31,6 +31,7 @@ local boulder_name = "boulder"
 
 local Landscaper = class()
 
+-- TODO: refactor this class into smaller pieces
 function Landscaper:__init(terrain_info, rng, async)
    if async == nil then async = false end
 
@@ -53,13 +54,10 @@ function Landscaper:__init(terrain_info, rng, async)
       [TerrainType.mountains] = { min = 4, max = 9 }
    }
 
+   self._noise_map_buffer = nil
+   self._density_map_buffer = nil
+
    self._perturbation_grid = PerturbationGrid(self._tile_width, self._tile_height, self._feature_size, self._rng)
-
-   local feature_map_width, feature_map_height = self._perturbation_grid:get_dimensions()
-   self._feature_map = Array2D(feature_map_width, feature_map_height)
-
-   self._noise_map_buffer = Array2D(self._feature_map.width, self._feature_map.height)
-   self._density_map_buffer = Array2D(self._feature_map.width, self._feature_map.height)
 
    self:_initialize_function_table()
 end
@@ -87,12 +85,19 @@ function Landscaper:_initialize_function_table()
    self._function_table = function_table
 end
 
-function Landscaper:clear_feature_map()
-   self._feature_map:clear(nil)
-end
+function Landscaper:_get_filter_buffers(width, height)
+   if self._noise_map_buffer == nil or
+      self._noise_map_buffer.width ~= width or 
+      self._noise_map_buffer.height ~= height then
 
-function Landscaper:get_feature_map()
-   return self._feature_map:clone()
+      self._noise_map_buffer = Array2D(width, height)
+      self._density_map_buffer = Array2D(width, height)
+   end
+
+   assert(self._density_map_buffer.width == self._noise_map_buffer.width)
+   assert(self._density_map_buffer.height == self._noise_map_buffer.height)
+
+   return self._noise_map_buffer, self._density_map_buffer
 end
 
 function Landscaper:is_forest_feature(feature_name)
@@ -102,7 +107,7 @@ function Landscaper:is_forest_feature(feature_name)
    return false
 end
 
-function Landscaper:place_flora(tile_map, elevation_map, feature_map, tile_offset_x, tile_offset_y)
+function Landscaper:place_flora(tile_map, feature_map, tile_offset_x, tile_offset_y)
    local place_item = function(uri, x, y)
       local entity = radiant.entities.create_entity(uri)
       -- switch from lua height_map base 1 coordinates to c++ base 0 coordinates
@@ -112,18 +117,14 @@ function Landscaper:place_flora(tile_map, elevation_map, feature_map, tile_offse
       return entity
    end
 
-   self:mark_trees(feature_map, elevation_map)
-   self:mark_berry_bushes(feature_map, elevation_map)
-   self:mark_flowers(feature_map, elevation_map)
    self:place_features(tile_map, feature_map, place_item)
 end
 
-function Landscaper:mark_trees(feature_map, elevation_map)
+function Landscaper:mark_trees(elevation_map, feature_map)
    local rng = self._rng
    local terrain_info = self._terrain_info
    local mountains_juniper_chance = 0.25
-   local noise_map = Array2D(feature_map.width, feature_map.height)
-   local density_map = Array2D(feature_map.width, feature_map.height)
+   local noise_map, density_map = self:_get_filter_buffers(feature_map.width, feature_map.height)
    local i, j, tree_name, tree_type, tree_size, occupied, value, elevation, terrain_type
 
    local noise_fn = function(i, j)
@@ -305,12 +306,11 @@ function Landscaper:place_features(tile_map, feature_map, place_item)
    end
 end
 
-function Landscaper:mark_berry_bushes(feature_map, elevation_map)
+function Landscaper:mark_berry_bushes(elevation_map, feature_map)
    local rng = self._rng
    local terrain_info = self._terrain_info
    local perturbation_grid = self._perturbation_grid
-   local noise_map = Array2D(feature_map.width, feature_map.height)
-   local density_map = Array2D(feature_map.width, feature_map.height)
+   local noise_map, density_map = self:_get_filter_buffers(feature_map.width, feature_map.height)
    local value, occupied, elevation, terrain_type
 
    local noise_fn = function(i, j)
@@ -392,12 +392,11 @@ function Landscaper:_random_berry_pattern()
    end
 end
 
-function Landscaper:mark_flowers(feature_map, elevation_map)
+function Landscaper:mark_flowers(elevation_map, feature_map)
    local rng = self._rng
    local terrain_info = self._terrain_info
    local perturbation_grid = self._perturbation_grid
-   local noise_map = Array2D(feature_map.width, feature_map.height)
-   local density_map = Array2D(feature_map.width, feature_map.height)
+   local noise_map, density_map = self:_get_filter_buffers(feature_map.width, feature_map.height)
    local value, occupied, elevation, terrain_type
 
    local noise_fn = function(i, j)
@@ -541,11 +540,6 @@ function Landscaper:_is_flat(tile_map, x, y, distance)
    return is_flat
 end
 
-function Landscaper:random_tree_type()
-   local roll = self._rng:get_int(1, #tree_types)
-   return tree_types[roll]
-end
-
 function Landscaper:_set_random_facing(entity)
    entity:add_component('mob'):turn_to(90*self._rng:get_int(0, 3))
 end
@@ -604,8 +598,7 @@ function Landscaper:place_boulders_internal(region3_boxed, tile_map, feature_map
    )
 end
 
-function Landscaper:place_boulders(region3_boxed, tile_map, elevation_map, feature_map)
-   self:mark_boulders(elevation_map, feature_map)
+function Landscaper:place_boulders(region3_boxed, tile_map, feature_map)
    self:place_boulders_internal(region3_boxed, tile_map, feature_map)
    self:_yield()
 end

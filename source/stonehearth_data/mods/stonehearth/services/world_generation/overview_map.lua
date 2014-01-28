@@ -33,16 +33,17 @@ function OverviewMap:clear()
    self._map = nil
 end
 
-function OverviewMap:derive_overview_map(blueprint, origin_x, origin_y)
-   local terrain_info = self._terrain_info
+function OverviewMap:derive_overview_map(full_elevation_map, full_feature_map, origin_x, origin_y)
    -- -1 to remove half-macroblock offset from both ends
-   local overview_width = blueprint.width * self._macro_blocks_per_tile - 1
-   local overview_height = blueprint.height * self._macro_blocks_per_tile - 1
+   local overview_width = full_elevation_map.width/2 - 1
+   local overview_height = full_elevation_map.height/2 - 1
    local overview_map = Array2D(overview_width, overview_height)
+   local terrain_info = self._terrain_info
    local a, b, terrain_code, forest_density, macro_block_info
-   local full_feature_map, full_elevation_map
 
-   full_feature_map, full_elevation_map = self:_assemble_maps(blueprint)
+   -- only needed if we need to reassemble the full map from the shards in the blueprint
+   -- local full_feature_map, full_elevation_map
+   -- full_feature_map, full_elevation_map = self:_assemble_maps(blueprint)
 
    for j=1, overview_width do
       for i=1, overview_height do
