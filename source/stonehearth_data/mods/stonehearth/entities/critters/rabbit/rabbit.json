@@ -14,8 +14,14 @@
          ]
       },
       "stonehearth:attributes": {
-         "health": 1,
-         "speed" : 50
+        "health": {
+          "type" : "basic", 
+          "value" :  1
+        },
+        "speed" : {
+          "type" : "basic", 
+          "value": 50
+        }
       },      
       "render_info" : {
          "animation_table" : "file(/data/rigs/critters/rabbit)"

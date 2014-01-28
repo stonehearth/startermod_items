@@ -28,9 +28,10 @@ function FollowPathAction:run(ai, entity, path, effect_name)
 
    local speed = radiant.entities.get_attribute(entity, 'speed')   
    if speed == nil then
-      speed = 100
+      speed = 1.0
    end
-   speed = speed / 100
+   --Note: Speed is between 10 and 60, normalize to be between 0 and 1
+   speed = math.floor(80 + (20 * speed / 60)) / 100
 
    if not effect_name then
       effect_name = 'run'

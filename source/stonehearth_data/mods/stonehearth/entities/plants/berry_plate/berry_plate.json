@@ -6,7 +6,10 @@
          "description": "TODO: invent whipped cream."
       },
       "stonehearth:attributes" : {
-         "sates_hunger" : 100
+         "sates_hunger" : {
+            "type" : "basic", 
+            "value" : 100
+         }
       },
       "model_variants": [
          {

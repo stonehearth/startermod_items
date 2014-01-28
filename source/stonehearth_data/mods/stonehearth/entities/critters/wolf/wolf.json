@@ -9,9 +9,18 @@
          "faction": "wolf"
       },
       "stonehearth:attributes": {
-         "ferocity": 10,
-         "health": 50,
-         "speed" : 150
+         "ferocity": {
+            "type" : "basic", 
+            "value" :  10
+        },
+         "health": {
+            "type" : "basic", 
+            "value" :  10
+        },
+        "speed" : {
+            "type" : "basic", 
+            "value": 90
+        }
       },
       "stonehearth:ai": {
          "actions": [

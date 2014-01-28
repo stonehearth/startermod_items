@@ -23,8 +23,14 @@
          "faction": "goblin"
       }, 
       "stonehearth:attributes": {
-         "ferocity": 100, 
-         "health": 100
+         "health": {
+            "type" : "basic", 
+            "value" :  100
+        },
+        "ferocity": {
+            "type" : "basic", 
+            "value" :  100
+        },
       }, 
       "stonehearth:ai": {
          "observers": [
