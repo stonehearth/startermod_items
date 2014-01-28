@@ -4,12 +4,35 @@
    - random_range attributes will get you a number between base and max, inclusive
    - derived attributes derived from equations relating other attributes. 
 
+   Here are the 3 example types as described in json:
+   "ferocity": {
+      "type" : "basic",
+      "value" : 1
+   },
+   "compassion_modifier": {
+      "type" : "random_range",
+      "base" :  1,
+      "max"  :  9
+   },
+   "health": {
+      "type" : "derived", 
+      "equation" : "muscle + willpower + discipline"
+   }, 
+
    Attributes can have alphabetical characters in them, + the _ character. (But they cannot have
    numeric characters in them)
+
+   It's currently the attribute author's job to make sure that derived attributes
+   do not have loops in their calculation.
 
    Attributes can be altered via modifiers. Thus, an attribute's base value is an integer, if
    it's a basic attribute, or the number derived from its equation, if it's a derived attribute. 
    All attributes also have an effective value, which is the base value + it's modifiers. 
+
+   TODO: - Optimizations: check for loops
+         - make declaring attributes easier
+         - design: do the derived attributes make the player feel that the differences are bigger than 
+                   are actually important? This is the opposite of what we want
 ]]
 
 local AttributeModifier = require 'components.attributes.attribute_modifier'
