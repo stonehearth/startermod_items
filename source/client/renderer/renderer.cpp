@@ -19,6 +19,9 @@
 #include "perfhud/perfhud.h"
 #include "resources/res_manager.h"
 #include "csg/random_number_generator.h"
+#include "pipeline.h"
+#include <unordered_set>
+#include <string>
 
 using namespace ::radiant;
 using namespace ::radiant::client;
@@ -65,6 +68,23 @@ Renderer::Renderer() :
 {
    terrainConfig_ = res::ResourceManager2::GetInstance().LookupJson("stonehearth/renderers/terrain/terrain_renderer.json");
    GetConfigOptions();
+
+   uiOnlyStages_.insert(std::string("Init"));
+   uiOnlyStages_.insert(std::string("Overlays"));
+
+   fowOnlyStages_.insert(std::string("FogOfWar_RT"));
+
+   drawWorldStages_.insert(std::string("Init"));
+   drawWorldStages_.insert(std::string("Sky"));
+   drawWorldStages_.insert(std::string("Starfield"));
+   drawWorldStages_.insert(std::string("Depth"));
+   drawWorldStages_.insert(std::string("FogOfWar"));
+   drawWorldStages_.insert(std::string("Light"));
+   drawWorldStages_.insert(std::string("Fog"));
+   drawWorldStages_.insert(std::string("Translucent"));
+   drawWorldStages_.insert(std::string("Selected"));
+   drawWorldStages_.insert(std::string("Selected_Fast"));
+   drawWorldStages_.insert(std::string("Overlays"));
 
    assert(renderer_.get() == nullptr);
    renderer_.reset(this);
@@ -122,7 +142,8 @@ Renderer::Renderer() :
 
    ApplyConfig(config_, false);
 
-   SetDrawWorld(drawWorld_);
+   //SetDrawWorld(drawWorld_);
+   SetEnabledStages(uiOnlyStages_);
 
    // Overlays
    fontMatRes_ = h3dAddResource( H3DResTypes::Material, "overlays/font.material.xml", 0 );
@@ -176,27 +197,54 @@ Renderer::Renderer() :
       ssaoSamplerData.push_back(0.0);
    }
 
-   H3DRes fowRes = h3dAddResource(H3DResTypes::Material, "materials/fow_explored.material.xml", 0);
+   csg::Region3 fow;
+   csg::Region3 cube;
+   cube.Add(csg::Region3::Cube(csg::Region3::Point(-5, -100, -5), csg::Region3::Point(5, 200, 5)));
+   fow.Add(cube);
+   fowNode_ = Pipeline::GetInstance().CreateVoxelNode(H3DRootNode, fow, "materials/fow_visible.material.xml");
+
+   csg::Region3 fowv;
+   csg::Region3 cubev;
+   cubev.Add(csg::Region3::Cube(csg::Region3::Point(-15, -100, -15), csg::Region3::Point(15, 200, 15)));
+   fowv.Add(cubev);
+   fowNode2_ = Pipeline::GetInstance().CreateVoxelNode(H3DRootNode, fowv, "materials/fow_explored.material.xml");
+
+   /*H3DRes fowRes = h3dAddResource(H3DResTypes::Material, "materials/fow_explored.material.xml", 0);
    H3DNode fowNode = h3dAddModelNode(H3DRootNode, "visibleAreaModel", BuildSphereGeometry());
    H3DNode fowMesh = h3dAddMeshNode(fowNode, "visibleArea", fowRes, 0, 2048 * 3, 0, 2045);
+   h3dSetNodeUserFlags(fowMesh, h3dGetNodeUserFlags(fowMesh) | 1, true);
    h3dSetNodeFlags(fowNode, H3DNodeFlags::NoCastShadow | H3DNodeFlags::NoRayQuery, true);
    h3dSetNodeTransform(fowMesh, 
       0, 0, 0,
       0, 0.0, 0.0,
       300, 300, 300);
 
+   fowRes = h3dAddResource(H3DResTypes::Material, "materials/fow_explored.material.xml", 0);
+   fowNode = h3dAddModelNode(H3DRootNode, "visibleAreaModel2", BuildSphereGeometry());
+   fowMesh = h3dAddMeshNode(fowNode, "visibleArea2", fowRes, 0, 2048 * 3, 0, 2045);
+   h3dSetNodeUserFlags(fowMesh, h3dGetNodeUserFlags(fowMesh) | 1, true);
+   h3dSetNodeFlags(fowNode, H3DNodeFlags::NoCastShadow | H3DNodeFlags::NoRayQuery, true);
+   h3dSetNodeTransform(fowMesh, 
+      100, 0, 100,
+      0, 0.0, 0.0,
+      300, 300, 300);
+
    fowRes = h3dAddResource(H3DResTypes::Material, "materials/fow_visible.material.xml", 0);
    fowNode = h3dAddModelNode(H3DRootNode, "visibleAreaModel1", BuildSphereGeometry());
    fowMesh = h3dAddMeshNode(fowNode, "visibleArea1", fowRes, 0, 2048 * 3, 0, 2045);
+   h3dSetNodeUserFlags(fowMesh, h3dGetNodeUserFlags(fowMesh) | 1, true);
    h3dSetNodeFlags(fowNode, H3DNodeFlags::NoCastShadow | H3DNodeFlags::NoRayQuery, true);
    h3dSetNodeTransform(fowMesh, 
       0, 0, 0,
       0, 0.0, 0.0,
-      100, 100, 100);
+      100, 100, 100);*/
 
    // Add camera   
    camera_ = new Camera(H3DRootNode, "Camera", currentPipeline_);
    h3dSetNodeParamI(camera_->GetNode(), H3DCamera::PipeResI, currentPipeline_);
+
+   fowCamera_ = new Camera(H3DRootNode, "FowCamera", currentPipeline_);
+   h3dSetNodeParamI(fowCamera_->GetNode(), H3DCamera::PipeResI, currentPipeline_);
 
    memset(&input_.mouse, 0, sizeof input_.mouse);
    input_.focused = true;
@@ -265,6 +313,66 @@ Renderer::Renderer() :
    SetShowDebugShapes(false);
 
    initialized_ = true;
+}
+
+void Renderer::RenderFogOfWarRT()
+{
+   // Create an ortho camera covering the largest volume that can be seen of the actual possible frustum
+   Horde3D::Matrix4f fowView, camProj;
+   Horde3D::Frustum camFrust;
+
+   Horde3D::Matrix4f camView(camera_->GetMatrix().v);
+   h3dGetCameraProjMat(camera_->GetNode(), camProj.x);
+   camFrust.buildViewFrustum(camView.inverted(), camProj);
+
+   Horde3D::BoundingBox bb;
+   for (int i = 0; i < 8; i++) {
+      bb.addPoint(camFrust.getCorner(i));
+   }
+   Horde3D::Vec3f p = (bb.min() + bb.max()) * 0.5;
+
+   // Construct a new camera view matrix pointing down.
+   fowView.x[0] = 1;  fowView.x[1] = 0;  fowView.x[2] = 0;
+   fowView.x[4] = 0;  fowView.x[5] = 0;  fowView.x[6] = 1;
+   fowView.x[8] = 0;  fowView.x[9] = -1;  fowView.x[10] = 0;
+   fowView.x[12] = p.x; fowView.x[13] = p.y; fowView.x[14] = p.z;  fowView.x[15] = 1.0;
+
+
+   // All that crap was just so we could set up this ortho frustum + view matrix.
+   h3dSetNodeTransMat(fowCamera_->GetNode(), fowView.inverted().x);
+   h3dSetNodeParamI(fowCamera_->GetNode(), H3DCamera::OrthoI, 1);
+   h3dSetNodeParamF(fowCamera_->GetNode(), H3DCamera::LeftPlaneF, 0, bb.min().x);
+   h3dSetNodeParamF(fowCamera_->GetNode(), H3DCamera::RightPlaneF, 0, bb.max().x);
+   h3dSetNodeParamF(fowCamera_->GetNode(), H3DCamera::BottomPlaneF, 0, bb.min().y);
+   h3dSetNodeParamF(fowCamera_->GetNode(), H3DCamera::TopPlaneF, 0, bb.max().y);
+   h3dSetNodeParamF(fowCamera_->GetNode(), H3DCamera::NearPlaneF, 0, -bb.max().z);
+   h3dSetNodeParamF(fowCamera_->GetNode(), H3DCamera::FarPlaneF, 0, -bb.min().z);
+
+   // Turn off all pipeline stages, save for 'FogOfWar_RT'
+   SetEnabledStages(fowOnlyStages_);
+
+   // Render
+   h3dRender(fowCamera_->GetNode());
+
+   // Revert all pipeline stages.
+   SetEnabledStages(drawWorldStages_);
+
+   Horde3D::Matrix4f pm;
+   h3dGetCameraProjMat(fowCamera_->GetNode(), pm.x);
+
+   Horde3D::Matrix4f c = pm * fowView;
+   float m[] = {
+      0.5, 0.0, 0.0, 0.0,
+      0.0, 0.5, 0.0, 0.0,
+      0.0, 0.0, 0.5, 0.0,
+      0.5, 0.5, 0.5, 1.0
+   };
+   Horde3D::Matrix4f biasMatrix(m);
+   c = biasMatrix * c;
+   // This means we can't support FoW lookups in non-default materials!.  How to fix....
+   h3dSetMaterialArrayUniform(
+      h3dAddResource(H3DResTypes::Material, "materials/default_material.xml", 0),
+      "fowViewMatCols", c.x, 16);
 }
 
 void Renderer::SetSkyColors(const csg::Point3f& startCol, const csg::Point3f& endCol)
@@ -531,7 +639,12 @@ void Renderer::ApplyConfig(const RendererConfig& newConfig, bool persistConfig)
    }
 
    // We just flushed/loaded our pipeline, so don't forget to reset the draw bits!
-   SetDrawWorld(drawWorld_);
+   //SetDrawWorld(drawWorld_);
+   if (drawWorld_) {
+      SetEnabledStages(drawWorldStages_);
+   } else {
+      SetEnabledStages(uiOnlyStages_);
+   }
 }
 
 void Renderer::SelectSaneVideoMode(bool fullscreen, int* width, int* height, int* windowX, int* windowY, GLFWmonitor** monitor) 
@@ -781,6 +894,9 @@ void Renderer::RenderOneFrame(int now, float alpha)
 
    // Render scene
    perfmon::SwitchToCounter("render h3d");
+   
+   RenderFogOfWarRT();
+
    h3dRender(camera_->GetNode());
 
    // Finish rendering of frame
@@ -978,9 +1094,22 @@ void Renderer::ResizeViewport()
    h3dSetupCameraView( camera, 45.0f, width / (float)height, 2.0f, config_.draw_distance.value);
 }
 
+void Renderer::SetEnabledStages(std::unordered_set<std::string>& stages)
+{
+   int stageCount = h3dGetResElemCount(currentPipeline_, H3DPipeRes::StageElem);
+
+   for (int i = 0; i < stageCount; i++)
+   {
+      const std::string curStageName(h3dGetResParamStr(currentPipeline_, H3DPipeRes::StageElem, i, H3DPipeRes::StageNameStr));
+      int enabled = stages.find(curStageName) != stages.end() ? 1 : 0;
+      h3dSetResParamI(currentPipeline_, H3DPipeRes::StageElem, i, H3DPipeRes::StageActivationI, enabled);
+   }   
+}
+
 void Renderer::SetDrawWorld(bool drawWorld) 
 {
    drawWorld_ = drawWorld;
+
    SetStageEnable("Sky", drawWorld);
    SetStageEnable("Starfield", drawWorld);
    SetStageEnable("Depth", drawWorld);

@@ -3,11 +3,22 @@
    <Setup>
       <RenderTarget id="SelectedTemp" numColBufs="1" depthBuf="true" format="RGBA8" scale="1.0"/>
       <RenderTarget id="SkyTemp" numColBufs="1" depthBuf="false" format="RGBA8" scale="0.125"/>
+      <RenderTarget id="FogOfWarRT" numColBufs="1" depthBuf="false" format="RGBA8" width="512" height="512"/>
    </Setup>
    <CommandQueue>
+      <!--This stage to only be executed by the FOW camera, and only this stage.-->
+      <Stage id="FogOfWar_RT">
+         <SwitchTarget target="FogOfWarRT" />
+         <ClearTarget colBuf0="true"/>
+         <DrawGeometry context="FOW_RT_EXPLORED" class="~Translucent" />
+         <DrawGeometry context="FOW_RT_VISIBLE" class="~Translucent" />
+         <SwitchTarget target=""/>
+      </Stage>
+
+
       <Stage id="Init">
          <SwitchTarget target="" />
-         <ClearTarget colBuf0="true" depthBuf="true" stencilBuf="128"/>
+         <ClearTarget colBuf0="true" depthBuf="true"/>
       </Stage>
       
       <Stage id="Sky">
@@ -26,23 +37,27 @@
          <DrawGeometry context="AMBIENT" class="~Translucent" />
       </Stage>
 
-      <Stage id="FogOfWar">
-         <!--"Carmack's Revenge"-->
-         <DrawGeometry context="FOW_RESET_FRONT_EXPLORED" class="~Translucent" />
-         <DrawGeometry context="FOW_RESET_BACK_EXPLORED" class="~Translucent" />
+
+      <!--Stage id="FogOfWar">
+         <DrawGeometry context="FOW_RESET_FRONT_EXPLORED" class="~Translucent" userFlags="3" />
+         <DrawGeometry context="FOW_RESET_BACK_EXPLORED" class="~Translucent" userFlags="3" />
+
          <DrawGeometry context="FOW_FRONT_EXPLORED" class="~Translucent" />
          <DrawGeometry context="FOW_BACK_EXPLORED" class="~Translucent" />
+
          <DrawGeometry context="FOW_DRAW_ALPHA_EXPLORED" class="~Translucent" />
- 
+
          <DrawGeometry context="FOW_RESET_FRONT_VISIBLE" class="~Translucent" />
          <DrawGeometry context="FOW_RESET_BACK_VISIBLE" class="~Translucent" />
          <DrawGeometry context="FOW_FRONT_VISIBLE" class="~Translucent" />
          <DrawGeometry context="FOW_BACK_VISIBLE" class="~Translucent" />
          <DrawGeometry context="FOW_DRAW_ALPHA_VISIBLE" class="~Translucent" />
-      </Stage>
+      </Stage-->
 
       <Stage id="Light">
+         <BindBuffer sampler="fowRT" sourceRT="FogOfWarRT" bufIndex="0" />
          <DoForwardLightLoop class="~Translucent" noShadows="false"/>
+         <UnbindBuffers />
       </Stage>
 
       <Stage id="Fog">

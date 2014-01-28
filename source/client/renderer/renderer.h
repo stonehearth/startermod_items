@@ -24,6 +24,7 @@
 #include "core/buffered_slot.h"
 #include "ui_buffer.h"
 #include "glfw3.h"
+#include <unordered_set>
 
 BEGIN_RADIANT_CLIENT_NAMESPACE
 
@@ -178,6 +179,8 @@ class Renderer
       RendererConfig config_;
 
    private:
+      void SetEnabledStages(std::unordered_set<std::string>& stages);
+      void RenderFogOfWarRT();
       H3DRes BuildSphereGeometry();
       void GetConfigOptions();
       void BuildSkySphere();
@@ -224,9 +227,11 @@ class Renderer
 
       UiBuffer          uiBuffer_;
 
-      Camera*            camera_;
+      Camera            *camera_, *fowCamera_;
       FW::FileWatcher   fileWatcher_;
 
+
+      H3DNodeUnique     fowNode_, fowNode2_;
       core::Guard           traces_;
 
       std::shared_ptr<RenderEntity>      rootRenderObject_;
@@ -256,6 +261,7 @@ class Renderer
       int                                 nextWidth_, nextHeight_;
       
       std::string                         lastGlfwError_;
+      std::unordered_set<std::string>     uiOnlyStages_, fowOnlyStages_, drawWorldStages_;
 };
 
 END_RADIANT_CLIENT_NAMESPACE

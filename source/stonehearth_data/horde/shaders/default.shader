@@ -1,5 +1,7 @@
 [[FX]]
 
+float4[4] fowViewMatCols;
+
 // Samplers
 sampler2D cloudMap = sampler_state
 {
@@ -33,6 +35,12 @@ sampler2D outlineSampler = sampler_state
 };
 
 sampler2D outlineDepth = sampler_state
+{
+  Filter = None;
+  Address = Clamp;
+};
+
+sampler2D fowRT = sampler_state
 {
   Filter = None;
   Address = Clamp;
@@ -102,7 +110,7 @@ context DIRECTIONAL_LIGHTING
   PixelShader = compile GLSL FS_DIRECTIONAL_LIGHTING;
   
   ZWriteEnable = false;
-  BlendMode = Whateva;
+  BlendMode = Add;
   CullMode = Back;
 }
 
@@ -112,7 +120,7 @@ context FOG
   PixelShader = compile GLSL FS_FOG;
   
   ZWriteEnable = false;
-  BlendMode = AddBlended;
+  BlendMode = Blend;
   CullMode = Back;
 }
 
@@ -155,6 +163,7 @@ void main( void )
 
 uniform mat4 viewProjMat;
 uniform mat4 shadowMats[4];
+uniform vec4 fowViewMatCols[4];
 
 attribute vec3 vertPos;
 attribute vec3 normal;
@@ -165,6 +174,7 @@ varying vec4 vsPos;
 varying vec3 tsbNormal;
 varying vec3 albedo;
 varying vec4 projShadowPos[3];
+varying vec4 projFowPos;
 
 void main( void )
 {
@@ -176,6 +186,13 @@ void main( void )
   projShadowPos[0] = shadowMats[0] * pos;
   projShadowPos[1] = shadowMats[1] * pos;
   projShadowPos[2] = shadowMats[2] * pos;
+
+  mat4 fowViewMat = mat4(
+    fowViewMatCols[0], 
+    fowViewMatCols[1], 
+    fowViewMatCols[2], 
+    fowViewMatCols[3]);
+  projFowPos = fowViewMat * pos;
 
   gl_Position = viewProjMat * pos;
 }
@@ -199,7 +216,7 @@ void main( void )
 
 void main( void )
 {
-  gl_FragColor = vec4(0, 0, 0, 0.25);
+  gl_FragColor = vec4(0, 0, 0, 0.125);
 }
 
 
@@ -233,11 +250,13 @@ void main( void )
 
 uniform vec3 lightAmbientColor;
 uniform sampler2D cloudMap;
+uniform sampler2D fowRT;
 uniform float currentTime;
 
 varying vec4 pos;
 varying vec3 albedo;
 varying vec3 tsbNormal;
+varying vec4 projFowPos;
 
 void main( void )
 {
@@ -247,16 +266,23 @@ void main( void )
   // Light Color.
   vec3 lightColor = calcSimpleDirectionalLight(normalize(tsbNormal));
 
+  // Mix light and shadow and ambient light.
+  lightColor = (shadowTerm * lightColor * albedo) + (lightAmbientColor * albedo);
+
+  // Mix in cloud color.
   float cloudSpeed = currentTime / 80.0;
   vec2 fragCoord = pos.xz * 0.3;
   vec3 cloudColor = texture2D(cloudMap, fragCoord.xy / 128.0 + cloudSpeed).xyz;
   cloudColor = cloudColor * texture2D(cloudMap, fragCoord.yx / 192.0 + (cloudSpeed / 10.0)).xyz;
+  lightColor *= cloudColor;
 
-  // Mix light and shadow and ambient light.
-  lightColor = cloudColor *((shadowTerm * (lightColor * albedo)) + (lightAmbientColor * albedo));
-  
-  gl_FragColor = vec4(lightColor, 0.0);
-}
+  // Mix in fog of war.
+  float fowValue = texture2D(fowRT, projFowPos.xy).a;
+  lightColor *= fowValue;
+
+  gl_FragColor = vec4(lightColor, 1.0);
+  //gl_FragColor = vec4(projFowPos.x, 0, projFowPos.y, 1.0);
+}  
 
 [[FS_FOG]]
 // =================================================================================================
@@ -271,7 +297,7 @@ varying vec4 vsPos;
 void main( void )
 {
   float fogFac = calcFogFac(vsPos.z, farPlane);
-  vec3 fogColor = texture2D(skySampler, gl_FragCoord.xy / frameBufSize.xy).rgb;
+  vec3 fogColor = texture2D(skySampler, gl_FragCoord.xy / frameBufSize).rgb;
 
   gl_FragColor = vec4(fogColor, fogFac);
 }
