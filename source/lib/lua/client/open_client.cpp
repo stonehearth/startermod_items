@@ -40,6 +40,11 @@ om::EntityRef Client_GetEntity(object id)
    return om::EntityRef();
 }
 
+om::EntityRef Client_GetSelectedEntity()
+{
+   return Client::GetInstance().GetSelectedEntity();
+}
+
 H3DNodeUnique Client_CreateBlueprintNode(lua_State* L, 
                                          H3DNode parent,
                                          csg::Region3 const& model,
@@ -346,6 +351,7 @@ void lua::client::open(lua_State* L)
       namespace_("_radiant") [
          namespace_("client") [
             def("get_entity",                      &Client_GetEntity),
+            def("get_selected_entity",             &Client_GetSelectedEntity),
             def("create_empty_authoring_entity",   &Client_CreateEmptyAuthoringEntity),
             def("create_authoring_entity",         &Client_CreateAuthoringEntity),
             def("destroy_authoring_entity",        &Client_DestroyAuthoringEntity),

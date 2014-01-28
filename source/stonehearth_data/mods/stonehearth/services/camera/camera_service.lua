@@ -1,8 +1,10 @@
 local Vec3 = _radiant.csg.Point3f
 local Quat = _radiant.csg.Quaternion
 local Ray = _radiant.csg.Ray3
+local log = radiant.log.create_logger('camera')
 
 local gutter_size = -1
+local mouse_dead_zone_size = 4
 local scroll_speed = 150
 local smoothness = 0.0175
 local min_height = 10
@@ -92,7 +94,8 @@ function CameraService:_calculate_keyboard_orbit()
 end
 
 function CameraService:_calculate_orbit(e)
-   if _radiant.client.is_mouse_button_down(_radiant.client.MouseInput.MOUSE_BUTTON_2) then
+   if not self._mouse_in_dead_zone and _radiant.client.is_mouse_button_down(_radiant.client.MouseInput.MOUSE_BUTTON_2) then
+
       local orbit_target = self:_get_orbit_target()
       local deg_x = e.dx / -3.0
       local deg_y = e.dy / -2.0
@@ -165,15 +168,34 @@ function CameraService:_on_keyboard_input(e)
       self._drag_cursor:destroy()  
     end
   end
-
 end
 
 function CameraService:_on_mouse_input(e, focused)
+  self:_calculate_mouse_dead_zone(e)
   self:_calculate_scroll(e, focused)
   self:_calculate_drag(e)
   self:_calculate_orbit(e)
   --self:_calculate_jump(e)
   self:_calculate_zoom(e)
+end
+
+function CameraService:_calculate_mouse_dead_zone(e)
+
+   if _radiant.client.is_mouse_button_down(_radiant.client.MouseInput.MOUSE_BUTTON_2) then
+     self._mouse_dead_zone_x = self._mouse_dead_zone_x + math.abs(e.dx)
+     self._mouse_dead_zone_y = self._mouse_dead_zone_y + math.abs(e.dy)
+   else 
+     self._mouse_dead_zone_x = 0
+     self._mouse_dead_zone_y = 0
+   end
+
+   log:info('dead zone pos: %d,%d', self._mouse_dead_zone_x, self._mouse_dead_zone_y)
+
+   if self._mouse_dead_zone_x < mouse_dead_zone_size or self._mouse_dead_zone_y < mouse_dead_zone_size then
+      self._mouse_in_dead_zone = true
+   else 
+      self._mouse_in_dead_zone = false
+   end
 end
 
 function CameraService:_calculate_jump(e)

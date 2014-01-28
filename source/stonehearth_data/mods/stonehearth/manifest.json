@@ -191,6 +191,7 @@
          "actions:fill_outbox_action" : "file(ai/actions/fill_outbox_action.lua)",
          "actions:gather_and_craft_action" : "file(ai/actions/gather_and_craft_action.lua)",
          "actions:grab_talisman_action" : "file(ai/actions/grab_talisman_action.lua)",
+         "actions:move_unit_action" : "file(ai/actions/move_unit_action.lua)",
          "actions:admire_fire_action" : "file(ai/actions/admire_fire_action.lua)",
          "actions:find_food_action" : "file(ai/actions/find_food_action.lua)",
          "actions:get_food_action" : "file(ai/actions/get_food_action.lua)",
@@ -332,6 +333,14 @@
          },
          "create_camp": {
             "controller" : "file(call_handlers/new_game_call_handler.lua)",
+            "endpoint" : "server"
+         },
+         "choose_unit_location" : {
+            "controller": "file(call_handlers/unit_control_call_handler.lua)",
+            "endpoint" : "client"
+         },
+         "move_unit" : {
+            "controller": "file(call_handlers/unit_control_call_handler.lua)",
             "endpoint" : "server"
          },
          "set_display_name": {
