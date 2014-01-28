@@ -18,6 +18,6 @@ scope LuaRandomNumberGenerator::RegisterLuaTypes(lua_State* L)
       .def("get_real", &RandomNumberGenerator::GetReal<double>)
       .def("get_gaussian", &RandomNumberGenerator::GetGaussian<double>)
       ,
-      def("get_default_random_number_generator", &csg::RandomNumberGenerator::DefaultInstance)
+      def("get_default_rng", &csg::RandomNumberGenerator::DefaultInstance)
       ;      
 }

@@ -1,0 +1,32 @@
+{
+   "type": "entity",
+   "extends" : "stonehearth:mixins:item_properties",
+   "components" : {
+      "unit_info" : {
+      },
+      "render_info" : {
+      },
+      "model_variants": [
+         {
+            "layer": "clothing",
+            "models": [
+               "file(trapper_outfit.qb)"
+            ]
+         },
+         {
+            "variants": "female",
+            "layer": "clothing",
+            "models": [
+               "file(trapper_outfit_female.qb)"
+            ]
+         }
+      ],
+      "stonehearth:equipment_piece" : {
+         "render_type" : "merge_with_model",
+         "injected_ai" : {
+            "actions" : [
+            ]
+         }
+      }
+   }
+}

@@ -1,4 +1,5 @@
 local WorldGenerationCallHandler = class()
+local log = radiant.log.create_logger('world_generation')
 
 local progress = nil
 
@@ -15,7 +16,7 @@ end
 
 function WorldGenerationCallHandler:update_progress(e)
    progress:update({
-      progress = e.progress   
+      progress = e.progress
    })
 end
    

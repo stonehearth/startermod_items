@@ -5,8 +5,6 @@ App.StonehearthLoadingScreenView = App.View.extend({
    init: function() {
       this._super();
       var self = this;
-      // Note: new_game accepts seeds up to 4294967295 (2^32-1)
-      var seed = Math.floor(Math.random() * 10000);
 
       radiant.call('stonehearth:get_world_generation_progress')
             .done(function(o) {
@@ -14,9 +12,10 @@ App.StonehearthLoadingScreenView = App.View.extend({
                      .progress(function(result) {
                         self.updateProgress(result);
                      })
-            });  
+            });
 
-      radiant.call('stonehearth:new_game', seed);
+      var seed = Math.floor(Math.random() * 10000);
+      radiant.call('stonehearth:new_game', seed);            
    },
 
    didInsertElement: function() {

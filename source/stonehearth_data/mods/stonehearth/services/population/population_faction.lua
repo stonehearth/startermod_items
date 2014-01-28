@@ -1,6 +1,6 @@
 local PopulationFaction = class()
 
-local rng = _radiant.csg.get_default_random_number_generator()
+local rng = _radiant.csg.get_default_rng()
 local personality_service = require 'services.personality.personality_service'
 
 --Separate the faction name (player chosen) from the kingdom name (ascendency, etc.)
