@@ -97,7 +97,6 @@ if [ ! -z $STAGE_BIN ]; then
 
    # vanilla lua. no jit.  no fun.
    LUA_ROOT=$STONEHEARTH_ROOT/modules/lua/package/lua-5.1.5-coco
-   LUA_ROOT=/d/radiant/stonehearth/modules/lua/package/lua-5.1.5-coco
    cp -u $LUA_ROOT/solutions/$MODULE_BUILD_TYPE/lua-5.1.5.dll $OUTPUT_DIR
 
    # luajit up in here! party time!!
