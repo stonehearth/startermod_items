@@ -20,7 +20,9 @@
             "stonehearth:actions:wander",
             "stonehearth:actions:wander_when_bored",
             "stonehearth:actions:wait_for_attribute_above",
-            "stonehearth:actions:choose_point_around_leash"
+            "stonehearth:actions:choose_point_around_leash",
+            "stonehearth:actions:admire_fire",
+            "stonehearth:actions:admire_fire_adjacent"
          ],
           "observers": [
             "stonehearth:observers:sleep",

@@ -117,6 +117,7 @@ function CompoundAction:stop_thinking(ai, entity, ...)
       self._thinking_frames[i]:on_ready(nil)
    end
    self._log:debug('switching thinking frames to running frames')
+   
    self._running_frames = self._thinking_frames
    self._thinking_frames = {}
 end
@@ -127,7 +128,7 @@ function CompoundAction:_replace_placeholders(args)
       if type(value) == 'table' and value.__placeholder then
          local result = value:__eval(self)
          if result == nil or result == placeholders.INVALID_PLACEHOLDER then
-            self._ai:abort('placeholder %s failed to return a value in "%s" action', tostring(value), self.name)
+            error(string.format('placeholder %s failed to return a value in "%s" action', tostring(value), self.name))
          end
          replaced[name] = result
       elseif type(value) == 'table' and not radiant.util.is_instance(value) and not radiant.util.is_class(value) then

@@ -5,7 +5,10 @@ RunToEntityType.name = 'run to entity type'
 RunToEntityType.does = 'stonehearth:goto_entity_type'
 RunToEntityType.args = {
    filter_fn = 'function',
-   reconsider_event_name = 'string',
+   reconsider_event_name = {
+      type = 'string',
+      default = '',
+   }
 }
 RunToEntityType.think_output = {
    destination_entity = Entity
