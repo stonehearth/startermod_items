@@ -17,11 +17,9 @@ void ErrorBrowser::InitializeRecordFields()
 void ErrorBrowser::AddRecord(ErrorBrowser::Record const& r)
 {
    JSONNode n = r.GetNode();
-   LOG_(0) << n.write_formatted();
    n.push_back(JSONNode("id", stdutil::ToString(next_record_id_++)));
 
    auto entry = GetStore().AllocObject<JsonBoxed>();
    entry->Set(n);
    entries_.Add(entry);
-   LOG_(0) << "added as: " << entries_.GetContainer().back()->Get().write_formatted();
 }

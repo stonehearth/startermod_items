@@ -26,8 +26,7 @@ void radiant::logger::InitConsole()
    wcscpy(fontinfo.FaceName, L"Lucidia Console");
    ::SetCurrentConsoleFontEx(GetStdHandle(STD_OUTPUT_HANDLE), false, &fontinfo);
 
-   freopen("conin$","r", stdin);
-   freopen("conout$","w",stdout);
-   freopen("conout$","w",stderr);
+   freopen("CONOUT$", "wb", stdout);
+   freopen("CONOUT$", "wb", stderr);
 }
 #pragma warning(pop)

@@ -266,14 +266,17 @@ rpc::ReactorDeferredPtr Simulation::StartPerformanceCounterPush()
 
 void Simulation::PushPerformanceCounters()
 {
-   if (perf_counter_deferred_) {
+   if (1 || perf_counter_deferred_) {
       json::Node counters;
       for (const auto& entry : perf_counters_.GetCounters()) {
          json::Node row;
          row.set("name", entry.first);
          row.set("value", static_cast<int>(entry.second.GetValue())); // xxx: counters need a type...
+         // LOG_(0) << " " << std::setw(32) << entry.first << " : " << entry.second.GetValue();
       }
-      task_manager_deferred_->Notify(counters);
+      if (perf_counter_deferred_) {
+         perf_counter_deferred_->Notify(counters);
+      }
    }
 }
 
@@ -621,7 +624,7 @@ void Simulation::Mainloop()
       ProcessJobList();
       FireLuaTraces();
    }
-   if (perf_counter_deferred_ && next_counter_push_.expired()) {
+   if (next_counter_push_.expired()) {
       PushPerformanceCounters();
       next_counter_push_.set(500);
    }
