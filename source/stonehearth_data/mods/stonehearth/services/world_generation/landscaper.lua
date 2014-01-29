@@ -157,7 +157,7 @@ function Landscaper:mark_trees(elevation_map, feature_map)
             std_dev = std_dev * 0.30
          else
             -- start transition to plains
-            mean = mean + 5
+            --mean = mean + 5
             std_dev = std_dev * 0.30
          end
       end
@@ -314,7 +314,7 @@ function Landscaper:mark_berry_bushes(elevation_map, feature_map)
    local value, occupied, elevation, terrain_type
 
    local noise_fn = function(i, j)
-      local mean = -45
+      local mean = -50
       local std_dev = 30
 
       -- berries grow near forests

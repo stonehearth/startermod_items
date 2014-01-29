@@ -15,7 +15,7 @@ App.StonehearthLoadingScreenView = App.View.extend({
             });
 
       var seed = Math.floor(Math.random() * 10000);
-      radiant.call('stonehearth:new_game', seed);            
+      radiant.call('stonehearth:new_game', seed, 5, 5);
    },
 
    didInsertElement: function() {

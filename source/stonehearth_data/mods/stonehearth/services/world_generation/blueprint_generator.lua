@@ -12,6 +12,10 @@ function BlueprintGenerator:__init(rng)
 end
 
 function BlueprintGenerator:generate_blueprint(width, height)
+   -- minimum size for this algorithm
+   assert(width >= 4)
+   assert(height >= 4)
+
    local mountains_threshold = 65
    local foothills_threshold = 50
    local blueprint = self:get_empty_blueprint(width, height)
@@ -65,6 +69,7 @@ function BlueprintGenerator:get_empty_blueprint(width, height, terrain_type)
       for i=1, blueprint.width do
          tile_info = {}
          tile_info.terrain_type = terrain_type
+         tile_info.generated = false
          blueprint:set(i, j, tile_info)
       end
    end

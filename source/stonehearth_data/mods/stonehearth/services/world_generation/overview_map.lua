@@ -69,6 +69,7 @@ function OverviewMap:derive_overview_map(full_elevation_map, full_feature_map, o
    self._origin_y = origin_y - margin
 end
 
+-- get the world coordinates for the center of feature cell at (i,j)
 -- i, j are base 1
 function OverviewMap:get_coords_of_cell_center(i, j)
    local macro_block_size = self._macro_block_size

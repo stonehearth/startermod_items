@@ -4,14 +4,15 @@ local personality_service = require 'services.personality.personality_service'
 
 local Point2 = _radiant.csg.Point2
 local Point3 = _radiant.csg.Point3
+local Point3f = _radiant.csg.Point3f
 local Rect2 = _radiant.csg.Rect2
 local Region2 = _radiant.csg.Region2
 
-function NewGameCallHandler:new_game(session, response, seed)
+function NewGameCallHandler:new_game(session, response, seed, num_tiles_x, num_tiles_y)
    local wgs = radiant.mods.load('stonehearth').world_generation
    wgs:initialize(seed, true)
-   wgs:create_world()
-   return {}
+   wgs:create_blueprint(num_tiles_x, num_tiles_y)
+   self:generate_start_location(nil, nil, 20, 20) -- TODO: remove test code
 end
 
 function NewGameCallHandler:get_overview_map(session, response)
@@ -25,6 +26,33 @@ function NewGameCallHandler:get_overview_map(session, response)
       map = map
    }
    return result
+end
+
+function NewGameCallHandler:get_start_location(session, response)
+   local wgs = radiant.mods.load('stonehearth').world_generation
+   return { x = wgs.start_x, z = wgs.start_z }
+end
+
+function NewGameCallHandler:generate_start_location(session, response, feature_cell_x, feature_cell_y)
+   local wgs = radiant.mods.load('stonehearth').world_generation
+   local x, z = wgs.overview_map:get_coords_of_cell_center(feature_cell_x, feature_cell_y)
+   local i, j = wgs:get_tile_coords(x, z)
+
+   -- TODO: store this better
+   wgs.start_x = x
+   wgs.start_z = z
+   wgs:generate_tiles(i, j, 2)
+end
+
+function NewGameCallHandler:move_camera_to_start_location(session, response)
+   local camera_height = 120
+   local camera_service = radiant.mods.load('stonehearth').camera
+   _radiant.call('stonehearth:get_start_location'):done(
+      function (o)
+         -- consider subtracting something off Z position to put selected cell in full view
+         camera_service:set_position(Point3f(o.x, camera_height, o.z))
+      end
+   )
 end
 
 function NewGameCallHandler:choose_camp_location(session, response)

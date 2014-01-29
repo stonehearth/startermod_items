@@ -14,7 +14,8 @@ function PerfTestCallHandler:get_world_generation_done(session, response)
    if is_running then
       local wgs = radiant.mods.load('stonehearth').world_generation
       wgs:initialize(1337, true)
-      wgs:create_world()
+      wgs:create_blueprint(5, 5)
+      wgs:generate_all_tiles()
 
       radiant.events.listen(radiant.events, 'stonehearth:generate_world_progress', self, function(s, e)
          if e.progress and e.progress >= 100 then

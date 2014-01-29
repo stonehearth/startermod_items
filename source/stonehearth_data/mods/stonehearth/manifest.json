@@ -327,6 +327,18 @@
             "controller" : "file(call_handlers/new_game_call_handler.lua)",
             "endpoint" : "server"
          },
+         "get_start_location": {
+            "controller" : "file(call_handlers/new_game_call_handler.lua)",
+            "endpoint" : "server"
+         },
+         "generate_start_location": {
+            "controller" : "file(call_handlers/new_game_call_handler.lua)",
+            "endpoint" : "server"
+         },
+         "move_camera_to_start_location": {
+            "controller" : "file(call_handlers/new_game_call_handler.lua)",
+            "endpoint" : "client"
+         },
          "choose_camp_location": {
             "controller" : "file(call_handlers/new_game_call_handler.lua)",
             "endpoint" : "client"

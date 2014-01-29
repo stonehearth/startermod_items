@@ -22,14 +22,14 @@ function TerrainInfo:__init()
    local foothills_info = {}
    foothills_info.step_size = 8
    foothills_info.mean_height = 29
-   foothills_info.std_dev = 8
+   foothills_info.std_dev = 10
    foothills_info.max_height = 32
    self[TerrainType.foothills] = foothills_info
 
    local mountains_info = {}
    mountains_info.step_size = 16
    mountains_info.mean_height = 80
-   mountains_info.std_dev = 64
+   mountains_info.std_dev = 80
    self[TerrainType.mountains] = mountains_info
 
    assert((foothills_info.max_height - plains_info.max_height) % foothills_info.step_size == 0)
@@ -85,28 +85,29 @@ function TerrainInfo:get_terrain_code(height)
 end
 
 function TerrainInfo:_get_quantization_centroids()
+   local max_mountains_steps = 10
    local plains_info = self[TerrainType.plains]
    local foothills_info = self[TerrainType.foothills]
    local mountains_info = self[TerrainType.mountains]
    local centroids = {}
    local min, max, step_size
    
-   min = self.min_height
+   min = plains_info.base_height + plains_info.step_size
    max = plains_info.max_height
    step_size = plains_info.step_size
    for value = min, max, step_size do
       table.insert(centroids, value)
    end
 
-   min = plains_info.max_height + foothills_info.step_size
+   min = foothills_info.base_height + foothills_info.step_size
    max = foothills_info.max_height
    step_size = foothills_info.step_size
    for value = min, max, step_size do
       table.insert(centroids, value)
    end
 
-   min = foothills_info.max_height + mountains_info.step_size
-   max = min + mountains_info.step_size*10
+   min = mountains_info.base_height + mountains_info.step_size
+   max = mountains_info.base_height + mountains_info.step_size*max_mountains_steps
    step_size = mountains_info.step_size
    for value = min, max, step_size do
       table.insert(centroids, value)
