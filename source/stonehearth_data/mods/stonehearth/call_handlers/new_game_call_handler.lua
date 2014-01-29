@@ -8,6 +8,8 @@ local Point3f = _radiant.csg.Point3f
 local Rect2 = _radiant.csg.Rect2
 local Region2 = _radiant.csg.Region2
 
+local log = radiant.log.create_logger('world_generation')
+
 function NewGameCallHandler:new_game(session, response, seed, num_tiles_x, num_tiles_y)
    local wgs = radiant.mods.load('stonehearth').world_generation
    wgs:initialize(seed, true)
@@ -53,6 +55,7 @@ function NewGameCallHandler:move_camera_to_start_location(session, response)
       function (o)
          -- consider subtracting something off Z position to put selected cell in full view
          camera_service:set_position(Point3f(o.x, camera_height, o.z))
+         response:resolve({})
       end
    )
 end

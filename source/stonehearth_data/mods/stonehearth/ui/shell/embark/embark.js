@@ -19,7 +19,9 @@ App.StonehearthEmbarkView = App.View.extend({
 
       var self = this;
 
-      radiant.call('stonehearth:new_game', 1, 5, 5)
+      var seed = Math.floor(Math.random() * 20000);
+
+      radiant.call('stonehearth:new_game', seed, 9, 9)
          .done(function(o) {
             $('#map').stonehearthMap({
                mapGrid: o.map
@@ -37,7 +39,6 @@ App.StonehearthEmbarkView = App.View.extend({
          self._embark();
       })
 
-      this._buildSampleMap();
    },
 
    _buildSampleMap: function() {
@@ -72,11 +73,9 @@ App.StonehearthEmbarkView = App.View.extend({
       //var seed = Math.floor(Math.random() * 10000);
       //radiant.call('stonehearth:new_game', seed, x, y);
 
-      radiant.call('stonehearth:generate_start_location', 20, 20)
-         .done(function(o)) {
-            App.shellView.qddView(App.StonehearthLoadingScreenView);
-            self.destroy();
-         });
+      radiant.call('stonehearth:generate_start_location', 20, 20);
+      App.shellView.addView(App.StonehearthLoadingScreenView);
+      self.destroy();
    }
 
 });
