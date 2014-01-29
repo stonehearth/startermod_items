@@ -2,9 +2,9 @@ local Vec3 = _radiant.csg.Point3f
 local Quat = _radiant.csg.Quaternion
 local Ray = _radiant.csg.Ray3
 local log = radiant.log.create_logger('camera')
+local input_constants = require('constants').input
 
 local gutter_size = -1
-local mouse_dead_zone_size = 4
 local scroll_speed = 150
 local smoothness = 0.0175
 local min_height = 10
@@ -189,9 +189,9 @@ function CameraService:_calculate_mouse_dead_zone(e)
      self._mouse_dead_zone_y = 0
    end
 
-   log:info('dead zone pos: %d,%d', self._mouse_dead_zone_x, self._mouse_dead_zone_y)
+   --log:info('dead zone pos: %d,%d', self._mouse_dead_zone_x, self._mouse_dead_zone_y)
 
-   if self._mouse_dead_zone_x < mouse_dead_zone_size or self._mouse_dead_zone_y < mouse_dead_zone_size then
+   if self._mouse_dead_zone_x < input_constants.mouse.dead_zone_size or self._mouse_dead_zone_y < input_constants.mouse.dead_zone_size then
       self._mouse_in_dead_zone = true
    else 
       self._mouse_in_dead_zone = false
