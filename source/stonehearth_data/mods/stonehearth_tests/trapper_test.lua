@@ -11,6 +11,7 @@ function TrapperTest:__init()
    self[MicroWorld]:__init()
    self:create_world()
 
+   local worker = self:place_citizen(-7, -7)
    local trapper = self:place_citizen(7, 7,'trapper')
    local trapper = self:place_citizen(-7, 7,'trapper')
    local rabbit = self:place_item('stonehearth:rabbit', 0, 0)
