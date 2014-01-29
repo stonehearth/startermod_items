@@ -1,6 +1,6 @@
 local NightlyWolfAttack = class()
 
-local calendar = require 'services.calendar.calendar_service'
+local calendar = stonehearth.calendar
 local Point3 = _radiant.csg.Point3
 
 function NightlyWolfAttack:__init()
@@ -9,8 +9,7 @@ function NightlyWolfAttack:__init()
 end
 
 function NightlyWolfAttack:load_faction()
-   local mod = radiant.mods.load('stonehearth')
-   self._civ_faction = mod.population:get_faction('stonehearth:factions:ascendancy')
+   self._civ_faction = stonehearth.population:get_faction('stonehearth:factions:ascendancy')
 end
 
 function NightlyWolfAttack:on_hourly()

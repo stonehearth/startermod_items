@@ -1,13 +1,18 @@
 local PopulationFaction = class()
 
 local rng = _radiant.csg.get_default_rng()
-local personality_service = require 'services.personality.personality_service'
+local personality_service = stonehearth.personality
 
 --Separate the faction name (player chosen) from the kingdom name (ascendency, etc.)
 function PopulationFaction:__init(faction, kingdom)
    self._faction = faction
    self._data = radiant.resources.load_json(kingdom)
    self._faction_name = faction --TODO: differentiate b/w user id and name?
+
+   -- xxx: move this somewhere else, probably...
+   stonehearth.tasks:get_scheduler('stonehearth:workers', faction)
+                     :set_activity('stonehearth:work')
+
    self._kingdom = self._data.kingdom_id
    self._citizens = {}
 end

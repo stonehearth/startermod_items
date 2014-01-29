@@ -12,8 +12,8 @@ public:
    BoxedTraceWrapper(std::shared_ptr<T> trace);
    ~BoxedTraceWrapper();
 
-   std::shared_ptr<BoxedTraceWrapper<T>> OnDestroyed(lua_State* L, luabind::object destroyed_cb);
-   std::shared_ptr<BoxedTraceWrapper<T>> OnChanged(lua_State* L, luabind::object changed_cb);
+   std::shared_ptr<BoxedTraceWrapper<T>> OnDestroyed(luabind::object destroyed_cb);
+   std::shared_ptr<BoxedTraceWrapper<T>> OnChanged(luabind::object changed_cb);
    std::shared_ptr<BoxedTraceWrapper<T>> PushObjectState();
    void Destroy();
    

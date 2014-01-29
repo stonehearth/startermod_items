@@ -44,6 +44,7 @@ namespace radiant {
       void InitLogLevels();
       void Flush();
       void Exit();
+      int GetDefaultLogLevel();
 
       struct LogCategories {
          // Log lines <= console_log_severity will be written to the debug console as well as

@@ -1,0 +1,48 @@
+<script type="text/x-handlebars" data-template-name="entityInspectorFrameInfo">
+   <div id="entityInspectorFrameInfo">
+      {{#if action}}
+         action name: {{action.name}}<br>
+      {{/if}}
+      {{#if activity}}
+         activity name: {{activity.name}}<br>
+      {{/if}}
+      {{args}}
+   </div>
+</script>
+
+<script type="text/x-handlebars" data-template-name="entityInspector">
+   {{#if ai.inspect_frame}}
+   {{ render entityInspectorFrameInfo ai.inspect_frame }}
+   {{/if}}
+   <div id="entityInspector">
+      <div id="header">
+         state: {{state}}<br>
+      </div>
+      <div id="content">
+         {{#if ai.execution_frame}}
+         {{ render executionFrame ai.execution_frame }}
+         {{/if}}
+      </div>
+   </div> 
+</script>
+
+<script type="text/x-handlebars" data-template-name="executionFrame">
+   <div class="row" {{bind-attr row_id="id"}}>
+      <span id='state' {{bind-attr class="state"}} {{bind-attr style="styleOverride"}}> {{{state}}} </span>: {{{activity.name}}}
+   </div> 
+   {{#each unit in execution_units}}
+      {{ render executionUnit unit}}
+   {{/each}}
+</script>
+
+<script type="text/x-handlebars" data-template-name="executionUnit">
+   <div class="row" {{bind-attr row_id="id"}}>
+      <span id='state' {{bind-attr class="state"}} {{bind-attr style="styleOverride"}}> {{{state}}} </span>: {{{action.name}}}
+   </div> 
+   {{#each frame in action.execution_frames}}
+      {{ render executionFrame frame}}
+   {{/each}}
+   {{#each frame in execution_frames}}
+      {{ render executionFrame frame}}
+   {{/each}}
+</script>

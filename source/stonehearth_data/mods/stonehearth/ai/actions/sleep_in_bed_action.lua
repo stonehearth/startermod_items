@@ -8,10 +8,11 @@ local personality_service = require 'services.personality.personality_service'
 
 local SleepInBedAction = class()
 
-SleepInBedAction.name = 'sleep in a bed'
-SleepInBedAction.does = 'stonehearth:sleep_in_bed'
-SleepInBedAction.version = 1
-SleepInBedAction.priority = 1
+SleepInBed.name = 'sleep in bed'
+SleepInBed.does = 'stonehearth:sleep'
+SleepInBed.args = {}
+SleepInBed.version = 2
+SleepInBed.priority = 1
 
 
 function SleepInBedAction:__init(ai, entity)
@@ -85,4 +86,4 @@ function SleepInBedAction:stop()
 
 end
 
-return SleepInBedAction
+return SleepInBed

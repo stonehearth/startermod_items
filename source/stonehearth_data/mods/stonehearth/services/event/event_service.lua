@@ -7,7 +7,7 @@ end
 function EventService:add_entry(text, type)
    type = type or 'info'
 
-   local calendar = require 'services.calendar.calendar_service'
+   local calendar = stonehearth.calendar
    local time = calendar:format_time()
    local entry = '[' .. time .. '] ' .. text
    table.insert(self._entries, entry)

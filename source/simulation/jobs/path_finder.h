@@ -21,13 +21,13 @@ class Simulation;
 
 class PathFinder : public Job {
    public:
-      PathFinder(Simulation& sim, std::string name);
+      PathFinder(Simulation& sim, std::string name, om::EntityPtr source);
       virtual ~PathFinder();
 
       void AddDestination(om::EntityRef dst);
       void RemoveDestination(dm::ObjectId id);
 
-      void SetSource(om::EntityRef e);
+      void SetSource(csg::Point3 const& source);
       void SetSolvedCb(luabind::object solved);
       void SetFilterFn(luabind::object dst_filter);
 
@@ -69,7 +69,6 @@ class PathFinder : public Job {
 
    private:
       om::EntityRef                                entity_;
-      om::MobRef                                   mob_;
       luabind::object                              solved_cb_;
       luabind::object                              dst_filter_;
       int                                          costToDestination_;
@@ -81,13 +80,6 @@ class PathFinder : public Job {
    
       std::vector<PathFinderNode>                  open_;
       std::set<csg::Point3>                        closed_;
-
-#if 0
-      std::unordered_map<csg::Point3, bool, csg::Point3::Hash> closed_;
-      std::unordered_map<csg::Point3, int, csg::Point3::Hash>  f_;
-      std::unordered_map<csg::Point3, int, csg::Point3::Hash>  g_;
-      std::unordered_map<csg::Point3, int, csg::Point3::Hash>  h_;
-#endif
       std::unordered_map<csg::Point3, csg::Point3, csg::Point3::Hash>  cameFrom_;
    
       std::unique_ptr<PathFinderSrc>               source_;

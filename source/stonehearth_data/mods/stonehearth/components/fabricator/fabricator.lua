@@ -18,17 +18,14 @@ function Fabricator:__init(name, entity, blueprint)
    self._blueprint = blueprint
    self._teardown = false
    self._dependencies = {}
-   
+   self._faction = radiant.entities.get_faction(blueprint)
+
    local resource_data = blueprint:get_component('stonehearth:construction_data'):get_data()
    self._resource_material = resource_data.material_tag
    if not self._resource_material then
       self._resource_material = 'wood resource'
    end
    
-   local faction = radiant.entities.get_faction(blueprint)
-   local wss = radiant.mods.load('stonehearth').worker_scheduler
-   self._worker_scheduler = wss:get_worker_scheduler(faction)
-
    -- initialize the fabricator entity.  we'll manually update the
    -- adjacent region of the destination so we can build the project
    -- in layers.  this helps prevent the worker from getting stuck
@@ -78,6 +75,10 @@ function Fabricator:__init(name, entity, blueprint)
    
    self:_initialize_dependencies()
    self:_trace_blueprint_and_project()
+end
+
+function Fabricator:get_material()
+   return self._resource_material
 end
 
 function Fabricator:get_entity()
@@ -172,32 +173,16 @@ function Fabricator:destroy()
    self:_stop_project()
 end
 
-function Fabricator:set_debug_color(color)
-   if self._pickup_task then
-      self._pickup_task:set_debug_color(color)
-   end
-   if self._teardown_task then
-      self._teardown_task:set_debug_color(color)
-   end
-   if self._fabricate_task then
-      self._fabricate_task:set_debug_color(color)
-   end
-   return self
-end
-
 function Fabricator:_start_project()
-   local run_teardown_task, run_pickup_task, run_fabricate_task
+   local run_teardown_task, run_fabricate_task
 
    -- If we're tearing down the project, we only need to start the teardown
    -- task.  If we're building up and all our dependencies are finished
    -- building up, start the pickup and fabricate tasks
    if self._teardown then
       run_teardown_task = true
-   else
-      if self._dependencies_finished then
-         run_pickup_task = true
-         run_fabricate_task = true
-      end
+   elseif self._dependencies_finished then
+      run_fabricate_task = true
    end
    
    -- Now apply the deltas.  Create tasks that need creating and destroy
@@ -207,13 +192,7 @@ function Fabricator:_start_project()
    elseif not run_teardown_task and self._teardown_task then
       self._teardown_task:stop()
       self._teardown_task = nil
-   end
-   
-   if run_pickup_task and not self._pickup_task then
-      self:_start_pickup_task()
-   elseif not run_pickup_task and self._pickup_task then
-      self._pickup_task:stop()
-      self._pickup_task = nil
+      radiant.events.trigger(self, 'needs_teardown', self, false)
    end
    
    if run_fabricate_task and not self._fabricate_task then
@@ -221,87 +200,36 @@ function Fabricator:_start_project()
    elseif not run_fabricate_task and self._fabricate_task then
       self._fabricate_task:stop()
       self._fabricate_task = nil
+      radiant.events.trigger(self, 'needs_work', self, false)
    end
 end
 
 function Fabricator:_start_teardown_task()
-   local resource = self._resource_material
-   local worker_filter_fn = function(worker)
-      local carrying  = radiant.entities.get_carrying(worker)
-      if not carrying then
-         return true
-      end
-      if not radiant.entities.is_material(carrying, resource) then
-         return false
-      end
-      local item = carrying:get_component('item')
-      if not item then
-         return false
-      end
-      return item:get_stacks() < item:get_max_stacks()
-   end
-   
-   local name = 'teardown ' .. self.name
-   self._teardown_task = self._worker_scheduler:add_worker_task(name)
-                           :set_worker_filter_fn(worker_filter_fn)
-                           :add_work_object(self._entity)
-                           :set_action('stonehearth:teardown')
-                           :set_priority(priorities.TEARDOWN_BUILDING)
-                           :start()
+   self._teardown_task = stonehearth.tasks:get_scheduler('stonehearth:workers', self._faction)
+                                   :create_task('stonehearth:teardown_structure', { fabricator = self }) 
+                                   :set_name('teardown')
+                                   :set_max_workers(self:get_max_workers())
+                                   :set_priority(priorities.TEARDOWN_BUILDING)
+                                   :start()
+   radiant.events.trigger(self, 'needs_teardown', self, true)
 end
  
-function Fabricator:_start_pickup_task()
-   local worker_filter_fn = function(worker)
-      return not radiant.entities.get_carrying(worker)
-   end
-   
-   local resource = self._resource_material
-   local work_obj_filter_fn = function(item)
-      return radiant.entities.is_material(item, resource)
-   end
-
-   local name = 'pickup to fabricate ' .. self.name
-   self._pickup_task = self._worker_scheduler:add_worker_task(name)
-                           :set_action('stonehearth:pickup_item_on_path')
-                           :set_worker_filter_fn(worker_filter_fn)
-                           :set_max_workers(self:get_max_workers())
-                           :set_work_object_filter_fn(work_obj_filter_fn)
-                           :set_priority(priorities.CONSTRUCT_BUILDING)
-                           :start()
+function Fabricator:_start_fabricate_task() 
+   self._fabricate_task = stonehearth.tasks:get_scheduler('stonehearth:workers', self._faction)
+                                   :create_task('stonehearth:fabricate_structure', { fabricator = self }) 
+                                   :set_name('fabricate')
+                                   :set_max_workers(self:get_max_workers())
+                                   :set_priority(priorities.TEARDOWN_BUILDING)
+                                   :start()
+   radiant.events.trigger(self, 'needs_work', self, true)
 end
 
-function Fabricator:_start_fabricate_task() 
-   local resource = self._resource_material                    
-   local worker_filter_fn = function(worker)
-      local carrying = radiant.entities.get_carrying(worker)
-      if carrying then 
-         return radiant.entities.is_material(carrying, resource)
-      end
-      return false
-   end
-   
-   local action_fn = function (path)
-      local pt = path:get_destination_point_of_interest()
-      assert(radiant.entities.point_in_destination_region(self._entity, pt))
-      assert(not radiant.entities.point_in_destination_reserved(self._entity, pt))
-      self:reserve_block(pt)
-      return 'stonehearth:fabricate', path, self, pt
-   end
-   
-   local finish_fn = function(success, packed_action)
-      local action_name, path, stockpile, pt = unpack(packed_action)
-      self:release_block(pt)
-   end
+function Fabricator:needs_work()
+   return self._fabricate_task ~= nil
+end
 
-   local name = 'fabricate ' .. self.name
-   self._fabricate_task = self._worker_scheduler:add_worker_task(name)
-                           :set_worker_filter_fn(worker_filter_fn)
-                           :set_max_workers(self:get_max_workers())
-                           :add_work_object(self._entity)
-                           :set_action_fn(action_fn)
-                           :set_finish_fn(finish_fn)
-                           :set_priority(priorities.CONSTRUCT_BUILDING)
-                           :start()
+function Fabricator:needs_teardown()
+   return self._teardown_task ~= nil
 end
 
 function Fabricator:reserve_block(location)
@@ -333,14 +261,12 @@ function Fabricator:_stop_project()
    if self._teardown_task then
       self._teardown_task:stop()
       self._teardown_task = nil
-   end
-   if self._pickup_task then
-      self._pickup_task:stop()
-      self._pickup_task = nil
+      radiant.events.trigger(self, 'needs_teardown', self, false)
    end
    if self._fabricate_task then
       self._fabricate_task:stop()
       self._fabricate_task = nil
+      radiant.events.trigger(self, 'needs_work', self, false)
    end
 end
 
@@ -357,18 +283,20 @@ end
 
 function Fabricator:_update_adjacent()
    local dst = self._entity:add_component('destination')
-   local rgn = dst:get_region():get() - dst:get_reserved():get()
+   local dst_rgn = dst:get_region():get()
+   local reserved_rgn = dst:get_reserved():get()
    
    -- build in layers.  stencil out all but the bottom layer of the 
-   -- project
-   local bottom = rgn:get_bounds().min.y
+   -- project.  work against the destination region (not rgn - reserved).
+   -- otherwise, we'll end up moving to the next row as soon as the last
+   -- block in the current row is reserved.
+   local bottom = dst_rgn:get_bounds().min.y
    local clipper = Region3(Cube3(Point3(-COORD_MAX, bottom + 1, -COORD_MAX),
                                  Point3( COORD_MAX, COORD_MAX,   COORD_MAX)))
-   local bottom_row = rgn - clipper
+   local bottom_row = dst_rgn - clipper
    
    local allow_diagonals = self._construction_data:get_allow_diagonal_adjacency()
    local adjacent = bottom_row:get_adjacent(allow_diagonals, 0, 0)
-   
 
    -- some projects want the worker to stand at the base of the project and
    -- push columns up.  for example, scaffolding always gets built from the
@@ -383,7 +311,10 @@ function Fabricator:_update_adjacent()
    -- on top of where another is standing to build another block, or workers
    -- can build blocks to hoist themselves up to otherwise unreachable spaces,
    -- getting stuck in the process
-   adjacent:subtract_region(rgn)
+   adjacent:subtract_region(dst_rgn)
+   
+   -- now subtract out all the blocks that we've reserved
+   adjacent:subtract_region(reserved_rgn)
    
    -- finally, copy into the adjacent region for our destination
    dst:get_adjacent():modify(function(cursor)

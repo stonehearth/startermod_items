@@ -1,0 +1,92 @@
+#entityInspectorFrameInfo {
+   .outlined; 
+   position: absolute;
+   top: 0px;
+   left: 0px;
+   font-size: 16px;
+   line-height: 13px;
+   background: rgba(0,0,0,0.5);
+   color: #fff;
+   font-family: "munro_smallregular";
+}
+
+#entityInspector {
+   .outlined; 
+   position: absolute;
+   top: 128px;
+   left: 0px;
+   font-size: 18px;
+   line-height: 13px;
+   min-width: 250px;
+   background: rgba(0,0,0,0.5);
+   color: #fff;
+   font-family: "munro_smallregular";
+
+   #header {
+      padding: 2px;
+      padding-left: 10px;
+      background: #ccc;
+   }
+   #content {
+      padding: 2px;
+   }
+
+   input {
+      width: 130px;
+      font-size: 10px;
+      color: #000;
+      background: #fff;
+      padding: 0 0 0 4px;
+      border: 1px solid #333;
+   }
+
+   .button {
+      position: relative;
+      top: -6px;
+   }
+
+   #collapse {
+      position: absolute;
+      top: 8px;
+      right: 4px;
+   }
+
+   .row {
+      padding-left: 16px;
+      &:hover {
+         background: rgba(1,1,1,0.2);
+      }
+   }
+
+   .executionUnit {
+      padding-left: 16px;
+   }
+
+   .running {
+      color: #00FF30;
+   }
+   .thinking {
+      color: #088074;
+   }
+   .ready {
+      color: #B2D11E;
+   }
+   .started {
+      color: #037D95;
+   }
+   .idle {
+      color: #C0C0C0;
+   }
+   .stopped {
+      color: #E54128;
+   }
+   .finished {
+      color: #FF9536;
+   }
+   .delete {
+      color: #FF0000;
+   }
+   .dead {
+      color: #FF0000;
+   }
+}

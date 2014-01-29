@@ -1,4 +1,4 @@
-local Analytics = require 'services.analytics.analytics_service'
+local Analytics = stonehearth.analytics
 
 local ChaseTarget = class()
 

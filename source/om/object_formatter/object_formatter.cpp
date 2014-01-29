@@ -11,6 +11,7 @@
 #include "om/all_objects.h"
 #include "om/all_components.h"
 #include "lib/json/node.h"
+#include "lib/json/om_json.h"
 
 using namespace ::radiant;
 using namespace ::radiant::om;
@@ -89,7 +90,8 @@ static void CreateDispatchTable()
          return json::encode(static_cast<Cls&>(*obj.get()));        \
       };
    OM_ALL_OBJECTS
-   OM_ALL_COMPONENTS   
+   OM_ALL_COMPONENTS
+   OM_OBJECT(JsonBoxed, json_boxed)
 #undef OM_OBJECT
 
    }

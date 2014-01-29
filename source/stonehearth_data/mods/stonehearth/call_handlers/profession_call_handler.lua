@@ -5,7 +5,6 @@ local ProfessionCallHandler = class()
 -- by doing a POST to the route for this file specified in the manifest.
 
 function ProfessionCallHandler:grab_promotion_talisman(session, response, person, entity)
-
    local talisman
    local workshop_component = entity:get_component("stonehearth:workshop")
    if workshop_component then
@@ -15,9 +14,21 @@ function ProfessionCallHandler:grab_promotion_talisman(session, response, person
       talisman = entity
    end
 
-   radiant.events.trigger(person, 'stonehearth:grab_talisman', {
-      talisman = talisman
-   })
+   -- xxx: hmm.  do we need an easier way to create "one shot" schedulers like this?
+   local scheduler = stonehearth.tasks:create_scheduler()
+                        :set_activity('stonehearth:top')
+                        :join(person)
+
+   local task = scheduler:create_orchestrator('stonehearth:tasks:promote_with_talisman', {
+         person = person,
+         talisman = talisman,
+      })
+      :start()
+      
+   radiant.events.listen(task, 'completed', function()
+          stonehearth.tasks:destroy_scheduler(scheduler)
+         return radiant.events.UNLISTEN
+      end)
 
    return true
 end

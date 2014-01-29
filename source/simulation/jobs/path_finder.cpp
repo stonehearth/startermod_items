@@ -27,14 +27,16 @@ using namespace ::radiant::simulation;
 #  define VERIFY_HEAPINESS()
 #endif
 
-PathFinder::PathFinder(Simulation& sim, std::string name) :
+PathFinder::PathFinder(Simulation& sim, std::string name, om::EntityPtr entity) :
    Job(sim, name),
    rebuildHeap_(false),
    restart_search_(true),
    enabled_(true),
+   entity_(entity),
    debug_color_(255, 192, 0, 128)
 {
    PF_LOG(3) << "creating pathfinder";
+   source_.reset(new PathFinderSrc(*this, entity));
 }
 
 PathFinder::~PathFinder()
@@ -42,28 +44,22 @@ PathFinder::~PathFinder()
    PF_LOG(3) << "destroying pathfinder";
 }
 
-void PathFinder::SetSource(om::EntityRef e)
+void PathFinder::SetSource(csg::Point3 const& location)
 {
-   entity_ = e;
-   mob_.reset();
-
-   source_.reset(new PathFinderSrc(*this, entity_));
-
-   auto entity = e.lock();
-   if (entity) {
-      mob_ = entity->GetComponent<om::Mob>();
-   }
-   RestartSearch("source changed");
+   source_->SetSourceOverride(location);
+   RestartSearch("source location changed");
 }
 
-void PathFinder::SetSolvedCb(luabind::object solved_cb)
+void PathFinder::SetSolvedCb(luabind::object unsafe_solved_cb)
 {
-   solved_cb_ = solved_cb;
+   lua_State* cb_thread = lua::ScriptHost::GetCallbackThread(unsafe_solved_cb.interpreter());  
+   solved_cb_ = luabind::object(cb_thread, unsafe_solved_cb);
 }
 
-void PathFinder::SetFilterFn(luabind::object dst_filter)
+void PathFinder::SetFilterFn(luabind::object unsafe_dst_filter)
 {
-   dst_filter_ = dst_filter;
+   lua_State* cb_thread = lua::ScriptHost::GetCallbackThread(unsafe_dst_filter.interpreter());  
+   dst_filter_ = luabind::object(cb_thread, unsafe_dst_filter);
    RestartSearch("filter function changed");
 }
 
@@ -119,11 +115,13 @@ bool PathFinder::IsIdle() const
 
 void PathFinder::Start()
 {
+   PF_LOG(5) << "start requested";
    enabled_ = true;
 }
 
 void PathFinder::Stop()
 {
+   PF_LOG(5) << "stop requested";
    enabled_ = false;
 }
 
@@ -139,8 +137,7 @@ void PathFinder::AddDestination(om::EntityRef e)
             PF_LOG(5) << "calling lua solution callback";
             ok = lua::ScriptHost::CoerseToBool(dst_filter_(e));
             PF_LOG(5) << "finished calling lua solution callback";
-         } catch (std::exception& e) {
-            lua::ScriptHost::ReportCStackException(L, e);
+         } catch (std::exception&) {
          }
          if (!ok) {
             return;
@@ -434,7 +431,12 @@ void PathFinder::RecommendBestPath(std::vector<csg::Point3> &points) const
 
 std::string PathFinder::GetProgress() const
 {
-   return BUILD_STRING(GetName() << " " << "(open: " << open_.size() << "  closed: " << closed_.size() << ")");
+   std::string ename;
+   auto entity = entity_.lock();
+   if (entity) {
+      ename = BUILD_STRING(*entity);
+   }
+   return BUILD_STRING(GetName() << " " << ename << " (open: " << open_.size() << "  closed: " << closed_.size() << ")");
 }
 
 void PathFinder::RebuildHeap()
@@ -476,9 +478,12 @@ void PathFinder::SolveSearch(const csg::Point3& last, PathFinderDst* dst)
    solution_ = std::make_shared<Path>(points, entity_.lock(), dst->GetEntity(), dst_point_of_interest);
    if (solved_cb_.is_valid()) {
       PF_LOG(5) << "calling lua solved callback";
-      auto L = solved_cb_.interpreter();
-      luabind::object path(L, solution_);
-      luabind::call_function<void>(solved_cb_, path);
+      try {
+         solved_cb_(luabind::object(solved_cb_.interpreter(), solution_));
+      } catch (std::exception const& e) {
+         LUA_LOG(1) << "exception delivering solved cb: " << e.what();
+      }
+
       PF_LOG(5) << "finished calling lua solved callback";
    }
 
@@ -492,7 +497,7 @@ PathPtr PathFinder::GetSolution() const
 
 void PathFinder::RestartSearch(const char* reason)
 {
-   PF_LOG(5) << "requesting search restart: " << reason;
+   PF_LOG(3) << "requesting search restart: " << reason;
    restart_search_ = true;
    solution_ = nullptr;
 }

@@ -5,10 +5,12 @@ App.RootView = Ember.ContainerView.extend({
       var self = this;
 
       // create the views
+      this._errorBrowser = this.createChildView(App["StonehearthErrorBrowserView"]);
       this._gameView = this.createChildView(App["StonehearthGameUiView"]);
       this._shellView = this.createChildView(App["StonehearthShellView"]);
 
       // push em
+      this.pushObject(this._errorBrowser)
       this.pushObject(this._gameView)
       this.pushObject(this._shellView)
 
@@ -26,6 +28,7 @@ App.RootView = Ember.ContainerView.extend({
    },
 
    didInsertElement: function() {
+      $('#' + this._errorBrowser.elementId).show();
       if (App.options['skip_title']) {
          App.gameView._addViews(App.gameView.views.complete);
          App.gotoGame();

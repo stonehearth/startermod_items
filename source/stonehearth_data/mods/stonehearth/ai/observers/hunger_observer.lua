@@ -1,4 +1,4 @@
-local calendar = require 'services.calendar.calendar_service'
+local calendar = stonehearth.calendar
 local time_constants = radiant.resources.load_json('/stonehearth/services/calendar/calendar_constants.json')
 
 --[[
@@ -12,10 +12,7 @@ local time_constants = radiant.resources.load_json('/stonehearth/services/calend
    Note: When an attribute is first created, its value is 0
 ]]
 local HungerObserver = class()
-
-HungerObserver.does = 'stonehearth:top'
-HungerObserver.version = 1
-HungerObserver.priority = 0
+HungerObserver.version = 2
 
 function HungerObserver:__init(entity)
    self._entity = entity
@@ -24,14 +21,24 @@ function HungerObserver:__init(entity)
 end
 
 function HungerObserver:on_hourly(e)
-
    local hunger = self._attributes_component:get_attribute('hunger')
    local hours_till_hungry = time_constants.hours_per_day
 
    -- TODO consider slowing hunger while sleepy
-   hunger = hunger + (100/hours_till_hungry)
+   hunger = hunger + ( 100 / hours_till_hungry)
 
    self._attributes_component:set_attribute('hunger', hunger)
+
+   if hunger >= 120 then
+      radiant.entities.add_buff(self._entity, 'stonehearth:buffs:starving')
+   else
+      radiant.entities.remove_buff(self._entity, 'stonehearth:buffs:starving')
+   end
+   if hunger >= 80 then
+      radiant.entities.think(self._entity, '/stonehearth/data/effects/thoughts/hungry')
+   else
+      radiant.entities.unthink(self._entity, '/stonehearth/data/effects/thoughts/hungry')
+   end
 end
 
 return HungerObserver

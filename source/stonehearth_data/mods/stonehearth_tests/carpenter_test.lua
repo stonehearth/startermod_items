@@ -25,7 +25,7 @@ function CarpenterTest:__init()
    local outbox_component = outbox_entity:get_component('stonehearth:stockpile')
    outbox_component:set_size({3, 3})
    outbox_component:set_outbox(true)
-   workshop_component:associate_outbox(outbox_entity)
+   workshop_component:finish_construction(faction, outbox_entity)
    
    --local outbox = workshop_component:create_outbox(Point3(-9,0,-9), {3, 3}, faction)
 

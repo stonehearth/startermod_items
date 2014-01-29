@@ -5,19 +5,16 @@
 
    "ui" :  {
       "html" : [
-         "file(/ui/object_browser/object_browser.html)",
-         "file(/ui/error_browser/error_browser.html)",
-         "file(/ui/error_dialog/error_dialog.html)"
+         "file(/ui/entity_inspector/entity_inspector.html)",
+         "file(/ui/object_browser/object_browser.html)"
       ],
       "js" : [
-         "file(/ui/object_browser/object_browser.js)",
-         "file(/ui/error_browser/error_browser.js)",
-         "file(/ui/error_dialog/error_dialog.js)"
+         "file(/ui/entity_inspector/entity_inspector.js)",
+         "file(/ui/object_browser/object_browser.js)"
       ],
       "less" : [
-         "file(/ui/object_browser/object_browser.less)",
-         "file(/ui/error_browser/error_browser.less)",
-         "file(/ui/error_dialog/error_dialog.less)"
+         "file(/ui/entity_inspector/entity_inspector.less)",
+         "file(/ui/object_browser/object_browser.less)"
       ]
    }
 }

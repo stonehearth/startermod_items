@@ -59,7 +59,6 @@ void Entity::Destroy()
                   cb(controller);
                }
             } catch (std::exception const& e) {
-               lua::ScriptHost::ReportCStackException(L, e);
                E_LOG(1) << "error destroying component '" << entry.first << "':" << e.what();
             }
          }

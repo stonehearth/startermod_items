@@ -13,54 +13,67 @@ MapTraceWrapper<T>::MapTraceWrapper(std::shared_ptr<T> trace) :
 }
 
 template <typename T>
-std::shared_ptr<MapTraceWrapper<T>> MapTraceWrapper<T>::OnDestroyed(lua_State* L, luabind::object destroyed_cb)
+std::shared_ptr<MapTraceWrapper<T>> MapTraceWrapper<T>::OnDestroyed(luabind::object unsafe_destroyed_cb)
 {
    if (!trace_) {
       throw std::logic_error("called on_added on invalid trace");
    }
-   lua_State* cb_thread = lua::ScriptHost::GetCallbackThread(L);
-   trace_->OnDestroyed([this, L, cb_thread, destroyed_cb]() {
+
+   // 1) make sure we use the callback thread which is guarenteed not to be in a yielded coroutine.
+   // 2) make sure we capture a new variable pointing to the cb thread interpreter.  luabind seems
+   //    to have a bug where it doesn't ref the interpreter of objects.  so if the callback was
+   //    defined in a coroutine and that corutine goes away, we still have a reference to the
+   //    callback, but the lua_State gets reaped!  next time we try to do something with that
+   //    callback, we're going to blow up.
+
+   lua_State* cb_thread = lua::ScriptHost::GetCallbackThread(unsafe_destroyed_cb.interpreter());
+   luabind::object destroyed_cb(cb_thread, unsafe_destroyed_cb);
+
+   trace_->OnDestroyed([destroyed_cb]() mutable {
       try {
-         luabind::object(cb_thread, destroyed_cb)();
+         destroyed_cb();
       } catch (std::exception const& e) {
          LUA_LOG(1) << "exception delivering lua trace: " << e.what();
-         lua::ScriptHost::ReportCStackException(L, e);
       }
    });
    return shared_from_this();
 }
 
 template <typename T>
-std::shared_ptr<MapTraceWrapper<T>> MapTraceWrapper<T>::OnAdded(lua_State* L, luabind::object changed_cb)
+std::shared_ptr<MapTraceWrapper<T>> MapTraceWrapper<T>::OnAdded(luabind::object unsafe_changed_cb)
 {
    if (!trace_) {
       throw std::logic_error("called on_added on invalid trace");
    }
-   lua_State* cb_thread = lua::ScriptHost::GetCallbackThread(L);
-   trace_->OnAdded([this, L, cb_thread, changed_cb](typename T::Key const& key, typename T::Value const& value) {
+
+   lua_State* cb_thread = lua::ScriptHost::GetCallbackThread(unsafe_changed_cb.interpreter());
+   luabind::object changed_cb(cb_thread, unsafe_changed_cb);
+
+   trace_->OnAdded([changed_cb](typename T::Key const& key, typename T::Value const& value) mutable {
       try {
-         luabind::object(cb_thread, changed_cb)(key, value);
+         changed_cb(key, value);
       } catch (std::exception const& e) {
          LUA_LOG(1) << "exception delivering lua trace: " << e.what();
-         lua::ScriptHost::ReportCStackException(L, e);
       }
    });
    return shared_from_this();
 }
 
 template <typename T>
-std::shared_ptr<MapTraceWrapper<T>> MapTraceWrapper<T>::OnRemoved(lua_State* L, luabind::object removed_cb)
+std::shared_ptr<MapTraceWrapper<T>> MapTraceWrapper<T>::OnRemoved(luabind::object unsafe_removed_cb)
 {
    if (!trace_) {
       throw std::logic_error("called on_removed on invalid trace");
    }
-   lua_State* cb_thread = lua::ScriptHost::GetCallbackThread(L);
-   trace_->OnRemoved([this, L, cb_thread, removed_cb](typename T::Key const& key) {
+
+   lua_State* cb_thread = lua::ScriptHost::GetCallbackThread(unsafe_removed_cb.interpreter());
+   luabind::object removed_cb(cb_thread, unsafe_removed_cb);
+
+   trace_->OnRemoved([removed_cb](typename T::Key const& key) mutable {
       try {
-         luabind::object(cb_thread, removed_cb)(key);
+         removed_cb(key);
       } catch (std::exception const& e) {
          LUA_LOG(1) << "exception delivering lua trace: " << e.what();
-         lua::ScriptHost::ReportCStackException(L, e);
       }
    });
    return shared_from_this();
