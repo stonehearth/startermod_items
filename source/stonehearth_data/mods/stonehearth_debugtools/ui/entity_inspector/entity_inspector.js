@@ -23,7 +23,7 @@ App.StonehearthEntityInspectorView = App.View.extend({
         self.set('context.ai.inspect_frame', frame)
         this.$().find("#entityInspectorFrameInfo").offset({
           top: offset.top,
-          left: offset.left + row.width() + 32,
+          left: offset.left + row.width() + 50,
         })
       } else {
         self.set('context.ai.inspect_frame', null)
