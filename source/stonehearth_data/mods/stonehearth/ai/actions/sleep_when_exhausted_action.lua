@@ -11,4 +11,4 @@ SleepWhenExhaused.priority = 1
 local ai = stonehearth.ai
 return ai:create_compound_action(SleepWhenExhaused)
             :execute('stonehearth:wait_for_attribute_above', { attribute = 'sleepiness', value = 120 })
-            :execute("stonehearth:stonehearth:sleep_exhausted")
+            :execute("stonehearth:sleep_exhausted")

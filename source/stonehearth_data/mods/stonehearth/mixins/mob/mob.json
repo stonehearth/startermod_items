@@ -46,7 +46,8 @@
             "stonehearth:actions:run_away_from_entity",
             "stonehearth:actions:find_path_to_entity",
             "stonehearth:actions:find_path_to_entity_type",
-            "stonehearth:actions:run_towards_entity"
+            "stonehearth:actions:run_towards_entity",
+            "stonehearth:actions:add_buff"
          ],
           "observers": [
             "stonehearth:observers:look_for_enemies"

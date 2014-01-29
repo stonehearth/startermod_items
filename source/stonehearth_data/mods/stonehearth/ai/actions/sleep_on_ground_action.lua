@@ -25,9 +25,9 @@ function SleepOnGroundAction:run(ai, entity)
    radiant.entities.set_attribute(entity, 'sleepiness', 0)
 end
 
-function SleepOnGroundAction:stop()
+function SleepOnGroundAction:stop(ai, entity)
    -- xxx, localize
-   local name = radiant.entities.get_display_name(self._entity)
+   local name = radiant.entities.get_display_name(entity)
    stonehearth.events:add_entry(name .. ' awakes groggy from sleeping on the cold, hard, unforgiving earth.', 'warning')
 end
 
