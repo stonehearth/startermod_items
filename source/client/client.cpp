@@ -936,6 +936,11 @@ om::EntityPtr Client::GetEntity(dm::ObjectId id)
    return (obj && obj->GetObjectType() == om::Entity::DmType) ? std::static_pointer_cast<om::Entity>(obj) : nullptr;
 }
 
+om::EntityRef Client::GetSelectedEntity()
+{
+   return selectedObject_;
+}
+
 void Client::InstallCurrentCursor()
 {
    if (browser_) {

@@ -53,6 +53,8 @@ class Client : public core::Singleton<Client> {
       om::EntityPtr GetEntity(dm::ObjectId id);
       om::TerrainPtr GetTerrain();
 
+      om::EntityRef GetSelectedEntity();
+
       void SelectEntity(om::EntityPtr obj);
       void SelectEntity(dm::ObjectId id);
 

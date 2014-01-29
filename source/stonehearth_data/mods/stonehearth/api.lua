@@ -27,6 +27,7 @@ if radiant.is_server then
 else
    api = {
       camera = get_service('camera'),
+      unit_control = get_service('unit_control')
    }
 end
 
