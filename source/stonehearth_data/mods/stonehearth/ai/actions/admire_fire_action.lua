@@ -2,9 +2,9 @@ local AdmireFire = class()
 
 AdmireFire.name = 'admire fire'
 AdmireFire.args = {}
-AdmireFire.does = 'stonehearth:idle'
+AdmireFire.does = 'stonehearth:top'
 AdmireFire.version = 2
-AdmireFire.priority = 3
+AdmireFire.priority = 4
 
 --- Given an item, determine if it's an unoccupied seat by a lit firepit
 -- @param item The item to evaluate
