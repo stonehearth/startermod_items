@@ -70,7 +70,6 @@ end
 --- If the item specifies ai to be injected, inject it
 function EquipmentComponent:_inject_item_ai(item, injected_ai)
    if injected_ai then
-      local ai_service = radiant.mods.load('stonehearth').ai
       local injected_ai_token = stonehearth.ai:inject_ai(self._entity, injected_ai, item)
       self._injected_ais[item] = injected_ai_token
    end

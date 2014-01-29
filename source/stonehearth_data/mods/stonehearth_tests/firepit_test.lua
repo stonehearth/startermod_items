@@ -16,11 +16,13 @@ function FirePitTest:__init()
    local faction = radiant.entities.get_faction(worker)
    self:place_item('stonehearth:firepit_proxy', 1, 1, faction)
    local firepit = self:place_item('stonehearth:firepit', 8, 8, faction)
+   --[[
    radiant.events.trigger(stonehearth.calendar, 'stonehearth:hourly')
    --firepit:get_component('stonehearth:firepit'):_init_gather_wood_task()
    self:at(20000,  function()
          radiant.entities.destroy_entity(firepit)
       end)
+   ]]
    
 end
 
