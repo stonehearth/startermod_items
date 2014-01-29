@@ -290,15 +290,18 @@ end
 function StockpileComponent:_remove_item_from_stock(id)
    assert(self._data.stocked_items[id])
    
+   local entity = self._data.stocked_items[id]
    self._data.stocked_items[id] = nil
    self._data_binding:mark_changed()
 
    --Remove items that have been taken out of the stockpile
-   local entity = radiant.entities.get_entity(id)
-   radiant.events.trigger(self._entity, "stonehearth:item_removed", { 
-      storage = self._entity,
-      item = entity
-   })
+   if entity and entity:is_valid() then
+      radiant.events.trigger(self._entity, "stonehearth:item_removed", { 
+         storage = self._entity,
+         item = entity
+      })
+      radiant.events.trigger(stonehearth.ai, 'stonehearth:reconsider_stockpile_item', entity)
+   end
 end
 
 function StockpileComponent:_rebuild_item_data()
