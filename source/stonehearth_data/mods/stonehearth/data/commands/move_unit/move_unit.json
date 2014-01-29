@@ -1,0 +1,14 @@
+{
+   "type" : "command",
+
+   "name": " move unit",
+   "tooltip": "Move",
+   "description": "Tell this character to move somewhere else",
+   "icon": "file(move_unit.png)",
+
+   "action": "call",
+   "function": "stonehearth:choose_unit_location",
+   "args": [
+      "{{self}}"
+   ]
+}

@@ -38,6 +38,12 @@ local constants = {
    worker_scheduler = {
       -- The number of ticks to wait before picking the best solution to dispatch
       DISPATCHER_WAIT_TIME = 3,
+   },
+
+   input = {
+      mouse = {
+         dead_zone_size = 4
+      }
    }
 }
 
