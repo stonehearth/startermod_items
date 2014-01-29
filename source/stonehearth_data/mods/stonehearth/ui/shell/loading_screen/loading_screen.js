@@ -13,9 +13,6 @@ App.StonehearthLoadingScreenView = App.View.extend({
                         self.updateProgress(result);
                      })
             });
-
-      var seed = Math.floor(Math.random() * 10000);
-      radiant.call('stonehearth:new_game', seed, 5, 5);
    },
 
    didInsertElement: function() {
@@ -39,9 +36,12 @@ App.StonehearthLoadingScreenView = App.View.extend({
          this._progressbar.progressbar( "option", "value", result.progress );
 
          if (result.progress == 100) {
-            App.gotoGame();
-            App.gameView.addView(App.StonehearthCreateCampView)
-            this.destroy();
+            radint.call('stonehearth:move_camera_to_start_location')
+               .done(function(o) {
+                  App.gotoGame();
+                  App.gameView.addView(App.StonehearthCreateCampView)
+                  this.destroy();
+               });
          }
       }
    },

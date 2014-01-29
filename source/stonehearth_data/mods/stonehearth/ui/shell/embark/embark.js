@@ -19,12 +19,11 @@ App.StonehearthEmbarkView = App.View.extend({
 
       var self = this;
 
-      radiant.call('stonehearth:get_world_generation_progress')
+      radiant.call('stonehearth:new_game', 1, 5, 5)
          .done(function(o) {
-               this.trace = radiant.trace(o.tracker)
-                  .progress(function(result) {
-                     self.updateProgress(result);
-                  })
+            $('#map').stonehearthMap({
+               mapGrid: o.map
+            });
          });  
 
       //radiant.call('stonehearth:new_game', 0);
@@ -40,17 +39,6 @@ App.StonehearthEmbarkView = App.View.extend({
 
       this._buildSampleMap();
    },
-
-   updateProgress: function(result) {
-      var self = this;
-
-      if (result.progress) {
-
-         if (result.progress == 100) {
-            self._buildMap();
-         }
-      }
-   },   
 
    _buildSampleMap: function() {
       var self = this;
@@ -79,11 +67,16 @@ App.StonehearthEmbarkView = App.View.extend({
    _embark: function() {
       var x = 0;
       var y = 0;
+      var self = this;
       // Note: new_game accepts seeds up to 4294967295 (2^32-1)
-      var seed = Math.floor(Math.random() * 10000);
+      //var seed = Math.floor(Math.random() * 10000);
       //radiant.call('stonehearth:new_game', seed, x, y);
 
-      App.shellView.qddView(App.StonehearthLoadingScreenView);
+      radiant.call('stonehearth:generate_start_location', 20, 20)
+         .done(function(o)) {
+            App.shellView.qddView(App.StonehearthLoadingScreenView);
+            self.destroy();
+         });
    }
 
 });

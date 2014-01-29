@@ -12,7 +12,9 @@ function NewGameCallHandler:new_game(session, response, seed, num_tiles_x, num_t
    local wgs = radiant.mods.load('stonehearth').world_generation
    wgs:initialize(seed, true)
    wgs:create_blueprint(num_tiles_x, num_tiles_y)
-   self:generate_start_location(nil, nil, 20, 20) -- TODO: remove test code
+   --self:generate_start_location(nil, nil, 20, 20) -- TODO: remove test code
+
+   return self:get_overview_map(session, response)
 end
 
 function NewGameCallHandler:get_overview_map(session, response)

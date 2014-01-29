@@ -52,8 +52,8 @@ App.StonehearthTitleScreenView = App.View.extend({
    actions: {
       newGame: function() {
          radiant.call('radiant:play_sound', 'stonehearth:sounds:ui:start_menu:embark' );
-         //App.shellView.addView(App.StonehearthEmbarkView);
-         this.get('parentView').addView(App.StonehearthLoadingScreenView)
+         App.shellView.addView(App.StonehearthEmbarkView);
+         //this.get('parentView').addView(App.StonehearthLoadingScreenView)
       },
 
       loadGame: function() {
