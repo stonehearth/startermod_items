@@ -41,6 +41,7 @@
 namespace radiant {
    namespace logger {
       void Init(boost::filesystem::path const& logfile);
+      void InitConsole();
       void InitLogLevels();
       void Flush();
       void Exit();

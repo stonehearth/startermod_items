@@ -4,14 +4,13 @@
 #include <fcntl.h>
 
 #include "radiant.h"
-#include "log_internal.h"
+#include "core/config.h"
 
 using namespace radiant::logger;
 
-#if defined(_DEBUG)
 #pragma warning(push)
 #pragma warning(disable:4996)
-static void redirect_io_to_console()
+void radiant::logger::InitConsole()
 {
    CONSOLE_SCREEN_BUFFER_INFO coninfo;
    CONSOLE_FONT_INFOEX fontinfo;
@@ -32,13 +31,3 @@ static void redirect_io_to_console()
    freopen("conout$","w",stderr);
 }
 #pragma warning(pop)
-#endif
-
-void radiant::logger::platform_init()
-{
-   DEBUG_ONLY(redirect_io_to_console();)
-}
-
-void radiant::logger::platform_exit()
-{
-}

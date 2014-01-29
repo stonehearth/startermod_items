@@ -136,6 +136,12 @@ int Application::Run(int argc, const char** argv)
       json::InitialzeErrorHandler();
       core::Config::GetInstance().Load(argc, argv);
       radiant::logger::InitLogLevels();
+
+      bool show_console = false;
+      DEBUG_ONLY(show_console = true);
+      if (core::Config::GetInstance().Get<bool>("logging.show_console", show_console)) {
+         radiant::logger::InitConsole();
+      }
    } catch (std::exception const& e) {
       std::string const error_message = BUILD_STRING("Error starting application:\n\n" << e.what());
       try {

@@ -28,3 +28,8 @@ void Counter::Increment(CounterValueType amount)
 {
    value_ += amount;
 }
+
+void Counter::Decrement(CounterValueType amount)
+{
+   value_ -= amount;
+}

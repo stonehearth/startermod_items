@@ -37,10 +37,12 @@ PathFinder::PathFinder(Simulation& sim, std::string name, om::EntityPtr entity) 
 {
    PF_LOG(3) << "creating pathfinder";
    source_.reset(new PathFinderSrc(*this, entity));
+   sim.GetPerfmonCounters().GetCounter("simulation.pathfinder_count").Increment();
 }
 
 PathFinder::~PathFinder()
 {
+   GetSim().GetPerfmonCounters().GetCounter("simulation.pathfinder_count").Decrement();
    PF_LOG(3) << "destroying pathfinder";
 }
 
