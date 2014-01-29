@@ -12,14 +12,18 @@ TraceWrapper::TraceWrapper(dm::TracePtr trace) :
 {
 }
 
-std::shared_ptr<TraceWrapper> TraceWrapper::OnChanged(luabind::object changed_cb)
+std::shared_ptr<TraceWrapper> TraceWrapper::OnChanged(luabind::object unsafe_changed_cb)
 {
    if (!trace_) {
       throw std::logic_error("called on_changed on invalid trace");
    }
-   trace_->OnModified_([this, changed_cb]() {
+
+   lua_State* cb_thread = lua::ScriptHost::GetCallbackThread(unsafe_changed_cb.interpreter());
+   luabind::object changed_cb(cb_thread, unsafe_changed_cb);
+
+   trace_->OnModified_([this, changed_cb]() mutable {
       try {
-         luabind::call_function<void>(changed_cb);
+         changed_cb();
       } catch (std::exception const& e) {
          LUA_LOG(1) << "exception delivering lua trace: " << e.what();
       }
@@ -27,14 +31,18 @@ std::shared_ptr<TraceWrapper> TraceWrapper::OnChanged(luabind::object changed_cb
    return shared_from_this();
 }
 
-std::shared_ptr<TraceWrapper> TraceWrapper::OnDestroyed(luabind::object destroyed_cb)
+std::shared_ptr<TraceWrapper> TraceWrapper::OnDestroyed(luabind::object unsafe_destroyed_cb)
 {
    if (!trace_) {
       throw std::logic_error("called on_destroyed on invalid trace");
    }
-   trace_->OnDestroyed_([this, destroyed_cb]() {
+
+   lua_State* cb_thread = lua::ScriptHost::GetCallbackThread(unsafe_destroyed_cb.interpreter());
+   luabind::object destroyed_cb(cb_thread, unsafe_destroyed_cb);
+
+   trace_->OnDestroyed_([this, destroyed_cb]() mutable {
       try {
-         luabind::call_function<void>(destroyed_cb);
+         destroyed_cb();
       } catch (std::exception const& e) {
          LUA_LOG(1) << "exception delivering lua trace: " << e.what();
       }

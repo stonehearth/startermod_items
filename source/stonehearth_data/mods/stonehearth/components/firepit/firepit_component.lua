@@ -1,5 +1,4 @@
 local priorities = require('constants').priorities.worker_task
-local calendar = stonehearth.calendar
 
 local Point3 = _radiant.csg.Point3
 local Cube3 = _radiant.csg.Cube3
@@ -23,7 +22,7 @@ function FirepitComponent:__init(entity, data_store)
    self._data_store = data_store
    self._data_store:mark_changed()
 
-   self._time_constants = calendar.get_constants()
+   self._time_constants = stonehearth.calendar.get_constants()
 
    --Listen on terrain for when this entity is added/removed
    local added_cb = function(id, entity)
@@ -34,11 +33,18 @@ function FirepitComponent:__init(entity, data_store)
    end
    self._promise = radiant.terrain.trace_world_entities('firepit self-tracker',
       added_cb, removed_cb)
+end
 
+function FirepitComponent:destroy()
    --When the firepit is destroyed, destroy its seat entities too
-   radiant.entities.on_destroy(self._entity, function()
-      return self:_stop_functionality()
-   end)
+   self:_stop_functionality()
+   if self._promise then
+      self._promise:destroy()
+      self._promise = nil
+   end
+   radiant.events.unlisten(stonehearth.calendar, 'stonehearth:sunrise', self, self.on_sunrise)
+   radiant.events.unlisten(stonehearth.calendar, 'stonehearth:sunset', self, self.on_sunset)
+   radiant.events.unlisten(stonehearth.calendar, 'stonehearth:hourly', self, self.on_hourly)
 end
 
 function FirepitComponent:get_entity()
@@ -60,7 +66,7 @@ end
 function FirepitComponent:_on_entity_add(id, entity)
    if self._entity and self._entity:get_id() == id then
       log:debug('listining for hourly events')
-      radiant.events.listen(calendar, 'stonehearth:hourly', self, self.on_hourly)
+      radiant.events.listen(stonehearth.calendar, 'stonehearth:hourly', self, self.on_hourly)
       self:on_hourly()
    end
 end
@@ -75,18 +81,18 @@ function FirepitComponent:on_hourly(e)
    self:_should_light_fire()
 
    log:debug('switching from hourly to sunset/sunrise events')
-   radiant.events.listen(calendar, 'stonehearth:sunrise', self, self.on_sunrise)
-   radiant.events.listen(calendar, 'stonehearth:sunset', self, self.on_sunset)
+   radiant.events.listen(stonehearth.calendar, 'stonehearth:sunrise', self, self.on_sunrise)
+   radiant.events.listen(stonehearth.calendar, 'stonehearth:sunset', self, self.on_sunset)
 
-   radiant.events.unlisten(radiant.events, 'stonehearth:hourly', self, self.on_hourly)
+   radiant.events.unlisten(stonehearth.calendar, 'stonehearth:hourly', self, self.on_hourly)
 end
 
 --- Stop listening for events, destroy seats, terminate effects and tasks
 -- Call when firepit is moving or being destroyed.
 function FirepitComponent:_stop_functionality()
    log:debug('unlistining for calendar sunset/sunrise events')
-   radiant.events.unlisten(radiant.events, 'stonehearth:sunrise', self, self.on_sunrise)
-   radiant.events.unlisten(radiant.events, 'stonehearth:sunset', self, self.on_sunset)
+   radiant.events.unlisten(stonehearth.calendar, 'stonehearth:sunrise', self, self.on_sunrise)
+   radiant.events.unlisten(stonehearth.calendar, 'stonehearth:sunset', self, self.on_sunset)
 
    self:extinguish()
    self._am_lighting_fire = false
