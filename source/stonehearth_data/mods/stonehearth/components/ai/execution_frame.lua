@@ -104,7 +104,7 @@ function ExecutionFrame:_unit_ready(unit, think_output)
    if self._state == 'running' then
       return self:_unit_ready_from_running(unit, think_output)
    end
-   if self._state == 'switching' then
+   if self:in_state('switching', 'finished') then
       return -- nop
    end
    if self._state == 'dead' then
@@ -154,7 +154,7 @@ function ExecutionFrame:_destroy()
    if self._state == 'running' then
       return self:_destroy_from_running()
    end
-   if self._state == 'stopped' then
+   if self:in_state('stopped', 'finished') then
       return self:_destroy_from_stopped()
    end
    if self._state == 'dead' then
@@ -173,7 +173,7 @@ function ExecutionFrame:_add_action(...)
    if self._state == 'running' then
       return self:_add_action_from_running(...)
    end
-   if self._state == 'stopped' then
+   if self:in_state('stopped', 'switching') then
       return self:_add_action_from_stopped(...)
    end
    self:_unknown_transition('add_action')
@@ -186,7 +186,7 @@ function ExecutionFrame:_remove_action(...)
    if self._state == 'ready' then
       return self:_remove_action_from_ready(...)
    end
-   if self._state == 'running' then
+   if self:in_state('running', 'switching') then
       return self:_remove_action_from_running(...)
    end
    if self._state == 'stopped' then
@@ -613,7 +613,7 @@ function ExecutionFrame:_destroy_from_starting()
 end
 
 function ExecutionFrame:_destroy_from_stopped()
-   self._log:debug('_destroy_from_stopped')
+   self._log:debug('_destroy_from_stopped (state: %s)', self._state)
    assert(not self._active_unit)
    for _, unit in pairs(self._execution_units) do
       unit:_destroy()
@@ -757,6 +757,7 @@ function ExecutionFrame:_add_action_from_running(key, entry)
 end
 
 function ExecutionFrame:_add_action_from_stopped(key, entry)
+   self._log:detail('_add_action_from_stopped (state: %s)', self._state)
    self:_add_execution_unit(key, entry)
 end
 
@@ -791,6 +792,7 @@ function ExecutionFrame:_remove_action_from_ready(key, entry)
 end
 
 function ExecutionFrame:_remove_action_from_running(key, entry)
+   self._log:detail('_remove_action_from_running (state: %s)', self._state)
    local unit = self._execution_units[key]
    if unit == self._active_unit then
       self._thread:interrupt(function()
