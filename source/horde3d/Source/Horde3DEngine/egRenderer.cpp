@@ -2759,31 +2759,59 @@ void Renderer::drawInstanceNode(const std::string &shaderContext, const std::str
 	if( frust1 == 0x0 || Modules::renderer().getCurCamera() == 0x0 ) return;
 	if( debugView ) return;  // Don't render in debug view
 
-   Modules::config().setGlobalShaderFlag("DRAW_WITH_INSTANCING", true);
-	// Set vertex layout
-   gRDI->setVertexLayout( Modules::renderer()._vlInstanceVoxelModel );
-	MaterialResource *curMatRes = 0x0;
-   for( const auto& entry : Modules::sceneMan().getRenderableQueue(SceneNodeTypes::InstanceNode) )
-	{
-		InstanceNode* in = (InstanceNode *)entry.node;
+   bool useInstancing = gRDI->getCaps().hasInstancing;
+   Modules::config().setGlobalShaderFlag("DRAW_WITH_INSTANCING", useInstancing);
+	
+   if (useInstancing) {   
+      gRDI->setVertexLayout( Modules::renderer()._vlInstanceVoxelModel );
+	   MaterialResource *curMatRes = 0x0;
+      for( const auto& entry : Modules::sceneMan().getRenderableQueue(SceneNodeTypes::InstanceNode) )
+	   {
+		   InstanceNode* in = (InstanceNode *)entry.node;
 
-		if( !in->_matRes->isOfClass( theClass ) ) continue;
+		   if( !in->_matRes->isOfClass( theClass ) ) continue;
 
-      gRDI->setVertexBuffer( 0, in->_geoRes->getVertexBuf(), 0, sizeof( VoxelVertexData ) );
-      gRDI->setVertexBuffer( 1, in->_instanceBufObj, 0, 16 * sizeof(float) );
-      gRDI->setIndexBuffer( in->_geoRes->getIndexBuf(), in->_geoRes->_16BitIndices ? IDXFMT_16 : IDXFMT_32 );
+         gRDI->setVertexBuffer( 0, in->_geoRes->getVertexBuf(), 0, sizeof( VoxelVertexData ) );
+         gRDI->setVertexBuffer( 1, in->_instanceBufObj, 0, 16 * sizeof(float) );
+         gRDI->setIndexBuffer( in->_geoRes->getIndexBuf(), in->_geoRes->_16BitIndices ? IDXFMT_16 : IDXFMT_32 );
 
-      // Set material
-      if( curMatRes != in->_matRes )
-		{
-         if( !Modules::renderer().setMaterial( in->_matRes, shaderContext ) ) continue;
-			curMatRes = in->_matRes;
-		}
+         if( curMatRes != in->_matRes )
+		   {
+            if( !Modules::renderer().setMaterial( in->_matRes, shaderContext ) ) continue;
+			   curMatRes = in->_matRes;
+		   }
 
-      gRDI->drawInstanced(RDIPrimType::PRIM_TRILIST, 
-         in->_geoRes->getElemParamI(VoxelGeometryResData::VoxelGeometryElem, 0, VoxelGeometryResData::VoxelGeoIndexCountI), 
-         0, in->_usedInstances);
-	}
+         gRDI->drawInstanced(RDIPrimType::PRIM_TRILIST, 
+            in->_geoRes->getElemParamI(VoxelGeometryResData::VoxelGeometryElem, 0, VoxelGeometryResData::VoxelGeoIndexCountI), 
+            0, in->_usedInstances);
+	   }
+   } else {
+      gRDI->setVertexLayout( Modules::renderer()._vlVoxelModel );
+	   MaterialResource *curMatRes = 0x0;
+      for( const auto& entry : Modules::sceneMan().getRenderableQueue(SceneNodeTypes::InstanceNode) )
+	   {
+		   InstanceNode* in = (InstanceNode *)entry.node;
+
+		   if( !in->_matRes->isOfClass( theClass ) ) continue;
+
+         gRDI->setVertexBuffer( 0, in->_geoRes->getVertexBuf(), 0, sizeof( VoxelVertexData ) );
+         gRDI->setIndexBuffer( in->_geoRes->getIndexBuf(), in->_geoRes->_16BitIndices ? IDXFMT_16 : IDXFMT_32 );
+
+         if( curMatRes != in->_matRes )
+		   {
+            if( !Modules::renderer().setMaterial( in->_matRes, shaderContext ) ) continue;
+			   curMatRes = in->_matRes;
+		   }
+         ShaderCombination* curShader = Modules::renderer().getCurShader();
+
+         for (int i = 0; i < in->_usedInstances; i++) {
+            gRDI->setShaderConst( curShader->uni_worldMat, CONST_FLOAT44, &in->_instanceBuf[i * 16]);
+            gRDI->drawIndexed(RDIPrimType::PRIM_TRILIST, 0, 
+               in->_geoRes->getElemParamI(VoxelGeometryResData::VoxelGeometryElem, 0, VoxelGeometryResData::VoxelGeoIndexCountI), 
+               0, in->_geoRes->getElemParamI(VoxelGeometryResData::VoxelGeometryElem, 0, VoxelGeometryResData::VoxelGeoVertexCountI) - 1);
+         }
+	   }
+   }
 
 	gRDI->setVertexLayout( 0 );
 }
