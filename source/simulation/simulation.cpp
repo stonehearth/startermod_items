@@ -127,6 +127,9 @@ Simulation::Simulation() :
    core_reactor_->AddRoute("radiant:game:start_task_manager", [this](rpc::Function const& f) {
       return StartTaskManager();
    });
+   core_reactor_->AddRoute("radiant:game:get_perf_counters", [this](rpc::Function const& f) {
+      return StartPerformanceCounterPush();
+   });
    core_reactor_->AddRouteV("radiant:profile_next_lua_upate", [this](rpc::Function const& f) {
       profile_next_lua_update_ = true;
       SIM_LOG(0) << "profiling next lua update";
@@ -182,8 +185,8 @@ void Simulation::CreateNew()
    lua::analytics::open(L);
    om::RegisterObjectTypes(store_);
 
-   game_tick_interval_ = core::Config::GetInstance().Get<int>("simulation.game_tick_interval", 200);
-   net_send_interval_ = core::Config::GetInstance().Get<int>("simulation.net_send_interval", 200);
+   game_tick_interval_ = core::Config::GetInstance().Get<int>("simulation.game_tick_interval", 50);
+   net_send_interval_ = core::Config::GetInstance().Get<int>("simulation.net_send_interval", 50);
    base_walk_speed_ = core::Config::GetInstance().Get<float>("simulation.base_walk_speed", 7.5f);
    base_walk_speed_ = base_walk_speed_ * game_tick_interval_ / 1000.0f;
 
@@ -251,6 +254,32 @@ rpc::ReactorDeferredPtr Simulation::StartTaskManager()
    }
    return task_manager_deferred_;
 }
+
+rpc::ReactorDeferredPtr Simulation::StartPerformanceCounterPush()
+{
+   if (!perf_counter_deferred_) {
+      perf_counter_deferred_ = std::make_shared<rpc::ReactorDeferred>("game perf counters");
+      next_counter_push_.set(0);
+   }
+   return perf_counter_deferred_ ;
+}
+
+void Simulation::PushPerformanceCounters()
+{
+   if (1 || perf_counter_deferred_) {
+      json::Node counters;
+      for (const auto& entry : perf_counters_.GetCounters()) {
+         json::Node row;
+         row.set("name", entry.first);
+         row.set("value", static_cast<int>(entry.second.GetValue())); // xxx: counters need a type...
+         // LOG_(0) << " " << std::setw(32) << entry.first << " : " << entry.second.GetValue();
+      }
+      if (perf_counter_deferred_) {
+         perf_counter_deferred_->Notify(counters);
+      }
+   }
+}
+
 
 void Simulation::StepPathFinding()
 {
@@ -509,6 +538,12 @@ lua::ScriptHost& Simulation::GetScript() {
    return *scriptHost_;
 }
 
+perfmon::Store& Simulation::GetPerfmonCounters()
+{
+   return perf_counters_;
+}
+
+
 void Simulation::InitDataModel()
 {
    object_model_traces_ = std::make_shared<dm::TracerSync>("sim objects");
@@ -589,7 +624,13 @@ void Simulation::Mainloop()
       ProcessJobList();
       FireLuaTraces();
    }
-   if (net_send_timer_.expired()) {
+   if (next_counter_push_.expired()) {
+      PushPerformanceCounters();
+      next_counter_push_.set(500);
+   }
+   // Disable the independant netsend timer until I can figure out this clock synchronization stuff -- tonyc
+   static const bool disable_net_send_timer = true;
+   if (disable_net_send_timer || net_send_timer_.expired()) {
       SendClientUpdates();
       // reset the send timer.  We have a choice here of using "set" or "advance". Set
       // will set the timer to the current time + the interval.  Advance will set it to

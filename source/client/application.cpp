@@ -132,9 +132,16 @@ int Application::Run(int argc, const char** argv)
          ShowHelp();
          std::exit(0);
       }
-      radiant::logger::Init(core::System::GetInstance().GetTempDirectory() / LOG_FILENAME);
+
       json::InitialzeErrorHandler();
       core::Config::GetInstance().Load(argc, argv);
+
+      bool show_console = true;
+      DEBUG_ONLY(show_console = false;)
+      if (core::Config::GetInstance().Get<bool>("logging.show_console", show_console)) {
+         radiant::logger::InitConsole();
+      }
+      radiant::logger::Init(core::System::GetInstance().GetTempDirectory() / LOG_FILENAME);
       radiant::logger::InitLogLevels();
    } catch (std::exception const& e) {
       std::string const error_message = BUILD_STRING("Error starting application:\n\n" << e.what());
