@@ -1,4 +1,4 @@
-local object_tracker = require 'services.object_tracker.object_tracker_service'
+local object_tracker = stonehearth.object_tracker
 
 local ObjectTrackerCallHandler = class()
 

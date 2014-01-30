@@ -1,6 +1,7 @@
 #include "dm/types/type_macros.h"
 #include "dm/boxed.h"
 #include "om/entity.h"
+#include "om/json.h"
 #include "om/components/effect.ridl.h"
 #include "om/components/model_layer.ridl.h"
 #include "om/components/target_table.ridl.h"
@@ -13,5 +14,5 @@
    SET(om::ModelLayerPtr) \
    SET(om::EffectPtr) \
    SET(om::EntityRef) \
-   SET(std::shared_ptr<dm::Boxed<json::Node>>)
+   SET(std::shared_ptr<om::JsonBoxed>)
 

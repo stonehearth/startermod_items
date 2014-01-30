@@ -1,7 +1,7 @@
 local AiService = class()
 local AiInjector = require 'services.ai.ai_injector'
-local ExecutionUnitV1 = require 'components.ai.execution_unit_v1'
-local ExecutionUnitV2 = require 'components.ai.execution_unit_v2'
+local CompoundActionFactory = require 'services.ai.compound_action_factory'
+local placeholders = require 'services.ai.placeholders'
 local log = radiant.log.create_logger('ai.service')
 
 function AiService:__init()
@@ -17,9 +17,12 @@ function AiService:__init()
    self._observer_registry = {}
    self._entities = {}
    self._ai_components = {}
-   self._scheduled = {}
-   self._co_to_ai_component = {}
-   self._waiting_until = {}
+   
+   for name, value in pairs(placeholders) do
+      AiService[name] = value
+   end
+   AiService.ANY = { ANY = 'Any lua value will do' }
+   AiService.NIL = { NIL = 'The nil value' }
 
    radiant.events.listen(radiant.events, 'stonehearth:gameloop', self, self._on_event_loop)
 end
@@ -29,50 +32,6 @@ function AiService:_on_event_loop(e)
    -- xxx: this is O(n) of entities with self. UG. make the intention notify the ai_component when its priorities change
    for id, ai_component in pairs(self._ai_components) do
       ai_component:restart_if_terminated()
-   end
-
-   for co, pred in pairs(self._waiting_until) do
-      local run = false
-      if type(pred) == 'function' then
-         run = pred(now)
-      elseif type(pred) == 'number' then
-         run = radiant.gamestate.now() >= pred
-      elseif pred == self.SUSPEND_THREAD then
-         run = false
-      else
-         assert(false)
-      end
-      if run then
-         self:_schedule(co)
-      end
-   end
-
-   local dead = {}
-   for co, _ in pairs(self._scheduled) do
-      -- run it
-      self._running_thread = co
-      local success, wait_obj = coroutine.resume(co)
-      self._running_thread = nil
-      
-      if not success then
-         radiant.check.report_thread_error(co, 'entity ai error: ' .. tostring(wait_obj))
-         self._scheduled[co] = nil
-      end
-
-      local status = coroutine.status(co)
-      if status == 'suspended' and wait_obj and wait_obj ~= self.KILL_THREAD then
-         self._scheduled[co] = nil
-         self._waiting_until[co] = wait_obj
-      else
-         table.insert(dead, co)
-      end
-   end
-  
-   for _, co in ipairs(dead) do
-      local ai_component = self._co_to_ai_component[co]
-      if ai_component then
-         ai_component:restart()
-      end
    end
 end
 
@@ -85,25 +44,25 @@ end
 function AiService:add_action(entity, uri, injecting_entity)
    local ctor = radiant.mods.load_script(uri)
    local ai_component = self:_get_ai_component(entity)
-   
-   local action
-   local execution_unit_ctor
-   if not ctor.version or ctor.version == 1 then
-      execution_unit_ctor = ExecutionUnitV1
-   else
-      execution_unit_ctor = ExecutionUnitV2
-   end
-   local unit = execution_unit_ctor(ai_component, entity, injecting_entity)
-   action = ctor(unit, entity, injecting_entity)
-   unit:set_action(action)
-   
-   ai_component:add_action(uri, unit)
-   return action
+
+   ai_component:add_action(uri, ctor, injecting_entity)
 end
 
 function AiService:remove_action(entity, uri)
    local ai_component = self:_get_ai_component(entity)
    ai_component:remove_action(uri)
+end
+
+function AiService:add_custom_action(entity, action_ctor, injecting_entity)
+   log:debug('adding action "%s" to %s', action_ctor.name, tostring(entity))
+   local ai_component = self:_get_ai_component(entity)
+   ai_component:add_action(action_ctor, action_ctor, injecting_entity)
+end
+
+function AiService:remove_custom_action(entity, action_ctor, injecting_entity)
+   log:debug('removing action "%s" to %s', action_ctor.name, tostring(entity))
+   local ai_component = self:_get_ai_component(entity)
+   ai_component:remove_action(action_ctor)
 end
 
 function AiService:add_observer(entity, uri, ...)
@@ -156,47 +115,57 @@ function AiService:stop_ai(id)
    self._ai_components[id] = nil
 end
 
-function AiService:_create_thread(ai_component, fn)
-   local co = coroutine.create(fn)
-   self._scheduled[co] = true
-   self._co_to_ai_component[co] = ai_component
-   return co
+function AiService:format_activity(activity)
+   return activity.name .. '(' .. self:format_args(activity.args) .. ')'
 end
 
-function AiService:_resume_thread(co)
-   local wait_obj = self._waiting_until[co]
-   if wait_obj == self.SUSPEND_THREAD then
-      self:_schedule(co)
-   end
-end
-
--- removes the thread from the scheduler and the waiting thread
--- list.  If the thread is still running (terminate self?  is that
--- moral?), you still need to _complete_thread_termination later,
--- which will make sure the thread doesn't get rescheduled.
-function AiService:_terminate_thread(co)
-   if co then
-      self._waiting_until[co] = nil
-      self._scheduled[co] = nil
-      self._co_to_ai_component[co] = nil
-      
-      if self._running_thread ~= co then
-         log:info('killing non running thread... nothing to do.')
-      else 
-         log:info('killing running thread... yielding KILL_THREAD.')
-         coroutine.yield(self.KILL_THREAD)
+function AiService:format_args(args)
+   local msg = ''
+   if args then
+      assert(type(args) == 'table', string.format('invalid activity arguments: %s', radiant.util.tostring(args)))
+      for name, value in pairs(args) do
+         if #msg > 0 then
+            msg = msg .. ', '
+         end
+         msg = msg .. string.format('%s = %s ', name, radiant.util.tostring(value))
       end
    end
+   return '{ ' .. msg .. '}'
 end
 
-function AiService:_wait_until(co, cb)
-   assert(self._scheduled[co] ~= nil)
-   self._waiting_until[co] = cb
+function AiService:create_compound_action(action_ctor)
+   assert(action_ctor)
+   -- cannot implement anything here.  it gets really confusing (where does start_thinking forward
+   -- its args to?  the next action in the chain or the calling action?)
+   assert(not action_ctor.start_thinking, 'compound actions must not contain implementation')
+   assert(not action_ctor.stop_thinking, 'compound actions must not contain implementation')
+   
+   return CompoundActionFactory(action_ctor)
 end
 
-function AiService:_schedule(co)
-   self._scheduled[co] = true
-   self._waiting_until[co] = nil
+function AiService:create_activity(name, args)   
+   if args == nil then
+      args = {}
+   end
+   assert(type(name) == 'string', 'activity name must be a string')
+   assert(type(args) == 'table', 'activity arguments must be an associative array')
+   assert(not args[1], 'activity arguments contains numeric elements (invalid!)')
+
+   -- common error... trying to pass a class instance (e.g. 'foo', { my_instance })
+   -- this won't catch them all, but will catch all uses of unclasslib clases
+   assert(not args.__class, 'attempt to pass class for activity args (not using associative array?)')
+   assert(not args.__type,  'attempt to pass instance for activity args (not using associative array?)')
+
+   return {
+      name = name,
+      args = args
+   }
+end
+
+local LAST_ID = 0
+function AiService:get_next_object_id()
+   LAST_ID = LAST_ID + 1
+   return LAST_ID
 end
 
 return AiService()

@@ -23,12 +23,11 @@ local constants = {
       -- Priorities for basic needs
       -- TODO: integrate sleep
       needs = {
-         BARELY_HUNGRY = 3,
-         HUNGRY = 6,
-         REALLY_HUNGRY = 10
+         EAT = 10,
+         SLEEP = 20,
       }
    },
-
+   
    -- Constants related to constructing buildings
    construction = {
       STOREY_HEIGHT = 6,
@@ -39,6 +38,12 @@ local constants = {
    worker_scheduler = {
       -- The number of ticks to wait before picking the best solution to dispatch
       DISPATCHER_WAIT_TIME = 3,
+   },
+
+   input = {
+      mouse = {
+         dead_zone_size = 4
+      }
    }
 }
 

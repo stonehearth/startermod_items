@@ -5,12 +5,6 @@
          "name": "Plate of berries",
          "description": "TODO: invent whipped cream."
       },
-      "stonehearth:attributes" : {
-         "sates_hunger" : {
-            "type" : "basic", 
-            "value" : 100
-         }
-      },
       "model_variants": [
          {
             "models": [
@@ -21,8 +15,15 @@
    },
    "entity_data" : {
       "stonehearth:activity_name" : "eating_berries",
-      "stonehearth:message_starved" : "BERRIES! GLUMPH! CRUNCH! GLORPH!",
-      "stonehearth:message_normal" : "Mmmm! Berries are delicious!",
-      "stonehearth:message_floor" : "Wish I could eat these berries while sitting in a chair..."
+      "stonehearth:food" : {
+         "sitting_on_chair" : {
+            "satisfaction" : 100,
+            "journal_message" : "Mmmm! Berries are delicious!"
+         },
+         "default" : {
+            "satisfaction" : 50,
+            "journal_message" : "Wish I could eat these berries while sitting in a chair..."
+         }
+      }
    }
 }

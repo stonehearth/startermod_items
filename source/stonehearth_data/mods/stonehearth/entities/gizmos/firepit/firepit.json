@@ -50,6 +50,10 @@
             }
          }
       },
+      "stonehearth:placed_item" : {
+         "proxy_entity" : "stonehearth:firepit_proxy"
+      }
+   },
       "stonehearth:sensor_ai_injector" : {
          "sensor" : "fire_radius",
          "ai" : {
@@ -57,10 +61,5 @@
                "stonehearth:actions:idle:warm_hands"
             ]
          }
-      },
-
-      "stonehearth:placed_item" : {
-         "proxy_entity" : "stonehearth:firepit_proxy"
       }
-   }
 }

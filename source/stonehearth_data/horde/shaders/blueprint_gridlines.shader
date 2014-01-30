@@ -63,5 +63,5 @@ void main() {
    vec4 gridlineColor = vec4(0.0, .4, .8, .4);
    vec4 gridline = texture3D(gridMap, gridLineCoords + vec3(0.5, 0.0, 0.5));
    gridline = vec4(1.0, 1.0, 1.0, 1.0) - gridline;
-   gl_FragColor = vec4(theColor.rgb, 0.3) * (1 - gridline.a) + gridline * gridlineColor;
+   gl_FragColor = vec4(theColor.rgb, 0.3) * (1.0 - gridline.a) + gridline * gridlineColor;
 }

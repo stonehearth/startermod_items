@@ -17,7 +17,8 @@ PathFinderSrc::PathFinderSrc(PathFinder &pf, om::EntityRef e) :
    pf_(pf),
    entity_(e),
    moving_(false),
-   collision_cb_id_(0)
+   collision_cb_id_(0),
+   use_source_override_(false)
 {
 
    ASSERT(!e.expired());
@@ -45,16 +46,33 @@ PathFinderSrc::~PathFinderSrc()
 {
 }
 
+void PathFinderSrc::SetSourceOverride(csg::Point3 const& location)
+{
+   source_override_ = location;
+   use_source_override_ = true;
+   transform_trace_ = nullptr;
+   moving_trace_ = nullptr;
+   moving_ = false;
+}
+
 void PathFinderSrc::InitializeOpenSet(std::vector<PathFinderNode>& open)
 {
-   auto entity = entity_.lock();
-   if (entity) {
-      auto mob = entity->GetComponent<om::Mob>();
-      if (mob) {
-         open.push_back(PathFinderNode(mob->GetWorldGridLocation()));
-         PF_LOG(5) << "initialized open set with entity location " << open.back().pt;
+   csg::Point3 start;
+   if (use_source_override_) {
+      start = source_override_;
+   } else {
+      auto entity = entity_.lock();
+      if (entity) {
+         auto mob = entity->GetComponent<om::Mob>();
+         if (!mob) {
+            PF_LOG(0) << "source entity has no om::Mob component in pathfinder!";
+            return;
+         }
+         start = mob->GetWorldGridLocation();
       }
    }
+   open.push_back(start);
+   PF_LOG(5) << "initialized open set with entity location " << start;
 }
 
 bool PathFinderSrc::IsIdle() const

@@ -36,6 +36,7 @@
 #include "lib/lua/voxel/open.h"
 #include "lib/lua/analytics/open.h"
 #include "om/lua/lua_om.h"
+#include "om/error_browser/error_browser.h"
 #include "csg/lua/lua_csg.h"
 #include "lib/rpc/session.h"
 #include "lib/rpc/function.h"
@@ -74,6 +75,15 @@ Simulation::Simulation() :
    scriptHost_.reset(new lua::ScriptHost());
 
    InitDataModel();
+
+   // Entity 1
+   root_entity_ = CreateEntity();
+   ASSERT(root_entity_->GetObjectId() == 1);
+
+   error_browser_ = store_.AllocObject<om::ErrorBrowser>();
+   scriptHost_->SetNotifyErrorCb([=](om::ErrorBrowser::Record const& r) {
+      error_browser_->AddRecord(r);
+   });
 
    // sessions (xxx: stub it out for single player)
    session_ = std::make_shared<rpc::Session>();
@@ -117,9 +127,20 @@ Simulation::Simulation() :
    core_reactor_->AddRoute("radiant:game:start_task_manager", [this](rpc::Function const& f) {
       return StartTaskManager();
    });
+   core_reactor_->AddRoute("radiant:game:get_perf_counters", [this](rpc::Function const& f) {
+      return StartPerformanceCounterPush();
+   });
    core_reactor_->AddRouteV("radiant:profile_next_lua_upate", [this](rpc::Function const& f) {
       profile_next_lua_update_ = true;
       SIM_LOG(0) << "profiling next lua update";
+   });
+
+   core_reactor_->AddRoute("radiant:server:get_error_browser", [this](rpc::Function const& f) {
+      rpc::ReactorDeferredPtr d = std::make_shared<rpc::ReactorDeferred>("get error browser");
+      json::Node obj;
+      obj.set("error_browser", om::ObjectFormatter().GetPathToObject(error_browser_));
+      d->Resolve(obj);
+      return d;
    });
 
 }
@@ -146,6 +167,7 @@ static std::string SanatizePath(std::string const& path)
 void Simulation::CreateNew()
 {
    using namespace luabind;
+   res::ResourceManager2 &resource_manager = res::ResourceManager2::GetInstance();
 
    lua_State* L = scriptHost_->GetInterpreter();
    lua_State* callback_thread = scriptHost_->GetCallbackThread();
@@ -163,21 +185,38 @@ void Simulation::CreateNew()
    lua::analytics::open(L);
    om::RegisterObjectTypes(store_);
 
-   game_tick_interval_ = core::Config::GetInstance().Get<int>("simulation.game_tick_interval", 200);
-   net_send_interval_ = core::Config::GetInstance().Get<int>("simulation.net_send_interval", 200);
-   base_walk_speed_ = core::Config::GetInstance().Get<float>("simulation.base_walk_speed", 0.3f);
-   base_walk_speed_ = base_walk_speed_ * 1000.0f / game_tick_interval_;
+   game_tick_interval_ = core::Config::GetInstance().Get<int>("simulation.game_tick_interval", 50);
+   net_send_interval_ = core::Config::GetInstance().Get<int>("simulation.net_send_interval", 50);
+   base_walk_speed_ = core::Config::GetInstance().Get<float>("simulation.base_walk_speed", 7.5f);
+   base_walk_speed_ = base_walk_speed_ * game_tick_interval_ / 1000.0f;
 
    game_api_ = scriptHost_->Require("radiant.server");
+   for (std::string const& mod_name : resource_manager.GetModuleNames()) {
+      json::Node manifest = resource_manager.LookupManifest(mod_name);
+      std::string script_name = manifest.get<std::string>("server_init_script", "");
+      if (!script_name.empty()) {
+         try {
+            luabind::globals(L)[mod_name] = scriptHost_->Require(script_name);
+         } catch (std::exception const& e) {
+            SIM_LOG(1) << "module " << mod_name << " failed to load " << script_name << ": " << e.what();
+         }
+      }
+   }
+   scriptHost_->Require("radiant.lualibs.strict");
 
    core::Config const& config = core::Config::GetInstance();
    std::string const module = config.Get<std::string>("game.mod");
-   json::Node const manifest = res::ResourceManager2::GetInstance().LookupManifest(module);
+   json::Node const manifest = resource_manager.LookupManifest(module);
    std::string const default_script = module + "/" + manifest.get<std::string>("game.script");
 
    std::string const game_script = config.Get("game.script", default_script);
    object game_ctor = scriptHost_->RequireScript(game_script);
-   game_ = luabind::call_function<luabind::object>(game_ctor);
+   try {
+      game_ = luabind::call_function<luabind::object>(game_ctor);
+   } catch (std::exception const& e) {
+      SIM_LOG(0) << "game failed to load: " << e.what();
+      return;
+   }
       
    /* xxx: this is all SUPER SUPER dangerous.  if any of these things cause lua
       to blow up, the process will exit(), since there's no protected handler installed!
@@ -215,6 +254,32 @@ rpc::ReactorDeferredPtr Simulation::StartTaskManager()
    }
    return task_manager_deferred_;
 }
+
+rpc::ReactorDeferredPtr Simulation::StartPerformanceCounterPush()
+{
+   if (!perf_counter_deferred_) {
+      perf_counter_deferred_ = std::make_shared<rpc::ReactorDeferred>("game perf counters");
+      next_counter_push_.set(0);
+   }
+   return perf_counter_deferred_ ;
+}
+
+void Simulation::PushPerformanceCounters()
+{
+   if (1 || perf_counter_deferred_) {
+      json::Node counters;
+      for (const auto& entry : perf_counters_.GetCounters()) {
+         json::Node row;
+         row.set("name", entry.first);
+         row.set("value", static_cast<int>(entry.second.GetValue())); // xxx: counters need a type...
+         // LOG_(0) << " " << std::setw(32) << entry.first << " : " << entry.second.GetValue();
+      }
+      if (perf_counter_deferred_) {
+         perf_counter_deferred_->Notify(counters);
+      }
+   }
+}
+
 
 void Simulation::StepPathFinding()
 {
@@ -473,6 +538,12 @@ lua::ScriptHost& Simulation::GetScript() {
    return *scriptHost_;
 }
 
+perfmon::Store& Simulation::GetPerfmonCounters()
+{
+   return perf_counters_;
+}
+
+
 void Simulation::InitDataModel()
 {
    object_model_traces_ = std::make_shared<dm::TracerSync>("sim objects");
@@ -553,7 +624,14 @@ void Simulation::Mainloop()
       ProcessJobList();
       FireLuaTraces();
    }
-   if (net_send_timer_.expired(20)) {
+   if (next_counter_push_.expired()) {
+      PathFinder::ComputeCounters(perf_counters_);
+      PushPerformanceCounters();
+      next_counter_push_.set(500);
+   }
+   // Disable the independant netsend timer until I can figure out this clock synchronization stuff -- tonyc
+   static const bool disable_net_send_timer = true;
+   if (disable_net_send_timer || net_send_timer_.expired()) {
       SendClientUpdates();
       // reset the send timer.  We have a choice here of using "set" or "advance". Set
       // will set the timer to the current time + the interval.  Advance will set it to
@@ -566,7 +644,7 @@ void Simulation::Mainloop()
    } else {
       SIM_LOG_GAMELOOP(7) << "net log still has " << net_send_timer_.remaining() << " till expired.";
    }
-   LuaGC();
+   //LuaGC();
    Idle();
 }
 
@@ -579,21 +657,24 @@ void Simulation::LuaGC()
 
 void Simulation::Idle()
 {
-   MEASURE_TASK_TIME("idle")
-
+   // use of advance considered harmful.  what if the server gets "stuck"?  (e.g. in the debugger)
    if (!noidle_) {
+      MEASURE_TASK_TIME("idle")
       SIM_LOG_GAMELOOP(7) << "idling";
       while (!game_loop_timer_.expired()) {
          platform::sleep(1);
       }
-      game_loop_timer_.advance(game_tick_interval_);
    } else {
-      if (game_loop_timer_.expired()) { 
-         game_loop_timer_.advance(game_tick_interval_);
-      } else {
-         game_loop_timer_.set(game_tick_interval_);
+      if (!game_loop_timer_.expired()) {
+         perfmon::Counter* last_counter = perf_timeline_.GetCurrentCounter();
+         perfmon::Counter* counter = perf_timeline_.GetCounter("idle");
+         perf_timeline_.SetCounter(counter);
+         counter->Increment(perfmon::MillisecondsToCounter(game_loop_timer_.remaining()));
+         perf_timeline_.SetCounter(last_counter);
+         Sleep(0);
       }
    }
+   game_loop_timer_.set(game_tick_interval_);
 }
 
 void Simulation::SendClientUpdates()

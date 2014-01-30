@@ -227,6 +227,7 @@ function AttributesComponent:_recalculate(name)
    end
 
    radiant.events.trigger(self._entity, 'stonehearth:attribute_changed:' .. name, { 
+         name = name,
          value = self._attributes[name].effective_value
       })
 

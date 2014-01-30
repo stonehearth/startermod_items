@@ -1,9 +1,8 @@
-local camera = require 'services.camera.camera_service'
+local camera = stonehearth.camera
 
 local CameraCallHandler = class()
 
 local camera_tracker = nil
-local trace
 function CameraCallHandler:camera_look_at_entity(session, request, entity)
    camera:look_at_entity(entity)
    request:resolve({})

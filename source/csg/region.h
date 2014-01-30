@@ -70,6 +70,9 @@ public:
    const Region<S, C>& operator+=(const Point& pt) { return operator+=(Cube(pt)); }
    const Region<S, C>& operator-=(const Point& pt) { return operator-=(Cube(pt)); }
 
+private:
+   void Validate() const;
+
 public:
    template <class T> void SaveValue(T* msg) const {
       for (const auto& c : cubes_) {

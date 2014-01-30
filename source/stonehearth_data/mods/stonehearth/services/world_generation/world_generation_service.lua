@@ -38,7 +38,7 @@ function WorldGenerationService:initialize(async, game_seed)
    self._terrain_info = tg.terrain_info
    local feature_cell_size = self._landscaper:get_feature_cell_size()
 
-   self._scenario_service = radiant.mods.load('stonehearth').scenario
+   self._scenario_service = stonehearth.scenario
    self._scenario_service:initialize(feature_cell_size, self._rng)
    self._habitat_manager = HabitatManager(self._terrain_info, self._landscaper)
 
@@ -68,8 +68,12 @@ function WorldGenerationService:create_world()
       wall_clock_timer:start()
 
       local blueprint
-      blueprint = self._blueprint_generator:generate_blueprint(5, 5)
-      --blueprint = self._blueprint_generator:get_empty_blueprint(1, 1) -- useful for debugging real world scenarios without waiting for the load time
+      local method = radiant.util.get_config('world_generation.method', 'default')
+      if method == 'tiny' then
+         blueprint = self._blueprint_generator:get_empty_blueprint(1, 1) -- useful for debugging real world scenarios without waiting for the load time
+      else
+         blueprint = self._blueprint_generator:generate_blueprint(5, 5)
+      end
       --blueprint = self._blueprint_generator:get_static_blueprint()
       self:_generate_world(blueprint)
 

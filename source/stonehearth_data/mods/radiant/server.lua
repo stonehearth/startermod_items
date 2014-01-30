@@ -3,7 +3,7 @@ decoda_name = "radiant server"
 
 radiant = {
    is_server = true,
-   _root_entity = _radiant.sim.create_empty_entity()
+   _root_entity = _radiant.sim.get_entity(1)
 }
 
 radiant.log = require 'modules.log'
@@ -21,6 +21,11 @@ radiant.pathfinder = require 'modules.pathfinder'
 
 radiant.gamestate._start()
 radiant.log.info('server', 'radiant api initialized.')
+
+function radiant.not_reached(reason, ...)
+   local reason = reason and string.format(reason, ...) or 'no reason given'
+   assert(false, 'executed theoretically unreachable code: ' .. reason)
+end
 
 local api = {}
 

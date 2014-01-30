@@ -1,5 +1,7 @@
 #include "pch.h"
 #include "path.h"
+#include "om/entity.h"
+#include "om/components/mob.ridl.h"
 
 using namespace ::radiant;
 using namespace ::radiant::simulation;
@@ -19,13 +21,21 @@ Path::Path(const std::vector<csg::Point3>& points, om::EntityRef source, om::Ent
 
 std::ostream& Path::Format(std::ostream& os) const
 {
-   os << "[path " << id_;
-   if (!points_.empty()) {
-      os << " " << points_.front() << " -> " << points_.back();
-   } else {
-      os << "no points on path";
+   os << "[id:" << id_;
+   om::EntityPtr source = source_.lock();
+   if (source) {
+      os << " " << *source << " -> ";
    }
-   os << "]";
+   if (!points_.empty()) {
+      os << " " << points_.front() << " -> " << points_.back() << " -> ";
+   } else {
+      os << " no points! -> ";
+   }
+   om::EntityPtr destination = destination_.lock();
+   if (destination) {
+      os << *destination << " -> ";
+   }
+   os << " dpoi:" << finish_pt_ << "]";
    return os;
 }
 
@@ -41,3 +51,22 @@ std::ostream& simulation::operator<<(std::ostream& os, const Path& in)
 {
    return in.Format(os);
 } 
+
+csg::Point3 Path::GetStartPoint() const
+{
+   return points_.empty() ? GetSourceLocation() : points_.front();
+}
+
+csg::Point3 Path::GetFinishPoint() const
+{
+   return points_.empty() ? GetSourceLocation() : points_.back();
+}
+
+csg::Point3 Path::GetSourceLocation() const
+{
+   om::EntityPtr source = source_.lock();
+   if (source) {
+      return source->GetComponent<om::Mob>()->GetWorldGridLocation();
+   }
+   return csg::Point3(0, 0, 0);
+}

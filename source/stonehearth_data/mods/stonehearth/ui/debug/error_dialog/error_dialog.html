@@ -1,0 +1,19 @@
+<script type="text/x-handlebars" data-template-name="errorDialog">
+   <div id="errorDialog">
+      <div class="heading">summary <a id="close" {{action close target=view}}>close window</a></div>
+      <div class="value">{{ summary }}</div>
+      <div class="heading">backtrace</div>
+      <div class="value">{{ backtrace }}</div>
+      <div class="heading">line number</div>
+      {{ line_number }}
+      <div class="heading">char offset</div>
+      {{ char_offset }}
+      <div class="heading">category</div>
+      {{ category }}
+      <div class="heading">filename</div>
+      {{ filename }}
+
+      <div id=editor>{{file_content}}</div>
+   </div>
+</div>
+</script>

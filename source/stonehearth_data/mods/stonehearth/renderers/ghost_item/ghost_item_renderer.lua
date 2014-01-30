@@ -3,6 +3,7 @@ local Point3 = _radiant.csg.Point3
 local GhostItemRenderer = class()
 
 function GhostItemRenderer:__init(render_entity, data_store)
+   self._parent_node = render_entity:get_node()
    self._ghost_item_rendered = nil
 
    self._data_store  = data_store
@@ -18,16 +19,12 @@ function GhostItemRenderer:_update()
    if data and data.full_sized_mod_url ~= '' then
       self._ghost_entity = radiant.entities.create_entity(data.full_sized_mod_url)
       self._ghost_entity:add_component('render_info')
-         :set_material('materials/ghost_item.xml')
-         --TODO: blueprint mode doesn't yet work with multiple matrix models
-         --See this bug: http://bugs.radiant-entertainment.com:8080/browse/SH-38
-         --:set_model_mode('blueprint')
+                           :set_material('materials/ghost_item.xml')
+                           --TODO: blueprint mode doesn't yet work with multiple matrix models
+                           --See this bug: http://bugs.radiant-entertainment.com:8080/browse/SH-38
+                           --:set_model_mode('blueprint')
 
-      self._ghost_item_rendered = _radiant.client.create_render_entity(1, self._ghost_entity)
-
-      local ghost_mob = self._ghost_entity:add_component('mob')
-      ghost_mob:set_location_grid_aligned(Point3(data.location.x, data.location.y, data.location.z))
-      ghost_mob:turn_to(data.rotation)
+      self._ghost_item_rendered = _radiant.client.create_render_entity(self._parent_node, self._ghost_entity)
    end
 end
 

@@ -92,6 +92,7 @@ void TraceObjectRouter::InstallTrace(std::string const& uri, ReactorDeferredPtr 
    entry.deferred = deferred;
    entry.obj = obj;
    entry.trace = obj->TraceObjectChanges("rpc", dm::RPC_TRACES);
+
    entry.trace->OnModified_([this, uri, entry]() {
       auto obj = entry.obj.lock();
       auto deferred = entry.deferred.lock();

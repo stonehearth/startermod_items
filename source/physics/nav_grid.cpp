@@ -4,6 +4,7 @@
 #include "nav_grid_tile.h"
 #include "dm/store.h"
 #include "csg/util.h"
+#include "csg/color.h"
 #include "core/config.h"
 #include "om/components/component.h"
 #include "om/components/mob.ridl.h"
@@ -14,6 +15,7 @@
 #include "terrain_tile_tracker.h"
 #include "region_collision_shape_tracker.h"
 #include "vertical_pathing_region_tracker.h"
+#include "protocols/radiant.pb.h"
 
 using namespace radiant;
 using namespace radiant::phys;
@@ -279,7 +281,7 @@ NavGridTile& NavGrid::GridTile(csg::Point3 const& pt, bool make_resident)
       } else {
          NG_LOG(3) << "making nav grid tile " << pt << " resident";
          tile.SetDataResident(true);
-         if (resident_tiles_.size() >= max_resident_) {         
+         if (resident_tiles_.size() >= max_resident_) {
             EvictNextUnvisitedTile(pt);
          } else {
             resident_tiles_.push_back(std::make_pair(pt, true));
@@ -302,6 +304,15 @@ void NavGrid::ShowDebugShapes(csg::Point3 const& pt, protocol::shapelist* msg)
    NavGridTile& tile = GridTileResident(index);
    tile.FlushDirty(*this, index);
    tile.ShowDebugShapes(msg, index);
+
+   csg::Color4 border_color(0, 0, 128, 64);
+   for (auto const& entry : resident_tiles_) {
+      protocol::box* box = msg->add_box();
+      csg::Point3 offset = entry.first.Scaled(TILE_SIZE);
+      csg::ToFloat(offset).SaveValue(box->mutable_minimum());
+      csg::ToFloat(offset + csg::Point3(TILE_SIZE, TILE_SIZE, TILE_SIZE)).SaveValue(box->mutable_maximum());
+      border_color.SaveValue(box->mutable_color());
+   }
 }
 
 

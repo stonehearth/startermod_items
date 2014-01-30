@@ -204,6 +204,22 @@ static void ${class_upper}_Each${singular_name | env.upper}(lua_State *L, ${clas
    }
    throw std::invalid_argument("invalid reference in native ${class_lower}::each_${singular_name}");
 }
+
+static void ${class_upper}_First${singular_name | env.upper}(lua_State *L, ${class_formal_parameter})
+{
+   ${class_to_pointer}
+   if (instance)  {
+      auto const& container = instance->Each${singular_name | env.upper}();
+      auto i = container.begin();
+      if (i != container.end()) {
+         object(L, i->first).push(L);
+         object(L, i->second).push(L);
+      }
+      return;
+   }
+   throw std::invalid_argument("invalid reference in native ${class_lower}::each_${singular_name}");
+}
+
    % endif
    % if map.num:
 static int ${class_upper}_Num${name | env.upper}(${class_formal_parameter})
@@ -339,6 +355,7 @@ scope Register${class_upper}(lua_State* L)
    % endif
    % if map.iterate:
          .def("each_${singular_name | env.lower}", ${class_upper}_Each${singular_name | env.upper})
+         .def("first_${singular_name | env.lower}", ${class_upper}_First${singular_name | env.upper})
    % endif
    % if map.num:
          .def("num_${name | env.lower}", ${class_upper}_Num${name | env.upper})

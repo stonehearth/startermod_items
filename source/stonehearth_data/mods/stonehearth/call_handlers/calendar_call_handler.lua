@@ -1,4 +1,4 @@
-local calendar = require 'services.calendar.calendar_service'
+local calendar = stonehearth.calendar
 
 local CalendarCallHandler = class()
 
