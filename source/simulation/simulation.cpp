@@ -628,7 +628,9 @@ void Simulation::Mainloop()
       PushPerformanceCounters();
       next_counter_push_.set(500);
    }
-   if (net_send_timer_.expired()) {
+   // Disable the independant netsend timer until I can figure out this clock synchronization stuff -- tonyc
+   static const bool disable_net_send_timer = true;
+   if (disable_net_send_timer || net_send_timer_.expired()) {
       SendClientUpdates();
       // reset the send timer.  We have a choice here of using "set" or "advance". Set
       // will set the timer to the current time + the interval.  Advance will set it to
