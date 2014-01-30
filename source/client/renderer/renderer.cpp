@@ -142,7 +142,6 @@ Renderer::Renderer() :
 
    ApplyConfig(config_, false);
 
-   //SetDrawWorld(drawWorld_);
    SetEnabledStages(uiOnlyStages_);
 
    // Overlays
@@ -296,8 +295,8 @@ void Renderer::UpdateFoW(H3DNode node, const csg::Region3& region)
       float py = (c.max + c.min).y / 2.0f;
       float pz = (c.max + c.min).z / 2.0f;
 
-      float xSize = c.max.x - c.min.x;
-      float zSize = c.max.z - c.min.z;
+      float xSize = (float)c.max.x - c.min.x;
+      float zSize = (float)c.max.z - c.min.z;
       f[0] = xSize; f[1] =  0; f[2] =   0; f[3] =  0;
       f[4] =  0; f[5] = 100; f[6] =   0; f[7] =  0;
       f[8] =  0; f[9] =  0; f[10] = zSize; f[11] = 0;
@@ -308,7 +307,8 @@ void Renderer::UpdateFoW(H3DNode node, const csg::Region3& region)
 
    h3dUnmapNodeParamV(node, H3DInstanceNodeParams::InstanceBuffer, (f - start) * 4);
    const auto& bounds = region.GetBounds();
-   h3dUpdateBoundingBox(node, bounds.min.x, bounds.min.y, bounds.min.z, bounds.max.x, bounds.max.y, bounds.max.z);
+   h3dUpdateBoundingBox(node, (float)bounds.min.x, (float)bounds.min.y, (float)bounds.min.z, 
+      (float)bounds.max.x, (float)bounds.max.y, (float)bounds.max.z);
 }
 
 void Renderer::RenderFogOfWarRT()
@@ -339,9 +339,7 @@ void Renderer::RenderFogOfWarRT()
    min.quantize(quantizer);
    max.quantize(quantizer);
 
-
-
-   Horde3D::Vec3f p = (min + max) * 0.5;
+   Horde3D::Vec3f p = (min + max) * 0.5f;
    // Construct a new camera view matrix pointing down.
    fowView.x[0] = 1;  fowView.x[1] = 0;  fowView.x[2] = 0;
    fowView.x[4] = 0;  fowView.x[5] = 0;  fowView.x[6] = 1;
@@ -649,7 +647,6 @@ void Renderer::ApplyConfig(const RendererConfig& newConfig, bool persistConfig)
    }
 
    // We just flushed/loaded our pipeline, so don't forget to reset the draw bits!
-   //SetDrawWorld(drawWorld_);
    if (drawWorld_) {
       SetEnabledStages(drawWorldStages_);
    } else {
@@ -905,7 +902,9 @@ void Renderer::RenderOneFrame(int now, float alpha)
    // Render scene
    perfmon::SwitchToCounter("render h3d");
    
-   RenderFogOfWarRT();
+   if (drawWorld_) {
+      RenderFogOfWarRT();
+   }
 
    h3dRender(camera_->GetNode());
 
@@ -1113,28 +1112,17 @@ void Renderer::SetEnabledStages(std::unordered_set<std::string>& stages)
       const std::string curStageName(h3dGetResParamStr(currentPipeline_, H3DPipeRes::StageElem, i, H3DPipeRes::StageNameStr));
       int enabled = stages.find(curStageName) != stages.end() ? 1 : 0;
       h3dSetResParamI(currentPipeline_, H3DPipeRes::StageElem, i, H3DPipeRes::StageActivationI, enabled);
-   }   
+   }
 }
 
 void Renderer::SetDrawWorld(bool drawWorld) 
 {
    drawWorld_ = drawWorld;
 
-   SetStageEnable("Sky", drawWorld);
-   SetStageEnable("Starfield", drawWorld);
-   SetStageEnable("Depth", drawWorld);
-   SetStageEnable("FogOfWar", drawWorld);
-   SetStageEnable("Light", drawWorld);
-   SetStageEnable("Clouds", drawWorld);
-   SetStageEnable("Fog", drawWorld);
-   SetStageEnable("Translucent", drawWorld);
-
-   if (config_.use_fast_hilite.value) {
-      SetStageEnable("Selected", false);
-      SetStageEnable("Selected_Fast", drawWorld);
+   if (drawWorld_) {
+      SetEnabledStages(drawWorldStages_);
    } else {
-      SetStageEnable("Selected_Fast", false);
-      SetStageEnable("Selected", drawWorld);
+      SetEnabledStages(uiOnlyStages_);
    }
 }
 
