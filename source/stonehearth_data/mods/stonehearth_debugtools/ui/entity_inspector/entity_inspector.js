@@ -40,7 +40,7 @@ App.StonehearthEntityInspectorView = App.View.extend({
          self.trace = null;
       }
 
-      $(top).off()
+      //$(top).off("radiant_selection_changed.entity_inspector")
       this._super(); 
    },
 
