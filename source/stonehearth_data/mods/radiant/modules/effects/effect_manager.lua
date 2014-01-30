@@ -48,7 +48,9 @@ function EffectManager:get_resolved_action(action)
       -- if the set posture overrides this action
       if self._postures[posture][action] then
         -- return the override action
-        return self._postures[posture][action]
+        local resolved_action = self._postures[posture][action]
+        log:debug('effect %s resolved to %s [%s posture:%s]', action, resolved_action, tostring(self._entity), posture)
+        return resolved_action
       end
     end
   end
