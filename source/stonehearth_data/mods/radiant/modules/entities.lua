@@ -575,5 +575,9 @@ function entities.is_material(entity, materials)
    return is_material
 end
 
+function entities.same_entity(e0, e1)
+   return e0 and e1 and e0:is_valid() and e1:is_valid() and e0:equals(e1)
+end
+
 entities.__init()
 return entities

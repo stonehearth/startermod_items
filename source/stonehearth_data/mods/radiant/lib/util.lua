@@ -24,6 +24,9 @@ function util.colorcode_to_integer(cc)
    return result
 end
 
+function util.equals(value)
+end
+
 function util.tostring(value)
    local t = type(value)
    if t == 'userdata' then

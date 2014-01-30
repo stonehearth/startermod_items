@@ -13,5 +13,5 @@ PickupItemTrivial.priority = 1
 local ai = stonehearth.ai
 return ai:create_compound_action(PickupItemTrivial)
          :when( function (ai, entity, args)
-               return ai.CURRENT.carrying == args.item
+               return radiant.entities.same_entity(ai.CURRENT.carrying, args.item)
             end )
