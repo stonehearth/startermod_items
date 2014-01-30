@@ -198,21 +198,17 @@ Renderer::Renderer() :
    }
 
    csg::Region3::Cube littleCube(csg::Region3::Point(0, 0, 0), csg::Region3::Point(1, 1, 1));
-
-   fowVisibleNode_ = h3dAddInstanceNode(H3DRootNode, "fow_explorednode", 
-      h3dAddResource(H3DResTypes::Material, "materials/fow_explored.material.xml", 0), 
+   fowVisibleNode_ = h3dAddInstanceNode(H3DRootNode, "fow_visiblenode", 
+      h3dAddResource(H3DResTypes::Material, "materials/fow_visible.material.xml", 0), 
       Pipeline::GetInstance().CreateVoxelGeometryFromRegion("littlecube", littleCube), 1000);
    /*fowExploredNode_ = h3dAddInstanceNode(H3DRootNode, "fow_visiblenode", 
       h3dAddResource(H3DResTypes::Material, "materials/fow_visible.material.xml", 0), 
       Pipeline::GetInstance().CreateVoxelGeometryFromRegion("littlecube", littleCube), 1000);*/
 
-   float* f = (float*)h3dMapNodeParamV(fowVisibleNode_, H3DInstanceNodeParams::InstanceBuffer);
-   f[0] = 50; f[1] =  0; f[2] =   0; f[3] =  0;
-   f[4] =  0; f[5] = 50; f[6] =   0; f[7] =  0;
-   f[8] =  0; f[9] =  0; f[10] = 50; f[11] = 0;
-   f[12] = 0; f[13] = 0; f[14] =  0; f[15] = 1;
-   h3dUnmapNodeParamV(fowVisibleNode_, H3DInstanceNodeParams::InstanceBuffer, 64);
-   h3dUpdateBoundingBox(fowVisibleNode_, 0, 0, 0, 50, 50, 50);
+   csg::Region3 r;
+   r.Add(csg::Region3::Cube(csg::Region3::Point(-10, 0, -10), csg::Region3::Point(10, 0, 10)));
+   r.Add(csg::Region3::Cube(csg::Region3::Point(-50, 0, -50), csg::Region3::Point(-30, 0, -30)));
+   UpdateFoW(fowVisibleNode_, r);
 
    // Add camera   
    camera_ = new Camera(H3DRootNode, "Camera", currentPipeline_);
@@ -288,6 +284,31 @@ Renderer::Renderer() :
    SetShowDebugShapes(false);
 
    initialized_ = true;
+}
+
+void Renderer::UpdateFoW(H3DNode node, const csg::Region3& region)
+{
+   float* start = (float*)h3dMapNodeParamV(node, H3DInstanceNodeParams::InstanceBuffer);
+   float* f = start;
+   for (const auto& c : region) 
+   {
+      float px = (c.max + c.min).x / 2.0f;
+      float py = (c.max + c.min).y / 2.0f;
+      float pz = (c.max + c.min).z / 2.0f;
+
+      float xSize = c.max.x - c.min.x;
+      float zSize = c.max.z - c.min.z;
+      f[0] = xSize; f[1] =  0; f[2] =   0; f[3] =  0;
+      f[4] =  0; f[5] = 100; f[6] =   0; f[7] =  0;
+      f[8] =  0; f[9] =  0; f[10] = zSize; f[11] = 0;
+      f[12] = px; f[13] = py; f[14] =  pz; f[15] = 1;
+      
+      f += 16;
+   }
+
+   h3dUnmapNodeParamV(node, H3DInstanceNodeParams::InstanceBuffer, (f - start) * 4);
+   const auto& bounds = region.GetBounds();
+   h3dUpdateBoundingBox(node, bounds.min.x, bounds.min.y, bounds.min.z, bounds.max.x, bounds.max.y, bounds.max.z);
 }
 
 void Renderer::RenderFogOfWarRT()

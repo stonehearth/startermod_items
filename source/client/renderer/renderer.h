@@ -198,6 +198,7 @@ class Renderer
       float DistFunc(float dist, int wheel, float minDist, float maxDist) const;
       MouseInput WindowToBrowser(const MouseInput& mouse);
       void CallMouseInputCallbacks();
+      void UpdateFoW(H3DNode node, const csg::Region3& region);
 
       void ResizeWindow(int width, int height);
       void ResizeViewport();
