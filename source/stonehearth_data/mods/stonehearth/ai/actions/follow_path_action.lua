@@ -43,12 +43,15 @@ function FollowPathAction:run(ai, entity, args)
          self._postures_trace:destroy()
          self._postures_trace = nil
       end
-      ai:resume()
+      ai:resume('mover finished')
    end
    
    self._mover = _radiant.sim.create_follow_path(entity, speed, path, 0, arrived_fn)   
    ai:get_log():debug('starting mover %s...', self._mover:get_name());
-   ai:suspend()
+   ai:suspend('waiting for mover to finish')
+
+   -- manually stop now to terminate the effect and remove the posture
+   self:stop(ai, entity, args)
 end
 
 function FollowPathAction:stop(ai, entity)

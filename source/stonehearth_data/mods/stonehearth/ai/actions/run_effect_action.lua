@@ -31,11 +31,14 @@ function RunEffectAction:run(ai, entity, args)
    end
    local times = args.times
 
+   local log = ai:get_log()
    for i = 1, times do
+      log:debug('starting new effect "%s"', effect_name)
       self._effect = radiant.effects.run_effect(entity, effect_name, nil, args.args)
       self._effect:on_finished(function()
             if self._effect then
                self._effect:stop()
+               log:debug('stopped effect "%s" and resuming', effect_name)
                self._effect = nil
                ai:resume('effect %s finished', effect_name)
             end
@@ -55,8 +58,9 @@ function RunEffectAction:_on_effect_trigger(e)
    end
 end
 
-function RunEffectAction:stop(ai, entity)
+function RunEffectAction:stop(ai, entity, args)
    if self._effect then
+      ai:get_log():debug('stopped effect "%s" in stop', args.effect)
       self._effect:stop()
       self._effect = nil
    end

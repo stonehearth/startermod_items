@@ -157,12 +157,14 @@ function NewGameCallHandler:create_camp(session, response, pt)
    return {}
 end
 
-function NewGameCallHandler:place_citizen(x, z)
+function NewGameCallHandler:place_citizen(x, z, profession)
    --TODO: faction denotes which player is playing. Have user pick?
    local faction = stonehearth.population:get_faction('civ','stonehearth:factions:ascendancy')
    local citizen = faction:create_new_citizen()
-
-   faction:promote_citizen(citizen, 'worker')
+   if not profession then
+      profession = 'worker'
+   end
+   faction:promote_citizen(citizen, profession)
 
    radiant.terrain.place_entity(citizen, Point3(x, 1, z))
    return citizen
