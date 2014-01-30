@@ -5,18 +5,19 @@ App.RootView = Ember.ContainerView.extend({
       var self = this;
 
       // create the views
-      this._errorBrowser = this.createChildView(App["StonehearthErrorBrowserView"]);
+      this._debugView = this.createChildView(App["StonehearthDebugView"]);
       this._gameView = this.createChildView(App["StonehearthGameUiView"]);
       this._shellView = this.createChildView(App["StonehearthShellView"]);
 
       // push em
-      this.pushObject(this._errorBrowser)
       this.pushObject(this._gameView)
       this.pushObject(this._shellView)
+      this.pushObject(this._debugView)
 
       // accessors for easy access throughout the app
       App.gameView = this._gameView;
       App.shellView = this._shellView;
+      App.debugView = this._debugView;
 
       App.gotoGame = function() {
          self.gotoGame();
@@ -28,13 +29,14 @@ App.RootView = Ember.ContainerView.extend({
    },
 
    didInsertElement: function() {
-      $('#' + this._errorBrowser.elementId).show();
       if (App.options['skip_title']) {
          App.gameView._addViews(App.gameView.views.complete);
          App.gotoGame();
       } else {
          App.gotoShell();
       }
+
+      $(document).trigger('stonehearthReady');
    },
 
    gotoGame: function() {
@@ -70,4 +72,5 @@ App.RootView = Ember.ContainerView.extend({
             'bgm'} 
          );      
    }
+
 });

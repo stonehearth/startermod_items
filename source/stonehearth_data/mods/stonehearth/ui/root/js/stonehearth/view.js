@@ -24,6 +24,14 @@
       this._super();
    },
 
+   my: function(selector) {
+      if (!selector) {
+         return this.$();
+      } else {
+         return this.$().find(selector);
+      }
+   },
+
    _updatedUri: function() {
       var self = this;
 

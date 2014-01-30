@@ -4,32 +4,8 @@ App.StonehearthErrorDialogView = App.View.extend({
    init: function() {
       this._super();
    },
-   destroy: function() {
-      console.log('============ StonehearthErrorDialogView ================ : destroy');
-      this._super();
-   },   
-   destroyElement: function() {
-      console.log('============ StonehearthErrorDialogView ================ : destroyElement');
-      this._super();
-   },   
-   parentViewDidChange: function() {
-      console.log('============ StonehearthErrorDialogView ================ : parentViewDidChange');
-      this._super();
-   },
-   willClearRender: function() {
-      console.log('============ StonehearthErrorDialogView ================ : willClearRender');
-      this._super();
-   },
-   willDestroyElement: function() {
-      console.log('============ StonehearthErrorDialogView ================ : willDestroyElement');
-      this._super();
-   },
-   willInsertElement: function() {
-      console.log('============ StonehearthErrorDialogView ================ : willInsertElement');
-      this._super();
-   },
+
    didInsertElement: function() {
-      console.log('============ StonehearthErrorDialogView ================ : didInsertElement');
 
       $('#errorDialog')
         .draggable()

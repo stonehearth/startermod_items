@@ -1,9 +1,26 @@
+$(document).on('stonehearthReady', function(){
+   App.debugDock.addToDock(App.StonehearthEntityInspectorIcon);
+});
+
+App.StonehearthEntityInspectorIcon = App.View.extend({
+   templateName: 'entityInspectorIcon',
+   classNames: ['debugDockIcon'],
+
+   didInsertElement: function() {
+      this.$().click(function() {
+         App.debugView.addView(App.StonehearthEntityInspectorView)   
+      })
+   }
+
+});
+
 App.StonehearthEntityInspectorView = App.View.extend({
    templateName: 'entityInspector',
 
    init: function() {
       var self = this;
       this._super();
+
       $(top).on("radiant_selection_changed.entity_inspector", function (_, data) {
          var uri = data.selected_entity;
          if (uri) {
@@ -12,6 +29,19 @@ App.StonehearthEntityInspectorView = App.View.extend({
             self.set('context.state', 'no entity selected');
          }
       });
+   },
+
+   destroy: function() {
+      var self = this;
+
+      self._destoyed = true;
+      if (self.trace) {
+         self.trace.destroy();
+         self.trace = null;
+      }
+
+      $(top).off()
+      this._super(); 
    },
 
    _updateToolTip: function(id, row) {
@@ -23,7 +53,7 @@ App.StonehearthEntityInspectorView = App.View.extend({
         self.set('context.ai.inspect_frame', frame)
         this.$().find("#entityInspectorFrameInfo").offset({
           top: offset.top,
-          left: offset.left + row.width() + 32,
+          left: offset.left + row.width() + 50,
         })
       } else {
         self.set('context.ai.inspect_frame', null)
@@ -46,38 +76,18 @@ App.StonehearthEntityInspectorView = App.View.extend({
         }
       })
 
-      /*
-      $("#body").on("click", "a", function(event) {
-         event.preventDefault();
-         var uri = $(this).attr('href');
-         self.fetch(uri);      
+
+      this.$().draggable();
+
+      this.my('.close').click(function() {
+         self.destroy();
       });
 
-      $('#uriInput').keypress(function(e) {
-        if(e.which == 13) {
-            $(this).blur();
-            self.fetch($(this).val());
-        }
-      });
-
-      this.goHome();
-      this.collapse();
-      */
-   },
-
-   formatJson: function(json) {
-      json = JSON.stringify(json, undefined, 2);
-      return json.replace(/&/g, '&amp;')
-                 .replace(/</g, '&lt;')
-                 .replace(/>/g, '&gt;')
-                 .replace(/ /g, '&nbsp;')
-                 .replace(/\n/g, '<br>')
-                 .replace(/(\/[^"]*)/g, '<a href="$1">$1</a>')
-                 .replace(/"(mod:\/\/[^"]*)"/g, '<a href="$1">$1</a>')
    },
 
    fetch: function(entity) {
       var self = this;
+      this.set('context', {});
       self.set('context.state', 'fetching ai component uri');
       self.set('context.ai', Ember.Object.create());
       
@@ -116,6 +126,10 @@ App.StonehearthEntityInspectorView = App.View.extend({
    },
 
    fetchAiComponent: function() {
+      if (this._destoyed) {
+         return;
+      }
+
       var self = this;
       self.set('context.state', 'updating...');
       radiant.call_obj(self._aiComponent, 'get_debug_info')
@@ -139,28 +153,10 @@ App.StonehearthEntityInspectorView = App.View.extend({
         });
    },
 
-   collapse: function() {
-      $("#body").toggle();
-   },
-
-   goBack: function() {
-      if(this.history.length > 1) {
-        this.forwardHistory.push(this.history.pop())
+   actions: {
+      close: function() {
+        this.destroy();
       }
-      this.fetch(this.history.pop());
-      console.log(this.history.length);
-   },
-
-   goForward: function () {
-      if(this.forwardHistory.length > 0) {
-         var uri = this.forwardHistory.pop();
-         this.fetch(uri);
-      }
-      console.log(this.forwardHistory.length);
-   },
-
-   goHome: function() {
-      this.fetch('/o/stores/game/objects/1');
    }
 
 });

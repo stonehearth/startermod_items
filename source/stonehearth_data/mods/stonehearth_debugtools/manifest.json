@@ -9,10 +9,12 @@
          "file(/ui/object_browser/object_browser.html)"
       ],
       "js" : [
+         "file(ui/debug_dock/debug_dock.js)",      
          "file(/ui/entity_inspector/entity_inspector.js)",
          "file(/ui/object_browser/object_browser.js)"
       ],
       "less" : [
+         "file(ui/debug_dock/debug_dock.less)",      
          "file(/ui/entity_inspector/entity_inspector.less)",
          "file(/ui/object_browser/object_browser.less)"
       ]

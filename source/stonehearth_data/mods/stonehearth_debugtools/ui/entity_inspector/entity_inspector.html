@@ -1,3 +1,7 @@
+<script type="text/x-handlebars" data-template-name="entityInspectorIcon">
+   <div id="entityInspectorIcon"></div>
+</script>
+
 <script type="text/x-handlebars" data-template-name="entityInspectorFrameInfo">
    <div id="entityInspectorFrameInfo">
       {{#if action}}
@@ -15,8 +19,8 @@
    {{ render entityInspectorFrameInfo ai.inspect_frame }}
    {{/if}}
    <div id="entityInspector">
-      <div id="header">
-         state: {{state}}<br>
+      <div class="header">
+         state: {{state}} <div class='close'><a href='#'>close window</a></div>
       </div>
       <div id="content">
          {{#if ai.execution_frame}}

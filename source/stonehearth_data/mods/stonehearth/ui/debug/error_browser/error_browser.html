@@ -1,7 +1,8 @@
-<script type="text/x-handlebars" data-template-name="errorBrowserFrame">
+<script type="text/x-handlebars" data-template-name="errorBrowser">
    <div id="errorBrowser">
-      <div id="title">
-         <a {{action toggleEntries target=view}}><div id="errorCount">{{errors.total}}</div></a>
+      <div class='header'>
+            <div id="errorCount">{{errors.total}}</div>
+         <a href='#'><div class=close>close window</div></a>
       </div>
       <div id="entries">
          {{#each errors.entries}}
