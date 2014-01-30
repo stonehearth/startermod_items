@@ -270,10 +270,12 @@ Cube<int, C> const& csg::ToInt(Cube<int, C> const& cube) {
    return cube;
 }
 
-
 template <class S, int C>
 bool Cube<S, C>::CombineWith(const Cube& cube)
 {
+   if (tag_ != cube.tag_) {
+      return false;
+   }
    Cube together(*this);
    together.Grow(cube);
    if (together.GetArea() == GetArea() + cube.GetArea()) {
