@@ -214,8 +214,19 @@ function ExecutionFrame:_start_thinking_from_stopped(entity_state)
    -- number of shares they have.   the first execution unit we notify has a better
    -- chance of being the active one.
    local shuffled = self:_shuffle_execution_units()
+   
+   -- before starting, make a clone of our entity state for each execution unit.  we
+   -- clone it now rather than inline in the loop to prevent corrupting future states
+   -- if the current unit become ready immediately (like, before _start_thinking even
+   -- returns!)
+   local cloned_state = {}
    for _, unit in ipairs(shuffled) do
-      unit:_start_thinking(self:_clone_entity_state('new speculation for unit'))
+      cloned_state[unit] = self:_clone_entity_state('new speculation for unit')
+   end
+   
+   -- finally, start all the units with the cloned state
+   for _, unit in ipairs(shuffled) do
+      unit:_start_thinking(cloned_state[unit])
    end
 end
 
