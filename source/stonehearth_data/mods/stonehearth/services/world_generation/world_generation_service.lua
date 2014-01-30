@@ -22,12 +22,11 @@ local log = radiant.log.create_logger('world_generation')
 function WorldGenerationService:__init()
 end
 
-function WorldGenerationService:initialize(game_seed, async)
-   log:info('WorldGenerationService using seed %d', game_seed)
+function WorldGenerationService:initialize(seed, async)
+   log:info('WorldGenerationService using seed %d', seed)
 
+   self:set_seed(seed)
    self._async = async
-   self._game_seed = game_seed
-   self._rng = RandomNumberGenerator(self._game_seed)
    self._enable_scenarios = radiant.util.get_config('enable_scenarios', false)
 
    self._terrain_info = TerrainInfo()
@@ -51,6 +50,11 @@ function WorldGenerationService:initialize(game_seed, async)
    radiant.events.listen(radiant.events, 'stonehearth:slow_poll', self, self._on_poll_progress)
 end
 
+function WorldGenerationService:set_seed(seed)
+   self._seed = seed
+   self._rng = RandomNumberGenerator(self._seed)
+end
+
 function WorldGenerationService:_on_poll_progress()
    local done = self._progress == 100
 
@@ -64,10 +68,6 @@ function WorldGenerationService:_on_poll_progress()
 end
 
 function WorldGenerationService:create_blueprint(num_tiles_x, num_tiles_y)
-   -- new algorithm can't handle 1x1 tiles right now
-   assert(num_tiles_x >= 2)
-   assert(num_tiles_y >= 2)
-
    local seconds = Timer.measure(
       function()
          local tile_size = self._tile_size
@@ -126,6 +126,8 @@ function WorldGenerationService:generate_all_tiles()
          local blueprint = self._blueprint
          local i, j, n, tile_order_list, num_tiles
 
+         self._progress = 0
+
          tile_order_list = self:_build_tile_order_list(blueprint)
          num_tiles = #tile_order_list
 
@@ -155,6 +157,8 @@ function WorldGenerationService:generate_tiles(i, j, radius)
          local y_max = math.min(j+radius, blueprint.height)
          local max_tiles = (x_max-x_min+1) * (y_max-y_min+1)
          local count = 0
+
+         self._progress = 0
 
          for b=y_min, y_max do
             for a=x_min, x_max do
@@ -187,10 +191,10 @@ function WorldGenerationService:_generate_tile_impl(i, j)
    local micro_map, elevation_map, feature_map
    local offset_x, offset_y, offset
 
-   log:info('Generating tile %d, %d', i, j)
-
    tile_info = blueprint:get(i, j)
    assert(not tile_info.generated)
+
+   log:info('Generating tile %d, %d: %s', i, j, tile_info.terrain_type)
 
    -- calculate the world offset of the tile
    offset_x = (i-1)*tile_size - blueprint.origin_x
@@ -276,7 +280,7 @@ end
 
 function WorldGenerationService:_get_tile_seed(x, y)
    local tile_hash = MathFns.point_hash(x, y)
-   return (self._game_seed + tile_hash) % MathFns.MAX_UINT32
+   return (self._seed + tile_hash) % MathFns.MAX_UINT32
 end
 
 function WorldGenerationService:_build_tile_order_list(map)

@@ -14,7 +14,7 @@ function TerrainInfo:__init()
    -- elevation constants
    local plains_info = {}
    plains_info.step_size = 2
-   plains_info.mean_height = 18
+   plains_info.mean_height = 16
    plains_info.std_dev = 6
    plains_info.max_height = 16
    self[TerrainType.plains] = plains_info

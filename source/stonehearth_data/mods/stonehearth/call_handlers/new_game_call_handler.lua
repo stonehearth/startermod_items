@@ -14,7 +14,6 @@ function NewGameCallHandler:new_game(session, response, seed, num_tiles_x, num_t
    local wgs = radiant.mods.load('stonehearth').world_generation
    wgs:initialize(seed, true)
    wgs:create_blueprint(num_tiles_x, num_tiles_y)
-   --self:generate_start_location(nil, nil, 20, 20) -- TODO: remove test code
 
    return self:get_overview_map(session, response)
 end
@@ -46,6 +45,8 @@ function NewGameCallHandler:generate_start_location(session, response, feature_c
    wgs.start_x = x
    wgs.start_z = z
    wgs:generate_tiles(i, j, 2)
+
+   response:resolve({})
 end
 
 function NewGameCallHandler:move_camera_to_start_location(session, response)
@@ -58,6 +59,7 @@ function NewGameCallHandler:move_camera_to_start_location(session, response)
          response:resolve({})
       end
    )
+   response:resolve({})
 end
 
 function NewGameCallHandler:choose_camp_location(session, response)

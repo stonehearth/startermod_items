@@ -102,7 +102,7 @@ end
 
 function Landscaper:is_forest_feature(feature_name)
    if feature_name == nil then return false end
-   if is_tree_name(feature_name) then return true end
+   if self:is_tree_name(feature_name) then return true end
    if feature_name == generic_vegetaion_name then return true end
    return false
 end
@@ -123,7 +123,9 @@ end
 function Landscaper:mark_trees(elevation_map, feature_map)
    local rng = self._rng
    local terrain_info = self._terrain_info
-   local mountains_juniper_chance = 0.25
+   local normal_tree_density = 0.8
+   local mountains_size_modifier = 0.10
+   local mountains_density_modifier = 0.10
    local noise_map, density_map = self:_get_filter_buffers(feature_map.width, feature_map.height)
    local i, j, tree_name, tree_type, tree_size, occupied, value, elevation, terrain_type
 
@@ -140,7 +142,14 @@ function Landscaper:mark_trees(elevation_map, feature_map)
       local terrain_type, step = terrain_info:get_terrain_type_and_step(elevation)
 
       if terrain_type == TerrainType.mountains then
-         std_dev = std_dev * 0.30
+         if step <= 2 then
+            -- place a ring of trees around mountains by making mountains attractors
+            -- trees on mountains themselves will be thinned out below
+            mean = mean + 50
+            std_dev = 0
+         else
+            std_dev = std_dev * 0.30
+         end
       elseif terrain_type == TerrainType.plains then
          if step == 2 then
             -- sparse groves with large trees in the middle
@@ -153,7 +162,7 @@ function Landscaper:mark_trees(elevation_map, feature_map)
          -- TerrainType.foothills
          if step == 2 then
             -- lots of continuous forest with low variance
-            mean = mean + 30
+            mean = mean + 5
             std_dev = std_dev * 0.30
          else
             -- start transition to plains
@@ -181,7 +190,9 @@ function Landscaper:mark_trees(elevation_map, feature_map)
                terrain_type = terrain_info:get_terrain_type(elevation)
 
                if terrain_type == TerrainType.mountains then
-                  if rng:get_real(0, 1) >= mountains_juniper_chance then
+                  -- forests on mountains are shorter and thinner
+                  value = value * mountains_size_modifier
+                  if rng:get_real(0, 1) >= mountains_density_modifier then
                      tree_type = nil
                   end
                end
@@ -189,6 +200,13 @@ function Landscaper:mark_trees(elevation_map, feature_map)
                if tree_type ~= nil then 
                   tree_size = self:_get_tree_size(value)
                   tree_name = get_tree_name(tree_type, tree_size)
+
+                  if tree_size ~= small then
+                     if rng:get_real(0, 1) >= normal_tree_density then
+                        -- thin out the tree but still mark as occupied
+                        tree_name = generic_vegetaion_name
+                     end
+                  end
                   feature_map:set(i, j, tree_name)
                end
             end
@@ -200,8 +218,8 @@ end
 function Landscaper:_get_tree_type(elevation)
    local rng = self._rng
    local terrain_info = self._terrain_info
-   local high_foothills_juniper_chance = 0.8
-   local low_foothills_juniper_chance = 0.2
+   local high_foothills_juniper_chance = 0.75
+   local low_foothills_juniper_chance = 0.25
 
    --if elevation > terrain_info.tree_line then return nil end
 
@@ -233,8 +251,8 @@ function Landscaper:_get_tree_type(elevation)
 end
 
 function Landscaper:_get_tree_size(value)
-   local large_tree_threshold = 25
-   local medium_tree_threshold = 6
+   local large_tree_threshold = 20
+   local medium_tree_threshold = 4
 
    if value >= large_tree_threshold then
       return large
@@ -258,6 +276,14 @@ function Landscaper:_place_small_tree(feature_name, i, j, tile_map, place_item)
 
    x, y, w, h = perturbation_grid:get_cell_bounds(i, j)
 
+   -- hack to prevent dense trees on mountains
+   local center = self._feature_size * 0.5
+   local elevation = tile_map:get(x+center, y+center)
+   local terrain_type = self._terrain_info:get_terrain_type(elevation)
+   if terrain_type == TerrainType.mountains then
+      return self:_place_normal_tree(feature_name, i, j, tile_map, place_item)
+   end
+
    nested_grid_spacing = math.floor(perturbation_grid.grid_spacing * factor)
 
    -- inner loop lambda definition - bad for performance?
@@ -275,7 +301,6 @@ end
 function Landscaper:_place_normal_tree(feature_name, i, j, tile_map, place_item)
    local max_trunk_radius = 3
    local ground_radius = 2
-   local normal_tree_density = 0.8
    local rng = self._rng
    local perturbation_grid = self._perturbation_grid
    local x, y
@@ -283,10 +308,7 @@ function Landscaper:_place_normal_tree(feature_name, i, j, tile_map, place_item)
    x, y = perturbation_grid:get_perturbed_coordinates(i, j, max_trunk_radius)
 
    if self:_is_flat(tile_map, x, y, ground_radius) then
-      if rng:get_real(0, 1) < normal_tree_density then
-         place_item(feature_name, x, y)
-      end
-      -- if tree was thinned out, should we remark feature map?
+      place_item(feature_name, x, y)
    end
 end
 
@@ -319,17 +341,18 @@ function Landscaper:mark_berry_bushes(elevation_map, feature_map)
 
       -- berries grow near forests
       local feature = feature_map:get(i, j)
-      if is_tree_name(feature) then
+      if self:is_tree_name(feature) then
          mean = mean + 100
       end
 
       -- berries grow on foothills ring near mountains
-      local elevation = elevation_map:get(i, j)
-      local terrain_type, step = terrain_info:get_terrain_type_and_step(elevation)
+      -- don't do this until we can ladder up foothills, need to reduce non-foothills density as well
+      -- local elevation = elevation_map:get(i, j)
+      -- local terrain_type, step = terrain_info:get_terrain_type_and_step(elevation)
 
-      if terrain_type == TerrainType.foothills and step == 2 then
-         mean = mean + 50
-      end
+      -- if terrain_type == TerrainType.foothills and step == 2 then
+      --    mean = mean + 20
+      -- end
 
       return rng:get_gaussian(mean, std_dev)
    end
@@ -410,7 +433,7 @@ function Landscaper:mark_flowers(elevation_map, feature_map)
 
       -- flowers grow away from forests
       local feature = feature_map:get(i, j)
-      if is_tree_name(feature) then
+      if self:is_tree_name(feature) then
          mean = mean - 50
       end
 
@@ -548,7 +571,7 @@ function get_tree_name(tree_type, tree_size)
    return mod_prefix .. tree_size .. '_' .. tree_type
 end
 
-function is_tree_name(feature_name)
+function Landscaper:is_tree_name(feature_name)
    if feature_name == nil then return false end
    -- may need to be more robust later
    local index = feature_name:find('_tree', -5)

@@ -13,8 +13,8 @@ end
 
 function BlueprintGenerator:generate_blueprint(width, height)
    -- minimum size for this algorithm
-   assert(width >= 4)
-   assert(height >= 4)
+   assert(width >= 5)
+   assert(height >= 5)
 
    local mountains_threshold = 65
    local foothills_threshold = 50
@@ -30,11 +30,6 @@ function BlueprintGenerator:generate_blueprint(width, height)
    while (true) do
       noise_map:fill_ij(noise_fn)
       FilterFns.filter_2D_050(height_map, noise_map, noise_map.width, noise_map.height, 4)
-
-      --log:debug('blueprint noise map')
-      --noise_map:print()
-      --log:debug('blueprint height map')
-      --height_map:print()
 
       for i=1, height do
          for j=1, width do
@@ -54,6 +49,7 @@ function BlueprintGenerator:generate_blueprint(width, height)
       if self:_is_playable_map(blueprint) then
          break
       end
+      log:info('World blueprint not within parameters. Regenerating.')
    end
 
    return blueprint
