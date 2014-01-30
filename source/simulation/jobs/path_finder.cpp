@@ -207,9 +207,10 @@ void PathFinder::Restart()
 
    ASSERT(restart_search_);
    ASSERT(!solution_);
-   ASSERT(cameFrom_.empty());
-   ASSERT(closed_.empty());
-   ASSERT(open_.empty());
+
+   cameFrom_.clear();
+   closed_.clear();
+   open_.clear();
 
    rebuildHeap_ = true;
    restart_search_ = false;
@@ -374,6 +375,9 @@ void PathFinder::AddEdge(const PathFinderNode &current, const csg::Point3 &next,
 
 int PathFinder::EstimateCostToSolution()
 {
+   if (!enabled_) {
+      return INT_MAX;
+   }
    if (restart_search_) {
       Restart();
    }
