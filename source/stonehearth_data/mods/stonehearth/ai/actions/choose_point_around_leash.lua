@@ -14,16 +14,9 @@ ChoosePointAroundLeash.think_output = {
 ChoosePointAroundLeash.version = 2
 ChoosePointAroundLeash.priority = 2
 
-function ChoosePointAroundLeash:__init(ai, entity)
-   assert(entity)
-   assert(entity:is_valid())
-   self._ai = ai
-   self._entity = entity
-end
-
 function ChoosePointAroundLeash:start_thinking(ai, entity, args)
-   if not self._entity:get_component('stonehearth:leash') then
-      self._entity:add_component('stonehearth:leash'):set_to_entity_location(self._entity)
+   if not entity:get_component('stonehearth:leash') then
+      entity:add_component('stonehearth:leash'):set_to_entity_location(entity)
    end
 
    local leash_component = entity:get_component('stonehearth:leash')

@@ -145,7 +145,7 @@ end
 function ExecutionFrame:_destroy()
    self._log:detail('_destroy (state:%s)', self._state)
    
-   if self:in_state('starting', 'started') then
+   if self:in_state('starting', 'started', 'ready', 'thinking') then
       return self:_destroy_from_starting()
    end
    if self:in_state('switching', 'unwinding') then
