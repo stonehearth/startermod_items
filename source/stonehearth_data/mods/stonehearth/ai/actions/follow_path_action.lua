@@ -31,7 +31,8 @@ function FollowPathAction:run(ai, entity, path, effect_name)
       speed = 1.0
    end
    --Note: Speed is between 10 and 60, normalize to be between 0 and 1
-   speed = math.floor(80 + (20 * speed / 60)) / 100
+   --TODO: reevaluate, from a design POV, where to put this number
+   speed = math.floor(50 + (50 * speed / 60)) / 100
 
    if not effect_name then
       effect_name = 'run'

@@ -36,17 +36,20 @@
 ]]
 
 local AttributeModifier = require 'components.attributes.attribute_modifier'
-local rng = _radiant.csg.get_default_random_number_generator()
+local rng = _radiant.csg.get_default_rng()
 
 local AttributesComponent = class()
 
 function AttributesComponent:__init(entity, data_binding)
    self._entity = entity
    self._data_binding = data_binding
+
    self._attributes = {}
    self._modifiers = {}
    self._dependencies = {}
+
    self._data_binding:update(self._attributes)
+
 end
 
 --- Given the type of attribute, handle as needed
@@ -73,6 +76,7 @@ function AttributesComponent:_add_new_attribute(name, data)
          new_attribute.value = rng:get_int(data.base, data.max)
       elseif new_attribute.type == 'derived' then
          new_attribute.equation = data.equation
+         self:_load_dependencies(data.equation, name)
          new_attribute.value = self:_evaluate_equation(data.equation)
       end
       new_attribute.effective_value = new_attribute.value
