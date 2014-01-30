@@ -20,6 +20,7 @@
 #include "egLight.h"
 #include "egCamera.h"
 #include "egHudElement.h"
+#include "egInstanceNode.h"
 #include "egModules.h"
 #include "egVoxelGeometry.h"
 #include "egVoxelModel.h"
@@ -2749,6 +2750,44 @@ void Renderer::drawVoxelMesh_Instances_WithoutInstancing(const RenderableQueue& 
    }
    Modules::stats().incStat( EngineStats::TriCount, (vmn->getBatchCount() / 3.0f) * renderableQueue.size() );
 }
+
+
+void Renderer::drawInstanceNode(const std::string &shaderContext, const std::string &theClass, bool debugView,
+                               const Frustum *frust1, const Frustum *frust2, RenderingOrder::List order,
+                               int occSet)
+{
+	if( frust1 == 0x0 || Modules::renderer().getCurCamera() == 0x0 ) return;
+	if( debugView ) return;  // Don't render in debug view
+
+   Modules::config().setGlobalShaderFlag("DRAW_WITH_INSTANCING", true);
+	// Set vertex layout
+   gRDI->setVertexLayout( Modules::renderer()._vlInstanceVoxelModel );
+	MaterialResource *curMatRes = 0x0;
+   for( const auto& entry : Modules::sceneMan().getRenderableQueue(SceneNodeTypes::InstanceNode) )
+	{
+		InstanceNode* in = (InstanceNode *)entry.node;
+
+		if( !in->_matRes->isOfClass( theClass ) ) continue;
+
+      gRDI->setVertexBuffer( 0, in->_geoRes->getVertexBuf(), 0, sizeof( VoxelVertexData ) );
+      gRDI->setVertexBuffer( 1, in->_instanceBufObj, 0, 16 * sizeof(float) );
+      gRDI->setIndexBuffer( in->_geoRes->getIndexBuf(), in->_geoRes->_16BitIndices ? IDXFMT_16 : IDXFMT_32 );
+
+      // Set material
+      if( curMatRes != in->_matRes )
+		{
+         if( !Modules::renderer().setMaterial( in->_matRes, shaderContext ) ) continue;
+			curMatRes = in->_matRes;
+		}
+
+      gRDI->drawInstanced(RDIPrimType::PRIM_TRILIST, 
+         in->_geoRes->getElemParamI(VoxelGeometryResData::VoxelGeometryElem, 0, VoxelGeometryResData::VoxelGeoIndexCountI), 
+         0, in->_usedInstances);
+	}
+
+	gRDI->setVertexLayout( 0 );
+}
+
 
 void Renderer::drawParticles( const std::string &shaderContext, const std::string &theClass, bool debugView,
                               const Frustum *frust1, const Frustum * /*frust2*/, RenderingOrder::List /*order*/,

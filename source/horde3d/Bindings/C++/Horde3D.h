@@ -493,6 +493,14 @@ struct H3DNodeParams
 };
 
 
+struct H3DInstanceNodeParams
+{
+   enum List
+   {
+      InstanceBuffer
+   };
+};
+
 struct H3DModel
 {
 	/*	Enum: H3DModel
@@ -1274,6 +1282,9 @@ DLL void *h3dMapResStream( H3DRes res, int elem, int elemIdx, int stream, bool r
 */
 DLL void h3dUnmapResStream( H3DRes res );
 
+DLL void h3dUpdateBoundingBox( H3DNode n, float minx, float miny, float minz, float maxx, float maxy, float maxz);
+
+
 /* Function: h3dQueryUnloadedResource
 		Returns handle to an unloaded resource.
 	
@@ -1896,6 +1907,9 @@ DLL H3DNode h3dAddGroupNode( H3DNode parent, const char *name );
 */
 DLL H3DNode h3dAddModelNode( H3DNode parent, const char *name, H3DRes geometryRes );
 DLL H3DNode h3dAddVoxelModelNode( H3DNode parent, const char *name, H3DRes voxelGeometryRes );
+DLL H3DNode h3dAddInstanceNode( H3DNode parent, const char *name, H3DRes materialRes, H3DRes geometryRes, int maxInstances );
+DLL void* h3dMapNodeParamV( H3DNode node, int param);
+DLL void h3dUnmapNodeParamV( H3DNode node, int param, int mappedLength);
 
 namespace Horde3D {
    class HudElementNode;

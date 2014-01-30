@@ -192,6 +192,23 @@ void SceneNode::setParamStr( int param, const char *value )
 	Modules::setError( "Invalid param in h3dSetNodeParamStr" );
 }
 
+void* SceneNode::mapParamV(int param)
+{
+	Modules::setError( "Invalid param in h3dMapParamV" );
+   return nullptr;
+}
+
+void SceneNode::unmapParamV(int param, int mappedLength)
+{
+	Modules::setError( "Invalid param in h3dUnmapParamV" );
+}
+
+void SceneNode::updateBBox(const BoundingBox& b)
+{
+   _bBox = b;
+   markDirty();
+}
+
 
 uint32 SceneNode::calcLodLevel( const Vec3f &viewPoint )
 {

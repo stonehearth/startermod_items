@@ -152,7 +152,7 @@ bool Frustum::cullSphere( Vec3f pos, float rad ) const
 }
 
 
-bool Frustum::cullBox( BoundingBox &b ) const
+bool Frustum::cullBox( const BoundingBox &b ) const
 {
 	// Idea for optimized AABB testing from www.lighthouse3d.com
 	for( uint32 i = 0; i < 6; ++i )

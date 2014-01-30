@@ -68,7 +68,8 @@ struct SceneNodeTypes
 		Emitter,
       VoxelModel,
       VoxelMesh,
-      HudElement
+      HudElement,
+      InstanceNode
 	};
 };
 
@@ -136,6 +137,8 @@ public:
 	virtual void setParamF( int param, int compIdx, float value );
 	virtual const char *getParamStr( int param );
 	virtual void setParamStr( int param, const char* value );
+   virtual void* mapParamV( int param );
+   virtual void unmapParamV( int param, int mappedLength );
 
 	virtual uint32 calcLodLevel( const Vec3f &viewPoint );
 
@@ -152,7 +155,9 @@ public:
 	std::vector< SceneNode * > &getChildren() { return _children; }
 	Matrix4f &getRelTrans() { return _relTrans; }
 	Matrix4f &getAbsTrans() { return _absTrans; }
-	BoundingBox &getBBox() { return _bBox; }
+	const BoundingBox &getBBox() const { return _bBox; }
+   void updateBBox(const BoundingBox& bbox);
+
 	const std::string &getAttachmentString() { return _attachment; }
 	void setAttachmentString( const char* attachmentData ) { _attachment = attachmentData; }
 	bool checkTransformFlag( bool reset )
