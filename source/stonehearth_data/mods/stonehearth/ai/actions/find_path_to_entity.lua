@@ -58,19 +58,4 @@ function FindPathToEntity:stop_thinking(ai, entity)
    end
 end
 
-function FindPathToEntity:run(ai, entity)
-   -- nothing to do...
-end
-
-function FindPathToEntity:stop()
-   if self._pathfinder then
-      self._pathfinder:stop()
-      self._pathfinder = nil
-   end
-   if self._trace then
-      self._trace:destroy()
-      self._trace = nil
-   end
-end
-
 return FindPathToEntity

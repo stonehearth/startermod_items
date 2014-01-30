@@ -9,6 +9,7 @@
 #include "csg/point.h"
 #include "csg/color.h"
 #include "om/region.h"
+#include "lib/perfmon/namespace.h"
 #include "path_finder_node.h"
 
 BEGIN_RADIANT_SIMULATION_NAMESPACE
@@ -19,23 +20,33 @@ class PathFinderSrc;
 class PathFinderDst;
 class Simulation;
 
-class PathFinder : public Job {
+DECLARE_SHARED_POINTER_TYPES(PathFinder)
+
+class PathFinder : public std::enable_shared_from_this<PathFinder>,
+                   public Job {
    public:
+      static std::shared_ptr<PathFinder> Create(Simulation& sim, std::string name, om::EntityPtr entity);
+      static void ComputeCounters(perfmon::Store& store);
+
+   private:
       PathFinder(Simulation& sim, std::string name, om::EntityPtr source);
+
+   public:
       virtual ~PathFinder();
 
-      void AddDestination(om::EntityRef dst);
-      void RemoveDestination(dm::ObjectId id);
+      PathFinderPtr AddDestination(om::EntityRef dst);
+      PathFinderPtr RemoveDestination(dm::ObjectId id);
 
-      void SetSource(csg::Point3 const& source);
-      void SetSolvedCb(luabind::object solved);
-      void SetFilterFn(luabind::object dst_filter);
+      PathFinderPtr SetSource(csg::Point3 const& source);
+      PathFinderPtr SetSolvedCb(luabind::object solved);
+      PathFinderPtr SetSearchExhaustedCb(luabind::object solved);
+      PathFinderPtr SetFilterFn(luabind::object dst_filter);
+      PathFinderPtr RestartSearch(const char* reason);
+      PathFinderPtr Start();
+      PathFinderPtr Stop();
 
       PathPtr GetSolution() const;
 
-      void RestartSearch(const char* reason);
-      void Start();
-      void Stop();
       int EstimateCostToSolution();
       std::ostream& Format(std::ostream& o) const;
       void SetDebugColor(csg::Color4 const& color);
@@ -65,12 +76,18 @@ class PathFinder : public Job {
       void RebuildHeap();
 
       void SolveSearch(const csg::Point3& last, PathFinderDst* dst);
+      void SetSearchExhausted();
       csg::Point3 GetSourceLocation();
 
    private:
+      static std::vector<std::weak_ptr<PathFinder>> all_pathfinders_;
+
       om::EntityRef                                entity_;
       luabind::object                              solved_cb_;
       luabind::object                              dst_filter_;
+      luabind::object                              search_exhausted_cb_;
+      bool                                         search_exhausted_;
+      int                                          max_cost_to_destination_;
       int                                          costToDestination_;
       bool                                         rebuildHeap_;
       bool                                         restart_search_;

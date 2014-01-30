@@ -17,6 +17,7 @@ class Store {
       Timeline* GetTimeline();
       Counter& GetCounter(const char* name);
       CounterMap const& GetCounters() const;
+      void SetCounter(const char* name, CounterValueType value);
 
    private:
       std::unique_ptr<Timeline>  timeline_;

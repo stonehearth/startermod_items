@@ -1,6 +1,8 @@
 local RunTaskAction = class()
 
-function RunTaskAction:__init(task, scheduler_activity)
+RunTaskAction.version = 2
+
+function RunTaskAction:__init(task)
    self._id = stonehearth.ai:get_next_object_id()   
    self._task = task
 end

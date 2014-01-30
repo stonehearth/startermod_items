@@ -121,7 +121,7 @@ end
 
 function ExecutionUnitV2:get_debug_info()
    local info = {
-      id = self._id,
+      id = 'u:' .. tostring(self._id),
       state = self._state,
       action = self:_get_action_debug_info(),
       think_output = stonehearth.ai:format_args(self._think_output),
@@ -316,6 +316,8 @@ end
 function ExecutionUnitV2:_start_from_ready()
    assert(self._thinking)
 
+   -- start is called before stop_thinking so actions will know whether
+   -- they're going to get to run...
    self:_do_start()
    self:_set_state(STARTED)
    self:_do_stop_thinking()

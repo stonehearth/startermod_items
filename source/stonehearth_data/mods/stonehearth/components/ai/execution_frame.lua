@@ -145,7 +145,7 @@ end
 function ExecutionFrame:_destroy()
    self._log:detail('_destroy (state:%s)', self._state)
    
-   if self:in_state('starting', 'started') then
+   if self:in_state('starting', 'started', 'ready', 'thinking') then
       return self:_destroy_from_starting()
    end
    if self:in_state('switching', 'unwinding') then
@@ -960,7 +960,7 @@ end
 
 function ExecutionFrame:get_debug_info()
    local info = {
-      id = self._id,
+      id = 'f:' .. tostring(self._id),
       state = self:get_state(),
       activity = {
          name = self._name,

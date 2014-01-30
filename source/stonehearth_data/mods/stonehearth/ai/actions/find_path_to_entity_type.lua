@@ -27,10 +27,6 @@ function FindPathToEntityType:stop_thinking(ai, entity)
    self:_stop_pathfinder(ai, entity)
 end
 
-function FindPathToEntityType:stop(ai, entity)
-   self:_stop_pathfinder(ai, entity)
-end
-
 function FindPathToEntityType:_consider_destination(target)
    if self._solution_path then
       -- hmm.  we already have a solution.  what if this object can provide a better one?
@@ -94,10 +90,6 @@ function FindPathToEntityType:_start_pathfinder(ai, entity, args)
    self._promise = radiant.terrain.trace_world_entities('find path to entity type', on_added, on_removed)
 end
 
-
-function FindPathToEntityType:run()
-   self:_stop_pathfinder()
-end
 
 function FindPathToEntityType:_stop_pathfinder(ai, entity)
    self._solution_path = nil

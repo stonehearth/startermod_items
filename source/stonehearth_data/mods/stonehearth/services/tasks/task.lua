@@ -1,4 +1,4 @@
-local Task = class()
+local RunTaskAction = require 'services.tasks.run_task_action'
 
 local NEXT_TASK_ID = 1
 local STARTED = 'started'
@@ -6,6 +6,8 @@ local STOPPED = 'stopped'
 local COMPLETED = 'completed'
 
 local INFINITE = 999999 -- infinite enough?
+
+local Task = class()
 
 function Task:__init(scheduler, activity)
    self._scheduler = scheduler
@@ -68,6 +70,10 @@ function Task:set_priority(priority)
    return self
 end
 
+function Task:get_action_ctor()
+   return self._action_ctor
+end
+
 function Task:set_max_workers(max_workers)
    assert(self._state ~= 'started')
    self._max_workers = max_workers
@@ -86,6 +92,20 @@ end
 
 function Task:start()
    if not self._commited then
+      local activity = self._scheduler:get_activity()
+      self._action_ctor = {
+         name = self._name .. ' action',
+         does = activity.name,
+         args = activity.args,
+         create_action = function(_, ai_component, entity, injecting_entity)
+            local action = RunTaskAction(self)
+            action.name = self._name .. ' action'
+            action.does = activity.name
+            action.args = activity.args
+            action.priority = self._priority
+            return action
+         end,
+      }
       self._scheduler:_commit_task(self)
       self._commited = true
    end

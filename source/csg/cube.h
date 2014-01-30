@@ -96,6 +96,7 @@ public:
    void SetMax(const Point& max_value) { max = max_value; }
    void Grow(const Point& pt);
    void Grow(const Cube& cube); 
+   bool CombineWith(const Cube& cube);
 
    void SetZero() {
       min.SetZero();

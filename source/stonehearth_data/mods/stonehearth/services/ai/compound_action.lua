@@ -116,8 +116,7 @@ function CompoundAction:stop_thinking(ai, entity, ...)
       self._thinking_frames[i]:stop_thinking() -- must be asynchronous!
       self._thinking_frames[i]:on_ready(nil)
    end
-   self._log:debug('switching thinking frames to running frames')
-   
+   self._log:debug('switching thinking frames to running frames')   
    self._running_frames = self._thinking_frames
    self._thinking_frames = {}
 end
@@ -150,7 +149,6 @@ end
 function CompoundAction:run(ai, entity, ...)
    for _, frame in ipairs(self._running_frames) do
       frame:run()  -- must be synchronous!
-      frame:stop() -- must be synchronous!
    end
 end
 

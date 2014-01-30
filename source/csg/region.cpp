@@ -80,7 +80,24 @@ template <class S, int C>
 void Region<S, C>::AddUnique(const Cube& cube)
 {
    ASSERT(!Intersects(cube));
-   cubes_.push_back(cube);
+   
+   if (cubes_.empty() || !cubes_.back().CombineWith(cube)) {
+      cubes_.push_back(cube);
+   } else {
+      // The cube on the back has been merged with the new cube.
+      // This could enable another merge!  I could write this in
+      // a tail-end recursive way to avoid duplicating code, but
+      // I believe it would be ultimately much more confusing to 
+      // read.
+      uint c = cubes_.size();
+      while (c > 1) {
+         if (!cubes_[c-2].CombineWith(cubes_[c-1])) {
+            break;
+         }
+         c--;
+      }
+      cubes_.resize(c);
+   }
 }
 
 template <class S, int C>

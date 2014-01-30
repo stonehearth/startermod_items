@@ -54,11 +54,13 @@ function AiService:remove_action(entity, uri)
 end
 
 function AiService:add_custom_action(entity, action_ctor, injecting_entity)
+   log:debug('adding action "%s" to %s', action_ctor.name, tostring(entity))
    local ai_component = self:_get_ai_component(entity)
    ai_component:add_action(action_ctor, action_ctor, injecting_entity)
 end
 
 function AiService:remove_custom_action(entity, action_ctor, injecting_entity)
+   log:debug('removing action "%s" to %s', action_ctor.name, tostring(entity))
    local ai_component = self:_get_ai_component(entity)
    ai_component:remove_action(action_ctor)
 end
