@@ -9,14 +9,14 @@ context FOW_RT_EXPLORED {
 }
 
 [[VS_FOW]]
+#include "shaders/utilityLib/vertCommon.glsl"
 
-uniform mat4 worldMat;
 uniform mat4 viewProjMat;
 
 attribute vec3 vertPos;
 
 void main() {
-  gl_Position = viewProjMat * worldMat * vec4(vertPos, 1.0);
+  gl_Position = viewProjMat * calcWorldPos(vec4(vertPos, 1.0));
 }
 
 [[FS_FOW]]

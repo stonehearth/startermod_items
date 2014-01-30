@@ -23,6 +23,8 @@ class Pipeline : public core::Singleton<Pipeline> {
       H3DNodeUnique CreateVoxelNode(H3DNode parent, csg::Region3 const& model, std::string const& material_path);
       H3DNodeUnique CreateDesignationNode(H3DNode parent, csg::Region2 const& model, csg::Color3 const& outline_color, csg::Color3 const& stripes_color);
       H3DNodeUnique CreateQubicleMatrixNode(H3DNode parent, std::string const& qubicle_file, std::string const& qubicle_matrix, csg::Point3f const& origin);
+      H3DRes CreateVoxelGeometryFromRegion(std::string const& geoName, csg::Region3 const& region);
+      csg::mesh_tools::mesh CreateMeshFromRegion(csg::Region3 const& region);
 
    private:
       void AddDesignationBorder(csg::mesh_tools::mesh& m, csg::EdgeMap2& edgemap);

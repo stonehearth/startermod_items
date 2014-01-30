@@ -231,7 +231,7 @@ class Renderer
       FW::FileWatcher   fileWatcher_;
 
 
-      H3DNodeUnique     fowNode_, fowNode2_;
+      H3DNode     fowExploredNode_, fowVisibleNode_;
       core::Guard           traces_;
 
       std::shared_ptr<RenderEntity>      rootRenderObject_;

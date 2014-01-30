@@ -197,47 +197,22 @@ Renderer::Renderer() :
       ssaoSamplerData.push_back(0.0);
    }
 
-   csg::Region3 fow;
-   csg::Region3 cube;
-   cube.Add(csg::Region3::Cube(csg::Region3::Point(-50, -100, -50), csg::Region3::Point(50, 200, 50)));
-   fow.Add(cube);
-   fowNode_ = Pipeline::GetInstance().CreateVoxelNode(H3DRootNode, fow, "materials/fow_visible.material.xml");
+   csg::Region3::Cube littleCube(csg::Region3::Point(0, 0, 0), csg::Region3::Point(1, 1, 1));
 
-   csg::Region3 fowv;
-   csg::Region3 cubev;
-   cubev.Add(csg::Region3::Cube(csg::Region3::Point(-300, -100, -300), csg::Region3::Point(300, 200, 300)));
-   fowv.Add(cubev);
-   fowNode2_ = Pipeline::GetInstance().CreateVoxelNode(H3DRootNode, fowv, "materials/fow_explored.material.xml");
+   fowVisibleNode_ = h3dAddInstanceNode(H3DRootNode, "fow_explorednode", 
+      h3dAddResource(H3DResTypes::Material, "materials/fow_explored.material.xml", 0), 
+      Pipeline::GetInstance().CreateVoxelGeometryFromRegion("littlecube", littleCube), 1000);
+   /*fowExploredNode_ = h3dAddInstanceNode(H3DRootNode, "fow_visiblenode", 
+      h3dAddResource(H3DResTypes::Material, "materials/fow_visible.material.xml", 0), 
+      Pipeline::GetInstance().CreateVoxelGeometryFromRegion("littlecube", littleCube), 1000);*/
 
-   /*H3DRes fowRes = h3dAddResource(H3DResTypes::Material, "materials/fow_explored.material.xml", 0);
-   H3DNode fowNode = h3dAddModelNode(H3DRootNode, "visibleAreaModel", BuildSphereGeometry());
-   H3DNode fowMesh = h3dAddMeshNode(fowNode, "visibleArea", fowRes, 0, 2048 * 3, 0, 2045);
-   h3dSetNodeUserFlags(fowMesh, h3dGetNodeUserFlags(fowMesh) | 1, true);
-   h3dSetNodeFlags(fowNode, H3DNodeFlags::NoCastShadow | H3DNodeFlags::NoRayQuery, true);
-   h3dSetNodeTransform(fowMesh, 
-      0, 0, 0,
-      0, 0.0, 0.0,
-      300, 300, 300);
-
-   fowRes = h3dAddResource(H3DResTypes::Material, "materials/fow_explored.material.xml", 0);
-   fowNode = h3dAddModelNode(H3DRootNode, "visibleAreaModel2", BuildSphereGeometry());
-   fowMesh = h3dAddMeshNode(fowNode, "visibleArea2", fowRes, 0, 2048 * 3, 0, 2045);
-   h3dSetNodeUserFlags(fowMesh, h3dGetNodeUserFlags(fowMesh) | 1, true);
-   h3dSetNodeFlags(fowNode, H3DNodeFlags::NoCastShadow | H3DNodeFlags::NoRayQuery, true);
-   h3dSetNodeTransform(fowMesh, 
-      100, 0, 100,
-      0, 0.0, 0.0,
-      300, 300, 300);
-
-   fowRes = h3dAddResource(H3DResTypes::Material, "materials/fow_visible.material.xml", 0);
-   fowNode = h3dAddModelNode(H3DRootNode, "visibleAreaModel1", BuildSphereGeometry());
-   fowMesh = h3dAddMeshNode(fowNode, "visibleArea1", fowRes, 0, 2048 * 3, 0, 2045);
-   h3dSetNodeUserFlags(fowMesh, h3dGetNodeUserFlags(fowMesh) | 1, true);
-   h3dSetNodeFlags(fowNode, H3DNodeFlags::NoCastShadow | H3DNodeFlags::NoRayQuery, true);
-   h3dSetNodeTransform(fowMesh, 
-      0, 0, 0,
-      0, 0.0, 0.0,
-      100, 100, 100);*/
+   float* f = (float*)h3dMapNodeParamV(fowVisibleNode_, H3DInstanceNodeParams::InstanceBuffer);
+   f[0] = 50; f[1] =  0; f[2] =   0; f[3] =  0;
+   f[4] =  0; f[5] = 50; f[6] =   0; f[7] =  0;
+   f[8] =  0; f[9] =  0; f[10] = 50; f[11] = 0;
+   f[12] = 0; f[13] = 0; f[14] =  0; f[15] = 1;
+   h3dUnmapNodeParamV(fowVisibleNode_, H3DInstanceNodeParams::InstanceBuffer, 64);
+   h3dUpdateBoundingBox(fowVisibleNode_, 0, 0, 0, 50, 50, 50);
 
    // Add camera   
    camera_ = new Camera(H3DRootNode, "Camera", currentPipeline_);

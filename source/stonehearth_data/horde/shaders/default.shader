@@ -281,7 +281,6 @@ void main( void )
   lightColor *= fowValue;
 
   gl_FragColor = vec4(lightColor, 1.0);
-  //gl_FragColor = vec4(projFowPos.x, 0, projFowPos.y, 1.0);
 }  
 
 [[FS_FOG]]

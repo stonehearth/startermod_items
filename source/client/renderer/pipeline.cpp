@@ -50,6 +50,12 @@ Pipeline::~Pipeline()
 {
 }
 
+H3DRes Pipeline::CreateVoxelGeometryFromRegion(const std::string& geoName, csg::Region3 const& region)
+{
+   auto& mesh = CreateMeshFromRegion(region);
+   return h3dutCreateVoxelGeometryRes(geoName.c_str(), (VoxelGeometryVertex*)mesh.vertices.data(), mesh.vertices.size(), (uint*)mesh.indices.data(), mesh.indices.size());
+}
+
 // From: http://mikolalysenko.github.com/MinecraftMeshes2/js/greedy.js
 
 H3DNodeUnique Pipeline::AddMeshNode(H3DNode parent, const csg::mesh_tools::mesh& m, H3DNode* mesh)
@@ -272,6 +278,16 @@ H3DRes Pipeline::CreateGeometryFromQubicleMatrix(const std::string& geoName, con
    delete[] mask;
 
    return h3dutCreateVoxelGeometryRes(geoName.c_str(), vertices.data(), vertices.size(), indices.data(), indices.size());
+}
+
+csg::mesh_tools::mesh Pipeline::CreateMeshFromRegion(csg::Region3 const& region)
+{
+   csg::mesh_tools::mesh mesh;
+   csg::RegionTools3().ForEachPlane(region, [&](csg::Region2 const& plane, csg::PlaneInfo3 const& pi) {
+      mesh.AddRegion(plane, pi);
+   });
+
+   return mesh;
 }
 
 H3DNode Pipeline::CreateModel(H3DNode parent,
