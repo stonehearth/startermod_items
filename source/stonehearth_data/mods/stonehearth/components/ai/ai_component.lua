@@ -55,7 +55,15 @@ function AIComponent:add_action(key, action_ctor, injecting_entity)
       action_index = {}
       self._action_index[does] = action_index
    end
-   assert(not self._action_index[does][key])
+   
+   
+   if self._action_index[does][key] then
+      if self._action_index[does][key].action_ctor == action_ctor then
+         self._log:debug('ignoring duplicate action in index (should we refcount?)')
+         return
+      end
+      assert(false, string.format('duplicate action key "%s" for "%s"', tostring(key), tostring(does)))
+   end
    
    local entry = {
       action_ctor = action_ctor,

@@ -960,7 +960,7 @@ end
 
 function ExecutionFrame:get_debug_info()
    local info = {
-      id = self._id,
+      id = 'f:' .. tostring(self._id),
       state = self:get_state(),
       activity = {
          name = self._name,

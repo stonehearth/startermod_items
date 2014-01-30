@@ -15,6 +15,8 @@ ChoosePointAroundLeash.version = 2
 ChoosePointAroundLeash.priority = 2
 
 function ChoosePointAroundLeash:__init(ai, entity)
+   assert(entity)
+   assert(entity:is_valid())
    self._ai = ai
    self._entity = entity
 end

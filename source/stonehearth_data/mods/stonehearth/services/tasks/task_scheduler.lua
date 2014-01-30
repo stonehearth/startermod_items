@@ -1,6 +1,5 @@
 local Task = require 'services.tasks.task'
 local CompoundTask = require 'services.tasks.compound_task'
-local RunTaskActionFactory = require 'services.tasks.run_task_action_factory'
 local TaskScheduler = class()
 
 function TaskScheduler:__init(name)
@@ -28,7 +27,7 @@ function TaskScheduler:destroy()
    end
    assert(radiant.util.table_is_empty(self._tasks))
    for id, entry in pairs(self._entities) do
-      assert(radiant.util.table_is_empty(entry.run_task_actions))
+      assert(radiant.util.table_is_empty(entry.tasks))
       self:leave(entry.entity)
    end
 end
@@ -38,6 +37,11 @@ function TaskScheduler:set_activity(name, args)
    self._log:debug('setting activity to %s', stonehearth.ai:format_activity(self._activity))
    return self
 end
+
+function TaskScheduler:get_activity()
+   return self._activity
+end
+
 
 function TaskScheduler:create_task(name, args, co)
    assert(type(name) == 'string')
@@ -91,7 +95,7 @@ function TaskScheduler:join(entity)
    if not self._entities[id] then      
       local entry = {
          entity = entity,
-         run_task_actions = {},
+         tasks = {},
       }
       for id, task in pairs(self._tasks) do
          self:_add_action_to_entity(task, entry)
@@ -107,7 +111,7 @@ function TaskScheduler:leave(entity)
       local id = entity:get_id()
       local entry = self._entities[id]
       if entry then
-         for task, action in ipairs(entry.run_task_actions) do
+         for task, action in ipairs(entry.tasks) do
             self:_remove_action_from_entity(task, entry)
          end
          self._entities[id] = nil
@@ -118,17 +122,18 @@ end
 
 function TaskScheduler:_add_action_to_entity(task, entry)
    assert(type(entry) == 'table') -- the entry, not the entity...
-   local action = RunTaskActionFactory(task, self._priority, self._activity)
-   stonehearth.ai:add_custom_action(entry.entity, action)
-   entry.run_task_actions[task] = action
+   local action_ctor = task:get_action_ctor()
+   stonehearth.ai:add_custom_action(entry.entity, action_ctor)
+   entry.tasks[task] = task
 end
 
 function TaskScheduler:_remove_action_from_entity(task, entry)
    assert(type(entry) == 'table') -- the entry, not the entity... 
-   local action = entry.run_task_actions[task]
-   if action then
-      stonehearth.ai:remove_custom_action(entry.entity, action)
-      entry.run_task_actions[task] = nil
+   local task = entry.tasks[task]
+   if task then
+      local action_ctor = task:get_action_ctor()
+      stonehearth.ai:remove_custom_action(entry.entity, action_ctor)
+      entry.tasks[task] = nil
    end
 end
 
