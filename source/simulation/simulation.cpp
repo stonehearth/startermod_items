@@ -625,6 +625,7 @@ void Simulation::Mainloop()
       FireLuaTraces();
    }
    if (next_counter_push_.expired()) {
+      PathFinder::ComputeCounters(perf_counters_);
       PushPerformanceCounters();
       next_counter_push_.set(500);
    }

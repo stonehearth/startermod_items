@@ -9,6 +9,7 @@
 #include "csg/point.h"
 #include "csg/color.h"
 #include "om/region.h"
+#include "lib/perfmon/namespace.h"
 #include "path_finder_node.h"
 
 BEGIN_RADIANT_SIMULATION_NAMESPACE
@@ -21,7 +22,13 @@ class Simulation;
 
 class PathFinder : public Job {
    public:
+      static std::shared_ptr<PathFinder> Create(Simulation& sim, std::string name, om::EntityPtr entity);
+      static void ComputeCounters(perfmon::Store& store);
+
+   private:
       PathFinder(Simulation& sim, std::string name, om::EntityPtr source);
+
+   public:
       virtual ~PathFinder();
 
       void AddDestination(om::EntityRef dst);
@@ -68,6 +75,8 @@ class PathFinder : public Job {
       csg::Point3 GetSourceLocation();
 
    private:
+      static std::vector<std::weak_ptr<PathFinder>> all_pathfinders_;
+
       om::EntityRef                                entity_;
       luabind::object                              solved_cb_;
       luabind::object                              dst_filter_;

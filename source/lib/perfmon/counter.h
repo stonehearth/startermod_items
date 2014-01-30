@@ -13,6 +13,7 @@ public:
 
    const char* GetName() const;
    CounterValueType GetValue() const;
+   void SetValue(CounterValueType value);
    void Increment(CounterValueType amount = 1);
    void Decrement(CounterValueType amount = 1);
 

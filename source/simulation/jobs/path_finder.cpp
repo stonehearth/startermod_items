@@ -10,9 +10,12 @@
 #include "om/components/destination.ridl.h"
 #include "om/region.h"
 #include "csg/color.h"
+#include "lib/perfmon/store.h"
 
 using namespace ::radiant;
 using namespace ::radiant::simulation;
+
+std::vector<std::weak_ptr<PathFinder>> PathFinder::all_pathfinders_;
 
 #define PF_LOG(level)   LOG_CATEGORY(simulation.pathfinder, level, GetName())
 
@@ -26,6 +29,31 @@ using namespace ::radiant::simulation;
 #else
 #  define VERIFY_HEAPINESS()
 #endif
+
+std::shared_ptr<PathFinder> PathFinder::Create(Simulation& sim, std::string name, om::EntityPtr entity)
+{
+   std::shared_ptr<PathFinder> pathfinder(new PathFinder(sim, name, entity));
+   all_pathfinders_.push_back(pathfinder);
+   return pathfinder;
+}
+
+void PathFinder::ComputeCounters(perfmon::Store& store)
+{
+   int open_count = 0;
+   int closed_count = 0;
+   int active_count = 0;
+
+   stdutil::ForEachPrune<PathFinder>(all_pathfinders_, [&](std::shared_ptr<PathFinder> pf) {
+      if (!pf->IsIdle()) {
+         active_count++;
+      }
+      open_count += pf->open_.size();
+      closed_count += pf->closed_.size();
+   });
+   store.GetCounter("pathfinders.active_count").SetValue(active_count);
+   store.GetCounter("pathfinders.open_node_count").SetValue(open_count);
+   store.GetCounter("pathfinders.closed_node_count").SetValue(closed_count);
+}
 
 PathFinder::PathFinder(Simulation& sim, std::string name, om::EntityPtr entity) :
    Job(sim, name),

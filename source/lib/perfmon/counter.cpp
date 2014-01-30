@@ -24,6 +24,11 @@ CounterValueType Counter::GetValue() const
    return value_;
 }
 
+void Counter::SetValue(CounterValueType value)
+{
+   value_ = value;
+}
+
 void Counter::Increment(CounterValueType amount)
 {
    value_ += amount;
