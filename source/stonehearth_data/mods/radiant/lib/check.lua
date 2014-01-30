@@ -28,7 +28,9 @@ function check.is_function(obj)
 end
 
 function check.is_a(value, class)
-   return classof(value) and value:is_a(class) or false
+   if not radiant.util.is_a(value, class) then
+      error(string.format('"%s" is not of expeceted type "%s"', radiant.util.tostring(value), radiant.util.tostring(class)))
+   end
 end
 
 function check.verify(condition)   
