@@ -1,5 +1,5 @@
 App.StonehearthErrorBrowserView = App.View.extend({
-   templateName: 'errorBrowserFrame',
+   templateName: 'errorBrowser',
    components: {
       'entries': []
    },
@@ -9,6 +9,7 @@ App.StonehearthErrorBrowserView = App.View.extend({
       this._traces = {};
       this._results = {};     
    },
+
 
    _compileData: function() {
       var self = this;
@@ -23,6 +24,10 @@ App.StonehearthErrorBrowserView = App.View.extend({
          data.entries = data.entries.concat(result.entries);
       });
       this.set('context.errors', data);
+
+      if (data.total > 0) {
+         this.$().show();
+      }
    },
 
    _installTrace: function(name, object) {
@@ -41,9 +46,9 @@ App.StonehearthErrorBrowserView = App.View.extend({
    },
 
    didInsertElement: function() {
+      this.$().hide();
+      
       var self = this;
-      console.log('inserted error browser');
-
       radiant.call('radiant:client:get_error_browser')
          .done(function(obj) {
             self._installTrace('client_errors',  obj.error_browser)
@@ -54,19 +59,20 @@ App.StonehearthErrorBrowserView = App.View.extend({
          })
 
       var self = this;
-      $('#errorBrowser').draggable();
-      $('#errorBrowser').find('#entries').on('click', 'a', function(event) {
+
+      this.$().draggable();
+
+      this.my('#entries').on('click', 'a', function(event) {
          var error_uri = $(this).attr('error_uri');
          if (self.currentView) {
             self.currentView.destroy();
          }
          self.currentView = App.gameView.addView(App.StonehearthErrorDialogView, { uri : error_uri });
       });
-   },
 
-   actions: {
-      toggleEntries: function () {
-         $('#errorBrowser').find('#entries').toggle();
-      }
+      this.my('.close').click(function() {
+         self.$().hide();
+      });
    }
+
 });
