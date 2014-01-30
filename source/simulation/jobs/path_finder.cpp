@@ -39,18 +39,26 @@ std::shared_ptr<PathFinder> PathFinder::Create(Simulation& sim, std::string name
 
 void PathFinder::ComputeCounters(perfmon::Store& store)
 {
+   int count = 0;
+   int running_count = 0;
    int open_count = 0;
    int closed_count = 0;
    int active_count = 0;
 
    stdutil::ForEachPrune<PathFinder>(all_pathfinders_, [&](std::shared_ptr<PathFinder> pf) {
-      if (!pf->IsIdle()) {
+      count++;
+      if (pf->enabled_) {
          active_count++;
+         if (!pf->IsIdle()) {
+            running_count++;
+         }
       }
       open_count += pf->open_.size();
       closed_count += pf->closed_.size();
    });
+   store.GetCounter("pathfinders.total_count").SetValue(count);
    store.GetCounter("pathfinders.active_count").SetValue(active_count);
+   store.GetCounter("pathfinders.running_count").SetValue(running_count);
    store.GetCounter("pathfinders.open_node_count").SetValue(open_count);
    store.GetCounter("pathfinders.closed_node_count").SetValue(closed_count);
 }
@@ -65,12 +73,10 @@ PathFinder::PathFinder(Simulation& sim, std::string name, om::EntityPtr entity) 
 {
    PF_LOG(3) << "creating pathfinder";
    source_.reset(new PathFinderSrc(*this, entity));
-   sim.GetPerfmonCounters().GetCounter("simulation.pathfinder_count").Increment();
 }
 
 PathFinder::~PathFinder()
 {
-   GetSim().GetPerfmonCounters().GetCounter("simulation.pathfinder_count").Decrement();
    PF_LOG(3) << "destroying pathfinder";
 }
 
@@ -152,6 +158,7 @@ void PathFinder::Start()
 void PathFinder::Stop()
 {
    PF_LOG(5) << "stop requested";
+   RestartSearch("pathfinder stopped");
    enabled_ = false;
 }
 
@@ -199,13 +206,13 @@ void PathFinder::Restart()
    PF_LOG(5) << "restarting search";
 
    ASSERT(restart_search_);
+   ASSERT(!solution_);
+   ASSERT(cameFrom_.empty());
+   ASSERT(closed_.empty());
+   ASSERT(open_.empty());
 
-   solution_ = nullptr;
    rebuildHeap_ = true;
    restart_search_ = false;
-   cameFrom_.clear();
-   closed_.clear();
-   open_.clear();
 
    source_->InitializeOpenSet(open_);
    for (PathFinderNode& node : open_) {
@@ -530,6 +537,9 @@ void PathFinder::RestartSearch(const char* reason)
    PF_LOG(3) << "requesting search restart: " << reason;
    restart_search_ = true;
    solution_ = nullptr;
+   cameFrom_.clear();
+   closed_.clear();
+   open_.clear();
 }
 
 std::ostream& ::radiant::simulation::operator<<(std::ostream& o, const PathFinder& pf)
