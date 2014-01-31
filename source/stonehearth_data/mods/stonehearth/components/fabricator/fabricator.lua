@@ -190,7 +190,7 @@ function Fabricator:_start_project()
    if run_teardown_task and not self._teardown_task then
       self:_start_teardown_task()
    elseif not run_teardown_task and self._teardown_task then
-      self._teardown_task:stop()
+      self._teardown_task:destroy()
       self._teardown_task = nil
       radiant.events.trigger(self, 'needs_teardown', self, false)
    end
@@ -198,7 +198,7 @@ function Fabricator:_start_project()
    if run_fabricate_task and not self._fabricate_task then
       self:_start_fabricate_task()
    elseif not run_fabricate_task and self._fabricate_task then
-      self._fabricate_task:stop()
+      self._fabricate_task:destroy()
       self._fabricate_task = nil
       radiant.events.trigger(self, 'needs_work', self, false)
    end
@@ -261,12 +261,12 @@ end
 function Fabricator:_stop_project()
    log:warning('%s fabricator stopping all worker tasks', self.name)
    if self._teardown_task then
-      self._teardown_task:stop()
+      self._teardown_task:destroy()
       self._teardown_task = nil
       radiant.events.trigger(self, 'needs_teardown', self, false)
    end
    if self._fabricate_task then
-      self._fabricate_task:stop()
+      self._fabricate_task:destroy()
       self._fabricate_task = nil
       radiant.events.trigger(self, 'needs_work', self, false)
    end
