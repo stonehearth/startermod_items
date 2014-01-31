@@ -36,7 +36,12 @@ function NewGameCallHandler:get_start_location(session, response)
    return { x = wgs.start_x, z = wgs.start_z }
 end
 
+-- feature_cell_x and feature_cell_y are base 0
 function NewGameCallHandler:generate_start_location(session, response, feature_cell_x, feature_cell_y)
+   -- +1 to convert to base 1
+   feature_cell_x = feature_cell_x + 1
+   feature_cell_y = feature_cell_y + 1
+
    local wgs = radiant.mods.load('stonehearth').world_generation
    local x, z = wgs.overview_map:get_coords_of_cell_center(feature_cell_x, feature_cell_y)
    local i, j = wgs:get_tile_coords(x, z)
@@ -50,13 +55,20 @@ function NewGameCallHandler:generate_start_location(session, response, feature_c
 end
 
 function NewGameCallHandler:move_camera_to_start_location(session, response)
-   local camera_height = 120
    local camera_service = radiant.mods.load('stonehearth').camera
    _radiant.call('stonehearth:get_start_location'):done(
       function (o)
-         -- consider subtracting something off Z position to put selected cell in full view
-         camera_service:set_position(Point3f(o.x, camera_height, o.z))
-         response:resolve({})
+         local camera_height = 256
+         local target_height = 32
+         local distance_from_target = 384
+
+         local target = Point3f(o.x, target_height, o.z)
+         local camera_location = Point3f(o.x, camera_height, o.z + distance_from_target)
+
+         -- hack to get around camera interpolation
+         camera_service._next_position = camera_location
+         camera_service:set_position(camera_location)
+         camera_service:look_at(target)
       end
    )
    response:resolve({})
