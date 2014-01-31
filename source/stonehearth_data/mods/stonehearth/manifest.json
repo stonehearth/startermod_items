@@ -541,7 +541,8 @@
       "no_construction_zone" : "file(components/no_construction_zone/no_construction_zone_component.lua)",
       "construction_data" : "file(components/construction_data/construction_data_component.lua)",
       "personality" : "file(components/personality/personality_component.lua)",
-      "carry_block" : "file(components/carry_block/carry_block_component.lua)"
+      "carry_block" : "file(components/carry_block/carry_block_component.lua)",
+      "effect_manager" : "file(components/effect_manager/effect_manager_component.lua)"
    },
    "component_renderers" : {
       "stockpile" : "file(renderers/stockpile/stockpile_renderer.lua)",
