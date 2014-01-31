@@ -298,6 +298,11 @@ Client::Client() :
          } else {
             a.SetNextMusicVolume(audio::DEF_MUSIC_VOL, channel);
          }
+         if (params.has("crossfade")) {
+            a.SetNextMusicCrossfade(params.get<bool>("crossfade"), channel);
+         } else {
+            a.SetNextMusicCrossfade(audio::DEF_MUSIC_CROSSFADE, channel);
+         }
          a.PlayMusic(uri, channel);
 
          result->ResolveWithMsg("success");

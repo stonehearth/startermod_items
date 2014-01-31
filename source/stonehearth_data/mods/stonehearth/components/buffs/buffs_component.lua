@@ -52,7 +52,7 @@ function BuffsComponent:_apply_modifiers(uri, buff)
 
    if modifiers then
 
-      local attributes
+      self._attribute_modifiers[uri] = {}
       for name, modifier in pairs(modifiers) do
          local attribute_modifier = self._attributes_component:modify_attribute(name)
 
@@ -67,16 +67,17 @@ function BuffsComponent:_apply_modifiers(uri, buff)
                attribute_modifier:set_max(value)
             end
          end
-
-         self._attribute_modifiers[uri] = attribute_modifier
          
+         table.insert(self._attribute_modifiers[uri], attribute_modifier)
       end
    end
 end
 
 function BuffsComponent:_remove_modifiers(uri)
    if self._attribute_modifiers[uri] then
-      self._attribute_modifiers[uri]:destroy()
+      for i, modifier in ipairs(self._attribute_modifiers[uri]) do
+         modifier:destroy()
+      end
       self._attribute_modifiers[uri] = nil
    end
 end

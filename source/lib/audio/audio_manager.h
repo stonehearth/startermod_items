@@ -25,6 +25,7 @@ public:
    void SetNextMusicVolume(int volume, std::string channel);
    void SetNextMusicFade(int fade, std::string channel);
    void SetNextMusicLoop(bool loop, std::string channel);
+   void SetNextMusicCrossfade(bool crossfade, std::string channel);
 
    void PlayMusic(std::string track, std::string channel);
    void UpdateAudio();

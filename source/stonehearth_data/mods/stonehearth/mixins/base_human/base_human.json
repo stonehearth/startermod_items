@@ -41,9 +41,121 @@
          ]
       },
       "stonehearth:attributes" : {
-		  "ferocity": 1,
-		  "health": 5,
-        "speed" : 100
+         "mind": {
+            "type" : "random_range",
+            "base" : 1,
+            "max"  : 6
+         },
+         "body": {
+            "type" : "random_range",
+            "base" : 1,
+            "max"  : 6
+         },
+         "spirit": {
+            "type" : "random_range",
+            "base" : 1,
+            "max"  : 6
+         },
+         "diligence_modifier": {
+            "type" : "random_range",
+            "base" :  1,
+            "max"  :  9
+         },
+         "diligence": {
+            "type" : "derived",
+            "equation" : "mind * 10 + diligence_modifier"
+         },
+         "curiosity_modifier": {
+            "type" : "random_range",
+            "base" :  1,
+            "max"  :  9
+         },
+         "curiosity": {
+            "type" : "derived",
+            "equation" : "mind * 10 + curiosity_modifier"
+         },
+         "inventiveness_modifier": {
+            "type" : "random_range",
+            "base" :  1,
+            "max"  :  9
+         },
+         "inventiveness": {
+            "type" : "derived",
+            "equation" : "mind * 10 + inventiveness_modifier"
+         },
+         "muscle_modifier": {
+            "type" : "random_range",
+            "base" :  1,
+            "max"  :  9
+         },
+         "muscle": {
+            "type" : "derived",
+            "equation" : "body * 10 + muscle_modifier"
+         },
+         "speed_modifier": {
+            "type" : "random_range",
+            "base" :  1,
+            "max"  :  9
+         },
+         "speed": {
+            "type" : "derived",
+            "equation" : "body * 10 + speed_modifier"
+         },
+         "stamina_modifier": {
+            "type" : "random_range",
+            "base" :  1,
+            "max"  :  9
+         },
+         "stamina": {
+            "type" : "derived",
+            "equation" : "body * 10 + stamina_modifier"
+         },
+         "courage_modifier": {
+            "type" : "random_range",
+            "base" :  1,
+            "max"  :  9
+         },
+         "courage": {
+            "type" : "derived",
+            "equation" : "spirit * 10 + courage_modifier"
+         },
+         "willpower_modifier": {
+            "type" : "random_range",
+            "base" :  1,
+            "max"  :  9
+         },
+         "willpower": {
+            "type" : "derived",
+            "equation" : "spirit * 10 + willpower_modifier"
+         },
+         "compassion_modifier": {
+            "type" : "random_range",
+            "base" :  1,
+            "max"  :  9
+         },
+         "compassion": {
+            "type" : "derived",
+            "equation" : "spirit * 10 + stamina_modifier"
+         },
+		   "ferocity": {
+            "type" : "basic",
+            "value" : 1
+         },
+		   "health": {
+            "type" : "derived", 
+            "equation" : "muscle + willpower + discipline"
+         }, 
+         "hunger": {
+            "type" : "random_range", 
+            "base" : 1, 
+            "max"  : 30
+         },
+         "sleepiness": {
+            "type" : "random_range", 
+            "base" : 1, 
+            "max"  : 30
+         }
+
       },
       "sensor_list": {
          "sensors": {
