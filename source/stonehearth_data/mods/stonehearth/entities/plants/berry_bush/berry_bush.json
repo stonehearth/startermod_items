@@ -47,6 +47,11 @@
          "resource": "stonehearth:oak_log", 
          "durability": 1
       },
+      "stonehearth:effect_manager" : {
+         "effects" : {
+            "harvest_plant" : "/stonehearth/data/effects/harvest_berries_overlay_effect"
+         }
+      },
       "stonehearth:renewable_resource_node": {
          "resource" : "stonehearth:berry_basket",
          "renewal_time" : "2h",

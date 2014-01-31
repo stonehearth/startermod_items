@@ -20,7 +20,11 @@ function ResourceCallHandler:harvest_tree(session, response, tree)
                                 :set_name('chop tree task')
                                 :once()
                                 :start()
-      radiant.effects.run_effect(tree, '/stonehearth/data/effects/chop_overlay_effect')
+      
+      local eff_mgr_component = tree:get_component('stonehearth:effect_manager')
+      if eff_mgr_component then
+         eff_mgr_component:show_effect('harvest_tree')
+      end
    end
 
    return true
@@ -32,6 +36,12 @@ function ResourceCallHandler:harvest_plant(session, response, plant)
                               :set_name('harvest plant task')
                               :once()
                               :start()
+
+   local eff_mgr_component = plant:get_component('stonehearth:effect_manager')
+   if eff_mgr_component then
+      eff_mgr_component:show_effect('harvest_plant')
+   end
+
    return true
 end
 
