@@ -120,6 +120,15 @@ void AudioManager::SetNextMusicLoop(bool loop, std::string channel)
    }
 }
 
+void AudioManager::SetNextMusicCrossfade(bool crossfade, std::string channel)
+{
+   if (channel.compare("ambient") == 0) {
+       ambient_channel_.SetNextMusicCrossfade(crossfade);
+   } else {
+      bgm_channel_.SetNextMusicCrossfade(crossfade);
+   }
+}
+
 //By default, play the music in the bgm channel. If something else
 //is specified (ambient) play it there instead.
 void AudioManager::PlayMusic(std::string track, std::string channel)

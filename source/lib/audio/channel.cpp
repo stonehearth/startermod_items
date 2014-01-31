@@ -67,10 +67,12 @@ get_audio_easing_function(std::string easing)
 
 Channel::Channel() :
    music_(nullptr),
+   outgoing_music_(nullptr),
    fade_(DEF_MUSIC_FADE),
    volume_(DEF_MUSIC_VOL),
    master_volume_(MASTER_DEF_VOL),
    loop_(DEF_MUSIC_LOOP),
+   crossfade_(DEF_MUSIC_CROSSFADE),
    lastUpdated_(0)
 {
 }
@@ -84,6 +86,7 @@ Channel::~Channel()
 
    //Cleanup the music
    delete music_;
+   delete outgoing_music_;
 }
 
 void Channel::SetNextMusicVolume(int volume)
@@ -100,6 +103,12 @@ void Channel::SetNextMusicLoop(bool loop)
 {
    loop_ = loop;
 }
+
+void Channel::SetNextMusicCrossfade(bool crossfade)
+{
+   crossfade_ = crossfade;
+}
+
 
 void Channel::PlayMusic(std::string track)
 {
@@ -118,11 +127,11 @@ void Channel::PlayMusic(std::string track)
       } else {
          music_->stop();
       }
-      SetAndPlayMusic(track);
+      SetAndPlayMusic(track, volume_);
    }
 }
 
-void Channel::SetAndPlayMusic(std::string track)
+void Channel::SetAndPlayMusic(std::string track, double target_volume)
 {
    static std::string* data;
    auto i = music_buffers_.find(track);
@@ -141,7 +150,7 @@ void Channel::SetAndPlayMusic(std::string track)
    if (music_->openFromMemory(data->c_str(), data->size())) {
       music_->setLoop(loop_);
       //Change to reflect that music's user-set and dynamically-set value can change
-      music_->setVolume((float)volume_ * master_volume_);
+      music_->setVolume((float)target_volume * master_volume_);
       music_->play();
       music_name_ = track;
    } else { 
@@ -150,7 +159,6 @@ void Channel::SetAndPlayMusic(std::string track)
 }
 
 //Called by the game loop
-//TODO: crossfade
 void Channel::UpdateMusic(int currTime)
 {
    double dt = lastUpdated_ ? (currTime - lastUpdated_) : 0.0;
@@ -158,24 +166,52 @@ void Channel::UpdateMusic(int currTime)
 
    //If there is another track to play after this one
    if (nextTrack_.length() > 0) {
-      if (!tweener_.get()) {
-         //if we have another track to do and the tweener is null, then create a new tweener
+      if (!fading_tweener_.get()) {
+         //And if the fade_tweener is null, then create a new tweener and point music to outgoing_music so we can start to soften it
          int fade = fade_;
          fading_volume_ = volume_;
-         tweener_.reset(new claw::tween::single_tweener(fading_volume_, 0, fade, get_audio_easing_function("sine_out")));
-      } else {
-         //There is a next track and a tweener, we must be in the process of quieting the prev music
-         if (tweener_->is_finished()) {
-            //If the tweener is finished, play the next track
-            tweener_ = nullptr;
-            music_->stop();
-            SetAndPlayMusic(nextTrack_);
+         outgoing_music_ = music_;
+         fading_tweener_.reset(new claw::tween::single_tweener(fading_volume_, 0, fade, get_audio_easing_function("sine_out")));
+
+         //If crossfade option is true, then also create a rising tweener and set the new music to playing
+         if (crossfade_ && !rising_tweener_.get()) {
+            rising_volume_ = 0;
+            rising_tweener_.reset(new claw::tween::single_tweener(rising_volume_, volume_, fade, get_audio_easing_function("sine_in")));
+            music_ = new sf::Music();
+            SetAndPlayMusic(nextTrack_, rising_volume_);
             nextTrack_.clear();
-         } else {
-            //If the tweener is not finished, soften the volume
-            tweener_->update(dt);
-            music_->setVolume((float)fading_volume_ * master_volume_);
          }
       }
+   } 
+
+   //If we are in the middle of fading out (and potentially fading in)
+   if (outgoing_music_ != nullptr) {
+      if (fading_tweener_->is_finished()) {
+         //and if the fade tweener is finished, stop the outgoing music and reset the tweener. 
+         fading_tweener_ = nullptr;
+         outgoing_music_->stop();
+         outgoing_music_ = nullptr;
+            
+         //If we are not crossfading, then start the next track. 
+         if (!crossfade_) {
+            SetAndPlayMusic(nextTrack_, volume_);
+            nextTrack_.clear();
+         }
+      } else {
+         //If the tweener is not finished, soften the volume
+         fading_tweener_->update(dt);
+         outgoing_music_->setVolume((float)fading_volume_ * master_volume_);
+
+         //If crossfade is on, raise that volume
+         if (crossfade_) {
+            rising_tweener_->update(dt);
+            music_->setVolume((float)rising_volume_ * master_volume_);
+         }
+      }
+   }
+   
+   //If we have a rising tweener that is finsihed, then set it to null.
+   if (rising_tweener_.get() && rising_tweener_->is_finished()) {
+      rising_tweener_ = nullptr;
    }
 }

@@ -13,6 +13,7 @@ class InputStream;
 const int DEF_MUSIC_VOL = 50;
 const int DEF_MUSIC_FADE = 1000; 
 const int DEF_MUSIC_LOOP = true;
+const int DEF_MUSIC_CROSSFADE = true;
 
 END_RADIANT_AUDIO_NAMESPACE
 
