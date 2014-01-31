@@ -131,8 +131,8 @@ function Task:_set_state(state)
    assert(state and self._state ~= state)
    
    self._state = state
-   radiant.events.trigger(self, self._state, self)
-   radiant.events.trigger(self, 'state_changed', self, self._state)
+   radiant.events.trigger_async(self, self._state, self)
+   radiant.events.trigger_async(self, 'state_changed', self, self._state)
 end
 
 function Task:_get_active_action_count()
@@ -188,7 +188,7 @@ function Task:_check_repeat_timeout(action)
       local work_is_available = self:_is_work_available()
 
       if work_is_available and not work_was_available then
-         radiant.events.trigger(self, 'work_available', self, true)
+         radiant.events.trigger_async(self, 'work_available', self, true)
       end
    end
 end
@@ -271,7 +271,7 @@ function Task:__action_try_start(action)
    -- if this is the last guy to get a job, signal everyone else to let them know
    -- that they don't have a shot (this may trigger them to stop_thinking)
    if not self:_is_work_available() then
-      radiant.events.trigger(self, 'work_available', self, false)
+      radiant.events.trigger_async(self, 'work_available', self, false)
    end
    self:_log_state('exiting __action_try_start')   
    return true
@@ -283,7 +283,7 @@ function Task:_on_action_stopped(action)
    local work_is_available = self:_is_work_available()
 
    if work_is_available and not work_was_available then
-      radiant.events.trigger(self, 'work_available', self, true)
+      radiant.events.trigger_async(self, 'work_available', self, true)
    end
 
    if self:_is_work_finished() then

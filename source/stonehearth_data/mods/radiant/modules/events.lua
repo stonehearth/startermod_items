@@ -9,6 +9,7 @@ local log = radiant.log.create_logger('events')
 
 function events.__init()
    events._senders = {}
+   events._async_triggers = {}
 end
 
 function events._convert_object_to_key(object)
@@ -85,6 +86,15 @@ function events.unlisten(object, event, self, fn)
    log:warning('unlisten could not find registered listener for event: %s', event)
 end
 
+function events.trigger_async(object, event, ...)
+   local trigger = {
+      object = object,
+      event = event,
+      args = { ... },
+   }
+   table.insert(events._async_triggers, trigger)
+end
+
 function events.trigger(object, event, ...)
    local key = events._convert_object_to_key(object)
    local sender = events._senders[key]
@@ -114,6 +124,12 @@ end
 function events._update()
    local now = { now = radiant.gamestate.now() }
    
+   local async_triggers = events._async_triggers
+   events._async_triggers = {}
+   for _, trigger in ipairs(async_triggers) do
+      events.trigger(trigger.object, trigger.event, unpack(trigger.args))
+   end
+
    events.trigger(radiant.events, 'stonehearth:gameloop', now)
    -- pump the polls
    if now.now % 200 == 0 then
