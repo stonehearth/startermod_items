@@ -414,6 +414,11 @@ function ExecutionFrame:_stop_thinking_from_started()
          -- xxx: there's a problem... once we start running the CURRENT state
          -- will quickly become out of date.  do we stop_thinking/start_thinking
          -- them periodically?
+
+         -- xxx: disable for now...
+         if unit ~= self._active_unit then
+            unit:_stop_thinking()
+         end
       end
    end
 end
