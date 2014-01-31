@@ -6,6 +6,10 @@ function Logger.__init(self, category, prefix)
    self:set_prefix(prefix)
 end
 
+function Logger:is_enabled(level)
+   return radiant.log.is_enabled(self._category, level)
+end
+
 function Logger:set_prefix(prefix)
    self._prefix = prefix
 end
