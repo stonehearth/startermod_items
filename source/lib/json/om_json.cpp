@@ -31,7 +31,6 @@ using namespace radiant::json;
       OM_OBJECT(SensorList,            sensor_list)
       OM_OBJECT(TargetTables,          target_tables)
       OM_OBJECT(Item,                  item)
-      OM_OBJECT(CarryBlock,            carry_block)
 
 #undef OM_OBJECT
 
@@ -122,6 +121,19 @@ template <> Node json::encode(om::Destination const& obj)
    }
    node.set("auto_update_adjacent", obj.GetAutoUpdateAdjacent());
    node.set("allow_diagonal_adjacency", obj.GetAllowDiagonalAdjacency());
+   return node;
+}
+
+template <> Node json::encode(om::CarryBlock const& obj)
+{
+   Node node;
+
+   om::EntityPtr carrying = obj.GetCarrying().lock();
+   if (carrying) {
+      node.set("carrying", om::ObjectFormatter().GetPathToObject(carrying));
+   } else {
+      node.set("carrying", "");
+   }   
    return node;
 }
 

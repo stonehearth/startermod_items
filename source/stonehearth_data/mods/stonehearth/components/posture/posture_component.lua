@@ -9,8 +9,8 @@ function PostureComponent:__init(entity, data_object)
    self._log:set_prefix(string.format('postures for %s', tostring(entity)))
 
    self._data_object = data_object
-   --local data = data_object:get_data()
-   --data.postures = self._set_postures
+   local data = data_object:get_data()
+   data.postures = self._set_postures
    self._data_object:mark_changed()
 end
 
