@@ -38,7 +38,7 @@ App.StonehearthObjectBrowserView = App.View.extend({
       
       this.$().draggable();
       
-      $("#body").on("click", "a", function(event) {
+      this.my('#body').on("click", "a", function(event) {
          event.preventDefault();
          var uri = $(this).attr('href');
          self.fetch(uri);      

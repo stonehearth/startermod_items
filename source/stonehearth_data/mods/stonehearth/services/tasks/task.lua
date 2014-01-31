@@ -150,8 +150,14 @@ function Task:_action_is_running(action)
    return self._running_actions[action] ~= nil
 end
 
-function Task:__action_can_start(action)
-   if self:_action_is_running(action) then
+function Task:__action_can_start(action, log)
+   local currently_running = self:_action_is_running(action)
+   local work_available = self:_is_work_available()
+   
+   action:get_log():detail('__action_can_start (running:%s state:%s work_available:%s)',
+                           tostring(currently_running), self._state, tostring(work_available))
+              
+   if currently_running then
       return true
    end
    return self._state == 'started' and self:_is_work_available()
@@ -162,6 +168,12 @@ function Task:__action_completed(action)
 end
 
 function Task:__action_try_start(action)
+   local currently_running = self:_action_is_running(action)
+   local work_available = self:_is_work_available()
+
+   action:get_log():detail('__action_try_start (running:%s state:%s work_available:%s)',
+                           tostring(currently_running), self._state, tostring(work_available))
+
    if not self:_is_work_available() then
       return false
    end

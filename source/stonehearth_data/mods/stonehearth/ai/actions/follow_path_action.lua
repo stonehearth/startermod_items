@@ -17,8 +17,11 @@ end
 
 function FollowPathAction:run(ai, entity, args)
    local path = args.path
-
+   local log = ai:get_log()
+   
+   log:detail('following path: %s', tostring(path))
    if path:is_empty() then
+      log:detail('path is empty.  returning')
       return
    end
    
