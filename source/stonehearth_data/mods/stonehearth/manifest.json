@@ -137,8 +137,6 @@
          "simple_wooden_chair" : "file(entities/furniture/simple_wooden_chair)",
          "simple_wooden_chair_proxy" : "file(entities/furniture/simple_wooden_chair/simple_wooden_chair_proxy.json)",
 
-         "spindle" : "file(entities/tools/spindle)",
-
          "spool_of_thread" : "file(entities/crafting_materials/spool_of_thread)",
 
          "table_for_one" : "file(entities/furniture/table_for_one)",

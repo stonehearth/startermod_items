@@ -201,6 +201,13 @@ function WorkshopComponent:_create_promotion_talisman(faction)
    return self._promotion_talisman_entity
 end
 
+--Move the promotion talisman back down in the world and remove from the workshop
+function WorkshopComponent:remove_promotion_talisman()
+   local reset_offset = Point3(0, 0, 0)
+   self._promotion_talisman_entity:get_component('mob'):set_location_grid_aligned(reset_offset)
+   self._entity:get_component('entity_container'):remove_child(self._promotion_talisman_entity:get_id())
+end
+
 function WorkshopComponent:get_outbox()
    return self._outbox_entity
 end
