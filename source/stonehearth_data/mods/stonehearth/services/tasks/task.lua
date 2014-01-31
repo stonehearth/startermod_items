@@ -197,23 +197,47 @@ function Task:_action_is_active(action)
    return self._running_actions[action] or self._repeating_actions[action]
 end
 
+function Task:_log_state(tag)
+   if self._log:is_enabled(radiant.log.DETAIL) then
+      local running_count, repeating_count = 0, 0
+      for _, _ in pairs(self._running_actions) do
+         running_count = running_count + 1
+      end
+      for _, _ in pairs(self._repeating_actions) do
+         repeating_count = repeating_count + 1
+      end
+      local work_available = self:_is_work_available()
+      self._log:detail('%s [state:%s running:%d repeating:%d completed:%d total:%s available:%s]',
+                       tag, self._state, running_count, repeating_count, self._complete_count, tostring(self._times),
+                       tostring(work_available))
+   end
+end
+
 function Task:__action_can_start(action)
+   self:_log_state('entering __action_can_start')
+
    -- if we're done, we're done.  that's it!
    if self:_is_work_finished() then
+      self._log:detail('work is finished.  cannot start!')
       return false
    end
 
    -- actions that are already runnign (or we've just told to run) are of course
    -- allowed to start.
    if self:_action_is_active(action) then
+      self._log:detail('action is active.  can start!')
       return true
    end
 
    -- otherwins, only start when the task is active and there's stuff to do.
-   return self._state == 'started' and self:_is_work_available()
+   local can_start = self._state == 'started' and self:_is_work_available()
+   self._log:detail('can start? %s', tostring(can_start))
+   return can_start
 end
 
 function Task:__action_completed(action)
+   self:_log_state('entering __action_completed')
+
    assert(self._running_actions[action])
    self._complete_count = self._complete_count + 1
 
@@ -226,15 +250,19 @@ function Task:__action_completed(action)
             self:_check_repeat_timeout(action)
          end)
    end
+   self:_log_state('exiting __action_completed')
 end
 
 -- this protects races from many actions simultaneously trying to start at
 -- the same time.
 function Task:__action_try_start(action)
+   self:_log_state('entering __action_try_start')
+
    -- if the work "went away" before the call to __action_can_start and now, reject
    -- the request.  this usually happens because some other action ran in and grabbed
    -- the work item before you could.
    if not self:_is_work_available() then
+      self:_log_state('cannot start.  no work available.')
       return false
    end
    
@@ -245,13 +273,16 @@ function Task:__action_try_start(action)
    if not self:_is_work_available() then
       radiant.events.trigger(self, 'work_available', self, false)
    end
+   self:_log_state('exiting __action_try_start')   
    return true
 end
 
-function Task:__action_stopped(action)
+function Task:_on_action_stopped(action)
+   local work_was_available = self:_is_work_available()
    self._running_actions[action] = nil
+   local work_is_available = self:_is_work_available()
 
-   if self:_is_work_available() then
+   if work_is_available and not work_was_available then
       radiant.events.trigger(self, 'work_available', self, true)
    end
 
@@ -260,6 +291,19 @@ function Task:__action_stopped(action)
       self:stop()
       self:destroy()
    end  
+end
+
+function Task:__action_destroyed(action)
+   self:_log_state('entering __action_destroyed')
+   self:_on_action_stopped(action)
+   self._repeating_actions[action] = nil
+   self:_log_state('exiting __action_destroyed')
+end
+
+function Task:__action_stopped(action)
+   self:_log_state('entering __action_can_stopped')
+   self:_on_action_stopped(action)
+   self:_log_state('exiting __action_can_stopped')
 end
 
 return Task

@@ -100,6 +100,7 @@ function RunTaskAction:stop()
 end
 
 function RunTaskAction:destroy()
+   self._task:__action_destroyed(self)
    if self._execution_frame then
       self._execution_frame:destroy()
       self._execution_frame = nil
