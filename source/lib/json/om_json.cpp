@@ -16,7 +16,6 @@ using namespace radiant::json;
       return result; \
    }
 
-      OM_OBJECT(Effect,         effect)
       OM_OBJECT(Sensor,         sensor)
       OM_OBJECT(TargetTable,        target_table)
       OM_OBJECT(TargetTableGroup,   target_table_group)
@@ -26,7 +25,6 @@ using namespace radiant::json;
       OM_OBJECT(ModelVariants,         model_variants)
       OM_OBJECT(Terrain,               terrain)
       OM_OBJECT(VerticalPathingRegion, vertical_pathing_region)
-      OM_OBJECT(EffectList,            effect_list)
       OM_OBJECT(RenderInfo,            render_info)
       OM_OBJECT(SensorList,            sensor_list)
       OM_OBJECT(TargetTables,          target_tables)
@@ -134,6 +132,23 @@ template <> Node json::encode(om::CarryBlock const& obj)
    } else {
       node.set("carrying", "");
    }   
+   return node;
+}
+
+template <> Node json::encode(om::Effect const& obj)
+{
+   Node node;
+   node.set("name", obj.GetName());
+   return node;
+}
+
+template <> Node json::encode(om::EffectList const& obj)
+{
+   Node node;
+
+   for (auto const& entry : obj.EachEffect()) {
+      node.set(stdutil::ToString(entry.first), json::encode(*entry.second));
+   }
    return node;
 }
 
