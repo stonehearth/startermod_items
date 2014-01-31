@@ -7,11 +7,6 @@
         "description": "So fluffy!",
         "faction": "critter"
       },
-      "stonehearth:commands" : {
-         "commands" : [
-            "file(/data/commands/shear_sheep)"
-         ]
-      },
       "model_variants": [
          {
             "models": [
