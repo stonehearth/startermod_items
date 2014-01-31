@@ -513,19 +513,6 @@ void PathFinder::RebuildHeap()
    rebuildHeap_ = false;
 }
 
-csg::Point3 PathFinder::GetSourceLocation()
-{
-   csg::Point3 pt(0, 0, 0);
-   auto entity = entity_.lock();
-   if (entity) {
-      auto mob = entity->GetComponent<om::Mob>();
-      if (mob) {
-         pt = mob->GetWorldGridLocation();
-      }
-   }
-   return pt;
-}
-
 void PathFinder::SetSearchExhausted()
 {
    if (!search_exhausted_) {
@@ -553,13 +540,10 @@ void PathFinder::SolveSearch(const csg::Point3& last, PathFinderDst* dst)
 
    ReconstructPath(points, last);
 
-   csg::Point3 end_point;
-   if (!points.empty()) {
-      end_point = points.back();
-   } else {
-      end_point = GetSourceLocation();
+   if (points.empty()) {
+      points.push_back(source_->GetSourceLocation());
    }
-   csg::Point3 dst_point_of_interest = dst->GetPointfInterest(end_point);
+   csg::Point3 dst_point_of_interest = dst->GetPointfInterest(points.back());
    PF_LOG(5) << "found solution to destination " << dst->GetEntityId();
    solution_ = std::make_shared<Path>(points, entity_.lock(), dst->GetEntity(), dst_point_of_interest);
    if (solved_cb_.is_valid()) {

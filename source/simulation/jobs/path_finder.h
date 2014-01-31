@@ -77,7 +77,6 @@ class PathFinder : public std::enable_shared_from_this<PathFinder>,
 
       void SolveSearch(const csg::Point3& last, PathFinderDst* dst);
       void SetSearchExhausted();
-      csg::Point3 GetSourceLocation();
 
    private:
       static std::vector<std::weak_ptr<PathFinder>> all_pathfinders_;

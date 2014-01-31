@@ -23,6 +23,7 @@ public:
    void InitializeOpenSet(std::vector<PathFinderNode>& open);
    void EncodeDebugShapes(protocol::shapelist *msg) const;
    void SetSourceOverride(csg::Point3 const& location);
+   csg::Point3 GetSourceLocation() const;
 
 protected:
    Simulation& GetSim() const { return pf_.GetSim(); }

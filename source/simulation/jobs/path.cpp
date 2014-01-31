@@ -10,13 +10,14 @@ static int next_path_id_ = 1;
 
 #define PF_LOG(level)   LOG_CATEGORY(simulation.pathfinder, level, "path " << id_)
 
-Path::Path(const std::vector<csg::Point3>& points, om::EntityRef source, om::EntityRef destination, csg::Point3 const& finish) :
+Path::Path(const std::vector<csg::Point3>& points, om::EntityRef source, om::EntityRef destination, csg::Point3 const& poi) :
    points_(points),
    source_(source),
    destination_(destination),
-   finish_pt_(finish),
+   poi_(poi),
    id_(next_path_id_++)
 {
+   ASSERT(!points.empty());
 }
 
 std::ostream& Path::Format(std::ostream& os) const
@@ -26,16 +27,11 @@ std::ostream& Path::Format(std::ostream& os) const
    if (source) {
       os << " " << *source << " -> ";
    }
-   if (!points_.empty()) {
-      os << " " << points_.front() << " -> " << points_.back() << " -> ";
-   } else {
-      os << " no points! -> ";
-   }
    om::EntityPtr destination = destination_.lock();
    if (destination) {
       os << *destination << " -> ";
    }
-   os << " dpoi:" << finish_pt_ << "]";
+   os << " dpoi:" << poi_ << "]";
    return os;
 }
 
@@ -54,12 +50,12 @@ std::ostream& simulation::operator<<(std::ostream& os, const Path& in)
 
 csg::Point3 Path::GetStartPoint() const
 {
-   return points_.empty() ? GetSourceLocation() : points_.front();
+   return points_.front();
 }
 
 csg::Point3 Path::GetFinishPoint() const
 {
-   return points_.empty() ? GetSourceLocation() : points_.back();
+   return points_.back();
 }
 
 csg::Point3 Path::GetSourceLocation() const

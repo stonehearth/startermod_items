@@ -9,7 +9,7 @@ BEGIN_RADIANT_SIMULATION_NAMESPACE
 
 class Path {
    public:
-      Path(const std::vector<csg::Point3>& points, om::EntityRef source, om::EntityRef destination, csg::Point3 const& finish);
+      Path(const std::vector<csg::Point3>& points, om::EntityRef source, om::EntityRef destination, csg::Point3 const& poi);
 
       std::vector<csg::Point3> const& GetPoints() const {
          return points_;
@@ -21,7 +21,7 @@ class Path {
       om::EntityRef GetSource() const { return source_; }
       csg::Point3 GetStartPoint() const;
       csg::Point3 GetFinishPoint() const;
-      csg::Point3 GetDestinationPointOfInterest() const { return finish_pt_; }
+      csg::Point3 GetDestinationPointOfInterest() const { return poi_; }
       std::ostream& Format(std::ostream& os) const;
 
    private:
@@ -30,7 +30,7 @@ class Path {
    private:
       int                       id_;
       std::vector<csg::Point3>  points_;
-      csg::Point3               finish_pt_;
+      csg::Point3               poi_;
       om::EntityRef             source_;
       om::EntityRef             destination_;
 };
