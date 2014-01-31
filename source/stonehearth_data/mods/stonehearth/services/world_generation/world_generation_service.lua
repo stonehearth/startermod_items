@@ -75,7 +75,7 @@ function WorldGenerationService:create_blueprint(num_tiles_x, num_tiles_y)
          local blueprint_generator = self._blueprint_generator
          local micro_map_generator = self._micro_map_generator
          local landscaper = self._landscaper
-         local blueprint, full_micro_map, full_elevation_map, full_feature_map
+         local blueprint, full_micro_map, full_elevation_map, full_feature_map, full_habitat_map
 
          blueprint = blueprint_generator:generate_blueprint(num_tiles_x, num_tiles_y)
          --blueprint = blueprint_generator:get_empty_blueprint(2, 2) -- (2,2) is minimum size
@@ -91,11 +91,14 @@ function WorldGenerationService:create_blueprint(num_tiles_x, num_tiles_y)
          landscaper:mark_berry_bushes(full_elevation_map, full_feature_map)
          landscaper:mark_flowers(full_elevation_map, full_feature_map)
 
+         full_habitat_map = self._habitat_manager:derive_habitat_map(full_elevation_map, full_feature_map)
+
          -- shard the maps and store in the blueprint
          -- micro_maps are overlapping so they need a different sharding function
          blueprint_generator:store_micro_map(blueprint, full_micro_map, macro_blocks_per_tile)
          blueprint_generator:shard_and_store_map(blueprint, "elevation_map", full_elevation_map)
          blueprint_generator:shard_and_store_map(blueprint, "feature_map", full_feature_map)
+         blueprint_generator:shard_and_store_map(blueprint, "habitat_map", full_habitat_map)
 
          -- location of the world origin in the coordinate system of the blueprint
          blueprint.origin_x = math.floor(blueprint.width * tile_size / 2)
@@ -228,10 +231,7 @@ function WorldGenerationService:_generate_tile_impl(i, j)
    -- place flora
    self:_place_flora(tile_map, feature_map, offset)
 
-   -- derive habitat map
-   tile_info.habitat_map = self._habitat_manager:derive_habitat_map(feature_map, elevation_map)
-
-   -- place initial scenarios
+   -- place scenarios
    self:_place_scenarios(tile_info.habitat_map, elevation_map, offset)
 
    tile_info.generated = true

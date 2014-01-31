@@ -67,7 +67,7 @@ function ScenarioService:_register_events()
 end
 
 function ScenarioService:_on_poll()
-   local reveal_distance = radiant.util.get_config('game.scenario_reveal_distance', 128)
+   local reveal_distance = radiant.util.get_config('scenario_reveal_distance', 128)
    local citizens = self._faction:get_citizens()
    local region = Region2()
    local pt, rect

@@ -31,11 +31,6 @@ function NewGameCallHandler:get_overview_map(session, response)
    return result
 end
 
-function NewGameCallHandler:get_start_location(session, response)
-   local wgs = radiant.mods.load('stonehearth').world_generation
-   return { x = wgs.start_x, z = wgs.start_z }
-end
-
 -- feature_cell_x and feature_cell_y are base 0
 function NewGameCallHandler:generate_start_location(session, response, feature_cell_x, feature_cell_y)
    -- +1 to convert to base 1
@@ -54,16 +49,39 @@ function NewGameCallHandler:generate_start_location(session, response, feature_c
    response:resolve({})
 end
 
-function NewGameCallHandler:move_camera_to_start_location(session, response)
-   local camera_service = radiant.mods.load('stonehearth').camera
-   _radiant.call('stonehearth:get_start_location'):done(
+-- returns coordinates of embark location
+function NewGameCallHandler:embark_server(session, response)
+   local wgs = radiant.mods.load('stonehearth').world_generation
+   local x = wgs.start_x
+   local z = wgs.start_z
+
+   -- reveal scenaraios around the staring location
+   local reveal_distance = radiant.util.get_config('scenario_reveal_distance', 128)
+   local starting_region = Region2()
+   starting_region:add_cube(
+      Rect2(
+         Point2(x-reveal_distance, z-reveal_distance),
+         Point2(x+reveal_distance+1, z+reveal_distance+1)
+      )
+   )
+
+   local scenario_service = radiant.mods.load('stonehearth').scenario
+   scenario_service:reveal_region(starting_region)
+
+   return { x = x, z = z }
+end
+
+function NewGameCallHandler:embark_client(session, response)
+   _radiant.call('stonehearth:embark_server'):done(
       function (o)
+         -- reconcile these with the camera constants later
          local camera_height = 256
          local target_height = 32
          local distance_from_target = 384
+         local camera_service = radiant.mods.load('stonehearth').camera
 
          local target = Point3f(o.x, target_height, o.z)
-         local camera_location = Point3f(o.x, camera_height, o.z + distance_from_target)
+         local camera_location = Point3f(x, camera_height, z + distance_from_target)
 
          -- hack to get around camera interpolation
          camera_service._next_position = camera_location
