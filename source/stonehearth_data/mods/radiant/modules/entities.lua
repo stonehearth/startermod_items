@@ -461,6 +461,10 @@ function entities.is_adjacent_to(subject, target)
       subject = entities.get_world_grid_location(subject)
    end
    if radiant.util.is_a(target, Entity) then
+      local destination = target:get_component('destination')
+      if destination then
+         return entities.point_in_destination_adjacent(target, subject)
+      end
       target = entities.get_world_grid_location(target)
    end
    radiant.check.is_a(subject, Point3)
