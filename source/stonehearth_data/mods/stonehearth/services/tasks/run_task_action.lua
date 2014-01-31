@@ -7,9 +7,14 @@ function RunTaskAction:__init(task)
    self._task = task
 end
 
+function RunTaskAction:get_log()
+   return self._log
+end
+
 function RunTaskAction:_create_execution_frame(ai)
    if not self._execution_frame then
-      self._ai = ai      
+      self._ai = ai
+      self._log = ai:get_log()
       local activity = self._task:get_activity()
       self._args = activity.args
 
@@ -23,6 +28,7 @@ end
 function RunTaskAction:_start_stop_thinking()
    if not self._starting then
       local should_think = self._should_think and self._task:__action_can_start(self)
+      self._log:debug('_start_stop_thinking (should? %s  currently? %s)', tostring(should_think), tostring(self._thinking))
       if should_think and not self._thinking then
          self._thinking = true
          local think_output = self._execution_frame:start_thinking(self._ai.CURRENT)
