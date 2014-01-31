@@ -400,7 +400,7 @@ function ExecutionUnitV2:_destroy_from_running()
    if self._execute_frame then
       self._execute_frame:destroy()
    end
-   self:_call_stop_thinking()
+   self:_call_stop()
    self:_call_destroy()
    self:_set_state(DEAD)
 end
