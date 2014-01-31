@@ -173,7 +173,7 @@ function ExecutionFrame:_add_action(...)
    if self._state == 'running' then
       return self:_add_action_from_running(...)
    end
-   if self:in_state('stopped', 'switching') then
+   if self:in_state('stopped', 'switching', 'finished') then
       return self:_add_action_from_stopped(...)
    end
    self:_unknown_transition('add_action')
@@ -673,7 +673,7 @@ function ExecutionFrame:_log_stack(msg)
    local runstack = self._thread:get_thread_data('stonehearth:run_stack')
    for i = #runstack,1,-1 do
       local f = runstack[i]
-      self._log:detail('  [%d] - (%5d) %s', i, f._id, f._name, stonehearth.ai.format_args(f._args))
+      self._log:spam('  [%d] - (%5d) %s', i, f._id, f._name, stonehearth.ai.format_args(f._args))
    end
 end
 
@@ -829,8 +829,8 @@ function ExecutionFrame:_remove_execution_unit(unit)
 end
 
 function ExecutionFrame:_on_action_index_changed(add_remove, key, entry, does)
+   self._log:debug('on_action_index_changed %s (key:%s state:%s)', add_remove, tostring(key), self._state)
    if self._name == does and self:get_state() ~= DEAD then
-      self._log:debug('on_action_index_changed %s (state:%s)', add_remove, self._state)
       if add_remove == 'add' then
          self:_add_action(key, entry)
       elseif add_remove == 'remove' then

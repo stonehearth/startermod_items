@@ -15,7 +15,7 @@ function CreateWorkshop:run(thread, args)
       workshop = self._ghost_entity,
       ingredients = self._ingredients,
    })
-   thread:orchestrate('stonehearth:complete_workshop_construction', {
+   thread:execute('stonehearth:complete_workshop_construction', {
       ghost_workshop = self._ghost_entity,
       sound_effect = self._build_sound_effect,
    })
@@ -35,7 +35,10 @@ function CreateWorkshop:_complete_construction()
    workshop_entity:get_component('mob'):set_rotation(q)
    workshop_component:finish_construction(self._faction, self._outbox_entity)
 
-   --destroy the ghost entity
+   -- destroy the ghost entity and everything we put in it to make the workbench
+   for id, item in self._ghost_entity:add_component('entity_container'):each_child() do
+      radiant.entities.destroy_entity(item)
+   end
    radiant.entities.destroy_entity(self._ghost_entity)
 
    stonehearth.analytics:send_design_event('game:place_workshop', workshop_entity)

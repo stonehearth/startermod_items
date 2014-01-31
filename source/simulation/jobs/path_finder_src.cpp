@@ -83,3 +83,19 @@ bool PathFinderSrc::IsIdle() const
 void PathFinderSrc::EncodeDebugShapes(radiant::protocol::shapelist *msg) const
 {
 }
+
+csg::Point3 PathFinderSrc::GetSourceLocation() const
+{
+   if (use_source_override_) {
+      return source_override_;
+   }
+   csg::Point3 pt(0, 0, 0);
+   auto entity = entity_.lock();
+   if (entity) {
+      auto mob = entity->GetComponent<om::Mob>();
+      if (mob) {
+         pt = mob->GetWorldGridLocation();
+      }
+   }
+   return pt;
+}

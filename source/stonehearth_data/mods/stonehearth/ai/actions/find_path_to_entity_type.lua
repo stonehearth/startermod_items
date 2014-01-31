@@ -41,7 +41,7 @@ function FindPathToEntityType:_consider_destination(target)
          self._log:debug('ignoring %s (cannot acquire ai lease)', tostring(target))
          return
       end
-      self._log:spam('adding entity %s to pathfinder', tostring(target))
+      self._log:detail('adding entity %s to pathfinder', tostring(target))
       self._pathfinder:add_destination(target)
    end
 end
@@ -61,7 +61,7 @@ function FindPathToEntityType:_remove_destination(ai, entity, args, id)
       return
    end
    
-   self._log:spam('removing entity %d to pathfinder', id)
+   self._log:detail('removing entity %d to pathfinder', id)
    self._pathfinder:remove_destination(id)
 end
 
@@ -83,7 +83,7 @@ function FindPathToEntityType:_start_pathfinder(ai, entity, args)
       radiant.events.listen(stonehearth.ai, self._reconsider_event_name, self, self._consider_destination)
    end   
    
-   self._log:spam('finding path from CURRENT.location %s to item type...', tostring(ai.CURRENT.location))
+   self._log:detail('finding path from CURRENT.location %s to item type...', tostring(ai.CURRENT.location))
    self._pathfinder = _radiant.sim.create_path_finder(entity, 'goto entity action')
                          :set_source(ai.CURRENT.location)
                          :set_solved_cb(solved)
@@ -94,7 +94,7 @@ end
 function FindPathToEntityType:_stop_pathfinder(ai, entity)
    self._solution_path = nil
    self._solution_entity_id = nil
-   self._log:spam('stop thinking.')
+   self._log:detail('stop thinking.')
 
    if self._reconsider_event_name then
       radiant.events.unlisten(stonehearth.ai, self._reconsider_event_name, self, self._consider_destination)

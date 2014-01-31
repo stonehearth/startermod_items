@@ -20,7 +20,7 @@ function PromoteWithTalisman:run(thread, args)
       workshop = workshop,
       trigger_fn = trigger_fn,
    }
-   thread:run_task('stonehearth:grab_promotion_talisman', args)
+   thread:execute('stonehearth:grab_promotion_talisman', args)
 
    radiant.entities.destroy_entity(talisman)
    stonehearth.ai:remove_action(person, 'stonehearth:actions:grab_promotion_talisman')

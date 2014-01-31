@@ -18,7 +18,7 @@ function WorkshopComponent:__init(entity, data_binding)
    self._outbox_entity = nil
    self._promotion_talisman_entity = nil -- The talisman for the bench, available when there is no craftsman
    self._promotion_talisman_offset = Point3(0, 3, 0)  -- Default offset for the talisman (on the bench)
-self._data = data_binding:get_data()
+   self._data = data_binding:get_data()
    self._data.crafter = nil
    self._data.order_list = self._craft_order_list
 
