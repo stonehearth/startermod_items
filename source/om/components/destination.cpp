@@ -130,8 +130,17 @@ csg::Point3 Destination::GetPointOfInterest(csg::Point3 const& pt) const
    if (*reserved_) {
       csg::Region3 const& reserved = ***reserved_;
       if (!reserved.IsEmpty()) {
-         return (rgn - reserved).GetClosestPoint(pt);
+         csg::Region3 r = (rgn - reserved);
+         if (r.IsEmpty()) {
+            D_LOG(1) << "region is empty in get point of interest!";
+            return csg::Point3(0, 0, 0);
+         }
+         return r.GetClosestPoint(pt);
       }
+   }
+   if (rgn.IsEmpty()) {
+      D_LOG(1) << "region is empty in get point of interest!";
+      return csg::Point3(0, 0, 0);
    }
    return rgn.GetClosestPoint(pt);
 }
