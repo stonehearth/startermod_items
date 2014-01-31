@@ -22,6 +22,8 @@ radiant.pathfinder = require 'modules.pathfinder'
 radiant.gamestate._start()
 radiant.log.info('server', 'radiant api initialized.')
 
+require 'modules.timer'
+
 function radiant.not_reached(reason, ...)
    local reason = reason and string.format(reason, ...) or 'no reason given'
    assert(false, 'executed theoretically unreachable code: ' .. reason)
@@ -36,6 +38,7 @@ function api.update(interval, profile)
    end
    radiant.gamestate._increment_clock(interval)
    radiant.events._update()
+   radiant._fire_timers()
    if profile then
       ProFi:stop()
       ProFi:writeReport()

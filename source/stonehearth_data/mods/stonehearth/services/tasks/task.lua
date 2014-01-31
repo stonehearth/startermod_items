@@ -22,7 +22,7 @@ function Task:__init(scheduler, activity)
    self._complete_count = 0
    self._active_count = 0
    self._running_actions = {}
-   self._running_actions_count = 0
+   self._repeating_actions = {}
    self._priority = 2
    self._max_workers = INFINITE
    self:_set_state(STOPPED)
@@ -72,6 +72,11 @@ end
 
 function Task:get_action_ctor()
    return self._action_ctor
+end
+
+function Task:set_repeat_timeout(time_ms)
+   self._repeat_timeout = time_ms
+   return self
 end
 
 function Task:set_max_workers(max_workers)
@@ -130,59 +135,113 @@ function Task:_set_state(state)
    radiant.events.trigger(self, 'state_changed', self, self._state)
 end
 
+function Task:_get_active_action_count()
+   local count = 0
+   for _, _ in pairs(self._running_actions) do
+      count = count + 1
+   end
+   for _, _ in pairs(self._repeating_actions) do
+      count = count + 1
+   end   
+   return count
+end
+
 function Task:_is_work_finished()
+   -- repeat forever if the task owner hasn't called once() or times()
    if not self._times then
       return false
    end
-   local work_remaining = self._times - self._complete_count - self._running_actions_count
+   -- the amount of work left is just the number of times we're supposed to run
+   -- minus the number of things actually done minus the number of people attempting
+   -- to complete the task.  if that's 0, there's nothing left for anyone else.
+   local active_action_count = self:_get_active_action_count()
+   local work_remaining = self._times - self._complete_count - active_action_count
    return work_remaining == 0
 end
 
 function Task:_is_work_available()
-   if self._running_actions_count >= self._max_workers then
+   -- there's no work avaiable if we've already hit the cap of max workers allowed
+   -- to start the task.
+   local active_action_count = self:_get_active_action_count()
+   if active_action_count >= self._max_workers then
       return false
    end
+
+   -- finally, if there's just nothing to do, there's just nothing to do.
    return not self:_is_work_finished()
 end
 
-function Task:_action_is_running(action)
-   assert(action)
-   return self._running_actions[action] ~= nil
+function Task:_get_next_repeat_timeout()
+   if self._repeat_timeout then
+      return radiant.gamestate.now() +  self._repeat_timeout
+   end
+   return nil
 end
 
-function Task:__action_can_start(action, log)
-   local currently_running = self:_action_is_running(action)
-   local work_available = self:_is_work_available()
-   
-   action:get_log():detail('__action_can_start (running:%s state:%s work_available:%s)',
-                           tostring(currently_running), self._state, tostring(work_available))
-              
-   if currently_running then
+function Task:_check_repeat_timeout(action)
+   local timeout = self._repeating_actions[action]
+
+   if timeout and timeout <= radiant.gamestate.now() then
+      
+      local work_was_available = self:_is_work_available()
+      self._repeating_actions[action] = nil
+      local work_is_available = self:_is_work_available()
+
+      if work_is_available and not work_was_available then
+         radiant.events.trigger(self, 'work_available', self, true)
+      end
+   end
+end
+
+function Task:_action_is_active(action)
+   return self._running_actions[action] or self._repeating_actions[action]
+end
+
+function Task:__action_can_start(action)
+   -- if we're done, we're done.  that's it!
+   if self:_is_work_finished() then
+      return false
+   end
+
+   -- actions that are already runnign (or we've just told to run) are of course
+   -- allowed to start.
+   if self:_action_is_active(action) then
       return true
    end
+
+   -- otherwins, only start when the task is active and there's stuff to do.
    return self._state == 'started' and self:_is_work_available()
 end
 
 function Task:__action_completed(action)
+   assert(self._running_actions[action])
    self._complete_count = self._complete_count + 1
+
+   -- update the running actions map to contain the time when we'll release the
+   -- repeat reservation.  this may be nil if the task owner hasn't set one
+   local timeout = self:_get_next_repeat_timeout()
+   if timeout then
+      self._repeating_actions[action] = timeout
+      radiant.set_timer(timeout, function()
+            self:_check_repeat_timeout(action)
+         end)
+   end
 end
 
+-- this protects races from many actions simultaneously trying to start at
+-- the same time.
 function Task:__action_try_start(action)
-   local currently_running = self:_action_is_running(action)
-   local work_available = self:_is_work_available()
-
-   action:get_log():detail('__action_try_start (running:%s state:%s work_available:%s)',
-                           tostring(currently_running), self._state, tostring(work_available))
-
+   -- if the work "went away" before the call to __action_can_start and now, reject
+   -- the request.  this usually happens because some other action ran in and grabbed
+   -- the work item before you could.
    if not self:_is_work_available() then
       return false
    end
    
-   if not self:_action_is_running(action) then
-      self._running_actions[action] = true
-      self._running_actions_count = self._running_actions_count + 1
-   end
+   self._running_actions[action] = true
    
+   -- if this is the last guy to get a job, signal everyone else to let them know
+   -- that they don't have a shot (this may trigger them to stop_thinking)
    if not self:_is_work_available() then
       radiant.events.trigger(self, 'work_available', self, false)
    end
@@ -190,13 +249,12 @@ function Task:__action_try_start(action)
 end
 
 function Task:__action_stopped(action)
-   if self:_action_is_running(action) then
-      self._running_actions[action] = nil
-      self._running_actions_count = self._running_actions_count - 1
-   end
+   self._running_actions[action] = nil
+
    if self:_is_work_available() then
       radiant.events.trigger(self, 'work_available', self, true)
    end
+
    if self:_is_work_finished() then
       self._log:debug('task reached max number of completions (%d).  stopping and completing!', self._times)
       self:stop()
