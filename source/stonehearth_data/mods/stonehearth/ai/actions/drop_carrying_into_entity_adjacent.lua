@@ -28,7 +28,6 @@ function DropCarryingIntoEntityAdjacent:run(ai, entity, args)
       ai:abort('%s is not adjacent to %s', tostring(entity), tostring(container))
    end
    
-   -- xxx: sometimes run carry_putdown_on_table...
    radiant.entities.turn_to_face(entity, container)
    ai:execute('stonehearth:run_effect', { effect = 'carry_putdown' })
    radiant.entities.put_carrying_into_entity(entity, container)
