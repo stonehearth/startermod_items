@@ -7,24 +7,24 @@ local RandomNumberGenerator = _radiant.csg.RandomNumberGenerator
 local BlueprintGenerator = class()
 local log = radiant.log.create_logger('world_generation')
 
-function BlueprintGenerator:__init(rng)
-   self._rng = rng
+function BlueprintGenerator:__init()
 end
 
-function BlueprintGenerator:generate_blueprint(width, height)
+function BlueprintGenerator:generate_blueprint(width, height, seed)
    -- minimum size for this algorithm
    assert(width >= 5)
    assert(height >= 5)
 
    local mountains_threshold = 65
    local foothills_threshold = 50
+   local rng = RandomNumberGenerator(seed)
    local blueprint = self:get_empty_blueprint(width, height)
    local noise_map = Array2D(width, height)
    local height_map = Array2D(width, height)
    local i, j, value, terrain_type
 
    local noise_fn = function(i, j)
-      return self._rng:get_gaussian(55, 50)
+      return rng:get_gaussian(55, 50)
    end
 
    while (true) do

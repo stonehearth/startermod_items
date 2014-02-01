@@ -1,18 +1,18 @@
 local Array2D = require 'services.world_generation.array_2D'
-local BlueprintGenerator = require 'services.world_generation.blueprint_generator'
+local MathFns = require 'services.world_generation.math.math_fns'
+local FilterFns = require 'services.world_generation.filter.filter_fns'
 local TerrainType = require 'services.world_generation.terrain_type'
 local TerrainInfo = require 'services.world_generation.terrain_info'
-local TerrainGenerator = require 'services.world_generation.terrain_generator'
+local BlueprintGenerator = require 'services.world_generation.blueprint_generator'
 local MicroMapGenerator = require 'services.world_generation.micro_map_generator'
 local Landscaper = require 'services.world_generation.landscaper'
+local TerrainGenerator = require 'services.world_generation.terrain_generator'
 local HeightMapRenderer = require 'services.world_generation.height_map_renderer'
-local FilterFns = require 'services.world_generation.filter.filter_fns'
-local MathFns = require 'services.world_generation.math.math_fns'
-local Timer = require 'services.world_generation.timer'
 local ScenarioService = require 'services.scenario.scenario_service'
 local HabitatType = require 'services.world_generation.habitat_type'
 local HabitatManager = require 'services.world_generation.habitat_manager'
 local OverviewMap = require 'services.world_generation.overview_map'
+local Timer = require 'services.world_generation.timer'
 local RandomNumberGenerator = _radiant.csg.RandomNumberGenerator
 local Point3 = _radiant.csg.Point3
 
@@ -34,7 +34,6 @@ function WorldGenerationService:initialize(seed, async)
    self._macro_block_size = self._terrain_info.macro_block_size
    self._feature_size = self._terrain_info.feature_size
 
-   self._blueprint_generator = BlueprintGenerator(self._rng)
    self._micro_map_generator = MicroMapGenerator(self._terrain_info, self._rng)
    self._terrain_generator = TerrainGenerator(self._terrain_info, self._rng, self._async)
    self._height_map_renderer = HeightMapRenderer(self._terrain_info)
@@ -44,6 +43,7 @@ function WorldGenerationService:initialize(seed, async)
    self._scenario_service:initialize(self._feature_size, self._rng)
    self._habitat_manager = HabitatManager(self._terrain_info, self._landscaper)
 
+   self.blueprint_generator = BlueprintGenerator()
    self.overview_map = OverviewMap(self._terrain_info, self._landscaper)
 
    self._progress = 0
@@ -67,19 +67,16 @@ function WorldGenerationService:_on_poll_progress()
    end
 end
 
-function WorldGenerationService:create_blueprint(num_tiles_x, num_tiles_y)
+-- set and populate the blueprint
+function WorldGenerationService:set_blueprint(blueprint)
    local seconds = Timer.measure(
       function()
          local tile_size = self._tile_size
          local macro_blocks_per_tile = self._tile_size / self._macro_block_size
-         local blueprint_generator = self._blueprint_generator
+         local blueprint_generator = self.blueprint_generator
          local micro_map_generator = self._micro_map_generator
          local landscaper = self._landscaper
-         local blueprint, full_micro_map, full_elevation_map, full_feature_map, full_habitat_map
-
-         blueprint = blueprint_generator:generate_blueprint(num_tiles_x, num_tiles_y)
-         --blueprint = blueprint_generator:get_empty_blueprint(2, 2) -- (2,2) is minimum size
-         --blueprint = blueprint_generator:get_static_blueprint()
+         local full_micro_map, full_elevation_map, full_feature_map, full_habitat_map
 
          full_micro_map, full_elevation_map = micro_map_generator:generate_micro_map(blueprint)
 
@@ -111,7 +108,7 @@ function WorldGenerationService:create_blueprint(num_tiles_x, num_tiles_y)
          self._blueprint = blueprint
       end
    )
-   log:info('Blueprint generation time: %.3fs', seconds)
+   log:info('Blueprint population time: %.3fs', seconds)
 end
 
 -- get the (i,j) index of the blueprint tile for the world coordinates (x,y)

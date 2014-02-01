@@ -1,6 +1,7 @@
 local NewGameCallHandler = class()
 local game_master = require 'services.game_master.game_master_service'
 local personality_service = require 'services.personality.personality_service'
+local BlueprintGenerator = require 'services.world_generation.blueprint_generator'
 
 local Point2 = _radiant.csg.Point2
 local Point3 = _radiant.csg.Point3
@@ -10,12 +11,19 @@ local Region2 = _radiant.csg.Region2
 
 local log = radiant.log.create_logger('world_generation')
 
-function NewGameCallHandler:new_game(session, response, seed, num_tiles_x, num_tiles_y)
+function NewGameCallHandler:new_game(session, response, num_tiles_x, num_tiles_y, seed)
    local wgs = radiant.mods.load('stonehearth').world_generation
-   wgs:initialize(seed, true)
-   wgs:create_blueprint(num_tiles_x, num_tiles_y)
+   local blueprint
 
-   return self:get_overview_map(session, response)
+   wgs:initialize(seed, true)
+
+   blueprint = wgs.blueprint_generator:generate_blueprint(num_tiles_x, num_tiles_y, seed)
+   --blueprint = wgs.blueprint_generator:get_empty_blueprint(2, 2) -- (2,2) is minimum size
+   --blueprint = wgs.blueprint_generator:get_static_blueprint()
+
+   wgs:set_blueprint(blueprint)
+
+   return NewGameCallHandler:get_overview_map(session, response)
 end
 
 function NewGameCallHandler:get_overview_map(session, response)
