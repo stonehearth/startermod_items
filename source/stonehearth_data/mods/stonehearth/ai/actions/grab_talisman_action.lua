@@ -16,10 +16,11 @@ local ai = stonehearth.ai
 return ai:create_compound_action(GrabTalismanAction)
             :execute('stonehearth:drop_carrying_now')
             :execute('stonehearth:goto_entity', { entity = ai.ARGS.workshop })
+            --TODO: remove this when we no longer promote from workshops
             :execute('stonehearth:call_method', {
-               obj = ai.ARGS.workshop:get_component('entity_container'),
-               method = 'remove_child',
-               args = { ai.ARGS.talisman:get_id() }
+               obj =  ai.ARGS.workshop:get_component('stonehearth:workshop'),
+               method = 'remove_promotion_talisman',
+               args = {}
             })
             :execute('stonehearth:run_effect', {
                effect = 'promote',
