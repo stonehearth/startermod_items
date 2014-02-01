@@ -182,7 +182,7 @@ function ExecutionUnitV2:_stop_thinking()
    if self._state == 'aborting' then
       return self:_stop_thinking_from_aborting()
    end
-   if self._state == 'stopped' then
+   if self:in_state('stopped', 'dead') then
       assert(not self._thinking)
       return -- nop
    end
@@ -240,6 +240,9 @@ function ExecutionUnitV2:_destroy()
    end
    if self._state == 'aborting' then
       return self:_destroy_from_aborting()
+   end
+   if self._state == 'dead' then
+      return -- nop
    end
    self:_unknown_transition('destroy')   
 end
@@ -400,7 +403,7 @@ function ExecutionUnitV2:_destroy_from_running()
    if self._execute_frame then
       self._execute_frame:destroy()
    end
-   self:_call_stop_thinking()
+   self:_call_stop()
    self:_call_destroy()
    self:_set_state(DEAD)
 end

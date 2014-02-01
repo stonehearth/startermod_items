@@ -5,6 +5,7 @@ local Thread = class()
 Thread.SUSPEND = { name = "SUSPEND" }
 Thread.KILL = { name = "KILL" }
 
+Thread.all_threads = {}
 Thread.scheduled = {}
 Thread.is_scheduled = {}
 Thread.waiting_for = {}
@@ -22,6 +23,13 @@ function Thread.loop()
          Thread.resume_thread(thread)
       end
       log:spam('finished thread loop')
+   end
+end
+
+function Thread.get_current_thread()
+   local co = coroutine.running()
+   if co then
+      return Thread.all_threads[co]
    end
 end
 
@@ -56,7 +64,7 @@ function Thread.resume_thread(thread)
 end
 
 function Thread.wait_thread(thread)
-   local current_thread = Thread.current_thread
+   local current_thread = Thread.get_current_thread()
    assert(current_thread)
    assert(not thread:is_running())
 
@@ -77,6 +85,7 @@ function Thread.wait_thread(thread)
 end
 
 function Thread.terminate_thread(thread, err)
+   Thread.all_threads[thread._co] = nil
    Thread.scheduled[thread._id] = nil
    thread:_on_thread_exit(err)
 
@@ -183,10 +192,12 @@ function Thread:start(...)
 
    self._co = coroutine.create(function ()
          -- make a pcall.. this only works because we've installed coco
+
          local error_handler = function(err)
             local traceback = debug.traceback()
             _host:report_error(err, traceback)
-            return err         
+            Thread.terminate_thread(self)
+            return err
          end
          xpcall(function()
                self:_dispatch_messages()
@@ -195,6 +206,8 @@ function Thread:start(...)
                self._should_resume = false
             end, error_handler)
       end)
+   Thread.all_threads[self._co] = self
+
    self._log:detail('starting thread')   
    Thread.resume_thread(self)
 
@@ -221,14 +234,14 @@ function Thread:_call_interrupt(fn)
 end
 
 function Thread:wait()
-   local log = Thread.current_thread._log
-   log:detail('thread %d waiting for thread %d to finish', Thread.current_thread._id, self._id)
+   local log = Thread.get_current_thread()._log
+   log:detail('thread %d waiting for thread %d to finish', Thread.get_current_thread()._id, self._id)
    Thread.wait_thread(self)
    log:detail('returning from wait for %d', self._id)
 end
 
 function Thread:wait_for_children()
-   local log = Thread.current_thread._log
+   local log = Thread.get_current_thread()._log
    
    log:detail('waiting for children to finish...')
    for id, _ in pairs(self._child_threads) do
@@ -244,7 +257,7 @@ function Thread:wait_for_children()
 end
 
 function Thread:is_running()
-   return Thread.current_thread == self
+   return Thread.get_current_thread() == self
 end
 
 function Thread:suspend(reason)
@@ -314,9 +327,6 @@ function Thread:_do_resume()
    assert(self._co)
    assert(not self:is_running())
 
-   self._last_current_thread = Thread.current_thread
-   Thread.current_thread = self
-
    self._log:spam('coroutine.resume...')
    return coroutine.resume(self._co)
 end
@@ -325,7 +335,6 @@ function Thread:_do_yield(...)
    assert(self._co)
    assert(self:is_running())
 
-   Thread.current_thread = self._last_current_thread
    coroutine.yield(...)
 
    assert(self:is_running())

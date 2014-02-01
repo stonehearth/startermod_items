@@ -17,13 +17,7 @@ local LOG_LEVELS = {}
 -- functions to disable tail-call optimization of write_.
 
 function Log.write_(category, level, format, ...)
-   local config_level = LOG_LEVELS[category]
-   if config_level == nil then
-      config_level = _host:get_log_level(category)
-      LOG_LEVELS[category] = config_level
-   end
-   
-   if level <= config_level then
+   if radiant.log.is_enabled(category, level) then
       local args = {...}
       for i, arg in ipairs(args) do
          if type(arg) == 'userdata' then
@@ -32,6 +26,16 @@ function Log.write_(category, level, format, ...)
       end
       _host:log(category, level, string.format(format, unpack(args)))
    end
+end
+
+function Log.is_enabled(category, level)
+   local config_level = LOG_LEVELS[category]
+   if config_level == nil then
+      config_level = _host:get_log_level(category)
+      LOG_LEVELS[category] = config_level
+   end
+   
+   return level <= config_level
 end
 
 function Log.write(category, level, format, ...)

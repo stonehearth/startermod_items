@@ -22,7 +22,7 @@ function Task:__init(scheduler, activity)
    self._complete_count = 0
    self._active_count = 0
    self._running_actions = {}
-   self._running_actions_count = 0
+   self._repeating_actions = {}
    self._priority = 2
    self._max_workers = INFINITE
    self:_set_state(STOPPED)
@@ -30,8 +30,8 @@ end
 
 function Task:destroy()
    if self._state ~= COMPLETED then
-      self._scheduler:_decommit_task(self)
       self:_set_state(COMPLETED)
+      self._scheduler:_decommit_task(self)
    end
 end
 
@@ -72,6 +72,11 @@ end
 
 function Task:get_action_ctor()
    return self._action_ctor
+end
+
+function Task:set_repeat_timeout(time_ms)
+   self._repeat_timeout = time_ms
+   return self
 end
 
 function Task:set_max_workers(max_workers)
@@ -117,7 +122,9 @@ end
 
 function Task:stop()
    assert(self._activity, 'must call execute before stop')
-   self:_set_state(STOPPED)
+   if self._state ~= STOPPED then
+      self:_set_state(STOPPED)
+   end
    return self
 end
 
@@ -126,82 +133,181 @@ function Task:_set_state(state)
    assert(state and self._state ~= state)
    
    self._state = state
-   radiant.events.trigger(self, self._state, self)
-   radiant.events.trigger(self, 'state_changed', self, self._state)
+   radiant.events.trigger_async(self, self._state, self)
+   radiant.events.trigger_async(self, 'state_changed', self, self._state)
+end
+
+function Task:_get_active_action_count()
+   local count = 0
+   for _, _ in pairs(self._running_actions) do
+      count = count + 1
+   end
+   for _, _ in pairs(self._repeating_actions) do
+      count = count + 1
+   end   
+   return count
 end
 
 function Task:_is_work_finished()
+   -- repeat forever if the task owner hasn't called once() or times()
    if not self._times then
       return false
    end
-   local work_remaining = self._times - self._complete_count - self._running_actions_count
-   return work_remaining == 0
+   return self._times - self._complete_count <= 0
 end
 
 function Task:_is_work_available()
-   if self._running_actions_count >= self._max_workers then
+   -- finally, if there's just nothing to do, there's just nothing to do.
+   if self:_is_work_finished() then
       return false
    end
-   return not self:_is_work_finished()
-end
 
-function Task:_action_is_running(action)
-   assert(action)
-   return self._running_actions[action] ~= nil
-end
+   -- there's no work avaiable if we've already hit the cap of max workers allowed
+   -- to start the task.
+   local active_action_count = self:_get_active_action_count()
+   if active_action_count >= self._max_workers then
+      return false
+   end
 
-function Task:__action_can_start(action, log)
-   local currently_running = self:_action_is_running(action)
-   local work_available = self:_is_work_available()
-   
-   action:get_log():detail('__action_can_start (running:%s state:%s work_available:%s)',
-                           tostring(currently_running), self._state, tostring(work_available))
-              
-   if currently_running then
+   -- the amount of work left is just the number of times we're supposed to run
+   -- minus the number of things actually done minus the number of people attempting
+   -- to complete the task.  if that's 0, there's nothing left for anyone else.
+   if not self._times then
       return true
    end
-   return self._state == 'started' and self:_is_work_available()
+
+   local active_action_count = self:_get_active_action_count()
+   local work_remaining = self._times - self._complete_count - active_action_count
+   return work_remaining > 0
+end
+
+function Task:_get_next_repeat_timeout()
+   if self._repeat_timeout then
+      return radiant.gamestate.now() +  self._repeat_timeout
+   end
+   return nil
+end
+
+function Task:_check_repeat_timeout(action)
+   local timeout = self._repeating_actions[action]
+
+   if timeout and timeout <= radiant.gamestate.now() then
+      
+      local work_was_available = self:_is_work_available()
+      self._repeating_actions[action] = nil
+      local work_is_available = self:_is_work_available()
+
+      if work_is_available and not work_was_available then
+         radiant.events.trigger_async(self, 'work_available', self, true)
+      end
+   end
+end
+
+function Task:_action_is_active(action)
+   return self._running_actions[action] or self._repeating_actions[action]
+end
+
+function Task:_log_state(tag)
+   if self._log:is_enabled(radiant.log.DETAIL) then
+      local running_count, repeating_count = 0, 0
+      for _, _ in pairs(self._running_actions) do
+         running_count = running_count + 1
+      end
+      for _, _ in pairs(self._repeating_actions) do
+         repeating_count = repeating_count + 1
+      end
+      local work_available = self:_is_work_available()
+      self._log:detail('%s [state:%s running:%d repeating:%d completed:%d total:%s available:%s]',
+                       tag, self._state, running_count, repeating_count, self._complete_count, tostring(self._times),
+                       tostring(work_available))
+   end
+end
+
+function Task:__action_can_start(action)
+   self:_log_state('entering __action_can_start')
+
+   -- actions that are already runnign (or we've just told to run) are of course
+   -- allowed to start.
+   if self:_action_is_active(action) then
+      self._log:detail('action is active.  can start!')
+      return true
+   end
+
+   -- otherwise, only start when the task is active and there's stuff to do.
+   local can_start = self._state == 'started' and self:_is_work_available()
+   self._log:detail('can start? %s', tostring(can_start))
+   return can_start
 end
 
 function Task:__action_completed(action)
+   self:_log_state('entering __action_completed')
+
+   assert(self._running_actions[action])
    self._complete_count = self._complete_count + 1
+
+   -- update the running actions map to contain the time when we'll release the
+   -- repeat reservation.  this may be nil if the task owner hasn't set one
+   local timeout = self:_get_next_repeat_timeout()
+   if timeout then
+      self._repeating_actions[action] = timeout
+      radiant.set_timer(timeout, function()
+            self:_check_repeat_timeout(action)
+         end)
+   end
+   self:_log_state('exiting __action_completed')
 end
 
+-- this protects races from many actions simultaneously trying to start at
+-- the same time.
 function Task:__action_try_start(action)
-   local currently_running = self:_action_is_running(action)
-   local work_available = self:_is_work_available()
+   self:_log_state('entering __action_try_start')
 
-   action:get_log():detail('__action_try_start (running:%s state:%s work_available:%s)',
-                           tostring(currently_running), self._state, tostring(work_available))
-
+   -- if the work "went away" before the call to __action_can_start and now, reject
+   -- the request.  this usually happens because some other action ran in and grabbed
+   -- the work item before you could.
    if not self:_is_work_available() then
+      self:_log_state('cannot start.  no work available.')
       return false
    end
    
-   if not self:_action_is_running(action) then
-      self._running_actions[action] = true
-      self._running_actions_count = self._running_actions_count + 1
-   end
+   self._running_actions[action] = true
    
+   -- if this is the last guy to get a job, signal everyone else to let them know
+   -- that they don't have a shot (this may trigger them to stop_thinking)
    if not self:_is_work_available() then
-      radiant.events.trigger(self, 'work_available', self, false)
+      radiant.events.trigger_async(self, 'work_available', self, false)
    end
+   self:_log_state('exiting __action_try_start')   
    return true
 end
 
-function Task:__action_stopped(action)
-   if self:_action_is_running(action) then
-      self._running_actions[action] = nil
-      self._running_actions_count = self._running_actions_count - 1
+function Task:_on_action_stopped(action)
+   local work_was_available = self:_is_work_available()
+   self._running_actions[action] = nil
+   local work_is_available = self:_is_work_available()
+
+   if work_is_available and not work_was_available then
+      radiant.events.trigger_async(self, 'work_available', self, true)
    end
-   if self:_is_work_available() then
-      radiant.events.trigger(self, 'work_available', self, true)
-   end
+
    if self:_is_work_finished() then
       self._log:debug('task reached max number of completions (%d).  stopping and completing!', self._times)
       self:stop()
       self:destroy()
    end  
+end
+
+function Task:__action_destroyed(action)
+   self:_log_state('entering __action_destroyed')
+   self:_on_action_stopped(action)
+   self._repeating_actions[action] = nil
+   self:_log_state('exiting __action_destroyed')
+end
+
+function Task:__action_stopped(action)
+   self:_log_state('entering __action_can_stopped')
+   self:_on_action_stopped(action)
+   self:_log_state('exiting __action_can_stopped')
 end
 
 return Task

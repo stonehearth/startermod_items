@@ -87,7 +87,7 @@ App.StonehearthObjectBrowserView = App.View.extend({
    },
 
    collapse: function() {
-      $("#body").toggle();
+      this.my('#body').toggle();
    },
 
    goBack: function() {

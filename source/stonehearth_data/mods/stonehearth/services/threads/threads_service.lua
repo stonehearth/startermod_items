@@ -15,7 +15,7 @@ function ThreadsService:create_thread()
 end
 
 function ThreadsService:get_current_thread()
-   return Thread.current_thread
+   return Thread.get_current_thread()
 end
 
 return ThreadsService()

@@ -6,6 +6,11 @@
             "file(/data/commands/chop_tree)"
 			]
 	   },
+      "stonehearth:effect_manager" : {
+         "effects" : {
+            "harvest_tree" : "/stonehearth/data/effects/chop_overlay_effect"
+         }
+      },
       "render_info" : {
          "scale" : 1
       },
