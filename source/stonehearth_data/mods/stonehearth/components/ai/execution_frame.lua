@@ -186,7 +186,7 @@ function ExecutionFrame:_remove_action(...)
    if self._state == 'ready' then
       return self:_remove_action_from_ready(...)
    end
-   if self:in_state('running', 'switching') then
+   if self:in_state('running', 'switching', 'starting') then
       return self:_remove_action_from_running(...)
    end
    if self._state == 'stopped' then

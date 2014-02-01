@@ -30,8 +30,8 @@ end
 
 function Task:destroy()
    if self._state ~= COMPLETED then
-      self._scheduler:_decommit_task(self)
       self:_set_state(COMPLETED)
+      self._scheduler:_decommit_task(self)
    end
 end
 
@@ -122,7 +122,9 @@ end
 
 function Task:stop()
    assert(self._activity, 'must call execute before stop')
-   self:_set_state(STOPPED)
+   if self._state ~= STOPPED then
+      self:_set_state(STOPPED)
+   end
    return self
 end
 
@@ -151,15 +153,15 @@ function Task:_is_work_finished()
    if not self._times then
       return false
    end
-   -- the amount of work left is just the number of times we're supposed to run
-   -- minus the number of things actually done minus the number of people attempting
-   -- to complete the task.  if that's 0, there's nothing left for anyone else.
-   local active_action_count = self:_get_active_action_count()
-   local work_remaining = self._times - self._complete_count - active_action_count
-   return work_remaining == 0
+   return self._times - self._complete_count <= 0
 end
 
 function Task:_is_work_available()
+   -- finally, if there's just nothing to do, there's just nothing to do.
+   if self:_is_work_finished() then
+      return false
+   end
+
    -- there's no work avaiable if we've already hit the cap of max workers allowed
    -- to start the task.
    local active_action_count = self:_get_active_action_count()
@@ -167,8 +169,16 @@ function Task:_is_work_available()
       return false
    end
 
-   -- finally, if there's just nothing to do, there's just nothing to do.
-   return not self:_is_work_finished()
+   -- the amount of work left is just the number of times we're supposed to run
+   -- minus the number of things actually done minus the number of people attempting
+   -- to complete the task.  if that's 0, there's nothing left for anyone else.
+   if not self._times then
+      return true
+   end
+
+   local active_action_count = self:_get_active_action_count()
+   local work_remaining = self._times - self._complete_count - active_action_count
+   return work_remaining > 0
 end
 
 function Task:_get_next_repeat_timeout()
@@ -216,12 +226,6 @@ end
 function Task:__action_can_start(action)
    self:_log_state('entering __action_can_start')
 
-   -- if we're done, we're done.  that's it!
-   if self:_is_work_finished() then
-      self._log:detail('work is finished.  cannot start!')
-      return false
-   end
-
    -- actions that are already runnign (or we've just told to run) are of course
    -- allowed to start.
    if self:_action_is_active(action) then
@@ -229,7 +233,7 @@ function Task:__action_can_start(action)
       return true
    end
 
-   -- otherwins, only start when the task is active and there's stuff to do.
+   -- otherwise, only start when the task is active and there's stuff to do.
    local can_start = self._state == 'started' and self:_is_work_available()
    self._log:detail('can start? %s', tostring(can_start))
    return can_start
