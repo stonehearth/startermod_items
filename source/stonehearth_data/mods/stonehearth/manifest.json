@@ -191,6 +191,7 @@
          "actions:drop_carrying_now" : "file(ai/actions/drop_carrying_now_action.lua)",
          "actions:drop_carrying_into_entity" : "file(ai/actions/drop_carrying_into_entity.lua)",
          "actions:drop_carrying_into_entity_adjacent" : "file(ai/actions/drop_carrying_into_entity_adjacent.lua)",
+         "actions:drop_carrying_into_entity_adjacent_at" : "file(ai/actions/drop_carrying_into_entity_adjacent_at.lua)",
          "actions:replace_proxy_with_item" : "file(ai/actions/replace_proxy_with_item_action.lua)",
          "actions:trigger_event" : "file(ai/actions/trigger_event.lua)",
          "actions:wander" : "file(ai/actions/wander_action.lua)",
