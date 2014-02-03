@@ -5,6 +5,7 @@ IdleSwayAction.does = 'stonehearth:idle:bored'
 IdleSwayAction.args = { }
 IdleSwayAction.version = 2
 IdleSwayAction.priority = 1
+IdleSwayAction.preemptable = true
 
 function IdleSwayAction:run(ai, entity)
    for i = 1, 2 do
