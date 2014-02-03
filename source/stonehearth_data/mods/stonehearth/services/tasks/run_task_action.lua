@@ -27,7 +27,7 @@ end
 
 function RunTaskAction:_start_stop_thinking()
    if not self._starting then
-      local should_think = self._should_think and self._task:__action_can_start(self)
+      local should_think = self._should_think and self._task:__action_try_start_thinking(self)
       self._log:debug('_start_stop_thinking (should? %s  currently? %s)', tostring(should_think), tostring(self._thinking))
       if should_think and not self._thinking then
          self._thinking = true
