@@ -7,6 +7,7 @@ IdleDespairAction.args = { }
 IdleDespairAction.version = 2
 IdleDespairAction.priority = 1
 IdleDespairAction.weight = 3
+IdleDespairAction.preemptable = true
 
 function IdleDespairAction:run(ai, entity)
    local name = radiant.entities.get_display_name(entity)

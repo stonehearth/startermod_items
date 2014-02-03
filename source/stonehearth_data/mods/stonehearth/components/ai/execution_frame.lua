@@ -7,6 +7,7 @@ local ExecutionFrame = class()
 local SET_ACTIVE_UNIT = { __comment = 'change active running unit' }
 
 -- these values are in the interface, since we trigger them as events.  don't change them!
+local STARTING_THINKING = 'starting_thinking'
 local THINKING = 'thinking'
 local READY = 'ready'
 local STARTING = 'starting'
@@ -34,6 +35,7 @@ function ExecutionFrame:__init(thread, debug_route, entity, name, args, action_i
    self._execution_units = {}
    self._execution_unit_keys = {}
    self._saved_think_output = {}
+   self._runnable_unit_count = {}
 
    self._log = radiant.log.create_logger('ai.exec_frame')
    local prefix = string.format('%s (%s)', self._debug_route, self._name)
@@ -98,6 +100,9 @@ function ExecutionFrame:_run()
 end
 
 function ExecutionFrame:_unit_ready(unit, think_output)
+   if self._state == 'starting_thinking' then
+      return self:_unit_ready_from_starting_thinking(unit, think_output)
+   end
    if self._state == 'thinking' then
       return self:_unit_ready_from_thinking(unit, think_output)
    end
@@ -211,25 +216,34 @@ function ExecutionFrame:_start_thinking_from_stopped(entity_state)
    assert(self._active_unit == nil)
    assert(self._current_entity_state)
 
-   self:_set_state(THINKING)
+   self:_set_state(STARTING_THINKING)
 
-   -- randomize the order that we tell execution units to start thinking based on the
-   -- number of shares they have.   the first execution unit we notify has a better
-   -- chance of being the active one.
-   local shuffled = self:_shuffle_execution_units()
-   
    -- before starting, make a clone of our entity state for each execution unit.  we
    -- clone it now rather than inline in the loop to prevent corrupting future states
    -- if the current unit become ready immediately (like, before _start_thinking even
    -- returns!)
+   self._runnable_unit_count = 0
    local cloned_state = {}
-   for _, unit in ipairs(shuffled) do
+   for _, unit in pairs(self._execution_units) do
       cloned_state[unit] = self:_clone_entity_state('new speculation for unit')
    end
    
    -- finally, start all the units with the cloned state
-   for _, unit in ipairs(shuffled) do
+   for _, unit in pairs(self._execution_units) do
       unit:_start_thinking(cloned_state[unit])
+   end
+
+   -- if anything became ready during the think, use it immediately.  otherwise,
+   -- transition to THINKING.
+   local unit = self:_get_best_execution_unit()
+   if unit then
+      local think_output = self._saved_think_output[unit]
+      assert(think_output)
+      self._log:detail('using "%s" as active unit in start_thinking.', unit:get_name())
+      self:_set_active_unit(unit, think_output)
+      self:_set_state(READY)
+   else
+      self:_set_state(THINKING)
    end
 end
 
@@ -244,12 +258,14 @@ function ExecutionFrame:start_thinking(entity_state)
 
    self:_start_thinking(entity_state)
    if self:in_state(READY) then
+      assert(self._active_unit_think_output)
       return self._active_unit_think_output
    end
+   self._log:spam('not immediately ready after start_thinking.')
 end
 
 function ExecutionFrame:on_ready(ready_cb)
-   self._log:spam('on_ready (state: %s)', self._state)
+   self._log:spam('registering on_ready callback (state: %s)', self._state)
    if not ready_cb then
       self._ready_cb = nil
       return
@@ -365,19 +381,6 @@ function ExecutionFrame:_create_execution_units()
 end
 
 
-function ExecutionFrame:_shuffle_execution_units()
-   local units = {}
-   for _, unit in pairs(self._execution_units) do
-      table.insert(units, unit)
-   end
-   local c = #units
-   for i = c, 2, -1 do
-      local j = rng:get_int(1, i)
-      units[i], units[j] = units[j], units[i]
-   end
-   return units
-end
-
 function ExecutionFrame:_stop_thinking_from_thinking()
    for _, unit in pairs(self._execution_units) do
       unit:_stop_thinking()
@@ -426,8 +429,19 @@ function ExecutionFrame:_stop_thinking_from_started()
    end
 end
 
-function ExecutionFrame:_unit_ready_from_thinking(unit, think_output)
+function ExecutionFrame:_do_unit_ready_bookkeeping(unit, think_output)
+   -- remember the think output.  the frame caller up the stack will
+   -- use it during the election, later.
    self._saved_think_output[unit] = think_output
+   self._runnable_unit_count = self._runnable_unit_count + 1
+end
+
+function ExecutionFrame:_unit_ready_from_starting_thinking(unit, think_output)
+   self:_do_unit_ready_bookkeeping(unit, think_output)
+end
+
+function ExecutionFrame:_unit_ready_from_thinking(unit, think_output)
+   self:_do_unit_ready_bookkeeping(unit, think_output)
 
    if not self._active_unit then
       self._log:detail('selecting first ready unit "%s"', unit:get_name())
@@ -443,7 +457,7 @@ end
 
 function ExecutionFrame:_unit_ready_from_ready(unit, think_output)
    assert(self._active_unit)
-   self._saved_think_output[unit] = think_output
+   self:_do_unit_ready_bookkeeping(unit, think_output)
 
    if self:_is_strictly_better_than_active(unit) then
       self._log:detail('replacing unit "%s" with better active unit "%s"',
@@ -455,9 +469,10 @@ function ExecutionFrame:_unit_ready_from_ready(unit, think_output)
 end
 
 function ExecutionFrame:_unit_ready_from_running(unit, think_output)
+   self._log:detail('_unit_ready_from_running (%s)', unit:get_name())
    assert(self._active_unit)
 
-   self._saved_think_output[unit] = think_output
+   self:_do_unit_ready_bookkeeping(unit, think_output)
    
    if self:_is_strictly_better_than_active(unit) then
       self._log:detail('replacing unit "%s" with better active unit "%s" while running!!',
@@ -485,7 +500,6 @@ function ExecutionFrame:_unit_ready_from_running(unit, think_output)
             -- frame that wants to get ready, which is way up the stack.
             self:_exit_protected_call(UNWIND_NEXT_FRAME_2)
          end)
-
    else
       -- not better than our current unit?  just ignore him
    end
@@ -493,7 +507,7 @@ end
 
 function ExecutionFrame:_unit_ready_from_ready(unit, think_output)
    assert(self._active_unit)
-   self._saved_think_output[unit] = think_output
+   self:_do_unit_ready_bookkeeping(unit, think_output)
 
    if self:_is_strictly_better_than_active(unit) then
       self._log:detail('replacing unit "%s" with better active unit "%s"',
@@ -555,7 +569,7 @@ end
 
 function ExecutionFrame:_find_replacement_for_active_unit()
    local unit = self:_get_best_execution_unit()
-   if self._active_unit then
+   if unit then
       local think_output = self._saved_think_output[unit]
       self:_set_active_unit(unit, think_output)
       self._log:detail('selected "%s" as a replacement...', self._active_unit)
@@ -950,7 +964,13 @@ function ExecutionFrame:_is_strictly_better_than_active(unit)
    if unit:get_priority() > self._active_unit:get_priority() then
       return true
    end
-   return false
+
+   -- if they're exactly the same, the odds of replacing the current unit
+   -- with this other one are the equal (proportional the number of other
+   -- things we've seen roll by). (xxx: technically, the odds should be a 
+   -- function of the combined weights of all the units of this priority
+   -- which are currently ready)
+   return rng:get_int(1, self._runnable_unit_count) == self._runnable_unit_count
 end
 
 function ExecutionFrame:_get_best_execution_unit()
@@ -962,8 +982,9 @@ function ExecutionFrame:_get_best_execution_unit()
       local name = unit:get_name()
       local priority = unit:get_priority()
       local is_runnable = unit:is_runnable()
-      self._log:spam('  unit %s has priority %d (runnable: %s)', name, priority, tostring(is_runnable))
-      if is_runnable or is_active then
+      self._log:spam('  unit %s has priority %d (weight: %d  runnable: %s)',
+                     name, priority, unit:get_weight(), tostring(is_runnable))
+      if is_runnable then
          if priority >= best_priority then
             if priority > best_priority then
                -- new best_priority found, wipe out the old list of candidate actions

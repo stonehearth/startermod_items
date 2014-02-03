@@ -31,7 +31,7 @@ end
 
 function WaitForAttributeAbove:_attribute_changed(e)   
    self._log:spam('attribute:%s value:%d threshold:%d signaled:%s',
-                  e.name, e.value, self._above_value, self._signaled)
+                  e.name, e.value, self._above_value, tostring(self._signaled))
 
    if e.value >= self._above_value and not self._signaled then
       self._log:detail('marking ready!')
