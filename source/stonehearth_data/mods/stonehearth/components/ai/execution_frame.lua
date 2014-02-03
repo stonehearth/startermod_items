@@ -84,6 +84,9 @@ function ExecutionFrame:_start()
    if self._state == 'ready' then
       return self:_start_from_ready()
    end
+   if self._state == 'thinking' then
+      return self:_start_from_thinking()
+   end
    self:_unknown_transition('start')
 end
 
@@ -416,7 +419,7 @@ function ExecutionFrame:_stop_thinking_from_started()
          -- them periodically?
 
          -- xxx: disable for now...
-         if unit ~= self._active_unit then
+         if unit ~= self._active_unit and not self._active_unit:is_preemptable() then
             unit:_stop_thinking()
          end
       end
@@ -569,6 +572,16 @@ function ExecutionFrame:_start_from_ready()
    self:_set_state(STARTING)
    self._active_unit:_start()
    self:_set_state(STARTED)
+end
+
+function ExecutionFrame:_start_from_thinking()
+   -- this happens sometimes when we lose a race.  it looks something like this:
+   -- 1) we become ready, but the owning task won't let us actually run for a little bit.
+   -- 2) simultaneously, something causes us to become unready and go back to thinking and
+   --    our task decides it's ok for us to go.
+   -- in this case, just abort.
+   self._log:detail('aborting in start_from_thinking state.')
+   self:abort()
 end
 
 function ExecutionFrame:_run_from_started()
