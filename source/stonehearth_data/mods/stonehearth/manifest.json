@@ -186,6 +186,7 @@
          "actions:sleep_when_exhausted" : "file(ai/actions/sleep_when_exhausted_action.lua)",
          "actions:add_buff" : "file(ai/actions/add_buff_action.lua)",
          "actions:death_action" : "file(ai/actions/death_action.lua)",
+         "actions:delay_thinking" : "file(ai/actions/delay_thinking_action.lua)",
          "actions:drop_carrying_action" : "file(ai/actions/drop_carrying_action.lua)",
          "actions:drop_carrying_adjacent" : "file(ai/actions/drop_carrying_adjacent_action.lua)",
          "actions:drop_carrying_now" : "file(ai/actions/drop_carrying_now_action.lua)",
