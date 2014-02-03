@@ -42,10 +42,12 @@ end
 
 function ReserveEntityDestination:stop(ai, entity, args)   
    if self._reserved_pt then
-      self._destination:get_reserved():modify(function(cursor)
-         cursor:subtract_point(self._reserved_pt)
-      end)
-      --log:debug('finished removing point %s from reserve region', tostring(pt))      
+      if self._destination:is_valid() then
+         self._destination:get_reserved():modify(function(cursor)
+            cursor:subtract_point(self._reserved_pt)
+         end)
+         --log:debug('finished removing point %s from reserve region', tostring(pt))
+      end
       self._reserved_pt = nil
       self._destination = nil
    end

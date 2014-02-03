@@ -6,6 +6,7 @@ Idle.does = 'stonehearth:idle'
 Idle.args = { }
 Idle.version = 2
 Idle.priority = 1
+Idle.preemptable = true
 
 function Idle:run(ai, entity)
    local countdown = rng:get_int(1, 4)

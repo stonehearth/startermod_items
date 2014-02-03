@@ -223,10 +223,10 @@ function Task:_log_state(tag)
    end
 end
 
-function Task:__action_can_start(action)
-   self:_log_state('entering __action_can_start')
+function Task:__action_try_start_thinking(action)
+   self:_log_state('entering __action_try_start_thinking')
 
-   -- actions that are already runnign (or we've just told to run) are of course
+   -- actions that are already running (or we've just told to run) are of course
    -- allowed to start.
    if self:_action_is_active(action) then
       self._log:detail('action is active.  can start!')
@@ -237,24 +237,6 @@ function Task:__action_can_start(action)
    local can_start = self._state == 'started' and self:_is_work_available()
    self._log:detail('can start? %s', tostring(can_start))
    return can_start
-end
-
-function Task:__action_completed(action)
-   self:_log_state('entering __action_completed')
-
-   assert(self._running_actions[action])
-   self._complete_count = self._complete_count + 1
-
-   -- update the running actions map to contain the time when we'll release the
-   -- repeat reservation.  this may be nil if the task owner hasn't set one
-   local timeout = self:_get_next_repeat_timeout()
-   if timeout then
-      self._repeating_actions[action] = timeout
-      radiant.set_timer(timeout, function()
-            self:_check_repeat_timeout(action)
-         end)
-   end
-   self:_log_state('exiting __action_completed')
 end
 
 -- this protects races from many actions simultaneously trying to start at
@@ -279,6 +261,24 @@ function Task:__action_try_start(action)
    end
    self:_log_state('exiting __action_try_start')   
    return true
+end
+
+function Task:__action_completed(action)
+   self:_log_state('entering __action_completed')
+
+   assert(self._running_actions[action])
+   self._complete_count = self._complete_count + 1
+
+   -- update the running actions map to contain the time when we'll release the
+   -- repeat reservation.  this may be nil if the task owner hasn't set one
+   local timeout = self:_get_next_repeat_timeout()
+   if timeout then
+      self._repeating_actions[action] = timeout
+      radiant.set_timer(timeout, function()
+            self:_check_repeat_timeout(action)
+         end)
+   end
+   self:_log_state('exiting __action_completed')
 end
 
 function Task:_on_action_stopped(action)

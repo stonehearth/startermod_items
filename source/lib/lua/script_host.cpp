@@ -7,6 +7,7 @@
 #include "lua_supplemental.h"
 #include "client/renderer/render_entity.h"
 #include "lib/json/namespace.h"
+#include "lib/perfmon/timer.h"
 
 extern "C" int luaopen_lpeg (lua_State *L);
 
@@ -179,6 +180,7 @@ ScriptHost::ScriptHost()
          namespace_("lua") [
             lua::RegisterType<ScriptHost>()
                .def("log",             &ScriptHost::Log)
+               .def("get_realtime",    &ScriptHost::GetRealTime)
                .def("get_log_level",   &ScriptHost::GetLogLevel)
                .def("get_config",      &ScriptHost::GetConfig)
                .def("report_error",    (void (ScriptHost::*)(std::string const& error, std::string const& traceback))&ScriptHost::ReportLuaStackException)
@@ -391,6 +393,11 @@ void ScriptHost::Log(const char* category, int level, const char* str)
    if (category && str) {
       LOG_CATEGORY_(level, BUILD_STRING("mod " << category)) << str;
    }
+}
+
+uint ScriptHost::GetRealTime()
+{
+   return perfmon::Timer::GetCurrentTimeMs();
 }
 
 int ScriptHost::GetLogLevel(std::string const& category)

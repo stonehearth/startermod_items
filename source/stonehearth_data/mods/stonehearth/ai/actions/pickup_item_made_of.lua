@@ -8,7 +8,7 @@ PickupItemMadeOf.args = {
    reconsider_event_name = {
       type = 'string',
       default = '',
-   }   
+   },
 }
 PickupItemMadeOf.think_output = {
    item = Entity,            -- what was actually picked up

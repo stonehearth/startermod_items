@@ -1,5 +1,6 @@
 #include "radiant.h"
 #include "timer.h"
+#include "perfmon.h"
 
 using namespace radiant;
 using namespace radiant::perfmon;
@@ -52,4 +53,9 @@ CounterValueType Timer::GetCurrentTime()
    LARGE_INTEGER value;
    QueryPerformanceCounter(&value);
    return value.QuadPart;
+}
+
+uint Timer::GetCurrentTimeMs()
+{
+   return perfmon::CounterToMilliseconds(GetCurrentTime());
 }

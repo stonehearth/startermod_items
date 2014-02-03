@@ -81,6 +81,10 @@ function ExecutionUnitV2:get_action_interface()
    return self._ai_interface
 end
 
+function ExecutionUnitV2:is_preemptable()
+   return self._action.is_preemptable
+end
+
 function ExecutionUnitV2:get_action()
    return self._action
 end
@@ -561,7 +565,7 @@ function ExecutionUnitV2:_verify_arguments(args, args_prototype)
    end
 
    assert(not args[1], string.format('%s needs to convert to object instead of array passing!', self:get_name()))
-   for name, value in pairs(args) do
+   for name, value in pairs(args) do      
       local expected_type = args_prototype[name]
       if not expected_type then
          error(string.format('unexpected argument "%s" passed to "%s".', name, self:get_name()))

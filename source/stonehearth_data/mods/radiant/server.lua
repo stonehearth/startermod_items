@@ -32,17 +32,49 @@ end
 local api = {}
 
 local ProFi = require 'lib.ProFi'
-function api.update(interval, profile)
-   if profile then
-      ProFi:start()
+local _profile = {
+   write_updates_longer_than = radiant.util.get_config('profile_long_frames', 0)
+}
+
+function _start_profiling(profile_this_frame)
+   _profile.profile_this_frame = profile_this_frame
+   if _profile.write_updates_longer_than then
+      _profile.start_time = _host:get_realtime()
    end
-   radiant.gamestate._increment_clock(interval)
+   if profile_this_frame or _profile.write_updates_longer_than > 0 then
+      ProFi:reset()
+      ProFi:start()
+      _profile.running = true
+   end
+end
+
+function _stop_profiling()
+   if _profile.running then
+      ProFi:stop()
+
+      local duration
+      if _profile.start_time then
+         duration = _host:get_realtime() - _profile.start_time
+      end
+      if _profile.profile_this_frame or (duration and duration > _profile.write_updates_longer_than) then
+         local filename = string.format('lua_profile_%s.txt', radiant.gamestate.now())
+         ProFi:writeReport(filename)
+         if duration then
+            radiant.log.write('radiant', 0, 'wrote lua profile for %s ms update to %s', duration, filename)
+         end
+      end
+   end
+end
+
+function api.update(profile_this_frame)
+   _start_profiling(profile_this_frame)
+
+   radiant.log.spam('radiant', 'starting frame %d', radiant.gamestate.now())
    radiant.events._update()
    radiant._fire_timers()
-   if profile then
-      ProFi:stop()
-      ProFi:writeReport()
-   end
+   radiant.log.spam('radiant', 'finishing frame %d', radiant.gamestate.now())
+
+   _stop_profiling()
    return radiant.gamestate.now()
 end
 

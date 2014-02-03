@@ -5,6 +5,10 @@ PickupItemMadeOfTrivial.name = 'pickup item made of trivial'
 PickupItemMadeOfTrivial.does = 'stonehearth:pickup_item_made_of'
 PickupItemMadeOfTrivial.args = {
    material = 'string',      -- the material tags we need
+   reconsider_event_name = {
+      type = 'string',
+      default = '',
+   },   
 }
 PickupItemMadeOfTrivial.think_output = {
    item = Entity
