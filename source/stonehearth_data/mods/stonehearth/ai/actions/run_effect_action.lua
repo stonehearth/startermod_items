@@ -1,5 +1,7 @@
 local RunEffectAction = class()
 
+local Entity = _radiant.om.Entity
+
 RunEffectAction.name = 'run effect'
 RunEffectAction.does = 'stonehearth:run_effect'
 RunEffectAction.args = {
@@ -16,6 +18,10 @@ RunEffectAction.args = {
       type = 'number',
       default = 1,
    },
+   facing_entity = {
+      type = Entity,
+      default = stonehearth.ai.NIL,
+   },
 }
 RunEffectAction.version = 2
 RunEffectAction.priority = 1
@@ -29,6 +35,11 @@ function RunEffectAction:run(ai, entity, args)
       self._trigger_fn = args.trigger_fn
       radiant.events.listen(entity, 'stonehearth:on_effect_trigger', self, self._on_effect_trigger)
    end
+
+   if args.facing_entity then
+      radiant.entities.turn_to_face(entity, args.facing_entity)
+   end
+
    local times = args.times
 
    local log = ai:get_log()

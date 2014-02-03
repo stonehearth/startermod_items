@@ -1,13 +1,19 @@
 local Point3 = _radiant.csg.Point3
 local WorkAtWorkshop = class()
+local inventory_service = stonehearth.inventory
 
 function WorkAtWorkshop:start(thread, args)
    self._thread = thread
    self._workshop = args.workshop
    self._craft_order_list = args.craft_order_list
+   self._faction = args.faction
+   self._inventory = inventory_service:get_inventory(self._faction)
+
 
    radiant.events.listen(self._craft_order_list, 'order_list_changed', self, self._on_order_list_changed)
    self:_on_order_list_changed(self._craft_order_list, not self._craft_order_list:get_next_order())
+
+   radiant.events.listen(self._inventory, 'stonehearth:item_removed', self, self._on_order_list_changed)
 end
 
 function WorkAtWorkshop:run(thread, args)

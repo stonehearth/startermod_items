@@ -100,6 +100,7 @@ function ExecutionFrame:_run()
 end
 
 function ExecutionFrame:_unit_ready(unit, think_output)
+   self._log:spam('_unit_ready (unit:"%s" state:%s)', unit:get_name(), self._state)
    if self._state == 'starting_thinking' then
       return self:_unit_ready_from_starting_thinking(unit, think_output)
    end
@@ -153,7 +154,7 @@ end
 function ExecutionFrame:_destroy()
    self._log:detail('_destroy (state:%s)', self._state)
    
-   if self:in_state('starting', 'started', 'ready', 'thinking') then
+   if self:in_state('starting', 'started', 'ready', 'starting_thinking', 'thinking') then
       return self:_destroy_from_starting()
    end
    if self:in_state('switching', 'unwinding') then
@@ -231,6 +232,11 @@ function ExecutionFrame:_start_thinking_from_stopped(entity_state)
    -- finally, start all the units with the cloned state
    for _, unit in pairs(self._execution_units) do
       unit:_start_thinking(cloned_state[unit])
+
+      -- if the action errors or aborts during start_thinking, just bail immediately
+      if self._state == 'dead' then
+         return
+      end
    end
 
    -- if anything became ready during the think, use it immediately.  otherwise,
@@ -616,6 +622,8 @@ function ExecutionFrame:_run_from_started()
       else
          self._log:debug('active unit switched from "%s" to "%s" in run.  re-running',
                          running_unit:get_name(), self._active_unit:get_name())
+         assert(self._state == SWITCHING)
+         self:_set_state(RUNNING)
          running_unit = self._active_unit
       end
    until finished
