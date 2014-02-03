@@ -81,7 +81,6 @@ public:
    lua::ScriptHost& GetScript();
    perfmon::Store& GetPerfmonCounters();
    float GetBaseWalkSpeed() const;
-   int GetStepInterval() const;
 
    WorkerScheduler* GetWorkerScheduler();
    BuildingScheduler* GetBuildingScehduler(dm::ObjectId id);
@@ -180,6 +179,8 @@ private:
    core::Guard                         on_frame_end_guard_;
    om::ErrorBrowserPtr                 error_browser_;
    om::EntityPtr                       root_entity_;
+   om::ClockPtr                        clock_;
+   float                               game_speed_;
 };
 
 END_RADIANT_SIMULATION_NAMESPACE

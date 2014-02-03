@@ -78,6 +78,7 @@ private:
    static void* LuaAllocFn(void *ud, void *ptr, size_t osize, size_t nsize);
    void Log(const char* category, int level, const char* str);
    int GetLogLevel(std::string const& category);
+   uint GetRealTime();
    void ReportStackException(std::string const& category, std::string const& error, std::string const& traceback);
 
 private:

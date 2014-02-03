@@ -79,6 +79,7 @@ Simulation::Simulation() :
    // Entity 1
    root_entity_ = CreateEntity();
    ASSERT(root_entity_->GetObjectId() == 1);
+   clock_ = GetEntity(1)->AddComponent<om::Clock>();
 
    error_browser_ = store_.AllocObject<om::ErrorBrowser>();
    scriptHost_->SetNotifyErrorCb([=](om::ErrorBrowser::Record const& r) {
@@ -185,9 +186,11 @@ void Simulation::CreateNew()
    lua::analytics::open(L);
    om::RegisterObjectTypes(store_);
 
-   game_tick_interval_ = core::Config::GetInstance().Get<int>("simulation.game_tick_interval", 50);
-   net_send_interval_ = core::Config::GetInstance().Get<int>("simulation.net_send_interval", 50);
-   base_walk_speed_ = core::Config::GetInstance().Get<float>("simulation.base_walk_speed", 7.5f);
+   core::Config &config = core::Config::GetInstance();
+   game_tick_interval_ = config.Get<int>("simulation.game_tick_interval", 50);
+   net_send_interval_ = config.Get<int>("simulation.net_send_interval", 50);
+   base_walk_speed_ = config.Get<float>("simulation.base_walk_speed", 7.5f);
+   game_speed_ = config.Get<int>("simulation.game_speed", 1.0f);
    base_walk_speed_ = base_walk_speed_ * game_tick_interval_ / 1000.0f;
 
    game_api_ = scriptHost_->Require("radiant.server");
@@ -204,7 +207,6 @@ void Simulation::CreateNew()
    }
    scriptHost_->Require("radiant.lualibs.strict");
 
-   core::Config const& config = core::Config::GetInstance();
    std::string const module = config.Get<std::string>("game.mod");
    json::Node const manifest = resource_manager.LookupManifest(module);
    std::string const default_script = module + "/" + manifest.get<std::string>("game.script");
@@ -268,11 +270,12 @@ void Simulation::PushPerformanceCounters()
 {
    if (1 || perf_counter_deferred_) {
       json::Node counters;
+      //LOG_(0) << "------------------------------------------------------";
       for (const auto& entry : perf_counters_.GetCounters()) {
          json::Node row;
          row.set("name", entry.first);
          row.set("value", static_cast<int>(entry.second.GetValue())); // xxx: counters need a type...
-         // LOG_(0) << " " << std::setw(32) << entry.first << " : " << entry.second.GetValue();
+         //LOG_(0) << " " << std::setw(32) << entry.first << " : " << entry.second.GetValue();
       }
       if (perf_counter_deferred_) {
          perf_counter_deferred_->Notify(counters);
@@ -317,7 +320,9 @@ void Simulation::UpdateGameState()
    // Run AI...
    SIM_LOG_GAMELOOP(7) << "calling lua update";
    try {
-      now_ = luabind::call_function<int>(game_api_["update"], game_tick_interval_, profile_next_lua_update_);      
+      int interval = static_cast<int>(game_speed_ * game_tick_interval_);
+      clock_->SetTime(clock_->GetTime() + interval);
+      now_ = luabind::call_function<int>(game_api_["update"], profile_next_lua_update_);      
    } catch (std::exception const& e) {
       SIM_LOG(3) << "fatal error initializing game update: " << e.what();
       GetScript().ReportCStackThreadException(GetScript().GetCallbackThread(), e);
@@ -671,7 +676,8 @@ void Simulation::Idle()
          perf_timeline_.SetCounter(counter);
          counter->Increment(perfmon::MillisecondsToCounter(game_loop_timer_.remaining()));
          perf_timeline_.SetCounter(last_counter);
-         Sleep(0);
+         // Idle a little bit, or the client can't keep up!
+         Sleep(2);
       }
    }
    game_loop_timer_.set(game_tick_interval_);
@@ -714,10 +720,5 @@ void Simulation::ReadClientMessages()
 
 float Simulation::GetBaseWalkSpeed() const
 {
-   return base_walk_speed_;
-}
-
-int Simulation::GetStepInterval() const
-{
-   return game_tick_interval_;
+   return base_walk_speed_ * game_speed_;
 }
