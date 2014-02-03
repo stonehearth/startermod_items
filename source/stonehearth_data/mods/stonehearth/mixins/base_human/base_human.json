@@ -4,6 +4,7 @@
    "components" : {
       "stonehearth:ai" : {
          "actions" : [
+            "stonehearth:actions:delay_thinking",
             "stonehearth:actions:idle:sway",
             "stonehearth:actions:idle:look_around",
             "stonehearth:actions:sleep_action",

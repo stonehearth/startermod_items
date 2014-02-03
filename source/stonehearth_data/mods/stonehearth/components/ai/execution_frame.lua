@@ -153,7 +153,7 @@ end
 function ExecutionFrame:_destroy()
    self._log:detail('_destroy (state:%s)', self._state)
    
-   if self:in_state('starting', 'started', 'ready', 'thinking') then
+   if self:in_state('starting', 'started', 'ready', 'starting_thinking', 'thinking') then
       return self:_destroy_from_starting()
    end
    if self:in_state('switching', 'unwinding') then
@@ -231,6 +231,11 @@ function ExecutionFrame:_start_thinking_from_stopped(entity_state)
    -- finally, start all the units with the cloned state
    for _, unit in pairs(self._execution_units) do
       unit:_start_thinking(cloned_state[unit])
+      
+      -- if the action errors or aborts during start_thinking, just bail immediately
+      if self._state == 'dead' then
+         return
+      end
    end
 
    -- if anything became ready during the think, use it immediately.  otherwise,
