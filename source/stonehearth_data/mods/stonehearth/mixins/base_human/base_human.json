@@ -157,14 +157,6 @@
          }
 
       },
-      "sensor_list": {
-         "sensors": {
-            "sight": {
-               "type": "sensor",
-               "radius": 16
-            }
-         }
-      },
       "stonehearth:material" : {
          "tags" : "meat"
       },
