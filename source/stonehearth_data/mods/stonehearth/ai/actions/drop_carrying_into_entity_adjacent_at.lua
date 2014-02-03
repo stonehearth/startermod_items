@@ -12,7 +12,7 @@ DropCarryingIntoEntityAdjacent.priority = 2
 
 --[[
    Like drop_carrying_into_entity_adjacent, except that we pick what location in 
-   the target to put the object we're dropping. And we run the 'drop on table' animation 
+   the target to put the object we're dropping. And we run the a specified drop animation 
    instead of the normal drop animation. 
 ]]
 function DropCarryingIntoEntityAdjacent:start_thinking(ai, entity, args)
@@ -27,6 +27,11 @@ function DropCarryingIntoEntityAdjacent:start_thinking(ai, entity, args)
    if offset then
       self._drop_offset = Point3(offset.x, offset.y, offset.z)
    end
+   self._drop_effect = container_entity_data['drop_effect']
+   if not self._drop_effect then
+      self._drop_effect = 'carry_putdown_on_table'
+   end
+
    ai:set_think_output()
 end
 
@@ -42,7 +47,7 @@ function DropCarryingIntoEntityAdjacent:run(ai, entity, args)
    end
    
    radiant.entities.turn_to_face(entity, container)
-   ai:execute('stonehearth:run_effect', { effect = 'carry_putdown_on_table' })  
+   ai:execute('stonehearth:run_effect', { effect =  self._drop_effect})  
    radiant.entities.put_carrying_into_entity(entity, container)
    carrying:add_component('mob'):set_location_grid_aligned(self._drop_offset)
 end
