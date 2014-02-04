@@ -67,7 +67,7 @@ function ExecutionFrame:_start_thinking(entity_state)
 end
 
 function ExecutionFrame:_stop_thinking()
-   if self._state == 'thinking' then
+   if self:in_state('thinking', 'starting_thinking') then
       return self:_stop_thinking_from_thinking()
    end
    if self._state == 'ready' then
@@ -234,7 +234,7 @@ function ExecutionFrame:_start_thinking_from_stopped(entity_state)
       unit:_start_thinking(cloned_state[unit])
 
       -- if the action errors or aborts during start_thinking, just bail immediately
-      if self._state == 'dead' then
+      if self._state ~= STARTING_THINKING then
          return
       end
    end
@@ -857,6 +857,7 @@ end
 -- assumes the unit is already destroyed or aborted.  we just need to remove
 -- it from our list
 function ExecutionFrame:_remove_execution_unit(unit)
+   assert(unit)
    assert(unit ~= self._active_unit)
    for key, u in pairs(self._execution_units) do
       if unit == u then

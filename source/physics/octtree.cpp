@@ -311,7 +311,7 @@ void OctTree::OnObjectDestroyed(dm::ObjectId id)
 
 void OctTree::Update(int now)
 {
-   // UpdateSensors();
+   UpdateSensors();
 }
 
 bool OctTree::UpdateSensor(om::SensorPtr sensor)
