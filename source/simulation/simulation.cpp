@@ -190,7 +190,7 @@ void Simulation::CreateNew()
    game_tick_interval_ = config.Get<int>("simulation.game_tick_interval", 50);
    net_send_interval_ = config.Get<int>("simulation.net_send_interval", 50);
    base_walk_speed_ = config.Get<float>("simulation.base_walk_speed", 7.5f);
-   game_speed_ = config.Get<int>("simulation.game_speed", 1.0f);
+   game_speed_ = config.Get<float>("simulation.game_speed", 1.0f);
    base_walk_speed_ = base_walk_speed_ * game_tick_interval_ / 1000.0f;
 
    game_api_ = scriptHost_->Require("radiant.server");
@@ -206,6 +206,8 @@ void Simulation::CreateNew()
       }
    }
    scriptHost_->Require("radiant.lualibs.strict");
+
+   scriptHost_->Trigger("radiant:modules_loaded");
 
    std::string const module = config.Get<std::string>("game.mod");
    json::Node const manifest = resource_manager.LookupManifest(module);
