@@ -101,6 +101,8 @@ function WorldGenerationService:set_blueprint(blueprint)
          blueprint.origin_x = math.floor(blueprint.width * tile_size / 2)
          blueprint.origin_y = math.floor(blueprint.height * tile_size / 2)
 
+         self:_mark_scenarios(blueprint)
+
          -- create the overview map
          self.overview_map:derive_overview_map(full_elevation_map, full_feature_map,
                                                blueprint.origin_x, blueprint.origin_y)
@@ -112,12 +114,23 @@ function WorldGenerationService:set_blueprint(blueprint)
 end
 
 -- get the (i,j) index of the blueprint tile for the world coordinates (x,y)
-function WorldGenerationService:get_tile_coords(x, y)
+function WorldGenerationService:get_tile_index(x, y)
    local blueprint = self._blueprint
    local tile_size = self._tile_size
    local i = math.floor((x + blueprint.origin_x) / tile_size) + 1
    local j = math.floor((y + blueprint.origin_y) / tile_size) + 1
    return i, j
+end
+
+-- get the world coordinates of the origin (top-left corner) of the tile
+function WorldGenerationService:get_tile_origin(i, j, blueprint)
+   local x, y
+   local tile_size = self._tile_size
+
+   x = (i-1)*tile_size - blueprint.origin_x
+   y = (j-1)*tile_size - blueprint.origin_y
+
+   return x, y
 end
 
 function WorldGenerationService:generate_all_tiles()
@@ -188,30 +201,27 @@ function WorldGenerationService:_generate_tile_impl(i, j)
    local blueprint = self._blueprint
    local tile_size = self._tile_size
    local tile_map, tile_info, tile_seed
-   local micro_map, elevation_map, feature_map
+   local micro_map, elevation_map, feature_map, static_scenarios
    local offset_x, offset_y, offset
 
    tile_info = blueprint:get(i, j)
    assert(not tile_info.generated)
 
-   log:info('Generating tile %d, %d: %s', i, j, tile_info.terrain_type)
+   log:info('Generating tile (%d,%d) - %s', i, j, tile_info.terrain_type)
 
    -- calculate the world offset of the tile
-   offset_x = (i-1)*tile_size - blueprint.origin_x
-   offset_y = (j-1)*tile_size - blueprint.origin_y
-
-   -- convert to world coordinate system
+   offset_x, offset_y = self:get_tile_origin(i, j, blueprint)
    offset = Point3(offset_x, 0, offset_y)
-   --tile_info.offset = offset
 
    -- make each tile deterministic on its coordinates (and game seed)
    tile_seed = self:_get_tile_seed(i, j)
    self._rng:set_seed(tile_seed)
 
    -- get the various maps from the blueprint
-   micro_map = blueprint:get(i, j).micro_map
-   elevation_map = blueprint:get(i, j).elevation_map
-   feature_map = blueprint:get(i, j).feature_map
+   micro_map = tile_info.micro_map
+   elevation_map = tile_info.elevation_map
+   feature_map = tile_info.feature_map
+   static_scenarios = tile_info.static_scenarios
 
    -- generate the high resolution heightmap for the tile
    local seconds = Timer.measure(
@@ -229,7 +239,10 @@ function WorldGenerationService:_generate_tile_impl(i, j)
    self:_place_flora(tile_map, feature_map, offset)
 
    -- place scenarios
-   self:_place_scenarios(tile_info.habitat_map, elevation_map, offset)
+   self:_place_static_scenarios(static_scenarios)
+
+   -- release resources that are no longer needed
+   tile_info.static_scenarios = nil
 
    tile_info.generated = true
 end
@@ -262,16 +275,35 @@ function WorldGenerationService:_place_flora(tile_map, feature_map, offset)
    self:_yield()
 end
 
-function WorldGenerationService:_place_scenarios(habitat_map, elevation_map, offset)
-   if not self._enable_scenarios then return end
+function WorldGenerationService:_mark_scenarios(blueprint)
+   local tile_size = self._tile_size
+   local habitat_map, elevation_map, offset_x, offset_y, tile_info
+   local static_scenarios = {}
 
+   for j=1, blueprint.height do
+      for i=1, blueprint.width do
+         tile_info = blueprint:get(i, j)
+         habitat_map = tile_info.habitat_map
+         elevation_map = tile_info.elevation_map
+         offset_x, offset_y = self:get_tile_origin(i, j, blueprint)
+
+         if self._enable_scenarios then
+            static_scenarios = self._scenario_service:mark_scenarios(habitat_map, elevation_map, offset_x, offset_y)
+         end
+
+         tile_info.static_scenarios = static_scenarios
+      end
+   end
+end
+
+function WorldGenerationService:_place_static_scenarios(static_scenarios)
    local seconds = Timer.measure(
       function()
-         self._scenario_service:place_scenarios(habitat_map, elevation_map, offset.x, offset.z)
+         self._scenario_service:place_static_scenarios(static_scenarios)
       end
    )
 
-   log:info('ScenarioService time: %.3fs', seconds)
+   log:info('Static scenario time: %.3fs', seconds)
    self:_yield()
 end
 

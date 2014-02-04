@@ -47,7 +47,7 @@ function NewGameCallHandler:generate_start_location(session, response, feature_c
 
    local wgs = radiant.mods.load('stonehearth').world_generation
    local x, z = wgs.overview_map:get_coords_of_cell_center(feature_cell_x, feature_cell_y)
-   local i, j = wgs:get_tile_coords(x, z)
+   local i, j = wgs:get_tile_index(x, z)
 
    -- TODO: store this better
    wgs.start_x = x
@@ -68,6 +68,7 @@ function NewGameCallHandler:embark_server(session, response)
    local starting_region = Region2()
    starting_region:add_cube(
       Rect2(
+         -- remember +1 on max
          Point2(x-reveal_distance, z-reveal_distance),
          Point2(x+reveal_distance+1, z+reveal_distance+1)
       )

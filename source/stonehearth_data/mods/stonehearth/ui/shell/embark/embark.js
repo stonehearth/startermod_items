@@ -21,7 +21,7 @@ App.StonehearthEmbarkView = App.View.extend({
 
       var seed = Math.floor(Math.random() * 20000);
 
-      radiant.call('stonehearth:new_game', seed, 9, 9)
+      radiant.call('stonehearth:new_game', 5, 5, seed)
          .done(function(o) {
             $('#map').stonehearthMap({
                mapGrid: o.map
@@ -73,7 +73,7 @@ App.StonehearthEmbarkView = App.View.extend({
       //var seed = Math.floor(Math.random() * 10000);
       //radiant.call('stonehearth:new_game', seed, x, y);
 
-      radiant.call('stonehearth:generate_start_location', 20, 20);
+      radiant.call('stonehearth:generate_start_location', 18, 18);
       App.shellView.addView(App.StonehearthLoadingScreenView);
       self.destroy();
    }

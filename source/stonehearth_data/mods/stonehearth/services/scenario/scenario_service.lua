@@ -108,7 +108,7 @@ function ScenarioService:reveal_region(world_space_region)
             if dormant_scenario ~= nil then
                properties = dormant_scenario.properties
 
-               self:_mark_dormant_scenario_map(nil,
+               self:_mark_scenario_map(self._dormant_scenarios, nil,
                   dormant_scenario.offset_x, dormant_scenario.offset_y,
                   properties.size.width, properties.size.length
                )
@@ -128,7 +128,7 @@ function ScenarioService:reveal_region(world_space_region)
    end
 end
 
-function ScenarioService:_mark_dormant_scenario_map(value, world_offset_x, world_offset_y, width, length)
+function ScenarioService:_mark_scenario_map(map, value, world_offset_x, world_offset_y, width, length)
    local feature_x, feature_y, feature_width, feature_length, key
 
    feature_x, feature_y = self:_get_feature_space_coords(world_offset_x, world_offset_y)
@@ -137,30 +137,30 @@ function ScenarioService:_mark_dormant_scenario_map(value, world_offset_x, world
    -- i, j are offsets so using base 0
    for j=0, feature_length-1 do
       for i=0, feature_width-1 do
+         -- dormant scenarios could also be implemented with nested tables
          key = self:_get_coordinate_key(feature_x + i, feature_y + j)
-         self._dormant_scenarios[key] = value
+         map[key] = value
       end
    end
 end
 
--- TODO: randomize orientation in place_entity
-function ScenarioService:place_scenarios(habitat_map, elevation_map, tile_offset_x, tile_offset_y)
+function ScenarioService:mark_scenarios(habitat_map, elevation_map, tile_offset_x, tile_offset_y)
    local rng = self._rng
    local feature_size = self._feature_size
    local feature_width, feature_length, voxel_width, voxel_length
-   local scenarios, site, sites, num_sites, roll, offset_x, offset_y, habitat_types
-   
-   scenarios = self:_select_scenarios()
+   local selected_scenarios, site, sites, num_sites, roll, offset_x, offset_y, habitat_types
+   local static_scenarios = {}
 
-   for _, properties in pairs(scenarios) do
+   selected_scenarios = self:_select_scenarios()
+
+   for _, properties in pairs(selected_scenarios) do
       habitat_types = properties.habitat_types
       voxel_width = properties.size.width
       voxel_length = properties.size.length
       feature_width, feature_length = self:_get_dimensions_in_feature_units(voxel_width, voxel_length)
 
       -- get a list of valid locations
-      sites = self:_find_valid_sites(habitat_map, elevation_map, habitat_types, feature_width, feature_length)
-      num_sites = #sites
+      sites, num_sites = self:_find_valid_sites(habitat_map, elevation_map, habitat_types, feature_width, feature_length)
 
       if num_sites > 0 then
          -- pick a random location
@@ -171,26 +171,38 @@ function ScenarioService:place_scenarios(habitat_map, elevation_map, tile_offset
          offset_x = (site.x-1)*feature_size + tile_offset_x
          offset_y = (site.y-1)*feature_size + tile_offset_y
 
+         local scenario_info = {
+            properties = properties,
+            offset_x = offset_x,
+            offset_y = offset_y
+         }
+
          if properties.activation_type == ActivationType.static then
-            self:_activate_scenario(properties, offset_x, offset_y)
+            table.insert(static_scenarios, scenario_info)
          else
-            local dormant_scenario = {
-               properties = properties,
-               offset_x = offset_x,
-               offset_y = offset_y
-            }
-            self:_mark_dormant_scenario_map(dormant_scenario, offset_x, offset_y, voxel_width, voxel_length)
+            self:_mark_scenario_map(self._dormant_scenarios, scenario_info, offset_x, offset_y, voxel_width, voxel_length)
          end
 
-         self:_mark_site_occupied(habitat_map, site.x, site.y, feature_width, feature_length)
+         self:_mark_habitat_map(habitat_map, site.x, site.y, feature_width, feature_length)
 
          if properties.unique then
             self:_remove_scenario(properties)
          end
       end
    end
+
+   return static_scenarios
 end
 
+function ScenarioService:place_static_scenarios(scenarios)
+   for _, scenario_info in pairs(scenarios) do
+      if scenario_info.properties.activation_type == ActivationType.static then
+         self:_activate_scenario(scenario_info.properties, scenario_info.offset_x, scenario_info.offset_y)
+      end
+   end
+end
+
+-- TODO: randomize orientation in place_entity
 function ScenarioService:_activate_scenario(properties, offset_x, offset_y)
    local services, scenario_script
 
@@ -205,6 +217,7 @@ end
 function ScenarioService:_find_valid_sites(habitat_map, elevation_map, habitat_types, width, length)
    local i, j, is_habitat_type, is_flat, elevation
    local sites = {}
+   local num_sites = 0
 
    local is_target_habitat_type = function(value)
       local found = habitat_types[value]
@@ -224,13 +237,14 @@ function ScenarioService:_find_valid_sites(habitat_map, elevation_map, habitat_t
                end
             )
             if is_flat then
-               table.insert(sites, Point2(i, j))
+               num_sites = num_sites + 1
+               sites[num_sites] = Point2(i, j)
             end
          end
       end
    end
 
-   return sites
+   return sites, num_sites
 end
 
 -- get a list of scenarios from all the categories
@@ -284,7 +298,7 @@ function ScenarioService:_remove_scenario(scenario)
    self._categories[category]:remove(name)
 end
 
-function ScenarioService:_mark_site_occupied(habitat_map, i, j, width, length)
+function ScenarioService:_mark_habitat_map(habitat_map, i, j, width, length)
    habitat_map:set_block(i, j, width, length, HabitatType.occupied)
 end
 
