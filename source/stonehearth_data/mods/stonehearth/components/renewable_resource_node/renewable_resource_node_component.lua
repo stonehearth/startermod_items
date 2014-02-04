@@ -41,6 +41,11 @@ function RenewableResourceNodeComponent:extend(json)
       self._renew_effect = json.renew_effect
    end
 
+   self._harvest_overlay_effect = json.harvest_overlay_effect
+end
+
+function RenewableResourceNodeComponent:get_harvest_overlay_effect()
+   return self._harvest_overlay_effect
 end
 
 function RenewableResourceNodeComponent:spawn_resource(location)
@@ -112,6 +117,9 @@ function RenewableResourceNodeComponent:renew(location)
    
    --Change the description
    self._entity:get_component('unit_info'):set_description(self._original_description)
+
+   -- Fire an event to let everyone else know we're harvestable
+   radiant.events.trigger(self._entity, 'stonehearth:is_harvestable', { entity = self._entity} )
 end
 
 

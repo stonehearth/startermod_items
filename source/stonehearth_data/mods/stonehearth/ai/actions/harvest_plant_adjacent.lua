@@ -38,12 +38,6 @@ function HarvestPlantsAction:run(ai, entity, args)
       radiant.events.trigger(stonehearth.personality, 'stonehearth:journal_event', 
                             {entity = entity, description = 'gathering_supplies'})
 
-
-      local eff_mgr_component = plant:get_component('stonehearth:effect_manager')
-      if eff_mgr_component then
-         eff_mgr_component:hide_effect('harvest_plant')
-      end
-
    end   
 end
 

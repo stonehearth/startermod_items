@@ -31,6 +31,8 @@ public:
    int Size() const;
    bool Contains(const T& item);
 
+   typename std::vector<T>::iterator begin() { return items_.begin(); }
+   typename std::vector<T>::iterator end() { return items_.end(); }
    typename std::vector<T>::const_iterator begin() const { return items_.begin(); }
    typename std::vector<T>::const_iterator end() const { return items_.end(); }
 
