@@ -1,34 +1,54 @@
 
 (function () {
-   var tracerMap = {};
    var Tracer = SimpleClass.extend({
-      init: function(o, uri) {
+      init: function(o, uri, tracerMap) {
          this._uri = uri;
          this._traces = [];
+         this._tracerMap = tracerMap;
+         this._dead_traces = [];
 
          var self = this;
          o.request.done(function(data) {
             this._callId = data.call_id;
          });
+
          o.deferred.done(function(data) {
             self._result = data;
-            _.each(self._traces, function (trace) {
-               trace._deferred.resolve(data);
+            self._protectTraceList(function() {
+               _.each(self._traces, function (trace) {
+                  trace._deferred.resolve(data);
+               });
             });
          });
          o.deferred.fail(function(data) {
             self._error = data;
-            _.each(self._traces, function (trace) {
-               trace._deferred.reject(data);
+            self._protectTraceList(function() {
+               _.each(self._traces, function (trace) {
+                  trace._deferred.reject(data);
+               });
             });
          });
          o.deferred.progress(function(data) {
             self._progress = data;
-            _.each(self._traces, function (trace) {
-               trace._deferred.notify(data);
+            self._protectTraceList(function() {
+               _.each(self._traces, function (trace) {
+                  trace._deferred.notify(data);
+               });
             });
          });
-         tracerMap[uri] = this;
+      },
+
+      _protectTraceList: function(fn) {
+         var self = this;
+         
+         this._protect_traces = true;
+         fn();
+         this._protect_traces = false;
+
+         _.each(self._dead_traces, function (trace) {
+            self.removeTrace(trace);
+         });
+         this._dead_traces = []
       },
 
       addTrace: function(trace) {
@@ -44,12 +64,16 @@
       },
 
       removeTrace: function(trace) {
+         if (this._protect_traces) {
+            this._dead_traces.push(trace);
+            return;
+         }
          var offset = this._traces.indexOf(trace);
          radiant.assert(offset >= 0, 'trace not found in remove_trace');
          this._traces.splice(offset, 1); // remove it
          if (_.isEmpty(this._traces)) {
             radiant.call('radiant:remove_trace', this._callId);
-            delete tracerMap[this.uri];
+            delete this._tracerMap[this.uri];
          }
       }
    });
@@ -157,6 +181,8 @@
 
    var object = new Object();
 
+   radiant._tracerMap = {};   
+
    radiant.callv = function(fn, args) {
       return object._docall('/r/call/?fn='+fn, args);
    };
@@ -187,10 +213,11 @@
    };
 
    radiant.trace = function(uri) {
-      var tracer = tracerMap[uri];
+      var tracer = this._tracerMap[uri];
       if (tracer == undefined) {
          var o = object._docall('/r/call/?fn=radiant:install_trace', [uri, 'ui requested trace']);
-         tracer = new Tracer(o, uri);
+         tracer = new Tracer(o, uri, this._tracerMap);
+         this._tracerMap[uri] = tracer;
       }
       return new Trace(tracer);
    };

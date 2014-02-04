@@ -1,25 +1,21 @@
 local Point3 = _radiant.csg.Point3
-local DropCarryingAction = class()
+local Entity = _radiant.om.Entity
+local DropCarrying = class()
 
-DropCarryingAction.name = 'drop carrying'
-DropCarryingAction.does = 'stonehearth:drop_carrying'
-DropCarryingAction.version = 1
-DropCarryingAction.priority = 5
---TODO we need a scale to  describe relative importance
+DropCarrying.name = 'drop carrying'
+DropCarrying.does = 'stonehearth:drop_carrying'
+DropCarrying.args = {
+   location = Point3      -- where to drop it
+}
+DropCarrying.think_output = {
+   item = Entity,          -- what got dropped
+}
+DropCarrying.version = 2
+DropCarrying.priority = 1
 
---[[
-   Put the object we're carrying down at a location
-   location: the coordinates at which to drop off the object
-]]
-function DropCarryingAction:run(ai, entity, location)
-   radiant.check.is_entity(entity)
-   radiant.check.is_a(location, Point3)
 
-   if radiant.entities.is_carrying(entity) then
-      radiant.entities.turn_to_face(entity, location)
-      ai:execute('stonehearth:run_effect', 'carry_putdown')
-      radiant.entities.drop_carrying_on_ground(entity, location)
-   end
-end
-
-return DropCarryingAction
+local ai = stonehearth.ai
+return ai:create_compound_action(DropCarrying)
+         :execute('stonehearth:goto_location', { location = ai.ARGS.location  })
+         :execute('stonehearth:drop_carrying_adjacent', { location = ai.ARGS.location })
+         :set_think_output({ item = ai.PREV.item })

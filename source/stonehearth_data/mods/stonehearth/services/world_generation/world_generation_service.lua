@@ -39,7 +39,7 @@ function WorldGenerationService:initialize(seed, async)
    self._height_map_renderer = HeightMapRenderer(self._terrain_info)
    self._landscaper = Landscaper(self._terrain_info, self._rng, self._async)
 
-   self._scenario_service = radiant.mods.load('stonehearth').scenario
+   self._scenario_service = stonehearth.scenario
    self._scenario_service:initialize(self._feature_size, self._rng)
    self._habitat_manager = HabitatManager(self._terrain_info, self._landscaper)
 

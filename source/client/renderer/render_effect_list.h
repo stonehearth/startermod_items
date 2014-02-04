@@ -20,7 +20,12 @@ class RenderEntity;
 
 class RenderEffect {
 public:
+   RenderEffect(RenderEntity& entity, std::string const& prefix);
    virtual void Update(FrameStartInfo const& info, bool& done) = 0;
+
+protected:
+   RenderEntity&  entity_;
+   std::string    log_prefix_;
 };
 
 class RenderAnimationEffect : public RenderEffect {
@@ -30,7 +35,6 @@ public:
    void Update(FrameStartInfo const& info, bool& done) override;
 
 private:
-   RenderEntity&  entity_;
    int            startTime_;
    float          duration_;
    std::string    animationName_;
@@ -45,7 +49,6 @@ public:
    void Update(FrameStartInfo const& info, bool& done) override;
 
 private:
-   RenderEntity&                 entity_;
    std::shared_ptr<om::Entity>   authored_entity_;
    std::shared_ptr<RenderEntity> render_item_;
    bool                          finished_;
@@ -63,7 +66,6 @@ public:
    void Update(FrameStartInfo const& info, bool& done) override;
 
 private:
-   RenderEntity&                 entity_;
    int                           startTime_;
    int                           lastUpdated_;
    double                        height_;
@@ -79,7 +81,6 @@ public:
    void Update(FrameStartInfo const& info, bool& done) override;
 
 private:
-   RenderEntity&                 entity_;
    H3DNode                       boneNode_;
    int                           boneNodeFlags_;
 };
@@ -93,7 +94,6 @@ public:
    void Update(FrameStartInfo const& info, bool& done) override;
 
 private:
-   RenderEntity&                 entity_;
    int                           startTime_;
    int                           endTime_;
    H3DCubemitterNodeUnique       cubemitterNode_;
@@ -113,7 +113,6 @@ public:
 
 private:
    void parseTransforms(const JSONNode& node, float* x, float* y, float* z);
-   RenderEntity&      entity_;
    H3DNodeUnique      lightNode_;
 };
 class ::radiant::horde3d::DecalNode;
@@ -128,7 +127,6 @@ public:
 
 private:
    void parseTransforms(const JSONNode& node, float* x, float* y, float* z);
-   RenderEntity&      entity_;
    H3DNodeUnique      overlayNode_;
 };
 
@@ -143,7 +141,6 @@ public:
 
 private:
    void parseTransforms(const JSONNode& node, float* x, float* y, float* z);
-   RenderEntity&      entity_;
    H3DNodeUnique      statusNode_;
 };
 
@@ -155,12 +152,11 @@ public:
    PlaySoundEffect(RenderEntity& e, om::EffectPtr effect, const JSONNode& node);
    ~PlaySoundEffect();
 
-	void Update(FrameStartInfo const& info, bool& done) override;
+   void Update(FrameStartInfo const& info, bool& done) override;
 
 private:
    static int      numSounds_;
 
-   RenderEntity&	 entity_;
    sf::SoundBuffer soundBuffer_;
    sf::Sound       sound_;
    int             startTime_;   //Time when the sound starts to play
@@ -179,6 +175,7 @@ struct RenderInnerEffectList {
 
    void Update(FrameStartInfo const& info, bool& finished);
 private:
+   std::string          log_prefix_;
    std::vector<std::shared_ptr<RenderEffect>>   effects_;
    std::vector<std::shared_ptr<RenderEffect>>   finished_;
 };
@@ -198,6 +195,7 @@ private:
 
 private:
    RenderEntity&        entity_;
+   std::string          log_prefix_;
    om::EffectListRef    effectList_;
    core::Guard          renderer_guard_;
    dm::TracePtr         effects_list_trace_;

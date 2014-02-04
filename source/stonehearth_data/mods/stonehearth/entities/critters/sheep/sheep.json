@@ -7,11 +7,6 @@
         "description": "So fluffy!",
         "faction": "critter"
       },
-      "stonehearth:commands" : {
-         "commands" : [
-            "file(/data/commands/shear_sheep)"
-         ]
-      },
       "model_variants": [
          {
             "models": [
@@ -34,12 +29,20 @@
       },      
       "stonehearth:ai" : {
          "actions" : [
-            "stonehearth:actions:wander"
+            "stonehearth:actions:wander",
+            "stonehearth:actions:wander_when_bored",
+            "stonehearth:actions:choose_point_around_leash"
          ]
       },
       "stonehearth:attributes": {
-         "health": 1,
-         "speed" : 50
+         "health": {
+            "type" : "basic", 
+            "value" :  10
+        },
+        "speed" : {
+            "type" : "basic", 
+            "value": 30
+        }
       },      
       "render_info" : {
          "animation_table" : "file(/data/rigs/critters/sheep)",

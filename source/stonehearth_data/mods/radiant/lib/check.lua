@@ -28,7 +28,9 @@ function check.is_function(obj)
 end
 
 function check.is_a(value, class)
-   return classof(value) and value:is_a(class) or false
+   if not radiant.util.is_a(value, class) then
+      error(string.format('"%s" is not of expeceted type "%s"', radiant.util.tostring(value), radiant.util.tostring(class)))
+   end
 end
 
 function check.verify(condition)   
@@ -42,9 +44,14 @@ function check.report_error(...)
 end
 
 function check.report_thread_error(thread, format, ...)   
-   local error = string.format(format, ...)
+   local err = string.format(format, ...)
    local traceback = thread and debug.traceback(thread) or debug.traceback()
-   _host:report_error(error, traceback)
+   _host:report_error(err, traceback)
+   if false and decoda_output then
+      decoda_output(err)
+      decoda_output(traceback)
+      error(err)
+   end
 end
 
 function check.contains(t, value)

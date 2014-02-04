@@ -31,7 +31,7 @@
          "skin_class" : "weaver",
          "promotion_talisman" : {
             "entity" : "stonehearth:weaver:spindle",
-            "offset" : [0, 3, 0]
+            "offset" : { "x" : 0, "y" : 3, "z" : 0 }
          },
          "ingredients" : [
             {
@@ -44,6 +44,12 @@
             }
          ],
          "build_sound_effect": "/stonehearth/data/effects/place_workshop/place_weaver_workbench.json"
+      }
+   },
+   "entity_data" : {
+      "stonehearth:table" : {
+         "drop_effect" : "carry_putdown_on_table",
+         "drop_offset" : {"x" : 0, "y" : 1, "z" : 0 } 
       }
    }
 }

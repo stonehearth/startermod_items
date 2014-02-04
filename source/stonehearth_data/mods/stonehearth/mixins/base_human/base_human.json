@@ -4,17 +4,30 @@
    "components" : {
       "stonehearth:ai" : {
          "actions" : [
+            "stonehearth:actions:delay_thinking",
             "stonehearth:actions:idle:sway",
             "stonehearth:actions:idle:look_around",
             "stonehearth:actions:sleep_action",
-            "stonehearth:actions:sleep_in_bed_action",
-            "stonehearth:actions:sleep_on_ground_action",
-            "stonehearth:actions:grab_talisman_action",
-            "stonehearth:actions:admire_fire_action",
-            "stonehearth:actions:find_food_action",
-            "stonehearth:actions:get_food_action",
-            "stonehearth:actions:eat_food_action",
-            "stonehearth:actions:wander"
+            "stonehearth:actions:sleep_on_ground",
+            "stonehearth:actions:sleep_in_bed",
+            "stonehearth:actions:sleep_in_bed_adjacent",
+            "stonehearth:actions:sleep_when_tired",
+            "stonehearth:actions:sleep_when_exhausted",
+            "stonehearth:actions:sit_on_ground",
+            "stonehearth:actions:sit_on_chair",
+            "stonehearth:actions:sit_on_chair_adjacent",
+            "stonehearth:actions:eat",
+            "stonehearth:actions:eat_carrying",
+            "stonehearth:actions:eat_on_ground",
+            "stonehearth:actions:eat_on_chair",
+            "stonehearth:actions:get_food_from_container",
+            "stonehearth:actions:get_food_from_container_adjacent",
+            "stonehearth:actions:wander",
+            "stonehearth:actions:wander_when_bored",
+            "stonehearth:actions:wait_for_attribute_above",
+            "stonehearth:actions:choose_point_around_leash",
+            "stonehearth:actions:admire_fire",
+            "stonehearth:actions:admire_fire_adjacent"
          ],
           "observers": [
             "stonehearth:observers:sleep",
@@ -32,9 +45,121 @@
          ]
       },
       "stonehearth:attributes" : {
-		  "ferocity": 1,
-		  "health": 5,
-        "speed" : 100
+         "mind": {
+            "type" : "random_range",
+            "base" : 1,
+            "max"  : 6
+         },
+         "body": {
+            "type" : "random_range",
+            "base" : 1,
+            "max"  : 6
+         },
+         "spirit": {
+            "type" : "random_range",
+            "base" : 1,
+            "max"  : 6
+         },
+         "diligence_modifier": {
+            "type" : "random_range",
+            "base" :  1,
+            "max"  :  9
+         },
+         "diligence": {
+            "type" : "derived",
+            "equation" : "mind * 10 + diligence_modifier"
+         },
+         "curiosity_modifier": {
+            "type" : "random_range",
+            "base" :  1,
+            "max"  :  9
+         },
+         "curiosity": {
+            "type" : "derived",
+            "equation" : "mind * 10 + curiosity_modifier"
+         },
+         "inventiveness_modifier": {
+            "type" : "random_range",
+            "base" :  1,
+            "max"  :  9
+         },
+         "inventiveness": {
+            "type" : "derived",
+            "equation" : "mind * 10 + inventiveness_modifier"
+         },
+         "muscle_modifier": {
+            "type" : "random_range",
+            "base" :  1,
+            "max"  :  9
+         },
+         "muscle": {
+            "type" : "derived",
+            "equation" : "body * 10 + muscle_modifier"
+         },
+         "speed_modifier": {
+            "type" : "random_range",
+            "base" :  1,
+            "max"  :  9
+         },
+         "speed": {
+            "type" : "derived",
+            "equation" : "body * 10 + speed_modifier"
+         },
+         "stamina_modifier": {
+            "type" : "random_range",
+            "base" :  1,
+            "max"  :  9
+         },
+         "stamina": {
+            "type" : "derived",
+            "equation" : "body * 10 + stamina_modifier"
+         },
+         "courage_modifier": {
+            "type" : "random_range",
+            "base" :  1,
+            "max"  :  9
+         },
+         "courage": {
+            "type" : "derived",
+            "equation" : "spirit * 10 + courage_modifier"
+         },
+         "willpower_modifier": {
+            "type" : "random_range",
+            "base" :  1,
+            "max"  :  9
+         },
+         "willpower": {
+            "type" : "derived",
+            "equation" : "spirit * 10 + willpower_modifier"
+         },
+         "compassion_modifier": {
+            "type" : "random_range",
+            "base" :  1,
+            "max"  :  9
+         },
+         "compassion": {
+            "type" : "derived",
+            "equation" : "spirit * 10 + stamina_modifier"
+         },
+		   "ferocity": {
+            "type" : "basic",
+            "value" : 1
+         },
+		   "health": {
+            "type" : "derived", 
+            "equation" : "muscle + willpower + discipline"
+         }, 
+         "hunger": {
+            "type" : "random_range", 
+            "base" : 1, 
+            "max"  : 30
+         },
+         "sleepiness": {
+            "type" : "random_range", 
+            "base" : 1, 
+            "max"  : 30
+         }
+
       },
       "sensor_list": {
          "sensors": {

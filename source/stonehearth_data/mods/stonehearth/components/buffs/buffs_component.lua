@@ -1,6 +1,6 @@
 Buff = require 'components.buffs.buff'
 AttributeModifier = require 'components.attributes.attribute_modifier'
-local calendar = require 'services.calendar.calendar_service'
+local calendar = stonehearth.calendar
 
 local BuffsComponent = class()
 
@@ -52,7 +52,7 @@ function BuffsComponent:_apply_modifiers(uri, buff)
 
    if modifiers then
 
-      local attributes
+      self._attribute_modifiers[uri] = {}
       for name, modifier in pairs(modifiers) do
          local attribute_modifier = self._attributes_component:modify_attribute(name)
 
@@ -67,16 +67,17 @@ function BuffsComponent:_apply_modifiers(uri, buff)
                attribute_modifier:set_max(value)
             end
          end
-
-         self._attribute_modifiers[uri] = attribute_modifier
          
+         table.insert(self._attribute_modifiers[uri], attribute_modifier)
       end
    end
 end
 
 function BuffsComponent:_remove_modifiers(uri)
    if self._attribute_modifiers[uri] then
-      self._attribute_modifiers[uri]:destroy()
+      for i, modifier in ipairs(self._attribute_modifiers[uri]) do
+         modifier:destroy()
+      end
       self._attribute_modifiers[uri] = nil
    end
 end
@@ -95,11 +96,9 @@ function BuffsComponent:_apply_duration(uri, buff)
          buff_duration = buff_duration * self._calendar_constants.seconds_per_minute
       end
 
-      local buff_expired_function = function(buff_uri)
-         self:remove_buff(buff_uri)
-      end
-
-      calendar:set_timer(0, 0, buff_duration, buff_expired_function, uri)
+      calendar:set_timer(0, 0, buff_duration, function()
+         self:remove_buff(uri)
+      end)
    end
 end
 
@@ -107,7 +106,7 @@ function BuffsComponent:_inject_ai(uri, buff)
    local ai = buff:get_injected_ai();
 
    if ai then 
-      local ai_service = radiant.mods.load('stonehearth').ai
+      local ai_service = stonehearth.ai
       local injected_ai_token = ai_service:inject_ai(self._entity, ai)
       self._injected_ais[uri] = injected_ai_token
    end

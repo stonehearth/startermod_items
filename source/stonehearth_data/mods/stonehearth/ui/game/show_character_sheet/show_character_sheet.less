@@ -114,15 +114,24 @@
       font-size: 16px;
 
       .value {
-         
       }
 
       .value:first-letter {
          //font-size: 20px;
          //font-weight: bold;
       }
+   }
 
+   .buffedValue{
+      color: green;
+   }
 
+   .debuffedValue {
+      color: red;
+   }
+
+   .normalValue {
+      color: white;
    }
 
    #group {
@@ -142,5 +151,43 @@
          visibility: hidden;
       }         
    }  
+}
 
+.buffTooltip {
+   .outlined;
+   font-size: 12px;
+
+   .buffTooltipImg {
+      width: 29px;
+      height: 32px;
+      vertical-align: middle;
+   }
+
+   .buffTooltipText {
+      margin-bottom: 3px;
+   }
+
+   .dataSpan {
+      margin-top: 5px;
+      padding-left: 15px;
+      padding-top: 2px;
+
+      float: right; 
+
+      vertical-align: middle;
+      background-repeat:no-repeat;
+      background-position:left; 
+   }
+
+   .debuffDataSpan {
+      margin-left: 8px;
+      background-image: url('./images/debuff_arrow.png');
+      color: red;
+   }
+
+   .buffDataSpan {
+      margin-left: 8px;
+      background-image: url('./images/buff_arrow.png');
+      color: green;
+   }
 }

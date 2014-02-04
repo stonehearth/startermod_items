@@ -13,7 +13,7 @@ function SleepRevocationTest:__init()
    self:place_citizen(-8, 8)
    local bed = self:place_item('stonehearth:comfy_bed', 0, 0)
 
-   local calendar = radiant.mods.load('stonehearth').calendar
+   local calendar = stonehearth.calendar
    calendar:set_time(22, 59, 0)
    local move_distance = 5
    radiant.events.listen('radiant:events:calendar:hourly', function(event_name, time) 

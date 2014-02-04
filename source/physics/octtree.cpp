@@ -188,12 +188,14 @@ std::vector<std::pair<csg::Point3, int>> OctTree::ComputeNeighborMovementCost(om
    std::vector<std::pair<csg::Point3, int>> result;
 
    // xxx: this is in no way thread safe! (see SH-8)
-   static const csg::Point3 directions[] = {
+   static const csg::Point3 cardinal_directions[] = {
       // cardinals and diagonals
       csg::Point3( 1, 0, 0 ),
       csg::Point3(-1, 0, 0 ),
       csg::Point3( 0, 0, 1 ),
       csg::Point3( 0, 0,-1 ),
+   };
+   static const csg::Point3 diagonal_directions[] = {
       csg::Point3( 1, 0, 1 ),
       csg::Point3(-1, 0,-1 ),
       csg::Point3(-1, 0, 1 ),
@@ -206,8 +208,7 @@ std::vector<std::pair<csg::Point3, int>> OctTree::ComputeNeighborMovementCost(om
       csg::Point3( 0,-1, 0 ),
    };
 
-   for (const auto& direction : directions) {
-      csg::Point3 to;
+   for (const auto& direction : cardinal_directions) {
       for (int dy = 1; dy >= -2; dy--) {
          csg::Point3 to = from + direction + csg::Point3(0, dy, 0);
          if (navgrid_.CanStandOn(entity, to)) {
@@ -216,6 +217,30 @@ std::vector<std::pair<csg::Point3, int>> OctTree::ComputeNeighborMovementCost(om
          }
       }
    }
+
+   for (const auto& direction : diagonal_directions) {
+      for (int dy = 1; dy >= -2; dy--) {
+         // Test all 3 points
+         csg::Point3 to = from + csg::Point3(0, dy, 0);
+         to.x += direction.x; // the point on the "left"
+         if (!navgrid_.CanStandOn(entity, to)) {
+            continue;
+         }
+         to.x -= direction.x;
+         to.z += direction.z; // the point "front"
+         if (!navgrid_.CanStandOn(entity, to)) {
+            continue;
+         }
+         to.x += direction.x; // the point on the diagonal
+         if (!navgrid_.CanStandOn(entity, to)) {
+            continue;
+         }
+         // add the point on the diagonal
+         result.push_back(std::make_pair(to, EstimateMovementCost(from, to)));
+         break;
+      }
+   }
+
    for (const auto& direction : climb) {
       csg::Point3 to = from + direction;
       if (navgrid_.CanStandOn(entity, to)) {
@@ -286,7 +311,7 @@ void OctTree::OnObjectDestroyed(dm::ObjectId id)
 
 void OctTree::Update(int now)
 {
-   UpdateSensors();
+   // UpdateSensors();
 }
 
 bool OctTree::UpdateSensor(om::SensorPtr sensor)

@@ -20,7 +20,6 @@ std::shared_ptr<LuaDeepRegionGuard> LuaDeepRegionGuard::OnChanged(luabind::objec
          luabind::call_function<void>(changed_cb, value);
       } catch (std::exception const& e) {
          LUA_LOG(1) << "exception delivering lua trace: " << e.what();
-         lua::ScriptHost::ReportCStackException(changed_cb.interpreter(), e);
       }
    });
    return shared_from_this();

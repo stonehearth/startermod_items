@@ -149,8 +149,19 @@ void Streamer::OnDestroyed(ObjectId id, bool dynamic)
          destroyed_objects_[id] = true;
       }
    }
-   traces_.erase(id);
-   object_updates_.erase(id);
+
+
+   STREAMER_LOG(7) << "removing from traces (object: " << id << ")";
+   auto k = traces_.find(id);
+   if (k != traces_.end()) {
+      traces_.erase(k);
+   }
+   
+   STREAMER_LOG(7) << "removing updates (object: " << id << ")";
+   auto j = object_updates_.find(id);
+   if (j != object_updates_.end()) {
+      object_updates_.erase(j);
+   }
 }
 
 void Streamer::OnModified(TraceBufferedRef t, Object const* obj)

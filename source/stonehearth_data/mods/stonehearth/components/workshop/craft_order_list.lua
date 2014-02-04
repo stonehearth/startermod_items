@@ -4,19 +4,26 @@
    A crafter will execute the craft orders in a todo list from top to bottom.
 ]]
 
-local CraftOrderList = class()
+local CraftOrder = require 'components.workshop.craft_order'
 
+local CraftOrderList = class()
 function CraftOrderList:__init(data_binding)
    self._data_binding = data_binding
-   self._my_list = {}
+   self._data = self._data_binding:get_data()
+   self._orders = {}
 end
 
 function CraftOrderList:__tojson()
-   return radiant.json.encode(self._my_list)
+   return radiant.json.encode(self._orders)
 end
 
 function CraftOrderList:is_paused()
-   return self._data_binding:get_data().is_paused
+   return self._data.is_paused
+end
+
+function CraftOrderList:toggle_pause()
+   self._data.is_paused = not self._data.is_paused
+   self:_on_order_list_changed()
 end
 
 --[[
@@ -25,13 +32,12 @@ end
    target_index:  Optional index to add order. 1 is the first location.
                   If no index is selected, the order will be added to the end of the array
 ]]
-function CraftOrderList:add_order(order, target_index)
-   if target_index then
-      table.insert(self._my_list, target_index, order)
-   else
-      table.insert(self._my_list, order)
-   end
-   self._data_binding:mark_changed()
+function CraftOrderList:add_order(recipe, condition, faction)
+   local order = CraftOrder(recipe, condition, faction, function()
+         self:_on_order_list_changed()
+      end )
+   table.insert(self._orders, order)
+   self:_on_order_list_changed()
 end
 
 --[[
@@ -40,38 +46,46 @@ end
    ingredients. Mark that order as the top task.
    return: nil if the list is empty.
 ]]
-function CraftOrderList:get_next_task()
-   for i, order in ipairs(self._my_list) do
+function CraftOrderList:get_next_order()
+   for i, order in ipairs(self._orders) do
       if order:should_execute_order() then
-         order:search_for_ingredients()
-         -- TODO: need a way for the order to say "no, i can't go yet... move onto
-         -- the next guy".  this should happens when the search for an ingredient
-         -- gets exhausted. Should also return reasons for failure (can't find wood)
-         local ingredients = order:get_all_ingredients()
-         if ingredients then
-            order:set_crafting_status(true)
-            self._data_binding:mark_changed()
-            return order, ingredients
-         end
-         return
+         return order
       end
    end
 end
 
 --[[
-   When the crafter as completed his current task, call this function
-   to notify the craft order list. If the craft_order in question is complete
-   and should be removed from the list, do so.
+   Remove the object with the ID and insert it into the new positon.
+   Note: do not call existing add/remove or we'll have multiple UI updates.
 ]]
-function CraftOrderList:chunk_complete(curr_order)
-   -- Verify that the current order is still in the queue somewhere
-   local i = self:find_index_of(curr_order:get_id())
-   local is_complete = curr_order:check_complete()
-   if i and is_complete then
-      table.remove(self._my_list, i)
+function CraftOrderList:change_order_position(new, id)
+   local i = self:_find_index_of(id)
+   local order = self._orders[i]
+   table.remove(self._orders, i)
+   table.insert(self._orders, new, order)
+   --TODO: comment out when you've fixed the drag/drop problem
+   self:_on_order_list_changed()
+end
+
+function CraftOrderList:remove_order(order)
+   return self:remove_order_id(order:get_id())
+end
+
+--[[
+   Remove a craft_order given its ID. For example, use
+   if the ui removes an order.
+   order_id: the unique ID that represents this order
+   returns:  the craft_order to remove or nil if the order
+             can't be found.
+]]
+function CraftOrderList:remove_order_id(order_id)
+    local i = self:_find_index_of(order_id)
+    if i then
+      local order = self._orders[i]
+      table.remove(self._orders, i)
+      order:destroy()
+      self:_on_order_list_changed()
    end
-   --TODO: updates whole list when any object order is updated. Add data_blob to TODO item?
-   self._data_binding:mark_changed()
 end
 
 -- Helper functions
@@ -82,8 +96,8 @@ end
    returns:  the craft_order associated with the ID or nil if the order
              cannot be found
 ]]
-function CraftOrderList:find_index_of(order_id)
-   for i, order in ipairs(self._my_list) do
+function CraftOrderList:_find_index_of(order_id)
+   for i, order in ipairs(self._orders) do
       if order:get_id() == order_id then
          return i
       end
@@ -92,34 +106,9 @@ function CraftOrderList:find_index_of(order_id)
    return nil
 end
 
---[[
-   Remove the object with the ID and insert it into the new positon.
-   Note: do not call existing add/remove or we'll have multiple UI updates.
-]]
-function CraftOrderList:change_order_position(new, id)
-   local i = self:find_index_of(id)
-   local order = self._my_list[i]
-   table.remove(self._my_list, i)
-   table.insert(self._my_list, new, order)
-   --TODO: comment out when you've fixed the drag/drop problem
+function CraftOrderList:_on_order_list_changed()
    self._data_binding:mark_changed()
-end
-
---[[
-   Remove a craft_order given its ID. For example, use
-   if the ui removes an order.
-   order_id: the unique ID that represents this order
-   returns:  the craft_order to remove or nil if the order
-             can't be found.
-]]
-function CraftOrderList:remove_order(order_id)
-    local i = self:find_index_of(order_id)
-    if i then
-      local order = self._my_list[i]
-      table.remove(self._my_list, i)
-      order:destroy()
-      self._data_binding:mark_changed()
-   end
+   radiant.events.trigger(self, 'order_list_changed')
 end
 
 

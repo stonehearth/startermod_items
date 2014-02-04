@@ -17,6 +17,7 @@
 #include "lib/lua/lua.h"
 #include "namespace.h"
 #include "protocols/tesseract.pb.h"
+#include "lib/perfmon/store.h"
 #include "lib/perfmon/timeline.h"
 #include "protocol.h"
 
@@ -78,8 +79,8 @@ public:
    phys::OctTree &GetOctTree();
    dm::Store& GetStore();
    lua::ScriptHost& GetScript();
+   perfmon::Store& GetPerfmonCounters();
    float GetBaseWalkSpeed() const;
-   int GetStepInterval() const;
 
    WorkerScheduler* GetWorkerScheduler();
    BuildingScheduler* GetBuildingScehduler(dm::ObjectId id);
@@ -91,6 +92,8 @@ private:
    void ProcessJobList();
    void StepPathFinding();
    rpc::ReactorDeferredPtr StartTaskManager();
+   rpc::ReactorDeferredPtr StartPerformanceCounterPush();
+   void PushPerformanceCounters();
    void UpdateGameState();
    void UpdateCollisions();
 
@@ -169,8 +172,15 @@ private:
    float                               base_walk_speed_;
    bool                                profile_next_lua_update_;
    rpc::ReactorDeferredPtr             task_manager_deferred_;
+   rpc::ReactorDeferredPtr             perf_counter_deferred_;
    perfmon::Timeline                   perf_timeline_;
+   perfmon::Store                      perf_counters_;
+   platform::timer                     next_counter_push_;
    core::Guard                         on_frame_end_guard_;
+   om::ErrorBrowserPtr                 error_browser_;
+   om::EntityPtr                       root_entity_;
+   om::ClockPtr                        clock_;
+   float                               game_speed_;
 };
 
 END_RADIANT_SIMULATION_NAMESPACE

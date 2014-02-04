@@ -24,7 +24,7 @@ end
 function GhostItemComponent:extend(json)
 end
 
-function GhostItemComponent:set_object_data(real_item_uri, location, rotation)
+function GhostItemComponent:set_full_sized_mod_uri(real_item_uri)
    self._data.full_sized_mod_url = real_item_uri
 
    local json = radiant.resources.load_json(real_item_uri)
@@ -38,13 +38,15 @@ function GhostItemComponent:set_object_data(real_item_uri, location, rotation)
          self._data.unit_info_icon = data.icon and data.icon or ''
       end
    end
-   self._data.location = location
-   self._data.rotation = rotation
    self._data_binding:mark_changed()
 end
 
-function GhostItemComponent:get_object_data()
-   return self._data
+function GhostItemComponent:get_full_sized_mod_uri()
+   return self._data.full_sized_mod_url
+end
+
+function GhostItemComponent:get_full_sized_json()
+   return radiant.resources.load_json(self._data.full_sized_mod_url)
 end
 
 return GhostItemComponent

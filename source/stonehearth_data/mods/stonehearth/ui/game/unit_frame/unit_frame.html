@@ -4,7 +4,7 @@
          {{#each buffs}}
             {{#if this.name}}
                <div class="item" {{bindAttr title=this.name description=this.description}}>
-                  <img {{bindAttr class=this.type src=this.icon}} />
+                  <img {{bindAttr src=this.icon}} />
                </div>
             {{/if}}
          {{/each}}

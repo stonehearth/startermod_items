@@ -3,7 +3,8 @@ local log = radiant.log.create_logger('actions.death')
 
 DeathAction.name = 'die'
 DeathAction.does = 'stonehearth:top'
-DeathAction.version = 1
+DeathAction.args = {}
+DeathAction.version = 2
 DeathAction.priority = 0
 
 function DeathAction:__init(ai, entity)
@@ -13,6 +14,9 @@ function DeathAction:__init(ai, entity)
    --self._aggro_table = radiant.entities.create_target_table(entity, 'stonehearth:tables.aggro')
 
    --radiant.events.listen_to_entity(entity, 'stonehearth:events:on_damage', self)
+end
+
+function DeathAction:start_thinking(ai, entity)
 end
 
 function DeathAction:run(ai, entity)

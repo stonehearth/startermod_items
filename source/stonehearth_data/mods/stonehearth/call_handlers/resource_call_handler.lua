@@ -9,60 +9,43 @@ local ResourceCallHandler = class()
 local all_harvest_tasks = {}
 
 function ResourceCallHandler:harvest_tree(session, response, tree)
-   local worker_scheduler = radiant.mods.load('stonehearth').worker_scheduler:get_worker_scheduler(session.faction)
-
-   -- Any worker that's not carrying anything will do...
-   local not_carrying_fn = function (worker)
-      return radiant.entities.get_carrying(worker) == nil
+   if not tree or not tree:is_valid() then
+      return false
    end
 
    local id = tree:get_id()
    if not all_harvest_tasks[id] then
-      all_harvest_tasks[id] = worker_scheduler:add_worker_task('chop_tree')
-                                                 :set_worker_filter_fn(not_carrying_fn)
-                                                 :add_work_object(tree)
-                                                 :set_action('stonehearth:chop_tree')
-                                                 :set_max_workers(1)
-                                                 :set_priority(priorities.CHOP_TREE)
-                                                 :start()
-      radiant.effects.run_effect(tree, '/stonehearth/data/effects/chop_overlay_effect')
+      all_harvest_tasks[id] = stonehearth.tasks:get_scheduler('stonehearth:workers', session.faction)
+                                :create_task('stonehearth:chop_tree', { tree = tree }) 
+                                :set_name('chop tree task')
+                                :once()
+                                :start()
+      
+      local eff_mgr_component = tree:get_component('stonehearth:effect_manager')
+      if eff_mgr_component then
+         eff_mgr_component:show_effect('harvest_tree')
+      end
    end
-   
+
    return true
 end
 
 function ResourceCallHandler:harvest_plant(session, response, plant)
-   local worker_scheduler = radiant.mods.load('stonehearth').worker_scheduler:get_worker_scheduler(session.faction)
+   stonehearth.tasks:get_scheduler('stonehearth:workers', session.faction)
+                              :create_task('stonehearth:harvest_plant', { plant = plant })
+                              :set_name('harvest plant task')
+                              :once()
+                              :start()
 
-   -- Any worker that's not carrying anything will do...
-   local not_carrying_fn = function (worker)
-      return radiant.entities.get_carrying(worker) == nil
+   local eff_mgr_component = plant:get_component('stonehearth:effect_manager')
+   if eff_mgr_component then
+      eff_mgr_component:show_effect('harvest_plant')
    end
-
-   local harvest_task = worker_scheduler:add_worker_task('harvest_berries')
-                   :set_worker_filter_fn(not_carrying_fn)
-                   :add_work_object(plant)
-                   :set_priority(priorities.GATHER_FOOD)
-
-   harvest_task:set_action_fn(
-      function (path)
-         return 'stonehearth:harvest_plant', path, harvest_task
-      end
-   )
-
-   harvest_task:start()
 
    return true
 end
 
 function ResourceCallHandler:shear_sheep(session, response, sheep)
-   local worker_scheduler = radiant.mods.load('stonehearth').worker_scheduler:get_worker_scheduler(session.faction)
-
-   -- Any worker that's not carrying anything will do...
-   local not_carrying_fn = function (worker)
-      return radiant.entities.get_carrying(worker) == nil
-   end
-
    local id = sheep:get_id()
    if not all_harvest_tasks [id] then
       local harvest_task = worker_scheduler:add_worker_task('shear_sheep')

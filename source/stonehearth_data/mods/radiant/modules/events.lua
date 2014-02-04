@@ -1,4 +1,6 @@
-local events = {}
+local events = {
+   UNLISTEN = { 'remove installed hook' }
+}
 local singleton = {
    jobs = {}
 }
@@ -7,6 +9,7 @@ local log = radiant.log.create_logger('events')
 
 function events.__init()
    events._senders = {}
+   events._async_triggers = {}
 end
 
 function events._convert_object_to_key(object)
@@ -17,8 +20,12 @@ function events._convert_object_to_key(object)
    return object
 end
 
+-- takes 2 forms:
+-- radiant.events.listen(sender, 'event_name', object, method)
+-- radiant.events.listen(sender, 'event_name', function)
+
 function events.listen(object, event, self, fn)
-   assert(object and event and self and fn)
+   assert(object and event and self)
 
    local key = events._convert_object_to_key(object)
    if not events._senders[key] then
@@ -35,13 +42,29 @@ function events.listen(object, event, self, fn)
 
    log:debug('listening to event ' .. event)
    
-   table.insert(listeners, { self = self, fn = fn })
+   local entry = {
+      self = self,
+      fn = fn
+   }
+   table.insert(listeners, entry)
+end
+
+function events.unpublish(object)
+   local key = events._convert_object_to_key(object)
+
+   assert(object)
+   if not events._senders[key] then
+      log:debug('unpublish on unknown sender: %s', tostring(object))
+      return
+   end
+   log:debug('forcibly removing listeners while unpublishing %s')
+   events._senders[key] = nil
 end
 
 function events.unlisten(object, event, self, fn)
    local key = events._convert_object_to_key(object)
 
-   assert(object and event and self and fn)
+   assert(object and event and self)
    local senders = events._senders[key]
    if not senders then
       log:debug('unlisten %s on unknown sender: %s', event, tostring(object))
@@ -63,6 +86,15 @@ function events.unlisten(object, event, self, fn)
    log:warning('unlisten could not find registered listener for event: %s', event)
 end
 
+function events.trigger_async(object, event, ...)
+   local trigger = {
+      object = object,
+      event = event,
+      args = { ... },
+   }
+   table.insert(events._async_triggers, trigger)
+end
+
 function events.trigger(object, event, ...)
    local key = events._convert_object_to_key(object)
    local sender = events._senders[key]
@@ -71,21 +103,19 @@ function events.trigger(object, event, ...)
       local listeners = sender[event]
       if listeners then
          for i, listener in ipairs(listeners) do
-            -- build up the event object
-            local event_params = {}
-            event_params.sender = sender
-            event_params.event = event
-            
-            if ... then 
-               for name, value in pairs(...) do
-                  if name ~= 'sender' and name ~= 'event' then
-                     event_params[name] = value
-                  end
-               end
-            end
-
             log:debug('triggering event ' .. event)
-            listener.fn(listener.self, event_params)
+            local result = false
+            if listener.fn ~= nil then
+               -- type 1: listen was called with 'self' and a method to call
+               result = listener.fn(listener.self, ...)
+            else
+               -- type 2: listen was called with just a function!  call it
+               result = listener.self(...)
+            end
+            -- auto-remove if the caller returned the magic value
+            if result == events.UNLISTEN then
+               events.unlisten(object, event, listener.self, listener.fn)
+            end
          end
       end
    end
@@ -94,6 +124,12 @@ end
 function events._update()
    local now = { now = radiant.gamestate.now() }
    
+   local async_triggers = events._async_triggers
+   events._async_triggers = {}
+   for _, trigger in ipairs(async_triggers) do
+      events.trigger(trigger.object, trigger.event, unpack(trigger.args))
+   end
+
    events.trigger(radiant.events, 'stonehearth:gameloop', now)
    -- pump the polls
    if now.now % 200 == 0 then
