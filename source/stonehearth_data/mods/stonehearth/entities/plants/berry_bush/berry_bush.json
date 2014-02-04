@@ -44,19 +44,16 @@
          "description": "Candy DOES grow on trees!"
       }, 
       "stonehearth:resource_node": {
-         "resource": "stonehearth:oak_log", 
+         "harvest_overlay_effect" : "/stonehearth/data/effects/chop_overlay_effect",
+         "resource": "stonehearth:oak_log",
          "durability": 1
-      },
-      "stonehearth:effect_manager" : {
-         "effects" : {
-            "harvest_plant" : "/stonehearth/data/effects/harvest_berries_overlay_effect"
-         }
       },
       "stonehearth:renewable_resource_node": {
          "resource" : "stonehearth:berry_basket",
          "renewal_time" : "2h",
          "harvest_command" : "harvest_berries",
-         "wait_text" : "Not yet ripe for harvest."
+         "wait_text" : "Not yet ripe for harvest.",
+         "harvest_overlay_effect" : "/stonehearth/data/effects/harvest_berries_overlay_effect"
       }
    }
 }

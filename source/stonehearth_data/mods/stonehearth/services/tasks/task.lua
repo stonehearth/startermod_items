@@ -23,6 +23,8 @@ function Task:__init(scheduler, activity)
    self._active_count = 0
    self._running_actions = {}
    self._repeating_actions = {}
+   self._entity_effect_names = {}
+   self._effects = {}
    self._priority = 2
    self._max_workers = INFINITE
    self:_set_state(STOPPED)
@@ -85,6 +87,11 @@ function Task:set_max_workers(max_workers)
    return self
 end
 
+function Task:add_entity_effect(entity, effect_name)
+   self._entity_effect_names[entity] = effect_name
+   return self
+end
+
 function Task:once()
    return self:times(1)
 end
@@ -114,9 +121,15 @@ function Task:start()
       self._scheduler:_commit_task(self)
       self._commited = true
    end
+
+   for entity, name in pairs(self._entity_effect_names) do 
+      local effect = radiant.effects.run_effect(entity, name)
+      table.insert(self._effects, effect)
+   end
    self._active_count = 0
    self._complete_count = 0
    self:_set_state(STARTED)
+
    return self
 end
 
@@ -125,6 +138,11 @@ function Task:stop()
    if self._state ~= STOPPED then
       self:_set_state(STOPPED)
    end
+   for _, effect in ipairs(self._effects) do
+      effect:stop();
+   end
+   self._effects = {}
+
    return self
 end
 
