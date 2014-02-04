@@ -361,6 +361,7 @@
                   
          "music:title_screen"    : "file(data/music/startmenumusic.ogg)",
          "music:world_start"     : "file(data/music/levelmusic.ogg)",
+         "music:level_music_night"     : "file(data/music/levelmusic_night.ogg)",
 
          "ambient:summer_day"   : "file(data/ambient/sh_amb_summer_day.ogg)",
          "ambient:summer_night" : "file(data/ambient/sh_amb_summer_night.ogg)",
