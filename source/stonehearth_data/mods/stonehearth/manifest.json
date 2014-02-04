@@ -366,9 +366,6 @@
          "ambient:summer_night" : "file(data/ambient/sh_amb_summer_night.ogg)",
          "ambient:dusk_wolves" : "file(data/ambient/sh_amb_dusk_wolves.ogg)",
 
-         "indicators:sleepy" : "file(/stonehearth/data/effects/unit_status_effects/sleepy_indicator)",
-         "indicators:hungry" : "file(/stonehearth/data/effects/unit_status_effects/hungry_indicator)",
-
          "scenarios:scenario_index" : "file(scenarios/index.json)"
       },
       "functions" : {
