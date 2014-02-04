@@ -72,6 +72,10 @@ function StockpileComponent:destroy()
    for id, item in pairs(self._data.stocked_items) do
       self:_remove_item_from_stock(id)
    end
+   if self._ec_trace then
+      self._ec_trace:destroy()
+      self._ec_trace = nil
+   end
    if self._task then
       self._task:destroy()
       self._task = nil

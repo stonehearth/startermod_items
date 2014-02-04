@@ -388,6 +388,7 @@ end
 
 
 function ExecutionFrame:_stop_thinking_from_thinking()
+   assert(not self._active_unit)
    for _, unit in pairs(self._execution_units) do
       unit:_stop_thinking()
    end
@@ -637,6 +638,7 @@ function ExecutionFrame:_stop_from_started()
    for _, unit in pairs(self._execution_units) do
       unit:_stop()
    end
+   self:_set_active_unit(nil)
    self:_set_state(STOPPED)
 end
 
