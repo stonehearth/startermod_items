@@ -43,17 +43,24 @@ App.StonehearthCalendarView = App.View.extend({
          radiant.call('radiant:play_sound', 'stonehearth:sounds:rooster_call' );
          radiant.call('radiant:play_music', {
                'track': 'stonehearth:ambient:summer_day',
-               'channel': 'ambient', 
-               'volume' : 40
-            });
+               'channel': 'ambient',
+               'fade': 4000, 
+               'volume' : 40 });
+            radiant.call('radiant:play_music', {
+               'track': 'stonehearth:music:world_start',
+               'channel': 'bgm',
+               'fade': 4000
+            });              
 
          this._sunrise_sounds_played = true;
       } else if (date.hour == this._constants.event_times.sunset_start && !this._sunset_start_sounds_played) {
          radiant.call('radiant:play_music', {
                'track': 'stonehearth:ambient:summer_day',
                'channel': 'ambient',
-               'volume' : 40
-            });                             
+               'fade': 4000,
+               'volume' : 40 
+            }); 
+                    
 
          this._sunset_start_sounds_played = true;         
       } else if (date.hour == this._constants.event_times.sunset && !this._sunset_sounds_played) {
@@ -61,7 +68,13 @@ App.StonehearthCalendarView = App.View.extend({
          radiant.call('radiant:play_music', {
                'track': 'stonehearth:ambient:summer_night',
                'channel': 'ambient',
-               'volume' : 20
+               'fade': 4000,
+               'volume' : 20 });
+
+         radiant.call('radiant:play_music', {
+               'track': 'stonehearth:music:level_music_night',
+               'channel': 'bgm',
+               'fade': 4000
             });                 
 
          this._sunset_sounds_played = true;

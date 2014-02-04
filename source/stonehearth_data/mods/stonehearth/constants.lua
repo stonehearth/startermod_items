@@ -25,8 +25,7 @@ local constants = {
          ADMIRE_FIRE = 2,
          WORK = 10,
          EAT = 20,
-         GRAB_PROMOTION_TALISMAN = 30,
-         SLEEP = 40,
+         SLEEP = 30,
       }
    },
    
