@@ -7,30 +7,12 @@ local Terrain = _radiant.om.Terrain
 
 function MicroWorld:__init(size)
    self._nextTime = 1
-   self._times = {}
-   self._timers = {}
    self._running = false
 
    if not size then
       size = 32
    end
    self._size = size
-
-   radiant.events.listen(radiant.events, 'stonehearth:gameloop', self, self.on_gameloop)
-end
-
--- xxx: this timer system really should be in radiant.events.  nuke it!
-function MicroWorld:on_gameloop(e)
-   if not self._running then
-      self._running = true;
-      table.sort(self._times);
-   end
-   local nextTimer = self._times[self._nextTime];
-   while nextTimer ~= nil and nextTimer <= e.now do
-      self._timers[nextTimer](e.now);
-      self._nextTime = self._nextTime + 1
-      nextTimer = self._times[self._nextTime]
-   end
 end
 
 function MicroWorld:create_world()
@@ -46,8 +28,7 @@ function MicroWorld:create_world()
 end
 
 function MicroWorld:at(time, fn)
-   table.insert(self._times, time);
-   self._timers[time] = fn
+   radiant.set_timer(time, fn)
 end
 
 function MicroWorld:place_tree(x, z)
@@ -74,7 +55,8 @@ function MicroWorld:place_item_cluster(uri, x, z, w, h)
 end
 
 function MicroWorld:place_citizen(x, z, profession, data)
-   local pop = stonehearth.population:get_faction('civ', 'stonehearth:factions:ascendancy')
+   local pop_service = radiant.mods.load('stonehearth').population
+   local pop = pop_service:get_faction('civ', 'stonehearth:factions:ascendancy')
    local citizen = pop:create_new_citizen()
    profession = profession and profession or 'worker'
 
@@ -93,7 +75,7 @@ function MicroWorld:place_stockpile_cmd(faction, x, z, w, h)
    local location = Point3(x, 1, z)
    local size = { w, h }
 
-   local inventory_service = stonehearth.inventory
+   local inventory_service = radiant.mods.load('stonehearth').inventory
    local inventory = inventory_service:get_inventory(faction)
    inventory:create_stockpile(location, size)
 end
