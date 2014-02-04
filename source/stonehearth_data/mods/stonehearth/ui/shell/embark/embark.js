@@ -65,15 +65,13 @@ App.StonehearthEmbarkView = App.View.extend({
       });  
    },
 
-   _embark: function() {
-      var x = 0;
-      var y = 0;
+   _embark: function(x, y) {
       var self = this;
       // Note: new_game accepts seeds up to 4294967295 (2^32-1)
       //var seed = Math.floor(Math.random() * 10000);
       //radiant.call('stonehearth:new_game', seed, x, y);
 
-      radiant.call('stonehearth:generate_start_location', 18, 18);
+      radiant.call('stonehearth:generate_start_location', x, y);
       App.shellView.addView(App.StonehearthLoadingScreenView);
       self.destroy();
    }
