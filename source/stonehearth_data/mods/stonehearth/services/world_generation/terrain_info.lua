@@ -48,9 +48,6 @@ function TerrainInfo:__init()
    foothills_info.base_height = plains_info.max_height
    mountains_info.base_height = foothills_info.max_height
 
-   -- tree lines
-   --self.tree_line = foothills_info.max_height+mountains_info.step_size*2
-
    local centroids = self:_get_quantization_centroids()
    self.quantizer = NonUniformQuantizer(centroids)
 end

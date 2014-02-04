@@ -166,7 +166,7 @@ function MicroMapGenerator:_fill_hole(height_map, x, y)
    local height = height_map.height
    local offset = height_map:get_offset(x, y)
    local value = height_map[offset]
-   local new_value = 2000000000
+   local new_value = MathFns.MAX_INT32
    local neighbor
 
    -- uncomment if edge macro_blocks should not be eligible
