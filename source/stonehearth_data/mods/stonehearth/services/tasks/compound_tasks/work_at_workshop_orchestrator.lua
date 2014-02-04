@@ -13,6 +13,7 @@ function WorkAtWorkshop:start(thread, args)
    radiant.events.listen(self._craft_order_list, 'order_list_changed', self, self._on_order_list_changed)
    self:_on_order_list_changed(self._craft_order_list, not self._craft_order_list:get_next_order())
 
+   --Listen on this to re-check mantain whenever an item is removed from the stockpile
    radiant.events.listen(self._inventory, 'stonehearth:item_removed', self, self._on_order_list_changed)
 end
 
@@ -37,6 +38,7 @@ end
 
 function WorkAtWorkshop:stop(thread, args)
    radiant.events.unlisten(self._craft_order_list, 'order_list_changed', self, self._on_order_list_changed)
+   radiant.events.unlisten(self._inventory, 'stonehearth:item_removed', self, self._on_order_list_changed)
 end
 
 function WorkAtWorkshop:_collect_ingredients(thread, order)

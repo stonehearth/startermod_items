@@ -14,4 +14,4 @@ local ai = stonehearth.ai
 return ai:create_compound_action(ConstructWorkshop)
             :execute('stonehearth:goto_entity', { entity = ai.ARGS.ghost_workshop })
             :execute('stonehearth:start_effect', { effect = ai.ARGS.sound_effect })
-            :execute('stonehearth:run_effect', { effect = 'work' })
+            :execute('stonehearth:run_effect', { effect = 'work', facing_entity = ai.ARGS.ghost_workshop })

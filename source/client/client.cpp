@@ -283,26 +283,18 @@ Client::Client() :
          std::string uri = params.get<std::string>("track");
          std::string channel = params.get<std::string>("channel");
 
-         if (params.has("loop")) {
-            a.SetNextMusicLoop(params.get<bool>("loop"), channel);
-         } else {
-            a.SetNextMusicLoop(audio::DEF_MUSIC_LOOP, channel);
-         }
-         if (params.has("fade")) {
-            a.SetNextMusicFade(params.get<int>("fade"), channel);
-         } else {
-            a.SetNextMusicFade(audio::DEF_MUSIC_FADE, channel);
-         }
-         if (params.has("volume")) {
-            a.SetNextMusicVolume(params.get<int>("volume"), channel);
-         } else {
-            a.SetNextMusicVolume(audio::DEF_MUSIC_VOL, channel);
-         }
-         if (params.has("crossfade")) {
-            a.SetNextMusicCrossfade(params.get<bool>("crossfade"), channel);
-         } else {
-            a.SetNextMusicCrossfade(audio::DEF_MUSIC_CROSSFADE, channel);
-         }
+         bool loop = params.get<bool>("loop", audio::DEF_MUSIC_LOOP);
+         a.SetNextMusicLoop(loop, channel);
+
+         int fade = params.get<bool>("fade", audio::DEF_MUSIC_FADE);
+         a.SetNextMusicVolume(fade, channel);
+
+         int vol = params.get<int>("volume", audio::DEF_MUSIC_VOL);
+         a.SetNextMusicVolume(vol, channel);
+
+         bool crossfade = params.get<bool>("crossfade", audio::DEF_MUSIC_CROSSFADE);
+         a.SetNextMusicCrossfade(crossfade, channel);
+         
          a.PlayMusic(uri, channel);
 
          result->ResolveWithMsg("success");
