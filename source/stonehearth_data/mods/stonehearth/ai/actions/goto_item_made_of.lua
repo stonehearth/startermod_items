@@ -16,10 +16,6 @@ GotoItemMadeOf.think_output = {
 GotoItemMadeOf.version = 2
 GotoItemMadeOf.priority = 1
 
-local is_material = function (material, item)
-   return radiant.entities.is_material(item, material)
-end
-
 local ai = stonehearth.ai
 return ai:create_compound_action(GotoItemMadeOf)
          :execute('stonehearth:material_to_filter_fn', { material = ai.ARGS.material })

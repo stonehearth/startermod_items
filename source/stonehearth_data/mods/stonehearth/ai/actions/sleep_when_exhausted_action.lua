@@ -1,5 +1,3 @@
-local event_service = stonehearth.events
-
 local SleepWhenExhaused = class()
 SleepWhenExhaused.name = 'sleep when exhausted'
 SleepWhenExhaused.does = 'stonehearth:sleep'
