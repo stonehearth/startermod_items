@@ -287,7 +287,7 @@ Client::Client() :
          a.SetNextMusicLoop(loop, channel);
 
          int fade = params.get<int>("fade", audio::DEF_MUSIC_FADE);
-         a.SetNextMusicVolume(fade, channel);
+         a.SetNextMusicFade(fade, channel);
 
          int vol = params.get<int>("volume", audio::DEF_MUSIC_VOL);
          a.SetNextMusicVolume(vol, channel);
