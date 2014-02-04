@@ -31,9 +31,13 @@ App.StonehearthCharacterSheetView = App.View.extend({
    }.observes('context.stonehearth:personality'),
 
    //Fires whenever the sheet is present and the buffs item changes
-   _setAttributeData: function() {
+   _setBuffData: function() {
       this._updateAttributes();
    }.observes('context.stonehearth:buffs'),
+
+   _setAttributeData: function() {
+      this._updateAttributes();
+   }.observes('context.stonehearth:attributes'),
 
    _updateAttributes: function() {
       var self = this;
@@ -57,13 +61,13 @@ App.StonehearthCharacterSheetView = App.View.extend({
       if (attrib_e_value > attrib_value) {
          //If buff, make text green
          $(obj).removeClass('debuffedValue normalValue').addClass('buffedValue');
-      }else if (attrib_e_value < attrib_value) {
+      } else if (attrib_e_value < attrib_value) {
          //If debuff, make text yellow
          $(obj).removeClass('buffedValue normalValue').addClass('debuffedValue');
       } else if (attrib_e_value == attrib_value) {
          //If nothing, keep steady
          $(obj).removeClass('debuffedValue buffedValue').addClass('normalValue');
-     }
+      }
 
       //For each buff and debuff that's associated with this attribute, 
       //put it in the tooltip
