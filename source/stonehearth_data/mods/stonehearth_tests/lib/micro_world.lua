@@ -55,8 +55,7 @@ function MicroWorld:place_item_cluster(uri, x, z, w, h)
 end
 
 function MicroWorld:place_citizen(x, z, profession, data)
-   local pop_service = radiant.mods.load('stonehearth').population
-   local pop = pop_service:get_faction('civ', 'stonehearth:factions:ascendancy')
+   local pop = stonehearth.population:get_faction('civ', 'stonehearth:factions:ascendancy')
    local citizen = pop:create_new_citizen()
    profession = profession and profession or 'worker'
 
@@ -75,8 +74,7 @@ function MicroWorld:place_stockpile_cmd(faction, x, z, w, h)
    local location = Point3(x, 1, z)
    local size = { w, h }
 
-   local inventory_service = radiant.mods.load('stonehearth').inventory
-   local inventory = inventory_service:get_inventory(faction)
+   local inventory = stonehearth.inventory:get_inventory(faction)
    inventory:create_stockpile(location, size)
 end
 
