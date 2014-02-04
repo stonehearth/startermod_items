@@ -5,7 +5,7 @@
          "type": "animation_effect",
          "start_time": 0,
          "animation": "sitting_on_chair_eat.json",
-         "loop": false
+         "loop": true
       },
      "sound": {
          "type": "sound_effect",

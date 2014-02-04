@@ -1,0 +1,17 @@
+<script type="text/x-handlebars" data-template-name="errorBrowser">
+   <div id="errorBrowser">
+      <div class='header'>
+            <div id="errorCount">{{errors.total}}</div>
+         <a href='#'><div class=close>close window</div></a>
+      </div>
+      <div id="entries">
+         {{#each errors.entries}}
+            <div>
+               error {{id}}:
+               <a href="#" {{bindAttr error_uri=__self}}>{{summary}}</a>
+            </div>
+         {{/each}}
+      </div>
+   </div>
+</script>
+

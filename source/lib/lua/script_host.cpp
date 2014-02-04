@@ -1,11 +1,13 @@
 #include "pch.h"
 #include <stdexcept>
+#include "lauxlib.h"
 #include "radiant_file.h"
 #include "core/config.h"
 #include "script_host.h"
 #include "lua_supplemental.h"
 #include "client/renderer/render_entity.h"
 #include "lib/json/namespace.h"
+#include "lib/perfmon/timer.h"
 
 extern "C" int luaopen_lpeg (lua_State *L);
 
@@ -153,6 +155,7 @@ IMPLEMENT_TRIVIAL_TOSTRING(ScriptHost);
 
 ScriptHost::ScriptHost()
 {
+   bytes_allocated_ = 0;
    filter_c_exceptions_ = core::Config::GetInstance().Get<bool>("lua.filter_exceptions", true);
 
    L_ = lua_newstate(LuaAllocFn, this);
@@ -162,6 +165,14 @@ ScriptHost::ScriptHost()
    luabind::open(L_);
    luabind::bind_class_info(L_);
 
+   if (!core::Config::GetInstance().Get<bool>("lua.enable_luajit", true)) {
+      if (luaL_dostring(L_, "jit.off()") != 0) {
+         LUA_LOG(0) << "Failed to disable jit. " << lua_tostring(L_, -1);
+      } else {
+         LUA_LOG(0) << "luajit disabled.";
+      }
+   }
+
    set_pcall_callback(PCallCallbackFn);
 
    module(L_) [
@@ -169,6 +180,7 @@ ScriptHost::ScriptHost()
          namespace_("lua") [
             lua::RegisterType<ScriptHost>()
                .def("log",             &ScriptHost::Log)
+               .def("get_realtime",    &ScriptHost::GetRealTime)
                .def("get_log_level",   &ScriptHost::GetLogLevel)
                .def("get_config",      &ScriptHost::GetConfig)
                .def("report_error",    (void (ScriptHost::*)(std::string const& error, std::string const& traceback))&ScriptHost::ReportLuaStackException)
@@ -207,6 +219,10 @@ ScriptHost::~ScriptHost()
 
 void* ScriptHost::LuaAllocFn(void *ud, void *ptr, size_t osize, size_t nsize)
 {
+   ScriptHost* host = static_cast<ScriptHost*>(ud);
+
+   host->bytes_allocated_ += (nsize - osize);
+   
 #if !defined(ENABLE_MEMPRO)
    if (nsize == 0) {
       free(ptr);
@@ -259,6 +275,14 @@ void ScriptHost::ReportStackException(std::string const& category, std::string c
       }
    }
    LUA_LOG(0) << "-- Lua Error End   ------------------------------- ";
+
+   if (error_cb_) {
+      om::ErrorBrowser::Record record;
+      record.SetSummary(error);
+      record.SetCategory(record.SEVERE);
+      record.SetBacktrace(traceback);
+      error_cb_(record);
+   }
 }
 
 lua_State* ScriptHost::GetInterpreter()
@@ -274,6 +298,7 @@ lua_State* ScriptHost::GetCallbackThread()
 void ScriptHost::GC(platform::timer &timer)
 {
    bool finished = false;
+
    while (!timer.expired() && !finished) {
       finished = (lua_gc(L_, LUA_GCSTEP, 1) != 0);
    }
@@ -365,7 +390,14 @@ void ScriptHost::Call(luabind::object fn, luabind::object arg1)
 
 void ScriptHost::Log(const char* category, int level, const char* str)
 {
-   LOG_CATEGORY_(level, BUILD_STRING("mod " << category)) << str;
+   if (category && str) {
+      LOG_CATEGORY_(level, BUILD_STRING("mod " << category)) << str;
+   }
+}
+
+uint ScriptHost::GetRealTime()
+{
+   return perfmon::Timer::GetCurrentTimeMs();
 }
 
 int ScriptHost::GetLogLevel(std::string const& category)
@@ -392,7 +424,7 @@ int ScriptHost::GetLogLevel(std::string const& category)
       last = category.rfind('.', last - 1);
    }
    if (config_level == SENTINEL) {
-      config_level = core::Config::GetInstance().Get<int>("logging.log_level", SENTINEL);
+      config_level = core::Config::GetInstance().Get<int>("logging.log_level", logger::GetDefaultLogLevel());
    }
    return config_level;
 }
@@ -411,4 +443,14 @@ bool ScriptHost::CoerseToBool(object const& o)
       }
    }
    return result;
+}
+
+void ScriptHost::SetNotifyErrorCb(ReportErrorCb const& cb)
+{
+   error_cb_ = cb;
+}
+
+int ScriptHost::GetAllocBytesCount() const
+{
+   return bytes_allocated_;
 }

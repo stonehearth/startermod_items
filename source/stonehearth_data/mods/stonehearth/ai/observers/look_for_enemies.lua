@@ -1,8 +1,5 @@
 local LookForEnemies = class()
-
-LookForEnemies.does = 'stonehearth:top'
-LookForEnemies.version = 1
-LookForEnemies.priority = 0
+LookForEnemies.version = 2
 
 function LookForEnemies:__init(entity)
    self._entity = entity

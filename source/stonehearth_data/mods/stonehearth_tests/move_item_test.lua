@@ -19,7 +19,7 @@ function MoveItemTest:__init()
    self:place_item_cluster('stonehearth:oak_log', -10, 0, 3, 3)
    local bed = self:place_item('stonehearth:firepit', 0, 0, faction)
 
-   local calendar = radiant.mods.load('stonehearth').calendar
+   local calendar = stonehearth.calendar
    calendar:set_time(21, 59, 0)
 
 end

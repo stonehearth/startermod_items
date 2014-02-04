@@ -160,6 +160,16 @@
    "lovable_rogue" : "Loveable Rogue",
    "psychopathic_misanthrope" : "Psychopathic Misanthrope",
    "insufferable_academic" : "Insufferable Academic",
-   "diligent_sweetheart" : "Diligent Sweetheart"
+   "diligent_sweetheart" : "Diligent Sweetheart",
+
+   "diligence_attribute" : "Diligence", 
+   "curiosity_attribute" : "Curiosity",
+   "inventiveness_attribute" : "Inventiveness", 
+   "muscle_attribute" : "Muscle",
+   "speed_attribute" : "Speed",
+   "stamina_attribute" : "Stamina",
+   "courage_attribute" : "Courage",
+   "willpower_attribute" : "Willpower",
+   "compassion_attribute" : "Compassion"
 }
 

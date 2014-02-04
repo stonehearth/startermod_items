@@ -23,11 +23,11 @@
          "icon" : "file(simple_wooden_chair.png)"
       },
       "stonehearth:material" : {
-         "tags" : "wood furniture crafted"
+         "tags" : "wood furniture crafted chair"
       },
       "stonehearth:lease_component" : {}
    },
-    "entity_data" : {
+   "entity_data" : {
       "stonehearth:chair" : {}
    }
 }

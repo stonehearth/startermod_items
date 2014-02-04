@@ -6,17 +6,20 @@
 
 BEGIN_RADIANT_SIMULATION_NAMESPACE
 
+typedef unsigned int TaskId;
+
 class Task {
    public:
-      Task(Simulation& sim, std::string const& name) :
-         sim_(sim), name_(name) { }
+      Task(Simulation& sim, std::string const& name);
 
-      std::string const& GetName() const { return name_; }
+      std::string const& GetName() const;
       virtual bool Work(const platform::timer &timer) = 0;
 
       Simulation& GetSim() const { return sim_; }
 
    private:
+      static TaskId  nextTaskId_;
+      TaskId         id_;
       Simulation&    sim_;
       std::string    name_;
 };

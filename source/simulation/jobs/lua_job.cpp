@@ -39,7 +39,6 @@ void LuaJob::Work(const platform::timer &timer)
       finished_ = !lua::ScriptHost::CoerseToBool(cb_());
    } catch (std::exception const& e) {
       LUA_LOG(1) << "lua job worker thread error: " << e.what() << ".  killing thread";
-      lua::ScriptHost::ReportCStackException(cb_.interpreter(), e);
       finished_ = true;
    }
 }

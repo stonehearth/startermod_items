@@ -11,7 +11,7 @@ function HabitatManager:__init(terrain_info, landscaper)
    self._landscaper = landscaper
 end
 
-function HabitatManager:derive_habitat_map(feature_map, elevation_map)
+function HabitatManager:derive_habitat_map(elevation_map, feature_map)
    local terrain_info = self._terrain_info
    local habitat_map = Array2D(feature_map.width, feature_map.height)
    local i, j, feature_name, elevation, terrain_type, habitat_type

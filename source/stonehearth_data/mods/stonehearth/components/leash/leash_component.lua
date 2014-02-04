@@ -1,5 +1,3 @@
-radiant.mods.load('stonehearth')
-
 local LeashComponent = class()
 
 function LeashComponent:__init(entity, data_store)

@@ -1,4 +1,5 @@
 local Array2D = require 'services.world_generation.array_2D'
+local MathFns = require 'services.world_generation.math.math_fns'
 local TerrainType = require 'services.world_generation.terrain_type'
 local TerrainInfo = require 'services.world_generation.terrain_info'
 local log = radiant.log.create_logger('world_generation')
@@ -15,6 +16,10 @@ function OverviewMap:__init(terrain_info, landscaper)
    self._margin = self._macro_block_size / 2
    self._features_per_tile = self._tile_size / self._feature_size
    self._macro_blocks_per_tile = self._tile_size / self._macro_block_size
+
+   -- scoring parameters
+   self._radius = 8
+   self._num_quanta = 5
 
    self:clear()
 end
@@ -48,11 +53,12 @@ function OverviewMap:derive_overview_map(full_elevation_map, full_feature_map, o
    for j=1, overview_width do
       for i=1, overview_height do
          a, b = _overview_map_to_feature_map_coords(i, j)
-         terrain_code = self:_get_terrain_code(full_elevation_map, a, b)
-         forest_density = self:_get_forest_density(full_feature_map, a, b)
+
          macro_block_info = {
-            terrain_code = terrain_code,
-            forest_density = forest_density
+            terrain_code = self:_get_terrain_code(a, b, full_elevation_map),
+            forest_density = self:_get_forest_density(a, b, full_feature_map),
+            wildlife_density = self:_get_wildlife_density(a, b, full_elevation_map),
+            vegetation_density = self:_get_vegetation_density(a, b, full_feature_map)
          }
          overview_map:set(i, j, macro_block_info)
       end
@@ -106,20 +112,20 @@ function OverviewMap:_assemble_maps(blueprint)
    return full_feature_map, full_elevation_map
 end
 
-function OverviewMap:_get_terrain_code(elevation_map, i, j)
+function OverviewMap:_get_terrain_code(i, j, elevation_map)
    -- since macroblocks are 2x the feature size, all 4 cells have the same value
    -- if this changes, sort and return the 3rd item (one of the tied medians)
    local elevation = elevation_map:get(i, j)
    return self._terrain_info:get_terrain_code(elevation)
 end
 
-function OverviewMap:_get_forest_density(forest_map, i, j)
+function OverviewMap:_get_forest_density(i, j, feature_map)
    local landscaper = self._landscaper
    local value
    local count = 0
 
    -- count the 4 feature blocks in this macro block
-   forest_map:visit_block(i, j, 2, 2,
+   feature_map:visit_block(i, j, 2, 2,
       function (value)
          if landscaper:is_forest_feature(value) then
             count = count + 1
@@ -129,6 +135,57 @@ function OverviewMap:_get_forest_density(forest_map, i, j)
    )
 
    return count
+end
+
+-- placeholder density function
+function OverviewMap:_get_wildlife_density(i, j, elevation_map)
+   local terrain_info = self._terrain_info
+   local num_quanta = self._num_quanta
+   local radius = self._radius
+   local length = 2*radius+1
+   local start_a, start_b, width, height, elevation, terrain_type, score
+   local sum = 0
+
+   start_a, start_b, width, height = elevation_map:bound_block(i-radius, j-radius, length, length)
+
+   -- iterate instead of using visit_block as we may want to incorporate feature_map later
+   for b=start_b, start_b+height-1 do
+      for a=start_a, start_a+width-1 do
+         elevation = elevation_map:get(a, b)
+         terrain_type = terrain_info:get_terrain_type(elevation)
+         if terrain_type ~= TerrainType.mountains then
+            -- basic plains and foothills are average density (0.5 out of 1)
+            sum = sum + 0.5
+         end
+      end
+   end
+
+   score = MathFns.round(sum / (width*height) * (num_quanta-1))
+   return score
+end
+
+function OverviewMap:_get_vegetation_density(i, j, feature_map)
+   local landscaper = self._landscaper
+   local num_quanta = self._num_quanta
+   local radius = self._radius
+   local length = 2*radius+1
+   local start_a, start_b, width, height, score
+   local sum = 0
+
+   start_a, start_b, width, height = feature_map:bound_block(i-radius, j-radius, length, length)
+
+   feature_map:visit_block(start_a, start_b, width, height,
+      function (value)
+         if landscaper:is_tree_name(value) then
+            -- 1.25 to account for thinned out trees
+            sum = sum + 1.25
+         end
+         return true
+      end
+   )
+
+   score = MathFns.round(sum / (width*height) * (num_quanta-1))
+   return score
 end
 
 function _overview_map_to_feature_map_coords(i, j)

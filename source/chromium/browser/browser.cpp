@@ -448,7 +448,7 @@ CefRefPtr<CefResourceHandler> Browser::GetResourceHandler(CefRefPtr<CefBrowser> 
    // will be used to interface with the rest of the system.  Chrome will be handed
    // the data whenever someone calls Complete.
    response->AddRef();
-   std::shared_ptr<rpc::HttpDeferred> deferred(new rpc::HttpDeferred("browser response"), [=](rpc::HttpDeferred* p) {
+   std::shared_ptr<rpc::HttpDeferred> deferred(new rpc::HttpDeferred(CefString(url)), [=](rpc::HttpDeferred* p) {
       response->Release();
       delete p;
    });

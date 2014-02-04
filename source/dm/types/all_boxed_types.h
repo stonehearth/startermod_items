@@ -1,6 +1,7 @@
 #include "dm/types/type_macros.h"
 #include "om/entity.h"
 #include "om/region.h"
+#include "om/json.h"
 #include "om/components/mob.ridl.h"
 #include "om/components/model_layer.ridl.h"
 #include "om/components/target_table_entry.ridl.h"
@@ -23,6 +24,7 @@
    BOXED(om::MobRef) \
    BOXED(om::ModelLayer::Layer) \
    BOXED(om::TargetTableEntryPtr) \
+   CREATE_BOXED(om::JsonBoxed) \
    CREATE_BOXED(om::Region2Boxed) \
    CREATE_BOXED(om::Region3Boxed) \
    CREATE_BOXED(om::Region2BoxedPtrBoxed) \

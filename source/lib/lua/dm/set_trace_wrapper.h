@@ -11,9 +11,9 @@ class SetTraceWrapper : public std::enable_shared_from_this<SetTraceWrapper<T>>
 public:
    SetTraceWrapper(std::shared_ptr<T> trace);
 
-   std::shared_ptr<SetTraceWrapper<T>> OnDestroyed(lua_State* L, luabind::object destroyed_cb);
-   std::shared_ptr<SetTraceWrapper<T>> OnAdded(lua_State* L, luabind::object added_cb);
-   std::shared_ptr<SetTraceWrapper<T>> OnRemoved(lua_State* L, luabind::object removed_cb);
+   std::shared_ptr<SetTraceWrapper<T>> OnDestroyed(luabind::object destroyed_cb);
+   std::shared_ptr<SetTraceWrapper<T>> OnAdded(luabind::object added_cb);
+   std::shared_ptr<SetTraceWrapper<T>> OnRemoved(luabind::object removed_cb);
    std::shared_ptr<SetTraceWrapper<T>> PushObjectState();
    void Destroy();
    

@@ -21,14 +21,14 @@ local constants = {
       },
 
       -- Priorities for basic needs
-      -- TODO: integrate sleep
-      needs = {
-         BARELY_HUNGRY = 3,
-         HUNGRY = 6,
-         REALLY_HUNGRY = 10
+      top = {
+         ADMIRE_FIRE = 2,
+         WORK = 10,
+         EAT = 20,
+         SLEEP = 30,
       }
    },
-
+   
    -- Constants related to constructing buildings
    construction = {
       STOREY_HEIGHT = 6,

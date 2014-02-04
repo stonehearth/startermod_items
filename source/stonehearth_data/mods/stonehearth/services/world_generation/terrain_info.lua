@@ -14,7 +14,7 @@ function TerrainInfo:__init()
    -- elevation constants
    local plains_info = {}
    plains_info.step_size = 2
-   plains_info.mean_height = 18
+   plains_info.mean_height = 16
    plains_info.std_dev = 6
    plains_info.max_height = 16
    self[TerrainType.plains] = plains_info
@@ -47,9 +47,6 @@ function TerrainInfo:__init()
    plains_info.base_height = self.min_height - plains_info.step_size -- essentially the water level
    foothills_info.base_height = plains_info.max_height
    mountains_info.base_height = foothills_info.max_height
-
-   -- tree lines
-   --self.tree_line = foothills_info.max_height+mountains_info.step_size*2
 
    local centroids = self:_get_quantization_centroids()
    self.quantizer = NonUniformQuantizer(centroids)

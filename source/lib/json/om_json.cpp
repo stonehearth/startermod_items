@@ -16,7 +16,6 @@ using namespace radiant::json;
       return result; \
    }
 
-      OM_OBJECT(Effect,         effect)
       OM_OBJECT(Sensor,         sensor)
       OM_OBJECT(TargetTable,        target_table)
       OM_OBJECT(TargetTableGroup,   target_table_group)
@@ -26,12 +25,10 @@ using namespace radiant::json;
       OM_OBJECT(ModelVariants,         model_variants)
       OM_OBJECT(Terrain,               terrain)
       OM_OBJECT(VerticalPathingRegion, vertical_pathing_region)
-      OM_OBJECT(EffectList,            effect_list)
       OM_OBJECT(RenderInfo,            render_info)
       OM_OBJECT(SensorList,            sensor_list)
       OM_OBJECT(TargetTables,          target_tables)
       OM_OBJECT(Item,                  item)
-      OM_OBJECT(CarryBlock,            carry_block)
 
 #undef OM_OBJECT
 
@@ -125,6 +122,36 @@ template <> Node json::encode(om::Destination const& obj)
    return node;
 }
 
+template <> Node json::encode(om::CarryBlock const& obj)
+{
+   Node node;
+
+   om::EntityPtr carrying = obj.GetCarrying().lock();
+   if (carrying) {
+      node.set("carrying", om::ObjectFormatter().GetPathToObject(carrying));
+   } else {
+      node.set("carrying", "");
+   }   
+   return node;
+}
+
+template <> Node json::encode(om::Effect const& obj)
+{
+   Node node;
+   node.set("name", obj.GetName());
+   return node;
+}
+
+template <> Node json::encode(om::EffectList const& obj)
+{
+   Node node;
+
+   for (auto const& entry : obj.EachEffect()) {
+      node.set(stdutil::ToString(entry.first), json::encode(*entry.second));
+   }
+   return node;
+}
+
 template <> Node json::encode(om::DataStore const& obj)
 {
    return obj.GetJsonNode();
@@ -144,4 +171,9 @@ template <> Node json::encode(om::ErrorBrowser const& obj)
    node.set("entries", entries);
 
    return node;
+}
+
+template <> json::Node json::encode(om::JsonBoxed const& obj)
+{
+   return obj.Get();
 }

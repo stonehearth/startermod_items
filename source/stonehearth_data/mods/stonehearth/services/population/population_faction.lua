@@ -1,13 +1,18 @@
 local PopulationFaction = class()
 
 local rng = _radiant.csg.get_default_rng()
-local personality_service = require 'services.personality.personality_service'
+local personality_service = stonehearth.personality
 
 --Separate the faction name (player chosen) from the kingdom name (ascendency, etc.)
 function PopulationFaction:__init(faction, kingdom)
    self._faction = faction
    self._data = radiant.resources.load_json(kingdom)
    self._faction_name = faction --TODO: differentiate b/w user id and name?
+
+   -- xxx: move this somewhere else, probably...
+   stonehearth.tasks:get_scheduler('stonehearth:workers', faction)
+                     :set_activity('stonehearth:work')
+
    self._kingdom = self._data.kingdom_id
    self._citizens = {}
 end
@@ -59,43 +64,6 @@ function PopulationFaction:_set_citizen_initial_state(citizen, gender)
    personality_component:add_substitution_by_parameter('teacher', self._kingdom, 'stonehearth')
    personality_component:add_substitution_by_parameter('personality_based_exclamation', personality, 'stonehearth:settler_journals')
 
-   local mind = rng:get_int(1, 6)
-   local body = rng:get_int(1, 6)
-   local spirit = rng:get_int(1, 6)
-   -- stats 
-   radiant.entities.set_attribute(citizen, 'mind', mind)
-   radiant.entities.set_attribute(citizen, 'body', body)
-   radiant.entities.set_attribute(citizen, 'spirit', spirit)
-
-   radiant.entities.set_attribute(citizen, 'diligence', self:get_derived_attribute(mind))
-   radiant.entities.set_attribute(citizen, 'curiosity', self:get_derived_attribute(mind))
-   radiant.entities.set_attribute(citizen, 'inventiveness', self:get_derived_attribute(mind))
-
-
-   radiant.entities.set_attribute(citizen, 'muscle', self:get_derived_attribute(body))
-   radiant.entities.set_attribute(citizen, 'speed', self:get_derived_attribute(body))
-   radiant.entities.set_attribute(citizen, 'stamina', self:get_derived_attribute(body))
-
-
-   radiant.entities.set_attribute(citizen, 'courage', self:get_derived_attribute(spirit))
-   radiant.entities.set_attribute(citizen, 'willpower', self:get_derived_attribute(spirit))
-   radiant.entities.set_attribute(citizen, 'compassion', self:get_derived_attribute(spirit))
-
-   -- speed is a factor of body as well
-   local speed = math.floor(80 + (20 * body/6))
-   radiant.entities.set_attribute(citizen, 'speed', speed)
-
-   -- randomize hunger
-   radiant.entities.set_attribute(citizen, 'hunger', rng:get_int(1, 30))
-
-   -- randomize sleepiness
-   radiant.entities.set_attribute(citizen, 'sleepiness', rng:get_int(1, 30))
-end
-
-function PopulationFaction:get_derived_attribute(primary_attribute_value)
-   local min = primary_attribute_value * 10
-   local max = min + 9
-   return rng:get_int(min, max)
 end
 
 function PopulationFaction:create_entity(uri)

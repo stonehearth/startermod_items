@@ -89,7 +89,6 @@ int call_impl(lua_State* L, int start, std::string const& obj, std::string const
             }
          } catch (std::exception& e) {
             RPC_LOG(1) << "failed to convert arg " << (i - start) << " calling " << fn << ". falling back to script host (" << e.what() << ")";
-            lua::ScriptHost::ReportCStackException(L, e);
          }         
       }
       if (!converted) {
@@ -124,7 +123,6 @@ LuaDeferredPtr trace_obj(lua_State* L, object obj)
       try {
          object_name = call_function<std::string>(obj["__tojson"], obj, obj);
       } catch (std::exception& e) {
-         lua::ScriptHost::ReportCStackException(L, e);
          throw std::invalid_argument(BUILD_STRING("failed to convert object to uri in trace_obj: " << e.what()));
       }
    }

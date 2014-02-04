@@ -22,6 +22,8 @@ public:
    bool IsIdle() const;
    void InitializeOpenSet(std::vector<PathFinderNode>& open);
    void EncodeDebugShapes(protocol::shapelist *msg) const;
+   void SetSourceOverride(csg::Point3 const& location);
+   csg::Point3 GetSourceLocation() const;
 
 protected:
    Simulation& GetSim() const { return pf_.GetSim(); }
@@ -34,6 +36,8 @@ public:
    dm::TracePtr               transform_trace_;
    dm::TracePtr               moving_trace_;
    phys::TerrainChangeCbId    collision_cb_id_;
+   csg::Point3                source_override_;
+   bool                       use_source_override_;
 };
 
 END_RADIANT_SIMULATION_NAMESPACE

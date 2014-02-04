@@ -11,6 +11,7 @@ class FollowPath : public Task
 {
 public:
    FollowPath(Simulation& sim, om::EntityRef entity, float speed, std::shared_ptr<Path> path, float close_to_distance, luabind::object arrived_cb);
+   virtual ~FollowPath();
 
 public:
    bool Work(const platform::timer &timer) override;

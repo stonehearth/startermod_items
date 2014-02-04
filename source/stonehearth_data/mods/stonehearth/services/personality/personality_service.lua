@@ -16,7 +16,6 @@
 ]]
 
 local rng = _radiant.csg.get_default_rng()
-local substitution_service = require 'services.substitution.substitution_service'
 
 PersonalityService = class()
 
@@ -99,7 +98,7 @@ function PersonalityService:_load_activity(url)
       end
    end
    if new_activity_blob.substitution_table then
-      substitution_service:populate(new_activity_blob.substitution_table)
+      stonehearth.substitution:populate(new_activity_blob.substitution_table)
    end
 end
 
@@ -110,7 +109,7 @@ end
 --  @param key - the field that will appear in the text
 --  @param param   - the version of the value we want
 function PersonalityService:get_substitution(namespace, key, param)
-   return substitution_service:get_substitution(namespace, key, param)
+   return stonehearth.substitution:get_substitution(namespace, key, param)
 end
 
 --- Given an activity name and a personality type, return an unused activity log of that type
@@ -145,8 +144,8 @@ function PersonalityService:get_activity_log(namespace, activity_name, personali
          end
          log_data.use_counter = log_data.use_counter + 1
 
-         log_entry = substitution_service:substitute_variables(namespace, log_entry, substitutions)
-         log_entry = substitution_service:capitalize_first(log_entry)
+         log_entry = stonehearth.substitution:substitute_variables(namespace, log_entry, substitutions)
+         log_entry = stonehearth.substitution:capitalize_first(log_entry)
       end
       return prefix, log_entry
    end

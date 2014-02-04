@@ -36,7 +36,7 @@ App.StonehearthLoadingScreenView = App.View.extend({
          this._progressbar.progressbar( "option", "value", result.progress );
 
          if (result.progress == 100) {
-            radiant.call('stonehearth:move_camera_to_start_location')
+            radiant.call('stonehearth:embark_client')
                .done(function(o) {
                   App.gotoGame();
                   App.gameView.addView(App.StonehearthCreateCampView)
