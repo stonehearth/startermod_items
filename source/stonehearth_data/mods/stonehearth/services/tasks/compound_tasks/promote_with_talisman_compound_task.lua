@@ -1,3 +1,4 @@
+local constants = require 'constants'
 local personality_service = require 'services.personality.personality_service'
 local PromoteWithTalisman = class()
 
@@ -20,7 +21,13 @@ function PromoteWithTalisman:run(thread, args)
       workshop = workshop,
       trigger_fn = trigger_fn,
    }
-   thread:execute('stonehearth:grab_promotion_talisman', args)
+
+   -- omg, so gross.  CompoundTask:execute() hides most of the task implementation, including
+   -- priority.  That's... pretty dumb.   This entire system needs reworking!  -- tony
+   local task = thread._scheduler:create_task('stonehearth:grab_promotion_talisman', args)
+                                    :set_priority(constants.priorities.top.GRAB_PROMOTION_TALISMAN)
+                                    :once()
+   thread:_run(task)
 
    radiant.entities.destroy_entity(talisman)
    stonehearth.ai:remove_action(person, 'stonehearth:actions:grab_promotion_talisman')
