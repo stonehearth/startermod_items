@@ -21,10 +21,11 @@ local constants = {
       },
 
       -- Priorities for basic needs
-      -- TODO: integrate sleep
-      needs = {
-         EAT = 10,
-         SLEEP = 20,
+      top = {
+         ADMIRE_FIRE = 2,
+         WORK = 10,
+         EAT = 20,
+         SLEEP = 30,
       }
    },
    
