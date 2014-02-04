@@ -10,7 +10,7 @@ GrabTalismanAction.args = {
    trigger_fn = 'function'
 }
 GrabTalismanAction.version = 2
-GrabTalismanAction.priority = 1
+GrabTalismanAction.priority = constants.priorities.top.GRAB_TALISMAN
 
 local ai = stonehearth.ai
 return ai:create_compound_action(GrabTalismanAction)
