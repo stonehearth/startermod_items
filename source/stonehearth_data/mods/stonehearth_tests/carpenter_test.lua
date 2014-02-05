@@ -11,6 +11,9 @@ function CarpenterTest:__init()
    self[MicroWorld]:__init()
    self:create_world()
 
+   --Add a worker
+   local worker = self:place_citizen(-5, -5)
+
    --Create the carpenter, bench, and instantiate them to each other
    local bench = self:place_item('stonehearth:carpenter:workbench', -12, 12)
    local workshop_component = bench:get_component('stonehearth:workshop')
