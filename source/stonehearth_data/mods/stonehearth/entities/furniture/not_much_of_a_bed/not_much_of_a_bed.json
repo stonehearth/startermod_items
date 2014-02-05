@@ -35,8 +35,7 @@
       },
       "render_info" : {
          "scale" : 0.22
-      },
-      "stonehearth:lease_component" : {}
+      }
    },
    "entity_data" : {
       "stonehearth:bed" : {}

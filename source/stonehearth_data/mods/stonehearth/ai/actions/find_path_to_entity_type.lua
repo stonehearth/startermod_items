@@ -36,7 +36,7 @@ function FindPathToEntityType:_consider_destination(target)
    end
 
    if self._filter_fn(target) then
-      local lease = target:get_component('stonehearth:lease_component')
+      local lease = target:get_component('stonehearth:lease')
       if lease and not lease:can_acquire('ai_reservation', self._entity) then
          self._log:debug('ignoring %s (cannot acquire ai lease)', tostring(target))
          return
