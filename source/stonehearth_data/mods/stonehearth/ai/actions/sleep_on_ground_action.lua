@@ -23,6 +23,7 @@ function SleepOnGroundAction:run(ai, entity)
 
    ai:execute('stonehearth:run_effect_timed', { effect = 'sleep', duration = 1})
    radiant.entities.set_attribute(entity, 'sleepiness', 0)
+   radiant.entities.add_buff(entity, 'stonehearth:buffs:groggy')
 end
 
 function SleepOnGroundAction:stop(ai, entity)
