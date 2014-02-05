@@ -76,6 +76,37 @@ function Array2D:bound_block(x, y, width, height)
    return x1, y1, new_width, new_height
 end
 
+-- does not test diagonals
+function Array2D:is_adjacent_to(value, x, y)
+   local offset = self:get_offset(x, y)
+
+   if x > 1 then
+      if value == self[offset-1] then
+         return true
+      end
+   end
+
+   if y > 1 then 
+      if value == self[offset-width] then
+         return true
+      end
+   end
+
+   if x < self.width then
+      if value == self[offset+1] then
+         return true
+      end
+   end
+
+   if y < self.height then
+      if value == self[offset+width] then
+         return true
+      end
+   end
+
+   return false
+end
+
 function Array2D:clone()
    local dst = Array2D(self.width, self.height)
    local size = self.width * self.height

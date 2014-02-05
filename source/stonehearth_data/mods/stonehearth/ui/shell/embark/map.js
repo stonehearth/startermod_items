@@ -4,10 +4,9 @@ $.widget( "stonehearth.stonehearthMap", {
    options: {
       // callbacks
       hover: null,
-      click: null,
       cellSize: 10,
       click: function(cellX, cellY) {
-         console.log('you clicked on ' + cellX + ', ' + cellY)
+         console.log('Selected cell: ' + cellX + ', ' + cellY)
       }
    },
 
@@ -39,32 +38,57 @@ $.widget( "stonehearth.stonehearthMap", {
       mountains_7: 11
    },
 
+   forestMargin: {
+      0: null,
+      1: 4,
+      2: 3,
+      3: 2,
+      4: 1,
+   },
+
+   suspend: function() {
+      this._suspended = true;
+   },
+
+   resume: function() {
+      this._suspended = false;
+   },
+
+   suspended: function() {
+      return this._suspended;   
+   },
+
+   clearCrosshairs: function() {
+      this._clearCrosshairs(this.overlayCtx);
+   },
+
    _create: function() {
-      this._buildMap()
+      this._suspended = false;
+      this._buildMap();
    },
 
    _buildMap: function() {
       var self = this;
 
-      this.element.addClass('stonehearthMap');
-      var grid = this.options.mapGrid;
+      self.element.addClass('stonehearthMap');
+      var grid = self.options.mapGrid;
       var canvas = $('<canvas>');
       var overlay = $('<canvas>');
       var container = $('<div>').css('position', 'relative');
 
-      this.mapWidth = this.options.mapGrid[0].length * this.options.cellSize;
-      this.mapHeight = this.options.mapGrid.length * this.options.cellSize;
+      self.mapWidth = self.options.mapGrid[0].length * self.options.cellSize;
+      self.mapHeight = self.options.mapGrid.length * self.options.cellSize;
 
       canvas
          .addClass('mapCanvas')
-         .attr('width', this.mapWidth)
-         .attr('height', this.mapHeight);
+         .attr('width', self.mapWidth)
+         .attr('height', self.mapHeight);
 
       overlay
-         .addClass('mapCanvas')      
+         .addClass('mapCanvas')
          .attr('id', 'overlay')
-         .attr('width', this.mapWidth)
-         .attr('height', this.mapHeight)
+         .attr('width', self.mapWidth)
+         .attr('height', self.mapHeight)
          .click(function(e) {
             self._onMouseClick(self, e);
          })
@@ -72,159 +96,217 @@ $.widget( "stonehearth.stonehearthMap", {
             self._onMouseMove(self, e);
          });
 
-      this.ctx = canvas[0].getContext('2d');
-      this.overlayCtx = overlay[0].getContext('2d');
+      self.ctx = canvas[0].getContext('2d');
+      self.overlayCtx = overlay[0].getContext('2d');
 
-      this._drawMap();
+      self._drawMap(self.ctx);
 
       container.append(canvas);
       container.append(overlay);
 
-      this.element.append(container);
+      self.element.append(container);
    },
 
-   _onMouseClick: function (view, e) {
+   _onMouseClick: function(view, e) {
       var self = view;
+
+      if (self._suspended) {
+         return;
+      }
 
       var cellSize = self.options.cellSize;
       var cellX = Math.floor(e.offsetX / cellSize);
       var cellY = Math.floor(e.offsetY / cellSize);
 
-      this.options.click(cellX, cellY);
+      self.options.click(cellX, cellY);
    },
 
-   _onMouseMove: function (view, e) {
+   _onMouseMove: function(view, e) {
       var self = view;
+
+      if (self._suspended) {
+         return;
+      }
 
       var cellSize = self.options.cellSize;
       var cellX = Math.floor(e.offsetX / cellSize);
       var cellY = Math.floor(e.offsetY / cellSize);
 
       if (cellX != self.mouseCellX || cellY != self.mouseCellY) {
-         self.overlayCtx.globalAlpha = 0.8;
-         self.overlayCtx.clearRect(0, 0, self.mapWidth, self.mapHeight);
-         self.overlayCtx.fillStyle = '#ffc000'
-         self.overlayCtx.fillRect(
-            cellX * cellSize, 
-            cellY * cellSize, 
-            cellSize, 
-            cellSize);
+         self.mouseCellX = cellX;
+         self.mouseCellY = cellY;
 
-         var lineX = cellX * cellSize + (cellSize / 2)
-         var lineY = cellY * cellSize + (cellSize / 2)
-         
-         this.overlayCtx.lineWidth = 1.0;
-         this.overlayCtx.setLineDash([2]);
+         self._drawCrosshairs(self.overlayCtx, cellX, cellY);
 
-         this.overlayCtx.beginPath();
-         this.overlayCtx.moveTo(0, lineY);
-         this.overlayCtx.lineTo(self.mapWidth, lineY);
-         this.overlayCtx.stroke();          
-
-         this.overlayCtx.beginPath();
-         this.overlayCtx.moveTo(lineX, 0);
-         this.overlayCtx.lineTo(lineX, self.mapHeight);
-         this.overlayCtx.stroke();          
-         self.overlayCtx.globalAlpha = 1.0;
+         self.options.hover(cellX, cellY);
       }
-
-      self.mouseCellX = cellX;
-      self.mouseCellY = cellY;
    },
 
-   _drawMap: function() {
-      var grid = this.options.mapGrid;
-      for (var row = 0; row < grid.length; row++) {
-         for (var col=0; col < grid[row].length; col++) {
-            this._drawCell(col, row, grid[row][col]);
+   _drawCrosshairs: function(context, cellX, cellY) {
+      var self = this;
+      var cellSize = self.options.cellSize;
+
+      self._clearCrosshairs(context);
+
+      context.globalAlpha = 0.8;
+      context.clearRect(0, 0, self.mapWidth, self.mapHeight);
+      context.fillStyle = '#ffc000'
+      context.fillRect(
+         cellX * cellSize, cellY * cellSize, 
+         cellSize, cellSize
+      );
+
+      var lineX = cellX * cellSize + (cellSize / 2)
+      var lineY = cellY * cellSize + (cellSize / 2)
+      
+      context.lineWidth = 1.0;
+      context.setLineDash([2]);
+
+      context.beginPath();
+      context.moveTo(0, lineY);
+      context.lineTo(self.mapWidth, lineY);
+      context.stroke();          
+
+      context.beginPath();
+      context.moveTo(lineX, 0);
+      context.lineTo(lineX, self.mapHeight);
+      context.stroke();          
+      context.globalAlpha = 1.0;
+   },
+
+   _clearCrosshairs: function(context) {
+      var self = this;
+      context.clearRect(0, 0, self.mapWidth, self.mapHeight);
+   },
+
+   _drawMap: function(context) {
+      var self = this;
+
+      var grid = self.options.mapGrid;
+      for (var y = 0; y < grid.length; y++) {
+         for (var x = 0; x < grid[y].length; x++) {
+            self._drawCell(context, x, y, grid[y][x]);
          }
       }
    },
 
-   _drawCell: function(x, y, cell) {
-      var cellSize = this.options.cellSize;
-      var cellX = x * cellSize;
-      var cellY = y * cellSize
+   _drawCell: function(context, cellX, cellY, cell) {
+      var self = this;
+      var cellSize = self.options.cellSize;
+      var x = cellX * cellSize;
+      var y = cellY * cellSize;
 
+      // draw elevation
+      context.fillStyle = self.cellColors[cell.terrain_code] ? self.cellColors[cell.terrain_code] : '#000000';
+      context.fillRect(
+         x, y, 
+         cellSize, cellSize
+      );
 
-      this.ctx.fillStyle = this.cellColors[cell.terrain_code] ? this.cellColors[cell.terrain_code] : '#000000';
-      this.ctx.fillRect(
-         cellX, 
-         cellY, 
-         cellSize,
-         cellSize);
+      var cellHeight = self._heightAt(cellX, cellY)
 
-      var cellHeight = this._heightAt(x, y)
-
-      if(this._heightAt(x, y - 1) > cellHeight) {
+      // draw edges for elevation changes
+      if(self._heightAt(cellX, cellY - 1) > cellHeight) {
          // north, line above me
-         this._drawLine(
-            cellX, cellY,
-            cellX + cellSize , cellY
+         self._drawLine(
+            context,
+            x, y,
+            x + cellSize, y
          );
 
          //xxx, shading above me
-         this.ctx.globalAlpha = 0.2;
-         this.ctx.fillStyle = '#000000';
-         this.ctx.fillRect(
-            cellX,
-            cellY,
-            cellSize,
-            cellSize * -0.4);
-         this.ctx.globalAlpha = 1.0;
+         context.globalAlpha = 0.2;
+         context.fillStyle = '#000000';
+         context.fillRect(
+            x, y,
+            cellSize, cellSize * -0.4
+         );
+         context.globalAlpha = 1.0;
       }
 
-      if(this._heightAt(x, y + 1) > cellHeight) {
+      if(self._heightAt(cellX, cellY + 1) > cellHeight) {
          // south, line below me
-         this._drawLine(
-            cellX, cellY + cellSize,
-            cellX + cellSize , cellY + cellSize
+         self._drawLine(
+            context,
+            x, y + cellSize,
+            x + cellSize, y + cellSize
          );
       }
 
-      if(this._heightAt(x - 1, y) > cellHeight) {
+      if(self._heightAt(cellX - 1, cellY) > cellHeight) {
          // east, line on my left
-         this._drawLine(
-            cellX, cellY,
-            cellX, cellY + cellSize
+         self._drawLine(
+            context,
+            x, y,
+            x, y + cellSize
          );
       }
 
-      if(this._heightAt(x + 1, y) > cellHeight) {
+      if(self._heightAt(cellX + 1, cellY) > cellHeight) {
          // west, line on my right
-         this._drawLine(
-            cellX + cellSize, cellY,
-            cellX + cellSize , cellY + cellSize
+         self._drawLine(
+            context,
+            x + cellSize, y,
+            x + cellSize, y + cellSize
          );
       }
 
-      // forest color #e6e6e6
+      // overlay forest
+      var forest_density = self._forestAt(cellX, cellY)
 
+      if (forest_density > 0) {
+         var margin = self.forestMargin[forest_density];
+         context.fillStyle = '#2c4b27';
+
+         context.fillRect(
+            x + margin, y + margin, 
+            cellSize - margin*2, cellSize - margin*2
+         );
+      }
    },
 
-   _drawLine: function(x1, y1, x2, y2) {
-      this.ctx.beginPath();
-      this.ctx.moveTo(x1, y1);
-      this.ctx.lineTo(x2, y2);
-      this.ctx.lineWidth = 0.4;
-      this.ctx.stroke();     
+   _drawLine: function(context, x1, y1, x2, y2) {
+      context.beginPath();
+      context.moveTo(x1, y1);
+      context.lineTo(x2, y2);
+      context.lineWidth = 0.4;
+      context.stroke();     
    },
 
-   _heightAt: function(x, y) {
-      
-      if (x < 0 || y < 0 || x >= this.options.mapGrid[0].length || y >= this.options.mapGrid.length) {
+   _heightAt: function(cellX, cellY) {
+      if (!this._inBounds(cellX, cellY)) {
          return -1;
       }
 
-      var terrain = this._terrainAt(x, y);
+      var terrain = this._terrainAt(cellX, cellY);
 
       return this.cellHeights[terrain] 
    },
 
-   _terrainAt: function(x, y) {
-      if (x < 0 || y < 0 || x >= this.options.mapGrid[0].length || y >= this.options.mapGrid.length) {
+   _terrainAt: function(cellX, cellY) {
+      if (!this._inBounds(cellX, cellY)) {
          return '';
       }
-      return this.options.mapGrid[y][x].terrain_code;
-   },   
+      return this.options.mapGrid[cellY][cellX].terrain_code;
+   },
+
+   _forestAt: function(cellX, cellY) {
+      if (!this._inBounds(cellX, cellY)) {
+         return -1;
+      }
+
+      return this.options.mapGrid[cellY][cellX].forest_density;
+   },
+
+   _inBounds: function(cellX, cellY) {
+      if (cellX < 0 || cellY < 0) {
+         return false;
+      }
+
+      if (cellX >= this.options.mapGrid[0].length || cellY >= this.options.mapGrid.length) {
+         return false;
+      }
+
+      return true;
+   },
 });

@@ -68,6 +68,8 @@ function NewGameCallHandler:embark_server(session, response)
    local wgs = stonehearth.world_generation
    local x = wgs.start_x
    local z = wgs.start_z
+   local y = radiant.terrain.get_height(Point2(x, z))
+   log:info('y height: %d', y)
 
    -- reveal scenaraios around the staring location
    local reveal_distance = radiant.util.get_config('scenario_reveal_distance', 128)
@@ -83,20 +85,19 @@ function NewGameCallHandler:embark_server(session, response)
    local scenario_service = stonehearth.scenario
    scenario_service:reveal_region(starting_region)
 
-   return { x = x, z = z }
+   return { x = x, y = y, z = z }
 end
 
 function NewGameCallHandler:embark_client(session, response)
    _radiant.call('stonehearth:embark_server'):done(
       function (o)
          -- reconcile these with the camera constants later
-         local camera_height = 256
-         local target_height = 32
-         local distance_from_target = 384
+         local camera_height = 90
+         local target_distance = 180
          local camera_service = stonehearth.camera
 
-         local target = Point3f(o.x, target_height, o.z)
-         local camera_location = Point3f(o.x, camera_height, o.z + distance_from_target)
+         local target = Point3f(o.x, o.y, o.z)
+         local camera_location = Point3f(o.x, o.y + camera_height, o.z + target_distance)
 
          -- hack to get around camera interpolation
          camera_service._next_position = camera_location

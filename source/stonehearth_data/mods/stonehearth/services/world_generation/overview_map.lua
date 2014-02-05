@@ -18,7 +18,7 @@ function OverviewMap:__init(terrain_info, landscaper)
    self._macro_blocks_per_tile = self._tile_size / self._macro_block_size
 
    -- scoring parameters
-   self._radius = 8
+   self._radius = 4
    self._num_quanta = 5
 
    self:clear()
