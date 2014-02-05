@@ -22,7 +22,7 @@ function FindPathToEntity:start_thinking(ai, entity, args)
    local destination = args.finish
    
    if not destination or not destination:is_valid() then
-      ai:abort('invalid entity reference')
+      ai:get_log():debug('invalid entity reference.  ignorning')
       return
    end
    
