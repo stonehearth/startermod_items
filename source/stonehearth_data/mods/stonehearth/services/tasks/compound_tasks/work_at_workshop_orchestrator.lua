@@ -55,7 +55,7 @@ function WorkAtWorkshop:_process_order(thread, order)
 
    thread:execute('stonehearth:work_at_workshop', {
       workshop = self._workshop,
-      times = recipe.work_units,
+      times = recipe.work_units
    })
 
    self:_destroy_items_on_bench()

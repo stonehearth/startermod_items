@@ -246,7 +246,6 @@ function WorkshopComponent:finish_construction(faction, outbox_entity)
    -- Place the promotion talisman on the workbench, if there is one
    self:_create_promotion_talisman(faction)
    self._outbox_entity = outbox_entity
-   self._faction = faction
 end
 
 function WorkshopComponent:_create_scheduler(crafter)
@@ -257,7 +256,7 @@ function WorkshopComponent:_create_scheduler(crafter)
    self._scheduler:create_orchestrator('stonehearth:tasks:work_at_workshop', {
          workshop = self._entity,
          craft_order_list = self._craft_order_list,
-         faction = self._faction
+         faction = radiant.entities.get_faction(crafter)
       })
       :start()
    

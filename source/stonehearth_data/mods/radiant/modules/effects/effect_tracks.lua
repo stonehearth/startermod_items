@@ -65,7 +65,9 @@ end
 function EffectTracks:cleanup()
    self._on_finished_fn = nil
    log:debug('cleaning up effect "%s"', self._name)
-   self._effect_list:remove_effect(self._effect)
+   if self._effect_list and self._effect_list:is_valid() then
+      self._effect_list:remove_effect(self._effect)
+   end
    self._mgr:_remove_effect(self)
 end
 

@@ -60,86 +60,86 @@
             "base" : 1,
             "max"  : 6
          },
-         "diligence_modifier": {
+         "diligence_adjustment": {
             "type" : "random_range",
             "base" :  1,
             "max"  :  9
          },
          "diligence": {
             "type" : "derived",
-            "equation" : "mind * 10 + diligence_modifier"
+            "equation" : "mind * 10 + diligence_adjustment"
          },
-         "curiosity_modifier": {
+         "curiosity_adjustment": {
             "type" : "random_range",
             "base" :  1,
             "max"  :  9
          },
          "curiosity": {
             "type" : "derived",
-            "equation" : "mind * 10 + curiosity_modifier"
+            "equation" : "mind * 10 + curiosity_adjustment"
          },
-         "inventiveness_modifier": {
+         "inventiveness_adjustment": {
             "type" : "random_range",
             "base" :  1,
             "max"  :  9
          },
          "inventiveness": {
             "type" : "derived",
-            "equation" : "mind * 10 + inventiveness_modifier"
+            "equation" : "mind * 10 + inventiveness_adjustment"
          },
-         "muscle_modifier": {
+         "muscle_adjustment": {
             "type" : "random_range",
             "base" :  1,
             "max"  :  9
          },
          "muscle": {
             "type" : "derived",
-            "equation" : "body * 10 + muscle_modifier"
+            "equation" : "body * 10 + muscle_adjustment"
          },
-         "speed_modifier": {
+         "speed_adjustment": {
             "type" : "random_range",
             "base" :  1,
             "max"  :  9
          },
          "speed": {
             "type" : "derived",
-            "equation" : "body * 10 + speed_modifier"
+            "equation" : "body * 10 + speed_adjustment"
          },
-         "stamina_modifier": {
+         "stamina_adjustment": {
             "type" : "random_range",
             "base" :  1,
             "max"  :  9
          },
          "stamina": {
             "type" : "derived",
-            "equation" : "body * 10 + stamina_modifier"
+            "equation" : "body * 10 + stamina_adjustment"
          },
-         "courage_modifier": {
+         "courage_adjustment": {
             "type" : "random_range",
             "base" :  1,
             "max"  :  9
          },
          "courage": {
             "type" : "derived",
-            "equation" : "spirit * 10 + courage_modifier"
+            "equation" : "spirit * 10 + courage_adjustment"
          },
-         "willpower_modifier": {
+         "willpower_adjustment": {
             "type" : "random_range",
             "base" :  1,
             "max"  :  9
          },
          "willpower": {
             "type" : "derived",
-            "equation" : "spirit * 10 + willpower_modifier"
+            "equation" : "spirit * 10 + willpower_adjustment"
          },
-         "compassion_modifier": {
+         "compassion_adjustment": {
             "type" : "random_range",
             "base" :  1,
             "max"  :  9
          },
          "compassion": {
             "type" : "derived",
-            "equation" : "spirit * 10 + stamina_modifier"
+            "equation" : "spirit * 10 + stamina_adjustment"
          },
 		   "ferocity": {
             "type" : "basic",

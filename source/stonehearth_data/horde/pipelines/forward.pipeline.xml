@@ -37,8 +37,8 @@
       </Stage>
 
       <Stage id="Translucent">
-         <DrawGeometry context="TRANSLUCENT" order="BACK_TO_FRONT" />
          <DrawGeometry context="TRANSLUCENT_ON_TOP" order="BACK_TO_FRONT" />
+         <DrawGeometry context="TRANSLUCENT" order="BACK_TO_FRONT" />
          <DrawGeometry context="BLUEPRINTS_DEPTH_PASS"/>
          <DrawGeometry context="BLUEPRINTS_COLOR_PASS"/>
          <DrawGeometry context="DEBUG_SHAPES" />

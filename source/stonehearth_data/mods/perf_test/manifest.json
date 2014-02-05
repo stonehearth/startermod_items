@@ -7,9 +7,7 @@
       "script" : "perf_test.lua"
    },
 
-   "client" : {
-      "init_script" : "file(client_perf_test.lua)"
-   },
+   "client_init_script" : "file(client_perf_test)",
 
    "radiant": {
       "functions" : {

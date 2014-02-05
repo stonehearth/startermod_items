@@ -15,6 +15,11 @@ end
 function events._convert_object_to_key(object)
    if type(object) == 'userdata' then
       assert(object.get_id, 'could not convert userdata object to key.  no get_id method implemented')
+      if object.is_valid then
+         if not object:is_valid() then
+            return nil
+         end
+      end
       return 'userdata_id_' .. tostring(object:get_id())
    end
    return object
@@ -96,6 +101,8 @@ function events.trigger_async(object, event, ...)
 end
 
 function events.trigger(object, event, ...)
+   log:spam('triggering %s', tostring(event))
+   
    local key = events._convert_object_to_key(object)
    local sender = events._senders[key]
 
