@@ -207,6 +207,8 @@ void Simulation::CreateNew()
    }
    scriptHost_->Require("radiant.lualibs.strict");
 
+   scriptHost_->Trigger("radiant:modules_loaded");
+
    std::string const module = config.Get<std::string>("game.mod");
    json::Node const manifest = resource_manager.LookupManifest(module);
    std::string const default_script = module + "/" + manifest.get<std::string>("game.script");
