@@ -113,7 +113,7 @@ function ExecutionFrame:_unit_ready(unit, think_output)
    if self._state == 'running' then
       return self:_unit_ready_from_running(unit, think_output)
    end
-   if self:in_state('switching', 'finished') then
+   if self:in_state('switching', 'finished', 'stopped') then
       return -- nop
    end
    if self._state == 'dead' then
