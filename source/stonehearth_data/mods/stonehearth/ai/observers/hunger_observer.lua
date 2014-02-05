@@ -25,7 +25,7 @@ function HungerObserver:_hunger_changed()
    local hunger = self._attributes_component:get_attribute('hunger')
 
    local starving = hunger >= 120
-   local hungry = hunger >= 80
+   local hungry = hunger >= 120
 
    if starving and not self._showing_starving then
       self._showing_starving = true
