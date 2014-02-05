@@ -38,7 +38,7 @@ function ScenarioService:initialize(feature_size, rng)
       if category then
          category:add(properties)
       else
-         log:error('Error parsing "%s": Category "%s" has not been defined.', file, _wrap_nil(properties.category))
+         log:error('Error parsing "%s": Category "%s" has not been defined.', file, tostring(properties.category))
       end
 
       -- parse habitat types
@@ -50,7 +50,7 @@ function ScenarioService:initialize(feature_size, rng)
 
       -- parse activation type
       if not ActivationType.is_valid(properties.activation_type) then
-         log:error('Error parsing "%s": Invalid activation_type "%s".', file, _wrap_nil(properties.activation_type))
+         log:error('Error parsing "%s": Invalid activation_type "%s".', file, tostring(properties.activation_type))
       end
    end
 
@@ -362,18 +362,11 @@ function ScenarioService:_parse_habitat_strings(strings)
          if error_message == nil then
             error_message = ''
          end
-         error_message = string.format('%s Invalid habitat type "%s".', error_message, _wrap_nil(value))
+         error_message = string.format('%s Invalid habitat type "%s".', error_message, tostring(value))
       end
    end
 
    return habitat_types, error_message
-end
-
-function _wrap_nil(value)
-   if value ~= nil then
-      return value
-   end
-   return 'nil'
 end
 
 return ScenarioService

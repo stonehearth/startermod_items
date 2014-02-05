@@ -9,6 +9,15 @@ SleepInBedAdjacent.args = {
 SleepInBedAdjacent.version = 2
 SleepInBedAdjacent.priority = 1
 
+function SleepInBedAdjacent:start(ai, entity, args)
+   local bed = args.bed
+   local lease_component = bed:add_component('stonehearth:lease')
+   if not lease_component:acquire('stonehearth:bed', entity) then
+      ai:abort('could not lease %s (%s has it).', tostring(bed),
+               tostring(lease_component:get_owner('stonehearth:bed')))
+   end
+end
+
 --[[
    Follow the path to the bed, then play the sleep-related animations.
 --]]
@@ -16,12 +25,6 @@ function SleepInBedAdjacent:run(ai, entity, args)
    local bed = args.bed
    
    ai:execute('stonehearth:run_effect', { effect = 'yawn' })
-
-   local lease_component = bed:add_component('stonehearth:lease_component')
-   if not lease_component:acquire('stonehearth:sleep_in_bed', entity) then
-      ai:abort('could not lease %s (%s has it).', tostring(bed),
-               tostring(lease_component:get_owner('stonehearth:sleep_in_bed')))
-   end
 
    --When sleeping, we have a small chance of dreaming
    radiant.events.trigger(stonehearth.personality, 'stonehearth:journal_event', 

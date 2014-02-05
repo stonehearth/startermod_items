@@ -3,7 +3,6 @@
    "components": {
       "render_info" : {},
       "stonehearth:center_of_attention_spot" : {
-      },
-      "stonehearth:lease_component" : {}
+      }
    }
 }

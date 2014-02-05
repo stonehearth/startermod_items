@@ -144,6 +144,11 @@ function ExecutionUnitV2:_unknown_transition(msg)
 end
 
 function ExecutionUnitV2:_start_thinking(entity_state)
+   if self:in_state(ABORTING, ABORTED, DEAD) then
+      self._log:detail('ignoring "start_thinking" in state "%s"', self._state)
+      return
+   end
+
    if self._state == 'stopped' then
       return self:_start_thinking_from_stopped(entity_state)
    end
@@ -151,40 +156,46 @@ function ExecutionUnitV2:_start_thinking(entity_state)
 end
 
 function ExecutionUnitV2:_set_think_output(think_output)
+   if self:in_state(ABORTING, ABORTED, DEAD) then
+      self._log:detail('ignoring "set_think_output" in state "%s"', self._state)
+      return
+   end
+
    if self._state == 'thinking' then
       return self:_set_think_output_from_thinking(think_output)
    end
    if self._state == 'ready' then
       return self:_set_think_output_from_ready(think_output)
    end
-   if self._state == 'aborting' then
-      return self:_set_think_output_from_aborting(think_output)
-   end
    self:_unknown_transition('set_think_output')   
 end
 
 function ExecutionUnitV2:_clear_think_output()
+   if self:in_state(ABORTING, ABORTED, DEAD) then
+      self._log:detail('ignoring "clear_think_output" in state "%s"', self._state)
+      return
+   end
+
    if self:in_state('thinking', 'ready') then
       return self:_clear_think_output_from_thinking()
    end
    if self._state == 'finished' then
       return self:_clear_think_output_from_finished()
    end
-   if self._state == 'aborting' then
-      return self:_clear_think_output_from_aborting(think_output)
-   end
    self:_unknown_transition('clear_think_output')   
 end
 
 function ExecutionUnitV2:_stop_thinking()
+   if self:in_state(ABORTING, ABORTED, DEAD) then
+      self._log:detail('ignoring "stop_thinking" in state "%s"', self._state)
+      return
+   end
+
    if self:in_state('thinking', 'ready') then
       return self:_stop_thinking_from_thinking()
    end
    if self._state == 'started' then
       return self:_stop_thinking_from_started()
-   end
-   if self._state == 'aborting' then
-      return self:_stop_thinking_from_aborting()
    end
    if self:in_state('stopped', 'dead') then
       assert(not self._thinking)
@@ -194,6 +205,11 @@ function ExecutionUnitV2:_stop_thinking()
 end
 
 function ExecutionUnitV2:_start()
+   if self:in_state(ABORTING, ABORTED, DEAD) then
+      self._log:detail('ignoring "start" in state "%s"', self._state)
+      return
+   end
+
    if self._state == 'ready' then
       return self:_start_from_ready()
    end
@@ -201,6 +217,11 @@ function ExecutionUnitV2:_start()
 end
 
 function ExecutionUnitV2:_run()
+   if self:in_state(ABORTING, ABORTED, DEAD) then
+      self._log:detail('ignoring "run" in state "%s"', self._state)
+      return
+   end
+
    if self._state == 'ready' then
       return self:_run_from_ready()
    end
@@ -211,6 +232,11 @@ function ExecutionUnitV2:_run()
 end
 
 function ExecutionUnitV2:_stop(invalid_transition_ok)
+   if self:in_state(ABORTING, ABORTED, DEAD) then
+      self._log:detail('ignoring "stop" in state "%s"', self._state)
+      return
+   end
+
    if self:in_state('thinking', 'ready') then
       return self:_stop_from_thinking(invalid_transition_ok)
    end
@@ -278,10 +304,6 @@ function ExecutionUnitV2:_set_think_output_from_ready(think_output)
    return
 end
 
-function ExecutionUnitV2:_set_think_output_from_aborting(think_output)
-   self._log:debug('ignoring set_think_output while aborting')
-end
-
 function ExecutionUnitV2:_clear_think_output_from_thinking()
    if self._state == DEAD then
       self._log:debug('ignoring clear_think_output in dead state')
@@ -290,10 +312,6 @@ function ExecutionUnitV2:_clear_think_output_from_thinking()
 
    self:_set_state(THINKING)
    self._frame:_unit_not_ready(self)
-end
-
-function ExecutionUnitV2:_clear_think_output_from_aborting(think_output)
-   self._log:debug('ignoring clear_think_output while aborting')
 end
 
 
@@ -312,12 +330,6 @@ function ExecutionUnitV2:_stop_thinking_from_started()
       self:_do_stop_thinking()
    end
    -- stay in the started stated.
-end
-
-function ExecutionUnitV2:_stop_thinking_from_aborting()
-   if self._thinking then
-      self:_do_stop_thinking()
-   end
 end
 
 function ExecutionUnitV2:_start_from_ready()

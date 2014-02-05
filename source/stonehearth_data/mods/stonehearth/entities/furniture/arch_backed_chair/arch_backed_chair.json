@@ -24,8 +24,7 @@
       },
       "stonehearth:material" : {
          "tags" : "wood furniture chair crafted"
-      },
-      "stonehearth:lease_component" : {}
+      }
    },
    "entity_data" : {
       "stonehearth:chair" : {}

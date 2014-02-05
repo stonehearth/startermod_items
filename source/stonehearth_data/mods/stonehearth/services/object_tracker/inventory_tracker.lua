@@ -97,7 +97,7 @@ function InventoryTracker:_on_entity_remove(id)
 
       -- Handlebars can't handle (heh) associative arrays (GAH!)
       for i, entity in ipairs(entities_of_this_type) do
-         if entity and entity:get_id() == id then
+         if entity and entity:is_valid() and entity:get_id() == id then
             table.remove(entities_of_this_type, i)
             break
          end

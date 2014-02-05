@@ -3,9 +3,13 @@
 ]]
 local LeaseComponent = class()
 
-function LeaseComponent:__init(entity)
+function LeaseComponent:__init(entity, data_store)
    self._entity = entity  -- the entity we will be leasing
    self._leases = {}
+   
+   self._data_store = data_store
+   local data = self._data_store:get_data()
+   data.leases = self._leases
 end
 
 ---Lease the entity to someone, if possible
@@ -14,6 +18,8 @@ end
 function LeaseComponent:acquire(lease_name, entity)
    if self:can_acquire(lease_name, entity) then
       self._leases[lease_name] = entity
+      entity:add_component('stonehearth:lease_holder'):_add_lease(lease_name, self._entity)
+      self._data_store:mark_changed()
       return true
    end
    return false
@@ -41,6 +47,8 @@ end
 function LeaseComponent:release(lease_name, entity)
    if self:can_acquire(lease_name, entity) then
       self._leases[lease_name] = nil
+      entity:add_component('stonehearth:lease_holder'):_remove_lease(lease_name, self._entity)
+      self._data_store:mark_changed()
       return true
    end
    return false

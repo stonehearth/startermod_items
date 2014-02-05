@@ -9,7 +9,8 @@
             "stonehearth:actions:idle:look_around",
             "stonehearth:actions:sleep_action",
             "stonehearth:actions:sleep_on_ground",
-            "stonehearth:actions:sleep_in_bed",
+            "stonehearth:actions:sleep_in_new_bed",
+            "stonehearth:actions:sleep_in_own_bed",
             "stonehearth:actions:sleep_in_bed_adjacent",
             "stonehearth:actions:sleep_when_tired",
             "stonehearth:actions:sleep_when_exhausted",
@@ -167,8 +168,6 @@
       "stonehearth:carry_block": {
       },
       "stonehearth:equipment" : {
-      },
-      "stonehearth:bed_lease" : {
       }
    }
 }
