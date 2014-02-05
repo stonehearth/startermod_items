@@ -26,13 +26,15 @@ function LeaseHolderComponent:_add_lease(lease_name, entity)
 end
 
 function LeaseHolderComponent:_remove_lease(lease_name, entity)
-   local leases = self._leases[lease_name]
-   if leases then
-      leases[entity:get_id()] = nil
-      if not next(leases) then
-         self._leases[lease_name] = nil
+   if entity and entity:is_valid() then
+      local leases = self._leases[lease_name]
+      if leases then
+         leases[entity:get_id()] = nil
+         if not next(leases) then
+            self._leases[lease_name] = nil
+         end
+         self._data_store:mark_changed()
       end
-      self._data_store:mark_changed()
    end
 end
 
