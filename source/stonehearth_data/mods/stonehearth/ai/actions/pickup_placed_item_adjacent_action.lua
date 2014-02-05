@@ -31,7 +31,8 @@ end
 
 function PickupPlacedItemAdjacent:run(ai, entity, args)
    local item = args.item
-
+   
+   radiant.entities.turn_to_face(entity, item)
    ai:execute('stonehearth:run_effect', { effect = 'work' })
    
    local location = item:get_component('mob'):get_world_grid_location()   
@@ -41,6 +42,10 @@ function PickupPlacedItemAdjacent:run(ai, entity, args)
    
    local pickup_item = self._proxy_item
    self._proxy_item = nil
+
+   --sometimes the location of the parent object is not adjacent to the
+   --entity. In that case, walk over to the placed item.
+   ai:execute('stonehearth:goto_entity', { entity = pickup_item})
    ai:execute('stonehearth:pickup_item_adjacent', { item = pickup_item })
    self._proxy_item = nil
 end

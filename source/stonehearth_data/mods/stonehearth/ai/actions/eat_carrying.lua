@@ -47,8 +47,8 @@ end
 function EatCarrying:_get_food_data(ai, entity, food)
    local food_data
    local food_entity_data = radiant.entities.get_entity_data(food, 'stonehearth:food')
+   local posture = radiant.entities.get_posture(entity)
    if food_entity_data then
-      local posture = radiant.entities.get_posture(entity)
       food_data = food_entity_data[posture]
       if not food_data then
          food_data = food_entity_data.default

@@ -1,11 +1,14 @@
 -- xxx, this sucks. force a load of the client side serivces like the camera
-radiant.mods.load('stonehearth')
 
 local Vec3 = _radiant.csg.Point3f
 local ClientPerfTest = class()
-local camera = radiant.mods.load('stonehearth').camera
 
 function ClientPerfTest:__init()
+  radiant.events.listen(radiant.events, 'radiant:modules_loaded', self, self.on_loaded)
+end
+
+function ClientPerfTest:on_loaded()
+  local camera = stonehearth.camera
   self._frame_trace = nil
   self._running_time = 0
   self._last_now = 0

@@ -454,3 +454,10 @@ int ScriptHost::GetAllocBytesCount() const
 {
    return bytes_allocated_;
 }
+
+void ScriptHost::Trigger(const std::string& eventName)
+{
+   luabind::call_function<void>(
+      globals(cb_thread_)["radiant"]["events"]["trigger"], 
+      globals(cb_thread_)["radiant"]["events"], eventName);
+}
