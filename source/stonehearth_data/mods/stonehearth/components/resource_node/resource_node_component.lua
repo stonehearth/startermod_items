@@ -13,6 +13,12 @@ function ResourceNodeComponent:extend(json)
    if json.resource then
       self._resource = json.resource
    end
+
+   self._harvest_overlay_effect = json.harvest_overlay_effect
+end
+
+function ResourceNodeComponent:get_harvest_overlay_effect()
+   return self._harvest_overlay_effect
 end
 
 function ResourceNodeComponent:spawn_resource(collect_location)

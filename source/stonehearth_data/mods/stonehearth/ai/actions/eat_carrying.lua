@@ -20,7 +20,7 @@ function EatCarrying:run(ai, entity)
       ai:abort('cannot eat.  not carrying anything!')
    end
 
-   local food_data = self:_get_food_data(entity, self._food)
+   local food_data = self:_get_food_data(ai, entity, self._food)
 
    local times = food_data.effect_loops and food_data.effect_loops or 3
    for i = 1, times do
@@ -44,7 +44,7 @@ function EatCarrying:stop(ai, entity, args)
    end
 end
 
-function EatCarrying:_get_food_data(entity, food)
+function EatCarrying:_get_food_data(ai, entity, food)
    local food_data
    local food_entity_data = radiant.entities.get_entity_data(food, 'stonehearth:food')
    if food_entity_data then

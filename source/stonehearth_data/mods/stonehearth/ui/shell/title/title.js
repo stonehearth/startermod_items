@@ -16,6 +16,12 @@ App.StonehearthTitleScreenView = App.View.extend({
             self._populateAboutDetails(o);
          });
 
+
+      $.get('/stonehearth/release_notes/release_notes.html')
+         .done(function(result) {
+            self.set('context.releaseNotes', result);
+         })
+
       $('#about').click(function(e) {
          $('#aboutDetails').position({
               of: $( "#about" ),

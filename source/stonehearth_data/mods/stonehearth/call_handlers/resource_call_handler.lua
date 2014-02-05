@@ -8,6 +8,25 @@ local ResourceCallHandler = class()
 
 local all_harvest_tasks = {}
 
+function ResourceCallHandler:_harvest_node(resource_node, component_name, task_name, task_args)
+   if not resource_node or not resource_node:is_valid() then
+      return false
+   end
+
+   local id = resource_node:get_id()
+   if not all_harvest_tasks[id] then
+      local node_component = resource_node:get_component(component_name)
+      if node_component then
+         all_harvest_tasks[id] = stonehearth.tasks:get_scheduler('stonehearth:workers', session.faction)
+                                   :create_task(task_name, task_args) 
+                                   :add_entity_effect(resource_node, node:get_harvest_overlay_effect())
+                                   :once()
+                                   :start()
+      end
+   end
+   return true
+end
+
 function ResourceCallHandler:harvest_tree(session, response, tree)
    if not tree or not tree:is_valid() then
       return false
@@ -15,58 +34,49 @@ function ResourceCallHandler:harvest_tree(session, response, tree)
 
    local id = tree:get_id()
    if not all_harvest_tasks[id] then
-      all_harvest_tasks[id] = stonehearth.tasks:get_scheduler('stonehearth:workers', session.faction)
-                                :create_task('stonehearth:chop_tree', { tree = tree }) 
-                                :set_name('chop tree task')
-                                :once()
-                                :start()
-      
-      local eff_mgr_component = tree:get_component('stonehearth:effect_manager')
-      if eff_mgr_component then
-         eff_mgr_component:show_effect('harvest_tree')
+      local node_component = tree:get_component('stonehearth:resource_node')
+      if node_component then
+         local effect_name = node_component:get_harvest_overlay_effect()
+         all_harvest_tasks[id] = stonehearth.tasks:get_scheduler('stonehearth:workers', session.faction)
+                                   :create_task('stonehearth:chop_tree', { tree = tree })
+                                   :add_entity_effect(tree, effect_name)
+                                   :once()
+                                   :start()
       end
    end
-
    return true
 end
 
 function ResourceCallHandler:harvest_plant(session, response, plant)
-   stonehearth.tasks:get_scheduler('stonehearth:workers', session.faction)
-                              :create_task('stonehearth:harvest_plant', { plant = plant })
-                              :set_name('harvest plant task')
-                              :once()
-                              :start()
-
-   local eff_mgr_component = plant:get_component('stonehearth:effect_manager')
-   if eff_mgr_component then
-      eff_mgr_component:show_effect('harvest_plant')
+   if not plant or not plant:is_valid() then
+      return false
    end
 
+   local id = plant:get_id()
+   if not all_harvest_tasks[id] then
+      local node_component = plant:get_component('stonehearth:renewable_resource_node')
+      if node_component then
+         local effect_name = node_component:get_harvest_overlay_effect()
+         all_harvest_tasks[id] = stonehearth.tasks:get_scheduler('stonehearth:workers', session.faction)
+                                   :create_task('stonehearth:harvest_plant', { plant = plant })
+                                   :add_entity_effect(plant, effect_name)
+                                   :once()
+                                   :start()
+
+         radiant.events.listen(plant, 'stonehearth:is_harvestable', function(e) 
+               local plant = e.entity
+               if not plant or not plant:is_valid() then
+                  return radiant.events.UNLISTEN
+               end
+               all_harvest_tasks[plant:get_id()] = nil
+            end)
+      end
+   end
    return true
 end
 
 function ResourceCallHandler:shear_sheep(session, response, sheep)
-   local id = sheep:get_id()
-   if not all_harvest_tasks [id] then
-      local harvest_task = worker_scheduler:add_worker_task('shear_sheep')
-                     :set_worker_filter_fn(not_carrying_fn)
-                     :add_work_object(sheep)
-                     :set_action('stonehearth:shear_sheep')
-                     :set_max_workers(1)
-                     :set_priority(priorities.GATHER_RESOURCE)
-
-   harvest_task:set_action_fn(
-      function (path)
-         return 'stonehearth:harvest_plant', path, harvest_task
-      end
-   )
-
-   harvest_task:start()
-
-      --radiant.effects.run_effect(plant, '/stonehearth/data/effects/harvest_berries_overlay_effect')
-   end
-
-   return true
+   asset(false, 'shear_sheep was broken, so i deleted it =)  -tony')
 end
 
 return ResourceCallHandler
