@@ -41,11 +41,11 @@ csg::Cube3 Terrain::GetBounds()
    return result;
 }
 
-void Terrain::PlaceEntity(EntityRef e, const csg::Point3& location)
+void Terrain::PlaceEntity(EntityRef e, csg::Point3 const& location)
 {
    auto entity = e.lock();
    if (entity) {
-      int height = GetHeight(location);
+      int height = GetHeight(csg::Point2(location.x, location.z));
 
       if (height != INT_MIN) {
          auto mob = entity->GetComponent<Mob>();
@@ -58,15 +58,16 @@ void Terrain::PlaceEntity(EntityRef e, const csg::Point3& location)
 
 // returns the maximum height at (x,z)
 // returns INT_MIN if no cube is found over (x,z)
-int Terrain::GetHeight(csg::Point3 const& location)
+int Terrain::GetHeight(csg::Point2 const& location2)
 {
    int max_y = INT_MIN;
+   csg::Point3 location3 = csg::Point3(location2.x, 0, location2.y);
    csg::Point3 tile_offset;
-   Region3BoxedPtr region_ptr = GetTile(location, tile_offset);
-   csg::Point3 const& region_local_pt = location - tile_offset;
+   Region3BoxedPtr region_ptr = GetTile(location3, tile_offset);
+   csg::Point3 const& region_local_pt = location3 - tile_offset;
 
    if (!region_ptr) {
-      throw std::invalid_argument(BUILD_STRING("point " << location << " is not in world"));
+      throw std::invalid_argument(BUILD_STRING("point " << location3 << " is not in world"));
    }
    csg::Region3 const& region = region_ptr->Get();
 
