@@ -12,5 +12,6 @@ HarvestPlant.priority = 1
 
 local ai = stonehearth.ai
 return ai:create_compound_action(HarvestPlant)
+         :execute('stonehearth:drop_carrying_now', {})
          :execute('stonehearth:goto_entity', { entity = ai.ARGS.plant })
          :execute('stonehearth:harvest_plant_adjacent', { plant = ai.ARGS.plant })
