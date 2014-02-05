@@ -22,16 +22,18 @@ function entities.create_entity(ref)
 end
 
 function entities.destroy_entity(entity)
-   radiant.check.is_entity(entity)
-   local id = entity:get_id()
-   local dtors = singleton._entity_dtors[id]
-   if dtors then
-      for _, dtor in ipairs(dtors) do
-         dtor()
+   if entity and entity:is_valid() then
+      radiant.check.is_entity(entity)
+      local id = entity:get_id()
+      local dtors = singleton._entity_dtors[id]
+      if dtors then
+         for _, dtor in ipairs(dtors) do
+            dtor()
+         end
+         singleton._entity_dtors[id] = nil
       end
-      singleton._entity_dtors[id] = nil
+      _radiant.sim.destroy_entity(entity)
    end
-   _radiant.sim.destroy_entity(entity)
 end
 
 function entities.add_child(parent, child, location)
