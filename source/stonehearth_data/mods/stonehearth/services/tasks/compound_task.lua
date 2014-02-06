@@ -1,3 +1,4 @@
+local constants = require 'constants'
 
 local CompoundTask = class()
 function CompoundTask:__init(scheduler, compound_task_ctor, activity)
@@ -51,6 +52,7 @@ end
 
 function CompoundTask:execute(activity, args)
    local task = self._scheduler:create_task(activity, args)
+                                    :set_priority(constants.priorities.top.GENERIC_TASK_PRIORITY)
                                     :once()
    self:_run(task)
 end

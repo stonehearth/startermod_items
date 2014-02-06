@@ -138,11 +138,16 @@ function PlaceItemCallHandler:place_item_in_world(session, response, entity_id, 
    radiant.terrain.place_entity(ghost_entity, location)
    radiant.entities.turn_to(ghost_entity, rotation)
 
+   local remove_ghost_entity = function(placed_item)
+      radiant.entities.destroy_entity(ghost_entity)
+   end
+
    local scheduler = stonehearth.tasks:get_scheduler('stonehearth:workers', session.faction)
    scheduler:create_task('stonehearth:place_item', {
          item = item,
          location = location,
          rotation = rotation,
+         finish_fn = remove_ghost_entity
       })
       :once()
       :start()
@@ -162,6 +167,10 @@ function PlaceItemCallHandler:place_item_type_in_world(session, response, entity
    radiant.terrain.place_entity(ghost_entity, location)
    radiant.entities.turn_to(ghost_entity, rotation)
 
+   local remove_ghost_entity = function(placed_item)
+      radiant.entities.destroy_entity(ghost_entity)
+   end
+
    local filter_fn = function(item)
       return item:get_uri() == entity_uri
    end
@@ -171,6 +180,7 @@ function PlaceItemCallHandler:place_item_type_in_world(session, response, entity
          filter_fn = filter_fn,
          location = location,
          rotation = rotation,
+         finish_fn = remove_ghost_entity
       })
       :once()
       :start()
