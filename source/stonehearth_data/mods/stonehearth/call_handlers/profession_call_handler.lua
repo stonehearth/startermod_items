@@ -15,22 +15,8 @@ function ProfessionCallHandler:grab_promotion_talisman(session, response, person
    end
 
    -- xxx: hmm.  do we need an easier way to create "one shot" schedulers like this?
-   local scheduler = stonehearth.tasks:create_scheduler()
-                        :set_activity('stonehearth:top')
-                        :join(person)
-
-   local task = scheduler:create_orchestrator('stonehearth:tasks:promote_with_talisman', {
-         person = person,
-         talisman = talisman,
-      })
-      :start()
-      
-   radiant.events.listen(task, 'completed', function()
-          stonehearth.tasks:destroy_scheduler(scheduler)
-         return radiant.events.UNLISTEN
-      end)
-
-   return true
+   local town = stonehearth.town:get_town(session.faction)
+   return town:promote_citizen(person, talisman)
 end
 
 return ProfessionCallHandler
