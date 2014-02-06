@@ -119,11 +119,16 @@ var RadiantTrace;
             info.trace.progress(function(json) {
                // whenever we get an update, expand the entire object and yield the result
                self._log(level, 'in progress callback for ' + uri + '.  expanding...');
-               self._expand_object(json, properties, level != undefined ? level + 1 : 0)
-                  .progress(function(eobj) {
-                     self._log(level, 'notifying deferred that uri at ' + uri + ' has changed');
-                     info.deferred.notify(eobj);
-                  });
+               if (json) {
+                  self._expand_object(json, properties, level != undefined ? level + 1 : 0)
+                     .progress(function(eobj) {
+                        self._log(level, 'notifying deferred that uri at ' + uri + ' has changed');
+                        info.deferred.notify(eobj);
+                     });
+               } else {
+                  // should we notify or fail?
+                  info.deferred.notify(null);
+               }
             });
          }
          return info.deferred;
@@ -153,24 +158,28 @@ var RadiantTrace;
 
                var uri = ((obj instanceof Array) || (obj instanceof Object)) ? null : obj.toString();
 
-               self._expand_object(v, properties[k], level + 1)
-                  .progress(function(child_eobj) {
-                     self._log(level, 'child object ' + k + ' resolved to:', child_eobj);
+               if (v) {
+                  self._expand_object(v, properties[k], level + 1)
+                     .progress(function(child_eobj) {
+                        self._log(level, 'child object ' + k + ' resolved to:', child_eobj);
 
-                     // If an object already exists at this uri, make sure we destory the object.
-                     var current = eobj.get(k);
-                     if (current && uri) {
-                        self._release_trace_reference(uri, level);
-                     }
+                        // If an object already exists at this uri, make sure we destory the object.
+                        var current = eobj.get(k);
+                        if (current && uri) {
+                           self._release_trace_reference(uri, level);
+                        }
 
-                     // Update the object property and check to see if it's time to notify
-                     // the parent
-                     eobj.set(k, child_eobj);
-                     delete pending[k];
+                        // Update the object property and check to see if it's time to notify
+                        // the parent
+                        eobj.set(k, child_eobj);
+                        delete pending[k];
 
-                     self._log(level, 'pending is now (' + Object.keys(pending).length + ') ' + JSON.stringify(pending));
-                     notify_update();
-                  });
+                        self._log(level, 'pending is now (' + Object.keys(pending).length + ') ' + JSON.stringify(pending));
+                        notify_update();
+                     });
+               } else {
+                  eobj.set(k, null);
+               }
             }
          });
 
@@ -198,22 +207,26 @@ var RadiantTrace;
 
          $.each(arr, function(i, v) {
             self._log(level, 'fetching child object: ' + i);
-            self._expand_object(v, properties, level + 1)
-               .progress(function(child_eobj) {
-                  self._log(level, 'child object ' + i + ' resolved to ' + JSON.stringify(child_eobj));
-                  //earr.set(i, child_eobj);
+            if (v) {
+               self._expand_object(v, properties, level + 1)
+                  .progress(function(child_eobj) {
+                     self._log(level, 'child object ' + i + ' resolved to ' + JSON.stringify(child_eobj));
+                     //earr.set(i, child_eobj);
 
-                  var current = earr[i];
-                  if (current) {
-                     current.destroy();
-                  }
+                     var current = earr[i];
+                     if (current) {
+                        current.destroy();
+                     }
 
-                  earr[i] = child_eobj;
-                  pending_count--;
+                     earr[i] = child_eobj;
+                     pending_count--;
 
-                  self._log(level, 'pending is now (' + pending_count + ') ');
-                  notify_update();
-               });
+                     self._log(level, 'pending is now (' + pending_count + ') ');
+                     notify_update();
+                  });
+            } else {
+               earr[i] = null;
+            }
          });
 
          self._log(level, 'exiting _expand_array_properties');

@@ -41,7 +41,7 @@ function _start_profiling(profile_this_frame)
    if _profile.write_updates_longer_than then
       _profile.start_time = _host:get_realtime()
    end
-   if profile_this_frame or _profile.write_updates_longer_than > 0 then
+   if _profile.profile_this_frame or _profile.write_updates_longer_than > 0 then
       ProFi:reset()
       ProFi:start()
       _profile.running = true
@@ -51,8 +51,9 @@ end
 function _stop_profiling()
    if _profile.running then
       ProFi:stop()
-
-      local duration
+      _profile.running = false
+      
+      local duration      
       if _profile.start_time then
          duration = _host:get_realtime() - _profile.start_time
       end

@@ -80,7 +80,8 @@ void SceneNode::setTransform( Vec3f trans, Vec3f rot, Vec3f scale )
 	_relTrans.translate( trans.x, trans.y, trans.z );
 
    if (_relTrans.c[3][0] != 0.0f && !(_relTrans.c[3][0] < 0.0f) && !(_relTrans.c[3][0] > 0.0f)) {
-      DebugBreak();
+      Modules::log().writeDebugInfo( "Invalid transform! Zero edition.");
+      DEBUG_ONLY( DebugBreak();)
    }
 
 	markDirty();
@@ -104,7 +105,8 @@ void SceneNode::setTransform( const Matrix4f &mat )
 	_relTrans = mat;
 
    if (_relTrans.c[3][0] != 0.0f && !(_relTrans.c[3][0] < 0.0f) && !(_relTrans.c[3][0] > 0.0f)) {
-      DebugBreak();
+      Modules::log().writeDebugInfo( "Invalid transform! Zero edition.");
+      DEBUG_ONLY( DebugBreak();)
    }
 	
 	markDirty();

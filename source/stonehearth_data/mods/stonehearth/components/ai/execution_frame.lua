@@ -113,7 +113,7 @@ function ExecutionFrame:_unit_ready(unit, think_output)
    if self._state == 'running' then
       return self:_unit_ready_from_running(unit, think_output)
    end
-   if self:in_state('switching', 'finished') then
+   if self:in_state('switching', 'finished', 'stopped') then
       return -- nop
    end
    if self._state == 'dead' then
@@ -341,6 +341,8 @@ function ExecutionFrame:run()
          self:wait_until(STARTED)
       end
       assert(self:in_state(STARTED))
+      --self:_stop_thinking()
+      assert(self:in_state(STARTED))
       
       self:_run()
       self:wait_until(FINISHED)
@@ -400,16 +402,6 @@ function ExecutionFrame:_stop_thinking_from_ready()
 
    for _, unit in pairs(self._execution_units) do
       unit:_stop_thinking()
-   end
-   self:_set_active_unit(nil)
-   self:_set_state(STOPPED)
-end
-
-function ExecutionFrame:_stop_thinking_from_started()
-   self._log:debug('_stop_thinking_from_started (state: %s)', self._state)
-
-   for _, unit in pairs(self._execution_units) do
-      unit:_stop()
    end
    self:_set_active_unit(nil)
    self:_set_state(STOPPED)
