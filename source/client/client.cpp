@@ -501,7 +501,6 @@ void Client::run(int server_port)
    }
    // this locks down the environment!  all types must be registered by now!!
    scriptHost_->Require("radiant.lualibs.strict");
-
    scriptHost_->Trigger("radiant:modules_loaded");
 
    if (config.Get("enable_debug_keys", false)) {

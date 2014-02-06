@@ -88,7 +88,7 @@ void RenderMob::UpdateTransform(csg::Transform const& transform)
             // location specified in the transform immediately.  Just set _initial and _final
             // to the current transform and interpolate between then.
             first_update_ = false;
-            _initial = _final = mob->GetTransform();
+            _initial = _final = _current = mob->GetTransform();
          } else {
             // Otherwise, update _initial and _final such that we smoothly interpolate between
             // the current mob's position and their location on the server.
@@ -98,8 +98,8 @@ void RenderMob::UpdateTransform(csg::Transform const& transform)
          M_LOG(7) << "mob: initial for object " << entity_id_ << " to " << _initial << " in update transform";
          M_LOG(7) << "mob: final   for object " << entity_id_ << " to " << _final << " in update transform (stored value)";
       } else {
-         M_LOG(7) << "mob: current for object " << entity_id_ << " to " << _final << " in update transform (stored value, interp off)";
          _current = mob->GetTransform();
+         M_LOG(7) << "mob: current for object " << entity_id_ << " to " << _current << " in update transform (stored value, interp off)";
          Move();
       }
    }

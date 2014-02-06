@@ -3,19 +3,18 @@
       "name" : "Stonehearth Combat Test Playground"
    },
 
-   "radiant": {
-      "entities" : {
-         "actions:character_controller_action" : "file(ai/actions/character_controller_action.lua)"
+   "aliases" : {
+      "actions:character_controller_action" : "file(ai/actions/character_controller_action.lua)"
+   },
+   
+   "functions" : {
+      "do_action": {
+         "controller" : "file(call_handlers/character_controller_call_handler.lua)",
+         "endpoint" : "server"
       },
-      "functions" : {
-         "do_action": {
-            "controller" : "file(call_handlers/character_controller_call_handler.lua)",
-            "endpoint" : "server"
-         },
-         "set_players": {
-            "controller" : "file(call_handlers/character_controller_call_handler.lua)",
-            "endpoint" : "server"
-         }
+      "set_players": {
+         "controller" : "file(call_handlers/character_controller_call_handler.lua)",
+         "endpoint" : "server"
       }
    },
 

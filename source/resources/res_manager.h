@@ -27,7 +27,7 @@ public:
    std::string ConvertToCanonicalPath(std::string path, const char* search_ext) const;
    std::string FindScript(std::string const& script) const;
 
-   std::string GetEntityUri(std::string const& mod_name, std::string const& entity_name) const;
+   std::string GetAliasUri(std::string const& mod_name, std::string const& entity_name) const;
    std::shared_ptr<std::istream> OpenResource(std::string const& stream) const;
 
 private:
