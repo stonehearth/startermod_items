@@ -97,6 +97,7 @@ private:
    std::map<std::string, luabind::object> required_;
    std::vector<JsonToLuaFn>   to_lua_converters_;
    bool                 filter_c_exceptions_;
+   bool                 enable_profile_memory_;
    bool                 profile_memory_;
    ReportErrorCb        error_cb_;
    int                  bytes_allocated_;

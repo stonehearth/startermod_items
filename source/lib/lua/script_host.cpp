@@ -160,7 +160,7 @@ ScriptHost::ScriptHost()
 
    bytes_allocated_ = 0;
    filter_c_exceptions_ = core::Config::GetInstance().Get<bool>("lua.filter_exceptions", true);
-   profile_memory_ = core::Config::GetInstance().Get<bool>("lua.profile_memory", true);
+   profile_memory_ = core::Config::GetInstance().Get<bool>("lua.profile_memory", false);
 
    L_ = lua_newstate(LuaAllocFn, this);
    set_pcall_callback(PCallCallbackFn);
