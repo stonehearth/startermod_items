@@ -74,6 +74,8 @@
    "wildlife_4": "Abundant",
 
    "embark_at_this_location" : "Embark here!",
+   "embark_clear_selection" : "Choose another location",
+   "regenerate_map" : "New map",
 
    "loading_map": "Generating World",
    "loading_map_1": "sharpening right angles...",

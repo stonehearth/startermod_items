@@ -13,13 +13,17 @@ App.StonehearthEmbarkView = App.View.extend({
          .done(function(e) {
             $('#map').stonehearthMap({
                mapGrid: e.map,
+
                click: function(cellX, cellY) {
                   self._selectedX = cellX;
                   self._selectedY = cellY;
-                  $("#embarkButton").show();
+
+                  $('#embarkButton').show();
+                  $('#clearSelectionButton').show();
                   // what's the best practice for this?
                   $('#map').stonehearthMap('suspend');
                },
+
                hover: function(cellX, cellY) {
                   self._updateScroll(e.map[cellY][cellX]);
                },
@@ -38,16 +42,18 @@ App.StonehearthEmbarkView = App.View.extend({
          self._embark(self._selectedX, self._selectedY);
       });
 
+      $("#clearSelectionButton").click(function() {
+         self._clearSelection();
+      });
+
+      $("#regenerateButton").click(function() {
+         self._clearSelection();
+      });
+
       $(document).on('keyup keydown', function(e) {
          // escape key
          if (e.keyCode == 27) {
-            if ($('#map').stonehearthMap('suspended')) {
-               $("#embarkButton").hide();
-               self._updateScroll(null);
-               // what's the best practice for this?
-               $('#map').stonehearthMap('clearCrosshairs');
-               $('#map').stonehearthMap('resume');
-            }
+            self._clearSelection();
          }
       });
    },
@@ -75,5 +81,20 @@ App.StonehearthEmbarkView = App.View.extend({
       self.my('#terrain_type').html(terrainDescription);
       self.my('#vegetation').html(vegetationDescription);
       self.my('#wildlife').html(wildlifeDescription);
+   },
+
+   _clearSelection: function() {
+      var self = this;
+
+      $("#embarkButton").hide();
+      $("#clearSelectionButton").hide();
+
+      // what's the best practice for this?
+      $('#map').stonehearthMap('clearCrosshairs');
+      self._updateScroll(null);
+
+      if ($('#map').stonehearthMap('suspended')) {
+         $('#map').stonehearthMap('resume');
+      }
    }
 });

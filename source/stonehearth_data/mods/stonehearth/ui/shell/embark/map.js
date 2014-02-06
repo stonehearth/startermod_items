@@ -47,24 +47,36 @@ $.widget( "stonehearth.stonehearthMap", {
    },
 
    suspend: function() {
-      this._suspended = true;
+      var self = this;
+
+      self._suspended = true;
+      self._enableCursor();
    },
 
    resume: function() {
-      this._suspended = false;
+      var self = this;
+
+      self._suspended = false;
+      self._disableCursor();
    },
 
    suspended: function() {
-      return this._suspended;   
+      var self = this;
+
+      return self._suspended;   
    },
 
    clearCrosshairs: function() {
-      this._clearCrosshairs(this.overlayCtx);
+      var self = this;
+
+      self._clearCrosshairs(self.overlayContext);
    },
 
    _create: function() {
-      this._suspended = false;
-      this._buildMap();
+      var self = this;
+
+      self._suspended = false;
+      self._buildMap();
    },
 
    _buildMap: function() {
@@ -86,20 +98,23 @@ $.widget( "stonehearth.stonehearthMap", {
 
       overlay
          .addClass('mapCanvas')
+         .addClass('noCursor')
          .attr('id', 'overlay')
          .attr('width', self.mapWidth)
          .attr('height', self.mapHeight)
+
          .click(function(e) {
             self._onMouseClick(self, e);
          })
+
          .mousemove(self, function(e) {
             self._onMouseMove(self, e);
          });
 
-      self.ctx = canvas[0].getContext('2d');
-      self.overlayCtx = overlay[0].getContext('2d');
+      self.mapContext = canvas[0].getContext('2d');
+      self.overlayContext = overlay[0].getContext('2d');
 
-      self._drawMap(self.ctx);
+      self._drawMap(self.mapContext);
 
       container.append(canvas);
       container.append(overlay);
@@ -136,7 +151,7 @@ $.widget( "stonehearth.stonehearthMap", {
          self.mouseCellX = cellX;
          self.mouseCellY = cellY;
 
-         self._drawCrosshairs(self.overlayCtx, cellX, cellY);
+         self._drawCrosshairs(self.overlayContext, cellX, cellY);
 
          self.options.hover(cellX, cellY);
       }
@@ -156,21 +171,36 @@ $.widget( "stonehearth.stonehearthMap", {
          cellSize, cellSize
       );
 
-      var lineX = cellX * cellSize + (cellSize / 2)
-      var lineY = cellY * cellSize + (cellSize / 2)
+      var lineX = cellX*cellSize + cellSize/2
+      var lineY = cellY*cellSize + cellSize/2
       
       context.lineWidth = 1.0;
       context.setLineDash([2]);
 
-      context.beginPath();
-      context.moveTo(0, lineY);
-      context.lineTo(self.mapWidth, lineY);
-      context.stroke();          
+      self._drawLine(
+         context,
+         0, lineY,
+         lineX - cellSize/2, lineY
+      );
 
-      context.beginPath();
-      context.moveTo(lineX, 0);
-      context.lineTo(lineX, self.mapHeight);
-      context.stroke();          
+      self._drawLine(
+         context,
+         lineX + cellSize/2, lineY,
+         self.mapWidth, lineY
+      );
+
+      self._drawLine(
+         context,
+         lineX, 0,
+         lineX, lineY - cellSize/2
+      );
+
+      self._drawLine(
+         context,
+         lineX, lineY + cellSize/2,
+         lineX, self.mapHeight
+      );
+
       context.globalAlpha = 1.0;
    },
 
@@ -204,6 +234,7 @@ $.widget( "stonehearth.stonehearthMap", {
       );
 
       var cellHeight = self._heightAt(cellX, cellY)
+      context.lineWidth = 0.4;
 
       // draw edges for elevation changes
       if(self._heightAt(cellX, cellY - 1) > cellHeight) {
@@ -269,41 +300,58 @@ $.widget( "stonehearth.stonehearthMap", {
       context.beginPath();
       context.moveTo(x1, y1);
       context.lineTo(x2, y2);
-      context.lineWidth = 0.4;
       context.stroke();     
    },
 
+   _enableCursor: function() {
+      $('#overlay').removeClass('noCursor');
+      $('#overlay').addClass('arrowCursor');
+   },
+
+   _disableCursor: function() {
+      $('#overlay').removeClass('arrowCursor');
+      $('#overlay').addClass('noCursor');
+   },
+
    _heightAt: function(cellX, cellY) {
-      if (!this._inBounds(cellX, cellY)) {
+      var self = this;
+
+      if (!self._inBounds(cellX, cellY)) {
          return -1;
       }
 
-      var terrain = this._terrainAt(cellX, cellY);
+      var terrain = self._terrainAt(cellX, cellY);
 
-      return this.cellHeights[terrain] 
+      return self.cellHeights[terrain] 
    },
 
    _terrainAt: function(cellX, cellY) {
-      if (!this._inBounds(cellX, cellY)) {
+      var self = this;
+
+      if (!self._inBounds(cellX, cellY)) {
          return '';
       }
-      return this.options.mapGrid[cellY][cellX].terrain_code;
+      return self.options.mapGrid[cellY][cellX].terrain_code;
    },
 
    _forestAt: function(cellX, cellY) {
-      if (!this._inBounds(cellX, cellY)) {
+      var self = this;
+
+      if (!self._inBounds(cellX, cellY)) {
          return -1;
       }
 
-      return this.options.mapGrid[cellY][cellX].forest_density;
+      return self.options.mapGrid[cellY][cellX].forest_density;
    },
 
    _inBounds: function(cellX, cellY) {
+      var self = this;
+
       if (cellX < 0 || cellY < 0) {
          return false;
       }
 
-      if (cellX >= this.options.mapGrid[0].length || cellY >= this.options.mapGrid.length) {
+      if (cellX >= self.options.mapGrid[0].length || cellY >= self.options.mapGrid.length) {
          return false;
       }
 
