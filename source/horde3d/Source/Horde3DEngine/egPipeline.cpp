@@ -470,6 +470,8 @@ PipelineStagePtr PipelineResource::compileStageNode(XMLNode const& node)
 
 bool PipelineResource::loadXMLPipeline(XMLNode const& rootNode)
 {
+   _pipelineName = rootNode.getAttribute("name", "");
+
 	// Parse setup
 	XMLNode node1 = rootNode.getFirstChild( "Setup" );
 	if( !node1.isEmpty() )

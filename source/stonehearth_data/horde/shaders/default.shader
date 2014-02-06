@@ -39,7 +39,7 @@ sampler2D outlineDepth = sampler_state
 };
 
 // Contexts
-context AMBIENT
+context DEPTH
 {
   VertexShader = compile GLSL VS_GENERAL;
   PixelShader = compile GLSL FS_FORWARD_AMBIENT;
@@ -84,7 +84,7 @@ context SELECTED_SCREENSPACE_OUTLINER
   ZWriteEnable = false;
 }
 
-context OMNI_LIGHTING
+context OMNI_LIGHTING_FORWARD
 {
   VertexShader = compile GLSL VS_GENERAL;
   PixelShader = compile GLSL FS_OMNI_LIGHTING;
@@ -94,7 +94,7 @@ context OMNI_LIGHTING
   CullMode = Back;
 }
 
-context DIRECTIONAL_LIGHTING
+context DIRECTIONAL_LIGHTING_FORWARD
 {
   VertexShader = compile GLSL VS_GENERAL_SHADOWS;
   PixelShader = compile GLSL FS_DIRECTIONAL_LIGHTING;

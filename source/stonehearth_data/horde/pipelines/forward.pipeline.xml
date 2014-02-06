@@ -1,5 +1,5 @@
 <!-- Forward Shading Pipeline -->
-<Pipeline>
+<Pipeline name="FORWARD">
    <Setup>
       <RenderTarget id="SelectedTemp" numColBufs="1" depthBuf="true" format="RGBA8" scale="1.0"/>
       <RenderTarget id="SkyTemp" numColBufs="1" depthBuf="false" format="RGBA8" scale="0.125"/>
@@ -23,7 +23,7 @@
       </Stage>
 
       <Stage id="Depth">
-         <DrawGeometry context="AMBIENT" class="~Translucent" />
+         <DrawGeometry context="DEPTH" class="~Translucent" />
       </Stage>
 
       <Stage id="Light">

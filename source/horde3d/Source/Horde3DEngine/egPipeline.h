@@ -197,6 +197,7 @@ private:
 	std::vector< RenderTarget >      _renderTargets;
 	std::vector< PipelineStagePtr >  _stages;
 	uint32                           _baseWidth, _baseHeight;
+   std::string                      _pipelineName;
 
 	friend class ResourceManager;
 	friend class Renderer;

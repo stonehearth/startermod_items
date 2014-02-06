@@ -1033,10 +1033,6 @@ bool Renderer::setMaterialRec( MaterialResource *materialRes, const std::string 
 		// Handle link of stage
 		if( _curStageMatLink != 0x0 && _curStageMatLink != materialRes )
 			result &= setMaterialRec( _curStageMatLink, shaderContext, shaderRes );
-
-		// Handle material of light source
-		if( _curLight != 0x0 && _curLight->_materialRes != 0x0 && _curLight->_materialRes != materialRes )
-			result &= setMaterialRec( _curLight->_materialRes, shaderContext, shaderRes );
 	}
 
 	// Handle link of material resource
@@ -1983,14 +1979,13 @@ void Renderer::drawLightGeometry( const std::string &shaderContext, const std::s
 			                      ftoi_r( bbw * gRDI->_fbWidth ), ftoi_r( bbh * gRDI->_fbHeight ) );
 			glEnable( GL_SCISSOR_TEST );
 		}
-		
 		// Render
       std::ostringstream reason;
       reason << "drawing light geometry for light " << _curLight->getName();
 		Modules::sceneMan().updateQueues( reason.str().c_str(), _curCamera->getFrustum(), lightFrus,
 		                                  order, SceneNodeFlags::NoDraw, selectedOnly ? SceneNodeFlags::Selected : 0, false, true );
 		setupViewMatrices( _curCamera->getViewMat(), _curCamera->getProjMat() );
-		drawRenderables( shaderContext.empty() ? _curLight->_lightingContext : shaderContext,
+      drawRenderables( _curLight->_lightingContext + "_" + _curCamera->_pipelineRes->_pipelineName,
 		                 theClass, false, &_curCamera->getFrustum(),
 		                 lightFrus, order, occSet );
 		Modules().stats().incStat( EngineStats::LightPassCount, 1 );
@@ -2088,7 +2083,7 @@ void Renderer::drawLightShapes( const std::string &shaderContext, bool noShadows
 		{	
          updateShadowMap(lightFrus, minDist, maxDist);
 			setupShadowMap( false );
-			curMatRes = 0x0;			
+			curMatRes = 0x0;
 		}
 		else
 		{
@@ -2097,26 +2092,16 @@ void Renderer::drawLightShapes( const std::string &shaderContext, bool noShadows
 
 		setupViewMatrices( _curCamera->getViewMat(), _curCamera->getProjMat() );
 
+      // TODO(klochek): wait, what?  Pretty sure this is bogus, now.
       if (!_curLight->_directional) {
-         if( curMatRes != _curLight->_materialRes || 
-               isShaderContextSwitch(shaderContext.empty() ? _curLight->_lightingContext : shaderContext, _curLight->_materialRes)) {
-			   if( !setMaterial( _curLight->_materialRes,
-				                 shaderContext.empty() ? _curLight->_lightingContext : shaderContext ) )
-			   {
-				   continue;
-			   }
-			   curMatRes = _curLight->_materialRes;
-		   } else {
-			   commitGeneralUniforms();
-		   }
+			commitGeneralUniforms();
       }
 
 		glCullFace( GL_FRONT );
 		glDisable( GL_DEPTH_TEST );
 
-		if (_curLight->_directional) {       
-			curMatRes = _curLight->_materialRes;
-         drawFSQuad(curMatRes, shaderContext.empty() ? _curLight->_lightingContext : shaderContext);
+		if (_curLight->_directional) {
+         drawFSQuad(curMatRes, _curLight->_lightingContext + "_" + _curCamera->_pipelineRes->_pipelineName);
       } else if (_curLight->_fov < 180) {
 			float r = _curLight->_radius * tanf( degToRad( _curLight->_fov / 2 ) );
 			drawCone( _curLight->_radius, r, _curLight->_absTrans );

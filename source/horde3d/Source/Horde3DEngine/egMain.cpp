@@ -916,19 +916,14 @@ DLLEXP NodeHandle h3dAddJointNode( NodeHandle parent, const char *name, int join
 }
 
 
-DLLEXP NodeHandle h3dAddLightNode( NodeHandle parent, const char *name, ResHandle materialRes,
+DLLEXP NodeHandle h3dAddLightNode( NodeHandle parent, const char *name,
                                    const char *lightingContext, const char *shadowContext )
 {
 	SceneNode *parentNode = Modules::sceneMan().resolveNodeHandle( parent );
 	APIFUNC_VALIDATE_NODE( parentNode, "h3dAddLightNode", 0 );
-	Resource *matRes = Modules::resMan().resolveResHandle( materialRes );
-	if(matRes != 0x0 )
-	{
-		APIFUNC_VALIDATE_RES_TYPE( matRes, ResourceTypes::Material, "h3dAddLightNode", 0 );
-	}
 	
 	//Modules::log().writeInfo( "Adding Light node '%s'", safeStr( name ).c_str() );
-	LightNodeTpl tpl( safeStr( name, 0 ), (MaterialResource *)matRes,
+	LightNodeTpl tpl( safeStr( name, 0 ),
 	                  safeStr( lightingContext, 1 ), safeStr( shadowContext, 2 ) );
 	SceneNode *sn = Modules::sceneMan().findType( SceneNodeTypes::Light )->factoryFunc( tpl );
 	return Modules::sceneMan().addNode( sn, *parentNode );

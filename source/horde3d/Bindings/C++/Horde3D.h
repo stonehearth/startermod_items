@@ -2041,14 +2041,13 @@ DLL H3DNode h3dAddJointNode( H3DNode parent, const char *name, int jointIndex );
 	Parameters:
 		parent           - handle to parent node to which the new node will be attached
 		name             - name of the node
-		materialRes      - material resource for light configuration or 0 if not used
 		lightingContext  - name of the shader context used for doing light calculations
 		shadowContext    - name of the shader context used for doing shadow map rendering
 		
 	Returns:
 		handle to the created node or 0 in case of failure
 */
-DLL H3DNode h3dAddLightNode( H3DNode parent, const char *name, H3DRes materialRes,
+DLL H3DNode h3dAddLightNode( H3DNode parent, const char *name,
                              const char *lightingContext, const char *shadowContext );
 
 
