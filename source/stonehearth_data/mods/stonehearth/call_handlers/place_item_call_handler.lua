@@ -131,6 +131,9 @@ end
 function PlaceItemCallHandler:place_item_in_world(session, response, entity_id, full_sized_uri, location, rotation)
    local location = Point3(location.x, location.y, location.z)
    local item = radiant.entities.get_entity(entity_id)
+   if not item then
+      return false
+   end
 
    local ghost_entity = radiant.entities.create_entity()
    local ghost_entity_component = ghost_entity:add_component('stonehearth:ghost_item')
