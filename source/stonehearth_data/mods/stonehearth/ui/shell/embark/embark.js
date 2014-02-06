@@ -20,8 +20,9 @@ App.StonehearthEmbarkView = App.View.extend({
             },
 
             hover: function(cellX, cellY) {
-               self._updateScroll(e.map[cellY][cellX]);
-            },
+               var map = $('#map').stonehearthMap('getMap');
+               self._updateScroll(map[cellY][cellX]);
+            }
          });
       });
    },
@@ -76,14 +77,6 @@ App.StonehearthEmbarkView = App.View.extend({
       return seed;
    },
 
-   _embark: function(cellX, cellY) {
-      var self = this;
-
-      radiant.call('stonehearth:generate_start_location', cellX, cellY);
-      App.shellView.addView(App.StonehearthLoadingScreenView);
-      self.destroy();
-   },
-
    _updateScroll: function(cell) {
       var self = this;
       var terrainDescription = '';
@@ -113,5 +106,13 @@ App.StonehearthEmbarkView = App.View.extend({
       if ($('#map').stonehearthMap('suspended')) {
          $('#map').stonehearthMap('resume');
       }
+   },
+
+   _embark: function(cellX, cellY) {
+      var self = this;
+
+      radiant.call('stonehearth:generate_start_location', cellX, cellY);
+      App.shellView.addView(App.StonehearthLoadingScreenView);
+      self.destroy();
    }
 });

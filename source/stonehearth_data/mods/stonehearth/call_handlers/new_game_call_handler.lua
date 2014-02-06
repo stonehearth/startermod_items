@@ -103,9 +103,10 @@ function NewGameCallHandler:embark_client(session, response)
          camera_service._next_position = camera_location
          camera_service:set_position(camera_location)
          camera_service:look_at(target)
+
+         response:resolve({})
       end
    )
-   response:resolve({})
 end
 
 function NewGameCallHandler:choose_camp_location(session, response)
