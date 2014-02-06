@@ -348,7 +348,7 @@ function ScenarioService:_get_coordinate_key(x, y)
    return string.format('%d,%d', x, y)
 end
 
--- returns a table with the set of valid habitat_types
+-- parse the array into a set so we can index by the habitat_type
 function ScenarioService:_parse_habitat_strings(strings)
    local habitat_type
    local habitat_types = {}
@@ -356,7 +356,7 @@ function ScenarioService:_parse_habitat_strings(strings)
 
    for _, value in pairs(strings) do
       if HabitatType.is_valid(value) then
-         habitat_types[value] = true
+         habitat_types[value] = value
       else
          -- concatenate multiple errors into a single string
          if error_message == nil then
