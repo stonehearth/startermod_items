@@ -457,7 +457,10 @@ int ScriptHost::GetAllocBytesCount() const
 
 void ScriptHost::Trigger(const std::string& eventName)
 {
-   luabind::call_function<void>(
-      globals(cb_thread_)["radiant"]["events"]["trigger"], 
-      globals(cb_thread_)["radiant"]["events"], eventName);
+   try {
+      luabind::object radiant = globals(cb_thread_)["radiant"];
+      radiant["events"]["trigger"](radiant, eventName);
+   } catch (std::exception const& e) {
+      ReportCStackThreadException(cb_thread_, e);
+   }
 }

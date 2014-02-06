@@ -30,7 +30,7 @@ using namespace ::radiant::res;
 #define RES_LOG(level)     LOG(resources, level)
 
 static const std::regex file_macro_regex__("^file\\((.*)\\)$");
-static const std::regex entity_macro_regex__("^([^:\\\\/]+):([^\\\\/]+)$");
+static const std::regex alias_macro_regex__("^([^:\\\\/]+):([^\\\\/]+)$");
 
 // === Helper Functions ======================================================
 
@@ -392,12 +392,12 @@ std::string ResourceManager2::ConvertToAbsolutePath(std::string const& path, std
    return std::string("/") + boost::algorithm::join(newpath, "/");
 }
 
-std::string ResourceManager2::GetEntityUri(std::string const& mod_name, std::string const& entity_name) const
+std::string ResourceManager2::GetAliasUri(std::string const& mod_name, std::string const& entity_name) const
 {
    std::lock_guard<std::recursive_mutex> lock(mutex_);
 
    json::Node manifest = res::ResourceManager2::GetInstance().LookupManifest(mod_name);
-   json::Node entities = manifest.get_node("radiant.entities");
+   json::Node entities = manifest.get_node("aliases");
    std::string uri = entities.get<std::string>(entity_name, "");
 
    if (uri.empty()) {
@@ -416,8 +416,8 @@ std::string ResourceManager2::ExpandMacro(std::string const& current, std::strin
       return ConvertToAbsolutePath(match[1], base_path);
    }
    if (full) {
-      if (std::regex_match(current, match, entity_macro_regex__)) {
-         return GetEntityUri(match[1], match[2]);
+      if (std::regex_match(current, match, alias_macro_regex__)) {
+         return GetAliasUri(match[1], match[2]);
       }
    }
    return current;

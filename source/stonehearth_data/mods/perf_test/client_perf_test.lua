@@ -4,7 +4,7 @@ local Vec3 = _radiant.csg.Point3f
 local ClientPerfTest = class()
 
 function ClientPerfTest:__init()
-  radiant.events.listen(radiant.events, 'radiant:modules_loaded', self, self.on_loaded)
+  radiant.events.listen(radiant, 'radiant:modules_loaded', self, self.on_loaded)
 end
 
 function ClientPerfTest:on_loaded()
@@ -12,6 +12,7 @@ function ClientPerfTest:on_loaded()
   self._frame_trace = nil
   self._running_time = 0
   self._last_now = 0
+  
   -- Make sure we draw the world.
   _radiant.call('perf_test:get_world_generation_done'):done(function(response)
       if not response.result then

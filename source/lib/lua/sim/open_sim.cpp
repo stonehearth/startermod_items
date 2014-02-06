@@ -71,11 +71,6 @@ om::EntityRef Sim_CreateEntity(lua_State* L, std::string const& uri)
    return entity;
 }
 
-std::string Sim_GetEntityUri(lua_State* L, std::string const& mod_name, std::string const& entity_name)
-{
-   return res::ResourceManager2::GetInstance().GetEntityUri(mod_name, entity_name);
-}
-
 template <typename T>
 std::shared_ptr<T> Sim_AllocObject(lua_State* L)
 {
