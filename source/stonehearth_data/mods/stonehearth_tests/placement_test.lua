@@ -12,7 +12,7 @@ function PlacementTest:__init()
    self:create_world()
 
    local citizen = self:place_citizen(12, 12)
-   --local citizen2 = self:place_citizen(-12, -12)
+   local citizen2 = self:place_citizen(-12, -12)
    local faction = radiant.entities.get_faction(citizen)
 ---[[
    self:place_item('stonehearth:comfy_bed_proxy', 0, 0)

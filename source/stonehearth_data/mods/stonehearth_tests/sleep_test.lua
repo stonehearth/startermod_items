@@ -10,15 +10,20 @@ function SleepTest:__init()
    self[MicroWorld]:__init()
    self:create_world()
 
-   self:place_citizen(-8, 8)
-   self:place_citizen(8, 8)
+   local w1 = self:place_citizen(-8, 8)
+   local w2 = self:place_citizen(8, 8)
    self:place_item('stonehearth:comfy_bed', 0, 8)
-   self:place_item('stonehearth:comfy_bed', 0, 0)
+   -- self:place_item('stonehearth:comfy_bed', 0, 0)
    local tree = self:place_tree(-12, -12)
 
    ---[[
    --500ms seconds in, set the time of day to right before sleepy time
    self:at(500, function()
+      radiant.entities.set_attribute(w1, 'sleepiness', 80)
+      --stonehearth_calendar.set_time(0, 45, 20)
+   end)
+   self:at(5000, function()
+      radiant.entities.set_attribute(w2, 'sleepiness', 80)
       --stonehearth_calendar.set_time(0, 45, 20)
    end)
    --]]

@@ -5,6 +5,7 @@
 #include <fstream>
 #include <sstream>
 
+#include <boost/algorithm/string/predicate.hpp>
 #include <boost/filesystem.hpp>
 
 #include "Poco/Net/HTTPClientSession.h"
@@ -23,6 +24,7 @@ using namespace radiant::crash_reporter::server;
 
 static std::string const CRASH_DUMP_FILENAME = "crash.dmp";
 static std::string const HORDE_LOG_FILENAME = "gfx.log";
+static std::string const STONEHEARTH_LOG_FILENAME = "stonehearth.log";
 
 DEFINE_SINGLETON(CrashReporterServer);
 
@@ -87,6 +89,9 @@ void CrashReporterServer::SendCrashReport(std::string const& dump_filename)
    // Get Horde log
    boost::filesystem::path horde_log_path = (old_dump_path.parent_path() / HORDE_LOG_FILENAME).string();
 
+   // Get Stonehearth log
+   boost::filesystem::path stonehearth_log_path = (old_dump_path.parent_path() / STONEHEARTH_LOG_FILENAME).string();
+
    // Get zip filename
    boost::filesystem::path zip_path(new_dump_path);
    zip_path.replace_extension(".zip");
@@ -95,6 +100,7 @@ void CrashReporterServer::SendCrashReport(std::string const& dump_filename)
    std::vector<std::string> files;
    files.push_back(new_dump_path.string());
    files.push_back(horde_log_path.string());
+   files.push_back(stonehearth_log_path.string());
    CreateZip(zip_path.string(), files);
 
    // Get the length of the zip file
@@ -145,16 +151,48 @@ void CrashReporterServer::SendCrashReport(std::string const& dump_filename)
    //MessageBox(nullptr, response_string.c_str(), "crash_reporter", MB_OK);
 }
 
+const int MAXSIZE = 148576;
+static char buffer[MAXSIZE];
 // Extend this to package a list of files for submission
 void CrashReporterServer::CreateZip(std::string const& zip_filename, const std::vector<std::string>& files) const
 {
+   // If the file is too big, and doesn't end in '.log', then we only take the last 1MB of it.
    std::ofstream zip_file(zip_filename, std::ios::binary);
    Poco::Zip::Compress encoder(zip_file, true);
-
    for (const auto& file : files)
    {
       std::string const unq_dump_filename(boost::filesystem::path(file).filename().string());
-      encoder.addFile(file, unq_dump_filename);
+      std::string const oversize_filename = file + ".tmp";
+      uintmax_t size = boost::filesystem::file_size(file);
+
+      if (!boost::algorithm::ends_with(file, ".log") || size < MAXSIZE) {
+         encoder.addFile(file, unq_dump_filename);
+      } else {
+         try {
+            std::ifstream infile;
+            infile.open(file, std::ifstream::in | std::ifstream::binary);
+            infile.seekg(-MAXSIZE, infile.end);
+            infile.read(buffer, MAXSIZE);
+            infile.close();
+
+            std::ofstream outfile;
+            if (boost::filesystem::exists(oversize_filename)) {
+               boost::filesystem::remove(oversize_filename);
+            }
+            outfile.open(oversize_filename, std::ofstream::out | std::ofstream::binary);
+            outfile.write(buffer, MAXSIZE);
+            outfile.write("\n", 1);
+            outfile.close();
+
+            encoder.addFile(oversize_filename, unq_dump_filename);
+
+            boost::filesystem::remove(oversize_filename);
+         } catch (...) {
+            // Since Stonehearth's going bye-bye, we might be in such a bad state that something
+            // here fails, so catch anything, just in case (so that we might be able to at least
+            // get the dmp, if nothing else).
+         }
+      }
    }
    encoder.close();
 }

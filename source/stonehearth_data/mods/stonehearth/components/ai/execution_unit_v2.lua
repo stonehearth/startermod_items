@@ -577,7 +577,7 @@ function ExecutionUnitV2:_verify_arguments(args, args_prototype)
    end
 
    assert(not args[1], string.format('%s needs to convert to object instead of array passing!', self:get_name()))
-   for name, value in pairs(args) do      
+   for name, value in pairs(args) do
       local expected_type = args_prototype[name]
       if not expected_type then
          error(string.format('unexpected argument "%s" passed to "%s".', name, self:get_name()))
@@ -597,16 +597,23 @@ function ExecutionUnitV2:_verify_arguments(args, args_prototype)
    end
    for name, expected_type in pairs(args_prototype) do
       if args[name] == nil then
-         if expected_type.default == stonehearth.ai.NIL then
-            -- this one's ok.  keep going
-         else
-            if type(expected_type) == 'table' and not radiant.util.is_instance(expected_type) then
-               args[name] = expected_type.default
-            end
-            if args[name] == nil then
-               error(string.format('missing argument "%s" in "%s".', name, self:get_name()))
+         if type(expected_type) == 'table' then
+            if radiant.util.is_class(expected_type) then
+               -- we're totally missing the argument!  bail
+               error(string.format('missing argument "%s" of type "%s" in "%s".', name, radiant.util.tostring(expected_type), self:get_name()))
                return false
+            elseif expected_type.default then
+               -- maybe there's a default?
+               if expected_type.default == stonehearth.ai.NIL then
+                  -- this one's ok.  keep going
+               else
+                  args[name] = expected_type.default
+               end
             end
+         else
+            -- we're totally missing the argument!  bail
+            error(string.format('missing argument "%s" of type "%s" in "%s".', name, radiant.util.tostring(expected_type), self:get_name()))
+            return false
          end
       end
    end
