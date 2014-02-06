@@ -46,6 +46,13 @@ $.widget( "stonehearth.stonehearthMap", {
       4: 1,
    },
 
+   setMap: function(mapGrid) {
+      var self = this;
+
+      self.options.mapGrid = mapGrid;
+      self._drawMap(self.mapContext);
+   },
+
    suspend: function() {
       var self = this;
 

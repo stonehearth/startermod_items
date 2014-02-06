@@ -23,8 +23,6 @@ function WorldGenerationService:__init()
 end
 
 function WorldGenerationService:initialize(seed, async)
-   log:info('WorldGenerationService using seed %d', seed)
-
    self:set_seed(seed)
    self._async = async
    self._enable_scenarios = radiant.util.get_config('enable_scenarios', false)
@@ -47,12 +45,21 @@ function WorldGenerationService:initialize(seed, async)
    self.overview_map = OverviewMap(self._terrain_info, self._landscaper)
 
    self._progress = 0
-   radiant.events.listen(radiant.events, 'stonehearth:slow_poll', self, self._on_poll_progress)
+   self._events_registered = false;
+   self:_register_events()
 end
 
 function WorldGenerationService:set_seed(seed)
+   log:info('WorldGenerationService using seed %d', seed)
    self._seed = seed
    self._rng = RandomNumberGenerator(self._seed)
+end
+
+function WorldGenerationService:_register_events()
+   if not self._events_registered then
+      radiant.events.listen(radiant.events, 'stonehearth:slow_poll', self, self._on_poll_progress)
+      self._events_registered = true;
+   end
 end
 
 function WorldGenerationService:_on_poll_progress()
@@ -64,6 +71,7 @@ function WorldGenerationService:_on_poll_progress()
 
    if done then
       radiant.events.unlisten(radiant.events, 'stonehearth:slow_poll', self, self._on_poll_progress)
+      self._events_registered = false;
    end
 end
 

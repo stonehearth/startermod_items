@@ -4,34 +4,26 @@ App.StonehearthEmbarkView = App.View.extend({
 
    init: function() {
       this._super();
-
       var self = this;
-      var MAX_UINT32 = 4294967295;
-      var seed = Math.floor(Math.random() * (MAX_UINT32+1));
 
-      radiant.call('stonehearth:new_game', 5, 5, seed)
-         .done(function(e) {
-            $('#map').stonehearthMap({
-               mapGrid: e.map,
+      self._new_game(function(e) {
+         $('#map').stonehearthMap({
+            mapGrid: e.map,
 
-               click: function(cellX, cellY) {
-                  self._selectedX = cellX;
-                  self._selectedY = cellY;
+            click: function(cellX, cellY) {
+               self._selectedX = cellX;
+               self._selectedY = cellY;
 
-                  $('#embarkButton').show();
-                  $('#clearSelectionButton').show();
-                  // what's the best practice for this?
-                  $('#map').stonehearthMap('suspend');
-               },
+               $('#embarkButton').show();
+               $('#clearSelectionButton').show();
+               $('#map').stonehearthMap('suspend');
+            },
 
-               hover: function(cellX, cellY) {
-                  self._updateScroll(e.map[cellY][cellX]);
-               },
-            });
-         })
-         .fail(function(e) {
-            console.error('new_game failed:', e)
+            hover: function(cellX, cellY) {
+               self._updateScroll(e.map[cellY][cellX]);
+            },
          });
+      });
    },
 
    didInsertElement: function() {
@@ -48,14 +40,40 @@ App.StonehearthEmbarkView = App.View.extend({
 
       $("#regenerateButton").click(function() {
          self._clearSelection();
+
+         self._new_game(function(e) {
+            $('#map').stonehearthMap('setMap', e.map);
+         });
       });
 
       $(document).on('keyup keydown', function(e) {
-         // escape key
-         if (e.keyCode == 27) {
+         var escape_key_code = 27;
+
+         if (e.keyCode == escape_key_code) {
             self._clearSelection();
          }
       });
+   },
+
+   _new_game: function(fn) {
+      var self = this;
+      var seed = self._generate_seed();
+
+      radiant.call('stonehearth:new_game', 5, 5, seed)
+         .done(function(e) {
+            fn(e);
+         })
+         .fail(function(e) {
+            console.error('new_game failed:', e)
+         });
+   },
+
+   _generate_seed: function() {
+      // unsigned ints are marshalling across as signed ints to lua
+      //var MAX_UINT32 = 4294967295;
+      var MAX_INT32 = 2147483647;
+      var seed = Math.floor(Math.random() * (MAX_INT32+1));
+      return seed;
    },
 
    _embark: function(cellX, cellY) {
@@ -89,7 +107,6 @@ App.StonehearthEmbarkView = App.View.extend({
       $("#embarkButton").hide();
       $("#clearSelectionButton").hide();
 
-      // what's the best practice for this?
       $('#map').stonehearthMap('clearCrosshairs');
       self._updateScroll(null);
 
