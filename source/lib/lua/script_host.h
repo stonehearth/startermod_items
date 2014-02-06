@@ -21,6 +21,8 @@ public:
    luabind::object RequireScript(std::string const& path);
    void GC(platform::timer &timer);
    int GetAllocBytesCount() const;
+   void ClearAllocTrackingData();
+   void WriteAllocTrackingData(std::string const& filename) const;
 
    typedef std::function<luabind::object(lua_State* L, JSONNode const& json)> JsonToLuaFn;
    void AddJsonToLuaConverter(JsonToLuaFn fn);
@@ -77,6 +79,7 @@ public: // the static interface
 private:
    luabind::object ScriptHost::GetConfig(std::string const& flag);
    static void* LuaAllocFn(void *ud, void *ptr, size_t osize, size_t nsize);
+   static void LuaTrackLine(lua_State *L, lua_Debug *ar);
    void Log(const char* category, int level, const char* str);
    int GetLogLevel(std::string const& category);
    uint GetRealTime();
@@ -94,8 +97,16 @@ private:
    std::map<std::string, luabind::object> required_;
    std::vector<JsonToLuaFn>   to_lua_converters_;
    bool                 filter_c_exceptions_;
+   bool                 profile_memory_;
    ReportErrorCb        error_cb_;
    int                  bytes_allocated_;
+
+   char                 current_file[256];
+   int                  current_line;
+
+   typedef std::unordered_map<void*, int>          Allocations;
+   std::unordered_map<void *, std::string>         alloc_backmap;
+   std::unordered_map<std::string, Allocations>    alloc_map;
 };
 
 END_RADIANT_LUA_NAMESPACE

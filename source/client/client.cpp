@@ -529,6 +529,8 @@ void Client::run(int server_port)
          throw std::string("User hit crash key");
       };
       _commands[GLFW_KEY_NUM_LOCK] = [=]() { core_reactor_->Call(rpc::Function("radiant:profile_next_lua_upate")); };
+      _commands[GLFW_KEY_KP_7] = [=]() { core_reactor_->Call(rpc::Function("radiant:write_lua_memory_profile")); };
+      _commands[GLFW_KEY_KP_9] = [=]() { core_reactor_->Call(rpc::Function("radiant:clear_lua_memory_profile")); };
       // _commands[VK_NUMPAD0] = std::shared_ptr<command>(new command_build_blueprint(*_proxy_manager, *_renderer, 500));
    }
 
