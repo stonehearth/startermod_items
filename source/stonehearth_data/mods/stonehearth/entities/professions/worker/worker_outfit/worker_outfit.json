@@ -1,6 +1,6 @@
 {
    "type": "entity",
-   "extends" : "stonehearth:mixins:item_properties",
+   "mixins" : "stonehearth:mixins:item_properties",
    "components" : {
       "unit_info" : {
          "name" :  "Worker Outfit",
@@ -33,12 +33,10 @@
                "stonehearth:actions:harvest_plant_adjacent",
                "stonehearth:actions:worker_task_dispatcher",
                "stonehearth:actions:restock_stockpile",
-               "stonehearth:actions:reserve_stockpile_space",
                "stonehearth:actions:place_item",
                "stonehearth:actions:place_item_type",
                "stonehearth:actions:light_firepit",               
                "stonehearth:actions:shear_sheep_action",
-               "stonehearth:actions:collect_ingredient",
                "stonehearth:actions:complete_workshop_construction",
                "stonehearth:actions:replace_proxy_with_item",
                "stonehearth:actions:wait_for_fabricator",

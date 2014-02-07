@@ -6,6 +6,7 @@
 #include "function.h"
 #include "protobuf_router.h"
 #include "reactor_deferred.h"
+#include <snappy.h>
 
 using namespace ::radiant;
 using namespace ::radiant::rpc;
@@ -121,8 +122,17 @@ void ProtobufRouter::OnPostCommandReply(proto::PostCommandReply const& reply)
       return;
    }
 
+   std::string json;
+   std::string const& compressed_content = reply.content();
+   if (!snappy::Uncompress(compressed_content.c_str(), compressed_content.size(), &json)) {
+      RPC_LOG(1) << "could not decompress command reply content buffer"; 
+      d->RejectWithMsg("could not decompress command reply content buffer");
+      pending_calls_.erase(i);
+      return;
+   }
+
    try {
-      content = libjson::parse(reply.content());
+      content = libjson::parse(json);
    } catch (std::exception const& e) {
       RPC_LOG(1) << "critical error parsing json content in protobuf router: " << e.what();
       RPC_LOG(1) << "content was: " << reply.content();

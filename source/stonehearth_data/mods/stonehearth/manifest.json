@@ -507,7 +507,7 @@
          "controller" : "file(call_handlers/camera_call_handler.lua)",
          "endpoint" : "client"
       }
-   },
+  },
    
    "components" :  {
       "ai" : "file(components/ai/ai_component.lua)",

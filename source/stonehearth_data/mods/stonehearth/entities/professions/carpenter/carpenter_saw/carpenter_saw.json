@@ -1,6 +1,6 @@
 {
    "type": "entity",
-   "extends": "stonehearth:mixins:item_properties",
+   "mixins": "stonehearth:mixins:item_properties",
    "components" : {
       "unit_info" : {
          "name" :  "The Saw",

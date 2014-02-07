@@ -13,7 +13,7 @@
 namespace radiant {
    namespace protocol {
       static const int ReadLowWaterMark = 1024;
-      static const int ReadBufferSize   = 256 * 1024;
+      static const int ReadBufferSize   = 1024 * 1024;
 
       class Buffer {
       public:
@@ -112,7 +112,7 @@ namespace radiant {
                   NETWORK_LOG(3) << "breaking processing loop early (not enough buffer: " << (remaining - sizeof(int32)) << " < " << c << ")";
                   break;
                }
-               ASSERT(c > 0 && c < 256 * 1024);
+               ASSERT(c > 0 && c < ReadBufferSize);
 
                auto limit = decoder.PushLimit(c);
                if (!msg.ParseFromCodedStream(&decoder)) {

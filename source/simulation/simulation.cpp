@@ -135,6 +135,18 @@ Simulation::Simulation() :
       profile_next_lua_update_ = true;
       SIM_LOG(0) << "profiling next lua update";
    });
+   core_reactor_->AddRouteV("radiant:start_lua_memory_profile", [this](rpc::Function const& f) {
+      scriptHost_->ProfileMemory(true);
+   });
+   core_reactor_->AddRouteV("radiant:stop_lua_memory_profile", [this](rpc::Function const& f) {
+      scriptHost_->ProfileMemory(false);
+   });
+   core_reactor_->AddRouteV("radiant:write_lua_memory_profile", [this](rpc::Function const& f) {
+      scriptHost_->WriteMemoryProfile("lua_memory_profile.txt");      
+   });
+   core_reactor_->AddRouteV("radiant:clear_lua_memory_profile", [this](rpc::Function const& f) {
+      scriptHost_->ClearMemoryProfile();
+   });
 
    core_reactor_->AddRoute("radiant:server:get_error_browser", [this](rpc::Function const& f) {
       rpc::ReactorDeferredPtr d = std::make_shared<rpc::ReactorDeferred>("get error browser");

@@ -1,9 +1,11 @@
 {
    "type" : "entity",
-   "extends" : "stonehearth:mixins:mob",
+   "mixins" : "stonehearth:mixins:mob",
    "components" : {
       "stonehearth:ai" : {
          "actions" : [
+            "stonehearth:actions:collect_ingredient",
+            "stonehearth:actions:reserve_stockpile_space",
             "stonehearth:actions:delay_thinking",
             "stonehearth:actions:idle:sway",
             "stonehearth:actions:idle:look_around",
