@@ -31,8 +31,8 @@ function BlueprintGenerator:generate_blueprint(width, height, seed)
       noise_map:fill_ij(noise_fn)
       FilterFns.filter_2D_050(height_map, noise_map, noise_map.width, noise_map.height, 4)
 
-      for i=1, height do
-         for j=1, width do
+      for j=1, height do
+         for i=1, width do
             value = height_map:get(i, j)
             if value >= mountains_threshold then
                terrain_type = TerrainType.mountains

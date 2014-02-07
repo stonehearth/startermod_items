@@ -40,7 +40,7 @@ App.StonehearthLoadingScreenView = App.View.extend({
                .done(function(o) {
                   App.gotoGame();
                   App.gameView.addView(App.StonehearthCreateCampView)
-                  this.destroy();
+                  self.destroy();
                });
          }
       }

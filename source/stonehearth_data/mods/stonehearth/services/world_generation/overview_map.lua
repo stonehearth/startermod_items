@@ -50,8 +50,8 @@ function OverviewMap:derive_overview_map(full_elevation_map, full_feature_map, o
    -- local full_feature_map, full_elevation_map
    -- full_feature_map, full_elevation_map = self:_assemble_maps(blueprint)
 
-   for j=1, overview_width do
-      for i=1, overview_height do
+   for j=1, overview_height do
+      for i=1, overview_width do
          a, b = _overview_map_to_feature_map_coords(i, j)
 
          macro_block_info = {

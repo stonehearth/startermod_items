@@ -188,8 +188,8 @@ function TerrainDetailer:add_plains_details(tile_map)
    local edge_threshold = 2
    local i, j
 
-   for j=1, tile_map.width do
-      for i=1, tile_map.height do
+   for j=1, tile_map.height do
+      for i=1, tile_map.width do
          if self:_is_plains_edge(tile_map, i, j, edge_threshold) then
             local offset = tile_map:get_offset(i, j)
             tile_map[offset] = tile_map[offset] + 1

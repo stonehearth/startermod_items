@@ -69,7 +69,6 @@ function NewGameCallHandler:embark_server(session, response)
    local x = wgs.start_x
    local z = wgs.start_z
    local y = radiant.terrain.get_height(Point2(x, z))
-   log:info('y height: %d', y)
 
    -- reveal scenaraios around the staring location
    local reveal_distance = radiant.util.get_config('scenario_reveal_distance', 128)
