@@ -21,8 +21,9 @@ public:
    luabind::object RequireScript(std::string const& path);
    void GC(platform::timer &timer);
    int GetAllocBytesCount() const;
-   void ClearAllocTrackingData();
-   void WriteAllocTrackingData(std::string const& filename) const;
+   void ClearMemoryProfile();
+   void ProfileMemory(bool value);
+   void WriteMemoryProfile(std::string const& filename) const;
 
    typedef std::function<luabind::object(lua_State* L, JSONNode const& json)> JsonToLuaFn;
    void AddJsonToLuaConverter(JsonToLuaFn fn);

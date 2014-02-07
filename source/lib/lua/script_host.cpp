@@ -160,7 +160,8 @@ ScriptHost::ScriptHost()
 
    bytes_allocated_ = 0;
    filter_c_exceptions_ = core::Config::GetInstance().Get<bool>("lua.filter_exceptions", true);
-   profile_memory_ = core::Config::GetInstance().Get<bool>("lua.profile_memory", false);
+   enable_profile_memory_ = core::Config::GetInstance().Get<bool>("lua.enable_memory_profiler", false);
+   profile_memory_ = false;
 
    L_ = lua_newstate(LuaAllocFn, this);
    set_pcall_callback(PCallCallbackFn);
@@ -185,10 +186,6 @@ ScriptHost::ScriptHost()
       ]
    ];
    globals(L_)["_host"] = object(L_, this);
-
-   if (profile_memory_) {
-      lua_sethook(L_, LuaTrackLine, LUA_MASKCALL | LUA_MASKRET | LUA_MASKLINE, 1);
-   }
 
    if (!core::Config::GetInstance().Get<bool>("lua.enable_luajit", true)) {
       if (luaL_dostring(L_, "jit.off()") != 0) {
@@ -494,14 +491,25 @@ void ScriptHost::Trigger(const std::string& eventName)
    }
 }
 
-void ScriptHost::ClearAllocTrackingData()
+void ScriptHost::ClearMemoryProfile()
 {
-   alloc_backmap.clear();
-   alloc_map.clear();
+   if (enable_profile_memory_) {
+      alloc_backmap.clear();
+      alloc_map.clear();
+      LOG_(0) << " cleared lua memory profile data";
+   }
 }
 
-void ScriptHost::WriteAllocTrackingData(std::string const& filename) const
+void ScriptHost::WriteMemoryProfile(std::string const& filename) const
 {
+   if (!enable_profile_memory_) {
+      return;
+   }
+   if (!profile_memory_) {
+      LOG_(0) << "memory profile is not running.";
+      return;
+   }
+
    std::map<int, std::string> totals;
    int grand_total = 0;
    unsigned int w = 0;
@@ -531,5 +539,20 @@ void ScriptHost::WriteAllocTrackingData(std::string const& filename) const
    output("Total Memory Allocated", GetAllocBytesCount());
    for (auto i = totals.rbegin(); i != totals.rend(); i++) {
       output(i->second, i->first);
+   }
+   LOG_(0) << " wrote lua memory profile data to lua_memory_profile.txt";
+}
+
+void ScriptHost::ProfileMemory(bool value)
+{
+   if (enable_profile_memory_) {
+      if (profile_memory_ && !value) {
+         lua_sethook(L_, LuaTrackLine, 0, 1);
+         ClearMemoryProfile();
+      } else if (!profile_memory_ && value) {
+         lua_sethook(L_, LuaTrackLine, LUA_MASKCALL | LUA_MASKRET | LUA_MASKLINE, 1);
+      }
+      profile_memory_  = value;
+      LOG_(0) << " lua memory profiling turned " << (profile_memory_ ? "on" : "off");
    }
 }
