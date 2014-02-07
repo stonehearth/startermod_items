@@ -9,8 +9,9 @@ local INFINITE = 999999 -- infinite enough?
 
 local Task = class()
 
-function Task:__init(scheduler, activity)
+function Task:__init(scheduler, task_group, activity)
    self._scheduler = scheduler
+   self._task_group = task_group
    self._activity = activity
      
    self._id = NEXT_TASK_ID
@@ -22,17 +23,24 @@ function Task:__init(scheduler, activity)
    self._complete_count = 0
    self._active_count = 0
    self._running_actions = {}
-   self._repeating_actions = {}
    self._entity_effect_names = {}
    self._effects = {}
    self._priority = 2
    self._max_workers = INFINITE
+   self._workers = {}
+   self._active_count = 0
+   self._complete_count = 0
    self:_set_state(STOPPED)
 end
 
 function Task:destroy()
    if self._state ~= COMPLETED then
+      self:stop()
       self:_set_state(COMPLETED)
+
+      for id, worker in pairs(self._workers) do
+         self:_remove_worker(id)
+      end
       self._scheduler:_decommit_task(self)
    end
 end
@@ -57,27 +65,18 @@ function Task:get_state()
    return self._state
 end
 
-function Task:get_args()
-   return self._activity[2] or {}
-end
-
 function Task:set_name(format, ...)
    self._name = string.format(format, ...)
    return self
 end
 
+function Task:set_priority(source)
+   self._source = source
+end
+
 function Task:set_priority(priority)
    assert(self._state ~= 'started')
    self._priority = priority
-   return self
-end
-
-function Task:get_action_ctor()
-   return self._action_ctor
-end
-
-function Task:set_repeat_timeout(time_ms)
-   self._repeat_timeout = time_ms
    return self
 end
 
@@ -102,13 +101,14 @@ function Task:times(n)
    return self
 end
 
-function Task:start()
-   if not self._commited then
-      local activity = self._scheduler:get_activity()
+function Task:start()  
+   self:_set_state(STARTED)
+
+   if not self._action_ctor then
       self._action_ctor = {
          name = self._name .. ' action',
-         does = activity.name,
-         args = activity.args,
+         does = self._activity.name,
+         args = self._activity.args,
          create_action = function(_, ai_component, entity, injecting_entity)
             local action = RunTaskAction(self)
             action.name = self._name .. ' action'
@@ -118,26 +118,23 @@ function Task:start()
             return action
          end,
       }
-      self._scheduler:_commit_task(self)
-      self._commited = true
    end
+
+   self._scheduler:_start_feeding_task(self)
 
    for entity, name in pairs(self._entity_effect_names) do 
       local effect = radiant.effects.run_effect(entity, name)
       table.insert(self._effects, effect)
    end
-   self._active_count = 0
-   self._complete_count = 0
-   self:_set_state(STARTED)
-
-   return self
 end
 
 function Task:stop()
-   assert(self._activity, 'must call execute before stop')
+   self._scheduler:_stop_feeding_task(self)
+
    if self._state ~= STOPPED then
       self:_set_state(STOPPED)
    end
+
    for _, effect in ipairs(self._effects) do
       effect:stop();
    end
@@ -146,13 +143,57 @@ function Task:stop()
    return self
 end
 
+function Task:_add_worker(worker)
+   self._workers[worker:get_id()] = worker
+   stonehearth.ai:add_custom_action(worker, self._action_ctor)
+end
+
+function Task:_remove_worker(id)
+   local worker = self._workers[id]
+   if worker then     
+      stonehearth.ai:remove_custom_action(worker, self._action_ctor)
+      self._workers[id] = nil
+   end
+end
+
+function Task:_get_fitness(worker)
+   local source_location
+   local worker_location = radiant.entities.get_world_grid_location(worker)
+   if radiant.util.is_a(self._source, Point3) then
+      source_location = self._source
+   end
+   if radiant.util.is_a(self._source, Entity) then
+      -- try the destination...
+      local destination = self._source:get_component('destination')
+      if destination then
+         local adjacent = destination:get_adjacent()
+         if adjacent then
+            local rgn = adjacent:get()
+            if not rgn:empty() then
+               -- great!  find the closest point..
+               source_location = rgn:get_closest_point(worker_location)
+            end
+         end
+      end
+      if not source_location then
+         -- no luck?  use the origin
+         source_location = radiant.entities.get_world_grid_location(source)
+      end
+   end
+
+   if source_location then
+      -- distance between the worker and the source point
+      return worker_location:length(self._source)
+   end
+   return 0
+end
+
 function Task:_set_state(state)
    self._log:spam('state change %s -> %s', tostring(self._state), state)
    assert(state and self._state ~= state)
    
    self._state = state
    radiant.events.trigger_async(self, self._state, self)
-   radiant.events.trigger_async(self, 'state_changed', self, self._state)
 end
 
 function Task:_get_active_action_count()
@@ -160,9 +201,6 @@ function Task:_get_active_action_count()
    for _, _ in pairs(self._running_actions) do
       count = count + 1
    end
-   for _, _ in pairs(self._repeating_actions) do
-      count = count + 1
-   end   
    return count
 end
 
@@ -199,44 +237,19 @@ function Task:_is_work_available()
    return work_remaining > 0
 end
 
-function Task:_get_next_repeat_timeout()
-   if self._repeat_timeout then
-      return radiant.gamestate.now() +  self._repeat_timeout
-   end
-   return nil
-end
-
-function Task:_check_repeat_timeout(action)
-   local timeout = self._repeating_actions[action]
-
-   if timeout and timeout <= radiant.gamestate.now() then
-      
-      local work_was_available = self:_is_work_available()
-      self._repeating_actions[action] = nil
-      local work_is_available = self:_is_work_available()
-
-      if work_is_available and not work_was_available then
-         radiant.events.trigger_async(self, 'work_available', self, true)
-      end
-   end
-end
-
 function Task:_action_is_active(action)
-   return self._running_actions[action] or self._repeating_actions[action]
+   return self._running_actions[action]
 end
 
 function Task:_log_state(tag)
    if self._log:is_enabled(radiant.log.DETAIL) then
-      local running_count, repeating_count = 0, 0
+      local running_count = 0
       for _, _ in pairs(self._running_actions) do
          running_count = running_count + 1
       end
-      for _, _ in pairs(self._repeating_actions) do
-         repeating_count = repeating_count + 1
-      end
       local work_available = self:_is_work_available()
-      self._log:detail('%s [state:%s running:%d repeating:%d completed:%d total:%s available:%s]',
-                       tag, self._state, running_count, repeating_count, self._complete_count, tostring(self._times),
+      self._log:detail('%s [state:%s running:%d completed:%d total:%s available:%s]',
+                       tag, self._state, running_count, self._complete_count, tostring(self._times),
                        tostring(work_available))
    end
 end
@@ -276,8 +289,11 @@ function Task:__action_try_start(action)
    -- that they don't have a shot (this may trigger them to stop_thinking)
    if not self:_is_work_available() then
       radiant.events.trigger_async(self, 'work_available', self, false)
+      self._scheduler:_stop_feeding_task(self)
    end
-   self:_log_state('exiting __action_try_start')   
+   self._scheduler:_notify_worker_started_task(self._activity.name, action:get_entity())
+
+   self:_log_state('exiting __action_try_start')
    return true
 end
 
@@ -287,25 +303,19 @@ function Task:__action_completed(action)
    assert(self._running_actions[action])
    self._complete_count = self._complete_count + 1
 
-   -- update the running actions map to contain the time when we'll release the
-   -- repeat reservation.  this may be nil if the task owner hasn't set one
-   local timeout = self:_get_next_repeat_timeout()
-   if timeout then
-      self._repeating_actions[action] = timeout
-      radiant.set_timer(timeout, function()
-            self:_check_repeat_timeout(action)
-         end)
-   end
    self:_log_state('exiting __action_completed')
 end
 
 function Task:_on_action_stopped(action)
+   self._scheduler:_notify_worker_stopped_task(self._activity.name, action:get_entity())
+
    local work_was_available = self:_is_work_available()
    self._running_actions[action] = nil
    local work_is_available = self:_is_work_available()
 
    if work_is_available and not work_was_available then
       radiant.events.trigger_async(self, 'work_available', self, true)
+      self._scheduler:_start_feeding_task(self)
    end
 
    if self:_is_work_finished() then
@@ -318,7 +328,6 @@ end
 function Task:__action_destroyed(action)
    self:_log_state('entering __action_destroyed')
    self:_on_action_stopped(action)
-   self._repeating_actions[action] = nil
    self:_log_state('exiting __action_destroyed')
 end
 

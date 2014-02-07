@@ -7,6 +7,10 @@ function RunTaskAction:__init(task)
    self._task = task
 end
 
+function RunTaskAction:get_entity()
+   return self._entity
+end
+
 function RunTaskAction:get_log()
    return self._log
 end
@@ -64,6 +68,8 @@ function RunTaskAction:get_debug_info(debug_route)
 end
 
 function RunTaskAction:start_thinking(ai, entity)
+   self._entity = entity
+   
    self:_create_execution_frame(ai)
 
    self._should_think = true
