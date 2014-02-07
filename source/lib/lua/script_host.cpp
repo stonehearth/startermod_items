@@ -510,7 +510,7 @@ void ScriptHost::WriteMemoryProfile(std::string const& filename) const
       return;
    }
 
-   std::map<int, std::string> totals;
+   std::map<int, std::pair<std::string, int>> totals;
    int grand_total = 0;
    unsigned int w = 0;
    for (const auto& entry : alloc_map) {
@@ -519,26 +519,34 @@ void ScriptHost::WriteMemoryProfile(std::string const& filename) const
          total += alloc.second;
       }
       grand_total += total;
-      totals[total] = entry.first;
+      totals[total] = std::make_pair(entry.first, entry.second.size());
       w = std::max(w, entry.first.size() + 2);
    }
 
    std::ofstream f(filename);
-   auto output = [&f, w](std::string const& txt, int c) {
+   auto format = [](int size) {
       static std::string suffixes[] = { "B", "KB", "MB", "GB", "TB", "PB" /* lol! */ };
       std::string* suffix = suffixes;
-      float total = static_cast<float>(c);
+      float total = static_cast<float>(size);
       while (total > 1024.0) {
          total /= 1024.0;
          suffix++;
       }
-      f << std::left << std::setw(w) << txt << " : " << std::fixed << std::setw(5) << std::setprecision(3) << total << " " << *suffix << std::endl;
+      return BUILD_STRING(std::fixed << std::setw(5) << std::setprecision(3) << total << " " << *suffix);
    };
 
-   output("Total Memory Tracked", grand_total);
-   output("Total Memory Allocated", GetAllocBytesCount());
+   auto output = [&f, &format, w](std::string const& txt, int c, int size) {
+      f << std::left << std::setw(w) << txt << " : " << format(size);
+      if (c) {
+        f << " (" << c << ", " << format(size / c) << " ea)";
+      }
+      f << std::endl;
+   };
+
+   output("Total Memory Tracked", 0, grand_total);
+   output("Total Memory Allocated", 0, GetAllocBytesCount());
    for (auto i = totals.rbegin(); i != totals.rend(); i++) {
-      output(i->second, i->first);
+      output(i->second.first, i->second.second, i->first);
    }
    LOG_(0) << " wrote lua memory profile data to lua_memory_profile.txt";
 }
