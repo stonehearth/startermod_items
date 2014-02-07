@@ -1,5 +1,5 @@
 <!-- Forward Shading Pipeline -->
-<Pipeline name="FORWARD">
+<Pipeline name="FORWARD" material="materials/forward.material.xml">
    <Setup>
       <RenderTarget id="SelectedTemp" numColBufs="1" depthBuf="true" format="RGBA8" scale="1.0"/>
       <RenderTarget id="SkyTemp" numColBufs="1" depthBuf="false" format="RGBA8" scale="0.125"/>
@@ -52,7 +52,7 @@
          <SwitchTarget target="" />
          <BindBuffer sampler="outlineSampler" sourceRT="SelectedTemp" bufIndex="0"/>
          <BindBuffer sampler="outlineDepth" sourceRT="SelectedTemp" bufIndex="32"/>
-         <DrawQuad material="materials/default_material.xml" context="SELECTED_SCREENSPACE_OUTLINER" />
+         <DrawQuad material="materials/base.material.xml" context="SELECTED_SCREENSPACE_OUTLINER" />
          <UnbindBuffers />
       </Stage>
 

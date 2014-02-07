@@ -57,7 +57,7 @@ H3DNodeUnique Pipeline::AddMeshNode(H3DNode parent, const csg::mesh_tools::mesh&
    std::string name = "mesh data ";
 
    H3DRes res = h3dutCreateVoxelGeometryRes((name + stdutil::ToString(unique_id_++)).c_str(), (VoxelGeometryVertex *)m.vertices.data(), m.vertices.size(), (uint *)m.indices.data(), m.indices.size());
-   H3DRes matRes = h3dAddResource(H3DResTypes::Material, "materials/default_material.xml", 0);
+   H3DRes matRes = h3dAddResource(H3DResTypes::Material, "materials/voxel.material.xml", 0);
    H3DNode model_node = h3dAddVoxelModelNode(parent, (name + stdutil::ToString(unique_id_++)).c_str(), res);
    H3DNode mesh_node = h3dAddVoxelMeshNode(model_node, (name + stdutil::ToString(unique_id_++)).c_str(), matRes, 0, m.indices.size(), 0, m.vertices.size() - 1);
 
@@ -96,7 +96,7 @@ H3DNodeUnique Pipeline::AddQubicleNode(H3DNode parent, const voxel::QubicleMatri
       Horde3D::VoxelGeometryResData::VoxelGeoVertexCountI);
 
    // Make sure the names of the model and mesh nodes are unique
-   H3DRes matRes = h3dAddResource(H3DResTypes::Material, "materials/default_material.xml", 0);
+   H3DRes matRes = h3dAddResource(H3DResTypes::Material, "materials/voxel.material.xml", 0);
    H3DNode model_node = h3dAddVoxelModelNode(parent, ("qubicle model " + stdutil::ToString(unique_id_++)).c_str(), geoRes);
    H3DNode mesh_node = h3dAddVoxelMeshNode(model_node, ("qubicle mesh " + stdutil::ToString(unique_id_++)).c_str(), matRes, 0, indexCount, 0, vertexCount - 1);
    if (mesh) {

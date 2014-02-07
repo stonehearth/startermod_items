@@ -1056,13 +1056,35 @@ bool Renderer::setMaterial( MaterialResource *materialRes, const std::string &sh
 		return false;
 	}
 
-	if( !setMaterialRec( materialRes, shaderContext, 0x0 ) )
-	{
-		_curShader = 0x0;
-		return false;
+   // First, see if the model's material has what we're looking for.
+	if (setMaterialRec(materialRes, shaderContext, 0x0)) {
+      return true;
+   }
+
+   // Next, try everything in the model material's chain.
+   MaterialResource* mr = materialRes->_parentMaterial;
+   while (mr != 0x0) {
+      if (setMaterialRec(mr, shaderContext, 0x0)) {
+         return true;
+      }
+      mr = mr->_parentMaterial;
+   }
+
+   // Now, try the pipeline chain:
+   if (setMaterialRec(getCurCamera()->_pipelineRes->_material, shaderContext, 0x0)) {
+      return true;
+   }
+
+   mr = getCurCamera()->_pipelineRes->_material->_parentMaterial;
+   while (mr != 0x0) {
+      if (setMaterialRec(mr, shaderContext, 0x0)) {
+         return true;
+      }
+      mr = mr->_parentMaterial;
 	}
 
-	return true;
+	_curShader = 0x0;
+	return false;
 }
 
 

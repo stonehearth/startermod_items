@@ -194,7 +194,7 @@ public:
 
 	uint32 getFrameID() { return _frameID; }
 	ShaderCombination *getCurShader() { return _curShader; }
-	CameraNode *getCurCamera() { return _curCamera; }
+	CameraNode *getCurCamera() const { return _curCamera; }
 	uint32 getQuadIdxBuf() { return _quadIdxBuf; }
 	uint32 getParticleVBO() { return _particleVBO; }
 

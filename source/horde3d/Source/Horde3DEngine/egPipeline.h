@@ -198,6 +198,7 @@ private:
 	std::vector< PipelineStagePtr >  _stages;
 	uint32                           _baseWidth, _baseHeight;
    std::string                      _pipelineName;
+   PMaterialResource                _material;
 
 	friend class ResourceManager;
 	friend class Renderer;
