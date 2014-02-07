@@ -1,8 +1,6 @@
 local Town = require 'services.town.town'
-require 'services.town.town_place_item_in_world'
 
 local TownService = class()
-
 function TownService:__init()
    self._towns = {}
 end
