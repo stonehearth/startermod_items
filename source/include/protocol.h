@@ -13,7 +13,7 @@
 namespace radiant {
    namespace protocol {
       static const int ReadLowWaterMark = 1024;
-      static const int ReadBufferSize   = 256 * 1024;
+      static const int ReadBufferSize   = 1024 * 1024;
 
       class Buffer {
       public:

@@ -169,7 +169,7 @@ void ResourceManager2::ImportModMixintoEntry(std::string const& modname, std::st
    std::string resource_path;
    try {
       resource_path = ConvertToCanonicalPath(path, nullptr);
-   } catch (std::exception const& e) {
+   } catch (std::exception const&) {
       RES_LOG(1) << "could not find resource for " << path << " while processing mixintos for " << modname << ".  ignoring.";
       return;
    }
@@ -186,7 +186,7 @@ void ResourceManager2::ImportModMixintos(std::string const& modname, json::Node 
       std::string mixinto_path;
       try {
          mixinto_path = ConvertToCanonicalPath(mixinto.name(), ".json");
-      } catch (std::exception const& e) {
+      } catch (std::exception const&) {
          RES_LOG(1) << "could not find resource for " << mixinto.name() << " while processing mixintos for " << modname << ".  ignoring.";
          return;
       }
@@ -208,13 +208,13 @@ void ResourceManager2::ImportModOverrides(std::string const& modname, json::Node
       std::string override_path, resource_path;
       try {
          override_path = ConvertToCanonicalPath(over.name(), ".json");
-      } catch (std::exception const& e) {
+      } catch (std::exception const&) {
          RES_LOG(1) << "could not find resource for " << over.name() << " while processing overrides for " << modname << ".  ignoring.";
          return;
       }
       try {
          resource_path = ConvertToCanonicalPath(over.as<std::string>(), ".json");
-      } catch (std::exception const& e) {
+      } catch (std::exception const&) {
          RES_LOG(1) << "could not find resource for " << over.as<std::string>() << " while processing mixintos for " << modname << ".  ignoring.";
          return;
       }
