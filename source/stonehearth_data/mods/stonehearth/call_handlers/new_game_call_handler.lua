@@ -58,6 +58,7 @@ function NewGameCallHandler:generate_start_location(session, response, feature_c
    -- TODO: store this better
    wgs.start_x = x
    wgs.start_z = z
+   
    wgs:generate_tiles(i, j, 2)
 
    response:resolve({})

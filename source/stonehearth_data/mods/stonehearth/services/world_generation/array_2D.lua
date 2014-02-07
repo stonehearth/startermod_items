@@ -9,14 +9,17 @@ function Array2D:__init(width, height)
 end
 
 function Array2D:get(x, y)
+   --assert(self:in_bounds(x, y))
    return self[self:get_offset(x,y)]
 end
 
 function Array2D:set(x, y, value)
+   --assert(self:in_bounds(x, y))
    self[self:get_offset(x,y)] = value
 end
 
 function Array2D:get_offset(x, y)
+   --assert(self:in_bounds(x, y))
    return (y-1)*self.width + x
 end
 

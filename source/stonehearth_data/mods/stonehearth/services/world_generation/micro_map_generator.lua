@@ -66,7 +66,6 @@ function MicroMapGenerator:generate_noise_map(blueprint)
          if terrain_type == TerrainType.mountains then
             if self:_surrounded_by_terrain(TerrainType.mountains, blueprint, i, j) then
                mean = mean + terrain_info[TerrainType.mountains].step_size
-               std_dev = std_dev * 1.20
             end
          elseif terrain_type == TerrainType.foothills then
             if self:_surrounded_by_terrain(TerrainType.foothills, blueprint, i, j) then

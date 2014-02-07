@@ -125,9 +125,11 @@ function Landscaper:mark_trees(elevation_map, feature_map)
    local terrain_info = self._terrain_info
    local normal_tree_density = 0.8
    local mountains_size_modifier = 0.10
-   local mountains_density_modifier = 0.10
+   local mountains_density_base = 0.40
+   local mountains_density_peaks = 0.10
    local noise_map, density_map = self:_get_filter_buffers(feature_map.width, feature_map.height)
-   local i, j, tree_name, tree_type, tree_size, occupied, value, elevation, terrain_type
+   local tree_name, tree_type, tree_size, occupied, value, elevation, terrain_type, step, tree_density
+
 
    local noise_fn = function(i, j)
       local mean = 0
@@ -186,28 +188,38 @@ function Landscaper:mark_trees(elevation_map, feature_map)
 
             if value > 0 then
                elevation = elevation_map:get(i, j)
-               tree_type = self:_get_tree_type(elevation)
-               terrain_type = terrain_info:get_terrain_type(elevation)
+               terrain_type, step = terrain_info:get_terrain_type_and_step(elevation)
+               tree_type = self:_get_tree_type(terrain_type, step)
 
-               if terrain_type == TerrainType.mountains then
+               -- TODO: clean up this code
+               if terrain_type ~= TerrainType.mountains then
+                  tree_density = normal_tree_density
+               else
                   -- forests on mountains are shorter and thinner
                   value = value * mountains_size_modifier
-                  if rng:get_real(0, 1) >= mountains_density_modifier then
-                     tree_type = nil
+
+                  if step == 1 then
+                     tree_density = mountains_density_base
+                  else
+                     tree_density = mountains_density_peaks
                   end
                end
 
-               if tree_type ~= nil then 
-                  tree_size = self:_get_tree_size(value)
-                  tree_name = get_tree_name(tree_type, tree_size)
+               tree_size = self:_get_tree_size(value)
+               tree_name = get_tree_name(tree_type, tree_size)
 
+               if terrain_type ~= TerrainType.mountains then
                   if tree_size ~= small then
-                     if rng:get_real(0, 1) >= normal_tree_density then
+                     if rng:get_real(0, 1) >= tree_density then
                         -- thin out the tree but still mark as occupied
                         tree_name = generic_vegetaion_name
                      end
                   end
                   feature_map:set(i, j, tree_name)
+               else
+                  if rng:get_real(0, 1) < tree_density then
+                     feature_map:set(i, j, tree_name)
+                  end
                end
             end
          end
@@ -215,15 +227,11 @@ function Landscaper:mark_trees(elevation_map, feature_map)
    end
 end
 
-function Landscaper:_get_tree_type(elevation)
+function Landscaper:_get_tree_type(terrain_type, step)
    local rng = self._rng
    local terrain_info = self._terrain_info
    local high_foothills_juniper_chance = 0.75
    local low_foothills_juniper_chance = 0.25
-
-   --if elevation > terrain_info.tree_line then return nil end
-
-   local terrain_type, step = terrain_info:get_terrain_type_and_step(elevation)
 
    if terrain_type == TerrainType.plains then
       return oak
