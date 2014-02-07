@@ -136,8 +136,8 @@ int Application::Run(int argc, const char** argv)
       json::InitialzeErrorHandler();
       core::Config::GetInstance().Load(argc, argv);
 
-      bool show_console = true;
-      DEBUG_ONLY(show_console = false;)
+      bool show_console = false;
+      DEBUG_ONLY(show_console = true;)
       if (core::Config::GetInstance().Get<bool>("logging.show_console", show_console)) {
          radiant::logger::InitConsole();
       }

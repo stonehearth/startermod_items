@@ -1,6 +1,6 @@
 {
    "type": "entity",
-   "extends": "stonehearth:mixins:mob",
+   "mixins": "stonehearth:mixins:mob",
    "init_script" : "file(wolf_init_script.lua)",      
    "components": {
       "unit_info": {

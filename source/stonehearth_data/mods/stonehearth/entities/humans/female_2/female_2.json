@@ -1,5 +1,5 @@
 {
-   "extends": "stonehearth:mixins:base_human", 
+   "mixins": "stonehearth:mixins:base_human", 
    "type": "entity", 
    "components": {
       "render_info" : {
