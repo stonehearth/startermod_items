@@ -1,0 +1,16 @@
+{
+   "info" : {
+      "name" : "Flagstone"
+   },
+
+   "mixintos" : {
+      "stonehearth:medium_oak_tree" : [
+         "file(/mixintos/big_tree.json)"
+      ]
+   },
+
+   "overrides" : {
+      "stonehearth:medium_oak_tree" : "stonehearth:medium_juniper_tree",
+      "stonehearth/entities/trees/juniper_tree/medium_juniper_tree/medium_juniper_tree.qb" : "stonehearth/entities/generic/default_object/default_object.qb"
+   }
+}

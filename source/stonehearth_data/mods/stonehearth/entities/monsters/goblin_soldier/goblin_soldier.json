@@ -1,5 +1,5 @@
 {
-   "extends": "file(/prototypes/goblin)", 
+   "mixins": "file(/prototypes/goblin)", 
    "type": "entity", 
    "components": {
       "model_variants": [
