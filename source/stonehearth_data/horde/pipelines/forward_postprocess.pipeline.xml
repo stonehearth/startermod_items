@@ -1,0 +1,82 @@
+<!-- Forward Shading Pipeline -->
+<Pipeline name="FORWARD_POSTPROCESS">
+   <Setup>
+      <RenderTarget id="GBuffers" numColBufs="1" depthBuf="true" format="RGBA8"/>
+      <RenderTarget id="SelectedTemp" numColBufs="1" depthBuf="true" format="RGBA8" scale="1.0"/>
+      <RenderTarget id="SkyTemp" numColBufs="1" depthBuf="false" format="RGBA8" scale="0.125"/>
+   </Setup>
+   <CommandQueue>
+      <Stage id="Init">
+         <SwitchTarget target="GBuffers" />
+         <ClearTarget colBuf0="true" colBuf1="true" depthBuf="true" />
+
+         <SwitchTarget target="" />
+         <ClearTarget colBuf0="true" depthBuf="true" />
+      </Stage>
+      
+      <Stage id="Sky">
+         <SwitchTarget target="" />
+         <DrawGeometry context="SKY" />
+
+         <SwitchTarget target="SkyTemp" />
+         <DrawGeometry context="SKY" />
+      </Stage>
+
+      <Stage id="Starfield">
+         <DrawGeometry context="STARFIELD" />
+      </Stage>
+
+      <Stage id="Depth">
+         <SwitchTarget target="GBuffers" />
+         <DrawGeometry context="DEPTH" class="~Translucent" />
+
+         <SwitchTarget target="" />
+         <DrawGeometry context="DEPTH" class="~Translucent" />
+      </Stage>
+
+      <Stage id="Light">
+         <DoForwardLightLoop class="~Translucent" noShadows="false"/>
+      </Stage>
+
+      <!--
+      <Stage id="SSAO">
+         <BindBuffer sampler="depthBuffer" soureRT="GBuffers" bufIndex="32" />
+         <DrawQuad material="materials/forward_postprocess_material.xml" context="SSAO" />
+      </Stage>
+      -->
+
+      <Stage id="Fog">
+         <BindBuffer sampler="skySampler" sourceRT="SkyTemp" bufIndex="0"/>
+         <DrawGeometry class="~Translucent" context="FOG" noShadows="true" frustum_start="0.7"/>
+         <UnbindBuffers />
+      </Stage>
+
+      <Stage id="Translucent">
+         <DrawGeometry context="TRANSLUCENT_ON_TOP" order="BACK_TO_FRONT" />
+         <DrawGeometry context="TRANSLUCENT" order="BACK_TO_FRONT" />
+         <DrawGeometry context="BLUEPRINTS_DEPTH_PASS"/>
+         <DrawGeometry context="BLUEPRINTS_COLOR_PASS"/>
+         <DrawGeometry context="DEBUG_SHAPES" />
+      </Stage>
+
+      <Stage id="Selected">
+         <SwitchTarget target="SelectedTemp" />
+         <ClearTarget colBuf0="true" depthBuf="true"/>
+         <DrawSelected context="SELECTED_SCREENSPACE" />
+
+         <SwitchTarget target="" />
+         <BindBuffer sampler="outlineSampler" sourceRT="SelectedTemp" bufIndex="0"/>
+         <BindBuffer sampler="outlineDepth" sourceRT="SelectedTemp" bufIndex="32"/>
+         <DrawQuad material="materials/default_material.xml" context="SELECTED_SCREENSPACE_OUTLINER" />
+         <UnbindBuffers />
+      </Stage>
+
+      <Stage id="Selected_Fast">
+         <DrawSelected context="SELECTED_FAST" />
+      </Stage>
+
+      <Stage id="Overlays">
+         <DrawOverlays context="OVERLAY"/>
+      </Stage>
+   </CommandQueue>
+</Pipeline>
