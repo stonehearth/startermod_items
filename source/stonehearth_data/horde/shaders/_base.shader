@@ -155,17 +155,7 @@ void main(void)
 
 
 [[VS_SELECTED_SCREENSPACE_OUTLINER]]
-uniform mat4 projMat;
-
-attribute vec3 vertPos;
-
-varying vec2 texCoords;
-        
-void main( void )
-{
-  texCoords = vertPos.xy;
-  gl_Position = projMat * vec4(vertPos, 1.0);
-}
+#include "shaders/fsquad_vs.glsl"
 
 
 [[FS_SELECTED_SCREENSPACE_OUTLINER]]

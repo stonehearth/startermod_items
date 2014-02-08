@@ -1,14 +1,14 @@
 <!-- Forward Shading Pipeline -->
-<Pipeline name="FORWARD_POSTPROCESS">
+<Pipeline name="FORWARD_POSTPROCESS" material="materials/forward_postprocess.material.xml">
    <Setup>
-      <RenderTarget id="GBuffers" numColBufs="1" depthBuf="true" format="RGBA8"/>
+      <RenderTarget id="GBuffers" numColBufs="1" depthBuf="true" format="RGBA32F" scale="1.0"/>
       <RenderTarget id="SelectedTemp" numColBufs="1" depthBuf="true" format="RGBA8" scale="1.0"/>
       <RenderTarget id="SkyTemp" numColBufs="1" depthBuf="false" format="RGBA8" scale="0.125"/>
    </Setup>
    <CommandQueue>
       <Stage id="Init">
          <SwitchTarget target="GBuffers" />
-         <ClearTarget colBuf0="true" colBuf1="true" depthBuf="true" />
+         <ClearTarget colBuf0="true" depthBuf="true" />
 
          <SwitchTarget target="" />
          <ClearTarget colBuf0="true" depthBuf="true" />
@@ -28,7 +28,7 @@
 
       <Stage id="Depth">
          <SwitchTarget target="GBuffers" />
-         <DrawGeometry context="DEPTH" class="~Translucent" />
+         <DrawGeometry context="DEPTH_LINEAR" class="~Translucent" />
 
          <SwitchTarget target="" />
          <DrawGeometry context="DEPTH" class="~Translucent" />
@@ -38,14 +38,13 @@
          <DoForwardLightLoop class="~Translucent" noShadows="false"/>
       </Stage>
 
-      <!--
       <Stage id="SSAO">
-         <BindBuffer sampler="depthBuffer" soureRT="GBuffers" bufIndex="32" />
-         <DrawQuad material="materials/forward_postprocess_material.xml" context="SSAO" />
+         <BindBuffer sampler="depthBuffer" sourceRT="GBuffers" bufIndex="0" />
+         <DrawQuad material="materials/forward_postprocess.material.xml" context="SSAO" />
+         <UnbindBuffers />
       </Stage>
-      -->
 
-      <Stage id="Fog">
+      <!--Stage id="Fog">
          <BindBuffer sampler="skySampler" sourceRT="SkyTemp" bufIndex="0"/>
          <DrawGeometry class="~Translucent" context="FOG" noShadows="true" frustum_start="0.7"/>
          <UnbindBuffers />
@@ -73,7 +72,7 @@
 
       <Stage id="Selected_Fast">
          <DrawSelected context="SELECTED_FAST" />
-      </Stage>
+      </Stage-->
 
       <Stage id="Overlays">
          <DrawOverlays context="OVERLAY"/>
