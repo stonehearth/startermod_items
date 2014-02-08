@@ -3,9 +3,11 @@ local Town = class()
 
 function Town:__init(name)
    self._log = radiant.log.create_logger('town', name)
-
-   stonehearth.tasks:get_scheduler('stonehearth:workers', faction)
-                     :set_activity('stonehearth:work')
+   self._scheduler = stonehearth.tasks:create_scheduler('stonehearth:town:' .. name)
+   self._task_groups = {
+      workers = self._scheduler:create_task_group('stonehearth:work', {})
+   }
+   self._harvest_tasks = {}
 end
 
 function Town:destroy()
@@ -31,36 +33,17 @@ function Town:create_orchestrator(name, args, co)
    return ct
 end
 
-function Town:join(entity, scheduler)
-   --assert(self._activity, 'must call set_activity before adding entities')
-   
-   self._log:debug('adding %s to task scheduler', entity)
-   local id = entity:get_id()
-   if not self._entities[id] then      
-      local entry = {
-         entity = entity,
-         tasks = {},
-      }
-      for id, task in pairs(self._tasks) do
-         self:_add_action_to_entity(task, entry)
-      end
-      self._entities[id] = entry
-   end
+function Town:join_task_group(entity, name)
+   local task_group = self._task_groups[name]
+   assert(task_group, string.format('unknown task group "%s"', name))
+   task_group:add_worker(entity)
    return self
 end
 
-function Town:leave(entity, scheduler)
-   if entity and entity:is_valid() then
-      self._log:debug('removing %s from task scheduler', entity)
-      local id = entity:get_id()
-      local entry = self._entities[id]
-      if entry then
-         for task, action in ipairs(entry.tasks) do
-            self:_remove_action_from_entity(task, entry)
-         end
-         self._entities[id] = nil
-      end
-   end
+function Town:leave_task_group(entity, name)
+   local task_group = self._task_groups[name]
+   assert(task_group, string.format('unknown task group "%s"', name))
+   task_group:remove_worker(entity)
    return self
 end
 
@@ -136,23 +119,22 @@ function Town:promote_citizen(person, talisman)
    return true
 end
 
-local all_harvest_tasks = {}
-
 function Town:harvest_resource_node(tree)
    if not tree or not tree:is_valid() then
       return false
    end
 
    local id = tree:get_id()
-   if not all_harvest_tasks[id] then
+   if not self._harvest_tasks[id] then
       local node_component = tree:get_component('stonehearth:resource_node')
       if node_component then
          local effect_name = node_component:get_harvest_overlay_effect()
-         all_harvest_tasks[id] = stonehearth.tasks:get_scheduler('stonehearth:workers', session.faction)
-                                   :create_task('stonehearth:chop_tree', { tree = tree })
-                                   :add_entity_effect(tree, effect_name)
-                                   :once()
-                                   :start()
+         self._harvest_tasks[id] = self._task_groups.workers
+                                      :create_task('stonehearth:chop_tree', { tree = tree })
+                                      :set_source(tree)
+                                      :add_entity_effect(tree, effect_name)
+                                      :once()
+                                      :start()
       end
    end
    return true
@@ -164,12 +146,13 @@ function Town:harvest_renewable_resource_node(plant)
    end
 
    local id = plant:get_id()
-   if not all_harvest_tasks[id] then
+   if not self._harvest_tasks[id] then
       local node_component = plant:get_component('stonehearth:renewable_resource_node')
       if node_component then
          local effect_name = node_component:get_harvest_overlay_effect()
-         all_harvest_tasks[id] = stonehearth.tasks:get_scheduler('stonehearth:workers', session.faction)
+         self._harvest_tasks[id] = stonehearth.tasks:get_scheduler('stonehearth:workers', session.faction)
                                    :create_task('stonehearth:harvest_plant', { plant = plant })
+                                   :set_source(plant)
                                    :add_entity_effect(plant, effect_name)
                                    :once()
                                    :start()
@@ -179,7 +162,7 @@ function Town:harvest_renewable_resource_node(plant)
                if not plant or not plant:is_valid() then
                   return radiant.events.UNLISTEN
                end
-               all_harvest_tasks[plant:get_id()] = nil
+               self._harvest_tasks[plant:get_id()] = nil
             end)
       end
    end

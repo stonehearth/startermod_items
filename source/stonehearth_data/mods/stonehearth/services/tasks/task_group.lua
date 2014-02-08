@@ -1,7 +1,12 @@
+local Task = require 'services.tasks.task'
 local TaskGroup = class()
 
-function TaskGroup:__init(scheduler, activity)
-   self._activity = activity
+function TaskGroup:__init(scheduler, name, args)
+   args = args or {}
+   self._activity = {
+      name = name,
+      args = args
+   }
    self._scheduler = scheduler
 
    -- a table of all the workers which belong to the task group.   only
@@ -14,12 +19,16 @@ function TaskGroup:__init(scheduler, activity)
    self._tasks = {}
 end
 
-function TaskGroup:join(worker)
+function TaskGroup:get_activity()
+   return self._activity
+end
+
+function TaskGroup:add_worker(worker)
    local id = worker:get_id()
    self._workers[id] = worker
 end
 
-function TaskGroup:leave(id)
+function TaskGroup:remove_worker(id)
    self._workers[id] = nil
 end
 
@@ -43,7 +52,7 @@ function TaskGroup:recommend_worker_for(task, other_worker_priorities)
    local best_fitness, best_worker
 
    for id, worker in pairs(self._workers) do
-      local fitness = self:_compute_worker_fitness(task, other_worker_priorities)
+      local fitness = self:_compute_worker_fitness(worker, task, other_worker_priorities)
       if fitness and (not best_fitness or fitness < best_fitness) then
          best_fitness = fitness
          best_worker = worker

@@ -1,11 +1,14 @@
 local PriorityQueue = require 'services.tasks.priority_queue'
+local TaskGroup = require 'services.tasks.task_group'
 local TaskScheduler = class()
 
-local get_task_priority(task)
+function get_task_priority(task)
    return task:get_priority()
 end
 
-function TaskScheduler:__init()
+function TaskScheduler:__init(name)
+   self._name = name
+   self._log = radiant.log.create_logger('tasks.scheduler', 'scheduler: ' .. self._name)
    self._running_activities = {}
 
    -- how many tasks have we fed since we reset the feed count?
@@ -20,18 +23,15 @@ function TaskScheduler:__init()
    --self._pending = PriorityQueue('pending', get_task_priority)
 end
 
-function TaskScheduler:create_task_group(activity)
-   return TaskGroup(self, activity)
+function TaskScheduler:get_name()
+   return self._name
 end
 
-function TaskScheduler:_start_worker_activity(worker, activity, priority)
-   local activities = self:_get_running_activity_list(activity)
-   activities[worker:get_id()] = priority
+function TaskScheduler:create_task_group(name, args)
+   return TaskGroup(self, name, args)
 end
 
 function TaskScheduler:_start_feeding_task(task)
-   assert(task:is_running())
-
    local id = task:get_id()
    
    --self._pending:remove(id)
@@ -46,9 +46,7 @@ end
 
 function TaskScheduler:_notify_worker_started_task(task, worker)
    local worker_id = worker:get_id()
-   local activity = task:get_activity()
-
-   local current_activities = self:_get_running_activity_list(activity)
+   local current_activities = self:_get_running_activity_list_for_task(task)
    if current_activities[worker_id] then
       self._log:warning('duplicate worker for %s in running activities.', tostring(worker))
    end
@@ -57,9 +55,7 @@ end
 
 function TaskScheduler:_notify_worker_stopped_task(task, worker)
    local worker_id = worker:get_id()
-   local activity = task:get_activity()
-
-   local current_activities = self:_get_running_activity_list(activity)
+   local current_activities = self:_get_running_activity_list_for_task(task)
    if not current_activities[worker_id] then
       self._log:warning('unknown worker for %s in running activities.', tostring(worker))
    end
@@ -67,7 +63,7 @@ function TaskScheduler:_notify_worker_stopped_task(task, worker)
 end
 
 function TaskScheduler:_update()
-   self._process_feeding_queue()
+   self:_process_feeding_queue()
 end
 
 function TaskScheduler:_process_feeding_queue()
@@ -84,9 +80,8 @@ function TaskScheduler:_feed_task(task)
    -- a worker is already building scaffolding, there's no sense at all in recommending
    -- him to the restock-stockpile task!  only we know the mapping of entities to activities,
    -- so pass that into the task group
-   local activity = task:get_activity()
-   local task_group = task_get_task_group()
-   local current_activities = self:_get_running_activity_list(activity)
+   local task_group = task:get_task_group()
+   local current_activities = self:_get_running_activity_list_for_task(task)
    local worker = task_group:recommend_worker_for(task, current_activities)
 
    if not worker then
@@ -94,8 +89,12 @@ function TaskScheduler:_feed_task(task)
       return
    end
    task:_add_worker(worker)
-   current_activities[activity][worker_id] = task:get_priority()
    self._feed_count = self._feed_count + 1
+end
+
+function TaskScheduler:_get_running_activity_list_for_task(task)
+   local activity = task:get_task_group():get_activity().name
+   return self:_get_running_activity_list(activity)   
 end
 
 function TaskScheduler:_get_running_activity_list(activity)

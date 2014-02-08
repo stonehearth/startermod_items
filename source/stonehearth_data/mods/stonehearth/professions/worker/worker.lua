@@ -15,14 +15,14 @@ function worker_class.promote(entity)
 
    local faction = radiant.entities.get_faction(entity)
    local town = stonehearth.town:get_town(faction)
-   town:join_worker_task_group(entity)
+   town:join_task_group(entity, 'workers')
 end
 
 
 function worker_class.demote(entity)
    local faction = radiant.entities.get_faction(entity)
    local town = stonehearth.town:get_town(faction)
-   town:leave_worker_task_group(entity)
+   town:leave_task_group(entity, 'workers')
 
    local equipment = entity:add_component('stonehearth:equipment')
    local outfit = equipment:unequip_item('stonehearth:worker_outfit')

@@ -32,7 +32,7 @@ function MicroWorld:at(time, fn)
 end
 
 function MicroWorld:place_tree(x, z)
-   return self:place_item('stonehearth:medium_oak_tree', x, z)
+   return self:place_item('stonehearth:small_oak_tree', x, z)
 end
 
 function MicroWorld:place_item(uri, x, z, faction)

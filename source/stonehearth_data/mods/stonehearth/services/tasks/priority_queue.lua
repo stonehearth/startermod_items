@@ -2,6 +2,7 @@ local PriorityQueue = class()
 
 function PriorityQueue:__init(name, get_priority_cb)
    self._name = name
+   self._log = radiant.log.create_logger('tasks', 'pqueue:'..name)
 
    -- the items table contains items lists bucketed by priority
    self._buckets = {}
@@ -29,11 +30,11 @@ function PriorityQueue:remove(id)
 
             -- make sure we don't skip a task when the list currently running through
             -- the round robin iterator gets modified
-            if pri == self._rr_pri and i <= self._rr_tsk then
+            local rr_pri = self._priorities[self._rr_pri]
+            if pri == rr_pri and i <= self._rr_tsk then
                self._rr_tsk = self._rr_tsk - 1
             end
-            assert(self._rr_tsk <= #self._buckets[self._rr_pri])
-
+            assert(self._rr_tsk <= #self._buckets[rr_pri])
             return
          end
       end
@@ -62,9 +63,37 @@ function PriorityQueue:count()
    return self._count
 end
 
+function PriorityQueue:_round_robin_increment()
+   if self._count > 0 then
+      local pri = self._priorities[self._rr_pri]
+      local pri_len = #self._priorities
+      local bucket = self._buckets[pri]
+      local bucket_len = #bucket
+      
+      self._rr_tsk = self._rr_tsk + 1
+      if self._rr_tsk > bucket_len then
+         self._rr_tsk = 1
+         repeat
+            self._rr_pri = self._rr_pri + 1
+            if self._rr_pri > pri_len then
+               self._rr_pri = 1
+            end
+            pri = self._priorities[self._rr_pri]
+            bucket_len = #self._buckets[pri]
+         until bucket_len > 0
+      end
+   end
+end
+
 function PriorityQueue:round_robin()
    if not self._rr_pri or self._count == 0 then
       return nil
+   end   
+   
+   -- if rr_tsk is 0, we removed the last action on the queue we were
+   -- iterating over.  keep searching for another queue!
+   while self._rr_tsk == 0 do
+      self:_round_robin_increment()
    end
    
    local count = 0
@@ -80,18 +109,10 @@ function PriorityQueue:round_robin()
 
       assert(self._rr_tsk <= bucket_len)
       local result = bucket[self._rr_tsk]
-
-      self._rr_tsk = self._rr_tsk + 1
-      if self._rr_tsk > bucket_len then
-         repeat
-            self._rr_pri = self._rr_pri + 1
-            if self._rr_pri > pri_len then
-               self._rr_pri = 1
-            end
-            bucket_len = self._buckets[self._rr_pri]
-         until bucket_len > 0
-         self._rr_tsk = 1
-      end
+      self:_round_robin_increment()
+     
+      count = count + 1
+      return result
    end
    return get_next_task
 end

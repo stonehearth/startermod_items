@@ -1,3 +1,5 @@
+local Point3 = _radiant.csg.Point3
+local Entity = _radiant.om.Entity
 local RunTaskAction = require 'services.tasks.run_task_action'
 
 local NEXT_TASK_ID = 1
@@ -16,7 +18,7 @@ function Task:__init(scheduler, task_group, activity)
      
    self._id = NEXT_TASK_ID
    NEXT_TASK_ID = NEXT_TASK_ID + 1
-   self._log = radiant.log.create_logger('tasks', 'task:'..tostring(self._id))   
+   self._log = radiant.log.create_logger('tasks.task', 'task:'..tostring(self._id))   
    self._log:debug('creating new task for %s', scheduler:get_name())
    self._commited = false
    self._name = activity.name .. ' task'
@@ -35,13 +37,11 @@ end
 
 function Task:destroy()
    if self._state ~= COMPLETED then
-      self:stop()
       self:_set_state(COMPLETED)
-
+      self:_stop()
       for id, worker in pairs(self._workers) do
          self:_remove_worker(id)
       end
-      self._scheduler:_decommit_task(self)
    end
 end
 
@@ -51,6 +51,10 @@ end
 
 function Task:get_activity()
    return self._activity
+end
+
+function Task:get_task_group()
+   return self._task_group
 end
 
 function Task:get_name()
@@ -70,8 +74,10 @@ function Task:set_name(format, ...)
    return self
 end
 
-function Task:set_priority(source)
+function Task:set_source(source)
+   assert(self._state ~= 'started')
    self._source = source
+   return self
 end
 
 function Task:set_priority(priority)
@@ -105,10 +111,11 @@ function Task:start()
    self:_set_state(STARTED)
 
    if not self._action_ctor then
+      local activity = self._task_group:get_activity()
       self._action_ctor = {
          name = self._name .. ' action',
-         does = self._activity.name,
-         args = self._activity.args,
+         does = activity.name,
+         args = activity.args,
          create_action = function(_, ai_component, entity, injecting_entity)
             local action = RunTaskAction(self)
             action.name = self._name .. ' action'
@@ -128,18 +135,17 @@ function Task:start()
    end
 end
 
-function Task:stop()
+function Task:_stop()
    self._scheduler:_stop_feeding_task(self)
-
-   if self._state ~= STOPPED then
-      self:_set_state(STOPPED)
-   end
-
    for _, effect in ipairs(self._effects) do
       effect:stop();
    end
-   self._effects = {}
+   self._effects = {}   
+end
 
+function Task:stop()
+   self:_stop()
+   self:_set_state(STOPPED)
    return self
 end
 
@@ -183,7 +189,7 @@ function Task:_get_fitness(worker)
 
    if source_location then
       -- distance between the worker and the source point
-      return worker_location:length(self._source)
+      return worker_location:distance_to(source_location)
    end
    return 0
 end
@@ -291,7 +297,7 @@ function Task:__action_try_start(action)
       radiant.events.trigger_async(self, 'work_available', self, false)
       self._scheduler:_stop_feeding_task(self)
    end
-   self._scheduler:_notify_worker_started_task(self._activity.name, action:get_entity())
+   self._scheduler:_notify_worker_started_task(self, action:get_entity())
 
    self:_log_state('exiting __action_try_start')
    return true
@@ -307,7 +313,7 @@ function Task:__action_completed(action)
 end
 
 function Task:_on_action_stopped(action)
-   self._scheduler:_notify_worker_stopped_task(self._activity.name, action:get_entity())
+   self._scheduler:_notify_worker_stopped_task(self, action:get_entity())
 
    local work_was_available = self:_is_work_available()
    self._running_actions[action] = nil
@@ -320,14 +326,14 @@ function Task:_on_action_stopped(action)
 
    if self:_is_work_finished() then
       self._log:debug('task reached max number of completions (%d).  stopping and completing!', self._times)
-      self:stop()
+      self:_stop()
       self:destroy()
    end  
 end
 
 function Task:__action_destroyed(action)
    self:_log_state('entering __action_destroyed')
-   self:_on_action_stopped(action)
+   assert(not self._running_actions[action])
    self:_log_state('exiting __action_destroyed')
 end
 
