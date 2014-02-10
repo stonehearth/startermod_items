@@ -12,7 +12,7 @@ end
 
 function ResourceCallHandler:harvest_plant(session, response, plant)
    local town = stonehearth.town:get_town(session.faction)
-   return town:harvest_renewable_resource_node(tree)
+   return town:harvest_renewable_resource_node(plant)
 end
 
 function ResourceCallHandler:shear_sheep(session, response, sheep)

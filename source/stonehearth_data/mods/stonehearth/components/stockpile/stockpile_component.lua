@@ -122,9 +122,6 @@ end
 -- xxx: the 'fire one when i'm constructed' pattern again...
 function StockpileComponent:on_gameloop()
    radiant.events.unlisten(radiant.events, 'stonehearth:gameloop', self, self.on_gameloop)
-
-   self:_create_worker_tasks()
-
    local root = radiant.entities.get_root_entity()
    local ec = radiant.entities.get_root_entity():get_component('entity_container')
 
@@ -337,10 +334,13 @@ end
 function StockpileComponent:_assign_to_faction()
    local faction = self._entity:add_component('unit_info'):get_faction()
 
-   if not self._faction or self._faction ~= faction then
-      if self._faction then
+   local old_faction = self._faction
+   self._faction = faction
+   
+   if not old_faction or self._faction ~= old_faction then
+      if old_faction then
          -- unregister from the current inventory service
-         local inventory = inventory_service:get_inventory(self._faction)
+         local inventory = inventory_service:get_inventory(old_faction)
          inventory:remove_storage(self._entity)
       end
 
@@ -350,10 +350,9 @@ function StockpileComponent:_assign_to_faction()
          inventory:add_storage(self._entity)
          radiant.events.listen(inventory, 'stonehearth:item_added', self, self._on_item_added_to_inventory)
          radiant.events.listen(inventory, 'stonehearth:item_removed', self, self._on_item_removed_from_inventory)
-      end
+      end      
+      self:_create_worker_tasks()
    end
-
-   self._faction = faction
 end
 
 function StockpileComponent:_on_item_added_to_inventory(e)

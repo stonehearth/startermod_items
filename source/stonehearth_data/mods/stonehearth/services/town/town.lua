@@ -1,3 +1,4 @@
+local Entity = _radiant.om.Entity
 local CompoundTask = require 'services.tasks.compound_task'
 local Town = class()
 
@@ -14,8 +15,8 @@ function Town:destroy()
 end
 
 -- xxx: this is a stopgap until we can provide a better interface
-function Town:create_worker_task(name, args)
-   return stonehearth.tasks.create_task('stonehearth:workers', name, args)
+function Town:create_worker_task(activity_name, args)
+   return self._task_groups.workers:create_task(activity_name, args)
 end
 
 function Town:create_orchestrator(name, args, co)
@@ -59,9 +60,8 @@ function Town:place_item_in_world(item_proxy, full_sized_uri, location, rotation
       radiant.entities.destroy_entity(ghost_entity)
    end
 
-   local scheduler = stonehearth.tasks:get_scheduler('stonehearth:workers', session.faction)
-   local task = scheduler:create_task('stonehearth:place_item', {
-         item = item,
+   local task = self:create_worker_task('stonehearth:place_item', {
+         item = item_proxy,
          location = location,
          rotation = rotation,
          finish_fn = remove_ghost_entity
@@ -87,8 +87,7 @@ function Town:place_item_type_in_world(entity_uri, full_item_uri, location, rota
       return item:get_uri() == entity_uri
    end
 
-   local scheduler = stonehearth.tasks:get_scheduler('stonehearth:workers', session.faction)
-   local task = scheduler:create_task('stonehearth:place_item_type', {
+   local task = self:create_worker_task('stonehearth:place_item_type', {
          filter_fn = filter_fn,
          location = location,
          rotation = rotation,
@@ -120,7 +119,7 @@ function Town:promote_citizen(person, talisman)
 end
 
 function Town:harvest_resource_node(tree)
-   if not tree or not tree:is_valid() then
+   if not radiant.util.is_a(tree, Entity) then
       return false
    end
 
@@ -129,8 +128,7 @@ function Town:harvest_resource_node(tree)
       local node_component = tree:get_component('stonehearth:resource_node')
       if node_component then
          local effect_name = node_component:get_harvest_overlay_effect()
-         self._harvest_tasks[id] = self._task_groups.workers
-                                      :create_task('stonehearth:chop_tree', { tree = tree })
+         self._harvest_tasks[id] = self:create_worker_task('stonehearth:chop_tree', { tree = tree })
                                       :set_source(tree)
                                       :add_entity_effect(tree, effect_name)
                                       :once()
@@ -150,8 +148,7 @@ function Town:harvest_renewable_resource_node(plant)
       local node_component = plant:get_component('stonehearth:renewable_resource_node')
       if node_component then
          local effect_name = node_component:get_harvest_overlay_effect()
-         self._harvest_tasks[id] = stonehearth.tasks:get_scheduler('stonehearth:workers', session.faction)
-                                   :create_task('stonehearth:harvest_plant', { plant = plant })
+         self._harvest_tasks[id] = self:create_worker_task('stonehearth:harvest_plant', { plant = plant })
                                    :set_source(plant)
                                    :add_entity_effect(plant, effect_name)
                                    :once()

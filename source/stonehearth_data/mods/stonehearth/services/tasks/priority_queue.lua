@@ -86,13 +86,9 @@ function PriorityQueue:_round_robin_increment()
 end
 
 function PriorityQueue:round_robin()
-   if not self._rr_pri or self._count == 0 then
-      return nil
-   end   
-   
    -- if rr_tsk is 0, we removed the last action on the queue we were
    -- iterating over.  keep searching for another queue!
-   while self._rr_tsk == 0 do
+   while self._count > 0 and self._rr_tsk == 0 do
       self:_round_robin_increment()
    end
    

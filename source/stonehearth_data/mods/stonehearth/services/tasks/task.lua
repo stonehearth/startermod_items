@@ -159,6 +159,7 @@ function Task:_remove_worker(id)
    if worker then     
       stonehearth.ai:remove_custom_action(worker, self._action_ctor)
       self._workers[id] = nil
+      self._scheduler:_remove_worker_from_task(id, self)
    end
 end
 
@@ -183,7 +184,7 @@ function Task:_get_fitness(worker)
       end
       if not source_location then
          -- no luck?  use the origin
-         source_location = radiant.entities.get_world_grid_location(source)
+         source_location = radiant.entities.get_world_grid_location(self._source)
       end
    end
 
