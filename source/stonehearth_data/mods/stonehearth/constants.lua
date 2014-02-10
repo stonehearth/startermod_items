@@ -28,7 +28,13 @@ local constants = {
          GENERIC_TASK_PRIORITY = 30,
          GRAB_PROMOTION_TALISMAN = 30,
          SLEEP = 40,
-      }
+         UNIT_CONTROL = 10000,
+      },
+
+      -- Priorites of commands issued by the player to a unit
+      unit_control = {
+         MOVE = 2
+      },
    },
    
    -- Constants related to constructing buildings
@@ -36,6 +42,7 @@ local constants = {
       STOREY_HEIGHT = 6,
       MAX_WALL_SPAN = 8,
    },
+
 
    -- Constants for the worker scheduler tasks
    worker_scheduler = {
