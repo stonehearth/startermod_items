@@ -15,7 +15,7 @@ ChoosePointAroundLeash.version = 2
 ChoosePointAroundLeash.priority = 2
 
 function ChoosePointAroundLeash:start_thinking(ai, entity, args)
-   if not entity:get_component('stonehearth:leash') then
+   if true or not entity:get_component('stonehearth:leash') then
       entity:add_component('stonehearth:leash'):set_to_entity_location(entity)
    end
 
