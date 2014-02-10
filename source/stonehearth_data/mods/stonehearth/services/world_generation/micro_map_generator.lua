@@ -4,12 +4,12 @@ local Array2D = require 'services.world_generation.array_2D'
 local MathFns = require 'services.world_generation.math.math_fns'
 local NonUniformQuantizer = require 'services.world_generation.math.non_uniform_quantizer'
 local FilterFns = require 'services.world_generation.filter.filter_fns'
+local ValleyShapes = require 'services.world_generation.valley_shapes'
 local Timer = require 'services.world_generation.timer'
 
 local MicroMapGenerator = class()
 local log = radiant.log.create_logger('world_generation')
 
--- TODO: remove terrain_type from all the micro_maps
 function MicroMapGenerator:__init(terrain_info, rng)
    self._terrain_info = terrain_info
    self._tile_size = self._terrain_info.tile_size
@@ -18,10 +18,11 @@ function MicroMapGenerator:__init(terrain_info, rng)
    self._rng = rng
 
    self._macro_blocks_per_tile = self._tile_size / self._macro_block_size
+
+   self._valley_shapes = ValleyShapes(rng)
 end
 
 function MicroMapGenerator:generate_micro_map(blueprint)
-   local quantizer = self._terrain_info.quantizer
    local noise_map, micro_map, width, height
 
    -- create the noise map
@@ -33,14 +34,10 @@ function MicroMapGenerator:generate_micro_map(blueprint)
    FilterFns.filter_2D_0125(micro_map, noise_map, width, height, 10)
 
    -- quantize it
-   micro_map:process(
-      function (value)
-         return quantizer:quantize(value)
-      end
-   )
+   self:_quantize(micro_map)
 
    -- postprocess it
-   self:_postprocess_micro_map(micro_map)
+   self:_postprocess(micro_map)
 
    local elevation_map = self:_convert_to_elevation_map(micro_map)
 
@@ -144,9 +141,112 @@ function MicroMapGenerator:_surrounded_by_terrain(terrain_type, blueprint, x, y)
    return true
 end
 
+function MicroMapGenerator:_quantize(micro_map)
+   local quantizer = self._terrain_info.quantizer
+   local plains_max_height = self._terrain_info[TerrainType.plains].max_height
+
+   micro_map:process(
+      function (value)
+         -- CHECKCHECK prepare for plains detailing
+         if value <= plains_max_height then
+            return plains_max_height
+         end
+         return quantizer:quantize(value)
+      end
+   )
+end
+
 -- edge values may not change values! they are shared with the adjacent tile
-function MicroMapGenerator:_postprocess_micro_map(micro_map)
+function MicroMapGenerator:_postprocess(micro_map)
+   -- this rarely occurs and may not be needed anymore
    self:_fill_holes(micro_map)
+
+   self:_add_plains_valleys(micro_map)
+end
+
+function MicroMapGenerator:_add_plains_valleys(micro_map)
+   local rng = self._rng
+   local shape_width = self._valley_shapes.shape_width
+   local shape_height = self._valley_shapes.shape_height
+   local plains_info = self._terrain_info[TerrainType.plains]
+   local noise_map = Array2D(micro_map.width, micro_map.height)
+   local filtered_map = Array2D(micro_map.width, micro_map.height)
+   local plains_max_height = plains_info.max_height
+   local valley_height = plains_info.max_height - plains_info.step_size
+   -- no coincidence that this value is approx 1/((shape_width+4)*(shape_height+4))
+   local valley_density = 0.015
+   local num_sites = 0
+   local sites = {}
+   local value, site, roll
+
+   local noise_fn = function(i, j)
+      if micro_map:is_boundary(i, j) then
+         return -10
+      end
+      if micro_map:get(i, j) ~= plains_max_height then
+         return -100
+      end
+      return 1
+   end
+
+   noise_map:fill_ij(noise_fn)
+
+   FilterFns.filter_2D_0125(filtered_map, noise_map, noise_map.width, noise_map.height, 10)
+
+   for j=1, filtered_map.height do
+      for i=1, filtered_map.width do
+         value = filtered_map:get(i, j)
+
+         if value > 0 then
+            num_sites = num_sites + 1
+            -- -1 to move from center to origin (top left of block)
+            site = { x = i-1, y = j-1 }
+            table.insert(sites, site)
+         end
+      end
+   end
+
+   for i=1, num_sites*valley_density do
+      roll = rng:get_int(1, num_sites)
+      site = sites[roll]
+
+      -- make sure pattern has good separation from other terrain
+      if self:_is_high_plains(micro_map, site.x-2, site.y-2, shape_width+4, shape_height+4) then
+         self:_place_valley(micro_map, site.x, site.y)
+      end
+   end
+end
+
+function MicroMapGenerator:_place_valley(micro_map, i, j)
+   local terrain_info = self._terrain_info
+   local plains_height = terrain_info[TerrainType.plains].max_height
+   local valley_height = terrain_info.min_height
+   local block
+
+   block = self._valley_shapes:get_random_shape()
+
+   block:process(
+      function (value)
+         if value == 1 then
+            return valley_height
+         end
+         return plains_height
+      end
+   )
+   Array2D.copy_block(micro_map, block, i, j, 1, 1, block.width, block.height)
+end
+
+function MicroMapGenerator:_is_high_plains(micro_map, i, j, width, height)
+   local plains_height = self._terrain_info[TerrainType.plains].max_height
+
+   local fn = function (value)
+      if value == plains_height then
+         return true
+      end
+      return false
+   end
+
+   return micro_map:visit_block(i, j, width, height, fn)
 end
 
 function MicroMapGenerator:_fill_holes(micro_map)

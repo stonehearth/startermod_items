@@ -184,8 +184,8 @@ function Array2D:process_block(x, y, block_width, block_height, fn)
    end
 end
 
--- terminates early if fn(x) returns false on an element
 -- returns true if fn(x) returns true for all elements, false otherwise
+-- terminates early if fn(x) returns false on an element
 function Array2D:visit_block(x, y, block_width, block_height, fn)
    local index, continue
    local offset = self:get_offset(x, y)-1
@@ -201,6 +201,14 @@ function Array2D:visit_block(x, y, block_width, block_height, fn)
       offset = offset + self.width
    end
    return true
+end
+
+function Array2D:load(array)
+   local size = self.width * self.height
+
+   for i=1, size do
+      self[i] = array[i]
+   end
 end
 
 function Array2D:print(format_string)

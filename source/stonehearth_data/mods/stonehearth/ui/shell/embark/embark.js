@@ -60,7 +60,7 @@ App.StonehearthEmbarkView = App.View.extend({
       var self = this;
       var seed = self._generate_seed();
 
-      radiant.call('stonehearth:new_game', 5, 5, seed)
+      radiant.call('stonehearth:new_game', 14, 8, seed)
          .done(function(e) {
             fn(e);
          })

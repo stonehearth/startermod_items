@@ -158,7 +158,7 @@ function Landscaper:mark_trees(elevation_map, feature_map)
             mean = mean - 5
          else
             -- avoid depressions
-            mean = mean - 75
+            mean = mean - 100
          end
       else
          -- TerrainType.foothills
@@ -436,13 +436,21 @@ function Landscaper:mark_flowers(elevation_map, feature_map)
 
       if noise_map:is_boundary(i, j) then
          -- soften discontinuities at tile boundaries
-         mean = mean - 50
+         mean = mean - 20
       end
 
       -- flowers grow away from forests
       local feature = feature_map:get(i, j)
       if self:is_tree_name(feature) then
-         mean = mean - 50
+         mean = mean - 200
+      end
+
+      local elevation = elevation_map:get(i, j)
+      local terrain_type, step = terrain_info:get_terrain_type_and_step(elevation)
+
+      if terrain_type == TerrainType.plains and step == 1 then
+         -- avoid depressions
+         mean = mean - 200
       end
 
       return rng:get_gaussian(mean, std_dev)
