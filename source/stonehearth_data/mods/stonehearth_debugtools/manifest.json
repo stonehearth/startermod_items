@@ -3,6 +3,12 @@
       "name" : "Stonehearth Debug Tools"
    },
 
+   "mixintos" : {
+      "stonehearth:mixins:base_human" : [
+         "file(mixintos/interrupt_ai)"
+      ]
+   },
+
    "ui" :  {
       "html" : [
          "file(/ui/entity_inspector/entity_inspector.html)",
@@ -18,5 +24,12 @@
          "file(/ui/entity_inspector/entity_inspector.less)",
          "file(/ui/object_browser/object_browser.less)"
       ]
+   },
+
+   "functions" : {
+      "interrupt_ai": {
+         "controller" : "file(call_handlers/debugtools_commands.lua)",
+         "endpoint" : "server"
+      }
    }
 }
