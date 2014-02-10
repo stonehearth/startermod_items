@@ -168,7 +168,7 @@ void ResourceManager2::ImportModMixintoEntry(std::string const& modname, std::st
 {
    std::string resource_path;
    try {
-      resource_path = ConvertToCanonicalPath(path, nullptr);
+      resource_path = ConvertToCanonicalPath(path, ".json");
    } catch (std::exception const&) {
       RES_LOG(1) << "could not find resource for " << path << " while processing mixintos for " << modname << ".  ignoring.";
       return;
@@ -188,7 +188,7 @@ void ResourceManager2::ImportModMixintos(std::string const& modname, json::Node 
          mixinto_path = ConvertToCanonicalPath(mixinto.name(), ".json");
       } catch (std::exception const&) {
          RES_LOG(1) << "could not find resource for " << mixinto.name() << " while processing mixintos for " << modname << ".  ignoring.";
-         return;
+         continue;
       }
       if (mixinto.type() == JSON_STRING) {
          ImportModMixintoEntry(modname, mixinto_path, mixinto.as<std::string>());
@@ -210,7 +210,7 @@ void ResourceManager2::ImportModOverrides(std::string const& modname, json::Node
          override_path = ConvertToCanonicalPath(over.name(), ".json");
       } catch (std::exception const&) {
          RES_LOG(1) << "could not find resource for " << over.name() << " while processing overrides for " << modname << ".  ignoring.";
-         return;
+         continue;
       }
       try {
          resource_path = ConvertToCanonicalPath(over.as<std::string>(), ".json");
@@ -341,22 +341,22 @@ std::string ResourceManager2::ConvertToCanonicalPath(std::string path, const cha
 
 JSONNode ResourceManager2::LoadJson(std::string const& canonical_path) const
 {
-   JSONNode node;
+   JSONNode new_node;
    std::string error_message;
    bool success;
 
    std::shared_ptr<std::istream> is = OpenResource(canonical_path);
-   success = json::ReadJson(*is, node, error_message);
+   success = json::ReadJson(*is, new_node, error_message);
    if (!success) {
       std::string full_message = BUILD_STRING("Error reading file " << canonical_path << ":\n\n" << error_message);
       RES_LOG(1) << full_message;
       throw core::Exception(full_message);
    }
 
-   ExpandMacros(canonical_path, node, false);
-   ParseNodeMixin(canonical_path, node);
+   ExpandMacros(canonical_path, new_node, false);
+   ParseNodeMixin(canonical_path, new_node);
 
-   return node;
+   return new_node;
 }
 
 void ResourceManager2::ExpandMacros(std::string const& base_path, JSONNode& node, bool full) const
@@ -372,20 +372,22 @@ void ResourceManager2::ExpandMacros(std::string const& base_path, JSONNode& node
    }
 }
 
-void ResourceManager2::ParseNodeMixin(std::string const& path, JSONNode& n) const
+void ResourceManager2::ParseNodeMixin(std::string const& path, JSONNode& new_node) const
 {
-   json::Node node(n);
+   RES_LOG(5) << "node " << path << " pre-all-mixins: " << new_node.write_formatted();
+
+   json::Node node(new_node);
    // Parse the node mixins first
    if (node.has("mixins")) {
       json::Node mixins = node.get_node("mixins");
       if (mixins.type() == JSON_STRING) {
          std::string mixin = node.get<std::string>("mixins");
          // if the node is an array, load this shit in in a loop
-         ApplyMixin(mixin, n, node);
+         ApplyMixin(mixin, new_node);
       } else if (mixins.type() == JSON_ARRAY) {
          for (JSONNode const &child : mixins.get_internal_node()) {
             std::string mixin = child.as_string();
-            ApplyMixin(mixin, n, node);
+            ApplyMixin(mixin, new_node);
          }
       } else {
          throw json::InvalidJson("invalid json node type in mixin. Mixins must be a string or an array.");
@@ -396,58 +398,63 @@ void ResourceManager2::ParseNodeMixin(std::string const& path, JSONNode& n) cons
    auto i = mixintos_.find(path);
    if (i != mixintos_.end()) {
       for (std::string const& mixin : i->second) {
-         ApplyMixin(mixin, n, node);
+         ApplyMixin(mixin, new_node);
       }
    }
+
+   RES_LOG(5) << "node " << path << " post-all-mixins: " << new_node.write_formatted();
 }
 
-void ResourceManager2::ApplyMixin(std::string const& mixin, JSONNode& n, json::Node node) const
+void ResourceManager2::ApplyMixin(std::string const& mixin_name, JSONNode& new_node) const
 {
-   JSONNode parent;
-   std::string uri = ExpandMacro(mixin, mixin, true);
+   JSONNode mixin_node;
+   std::string uri = ExpandMacro(mixin_name, mixin_name, true);
 
    try {
-      parent = LookupJson(uri);
+      mixin_node = LookupJson(uri);
    } catch (InvalidFilePath &) {
-      throw InvalidFilePath(mixin);
+      throw InvalidFilePath(mixin_name);
    }
 
-   RES_LOG(7) << "node pre-mixin: " << node.write_formatted();
-   RES_LOG(7) << "mixing with: " << parent.write_formatted();
-   ExtendNode(n, parent);
-   RES_LOG(7) << "node post-mixin: " << node.write_formatted();
-
+   RES_LOG(7) << "node pre-mixin: " << new_node.write_formatted();
+   RES_LOG(7) << "mixing with (mixin:" << mixin_name << " uri:" << uri << ") : " << mixin_node.write_formatted();
+   ExtendNode(new_node, mixin_node);
+   RES_LOG(7) << "node post-mixin: " << new_node.write_formatted();
 }
 
-void ResourceManager2::ExtendNode(JSONNode& node, const JSONNode& parent) const
+void ResourceManager2::ExtendNode(JSONNode& new_node, const JSONNode& mixin_node) const
 {
-   ASSERT(node.type() == parent.type());
+   ASSERT(new_node.type() == mixin_node.type());
 
-   switch (parent.type()) {
+   switch (mixin_node.type()) {
    case JSON_NODE:
       {
-         for (const auto& i : parent) {
+         for (const auto& i : mixin_node) {
             std::string const& name = i.name();
-            auto current = node.find(name);
-            if (current!= node.end()) {
+            auto current = new_node.find(name);
+            if (current != new_node.end()) {
+               RES_LOG(9) << "extending new_node key " << name << " with mixin_node";
                ExtendNode(*current, i);
             } else {
-               node.push_back(i);
+               RES_LOG(9) << "adding new_node key " << name << " from mixin_node";
+               new_node.push_back(i);
             }
          }
          break;
       }
    case JSON_ARRAY:
       {
-         JSONNode values = parent;
-         for (uint i = 0; i < node.size(); i++) {
-            values.push_back(node[i]);
+         RES_LOG(9) << "adding " << mixin_node.size() << " array values to existing " << new_node.size() << " values";
+         JSONNode values = mixin_node;
+         for (uint i = 0; i < new_node.size(); i++) {
+            values.push_back(new_node[i]);
          }
-         node = values;
+         new_node = values;
          break;
       }
    default:
-      node = parent;
+      RES_LOG(9) << "replacing new_node with mixin_node";
+      new_node = mixin_node;
       break;      
    }
 }

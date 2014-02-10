@@ -41,7 +41,7 @@ private:
    AnimationPtr LoadAnimation(std::string const& canonical_path) const;
    JSONNode LoadJson(std::string const& path) const;
    void ParseNodeMixin(std::string const& path, JSONNode& node) const;
-   void ApplyMixin(std::string const& mixin, JSONNode& n, json::Node node) const;
+   void ApplyMixin(std::string const& mixin, JSONNode& n) const;
    void ExtendNode(JSONNode& node, const JSONNode& parent) const;
    std::string ExpandMacro(std::string const& current, std::string const& base_path, bool full) const;
    void ExpandMacros(std::string const& base_path, JSONNode& node, bool full) const;
