@@ -7,6 +7,7 @@
 #include "untrace.h"
 #include "function.h"
 #include "session.h"
+#include <snappy.h>
 
 using namespace ::radiant;
 using namespace ::radiant::rpc;
@@ -29,7 +30,11 @@ ReactorDeferredPtr ProtobufReactor::Dispatch(SessionPtr session, proto::PostComm
       proto::PostCommandReply reply;
       reply.set_call_id(call_id);
       reply.set_type(type);
-      reply.set_content(node.write());
+
+      // these can get really big, so snappy compress them.
+      std::string json = node.write();
+      snappy::Compress(json.c_str(), json.size(), reply.mutable_content());
+
       send_reply_fn_(reply);
    };
 
