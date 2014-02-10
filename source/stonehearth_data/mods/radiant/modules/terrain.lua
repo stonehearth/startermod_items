@@ -48,4 +48,8 @@ function Terrain.each_world_entity()
    return ec:each_child()
 end
 
+function Terrain.get_height(location)
+   return _terrain:get_height(location)
+end
+
 return Terrain

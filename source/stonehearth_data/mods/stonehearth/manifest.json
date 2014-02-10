@@ -382,6 +382,18 @@
          "controller" : "file(call_handlers/new_game_call_handler.lua)",
          "endpoint" : "server"
       },
+      "generate_start_location": {
+         "controller" : "file(call_handlers/new_game_call_handler.lua)",
+         "endpoint" : "server"
+      },
+      "embark_server": {
+         "controller" : "file(call_handlers/new_game_call_handler.lua)",
+         "endpoint" : "server"
+      },
+      "embark_client": {
+         "controller" : "file(call_handlers/new_game_call_handler.lua)",
+         "endpoint" : "client"
+      },
       "choose_camp_location": {
          "controller" : "file(call_handlers/new_game_call_handler.lua)",
          "endpoint" : "client"
@@ -442,7 +454,6 @@
          "controller": "file(call_handlers/resource_call_handler.lua)",
          "endpoint" : "server"
       },
-
       "get_worker_tracker" : {
          "endpoint" : "server",
          "controller" : "file(call_handlers/object_tracker_call_handler.lua)"
@@ -507,8 +518,7 @@
          "controller" : "file(call_handlers/camera_call_handler.lua)",
          "endpoint" : "client"
       }
-  },
-   
+   },
    "components" :  {
       "ai" : "file(components/ai/ai_component.lua)",
       "commands" : "file(components/commands/commands_component.lua)",
@@ -599,7 +609,7 @@
          "file(ui/shell/analytics_opt/analytics_opt.js)",
          "file(ui/shell/new_game/new_game.js)",
          "file(ui/shell/embark/embark.js)",
-         "file(ui/shell/embark/jquery.stonehearth.map.js)",
+         "file(ui/shell/embark/map.js)",
          "file(ui/shell/loading_screen/loading_screen.js)",
          "file(ui/shell/settings/settings.js)",
          "file(ui/debug/debug.js)",
@@ -634,7 +644,7 @@
          "file(ui/shell/analytics_opt/analytics_opt.less)",
          "file(ui/shell/new_game/new_game.less)",
          "file(ui/shell/embark/embark.less)",
-         "file(ui/shell/embark/stonehearth.map.less)",
+         "file(ui/shell/embark/map.less)",
          "file(ui/shell/loading_screen/loading_screen.less)",
          "file(ui/shell/settings/settings.less)",
          "file(ui/debug/error_browser/error_browser.less)",
