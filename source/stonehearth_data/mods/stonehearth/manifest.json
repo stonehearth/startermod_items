@@ -240,7 +240,10 @@
       "actions:eat_on_ground" : "file(ai/actions/eat_on_ground.lua)",
       "actions:get_food_from_container" : "file(ai/actions/get_food_from_container.lua)",
       "actions:get_food_from_container_adjacent" : "file(ai/actions/get_food_from_container_adjacent.lua)",
-      "actions:move_unit_action" : "file(ai/actions/move_unit_action.lua)",
+      
+      "actions:unit_control:dispatcher" : "file(ai/actions/unit_control/unit_control_dispatcher.lua)",
+      "actions:unit_control:move_unit_to_location" : "file(ai/actions/unit_control/move_unit_to_location_action.lua)",
+      
       "actions:chop_tree_action" : "file(ai/actions/chop_tree_action.lua)",
       "actions:chop_tree_adjacent_action" : "file(ai/actions/chop_tree_adjacent_action.lua)",
       "actions:harvest_plant" : "file(ai/actions/harvest_plant.lua)",
@@ -390,12 +393,12 @@
          "controller" : "file(call_handlers/new_game_call_handler.lua)",
          "endpoint" : "server"
       },
-      "choose_unit_location" : {
-         "controller": "file(call_handlers/unit_control_call_handler.lua)",
+      "client_move_unit" : {
+         "controller": "file(call_handlers/unit_control/move_unit_call_handler.lua)",
          "endpoint" : "client"
       },
-      "move_unit" : {
-         "controller": "file(call_handlers/unit_control_call_handler.lua)",
+      "server_move_unit" : {
+         "controller": "file(call_handlers/unit_control/move_unit_call_handler.lua)",
          "endpoint" : "server"
       },
       "set_display_name": {
