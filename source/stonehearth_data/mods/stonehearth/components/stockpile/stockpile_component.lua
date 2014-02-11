@@ -258,7 +258,7 @@ function StockpileComponent:_add_item(entity)
       self:_add_to_region(entity)
      
       if self:can_stock_entity(entity) then
-         log:debug('adding %s to stock', entity)
+         log:debug('adding %s to stock', tostring(entity))
          self:_add_item_to_stock(entity)
       end
    end
