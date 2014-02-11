@@ -10,6 +10,6 @@
    "event_name": "build_workshop.stonehearth",
    "event_data": {
       "crafter" : "{{self}}",
-      "uri": "/stonehearth/entities/professions/carpenter/profession_description.json"
+      "profession_info": "/stonehearth/entities/professions/carpenter/profession_description.json"
    }
 }

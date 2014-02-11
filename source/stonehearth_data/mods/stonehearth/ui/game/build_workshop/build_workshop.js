@@ -2,7 +2,7 @@ $(document).ready(function(){
 
    $(top).on("build_workshop.stonehearth", function (_, e) {
       var view = App.gameView.addView(App.StonehearthCrafterBuildWorkshopView, {
-         uri: e.event_data.uri, 
+         uri: e.event_data.profession_info, 
          crafter: e.event_data.crafter
       });
    });
