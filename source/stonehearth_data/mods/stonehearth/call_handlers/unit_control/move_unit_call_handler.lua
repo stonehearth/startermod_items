@@ -2,9 +2,11 @@ local priorities = require('constants').priorities.worker_task
 local Point2 = _radiant.csg.Point2
 local Point3 = _radiant.csg.Point3
 
-local UnitControlCallHandler = class()
+local MoveUnitCallHandler = class()
 
-function UnitControlCallHandler:choose_unit_location(session, response, entity)
+local all_move_tasks = {}
+
+function MoveUnitCallHandler:client_move_unit(session, response, entity)
 
    self._entity = entity;
    self._cursor_entity = radiant.entities.create_entity('stonehearth:camp_standard')
@@ -26,7 +28,7 @@ function UnitControlCallHandler:choose_unit_location(session, response, entity)
 end
 
 -- called each time the mouse moves on the client.
-function UnitControlCallHandler:_on_mouse_event(e, response)
+function MoveUnitCallHandler:_on_mouse_event(e, response)
    assert(self._capture, "got mouse event after releasing capture")
 
    local s = _radiant.client.query_scene(e.x, e.y)
@@ -44,7 +46,7 @@ function UnitControlCallHandler:_on_mouse_event(e, response)
    -- entity.  this is done by posting to the correct route.
    if e:up(1) and s.location then
       
-      _radiant.call('stonehearth:move_unit', self._entity:get_id(), pt)
+      _radiant.call('stonehearth:server_move_unit', self._entity:get_id(), pt)
                :always(function ()
                      -- whether the request succeeds or fails, go ahead and destroy
                      -- the authoring entity.  do it after the request returns to avoid
@@ -62,16 +64,28 @@ function UnitControlCallHandler:_on_mouse_event(e, response)
    return true
 end
 
-function UnitControlCallHandler:move_unit(session, response, entity_id, pt)
+function MoveUnitCallHandler:server_move_unit(session, response, entity_id, location)
    local entity = radiant.entities.get_entity(entity_id)
-   radiant.events.trigger(entity, 'stonehearth:move_unit', {
-         location = pt
-      })
+   local pt = Point3(location.x, location.y, location.z)
+
+   local scheduler = stonehearth.tasks:create_scheduler()
+                                      :set_activity('stonehearth:unit_control', {})
+                                      :join(entity)
+
+   if all_move_tasks[entity_id] then
+      all_move_tasks[entity_id]:destroy()
+      all_move_tasks[entity_id] = nil
+   end
+
+   all_move_tasks[entity_id] = scheduler:create_task('stonehearth:unit_control:move_unit', { location = pt })
+                         :once()
+                         :start()
+                         
    return true
 end
 
 
-function UnitControlCallHandler:_on_keyboard_event(e, response)
+function MoveUnitCallHandler:_on_keyboard_event(e, response)
    if e.key == _radiant.client.KeyboardInput.KEY_ESC and e.down then
       self:_cleanup()
       response:resolve({ result = false })
@@ -80,11 +94,18 @@ function UnitControlCallHandler:_on_keyboard_event(e, response)
 end
 
 -- destroy our capture object to release the mouse back to the client.  
-function UnitControlCallHandler:_cleanup(e, response)
-   self._capture:destroy()
-   self._capture = nil
-   _radiant.client.destroy_authoring_entity(self._cursor_entity:get_id())
+function MoveUnitCallHandler:_cleanup(e, response)
+   if self._capture then
+      self._capture:destroy()
+      self._capture = nil
+   end
+
+   if self._cursor_entity then   
+      _radiant.client.destroy_authoring_entity(self._cursor_entity:get_id())
+      self._cursor_entity = nil
+   end
+   
 end
 
 
-return UnitControlCallHandler
+return MoveUnitCallHandler

@@ -28,11 +28,13 @@ function UnitControlService:_on_mouse_input(e)
       local dx = math.abs(e.x - self._mouse_down_x)
       local dy = math.abs(e.y - self._mouse_down_y)
 
-      if dx < input_constants.mouse.dead_zone_size and dy < input_constants.mouse.dead_zone_size then
-        self:_move_unit(e)
+      if not self._moved and dx < input_constants.mouse.dead_zone_size * 2 and dy < input_constants.mouse.dead_zone_size * 2 then
+         self._moved = true
+         self:_move_unit(e)
       end
 
    elseif e:down(2) then
+      self._moved = false
       self._mouse_down_x = e.x
       self._mouse_down_y = e.y
    end
@@ -51,7 +53,7 @@ function UnitControlService:_move_unit(e)
          move_location = screen_ray.origin
       end
 
-      _radiant.call('stonehearth:move_unit', selected_entity:get_id(), move_location)
+      _radiant.call('stonehearth:server_move_unit', selected_entity:get_id(), move_location)
       :done(function(r)
             --response:resolve(true)
          end)
