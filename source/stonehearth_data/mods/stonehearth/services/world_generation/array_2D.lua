@@ -1,3 +1,5 @@
+local MathFns = require 'services.world_generation.math.math_fns'
+
 local Array2D = class()
 local log = radiant.log.create_logger('world_generation')
 
@@ -7,20 +9,33 @@ function Array2D:__init(width, height)
 end
 
 function Array2D:get(x, y)
+   --assert(self:in_bounds(x, y))
    return self[self:get_offset(x,y)]
 end
 
 function Array2D:set(x, y, value)
+   --assert(self:in_bounds(x, y))
    self[self:get_offset(x,y)] = value
 end
 
 function Array2D:get_offset(x, y)
+   --assert(self:in_bounds(x, y))
    return (y-1)*self.width + x
 end
 
+function Array2D:get_dimensions()
+   return self.width, self.height
+end
+
 function Array2D:is_boundary(x, y)
-   if x == 1 or y == 1 then return true end
-   if x == self.width or y == self.height then return true end
+   if x == 1 or y == 1 then
+      return true
+   end
+
+   if x == self.width or y == self.height then
+      return true
+   end
+
    return false
 end
 
@@ -33,15 +48,66 @@ function Array2D:in_bounds(x, y)
 end
 
 function Array2D:bound(x, y)
-   if x < 1 then x = 1
-   elseif x > self.width then x = self.width
+   if x < 1 then
+      x = 1
+   elseif x > self.width then
+      x = self.width
    end
 
-   if y < 1 then y = 1
-   elseif y > self.height then y = self.height
+   if y < 1 then
+      y = 1
+   elseif y > self.height then
+      y = self.height
    end
 
    return x, y
+end
+
+-- return 0 width/height for non-intersecting block
+function Array2D:bound_block(x, y, width, height)
+   -- x1, y1 is inclusve
+   local x1 = MathFns.bound(x, 1, self.width+1)
+   local y1 = MathFns.bound(y, 1, self.height+1)
+
+   -- x2, y2 is exclusive
+   local x2 = MathFns.bound(x+width, 1, self.width+1)
+   local y2 = MathFns.bound(y+height, 1, self.height+1)
+
+   local new_width = x2 - x1
+   local new_height = y2 - y1
+
+   return x1, y1, new_width, new_height
+end
+
+-- does not test diagonals
+function Array2D:is_adjacent_to(value, x, y)
+   local offset = self:get_offset(x, y)
+
+   if x > 1 then
+      if value == self[offset-1] then
+         return true
+      end
+   end
+
+   if y > 1 then 
+      if value == self[offset-width] then
+         return true
+      end
+   end
+
+   if x < self.width then
+      if value == self[offset+1] then
+         return true
+      end
+   end
+
+   if y < self.height then
+      if value == self[offset+width] then
+         return true
+      end
+   end
+
+   return false
 end
 
 function Array2D:clone()
@@ -118,8 +184,8 @@ function Array2D:process_block(x, y, block_width, block_height, fn)
    end
 end
 
--- terminates early if fn(x) returns false on an element
 -- returns true if fn(x) returns true for all elements, false otherwise
+-- terminates early if fn(x) returns false on an element
 function Array2D:visit_block(x, y, block_width, block_height, fn)
    local index, continue
    local offset = self:get_offset(x, y)-1
@@ -135,6 +201,14 @@ function Array2D:visit_block(x, y, block_width, block_height, fn)
       offset = offset + self.width
    end
    return true
+end
+
+function Array2D:load(array)
+   local size = self.width * self.height
+
+   for i=1, size do
+      self[i] = array[i]
+   end
 end
 
 function Array2D:print(format_string)

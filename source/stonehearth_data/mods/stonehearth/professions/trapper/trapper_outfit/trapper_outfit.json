@@ -25,7 +25,7 @@
          "render_type" : "merge_with_model",
          "injected_ai" : {
             "actions" : [
-               "stonehearth:actions:move_unit_action",
+                "stonehearth:actions:unit_control:move_unit_to_location" 
             ]
          },
          "injected_commands" : [

@@ -7,7 +7,7 @@
    "icon": "file(move_unit.png)",
 
    "action": "call",
-   "function": "stonehearth:choose_unit_location",
+   "function": "stonehearth:client_move_unit",
    "args": [
       "{{self}}"
    ]

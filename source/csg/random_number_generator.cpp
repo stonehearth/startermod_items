@@ -80,6 +80,11 @@ T RandomNumberGenerator::GetGaussian(T mean, T std_dev)
 {
    static_assert(std::is_floating_point<T>::value, "<T> must be a floating point type");
 
+   // Comply with C++ 11 standard on normal distributions with zero sigma
+   if (std_dev == 0.0) {
+      return mean;
+   }
+
    std::normal_distribution<T> distribution(mean, std_dev);
    return distribution(generator_);
 }
