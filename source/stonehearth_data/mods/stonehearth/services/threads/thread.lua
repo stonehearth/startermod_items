@@ -38,7 +38,7 @@ function Thread.schedule_thread(thread)
    if not Thread.is_scheduled[thread] then
       thread._log:detail('scheduling thread')
       Thread.is_scheduled[thread] = true
-      table.insert(thread.scheduled, thread)
+      table.insert(Thread.scheduled, thread)
    end
 end
 
