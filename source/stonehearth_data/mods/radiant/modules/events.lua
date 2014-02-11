@@ -39,18 +39,32 @@ function events.listen(object, event, self, fn)
    end
 
    local sender = events._senders[key]
-   if not sender[event] then
-      sender[event] = {}
-   end
- 
    local listeners = sender[event]
+   if not listeners then
+      listeners = {}
+      sender[event] = listeners
+   end
 
-   log:debug('listening to event ' .. event)
-   
-   local entry = {
-      self = self,
-      fn = fn
-   }
+
+   log:spam('listening to event ' .. event)  
+   local entry = {}   
+   if fn then
+      -- this is a method on an object.  theoretical question:  what
+      -- happens if an object instance listens for an event and forgets
+      -- to unlisten before the last reference to it goes away?  we
+      -- don't want to be the only one keeping that object alive, and we certainly
+      -- don't want to fire notifications into the ether that are not 
+      -- useful (which presumedly these are, since the object should have
+      -- been garbage collected!)   To prevent this, use a weak table to
+      -- make sure the object gets collected if this is the very very last
+      -- reference to it.
+      setmetatable(entry, { __mode = 'kv' })
+      entry.self = self
+      entry.fn = fn
+   else
+      -- self is actually just a function
+      entry.self = self
+   end
    table.insert(listeners, entry)
 end
 
@@ -83,7 +97,7 @@ function events.unlisten(object, event, self, fn)
 
    for i, listener in ipairs(listeners) do
       if listener.fn == fn and listener.self == self then
-         log:debug('unlistening to event ' .. event)
+         log:spam('unlistening to event ' .. event)
          table.remove(listeners, i)
          return
       end
@@ -109,19 +123,33 @@ function events.trigger(object, event, ...)
    if sender then
       local listeners = sender[event]
       if listeners then
-         for i, listener in ipairs(listeners) do
-            log:debug('triggering event ' .. event)
-            local result = false
-            if listener.fn ~= nil then
-               -- type 1: listen was called with 'self' and a method to call
-               result = listener.fn(listener.self, ...)
+         log:debug('trigging %d listeners for "%s"', #listeners, event)
+         local i = 1
+         while i <= #listeners do
+            local entry = listeners[i]
+            local result
+            if not entry.self then
+               -- the object got garbage collected before it could unlisten.  it's
+               -- probably buggy, but let's not let that bother us too much.  just
+               -- remove it from the array.
+               log:detail('   listener %d has been collected.  not firing.', i)
+               result = radiant.events.UNLISTEN
             else
-               -- type 2: listen was called with just a function!  call it
-               result = listener.self(...)
+               if entry.fn ~= nil then
+               -- type 1: listen was called with 'self' and a method to call
+                  result = entry.fn(entry.self, ...)
+               else
+                  -- type 2: listen was called with just a function!  call it
+                  result = entry.self(...)
+               end
             end
-            -- auto-remove if the caller returned the magic value
-            if result == events.UNLISTEN then
-               events.unlisten(object, event, listener.self, listener.fn)
+
+            if result == radiant.events.UNLISTEN then
+               log:detail('   removing listener index %d (count:%d)', i, #listeners)
+               table.remove(listeners, i)
+            else
+               log:detail('   advancing index %d (count:%d)', i, #listeners)
+               i = i + 1
             end
          end
       end
