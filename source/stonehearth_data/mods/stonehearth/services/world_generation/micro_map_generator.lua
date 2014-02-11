@@ -147,7 +147,10 @@ function MicroMapGenerator:_quantize(micro_map)
 
    micro_map:process(
       function (value)
-         -- CHECKCHECK prepare for plains detailing
+         -- don't quantize below plains_max_height
+         -- we have special detailing code for that
+         -- could also use a different quantizer for this
+         -- currently the same quantizer as the TerrainGenerator
          if value <= plains_max_height then
             return plains_max_height
          end
@@ -172,7 +175,6 @@ function MicroMapGenerator:_add_plains_valleys(micro_map)
    local noise_map = Array2D(micro_map.width, micro_map.height)
    local filtered_map = Array2D(micro_map.width, micro_map.height)
    local plains_max_height = plains_info.max_height
-   local valley_height = plains_info.max_height - plains_info.step_size
    -- no coincidence that this value is approx 1/((shape_width+4)*(shape_height+4))
    local valley_density = 0.015
    local num_sites = 0
@@ -219,20 +221,12 @@ end
 
 function MicroMapGenerator:_place_valley(micro_map, i, j)
    local terrain_info = self._terrain_info
-   local plains_height = terrain_info[TerrainType.plains].max_height
-   local valley_height = terrain_info.min_height
+   local plateau_height = terrain_info[TerrainType.plains].max_height
+   local valley_height = terrain_info[TerrainType.plains].valley_height
    local block
 
-   block = self._valley_shapes:get_random_shape()
+   block = self._valley_shapes:get_random_shape(valley_height, plateau_height)
 
-   block:process(
-      function (value)
-         if value == 1 then
-            return valley_height
-         end
-         return plains_height
-      end
-   )
    Array2D.copy_block(micro_map, block, i, j, 1, 1, block.width, block.height)
 end
 
