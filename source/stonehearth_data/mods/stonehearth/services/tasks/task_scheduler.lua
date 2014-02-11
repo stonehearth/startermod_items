@@ -8,14 +8,12 @@ end
 function TaskScheduler:__init(name)
    self._name = name
    self._log = radiant.log.create_logger('tasks.scheduler', 'scheduler: ' .. self._name)
-   self._running_activities = {}
 
-   -- how many tasks have we fed since we reset the feed count?
-   self._feed_count = 0
-
-   --self._pending = PriorityQueue('pending', get_task_priority)
    self._task_groups = {}
-   radiant.events.listen(radiant.events, 'stonehearth:gameloop', self, self._update)
+   self._poll_interval = 200
+   self._max_feed_per_interval = 1
+
+   self:_start_update_timer()
 end
 
 function TaskScheduler:get_name()
@@ -29,9 +27,21 @@ function TaskScheduler:create_task_group(name, args)
 end
 
 function TaskScheduler:_update()
+   local feed_count = self._max_feed_per_interval
    for i, task_group in ipairs(self._task_groups) do
-      task_group:_update()
+      local count = task_group:_update(feed_count)
+      feed_count = feed_count - count
+      if feed_count <= 0 then
+         break
+      end
    end
+   self:_start_update_timer()
+end
+
+function TaskScheduler:_start_update_timer()
+   radiant.set_timer(radiant.gamestate.now() + self._poll_interval, function()
+         self:_update()
+      end)
 end
 
 return TaskScheduler

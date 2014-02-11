@@ -74,7 +74,7 @@ end
 function TaskGroup:_remove_workers_from_task(task)
    for worker_id, entry in pairs(self._workers) do
       if entry.feeding[task] then
-         entry.feeding[task]._remove_worker(entry.worker)
+         task:_remove_worker(entry.worker)
          entry.feeding[task] = nil
       end
    end
@@ -154,8 +154,7 @@ function TaskGroup:_prioritize_worker_queue()
          local matching_entry = {
             worker = entry.worker,
             worker_fitness = worker_fitness,
-            proposed = {},
-            rankings = self:_prioritize_tasks_for_worker(entry)
+            task_rankings = self:_prioritize_tasks_for_worker(entry)
          }
          table.insert(workers, matching_entry)
       end
@@ -196,8 +195,8 @@ function TaskGroup:_propose(worker_entry, task_entry, engagements)
       task_fitness = current.proposed_task_fitness,
    }
    -- notify the current worker that the engagement is broken
-   table.insert(current.proposed_worker_entry.rankings, propose_again_entry)
-   table.sort(current.proposed_worker_entry.rankings, function (l, r)
+   table.insert(current.proposed_worker_entry.task_rankings, propose_again_entry)
+   table.sort(current.proposed_worker_entry.task_rankings, function (l, r)
          return l.task_fitness < r.task_fitness
       end)
    -- update the engagement   
@@ -206,31 +205,42 @@ function TaskGroup:_propose(worker_entry, task_entry, engagements)
    return false
 end
 
-function TaskGroup:_iterate(workers, engagements)
+function TaskGroup:_iterate(workers, engagements, max_proposals)
+   local proposal_count = 0
    for _, worker_entry in ipairs(workers) do
-      while #worker_entry.rankings > 0 do
-         local task_entry = table.remove(worker_entry.rankings, 1)
+      while #worker_entry.task_rankings > 0 do
+         local task_entry = table.remove(worker_entry.task_rankings, 1)
          if not self:_propose(worker_entry, task_entry, engagements) then
-            return false
+            return proposal_count, false
+         else
+            proposal_count = proposal_count + 1
+            if proposal_count >= max_proposals then
+               return proposal_count, true
+            end
          end
       end
    end
-   return true
+   return proposal_count, true
 end
-
 
 function TaskGroup:_update(count)
    local finished
-   local engagements = { }
+   local engagements = {}
    local workers = self:_prioritize_worker_queue()
+   local proposal_count, total_proposals = 0, 0
    repeat
-      finished = self:_iterate(workers, engagements)
-   until finished
+      proposal_count, finished = self:_iterate(workers, engagements, count - total_proposals)
+      total_proposals = total_proposals + proposal_count
+      assert(total_proposals <= count)
+   until finished or total_proposals == count
+
    for task, engagement in pairs(engagements) do
       local worker_id = engagement.proposed_worker_entry.worker:get_id()
       local entry = self._workers[worker_id]
       self:_add_worker_to_task(task, entry)
    end
+   
+   return total_proposals
 end
 
 function TaskGroup:_add_worker_to_task(task, entry)
