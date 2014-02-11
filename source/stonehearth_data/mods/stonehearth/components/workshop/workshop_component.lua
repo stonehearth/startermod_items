@@ -16,46 +16,22 @@ function WorkshopComponent:__init(entity, data_binding)
    self._entity = entity
    self._bench_outputs = {}              -- An array of finished products on the bench, to be added to the outbox. Nil if nothing.
    self._outbox_entity = nil
-   self._promotion_talisman_entity = nil -- The talisman for the bench, available when there is no craftsman
-   self._promotion_talisman_offset = Point3(0, 3, 0)  -- Default offset for the talisman (on the bench)
    self._data = data_binding:get_data()
    self._data.crafter = nil
    self._data.order_list = self._craft_order_list
 
    self._data_binding = data_binding
    self._data_binding:mark_changed()
-   
 end
 
 function WorkshopComponent:extend(json)
    if json then
       self._construction_ingredients = json.ingredients
       self._build_sound_effect = json.build_sound_effect
-
-      if json.promotion_talisman.entity then
-         self._promotion_talisman_entity_uri = json.promotion_talisman.entity
-      end
-      if json.promotion_talisman.offset then
-         local o = json.promotion_talisman.offset
-         self._promotion_talisman_offset = Point3(o.x, o.y, o.z)
-      end
-
       if json.skin_class then 
          self._data.skin_class = json.skin_class
       else 
          --xxx populate a default skin
-      end
-      if json.profession_name then
-         --TODO: specific crafter workshops should get their commands from a mixin,
-         --but the mixins never load before the extend functions.
-         --Make a more solid guarantee system of getting commands before this point.
-         self._profession_name = json.profession_name
-         local command_component = self._entity:get_component('stonehearth:commands')
-         if command_component then
-            command_component:modify_command('promote_to_profession', function(command) 
-                  command.event_data.promotion_name = json.profession_name     
-               end)
-         end
       end
    end
    self._data_binding:mark_changed()
@@ -142,10 +118,6 @@ function WorkshopComponent:get_crafter()
    return self._data.crafter
 end
 
-function WorkshopComponent:get_talisman() 
-   return self._promotion_talisman_entity
-end
-
 --[[
    Associate a crafter entity with this bench.
 ]]
@@ -165,12 +137,11 @@ function WorkshopComponent:set_crafter(crafter)
       local show_workshop_command = crafter:add_component('stonehearth:commands')
                                            :add_command('/stonehearth/data/commands/show_workshop_from_crafter')
 
-
       show_workshop_command.event_data = {
          workshop = self._entity
       }
 
-      self._entity:add_component('stonehearth:commands'):remove_command('promote_to_profession')
+      crafter:add_component('stonehearth:commands'):remove_command('build_workshop')
 
       -- xxx, localize                                          
       local crafter_name = radiant.entities.get_name(crafter)
@@ -178,34 +149,6 @@ function WorkshopComponent:set_crafter(crafter)
 
       self:_create_scheduler(crafter)
    end
-end
-
--- Associate a promotion talisman with the workbench. A worker will use the talisman
--- to promote himself to a crafter
--- If the talisman is nil, and a talisman currently exists, remove the talisman from the bench
-function WorkshopComponent:_create_promotion_talisman(faction)
-   local offset = self._promotion_talisman_offset
-
-   self._promotion_talisman_entity = radiant.entities.create_entity(self._promotion_talisman_entity_uri)
-   self._entity:add_component('entity_container'):add_child(self._promotion_talisman_entity)
-   self._promotion_talisman_entity:add_component('mob'):set_location_grid_aligned(offset)
-
-   local promotion_talisman_component = self._promotion_talisman_entity:get_component('stonehearth:promotion_talisman')
-   if promotion_talisman_component then
-      promotion_talisman_component:set_workshop(self)
-      promotion_talisman_component:set_profession_name(self._profession_name)
-   end
-
-   self._promotion_talisman_entity:get_component('unit_info'):set_faction(faction)
-
-   return self._promotion_talisman_entity
-end
-
---Move the promotion talisman back down in the world and remove from the workshop
-function WorkshopComponent:remove_promotion_talisman()
-   local reset_offset = Point3(0, 0, 0)
-   self._promotion_talisman_entity:get_component('mob'):set_location_grid_aligned(reset_offset)
-   self._entity:get_component('entity_container'):remove_child(self._promotion_talisman_entity:get_id())
 end
 
 function WorkshopComponent:get_outbox()
@@ -242,9 +185,6 @@ end
 
 function WorkshopComponent:finish_construction(faction, outbox_entity)
    self._entity:add_component('unit_info'):set_faction(faction)
-   
-   -- Place the promotion talisman on the workbench, if there is one
-   self:_create_promotion_talisman(faction)
    self._outbox_entity = outbox_entity
 end
 

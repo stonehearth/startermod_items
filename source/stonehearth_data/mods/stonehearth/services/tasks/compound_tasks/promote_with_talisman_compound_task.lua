@@ -1,6 +1,7 @@
 local constants = require 'constants'
 local personality_service = require 'services.personality.personality_service'
 local PromoteWithTalisman = class()
+local Point3 = _radiant.csg.Point3
 
 function PromoteWithTalisman:run(thread, args)
    local person = args.person
@@ -9,7 +10,6 @@ function PromoteWithTalisman:run(thread, args)
    stonehearth.ai:add_action(person, 'stonehearth:actions:grab_promotion_talisman')
 
    local talisman_component = talisman:get_component('stonehearth:promotion_talisman')
-   local workshop = talisman_component:get_workshop():get_entity();
 
    local trigger_fn = function(info)
       if info.event == "change_outfit" then
@@ -18,7 +18,6 @@ function PromoteWithTalisman:run(thread, args)
    end
    local args = {
       talisman = talisman,
-      workshop = workshop,
       trigger_fn = trigger_fn,
    }
 
@@ -29,7 +28,10 @@ function PromoteWithTalisman:run(thread, args)
                                     :once()
    thread:_run(task)
 
+   --They carry the saw invisibly for a block. How do avoid this?
+   radiant.entities.remove_carrying(person)
    radiant.entities.destroy_entity(talisman)
+   
    stonehearth.ai:remove_action(person, 'stonehearth:actions:grab_promotion_talisman')
 end
 
@@ -44,7 +46,7 @@ function PromoteWithTalisman:_change_profession(person, talisman)
    --Add the new class
    local promotion_talisman_component = talisman:get_component('stonehearth:promotion_talisman')
    local script = promotion_talisman_component:get_script()
-   radiant.mods.load_script(script).promote(person, promotion_talisman_component:get_workshop())
+   radiant.mods.load_script(script).promote(person)
 
    --Log in personal event log
    local activity_name = radiant.entities.get_entity_data(talisman, 'stonehearth:activity_name')
