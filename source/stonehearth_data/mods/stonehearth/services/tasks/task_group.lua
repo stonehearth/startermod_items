@@ -7,6 +7,7 @@ function TaskGroup:__init(scheduler, name, args)
       name = name,
       args = args
    }
+   self._log = radiant.log.create_logger('task_group', name)
    self._scheduler = scheduler
 
    -- a table of all the workers which belong to the task group.   only
@@ -235,18 +236,15 @@ function TaskGroup:_update(count)
    until finished or total_proposals == count
 
    for task, engagement in pairs(engagements) do
-      local worker_id = engagement.proposed_worker_entry.worker:get_id()
-      local entry = self._workers[worker_id]
-      self:_add_worker_to_task(task, entry)
+      local worker = engagement.proposed_worker_entry.worker
+      self._log:debug('feeding worker %s to task %s', tostring(worker), tostring(task:get_name()))
+      local entry = self._workers[worker:get_id()]
+
+      assert(not entry.feeding[task])
+      entry.feeding[task] = true
+      task:_add_worker(entry.worker)
    end
    
    return total_proposals
 end
-
-function TaskGroup:_add_worker_to_task(task, entry)
-   assert(not entry.feeding[task])
-   entry.feeding[task] = true
-   task:_add_worker(entry.worker)
-end
-
 return TaskGroup
