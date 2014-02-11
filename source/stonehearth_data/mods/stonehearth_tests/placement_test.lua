@@ -36,7 +36,7 @@ function PlacementTest:__init()
    self:place_item('stonehearth:firepit_proxy', 7, 3, faction)
    self:place_item('stonehearth:firepit', 9, 3, faction)
 
-   local tree = self:place_tree(0, -12)
+   local tree = self:place_tree(-5, -12)
 --]]
    --TODO: note that this table disappears after it is removed
    --and placed again. Why?

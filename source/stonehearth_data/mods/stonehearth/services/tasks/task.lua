@@ -11,15 +11,14 @@ local INFINITE = 999999 -- infinite enough?
 
 local Task = class()
 
-function Task:__init(scheduler, task_group, activity)
-   self._scheduler = scheduler
+function Task:__init(task_group, activity)
    self._task_group = task_group
    self._activity = activity
      
    self._id = NEXT_TASK_ID
    NEXT_TASK_ID = NEXT_TASK_ID + 1
    self._log = radiant.log.create_logger('tasks.task', 'task:'..tostring(self._id))   
-   self._log:debug('creating new task for %s', scheduler:get_name())
+   self._log:debug('creating new task for %s', task_group:get_name())
    self._commited = false
    self._name = activity.name .. ' task'
    self._complete_count = 0
@@ -29,7 +28,6 @@ function Task:__init(scheduler, task_group, activity)
    self._effects = {}
    self._priority = 2
    self._max_workers = INFINITE
-   self._workers = {}
    self._active_count = 0
    self._complete_count = 0
    self:_set_state(STOPPED)
@@ -39,9 +37,7 @@ function Task:destroy()
    if self._state ~= COMPLETED then
       self:_set_state(COMPLETED)
       self:_stop()
-      for id, worker in pairs(self._workers) do
-         self:_remove_worker(id)
-      end
+      self._task_group:_destroy_task(self)
    end
 end
 
@@ -127,7 +123,7 @@ function Task:start()
       }
    end
 
-   self._scheduler:_start_feeding_task(self)
+   self._task_group:_start_feeding_task(self)
 
    for entity, name in pairs(self._entity_effect_names) do 
       local effect = radiant.effects.run_effect(entity, name)
@@ -136,7 +132,7 @@ function Task:start()
 end
 
 function Task:_stop()
-   self._scheduler:_stop_feeding_task(self)
+   self._task_group:_stop_feeding_task(self)
    for _, effect in ipairs(self._effects) do
       effect:stop();
    end
@@ -150,17 +146,11 @@ function Task:stop()
 end
 
 function Task:_add_worker(worker)
-   self._workers[worker:get_id()] = worker
    stonehearth.ai:add_custom_action(worker, self._action_ctor)
 end
 
-function Task:_remove_worker(id)
-   local worker = self._workers[id]
-   if worker then     
-      stonehearth.ai:remove_custom_action(worker, self._action_ctor)
-      self._workers[id] = nil
-      self._scheduler:_remove_worker_from_task(id, self)
-   end
+function Task:_remove_worker(worker)
+   stonehearth.ai:remove_custom_action(worker, self._action_ctor)
 end
 
 function Task:_get_fitness(worker)
@@ -178,7 +168,8 @@ function Task:_get_fitness(worker)
             local rgn = adjacent:get()
             if not rgn:empty() then
                -- great!  find the closest point..
-               source_location = rgn:get_closest_point(worker_location)
+               local origin = radiant.entities.get_world_grid_location(self._source)
+               source_location = rgn:get_closest_point(worker_location) + origin
             end
          end
       end
@@ -296,9 +287,9 @@ function Task:__action_try_start(action)
    -- that they don't have a shot (this may trigger them to stop_thinking)
    if not self:_is_work_available() then
       radiant.events.trigger_async(self, 'work_available', self, false)
-      self._scheduler:_stop_feeding_task(self)
+      self._task_group:_stop_feeding_task(self)
    end
-   self._scheduler:_notify_worker_started_task(self, action:get_entity())
+   self._task_group:_notify_worker_started_task(self, action:get_entity())
 
    self:_log_state('exiting __action_try_start')
    return true
@@ -314,7 +305,7 @@ function Task:__action_completed(action)
 end
 
 function Task:_on_action_stopped(action)
-   self._scheduler:_notify_worker_stopped_task(self, action:get_entity())
+   self._task_group:_notify_worker_stopped_task(self, action:get_entity())
 
    local work_was_available = self:_is_work_available()
    self._running_actions[action] = nil
@@ -322,7 +313,7 @@ function Task:_on_action_stopped(action)
 
    if work_is_available and not work_was_available then
       radiant.events.trigger_async(self, 'work_available', self, true)
-      self._scheduler:_start_feeding_task(self)
+      self._task_group:_start_feeding_task(self)
    end
 
    if self:_is_work_finished() then
