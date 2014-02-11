@@ -11,7 +11,6 @@ RestockStockpile.priority = 1
 
 local ai = stonehearth.ai
 return ai:create_compound_action(RestockStockpile)
-         :execute('stonehearth:delay_thinking', { time = 250 })
          :execute('stonehearth:wait_for_stockpile_space', { stockpile = ai.ARGS.stockpile })
          :execute('stonehearth:pickup_item_type', {
             filter_fn = ai.PREV.item_filter,
