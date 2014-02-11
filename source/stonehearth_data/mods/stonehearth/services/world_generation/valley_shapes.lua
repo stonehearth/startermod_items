@@ -7,55 +7,55 @@ function ValleyShapes:__init(rng)
 
    self._shapes = {
       { 
-         0, 1, 0,
-         1, 1, 0,
-         0, 0, 0
+         1, 0, 1,
+         0, 0, 1,
+         1, 1, 1
       },
       { 
-         1, 1, 0,
-         1, 1, 0,
-         0, 0, 0
+         0, 0, 1,
+         0, 0, 1,
+         1, 1, 1
       },
        {
-         0, 1, 0,
-         1, 1, 0,
-         0, 1, 0
+         1, 0, 1,
+         0, 0, 1,
+         1, 0, 1
       },
       {
-         0, 1, 0,
-         0, 1, 0,
-         1, 1, 0
+         1, 0, 1,
+         1, 0, 1,
+         0, 0, 1
       },
       {
-         1, 1, 0,
-         0, 1, 0,
-         0, 1, 1
+         0, 0, 1,
+         1, 0, 1,
+         1, 0, 0
       },
       {
-         0, 1, 0,
-         1, 1, 0,
-         1, 1, 0
+         1, 0, 1,
+         0, 0, 1,
+         0, 0, 1
       },
       {
-         1, 1, 0,
-         1, 1, 0,
-         1, 1, 0
+         0, 0, 1,
+         0, 0, 1,
+         0, 0, 1
       },
       {
-         1, 1, 0,
-         1, 1, 1,
-         0, 1, 1
+         0, 0, 1,
+         0, 0, 0,
+         1, 0, 0
       },
       {
-         0, 1, 1,
-         1, 1, 1,
-         1, 1, 1
+         1, 0, 0,
+         1, 0, 0,
+         0, 0, 0
       },
       {
-         0, 1, 1,
-         0, 1, 1,
-         1, 1, 1
-      }
+         1, 0, 0,
+         0, 0, 0,
+         0, 0, 0
+      },
    }
 
    self._num_shapes = #self._shapes
@@ -66,7 +66,7 @@ function ValleyShapes:__init(rng)
    local foo = 1
 end
 
-function ValleyShapes:get_random_shape()
+function ValleyShapes:get_random_shape(zero_value, one_value)
    local index, shape
    local block = Array2D(self.shape_width, self.shape_height)
 
@@ -75,13 +75,24 @@ function ValleyShapes:get_random_shape()
    block:load(shape)
    self:_randomize_orientation(block)
 
+   block:process(
+      function (value)
+         if value == 1 then
+            return one_value
+         end
+         return zero_value
+      end
+   )
+
    return block
 end
 
 function ValleyShapes:_randomize_orientation(block)
    local rng = self._rng
 
-   -- total of 8 possible orientations
+   -- Total of 8 possible orientations.
+   -- e.g. same as a knight's movement in chess.
+   -- We define the template, and programmatically randomize to one of the 8 orientations.
    if rng:get_int(0, 1) == 1 then
       self:_transform_block(block, ValleyShapes._rotate_90)
    end

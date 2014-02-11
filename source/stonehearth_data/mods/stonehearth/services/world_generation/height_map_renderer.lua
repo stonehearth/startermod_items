@@ -149,14 +149,14 @@ function HeightMapRenderer:_add_foothills_to_region(region3, rect, height)
 end
 
 function HeightMapRenderer:_add_plains_to_region(region3, rect, height)
-   local plains_min_height = self._terrain_info.min_height
+   local plains_max_height = self._terrain_info[TerrainType.plains].max_height
    local material
 
    region3:add_cube(Cube3(Point3(rect.min.x, 0,        rect.min.y),
                           Point3(rect.max.x, height-1, rect.max.y),
                           Terrain.SOIL))
 
-   if height == plains_min_height then
+   if height < plains_max_height then
       material = Terrain.DIRT
    else 
       material = Terrain.GRASS

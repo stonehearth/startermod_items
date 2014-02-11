@@ -35,6 +35,7 @@ function TerrainInfo:__init()
    assert((foothills_info.max_height - plains_info.max_height) % foothills_info.step_size == 0)
 
    -- don't place means on quantization ("rounding") boundaries
+   -- do these asserts still make sense?
    assert(plains_info.mean_height % plains_info.step_size ~= plains_info.step_size/2)
    assert(foothills_info.mean_height % foothills_info.step_size ~= foothills_info.step_size/2)
    assert(mountains_info.mean_height % mountains_info.step_size ~= mountains_info.step_size/2)
@@ -43,10 +44,11 @@ function TerrainInfo:__init()
    assert(foothills_info.step_size % 2 == 0)
    assert(mountains_info.step_size % 2 == 0)
 
-   self.min_height = plains_info.max_height - plains_info.step_size
-   plains_info.base_height = self.min_height - plains_info.step_size -- essentially the water level
+   plains_info.valley_height = plains_info.max_height - plains_info.step_size
+   plains_info.base_height = plains_info.valley_height - plains_info.step_size -- essentially the water level
    foothills_info.base_height = plains_info.max_height
    mountains_info.base_height = foothills_info.max_height
+   self.min_height = plains_info.valley_height
 
    local centroids = self:_get_quantization_centroids()
    self.quantizer = NonUniformQuantizer(centroids)

@@ -22,7 +22,7 @@ end
 
 function TerrainDetailer:add_detail_blocks(tile_map)
    local rng = self._rng
-   local i, j, edge
+   local edge
    local edge_threshold = self._edge_threshold
    local edge_map = self._edge_map_buffer
    local detail_seeds = {}
@@ -64,8 +64,7 @@ function TerrainDetailer:_grow_seed(tile_map, edge_map, x, y)
    tile_map:set(x, y, base_height+detail_height)
    edge_map:set(x, y, false)
 
-   i = x
-   j = y
+   i, j = x, y
    while true do
       -- grow left
       i = i - 1
@@ -74,8 +73,7 @@ function TerrainDetailer:_grow_seed(tile_map, edge_map, x, y)
       if not continue then break end
    end
 
-   i = x
-   j = y
+   i, j = x, y
    while true do
       -- grow right
       i = i + 1
@@ -84,8 +82,7 @@ function TerrainDetailer:_grow_seed(tile_map, edge_map, x, y)
       if not continue then break end
    end
 
-   i = x
-   j = y
+   i, j = x, y
    while true do
       -- grow up
       j = j - 1
@@ -94,8 +91,7 @@ function TerrainDetailer:_grow_seed(tile_map, edge_map, x, y)
       if not continue then break end
    end
 
-   i = x
-   j = y
+   i, j = x, y
    while true do
       -- grow down
       j = j + 1
@@ -186,7 +182,6 @@ end
 -- ok since this will change anyway if plains are quantized differently
 function TerrainDetailer:add_plains_details(tile_map)
    local edge_threshold = 2
-   local i, j
 
    for j=1, tile_map.height do
       for i=1, tile_map.width do
