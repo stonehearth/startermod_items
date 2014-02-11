@@ -1,16 +1,15 @@
 <script type="text/x-handlebars" data-template-name="stonehearthEmbark">
    <div id="embark">
       
+      <div id="title">{{i18n stonehearth:embark_title}}</div>
       <div id="map"></div>
-      <button id="regenerateButton">{{i18n stonehearth:regenerate_map}}</button>
-      <button id="clearSelectionButton">{{i18n stonehearth:embark_clear_selection}}</button>
-      <button id="embarkButton">{{i18n stonehearth:embark_at_this_location}}</button>
+      <div id="regenerateButton">{{i18n stonehearth:embark_regenerate_map}}</div>
 
       <div id="scroll">
-         <table>
-            <tr>
-               <td>Terrain: </td><td id="terrain_type"/>
-            </tr>
+         <img id="terrainPortrait"></img>
+         <div id="terrainType"></div>
+         <div id="terrainDescription">Insert a multiline description of the terrain type here. Make it pretty interseting, but brief.</div>
+         <table id="terrainStats">
             <tr>
                <td>Vegetation: </td><td id="vegetation"/>
             </tr>
@@ -19,5 +18,7 @@
             </tr>
          </table>
       </div>
+
+      <div id="embarkPin" title="embark here"></div>
    </div>
 </script>
