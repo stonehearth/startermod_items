@@ -146,14 +146,16 @@ end
 function entities.turn_to_face(entity, arg2)
    --local location = util:is_a(arg2, Entity) and singleton.get_world_grid_location(arg2) or arg2
    local location
-   if arg2.x == nil then
-      location = arg2:get_component('mob'):get_world_grid_location()
-   else
+   if radiant.util.is_a(arg2, Point3) then
       location = arg2
+   elseif radiant.util.is_a(arg2, Entity) then
+      location = entities.get_world_grid_location(arg2)
    end
 
-   radiant.check.is_entity(entity)
-   entity:add_component('mob'):turn_to_face_point(location)
+   if location then
+      radiant.check.is_entity(entity)
+      entity:add_component('mob'):turn_to_face_point(location)
+   end
 end
 
 function entities.think(entity, uri, priority)
