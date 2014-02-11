@@ -7,7 +7,6 @@
       },
       "stonehearth:commands" : {
          "commands" : [
-            "file(/data/commands/promote_to_profession)",
             "file(/data/commands/show_workshop)"
          ]
       },
@@ -29,10 +28,6 @@
       "stonehearth:workshop": {
          "profession_name" : "Carpenter",
          "skin_class" : "carpenter",
-         "promotion_talisman" : {
-            "entity" : "stonehearth:carpenter:saw",
-            "offset" : { "x" : 0, "y" : 3, "z" : 0 }
-         }, 
          "ingredients" : [
             {
                "material" : "wood resource",

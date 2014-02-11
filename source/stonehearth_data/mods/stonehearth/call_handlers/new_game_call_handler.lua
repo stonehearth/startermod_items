@@ -150,6 +150,7 @@ function NewGameCallHandler:create_camp(session, response, pt)
    radiant.entities.pickup_item(worker1, faction:create_entity('stonehearth:oak_log'))
    radiant.entities.pickup_item(worker2, faction:create_entity('stonehearth:oak_log'))
    radiant.entities.pickup_item(worker3, faction:create_entity('stonehearth:oak_log'))
+   radiant.entities.pickup_item(worker4, faction:create_entity('stonehearth:carpenter:saw'))
 
    -- start the game master service
    --game_master.start()

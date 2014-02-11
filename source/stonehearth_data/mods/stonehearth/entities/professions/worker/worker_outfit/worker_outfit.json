@@ -37,7 +37,6 @@
                "stonehearth:actions:place_item_type",
                "stonehearth:actions:light_firepit",               
                "stonehearth:actions:shear_sheep_action",
-               "stonehearth:actions:complete_workshop_construction",
                "stonehearth:actions:replace_proxy_with_item",
                "stonehearth:actions:wait_for_fabricator",
                "stonehearth:actions:fabricate_structure",

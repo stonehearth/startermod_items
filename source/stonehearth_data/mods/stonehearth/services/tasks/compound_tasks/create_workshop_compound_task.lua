@@ -4,6 +4,7 @@ function CreateWorkshop:start(scheduler, args)
    self._faction = args.faction
    self._ghost_entity = args.ghost_workshop
    self._outbox_entity = args.outbox_entity
+   self._crafter = args.crafter
    
    local json = self._ghost_entity:get_component('stonehearth:ghost_item'):get_full_sized_json()
    self._ingredients = json.components['stonehearth:workshop'].ingredients
@@ -40,6 +41,9 @@ function CreateWorkshop:_complete_construction()
       radiant.entities.destroy_entity(item)
    end
    radiant.entities.destroy_entity(self._ghost_entity)
+
+   --assign the crafter to the workshop
+   workshop_component:set_crafter(self._crafter)
 
    stonehearth.analytics:send_design_event('game:place_workshop', workshop_entity)
 end
