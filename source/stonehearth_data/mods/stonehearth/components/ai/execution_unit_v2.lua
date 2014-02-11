@@ -3,6 +3,7 @@ local ExecutionUnitV2 = class()
 local THINKING = 'thinking'
 local READY = 'ready'
 local STARTED = 'started'
+local STARTING = 'starting'
 local RUNNING = 'running'
 local FINISHED = 'finished'
 local STOPPED = 'stopped'
@@ -194,7 +195,7 @@ function ExecutionUnitV2:_stop_thinking()
    if self:in_state('thinking', 'ready') then
       return self:_stop_thinking_from_thinking()
    end
-   if self._state == 'started' then
+   if self:in_state('starting', 'started') then
       return self:_stop_thinking_from_started()
    end
    if self:in_state('stopped', 'dead') then
@@ -240,6 +241,9 @@ function ExecutionUnitV2:_stop(invalid_transition_ok)
    if self:in_state('thinking', 'ready') then
       return self:_stop_from_thinking(invalid_transition_ok)
    end
+   if self._state == 'starting' then
+      return self:_stop_from_starting(invalid_transition_ok)
+   end
    if self._state == 'started' then
       return self:_stop_from_started(invalid_transition_ok)
    end
@@ -258,6 +262,9 @@ end
 function ExecutionUnitV2:_destroy()
    if self:in_state('thinking', 'ready') then
       return self:_destroy_from_thinking()
+   end
+   if self._state == 'starting' then
+      return self:_destroy_from_starting()
    end
    if self._state == 'stopped' then
       return self:_destroy_from_stopped()
@@ -337,6 +344,7 @@ function ExecutionUnitV2:_start_from_ready()
 
    -- start is called before stop_thinking so actions will know whether
    -- they're going to get to run...
+   self:_set_state(STARTING)
    self:_do_start()
    self:_set_state(STARTED)
    self:_do_stop_thinking()
@@ -364,6 +372,14 @@ function ExecutionUnitV2:_stop_from_thinking()
    assert(self._thinking)
 
    self:_do_stop_thinking()
+   self:_set_state(STOPPED)
+end
+
+function ExecutionUnitV2:_stop_from_starting()
+   if self._thinking then
+      self:_do_stop_thinking()
+   end
+   self:_do_stop()
    self:_set_state(STOPPED)
 end
 
@@ -403,6 +419,19 @@ function ExecutionUnitV2:_destroy_from_thinking()
    assert(self._thinking)
    assert(not self._execute_frame)
    self:_call_stop_thinking()
+   self:_call_destroy()
+   self:_set_state(DEAD)
+end
+
+function ExecutionUnitV2:_destroy_from_starting()
+   assert(self._thinking)
+   assert(not self._execute_frame)
+   if self._thinking then
+      self:_call_stop_thinking()
+   end
+   if self._started then
+      self:_call_stop()
+   end
    self:_call_destroy()
    self:_set_state(DEAD)
 end
