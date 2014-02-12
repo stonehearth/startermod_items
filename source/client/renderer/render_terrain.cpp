@@ -84,6 +84,10 @@ RenderTerrain::RenderTerrain(const RenderEntity& entity, om::TerrainPtr terrain)
       };
 
       tess_map[om::Terrain::Soil] = [=](int tag, csg::Point3f const points[], csg::Point3f const& normal, csg::mesh_tools::mesh& m) {
+         m.add_face(points, normal, soil_default_color);
+      };
+
+      tess_map[om::Terrain::SoilStrata] = [=](int tag, csg::Point3f const points[], csg::Point3f const& normal, csg::mesh_tools::mesh& m) {
          // stripes...
          const int stripe_size = 2;
          if (normal.y) {
