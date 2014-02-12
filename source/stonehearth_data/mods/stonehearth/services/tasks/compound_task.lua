@@ -5,10 +5,16 @@ function CompoundTask:__init(scheduler, compound_task_ctor, activity)
    self._scheduler = scheduler
    self._activity = activity
    self._compound_task = compound_task_ctor()
+   self._priority = constants.priorities.top.GENERIC_TASK_PRIORITY
 end
 
 function CompoundTask:set_name(format, ...)
    self._name = string.format(format, ...)
+end
+
+function CompoundTask:set_priority(priority)
+   self._priority = priority
+   return self
 end
 
 function CompoundTask:once()
@@ -52,7 +58,7 @@ end
 
 function CompoundTask:execute(activity, args)
    local task = self._scheduler:create_task(activity, args)
-                                    :set_priority(constants.priorities.top.GENERIC_TASK_PRIORITY)
+                                    :set_priority(self._priority)
                                     :once()
    self:_run(task)
 end

@@ -1,3 +1,4 @@
+local constants = require 'constants'
 local GrabTalismanAction = require 'ai.actions.grab_talisman_action'
 local ProfessionCallHandler = class()
 
@@ -23,6 +24,7 @@ function ProfessionCallHandler:grab_promotion_talisman(session, response, person
          person = person,
          talisman = talisman,
       })
+      :set_priority(constants.priorities.top.GRAB_PROMOTION_TALISMAN)
       :start()
       
    radiant.events.listen(task, 'completed', function()
