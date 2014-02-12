@@ -1,18 +1,20 @@
+.embarkBackground {
+   background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,#344a49), color-stop(60%,#1b302f), color-stop(100%,#000000));
+}
+
 #embark {
-   position: absolute;
-   top: 0px;
-   left: 0px;
-   right: 0px;
-   bottom: 0px;
+   position: relative;
+   margin: auto;
+   width: 1920px;
+   height: 1080px;
    background: url('./images/bg.png');
-   background-size: cover; 
    color: #fff;
-   padding: 20px;
+   padding: 0px;
 
    #scroll {
       position: absolute;
       top: 368px;
-      left: 1268px;
+      left: 1264px;
       width: 428px;
       color: #000;
       display: none;
@@ -76,13 +78,13 @@
    #title {
       .controlFont;
       font-size: 32px;
+      padding: 20px;
    }
 
    #map {
       position: absolute;
       top: 129px;
-   left: 73px;
-      display: inline-block;
+      left: 69px;
    }
 
    #regenerateButton {
