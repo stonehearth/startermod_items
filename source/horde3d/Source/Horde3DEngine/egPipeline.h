@@ -34,7 +34,8 @@ struct PipelineResData
 	{
 		StageElem = 900,
 		StageNameStr,
-		StageActivationI
+		StageActivationI,
+      Material
 	};
 };
 

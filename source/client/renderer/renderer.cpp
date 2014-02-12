@@ -722,7 +722,8 @@ void Renderer::RenderOneFrame(int now, float alpha)
    fileWatcher_.update();
    LoadResources();
 
-   h3dSetMaterialArrayUniform( ssaoMat, "samplerKernel", ssaoSamplerData.data(), ssaoSamplerData.size());
+   H3DRes pipeMat = h3dGetResParamI(currentPipeline_, Horde3D::PipelineResData::Material, 0, 0);
+   h3dSetMaterialArrayUniform(pipeMat, "samplerKernel", ssaoSamplerData.data(), ssaoSamplerData.size());
    
    float skysphereDistance = config_.draw_distance.value * 0.4f;
    float starsphereDistance = config_.draw_distance.value * 0.9f;

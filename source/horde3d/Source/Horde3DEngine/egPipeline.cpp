@@ -551,6 +551,10 @@ int PipelineResource::getElemParamI( int elem, int elemIdx, int param )
 			}
 		}
 		break;
+
+   case PipelineResData::Material:
+      return _material->getHandle();
+      break;
 	}
 
 	return Resource::getElemParamI( elem, elemIdx, param );
