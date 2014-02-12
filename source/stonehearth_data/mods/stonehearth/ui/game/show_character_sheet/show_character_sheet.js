@@ -111,7 +111,25 @@ App.StonehearthCharacterSheetView = App.View.extend({
                   new_buff_data.name = allBuffs[k].name;
                   new_buff_data.type = allBuffs[k].type;
                   new_buff_data.icon = allBuffs[k].icon;
-                  new_buff_data.shortDescription = allBuffs[k].short_description;
+                  new_buff_data.shortDescription = "";
+                  if (allBuffs[k].short_description != undefined) {
+                     new_buff_data.shortDescription = allBuffs[k].short_description;                     
+                  } else {
+                     for (var attrib in modifiers[mod]) {
+                        if (attrib == 'multiply' || attrib == 'divide') {
+                           var number = 1 - modifiers[mod][attrib];
+                           number = number * 100
+                           var rounded = Math.round( number * 10 ) / 10;
+                           new_buff_data.shortDescription += rounded + '% '; 
+                        } else if (attrib == 'add') {
+                           var number = modifiers[mod][attrib];
+                           new_buff_data.shortDescription += '+' + number + ' '; 
+                        } else if (attrib == 'subtract') {
+                           var number = modifiers[mod][attrib];
+                           new_buff_data.shortDescription += '-' + number + ' '; 
+                        }
+                     }
+                  }
                   //There are so many ways to modify a buff; let writer pick string
                   if (buffsByAttribute[mod] == null) {
                      buffsByAttribute[mod] = [];
