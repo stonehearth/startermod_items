@@ -261,7 +261,7 @@ function StockpileComponent:_add_item(entity)
       self:_add_to_region(entity)
      
       if self:can_stock_entity(entity) then
-         log:debug('adding %s to stock', tostring(entity))
+         log:debug('adding %s to stock', entity)
          self:_add_item_to_stock(entity)
       end
    end
@@ -372,15 +372,15 @@ end
 
 function StockpileComponent:can_stock_entity(entity)
    if not entity or not entity:get_component('item') then
-      log:spam('nil or non-item entity %s cannot be stocked', tostring(entity))
+      log:spam('nil or non-item entity %s cannot be stocked', entity)
       return false
    end
    
    if not self:_is_in_filter(entity) then
-      log:spam('%s not in filter and cannot be stocked', tostring(entity))
+      log:spam('%s not in filter and cannot be stocked', entity)
       return false
    end 
-   log:spam('%s ok to stock %s!', tostring(self._entity), tostring(entity))
+   log:spam('%s ok to stock %s!', self._entity, entity)
    return true   
 end
 

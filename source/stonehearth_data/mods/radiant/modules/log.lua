@@ -106,7 +106,13 @@ function Log.create_logger(sub_category, prefix)
             else
                output = ''
             end
-            _host:log(self._category, level,  output .. string.format(format, ...))
+            local args = {...}
+            for i, arg in ipairs(args) do
+               if type(arg) == 'userdata' then
+                  args[i] = tostring(arg)
+               end
+            end
+            _host:log(self._category, level, string.format(format, unpack(args)))
          end
       else
          logger[keyword] = function () end

@@ -79,7 +79,7 @@ function TaskGroup:_on_task_destroy(task)
    if self._tasks[task] then
       self._tasks[task] = nil
       self:_stop_feeding_task(task)
-      self:_unfeed_workers_from_task(task)
+      self:_unfeed_workers_from_task(task)      
    end
 end
 
@@ -88,6 +88,9 @@ function TaskGroup:_unfeed_workers_from_task(task)
       if entry.feeding[task] then
          task:_unfeed_worker(entry.worker)
          entry.feeding[task] = nil
+      end
+      if entry.running == task then
+         self:_notify_worker_stopped_task(task, entry.worker)
       end
    end
 end

@@ -317,30 +317,34 @@ end
 
 function Task:__action_destroyed(action)
    self:_log_state('entering __action_destroyed')
-   assert(not self._running_actions[action])
+   if self._task_group then
+      assert(not self._running_actions[action])
+   end
    self:_log_state('exiting __action_destroyed')
 end
 
 function Task:__action_stopped(action)
    self:_log_state('entering __action_can_stopped')
 
-   local work_was_available = self:_is_work_available()
-   self._running_actions[action] = nil
-   local work_is_available = self:_is_work_available()
+   if self._task_group then
+      local work_was_available = self:_is_work_available()
+      self._running_actions[action] = nil
+      local work_is_available = self:_is_work_available()
 
-   if work_is_available and not work_was_available then
-      radiant.events.trigger_async(self, 'work_available', self, true)
-      self._task_group:_start_feeding_task(self)
+      if work_is_available and not work_was_available then
+         radiant.events.trigger_async(self, 'work_available', self, true)
+         self._task_group:_start_feeding_task(self)
+      end
+
+      self._task_group:_notify_worker_stopped_task(self, action:get_entity())
+      self:_unfeed_worker(action:get_entity():get_id())
+
+      if self:_is_work_finished() then
+         self._log:debug('task reached max number of completions (%d).  stopping and completing!', self._times)
+         self:destroy()
+      end
    end
-
-   self._task_group:_notify_worker_stopped_task(self, action:get_entity())
-   self:_unfeed_worker(action:get_entity():get_id())
-
-   if self:_is_work_finished() then
-      self._log:debug('task reached max number of completions (%d).  stopping and completing!', self._times)
-      self:destroy()
-   end
-
+   
    self:_log_state('exiting __action_can_stopped')
 end
 

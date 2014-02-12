@@ -40,10 +40,10 @@ function FindPathToEntityType:_consider_destination(target)
    if self._filter_fn(target, self._ai, self._entity) then
       local lease = target:get_component('stonehearth:lease')
       if lease and not lease:can_acquire('ai_reservation', self._entity) then
-         self._log:debug('ignoring %s (cannot acquire ai lease)', tostring(target))
+         self._log:debug('ignoring %s (cannot acquire ai lease)', target)
          return
       end
-      self._log:detail('adding entity %s to pathfinder', tostring(target))
+      self._log:detail('adding entity %s to pathfinder', target)
       self._pathfinder:add_destination(target)
    end
 end
@@ -85,7 +85,7 @@ function FindPathToEntityType:_start_pathfinder()
       radiant.events.listen(stonehearth.ai, self._reconsider_event_name, self, self._consider_destination)
    end   
    
-   self._log:detail('finding path from CURRENT.location %s to item type...', tostring(self._ai.CURRENT.location))
+   self._log:detail('finding path from CURRENT.location %s to item type...', self._ai.CURRENT.location)
    self._pathfinder = _radiant.sim.create_path_finder(self._entity, 'goto entity action')
                          :set_source(self._ai.CURRENT.location)
                          :set_solved_cb(solved)

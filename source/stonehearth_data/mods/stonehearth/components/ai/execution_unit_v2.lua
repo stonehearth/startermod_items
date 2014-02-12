@@ -6,6 +6,7 @@ local STARTED = 'started'
 local STARTING = 'starting'
 local RUNNING = 'running'
 local FINISHED = 'finished'
+local STOPPING = 'stopping'
 local STOPPED = 'stopped'
 local DEAD = 'dead'
 local ABORTING = 'aborting'
@@ -198,7 +199,7 @@ function ExecutionUnitV2:_stop_thinking()
    if self:in_state('starting', 'started') then
       return self:_stop_thinking_from_started()
    end
-   if self:in_state('stopped', 'dead') then
+   if self:in_state('stopping', 'stopped', 'dead') then
       assert(not self._thinking)
       return -- nop
    end
@@ -253,8 +254,8 @@ function ExecutionUnitV2:_stop(invalid_transition_ok)
    if self._state == 'finished' then
       return self:_stop_from_finished(invalid_transition_ok)
    end
-   if self._state == 'stopped' or self._state == 'stop_thinking' then
-      return -- nopf
+   if self:in_state('stopped', 'stopping', 'stop_thinking') then
+      return -- nop
    end
    self:_unknown_transition('stop')   
 end
@@ -265,6 +266,9 @@ function ExecutionUnitV2:_destroy()
    end
    if self._state == 'starting' then
       return self:_destroy_from_starting()
+   end
+   if self._state == 'stopping' then
+      return self:_destroy_from_stopping()
    end
    if self._state == 'stopped' then
       return self:_destroy_from_stopped()
@@ -344,9 +348,7 @@ function ExecutionUnitV2:_start_from_ready()
 
    -- start is called before stop_thinking so actions will know whether
    -- they're going to get to run...
-   self:_set_state(STARTING)
    self:_do_start()
-   self:_set_state(STARTED)
    self:_do_stop_thinking()
 end
 
@@ -380,14 +382,11 @@ function ExecutionUnitV2:_stop_from_starting()
       self:_do_stop_thinking()
    end
    self:_do_stop()
-   self:_set_state(STOPPED)
 end
 
 function ExecutionUnitV2:_stop_from_started()
    assert(not self._thinking)
-
    self:_do_stop()
-   self:_set_state(STOPPED)
 end
 
 function ExecutionUnitV2:_stop_from_running(frame_will_kill_running_action)
@@ -405,14 +404,11 @@ function ExecutionUnitV2:_stop_from_running(frame_will_kill_running_action)
       self._execute_frame =  nil
    end
    self:_do_stop()
-   self:_set_state(STOPPED)
 end
 
 function ExecutionUnitV2:_stop_from_finished()
    assert(not self._thinking)
-
    self:_do_stop()
-   self:_set_state(STOPPED)
 end
 
 function ExecutionUnitV2:_destroy_from_thinking()
@@ -432,6 +428,13 @@ function ExecutionUnitV2:_destroy_from_starting()
    if self._started then
       self:_call_stop()
    end
+   self:_call_destroy()
+   self:_set_state(DEAD)
+end
+
+function ExecutionUnitV2:_destroy_from_stopping()
+   assert(not self._thinking)
+   assert(not self._execute_frame)
    self:_call_destroy()
    self:_set_state(DEAD)
 end
@@ -476,8 +479,10 @@ function ExecutionUnitV2:_do_start()
    assert(self._thinking)
    assert(not self._started)
    
+   self:_set_state(STARTING)  
    self._started = true
    self:_call_start()
+   self:_set_state(STARTED)
 end
 
 function ExecutionUnitV2:_do_stop()
@@ -485,8 +490,10 @@ function ExecutionUnitV2:_do_stop()
    assert(not self._thinking)
    assert(self._started, '_do_stop called before start')
    
+   self:_set_state(STOPPING)
    self._started = false
    self:_call_stop()
+   self:_set_state(STOPPED)
 end
 
 function ExecutionUnitV2:_do_start_thinking(entity_state)
