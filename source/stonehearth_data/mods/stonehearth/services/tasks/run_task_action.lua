@@ -2,9 +2,10 @@ local RunTaskAction = class()
 
 RunTaskAction.version = 2
 
-function RunTaskAction:__init(task)
-   self._id = stonehearth.ai:get_next_object_id()   
+function RunTaskAction:__init(task, activity)
+   self._id = stonehearth.ai:get_next_object_id()
    self._task = task
+   self._activity = activity
 end
 
 function RunTaskAction:get_entity()
@@ -19,10 +20,8 @@ function RunTaskAction:_create_execution_frame(ai)
    if not self._execution_frame then
       self._ai = ai
       self._log = ai:get_log()
-      local activity = self._task:get_activity()
-      self._args = activity.args
 
-      self._execution_frame = ai:spawn(activity.name, activity.args)
+      self._execution_frame = ai:spawn(self._activity.name, self._activity.args)
       radiant.events.listen(self._task, 'started', self, self._start_stop_thinking)
       radiant.events.listen(self._task, 'stopped', self, self._start_stop_thinking)
       radiant.events.listen(self._task, 'work_available', self, self._start_stop_thinking)
@@ -55,7 +54,7 @@ function RunTaskAction:get_debug_info(debug_route)
    local info = {
       id = self._id,
       name = self.name,
-      args = stonehearth.ai:format_args(self._args),
+      args = stonehearth.ai:format_args(self._activity.args),
       does = self.does,
       priority = self.priority
    }

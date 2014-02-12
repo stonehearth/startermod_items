@@ -21,3 +21,15 @@ function radiant.set_timer(time, fn)
          fn = fn
       })
 end
+
+function radiant.set_performance_counter(name, value, kind)
+   -- The stack offset for the helper functions is 3...
+   --    1: __get_current_module_name
+   --    2: radiant.set_performance_counter
+   --    3: --> some module whose name we want! <-- 
+   local category = __get_current_module_name(3) .. ':' .. name
+   if not kind then
+      kind = 'counter'
+   end
+   _host:set_performance_counter(category, value, kind)
+end

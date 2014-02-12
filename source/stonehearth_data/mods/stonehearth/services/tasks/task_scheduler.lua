@@ -1,12 +1,9 @@
 local TaskGroup = require 'services.tasks.task_group'
 local TaskScheduler = class()
 
-function get_task_priority(task)
-   return task:get_priority()
-end
-
 function TaskScheduler:__init(name)
    self._name = name
+   self._counter_name = name
    self._log = radiant.log.create_logger('tasks.scheduler', 'scheduler: ' .. self._name)
 
    self._task_groups = {}
@@ -19,6 +16,16 @@ end
 function TaskScheduler:get_name()
    return self._name
 end
+
+function TaskScheduler:get_counter_name()
+   return 'task_scheduler:' .. self._counter_name
+end
+
+function TaskScheduler:set_counter_name(counter_name)
+   self._counter_name = counter_name
+   return self
+end
+
 
 function TaskScheduler:create_task_group(name, args)
    local task_group = TaskGroup(self, name, args)
@@ -42,6 +49,10 @@ function TaskScheduler:_start_update_timer()
    radiant.set_timer(radiant.gamestate.now() + self._poll_interval, function()
          self:_update()
       end)
+end
+
+function TaskScheduler:_set_performance_counter(name, value)
+   radiant.set_performance_counter(self:get_counter_name() .. ':' .. name, value)
 end
 
 return TaskScheduler

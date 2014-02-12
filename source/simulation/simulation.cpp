@@ -281,18 +281,21 @@ rpc::ReactorDeferredPtr Simulation::StartPerformanceCounterPush()
 
 void Simulation::PushPerformanceCounters()
 {
-   if (1 || perf_counter_deferred_) {
-      json::Node counters;
-      //LOG_(0) << "------------------------------------------------------";
-      for (const auto& entry : perf_counters_.GetCounters()) {
+   if (perf_counter_deferred_) {
+      json::Node counters(JSON_ARRAY);
+
+      auto addCounter = [&counters](const char* name, int value, const char* type) {
          json::Node row;
-         row.set("name", entry.first);
-         row.set("value", static_cast<int>(entry.second.GetValue())); // xxx: counters need a type...
-         //LOG_(0) << " " << std::setw(32) << entry.first << " : " << entry.second.GetValue();
-      }
-      if (perf_counter_deferred_) {
-         perf_counter_deferred_->Notify(counters);
-      }
+         row.set("name", name);
+         row.set("value", value);
+         row.set("type", type);
+         counters.add(row);
+      };
+
+      PathFinder::ComputeCounters(addCounter);
+      GetScript().ComputeCounters(addCounter);
+
+      perf_counter_deferred_->Notify(counters);
    }
 }
 
@@ -556,12 +559,6 @@ lua::ScriptHost& Simulation::GetScript() {
    return *scriptHost_;
 }
 
-perfmon::Store& Simulation::GetPerfmonCounters()
-{
-   return perf_counters_;
-}
-
-
 void Simulation::InitDataModel()
 {
    object_model_traces_ = std::make_shared<dm::TracerSync>("sim objects");
@@ -643,7 +640,6 @@ void Simulation::Mainloop()
       FireLuaTraces();
    }
    if (next_counter_push_.expired()) {
-      PathFinder::ComputeCounters(perf_counters_);
       PushPerformanceCounters();
       next_counter_push_.set(500);
    }

@@ -79,7 +79,6 @@ public:
    phys::OctTree &GetOctTree();
    dm::Store& GetStore();
    lua::ScriptHost& GetScript();
-   perfmon::Store& GetPerfmonCounters();
    float GetBaseWalkSpeed() const;
 
    WorkerScheduler* GetWorkerScheduler();
@@ -174,7 +173,6 @@ private:
    rpc::ReactorDeferredPtr             task_manager_deferred_;
    rpc::ReactorDeferredPtr             perf_counter_deferred_;
    perfmon::Timeline                   perf_timeline_;
-   perfmon::Store                      perf_counters_;
    platform::timer                     next_counter_push_;
    core::Guard                         on_frame_end_guard_;
    om::ErrorBrowserPtr                 error_browser_;

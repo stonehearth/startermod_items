@@ -6,6 +6,8 @@
 
 BEGIN_RADIANT_PERFMON_NAMESPACE
 
+class Store;
+
 class TimelineCounterGuard {
 public:
    TimelineCounterGuard(char const* name);

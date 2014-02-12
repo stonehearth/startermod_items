@@ -52,7 +52,6 @@ App.StonehearthObjectBrowserView = App.View.extend({
     });
 
       this.goHome();
-      this.collapse();
    },
 
    formatJson: function(json) {

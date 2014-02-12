@@ -188,21 +188,21 @@ function ExecutionFrame:_add_action(...)
    self:_unknown_transition('add_action')
 end
 
-function ExecutionFrame:_remove_action(...)
+function ExecutionFrame:_remove_action(unit)
    if self._state == 'thinking' then
-      return self:_remove_action_from_thinking(...)
+      return self:_remove_action_from_thinking(unit)
    end
    if self._state == 'ready' then
-      return self:_remove_action_from_ready(...)
+      return self:_remove_action_from_ready(unit)
    end
    if self:in_state('running', 'switching', 'starting') then
-      return self:_remove_action_from_running(...)
+      return self:_remove_action_from_running(unit)
    end
    if self._state == 'stopped' then
-      return self:_remove_action_from_stopped(...)
+      return self:_remove_action_from_stopped(unit)
    end
    if self._state == 'finished' then
-      return self:_remove_action_from_finished(...)
+      return self:_remove_action_from_finished(unit)
    end
    self:_unknown_transition('remove_action')
 end
@@ -808,63 +808,23 @@ function ExecutionFrame:_add_action_from_stopped(key, entry)
    self:_add_execution_unit(key, entry)
 end
 
-function ExecutionFrame:_remove_action_from_stopped(key, entry)
-   local unit = self._execution_units[key]
-   -- XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
-   -- XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
-   -- XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
-   -- XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
-   -- XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
-   -- XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
-   -- XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
-   -- XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
-   -- XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
-   -- XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
-   -- XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
-   -- XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
-   -- XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
-   -- XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
-   -- XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
-   -- Refactor required (all functions need tod o this!)
-   -- XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
-   -- XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
-   -- XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
-   -- XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
-   -- XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
-   -- XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
-   -- XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
-   -- XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
-   -- XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
-   -- XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
-   -- XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
-   -- XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
-   -- XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
-   -- XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
-   -- XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
-   -- XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
-   -- XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
-   -- XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
-   if unit then
-      unit:_destroy()
-      self:_remove_execution_unit(unit)
-   end
-end
-
-function ExecutionFrame:_remove_action_from_finished(key, entry)
-   local unit = self._execution_units[key]
+function ExecutionFrame:_remove_action_from_stopped(unit)
    unit:_destroy()
    self:_remove_execution_unit(unit)
 end
 
-function ExecutionFrame:_remove_action_from_thinking(key, entry)
-   local unit = self._execution_units[key]
+function ExecutionFrame:_remove_action_from_finished(unit)
+   unit:_destroy()
+   self:_remove_execution_unit(unit)
+end
+
+function ExecutionFrame:_remove_action_from_thinking(unit)
    unit:_stop_thinking(0)
    unit:_destroy()
    self:_remove_execution_unit(unit, true)
 end
 
-function ExecutionFrame:_remove_action_from_ready(key, entry)
-   local unit = self._execution_units[key]
+function ExecutionFrame:_remove_action_from_ready(unit)
    if unit == self._active_unit then
       self._thread:interrupt(function()
          self:abort()
@@ -874,9 +834,8 @@ function ExecutionFrame:_remove_action_from_ready(key, entry)
    end
 end
 
-function ExecutionFrame:_remove_action_from_running(key, entry)
+function ExecutionFrame:_remove_action_from_running(unit)
    self._log:detail('_remove_action_from_running (state: %s)', self._state)
-   local unit = self._execution_units[key]
    if unit == self._active_unit then
       self._thread:interrupt(function()
          self:abort()
@@ -905,10 +864,15 @@ end
 function ExecutionFrame:_on_action_index_changed(add_remove, key, entry, does)
    self._log:debug('on_action_index_changed %s (key:%s state:%s)', add_remove, tostring(key), self._state)
    if self._name == does and self:get_state() ~= DEAD then
+      local unit = self._execution_units[key]
       if add_remove == 'add' then
-         self:_add_action(key, entry)
+         if not unit then         
+            self:_add_action(key, entry)
+         end
       elseif add_remove == 'remove' then
-         self:_remove_action(key, entry)
+         if unit then         
+            self:_remove_action(unit)
+         end
       else
          error(string.format('unknown msg "%s" in _on_action_index-changed', add_move))
       end

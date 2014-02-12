@@ -4,9 +4,12 @@ local Town = class()
 
 function Town:__init(name)
    self._log = radiant.log.create_logger('town', name)
-   self._scheduler = stonehearth.tasks:create_scheduler('stonehearth:town:' .. name)
+   self._scheduler = stonehearth.tasks:create_scheduler(name)
+                                       :set_counter_name(name)
+                                       
    self._task_groups = {
       workers = self._scheduler:create_task_group('stonehearth:work', {})
+                               :set_counter_name('workers')
    }
    self._harvest_tasks = {}
 end
@@ -166,15 +169,18 @@ function Town:harvest_renewable_resource_node(plant)
    return true
 end
 
-function Town:construct_workshop(ghost_workshop)
-   -- todo: stick this in a taskmaster manager somewhere so we can show it (and cancel it!)
-   local scheduler = stonehearth.tasks:get_scheduler('stonehearth:workers', session.faction)
+function Town:create_workshop(crafter, ghost_workshop)
+   --REVIEW Q: can I reuse a scheduler that exists already for the crafter?
+   local scheduler = stonehearth.tasks:create_scheduler()
+                        :set_activity('stonehearth:top')
+                        :join(crafter)
    scheduler:create_orchestrator('stonehearth:tasks:create_workshop', {
-         faction = session.faction,
-         ghost_workshop = ghost_workshop,
-         outbox_entity = outbox_entity,
-      })
-      :start()
+      faction = session.faction,
+      ghost_workshop = ghost_workshop,
+      outbox_entity = outbox_entity,
+      crafter = crafter
+   })
+   :start()
 
    return true
 end

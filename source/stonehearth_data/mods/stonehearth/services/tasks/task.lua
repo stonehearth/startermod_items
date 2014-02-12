@@ -19,101 +19,117 @@ function Task:__init(task_group, activity)
    NEXT_TASK_ID = NEXT_TASK_ID + 1
    self._log = radiant.log.create_logger('task', 'task:'..tostring(self._id))   
    self._log:debug('creating new task for %s', task_group:get_name())
-   self._commited = false
-   self._name = activity.name .. ' task'
+   
+   self:_set_state(STOPPED)
+   self:set_name(activity.name)
    self._complete_count = 0
-   self._active_count = 0
    self._running_actions = {}
    self._entity_effect_names = {}
    self._effects = {}
-   self._priority = 2
+   self._priority = 1
    self._max_workers = INFINITE
-   self._active_count = 0
    self._complete_count = 0
-   self:_set_state(STOPPED)
 end
 
 function Task:destroy()
-   if self._state ~= COMPLETED then
+   if self._task_group then
+      self:stop()
+      self._task_group:_on_task_destroy(self)
+      self._task_group = nil
       self:_set_state(COMPLETED)
-      self:_stop()
-      self._task_group:_destroy_task(self)
    end
-end
-
-function Task:get_id()
-   return self._id
-end
-
-function Task:get_activity()
-   return self._activity
-end
-
-function Task:get_task_group()
-   return self._task_group
 end
 
 function Task:get_name()
    return self._name
 end
 
-function Task:get_priority()
-   return self._priority
-end
-
-function Task:get_state()
-   return self._state
-end
-
 function Task:set_name(format, ...)
-   self._name = string.format(format, ...)
+   assert(self._state == STOPPED)
+   self._name = '[' .. self._id .. ':' .. string.format(format, ...) .. ']'
    return self
 end
 
 function Task:set_source(source)
-   assert(self._state ~= 'started')
+   assert(self._state == STOPPED)
    self._source = source
    return self
 end
 
 function Task:set_priority(priority)
-   assert(self._state ~= 'started')
+   assert(self._state == STOPPED)
    self._priority = priority
    return self
 end
 
 function Task:set_max_workers(max_workers)
-   assert(self._state ~= 'started')
+   assert(self._state == STOPPED)
    self._max_workers = max_workers
    return self
 end
 
 function Task:add_entity_effect(entity, effect_name)
+   assert(self._state == STOPPED)
    self._entity_effect_names[entity] = effect_name
    return self
 end
 
 function Task:once()
+   assert(self._state == STOPPED)
    return self:times(1)
 end
 
 function Task:times(n)
-   assert(self._state ~= 'started')
+   assert(self._state == STOPPED)
    self._times = n
    return self
 end
 
 function Task:start()  
+   assert(self._state == STOPPED)
    self:_set_state(STARTED)
 
+   self:_create_action()
+   self:_create_entity_effects()
+
+   -- ask the task group to start feeding us workers.  we'll inject
+   -- the an action to perform this task into these workers as they're
+   -- fed to us.
+   self._task_group:_start_feeding_task(self)
+   return self
+end
+
+function Task:stop()
+   if self._state ~= STOPPED then
+      self:_stop()
+      self:_set_state(STOPPED)
+   end
+   return self
+end
+
+function Task:_create_entity_effects()
+   for entity, name in pairs(self._entity_effect_names) do 
+      local effect = radiant.effects.run_effect(entity, name)
+      table.insert(self._effects, effect)
+   end
+end
+
+function Task:_destroy_entity_effects()
+   for _, effect in ipairs(self._effects) do
+      effect:stop();
+   end
+   self._effects = {}
+end
+
+function Task:_create_action()
    if not self._action_ctor then
       local activity = self._task_group:get_activity()
       self._action_ctor = {
-         name = self._name .. ' action',
+         name = self._name,
          does = activity.name,
          args = activity.args,
          create_action = function(_, ai_component, entity, injecting_entity)
-            local action = RunTaskAction(self)
+            local action = RunTaskAction(self, self._activity)
             action.name = self._name .. ' run task action'
             action.does = activity.name
             action.args = activity.args
@@ -122,45 +138,31 @@ function Task:start()
          end,
       }
    end
-
-   self._task_group:_start_feeding_task(self)
-
-   for entity, name in pairs(self._entity_effect_names) do 
-      local effect = radiant.effects.run_effect(entity, name)
-      table.insert(self._effects, effect)
-   end
-
-   return self
 end
 
 function Task:_stop()
+   -- stop asking for workers.
    self._task_group:_stop_feeding_task(self)
-   for _, effect in ipairs(self._effects) do
-      effect:stop();
-   end
-   self._effects = {}   
+   self:_destroy_entity_effects()
 end
 
-function Task:stop()
-   self:_stop()
-   self:_set_state(STOPPED)
-   return self
-end
-
-function Task:_add_worker(worker)
+function Task:_feed_worker(worker)
    stonehearth.ai:add_custom_action(worker, self._action_ctor)
 end
 
-function Task:_remove_worker(worker)
+function Task:_unfeed_worker(worker)
    stonehearth.ai:remove_custom_action(worker, self._action_ctor)
 end
 
-function Task:_get_fitness(worker)
+function Task:_estimate_task_distance(worker)
+   local distance = 0
    local source_location
+
    local worker_location = radiant.entities.get_world_grid_location(worker)
    if radiant.util.is_a(self._source, Point3) then
       source_location = self._source
    end
+
    if radiant.util.is_a(self._source, Entity) then
       -- try the destination...
       local destination = self._source:get_component('destination')
@@ -181,12 +183,15 @@ function Task:_get_fitness(worker)
       end
    end
 
-   local distance = 0
    if source_location then
       -- distance between the worker and the source point
       distance = worker_location:distance_to(source_location)
    end
-   return self._priority, distance
+   return distance
+end
+
+function Task:_get_fitness(worker)
+   return self._priority, self:_estimate_task_distance(worker)
 end
 
 function Task:_set_state(state)
@@ -194,6 +199,9 @@ function Task:_set_state(state)
    assert(state and self._state ~= state)
    
    self._state = state
+
+   -- trigger out state change.  this may cause any number of RunActionTasks
+   -- to start or stop thinking.
    radiant.events.trigger_async(self, self._state, self)
 end
 
@@ -266,7 +274,7 @@ function Task:__action_try_start_thinking(action)
    end
 
    -- otherwise, only start when the task is active and there's stuff to do.
-   local can_start = self._state == 'started' and self:_is_work_available()
+   local can_start = self._state == STARTED and self:_is_work_available()
    self._log:detail('can start? %s', tostring(can_start))
    return can_start
 end
@@ -307,7 +315,15 @@ function Task:__action_completed(action)
    self:_log_state('exiting __action_completed')
 end
 
-function Task:_on_action_stopped(action)
+function Task:__action_destroyed(action)
+   self:_log_state('entering __action_destroyed')
+   assert(not self._running_actions[action])
+   self:_log_state('exiting __action_destroyed')
+end
+
+function Task:__action_stopped(action)
+   self:_log_state('entering __action_can_stopped')
+
    local work_was_available = self:_is_work_available()
    self._running_actions[action] = nil
    local work_is_available = self:_is_work_available()
@@ -317,24 +333,14 @@ function Task:_on_action_stopped(action)
       self._task_group:_start_feeding_task(self)
    end
 
+   self._task_group:_notify_worker_stopped_task(self, action:get_entity())
+   self:_unfeed_worker(action:get_entity():get_id())
+
    if self:_is_work_finished() then
       self._log:debug('task reached max number of completions (%d).  stopping and completing!', self._times)
-      self:_stop()
       self:destroy()
    end
-   self._task_group:_notify_worker_stopped_task(self, action:get_entity())
-   self:_remove_worker(action:get_entity():get_id())
-end
 
-function Task:__action_destroyed(action)
-   self:_log_state('entering __action_destroyed')
-   assert(not self._running_actions[action])
-   self:_log_state('exiting __action_destroyed')
-end
-
-function Task:__action_stopped(action)
-   self:_log_state('entering __action_can_stopped')
-   self:_on_action_stopped(action)
    self:_log_state('exiting __action_can_stopped')
 end
 

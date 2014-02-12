@@ -8,6 +8,8 @@
 #include "client/renderer/render_entity.h"
 #include "lib/json/namespace.h"
 #include "lib/perfmon/timer.h"
+#include "lib/perfmon/store.h"
+#include "lib/perfmon/timeline.h"
 
 extern "C" int luaopen_lpeg (lua_State *L);
 
@@ -179,6 +181,7 @@ ScriptHost::ScriptHost()
                .def("get_realtime",    &ScriptHost::GetRealTime)
                .def("get_log_level",   &ScriptHost::GetLogLevel)
                .def("get_config",      &ScriptHost::GetConfig)
+               .def("set_performance_counter", &ScriptHost::SetPerformanceCounter)
                .def("report_error",    (void (ScriptHost::*)(std::string const& error, std::string const& traceback))&ScriptHost::ReportLuaStackException)
                .def("require",         (luabind::object (ScriptHost::*)(std::string const& name))&ScriptHost::Require)
                .def("require_script",  (luabind::object (ScriptHost::*)(std::string const& name))&ScriptHost::RequireScript)
@@ -563,4 +566,17 @@ void ScriptHost::ProfileMemory(bool value)
       profile_memory_  = value;
       LOG_(0) << " lua memory profiling turned " << (profile_memory_ ? "on" : "off");
    }
+}
+
+void ScriptHost::ComputeCounters(std::function<void(const char*, int, const char*)> const& addCounter) const
+{
+   addCounter("lua:alloced_bytes", GetAllocBytesCount(), "memory");
+   for (auto const& entry : performanceCounters_) {
+      addCounter(entry.first.c_str(), entry.second.first, entry.second.second.c_str());
+   }
+}
+
+void ScriptHost::SetPerformanceCounter(const char* name, int value, const char* kind)
+{
+   performanceCounters_[BUILD_STRING("lua:" << name)] = std::make_pair(value, kind);
 }

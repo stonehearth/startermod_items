@@ -12,17 +12,20 @@
    "ui" :  {
       "html" : [
          "file(/ui/entity_inspector/entity_inspector.html)",
-         "file(/ui/object_browser/object_browser.html)"
+         "file(/ui/object_browser/object_browser.html)",
+         "file(/ui/perfmon/perfmon.html)"
       ],
       "js" : [
          "file(ui/debug_dock/debug_dock.js)",      
          "file(/ui/entity_inspector/entity_inspector.js)",
-         "file(/ui/object_browser/object_browser.js)"
+         "file(/ui/object_browser/object_browser.js)",
+         "file(/ui/perfmon/perfmon.js)"
       ],
       "less" : [
          "file(ui/debug_dock/debug_dock.less)",      
          "file(/ui/entity_inspector/entity_inspector.less)",
-         "file(/ui/object_browser/object_browser.less)"
+         "file(/ui/object_browser/object_browser.less)",
+         "file(/ui/perfmon/perfmon.less)"
       ]
    },
 
