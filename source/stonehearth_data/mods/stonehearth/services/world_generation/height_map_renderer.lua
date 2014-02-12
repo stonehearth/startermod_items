@@ -22,7 +22,10 @@ function HeightMapRenderer:__init(terrain_info)
    local terrain_tags = {
       Terrain.ROCK_LAYER_1,
       Terrain.ROCK_LAYER_2,
-      Terrain.ROCK_LAYER_3
+      Terrain.ROCK_LAYER_3,
+      Terrain.ROCK_LAYER_4,
+      Terrain.ROCK_LAYER_5,
+      Terrain.ROCK_LAYER_6
    }
 
    for i, tag in ipairs(terrain_tags) do

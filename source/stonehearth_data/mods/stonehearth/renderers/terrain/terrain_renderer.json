@@ -6,8 +6,9 @@
       "boulder_color": "#72727a"
    },
    "soil": {
-      "dark_color": "#807147",
-      "light_color": "#918154",
+      "dark_strata_color": "#807147",
+      "light_strata_color": "#918154",
+      "default_color" : "#807147",
       "detail_color": "#A3905A"
    },
    "dirt": {
