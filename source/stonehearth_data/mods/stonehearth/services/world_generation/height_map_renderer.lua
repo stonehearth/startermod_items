@@ -17,15 +17,30 @@ function HeightMapRenderer:__init(terrain_info)
    self._terrain:set_tile_size(self._tile_size)
 
    -- rock layers
-   local rock_layers = { {}, {}, {} }
    local mountains_info = self._terrain_info[TerrainType.mountains]
-   rock_layers[1].terrain_tag = Terrain.ROCK_LAYER_1
-   rock_layers[1].max_height  = mountains_info.base_height + mountains_info.step_size
-   rock_layers[2].terrain_tag = Terrain.ROCK_LAYER_2
-   rock_layers[2].max_height  = rock_layers[1].max_height + mountains_info.step_size
-   rock_layers[3].terrain_tag = Terrain.ROCK_LAYER_3
-   rock_layers[3].max_height  = rock_layers[2].max_height + mountains_info.step_size
-   self.rock_layers = rock_layers
+   local rock_layers = {}
+   local terrain_tags = {
+      Terrain.ROCK_LAYER_1,
+      Terrain.ROCK_LAYER_2,
+      Terrain.ROCK_LAYER_3
+   }
+
+   for i, tag in ipairs(terrain_tags) do
+      rock_layers[i] = {
+         terrain_tag = tag,
+         max_height = mountains_info.base_height + mountains_info.step_size*i
+      }
+   end
+
+   self._rock_layers = rock_layers
+   self._num_rock_layers = #rock_layers
+
+   -- add land function table
+   self._add_land_functions = {
+      [TerrainType.plains] = self._add_plains_to_region,
+      [TerrainType.foothills] = self._add_foothills_to_region,
+      [TerrainType.mountains] = self._add_mountains_to_region
+   }
 end
 
 function HeightMapRenderer:create_new_region()
@@ -46,16 +61,18 @@ function HeightMapRenderer:render_height_map_to_region(region3_boxed, height_map
 
    self:_convert_height_map_to_region2(region2, height_map)
 
-   region3_boxed:modify(function(region3)
-      self:_add_bedrock_to_region(region3, height_map, 4)
+   region3_boxed:modify(
+      function (region3)
+         self:_add_bedrock_to_region(region3, height_map, 4)
 
-      for rect in region2:each_cube() do
-         height = rect.tag
-         if height > 0 then
-            self:_add_land_to_region(region3, rect, height);
+         for rect in region2:each_cube() do
+            height = rect.tag
+            if height > 0 then
+               self:_add_land_to_region(region3, rect, height);
+            end
          end
       end
-   end)
+   )
 end
 
 function HeightMapRenderer:_convert_height_map_to_region2(region2, height_map)
@@ -87,33 +104,19 @@ end
 function HeightMapRenderer:_add_land_to_region(region3, rect, height)
    local terrain_type = self._terrain_info:get_terrain_type(height)
 
-   -- as we grow TerrainTypes, put this in a table and dynamically call the function
-
-   if terrain_type == TerrainType.plains then
-      self:_add_plains_to_region(region3, rect, height)
-      return
-   end
-
-   if terrain_type == TerrainType.foothills then
-      self:_add_foothills_to_region(region3, rect, height)
-      return
-   end
-
-   if terrain_type == TerrainType.mountains then
-      self:_add_mountains_to_region(region3, rect, height)
-      return
-   end
+   self._add_land_functions[terrain_type](self, region3, rect, height)
 end
 
 function HeightMapRenderer:_add_mountains_to_region(region3, rect, height)
-   local rock_layers = self.rock_layers
+   local rock_layers = self._rock_layers
+   local num_rock_layers = self._num_rock_layers
    local i, block_min, block_max
    local stop = false
 
    block_min = 0
 
-   for i=1, #rock_layers do
-      if (i == #rock_layers) or (height <= rock_layers[i].max_height) then
+   for i=1, num_rock_layers do
+      if (i == num_rock_layers) or (height <= rock_layers[i].max_height) then
          block_max = height
          stop = true
       else
