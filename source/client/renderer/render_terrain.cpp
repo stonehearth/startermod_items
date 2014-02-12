@@ -63,9 +63,13 @@ RenderTerrain::RenderTerrain(const RenderEntity& entity, om::TerrainPtr terrain)
       csg::Point3f rock_layer_1_color = parse_color(config.get("rock.layer_1_color", "#ff00ff"));
       csg::Point3f rock_layer_2_color = parse_color(config.get("rock.layer_2_color", "#ff00ff"));
       csg::Point3f rock_layer_3_color = parse_color(config.get("rock.layer_3_color", "#ff00ff"));
+      csg::Point3f rock_layer_4_color = parse_color(config.get("rock.layer_4_color", "#ff00ff"));
+      csg::Point3f rock_layer_5_color = parse_color(config.get("rock.layer_5_color", "#ff00ff"));
+      csg::Point3f rock_layer_6_color = parse_color(config.get("rock.layer_6_color", "#ff00ff"));
       csg::Point3f boulder_color = parse_color(config.get("rock.boulder_color", "#ff00ff"));
-      csg::Point3f soil_light_color = parse_color(config.get("soil.light_color", "#ffff00"));
-      csg::Point3f soil_dark_color = parse_color(config.get("soil.dark_color", "#ff00ff"));
+      csg::Point3f soil_light_strata_color = parse_color(config.get("soil.light_strata_color", "#ffff00"));
+      csg::Point3f soil_dark_strata_color = parse_color(config.get("soil.dark_strata_color", "#ff00ff"));
+      csg::Point3f soil_default_color = parse_color(config.get("soil.default_color", "#ff00ff"));
       csg::Point3f soil_detail_color = parse_color(config.get("soil.detail_color", "#ff00ff"));
       csg::Point3f dark_grass_color = parse_color(config.get("grass.dark_color", "#ff00ff"));
       csg::Point3f dark_wood_color = parse_color(config.get("wood.dark_color", "#ff00ff"));
@@ -80,12 +84,16 @@ RenderTerrain::RenderTerrain(const RenderEntity& entity, om::TerrainPtr terrain)
       };
 
       tess_map[om::Terrain::Soil] = [=](int tag, csg::Point3f const points[], csg::Point3f const& normal, csg::mesh_tools::mesh& m) {
+         m.add_face(points, normal, soil_default_color);
+      };
+
+      tess_map[om::Terrain::SoilStrata] = [=](int tag, csg::Point3f const points[], csg::Point3f const& normal, csg::mesh_tools::mesh& m) {
          // stripes...
          const int stripe_size = 2;
          if (normal.y) {
             int y = ((int)((points[0].y + stripe_size) / stripe_size)) * stripe_size;
             bool light_stripe = ((y / stripe_size) & 1) != 0;
-            m.add_face(points, normal, light_stripe ? soil_light_color : soil_dark_color);
+            m.add_face(points, normal, light_stripe ? soil_light_strata_color : soil_dark_strata_color);
          } else {
             float ymin = std::min(points[0].y, points[1].y);
             float ymax = std::max(points[0].y, points[1].y);
@@ -101,7 +109,7 @@ RenderTerrain::RenderTerrain(const RenderEntity& entity, om::TerrainPtr terrain)
                y1 = std::min(y1, ymax);
                stripe[0].y = stripe[3].y = y0;
                stripe[1].y = stripe[2].y = y1;
-               m.add_face(stripe, normal, light_stripe ? soil_light_color : soil_dark_color);
+               m.add_face(stripe, normal, light_stripe ? soil_light_strata_color : soil_dark_strata_color);
                if (y1 == ymax) {
                   break;
                }
@@ -122,6 +130,18 @@ RenderTerrain::RenderTerrain(const RenderEntity& entity, om::TerrainPtr terrain)
 
       tess_map[om::Terrain::RockLayer3] = [=](int tag, csg::Point3f const points[], csg::Point3f const& normal, csg::mesh_tools::mesh& m) {
          m.add_face(points, normal, rock_layer_3_color);
+      };
+
+      tess_map[om::Terrain::RockLayer4] = [=](int tag, csg::Point3f const points[], csg::Point3f const& normal, csg::mesh_tools::mesh& m) {
+         m.add_face(points, normal, rock_layer_4_color);
+      };
+
+      tess_map[om::Terrain::RockLayer5] = [=](int tag, csg::Point3f const points[], csg::Point3f const& normal, csg::mesh_tools::mesh& m) {
+         m.add_face(points, normal, rock_layer_5_color);
+      };
+
+      tess_map[om::Terrain::RockLayer6] = [=](int tag, csg::Point3f const points[], csg::Point3f const& normal, csg::mesh_tools::mesh& m) {
+         m.add_face(points, normal, rock_layer_6_color);
       };
 
       tess_map[om::Terrain::Boulder] = [=](int tag, csg::Point3f const points[], csg::Point3f const& normal, csg::mesh_tools::mesh& m) {

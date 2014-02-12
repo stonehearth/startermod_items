@@ -2,6 +2,8 @@ App.StonehearthEmbarkView = App.View.extend({
    templateName: 'stonehearthEmbark',
    i18nNamespace: 'stonehearth',
 
+   classNames: ['flex', 'fullScreen', 'embarkBackground'],
+
    init: function() {
       this._super();
       var self = this;
