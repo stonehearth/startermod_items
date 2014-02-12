@@ -1,5 +1,6 @@
 #include "pch.h"
 #include "goto_location.h"
+#include "csg/util.h"
 #include "om/entity.h"
 #include "om/components/mob.ridl.h"
 #include "simulation/simulation.h"
@@ -53,7 +54,6 @@ static float angle(const csg::Point3f &v)
 
 bool GotoLocation::Work(const platform::timer &timer)
 {
-
    Report("running");
 
    auto entity = entity_.lock();
@@ -83,18 +83,27 @@ bool GotoLocation::Work(const platform::timer &timer)
    float togo = direction.Length() - close_to_distance_;
    direction.Normalize();
 
+   csg::Point3f position;
+   bool finished;
    if (togo < maxDistance) {
-      mob->MoveTo(current + direction * togo);
       Report("arrived");
-      if (luabind::type(arrived_cb_) == LUA_TFUNCTION) {
-         luabind::call_function<void>(arrived_cb_);
-      }
-      return false;
+      finished = true;
+      position = current + direction * togo;
+   } else {
+      position = current + direction * maxDistance;
+      finished = false;
+      Report("moving");
+      mob->TurnTo(angle(direction) * 180 / csg::k_pi);
    }
-   mob->TurnTo(angle(direction) * 180 / csg::k_pi);
-   mob->MoveTo(current + direction * maxDistance);
-   Report("moving");
-   return true;
+   if (!GetSim().GetOctTree().CanStandOn(entity, csg::ToInt(position))) {
+      Report("unpassable");
+      finished = true;
+   }
+   mob->MoveTo(position);
+   if (finished && luabind::type(arrived_cb_) == LUA_TFUNCTION) {
+      luabind::call_function<void>(arrived_cb_);
+   }
+   return !finished;
 }
 
 void GotoLocation::Stop()
