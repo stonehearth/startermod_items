@@ -205,11 +205,19 @@ function AttributesComponent:_recalculate(name)
             end
 
             if mods['min'] then
-               min = math.min(min, mods['min'])
+               if min then
+                  min = math.min(min, mods['min'])
+               else 
+                  min = mods['min']
+               end
             end
 
             if mods['max'] then
-               max = math.max(max, mods['max'])
+               if max then
+                  max = math.min(max, mods['max'])
+               else
+                  max = mods['max']
+               end
             end
          end   
       end
@@ -220,10 +228,10 @@ function AttributesComponent:_recalculate(name)
    self._attributes[name].effective_value = self._attributes[name].value * mult_factor
    self._attributes[name].effective_value = self._attributes[name].effective_value + add_factor
    if min then
-      self._attributes[name].effective_value = math.min(min, self._attributes[name].effective_value)
+      self._attributes[name].effective_value = math.max(min, self._attributes[name].effective_value)
    end
    if max then
-      self._attributes[name].effective_value = math.max(max, self._attributes[name].effective_value)
+      self._attributes[name].effective_value = math.min(max, self._attributes[name].effective_value)
    end
 
    radiant.events.trigger(self._entity, 'stonehearth:attribute_changed:' .. name, { 

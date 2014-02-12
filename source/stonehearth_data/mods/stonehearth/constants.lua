@@ -33,7 +33,8 @@ local constants = {
 
       -- Priorites of commands issued by the player to a unit
       unit_control = {
-         MOVE = 2
+         MOVE = 2,
+         ABILITY = 100
       },
    },
    

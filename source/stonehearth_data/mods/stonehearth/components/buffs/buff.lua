@@ -16,6 +16,10 @@ function Buff:get_type()
    return self.type
 end
 
+function Buff:get_effect()
+   return self.effect
+end
+
 function Buff:get_modifiers()
    return self.modifiers
 end
