@@ -157,6 +157,7 @@
       "buffs:carrying" : "file(data/buffs/carrying/carrying_buff.json)",
       "buffs:sleeping" : "file(data/buffs/sleeping/sleeping_buff.json)",
       "buffs:starving" : "file(data/buffs/starving/starving_buff.json)",
+      "buffs:snared" : "file(data/buffs/snared/snared_buff.json)",
 
       "actions:attack_action" : "file(ai/actions/combat/attack_action.lua)",
       "actions:attack_top_aggro_action" : "file(ai/actions/combat/attack_top_aggro_action.lua)",
@@ -216,6 +217,7 @@
       "actions:pickup_item_made_of_trivial" : "file(ai/actions/pickup_item_made_of_trivial.lua)",
       "actions:place_item" : "file(ai/actions/place_item_action.lua)",
       "actions:place_item_type" : "file(ai/actions/place_item_type_action.lua)",
+      "actions:turn_to_face_entity" : "file(ai/actions/turn_to_face_entity_action.lua)",
       "actions:collect_ingredient" : "file(ai/actions/collect_ingredient.lua)",
       "actions:complete_workshop_construction" : "file(ai/actions/complete_workshop_construction.lua)",
       "actions:call_function" : "file(ai/actions/call_function.lua)",
@@ -243,6 +245,7 @@
       
       "actions:unit_control:dispatcher" : "file(ai/actions/unit_control/unit_control_dispatcher.lua)",
       "actions:unit_control:move_unit_to_location" : "file(ai/actions/unit_control/move_unit_to_location_action.lua)",
+      "actions:unit_control:abilities:snare_trap" : "file(ai/actions/unit_control/abilities/snare_trap_action.lua)",
       
       "actions:chop_tree_action" : "file(ai/actions/chop_tree_action.lua)",
       "actions:chop_tree_adjacent_action" : "file(ai/actions/chop_tree_adjacent_action.lua)",
@@ -405,6 +408,7 @@
          "controller" : "file(call_handlers/new_game_call_handler.lua)",
          "endpoint" : "server"
       },
+
       "client_move_unit" : {
          "controller": "file(call_handlers/unit_control/move_unit_call_handler.lua)",
          "endpoint" : "client"
@@ -413,6 +417,15 @@
          "controller": "file(call_handlers/unit_control/move_unit_call_handler.lua)",
          "endpoint" : "server"
       },
+      "client_cast_aoe" : {
+         "controller": "file(call_handlers/unit_control/cast_aoe_call_handler.lua)",
+         "endpoint" : "client"
+      },
+      "server_cast_aoe" : {
+         "controller": "file(call_handlers/unit_control/cast_aoe_call_handler.lua)",
+         "endpoint" : "server"
+      },
+
       "set_display_name": {
          "controller" : "file(call_handlers/entities_call_handler.lua)",
          "endpoint" : "server"

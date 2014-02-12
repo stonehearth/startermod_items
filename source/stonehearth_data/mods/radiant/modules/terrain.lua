@@ -42,6 +42,24 @@ function Terrain.trace_world_entities(reason, added_cb, removed_cb)
                         :push_object_state()
 end
 
+function Terrain.get_entities_in_box(box)
+   local results = {}
+
+   for id, entity in radiant.terrain.each_world_entity() do
+      if entity then
+         local mob_component = entity:get_component('mob')
+         if mob_component then
+            local location = mob_component:get_world_grid_location()
+            if box:contains(location) then
+               table.insert(results, entity)
+            end
+         end
+      end
+   end   
+
+   return ipairs(results)
+end
+
 
 function Terrain.each_world_entity()
    local ec = radiant.entities.get_root_entity():add_component('entity_container');

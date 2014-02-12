@@ -14,7 +14,9 @@ GrabTalismanAction.priority = 1
 local ai = stonehearth.ai
 return ai:create_compound_action(GrabTalismanAction)
             :execute('stonehearth:drop_carrying_now')
-            :execute('stonehearth:pickup_item', { item = ai.ARGS.talisman })
+            :execute('stonehearth:reserve_entity', { entity = ai.ARGS.talisman })
+            :execute('stonehearth:goto_entity', { entity = ai.ARGS.talisman  })
+            :execute('stonehearth:turn_to_face_entity', { entity = ai.ARGS.talisman  })            
             :execute('stonehearth:run_effect', {
                effect = 'promote',
                trigger_fn = ai.ARGS.trigger_fn,
