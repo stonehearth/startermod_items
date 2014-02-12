@@ -698,6 +698,12 @@ DLLEXP void h3dSetNodeFlags( NodeHandle node, int flags, bool recursive )
 	sn->setFlags( flags, recursive );
 }
 
+DLLEXP int h3dGetResFlags( ResHandle res )
+{
+   Resource *r = Modules::resMan().resolveResHandle(res);
+	APIFUNC_VALIDATE_NODE( r, "h3dGetResFlags", 0 );
+	return r->getFlags();
+}
 
 DLLEXP void h3dGetNodeAABB( NodeHandle node, float *minX, float *minY, float *minZ,
                             float *maxX, float *maxY, float *maxZ )

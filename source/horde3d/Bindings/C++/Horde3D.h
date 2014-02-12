@@ -209,7 +209,8 @@ struct H3DResFlags
 		TexCubemap = 8,
 		TexDynamic = 16,
 		TexRenderable = 32,
-		TexSRGB = 64
+		TexSRGB = 64,
+      NoFlush = 128
 	};
 };
 
@@ -1745,6 +1746,8 @@ DLL int h3dGetNodeFlags( H3DNode node );
 		nothing
 */
 DLL void h3dSetNodeFlags( H3DNode node, int flags, bool recursive );
+
+DLL int h3dGetResFlags( H3DRes res );
 
 /* Function: h3dGetNodeAABB
 		Gets the bounding box of a scene node.

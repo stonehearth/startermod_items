@@ -120,6 +120,8 @@ Renderer::Renderer() :
    h3dSetOption(H3DOptions::FastAnimation, 1);
    h3dSetOption(H3DOptions::DumpFailedShaders, 1);
 
+   H3DRes veclookup = h3dCreateTexture("RandomVectorLookup", 4, 4, H3DFormats::TEX_RGBA32F, H3DResFlags::NoTexMipmaps | H3DResFlags::NoQuery | H3DResFlags::NoFlush);
+
    ApplyConfig(config_, false);
 
    SetDrawWorld(drawWorld_);
@@ -577,40 +579,51 @@ void Renderer::SetStageEnable(const char* stageName, bool enabled)
 void Renderer::FlushMaterials() {
    H3DRes r = 0;
    while ((r = h3dGetNextResource(H3DResTypes::Shader, r)) != 0) {
-      h3dUnloadResource(r);
+      if (!(h3dGetResFlags(r) & H3DResFlags::NoFlush)) {
+         h3dUnloadResource(r);
+      }
    }
 
    r = 0;
    while ((r = h3dGetNextResource(H3DResTypes::Material, r)) != 0) {
-      if (!uiBuffer_.isUiMaterial(r))
-      {
+      if (!(h3dGetResFlags(r) & H3DResFlags::NoFlush)) {
          h3dUnloadResource(r);
       }
    }
 
    r = 0;
    while ((r = h3dGetNextResource(H3DResTypes::Pipeline, r)) != 0) {
-      h3dUnloadResource(r);
+      if (!(h3dGetResFlags(r) & H3DResFlags::NoFlush)) {
+         h3dUnloadResource(r);
+      }
    }
 
    r = 0;
    while ((r = h3dGetNextResource(H3DResTypes::ParticleEffect, r)) != 0) {
-      h3dUnloadResource(r);
+      if (!(h3dGetResFlags(r) & H3DResFlags::NoFlush)) {
+         h3dUnloadResource(r);
+      }
    }
 
    r = 0;
    while ((r = h3dGetNextResource(H3DResTypes::Code, r)) != 0) {
-      h3dUnloadResource(r);
+      if (!(h3dGetResFlags(r) & H3DResFlags::NoFlush)) {
+         h3dUnloadResource(r);
+      }
    }
 
    r = 0;
    while ((r = h3dGetNextResource(RT_CubemitterResource, r)) != 0) {
-      h3dUnloadResource(r);
+      if (!(h3dGetResFlags(r) & H3DResFlags::NoFlush)) {
+         h3dUnloadResource(r);
+      }
    }
 
    r = 0;
    while ((r = h3dGetNextResource(RT_AnimatedLightResource, r)) != 0) {
-      h3dUnloadResource(r);
+      if (!(h3dGetResFlags(r) & H3DResFlags::NoFlush)) {
+         h3dUnloadResource(r);
+      }
    }
 
    ResizePipelines();
