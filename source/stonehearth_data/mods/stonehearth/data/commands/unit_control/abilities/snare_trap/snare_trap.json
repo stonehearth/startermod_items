@@ -1,0 +1,15 @@
+{
+   "type" : "command",
+
+   "name": "snare trap",
+   "tooltip": "Snare Trap",
+   "description": "Spring a weighted net to capture small game like rabbits and squirrels.",
+   "icon": "file(snare_trap.png)",
+
+   "action": "call",
+   "function": "stonehearth:client_cast_aoe",
+   "args": [
+      "{{self}}",
+      "snare_trap"
+   ]
+}

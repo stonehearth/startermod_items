@@ -11,9 +11,9 @@ function PromoteTest:__init()
    self:create_world()
 
    --Create the saw 
-   self:place_item('stonehearth:carpenter:saw', 0, -4)
+   self:place_item('stonehearth:carpenter:saw', 4, 0)
 
-   self:place_citizen(0,0)
+   self:place_citizen(-1,2)
    local worker = self:place_citizen(12, 12)
 
    self:place_item_cluster('stonehearth:oak_log', 6, 6, 2, 2);

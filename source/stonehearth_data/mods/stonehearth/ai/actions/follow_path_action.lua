@@ -37,8 +37,11 @@ function FollowPathAction:run(ai, entity, args)
    if speed == nil then
       speed = 1.0
    end
+
    --TODO: may need to reevaluate as we tweak attribute display
-   speed = math.floor(50 + (50 * speed / 60)) / 100
+   if speed > 0 then
+      speed = math.floor(50 + (50 * speed / 60)) / 100
+   end
 
    self._effect = radiant.effects.run_effect(entity, 'run')
    local arrived_fn = function()

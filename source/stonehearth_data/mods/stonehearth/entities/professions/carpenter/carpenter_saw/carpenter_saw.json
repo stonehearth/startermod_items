@@ -20,9 +20,9 @@
             ]
          },
          {
-            "variants": "iconic",
+            "variants": "equipped",
             "models": [
-               "file(carpenter_saw_proxy.qb)"
+               "file(carpenter_saw_equipped.qb)"
             ]
          }
       ],
