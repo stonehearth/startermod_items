@@ -589,8 +589,6 @@ end
 function Landscaper:mark_boulders(elevation_map, feature_map)
    local elevation
 
-   elevation_map:print() -- CHECKCHECK
-
    -- no boulders on edge of map since they may exceed boundaries
    for j=2, feature_map.height-1 do
       for i=2, feature_map.width-1 do

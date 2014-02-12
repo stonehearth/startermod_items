@@ -76,12 +76,4 @@ function FollowPathAction:stop(ai, entity)
    end
 end
 
-function FollowPathAction:destroy(ai, entity)
-   if self._mover then
-      ai:get_log():debug('stopping mover %s in destroy...', self._mover:get_name());
-      self._mover:stop()
-      self._mover = nil
-   end
-end
-
 return FollowPathAction
