@@ -205,10 +205,12 @@ function Fabricator:_start_project()
 end
 
 function Fabricator:_start_teardown_task()
+   assert(not self._teardown_task)
+   
    local town = stonehearth.town:get_town(self._faction)
-
    self._teardown_task = town:create_worker_task('stonehearth:teardown_structure', { fabricator = self })
                                    :set_name('teardown')
+                                   :set_source(self._entity)
                                    :set_max_workers(self:get_max_workers())
                                    :set_priority(priorities.TEARDOWN_BUILDING)
                                    :start()
@@ -216,10 +218,12 @@ function Fabricator:_start_teardown_task()
 end
  
 function Fabricator:_start_fabricate_task() 
-   local town = stonehearth.town:get_town(self._faction)
-   
+   assert(not self._fabricate_task)
+
+   local town = stonehearth.town:get_town(self._faction)  
    self._fabricate_task = town:create_worker_task('stonehearth:fabricate_structure', { fabricator = self })
                                    :set_name('fabricate')
+                                   :set_source(self._entity)
                                    :set_max_workers(self:get_max_workers())
                                    :set_priority(priorities.CONSTRUCT_BUILDING)
                                    :start()

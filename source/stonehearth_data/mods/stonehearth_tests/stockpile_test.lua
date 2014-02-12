@@ -6,7 +6,7 @@ function StockpileTest:__init()
    self:create_world()
 
    self:place_item_cluster('stonehearth:oak_log', -15, -15, 8, 8);
-   self:place_citizen(15, 15)
+   --self:place_citizen(15, 15)
    local worker = self:place_citizen(12, 12)
    --local log = radiant.entities.create_entity('stonehearth:oak_log')
    --worker:get_component('stonehearth:carry_block'):set_carrying(log)

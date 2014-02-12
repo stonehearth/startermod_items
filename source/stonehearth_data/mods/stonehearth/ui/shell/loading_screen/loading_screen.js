@@ -8,11 +8,18 @@ App.StonehearthLoadingScreenView = App.View.extend({
 
       radiant.call('stonehearth:get_world_generation_progress')
          .done(function(o) {
-            this.trace = radiant.trace(o.tracker)
+            self.trace = radiant.trace(o.tracker)
                .progress(function(result) {
                   self.updateProgress(result);
                })
          });
+   },
+
+   destroy: function() {
+      if (this.trace) {
+         this.trace.destroy();
+         this.trace = null;
+      }
    },
 
    didInsertElement: function() {

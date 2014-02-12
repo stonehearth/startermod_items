@@ -4,7 +4,7 @@ $.widget( "stonehearth.stonehearthMap", {
    options: {
       // callbacks
       hover: null,
-      cellSize: 10,
+      cellSize: 12,
       click: function(cellX, cellY) {
          console.log('Selected cell: ' + cellX + ', ' + cellY)
       }
@@ -299,12 +299,14 @@ $.widget( "stonehearth.stonehearthMap", {
 
       if (forest_density > 0) {
          var margin = self.forestMargin[forest_density];
-         context.fillStyle = '#2c4b27';
+         context.fillStyle = '#2a582a';
+         context.globalAlpha = 0.6;
 
          context.fillRect(
             x + margin, y + margin, 
             cellSize - margin*2, cellSize - margin*2
          );
+         context.globalAlpha = 1.0;
       }
    },
 

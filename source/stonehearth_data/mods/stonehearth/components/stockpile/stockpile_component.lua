@@ -181,7 +181,10 @@ function StockpileComponent:get_bounds()
 end
 
 function StockpileComponent:is_full()
-   return self._destination:get_region():get():empty()
+   if self._destination and self._destination:is_valid() then
+      return self._destination:get_region():get():empty()
+   end
+   return true
 end
 
 function StockpileComponent:bounds_contain(item_entity)
@@ -425,6 +428,7 @@ function StockpileComponent:_create_worker_tasks()
 
    local town = stonehearth.town:get_town(self._faction)
    self._task = town:create_worker_task('stonehearth:restock_stockpile', { stockpile = self })
+                                   :set_source(self._entity)
                                    :set_name('restock task')
                                    :start()
 end

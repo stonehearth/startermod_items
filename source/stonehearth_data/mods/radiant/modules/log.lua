@@ -96,6 +96,7 @@ function Log.create_logger(sub_category, prefix)
             end            
          end,
    }
+   
    for keyword, level in pairs(logger_functions) do
       if logger:is_enabled(level) then
          logger[keyword] = function(self, format, ...)

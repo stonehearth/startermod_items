@@ -140,6 +140,7 @@ function CompoundAction:_replace_placeholders(args)
 end
 
 function CompoundAction:start()
+   self._log:detail('starting all compound action frames')
    for _, frame in ipairs(self._thinking_frames) do
       frame:start() -- must be synchronous!
    end
@@ -153,10 +154,12 @@ function CompoundAction:run(ai, entity, ...)
 end
 
 function CompoundAction:stop()
-   for i = #self._running_frames, 1, -1 do
-      self._running_frames[i]:stop() -- must be asynchronous!
+   self._log:detail('stopping all compound action frames')
+   for _, frame in ipairs(self._running_frames) do
+      frame:stop() -- must be asynchronous!
    end
    self._running_frames = {}
+   self._log:detail('finished stopping all compound action frames')
 end
 
 function CompoundAction:destroy()

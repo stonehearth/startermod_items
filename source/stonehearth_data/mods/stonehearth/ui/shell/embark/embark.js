@@ -6,17 +6,12 @@ App.StonehearthEmbarkView = App.View.extend({
       this._super();
       var self = this;
 
-      self._new_game(function(e) {
+      self._newGame(function(e) {
          $('#map').stonehearthMap({
             mapGrid: e.map,
 
             click: function(cellX, cellY) {
-               self._selectedX = cellX;
-               self._selectedY = cellY;
-
-               $('#embarkButton').show();
-               $('#clearSelectionButton').show();
-               $('#map').stonehearthMap('suspend');
+               self._chooseLocation(cellX, cellY)
             },
 
             hover: function(cellX, cellY) {
@@ -24,6 +19,7 @@ App.StonehearthEmbarkView = App.View.extend({
                self._updateScroll(map[cellY][cellX]);
             }
          });
+
       });
    },
 
@@ -31,19 +27,19 @@ App.StonehearthEmbarkView = App.View.extend({
       this._super();
       var self = this;
 
-      $("#embarkButton").click(function() {
+      $('body').on( 'click', '#embarkButton', function() {
          self._embark(self._selectedX, self._selectedY);
       });
 
-      $("#clearSelectionButton").click(function() {
+      $('body').on( 'click', '#clearSelectionButton', function() {
          self._clearSelection();
       });
 
-      $("#regenerateButton").click(function() {
+      this.my("#regenerateButton").click(function() {
          self._clearSelection();
 
-         self._new_game(function(e) {
-            $('#map').stonehearthMap('setMap', e.map);
+         self._newGame(function(e) {
+            self.my('#map').stonehearthMap('setMap', e.map);
          });
       });
 
@@ -56,11 +52,39 @@ App.StonehearthEmbarkView = App.View.extend({
       });
    },
 
-   _new_game: function(fn) {
+   _chooseLocation: function(cellX, cellY) {
+      var self = this;
+
+      self._selectedX = cellX;
+      self._selectedY = cellY;
+
+      $('#map').stonehearthMap('suspend');
+
+      self.my('#embarkPin').position({
+         my: 'left+' + 12 * cellX + ' top+' + 12 * cellY,
+         at: 'left top',
+         of: self.my('#map'),
+      })
+
+      var tipContent = '<div id="embarkTooltip">';
+      tipContent += '<button id="embarkButton" class="flat">' + i18n.t('stonehearth:embark_at_this_location') + '</button><br>';
+      tipContent += '<button id="clearSelectionButton" class="flat">' + i18n.t('stonehearth:embark_clear_selection') + '</button>';
+      tipContent += '</div>'
+
+      self.my('#embarkPin').tooltipster({
+         autoClose: false,
+         interactive: true,
+         content:  $(tipContent)
+      });
+
+      self.my('#embarkPin').tooltipster('show');
+   },
+
+   _newGame: function(fn) {
       var self = this;
       var seed = self._generate_seed();
 
-      radiant.call('stonehearth:new_game', 14, 8, seed)
+      radiant.call('stonehearth:new_game', 12, 8, seed)
          .done(function(e) {
             fn(e);
          })
@@ -79,26 +103,48 @@ App.StonehearthEmbarkView = App.View.extend({
 
    _updateScroll: function(cell) {
       var self = this;
-      var terrainDescription = '';
+      var terrainType = '';
       var vegetationDescription = '';
       var wildlifeDescription = '';
 
       if (cell != null) {
-         terrainDescription = i18n.t(cell.terrain_code);
+         $('#scroll').show();
+
+         terrainType = i18n.t(cell.terrain_code);
          vegetationDescription = i18n.t('vegetation_' + cell.vegetation_density);
          wildlifeDescription = i18n.t('wildlife_' + cell.wildlife_density);
-      }
 
-      self.my('#terrain_type').html(terrainDescription);
-      self.my('#vegetation').html(vegetationDescription);
-      self.my('#wildlife').html(wildlifeDescription);
+         if (cell.terrain_code != this._prevTerrainCode) {
+            var portrait = 'url(/stonehearth/ui/shell/embark/images/' + cell.terrain_code + '.png)'
+
+            self.my('#terrainType').html(terrainType);
+            //self.my('#terrainPortrait').css('content', portrait);   
+            
+            this._prevTerrainCode = cell.terrain_code;
+         }
+         
+         self.my('#vegetation')
+            .removeAttr('class')
+            .addClass('level' + cell.vegetation_density)
+            .html(vegetationDescription);
+
+         self.my('#wildlife')
+            .removeAttr('class')
+            .addClass('level' + cell.wildlife_density)
+            .html(wildlifeDescription);
+
+      } else {
+         $('#scroll').hide();
+      }
    },
 
    _clearSelection: function() {
       var self = this;
 
-      $("#embarkButton").hide();
-      $("#clearSelectionButton").hide();
+      try {
+         self.my('#embarkPin').tooltipster('destroy');
+      } catch(e) {
+      }
 
       $('#map').stonehearthMap('clearCrosshairs');
       self._updateScroll(null);

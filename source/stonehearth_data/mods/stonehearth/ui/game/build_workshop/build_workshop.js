@@ -2,7 +2,8 @@ $(document).ready(function(){
 
    $(top).on("build_workshop.stonehearth", function (_, e) {
       var view = App.gameView.addView(App.StonehearthCrafterBuildWorkshopView, {
-         uri: e.uri
+         uri: e.event_data.profession_info, 
+         crafter: e.event_data.crafter
       });
    });
 });
@@ -64,7 +65,7 @@ App.StonehearthCrafterBuildWorkshopView = App.View.extend({
                   description : 'Your crafter will store crafted goods in the outbox.'
                });
 
-               radiant.call('stonehearth:choose_outbox_location', workbenchEntity)
+               radiant.call('stonehearth:choose_outbox_location', workbenchEntity, self.crafter)
                   .done(function(o) {
                      if (o.cancelled) {
                         $(top).trigger('radiant_hide_tip');

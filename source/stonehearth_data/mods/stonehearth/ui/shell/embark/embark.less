@@ -4,7 +4,7 @@
    left: 0px;
    right: 0px;
    bottom: 0px;
-   background: url('./images/bg.jpg');
+   background: url('./images/bg.png');
    background-size: cover; 
    color: #fff;
    padding: 20px;
@@ -13,14 +13,90 @@
       position: absolute;
       top: 368px;
       left: 1268px;
+      width: 428px;
       color: #000;
+      display: none;
+
+      #terrainPortrait {
+         display: none;
+         width: 100%;
+         height: auto;
+         //content: url('./images/plains_1.png');
+      }
+
+      #terrainType {
+         font-family: @headerFontFamily;
+         font-size: 53px;
+         text-align: center;
+      }
+
+      #terrainDescription {
+         padding-top: 20px;
+      }
+
+      #terrainStats {
+         width: 428px;
+         padding-top: 20px;
+
+         td {
+            padding-top: 8px;
+            width: 50%;
+         }
+
+         td:nth-of-type(2) {
+            .outlined;
+         }
+
+         .level0 {
+            color: #ff0000;
+         }
+
+         .level1 {
+            color: #bababa;
+         }
+
+         .level2 {
+            color: #fff;
+         }
+
+         .level3 {
+            color: #72ff00;
+         }
+
+         .level4 {
+            color: #72ff00;
+         }
+
+         .level5 {
+            color: #72ff00;
+         }
+      }
+   }
+
+   #title {
+      .controlFont;
+      font-size: 32px;
    }
 
    #map {
       position: absolute;
-      top: 144px;
-      left: 40px;
+      top: 129px;
+   left: 73px;
       display: inline-block;
+   }
+
+   #regenerateButton {
+      .control;
+      position: absolute;
+      top: 900px;
+      left: 56px;
+      height: 114px;
+      padding-left: 180px;
+      padding-top: 10px;
+      font-size: 35px;
+      color: #f5eed6;
+      text-align: right;      
+      line-height: 114px;
    }
 
    #embarkButton {
@@ -29,5 +105,23 @@
 
    #clearSelectionButton {
       display: none;
+   }
+
+   #embarkPin {
+      position: absolute;
+      left: -100px;
+      top: -100px;
+      width: 12px;
+      height: 12px;
+   }
+}
+
+#embarkTooltip {
+   button {
+      width: 300px;
+   }
+
+   #embarkButton {
+      font-size: 28px;
    }
 }

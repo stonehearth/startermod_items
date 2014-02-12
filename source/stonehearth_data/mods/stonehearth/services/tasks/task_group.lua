@@ -62,12 +62,17 @@ function TaskGroup:create_task(name, args)
    local task = Task(self, activity)
    self._tasks[task] = task
 
+   self._log:debug('created task [%d:%s]', task:get_id(), task:get_name())
+
    return task
 end
 
 function TaskGroup:_destroy_task(task)
+   self._log:debug('removing task [%d:%s] from group', task:get_id(), task:get_name())
    if self._tasks[task] then
+      local task_id = task:get_id()
       self._tasks[task] = nil
+      self._feeding[task] = nil
       self:_remove_workers_from_task(task)      
    end
 end
@@ -82,15 +87,15 @@ function TaskGroup:_remove_workers_from_task(task)
 end
 
 function TaskGroup:_start_feeding_task(task)
-   local id = task:get_id()
-   assert (not self._feeding[id])
-   self._feeding[id] = task
+   self._log:debug('starting to feed task [%d:%s]', task:get_id(), task:get_name())
+   assert (not self._feeding[task])
+   self._feeding[task] = task
 end
 
 function TaskGroup:_stop_feeding_task(task)
-   local id = task:get_id()
-   if self._feeding[id] then
-      self._feeding[id] = nil      
+   self._log:debug('stopping feeding of task [%d:%s]', task:get_id(), task:get_name())
+   if self._feeding[task] then
+      self._feeding[task] = nil      
    end
 end
 
@@ -99,24 +104,35 @@ function TaskGroup:_notify_worker_started_task(task, worker)
    local entry = self._workers[worker_id]
    if entry then
       assert(not entry.running)
+      self._log:debug('marking %s running task [%d:%s]', tostring(worker), task:get_id(), task:get_name())
       entry.running = task
+      -- stop feeding in everyone else
+      for feeding_task, _ in pairs(entry.feeding) do
+         if task ~= feeding_task then
+            entry.feeding[feeding_task] = nil
+            self._log:detail('removing feeding task [%d:%s] from %s', feeding_task:get_id(), feeding_task:get_name(), tostring(worker))
+            feeding_task:_remove_worker(worker_id)
+         end
+      end
    end
 end
 
 function TaskGroup:_notify_worker_stopped_task(task, worker)
    local worker_id = worker:get_id()
    local entry = self._workers[worker_id]
-   if entry then
-      assert(entry.running)
+   if entry and task == entry.running then
+      self._log:debug('clearing %s running task (was: %s)', tostring(worker), task:get_name())
       entry.running = nil
+      entry.feeding[task] = nil
+      -- remove it so we can re-prioritize tasks...
+      --  task:_remove_worker(worker_id)
    end
 end
-
 
 function TaskGroup:_prioritize_tasks_for_worker(entry)
    local tasks = {}
 
-   for id, task in pairs(self._feeding) do
+   for task, _ in pairs(self._feeding) do
       local task_fitness = self:_get_task_fitness(task, entry)
       if task_fitness then
          local matching_entry = {
@@ -135,14 +151,22 @@ end
 function TaskGroup:_get_task_fitness(task, entry)
    -- if the worker is already doing something higher priority than this
    -- task, there's no point in trying to feed it
-   if entry.running and entry.running:get_priority() <= task:get_priority() then
-      return nil
-   end
+
+   -- if entry.running and entry.running:get_priority() <= task:get_priority() then
+   assert(not entry.running)
+   
    -- if the worker is already feeding in this task, don't feed again!
    if entry.feeding[task] then
+      self._log:detail('skipping fitness check on task [%d:%s] for %s (already feeding)',
+                       task:get_id(), task:get_name(), tostring(entry.worker))
       return nil
    end
-   return task:_get_fitness(entry.worker)
+   local priority, distance = task:_get_fitness(entry.worker)
+   self._log:detail('task [%d:%s] fitness for %s priority:%d distance:%.2f',
+                    task:get_id(), task:get_name(), tostring(entry.worker), 
+                    priority, distance)
+   local fitness = -priority * 20 + distance
+   return fitness
 end
 
 function TaskGroup:_prioritize_worker_queue()
@@ -164,12 +188,24 @@ function TaskGroup:_prioritize_worker_queue()
    table.sort(workers, function (l, r)
          return l.worker_fitness < r.worker_fitness
       end)
+   
+   if self._log:is_enabled(radiant.log.DETAIL) then
+      for i, entry in ipairs(workers) do
+         self._log:detail('#%d : %4.2f -> %s', i, entry.worker_fitness, tostring(entry.worker))
+         for j, task_entry in ipairs(entry.task_rankings) do
+            self._log:detail('   %d) : %4.2f -> [%d:%s]', j, task_entry.task_fitness, task_entry.task:get_id(), task_entry.task:get_name())
+         end
+      end
+   end
 
    return workers
 end
 
 function TaskGroup:_get_worker_fitness(entry)
    if entry.running then
+      return nil
+   end
+   if #entry.feeding > 0 then
       return nil
    end
    return #entry.feeding
@@ -237,11 +273,11 @@ function TaskGroup:_update(count)
 
    for task, engagement in pairs(engagements) do
       local worker = engagement.proposed_worker_entry.worker
-      self._log:debug('feeding worker %s to task %s', tostring(worker), tostring(task:get_name()))
+      self._log:debug('feeding worker %s to task [%d:%s]', tostring(worker), task:get_id(), tostring(task:get_name()))
       local entry = self._workers[worker:get_id()]
 
       assert(not entry.feeding[task])
-      entry.feeding[task] = true
+      entry.feeding[task] = engagement.proposed_task_fitness
       task:_add_worker(entry.worker)
    end
    

@@ -17,7 +17,7 @@ function Task:__init(task_group, activity)
      
    self._id = NEXT_TASK_ID
    NEXT_TASK_ID = NEXT_TASK_ID + 1
-   self._log = radiant.log.create_logger('tasks.task', 'task:'..tostring(self._id))   
+   self._log = radiant.log.create_logger('task', 'task:'..tostring(self._id))   
    self._log:debug('creating new task for %s', task_group:get_name())
    self._commited = false
    self._name = activity.name .. ' task'
@@ -114,7 +114,7 @@ function Task:start()
          args = activity.args,
          create_action = function(_, ai_component, entity, injecting_entity)
             local action = RunTaskAction(self)
-            action.name = self._name .. ' action'
+            action.name = self._name .. ' run task action'
             action.does = activity.name
             action.args = activity.args
             action.priority = self._priority
@@ -129,6 +129,8 @@ function Task:start()
       local effect = radiant.effects.run_effect(entity, name)
       table.insert(self._effects, effect)
    end
+
+   return self
 end
 
 function Task:_stop()
@@ -179,11 +181,12 @@ function Task:_get_fitness(worker)
       end
    end
 
+   local distance = 0
    if source_location then
       -- distance between the worker and the source point
-      return worker_location:distance_to(source_location)
+      distance = worker_location:distance_to(source_location)
    end
-   return 0
+   return self._priority, distance
 end
 
 function Task:_set_state(state)
@@ -305,8 +308,6 @@ function Task:__action_completed(action)
 end
 
 function Task:_on_action_stopped(action)
-   self._task_group:_notify_worker_stopped_task(self, action:get_entity())
-
    local work_was_available = self:_is_work_available()
    self._running_actions[action] = nil
    local work_is_available = self:_is_work_available()
@@ -320,7 +321,9 @@ function Task:_on_action_stopped(action)
       self._log:debug('task reached max number of completions (%d).  stopping and completing!', self._times)
       self:_stop()
       self:destroy()
-   end  
+   end
+   self._task_group:_notify_worker_stopped_task(self, action:get_entity())
+   self:_remove_worker(action:get_entity():get_id())
 end
 
 function Task:__action_destroyed(action)

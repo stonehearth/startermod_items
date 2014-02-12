@@ -1,4 +1,5 @@
-#include "pch.h"
+#include "radiant.h"
+#include "chromium/cef_headers.h"
 #include "response.h"
 #include <fstream>
 
@@ -6,12 +7,12 @@ using namespace radiant;
 using namespace radiant::chromium;
 
 Response::Response(CefRefPtr<CefRequest> request) :
-   request_(request),
-   status_(0),
-   readOffset_(0),
-   mimeType_("text/html")
+   _request(request),
+   _status(0),
+   _readOffset(0),
+   _mimeType("text/html")
 {
-   refCount_ = 0;
+   _refCount = 0;
 }
 
 Response::~Response()
@@ -20,20 +21,20 @@ Response::~Response()
 
 int Response::AddRef()
 {
-   return ++refCount_;
+   return ++_refCount;
 }
 
 int Response::Release() 
 {
-   if (--refCount_ == 0) {
+   if (--_refCount == 0) {
       delete this;
    }
-   return refCount_;
+   return _refCount;
 }
 
 int Response::GetRefCt()
 { 
-   return refCount_; 
+   return _refCount; 
 }
 
 // Begin processing the request. To handle the request return true and call
@@ -44,8 +45,8 @@ int Response::GetRefCt()
 bool Response::ProcessRequest(CefRefPtr<CefRequest> request,
                               CefRefPtr<CefCallback> callback)
 {
-   callback_ = callback;
-   if (status_ != 0) {
+   _callback = callback;
+   if (_status != 0) {
       callback->Continue();
    }
    return true;
@@ -55,11 +56,11 @@ void Response::GetResponseHeaders(CefRefPtr<CefResponse> response,
                                   int64& response_length,
                                   CefString& redirectUrl)
 {
-   if (!mimeType_.empty()) {
-      response->SetMimeType(mimeType_);
+   if (!_mimeType.empty()) {
+      response->SetMimeType(_mimeType);
    }
-   response->SetStatus(status_);
-   response_length = response_.size();
+   response->SetStatus(_status);
+   response_length = _response.size();
 }
 
 bool Response::ReadResponse(void* data_out,
@@ -67,12 +68,12 @@ bool Response::ReadResponse(void* data_out,
                             int& bytes_read,
                             CefRefPtr<CefCallback> callback)
 {
-   if (readOffset_ >= response_.size()) {
+   if (_readOffset >= _response.size()) {
       return false;
    }
-   bytes_read = std::min((unsigned int)bytes_to_read, response_.size() - readOffset_);
-   memcpy(data_out, response_.c_str() + readOffset_, bytes_read);
-   readOffset_ += bytes_read;
+   bytes_read = std::min((unsigned int)bytes_to_read, _response.size() - _readOffset);
+   memcpy(data_out, _response.c_str() + _readOffset, bytes_read);
+   _readOffset += bytes_read;
    return true;
 }
 
@@ -82,20 +83,13 @@ void Response::Cancel()
 
 void Response::SetResponse(int status_code, std::string const& response, std::string const& mimeType)
 {
-   ASSERT(status_ == 0);
+   ASSERT(_status == 0);
 
-   status_ = status_code;
-   mimeType_ = mimeType;
-   response_ = response;
+   _status = status_code;
+   _mimeType = mimeType;
+   _response = response;
 
-   if (callback_) {
-      callback_->Continue();
+   if (_callback) {
+      _callback->Continue();
    }
 }
-
-#if 0
-void Response::SetResponse(JSONNode node)
-{
-   SetResponse(node.write(), "application/json");
-}
-#endif
