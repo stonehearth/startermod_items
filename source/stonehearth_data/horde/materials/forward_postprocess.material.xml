@@ -1,3 +1,5 @@
 <Material parent="materials/base.material.xml">
-   <Shader source="shaders/forward_postprocess.shader" />
+  <Uniform name="samplerKernel"/>
+  <Sampler name="randomVectorLookup" map="RandomVectorLookup" />
+  <Shader source="shaders/forward_postprocess.shader" />
 </Material>

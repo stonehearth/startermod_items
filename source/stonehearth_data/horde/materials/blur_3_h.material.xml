@@ -1,0 +1,4 @@
+<Material parent="materials/base.material.xml">
+   <Shader source="shaders/forward_postprocess.shader" />
+   <Uniform name="axis" a="1.0" b="0.0"/>
+</Material>
