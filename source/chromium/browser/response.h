@@ -2,7 +2,7 @@
 #define _RADIANT_CHROMIUM_BROWSER_RESPONSE_H
 
 #include <atomic>
-#include "../chromium.h"
+#include "chromium/chromium.h"
 
 BEGIN_RADIANT_CHROMIUM_NAMESPACE
 
@@ -64,13 +64,13 @@ public:
    void Cancel() override;
 
 private:
-   std::atomic_int               refCount_;
-   CefRefPtr<CefRequest>         request_;
-   CefRefPtr<CefCallback>        callback_;
-   std::string                   response_;
-   unsigned int                  readOffset_;
-   int                           status_;
-   std::string                   mimeType_;
+   std::atomic_int               _refCount;
+   CefRefPtr<CefRequest>         _request;
+   CefRefPtr<CefCallback>        _callback;
+   std::string                   _response;
+   unsigned int                  _readOffset;
+   int                           _status;
+   std::string                   _mimeType;
 };
 
 END_RADIANT_CHROMIUM_NAMESPACE

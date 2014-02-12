@@ -2,7 +2,7 @@
 #define _RADIANT_CHROMIUM_APP_APP_H
 
 #include "include/cef_app.h"
-#include "../namespace.h"
+#include "chromium/chromium.h"
 
 BEGIN_RADIANT_CHROMIUM_NAMESPACE
 
