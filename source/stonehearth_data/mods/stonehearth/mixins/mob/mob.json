@@ -25,6 +25,7 @@
             "stonehearth:actions:idle_top_action",
             "stonehearth:actions:idle_action",
             "stonehearth:actions:idle_breathe_action",
+            "stonehearth:actions:turn_to_face_entity",
             "stonehearth:actions:pickup_item_on_table_action",
             "stonehearth:actions:pickup_item",
             "stonehearth:actions:pickup_item_trivial",

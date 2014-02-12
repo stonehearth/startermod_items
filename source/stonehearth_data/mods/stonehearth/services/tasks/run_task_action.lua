@@ -36,7 +36,14 @@ function RunTaskAction:_start_stop_thinking()
          self._thinking = true
          local think_output = self._execution_frame:start_thinking(self._ai.CURRENT)
          if think_output then
-            self._ai:set_think_output(think_output)
+            -- hmmm.  we need to set the thing output upward toward our dispatcher.  this needs
+            -- to match the expected type.  we have *no way* of knowing that type, though (at least
+            -- not currently...).  luckily, set_think_output() with no parameters will just return
+            -- the args, which is probably what we want, anyway.  much ado about nothing, i think.
+            --
+            --    self._ai:set_think_output(think_output) -- this one's wrong...
+            --
+            self._ai:set_think_output()
          else
             self._execution_frame:on_ready(function(frame, think_output)
                self._ai:set_think_output()

@@ -516,14 +516,8 @@ function entities.compare_attribute(entity_a, entity_b, attribute)
 end
 
 function entities.is_hostile(entity_a, entity_b)
-   -- xxx: this check shouldn't be in the generic "is_hostile" function.  what
-   -- happens when we add things that aren't made of meat? (e.g. robots?)
-   local material = entity_b:get_component('stonehearth:material')
-   if not material or not material:is('meat') then
-      return false
-   end
-   local faction_a = entity_a:add_component('unit_info'):get_faction()
-   local faction_b = entity_b:add_component('unit_info'):get_faction()
+   local faction_a = radiant.entities.get_faction(entity_a)
+   local faction_b = radiant.entities.get_faction(entity_b)
 
    return faction_a and faction_b and
           faction_a ~= '' and faction_b ~= '' and
