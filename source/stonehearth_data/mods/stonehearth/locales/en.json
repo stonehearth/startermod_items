@@ -2,6 +2,7 @@
    "ok" : "OK",
    "cancel" : "Cancel",
    "hotkey" : "hot key: ",
+   "loading" : "Loading...",
 
    "title_screen_exit": "exit",
    "title_screen_settings": "settings",

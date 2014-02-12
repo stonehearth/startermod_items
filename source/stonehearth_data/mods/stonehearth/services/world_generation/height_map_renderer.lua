@@ -22,7 +22,10 @@ function HeightMapRenderer:__init(terrain_info)
    local terrain_tags = {
       Terrain.ROCK_LAYER_1,
       Terrain.ROCK_LAYER_2,
-      Terrain.ROCK_LAYER_3
+      Terrain.ROCK_LAYER_3,
+      Terrain.ROCK_LAYER_4,
+      Terrain.ROCK_LAYER_5,
+      Terrain.ROCK_LAYER_6
    }
 
    for i, tag in ipairs(terrain_tags) do
@@ -134,20 +137,24 @@ end
 
 function HeightMapRenderer:_add_foothills_to_region(region3, rect, height)
    local foothills_step_size = self._terrain_info[TerrainType.foothills].step_size
+   local plains_max_height = self._terrain_info[TerrainType.plains].max_height
+
+   region3:add_cube(Cube3(Point3(rect.min.x, 0,                 rect.min.y),
+                          Point3(rect.max.x, plains_max_height, rect.max.y),
+                          Terrain.SOIL))
 
    if height % foothills_step_size == 0 then
+      region3:add_cube(Cube3(Point3(rect.min.x, plains_max_height, rect.min.y),
+                             Point3(rect.max.x, height-1,          rect.max.y),
+                             Terrain.SOIL_STRATA))
 
-      region3:add_cube(Cube3(Point3(rect.min.x, 0,        rect.min.y),
-                             Point3(rect.max.x, height-1, rect.max.y),
-                             Terrain.SOIL))
-
-      region3:add_cube(Cube3(Point3(rect.min.x, height-1, rect.min.y),
-                             Point3(rect.max.x, height,   rect.max.y),
+      region3:add_cube(Cube3(Point3(rect.min.x, height-1,          rect.min.y),
+                             Point3(rect.max.x, height,            rect.max.y),
                              Terrain.GRASS))
    else
-      region3:add_cube(Cube3(Point3(rect.min.x, 0,        rect.min.y),
-                             Point3(rect.max.x, height,   rect.max.y),
-                             Terrain.SOIL))
+      region3:add_cube(Cube3(Point3(rect.min.x, plains_max_height, rect.min.y),
+                             Point3(rect.max.x, height,            rect.max.y),
+                             Terrain.SOIL_STRATA))
    end
 end
 
@@ -202,10 +209,10 @@ function HeightMapRenderer.tesselator_test()
 
    region3_boxed:modify(function(region3)
       --region3:add_cube(Cube3(Point3(0, height-1, 0), Point3(16, height, 16), Terrain.GRASS))
-      --region3:add_cube(Cube3(Point3(16, height-1, 1), Point3(17, height, 15), Terrain.SOIL))
+      --region3:add_cube(Cube3(Point3(16, height-1, 1), Point3(17, height, 15), Terrain.SOIL_STRATA))
 
       region3:add_cube(Cube3(Point3(0, height-1, 0), Point3(256, height, 256), Terrain.GRASS))
-      --region3:add_cube(Cube3(Point3(256, height-1, 0), Point3(257, height, 256), Terrain.SOIL))
+      --region3:add_cube(Cube3(Point3(256, height-1, 0), Point3(257, height, 256), Terrain.SOIL_STRATA))
    end)
    terrain:add_tile(Point3(0, 0, 0), region3_boxed)
 end
