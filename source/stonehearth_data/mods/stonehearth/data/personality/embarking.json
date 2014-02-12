@@ -1,7 +1,6 @@
 {
-   "activities" : [
-      {
-         "id" : "embarking",
+   "activities" : {
+      "embarking" : {
          "trigger_policy" : [
             {
                "trigger_id" : "person_embarks",
@@ -45,7 +44,7 @@
             }
          }
       }
-   ], 
+   }, 
    "substitution_table" : [
       {
          "namespace" : "stonehearth",
