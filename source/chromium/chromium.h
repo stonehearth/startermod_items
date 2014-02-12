@@ -4,9 +4,11 @@
 #include <functional>
 #include "radiant_net.h"
 #include "csg/region.h"
-#include "namespace.h"
 #include "core/input.h"
 #include "lib/rpc/forward_defines.h"
+
+#define BEGIN_RADIANT_CHROMIUM_NAMESPACE  namespace radiant { namespace chromium {
+#define END_RADIANT_CHROMIUM_NAMESPACE    } }
 
 BEGIN_RADIANT_CHROMIUM_NAMESPACE
 
@@ -26,7 +28,6 @@ public:
    virtual bool OnInput(Input const& evt) = 0;
    virtual void SetCursorChangeCb(CursorChangeCb cb) = 0;
    virtual void SetRequestHandler(HandleRequestCb cb) = 0;
-   virtual void SetBrowserResizeCb(std::function<void(int, int)> cb) = 0;
    virtual void OnScreenResize(int w, int h) = 0;
    virtual void GetBrowserSize(int& w, int& h) = 0;
    virtual void UpdateBrowserFrambufferPtrs(uint32* last_written, uint32* next_to_write) = 0;

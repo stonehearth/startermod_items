@@ -4,15 +4,7 @@
 #include "csg/region.h"
 #include "../chromium.h"
 
-#if 0
-#include "libjson.h"
-#include "dm/dm.h"
-#include "om/om.h"
-#endif
-
 BEGIN_RADIANT_CHROMIUM_NAMESPACE
-
-class App2;
 
 class Browser : public IBrowser,
                 public CefClient,
@@ -38,17 +30,12 @@ public:  // IBrowser Interface
    bool OnInput(Input const& evt) override;
    void SetCursorChangeCb(CursorChangeCb cb) override;
    void SetRequestHandler(HandleRequestCb cb) override;
-   void SetBrowserResizeCb(std::function<void(int, int)> cb);
    void OnScreenResize(int w, int h) override;
    void GetBrowserSize(int& w, int& h) override;
    void UpdateBrowserFrambufferPtrs(uint32* last_written, uint32* next_to_write);
 
 public:
    typedef int CommandId;
-#if 0
-   bool GetNextCommand(CommandId& id, JSONNode& node);
-   void SetCommandResponse(CommandId& id, const JSONNode& response);
-#endif
 
 private:
    void OnRawInput(const RawInput& evt);
@@ -142,40 +129,23 @@ public:
                                        CefRefPtr<CefRequest> request) override ;
 
 private:
-#if 0
-   void OnSelectionChanged(om::EntityPtr selection);
-#endif
-#if 0
-   JSONNode CommandErrorResponse(std::string reason);
-   JSONNode CommandPendingReponse();
-   JSONNode CommandSuccessResponse(JSONNode response);
-   JSONNode CommandPendingResponse(CommandId id);
-   JSONNode ExecuteAction(const JSONNode& args);
-   JSONNode CreateEntity(const JSONNode& args);
-   JSONNode DescribeEntities(const JSONNode& args);
-   JSONNode DescribeEntity(om::EntityPtr entity, const JSONNode& types);
-   void FinishCreateEntity(dm::ObjectId id, CommandId cmdId);
-#endif
    int GetCefKeyboardModifiers(WPARAM wparam, LPARAM lparam);
    void WindowToBrowser(int &x, int& y);
 
 private:
-   CefRefPtr<CefApp>                app_;
-   HWND                          hwnd_;
-   CefRefPtr<CefBrowser>         browser_;
+   CefRefPtr<CefApp>             _app;
+   CefRefPtr<CefBrowser>         _browser;
 
-   std::mutex                    ui_lock_;
-   PaintCb                       onPaint_;
-   CursorChangeCb                cursorChangeCb_;
+   std::mutex                    _lock;
+   CursorChangeCb                _cursorChangeCb;
 
-   int32                         screenWidth_;
-   int32                         screenHeight_;
-   int32                         uiWidth_;
-   int32                         uiHeight_;
-   uint32                        *browser_framebuffer_, *last_browser_framebuffer_;
-   HandleRequestCb               requestHandler_;
-   std::function<void(int, int)> resize_cb_;
-   int                           draw_count_;
+   int32                         _screenWidth;
+   int32                         _screenHeight;
+   int32                         _uiWidth;
+   int32                         _uiHeight;
+   uint32                        *_browserFramebuffer, *_lastBrowserFramebuffer;
+   HandleRequestCb               _requestHandler;
+   int                           _drawCount;
 };
 
 END_RADIANT_CHROMIUM_NAMESPACE
