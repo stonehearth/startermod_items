@@ -1,7 +1,6 @@
 {
    "activities" : {
       "gathering_supplies" : {
-         "id" : "gathering_supplies",
          "trigger_policy" : [
             {
                "trigger_id" : "gathering_supplies",
