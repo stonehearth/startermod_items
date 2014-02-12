@@ -1,8 +1,12 @@
 {
    "rock": {
+      
       "layer_1_color": "#615e55",
       "layer_2_color": "#76726b",
       "layer_3_color": "#82807b",
+      "layer_4_color": "#918d86",
+      "layer_5_color": "#b3b0aa",
+      "layer_6_color": "#c1c0bb",
       "boulder_color": "#72727a"
    },
    "soil": {
