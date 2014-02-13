@@ -1,7 +1,6 @@
 {
-   "activities" : [
-      {
-         "id" : "gathering_supplies",
+   "activities" : {
+      "gathering_supplies" : {
          "trigger_policy" : [
             {
                "trigger_id" : "gathering_supplies",
@@ -19,7 +18,7 @@
             }
          }
       }
-   ],
+   },
    "substitution_table" : [
       {
          "namespace" : "stonehearth:settler_journals:gathering_supplies",

@@ -18,7 +18,9 @@ function entities.create_entity(ref)
    if not ref or #ref == 0 then
       return _radiant.sim.create_empty_entity()
    end
-   return _radiant.sim.create_entity(ref)
+   local entity = _radiant.sim.create_entity(ref)
+   radiant.events.trigger(entity, 'stonehearth:entity_created', { entity = entity})
+   return entity
 end
 
 function entities.destroy_entity(entity)

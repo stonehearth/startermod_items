@@ -105,6 +105,9 @@ App.StonehearthClassesPromoteView = App.View.extend({
       approve: function() {
          radiant.call('radiant:play_sound', 'stonehearth:sounds:ui:promotion_menu:stamp' );
          var self = this;
+
+         self._promoteCitizen();
+
          // animate down
          $('#approveStamper').animate({ bottom: 60 }, 100 , function() {
             //animate up
@@ -114,8 +117,9 @@ App.StonehearthClassesPromoteView = App.View.extend({
                .animate({ bottom: 200 }, 150, function () {
                   //promote the citizen after a short delay
                   setTimeout(function() {
-                     self._promoteCitizen();
-                     self.destroy();
+                     $('#promoteScroll').animate({ 'bottom' : -400 }, 200, function() { 
+                        self.destroy();
+                     });
                   }, 1000);
                });
             });
@@ -159,16 +163,13 @@ App.StonehearthClassesPromoteView = App.View.extend({
       
       var person = this.get('context.citizenToPromote').__self;
 
-      $('#promoteScroll').animate({ 'bottom' : -400 }, 200, function() { 
-         radiant.call('stonehearth:grab_promotion_talisman', person, self.talisman)
-            .done(function(data) {
-               radiant.log.info("promote finished!", data)
-            })
-            .fail(function(data) {
-               radiant.log.warning("promote failed:", data)
-            });
+      radiant.call('stonehearth:grab_promotion_talisman', person, self.talisman)
+         .done(function(data) {
+            radiant.log.info("promote finished!", data)
+         })
+         .fail(function(data) {
+            radiant.log.warning("promote failed:", data)
+         });
 
-         self.destroy();
-      });
    }
 });

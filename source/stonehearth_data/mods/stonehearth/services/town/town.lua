@@ -6,7 +6,7 @@ function Town:__init(name)
    self._log = radiant.log.create_logger('town', name)
    self._scheduler = stonehearth.tasks:create_scheduler(name)
                                        :set_counter_name(name)
-                                       
+
    self._task_groups = {
       workers = self._scheduler:create_task_group('stonehearth:work', {})
                                :set_counter_name('workers')
@@ -111,6 +111,7 @@ function Town:promote_citizen(person, talisman)
          person = person,
          talisman = talisman,
       })
+      :set_priority(constants.priorities.top.GRAB_PROMOTION_TALISMAN)
       :start()
       
    radiant.events.listen(task, 'completed', function()

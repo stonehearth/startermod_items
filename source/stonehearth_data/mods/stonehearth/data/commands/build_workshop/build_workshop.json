@@ -9,7 +9,6 @@
    "action": "fire_event",
    "event_name": "build_workshop.stonehearth",
    "event_data": {
-      "crafter" : "{{self}}",
-      "profession_info": "/stonehearth/entities/professions/carpenter/profession_description.json"
+      "crafter" : "{{self}}"
    }
 }

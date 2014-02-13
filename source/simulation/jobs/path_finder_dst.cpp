@@ -222,6 +222,10 @@ csg::Point3 PathFinderDst::GetPointfInterest(csg::Point3 const& adjacent_pt) con
    }
 
    end += origin;
+
+   if ((csg::Point2(adjacent_pt.x, adjacent_pt.z) - csg::Point2(end.x, end.z)).LengthSquared() != 1) {
+      PF_LOG(5) << "warning: distanced from adjacent_pt " << adjacent_pt << " to " << end << " is not 1.";
+   }
    return end;
 }
 

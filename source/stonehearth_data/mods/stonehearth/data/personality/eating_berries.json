@@ -1,6 +1,6 @@
 {
-   "activities" : [
-      {
+   "activities" : {
+      "eating_berries" : {
          "id" : "eating_berries",
          "trigger_policy" : [
             {
@@ -62,6 +62,6 @@
             }
          }
       }
-   ]
+   }
 }
             

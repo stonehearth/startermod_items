@@ -826,9 +826,14 @@ end
 
 function ExecutionFrame:_remove_action_from_ready(unit)
    if unit == self._active_unit then
-      self._thread:interrupt(function()
-         self:abort()
-      end)
+      self._active_unit:_stop_thinking()
+      self:_set_active_unit(nil)
+      if self._ready_cb then
+         self._log:debug('sending unready notification')
+         self._ready_cb(self, nil)
+      end     
+      self:_set_state(STOPPED)
+      self:_start_thinking(self._current_entity_state)
    else
       self:_remove_execution_unit(unit, true)  
    end
@@ -962,13 +967,25 @@ end
 -- *strictly* better.  no run-offs for latecomers.
 function ExecutionFrame:_is_strictly_better_than_active(unit)
    if not self._active_unit then
+      self._log:spam('  no active_unit.  "%s" is better!', unit:get_name())
       return true
    end
    if unit == self._active_unit then
+      self._log:spam('  unit "%s" is active unit, therefore is not better!', unit:get_name())
       return false
    end
-   if unit:get_priority() > self._active_unit:get_priority() then
+
+   local unit_priority = unit:get_priority()
+   local active_priority = self._active_unit:get_priority()
+
+   if unit_priority > active_priority then
+      self._log:spam('  unit %s priority %d > active unit "%s" priority %d.  therefore is better!',
+                     unit:get_name(), unit_priority, self._active_unit:get_name(), active_priority)
       return true
+   elseif unit_priority > active_priority then
+      self._log:spam('  unit %s priority %d < active unit "%s" priority %d.  therefore is not better!',
+                     unit:get_name(), unit_priority, self._active_unit:get_name(), active_priority)
+      return false
    end
 
    -- if they're exactly the same, the odds of replacing the current unit
@@ -976,7 +993,10 @@ function ExecutionFrame:_is_strictly_better_than_active(unit)
    -- things we've seen roll by). (xxx: technically, the odds should be a 
    -- function of the combined weights of all the units of this priority
    -- which are currently ready)
-   return rng:get_int(1, self._runnable_unit_count) == self._runnable_unit_count
+   local better = rng:get_int(1, self._runnable_unit_count) == self._runnable_unit_count
+   self._log:spam('  unit "%s" and active unit "%s" both have priority %d.  tossing a coin...',
+                  unit:get_name(), self._active_unit:get_name(), unit_priority)
+   return better
 end
 
 function ExecutionFrame:_get_best_execution_unit()
