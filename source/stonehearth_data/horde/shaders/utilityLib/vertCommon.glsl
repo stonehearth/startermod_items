@@ -41,6 +41,11 @@ vec3 calcWorldVec( const vec3 vec )
 #endif
 }
 
+float getWorldScale()
+{
+  return length(calcWorldVec(normalize(vec3(1.0, 0.0, 0.0))));
+}
+
 mat3 calcTanToWorldMat( const vec3 tangent, const vec3 bitangent, const vec3 normal )
 {
 	return mat3( tangent, bitangent, normal );

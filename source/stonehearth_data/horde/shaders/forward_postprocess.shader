@@ -110,6 +110,7 @@ varying vec4 pos;
 varying vec4 vsPos;
 varying vec3 tsbNormal;
 varying vec3 albedo;
+varying float worldScale;
 
 void main( void )
 {
@@ -117,7 +118,7 @@ void main( void )
   vsPos = calcViewPos(pos);
   tsbNormal = calcWorldVec(normal);
   albedo = color;
-
+  worldScale = getWorldScale();
   gl_Position = viewProjMat * pos;
 }
 
@@ -216,6 +217,7 @@ void main( void )
 #include "shaders/utilityLib/vertCommon.glsl"
 
 varying vec3 tsbNormal;
+varying float worldScale;
 
 float toLin2(float d) {
   float num = nearPlane * farPlane;
@@ -225,7 +227,8 @@ float toLin2(float d) {
 
 void main(void)
 {
-  gl_FragData[0] = vec4(toLinearDepth(gl_FragCoord.z));
+  gl_FragData[0].r = toLinearDepth(gl_FragCoord.z);
+  gl_FragData[0].g = worldScale;
   gl_FragData[1] = viewMat * vec4(normalize(tsbNormal), 0.0);
 }
 
@@ -430,12 +433,11 @@ uniform vec4 samplerKernel[32];
 uniform vec2 frameBufSize;
 uniform mat4 camProjMat;
 uniform mat4 camViewMat;
-uniform mat4 projMat;
 
 varying vec2 texCoords;
 
 
-vec3 toCameraSpace(const vec2 fragCoord)
+vec3 toCameraSpace(const vec2 fragCoord, float depth)
 {
   vec3 result;
   vec4 projInfo = vec4(
@@ -444,7 +446,7 @@ vec3 toCameraSpace(const vec2 fragCoord)
     (1.0 - camProjMat[0][2]) / camProjMat[0][0],
     (1.0 + camProjMat[1][2]) / camProjMat[1][1]);
 
-  result.z = texture2D(depthBuffer, fragCoord).r;
+  result.z = depth;
   result.xy = vec2((fragCoord.xy * projInfo.xy + projInfo.zw) * result.z);
 
   return result;
@@ -455,9 +457,11 @@ void main()
 {
   vec2 noiseScale = frameBufSize / 4.0;
   float radius = 1.0;
-  float intensity = 1.3;
+  float intensity = 1.0;
 
-  vec3 origin = toCameraSpace(texCoords);
+  vec4 attribs = texture2D(depthBuffer, texCoords);
+  vec3 origin = toCameraSpace(texCoords, attribs.r);
+  radius *= attribs.g;
   vec3 rvec = texture2D(randomVectorLookup, texCoords * noiseScale).xyz;
   vec3 normal = -texture2D(normalBuffer, texCoords).xyz;
 
@@ -481,8 +485,8 @@ void main()
 
     // range check & accumulate:
     float rangeCheck = abs(origin.z - sampleDepth) <  radius ? 1.0 : 0.0;
-    float normCheck = dot(normal, unitSample) <= 0.01 ? 0.0 : 1.0;
-    occlusion += (sampleDepth < sample.z ? (1.0 * rangeCheck * normCheck) : -0.0);
+    float normCheck = dot(normal, unitSample) <= 0.0 ? 0.0 : 1.0;
+    occlusion += (sampleDepth < sample.z ? (1.0 * rangeCheck * normCheck) : 0.0);
   }
 
   occlusion /= 32.0;
