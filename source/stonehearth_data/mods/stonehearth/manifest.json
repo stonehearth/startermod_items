@@ -409,7 +409,10 @@
          "controller" : "file(call_handlers/new_game_call_handler.lua)",
          "endpoint" : "server"
       },
-
+      "get_visibility_regions": {
+         "controller" : "file(call_handlers/terrain_call_handler.lua)",
+         "endpoint" : "server"
+      },
       "client_move_unit" : {
          "controller": "file(call_handlers/unit_control/move_unit_call_handler.lua)",
          "endpoint" : "client"
