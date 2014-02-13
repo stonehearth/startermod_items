@@ -222,6 +222,13 @@ csg::Point3 PathFinderDst::GetPointfInterest(csg::Point3 const& adjacent_pt) con
    }
 
    end += origin;
+   // So, this ASSERT really means "equals 1".  Do not remove this assert.  If you see this assert
+   // fire, something horribly wrong has happened.  This must always be true because animations
+   // are tuned to drop things on adjacent spaces.  If we were to relax this constraint (e.g. is
+   // it ok adjacent_pt == end?), the anmiation would play and the block would teleport to some
+   // other location.  Not good!  So, unless we're happy with wonky animations, make sure the
+   // distance is exactly 1.
+   ASSERT((adjacent_pt - end).LengthSquared() == 1);
    return end;
 }
 
