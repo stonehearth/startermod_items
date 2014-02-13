@@ -121,6 +121,30 @@ Destination& Destination::SetAdjacent(Region3BoxedPtr r)
    return *this;
 }
 
+csg::Point3 Destination::GetBestPointOfInterest(csg::Region3 const& r, csg::Point3 const& pt) const
+{
+   csg::Point3 poi = r.GetClosestPoint(pt);
+
+   // The point of interest should not be the same as the requested point.  If
+   // possible, find another one in the region which is adjacent to this point
+   if (poi == pt) {
+      static const csg::Point3 adjacent[] = {
+         csg::Point3(-1, 0,  0),
+         csg::Point3( 1, 0,  0),
+         csg::Point3( 0, 0, -1),
+         csg::Point3( 0, 0, -1),
+      };
+      for (csg::Point3 const& delta : adjacent) {
+         csg::Point3 candidate = poi + delta;
+         if (r.Contains(candidate)) {
+            return candidate;
+         }
+      }
+   }
+
+   return poi;
+}
+
 csg::Point3 Destination::GetPointOfInterest(csg::Point3 const& pt) const
 {
    if (!*region_) {
@@ -135,13 +159,13 @@ csg::Point3 Destination::GetPointOfInterest(csg::Point3 const& pt) const
             D_LOG(1) << "region is empty in get point of interest!";
             return csg::Point3(0, 0, 0);
          }
-         return r.GetClosestPoint(pt);
+         return GetBestPointOfInterest(r, pt);
       }
    }
    if (rgn.IsEmpty()) {
       D_LOG(1) << "region is empty in get point of interest!";
       return csg::Point3(0, 0, 0);
    }
-   return rgn.GetClosestPoint(pt);
+   return GetBestPointOfInterest(rgn, pt);
 }
 
