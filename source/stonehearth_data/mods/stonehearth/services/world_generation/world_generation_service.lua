@@ -25,7 +25,7 @@ end
 function WorldGenerationService:initialize(seed, async)
    self:set_seed(seed)
    self._async = async
-   self._enable_scenarios = radiant.util.get_config('enable_scenarios', false)
+   self._enable_scenarios = radiant.util.get_config('enable_scenarios', true)
 
    self._terrain_info = TerrainInfo()
    self._tile_size = self._terrain_info.tile_size
