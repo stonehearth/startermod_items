@@ -1,6 +1,6 @@
 {
-   "activities" : [
-      {
+   "activities" : {
+      "dreams" : {
          "id" : "dreams",
          "trigger_policy" : [
             {
@@ -56,7 +56,7 @@
             }
          }
       }
-   ], 
+   }, 
    "substitution_table" : [
       {
          "namespace" : "stonehearth",

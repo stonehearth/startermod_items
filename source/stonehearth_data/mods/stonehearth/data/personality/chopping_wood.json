@@ -1,7 +1,6 @@
 {
-   "activities" : [
-      {
-         "id" : "chopping_logs",
+   "activities" : {
+      "chopping_logs" : {
          "trigger_policy" : [
             {
                "trigger_id" : "chop_tree",
@@ -85,6 +84,6 @@
             }
          }
       }
-   ]
+   }
 }
             

@@ -76,21 +76,21 @@ end
 --  Also, load the substitution tables for each activity. 
 function PersonalityService:_load_activity(url)
    local new_activity_blob = radiant.resources.load_json(url)
-   for i, activity in ipairs(new_activity_blob.activities) do
-      if not self._activity_logs[activity.id] then
-         self._activity_logs[activity.id] = activity
+   for activity_name, activity in pairs(new_activity_blob.activities) do
+      if not self._activity_logs[activity_name] then
+         self._activity_logs[activity_name] = activity
          
          --For each type of trigger, map the trigger to the activity
-         for i, trigger_data in ipairs(self._activity_logs[activity.id].trigger_policy) do
+         for i, trigger_data in ipairs(self._activity_logs[activity_name].trigger_policy) do
             local data = {}
-            data.activity_id = activity.id
+            data.activity_id = activity_name
             data.probability = trigger_data.probability
             self._trigger_to_activity[trigger_data.trigger_id] = data
          end
 
          --For each personality, read in possible logs 
          --TODO: for sequential, may be more than 1 set per person
-         local logs_by_personality = self._activity_logs[activity.id].logs_by_personality
+         local logs_by_personality = self._activity_logs[activity_name].logs_by_personality
          for personality, log_data in pairs(logs_by_personality) do
             log_data.use_counter = 0
             log_data.unused_table = {}
