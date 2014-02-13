@@ -369,4 +369,4 @@ function ScenarioService:_parse_habitat_strings(strings)
    return habitat_types, error_message
 end
 
-return ScenarioService
+return ScenarioService()
