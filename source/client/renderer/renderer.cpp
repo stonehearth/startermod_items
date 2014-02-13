@@ -157,15 +157,15 @@ Renderer::Renderer() :
    LoadResources();
 
    // Sampler kernel generation--a work in progress.
-   const int KernelSize = 16;
+   const int KernelSize = 32;
    for (int i = 0; i < KernelSize; ++i) {
-      float x = rng.GetReal(-0.9f, 0.9f);
-      float y = rng.GetReal(-0.9f, 0.9f);
-      float z = rng.GetReal(0.0f, 1.0f);
+      float x = rng.GetReal(-1.0f, 1.0f);
+      float y = rng.GetReal(-1.0f, 1.0f);
+      float z = rng.GetReal(0.15f, 1.0f);
       Horde3D::Vec3f v(x,y,z);
       v.normalize();
 
-      float scale = (float)i / (float)KernelSize;
+      float scale = (i / (float)KernelSize) + 0.02f;
       float f = scale * scale;
       v *= f;
 

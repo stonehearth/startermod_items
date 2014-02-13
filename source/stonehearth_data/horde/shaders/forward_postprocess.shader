@@ -1,7 +1,7 @@
 [[FX]]
 
 float4 axis;
-float4[16] samplerKernel;
+float4[32] samplerKernel;
 
 // Samplers
 sampler2D cloudMap = sampler_state
@@ -426,7 +426,7 @@ void main()
 uniform sampler2D randomVectorLookup;
 uniform sampler2D normalBuffer;
 uniform sampler2D depthBuffer;
-uniform vec4 samplerKernel[16];
+uniform vec4 samplerKernel[32];
 uniform vec2 frameBufSize;
 uniform mat4 camProjMat;
 uniform mat4 camViewMat;
@@ -466,7 +466,7 @@ void main()
   mat3 tbn = mat3(tangent, bitangent, normal);
 
   float occlusion = 0.0;
-  for (int i = 0; i < 16; i++) {
+  for (int i = 0; i < 32; i++) {
     // get sample position:
     vec3 unitSample = tbn * samplerKernel[i].xyz;
     vec3 sample = (unitSample * radius) + origin;
@@ -485,7 +485,7 @@ void main()
     occlusion += (sampleDepth < sample.z ? (1.0 * rangeCheck * normCheck) : -0.0);
   }
 
-  occlusion /= 16.0;
+  occlusion /= 32.0;
   occlusion *= intensity;
 
   float visibility = 1.0 - occlusion;
