@@ -1,5 +1,6 @@
 local Entity = _radiant.om.Entity
 local CompoundTask = require 'services.tasks.compound_task'
+local UnitController = require 'services.town.unit_controller'
 local Town = class()
 
 function Town:__init(name)
@@ -9,8 +10,9 @@ function Town:__init(name)
 
    self._task_groups = {
       workers = self._scheduler:create_task_group('stonehearth:work', {})
-                               :set_counter_name('workers')
+                               :set_counter_name'workers')
    }
+   self._unit_controllers = {}
    self._harvest_tasks = {}
 end
 
@@ -20,21 +22,6 @@ end
 -- xxx: this is a stopgap until we can provide a better interface
 function Town:create_worker_task(activity_name, args)
    return self._task_groups.workers:create_task(activity_name, args)
-end
-
-function Town:create_orchestrator(name, args, co)
-   assert(type(name) == 'string')
-   assert(args == nil or type(args) == 'table')
-
-   local activity = {
-      name = name,
-      args = args or {}
-   }
-   
-   local compound_task_ctor = radiant.mods.load_script(name)
-   local ct = CompoundTask(self, compound_task_ctor, activity, co)
-   self._compound_tasks[ct] = true
-   return ct
 end
 
 function Town:join_task_group(entity, name)
@@ -51,6 +38,41 @@ function Town:leave_task_group(entity, name)
    return self
 end
 
+function Town:get_unit_controller(entity, activity_name, activity_args)
+   local id = entity:get_id()
+   local unit_controller = self._unit_controllers[id]
+   if not unit_controller then
+      unit_controller = UnitController(self._scheduler, entity)
+   end
+   return unit_controller
+end
+
+function Town:promote_citizen(person, talisman)
+   local args = {
+      person = person,
+      talisman = talisman,
+   }
+
+   local controller = self:get_unit_controller(person)
+   local task = controller:create_task('stonehearth:tasks:promote_with_talisman', args)
+                          :set_priority(constants.priorities.top.GRAB_PROMOTION_TALISMAN)
+
+
+   local scheduler = stonehearth.tasks:create_scheduler()
+                        :set_activity('stonehearth:top')
+                        :join(person)
+
+   local task = scheduler:create_orchestrator('stonehearth:tasks:promote_with_talisman', )
+      :set_priority(constants.priorities.top.GRAB_PROMOTION_TALISMAN)
+      :start()
+      
+   radiant.events.listen(task, 'completed', function()
+          stonehearth.tasks:destroy_scheduler(scheduler)
+         return radiant.events.UNLISTEN
+      end)
+
+   return true
+end
 
 function Town:place_item_in_world(item_proxy, full_sized_uri, location, rotation)
    local ghost_entity = radiant.entities.create_entity()
@@ -100,26 +122,6 @@ function Town:place_item_type_in_world(entity_uri, full_item_uri, location, rota
       :start()
 
    return task
-end
-
-function Town:promote_citizen(person, talisman)
-   local scheduler = stonehearth.tasks:create_scheduler()
-                        :set_activity('stonehearth:top')
-                        :join(person)
-
-   local task = scheduler:create_orchestrator('stonehearth:tasks:promote_with_talisman', {
-         person = person,
-         talisman = talisman,
-      })
-      :set_priority(constants.priorities.top.GRAB_PROMOTION_TALISMAN)
-      :start()
-      
-   radiant.events.listen(task, 'completed', function()
-          stonehearth.tasks:destroy_scheduler(scheduler)
-         return radiant.events.UNLISTEN
-      end)
-
-   return true
 end
 
 function Town:harvest_resource_node(tree)
@@ -198,6 +200,23 @@ function Town:add_workshop_task_group(workshop, crafter)
       })
       :start()
 end
+
+function Town:create_orchestrator(name, args, co)
+   assert(false, 'get rid of this abominiation')
+   assert(type(name) == 'string')
+   assert(args == nil or type(args) == 'table')
+
+   local activity = {
+      name = name,
+      args = args or {}
+   }
+   
+   local compound_task_ctor = radiant.mods.load_script(name)
+   local ct = CompoundTask(self, compound_task_ctor, activity, co)
+   self._compound_tasks[ct] = true
+   return ct
+end
+
 
 return Town
 

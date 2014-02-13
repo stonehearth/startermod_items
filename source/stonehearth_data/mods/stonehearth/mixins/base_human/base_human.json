@@ -32,7 +32,8 @@
             "stonehearth:actions:admire_fire",
             "stonehearth:actions:admire_fire_adjacent",
             "stonehearth:actions:complete_workshop_construction",
-            "stonehearth:actions:unit_control:dispatcher"
+            "stonehearth:actions:unit_control:dispatcher",
+            "stonehearth:actions:grab_promotion_talisman"
          ],
           "observers": [
             "stonehearth:observers:sleep",

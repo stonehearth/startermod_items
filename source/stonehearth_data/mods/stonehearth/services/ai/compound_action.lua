@@ -21,6 +21,7 @@ local CompoundAction = class()
 
 function CompoundAction:__init(entity, injecting_entity, action_ctor, activities, when_predicates, think_output_placeholders)
    -- initialize metadata
+   asssert(false, 'get rid of this abomination, too!')
    self._entity = entity
    self._injecting_entity = injecting_entity
    self._action = action_ctor(entity, injecting_entity)
