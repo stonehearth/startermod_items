@@ -22,6 +22,7 @@ class Destination(Component):
    """
    void UpdateDerivedValues();
    void ComputeAdjacentRegion(csg::Region3 const& r);
+   csg::Point3 GetBestPointOfInterest(csg::Region3 const& r, csg::Point3 const& pt) const;
 
 private:
    DeepRegionGuardPtr      region_trace_;
