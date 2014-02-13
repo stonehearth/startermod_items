@@ -307,6 +307,7 @@
       "sounds:ui:start_menu:page_down" : "file(data/sounds/ui/start_menu/ui_page_down.wav)",
       "sounds:ui:start_menu:loading_tick" : "file(data/sounds/ui/start_menu/ui_loading_tick.wav)",
       "sounds:ui:start_menu:loading_screen_success" : "file(data/sounds/ui/start_menu/ui_loading_screen_success.wav)",
+      "sounds:ui:start_menu:reroll" : "file(data/sounds/ui/start_menu/ui_reroll.wav)",
       "sounds:ui:carpenter_menu:add_remove" : "file(data/sounds/ui/carpenter_menu/sh_carp_add_remove.wav)",
       "sounds:ui:carpenter_menu:closed" : "file(data/sounds/ui/carpenter_menu/sh_carp_closed.wav)",
       "sounds:ui:carpenter_menu:confirm" : "file(data/sounds/ui/carpenter_menu/sh_carp_confirm.wav)",
