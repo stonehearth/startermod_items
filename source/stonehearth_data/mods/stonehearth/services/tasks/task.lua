@@ -107,6 +107,23 @@ function Task:stop()
    return self
 end
 
+function Task:wait()
+   local thread = stonehearth.threads:get_current_thread()
+   assert(thread, 'no thread running in Task:wait()')
+
+   if self._state ~= COMPLETED then
+      radiant.events.listen(self, COMPLETED, function()
+            thread:resume()
+            return radiant.events.UNLISTEN
+         end)
+      
+      thread:suspend()
+      assert(self._state == COMPLETED)
+   end
+
+   return self._complete_count == self._times
+end
+
 function Task:_create_entity_effects()
    for entity, name in pairs(self._entity_effect_names) do 
       local effect = radiant.effects.run_effect(entity, name)

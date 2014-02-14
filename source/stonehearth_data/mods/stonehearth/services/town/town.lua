@@ -1,6 +1,9 @@
 local Entity = _radiant.om.Entity
 local CompoundTask = require 'services.tasks.compound_task'
 local UnitController = require 'services.town.unit_controller'
+local Promote = require 'services.town.orchestrators.promote_orchestrator'
+local CreateWorkshop = require 'services.town.orchestrators.create_workshop_orchestrator'
+local WorkAtWorkshop = require 'services.town.orchestrators.work_at_workshop_orchestrator'
 local Town = class()
 
 function Town:__init(name)
@@ -10,9 +13,11 @@ function Town:__init(name)
 
    self._task_groups = {
       workers = self._scheduler:create_task_group('stonehearth:work', {})
-                               :set_counter_name'workers')
+                               :set_counter_name('workers')
    }
-   self._unit_controllers = {}
+   self._unit_control_task_groups = {}
+   self._unit_orchestartor_threads = {}
+   self._thread_orchestrators = {}
    self._harvest_tasks = {}
 end
 
@@ -38,40 +43,67 @@ function Town:leave_task_group(entity, name)
    return self
 end
 
-function Town:get_unit_controller(entity, activity_name, activity_args)
+function Town:get_unit_control_task_group(entity)
    local id = entity:get_id()
-   local unit_controller = self._unit_controllers[id]
-   if not unit_controller then
-      unit_controller = UnitController(self._scheduler, entity)
+   local unit_control_task_group = self._unit_control_task_groups[id]
+   if not unit_control_task_group then
+      unit_control_task_group = UnitController(self._scheduler, entity)
+      self._unit_control_task_groups[id] = unit_control_task_group
    end
-   return unit_controller
+   return unit_control_task_group
+end
+
+function Town:create_unit_control_task(person, activity_name, activity_args)
+   return self:get_unit_control_task_group(person)
+                  :create_task(activity_name, activity_args)
+end
+
+function Town:_handle_orchestrator_thread_exit(thread)
+   local orchestrators = self._thread_orchestrators[thread]
+   while orchestrators and #orchestrators > 0 do
+      local o = table.remove(orchestrators, #orchestrators)
+      if o.destroy then
+         o:destroy()
+      end
+   end
+   self._thread_orchestrators[thread] = nil
+end
+
+function Town:run_orchestrator(orchestrator_ctor, args)
+   local orchestrator = orchestrator_ctor()
+
+   local thread = stonehearth.threads:get_current_thread()
+   local thread_orchestrators = self._thread_orchestrators[thread]
+   assert(thread_orchestrators, 'not currently on an orchestartor thread!')
+
+   table.insert(thread_orchestrators, orchestrator)
+
+   local result = orchestrator:run(self, args)
+
+   local o = table.remove(thread_orchestrators, #thread_orchestrators)
+   assert(o == orchestrator)
+   return result
+end
+
+function Town:create_orchestrator(orchestrator_ctor, args)
+   local orchestrator = orchestrator_ctor()
+   local thread = stonehearth.threads.create_thread()
+                  :add_exit_handler(function (thread, err)
+                        self:_handle_orchestrator_thread_exit(thread)
+                     end)
+                  :set_thread_main(function ()
+                        orchestrator:run(self, args)
+                     end)
+   self._thread_orchestrators[thread] = {}
+   table.insert(self._thread_orchestrators[thread], orchestrator)
+   thread:start()
 end
 
 function Town:promote_citizen(person, talisman)
-   local args = {
+   return self:create_orchestrator(Promote, {
       person = person,
       talisman = talisman,
-   }
-
-   local controller = self:get_unit_controller(person)
-   local task = controller:create_task('stonehearth:tasks:promote_with_talisman', args)
-                          :set_priority(constants.priorities.top.GRAB_PROMOTION_TALISMAN)
-
-
-   local scheduler = stonehearth.tasks:create_scheduler()
-                        :set_activity('stonehearth:top')
-                        :join(person)
-
-   local task = scheduler:create_orchestrator('stonehearth:tasks:promote_with_talisman', )
-      :set_priority(constants.priorities.top.GRAB_PROMOTION_TALISMAN)
-      :start()
-      
-   radiant.events.listen(task, 'completed', function()
-          stonehearth.tasks:destroy_scheduler(scheduler)
-         return radiant.events.UNLISTEN
-      end)
-
-   return true
+   })
 end
 
 function Town:place_item_in_world(item_proxy, full_sized_uri, location, rotation)
@@ -172,51 +204,32 @@ function Town:harvest_renewable_resource_node(plant)
    return true
 end
 
-function Town:create_workshop(crafter, ghost_workshop)
-   --REVIEW Q: can I reuse a scheduler that exists already for the crafter?
-   local scheduler = stonehearth.tasks:create_scheduler()
-                        :set_activity('stonehearth:top')
-                        :join(crafter)
-   scheduler:create_orchestrator('stonehearth:tasks:create_workshop', {
-      faction = session.faction,
+function Town:create_workshop(crafter, ghost_workshop, outbox_location, outbox_size)
+   local faction = radiant.entities.get_faction(crafter)
+   local outbox_entity = radiant.entities.create_entity('stonehearth:workshop_outbox')
+   radiant.terrain.place_entity(outbox_entity, outbox_location)
+   outbox_entity:get_component('unit_info'):set_faction(faction)
+
+   local outbox_component = outbox_entity:get_component('stonehearth:stockpile')
+   outbox_component:set_size(outbox_size)
+   outbox_component:set_outbox(true)
+
+   self:create_orchestrator(CreateWorkshop, {
+      crafter = crafter,
       ghost_workshop = ghost_workshop,
       outbox_entity = outbox_entity,
-      crafter = crafter
    })
-   :start()
-
    return true
 end
 
 function Town:add_workshop_task_group(workshop, crafter)
-   self._scheduler = stonehearth.tasks:create_scheduler()
-                        :set_activity('stonehearth:top')
-                        :join(crafter)
-                        
-   self._scheduler:create_orchestrator('stonehearth:tasks:work_at_workshop', {
+   local orchestrator = WorkAtWorkshop()
+   self:start_orchestartor(crafter, orchestrator, {
+         crafter = crafter,
          workshop = workshop:get_entity(),
          craft_order_list = workshop:get_craft_order_list(),
-         faction = radiant.entities.get_faction(crafter)
       })
-      :start()
 end
-
-function Town:create_orchestrator(name, args, co)
-   assert(false, 'get rid of this abominiation')
-   assert(type(name) == 'string')
-   assert(args == nil or type(args) == 'table')
-
-   local activity = {
-      name = name,
-      args = args or {}
-   }
-   
-   local compound_task_ctor = radiant.mods.load_script(name)
-   local ct = CompoundTask(self, compound_task_ctor, activity, co)
-   self._compound_tasks[ct] = true
-   return ct
-end
-
 
 return Town
 

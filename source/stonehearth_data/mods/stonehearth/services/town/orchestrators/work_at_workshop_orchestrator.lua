@@ -1,29 +1,29 @@
 local Point3 = _radiant.csg.Point3
-local WorkAtWorkshop = class()
+local collect_ingredients = require 'services.town.orchestrators.collect_ingredients_orchestrator'
 local inventory_service = stonehearth.inventory
 
-function WorkAtWorkshop:start(thread, args)
-   self._thread = thread
-   self._workshop = args.workshop
-   self._craft_order_list = args.craft_order_list
-   self._faction = args.faction
-   self._inventory = inventory_service:get_inventory(self._faction)
+local WorkAtWorkshop = class()
 
+function WorkAtWorkshop:run(town, crafter, args)
+   self._town = town
+   self._workshop = args.workshop
+   self._crafter = crafter
+   self._craft_order_list = args.craft_order_list
+   self._inventory = inventory_service:get_inventory(self._faction)
+   self._faction = radiant.entities.get_faction(crafter)
 
    radiant.events.listen(self._craft_order_list, 'order_list_changed', self, self._on_order_list_changed)
    self:_on_order_list_changed(self._craft_order_list, not self._craft_order_list:get_next_order())
 
    --Listen on this to re-check mantain whenever an item is removed from the stockpile
    radiant.events.listen(self._inventory, 'stonehearth:item_removed', self, self._on_order_list_changed)
-end
 
-function WorkAtWorkshop:run(thread, args)
    while true do
-      local order = self:_get_next_order()      
+      local order = self:_get_next_order()
 
       order:set_crafting_status(true)
-      self:_collect_ingredients(thread, order)
-      self:_process_order(thread, order)
+      self:_collect_ingredients(order)
+      self:_process_order(order)
       order:set_crafting_status(false)
       
       if order:is_complete() then
@@ -36,21 +36,21 @@ function WorkAtWorkshop:run(thread, args)
    end
 end
 
-function WorkAtWorkshop:stop(thread, args)
+function WorkAtWorkshop:stop(args)
    radiant.events.unlisten(self._craft_order_list, 'order_list_changed', self, self._on_order_list_changed)
    radiant.events.unlisten(self._inventory, 'stonehearth:item_removed', self, self._on_order_list_changed)
 end
 
-function WorkAtWorkshop:_collect_ingredients(thread, order)
+function WorkAtWorkshop:_collect_ingredients(order)
    local recipe = order:get_recipe()
 
-   thread:orchestrate('stonehearth:tasks:collect_ingredients', {
+   return collect_ingredients(self._town, self._crafter, {
       workshop = self._workshop,
-      ingredients = recipe.ingredients,
+      ingredients = recipe.ingredients
    })
 end
 
-function WorkAtWorkshop:_process_order(thread, order)
+function WorkAtWorkshop:_process_order(order)
    local recipe = order:get_recipe()
 
    thread:execute('stonehearth:work_at_workshop', {

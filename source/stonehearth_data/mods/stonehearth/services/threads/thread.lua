@@ -105,6 +105,7 @@ function Thread:__init(parent)
    self._child_threads = {}
    self._msgs = {}
    self._thread_data = {}
+   self._exit_handlers = {}
    self._log = radiant.log.create_logger('thread')
    self:set_debug_name('')
 end
@@ -155,9 +156,8 @@ function Thread:set_msg_handler(handler)
    return self
 end
 
-function Thread:set_exit_handler(handler)
-   assert(not self._finished)
-   self._exit_handler = handler
+function Thread:add_exit_handler(handler)
+   table.insert(self._exit_handlers, handler)
    return self
 end
 
@@ -350,8 +350,8 @@ function Thread:_on_thread_exit(err)
    self._log:detail('thread %d has finished', self._id)
    self._finished = true
    self._msgs = {}
-   if self._exit_handler then
-      self._exit_handler(self, err)
+   for _, fn in ipairs(self._exit_handlers) do
+      fn(self, err)
    end
    
    if self._parent then

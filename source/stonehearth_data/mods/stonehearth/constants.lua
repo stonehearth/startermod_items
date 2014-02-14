@@ -26,7 +26,6 @@ local constants = {
          WORK = 10,
          EAT = 20,
          GENERIC_TASK_PRIORITY = 30,
-         GRAB_PROMOTION_TALISMAN = 30,
          SLEEP = 40,
          UNIT_CONTROL = 10000,
       },
@@ -34,7 +33,8 @@ local constants = {
       -- Priorites of commands issued by the player to a unit
       unit_control = {
          MOVE = 2,
-         ABILITY = 100
+         DEFAULT = 10,
+         ABILITY = 100,
       },
    },
    
