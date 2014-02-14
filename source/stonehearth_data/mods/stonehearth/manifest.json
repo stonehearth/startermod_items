@@ -44,6 +44,8 @@
       "wooden_peaked_roof" : "file(entities/build/wooden_peaked_roof)",
       "scaffolding" : "file(entities/build/scaffolding)",
 
+      "pet_collar" : "file(entities/critters/collars/pet_collar.json)",
+
       "worker:profession_description" : "file(entities/professions/worker/profession_description.json)",
 
       "carpenter:profession_description" : "file(entities/professions/carpenter/profession_description.json)",
@@ -201,6 +203,7 @@
       "actions:drop_carrying_into_entity_adjacent_at" : "file(ai/actions/drop_carrying_into_entity_adjacent_at.lua)",
       "actions:replace_proxy_with_item" : "file(ai/actions/replace_proxy_with_item_action.lua)",
       "actions:trigger_event" : "file(ai/actions/trigger_event.lua)",
+      "actions:follow_entity" : "file(ai/actions/follow_entity.lua)",
       "actions:wander" : "file(ai/actions/wander_action.lua)",
       "actions:wander_when_bored" : "file(ai/actions/wander_when_bored.lua)",
       "actions:wait_for_attribute_above" : "file(ai/actions/wait_for_attribute_above.lua)",
@@ -409,7 +412,6 @@
          "controller" : "file(call_handlers/new_game_call_handler.lua)",
          "endpoint" : "server"
       },
-
       "client_move_unit" : {
          "controller": "file(call_handlers/unit_control/move_unit_call_handler.lua)",
          "endpoint" : "client"
@@ -426,7 +428,10 @@
          "controller": "file(call_handlers/unit_control/cast_aoe_call_handler.lua)",
          "endpoint" : "server"
       },
-
+      "release_from_captivity" : {
+         "controller": "file(call_handlers/unit_control/pet_call_handler.lua)",
+         "endpoint" : "server"    
+      },
       "set_display_name": {
          "controller" : "file(call_handlers/entities_call_handler.lua)",
          "endpoint" : "server"
