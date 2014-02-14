@@ -1,5 +1,4 @@
 local Entity = _radiant.om.Entity
-local CompoundTask = require 'services.tasks.compound_task'
 local UnitController = require 'services.town.unit_controller'
 local Promote = require 'services.town.orchestrators.promote_orchestrator'
 local CreateWorkshop = require 'services.town.orchestrators.create_workshop_orchestrator'
