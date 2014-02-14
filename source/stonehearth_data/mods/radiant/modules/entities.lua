@@ -297,7 +297,7 @@ function entities.set_attribute(entity, attribute_name, value)
 end
 
 function entities.add_buff(entity, buff_name)
-   entity:add_component('stonehearth:buffs'):add_buff(buff_name)
+   return entity:add_component('stonehearth:buffs'):add_buff(buff_name)
 end
 
 function entities.remove_buff(entity, buff_name)
