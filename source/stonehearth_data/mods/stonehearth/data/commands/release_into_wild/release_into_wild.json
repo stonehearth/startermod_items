@@ -1,0 +1,14 @@
+{
+   "type" : "command",
+
+   "name": "release_into_wild",
+   "tooltip": "Release Pet!",
+   "description" : "Tell this critter you don't want it anymore.",
+   "icon": "file(release_into_wild.png)",
+
+   "action": "call",
+   "function": "stonehearth:release_from_captivity",
+   "args": [
+      "{{self}}"
+   ]
+}

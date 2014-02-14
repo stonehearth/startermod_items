@@ -44,8 +44,7 @@ function MoveUnitCallHandler:_on_mouse_event(e, response)
    -- if the mouse button just transitioned to up and we're actually pointing
    -- to a box on the terrain, send a message to the server to create the
    -- entity.  this is done by posting to the correct route.
-   if e:up(1) and s.location then
-      
+   if e:up(1) and s.location then     
       _radiant.call('stonehearth:server_move_unit', self._entity:get_id(), pt)
                :always(function ()
                      -- whether the request succeeds or fails, go ahead and destroy
@@ -55,8 +54,6 @@ function MoveUnitCallHandler:_on_mouse_event(e, response)
                      self:_cleanup()
                      response:resolve({ result = true })
                   end)
-
-
       response:resolve({ result = true })
    end
 
@@ -68,6 +65,10 @@ function MoveUnitCallHandler:server_move_unit(session, response, entity_id, loca
    local entity = radiant.entities.get_entity(entity_id)
    local pt = Point3(location.x, location.y, location.z)
 
+   if not entity:get_component('stonehearth:ai') then
+      return
+   end
+   
    local scheduler = stonehearth.tasks:create_scheduler()
                                       :set_activity('stonehearth:unit_control', {})
                                       :join(entity)

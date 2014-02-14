@@ -1,0 +1,23 @@
+{
+   "type": "entity",
+   "mixins" : "stonehearth:mixins:item_properties",
+   "components" : {
+      "unit_info" : {
+      },
+      "render_info" : {
+      },
+      "model_variants": [
+      ],
+      "stonehearth:equipment_piece" : {
+         "render_type" : "merge_with_model",
+         "injected_ai" : {
+            "actions" : [
+               "stonehearth:actions:follow_entity"
+            ]
+         },
+         "injected_commands" : [
+            "file(/data/commands/release_into_wild)"
+         ]
+      }
+   }
+}

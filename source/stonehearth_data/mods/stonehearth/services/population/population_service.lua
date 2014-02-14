@@ -9,7 +9,7 @@ end
 function PopulationService:get_faction(faction, kingdom)
    radiant.check.is_string(faction)
    local scheduler = self._factions[faction]
-   if not scheduler then
+   if not scheduler and kingdom then
       scheduler = PopulationFaction(faction, kingdom)
       self._factions[faction] = scheduler
    end

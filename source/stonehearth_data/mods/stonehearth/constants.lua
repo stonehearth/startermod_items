@@ -28,15 +28,20 @@ local constants = {
          EAT = 20,
          GENERIC_TASK_PRIORITY = 30,
          SLEEP = 40,
-         UNIT_CONTROL = 10000,
+         UNIT_CONTROL = 1000,
+         COMPELLED_BEHAVIOR = 9999999,
       },
 
       -- Priorites of commands issued by the player to a unit
       unit_control = {
          MOVE = 2,
          DEFAULT = 10,
-         ABILITY = 100,
+         CAST_SPELL = 100
       },
+
+      compelled_behavior = {
+         STRUGGLE = 4
+      }
    },
    
    -- Constants related to constructing buildings

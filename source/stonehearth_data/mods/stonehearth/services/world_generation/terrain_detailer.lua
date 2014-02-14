@@ -20,6 +20,18 @@ function TerrainDetailer:__init(terrain_info, tile_width, tile_height, rng)
    self._edge_map_buffer = Array2D(self._tile_width, self._tile_height)
 end
 
+local function _angle_to_xy(angle)
+   if angle ==   0 then return  1,  0 end
+   if angle ==  90 then return  0,  1 end
+   if angle == 180 then return -1,  0 end
+   if angle == 270 then return  0, -1 end
+   return nil, nil
+end
+
+local function _rotate_90(x, y)
+   return -y, x
+end
+
 function TerrainDetailer:add_detail_blocks(tile_map)
    local rng = self._rng
    local edge
@@ -226,7 +238,7 @@ end
 
 function TerrainDetailer:remove_mountain_chunks(tile_map, micro_map)
    local rng = self._rng
-   local chunk_probability = 0.5
+   local chunk_probability = 0.4
    local foothills_max_height = self._terrain_info[TerrainType.foothills].max_height
    local height, removed
 
@@ -251,18 +263,6 @@ function TerrainDetailer:remove_mountain_chunks(tile_map, micro_map)
          end
       end
    end
-end
-
-function _angle_to_xy(angle)
-   if angle ==   0 then return  1,  0 end
-   if angle ==  90 then return  0,  1 end
-   if angle == 180 then return -1,  0 end
-   if angle == 270 then return  0, -1 end
-   return nil, nil
-end
-
-function _rotate_90(x, y)
-   return -y, x
 end
 
 function TerrainDetailer:_remove_chunk(tile_map, micro_map, x, y, dx, dy)
@@ -332,7 +332,7 @@ end
 function TerrainDetailer:_generate_chunk_length_and_offset(macro_block_size)
    local rng = self._rng
    local quarter_macro_block_size = macro_block_size * 0.25
-   local chunk_length = quarter_macro_block_size * rng:get_int(1, 4)
+   local chunk_length = quarter_macro_block_size * rng:get_int(2, 4)
    local chunk_offset = (macro_block_size - chunk_length) * rng:get_int(0, 1)
    return chunk_length, chunk_offset
 end

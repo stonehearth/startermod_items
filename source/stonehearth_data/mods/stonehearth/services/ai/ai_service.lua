@@ -86,7 +86,6 @@ function AiService:_get_ai_component(arg0)
       id = entity:get_id()
    end
    local ai_component = self._ai_components[id]
-   assert(ai_component)
    return ai_component
 end
 

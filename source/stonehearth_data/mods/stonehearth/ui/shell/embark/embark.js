@@ -38,6 +38,7 @@ App.StonehearthEmbarkView = App.View.extend({
       });
 
       this.my("#regenerateButton").click(function() {
+         radiant.call('radiant:play_sound', 'stonehearth:sounds:ui:start_menu:reroll' );
          self._clearSelection();
 
          self._newGame(function(e) {
@@ -145,6 +146,7 @@ App.StonehearthEmbarkView = App.View.extend({
 
       try {
          self.my('#embarkPin').tooltipster('destroy');
+         radiant.call('radiant:play_sound', 'stonehearth:sounds:ui:carpenter_menu:menu_closed' );
       } catch(e) {
       }
 
@@ -159,6 +161,7 @@ App.StonehearthEmbarkView = App.View.extend({
    _embark: function(cellX, cellY) {
       var self = this;
 
+      radiant.call('radiant:play_sound', 'stonehearth:sounds:ui:start_menu:embark' );
       radiant.call('stonehearth:generate_start_location', cellX, cellY);
       App.shellView.addView(App.StonehearthLoadingScreenView);
       self.destroy();

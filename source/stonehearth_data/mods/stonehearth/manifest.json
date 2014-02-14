@@ -44,6 +44,8 @@
       "wooden_peaked_roof" : "file(entities/build/wooden_peaked_roof)",
       "scaffolding" : "file(entities/build/scaffolding)",
 
+      "pet_collar" : "file(entities/critters/collars/pet_collar.json)",
+
       "worker:profession_description" : "file(entities/professions/worker/profession_description.json)",
 
       "carpenter:profession_description" : "file(entities/professions/carpenter/profession_description.json)",
@@ -53,7 +55,7 @@
 
       "trapper:description" : "file(professions/trapper/trapper_description.json)",
       "trapper:outfit" : "file(professions/trapper/trapper_outfit)",
-      "trapper:net" : "file(professions/trapper/trapper_net)",
+      "trapper:snare_trap" : "file(professions/trapper/snare_trap)",
 
       "weaver:profession_description" : "file(entities/professions/weaver/profession_description.json)",
       "weaver:workbench" : "file(entities/professions/weaver/weaver_workbench)",
@@ -244,9 +246,15 @@
       "actions:get_food_from_container" : "file(ai/actions/get_food_from_container.lua)",
       "actions:get_food_from_container_adjacent" : "file(ai/actions/get_food_from_container_adjacent.lua)",
       
+      "actions:compelled_behaviors:dispatcher" : "file(ai/actions/compelled_behaviors/compelled_behavior_dispatcher.lua)",
+      "actions:compelled_behaviors:struggle" : "file(ai/actions/compelled_behaviors/struggle_action.lua)",
+
       "actions:unit_control:dispatcher" : "file(ai/actions/unit_control/unit_control_dispatcher.lua)",
       "actions:unit_control:move_unit_to_location" : "file(ai/actions/unit_control/move_unit_to_location_action.lua)",
       "actions:unit_control:abilities:snare_trap" : "file(ai/actions/unit_control/abilities/snare_trap_action.lua)",
+
+      "actions:unit_control:harvest_trapped_beast" : "file(ai/actions/unit_control/harvest_trapped_beast_action.lua)",
+      "actions:harvest_trapped_beast_adjacent" : "file(ai/actions/unit_control/harvest_trapped_beast_adjacent_action.lua)",
       
       "actions:chop_tree_action" : "file(ai/actions/chop_tree_action.lua)",
       "actions:chop_tree_adjacent_action" : "file(ai/actions/chop_tree_adjacent_action.lua)",
@@ -270,6 +278,8 @@
       "actions:wait_for_teardown" : "file(ai/actions/wait_for_teardown_action.lua)",
       "actions:teardown_structure" : "file(ai/actions/teardown_structure_action.lua)",
       "actions:teardown_structure_adjacent" : "file(ai/actions/teardown_structure_adjacent_action.lua)",
+
+      "actions:follow_entity" : "file(ai/actions/follow_entity.lua)",
 
       "tasks:collect_ingredients" : "file(services/tasks/compound_tasks/collect_ingredients_compound_task.lua)",
       "tasks:work_at_workshop" : "file(services/tasks/compound_tasks/work_at_workshop_orchestrator.lua)",
@@ -307,6 +317,7 @@
       "sounds:ui:start_menu:page_down" : "file(data/sounds/ui/start_menu/ui_page_down.wav)",
       "sounds:ui:start_menu:loading_tick" : "file(data/sounds/ui/start_menu/ui_loading_tick.wav)",
       "sounds:ui:start_menu:loading_screen_success" : "file(data/sounds/ui/start_menu/ui_loading_screen_success.wav)",
+      "sounds:ui:start_menu:reroll" : "file(data/sounds/ui/start_menu/ui_reroll.wav)",
       "sounds:ui:carpenter_menu:add_remove" : "file(data/sounds/ui/carpenter_menu/sh_carp_add_remove.wav)",
       "sounds:ui:carpenter_menu:closed" : "file(data/sounds/ui/carpenter_menu/sh_carp_closed.wav)",
       "sounds:ui:carpenter_menu:confirm" : "file(data/sounds/ui/carpenter_menu/sh_carp_confirm.wav)",
@@ -409,7 +420,14 @@
          "controller" : "file(call_handlers/new_game_call_handler.lua)",
          "endpoint" : "server"
       },
-
+      "harvest_trapped_beast" : {
+         "controller": "file(call_handlers/unit_control/harvest_trapped_beast_call_handler.lua)",
+         "endpoint" : "server"
+      },
+      "release_from_captivity" : {
+         "controller": "file(call_handlers/unit_control/pet_call_handler.lua)",
+         "endpoint" : "server"    
+      },
       "client_move_unit" : {
          "controller": "file(call_handlers/unit_control/move_unit_call_handler.lua)",
          "endpoint" : "client"
@@ -418,6 +436,7 @@
          "controller": "file(call_handlers/unit_control/move_unit_call_handler.lua)",
          "endpoint" : "server"
       },
+
       "client_cast_aoe" : {
          "controller": "file(call_handlers/unit_control/cast_aoe_call_handler.lua)",
          "endpoint" : "client"

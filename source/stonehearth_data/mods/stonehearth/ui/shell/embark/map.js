@@ -146,6 +146,7 @@ $.widget( "stonehearth.stonehearthMap", {
       var cellY = Math.floor(e.offsetY / cellSize);
 
       self.options.click(cellX, cellY);
+      radiant.call('radiant:play_sound', 'stonehearth:sounds:ui:start_menu:sub_menu' );
    },
 
    _onMouseMove: function(view, e) {
@@ -166,6 +167,7 @@ $.widget( "stonehearth.stonehearthMap", {
          self._drawCrosshairs(self.overlayContext, cellX, cellY);
 
          self.options.hover(cellX, cellY);
+         radiant.call('radiant:play_sound', 'stonehearth:sounds:ui:action_hover' );
       }
    },
 
