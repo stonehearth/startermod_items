@@ -238,7 +238,7 @@ end
 
 function TerrainDetailer:remove_mountain_chunks(tile_map, micro_map)
    local rng = self._rng
-   local chunk_probability = 0.5
+   local chunk_probability = 0.4
    local foothills_max_height = self._terrain_info[TerrainType.foothills].max_height
    local height, removed
 
@@ -332,7 +332,7 @@ end
 function TerrainDetailer:_generate_chunk_length_and_offset(macro_block_size)
    local rng = self._rng
    local quarter_macro_block_size = macro_block_size * 0.25
-   local chunk_length = quarter_macro_block_size * rng:get_int(1, 4)
+   local chunk_length = quarter_macro_block_size * rng:get_int(2, 4)
    local chunk_offset = (macro_block_size - chunk_length) * rng:get_int(0, 1)
    return chunk_length, chunk_offset
 end

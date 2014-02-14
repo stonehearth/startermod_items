@@ -41,7 +41,7 @@ end
 
 function Array2D:in_bounds(x, y)
    if x < 1 or y < 1 or
-      x > self.width or y > self.width then
+      x > self.width or y > self.height then
       return false
    end
    return true
@@ -77,6 +77,18 @@ function Array2D:bound_block(x, y, width, height)
    local new_height = y2 - y1
 
    return x1, y1, new_width, new_height
+end
+
+function Array2D:block_in_bounds(x, y, width, height)
+   if not self:in_bounds(x, y) then
+      return false
+   end
+
+   local x2 = x + width-1
+   local y2 = y + height-1
+
+   local result = self:in_bounds(x2, y2)
+   return result
 end
 
 -- does not test diagonals
