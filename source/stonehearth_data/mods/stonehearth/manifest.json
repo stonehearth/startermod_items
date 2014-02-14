@@ -44,6 +44,8 @@
       "wooden_peaked_roof" : "file(entities/build/wooden_peaked_roof)",
       "scaffolding" : "file(entities/build/scaffolding)",
 
+      "pet_collar" : "file(entities/critters/collars/pet_collar.json)",
+
       "worker:profession_description" : "file(entities/professions/worker/profession_description.json)",
 
       "carpenter:profession_description" : "file(entities/professions/carpenter/profession_description.json)",
@@ -277,6 +279,8 @@
       "actions:teardown_structure" : "file(ai/actions/teardown_structure_action.lua)",
       "actions:teardown_structure_adjacent" : "file(ai/actions/teardown_structure_adjacent_action.lua)",
 
+      "actions:follow_entity" : "file(ai/actions/follow_entity.lua)",
+
       "tasks:collect_ingredients" : "file(services/tasks/compound_tasks/collect_ingredients_compound_task.lua)",
       "tasks:work_at_workshop" : "file(services/tasks/compound_tasks/work_at_workshop_orchestrator.lua)",
       "tasks:create_workshop" : "file(services/tasks/compound_tasks/create_workshop_compound_task.lua)",
@@ -416,12 +420,14 @@
          "controller" : "file(call_handlers/new_game_call_handler.lua)",
          "endpoint" : "server"
       },
-
       "harvest_trapped_beast" : {
          "controller": "file(call_handlers/unit_control/harvest_trapped_beast_call_handler.lua)",
          "endpoint" : "server"
       },
-
+      "release_from_captivity" : {
+         "controller": "file(call_handlers/unit_control/pet_call_handler.lua)",
+         "endpoint" : "server"    
+      },
       "client_move_unit" : {
          "controller": "file(call_handlers/unit_control/move_unit_call_handler.lua)",
          "endpoint" : "client"
