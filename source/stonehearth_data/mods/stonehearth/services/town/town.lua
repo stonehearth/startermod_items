@@ -3,7 +3,6 @@ local CompoundTask = require 'services.tasks.compound_task'
 local UnitController = require 'services.town.unit_controller'
 local Promote = require 'services.town.orchestrators.promote_orchestrator'
 local CreateWorkshop = require 'services.town.orchestrators.create_workshop_orchestrator'
-local WorkAtWorkshop = require 'services.town.orchestrators.work_at_workshop_orchestrator'
 local Town = class()
 
 function Town:__init(name)
@@ -214,21 +213,18 @@ function Town:create_workshop(crafter, ghost_workshop, outbox_location, outbox_s
    outbox_component:set_size(outbox_size)
    outbox_component:set_outbox(true)
 
+   -- create a task group for the workshop.  we'll use this both to build it and
+   -- to feed the crafter orders when it's finally created
+   local workshop_task_group = self._scheduler:create_task_group('stonehearth:top', {})
+                                                  :set_priority(stonehearth.constants.priorities.top.CRAFT)
+                                                  :add_worker(crafter)
+
    self:create_orchestrator(CreateWorkshop, {
       crafter = crafter,
+      task_group  = workshop_task_group,
       ghost_workshop = ghost_workshop,
       outbox_entity = outbox_entity,
    })
-   return true
-end
-
-function Town:add_workshop_task_group(workshop, crafter)
-   local orchestrator = WorkAtWorkshop()
-   self:start_orchestartor(crafter, orchestrator, {
-         crafter = crafter,
-         workshop = workshop:get_entity(),
-         craft_order_list = workshop:get_craft_order_list(),
-      })
 end
 
 return Town

@@ -24,6 +24,7 @@ local constants = {
       top = {
          ADMIRE_FIRE = 2,
          WORK = 10,
+         CRAFT = 10,
          EAT = 20,
          GENERIC_TASK_PRIORITY = 30,
          SLEEP = 40,

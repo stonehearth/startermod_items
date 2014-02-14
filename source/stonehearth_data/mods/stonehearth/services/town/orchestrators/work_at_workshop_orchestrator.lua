@@ -1,16 +1,19 @@
 local Point3 = _radiant.csg.Point3
-local collect_ingredients = require 'services.town.orchestrators.collect_ingredients_orchestrator'
-local inventory_service = stonehearth.inventory
+local CollectIngredients = require 'services.town.orchestrators.collect_ingredients_orchestrator'
+local ClearWorkshop = require 'services.town.orchestrators.clear_workshop_orchestrator'
 
 local WorkAtWorkshop = class()
 
-function WorkAtWorkshop:run(town, crafter, args)
+function WorkAtWorkshop:run(town, args)
    self._town = town
+   self._thread = stonehearth.threads:get_current_thread()
    self._workshop = args.workshop
-   self._crafter = crafter
+   self._task_group = args.task_group
+   self._crafter = args.crafter
    self._craft_order_list = args.craft_order_list
-   self._inventory = inventory_service:get_inventory(self._faction)
-   self._faction = radiant.entities.get_faction(crafter)
+
+   local faction = radiant.entities.get_faction(self._crafter)
+   self._inventory = stonehearth.inventory:get_inventory(faction)
 
    radiant.events.listen(self._craft_order_list, 'order_list_changed', self, self._on_order_list_changed)
    self:_on_order_list_changed(self._craft_order_list, not self._craft_order_list:get_next_order())
@@ -30,8 +33,9 @@ function WorkAtWorkshop:run(town, crafter, args)
          self._craft_order_list:remove_order(order)
       end
 
-      thread:orchestrate('stonehearth:tasks:clear_workshop', {
-         workshop = self._workshop,
+      self._town:run_orchestrator(ClearWorkshop, {
+         task_group = self._task_group,
+         workshop = self._workshop
       })
    end
 end
@@ -44,7 +48,8 @@ end
 function WorkAtWorkshop:_collect_ingredients(order)
    local recipe = order:get_recipe()
 
-   return collect_ingredients(self._town, self._crafter, {
+   self._town:run_orchestrator(CollectIngredients, {
+      task_group = self._task_group,
       workshop = self._workshop,
       ingredients = recipe.ingredients
    })
@@ -53,14 +58,21 @@ end
 function WorkAtWorkshop:_process_order(order)
    local recipe = order:get_recipe()
 
-   thread:execute('stonehearth:work_at_workshop', {
+   local args = {
       workshop = self._workshop,
       times = recipe.work_units
-   })
-
+   }
+   local task = self._task_group:create_task('stonehearth:work_at_workshop', args)
+                                     :once()
+                                     :start()
+   if not task:wait() then
+      return false
+   end
+   
    self:_destroy_items_on_bench()
    self:_add_outputs_to_bench(recipe)
    order:on_item_created()
+   return true
 end
 
 function WorkAtWorkshop:_get_next_order()

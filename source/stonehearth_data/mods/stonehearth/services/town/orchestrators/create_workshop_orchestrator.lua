@@ -1,4 +1,5 @@
 local CollectIngredients = require 'services.town.orchestrators.collect_ingredients_orchestrator'
+local WorkAtWorkshop = require 'services.town.orchestrators.work_at_workshop_orchestrator'
 
 local CreateWorkshop = class()
 
@@ -6,12 +7,13 @@ function CreateWorkshop:run(town, args)
    local crafter = args.crafter
    local ghost_workshop = args.ghost_workshop
    local outbox_entity = args.outbox_entity
+   local task_group = args.task_group
 
    local json = ghost_workshop:get_component('stonehearth:ghost_item'):get_full_sized_json()
    local workshop_data = json.components['stonehearth:workshop']
 
    town:run_orchestrator(CollectIngredients, {
-      task_group = town:get_unit_control_task_group(crafter),
+      task_group = task_group,
       workshop = ghost_workshop,
       ingredients = workshop_data.ingredients
    })
@@ -26,7 +28,16 @@ function CreateWorkshop:run(town, args)
       return
    end
 
-   self:_complete_construction(crafter, ghost_workshop, outbox_entity)
+   local workshop = self:_complete_construction(crafter, ghost_workshop, outbox_entity, args.workshop_task_group)
+
+   -- fire put the orchestrator
+   town:create_orchestrator(WorkAtWorkshop, {
+         crafter = crafter,
+         task_group  = task_group,
+         workshop = workshop:get_entity(),
+         craft_order_list = workshop:get_craft_order_list(),         
+      })
+      
    return true
 end
 
@@ -37,7 +48,7 @@ function CreateWorkshop:stop()
    end
 end
 
-function CreateWorkshop:_complete_construction(crafter, ghost_workshop, outbox_entity)
+function CreateWorkshop:_complete_construction(crafter, ghost_workshop, outbox_entity, workshop_task_group)
    local faction = radiant.entities.get_faction(crafter)
    local real_item_uri = ghost_workshop:get_component('stonehearth:ghost_item'):get_full_sized_mod_uri();
 
@@ -57,10 +68,12 @@ function CreateWorkshop:_complete_construction(crafter, ghost_workshop, outbox_e
    end
    radiant.entities.destroy_entity(ghost_workshop)
 
-   --assign the crafter to the workshop
+   -- assign the crafter to the workshop
    workshop_component:set_crafter(crafter)
-
+   
    stonehearth.analytics:send_design_event('game:place_workshop', workshop_entity)
+   
+   return workshop_component
 end
 
 return CreateWorkshop

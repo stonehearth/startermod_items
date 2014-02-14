@@ -41,6 +41,7 @@ function TaskGroup:add_worker(worker)
       running = nil,
       feeding = {},
    }
+   return self
 end
 
 function TaskGroup:get_name()
@@ -55,6 +56,12 @@ function TaskGroup:remove_worker(id)
       end
       self._workers[id] = nil
    end
+   return self
+end
+
+function TaskGroup:set_priority(priority)
+   self._priority = priority
+   return self
 end
 
 function TaskGroup:create_task(name, args)
@@ -67,9 +74,12 @@ function TaskGroup:create_task(name, args)
    }
    
    local task = Task(self, activity)
+   if self._priority then
+      task:set_priority(self._priority)
+   end
    self._tasks[task] = task
 
-   self._log:debug('created task %s', task:get_name())
+   self._log:debug('created task %s', task:get_name())   
 
    return task
 end

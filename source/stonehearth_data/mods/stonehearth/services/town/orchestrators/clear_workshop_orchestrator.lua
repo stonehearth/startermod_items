@@ -4,14 +4,20 @@ function ClearWorkshop:run(thread, args)
    local workshop = args.workshop
    local outbox = workshop:get_component('stonehearth:workshop')
                           :get_outbox()
-                          :get_component('stonehearth:stockpile')
+                          :get_component('stonehearth:stockpile')                          
+   local task_group = args.task_group
+   
    local container = workshop:get_component('entity_container')
    while container:num_children() > 0 do
       local id, item = container:first_child()
-      thread:execute('stonehearth:move_item_to_outbox', {
-            outbox = outbox,
-            item = item,
-         })
+      local args = {
+         outbox = outbox,
+         item = item,
+      }
+      task_group:create_task('stonehearth:move_item_to_outbox', args)
+                      :once()
+                      :start()
+                      :wait()
    end
 end
 

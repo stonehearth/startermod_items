@@ -146,10 +146,6 @@ function WorkshopComponent:set_crafter(crafter)
       -- xxx, localize                                          
       local crafter_name = radiant.entities.get_name(crafter)
       radiant.entities.set_description(self._entity, 'owned by ' .. crafter_name)
-
-      local faction = radiant.entities.get_faction(self._entity)
-      local town = stonehearth.town:get_town(faction)
-      town:add_workshop_task_group(self, crafter)
    end
 end
 
@@ -176,12 +172,7 @@ function WorkshopComponent:pop_bench_output()
    end
 end
 
---[[
-   This function is only available as a courtesy to the
-   ui. Other gameplay modules shouldn't actually be able
-   to access the todo list.
-]]
-function WorkshopComponent:ui_get_craft_order_list()
+function WorkshopComponent:get_craft_order_list()
    return self._craft_order_list
 end
 

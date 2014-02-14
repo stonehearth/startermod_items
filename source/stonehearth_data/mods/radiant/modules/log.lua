@@ -99,12 +99,12 @@ function Log.create_logger(sub_category, prefix)
    
    for keyword, level in pairs(logger_functions) do
       if logger:is_enabled(level) then
-         logger[keyword] = function(self, format, ...)
-            local output
-            if self._prefix then
-               output = '[' .. self._prefix .. '] '
+         logger[keyword] = function(t, format, ...)
+            local prefix
+            if t._prefix then
+               prefix = '[' .. t._prefix .. '] '
             else
-               output = ''
+               prefix = ''
             end
             local args = {...}
             for i, arg in ipairs(args) do
@@ -112,7 +112,7 @@ function Log.create_logger(sub_category, prefix)
                   args[i] = tostring(arg)
                end
             end
-            _host:log(self._category, level, string.format(format, unpack(args)))
+            _host:log(t._category, level, prefix .. string.format(format, unpack(args)))
          end
       else
          logger[keyword] = function () end
