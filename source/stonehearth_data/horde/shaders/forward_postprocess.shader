@@ -1,6 +1,7 @@
 [[FX]]
 
 float4 axis;
+float4 mipLevel;
 float4[32] samplerKernel;
 
 // Samplers
@@ -91,10 +92,22 @@ context BLUR3
   PixelShader = compile GLSL FS_BLUR_3;
 }
 
+context BLUR4
+{
+  VertexShader = compile GLSL VS_BLUR;
+  PixelShader = compile GLSL FS_BLUR_4;
+}
+
 context BLUR_BLEND
 {
   VertexShader = compile GLSL VS_BLUR;
   PixelShader = compile GLSL FS_BLUR;
+}
+
+context DOWNSAMPLE
+{
+  VertexShader = compile GLSL VS_DOWNSAMPLE;
+  PixelShader = compile GLSL FS_DOWNSAMPLE;
 }
 
 [[VS_GENERAL]]
@@ -229,7 +242,7 @@ void main(void)
 {
   gl_FragData[0].r = toLinearDepth(gl_FragCoord.z);
   gl_FragData[0].g = worldScale;
-  gl_FragData[1] = viewMat * vec4(normalize(tsbNormal), 0.0);
+  gl_FragData[5] = viewMat * vec4(normalize(tsbNormal), 0.0);
 }
 
 
@@ -423,8 +436,11 @@ void main()
 
 
 [[FS_SSAO2]]
-
+#version 130
 #include "shaders/utilityLib/vertCommon.glsl"
+#extension GL_EXT_gpu_shader4 : enable
+#define LOG_MAX_OFFSET 3
+#define MAX_MIP_LEVEL 5
 
 uniform sampler2D randomVectorLookup;
 uniform sampler2D normalBuffer;
@@ -435,6 +451,15 @@ uniform mat4 camProjMat;
 uniform mat4 camViewMat;
 
 varying vec2 texCoords;
+
+
+float getSampleDepth(const vec2 texCoords, const float screenSpaceDistance) {
+  ivec2 pixelCoords = ivec2(floor(texCoords * frameBufSize));
+
+  int mipLevel = clamp(int(floor(log2(screenSpaceDistance))) - LOG_MAX_OFFSET, 0, MAX_MIP_LEVEL);
+
+  return texelFetch(depthBuffer, pixelCoords >> mipLevel, mipLevel);
+}
 
 
 vec3 toCameraSpace(const vec2 fragCoord, float depth)
@@ -457,7 +482,7 @@ void main()
 {
   vec2 noiseScale = frameBufSize / 4.0;
   float radius = 1.0;
-  float intensity = 1.0;
+  const float intensity = 1.0;
 
   vec4 attribs = texture2D(depthBuffer, texCoords);
   vec3 origin = toCameraSpace(texCoords, attribs.r);
@@ -481,7 +506,8 @@ void main()
     offset.xy = (offset.xy * 0.5) + 0.5;
 
     // get sample location:
-    float sampleDepth = texture2D(depthBuffer, offset.xy).r;
+    //float sampleDepth = texture2D(depthBuffer, offset.xy).r;
+    float sampleDepth = getSampleDepth(offset.xy, length((offset.xy - texCoords) * frameBufSize));
 
     // range check & accumulate:
     float rangeCheck = abs(origin.z - sampleDepth) <  radius ? 1.0 : 0.0;
@@ -552,4 +578,67 @@ void main()
 
     float result = b / w_total;
     gl_FragColor = vec4(result, result, result, 1);
+}
+
+
+[[FS_BLUR_4]]
+#include "shaders/utilityLib/blur.glsl"
+
+varying vec2 texCoords;
+uniform sampler2D depthBuffer;
+uniform sampler2D ssaoImage;
+uniform vec2 frameBufSize;
+uniform vec4 axis;
+
+const int g_BlurRadius = 4;
+
+void main()
+{
+    float b = 0.0;
+    float w_total = 0.0;
+    float center_c = texture2D(ssaoImage, texCoords).r;
+    float center_d = texture2D(depthBuffer, texCoords).r;
+
+    vec2 g_InvResolution = 1.0 / frameBufSize;
+    
+    b = BlurFunction(texCoords, 0.0, center_c, center_d, w_total, depthBuffer, ssaoImage);
+    for (int r = -g_BlurRadius; r <= g_BlurRadius; ++r)
+    {
+      for (int s = -g_BlurRadius; s <= g_BlurRadius; ++s)
+      {
+        if (r != 0 && s != 0) {
+          float rf = float(r);
+          float sf = float(s);
+          vec2 uv = texCoords + vec2(rf, sf) * g_InvResolution;
+          b += BlurFunction(uv, abs(rf) + abs(sf), center_c, center_d, w_total, depthBuffer, ssaoImage);
+        }
+      }
+    }
+
+    float result = b / w_total;
+    gl_FragColor = vec4(vec3(result), 1.0);
+}
+
+[[VS_DOWNSAMPLE]]
+#include "shaders/fsquad_vs.glsl"
+
+
+[[FS_DOWNSAMPLE]]
+#version 120
+#extension GL_EXT_gpu_shader4 : require
+
+uniform vec4 mipLevel;
+uniform sampler2D depthBuffer;
+uniform vec2 frameBufSize;
+
+varying vec2 texCoords;
+
+void main() {
+  float lastMipLevel = mipLevel.x - 1;
+  ivec2 texSize = textureSize2D(depthBuffer, lastMipLevel);
+  ivec2 pixelCoords = ivec2(gl_FragCoord.xy);
+  gl_FragData[mipLevel.x] = texelFetch2D(
+    depthBuffer, 
+    clamp(pixelCoords * 2 + ivec2(pixelCoords.y & 1, pixelCoords.x & 1), ivec2(0), texSize - ivec2(1)), 
+    lastMipLevel);
 }

@@ -1,7 +1,7 @@
 <!-- Forward Shading Pipeline -->
 <Pipeline name="FORWARD_POSTPROCESS" material="materials/forward_postprocess.material.xml">
    <Setup>
-      <RenderTarget id="GBuffers" numColBufs="2" depthBuf="true" format="RGBA32F" scale="1.0" />
+      <RenderTarget id="GBuffers" numColBufs="2" depthBuf="true" format="RGBA32F" scale="1.0" mipLevels="5"/>
       <RenderTarget id="SSAOTemp" numColBufs="1" depthBuf="false" format="RGBA8" scale="1.0" />
       <RenderTarget id="SSAOBlur" numColBufs="1" depthBuf="false" format="RGBA8" scale="1.0" />
       <RenderTarget id="SelectedTemp" numColBufs="1" depthBuf="true" scale="1.0" format="RGBA8"/>
@@ -69,7 +69,7 @@
          <SwitchTarget target=""/>
       </Stage-->
 
-      <Stage id="SSAO2_Blur2">
+      <!--Stage id="SSAO2_Blur2">
          <SwitchTarget target="SSAOTemp" />
          <BindBuffer sampler="depthBuffer" sourceRT="GBuffers" bufIndex="0" />
          <BindBuffer sampler="normalBuffer" sourceRT="GBuffers" bufIndex="1" />
@@ -85,12 +85,32 @@
          <BindBuffer sampler="ssaoImage" sourceRT="SSAOBlur" bufIndex="0" />
          <DrawQuad material="materials/blur_3_v.material.xml" context="BLUR3" />
          <UnbindBuffers />
+
+         <SwitchTarget target=""/>
+      </Stage-->
+
+
+      <Stage id="SSAO2_Blur3">
+         <BuildMipmaps rt="GBuffers" index="0" />
+
+         <SwitchTarget target="SSAOBlur" />
+         <BindBuffer sampler="depthBuffer" sourceRT="GBuffers" bufIndex="0" />
+         <BindBuffer sampler="normalBuffer" sourceRT="GBuffers" bufIndex="1" />
+         <DrawQuad material="materials/forward_postprocess.material.xml" context="SSAO2" />
+         <UnbindBuffers />
+
+         <SwitchTarget target="SSAOTemp"/>
+         <BindBuffer sampler="ssaoImage" sourceRT="SSAOBlur" bufIndex="0" />
+         <DrawQuad material="materials/blur_3_h.material.xml" context="BLUR4" />
+         <UnbindBuffers />
+
          <SwitchTarget target=""/>
       </Stage>
 
       <Stage id="Light">
          <BindBuffer sampler="ssaoImage" sourceRT="SSAOTemp" bufIndex="0" />
          <DoForwardLightLoop class="~Translucent" noShadows="false"/>
+         <UnbindBuffers />
       </Stage>
 
 

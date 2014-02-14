@@ -2916,6 +2916,22 @@ void Renderer::render( CameraNode *camNode )
 				}
 				break;
 
+         case PipelineCommands::BuildMipmap: 
+            {
+               rt = (RenderTarget *)pc.params[0].getPtr();
+               int index = pc.params[1].getInt();
+
+               RDIRenderBuffer &rendBuf = gRDI->_rendBufs.getRef( rt->rendBuf );
+               uint32 texGlObj = gRDI->_textures.getRef(rendBuf.colTexs[index]).glObj;
+               glActiveTexture(GL_TEXTURE15);
+               glEnable(GL_TEXTURE_2D);
+               glBindTexture(GL_TEXTURE_2D, texGlObj);
+               glGenerateMipmapEXT(GL_TEXTURE_2D);
+               glBindTexture(GL_TEXTURE_2D, 0);
+               glDisable(GL_TEXTURE_2D);
+            }
+            break;
+
 			case PipelineCommands::BindBuffer:
             {
                uint32 rendBuf = 0;

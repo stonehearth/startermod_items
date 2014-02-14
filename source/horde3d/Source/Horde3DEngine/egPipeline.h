@@ -54,7 +54,8 @@ struct PipelineCommands
 		DrawQuad,
 		DoForwardLightLoop,
 		DoDeferredLightLoop,
-		SetUniform
+		SetUniform,
+      BuildMipmap
 	};
 };
 
@@ -142,6 +143,7 @@ struct RenderTarget
 	uint32                samples;
 	float                 scale;  // Scale factor for FB width and height
 	bool                  hasDepthBuf;
+   uint32                mipLevels;
 
    uint32                rendBuf;
 
@@ -150,6 +152,7 @@ struct RenderTarget
 		hasDepthBuf = false;
 		numColBufs = 0;
 		rendBuf = 0;
+      mipLevels = 0;
 	}
 };
 
@@ -183,7 +186,7 @@ private:
 
 	void addRenderTarget( const std::string &id, bool depthBuffer, uint32 numBuffers,
 	                      TextureFormats::List format, uint32 samples,
-	                      uint32 width, uint32 height, float scale );
+	                      uint32 width, uint32 height, float scale, uint32 mipLevels );
 	RenderTarget *findRenderTarget( const std::string &id );
 	bool createRenderTargets();
 	void releaseRenderTargets();

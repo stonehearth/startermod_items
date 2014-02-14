@@ -304,6 +304,21 @@ const std::string PipelineResource::parseStage( XMLNode const &node, PipelineSta
 			params[4].setFloat( (float)atof( node1.getAttribute( "c", "0" ) ) );
 			params[5].setFloat( (float)atof( node1.getAttribute( "d", "0" ) ) );
 		}
+      else if ( strcmp( node1.getName(), "BuildMipmaps" ) == 0 )
+      {
+         if ( !node1.getAttribute( "rt" ) ) return "Missing BuildMipmaps attribute 'rt'";
+         if ( !node1.getAttribute( "index" ) ) return "Missing BuildMipmaps attribute 'index'";
+
+         stage->commands.push_back( PipelineCommand( PipelineCommands::BuildMipmap ) );
+
+         void *renderTarget = findRenderTarget( node1.getAttribute( "rt" ) );
+			if( !renderTarget ) return "Reference to undefined render target in BuildMipmaps";
+
+         vector< PipeCmdParam > &params = stage->commands.back().params;
+         params.resize( 2 );
+         params[0].setPtr(renderTarget);
+         params[1].setInt(atoi(node1.getAttribute("index")));
+      }
 
 		node1 = node1.getNextSibling();
 	}
@@ -314,7 +329,7 @@ const std::string PipelineResource::parseStage( XMLNode const &node, PipelineSta
 
 void PipelineResource::addRenderTarget( const std::string &id, bool depthBuf, uint32 numColBufs,
 										TextureFormats::List format, uint32 samples,
-										uint32 width, uint32 height, float scale )
+										uint32 width, uint32 height, float scale, uint32 mipLevels )
 {
 	RenderTarget rt;
 	
@@ -326,6 +341,7 @@ void PipelineResource::addRenderTarget( const std::string &id, bool depthBuf, ui
 	rt.width = width;
 	rt.height = height;
 	rt.scale = scale;
+   rt.mipLevels = mipLevels;
 
 	_renderTargets.push_back( rt );
 }
@@ -358,7 +374,7 @@ bool PipelineResource::createRenderTargets()
 		if( height == 0 ) height = ftoi_r( _baseHeight * rt.scale );
 
 		rt.rendBuf = gRDI->createRenderBuffer(
-			width, height, rt.format, rt.hasDepthBuf, rt.numColBufs, rt.samples );
+         width, height, rt.format, rt.hasDepthBuf, rt.numColBufs, rt.samples, rt.mipLevels );
 		if( rt.rendBuf == 0 ) return false;
 	}
 	
@@ -448,8 +464,10 @@ bool PipelineResource::loadSetupNode(XMLNode const& setupNode)
 		uint32 height = atoi( node2.getAttribute( "height", "0" ) );
 		float scale = (float)atof( node2.getAttribute( "scale", "1" ) );
 
+      uint32 mipLevels = atoi(node2.getAttribute("mipLevels", "0"));
+
 		addRenderTarget( id, depth, numBuffers, format,
-			std::min( maxSamples, Modules::config().sampleCount ), width, height, scale );
+			std::min( maxSamples, Modules::config().sampleCount ), width, height, scale, mipLevels );
 
 		node2 = node2.getNextSibling( "RenderTarget" );
 	}
