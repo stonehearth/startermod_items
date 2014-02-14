@@ -43,6 +43,9 @@ App.StonehearthLoadingScreenView = App.View.extend({
          this._progressbar.progressbar( "option", "value", result.progress );
 
          if (result.progress == 100) {
+            self.trace.destroy();
+            self.trace = null;
+
             radiant.call('stonehearth:embark_client')
                .done(function(o) {
                   App.gotoGame();
