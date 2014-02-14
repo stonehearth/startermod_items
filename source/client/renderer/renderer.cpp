@@ -25,9 +25,6 @@ using namespace ::radiant::client;
 
 #define R_LOG(level)      LOG(renderer.renderer, level)
 
-std::vector<float> ssaoSamplerData;
-
-H3DRes ssaoMat;
 H3DNode meshNode;
 H3DNode starfieldMeshNode;
 H3DRes starfieldMat;
@@ -155,25 +152,6 @@ Renderer::Renderer() :
    BuildStarfield();
 
    LoadResources();
-
-   // Sampler kernel generation--a work in progress.
-   const int KernelSize = 32;
-   for (int i = 0; i < KernelSize; ++i) {
-      float x = rng.GetReal(-1.0f, 1.0f);
-      float y = rng.GetReal(-1.0f, 1.0f);
-      float z = rng.GetReal(0.15f, 1.0f);
-      Horde3D::Vec3f v(x,y,z);
-      v.normalize();
-
-      float scale = (i / (float)KernelSize) + 0.02f;
-      float f = scale * scale;
-      v *= f;
-
-      ssaoSamplerData.push_back(v.x);
-      ssaoSamplerData.push_back(v.y);
-      ssaoSamplerData.push_back(v.z);
-      ssaoSamplerData.push_back(0.0);
-   }
 
    // Add camera   
    camera_ = new Camera(H3DRootNode, "Camera", currentPipeline_);
@@ -720,7 +698,6 @@ void Renderer::RenderOneFrame(int now, float alpha)
    LoadResources();
 
    H3DRes pipeMat = h3dGetResParamI(currentPipeline_, Horde3D::PipelineResData::Material, 0, 0);
-   h3dSetMaterialArrayUniform(pipeMat, "samplerKernel", ssaoSamplerData.data(), ssaoSamplerData.size());
    
    float skysphereDistance = config_.draw_distance.value * 0.4f;
    float starsphereDistance = config_.draw_distance.value * 0.9f;

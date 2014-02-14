@@ -1,5 +1,4 @@
-<Material>
-  <Uniform name="samplerKernel"/>
+<Material parent="materials/base.material.xml">
   <Sampler name="randomVectorLookup" map="RandomVectorLookup" />
-  <Shader source="shaders/ssao2.shader" />
+  <Shader source="shaders/ssao.shader" />
 </Material>
