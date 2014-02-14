@@ -43,10 +43,6 @@ function WorldGenerationService:initialize(seed, async)
 
    self.blueprint_generator = BlueprintGenerator()
    self.overview_map = OverviewMap(self._terrain_info, self._landscaper)
-
-   self._progress = 0
-   self._events_registered = false;
-   self:_register_events()
 end
 
 function WorldGenerationService:set_seed(seed)
@@ -55,24 +51,10 @@ function WorldGenerationService:set_seed(seed)
    self._rng = RandomNumberGenerator(self._seed)
 end
 
-function WorldGenerationService:_register_events()
-   if not self._events_registered then
-      radiant.events.listen(radiant.events, 'stonehearth:slow_poll', self, self._on_poll_progress)
-      self._events_registered = true;
-   end
-end
-
-function WorldGenerationService:_on_poll_progress()
-   local done = self._progress == 100
-
+function WorldGenerationService:_report_progress(progress)
    radiant.events.trigger(radiant.events, 'stonehearth:generate_world_progress', {
-      progress = self._progress
+      progress = progress * 100
    })
-
-   if done then
-      radiant.events.unlisten(radiant.events, 'stonehearth:slow_poll', self, self._on_poll_progress)
-      self._events_registered = false;
-   end
 end
 
 -- set and populate the blueprint
@@ -146,8 +128,9 @@ function WorldGenerationService:generate_all_tiles()
       function()
          local blueprint = self._blueprint
          local i, j, n, tile_order_list, num_tiles
+         local progress = 0
 
-         self._progress = 0
+         self:_report_progress(progress)
 
          tile_order_list = self:_build_tile_order_list(blueprint)
          num_tiles = #tile_order_list
@@ -158,12 +141,9 @@ function WorldGenerationService:generate_all_tiles()
 
             self:_generate_tile_impl(i, j)
 
-            -- update progress bar
-            self._progress = (n / num_tiles) * 100
+            progress = n / num_tiles
+            self:_report_progress(progress)
          end
-
-         -- trigger finished without waiting for the next poll
-         self:_on_poll_progress()
       end
    )
 end
@@ -176,23 +156,23 @@ function WorldGenerationService:generate_tiles(i, j, radius)
          local x_max = math.min(i+radius, blueprint.width)
          local y_min = math.max(j-radius, 1)
          local y_max = math.min(j+radius, blueprint.height)
-         local max_tiles = (x_max-x_min+1) * (y_max-y_min+1)
-         local count = 0
+         local num_tiles = (x_max-x_min+1) * (y_max-y_min+1)
+         local n = 0
+         local progress = 0
 
-         self._progress = 0
+         self:_report_progress(progress)
 
          for b=y_min, y_max do
             for a=x_min, x_max do
-               if blueprint:in_bounds(a, b) then
-                  self:_generate_tile_impl(a, b)
-               end
-               count = count + 1
-               self._progress = (count / max_tiles) * 100
+               assert(blueprint:in_bounds(a, b))
+
+               self:_generate_tile_impl(a, b)
+
+               n = n + 1
+               progress = n / num_tiles
+               self:_report_progress(progress)
             end
          end
-
-         -- trigger finished without waiting for the next poll
-         self:_on_poll_progress()
       end
    )
 end
