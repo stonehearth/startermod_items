@@ -9,6 +9,7 @@ function BuffsComponent:__init(entity, data_binding)
    self._entity = entity
    self._attributes_component = entity:add_component('stonehearth:attributes')
    self._buffs = {}
+   self._controllers = {}
    self._attribute_modifiers = {}
    self._injected_ais = {}
    self._effects = {}
@@ -30,6 +31,8 @@ function BuffsComponent:add_buff(uri)
       self:_apply_duration(uri, buff)
       self:_apply_modifiers(uri, buff)
       self:_inject_ai(uri, buff)
+      self:_apply_controller(uri, buff)
+
       self._data_binding:mark_changed()
    end
 
@@ -43,11 +46,31 @@ end
 function BuffsComponent:remove_buff(uri)
    self._buffs[uri] = nil
 
+   self:_remove_controller(uri)
    self:_remove_effect(uri);
    self:_remove_modifiers(uri);
    self:_uninject_ai(uri)
 
    self._data_binding:mark_changed()
+end
+
+function BuffsComponent:_apply_controller(uri, buff)
+   local controller = buff:get_controller()
+
+   if controller and controller.on_buff_added then
+      controller:on_buff_added(self._entity, buff)
+      self._controllers[uri] = controller
+   end
+end
+
+
+function BuffsComponent:_remove_controller(uri)
+   local controller = self._controllers[uri]
+   
+   if controller and controller.on_buff_removed then
+      controller:on_buff_removed(self._entity, self._buffs[uri])
+      self._controllers[uri] = nil
+   end
 end
 
 function BuffsComponent:_apply_effect(uri, buff)

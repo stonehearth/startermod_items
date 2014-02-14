@@ -52,7 +52,9 @@
             "stonehearth:actions:find_path_to_entity",
             "stonehearth:actions:find_path_to_entity_type",
             "stonehearth:actions:run_towards_entity",
-            "stonehearth:actions:add_buff"
+            "stonehearth:actions:add_buff",
+            "stonehearth:actions:unit_control:dispatcher",
+            "stonehearth:actions:compelled_behaviors:dispatcher"
          ],
           "observers": [
             "stonehearth:observers:look_for_enemies"
