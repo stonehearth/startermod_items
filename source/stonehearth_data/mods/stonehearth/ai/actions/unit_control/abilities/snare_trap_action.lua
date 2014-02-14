@@ -8,14 +8,12 @@ SnareTrap.does = 'stonehearth:unit_control:abilities:snare_trap'
 SnareTrap.args = {
    location = Point3      -- where to move
 }
-SnareTrap.think_output = {
-   location = Point3      -- where to move
-}
 
 SnareTrap.version = 2
-SnareTrap.priority = stonehearth.constants.priorities.unit_control.ABILITY
+SnareTrap.priority = stonehearth.constants.priorities.unit_control.CAST_SPELL
 
 function SnareTrap:run(ai, entity, args) 
+   self._entity = entity
    local location = args.location
    local radius = 4
    
@@ -27,11 +25,21 @@ function SnareTrap:run(ai, entity, args)
          self:_trap_entity(e)
       end
    end
+
 end
 
 function SnareTrap:_trap_entity(entity)
-   radiant.entities.add_buff(entity, 'stonehearth:buffs:snared')
-   --radiant.effects.run_effect(entity, '/stonehearth/data/effects/abilities/snare_trap')
+   local buff = radiant.entities.add_buff(entity, 'stonehearth:buffs:snared')
+   local trap = buff:get_controller():get_trap()
+
+   local commands = trap:add_component('stonehearth:commands')
+   commands:modify_command('harvest_trapped_beast', function (command_data)
+         command_data.args = {
+            self._entity,
+            trap
+         }
+      end)
+
 end
 
 return SnareTrap

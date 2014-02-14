@@ -1,0 +1,14 @@
+{
+   "type" : "command",
+
+   "name": "harvest_trapped_beast",
+   "tooltip": "Harvest Beast",
+   "description": "Slay the trapped beast and harvest him for materials!",
+   "icon": "file(harvest_trapped_beast.png)",
+
+   "action": "call",
+   "function": "stonehearth:harvest_trapped_beast",
+   "args": [
+      "{{self}}"
+   ]
+}

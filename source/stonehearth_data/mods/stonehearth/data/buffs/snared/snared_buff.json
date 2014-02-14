@@ -15,6 +15,13 @@
    "effect" : "/stonehearth/data/effects/abilities/snare_trap",
 
    "controller" : "file(snared_buff.lua)",
+
+   "injected_ai" : {
+      "actions" : [
+         "stonehearth:actions:compelled_behaviors:struggle"
+      ]
+   },
+
    "tags" : [
       "snared"
    ]

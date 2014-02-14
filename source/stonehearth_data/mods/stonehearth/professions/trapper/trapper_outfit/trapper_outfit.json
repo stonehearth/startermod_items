@@ -26,7 +26,9 @@
          "injected_ai" : {
             "actions" : [
                 "stonehearth:actions:unit_control:move_unit_to_location",
-                "stonehearth:actions:unit_control:abilities:snare_trap"
+                "stonehearth:actions:unit_control:abilities:snare_trap",
+                "stonehearth:actions:unit_control:harvest_trapped_beast",
+                "stonehearth:actions:harvest_trapped_beast_adjacent"
             ]
          },
          "injected_commands" : [
