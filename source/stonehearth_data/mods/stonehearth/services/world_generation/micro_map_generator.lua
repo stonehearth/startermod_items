@@ -22,6 +22,17 @@ function MicroMapGenerator:__init(terrain_info, rng)
    self._valley_shapes = ValleyShapes(rng)
 end
 
+-- recall that micro_maps are offset by half a macroblock for shared tiling boundaries
+local function _elevation_map_to_micro_map_index(i)
+   -- offset 1 element to skip over micro_map overlap
+   -- convert to 0 based array, scale, convert back to 1 based array
+   return math.floor((i+1-1) * 0.5) + 1
+end
+
+local function _elevation_map_to_micro_map_coords(i, j)
+   return _elevation_map_to_micro_map_index(i), _elevation_map_to_micro_map_index(j)
+end
+
 function MicroMapGenerator:generate_micro_map(blueprint)
    local noise_map, micro_map, width, height
 
@@ -102,17 +113,6 @@ function MicroMapGenerator:_convert_to_elevation_map(micro_map)
    end
 
    return elevation_map
-end
-
-function _elevation_map_to_micro_map_coords(i, j)
-   return _elevation_map_to_micro_map_index(i), _elevation_map_to_micro_map_index(j)
-end
-
--- recall that micro_maps are offset by half a macroblock for shared tiling boundaries
-function _elevation_map_to_micro_map_index(i)
-   -- offset 1 element to skip over micro_map overlap
-   -- convert to 0 based array, scale, convert back to 1 based array
-   return math.floor((i+1-1) * 0.5) + 1
 end
 
 function MicroMapGenerator:_surrounded_by_terrain(terrain_type, blueprint, x, y)
