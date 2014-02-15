@@ -36,11 +36,11 @@ void main()
     float b = 0.0;
     float w_total = 0.0;
     float center_c = texture2D(ssaoImage, texCoords).r;
-    float center_d = texture2D(depthBuffer, texCoords).r;
+    float pixelDepth = texture2D(depthBuffer, texCoords).r;
 
     vec2 g_InvResolution = 1.0 / frameBufSize;
     
-    b = BlurFunction(texCoords, 0.0, center_c, center_d, w_total, depthBuffer, ssaoImage);
+    b = BlurFunction(texCoords, 0.0, pixelDepth, w_total, depthBuffer, ssaoImage);
     for (int r = -g_BlurRadius; r <= g_BlurRadius; ++r)
     {
       for (int s = -g_BlurRadius; s <= g_BlurRadius; ++s)
@@ -49,7 +49,7 @@ void main()
           float rf = float(r);
           float sf = float(s);
           vec2 uv = texCoords + vec2(rf, sf) * g_InvResolution;
-          b += BlurFunction(uv, abs(rf) + abs(sf), center_c, center_d, w_total, depthBuffer, ssaoImage);
+          b += BlurFunction(uv, abs(rf) + abs(sf), pixelDepth, w_total, depthBuffer, ssaoImage);
         }
       }
     }

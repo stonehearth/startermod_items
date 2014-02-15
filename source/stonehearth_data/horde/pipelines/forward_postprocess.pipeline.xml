@@ -46,6 +46,7 @@
          <UnbindBuffers />
 
          <SwitchTarget target="SSAOBlur"/>
+         <BindBuffer sampler="depthBuffer" sourceRT="GBuffers" bufIndex="0" />
          <BindBuffer sampler="ssaoImage" sourceRT="SSAOTemp" bufIndex="0" />
          <DrawQuad material="materials/blur.material.xml" context="BLUR" />
          <UnbindBuffers />

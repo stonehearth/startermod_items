@@ -37,7 +37,7 @@ context SSAO
 #define MAX_MIP_LEVEL 5
 #define NUM_SAMPLES 32
 
-const vec3 samplerKernel[] = vec3[NUM_SAMPLES] (
+const vec3 samplerKernel[] = vec3[32] (
   vec3( -0.000193264809954 , 0.000187472221306 , 0.000295808856311 ),
   vec3( 0.00178519724276 , -0.00132094009995 , 0.00140250441112 ),
   vec3( -0.00620084517084 , -0.00183091079845 , 0.00212657562242 ),
@@ -108,17 +108,22 @@ vec3 toCameraSpace(const vec2 fragCoord, float depth)
   return result;
 }
 
+vec3 getRandomVec(const vec2 texCoords)
+{
+  vec2 noiseScale = frameBufSize / 4.0;
+  return texture2D(randomVectorLookup, texCoords * noiseScale).xyz;
+}
+
 
 void main()
 {
-  vec2 noiseScale = frameBufSize / 4.0;
   float radius = 1.0;
-  const float intensity = 1.0;
+  const float intensity = 0.8;
 
   vec4 attribs = texture2D(depthBuffer, texCoords);
   vec3 origin = toCameraSpace(texCoords, attribs.r);
   radius *= attribs.g;
-  vec3 rvec = texture2D(randomVectorLookup, texCoords * noiseScale).xyz;
+  vec3 rvec = getRandomVec(texCoords);
   vec3 normal = -texture2D(normalBuffer, texCoords).xyz;
 
   vec3 tangent = normalize(rvec - (normal * dot(rvec, normal)));
@@ -140,15 +145,13 @@ void main()
     float sampleDepth = getSampleDepth(offset.xy, length((offset.xy - texCoords) * frameBufSize));
 
     // range check & accumulate:
-    float rangeCheck = abs(origin.z - sampleDepth) <  radius ? 1.0 : 0.0;
-    float normCheck = dot(normal, unitSample) <= 0.0 ? 0.0 : 1.0;
-    occlusion += (sampleDepth < ssaoSample.z ? (1.0 * rangeCheck * normCheck) : 0.0);
+    float rangeCheck = abs(origin.z - sampleDepth) <  radius * 1.5 ? 1.0 : 0.0;
+    occlusion += sampleDepth < ssaoSample.z ? (1.0 * rangeCheck) : 0.0;
   }
 
   occlusion /= NUM_SAMPLES;
   occlusion *= intensity;
 
   float visibility = 1.0 - occlusion;
-  fragColor.rgb = vec3(visibility);
-  fragColor.a = 1.0;
+  fragColor = vec4(vec3(visibility), 1.0);
 }
