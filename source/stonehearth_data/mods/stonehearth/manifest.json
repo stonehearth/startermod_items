@@ -192,6 +192,7 @@
       "actions:sleep_on_ground" : "file(ai/actions/sleep_on_ground_action.lua)",
       "actions:sleep_when_tired" : "file(ai/actions/sleep_when_tired_action.lua)",
       "actions:sleep_when_exhausted" : "file(ai/actions/sleep_when_exhausted_action.lua)",
+      "actions:critter_sleep_on_ground" : "file(ai/actions/critter_sleep_on_ground.lua)",
       "actions:add_buff" : "file(ai/actions/add_buff_action.lua)",
       "actions:death_action" : "file(ai/actions/death_action.lua)",
       "actions:delay_thinking" : "file(ai/actions/delay_thinking_action.lua)",

@@ -36,6 +36,11 @@ function PetTest:__init()
 
    --Create the task with the trapper as the target
    scheduler:create_task('stonehearth:follow_entity', {target = target}):start()
+
+   self:at(3000, function()
+      rabbit:add_component('stonehearth:attributes'):set_attribute('sleepiness', 100)
+      end)
+
 end
 
 --TODO: move to the orchestrator, when we have it, so we can alternate people
