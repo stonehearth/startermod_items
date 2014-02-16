@@ -6,21 +6,20 @@
       },
       "render_info" : {
       },
-      "model_variants": [
-         {
+      "model_variants": {
+         "default": {
             "layer": "clothing",
             "models": [
                "file(carpenter_outfit.qb)"
             ]
          },
-         {
-            "variants": "female",
+         "female" : {
             "layer": "clothing",
             "models": [
                "file(carpenter_outfit_female.qb)"
             ]
          }
-      ],
+      },
       "stonehearth:equipment_piece" : {
          "render_type" : "merge_with_model",
          "injected_ai" : {

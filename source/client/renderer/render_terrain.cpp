@@ -240,8 +240,6 @@ void RenderTerrain::UpdateRenderRegion(RenderTilePtr render_tile)
 {
    om::Region3BoxedPtr region_ptr = render_tile->region.lock();
 
-   render_tile->Reset();
-
    if (region_ptr) {
       ASSERT(render_tile);
       csg::Region3 const& region = region_ptr->Get();
@@ -253,8 +251,9 @@ void RenderTerrain::UpdateRenderRegion(RenderTilePtr render_tile)
       mesh = csg::mesh_tools().SetTesselator(tess_map)
                               .ConvertRegionToMesh(tesselatedRegion);
    
-      render_tile->node = Pipeline::GetInstance().AddMeshNode(terrain_root_node_.get(), mesh);
-      h3dSetNodeTransform(render_tile->node.get(), (float)render_tile->location.x, (float)render_tile->location.y, (float)render_tile->location.z, 0, 0, 0, 1, 1, 1);
+      H3DNode node = Pipeline::GetInstance().AddDynamicMeshNode(terrain_root_node_.get(), mesh, "materials/default_material.xml");
+      h3dSetNodeTransform(node, (float)render_tile->location.x, (float)render_tile->location.y, (float)render_tile->location.z, 0, 0, 0, 1, 1, 1);
+      render_tile->SetNode(node);
    }
 }
 

@@ -6,8 +6,8 @@
          "animation_table" : "file(/data/rigs/humans/skeletons/female.json)",
          "model_variant": "female"
       },
-      "model_variants": [
-         {
+      "model_variants": {
+         "default": {
             "models": [
                {
                   "type": "one_of",
@@ -20,6 +20,6 @@
                "file(body.qb)"
             ]
          }
-      ]
+      }
    }
 }

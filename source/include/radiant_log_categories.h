@@ -56,6 +56,7 @@
       ADD_CATEGORY(terrain) \
       ADD_CATEGORY(renderer) \
       ADD_CATEGORY(animation) \
+      ADD_CATEGORY(pipeline) \
    END_GROUP(renderer) \
    \
    BEGIN_GROUP(om) \

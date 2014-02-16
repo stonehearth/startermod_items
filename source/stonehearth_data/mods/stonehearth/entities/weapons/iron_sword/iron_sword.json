@@ -13,13 +13,13 @@
       "item": {
          "stacks": 1
       }, 
-      "model_variants": [
-         {
+      "model_variants": {
+         "default": {
             "models": [
                "file(iron_sword.qb)"
             ]
          }
-      ], 
+      }, 
       "unit_info": {
          "name": "Iron Sword", 
          "description": "Used to thwack foes"

@@ -1,6 +1,7 @@
 #include "pch.h"
 #include "color.h"
 #include "meshtools.h"
+#include "region_tools.h"
 #include "region_tools_traits.h"
 
 using namespace ::radiant;
@@ -135,7 +136,7 @@ void mesh_tools::ForEachRegionEdge(Region3 const& region, int flags, ForEachRegi
 mesh_tools::mesh mesh_tools::ConvertRegionToMesh(const Region3& region)
 {   
    mesh m;
-   m.offset_ = offset_;
+   m.SetOffset(offset_);
 
    ForEachRegionPlane(region, 0, [&](Region2 const& r2, PlaneInfoX const& pi) {
       AddRegionToMesh(r2, pi, m);
@@ -277,7 +278,7 @@ void mesh_tools::mesh::AddRect(Cube<S, 2> const& rect, PlaneInfo<S, 3> const& p)
    Point2f p2 = ToFloat(rect.max);
 
    // In a rect min < max for all coords in the point.  To get the winding
-   // correct, we need to re-order points depending on the directino of the
+   // correct, we need to re-order points depending on the direction of the
    // normal
    bool reverse_winding = (pi.reduced_coord == 2) ? (pi.normal_dir < 0) : (pi.normal_dir > 0);
    if (flip_) {
@@ -313,11 +314,25 @@ mesh_tools::mesh& mesh_tools::mesh::SetColor(csg::Color3 const& color)
    return *this;
 }
 
+mesh_tools::mesh& mesh_tools::mesh::SetOffset(csg::Point3f const& offset)
+{
+   offset_ = offset;
+   return *this;
+}
+
 
 mesh_tools::mesh& mesh_tools::mesh::FlipFaces()
 {
    flip_ = !flip_;
    return *this;
+}
+
+void csg::RegionToMesh(csg::Region3 const& region, mesh_tools::mesh &mesh, csg::Point3f const& offset)
+{
+   mesh.SetOffset(offset);
+   csg::RegionTools3().ForEachPlane(region, [&](csg::Region2 const& plane, csg::PlaneInfo3 const& pi) {
+      mesh.AddRegion(plane, pi);
+   });
 }
 
 template void mesh_tools::mesh::AddRegion(Region<float, 2> const& region, PlaneInfo<float, 3> const& p);
