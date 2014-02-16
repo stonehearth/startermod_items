@@ -41,13 +41,13 @@
          "animation_table" : "file(/data/rigs/critters/wolf)",
          "scale": 0.15
       },
-      "model_variants": [
-         {
+      "model_variants": {
+         "default": {
             "models": [
                "file(wolf.qb)"
             ]
          }
-      ],
+      },
       "stonehearth:material" : {
          "tags" : "meat"
       }

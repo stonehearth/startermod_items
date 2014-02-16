@@ -45,7 +45,7 @@ function CityPlanComponent:_init_fabricator(fabricator, blueprint)
                      :start_project(name, blueprint)
       fabricator:add_component('render_info')
                      :set_material('materials/blueprint_gridlines.xml')
-                     :set_model_mode('opaque')
+                     --:set_model_mode('opaque')
    end
 end
 

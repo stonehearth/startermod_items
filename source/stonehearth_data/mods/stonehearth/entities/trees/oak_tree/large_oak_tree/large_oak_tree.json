@@ -2,8 +2,8 @@
    "mixins": "stonehearth:mixins:tree", 
    "type": "entity", 
    "components": {
-      "model_variants": [
-         {
+      "model_variants": {
+         "default": {
             "models": [
                {
                   "type": "one_of",
@@ -15,7 +15,7 @@
                }
             ]
          }
-      ],
+      },
       "unit_info": {
          "name": "Large Oak Tree", 
          "description": "100's of years old. Too bad..."

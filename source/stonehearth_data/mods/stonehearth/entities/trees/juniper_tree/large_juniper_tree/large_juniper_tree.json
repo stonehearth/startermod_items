@@ -2,8 +2,8 @@
    "mixins": "stonehearth:mixins:tree", 
    "type": "entity", 
    "components": {
-      "model_variants": [
-         {
+      "model_variants": {
+         "default": {
             "models": [
                {
                   "type": "one_of",
@@ -14,7 +14,7 @@
             ], 
             "scale": 1
          }
-      ], 
+      }, 
       "unit_info": {
          "name": "Large Juniper Tree", 
          "description": "An impressive specimen."

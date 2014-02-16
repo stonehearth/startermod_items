@@ -43,6 +43,7 @@ void lua::voxel::open(lua_State* L)
                ]
                .def("set_normal",             &QubicleBrush::SetNormal)
                .def("set_paint_mode",         &QubicleBrush::SetPaintMode)
+               .def("set_clip_whitespace",    &QubicleBrush::SetClipWhitespace)
                .def("paint_once",             &QubicleBrush::PaintOnce)
                .def("paint_through_stencil",  &QubicleBrush::PaintThroughStencil)
             ,
@@ -55,6 +56,7 @@ void lua::voxel::open(lua_State* L)
                .def("set_paint_mode",         &NineGridBrush::SetPaintMode)
                .def("set_tile_mode",          &NineGridBrush::SetTileMode)
                .def("set_grid_shape",         &NineGridBrush::SetGridShape)
+               .def("set_clip_whitespace",    &NineGridBrush::SetClipWhitespace)
                .def("paint_once",             &NineGridBrush::PaintOnce)
                .def("paint_through_stencil",  &NineGridBrush::PaintThroughStencil)
          ]

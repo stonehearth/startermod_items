@@ -43,6 +43,7 @@ scope RegisterSensor(lua_State* L);
 scope RegisterTargetTable(lua_State* L);
 scope RegisterTargetTableGroup(lua_State* L);
 scope RegisterTargetTableEntry(lua_State* L);
+scope RegisterModelLayer(lua_State* L);
 
 scope RegisterLuaComponents(lua_State *L)
 {
@@ -63,6 +64,7 @@ void radiant::om::RegisterLuaTypes(lua_State* L)
             RegisterTargetTable(L),
             RegisterTargetTableGroup(L),
             RegisterTargetTableEntry(L),
+            RegisterModelLayer(L),
             LuaEntity::RegisterLuaTypes(L),
             LuaDataStore::RegisterLuaTypes(L),
             lua::RegisterStrongGameObject<Region2Boxed>()

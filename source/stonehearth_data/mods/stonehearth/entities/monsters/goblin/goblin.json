@@ -4,8 +4,8 @@
       "render_info" : {
          "animation_table": "file(/data/rigs/critters/goblin)"
       },
-      "model_variants": [
-         {
+      "model_variants": {
+         "default": {
             "models": [
                "file(goblin_body.qb)", 
                {
@@ -18,7 +18,7 @@
                }
             ]
          }
-      ], 
+      }, 
       "unit_info": {
          "faction": "goblin"
       }, 

@@ -11,7 +11,7 @@
 #include <fstream>
 #include <unordered_map>
 
-using namespace ::radiant;
+#define P_LOG(level)   LOG(renderer.pipeline, level)
 
 namespace metrics = ::radiant::metrics;
 using ::radiant::csg::Point3;
@@ -36,270 +36,82 @@ static const struct {
 Pipeline::Pipeline() :
    unique_id_(1)
 {
-   //_actorMaterial = Ogre::MaterialManager::getSingleton().load("Tessaract/ActorMaterialTemplate", Ogre::ResourceGroupManager::DEFAULT_RESOURCE_GROUP_NAME);
-   //_tileMaterial = Ogre::MaterialManager::getSingleton().load("Tessaract/TileMaterialTemplate", Ogre::ResourceGroupManager::DEFAULT_RESOURCE_GROUP_NAME);
-   // ASSERT(!_actorMaterial.isNull());
-   orphaned_ = H3DNodeUnique(h3dAddGroupNode(H3DRootNode, "pipeline orphaned nodes"));
-   h3dSetNodeFlags(orphaned_.get(), H3DNodeFlags::NoDraw | H3DNodeFlags::NoRayQuery, true);
-
-   float offscreen = -100000.0f;
-   h3dSetNodeTransform(orphaned_.get(), offscreen, offscreen, offscreen, 0, 0, 0, 1, 1, 1);
 }
 
 Pipeline::~Pipeline()
 {
 }
 
-// From: http://mikolalysenko.github.com/MinecraftMeshes2/js/greedy.js
+H3DNode Pipeline::AddDynamicMeshNode(H3DNode parent, const csg::mesh_tools::mesh& m, std::string const& material)
+{   
+   H3DRes geometry = ConvertMeshToGeometryResource(m);
+   return CreateModelNode(parent, geometry, m.indices.size(), m.vertices.size(), material);
+}
 
-H3DNodeUnique Pipeline::AddMeshNode(H3DNode parent, const csg::mesh_tools::mesh& m, H3DNode* mesh)
+H3DNode Pipeline::AddSharedMeshNode(H3DNode parent, ResourceCacheKey const& key, std::string const& material, std::function<void(csg::mesh_tools::mesh &)> create_mesh_fn)
+{   
+   H3DRes geometry;
+   auto i = resource_cache_.find(key);
+   if (i != resource_cache_.end()) {
+      P_LOG(7) << "using cached geometry for " << key.GetDescription();
+      geometry = i->second;
+   } else {
+      P_LOG(7) << "creating new geometry for " << key.GetDescription();
+      csg::mesh_tools::mesh m;
+      create_mesh_fn(m);
+      geometry = ConvertMeshToGeometryResource(m);
+      resource_cache_[key] = geometry;
+   }
+
+   int indexCount = h3dGetResParamI(geometry, Horde3D::VoxelGeometryResData::VoxelGeometryElem, 0, 
+                                    Horde3D::VoxelGeometryResData::VoxelGeoIndexCountI);
+   int vertexCount = h3dGetResParamI(geometry, Horde3D::VoxelGeometryResData::VoxelGeometryElem, 0, 
+                                     Horde3D::VoxelGeometryResData::VoxelGeoVertexCountI);
+
+   return CreateModelNode(parent, geometry, indexCount, vertexCount, material);
+}
+
+
+H3DRes Pipeline::ConvertMeshToGeometryResource(const csg::mesh_tools::mesh& m)
 {
+   std::string name = BUILD_STRING("geo" << unique_id_++);
+
+   return h3dutCreateVoxelGeometryRes(name.c_str(),
+      (VoxelGeometryVertex *)m.vertices.data(),
+      m.vertices.size(),
+      (uint *)m.indices.data(),
+      m.indices.size());
+}
+
+H3DNode Pipeline::CreateModelNode(H3DNode parent, H3DRes geometry, int indexCount, int vertexCount, std::string const& material)
+{
+   ASSERT(!material.empty());
+
    std::string name = "mesh data ";
 
-   H3DRes res = h3dutCreateVoxelGeometryRes((name + stdutil::ToString(unique_id_++)).c_str(), (VoxelGeometryVertex *)m.vertices.data(), m.vertices.size(), (uint *)m.indices.data(), m.indices.size());
-   H3DRes matRes = h3dAddResource(H3DResTypes::Material, "materials/default_material.xml", 0);
-   H3DNode model_node = h3dAddVoxelModelNode(parent, (name + stdutil::ToString(unique_id_++)).c_str(), res);
-   H3DNode mesh_node = h3dAddVoxelMeshNode(model_node, (name + stdutil::ToString(unique_id_++)).c_str(), matRes, 0, m.indices.size(), 0, m.vertices.size() - 1);
+   std::string model_name = BUILD_STRING("model" << unique_id_++);
+   std::string mesh_name = BUILD_STRING("mesh" << unique_id_++);
 
-   if (mesh) {
-      *mesh = mesh_node;
-   }
+   H3DRes matRes = h3dAddResource(H3DResTypes::Material, material.c_str(), 0);
+   H3DNode model_node = h3dAddVoxelModelNode(parent, model_name.c_str(), geometry);
+   H3DNode mesh_node = h3dAddVoxelMeshNode(model_node, mesh_name.c_str(), matRes, 0, indexCount, 0, vertexCount - 1);
 
    // xxx: how do res, matRes, and mesh_node get deleted? - tony
-   return H3DNodeUnique(model_node);
-}
-
-H3DNodeUnique Pipeline::AddQubicleNode(H3DNode parent, const voxel::QubicleMatrix& m, const csg::Point3f& origin, H3DNode* mesh)
-{
-   // All nodes created with the same parameters share the same geometry.  Create a unique name which describes
-   // those parameters by concatenating the uri of qubicle file, the name of the matrix, and the origin in the matrix
-   // to use.
-   std::string const& uri = m.GetSourceFile().GetUri();
-   if (uri.empty()) {
-      throw std::logic_error("cannot create qubicle node for file with no uri");
-   }
-   std::string const& matrix_name = m.GetName();
-   if (matrix_name.empty()) {
-      throw std::logic_error("cannot create qubicle node for matrix with no name");
-   }
-   std::string unique_id_matrix_idenitifer = BUILD_STRING("qubicle_file:" << uri << " matrix:" << matrix_name << " origin:" << origin);
-
-   // If we have already genearted geometry for this set of parameters, use that one.  Otherwise, generate it
-   H3DRes geoRes = h3dFindResource(H3DResTypes::VoxelGeometry, unique_id_matrix_idenitifer.c_str());
-   if (geoRes <= 0) {
-      geoRes = CreateGeometryFromQubicleMatrix(unique_id_matrix_idenitifer, m, origin);
-   }
-
-   int indexCount = h3dGetResParamI(geoRes, Horde3D::VoxelGeometryResData::VoxelGeometryElem, 0, 
-      Horde3D::VoxelGeometryResData::VoxelGeoIndexCountI);
-   int vertexCount = h3dGetResParamI(geoRes, Horde3D::VoxelGeometryResData::VoxelGeometryElem, 0, 
-      Horde3D::VoxelGeometryResData::VoxelGeoVertexCountI);
-
-   // Make sure the names of the model and mesh nodes are unique
-   H3DRes matRes = h3dAddResource(H3DResTypes::Material, "materials/default_material.xml", 0);
-   H3DNode model_node = h3dAddVoxelModelNode(parent, ("qubicle model " + stdutil::ToString(unique_id_++)).c_str(), geoRes);
-   H3DNode mesh_node = h3dAddVoxelMeshNode(model_node, ("qubicle mesh " + stdutil::ToString(unique_id_++)).c_str(), matRes, 0, indexCount, 0, vertexCount - 1);
-   if (mesh) {
-      *mesh = mesh_node;
-   }
-   return H3DNodeUnique(model_node);
-}
-
-
-H3DRes Pipeline::CreateGeometryFromQubicleMatrix(const std::string& geoName, const voxel::QubicleMatrix& m, const csg::Point3f& origin)
-{
-   std::vector<VoxelGeometryVertex> vertices;
-   std::vector<uint32> indices;
-
-   //std::unordered_map<Vertex, int> vertcache;
-
-   // Super greedy...   
- 
-   const csg::Point3& size = m.GetSize();
-   const csg::Point3f matrixPosition = csg::ToFloat(m.GetPosition());
-
-   uint32* mask = new uint32[size.x * size.y * size.z];
-
-   for (const auto &edge : qubicle_node_edges__) {
-      csg::Point3 pt;
-      for (int i = 0; i < size[edge.i]; i++) {
-         int maskSize = 0, offset = 0;
-
-         // compute a mask of the current plane
-         for (int v = 0; v < size[edge.v]; v++) {
-            for (int u = 0; u < size[edge.u]; u++) {
-               pt[edge.i] = i;
-               pt[edge.u] = u;
-               pt[edge.v] = v;
-
-               uint32 c = m.At(pt.x, pt.y, pt.z);
-               uint32 alpha = (c >> 24);
-               if ((alpha & edge.mask) != 0) {
-                  // make alpha fully opaque so we can use integer comparision.  setting
-                  // alpha to 0 makes black (#000000) fully transparent, which isn't what
-                  // we want.
-                  mask[offset] = c | 0xFF000000;
-                  maskSize++;
-               } else {
-                  mask[offset] = 0;
-               }
-               offset++;
-            }
-         }
-         ASSERT(offset <= size[edge.u] * size[edge.v]);
-
-         // Suck rectangles out of the mask as greedily as possible
-         offset = 0;
-         for (int v = 0; v < size[edge.v] && maskSize > 0; v++) {
-            for (int u = 0; u < size[edge.u] && maskSize > 0; ) {
-               uint32 c = mask[offset];
-               if (!c) {
-                  u++;
-                  offset++;
-               } else {
-                  int w, h, t;
-                  // grab the biggest rectangle we can...
-                  for (w = 1; u + w < size[edge.u]; w++) {
-                     if (mask[offset + w] != c) {
-                        break;
-                     }
-                  }
-                  // grab the biggest height we can...
-                  for (h = 1; v + h < size[edge.v]; h++) {
-                     for (t = 0; t < w; t++) {
-                        if (mask[offset + t + h*size[edge.u]] != c) {
-                           break;
-                        }
-                     }
-                     if (t != w) {
-                        break;
-                     }
-                  }
-                  // add a quad for the w/h rectangle...
-                  csg::Point3f min = edge.normal / 2;
-                  min[edge.i] += (float)i;
-                  min[edge.u] += (float)u - 0.5f;
-                  min[edge.v] += (float)v - 0.5f;
-
-                  // Fudge factor to accout for the different origins between
-                  // the .qb file and the skeleton...
-                  min.x += 0.5;
-                  min.z += 0.5;
-                  min.y += 0.5;
-
-               
-#define COPY_VEC(a, b) ((a)[0] = (b)[0]), ((a)[1] = (b)[1]), ((a)[2] = (b)[2])
-
-                  VoxelGeometryVertex vertex;
-                  COPY_VEC(vertex.normal, edge.normal);
-                  csg::Color3 col = m.GetColor(c);
-                  vertex.color[0] = col.r / 255.0f;
-                  vertex.color[1] = col.g / 255.0f;
-                  vertex.color[2] = col.b / 255.0f;
-
-                  // UGGGGGGGGGGGGGE
-                  int voffset = vertices.size();
-                  
-                  // 3DS Max uses a z-up, right handed origin....
-                  // The voxels in the matrix are stored y-up, left-handed...
-                  // Convert the max origin to y-up, right handed...
-                  csg::Point3f yUpOrigin(origin.x, origin.z, origin.y); 
-
-                  // Now convert to y-up, left-handed
-                  csg::Point3f yUpLHOrigin(yUpOrigin.x, yUpOrigin.y, -yUpOrigin.z);
-
-#if 0
-                  // The order of the voxels in the matric have the front at
-                  // the positive z-side of the model.  Flip it so the actor is
-                  // looking down the negative z axis
-#endif
-                  COPY_VEC(vertex.pos, (min + matrixPosition) - yUpLHOrigin);
-                  vertices.push_back(vertex);
-                  //vertices.back().pos.z *= -1;
-
-                  vertex.pos[edge.v] += h;
-                  vertices.push_back(vertex);
-                  //vertices.back().pos.z *= -1;
-
-                  vertex.pos[edge.u] += w;
-                  vertices.push_back(vertex);
-                  //vertices.back().pos.z *= -1;
-
-                  vertex.pos[edge.v] -= h;
-                  vertices.push_back(vertex);
-                  //vertices.back().pos.z *= -1;
-
-                  // xxx - the whole conversion bit above can be greatly optimized,
-                  // but I don't want to touch it now that it's workin'!
-
-                  if (edge.mask == voxel::RIGHT_MASK || edge.mask == voxel::FRONT_MASK || edge.mask == voxel::BOTTOM_MASK) {
-                     indices.push_back(voffset + 2);
-                     indices.push_back(voffset + 1);
-                     indices.push_back(voffset);
-
-                     indices.push_back(voffset + 3);
-                     indices.push_back(voffset + 2);
-                     indices.push_back(voffset);
-                  } else {
-                     indices.push_back(voffset);
-                     indices.push_back(voffset + 1);
-                     indices.push_back(voffset + 2);
-
-                     indices.push_back(voffset);
-                     indices.push_back(voffset + 2);
-                     indices.push_back(voffset + 3);
-                  }
-
-                  // ...zero out the mask
-                  for (int k = v; k < v + h; k++) {
-                     for (int j = u; j < u + w; j++) {
-                        mask[j + size[edge.u] * k ] = 0;
-                     }
-                  }
-
-                  // ...and move past this rectangle
-                  u += w;
-                  offset += w;
-                  maskSize -= w * h;
-
-                  ASSERT(offset <= size[edge.u] * size[edge.v]);
-                  ASSERT(maskSize >= 0);
-               }
-            }
-         }
-      }
-   }
-   delete[] mask;
-
-   return h3dutCreateVoxelGeometryRes(geoName.c_str(), vertices.data(), vertices.size(), indices.data(), indices.size());
-}
-
-H3DNode Pipeline::CreateModel(H3DNode parent,
-                              csg::mesh_tools::mesh const& mesh,
-                              std::string const& material_path)
-{
-   H3DNode mesh_node;
-
-   H3DNodeUnique model_node = Pipeline::GetInstance().AddMeshNode(parent, mesh, &mesh_node);
-   if (!material_path.empty()) {
-      H3DRes material = h3dAddResource(H3DResTypes::Material, material_path.c_str(), 0);
-      h3dSetNodeParamI(mesh_node, H3DMesh::MatResI, material);
-   }
-
-   H3DNode node = model_node.get();
-   model_node.release();
-
-   return node;
+   return model_node;
 }
 
 H3DNodeUnique Pipeline::CreateBlueprintNode(H3DNode parent,
                                             csg::Region3 const& model,
                                             float thickness,
-                                            std::string const& material_path)
+                                            std::string const& material_path,
+                                            csg::Point3f const& offset)
 {
    H3DNode group = h3dAddGroupNode(parent, BUILD_STRING("blueprint node " << unique_id_++).c_str());
 
    csg::mesh_tools::mesh panels_mesh, outline_mesh;
+
+   panels_mesh.SetOffset(offset);
+   outline_mesh.SetOffset(offset);
    panels_mesh.SetColor(csg::Color3::FromString("#00DFFC"));
    outline_mesh.SetColor(csg::Color3::FromString("#005FFB"));
    csg::RegionTools3().ForEachPlane(model, [&](csg::Region2 const& plane, csg::PlaneInfo3 const& pi) {
@@ -308,21 +120,20 @@ H3DNodeUnique Pipeline::CreateBlueprintNode(H3DNode parent,
       outline_mesh.AddRegion(outline, csg::ToFloat(pi));
       panels_mesh.AddRegion(panels, csg::ToFloat(pi));
    });
-   CreateModel(group, panels_mesh, material_path);
-   CreateModel(group, outline_mesh, material_path);
+   AddDynamicMeshNode(group, panels_mesh, material_path);
+   AddDynamicMeshNode(group, outline_mesh, material_path);
 
    return group;
 }
 
 H3DNodeUnique Pipeline::CreateVoxelNode(H3DNode parent,
                                         csg::Region3 const& model,
-                                        std::string const& material_path)
+                                        std::string const& material,
+                                        csg::Point3f const& offset)
 {
    csg::mesh_tools::mesh mesh;
-   csg::RegionTools3().ForEachPlane(model, [&](csg::Region2 const& plane, csg::PlaneInfo3 const& pi) {
-      mesh.AddRegion(plane, pi);
-   });
-   return CreateModel(parent, mesh, material_path);
+   csg::RegionToMesh(model, mesh, offset);
+   return AddDynamicMeshNode(parent, mesh, material);
 }
 
 void Pipeline::AddDesignationStripes(csg::mesh_tools::mesh& m, csg::Region2 const& panels)
@@ -432,13 +243,13 @@ Pipeline::CreateDesignationNode(H3DNode parent,
    AddDesignationStripes(stripes_mesh, plane);
 
    H3DNode group = h3dAddGroupNode(parent, "designation group node");
-   H3DNode stripes = CreateModel(group, stripes_mesh, "materials/designation/stripes.material.xml");
+   H3DNode stripes = AddDynamicMeshNode(group, stripes_mesh, "materials/designation/stripes.material.xml");
    h3dSetNodeParamI(stripes, H3DModel::UseCoarseCollisionBoxI, 1);
    h3dSetNodeParamI(stripes, H3DModel::PolygonOffsetEnabledI, 1);
    h3dSetNodeParamF(stripes, H3DModel::PolygonOffsetF, 0, -.01f);
    h3dSetNodeParamF(stripes, H3DModel::PolygonOffsetF, 1, -.01f);
 
-   H3DNode outline = CreateModel(group, outline_mesh, "materials/designation/outline.material.xml");
+   H3DNode outline = AddDynamicMeshNode(group, outline_mesh, "materials/designation/outline.material.xml");
    h3dSetNodeParamI(outline, H3DModel::UseCoarseCollisionBoxI, 1);
    h3dSetNodeParamI(outline, H3DModel::PolygonOffsetEnabledI, 1);
    h3dSetNodeParamF(outline, H3DModel::PolygonOffsetF, 0, -.01f);
@@ -453,7 +264,7 @@ voxel::QubicleFile* Pipeline::LoadQubicleFile(std::string const& uri)
 
    // Keep a cache of the most recently loaded qubicle files so we don't hammer the
    // filesystem (where "recent" currently means, "ever").  Be sure to store them by
-   // the canoncial path so we don't get duplicates (e.g. stonehearth:foo vs.
+   // the canonical path so we don't get duplicates (e.g. stonehearth:foo vs.
    // stonehearth/entities/foo/foo.qb)
 
    std::string const& path = r.ConvertToCanonicalPath(uri, nullptr);
@@ -468,14 +279,4 @@ voxel::QubicleFile* Pipeline::LoadQubicleFile(std::string const& uri)
    qubicle_files_[path] = f;
 
    return f.get();
-}
-
-H3DNodeUnique Pipeline::CreateQubicleMatrixNode(H3DNode parent, std::string const& qubicle_file, std::string const& qubicle_matrix, csg::Point3f const& origin)
-{
-   voxel::QubicleFile* f = LoadQubicleFile(qubicle_file);
-   voxel::QubicleMatrix* matrix = f->GetMatrix(qubicle_matrix);
-   if (!matrix) {
-      throw std::logic_error(BUILD_STRING("qubicle file " << qubicle_file << " has no matrix named " << qubicle_matrix));
-   }
-   return AddQubicleNode(parent, *matrix, origin);
 }

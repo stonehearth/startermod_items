@@ -4,12 +4,12 @@
       "render_info" : {
          "scale" : 0.2
       },
-      "model_variants": [
-         {
+      "model_variants": {
+         "default": {
 		      "models": [
 			      "file(pink_flower.qb)"
 		      ]
    	   }
-      ]
+      }
 	}
 }

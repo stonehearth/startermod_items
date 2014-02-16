@@ -224,6 +224,14 @@ end
 
 --- Create the outbox the user specified and tell a worker to build the workbench
 function WorkshopCallHandler:create_outbox(session, response, location, outbox_size, ghost_workshop_entity_id, crafter_id)
+   local outbox_entity = radiant.entities.create_entity('stonehearth:workshop_outbox')
+   radiant.terrain.place_entity(outbox_entity, location)
+   outbox_entity:get_component('unit_info'):set_faction(session.faction)
+
+   local outbox_component = outbox_entity:get_component('stonehearth:stockpile')
+   outbox_component:set_size(outbox_size)
+   outbox_component:set_outbox(true)
+
    local ghost_workshop = radiant.entities.get_entity(ghost_workshop_entity_id)
    local crafter = radiant.entities.get_entity(crafter_id)
 
