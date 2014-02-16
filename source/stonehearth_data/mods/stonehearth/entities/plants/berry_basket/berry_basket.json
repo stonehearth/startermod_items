@@ -6,13 +6,13 @@
          "stacks" : 5,
          "maxStacks" : 5
       },
-      "model_variants": [
-         {
+      "model_variants": {
+         "default": {
             "models": [
                "file(berry_basket.qb)"
             ]
          }
-      ],
+      },
       "unit_info": {
          "name": "Basket of Berries",
          "description": "Creme of the caveman diet.",

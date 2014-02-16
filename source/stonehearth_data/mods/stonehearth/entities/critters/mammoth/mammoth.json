@@ -10,12 +10,12 @@
          "animation_table": "file(/data/rigs/critters/mammoth)", 
          "scale": 2
       },
-      "model_variants": [
-         {
+      "model_variants": {
+         "default": {
             "models": [
                "file(mammoth.qb)"
             ]
          }
-      ]
+      }
    }
 }

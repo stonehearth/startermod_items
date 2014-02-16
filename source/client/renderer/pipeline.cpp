@@ -53,10 +53,10 @@ H3DNode Pipeline::AddSharedMeshNode(H3DNode parent, ResourceCacheKey const& key,
    H3DRes geometry;
    auto i = resource_cache_.find(key);
    if (i != resource_cache_.end()) {
-      P_LOG(0) << "using cached geometry for " << key.GetDescription();
+      P_LOG(7) << "using cached geometry for " << key.GetDescription();
       geometry = i->second;
    } else {
-      P_LOG(0) << "creating new geometry for " << key.GetDescription();
+      P_LOG(7) << "creating new geometry for " << key.GetDescription();
       csg::mesh_tools::mesh m;
       create_mesh_fn(m);
       geometry = ConvertMeshToGeometryResource(m);

@@ -7,19 +7,18 @@
             "file(/data/commands/chop_tree)"
          ]
       },
-      "model_variants": [
-         {
+      "model_variants": {
+         "default": {
             "models": [
                "file(berry_bush.qb)"
             ]
          },
-         {
-            "variants": "depleted",
+         "depleted": {
             "models": [
                "file(berry_bush_empty.qb)"
             ]
          }
-      ],
+      },
       "region_collision_shape" : {
          "region": [
             {

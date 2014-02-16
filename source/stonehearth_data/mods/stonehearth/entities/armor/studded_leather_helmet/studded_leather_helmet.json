@@ -4,13 +4,13 @@
       "item": {
          "stacks": 1
       }, 
-      "model_variants": [
-         {
+      "model_variants": {
+         "default": {
             "models": [
                "file(studded_leather_helmet.qb)"
             ]
          }
-      ], 
+      }, 
       "unit_info": {
          "name": "Studded Leather Helmet", 
          "description": "Protects your head"

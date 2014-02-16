@@ -228,7 +228,7 @@ function WorkshopCallHandler:create_outbox(session, response, location, size, gh
    radiant.terrain.place_entity(outbox_entity, location)
    outbox_entity:get_component('unit_info'):set_faction(session.faction)
 
-   local outbox_component = outbox_entity:get_component('stonehearth:stockpile')
+   local outbox_component = outbox_enPtity:get_component('stonehearth:stockpile')
    outbox_component:set_size(size)
    outbox_component:set_outbox(true)
 

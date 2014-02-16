@@ -18,11 +18,7 @@ void ModelVariants::ExtendObject(json::Node const& obj)
    GetEntity().AddComponent<RenderInfo>();
 
    for (auto const& e : obj) {
-      std::string name = e.name();
-      if (name.empty()) {
-         name = "default";
-      }
-      ModelLayerPtr layer = AddVariant(name);
+      ModelLayerPtr layer = AddVariant(e.name());
       layer->Init(e);
    }
 }
