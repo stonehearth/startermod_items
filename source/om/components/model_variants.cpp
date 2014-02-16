@@ -16,38 +16,25 @@ void ModelVariants::ExtendObject(json::Node const& obj)
 {
    // All entities with models must have a render_info...
    GetEntity().AddComponent<RenderInfo>();
+
    for (auto const& e : obj) {
-      ModelLayerPtr layer = GetStore().AllocObject<ModelLayer>();
+      std::string name = e.name();
+      if (name.empty()) {
+         name = "default";
+      }
+      ModelLayerPtr layer = AddVariant(name);
       layer->Init(e);
-      model_variants_.Add(layer);
    }
 }
 
-
-ModelLayerPtr ModelVariants::GetModelVariant(std::string const& v) const
+ModelLayerPtr ModelVariants::AddVariant(std::string const& name)
 {
-   ModelLayerPtr best;
-
-   for (auto const& e : model_variants_) {
-      std::string variants = e->GetVariants();
-
-      // Fall back to the first entry at all...
-      if (!best) {
-         best = e;
-      }
-      // Always prefer the first entry which has no variants...
-      if (v.empty()) {
-         if (variants.empty()) {
-            best = e;
-            break;
-         }
-      } else {
-         std::vector<std::string> tags;
-         boost::split(tags, variants, boost::is_any_of(" "));
-         if (stdutil::contains(tags, v)) {
-            return e;
-         }
-      }
+   ModelLayerPtr layer;
+   if (variants_.Contains(name)) {
+      layer = variants_.Get(name, nullptr);
+   } else {
+      layer = GetStore().AllocObject<ModelLayer>();
+      variants_.Add(name, layer);
    }
-   return best;
+   return layer;
 }

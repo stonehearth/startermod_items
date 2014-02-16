@@ -8,7 +8,6 @@ class RenderInfo(Component):
    scale = dm.Boxed(c.float())
    model_variant = dm.Boxed(std.string())
    animation_table = dm.Boxed(std.string())
-   model_mode = dm.Boxed(std.string())
    material = dm.Boxed(std.string())
    attached_entities = dm.Set(EntityRef(), add=None, remove=None, iterate='define', singular_name='attached_entity')
 
