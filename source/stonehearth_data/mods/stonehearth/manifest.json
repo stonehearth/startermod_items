@@ -421,6 +421,10 @@
          "controller" : "file(call_handlers/new_game_call_handler.lua)",
          "endpoint" : "server"
       },
+      "get_visibility_regions": {
+         "controller" : "file(call_handlers/terrain_call_handler.lua)",
+         "endpoint" : "server"
+      },
       "harvest_trapped_beast" : {
          "controller": "file(call_handlers/unit_control/harvest_trapped_beast_call_handler.lua)",
          "endpoint" : "server"

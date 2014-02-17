@@ -99,12 +99,20 @@ function NewGameCallHandler:embark_client(session, response)
          local target = Point3f(o.x, o.y, o.z)
          local camera_location = Point3f(o.x, o.y + camera_height, o.z + target_distance)
 
-         -- hack to get around camera interpolation
+         -- TODO: fix this hack to get around camera interpolation when camera_service is rewritten
          camera_service._next_position = camera_location
          camera_service:set_position(camera_location)
          camera_service:look_at(target)
 
-         response:resolve({})
+         _radiant.call('stonehearth:get_visibility_regions'):done(
+            function (o)
+               log:info('Visible region uri: %s', o.visible_region_uri)
+               log:info('Explored region uri: %s', o.explored_region_uri)
+               _radiant.renderer.visibility.set_visibility_regions(o.visible_region_uri, o.explored_region_uri)
+
+               response:resolve({})
+            end
+         )
       end
    )
 end
