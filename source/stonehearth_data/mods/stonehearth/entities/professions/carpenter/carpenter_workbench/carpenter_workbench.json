@@ -24,7 +24,7 @@
                "file(carpenter_bench.qb)"
             ]
          }
-      ],
+      },
       "stonehearth:workshop": {
          "profession_name" : "Carpenter",
          "skin_class" : "carpenter",

@@ -19,8 +19,7 @@
                "file(carpenter_saw.qb)"
             ]
          },
-         "female" : {
-            "variants": "equipped",
+         "equipped" : {
             "models": [
                "file(carpenter_saw_equipped.qb)"
             ]
