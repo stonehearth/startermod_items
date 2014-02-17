@@ -73,19 +73,11 @@ function CastAoeCallHandler:server_cast_aoe(session, response, entity_id, spell,
    local entity = radiant.entities.get_entity(entity_id)
    local pt = Point3(location.x, location.y, location.z)
 
-   local scheduler = stonehearth.tasks:create_scheduler()
-                                      :set_activity('stonehearth:unit_control', {})
-                                      :join(entity)
-
-   if all_tasks[entity_id] then
-      all_tasks[entity_id]:destroy()
-      all_tasks[entity_id] = nil
-   end
-
-   all_tasks[entity_id] = scheduler:create_task('stonehearth:unit_control:abilities:' .. spell , { location = pt })
-                                        :once()
-                                        :start()
-                         
+   local spell = 'stonehearth:unit_control:abilities:' .. spell
+   local town = stonehearth.town:get_town(session.faction)
+   town:command_unit(entity, spell, { location = pt })
+            :once()
+            :start()
    return true
 end
 

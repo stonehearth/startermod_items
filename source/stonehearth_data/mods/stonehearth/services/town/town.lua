@@ -13,8 +13,7 @@ function Town:__init(name)
       workers = self._scheduler:create_task_group('stonehearth:work', {})
                                :set_counter_name('workers')
    }
-   self._unit_control_task_groups = {}
-   self._unit_orchestartor_threads = {}
+   self._unit_controllers = {}
    self._thread_orchestrators = {}
    self._harvest_tasks = {}
 end
@@ -41,19 +40,24 @@ function Town:leave_task_group(entity, name)
    return self
 end
 
-function Town:get_unit_control_task_group(entity)
+function Town:_get_unit_controller(entity)
    local id = entity:get_id()
-   local unit_control_task_group = self._unit_control_task_groups[id]
-   if not unit_control_task_group then
-      unit_control_task_group = UnitController(self._scheduler, entity)
-      self._unit_control_task_groups[id] = unit_control_task_group
+   local unit_controller = self._unit_controllers[id]
+   if not unit_controller then
+      unit_controller = UnitController(self._scheduler, entity)
+      self._unit_controllers[id] = unit_controller
    end
-   return unit_control_task_group
+   return unit_controller
 end
 
-function Town:create_unit_control_task(person, activity_name, activity_args)
-   return self:get_unit_control_task_group(person)
-                  :create_task(activity_name, activity_args)
+function Town:command_unit(person, activity_name, activity_args)
+   local unit_controller = self:_get_unit_controller(person)
+   return unit_controller:create_immediate_task(activity_name, activity_args)
+end
+
+function Town:command_unit_scheduled(person, activity_name, activity_args)
+   local unit_controller = self:_get_unit_controller(person)
+   return unit_controller:create_scheduled_task(activity_name, activity_args)
 end
 
 function Town:_handle_orchestrator_thread_exit(thread)
