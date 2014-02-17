@@ -73,37 +73,70 @@ bool GotoLocation::Work(const platform::timer &timer)
    }
 
    auto mob = entity->GetComponent<om::Mob>();
-   auto location = mob->GetLocation();
-
-   float maxDistance = speed_ * GetSim().GetBaseWalkSpeed();
-
    csg::Point3f current = mob->GetLocation();
    csg::Point3f direction = csg::Point3f(target_location_ - current);
 
+   float maxDistance = speed_ * GetSim().GetBaseWalkSpeed();
    float togo = direction.Length() - close_to_distance_;
    direction.Normalize();
 
-   csg::Point3f position;
+   csg::Point3f desiredLocation, actualLocation;
+   float distance;
    bool finished;
+
    if (togo < maxDistance) {
-      Report("arrived");
+      Report("arriving");
+      distance = togo;
       finished = true;
-      position = current + direction * togo;
    } else {
-      position = current + direction * maxDistance;
-      finished = false;
       Report("moving");
-      mob->TurnTo(angle(direction) * 180 / csg::k_pi);
+      distance = maxDistance;
+      finished = false;
    }
-   if (!GetSim().GetOctTree().CanStandOn(entity, csg::ToInt(position))) {
+
+   desiredLocation = current + direction * distance;
+   bool passable = GetStandableLocation(entity, desiredLocation, actualLocation);
+
+   if (passable) {
+      mob->TurnTo(angle(direction) * 180 / csg::k_pi);
+      mob->MoveTo(actualLocation);
+   } else {
       Report("unpassable");
       finished = true;
    }
-   mob->MoveTo(position);
    if (finished && luabind::type(arrived_cb_) == LUA_TFUNCTION) {
       luabind::call_function<void>(arrived_cb_);
    }
    return !finished;
+}
+
+// This code may find paths that are illegal under the pathfinder.
+// TODO: Reconcile this code with standard pathfinding rules.
+bool GotoLocation::GetStandableLocation(std::shared_ptr<om::Entity> const& entity, csg::Point3f& desiredLocation, csg::Point3f& actualLocation)
+{
+   phys::OctTree const& octTree = GetSim().GetOctTree();
+   csg::Point3 baseLocation = csg::ToClosestInt(desiredLocation);
+   csg::Point3 candidate;
+   
+   candidate = baseLocation;
+   if (octTree.CanStandOn(entity, candidate)) {
+      actualLocation = csg::ToFloat(candidate);
+      return true;
+   }
+
+   candidate = baseLocation + csg::Point3::unitY;
+   if (octTree.CanStandOn(entity, candidate)) {
+      actualLocation = csg::ToFloat(candidate);
+      return true;
+   }
+
+   candidate = baseLocation - csg::Point3::unitY;
+   if (octTree.CanStandOn(entity, candidate)) {
+      actualLocation = csg::ToFloat(candidate);
+      return true;
+   }
+
+   return false;
 }
 
 void GotoLocation::Stop()

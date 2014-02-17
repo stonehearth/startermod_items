@@ -70,6 +70,8 @@ template <int C> Cube<float, C> ToFloat(Cube<int, C> const& cube);
 template <int C> Region<float, C> ToFloat(Region<int, C> const& region);
 template <int C> Point<int, C> ToInt(Point<float, C> const& pt);
 template <int C> Point<int, C> const& ToInt(Point<int, C> const& pt);
+template <int C> Point<int, C> ToClosestInt(Point<float, C> const& pt);
+template <int C> Point<int, C> const& ToClosestInt(Point<int, C> const& pt);
 template <int C> Cube<int, C> const& ToInt(Cube<int, C> const& cube);
 template <int C> Region<int, C> const& ToInt(Region<int, C> const& region);
 template <int C> Cube<int, C> ToInt(Cube<float, C> const& cube);
