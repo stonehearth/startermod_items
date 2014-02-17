@@ -23,16 +23,18 @@ QubicleBrush::QubicleBrush() :
    normal_(0, 0, -1),
    qubicle_matrix_(nullptr),
    paint_mode_(Color),
-   preserve_matrix_origin_(false),
-   qubicle_file_("")
+   offset_mode_(Matrix),
+   qubicle_file_(""),
+   clip_whitespace_(false)
 {
 }
 
 QubicleBrush::QubicleBrush(std::istream& in) :
    normal_(0, 0, -1),
    paint_mode_(Color),
-   preserve_matrix_origin_(false),
-   qubicle_file_("")
+   offset_mode_(Matrix),
+   qubicle_file_(""),
+   clip_whitespace_(false)
 {
    in >> qubicle_file_;
    qubicle_matrix_ = &qubicle_file_.begin()->second;
@@ -42,8 +44,9 @@ QubicleBrush::QubicleBrush(QubicleMatrix const* m) :
    normal_(0, 0, -1),
    qubicle_matrix_(m),
    paint_mode_(Color),
-   preserve_matrix_origin_(false),
-   qubicle_file_("")
+   offset_mode_(Matrix),
+   qubicle_file_(""),
+   clip_whitespace_(false)
 {
 }
 
@@ -59,9 +62,15 @@ QubicleBrush& QubicleBrush::SetPaintMode(PaintMode mode)
    return *this;
 }
 
-QubicleBrush& QubicleBrush::SetPreserveMatrixOrigin(bool value)
+QubicleBrush& QubicleBrush::SetClipWhitespace(bool clip)
 {
-   preserve_matrix_origin_ = value;
+   clip_whitespace_ = clip;
+   return *this;
+}
+
+QubicleBrush& QubicleBrush::SetOffsetMode(OffsetMode mode)
+{
+   offset_mode_ = mode;
    return *this;
 }
 
@@ -131,7 +140,13 @@ csg::Region3 QubicleBrush::IterateThroughStencil(csg::Region3 const& brush,
 csg::Region3 QubicleBrush::MatrixToRegion3(QubicleMatrix const& matrix)
 {
    const csg::Point3& size = matrix.GetSize();
-   const csg::Point3 pos = matrix.GetPosition();
+   const csg::Point3 matrix_position = matrix.GetPosition();   
+
+   csg::Point3 offset = csg::Point3::zero;
+   if (offset_mode_ == File) {
+      offset = matrix_position;
+   }
+
 
    csg::Region3 result;
 
@@ -143,6 +158,7 @@ csg::Region3 QubicleBrush::MatrixToRegion3(QubicleMatrix const& matrix)
 #define PROCESSED(x, y, z)          processed[OFFSET(x, y, z)]
 #define MATCHES(c, m)               ((paint_mode_ == Color) ? ((c) == (m)) : (csg::Color4::FromInteger(c).a > 0))
 
+   // From: http://mikolalysenko.github.com/MinecraftMeshes2/js/greedy.js
    // There it is, that's a straw, you see? You watching? And my straw
    // reaches acroooooooss the room, and starts to drink your milkshake...
    // I... drink... your... milkshake!
@@ -203,11 +219,8 @@ finished_xyz:
             // Add a cube of the current color and mark all this stuff as processed
             csg::Point3 cmin = csg::Point3(x, y, z);
             csg::Point3 cmax = csg::Point3(x_max, y_max, z_max);
-            if (preserve_matrix_origin_) {
-               cmin += pos;
-               cmax += pos;
-            }
-            result.AddUnique(csg::Cube3(cmin, cmax, color));
+
+            result.AddUnique(csg::Cube3(cmin + offset, cmax + offset, color));
 
             for (v = y; v < y_max; v++) {
                for (w = z; w < z_max; w++) {
@@ -223,14 +236,17 @@ finished_xyz:
    for (int i = 0; i < size.x * size.y * size.z; i++) {
       ASSERT(processed[i]);
    }
+
    // strip off the white space...
-   csg::Cube3 bounds = result.GetBounds();
-   csg::Point3 offset;
-   for (int i = 0; i < 3; i++) {
-      offset[i] = std::max(bounds.GetMin()[i], 0);
-   }
-   if (offset != csg::Point3(0, 0, 0)) {
-      result.Translate(-offset);
+   if (clip_whitespace_) {
+      csg::Cube3 bounds = result.GetBounds();
+      csg::Point3 offset;
+      for (int i = 0; i < 3; i++) {
+         offset[i] = std::max(bounds.GetMin()[i], 0);
+      }
+      if (offset != csg::Point3(0, 0, 0)) {
+         result.Translate(-offset);
+      }
    }
    return result;
 }

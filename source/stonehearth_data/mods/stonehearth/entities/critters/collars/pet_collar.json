@@ -6,13 +6,18 @@
       },
       "render_info" : {
       },
-      "model_variants": [
-      ],
       "stonehearth:equipment_piece" : {
          "render_type" : "merge_with_model",
          "injected_ai" : {
             "actions" : [
-               "stonehearth:actions:follow_entity"
+               "stonehearth:actions:follow_entity",
+               "stonehearth:actions:sleep_action", 
+               "stonehearth:actions:sleep_when_exhausted",
+               "stonehearth:actions:critter_sleep_on_ground",
+               "stonehearth:actions:wait_for_attribute_above"
+            ],
+            "observers": [
+               "stonehearth:observers:sleep"
             ]
          },
          "injected_commands" : [

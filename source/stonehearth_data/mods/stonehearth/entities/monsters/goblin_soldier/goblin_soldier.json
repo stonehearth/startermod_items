@@ -2,8 +2,8 @@
    "mixins": "file(/prototypes/goblin)", 
    "type": "entity", 
    "components": {
-      "model_variants": [
-         {
+      "model_variants": {
+         "default": {
             "models": [
                {
                   "items": [
@@ -16,7 +16,7 @@
                }
             ]
          }
-      ], 
+      }, 
       "unit_info": {
          "name": "Goblin Soldier", 
          "description": "Gobble, gobble, gobble..."

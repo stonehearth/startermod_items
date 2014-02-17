@@ -19,13 +19,13 @@
             }
          ]
       },
-      "model_variants": [
-         {
+      "model_variants": {
+         "default": {
             "models": [
                "file(weaver_bench.qb)"
             ]
          }
-      ],
+      },
       "stonehearth:workshop": {
          "profession_name" : "Weaver",
          "skin_class" : "weaver",

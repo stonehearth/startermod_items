@@ -8,7 +8,8 @@ NineGridBrush::NineGridBrush(std::istream& in) :
    normal_(0, 0, -1),
    tile_mode_(NineGridLeftToRight),
    paint_mode_(Color),
-   qubicle_file_("")
+   qubicle_file_(""),
+   clip_whitespace_(false)
 {
    in >> qubicle_file_;
 }
@@ -37,6 +38,12 @@ NineGridBrush& NineGridBrush::SetGridShape(csg::Region2 const& shape)
    return *this;
 }
 
+NineGridBrush& NineGridBrush::SetClipWhitespace(bool clip)
+{
+   clip_whitespace_ = clip;
+   return *this;
+}
+
 csg::Region3 NineGridBrush::PaintOnce()
 {
    return PaintThroughStencilPtr(nullptr);
@@ -54,8 +61,9 @@ csg::Region3 NineGridBrush::PaintThroughStencilPtr(csg::Region3 const* stencil)
    for (int i = 1; i <= 9; i++) {
       nine_grid_[i] = QubicleBrush(qubicle_file_.GetMatrix(BUILD_STRING(i)))
                           .SetPaintMode((QubicleBrush::PaintMode)paint_mode_)
-                          .SetPreserveMatrixOrigin(true)
-                          .SetNormal(normal_);
+                          .SetOffsetMode(QubicleBrush::Matrix)
+                          .SetNormal(normal_)
+                          .SetClipWhitespace(clip_whitespace_);
 
       csg::Point3 bounds = nine_grid_[i].PaintOnce().GetBounds().GetSize();
       brush_sizes_[i] = csg::Point2(bounds.x, bounds.z);

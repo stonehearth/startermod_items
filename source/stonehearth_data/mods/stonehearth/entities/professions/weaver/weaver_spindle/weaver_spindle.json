@@ -10,19 +10,18 @@
       "item" : {
          "category" : "tools_and_goods"
       },
-      "model_variants": [
-         {
+      "model_variants": {
+         "default": {
             "models": [
                "file(weaver_spindle.qb)"
             ]
          },
-         {
-            "variants": "iconic",
+         "female" : {
             "models": [
                "file(weaver_spindle_proxy.qb)"
             ]
          }
-      ],
+      },
       "stonehearth:commands" : {
          "commands" : [
             "file(/data/commands/promote_to_profession)"

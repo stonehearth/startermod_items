@@ -12,13 +12,13 @@
          "tags" : "light"
       },
 
-      "model_variants": [
-         {
+      "model_variants": {
+         "default": {
             "models": [
                "file(firepit.qb)"
             ]
          }
-      ],
+      },
       "region_collision_shape" : {
          "region": [
             {

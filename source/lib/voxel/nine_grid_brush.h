@@ -22,6 +22,7 @@ public:
    NineGridBrush& SetPaintMode(PaintMode mode);
    NineGridBrush& SetTileMode(TileMode mode);
    NineGridBrush& SetGridShape(csg::Region2 const& shape);
+   NineGridBrush& SetClipWhitespace(bool clip);
 
    csg::Region3 PaintThroughStencil(csg::Region3 const& stencil);
    csg::Region3 PaintOnce();
@@ -41,6 +42,7 @@ private:
    QubicleFile           qubicle_file_;
    QubicleBrush          nine_grid_[10];
    csg::Point2           brush_sizes_[10];
+   bool                  clip_whitespace_;
 };
 
 DECLARE_SHARED_POINTER_TYPES(NineGridBrush);

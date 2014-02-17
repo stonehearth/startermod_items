@@ -9,13 +9,13 @@
       "stonehearth:material" : {
          "tags" : "wood portal crafted"
       }            ,
-      "model_variants": [
-         {
+      "model_variants": {
+         "default": {
             "models": [
                "file(wooden_door_frame.qb)"
             ]
          }
-      ],
+      },
       "stonehearth:portal" : {
          "cutter" : [
             {

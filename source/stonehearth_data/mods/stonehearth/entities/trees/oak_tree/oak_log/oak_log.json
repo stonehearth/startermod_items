@@ -9,13 +9,13 @@
       "stonehearth:material" : {
          "tags" : "wood resource"
       },
-      "model_variants": [
-         {
+      "model_variants": {
+         "default": {
             "models": [
                "file(oak_log.qb)"
             ]
          }
-      ],
+      },
       "unit_info": {
          "name": "Oak Log",
          "description": "That's right.  It's a log.",

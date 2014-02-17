@@ -15,13 +15,13 @@
       "stonehearth:material" : {
          "tags" : "wood cloth decoration"
       },      
-      "model_variants": [
-         {
+      "model_variants": {
+         "default": {
             "models": [
                "file(geranium_hanging.qb)"
             ]
          }
-      ],
+      },
       "destination": {
          "region": [
             {

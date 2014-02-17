@@ -10,13 +10,13 @@
          "default" : "file(/data/rigs/double_door/effects/closed.json)"
       },
 
-      "model_variants": [
-         {
+      "model_variants": {
+         "default": {
             "models": [
                "file(picket_fence_gate.qb)"
             ]
          }
-      ],
+      },
 
       "unit_info": {
          "name": "Picket Fence Gate",

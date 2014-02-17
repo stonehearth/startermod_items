@@ -9,13 +9,13 @@
        "stonehearth:material" : {
          "tags" : "wood"
       },
-      "model_variants": [
-         {
+      "model_variants": {
+         "default": {
             "models": [
                "file(snare_trap.qb)"
             ]
          }
-      ],
+      },
       "stonehearth:commands" : {
          "commands" : [
             "file(commands/harvest_trapped_beast)",

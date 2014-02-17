@@ -5,13 +5,13 @@
       "item": {
          "stacks": 10
       },
-      "model_variants": [
-         {
+      "model_variants": {
+         "default": {
             "models": [
                "file(cloth_bolt.qb)"
             ]
          }
-      ],
+      },
       "unit_info": {
          "name": "Bolt of Cloth",
          "description": "Shimmery.",
