@@ -150,7 +150,8 @@ function Landscaper:mark_trees(elevation_map, feature_map)
             mean = mean - 5
          else
             -- avoid depressions
-            mean = mean - 100
+            mean = mean - 300
+            std_dev = 0
          end
       else
          -- TerrainType.foothills
