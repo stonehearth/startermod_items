@@ -31,6 +31,7 @@ App.StonehearthPerfmonView = App.View.extend({
             suffix : [ '', 'K', 'M', 'G', 'T', 'P' ],
          }
       };
+      this._perf_trace = new RadiantTrace();
       this._super();
    },
 
@@ -39,17 +40,24 @@ App.StonehearthPerfmonView = App.View.extend({
 
       this.$().draggable();
 
-      self._trace = radiant.call('radiant:game:get_perf_counters')
+      this.my('.close').click(function() {
+         self.destroy();
+      });
+
+      self._perf_trace = radiant.call('radiant:game:get_perf_counters')
          .progress(function(data) {
             self._updateCounters(data);
          });
    },
 
    destroy: function() {
-      if (self._trace) {
-         self._trace.destroy();
-         self._trace = null;
+      if (this._perf_trace) {
+         // XXX, I would really like to destroy this, but _perf_trace apparently
+         // doesn't have a destroy method, at least that's what the chrome debugger claims
+         //this._perf_trace.destroy();
+         this._perf_trace = null;
       }
+      this._super();
    },
 
    _formatCounter: function(d) {
@@ -70,6 +78,11 @@ App.StonehearthPerfmonView = App.View.extend({
    },
 
    _updateCounters: function (data) {
+      // this should not be necessary, but the trace is not being destroyed properly
+      if (!this._perf_trace) {
+         return
+      }
+
       var self = this;
       var counters = [];
 

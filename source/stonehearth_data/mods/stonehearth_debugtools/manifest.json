@@ -3,7 +3,7 @@
       "name" : "Stonehearth Debug Tools"
    },
 
-   "mixintos" : {
+   "mixintos_" : {
       "stonehearth:mixins:base_human" : [
          "file(mixintos/interrupt_ai)"
       ]
