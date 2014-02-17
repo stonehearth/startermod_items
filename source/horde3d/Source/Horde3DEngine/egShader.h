@@ -160,6 +160,7 @@ struct ShaderContext
 	bool                              depthTest;
 	bool                              writeDepth;
 	bool                              alphaToCoverage;
+   uint32                            writeMask;
 	
 	// Shaders
 	std::vector<ShaderCombination>    shaderCombinations;
@@ -170,7 +171,7 @@ struct ShaderContext
 	ShaderContext() :
 		blendMode( BlendModes::Replace ), depthFunc( TestModes::LessEqual ),
 		cullMode( CullModes::Back ), depthTest( true ), writeDepth( true ), alphaToCoverage( false ),
-		vertCodeIdx( -1 ), fragCodeIdx( -1 ), compiled( false )
+      vertCodeIdx( -1 ), fragCodeIdx( -1 ), compiled( false ), writeMask(0xf)
 	{
 	}
 };

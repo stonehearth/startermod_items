@@ -830,6 +830,12 @@ bool Renderer::setMaterialRec( MaterialResource *materialRes, const std::string 
 		// Setup standard shader uniforms
 		commitGeneralUniforms();
 
+      // Configure color write mask.
+      glColorMask(context->writeMask & 1, 
+         context->writeMask & 2, 
+         context->writeMask & 4, 
+         context->writeMask & 8);
+
 		// Configure depth mask
 		if( context->writeDepth ) glDepthMask( GL_TRUE );
 		else glDepthMask( GL_FALSE );
