@@ -22,9 +22,11 @@ function CreateWorkshop:run(town, args)
       ghost_workshop = ghost_workshop,
       sound_effect = workshop_data.build_sound_effect,
    }
-   local task = town:create_unit_control_task(crafter, 'stonehearth:complete_workshop_construction', args)
-                              :start() 
-   if not task:wait() then
+   local result = town:command_unit(crafter, 'stonehearth:complete_workshop_construction', args)   
+                        :once()
+                        :start()
+                        :wait()
+   if not result then
       return
    end
 

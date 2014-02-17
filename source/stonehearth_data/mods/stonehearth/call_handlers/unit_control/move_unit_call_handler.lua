@@ -69,19 +69,10 @@ function MoveUnitCallHandler:server_move_unit(session, response, entity_id, loca
       return
    end
    
-   local scheduler = stonehearth.tasks:create_scheduler()
-                                      :set_activity('stonehearth:unit_control', {})
-                                      :join(entity)
-
-   if all_move_tasks[entity_id] then
-      all_move_tasks[entity_id]:destroy()
-      all_move_tasks[entity_id] = nil
-   end
-
-   all_move_tasks[entity_id] = scheduler:create_task('stonehearth:unit_control:move_unit', { location = pt })
-                         :once()
-                         :start()
-                         
+   local town = stonehearth.town:get_town(session.faction)
+   town:command_unit(entity, 'stonehearth:unit_control:move_unit', { location = pt })
+            :once()
+            :start()
    return true
 end
 

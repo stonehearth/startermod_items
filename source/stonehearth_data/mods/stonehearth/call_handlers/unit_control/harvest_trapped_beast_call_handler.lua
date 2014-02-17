@@ -5,15 +5,12 @@ local HarvestTrappedBeastCallHandler = class()
 
 
 function HarvestTrappedBeastCallHandler:harvest_trapped_beast(session, response, entity, trap_entity)
-   local scheduler = stonehearth.tasks:create_scheduler()
-                                      :set_activity('stonehearth:unit_control', {})
-                                      :join(entity)
-
-   scheduler:create_task('stonehearth:unit_control:harvest_trapped_beast', { trap = trap_entity })
-               :once()
-               :add_entity_effect(trap_entity, '/stonehearth/data/effects/chop_overlay_effect')
-               :start()
-                         
+   local town = stonehearth.town:get_town(session.faction)
+   town:command_unit_scheduled(entity, 'stonehearth:unit_control:harvest_trapped_beast', { trap = trap_entity })
+            :add_entity_effect(trap_entity, '/stonehearth/data/effects/chop_overlay_effect')
+            :once()
+            :start()
+     
    return true
 end
 

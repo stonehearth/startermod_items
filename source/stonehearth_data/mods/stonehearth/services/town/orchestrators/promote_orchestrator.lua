@@ -15,9 +15,12 @@ function Promote:run(town, args)
       end
    }
 
-   local task = town:create_unit_control_task(person, 'stonehearth:grab_promotion_talisman', args)
-                           :start()   
-   if not task:wait() then
+
+   local result = town:command_unit(person, 'stonehearth:grab_promotion_talisman', args)
+                        :once()
+                        :start()
+                        :wait()
+   if not result then
       return false
    end
 
