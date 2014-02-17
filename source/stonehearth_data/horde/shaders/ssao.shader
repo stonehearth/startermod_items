@@ -38,38 +38,38 @@ context SSAO
 #define NUM_SAMPLES 32
 
 const vec3 samplerKernel[] = vec3[32] (
-  vec3( -0.000193264809954 , 0.000187472221306 , 0.000295808856311 ),
-  vec3( 0.00178519724276 , -0.00132094009995 , 0.00140250441112 ),
-  vec3( -0.00620084517084 , -0.00183091079845 , 0.00212657562242 ),
-  vec3( -0.00200009545639 , -0.000574745668306 , 0.0127706156453 ),
-  vec3( 0.00736218701833 , -0.0174241817609 , 0.00917860105194 ),
-  vec3( -0.00662428164914 , -0.0179250715625 , 0.0244905426873 ),
-  vec3( -0.0195099779604 , 0.0375272344263 , 0.00805655635895 ),
-  vec3( 0.0177096727543 , -0.0479539735416 , 0.0252182878077 ),
-  vec3( 0.00266460483425 , 0.0535201359957 , 0.0494257516289 ),
-  vec3( -0.0563280540478 , -0.0305867819853 , 0.0642451958606 ),
-  vec3( -0.0694671811351 , 0.0278792490382 , 0.0813618008175 ),
-  vec3( 0.0901093644497 , 0.0845677718954 , 0.0472821904143 ),
-  vec3( 0.116589957503 , -0.0809648238493 , 0.0647709790986 ),
-  vec3( -0.0157513773699 , 0.0889314415084 , 0.157651540602 ),
-  vec3( 0.0869700682758 , -0.144491797723 , 0.123965454479 ),
-  vec3( 0.229581657516 , -0.00679414774471 , 0.0656362262801 ),
-  vec3( 0.119938232541 , -0.190813270339 , 0.149403066359 ),
-  vec3( -0.0939791736781 , 0.2824946328 , 0.0608741537195 ),
-  vec3( -0.191465932906 , -0.158646164408 , 0.230869925161 ),
-  vec3( 0.0687983389929 , -0.10923991465 , 0.353875796581 ),
-  vec3( 0.255590438485 , 0.233599625235 , 0.230611238819 ),
-  vec3( -0.0484980836747 , 0.317077072869 , 0.32595431812 ),
-  vec3( -0.429063616216 , -0.0561673651027 , 0.251607233105 ),
-  vec3( -0.419129942013 , -0.258454577986 , 0.235321250203 ),
-  vec3( -0.405219598876 , 0.383166022024 , 0.201274156942 ),
-  vec3( 0.404320684165 , -0.342966708603 , 0.362028489761 ),
-  vec3( -0.043971354957 , 0.588394149613 , 0.363573665588 ),
-  vec3( 0.498413452009 , 0.40997664793 , 0.374319067591 ),
-  vec3( -0.460452275705 , 0.174223415131 , 0.631878907738 ),
-  vec3( 0.350842758019 , 0.22605843245 , 0.749577467129 ),
-  vec3( -0.511860811951 , 0.279488842215 , 0.707402428824 ),
-  vec3( -0.184745160954 , 0.811536684444 , 0.512865607163 )
+vec3( -9.6874980394e-05 , 0.000276812543097 , 0.000272011128739 ),
+vec3( -0.0010955683475 , -0.00228584034286 , 0.000688109358538 ),
+vec3( -0.000952953214339 , -0.00327343416717 , 0.00589080198165 ),
+vec3( -0.00473005826816 , -0.0061056044627 , 0.0103811117566 ),
+vec3( -0.00736544782026 , -0.0134670216626 , 0.0143680246014 ),
+vec3( -0.0129832041189 , -0.0186575713004 , 0.0211732714284 ),
+vec3( -0.018627517779 , 0.0382336242859 , 0.00671164804028 ),
+vec3( -0.04611629206 , 0.0157685961902 , 0.0295603976339 ),
+vec3( -0.0278360157415 , -0.045752661868 , 0.0494596821626 ),
+vec3( 0.0527046833779 , 0.020908989173 , 0.0708581443307 ),
+vec3( 0.0567340119008 , -0.0653771776322 , 0.0687732575392 ),
+vec3( 0.00596325547706 , -0.0988856047872 , 0.087710249602 ),
+vec3( 0.114283897281 , 0.0972098550869 , 0.0428162997159 ),
+vec3( 0.116657199955 , 0.123654924911 , 0.0641207663388 ),
+vec3( 0.0102148158118 , 0.0116407716567 , 0.208732499296 ),
+vec3( 0.199152030445 , -0.0369309925126 , 0.126635629558 ),
+vec3( 0.204612550215 , 0.0374517043116 , 0.172763520857 ),
+vec3( -0.0428690759454 , 0.213688154636 , 0.21175594474 ),
+vec3( 0.173519176474 , -0.156058031744 , 0.246304115704 ),
+vec3( 0.216569386783 , -0.303077100506 , 0.0560055503 ),
+vec3( -0.32151593625 , -0.0829267374066 , 0.250654063573 ),
+vec3( -0.0307920629761 , -0.200659155955 , 0.409785192203 ),
+vec3( -0.331978063549 , -0.30977464232 , 0.210681740338 ),
+vec3( -0.188784751564 , -0.398879389852 , 0.321092382189 ),
+vec3( -0.055234148103 , 0.0909524961582 , 0.583272871241 ),
+vec3( 0.16011641721 , 0.107895912201 , 0.612280337201 ),
+vec3( -0.140946085766 , 0.503087181758 , 0.455372873722 ),
+vec3( 0.538430130553 , 0.50447828636 , 0.110481846734 ),
+vec3( -0.168147963702 , 0.613630454174 , 0.486646667139 ),
+vec3( -0.062770090465 , 0.230451716889 , 0.824021454144 ),
+vec3( -0.337905573528 , -0.754176119899 , 0.396953276333 ),
+vec3( -0.224062596748 , 0.731619243079 , 0.60850877693 )
 );
 
 uniform sampler2D randomVectorLookup;
@@ -84,12 +84,12 @@ in vec2 texCoords;
 out vec4 fragColor;
 
 
-float getSampleDepth(const vec2 texCoords, const float screenSpaceDistance) {
+vec2 getSampleDepth(const vec2 texCoords, const float screenSpaceDistance) {
   ivec2 pixelCoords = ivec2(floor(texCoords * frameBufSize));
 
   int mipLevel = clamp(int(floor(log2(screenSpaceDistance))) - LOG_MAX_OFFSET, 0, MAX_MIP_LEVEL);
 
-  return texelFetch(depthBuffer, pixelCoords >> mipLevel, mipLevel);
+  return texelFetch(depthBuffer, pixelCoords >> mipLevel, mipLevel).ra;
 }
 
 
@@ -118,7 +118,7 @@ vec3 getRandomVec(const vec2 texCoords)
 void main()
 {
   float radius = 1.0;
-  const float intensity = 0.8;
+  const float intensity = 0.6;
 
   vec4 attribs = texture2D(depthBuffer, texCoords);
   vec3 origin = toCameraSpace(texCoords, attribs.r);
@@ -133,8 +133,8 @@ void main()
   float occlusion = 0.0;
   for (int i = 0; i < NUM_SAMPLES; i++) {
     // get sample position:
-    vec3 unitSample = tbn * samplerKernel[i].xyz;
-    vec3 ssaoSample = (unitSample * radius) + origin;
+    vec3 cameraSpaceSample = tbn * samplerKernel[i].xyz;
+    vec3 ssaoSample = (cameraSpaceSample * radius) + origin;
 
     // project sample position:
     vec4 offset = camProjMat * vec4(ssaoSample, 1.0);
@@ -142,16 +142,26 @@ void main()
     offset.xy = (offset.xy * 0.5) + 0.5;
 
     // get sample location:
-    float sampleDepth = getSampleDepth(offset.xy, length((offset.xy - texCoords) * frameBufSize));
+    vec2 sampleDepth = getSampleDepth(offset.xy, length((offset.xy - texCoords) * frameBufSize));
 
+    float sampleOcclusion;
     // range check & accumulate:
-    float rangeCheck = abs(origin.z - sampleDepth) <  radius * 1.5 ? 1.0 : 0.0;
-    occlusion += sampleDepth < ssaoSample.z ? (1.0 * rangeCheck) : 0.0;
+    
+    // Old and busted:
+    /*
+    float rangeCheck = abs(origin.z - sampleDepth.r) <  radius ? 1.0 : 0.0;
+    sampleOcclusion = sampleDepth.r < ssaoSample.z ? (1.0 * rangeCheck) : 0.0;
+    //*/
+
+    // New hotness:
+    sampleOcclusion = ((sampleDepth.r < ssaoSample.z) && (sampleDepth.g > ssaoSample.z)) ? 1.0 : 0.0;
+
+
+    occlusion += sampleOcclusion;
   }
 
   occlusion /= NUM_SAMPLES;
   occlusion *= intensity;
 
-  float visibility = 1.0 - occlusion;
-  fragColor = vec4(vec3(visibility), 1.0);
+  fragColor = vec4(vec3(occlusion), 1.0);
 }

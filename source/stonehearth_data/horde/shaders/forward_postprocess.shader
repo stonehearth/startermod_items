@@ -37,6 +37,15 @@ context DEPTH_LINEAR
 {
   VertexShader = compile GLSL VS_GENERAL;
   PixelShader = compile GLSL FS_DEPTH_LINEAR;
+  CullMode = Back;
+}
+
+context DEPTH_LINEAR_BACK
+{
+  VertexShader = compile GLSL VS_GENERAL;
+  PixelShader = compile GLSL FS_DEPTH_LINEAR_BACK;
+  ColorWriteMask = A;
+  CullMode = Front;
 }
 
 
@@ -150,7 +159,7 @@ void main( void )
   cloudColor = cloudColor * texture2D(cloudMap, fragCoord.yx / 192.0 + (cloudSpeed / 10.0)).xyz;
 
   // Mix light and shadow and ambient light.
-  lightColor = cloudColor *((shadowTerm * (lightColor * albedo)) + (ssao * lightAmbientColor * albedo));
+  lightColor = cloudColor *((shadowTerm * (lightColor * albedo)) + ((lightAmbientColor - ssao) * albedo));
   
   gl_FragColor = vec4(lightColor, 1.0);
 }
@@ -173,4 +182,21 @@ void main(void)
   gl_FragData[0].r = toLinearDepth(gl_FragCoord.z);
   gl_FragData[0].g = worldScale;
   gl_FragData[1] = viewMat * vec4(normalize(tsbNormal), 0.0);
+}
+
+[[FS_DEPTH_LINEAR_BACK]]
+#include "shaders/utilityLib/vertCommon.glsl"
+
+varying vec3 tsbNormal;
+varying float worldScale;
+
+float toLin2(float d) {
+  float num = nearPlane * farPlane;
+  float den = (farPlane + d * (nearPlane - farPlane));
+  return num/den;
+}
+
+void main(void)
+{
+  gl_FragData[0].a = toLinearDepth(gl_FragCoord.z);
 }

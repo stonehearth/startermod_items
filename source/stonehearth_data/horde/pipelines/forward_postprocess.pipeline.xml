@@ -32,6 +32,9 @@
          <SwitchTarget target="GBuffers" />
          <DrawGeometry context="DEPTH_LINEAR" class="~Translucent" />
 
+         <ClearTarget colBuf0="false" colBuf1="false" depthBuf="true" />
+         <DrawGeometry context="DEPTH_LINEAR_BACK" class="~Translucent" />
+
          <SwitchTarget target="" />
          <DrawGeometry context="DEPTH" class="~Translucent" />
       </Stage>
