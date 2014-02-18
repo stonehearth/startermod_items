@@ -382,9 +382,9 @@ void ResourceManager2::ParseNodeMixin(std::string const& path, JSONNode& new_nod
       json::Node mixins = node.get_node("mixins");
       if (mixins.type() == JSON_STRING) {
          std::string mixin = node.get<std::string>("mixins");
-         // if the node is an array, load this shit in in a loop
          ApplyMixin(mixin, new_node);
       } else if (mixins.type() == JSON_ARRAY) {
+         // if the node is an array, load this shit in in a loop
          for (JSONNode const &child : mixins.get_internal_node()) {
             std::string mixin = child.as_string();
             ApplyMixin(mixin, new_node);
@@ -424,7 +424,7 @@ void ResourceManager2::ApplyMixin(std::string const& mixin_name, JSONNode& new_n
 
 void ResourceManager2::ExtendNode(JSONNode& new_node, const JSONNode& mixin_node) const
 {
-   ASSERT(new_node.type() == mixin_node.type());
+   ASSERT(new_node.name() == "mixins" || new_node.type() == mixin_node.type());
 
    switch (mixin_node.type()) {
    case JSON_NODE:
@@ -453,8 +453,10 @@ void ResourceManager2::ExtendNode(JSONNode& new_node, const JSONNode& mixin_node
          break;
       }
    default:
-      RES_LOG(9) << "replacing new_node with mixin_node";
-      new_node = mixin_node;
+      if (new_node.name() != mixin_node.name()) {
+         RES_LOG(9) << "replacing new_node with mixin_node";
+         new_node = mixin_node;
+      }
       break;      
    }
 }
