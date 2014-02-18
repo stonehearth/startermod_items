@@ -16,9 +16,9 @@ function PerfTestCallHandler:get_world_generation_done(session, response)
       local seed = 1337
       wgs:initialize(seed, true)
 
-      local blueprint = wgs.blueprint_generator:generate_blueprint(5, 5, seed)
+      local blueprint = wgs.blueprint_generator:generate_blueprint(11, 11, seed)
       wgs:set_blueprint(blueprint)
-      wgs:generate_all_tiles()
+      wgs:generate_tiles(6, 6, 2)
 
       radiant.events.listen(radiant.events, 'stonehearth:generate_world_progress', self, function(s, e)
          if e.progress and e.progress >= 100 then
