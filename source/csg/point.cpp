@@ -24,9 +24,6 @@ const Point2f Point2f::one(1, 1);
 
 const Point3 Point3::zero(0, 0, 0);
 const Point3 Point3::one(1, 1, 1);
-const Point3 Point3::unitX(1, 0, 0);
-const Point3 Point3::unitY(0, 1, 0);
-const Point3 Point3::unitZ(0, 0, 1);
 
 const Point2 Point2::zero(0, 0);
 const Point2 Point2::one(1, 1);
