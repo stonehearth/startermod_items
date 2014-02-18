@@ -8,11 +8,16 @@ local ScenarioModderServices = class()
 
 -- Modder API starts here
 -- methods and properties starting with _ are not intended for modder use
+
+-- (x, y) is valid from (1, 1) - (properties.size.width, properties.size.length)
 function ScenarioModderServices:place_entity(uri, x, y)
    x, y = self:_bounds_check(x, y)
 
    local entity = radiant.entities.create_entity(uri)
-   radiant.terrain.place_entity(entity, Point3(x + self._offset_x, 1, y + self._offset_y))
+
+   -- switch from lua height_map base 1 coordinates to c++ base 0 coordinates
+   -- swtich from scenario coordinates to world coordinates
+   radiant.terrain.place_entity(entity, Point3(x-1 + self._offset_x, 1, y-1 + self._offset_y))
    self:_set_random_facing(entity)
    return entity
 end
