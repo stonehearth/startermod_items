@@ -1,5 +1,5 @@
 
-const float g_BlurFalloff = 0.2;
+const float g_BlurFalloff = 0.1;
 //const float g_Sharpness = 0.0;
 
 // Removed the depth-sensitivity from the sampler; it causes some aliasing in the resulting
