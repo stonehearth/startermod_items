@@ -17,10 +17,10 @@ function MeleeAttack:run(ai, entity, target)
       ai:execute('stonehearth:run_effect', effect)
    else 
       ai:abort('no effect supplied for weapon %s', tostring(self._weapon))
+      return
    end
 
-   local combat_service = radiant.mods.load('stonehearth').combat
-   combat_service:create_damage(entity, target)
+   stonehearth.combat_service:create_damage(entity, target)
       :add_damage_source(self._weapon)
       :resolve()
 end

@@ -22,6 +22,8 @@
 #include "pipeline.h"
 #include <unordered_set>
 #include <string>
+#include "om/object_formatter/object_formatter.h"
+#include "client/client.h"
 
 using namespace ::radiant;
 using namespace ::radiant::client;
@@ -826,6 +828,34 @@ void Renderer::DecodeDebugShapes(const ::radiant::protocol::shapelist& msg)
 HWND Renderer::GetWindowHandle() const
 {
    return glfwGetWin32Window(glfwGetCurrentContext());
+}
+
+void Renderer::SetVisibilityRegions(std::string const& visible_region_uri, std::string const& explored_region_uri)
+{
+   om::Region3BoxedPtr visibleRegionBoxed, exploredRegionBoxed;
+
+   dm::Store const& store = Client::GetInstance().GetStore();
+
+   visibleRegionBoxed = om::ObjectFormatter().GetObject<om::Region3Boxed>(store, visible_region_uri);
+   exploredRegionBoxed = om::ObjectFormatter().GetObject<om::Region3Boxed>(store, explored_region_uri);
+
+   visibilityTrace_ = visibleRegionBoxed->TraceChanges("render visible region", dm::RENDER_TRACES)
+                         ->OnModified([=](){
+                            csg::Region3 visibleRegion = visibleRegionBoxed->Get();
+                            // TODO: give visibleRegion to horde
+                            int num_cubes = visibleRegion.GetCubeCount();
+                            R_LOG(3) << "Client visibility cubes: " << num_cubes;
+                         })
+                         ->PushObjectState(); // Immediately send the current state to listener
+
+   exploredTrace_ = exploredRegionBoxed->TraceChanges("render explored region", dm::RENDER_TRACES)
+                         ->OnModified([=](){
+                            csg::Region3 exploredRegion = exploredRegionBoxed->Get();
+                            // TODO: give exploredRegion to horde
+                            int num_cubes = exploredRegion.GetCubeCount();
+                            R_LOG(3) << "Client explored cubes: " << num_cubes;
+                         })
+                         ->PushObjectState(); // Immediately send the current state to listener
 }
 
 void Renderer::RenderOneFrame(int now, float alpha)

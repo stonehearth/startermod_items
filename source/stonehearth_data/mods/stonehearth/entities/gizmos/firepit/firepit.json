@@ -1,5 +1,5 @@
 {
-   "extends": "stonehearth:mixins:placed_properties",
+   "mixins": "stonehearth:mixins:placed_properties",
    "type": "entity",
    "components": {
       "unit_info": {
@@ -12,13 +12,13 @@
          "tags" : "light"
       },
 
-      "model_variants": [
-         {
+      "model_variants": {
+         "default": {
             "models": [
                "file(firepit.qb)"
             ]
          }
-      ],
+      },
       "region_collision_shape" : {
          "region": [
             {
@@ -50,6 +50,10 @@
             }
          }
       },
+      "stonehearth:placed_item" : {
+         "proxy_entity" : "stonehearth:firepit_proxy"
+      }
+   },
       "stonehearth:sensor_ai_injector" : {
          "sensor" : "fire_radius",
          "ai" : {
@@ -57,10 +61,5 @@
                "stonehearth:actions:idle:warm_hands"
             ]
          }
-      },
-
-      "stonehearth:placed_item" : {
-         "proxy_entity" : "stonehearth:firepit_proxy"
       }
-   }
 }

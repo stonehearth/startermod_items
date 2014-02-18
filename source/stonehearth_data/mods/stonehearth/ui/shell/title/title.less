@@ -81,21 +81,36 @@
       left: 94px;
       top: 300px;
 
-      .control {
-         .outlined;
-         display: inline-block;
-         width: 702px;
-         height: 57px;
-         font-size: 34px;
-         background: url(./images/button_bg.png);
-         text-align: center;
-         vertical-align: middle;
-         padding-top: 14px;
+      button {
+         display: block;
+         width: 700px;
+         font-size: 40px;
+         margin-bottom: 4px;
+      }
+   }
 
-         &:hover {
-            color: @hoverColor;
-         };
+   #blog {
+      position: absolute;
+      top: 90px;
+      right: 20px;
+      bottom: 40px;
+      width: 696px;
+      text-align: left;
+      background: rgba(0,0,0,0.8);
+      color: #fff;
+      padding-top: 12px;
+      border-width: 24px 66px 66px 66px;
+      border-image: url(./images/blog_border.png) 24 66 66 66 repeat;
+      font-size: 13px;
+      line-height: 20px;
 
+      h1 {
+         margin-left: 0px;
+      }
+      .body {
+         h2 {
+            color: #ffe557;
+         }
       }
    }
 }

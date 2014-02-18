@@ -3,32 +3,40 @@
 ]]
 local LeaseComponent = class()
 
-function LeaseComponent:__init(entity)
+function LeaseComponent:__init(entity, data_store)
    self._entity = entity  -- the entity we will be leasing
-   self._owner = nil      -- the entity that leased us
+   self._leases = {}
+   
+   self._data_store = data_store
+   local data = self._data_store:get_data()
+   data.leases = self._leases
 end
 
 ---Lease the entity to someone, if possible
 -- @param entity The entity who would like to acquire the lease
 -- @returns true if the entity now has the lease, false otherwise
-function LeaseComponent:try_to_acquire_lease(entity)
-   if self:can_acquire_lease(entity) then
-      self._owner = entity
-   end
-   return self._owner:get_id() == entity:get_id()
-end
-
---- Can this entity (optional) acquire this lease?
--- @returns true if the lease is currently empty or if I currently have it, false otherwise
-function LeaseComponent:can_acquire_lease(entity)
-   if not self._owner or (self._owner:get_id() == entity:get_id()) then
+function LeaseComponent:acquire(lease_name, entity)
+   if self:can_acquire(lease_name, entity) then
+      self._leases[lease_name] = entity
+      entity:add_component('stonehearth:lease_holder'):_add_lease(lease_name, self._entity)
+      self._data_store:mark_changed()
       return true
    end
    return false
 end
 
-function LeaseComponent:get_owner()
-   return self._owner
+--- Can this entity (optional) acquire this lease?
+-- @returns true if the lease is currently empty or if I currently have it, false otherwise
+function LeaseComponent:can_acquire(lease_name, entity)
+   local owner = self:get_owner(lease_name)
+   if not owner or (owner:get_id() == entity:get_id()) then
+      return true
+   end
+   return false
+end
+
+function LeaseComponent:get_owner(lease_name)
+   return self._leases[lease_name]
 end
 
 --- Release the lease from entity
@@ -36,9 +44,11 @@ end
 -- return false. If it is the owner, release the lease and return true
 -- @param entity The entity who is releaseing the lease
 -- @returns true if the release was successful, false otherwise
-function LeaseComponent:release_lease(entity)
-   if self:can_acquire_lease(entity) then
-      self._owner = nil
+function LeaseComponent:release(lease_name, entity)
+   if self:can_acquire(lease_name, entity) then
+      self._leases[lease_name] = nil
+      entity:add_component('stonehearth:lease_holder'):_remove_lease(lease_name, self._entity)
+      self._data_store:mark_changed()
       return true
    end
    return false

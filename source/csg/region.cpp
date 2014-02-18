@@ -16,7 +16,9 @@ template <class S, int C>
 Region<S, C>::Region(const Cube& cube)
 {
    cubes_.reserve(64);
-   cubes_.push_back(cube);
+   if (!cube.IsEmpty()) {
+      cubes_.push_back(cube);
+   }
 }
 
 template <class S, int C>
@@ -79,17 +81,43 @@ void Region<S, C>::Add(const Point& point)
 template <class S, int C>
 void Region<S, C>::AddUnique(const Cube& cube)
 {
+   if (cube.IsEmpty()) {
+      return;
+   }
+   Validate();
    ASSERT(!Intersects(cube));
-   cubes_.push_back(cube);
+   
+   if (cubes_.empty() || !cubes_.back().CombineWith(cube)) {
+      cubes_.push_back(cube);
+   } else {
+      // The cube on the back has been merged with the new cube.
+      // This could enable another merge!  I could write this in
+      // a tail-end recursive way to avoid duplicating code, but
+      // I believe it would be ultimately much more confusing to 
+      // read.
+      uint c = cubes_.size();
+      while (c > 1) {
+         if (!cubes_[c-2].CombineWith(cubes_[c-1])) {
+            break;
+         }
+         c--;
+      }
+      cubes_.resize(c);
+   }
+
+   Validate();
 }
 
 template <class S, int C>
 void Region<S, C>::AddUnique(const Region& region)
 {
+   Validate();
+   region.Validate();
    for (Cube const& cube : region) {
       ASSERT(!Intersects(cube));
       cubes_.push_back(cube);
    }
+   Validate();
 }
 
 template <class S, int C>
@@ -105,6 +133,8 @@ void Region<S, C>::Subtract(const Cube& cube)
 
    unsigned int i = 0;
    unsigned int size = cubes_.size();
+
+   Validate();
 
    while (i < size) {
       Cube const& src = cubes_[i];
@@ -124,6 +154,8 @@ void Region<S, C>::Subtract(const Cube& cube)
    }
    cubes_.resize(size);
    cubes_.insert(cubes_.end(), added.begin(), added.end());
+
+   Validate();
 }
 
 template <class S, int C>
@@ -180,6 +212,8 @@ const Region<S, C>& Region<S, C>::operator&=(const Cube& cube)
    unsigned int i = 0;
    unsigned int size = cubes_.size();
 
+   Validate();
+
    while (i < size) {
       Cube replacement = cubes_[i] & cube;
       if (replacement.IsEmpty()) {
@@ -191,6 +225,9 @@ const Region<S, C>& Region<S, C>::operator&=(const Cube& cube)
       }
    }
    cubes_.resize(size);
+
+   Validate();
+
    return *this;
 }
 
@@ -200,12 +237,17 @@ const Region<S, C>& Region<S, C>::operator&=(const Region& other)
 {
    Region result;
 
+   Validate();
+
    // the union of all our little rects clipped against the other region
    for (Cube const& cube : cubes_) {
       result.AddUnique(cube & other);
    }
 
    *this = result;
+
+   Validate();
+
    return *this;
 }
 
@@ -375,6 +417,28 @@ Region<int, C> csg::ToInt(Region<float, C> const& region) {
 template <int C>
 Region<int, C> const& csg::ToInt(Region<int, C> const& region) {
    return region;
+}
+
+template <class S, int C>
+void Region<S, C>::Validate() const
+{
+   // Paranoia validation.  If you're ever concerned that regions may be getting tweaked
+   // in some weird way (e.g. a buggy implementation of += or something), Validate is
+   // called to ensure variants are correct whenever the state of the region changes.
+   // This is INCREDIBLY slow if you do anything > O(1), so leave this compiled out (turn
+   // it on if you need it!)
+#if 0
+   uint i, j, c = cubes_.size();
+   for (i = 0; i < c; i++) {
+      ASSERT(!cubes_[i].IsEmpty());
+      for (j = 0; j < i; j++) {
+         if (cubes_[i].Intersects(cubes_[j])) {
+            LOG_(0) << "cube " << j << ":" << cubes_[i] << " overlaps with " << i << ":" << cubes_[i];
+         }
+         ASSERT(!cubes_[i].Intersects(cubes_[j]));
+      }
+   }
+#endif
 }
 
 #define MAKE_REGION(Cls) \

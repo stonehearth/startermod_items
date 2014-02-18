@@ -2,6 +2,7 @@ add_library(simulation_jobs STATIC
 			pch.cpp
             debug_colors.cpp
             job.cpp
+            task.cpp
             path.cpp
             path_finder.cpp
             path_finder_src.cpp

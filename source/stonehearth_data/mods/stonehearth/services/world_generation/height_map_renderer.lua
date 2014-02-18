@@ -10,23 +10,40 @@ local HeightMapCPP = _radiant.csg.HeightMap
 
 local HeightMapRenderer = class()
 
-function HeightMapRenderer:__init(tile_size, terrain_info)
-   self.tile_size = tile_size
-   self.terrain_info = terrain_info
+function HeightMapRenderer:__init(terrain_info)
+   self._terrain_info = terrain_info
+   self._tile_size = self._terrain_info.tile_size
    self._terrain = radiant._root_entity:add_component('terrain')
-   self._terrain:set_tile_size(tile_size)
+   self._terrain:set_tile_size(self._tile_size)
 
    -- rock layers
-   local rock_layers = { {}, {}, {} }
-   local foothills_info = self.terrain_info[TerrainType.foothills]
-   local mountains_info = self.terrain_info[TerrainType.mountains]
-   rock_layers[1].terrain_tag = Terrain.ROCK_LAYER_1
-   rock_layers[1].max_height  = foothills_info.max_height + mountains_info.step_size
-   rock_layers[2].terrain_tag = Terrain.ROCK_LAYER_2
-   rock_layers[2].max_height  = rock_layers[1].max_height + mountains_info.step_size
-   rock_layers[3].terrain_tag = Terrain.ROCK_LAYER_3
-   rock_layers[3].max_height  = rock_layers[2].max_height + mountains_info.step_size
-   self.rock_layers = rock_layers
+   local mountains_info = self._terrain_info[TerrainType.mountains]
+   local rock_layers = {}
+   local terrain_tags = {
+      Terrain.ROCK_LAYER_1,
+      Terrain.ROCK_LAYER_2,
+      Terrain.ROCK_LAYER_3,
+      Terrain.ROCK_LAYER_4,
+      Terrain.ROCK_LAYER_5,
+      Terrain.ROCK_LAYER_6
+   }
+
+   for i, tag in ipairs(terrain_tags) do
+      rock_layers[i] = {
+         terrain_tag = tag,
+         max_height = mountains_info.base_height + mountains_info.step_size*i
+      }
+   end
+
+   self._rock_layers = rock_layers
+   self._num_rock_layers = #rock_layers
+
+   -- add land function table
+   self._add_land_functions = {
+      [TerrainType.plains] = self._add_plains_to_region,
+      [TerrainType.foothills] = self._add_foothills_to_region,
+      [TerrainType.mountains] = self._add_mountains_to_region
+   }
 end
 
 function HeightMapRenderer:create_new_region()
@@ -39,24 +56,26 @@ function HeightMapRenderer:add_region_to_terrain(region3_boxed, offset)
 end
 
 function HeightMapRenderer:render_height_map_to_region(region3_boxed, height_map)
-   assert(height_map.width == self.tile_size)
-   assert(height_map.height == self.tile_size)
+   assert(height_map.width == self._tile_size)
+   assert(height_map.height == self._tile_size)
 
    local region2 = Region2()
    local height
 
    self:_convert_height_map_to_region2(region2, height_map)
 
-   region3_boxed:modify(function(region3)
-      self:_add_bedrock_to_region(region3, height_map, 4)
+   region3_boxed:modify(
+      function (region3)
+         self:_add_bedrock_to_region(region3, height_map, 4)
 
-      for rect in region2:each_cube() do
-         height = rect.tag
-         if height > 0 then
-            self:_add_land_to_region(region3, rect, height);
+         for rect in region2:each_cube() do
+            height = rect.tag
+            if height > 0 then
+               self:_add_land_to_region(region3, rect, height);
+            end
          end
       end
-   end)
+   )
 end
 
 function HeightMapRenderer:_convert_height_map_to_region2(region2, height_map)
@@ -86,35 +105,21 @@ function HeightMapRenderer:_add_bedrock_to_region(region3, height_map, thickness
 end
 
 function HeightMapRenderer:_add_land_to_region(region3, rect, height)
-   local terrain_type = self.terrain_info:get_terrain_type(height)
+   local terrain_type = self._terrain_info:get_terrain_type(height)
 
-   -- as we grow TerrainTypes, put this in a table and dynamically call the function
-
-   if terrain_type == TerrainType.plains then
-      self:_add_plains_to_region(region3, rect, height)
-      return
-   end
-
-   if terrain_type == TerrainType.foothills then
-      self:_add_foothills_to_region(region3, rect, height)
-      return
-   end
-
-   if terrain_type == TerrainType.mountains then
-      self:_add_mountains_to_region(region3, rect, height)
-      return
-   end
+   self._add_land_functions[terrain_type](self, region3, rect, height)
 end
 
 function HeightMapRenderer:_add_mountains_to_region(region3, rect, height)
-   local rock_layers = self.rock_layers
+   local rock_layers = self._rock_layers
+   local num_rock_layers = self._num_rock_layers
    local i, block_min, block_max
    local stop = false
 
    block_min = 0
 
-   for i=1, #rock_layers do
-      if (i == #rock_layers) or (height <= rock_layers[i].max_height) then
+   for i=1, num_rock_layers do
+      if (i == num_rock_layers) or (height <= rock_layers[i].max_height) then
          block_max = height
          stop = true
       else
@@ -131,33 +136,37 @@ function HeightMapRenderer:_add_mountains_to_region(region3, rect, height)
 end
 
 function HeightMapRenderer:_add_foothills_to_region(region3, rect, height)
-   local foothills_step_size = self.terrain_info[TerrainType.foothills].step_size
+   local foothills_step_size = self._terrain_info[TerrainType.foothills].step_size
+   local plains_max_height = self._terrain_info[TerrainType.plains].max_height
+
+   region3:add_cube(Cube3(Point3(rect.min.x, 0,                 rect.min.y),
+                          Point3(rect.max.x, plains_max_height, rect.max.y),
+                          Terrain.SOIL))
 
    if height % foothills_step_size == 0 then
+      region3:add_cube(Cube3(Point3(rect.min.x, plains_max_height, rect.min.y),
+                             Point3(rect.max.x, height-1,          rect.max.y),
+                             Terrain.SOIL_STRATA))
 
-      region3:add_cube(Cube3(Point3(rect.min.x, 0,        rect.min.y),
-                             Point3(rect.max.x, height-1, rect.max.y),
-                             Terrain.SOIL))
-
-      region3:add_cube(Cube3(Point3(rect.min.x, height-1, rect.min.y),
-                             Point3(rect.max.x, height,   rect.max.y),
+      region3:add_cube(Cube3(Point3(rect.min.x, height-1,          rect.min.y),
+                             Point3(rect.max.x, height,            rect.max.y),
                              Terrain.GRASS))
    else
-      region3:add_cube(Cube3(Point3(rect.min.x, 0,        rect.min.y),
-                             Point3(rect.max.x, height,   rect.max.y),
-                             Terrain.SOIL))
+      region3:add_cube(Cube3(Point3(rect.min.x, plains_max_height, rect.min.y),
+                             Point3(rect.max.x, height,            rect.max.y),
+                             Terrain.SOIL_STRATA))
    end
 end
 
 function HeightMapRenderer:_add_plains_to_region(region3, rect, height)
-   local plains_min_height = self.terrain_info.min_height
+   local plains_max_height = self._terrain_info[TerrainType.plains].max_height
    local material
 
    region3:add_cube(Cube3(Point3(rect.min.x, 0,        rect.min.y),
                           Point3(rect.max.x, height-1, rect.max.y),
                           Terrain.SOIL))
 
-   if height == plains_min_height then
+   if height < plains_max_height then
       material = Terrain.DIRT
    else 
       material = Terrain.GRASS
@@ -200,10 +209,10 @@ function HeightMapRenderer.tesselator_test()
 
    region3_boxed:modify(function(region3)
       --region3:add_cube(Cube3(Point3(0, height-1, 0), Point3(16, height, 16), Terrain.GRASS))
-      --region3:add_cube(Cube3(Point3(16, height-1, 1), Point3(17, height, 15), Terrain.SOIL))
+      --region3:add_cube(Cube3(Point3(16, height-1, 1), Point3(17, height, 15), Terrain.SOIL_STRATA))
 
       region3:add_cube(Cube3(Point3(0, height-1, 0), Point3(256, height, 256), Terrain.GRASS))
-      --region3:add_cube(Cube3(Point3(256, height-1, 0), Point3(257, height, 256), Terrain.SOIL))
+      --region3:add_cube(Cube3(Point3(256, height-1, 0), Point3(257, height, 256), Terrain.SOIL_STRATA))
    end)
    terrain:add_tile(Point3(0, 0, 0), region3_boxed)
 end

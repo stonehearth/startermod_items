@@ -270,6 +270,20 @@ Cube<int, C> const& csg::ToInt(Cube<int, C> const& cube) {
    return cube;
 }
 
+template <class S, int C>
+bool Cube<S, C>::CombineWith(const Cube& cube)
+{
+   if (tag_ != cube.tag_) {
+      return false;
+   }
+   Cube together(*this);
+   together.Grow(cube);
+   if (together.GetArea() == GetArea() + cube.GetArea()) {
+      *this = together;
+      return true;
+   }
+   return false;
+}
 
 #define MAKE_CUBE(Cls) \
    template Cls::Cube(); \
@@ -287,12 +301,14 @@ Cube<int, C> const& csg::ToInt(Cube<int, C> const& cube) {
    template Cls::Point Cls::GetClosestPoint2(const Cls::Point& other, Cls::ScalarType*) const; \
    template void Cls::Grow(const Cls::Point& other); \
    template void Cls::Grow(const Cls& other); \
+   template bool Cls::CombineWith(const Cls& other); \
 
 MAKE_CUBE(Cube3)
 MAKE_CUBE(Cube3f)
 MAKE_CUBE(Rect2)
 MAKE_CUBE(Rect2f)
 MAKE_CUBE(Line1)
+
 
 #define DEFINE_CUBE_CONVERSIONS(C) \
    template Cube<float, C> csg::ToFloat(Cube<int, C> const&); \

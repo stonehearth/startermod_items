@@ -3,6 +3,8 @@
 
 #include "platform/utils.h"
 #include "lib/lua/bind.h"
+#include "om/error_browser/error_browser.h"
+#include "lib/perfmon/perfmon.h"
 
 class JSONNode;
 
@@ -19,6 +21,11 @@ public:
    luabind::object Require(std::string const& name);
    luabind::object RequireScript(std::string const& path);
    void GC(platform::timer &timer);
+   int GetAllocBytesCount() const;
+   void ClearMemoryProfile();
+   void ProfileMemory(bool value);
+   void WriteMemoryProfile(std::string const& filename) const;
+   void ComputeCounters(std::function<void(const char*, int, const char*)> const& addCounter) const;
 
    typedef std::function<luabind::object(lua_State* L, JSONNode const& json)> JsonToLuaFn;
    void AddJsonToLuaConverter(JsonToLuaFn fn);
@@ -27,6 +34,10 @@ public:
    JSONNode LuaToJson(luabind::object obj);
    void ReportCStackThreadException(lua_State* L, std::exception const& e);
    void ReportLuaStackException(std::string const& error, std::string const& traceback);
+   void Trigger(const std::string& eventName);
+
+   typedef std::function<void(::radiant::om::ErrorBrowser::Record const&)> ReportErrorCb;
+   void SetNotifyErrorCb(ReportErrorCb const& cb);
 
    template <typename T, typename A0, typename A1, typename A2, typename A3, typename A4>
    T CallFunction(A0 const& a0, A1 const& a1, A2 const& a2, A3 const& a3, A4 const& a4) {
@@ -71,8 +82,10 @@ public: // the static interface
 private:
    luabind::object ScriptHost::GetConfig(std::string const& flag);
    static void* LuaAllocFn(void *ud, void *ptr, size_t osize, size_t nsize);
+   static void LuaTrackLine(lua_State *L, lua_Debug *ar);
    void Log(const char* category, int level, const char* str);
    int GetLogLevel(std::string const& category);
+   uint GetRealTime();
    void ReportStackException(std::string const& category, std::string const& error, std::string const& traceback);
 
 private:
@@ -80,13 +93,26 @@ private:
    void OnError(std::string description);
    luabind::object GetManifest(std::string const& mod_name);
    luabind::object GetJson(std::string const& mod_name);
-
+   void SetPerformanceCounter(const char* name, int value, const char* kind);
+   
 private:
    lua_State*           L_;
    lua_State*           cb_thread_;
    std::map<std::string, luabind::object> required_;
    std::vector<JsonToLuaFn>   to_lua_converters_;
    bool                 filter_c_exceptions_;
+   bool                 enable_profile_memory_;
+   bool                 profile_memory_;
+   ReportErrorCb        error_cb_;
+   int                  bytes_allocated_;
+
+   char                 current_file[256];
+   int                  current_line;
+
+   typedef std::unordered_map<void*, int>          Allocations;
+   std::unordered_map<void *, std::string>         alloc_backmap;
+   std::unordered_map<std::string, Allocations>    alloc_map;
+   std::unordered_map<std::string, std::pair<int, std::string>>   performanceCounters_;
 };
 
 END_RADIANT_LUA_NAMESPACE

@@ -1,0 +1,28 @@
+{
+   "type" : "debuff",
+   
+   "name" : "Snared!",
+   "description" : "Trapped by a snare and unable to move",
+   "icon" : "file(snared_buff.png)",
+   "duration" : "2h",
+
+   "modifiers" : {
+      "speed" : {
+         "max" : 0
+      }
+   },
+
+   "effect" : "/stonehearth/data/effects/abilities/snare_trap",
+
+   "controller" : "file(snared_buff.lua)",
+
+   "injected_ai" : {
+      "actions" : [
+         "stonehearth:actions:compelled_behaviors:struggle"
+      ]
+   },
+
+   "tags" : [
+      "snared"
+   ]
+} 

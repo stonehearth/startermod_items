@@ -43,10 +43,9 @@ function CityPlanComponent:_init_fabricator(fabricator, blueprint)
       local name = tostring(blueprint)
       fabricator:add_component('stonehearth:fabricator')
                      :start_project(name, blueprint)
-                     :set_debug_color(Color4(255, 0, 0, 128))
       fabricator:add_component('render_info')
                      :set_material('materials/blueprint_gridlines.xml')
-                     :set_model_mode('opaque')
+                     --:set_model_mode('opaque')
    end
 end
 

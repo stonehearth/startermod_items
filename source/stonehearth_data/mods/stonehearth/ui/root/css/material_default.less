@@ -5,6 +5,7 @@
 
 button {
    .control;
+   background: #476248;
    border-width: 13px 10px 16px 10px;
    border-image: url(images/default/controls/button/normal_button_border.png) 13 10 16 10;
    padding: 10px;
@@ -13,6 +14,7 @@ button {
    &:hover {
       border-image: url(images/default/controls/button/hover_button_border.png) 13 10 16 10;
    };
+
 }
 
 button:disabled {
@@ -20,6 +22,16 @@ button:disabled {
    &:hover {
       border-image: url(images/default/controls/button/normal_button_border.png) 13 10 16 10;
    
+   }
+}
+
+button.flat {
+   background: #5d0000;
+   border-width: 6px 6px 14px 6px;
+   border-image: url(images/default/controls/button/flat_button_red.png) 6 6 14 6;
+
+   &:hover {
+      color: #ffe535;
    }
 }
 

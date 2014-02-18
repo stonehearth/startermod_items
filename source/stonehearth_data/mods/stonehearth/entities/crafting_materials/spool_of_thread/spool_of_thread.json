@@ -1,14 +1,14 @@
 {
-   "extends": "stonehearth:mixins:item_properties",
+   "mixins": "stonehearth:mixins:item_properties",
    "type": "entity",
    "components": {
-      "model_variants": [
-         {
+      "model_variants": {
+         "default": {
             "models": [
                "file(/entities/generic/default_object/default_object.qb)"
             ]
          }
-      ],
+      },
       "unit_info": {
          "name": "Spool of Thread",
          "description": "Nobody would ever think this started with a sheep. Or a plant.",

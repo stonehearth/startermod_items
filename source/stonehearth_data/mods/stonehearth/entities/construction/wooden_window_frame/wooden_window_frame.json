@@ -1,14 +1,14 @@
 {
-   "extends": "stonehearth:mixins:placed_properties",
+   "mixins": "stonehearth:mixins:placed_properties",
    "type": "entity",
    "components": {
-      "model_variants": [
-         {
+      "model_variants": {
+         "default": {
             "models": [
                "file(/entities/generic/default_object/default_object.qb)"
             ]
          }
-      ],
+      },
       "unit_info": {
          "name": "Wooden Window Frame",
          "description": "So much for privacy...",

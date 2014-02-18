@@ -11,9 +11,9 @@ class MapTraceWrapper : public std::enable_shared_from_this<MapTraceWrapper<T>>
 public:
    MapTraceWrapper(std::shared_ptr<T> trace);
 
-   std::shared_ptr<MapTraceWrapper<T>> OnDestroyed(lua_State* L, luabind::object destroyed_cb);
-   std::shared_ptr<MapTraceWrapper<T>> OnAdded(lua_State* L, luabind::object changed_cb);
-   std::shared_ptr<MapTraceWrapper<T>> OnRemoved(lua_State* L, luabind::object removed_cb);
+   std::shared_ptr<MapTraceWrapper<T>> OnDestroyed(luabind::object destroyed_cb);
+   std::shared_ptr<MapTraceWrapper<T>> OnAdded(luabind::object changed_cb);
+   std::shared_ptr<MapTraceWrapper<T>> OnRemoved(luabind::object removed_cb);
    std::shared_ptr<MapTraceWrapper<T>> PushObjectState();
    void Destroy();
 

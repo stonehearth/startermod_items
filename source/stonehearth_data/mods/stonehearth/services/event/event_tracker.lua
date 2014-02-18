@@ -1,4 +1,4 @@
-local event_service = require 'services.event.event_service'
+local event_service = stonehearth.events
 
 local EventTracker = class()
 

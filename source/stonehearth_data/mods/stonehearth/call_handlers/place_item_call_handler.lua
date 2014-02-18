@@ -34,9 +34,6 @@ function PlaceItemCallHandler:choose_place_item_location(session, response, targ
    local re = _radiant.client.create_render_entity(1, self._cursor_entity)
    self._cursor_entity:add_component('render_info')
       :set_material('materials/ghost_item.xml')
-      --TODO: Qubicle brush fails on qb files with multiple matrices.
-      --See this bug: http://bugs.radiant-entertainment.com:8080/browse/SH-38 
-      --:set_model_mode('blueprint')
 
    log:debug("created render entity")
 
@@ -129,9 +126,15 @@ end
 -- Server side object to handle creation of the workbench.  This is called
 -- by doing a POST to the route for this file specified in the manifest.
 function PlaceItemCallHandler:place_item_in_world(session, response, entity_id, full_sized_uri, location, rotation)
-   local task = self:_init_pickup_worker_task(session, full_sized_uri, location, rotation)
-   task:add_work_object(_radiant.sim.get_entity(entity_id))
-   task:start()
+   local location = Point3(location.x, location.y, location.z)
+   local item = radiant.entities.get_entity(entity_id)
+   if not item then
+      return false
+   end
+
+   local town = stonehearth.town:get_town(session.faction)
+   town:place_item_in_world(item, full_sized_uri, location, rotation)
+
    return true
 end
 
@@ -139,48 +142,12 @@ end
 -- server side object to handle creation of the workbench.  this is called
 -- by doing a POST to the route for this file specified in the manifest.
 function PlaceItemCallHandler:place_item_type_in_world(session, response, entity_uri, full_item_uri, location, rotation)
-   local task = self:_init_pickup_worker_task(session, full_item_uri, location, rotation)
-   local object_filter_fn = function(entity)
-      if entity:get_uri() == entity_uri then
-         return true
-      end
-      return false
-   end
-   task:set_work_object_filter_fn(object_filter_fn)
-   task:start()
+   local location = Point3(location.x, location.y, location.z)
+
+   local town = stonehearth.town:get_town(session.faction)
+   town:place_item_type_in_world(entity_uri, full_item_uri, location, rotation)
+   
    return true
-end
-
---- Init all the things common to the pickup_worker_task
--- does everything except set the target and start the task
-function PlaceItemCallHandler:_init_pickup_worker_task(session, full_sized_uri, coor_location, rotation)
-   --Place the ghost entity first
-   local location = Point3(coor_location.x, coor_location.y, coor_location.z)
-   local ghost_entity = radiant.entities.create_entity()
-   local ghost_entity_component = ghost_entity:add_component('stonehearth:ghost_item')
-   ghost_entity_component:set_object_data(full_sized_uri, location, rotation)
-   radiant.terrain.place_entity(ghost_entity, location)
-
-   --Summon the worker scheduler
-   local ws = radiant.mods.load('stonehearth').worker_scheduler
-   local worker_scheduler = ws:get_worker_scheduler(session.faction)
-
-   -- Make a task for picking up the object the user designated
-   -- Any worker that's not carrying anything will do...
-   local not_carrying_fn = function (worker)
-      return radiant.entities.get_carrying(worker) == nil
-   end
-
-   local pickup_item_task = worker_scheduler:add_worker_task('placing_item_task')
-                  :set_worker_filter_fn(not_carrying_fn)
-                  :set_priority(priorities.PLACE_ITEM)
-
-   pickup_item_task:set_action_fn(
-      function (path)
-         return 'stonehearth:place_item', path, ghost_entity, rotation, pickup_item_task
-      end
-   )
-   return pickup_item_task
 end
 
 

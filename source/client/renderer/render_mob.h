@@ -25,6 +25,7 @@ private:
 
 private:
    const RenderEntity&  entity_;
+   om::EntityRef        parent_;
    om::MobRef           mob_;
    core::Guard          show_debug_shape_guard_;
    core::Guard          renderer_guard_;

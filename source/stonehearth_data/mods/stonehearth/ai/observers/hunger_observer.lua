@@ -1,4 +1,4 @@
-local calendar = require 'services.calendar.calendar_service'
+local calendar = stonehearth.calendar
 local time_constants = radiant.resources.load_json('/stonehearth/services/calendar/calendar_constants.json')
 
 --[[
@@ -12,25 +12,41 @@ local time_constants = radiant.resources.load_json('/stonehearth/services/calend
    Note: When an attribute is first created, its value is 0
 ]]
 local HungerObserver = class()
-
-HungerObserver.does = 'stonehearth:top'
-HungerObserver.version = 1
-HungerObserver.priority = 0
+HungerObserver.version = 2
 
 function HungerObserver:__init(entity)
    self._entity = entity
    self._attributes_component = entity:add_component('stonehearth:attributes')
    radiant.events.listen(calendar, 'stonehearth:hourly', self, self.on_hourly)
+   radiant.events.listen(entity, 'stonehearth:attribute_changed:hunger', self, self._hunger_changed)
+end
+
+function HungerObserver:_hunger_changed()
+   local hunger = self._attributes_component:get_attribute('hunger')
+
+   local starving = hunger >= 120
+   local hungry = hunger >= 120
+
+   if starving and not self._showing_starving then
+      self._showing_starving = true
+      radiant.entities.add_buff(self._entity, 'stonehearth:buffs:starving')
+   elseif not starving and self._showing_starving then
+      self._showing_hungry = false
+      radiant.entities.remove_buff(self._entity, 'stonehearth:buffs:starving')
+   end
+   if hungry then
+      radiant.entities.think(self._entity, '/stonehearth/data/effects/thoughts/hungry')
+   else
+      radiant.entities.unthink(self._entity, '/stonehearth/data/effects/thoughts/hungry')
+   end
 end
 
 function HungerObserver:on_hourly(e)
-
    local hunger = self._attributes_component:get_attribute('hunger')
-   local hours_till_hungry = time_constants.hours_per_day
+   local hours_till_showing_hungry = time_constants.hours_per_day
 
    -- TODO consider slowing hunger while sleepy
-   hunger = hunger + (100/hours_till_hungry)
-
+   hunger = hunger + ( 100 / hours_till_showing_hungry)
    self._attributes_component:set_attribute('hunger', hunger)
 end
 

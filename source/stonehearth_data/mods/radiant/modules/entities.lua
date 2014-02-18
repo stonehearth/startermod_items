@@ -3,6 +3,7 @@ local singleton = {}
 
 local Point2 = _radiant.csg.Point2
 local Point3 = _radiant.csg.Point3
+local Entity = _radiant.om.Entity
 local log = radiant.log.create_logger('entities')
 
 function entities.__init()
@@ -17,20 +18,24 @@ function entities.create_entity(ref)
    if not ref or #ref == 0 then
       return _radiant.sim.create_empty_entity()
    end
-   return _radiant.sim.create_entity(ref)
+   local entity = _radiant.sim.create_entity(ref)
+   radiant.events.trigger(entity, 'stonehearth:entity_created', { entity = entity})
+   return entity
 end
 
 function entities.destroy_entity(entity)
-   radiant.check.is_entity(entity)
-   local id = entity:get_id()
-   local dtors = singleton._entity_dtors[id]
-   if dtors then
-      for _, dtor in ipairs(dtors) do
-         dtor()
+   if entity and entity:is_valid() then
+      radiant.check.is_entity(entity)
+      local id = entity:get_id()
+      local dtors = singleton._entity_dtors[id]
+      if dtors then
+         for _, dtor in ipairs(dtors) do
+            dtor()
+         end
+         singleton._entity_dtors[id] = nil
       end
-      singleton._entity_dtors[id] = nil
+      _radiant.sim.destroy_entity(entity)
    end
-   _radiant.sim.destroy_entity(entity)
 end
 
 function entities.add_child(parent, child, location)
@@ -143,14 +148,16 @@ end
 function entities.turn_to_face(entity, arg2)
    --local location = util:is_a(arg2, Entity) and singleton.get_world_grid_location(arg2) or arg2
    local location
-   if arg2.x == nil then
-      location = arg2:get_component('mob'):get_world_grid_location()
-   else
+   if radiant.util.is_a(arg2, Point3) then
       location = arg2
+   elseif radiant.util.is_a(arg2, Entity) then
+      location = entities.get_world_grid_location(arg2)
    end
 
-   radiant.check.is_entity(entity)
-   entity:add_component('mob'):turn_to_face_point(location)
+   if location then
+      radiant.check.is_entity(entity)
+      entity:add_component('mob'):turn_to_face_point(location)
+   end
 end
 
 function entities.think(entity, uri, priority)
@@ -292,7 +299,7 @@ function entities.set_attribute(entity, attribute_name, value)
 end
 
 function entities.add_buff(entity, buff_name)
-   entity:add_component('stonehearth:buffs'):add_buff(buff_name)
+   return entity:add_component('stonehearth:buffs'):add_buff(buff_name)
 end
 
 function entities.remove_buff(entity, buff_name)
@@ -351,9 +358,18 @@ function entities.drop_carrying_on_ground(entity, location)
    end
    radiant.check.is_a(location, Point3)
 
-   local item = entities._remove_carrying(entity)
+   local item = entities.remove_carrying(entity)
    if item then
       radiant.terrain.place_entity(item, location)
+   end
+end
+
+function entities.put_carrying_into_entity(entity, target)
+   radiant.check.is_entity(entity)
+
+   local item = entities.remove_carrying(entity)
+   if item then
+      entities.add_child(target, item)
    end
 end
 
@@ -367,18 +383,28 @@ function entities.consume_carrying(entity)
    local item = entities.get_carrying(entity)
    if item then
       local item_component = item:get_component('item')
-      if item_component and item_component:get_stacks() > 0 then
+      if item_component and item_component:get_stacks() > 1 then
          local stacks = item_component:get_stacks() - 1
          item_component:set_stacks(stacks)
          return item
       end
    end
 
-   local item = entities._remove_carrying(entity)
+   local item = entities.remove_carrying(entity)
    if item then
       entities.destroy_entity(item)
    end
    return nil
+end
+
+function entities.consume_stack(item)
+   local item_component = item:get_component('item')
+   if item_component and item_component:get_stacks() > 1 then
+      local stacks = item_component:get_stacks() - 1
+      item_component:set_stacks(stacks)
+      return item
+   end
+   entities.destroy_entity(item)
 end
 
 function entities.increment_carrying(entity)
@@ -407,7 +433,7 @@ function entities.put_carrying_in_entity(entity, target, location)
    if not target_loc then
       target_loc = Point3(0,0,0)
    end
-   local item = entities._remove_carrying(entity)
+   local item = entities.remove_carrying(entity)
    if item then
       entities.add_child(target, item, target_loc)
    end
@@ -416,7 +442,7 @@ end
 --- Helper for the drop functions.
 -- Determines the carried item from the entity
 -- @param entity The entity that is carrying the droppable item
-function entities._remove_carrying(entity)
+function entities.remove_carrying(entity)
    local carry_block = entity:get_component('stonehearth:carry_block')
    if carry_block then
       local item = carry_block:get_carrying()
@@ -436,16 +462,20 @@ end
    location: the target location
    returns: true if the entity is adjacent to the specified ocation
 ]]
-function entities.is_adjacent_to(entity, location)
-   -- xxx: this style doesn't work until we fix util:is_a().
-   --local point_a = util:is_a(arg1, Entity) and singleton.get_world_grid_location(arg1) or arg1
-   --local point_b = util:is_a(arg2, Entity) and singleton.get_world_grid_location(arg2) or arg2
-   local point_a = entities.get_world_grid_location(entity)
-   local point_b = location
-
-   radiant.check.is_a(point_a, Point3)
-   radiant.check.is_a(point_b, Point3)
-   return point_a:is_adjacent_to(point_b)
+function entities.is_adjacent_to(subject, target)
+   if radiant.util.is_a(subject, Entity) then
+      subject = entities.get_world_grid_location(subject)
+   end
+   if radiant.util.is_a(target, Entity) then
+      local destination = target:get_component('destination')
+      if destination then
+         return entities.point_in_destination_adjacent(target, subject)
+      end
+      target = entities.get_world_grid_location(target)
+   end
+   radiant.check.is_a(subject, Point3)
+   radiant.check.is_a(target, Point3)
+   return subject:is_adjacent_to(target)
 end
 
 
@@ -488,14 +518,8 @@ function entities.compare_attribute(entity_a, entity_b, attribute)
 end
 
 function entities.is_hostile(entity_a, entity_b)
-   -- xxx: this check shouldn't be in the generic "is_hostile" function.  what
-   -- happens when we add things that aren't made of meat? (e.g. robots?)
-   local material = entity_b:get_component('stonehearth:material')
-   if not material or not material:is('meat') then
-      return false
-   end
-   local faction_a = entity_a:add_component('unit_info'):get_faction()
-   local faction_b = entity_b:add_component('unit_info'):get_faction()
+   local faction_a = radiant.entities.get_faction(entity_a)
+   local faction_b = radiant.entities.get_faction(entity_b)
 
    return faction_a and faction_b and
           faction_a ~= '' and faction_b ~= '' and
@@ -542,6 +566,10 @@ function entities.point_in_destination_adjacent(entity, pt)
 end
 
 function entities.is_material(entity, materials)
+   if not entity or not entity:is_valid() then
+      return false
+   end
+   
    radiant.check.is_entity(entity)
    local is_material = false
    local material_component = entity:get_component('stonehearth:material')
@@ -549,6 +577,10 @@ function entities.is_material(entity, materials)
       is_material = material_component:is(materials)
    end
    return is_material
+end
+
+function entities.same_entity(e0, e1)
+   return e0 and e1 and e0:is_valid() and e1:is_valid() and e0:equals(e1)
 end
 
 entities.__init()

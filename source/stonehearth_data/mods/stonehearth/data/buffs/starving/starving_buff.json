@@ -3,6 +3,7 @@
    
    "name" : "Starving",
    "description" : "Starving citizen needs food badly!",
+   "short_description" : "20%",
    "icon" : "file(starving_buff.png)",
 
    "modifiers" : {
@@ -17,7 +18,6 @@
       ]
    },
 
-   "effect" : "stonehearth:effects:whatever",
    "tags" : [
       "hungry"
    ]

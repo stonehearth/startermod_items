@@ -1,9 +1,9 @@
 {
-   "extends": "stonehearth:mixins:tree", 
+   "mixins": "stonehearth:mixins:tree", 
    "type": "entity", 
    "components": {
-      "model_variants": [
-         {
+      "model_variants": {
+         "default": {
             "models": [
                {
                   "type": "one_of",
@@ -13,7 +13,7 @@
                }
             ]
          }
-      ], 
+      }, 
       "unit_info": {
          "name": "Small Juniper Tree", 
          "description": "Just a sapling."

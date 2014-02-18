@@ -3,7 +3,7 @@
    how many you have of a certain object. 
 ]]
 
-local inventory_service = require 'services.inventory.inventory_service'
+local inventory_service = stonehearth.inventory
 
 local QuantityTracker = class()
 

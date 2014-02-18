@@ -19,7 +19,7 @@ void ErrorBrowser::AddRecord(ErrorBrowser::Record const& r)
    JSONNode n = r.GetNode();
    n.push_back(JSONNode("id", stdutil::ToString(next_record_id_++)));
 
-   auto entry = GetStore().AllocObject<dm::Boxed<json::Node>>();
+   auto entry = GetStore().AllocObject<JsonBoxed>();
    entry->Set(n);
    entries_.Add(entry);
 }

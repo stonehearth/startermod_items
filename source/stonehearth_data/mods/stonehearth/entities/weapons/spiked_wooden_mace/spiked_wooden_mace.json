@@ -13,13 +13,13 @@
       "item": {
          "stacks": 1
       }, 
-      "model_variants": [
-         {
+      "model_variants": {
+         "default": {
             "models": [
                "file(spiked_wooden_mace.qb)"
             ]
          }
-      ], 
+      }, 
       "unit_info": {
          "name": "Spiked Wooden Mace", 
          "description": "Nasty, pointy spikes"

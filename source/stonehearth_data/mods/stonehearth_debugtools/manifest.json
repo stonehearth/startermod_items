@@ -3,21 +3,36 @@
       "name" : "Stonehearth Debug Tools"
    },
 
+   "mixintos_" : {
+      "stonehearth:mixins:base_human" : [
+         "file(mixintos/interrupt_ai)"
+      ]
+   },
+
    "ui" :  {
       "html" : [
+         "file(/ui/entity_inspector/entity_inspector.html)",
          "file(/ui/object_browser/object_browser.html)",
-         "file(/ui/error_browser/error_browser.html)",
-         "file(/ui/error_dialog/error_dialog.html)"
+         "file(/ui/perfmon/perfmon.html)"
       ],
       "js" : [
+         "file(ui/debug_dock/debug_dock.js)",      
+         "file(/ui/entity_inspector/entity_inspector.js)",
          "file(/ui/object_browser/object_browser.js)",
-         "file(/ui/error_browser/error_browser.js)",
-         "file(/ui/error_dialog/error_dialog.js)"
+         "file(/ui/perfmon/perfmon.js)"
       ],
       "less" : [
+         "file(ui/debug_dock/debug_dock.less)",      
+         "file(/ui/entity_inspector/entity_inspector.less)",
          "file(/ui/object_browser/object_browser.less)",
-         "file(/ui/error_browser/error_browser.less)",
-         "file(/ui/error_dialog/error_dialog.less)"
+         "file(/ui/perfmon/perfmon.less)"
       ]
+   },
+
+   "functions" : {
+      "interrupt_ai": {
+         "controller" : "file(call_handlers/debugtools_commands.lua)",
+         "endpoint" : "server"
+      }
    }
 }

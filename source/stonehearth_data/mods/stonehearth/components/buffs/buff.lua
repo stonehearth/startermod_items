@@ -12,8 +12,24 @@ function Buff:_set_info(uri)
    end
 end
 
+function Buff:get_controller()
+   if not self._controller then      
+      local controller = self.controller
+      if controller then
+         -- instantiate the controller and return it
+         local controller_script = radiant.mods.load_script(controller)
+         self._controller = controller_script()
+      end
+   end
+   return self._controller
+end
+
 function Buff:get_type()
    return self.type
+end
+
+function Buff:get_effect()
+   return self.effect
 end
 
 function Buff:get_modifiers()

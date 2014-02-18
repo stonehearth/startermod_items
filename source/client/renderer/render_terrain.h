@@ -44,16 +44,29 @@ private:
    };
 
 private:
-   struct RenderTile {
+   class RenderTile {
+   public:
       csg::Point3                location;
       om::Region3BoxedRef        region;
-      H3DNodeUnique              node;
       dm::TracePtr               trace;
 
       RenderTile() { }
-      void Reset() {
-         node.reset(0);
+      ~RenderTile() {
+         if (_node) {
+            h3dRemoveNode(_node);
+            _node = 0;
+         }
       }
+
+      void SetNode(H3DNode n) {
+         if (_node) {
+            h3dRemoveNode(_node);
+         }
+         _node = n;
+      }
+
+   private:
+      H3DNode                    _node;
    };
    DECLARE_SHARED_POINTER_TYPES(RenderTile)
 

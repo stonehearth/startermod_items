@@ -96,12 +96,12 @@ if [ ! -z $STAGE_BIN ]; then
    echo Copying lua binaries
 
    # vanilla lua. no jit.  no fun.
-   LUA_ROOT=$STONEHEARTH_ROOT/modules/lua/package/lua
+   LUA_ROOT=$STONEHEARTH_ROOT/modules/lua/package/lua-5.1.5-coco
    cp -u $LUA_ROOT/solutions/$MODULE_BUILD_TYPE/lua-5.1.5.dll $OUTPUT_DIR
 
    # luajit up in here! party time!!
-   # LUA_ROOT=$STONEHEARTH_ROOT/modules/luajit/src
-   # cp -u $LUA_ROOT/lua51${MODULE_BUILD_SUFFIX}.dll $OUTPUT_DIR
+   #LUA_ROOT=$STONEHEARTH_ROOT/modules/luajit/src
+   #cp -u $LUA_ROOT/lua51${MODULE_BUILD_SUFFIX}.dll $OUTPUT_DIR
 
    echo Copying chromium embedded
    CHROMIUM_ROOT=$STONEHEARTH_ROOT/modules/chromium-embedded/package/cef_binary_3.1547.1412_windows32
@@ -151,6 +151,10 @@ function compile_lua_and_package_module
    for infile in $(find $MOD_NAME -type f -name '*.lua'); do
      OUTFILE=${infile}c
      $LUA_BIN_ROOT/luac.exe -o $OUTFILE $infile
+     if [ $? -ne 0 ]; then
+       echo "luac failed to compile $infile"
+       exit 1
+     fi
      rm -f $infile
    done
 
@@ -165,7 +169,7 @@ function compile_lua_and_package_module
 
 if [ ! -z $STAGE_DATA ]; then
    DATA_ROOT=$STONEHEARTH_ROOT/source/stonehearth_data
-   LUA_BIN_ROOT=$STONEHEARTH_ROOT/modules/lua/package/lua/solutions/release
+   LUA_BIN_ROOT=$STONEHEARTH_ROOT/modules/lua/package/lua-5.1.5-coco/solutions/release
 
    pushd $DATA_ROOT > /dev/null
    find . -maxdepth 1 -type f  \

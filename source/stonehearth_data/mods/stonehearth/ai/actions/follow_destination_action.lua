@@ -11,7 +11,8 @@ function FollowDestination:run(ai, entity, path, effect_name)
    if speed == nil then
       speed = 1.0
    else 
-      speed = speed / 100
+      --Note: Speed is between 10 and 60, normalize to be between 0 and 1
+      speed = math.floor(80 + (20 * speed / 60)) / 100
    end
 
    if not effect_name then

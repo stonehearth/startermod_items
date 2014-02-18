@@ -22,11 +22,6 @@ function gamestate.get_player()
    }
 end
 
-function gamestate._increment_clock(interval)
-   local now = gamestate.now() + interval
-   singleton._clock:set_time(now)
-end
-
 function gamestate.now()
    return singleton._clock:get_time()
 end

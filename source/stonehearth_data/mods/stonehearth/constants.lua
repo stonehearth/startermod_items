@@ -21,24 +21,46 @@ local constants = {
       },
 
       -- Priorities for basic needs
-      -- TODO: integrate sleep
-      needs = {
-         BARELY_HUNGRY = 3,
-         HUNGRY = 6,
-         REALLY_HUNGRY = 10
+      top = {
+         ADMIRE_FIRE = 2,
+         WORK = 10,
+         CRAFT = 10,
+         EAT = 20,
+         GENERIC_TASK_PRIORITY = 30,
+         SLEEP = 40,
+         UNIT_CONTROL = 1000,
+         COMPELLED_BEHAVIOR = 9999999,
+      },
+
+      -- Priorites of commands issued by the player to a unit
+      unit_control = {
+         MOVE = 2,
+         DEFAULT = 10,
+         CAST_SPELL = 100
+      },
+
+      compelled_behavior = {
+         STRUGGLE = 4
       }
    },
-
+   
    -- Constants related to constructing buildings
    construction = {
       STOREY_HEIGHT = 6,
       MAX_WALL_SPAN = 8,
    },
 
+
    -- Constants for the worker scheduler tasks
    worker_scheduler = {
       -- The number of ticks to wait before picking the best solution to dispatch
       DISPATCHER_WAIT_TIME = 3,
+   },
+
+   input = {
+      mouse = {
+         dead_zone_size = 4
+      }
    }
 }
 

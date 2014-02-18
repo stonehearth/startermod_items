@@ -2,11 +2,13 @@
    "ok" : "OK",
    "cancel" : "Cancel",
    "hotkey" : "hot key: ",
+   "loading" : "Loading...",
 
    "title_screen_exit": "exit",
    "title_screen_settings": "settings",
    "title_screen_credits": "credits",
    "title_screen_new_game": "New Game",
+   "title_screen_quick_start": "Quick Start",
    "title_screen_load_game": "Load Game",
 
    "opt_title" : "Help us make Stonehearth better!",
@@ -32,7 +34,6 @@
    "settings_shadow_4" : "a lot",
    "settings_shadow_5" : "a whole lot!",
 
-
    "settings_aa_slider_0" : "off",
    "settings_aa_slider_1" : "a little",
    "settings_aa_slider_2" : "a little more",
@@ -49,6 +50,36 @@
    "new_game_place_banner" : "Click me to place your banner",
    "new_game_place_stockpile" : "Click me to place your stockpile",
    "new_game_setup_finished_button" : "Ok, got it",
+
+   "plains_1"    : "Plains",
+   "plains_2"    : "Plains",
+   "foothills_1" : "Foothills",
+   "foothills_2" : "Foothills",
+   "mountains_1" : "Mountains",
+   "mountains_2" : "Mountains",
+   "mountains_3" : "Mountains",
+   "mountains_4" : "Mountain Peak",
+   "mountains_5" : "Mountain Peak",
+   "mountains_6" : "Mountain Peak",
+   "mountains_7" : "Mountain Peak",
+
+   "vegetation_0" : "Nary a weed",
+   "vegetation_1" : "Sparse",
+   "vegetation_2" : "Average",
+   "vegetation_3" : "Dense",
+   "vegetation_4" : "Lush",
+   "vegetation_5" : "Ridiculously Lush",
+
+   "wildlife_0": "Desolate",
+   "wildlife_1": "Scarce",
+   "wildlife_2": "Common",
+   "wildlife_3": "Plentiful",
+   "wildlife_4": "Abundant",
+
+   "embark_title" : "Click the map to choose your settlement's location",
+   "embark_at_this_location" : "Embark here!",
+   "embark_clear_selection" : "Choose another location",
+   "embark_regenerate_map" : "Roll new map",
 
    "loading_map": "Generating World",
    "loading_map_1": "sharpening right angles...",
@@ -159,6 +190,16 @@
    "lovable_rogue" : "Loveable Rogue",
    "psychopathic_misanthrope" : "Psychopathic Misanthrope",
    "insufferable_academic" : "Insufferable Academic",
-   "diligent_sweetheart" : "Diligent Sweetheart"
+   "diligent_sweetheart" : "Diligent Sweetheart",
+
+   "diligence_attribute" : "Diligence", 
+   "curiosity_attribute" : "Curiosity",
+   "inventiveness_attribute" : "Inventiveness", 
+   "muscle_attribute" : "Muscle",
+   "speed_attribute" : "Speed",
+   "stamina_attribute" : "Stamina",
+   "courage_attribute" : "Courage",
+   "willpower_attribute" : "Willpower",
+   "compassion_attribute" : "Compassion"
 }
 

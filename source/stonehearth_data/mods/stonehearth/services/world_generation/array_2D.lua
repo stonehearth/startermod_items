@@ -1,3 +1,5 @@
+local MathFns = require 'services.world_generation.math.math_fns'
+
 local Array2D = class()
 local log = radiant.log.create_logger('world_generation')
 
@@ -7,47 +9,122 @@ function Array2D:__init(width, height)
 end
 
 function Array2D:get(x, y)
+   --assert(self:in_bounds(x, y))
    return self[self:get_offset(x,y)]
 end
 
 function Array2D:set(x, y, value)
+   --assert(self:in_bounds(x, y))
    self[self:get_offset(x,y)] = value
 end
 
 function Array2D:get_offset(x, y)
+   --assert(self:in_bounds(x, y))
    return (y-1)*self.width + x
 end
 
+function Array2D:get_dimensions()
+   return self.width, self.height
+end
+
 function Array2D:is_boundary(x, y)
-   if x == 1 or y == 1 then return true end
-   if x == self.width or y == self.height then return true end
+   if x == 1 or y == 1 then
+      return true
+   end
+
+   if x == self.width or y == self.height then
+      return true
+   end
+
    return false
 end
 
 function Array2D:in_bounds(x, y)
    if x < 1 or y < 1 or
-      x > self.width or y > self.width then
+      x > self.width or y > self.height then
       return false
    end
    return true
 end
 
 function Array2D:bound(x, y)
-   if x < 1 then x = 1
-   elseif x > self.width then x = self.width
+   if x < 1 then
+      x = 1
+   elseif x > self.width then
+      x = self.width
    end
 
-   if y < 1 then y = 1
-   elseif y > self.height then y = self.height
+   if y < 1 then
+      y = 1
+   elseif y > self.height then
+      y = self.height
    end
 
    return x, y
 end
 
+-- return 0 width/height for non-intersecting block
+function Array2D:bound_block(x, y, width, height)
+   -- x1, y1 is inclusve
+   local x1 = MathFns.bound(x, 1, self.width+1)
+   local y1 = MathFns.bound(y, 1, self.height+1)
+
+   -- x2, y2 is exclusive
+   local x2 = MathFns.bound(x+width, 1, self.width+1)
+   local y2 = MathFns.bound(y+height, 1, self.height+1)
+
+   local new_width = x2 - x1
+   local new_height = y2 - y1
+
+   return x1, y1, new_width, new_height
+end
+
+function Array2D:block_in_bounds(x, y, width, height)
+   if not self:in_bounds(x, y) then
+      return false
+   end
+
+   local x2 = x + width-1
+   local y2 = y + height-1
+
+   local result = self:in_bounds(x2, y2)
+   return result
+end
+
+-- does not test diagonals
+function Array2D:is_adjacent_to(value, x, y)
+   local offset = self:get_offset(x, y)
+
+   if x > 1 then
+      if value == self[offset-1] then
+         return true
+      end
+   end
+
+   if y > 1 then 
+      if value == self[offset-width] then
+         return true
+      end
+   end
+
+   if x < self.width then
+      if value == self[offset+1] then
+         return true
+      end
+   end
+
+   if y < self.height then
+      if value == self[offset+width] then
+         return true
+      end
+   end
+
+   return false
+end
+
 function Array2D:clone()
    local dst = Array2D(self.width, self.height)
    local size = self.width * self.height
-   local i
 
    for i=1, size do
       dst[i] = self[i]
@@ -73,15 +150,9 @@ function Array2D:clone_to_nested_arrays()
    return dst
 end
 
-function Array2D:clear(value)
-   local function fn() return value end
-   self:process_map(fn)
-end
+function Array2D:fill_ij(fn)
+   local offset = 1
 
-function Array2D:fill(fn)
-   local i, j, offset
-
-   offset = 1
    for j=1, self.height do
       for i=1, self.width do
          self[offset] = fn(i, j)
@@ -90,13 +161,21 @@ function Array2D:fill(fn)
    end
 end
 
+-- don't rename to set(value), will overwrite set(x, y, value)
+function Array2D:clear(value)
+   local size = self.width * self.height
+
+   for i=1, size do
+      self[i] = value
+   end
+end
+
 function Array2D:set_block(x, y, block_width, block_height, value)
    local function fn() return value end
    self:process_block(x, y, block_width, block_height, fn)
 end
 
-function Array2D:process_map(fn)
-   local i
+function Array2D:process(fn)
    local size = self.width * self.height
 
    for i=1, size do
@@ -105,7 +184,7 @@ function Array2D:process_map(fn)
 end
 
 function Array2D:process_block(x, y, block_width, block_height, fn)
-   local i, j, index
+   local index
    local offset = self:get_offset(x, y)-1
 
    for j=1, block_height do
@@ -117,10 +196,10 @@ function Array2D:process_block(x, y, block_width, block_height, fn)
    end
 end
 
--- terminates early if fn(x) returns false on an element
 -- returns true if fn(x) returns true for all elements, false otherwise
+-- terminates early if fn(x) returns false on an element
 function Array2D:visit_block(x, y, block_width, block_height, fn)
-   local i, j, index, continue
+   local index, continue
    local offset = self:get_offset(x, y)-1
 
    for j=1, block_height do
@@ -136,9 +215,17 @@ function Array2D:visit_block(x, y, block_width, block_height, fn)
    return true
 end
 
+function Array2D:load(array)
+   local size = self.width * self.height
+
+   for i=1, size do
+      self[i] = array[i]
+   end
+end
+
 function Array2D:print(format_string)
-   if format_string == nil then format_string = '%6.1f' end
-   local i, j, str
+   if format_string == nil then format_string = '%5.1f' end
+   local str
 
    for j=1, self.height do
       str = ''
@@ -152,7 +239,6 @@ end
 ----- Static functions -----
 
 function Array2D.copy_block(dst, src, dstx, dsty, srcx, srcy, block_width, block_height)
-   local i, j
    local dst_offset = dst:get_offset(dstx, dsty)-1
    local src_offset = src:get_offset(srcx, srcy)-1
 
@@ -166,7 +252,6 @@ function Array2D.copy_block(dst, src, dstx, dsty, srcx, srcy, block_width, block
 end
 
 function Array2D.copy_vector(dst, src, dst_start, dst_inc, src_start, src_inc, length)
-   local i
    local x = src_start
    local y = dst_start
 

@@ -2,6 +2,7 @@ local TerrainType = require 'services.world_generation.terrain_type'
 local TerrainInfo = require 'services.world_generation.terrain_info'
 local Array2D = require 'services.world_generation.array_2D'
 local MathFns = require 'services.world_generation.math.math_fns'
+local FilterFns = require 'services.world_generation.filter.filter_fns'
 local InverseGaussianRandom = require 'services.world_generation.math.inverse_gaussian_random'
 local TerrainDetailer = class()
 
@@ -10,19 +11,31 @@ function TerrainDetailer:__init(terrain_info, tile_width, tile_height, rng)
    self._terrain_info = terrain_info
    self._tile_width = tile_width
    self._tile_height = tile_height
-   self.detail_seed_probability = 0.10
-   self.detail_grow_probability = 0.85
-   self.edge_threshold = 4
+   self._detail_seed_probability = 0.10
+   self._detail_grow_probability = 0.85
+   self._edge_threshold = 4
    self._rng = rng
    self._inverse_gaussian_random = InverseGaussianRandom(self._rng)
 
    self._edge_map_buffer = Array2D(self._tile_width, self._tile_height)
 end
 
+local function _angle_to_xy(angle)
+   if angle ==   0 then return  1,  0 end
+   if angle ==  90 then return  0,  1 end
+   if angle == 180 then return -1,  0 end
+   if angle == 270 then return  0, -1 end
+   return nil, nil
+end
+
+local function _rotate_90(x, y)
+   return -y, x
+end
+
 function TerrainDetailer:add_detail_blocks(tile_map)
    local rng = self._rng
-   local i, j, edge
-   local edge_threshold = self.edge_threshold
+   local edge
+   local edge_threshold = self._edge_threshold
    local edge_map = self._edge_map_buffer
    local detail_seeds = {}
    local num_seeds = 0
@@ -33,7 +46,7 @@ function TerrainDetailer:add_detail_blocks(tile_map)
          edge_map:set(i, j, edge)
 
          if edge then
-            if rng:get_real(0, 1) < self.detail_seed_probability then
+            if rng:get_real(0, 1) < self._detail_seed_probability then
                num_seeds = num_seeds + 1
                -- use a lua type instead of a C type so luajit can extremely agressively optimze it.
                detail_seeds[num_seeds] = { x = i, y = j }
@@ -63,8 +76,7 @@ function TerrainDetailer:_grow_seed(tile_map, edge_map, x, y)
    tile_map:set(x, y, base_height+detail_height)
    edge_map:set(x, y, false)
 
-   i = x
-   j = y
+   i, j = x, y
    while true do
       -- grow left
       i = i - 1
@@ -73,8 +85,7 @@ function TerrainDetailer:_grow_seed(tile_map, edge_map, x, y)
       if not continue then break end
    end
 
-   i = x
-   j = y
+   i, j = x, y
    while true do
       -- grow right
       i = i + 1
@@ -83,8 +94,7 @@ function TerrainDetailer:_grow_seed(tile_map, edge_map, x, y)
       if not continue then break end
    end
 
-   i = x
-   j = y
+   i, j = x, y
    while true do
       -- grow up
       j = j - 1
@@ -93,8 +103,7 @@ function TerrainDetailer:_grow_seed(tile_map, edge_map, x, y)
       if not continue then break end
    end
 
-   i = x
-   j = y
+   i, j = x, y
    while true do
       -- grow down
       j = j + 1
@@ -131,7 +140,7 @@ function TerrainDetailer:_try_grow(tile_map, edge_map, x, y, detail_height)
 
    edge = edge_map:get(x, y)
    if edge == false then return false end
-   if rng:get_real(0, 1) >= self.detail_grow_probability then return false end
+   if rng:get_real(0, 1) >= self._detail_grow_probability then return false end
 
    if edge < detail_height then detail_height = edge end
 
@@ -185,10 +194,9 @@ end
 -- ok since this will change anyway if plains are quantized differently
 function TerrainDetailer:add_plains_details(tile_map)
    local edge_threshold = 2
-   local i, j
 
-   for j=1, tile_map.width do
-      for i=1, tile_map.height do
+   for j=1, tile_map.height do
+      for i=1, tile_map.width do
          if self:_is_plains_edge(tile_map, i, j, edge_threshold) then
             local offset = tile_map:get_offset(i, j)
             tile_map[offset] = tile_map[offset] + 1
@@ -230,7 +238,7 @@ end
 
 function TerrainDetailer:remove_mountain_chunks(tile_map, micro_map)
    local rng = self._rng
-   local chunk_probability = 0.5
+   local chunk_probability = 0.4
    local foothills_max_height = self._terrain_info[TerrainType.foothills].max_height
    local height, removed
 
@@ -257,22 +265,11 @@ function TerrainDetailer:remove_mountain_chunks(tile_map, micro_map)
    end
 end
 
-function _angle_to_xy(angle)
-   if angle ==   0 then return  1,  0 end
-   if angle ==  90 then return  0,  1 end
-   if angle == 180 then return -1,  0 end
-   if angle == 270 then return  0, -1 end
-   return nil, nil
-end
-
-function _rotate_90(x, y)
-   return -y, x
-end
-
 function TerrainDetailer:_remove_chunk(tile_map, micro_map, x, y, dx, dy)
    local mountains_step_size = self._terrain_info[TerrainType.mountains].step_size
+   local macro_block_size = self._terrain_info.macro_block_size
    local height, adj_height
-   local macro_block_size, macro_block_x, macro_block_y, chunk_x, chunk_y
+   local macro_block_x, macro_block_y, chunk_x, chunk_y
    local chunk_length, chunk_offset, chunk_depth
 
    height = micro_map:get(x, y)
@@ -287,7 +284,6 @@ function TerrainDetailer:_remove_chunk(tile_map, micro_map, x, y, dx, dy)
       end
    end
 
-   macro_block_size = tile_map.width / micro_map.width
    macro_block_x = (x-1)*macro_block_size+1
    macro_block_y = (y-1)*macro_block_size+1
 
@@ -336,7 +332,7 @@ end
 function TerrainDetailer:_generate_chunk_length_and_offset(macro_block_size)
    local rng = self._rng
    local quarter_macro_block_size = macro_block_size * 0.25
-   local chunk_length = quarter_macro_block_size * rng:get_int(1, 4)
+   local chunk_length = quarter_macro_block_size * rng:get_int(2, 4)
    local chunk_offset = (macro_block_size - chunk_length) * rng:get_int(0, 1)
    return chunk_length, chunk_offset
 end

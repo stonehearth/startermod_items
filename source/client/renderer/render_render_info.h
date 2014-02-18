@@ -8,6 +8,8 @@
 #include "h3d_resource_types.h"
 #include "render_component.h"
 #include "om/components/render_info.ridl.h"
+#include "om/components/model_layer.ridl.h"
+#include "om/components/model_variants.ridl.h"
 #include "lib/voxel/forward_defines.h"
 
 BEGIN_RADIANT_CLIENT_NAMESPACE
@@ -30,22 +32,18 @@ private:
       SCALE_DIRTY            = (1 << 2)
    };
 
+   typedef std::vector<voxel::QubicleMatrix const*> MatrixVector;
    struct ModelMapEntry {
-      ModelMapEntry() {
-         for (int i = 0; i < om::ModelLayer::NUM_LAYERS; i++) {
-            layers[i] = nullptr;
-         }
-      }
-      voxel::QubicleMatrix const* layers[om::ModelLayer::NUM_LAYERS];
+      MatrixVector layers[om::ModelLayer::NUM_LAYERS];
    };
    typedef std::unordered_map<std::string, ModelMapEntry> ModelMap;
-   typedef std::unordered_map<std::string, voxel::QubicleMatrix const*> FlatModelMap;
+   typedef std::unordered_map<std::string, MatrixVector> FlatModelMap;
 
    struct NodeMapEntry {
-      NodeMapEntry() : matrix(nullptr), node(0) { }
-      NodeMapEntry(voxel::QubicleMatrix const* m, H3DNodeUnique n) : matrix(m), node(n) { }
+      NodeMapEntry() : node(0) { }
+      NodeMapEntry(MatrixVector const& v, H3DNodeUnique n) : matrices(v), node(n) { }
 
-      voxel::QubicleMatrix const* matrix;
+      MatrixVector         matrices;
       H3DNodeUnique        node;
    };
 
@@ -54,14 +52,14 @@ private:
    typedef std::unordered_map<std::string, csg::Point3f> BoneOffsetMap;
 
 private:
-   void AccumulateModelVariant(ModelMap& m, om::ModelLayerPtr v);
+   void AccumulateModelVariant(ModelMap& m, om::ModelLayerPtr layer);
    void AccumulateModelVariants(ModelMap& m, om::ModelVariantsPtr model_variants, std::string const& current_variant);
    void RebuildModels(om::RenderInfoPtr render_info);
    void CheckMaterial(om::RenderInfoPtr render_info);
    void FlattenModelMap(ModelMap& m, FlatModelMap& flattened);
    void RemoveObsoleteNodes(FlatModelMap const& m);
    std::string GetBoneName(std::string const& matrix_name);
-   void AddModelNode(om::RenderInfoPtr render_info, std::string const& bone, voxel::QubicleMatrix const* matrix, float offset);
+   void AddModelNode(om::RenderInfoPtr render_info, std::string const& bone, MatrixVector const& matrices, float offset);
    void AddMissingNodes(om::RenderInfoPtr render_info, FlatModelMap const& m);
    void RebuildBoneOffsets(om::RenderInfoPtr render_info);
    void UpdateNextFrame();
@@ -79,13 +77,11 @@ private:
    dm::TracePtr            model_variant_trace_;
    dm::TracePtr            attached_trace_;
    dm::TracePtr            material_trace_;
-   dm::TracePtr            mode_trace_;
    NodeMap                 nodes_;
    BoneOffsetMap           bones_offsets_;
    std::string             model_variant_override_;
    H3DResUnique            material_;
    std::string             material_path_;
-   std::string             model_mode_;
    bool                    use_model_variant_override_;
 };
 

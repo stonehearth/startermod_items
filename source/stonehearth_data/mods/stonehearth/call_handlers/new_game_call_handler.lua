@@ -1,21 +1,39 @@
 local NewGameCallHandler = class()
 local game_master = require 'services.game_master.game_master_service'
-local personality_service = require 'services.personality.personality_service'
+local personality_service = stonehearth.personality
+local BlueprintGenerator = require 'services.world_generation.blueprint_generator'
 
 local Point2 = _radiant.csg.Point2
 local Point3 = _radiant.csg.Point3
+local Point3f = _radiant.csg.Point3f
 local Rect2 = _radiant.csg.Rect2
 local Region2 = _radiant.csg.Region2
 
-function NewGameCallHandler:new_game(session, response, seed)
-   local wgs = radiant.mods.load('stonehearth').world_generation
-   wgs:initialize(true, seed)
-   wgs:create_world()
-   return {}
+local log = radiant.log.create_logger('world_generation')
+
+function NewGameCallHandler:new_game(session, response, num_tiles_x, num_tiles_y, seed)
+   local wgs = stonehearth.world_generation
+   local blueprint
+
+   wgs:initialize(seed, true)
+
+   local method = radiant.util.get_config('world_generation.method', 'default')
+
+   -- Temporary merge code. The javascript client may eventually hold state about the original dimensions.
+   if method == 'tiny' then
+      blueprint = wgs.blueprint_generator:get_empty_blueprint(2, 2) -- (2,2) is minimum size
+      --blueprint = wgs.blueprint_generator:get_static_blueprint()
+   else
+      blueprint = wgs.blueprint_generator:generate_blueprint(num_tiles_x, num_tiles_y, seed)
+   end
+
+   wgs:set_blueprint(blueprint)
+
+   return NewGameCallHandler:get_overview_map(session, response)
 end
 
 function NewGameCallHandler:get_overview_map(session, response)
-   local wgs = radiant.mods.load('stonehearth').world_generation
+   local wgs = stonehearth.world_generation
    local width, height = wgs.overview_map:get_dimensions()
    local map = wgs.overview_map:get_map():clone_to_nested_arrays()
 
@@ -25,6 +43,78 @@ function NewGameCallHandler:get_overview_map(session, response)
       map = map
    }
    return result
+end
+
+-- feature_cell_x and feature_cell_y are base 0
+function NewGameCallHandler:generate_start_location(session, response, feature_cell_x, feature_cell_y)
+   -- +1 to convert to base 1
+   feature_cell_x = feature_cell_x + 1
+   feature_cell_y = feature_cell_y + 1
+
+   local wgs = stonehearth.world_generation
+   local x, z = wgs.overview_map:get_coords_of_cell_center(feature_cell_x, feature_cell_y)
+   local i, j = wgs:get_tile_index(x, z)
+
+   -- TODO: store this better
+   wgs.start_x = x
+   wgs.start_z = z
+   
+   wgs:generate_tiles(i, j, 2)
+
+   response:resolve({})
+end
+
+-- returns coordinates of embark location
+function NewGameCallHandler:embark_server(session, response)
+   local wgs = stonehearth.world_generation
+   local x = wgs.start_x
+   local z = wgs.start_z
+   local y = radiant.terrain.get_height(Point2(x, z))
+
+   -- reveal scenaraios around the staring location
+   local reveal_distance = radiant.util.get_config('scenario_reveal_distance', 128)
+   local starting_region = Region2()
+   starting_region:add_cube(
+      Rect2(
+         -- remember +1 on max
+         Point2(x-reveal_distance, z-reveal_distance),
+         Point2(x+reveal_distance+1, z+reveal_distance+1)
+      )
+   )
+
+   local scenario_service = stonehearth.scenario
+   scenario_service:reveal_region(starting_region)
+
+   return { x = x, y = y, z = z }
+end
+
+function NewGameCallHandler:embark_client(session, response)
+   _radiant.call('stonehearth:embark_server'):done(
+      function (o)
+         -- reconcile these with the camera constants later
+         local camera_height = 90
+         local target_distance = 180
+         local camera_service = stonehearth.camera
+
+         local target = Point3f(o.x, o.y, o.z)
+         local camera_location = Point3f(o.x, o.y + camera_height, o.z + target_distance)
+
+         -- TODO: fix this hack to get around camera interpolation when camera_service is rewritten
+         camera_service._next_position = camera_location
+         camera_service:set_position(camera_location)
+         camera_service:look_at(target)
+
+         _radiant.call('stonehearth:get_visibility_regions'):done(
+            function (o)
+               log:info('Visible region uri: %s', o.visible_region_uri)
+               log:info('Explored region uri: %s', o.explored_region_uri)
+               _radiant.renderer.visibility.set_visibility_regions(o.visible_region_uri, o.explored_region_uri)
+
+               response:resolve({})
+            end
+         )
+      end
+   )
 end
 
 function NewGameCallHandler:choose_camp_location(session, response)
@@ -109,7 +199,7 @@ function NewGameCallHandler:_destroy_capture()
 end
 
 function NewGameCallHandler:create_camp(session, response, pt)
-   local faction = radiant.mods.load('stonehearth').population:get_faction('civ', 'stonehearth:factions:ascendancy')
+   local faction = stonehearth.population:get_faction('civ', 'stonehearth:factions:ascendancy')
    
    -- place the stanfard in the middle of the camp
    local location = Point3(pt.x, pt.y, pt.z)
@@ -150,6 +240,7 @@ function NewGameCallHandler:create_camp(session, response, pt)
    radiant.entities.pickup_item(worker1, faction:create_entity('stonehearth:oak_log'))
    radiant.entities.pickup_item(worker2, faction:create_entity('stonehearth:oak_log'))
    radiant.entities.pickup_item(worker3, faction:create_entity('stonehearth:oak_log'))
+   radiant.entities.pickup_item(worker4, faction:create_entity('stonehearth:carpenter:saw'))
 
    -- start the game master service
    --game_master.start()
@@ -157,13 +248,14 @@ function NewGameCallHandler:create_camp(session, response, pt)
    return {}
 end
 
-function NewGameCallHandler:place_citizen(x, z)
-   local pop_service = radiant.mods.load('stonehearth').population
+function NewGameCallHandler:place_citizen(x, z, profession)
    --TODO: faction denotes which player is playing. Have user pick?
-   local faction = pop_service:get_faction('civ','stonehearth:factions:ascendancy')
+   local faction = stonehearth.population:get_faction('civ','stonehearth:factions:ascendancy')
    local citizen = faction:create_new_citizen()
-
-   faction:promote_citizen(citizen, 'worker')
+   if not profession then
+      profession = 'worker'
+   end
+   faction:promote_citizen(citizen, profession)
 
    radiant.terrain.place_entity(citizen, Point3(x, 1, z))
    return citizen
@@ -185,8 +277,7 @@ function NewGameCallHandler:place_stockpile(faction, x, z, w, h)
    local location = Point3(x, 1, z)
    local size = { w, h }
 
-   local inventory_service = radiant.mods.load('stonehearth').inventory
-   local inventory = inventory_service:get_inventory(faction)
+   local inventory = stonehearth.inventory:get_inventory(faction)
    inventory:create_stockpile(location, size)
 end
 

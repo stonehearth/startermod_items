@@ -10,6 +10,7 @@
 #include "om/stonehearth.h"
 #include "om/region.h"
 #include "om/components/data_store.ridl.h"
+#include "csg/util.h"
 #include "lib/voxel/qubicle_brush.h"
 #include "lib/json/core_json.h"
 
@@ -71,11 +72,6 @@ om::EntityRef Sim_CreateEntity(lua_State* L, std::string const& uri)
    return entity;
 }
 
-std::string Sim_GetEntityUri(lua_State* L, std::string const& mod_name, std::string const& entity_name)
-{
-   return res::ResourceManager2::GetInstance().GetEntityUri(mod_name, entity_name);
-}
-
 template <typename T>
 std::shared_ptr<T> Sim_AllocObject(lua_State* L)
 {
@@ -127,11 +123,11 @@ std::shared_ptr<FollowPath> Sim_CreateFollowPath(lua_State *L, om::EntityRef ent
    return fp;
 }
 
-std::shared_ptr<GotoLocation> Sim_CreateGotoLocation(lua_State *L, om::EntityRef entity, float speed, const csg::Point3f& location, float close_to_distance, object arrived_cb)
+std::shared_ptr<GotoLocation> Sim_CreateGotoLocation(lua_State *L, om::EntityRef entity, float speed, const csg::Point3& location, float close_to_distance, object arrived_cb)
 {
    Simulation &sim = GetSim(L);
    object cb(lua::ScriptHost::GetCallbackThread(L), arrived_cb);
-   std::shared_ptr<GotoLocation> fp(new GotoLocation(sim, entity, speed, location, close_to_distance, cb));
+   std::shared_ptr<GotoLocation> fp(new GotoLocation(sim, entity, speed, csg::ToFloat(location), close_to_distance, cb));
    sim.AddTask(fp);
    return fp;
 }
@@ -150,8 +146,7 @@ std::shared_ptr<PathFinder> Sim_CreatePathFinder(lua_State *L, om::EntityRef s, 
    om::EntityPtr source = s.lock();
    if (source) {
       Simulation &sim = GetSim(L);
-      std::shared_ptr<PathFinder> pf(new PathFinder(sim, name));
-      pf->SetSource(source);
+      std::shared_ptr<PathFinder> pf(PathFinder::Create(sim, name, source));
       sim.AddJobForEntity(source, pf);
       return pf;
    }
@@ -164,36 +159,6 @@ std::shared_ptr<LuaJob> Sim_CreateJob(lua_State *L, std::string const& name, obj
    std::shared_ptr<LuaJob> job = std::make_shared<LuaJob>(sim, name, object(lua::ScriptHost::GetCallbackThread(L), cb));
    sim.AddJob(job);
    return job;
-}
-
-std::shared_ptr<PathFinder> PathFinder_AddDestination(lua_State* L, std::shared_ptr<PathFinder> pf, om::EntityRef dst)
-{
-   pf->AddDestination(dst);
-   return pf;
-}
-
-std::shared_ptr<PathFinder> PathFinder_SetSource(lua_State* L, std::shared_ptr<PathFinder> pf, om::EntityRef src)
-{
-   pf->SetSource(src);
-   return pf;
-}
-
-std::shared_ptr<PathFinder> PathFinder_RemoveDestination(lua_State* L, std::shared_ptr<PathFinder> pf, dm::ObjectId dst)
-{
-   pf->RemoveDestination(dst);
-   return pf;
-}
-
-std::shared_ptr<PathFinder> PathFinder_SetSolvedCb(lua_State* L, std::shared_ptr<PathFinder> pf, luabind::object cb)
-{
-   pf->SetSolvedCb(object(lua::ScriptHost::GetCallbackThread(L), cb));
-   return pf;
-}
-
-std::shared_ptr<PathFinder> PathFinder_SetFilterFn(lua_State* L, std::shared_ptr<PathFinder> pf, luabind::object cb)
-{
-   pf->SetFilterFn(object(lua::ScriptHost::GetCallbackThread(L), cb));
-   return pf;
 }
 
 DEFINE_INVALID_JSON_CONVERSION(Path);
@@ -234,11 +199,12 @@ void lua::sim::open(lua_State* L, Simulation* sim)
             ,
             lua::RegisterTypePtr<PathFinder>()
                .def("get_id",             &PathFinder::GetId)
-               .def("set_source",         &PathFinder_SetSource)
-               .def("add_destination",    &PathFinder_AddDestination)
-               .def("remove_destination", &PathFinder_RemoveDestination)
-               .def("set_solved_cb",      &PathFinder_SetSolvedCb)
-               .def("set_filter_fn",      &PathFinder_SetFilterFn)
+               .def("set_source",         &PathFinder::SetSource)
+               .def("add_destination",    &PathFinder::AddDestination)
+               .def("remove_destination", &PathFinder::RemoveDestination)
+               .def("set_solved_cb",      &PathFinder::SetSolvedCb)
+               .def("set_search_exhausted_cb", &PathFinder::SetSearchExhaustedCb)
+               .def("set_filter_fn",      &PathFinder::SetFilterFn)
                .def("get_solution",       &PathFinder::GetSolution)
                .def("set_debug_color",    &PathFinder::SetDebugColor)
                .def("is_idle",            &PathFinder::IsIdle)
@@ -254,6 +220,7 @@ void lua::sim::open(lua_State* L, Simulation* sim)
                .def("lock",               &WeakObjectReference<PathFinder>::Lock)
             ,
             lua::RegisterTypePtr<FollowPath>()
+               .def("get_name", &FollowPath::GetName)
                .def("stop",     &FollowPath::Stop)
             ,
             lua::RegisterTypePtr<GotoLocation>()

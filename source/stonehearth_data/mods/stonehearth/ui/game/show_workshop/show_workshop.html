@@ -97,11 +97,11 @@
       </div>
 
       <div id="maintainOrderOption" class="orderOptionControls">
-      <input type="radio" name="conditionGroup" value="mantain" class="craftRadioButton" id="maintain">
+      <input type="radio" name="conditionGroup" value="maintain" class="craftRadioButton" id="maintain">
       <label for="maintain" style='width:auto' clicksound="sounds:ui:carpenter_menu:add_remove">{{i18n stonehearth:craft_up_to_left}}</label>
       <span>
          <div class="dec numericButton uisounds">-</div>
-         <input id="mantainNumSelector" type="number" name="quantityToMantain" value="1" min="1" max="99" class="craftNumericSelect">
+         <input id="maintainNumSelector" type="number" name="quantityToMaintain" value="1" min="1" max="99" class="craftNumericSelect">
          <div class="inc numericButton uisounds">+</div>
       </span>
       <label class="rightText" for="maintain" style='width:auto'>{{i18n stonehearth:craft_up_to_right}}</label>
@@ -119,20 +119,21 @@
 
       <div id="orders">
       {{#each stonehearth:workshop.order_list}}
-         {{#if status.is_crafting}}
+         {{#if is_crafting}}
             <div class="orderListItem inProgressOrder" {{bindAttr data-orderId = "id"}}>
                <label class="craftingLabel">{{../../craftingStatus}}</label>
          {{else}}
             <div class="orderListItem normalOrder" {{bindAttr data-orderId = "id"}}>
                <label class="craftingLabel invisible">{{../../craftingStatus}}</label>
          {{/if}}
-            <a href="#" {{action select recipe remaining condition.inventory_below target="view"}}>
+            <a href="#" {{action select recipe remaining condition.at_least target="view"}}>
                <img {{bindAttr src = "portrait"}} {{bindAttr title = "recipe.recipe_name"}}>
             </a>
-            {{#if condition.amount}}
-               <label class="amountLabel">{{remaining}}</label>
-            {{else}}
-               <label class="amountLabel"> = {{condition.inventory_below}}</label>
+            {{#if condition.amount }}
+               <label class="amountLabel">{{condition.remaining}}</label>
+            {{/if}}
+            {{#if condition.at_least }}
+               <label class="amountLabel"> = {{condition.at_least}}</label>
             {{/if}}
                <label class="deleteLabel">{{i18n stonehearth:workshop_remove_confirm}}</label>
             </div>

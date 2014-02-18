@@ -1,13 +1,15 @@
-#include "pch.h"
+#include "radiant.h"
 #include "radiant_file.h"
 #include "core/config.h"
 #include "core/system.h"
-#include "chromium/app/app.h"
 #include "lib/rpc/http_deferred.h"
+#include "chromium/cef_headers.h"
+#include "chromium/app/app.h"
 #include "browser.h"
 #include "response.h"
 #include "lib/perfmon/perfmon.h"
 #include <fstream>
+#include <boost/algorithm/string.hpp>
 
 #define BROWSER_LOG(level)    LOG(browser, level)
 
@@ -16,14 +18,6 @@ using namespace radiant::chromium;
 
 static std::string GetPostData(CefRefPtr<CefRequest> request);
 static JSONNode GetQuery(std::string query);
-/*
-class ClientOSRHandler : public CefClient,
-public CefLifeSpanHandler,
-public CefLoadHandler,
-public CefRequestHandler,
-public CefDisplayHandler,
-public CefRenderHandler {
-*/
 
 IBrowser* ::radiant::chromium::CreateBrowser(HWND parentWindow, std::string const& docroot, int width, int height, int debug_port)
 {
@@ -31,22 +25,21 @@ IBrowser* ::radiant::chromium::CreateBrowser(HWND parentWindow, std::string cons
 }
 
 Browser::Browser(HWND parentWindow, std::string const& docroot, int width, int height, int debug_port) :
-   hwnd_(parentWindow),
-   screenWidth_(width),
-   screenHeight_(height)
+   _screenWidth(width),
+   _screenHeight(height)
 { 
-   uiWidth_ = 1920;
-   uiHeight_ = 1080;
-   if (screenWidth_ >= 1920 && screenHeight_ >= 1080) {
-      uiWidth_ = screenWidth_;
-      uiHeight_ = screenHeight_;
+   _uiWidth = 1920;
+   _uiHeight = 1080;
+   if (_screenWidth >= 1920 && _screenHeight >= 1080) {
+      _uiWidth = _screenWidth;
+      _uiHeight = _screenHeight;
    }
-   browser_framebuffer_ = 0x0;
-   last_browser_framebuffer_ = 0x0;
-   draw_count_ = 0;
+   _browserFramebuffer = 0x0;
+   _lastBrowserFramebuffer = 0x0;
+   _drawCount = 0;
 
    CefMainArgs main_args(GetModuleHandle(NULL));
-   if (!CefExecuteProcess(main_args, app_)) {
+   if (!CefExecuteProcess(main_args, _app)) {
       ASSERT(false);
    }
 
@@ -57,7 +50,7 @@ Browser::Browser(HWND parentWindow, std::string const& docroot, int width, int h
    settings.single_process = false; // single process mode eats nearly the entire frame time
    settings.remote_debugging_port = debug_port;
 
-   CefInitialize(main_args, settings, app_.get());
+   CefInitialize(main_args, settings, _app.get());
    CefRegisterSchemeHandlerFactory("http", "radiant", this);
    CefWindowInfo windowInfo;
    windowInfo.SetAsOffScreen(parentWindow);
@@ -94,9 +87,9 @@ bool Browser::OnBeforePopup(CefRefPtr<CefBrowser> parentBrowser,
 
 void Browser::OnAfterCreated(CefRefPtr<CefBrowser> browser)
 {
-   if (browser_ == nullptr) {
-      browser_ = browser;
-      browser_->GetHost()->NotifyScreenInfoChanged();
+   if (_browser == nullptr) {
+      _browser = browser;
+      _browser->GetHost()->NotifyScreenInfoChanged();
       //browser_->SetSize(PET_VIEW, uiWidth_, uiHeight_);
    }
 }
@@ -151,13 +144,13 @@ bool Browser::OnConsoleMessage(CefRefPtr<CefBrowser> browser, const CefString& m
 bool Browser::GetRootScreenRect(CefRefPtr<CefBrowser> browser,
                                  CefRect& rect)
 {
-   rect.Set(0, 0, uiWidth_, uiHeight_);
+   rect.Set(0, 0, _uiWidth, _uiHeight);
    return true;
 }
 
 bool Browser::GetViewRect(CefRefPtr<CefBrowser> browser, CefRect& rect) 
 {
-   rect.Set(0, 0, uiWidth_, uiHeight_);
+   rect.Set(0, 0, _uiWidth, _uiHeight);
    return true;
 }
 
@@ -182,51 +175,51 @@ void Browser::OnPaint(CefRefPtr<CefBrowser> browser,
                        int height)
 {
    perfmon::SwitchToCounter("copy chromium fb to system buffer") ;
-   std::lock_guard<std::mutex> guard(ui_lock_);
+   std::lock_guard<std::mutex> guard(_lock);
 
-   // xxx: we can optimze this by accuulating a dirty region and sending a message to
+   // xxx: we can optimize this by accumulating a dirty region and sending a message to
    // the ui thread to do the copy once every frame -- unknown
    //
    // we actually can't, as the backing store in 'buffer' may get freed after this call
    // for all we know! -- tony
 
-   if (width != uiWidth_ || height != uiHeight_) {
+   if (width != _uiWidth || height != _uiHeight) {
       // for some reason, the dimensions of the buffer passed in do not match the
       // size of our backing store.  just ignore this paint.  this can sometimes happen
       // when the window is resized when we get paints from the old (and out of date)
       // size.
       BROWSER_LOG(3) << "ignoring paint request from browser (" 
                      << csg::Point2(width, height) << " != "
-                     << csg::Point2(uiWidth_, uiHeight_) << ")";
+                     << csg::Point2(_uiWidth, _uiHeight) << ")";
       return;
    }
 
-   draw_count_++;
-   if (browser_framebuffer_ == nullptr) {
+   _drawCount++;
+   if (_browserFramebuffer == nullptr) {
       return;
    }
 
-   memcpy(browser_framebuffer_, buffer, width * height * 4);
+   memcpy(_browserFramebuffer, buffer, width * height * 4);
 }
 
 void Browser::UpdateBrowserFrambufferPtrs(unsigned int* last_written, unsigned int* next_to_write)
 {
-   last_browser_framebuffer_ = last_written;
-   browser_framebuffer_ = next_to_write;
+   _lastBrowserFramebuffer = last_written;
+   _browserFramebuffer = next_to_write;
 }
 
 void Browser::UpdateDisplay(PaintCb cb)
 {
-   std::lock_guard<std::mutex> guard(ui_lock_);
+   std::lock_guard<std::mutex> guard(_lock);
  
-   if (draw_count_ > 0) {
+   if (_drawCount > 0) {
       // Always inform clients that our entire view has changed.  This is because it's possible
       // that our OnPaint method can be called more than once before UpdateDisplay is polled, leading
       // to outdated bounding rect information being sent to any clients.
-      csg::Region2 r(csg::Rect2(csg::Point2(0, 0), csg::Point2(uiWidth_, uiHeight_)));
+      csg::Region2 r(csg::Rect2(csg::Point2(0, 0), csg::Point2(_uiWidth, _uiHeight)));
 
       cb(r);
-      draw_count_ = 0;
+      _drawCount = 0;
    }
 }
 
@@ -327,7 +320,7 @@ bool Browser::OnInput(Input const& evt)
 
 void Browser::OnRawInput(const RawInput &msg)
 {
-   if (!browser_) {
+   if (!_browser) {
       return;
    }
 
@@ -354,14 +347,14 @@ void Browser::OnRawInput(const RawInput &msg)
       evt.modifiers = GetCefKeyboardModifiers(msg.wp, msg.lp);
       BROWSER_LOG(7) << "sending key " << ((char)evt.windows_key_code) << " " << evt.type;
 
-      browser_->GetHost()->SendKeyEvent(evt);
+      _browser->GetHost()->SendKeyEvent(evt);
       break;
       }
    }
 }
 
 void Browser::SetCursorChangeCb(CursorChangeCb cb) {
-   cursorChangeCb_ = cb;
+   _cursorChangeCb = cb;
 }
 
 void Browser::OnMouseInput(const MouseInput& mouse)
@@ -372,7 +365,7 @@ void Browser::OnMouseInput(const MouseInput& mouse)
       MBT_MIDDLE,
    };
 
-   if (!browser_) {
+   if (!_browser) {
       return;
    }
    int x = mouse.x;
@@ -384,7 +377,7 @@ void Browser::OnMouseInput(const MouseInput& mouse)
    evt.y = y;
    evt.modifiers = 0;
 
-   auto host = browser_->GetHost();
+   auto host = _browser->GetHost();
    host->SendMouseMoveEvent(evt, false);
    BROWSER_LOG(7) << "sending mouse move " << x << ", " << y << ".";
    
@@ -404,23 +397,23 @@ void Browser::OnMouseInput(const MouseInput& mouse)
 
 void Browser::OnCursorChange(CefRefPtr<CefBrowser> browser, CefCursorHandle cursor)
 {
-   if (cursorChangeCb_) {
-      cursorChangeCb_(cursor);
+   if (_cursorChangeCb) {
+      _cursorChangeCb(cursor);
    }
 }
 
 // xxx - nuke this...
 bool Browser::HasMouseFocus(int x, int y)
 {
-   if (last_browser_framebuffer_ == nullptr) {
+   if (_lastBrowserFramebuffer == nullptr) {
       return false;
    }
    WindowToBrowser(x, y);
 
-   if (x < 0 || y < 0 || x >= uiWidth_ || y >= uiHeight_) {
+   if (x < 0 || y < 0 || x >= _uiWidth || y >= _uiHeight) {
       return false;
    }
-   uint32 pixel = last_browser_framebuffer_[x + (y * uiWidth_)];
+   uint32 pixel = _lastBrowserFramebuffer[x + (y * _uiWidth)];
    return ((pixel >> 24) && 0xff) != 0;
 }
 
@@ -428,7 +421,7 @@ CefRefPtr<CefResourceHandler> Browser::GetResourceHandler(CefRefPtr<CefBrowser> 
                                                           CefRefPtr<CefFrame> frame,
                                                           CefRefPtr<CefRequest> request)
 {
-   if (!requestHandler_) {
+   if (!_requestHandler) {
       return nullptr;
    }
 
@@ -448,7 +441,7 @@ CefRefPtr<CefResourceHandler> Browser::GetResourceHandler(CefRefPtr<CefBrowser> 
    // will be used to interface with the rest of the system.  Chrome will be handed
    // the data whenever someone calls Complete.
    response->AddRef();
-   std::shared_ptr<rpc::HttpDeferred> deferred(new rpc::HttpDeferred("browser response"), [=](rpc::HttpDeferred* p) {
+   std::shared_ptr<rpc::HttpDeferred> deferred(new rpc::HttpDeferred(CefString(url)), [=](rpc::HttpDeferred* p) {
       response->Release();
       delete p;
    });
@@ -459,7 +452,7 @@ CefRefPtr<CefResourceHandler> Browser::GetResourceHandler(CefRefPtr<CefBrowser> 
       response->SetResponse(r.code, r.response, "text/plain");
    });
 
-   requestHandler_(path, query, postdata, deferred);
+   _requestHandler(path, query, postdata, deferred);
 
    return CefRefPtr<CefResourceHandler>(response);
 }
@@ -572,50 +565,42 @@ static std::string GetPostData(CefRefPtr<CefRequest> request)
 
 void Browser::SetRequestHandler(HandleRequestCb cb)
 {
-   requestHandler_ = cb;
+   _requestHandler = cb;
 }
 
 void Browser::WindowToBrowser(int& x, int& y) 
 {
-   x = (int)((x / (float)screenWidth_) * uiWidth_);
-   y = (int)((y / (float)screenHeight_) * uiHeight_);
-}
-
-void Browser::SetBrowserResizeCb(std::function<void(int, int)> cb)
-{
-   resize_cb_ = cb;
+   x = (int)((x / (float)_screenWidth) * _uiWidth);
+   y = (int)((y / (float)_screenHeight) * _uiHeight);
 }
 
 void Browser::OnScreenResize(int w, int h)
 {
-   if (screenWidth_ == w && screenHeight_ == h)
+   if (_screenWidth == w && _screenHeight == h)
    {
       return;
    }
-   screenWidth_ = w;
-   screenHeight_ = h;
+   _screenWidth = w;
+   _screenHeight = h;
 
-   uiWidth_ = 1920;
-   uiHeight_ = 1080;
-   if (screenWidth_ >= 1920 && screenHeight_ >= 1080) {
-      uiHeight_ = screenHeight_;
-      uiWidth_ = screenWidth_;
+   if (_screenWidth >= 1920 && _screenHeight >= 1080) {
+      _uiWidth = _screenWidth;
+      _uiHeight = _screenHeight;
+   } else {
+      _uiWidth = 1920;
+      _uiHeight = 1080;
    }
 
-   BROWSER_LOG(3) << "Browser (UI) resized to " << uiWidth_ << "x" << uiHeight_;
+   BROWSER_LOG(3) << "Browser (UI) resized to " << _uiWidth << "x" << _uiHeight;
 
-   if (resize_cb_) {
-      resize_cb_(uiWidth_, uiHeight_);
-   }
-
-   if (browser_) {
-      browser_->GetHost()->NotifyScreenInfoChanged();
+   if (_browser) {
+      _browser->GetHost()->NotifyScreenInfoChanged();
    }
 }
 
 void Browser::GetBrowserSize(int& w, int& h)
 {
-   w = uiWidth_;
-   h = uiHeight_;
+   w = _uiWidth;
+   h = _uiHeight;
 }
 

@@ -1,14 +1,14 @@
 {
-   "extends": "stonehearth:mixins:item_properties",
+   "mixins": "stonehearth:mixins:item_properties",
    "type": "entity",
    "components": {
-      "model_variants": [
-         {
+      "model_variants": {
+         "default": {
             "models": [
                "file(cracked_wooden_buckler.qb)"
             ]
          }
-      ],
+      },
       "unit_info": {
          "name": "Wooden Buckler",
          "description": "Better than using an oak branch to defend your ego.",

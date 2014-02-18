@@ -73,10 +73,17 @@ T RandomNumberGenerator::GetReal(T min, T max)
 }
 
 // Generates real numbers that are have a Gaussian/Normal distribution with the specified mean and standard deviation
+// 68% of values fall within 1 standard deviation of the mean
+// 95% of values fall within 2 standard deviations of the mean
 template <class T>
 T RandomNumberGenerator::GetGaussian(T mean, T std_dev)
 {
    static_assert(std::is_floating_point<T>::value, "<T> must be a floating point type");
+
+   // Comply with C++ 11 standard on normal distributions with zero sigma
+   if (std_dev == 0.0) {
+      return mean;
+   }
 
    std::normal_distribution<T> distribution(mean, std_dev);
    return distribution(generator_);

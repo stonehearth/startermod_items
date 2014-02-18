@@ -13,7 +13,9 @@ public:
 
    const char* GetName() const;
    CounterValueType GetValue() const;
-   void Increment(CounterValueType amount);
+   void SetValue(CounterValueType value);
+   void Increment(CounterValueType amount = 1);
+   void Decrement(CounterValueType amount = 1);
 
 private:
    const char*       name_;

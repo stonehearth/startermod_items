@@ -13,7 +13,7 @@
       "stonehearth:construction_data" : {
          "project_adjacent_to_base" : true,
          "allow_diagonal_adjacency" : true,
-         "max_workers" : 2,
+         "max_workers" : 1,
          "material_tag": "wood resource"
       }
    },
@@ -23,8 +23,8 @@
          "scale" : 0.1,
          "origin" : {
             "x" : 5,
-            "y" : 5,
-            "z" : 0
+            "y" : 0,
+            "z" : 5
          },
          "width" : 4, 
          "height" : 4

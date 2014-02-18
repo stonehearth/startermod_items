@@ -1,11 +1,15 @@
 #include "pch.h"
 #include <stdexcept>
+#include "lauxlib.h"
 #include "radiant_file.h"
 #include "core/config.h"
 #include "script_host.h"
 #include "lua_supplemental.h"
 #include "client/renderer/render_entity.h"
 #include "lib/json/namespace.h"
+#include "lib/perfmon/timer.h"
+#include "lib/perfmon/store.h"
+#include "lib/perfmon/timeline.h"
 
 extern "C" int luaopen_lpeg (lua_State *L);
 
@@ -151,26 +155,33 @@ luabind::object ScriptHost::GetConfig(std::string const& flag)
 
 IMPLEMENT_TRIVIAL_TOSTRING(ScriptHost);
 
-ScriptHost::ScriptHost()
+ScriptHost::ScriptHost() 
 {
+   *current_file = '\0';
+   current_line = 0;
+
+   bytes_allocated_ = 0;
    filter_c_exceptions_ = core::Config::GetInstance().Get<bool>("lua.filter_exceptions", true);
+   enable_profile_memory_ = core::Config::GetInstance().Get<bool>("lua.enable_memory_profiler", false);
+   profile_memory_ = false;
 
    L_ = lua_newstate(LuaAllocFn, this);
-	luaL_openlibs(L_);
+   set_pcall_callback(PCallCallbackFn);
+   luaL_openlibs(L_);
    luaopen_lpeg(L_);
 
    luabind::open(L_);
    luabind::bind_class_info(L_);
-
-   set_pcall_callback(PCallCallbackFn);
 
    module(L_) [
       namespace_("_radiant") [
          namespace_("lua") [
             lua::RegisterType<ScriptHost>()
                .def("log",             &ScriptHost::Log)
+               .def("get_realtime",    &ScriptHost::GetRealTime)
                .def("get_log_level",   &ScriptHost::GetLogLevel)
                .def("get_config",      &ScriptHost::GetConfig)
+               .def("set_performance_counter", &ScriptHost::SetPerformanceCounter)
                .def("report_error",    (void (ScriptHost::*)(std::string const& error, std::string const& traceback))&ScriptHost::ReportLuaStackException)
                .def("require",         (luabind::object (ScriptHost::*)(std::string const& name))&ScriptHost::Require)
                .def("require_script",  (luabind::object (ScriptHost::*)(std::string const& name))&ScriptHost::RequireScript)
@@ -178,6 +189,15 @@ ScriptHost::ScriptHost()
       ]
    ];
    globals(L_)["_host"] = object(L_, this);
+
+   if (!core::Config::GetInstance().Get<bool>("lua.enable_luajit", true)) {
+      if (luaL_dostring(L_, "jit.off()") != 0) {
+         LUA_LOG(0) << "Failed to disable jit. " << lua_tostring(L_, -1);
+      } else {
+         LUA_LOG(0) << "luajit disabled.";
+      }
+   }
+
    globals(L_)["package"]["path"] = "";
    globals(L_)["package"]["cpath"] = "";
 
@@ -207,26 +227,51 @@ ScriptHost::~ScriptHost()
 
 void* ScriptHost::LuaAllocFn(void *ud, void *ptr, size_t osize, size_t nsize)
 {
+   ScriptHost* host = static_cast<ScriptHost*>(ud);
+   void *realloced;
+
+   host->bytes_allocated_ += (nsize - osize);
+   
 #if !defined(ENABLE_MEMPRO)
    if (nsize == 0) {
       free(ptr);
-      return NULL;
+      realloced = nullptr;
+   } else {
+      realloced = realloc(ptr, nsize);
    }
-   return realloc(ptr, nsize);
 #else
    if (nsize == 0) {
       delete [] ptr;
-      return NULL;
+      realloced = nullptr;
+   } else {
+      void *realloced = new char[nsize];
+      if (osize) {
+         memcpy(realloced, ptr, std::min(nsize, osize));
+         delete [] ptr;
+      }
    }
-   void *realloced = new char[nsize];
-   if (osize) {
-      memcpy(realloced, ptr, std::min(nsize, osize));
-      delete [] ptr;
+#endif
+
+   if (host->profile_memory_) {
+      std::string const& key = host->alloc_backmap[ptr];
+      host->alloc_map[key].erase(ptr);
+      host->alloc_backmap.erase(ptr);
+      if (realloced) {
+         std::string key = BUILD_STRING(host->current_file << ":" << host->current_line);
+         host->alloc_map[key][realloced] = nsize;
+         host->alloc_backmap[realloced] = key;
+      }
    }
    return realloced;
-#endif
 }
 
+void ScriptHost::LuaTrackLine(lua_State *L, lua_Debug *ar)
+{
+   ScriptHost* s = GetScriptHost(L);
+   lua_getinfo(L, "Sl", ar);
+   strncpy(s->current_file, ar->source, ARRAY_SIZE(s->current_file) - 1);
+   s->current_line = ar->currentline;
+}
 
 void ScriptHost::ReportCStackThreadException(lua_State* L, std::exception const& e)
 {
@@ -259,6 +304,14 @@ void ScriptHost::ReportStackException(std::string const& category, std::string c
       }
    }
    LUA_LOG(0) << "-- Lua Error End   ------------------------------- ";
+
+   if (error_cb_) {
+      om::ErrorBrowser::Record record;
+      record.SetSummary(error);
+      record.SetCategory(record.SEVERE);
+      record.SetBacktrace(traceback);
+      error_cb_(record);
+   }
 }
 
 lua_State* ScriptHost::GetInterpreter()
@@ -274,6 +327,7 @@ lua_State* ScriptHost::GetCallbackThread()
 void ScriptHost::GC(platform::timer &timer)
 {
    bool finished = false;
+
    while (!timer.expired() && !finished) {
       finished = (lua_gc(L_, LUA_GCSTEP, 1) != 0);
    }
@@ -365,7 +419,14 @@ void ScriptHost::Call(luabind::object fn, luabind::object arg1)
 
 void ScriptHost::Log(const char* category, int level, const char* str)
 {
-   LOG_CATEGORY_(level, BUILD_STRING("mod " << category)) << str;
+   if (category && str) {
+      LOG_CATEGORY_(level, BUILD_STRING("mod " << category)) << str;
+   }
+}
+
+uint ScriptHost::GetRealTime()
+{
+   return perfmon::Timer::GetCurrentTimeMs();
 }
 
 int ScriptHost::GetLogLevel(std::string const& category)
@@ -392,7 +453,7 @@ int ScriptHost::GetLogLevel(std::string const& category)
       last = category.rfind('.', last - 1);
    }
    if (config_level == SENTINEL) {
-      config_level = core::Config::GetInstance().Get<int>("logging.log_level", SENTINEL);
+      config_level = core::Config::GetInstance().Get<int>("logging.log_level", logger::GetDefaultLogLevel());
    }
    return config_level;
 }
@@ -411,4 +472,111 @@ bool ScriptHost::CoerseToBool(object const& o)
       }
    }
    return result;
+}
+
+void ScriptHost::SetNotifyErrorCb(ReportErrorCb const& cb)
+{
+   error_cb_ = cb;
+}
+
+int ScriptHost::GetAllocBytesCount() const
+{
+   return bytes_allocated_;
+}
+
+void ScriptHost::Trigger(const std::string& eventName)
+{
+   try {
+      luabind::object radiant = globals(cb_thread_)["radiant"];
+      radiant["events"]["trigger"](radiant, eventName);
+   } catch (std::exception const& e) {
+      ReportCStackThreadException(cb_thread_, e);
+   }
+}
+
+void ScriptHost::ClearMemoryProfile()
+{
+   if (enable_profile_memory_) {
+      alloc_backmap.clear();
+      alloc_map.clear();
+      LOG_(0) << " cleared lua memory profile data";
+   }
+}
+
+void ScriptHost::WriteMemoryProfile(std::string const& filename) const
+{
+   if (!enable_profile_memory_) {
+      return;
+   }
+   if (!profile_memory_) {
+      LOG_(0) << "memory profile is not running.";
+      return;
+   }
+
+   std::map<int, std::pair<std::string, int>> totals;
+   int grand_total = 0;
+   unsigned int w = 0;
+   for (const auto& entry : alloc_map) {
+      int total = 0;
+      for (const auto& alloc : entry.second) {
+         total += alloc.second;
+      }
+      grand_total += total;
+      totals[total] = std::make_pair(entry.first, entry.second.size());
+      w = std::max(w, entry.first.size() + 2);
+   }
+
+   std::ofstream f(filename);
+   auto format = [](int size) {
+      static std::string suffixes[] = { "B", "KB", "MB", "GB", "TB", "PB" /* lol! */ };
+      std::string* suffix = suffixes;
+      float total = static_cast<float>(size);
+      while (total > 1024.0) {
+         total /= 1024.0;
+         suffix++;
+      }
+      return BUILD_STRING(std::fixed << std::setw(5) << std::setprecision(3) << total << " " << *suffix);
+   };
+
+   auto output = [&f, &format, w](std::string const& txt, int c, int size) {
+      f << std::left << std::setw(w) << txt << " : " << format(size);
+      if (c) {
+        f << " (" << c << ", " << format(size / c) << " ea)";
+      }
+      f << std::endl;
+   };
+
+   output("Total Memory Tracked", 0, grand_total);
+   output("Total Memory Allocated", 0, GetAllocBytesCount());
+   for (auto i = totals.rbegin(); i != totals.rend(); i++) {
+      output(i->second.first, i->second.second, i->first);
+   }
+   LOG_(0) << " wrote lua memory profile data to lua_memory_profile.txt";
+}
+
+void ScriptHost::ProfileMemory(bool value)
+{
+   if (enable_profile_memory_) {
+      if (profile_memory_ && !value) {
+         lua_sethook(L_, LuaTrackLine, 0, 1);
+         ClearMemoryProfile();
+      } else if (!profile_memory_ && value) {
+         lua_sethook(L_, LuaTrackLine, LUA_MASKCALL | LUA_MASKRET | LUA_MASKLINE, 1);
+      }
+      profile_memory_  = value;
+      LOG_(0) << " lua memory profiling turned " << (profile_memory_ ? "on" : "off");
+   }
+}
+
+void ScriptHost::ComputeCounters(std::function<void(const char*, int, const char*)> const& addCounter) const
+{
+   addCounter("lua:alloced_bytes", GetAllocBytesCount(), "memory");
+   for (auto const& entry : performanceCounters_) {
+      addCounter(entry.first.c_str(), entry.second.first, entry.second.second.c_str());
+   }
+}
+
+void ScriptHost::SetPerformanceCounter(const char* name, int value, const char* kind)
+{
+   performanceCounters_[BUILD_STRING("lua:" << name)] = std::make_pair(value, kind);
 }

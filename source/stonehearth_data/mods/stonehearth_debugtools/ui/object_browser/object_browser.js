@@ -1,3 +1,19 @@
+$(document).on('stonehearthReady', function(){
+   App.debugDock.addToDock(App.StonehearthObjectBrowserIcon);
+});
+
+App.StonehearthObjectBrowserIcon = App.View.extend({
+   templateName: 'objectBrowserIcon',
+   classNames: ['debugDockIcon'],
+
+   didInsertElement: function() {
+      this.$().click(function() {
+         App.debugView.addView(App.StonehearthObjectBrowserView)   
+      })
+   }
+
+});
+
 App.StonehearthObjectBrowserView = App.View.extend({
    templateName: 'objectBrowser',
    objectHtml: "",
@@ -20,7 +36,9 @@ App.StonehearthObjectBrowserView = App.View.extend({
       });
 
       
-      $("#body").on("click", "a", function(event) {
+      this.$().draggable();
+      
+      this.my('#body').on("click", "a", function(event) {
          event.preventDefault();
          var uri = $(this).attr('href');
          self.fetch(uri);      
@@ -34,7 +52,6 @@ App.StonehearthObjectBrowserView = App.View.extend({
     });
 
       this.goHome();
-      this.collapse();
    },
 
    formatJson: function(json) {
@@ -69,7 +86,7 @@ App.StonehearthObjectBrowserView = App.View.extend({
    },
 
    collapse: function() {
-      $("#body").toggle();
+      this.my('#body').toggle();
    },
 
    goBack: function() {

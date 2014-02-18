@@ -1,14 +1,14 @@
 {
-   "extends": "stonehearth:mixins:placed_properties",
+   "mixins": "stonehearth:mixins:placed_properties",
    "type": "entity",
    "components": {
-      "model_variants": [
-         {
+      "model_variants": {
+         "default": {
             "models": [
                "file(arch_backed_chair.qb)"
             ]
          }
-      ],
+      },
       "region_collision_shape" : {
          "region": [
             {
@@ -23,11 +23,10 @@
          "icon" : "file(arch_backed_chair.png)"
       },
       "stonehearth:material" : {
-         "tags" : "wood furniture crafted"
-      },
-      "stonehearth:lease_component" : {}
+         "tags" : "wood furniture chair crafted"
+      }
    },
-    "entity_data" : {
+   "entity_data" : {
       "stonehearth:chair" : {}
    }
 }

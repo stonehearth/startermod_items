@@ -1,7 +1,8 @@
 local priorities = require('constants').priorities.worker_task
-local inventory_service = radiant.mods.load('stonehearth').inventory
+local inventory_service = stonehearth.inventory
 
 local StockpileComponent = class()
+StockpileComponent.__classname = 'StockpileComponent'
 local log = radiant.log.create_logger('stockpile')
 
 local Cube3 = _radiant.csg.Cube3
@@ -24,7 +25,7 @@ function get_stockpile_containing_entity(entity)
       log:spam('checking %s pos:%s inside a stockpile', entity, location)
       if not stockpile then
          log:spam('  nil stockpile!  nope!')
-      else 
+      else
          local name = tostring(stockpile:get_entity())
          local bounds = stockpile:get_bounds();
          if not bounds:contains(location) then
@@ -56,17 +57,6 @@ function StockpileComponent:__init(entity, data_binding)
    self._destination:set_region(_radiant.sim.alloc_region())
                     :set_reserved(_radiant.sim.alloc_region())
                     :set_auto_update_adjacent(true)
-                    
-   self._adjacent_trace = self._destination:trace_adjacent('updating pickup task')
-      :on_changed(function(adjacent_region)
-         if self._pickup_task then
-            if adjacent_region:empty() then
-               self._pickup_task:stop()
-            else
-               self._pickup_task:start()
-            end
-         end
-      end)
 
    radiant.events.listen(radiant.events, 'stonehearth:gameloop', self, self.on_gameloop)
    all_stockpiles[self._entity:get_id()] = self
@@ -82,21 +72,17 @@ function StockpileComponent:destroy()
    for id, item in pairs(self._data.stocked_items) do
       self:_remove_item_from_stock(id)
    end
-   if self._pickup_task then
-      self._pickup_task:destroy()
-      self._pickup_task = nil
-   end
-   if self._restock_task then
-      self._restock_task:destroy()
-      self._restock_task = nil
-   end
    if self._ec_trace then
       self._ec_trace:destroy()
       self._ec_trace = nil
    end
-   if self._adjacent_trace then
-      self._adjacent_trace:destroy()
-      self._adjacent_trace = nil
+   if self._task then
+      self._task:destroy()
+      self._task = nil
+   end
+   if self._ec_trace then
+      self._ec_trace:destroy()
+      self._ec_trace = nil
    end
    if self._unit_info_trace then
       self._unit_info_trace:destroy()
@@ -136,9 +122,6 @@ end
 -- xxx: the 'fire one when i'm constructed' pattern again...
 function StockpileComponent:on_gameloop()
    radiant.events.unlisten(radiant.events, 'stonehearth:gameloop', self, self.on_gameloop)
-
-   self:_create_worker_tasks()
-
    local root = radiant.entities.get_root_entity()
    local ec = radiant.entities.get_root_entity():get_component('entity_container')
 
@@ -198,7 +181,10 @@ function StockpileComponent:get_bounds()
 end
 
 function StockpileComponent:is_full()
-   return false
+   if self._destination and self._destination:is_valid() then
+      return self._destination:get_region():get():empty()
+   end
+   return true
 end
 
 function StockpileComponent:bounds_contain(item_entity)
@@ -221,9 +207,15 @@ function StockpileComponent:_add_to_region(entity)
    local pt = location - radiant.entities.get_world_grid_location(self._entity)
    log:debug('adding point %s to region', tostring(pt))
    self._data.item_locations[entity:get_id()] = pt
+   
+   local was_full = self:is_full()
    self._destination:get_region():modify(function(cursor)
       cursor:subtract_point(pt)
    end)
+   if not was_full and self:is_full() then
+      radiant.events.trigger(self, 'space_available', self, false)
+   end
+   
    log:debug('finished adding point %s to region', tostring(pt))
    self:_unreserve(location)
 end
@@ -232,10 +224,16 @@ function StockpileComponent:_remove_from_region(id)
    local pt = self._data.item_locations[id]
    log:debug('removing point %s from region', tostring(pt))
    self._data.item_locations[id] = nil
+   
+   local was_full = self:is_full()
    self._destination:get_region():modify(function(cursor)
       cursor:add_point(pt)
    end)
    log:debug('finished removing point %s from region', tostring(pt))
+   
+   if was_full and not self:is_full() then
+      radiant.events.trigger(self, 'space_available', self, true)
+   end
 end
 
 function StockpileComponent:_reserve(location)
@@ -296,15 +294,18 @@ end
 function StockpileComponent:_remove_item_from_stock(id)
    assert(self._data.stocked_items[id])
    
+   local entity = self._data.stocked_items[id]
    self._data.stocked_items[id] = nil
    self._data_binding:mark_changed()
 
    --Remove items that have been taken out of the stockpile
-   local entity = radiant.entities.get_entity(id)
-   radiant.events.trigger(self._entity, "stonehearth:item_removed", { 
-      storage = self._entity,
-      item = entity
-   })
+   if entity and entity:is_valid() then
+      radiant.events.trigger(self._entity, "stonehearth:item_removed", { 
+         storage = self._entity,
+         item = entity
+      })
+      radiant.events.trigger(stonehearth.ai, 'stonehearth:reconsider_stockpile_item', entity)
+   end
 end
 
 function StockpileComponent:_rebuild_item_data()
@@ -336,10 +337,13 @@ end
 function StockpileComponent:_assign_to_faction()
    local faction = self._entity:add_component('unit_info'):get_faction()
 
-   if not self._faction or self._faction ~= faction then
-      if self._faction then
+   local old_faction = self._faction
+   self._faction = faction
+   
+   if not old_faction or self._faction ~= old_faction then
+      if old_faction then
          -- unregister from the current inventory service
-         local inventory = inventory_service:get_inventory(self._faction)
+         local inventory = inventory_service:get_inventory(old_faction)
          inventory:remove_storage(self._entity)
       end
 
@@ -349,33 +353,17 @@ function StockpileComponent:_assign_to_faction()
          inventory:add_storage(self._entity)
          radiant.events.listen(inventory, 'stonehearth:item_added', self, self._on_item_added_to_inventory)
          radiant.events.listen(inventory, 'stonehearth:item_removed', self, self._on_item_removed_from_inventory)
-      end
+      end      
+      self:_create_worker_tasks()
    end
-
-   self._faction = faction
 end
 
 function StockpileComponent:_on_item_added_to_inventory(e)
-   if self._pickup_task then
-      self._pickup_task:remove_work_object(e.item:get_id())
-   end
+   -- xxx: need to poke the pathfinder in the restock task somehow... hmm..
 end
 
 function StockpileComponent:_on_item_removed_from_inventory(e)
-   if self._pickup_task then
-      local item = e.item
-      -- there are lots of reason the item can be removed from the inventory (e.g.
-      -- a stockpile containing the entity was destroyed or someone picked up an
-      -- item from a stockpile).  we only want to add the item to the pickup task
-      -- if it's valid to be restocked.  the add_work_object function will call
-      -- our filter to verify that, but it also assume the item is on the terrain!
-      -- check to make sure this is the case before calling it (xxx: shouldn't
-      -- this be done by add_work_object internally? -- tony)
-      local mob = item:get_component('mob')
-      if mob and mob:get_parent() then
-         self._pickup_task:add_work_object(item)
-      end
-   end
+   -- xxx: need to poke the pathfinder in the restock task somehow... hmm..
 end
 
 --- Returns whether or not the stockpile should stock this entity
@@ -384,15 +372,15 @@ end
 
 function StockpileComponent:can_stock_entity(entity)
    if not entity or not entity:get_component('item') then
-      log:spam('nil or non-item entity %s cannot be stocked', tostring(entity))
+      log:spam('nil or non-item entity %s cannot be stocked', entity)
       return false
    end
    
    if not self:_is_in_filter(entity) then
-      log:spam('%s not in filter and cannot be stocked', tostring(entity))
+      log:spam('%s not in filter and cannot be stocked', entity)
       return false
    end 
-   log:spam('%s ok to stock %s!', tostring(self._entity), tostring(entity))
+   log:spam('%s ok to stock %s!', self._entity, entity)
    return true   
 end
 
@@ -433,129 +421,33 @@ function StockpileComponent:_create_worker_tasks()
       return
    end
 
-   local faction = radiant.entities.get_faction(self._entity)
-   local worker_scheduler = radiant.mods.load('stonehearth').worker_scheduler:get_worker_scheduler(faction)
-
-   -- If the tasks already exist, blow them away so we can remake them
-   if self._pickup_task then
-      worker_scheduler:remove_worker_task(self._pickup_task)
-      self._pickup_task:destroy()
-   end
-   if self._restock_task then
-      worker_scheduler:remove_worker_task(self._restock_task)
-      self._restock_task:destroy()
+   if self._task ~= nil then
+      self._task:destroy()
+      self._task = nil
    end
 
-   -- This is the pickup task.  When it finishes, we want to run the
-   -- stonehearth:pickup_item_on_path action, passing in the path found
-   -- by the worker task.
-   self._pickup_task = worker_scheduler:add_worker_task('pickup_to_restock')
-                          :set_priority(priorities.RESTOCK_STOCKPILE)
-                          
-   self._pickup_task:set_action_fn(
-      function (path)
-         local item = path:get_destination()
-         self._pickup_task:remove_work_object(item:get_id())
-         return 'stonehearth:pickup_item_on_path', path
+   local town = stonehearth.town:get_town(self._faction)
+   self._task = town:create_worker_task('stonehearth:restock_stockpile', { stockpile = self })
+                                   :set_source(self._entity)
+                                   :set_name('restock task')
+                                   :start()
+end
+
+function StockpileComponent:get_item_filter_fn()
+   return function(entity)
+      log:spam('%s checking ok to pickup', entity)
+      if not self:can_stock_entity(entity) then
+         log:spam('%s not stockable.  not picking up', entity)
+         return false
       end
-   )
-   self._pickup_task:set_finish_fn(
-      function(success, packed_action)
-         if not success then
-            local name, path = unpack(packed_action)
-            log:debug('pickup action aborted.  adding item back to task')
-            self._pickup_task:add_work_object(path:get_destination())
-         end
+      local stockpile = get_stockpile_containing_entity(entity)
+      if stockpile and not stockpile:is_outbox() then
+         log:spam('%s contained in stockpile.  not picking up', entity)
+         return false
       end
-   )
-
-   -- Only consider workers that aren't currently carrying anything.
-   self._pickup_task:set_worker_filter_fn(
-      function(worker)
-         return radiant.entities.get_carrying(worker) == nil
-      end
-   )
-
-   -- Only consider items which belong in this stockpile and are not
-   -- in any other stockpiles!
-   self._pickup_task:set_work_object_filter_fn(
-      function(entity)
-         log:spam('%s checking ok to pickup', entity)
-         if not self:can_stock_entity(entity) then
-            log:spam('%s not stockable.  not picking up', entity)
-            return false
-         end
-         local stockpile = get_stockpile_containing_entity(entity)
-         if stockpile and not stockpile:is_outbox() then
-            log:spam('%s contained in stockpile.  not picking up', entity)
-            return false
-         end
-         log:spam('ok to pickup %s (mob:%d)!', entity, entity:get_component('mob'):get_id())
-         return true
-      end
-   )
-
-   -- Next is the restock task, which will actually do the dumping of items
-   -- into the stockpile.
-   self._restock_task = worker_scheduler:add_worker_task('restock_stockpile')
-                                        :set_priority(priorities.RESTOCK_STOCKPILE)
-
-   -- We should only consider workers that are carrying and item that belongs
-   -- in the stockpile AND workers who aren't already standing in a stockpile
-   -- (since they've probably just picked up something from that stockpile)
-   -- TODO: Ask Tony if this counts as a hack
-   -- Yes, this is a horrible hack.  OMG!!  The way to fix it is to make restocking
-   -- stuff the lowest level task and make sure people use a "one task for the whole
-   -- pipeline" pattern like place item does.  Then the restock pathfinder will never
-   -- get a crack at people who pull stuff out of the stockpile to do other things.
-   --  - tony
-   
-   self._restock_task:set_worker_filter_fn(
-      function (worker)
-         local entity = radiant.entities.get_carrying(worker)
-         if not self:can_stock_entity(entity) then
-            log:spam('%s is no good for restock task.', tostring(worker))
-            return false
-         end
-         log:spam('%s is good for restock task.', tostring(worker))
-         --TODO: what if the worker is standing just outside the stockpile?
-         --then we're screwd! -- tony (see comment above about the right fix)
-         return not self:bounds_contain(worker)
-      end
-   )
-
-   -- We want to drop stuff off inside ourselves, so add self as a destination
-   self._restock_task:add_work_object(self._entity)
-
-   -- We need to pass ourselves to the restock action, so we can't use the
-   -- 'set_action' shortcut.  Register via 'set_action_fn' which lets us construct
-   -- whatever kind of activity we want
-   self._restock_task:set_action_fn(
-      function (path)
-         local pt = path:get_destination_point_of_interest()
-         log:debug('dispatching restock task at %s', pt)
-         assert(radiant.entities.point_in_destination_region(self._entity, pt))
-         assert(not radiant.entities.point_in_destination_reserved(self._entity, pt))
-         self:_reserve(pt)
-         return 'stonehearth:restock', path, self, pt
-      end
-   )
-   self._restock_task:set_finish_fn(
-      function(success, packed_action)
-         local stonehearth_restock, path, stockpile, pt = unpack(packed_action)
-         if success then
-            log:debug('restock success at %s!', pt)
-         else
-            log:debug('restock failed! unreserving %s', pt)
-            self:_unreserve(pt)
-         end
-      end
-   )
-
-   -- fire 'em up!
-   self._pickup_task:start()
-   self._restock_task:start()
-
+      log:spam('ok to pickup %s (mob:%d)!', entity, entity:get_component('mob'):get_id())
+      return true
+   end
 end
 
 return StockpileComponent

@@ -16,7 +16,10 @@
                "max" : { "x" :  4, "y" : 1, "z" :  4 }
             }
          ]
-      }
+      },
+      "stonehearth:resource_node": {
+         "harvest_overlay_effect" : "/stonehearth/data/effects/chop_overlay_effect"
+      }   
 	}
 }
 

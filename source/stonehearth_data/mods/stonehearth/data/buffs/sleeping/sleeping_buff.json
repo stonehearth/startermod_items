@@ -2,5 +2,6 @@
    "type" : "neutral",
    "name" : "Sleeping",
    "description" : "Sleeping...",
+   "short_description" : "Sleeping...",
    "icon" : "file(sleeping_buff.png)"
 } 

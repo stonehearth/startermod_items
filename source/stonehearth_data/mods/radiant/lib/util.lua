@@ -24,6 +24,50 @@ function util.colorcode_to_integer(cc)
    return result
 end
 
+function util.equals(value)
+end
+
+function util.tostring(value)
+   local t = type(value)
+   if t == 'userdata' then
+      local v = tostring(value)
+      if true then
+         return v
+      end
+      if value.get_type_name then
+         return value:get_type_name()
+      end
+      return class_info(value).name
+   elseif util.is_class(value) then
+      return value.__classname or '*anonymous class*'
+   elseif util.is_instance(value) then
+      return util.tostring(value.__class)
+   end
+   return tostring(value)
+end
+
+function util.is_instance(maybe_instance)
+   return type(maybe_instance) == 'table' and maybe_instance.__type == 'object'
+end
+
+function util.is_class(maybe_cls)
+   return type(maybe_cls) == 'table' and maybe_cls.__type == 'class'
+end
+
+function util.table_is_empty(t)
+   return #t == 0 and next(t) == nil
+end
+
+function util.is_a(var, cls)
+   local t = type(var)
+   if t == 'userdata' then
+      return var:get_type_id() == cls.get_type_id()
+   elseif util.is_instance(var) and util.is_class(cls) then
+      return var:is_a(cls)
+   end
+   return t == cls
+end
+
 function util.get_config(str, default)
    -- The stack offset for the helper functions is 3...
    --    1: __get_current_module_name

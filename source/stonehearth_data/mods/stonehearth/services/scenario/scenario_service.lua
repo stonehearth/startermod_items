@@ -14,8 +14,8 @@ local ScenarioService = class()
 function ScenarioService:__init()
 end
 
-function ScenarioService:initialize(feature_cell_size, rng)
-   self._feature_cell_size = feature_cell_size
+function ScenarioService:initialize(feature_size, rng)
+   self._feature_size = feature_size
    self._rng = rng
    self._revealed_region = Region2()
    self._dormant_scenarios = {}
@@ -38,7 +38,7 @@ function ScenarioService:initialize(feature_cell_size, rng)
       if category then
          category:add(properties)
       else
-         log:error('Error parsing "%s": Category "%s" has not been defined.', file, _wrap_nil(properties.category))
+         log:error('Error parsing "%s": Category "%s" has not been defined.', file, tostring(properties.category))
       end
 
       -- parse habitat types
@@ -50,7 +50,7 @@ function ScenarioService:initialize(feature_cell_size, rng)
 
       -- parse activation type
       if not ActivationType.is_valid(properties.activation_type) then
-         log:error('Error parsing "%s": Invalid activation_type "%s".', file, _wrap_nil(properties.activation_type))
+         log:error('Error parsing "%s": Invalid activation_type "%s".', file, tostring(properties.activation_type))
       end
    end
 
@@ -60,14 +60,12 @@ function ScenarioService:initialize(feature_cell_size, rng)
 end
 
 function ScenarioService:_register_events()
-   local population_service = radiant.mods.load('stonehearth').population
-   self._faction = population_service:get_faction('civ', 'stonehearth:factions:ascendancy')
-
+   self._faction = stonehearth.population:get_faction('civ', 'stonehearth:factions:ascendancy')
    radiant.events.listen(radiant.events, 'stonehearth:very_slow_poll', self, self._on_poll)
 end
 
 function ScenarioService:_on_poll()
-   local reveal_distance = radiant.util.get_config('game.scenario_reveal_distance', 128)
+   local reveal_distance = radiant.util.get_config('scenario_reveal_distance', 128)
    local citizens = self._faction:get_citizens()
    local region = Region2()
    local pt, rect
@@ -108,7 +106,7 @@ function ScenarioService:reveal_region(world_space_region)
             if dormant_scenario ~= nil then
                properties = dormant_scenario.properties
 
-               self:_mark_dormant_scenario_map(nil,
+               self:_mark_scenario_map(self._dormant_scenarios, nil,
                   dormant_scenario.offset_x, dormant_scenario.offset_y,
                   properties.size.width, properties.size.length
                )
@@ -128,7 +126,7 @@ function ScenarioService:reveal_region(world_space_region)
    end
 end
 
-function ScenarioService:_mark_dormant_scenario_map(value, world_offset_x, world_offset_y, width, length)
+function ScenarioService:_mark_scenario_map(map, value, world_offset_x, world_offset_y, width, length)
    local feature_x, feature_y, feature_width, feature_length, key
 
    feature_x, feature_y = self:_get_feature_space_coords(world_offset_x, world_offset_y)
@@ -137,30 +135,30 @@ function ScenarioService:_mark_dormant_scenario_map(value, world_offset_x, world
    -- i, j are offsets so using base 0
    for j=0, feature_length-1 do
       for i=0, feature_width-1 do
+         -- dormant scenarios could also be implemented with nested tables
          key = self:_get_coordinate_key(feature_x + i, feature_y + j)
-         self._dormant_scenarios[key] = value
+         map[key] = value
       end
    end
 end
 
--- TODO: randomize orientation in place_entity
-function ScenarioService:place_scenarios(habitat_map, elevation_map, tile_offset_x, tile_offset_y)
+function ScenarioService:mark_scenarios(habitat_map, elevation_map, tile_offset_x, tile_offset_y)
    local rng = self._rng
-   local feature_cell_size = self._feature_cell_size
+   local feature_size = self._feature_size
    local feature_width, feature_length, voxel_width, voxel_length
-   local scenarios, site, sites, num_sites, roll, offset_x, offset_y, habitat_types
-   
-   scenarios = self:_select_scenarios()
+   local selected_scenarios, site, sites, num_sites, roll, offset_x, offset_y, habitat_types
+   local static_scenarios = {}
 
-   for _, properties in pairs(scenarios) do
+   selected_scenarios = self:_select_scenarios()
+
+   for _, properties in pairs(selected_scenarios) do
       habitat_types = properties.habitat_types
       voxel_width = properties.size.width
       voxel_length = properties.size.length
       feature_width, feature_length = self:_get_dimensions_in_feature_units(voxel_width, voxel_length)
 
       -- get a list of valid locations
-      sites = self:_find_valid_sites(habitat_map, elevation_map, habitat_types, feature_width, feature_length)
-      num_sites = #sites
+      sites, num_sites = self:_find_valid_sites(habitat_map, elevation_map, habitat_types, feature_width, feature_length)
 
       if num_sites > 0 then
          -- pick a random location
@@ -168,29 +166,41 @@ function ScenarioService:place_scenarios(habitat_map, elevation_map, tile_offset
          site = sites[roll]
 
          -- these are in C++ base 0 array coordinates
-         offset_x = (site.x-1)*feature_cell_size + tile_offset_x
-         offset_y = (site.y-1)*feature_cell_size + tile_offset_y
+         offset_x = (site.x-1)*feature_size + tile_offset_x
+         offset_y = (site.y-1)*feature_size + tile_offset_y
+
+         local scenario_info = {
+            properties = properties,
+            offset_x = offset_x,
+            offset_y = offset_y
+         }
 
          if properties.activation_type == ActivationType.static then
-            self:_activate_scenario(properties, offset_x, offset_y)
+            table.insert(static_scenarios, scenario_info)
          else
-            local dormant_scenario = {
-               properties = properties,
-               offset_x = offset_x,
-               offset_y = offset_y
-            }
-            self:_mark_dormant_scenario_map(dormant_scenario, offset_x, offset_y, voxel_width, voxel_length)
+            self:_mark_scenario_map(self._dormant_scenarios, scenario_info, offset_x, offset_y, voxel_width, voxel_length)
          end
 
-         self:_mark_site_occupied(habitat_map, site.x, site.y, feature_width, feature_length)
+         self:_mark_habitat_map(habitat_map, site.x, site.y, feature_width, feature_length)
 
          if properties.unique then
             self:_remove_scenario(properties)
          end
       end
    end
+
+   return static_scenarios
 end
 
+function ScenarioService:place_static_scenarios(scenarios)
+   for _, scenario_info in pairs(scenarios) do
+      if scenario_info.properties.activation_type == ActivationType.static then
+         self:_activate_scenario(scenario_info.properties, scenario_info.offset_x, scenario_info.offset_y)
+      end
+   end
+end
+
+-- TODO: randomize orientation in place_entity
 function ScenarioService:_activate_scenario(properties, offset_x, offset_y)
    local services, scenario_script
 
@@ -205,6 +215,7 @@ end
 function ScenarioService:_find_valid_sites(habitat_map, elevation_map, habitat_types, width, length)
    local i, j, is_habitat_type, is_flat, elevation
    local sites = {}
+   local num_sites = 0
 
    local is_target_habitat_type = function(value)
       local found = habitat_types[value]
@@ -224,13 +235,14 @@ function ScenarioService:_find_valid_sites(habitat_map, elevation_map, habitat_t
                end
             )
             if is_flat then
-               table.insert(sites, Point2(i, j))
+               num_sites = num_sites + 1
+               sites[num_sites] = Point2(i, j)
             end
          end
       end
    end
 
-   return sites
+   return sites, num_sites
 end
 
 -- get a list of scenarios from all the categories
@@ -284,7 +296,7 @@ function ScenarioService:_remove_scenario(scenario)
    self._categories[category]:remove(name)
 end
 
-function ScenarioService:_mark_site_occupied(habitat_map, i, j, width, length)
+function ScenarioService:_mark_habitat_map(habitat_map, i, j, width, length)
    habitat_map:set_block(i, j, width, length, HabitatType.occupied)
 end
 
@@ -305,38 +317,38 @@ function ScenarioService:_region_to_habitat_space(region)
 end
 
 function ScenarioService:_rect_to_habitat_space(rect)
-   local feature_cell_size = self._feature_cell_size
+   local feature_size = self._feature_size
    local min, max
 
-   min = Point2(math.floor(rect.min.x/feature_cell_size),
-                math.floor(rect.min.y/feature_cell_size))
+   min = Point2(math.floor(rect.min.x/feature_size),
+                math.floor(rect.min.y/feature_size))
 
    if rect:get_area() == 0 then
       max = min
    else
-      max = Point2(math.ceil(rect.max.x/feature_cell_size),
-                   math.ceil(rect.max.y/feature_cell_size))
+      max = Point2(math.ceil(rect.max.x/feature_size),
+                   math.ceil(rect.max.y/feature_size))
    end
 
    return Rect2(min, max)
 end
 
 function ScenarioService:_get_dimensions_in_feature_units(width, length)
-   local feature_cell_size = self._feature_cell_size
-   return math.ceil(width/feature_cell_size), math.ceil(length/feature_cell_size)
+   local feature_size = self._feature_size
+   return math.ceil(width/feature_size), math.ceil(length/feature_size)
 end
 
 function ScenarioService:_get_feature_space_coords(x, y)
-   local feature_cell_size = self._feature_cell_size
-   return math.floor(x/feature_cell_size),
-          math.floor(y/feature_cell_size)
+   local feature_size = self._feature_size
+   return math.floor(x/feature_size),
+          math.floor(y/feature_size)
 end
 
 function ScenarioService:_get_coordinate_key(x, y)
    return string.format('%d,%d', x, y)
 end
 
--- returns a table with the set of valid habitat_types
+-- parse the array into a set so we can index by the habitat_type
 function ScenarioService:_parse_habitat_strings(strings)
    local habitat_type
    local habitat_types = {}
@@ -344,24 +356,17 @@ function ScenarioService:_parse_habitat_strings(strings)
 
    for _, value in pairs(strings) do
       if HabitatType.is_valid(value) then
-         habitat_types[value] = true
+         habitat_types[value] = value
       else
          -- concatenate multiple errors into a single string
          if error_message == nil then
             error_message = ''
          end
-         error_message = string.format('%s Invalid habitat type "%s".', error_message, _wrap_nil(value))
+         error_message = string.format('%s Invalid habitat type "%s".', error_message, tostring(value))
       end
    end
 
    return habitat_types, error_message
 end
 
-function _wrap_nil(value)
-   if value ~= nil then
-      return value
-   end
-   return 'nil'
-end
-
-return ScenarioService
+return ScenarioService()

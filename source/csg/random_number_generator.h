@@ -34,6 +34,8 @@ public:
    T GetReal(T min, T max);
 
    // Generates real numbers that are have a Gaussian/Normal distribution with the specified mean and standard deviation
+   // 68% of values fall within 1 standard deviation of the mean
+   // 95% of values fall within 2 standard deviations of the mean
    template <class T>
    T GetGaussian(T mean, T std_dev);
 

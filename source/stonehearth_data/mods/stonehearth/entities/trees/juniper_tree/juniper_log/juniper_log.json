@@ -1,17 +1,17 @@
 {
-   "extends": "stonehearth:mixins:item_properties",
+   "mixins": "stonehearth:mixins:item_properties",
    "type": "entity", 
    "components": {
       "item": {
-         "stacks": 5
+         "stacks": 10
       }, 
-      "model_variants": [
-         {
+      "model_variants": {
+         "default": {
             "models": [
                "file(juniper_log.qb)"
             ]
          }
-      ],
+      },
       "stonehearth:material" : {
          "tags" : "wood resource"
       },

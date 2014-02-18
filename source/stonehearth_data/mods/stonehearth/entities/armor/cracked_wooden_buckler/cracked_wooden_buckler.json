@@ -4,13 +4,13 @@
       "item": {
          "stacks": 1
       }, 
-      "model_variants": [
-         {
+      "model_variants": {
+         "default": {
             "models": [
                "file(cracked_wooden_buckler.qb)"
             ]
          }
-      ], 
+      }, 
       "unit_info": {
          "portrait": "...", 
          "annecdote": "Signed by Elvis...", 

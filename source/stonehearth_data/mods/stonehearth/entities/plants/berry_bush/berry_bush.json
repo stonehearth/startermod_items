@@ -7,19 +7,18 @@
             "file(/data/commands/chop_tree)"
          ]
       },
-      "model_variants": [
-         {
+      "model_variants": {
+         "default": {
             "models": [
                "file(berry_bush.qb)"
             ]
          },
-         {
-            "variants": "depleted",
+         "depleted": {
             "models": [
                "file(berry_bush_empty.qb)"
             ]
          }
-      ],
+      },
       "region_collision_shape" : {
          "region": [
             {
@@ -44,14 +43,16 @@
          "description": "Candy DOES grow on trees!"
       }, 
       "stonehearth:resource_node": {
-         "resource": "stonehearth:oak_log", 
+         "harvest_overlay_effect" : "/stonehearth/data/effects/chop_overlay_effect",
+         "resource": "stonehearth:oak_log",
          "durability": 1
       },
       "stonehearth:renewable_resource_node": {
          "resource" : "stonehearth:berry_basket",
-         "renewal_time" : "2h",
+         "renewal_time" : "40h",
          "harvest_command" : "harvest_berries",
-         "wait_text" : "Not yet ripe for harvest."
+         "wait_text" : "Not yet ripe for harvest.",
+         "harvest_overlay_effect" : "/stonehearth/data/effects/harvest_berries_overlay_effect"
       }
    }
 }

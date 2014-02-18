@@ -1,14 +1,14 @@
 {
-   "extends": "stonehearth:mixins:placed_properties",
+   "mixins": "stonehearth:mixins:placed_properties",
    "type": "entity",
    "components": {
-      "model_variants": [
-         {
+      "model_variants": {
+         "default": {
             "models": [
                "file(comfy_bed.qb)"
             ]
          }
-      ],
+      },
       "destination": {
          "region": [
             {
@@ -32,8 +32,10 @@
       },
       "stonehearth:material" : {
          "tags" : "wood furniture crafted"
-      },      
-      "stonehearth:lease_component" : {},
+      },
+      "render_info" : {
+         "scale" : 0.22
+      },
       "stonehearth:placed_item" : {
          "proxy_entity" : "stonehearth:comfy_bed_proxy"
       }

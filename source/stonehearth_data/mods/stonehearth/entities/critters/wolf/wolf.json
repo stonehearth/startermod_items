@@ -1,6 +1,6 @@
 {
    "type": "entity",
-   "extends": "stonehearth:mixins:mob",
+   "mixins": "stonehearth:mixins:mob",
    "init_script" : "file(wolf_init_script.lua)",      
    "components": {
       "unit_info": {
@@ -9,9 +9,18 @@
          "faction": "wolf"
       },
       "stonehearth:attributes": {
-         "ferocity": 10,
-         "health": 50,
-         "speed" : 150
+         "ferocity": {
+            "type" : "basic", 
+            "value" :  10
+        },
+         "health": {
+            "type" : "basic", 
+            "value" :  10
+        },
+        "speed" : {
+            "type" : "basic", 
+            "value": 90
+        }
       },
       "stonehearth:ai": {
          "actions": [
@@ -32,13 +41,13 @@
          "animation_table" : "file(/data/rigs/critters/wolf)",
          "scale": 0.15
       },
-      "model_variants": [
-         {
+      "model_variants": {
+         "default": {
             "models": [
                "file(wolf.qb)"
             ]
          }
-      ],
+      },
       "stonehearth:material" : {
          "tags" : "meat"
       }

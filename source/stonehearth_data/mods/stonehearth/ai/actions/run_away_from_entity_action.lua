@@ -22,7 +22,7 @@ function RunAwayFromEntity:run(ai, entity, target)
 
    local flee_location = Point3(my_location.x + flee_vector.x, my_location.y, my_location.z + flee_vector.z)
 
-   ai:execute('stonehearth:goto_location', flee_location)
+   ai:execute('stonehearth:goto_location', flee_location, 'run')
 end
 
 function RunAwayFromEntity:round(num, idp)

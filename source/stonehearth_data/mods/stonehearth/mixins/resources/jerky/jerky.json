@@ -1,0 +1,30 @@
+{
+   "mixins": "stonehearth:mixins:item_properties",
+   "type": "entity",
+   "components": {
+      "unit_info": {
+         "name": "Jerky",
+         "description": "Tough and stringy, but nutritious!"
+      },      
+      "stonehearth:material" : {
+         "tags" : "food meat animal_part"
+      },
+      "model_variants": {
+         "default": {
+            "models": [
+               "file(jerky.qb)"
+            ]
+         }
+      }
+   },
+   "entity_data" : {
+      "stonehearth:food" : {
+         "sitting_on_chair" : {
+            "satisfaction" : 150
+         },
+         "default" : {
+            "satisfaction" : 80
+         }
+      }
+   }   
+}

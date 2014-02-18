@@ -1,5 +1,4 @@
 #include "radiant.h"
-#include "log_internal.h"
 #include "core/config.h"
 #include <boost/log/core.hpp>
 #include <boost/log/expressions.hpp>
@@ -43,8 +42,12 @@ void radiant::logger::Init(boost::filesystem::path const& logfile)
    );
    boost::log::add_common_attributes();
 
-   platform_init();
    LOG_(0) << "logger initialized";
+}
+
+int radiant::logger::GetDefaultLogLevel()
+{
+   return default_log_level_;
 }
 
 void radiant::logger::Flush()
@@ -138,5 +141,4 @@ void radiant::logger::InitLogLevels()
 void radiant::logger::Exit()
 {
    LOG_(0) << "logger shutting down";
-   platform_exit();
 }

@@ -150,7 +150,10 @@ local function build(class, shared_objs, shared)
    if shared and shared_objs[class] then return shared_objs[class] end
 
    -- New object
-   local obj = { __type = 'object' }
+   local obj = {
+      __type = 'object',
+      __classname = class.__classname, -- added by tony @ radiant for debugging
+   }
    
    -- Repository for storing inherited base objects
    local inherited = {}

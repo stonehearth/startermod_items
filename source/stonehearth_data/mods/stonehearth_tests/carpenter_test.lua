@@ -11,23 +11,12 @@ function CarpenterTest:__init()
    self[MicroWorld]:__init()
    self:create_world()
 
-   --Create the carpenter, bench, and instantiate them to each other
-   local bench = self:place_item('stonehearth:carpenter:workbench', -12, 12)
-   local workshop_component = bench:get_component('stonehearth:workshop')
-   local carpenter = self:place_citizen(-12, 7,'carpenter', workshop_component)
+   --Add a worker
+   --local worker = self:place_citizen(-5, -5)
+
+   --Create the carpenter. You will have to create the bench as part of the test
+   local carpenter = self:place_citizen(-12, 7,'carpenter')
    local faction = radiant.entities.get_faction(carpenter)
-   bench:add_component('unit_info'):set_faction(faction)
-   
-   --Create the outbox and associate it with the workbench
-   local outbox_entity = radiant.entities.create_entity('stonehearth:workshop_outbox')
-   radiant.terrain.place_entity(outbox_entity, Point3(-9,0,-9))
-   outbox_entity:get_component('unit_info'):set_faction(faction)
-   local outbox_component = outbox_entity:get_component('stonehearth:stockpile')
-   outbox_component:set_size({3, 3})
-   outbox_component:set_outbox(true)
-   workshop_component:associate_outbox(outbox_entity)
-   
-   --local outbox = workshop_component:create_outbox(Point3(-9,0,-9), {3, 3}, faction)
 
    self:place_item('stonehearth:arch_backed_chair_proxy', 0, 0)
    self:place_item('stonehearth:comfy_bed_proxy', 1, 0)

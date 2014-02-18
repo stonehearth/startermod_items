@@ -124,7 +124,7 @@ csg::Transform Mob::GetWorldTransform() const
 
 csg::Point3 Mob::GetWorldGridLocation() const
 {
-   return csg::ToInt(GetWorldLocation());
+   return csg::ToClosestInt(GetWorldLocation());
 }
 
 csg::Quaternion Mob::GetRotation() const
@@ -153,7 +153,7 @@ csg::Point3f Mob::GetLocationInFront() const
 
 csg::Point3 Mob::GetGridLocation() const
 {
-   return csg::ToInt(GetLocation());
+   return csg::ToClosestInt(GetLocation());
 }
 
 void Mob::ExtendObject(json::Node const& obj)

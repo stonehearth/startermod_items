@@ -72,7 +72,7 @@ end
 
 -- test for perfect reconstruction
 function Wavelet._test()
-   local rng = _radiant.csg.get_default_random_number_generator()
+   local rng = _radiant.csg.get_default_rng()
    local width, height, levels
    local x = {}
    local y = {}

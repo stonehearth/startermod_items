@@ -40,21 +40,28 @@ om::EntityRef Client_GetEntity(object id)
    return om::EntityRef();
 }
 
+om::EntityRef Client_GetSelectedEntity()
+{
+   return Client::GetInstance().GetSelectedEntity();
+}
+
 H3DNodeUnique Client_CreateBlueprintNode(lua_State* L, 
                                          H3DNode parent,
                                          csg::Region3 const& model,
-                                         std::string const& material_path)
+                                         std::string const& material_path,
+                                         csg::Point3f const& origin)
 {
-   return Pipeline::GetInstance().CreateBlueprintNode(parent, model, 0.05f, material_path);
+   return Pipeline::GetInstance().CreateBlueprintNode(parent, model, 0.05f, material_path, -origin);
 }
 
 
 H3DNodeUnique Client_CreateVoxelNode(lua_State* L, 
                                      H3DNode parent,
                                      csg::Region3 const& model,
-                                     std::string const& material_path)
+                                     std::string const& material_path,
+                                     csg::Point3f const& origin)
 {
-   return Pipeline::GetInstance().CreateVoxelNode(parent, model, material_path);
+   return Pipeline::GetInstance().CreateVoxelNode(parent, model, material_path, -origin);
 }
 
 H3DNode Client_CreateQubicleMatrixNode(lua_State* L, 
@@ -63,8 +70,27 @@ H3DNode Client_CreateQubicleMatrixNode(lua_State* L,
                                        std::string const& qubicle_matrix,
                                        csg::Point3f const& origin)
 {
-   H3DNodeUnique unique = Pipeline::GetInstance().CreateQubicleMatrixNode(parent, qubicle_file, qubicle_matrix, origin);
-   H3DNode node = unique.release();
+   H3DNode node = 0;
+   Pipeline& pipeline = Pipeline::GetInstance();
+
+   voxel::QubicleFile* qubicle = pipeline.LoadQubicleFile(qubicle_file);
+   if (qubicle) {
+      voxel::QubicleMatrix* matrix = qubicle->GetMatrix(qubicle_matrix);
+
+      if (matrix) {
+         ResourceCacheKey key;
+         key.AddElement("origin", origin);
+         key.AddElement("matrix", matrix);
+
+         auto create_mesh = [&matrix, &origin](csg::mesh_tools::mesh &mesh) {
+            csg::Region3 model = voxel::QubicleBrush(matrix)
+               .SetOffsetMode(voxel::QubicleBrush::Matrix)
+               .PaintOnce();
+            csg::RegionToMesh(model, mesh, -origin);
+         };
+         node = pipeline.AddSharedMeshNode(parent, key, "materials/default_material.xml", create_mesh);
+      }
+   }
    return node;
 }
 
@@ -346,6 +372,7 @@ void lua::client::open(lua_State* L)
       namespace_("_radiant") [
          namespace_("client") [
             def("get_entity",                      &Client_GetEntity),
+            def("get_selected_entity",             &Client_GetSelectedEntity),
             def("create_empty_authoring_entity",   &Client_CreateEmptyAuthoringEntity),
             def("create_authoring_entity",         &Client_CreateAuthoringEntity),
             def("destroy_authoring_entity",        &Client_DestroyAuthoringEntity),

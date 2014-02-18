@@ -1,8 +1,8 @@
 local Effect = class()
 
 function Effect:__init(info)
-	assert(info)
-	self._info = info
+   assert(info)
+   self._info = info
 end
 
 function Effect:_frame_count_to_time(duration)

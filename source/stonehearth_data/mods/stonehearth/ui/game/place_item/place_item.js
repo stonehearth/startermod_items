@@ -98,7 +98,7 @@ App.StonehearthPlaceItemView = App.View.extend({
       $("#itemPicker")
          .animate({ bottom: 10 }, {duration: 300, easing: 'easeOutCirc'});
       //TODO: Flicker happens because the data_store needs to be distinguished for subsections
-      $('.pickable_item').tipsy();
+      $('.pickable_item').tooltipster();
    },
 
    actions: {

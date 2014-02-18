@@ -7,7 +7,6 @@
       },
       "stonehearth:commands" : {
          "commands" : [
-            "file(/data/commands/promote_to_profession)",
             "file(/data/commands/show_workshop)"
          ]
       },
@@ -19,20 +18,16 @@
             }
          ]
       },
-      "model_variants": [
-         {
+      "model_variants": {
+         "default": {
             "models": [
                "file(carpenter_bench.qb)"
             ]
          }
-      ],
+      },
       "stonehearth:workshop": {
          "profession_name" : "Carpenter",
          "skin_class" : "carpenter",
-         "promotion_talisman" : {
-            "entity" : "stonehearth:carpenter:saw",
-            "offset" : [0, 3, 0]
-         }, 
          "ingredients" : [
             {
                "material" : "wood resource",
@@ -40,6 +35,12 @@
             }
          ],
          "build_sound_effect": "/stonehearth/data/effects/place_workshop/place_carpenter_workbench.json"
+      }
+   },
+   "entity_data" : {
+      "stonehearth:table" : {
+         "drop_effect" : "carry_putdown_on_table",
+         "drop_offset" : {"x" : 0, "y" : 1, "z" : 0 } 
       }
    }
 }

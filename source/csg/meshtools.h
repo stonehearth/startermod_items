@@ -25,6 +25,7 @@ public:
 
       mesh();
 
+      mesh& SetOffset(csg::Point3f const& offset);
       mesh& SetColor(csg::Color3 const& color);
       mesh& FlipFaces();
       // This is the one, true add face.  move over to it... (and when you're done, make color a Color4)
@@ -50,7 +51,7 @@ public:
 
    mesh_tools& SetOffset(Point3f const& offset);
    mesh_tools& SetTesselator(tesselator_map const& t);
-   mesh ConvertRegionToMesh(Region3 const& region);
+   mesh ConvertRegionToMesh(Region3 const& region); // xxx: GET RID OF THIS BEFORE CHEKGIN IN!!
 
    enum {
       INCLUDE_HIDDEN_FACES    = (1 << 1)
@@ -99,6 +100,8 @@ private:
    tesselator_map const*   tesselators_;
    Point3f                 offset_;
 };
+
+void RegionToMesh(csg::Region3 const& region, mesh_tools::mesh &mesh, csg::Point3f const& offset);
 
 END_RADIANT_CSG_NAMESPACE
 

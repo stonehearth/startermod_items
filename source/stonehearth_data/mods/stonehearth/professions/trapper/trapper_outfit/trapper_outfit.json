@@ -1,0 +1,39 @@
+{
+   "type": "entity",
+   "extends" : "stonehearth:mixins:item_properties",
+   "components" : {
+      "unit_info" : {
+      },
+      "render_info" : {
+      },
+      "model_variants": {
+         "default": {
+            "layer": "clothing",
+            "models": [
+               "file(trapper_outfit.qb)"
+            ]
+         },
+         "female" : {
+            "layer": "clothing",
+            "models": [
+               "file(trapper_outfit_female.qb)"
+            ]
+         }
+      },
+      "stonehearth:equipment_piece" : {
+         "render_type" : "merge_with_model",
+         "injected_ai" : {
+            "actions" : [
+                "stonehearth:actions:unit_control:move_unit_to_location",
+                "stonehearth:actions:unit_control:abilities:snare_trap",
+                "stonehearth:actions:unit_control:harvest_trapped_beast",
+                "stonehearth:actions:harvest_trapped_beast_adjacent"
+            ]
+         },
+         "injected_commands" : [
+            "file(/data/commands/unit_control/move_unit)",
+            "file(/data/commands/unit_control/abilities/snare_trap)"
+         ]
+      }
+   }
+}

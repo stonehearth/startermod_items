@@ -1,5 +1,8 @@
 {
    "type" : "debuff",
+   "name" : "So Heavy!",
+   "description" : "Carrying heavy things naturally causes people to move more slowly",
+   "icon" : "file(carrying_buff.png)",
    "modifiers" : {
       "speed" : {
          "multiply" : 0.5

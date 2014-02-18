@@ -1,30 +1,24 @@
 {
    "type" : "entity",
-   "extends" : "stonehearth:mixins:mob",   
+   "mixins" : "stonehearth:mixins:mob",   
    "components": {
       "unit_info" : {
         "name": "A sheep",
         "description": "So fluffy!",
         "faction": "critter"
       },
-      "stonehearth:commands" : {
-         "commands" : [
-            "file(/data/commands/shear_sheep)"
-         ]
-      },
-      "model_variants": [
-         {
+      "model_variants": {
+         "default": {
             "models": [
                "file(sheep.qb)"
             ]
          },
-         {
-            "variants": "depleted",
+         "depleated" : {
             "models": [
                "file(sheep_shorn.qb)"
             ]
          }
-      ],
+      },
       "stonehearth:renewable_resource_node": {
          "resource" : "stonehearth:wool_bundle",
          "renewal_time" : "12h",
@@ -34,12 +28,20 @@
       },      
       "stonehearth:ai" : {
          "actions" : [
-            "stonehearth:actions:wander"
+            "stonehearth:actions:wander",
+            "stonehearth:actions:wander_when_bored",
+            "stonehearth:actions:choose_point_around_leash"
          ]
       },
       "stonehearth:attributes": {
-         "health": 1,
-         "speed" : 50
+         "health": {
+            "type" : "basic", 
+            "value" :  10
+        },
+        "speed" : {
+            "type" : "basic", 
+            "value": 30
+        }
       },      
       "render_info" : {
          "animation_table" : "file(/data/rigs/critters/sheep)",

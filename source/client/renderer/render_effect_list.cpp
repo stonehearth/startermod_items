@@ -36,7 +36,8 @@
 using namespace ::radiant;
 using namespace ::radiant::client;
 
-#define EL_LOG(level)      LOG(renderer.effects_list, level)
+#define EL_LOG_NOPREFIX(level)   LOG(renderer.effects_list, level)
+#define EL_LOG(level)            LOG_CATEGORY(renderer.effects_list, level, log_prefix_)
 
 int GetStartTime(const JSONNode& node) 
 {
@@ -61,7 +62,7 @@ static void MoveSceneNode(H3DNode node, const csg::Transform& t, float scale)
    
    bool result = h3dSetNodeTransMat(node, m.get_float_ptr());
    if (!result) {
-      EL_LOG(5) << "failed to set transform on node.";
+      EL_LOG_NOPREFIX(5) << "failed to set transform on node.";
    }
 }
 
@@ -70,6 +71,8 @@ RenderEffectList::RenderEffectList(RenderEntity& entity, om::EffectListPtr effec
    effectList_(effectList)
 {
    ASSERT(effectList);
+
+   log_prefix_ = BUILD_STRING("[" << *entity.GetEntity() << " effect_list" << "]");
 
    effects_list_trace_ = \
       effectList->TraceEffects("render", dm::RENDER_TRACES)
@@ -127,8 +130,10 @@ void RenderEffectList::UpdateEffects(FrameStartInfo const& info)
 
 RenderInnerEffectList::RenderInnerEffectList(RenderEntity& renderEntity, om::EffectPtr effect)
 {
+   log_prefix_ = BUILD_STRING("[" << *renderEntity.GetEntity() << " inner_effect_list" << "]");
    try {
       std::string name = effect->GetName();
+
       JSONNode const& data = res::ResourceManager2::GetInstance().LookupJson(name);
       for (const JSONNode& node : data["tracks"]) {
          std::string type = node["type"].as_string();
@@ -189,12 +194,19 @@ void RenderInnerEffectList::Update(FrameStartInfo const& info, bool& finished)
    }
 }
 
+
+RenderEffect::RenderEffect(RenderEntity& entity, std::string const& prefix) :
+   entity_(entity)
+{
+   log_prefix_ = BUILD_STRING("[" << *entity_.GetEntity() << " " << prefix << "]");
+}
+
 ///////////////////////////////////////////////////////////////////////////////
 // RenderAnimationEffect
 ///////////////////////////////////////////////////////////////////////////////
 
 RenderAnimationEffect::RenderAnimationEffect(RenderEntity& e, om::EffectPtr effect, const JSONNode& node) :
-   entity_(e)
+   RenderEffect(e, "animation")
 {
    om::EntityPtr entity = e.GetEntity();
 
@@ -264,7 +276,7 @@ void RenderAnimationEffect::Update(FrameStartInfo const& info, bool& finished)
 ///////////////////////////////////////////////////////////////////////////////
 
 HideBoneEffect::HideBoneEffect(RenderEntity& e, om::EffectPtr effect, const JSONNode& node) :
-   entity_(e),
+   RenderEffect(e, "hide bone"),
    boneNode_(0),
    boneNodeFlags_(0)
 {
@@ -295,7 +307,7 @@ void HideBoneEffect::Update(FrameStartInfo const& info, bool& finished)
 ///////////////////////////////////////////////////////////////////////////////
 
 CubemitterEffect::CubemitterEffect(RenderEntity& e, om::EffectPtr effect, const JSONNode& node) :
-   entity_(e),
+   RenderEffect(e, "cubemitter"),
    cubemitterNode_(0),
    parent_(e.GetNode())
 {
@@ -346,7 +358,7 @@ void CubemitterEffect::Update(FrameStartInfo const& info, bool& finished)
 ///////////////////////////////////////////////////////////////////////////////
 
 LightEffect::LightEffect(RenderEntity& e, om::EffectPtr effect, const JSONNode& node) :
-   entity_(e),
+   RenderEffect(e, "light effect"),
    lightNode_(0)
 {
    auto animatedLightFileName = node["light"].as_string();
@@ -421,7 +433,7 @@ void getBoundsForGroupNode(float* minX, float* maxX, float *minY, float *maxY, H
 }
 
 ActivityOverlayEffect::ActivityOverlayEffect(RenderEntity& e, om::EffectPtr effect, const JSONNode& node) :
-   entity_(e)
+   RenderEffect(e, "activity overlay")
 {
    float minX, maxX, minY, maxY;
    json::Node cjo(node);
@@ -456,7 +468,7 @@ void ActivityOverlayEffect::Update(FrameStartInfo const& info, bool& finished)
 ///////////////////////////////////////////////////////////////////////////////
 
 UnitStatusEffect::UnitStatusEffect(RenderEntity& e, om::EffectPtr effect, const JSONNode& node) :
-   entity_(e)
+   RenderEffect(e, "unit status")
 {
    json::Node cjo(node);
    std::string matName = cjo.get("material", std::string("materials/sleepy_indicator/sleepy_indicator.material.xml"));
@@ -489,7 +501,7 @@ void UnitStatusEffect::Update(FrameStartInfo const& info, bool& finished)
 ///////////////////////////////////////////////////////////////////////////////
 
 RenderAttachItemEffect::RenderAttachItemEffect(RenderEntity& e, om::EffectPtr effect, const JSONNode& node) :
-   entity_(e),
+   RenderEffect(e, "attach item"),
    finished_(false),
    use_model_variant_override_(false)
 {
@@ -527,6 +539,11 @@ RenderAttachItemEffect::RenderAttachItemEffect(RenderEntity& e, om::EffectPtr ef
    if (item) {
       startTime_ = GetStartTime(node) + now;
       bone_ = node["bone"].as_string();
+
+      om::MobPtr mob = item->GetComponent<om::Mob>();
+      if (mob) {
+         mob->SetLocationGridAligned(csg::Point3::zero);
+      }
 
       H3DNode parent = entity_.GetSkeleton().GetSceneNode(bone_);
       render_item_ = Renderer::GetInstance().CreateRenderObject(parent, item);
@@ -608,7 +625,7 @@ get_easing_function(std::string easing)
 ///////////////////////////////////////////////////////////////////////////////
 
 FloatingCombatTextEffect::FloatingCombatTextEffect(RenderEntity& e, om::EffectPtr effect, const JSONNode& node) :
-   entity_(e),
+   RenderEffect(e, "floating combat text"),
    height_(0),
    lastUpdated_(0)
 {
@@ -709,7 +726,7 @@ bool PlaySoundEffect::ShouldCreateSound() {
 #define PLAY_SOUND_EFFECT_MIN_VOLUME 0.1f;
 
 PlaySoundEffect::PlaySoundEffect(RenderEntity& e, om::EffectPtr effect, const JSONNode& node) :
-	entity_(e)
+   RenderEffect(e, "sound")
 {
    startTime_ = effect->GetStartTime();
    firstPlay_ = true;

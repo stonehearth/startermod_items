@@ -56,10 +56,10 @@ void Application::InitializeCrashReporting()
 
    core::Config& config = core::Config::GetInstance();
 
-   if (!config.Get("support.disable_crash_dump_server", false)) {
+   if (config.Get("enable_crash_dump_server", true)) {
       std::string const crash_dump_path = core::System::GetInstance().GetTempDirectory().string();
       std::string const userid = config.GetUserID();
-      crash_dump_uri_ = config.Get("support.crash_dump_server", REPORT_CRASHDUMP_URI);
+      crash_dump_uri_ = config.Get("crash_dump_server", REPORT_CRASHDUMP_URI);
 
       crash_reporter::client::CrashReporterClient::GetInstance().Start(crash_dump_path, crash_dump_uri_, userid);
    }
@@ -132,9 +132,16 @@ int Application::Run(int argc, const char** argv)
          ShowHelp();
          std::exit(0);
       }
-      radiant::logger::Init(core::System::GetInstance().GetTempDirectory() / LOG_FILENAME);
+
       json::InitialzeErrorHandler();
       core::Config::GetInstance().Load(argc, argv);
+
+      bool show_console = false;
+      DEBUG_ONLY(show_console = true;)
+      if (core::Config::GetInstance().Get<bool>("logging.show_console", show_console)) {
+         radiant::logger::InitConsole();
+      }
+      radiant::logger::Init(core::System::GetInstance().GetTempDirectory() / LOG_FILENAME);
       radiant::logger::InitLogLevels();
    } catch (std::exception const& e) {
       std::string const error_message = BUILD_STRING("Error starting application:\n\n" << e.what());

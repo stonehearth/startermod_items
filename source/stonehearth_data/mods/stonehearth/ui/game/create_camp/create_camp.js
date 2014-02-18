@@ -125,7 +125,11 @@ App.StonehearthCreateCampView = App.View.extend({
    },
 
    _hideScroll: function(id, callback) {
-     $(id).animate({ 'bottom' : -300 }, 200, function() { callback(); }); 
+      $(id).animate({ 'bottom' : -300 }, 200, function() {
+         if (callback != null) {
+            callback();
+         }
+      }); 
    },
 
    _showCrate: function() {

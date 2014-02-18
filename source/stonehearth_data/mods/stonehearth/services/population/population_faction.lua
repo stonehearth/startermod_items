@@ -1,13 +1,14 @@
 local PopulationFaction = class()
 
-local rng = _radiant.csg.get_default_random_number_generator()
-local personality_service = require 'services.personality.personality_service'
+local rng = _radiant.csg.get_default_rng()
+local personality_service = stonehearth.personality
 
 --Separate the faction name (player chosen) from the kingdom name (ascendency, etc.)
 function PopulationFaction:__init(faction, kingdom)
    self._faction = faction
    self._data = radiant.resources.load_json(kingdom)
    self._faction_name = faction --TODO: differentiate b/w user id and name?
+
    self._kingdom = self._data.kingdom_id
    self._citizens = {}
 end
@@ -30,6 +31,11 @@ function PopulationFaction:create_new_citizen()
    local entities = self._data[gender .. '_entities']
    local kind = entities[rng:get_int(1, #entities)]
    local citizen = radiant.entities.create_entity(kind)
+   
+   local all_variants = radiant.entities.get_entity_data(citizen, 'stonehearth:customization_variants')
+   if all_variants then
+      self:customize_citizen(citizen, all_variants, "root")
+   end
 
    citizen:add_component('unit_info'):set_faction(self._faction_name) -- xxx: for now...
    --citizen:add_component('unit_info'):set_kingdom(self.kingdom)
@@ -39,6 +45,31 @@ function PopulationFaction:create_new_citizen()
    table.insert(self._citizens, citizen)
 
    return citizen
+end
+
+function PopulationFaction:customize_citizen(entity, all_variants, this_variant)   
+   
+   local variant = all_variants[this_variant]
+
+   if not variant then
+      return
+   end
+   
+   -- load any models at this node in the customization tree
+   if variant.models then
+      local variant_name = 'default'
+      local random_model = variant.models[1]
+      local model_variants_component = entity:add_component('model_variants')
+      model_variants_component:add_variant(variant_name):add_model(random_model)
+   end
+
+   -- for each set of child variants, pick a random option
+   if variant.variants then
+      for _, variant_set in ipairs(variant.variants) do
+         local random_option = variant_set[math.random(#variant_set)]
+         self:customize_citizen(entity, all_variants, random_option)
+      end
+   end
 end
 
 function PopulationFaction:get_citizens()
@@ -59,43 +90,6 @@ function PopulationFaction:_set_citizen_initial_state(citizen, gender)
    personality_component:add_substitution_by_parameter('teacher', self._kingdom, 'stonehearth')
    personality_component:add_substitution_by_parameter('personality_based_exclamation', personality, 'stonehearth:settler_journals')
 
-   local mind = rng:get_int(1, 6)
-   local body = rng:get_int(1, 6)
-   local spirit = rng:get_int(1, 6)
-   -- stats 
-   radiant.entities.set_attribute(citizen, 'mind', mind)
-   radiant.entities.set_attribute(citizen, 'body', body)
-   radiant.entities.set_attribute(citizen, 'spirit', spirit)
-
-   radiant.entities.set_attribute(citizen, 'diligence', self:get_derived_attribute(mind))
-   radiant.entities.set_attribute(citizen, 'curiosity', self:get_derived_attribute(mind))
-   radiant.entities.set_attribute(citizen, 'inventiveness', self:get_derived_attribute(mind))
-
-
-   radiant.entities.set_attribute(citizen, 'muscle', self:get_derived_attribute(body))
-   radiant.entities.set_attribute(citizen, 'speed', self:get_derived_attribute(body))
-   radiant.entities.set_attribute(citizen, 'stamina', self:get_derived_attribute(body))
-
-
-   radiant.entities.set_attribute(citizen, 'courage', self:get_derived_attribute(spirit))
-   radiant.entities.set_attribute(citizen, 'willpower', self:get_derived_attribute(spirit))
-   radiant.entities.set_attribute(citizen, 'compassion', self:get_derived_attribute(spirit))
-
-   -- speed is a factor of body as well
-   local speed = math.floor(80 + (20 * body/6))
-   radiant.entities.set_attribute(citizen, 'speed', speed)
-
-   -- randomize hunger
-   radiant.entities.set_attribute(citizen, 'hunger', rng:get_int(1, 30))
-
-   -- randomize sleepiness
-   radiant.entities.set_attribute(citizen, 'sleepiness', rng:get_int(1, 30))
-end
-
-function PopulationFaction:get_derived_attribute(primary_attribute_value)
-   local min = primary_attribute_value * 10
-   local max = min + 9
-   return rng:get_int(min, max)
 end
 
 function PopulationFaction:create_entity(uri)

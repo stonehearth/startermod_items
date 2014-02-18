@@ -6,6 +6,7 @@
 #include "om/components/data_store.ridl.h"
 #include "om/components/effect.ridl.h"
 #include "om/components/target_table_group.ridl.h"
+#include "om/components/model_layer.ridl.h"
 #include "om/components/target_table_entry.ridl.h"
 
 #define ALL_DM_MAP_TYPES \
@@ -17,4 +18,5 @@
    MAP(std::string, om::SensorPtr) \
    MAP(std::string, om::DataStorePtr) \
    MAP(std::string, om::TargetTableGroupPtr) \
+   MAP(std::string, om::ModelLayerPtr) \
    MAP3(csg::Point3, om::Region3BoxedPtr, csg::Point3::Hash)

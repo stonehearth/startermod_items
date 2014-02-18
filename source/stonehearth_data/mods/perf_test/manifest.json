@@ -7,22 +7,19 @@
       "script" : "perf_test.lua"
    },
 
-   "client" : {
-      "init_script" : "file(client_perf_test.lua)"
-   },
+   "client_init_script" : "file(client_perf_test)",
 
-   "radiant": {
-      "functions" : {
-         "get_world_generation_done": {
-            "controller" : "file(perf_test_call_handler.lua)",
-            "endpoint" : "server"
-         },
-         "set_is_running": {
-            "controller" : "file(perf_test_call_handler.lua)",
-            "endpoint" : "server"
-         }         
-      }
+   "functions" : {
+      "get_world_generation_done": {
+         "controller" : "file(perf_test_call_handler.lua)",
+         "endpoint" : "server"
+      },
+      "set_is_running": {
+         "controller" : "file(perf_test_call_handler.lua)",
+         "endpoint" : "server"
+      }         
    },
+   
    "loader" :  {
       "ui" : {
          "homepage" : "file(/ui/root/index.html)"

@@ -14,6 +14,8 @@
 using namespace ::radiant;
 using namespace ::radiant::simulation;
 
+std::vector<std::weak_ptr<PathFinder>> PathFinder::all_pathfinders_;
+
 #define PF_LOG(level)   LOG_CATEGORY(simulation.pathfinder, level, GetName())
 
 #if defined(CHECK_HEAPINESS)
@@ -27,14 +29,51 @@ using namespace ::radiant::simulation;
 #  define VERIFY_HEAPINESS()
 #endif
 
-PathFinder::PathFinder(Simulation& sim, std::string name) :
+std::shared_ptr<PathFinder> PathFinder::Create(Simulation& sim, std::string name, om::EntityPtr entity)
+{
+   std::shared_ptr<PathFinder> pathfinder(new PathFinder(sim, name, entity));
+   all_pathfinders_.push_back(pathfinder);
+   return pathfinder;
+}
+
+void PathFinder::ComputeCounters(std::function<void(const char*, int, const char*)> const& addCounter)
+{
+   int count = 0;
+   int running_count = 0;
+   int open_count = 0;
+   int closed_count = 0;
+   int active_count = 0;
+
+   stdutil::ForEachPrune<PathFinder>(all_pathfinders_, [&](std::shared_ptr<PathFinder> pf) {
+      count++;
+      if (pf->enabled_) {
+         active_count++;
+         if (!pf->IsIdle()) {
+            running_count++;
+         }
+      }
+      open_count += pf->open_.size();
+      closed_count += pf->closed_.size();
+   });
+
+   addCounter("pathfinders:total_count", count, "counter");
+   addCounter("pathfinders:active_count", active_count, "counter");
+   addCounter("pathfinders:running_count", running_count, "counter");
+   addCounter("pathfinders:open_node_count", open_count, "counter");
+   addCounter("pathfinders:closed_node_count", closed_count, "counter");
+}
+
+PathFinder::PathFinder(Simulation& sim, std::string name, om::EntityPtr entity) :
    Job(sim, name),
    rebuildHeap_(false),
    restart_search_(true),
+   search_exhausted_(false),
    enabled_(true),
+   entity_(entity),
    debug_color_(255, 192, 0, 128)
 {
    PF_LOG(3) << "creating pathfinder";
+   source_.reset(new PathFinderSrc(*this, entity));
 }
 
 PathFinder::~PathFinder()
@@ -42,29 +81,33 @@ PathFinder::~PathFinder()
    PF_LOG(3) << "destroying pathfinder";
 }
 
-void PathFinder::SetSource(om::EntityRef e)
+PathFinderPtr PathFinder::SetSource(csg::Point3 const& location)
 {
-   entity_ = e;
-   mob_.reset();
-
-   source_.reset(new PathFinderSrc(*this, entity_));
-
-   auto entity = e.lock();
-   if (entity) {
-      mob_ = entity->GetComponent<om::Mob>();
-   }
-   RestartSearch("source changed");
+   source_->SetSourceOverride(location);
+   RestartSearch("source location changed");
+   return shared_from_this();
 }
 
-void PathFinder::SetSolvedCb(luabind::object solved_cb)
+PathFinderPtr PathFinder::SetSolvedCb(luabind::object unsafe_solved_cb)
 {
-   solved_cb_ = solved_cb;
+   lua_State* cb_thread = lua::ScriptHost::GetCallbackThread(unsafe_solved_cb.interpreter());  
+   solved_cb_ = luabind::object(cb_thread, unsafe_solved_cb);
+   return shared_from_this();
 }
 
-void PathFinder::SetFilterFn(luabind::object dst_filter)
+PathFinderPtr PathFinder::SetSearchExhaustedCb(luabind::object unsafe_search_exhuasted_cb)
 {
-   dst_filter_ = dst_filter;
+   lua_State* cb_thread = lua::ScriptHost::GetCallbackThread(unsafe_search_exhuasted_cb.interpreter());  
+   search_exhausted_cb_ = luabind::object(cb_thread, unsafe_search_exhuasted_cb);
+   return shared_from_this();
+}
+
+PathFinderPtr PathFinder::SetFilterFn(luabind::object unsafe_dst_filter)
+{
+   lua_State* cb_thread = lua::ScriptHost::GetCallbackThread(unsafe_dst_filter.interpreter());  
+   dst_filter_ = luabind::object(cb_thread, unsafe_dst_filter);
    RestartSearch("filter function changed");
+   return shared_from_this();
 }
 
 bool PathFinder::IsIdle() const
@@ -117,17 +160,22 @@ bool PathFinder::IsIdle() const
    return false;
 }
 
-void PathFinder::Start()
+PathFinderPtr PathFinder::Start()
 {
+   PF_LOG(5) << "start requested";
    enabled_ = true;
+   return shared_from_this();
 }
 
-void PathFinder::Stop()
+PathFinderPtr PathFinder::Stop()
 {
+   PF_LOG(5) << "stop requested";
+   RestartSearch("pathfinder stopped");
    enabled_ = false;
+   return shared_from_this();
 }
 
-void PathFinder::AddDestination(om::EntityRef e)
+PathFinderPtr PathFinder::AddDestination(om::EntityRef e)
 {
    auto entity = e.lock();
    if (entity) {
@@ -139,11 +187,10 @@ void PathFinder::AddDestination(om::EntityRef e)
             PF_LOG(5) << "calling lua solution callback";
             ok = lua::ScriptHost::CoerseToBool(dst_filter_(e));
             PF_LOG(5) << "finished calling lua solution callback";
-         } catch (std::exception& e) {
-            lua::ScriptHost::ReportCStackException(L, e);
+         } catch (std::exception&) {
          }
          if (!ok) {
-            return;
+            return shared_from_this();
          }
       }
 
@@ -151,9 +198,10 @@ void PathFinder::AddDestination(om::EntityRef e)
       restart_search_ = true;
       solution_ = nullptr;
    }
+   return shared_from_this();
 }
 
-void PathFinder::RemoveDestination(dm::ObjectId id)
+PathFinderPtr PathFinder::RemoveDestination(dm::ObjectId id)
 {
    auto i = destinations_.find(id);
    if (i != destinations_.end()) {
@@ -165,6 +213,7 @@ void PathFinder::RemoveDestination(dm::ObjectId id)
          }
       }
    }
+   return shared_from_this();
 }
 
 void PathFinder::Restart()
@@ -172,19 +221,26 @@ void PathFinder::Restart()
    PF_LOG(5) << "restarting search";
 
    ASSERT(restart_search_);
+   ASSERT(!solution_);
 
-   solution_ = nullptr;
-   rebuildHeap_ = true;
-   restart_search_ = false;
    cameFrom_.clear();
    closed_.clear();
    open_.clear();
 
+   rebuildHeap_ = true;
+   restart_search_ = false;
+   max_cost_to_destination_ = 0;
+
    source_->InitializeOpenSet(open_);
    for (PathFinderNode& node : open_) {
-   	int h = EstimateCostToDestination(node.pt);
+      int h = EstimateCostToDestination(node.pt);
       node.f = h;
       node.g = 0;
+
+      // by default search no more than 4x the distance
+      if (h > 0) {
+         max_cost_to_destination_ = std::max(max_cost_to_destination_, h * 4);
+      }
    }
 }
 
@@ -250,6 +306,7 @@ void PathFinder::Work(const platform::timer &timer)
 
    if (open_.empty()) {
       PF_LOG(7) << "open set is empty!  returning";
+      SetSearchExhausted();
       return;
    }
 
@@ -262,11 +319,15 @@ void PathFinder::Work(const platform::timer &timer)
    closed_.insert(current.pt);
 
    PathFinderDst* closest;
-   if (EstimateCostToDestination(current.pt, &closest) == 0) {
+  int h = EstimateCostToDestination(current.pt, &closest);
+   if (h == 0) {
       // xxx: be careful!  this may end up being re-entrant (for example, removing
       // destinations).
       SolveSearch(current.pt, closest);
       return;
+   } else if (h > max_cost_to_destination_) {
+      PF_LOG(3) << "max cost to destination " << max_cost_to_destination_ << " exceeded.  marking search as exhausted.";
+      SetSearchExhausted();
    }
 
    VERIFY_HEAPINESS();
@@ -340,6 +401,9 @@ void PathFinder::AddEdge(const PathFinderNode &current, const csg::Point3 &next,
 
 int PathFinder::EstimateCostToSolution()
 {
+   if (!enabled_) {
+      return INT_MAX;
+   }
    if (restart_search_) {
       Restart();
    }
@@ -434,7 +498,12 @@ void PathFinder::RecommendBestPath(std::vector<csg::Point3> &points) const
 
 std::string PathFinder::GetProgress() const
 {
-   return BUILD_STRING(GetName() << " " << "(open: " << open_.size() << "  closed: " << closed_.size() << ")");
+   std::string ename;
+   auto entity = entity_.lock();
+   if (entity) {
+      ename = BUILD_STRING(*entity);
+   }
+   return BUILD_STRING(GetName() << " " << ename << " (open: " << open_.size() << "  closed: " << closed_.size() << ")");
 }
 
 void PathFinder::RebuildHeap()
@@ -444,17 +513,23 @@ void PathFinder::RebuildHeap()
    rebuildHeap_ = false;
 }
 
-csg::Point3 PathFinder::GetSourceLocation()
+void PathFinder::SetSearchExhausted()
 {
-   csg::Point3 pt(0, 0, 0);
-   auto entity = entity_.lock();
-   if (entity) {
-      auto mob = entity->GetComponent<om::Mob>();
-      if (mob) {
-         pt = mob->GetWorldGridLocation();
+   if (!search_exhausted_) {
+      cameFrom_.clear();
+      closed_.clear();
+      open_.clear();
+      search_exhausted_ = true;
+      if (search_exhausted_cb_.is_valid()) {
+         PF_LOG(5) << "calling lua search exhausted callback";
+         try {
+            search_exhausted_cb_();
+         } catch (std::exception const& e) {
+            lua::ScriptHost::ReportCStackException(search_exhausted_cb_.interpreter(), e);
+         }
+         PF_LOG(5) << "finished calling lua search exhausted callback";
       }
    }
-   return pt;
 }
 
 void PathFinder::SolveSearch(const csg::Point3& last, PathFinderDst* dst)
@@ -465,20 +540,20 @@ void PathFinder::SolveSearch(const csg::Point3& last, PathFinderDst* dst)
 
    ReconstructPath(points, last);
 
-   csg::Point3 end_point;
-   if (!points.empty()) {
-      end_point = points.back();
-   } else {
-      end_point = GetSourceLocation();
+   if (points.empty()) {
+      points.push_back(source_->GetSourceLocation());
    }
-   csg::Point3 dst_point_of_interest = dst->GetPointfInterest(end_point);
+   csg::Point3 dst_point_of_interest = dst->GetPointfInterest(points.back());
    PF_LOG(5) << "found solution to destination " << dst->GetEntityId();
    solution_ = std::make_shared<Path>(points, entity_.lock(), dst->GetEntity(), dst_point_of_interest);
    if (solved_cb_.is_valid()) {
       PF_LOG(5) << "calling lua solved callback";
-      auto L = solved_cb_.interpreter();
-      luabind::object path(L, solution_);
-      luabind::call_function<void>(solved_cb_, path);
+      try {
+         solved_cb_(luabind::object(solved_cb_.interpreter(), solution_));
+      } catch (std::exception const& e) {
+         LUA_LOG(1) << "exception delivering solved cb: " << e.what();
+      }
+
       PF_LOG(5) << "finished calling lua solved callback";
    }
 
@@ -490,11 +565,16 @@ PathPtr PathFinder::GetSolution() const
    return solution_;
 }
 
-void PathFinder::RestartSearch(const char* reason)
+PathFinderPtr PathFinder::RestartSearch(const char* reason)
 {
-   PF_LOG(5) << "requesting search restart: " << reason;
+   PF_LOG(3) << "requesting search restart: " << reason;
    restart_search_ = true;
+   search_exhausted_ = false;
    solution_ = nullptr;
+   cameFrom_.clear();
+   closed_.clear();
+   open_.clear();
+   return shared_from_this();
 }
 
 std::ostream& ::radiant::simulation::operator<<(std::ostream& o, const PathFinder& pf)
@@ -510,7 +590,7 @@ std::ostream& PathFinder::Format(std::ostream& o) const
 
 bool PathFinder::IsSearchExhausted() const
 {
-   return open_.empty();
+   return open_.empty() || search_exhausted_;
 }
 
 void PathFinder::SetDebugColor(csg::Color4 const& color)

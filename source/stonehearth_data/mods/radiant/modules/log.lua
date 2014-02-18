@@ -1,11 +1,19 @@
-local Logger = require 'modules.logger'
-
 local Log = {
    ERROR = 1,
    WARNING = 3,
    INFO = 5,
    DEBUG = 7,
+   DETAIL = 8,
    SPAM = 9,
+}
+
+local logger_functions = {
+   error = Log.ERROR,
+   warning = Log.WARNING,
+   info = Log.INFO,
+   debug = Log.DEBUG,
+   detail = Log.DETAIL,
+   spam = Log.SPAM,
 }
 
 local LOG_LEVELS = {}
@@ -16,13 +24,7 @@ local LOG_LEVELS = {}
 -- functions to disable tail-call optimization of write_.
 
 function Log.write_(category, level, format, ...)
-   local config_level = LOG_LEVELS[category]
-   if config_level == nil then
-      config_level = _host:get_log_level(category)
-      LOG_LEVELS[category] = config_level
-   end
-   
-   if level <= config_level then
+   if radiant.log.is_enabled(category, level) then
       local args = {...}
       for i, arg in ipairs(args) do
          if type(arg) == 'userdata' then
@@ -31,6 +33,16 @@ function Log.write_(category, level, format, ...)
       end
       _host:log(category, level, string.format(format, unpack(args)))
    end
+end
+
+function Log.is_enabled(category, level)
+   local config_level = LOG_LEVELS[category]
+   if config_level == nil then
+      config_level = _host:get_log_level(category)
+      LOG_LEVELS[category] = config_level
+   end
+   
+   return level <= config_level
 end
 
 function Log.write(category, level, format, ...)
@@ -61,13 +73,55 @@ function Log.spam(category, format, ...)
    Log.write_(category, Log.SPAM, format, ...)
 end
 
-function Log.create_logger(sub_category)
+function Log.create_logger(sub_category, prefix)
    -- The stack offset for the helper functions is 3...
    --    1: __get_current_module_name
    --    2: Log.create_logger       
    --    3: --> some module whose name we want! <-- 
    local category = __get_current_module_name(3) .. '.' .. sub_category
-   return Logger(category)
+   local logger = {
+      _category = category,
+      _prefix = prefix,
+      set_prefix = function (self, prefix)
+            self._prefix = prefix
+         end,
+      is_enabled = function (self, level)
+            return radiant.log.is_enabled(self._category, level)
+         end,
+      write = function (self, level, format, ...)
+            if self._prefix then
+               radiant.log.write(self._category, level, '[%s] '.. format, self._prefix, ...)
+            else
+               radiant.log.write(self._category, level, format, ...)
+            end            
+         end,
+   }
+   
+   for keyword, level in pairs(logger_functions) do
+      if logger:is_enabled(level) then
+         logger[keyword] = function(t, format, ...)
+            local prefix
+            if t._prefix then
+               prefix = '[' .. t._prefix .. '] '
+            else
+               prefix = ''
+            end
+            local args = {...}
+            for i, arg in ipairs(args) do
+               if type(arg) == 'userdata' then
+                  args[i] = tostring(arg)
+               end
+            end
+            _host:log(t._category, level, prefix .. string.format(format, unpack(args)))
+         end
+      else
+         logger[keyword] = function () end
+      end
+   end
+
+   return logger
+
+   --return Logger(category, prefix)
 end
 
 return Log

@@ -1,36 +1,36 @@
 {
    "type": "entity",
-   "extends" : "stonehearth:mixins:item_properties",
+   "mixins" : "stonehearth:mixins:item_properties",
    "components" : {
       "unit_info" : {
       },
       "render_info" : {
       },
-      "model_variants": [
-         {
+      "model_variants": {
+         "default": {
             "layer": "clothing",
             "models": [
                "file(carpenter_outfit.qb)"
             ]
          },
-         {
-            "variants": "female",
+         "female" : {
             "layer": "clothing",
             "models": [
                "file(carpenter_outfit_female.qb)"
             ]
          }
-      ],
+      },
       "stonehearth:equipment_piece" : {
          "render_type" : "merge_with_model",
          "injected_ai" : {
             "actions" : [
-               "stonehearth:actions:check_craftable_action",
-               "stonehearth:actions:craft_action",
-               "stonehearth:actions:fill_outbox_action",
-               "stonehearth:actions:gather_and_craft_action"
+               "stonehearth:actions:work_at_workshop",
+               "stonehearth:actions:move_item_to_outbox"               
             ]
-         }
+         },
+         "injected_commands" : [
+            "file(/data/commands/build_workshop)"
+         ]
       }
    }
 }
