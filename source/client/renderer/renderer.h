@@ -173,6 +173,8 @@ class Renderer
       void* GetLastUiBuffer();
 
       void SetDrawWorld(bool drawWorld);
+      void SetVisibilityRegions(std::string const& visible_region_uri, std::string const& explored_region_uri);
+
    private:
       NO_COPY_CONSTRUCTOR(Renderer);
       RendererConfig config_;
@@ -206,9 +208,10 @@ class Renderer
          std::shared_ptr<RenderEntity>    render_entity;
          dm::TracePtr                     lifetime_trace;
       };
-      typedef std::unordered_map<H3DNode, UpdateSelectionFn> SelectableMap;
+      typedef std::unordered_map<H3DNode, UpdateSelectionFn>   SelectableMap;
       typedef std::unordered_map<dm::ObjectId, RenderMapEntry> RenderEntityMap;
-      typedef std::unordered_map<std::string, H3DRes>    H3DResourceMap;
+      typedef std::unordered_map<std::string, H3DRes>          H3DResourceMap;
+
       int               windowWidth_;
       int               windowHeight_;
       int               uiWidth_;
@@ -223,38 +226,42 @@ class Renderer
 
       UiBuffer          uiBuffer_;
 
-      Camera*            camera_;
+      Camera*           camera_;
       FW::FileWatcher   fileWatcher_;
 
-      core::Guard           traces_;
+      core::Guard       traces_;
 
-      std::shared_ptr<RenderEntity>      rootRenderObject_;
-      H3DNode                       debugShapes_;
-      bool                          show_debug_shapes_;
+      std::shared_ptr<RenderEntity> rootRenderObject_;
+      H3DNode           debugShapes_;
+      bool              show_debug_shapes_;
 
-      RenderEntityMap               entities_[5]; // by store id
-      SelectableMap                 selectableCbs_;
-      InputEventCb                  input_cb_;
+      RenderEntityMap   entities_[5]; // by store id
+      SelectableMap     selectableCbs_;
+      InputEventCb      input_cb_;
 
-      Input                         input_;  // Mouse coordinates in the GL window-space.
-      bool                          initialized_;
-      bool                          iconified_;
+      Input             input_;  // Mouse coordinates in the GL window-space.
+      bool              initialized_;
+      bool              iconified_;
 
-      ViewMode                      viewMode_;
-      json::Node                    terrainConfig_;
-      lua::ScriptHost*              scriptHost_;
+      ViewMode          viewMode_;
+      json::Node        terrainConfig_;
+      lua::ScriptHost*  scriptHost_;
 
       core::BufferedSlot<csg::Point2>     screen_resize_slot_;
       core::BufferedSlot<bool>            show_debug_shapes_changed_slot_;
       core::Slot<int>                     server_tick_slot_;
       core::Slot<FrameStartInfo const&>   render_frame_start_slot_;
       std::unique_ptr<PerfHud>            perf_hud_;
-      int                                 last_render_time_;
-      bool                                resize_pending_;
-      bool                                inFullscreen_;
-      int                                 nextWidth_, nextHeight_;
+
+      int               last_render_time_;
+      bool              resize_pending_;
+      bool              inFullscreen_;
+      int               nextWidth_, nextHeight_;
       
-      std::string                         lastGlfwError_;
+      std::string       lastGlfwError_;
+
+      dm::TracePtr      visibilityTrace_;
+      dm::TracePtr      exploredTrace_;
 };
 
 END_RADIANT_CLIENT_NAMESPACE
