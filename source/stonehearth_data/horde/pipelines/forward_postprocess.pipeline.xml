@@ -17,7 +17,6 @@
       </Stage>
 
       <Stage id="Sky">
-         <SwitchTarget target="" />
          <DrawGeometry context="SKY" />
 
          <SwitchTarget target="SkyTemp" />
@@ -64,7 +63,7 @@
       </Stage>
 
 
-      <!--Stage id="Fog">
+      <Stage id="Fog">
          <BindBuffer sampler="skySampler" sourceRT="SkyTemp" bufIndex="0"/>
          <DrawGeometry class="~Translucent" context="FOG" noShadows="true" frustum_start="0.7"/>
          <UnbindBuffers />
@@ -86,13 +85,13 @@
          <SwitchTarget target="" />
          <BindBuffer sampler="outlineSampler" sourceRT="SelectedTemp" bufIndex="0"/>
          <BindBuffer sampler="outlineDepth" sourceRT="SelectedTemp" bufIndex="32"/>
-         <DrawQuad material="materials/default_material.xml" context="SELECTED_SCREENSPACE_OUTLINER" />
+         <DrawQuad material="materials/base.material.xml" context="SELECTED_SCREENSPACE_OUTLINER" />
          <UnbindBuffers />
       </Stage>
 
       <Stage id="Selected_Fast">
          <DrawSelected context="SELECTED_FAST" />
-      </Stage-->
+      </Stage>
 
       <Stage id="Overlays">
          <DrawOverlays context="OVERLAY"/>

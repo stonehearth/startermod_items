@@ -541,6 +541,8 @@ bool Renderer::createShaderComb( const char* filename, const char *vertexShader,
 	// Misc general uniforms
 	sc.uni_currentTime = gRDI->getShaderConstLoc( shdObj, "currentTime" );
 	sc.uni_frameBufSize = gRDI->getShaderConstLoc( shdObj, "frameBufSize" );
+   sc.uni_viewPortSize = gRDI->getShaderConstLoc( shdObj, "viewPortSize" );
+   sc.uni_viewPortPos = gRDI->getShaderConstLoc( shdObj, "viewPortPos" );
    sc.uni_halfTanFoV = gRDI->getShaderConstLoc( shdObj, "halfTanFoV" );
    sc.uni_nearPlane = gRDI->getShaderConstLoc( shdObj, "nearPlane" );
    sc.uni_farPlane = gRDI->getShaderConstLoc( shdObj, "farPlane" );
@@ -620,6 +622,18 @@ void Renderer::commitGeneralUniforms()
 			float dimensions[2] = { (float)gRDI->_fbWidth, (float)gRDI->_fbHeight };
 			gRDI->setShaderConst( _curShader->uni_frameBufSize, CONST_FLOAT2, dimensions );
 		}
+
+      if (_curShader->uni_viewPortSize >= 0)
+      {
+         float dimensions[2] = { (float)gRDI->_vpWidth, (float)gRDI->_vpHeight };
+			gRDI->setShaderConst( _curShader->uni_viewPortSize, CONST_FLOAT2, dimensions );
+      }
+
+      if (_curShader->uni_viewPortPos >= 0)
+      {
+         float dimensions[2] = { (float)gRDI->_vpX, (float)gRDI->_vpY };
+			gRDI->setShaderConst( _curShader->uni_viewPortPos, CONST_FLOAT2, dimensions );
+      }
 
       if ( _curShader->uni_halfTanFoV >= 0 )
       {

@@ -138,7 +138,8 @@ uniform vec3 lightAmbientColor;
 uniform sampler2D cloudMap;
 uniform float currentTime;
 uniform sampler2D ssaoImage;
-uniform vec2 frameBufSize;
+uniform vec2 viewPortSize;
+uniform vec2 viewPortPos;
 
 varying vec4 pos;
 varying vec3 albedo;
@@ -148,7 +149,7 @@ void main( void )
 {
   // Shadows.
   float shadowTerm = getShadowValue(pos.xyz);
-  float ssao = texture2D(ssaoImage, gl_FragCoord.xy / frameBufSize).r;
+  float ssao = texture2D(ssaoImage, (gl_FragCoord.xy - viewPortPos) / viewPortSize).r;
 
   // Light Color.
   vec3 lightColor = calcSimpleDirectionalLight(normalize(tsbNormal));
@@ -171,12 +172,6 @@ void main( void )
 varying vec3 tsbNormal;
 varying float worldScale;
 
-float toLin2(float d) {
-  float num = nearPlane * farPlane;
-  float den = (farPlane + d * (nearPlane - farPlane));
-  return num/den;
-}
-
 void main(void)
 {
   gl_FragData[0].r = toLinearDepth(gl_FragCoord.z);
@@ -186,15 +181,6 @@ void main(void)
 
 [[FS_DEPTH_LINEAR_BACK]]
 #include "shaders/utilityLib/vertCommon.glsl"
-
-varying vec3 tsbNormal;
-varying float worldScale;
-
-float toLin2(float d) {
-  float num = nearPlane * farPlane;
-  float den = (farPlane + d * (nearPlane - farPlane));
-  return num/den;
-}
 
 void main(void)
 {
