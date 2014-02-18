@@ -391,18 +391,25 @@ end
 
 function ExecutionUnitV2:_stop_from_running(frame_will_kill_running_action)
    assert(not self._thinking)
-   assert(self._thread:is_running())
 
-   -- assume our calling frame knows what it's doing.  if not,
-   -- we're totally going to get screwed
-   assert(frame_will_kill_running_action)
-   
-   -- our execute frame must be dead and buried if our owning frame has the
-   -- audicity to kill us while running
-   if self._execute_frame then
-      assert(self._execute_frame:get_state() == 'dead')
-      self._execute_frame =  nil
+   if (self._thread:is_running()) then
+      -- assume our calling frame knows what it's doing.  if not,
+      -- we're totally going to get screwed
+      assert(frame_will_kill_running_action)
+
+      -- our execute frame must be dead and buried if our owning frame has the
+      -- audicity to kill us while running
+      if self._execute_frame then
+         assert(self._execute_frame:get_state() == 'dead')
+         self._execute_frame =  nil
+      end
+   elseif (stonehearth.threads:get_current_thread() == nil) then
+      -- we're being stopped from a C callback into the game engine.  this is ok!
+   else
+      -- some other thread is trying to stop us?  not ok!
+      error("non-owning thread attempting to stop execution unit")
    end
+   
    self:_do_stop()
 end
 

@@ -21,8 +21,21 @@ function HarvestTrappedBeastAdjacent:run(ai, entity, args)
 
    if beast and beast:is_valid() then 
       radiant.entities.remove_buff(beast, 'stonehearth:buffs:snared')
-   end
 
+      -- kill the beast and spawn loot from it
+      --radiant.effects.run_effect(beast, '/stonehearth/data/effects/firepit_effect')
+      -- xxx, put this effect on a proxy-entity instead
+      radiant.effects.run_effect(beast, '/stonehearth/data/effects/gib')
+      self:_spawn_loot(beast)
+      radiant.entities.destroy_entity(beast)
+   end
+end
+
+function HarvestTrappedBeastAdjacent:_spawn_loot(beast)
+   local loot_table_component = beast:get_component('stonehearth:loot_table')
+   if loot_table_component then
+      loot_table_component:spawn_loot()
+   end
 end
 
 

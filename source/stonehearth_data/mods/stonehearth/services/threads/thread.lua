@@ -56,10 +56,10 @@ function Thread.resume_thread(thread)
       elseif thread_status == Thread.KILL then
          Thread.terminate_thread(thread, result1)
       else
-         error('unknown thread_status "%s" returned from resume', tostring(thread_status))
+         error(string.format('unknown thread_status "%s" returned from resume', tostring(thread_status)))
       end
    else
-      error('unknown thread state "%s" returned from resume', tostring(status))
+      error(string.format('unknown thread state "%s" returned from resume', tostring(status)))
    end
 end
 
@@ -336,7 +336,12 @@ function Thread:_do_yield(...)
    assert(self:is_running())
 
    coroutine.yield(...)
-
+   -- if we got terminated while suspended, just yield indefinitely.
+   -- we'll be destroyed when the last reference goes away
+   while self._finished do
+      coroutine.yield(Thread.SUSPEND)
+   end
+  
    assert(self:is_running())
 end
 

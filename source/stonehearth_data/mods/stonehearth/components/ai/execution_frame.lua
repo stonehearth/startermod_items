@@ -142,6 +142,9 @@ function ExecutionFrame:_stop()
    if self._state == 'finished' then
       return self:_stop_from_finished()
    end
+   if self._state == 'running' then
+      return self:_stop_from_running()
+   end
    if self._state == 'stopped' then
       return -- nop
    end
@@ -309,7 +312,7 @@ function ExecutionFrame:stop_thinking()
 end
 
 function ExecutionFrame:start()
-   assert(self._thread:is_running())
+   assert(self:_no_other_thread_is_running())
 
    self._log:spam('start')
    self:_protected_call(function()
@@ -358,7 +361,7 @@ function ExecutionFrame:run()
 end
 
 function ExecutionFrame:stop()
-   assert(self._thread:is_running())
+   assert(self:_no_other_thread_is_running())
 
    self._log:spam('stop (state:%s)', self._state)
    if self._state ~= DEAD then
@@ -634,6 +637,21 @@ function ExecutionFrame:_stop_from_started()
    self:_set_state(STOPPED)
 end
 
+function ExecutionFrame:_stop_from_running()
+   -- stop from running can only happen if there are no other threads running.
+   -- this can occur when an entity is destroyed from a C callback into the
+   -- game engine.  if we were running at the time, we'll take the standard
+   -- unwind pcall path where we simply get destroyed
+   assert(stonehearth.threads:get_current_thread() == nil)
+   
+   assert(self._active_unit)
+   for _, unit in pairs(self._execution_units) do
+      unit:_stop()
+   end
+   self:_set_active_unit(nil)
+   self:_set_state(STOPPED)
+end
+   
 function ExecutionFrame:_stop_from_finished()
    self._log:detail('_stop_from_finished')
    assert(not self._active_unit)
@@ -673,7 +691,9 @@ end
 
 
 function ExecutionFrame:_destroy_from_running()
-   assert(self._thread:is_running())
+   -- verify either we're the thread running or we've been destroyed from a C callback
+   assert(self:_no_other_thread_is_running())
+   
    for _, unit in pairs(self._execution_units) do
       unit:_destroy()
    end
@@ -695,7 +715,7 @@ function ExecutionFrame:_destroy_from_switching()
 end
 
 function ExecutionFrame:abort()
-   assert(self._thread:is_running())
+   assert(self:_no_other_thread_is_running())
    self:_exit_protected_call(ABORT_FRAME)
 end
 
@@ -1177,6 +1197,10 @@ function ExecutionFrame:_cleanup_protected_call_exit(sentinel)
    if decoda_break_on_error then
       decoda_break_on_error(true)
    end
+end
+
+function ExecutionFrame:_no_other_thread_is_running()
+   return self._thread:is_running() or stonehearth.threads:get_current_thread() == nil
 end
 
 return ExecutionFrame

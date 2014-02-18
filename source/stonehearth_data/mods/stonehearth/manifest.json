@@ -31,6 +31,8 @@
       "mixins:tree" : "file(mixins/tree)",
       "mixins:item_properties" : "file(mixins/item_properties)",
       "mixins:placed_properties" : "file(mixins/placed_properties)",
+      "mixins:resources:jerky" : "file(mixins/resources/jerky)",
+      "mixins:resources:fur_pelt" : "file(mixins/resources/fur_pelt)",
 
       "factions:ascendancy" : "file(services/population/data/ascendancy.json)",
       "factions:northern_alliance" : "file(services/population/data/northern_alliance.json)",
@@ -68,6 +70,8 @@
       "worker_axe" : "file(entities/tools/worker_axe)",
       "worker_hammer" : "file(entities/tools/worker_hammer)",
       "rabbit" : "file(entities/critters/rabbit)",
+      "rabbit_pelt" : "file(entities/critters/rabbit/rabbit_pelt)",
+      "rabbit_jerky" : "file(entities/critters/rabbit/rabbit_jerky)",
       "sheep" : "file(entities/critters/sheep)",
       "wolf" : "file(entities/critters/wolf)",
       "wolf:teeth_weapon" : "file(entities/critters/wolf/wolf_teeth.json)",
@@ -590,6 +594,7 @@
       "no_construction_zone" : "file(components/no_construction_zone/no_construction_zone_component.lua)",
       "construction_data" : "file(components/construction_data/construction_data_component.lua)",
       "personality" : "file(components/personality/personality_component.lua)",
+      "loot_table" : "file(components/loot_table/loot_table_component.lua)",
       "carry_block" : "file(components/carry_block/carry_block_component.lua)"
    },
    "component_renderers" : {

@@ -12,9 +12,24 @@
             "stonehearth:actions:idle:look_around",
             "stonehearth:actions:wander",
             "stonehearth:actions:wander_when_bored",
-            "stonehearth:actions:choose_point_around_leash",
+            "stonehearth:actions:choose_point_around_leash"
          ]
       },
+      "stonehearth:loot_table" : {
+        "num_drops" : {
+          "min" : 2,
+          "max" : 3
+        },
+        "items" : {
+          "jerky" : {
+            "uri" : "stonehearth:rabbit_jerky"
+          },
+          "pelt" : {
+            "uri" : "stonehearth:rabbit_pelt",
+            "unique" : true
+          }
+        }
+      },      
       "stonehearth:attributes": {
         "health": {
           "type" : "basic", 
