@@ -19,10 +19,10 @@ function NewGameCallHandler:new_game(session, response, num_tiles_x, num_tiles_y
 
    wgs:initialize(seed, true)
 
-   local method = radiant.util.get_config('world_generation.method', 'default')
+   local generation_method = radiant.util.get_config('world_generation.method', 'default')
 
    -- Temporary merge code. The javascript client may eventually hold state about the original dimensions.
-   if method == 'tiny' then
+   if generation_method == 'tiny' then
       blueprint = wgs.blueprint_generator:get_empty_blueprint(2, 2) -- (2,2) is minimum size
       --blueprint = wgs.blueprint_generator:get_static_blueprint()
    else
@@ -63,6 +63,11 @@ function NewGameCallHandler:generate_start_location(session, response, feature_c
    local radius = 2
    local blueprint = wgs:get_blueprint()
    local i, j = wgs:get_tile_index(x, z)
+
+   local generation_method = radiant.util.get_config('world_generation.method', 'default')
+   if generation_method == 'small' then
+      radius = 1
+   end
 
    -- move (i, j) if it is too close to the edge
    if blueprint.width > 2*radius+1 then
