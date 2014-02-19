@@ -265,6 +265,7 @@ class Renderer
       bool              inFullscreen_;
       int               nextWidth_, nextHeight_;
       
+      std::string       lastGlfwError_;
       std::unordered_set<std::string>     uiOnlyStages_, fowOnlyStages_, drawWorldStages_;
 
       dm::TracePtr      visibilityTrace_;

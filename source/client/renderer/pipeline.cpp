@@ -48,25 +48,6 @@ H3DRes Pipeline::CreateVoxelGeometryFromRegion(const std::string& geoName, csg::
    return h3dutCreateVoxelGeometryRes(geoName.c_str(), (VoxelGeometryVertex*)mesh.vertices.data(), mesh.vertices.size(), (uint*)mesh.indices.data(), mesh.indices.size());
 }
 
-// From: http://mikolalysenko.github.com/MinecraftMeshes2/js/greedy.js
-
-H3DNodeUnique Pipeline::AddMeshNode(H3DNode parent, const csg::mesh_tools::mesh& m, H3DNode* mesh)
-{
-   std::string name = "mesh data ";
-
-   H3DRes res = h3dutCreateVoxelGeometryRes((name + stdutil::ToString(unique_id_++)).c_str(), (VoxelGeometryVertex *)m.vertices.data(), m.vertices.size(), (uint *)m.indices.data(), m.indices.size());
-   H3DRes matRes = h3dAddResource(H3DResTypes::Material, "materials/default_material.xml", 0);
-   H3DNode model_node = h3dAddVoxelModelNode(parent, (name + stdutil::ToString(unique_id_++)).c_str(), res);
-   H3DNode mesh_node = h3dAddVoxelMeshNode(model_node, (name + stdutil::ToString(unique_id_++)).c_str(), matRes, 0, m.indices.size(), 0, m.vertices.size() - 1);
-
-   if (mesh) {
-      *mesh = mesh_node;
-   }
-
-   // xxx: how do res, matRes, and mesh_node get deleted? - tony
-   return H3DNodeUnique(model_node);
-}
-
 H3DNode Pipeline::AddDynamicMeshNode(H3DNode parent, const csg::mesh_tools::mesh& m, std::string const& material)
 {   
    H3DRes geometry = ConvertMeshToGeometryResource(m);
