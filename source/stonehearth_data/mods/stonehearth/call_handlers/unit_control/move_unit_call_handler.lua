@@ -4,8 +4,6 @@ local Point3 = _radiant.csg.Point3
 
 local MoveUnitCallHandler = class()
 
-local all_move_tasks = {}
-
 function MoveUnitCallHandler:client_move_unit(session, response, entity)
 
    self._entity = entity;

@@ -131,15 +131,32 @@ void SceneNode::getTransMatrices( const float **relMat, const float **absMat ) c
 
 void SceneNode::setFlags( int flags, bool recursive )
 {
-	_flags = flags;
+   _flags = flags;
 
-	if( recursive )
-	{
-		for( size_t i = 0, s = _children.size(); i < s; ++i )
-		{
-			_children[i]->setFlags( flags, true );
-		}
-	}
+   if( recursive )
+   {
+      for( size_t i = 0, s = _children.size(); i < s; ++i )
+      {
+         _children[i]->setFlags( flags, true );
+      }
+   }
+}
+
+void SceneNode::twiddleFlags( int flags, bool on, bool recursive )
+{
+   if (on) {
+      _flags |= flags;
+   } else {
+      _flags &= ~flags;
+   }
+
+   if( recursive )
+   {
+      for( size_t i = 0, s = _children.size(); i < s; ++i )
+      {
+         _children[i]->twiddleFlags( flags, on, true );
+      }
+   }
 }
 
 

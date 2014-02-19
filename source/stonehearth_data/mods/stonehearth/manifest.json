@@ -225,6 +225,8 @@
       "actions:pickup_item_made_of_trivial" : "file(ai/actions/pickup_item_made_of_trivial.lua)",
       "actions:place_item" : "file(ai/actions/place_item_action.lua)",
       "actions:place_item_type" : "file(ai/actions/place_item_type_action.lua)",
+      "actions:loot_item" : "file(ai/actions/loot_item.lua)",
+      "actions:put_carrying_in_inventory" : "file(ai/actions/put_carrying_in_inventory.lua)",      
       "actions:turn_to_face_entity" : "file(ai/actions/turn_to_face_entity_action.lua)",
       "actions:collect_ingredient" : "file(ai/actions/collect_ingredient.lua)",
       "actions:complete_workshop_construction" : "file(ai/actions/complete_workshop_construction.lua)",
@@ -256,11 +258,14 @@
 
       "actions:unit_control:dispatcher" : "file(ai/actions/unit_control/unit_control_dispatcher.lua)",
       "actions:unit_control:move_unit_to_location" : "file(ai/actions/unit_control/move_unit_to_location_action.lua)",
+      "actions:unit_control:unload_inventory" : "file(ai/actions/unit_control/unload_inventory.lua)",
       "actions:unit_control:abilities:snare_trap" : "file(ai/actions/unit_control/abilities/snare_trap_action.lua)",
-
       "actions:unit_control:harvest_trapped_beast" : "file(ai/actions/unit_control/harvest_trapped_beast_action.lua)",
+
+      "actions:drop_inventory_items" : "file(ai/actions/drop_inventory_items.lua)",
+      "actions:get_town_banner" : "file(ai/actions/get_town_banner.lua)",
+      "actions:goto_town_banner" : "file(ai/actions/goto_town_banner.lua)",
       "actions:harvest_trapped_beast_adjacent" : "file(ai/actions/unit_control/harvest_trapped_beast_adjacent_action.lua)",
-      
       "actions:chop_tree_action" : "file(ai/actions/chop_tree_action.lua)",
       "actions:chop_tree_adjacent_action" : "file(ai/actions/chop_tree_adjacent_action.lua)",
       "actions:harvest_plant" : "file(ai/actions/harvest_plant.lua)",
@@ -446,6 +451,11 @@
          "endpoint" : "server"
       },
 
+      "unload_inventory" : {
+         "controller": "file(call_handlers/unit_control/unload_inventory_call_handler.lua)",
+         "endpoint" : "server"
+      },
+
       "client_cast_aoe" : {
          "controller": "file(call_handlers/unit_control/cast_aoe_call_handler.lua)",
          "endpoint" : "client"
@@ -599,6 +609,7 @@
       "construction_data" : "file(components/construction_data/construction_data_component.lua)",
       "personality" : "file(components/personality/personality_component.lua)",
       "loot_table" : "file(components/loot_table/loot_table_component.lua)",
+      "inventory" : "file(components/inventory/inventory_component.lua)",
       "carry_block" : "file(components/carry_block/carry_block_component.lua)"
    },
    "component_renderers" : {

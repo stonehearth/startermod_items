@@ -12,6 +12,7 @@ function AiService:__init()
    -- cosmetic purposes and aids in debugging.
    self.SUSPEND_THREAD = { name = "SUSPEND_THREAD" }
    self.KILL_THREAD = { name = "KILL_THREAD" }
+   self.RESERVATION_LEASE_NAME = 'ai_reservation'
 
    self._action_registry = {}
    self._observer_registry = {}

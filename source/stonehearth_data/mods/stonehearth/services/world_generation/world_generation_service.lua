@@ -103,6 +103,10 @@ function WorldGenerationService:set_blueprint(blueprint)
    log:info('Blueprint population time: %.3fs', seconds)
 end
 
+function WorldGenerationService:get_blueprint()
+   return self._blueprint
+end
+
 -- get the (i,j) index of the blueprint tile for the world coordinates (x,y)
 function WorldGenerationService:get_tile_index(x, y)
    local blueprint = self._blueprint

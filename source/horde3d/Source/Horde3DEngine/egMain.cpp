@@ -707,6 +707,13 @@ DLLEXP int h3dGetNodeFlags( NodeHandle node )
 }
 
 
+DLLEXP void h3dTwiddleNodeFlags( NodeHandle node, int flags, bool on, bool recursive )
+{
+	SceneNode *sn = Modules::sceneMan().resolveNodeHandle( node );
+	APIFUNC_VALIDATE_NODE( sn, "h3dSetToggleNodeFlags", APIFUNC_RET_VOID );
+	sn->twiddleFlags( flags, on, recursive );
+}
+
 DLLEXP void h3dSetNodeFlags( NodeHandle node, int flags, bool recursive )
 {
 	SceneNode *sn = Modules::sceneMan().resolveNodeHandle( node );

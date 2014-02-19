@@ -112,7 +112,7 @@ void RenderEntity::SetParent(H3DNode parent)
       h3dSetNodeParent(node, parent);
       h3dSetNodeFlags(node, h3dGetNodeFlags(parent), true);
    } else {
-      h3dSetNodeFlags(node, H3DNodeFlags::NoDraw | H3DNodeFlags::NoRayQuery, true);
+      h3dTwiddleNodeFlags(node, H3DNodeFlags::NoDraw | H3DNodeFlags::NoRayQuery, true, true);
    }
 }
 
@@ -262,28 +262,12 @@ void RenderEntity::OnSelected(om::Selection& sel, const csg::Ray3& ray,
 
 void RenderEntity::Show(bool show)
 {
-   int mask = H3DNodeFlags::NoDraw | H3DNodeFlags::NoRayQuery;
-   int flags = h3dGetNodeFlags(node_.get());
-
-   if (show) {
-      flags &= ~mask;
-   } else {
-      flags |= mask;
-   }
-   h3dSetNodeFlags(node_.get(), flags, true);
+   h3dTwiddleNodeFlags(node_.get(), H3DNodeFlags::NoDraw | H3DNodeFlags::NoRayQuery, true, true);
 }
 
 void RenderEntity::SetSelected(bool selected)
 {
-   int mask = H3DNodeFlags::Selected;
-   int flags = h3dGetNodeFlags(node_.get());
-
-   if (selected) {
-      flags |= mask;
-   } else {
-      flags &= ~mask;
-   }
-   h3dSetNodeFlags(node_.get(), flags, true);
+   h3dTwiddleNodeFlags(node_.get(), H3DNodeFlags::Selected, selected, true);
 }
 
 dm::ObjectId RenderEntity::GetObjectId() const

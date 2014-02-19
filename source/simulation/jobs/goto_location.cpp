@@ -115,24 +115,23 @@ bool GotoLocation::Work(const platform::timer &timer)
 bool GotoLocation::GetStandableLocation(std::shared_ptr<om::Entity> const& entity, csg::Point3f& desiredLocation, csg::Point3f& actualLocation)
 {
    phys::OctTree const& octTree = GetSim().GetOctTree();
-   csg::Point3 baseLocation = csg::ToClosestInt(desiredLocation);
-   csg::Point3 candidate;
+   csg::Point3f candidate;
    
-   candidate = baseLocation;
-   if (octTree.CanStandOn(entity, candidate)) {
-      actualLocation = csg::ToFloat(candidate);
+   candidate = desiredLocation;
+   if (octTree.CanStandOn(entity, csg::ToClosestInt(candidate))) {
+      actualLocation = candidate;
       return true;
    }
 
-   candidate = baseLocation + csg::Point3::unitY;
-   if (octTree.CanStandOn(entity, candidate)) {
-      actualLocation = csg::ToFloat(candidate);
+   candidate = desiredLocation + csg::Point3f::unitY;
+   if (octTree.CanStandOn(entity, csg::ToClosestInt(candidate))) {
+      actualLocation = candidate;
       return true;
    }
 
-   candidate = baseLocation - csg::Point3::unitY;
-   if (octTree.CanStandOn(entity, candidate)) {
-      actualLocation = csg::ToFloat(candidate);
+   candidate = desiredLocation - csg::Point3f::unitY;
+   if (octTree.CanStandOn(entity, csg::ToClosestInt(candidate))) {
+      actualLocation = candidate;
       return true;
    }
 
