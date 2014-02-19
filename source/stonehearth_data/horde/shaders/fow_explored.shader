@@ -19,12 +19,6 @@ void main() {
   gl_Position = viewProjMat * calcWorldPos(vec4(vertPos, 1.0));
 }
 
-[[FS_FOW]]
-
-void main() {
-  gl_FragColor = vec4(0.0, 0.0, 0.0, 0.0);
-}
-
 [[FS_DRAW_ALPHA]]
 
 void main() {

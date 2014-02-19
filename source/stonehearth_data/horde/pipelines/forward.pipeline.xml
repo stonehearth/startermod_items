@@ -11,7 +11,7 @@
          <SwitchTarget target="FogOfWarRT" />
          <ClearTarget colBuf0="true" col_A="0.125" />
          <DrawGeometry context="FOW_RT_EXPLORED" class="~Translucent" />
-         <DrawGeometry context="FOW_RT_VISIBLE" class="~Translucent" />
+         <!--DrawGeometry context="FOW_RT_VISIBLE" class="~Translucent" /-->
          <SwitchTarget target=""/>
       </Stage>
 

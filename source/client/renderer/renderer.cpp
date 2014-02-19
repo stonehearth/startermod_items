@@ -199,17 +199,16 @@ Renderer::Renderer() :
    }
 
    csg::Region3::Cube littleCube(csg::Region3::Point(0, 0, 0), csg::Region3::Point(1, 1, 1));
-   fowVisibleNode_ = h3dAddInstanceNode(H3DRootNode, "fow_visiblenode", 
-      h3dAddResource(H3DResTypes::Material, "materials/fow_visible.material.xml", 0), 
-      Pipeline::GetInstance().CreateVoxelGeometryFromRegion("littlecube", littleCube), 1000);
-   /*fowExploredNode_ = h3dAddInstanceNode(H3DRootNode, "fow_visiblenode", 
+   /*fowVisibleNode_ = h3dAddInstanceNode(H3DRootNode, "fow_visiblenode", 
       h3dAddResource(H3DResTypes::Material, "materials/fow_visible.material.xml", 0), 
       Pipeline::GetInstance().CreateVoxelGeometryFromRegion("littlecube", littleCube), 1000);*/
+   fowExploredNode_ = h3dAddInstanceNode(H3DRootNode, "fow_explorednode", 
+      h3dAddResource(H3DResTypes::Material, "materials/fow_explored.material.xml", 0), 
+      Pipeline::GetInstance().CreateVoxelGeometryFromRegion("littlecube", littleCube), 1000);
 
    csg::Region3 r;
-   r.Add(csg::Region3::Cube(csg::Region3::Point(-10, 0, -10), csg::Region3::Point(10, 0, 10)));
-   r.Add(csg::Region3::Cube(csg::Region3::Point(-50, 0, -50), csg::Region3::Point(-30, 0, -30)));
-   UpdateFoW(fowVisibleNode_, r);
+   r.Add(csg::Region3::Cube(csg::Region3::Point(-10, 0, -10), csg::Region3::Point(10, 100, 10)));
+   UpdateFoW(fowExploredNode_, r);
 
    // Add camera   
    camera_ = new Camera(H3DRootNode, "Camera", currentPipeline_);
@@ -299,8 +298,9 @@ void Renderer::UpdateFoW(H3DNode node, const csg::Region3& region)
 
       float xSize = (float)c.max.x - c.min.x;
       float zSize = (float)c.max.z - c.min.z;
+      float ySize = (float)c.max.y - c.min.y;
       f[0] = xSize; f[1] =  0; f[2] =   0; f[3] =  0;
-      f[4] =  0; f[5] = 100; f[6] =   0; f[7] =  0;
+      f[4] =  0; f[5] = ySize; f[6] =   0; f[7] =  0;
       f[8] =  0; f[9] =  0; f[10] = zSize; f[11] = 0;
       f[12] = px; f[13] = py; f[14] =  pz; f[15] = 1;
       
@@ -317,15 +317,19 @@ void Renderer::RenderFogOfWarRT()
 {
    // Create an ortho camera covering the largest volume that can be seen of the actual possible frustum
    Horde3D::Matrix4f fowView, camProj;
-   Horde3D::Frustum camFrust, fowCamFrust;
+   Horde3D::Frustum camFrust;
 
-   Horde3D::Matrix4f camView(camera_->GetMatrix().v);
-   h3dGetCameraProjMat(camera_->GetNode(), camProj.x);
-   camFrust.buildViewFrustum(camView.inverted(), camProj);
+   h3dGetCameraFrustum(camera_->GetNode(), &camFrust);
+
+   // Construct a new camera view matrix pointing down.
+   fowView.x[0] = 1;  fowView.x[1] = 0;  fowView.x[2] = 0;
+   fowView.x[4] = 0;  fowView.x[5] = 0;  fowView.x[6] = -1;
+   fowView.x[8] = 0;  fowView.x[9] = -1;  fowView.x[10] = 0;
+   fowView.x[12] = 0; fowView.x[13] = 0; fowView.x[14] = 0;  fowView.x[15] = 1.0;
 
    Horde3D::BoundingBox bb;
    for (int i = 0; i < 8; i++) {
-      bb.addPoint(camFrust.getCorner(i));
+      bb.addPoint(fowView * camFrust.getCorner(i));
    }
 
    float cascadeBound = (camFrust.getCorner(0) - camFrust.getCorner(6)).length();
@@ -341,15 +345,8 @@ void Renderer::RenderFogOfWarRT()
    min.quantize(quantizer);
    max.quantize(quantizer);
 
-   Horde3D::Vec3f p = (min + max) * 0.5f;
-   // Construct a new camera view matrix pointing down.
-   fowView.x[0] = 1;  fowView.x[1] = 0;  fowView.x[2] = 0;
-   fowView.x[4] = 0;  fowView.x[5] = 0;  fowView.x[6] = 1;
-   fowView.x[8] = 0;  fowView.x[9] = -1;  fowView.x[10] = 0;
-   fowView.x[12] = p.x; fowView.x[13] = p.y; fowView.x[14] = p.z;  fowView.x[15] = 1.0;
-
    // All that crap was just so we could set up this ortho frustum + view matrix.
-   h3dSetNodeTransMat(fowCamera_->GetNode(), fowView.inverted().x);
+   h3dSetNodeTransMat(fowCamera_->GetNode(), fowView.x);
    h3dSetNodeParamI(fowCamera_->GetNode(), H3DCamera::OrthoI, 1);
    h3dSetNodeParamF(fowCamera_->GetNode(), H3DCamera::LeftPlaneF, 0, min.x);
    h3dSetNodeParamF(fowCamera_->GetNode(), H3DCamera::RightPlaneF, 0, max.x);
@@ -851,7 +848,8 @@ void Renderer::SetVisibilityRegions(std::string const& visible_region_uri, std::
    exploredTrace_ = exploredRegionBoxed->TraceChanges("render explored region", dm::RENDER_TRACES)
                          ->OnModified([=](){
                             csg::Region3 exploredRegion = exploredRegionBoxed->Get();
-                            // TODO: give exploredRegion to horde
+
+                            Renderer::GetInstance().UpdateFoW(Renderer::GetInstance().fowExploredNode_, exploredRegion);
                             int num_cubes = exploredRegion.GetCubeCount();
                             R_LOG(3) << "Client explored cubes: " << num_cubes;
                          })
