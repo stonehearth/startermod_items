@@ -1,3 +1,5 @@
+local HabitatType = require 'services.world_generation.habitat_type'
+
 local ScenarioSelector = class()
 local log = radiant.log.create_logger('scenario_service')
 
@@ -27,7 +29,7 @@ function ScenarioSelector:remove(name)
    self._scenarios[name] = nil
 end
 
-function ScenarioSelector:select_scenarios()
+function ScenarioSelector:select_scenarios(habitat_map)
    local rng = self._rng
    local frequency = self.frequency
    local scenario
@@ -80,6 +82,17 @@ function ScenarioSelector:_calculate_statistics()
 
    self._num_scenarios = count
    self._total_weight = sum
+end
+
+function ScenarioSelector:_calculate_habitat_areas(habitat_map)
+   local habitat_area = Histogram()
+
+   habitat_map:visit(
+      function (habitat_type)
+         habitat_area:increment(habitat_type)
+         return true
+      end
+   )
 end
 
 return ScenarioSelector

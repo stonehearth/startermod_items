@@ -2,6 +2,7 @@ local Array2D = require 'services.world_generation.array_2D'
 local TerrainType = require 'services.world_generation.terrain_type'
 local FilterFns = require 'services.world_generation.filter.filter_fns'
 local MathFns = require 'services.world_generation.math.math_fns'
+local Histogram = require 'services.world_generation.math.histogram'
 local RandomNumberGenerator = _radiant.csg.RandomNumberGenerator
 
 local BlueprintGenerator = class()
@@ -10,6 +11,7 @@ local log = radiant.log.create_logger('world_generation')
 function BlueprintGenerator:__init()
 end
 
+-- (6, 6) is the minimum size for generated blueprints
 function BlueprintGenerator:generate_blueprint(width, height, seed)
    -- minimum size for this algorithm
    assert(width >= 5)
@@ -111,28 +113,22 @@ function BlueprintGenerator:shard_and_store_map(blueprint, key, full_map)
 end
 
 function BlueprintGenerator:_is_playable_map(blueprint)
-   local i, j, terrain_type, percent_mountains
-   local total_tiles = blueprint.width * blueprint.height
-   local stats = {}
-
-   stats[TerrainType.plains] = 0
-   stats[TerrainType.foothills] = 0
-   stats[TerrainType.mountains] = 0
+   local histogram = Histogram()
+   local i, j, terrain_type, mountains_probability
 
    for j=1, blueprint.height do
       for i=1, blueprint.width do
          terrain_type = blueprint:get(i, j).terrain_type
-         stats[terrain_type] = stats[terrain_type] + 1
+         histogram:increment(terrain_type)
       end
    end
 
    log:debug('Terrain distribution:')
-   log:debug('plains: %d, foothills: %d, mountains: %d', stats[TerrainType.plains],
-      stats[TerrainType.foothills], stats[TerrainType.mountains])
+   histogram:print(log, TerrainType.get_terrain_order())
 
-   percent_mountains = stats[TerrainType.mountains] / total_tiles
+   mountains_probability = histogram:get_probability(TerrainType.mountains)
 
-   return MathFns.in_bounds(percent_mountains, 0.20, 0.40)
+   return MathFns.in_bounds(mountains_probability, 0.20, 0.40)
 end
 
 function BlueprintGenerator:get_static_blueprint()

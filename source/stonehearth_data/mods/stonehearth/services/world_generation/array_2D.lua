@@ -1,7 +1,6 @@
 local MathFns = require 'services.world_generation.math.math_fns'
 
 local Array2D = class()
-local log = radiant.log.create_logger('world_generation')
 
 function Array2D:__init(width, height)
    self.width = width
@@ -92,7 +91,7 @@ function Array2D:block_in_bounds(x, y, width, height)
 end
 
 -- does not test diagonals
-function Array2D:is_adjacent_to(value, x, y)
+function Array2D:adjacent_to(value, x, y)
    local offset = self:get_offset(x, y)
 
    if x > 1 then
@@ -198,6 +197,21 @@ end
 
 -- returns true if fn(x) returns true for all elements, false otherwise
 -- terminates early if fn(x) returns false on an element
+function Array2D:visit(fn)
+   local size = self.width * self.height
+   local continue
+
+   for i=1, size do
+      continue = fn(self[i])
+      if not continue then
+         return false
+      end
+   end
+   return true
+end
+
+-- returns true if fn(x) returns true for all elements, false otherwise
+-- terminates early if fn(x) returns false on an element
 function Array2D:visit_block(x, y, block_width, block_height, fn)
    local index, continue
    local offset = self:get_offset(x, y)-1
@@ -223,8 +237,8 @@ function Array2D:load(array)
    end
 end
 
-function Array2D:print(format_string)
-   if format_string == nil then format_string = '%5.1f' end
+function Array2D:print(logger, format_string)
+   if format_string == nil then format_string = '%3.0f' end
    local str
 
    for j=1, self.height do
@@ -232,7 +246,7 @@ function Array2D:print(format_string)
       for i=1, self.width do
          str = str .. ' ' .. string.format(format_string, self:get(i, j))
       end
-      log:debug(str)
+      logger:debug(str)
    end
 end
 
