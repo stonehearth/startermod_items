@@ -1745,6 +1745,7 @@ DLL int h3dGetNodeFlags( H3DNode node );
 		nothing
 */
 DLL void h3dSetNodeFlags( H3DNode node, int flags, bool recursive );
+DLL void h3dTwiddleNodeFlags( H3DNode node, int flags, bool on, bool recursive );
 
 /* Function: h3dGetNodeAABB
 		Gets the bounding box of a scene node.

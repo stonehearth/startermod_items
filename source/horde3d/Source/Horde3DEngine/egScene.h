@@ -128,7 +128,8 @@ public:
 	void getTransMatrices( const float **relMat, const float **absMat ) const;
 
 	int getFlags() { return _flags; }
-	void setFlags( int flags, bool recursive );
+   void setFlags( int flags, bool recursive );
+   void twiddleFlags( int flags, bool on, bool recursive );
 
 	virtual int getParamI( int param );
 	virtual void setParamI( int param, int value );
