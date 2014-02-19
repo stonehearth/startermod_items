@@ -38,8 +38,8 @@
          },
          "injected_commands" : [
             "file(/data/commands/unit_control/move_unit)",
-            "file(/data/commands/unit_control/unload_inventory)",
-            "file(/data/commands/unit_control/abilities/snare_trap)"
+            "file(/data/commands/unit_control/abilities/snare_trap)",
+            "file(/data/commands/unit_control/unload_inventory)"
          ]
       }
    }
