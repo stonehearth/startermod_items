@@ -46,6 +46,21 @@ void Skeleton::SetSceneNode(H3DNode parent)
    _parent = parent;
 }
 
+
+void Skeleton::ApplyScaleToBones()
+{
+   for (auto const& entry : _bones) {
+      H3DNode bone = entry.second.get();
+      float tx, ty, tz, rx, ry, rz, sx, sy, sz;
+
+      h3dGetNodeTransform(bone, &tx, &ty, &tz, &rx, &ry, &rz, &sx, &sy, &sz);
+      tx *= (_scale / sx);
+      ty *= (_scale / sy);
+      tz *= (_scale / sz);
+      h3dSetNodeTransform(bone, tx, ty, tz, rx, ry, rz, _scale, _scale, _scale);
+   }
+}
+
 H3DNode Skeleton::GetSceneNode(const std::string& bone)
 {
    ASSERT(_parent);

@@ -284,7 +284,9 @@ void RenderRenderInfo::Update()
             RebuildModels(render_info);
          }
          if (dirty_ & SCALE_DIRTY) {
-            entity_.GetSkeleton().SetScale(render_info->GetScale());
+            Skeleton& skeleton = entity_.GetSkeleton();
+            skeleton.SetScale(render_info->GetScale());
+            skeleton.ApplyScaleToBones();
          }
       }
       dirty_ = 0;
