@@ -1913,9 +1913,12 @@ DLL void h3dUnmapNodeParamV( H3DNode node, int param, int mappedLength);
 
 namespace Horde3D {
    class HudElementNode;
+   class Frustum;
 }
 //class Horde3D::HudElementNode;
 Horde3D::HudElementNode* h3dAddHudElementNode( H3DNode parent, const char *name );
+void h3dGetCameraFrustum( H3DNode cameraNode, Horde3D::Frustum* f );
+
 
 /* Function: h3dSetupModelAnimStage
 		Configures an animation stage of a Model node.
@@ -2117,7 +2120,6 @@ DLL void h3dSetupCameraView( H3DNode cameraNode, float fov, float aspect, float 
 		nothing
 */
 DLL void h3dGetCameraProjMat( H3DNode cameraNode, float *projMat );
-
 
 /* Group: Emitter-specific scene graph functions */
 /* Function: h3dAddEmitterNode

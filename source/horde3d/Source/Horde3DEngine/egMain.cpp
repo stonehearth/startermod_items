@@ -1010,6 +1010,20 @@ DLLEXP void h3dGetCameraProjMat( NodeHandle cameraNode, float *projMat )
 	memcpy( projMat, ((CameraNode *)sn)->getProjMat().x, 16 * sizeof( float ) );
 }
 
+void h3dGetCameraFrustum( NodeHandle cameraNode, Frustum* f )
+{
+	CameraNode *cn = (CameraNode *)Modules::sceneMan().resolveNodeHandle( cameraNode );
+	APIFUNC_VALIDATE_NODE_TYPE( cn, SceneNodeTypes::Camera, "h3dGetCameraFrustum", APIFUNC_RET_VOID );
+	if( f == 0x0 )
+	{
+		Modules::setError( "Invalid pointer in h3dGetCameraFrustum" );
+		return;
+	}
+
+   Modules::sceneMan().updateNodes();
+   f->buildViewFrustum(cn->getViewMat(), cn->getProjMat());
+}
+
 
 DLLEXP NodeHandle h3dAddEmitterNode( NodeHandle parent, const char *name, ResHandle materialRes,
                                      ResHandle particleEffectRes, int maxParticleCount, int respawnCount )
