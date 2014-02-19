@@ -288,6 +288,9 @@ Renderer::Renderer() :
 
 void Renderer::UpdateFoW(H3DNode node, const csg::Region3& region)
 {
+   if (region.GetCubeCount() >= 1000) {
+      return;
+   }
    float* start = (float*)h3dMapNodeParamV(node, H3DInstanceNodeParams::InstanceBuffer);
    float* f = start;
    for (const auto& c : region) 
