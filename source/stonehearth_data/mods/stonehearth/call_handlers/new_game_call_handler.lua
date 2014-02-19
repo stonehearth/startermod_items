@@ -1,7 +1,7 @@
-local NewGameCallHandler = class()
+local MathFns = require 'services.world_generation.math.math_fns'
+local BlueprintGenerator = require 'services.world_generation.blueprint_generator'
 local game_master = require 'services.game_master.game_master_service'
 local personality_service = stonehearth.personality
-local BlueprintGenerator = require 'services.world_generation.blueprint_generator'
 
 local Point2 = _radiant.csg.Point2
 local Point3 = _radiant.csg.Point3
@@ -10,6 +10,8 @@ local Rect2 = _radiant.csg.Rect2
 local Region2 = _radiant.csg.Region2
 
 local log = radiant.log.create_logger('world_generation')
+
+local NewGameCallHandler = class()
 
 function NewGameCallHandler:new_game(session, response, num_tiles_x, num_tiles_y, seed)
    local wgs = stonehearth.world_generation
@@ -53,13 +55,24 @@ function NewGameCallHandler:generate_start_location(session, response, feature_c
 
    local wgs = stonehearth.world_generation
    local x, z = wgs.overview_map:get_coords_of_cell_center(feature_cell_x, feature_cell_y)
-   local i, j = wgs:get_tile_index(x, z)
 
    -- TODO: store this better
    wgs.start_x = x
    wgs.start_z = z
-   
-   wgs:generate_tiles(i, j, 2)
+
+   local radius = 2
+   local blueprint = wgs:get_blueprint()
+   local i, j = wgs:get_tile_index(x, z)
+
+   -- move (i, j) if it is too close to the edge
+   if blueprint.width > 2*radius+1 then
+      i = MathFns.bound(i, 1+radius, blueprint.width-radius)
+   end
+   if blueprint.height > 2*radius+1 then
+      j = MathFns.bound(j, 1+radius, blueprint.height-radius)
+   end
+  
+   wgs:generate_tiles(i, j, radius)
 
    response:resolve({})
 end
