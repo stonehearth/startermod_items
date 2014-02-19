@@ -46,7 +46,9 @@ function BoundaryNormalizingFilter:filter(dst, src, src_len, sampling_interval)
    local f_len = self._f_len
    local n = self._n
    local boundary_len = self._boundary_len
-   assert(src_len >= f_len)
+
+   -- make sure both boundaries cannot overlap at the same time
+   assert(src_len+1 >= f_len)
 
    local i, j
    local k, k_start, k_end

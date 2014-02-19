@@ -29,7 +29,7 @@ function BlueprintGenerator:generate_blueprint(width, height, seed)
 
    while (true) do
       noise_map:fill_ij(noise_fn)
-      FilterFns.filter_2D_050(height_map, noise_map, noise_map.width, noise_map.height, 4)
+      FilterFns.filter_2D_050(height_map, noise_map, noise_map.width, noise_map.height, 6)
 
       for j=1, height do
          for i=1, width do
