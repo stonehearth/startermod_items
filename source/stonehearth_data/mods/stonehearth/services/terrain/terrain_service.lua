@@ -1,8 +1,8 @@
 local Point3 = _radiant.csg.Point3
 local Cube3 = _radiant.csg.Cube3
-local ConstructCube3 = _radiant.csg.ConstructCube3
 local Region3 = _radiant.csg.Region3
 
+local _terrain = radiant._root_entity:add_component('terrain')
 local log = radiant.log.create_logger('visibility')
 
 TerrainService = class()
@@ -23,10 +23,16 @@ function TerrainService:_on_poll()
    local sight_radius = self._sight_radius
    local faction, citizens, old_visible_region, new_visible_region, pt, cube, explored_region_boxed
 
+   local terrain_bounds = _terrain:get_bounds()
+   log:info('Terrain bounds: (%d, %d, %d) - (%d, %d, %d)',
+      terrain_bounds.min.x, terrain_bounds.min.y, terrain_bounds.min.z,
+      terrain_bounds.max.x, terrain_bounds.max.y, terrain_bounds.max.z
+   )
+
    for faction_name, visible_region_boxed in pairs(self._visible_regions) do
       explored_region_boxed = self:get_explored_region(faction_name)
 
-      -- TODO: where do we get the kindom name from?
+      -- TODO: where do we get the kingdom name from?
       faction = stonehearth.population:get_faction(faction_name, 'stonehearth:factions:ascendancy')
 
       new_visible_region = Region3()
@@ -75,7 +81,7 @@ function TerrainService:_are_equivalent_regions(region_a, region_b)
       return false
    end
 
-   intersection = _radiant.csg.region3_intersection(region_a, region_b)
+   intersection = _radiant.csg.intersect_region3(region_a, region_b)
 
    return intersection:get_area() == area_a
 end
