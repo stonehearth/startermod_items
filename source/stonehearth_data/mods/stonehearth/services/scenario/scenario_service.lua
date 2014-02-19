@@ -149,7 +149,7 @@ function ScenarioService:mark_scenarios(habitat_map, elevation_map, tile_offset_
    local selected_scenarios, site, sites, num_sites, roll, offset_x, offset_y, habitat_types
    local static_scenarios = {}
 
-   selected_scenarios = self:_select_scenarios()
+   selected_scenarios = self:_select_scenarios(habitat_map)
 
    for _, properties in pairs(selected_scenarios) do
       habitat_types = properties.habitat_types
@@ -246,13 +246,13 @@ function ScenarioService:_find_valid_sites(habitat_map, elevation_map, habitat_t
 end
 
 -- get a list of scenarios from all the categories
-function ScenarioService:_select_scenarios()
+function ScenarioService:_select_scenarios(habitat_map)
    local categories = self._categories
    local scenarios = {}
    local list
 
    for key, _ in pairs(categories) do
-      list = categories[key]:select_scenarios()
+      list = categories[key]:select_scenarios(habitat_map)
       for _, item in pairs(list) do
          table.insert(scenarios, item)
       end

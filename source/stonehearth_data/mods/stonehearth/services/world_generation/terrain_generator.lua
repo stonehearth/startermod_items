@@ -29,7 +29,7 @@ function TerrainGenerator:__init(terrain_info, rng, async)
    self._async = async
 
    self._wavelet_levels = 4
-   self._frequency_scaling_coeff = 0.7
+   self._frequency_scaling_coeff = 0.69
 
    local oversize_tile_size = self._tile_size + self._macro_block_size
    self._oversize_map_buffer = Array2D(oversize_tile_size, oversize_tile_size)
