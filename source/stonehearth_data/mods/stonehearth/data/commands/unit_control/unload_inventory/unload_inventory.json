@@ -1,0 +1,14 @@
+{
+   "type" : "command",
+
+   "name": "unload inventory",
+   "tooltip": "Unload Bags",
+   "description": "Return to town and desposit the contents of your bags.",
+   "icon": "file(unload_inventory.png)",
+
+   "action": "call",
+   "function": "stonehearth:unload_inventory",
+   "args": [
+      "{{self}}"
+   ]
+}

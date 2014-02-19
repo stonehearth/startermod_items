@@ -47,13 +47,17 @@ end
 function LootTableComponent:spawn_loot()
    local items = self:get_loot()
    local location = radiant.entities.get_location_aligned(self._entity)
+   local item_entities = {}
    
    for _, item_uri in ipairs(items) do
       local item = radiant.entities.create_entity(item_uri)
       location.x = location.x + math.random(-1, 1)
       location.z = location.z + math.random(-1, 1)
       radiant.terrain.place_entity(item, location)
+      table.insert(item_entities, item)
    end
+
+   return item_entities
 end
 
 

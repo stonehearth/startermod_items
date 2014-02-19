@@ -50,6 +50,14 @@ function Town:_get_unit_controller(entity)
    return unit_controller
 end
 
+function Town:set_banner(entity)
+   self._banner = entity
+end
+
+function Town:get_banner()
+   return self._banner
+end
+
 function Town:command_unit(person, activity_name, activity_args)
    local unit_controller = self:_get_unit_controller(person)
    return unit_controller:create_immediate_task(activity_name, activity_args)

@@ -200,12 +200,13 @@ end
 
 function NewGameCallHandler:create_camp(session, response, pt)
    local faction = stonehearth.population:get_faction('civ', 'stonehearth:factions:ascendancy')
-   
+   local town = stonehearth.town:get_town(session.faction)
+
    -- place the stanfard in the middle of the camp
    local location = Point3(pt.x, pt.y, pt.z)
-   local standard_entity = radiant.entities.create_entity('stonehearth:camp_standard')
-   radiant.terrain.place_entity(standard_entity, location)
-   faction:set_home_location(location)
+   local banner_entity = radiant.entities.create_entity('stonehearth:camp_standard')
+   radiant.terrain.place_entity(banner_entity, location)
+   town:set_banner(banner_entity)
 
    -- build the camp
    local camp_x = pt.x
@@ -231,7 +232,7 @@ function NewGameCallHandler:create_camp(session, response, pt)
    radiant.events.trigger(personality_service, 'stonehearth:journal_event', 
                           {entity = worker5, description = 'person_embarks'})
 
-   local worker6 = self:place_citizen(camp_x-3, camp_z+0)
+   local worker6 = self:place_citizen(camp_x-3, camp_z+0, 'trapper')
    radiant.events.trigger(personality_service, 'stonehearth:journal_event', 
                           {entity = worker6, description = 'person_embarks'})
 
