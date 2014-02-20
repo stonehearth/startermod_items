@@ -7,7 +7,6 @@ local Timer = require 'services.world_generation.timer'
 local Point2 = _radiant.csg.Point2
 local Rect2 = _radiant.csg.Rect2
 local Region2 = _radiant.csg.Region2
-local intersect_cube2 = _radiant.csg.intersect_cube2
 local _terrain = radiant._root_entity:add_component('terrain')
 local log = radiant.log.create_logger('scenario_service')
 
@@ -85,7 +84,7 @@ function ScenarioService:_on_poll()
       -- assumes terrain has been generated for entire area in terrain bounds
       -- i.e this breaks if generated terrain is non-rectangular
       -- TODO: implement a more sophisticated test
-      bounded_rect = intersect_cube2(rect, terrain_bounds)
+      bounded_rect = _radiant.csg.intersect_cube2(rect, terrain_bounds)
 
       region:add_cube(bounded_rect)
    end
