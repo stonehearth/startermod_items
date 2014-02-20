@@ -20,7 +20,11 @@
             </a>
          {{/each}}
          <div id="inventory">
-            <div>{{stonehearth:inventory.items.length}} / {{stonehearth:inventory.capacity}}</div>
+            {{#if inventoryFull}}
+               <div id="full">{{i18n stonehearth:inventory_full}}</div>
+            {{else}}
+               <div>{{stonehearth:inventory.items.length}} / {{stonehearth:inventory.capacity}}</div>
+            {{/if}}
          </div>
       </div>
       <div id="info">
@@ -31,8 +35,7 @@
       </div>
 
       <a href="#" {{action showCharacterSheet target="view"}}>
-         <div id="portrait">
-         </div>
+         <div id="portrait">{{#if unit_info.portrait}}<img {{bindAttr src=unit_info.portrait}}>{{/if}}</div>
       </a>
    </div>
 </script>

@@ -7,7 +7,7 @@ function InventoryComponent:__init(entity, data_binding)
    
    self._data = {}
    self._data.items = self._item_entities
-   self._data.capacity = 12 --xxx hardcoded
+   self._data.capacity = 4 --xxx hardcoded
 
    self._data_binding:update(self._data)
 end
@@ -32,11 +32,14 @@ function InventoryComponent:is_full()
 end
 
 function InventoryComponent:remove_first_item()
-   if self:is_empty() then
-      return nil
-   else
-      return table.remove(self._item_entities, 1)
+   local item = nil
+
+   if not self:is_empty() then
+      item = table.remove(self._item_entities, 1)
+      self._data_binding:update(self._data)
    end
+   
+   return item
 end
 
 return InventoryComponent
