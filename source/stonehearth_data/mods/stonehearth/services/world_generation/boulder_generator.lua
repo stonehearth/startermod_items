@@ -6,7 +6,7 @@ local log = radiant.log.create_logger('world_generation')
 local Terrain = _radiant.om.Terrain
 local Point3 = _radiant.csg.Point3
 local Cube3 = _radiant.csg.Cube3
-local ConstructCube3 = _radiant.csg.ConstructCube3
+local construct_cube3 = _radiant.csg.construct_cube3
 local Region3 = _radiant.csg.Region3
 
 local BoulderGenerator = class()
@@ -89,7 +89,7 @@ function BoulderGenerator:_get_boulder_chip(sign_x, sign_y, chip_size, boulder_c
    local corner2 = corner1 + Point3(-sign_x * chip_size,
                                     -chip_size,
                                     -sign_y * chip_size)
-   return ConstructCube3(corner1, corner2, 0)
+   return construct_cube3(corner1, corner2, 0)
 end
 
 function BoulderGenerator:_get_boulder_chunk(boulder_center, half_width, half_height, half_length)
@@ -131,7 +131,7 @@ function BoulderGenerator:_get_boulder_chunk(boulder_center, half_width, half_he
                                  -sign_y * chunk_size)
    end
 
-   return ConstructCube3(corner1, corner2, 0)
+   return construct_cube3(corner1, corner2, 0)
 end
 
 return BoulderGenerator

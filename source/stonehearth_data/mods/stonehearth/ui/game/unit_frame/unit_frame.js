@@ -6,6 +6,7 @@ App.StonehearthUnitFrameView = App.View.extend({
          commands: []
       },
       "stonehearth:buffs" : {},
+      "stonehearth:inventory" : {},
       "unit_info": {}
    },
 
@@ -26,6 +27,14 @@ App.StonehearthUnitFrameView = App.View.extend({
            }
          }
       });
+   },
+
+   actions: {
+      showCharacterSheet: function() {
+         $(top).trigger('show_character_sheet.stonehearth', {
+            entity: this.get('uri') 
+         });
+      }
    },
 
    supressSelection: function(supress) {
@@ -55,14 +64,14 @@ App.StonehearthUnitFrameView = App.View.extend({
         this.hide();
       }
       
-      $('#unitFrame > #buffs').find('.item').each(function() {
+      this.my('#unitFrame > #buffs').find('.item').each(function() {
         $(this).tooltipster({
             content: $('<div class=title>' + $(this).attr('title') + '</div>' + 
                        '<div class=description>' + $(this).attr('description') + '</div>')
          });
       });
 
-      $('#unitFrame > #commandButtons').find('[title]').each(function() {
+      this.my('#unitFrame > #commandButtons').find('[title]').each(function() {
         $(this).tooltipster({
             content: $('<div class=title>' + $(this).attr('title') + '</div>' + 
                        '<div class=description>' + $(this).attr('description') + '</div>' + 
@@ -70,6 +79,25 @@ App.StonehearthUnitFrameView = App.View.extend({
          });
       });
 
+      this.my('#inventory').tooltipster({
+            content: $('<div class=title>' + i18n.t('stonehearth:inventory_title') + '</div>' + 
+                       '<div class=description>' + i18n.t('stonehearth:inventory_description') + '</div>')
+        });
+
+      var commands = this.get('context.stonehearth:commands.commands');
+      var inventory = this.get('context.stonehearth:inventory');
+      
+      if (!commands || commands.length == 0 ) {
+        this.my('#commandButtons').hide();
+      } else {
+        this.my('#commandButtons').show();
+      }
+
+      if (!inventory) {
+        this.my('#inventory').hide()
+      } else {
+        this.my('#inventory').show()
+      }
       /*
       $('[title]').tooltipster({
         content: $('<span>hi - ' + $(this).attr(title) + '</span>')
@@ -105,6 +133,8 @@ App.StonehearthUnitFrameView = App.View.extend({
 });
 
 App.StonehearthCommandButtonView = App.View.extend({
+   classNames: ['inlineBlock'],
+
    oneBasedIndex: function() {
       return this.contentIndex + 1;
    }.property(),

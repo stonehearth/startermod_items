@@ -16,12 +16,6 @@ void CopyRegion(T& region, T const& other)
 }
 
 template <typename T>
-T IntersectRegion(lua_State* L, T const& region, T const& other)
-{
-   return region & other;
-}
-
-template <typename T>
 void LoadRegion(lua_State* L, T& region, object obj)
 {
    // converts the lua object to a json object, then the json
@@ -44,7 +38,7 @@ std::shared_ptr<T> RegionClip(const T& region, typename T::Cube const& cube)
 }
 
 template <typename T>
-T Region_Intersection(T const& lhs, T const& rhs)
+T IntersectRegion(T const& lhs, T const& rhs)
 {
    return lhs & rhs;
 }
@@ -60,7 +54,6 @@ Region2 ProjectOntoXZPlane(Region3 const& region)
    }
    return r2;
 }
-
 
 template <typename T>
 static luabind::class_<T> Register(struct lua_State* L, const char* name)
@@ -105,7 +98,7 @@ static luabind::class_<T> Register(struct lua_State* L, const char* name)
 scope LuaRegion::RegisterLuaTypes(lua_State* L)
 {
    return
-      def("region3_intersection", Region_Intersection<Region3>),
+      def("intersect_region3", IntersectRegion<Region3>),
       Register<Region3>(L,  "Region3")
          .def("get_adjacent",             &GetAdjacent)
          .def("project_onto_xz_plane",    &ProjectOntoXZPlane),

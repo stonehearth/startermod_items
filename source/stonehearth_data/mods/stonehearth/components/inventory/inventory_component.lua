@@ -13,8 +13,10 @@ function InventoryComponent:__init(entity, data_binding)
 end
    
 function InventoryComponent:add_item(item)
-   table.insert(self._item_entities, item)
-   self._data_binding:update(self._data)
+   if not self:is_full() then
+      table.insert(self._item_entities, item)
+      self._data_binding:update(self._data)
+   end
 end
 
 function InventoryComponent:get_items()
@@ -23,6 +25,10 @@ end
 
 function InventoryComponent:is_empty()
    return #self._item_entities == 0
+end
+
+function InventoryComponent:is_full()
+   return #self._item_entities == self._data.capacity
 end
 
 function InventoryComponent:remove_first_item()

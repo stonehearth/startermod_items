@@ -12,6 +12,7 @@ function TrapperTest:__init()
    self:create_world()
 
 
+   self:place_tree(-9, -9)
    local worker = self:place_citizen(-7, -7)
    local trapper = self:place_citizen(7, 7,'trapper')
    radiant.entities.set_faction(trapper, 'civ')
@@ -29,7 +30,7 @@ function TrapperTest:__init()
    radiant.terrain.place_entity(banner_entity, Point3(11, 0, 11))
 
    self:at(10,  function()
-         --self:place_stockpile_cmd('civ', 12, 12, 4, 4)
+         self:place_stockpile_cmd('civ', 12, 12, 4, 4)
       end)
 
 end

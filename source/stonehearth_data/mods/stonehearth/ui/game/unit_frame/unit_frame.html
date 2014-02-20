@@ -19,10 +19,20 @@
                </div>
             </a>
          {{/each}}
+         <div id="inventory">
+            <div>{{stonehearth:inventory.items.length}} / {{stonehearth:inventory.capacity}}</div>
+         </div>
       </div>
       <div id="info">
-         <div class="name">{{unit_info.name}}</div>
-         <div class="description">{{unit_info.description}}</div>
+         <div class="inner">
+            <div class="name">{{unit_info.name}}</div>
+            <div class="description">{{unit_info.description}}</div>
+         </div>
       </div>
+
+      <a href="#" {{action showCharacterSheet target="view"}}>
+         <div id="portrait">
+         </div>
+      </a>
    </div>
 </script>
