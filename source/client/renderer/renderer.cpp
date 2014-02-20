@@ -295,9 +295,9 @@ void Renderer::UpdateFoW(H3DNode node, const csg::Region3& region)
    float* f = start;
    for (const auto& c : region) 
    {
-      float px = (c.max + c.min).x / 2.0f;
-      float py = (c.max + c.min).y / 2.0f;
-      float pz = (c.max + c.min).z / 2.0f;
+      float px = (c.max + c.min).x * 0.5f;
+      float py = (c.max + c.min).y * 0.5f;
+      float pz = (c.max + c.min).z * 0.5f;
 
       float xSize = (float)c.max.x - c.min.x;
       float zSize = (float)c.max.z - c.min.z;
@@ -305,7 +305,7 @@ void Renderer::UpdateFoW(H3DNode node, const csg::Region3& region)
       f[0] = xSize; f[1] =  0; f[2] =   0; f[3] =  0;
       f[4] =  0; f[5] = ySize; f[6] =   0; f[7] =  0;
       f[8] =  0; f[9] =  0; f[10] = zSize; f[11] = 0;
-      f[12] = px; f[13] = py; f[14] =  pz; f[15] = 1;
+      f[12] = px; f[13] = py - (ySize /2); f[14] =  pz; f[15] = 1;
       
       f += 16;
    }
@@ -326,7 +326,7 @@ void Renderer::RenderFogOfWarRT()
 
    // Construct a new camera view matrix pointing down.
    fowView.x[0] = 1;  fowView.x[1] = 0;  fowView.x[2] = 0;
-   fowView.x[4] = 0;  fowView.x[5] = 0;  fowView.x[6] = -1;
+   fowView.x[4] = 0;  fowView.x[5] = 0;  fowView.x[6] = 1;
    fowView.x[8] = 0;  fowView.x[9] = -1;  fowView.x[10] = 0;
    fowView.x[12] = 0; fowView.x[13] = 0; fowView.x[14] = 0;  fowView.x[15] = 1.0;
 
@@ -349,7 +349,7 @@ void Renderer::RenderFogOfWarRT()
    max.quantize(quantizer);
 
    // All that crap was just so we could set up this ortho frustum + view matrix.
-   h3dSetNodeTransMat(fowCamera_->GetNode(), fowView.x);
+   h3dSetNodeTransMat(fowCamera_->GetNode(), fowView.inverted().x);
    h3dSetNodeParamI(fowCamera_->GetNode(), H3DCamera::OrthoI, 1);
    h3dSetNodeParamF(fowCamera_->GetNode(), H3DCamera::LeftPlaneF, 0, min.x);
    h3dSetNodeParamF(fowCamera_->GetNode(), H3DCamera::RightPlaneF, 0, max.x);
