@@ -7,6 +7,7 @@ local Timer = require 'services.world_generation.timer'
 local Point2 = _radiant.csg.Point2
 local Rect2 = _radiant.csg.Rect2
 local Region2 = _radiant.csg.Region2
+local _terrain = radiant._root_entity:add_component('terrain')
 local log = radiant.log.create_logger('scenario_service')
 
 local ScenarioService = class()
@@ -66,17 +67,26 @@ end
 
 function ScenarioService:_on_poll()
    local reveal_distance = radiant.util.get_config('scenario_reveal_distance', 128)
+   local terrain_bounds = _terrain:get_bounds():project_onto_xz_plane()
    local citizens = self._faction:get_citizens()
    local region = Region2()
-   local pt, rect
+   local pt, rect, bounded_rect
 
    for _, entity in pairs(citizens) do
       pt = radiant.entities.get_world_grid_location(entity)
 
       -- remember +1 on max
-      rect = Rect2(Point2(pt.x-reveal_distance, pt.z-reveal_distance),
-                   Point2(pt.x+reveal_distance+1, pt.z+reveal_distance+1))
-      region:add_cube(rect)
+      rect = Rect2(
+         Point2(pt.x-reveal_distance, pt.z-reveal_distance),
+         Point2(pt.x+reveal_distance+1, pt.z+reveal_distance+1)
+      )
+
+      -- assumes terrain has been generated for entire area in terrain bounds
+      -- i.e this breaks if generated terrain is non-rectangular
+      -- TODO: implement a more sophisticated test
+      bounded_rect = _radiant.csg.intersect_cube2(rect, terrain_bounds)
+
+      region:add_cube(bounded_rect)
    end
 
    self:reveal_region(region)

@@ -1,9 +1,6 @@
 #unitFrame {
-   border-width: 10px 10px 20px 10px;
-   width: 800px;
-   height: 177px;
    position: absolute;
-   bottom: 16px;
+   bottom: 10px;
    left: 10px;
 
    #buffs {
@@ -24,46 +21,63 @@
 
    }
 
+   #portrait {
+      position: absolute;
+      bottom: 16px;
+      left: 0px;
+      width: 116px;
+      height: 121px;
+      background: url('./images/portrait_frame.png');
+   }
+
    #info {
       .controlFont;
       position: absolute;
-      left: 0px;
+      left: 10px;
       bottom: 0px;
-      width: 324px;
+      width: 414px;
       height: 98px;
       background: url('./images/bg.png');
-      font-size: 32px;
-      line-height: 26px;
-      text-align: center;
+      font-size: 30px;
+      //line-height: 26px;
+      text-align: left;
+
+      .inner {
+         padding: 18px 0px 0px 120px;
+         background: rbga(255, 0,0, 0.3);
 
          .name {
-            padding-top: 24px;
-            font-size: 24px;
+            font-size: 27px;
          }
 
          .description {
-         font-size: 18px;
-         color: @controlLightFontColor;
+            font-size: 18px;
+            color: @controlLightFontColor;
+         }
       }
    }
 
    #commandButtons {
+      .nobr;
       position: absolute;
       bottom: 0px;
-      left: 330px;
-      width: 400px;
+      left: 435px;
+      height: 77px;
+      background: #403c33;
+      background-clip: padding-box;
+      border-width: 8px 8px 13px 8px;
+      border-image: url(./images/bg_border.png) 8 8 13 8 repeat;
 
       .commandButton {
          position: relative;
-         float: left;
-         width: 93px;
-         height: 98px;
+         width: 69px;
+         height: 76px;
          background: url('./images/command_button_bg.png');
          border: 0px;
-         margin-right: 8px;
+         margin-left: 4px;
 
          img {
-            width: 90px;
+            width: 69px;
          }
 
          .active {
@@ -73,8 +87,8 @@
          #hotkey {
             .hotkey;
             position: absolute;
-            bottom: 15px;
-            right: 12px;
+            bottom: 6px;
+            right: 6px;
          }
       }
 
@@ -86,5 +100,24 @@
          opacity: 0.6;
       }
 
+      #inventory {
+         .controlFont;
+         position: relative;
+         top: -6px;
+         width: 69px;
+         height: 76px;
+         display: inline-block;
+         background: url('./images/inventory_icon.png');
+         text-align: center;
+         vertical-align: bottom;
+         color: #fff;
+
+         div {
+            position: absolute;
+            font-size: 16px;
+            bottom: 0px;
+            width: 69px;
+         }
+      }
    }
 }

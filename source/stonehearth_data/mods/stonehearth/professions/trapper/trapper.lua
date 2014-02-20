@@ -10,6 +10,9 @@ function trapper_class.promote(entity, workshop_component)
    --Slap a new outfit on the crafter
    local equipment = entity:add_component('stonehearth:equipment')
    equipment:equip_item('stonehearth:trapper:outfit')
+
+   --Add an inventory
+   entity:add_component('stonehearth:inventory')
 end
 
 function trapper_class.demote(entity)
@@ -20,6 +23,9 @@ function trapper_class.demote(entity)
       radiant.entities.destroy_entity(outfit)
    end
 
+  -- remove the inventory
+  entity:remove_component('stonehearth:inventory')
+  
   --move saw back to the bench
   --local crafter_component = entity:get_component("stonehearth:crafter")
   --local bench_component = crafter_component:get_workshop()

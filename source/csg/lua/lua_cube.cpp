@@ -59,6 +59,22 @@ IMPLEMENT_TRIVIAL_TOSTRING(PointIterator<Cube3>);
 DEFINE_INVALID_JSON_CONVERSION(PointIterator<Cube3>);
 
 template <typename T>
+T IntersectCube(T const& lhs, T const& rhs)
+{
+   return lhs & rhs;
+}
+
+Rect2 ProjectOntoXZPlane(Cube3 const& cube)
+{
+   Rect2 projection(
+      Point2(cube.min.x, cube.min.z),
+      Point2(cube.max.x, cube.max.z),
+      cube.GetTag()
+   );
+   return projection;
+}
+
+template <typename T>
 static luabind::class_<T> Register(struct lua_State* L, const char* name)
 {
    return
@@ -90,10 +106,13 @@ static luabind::scope RegisterWithIterator(struct lua_State* L, const char* name
 scope LuaCube::RegisterLuaTypes(lua_State* L)
 {
    return
-      def("ConstructCube3", &Cube3::Construct),
+      def("construct_cube3", &Cube3::Construct),
+      def("intersect_cube3", IntersectCube<Cube3>),
+      def("intersect_cube2", IntersectCube<Rect2>),
       Register<Cube3>(L,  "Cube3")
          .def("to_float",     &ToCube3f)
-         .def("each_point",   &EachPoint<Cube3>),
+         .def("each_point",   &EachPoint<Cube3>)
+         .def("project_onto_xz_plane", &ProjectOntoXZPlane),
       Register<Cube3f>(L, "Cube3f"),
       Register<Rect2>(L,  "Rect2"),
       Register<Line1>(L,  "Line1"),

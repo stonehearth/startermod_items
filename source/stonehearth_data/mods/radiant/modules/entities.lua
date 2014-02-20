@@ -19,7 +19,12 @@ function entities.create_entity(ref)
       return _radiant.sim.create_empty_entity()
    end
    local entity = _radiant.sim.create_entity(ref)
+   -- trigger 'stonehearth:entity_created' first so components can finalize entity
+   -- creation.
    radiant.events.trigger(entity, 'stonehearth:entity_created', { entity = entity})
+
+   -- trigger the global 'stonehearth:entity_created' to notify mods
+   radiant.events.trigger(radiant.events, 'stonehearth:entity_created', { entity = entity})
    return entity
 end
 

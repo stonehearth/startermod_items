@@ -282,9 +282,23 @@ void RenderRenderInfo::Update()
          if (dirty_ & MODEL_DIRTY) {
             CheckMaterial(render_info);
             RebuildModels(render_info);
+            SetDirtyBits(SCALE_DIRTY);
          }
          if (dirty_ & SCALE_DIRTY) {
-            entity_.GetSkeleton().SetScale(render_info->GetScale());
+            float scale = render_info->GetScale();
+            Skeleton& skeleton = entity_.GetSkeleton();
+            skeleton.SetScale(scale);
+
+            for (auto const& entry : nodes_) {
+               H3DNode node = entry.second.node.get();
+               float tx, ty, tz, rx, ry, rz, sx, sy, sz;
+
+               h3dGetNodeTransform(node, &tx, &ty, &tz, &rx, &ry, &rz, &sx, &sy, &sz);
+               tx *= (scale / sx);
+               ty *= (scale / sy);
+               tz *= (scale / sz);
+               h3dSetNodeTransform(node, tx, ty, tz, rx, ry, rz, scale, scale, scale);
+            }
          }
       }
       dirty_ = 0;

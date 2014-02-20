@@ -200,6 +200,9 @@
    "stamina_attribute" : "Stamina",
    "courage_attribute" : "Courage",
    "willpower_attribute" : "Willpower",
-   "compassion_attribute" : "Compassion"
+   "compassion_attribute" : "Compassion",
+
+   "inventory_title" : "Backpack",
+   "inventory_description" : "The backpack can hold useful items for safe-keeping."
 }
 

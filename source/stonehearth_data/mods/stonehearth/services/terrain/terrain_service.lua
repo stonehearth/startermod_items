@@ -1,8 +1,7 @@
 local Point3 = _radiant.csg.Point3
 local Cube3 = _radiant.csg.Cube3
-local ConstructCube3 = _radiant.csg.ConstructCube3
 local Region3 = _radiant.csg.Region3
-
+local _terrain = radiant._root_entity:add_component('terrain')
 local log = radiant.log.create_logger('visibility')
 
 TerrainService = class()
@@ -20,26 +19,23 @@ function TerrainService:_register_events()
 end
 
 function TerrainService:_on_poll()
-   local sight_radius = self._sight_radius
-   local faction, citizens, old_visible_region, new_visible_region, pt, cube, explored_region_boxed
+   local terrain_bounds = _terrain:get_bounds()
+   local old_visible_region, new_visible_region, explored_region_boxed
+   local faction, citizens, pt, cube, bounded_cube
 
    for faction_name, visible_region_boxed in pairs(self._visible_regions) do
       explored_region_boxed = self:get_explored_region(faction_name)
 
-      -- TODO: where do we get the kindom name from?
+      -- TODO: where do we get the kingdom name from?
       faction = stonehearth.population:get_faction(faction_name, 'stonehearth:factions:ascendancy')
 
       new_visible_region = Region3()
       citizens = faction:get_citizens()
 
       for _, entity in pairs(citizens) do
-         pt = radiant.entities.get_world_grid_location(entity)
-
-         -- remember +1 on max
-         cube = Cube3(Point3(pt.x-sight_radius, pt.y-sight_radius, pt.z-sight_radius),
-                      Point3(pt.x+sight_radius+1, pt.y+sight_radius+1, pt.z+sight_radius+1))
-
-         new_visible_region:add_cube(cube)
+         cube = self:_get_visible_cube(entity)
+         bounded_cube = _radiant.csg.intersect_cube3(cube, terrain_bounds)
+         new_visible_region:add_cube(bounded_cube)
       end
 
       old_visible_region = visible_region_boxed:get()
@@ -65,6 +61,24 @@ function TerrainService:_on_poll()
    end
 end
 
+function TerrainService:_get_visible_cube(entity)
+   -- fix y bounds until renderer supports 3d bounds. minimizes cubes for now
+   local y_min = 0
+   local y_max = 200
+   local sight_radius = self._sight_radius
+   local pt, cube
+
+   pt = radiant.entities.get_world_grid_location(entity)
+
+   -- remember +1 on max
+   cube = Cube3(
+      Point3(pt.x-sight_radius, 0, pt.z-sight_radius),
+      Point3(pt.x+sight_radius+1, 200, pt.z+sight_radius+1)
+   )
+
+   return cube
+end
+
 -- ignores tags on the cubes
 function TerrainService:_are_equivalent_regions(region_a, region_b)
    local area_a = region_a:get_area()
@@ -75,7 +89,7 @@ function TerrainService:_are_equivalent_regions(region_a, region_b)
       return false
    end
 
-   intersection = _radiant.csg.region3_intersection(region_a, region_b)
+   intersection = _radiant.csg.intersect_region3(region_a, region_b)
 
    return intersection:get_area() == area_a
 end
