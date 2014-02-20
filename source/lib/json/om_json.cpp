@@ -73,6 +73,8 @@ template <> Node json::encode(om::UnitInfo const& obj)
    
    node.set("name", obj.GetDisplayName());
    node.set("description", obj.GetDescription());
+   node.set("character_sheet_info", obj.GetCharacterSheetInfo());
+   node.set("portrait", obj.GetPortrait());
    node.set("faction", obj.GetFaction());
    node.set("icon", obj.GetIcon());
 
