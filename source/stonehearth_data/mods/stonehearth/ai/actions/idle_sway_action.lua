@@ -8,9 +8,7 @@ IdleSwayAction.priority = 1
 IdleSwayAction.preemptable = true
 
 function IdleSwayAction:run(ai, entity)
-   for i = 1, 2 do
-      ai:execute('stonehearth:run_effect', { effect = 'idle_sway'})
-   end
+   ai:execute('stonehearth:run_effect', { effect = 'idle_sway'})
 end
 
 return IdleSwayAction

@@ -6,7 +6,12 @@ local ChoosePointAroundLeash = class()
 ChoosePointAroundLeash.name = 'choose point around leash'
 ChoosePointAroundLeash.does = 'stonehearth:choose_point_around_leash'
 ChoosePointAroundLeash.args = {
-  radius  = 'number'     -- how far?
+  radius  = 'number',    -- how far?
+  radius_min = {         -- min how far
+      type = 'number',
+      default = 0,
+   }
+
 }
 ChoosePointAroundLeash.think_output = {
   location = Point3     -- where to wander off to
@@ -24,8 +29,17 @@ function ChoosePointAroundLeash:start_thinking(ai, entity, args)
    local entity_location = radiant.entities.get_location_aligned(entity)
 
    local radius = args.radius
-   local dx = rng:get_int(-radius, radius)
-   local dz = rng:get_int(-radius, radius)
+   local radius_min = args.radius_min
+
+   local dx = rng:get_int(radius_min, radius)  
+   if rng:get_int(1, 2) == 1 then
+      dx = dx * -1
+   end
+
+   local dz = rng:get_int(radius_min, radius)
+   if rng:get_int(1, 2) == 1 then
+      dz = dz * -1
+   end
 
    if ((entity_location.x + dx > leash_location.x + radius) or 
        (entity_location.x + dx < leash_location.x - radius)) then
