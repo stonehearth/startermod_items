@@ -151,11 +151,7 @@ Renderer::Renderer() :
    // Overlays
    fontMatRes_ = h3dAddResource( H3DResTypes::Material, "overlays/font.material.xml", 0 );
    panelMatRes_ = h3dAddResource( H3DResTypes::Material, "overlays/panel.material.xml", 0 );
-   
-   // xxx - should move this into the horde extension for debug shapes, but it doesn't know
-   // how to actually get the resource loaded!
-   h3dAddResource(H3DResTypes::Material, "materials/debug_shape.material.xml", 0); 
-   
+     
    ssaoMat = h3dAddResource(H3DResTypes::Material, "materials/ssao.material.xml", 0);
 
    csg::RandomNumberGenerator &rng = csg::RandomNumberGenerator::DefaultInstance();
@@ -278,9 +274,14 @@ Renderer::Renderer() :
       TerminateProcess(GetCurrentProcess(), 1);
    });
 
-   fileWatcher_.addWatch(strutil::utf8_to_unicode("horde"), [](FW::WatchID watchid, const std::wstring& dir, const std::wstring& filename, FW::Action action) -> void {
-      Renderer::GetInstance().FlushMaterials();
-   }, true);
+   // If the mod is unzipped, put a watch on the filesystem directory where the resources live
+   // so we can dynamically load resources whenever the file changes.
+   std::string fspath = std::string("mods/") + resourcePath_;
+   if (boost::filesystem::is_directory(fspath)) {
+      fileWatcher_.addWatch(strutil::utf8_to_unicode(fspath), [](FW::WatchID watchid, const std::wstring& dir, const std::wstring& filename, FW::Action action) -> void {
+         Renderer::GetInstance().FlushMaterials();
+      }, true);
+   }
 
    OnWindowResized(windowWidth_, windowHeight_);
    SetShowDebugShapes(false);
@@ -582,6 +583,8 @@ void Renderer::GetConfigOptions()
    config_.last_window_y.value = config.Get("renderer.last_window_y", 0);
 
    config_.use_fast_hilite.value = config.Get("renderer.use_fast_hilite", false);
+   
+   resourcePath_ = config.Get("renderer.resource_path", "stonehearth/data/horde");
 }
 
 void Renderer::ApplyConfig(const RendererConfig& newConfig, bool persistConfig)
@@ -1402,7 +1405,8 @@ void Renderer::SetViewMode(ViewMode mode)
 void Renderer::LoadResources()
 {
    uiBuffer_.allocateBuffers(std::max(uiWidth_, 1920), std::max(1080, uiHeight_));
-   if (!h3dutLoadResourcesFromDisk("horde")) {
+
+   if (!LoadMissingResources()) {
       // at this time, there's a bug in horde3d (?) which causes render
       // pipline corruption if invalid resources are even attempted to
       // load.  assert fail;
@@ -1483,4 +1487,36 @@ void Renderer::SetShowDebugShapes(bool show_debug_shapes)
 core::Guard Renderer::OnShowDebugShapesChanged(std::function<void(bool)> fn)
 {
    return show_debug_shapes_changed_slot_.Register(fn);
+}
+
+bool Renderer::LoadMissingResources()
+{
+   bool result = true;
+   res::ResourceManager2& resourceManager = res::ResourceManager2::GetInstance();
+   
+   // Get the first resource that needs to be loaded
+   int res = h3dQueryUnloadedResource(0);
+   while( res != 0 ) {
+      const char *resourceName = h3dGetResName(res);
+      std::string resourcePath = resourcePath_ + "/" + resourceName;
+      std::shared_ptr<std::istream> inf;
+
+      // using exceptions here was a HORRIBLE idea.  who's responsible for this? =O - tony
+      try {
+         inf = resourceManager.OpenResource(resourcePath);
+      } catch (std::exception const&) {
+         R_LOG(1) << "failed to load render resource " << resourceName;
+      }
+      if (inf) {
+         std::string buffer = io::read_contents(*inf);
+         result = h3dLoadResource(res, buffer.c_str(), buffer.size()) && result;
+      } else {
+         // Tell engine to use the default resource by using NULL as data pointer
+         h3dLoadResource(res, 0x0, 0);
+         result = false;
+      }
+      // Get next unloaded resource
+      res = h3dQueryUnloadedResource(0);
+   }
+   return result;
 }

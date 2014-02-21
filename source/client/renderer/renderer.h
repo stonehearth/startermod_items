@@ -207,6 +207,7 @@ class Renderer
       void ResizePipelines();
 
       void DispatchInputEvent();
+      bool LoadMissingResources();
 
    protected:
       struct RenderMapEntry {
@@ -265,6 +266,7 @@ class Renderer
       bool              inFullscreen_;
       int               nextWidth_, nextHeight_;
       
+      std::string       resourcePath_;
       std::string       lastGlfwError_;
       std::unordered_set<std::string>     uiOnlyStages_, fowOnlyStages_, drawWorldStages_;
 
