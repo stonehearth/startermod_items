@@ -58,3 +58,7 @@
 	path = modules/luajit
 	url = https://github.com/radent/luajit
 	branch = master
+[submodule "modules/stonehearth-editor"]
+	path = modules/stonehearth-editor
+	url = https://github.com/radent/stonehearth-editor.git
+	branch = master
