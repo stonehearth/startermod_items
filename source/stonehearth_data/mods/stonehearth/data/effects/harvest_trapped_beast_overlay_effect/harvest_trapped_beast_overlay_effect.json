@@ -4,7 +4,7 @@
       "activity_overlay_effect": {
          "type" : "activity_overlay_effect",
          "material" : "materials/harvest_trapped_beast_overlay/harvest_trapped_beast_overlay.material.xml",
-         "y_offset" : -100
+         "y_offset" : -50
      }
    }
 }
