@@ -1,0 +1,28 @@
+display_name: Welcome
+filename: welcome.markdown
+sections:
+   -  slug: guide
+      display_name: Programmer's Guide
+      filename: guide/guide.markdown
+      sections:
+         -  slug: ai
+            display_name: AI
+            filename: guide/ai/ai.markdown
+            sections:
+               - slug: concepts
+                 display_name: Basic Concepts
+                 filename: guide/ai/ai_concepts.markdown
+               - slug: actions
+                 display_name: Actions and Activities
+                 filename: guide/ai/ai_actions.markdown
+   -  slug: reference
+      display_name: Reference Guide
+      filename: reference/reference.markdown
+      sections:
+         -  slug: ai
+            display_name: AI
+            filename: reference/ai/ai.markdown
+            sections:
+               - slug: action_interface
+                 display_name: Action Interface
+                 filename: reference/ai/action_interface.luadoc
