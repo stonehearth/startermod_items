@@ -100,8 +100,8 @@ function NewGameCallHandler:embark_client(session, response)
    _radiant.call('stonehearth:embark_server'):done(
       function (o)
          -- reconcile these with the camera constants later
-         local camera_height = 90
-         local target_distance = 180
+         local camera_height = 30
+         local target_distance = 70
          local camera_service = stonehearth.camera
 
          local target = Point3f(o.x, o.y, o.z)
