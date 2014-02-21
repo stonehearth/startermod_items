@@ -5,6 +5,7 @@ local Point3 = _radiant.csg.Point3
 local CastAoeCallHandler = class()
 
 local all_tasks = {}
+local offscreen_pos = Point3(-1000000, 0, -1000000)
 
 function CastAoeCallHandler:client_cast_aoe(session, response, entity, spell)
 
@@ -32,19 +33,17 @@ function CastAoeCallHandler:_on_mouse_event(e, response, entity, spell)
    -- s.location contains the address of the terrain block that the mouse
    -- is currently pointing to.  if there isn't one, move the cursor
    -- way off the screen so it won't get rendered.
-   local pt = s.location and s.location or Point3(0, -100000, 0)
+   local pt = s.location and s.location or offscreen_pos
    pt.y = pt.y + 1
 
    if entity:get_component('mob'):get_world_grid_location():distance_to(pt) > range then
-      pt = Point3(0, -100000, 0)
+      pt = offscreen_pos
    end
 
-   if not self._cursor_entity then
-      self._cursor_entity = radiant.entities.create_entity('stonehearth:camp_standard')
-      local re = _radiant.client.create_render_entity(1, self._cursor_entity)
+   if not self._cursor_node then
+      self._cursor_node = h3dAddProjectorNode(H3DRootNode, "cursornode", h3dAddResource(H3DResTypes.Material, "materials/trapper_proj.material.xml", 0))
    end
-
-   self._cursor_entity:add_component('mob'):set_location_grid_aligned(pt)
+   h3dSetNodeTransform(self._cursor_node, pt.x, 0, pt.z, 0, 0, 0, 2, 1, 2)
 
    -- if the mouse button just transitioned to up and we're actually pointing
    -- to a box on the terrain, send a message to the server to create the
@@ -97,9 +96,9 @@ function CastAoeCallHandler:_cleanup(e, response)
       self._capture = nil
    end
 
-   if self._cursor_entity then   
-      _radiant.client.destroy_authoring_entity(self._cursor_entity:get_id())
-      self._cursor_entity = nil
+   if self._cursor_node then
+      h3dRemoveNode(self._cursor_node)
+      self._cursor_node = nil
    end
    
 end

@@ -221,6 +221,7 @@ void LuaRenderer::RegisterType(lua_State* L)
          .def("destroy",                     H3DNodeUnique_Destroy),
       def("h3dGetNodeParamStr",              &h3dGetNodeParamStr),
       def("h3dRemoveNode",                   &h3dRemoveNode),
+      def("h3dAddProjectorNode",             &h3dAddProjectorNode),
       def("h3dAddLightNode",                 &h3dAddLightNode),
       def("h3dRadiantAddCubemitterNode",     &h3dRadiantAddCubemitterNode),
       def("h3dAddResource",                  &h3dAddResource),

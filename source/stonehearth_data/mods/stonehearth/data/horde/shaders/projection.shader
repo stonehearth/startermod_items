@@ -3,8 +3,7 @@
 // Samplers
 sampler2D image = sampler_state
 {
-  Texture = "textures/environment/twinkle.png";
-  Address = Clamp;
+  Address = ClampBorder;
   Filter = Pixely;
 };
 
@@ -14,7 +13,7 @@ context PROJECTION
   VertexShader = compile GLSL VS_PROJECTION;
   PixelShader  = compile GLSL FS_PROJECTION;
   ZWriteEnable = false;
-  BlendMode = Mult;
+  BlendMode = Blend;
 }
 
 [[VS_PROJECTION]]

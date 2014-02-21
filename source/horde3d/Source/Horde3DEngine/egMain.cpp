@@ -866,9 +866,9 @@ DLLEXP NodeHandle h3dAddInstanceNode( NodeHandle parent, const char *name, ResHa
 DLLEXP NodeHandle h3dAddProjectorNode( NodeHandle parent, const char *name, ResHandle materialRes )
 {
 	SceneNode *parentNode = Modules::sceneMan().resolveNodeHandle( parent );
-	APIFUNC_VALIDATE_NODE( parentNode, "h3dAddInstanceNode", 0 );
+	APIFUNC_VALIDATE_NODE( parentNode, "h3dAddProjectorNode", 0 );
 	Resource *matRes = Modules::resMan().resolveResHandle( materialRes );
-   APIFUNC_VALIDATE_RES_TYPE( matRes, ResourceTypes::Material, "h3dAddInstanceNode", 0 );
+   APIFUNC_VALIDATE_RES_TYPE( matRes, ResourceTypes::Material, "h3dAddProjectorNode", 0 );
 
 	ProjectorNodeTpl tpl( safeStr( name, 0 ), (MaterialResource*)matRes);
    SceneNode *sn = Modules::sceneMan().findType( SceneNodeTypes::ProjectorNode )->factoryFunc( tpl );
