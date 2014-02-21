@@ -20,16 +20,19 @@ def build_submodule(sha1, submodule):
    """
    build the submodule. if successful, write the sha1 hash to .last_build.
    """
-   print ' * building submodule %s.' % submodule
-   name = os.path.split(submodule)[-1]
-   p = shell(['make', name+'-module'])
-   #for line in iter(p.stdout.readline, ''):
-   #   print line
+   if os.path.isfile(os.path.join(submodule, 'Makefile')):
+      print ' * building submodule %s.' % submodule
+      name = os.path.split(submodule)[-1]
+      p = shell(['make', name+'-module'])
+      #for line in iter(p.stdout.readline, ''):
+      #   print line
 
-   p.wait()
-   if p.returncode !=0:
-      sys.exit(p.returncode)
-
+      p.wait()
+      if p.returncode !=0:
+         sys.exit(p.returncode)
+   else:
+      print ' * ignoring submodule %s (no Makefile).' % submodule
+      
    file(os.path.join(submodule, '.last_build'), 'w').write(sha1)
 
    """
