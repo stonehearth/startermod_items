@@ -217,6 +217,11 @@ void LuaRenderer::RegisterType(lua_State* L)
          value("Inactive",                   H3DNodeFlags::Inactive),
          value("NoCastShadow",               H3DNodeFlags::NoCastShadow)
       ],
+      class_<H3DProjectorNodeParams>("H3DProjectorNodeParams")
+         .enum_("constants")
+      [
+         value("MatResI",                    H3DProjectorNodeParams::MatResI)
+      ],
       class_<H3DNodeUnique>("H3DNodeUnique")
          .def("destroy",                     H3DNodeUnique_Destroy),
       def("h3dGetNodeParamStr",              &h3dGetNodeParamStr),
