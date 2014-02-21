@@ -119,3 +119,6 @@ steam-package:
 	-rm $(STEAM_PACKAGE_ROOT)/stonehearth-steam.zip
 	cd $(STONEHEARTH_ROOT)/scripts/steampipe && $(7ZA) a -bd -r -tzip -mx=9 $(STONEHEARTH_ROOT)/$(STEAM_PACKAGE_ROOT)/stonehearth-steam.zip *
 
+.PHONY: docs
+docs:
+	cd $(STONEHEARTH_ROOT)/modules/stonehearth-editor && $ lua/dist/bin/lua.exe shed.lua document $(STONEHEARTH_ROOT)/source/stonehearth_data/mods/stonehearth/docs/ --doc_output_dir=$(BUILD_ROOT)/docs
