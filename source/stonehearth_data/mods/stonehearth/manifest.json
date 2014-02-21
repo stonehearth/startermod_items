@@ -385,7 +385,10 @@
       "sounds:object_appear_02" : "file(data/sounds/effects/sh_object_appear_02.wav)",
       "sounds:object_appear_03" : "file(data/sounds/effects/sh_object_appear_03.wav)",
       "sounds:object_appear_04" : "file(data/sounds/effects/sh_object_appear_04.wav)",
-      "sounds:wolf_howl" : "file(data/sounds/effects/sh_wolf_howl.wav)",
+      "sounds:fursplosion" : "file(data/sounds/effects/sh_fursplosion.wav)",
+      "sounds:snare_01" : "file(data/sounds/effects/sh_snare_01.wav)",
+      "sounds:snare_02" : "file(data/sounds/effects/sh_snare_02.wav)",
+      "sounds:snare_03" : "file(data/sounds/effects/sh_snare_03.wav)",
                
       "music:title_screen"    : "file(data/music/startmenumusic.ogg)",
       "music:world_start"     : "file(data/music/levelmusic.ogg)",
