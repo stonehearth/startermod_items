@@ -37,6 +37,7 @@ H3DNode meshNode;
 H3DNode starfieldMeshNode;
 H3DRes starfieldMat;
 H3DRes skysphereMat;
+H3DNode cursorNode;
 
 static std::unique_ptr<Renderer> renderer_;
 
@@ -87,6 +88,7 @@ Renderer::Renderer() :
    drawWorldStages_.insert(std::string("Selected"));
    drawWorldStages_.insert(std::string("Selected_Fast"));
    drawWorldStages_.insert(std::string("Overlays"));
+   drawWorldStages_.insert(std::string("Projections"));
 
    assert(renderer_.get() == nullptr);
    renderer_.reset(this);
@@ -283,6 +285,8 @@ Renderer::Renderer() :
    OnWindowResized(windowWidth_, windowHeight_);
    SetShowDebugShapes(false);
 
+   //cursorNode = h3dAddProjectorNode(H3DRootNode, "cursorNode", h3dAddResource(H3DResTypes::Material, "materials/trapper_proj.material.xml", 0));
+   //h3dSetNodeTransform(cursorNode, 2, 0, 0, 0, 45, 0, 4, 1, 4);
    initialized_ = true;
 }
 
