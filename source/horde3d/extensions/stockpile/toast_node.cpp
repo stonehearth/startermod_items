@@ -15,6 +15,8 @@
 #endif
 
 #include "radiant.h"
+#include "resources/res_manager.h"
+#include "client/renderer/renderer.h"
 #include "toast_node.h"
 
 using namespace ::radiant;
@@ -62,7 +64,6 @@ bool ToastNode::InitExtension()
 	if (matRes == 0x0 || matRes->getType() != ResourceTypes::Material ) {
       return 0;
    }
-   h3dutLoadResourcesFromDisk("horde");
 
    H3DRes texture = h3dGetResParamI(mat, MaterialResData::SamplerElem, 0, MaterialResData::SampTexResI);
    if (texture > 0) {
@@ -73,7 +74,7 @@ bool ToastNode::InitExtension()
 
 
    // create the font sheet...
-   if (!ReadFntFile2("horde\\fonts\\fontdinerdotcom_huggable_regular_20.xml")) {
+   if (!ReadFntFile("fonts/fontdinerdotcom_huggable_regular_20.xml")) {
       return false;
    }
 
@@ -82,44 +83,12 @@ bool ToastNode::InitExtension()
 
 bool ToastNode::ReadFntFile(const char* filename)
 {
-   std::ifstream in(filename);
-   if (!in.good()) {
-      return false;
-   }
-
-
-   memset(glyphs_, 0, sizeof glyphs_);
-
-   while (in.good()) {
-      char line[1024];
-      in.getline(line, sizeof line);
-      if (strncmp(line, "char ", 5) == 0) { 
-         int id, x, y, w, h, xo, yo, xa, pg, chnl;
-         if (sscanf(line, "char id=%d x=%d y=%d width=%d height=%d xoffset=%d yoffset=%d xadvance=%d page=%d chnl=%d",
-                    &id, &x, &y, &w, &h, &xo, &yo, &xa, &pg, &chnl) != 10) {
-               return false;
-         }
-         Glyph& glyph = glyphs_[id];
-         glyph.x = x;
-         glyph.y = y;
-         glyph.width = w;
-         glyph.height = h;
-         glyph.xadvance = xa;
-         glyph.xoffset = xo;
-         glyph.yoffset = yo;
-
-         // we fudge the xadvance by the size of the black border we addeded
-         // around each character after exporting from FontBuilder
-         glyph.xadvance += 4;
-      }
-   }
-   return true;
-}
-
-bool ToastNode::ReadFntFile2(const char* filename)
-{
-   std::ifstream in(filename);
-   if (!in.good()) {
+   std::shared_ptr<std::istream> inf;
+   res::ResourceManager2& resourceManager = res::ResourceManager2::GetInstance();
+   std::string fontfile = client::Renderer::GetInstance().GetHordeResourcePath() + "/" + filename;
+   try {
+      inf = resourceManager.OpenResource(fontfile);
+   } catch (std::exception const&) {
       return false;
    }
 
@@ -127,9 +96,9 @@ bool ToastNode::ReadFntFile2(const char* filename)
 #define KEEP "\"%[^\"]\""
 
    memset(glyphs_, 0, sizeof glyphs_);
-   while (in.good()) {
+   while (inf->good()) {
       char line[1024];
-      in.getline(line, sizeof line);
+      inf->getline(line, sizeof line);
       if (strncmp(line, "<Font", 5) == 0) {
          char height_str[64];
          if (sscanf(line, "<Font size=" DISCARD " family=" DISCARD " height=" KEEP, height_str) == 1) {

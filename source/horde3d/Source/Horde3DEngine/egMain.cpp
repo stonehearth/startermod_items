@@ -23,6 +23,7 @@
 #include "egTexture.h"
 #include "egPixelBuffer.h"
 #include "egInstanceNode.h"
+#include "egProjectorNode.h"
 #include <cstdlib>
 #include <cstring>
 #include <string>
@@ -861,6 +862,19 @@ DLLEXP NodeHandle h3dAddInstanceNode( NodeHandle parent, const char *name, ResHa
    SceneNode *sn = Modules::sceneMan().findType( SceneNodeTypes::InstanceNode )->factoryFunc( tpl );
 	return Modules::sceneMan().addNode( sn, *parentNode );
 }
+
+DLLEXP NodeHandle h3dAddProjectorNode( NodeHandle parent, const char *name, ResHandle materialRes )
+{
+	SceneNode *parentNode = Modules::sceneMan().resolveNodeHandle( parent );
+	APIFUNC_VALIDATE_NODE( parentNode, "h3dAddProjectorNode", 0 );
+	Resource *matRes = Modules::resMan().resolveResHandle( materialRes );
+   APIFUNC_VALIDATE_RES_TYPE( matRes, ResourceTypes::Material, "h3dAddProjectorNode", 0 );
+
+	ProjectorNodeTpl tpl( safeStr( name, 0 ), (MaterialResource*)matRes);
+   SceneNode *sn = Modules::sceneMan().findType( SceneNodeTypes::ProjectorNode )->factoryFunc( tpl );
+	return Modules::sceneMan().addNode( sn, *parentNode );
+}
+
 
 DLLEXP void h3dUpdateBoundingBox( NodeHandle n, float minx, float miny, float minz, float maxx, float maxy, float maxz)
 {

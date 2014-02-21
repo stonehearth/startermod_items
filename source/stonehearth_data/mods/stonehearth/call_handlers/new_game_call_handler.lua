@@ -84,24 +84,14 @@ end
 
 -- returns coordinates of embark location
 function NewGameCallHandler:embark_server(session, response)
+   local scenario_service = stonehearth.scenario
    local wgs = stonehearth.world_generation
    local x = wgs.start_x
    local z = wgs.start_z
    local y = radiant.terrain.get_height(Point2(x, z))
 
    -- reveal scenaraios around the staring location
-   local reveal_distance = radiant.util.get_config('scenario_reveal_distance', 128)
-   local starting_region = Region2()
-   starting_region:add_cube(
-      Rect2(
-         -- remember +1 on max
-         Point2(x-reveal_distance, z-reveal_distance),
-         Point2(x+reveal_distance+1, z+reveal_distance+1)
-      )
-   )
-
-   local scenario_service = stonehearth.scenario
-   scenario_service:reveal_region(starting_region)
+   scenario_service:reveal_starting_location(x, z)
 
    return { x = x, y = y, z = z }
 end

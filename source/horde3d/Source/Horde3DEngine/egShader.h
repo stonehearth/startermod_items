@@ -144,6 +144,7 @@ struct ShaderCombination
 	int                 uni_halfTanFoV, uni_nearPlane, uni_farPlane;
 	int                 uni_viewMat, uni_viewMatInv, uni_projMat, uni_viewProjMat, uni_viewProjMatInv, uni_viewerPos;
    int                 uni_camProjMat, uni_camViewProjMat, uni_camViewProjMatInv, uni_camViewMat, uni_camViewMatInv, uni_camViewerPos;
+   int                 uni_projectorMat;
    int                 uni_worldMat, uni_worldNormalMat, uni_nodeId;
 	int                 uni_skinMatRows;
 	int                 uni_lightPos, uni_lightDir, uni_lightColor, uni_lightAmbientColor;

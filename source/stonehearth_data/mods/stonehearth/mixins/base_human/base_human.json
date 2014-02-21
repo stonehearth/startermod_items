@@ -41,7 +41,8 @@
 	   "unit_info" : {
 		  "name": "Civilian",
 		  "description": "Citizen of your town",
-		  "faction": "civ"
+		  "faction": "civ",
+        "character_sheet_info" : "file(/entities/humans/citizen_character_sheet_info.json)"
 	   },
       "stonehearth:commands" : {
          "commands" : [

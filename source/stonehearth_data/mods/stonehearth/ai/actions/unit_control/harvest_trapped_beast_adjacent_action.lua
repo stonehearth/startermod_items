@@ -38,14 +38,19 @@ function HarvestTrappedBeastAdjacent:_harvest_beast(beast)
       radiant.entities.remove_buff(beast, 'stonehearth:buffs:snared')
 
       -- kill the beast and spawn loot from it
-      --radiant.effects.run_effect(beast, '/stonehearth/data/effects/firepit_effect')
-      -- xxx, put this effect on a proxy-entity instead
-      radiant.effects.run_effect(beast, '/stonehearth/data/effects/gib')
+      self:_gib_beast(beast)
       loot = self:_spawn_loot(beast)
       radiant.entities.destroy_entity(beast)
    end
 
    return loot
+end
+
+function HarvestTrappedBeastAdjacent:_gib_beast(beast)
+   local location = radiant.entities.get_world_grid_location(beast)
+   local proxy_entity = radiant.entities.create_entity()
+   radiant.terrain.place_entity(proxy_entity, location)
+   radiant.effects.run_effect(proxy_entity, '/stonehearth/data/effects/gib_effect')
 end
 
 function HarvestTrappedBeastAdjacent:_spawn_loot(beast)

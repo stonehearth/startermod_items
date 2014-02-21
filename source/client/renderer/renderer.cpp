@@ -37,6 +37,7 @@ H3DNode meshNode;
 H3DNode starfieldMeshNode;
 H3DRes starfieldMat;
 H3DRes skysphereMat;
+H3DNode cursorNode;
 
 static std::unique_ptr<Renderer> renderer_;
 
@@ -87,6 +88,7 @@ Renderer::Renderer() :
    drawWorldStages_.insert(std::string("Selected"));
    drawWorldStages_.insert(std::string("Selected_Fast"));
    drawWorldStages_.insert(std::string("Overlays"));
+   drawWorldStages_.insert(std::string("Projections"));
 
    assert(renderer_.get() == nullptr);
    renderer_.reset(this);
@@ -149,11 +151,7 @@ Renderer::Renderer() :
    // Overlays
    fontMatRes_ = h3dAddResource( H3DResTypes::Material, "overlays/font.material.xml", 0 );
    panelMatRes_ = h3dAddResource( H3DResTypes::Material, "overlays/panel.material.xml", 0 );
-   
-   // xxx - should move this into the horde extension for debug shapes, but it doesn't know
-   // how to actually get the resource loaded!
-   h3dAddResource(H3DResTypes::Material, "materials/debug_shape.material.xml", 0); 
-   
+     
    ssaoMat = h3dAddResource(H3DResTypes::Material, "materials/ssao.material.xml", 0);
 
    csg::RandomNumberGenerator &rng = csg::RandomNumberGenerator::DefaultInstance();
@@ -276,13 +274,20 @@ Renderer::Renderer() :
       TerminateProcess(GetCurrentProcess(), 1);
    });
 
-   fileWatcher_.addWatch(strutil::utf8_to_unicode("horde"), [](FW::WatchID watchid, const std::wstring& dir, const std::wstring& filename, FW::Action action) -> void {
-      Renderer::GetInstance().FlushMaterials();
-   }, true);
+   // If the mod is unzipped, put a watch on the filesystem directory where the resources live
+   // so we can dynamically load resources whenever the file changes.
+   std::string fspath = std::string("mods/") + resourcePath_;
+   if (boost::filesystem::is_directory(fspath)) {
+      fileWatcher_.addWatch(strutil::utf8_to_unicode(fspath), [](FW::WatchID watchid, const std::wstring& dir, const std::wstring& filename, FW::Action action) -> void {
+         Renderer::GetInstance().FlushMaterials();
+      }, true);
+   }
 
    OnWindowResized(windowWidth_, windowHeight_);
    SetShowDebugShapes(false);
 
+   //cursorNode = h3dAddProjectorNode(H3DRootNode, "cursorNode", h3dAddResource(H3DResTypes::Material, "materials/trapper_proj.material.xml", 0));
+   //h3dSetNodeTransform(cursorNode, 2, 0, 0, 0, 45, 0, 4, 1, 4);
    initialized_ = true;
 }
 
@@ -295,9 +300,9 @@ void Renderer::UpdateFoW(H3DNode node, const csg::Region3& region)
    float* f = start;
    for (const auto& c : region) 
    {
-      float px = (c.max + c.min).x / 2.0f;
-      float py = (c.max + c.min).y / 2.0f;
-      float pz = (c.max + c.min).z / 2.0f;
+      float px = (c.max + c.min).x * 0.5f;
+      float py = (c.max + c.min).y * 0.5f;
+      float pz = (c.max + c.min).z * 0.5f;
 
       float xSize = (float)c.max.x - c.min.x;
       float zSize = (float)c.max.z - c.min.z;
@@ -305,7 +310,7 @@ void Renderer::UpdateFoW(H3DNode node, const csg::Region3& region)
       f[0] = xSize; f[1] =  0; f[2] =   0; f[3] =  0;
       f[4] =  0; f[5] = ySize; f[6] =   0; f[7] =  0;
       f[8] =  0; f[9] =  0; f[10] = zSize; f[11] = 0;
-      f[12] = px; f[13] = py; f[14] =  pz; f[15] = 1;
+      f[12] = px; f[13] = py - (ySize /2); f[14] =  pz; f[15] = 1;
       
       f += 16;
    }
@@ -326,7 +331,7 @@ void Renderer::RenderFogOfWarRT()
 
    // Construct a new camera view matrix pointing down.
    fowView.x[0] = 1;  fowView.x[1] = 0;  fowView.x[2] = 0;
-   fowView.x[4] = 0;  fowView.x[5] = 0;  fowView.x[6] = -1;
+   fowView.x[4] = 0;  fowView.x[5] = 0;  fowView.x[6] = 1;
    fowView.x[8] = 0;  fowView.x[9] = -1;  fowView.x[10] = 0;
    fowView.x[12] = 0; fowView.x[13] = 0; fowView.x[14] = 0;  fowView.x[15] = 1.0;
 
@@ -349,7 +354,7 @@ void Renderer::RenderFogOfWarRT()
    max.quantize(quantizer);
 
    // All that crap was just so we could set up this ortho frustum + view matrix.
-   h3dSetNodeTransMat(fowCamera_->GetNode(), fowView.x);
+   h3dSetNodeTransMat(fowCamera_->GetNode(), fowView.inverted().x);
    h3dSetNodeParamI(fowCamera_->GetNode(), H3DCamera::OrthoI, 1);
    h3dSetNodeParamF(fowCamera_->GetNode(), H3DCamera::LeftPlaneF, 0, min.x);
    h3dSetNodeParamF(fowCamera_->GetNode(), H3DCamera::RightPlaneF, 0, max.x);
@@ -578,6 +583,8 @@ void Renderer::GetConfigOptions()
    config_.last_window_y.value = config.Get("renderer.last_window_y", 0);
 
    config_.use_fast_hilite.value = config.Get("renderer.use_fast_hilite", false);
+   
+   resourcePath_ = config.Get("renderer.resource_path", "stonehearth/data/horde");
 }
 
 void Renderer::ApplyConfig(const RendererConfig& newConfig, bool persistConfig)
@@ -1398,7 +1405,8 @@ void Renderer::SetViewMode(ViewMode mode)
 void Renderer::LoadResources()
 {
    uiBuffer_.allocateBuffers(std::max(uiWidth_, 1920), std::max(1080, uiHeight_));
-   if (!h3dutLoadResourcesFromDisk("horde")) {
+
+   if (!LoadMissingResources()) {
       // at this time, there's a bug in horde3d (?) which causes render
       // pipline corruption if invalid resources are even attempted to
       // load.  assert fail;
@@ -1479,4 +1487,36 @@ void Renderer::SetShowDebugShapes(bool show_debug_shapes)
 core::Guard Renderer::OnShowDebugShapesChanged(std::function<void(bool)> fn)
 {
    return show_debug_shapes_changed_slot_.Register(fn);
+}
+
+bool Renderer::LoadMissingResources()
+{
+   bool result = true;
+   res::ResourceManager2& resourceManager = res::ResourceManager2::GetInstance();
+   
+   // Get the first resource that needs to be loaded
+   int res = h3dQueryUnloadedResource(0);
+   while( res != 0 ) {
+      const char *resourceName = h3dGetResName(res);
+      std::string resourcePath = resourcePath_ + "/" + resourceName;
+      std::shared_ptr<std::istream> inf;
+
+      // using exceptions here was a HORRIBLE idea.  who's responsible for this? =O - tony
+      try {
+         inf = resourceManager.OpenResource(resourcePath);
+      } catch (std::exception const&) {
+         R_LOG(1) << "failed to load render resource " << resourceName;
+      }
+      if (inf) {
+         std::string buffer = io::read_contents(*inf);
+         result = h3dLoadResource(res, buffer.c_str(), buffer.size()) && result;
+      } else {
+         // Tell engine to use the default resource by using NULL as data pointer
+         h3dLoadResource(res, 0x0, 0);
+         result = false;
+      }
+      // Get next unloaded resource
+      res = h3dQueryUnloadedResource(0);
+   }
+   return result;
 }
