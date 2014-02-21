@@ -176,6 +176,8 @@ class Renderer
       void SetDrawWorld(bool drawWorld);
       void SetVisibilityRegions(std::string const& visible_region_uri, std::string const& explored_region_uri);
 
+      std::string GetHordeResourcePath() const { return resourcePath_; }
+
    private:
       NO_COPY_CONSTRUCTOR(Renderer);
       RendererConfig config_;
