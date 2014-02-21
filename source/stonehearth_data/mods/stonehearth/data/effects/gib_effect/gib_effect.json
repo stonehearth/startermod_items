@@ -15,6 +15,15 @@
             "rz":0
          }
       },
+      "sound": {
+         "type": "sound_effect",
+         "duration": 2600,
+         "start_delay": 0,
+         "min_distance": 40,
+         "max_distance": 80,
+         "volume": 50,
+         "track" : "stonehearth:sounds:fursplosion"
+      },
       "dust": {
          "type": "cubemitter",
          "start_time" : 0,
