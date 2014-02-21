@@ -243,6 +243,15 @@ const std::string PipelineResource::parseStage( XMLNode const &node, PipelineSta
          params[4].setFloat(0.0);
          params[5].setFloat(1.0);
 		}
+		else if( strcmp( node1.getName(), "DrawProjections" ) == 0 )
+		{
+			if( !node1.getAttribute( "context" ) ) return "Missing DrawProjections attribute 'context'";
+			
+         stage->commands.push_back( PipelineCommand( PipelineCommands::DrawProjections ) );
+			vector< PipeCmdParam > &params = stage->commands.back().params;
+			params.resize( 1 );			
+			params[0].setString( node1.getAttribute( "context" ) );
+		}
 		else if( strcmp( node1.getName(), "DrawOverlays" ) == 0 )
 		{
 			if( !node1.getAttribute( "context" ) ) return "Missing DrawOverlays attribute 'context'";

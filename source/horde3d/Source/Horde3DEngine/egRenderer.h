@@ -234,6 +234,7 @@ protected:
 	void drawFSQuad( Resource *matRes, const std::string &shaderContext );
 	void drawGeometry( const std::string &shaderContext, const std::string &theClass,
 	                   RenderingOrder::List order, int filterRequired, int occSet, float frustStart, float frustEnd );
+   void drawProjections(const std::string &shaderContext);
 	void drawLightGeometry( const std::string &shaderContext, const std::string &theClass,
 	                        bool noShadows, RenderingOrder::List order, int occSet, bool selectedOnly );
 	void drawLightShapes( const std::string &shaderContext, bool noShadows, int occSet );
@@ -251,8 +252,9 @@ protected:
 	unsigned char                      *_scratchBuf;
 	uint32                             _scratchBufSize;
 
-	Matrix4f                           _viewMat, _viewMatInv, _projMat, _viewProjMat, _viewProjMatInv;
+	Matrix4f                           _viewMat, _viewMatInv, _projMat, _viewProjMat, _viewProjMatInv, _projectorMat;
 	float                              _currentTime;
+   MaterialResource*                  _materialOverride;
 
 	std::vector< PipeSamplerBinding >  _pipeSamplerBindings;
 	std::vector< char >                _occSets;  // Actually bool

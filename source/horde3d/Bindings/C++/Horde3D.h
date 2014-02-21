@@ -1911,6 +1911,7 @@ DLL H3DNode h3dAddVoxelModelNode( H3DNode parent, const char *name, H3DRes voxel
 DLL H3DNode h3dAddInstanceNode( H3DNode parent, const char *name, H3DRes materialRes, H3DRes geometryRes, int maxInstances );
 DLL void* h3dMapNodeParamV( H3DNode node, int param);
 DLL void h3dUnmapNodeParamV( H3DNode node, int param, int mappedLength);
+DLL H3DNode h3dAddProjectorNode( H3DNode parent, const char *name, H3DRes materialRes );
 
 namespace Horde3D {
    class HudElementNode;

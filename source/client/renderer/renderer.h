@@ -176,6 +176,8 @@ class Renderer
       void SetDrawWorld(bool drawWorld);
       void SetVisibilityRegions(std::string const& visible_region_uri, std::string const& explored_region_uri);
 
+      std::string GetHordeResourcePath() const { return resourcePath_; }
+
    private:
       NO_COPY_CONSTRUCTOR(Renderer);
       RendererConfig config_;
@@ -207,6 +209,7 @@ class Renderer
       void ResizePipelines();
 
       void DispatchInputEvent();
+      bool LoadMissingResources();
 
    protected:
       struct RenderMapEntry {
@@ -265,6 +268,7 @@ class Renderer
       bool              inFullscreen_;
       int               nextWidth_, nextHeight_;
       
+      std::string       resourcePath_;
       std::string       lastGlfwError_;
       std::unordered_set<std::string>     uiOnlyStages_, fowOnlyStages_, drawWorldStages_;
 

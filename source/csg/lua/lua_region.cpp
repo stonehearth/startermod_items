@@ -98,6 +98,7 @@ static luabind::class_<T> Register(struct lua_State* L, const char* name)
 scope LuaRegion::RegisterLuaTypes(lua_State* L)
 {
    return
+      def("intersect_region2", IntersectRegion<Region2>),
       def("intersect_region3", IntersectRegion<Region3>),
       Register<Region3>(L,  "Region3")
          .def("get_adjacent",             &GetAdjacent)

@@ -177,8 +177,6 @@ if [ ! -z $STAGE_DATA ]; then
       -print0 | xargs -0 cp -u --target-directory $OUTPUT_DIR
    popd > /dev/null
 
-   stage_data_dir horde
-
    compile_lua_and_package_module mods/radiant
    compile_lua_and_package_module mods/stonehearth
 

@@ -53,7 +53,8 @@ struct PipelineCommands
 		DrawQuad,
 		DoForwardLightLoop,
 		DoDeferredLightLoop,
-		SetUniform
+		SetUniform,
+      DrawProjections
 	};
 };
 

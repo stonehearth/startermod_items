@@ -20,6 +20,7 @@ set(HORDE3D_SOURCES
 	egPipeline.cpp
   egPixelBuffer.cpp
 	egPrimitives.cpp
+	egProjectorNode.cpp
 	egRendererBase.cpp
 	egRenderer.cpp
 	egResource.cpp
@@ -50,6 +51,7 @@ set(HORDE3D_SOURCES
 	egPipeline.h
 	egPrerequisites.h
 	egPrimitives.h
+	egProjectorNode.h
 	egRenderer.h
 	egRendererBase.h
 	egResource.h

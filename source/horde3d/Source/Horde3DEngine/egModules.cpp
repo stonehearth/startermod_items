@@ -20,6 +20,7 @@
 #include "egCamera.h"
 #include "egHudElement.h"
 #include "egInstanceNode.h"
+#include "egProjectorNode.h"
 #include "egResource.h"
 #include "egRendererBase.h"
 #include "egRenderer.h"
@@ -142,6 +143,8 @@ bool Modules::init(int glMajor, int glMinor, bool msaaWindowSupported, bool enab
       HudElementNode::parsingFunc, HudElementNode::factoryFunc, Renderer::drawHudElements, 0x0 );
    sceneMan().registerType( SceneNodeTypes::InstanceNode, "InstanceNode",
       InstanceNode::parsingFunc, InstanceNode::factoryFunc, Renderer::drawInstanceNode, 0x0 );
+   sceneMan().registerType( SceneNodeTypes::ProjectorNode, "ProjectorNode",
+      ProjectorNode::parsingFunc, ProjectorNode::factoryFunc, 0x0, 0x0 );
 	
 	// Install extensions
 	installExtensions();

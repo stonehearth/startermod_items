@@ -37,27 +37,14 @@
          <DrawGeometry context="AMBIENT" class="~Translucent" />
       </Stage>
 
-
-      <!--Stage id="FogOfWar">
-         <DrawGeometry context="FOW_RESET_FRONT_EXPLORED" class="~Translucent" userFlags="3" />
-         <DrawGeometry context="FOW_RESET_BACK_EXPLORED" class="~Translucent" userFlags="3" />
-
-         <DrawGeometry context="FOW_FRONT_EXPLORED" class="~Translucent" />
-         <DrawGeometry context="FOW_BACK_EXPLORED" class="~Translucent" />
-
-         <DrawGeometry context="FOW_DRAW_ALPHA_EXPLORED" class="~Translucent" />
-
-         <DrawGeometry context="FOW_RESET_FRONT_VISIBLE" class="~Translucent" />
-         <DrawGeometry context="FOW_RESET_BACK_VISIBLE" class="~Translucent" />
-         <DrawGeometry context="FOW_FRONT_VISIBLE" class="~Translucent" />
-         <DrawGeometry context="FOW_BACK_VISIBLE" class="~Translucent" />
-         <DrawGeometry context="FOW_DRAW_ALPHA_VISIBLE" class="~Translucent" />
-      </Stage-->
-
       <Stage id="Light">
          <BindBuffer sampler="fowRT" sourceRT="FogOfWarRT" bufIndex="0" />
          <DoForwardLightLoop class="~Translucent" noShadows="false"/>
          <UnbindBuffers />
+      </Stage>
+
+      <Stage id="Projections">
+         <DrawProjections context="PROJECTION" />
       </Stage>
 
       <Stage id="Fog">
