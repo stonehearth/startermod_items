@@ -9,7 +9,7 @@
       <!--This stage to only be executed by the FOW camera, and only this stage.-->
       <Stage id="FogOfWar_RT">
          <SwitchTarget target="FogOfWarRT" />
-         <ClearTarget colBuf0="true" col_A="0.125" />
+         <ClearTarget colBuf0="true" col_A="0.33" />
          <DrawGeometry context="FOW_RT_EXPLORED" class="~Translucent" />
          <!--DrawGeometry context="FOW_RT_VISIBLE" class="~Translucent" /-->
          <SwitchTarget target=""/>

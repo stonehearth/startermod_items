@@ -23,6 +23,8 @@ function TrapperTest:__init()
    local rabbit = self:place_item('stonehearth:rabbit', -3, -6)
    local rabbit = self:place_item('stonehearth:rabbit', 0, -6)
 
+   radiant.effects.run_effect(worker, '/stonehearth/data/effects/gib_effect')
+
    -- place the town standard for the trapper to "return home" to when dumping his inventory
    local town = stonehearth.town:get_town('civ')
    local banner_entity = radiant.entities.create_entity('stonehearth:camp_standard')

@@ -18,6 +18,7 @@ end
 function ScenarioService:initialize(feature_size, rng)
    self._feature_size = feature_size
    self._rng = rng
+   self._reveal_distance = radiant.util.get_config('sight_radius', 64) * 2
    self._revealed_region = Region2()
    self._dormant_scenarios = {}
 
@@ -66,41 +67,54 @@ function ScenarioService:_register_events()
 end
 
 function ScenarioService:_on_poll()
-   local reveal_distance = radiant.util.get_config('scenario_reveal_distance', 128)
-   local terrain_bounds = _terrain:get_bounds():project_onto_xz_plane()
+   self:reveal_around_entities()
+end
+
+function ScenarioService:reveal_starting_location(x, z)
+   local reveal_distance = self._reveal_distance
+   local region = Region2()
+
+   region:add_cube(
+      Rect2(
+         -- remember +1 on max
+         Point2(x-reveal_distance,   z-reveal_distance),
+         Point2(x+reveal_distance+1, z+reveal_distance+1)
+      )
+   )
+
+   self:reveal_region(region)
+end
+
+function ScenarioService:reveal_around_entities()
+   local reveal_distance = self._reveal_distance
    local citizens = self._faction:get_citizens()
    local region = Region2()
-   local pt, rect, bounded_rect
+   local pt, rect
 
    for _, entity in pairs(citizens) do
       pt = radiant.entities.get_world_grid_location(entity)
 
       -- remember +1 on max
       rect = Rect2(
-         Point2(pt.x-reveal_distance, pt.z-reveal_distance),
+         Point2(pt.x-reveal_distance,   pt.z-reveal_distance),
          Point2(pt.x+reveal_distance+1, pt.z+reveal_distance+1)
       )
 
-      -- assumes terrain has been generated for entire area in terrain bounds
-      -- i.e this breaks if generated terrain is non-rectangular
-      -- TODO: implement a more sophisticated test
-      bounded_rect = _radiant.csg.intersect_cube2(rect, terrain_bounds)
-
-      region:add_cube(bounded_rect)
+      region:add_cube(rect)
    end
 
    self:reveal_region(region)
 end
 
 function ScenarioService:reveal_region(world_space_region)
-   local unrevealed_region, new_region, num_rects, rect, key, dormant_scenario, properties
+   local bounded_world_space_region, unrevealed_region, new_region
+   local num_rects, rect, key, dormant_scenario, properties
    local cpu_timer = Timer(Timer.CPU_TIME)
    cpu_timer:start()
 
-   new_region = self:_region_to_habitat_space(world_space_region)
+   bounded_world_space_region = self:_bound_region_by_terrain(world_space_region)
+   new_region = self:_region_to_habitat_space(bounded_world_space_region)
 
-   -- this gets expensive as self._revealed_region grows
-   -- if this takes too much time, we have several other strategies
    unrevealed_region = new_region - self._revealed_region
    num_rects = unrevealed_region:get_num_rects()
 
@@ -134,6 +148,19 @@ function ScenarioService:reveal_region(world_space_region)
       log:info('%d rects in revealed region', self._revealed_region:get_num_rects())
       log:info('ScenarioService:reveal_region time: %.3fs', cpu_timer:seconds())
    end
+end
+
+function ScenarioService:_bound_region_by_terrain(region)
+   local terrain_bounds = self:_get_terrain_region()
+   return _radiant.csg.intersect_region2(region, terrain_bounds)
+end
+
+ -- this will eventually be a non-rectangular region composed of the tiles that have been generated
+function ScenarioService:_get_terrain_region()
+   local region = Region2()
+   local bounds = _terrain:get_bounds():project_onto_xz_plane()
+   region:add_cube(bounds)
+   return region
 end
 
 function ScenarioService:_mark_scenario_map(map, value, world_offset_x, world_offset_y, width, length)

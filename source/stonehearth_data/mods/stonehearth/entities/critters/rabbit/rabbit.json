@@ -5,7 +5,9 @@
       "unit_info" : {
         "name": "A rabbit",
         "description": "Om nom nom",
-        "faction": "critter"
+        "portrait": "file(portrait.png)",
+        "faction": "critter",
+        "character_sheet_info" : "file(rabbit_character_sheet_info.json)"
       },
       "stonehearth:ai" : {
          "actions" : [

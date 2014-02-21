@@ -1,12 +1,5 @@
-$(document).ready(function(){
-   $(top).on('show_character_sheet.stonehearth', function (_, e) {
-      //radiant.call('radiant:play_sound', 'stonehearth:sounds:ui:start_menu:journal_up' )
-      var view = App.gameView.addView(App.StonehearthCharacterSheetView, { uri: e.entity });
-   });
-});
-
-App.StonehearthCharacterSheetView = App.View.extend({
-	templateName: 'characterSheet',
+App.StonehearthCitizenCharacterSheetView = App.View.extend({
+	templateName: 'citizenCharacterSheet',
    modal: true,
 
    components: {

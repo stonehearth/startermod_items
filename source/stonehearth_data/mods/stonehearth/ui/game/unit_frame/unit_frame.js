@@ -56,6 +56,13 @@ App.StonehearthUnitFrameView = App.View.extend({
         this.set('context.buffs', vals);
     }.observes('context.stonehearth:buffs'),
 
+   inventoryFull: function() {
+      var inventory = this.get('context.stonehearth:inventory')
+      var full = inventory && inventory.items && inventory.items.length == inventory.capacity
+      this.set('context.inventoryFull', full)
+
+   }.observes('context.stonehearth:inventory.items'),
+
    //When we hover over a command button, show its tooltip
    didInsertElement: function() {
       if (this.get('uri')) {

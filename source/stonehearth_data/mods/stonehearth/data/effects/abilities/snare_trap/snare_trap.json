@@ -14,6 +14,22 @@
             "ry":0,
             "rz":0
          }
+      },
+      "sound": {
+         "type": "sound_effect",
+         "duration": 5000,
+         "start_delay": 0,
+         "min_distance": 30,
+         "max_distance": 90,
+         "volume": 50,
+         "track" : {
+            "type": "one_of",
+            "items": [
+               "stonehearth:sounds:snare_01",
+               "stonehearth:sounds:snare_02",
+               "stonehearth:sounds:snare_03"
+            ]
+         }
       }
    }
 }
