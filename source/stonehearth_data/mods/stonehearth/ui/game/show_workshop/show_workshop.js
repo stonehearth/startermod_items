@@ -182,30 +182,31 @@ App.StonehearthCrafterView = App.View.extend({
       var r = isPaused ? 4 : -4;
 
       // flip the sign
-      this.$("#statusSign").animate({
-         rot: r,
-         },
-         {
-            duration: 200,
-            step: function(now,fx) {
-               var percentDone;
-               var end = fx.end; 
-               var start = fx.start;
+      var sign = this.$("#statusSign");
 
-               if (end > start) {
-                  console.log('end > start');
-                  percentDone = (now - start) / (end - start);
-               } else {
-                  percentDone = -1 * (now - start) / (start - end);
+      if (sign) {
+         sign.animate({
+            rot: r,
+            },
+            {
+               duration: 200,
+               step: function(now,fx) {
+                  var percentDone;
+                  var end = fx.end; 
+                  var start = fx.start;
+
+                  if (end > start) {
+                     console.log('end > start');
+                     percentDone = (now - start) / (end - start);
+                  } else {
+                     percentDone = -1 * (now - start) / (start - end);
+                  }
+
+                  var scaleX = percentDone < .5 ? 1 - (percentDone * 2) : (percentDone * 2) - 1;
+                  $(this).css('-webkit-transform', 'rotate(' + now + 'deg) scale(' + scaleX +', 1)');
                }
-
-               var scaleX = percentDone < .5 ? 1 - (percentDone * 2) : (percentDone * 2) - 1;
-
-               console.log('step = ' + now + ", " + scaleX);
-
-               $(this).css('-webkit-transform', 'rotate(' + now + 'deg) scale(' + scaleX +', 1)');
-            }
-      });
+         });
+      }
 
    }.observes('context.stonehearth:workshop.is_paused'),
 

@@ -4,14 +4,14 @@
 using namespace radiant;
 using namespace radiant::json;
 
-bool Node::is_nested_path(std::string const& path) const
-{
-   return path.find(path_delimiter) != std::string::npos;
-}
-
 Node::const_iterator Node::find(std::string const& path) const {
    size_t first = 0;
    size_t last = path.find('.', first + 1);
+
+   // Fast path for non-dotted strings.
+   if (last == std::string::npos) {
+      return const_iterator(node_.find(path));
+   }
 
    JSONNode::const_iterator last_i = node_.end();
    JSONNode::const_iterator last_end = node_.end();

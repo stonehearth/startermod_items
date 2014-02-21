@@ -1,0 +1,47 @@
+{
+   "type": "entity",
+   "mixins": "stonehearth:mixins:item_properties",
+   "components" : {
+      "unit_info" : {
+         "name" :  "Trapper Kit",
+         "description" : "Upgrades a citizen into a Trapper",
+         "icon" : "file(/entities/generic/default_object/default_object.png)"
+      },
+      "item" : {
+         "stacks" : 1
+      },
+       "stonehearth:material" : {
+         "tags" : "tool wood"
+      },
+      "model_variants": {
+         "default": {
+            "models": [
+               "file(trapper_kit.qb)"
+            ]
+         },
+         "equipped" : {
+            "models": [
+               "file(trapper_kit.qb)"
+            ]
+         }
+      },
+      "stonehearth:commands" : {
+         "commands" : [
+            "file(/data/commands/promote_to_profession)"
+         ]
+      },
+      "effect_list" : {
+         "effects" : [
+            "stonehearth:effects:talisman_glow"
+         ]  
+      },
+      "stonehearth:promotion_talisman": {
+         "script": "file(/professions/trapper/trapper.lua)",
+         "profession_name" : "Trapper"
+      }
+   },
+   "entity_data" : {
+      "stonehearth:activity_name" : "promote_trapper"
+   }
+}
+

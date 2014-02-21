@@ -51,6 +51,7 @@ private:
    void ImportModMixintos(std::string const& modname, json::Node const& mixintos);
    void ImportModMixintoEntry(std::string const& modname, std::string const& name, std::string const& path);
    void ImportModOverrides(std::string const& modname, json::Node const& overrides);
+   std::shared_ptr<std::istream> OpenResourceCanonical(std::string const& stream) const;
 
 private:
    boost::filesystem::path                         resource_dir_;
@@ -60,7 +61,7 @@ private:
    std::unordered_map<std::string, std::string>    overrides_;
    mutable std::recursive_mutex                    mutex_;
    mutable std::unordered_map<std::string, AnimationPtr> animations_;
-   mutable std::unordered_map<std::string, JSONNode>     jsons_;
+   mutable std::unordered_map<std::string, std::shared_ptr<JSONNode>>     jsons_;
 };
 
 END_RADIANT_RES_NAMESPACE

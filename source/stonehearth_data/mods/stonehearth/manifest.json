@@ -55,6 +55,8 @@
       "carpenter:outfit" : "file(entities/professions/carpenter/carpenter_outfit)",
       "carpenter:saw" : "file(entities/professions/carpenter/carpenter_saw)",
 
+      "trapper:trapper_kit" : "file(professions/trapper/trapper_kit)",
+
       "trapper:description" : "file(professions/trapper/trapper_description.json)",
       "trapper:outfit" : "file(professions/trapper/trapper_outfit)",
       "trapper:snare_trap" : "file(professions/trapper/snare_trap)",

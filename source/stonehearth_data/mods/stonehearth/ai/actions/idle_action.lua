@@ -9,11 +9,11 @@ Idle.priority = 1
 Idle.preemptable = true
 
 function Idle:run(ai, entity)
-   local countdown = rng:get_int(1, 4)
+   local countdown = rng:get_int(1, 2)
    while true do
       if countdown <= 0 then
          ai:execute('stonehearth:idle:bored')
-         countdown = rng:get_int(1, 4)
+         countdown = rng:get_int(1, 2)
       else
          ai:execute('stonehearth:idle:breathe')
          if not radiant.entities.is_carrying(entity) then

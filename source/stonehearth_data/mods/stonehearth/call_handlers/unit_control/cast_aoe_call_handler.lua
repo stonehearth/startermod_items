@@ -29,6 +29,7 @@ function CastAoeCallHandler:_on_mouse_event(e, response, entity, spell)
    assert(self._capture, "got mouse event after releasing capture")
 
    local range = 20
+   local radius = 8
    local s = _radiant.client.query_scene(e.x, e.y)
    -- s.location contains the address of the terrain block that the mouse
    -- is currently pointing to.  if there isn't one, move the cursor
@@ -41,9 +42,9 @@ function CastAoeCallHandler:_on_mouse_event(e, response, entity, spell)
    end
 
    if not self._cursor_node then
-      self._cursor_node = h3dAddProjectorNode(H3DRootNode, "cursornode", h3dAddResource(H3DResTypes.Material, "materials/trapper_proj.material.xml", 0))
+      self._cursor_node = h3dAddProjectorNode(H3DRootNode, "cursornode", h3dAddResource(H3DResTypes.Material, "materials/aoe_reticle/aoe_reticle.material.xml", 0))
    end
-   h3dSetNodeTransform(self._cursor_node, pt.x, 0, pt.z, 0, 0, 0, 2, 1, 2)
+   h3dSetNodeTransform(self._cursor_node, pt.x - radius/2, 0, pt.z - radius/2, 0, 0, 0, radius, 1, radius)
 
    -- if the mouse button just transitioned to up and we're actually pointing
    -- to a box on the terrain, send a message to the server to create the

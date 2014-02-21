@@ -71,6 +71,8 @@ static std::string Checksum(std::string input)
 
 AnimationPtr ResourceManager2::LoadAnimation(std::string const& canonical_path) const
 {
+   std::lock_guard<std::recursive_mutex> lock(mutex_);
+
    std::shared_ptr<std::istream> json_in = OpenResource(canonical_path);
 
    std::string jsonfile = io::read_contents(*json_in);
@@ -256,13 +258,36 @@ JSONNode const& ResourceManager2::LookupJson(std::string path) const
 {
    std::lock_guard<std::recursive_mutex> lock(mutex_);
    
-   std::string key = ConvertToCanonicalPath(path, ".json");
+   std::shared_ptr<JSONNode> node;
 
-   auto i = jsons_.find(key);
-   if (i != jsons_.end()) {
-      return i->second;
+   // If we have already loaded the json for this file, it should already be in the
+   // map.  ConvertToCanonicalPath is quite expensive.  We need to iterate over
+   // the mixins and overrides tables and everything!  To avoid that, we store the
+   // json object both in the canonical location and whatever aliases people are
+   // using to reach that path
+   auto i = jsons_.find(path), end = jsons_.end();
+   if (i != end) {
+      node = i->second;
+   } else {
+      // Couldn't find it.  Rats.  See if we've already loaded it using a different
+      // alias.  If so, both aliases will map to the same canonical path
+      std::string canonical_path = ConvertToCanonicalPath(path, ".json");
+   
+      i = jsons_.find(canonical_path);
+      if (i != end) {
+         // Great!  It was loaded by a previous alias.  Wire up this alias, too, so we
+         // can avoid calling ConvertToCanonicalPath next time someone looks it up.
+         node = i->second;
+         jsons_[path] = i->second;
+      } else {
+         // Still couldn't find it?  Load the node and store it under the canonical path
+         // and the current key so we can find it next time (using either!)
+         node = std::make_shared<JSONNode>(LoadJson(canonical_path));
+         jsons_[path] = jsons_[canonical_path] = node;
+      }
    }
-   return (jsons_[key] = LoadJson(key));
+   ASSERT(node);  // We should have a node or have thrown an exception if the path was invalid.
+   return *node;
 }
 
 AnimationPtr ResourceManager2::LookupAnimation(std::string path) const
@@ -282,10 +307,15 @@ std::shared_ptr<std::istream> ResourceManager2::OpenResource(std::string const& 
 {
    std::lock_guard<std::recursive_mutex> lock(mutex_);
    
+   std::string canonical_path = ConvertToCanonicalPath(path, nullptr);
+   return OpenResourceCanonical(canonical_path);
+}
+
+std::shared_ptr<std::istream> ResourceManager2::OpenResourceCanonical(std::string const& canonical_path) const
+{
    std::string modname;
    std::vector<std::string> parts;
 
-   std::string canonical_path = ConvertToCanonicalPath(path, nullptr);
    ParsePath(canonical_path, modname, parts);
 
    auto i = modules_.find(modname);
@@ -345,7 +375,7 @@ JSONNode ResourceManager2::LoadJson(std::string const& canonical_path) const
    std::string error_message;
    bool success;
 
-   std::shared_ptr<std::istream> is = OpenResource(canonical_path);
+   std::shared_ptr<std::istream> is = OpenResourceCanonical(canonical_path);
    success = json::ReadJson(*is, new_node, error_message);
    if (!success) {
       std::string full_message = BUILD_STRING("Error reading file " << canonical_path << ":\n\n" << error_message);
