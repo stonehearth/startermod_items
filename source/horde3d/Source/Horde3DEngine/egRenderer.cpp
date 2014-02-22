@@ -1892,7 +1892,7 @@ void Renderer::drawProjections( const std::string &shaderContext)
 	                                    SceneNodeFlags::NoDraw, 0, false, true );
 
       _projectorMat = n->getAbsTrans();
-      drawRenderables( shaderContext, "", false, &_curCamera->getFrustum(), 0x0, RenderingOrder::None, 0);
+      drawRenderables( shaderContext, "", false, &_curCamera->getFrustum(), 0x0, RenderingOrder::None, -1);
    }
 
    _materialOverride = 0x0;
