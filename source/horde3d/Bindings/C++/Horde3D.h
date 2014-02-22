@@ -501,6 +501,14 @@ struct H3DInstanceNodeParams
    };
 };
 
+struct H3DProjectorNodeParams
+{
+	enum List
+	{
+		MatResI = 300
+	};
+};
+
 struct H3DModel
 {
 	/*	Enum: H3DModel

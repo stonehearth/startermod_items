@@ -21,6 +21,15 @@
 
 namespace Horde3D {
 
+struct ProjectorNodeParams
+{
+	enum List
+	{
+		MatResI = 300
+	};
+};
+
+
 // =================================================================================================
 
 struct ProjectorNodeTpl : public SceneNodeTpl

@@ -61,12 +61,30 @@ SceneNode *ProjectorNode::factoryFunc( const SceneNodeTpl &nodeTpl )
 
 int ProjectorNode::getParamI( int param )
 {
+   switch(param) {
+	   case ProjectorNodeParams::MatResI:
+		   if( _matRes != 0x0 ) return _matRes->getHandle();
+		   else return 0;
+   }
    return SceneNode::getParamI(param);
 }
 
-
 void ProjectorNode::setParamI( int param, int value )
 {
+   Horde3D::Resource* res;
+	switch(param) {
+	   case ProjectorNodeParams::MatResI:
+		   res = Modules::resMan().resolveResHandle( value );
+		   if( res != 0x0 && res->getType() == ResourceTypes::Material )
+		   {
+			   _matRes = (MaterialResource *)res;
+		   }
+		   else
+		   {
+			   Modules::setError( "Invalid handle in h3dSetNodeParamI for ProjectorNode::MatResI" );
+		   }
+		   return;
+	}
 	SceneNode::setParamI( param, value );
 }
 
