@@ -37,19 +37,27 @@ function CastAoeCallHandler:_on_mouse_event(e, response, entity, spell)
    local pt = s.location and s.location or offscreen_pos
    pt.y = pt.y + 1
 
-   if entity:get_component('mob'):get_world_grid_location():distance_to(pt) > range then
-      pt = offscreen_pos
+   local in_range = entity:get_component('mob'):get_world_grid_location():distance_to(pt) <= range
+   local material
+
+   if in_range then
+      material = h3dAddResource(H3DResTypes.Material, "materials/aoe_reticle/aoe_reticle.material.xml", 0)
+      
+   else
+      material = h3dAddResource(H3DResTypes.Material, "materials/out_of_range_reticle/out_of_range_reticle.material.xml", 0)
    end
 
    if not self._cursor_node then
-      self._cursor_node = h3dAddProjectorNode(H3DRootNode, "cursornode", h3dAddResource(H3DResTypes.Material, "materials/aoe_reticle/aoe_reticle.material.xml", 0))
+      self._cursor_node = h3dAddProjectorNode(H3DRootNode, "cursornode", material)
    end
+
+   h3dSetNodeParamI(self._cursor_node, H3DProjectorNodeParams.MatResI, material)
    h3dSetNodeTransform(self._cursor_node, pt.x - radius/2, 0, pt.z - radius/2, 0, 0, 0, radius, 1, radius)
 
    -- if the mouse button just transitioned to up and we're actually pointing
    -- to a box on the terrain, send a message to the server to create the
    -- entity.  this is done by posting to the correct route.
-   if e:up(1) and s.location then
+   if e:up(1) and in_range and s.location then
       
       _radiant.call('stonehearth:server_cast_aoe', entity:get_id(), spell, pt)
                :always(function ()
