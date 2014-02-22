@@ -5,6 +5,7 @@ local CreateWorkshop = require 'services.town.orchestrators.create_workshop_orch
 local Town = class()
 
 function Town:__init(name)
+   assert(name)
    self._log = radiant.log.create_logger('town', name)
    self._scheduler = stonehearth.tasks:create_scheduler(name)
                                        :set_counter_name(name)
