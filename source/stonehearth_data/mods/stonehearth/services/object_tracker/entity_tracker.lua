@@ -4,9 +4,9 @@ local EntityTracker = class()
 --- Creates a list of objects that satisfies a set of criteria
 --  The list will update whenever a new entity is add/removed
 --  and whenever any of the specified events are triggered
---  @tracker_name - used to identify the trace
---  @filter_fn    - returns true if an object is worthy, false otherwise
---  @event_array  - events we should listen to. Arr must contain the source 
+--  @param tracker_name - used to identify the trace
+--  @param filter_fn    - returns true if an object is worthy, false otherwise
+--  @param event_array  - events we should listen to. Arr must contain the source 
 --                  module, the event name, and events must send 'entity' to
 --                  be evaluated.
 function EntityTracker:__init(tracker_name, filter_fn, event_array)

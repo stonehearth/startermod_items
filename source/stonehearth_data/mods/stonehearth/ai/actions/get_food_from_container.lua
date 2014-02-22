@@ -2,7 +2,7 @@ local Entity = _radiant.om.Entity
 local GetFoodFromContainer = class()
 
 GetFoodFromContainer.name = 'get food from container'
-GetFoodFromContainer.does = 'stonehearth:get_food_from_container'
+GetFoodFromContainer.does = 'stonehearth:get_food'
 GetFoodFromContainer.args = { }
 GetFoodFromContainer.version = 2
 GetFoodFromContainer.priority = 1

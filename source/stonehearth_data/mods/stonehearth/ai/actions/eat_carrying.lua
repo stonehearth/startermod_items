@@ -7,13 +7,6 @@ EatCarrying.args = { }
 EatCarrying.version = 2
 EatCarrying.priority = 1
 
---- Eat the food we're holding in our hands
---  If we're very hungry, bolt it down nearby, even if we've got a path to a chair.
---  As a result, we'll get less full from the food.  
---  If we're moderately hungry, and have a chair, go there and eat the food. This 
---  grants a bonus to how full we feel after eating. 
---  If we're moderately hungry and don't have a chair, find a random location at
---  moderate distance and eat leisurely. This has no effect on satiation. 
 function EatCarrying:run(ai, entity)
    self._food = radiant.entities.get_carrying(entity)
    if not self._food then

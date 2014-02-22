@@ -5,7 +5,7 @@ local Entity = _radiant.om.Entity
 local FollowEntity = class()
 
 FollowEntity.name = 'follow entity'
-FollowEntity.does = 'stonehearth:follow_entity' --'stonehearth:idle:bored'
+FollowEntity.does = 'stonehearth:follow_entity'
 FollowEntity.args = {
    target = Entity
 }
