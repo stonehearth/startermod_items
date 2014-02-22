@@ -85,8 +85,6 @@ Renderer::Renderer() :
    drawWorldStages_.insert(std::string("Light"));
    drawWorldStages_.insert(std::string("Fog"));
    drawWorldStages_.insert(std::string("Translucent"));
-   drawWorldStages_.insert(std::string("Selected"));
-   drawWorldStages_.insert(std::string("Selected_Fast"));
    drawWorldStages_.insert(std::string("Overlays"));
    drawWorldStages_.insert(std::string("Projections"));
 
@@ -653,6 +651,14 @@ void Renderer::ApplyConfig(const RendererConfig& newConfig, bool persistConfig)
       config.Set("renderer.last_window_x", config_.last_window_x.value);
       config.Set("renderer.last_window_y", config_.last_window_y.value);
       config.Set("renderer.use_fast_hilite", config_.use_fast_hilite.value);
+   }
+
+   if (config_.use_fast_hilite.value) {
+      drawWorldStages_.insert(std::string("Selected_Fast"));
+      drawWorldStages_.erase(std::string("Selected"));
+   } else {
+      drawWorldStages_.erase(std::string("Selected_Fast"));
+      drawWorldStages_.insert(std::string("Selected"));
    }
 
    // We just flushed/loaded our pipeline, so don't forget to reset the draw bits!
