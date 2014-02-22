@@ -1,8 +1,8 @@
 local MathFns = require 'services.world_generation.math.math_fns'
 
-local Point3 = _radiant.csg.Point3
-local Cube3 = _radiant.csg.Cube3
-local Region3 = _radiant.csg.Region3
+local Point2 = _radiant.csg.Point2
+local Rect2 = _radiant.csg.Rect2
+local Region2 = _radiant.csg.Region2
 local _terrain = radiant._root_entity:add_component('terrain')
 local log = radiant.log.create_logger('visibility')
 
@@ -36,17 +36,17 @@ function TerrainService:_update_regions()
 
       if not self:_are_equivalent_regions(old_visible_region, new_visible_region) then
          visible_region_boxed:modify(
-            function (region3)
-               region3:clear()
-               region3:add_region(new_visible_region)
-               log:info('Server visibility cubes: %d', region3:get_num_rects())
+            function (Region2)
+               Region2:clear()
+               Region2:add_region(new_visible_region)
+               log:info('Server visibility cubes: %d', Region2:get_num_rects())
             end
          )
 
          explored_region_boxed:modify(
-            function (region3)
-               region3:add_region(new_visible_region)
-               log:info('Server explored cubes: %d', region3:get_num_rects())
+            function (Region2)
+               Region2:add_region(new_visible_region)
+               log:info('Server explored cubes: %d', Region2:get_num_rects())
             end
          )
       else
@@ -57,14 +57,14 @@ end
 
  -- this will eventually be a non-rectangular region composed of the tiles that have been generated
 function TerrainService:_get_terrain_region()
-   local region = Region3()
-   region:add_cube(_terrain:get_bounds())
+   local region = Region2()
+   region:add_cube(_terrain:get_bounds():project_onto_xz_plane())
    return region
 end
 
 function TerrainService:_get_visible_region(faction_name)
    local terrain_bounds = self:_get_terrain_region()
-   local visible_region = Region3()
+   local visible_region = Region2()
    local faction, citizens, entity_region, bounded_visible_region
 
    -- TODO: where do we get the kingdom name from?
@@ -76,7 +76,7 @@ function TerrainService:_get_visible_region(faction_name)
       visible_region:add_region(entity_region)
    end
 
-   bounded_visible_region = _radiant.csg.intersect_region3(visible_region, terrain_bounds)
+   bounded_visible_region = _radiant.csg.intersect_region2(visible_region, terrain_bounds)
 
    return bounded_visible_region
 end
@@ -89,8 +89,8 @@ function TerrainService:_get_entity_visible_region(entity)
    -- fix y bounds until renderer supports 3d bounds. minimizes cubes for now
    local y_min = quantize(0)
    local y_max = quantize(200)
-   local region = Region3()
-   local semi_major_axis, semi_minor_axis, pt, cube
+   local region = Region2()
+   local semi_major_axis, semi_minor_axis, pt, rect
 
    semi_major_axis = self._sight_radius
    -- quantize delta to make sure the major and minor axes reveal at the same time
@@ -99,19 +99,19 @@ function TerrainService:_get_entity_visible_region(entity)
    pt = radiant.entities.get_world_grid_location(entity)
 
    -- remember +1 on max
-   cube = Cube3(
-      Point3(quantize(pt.x-semi_major_axis),   y_min, quantize(pt.z-semi_minor_axis)),
-      Point3(quantize(pt.x+semi_major_axis+1), y_max, quantize(pt.z+semi_minor_axis+1))
+   rect = Rect2(
+      Point2(quantize(pt.x-semi_major_axis),   quantize(pt.z-semi_minor_axis)),
+      Point2(quantize(pt.x+semi_major_axis+1), quantize(pt.z+semi_minor_axis+1))
    )
 
-   region:add_cube(cube)
+   region:add_cube(rect)
 
-   cube = Cube3(
-      Point3(quantize(pt.x-semi_minor_axis),   y_min, quantize(pt.z-semi_major_axis)),
-      Point3(quantize(pt.x+semi_minor_axis+1), y_max, quantize(pt.z+semi_major_axis+1))
+   rect = Rect2(
+      Point2(quantize(pt.x-semi_minor_axis),   quantize(pt.z-semi_major_axis)),
+      Point2(quantize(pt.x+semi_minor_axis+1), quantize(pt.z+semi_major_axis+1))
    )
 
-   region:add_cube(cube)
+   region:add_cube(rect)
 
    return region
 end
@@ -126,7 +126,7 @@ function TerrainService:_are_equivalent_regions(region_a, region_b)
       return false
    end
 
-   intersection = _radiant.csg.intersect_region3(region_a, region_b)
+   intersection = _radiant.csg.intersect_region2(region_a, region_b)
 
    return intersection:get_area() == area_a
 end
@@ -143,7 +143,7 @@ function TerrainService:_get_region(map, faction)
    local boxed_region = map[faction]
 
    if not boxed_region then
-      boxed_region = _radiant.sim.alloc_region()
+      boxed_region = _radiant.sim.alloc_region2()
       map[faction] = boxed_region
    end
 

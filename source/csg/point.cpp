@@ -52,7 +52,7 @@ Point<int, C> csg::ToInt(Point<float, C> const& pt)
    Point<int, C> result;
    for (int i = 0; i < C; i++) {
       float s = pt[i];
-      result[i] = static_cast<int>(floor0(s + (s > 0 ? k_epsilon : -k_epsilon)));
+      result[i] = static_cast<int>(trunc(s + (s > 0 ? k_epsilon : -k_epsilon)));
    }
    return result;
 }
@@ -68,7 +68,7 @@ Point<int, C> csg::ToClosestInt(Point<float, C> const& pt)
    Point<int, C> result;
    for (int i = 0; i < C; i++) {
       float s = pt[i];
-      result[i] = static_cast<int>(floor0(s + (s > 0 ? 0.5 : -0.5)));
+      result[i] = static_cast<int>(trunc(s + (s > 0 ? 0.5 : -0.5)));
    }
    return result;
 }

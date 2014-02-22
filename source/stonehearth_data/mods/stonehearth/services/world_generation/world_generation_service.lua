@@ -252,7 +252,7 @@ function WorldGenerationService:_render_heightmap_to_region3(tile_map, feature_m
       end
    )
 
-   log:info('HeightMapRenderer time: %.3fs', seconds)
+   log:info('Height map to region3 time: %.3fs', seconds)
    self:_yield()
 end
 

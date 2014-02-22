@@ -141,7 +141,7 @@ function ScenarioService:reveal_region(world_space_region)
       end
    end
 
-   self._revealed_region:add_region(unrevealed_region)
+   self._revealed_region:add_unique_region(unrevealed_region)
 
    cpu_timer:stop()
    if num_rects ~= 0 then

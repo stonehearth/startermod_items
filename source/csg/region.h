@@ -43,28 +43,28 @@ public:
    const Cube& operator[](int i) const { return cubes_[i]; }
    void Translate(const Point& pt);
    Region Translated(const Point& pt) const;
-   Region Inflated(Point const& pt) const;
+   Region Inflated(const Point& pt) const;
 
    // non-optimizing... (xxx: make regions fluent!)
    void Clear();
-   void Add(const Region& cube);
-   void Add(Cube const& cube);
-   void Add(const Point& cube);
+   void Add(const Point& point);
+   void Add(const Cube& cube);
+   void Add(const Region& region);
    void AddUnique(const Cube& cube);
-   void AddUnique(const Region& cube);  
-   void Subtract(const Point& other);
-   void Subtract(const Cube& other);
-   void Subtract(const Region& other);
+   void AddUnique(const Region& region);  
+   void Subtract(const Point& point);
+   void Subtract(const Cube& cube);
+   void Subtract(const Region& region);
 
    // optimizing...
-   Region<S, C> operator-(const Cube& other) const;
-   Region<S, C> operator-(const Region& other) const;
-   Region<S, C> operator&(const Cube& region) const;
+   Region<S, C> operator-(const Cube& cube) const;
+   Region<S, C> operator-(const Region& region) const;
+   Region<S, C> operator&(const Cube& cube) const;
    Region<S, C> operator&(const Region& region) const;
    const Region<S, C>& operator+=(const Region& region);
    const Region<S, C>& operator-=(const Region& region);
    const Region<S, C>& operator&=(const Cube& cube);
-   const Region<S, C>& operator&=(const Region& other);
+   const Region<S, C>& operator&=(const Region& region);
    const Region<S, C>& operator+=(const Cube& cube);
    const Region<S, C>& operator-=(const Cube& cube);
    const Region<S, C>& operator+=(const Point& pt) { return operator+=(Cube(pt)); }
@@ -72,6 +72,8 @@ public:
 
 private:
    void Validate() const;
+   S GetOctTreeCubeSize(Cube const& bounds);
+   void OptimizeOctTreeCube(Cube const& bounds);
 
 public:
    template <class T> void SaveValue(T* msg) const {
@@ -88,6 +90,8 @@ public:
    }
 
    void Optimize();
+   bool OptimizeByOctTree();
+   bool OptimizeByMerge();
 
 private:
    CubeVector     cubes_;
