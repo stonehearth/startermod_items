@@ -252,6 +252,7 @@
       "actions:eat_carrying" : "file(ai/actions/eat_carrying.lua)",
       "actions:eat_on_chair" : "file(ai/actions/eat_on_chair.lua)",
       "actions:eat_on_ground" : "file(ai/actions/eat_on_ground.lua)",
+      "actions:get_food_on_ground" : "file(ai/actions/get_food_on_ground_action.lua)",
       "actions:get_food_from_container" : "file(ai/actions/get_food_from_container.lua)",
       "actions:get_food_from_container_adjacent" : "file(ai/actions/get_food_from_container_adjacent.lua)",
       

@@ -72,7 +72,10 @@ function HarvestTrappedBeastAdjacent:_spawn_loot(beast)
       location.x = location.x + math.random(-1, 1)
       location.z = location.z + math.random(-1, 1)
 
-      -- lease the item
+      -- lease the item.  
+      -- xxx - we need a way to break this lease whenever the scheduled command gets removed.
+      -- otherwise, workers can't come clean up after the trapper's mess if he gets interrupted
+      -- before he can carry out those commands.
       local lease_component = item:add_component('stonehearth:lease')
       if not lease_component:acquire(stonehearth.ai.RESERVATION_LEASE_NAME, self._entity) then
          ai:abort('could not lease %s (%s has it).', tostring(item), tostring(lease_component:get_owner(stonehearth.ai.RESERVATION_LEASE_NAME)))

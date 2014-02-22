@@ -23,6 +23,7 @@
             "stonehearth:actions:eat_carrying",
             "stonehearth:actions:eat_on_ground",
             "stonehearth:actions:eat_on_chair",
+            "stonehearth:actions:get_food_on_ground",
             "stonehearth:actions:get_food_from_container",
             "stonehearth:actions:get_food_from_container_adjacent",
             "stonehearth:actions:wander",
