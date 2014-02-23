@@ -89,27 +89,25 @@ void Region<S, C>::AddUnique(const Cube& cube)
    Validate();
    ASSERT(!Intersects(cube));
 
-   cubes_.push_back(cube); // CHECKCHECK
+   if (cubes_.empty() || !cubes_.back().CombineWith(cube)) {
+      cubes_.push_back(cube);
+   } else {
+      // The cube on the back has been merged with the new cube.
+      // This could enable another merge!  I could write this in
+      // a tail-end recursive way to avoid duplicating code, but
+      // I believe it would be ultimately much more confusing to 
+      // read.
+      uint c = cubes_.size();
+      while (c > 1) {
+         if (!cubes_[c-2].CombineWith(cubes_[c-1])) {
+            break;
+         }
+         c--;
+      }
+      cubes_.resize(c);
+   }
 
-   //if (cubes_.empty() || !cubes_.back().CombineWith(cube)) {
-   //   cubes_.push_back(cube);
-   //} else {
-   //   // The cube on the back has been merged with the new cube.
-   //   // This could enable another merge!  I could write this in
-   //   // a tail-end recursive way to avoid duplicating code, but
-   //   // I believe it would be ultimately much more confusing to 
-   //   // read.
-   //   uint c = cubes_.size();
-   //   while (c > 1) {
-   //      if (!cubes_[c-2].CombineWith(cubes_[c-1])) {
-   //         break;
-   //      }
-   //      c--;
-   //   }
-   //   cubes_.resize(c);
-   //}
-
-   //Validate();
+   Validate();
 }
 
 template <class S, int C>
@@ -334,6 +332,27 @@ void Region<S, C>::Optimize()
 }
 
 template <class S, int C>
+std::map<int, std::unique_ptr<Region<S, C>>> Region<S, C>::SplitByTagType()
+{
+   std::map<int, std::unique_ptr<Region<S, C>>> map;
+
+   for (Cube const& cube : cubes_) {
+      int tag = cube.GetTag();
+      auto i = map.find(tag);
+
+      if (i == map.end()) {
+         map[tag] = std::unique_ptr<Region>(new Region());
+         i = map.find(tag);
+      }
+
+      Region& region = *i->second;
+      region.AddUnique(cube);
+   }
+
+   return map;
+}
+
+template <class S, int C>
 S Region<S, C>::GetOctTreeCubeSize(Cube const& bounds)
 {
    Point widths = bounds.max - bounds.min;
@@ -440,10 +459,10 @@ void Region<S, C>::OptimizeOctTreeCube(Cube const& bounds)
 
 // TODO: partition by tag type!
 template <class S, int C>
-bool Region<S, C>::OptimizeByOctTree()
+void Region<S, C>::OptimizeByOctTree()
 {
    if (IsEmpty()) {
-      return false;
+      return;
    }
    Validate();
 
@@ -452,7 +471,8 @@ bool Region<S, C>::OptimizeByOctTree()
    Cube const bounds = GetBounds();
    S cubeSize = GetOctTreeCubeSize(bounds);
    if (cubeSize < 4) {
-      return false;
+      OptimizeByMerge();
+      return;
    }
 
    REGION_LOG(7) << "Optimizing region by OctTree - bounds: " << bounds;
@@ -512,23 +532,22 @@ bool Region<S, C>::OptimizeByOctTree()
    }
 
    *this = optimized;
+   REGION_LOG(7) << "# cubes after optimization phase 1: " << GetCubeCount();
 
-   // test if better
-   REGION_LOG(7) << "# cubes after optimization: " << GetCubeCount();
+   OptimizeByMerge();
+   REGION_LOG(7) << "# cubes after optimization phase 2: " << GetCubeCount();
 
    S areaAfter = GetArea();
    ASSERT(areaBefore == areaAfter);
    Validate();
-
-   return true;
 }
 
 // could speed up by grouping by tag
 template <class S, int C>
-bool Region<S, C>::OptimizeByMerge()
+void Region<S, C>::OptimizeByMerge()
 {
    if (IsEmpty()) {
-      return false;
+      return;
    }
    Validate();
    S areaBefore = GetArea();
@@ -571,8 +590,6 @@ bool Region<S, C>::OptimizeByMerge()
    S areaAfter = GetArea();
    ASSERT(areaBefore == areaAfter);
    Validate();
-
-   return size < sizeBefore;
 }
 
 template <class S, int C>
@@ -715,8 +732,8 @@ void Region<S, C>::Validate() const
    template bool Cls::Contains(const Cls::Point&) const; \
    template Cls::Point Cls::GetClosestPoint2(const Cls::Point&, Cls::ScalarType*) const; \
    template void Cls::Optimize(); \
-   template bool Cls::OptimizeByOctTree(); \
-   template bool Cls::OptimizeByMerge(); \
+   template void Cls::OptimizeByOctTree(); \
+   template void Cls::OptimizeByMerge(); \
    template Cls::Cube Cls::GetBounds() const; \
    template void Cls::Translate(const Cls::Point& pt); \
    template Cls Cls::Translated(const Cls::Point& pt) const; \

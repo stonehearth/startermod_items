@@ -2,6 +2,7 @@
 #define _RADIANT_CSG_REGION_H
 
 #include <vector>
+#include <map>
 #include "cube.h"
 
 BEGIN_RADIANT_CSG_NAMESPACE
@@ -45,7 +46,7 @@ public:
    Region Translated(const Point& pt) const;
    Region Inflated(const Point& pt) const;
 
-   // non-optimizing... (xxx: make regions fluent!)
+   // xxx: make regions fluent!
    void Clear();
    void Add(const Point& point);
    void Add(const Cube& cube);
@@ -56,7 +57,6 @@ public:
    void Subtract(const Cube& cube);
    void Subtract(const Region& region);
 
-   // optimizing...
    Region<S, C> operator-(const Cube& cube) const;
    Region<S, C> operator-(const Region& region) const;
    Region<S, C> operator&(const Cube& cube) const;
@@ -72,6 +72,7 @@ public:
 
 private:
    void Validate() const;
+   std::map<int, std::unique_ptr<Region<S, C>>> SplitByTagType();
    S GetOctTreeCubeSize(Cube const& bounds);
    void OptimizeOctTreeCube(Cube const& bounds);
 
@@ -90,8 +91,8 @@ public:
    }
 
    void Optimize();
-   bool OptimizeByOctTree();
-   bool OptimizeByMerge();
+   void OptimizeByOctTree();
+   void OptimizeByMerge();
 
 private:
    CubeVector     cubes_;

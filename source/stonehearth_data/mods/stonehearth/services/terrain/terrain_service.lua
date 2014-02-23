@@ -26,7 +26,8 @@ function TerrainService:_on_poll()
 end
 
 function TerrainService:_update_regions()
-   local old_visible_region, new_visible_region, explored_region_boxed
+   local old_visible_region, new_visible_region
+   local explored_region_boxed, explored_region, unexplored_region
 
    for faction_name, visible_region_boxed in pairs(self._visible_regions) do
       explored_region_boxed = self:get_explored_region(faction_name)
@@ -36,21 +37,24 @@ function TerrainService:_update_regions()
 
       if not self:_are_equivalent_regions(old_visible_region, new_visible_region) then
          visible_region_boxed:modify(
-            function (Region2)
-               Region2:clear()
-               Region2:add_region(new_visible_region)
-               log:info('Server visibility cubes: %d', Region2:get_num_rects())
+            function (region2)
+               region2:clear()
+               region2:add_region(new_visible_region)
+               log:info('Server visibility cubes: %d', region2:get_num_rects())
             end
          )
 
-         explored_region_boxed:modify(
-            function (Region2)
-               Region2:add_region(new_visible_region)
-               log:info('Server explored cubes: %d', Region2:get_num_rects())
-            end
-         )
-      else
-         log:info('Server visibility has not changed.')
+         explored_region = explored_region_boxed:get()
+         unexplored_region = new_visible_region - explored_region
+
+         if not unexplored_region:empty() then
+            explored_region_boxed:modify(
+               function (region2)
+                  region2:add_unique_region(unexplored_region)
+                  log:info('Server explored cubes: %d', region2:get_num_rects())
+               end
+            )
+         end
       end
    end
 end
