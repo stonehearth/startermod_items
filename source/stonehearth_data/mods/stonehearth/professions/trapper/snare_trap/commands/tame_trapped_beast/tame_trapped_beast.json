@@ -3,7 +3,7 @@
 
    "name": "tame trap beast",
    "tooltip": "Tame Beast",
-   "description": "Make friends! Befriend the trapped beast and make it your pet.",
+   "description": "NOT YET IMPLEMENTED. Make friends! Befriend the trapped beast and make it your pet.",
    "icon": "file(tame_trapped_beast.png)",
 
    "action": "call",
