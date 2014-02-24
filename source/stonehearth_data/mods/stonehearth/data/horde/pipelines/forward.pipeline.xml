@@ -44,7 +44,8 @@
       </Stage>
 
       <Stage id="Projections">
-         <DrawProjections context="PROJECTION" />
+         <!-- '1' is terrain only. -->
+         <DrawProjections context="PROJECTION" userFlags="1" />
       </Stage>
 
       <Stage id="Fog">
