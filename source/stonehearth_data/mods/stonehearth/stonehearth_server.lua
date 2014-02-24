@@ -1,11 +1,26 @@
-function create_service(name)
-end
 
 stonehearth = {
    constants = require 'constants'
 }
 
-radiant.events.listen(stonehearth, 'radiant:new_game', function(args)
+local function create_datastore(stonehearth_datastore, name)
+   local data = stonehearth_datastore:get_data()
+   local datastore = data[name]
+   if not datastore then
+      datastore = _radiant.sim.create_data_store()
+      data[name] = datastore
+      stonehearth_datastore:mark_changed()
+   end
+   return datastore
+end
+
+local function create_service(stonehearth_datastore, name)
+   local path = string.format('services.%s.%s_service', name, name)         
+   local datastore = create_datastore(stonehearth_datastore, name)
+   return require(path)(datastore)
+end
+
+radiant.events.listen(stonehearth, 'radiant:construct', function(args)
       
       local datastore = args.datastore
       local service_creation_order = {
@@ -28,10 +43,8 @@ radiant.events.listen(stonehearth, 'radiant:new_game', function(args)
          'threads',
          'town',         
       }
-      for _, service_name in ipairs(service_creation_order) do
-         local path = string.format('services.%s.%s_service', service_name, service_name)
-         local service = require(path)(datastore)
-         stonehearth[service_name] = service
+      for _, name in ipairs(service_creation_order) do
+         stonehearth[name] = create_service(datastore, name)
       end
    end)
 return stonehearth

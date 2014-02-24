@@ -188,9 +188,13 @@ void Simulation::InitializeDataObjects()
    store_->AddTracer(object_model_traces_, dm::OBJECT_MODEL_TRACES);
    store_->AddTracer(pathfinder_traces_, dm::PATHFINDER_TRACES);
    store_trace_ = store_->TraceStore("sim")->OnAlloced([=](dm::ObjectPtr obj) {
-      if (obj->GetObjectId() == 1) {
+      dm::ObjectId id = obj->GetObjectId();
+      if (id == 1) {
          GetOctTree().SetRootEntity(std::dynamic_pointer_cast<om::Entity>(obj));
          store_trace_ = nullptr;
+      }
+      if (obj->GetObjectType() == om::DataStoreObjectType) {
+         datastores_[id] = (std::static_pointer_cast<om::DataStore>(obj));
       }
    });
 
@@ -209,7 +213,6 @@ void Simulation::ShutdownDataObjects()
 
 void Simulation::InitializeGameObjects()
 {
-   now_ = 0;
    octtree_ = std::unique_ptr<phys::OctTree>(new phys::OctTree(dm::OBJECT_MODEL_TRACES));
    scriptHost_.reset(new lua::ScriptHost());
 
@@ -237,9 +240,6 @@ void Simulation::InitializeGameObjects()
 
 void Simulation::ShutdownGameObjects()
 {
-   game_ = luabind::object();
-   game_api_ = luabind::object();
-
    clock_ = nullptr;
    root_entity_ = nullptr;
 
@@ -265,7 +265,7 @@ void Simulation::ShutdownGameObjects()
    scriptHost_.reset();
 }
 
-void Simulation::InitializeLuaObjects()
+void Simulation::CreateGameModules()
 {
    using namespace luabind;
    core::Config const& config = core::Config::GetInstance();
@@ -273,8 +273,7 @@ void Simulation::InitializeLuaObjects()
    lua_State* L = scriptHost_->GetInterpreter();
 
    om::ModListPtr mod_list = root_entity_->AddComponent<om::ModList>();
-
-   game_api_ = scriptHost_->Require("radiant.server");
+   
    for (std::string const& mod_name : resource_manager.GetModuleNames()) {      
       json::Node manifest = resource_manager.LookupManifest(mod_name);
       std::string script_name = manifest.get<std::string>("server_init_script", "");
@@ -283,11 +282,12 @@ void Simulation::InitializeLuaObjects()
             luabind::object mod_lua_object = scriptHost_->Require(script_name);
             om::DataStorePtr ds = GetStore().AllocObject<om::DataStore>();
             ds->SetController(lua::ControllerObject(script_name, mod_lua_object));
+            ds->SetData(luabind::newtable(L));
             mod_list->AddMod(mod_name, ds);
             luabind::globals(L)[mod_name] = mod_lua_object;
             luabind::object args(luabind::newtable(L));
             args["datastore"] = ds;
-            scriptHost_->TriggerOn(mod_lua_object, "radiant:new_game", args);
+            scriptHost_->TriggerOn(mod_lua_object, "radiant:construct", args);
          } catch (std::exception const& e) {
             SIM_LOG(1) << "module " << mod_name << " failed to load " << script_name << ": " << e.what();
          }
@@ -296,24 +296,31 @@ void Simulation::InitializeLuaObjects()
    scriptHost_->Require("radiant.lualibs.strict");
    scriptHost_->Trigger("radiant:modules_loaded");
 
-   std::string const module = config.Get<std::string>("game.mod");
-   json::Node const manifest = resource_manager.LookupManifest(module);
-   std::string const default_script = module + "/" + manifest.get<std::string>("game.script");
+   std::string const module = config.Get<std::string>("game.main_mod", "stonehearth");
+   om::DataStorePtr ds = mod_list->GetMod(module);
+   ASSERT(ds);
+   scriptHost_->TriggerOn(ds->GetController().GetLuaObject(), "radiant:new_game", luabind::newtable(L));
+}
 
-   std::string const game_script = config.Get("game.script", default_script);
-   object game_ctor = scriptHost_->RequireScript(game_script);
-   try {
-      game_ = luabind::call_function<luabind::object>(game_ctor);
-   } catch (std::exception const& e) {
-      SIM_LOG(0) << "game failed to load: " << e.what();
-      return;
-   }      
+void Simulation::LoadGameModules()
+{
+   scriptHost_->Require("radiant.lualibs.strict");
+   for (auto const& entry : datastores_) {
+      om::DataStorePtr ds = entry.second.lock();
+      if (ds) {
+         std::string script = ds->GetController().GetLuaSource();
+         if (!script.empty()) {
+            luabind::object obj = scriptHost_->Require(script);
+            ds->GetController().SetLuaObject(obj);
+         }
+      }
+   }
+   scriptHost_->Trigger("radiant:game_loaded");
 }
 
 void Simulation::ShutdownLuaObjects()
 {
-   game_ = luabind::object();
-   game_api_ = luabind::object();
+   radiant_ = luabind::object();
 }
 
 
@@ -322,22 +329,16 @@ void Simulation::CreateGame()
    root_entity_ = CreateEntity();
    ASSERT(root_entity_->GetObjectId() == 1);
    clock_ = GetEntity(1)->AddComponent<om::Clock>();
-   PostGameInit();
-}
-
-void Simulation::PostGameInit()
-{
-   ASSERT(root_entity_);
-
-   InitializeLuaObjects();
+   now_ = clock_->GetTime();
+   radiant_ = scriptHost_->Require("radiant.server");
 
    error_browser_ = store_->AllocObject<om::ErrorBrowser>();
    scriptHost_->SetNotifyErrorCb([=](om::ErrorBrowser::Record const& r) {
       error_browser_->AddRecord(r);
    });
-   now_ = clock_->GetTime();
-}
 
+   CreateGameModules();
+}
 
 Simulation::~Simulation()
 {
@@ -443,7 +444,7 @@ void Simulation::UpdateGameState()
       int interval = static_cast<int>(game_speed_ * game_tick_interval_);
       now_ = now_ + interval;
       clock_->SetTime(now_);
-      luabind::call_function<int>(game_api_["update"], profile_next_lua_update_);      
+      luabind::call_function<int>(radiant_["update"], profile_next_lua_update_);      
    } catch (std::exception const& e) {
       SIM_LOG(3) << "fatal error initializing game update: " << e.what();
       GetScript().ReportCStackThreadException(GetScript().GetCallbackThread(), e);
@@ -842,7 +843,19 @@ void Simulation::Load()
       SIM_LOG(0) << "failed to load: " << error;
    }
    SIM_LOG(0) << "loaded.";
-   PostGameInit();
+
+   root_entity_ = store_->FetchObject<om::Entity>(1);
+   ASSERT(root_entity_);
+   clock_ = GetEntity(1)->AddComponent<om::Clock>();
+   now_ = clock_->GetTime();
+   radiant_ = scriptHost_->Require("radiant.server");
+
+   error_browser_ = store_->AllocObject<om::ErrorBrowser>();
+   scriptHost_->SetNotifyErrorCb([=](om::ErrorBrowser::Record const& r) {
+      error_browser_->AddRecord(r);
+   });
+
+   LoadGameModules();
 }
 
 void Simulation::Reset()

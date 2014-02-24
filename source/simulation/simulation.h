@@ -126,8 +126,8 @@ private:
    void Initialize();
    void InitializeDataObjects();
    void InitializeGameObjects();
-   void InitializeLuaObjects();
-   void PostGameInit();
+   void CreateGameModules();
+   void LoadGameModules();
 
    void Shutdown();
    void ShutdownGameObjects();
@@ -154,9 +154,9 @@ private:
    std::list<std::weak_ptr<Job>>                jobs_;
    std::list<std::weak_ptr<Task>>               tasks_;
 
-   luabind::object                              game_;
-   luabind::object                              game_api_;
+   luabind::object                              radiant_;
    std::map<dm::ObjectId, om::EntityPtr>        entityMap_;
+   std::map<dm::ObjectId, om::DataStoreRef>     datastores_;  // intentionally sorted!
 
    rpc::SessionPtr             session_;
    rpc::CoreReactorPtr         core_reactor_;

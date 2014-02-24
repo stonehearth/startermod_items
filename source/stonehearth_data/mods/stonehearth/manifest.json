@@ -629,13 +629,9 @@
    "invariant_renderers" : {
       "scaffolding_render_data" : "file(renderers/scaffolding/scaffolding_renderer.lua)"
    },
-   "loader" :  {
-      "ui" : {
-         "homepage" : "file(/ui/root/index.html)"
-      }
-   },
    "ui" :  {
-      "html" : [     
+      "homepage" : "http://radiant/stonehearth/ui/root/index.html",
+      "html" : [
          "file(ui/common/modal_overlay/modal_overlay.html)",
          "file(ui/shell/shell.html)",
          "file(ui/shell/title/title.html)",

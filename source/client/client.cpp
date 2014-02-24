@@ -107,14 +107,10 @@ Client::~Client()
 void Client::InitializeUI()
 {
    core::Config const& config = core::Config::GetInstance();
-   std::string const loader = config.Get<std::string>("game.mod");
-   json::Node const manifest = res::ResourceManager2::GetInstance().LookupManifest(loader);
-   std::string docroot = "http://radiant/" + manifest.get<std::string>("loader.ui.homepage");
+   std::string const main_mod = config.Get<std::string>("game.main_mod");
+   json::Node const manifest = res::ResourceManager2::GetInstance().LookupManifest(main_mod);
+   std::string docroot = manifest.get<std::string>("ui.homepage", "about:");
 
-   // skip title screen if there is a script override
-   if (config.Has("game.script")) {
-      docroot += "?skip_title=true";
-   }
    browser_->Navigate(docroot);
 }
 

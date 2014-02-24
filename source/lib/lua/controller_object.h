@@ -28,9 +28,13 @@ public:
       return lua_object_;
    }
 
+   void SetLuaObject(luabind::object obj) const {
+      lua_object_ = obj;
+   }
+
 private:
-   std::string       lua_source_;
-   luabind::object   lua_object_;
+   std::string                lua_source_;
+   mutable luabind::object    lua_object_;
 };
 
 DECLARE_SHARED_POINTER_TYPES(ControllerObject)
