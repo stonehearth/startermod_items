@@ -72,9 +72,12 @@ public:
 
 private:
    void Validate() const;
-   std::map<int, std::unique_ptr<Region<S, C>>> SplitByTagType();
-   S GetOctTreeCubeSize(Cube const& bounds);
+   bool ContainsAtMostOneTag() const;
+   std::map<int, std::unique_ptr<Region<S, C>>> SplitByTag() const;
+   S GetOctTreeCubeSize(Cube const& bounds) const;
    void OptimizeOctTreeCube(Cube const& bounds);
+   void OptimizeOneTagByMerge();
+   void OptimizeOneTagByOctTree();
 
 public:
    template <class T> void SaveValue(T* msg) const {

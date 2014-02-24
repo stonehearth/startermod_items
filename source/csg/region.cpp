@@ -332,7 +332,7 @@ void Region<S, C>::Optimize()
 }
 
 template <class S, int C>
-std::map<int, std::unique_ptr<Region<S, C>>> Region<S, C>::SplitByTagType()
+std::map<int, std::unique_ptr<Region<S, C>>> Region<S, C>::SplitByTag() const
 {
    std::map<int, std::unique_ptr<Region<S, C>>> map;
 
@@ -353,7 +353,25 @@ std::map<int, std::unique_ptr<Region<S, C>>> Region<S, C>::SplitByTagType()
 }
 
 template <class S, int C>
-S Region<S, C>::GetOctTreeCubeSize(Cube const& bounds)
+bool Region<S, C>::ContainsAtMostOneTag() const
+{
+   if (IsEmpty()) {
+      return true;
+   }
+
+   int tag = cubes_[0].GetTag();
+   unsigned int size = GetRectCount();
+
+   for (unsigned int i = 1; i < size; i++) {
+      if (cubes_[i].GetTag() != tag) {
+         return false;
+      }
+   }
+   return true;
+}
+
+template <class S, int C>
+S Region<S, C>::GetOctTreeCubeSize(Cube const& bounds) const
 {
    Point widths = bounds.max - bounds.min;
    S minDimension = widths[0];
@@ -375,7 +393,7 @@ S Region<S, C>::GetOctTreeCubeSize(Cube const& bounds)
    return size;
 }
 
-// assumes region contains only 1 tag type!
+// assumes all cubes have the same tag
 // pass in the bounds so we don't have to call O(n) Region::GetBounds()
 template <class S, int C>
 void Region<S, C>::OptimizeOctTreeCube(Cube const& bounds)
@@ -399,14 +417,14 @@ void Region<S, C>::OptimizeOctTreeCube(Cube const& bounds)
 
    if (GetCubeCount() <= minCubeCounts[C]) {
       // merging is optimal for <= 5 rects and <= 7? cubes
-      OptimizeByMerge();
+      OptimizeOneTagByMerge();
       return;
    }
 
    S cubeSize = max[0] - min[0];
 
    if (cubeSize < minCubeSize) {
-      OptimizeByMerge();
+      OptimizeOneTagByMerge();
       return;
    }
 
@@ -457,13 +475,14 @@ void Region<S, C>::OptimizeOctTreeCube(Cube const& bounds)
    *this = optimized;
 }
 
-// TODO: partition by tag type!
+// assumes all cubes have the same tag
 template <class S, int C>
-void Region<S, C>::OptimizeByOctTree()
+void Region<S, C>::OptimizeOneTagByOctTree()
 {
    if (IsEmpty()) {
       return;
    }
+   ASSERT(ContainsAtMostOneTag());
    Validate();
 
    S areaBefore = GetArea();
@@ -471,11 +490,12 @@ void Region<S, C>::OptimizeByOctTree()
    Cube const bounds = GetBounds();
    S cubeSize = GetOctTreeCubeSize(bounds);
    if (cubeSize < 4) {
-      OptimizeByMerge();
+      OptimizeOneTagByMerge();
       return;
    }
 
-   REGION_LOG(7) << "Optimizing region by OctTree - bounds: " << bounds;
+   Point dimensions = bounds.GetMax() - bounds.GetMin();
+   REGION_LOG(7) << "Optimizing region" << C << " by OctTree - size: " << dimensions;
    REGION_LOG(7) << "OctTree max cube size: " << cubeSize;
    REGION_LOG(7) << "# cubes before optimization: " << GetCubeCount();
 
@@ -503,6 +523,8 @@ void Region<S, C>::OptimizeByOctTree()
       }
 
       childBounds = Cube(pt1, pt2);
+
+      // this intersection and subtraction could be performed in one step
       intersection = *this & childBounds;
       *this -= childBounds;
 
@@ -534,7 +556,7 @@ void Region<S, C>::OptimizeByOctTree()
    *this = optimized;
    REGION_LOG(7) << "# cubes after optimization phase 1: " << GetCubeCount();
 
-   OptimizeByMerge();
+   OptimizeOneTagByMerge();
    REGION_LOG(7) << "# cubes after optimization phase 2: " << GetCubeCount();
 
    S areaAfter = GetArea();
@@ -542,22 +564,79 @@ void Region<S, C>::OptimizeByOctTree()
    Validate();
 }
 
-// could speed up by grouping by tag
+template <class S, int C>
+void Region<S, C>::OptimizeByOctTree()
+{
+   if (IsEmpty()) {
+      return;
+   }
+
+   Cube bounds = GetBounds();
+   Point dimensions = bounds.GetMax() - bounds.GetMin();
+   REGION_LOG(7) << "Optimizing region" << C << " by oct tree - size: " << dimensions;
+   REGION_LOG(7) << "# cubes before optimization: " << GetCubeCount();
+
+   std::map<int, std::unique_ptr<Region>> regions = SplitByTag();
+
+   if (regions.size() == 1) {
+      OptimizeOneTagByOctTree();
+      return;
+   }
+
+   Clear();
+
+   for (auto const& i : regions) {
+      Region& region = *i.second;
+      region.OptimizeOneTagByOctTree();
+      AddUnique(region);
+   }
+
+   REGION_LOG(7) << "# cubes after optimization: " << GetCubeCount();
+}
+
 template <class S, int C>
 void Region<S, C>::OptimizeByMerge()
 {
    if (IsEmpty()) {
       return;
    }
+
+   Cube bounds = GetBounds();
+   Point dimensions = bounds.GetMax() - bounds.GetMin();
+   REGION_LOG(7) << "Optimizing region" << C << " by merge - size: " << dimensions;
+   REGION_LOG(7) << "# cubes before optimization: " << GetCubeCount();
+
+   std::map<int, std::unique_ptr<Region>> regions = SplitByTag();
+
+   if (regions.size() == 1) {
+      OptimizeOneTagByMerge();
+      return;
+   }
+
+   Clear();
+
+   for (auto const& i : regions) {
+      Region& region = *i.second;
+      region.OptimizeOneTagByMerge();
+      AddUnique(region);
+   }
+
+   REGION_LOG(7) << "# cubes after optimization: " << GetCubeCount();
+}
+
+// assumes all cubes have the same tag
+template <class S, int C>
+void Region<S, C>::OptimizeOneTagByMerge()
+{
+   if (IsEmpty()) {
+      return;
+   }
+   ASSERT(ContainsAtMostOneTag());
    Validate();
    S areaBefore = GetArea();
 
    unsigned int i, j, merged;
    unsigned int size = cubes_.size();
-   unsigned int sizeBefore = size;
-
-   //REGION_LOG(7) << "Optimizing region by merge - bounds: " << GetBounds();
-   //REGION_LOG(7) << "# cubes before optimization: " << sizeBefore;
 
    do {
       merged = false;
@@ -584,8 +663,6 @@ void Region<S, C>::OptimizeByMerge()
    } while (merged);
 
    cubes_.resize(size);
-
-   //REGION_LOG(7) << "# cubes after optimization: " << size;
 
    S areaAfter = GetArea();
    ASSERT(areaBefore == areaAfter);
