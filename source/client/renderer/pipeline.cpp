@@ -19,6 +19,11 @@ using ::radiant::csg::Point3;
 using namespace ::radiant;
 using namespace ::radiant::client;
 
+enum UserFlags {
+   None = 0,
+   Terrain = 1
+};
+
 DEFINE_SINGLETON(Pipeline);
 
 static const struct {
@@ -51,7 +56,7 @@ H3DRes Pipeline::CreateVoxelGeometryFromRegion(const std::string& geoName, csg::
 H3DNode Pipeline::AddDynamicMeshNode(H3DNode parent, const csg::mesh_tools::mesh& m, std::string const& material)
 {   
    H3DRes geometry = ConvertMeshToGeometryResource(m);
-   return CreateModelNode(parent, geometry, m.indices.size(), m.vertices.size(), material);
+   return CreateModelNode(parent, geometry, m.indices.size(), m.vertices.size(), material, UserFlags::Terrain);
 }
 
 H3DNode Pipeline::AddSharedMeshNode(H3DNode parent, ResourceCacheKey const& key, std::string const& material, std::function<void(csg::mesh_tools::mesh &)> create_mesh_fn)
@@ -74,7 +79,7 @@ H3DNode Pipeline::AddSharedMeshNode(H3DNode parent, ResourceCacheKey const& key,
    int vertexCount = h3dGetResParamI(geometry, Horde3D::VoxelGeometryResData::VoxelGeometryElem, 0, 
                                      Horde3D::VoxelGeometryResData::VoxelGeoVertexCountI);
 
-   return CreateModelNode(parent, geometry, indexCount, vertexCount, material);
+   return CreateModelNode(parent, geometry, indexCount, vertexCount, material, UserFlags::None);
 }
 
 
@@ -99,7 +104,7 @@ csg::mesh_tools::mesh Pipeline::CreateMeshFromRegion(csg::Region3 const& region)
    return mesh;
 }
 
-H3DNode Pipeline::CreateModelNode(H3DNode parent, H3DRes geometry, int indexCount, int vertexCount, std::string const& material)
+H3DNode Pipeline::CreateModelNode(H3DNode parent, H3DRes geometry, int indexCount, int vertexCount, std::string const& material, int userFlags)
 {
    ASSERT(!material.empty());
 
@@ -111,6 +116,7 @@ H3DNode Pipeline::CreateModelNode(H3DNode parent, H3DRes geometry, int indexCoun
    H3DRes matRes = h3dAddResource(H3DResTypes::Material, material.c_str(), 0);
    H3DNode model_node = h3dAddVoxelModelNode(parent, model_name.c_str(), geometry);
    H3DNode mesh_node = h3dAddVoxelMeshNode(model_node, mesh_name.c_str(), matRes, 0, indexCount, 0, vertexCount - 1);
+   h3dSetNodeParamI(mesh_node, H3DNodeParams::UserFlags, userFlags);
 
    // xxx: how do res, matRes, and mesh_node get deleted? - tony
    return model_node;

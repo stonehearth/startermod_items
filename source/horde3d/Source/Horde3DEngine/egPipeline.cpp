@@ -249,8 +249,9 @@ const std::string PipelineResource::parseStage( XMLNode const &node, PipelineSta
 			
          stage->commands.push_back( PipelineCommand( PipelineCommands::DrawProjections ) );
 			vector< PipeCmdParam > &params = stage->commands.back().params;
-			params.resize( 1 );			
+			params.resize( 2 );
 			params[0].setString( node1.getAttribute( "context" ) );
+         params[1].setInt( atoi(node1.getAttribute( "userFlags", "0" )) );
 		}
 		else if( strcmp( node1.getName(), "DrawOverlays" ) == 0 )
 		{

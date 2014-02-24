@@ -38,7 +38,7 @@ using namespace std;
 SceneNode::SceneNode( const SceneNodeTpl &tpl ) :
 	_parent( 0x0 ), _type( tpl.type ), _handle( 0 ), _sgHandle( 0 ), _flags( 0 ), _sortKey( 0 ),
 	_dirty( true ), _transformed( true ), _renderable( false ),
-	_name( tpl.name ), _attachment( tpl.attachmentString )
+	_name( tpl.name ), _attachment( tpl.attachmentString ), _userFlags(0)
 {
 	_relTrans = Matrix4f::ScaleMat( tpl.scale.x, tpl.scale.y, tpl.scale.z );
 	_relTrans.rotate( degToRad( tpl.rot.x ), degToRad( tpl.rot.y ), degToRad( tpl.rot.z ) );
@@ -162,12 +162,22 @@ void SceneNode::twiddleFlags( int flags, bool on, bool recursive )
 
 int SceneNode::getParamI( int param )
 {
+   switch (param) {
+   case SceneNodeParams::UserFlags:
+      return _userFlags;
+   }
 	Modules::setError( "Invalid param in h3dGetNodeParamI" );
 	return Math::MinInt32;
 }
 
 void SceneNode::setParamI( int param, int value )
 {
+   switch (param)
+   {
+   case SceneNodeParams::UserFlags:
+      _userFlags = value;
+      return;
+   }
 	Modules::setError( "Invalid param in h3dSetNodeParamI" );
 }
 
@@ -417,6 +427,9 @@ void SpatialGraph::query(const SpatialQuery& query, RenderableQueues& renderable
       if ((node->_flags & query.filterRequired) != query.filterRequired) {
          continue;
       }
+      if ((node->_userFlags & query.userFlags) != query.userFlags) {
+         continue;
+      }
 
       if (query.useRenderableQueue) {
          if (!node->_renderable) {
@@ -567,7 +580,7 @@ void SceneManager::updateNodes()
 
 
 void SceneManager::updateQueues( const char* reason, const Frustum &frustum1, const Frustum *frustum2, RenderingOrder::List order,
-                                 uint32 filterIgnore, uint32 filterRequired, bool useLightQueue, bool useRenderableQueue, bool forceNoInstancing )
+                                 uint32 filterIgnore, uint32 filterRequired, bool useLightQueue, bool useRenderableQueue, bool forceNoInstancing, uint32 userFlags )
 {
    radiant::perfmon::TimelineCounterGuard uq("updateQueues");
 
@@ -580,6 +593,7 @@ void SceneManager::updateQueues( const char* reason, const Frustum &frustum1, co
    query.useLightQueue = useLightQueue;
    query.useRenderableQueue = useRenderableQueue;
    query.forceNoInstancing = forceNoInstancing;
+   query.userFlags = userFlags;
 
    _currentQuery = _checkQueryCache(query);
  
@@ -606,6 +620,7 @@ void SceneManager::updateQueues( const char* reason, const Frustum &frustum1, co
     sqr.query.useLightQueue = useLightQueue;
     sqr.query.useRenderableQueue = useRenderableQueue;
     sqr.query.forceNoInstancing = forceNoInstancing;
+    sqr.query.userFlags = userFlags;
  
    // Clear without affecting capacity
     if (useLightQueue) 
@@ -1008,7 +1023,11 @@ int SceneManager::_checkQueryCache(const SpatialQuery& query)
       {
          continue;
       }
-      if (r.query.filterRequired!= query.filterRequired)
+      if (r.query.filterRequired != query.filterRequired)
+      {
+         continue;
+      }
+      if (r.query.userFlags != query.userFlags)
       {
          continue;
       }

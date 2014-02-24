@@ -1872,7 +1872,7 @@ void Renderer::drawGeometry( const std::string &shaderContext, const std::string
 }
 
 
-void Renderer::drawProjections( const std::string &shaderContext)
+void Renderer::drawProjections( const std::string &shaderContext, uint32 userFlags )
 {   
    int numProjectorNodes = Modules::sceneMan().findNodes(Modules::sceneMan().getRootNode(), "", SceneNodeTypes::ProjectorNode);
 
@@ -1889,7 +1889,7 @@ void Renderer::drawProjections( const std::string &shaderContext)
       const BoundingBox& b = n->getBBox();
       f.buildBoxFrustum(m, b.min().x, b.max().x, b.min().y, b.max().y, b.min().z, b.max().z);
       Modules::sceneMan().updateQueues("drawing geometry", f, 0x0, RenderingOrder::None,
-	                                    SceneNodeFlags::NoDraw, 0, false, true );
+	                                    SceneNodeFlags::NoDraw, 0, false, true, false, userFlags);
 
       _projectorMat = n->getAbsTrans();
       drawRenderables( shaderContext, "", false, &_curCamera->getFrustum(), 0x0, RenderingOrder::None, -1);
@@ -3133,8 +3133,9 @@ void Renderer::render( CameraNode *camNode )
 				              (RenderingOrder::List)pc.params[2].getInt(),
                           pc.params[3].getInt(), _curCamera->_occSet, pc.params[4].getFloat(), pc.params[5].getFloat() );
 				break;
+
          case PipelineCommands::DrawProjections:
-            drawProjections(pc.params[0].getString());
+            drawProjections(pc.params[0].getString(), pc.params[1].getInt());
             break;
 
 			case PipelineCommands::DrawOverlays:
