@@ -3,7 +3,9 @@
    "components": {
       "unit_info": {
          "name": "Carpenter Workbench",
-         "description": "Unclaimed"
+         "description": "Unclaimed",
+         "portrait": "file(carpenter_workbench.png)",
+         "character_sheet_info" : "file(carpenter_workbench_character_sheet_info.json)"         
       },
       "stonehearth:commands" : {
          "commands" : [

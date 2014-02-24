@@ -16,7 +16,8 @@
       }, 
       "unit_info": {
          "name": "Small Juniper Tree", 
-         "description": "Just a sapling."
+         "description": "Just a sapling.",
+         "portrait": "file(small_juniper_tree.png)"
       }, 
       "stonehearth:resource_node": {
          "resource": "stonehearth:juniper_log", 
