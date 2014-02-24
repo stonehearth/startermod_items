@@ -89,7 +89,4 @@ function ObjectTrackerService:get_craftable_tracker(faction)
    end)
 end 
 
-
-
-
-return ObjectTrackerService()
+return ObjectTrackerService

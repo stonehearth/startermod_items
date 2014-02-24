@@ -59,7 +59,6 @@ public:
    om::EntityPtr Simulation::GetEntity(dm::ObjectId id);
    void DestroyEntity(dm::ObjectId id);
 
-   void CreateNew();
    void Save(std::string id);
    void Load(std::string id);
 
@@ -98,7 +97,6 @@ private:
 
    void SendReply(tesseract::protocol::PostCommandReply const& reply);
    void InitializeModules();
-   void InitDataModel();
    void main(); // public for the server.  xxx - there's a better way to factor this between the server and the in-proc listen server
    void Mainloop();
    void Idle();
@@ -119,19 +117,34 @@ private:
    void EncodeServerTick(std::shared_ptr<RemoteClient> c);
    void EncodeUpdates(std::shared_ptr<RemoteClient> c);
 
+   void Reload();
+   void Save();
+   void Load();
+   void Reset();
+
+   void OneTimeIninitializtion();
+   void Initialize();
+   void InitializeDataObjects();
+   void InitializeGameObjects();
+   void InitializeLuaObjects();
+   void PostGameInit();
+
+   void Shutdown();
+   void ShutdownGameObjects();
+   void ShutdownDataObjects();
+   void ShutdownLuaObjects();
+
+   void CreateGame();
+
 private:
-   dm::Store                                             store_;
-   core::Guard                                             guards_;
-   std::vector<std::pair<dm::ObjectId, dm::ObjectType>>  allocated_;
-   std::vector<dm::ObjectId>                             destroyed_;
-   std::unique_ptr<phys::OctTree>                     octtree_;
+   std::unique_ptr<dm::Store>                            store_;
+   std::unique_ptr<phys::OctTree>                        octtree_;
    std::unique_ptr<lua::ScriptHost>                      scriptHost_;
 
    // Good stuff down here.
 
    // Terrain Infrastructure
    int                                          now_;
-   int                                          lastNow_;
    bool                                         _showDebugNodes;
    bool                                         _singleStepPathFinding;
    bool                                         debug_navgrid_enabled_;
@@ -140,9 +153,7 @@ private:
    std::unordered_map<dm::ObjectId, EntityJobSchedulerPtr>  entity_jobs_schedulers_;
    std::list<std::weak_ptr<Job>>                jobs_;
    std::list<std::weak_ptr<Task>>               tasks_;
-   std::unordered_map<std::string, luabind::object>   routes_;
 
-   luabind::object                              p1_;
    luabind::object                              game_;
    luabind::object                              game_api_;
    std::map<dm::ObjectId, om::EntityPtr>        entityMap_;
@@ -158,7 +169,6 @@ private:
    dm::TracerBufferedPtr   lua_traces_;
    dm::StoreTracePtr       store_trace_;
 
-   int            sequence_number_;
    bool           paused_;
    bool           noidle_;
    boost::asio::io_service*            _io_service;
@@ -172,6 +182,9 @@ private:
    bool                                profile_next_lua_update_;
    rpc::ReactorDeferredPtr             task_manager_deferred_;
    rpc::ReactorDeferredPtr             perf_counter_deferred_;
+   rpc::LuaModuleRouterPtr             luaModuleRouter_;
+   rpc::LuaObjectRouterPtr             luaObjectRouter_;
+   rpc::TraceObjectRouterPtr           traceObjectRouter_;
    perfmon::Timeline                   perf_timeline_;
    platform::timer                     next_counter_push_;
    core::Guard                         on_frame_end_guard_;

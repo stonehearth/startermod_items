@@ -1,28 +1,37 @@
-function get_service(name)
-   local service_name = string.format('services.%s.%s_service', name, name)
-   return require(service_name)
+function create_service(name)
 end
 
-stonehearth = {}
+stonehearth = {
+   constants = require 'constants'
+}
 
-stonehearth.constants = require 'constants'
-stonehearth.ai = get_service('ai')
-stonehearth.events = get_service('event')
-stonehearth.calendar = get_service('calendar')
-stonehearth.combat = get_service('combat')
-stonehearth.substitution = get_service('substitution')
-stonehearth.personality = get_service('personality')
-stonehearth.inventory = get_service('inventory')
-stonehearth.scenario = get_service('scenario')
-stonehearth.population = get_service('population')
-stonehearth.object_tracker = get_service('object_tracker')
-stonehearth.world_generation = get_service('world_generation')
-stonehearth.build = get_service('build')
-stonehearth.game_master = get_service('game_master')
-stonehearth.analytics = get_service('analytics')
-stonehearth.tasks = get_service('tasks')
-stonehearth.terrain = get_service('terrain')
-stonehearth.threads = get_service('threads')
-stonehearth.town = get_service('town')
-
+radiant.events.listen(stonehearth, 'radiant:new_game', function(args)
+      
+      local datastore = args.datastore
+      local service_creation_order = {
+         'ai',
+         'events',
+         'calendar',
+         'combat',
+         'substitution',
+         'personality',
+         'inventory',
+         'scenario',
+         'population',
+         'object_tracker',
+         'world_generation',
+         'build',
+         'game_master',
+         'analytics',
+         'tasks',
+         'terrain',
+         'threads',
+         'town',         
+      }
+      for _, service_name in ipairs(service_creation_order) do
+         local path = string.format('services.%s.%s_service', service_name, service_name)
+         local service = require(path)(datastore)
+         stonehearth[service_name] = service
+      end
+   end)
 return stonehearth

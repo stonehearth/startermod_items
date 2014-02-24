@@ -1,5 +1,3 @@
-local event_service = stonehearth.events
-
 local FearFire = class()
 
 local Point3 = _radiant.csg.Point3

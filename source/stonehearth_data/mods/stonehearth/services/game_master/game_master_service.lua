@@ -11,4 +11,5 @@ function GameMasterService:start()
    table.insert(self._scenarions, scenario)
 end
 
-return GameMasterService()
+return GameMasterService
+

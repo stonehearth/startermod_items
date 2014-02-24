@@ -150,4 +150,5 @@ function TerrainService:_get_region(map, faction)
    return boxed_region
 end
 
-return TerrainService()
+return TerrainService
+

@@ -69,6 +69,11 @@ Renderer::Renderer() :
    resize_pending_(false),
    drawWorld_(false)
 {
+   OneTimeIninitializtion();
+}
+
+void Renderer::OneTimeIninitializtion()
+{
    terrainConfig_ = res::ResourceManager2::GetInstance().LookupJson("stonehearth/renderers/terrain/terrain_renderer.json");
    GetConfigOptions();
 
@@ -811,7 +816,7 @@ void Renderer::Initialize(om::EntityPtr rootObject)
    debugShapes_ = h3dRadiantAddDebugShapes(H3DRootNode, "renderer debug shapes");
 }
 
-void Renderer::Cleanup()
+void Renderer::Shutdown()
 {
    rootRenderObject_ = NULL;
    for (auto& e : entities_) {

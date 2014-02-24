@@ -4,7 +4,7 @@ local CompoundActionFactory = require 'services.ai.compound_action_factory'
 local placeholders = require 'services.ai.placeholders'
 local log = radiant.log.create_logger('ai.service')
 
-function AiService:__init()
+function AiService:__init(datastore)
    -- SUSPEND_THREAD is a unique, non-integer token which indicates the thread
    -- should suspend.  It must be non-intenger, as yielding an int means "wait
    -- until this time".  By creating a table, we guarantee the value of
@@ -168,4 +168,4 @@ function AiService:get_next_object_id()
    return LAST_ID
 end
 
-return AiService()
+return AiService

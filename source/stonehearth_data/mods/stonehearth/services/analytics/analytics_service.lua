@@ -4,7 +4,7 @@ local AnalyticsService = class()
 local population_service = stonehearth.population
 local object_tracker = stonehearth.object_tracker
 
-function AnalyticsService:__init()
+function AnalyticsService:__init(datastore)
    radiant.events.listen(radiant.events, 'stonehearth:minute_poll', self, self.on_minute_poll)
    radiant.events.listen(radiant.events, 'stonehearth:ten_minute_poll', self, self.on_ten_minute_poll)
 end
@@ -87,4 +87,4 @@ function AnalyticsService:_format(input)
    return string.gsub(input, '%W', '_')
 end
 
-return AnalyticsService()
+return AnalyticsService

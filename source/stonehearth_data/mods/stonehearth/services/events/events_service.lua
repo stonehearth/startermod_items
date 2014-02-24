@@ -1,6 +1,6 @@
 EventService = class()
 
-function EventService:__init()
+function EventService:__init(datastore)
    self._entries = {}
 end
 
@@ -21,4 +21,4 @@ function EventService:get_entries()
    return self._entries
 end
 
-return EventService()
+return EventService

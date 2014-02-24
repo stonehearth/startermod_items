@@ -20,7 +20,9 @@ public:
    ReactorDeferredPtr InstallTrace(Trace const& t);
    ReactorDeferredPtr RemoveTrace(UnTrace const& u);
 
+   void RemoveRouter(IRouterPtr router);
    void AddRouter(IRouterPtr router);
+   void SetRemoteRouter(IRouterPtr router);
    void AddRoute(std::string const& route, CallCb cb);
    void AddRouteB(std::string const& route, CallBCb cb);
    void AddRouteV(std::string const& route, CallVCb cb);
@@ -30,6 +32,7 @@ private:
    std::string FindRouteToFunction(Function const& fn);
 
 private:
+   IRouterPtr                                remoteRouter_;
    std::vector<IRouterPtr>                   routers_;
    std::unordered_map<std::string, CallCb>   routes_;
 };

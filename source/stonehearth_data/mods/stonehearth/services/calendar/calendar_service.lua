@@ -21,9 +21,8 @@ local constants = radiant.resources.load_json('/stonehearth/services/calendar/ca
 
 CalendarService = class()
 
-function CalendarService:__init()
+function CalendarService:__init(datastore)
    self._timers = {}
-   self._event_service = stonehearth.events
    self._constants = constants
    radiant.events.listen(radiant.events, 'stonehearth:gameloop', self, self._on_event_loop)
 
@@ -150,7 +149,7 @@ function CalendarService:fire_time_of_day_events()
 
       radiant.events.trigger(self, 'stonehearth:sunrise')
       --xxx localise
-      self._event_service:add_entry('The sun has risen on ' .. self:format_date() .. '.')
+      stonehearth.events:add_entry('The sun has risen on ' .. self:format_date() .. '.')
       data._fired_sunrise_today = true
       data._fired_midnight_today = false
       return
@@ -169,7 +168,7 @@ function CalendarService:fire_time_of_day_events()
 
       radiant.events.trigger(self, 'stonehearth:sunset')
       --xxx localize
-      self._event_service:add_entry('The sun has set.')
+      stonehearth.events:add_entry('The sun has set.')
       data._fired_sunset_today = true
       return
    end
@@ -198,4 +197,5 @@ function CalendarService:get_time_and_date()
    return data.date
 end
 
-return CalendarService()
+return CalendarService
+

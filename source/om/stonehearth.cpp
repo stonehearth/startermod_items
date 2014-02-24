@@ -119,7 +119,7 @@ static object
 GetLuaComponent(lua_State* L, EntityPtr entity, std::string const& name)
 {
    DataStorePtr ds = GetLuaComponentDataStore(L, entity, name);
-   return ds ? ds->GetController() : object();
+   return ds ? ds->GetController().GetLuaObject() : object();
 }
 
 static object
@@ -205,14 +205,14 @@ AddLuaComponent(lua_State* L, EntityPtr entity, std::string const& name)
    luabind::object controller;
    DataStorePtr ds = GetLuaComponentDataStore(L, entity, name);
    if (ds) {
-      controller = ds->GetController();
+      controller = ds->GetController().GetLuaObject();
    } else {
       std::string uri = GetLuaComponentUri(name);
       object ctor = lua::ScriptHost::RequireScript(L, uri);
 
       ds = AddLuaComponentDataStore(L, entity, name);
       controller = call_function<object>(ctor, EntityRef(entity), ds);
-      ds->SetController(lua::ControllerObject(controller));
+      ds->SetController(lua::ControllerObject(uri, controller));
    }
    return controller;
 }
@@ -294,7 +294,7 @@ void Stonehearth::InitEntity(EntityPtr entity, std::string const& uri, lua_State
          dm::ObjectPtr obj = entry.second;
          if (obj->GetObjectType() == DataStoreObjectType) {
             DataStorePtr ds = std::static_pointer_cast<DataStore>(obj);
-            object controller = ds->GetController();
+            object controller = ds->GetController().GetLuaObject();
             if (controller && controller.is_valid()) {
                object on_created = controller["on_created"];
                if (type(on_created) == LUA_TFUNCTION) {

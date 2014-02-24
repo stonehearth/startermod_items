@@ -494,6 +494,16 @@ void ScriptHost::Trigger(const std::string& eventName)
    }
 }
 
+void ScriptHost::TriggerOn(luabind::object obj, const std::string& eventName, luabind::object args)
+{
+   try {
+      luabind::object radiant = globals(cb_thread_)["radiant"];
+      radiant["events"]["trigger"](obj, eventName, args);
+   } catch (std::exception const& e) {
+      ReportCStackThreadException(cb_thread_, e);
+   }
+}
+
 void ScriptHost::ClearMemoryProfile()
 {
    if (enable_profile_memory_) {

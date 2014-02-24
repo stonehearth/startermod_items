@@ -1,4 +1,4 @@
-local EventTracker = require 'services.event.event_tracker'
+local EventTracker = require 'services.events.event_tracker'
 
 local EventCallHandler = class()
 

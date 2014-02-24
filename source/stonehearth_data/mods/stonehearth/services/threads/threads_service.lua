@@ -18,4 +18,4 @@ function ThreadsService:get_current_thread()
    return Thread.get_current_thread()
 end
 
-return ThreadsService()
+return ThreadsService

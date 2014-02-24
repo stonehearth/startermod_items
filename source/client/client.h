@@ -62,8 +62,8 @@ class Client : public core::Singleton<Client> {
       om::EntityPtr CreateAuthoringEntity(std::string const& uri);
       void DestroyAuthoringEntity(dm::ObjectId id);
 
-      dm::Store& GetStore() { return store_; }
-      dm::Store& GetAuthoringStore() { return authoringStore_; }
+      dm::Store& GetStore() { return *store_; }
+      dm::Store& GetAuthoringStore() { return *authoringStore_; }
       phys::OctTree& GetOctTree() const { return *octtree_; }
 
       typedef int CursorStackId;
@@ -99,6 +99,7 @@ class Client : public core::Singleton<Client> {
       void RemoveObjects(const tesseract::protocol::RemoveObjects& msg);
       void UpdateDebugShapes(const tesseract::protocol::UpdateDebugShapes& msg);
       void DefineRemoteObject(const tesseract::protocol::DefineRemoteObject& msg);
+      void ClearClientState(const tesseract::protocol::ClearClientState& msg);
 
       void mainloop();
       void setup_connections();
@@ -110,7 +111,6 @@ class Client : public core::Singleton<Client> {
       void OnRawInput(Input const& keyboard);
       bool CallInputHandlers(Input const& input);
 
-      void Reset();
       void UpdateSelection(const MouseInput &mouse);
       void CenterMap(const MouseInput &mouse);
 
@@ -137,7 +137,18 @@ class Client : public core::Singleton<Client> {
       void HandleServerCallRequest(std::string const& obj, std::string const& function_name, json::Node const& node, rpc::HttpDeferredPtr response);
       void BrowserCallRequestHandler(json::Node const& query, std::string const& postdata, rpc::HttpDeferredPtr response);
       void CallHttpReactor(std::string parts, json::Node query, std::string postdata, rpc::HttpDeferredPtr response);
-      void InitDataModel();
+
+      void RequestReload();
+      void OneTimeIninitializtion();
+      void InitializeUI();
+      void Initialize();
+      void InitializeDataObjects();
+      void InitializeGameObjects();
+      void InitializeLuaObjects();
+      void Shutdown();
+      void ShutdownGameObjects();
+      void ShutdownDataObjects();
+      void ShutdownLuaObjects();
 
 private:
       /*
@@ -147,34 +158,28 @@ private:
       typedef std::unordered_map<std::string, Cursor>    CursorMap;
 
       // connection to the server...
-      boost::asio::io_service       _io_service;
-      boost::asio::ip::tcp::socket  _tcp_socket;
+      boost::asio::io_service          _io_service;
+      boost::asio::ip::tcp::socket     _tcp_socket;
       std::unique_ptr<Clock>           game_clock_;
-      int                              last_sequence_number_;
       protocol::SendQueuePtr           send_queue_;
       protocol::RecvQueuePtr           recv_queue_;
       int                              server_port_;
 
-      // the local object trace system...
-      dm::TraceId             nextTraceId_;
-      std::map<dm::TraceId, core::Guard>         uriTraces_;
-   
       // remote object storage and tracking...
-      dm::Store                        store_;
+      std::unique_ptr<dm::Store>       store_;
       om::EntityPtr                    rootObject_;
       om::EntityRef                    selectedObject_;
       std::vector<om::EntityRef>       hilightedObjects_;
 
       // local authoring object storage and tracking...
-      dm::Store                        authoringStore_;
+      std::unique_ptr<dm::Store>       authoringStore_;
       std::unordered_map<dm::ObjectId, om::EntityPtr> authoredEntities_;
 
       // local collision tests...
       std::unique_ptr<phys::OctTree>     octtree_;
 
       // the ui browser object...
-      std::unique_ptr<chromium::IBrowser>   browser_;      
-      std::unordered_map<std::string, luabind::object>   clientRoutes_;
+      std::unique_ptr<chromium::IBrowser>    browser_;      
       std::vector<std::function<void()>>     browserJobQueue_;
       std::mutex                             browserJobQueueLock_;
 
@@ -190,19 +195,11 @@ private:
       CursorStackId                                       next_cursor_stack_id_;
       std::vector<std::pair<CursorStackId, Cursor>>       cursor_stack_;
 
-      // server requests...
-      int                              last_server_request_id_;
-      std::map<int, std::function<void(tesseract::protocol::Update const& reply)> >  server_requests_;
-
       // server side remote object tracking...
       om::ErrorBrowserPtr                             error_browser_;
 
       // client side lua...
       std::unique_ptr<lua::ScriptHost>  scriptHost_;
-
-      // for playing sounds
-      //sf::SoundBuffer soundBuffer_;
-      //sf::Sound       sound_;
 
       InputHandlerId                                           next_input_id_;
       std::vector<std::pair<InputHandlerId, InputHandlerCb>>   input_handlers_;
@@ -212,12 +209,17 @@ private:
       rpc::HttpReactorPtr         http_reactor_;
       rpc::HttpDeferredPtr        get_events_deferred_;
       rpc::ProtobufRouterPtr      protobuf_router_;
+      rpc::LuaModuleRouterPtr     luaModuleRouter_;
+      rpc::LuaObjectRouterPtr     luaObjectRouter_;
+      rpc::TraceObjectRouterPtr   traceObjectRouter_;
+      rpc::TraceObjectRouterPtr   traceAuthoredObjectRouter_;
       int                         mouse_x_;
       int                         mouse_y_;
-      core::Guard                 guards_;
+      core::Guard                 browserResizeGuard_;
       bool                        perf_hud_shown_;
       bool                        connected_;
       bool                        enable_debug_cursor_;
+
 
       dm::TracerSyncPtr           object_model_traces_;
       dm::TracerBufferedPtr       game_render_tracer_;

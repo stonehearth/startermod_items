@@ -358,4 +358,5 @@ function WorldGenerationService:_yield()
    end
 end
 
-return WorldGenerationService()
+return WorldGenerationService
+

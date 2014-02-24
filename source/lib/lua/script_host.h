@@ -35,6 +35,7 @@ public:
    void ReportCStackThreadException(lua_State* L, std::exception const& e);
    void ReportLuaStackException(std::string const& error, std::string const& traceback);
    void Trigger(const std::string& eventName);
+   void TriggerOn(luabind::object obj, const std::string& eventName, luabind::object args);
 
    typedef std::function<void(::radiant::om::ErrorBrowser::Record const&)> ReportErrorCb;
    void SetNotifyErrorCb(ReportErrorCb const& cb);

@@ -19,6 +19,7 @@ class DataStore(dm.Record):
    """
 
    _includes = [
+      "dm/record.h",
       "lib/lua/controller_object.h",
       "lib/lua/data_object.h",
    ]

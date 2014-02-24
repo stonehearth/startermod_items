@@ -16,10 +16,10 @@ using namespace radiant::json;
       return result; \
    }
 
-      OM_OBJECT(Sensor,         sensor)
-      OM_OBJECT(TargetTable,        target_table)
-      OM_OBJECT(TargetTableGroup,   target_table_group)
-      OM_OBJECT(TargetTableEntry,   target_table_entry)
+      OM_OBJECT(Sensor,                sensor)
+      OM_OBJECT(TargetTable,           target_table)
+      OM_OBJECT(TargetTableGroup,      target_table_group)
+      OM_OBJECT(TargetTableEntry,      target_table_entry)
       OM_OBJECT(Clock,                 clock)
       OM_OBJECT(ModelLayer,            model_layer)
       OM_OBJECT(ModelVariants,         model_variants)
@@ -29,6 +29,7 @@ using namespace radiant::json;
       OM_OBJECT(SensorList,            sensor_list)
       OM_OBJECT(TargetTables,          target_tables)
       OM_OBJECT(Item,                  item)
+      OM_OBJECT(ModList ,              modlist)
 
 #undef OM_OBJECT
 

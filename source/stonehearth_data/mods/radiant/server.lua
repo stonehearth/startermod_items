@@ -76,7 +76,6 @@ function api.update(profile_this_frame)
    radiant.log.spam('radiant', 'finishing frame %d', radiant.gamestate.now())
 
    _stop_profiling()
-   return radiant.gamestate.now()
 end
 
 return api

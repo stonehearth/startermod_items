@@ -1,4 +1,5 @@
 #include "pch.h"
+#include "radiant_stdutil.h"
 #include "radiant_exceptions.h"
 #include "core_reactor.h"
 #include "reactor_deferred.h"
@@ -29,9 +30,11 @@ ReactorDeferredPtr CoreReactor::Call(Function const& fn)
          d = router->Call(fn);
          if (d) {
             break;
-            return d;
          }
       }
+   }
+   if (!d && remoteRouter_) {
+      d = remoteRouter_->Call(fn);
    }
    if (!d) {
       throw core::InvalidArgumentException(BUILD_STRING("could not dispatch " << fn));
@@ -48,8 +51,10 @@ ReactorDeferredPtr CoreReactor::InstallTrace(Trace const& t)
       d = router->InstallTrace(t);
       if (d) {
          break;
-         return d;
       }
+   }
+   if (!d && remoteRouter_) {
+      d = remoteRouter_->InstallTrace(t);
    }
    if (!d) {
       throw core::InvalidArgumentException(BUILD_STRING("could not trace" << t));
@@ -68,10 +73,18 @@ ReactorDeferredPtr CoreReactor::RemoveTrace(UnTrace const& u)
          return d;
       }
    }
+   if (!d && remoteRouter_) {
+      d = remoteRouter_->RemoveTrace(u);
+   }
    if (!d) {
       throw core::InvalidArgumentException(BUILD_STRING("could not remove trace" << u));
    }
    return d;
+}
+
+void CoreReactor::RemoveRouter(IRouterPtr router)
+{
+   stdutil::UniqueRemove(routers_, router);
 }
 
 void CoreReactor::AddRouter(IRouterPtr router)
@@ -122,3 +135,9 @@ void CoreReactor::AddRouteS(std::string const& route, CallSCb cb)
       return d;
    });
 }
+
+void CoreReactor::SetRemoteRouter(IRouterPtr router)
+{
+   remoteRouter_ = router;
+}
+

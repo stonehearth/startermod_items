@@ -33,16 +33,6 @@ DataStore_SetData(std::shared_ptr<DataStore> data_store, object data)
    return data_store;
 }
 
-
-DataStorePtr
-DataStore_SetController(std::shared_ptr<DataStore> data_store, object controller)
-{
-   if (data_store) {
-      data_store->SetController(lua::ControllerObject(controller));
-   }
-   return data_store;
-}
-
 object
 DataStore_GetData(std::shared_ptr<DataStore> data_store)
 {
@@ -70,7 +60,6 @@ scope LuaDataStore::RegisterLuaTypes(lua_State* L)
          .def("get_data",       &DataStore_GetData) // xxx: don't we need dependency(_1, _2) here?
          .def("trace_data",     &DataStore_Trace)
          .def("mark_changed",   &DataStore_MarkChanged)
-         .def("set_controller", &DataStore_SetController)
       ,
       luabind::class_<lua::DataObject, std::shared_ptr<lua::DataObject>>(GetShortTypeName<lua::DataObject>())
       ;

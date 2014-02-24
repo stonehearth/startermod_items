@@ -1,5 +1,3 @@
-local event_service = stonehearth.events
-
 local EatCarrying = class()
 EatCarrying.name = 'eat carrying'
 EatCarrying.does = 'stonehearth:eat_carrying'

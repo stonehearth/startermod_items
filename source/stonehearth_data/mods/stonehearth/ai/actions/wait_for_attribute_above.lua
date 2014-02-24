@@ -1,5 +1,3 @@
-local event_service = stonehearth.events
-
 local WaitForAttributeAbove = class()
 WaitForAttributeAbove.name = 'wait for attribute threshold'
 WaitForAttributeAbove.does = 'stonehearth:wait_for_attribute_above'

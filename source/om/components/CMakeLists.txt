@@ -45,6 +45,7 @@ SET(RIDL_SOURCES
     entity_container.ridl.py
     item.ridl.py
     mob.ridl.py
+    mod_list.ridl.py
     model_layer.ridl.py
     model_variants.ridl.py
     region_collision_shape.ridl.py
@@ -79,6 +80,7 @@ add_library(om_components STATIC
             effect_list.cpp
             entity_container.cpp
             mob.cpp
+            mod_list.cpp
             region_collision_shape.cpp
             render_info.cpp
             model_layer.cpp

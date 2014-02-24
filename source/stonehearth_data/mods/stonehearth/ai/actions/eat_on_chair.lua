@@ -1,5 +1,3 @@
-local event_service = stonehearth.events
-
 local EatOnChair = class()
 EatOnChair.name = 'eat on a chair, like a human being'
 EatOnChair.does = 'stonehearth:eat'

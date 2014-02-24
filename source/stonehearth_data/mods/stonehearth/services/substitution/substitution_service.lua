@@ -275,4 +275,4 @@ function SubstitutionService:_find_one_of_random_array(namespace, key, temp_sub_
    end
 end
 
-return SubstitutionService()
+return SubstitutionService

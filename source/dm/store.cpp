@@ -1,3 +1,8 @@
+#include <io.h>
+#include <fcntl.h>
+#include <sys/stat.h>
+#include <google/protobuf/io/coded_stream.h>
+#include <google/protobuf/io/zero_copy_stream_impl.h>
 #include "radiant.h"
 #include "store.h"
 #include "store_trace.h"
@@ -5,6 +10,7 @@
 #include "tracer_buffered.h"
 #include "record.h"
 #include "object.h"
+#include "protocols/store.pb.h"
 
 using namespace ::radiant;
 using namespace ::radiant::dm;
@@ -36,7 +42,6 @@ Store::Store(int which, std::string const& name) :
 
 Store::~Store(void)
 {
-   Reset();
 }
 
 ObjectPtr Store::AllocObject(ObjectType t)
@@ -68,11 +73,75 @@ void Store::RegisterAllocator(ObjectType t, ObjectAllocFn allocator)
    allocators_[t] = allocator;
 }
 
-void Store::Reset()
+bool Store::Save(std::string &error)
 {
-   dynamicObjects_.clear();
+   // The C++ Google Protobuf docs claim FileOutputStream avoids an extra copy of the data
+   // introduced by OstreamOutputStream, so lets' use that.
+   int fd = _open("save.bin", O_WRONLY | O_BINARY | O_CREAT, S_IREAD | S_IWRITE);
+   if (fd < 0) {
+      error = "could not open save file";
+      return false;
+   }
 
-   ASSERT(objects_.size() == 0);
+   {
+      google::protobuf::io::FileOutputStream fos(fd);
+      {
+         google::protobuf::io::CodedOutputStream cos(&fos);
+         Protocol::Object msg;
+
+         for (auto const& entry : dynamicObjects_) {
+            dm::ObjectPtr obj = entry.second.lock();
+            if (obj) {
+               obj->SaveObject(&msg);
+               cos.WriteLittleEndian32(msg.ByteSize());
+               msg.SerializeToCodedStream(&cos);
+            }
+         }
+      }
+   }
+   _close(fd);
+   return true;
+}
+
+bool Store::Load(std::string &error)
+{
+   // The C++ Google Protobuf docs claim FileOutputStream avoids an extra copy of the data
+   // introduced by OstreamOutputStream, so lets' use that.
+
+   int fd = _open("save.bin", _O_RDONLY | O_BINARY);
+   if (fd < 0) {
+      error = "could not open save file";
+      return false;
+   }
+
+   ASSERT(dynamicObjects_.size() == 0);
+
+   {
+      google::protobuf::io::FileInputStream fis(fd);
+      {
+         google::protobuf::io::CodedInputStream cis(&fis);
+         Protocol::Object msg;
+
+         for (;;) {
+            google::protobuf::uint32 size, limit;
+            if (!cis.ReadLittleEndian32(&size)) {
+               break;
+            }
+
+            limit = cis.PushLimit(size);
+            if (!msg.ParseFromCodedStream(&cis)) {
+               break;
+            }
+            cis.PopLimit(limit);
+
+            ObjectPtr obj = allocators_[msg.object_type()]();
+            obj->Initialize(*this, msg.object_id());
+            OnAllocObject(obj);
+         }
+      }
+   }
+   _close(fd);
+   return true;
 }
 
 void Store::RegisterObject(Object& obj)
@@ -154,7 +223,7 @@ void Store::OnAllocObject(std::shared_ptr<Object> obj)
    ASSERT(obj->IsValid());
 
    ObjectId id = obj->GetObjectId();
-   dynamicObjects_[id] = DynamicObject(obj, obj->GetObjectType());
+   dynamicObjects_[id] = obj;
 
    stdutil::ForEachPrune<StoreTrace>(store_traces_, [=](StoreTracePtr trace) {
       trace->SignalAllocated(obj);
@@ -174,8 +243,7 @@ std::shared_ptr<Object> Store::FetchObject(int id, ObjectType type) const
 
    auto i = dynamicObjects_.find(id);
    if (i != dynamicObjects_.end()) {
-      const DynamicObject& entry = i->second;
-      obj = entry.object.lock();
+      obj = i->second.lock();
       if (obj) {
          ASSERT(obj->IsValid());
          // ASSERT(type == -1 || entry.type == type); Fails in cases where dynamic cast may succeed
@@ -217,7 +285,7 @@ StoreTracePtr Store::TraceStore(const char* reason)
 void Store::PushStoreState(StoreTrace& trace) const
 {
    for (const auto& entry : dynamicObjects_) {
-      ObjectPtr obj = entry.second.object.lock();
+      ObjectPtr obj = entry.second.lock();
       if (obj) {
          trace.SignalAllocated(obj);
       }

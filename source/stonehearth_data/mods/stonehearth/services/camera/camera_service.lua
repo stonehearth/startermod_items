@@ -473,5 +473,4 @@ function CameraService:look_at_entity(entity)
   self:look_at(Vec3(location.x, location.y, location.z))
 end
 
-CameraService:__init()
 return CameraService

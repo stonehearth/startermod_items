@@ -26,7 +26,8 @@ IBrowser* ::radiant::chromium::CreateBrowser(HWND parentWindow, std::string cons
 
 Browser::Browser(HWND parentWindow, std::string const& docroot, int width, int height, int debug_port) :
    _screenWidth(width),
-   _screenHeight(height)
+   _screenHeight(height),
+   _parentWindow(parentWindow)
 { 
    _uiWidth = 1920;
    _uiHeight = 1080;
@@ -52,17 +53,6 @@ Browser::Browser(HWND parentWindow, std::string const& docroot, int width, int h
 
    CefInitialize(main_args, settings, _app.get());
    CefRegisterSchemeHandlerFactory("http", "radiant", this);
-   CefWindowInfo windowInfo;
-   windowInfo.SetAsOffScreen(parentWindow);
-   windowInfo.SetTransparentPainting(true);
-
-   CefBrowserSettings browserSettings;
-   browserSettings.Reset();
-   // browserSettings.developer_tools = STATE_ENABLED;
-   browserSettings.java = STATE_DISABLED;
-   browserSettings.plugins = STATE_DISABLED;
-
-   CefBrowserHost::CreateBrowser(windowInfo, this, docroot, browserSettings);
 }
 
 void Browser::Work()
@@ -604,3 +594,24 @@ void Browser::GetBrowserSize(int& w, int& h)
    h = _uiHeight;
 }
 
+void Browser::Navigate(std::string const& url)
+{
+   if (!_browser) {
+      CefWindowInfo windowInfo;
+      windowInfo.SetAsOffScreen(_parentWindow);
+      windowInfo.SetTransparentPainting(true);
+
+      CefBrowserSettings browserSettings;
+      browserSettings.Reset();
+      // browserSettings.developer_tools = STATE_ENABLED;
+      browserSettings.java = STATE_DISABLED;
+      browserSettings.plugins = STATE_DISABLED;
+
+      CefBrowserHost::CreateBrowser(windowInfo, this, url, browserSettings);
+   } else {
+      CefRefPtr<CefFrame> frame = _browser->GetMainFrame();
+      if (frame) {
+         frame->LoadURL(url);
+      }
+   }
+}

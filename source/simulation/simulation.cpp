@@ -19,6 +19,7 @@
 #include "dm/tracer_sync.h"
 #include "om/entity.h"
 #include "om/components/clock.ridl.h"
+#include "om/components/mod_list.ridl.h"
 #include "om/components/mob.ridl.h"
 #include "om/components/terrain.ridl.h"
 #include "om/components/entity_container.ridl.h"
@@ -63,28 +64,25 @@ namespace po = boost::program_options;
 Simulation::Simulation() :
    _showDebugNodes(false),
    _singleStepPathFinding(false),
-   store_(1, "game"),
-   sequence_number_(1),
+   store_(nullptr),
    paused_(false),
    noidle_(false),
    _tcp_acceptor(nullptr),
    debug_navgrid_enabled_(false),
    profile_next_lua_update_(false)
 {
-   octtree_ = std::unique_ptr<phys::OctTree>(new phys::OctTree(dm::OBJECT_MODEL_TRACES));
-   scriptHost_.reset(new lua::ScriptHost());
+   OneTimeIninitializtion();
+}
 
-   InitDataModel();
-
-   // Entity 1
-   root_entity_ = CreateEntity();
-   ASSERT(root_entity_->GetObjectId() == 1);
-   clock_ = GetEntity(1)->AddComponent<om::Clock>();
-
-   error_browser_ = store_.AllocObject<om::ErrorBrowser>();
-   scriptHost_->SetNotifyErrorCb([=](om::ErrorBrowser::Record const& r) {
-      error_browser_->AddRecord(r);
-   });
+void Simulation::OneTimeIninitializtion()
+{
+   // options...
+   core::Config &config = core::Config::GetInstance();
+   game_tick_interval_ = config.Get<int>("simulation.game_tick_interval", 50);
+   net_send_interval_ = config.Get<int>("simulation.net_send_interval", 50);
+   base_walk_speed_ = config.Get<float>("simulation.base_walk_speed", 7.5f);
+   game_speed_ = config.Get<float>("simulation.game_speed", 1.0f);
+   base_walk_speed_ = base_walk_speed_ * game_tick_interval_ / 1000.0f;
 
    // sessions (xxx: stub it out for single player)
    session_ = std::make_shared<rpc::Session>();
@@ -96,12 +94,7 @@ Simulation::Simulation() :
       SendReply(r);
    });
 
-   // routers...
-   core_reactor_->AddRouter(std::make_shared<rpc::LuaModuleRouter>(scriptHost_.get(), "server"));
-   core_reactor_->AddRouter(std::make_shared<rpc::LuaObjectRouter>(scriptHost_.get(), store_));
-   trace_router_ = std::make_shared<rpc::TraceObjectRouter>(store_);
-   core_reactor_->AddRouter(trace_router_);
-
+   // routes...
    core_reactor_->AddRouteV("radiant:debug_navgrid", [this](rpc::Function const& f) {
       json::Node args = f.args;
       debug_navgrid_enabled_ = args.get<bool>("enabled", false);
@@ -156,36 +149,73 @@ Simulation::Simulation() :
       return d;
    });
 
+   core_reactor_->AddRouteV("radiant:server:reload", [this](rpc::Function const& f) {
+      Reload();
+   });
+   core_reactor_->AddRouteV("radiant:server:save", [this](rpc::Function const& f) {
+      Save();
+   });
+   core_reactor_->AddRouteV("radiant:server:load", [this](rpc::Function const& f) {
+      Load();
+   });
+
 }
 
-Simulation::~Simulation()
+void Simulation::Initialize()
 {
-   // Control the order that items get destroyed for graceful shutdown.
-   // xxx: this doesnt' work at all.  use std::shared_ptrs<> to keep things alive
-   // (really only done by the simulation manager) and std::weak_ptrs<> to hold
-   // references to things, with explicit lifetime registration callbacks
-   // in the new Storage system if you REALLY care. (xxx)
-   octtree_.release();
+   InitializeDataObjects();
+   InitializeGameObjects();
 }
 
-
-static std::string SanatizePath(std::string const& path)
+void Simulation::Shutdown()
 {
-   std::vector<std::string> s;
-   boost::split(s, path, boost::is_any_of("/"));
-   s.erase(std::remove(s.begin(), s.end(), ""), s.end());
-   return std::string("/") + boost::algorithm::join(s, "/");
+   ShutdownLuaObjects();
+   ShutdownGameObjects();
+   ShutdownDataObjects();
 }
 
-void Simulation::CreateNew()
+void Simulation::InitializeDataObjects()
 {
-   using namespace luabind;
-   res::ResourceManager2 &resource_manager = res::ResourceManager2::GetInstance();
+   store_.reset(new dm::Store(1, "game"));
+   om::RegisterObjectTypes(*store_);
+
+   object_model_traces_ = std::make_shared<dm::TracerSync>("sim objects");
+   pathfinder_traces_ = std::make_shared<dm::TracerSync>("sim pathfinder");
+   lua_traces_ = std::make_shared<dm::TracerBuffered>("sim lua", *store_);  
+
+   store_->AddTracer(lua_traces_, dm::LUA_ASYNC_TRACES);
+   store_->AddTracer(object_model_traces_, dm::LUA_SYNC_TRACES);
+   store_->AddTracer(object_model_traces_, dm::OBJECT_MODEL_TRACES);
+   store_->AddTracer(pathfinder_traces_, dm::PATHFINDER_TRACES);
+   store_trace_ = store_->TraceStore("sim")->OnAlloced([=](dm::ObjectPtr obj) {
+      if (obj->GetObjectId() == 1) {
+         GetOctTree().SetRootEntity(std::dynamic_pointer_cast<om::Entity>(obj));
+         store_trace_ = nullptr;
+      }
+   });
+
+}
+
+void Simulation::ShutdownDataObjects()
+{
+   object_model_traces_.reset();
+   pathfinder_traces_.reset();
+   lua_traces_.reset();
+   store_trace_.reset();
+   store_.reset();
+
+   buffered_updates_.clear();
+}
+
+void Simulation::InitializeGameObjects()
+{
+   now_ = 0;
+   octtree_ = std::unique_ptr<phys::OctTree>(new phys::OctTree(dm::OBJECT_MODEL_TRACES));
+   scriptHost_.reset(new lua::ScriptHost());
 
    lua_State* L = scriptHost_->GetInterpreter();
    lua_State* callback_thread = scriptHost_->GetCallbackThread();
-   
-   store_.SetInterpreter(callback_thread); // xxx move to dm open or something
+   store_->SetInterpreter(callback_thread); // xxx move to dm open or something
 
    csg::RegisterLuaTypes(L);
    lua::om::open(L);
@@ -194,24 +224,70 @@ void Simulation::CreateNew()
    lua::res::open(L);
    lua::voxel::open(L);
    lua::rpc::open(L, core_reactor_);
-   lua::om::register_json_to_lua_objects(L, store_);
+   lua::om::register_json_to_lua_objects(L, *store_);
    lua::analytics::open(L);
-   om::RegisterObjectTypes(store_);
 
-   core::Config &config = core::Config::GetInstance();
-   game_tick_interval_ = config.Get<int>("simulation.game_tick_interval", 50);
-   net_send_interval_ = config.Get<int>("simulation.net_send_interval", 50);
-   base_walk_speed_ = config.Get<float>("simulation.base_walk_speed", 7.5f);
-   game_speed_ = config.Get<float>("simulation.game_speed", 1.0f);
-   base_walk_speed_ = base_walk_speed_ * game_tick_interval_ / 1000.0f;
+   luaModuleRouter_ = std::make_shared<rpc::LuaModuleRouter>(scriptHost_.get(), "server");
+   luaObjectRouter_ = std::make_shared<rpc::LuaObjectRouter>(scriptHost_.get(), *store_);
+   traceObjectRouter_ = std::make_shared<rpc::TraceObjectRouter>(*store_);
+   core_reactor_->AddRouter(luaModuleRouter_);
+   core_reactor_->AddRouter(luaObjectRouter_);
+   core_reactor_->AddRouter(traceObjectRouter_);
+}
+
+void Simulation::ShutdownGameObjects()
+{
+   game_ = luabind::object();
+   game_api_ = luabind::object();
+
+   clock_ = nullptr;
+   root_entity_ = nullptr;
+
+   entity_jobs_schedulers_.clear();
+   jobs_.clear();
+   tasks_.clear();
+   entityMap_.clear();
+
+   task_manager_deferred_ = nullptr;
+   perf_counter_deferred_ = nullptr;
+   on_frame_end_guard_.Clear();
+
+   core_reactor_->RemoveRouter(luaModuleRouter_);
+   core_reactor_->RemoveRouter(luaObjectRouter_);
+   core_reactor_->RemoveRouter(traceObjectRouter_);
+   luaModuleRouter_ = nullptr;
+   luaObjectRouter_ = nullptr;
+   traceObjectRouter_ = nullptr;
+
+   scriptHost_->SetNotifyErrorCb(nullptr);
+   error_browser_.reset();
+   octtree_.reset();
+   scriptHost_.reset();
+}
+
+void Simulation::InitializeLuaObjects()
+{
+   using namespace luabind;
+   core::Config const& config = core::Config::GetInstance();
+   res::ResourceManager2 &resource_manager = res::ResourceManager2::GetInstance();
+   lua_State* L = scriptHost_->GetInterpreter();
+
+   om::ModListPtr mod_list = root_entity_->AddComponent<om::ModList>();
 
    game_api_ = scriptHost_->Require("radiant.server");
-   for (std::string const& mod_name : resource_manager.GetModuleNames()) {
+   for (std::string const& mod_name : resource_manager.GetModuleNames()) {      
       json::Node manifest = resource_manager.LookupManifest(mod_name);
       std::string script_name = manifest.get<std::string>("server_init_script", "");
       if (!script_name.empty()) {
          try {
-            luabind::globals(L)[mod_name] = scriptHost_->Require(script_name);
+            luabind::object mod_lua_object = scriptHost_->Require(script_name);
+            om::DataStorePtr ds = GetStore().AllocObject<om::DataStore>();
+            ds->SetController(lua::ControllerObject(script_name, mod_lua_object));
+            mod_list->AddMod(mod_name, ds);
+            luabind::globals(L)[mod_name] = mod_lua_object;
+            luabind::object args(luabind::newtable(L));
+            args["datastore"] = ds;
+            scriptHost_->TriggerOn(mod_lua_object, "radiant:new_game", args);
          } catch (std::exception const& e) {
             SIM_LOG(1) << "module " << mod_name << " failed to load " << script_name << ": " << e.what();
          }
@@ -231,18 +307,46 @@ void Simulation::CreateNew()
    } catch (std::exception const& e) {
       SIM_LOG(0) << "game failed to load: " << e.what();
       return;
-   }
-      
-   /* xxx: this is all SUPER SUPER dangerous.  if any of these things cause lua
-      to blow up, the process will exit(), since there's no protected handler installed!
-      */
-   object radiant = globals(L)["radiant"];
-   object gs = radiant["gamestate"];
-   object create_player = gs["_create_player"];
-   if (type(create_player) == LUA_TFUNCTION) {
-      p1_ = luabind::call_function<object>(create_player, 'civ');
-   }
-   now_ = 0;
+   }      
+}
+
+void Simulation::ShutdownLuaObjects()
+{
+   game_ = luabind::object();
+   game_api_ = luabind::object();
+}
+
+
+void Simulation::CreateGame()
+{   
+   root_entity_ = CreateEntity();
+   ASSERT(root_entity_->GetObjectId() == 1);
+   clock_ = GetEntity(1)->AddComponent<om::Clock>();
+   PostGameInit();
+}
+
+void Simulation::PostGameInit()
+{
+   ASSERT(root_entity_);
+
+   InitializeLuaObjects();
+
+   error_browser_ = store_->AllocObject<om::ErrorBrowser>();
+   scriptHost_->SetNotifyErrorCb([=](om::ErrorBrowser::Record const& r) {
+      error_browser_->AddRecord(r);
+   });
+   now_ = clock_->GetTime();
+}
+
+
+Simulation::~Simulation()
+{
+   // Control the order that items get destroyed for graceful shutdown.
+   // xxx: this doesnt' work at all.  use std::shared_ptrs<> to keep things alive
+   // (really only done by the simulation manager) and std::weak_ptrs<> to hold
+   // references to things, with explicit lifetime registration callbacks
+   // in the new Storage system if you REALLY care. (xxx)
+   octtree_.release();
 }
 
 rpc::ReactorDeferredPtr Simulation::StartTaskManager()
@@ -337,8 +441,9 @@ void Simulation::UpdateGameState()
    SIM_LOG_GAMELOOP(7) << "calling lua update";
    try {
       int interval = static_cast<int>(game_speed_ * game_tick_interval_);
-      clock_->SetTime(clock_->GetTime() + interval);
-      now_ = luabind::call_function<int>(game_api_["update"], profile_next_lua_update_);      
+      now_ = now_ + interval;
+      clock_->SetTime(now_);
+      luabind::call_function<int>(game_api_["update"], profile_next_lua_update_);      
    } catch (std::exception const& e) {
       SIM_LOG(3) << "fatal error initializing game update: " << e.what();
       GetScript().ReportCStackThreadException(GetScript().GetCallbackThread(), e);
@@ -360,7 +465,7 @@ void Simulation::EncodeBeginUpdate(std::shared_ptr<RemoteClient> c)
    proto::Update update;
    update.set_type(proto::Update::BeginUpdate);
    auto msg = update.MutableExtension(proto::BeginUpdate::extension);
-   msg->set_sequence_number(sequence_number_);
+   msg->set_sequence_number(1);
    c->send_queue->Push(protocol::Encode(update));
 }
 
@@ -426,7 +531,7 @@ void Simulation::DestroyEntity(dm::ObjectId id)
 
 dm::Store& Simulation::GetStore()
 {
-   return store_;
+   return *store_;
 }
 
 
@@ -559,25 +664,6 @@ lua::ScriptHost& Simulation::GetScript() {
    return *scriptHost_;
 }
 
-void Simulation::InitDataModel()
-{
-   object_model_traces_ = std::make_shared<dm::TracerSync>("sim objects");
-   pathfinder_traces_ = std::make_shared<dm::TracerSync>("sim pathfinder");
-   lua_traces_ = std::make_shared<dm::TracerBuffered>("sim lua", store_);  
-
-   store_.AddTracer(lua_traces_, dm::LUA_ASYNC_TRACES);
-   store_.AddTracer(object_model_traces_, dm::LUA_SYNC_TRACES);
-   store_.AddTracer(object_model_traces_, dm::OBJECT_MODEL_TRACES);
-   store_.AddTracer(pathfinder_traces_, dm::PATHFINDER_TRACES);
-   store_trace_ = store_.TraceStore("sim")->OnAlloced([=](dm::ObjectPtr obj) {
-      if (obj->GetObjectId() == 1) {
-         GetOctTree().SetRootEntity(std::dynamic_pointer_cast<om::Entity>(obj));
-         store_trace_ = nullptr;
-      }
-   });
-
-}
-
 void Simulation::Run(tcp::acceptor* acceptor, boost::asio::io_service* io_service)
 {
    _tcp_acceptor = acceptor;
@@ -594,7 +680,7 @@ void Simulation::handle_accept(std::shared_ptr<tcp::socket> socket, const boost:
       c->socket = socket;
       c->send_queue = protocol::SendQueue::Create(*socket);
       c->recv_queue = std::make_shared<protocol::RecvQueue>(*socket);
-      c->streamer = std::make_shared<dm::Streamer>(store_, dm::PLAYER_1_TRACES, c->send_queue.get());
+      c->streamer = std::make_shared<dm::Streamer>(*store_, dm::PLAYER_1_TRACES, c->send_queue.get());
       _clients.push_back(c);
 
       //queue_network_read(c, protocol::alloc_buffer(1024 * 1024));
@@ -613,7 +699,9 @@ void Simulation::main()
 {
    _tcp_acceptor->listen();
    start_accept();
-   CreateNew();
+
+   Initialize();
+   CreateGame();
 
    unsigned int last_stat_dump = 0;
 
@@ -632,7 +720,6 @@ void Simulation::Mainloop()
    ReadClientMessages();
 
    if (!paused_) {
-      lastNow_ = now_;
       UpdateGameState();
       UpdateCollisions();
       ProcessTaskList();
@@ -730,4 +817,53 @@ void Simulation::ReadClientMessages()
 float Simulation::GetBaseWalkSpeed() const
 {
    return base_walk_speed_ * game_speed_;
+}
+
+void Simulation::Reload()
+{
+   Save();
+   Load();
+}
+
+void Simulation::Save()
+{
+   std::string error;
+   if (!store_->Save(error)) {
+      SIM_LOG(0) << "failed to save: " << error;
+   }
+   SIM_LOG(0) << "saved.";
+}
+
+void Simulation::Load()
+{
+   Reset();
+   std::string error;
+   if (!store_->Load(error)) {
+      SIM_LOG(0) << "failed to load: " << error;
+   }
+   SIM_LOG(0) << "loaded.";
+   PostGameInit();
+}
+
+void Simulation::Reset()
+{
+   // delete all the streamers before shutting down so we don't spam them with delete requests,
+   // then create new streamers. 
+   for (std::shared_ptr<RemoteClient> client : _clients) {
+      client->streamer.reset();
+   }
+
+   // shutdown and initialize.  we need to initialize before creating the new streamers.  otherwise,
+   // we won't have the new store for them.
+   Shutdown();
+   Initialize();
+
+   // create new streamers for all the clients and buffer a notification to clear out all their old
+   // state
+   for (std::shared_ptr<RemoteClient> client : _clients) {
+      client->streamer = std::make_shared<dm::Streamer>(*store_, dm::PLAYER_1_TRACES, client->send_queue.get());
+   }
+   proto::Update msg;
+   msg.set_type(proto::Update::ClearClientState);
+   buffered_updates_.emplace_back(msg);
 }

@@ -12,20 +12,28 @@ public:
    {
    }
 
-   ControllerObject(luabind::object object) :
-      object_(object)
+   ControllerObject(std::string const& source, luabind::object object) :
+      lua_source_(source),
+      lua_object_(object)
    {
    }
 
-   operator luabind::object() const
+   std::string const& GetLuaSource() const
    {
-      return object_;
+      return lua_source_;
+   }
+
+   luabind::object GetLuaObject() const
+   {
+      return lua_object_;
    }
 
 private:
-   luabind::object      object_;
+   std::string       lua_source_;
+   luabind::object   lua_object_;
 };
 
+DECLARE_SHARED_POINTER_TYPES(ControllerObject)
 
 END_RADIANT_LUA_NAMESPACE
 

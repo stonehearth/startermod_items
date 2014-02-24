@@ -192,4 +192,4 @@ function PersonalityService:_get_sequential_unused_from_table(root_array, tracke
    return ""
 end
 
-return PersonalityService()
+return PersonalityService

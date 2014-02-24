@@ -48,7 +48,7 @@ void Entity::Destroy()
    for (const auto& entry : components_.GetContents()) {
       if (entry.second->GetObjectType() == DataStoreObjectType) {
          om::DataStorePtr ds = std::static_pointer_cast<DataStore>(entry.second);
-         luabind::object controller = ds->GetController();
+         luabind::object controller = ds->GetController().GetLuaObject();
          if (controller) {
             lua_State* L = lua::ScriptHost::GetCallbackThread(controller.interpreter());
             try {

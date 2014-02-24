@@ -2,7 +2,6 @@
    Tell a worker to collect food and resources from a plant. 
 ]]
 
-local event_service = require 'services.event.event_service'
 local personality_service = require 'services.personality.personality_service'
 
 local Point3 = _radiant.csg.Point3

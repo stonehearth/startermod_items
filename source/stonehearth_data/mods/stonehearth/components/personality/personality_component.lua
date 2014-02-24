@@ -7,7 +7,6 @@ local Personality = class()
 
 local calendar = stonehearth.calendar
 local personality_service = stonehearth.personality
-local event_service = stonehearth.events
 local rng = _radiant.csg.get_default_rng()
 
 function Personality:__init(entity, data_store)
@@ -107,7 +106,7 @@ function Personality:_add_log_entry(entry_title, entry_text)
 
    --For now, put the note in the scrolling event log too
    local name = radiant.entities.get_display_name(self._entity)
-   event_service:add_entry(name .. ': ' .. entry_text)
+   stonehearth.events:add_entry(name .. ': ' .. entry_text)
 
    --Let the journal UI know to update itself, if visible
    self._data_store:mark_changed()

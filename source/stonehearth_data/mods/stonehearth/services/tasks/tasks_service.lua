@@ -17,4 +17,5 @@ function TasksService:create_scheduler(name)
    return scheduler
 end
 
-return TasksService()
+return TasksService
+

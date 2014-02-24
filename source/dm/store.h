@@ -68,7 +68,9 @@ public:
    }
    Object* FetchStaticObject(ObjectId id) const;
 
-   void Reset();
+   bool Save(std::string& error);
+   bool Load(std::string& error);
+
    GenerationId GetNextGenerationId();
    GenerationId GetCurrentGenerationId();
    ObjectId GetNextObjectId();
@@ -128,14 +130,6 @@ private:
 
    static Store*  stores_[5];
 
-   struct DynamicObject {
-      std::weak_ptr<Object>      object;
-      ObjectType                 type;
-
-      DynamicObject() { }
-      DynamicObject(std::weak_ptr<Object> o, ObjectType t) : object(o), type(t) { }
-   };
-
    int            storeId_;
    std::string    name_;
    ObjectId       nextObjectId_;
@@ -144,9 +138,9 @@ private:
 
    std::vector<ObjectId>   destroyed_;
 
-   std::unordered_map<ObjectId, Object*>                     objects_;
-   std::unordered_map<ObjectType, ObjectAllocFn>             allocators_;
-   mutable std::unordered_map<ObjectId, DynamicObject>       dynamicObjects_;
+   std::unordered_map<ObjectId, Object*>                       objects_;
+   std::unordered_map<ObjectType, ObjectAllocFn>               allocators_;
+   mutable std::unordered_map<ObjectId, std::weak_ptr<Object>> dynamicObjects_;
 
    TraceMap       traces_;
    TracerMap      tracers_;
