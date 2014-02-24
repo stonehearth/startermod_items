@@ -71,7 +71,8 @@ App.StonehearthTitleScreenView = App.View.extend({
 
          var width =12;
          var height = 8;
-
+         this.$().hide();
+         
          radiant.call('stonehearth:new_game', width, height, seed)
             .done(function(e) {
                var map = e.map;
