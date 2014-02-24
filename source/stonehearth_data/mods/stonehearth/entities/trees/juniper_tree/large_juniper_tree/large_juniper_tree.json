@@ -17,7 +17,8 @@
       }, 
       "unit_info": {
          "name": "Large Juniper Tree", 
-         "description": "An impressive specimen."
+         "description": "An impressive specimen.",
+         "portrait": "file(large_juniper_tree.png)"
       }, 
       "stonehearth:resource_node": {
          "resource": "stonehearth:juniper_log", 

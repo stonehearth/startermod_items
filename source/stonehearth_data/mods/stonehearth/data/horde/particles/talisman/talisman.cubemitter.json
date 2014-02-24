@@ -5,7 +5,7 @@
         "lifetime": {
             "start": {
                 "kind": "RANDOM_BETWEEN",
-                "values": [1.0, 2.0]
+                "values": [1.1, 2.2]
             }
         },
         "speed": {
@@ -58,11 +58,11 @@
     "emission": {
         "rate": {
             "kind": "CONSTANT",
-            "values": [10]
+            "values": [15]
         },
         "origin": {
             "surface": "RECTANGLE",
-            "values": [1.0, 0.8]
+            "values": [1.0, 1.0]
         },
         "angle": {
             "kind": "CONSTANT",

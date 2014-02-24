@@ -1,0 +1,4 @@
+{
+   "long_description" : "This standard marks the center of your new settlement.",
+   "flavor_text" : "Dev note: Eventually the camp standard will be merged with the firepit and renamed to 'The Hearth.' The Hearth will be a focal point of your town, will provide benefits, will be upgradeable, etc."
+}

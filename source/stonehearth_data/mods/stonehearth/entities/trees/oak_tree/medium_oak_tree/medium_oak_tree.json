@@ -18,7 +18,8 @@
       }, 
       "unit_info": {
          "name": "Medium Oak Tree", 
-         "description": "Sturdy, in the prime of life."
+         "description": "Sturdy, in the prime of life.",
+         "portrait": "file(medium_oak_tree.png)"
       }, 
       "stonehearth:resource_node": {
          "resource": "stonehearth:oak_log", 
