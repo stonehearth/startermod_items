@@ -739,6 +739,8 @@ function ExecutionFrame:_destroy_from_switching()
 end
 
 function ExecutionFrame:abort()
+   assert(not self._aborting)
+   self._aborting = true
    assert(self:_no_other_thread_is_running())
    self:_exit_protected_call(ABORT_FRAME)
 end
@@ -886,9 +888,11 @@ end
 function ExecutionFrame:_remove_action_from_running(unit)
    self._log:detail('_remove_action_from_running (state: %s)', self._state)
    if unit == self._active_unit then
-      self._thread:interrupt(function()
-         self:abort()
-      end)
+      if not self._aborting then
+         self._thread:interrupt(function()
+            self:abort()
+         end)
+      end
    else
       self:_remove_execution_unit(unit, true)
    end
