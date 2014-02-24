@@ -1,4 +1,5 @@
 local MathFns = require 'services.world_generation.math.math_fns'
+local Timer = require 'services.world_generation.timer'
 
 local Point2 = _radiant.csg.Point2
 local Rect2 = _radiant.csg.Rect2
@@ -13,6 +14,7 @@ function TerrainService:__init()
    self._visbility_step_size = radiant.util.get_config('visibility_step_size', 8)
    self._visible_regions = {}
    self._explored_regions = {}
+   self._last_optimized_rect_count = 10
 
    self:_register_events()
 end
@@ -40,7 +42,7 @@ function TerrainService:_update_regions()
             function (region2)
                region2:clear()
                region2:add_region(new_visible_region)
-               log:info('Server visibility cubes: %d', region2:get_num_rects())
+               --log:info('Server visibility rects: %d', region2:get_num_rects())
             end
          )
 
@@ -51,7 +53,20 @@ function TerrainService:_update_regions()
             explored_region_boxed:modify(
                function (region2)
                   region2:add_unique_region(unexplored_region)
-                  log:info('Server explored cubes: %d', region2:get_num_rects())
+
+                  local num_rects = region2:get_num_rects()
+                  if num_rects >= self._last_optimized_rect_count * 1.2 then
+                     log:info('Optimizing explored region')
+
+                     local seconds = Timer.measure(
+                        function()
+                           region2:optimize_by_oct_tree(64)
+                        end
+                     )
+                     log:info('Optimization time: %.3fs', seconds)
+
+                     self._last_optimized_rect_count = region2:get_num_rects()
+                  end
                end
             )
          end
