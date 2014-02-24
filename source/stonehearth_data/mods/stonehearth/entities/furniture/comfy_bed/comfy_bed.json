@@ -1,14 +1,14 @@
 {
-   "extends": "stonehearth:mixins:placed_properties",
+   "mixins": "stonehearth:mixins:placed_properties",
    "type": "entity",
    "components": {
-      "model_variants": [
-         {
+      "model_variants": {
+         "default": {
             "models": [
                "file(comfy_bed.qb)"
             ]
          }
-      ],
+      },
       "destination": {
          "region": [
             {

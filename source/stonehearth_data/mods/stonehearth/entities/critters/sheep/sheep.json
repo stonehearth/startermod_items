@@ -1,25 +1,24 @@
 {
    "type" : "entity",
-   "extends" : "stonehearth:mixins:mob",   
+   "mixins" : "stonehearth:mixins:mob",   
    "components": {
       "unit_info" : {
         "name": "A sheep",
         "description": "So fluffy!",
         "faction": "critter"
       },
-      "model_variants": [
-         {
+      "model_variants": {
+         "default": {
             "models": [
                "file(sheep.qb)"
             ]
          },
-         {
-            "variants": "depleted",
+         "depleated" : {
             "models": [
                "file(sheep_shorn.qb)"
             ]
          }
-      ],
+      },
       "stonehearth:renewable_resource_node": {
          "resource" : "stonehearth:wool_bundle",
          "renewal_time" : "12h",

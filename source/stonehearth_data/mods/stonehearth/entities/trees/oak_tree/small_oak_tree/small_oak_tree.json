@@ -1,9 +1,9 @@
 {
-   "extends": "stonehearth:mixins:tree", 
+   "mixins": "stonehearth:mixins:tree", 
    "type": "entity", 
    "components": {
-      "model_variants": [
-         {
+      "model_variants": {
+         "default": {
             "models": [
                {
                   "type": "one_of",
@@ -15,10 +15,11 @@
                }
             ]
          }
-      ], 
+      }, 
       "unit_info": {
          "name": "Small Oak Tree", 
-         "description": "He's just a sapling!"
+         "description": "He's just a sapling!",
+         "portrait": "file(small_oak_tree.png)"
       }, 
       "stonehearth:resource_node": {
          "resource": "stonehearth:oak_log", 

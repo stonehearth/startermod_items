@@ -9,10 +9,6 @@ function PopulationFaction:__init(faction, kingdom)
    self._data = radiant.resources.load_json(kingdom)
    self._faction_name = faction --TODO: differentiate b/w user id and name?
 
-   -- xxx: move this somewhere else, probably...
-   stonehearth.tasks:get_scheduler('stonehearth:workers', faction)
-                     :set_activity('stonehearth:work')
-
    self._kingdom = self._data.kingdom_id
    self._citizens = {}
 end
@@ -35,6 +31,11 @@ function PopulationFaction:create_new_citizen()
    local entities = self._data[gender .. '_entities']
    local kind = entities[rng:get_int(1, #entities)]
    local citizen = radiant.entities.create_entity(kind)
+   
+   local all_variants = radiant.entities.get_entity_data(citizen, 'stonehearth:customization_variants')
+   if all_variants then
+      self:customize_citizen(citizen, all_variants, "root")
+   end
 
    citizen:add_component('unit_info'):set_faction(self._faction_name) -- xxx: for now...
    --citizen:add_component('unit_info'):set_kingdom(self.kingdom)
@@ -44,6 +45,31 @@ function PopulationFaction:create_new_citizen()
    table.insert(self._citizens, citizen)
 
    return citizen
+end
+
+function PopulationFaction:customize_citizen(entity, all_variants, this_variant)   
+   
+   local variant = all_variants[this_variant]
+
+   if not variant then
+      return
+   end
+   
+   -- load any models at this node in the customization tree
+   if variant.models then
+      local variant_name = 'default'
+      local random_model = variant.models[1]
+      local model_variants_component = entity:add_component('model_variants')
+      model_variants_component:add_variant(variant_name):add_model(random_model)
+   end
+
+   -- for each set of child variants, pick a random option
+   if variant.variants then
+      for _, variant_set in ipairs(variant.variants) do
+         local random_option = variant_set[math.random(#variant_set)]
+         self:customize_citizen(entity, all_variants, random_option)
+      end
+   end
 end
 
 function PopulationFaction:get_citizens()

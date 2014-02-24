@@ -1,28 +1,31 @@
 {
    "type": "entity",
-   "extends": "stonehearth:mixins:item_properties",
+   "mixins": "stonehearth:mixins:item_properties",
    "components" : {
       "unit_info" : {
-         "name" :  "The Saw",
-         "description" : "The foundation of civilization",
-         "icon" : "file(/entities/generic/default_object/default_object.png)"
+         "name" :  "Carpenter's Saw",
+         "description" : "Upgrades a citizen into a Carpenter",
+         "portrait": "file(carpenter_saw.png)",
+         "character_sheet_info" : "file(carpenter_saw_character_sheet_info.json)"
       },
       "item" : {
-         "category" : "tools_and_goods"
+         "stacks" : 1
       },
-      "model_variants": [
-         {
+       "stonehearth:material" : {
+         "tags" : "tool"
+      },
+      "model_variants": {
+         "default": {
             "models": [
                "file(carpenter_saw.qb)"
             ]
          },
-         {
-            "variants": "iconic",
+         "equipped" : {
             "models": [
-               "file(carpenter_saw_proxy.qb)"
+               "file(carpenter_saw_equipped.qb)"
             ]
          }
-      ],
+      },
       "stonehearth:commands" : {
          "commands" : [
             "file(/data/commands/promote_to_profession)"
@@ -34,7 +37,8 @@
          ]  
       },
       "stonehearth:promotion_talisman": {
-         "script": "file(/professions/carpenter/carpenter.lua)"
+         "script": "file(/professions/carpenter/carpenter.lua)",
+         "profession_name" : "Carpenter"
       }
    },
    "entity_data" : {

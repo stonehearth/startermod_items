@@ -1,13 +1,13 @@
 {
    "type": "entity", 
    "components": {
-      "model_variants": [
-         {
+      "model_variants": {
+         "default": {
             "models": [
                "file(worker_hammer.qb)"
             ]
          }
-      ], 
+      }, 
       "unit_info": {
          "name": "Hammer", 
          "description": "..."

@@ -58,12 +58,63 @@ App.StonehearthTitleScreenView = App.View.extend({
    actions: {
       newGame: function() {
          radiant.call('radiant:play_sound', 'stonehearth:sounds:ui:start_menu:embark' );
-         //App.shellView.addView(App.StonehearthEmbarkView);
-         this.get('parentView').addView(App.StonehearthLoadingScreenView)
+         App.shellView.addView(App.StonehearthEmbarkView);
+         //this.get('parentView').addView(App.StonehearthLoadingScreenView)
+         this.$().hide();
       },
+
+      // xxx, holy cow refactor this together with the usual flow
+      quickStart: function() {
+         var self = this;
+         var MAX_INT32 = 2147483647;
+         var seed = Math.floor(Math.random() * (MAX_INT32+1));
+
+         var width =12;
+         var height = 8;
+
+         radiant.call('stonehearth:new_game', width, height, seed)
+            .done(function(e) {
+               var map = e.map;
+
+               var x, y;
+               // XXX, in the future this will make a server call to
+               // get a recommended start location, perhaps with
+               // a difficulty selector
+               do {
+                  x = Math.floor(Math.random() * map[0].length);
+                  y = Math.floor(Math.random() * map.length);
+               } while (map[y][x].terrain_code.indexOf('plains') != 0);
+
+               radiant.call('stonehearth:generate_start_location', x, y);
+               radiant.call('stonehearth:get_world_generation_progress')
+                  .done(function(o) {
+                     self.trace = radiant.trace(o.tracker)
+                        .progress(function(result) {
+                           if (result.progrss == 100) {
+                              //TODO, put down the camp standard.
+
+                              self.trace.destroy();
+                              self.trace = null;
+
+                              self.destroy();
+                           }
+                        })
+                        radiant.call('radiant:play_sound', 'stonehearth:sounds:ui:start_menu:embark' );
+                  });
+
+               App.shellView.addView(App.StonehearthLoadingScreenView);
+               
+            })
+            .fail(function(e) {
+               console.error('new_game failed:', e)
+            });
+
+      },
+
 
       loadGame: function() {
          App.gotoGame();
+         this.$().hide();
       },
 
       exit: function() {

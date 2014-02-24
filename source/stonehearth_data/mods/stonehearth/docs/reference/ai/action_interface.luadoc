@@ -1,0 +1,48 @@
+-- @title Action Interface
+-- @book reference
+-- @section ai/action
+
+--[[ @markdown
+## this is a markdown comment ##
+it has lots and **lots** of markdown in it
+yay!
+]]--
+
+-- @class Action
+   -- This is a doc string for the action
+   -- actions are awesome.
+   -- who wouldn't love an action?
+local Action = class()
+
+-- Requests that the action begin computing how to start
+   -- blah
+   -- blah
+   -- blah
+   -- put example code here....
+   -- @param ai The ai interface currently running this action
+   -- @param entity The entity this action is currently controlling
+   -- @param args The arguments used for this action 
+function Action:start_thinking(ai, entity, args) end
+
+--[[ @markdown
+## This is even more markdown!!! ##
+it has lots and **lots** of markdown in it
+yay!
+
+    function LuaMethod:__init(class_name, method_name, comment, method)
+       self.class_name = class_name
+       self.method_name = method_name
+    end
+
+End of code block
+]]--
+
+-- Notification that the action will be run soon.
+   -- Your action's stop function is guaranteed to be called before the
+   -- action is destroyed.
+   -- @param ai The ai interface currently running this action
+   -- @param entity The entity this action is currently controlling
+   -- @param args The arguments used for this action 
+function Action:start(ai, entity, args) end
+
+return Action

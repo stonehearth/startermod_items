@@ -2,9 +2,14 @@ local RunTaskAction = class()
 
 RunTaskAction.version = 2
 
-function RunTaskAction:__init(task)
-   self._id = stonehearth.ai:get_next_object_id()   
+function RunTaskAction:__init(task, activity)
+   self._id = stonehearth.ai:get_next_object_id()
    self._task = task
+   self._activity = activity
+end
+
+function RunTaskAction:get_entity()
+   return self._entity
 end
 
 function RunTaskAction:get_log()
@@ -15,10 +20,8 @@ function RunTaskAction:_create_execution_frame(ai)
    if not self._execution_frame then
       self._ai = ai
       self._log = ai:get_log()
-      local activity = self._task:get_activity()
-      self._args = activity.args
 
-      self._execution_frame = ai:spawn(activity.name, activity.args)
+      self._execution_frame = ai:spawn(self._activity.name, self._activity.args)
       radiant.events.listen(self._task, 'started', self, self._start_stop_thinking)
       radiant.events.listen(self._task, 'stopped', self, self._start_stop_thinking)
       radiant.events.listen(self._task, 'work_available', self, self._start_stop_thinking)
@@ -33,7 +36,14 @@ function RunTaskAction:_start_stop_thinking()
          self._thinking = true
          local think_output = self._execution_frame:start_thinking(self._ai.CURRENT)
          if think_output then
-            self._ai:set_think_output(think_output)
+            -- hmmm.  we need to set the thing output upward toward our dispatcher.  this needs
+            -- to match the expected type.  we have *no way* of knowing that type, though (at least
+            -- not currently...).  luckily, set_think_output() with no parameters will just return
+            -- the args, which is probably what we want, anyway.  much ado about nothing, i think.
+            --
+            --    self._ai:set_think_output(think_output) -- this one's wrong...
+            --
+            self._ai:set_think_output()
          else
             self._execution_frame:on_ready(function(frame, think_output)
                self._ai:set_think_output()
@@ -51,7 +61,7 @@ function RunTaskAction:get_debug_info(debug_route)
    local info = {
       id = self._id,
       name = self.name,
-      args = stonehearth.ai:format_args(self._args),
+      args = stonehearth.ai:format_args(self._activity.args),
       does = self.does,
       priority = self.priority
    }
@@ -64,6 +74,8 @@ function RunTaskAction:get_debug_info(debug_route)
 end
 
 function RunTaskAction:start_thinking(ai, entity)
+   self._entity = entity
+   
    self:_create_execution_frame(ai)
 
    self._should_think = true

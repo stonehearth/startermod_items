@@ -1,5 +1,5 @@
 {
-   "extends": "stonehearth:mixins:placed_properties",
+   "mixins": "stonehearth:mixins:placed_properties",
    "type": "entity",
    "components": {
       "unit_info": {
@@ -15,13 +15,13 @@
       "stonehearth:material" : {
          "tags" : "wood cloth decoration"
       },      
-      "model_variants": [
-         {
+      "model_variants": {
+         "default": {
             "models": [
                "file(geranium_hanging.qb)"
             ]
          }
-      ],
+      },
       "destination": {
          "region": [
             {

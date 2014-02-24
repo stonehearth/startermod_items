@@ -237,7 +237,7 @@ public:
 	void buildBoxFrustum( const Matrix4f &transMat, float left, float right,
 	                      float bottom, float top, float front, float back );
 	bool cullSphere( Vec3f pos, float rad ) const;
-	bool cullBox( BoundingBox &b ) const;
+	bool cullBox( const BoundingBox &b ) const;
 	bool cullFrustum( const Frustum &frust ) const;
 
 	void calcAABB( Vec3f &mins, Vec3f &maxs ) const;

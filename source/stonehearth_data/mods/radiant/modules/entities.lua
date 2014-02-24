@@ -18,7 +18,14 @@ function entities.create_entity(ref)
    if not ref or #ref == 0 then
       return _radiant.sim.create_empty_entity()
    end
-   return _radiant.sim.create_entity(ref)
+   local entity = _radiant.sim.create_entity(ref)
+   -- trigger 'stonehearth:entity_created' first so components can finalize entity
+   -- creation.
+   radiant.events.trigger(entity, 'stonehearth:entity_created', { entity = entity})
+
+   -- trigger the global 'stonehearth:entity_created' to notify mods
+   radiant.events.trigger(radiant.events, 'stonehearth:entity_created', { entity = entity})
+   return entity
 end
 
 function entities.destroy_entity(entity)
@@ -146,14 +153,16 @@ end
 function entities.turn_to_face(entity, arg2)
    --local location = util:is_a(arg2, Entity) and singleton.get_world_grid_location(arg2) or arg2
    local location
-   if arg2.x == nil then
-      location = arg2:get_component('mob'):get_world_grid_location()
-   else
+   if radiant.util.is_a(arg2, Point3) then
       location = arg2
+   elseif radiant.util.is_a(arg2, Entity) then
+      location = entities.get_world_grid_location(arg2)
    end
 
-   radiant.check.is_entity(entity)
-   entity:add_component('mob'):turn_to_face_point(location)
+   if location then
+      radiant.check.is_entity(entity)
+      entity:add_component('mob'):turn_to_face_point(location)
+   end
 end
 
 function entities.think(entity, uri, priority)
@@ -295,7 +304,7 @@ function entities.set_attribute(entity, attribute_name, value)
 end
 
 function entities.add_buff(entity, buff_name)
-   entity:add_component('stonehearth:buffs'):add_buff(buff_name)
+   return entity:add_component('stonehearth:buffs'):add_buff(buff_name)
 end
 
 function entities.remove_buff(entity, buff_name)
@@ -514,14 +523,8 @@ function entities.compare_attribute(entity_a, entity_b, attribute)
 end
 
 function entities.is_hostile(entity_a, entity_b)
-   -- xxx: this check shouldn't be in the generic "is_hostile" function.  what
-   -- happens when we add things that aren't made of meat? (e.g. robots?)
-   local material = entity_b:get_component('stonehearth:material')
-   if not material or not material:is('meat') then
-      return false
-   end
-   local faction_a = entity_a:add_component('unit_info'):get_faction()
-   local faction_b = entity_b:add_component('unit_info'):get_faction()
+   local faction_a = radiant.entities.get_faction(entity_a)
+   local faction_b = radiant.entities.get_faction(entity_b)
 
    return faction_a and faction_b and
           faction_a ~= '' and faction_b ~= '' and

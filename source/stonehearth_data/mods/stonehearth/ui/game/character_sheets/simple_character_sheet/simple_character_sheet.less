@@ -1,0 +1,56 @@
+#simpleCharacterSheet {
+   position: absolute;
+   top: 220px;
+   left: 10px;
+   width: 617px;
+   height: 507px;
+   background: url('./images/bg.png');
+   vertical-align: top;
+
+   #inner {
+      padding: 60px;
+   }
+
+   #text {
+      position: absolute;
+      top: 40px;
+      left: 225px;
+      right: 40px;
+      height: 430px;
+      font-size: 16px;
+      //background: rgba(255, 0,0,0.2);
+
+      .name {
+         font-family: @headerFontFamily;
+         color: #3d3420;
+         font-size: 36px;
+         padding-bottom: 8px;
+      }      
+
+      .longDescription {
+         line-height: 1.4em;
+      }
+
+      .flavorText {
+         position: absolute;
+         bottom: 0px;
+         font-style: italic;
+         line-height: 1.4em;
+      }
+   }
+
+   .portrait {
+      position: absolute;
+      top: 40px;
+      left: 40px;
+      background: #82704c;
+      width: 150px;
+      height: 150px;
+      border: 6px solid #3d3420;
+
+      img {
+         width: 150px;
+         height: 150px;
+      }
+   }
+}

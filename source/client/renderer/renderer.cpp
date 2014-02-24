@@ -19,6 +19,11 @@
 #include "perfhud/perfhud.h"
 #include "resources/res_manager.h"
 #include "csg/random_number_generator.h"
+#include "pipeline.h"
+#include <unordered_set>
+#include <string>
+#include "om/object_formatter/object_formatter.h"
+#include "client/client.h"
 
 using namespace ::radiant;
 using namespace ::radiant::client;
@@ -29,6 +34,7 @@ H3DNode meshNode;
 H3DNode starfieldMeshNode;
 H3DRes starfieldMat;
 H3DRes skysphereMat;
+H3DNode cursorNode;
 
 static std::unique_ptr<Renderer> renderer_;
 
@@ -62,6 +68,22 @@ Renderer::Renderer() :
 {
    terrainConfig_ = res::ResourceManager2::GetInstance().LookupJson("stonehearth/renderers/terrain/terrain_renderer.json");
    GetConfigOptions();
+
+   uiOnlyStages_.insert(std::string("Init"));
+   uiOnlyStages_.insert(std::string("Overlays"));
+
+   fowOnlyStages_.insert(std::string("FogOfWar_RT"));
+
+   drawWorldStages_.insert(std::string("Init"));
+   drawWorldStages_.insert(std::string("Sky"));
+   drawWorldStages_.insert(std::string("Starfield"));
+   drawWorldStages_.insert(std::string("Depth"));
+   drawWorldStages_.insert(std::string("FogOfWar"));
+   drawWorldStages_.insert(std::string("Light"));
+   drawWorldStages_.insert(std::string("Fog"));
+   drawWorldStages_.insert(std::string("Translucent"));
+   drawWorldStages_.insert(std::string("Overlays"));
+   drawWorldStages_.insert(std::string("Projections"));
 
    assert(renderer_.get() == nullptr);
    renderer_.reset(this);
@@ -121,16 +143,12 @@ Renderer::Renderer() :
 
    ApplyConfig(config_, false);
 
-   SetDrawWorld(drawWorld_);
+   SetEnabledStages(uiOnlyStages_);
 
    // Overlays
    fontMatRes_ = h3dAddResource( H3DResTypes::Material, "overlays/font.material.xml", 0 );
    panelMatRes_ = h3dAddResource( H3DResTypes::Material, "overlays/panel.material.xml", 0 );
-   
-   // xxx - should move this into the horde extension for debug shapes, but it doesn't know
-   // how to actually get the resource loaded!
-   h3dAddResource(H3DResTypes::Material, "materials/debug_shape.material.xml", 0); 
-   
+
    csg::RandomNumberGenerator &rng = csg::RandomNumberGenerator::DefaultInstance();
    float *data2 = (float *)h3dMapResStream(veclookup, H3DTexRes::ImageElem, 0, H3DTexRes::ImgPixelStream, false, true);
    for (int i = 0; i < 16; i++)
@@ -153,9 +171,24 @@ Renderer::Renderer() :
 
    LoadResources();
 
+   csg::Region3::Cube littleCube(csg::Region3::Point(0, 0, 0), csg::Region3::Point(1, 1, 1));
+   /*fowVisibleNode_ = h3dAddInstanceNode(H3DRootNode, "fow_visiblenode", 
+      h3dAddResource(H3DResTypes::Material, "materials/fow_visible.material.xml", 0), 
+      Pipeline::GetInstance().CreateVoxelGeometryFromRegion("littlecube", littleCube), 1000);*/
+   fowExploredNode_ = h3dAddInstanceNode(H3DRootNode, "fow_explorednode", 
+      h3dAddResource(H3DResTypes::Material, "materials/fow_explored.material.xml", 0), 
+      Pipeline::GetInstance().CreateVoxelGeometryFromRegion("littlecube", littleCube), 1000);
+
+   csg::Region2 r;
+   r.Add(csg::Rect2(csg::Region2::Point(-10, -10), csg::Region2::Point(10, 10)));
+   UpdateFoW(fowExploredNode_, r);
+
    // Add camera   
    camera_ = new Camera(H3DRootNode, "Camera", currentPipeline_);
    h3dSetNodeParamI(camera_->GetNode(), H3DCamera::PipeResI, currentPipeline_);
+
+   fowCamera_ = new Camera(H3DRootNode, "FowCamera", currentPipeline_);
+   h3dSetNodeParamI(fowCamera_->GetNode(), H3DCamera::PipeResI, currentPipeline_);
 
    memset(&input_.mouse, 0, sizeof input_.mouse);
    input_.focused = true;
@@ -216,20 +249,162 @@ Renderer::Renderer() :
       TerminateProcess(GetCurrentProcess(), 1);
    });
 
-   fileWatcher_.addWatch(strutil::utf8_to_unicode("horde"), [](FW::WatchID watchid, const std::wstring& dir, const std::wstring& filename, FW::Action action) -> void {
-      Renderer::GetInstance().FlushMaterials();
-   }, true);
+   // If the mod is unzipped, put a watch on the filesystem directory where the resources live
+   // so we can dynamically load resources whenever the file changes.
+   std::string fspath = std::string("mods/") + resourcePath_;
+   if (boost::filesystem::is_directory(fspath)) {
+      fileWatcher_.addWatch(strutil::utf8_to_unicode(fspath), [](FW::WatchID watchid, const std::wstring& dir, const std::wstring& filename, FW::Action action) -> void {
+         Renderer::GetInstance().FlushMaterials();
+      }, true);
+   }
 
    OnWindowResized(windowWidth_, windowHeight_);
    SetShowDebugShapes(false);
 
+   //cursorNode = h3dAddProjectorNode(H3DRootNode, "cursorNode", h3dAddResource(H3DResTypes::Material, "materials/trapper_proj.material.xml", 0));
+   //h3dSetNodeTransform(cursorNode, 2, 0, 0, 0, 45, 0, 4, 1, 4);
    initialized_ = true;
+}
+
+void Renderer::UpdateFoW(H3DNode node, const csg::Region2& region)
+{
+   if (region.GetCubeCount() >= 1000) {
+      return;
+   }
+   float* start = (float*)h3dMapNodeParamV(node, H3DInstanceNodeParams::InstanceBuffer);
+   float* f = start;
+   for (const auto& c : region) 
+   {
+      float px = (c.max + c.min).x * 0.5f;
+      float py = -50.0f;
+      float pz = (c.max + c.min).y * 0.5f;
+
+      float xSize = (float)c.max.x - c.min.x;
+      float zSize = (float)c.max.y - c.min.y;
+      float ySize = 100.0f;
+      f[0] = xSize; f[1] =  0; f[2] =   0; f[3] =  0;
+      f[4] =  0; f[5] = ySize; f[6] =   0; f[7] =  0;
+      f[8] =  0; f[9] =  0; f[10] = zSize; f[11] = 0;
+      f[12] = px; f[13] = py - (ySize /2); f[14] =  pz; f[15] = 1;
+      
+      f += 16;
+   }
+
+   h3dUnmapNodeParamV(node, H3DInstanceNodeParams::InstanceBuffer, (f - start) * 4);
+   const auto& bounds = region.GetBounds();
+   h3dUpdateBoundingBox(node, (float)bounds.min.x, -50.0f, (float)bounds.min.y, 
+      (float)bounds.max.x, -50.0f, (float)bounds.max.y);
+}
+
+void Renderer::RenderFogOfWarRT()
+{
+   // Create an ortho camera covering the largest volume that can be seen of the actual possible frustum
+   Horde3D::Matrix4f fowView, camProj;
+   Horde3D::Frustum camFrust;
+
+   h3dGetCameraFrustum(camera_->GetNode(), &camFrust);
+
+   // Construct a new camera view matrix pointing down.
+   fowView.x[0] = 1;  fowView.x[1] = 0;  fowView.x[2] = 0;
+   fowView.x[4] = 0;  fowView.x[5] = 0;  fowView.x[6] = 1;
+   fowView.x[8] = 0;  fowView.x[9] = -1;  fowView.x[10] = 0;
+   fowView.x[12] = 0; fowView.x[13] = 0; fowView.x[14] = 0;  fowView.x[15] = 1.0;
+
+   Horde3D::BoundingBox bb;
+   for (int i = 0; i < 8; i++) {
+      bb.addPoint(fowView * camFrust.getCorner(i));
+   }
+
+   float cascadeBound = (camFrust.getCorner(0) - camFrust.getCorner(6)).length();
+   Horde3D::Vec3f boarderOffset = (Horde3D::Vec3f(cascadeBound, cascadeBound, cascadeBound) - (bb.max() - bb.min())) * 0.5f;
+   boarderOffset.z = 0;
+   Horde3D::Vec3f max = bb.max() + boarderOffset;
+   Horde3D::Vec3f min = bb.min() - boarderOffset;
+
+   // The world units per texel are used to snap the shadow the orthographic projection
+   // to texel sized increments.  This keeps the edges of the shadows from shimmering.
+   float worldUnitsPerTexel = cascadeBound / 512.0f;
+   Horde3D::Vec3f quantizer(worldUnitsPerTexel, worldUnitsPerTexel, 0.0);
+   min.quantize(quantizer);
+   max.quantize(quantizer);
+
+   // All that crap was just so we could set up this ortho frustum + view matrix.
+   h3dSetNodeTransMat(fowCamera_->GetNode(), fowView.inverted().x);
+   h3dSetNodeParamI(fowCamera_->GetNode(), H3DCamera::OrthoI, 1);
+   h3dSetNodeParamF(fowCamera_->GetNode(), H3DCamera::LeftPlaneF, 0, min.x);
+   h3dSetNodeParamF(fowCamera_->GetNode(), H3DCamera::RightPlaneF, 0, max.x);
+   h3dSetNodeParamF(fowCamera_->GetNode(), H3DCamera::BottomPlaneF, 0, min.y);
+   h3dSetNodeParamF(fowCamera_->GetNode(), H3DCamera::TopPlaneF, 0, max.y);
+   h3dSetNodeParamF(fowCamera_->GetNode(), H3DCamera::NearPlaneF, 0, -max.z);
+   h3dSetNodeParamF(fowCamera_->GetNode(), H3DCamera::FarPlaneF, 0, -min.z);
+
+   // Turn off all pipeline stages, save for 'FogOfWar_RT'
+   SetEnabledStages(fowOnlyStages_);
+
+   // Render
+   h3dRender(fowCamera_->GetNode());
+
+   // Revert all pipeline stages.
+   SetEnabledStages(drawWorldStages_);
+
+   Horde3D::Matrix4f pm;
+   h3dGetCameraProjMat(fowCamera_->GetNode(), pm.x);
+
+   Horde3D::Matrix4f c = pm * fowView;
+   float m[] = {
+      0.5, 0.0, 0.0, 0.0,
+      0.0, 0.5, 0.0, 0.0,
+      0.0, 0.0, 0.5, 0.0,
+      0.5, 0.5, 0.5, 1.0
+   };
+   Horde3D::Matrix4f biasMatrix(m);
+   c = biasMatrix * c;
+   // This means we can't support FoW lookups in non-default materials!.  How to fix....
+   h3dSetMaterialArrayUniform(
+      h3dAddResource(H3DResTypes::Material, "materials/default_material.xml", 0),
+      "fowViewMatCols", c.x, 16);
 }
 
 void Renderer::SetSkyColors(const csg::Point3f& startCol, const csg::Point3f& endCol)
 {
    h3dSetMaterialUniform(skysphereMat, "skycolor_start", startCol.x, startCol.y, startCol.z, 1.0f);
    h3dSetMaterialUniform(skysphereMat, "skycolor_end", endCol.x, endCol.y, endCol.z, 1.0f);
+}
+
+H3DRes Renderer::BuildSphereGeometry() {
+   float texData[2046 * 2];
+   // Unit (geodesic) sphere (created by recursively subdividing a base octahedron)
+   Horde3D::Vec3f spVerts[2046] = {  // x, y, z
+      Horde3D::Vec3f( 0.f, 1.f, 0.f ),   Horde3D::Vec3f( 0.f, -1.f, 0.f ),
+      Horde3D::Vec3f( -0.707f, 0.f, 0.707f ),   Horde3D::Vec3f( 0.707f, 0.f, 0.707f ),
+      Horde3D::Vec3f( 0.707f, 0.f, -0.707f ),   Horde3D::Vec3f( -0.707f, 0.f, -0.707f )
+   };
+   uint32 spInds[2048 * 3] = {  // Number of faces: (4 ^ iterations) * 8
+      2, 3, 0,   3, 4, 0,   4, 5, 0,   5, 2, 0,   2, 1, 3,   3, 1, 4,   4, 1, 5,   5, 1, 2
+   };
+   for( uint32 i = 0, nv = 6, ni = 24; i < 4; ++i )  // Two iterations
+   {
+      // Subdivide each face into 4 tris by bisecting each edge and push vertices onto unit sphere
+      for( uint32 j = 0, prevNumInds = ni; j < prevNumInds; j += 3 )
+      {
+         spVerts[nv++] = ((spVerts[spInds[j + 0]] + spVerts[spInds[j + 1]]) * 0.5f).normalized();
+         spVerts[nv++] = ((spVerts[spInds[j + 1]] + spVerts[spInds[j + 2]]) * 0.5f).normalized();
+         spVerts[nv++] = ((spVerts[spInds[j + 2]] + spVerts[spInds[j + 0]]) * 0.5f).normalized();
+
+         spInds[ni++] = spInds[j + 0]; spInds[ni++] = nv - 3; spInds[ni++] = nv - 1;
+         spInds[ni++] = nv - 3; spInds[ni++] = spInds[j + 1]; spInds[ni++] = nv - 2;
+         spInds[ni++] = nv - 2; spInds[ni++] = spInds[j + 2]; spInds[ni++] = nv - 1;
+         spInds[j + 0] = nv - 3; spInds[j + 1] = nv - 2; spInds[j + 2] = nv - 1;
+      }
+   }
+
+   for (int i = 0; i < 2046; i++)
+   {
+      texData[i * 2 + 0] = 0.0f;
+      texData[i * 2 + 1] = 1.0f - ((spVerts[i].y * 0.5f) + 0.5f);
+   }
+
+   return h3dutCreateGeometryRes("sphere", 2046, 2048 * 3, (float*)spVerts, spInds, nullptr, nullptr, nullptr, texData, nullptr);
 }
 
 void Renderer::BuildSkySphere()
@@ -383,6 +558,8 @@ void Renderer::GetConfigOptions()
    config_.last_window_y.value = config.Get("renderer.last_window_y", 0);
 
    config_.use_fast_hilite.value = config.Get("renderer.use_fast_hilite", false);
+   
+   resourcePath_ = config.Get("renderer.resource_path", "stonehearth/data/horde");
 }
 
 void Renderer::ApplyConfig(const RendererConfig& newConfig, bool persistConfig)
@@ -453,8 +630,20 @@ void Renderer::ApplyConfig(const RendererConfig& newConfig, bool persistConfig)
       config.Set("renderer.use_fast_hilite", config_.use_fast_hilite.value);
    }
 
+   if (config_.use_fast_hilite.value) {
+      drawWorldStages_.insert(std::string("Selected_Fast"));
+      drawWorldStages_.erase(std::string("Selected"));
+   } else {
+      drawWorldStages_.erase(std::string("Selected_Fast"));
+      drawWorldStages_.insert(std::string("Selected"));
+   }
+
    // We just flushed/loaded our pipeline, so don't forget to reset the draw bits!
-   SetDrawWorld(drawWorld_);
+   if (drawWorld_) {
+      SetEnabledStages(drawWorldStages_);
+   } else {
+      SetEnabledStages(uiOnlyStages_);
+   }
 }
 
 void Renderer::SelectSaneVideoMode(bool fullscreen, int* width, int* height, int* windowX, int* windowY, GLFWmonitor** monitor) 
@@ -642,6 +831,35 @@ HWND Renderer::GetWindowHandle() const
    return glfwGetWin32Window(glfwGetCurrentContext());
 }
 
+void Renderer::SetVisibilityRegions(std::string const& visible_region_uri, std::string const& explored_region_uri)
+{
+   om::Region2BoxedPtr visibleRegionBoxed, exploredRegionBoxed;
+
+   dm::Store const& store = Client::GetInstance().GetStore();
+
+   visibleRegionBoxed = om::ObjectFormatter().GetObject<om::Region2Boxed>(store, visible_region_uri);
+   exploredRegionBoxed = om::ObjectFormatter().GetObject<om::Region2Boxed>(store, explored_region_uri);
+
+   visibilityTrace_ = visibleRegionBoxed->TraceChanges("render visible region", dm::RENDER_TRACES)
+                         ->OnModified([=](){
+                            csg::Region2 visibleRegion = visibleRegionBoxed->Get();
+                            // TODO: give visibleRegion to horde
+                            //int num_cubes = visibleRegion.GetCubeCount();
+                            //R_LOG(3) << "Client visibility cubes: " << num_cubes;
+                         })
+                         ->PushObjectState(); // Immediately send the current state to listener
+
+   exploredTrace_ = exploredRegionBoxed->TraceChanges("render explored region", dm::RENDER_TRACES)
+                         ->OnModified([=](){
+                            csg::Region2 exploredRegion = exploredRegionBoxed->Get();
+
+                            Renderer::GetInstance().UpdateFoW(Renderer::GetInstance().fowExploredNode_, exploredRegion);
+                            //int num_cubes = exploredRegion.GetCubeCount();
+                            //R_LOG(3) << "Client explored cubes: " << num_cubes;
+                         })
+                         ->PushObjectState(); // Immediately send the current state to listener
+}
+
 void Renderer::RenderOneFrame(int now, float alpha)
 {
    if (iconified_) {
@@ -715,6 +933,11 @@ void Renderer::RenderOneFrame(int now, float alpha)
 
    // Render scene
    perfmon::SwitchToCounter("render h3d");
+   
+   if (drawWorld_) {
+      RenderFogOfWarRT();
+   }
+
    h3dRender(camera_->GetNode());
 
    // Finish rendering of frame
@@ -912,23 +1135,26 @@ void Renderer::ResizeViewport()
    h3dSetupCameraView( camera, 45.0f, width / (float)height, 2.0f, config_.draw_distance.value);
 }
 
+void Renderer::SetEnabledStages(std::unordered_set<std::string>& stages)
+{
+   int stageCount = h3dGetResElemCount(currentPipeline_, H3DPipeRes::StageElem);
+
+   for (int i = 0; i < stageCount; i++)
+   {
+      const std::string curStageName(h3dGetResParamStr(currentPipeline_, H3DPipeRes::StageElem, i, H3DPipeRes::StageNameStr));
+      int enabled = stages.find(curStageName) != stages.end() ? 1 : 0;
+      h3dSetResParamI(currentPipeline_, H3DPipeRes::StageElem, i, H3DPipeRes::StageActivationI, enabled);
+   }
+}
+
 void Renderer::SetDrawWorld(bool drawWorld) 
 {
    drawWorld_ = drawWorld;
-   SetStageEnable("Sky", drawWorld);
-   SetStageEnable("Starfield", drawWorld);
-   SetStageEnable("Depth", drawWorld);
-   SetStageEnable("Light", drawWorld);
-   SetStageEnable("Clouds", drawWorld);
-   SetStageEnable("Fog", drawWorld);
-   SetStageEnable("Translucent", drawWorld);
 
-   if (config_.use_fast_hilite.value) {
-      SetStageEnable("Selected", false);
-      SetStageEnable("Selected_Fast", drawWorld);
+   if (drawWorld_) {
+      SetEnabledStages(drawWorldStages_);
    } else {
-      SetStageEnable("Selected_Fast", false);
-      SetStageEnable("Selected", drawWorld);
+      SetEnabledStages(uiOnlyStages_);
    }
 }
 
@@ -1173,7 +1399,8 @@ void Renderer::SetViewMode(ViewMode mode)
 void Renderer::LoadResources()
 {
    uiBuffer_.allocateBuffers(std::max(uiWidth_, 1920), std::max(1080, uiHeight_));
-   if (!h3dutLoadResourcesFromDisk("horde")) {
+
+   if (!LoadMissingResources()) {
       // at this time, there's a bug in horde3d (?) which causes render
       // pipline corruption if invalid resources are even attempted to
       // load.  assert fail;
@@ -1254,4 +1481,36 @@ void Renderer::SetShowDebugShapes(bool show_debug_shapes)
 core::Guard Renderer::OnShowDebugShapesChanged(std::function<void(bool)> fn)
 {
    return show_debug_shapes_changed_slot_.Register(fn);
+}
+
+bool Renderer::LoadMissingResources()
+{
+   bool result = true;
+   res::ResourceManager2& resourceManager = res::ResourceManager2::GetInstance();
+   
+   // Get the first resource that needs to be loaded
+   int res = h3dQueryUnloadedResource(0);
+   while( res != 0 ) {
+      const char *resourceName = h3dGetResName(res);
+      std::string resourcePath = resourcePath_ + "/" + resourceName;
+      std::shared_ptr<std::istream> inf;
+
+      // using exceptions here was a HORRIBLE idea.  who's responsible for this? =O - tony
+      try {
+         inf = resourceManager.OpenResource(resourcePath);
+      } catch (std::exception const&) {
+         R_LOG(1) << "failed to load render resource " << resourceName;
+      }
+      if (inf) {
+         std::string buffer = io::read_contents(*inf);
+         result = h3dLoadResource(res, buffer.c_str(), buffer.size()) && result;
+      } else {
+         // Tell engine to use the default resource by using NULL as data pointer
+         h3dLoadResource(res, 0x0, 0);
+         result = false;
+      }
+      // Get next unloaded resource
+      res = h3dQueryUnloadedResource(0);
+   }
+   return result;
 }

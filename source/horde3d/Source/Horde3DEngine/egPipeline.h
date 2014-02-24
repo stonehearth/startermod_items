@@ -55,7 +55,8 @@ struct PipelineCommands
 		DoForwardLightLoop,
 		DoDeferredLightLoop,
 		SetUniform,
-      BuildMipmap
+    BuildMipmap,
+    DrawProjections
 	};
 };
 

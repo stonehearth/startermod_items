@@ -12,6 +12,7 @@ function AiService:__init()
    -- cosmetic purposes and aids in debugging.
    self.SUSPEND_THREAD = { name = "SUSPEND_THREAD" }
    self.KILL_THREAD = { name = "KILL_THREAD" }
+   self.RESERVATION_LEASE_NAME = 'ai_reservation'
 
    self._action_registry = {}
    self._observer_registry = {}
@@ -54,13 +55,13 @@ function AiService:remove_action(entity, uri)
 end
 
 function AiService:add_custom_action(entity, action_ctor, injecting_entity)
-   log:debug('adding action "%s" to %s', action_ctor.name, tostring(entity))
+   log:debug('adding action "%s" (%s) to %s', action_ctor.name, tostring(action_ctor), entity)
    local ai_component = self:_get_ai_component(entity)
    ai_component:add_action(action_ctor, action_ctor, injecting_entity)
 end
 
 function AiService:remove_custom_action(entity, action_ctor, injecting_entity)
-   log:debug('removing action "%s" to %s', action_ctor.name, tostring(entity))
+   log:debug('removing action "%s" (%s) from %s', action_ctor.name, tostring(action_ctor), entity)
    local ai_component = self:_get_ai_component(entity)
    ai_component:remove_action(action_ctor)
 end
@@ -86,7 +87,6 @@ function AiService:_get_ai_component(arg0)
       id = entity:get_id()
    end
    local ai_component = self._ai_components[id]
-   assert(ai_component)
    return ai_component
 end
 

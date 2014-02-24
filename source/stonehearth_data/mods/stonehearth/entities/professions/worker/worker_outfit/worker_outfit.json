@@ -1,6 +1,6 @@
 {
    "type": "entity",
-   "extends" : "stonehearth:mixins:item_properties",
+   "mixins" : "stonehearth:mixins:item_properties",
    "components" : {
       "unit_info" : {
          "name" :  "Worker Outfit",
@@ -8,21 +8,20 @@
       },
       "render_info" : {
       },
-      "model_variants": [
-         {
+      "model_variants": {
+         "default": {
             "layer": "clothing",
             "models": [
                "file(worker_outfit.qb)"
             ]
          },
-         {
-            "variants": "female",
+         "female" : {
             "layer": "clothing",
             "models": [
                "file(worker_outfit_female.qb)"
             ]
          }
-      ],
+      },
       "stonehearth:equipment_piece" : {
          "render_type" : "merge_with_model",
          "injected_ai" : {
@@ -33,13 +32,10 @@
                "stonehearth:actions:harvest_plant_adjacent",
                "stonehearth:actions:worker_task_dispatcher",
                "stonehearth:actions:restock_stockpile",
-               "stonehearth:actions:reserve_stockpile_space",
                "stonehearth:actions:place_item",
                "stonehearth:actions:place_item_type",
                "stonehearth:actions:light_firepit",               
                "stonehearth:actions:shear_sheep_action",
-               "stonehearth:actions:collect_ingredient",
-               "stonehearth:actions:complete_workshop_construction",
                "stonehearth:actions:replace_proxy_with_item",
                "stonehearth:actions:wait_for_fabricator",
                "stonehearth:actions:fabricate_structure",

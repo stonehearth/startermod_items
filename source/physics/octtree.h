@@ -39,14 +39,10 @@ class OctTree {
       int EstimateMovementCost(const csg::Point3& src, const std::vector<csg::Point3>& points) const;
       int EstimateMovementCost(const csg::Point3& src, const csg::Region3& dst) const;
 
-
       void ShowDebugShapes(csg::Point3 const& pt, protocol::shapelist* msg);
 
    protected:
       bool Intersects(csg::Cube3f bounds, om::RegionCollisionShapePtr rgnCollsionShape) const;   
-      bool CanStepUp(csg::Point3& at) const;
-      bool CanFallDown(csg::Point3& at) const;
-
       void FilterAllActors(std::function <bool(om::EntityPtr)> filter);
       om::EntityPtr FindFirstActor(om::EntityPtr root, std::function <bool(om::EntityPtr)> filter);
 

@@ -34,9 +34,6 @@ function PlaceItemCallHandler:choose_place_item_location(session, response, targ
    local re = _radiant.client.create_render_entity(1, self._cursor_entity)
    self._cursor_entity:add_component('render_info')
       :set_material('materials/ghost_item.xml')
-      --TODO: Qubicle brush fails on qb files with multiple matrices.
-      --See this bug: http://bugs.radiant-entertainment.com:8080/browse/SH-38 
-      --:set_model_mode('blueprint')
 
    log:debug("created render entity")
 
@@ -131,26 +128,12 @@ end
 function PlaceItemCallHandler:place_item_in_world(session, response, entity_id, full_sized_uri, location, rotation)
    local location = Point3(location.x, location.y, location.z)
    local item = radiant.entities.get_entity(entity_id)
-
-   local ghost_entity = radiant.entities.create_entity()
-   local ghost_entity_component = ghost_entity:add_component('stonehearth:ghost_item')
-   ghost_entity_component:set_full_sized_mod_uri(full_sized_uri)
-   radiant.terrain.place_entity(ghost_entity, location)
-   radiant.entities.turn_to(ghost_entity, rotation)
-
-   local remove_ghost_entity = function(placed_item)
-      radiant.entities.destroy_entity(ghost_entity)
+   if not item then
+      return false
    end
 
-   local scheduler = stonehearth.tasks:get_scheduler('stonehearth:workers', session.faction)
-   scheduler:create_task('stonehearth:place_item', {
-         item = item,
-         location = location,
-         rotation = rotation,
-         finish_fn = remove_ghost_entity
-      })
-      :once()
-      :start()
+   local town = stonehearth.town:get_town(session.faction)
+   town:place_item_in_world(item, full_sized_uri, location, rotation)
 
    return true
 end
@@ -161,30 +144,10 @@ end
 function PlaceItemCallHandler:place_item_type_in_world(session, response, entity_uri, full_item_uri, location, rotation)
    local location = Point3(location.x, location.y, location.z)
 
-   local ghost_entity = radiant.entities.create_entity()
-   local ghost_entity_component = ghost_entity:add_component('stonehearth:ghost_item')
-   ghost_entity_component:set_full_sized_mod_uri(full_item_uri)
-   radiant.terrain.place_entity(ghost_entity, location)
-   radiant.entities.turn_to(ghost_entity, rotation)
-
-   local remove_ghost_entity = function(placed_item)
-      radiant.entities.destroy_entity(ghost_entity)
-   end
-
-   local filter_fn = function(item)
-      return item:get_uri() == entity_uri
-   end
-
-   local scheduler = stonehearth.tasks:get_scheduler('stonehearth:workers', session.faction)
-   scheduler:create_task('stonehearth:place_item_type', {
-         filter_fn = filter_fn,
-         location = location,
-         rotation = rotation,
-         finish_fn = remove_ghost_entity
-      })
-      :once()
-      :start()
-
+   local town = stonehearth.town:get_town(session.faction)
+   town:place_item_type_in_world(entity_uri, full_item_uri, location, rotation)
+   
+   return true
 end
 
 

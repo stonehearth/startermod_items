@@ -18,7 +18,7 @@ end
 function MicroWorld:create_world()
    local region3 = _radiant.sim.alloc_region()
    region3:modify(function(r3)
-      r3:add_cube(Cube3(Point3(0, -16, 0), Point3(self._size, 0, self._size), Terrain.SOIL))
+      r3:add_cube(Cube3(Point3(0, -16, 0), Point3(self._size, 0, self._size), Terrain.SOIL_STRATA))
       r3:add_cube(Cube3(Point3(0,   0, 0), Point3(self._size, 1, self._size), Terrain.GRASS))
    end)
 
@@ -32,7 +32,7 @@ function MicroWorld:at(time, fn)
 end
 
 function MicroWorld:place_tree(x, z)
-   return self:place_item('stonehearth:medium_oak_tree', x, z)
+   return self:place_item('stonehearth:small_oak_tree', x, z)
 end
 
 function MicroWorld:place_item(uri, x, z, faction)

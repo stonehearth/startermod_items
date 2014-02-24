@@ -1,6 +1,6 @@
 {
-   "activities" : [
-      {
+   "activities" : {
+      "promote_weaver" : {
          "id" : "promote_weaver",
          "trigger_policy" : [
             {
@@ -43,6 +43,6 @@
             }
          }
       }
-   ]
+   }
 }
             

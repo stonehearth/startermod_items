@@ -1,5 +1,3 @@
-local Logger = require 'modules.logger'
-
 local Log = {
    ERROR = 1,
    WARNING = 3,
@@ -7,6 +5,15 @@ local Log = {
    DEBUG = 7,
    DETAIL = 8,
    SPAM = 9,
+}
+
+local logger_functions = {
+   error = Log.ERROR,
+   warning = Log.WARNING,
+   info = Log.INFO,
+   debug = Log.DEBUG,
+   detail = Log.DETAIL,
+   spam = Log.SPAM,
 }
 
 local LOG_LEVELS = {}
@@ -72,7 +79,49 @@ function Log.create_logger(sub_category, prefix)
    --    2: Log.create_logger       
    --    3: --> some module whose name we want! <-- 
    local category = __get_current_module_name(3) .. '.' .. sub_category
-   return Logger(category, prefix)
+   local logger = {
+      _category = category,
+      _prefix = prefix,
+      set_prefix = function (self, prefix)
+            self._prefix = prefix
+         end,
+      is_enabled = function (self, level)
+            return radiant.log.is_enabled(self._category, level)
+         end,
+      write = function (self, level, format, ...)
+            if self._prefix then
+               radiant.log.write(self._category, level, '[%s] '.. format, self._prefix, ...)
+            else
+               radiant.log.write(self._category, level, format, ...)
+            end            
+         end,
+   }
+   
+   for keyword, level in pairs(logger_functions) do
+      if logger:is_enabled(level) then
+         logger[keyword] = function(t, format, ...)
+            local prefix
+            if t._prefix then
+               prefix = '[' .. t._prefix .. '] '
+            else
+               prefix = ''
+            end
+            local args = {...}
+            for i, arg in ipairs(args) do
+               if type(arg) == 'userdata' then
+                  args[i] = tostring(arg)
+               end
+            end
+            _host:log(t._category, level, prefix .. string.format(format, unpack(args)))
+         end
+      else
+         logger[keyword] = function () end
+      end
+   end
+
+   return logger
+
+   --return Logger(category, prefix)
 end
 
 return Log

@@ -10,6 +10,7 @@ BEGIN_RADIANT_JSON_NAMESPACE
 class Node {
 public:
    Node() { }
+   Node(char node_type) : node_(node_type) { }
    Node(JSONNode const& node) : node_(node) { }
 
    std::string name() const { return node_.name(); }

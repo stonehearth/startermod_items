@@ -1,0 +1,4 @@
+<Material>
+  <Shader source="shaders/projection.shader" />
+  <Sampler name="image" map="materials/out_of_range_reticle/out_of_range_reticle.png" />
+</Material>

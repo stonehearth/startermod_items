@@ -10,6 +10,7 @@
 #include "om/stonehearth.h"
 #include "om/region.h"
 #include "om/components/data_store.ridl.h"
+#include "csg/util.h"
 #include "lib/voxel/qubicle_brush.h"
 #include "lib/json/core_json.h"
 
@@ -71,11 +72,6 @@ om::EntityRef Sim_CreateEntity(lua_State* L, std::string const& uri)
    return entity;
 }
 
-std::string Sim_GetEntityUri(lua_State* L, std::string const& mod_name, std::string const& entity_name)
-{
-   return res::ResourceManager2::GetInstance().GetEntityUri(mod_name, entity_name);
-}
-
 template <typename T>
 std::shared_ptr<T> Sim_AllocObject(lua_State* L)
 {
@@ -127,11 +123,11 @@ std::shared_ptr<FollowPath> Sim_CreateFollowPath(lua_State *L, om::EntityRef ent
    return fp;
 }
 
-std::shared_ptr<GotoLocation> Sim_CreateGotoLocation(lua_State *L, om::EntityRef entity, float speed, const csg::Point3f& location, float close_to_distance, object arrived_cb)
+std::shared_ptr<GotoLocation> Sim_CreateGotoLocation(lua_State *L, om::EntityRef entity, float speed, const csg::Point3& location, float close_to_distance, object arrived_cb)
 {
    Simulation &sim = GetSim(L);
    object cb(lua::ScriptHost::GetCallbackThread(L), arrived_cb);
-   std::shared_ptr<GotoLocation> fp(new GotoLocation(sim, entity, speed, location, close_to_distance, cb));
+   std::shared_ptr<GotoLocation> fp(new GotoLocation(sim, entity, speed, csg::ToFloat(location), close_to_distance, cb));
    sim.AddTask(fp);
    return fp;
 }

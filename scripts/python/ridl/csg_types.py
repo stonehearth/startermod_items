@@ -8,6 +8,14 @@ class Point3(ridl.Type):
    name = "csg::Point3"
    hash = "csg::Point3::Hash"
 
+class Point2f(ridl.Type):
+   name = "csg::Point2f"
+   hash = "csg::Point2::Hash"
+
+class Point2(ridl.Type):
+   name = "csg::Point2"
+   hash = "csg::Point2::Hash"
+
 class Cube3f(ridl.Type):
    name = "csg::Cube3f"
 

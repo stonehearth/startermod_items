@@ -540,6 +540,11 @@ RenderAttachItemEffect::RenderAttachItemEffect(RenderEntity& e, om::EffectPtr ef
       startTime_ = GetStartTime(node) + now;
       bone_ = node["bone"].as_string();
 
+      om::MobPtr mob = item->GetComponent<om::Mob>();
+      if (mob) {
+         mob->SetLocationGridAligned(csg::Point3::zero);
+      }
+
       H3DNode parent = entity_.GetSkeleton().GetSceneNode(bone_);
       render_item_ = Renderer::GetInstance().CreateRenderObject(parent, item);
       render_item_->SetParent(0);

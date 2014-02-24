@@ -32,40 +32,49 @@ RenderCarryBlock::~RenderCarryBlock()
 
 void RenderCarryBlock::UpdateCarrying()
 {
-   CB_LOG(5) << "updating carry block.";
+   CB_LOG(5) << "updating carry block (current: " << carrying_ << ")";
    auto carryBlock = carryBlock_.lock();
    if (carryBlock && carryBone_) {
       dm::ObjectId carryingId = 0;
       om::EntityPtr carrying = carryBlock->GetCarrying().lock();      
       if (carrying) {
          carryingId = carrying->GetObjectId();
+         CB_LOG(7) << "now carrying " << *carrying;
       }
-      if (carryingId != carrying_) {
-         // If the thing we used to be carrying is still attached to our carry bone, deparent it
-         if (carrying_) {
-            auto renderObject = Renderer::GetInstance().GetRenderObject(2, carrying_); // xxx hard coded client store id =..(
-            if (renderObject && renderObject->GetParent() == carryBone_) {
-               CB_LOG(5) << "setting render object " << carrying_ << " parent to " << 0;
-               renderObject->SetParent(0);
-            } else {
-               CB_LOG(5) << "not reparenting old carrying.  already reparented off carry bone";
-            }
+      if (carryingId == carrying_) {
+         CB_LOG(7) << "carrying hasn't changed.  ignoring.";
+         return;
+      }
+      // If the thing we used to be carrying is still attached to our carry bone, deparent it
+      if (carrying_) {
+         auto renderObject = Renderer::GetInstance().GetRenderObject(2, carrying_); // xxx hard coded client store id =..(
+         if (renderObject && renderObject->GetParent() == carryBone_) {
+            CB_LOG(5) << "setting render object " << carrying_ << " parent to " << 0;
+            renderObject->SetParent(0);
+         } else {
+            CB_LOG(5) << "not reparenting old carrying.  already reparented off carry bone";
          }
+      } else {
+         CB_LOG(5) << "was not previously carrying anything.  no need to reparent.";
+      }
 
-         carrying_ = carryingId;
+      carrying_ = carryingId;
 
-         if (carrying_) {            
-            // Update carrying and put it on the carry bone
-            // xxx: we really really don't want to have to grab the raw entity, but this might be
-            // the first time we've ever seen it and the render object may not exist yet!  i think
-            // this can be fixed by verifying all alloc' callbacks have fired (and all render objects
-            // created) before firing traces, but who knows...
-            om::EntityPtr entity = Client::GetInstance().GetStore().FetchObject<om::Entity>(carrying_);
-            if (entity) {
-               CB_LOG(5) << "setting render object " << carrying_ << " parent to " << carryBone_;
-               Renderer::GetInstance().CreateRenderObject(carryBone_, entity);
-            }
+      if (carrying_) {            
+         // Update carrying and put it on the carry bone
+         // xxx: we really really don't want to have to grab the raw entity, but this might be
+         // the first time we've ever seen it and the render object may not exist yet!  i think
+         // this can be fixed by verifying all alloc' callbacks have fired (and all render objects
+         // created) before firing traces, but who knows...
+         om::EntityPtr entity = Client::GetInstance().GetStore().FetchObject<om::Entity>(carrying_);
+         if (entity) {
+            CB_LOG(5) << "setting render object for " << *entity << " parent to " << carryBone_;
+            Renderer::GetInstance().CreateRenderObject(carryBone_, entity);
+         } else {
+            CB_LOG(5) << "could not find render object for " << carrying_ << ".  not putting on bone!!";
          }
+      } else {
+         CB_LOG(5) << "not carrying anything now.  nothing to reparent.";
       }
    }
 }

@@ -205,23 +205,27 @@ function Fabricator:_start_project()
 end
 
 function Fabricator:_start_teardown_task()
-   self._teardown_task = stonehearth.tasks:get_scheduler('stonehearth:workers', self._faction)
-                                   :create_task('stonehearth:teardown_structure', { fabricator = self }) 
+   assert(not self._teardown_task)
+   
+   local town = stonehearth.town:get_town(self._faction)
+   self._teardown_task = town:create_worker_task('stonehearth:teardown_structure', { fabricator = self })
                                    :set_name('teardown')
+                                   :set_source(self._entity)
                                    :set_max_workers(self:get_max_workers())
-                                   :set_repeat_timeout(2000)
                                    :set_priority(priorities.TEARDOWN_BUILDING)
                                    :start()
    radiant.events.trigger(self, 'needs_teardown', self, true)
 end
  
 function Fabricator:_start_fabricate_task() 
-   self._fabricate_task = stonehearth.tasks:get_scheduler('stonehearth:workers', self._faction)
-                                   :create_task('stonehearth:fabricate_structure', { fabricator = self }) 
+   assert(not self._fabricate_task)
+
+   local town = stonehearth.town:get_town(self._faction)  
+   self._fabricate_task = town:create_worker_task('stonehearth:fabricate_structure', { fabricator = self })
                                    :set_name('fabricate')
+                                   :set_source(self._entity)
                                    :set_max_workers(self:get_max_workers())
-                                   :set_repeat_timeout(2000)
-                                   :set_priority(priorities.TEARDOWN_BUILDING)
+                                   :set_priority(priorities.CONSTRUCT_BUILDING)
                                    :start()
    radiant.events.trigger(self, 'needs_work', self, true)
 end

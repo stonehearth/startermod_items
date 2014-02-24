@@ -1,0 +1,10 @@
+{
+   "mixins": "stonehearth:mixins:resources:jerky",
+   "type": "entity",
+   "components": {
+      "unit_info": {
+         "name": "Rabbit jerky",
+         "description": "Tough and stringy, but nutritious!"
+      }
+   }
+}

@@ -1,14 +1,14 @@
 {
-   "extends": "stonehearth:mixins:placed_properties",
+   "mixins": "stonehearth:mixins:placed_properties",
    "type": "entity",
    "components": {
-      "model_variants": [
-         {
+      "model_variants": {
+         "default": {
             "models": [
                "file(simple_wooden_chair.qb)"
             ]
          }
-      ],
+      },
       "region_collision_shape" : {
          "region": [
             {

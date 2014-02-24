@@ -24,6 +24,7 @@
 #include "core/buffered_slot.h"
 #include "ui_buffer.h"
 #include "glfw3.h"
+#include <unordered_set>
 
 BEGIN_RADIANT_CLIENT_NAMESPACE
 
@@ -173,11 +174,18 @@ class Renderer
       void* GetLastUiBuffer();
 
       void SetDrawWorld(bool drawWorld);
+      void SetVisibilityRegions(std::string const& visible_region_uri, std::string const& explored_region_uri);
+
+      std::string GetHordeResourcePath() const { return resourcePath_; }
+
    private:
       NO_COPY_CONSTRUCTOR(Renderer);
       RendererConfig config_;
 
    private:
+      void SetEnabledStages(std::unordered_set<std::string>& stages);
+      void RenderFogOfWarRT();
+      H3DRes BuildSphereGeometry();
       void GetConfigOptions();
       void BuildSkySphere();
       void BuildStarfield();
@@ -194,21 +202,24 @@ class Renderer
       float DistFunc(float dist, int wheel, float minDist, float maxDist) const;
       MouseInput WindowToBrowser(const MouseInput& mouse);
       void CallMouseInputCallbacks();
+      void UpdateFoW(H3DNode node, const csg::Region2& region);
 
       void ResizeWindow(int width, int height);
       void ResizeViewport();
       void ResizePipelines();
 
       void DispatchInputEvent();
+      bool LoadMissingResources();
 
    protected:
       struct RenderMapEntry {
          std::shared_ptr<RenderEntity>    render_entity;
          dm::TracePtr                     lifetime_trace;
       };
-      typedef std::unordered_map<H3DNode, UpdateSelectionFn> SelectableMap;
+      typedef std::unordered_map<H3DNode, UpdateSelectionFn>   SelectableMap;
       typedef std::unordered_map<dm::ObjectId, RenderMapEntry> RenderEntityMap;
-      typedef std::unordered_map<std::string, H3DRes>    H3DResourceMap;
+      typedef std::unordered_map<std::string, H3DRes>          H3DResourceMap;
+
       int               windowWidth_;
       int               windowHeight_;
       int               uiWidth_;
@@ -223,38 +234,46 @@ class Renderer
 
       UiBuffer          uiBuffer_;
 
-      Camera*            camera_;
+      Camera            *camera_, *fowCamera_;
       FW::FileWatcher   fileWatcher_;
 
+
+      H3DNode     fowExploredNode_, fowVisibleNode_;
       core::Guard           traces_;
 
-      std::shared_ptr<RenderEntity>      rootRenderObject_;
-      H3DNode                       debugShapes_;
-      bool                          show_debug_shapes_;
+      std::shared_ptr<RenderEntity> rootRenderObject_;
+      H3DNode           debugShapes_;
+      bool              show_debug_shapes_;
 
-      RenderEntityMap               entities_[5]; // by store id
-      SelectableMap                 selectableCbs_;
-      InputEventCb                  input_cb_;
+      RenderEntityMap   entities_[5]; // by store id
+      SelectableMap     selectableCbs_;
+      InputEventCb      input_cb_;
 
-      Input                         input_;  // Mouse coordinates in the GL window-space.
-      bool                          initialized_;
-      bool                          iconified_;
+      Input             input_;  // Mouse coordinates in the GL window-space.
+      bool              initialized_;
+      bool              iconified_;
 
-      ViewMode                      viewMode_;
-      json::Node                    terrainConfig_;
-      lua::ScriptHost*              scriptHost_;
+      ViewMode          viewMode_;
+      json::Node        terrainConfig_;
+      lua::ScriptHost*  scriptHost_;
 
       core::BufferedSlot<csg::Point2>     screen_resize_slot_;
       core::BufferedSlot<bool>            show_debug_shapes_changed_slot_;
       core::Slot<int>                     server_tick_slot_;
       core::Slot<FrameStartInfo const&>   render_frame_start_slot_;
       std::unique_ptr<PerfHud>            perf_hud_;
-      int                                 last_render_time_;
-      bool                                resize_pending_;
-      bool                                inFullscreen_;
-      int                                 nextWidth_, nextHeight_;
+
+      int               last_render_time_;
+      bool              resize_pending_;
+      bool              inFullscreen_;
+      int               nextWidth_, nextHeight_;
       
-      std::string                         lastGlfwError_;
+      std::string       resourcePath_;
+      std::string       lastGlfwError_;
+      std::unordered_set<std::string>     uiOnlyStages_, fowOnlyStages_, drawWorldStages_;
+
+      dm::TracePtr      visibilityTrace_;
+      dm::TracePtr      exploredTrace_;
 };
 
 END_RADIANT_CLIENT_NAMESPACE

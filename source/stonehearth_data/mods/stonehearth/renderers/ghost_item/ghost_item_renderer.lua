@@ -20,9 +20,6 @@ function GhostItemRenderer:_update()
       self._ghost_entity = radiant.entities.create_entity(data.full_sized_mod_url)
       self._ghost_entity:add_component('render_info')
                            :set_material('materials/ghost_item.xml')
-                           --TODO: blueprint mode doesn't yet work with multiple matrix models
-                           --See this bug: http://bugs.radiant-entertainment.com:8080/browse/SH-38
-                           --:set_model_mode('blueprint')
 
       self._ghost_item_rendered = _radiant.client.create_render_entity(self._parent_node, self._ghost_entity)
    end

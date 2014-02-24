@@ -73,6 +73,8 @@ function RenewableResourceNodeComponent:spawn_resource(location)
          radiant.events.listen(self._entity, 'stonehearth:on_effect_finished', self, self.on_effect_finished)
       end
 
+      -- Fire an event to let everyone else know we've just been harvested
+      radiant.events.trigger(self._entity, 'stonehearth:harvested', { entity = self._entity} )
       return item
    end
 end

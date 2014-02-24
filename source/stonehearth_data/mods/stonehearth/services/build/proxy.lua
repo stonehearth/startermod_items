@@ -25,7 +25,7 @@ function Proxy:__init(derived, parent_proxy, arg1)
    -- proxies get rendered in blueprint
    self._entity:add_component('render_info')
                      :set_material('materials/blueprint_gridlines.xml')
-                     :set_model_mode('blueprint')
+                     --:set_model_mode('blueprint')
 end
 
 function Proxy:destroy()

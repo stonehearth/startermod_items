@@ -17,6 +17,7 @@ using namespace ::luabind;
 using namespace ::radiant;
 using namespace ::radiant::om;
 
+DEFINE_INVALID_JSON_CONVERSION(Region2BoxedPtrBoxed)
 DEFINE_INVALID_JSON_CONVERSION(Region3BoxedPtrBoxed)
 DEFINE_INVALID_JSON_CONVERSION(DeepRegionGuard)
 IMPLEMENT_TRIVIAL_TOSTRING(Region2Boxed)
@@ -43,6 +44,7 @@ scope RegisterSensor(lua_State* L);
 scope RegisterTargetTable(lua_State* L);
 scope RegisterTargetTableGroup(lua_State* L);
 scope RegisterTargetTableEntry(lua_State* L);
+scope RegisterModelLayer(lua_State* L);
 
 scope RegisterLuaComponents(lua_State *L)
 {
@@ -63,13 +65,14 @@ void radiant::om::RegisterLuaTypes(lua_State* L)
             RegisterTargetTable(L),
             RegisterTargetTableGroup(L),
             RegisterTargetTableEntry(L),
+            RegisterModelLayer(L),
             LuaEntity::RegisterLuaTypes(L),
             LuaDataStore::RegisterLuaTypes(L),
-            lua::RegisterTypePtr<Region2Boxed>()
+            lua::RegisterStrongGameObject<Region2Boxed>()
                .def("get",       &Region2Boxed::Get)
                .def("modify",    &ModifyBoxed<Region2Boxed>)
             ,
-            lua::RegisterTypePtr<Region3Boxed>()
+            lua::RegisterStrongGameObject<Region3Boxed>()
                .def("get",       &Region3Boxed::Get)
                .def("modify",    &ModifyBoxed<Region3Boxed>)
             ,

@@ -1,5 +1,6 @@
 #include "pch.h"
 #include "goto_location.h"
+#include "csg/util.h"
 #include "om/entity.h"
 #include "om/components/mob.ridl.h"
 #include "simulation/simulation.h"
@@ -53,7 +54,6 @@ static float angle(const csg::Point3f &v)
 
 bool GotoLocation::Work(const platform::timer &timer)
 {
-
    Report("running");
 
    auto entity = entity_.lock();
@@ -73,28 +73,69 @@ bool GotoLocation::Work(const platform::timer &timer)
    }
 
    auto mob = entity->GetComponent<om::Mob>();
-   auto location = mob->GetLocation();
-
-   float maxDistance = speed_ * GetSim().GetBaseWalkSpeed();
-
    csg::Point3f current = mob->GetLocation();
    csg::Point3f direction = csg::Point3f(target_location_ - current);
 
+   float maxDistance = speed_ * GetSim().GetBaseWalkSpeed();
    float togo = direction.Length() - close_to_distance_;
    direction.Normalize();
 
+   csg::Point3f desiredLocation, actualLocation;
+   float distance;
+   bool finished;
+
    if (togo < maxDistance) {
-      mob->MoveTo(current + direction * togo);
-      Report("arrived");
-      if (luabind::type(arrived_cb_) == LUA_TFUNCTION) {
-         luabind::call_function<void>(arrived_cb_);
-      }
-      return false;
+      Report("arriving");
+      distance = togo;
+      finished = true;
+   } else {
+      Report("moving");
+      distance = maxDistance;
+      finished = false;
    }
-   mob->TurnTo(angle(direction) * 180 / csg::k_pi);
-   mob->MoveTo(current + direction * maxDistance);
-   Report("moving");
-   return true;
+
+   desiredLocation = current + direction * distance;
+   bool passable = GetStandableLocation(entity, desiredLocation, actualLocation);
+
+   if (passable) {
+      mob->TurnTo(angle(direction) * 180 / csg::k_pi);
+      mob->MoveTo(actualLocation);
+   } else {
+      Report("unpassable");
+      finished = true;
+   }
+   if (finished && luabind::type(arrived_cb_) == LUA_TFUNCTION) {
+      luabind::call_function<void>(arrived_cb_);
+   }
+   return !finished;
+}
+
+// This code may find paths that are illegal under the pathfinder.
+// TODO: Reconcile this code with standard pathfinding rules.
+bool GotoLocation::GetStandableLocation(std::shared_ptr<om::Entity> const& entity, csg::Point3f& desiredLocation, csg::Point3f& actualLocation)
+{
+   phys::OctTree const& octTree = GetSim().GetOctTree();
+   csg::Point3f candidate;
+   
+   candidate = desiredLocation;
+   if (octTree.CanStandOn(entity, csg::ToClosestInt(candidate))) {
+      actualLocation = candidate;
+      return true;
+   }
+
+   candidate = desiredLocation + csg::Point3f::unitY;
+   if (octTree.CanStandOn(entity, csg::ToClosestInt(candidate))) {
+      actualLocation = candidate;
+      return true;
+   }
+
+   candidate = desiredLocation - csg::Point3f::unitY;
+   if (octTree.CanStandOn(entity, csg::ToClosestInt(candidate))) {
+      actualLocation = candidate;
+      return true;
+   }
+
+   return false;
 }
 
 void GotoLocation::Stop()

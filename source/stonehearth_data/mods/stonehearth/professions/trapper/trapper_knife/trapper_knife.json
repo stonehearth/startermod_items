@@ -1,0 +1,49 @@
+{
+   "type": "entity",
+   "mixins": "stonehearth:mixins:item_properties",
+   "components" : {
+      "unit_info" : {
+         "name" :  "Trapper's Knife",
+         "description" : "Upgrades a citizen into a Trapper",
+         "icon" : "file(/entities/generic/default_object/default_object.png)",
+         "portrait": "file(trapper_knife.png)",
+         "character_sheet_info" : "file(trapper_knife_character_sheet_info.json)"
+      },
+      "item" : {
+         "stacks" : 1
+      },
+       "stonehearth:material" : {
+         "tags" : "tool bone"
+      },
+      "model_variants": {
+         "default": {
+            "models": [
+               "file(trapper_knife.qb)"
+            ]
+         },
+         "equipped" : {
+            "models": [
+               "file(trapper_knife_equipped.qb)"
+            ]
+         }
+      },
+      "stonehearth:commands" : {
+         "commands" : [
+            "file(/data/commands/promote_to_profession)"
+         ]
+      },
+      "effect_list" : {
+         "effects" : [
+            "stonehearth:effects:talisman_glow"
+         ]  
+      },
+      "stonehearth:promotion_talisman": {
+         "script": "file(/professions/trapper/trapper.lua)",
+         "profession_name" : "Trapper"
+      }
+   },
+   "entity_data" : {
+      "stonehearth:activity_name" : "promote_trapper"
+   }
+}
+

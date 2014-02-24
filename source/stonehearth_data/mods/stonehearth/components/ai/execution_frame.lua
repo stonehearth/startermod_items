@@ -46,7 +46,7 @@ function ExecutionFrame:__init(thread, debug_route, entity, name, args, action_i
 
    self:_create_execution_units()
    self._ai_component = entity:get_component('stonehearth:ai')
-   radiant.events.listen(self._ai_component, 'stonehearth:action_index_changed', self, self._on_action_index_changed)   
+   radiant.events.listen(self._ai_component, 'stonehearth:action_index_changed', self, self._on_action_index_changed)
 end
 
 function ExecutionFrame:get_id()
@@ -136,11 +136,14 @@ function ExecutionFrame:_unit_not_ready(unit)
 end
 
 function ExecutionFrame:_stop()
-   if self._state == 'started' then
+   if self:in_state('starting', 'started') then
       return self:_stop_from_started()
    end
    if self._state == 'finished' then
       return self:_stop_from_finished()
+   end
+   if self._state == 'running' then
+      return self:_stop_from_running()
    end
    if self._state == 'stopped' then
       return -- nop
@@ -188,21 +191,21 @@ function ExecutionFrame:_add_action(...)
    self:_unknown_transition('add_action')
 end
 
-function ExecutionFrame:_remove_action(...)
+function ExecutionFrame:_remove_action(unit)
    if self._state == 'thinking' then
-      return self:_remove_action_from_thinking(...)
+      return self:_remove_action_from_thinking(unit)
    end
    if self._state == 'ready' then
-      return self:_remove_action_from_ready(...)
+      return self:_remove_action_from_ready(unit)
    end
    if self:in_state('running', 'switching', 'starting') then
-      return self:_remove_action_from_running(...)
+      return self:_remove_action_from_running(unit)
    end
    if self._state == 'stopped' then
-      return self:_remove_action_from_stopped(...)
+      return self:_remove_action_from_stopped(unit)
    end
    if self._state == 'finished' then
-      return self:_remove_action_from_finished(...)
+      return self:_remove_action_from_finished(unit)
    end
    self:_unknown_transition('remove_action')
 end
@@ -309,7 +312,7 @@ function ExecutionFrame:stop_thinking()
 end
 
 function ExecutionFrame:start()
-   assert(self._thread:is_running())
+   assert(self:_no_other_thread_is_running())
 
    self._log:spam('start')
    self:_protected_call(function()
@@ -358,7 +361,7 @@ function ExecutionFrame:run()
 end
 
 function ExecutionFrame:stop()
-   assert(self._thread:is_running())
+   assert(self:_no_other_thread_is_running())
 
    self._log:spam('stop (state:%s)', self._state)
    if self._state ~= DEAD then
@@ -634,9 +637,26 @@ function ExecutionFrame:_stop_from_started()
    self:_set_state(STOPPED)
 end
 
+function ExecutionFrame:_stop_from_running()
+   -- stop from running can only happen if there are no other threads running.
+   -- this can occur when an entity is destroyed from a C callback into the
+   -- game engine.  if we were running at the time, we'll take the standard
+   -- unwind pcall path where we simply get destroyed
+   assert(stonehearth.threads:get_current_thread() == nil)
+   
+   assert(self._active_unit)
+   for _, unit in pairs(self._execution_units) do
+      unit:_stop()
+   end
+   self:_set_active_unit(nil)
+   self:_set_state(STOPPED)
+end
+   
 function ExecutionFrame:_stop_from_finished()
+   self._log:detail('_stop_from_finished')
    assert(not self._active_unit)
    for _, unit in pairs(self._execution_units) do
+      self._log:detail('stopping execution unit "%s"', unit:get_name())
       unit:_stop()
    end
    self:_set_state(STOPPED)
@@ -671,7 +691,9 @@ end
 
 
 function ExecutionFrame:_destroy_from_running()
-   assert(self._thread:is_running())
+   -- verify either we're the thread running or we've been destroyed from a C callback
+   assert(self:_no_other_thread_is_running())
+   
    for _, unit in pairs(self._execution_units) do
       unit:_destroy()
    end
@@ -693,7 +715,7 @@ function ExecutionFrame:_destroy_from_switching()
 end
 
 function ExecutionFrame:abort()
-   assert(self._thread:is_running())
+   assert(self:_no_other_thread_is_running())
    self:_exit_protected_call(ABORT_FRAME)
 end
 
@@ -806,39 +828,39 @@ function ExecutionFrame:_add_action_from_stopped(key, entry)
    self:_add_execution_unit(key, entry)
 end
 
-function ExecutionFrame:_remove_action_from_stopped(key, entry)
-   local unit = self._execution_units[key]
+function ExecutionFrame:_remove_action_from_stopped(unit)
    unit:_destroy()
    self:_remove_execution_unit(unit)
 end
 
-function ExecutionFrame:_remove_action_from_finished(key, entry)
-   local unit = self._execution_units[key]
+function ExecutionFrame:_remove_action_from_finished(unit)
    unit:_destroy()
    self:_remove_execution_unit(unit)
 end
 
-function ExecutionFrame:_remove_action_from_thinking(key, entry)
-   local unit = self._execution_units[key]
+function ExecutionFrame:_remove_action_from_thinking(unit)
    unit:_stop_thinking(0)
    unit:_destroy()
    self:_remove_execution_unit(unit, true)
 end
 
-function ExecutionFrame:_remove_action_from_ready(key, entry)
-   local unit = self._execution_units[key]
+function ExecutionFrame:_remove_action_from_ready(unit)
    if unit == self._active_unit then
-      self._thread:interrupt(function()
-         self:abort()
-      end)
+      self._active_unit:_stop_thinking()
+      self:_set_active_unit(nil)
+      if self._ready_cb then
+         self._log:debug('sending unready notification')
+         self._ready_cb(self, nil)
+      end     
+      self:_set_state(STOPPED)
+      self:_start_thinking(self._current_entity_state)
    else
       self:_remove_execution_unit(unit, true)  
    end
 end
 
-function ExecutionFrame:_remove_action_from_running(key, entry)
+function ExecutionFrame:_remove_action_from_running(unit)
    self._log:detail('_remove_action_from_running (state: %s)', self._state)
-   local unit = self._execution_units[key]
    if unit == self._active_unit then
       self._thread:interrupt(function()
          self:abort()
@@ -856,6 +878,7 @@ function ExecutionFrame:_remove_execution_unit(unit)
    for key, u in pairs(self._execution_units) do
       if unit == u then
          self._log:debug('removing execution unit "%s"', unit:get_name())
+         unit:_destroy()
          self._execution_units[key] = nil
          self._execution_unit_keys[unit] = nil
          return
@@ -866,10 +889,15 @@ end
 function ExecutionFrame:_on_action_index_changed(add_remove, key, entry, does)
    self._log:debug('on_action_index_changed %s (key:%s state:%s)', add_remove, tostring(key), self._state)
    if self._name == does and self:get_state() ~= DEAD then
+      local unit = self._execution_units[key]
       if add_remove == 'add' then
-         self:_add_action(key, entry)
+         if not unit then         
+            self:_add_action(key, entry)
+         end
       elseif add_remove == 'remove' then
-         self:_remove_action(key, entry)
+         if unit then         
+            self:_remove_action(unit)
+         end
       else
          error(string.format('unknown msg "%s" in _on_action_index-changed', add_move))
       end
@@ -959,13 +987,25 @@ end
 -- *strictly* better.  no run-offs for latecomers.
 function ExecutionFrame:_is_strictly_better_than_active(unit)
    if not self._active_unit then
+      self._log:spam('  no active_unit.  "%s" is better!', unit:get_name())
       return true
    end
    if unit == self._active_unit then
+      self._log:spam('  unit "%s" is active unit, therefore is not better!', unit:get_name())
       return false
    end
-   if unit:get_priority() > self._active_unit:get_priority() then
+
+   local unit_priority = unit:get_priority()
+   local active_priority = self._active_unit:get_priority()
+
+   if unit_priority > active_priority then
+      self._log:spam('  unit %s priority %d > active unit "%s" priority %d.  therefore is better!',
+                     unit:get_name(), unit_priority, self._active_unit:get_name(), active_priority)
       return true
+   elseif unit_priority > active_priority then
+      self._log:spam('  unit %s priority %d < active unit "%s" priority %d.  therefore is not better!',
+                     unit:get_name(), unit_priority, self._active_unit:get_name(), active_priority)
+      return false
    end
 
    -- if they're exactly the same, the odds of replacing the current unit
@@ -973,7 +1013,10 @@ function ExecutionFrame:_is_strictly_better_than_active(unit)
    -- things we've seen roll by). (xxx: technically, the odds should be a 
    -- function of the combined weights of all the units of this priority
    -- which are currently ready)
-   return rng:get_int(1, self._runnable_unit_count) == self._runnable_unit_count
+   local better = rng:get_int(1, self._runnable_unit_count) == self._runnable_unit_count
+   self._log:spam('  unit "%s" and active unit "%s" both have priority %d.  tossing a coin...',
+                  unit:get_name(), self._active_unit:get_name(), unit_priority)
+   return better
 end
 
 function ExecutionFrame:_get_best_execution_unit()
@@ -1154,6 +1197,10 @@ function ExecutionFrame:_cleanup_protected_call_exit(sentinel)
    if decoda_break_on_error then
       decoda_break_on_error(true)
    end
+end
+
+function ExecutionFrame:_no_other_thread_is_running()
+   return self._thread:is_running() or stonehearth.threads:get_current_thread() == nil
 end
 
 return ExecutionFrame

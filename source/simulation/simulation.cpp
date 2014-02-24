@@ -135,6 +135,18 @@ Simulation::Simulation() :
       profile_next_lua_update_ = true;
       SIM_LOG(0) << "profiling next lua update";
    });
+   core_reactor_->AddRouteV("radiant:start_lua_memory_profile", [this](rpc::Function const& f) {
+      scriptHost_->ProfileMemory(true);
+   });
+   core_reactor_->AddRouteV("radiant:stop_lua_memory_profile", [this](rpc::Function const& f) {
+      scriptHost_->ProfileMemory(false);
+   });
+   core_reactor_->AddRouteV("radiant:write_lua_memory_profile", [this](rpc::Function const& f) {
+      scriptHost_->WriteMemoryProfile("lua_memory_profile.txt");      
+   });
+   core_reactor_->AddRouteV("radiant:clear_lua_memory_profile", [this](rpc::Function const& f) {
+      scriptHost_->ClearMemoryProfile();
+   });
 
    core_reactor_->AddRoute("radiant:server:get_error_browser", [this](rpc::Function const& f) {
       rpc::ReactorDeferredPtr d = std::make_shared<rpc::ReactorDeferred>("get error browser");
@@ -206,7 +218,6 @@ void Simulation::CreateNew()
       }
    }
    scriptHost_->Require("radiant.lualibs.strict");
-
    scriptHost_->Trigger("radiant:modules_loaded");
 
    std::string const module = config.Get<std::string>("game.mod");
@@ -270,18 +281,21 @@ rpc::ReactorDeferredPtr Simulation::StartPerformanceCounterPush()
 
 void Simulation::PushPerformanceCounters()
 {
-   if (1 || perf_counter_deferred_) {
-      json::Node counters;
-      //LOG_(0) << "------------------------------------------------------";
-      for (const auto& entry : perf_counters_.GetCounters()) {
+   if (perf_counter_deferred_) {
+      json::Node counters(JSON_ARRAY);
+
+      auto addCounter = [&counters](const char* name, int value, const char* type) {
          json::Node row;
-         row.set("name", entry.first);
-         row.set("value", static_cast<int>(entry.second.GetValue())); // xxx: counters need a type...
-         //LOG_(0) << " " << std::setw(32) << entry.first << " : " << entry.second.GetValue();
-      }
-      if (perf_counter_deferred_) {
-         perf_counter_deferred_->Notify(counters);
-      }
+         row.set("name", name);
+         row.set("value", value);
+         row.set("type", type);
+         counters.add(row);
+      };
+
+      PathFinder::ComputeCounters(addCounter);
+      GetScript().ComputeCounters(addCounter);
+
+      perf_counter_deferred_->Notify(counters);
    }
 }
 
@@ -545,12 +559,6 @@ lua::ScriptHost& Simulation::GetScript() {
    return *scriptHost_;
 }
 
-perfmon::Store& Simulation::GetPerfmonCounters()
-{
-   return perf_counters_;
-}
-
-
 void Simulation::InitDataModel()
 {
    object_model_traces_ = std::make_shared<dm::TracerSync>("sim objects");
@@ -632,7 +640,6 @@ void Simulation::Mainloop()
       FireLuaTraces();
    }
    if (next_counter_push_.expired()) {
-      PathFinder::ComputeCounters(perf_counters_);
       PushPerformanceCounters();
       next_counter_push_.set(500);
    }

@@ -1,0 +1,60 @@
+<script type="text/x-handlebars" data-template-name="citizenCharacterSheet">
+   <div id="citizenCharacterSheet">
+      <div id="header">
+         <div class="name">{{unit_info.name}}</div>
+         <div class="description">{{unit_info.description}}</div>
+      </div>
+
+      <div id="glass">
+         <div id="mind">{{stonehearth:attributes.mind.effective_value}}</div>
+         <div id="body">{{stonehearth:attributes.body.effective_value}}</div>
+         <div id="spirit">{{stonehearth:attributes.spirit.effective_value}}</div>
+      </div>
+
+      <div class="content">
+
+         <div id="persona" class="column1">
+            <h2>{{i18n stonehearth:show_character_sheet_persona}}</h2>
+            <table>
+               <tr><td>Personality<td id="personality">
+               <tr><td>Traits<td id="traits"> TBD. Stay tuned!
+               <tr><td>Birthday<td>TBD. Stay tuned!
+            </table>
+            <br>
+            <h2>{{i18n stonehearth:show_character_sheet_latest_journal}}</h2>
+
+
+            <div id="latestJournal">
+               <div class="entry">
+                  <p class="date">{{firstJournalEntry.date}}</p>
+                  <p class="title">{{firstJournalEntryTitle}}</p> 
+                  <p>{{firstJournalEntryText}}</p>
+               </div>
+            </div>
+
+         </div>
+
+         <div id="attributes" class="column2">
+            <h2>{{i18n stonehearth:show_character_sheet_attributes}}</h2>
+            <table>
+               <tr><td>{{i18n stonehearth:diligence_attribute}}<td><div id='diligence' class=value>{{stonehearth:attributes.diligence.effective_value}}</div>
+               <tr><td>{{i18n stonehearth:curiosity_attribute}}<td><div id='curiosity' class=value>{{stonehearth:attributes.curiosity.effective_value}}</div>
+               <tr><td>{{i18n stonehearth:inventiveness_attribute}}<td><div id='inventiveness'class=value>{{stonehearth:attributes.inventiveness.effective_value}}</div>
+            </table>
+            <br>
+            <table>
+               <tr><td>{{i18n stonehearth:muscle_attribute}}<td><div  id='muscle' class=value>{{stonehearth:attributes.muscle.effective_value}}</div>
+               <tr><td>{{i18n stonehearth:speed_attribute}}<td><div  id='speed' class=value>{{stonehearth:attributes.speed.effective_value}}</div>
+               <tr><td>{{i18n stonehearth:stamina_attribute}}<td><div id='stamina' class=value>{{stonehearth:attributes.stamina.effective_value}}</div>
+            </table>
+            <br>
+            <table>
+               <tr><td>{{i18n stonehearth:courage_attribute}}<td><div id='courage' class=value>{{stonehearth:attributes.courage.effective_value}}</div>
+               <tr><td>{{i18n stonehearth:willpower_attribute}}<td><div  id='willpower' class=value>{{stonehearth:attributes.willpower.effective_value}}</div>
+               <tr><td>{{i18n stonehearth:compassion_attribute}}<td><div  id='compassion' class=value>{{stonehearth:attributes.compassion.effective_value}}</div>
+            </table>
+         </div>
+      </div>
+
+   </div>
+</script>

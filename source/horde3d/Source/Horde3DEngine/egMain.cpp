@@ -22,6 +22,8 @@
 #include "egParticle.h"
 #include "egTexture.h"
 #include "egPixelBuffer.h"
+#include "egInstanceNode.h"
+#include "egProjectorNode.h"
 #include <cstdlib>
 #include <cstring>
 #include <string>
@@ -655,6 +657,21 @@ DLLEXP float h3dGetNodeParamF( NodeHandle node, int param, int compIdx )
 	return sn->getParamF( param, compIdx );
 }
 
+DLLEXP void* h3dMapNodeParamV( NodeHandle node, int param)
+{
+	SceneNode *sn = Modules::sceneMan().resolveNodeHandle( node );
+	APIFUNC_VALIDATE_NODE( sn, "h3dMapNodeParamV", 0x0 );
+	
+	return sn->mapParamV( param );
+}
+
+DLLEXP void h3dUnmapNodeParamV( NodeHandle node, int param, int mappedLength)
+{
+	SceneNode *sn = Modules::sceneMan().resolveNodeHandle( node );
+	APIFUNC_VALIDATE_NODE( sn, "h3dUnmapNodeParamV", APIFUNC_RET_VOID );
+	
+	sn->unmapParamV( param, mappedLength );
+}
 
 DLLEXP void h3dSetNodeParamF( NodeHandle node, int param, int compIdx, float value )
 {
@@ -690,6 +707,13 @@ DLLEXP int h3dGetNodeFlags( NodeHandle node )
 	return sn->getFlags();
 }
 
+
+DLLEXP void h3dTwiddleNodeFlags( NodeHandle node, int flags, bool on, bool recursive )
+{
+	SceneNode *sn = Modules::sceneMan().resolveNodeHandle( node );
+	APIFUNC_VALIDATE_NODE( sn, "h3dSetToggleNodeFlags", APIFUNC_RET_VOID );
+	sn->twiddleFlags( flags, on, recursive );
+}
 
 DLLEXP void h3dSetNodeFlags( NodeHandle node, int flags, bool recursive )
 {
@@ -831,6 +855,41 @@ DLLEXP NodeHandle h3dAddVoxelModelNode( NodeHandle parent, const char *name, Res
 	return Modules::sceneMan().addNode( sn, *parentNode );
 }
 
+DLLEXP NodeHandle h3dAddInstanceNode( NodeHandle parent, const char *name, ResHandle materialRes, ResHandle geometryRes, int maxInstances )
+{
+	SceneNode *parentNode = Modules::sceneMan().resolveNodeHandle( parent );
+	APIFUNC_VALIDATE_NODE( parentNode, "h3dAddInstanceNode", 0 );
+	Resource *geoRes = Modules::resMan().resolveResHandle( geometryRes  );
+   APIFUNC_VALIDATE_RES_TYPE( geoRes, ResourceTypes::VoxelGeometry, "h3dAddInstanceNode", 0 );
+	Resource *matRes = Modules::resMan().resolveResHandle( materialRes );
+   APIFUNC_VALIDATE_RES_TYPE( matRes, ResourceTypes::Material, "h3dAddInstanceNode", 0 );
+
+	InstanceNodeTpl tpl( safeStr( name, 0 ), (MaterialResource*)matRes, (VoxelGeometryResource*)geoRes, maxInstances );
+   SceneNode *sn = Modules::sceneMan().findType( SceneNodeTypes::InstanceNode )->factoryFunc( tpl );
+	return Modules::sceneMan().addNode( sn, *parentNode );
+}
+
+DLLEXP NodeHandle h3dAddProjectorNode( NodeHandle parent, const char *name, ResHandle materialRes )
+{
+	SceneNode *parentNode = Modules::sceneMan().resolveNodeHandle( parent );
+	APIFUNC_VALIDATE_NODE( parentNode, "h3dAddProjectorNode", 0 );
+	Resource *matRes = Modules::resMan().resolveResHandle( materialRes );
+   APIFUNC_VALIDATE_RES_TYPE( matRes, ResourceTypes::Material, "h3dAddProjectorNode", 0 );
+
+	ProjectorNodeTpl tpl( safeStr( name, 0 ), (MaterialResource*)matRes);
+   SceneNode *sn = Modules::sceneMan().findType( SceneNodeTypes::ProjectorNode )->factoryFunc( tpl );
+	return Modules::sceneMan().addNode( sn, *parentNode );
+}
+
+
+DLLEXP void h3dUpdateBoundingBox( NodeHandle n, float minx, float miny, float minz, float maxx, float maxy, float maxz)
+{
+   BoundingBox b;
+   b.addPoint(Vec3f(minx, miny, minz));
+   b.addPoint(Vec3f(maxx, maxy, maxz));
+   SceneNode *sn = Modules::sceneMan().resolveNodeHandle(n);
+   sn->updateBBox(b);
+}
 
 HudElementNode* h3dAddHudElementNode( NodeHandle parent, const char *name )
 {
@@ -971,6 +1030,20 @@ DLLEXP void h3dGetCameraProjMat( NodeHandle cameraNode, float *projMat )
 	
 	Modules::sceneMan().updateNodes();
 	memcpy( projMat, ((CameraNode *)sn)->getProjMat().x, 16 * sizeof( float ) );
+}
+
+void h3dGetCameraFrustum( NodeHandle cameraNode, Frustum* f )
+{
+	CameraNode *cn = (CameraNode *)Modules::sceneMan().resolveNodeHandle( cameraNode );
+	APIFUNC_VALIDATE_NODE_TYPE( cn, SceneNodeTypes::Camera, "h3dGetCameraFrustum", APIFUNC_RET_VOID );
+	if( f == 0x0 )
+	{
+		Modules::setError( "Invalid pointer in h3dGetCameraFrustum" );
+		return;
+	}
+
+   Modules::sceneMan().updateNodes();
+   f->buildViewFrustum(cn->getViewMat(), cn->getProjMat());
 }
 
 

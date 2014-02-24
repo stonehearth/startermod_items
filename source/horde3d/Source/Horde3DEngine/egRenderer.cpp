@@ -20,7 +20,9 @@
 #include "egLight.h"
 #include "egCamera.h"
 #include "egHudElement.h"
+#include "egInstanceNode.h"
 #include "egModules.h"
+#include "egProjectorNode.h"
 #include "egVoxelGeometry.h"
 #include "egVoxelModel.h"
 #include "egCom.h"
@@ -71,6 +73,7 @@ Renderer::Renderer()
 	_curShaderUpdateStamp = 1;
 	_maxAnisoMask = 0;
 	_smSize = 0;
+   _materialOverride = 0x0;
 
 	_shadowRB = 0;
 	_vlPosOnly = 0;
@@ -560,6 +563,7 @@ bool Renderer::createShaderComb( const char* filename, const char *vertexShader,
    sc.uni_camViewMat = gRDI->getShaderConstLoc( shdObj, "camViewMat" );
    sc.uni_camViewMatInv = gRDI->getShaderConstLoc( shdObj, "camViewMatInv" );
    sc.uni_camViewerPos = gRDI->getShaderConstLoc( shdObj, "camViewerPos" );
+   sc.uni_projectorMat = gRDI->getShaderConstLoc( shdObj, "projectorMat" );
 	
 	// Per-instance uniforms
 	sc.uni_worldMat = gRDI->getShaderConstLoc( shdObj, "worldMat" );
@@ -691,8 +695,7 @@ void Renderer::commitGeneralUniforms()
 
       if( _curShader->uni_camViewProjMatInv >= 0)
       {
-         Matrix4f m = getCurCamera()->getProjMat() * getCurCamera()->getViewMat();
-         m.inverted();
+         Matrix4f m = (getCurCamera()->getProjMat() * getCurCamera()->getViewMat()).inverted();
 			gRDI->setShaderConst( _curShader->uni_camViewProjMatInv, CONST_FLOAT44, m.x );
       }
 
@@ -705,15 +708,19 @@ void Renderer::commitGeneralUniforms()
       if( _curShader->uni_camViewMatInv >= 0)
       {
          Matrix4f m = getCurCamera()->getViewMat();
-         m.inverted();
 			gRDI->setShaderConst( _curShader->uni_camViewMatInv, CONST_FLOAT44, m.x );
       }
 		
 		if( _curShader->uni_camViewerPos >= 0 ) 
       {
          Matrix4f m = getCurCamera()->getViewMat();
-         m.inverted();
 			gRDI->setShaderConst( _curShader->uni_camViewerPos, CONST_FLOAT3, &m.x[12] );
+      }
+
+      if( _curShader->uni_projectorMat >= 0 )
+      {
+         Matrix4f m = _projectorMat.inverted();
+         gRDI->setShaderConst( _curShader->uni_projectorMat, CONST_FLOAT44, m.x);
       }
 		// Light params
 		if( _curLight != 0x0 )
@@ -854,6 +861,10 @@ bool Renderer::setMaterialRec( MaterialResource *materialRes, const std::string 
 		if( context->writeDepth ) glDepthMask( GL_TRUE );
 		else glDepthMask( GL_FALSE );
 
+      int colMask = context->writeColor ? GL_TRUE : GL_FALSE;
+      int alphaMask = context->writeAlpha ? GL_TRUE : GL_FALSE;
+      glColorMask(colMask, colMask, colMask, alphaMask);
+
 		// Configure cull mode
 		if( !Modules::config().wireframeMode )
 		{
@@ -871,6 +882,70 @@ bool Renderer::setMaterialRec( MaterialResource *materialRes, const std::string 
 				glDisable( GL_CULL_FACE );
 				break;
 			}
+		}
+
+      switch( context->stencilOpModes) 
+      {
+      case StencilOpModes::Off:
+         glDisable(GL_STENCIL_TEST);
+         glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP);
+         break;
+      case StencilOpModes::Keep_Dec_Dec:
+         glEnable(GL_STENCIL_TEST);
+         glStencilOp(GL_KEEP, GL_DECR, GL_DECR);
+         break;
+      case StencilOpModes::Keep_Inc_Inc:
+         glEnable(GL_STENCIL_TEST);
+         glStencilOp(GL_KEEP, GL_INCR, GL_INCR);
+         break;
+      case StencilOpModes::Keep_Keep_Dec:
+         glEnable(GL_STENCIL_TEST);
+         glStencilOp(GL_KEEP, GL_KEEP, GL_DECR);
+         break;
+      case StencilOpModes::Keep_Keep_Inc:
+         glEnable(GL_STENCIL_TEST);
+         glStencilOp(GL_KEEP, GL_KEEP, GL_INCR);
+         break;
+      case StencilOpModes::Replace_Replace_Replace:
+         glEnable(GL_STENCIL_TEST);
+         glStencilOp(GL_REPLACE, GL_REPLACE, GL_REPLACE);
+         break;
+      }
+
+      switch( context->stencilFunc )
+		{
+		case TestModes::LessEqual:
+         glEnable(GL_STENCIL_TEST);
+         glStencilFunc( GL_LEQUAL, context->stencilRef, 0xffffffff );
+			break;
+		case TestModes::Equal:
+         glEnable(GL_STENCIL_TEST);
+         glStencilFunc( GL_EQUAL, context->stencilRef, 0xffffffff );
+			break;
+		case TestModes::Always:
+         if (context->stencilOpModes == StencilOpModes::Off) {
+            glDisable(GL_STENCIL_TEST);
+         } else {
+            glEnable(GL_STENCIL_TEST);
+         }
+         glStencilFunc( GL_ALWAYS, context->stencilRef, 0xffffffff );
+			break;
+		case TestModes::Less:
+         glEnable(GL_STENCIL_TEST);
+         glStencilFunc( GL_LESS, context->stencilRef, 0xffffffff );
+			break;
+		case TestModes::Greater:
+         glEnable(GL_STENCIL_TEST);
+         glStencilFunc( GL_GREATER, context->stencilRef, 0xffffffff );
+			break;
+		case TestModes::GreaterEqual:
+         glEnable(GL_STENCIL_TEST);
+         glStencilFunc( GL_GEQUAL, context->stencilRef, 0xffffffff );
+			break;
+      case TestModes::NotEqual:
+         glEnable(GL_STENCIL_TEST);
+         glStencilFunc( GL_NOTEQUAL, context->stencilRef, 0xffffffff );
+			break;
 		}
 		
 		// Configure blending
@@ -891,6 +966,10 @@ bool Renderer::setMaterialRec( MaterialResource *materialRes, const std::string 
 			glEnable( GL_BLEND );
 			glBlendFunc( GL_SRC_ALPHA, GL_ONE );
 			break;
+      case BlendModes::Whateva:
+         glEnable( GL_BLEND );
+         glBlendFunc( GL_DST_ALPHA, GL_ONE );
+         break;
 		case BlendModes::Mult:
 			glEnable( GL_BLEND );
 			glBlendFunc( GL_DST_COLOR, GL_ZERO );
@@ -1480,7 +1559,7 @@ void Renderer::updateShadowMap(const Frustum* lightFrus, float minDist, float ma
 			                         -_splitPlanes[i], -_splitPlanes[i + 1] );
 		}
 
-      gRDI->_frameDebugInfo.addSplitFrustum_(frustum);
+      //gRDI->_frameDebugInfo.addSplitFrustum_(frustum);
 		
 		// Get light projection matrix
 		Matrix4f lightProjMat;
@@ -1510,7 +1589,7 @@ void Renderer::updateShadowMap(const Frustum* lightFrus, float minDist, float ma
 		Modules::sceneMan().updateQueues("rendering shadowmap", frustum, 0x0, RenderingOrder::None,
 			SceneNodeFlags::NoDraw | SceneNodeFlags::NoCastShadow, 0, false, true );
 		
-      gRDI->_frameDebugInfo.addShadowCascadeFrustum_(frustum);
+      //gRDI->_frameDebugInfo.addShadowCascadeFrustum_(frustum);
 
 		// Create texture atlas if several splits are enabled
 		if( numMaps > 1 )
@@ -1746,7 +1825,7 @@ void Renderer::bindPipeBuffer( uint32 rbObj, const std::string &sampler, uint32 
 
 
 void Renderer::clear( bool depth, bool buf0, bool buf1, bool buf2, bool buf3,
-                      float r, float g, float b, float a )
+                      float r, float g, float b, float a, int stencilVal )
 {
 	uint32 mask = 0;
 	uint32 prevBuffers[4] = { 0 };
@@ -1766,7 +1845,8 @@ void Renderer::clear( bool depth, bool buf0, bool buf1, bool buf2, bool buf3,
 		uint32 buffers[4], cnt = 0;
 
 		if( depth && rb.depthTex != 0 ) mask |= CLR_DEPTH;
-		
+      if( stencilVal >= 0 && rb.depthTex != 0 ) mask |= CLR_STENCIL;
+
 		if( buf0 && rb.colTexs[0] != 0 ) buffers[cnt++] = GL_COLOR_ATTACHMENT0_EXT;
 		if( buf1 && rb.colTexs[1] != 0 ) buffers[cnt++] = GL_COLOR_ATTACHMENT1_EXT;
 		if( buf2 && rb.colTexs[2] != 0 ) buffers[cnt++] = GL_COLOR_ATTACHMENT2_EXT;
@@ -1782,11 +1862,12 @@ void Renderer::clear( bool depth, bool buf0, bool buf1, bool buf2, bool buf3,
 	{
 		if( depth ) mask |= CLR_DEPTH;
 		if( buf0 ) mask |= CLR_COLOR;
+      if( stencilVal >= 0 ) mask |= CLR_STENCIL;
 		//gRDI->setScissorRect( _curCamera->_vpX, _curCamera->_vpY, _curCamera->_vpWidth, _curCamera->_vpHeight );
 		//glEnable( GL_SCISSOR_TEST );
 	}
 	
-	gRDI->clear( mask, clrColor, 1.f );
+	gRDI->clear( mask, clrColor, 1.f, stencilVal );
 	//glDisable( GL_SCISSOR_TEST );
 	
 	// Restore state of glDrawBuffers
@@ -1826,6 +1907,33 @@ void Renderer::drawGeometry( const std::string &shaderContext, const std::string
 	
 	setupViewMatrices( _curCamera->getViewMat(), _curCamera->getProjMat() );
 	drawRenderables( shaderContext, theClass, false, &_curCamera->getFrustum(), 0x0, order, occSet );
+}
+
+
+void Renderer::drawProjections( const std::string &shaderContext, uint32 userFlags )
+{   
+   int numProjectorNodes = Modules::sceneMan().findNodes(Modules::sceneMan().getRootNode(), "", SceneNodeTypes::ProjectorNode);
+
+   setupViewMatrices( _curCamera->getViewMat(), _curCamera->getProjMat() );
+
+   Matrix4f m;
+   m.toIdentity();
+   for (int i = 0; i < numProjectorNodes; i++)
+   {
+      ProjectorNode* n = (ProjectorNode*)Modules::sceneMan().getFindResult(i);
+      
+      _materialOverride = n->getMaterialRes().getPtr();
+      Frustum f;
+      const BoundingBox& b = n->getBBox();
+      f.buildBoxFrustum(m, b.min().x, b.max().x, b.min().y, b.max().y, b.min().z, b.max().z);
+      Modules::sceneMan().updateQueues("drawing geometry", f, 0x0, RenderingOrder::None,
+	                                    SceneNodeFlags::NoDraw, 0, false, true, false, userFlags);
+
+      _projectorMat = n->getAbsTrans();
+      drawRenderables( shaderContext, "", false, &_curCamera->getFrustum(), 0x0, RenderingOrder::None, -1);
+   }
+
+   _materialOverride = 0x0;
 }
 
 
@@ -2487,18 +2595,26 @@ void Renderer::drawVoxelMeshes(const std::string &shaderContext, const std::stri
 		
 		if( !debugView )
 		{
-			if( !meshNode->getMaterialRes()->isOfClass( theClass ) ) continue;
-			
-			// Set material
-			if( curMatRes != meshNode->getMaterialRes() )
-			{
-				if( !Modules::renderer().setMaterial( meshNode->getMaterialRes(), shaderContext ) )
+         if (Modules::renderer()._materialOverride != 0x0) {
+				if( !Modules::renderer().setMaterial( Modules::renderer()._materialOverride, shaderContext ) )
 				{	
-					curMatRes = 0x0;
-					continue;
+               return;
 				}
-				curMatRes = meshNode->getMaterialRes();
-			}
+				curMatRes = Modules::renderer()._materialOverride;
+         } else {
+			   if( !meshNode->getMaterialRes()->isOfClass( theClass ) ) continue;
+			
+			   // Set material
+			   if( curMatRes != meshNode->getMaterialRes() )
+			   {
+				   if( !Modules::renderer().setMaterial( meshNode->getMaterialRes(), shaderContext ) )
+				   {	
+					   curMatRes = 0x0;
+					   continue;
+				   }
+				   curMatRes = meshNode->getMaterialRes();
+			   }
+         }
 		}
 		else
 		{
@@ -2625,18 +2741,26 @@ void Renderer::drawVoxelMeshes_Instances(const std::string &shaderContext, const
 		
 		if( !debugView )
 		{
-         if( !instanceKey.matResource->isOfClass( theClass ) ) continue;
-			
-			// Set material
-			//if( curMatRes != instanceKey.matResource )
-			//{
-            if( !Modules::renderer().setMaterial( instanceKey.matResource, shaderContext ) )
+         if (Modules::renderer()._materialOverride != 0x0) {
+				if( !Modules::renderer().setMaterial(Modules::renderer()._materialOverride, shaderContext ) )
 				{	
-					curMatRes = 0x0;
-					continue;
+               return;
 				}
-            curMatRes = instanceKey.matResource;
-			//}
+				curMatRes = Modules::renderer()._materialOverride;
+         } else {
+            if( !instanceKey.matResource->isOfClass( theClass ) ) continue;
+			
+			   // Set material
+			   //if( curMatRes != instanceKey.matResource )
+			   //{
+               if( !Modules::renderer().setMaterial( instanceKey.matResource, shaderContext ) )
+				   {	
+					   curMatRes = 0x0;
+					   continue;
+				   }
+               curMatRes = instanceKey.matResource;
+			   //}
+         }
 		} else {
 			Modules::renderer().setShaderComb( &Modules::renderer()._defColorShader );
 			Modules::renderer().commitGeneralUniforms();
@@ -2702,6 +2826,72 @@ void Renderer::drawVoxelMesh_Instances_WithoutInstancing(const RenderableQueue& 
    }
    Modules::stats().incStat( EngineStats::TriCount, (vmn->getBatchCount() / 3.0f) * renderableQueue.size() );
 }
+
+
+void Renderer::drawInstanceNode(const std::string &shaderContext, const std::string &theClass, bool debugView,
+                               const Frustum *frust1, const Frustum *frust2, RenderingOrder::List order,
+                               int occSet)
+{
+	if( frust1 == 0x0 || Modules::renderer().getCurCamera() == 0x0 ) return;
+	if( debugView ) return;  // Don't render in debug view
+
+   bool useInstancing = gRDI->getCaps().hasInstancing;
+   Modules::config().setGlobalShaderFlag("DRAW_WITH_INSTANCING", useInstancing);
+	
+   if (useInstancing) {   
+      gRDI->setVertexLayout( Modules::renderer()._vlInstanceVoxelModel );
+	   MaterialResource *curMatRes = 0x0;
+      for( const auto& entry : Modules::sceneMan().getRenderableQueue(SceneNodeTypes::InstanceNode) )
+	   {
+		   InstanceNode* in = (InstanceNode *)entry.node;
+
+		   if( !in->_matRes->isOfClass( theClass ) ) continue;
+
+         gRDI->setVertexBuffer( 0, in->_geoRes->getVertexBuf(), 0, sizeof( VoxelVertexData ) );
+         gRDI->setVertexBuffer( 1, in->_instanceBufObj, 0, 16 * sizeof(float) );
+         gRDI->setIndexBuffer( in->_geoRes->getIndexBuf(), in->_geoRes->_16BitIndices ? IDXFMT_16 : IDXFMT_32 );
+
+         if( curMatRes != in->_matRes )
+		   {
+            if( !Modules::renderer().setMaterial( in->_matRes, shaderContext ) ) continue;
+			   curMatRes = in->_matRes;
+		   }
+
+         gRDI->drawInstanced(RDIPrimType::PRIM_TRILIST, 
+            in->_geoRes->getElemParamI(VoxelGeometryResData::VoxelGeometryElem, 0, VoxelGeometryResData::VoxelGeoIndexCountI), 
+            0, in->_usedInstances);
+	   }
+   } else {
+      gRDI->setVertexLayout( Modules::renderer()._vlVoxelModel );
+	   MaterialResource *curMatRes = 0x0;
+      for( const auto& entry : Modules::sceneMan().getRenderableQueue(SceneNodeTypes::InstanceNode) )
+	   {
+		   InstanceNode* in = (InstanceNode *)entry.node;
+
+		   if( !in->_matRes->isOfClass( theClass ) ) continue;
+
+         gRDI->setVertexBuffer( 0, in->_geoRes->getVertexBuf(), 0, sizeof( VoxelVertexData ) );
+         gRDI->setIndexBuffer( in->_geoRes->getIndexBuf(), in->_geoRes->_16BitIndices ? IDXFMT_16 : IDXFMT_32 );
+
+         if( curMatRes != in->_matRes )
+		   {
+            if( !Modules::renderer().setMaterial( in->_matRes, shaderContext ) ) continue;
+			   curMatRes = in->_matRes;
+		   }
+         ShaderCombination* curShader = Modules::renderer().getCurShader();
+
+         for (int i = 0; i < in->_usedInstances; i++) {
+            gRDI->setShaderConst( curShader->uni_worldMat, CONST_FLOAT44, &in->_instanceBuf[i * 16]);
+            gRDI->drawIndexed(RDIPrimType::PRIM_TRILIST, 0, 
+               in->_geoRes->getElemParamI(VoxelGeometryResData::VoxelGeometryElem, 0, VoxelGeometryResData::VoxelGeoIndexCountI), 
+               0, in->_geoRes->getElemParamI(VoxelGeometryResData::VoxelGeometryElem, 0, VoxelGeometryResData::VoxelGeoVertexCountI) - 1);
+         }
+	   }
+   }
+
+	gRDI->setVertexLayout( 0 );
+}
+
 
 void Renderer::drawParticles( const std::string &shaderContext, const std::string &theClass, bool debugView,
                               const Frustum *frust1, const Frustum * /*frust2*/, RenderingOrder::List /*order*/,
@@ -2871,6 +3061,8 @@ void Renderer::render( CameraNode *camNode )
 	if( _curCamera == 0x0 ) return;
 
    gRDI->_frameDebugInfo.setViewerFrustum_(camNode->getFrustum());
+   gRDI->_frameDebugInfo.addShadowCascadeFrustum_(camNode->getFrustum());
+   
 
 	// Build sampler anisotropy mask from anisotropy value
 	int maxAniso = Modules::config().maxAnisotropy;
@@ -2976,7 +3168,7 @@ void Renderer::render( CameraNode *camNode )
 			case PipelineCommands::ClearTarget:
 				clear( pc.params[0].getBool(), pc.params[1].getBool(), pc.params[2].getBool(),
 				       pc.params[3].getBool(), pc.params[4].getBool(), pc.params[5].getFloat(),
-				       pc.params[6].getFloat(), pc.params[7].getFloat(), pc.params[8].getFloat() );
+				       pc.params[6].getFloat(), pc.params[7].getFloat(), pc.params[8].getFloat(), pc.params[9].getInt() );
 				break;
 
 			case PipelineCommands::DrawGeometry:
@@ -2984,6 +3176,10 @@ void Renderer::render( CameraNode *camNode )
 				              (RenderingOrder::List)pc.params[2].getInt(),
                           pc.params[3].getInt(), _curCamera->_occSet, pc.params[4].getFloat(), pc.params[5].getFloat() );
 				break;
+
+         case PipelineCommands::DrawProjections:
+            drawProjections(pc.params[0].getString(), pc.params[1].getInt());
+            break;
 
 			case PipelineCommands::DrawOverlays:
             drawOverlays( pc.params[0].getString() );

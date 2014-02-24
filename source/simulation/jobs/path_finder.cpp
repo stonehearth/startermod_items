@@ -10,7 +10,6 @@
 #include "om/components/destination.ridl.h"
 #include "om/region.h"
 #include "csg/color.h"
-#include "lib/perfmon/store.h"
 
 using namespace ::radiant;
 using namespace ::radiant::simulation;
@@ -37,7 +36,7 @@ std::shared_ptr<PathFinder> PathFinder::Create(Simulation& sim, std::string name
    return pathfinder;
 }
 
-void PathFinder::ComputeCounters(perfmon::Store& store)
+void PathFinder::ComputeCounters(std::function<void(const char*, int, const char*)> const& addCounter)
 {
    int count = 0;
    int running_count = 0;
@@ -56,11 +55,12 @@ void PathFinder::ComputeCounters(perfmon::Store& store)
       open_count += pf->open_.size();
       closed_count += pf->closed_.size();
    });
-   store.GetCounter("pathfinders.total_count").SetValue(count);
-   store.GetCounter("pathfinders.active_count").SetValue(active_count);
-   store.GetCounter("pathfinders.running_count").SetValue(running_count);
-   store.GetCounter("pathfinders.open_node_count").SetValue(open_count);
-   store.GetCounter("pathfinders.closed_node_count").SetValue(closed_count);
+
+   addCounter("pathfinders:total_count", count, "counter");
+   addCounter("pathfinders:active_count", active_count, "counter");
+   addCounter("pathfinders:running_count", running_count, "counter");
+   addCounter("pathfinders:open_node_count", open_count, "counter");
+   addCounter("pathfinders:closed_node_count", closed_count, "counter");
 }
 
 PathFinder::PathFinder(Simulation& sim, std::string name, om::EntityPtr entity) :

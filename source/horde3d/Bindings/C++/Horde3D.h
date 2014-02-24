@@ -489,10 +489,27 @@ struct H3DNodeParams
 	enum List
 	{
 		NameStr = 1,
-		AttachmentStr
+		AttachmentStr,
+      UserFlags
 	};
 };
 
+
+struct H3DInstanceNodeParams
+{
+   enum List
+   {
+      InstanceBuffer
+   };
+};
+
+struct H3DProjectorNodeParams
+{
+	enum List
+	{
+		MatResI = 300
+	};
+};
 
 struct H3DModel
 {
@@ -1275,6 +1292,9 @@ DLL void *h3dMapResStream( H3DRes res, int elem, int elemIdx, int stream, bool r
 */
 DLL void h3dUnmapResStream( H3DRes res );
 
+DLL void h3dUpdateBoundingBox( H3DNode n, float minx, float miny, float minz, float maxx, float maxy, float maxz);
+
+
 /* Function: h3dQueryUnloadedResource
 		Returns handle to an unloaded resource.
 	
@@ -1746,6 +1766,7 @@ DLL int h3dGetNodeFlags( H3DNode node );
 		nothing
 */
 DLL void h3dSetNodeFlags( H3DNode node, int flags, bool recursive );
+DLL void h3dTwiddleNodeFlags( H3DNode node, int flags, bool on, bool recursive );
 
 DLL int h3dGetResFlags( H3DRes res );
 
@@ -1899,12 +1920,19 @@ DLL H3DNode h3dAddGroupNode( H3DNode parent, const char *name );
 */
 DLL H3DNode h3dAddModelNode( H3DNode parent, const char *name, H3DRes geometryRes );
 DLL H3DNode h3dAddVoxelModelNode( H3DNode parent, const char *name, H3DRes voxelGeometryRes );
+DLL H3DNode h3dAddInstanceNode( H3DNode parent, const char *name, H3DRes materialRes, H3DRes geometryRes, int maxInstances );
+DLL void* h3dMapNodeParamV( H3DNode node, int param);
+DLL void h3dUnmapNodeParamV( H3DNode node, int param, int mappedLength);
+DLL H3DNode h3dAddProjectorNode( H3DNode parent, const char *name, H3DRes materialRes );
 
 namespace Horde3D {
    class HudElementNode;
+   class Frustum;
 }
 //class Horde3D::HudElementNode;
 Horde3D::HudElementNode* h3dAddHudElementNode( H3DNode parent, const char *name );
+void h3dGetCameraFrustum( H3DNode cameraNode, Horde3D::Frustum* f );
+
 
 /* Function: h3dSetupModelAnimStage
 		Configures an animation stage of a Model node.
@@ -2105,7 +2133,6 @@ DLL void h3dSetupCameraView( H3DNode cameraNode, float fov, float aspect, float 
 		nothing
 */
 DLL void h3dGetCameraProjMat( H3DNode cameraNode, float *projMat );
-
 
 /* Group: Emitter-specific scene graph functions */
 /* Function: h3dAddEmitterNode

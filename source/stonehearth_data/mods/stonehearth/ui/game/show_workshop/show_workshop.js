@@ -59,7 +59,7 @@ App.StonehearthCrafterView = App.View.extend({
       hide: function() {
          radiant.call('radiant:play_sound', 'stonehearth:sounds:ui:carpenter_menu:menu_closed' );
          var self = this;
-         $("#craftWindow")
+         self.my("#craftWindow")
             .animate({ top: -1900 }, 500, 'easeOutBounce', function() {
                self.destroy()
          });
@@ -130,10 +130,10 @@ App.StonehearthCrafterView = App.View.extend({
       this._buildOrderList();
       initIncrementButtons();
 
-      $("#craftWindow")
+      this.$("#craftWindow")
          .animate({ top: 0 }, {duration: 500, easing: 'easeOutBounce'});
 
-      $("#craftButton").hover(function() {
+      this.$("#craftButton").hover(function() {
             $(this).find('#craftButtonLabel').fadeIn();
          }, function () {
             $(this).find('#craftButtonLabel').fadeOut();
@@ -144,33 +144,34 @@ App.StonehearthCrafterView = App.View.extend({
    _setRadioButtons: function(remaining, maintainNumber) {
       //Set the radio buttons correctly
       if (remaining) {
-         $("#makeNumSelector").val(remaining);
-         $("#make").prop("checked", "checked");
+         this.$("#makeNumSelector").val(remaining);
+         this.$("#make").prop("checked", "checked");
       } else {
-         $("#makeNumSelector").val("1");
-         $("#make").prop("checked", false);
+         this.$("#makeNumSelector").val("1");
+         this.$("#make").prop("checked", false);
       }
       if (maintainNumber) {
-         $("#maintainNumSelector").val(maintainNumber);
-         $("#maintain").prop("checked", "checked");
+         this.$("#maintainNumSelector").val(maintainNumber);
+         this.$("#maintain").prop("checked", "checked");
       } else {
-         $("#maintainNumSelector").val("1");
-         $("#maintain").prop("checked", false);
+         this.$("#maintainNumSelector").val("1");
+         this.$("#maintain").prop("checked", false);
       }
       if (!remaining && !maintainNumber) {
-         $("#make").prop("checked", "checked");
+         this.$("#make").prop("checked", "checked");
       }
    },
 
    preview: function() {
+      var self = this;
       var workshop = this.getWorkshop();
       var recipe = this.getCurrentRecipe();
 
       radiant.call_obj(workshop, 'resolve_order_options', recipe)
          .done(function(return_data){
-            $("#portrait").attr("src", return_data.portrait);
-            $("#usefulText").html(return_data.description);
-            $("#flavorText").html(return_data.flavor);
+            self.$("#portrait").attr("src", return_data.portrait);
+            self.$("#usefulText").html(return_data.description);
+            self.$("#flavorText").html(return_data.flavor);
          });
    },
 
@@ -181,37 +182,38 @@ App.StonehearthCrafterView = App.View.extend({
       var r = isPaused ? 4 : -4;
 
       // flip the sign
-      $("#statusSign").animate({
-         rot: r,
-         },
-         {
-            duration: 200,
-            step: function(now,fx) {
-               var percentDone;
-               var end = fx.end; 
-               var start = fx.start;
+      var sign = this.$("#statusSign");
 
-               if (end > start) {
-                  console.log('end > start');
-                  percentDone = (now - start) / (end - start);
-               } else {
-                  percentDone = -1 * (now - start) / (start - end);
+      if (sign) {
+         sign.animate({
+            rot: r,
+            },
+            {
+               duration: 200,
+               step: function(now,fx) {
+                  var percentDone;
+                  var end = fx.end; 
+                  var start = fx.start;
+
+                  if (end > start) {
+                     console.log('end > start');
+                     percentDone = (now - start) / (end - start);
+                  } else {
+                     percentDone = -1 * (now - start) / (start - end);
+                  }
+
+                  var scaleX = percentDone < .5 ? 1 - (percentDone * 2) : (percentDone * 2) - 1;
+                  $(this).css('-webkit-transform', 'rotate(' + now + 'deg) scale(' + scaleX +', 1)');
                }
-
-               var scaleX = percentDone < .5 ? 1 - (percentDone * 2) : (percentDone * 2) - 1;
-
-               console.log('step = ' + now + ", " + scaleX);
-
-               $(this).css('-webkit-transform', 'rotate(' + now + 'deg) scale(' + scaleX +', 1)');
-            }
-      });
+         });
+      }
 
    }.observes('context.stonehearth:workshop.is_paused'),
 
    //Attach accordion functionality to the appropriate div
    _buildAccordion: function() {
       var self = this;
-      var element = $("#recipeAccordion");
+      var element = this.$("#recipeAccordion");
       element.accordion({
          active: 1,
          animate: true,
@@ -220,7 +222,7 @@ App.StonehearthCrafterView = App.View.extend({
 
       this._buildRecipeArray();
 
-      $( "#searchInput" ).autocomplete({
+      this.$( "#searchInput" ).autocomplete({
          source: allRecipes,
          select: function( event, ui ) {
             event.preventDefault();
@@ -250,7 +252,7 @@ App.StonehearthCrafterView = App.View.extend({
    },
 
    findAndSelectRecipe: function() {
-      var userInput = $("#searchInput").val().toLowerCase(),
+      var userInput = this.$("#searchInput").val().toLowerCase(),
           currRecipe = this.get('context.current.recipe_name');
       if ( !currRecipe || (currRecipe && (currRecipe.toLowerCase() != userInput)) ) {
          //Look to see if we have a recipe named similar to the contents
@@ -258,13 +260,13 @@ App.StonehearthCrafterView = App.View.extend({
          for (var i=0; i<numRecipes; i++) {
             if (userInput == allRecipes[i].label.toLowerCase()) {
                this.send('select', allRecipes[i].value);
-               $(".ui-autocomplete").hide();
+               this.$(".ui-autocomplete").hide();
                break;
             }
          }
       } else if (currRecipe && (currRecipe.toLowerCase() == userInput)) {
          //If the recipe is already selected and the menu is open, just hide the menu
-         $(".ui-autocomplete").hide();
+         this.$(".ui-autocomplete").hide();
       }
    },
 
@@ -291,7 +293,7 @@ App.StonehearthCrafterView = App.View.extend({
    //buttons.
    _buildOrderList: function(){
       var self = this;
-      $( "#orders, #garbageList" ).sortable({
+      this.$( "#orders, #garbageList" ).sortable({
          axis: "y",
          connectWith: "#garbageList",
          beforeStop: function (event, ui) {
@@ -350,23 +352,23 @@ App.StonehearthCrafterView = App.View.extend({
       var currentOrdersList = $('#orders');
       //Set the default state of the buttons
       if (currentOrdersList[0].scrollHeight > currentOrdersList.height()) {
-         $('#orderListUpBtn').show();
-         $('#orderListDownBtn').show();
+         this.$('#orderListUpBtn').show();
+         this.$('#orderListDownBtn').show();
       } else {
-         $('#orderListUpBtn').hide();
-         $('#orderListDownBtn').hide();
+         this.$('#orderListUpBtn').hide();
+         this.$('#orderListDownBtn').hide();
       }
 
       //Register an event to toggle the buttons when the scroll state changes
       currentOrdersList.on("overflowchanged", function(event){
          console.log("overflowchanged!");
-         $('#orderListUpBtn').toggle();
-         $('#orderListDownBtn').toggle();
+         this.$('#orderListUpBtn').toggle();
+         this.$('#orderListDownBtn').toggle();
       });
    },
 
    _scrollOrderList: function(amount) {
-      var orderList = $('#orders'),
+      var orderList = this.$('#orders'),
       localScrollTop = orderList.scrollTop() + amount;
       orderList.animate({scrollTop: localScrollTop}, 100);
    },
@@ -377,10 +379,13 @@ App.StonehearthCrafterView = App.View.extend({
 
    _enableDisableTrash: function() {
       var list = this.get('context.stonehearth:workshop.order_list');
-      if (list && list.length > 0) {
-         $('#garbageButton').css('opacity', '1');
-      } else {
-         $('#garbageButton').css('opacity', '0.3');
+
+      if (this.$('#garbageButton')) {
+         if (list && list.length > 0) {
+            this.$('#garbageButton').css('opacity', '1');
+         } else {
+            this.$('#garbageButton').css('opacity', '0.3');
+         }
       }
    }
 

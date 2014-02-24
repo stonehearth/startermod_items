@@ -68,7 +68,9 @@ struct SceneNodeTypes
 		Emitter,
       VoxelModel,
       VoxelMesh,
-      HudElement
+      HudElement,
+      InstanceNode,
+      ProjectorNode
 	};
 };
 
@@ -77,7 +79,8 @@ struct SceneNodeParams
 	enum List
 	{
 		NameStr = 1,
-		AttachmentStr
+		AttachmentStr,
+      UserFlags
 	};
 };
 
@@ -128,7 +131,8 @@ public:
 	void getTransMatrices( const float **relMat, const float **absMat ) const;
 
 	int getFlags() { return _flags; }
-	void setFlags( int flags, bool recursive );
+   void setFlags( int flags, bool recursive );
+   void twiddleFlags( int flags, bool on, bool recursive );
 
 	virtual int getParamI( int param );
 	virtual void setParamI( int param, int value );
@@ -136,6 +140,8 @@ public:
 	virtual void setParamF( int param, int compIdx, float value );
 	virtual const char *getParamStr( int param );
 	virtual void setParamStr( int param, const char* value );
+   virtual void* mapParamV( int param );
+   virtual void unmapParamV( int param, int mappedLength );
 
 	virtual uint32 calcLodLevel( const Vec3f &viewPoint );
 
@@ -152,7 +158,9 @@ public:
 	std::vector< SceneNode * > &getChildren() { return _children; }
 	Matrix4f &getRelTrans() { return _relTrans; }
 	Matrix4f &getAbsTrans() { return _absTrans; }
-	BoundingBox &getBBox() { return _bBox; }
+	const BoundingBox &getBBox() const { return _bBox; }
+   void updateBBox(const BoundingBox& bbox);
+
 	const std::string &getAttachmentString() { return _attachment; }
 	void setAttachmentString( const char* attachmentData ) { _attachment = attachmentData; }
 	bool checkTransformFlag( bool reset )
@@ -174,6 +182,7 @@ protected:
 	NodeHandle                  _handle;
 	uint32                      _sgHandle;  // Spatial graph handle
 	uint32                      _flags;
+   uint32                      _userFlags;
 	float                       _sortKey;
 	bool                        _dirty;  // Does the node need to be updated?
 	bool                        _transformed;
@@ -234,6 +243,7 @@ struct SpatialQuery
   bool useRenderableQueue;
   bool useLightQueue;
   bool forceNoInstancing;
+  uint32 userFlags;
 };
 
 struct RendQueueItem
@@ -320,7 +330,8 @@ public:
 	void updateNodes();
 	void updateSpatialNode( uint32 sgHandle ) { _spatialGraph->updateNode( sgHandle ); }
 	void updateQueues( const char* reason, const Frustum &frustum1, const Frustum *frustum2,
-	                   RenderingOrder::List order, uint32 filterIgnore, uint32 filterRequired, bool lightQueue, bool renderableQueue, bool forceNoInstancing=false );
+	                   RenderingOrder::List order, uint32 filterIgnore, uint32 filterRequired, bool lightQueue, bool renderableQueue, bool forceNoInstancing=false, 
+                      uint32 userFlags=0 );
 	
 	NodeHandle addNode( SceneNode *node, SceneNode &parent );
 	NodeHandle addNodes( SceneNode &parent, SceneGraphResource &sgRes );

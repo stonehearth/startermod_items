@@ -1,0 +1,193 @@
+#citizenCharacterSheet {
+   position: absolute;
+   top: 10px;
+   left: 10px;
+   width: 764px;
+   height: 930px;
+   background: url('./images/bg.png');
+
+   .date {
+      font-style: italic;;
+   }
+   
+   #header {
+      position: absolute;
+      top: 52px;
+      left: 50px;
+
+      .name {
+         .controlFont;
+         font-size: 36px;
+      }
+
+      .description {
+         .controlFont;
+         font-size: 26px;
+         color: #fff;
+      }
+   }
+
+   #glass {
+      .controlFont;
+      position: absolute;
+      top: 185px;
+      left: 430px;
+      color: #fff;
+      font-size: 50px;
+      text-shadow: -4px -4px 0px #000, 0px -4px 0px #000, 4px -4px 0px #000, -4px 0px 0px #000, 4px 0px 0px #000, -4px 4px 0px #000, 0px 4px 0px #000, 4px 4px 0px #000;
+      text-align: center;
+      
+
+      #mind {
+         width: 100px;
+      }
+
+      #body {
+         position: absolute;
+         top: 0px;
+         left: 124px;
+         width: 100px;
+      }
+
+      #spirit {
+         position: absolute;
+         top: 120px;
+         left: 62px;
+         width: 100px;
+      }
+   }
+
+   .content {
+      h2 {
+         color: #000;
+         text-shadow: none;
+         margin: 6px 0px;
+      }
+   }
+
+   .column1 {
+      position: absolute;
+      top: 467px;
+      left: 50px;
+      width: 295px;
+   }
+
+   .column2 {
+      position: absolute;
+      top: 467px;
+      left: 407px;
+      width: 295px;      
+   }
+
+   table {
+      width: 100%;
+      border-collapse:collapse;
+
+      td {
+         vertical-align: top;
+         padding: 4px;
+      }
+
+      td:first-of-type {
+      }
+
+      td:nth-of-type(2) {
+         .outlined;
+         color: #fff;
+         text-align: right;
+      }
+
+      tr:nth-child(even) {
+         background: rgba(0,0,0,0.1);
+      }
+   }
+
+   #persona {
+      font-size: 16px;
+
+      #latestJournal {
+         font-size: 13px;
+      }
+   }
+
+   #attributes {
+      font-size: 16px;
+
+      .value {
+      }
+
+      .value:first-letter {
+         //font-size: 20px;
+         //font-weight: bold;
+      }
+   }
+
+   .buffedValue{
+      color: green;
+   }
+
+   .debuffedValue {
+      color: red;
+   }
+
+   .normalValue {
+      color: white;
+   }
+
+   #group {
+      padding-bottom: 16px;
+
+      .name {
+         float: left;
+      }
+      .value {
+         float: right;
+      }
+
+      .clear {
+         content: '.';
+         display: block;
+         clear: both;
+         visibility: hidden;
+      }         
+   }  
+}
+
+.buffTooltip {
+   .outlined;
+   font-size: 12px;
+
+   .buffTooltipImg {
+      width: 29px;
+      height: 32px;
+      vertical-align: middle;
+   }
+
+   .buffTooltipText {
+      margin-bottom: 3px;
+   }
+
+   .dataSpan {
+      margin-top: 5px;
+      padding-left: 15px;
+      padding-top: 2px;
+
+      float: right; 
+
+      vertical-align: middle;
+      background-repeat:no-repeat;
+      background-position:left; 
+   }
+
+   .debuffDataSpan {
+      margin-left: 8px;
+      background-image: url('./images/debuff_arrow.png');
+      color: red;
+   }
+
+   .buffDataSpan {
+      margin-left: 8px;
+      background-image: url('./images/buff_arrow.png');
+      color: green;
+   }
+}

@@ -14,6 +14,7 @@
 #include "lib/voxel/qubicle_file.h"
 #include "lib/voxel/qubicle_brush.h"
 #include "pipeline.h"
+#include "csg/region_tools.h"
 #include "Horde3D.h"
 
 using namespace ::radiant;
@@ -58,7 +59,6 @@ RenderRenderInfo::RenderRenderInfo(RenderEntity& entity, om::RenderInfoPtr rende
 
    // if the material changes...
    material_trace_ = render_info->TraceMaterial("render", dm::RENDER_TRACES)->OnModified(set_model_dirty_bit);
-   mode_trace_ = render_info->TraceModelMode("render", dm::RENDER_TRACES)->OnModified(set_model_dirty_bit);
 
    SetDirtyBits(-1);
 }
@@ -67,17 +67,17 @@ RenderRenderInfo::~RenderRenderInfo()
 {
 }
 
-void RenderRenderInfo::AccumulateModelVariant(ModelMap& m, om::ModelLayerPtr v)
+void RenderRenderInfo::AccumulateModelVariant(ModelMap& m, om::ModelLayerPtr layer)
 {
-   if (v) {
-      om::ModelLayer::Layer layer = v->GetLayer();
+   if (layer) {
+      om::ModelLayer::Layer level = layer->GetLayer();
 
-      variant_trace_ = v->TraceModels("render", dm::RENDER_TRACES)
+      variant_trace_ = layer->TraceModels("render", dm::RENDER_TRACES)
                               ->OnModified([this]() {
                                  SetDirtyBits(MODEL_DIRTY);
                               });
 
-      for (std::string const& model : v->EachModel()) {
+      for (std::string const& model : layer->EachModel()) {
          voxel::QubicleFile* qubicle;
          try {
             qubicle = Pipeline::GetInstance().LoadQubicleFile(model);
@@ -89,7 +89,7 @@ void RenderRenderInfo::AccumulateModelVariant(ModelMap& m, om::ModelLayerPtr v)
             std::string bone = GetBoneName(entry.first);
             voxel::QubicleMatrix const* matrix = &entry.second;
 
-            m[bone].layers[layer] = matrix;
+            m[bone].layers[level].push_back(matrix);
          }
       }
    }
@@ -98,16 +98,22 @@ void RenderRenderInfo::AccumulateModelVariant(ModelMap& m, om::ModelLayerPtr v)
 void RenderRenderInfo::AccumulateModelVariants(ModelMap& m, om::ModelVariantsPtr model_variants, std::string const& current_variant)
 {
    if (model_variants) {
-      auto variant = model_variants->GetModelVariant(current_variant);
-      if (variant) {
-         AccumulateModelVariant(m, variant);
+      om::ModelLayerPtr layer = model_variants->GetVariant(current_variant);
+      if (!layer) {
+         layer = model_variants->GetVariant("default");
+      }
+      if (layer) {
+         AccumulateModelVariant(m, layer);
       }
    }
 }
 
 void RenderRenderInfo::CheckMaterial(om::RenderInfoPtr render_info)
 {
-   std::string const& material_path = render_info->GetMaterial();
+   std::string material_path = render_info->GetMaterial();
+   if (material_path.empty()) {
+      material_path = "materials/default_material.xml";
+   }
    if (material_path_ != material_path) {
       material_path_  = material_path;
       H3DRes material = h3dAddResource(H3DResTypes::Material, material_path.c_str(), 0);
@@ -143,15 +149,14 @@ void RenderRenderInfo::RebuildModels(om::RenderInfoPtr render_info)
 
 void RenderRenderInfo::FlattenModelMap(ModelMap& m, FlatModelMap& flattened)
 {
-   for (const auto& entry : m) {
-      voxel::QubicleMatrix const* matrix = nullptr;
+   for (auto& entry : m) {
       for (int i = om::ModelLayer::NUM_LAYERS - 1; i >= 0; i--) {
-         matrix = entry.second.layers[i];
-         if (matrix != nullptr) {
+         MatrixVector &v = entry.second.layers[i];
+         if (!v.empty()) {
+            flattened[entry.first] = std::move(v);
             break;
          }
       }
-      flattened[entry.first] = matrix;
    }
 }
 
@@ -161,7 +166,7 @@ void RenderRenderInfo::RemoveObsoleteNodes(FlatModelMap const& m)
    auto i = nodes_.begin();
    while (i != nodes_.end()) {
       auto j = m.find(i->first);
-      if (j == m.end() || j->second != i->second.matrix) {
+      if (j == m.end() || j->second != i->second.matrices) {
          i = nodes_.erase(i);
       } else {
          i++;
@@ -173,7 +178,7 @@ std::string RenderRenderInfo::GetBoneName(std::string const& matrix_name)
 {
    // Qubicle requires that ever matrix in the file have a unique name.  While authoring,
    // if you copy/pasta a matrix, it will rename it from matrixName to matrixName_2 to
-   // dismabiguate them.  Ignore everything after the _ so we don't make authors manually
+   // disambiguate them.  Ignore everything after the _ so we don't make authors manually
    // rename every single part when this happens.
    std::string bone = matrix_name;
    int pos = bone.find('_');
@@ -183,7 +188,7 @@ std::string RenderRenderInfo::GetBoneName(std::string const& matrix_name)
    return bone;
 }
 
-void RenderRenderInfo::AddModelNode(om::RenderInfoPtr render_info, std::string const& bone, voxel::QubicleMatrix const* matrix, float offset)
+void RenderRenderInfo::AddModelNode(om::RenderInfoPtr render_info, std::string const& bone, MatrixVector const& matrices, float polygon_offset)
 {
    ASSERT(nodes_.find(bone) == nodes_.end());
 
@@ -191,35 +196,46 @@ void RenderRenderInfo::AddModelNode(om::RenderInfoPtr render_info, std::string c
    auto i = bones_offsets_.find(bone);
    if (i != bones_offsets_.end()) {
       origin = i->second;
+
+      // 3DS Max uses a z-up, right handed origin....
+      // The voxels in the matrix are stored y-up, left-handed...
+      // Convert the max origin to y-up, right handed...
+      csg::Point3f yUpOrigin(origin.x, origin.z, origin.y); 
+
+      // Now convert to y-up, left-handed
+      csg::Point3f yUpLHOrigin(yUpOrigin.x, yUpOrigin.y, -yUpOrigin.z);
+      origin = yUpLHOrigin;
    }
    float scale = render_info->GetScale();
 
    auto& pipeline = Pipeline::GetInstance();
-   H3DNode mesh;
    H3DNode parent = entity_.GetSkeleton().GetSceneNode(bone);
-
-   H3DNodeUnique node;
-
-   if (model_mode_ == "blueprint") {
-      //TODO: call a function to set the origin of the matrix when in blueprint mode
-      //instead of calling SetPreserveMatrixOrigin(false). Pass in the origin coordiantes.
-      //Part of this bug: http://bugs.radiant-entertainment.com:8080/browse/SH-38
-      csg::Region3 model = voxel::QubicleBrush(matrix)
-                                 .SetPaintMode(voxel::QubicleBrush::Opaque)
-                                 .SetPreserveMatrixOrigin(true)
-                                 .PaintOnce();
-      node = pipeline.CreateBlueprintNode(parent, model, 0.5f, material_path_);
-   } else {
-      node = pipeline.AddQubicleNode(parent, *matrix, origin, &mesh);
-      if (material_.get()) {
-         h3dSetNodeParamI(mesh, H3DMesh::MatResI, material_.get());
-      }
+   
+   ResourceCacheKey key;
+   key.AddElement("origin", origin);
+   for (voxel::QubicleMatrix const* matrix : matrices) {
+      // this assumes matrices are loaded exactly once at a stable address.
+      key.AddElement("matrix", matrix);
    }
+
+   auto generate_matrix = [&matrices, &origin, &pipeline](csg::mesh_tools::mesh &mesh) {
+      csg::Region3 all_models;
+      for (voxel::QubicleMatrix const* matrix : matrices) {
+         csg::Region3 model = voxel::QubicleBrush(matrix)
+            .SetOffsetMode(voxel::QubicleBrush::File)
+            .PaintOnce();
+         all_models += model;
+      }
+      csg::RegionToMesh(all_models, mesh, -origin);
+   };
+
+   H3DNodeUnique node = pipeline.AddSharedMeshNode(parent, key, material_path_, generate_matrix);
+
    h3dSetNodeParamI(node.get(), H3DModel::PolygonOffsetEnabledI, 1);
-   h3dSetNodeParamF(node.get(), H3DModel::PolygonOffsetF, 0, offset * 0.04f);
-   h3dSetNodeParamF(node.get(), H3DModel::PolygonOffsetF, 1, offset * 10.0f);
+   h3dSetNodeParamF(node.get(), H3DModel::PolygonOffsetF, 0, polygon_offset * 0.04f);
+   h3dSetNodeParamF(node.get(), H3DModel::PolygonOffsetF, 1, polygon_offset * 10.0f);
    h3dSetNodeTransform(node.get(), 0, 0, 0, 0, 0, 0, scale, scale, scale);
-   nodes_[bone] = NodeMapEntry(matrix, node);
+   nodes_[bone] = NodeMapEntry(matrices, node);
 }
 
 void RenderRenderInfo::AddMissingNodes(om::RenderInfoPtr render_info, FlatModelMap const& m)
@@ -228,7 +244,8 @@ void RenderRenderInfo::AddMissingNodes(om::RenderInfoPtr render_info, FlatModelM
    auto i = m.begin();
    while (i != m.end()) {
       auto j = nodes_.find(i->first);
-      if (j == nodes_.end() || i->second != j->second.matrix) {
+      // xxx: what's with the std::vector compare in this if?  is that actually kosher?
+      if (j == nodes_.end() || i->second != j->second.matrices) {
          AddModelNode(render_info, i->first, i->second, offset);
          offset += 1.0f;
       }
@@ -263,12 +280,25 @@ void RenderRenderInfo::Update()
             SetDirtyBits(MODEL_DIRTY);
          }
          if (dirty_ & MODEL_DIRTY) {
-            model_mode_ = render_info->GetModelMode();
             CheckMaterial(render_info);
             RebuildModels(render_info);
+            SetDirtyBits(SCALE_DIRTY);
          }
          if (dirty_ & SCALE_DIRTY) {
-            entity_.GetSkeleton().SetScale(render_info->GetScale());
+            float scale = render_info->GetScale();
+            Skeleton& skeleton = entity_.GetSkeleton();
+            skeleton.SetScale(scale);
+
+            for (auto const& entry : nodes_) {
+               H3DNode node = entry.second.node.get();
+               float tx, ty, tz, rx, ry, rz, sx, sy, sz;
+
+               h3dGetNodeTransform(node, &tx, &ty, &tz, &rx, &ry, &rz, &sx, &sy, &sz);
+               tx *= (scale / sx);
+               ty *= (scale / sy);
+               tz *= (scale / sz);
+               h3dSetNodeTransform(node, tx, ty, tz, rx, ry, rz, scale, scale, scale);
+            }
          }
       }
       dirty_ = 0;

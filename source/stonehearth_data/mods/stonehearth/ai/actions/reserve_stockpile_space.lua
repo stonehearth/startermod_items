@@ -16,6 +16,7 @@ ReserveStockpileSpace.priority = 1
 
 function ReserveStockpileSpace:start_thinking(ai, entity, args)
    self._ai = ai
+   self._log = ai:get_log()
    self._stockpile = args.stockpile
    
    radiant.events.listen(self._stockpile, 'space_available', self, self._on_space_available)
@@ -24,7 +25,7 @@ end
 
 function ReserveStockpileSpace:_on_space_available(stockpile, space_available)
    if not stockpile or not stockpile:get_entity():is_valid() then
-      self._ai:abort('stockpile destroyed')
+      self._log:warning('stockpile destroyed')
       return
    end
 

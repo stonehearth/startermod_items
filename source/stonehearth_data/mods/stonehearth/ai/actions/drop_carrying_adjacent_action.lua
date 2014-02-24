@@ -33,7 +33,7 @@ function DropCarryingAdjacent:run(ai, entity, args)
       return
    end
    if not radiant.entities.is_adjacent_to(entity, location) then
-      ai:abort('%s is not adjacent to %s', tostring(entity), tostring(location))
+      ai:abort('%s location %s is not adjacent to %s', tostring(entity), tostring(radiant.entities.get_world_grid_location(entity)), tostring(location))
       return
    end
    

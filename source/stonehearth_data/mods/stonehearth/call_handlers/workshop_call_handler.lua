@@ -153,7 +153,7 @@ end
 
 
 --- Client side object to add the workbench's outbox to the world. 
-function WorkshopCallHandler:choose_outbox_location(session, response, workbench_entity)
+function WorkshopCallHandler:choose_outbox_location(session, response, workbench_entity, crafter)
 
    self._region = _radiant.client.alloc_region2()
    
@@ -209,7 +209,7 @@ function WorkshopCallHandler:choose_outbox_location(session, response, workbench
                box.max.x - box.min.x + 1,
                box.max.z - box.min.z + 1,
             }
-            _radiant.call('stonehearth:create_outbox', box.min, size, workbench_entity:get_id())
+            _radiant.call('stonehearth:create_outbox', box.min, size, workbench_entity:get_id(), crafter:get_id())
                      :done(function(r)
                            response:resolve(r)
                         end)
@@ -223,26 +223,12 @@ function WorkshopCallHandler:choose_outbox_location(session, response, workbench
 end
 
 --- Create the outbox the user specified and tell a worker to build the workbench
-function WorkshopCallHandler:create_outbox(session, response, location, size, ghost_workshop_entity_id)
-   local outbox_entity = radiant.entities.create_entity('stonehearth:workshop_outbox')
-   radiant.terrain.place_entity(outbox_entity, location)
-   outbox_entity:get_component('unit_info'):set_faction(session.faction)
-
-   local outbox_component = outbox_entity:get_component('stonehearth:stockpile')
-   outbox_component:set_size(size)
-   outbox_component:set_outbox(true)
-
+function WorkshopCallHandler:create_outbox(session, response, location, outbox_size, ghost_workshop_entity_id, crafter_id)
    local ghost_workshop = radiant.entities.get_entity(ghost_workshop_entity_id)
+   local crafter = radiant.entities.get_entity(crafter_id)
 
-   -- todo: stick this in a taskmaster manager somewhere so we can show it (and cancel it!)
-   local scheduler = stonehearth.tasks:get_scheduler('stonehearth:workers', session.faction)
-   scheduler:create_orchestrator('stonehearth:tasks:create_workshop', {
-         faction = session.faction,
-         ghost_workshop = ghost_workshop,
-         outbox_entity = outbox_entity,
-      })
-      :start()
-
+   local town = stonehearth.town:get_town(session.faction)
+   town:create_workshop(crafter, ghost_workshop, location, outbox_size)
    return true
 end
 

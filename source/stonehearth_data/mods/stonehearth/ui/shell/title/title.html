@@ -14,7 +14,10 @@
       <img id="logo">
       <div id="controls">
          <a href="#" {{action newGame this target="view"}}>
-            <div id="newGameButton" class="control">{{i18n stonehearth:title_screen_new_game}}</div>
+            <button id="newGameButton" class="flat">{{i18n stonehearth:title_screen_new_game}}</button>
+         </a>
+         <a href="#" {{action quickStart this target="view"}}>
+            <button id="quickStartButton" class="flat">{{i18n stonehearth:title_screen_quick_start}}</button>
          </a>
       </div>
 

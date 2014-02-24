@@ -116,6 +116,10 @@ static void Sky_SetStarfieldBrightness(float brightness) {
    Renderer::GetInstance().SetStarfieldBrightness(brightness);
 }
 
+static void Renderer_SetVisibilityRegions(std::string const& visible_region_uri, std::string const& explored_region_uri) {
+   Renderer::GetInstance().SetVisibilityRegions(visible_region_uri, explored_region_uri);
+}
+
 static void Renderer_EnablePerfLogging(bool enable)
 {
    h3dSetOption(H3DOptions::EnableStatsLogging, enable ? 1.0f : 0.0f);
@@ -164,6 +168,9 @@ void LuaRenderer::RegisterType(lua_State* L)
             namespace_("sky") [
                def("set_sky_colors", &Sky_SetSkyColor),
                def("set_starfield_brightness", &Sky_SetStarfieldBrightness)
+            ],
+            namespace_("visibility") [
+               def("set_visibility_regions", &Renderer_SetVisibilityRegions)
             ]
          ]
       ],
@@ -210,10 +217,16 @@ void LuaRenderer::RegisterType(lua_State* L)
          value("Inactive",                   H3DNodeFlags::Inactive),
          value("NoCastShadow",               H3DNodeFlags::NoCastShadow)
       ],
+      class_<H3DProjectorNodeParams>("H3DProjectorNodeParams")
+         .enum_("constants")
+      [
+         value("MatResI",                    H3DProjectorNodeParams::MatResI)
+      ],
       class_<H3DNodeUnique>("H3DNodeUnique")
          .def("destroy",                     H3DNodeUnique_Destroy),
       def("h3dGetNodeParamStr",              &h3dGetNodeParamStr),
       def("h3dRemoveNode",                   &h3dRemoveNode),
+      def("h3dAddProjectorNode",             &h3dAddProjectorNode),
       def("h3dAddLightNode",                 &h3dAddLightNode),
       def("h3dRadiantAddCubemitterNode",     &h3dRadiantAddCubemitterNode),
       def("h3dAddResource",                  &h3dAddResource),

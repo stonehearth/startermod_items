@@ -24,12 +24,12 @@
             ]
          }
       },
-      "model_variants": [
-         {
+      "model_variants": {
+         "default": {
             "models": [
                "file(ball.qb)"
             ]
          }
-      ]
+      }
    }
 }

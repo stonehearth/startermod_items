@@ -1,0 +1,85 @@
+<!-- Forward Shading Pipeline -->
+<Pipeline name="FORWARD" material="materials/forward.material.xml">
+   <Setup>
+      <RenderTarget id="SelectedTemp" numColBufs="1" depthBuf="true" format="RGBA8" scale="1.0"/>
+      <RenderTarget id="SkyTemp" numColBufs="1" depthBuf="false" format="RGBA8" scale="0.125"/>
+      <RenderTarget id="FogOfWarRT" numColBufs="1" depthBuf="false" format="RGBA8" width="512" height="512"/>
+   </Setup>
+   <CommandQueue>
+      <!--This stage to only be executed by the FOW camera, and only this stage.-->
+      <Stage id="FogOfWar_RT">
+         <SwitchTarget target="FogOfWarRT" />
+         <ClearTarget colBuf0="true" col_A="0.33" />
+         <DrawGeometry context="FOW_RT_EXPLORED" class="~Translucent" />
+         <!--DrawGeometry context="FOW_RT_VISIBLE" class="~Translucent" /-->
+         <SwitchTarget target=""/>
+      </Stage>
+
+
+      <Stage id="Init">
+         <SwitchTarget target="" />
+         <ClearTarget colBuf0="true" depthBuf="true"/>
+      </Stage>
+      
+      <Stage id="Sky">
+         <DrawGeometry context="SKY"/>
+
+         <SwitchTarget target="SkyTemp" />
+         <DrawGeometry context="SKY"/>
+      </Stage>
+
+      <Stage id="Starfield">
+         <SwitchTarget target="" />
+         <DrawGeometry context="STARFIELD"/>
+      </Stage>
+
+      <Stage id="Depth">
+         <DrawGeometry context="DEPTH" class="~Translucent" />
+      </Stage>
+
+      <Stage id="Light">
+         <BindBuffer sampler="fowRT" sourceRT="FogOfWarRT" bufIndex="0" />
+         <DoForwardLightLoop class="~Translucent" noShadows="false"/>
+         <UnbindBuffers />
+      </Stage>
+
+      <Stage id="Projections">
+         <!-- '1' is terrain only. -->
+         <DrawProjections context="PROJECTION" userFlags="1" />
+      </Stage>
+
+      <Stage id="Fog">
+         <BindBuffer sampler="skySampler" sourceRT="SkyTemp" bufIndex="0"/>
+         <DrawGeometry class="~Translucent" context="FOG" noShadows="true" frustum_start="0.7"/>
+         <UnbindBuffers />
+      </Stage>
+
+      <Stage id="Translucent">
+         <DrawGeometry context="TRANSLUCENT_ON_TOP" order="BACK_TO_FRONT" />
+         <DrawGeometry context="TRANSLUCENT" order="BACK_TO_FRONT" />
+         <DrawGeometry context="BLUEPRINTS_DEPTH_PASS"/>
+         <DrawGeometry context="BLUEPRINTS_COLOR_PASS"/>
+         <DrawGeometry context="DEBUG_SHAPES" />
+      </Stage>
+
+      <Stage id="Selected">
+         <SwitchTarget target="SelectedTemp" />
+         <ClearTarget colBuf0="true" depthBuf="true"/>
+         <DrawSelected context="SELECTED_SCREENSPACE" />
+
+         <SwitchTarget target="" />
+         <BindBuffer sampler="outlineSampler" sourceRT="SelectedTemp" bufIndex="0"/>
+         <BindBuffer sampler="outlineDepth" sourceRT="SelectedTemp" bufIndex="32"/>
+         <DrawQuad material="materials/base.material.xml" context="SELECTED_SCREENSPACE_OUTLINER" />
+         <UnbindBuffers />
+      </Stage>
+
+      <Stage id="Selected_Fast">
+         <DrawSelected context="SELECTED_FAST" />
+      </Stage>
+
+      <Stage id="Overlays">
+			<DrawOverlays context="OVERLAY"/>
+		</Stage>
+	</CommandQueue>
+</Pipeline>

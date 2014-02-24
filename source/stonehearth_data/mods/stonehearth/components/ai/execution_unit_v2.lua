@@ -3,8 +3,10 @@ local ExecutionUnitV2 = class()
 local THINKING = 'thinking'
 local READY = 'ready'
 local STARTED = 'started'
+local STARTING = 'starting'
 local RUNNING = 'running'
 local FINISHED = 'finished'
+local STOPPING = 'stopping'
 local STOPPED = 'stopped'
 local DEAD = 'dead'
 local ABORTING = 'aborting'
@@ -194,10 +196,10 @@ function ExecutionUnitV2:_stop_thinking()
    if self:in_state('thinking', 'ready') then
       return self:_stop_thinking_from_thinking()
    end
-   if self._state == 'started' then
+   if self:in_state('starting', 'started') then
       return self:_stop_thinking_from_started()
    end
-   if self:in_state('stopped', 'dead') then
+   if self:in_state('stopping', 'stopped', 'dead') then
       assert(not self._thinking)
       return -- nop
    end
@@ -240,6 +242,9 @@ function ExecutionUnitV2:_stop(invalid_transition_ok)
    if self:in_state('thinking', 'ready') then
       return self:_stop_from_thinking(invalid_transition_ok)
    end
+   if self._state == 'starting' then
+      return self:_stop_from_starting(invalid_transition_ok)
+   end
    if self._state == 'started' then
       return self:_stop_from_started(invalid_transition_ok)
    end
@@ -249,8 +254,8 @@ function ExecutionUnitV2:_stop(invalid_transition_ok)
    if self._state == 'finished' then
       return self:_stop_from_finished(invalid_transition_ok)
    end
-   if self._state == 'stopped' or self._state == 'stop_thinking' then
-      return -- nopf
+   if self:in_state('stopped', 'stopping', 'stop_thinking') then
+      return -- nop
    end
    self:_unknown_transition('stop')   
 end
@@ -258,6 +263,12 @@ end
 function ExecutionUnitV2:_destroy()
    if self:in_state('thinking', 'ready') then
       return self:_destroy_from_thinking()
+   end
+   if self._state == 'starting' then
+      return self:_destroy_from_starting()
+   end
+   if self._state == 'stopping' then
+      return self:_destroy_from_stopping()
    end
    if self._state == 'stopped' then
       return self:_destroy_from_stopped()
@@ -338,7 +349,6 @@ function ExecutionUnitV2:_start_from_ready()
    -- start is called before stop_thinking so actions will know whether
    -- they're going to get to run...
    self:_do_start()
-   self:_set_state(STARTED)
    self:_do_stop_thinking()
 end
 
@@ -367,42 +377,71 @@ function ExecutionUnitV2:_stop_from_thinking()
    self:_set_state(STOPPED)
 end
 
+function ExecutionUnitV2:_stop_from_starting()
+   if self._thinking then
+      self:_do_stop_thinking()
+   end
+   self:_do_stop()
+end
+
 function ExecutionUnitV2:_stop_from_started()
    assert(not self._thinking)
-
    self:_do_stop()
-   self:_set_state(STOPPED)
 end
 
 function ExecutionUnitV2:_stop_from_running(frame_will_kill_running_action)
    assert(not self._thinking)
-   assert(self._thread:is_running())
 
-   -- assume our calling frame knows what it's doing.  if not,
-   -- we're totally going to get screwed
-   assert(frame_will_kill_running_action)
-   
-   -- our execute frame must be dead and buried if our owning frame has the
-   -- audicity to kill us while running
-   if self._execute_frame then
-      assert(self._execute_frame:get_state() == 'dead')
-      self._execute_frame =  nil
+   if (self._thread:is_running()) then
+      -- assume our calling frame knows what it's doing.  if not,
+      -- we're totally going to get screwed
+      assert(frame_will_kill_running_action)
+
+      -- our execute frame must be dead and buried if our owning frame has the
+      -- audicity to kill us while running
+      if self._execute_frame then
+         assert(self._execute_frame:get_state() == 'dead')
+         self._execute_frame =  nil
+      end
+   elseif (stonehearth.threads:get_current_thread() == nil) then
+      -- we're being stopped from a C callback into the game engine.  this is ok!
+   else
+      -- some other thread is trying to stop us?  not ok!
+      error("non-owning thread attempting to stop execution unit")
    end
+   
    self:_do_stop()
-   self:_set_state(STOPPED)
 end
 
 function ExecutionUnitV2:_stop_from_finished()
    assert(not self._thinking)
-
    self:_do_stop()
-   self:_set_state(STOPPED)
 end
 
 function ExecutionUnitV2:_destroy_from_thinking()
    assert(self._thinking)
    assert(not self._execute_frame)
    self:_call_stop_thinking()
+   self:_call_destroy()
+   self:_set_state(DEAD)
+end
+
+function ExecutionUnitV2:_destroy_from_starting()
+   assert(self._thinking)
+   assert(not self._execute_frame)
+   if self._thinking then
+      self:_call_stop_thinking()
+   end
+   if self._started then
+      self:_call_stop()
+   end
+   self:_call_destroy()
+   self:_set_state(DEAD)
+end
+
+function ExecutionUnitV2:_destroy_from_stopping()
+   assert(not self._thinking)
+   assert(not self._execute_frame)
    self:_call_destroy()
    self:_set_state(DEAD)
 end
@@ -447,8 +486,10 @@ function ExecutionUnitV2:_do_start()
    assert(self._thinking)
    assert(not self._started)
    
+   self:_set_state(STARTING)  
    self._started = true
    self:_call_start()
+   self:_set_state(STARTED)
 end
 
 function ExecutionUnitV2:_do_stop()
@@ -456,8 +497,10 @@ function ExecutionUnitV2:_do_stop()
    assert(not self._thinking)
    assert(self._started, '_do_stop called before start')
    
+   self:_set_state(STOPPING)
    self._started = false
    self:_call_stop()
+   self:_set_state(STOPPED)
 end
 
 function ExecutionUnitV2:_do_start_thinking(entity_state)
@@ -577,7 +620,7 @@ function ExecutionUnitV2:_verify_arguments(args, args_prototype)
    end
 
    assert(not args[1], string.format('%s needs to convert to object instead of array passing!', self:get_name()))
-   for name, value in pairs(args) do      
+   for name, value in pairs(args) do
       local expected_type = args_prototype[name]
       if not expected_type then
          error(string.format('unexpected argument "%s" passed to "%s".', name, self:get_name()))
@@ -597,16 +640,23 @@ function ExecutionUnitV2:_verify_arguments(args, args_prototype)
    end
    for name, expected_type in pairs(args_prototype) do
       if args[name] == nil then
-         if expected_type.default == stonehearth.ai.NIL then
-            -- this one's ok.  keep going
-         else
-            if type(expected_type) == 'table' and not radiant.util.is_instance(expected_type) then
-               args[name] = expected_type.default
-            end
-            if args[name] == nil then
-               error(string.format('missing argument "%s" in "%s".', name, self:get_name()))
+         if type(expected_type) == 'table' then
+            if radiant.util.is_class(expected_type) then
+               -- we're totally missing the argument!  bail
+               error(string.format('missing argument "%s" of type "%s" in "%s".', name, radiant.util.tostring(expected_type), self:get_name()))
                return false
+            elseif expected_type.default then
+               -- maybe there's a default?
+               if expected_type.default == stonehearth.ai.NIL then
+                  -- this one's ok.  keep going
+               else
+                  args[name] = expected_type.default
+               end
             end
+         else
+            -- we're totally missing the argument!  bail
+            error(string.format('missing argument "%s" of type "%s" in "%s".', name, radiant.util.tostring(expected_type), self:get_name()))
+            return false
          end
       end
    end

@@ -4,13 +4,16 @@
    components: {},
 
    init: function() {
-      this._super();
-      this._traces = {};
       this._trace = new RadiantTrace();
+      this._super();
    },
 
    destroy: function() {
-      this._trace.destroy();
+      if (this._trace) {
+         this._trace.destroy();   
+         this._trace = null;
+      }
+      
       if (this.modalOverlay) {
          this.modalOverlay.destroy();
       }

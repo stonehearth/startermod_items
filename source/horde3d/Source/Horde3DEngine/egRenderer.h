@@ -188,6 +188,8 @@ public:
 		const Frustum *frust1, const Frustum *frust2, RenderingOrder::List order, int occSet );
    static void drawHudElements(const std::string &shaderContext, const std::string &theClass, bool debugView,
       const Frustum *frust1, const Frustum *frust2, RenderingOrder::List order, int occSet);
+   static void drawInstanceNode(const std::string &shaderContext, const std::string &theClass, bool debugView,
+      const Frustum *frust1, const Frustum *frust2, RenderingOrder::List order, int occSet);
 
 	void render( CameraNode *camNode );
 	void finalizeFrame();
@@ -228,10 +230,11 @@ protected:
 	void drawOverlays( const std::string &shaderContext );
 
 	void bindPipeBuffer( uint32 rbObj, const std::string &sampler, uint32 bufIndex );
-	void clear( bool depth, bool buf0, bool buf1, bool buf2, bool buf3, float r, float g, float b, float a );
+	void clear( bool depth, bool buf0, bool buf1, bool buf2, bool buf3, float r, float g, float b, float a, int stencilVal );
 	void drawFSQuad( Resource *matRes, const std::string &shaderContext );
 	void drawGeometry( const std::string &shaderContext, const std::string &theClass,
 	                   RenderingOrder::List order, int filterRequired, int occSet, float frustStart, float frustEnd );
+   void drawProjections(const std::string &shaderContext, uint32 userFlags );
 	void drawLightGeometry( const std::string &shaderContext, const std::string &theClass,
 	                        bool noShadows, RenderingOrder::List order, int occSet, bool selectedOnly );
 	void drawLightShapes( const std::string &shaderContext, bool noShadows, int occSet );
@@ -249,8 +252,9 @@ protected:
 	unsigned char                      *_scratchBuf;
 	uint32                             _scratchBufSize;
 
-	Matrix4f                           _viewMat, _viewMatInv, _projMat, _viewProjMat, _viewProjMatInv;
+	Matrix4f                           _viewMat, _viewMatInv, _projMat, _viewProjMat, _viewProjMatInv, _projectorMat;
 	float                              _currentTime;
+   MaterialResource*                  _materialOverride;
 
 	std::vector< PipeSamplerBinding >  _pipeSamplerBindings;
 	std::vector< char >                _occSets;  // Actually bool

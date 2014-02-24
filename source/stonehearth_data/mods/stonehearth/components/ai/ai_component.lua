@@ -146,7 +146,7 @@ function AIComponent:_terminate_thread()
       
       -- If we're calling _terminate_thread() from the co-routine itself,
       -- this function MAY NOT RETURN!
-      stonehearth.threads:terminate_thread(self.thread)
+      thread:terminate()
    end
 end
 

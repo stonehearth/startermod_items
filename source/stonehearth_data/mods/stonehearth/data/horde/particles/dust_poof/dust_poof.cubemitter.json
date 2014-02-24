@@ -1,0 +1,80 @@
+{
+    "name": "dust_poof",
+    "duration": 9999,
+    "particle": {
+        "lifetime": {
+            "start": {
+                "kind": "RANDOM_BETWEEN",
+                "values": [1.2, 1.5]
+            }
+        },
+        "speed": {
+            "start": {
+                "kind": "RANDOM_BETWEEN",
+                "values": [1.5, 3.0]
+            },
+            "over_lifetime": {
+                "kind": "CURVE",
+                "values": [
+                    [0.0, 1.0], [0.5, 0.0], [1.0, 0.5]
+                ]
+            }
+        },
+
+        "color": {
+            "start": {
+                "kind": "CONSTANT",
+                "values": [0.8, 0.76, 0.69, 0.5]
+            },
+            "over_lifetime_a": {
+                "kind": "CURVE",
+                "values": [
+                    [0.0, 0.8], [0.8, 0.2], [1.0, 0.0]
+                ]
+            }
+        },
+        "scale": {
+            "start": {
+                "kind": "RANDOM_BETWEEN",
+                "values": [0.1, 0.3]
+            },
+            "over_lifetime": {
+                "kind": "RANDOM_BETWEEN_CURVES",
+                "values": [
+                    [[0.0, 1.0],[1.0, 2.0]],
+                    [[0.0, 1.8],[1.0, 2.8]]
+                ]
+            }
+        },
+        "rotation": {
+            "over_lifetime_x": {
+                "kind": "CONSTANT",
+                "values": [0]
+            }
+        },
+        "velocity": {
+            "over_lifetime_x": {
+                "kind": "CONSTANT",
+                "values": [0]
+            },
+            "over_lifetime_y": {
+                "kind": "CONSTANT",
+                "values": [0]
+            }
+        }        
+    },
+    "emission": {
+        "rate": {
+            "kind": "CONSTANT",
+            "values": [500]
+        },
+        "origin": {
+            "surface": "POINT",
+            "values": [2, 2]
+        },
+        "angle": {
+            "kind": "CONSTANT",
+            "values": [360]
+        }
+    }
+}

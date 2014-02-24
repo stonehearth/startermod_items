@@ -16,12 +16,6 @@ void CopyRegion(T& region, T const& other)
 }
 
 template <typename T>
-T IntersectRegion(lua_State* L, T const& region, T const& other)
-{
-   return region & other;
-}
-
-template <typename T>
 void LoadRegion(lua_State* L, T& region, object obj)
 {
    // converts the lua object to a json object, then the json
@@ -44,7 +38,7 @@ std::shared_ptr<T> RegionClip(const T& region, typename T::Cube const& cube)
 }
 
 template <typename T>
-T Region_Intersection(T const& lhs, T const& rhs)
+T IntersectRegion(T const& lhs, T const& rhs)
 {
    return lhs & rhs;
 }
@@ -60,7 +54,6 @@ Region2 ProjectOntoXZPlane(Region3 const& region)
    }
    return r2;
 }
-
 
 template <typename T>
 static luabind::class_<T> Register(struct lua_State* L, const char* name)
@@ -80,6 +73,8 @@ static luabind::class_<T> Register(struct lua_State* L, const char* name)
          .def("clear",              &T::Clear)
          .def("get_bounds",         &T::GetBounds)
          .def("optimize",           &T::Optimize)
+         .def("optimize_by_octtree", &T::OptimizeByOctTree)
+         .def("optimize_by_merge",  &T::OptimizeByMerge)
          .def("intersects",         &T::Intersects)
          .def("add_region",         (void (T::*)(T const&))&T::Add)
          .def("add_cube",           (void (T::*)(typename T::Cube const&))&T::Add)
@@ -89,7 +84,6 @@ static luabind::class_<T> Register(struct lua_State* L, const char* name)
          .def("subtract_region",    (void (T::*)(T const&))&T::Subtract)
          .def("subtract_cube",      (void (T::*)(typename T::Cube const&))&T::Subtract)
          .def("subtract_point",     (void (T::*)(typename T::Point const&))&T::Subtract)
-         .def("intersect_region",   (void (T::*)(T const&))&T::Subtract)
          .def("each_cube",          &T::GetContents, return_stl_iterator)
          .def("clip",               &RegionClip<T>)
          .def("get_num_rects",      &T::GetRectCount)
@@ -106,7 +100,8 @@ static luabind::class_<T> Register(struct lua_State* L, const char* name)
 scope LuaRegion::RegisterLuaTypes(lua_State* L)
 {
    return
-      def("region3_intersection", Region_Intersection<Region3>),
+      def("intersect_region2", IntersectRegion<Region2>),
+      def("intersect_region3", IntersectRegion<Region3>),
       Register<Region3>(L,  "Region3")
          .def("get_adjacent",             &GetAdjacent)
          .def("project_onto_xz_plane",    &ProjectOntoXZPlane),

@@ -68,7 +68,6 @@ end
 
 -- recompute the game calendar based on the time
 function CalendarService:_on_event_loop(e)
-   local t
    local now = e.now
 
    -- determine how many seconds have gone by since the last loop

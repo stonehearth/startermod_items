@@ -1,20 +1,37 @@
 {
    "type" : "entity",
-   "extends" : "stonehearth:mixins:mob",   
+   "mixins" : "stonehearth:mixins:mob",   
    "components": {
       "unit_info" : {
         "name": "A rabbit",
         "description": "Om nom nom",
-        "faction": "critter"
+        "portrait": "file(portrait.png)",
+        "faction": "critter",
+        "character_sheet_info" : "file(rabbit_character_sheet_info.json)"
       },
       "stonehearth:ai" : {
          "actions" : [
             "stonehearth:actions:idle:look_around",
             "stonehearth:actions:wander",
             "stonehearth:actions:wander_when_bored",
-            "stonehearth:actions:choose_point_around_leash",
+            "stonehearth:actions:choose_point_around_leash"
          ]
       },
+      "stonehearth:loot_table" : {
+        "num_drops" : {
+          "min" : 2,
+          "max" : 3
+        },
+        "items" : {
+          "jerky" : {
+            "uri" : "stonehearth:rabbit_jerky"
+          },
+          "pelt" : {
+            "uri" : "stonehearth:rabbit_pelt",
+            "unique" : true
+          }
+        }
+      },      
       "stonehearth:attributes": {
         "health": {
           "type" : "basic", 
@@ -28,12 +45,12 @@
       "render_info" : {
          "animation_table" : "file(/data/rigs/critters/rabbit)"
       },
-      "model_variants": [
-         {
+      "model_variants": {
+         "default": {
             "models": [
                "file(rabbit.qb)"
             ]
          }
-      ]
+      }
    }
 }

@@ -38,7 +38,7 @@ function Thread.schedule_thread(thread)
    if not Thread.is_scheduled[thread] then
       thread._log:detail('scheduling thread')
       Thread.is_scheduled[thread] = true
-      table.insert(thread.scheduled, thread)
+      table.insert(Thread.scheduled, thread)
    end
 end
 
@@ -56,10 +56,10 @@ function Thread.resume_thread(thread)
       elseif thread_status == Thread.KILL then
          Thread.terminate_thread(thread, result1)
       else
-         error('unknown thread_status "%s" returned from resume', tostring(thread_status))
+         error(string.format('unknown thread_status "%s" returned from resume', tostring(thread_status)))
       end
    else
-      error('unknown thread state "%s" returned from resume', tostring(status))
+      error(string.format('unknown thread state "%s" returned from resume', tostring(status)))
    end
 end
 
@@ -105,6 +105,7 @@ function Thread:__init(parent)
    self._child_threads = {}
    self._msgs = {}
    self._thread_data = {}
+   self._exit_handlers = {}
    self._log = radiant.log.create_logger('thread')
    self:set_debug_name('')
 end
@@ -155,9 +156,8 @@ function Thread:set_msg_handler(handler)
    return self
 end
 
-function Thread:set_exit_handler(handler)
-   assert(not self._finished)
-   self._exit_handler = handler
+function Thread:add_exit_handler(handler)
+   table.insert(self._exit_handlers, handler)
    return self
 end
 
@@ -336,7 +336,12 @@ function Thread:_do_yield(...)
    assert(self:is_running())
 
    coroutine.yield(...)
-
+   -- if we got terminated while suspended, just yield indefinitely.
+   -- we'll be destroyed when the last reference goes away
+   while self._finished do
+      coroutine.yield(Thread.SUSPEND)
+   end
+  
    assert(self:is_running())
 end
 
@@ -350,8 +355,8 @@ function Thread:_on_thread_exit(err)
    self._log:detail('thread %d has finished', self._id)
    self._finished = true
    self._msgs = {}
-   if self._exit_handler then
-      self._exit_handler(self, err)
+   for _, fn in ipairs(self._exit_handlers) do
+      fn(self, err)
    end
    
    if self._parent then

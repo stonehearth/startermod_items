@@ -19,7 +19,7 @@ function FollowPathAction:run(ai, entity, args)
    local path = args.path
    local log = ai:get_log()
    
-   log:detail('following path: %s', tostring(path))
+   log:detail('following path: %s', path)
    if path:is_empty() then
       log:detail('path is empty.  returning')
       return
@@ -37,8 +37,11 @@ function FollowPathAction:run(ai, entity, args)
    if speed == nil then
       speed = 1.0
    end
+
    --TODO: may need to reevaluate as we tweak attribute display
-   speed = math.floor(50 + (50 * speed / 60)) / 100
+   if speed > 0 then
+      speed = math.floor(50 + (50 * speed / 60)) / 100
+   end
 
    self._effect = radiant.effects.run_effect(entity, 'run')
    local arrived_fn = function()
@@ -70,14 +73,6 @@ function FollowPathAction:stop(ai, entity)
    if self._postures_trace then
       self._postures_trace:destroy()
       self._postures_trace = nil
-   end
-end
-
-function FollowPathAction:destroy(ai, entity)
-   if self._mover then
-      ai:get_log():debug('stopping mover %s in destroy...', self._mover:get_name());
-      self._mover:stop()
-      self._mover = nil
    end
 end
 

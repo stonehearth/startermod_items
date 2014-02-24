@@ -27,7 +27,7 @@ public:
    std::string ConvertToCanonicalPath(std::string path, const char* search_ext) const;
    std::string FindScript(std::string const& script) const;
 
-   std::string GetEntityUri(std::string const& mod_name, std::string const& entity_name) const;
+   std::string GetAliasUri(std::string const& mod_name, std::string const& alias_name) const;
    std::shared_ptr<std::istream> OpenResource(std::string const& stream) const;
 
 private:
@@ -40,19 +40,28 @@ private:
                       const char* search_ext) const;
    AnimationPtr LoadAnimation(std::string const& canonical_path) const;
    JSONNode LoadJson(std::string const& path) const;
-   void ParseNodeExtension(std::string const& path, JSONNode& node) const;
+   void ParseNodeMixin(std::string const& path, JSONNode& node) const;
+   void ApplyMixin(std::string const& mixin, JSONNode& n) const;
    void ExtendNode(JSONNode& node, const JSONNode& parent) const;
    std::string ExpandMacro(std::string const& current, std::string const& base_path, bool full) const;
    void ExpandMacros(std::string const& base_path, JSONNode& node, bool full) const;
    std::string ConvertToAbsolutePath(std::string const& current, std::string const& base_path) const;
+   void LoadModules();
+   void ImportModuleManifests();
+   void ImportModMixintos(std::string const& modname, json::Node const& mixintos);
+   void ImportModMixintoEntry(std::string const& modname, std::string const& name, std::string const& path);
+   void ImportModOverrides(std::string const& modname, json::Node const& overrides);
+   std::shared_ptr<std::istream> OpenResourceCanonical(std::string const& stream) const;
 
 private:
-   boost::filesystem::path                       resource_dir_;
-   std::unordered_map<std::string, std::unique_ptr<IModule>>     modules_;
-   std::vector<std::string>                      module_names_;
-   mutable std::recursive_mutex                  mutex_;
+   boost::filesystem::path                         resource_dir_;
+   std::map<std::string, std::unique_ptr<IModule>> modules_;
+   std::vector<std::string>                        module_names_;
+   std::unordered_map<std::string, std::vector<std::string>> mixintos_;
+   std::unordered_map<std::string, std::string>    overrides_;
+   mutable std::recursive_mutex                    mutex_;
    mutable std::unordered_map<std::string, AnimationPtr> animations_;
-   mutable std::unordered_map<std::string, JSONNode>     jsons_;
+   mutable std::unordered_map<std::string, std::shared_ptr<JSONNode>>     jsons_;
 };
 
 END_RADIANT_RES_NAMESPACE

@@ -1,0 +1,40 @@
+{
+   "type": "entity",
+   "components" : {
+      "unit_info" : {
+         "name" :  "Snare Trap",
+         "description" : "Safely immobilizes its prey",
+         "icon" : "file(/entities/generic/default_object/default_object.png)"
+      },
+       "stonehearth:material" : {
+         "tags" : "wood"
+      },
+      "model_variants": {
+         "default": {
+            "models": [
+               "file(snare_trap.qb)"
+            ]
+         }
+      },
+      "stonehearth:commands" : {
+         "commands" : [
+            "file(commands/harvest_trapped_beast)",
+            "file(commands/tame_trapped_beast)"
+         ]
+      },
+      "effect_list" : {
+         "effects" : [
+            "stonehearth:effects:talisman_glow"
+         ]  
+      },
+      "destination": {
+         "region": [
+            {
+               "min" : { "x" : -1, "y" : -1, "z" : -1 },
+               "max" : { "x" :  2, "y" : 2, "z" :  2 }
+            }
+         ]
+      }
+   }
+}
+

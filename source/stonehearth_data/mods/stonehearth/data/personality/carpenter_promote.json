@@ -1,7 +1,6 @@
 {
-   "activities" : [
-      {
-         "id" : "promote_carpenter",
+   "activities" : {
+      "promote_carpenter" : {
          "trigger_policy" : [
             {
                "trigger_id" : "promote_carpenter",
@@ -43,6 +42,6 @@
             }
          }
       }
-   ]
+   }
 }
             

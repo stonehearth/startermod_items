@@ -158,7 +158,7 @@ const std::string PipelineResource::parseStage( XMLNode const &node, PipelineSta
 		{
 			stage->commands.push_back( PipelineCommand( PipelineCommands::ClearTarget ) );
 			vector< PipeCmdParam > &params = stage->commands.back().params;
-			params.resize( 9 );
+			params.resize( 10 );
 			params[0].setBool( false );
 			params[1].setBool( false );
 			params[2].setBool( false );
@@ -168,6 +168,7 @@ const std::string PipelineResource::parseStage( XMLNode const &node, PipelineSta
 			params[6].setFloat( (float)atof( node1.getAttribute( "col_G", "0" ) ) );
 			params[7].setFloat( (float)atof( node1.getAttribute( "col_B", "0" ) ) );
 			params[8].setFloat( (float)atof( node1.getAttribute( "col_A", "0" ) ) );
+			params[9].setInt( atoi( node1.getAttribute( "stencilBuf", "-1" ) ) );
 			
 			if( _stricmp( node1.getAttribute( "depthBuf", "false" ), "true" ) == 0 ||
 			    _stricmp( node1.getAttribute( "depthBuf", "0" ), "1" ) == 0 )
@@ -194,7 +195,12 @@ const std::string PipelineResource::parseStage( XMLNode const &node, PipelineSta
 			{
 				params[4].setBool( true );
 			}
-		}
+			if( _stricmp( node1.getAttribute( "depthBuf", "false" ), "true" ) == 0 ||
+			    _stricmp( node1.getAttribute( "depthBuf", "0" ), "1" ) == 0 )
+			{
+				params[0].setBool( true );
+			}
+	   }
 		else if( strcmp( node1.getName(), "DrawGeometry" ) == 0 )
 		{
 			if( !node1.getAttribute( "context" ) ) return "Missing DrawGeometry attribute 'context'";
@@ -237,6 +243,16 @@ const std::string PipelineResource::parseStage( XMLNode const &node, PipelineSta
 			params[3].setInt( SceneNodeFlags::Selected );
          params[4].setFloat(0.0);
          params[5].setFloat(1.0);
+		}
+		else if( strcmp( node1.getName(), "DrawProjections" ) == 0 )
+		{
+			if( !node1.getAttribute( "context" ) ) return "Missing DrawProjections attribute 'context'";
+			
+         stage->commands.push_back( PipelineCommand( PipelineCommands::DrawProjections ) );
+			vector< PipeCmdParam > &params = stage->commands.back().params;
+			params.resize( 2 );
+			params[0].setString( node1.getAttribute( "context" ) );
+         params[1].setInt( atoi(node1.getAttribute( "userFlags", "0" )) );
 		}
 		else if( strcmp( node1.getName(), "DrawOverlays" ) == 0 )
 		{

@@ -1,5 +1,5 @@
 {
-   "extends": "stonehearth:mixins:item_properties",
+   "mixins": "stonehearth:mixins:item_properties",
    "type": "entity",
    "components": {
       "item": {
@@ -9,17 +9,19 @@
       "stonehearth:material" : {
          "tags" : "wood resource"
       },
-      "model_variants": [
-         {
+      "model_variants": {
+         "default": {
             "models": [
                "file(oak_log.qb)"
             ]
          }
-      ],
+      },
       "unit_info": {
          "name": "Oak Log",
          "description": "That's right.  It's a log.",
-         "icon" : "file(log.png)"
+         "icon" : "file(log.png)",
+         "portrait": "file(oak_log.png)",
+         "character_sheet_info" : "file(../../log_character_sheet_info.json)"
       }
    }
 }

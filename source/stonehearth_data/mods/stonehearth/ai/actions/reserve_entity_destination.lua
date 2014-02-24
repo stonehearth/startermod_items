@@ -37,7 +37,6 @@ function ReserveEntityDestination:start(ai, entity, args)
    self._destination:get_reserved():modify(function(cursor)
       cursor:add_point(self._reserved_pt)
    end)
-   --log:debug('finished adding point %s to reserve region', tostring(pt))
 end
 
 function ReserveEntityDestination:stop(ai, entity, args)   
@@ -46,7 +45,6 @@ function ReserveEntityDestination:stop(ai, entity, args)
          self._destination:get_reserved():modify(function(cursor)
             cursor:subtract_point(self._reserved_pt)
          end)
-         --log:debug('finished removing point %s from reserve region', tostring(pt))
       end
       self._reserved_pt = nil
       self._destination = nil

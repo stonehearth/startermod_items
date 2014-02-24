@@ -10,6 +10,7 @@ set(HORDE3D_SOURCES
 	egFrameDebugInfo.cpp
 	egGeometry.cpp
 	egHudElement.cpp
+	egInstanceNode.cpp
 	egLight.cpp
 	egMain.cpp
 	egMaterial.cpp
@@ -19,6 +20,7 @@ set(HORDE3D_SOURCES
 	egPipeline.cpp
   egPixelBuffer.cpp
 	egPrimitives.cpp
+	egProjectorNode.cpp
 	egRendererBase.cpp
 	egRenderer.cpp
 	egResource.cpp
@@ -40,6 +42,7 @@ set(HORDE3D_SOURCES
 	egFrameDebugInfo.h
 	egGeometry.h
 	egHudElement.h
+	egInstanceNode.h
 	egLight.h
 	egMaterial.h
 	egModel.h
@@ -48,6 +51,7 @@ set(HORDE3D_SOURCES
 	egPipeline.h
 	egPrerequisites.h
 	egPrimitives.h
+	egProjectorNode.h
 	egRenderer.h
 	egRendererBase.h
 	egResource.h

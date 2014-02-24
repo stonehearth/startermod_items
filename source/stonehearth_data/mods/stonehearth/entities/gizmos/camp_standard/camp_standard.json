@@ -1,11 +1,14 @@
 {
-   "extends": "stonehearth:mixins:placed_properties",
+   "mixins": "stonehearth:mixins:placed_properties",
    "type": "entity",
    "components": {
       "unit_info": {
          "name": "Camp Standard",
          "description": "Use to mark territory, civilizedly.",
-         "icon" : "file(/entities/generic/default_object/default_object.png)"
+         "icon" : "file(/entities/generic/default_object/default_object.png)",
+         "portrait": "file(camp_standard.png)",
+         "character_sheet_info" : "file(camp_standard_character_sheet_info.json)"         
+
       },
 
       "stonehearth:placed_item" : {
@@ -15,13 +18,13 @@
       "stonehearth:material" : {
          "tags" : "wood cloth decoration"
       },      
-      "model_variants": [
-         {
+      "model_variants": {
+         "default": {
             "models": [
                "file(camp_standard.qb)"
             ]
          }
-      ],
+      },
       "destination": {
          "region": [
             {

@@ -29,7 +29,6 @@ public:
 		                    const Horde3D::Frustum *frust1, const Horde3D::Frustum *frust2,
                           Horde3D::RenderingOrder::List order, int occSet);
    static bool ReadFntFile(const char* filename);
-   static bool ReadFntFile2(const char* filename);
    static bool InitExtension();
 
 public:

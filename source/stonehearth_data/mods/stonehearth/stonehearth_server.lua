@@ -4,6 +4,8 @@ function get_service(name)
 end
 
 stonehearth = {}
+
+stonehearth.constants = require 'constants'
 stonehearth.ai = get_service('ai')
 stonehearth.events = get_service('event')
 stonehearth.calendar = get_service('calendar')
@@ -19,6 +21,8 @@ stonehearth.build = get_service('build')
 stonehearth.game_master = get_service('game_master')
 stonehearth.analytics = get_service('analytics')
 stonehearth.tasks = get_service('tasks')
+stonehearth.terrain = get_service('terrain')
 stonehearth.threads = get_service('threads')
+stonehearth.town = get_service('town')
 
 return stonehearth

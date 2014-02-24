@@ -1,5 +1,5 @@
 {
-   "extends": "stonehearth:mixins:item_properties",
+   "mixins": "stonehearth:mixins:item_properties",
    "type": "entity",
    "components": {
       "item": {
@@ -9,13 +9,13 @@
       "stonehearth:material" : {
          "tags" : "fiber resource"
       },
-      "model_variants": [
-         {
+      "model_variants": {
+         "default": {
             "models": [
                "file(wool_bundle.qb)"
             ]
          }
-      ],
+      },
       "unit_info": {
          "name": "Bundle of Wool",
          "description": "Warm and fluffy",

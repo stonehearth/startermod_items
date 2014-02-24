@@ -1,5 +1,6 @@
 local voxel_brush_util = _radiant.csg.Point3
 local Point3 = _radiant.csg.Point3
+local Point3f = _radiant.csg.Point3f
 local Region2 = _radiant.csg.Region2
 
 -- paint_mode is optional.  if not specified, we'll use the paint mode
@@ -47,6 +48,7 @@ function voxel_brush_util.create_brush(construction_data, paint_mode)
    if paint_mode == 'blueprint' then
       brush:set_paint_mode(_radiant.voxel.QubicleBrush.Opaque)
    end
+   brush:set_clip_whitespace(true)
 
    return brush
 end
@@ -59,16 +61,16 @@ function voxel_brush_util.create_construction_data_node(parent_node, entity, reg
       local stencil = region:get()
       if stencil then
          local render_info = entity:get_component('render_info')
-         local material = render_info and render_info:get_material() or ''
+         local material = render_info and render_info:get_material() or 'materials/default_material.xml'
 
          paint_mode = paint_mode and paint_mode or construction_data.paint_mode
          local brush = voxel_brush_util.create_brush(construction_data, paint_mode)
          local model = brush:paint_through_stencil(stencil)
 
          if paint_mode == 'blueprint' then
-            node = _radiant.client.create_blueprint_node(parent_node, model, material)
+            node = _radiant.client.create_blueprint_node(parent_node, model, material, Point3f(0.5, 0, 0.5))
          else
-            node = _radiant.client.create_voxel_node(parent_node, model, material)
+            node = _radiant.client.create_voxel_node(parent_node, model, material, Point3f(0.5, 0, 0.5))
          end
       end
    end

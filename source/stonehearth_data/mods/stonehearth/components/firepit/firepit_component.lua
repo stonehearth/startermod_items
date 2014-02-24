@@ -159,8 +159,10 @@ function FirepitComponent:_init_gather_wood_task()
       self._light_task = nil
    end
 
-   self._light_task = stonehearth.tasks:get_scheduler('stonehearth:workers', radiant.entities.get_faction(self._entity))
-                                   :create_task('stonehearth:light_firepit', { firepit = self })
+   local faction = radiant.entities.get_faction(self._entity)
+   local town = stonehearth.town:get_town(faction)
+
+   self._light_task = town:create_worker_task('stonehearth:light_firepit', { firepit = self })
                                    :set_name('light firepit')
                                    :once()
                                    :start()

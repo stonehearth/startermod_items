@@ -7,15 +7,19 @@ App.StonehearthLoadingScreenView = App.View.extend({
       var self = this;
 
       radiant.call('stonehearth:get_world_generation_progress')
-            .done(function(o) {
-                  this.trace = radiant.trace(o.tracker)
-                     .progress(function(result) {
-                        self.updateProgress(result);
-                     })
-            });
+         .done(function(o) {
+            self.trace = radiant.trace(o.tracker)
+               .progress(function(result) {
+                  self.updateProgress(result);
+               })
+         });
+   },
 
-      var seed = Math.floor(Math.random() * 10000);
-      radiant.call('stonehearth:new_game', seed);            
+   destroy: function() {
+      if (this.trace) {
+         this.trace.destroy();
+         this.trace = null;
+      }
    },
 
    didInsertElement: function() {
@@ -39,9 +43,15 @@ App.StonehearthLoadingScreenView = App.View.extend({
          this._progressbar.progressbar( "option", "value", result.progress );
 
          if (result.progress == 100) {
-            App.gotoGame();
-            App.gameView.addView(App.StonehearthCreateCampView)
-            this.destroy();
+            self.trace.destroy();
+            self.trace = null;
+
+            radiant.call('stonehearth:embark_client')
+               .done(function(o) {
+                  App.gotoGame();
+                  App.gameView.addView(App.StonehearthCreateCampView)
+                  self.destroy();
+               });
          }
       }
    },
