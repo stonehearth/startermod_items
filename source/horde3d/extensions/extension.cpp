@@ -45,9 +45,6 @@ bool Extension::init()
    if (!DecalNode::InitExtension()) {
       return false;
    }
-   if (!ToastNode::InitExtension()) {
-      return false;
-   }
 
 	Modules::sceneMan().registerType(SNT_DebugShapesNode, "DebugShapes",
 		                              DebugShapesNode::parsingFunc,
@@ -210,6 +207,7 @@ bool h3dRadiantResizeStockpileNode(H3DNode node, int width, int height)
 
 ::radiant::horde3d::ToastNode* h3dRadiantCreateToastNode(H3DNode parent, std::string name)
 {
+   ASSERT(0);
 	SceneNode *parentNode = Modules::sceneMan().resolveNodeHandle( parent );
 	APIFUNC_VALIDATE_NODE(parentNode, "h3dRadiantCreateToastNode", nullptr);
 	
