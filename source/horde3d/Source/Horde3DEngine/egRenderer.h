@@ -19,6 +19,7 @@
 #include "egModel.h"
 #include <vector>
 #include <algorithm>
+#include <unordered_map>
 
 struct glslopt_ctx;
 
@@ -140,6 +141,17 @@ struct EngineRendererCaps
    bool ShadowsSupported;
 };
 
+struct UniformType
+{
+   enum List
+   {
+      FLOAT = 1,
+      VEC4  = 2,
+      MAT44 = 3
+   };
+};
+
+
 
 class Renderer
 {
@@ -163,6 +175,7 @@ public:
 	void releaseShaderComb( ShaderCombination &sc );
 	void setShaderComb( ShaderCombination *sc );
 	void commitGeneralUniforms();
+   void commitGlobalUniforms();
 	bool setMaterial( MaterialResource *materialRes, const std::string &shaderContext );
 	
 	bool createShadowRB( uint32 width, uint32 height );
@@ -207,6 +220,8 @@ public:
    uint32 getShadowRendBuf() const { return _shadowRB; }
 
    void getEngineCapabilities(EngineRendererCaps* rendererCaps, EngineGpuCaps* gpuCaps) const;
+
+   void setGlobalUniform(const char* uniName, UniformType::List kind, void* value);
 
 protected:
    ShaderCombination* findShaderCombination(ShaderResource* r, ShaderContext* context) const;
@@ -259,6 +274,10 @@ protected:
 	std::vector< PipeSamplerBinding >  _pipeSamplerBindings;
 	std::vector< char >                _occSets;  // Actually bool
 	std::vector< OccProxy >            _occProxies[2];  // 0: renderables, 1: lights
+
+   std::unordered_map<std::string, float> _uniformFloats;
+   std::unordered_map<std::string, Vec4f> _uniformVecs;
+   std::unordered_map<std::string, Matrix4f> _uniformMats;
 	
 	std::vector< OverlayBatch >        _overlayBatches;
 	OverlayVert                        *_overlayVerts;

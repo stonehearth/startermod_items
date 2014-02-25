@@ -50,7 +50,6 @@ PipelineResource::~PipelineResource()
 
 void PipelineResource::initDefault()
 {
-   _material = 0x0;
 	_baseWidth = 320; _baseHeight = 240;
 }
 
@@ -58,7 +57,6 @@ void PipelineResource::initDefault()
 void PipelineResource::release()
 {
 	releaseRenderTargets();
-   _material = 0x0;
 	_renderTargets.clear();
 	_stages.clear();
 }
@@ -507,11 +505,6 @@ bool PipelineResource::loadXMLPipeline(XMLNode const& rootNode)
 {
    _pipelineName = rootNode.getAttribute("name", "");
 
-	uint32 matRes = Modules::resMan().addResource(
-		ResourceTypes::Material, rootNode.getAttribute("material", "materials/base.material.xml"), 0, false);
-			
-	_material = (MaterialResource*)Modules::resMan().resolveResHandle(matRes);
-
 	// Parse setup
 	XMLNode node1 = rootNode.getFirstChild( "Setup" );
 	if( !node1.isEmpty() )
@@ -585,10 +578,6 @@ int PipelineResource::getElemParamI( int elem, int elemIdx, int param )
 			}
 		}
 		break;
-
-   case PipelineResData::Material:
-      return _material->getHandle();
-      break;
 	}
 
 	return Resource::getElemParamI( elem, elemIdx, param );

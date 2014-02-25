@@ -88,7 +88,7 @@ H3DNode Client_CreateQubicleMatrixNode(lua_State* L,
                .PaintOnce();
             csg::RegionToMesh(model, mesh, -origin);
          };
-         node = pipeline.AddSharedMeshNode(parent, key, "materials/default_material.xml", create_mesh);
+         node = pipeline.AddSharedMeshNode(parent, key, "materials/voxel.material.xml", create_mesh);
       }
    }
    return node;

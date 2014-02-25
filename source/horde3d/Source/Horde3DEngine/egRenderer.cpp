@@ -614,9 +614,41 @@ void Renderer::setShaderComb( ShaderCombination *sc )
 }
 
 
+void Renderer::commitGlobalUniforms()
+{
+   for (auto& e : _uniformFloats)
+   {
+      int loc = gRDI->getShaderConstLoc(_curShader->shaderObj, e.first.c_str());
+      if (loc >= 0) {
+         gRDI->setShaderConst(loc, CONST_FLOAT, &e.second);
+      }
+   }
+
+   for (auto& e : _uniformVecs)
+   {
+      int loc = gRDI->getShaderConstLoc(_curShader->shaderObj, e.first.c_str());
+      if (loc >= 0) {
+         Vec4f& v = e.second;
+         gRDI->setShaderConst(loc, CONST_FLOAT4, &v);
+      }
+   }
+
+   for (auto& e : _uniformMats)
+   {
+      int loc = gRDI->getShaderConstLoc(_curShader->shaderObj, e.first.c_str());
+      if (loc >= 0) {
+         Matrix4f& m = e.second;
+         gRDI->setShaderConst(loc, CONST_FLOAT44, m.x);
+      }
+   }
+}
+
+
 void Renderer::commitGeneralUniforms()
 {
 	ASSERT( _curShader != 0x0 );
+
+   commitGlobalUniforms();
 
 	// Note: Make sure that all functions which modify one of the following params increase the stamp
 	if( _curShader->lastUpdateStamp != _curShaderUpdateStamp )
@@ -1168,19 +1200,6 @@ bool Renderer::setMaterial( MaterialResource *materialRes, const std::string &sh
       }
       mr = mr->_parentMaterial;
    }
-
-   // Now, try the pipeline chain:
-   if (setMaterialRec(getCurCamera()->_pipelineRes->_material, shaderContext, 0x0)) {
-      return true;
-   }
-
-   mr = getCurCamera()->_pipelineRes->_material->_parentMaterial;
-   while (mr != 0x0) {
-      if (setMaterialRec(mr, shaderContext, 0x0)) {
-         return true;
-      }
-      mr = mr->_parentMaterial;
-	}
 
 	_curShader = 0x0;
 	return false;
@@ -2280,6 +2299,19 @@ void Renderer::drawLightShapes( const std::string &shaderContext, bool noShadows
 // =================================================================================================
 // Scene Node Rendering Functions
 // =================================================================================================
+
+void Renderer::setGlobalUniform(const char* str, UniformType::List kind, void* value)
+{
+   float *f = (float*)value;
+   if (kind == UniformType::FLOAT) {
+      _uniformFloats[std::string(str)] = *f;
+   } else if (kind == UniformType::VEC4) {
+      _uniformVecs[std::string(str)] = Vec4f(f[0], f[1], f[2], f[3]);
+   } else if (kind == UniformType::MAT44) {
+      _uniformMats[std::string(str)] = Matrix4f(f);
+   }
+}
+
 
 void Renderer::drawRenderables( const std::string &shaderContext, const std::string &theClass, bool debugView,
                                 const Frustum *frust1, const Frustum *frust2, RenderingOrder::List order,

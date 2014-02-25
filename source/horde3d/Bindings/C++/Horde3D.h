@@ -682,6 +682,17 @@ struct H3DEmitter
 };
 
 
+struct H3DUniformType
+{
+   enum List
+   {
+      FLOAT = 1,
+      VEC4  = 2,
+      MAT44 = 3
+   };
+};
+
+
 /* Group: Basic functions */
 /* Function: h3dGetVersionString
 		Returns the engine version string.
@@ -882,6 +893,7 @@ DLL void h3dResetStats();
 
 DLL void h3dSetGlobalShaderFlag(const char* flagName, bool value);
 
+DLL void h3dSetGlobalUniform(const char* uniName, H3DUniformType::List kind, void* value);
 
 /* Function: h3dShowOverlays
 		Displays overlays on the screen.

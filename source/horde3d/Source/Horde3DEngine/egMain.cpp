@@ -191,6 +191,11 @@ DLLEXP void h3dSetGlobalShaderFlag(const char* flagName, bool value)
    Modules::config().setGlobalShaderFlag(flagName, value);
 }
 
+DLLEXP void h3dSetGlobalUniform(const char* uniName, UniformType::List kind, void* value)
+{
+   Modules::renderer().setGlobalUniform(uniName, kind, value);
+}
+
 
 DLLEXP void h3dShowOverlays( const float *verts, int vertCount, float colR, float colG,
                              float colB, float colA, uint32 materialRes, int flags )

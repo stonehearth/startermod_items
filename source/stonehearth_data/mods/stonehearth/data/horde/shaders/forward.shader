@@ -1,5 +1,6 @@
 [[FX]]
 
+// Samplers
 sampler2D cloudMap = sampler_state
 {
   Texture = "textures/environment/cloudmap.png";
@@ -7,16 +8,42 @@ sampler2D cloudMap = sampler_state
   Filter = Pixely;
 };
 
+sampler2D fowRT = sampler_state
+{
+  Filter = None;
+  Address = Clamp;
+};
+
 sampler2D ssaoImage = sampler_state
 {
-  Address = Clamp;
   Filter = None;
+  Address = Clamp;
 };
+
+context OMNI_LIGHTING_FORWARD
+{
+  VertexShader = compile GLSL VS_GENERAL;
+  PixelShader = compile GLSL FS_OMNI_LIGHTING_FORWARD;
+  
+  ZWriteEnable = false;
+  BlendMode = Add;
+  CullMode = Back;
+}
+
+context DIRECTIONAL_LIGHTING_FORWARD
+{
+  VertexShader = compile GLSL VS_GENERAL_SHADOWS;
+  PixelShader = compile GLSL FS_DIRECTIONAL_LIGHTING_FORWARD;
+  
+  ZWriteEnable = false;
+  BlendMode = Add;
+  CullMode = Back;
+}
 
 context OMNI_LIGHTING_FORWARD_POSTPROCESS
 {
   VertexShader = compile GLSL VS_GENERAL;
-  PixelShader = compile GLSL FS_OMNI_LIGHTING;
+  PixelShader = compile GLSL FS_OMNI_LIGHTING_POSTPROCESS;
   
   ZWriteEnable = false;
   BlendMode = Add;
@@ -26,7 +53,7 @@ context OMNI_LIGHTING_FORWARD_POSTPROCESS
 context DIRECTIONAL_LIGHTING_FORWARD_POSTPROCESS
 {
   VertexShader = compile GLSL VS_GENERAL_SHADOWS;
-  PixelShader = compile GLSL FS_DIRECTIONAL_LIGHTING;
+  PixelShader = compile GLSL FS_DIRECTIONAL_LIGHTING_POSTPROCESS;
   
   ZWriteEnable = false;
   BlendMode = Add;
@@ -62,7 +89,6 @@ varying vec4 pos;
 varying vec4 vsPos;
 varying vec3 tsbNormal;
 varying vec3 albedo;
-varying float worldScale;
 
 void main( void )
 {
@@ -70,7 +96,7 @@ void main( void )
   vsPos = calcViewPos(pos);
   tsbNormal = calcWorldVec(normal);
   albedo = color;
-  worldScale = getWorldScale();
+
   gl_Position = viewProjMat * pos;
 }
 
@@ -80,6 +106,7 @@ void main( void )
 
 uniform mat4 viewProjMat;
 uniform mat4 shadowMats[4];
+uniform mat4 fowViewMat;
 
 attribute vec3 vertPos;
 attribute vec3 normal;
@@ -90,6 +117,7 @@ varying vec4 vsPos;
 varying vec3 tsbNormal;
 varying vec3 albedo;
 varying vec4 projShadowPos[3];
+varying vec4 projFowPos;
 
 void main( void )
 {
@@ -102,11 +130,13 @@ void main( void )
   projShadowPos[1] = shadowMats[1] * pos;
   projShadowPos[2] = shadowMats[2] * pos;
 
+  projFowPos = fowViewMat * pos;
+
   gl_Position = viewProjMat * pos;
 }
 
 
-[[FS_OMNI_LIGHTING]]
+[[FS_OMNI_LIGHTING_FORWARD]]
 // =================================================================================================
 
 #include "shaders/utilityLib/fragLighting.glsl" 
@@ -128,7 +158,78 @@ void main( void )
 }
 
 
-[[FS_DIRECTIONAL_LIGHTING]]
+[[FS_DIRECTIONAL_LIGHTING_FORWARD]]
+// =================================================================================================
+
+#include "shaders/utilityLib/fragLighting.glsl" 
+#include "shaders/shadows.shader"
+
+uniform vec3 lightAmbientColor;
+uniform sampler2D cloudMap;
+uniform sampler2D fowRT;
+uniform float currentTime;
+
+varying vec4 pos;
+varying vec3 albedo;
+varying vec3 tsbNormal;
+varying vec4 projFowPos;
+
+void main( void )
+{
+  // Shadows.
+  float shadowTerm = getShadowValue(pos.xyz);
+
+  // Light Color.
+  vec3 lightColor = calcSimpleDirectionalLight(normalize(tsbNormal));
+
+  // Mix light and shadow and ambient light.
+  lightColor = (shadowTerm * lightColor * albedo) + (lightAmbientColor * albedo);
+
+  // Mix in cloud color.
+  float cloudSpeed = currentTime / 80.0;
+  vec2 fragCoord = pos.xz * 0.3;
+  vec3 cloudColor = texture2D(cloudMap, fragCoord.xy / 128.0 + cloudSpeed).xyz;
+  cloudColor = cloudColor * texture2D(cloudMap, fragCoord.yx / 192.0 + (cloudSpeed / 10.0)).xyz;
+  lightColor *= cloudColor;
+
+  // Mix in fog of war.
+  float fowValue = texture2D(fowRT, projFowPos.xy).a;
+  lightColor *= fowValue;
+
+  gl_FragColor = vec4(lightColor, 1.0);
+}
+
+
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+// POST-PROCESS SPECIFIC CONTEXTS
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+
+[[FS_OMNI_LIGHTING_POSTPROCESS]]
+// =================================================================================================
+
+#include "shaders/utilityLib/fragLighting.glsl" 
+
+uniform vec3 viewerPos;
+uniform vec4 matDiffuseCol;
+uniform vec4 matSpecParams;
+
+varying vec4 pos;
+varying vec4 vsPos;
+varying vec3 albedo;
+varying vec3 tsbNormal;
+
+void main( void )
+{
+  vec3 normal = tsbNormal;
+  vec3 newPos = pos.xyz;
+  gl_FragColor = vec4(calcPhongOmniLight(viewerPos, newPos, normalize(normal)) * albedo, 1.0);
+}
+
+
+[[FS_DIRECTIONAL_LIGHTING_POSTPROCESS]]
 // =================================================================================================
 
 #include "shaders/utilityLib/fragLighting.glsl" 
@@ -160,7 +261,7 @@ void main( void )
   cloudColor = cloudColor * texture2D(cloudMap, fragCoord.yx / 192.0 + (cloudSpeed / 10.0)).xyz;
 
   // Mix light and shadow and ambient light.
-  lightColor = cloudColor *((shadowTerm * (lightColor * albedo)) + ((lightAmbientColor - ssao) * albedo));
+  lightColor = cloudColor * (shadowTerm * lightColor * albedo) + (lightAmbientColor - ssao) * albedo;
   
   gl_FragColor = vec4(lightColor, 1.0);
 }

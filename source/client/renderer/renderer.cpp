@@ -359,10 +359,8 @@ void Renderer::RenderFogOfWarRT()
    };
    Horde3D::Matrix4f biasMatrix(m);
    c = biasMatrix * c;
-   // This means we can't support FoW lookups in non-default materials!.  How to fix....
-   h3dSetMaterialArrayUniform(
-      h3dAddResource(H3DResTypes::Material, "materials/default_material.xml", 0),
-      "fowViewMatCols", c.x, 16);
+
+   h3dSetGlobalUniform("fowViewMat", H3DUniformType::MAT44, c.x);
 }
 
 void Renderer::SetSkyColors(const csg::Point3f& startCol, const csg::Point3f& endCol)
@@ -575,7 +573,7 @@ void Renderer::ApplyConfig(const RendererConfig& newConfig, bool persistConfig)
    config_.use_shadows.allowed = rendererCaps.ShadowsSupported;
 
    if (config_.use_forward_renderer.value) {
-      SetCurrentPipeline("pipelines/forward.pipeline.xml");
+      SetCurrentPipeline("pipelines/forward_postprocess.pipeline.xml");
    } else {
       SetCurrentPipeline("pipelines/deferred_lighting.xml");
    }
@@ -915,8 +913,6 @@ void Renderer::RenderOneFrame(int now, float alpha)
    fileWatcher_.update();
    LoadResources();
 
-   H3DRes pipeMat = h3dGetResParamI(currentPipeline_, Horde3D::PipelineResData::Material, 0, 0);
-   
    float skysphereDistance = config_.draw_distance.value * 0.4f;
    float starsphereDistance = config_.draw_distance.value * 0.9f;
    // Update the position of the sky so that it is always around the camera.  This isn't strictly

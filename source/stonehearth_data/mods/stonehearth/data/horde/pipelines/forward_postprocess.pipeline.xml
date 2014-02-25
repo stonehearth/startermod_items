@@ -1,5 +1,5 @@
 <!-- Forward Shading Pipeline -->
-<Pipeline name="FORWARD_POSTPROCESS" material="materials/forward_postprocess.material.xml">
+<Pipeline name="FORWARD_POSTPROCESS">
    <Setup>
       <RenderTarget id="GBuffers" numColBufs="2" depthBuf="true" format="RGBA32F" scale="1.0" mipLevels="5"/>
       <RenderTarget id="SSAOTemp" numColBufs="1" depthBuf="false" format="RGBA8" scale="1.0" />
