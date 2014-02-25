@@ -1028,7 +1028,7 @@ function ExecutionFrame:_is_strictly_better_than_active(unit)
       self._log:spam('  unit %s priority %d > active unit "%s" priority %d.  therefore is better!',
                      unit:get_name(), unit_priority, self._active_unit:get_name(), active_priority)
       return true
-   elseif unit_priority > active_priority then
+   elseif unit_priority < active_priority then
       self._log:spam('  unit %s priority %d < active unit "%s" priority %d.  therefore is not better!',
                      unit:get_name(), unit_priority, self._active_unit:get_name(), active_priority)
       return false
