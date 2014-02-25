@@ -329,6 +329,7 @@ Point<S, C> Region<S, C>::GetClosestPoint2(const Point& from, S *dSquared) const
 template <class S, int C>
 void Region<S, C>::Optimize()
 {
+   // Consider calling OptimizeByMerge();
 }
 
 template <class S, int C>
@@ -407,36 +408,63 @@ void Region<S, C>::OptimizeOneTagByMerge()
    if (IsEmpty()) {
       return;
    }
-   ASSERT(ContainsAtMostOneTag());
+   DEBUG_ONLY(ASSERT(ContainsAtMostOneTag()));
    Validate();
    S areaBefore = GetArea();
 
-   unsigned int i, j, merged;
+   unsigned int i, j, k;
    unsigned int size = cubes_.size();
+   bool merged;
 
-   do {
+   i = 0;
+   while (i < size-1) {
       merged = false;
 
-      // n^2 comparison of all cubes to see if they can be merged
-      i = 0;
-      while (i < size-1) {
-         j = i + 1;
-         while (j < size) {
+      // check ith cube against all cubes > i
+      j = i + 1;
+      while (j < size) {
+         if (cubes_[i].CombineWith(cubes_[j])) {
+            cubes_[j] = cubes_[size-1];
+            size--;
+            // ith cube now needs to be rechecked for merge against all other cubes
+            // this may recursively invoke other merge checks
+            merged = true;
+            break;
+         } else {
+            j++;
+         }
+      }
+
+      if (merged) {
+         // check ith cube against all cubes < i
+         unsigned int subSize = i;
+            
+         j = 0;
+         while (j < subSize) {
             if (cubes_[i].CombineWith(cubes_[j])) {
-               cubes_[j] = cubes_[size-1];
-               size--;
-               // ith cube now needs to be rechecked for merge on all cubes < i
-               // which may recursively invoke other merge checks
-               merged = true;
+               cubes_[j] = cubes_[subSize-1];
+               subSize--;
+               j = 0; // have to check against the whole list again
             } else {
                j++;
             }
          }
+
+         int const numMerged = i - subSize;
+
+         // compact the array
+         if (numMerged > 0) {
+            i -= numMerged;
+            size -= numMerged;
+
+            for (k = subSize; k < size; k++) {
+               cubes_[k] = cubes_[k+numMerged];
+            }
+         }
+      } else {
          i++;
       }
-
-      // don't need to recheck entire list, but keeps code simple for now
-   } while (merged);
+   }
 
    cubes_.resize(size);
 
@@ -501,7 +529,7 @@ void Region<S, C>::OptimizeOneTagByOctTree(S minCubeSize)
    if (IsEmpty()) {
       return;
    }
-   ASSERT(ContainsAtMostOneTag());
+   DEBUG_ONLY(ASSERT(ContainsAtMostOneTag()));
    Validate();
 
    S areaBefore = GetArea();
@@ -559,6 +587,8 @@ void Region<S, C>::OptimizeOctTreeImpl(Cube const& bounds, S partitionSize, S mi
    Point max = bounds.GetMax();
 
    if (GetArea() == bounds.GetArea()) {
+      // Bingo - found a filled region, replace it all with one cube.
+      // This is the what this algorithm is designed to optimize.
       cubes_.resize(1);
       cubes_[0].min = min;
       cubes_[0].max = max;

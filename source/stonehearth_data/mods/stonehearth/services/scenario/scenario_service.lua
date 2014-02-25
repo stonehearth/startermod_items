@@ -22,6 +22,7 @@ function ScenarioService:initialize(feature_size, rng)
    self._revealed_region = Region2()
    self._dormant_scenarios = {}
    self._last_optimized_rect_count = 10
+   self._region_optimization_threshold = radiant.util.get_config('region_optimization_threshold', 1.2)
 
    local scenario_index = radiant.resources.load_json('stonehearth:scenarios:scenario_index')
    local categories = {}
@@ -142,7 +143,7 @@ function ScenarioService:reveal_region(world_space_region)
    revealed_region:add_unique_region(unrevealed_region)
 
    local num_rects = revealed_region:get_num_rects()
-   if num_rects >= self._last_optimized_rect_count * 1.2 then
+   if num_rects >= self._last_optimized_rect_count * self._region_optimization_threshold then
       log:info('Optimizing scenario region')
       revealed_region:optimize_by_oct_tree(8)
       self._last_optimized_rect_count = revealed_region:get_num_rects()
