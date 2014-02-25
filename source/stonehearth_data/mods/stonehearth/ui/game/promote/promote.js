@@ -17,9 +17,11 @@ App.StonehearthClassesPromoteView = App.View.extend({
    init: function() {
       this._super();
       var self = this;
+
+      App.gameView.getView(App.StonehearthUnitFrameView).supressSelection(true);
+      
       radiant.call('stonehearth:get_worker_tracker')
          .done(function(response) {
-            radiant.call('radiant:play_sound', 'stonehearth:sounds:ui:promotion_menu:scroll_open' );
             self._worker_tracker = response.tracker;
             self._trace = new RadiantTrace();
             self._trace.traceUri(response.tracker, 
@@ -33,8 +35,12 @@ App.StonehearthClassesPromoteView = App.View.extend({
                });
          });
 
-      App.gameView.getView(App.StonehearthUnitFrameView).supressSelection(true);
+
       $(top).on("radiant_selection_changed.promote_view", function (_, data) {
+         if (!self._workers) {
+            return;
+         }
+
          var foundWorker = false;
          for (var i = 0; i < self._workers.length; i++) {
             var uri = self._workers[i]['__self']
@@ -51,6 +57,7 @@ App.StonehearthClassesPromoteView = App.View.extend({
             self.destroy();
          }
       });
+
       $(top).on('keyup keydown', function(e){
          if (e.keyCode == 27) {
             //If escape, close window
@@ -66,11 +73,17 @@ App.StonehearthClassesPromoteView = App.View.extend({
       if (this.get('context') != null) {
          this.set('context.citizenToPromote', undefined);
       }
+
+      if (this._trace) {
+         this._trace.destroy();
+      }
+
       this._super();
    },
 
    didInsertElement: function() {
       if (this.get('context')) {
+         radiant.call('radiant:play_sound', 'stonehearth:sounds:ui:promotion_menu:scroll_open' );
          $('#crafterPromoteScroll')
             .hide()
             .fadeIn();
@@ -106,6 +119,8 @@ App.StonehearthClassesPromoteView = App.View.extend({
          radiant.call('radiant:play_sound', 'stonehearth:sounds:ui:promotion_menu:stamp' );
          var self = this;
 
+         App.gameView.getView(App.StonehearthUnitFrameView).supressSelection(false);
+         
          self._promoteCitizen();
 
          // animate down
