@@ -6,12 +6,11 @@ local ChoosePointAroundLeash = class()
 ChoosePointAroundLeash.name = 'choose point around leash'
 ChoosePointAroundLeash.does = 'stonehearth:choose_point_around_leash'
 ChoosePointAroundLeash.args = {
-  radius  = 'number',    -- how far?
-  radius_min = {         -- min how far
+   radius  = 'number',    -- how far?
+   radius_min = {         -- min how far
       type = 'number',
       default = 0,
    }
-
 }
 ChoosePointAroundLeash.think_output = {
   location = Point3     -- where to wander off to
