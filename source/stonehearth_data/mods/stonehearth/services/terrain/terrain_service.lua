@@ -15,6 +15,7 @@ function TerrainService:__init()
    self._visible_regions = {}
    self._explored_regions = {}
    self._last_optimized_rect_count = 10
+   self._region_optimization_threshold = radiant.util.get_config('region_optimization_threshold', 1.2)
 
    self:_register_events()
 end
@@ -55,7 +56,7 @@ function TerrainService:_update_regions()
                   region2:add_unique_region(unexplored_region)
 
                   local num_rects = region2:get_num_rects()
-                  if num_rects >= self._last_optimized_rect_count * 1.2 then
+                  if num_rects >= self._last_optimized_rect_count * self._region_optimization_threshold then
                      log:info('Optimizing explored region')
 
                      local seconds = Timer.measure(
