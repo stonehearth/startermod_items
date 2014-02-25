@@ -4,7 +4,7 @@
    "components": {
       "unit_info": {
          "name": "Jerky",
-         "description": "Tough and stringy, but nutritious!"
+         "description": "Stringy, but nutritious!"
       },      
       "stonehearth:material" : {
          "tags" : "food meat animal_part"

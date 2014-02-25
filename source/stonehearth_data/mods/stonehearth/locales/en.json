@@ -203,7 +203,7 @@
    "compassion_attribute" : "Compassion",
 
    "inventory_title" : "Backpack",
-   "inventory_description" : "The backpack can hold useful items for safe-keeping.",
+   "inventory_description" : "The backpack can hold items for safe-keeping while you're away from town.",
    "inventory_full" : "FULL!"
 }
 
