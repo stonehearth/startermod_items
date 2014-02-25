@@ -34,7 +34,8 @@ struct PipelineResData
 	{
 		StageElem = 900,
 		StageNameStr,
-		StageActivationI
+		StageActivationI,
+      GlobalRenderTarget
 	};
 };
 
@@ -175,6 +176,7 @@ public:
 	int getElemCount( int elem );
 	int getElemParamI( int elem, int elemIdx, int param );
 	void setElemParamI( int elem, int elemIdx, int param, int value );
+	void setElemParamStr( int elem, int elemIdx, int param, const char *value );
 	const char *getElemParamStr( int elem, int elemIdx, int param );
 
 	bool getRenderTargetData( const std::string &target, int bufIndex, int *width, int *height,
@@ -187,6 +189,7 @@ private:
 	void addRenderTarget( const std::string &id, bool depthBuffer, uint32 numBuffers,
 	                      TextureFormats::List format, uint32 samples,
 	                      uint32 width, uint32 height, float scale, uint32 mipLevels );
+   void addGlobalRenderTarget(const char* name);
 	RenderTarget *findRenderTarget( const std::string &id );
 	bool createRenderTargets();
 	void releaseRenderTargets();
@@ -199,6 +202,7 @@ private:
 
 private:
 	std::vector< RenderTarget >      _renderTargets;
+   std::vector< RenderTarget >      _globalRenderTargets;
 	std::vector< PipelineStagePtr >  _stages;
 	uint32                           _baseWidth, _baseHeight;
    std::string                      _pipelineName;

@@ -3,19 +3,9 @@
    <Setup>
       <RenderTarget id="SelectedTemp" numColBufs="1" depthBuf="true" format="RGBA8" scale="1.0"/>
       <RenderTarget id="SkyTemp" numColBufs="1" depthBuf="false" format="RGBA8" scale="0.125"/>
-      <RenderTarget id="FogOfWarRT" numColBufs="1" depthBuf="false" format="RGBA8" width="512" height="512"/>
+      <GlobalRenderTarget id="FogOfWarRT" />
    </Setup>
    <CommandQueue>
-      <!--This stage to only be executed by the FOW camera, and only this stage.-->
-      <Stage id="FogOfWar_RT">
-         <SwitchTarget target="FogOfWarRT" />
-         <ClearTarget colBuf0="true" col_A="0.33" />
-         <DrawGeometry context="FOW_RT_EXPLORED" class="~Translucent" />
-         <!--DrawGeometry context="FOW_RT_VISIBLE" class="~Translucent" /-->
-         <SwitchTarget target=""/>
-      </Stage>
-
-
       <Stage id="Init">
          <SwitchTarget target="" />
          <ClearTarget colBuf0="true" depthBuf="true"/>

@@ -346,3 +346,6 @@ DLL void h3dutShowText( const char *text, float x, float y, float size,
 DLL void h3dutShowFrameStats( H3DRes fontMaterialRes, H3DRes panelMaterialRes, int mode );
 
 DLL void h3dCollectDebugFrame();
+
+DLL int h3dutCreateRenderTarget( int width, int height, H3DFormats::List format,
+                                    bool depth, int numColBufs, int samples, int numMips);

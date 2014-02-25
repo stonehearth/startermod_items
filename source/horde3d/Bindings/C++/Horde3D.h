@@ -183,7 +183,8 @@ struct H3DResTypes
 		ParticleEffect,
 		Pipeline,
       VoxelGeometry,
-      PixelBuffer
+      PixelBuffer,
+      RenderBuffer
 	};
 };
 
@@ -424,7 +425,8 @@ struct H3DPipeRes
 	{
 		StageElem = 900,
 		StageNameStr,
-		StageActivationI
+		StageActivationI,
+      GlobalRenderTarget
 	};
 };
 

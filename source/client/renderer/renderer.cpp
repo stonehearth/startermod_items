@@ -69,22 +69,6 @@ Renderer::Renderer() :
    terrainConfig_ = res::ResourceManager2::GetInstance().LookupJson("stonehearth/renderers/terrain/terrain_renderer.json");
    GetConfigOptions();
 
-   uiOnlyStages_.insert(std::string("Init"));
-   uiOnlyStages_.insert(std::string("Overlays"));
-
-   fowOnlyStages_.insert(std::string("FogOfWar_RT"));
-
-   drawWorldStages_.insert(std::string("Init"));
-   drawWorldStages_.insert(std::string("Sky"));
-   drawWorldStages_.insert(std::string("Starfield"));
-   drawWorldStages_.insert(std::string("Depth"));
-   drawWorldStages_.insert(std::string("FogOfWar"));
-   drawWorldStages_.insert(std::string("Light"));
-   drawWorldStages_.insert(std::string("Fog"));
-   drawWorldStages_.insert(std::string("Translucent"));
-   drawWorldStages_.insert(std::string("Overlays"));
-   drawWorldStages_.insert(std::string("Projections"));
-
    assert(renderer_.get() == nullptr);
    renderer_.reset(this);
 
@@ -143,8 +127,6 @@ Renderer::Renderer() :
 
    ApplyConfig(config_, false);
 
-   SetEnabledStages(uiOnlyStages_);
-
    // Overlays
    fontMatRes_ = h3dAddResource( H3DResTypes::Material, "overlays/font.material.xml", 0 );
    panelMatRes_ = h3dAddResource( H3DResTypes::Material, "overlays/panel.material.xml", 0 );
@@ -171,6 +153,8 @@ Renderer::Renderer() :
 
    LoadResources();
 
+   fowRenderTarget_ = h3dutCreateRenderTarget(512, 512, H3DFormats::TEX_BGRA8, false, 1, 0, 0);
+
    csg::Region3::Cube littleCube(csg::Region3::Point(0, 0, 0), csg::Region3::Point(1, 1, 1));
    /*fowVisibleNode_ = h3dAddInstanceNode(H3DRootNode, "fow_visiblenode", 
       h3dAddResource(H3DResTypes::Material, "materials/fow_visible.material.xml", 0), 
@@ -187,8 +171,9 @@ Renderer::Renderer() :
    camera_ = new Camera(H3DRootNode, "Camera", currentPipeline_);
    h3dSetNodeParamI(camera_->GetNode(), H3DCamera::PipeResI, currentPipeline_);
 
-   fowCamera_ = new Camera(H3DRootNode, "FowCamera", currentPipeline_);
-   h3dSetNodeParamI(fowCamera_->GetNode(), H3DCamera::PipeResI, currentPipeline_);
+   H3DRes fp = h3dAddResource(H3DResTypes::Pipeline, "pipelines/fow.pipeline.xml", 0);
+   fowCamera_ = new Camera(H3DRootNode, "FowCamera", fp);
+   h3dSetNodeParamI(fowCamera_->GetNode(), H3DCamera::PipeResI, fp);
 
    memset(&input_.mouse, 0, sizeof input_.mouse);
    input_.focused = true;
@@ -261,8 +246,9 @@ Renderer::Renderer() :
    OnWindowResized(windowWidth_, windowHeight_);
    SetShowDebugShapes(false);
 
-   //cursorNode = h3dAddProjectorNode(H3DRootNode, "cursorNode", h3dAddResource(H3DResTypes::Material, "materials/trapper_proj.material.xml", 0));
-   //h3dSetNodeTransform(cursorNode, 2, 0, 0, 0, 45, 0, 4, 1, 4);
+   h3dSetResParamStr(currentPipeline_, H3DPipeRes::GlobalRenderTarget, 0, fowRenderTarget_, "FogOfWarRT");
+
+   SetDrawWorld(false);
    initialized_ = true;
 }
 
@@ -338,14 +324,10 @@ void Renderer::RenderFogOfWarRT()
    h3dSetNodeParamF(fowCamera_->GetNode(), H3DCamera::NearPlaneF, 0, -max.z);
    h3dSetNodeParamF(fowCamera_->GetNode(), H3DCamera::FarPlaneF, 0, -min.z);
 
-   // Turn off all pipeline stages, save for 'FogOfWar_RT'
-   SetEnabledStages(fowOnlyStages_);
+   H3DRes fp = h3dAddResource(H3DResTypes::Pipeline, "pipelines/fow.pipeline.xml", 0);
+   h3dSetResParamStr(fp, H3DPipeRes::GlobalRenderTarget, 0, fowRenderTarget_, "FogOfWarRT");
 
-   // Render
    h3dRender(fowCamera_->GetNode());
-
-   // Revert all pipeline stages.
-   SetEnabledStages(drawWorldStages_);
 
    Horde3D::Matrix4f pm;
    h3dGetCameraProjMat(fowCamera_->GetNode(), pm.x);
@@ -443,7 +425,6 @@ void Renderer::BuildSkySphere()
 
    skysphereMat = h3dAddResource(H3DResTypes::Material, "materials/skysphere.material.xml", 0);
    H3DRes geoRes = h3dutCreateGeometryRes("skysphere", 2046, 2048 * 3, (float*)spVerts, spInds, nullptr, nullptr, nullptr, texData, nullptr);
-
    H3DNode modelNode = h3dAddModelNode(H3DRootNode, "skysphere_model", geoRes);
    meshNode = h3dAddMeshNode(modelNode, "skysphere_mesh", skysphereMat, 0, 2048 * 3, 0, 2045);
    h3dSetNodeFlags(modelNode, H3DNodeFlags::NoCastShadow | H3DNodeFlags::NoRayQuery, true);
@@ -578,6 +559,7 @@ void Renderer::ApplyConfig(const RendererConfig& newConfig, bool persistConfig)
       SetCurrentPipeline("pipelines/deferred_lighting.xml");
    }
 
+   // TODO: kill this.
    SetStageEnable("SSAO", config_.use_ssao.value);
    SetStageEnable("Simple, once-pass SSAO Blur", config_.use_ssao_blur.value);
    // Turn on copying if we're using SSAO, but not using blur.
@@ -626,21 +608,6 @@ void Renderer::ApplyConfig(const RendererConfig& newConfig, bool persistConfig)
       config.Set("renderer.last_window_x", config_.last_window_x.value);
       config.Set("renderer.last_window_y", config_.last_window_y.value);
       config.Set("renderer.use_fast_hilite", config_.use_fast_hilite.value);
-   }
-
-   if (config_.use_fast_hilite.value) {
-      drawWorldStages_.insert(std::string("Selected_Fast"));
-      drawWorldStages_.erase(std::string("Selected"));
-   } else {
-      drawWorldStages_.erase(std::string("Selected_Fast"));
-      drawWorldStages_.insert(std::string("Selected"));
-   }
-
-   // We just flushed/loaded our pipeline, so don't forget to reset the draw bits!
-   if (drawWorld_) {
-      SetEnabledStages(drawWorldStages_);
-   } else {
-      SetEnabledStages(uiOnlyStages_);
    }
 }
 
@@ -1148,9 +1115,9 @@ void Renderer::SetDrawWorld(bool drawWorld)
    drawWorld_ = drawWorld;
 
    if (drawWorld_) {
-      SetEnabledStages(drawWorldStages_);
+      SetCurrentPipeline("pipelines/forward_postprocess.pipeline.xml");
    } else {
-      SetEnabledStages(uiOnlyStages_);
+      SetCurrentPipeline("pipelines/ui_only.pipeline.xml");
    }
 }
 

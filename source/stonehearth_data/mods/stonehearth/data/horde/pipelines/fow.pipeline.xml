@@ -1,0 +1,14 @@
+<!-- Forward Shading Pipeline -->
+<Pipeline name="FOW">
+   <Setup>
+      <GlobalRenderTarget id="FogOfWarRT" />
+   </Setup>
+   <CommandQueue>
+      <Stage id="FogOfWar_RT">
+         <SwitchTarget target="FogOfWarRT" />
+         <ClearTarget colBuf0="true" col_A="0.33" />
+         <DrawGeometry context="FOW_RT_EXPLORED" class="~Translucent" />
+         <!--DrawGeometry context="FOW_RT_VISIBLE" class="~Translucent" /-->
+      </Stage>
+	</CommandQueue>
+</Pipeline>

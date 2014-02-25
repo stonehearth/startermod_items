@@ -341,6 +341,14 @@ const std::string PipelineResource::parseStage( XMLNode const &node, PipelineSta
 }
 
 
+void PipelineResource::addGlobalRenderTarget(const char* name)
+{
+   RenderTarget t;
+   t.id = std::string(name);   
+   _globalRenderTargets.push_back(t);
+}
+
+
 void PipelineResource::addRenderTarget( const std::string &id, bool depthBuf, uint32 numColBufs,
 										TextureFormats::List format, uint32 samples,
 										uint32 width, uint32 height, float scale, uint32 mipLevels )
@@ -372,6 +380,12 @@ RenderTarget *PipelineResource::findRenderTarget( const std::string &id )
 			return &_renderTargets[i];
 		}
 	}
+
+   for ( auto& rt : _globalRenderTargets) {
+      if (rt.id == id) {
+         return &rt;
+      }
+   }
 	
 	return 0x0;
 }
@@ -485,6 +499,16 @@ bool PipelineResource::loadSetupNode(XMLNode const& setupNode)
 
 		node2 = node2.getNextSibling( "RenderTarget" );
 	}
+
+
+   node2 = setupNode.getFirstChild( "GlobalRenderTarget" );
+	while( !node2.isEmpty() )
+	{
+      if( !node2.getAttribute( "id" ) ) return raiseError( "Missing RenderTarget attribute 'id'" );
+      addGlobalRenderTarget(node2.getAttribute( "id" ));
+
+      node2 = node2.getNextSibling( "GlobalRenderTarget" );
+   }
    return true;
 }
 
@@ -583,6 +607,18 @@ int PipelineResource::getElemParamI( int elem, int elemIdx, int param )
 	return Resource::getElemParamI( elem, elemIdx, param );
 }
 
+
+void PipelineResource::setElemParamStr(int elem, int elemIdx, int param, const char* value)
+{
+   switch( elem )
+   {
+   case PipelineResData::GlobalRenderTarget:
+      RenderTarget* t = findRenderTarget(std::string(value));
+      if (t != 0x0) {
+         t->rendBuf = param;
+      }
+   }
+}
 
 void PipelineResource::setElemParamI( int elem, int elemIdx, int param, int value )
 {

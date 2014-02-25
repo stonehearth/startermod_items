@@ -225,6 +225,7 @@ class Renderer
       int               uiWidth_;
       int               uiHeight_;
       bool              drawWorld_;
+      uint32            fowRenderTarget_;
 
       H3DResourceMap    pipelines_;
    	H3DRes            currentPipeline_;
@@ -270,7 +271,6 @@ class Renderer
       
       std::string       resourcePath_;
       std::string       lastGlfwError_;
-      std::unordered_set<std::string>     uiOnlyStages_, fowOnlyStages_, drawWorldStages_;
 
       dm::TracePtr      visibilityTrace_;
       dm::TracePtr      exploredTrace_;
