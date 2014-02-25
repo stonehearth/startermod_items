@@ -7,6 +7,7 @@
 #include "lib/lua/controller_object.h"
 #include "lib/lua/data_object.h"
 #include "om/selection.h"
+#include "protocols/store.pb.h"
 #include "store.h"
 
 IMPLEMENT_DM_BASIC_TYPE(int,  Protocol::integer);
@@ -25,7 +26,21 @@ IMPLEMENT_DM_EXTENSION(csg::Region2, Protocol::region2i)
 IMPLEMENT_DM_EXTENSION(csg::Sphere, Protocol::sphere3f)
 IMPLEMENT_DM_EXTENSION(csg::Transform, Protocol::transform)
 IMPLEMENT_DM_EXTENSION(om::Selection, Protocol::Selection::extension)
-IMPLEMENT_DM_NOP(radiant::lua::ControllerObject);
+IMPLEMENT_DM_EXTENSION(lua::ControllerObject, Protocol::LuaControllerObject::extension)
+
+template<>
+struct dm::SaveImpl<lua::DataObject> {
+   static void SaveValue(const dm::Store& store, Protocol::Value* msg, lua::DataObject const& obj) {
+      obj.SaveValue(store, msg->MutableExtension(Protocol::LuaDataObject::extension));
+   }
+   static void LoadValue(const Store& store, const Protocol::Value& msg, lua::DataObject& obj) {
+      obj.LoadValue(store, msg.GetExtension(Protocol::LuaDataObject::extension));
+   }
+   static void GetDbgInfo(lua::DataObject const& obj, dm::DbgInfo &info) {
+      info.os << "[data_object]";
+   }
+};
+
 
 template<>
 struct radiant::dm::SaveImpl<radiant::json::Node>
@@ -50,6 +65,7 @@ struct radiant::dm::SaveImpl<radiant::json::Node>
    }
 };
 
+#if 0
 template<>
 struct dm::SaveImpl<lua::DataObject> {
    static void SaveValue(const dm::Store& store, Protocol::Value* msg, lua::DataObject const& obj) {
@@ -64,3 +80,4 @@ struct dm::SaveImpl<lua::DataObject> {
       info.os << "[data_object " << obj.GetJsonNode().write() << "]";
    }
 };
+#endif

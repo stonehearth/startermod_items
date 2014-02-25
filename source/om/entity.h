@@ -55,7 +55,6 @@ private:
    template <> std::shared_ptr<Mob> GetCachedComponent() const { return cached_mob_component_.lock(); }
 
 private:
-   void ConstructObject() override;
    void InitializeRecordFields() override;
    NO_COPY_CONSTRUCTOR(Entity)
 

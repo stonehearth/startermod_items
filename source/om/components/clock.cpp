@@ -11,6 +11,7 @@ std::ostream& operator<<(std::ostream& os, Clock const& o)
 
 void Clock::ConstructObject()
 {
+   Component::ConstructObject();
    time_ = 0;
 }
 

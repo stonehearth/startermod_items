@@ -171,6 +171,7 @@ void Simulation::Shutdown()
 {
    ShutdownLuaObjects();
    ShutdownGameObjects();
+   ShutdownDataObjectTraces();
    ShutdownDataObjects();
 }
 
@@ -178,6 +179,16 @@ void Simulation::InitializeDataObjects()
 {
    store_.reset(new dm::Store(1, "game"));
    om::RegisterObjectTypes(*store_);
+}
+
+void Simulation::ShutdownDataObjects()
+{
+   store_.reset();
+}
+
+void Simulation::InitializeDataObjectTraces()
+{
+   ASSERT(root_entity_);
 
    object_model_traces_ = std::make_shared<dm::TracerSync>("sim objects");
    pathfinder_traces_ = std::make_shared<dm::TracerSync>("sim pathfinder");
@@ -189,25 +200,23 @@ void Simulation::InitializeDataObjects()
    store_->AddTracer(pathfinder_traces_, dm::PATHFINDER_TRACES);
    store_trace_ = store_->TraceStore("sim")->OnAlloced([=](dm::ObjectPtr obj) {
       dm::ObjectId id = obj->GetObjectId();
-      if (id == 1) {
-         GetOctTree().SetRootEntity(std::dynamic_pointer_cast<om::Entity>(obj));
-         store_trace_ = nullptr;
+      dm::ObjectType type = obj->GetObjectType();
+      if (type == om::DataStoreObjectType) {
+         datastores_[id] = std::static_pointer_cast<om::DataStore>(obj);
+      } else if (type == om::EntityObjectType) {
+         entityMap_[id] = std::static_pointer_cast<om::Entity>(obj);
       }
-      if (obj->GetObjectType() == om::DataStoreObjectType) {
-         datastores_[id] = (std::static_pointer_cast<om::DataStore>(obj));
-      }
-   });
+   })->PushStoreState();
 
+   GetOctTree().SetRootEntity(root_entity_);
 }
 
-void Simulation::ShutdownDataObjects()
+void Simulation::ShutdownDataObjectTraces()
 {
    object_model_traces_.reset();
    pathfinder_traces_.reset();
    lua_traces_.reset();
    store_trace_.reset();
-   store_.reset();
-
    buffered_updates_.clear();
 }
 
@@ -326,17 +335,19 @@ void Simulation::ShutdownLuaObjects()
 
 void Simulation::CreateGame()
 {   
-   root_entity_ = CreateEntity();
+   root_entity_ = GetStore().AllocObject<om::Entity>();
    ASSERT(root_entity_->GetObjectId() == 1);
-   clock_ = GetEntity(1)->AddComponent<om::Clock>();
+   clock_ = root_entity_->AddComponent<om::Clock>();
    now_ = clock_->GetTime();
-   radiant_ = scriptHost_->Require("radiant.server");
 
    error_browser_ = store_->AllocObject<om::ErrorBrowser>();
    scriptHost_->SetNotifyErrorCb([=](om::ErrorBrowser::Record const& r) {
       error_browser_->AddRecord(r);
    });
 
+   InitializeDataObjectTraces();
+
+   radiant_ = scriptHost_->Require("radiant.server");
    CreateGameModules();
 }
 
@@ -505,13 +516,6 @@ void Simulation::EncodeUpdates(std::shared_ptr<RemoteClient> c)
 phys::OctTree &Simulation::GetOctTree()
 {
    return *octtree_;
-}
-
-om::EntityPtr Simulation::CreateEntity()
-{
-   om::EntityPtr entity = GetStore().AllocObject<om::Entity>();
-   entityMap_[entity->GetObjectId()] = entity;
-   return entity;
 }
 
 om::EntityPtr Simulation::GetEntity(dm::ObjectId id)
@@ -837,29 +841,6 @@ void Simulation::Save()
 
 void Simulation::Load()
 {
-   Reset();
-   std::string error;
-   if (!store_->Load(error)) {
-      SIM_LOG(0) << "failed to load: " << error;
-   }
-   SIM_LOG(0) << "loaded.";
-
-   root_entity_ = store_->FetchObject<om::Entity>(1);
-   ASSERT(root_entity_);
-   clock_ = GetEntity(1)->AddComponent<om::Clock>();
-   now_ = clock_->GetTime();
-   radiant_ = scriptHost_->Require("radiant.server");
-
-   error_browser_ = store_->AllocObject<om::ErrorBrowser>();
-   scriptHost_->SetNotifyErrorCb([=](om::ErrorBrowser::Record const& r) {
-      error_browser_->AddRecord(r);
-   });
-
-   LoadGameModules();
-}
-
-void Simulation::Reset()
-{
    // delete all the streamers before shutting down so we don't spam them with delete requests,
    // then create new streamers. 
    for (std::shared_ptr<RemoteClient> client : _clients) {
@@ -871,12 +852,40 @@ void Simulation::Reset()
    Shutdown();
    Initialize();
 
+   std::string error;
+   dm::Store::ObjectMap objects;
+   if (!store_->Load(error, objects)) {
+      SIM_LOG(0) << "failed to load: " << error;
+   }
+   SIM_LOG(0) << "loaded.";
+
    // create new streamers for all the clients and buffer a notification to clear out all their old
    // state
-   for (std::shared_ptr<RemoteClient> client : _clients) {
-      client->streamer = std::make_shared<dm::Streamer>(*store_, dm::PLAYER_1_TRACES, client->send_queue.get());
-   }
+   ASSERT(buffered_updates_.empty());
    proto::Update msg;
    msg.set_type(proto::Update::ClearClientState);
    buffered_updates_.emplace_back(msg);
+
+   for (std::shared_ptr<RemoteClient> client : _clients) {
+      client->streamer = std::make_shared<dm::Streamer>(*store_, dm::PLAYER_1_TRACES, client->send_queue.get());
+   }
+
+   // Re-initialize the game
+   root_entity_ = store_->FetchObject<om::Entity>(1);
+   ASSERT(root_entity_);
+   clock_ = root_entity_->AddComponent<om::Clock>();
+   now_ = clock_->GetTime();
+
+   error_browser_ = store_->AllocObject<om::ErrorBrowser>();
+   scriptHost_->SetNotifyErrorCb([=](om::ErrorBrowser::Record const& r) {
+      error_browser_->AddRecord(r);
+   });
+
+   InitializeDataObjectTraces();
+   radiant_ = scriptHost_->Require("radiant.server");
+   LoadGameModules();
+}
+
+void Simulation::Reset()
+{
 }

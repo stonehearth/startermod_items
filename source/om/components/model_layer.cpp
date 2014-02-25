@@ -17,6 +17,7 @@ static std::unordered_map<std::string, ModelLayer::Layer> __str_to_layer; // xxx
 
 void ModelLayer::ConstructObject()
 {
+   Record::ConstructObject();
    layer_ = Layer::SKELETON;
 }
 

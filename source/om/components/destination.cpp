@@ -16,6 +16,7 @@ std::ostream& operator<<(std::ostream& os, const Destination& o)
 
 void Destination::ConstructObject()
 {
+   Component::ConstructObject();
    auto_update_adjacent_ = false;
 }
 

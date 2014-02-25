@@ -13,6 +13,11 @@ bool csg::IsZero(float value)
    return ::fabs(value) < kEpsilon;
 }
 
+bool csg::IsZero(double value)
+{
+   return ::fabs(value) < kEpsilon;
+}
+
 bool csg::AreEqual(float v1, float v2)
 {
    return IsZero(v1 - v2);

@@ -97,6 +97,37 @@ std::string WeakGameObjectToJson(std::weak_ptr<T> o, luabind::object state)
    return StrongGameObjectToJson(o.lock(), state);
 }
 
+
+template <class T>
+std::string TypeRepr(T const& obj)
+{
+   return lua::Repr(obj);
+}
+
+template <class T>
+std::string TypePointerRepr(std::shared_ptr<T> const& obj)
+{
+   if (obj) {
+      return lua::Repr(obj);
+   }
+   return "nil";
+}
+
+template <class T>
+std::string StrongGameObjectRepr(std::shared_ptr<T> const& obj)
+{
+   if (obj) {
+      return BUILD_STRING("_radiant.get_object('" << obj->GetStoreAddress() << "')");
+   }
+   return "nil";
+}
+
+template <class T>
+std::string WeakGameObjectRepr(std::weak_ptr<T> const& obj)
+{
+   return StrongGameObjectRepr(obj.lock());
+}
+
 // Used for putting value based C++ types into Lua (e.g. csg::Point3, csg::Cube3, etc.)
 template <typename T>
 luabind::class_<T> RegisterType(const char* name = nullptr)
@@ -105,6 +136,7 @@ luabind::class_<T> RegisterType(const char* name = nullptr)
    return luabind::class_<T>(name)
       .def(tostring(luabind::self))
       .def("__tojson",       &TypeToJson<T>)
+      .def("__repr",         &TypeRepr<T>)
       .def("get_type_id",    &GetTypeId<T>)
       .def("get_type_name",  &GetTypeName<T>)
       .scope [
@@ -120,6 +152,7 @@ luabind::class_<T, std::shared_ptr<T>> RegisterTypePtr(const char* name = nullpt
    return luabind::class_<T, std::shared_ptr<T>>(name)
       .def(tostring(luabind::self))
       .def("__tojson",       &TypePointerToJson<T>)
+      .def("__repr",         &TypePointerRepr<T>)
       .def("get_type_id",    &GetTypeId<T>)
       .def("get_type_name",  &GetTypeName<T>)
       .scope [
@@ -135,6 +168,7 @@ luabind::class_<T, std::shared_ptr<T>> RegisterStrongGameObject(const char* name
    return luabind::class_<T, std::shared_ptr<T>>(name)
       .def(tostring(luabind::self))
       .def("__tojson",       &StrongGameObjectToJson<T>)
+      .def("__repr",         &StrongGameObjectRepr<T>)
       .def("get_id",         &SharedGetObjectId<T>)
       .def("get_type_id",    &GetTypeId<T>)
       .def("get_type_name",  &GetTypeName<T>)
@@ -152,6 +186,7 @@ luabind::class_<T, std::weak_ptr<T>> RegisterWeakGameObject(const char* name = n
       .def(tostring(luabind::self))
       .def("is_valid",       &WeakPtr_IsValid<T>)
       .def("__tojson",       &WeakGameObjectToJson<T>)
+      .def("__repr",         &WeakGameObjectRepr<T>)
       .def("get_id",         &WeakGetObjectId<T>)
       .def("get_type_id",    &GetTypeId<T>)
       .def("get_type_name",  &GetTypeName<T>)
@@ -172,6 +207,7 @@ luabind::class_<Derived, Base, std::weak_ptr<Derived>> RegisterWeakGameObjectDer
       .def(tostring(luabind::self))
       .def("is_valid",       &WeakPtr_IsValid<Derived>)
       .def("__tojson",       &WeakGameObjectToJson<Derived>)
+      .def("__repr",         &WeakGameObjectRepr<Derived>)
       .def("get_id",         &WeakGetObjectId<Derived>)
       .def("get_type_id",    &GetTypeId<Derived>)
       .def("get_type_name",  &GetTypeName<Derived>)

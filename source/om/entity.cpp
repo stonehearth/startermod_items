@@ -39,10 +39,6 @@ Entity::~Entity()
 {
 }
 
-void Entity::ConstructObject()
-{
-}
-
 void Entity::Destroy()
 {
    for (const auto& entry : components_.GetContents()) {

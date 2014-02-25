@@ -60,22 +60,22 @@ static Simulation& GetSim(lua_State* L)
    return *sim;
 }
 
-om::EntityRef Sim_CreateEmptyEntity(lua_State* L)
-{
-   return GetSim(L).CreateEntity();
-}
-
-om::EntityRef Sim_CreateEntity(lua_State* L, std::string const& uri)
-{
-   om::EntityPtr entity = GetSim(L).CreateEntity();
-   om::Stonehearth::InitEntity(entity, uri, L);
-   return entity;
-}
-
 template <typename T>
 std::shared_ptr<T> Sim_AllocObject(lua_State* L)
 {
    return GetSim(L).GetStore().AllocObject<T>();
+}
+
+om::EntityRef Sim_CreateEmptyEntity(lua_State* L)
+{
+   return Sim_AllocObject<om::Entity>(L);
+}
+
+om::EntityRef Sim_CreateEntity(lua_State* L, std::string const& uri)
+{
+   om::EntityPtr entity = Sim_AllocObject<om::Entity>(L);
+   om::Stonehearth::InitEntity(entity, uri, L);
+   return entity;
 }
 
 om::DataStorePtr Sim_AllocDataStore(lua_State* L)

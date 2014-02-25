@@ -32,6 +32,10 @@ public:
 
    luabind::object JsonToLua(JSONNode const& json);
    JSONNode LuaToJson(luabind::object obj);
+   
+   luabind::object StringToLua(std::string const& str);
+   std::string LuaToString(luabind::object obj);
+
    void ReportCStackThreadException(lua_State* L, std::exception const& e);
    void ReportLuaStackException(std::string const& error, std::string const& traceback);
    void Trigger(const std::string& eventName);

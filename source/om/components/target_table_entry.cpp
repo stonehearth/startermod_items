@@ -14,6 +14,7 @@ std::ostream& operator<<(std::ostream& os, TargetTableEntry const& o)
 
 void TargetTableEntry::ConstructObject()
 {
+   Record::ConstructObject();
    expire_time_ = 0;
    value_ = 0;
 }

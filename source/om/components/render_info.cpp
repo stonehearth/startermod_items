@@ -13,6 +13,7 @@ std::ostream& operator<<(std::ostream& os, RenderInfo const& o)
 
 void RenderInfo::ConstructObject()
 {
+   Component::ConstructObject();
    scale_ = 0.1f;
 }
 

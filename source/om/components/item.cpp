@@ -12,6 +12,7 @@ std::ostream& operator<<(std::ostream& os, Item const& o)
 
 void Item::ConstructObject()
 {
+   Component::ConstructObject();
    stacks_ = 1;
    max_stacks_ = 1;
 }

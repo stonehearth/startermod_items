@@ -9,11 +9,6 @@ std::ostream& operator<<(std::ostream& os, ModList const& o)
    return (os << "[ModList]");
 }
 
-
-void ModList::ConstructObject()
-{
-}
-
 void ModList::ExtendObject(json::Node const& obj)
 {
 }

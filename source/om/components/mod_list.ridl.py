@@ -8,8 +8,6 @@ class DataStore(dm.Record):
    name = 'DataStore'
 
 class ModList(Component):
-   _generate_construct_object = True
-
    mods = dm.Map(std.string(), std.shared_ptr(DataStore()), singular_name='mod', add='define', remove=None, iterate='define')
 
    _includes = [ "om/components/data_store.ridl.h" ]

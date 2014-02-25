@@ -29,9 +29,8 @@ public:
    virtual TracePtr TraceObjectChanges(const char* reason, Tracer* tracer) const = 0;
    void LoadObject(Protocol::Object const& msg);
    void SaveObject(Protocol::Object* msg) const;
+   std::string GetStoreAddress() const;
 
-   virtual void Initialize(Store& s, ObjectId id);
-   virtual void InitializeSlave(Store& s, ObjectId id);
    //virtual void Initialize(Store& s, const Protocol::Object& msg);
    virtual ~Object();
 
@@ -41,6 +40,8 @@ public:
    GenerationId GetLastModified() const { return timestamp_; }
 
    virtual ObjectType GetObjectType() const = 0;
+
+   virtual void ConstructObject() { };
 
    bool IsValid() const;
 

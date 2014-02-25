@@ -21,7 +21,7 @@ void Receiver::ProcessAlloc(tesseract::protocol::AllocObjects const& msg)
       ASSERT(!store_.FetchStaticObject(id));
 
       RECEIVER_LOG(5) << "allocating object " << id << " of type " << entry.object_type();
-      objects_[id] = store_.AllocSlaveObject(entry.object_type(), id);
+      objects_[id] = store_.AllocObject(entry.object_type(), id);
    }
 }
 

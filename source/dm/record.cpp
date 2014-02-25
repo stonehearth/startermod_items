@@ -12,7 +12,8 @@ using namespace ::radiant::dm;
 Record::Record() : 
    slave_(false),
    registerOffset_(0),
-   saveCount_(0)
+   saveCount_(0),
+   constructed_(false)
 {
 }   
 
@@ -32,30 +33,25 @@ TracePtr Record::TraceObjectChanges(const char* reason, Tracer* tracer) const
    return GetStore().TraceRecordChanges(reason, *this, tracer);
 }
 
-void Record::Initialize(Store& s, ObjectId id)
+void Record::ConstructObject()
 {
-   SetObjectMetadata(id, s);
-   InitializeRecord();
+   constructed_ = true;
+   InitializeRecordFields();
 }
  
-void Record::InitializeSlave(Store& s, ObjectId id)
-{
-   slave_ = true;
-   SetObjectMetadata(id, s);
-   // A LoadValue's coming... don't worry
-}
-
 void Record::LoadValue(Protocol::Value const& msg)
 {
-   ASSERT(slave_);
    ASSERT(GetFields().empty());
 
    int c = msg.ExtensionSize(Protocol::Record::record_fields);
    for (int i = 0; i < c ; i++) {
       const Protocol::Record::Entry& entry = msg.GetExtension(Protocol::Record::record_fields, i);
-      AddRecordField(entry.field(), entry.value());
+      std::string const& name = entry.field();
+      fields_.emplace_back(std::make_pair(entry.field(), entry.value()));
    }
-   InitializeRecord();
+   registerOffset_ = 0;
+   InitializeRecordFields();
+   ASSERT(registerOffset_ == fields_.size());
 }
 
 void Record::SaveValue(Protocol::Value* msg) const
@@ -69,23 +65,22 @@ void Record::SaveValue(Protocol::Value* msg) const
 
 void Record::AddRecordField(std::string name, Object& field)
 {
-   if (!slave_) {
-      auto& store = GetStore();
-      field.Initialize(store, store.GetNextObjectId());
+   auto& store = GetStore();
+   ObjectId id;
 
-      ASSERT(FieldIsUnique(name, field));
-      AddRecordField(name, field.GetObjectId());
+   if (constructed_) {
+      id = store.GetNextObjectId();
    } else {
-      field.Initialize(GetStore(), fields_[registerOffset_++].second);
+      id = fields_[registerOffset_++].second;
    }
-}
 
-void Record::AddRecordField(std::string name, ObjectId id)
-{
-   ASSERT(id);
-   ASSERT(GetObjectId() < id);
+   field.SetObjectMetadata(id, store);
+   store.RegisterObject(field);
 
-   fields_.push_back(std::make_pair(name, id));
+   if (constructed_) {
+      ASSERT(FieldIsUnique(name, field));
+      fields_.push_back(std::make_pair(name, id));
+   }
 }
 
 bool Record::FieldIsUnique(std::string name, Object& obj)
@@ -117,14 +112,4 @@ void Record::GetDbgInfo(DbgInfo &info) const
       }
       info.os << "}";
    }
-}
-
-void Record::InitializeRecord()
-{
-   InitializeRecordFields();
-   if (!slave_) {
-      ConstructObject();
-   }
-   MarkChanged();
-   GetStore().SignalRegistered(this);
 }

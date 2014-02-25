@@ -11,10 +11,6 @@ std::ostream& operator<<(std::ostream& os, EffectList const& o)
    return (os << "[EffectList]");
 }
 
-void EffectList::ConstructObject()
-{
-}
-
 void EffectList::ExtendObject(json::Node const& obj)
 {
    default_ = obj.get<std::string>("default", "");

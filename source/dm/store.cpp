@@ -10,7 +10,13 @@
 #include "tracer_buffered.h"
 #include "record.h"
 #include "object.h"
+#include "protocol.h"
+
+#if defined GetMessage
+#  undef GetMessage
+#endif
 #include "protocols/store.pb.h"
+#include "protocols/tesseract.pb.h"
 
 using namespace ::radiant;
 using namespace ::radiant::dm;
@@ -44,24 +50,17 @@ Store::~Store(void)
 {
 }
 
-ObjectPtr Store::AllocObject(ObjectType t)
+ObjectPtr Store::AllocObject(ObjectType t, ObjectId id)
 {
    ASSERT(allocators_[t]);
-
    ObjectPtr obj = allocators_[t]();
-   obj->Initialize(*this, GetNextObjectId());
-   OnAllocObject(obj);
+   ObjectId object_id = id ? id : GetNextObjectId();
 
-   return obj;
-}
-
-ObjectPtr Store::AllocSlaveObject(ObjectType t, ObjectId id)
-{
-   ASSERT(nextObjectId_ == 1);
-   ASSERT(allocators_[t]);
-
-   ObjectPtr obj = allocators_[t]();
-   obj->InitializeSlave(*this, id); 
+   obj->SetObjectMetadata(object_id, *this); 
+   if (id == 0) {
+      obj->ConstructObject();
+   }
+   RegisterObject(*obj);
    OnAllocObject(obj);
 
    return obj;
@@ -87,11 +86,44 @@ bool Store::Save(std::string &error)
       google::protobuf::io::FileOutputStream fos(fd);
       {
          google::protobuf::io::CodedOutputStream cos(&fos);
-         Protocol::Object msg;
 
-         for (auto const& entry : dynamicObjects_) {
-            dm::ObjectPtr obj = entry.second.lock();
-            if (obj) {
+         {
+            Protocol::Store msg;
+            msg.set_store_id(storeId_);
+            msg.set_next_object_id(nextObjectId_);
+            msg.set_next_generation(nextGenerationId_);
+
+            cos.WriteLittleEndian32(msg.ByteSize());
+            msg.SerializeToCodedStream(&cos);
+         }
+
+         {
+            tesseract::protocol::Update update;
+            update.set_type(tesseract::protocol::Update::AllocObjects);
+            auto allocated_msg = update.MutableExtension(tesseract::protocol::AllocObjects::extension);
+            for (const auto& entry : dynamicObjects_) {
+               dm::ObjectPtr obj = entry.second.lock();
+               if (obj) {
+                  auto msg = allocated_msg->add_objects();
+                  msg->set_object_id(entry.first);
+                  msg->set_object_type(obj->GetObjectType());
+               }
+            }
+            cos.WriteLittleEndian32(update.ByteSize());
+            update.SerializeToCodedStream(&cos);
+         }
+
+         {
+            // sort so we save objects in the order they were created
+            Protocol::Object msg;
+            std::set<ObjectId> keys;
+            for (auto const& entry : objects_) {
+               keys.insert(entry.first);
+            };
+
+            for (ObjectId id : keys) {
+               Object* obj = objects_[id];
+               msg.Clear();
                obj->SaveObject(&msg);
                cos.WriteLittleEndian32(msg.ByteSize());
                msg.SerializeToCodedStream(&cos);
@@ -103,11 +135,20 @@ bool Store::Save(std::string &error)
    return true;
 }
 
-bool Store::Load(std::string &error)
+bool Store::Load(std::string &error, ObjectMap& objects)
 {
+   // xxx: should probably just pass the save state into the ctor...
+   ASSERT(traces_.empty());
+   ASSERT(tracers_.empty());
+   ASSERT(store_traces_.empty());
+   ASSERT(objects_.empty());
+   ASSERT(destroyed_.empty());
+   ASSERT(dynamicObjects_.empty());
+   ASSERT(nextObjectId_ == 1);
+   ASSERT(nextGenerationId_ == 1);
+
    // The C++ Google Protobuf docs claim FileOutputStream avoids an extra copy of the data
    // introduced by OstreamOutputStream, so lets' use that.
-
    int fd = _open("save.bin", _O_RDONLY | O_BINARY);
    if (fd < 0) {
       error = "could not open save file";
@@ -120,23 +161,71 @@ bool Store::Load(std::string &error)
       google::protobuf::io::FileInputStream fis(fd);
       {
          google::protobuf::io::CodedInputStream cis(&fis);
-         Protocol::Object msg;
 
-         for (;;) {
+         {
+            Protocol::Store msg;
             google::protobuf::uint32 size, limit;
-            if (!cis.ReadLittleEndian32(&size)) {
-               break;
-            }
 
+            if (!cis.ReadLittleEndian32(&size)) {
+               return false;
+            }
             limit = cis.PushLimit(size);
             if (!msg.ParseFromCodedStream(&cis)) {
-               break;
+               return false;
             }
             cis.PopLimit(limit);
 
-            ObjectPtr obj = allocators_[msg.object_type()]();
-            obj->Initialize(*this, msg.object_id());
-            OnAllocObject(obj);
+            nextObjectId_ = msg.next_object_id();
+            nextGenerationId_ = msg.next_generation();
+         }
+
+         {
+            google::protobuf::uint32 size, limit;
+            tesseract::protocol::Update update;
+
+            if (!cis.ReadLittleEndian32(&size)) {
+               return false;
+            }
+            limit = cis.PushLimit(size);
+            if (!update.ParseFromCodedStream(&cis)) {
+               return false;
+            }
+            cis.PopLimit(limit);
+            radiant::tesseract::protocol::AllocObjects const& alloc_msg = update.GetExtension(::radiant::tesseract::protocol::AllocObjects::extension);
+            for (const tesseract::protocol::AllocObjects::Entry& entry : alloc_msg.objects()) {
+               ObjectId id = entry.object_id();
+               ASSERT(!FetchStaticObject(id));
+
+               ObjectPtr obj = AllocObject(entry.object_type(), id);
+               objects[id] = obj;
+            }
+         }
+
+         {
+            Protocol::Object msg;
+            google::protobuf::uint32 size, limit;
+
+            for (;;) {
+               if (!cis.ReadLittleEndian32(&size)) {
+                  break; // what if we lost some objects while saving?
+               }
+
+               msg.Clear();
+               limit = cis.PushLimit(size);
+               if (!msg.ParseFromCodedStream(&cis)) {
+                  return false;
+               }
+               cis.PopLimit(limit);
+
+               ObjectId id = msg.object_id();
+               Object* obj = FetchStaticObject(id);
+
+               ASSERT(obj);
+               ASSERT(msg.object_type() == obj->GetObjectType());
+
+               obj->SetObjectMetadata(id, *this);
+               obj->LoadObject(msg);
+            }
          }
       }
    }
@@ -154,17 +243,11 @@ void Store::RegisterObject(Object& obj)
    ObjectId id = obj.GetObjectId();
    Object* pobj = &obj;
    objects_[id] = pobj;
-}
 
-void Store::SignalRegistered(Object const* pobj)
-{
    stdutil::ForEachPrune<StoreTrace>(store_traces_, [=](StoreTracePtr trace) {
       trace->SignalRegistered(pobj);
    });
-
-   // std::cout << "Store " << storeId_ << " RegisterObject(oid:" << obj.GetObjectId() << ") " << typeid(obj).name() << std::endl;
 }
-
 
 void Store::UnregisterObject(const Object& obj)
 {

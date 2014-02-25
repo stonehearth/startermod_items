@@ -3,6 +3,7 @@
 
 #define DEFINE_DM_OBJECT_TYPE(Cls, lower)   \
    enum { DmType = Cls ## ObjectType }; \
+   static ObjectType GetObjectTypeStatic() { return Cls::DmType; } \
    ObjectType GetObjectType() const override { return Cls::DmType; } \
    const char *GetObjectClassNameLower() const override { return #lower; } \
    std::shared_ptr<Cls ## Trace<Cls>> TraceChanges(const char* reason, int category) const; \

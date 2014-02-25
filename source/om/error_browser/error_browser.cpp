@@ -7,7 +7,6 @@ using namespace ::radiant::om;
 
 void ErrorBrowser::InitializeRecordFields()
 {
-   dm::Record::InitializeRecordFields();
    AddRecordField("entries", entries_);
    if (!IsRemoteRecord()) {
       next_record_id_ = 1;

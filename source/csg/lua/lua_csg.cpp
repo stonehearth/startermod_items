@@ -1,4 +1,5 @@
 #include "pch.h"
+#include "lib/lua/lua.h"
 #include "lua_cube.h"
 #include "lua_point.h"
 #include "lua_region.h"

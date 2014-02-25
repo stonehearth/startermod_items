@@ -1,5 +1,7 @@
 #include "pch.h"
+#include "dm/store.h"
 #include "data_object.h"
+#include "protocols/store.pb.h"
 
 using namespace radiant;
 using namespace radiant::lua;
@@ -64,6 +66,7 @@ json::Node const& DataObject::GetJsonNode() const
    return cached_json_;
 }
 
+#if 0
 void DataObject::SetJsonNode(lua_State* L, json::Node const& node)
 {
    DO_LOG(8) << "set json node";
@@ -72,3 +75,28 @@ void DataObject::SetJsonNode(lua_State* L, json::Node const& node)
    data_object_ = ScriptHost::JsonToLua(L, node);
    DO_LOG(8) << "post set json node";
 }
+#endif
+
+void DataObject::SaveValue(dm::Store const& store, Protocol::LuaDataObject *msg) const
+{
+   lua_State* L = store.GetInterpreter();
+   ASSERT(L);
+
+   std::string repr;
+   lua::ScriptHost* s = lua::ScriptHost::GetScriptHost(L);
+   if (s) {
+      repr = s->LuaToString(data_object_);
+   }
+   msg->set_lua_object(repr);
+}
+
+void DataObject::LoadValue(dm::Store const& store, const Protocol::LuaDataObject &msg)
+{
+   lua_State* L = store.GetInterpreter();
+   ASSERT(L);
+   lua::ScriptHost* s = lua::ScriptHost::GetScriptHost(L);
+   if (s) {
+      data_object_ = s->StringToLua(msg.lua_object());
+   }
+}
+

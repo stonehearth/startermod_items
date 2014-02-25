@@ -36,14 +36,10 @@ public:
 
    void RegisterAllocator(ObjectType t, ObjectAllocFn allocator);
 
-   ObjectPtr AllocObject(ObjectType t);
-   ObjectPtr AllocSlaveObject(ObjectType t, ObjectId id);
+   ObjectPtr AllocObject(ObjectType t, ObjectId id = 0);
 
    template<class T> std::shared_ptr<T> AllocObject() {
-      auto obj = std::make_shared<T>();
-      obj->Initialize(*this, GetNextObjectId());
-      OnAllocObject(obj);
-      return obj;
+      return std::static_pointer_cast<T>(AllocObject(T::GetObjectTypeStatic()));
    }
 
    std::shared_ptr<Object> FetchObject(ObjectId id, ObjectType type) const;
@@ -68,8 +64,11 @@ public:
    }
    Object* FetchStaticObject(ObjectId id) const;
 
+   typedef std::unordered_map<ObjectId, std::shared_ptr<Object>> ObjectMap;
+   typedef std::unordered_map<ObjectId, std::weak_ptr<Object>> WeakObjectMap;
+
    bool Save(std::string& error);
-   bool Load(std::string& error);
+   bool Load(std::string& error, ObjectMap& objects);
 
    GenerationId GetNextGenerationId();
    GenerationId GetCurrentGenerationId();
@@ -116,7 +115,6 @@ protected: // Internal interface for Objects only
    friend Record;
    static Store& GetStore(int id);
    void RegisterObject(Object& obj);
-   void SignalRegistered(Object const* pobj);
    void UnregisterObject(const Object& obj);
    void OnAllocObject(std::shared_ptr<Object> obj);
 
@@ -140,7 +138,7 @@ private:
 
    std::unordered_map<ObjectId, Object*>                       objects_;
    std::unordered_map<ObjectType, ObjectAllocFn>               allocators_;
-   mutable std::unordered_map<ObjectId, std::weak_ptr<Object>> dynamicObjects_;
+   mutable WeakObjectMap dynamicObjects_;
 
    TraceMap       traces_;
    TracerMap      tracers_;

@@ -55,7 +55,6 @@ public:
    Simulation();
    ~Simulation();
 
-   om::EntityPtr CreateEntity();
    om::EntityPtr Simulation::GetEntity(dm::ObjectId id);
    void DestroyEntity(dm::ObjectId id);
 
@@ -125,6 +124,7 @@ private:
    void OneTimeIninitializtion();
    void Initialize();
    void InitializeDataObjects();
+   void InitializeDataObjectTraces();
    void InitializeGameObjects();
    void CreateGameModules();
    void LoadGameModules();
@@ -132,6 +132,7 @@ private:
    void Shutdown();
    void ShutdownGameObjects();
    void ShutdownDataObjects();
+   void ShutdownDataObjectTraces();
    void ShutdownLuaObjects();
 
    void CreateGame();

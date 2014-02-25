@@ -8,38 +8,27 @@ BEGIN_RADIANT_LUA_NAMESPACE
 
 class ControllerObject {
 public:
-   ControllerObject()
-   {
-   }
+   ControllerObject();
+   ControllerObject(std::string const& source, luabind::object object);
 
-   ControllerObject(std::string const& source, luabind::object object) :
-      lua_source_(source),
-      lua_object_(object)
-   {
-   }
+   std::string const& GetLuaSource() const;
+   luabind::object GetLuaObject() const;
+   void SetLuaObject(luabind::object obj) const;
 
-   std::string const& GetLuaSource() const
-   {
-      return lua_source_;
-   }
-
-   luabind::object GetLuaObject() const
-   {
-      return lua_object_;
-   }
-
-   void SetLuaObject(luabind::object obj) const {
-      lua_object_ = obj;
-   }
+   void SaveValue(Protocol::LuaControllerObject *msg) const;
+   void LoadValue(const Protocol::LuaControllerObject &msg);
 
 private:
    std::string                lua_source_;
    mutable luabind::object    lua_object_;
 };
 
+std::ostream& operator<<(std::ostream& os, ControllerObject const& o);
+
 DECLARE_SHARED_POINTER_TYPES(ControllerObject)
 
 END_RADIANT_LUA_NAMESPACE
+
 
 #endif
 

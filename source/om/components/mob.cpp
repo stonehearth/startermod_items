@@ -15,6 +15,7 @@ std::ostream& operator<<(std::ostream& os, Mob const& o)
 
 void Mob::ConstructObject()
 {
+   Component::ConstructObject();
    transform_ = csg::Transform(csg::Point3f::zero, csg::Quaternion());
    aabb_ = csg::Cube3f::zero;
    interpolate_movement_ = false;

@@ -4,11 +4,7 @@
 #define BEGIN_RADIANT_DM_NAMESPACE  namespace radiant { namespace dm {
 #define END_RADIANT_DM_NAMESPACE    } }
 
-// xxx: move this into a protocol.h header?
-namespace Protocol {
-   class Value;
-   class Object;
-};
+#include "protocols/forward_defines.h"
 
 BEGIN_RADIANT_DM_NAMESPACE
 

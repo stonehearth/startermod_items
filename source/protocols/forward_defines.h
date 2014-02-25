@@ -36,4 +36,12 @@ namespace radiant {
    };
 };
 
+// xxx:move this into radiant...
+namespace Protocol {
+   class Value;
+   class Object;
+   class LuaControllerObject;
+   class LuaDataObject;
+}
+
 #endif  // _RADIANT_PROTOCOL_PROTOCOL_H

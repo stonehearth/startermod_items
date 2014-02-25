@@ -590,3 +590,48 @@ void ScriptHost::SetPerformanceCounter(const char* name, int value, const char* 
 {
    performanceCounters_[BUILD_STRING("lua:" << name)] = std::make_pair(value, kind);
 }
+
+luabind::object ScriptHost::StringToLua(std::string const& str)
+{
+   return luabind::object();
+}
+
+std::string ScriptHost::LuaToString(luabind::object obj)
+{
+   std::function<std::ostringstream& (std::ostringstream& os, luabind::object const& obj)> luaToString;
+
+   luaToString = [&luaToString](std::ostringstream& os, luabind::object const& obj) -> std::ostringstream& {
+      int t = type(obj);
+      if (t == LUA_TTABLE) {
+         os << "{";
+         for (iterator i(obj), end; i != end; i++) {
+            os << "[" << luaToString(os, i.key()) << "] = " << luaToString(os, *i) << ",";
+         }
+         os << "}";
+      } else if (t == LUA_TUSERDATA) {
+         std::string repr = call_function<std::string>(obj, obj, "__repr");
+         os << repr;
+      } else if (t == LUA_TSTRING) {
+         os << object_cast<std::string>(obj);
+      } else if (t == LUA_TNUMBER) {
+         std::ostringstream formatter;
+         double double_value = object_cast<double>(obj);
+         int int_value = static_cast<int>(double_value);
+         if (csg::IsZero(double_value - int_value)) {
+            os << int_value;
+         } else {
+            os << double_value;
+         }
+      } else if (t == LUA_TBOOLEAN) {
+         os << (object_cast<bool>(obj) ? "true" : "false");
+      }
+      return os;
+   };
+
+   std::ostringstream buffer;
+   luaToString(buffer, obj);
+
+   std::string repr = buffer.str();
+   return repr;
+}
+

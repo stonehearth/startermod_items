@@ -14,6 +14,7 @@ public:
 
    enum { DmType = OT };
    Boxed() : Object() { }
+   static ObjectType GetObjectTypeStatic() { return OT; }
    ObjectType GetObjectType() const override { return OT; }
    const char *GetObjectClassNameLower() const override { return "boxed"; }
    std::shared_ptr<BoxedTrace<Boxed>> TraceChanges(const char* reason, int category) const;
