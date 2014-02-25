@@ -74,6 +74,11 @@ bool GotoLocation::Work(const platform::timer &timer)
 
    auto mob = entity->GetComponent<om::Mob>();
    csg::Point3f current = mob->GetLocation();
+
+   // project the target location to our current standing location
+   // we're just walking towards x,z and ignoring y
+   target_location_.y = current.y;
+
    csg::Point3f direction = csg::Point3f(target_location_ - current);
 
    float maxDistance = speed_ * GetSim().GetBaseWalkSpeed();
