@@ -147,7 +147,7 @@ function ExecutionFrame:_unit_not_ready(unit)
 end
 
 function ExecutionFrame:_stop()
-   if self:in_state('starting', 'started') then
+   if self:in_state('ready', 'starting', 'started') then
       return self:_stop_from_started()
    end
    if self._state == 'finished' then
