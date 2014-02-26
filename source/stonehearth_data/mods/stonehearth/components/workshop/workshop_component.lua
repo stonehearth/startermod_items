@@ -11,17 +11,21 @@ local CraftOrderList = require 'components.workshop.craft_order_list'
 
 local WorkshopComponent = class()
 
-function WorkshopComponent:__init(entity, data_binding)
-   self._craft_order_list = CraftOrderList(data_binding)  -- The list of things we need to work on
+function WorkshopComponent:__init(entity, datastore)
    self._entity = entity
    self._bench_outputs = {}              -- An array of finished products on the bench, to be added to the outbox. Nil if nothing.
    self._outbox_entity = nil
-   self._data = data_binding:get_data()
-   self._data.crafter = nil
-   self._data.order_list = self._craft_order_list
 
-   self._data_binding = data_binding
-   self._data_binding:mark_changed()
+   self._data = datastore:get_data()
+   self._data.crafter = nil
+   self._data.order_list = {}
+
+   self._craft_order_list = CraftOrderList(self._data, function()
+         self._datastore:mark_changed()
+      end)
+
+   self._datastore = datastore
+   self._datastore:mark_changed()
 end
 
 function WorkshopComponent:extend(json)
@@ -34,7 +38,7 @@ function WorkshopComponent:extend(json)
          --xxx populate a default skin
       end
    end
-   self._data_binding:mark_changed()
+   self._datastore:mark_changed()
 end
 
 --[[UI Interaction Functions
@@ -125,7 +129,7 @@ function WorkshopComponent:set_crafter(crafter)
    local current = self:get_crafter()
    if not crafter or not current or current:get_id() ~= crafter:get_id() then
       self._data.crafter = crafter
-      self._data_binding:mark_changed()
+      self._datastore:mark_changed()
 
       local commandComponent = self._entity:get_component('stonehearth:commands')
       if crafter then

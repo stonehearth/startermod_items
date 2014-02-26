@@ -107,7 +107,7 @@ Client::~Client()
 void Client::InitializeUI()
 {
    core::Config const& config = core::Config::GetInstance();
-   std::string const main_mod = config.Get<std::string>("game.main_mod");
+   std::string const main_mod = config.Get<std::string>("game.main_mod", "stonehearth");
    json::Node const manifest = res::ResourceManager2::GetInstance().LookupManifest(main_mod);
    std::string docroot = manifest.get<std::string>("ui.homepage", "about:");
 

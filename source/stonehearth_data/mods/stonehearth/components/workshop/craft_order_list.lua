@@ -7,14 +7,16 @@
 local CraftOrder = require 'components.workshop.craft_order'
 
 local CraftOrderList = class()
-function CraftOrderList:__init(data_binding)
-   self._data_binding = data_binding
-   self._data = self._data_binding:get_data()
-   self._orders = {}
+function CraftOrderList:__init(data, on_change_cb)
+   self._on_change_cb = on_change_cb
+   if not data.orders then
+      data.orders = {}
+   end
+   self._data = data
+   self._orders = data.orders
 end
 
-function CraftOrderList:__tojson()
-   return radiant.json.encode(self._orders)
+function CraftOrderList:__get_save_state()
 end
 
 function CraftOrderList:is_paused()
@@ -107,7 +109,7 @@ function CraftOrderList:_find_index_of(order_id)
 end
 
 function CraftOrderList:_on_order_list_changed()
-   self._data_binding:mark_changed()
+   self._on_change_cb()
    radiant.events.trigger(self, 'order_list_changed')
 end
 

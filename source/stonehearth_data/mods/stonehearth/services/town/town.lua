@@ -223,7 +223,7 @@ function Town:create_workshop(crafter, ghost_workshop, outbox_location, outbox_s
    outbox_entity:get_component('unit_info'):set_faction(faction)
 
    local outbox_component = outbox_entity:get_component('stonehearth:stockpile')
-   outbox_component:set_size(outbox_size)
+   outbox_component:set_size(outbox_size.x, outbox_size.y)
    outbox_component:set_outbox(true)
 
    -- create a task group for the workshop.  we'll use this both to build it and

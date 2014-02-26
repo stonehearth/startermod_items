@@ -6,7 +6,7 @@
          "description" : "Stores finished craftables"
       },
       "stonehearth:stockpile" : {
-         "size" : [ 4, 4 ]
+         "size" : { "x" : 4, "y" : 4 }
       }
    }
 }

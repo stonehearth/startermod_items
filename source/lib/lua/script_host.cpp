@@ -595,16 +595,17 @@ void ScriptHost::SetPerformanceCounter(const char* name, double value, const cha
 
 luabind::object ScriptHost::StringToLua(std::string const& str)
 {
-   LOG_(0) << " evaling: " << str;
    std::string eval = BUILD_STRING("return " << str);
    int ret = luaL_loadstring(L_, eval.c_str());
    if (ret != 0) {
-     OnError(lua_tostring(L_, -1));
-     lua_pop(L_, 1);
-     return luabind::object();
+      LOG_(0) << " error evaling string: " << eval;
+      OnError(lua_tostring(L_, -1));
+      lua_pop(L_, 1);
+      return luabind::object();
    }
    ret = lua_pcall(L_, 0, LUA_MULTRET, 0);
    if (ret != 0) {
+      LOG_(0) << " error evaling string: " << eval;
       OnError(lua_tostring(L_, -1));
       lua_pop(L_, 1);
       return luabind::object();
@@ -620,6 +621,7 @@ std::string ScriptHost::LuaToString(luabind::object obj)
    std::function<void(std::ostringstream& os, luabind::object const& obj)> luaToString;
 
    luaToString = [this, &luaToString](std::ostringstream& os, luabind::object const& obj) {
+      // xxx: look for cycles!
       int t = type(obj);
       if (t == LUA_TTABLE) {
          os << "{";
@@ -640,7 +642,9 @@ std::string ScriptHost::LuaToString(luabind::object obj)
          std::string repr = call_function<std::string>(__repr, obj);
          os << repr;
       } else if (t == LUA_TSTRING) {
-         os << "'" << object_cast<std::string>(obj) << "'";
+         std::string str = object_cast<std::string>(obj);
+         boost::algorithm::replace_all(str, "'", "\\'");
+         os << "'" << str << "'";
       } else if (t == LUA_TNUMBER) {
          std::ostringstream formatter;
          double double_value = object_cast<double>(obj);

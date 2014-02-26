@@ -48,6 +48,7 @@ luabind::object DataObject::GetDataObject() const
 
 void DataObject::MarkDirty()
 {
+   // xxx: look for cycles!
    DO_LOG(8) << "mark dirty";
    dirty_ = true;
 }

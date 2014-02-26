@@ -205,10 +205,7 @@ function WorkshopCallHandler:choose_outbox_location(session, response, workbench
             node = _radiant.client.create_designation_node(parent_node, self._region:get(), Color3(0, 153, 255), Color3(0, 153, 255));
          end)
       :done(function (box)
-            local size = {
-               box.max.x - box.min.x + 1,
-               box.max.z - box.min.z + 1,
-            }
+            local size = Point2(box.max.x - box.min.x + 1, box.max.z - box.min.z + 1)
             _radiant.call('stonehearth:create_outbox', box.min, size, workbench_entity:get_id(), crafter:get_id())
                      :done(function(r)
                            response:resolve(r)
