@@ -25,7 +25,7 @@ class PathFinder : public std::enable_shared_from_this<PathFinder>,
                    public Job {
    public:
       static std::shared_ptr<PathFinder> Create(Simulation& sim, std::string name, om::EntityPtr entity);
-      static void ComputeCounters(std::function<void(const char*, int, const char*)> const& addCounter);
+      static void ComputeCounters(std::function<void(const char*, double, const char*)> const& addCounter);
 
    private:
       PathFinder(Simulation& sim, std::string name, om::EntityPtr source);

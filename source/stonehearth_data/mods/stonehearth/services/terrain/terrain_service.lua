@@ -56,6 +56,7 @@ function TerrainService:_update_regions()
                   region2:add_unique_region(unexplored_region)
 
                   local num_rects = region2:get_num_rects()
+
                   if num_rects >= self._last_optimized_rect_count * self._region_optimization_threshold then
                      log:info('Optimizing explored region')
 
@@ -66,8 +67,13 @@ function TerrainService:_update_regions()
                      )
                      log:info('Optimization time: %.3fs', seconds)
 
+                     -- performance counters standardize on milliseconds
+                     radiant.set_performance_counter('explored_region:optimization_time', seconds*1000, "time")
+
                      self._last_optimized_rect_count = region2:get_num_rects()
                   end
+
+                  radiant.set_performance_counter('explored_region:num_rects', num_rects)
                end
             )
          end
