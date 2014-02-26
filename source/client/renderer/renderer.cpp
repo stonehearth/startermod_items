@@ -248,7 +248,7 @@ Renderer::Renderer() :
 
    h3dSetResParamStr(currentPipeline_, H3DPipeRes::GlobalRenderTarget, 0, fowRenderTarget_, "FogOfWarRT");
 
-   SetDrawWorld(true);
+   SetDrawWorld(false);
    initialized_ = true;
 }
 

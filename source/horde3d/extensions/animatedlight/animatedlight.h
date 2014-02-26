@@ -20,11 +20,9 @@ typedef SmartResPtr< AnimatedLightResource > PAnimatedLightResource;
 struct AnimatedLightNodeTpl : public SceneNodeTpl
 {
    PAnimatedLightResource _animatedLightRes;
-   PMaterialResource _matRes;
 
-   AnimatedLightNodeTpl(const std::string &name, const PAnimatedLightResource &lightRes, const PMaterialResource &matRes) :
-      SceneNodeTpl(SNT_AnimatedLightNode, name),
-      _animatedLightRes(lightRes), _matRes(matRes)
+   AnimatedLightNodeTpl(const std::string &name, const PAnimatedLightResource &lightRes) :
+      SceneNodeTpl(SNT_AnimatedLightNode, name), _animatedLightRes(lightRes)
    {
    }
 };
@@ -126,7 +124,6 @@ protected:
 
    NodeHandle               _lightNode;
    PAnimatedLightResource   _animatedLightRes;
-   PMaterialResource        _materialRes;
    bool                     _active;
 
    float                    _timeDelta;

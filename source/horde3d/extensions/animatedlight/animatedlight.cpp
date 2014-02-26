@@ -1,7 +1,6 @@
 #include "egModules.h"
 #include "egCom.h"
 #include "egRenderer.h"
-#include "egMaterial.h"
 #include "egCamera.h"
 #include "libjson.h"
 #include "lib/json/node.h"
@@ -137,7 +136,6 @@ AnimatedLightNode::AnimatedLightNode( const AnimatedLightNodeTpl &animatedLightT
 	SceneNode( animatedLightTpl )
 {
    _renderable = false;
-   _materialRes = animatedLightTpl._matRes;
    _animatedLightRes = animatedLightTpl._animatedLightRes;
    _timeDelta = 0.0f;
    _lightTime = 0.0f;

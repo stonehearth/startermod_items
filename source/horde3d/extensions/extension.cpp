@@ -360,19 +360,17 @@ DLL bool h3dRadiantAddDebugLine(H3DNode node, const ::radiant::csg::Point3f& p0,
    return true;
 }
 
-DLL H3DNode h3dRadiantAddAnimatedLightNode(H3DNode parent, const char* nam, H3DRes animatedLightRes, H3DRes mat)
+DLL H3DNode h3dRadiantAddAnimatedLightNode(H3DNode parent, const char* nam, H3DRes animatedLightRes)
 {
    std::string name(nam);
 	SceneNode *parentNode = Modules::sceneMan().resolveNodeHandle( parent );
 	APIFUNC_VALIDATE_NODE(parentNode, "h3dRadiantAddAnimatedLight", 0);
 
    AnimatedLightResource *lightRes = (AnimatedLightResource *)Modules::resMan().resolveResHandle(animatedLightRes);
-   MaterialResource *matRes = (MaterialResource *)Modules::resMan().resolveResHandle(mat);
    
-   APIFUNC_VALIDATE_RES_TYPE(matRes, ResourceTypes::Material, "h3dRadiantAddAnimatedLight", 0);
    APIFUNC_VALIDATE_RES_TYPE(lightRes, RT_AnimatedLightResource, "h3dRadiantAddAnimatedLight", 0);
 
-   AnimatedLightNodeTpl tpl(name, lightRes, matRes);
+   AnimatedLightNodeTpl tpl(name, lightRes);
 
 	SceneNode *sn = Modules::sceneMan().findType(SNT_AnimatedLightNode)->factoryFunc(tpl);
    H3DNode ln = Modules::sceneMan().addNode(sn, *parentNode);
