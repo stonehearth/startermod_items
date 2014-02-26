@@ -56,6 +56,21 @@ public:
       return FetchObject(id, -1);
    }
 
+   std::shared_ptr<Object> FetchObject(std::string const& addr, ObjectType type) const;
+   template<class T> std::shared_ptr<T> FetchObject(std::string const& addr) const {
+      ObjectPtr obj = FetchObject(addr, T::DmType);
+      if (obj) {
+         std::shared_ptr<T> result = std::dynamic_pointer_cast<T>(obj);
+         ASSERT(result);
+         return result;
+      }
+      return nullptr;
+   }
+   template<> std::shared_ptr<Object> FetchObject(std::string const& addr) const {
+      return FetchObject(addr, -1);
+   }
+
+
    template<class T> T* FetchStaticObject(ObjectId id) const {
       Object* obj = FetchStaticObject(id);
       T* result = dynamic_cast<T*>(obj);

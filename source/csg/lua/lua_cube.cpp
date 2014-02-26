@@ -56,6 +56,7 @@ Cube3f ToCube3f(const Cube3& r) {
 
 
 IMPLEMENT_TRIVIAL_TOSTRING(PointIterator<Cube3>);
+DEFINE_INVALID_LUA_CONVERSION(PointIterator<Cube3>);
 DEFINE_INVALID_JSON_CONVERSION(PointIterator<Cube3>);
 
 template <typename T>

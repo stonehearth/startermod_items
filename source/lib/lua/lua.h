@@ -14,11 +14,7 @@ class TraceWrapper;
       throw std::invalid_argument(BUILD_STRING("cannot encode lua userdata object of type " << GetShortTypeName<T>() << " as string")); \
    }
 
-template <typename T> std::string Repr(lua_State* L, T const& obj)
-{
-   Protocol::Value msg;
-   SaveImpl<T>::SaveValue(GetStore(), msg, &value_);
-}
+template <typename T> std::string Repr(T const& obj);
 
 #define LUA_LOG(level)     LOG(lua.code, level)
 

@@ -1,6 +1,7 @@
 #include <io.h>
 #include <fcntl.h>
 #include <sys/stat.h>
+#include <regex>
 #include <google/protobuf/io/coded_stream.h>
 #include <google/protobuf/io/zero_copy_stream_impl.h>
 #include "radiant.h"
@@ -24,6 +25,8 @@ using namespace ::radiant::dm;
 #define STORE_LOG(level)      LOG(dm.store, level)
 
 Store*  Store::stores_[4 + 1] = { 0 };
+
+static const std::regex object_address_regex__("^object://(.*)/(\\d+)$");
 
 Store& Store::GetStore(int id)
 {
@@ -337,6 +340,17 @@ std::shared_ptr<Object> Store::FetchObject(int id, ObjectType type) const
    return obj;
 }  
 
+std::shared_ptr<Object> Store::FetchObject(std::string const& addr, ObjectType type) const
+{
+   std::smatch match;
+   if (std::regex_match(addr, match, object_address_regex__)) {
+      if (name_ == match[1]) {
+         dm::ObjectId id = std::stoi(match[2]);
+         return FetchObject(id, type);
+      }
+   }
+   return ObjectPtr();
+}  
 
 std::vector<ObjectId> Store::GetModifiedSince(GenerationId when)
 {

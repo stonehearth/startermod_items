@@ -35,7 +35,7 @@ scope LuaEntity::RegisterLuaTypes(lua_State* L)
 {
    return
       //class_<Entity, std::weak_ptr<Entity>>(name)
-      lua::RegisterWeakGameObject<Entity>()
+      lua::RegisterWeakGameObject<Entity>(L)
          .def("trace_object",       &Entity_TraceObject)
          .def("get_uri",            &Entity_GetUri)
          .def("get_debug_text",     &Entity::GetDebugText)

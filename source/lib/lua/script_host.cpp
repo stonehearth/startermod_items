@@ -18,6 +18,7 @@ using namespace ::radiant;
 using namespace ::radiant::lua;
 
 DEFINE_INVALID_JSON_CONVERSION(ScriptHost);
+DEFINE_INVALID_LUA_CONVERSION(ScriptHost)
 
 static std::string GetLuaTraceback(lua_State* L)
 {
@@ -157,8 +158,9 @@ IMPLEMENT_TRIVIAL_TOSTRING(ScriptHost);
 
 ScriptHost::ScriptHost() 
 {
-   *current_file = '\0';
    current_line = 0;
+   *current_file = '\0';
+   current_file[ARRAY_SIZE(current_file) - 1] = '\0';
 
    bytes_allocated_ = 0;
    filter_c_exceptions_ = core::Config::GetInstance().Get<bool>("lua.filter_exceptions", true);
@@ -593,26 +595,51 @@ void ScriptHost::SetPerformanceCounter(const char* name, int value, const char* 
 
 luabind::object ScriptHost::StringToLua(std::string const& str)
 {
-   return luabind::object();
+   std::string eval = BUILD_STRING("return " << str);
+   int ret = luaL_loadstring(L_, eval.c_str());
+   if (ret != 0) {
+     OnError(lua_tostring(L_, -1));
+     lua_pop(L_, 1);
+     return luabind::object();
+   }
+   ret = lua_pcall(L_, 0, LUA_MULTRET, 0);
+   if (ret != 0) {
+      OnError(lua_tostring(L_, -1));
+      lua_pop(L_, 1);
+      return luabind::object();
+   }
+
+   luabind::object obj(luabind::from_stack(L_, -1));
+   lua_pop(L_, 1);
+   return obj;
 }
 
 std::string ScriptHost::LuaToString(luabind::object obj)
 {
-   std::function<std::ostringstream& (std::ostringstream& os, luabind::object const& obj)> luaToString;
+   std::function<void(std::ostringstream& os, luabind::object const& obj)> luaToString;
 
-   luaToString = [&luaToString](std::ostringstream& os, luabind::object const& obj) -> std::ostringstream& {
+   luaToString = [this, &luaToString](std::ostringstream& os, luabind::object const& obj) {
       int t = type(obj);
       if (t == LUA_TTABLE) {
          os << "{";
          for (iterator i(obj), end; i != end; i++) {
-            os << "[" << luaToString(os, i.key()) << "] = " << luaToString(os, *i) << ",";
+            os << "[";
+               luaToString(os, i.key());
+            os << "] = ";
+               luaToString(os, *i);
+            os << ",";
          }
          os << "}";
       } else if (t == LUA_TUSERDATA) {
-         std::string repr = call_function<std::string>(obj, obj, "__repr");
+         luabind::object __repr = obj["__repr"];
+         if (!__repr.is_valid()) {
+            class_info foo = call_function<class_info>(globals(L_)["class_info"], obj);
+            ASSERT(false);
+         }
+         std::string repr = call_function<std::string>(__repr, obj);
          os << repr;
       } else if (t == LUA_TSTRING) {
-         os << object_cast<std::string>(obj);
+         os << "'" << object_cast<std::string>(obj) << "'";
       } else if (t == LUA_TNUMBER) {
          std::ostringstream formatter;
          double double_value = object_cast<double>(obj);
@@ -625,7 +652,6 @@ std::string ScriptHost::LuaToString(luabind::object obj)
       } else if (t == LUA_TBOOLEAN) {
          os << (object_cast<bool>(obj) ? "true" : "false");
       }
-      return os;
    };
 
    std::ostringstream buffer;
@@ -635,3 +661,19 @@ std::string ScriptHost::LuaToString(luabind::object obj)
    return repr;
 }
 
+void ScriptHost::AddObjectToLuaConvertor(dm::ObjectType type, ObjectToLuaFn cast_fn)
+{
+   ASSERT(!object_cast_table_[type]);
+   object_cast_table_[type] = cast_fn;
+}
+
+luabind::object ScriptHost::CastObjectToLua(dm::ObjectPtr obj)
+{
+   if (!obj) {
+      return luabind::object();
+   }
+
+   ObjectToLuaFn cast_fn = object_cast_table_[obj->GetObjectType()];
+   ASSERT(cast_fn);
+   return cast_fn(L_, obj);
+}

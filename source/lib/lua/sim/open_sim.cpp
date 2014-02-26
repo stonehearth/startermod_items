@@ -18,37 +18,9 @@ using namespace ::radiant;
 using namespace ::radiant::simulation;
 using namespace luabind;
 
-// xxx - why not just use std::weak_ptr<PathFinder> ???
-template <class T>
-class WeakObjectReference {
-public:
-   WeakObjectReference(std::shared_ptr<T> obj) : obj_(obj) {}
-
-   std::shared_ptr<T> Lock() const {
-      return obj_.lock();
-   }
-
-private:
-   std::weak_ptr<T>  obj_;
-};
-
 std::ostream& operator<<(std::ostream& os, Simulation const&s)
 {
    return (os << "[radiant simulation]");
-}
-
-std::ostream& operator<<(std::ostream& os, WeakObjectReference<PathFinder> const& o)
-{
-   auto p = o.Lock();
-   if (!p) {
-      return os << "[PathFinderRef expired]";
-   }
-   return os << "[PathFinderRef -> " << *p << " ]";
-}
-
-WeakObjectReference<PathFinder> ToWeakPathFinder(lua_State* L, std::shared_ptr<PathFinder> p)
-{
-   return WeakObjectReference<PathFinder>(p);
 }
 
 static Simulation& GetSim(lua_State* L)
@@ -87,22 +59,18 @@ om::DataStorePtr Sim_AllocDataStore(lua_State* L)
 }
 
 
-om::EntityRef Sim_GetEntity(lua_State* L, object id)
+luabind::object Sim_GetObject(lua_State* L, object id)
 {
-   using namespace luabind;
-   if (type(id) == LUA_TNUMBER) {
-      return GetSim(L).GetEntity(object_cast<int>(id));
-   }
-   if (type(id) == LUA_TSTRING) {
-      dm::Store& store = GetSim(L).GetStore();
-      dm::ObjectPtr obj = om::ObjectFormatter().GetObject(store, object_cast<std::string>(id));
-      if (obj->GetObjectType() == om::EntityObjectType) {
-         return std::static_pointer_cast<om::Entity>(obj);
-      }
-   }
-   return om::EntityRef();
-}
+   ASSERT(type(id) == LUA_TNUMBER);
+   dm::ObjectId object_id = object_cast<int>(id);
 
+   dm::Store& store = GetSim(L).GetStore();
+   dm::ObjectPtr obj = store.FetchObject(object_id, -1);
+
+   lua::ScriptHost* host = lua::ScriptHost::GetScriptHost(L);
+   luabind::object lua_obj = host->CastObjectToLua(obj);
+   return lua_obj;
+}
 
 void Sim_DestroyEntity(lua_State* L, std::weak_ptr<om::Entity> e)
 {
@@ -165,9 +133,9 @@ DEFINE_INVALID_JSON_CONVERSION(Path);
 DEFINE_INVALID_JSON_CONVERSION(PathFinder);
 DEFINE_INVALID_JSON_CONVERSION(FollowPath);
 DEFINE_INVALID_JSON_CONVERSION(GotoLocation);
-DEFINE_INVALID_JSON_CONVERSION(WeakObjectReference<PathFinder>);
 DEFINE_INVALID_JSON_CONVERSION(LuaJob);
 DEFINE_INVALID_JSON_CONVERSION(Simulation);
+DEFINE_INVALID_LUA_CONVERSION(Simulation)
 
 void lua::sim::open(lua_State* L, Simulation* sim)
 {
@@ -176,7 +144,7 @@ void lua::sim::open(lua_State* L, Simulation* sim)
          namespace_("sim") [
             def("create_empty_entity",      &Sim_CreateEmptyEntity),
             def("create_entity",            &Sim_CreateEntity),
-            def("get_entity",               &Sim_GetEntity),
+            def("get_object",               &Sim_GetObject),
             def("destroy_entity",           &Sim_DestroyEntity),
             def("alloc_region",             &Sim_AllocObject<om::Region3Boxed>),
             def("alloc_region2",            &Sim_AllocObject<om::Region2Boxed>),
@@ -208,16 +176,12 @@ void lua::sim::open(lua_State* L, Simulation* sim)
                .def("get_solution",       &PathFinder::GetSolution)
                .def("set_debug_color",    &PathFinder::SetDebugColor)
                .def("is_idle",            &PathFinder::IsIdle)
-               .def("to_weak_ref",        &ToWeakPathFinder)
                .def("stop",               &PathFinder::Stop)
                .def("start",              &PathFinder::Start)
                .def("restart",            &PathFinder::RestartSearch)
                .def("describe_progress",  &PathFinder::DescribeProgress)
             ,
             lua::RegisterType<Simulation>()
-            ,
-            lua::RegisterType<WeakObjectReference<PathFinder>>()
-               .def("lock",               &WeakObjectReference<PathFinder>::Lock)
             ,
             lua::RegisterTypePtr<FollowPath>()
                .def("get_name", &FollowPath::GetName)

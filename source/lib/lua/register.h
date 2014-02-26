@@ -3,6 +3,7 @@
 
 #include "lib/lua/lua.h"
 #include "lib/json/node.h"
+#include "lib/lua/script_host.h"
 #include "om/object_formatter/object_formatter.h" // xxx: for GetPathToObject...
 
 BEGIN_RADIANT_LUA_NAMESPACE
@@ -101,15 +102,13 @@ std::string WeakGameObjectToJson(std::weak_ptr<T> o, luabind::object state)
 template <class T>
 std::string TypeRepr(T const& obj)
 {
-   return lua::Repr(obj);
+   return lua::Repr<T>(obj);
 }
 
 template <class T>
 std::string TypePointerRepr(std::shared_ptr<T> const& obj)
 {
-   if (obj) {
-      return lua::Repr(obj);
-   }
+   // These things can't be saved.  Tough!
    return "nil";
 }
 
@@ -117,7 +116,7 @@ template <class T>
 std::string StrongGameObjectRepr(std::shared_ptr<T> const& obj)
 {
    if (obj) {
-      return BUILD_STRING("_radiant.get_object('" << obj->GetStoreAddress() << "')");
+      return BUILD_STRING("radiant.get_object('" << obj->GetStoreAddress() << "')");
    }
    return "nil";
 }
@@ -162,8 +161,14 @@ luabind::class_<T, std::shared_ptr<T>> RegisterTypePtr(const char* name = nullpt
 }
 
 template <typename T>
-luabind::class_<T, std::shared_ptr<T>> RegisterStrongGameObject(const char* name = nullptr)
+luabind::class_<T, std::shared_ptr<T>> RegisterStrongGameObject(lua_State* L, const char* name = nullptr)
 {
+   lua::ScriptHost* host = lua::ScriptHost::GetScriptHost(L);
+   host->AddObjectToLuaConvertor(T::GetObjectTypeStatic(), [](lua_State* L, dm::ObjectPtr obj) {
+      std::shared_ptr<T> typed_obj = std::static_pointer_cast<T>(obj);
+      return luabind::object(L, typed_obj);
+   });
+
    name = name ? name : GetShortTypeName<T>();
    return luabind::class_<T, std::shared_ptr<T>>(name)
       .def(tostring(luabind::self))
@@ -179,8 +184,14 @@ luabind::class_<T, std::shared_ptr<T>> RegisterStrongGameObject(const char* name
 }
 
 template <typename T>
-luabind::class_<T, std::weak_ptr<T>> RegisterWeakGameObject(const char* name = nullptr)
+luabind::class_<T, std::weak_ptr<T>> RegisterWeakGameObject(lua_State* L, const char* name = nullptr)
 {
+   lua::ScriptHost* host = lua::ScriptHost::GetScriptHost(L);
+   host->AddObjectToLuaConvertor(T::GetObjectTypeStatic(), [](lua_State* L, dm::ObjectPtr obj) {
+      std::shared_ptr<T> typed_obj = std::static_pointer_cast<T>(obj);
+      return luabind::object(L, std::weak_ptr<T>(typed_obj));
+   });
+
    name = name ? name : GetShortTypeName<T>();
    return luabind::class_<T, std::weak_ptr<T>>(name)
       .def(tostring(luabind::self))
@@ -200,8 +211,14 @@ luabind::class_<T, std::weak_ptr<T>> RegisterWeakGameObject(const char* name = n
 
 // xxx: see if we can overload this with RegisterWeakGameObject
 template<class Derived, class Base>
-luabind::class_<Derived, Base, std::weak_ptr<Derived>> RegisterWeakGameObjectDerived(const char* name = nullptr)
+luabind::class_<Derived, Base, std::weak_ptr<Derived>> RegisterWeakGameObjectDerived(lua_State* L, const char* name = nullptr)
 {
+   lua::ScriptHost* host = lua::ScriptHost::GetScriptHost(L);
+   host->AddObjectToLuaConvertor(Derived::GetObjectTypeStatic(), [](lua_State* L, dm::ObjectPtr obj) {
+      std::shared_ptr<Derived> typed_obj = std::static_pointer_cast<Derived>(obj);
+      return luabind::object(L, std::weak_ptr<Derived>(typed_obj));
+   });
+
    name = name ? name : GetShortTypeName<Derived>();
    return luabind::class_<Derived, Base, std::weak_ptr<Derived>>(name)
       .def(tostring(luabind::self))

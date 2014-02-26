@@ -67,11 +67,11 @@ void radiant::om::RegisterLuaTypes(lua_State* L)
             RegisterModelLayer(L),
             LuaEntity::RegisterLuaTypes(L),
             LuaDataStore::RegisterLuaTypes(L),
-            lua::RegisterStrongGameObject<Region2Boxed>()
+            lua::RegisterStrongGameObject<Region2Boxed>(L)
                .def("get",       &Region2Boxed::Get)
                .def("modify",    &ModifyBoxed<Region2Boxed>)
             ,
-            lua::RegisterStrongGameObject<Region3Boxed>()
+            lua::RegisterStrongGameObject<Region3Boxed>(L)
                .def("get",       &Region3Boxed::Get)
                .def("modify",    &ModifyBoxed<Region3Boxed>)
             ,

@@ -44,6 +44,10 @@ public:
    typedef std::function<void(::radiant::om::ErrorBrowser::Record const&)> ReportErrorCb;
    void SetNotifyErrorCb(ReportErrorCb const& cb);
 
+   typedef std::function<luabind::object(lua_State*L, dm::ObjectPtr)> ObjectToLuaFn;
+   void AddObjectToLuaConvertor(dm::ObjectType type,  ObjectToLuaFn cast_fn);
+   luabind::object CastObjectToLua(dm::ObjectPtr obj);
+
    template <typename T, typename A0, typename A1, typename A2, typename A3, typename A4>
    T CallFunction(A0 const& a0, A1 const& a1, A2 const& a2, A3 const& a3, A4 const& a4) {
       try {
@@ -118,6 +122,7 @@ private:
    std::unordered_map<void *, std::string>         alloc_backmap;
    std::unordered_map<std::string, Allocations>    alloc_map;
    std::unordered_map<std::string, std::pair<int, std::string>>   performanceCounters_;
+   std::unordered_map<dm::ObjectType, ObjectToLuaFn>  object_cast_table_;
 };
 
 END_RADIANT_LUA_NAMESPACE

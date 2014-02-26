@@ -5,6 +5,10 @@ radiant = {
    is_server = false
 }
 
+function radiant.get_object(addr)
+   return _radiant.client.get_object(addr)
+end
+
 radiant.log = require 'modules.log'
 radiant.util = require 'lib.util'
 radiant.json = require 'lualibs.dkjson'

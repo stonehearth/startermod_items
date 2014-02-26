@@ -307,7 +307,7 @@ function CameraService:_calculate_drag(e)
       self._drag_start = screen_ray.origin + screen_ray.direction
     end
 
-    local root = _radiant.client.get_entity(1)
+    local root = radiant.entities.get_entity(1)
     local terrain_comp = root:get_component('terrain')
     local bounds = terrain_comp:get_bounds():to_float()
     if not bounds:contains(self._drag_start) then

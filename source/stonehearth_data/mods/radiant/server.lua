@@ -3,8 +3,12 @@ decoda_name = "radiant server"
 
 radiant = {
    is_server = true,
-   _root_entity = _radiant.sim.get_entity(1)
+   _root_entity = _radiant.sim.get_object(1)
 }
+
+function radiant.get_object(addr)
+   return _radiant.sim.get_object(addr)
+end
 
 radiant.log = require 'modules.log'
 radiant.util = require 'lib.util'
@@ -17,7 +21,6 @@ radiant.effects = require 'modules.effects'
 radiant.entities = require 'modules.entities'
 radiant.terrain = require 'modules.terrain'
 radiant.mods = require 'modules.mods'
-radiant.pathfinder = require 'modules.pathfinder'
 
 radiant.gamestate._start()
 radiant.log.info('server', 'radiant api initialized.')

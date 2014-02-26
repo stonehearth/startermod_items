@@ -40,6 +40,32 @@ om::EntityRef Client_GetEntity(object id)
    return om::EntityRef();
 }
 
+luabind::object Client_GetObject(lua_State* L, object id)
+{
+   Client &client = Client::GetInstance();
+   dm::ObjectPtr obj;
+   luabind::object lua_obj;
+
+   int id_type = type(id);
+
+   if (id_type == LUA_TNUMBER) {
+      dm::ObjectId object_id = object_cast<int>(id);
+      obj = client.GetStore().FetchObject<dm::Object>(object_id);
+   } else if (id_type = LUA_TSTRING) {
+      const char* addr = object_cast<const char*>(id);
+      obj = client.GetStore().FetchObject<dm::Object>(addr);
+      if (!obj) {
+         obj = client.GetAuthoringStore().FetchObject<dm::Object>(addr);
+      }
+   }
+   if (obj) {
+      lua::ScriptHost* host = lua::ScriptHost::GetScriptHost(L);
+      lua_obj = host->CastObjectToLua(obj);
+   }
+   return lua_obj;
+}
+
+
 om::EntityRef Client_GetSelectedEntity()
 {
    return Client::GetInstance().GetSelectedEntity();
@@ -348,6 +374,11 @@ IMPLEMENT_TRIVIAL_TOSTRING(Input)
 IMPLEMENT_TRIVIAL_TOSTRING(MouseInput)
 IMPLEMENT_TRIVIAL_TOSTRING(KeyboardInput)
 IMPLEMENT_TRIVIAL_TOSTRING(RawInput)
+DEFINE_INVALID_LUA_CONVERSION(Input)
+DEFINE_INVALID_LUA_CONVERSION(MouseInput)
+DEFINE_INVALID_LUA_CONVERSION(KeyboardInput)
+DEFINE_INVALID_LUA_CONVERSION(RawInput)
+DEFINE_INVALID_LUA_CONVERSION(RayCastResult)
 
 static bool Client_IsKeyDown(int key)
 {
@@ -371,7 +402,7 @@ void lua::client::open(lua_State* L)
    module(L) [
       namespace_("_radiant") [
          namespace_("client") [
-            def("get_entity",                      &Client_GetEntity),
+            def("get_object",                      &Client_GetObject),
             def("get_selected_entity",             &Client_GetSelectedEntity),
             def("create_empty_authoring_entity",   &Client_CreateEmptyAuthoringEntity),
             def("create_authoring_entity",         &Client_CreateAuthoringEntity),
