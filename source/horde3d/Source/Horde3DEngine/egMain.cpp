@@ -111,12 +111,15 @@ DLLEXP void h3dRelease()
 }
 
 
-DLLEXP void h3dRender( NodeHandle cameraNode )
+DLLEXP void h3dRender( NodeHandle cameraNode, ResHandle pipelineRes )
 {
 	SceneNode *sn = Modules::sceneMan().resolveNodeHandle( cameraNode );
 	APIFUNC_VALIDATE_NODE_TYPE( sn, SceneNodeTypes::Camera, "h3dRender", APIFUNC_RET_VOID );
+
+   Resource* pres = Modules::resMan().resolveResHandle(pipelineRes);
+   APIFUNC_VALIDATE_RES_TYPE(pres, ResourceTypes::Pipeline, "h3dRender", APIFUNC_RET_VOID);
 	
-	Modules::renderer().render( (CameraNode *)sn );
+   Modules::renderer().render( (CameraNode *)sn, (PipelineResource*)pres );
 }
 
 
@@ -189,6 +192,11 @@ DLLEXP void h3dResetStats()
 DLLEXP void h3dSetGlobalShaderFlag(const char* flagName, bool value)
 {
    Modules::config().setGlobalShaderFlag(flagName, value);
+}
+
+DLLEXP void h3dSetGlobalUniform(const char* uniName, UniformType::List kind, void* value)
+{
+   Modules::renderer().setGlobalUniform(uniName, kind, value);
 }
 
 
@@ -722,6 +730,12 @@ DLLEXP void h3dSetNodeFlags( NodeHandle node, int flags, bool recursive )
 	sn->setFlags( flags, recursive );
 }
 
+DLLEXP int h3dGetResFlags( ResHandle res )
+{
+   Resource *r = Modules::resMan().resolveResHandle(res);
+	APIFUNC_VALIDATE_NODE( r, "h3dGetResFlags", 0 );
+	return r->getFlags();
+}
 
 DLLEXP void h3dGetNodeAABB( NodeHandle node, float *minX, float *minY, float *minZ,
                             float *maxX, float *maxY, float *maxZ )
@@ -975,34 +989,27 @@ DLLEXP NodeHandle h3dAddJointNode( NodeHandle parent, const char *name, int join
 }
 
 
-DLLEXP NodeHandle h3dAddLightNode( NodeHandle parent, const char *name, ResHandle materialRes,
+DLLEXP NodeHandle h3dAddLightNode( NodeHandle parent, const char *name,
                                    const char *lightingContext, const char *shadowContext )
 {
 	SceneNode *parentNode = Modules::sceneMan().resolveNodeHandle( parent );
 	APIFUNC_VALIDATE_NODE( parentNode, "h3dAddLightNode", 0 );
-	Resource *matRes = Modules::resMan().resolveResHandle( materialRes );
-	if(matRes != 0x0 )
-	{
-		APIFUNC_VALIDATE_RES_TYPE( matRes, ResourceTypes::Material, "h3dAddLightNode", 0 );
-	}
 	
 	//Modules::log().writeInfo( "Adding Light node '%s'", safeStr( name ).c_str() );
-	LightNodeTpl tpl( safeStr( name, 0 ), (MaterialResource *)matRes,
+	LightNodeTpl tpl( safeStr( name, 0 ),
 	                  safeStr( lightingContext, 1 ), safeStr( shadowContext, 2 ) );
 	SceneNode *sn = Modules::sceneMan().findType( SceneNodeTypes::Light )->factoryFunc( tpl );
 	return Modules::sceneMan().addNode( sn, *parentNode );
 }
 
 
-DLLEXP NodeHandle h3dAddCameraNode( NodeHandle parent, const char *name, ResHandle pipelineRes )
+DLLEXP NodeHandle h3dAddCameraNode( NodeHandle parent, const char *name)
 {
 	SceneNode *parentNode = Modules::sceneMan().resolveNodeHandle( parent );
 	APIFUNC_VALIDATE_NODE( parentNode, "h3dAddCameraNode", 0 );
-	Resource *pipeRes = Modules::resMan().resolveResHandle( pipelineRes );
-	APIFUNC_VALIDATE_RES_TYPE( pipeRes, ResourceTypes::Pipeline, "h3dAddCameraNode", 0 );
 	
 	//Modules::log().writeInfo( "Adding Camera node '%s'", safeStr( name ).c_str() );
-	CameraNodeTpl tpl( safeStr( name, 0 ), (PipelineResource *)pipeRes );
+	CameraNodeTpl tpl( safeStr( name, 0 ));
 	SceneNode *sn = Modules::sceneMan().findType( SceneNodeTypes::Camera )->factoryFunc( tpl );
 	return Modules::sceneMan().addNode( sn, *parentNode );
 }

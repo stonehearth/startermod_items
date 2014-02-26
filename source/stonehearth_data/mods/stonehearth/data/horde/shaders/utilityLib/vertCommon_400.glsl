@@ -1,7 +1,7 @@
 // *************************************************************************************************
 // Horde3D Shader Utility Library
 // --------------------------------------
-//		- Common functions -
+//    - Common functions -
 //
 // Copyright (C) 2006-2011 Nicolas Schulz
 //
@@ -11,33 +11,33 @@
 
 uniform mat4 viewMat;
 uniform mat4 worldMat;
-uniform	mat3 worldNormalMat;
+uniform mat3 worldNormalMat;
 
 #ifdef DRAW_WITH_INSTANCING
-attribute mat4 transform;
+in mat4 transform;
 #endif
 
 vec4 calcWorldPos( const vec4 pos )
 {
 
 #ifdef DRAW_WITH_INSTANCING
-	return transform * pos;
-#else	
-	return worldMat * pos;
+  return transform * pos;
+#else 
+  return worldMat * pos;
 #endif
 }
 
 vec4 calcViewPos( const vec4 pos )
 {
-	return viewMat * pos;
+  return viewMat * pos;
 }
 
 vec3 calcWorldVec( const vec3 vec )
 {
 #ifdef DRAW_WITH_INSTANCING
-	return (transform * vec4(vec, 0)).xyz;
+  return (transform * vec4(vec, 0)).xyz;
 #else
-	return (worldMat * vec4(vec, 0)).xyz;
+  return (worldMat * vec4(vec, 0)).xyz;
 #endif
 }
 
@@ -48,16 +48,16 @@ float getWorldScale()
 
 mat3 calcTanToWorldMat( const vec3 tangent, const vec3 bitangent, const vec3 normal )
 {
-	return mat3( tangent, bitangent, normal );
+  return mat3( tangent, bitangent, normal );
 }
 
 vec3 calcTanVec( const vec3 vec, const vec3 tangent, const vec3 bitangent, const vec3 normal )
 {
-	vec3 v;
-	v.x = dot( vec, tangent );
-	v.y = dot( vec, bitangent );
-	v.z = dot( vec, normal );
-	return v;
+  vec3 v;
+  v.x = dot( vec, tangent );
+  v.y = dot( vec, bitangent );
+  v.z = dot( vec, normal );
+  return v;
 }
 
 

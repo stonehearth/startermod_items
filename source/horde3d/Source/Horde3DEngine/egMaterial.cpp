@@ -52,6 +52,7 @@ void MaterialResource::initDefault()
 {
 	_shaderRes = 0x0;
 	_matLink = 0x0;
+   _parentMaterial = 0x0;
 	_class = "";
 }
 
@@ -60,6 +61,7 @@ void MaterialResource::release()
 {
 	_shaderRes = 0x0;
 	_matLink = 0x0;
+   _parentMaterial = 0x0;
 	for( uint32 i = 0; i < _samplers.size(); ++i ) _samplers[i].texRes = 0x0;
 
 	_samplers.clear();
@@ -96,9 +98,15 @@ bool MaterialResource::load( const char *data, int size )
 	if( strcmp( rootNode.getName(), "Material" ) != 0 )
 		return raiseError( "Not a material resource file" );
 
+   const char* parentName = rootNode.getAttribute("parent");
+   if (strcmp(parentName, "")) {
+      uint32 mat = Modules::resMan().addResource(ResourceTypes::Material, parentName, 0, false);
+      _parentMaterial = (MaterialResource*)Modules::resMan().resolveResHandle(mat);
+   }
+
 	// Class
    _class = rootNode.getAttribute( "class", "" );
-   
+
    // For the sake of efficiency (since we don't want to do substrings in the middle of
    // rendering a model), compute the '~class' string just once, here.
    _notClass = std::string("~") + _class;

@@ -19,7 +19,7 @@ void RenderInfo::ConstructObject()
 void RenderInfo::ExtendObject(json::Node const& obj)
 {
    scale_ = obj.get<float>("scale", *scale_);
-   material_ = obj.get<std::string>("material", "materials/default_material.xml");
+   material_ = obj.get<std::string>("material", "materials/voxel.material.xml");
    model_variant_ = obj.get<std::string>("model_variant", *model_variant_);
    animation_table_ = obj.get<std::string>("animation_table", *animation_table_);
 }

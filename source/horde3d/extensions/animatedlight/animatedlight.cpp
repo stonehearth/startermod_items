@@ -1,7 +1,6 @@
 #include "egModules.h"
 #include "egCom.h"
 #include "egRenderer.h"
-#include "egMaterial.h"
 #include "egCamera.h"
 #include "libjson.h"
 #include "lib/json/node.h"
@@ -137,7 +136,6 @@ AnimatedLightNode::AnimatedLightNode( const AnimatedLightNodeTpl &animatedLightT
 	SceneNode( animatedLightTpl )
 {
    _renderable = false;
-   _materialRes = animatedLightTpl._matRes;
    _animatedLightRes = animatedLightTpl._animatedLightRes;
    _timeDelta = 0.0f;
    _lightTime = 0.0f;
@@ -146,7 +144,7 @@ AnimatedLightNode::AnimatedLightNode( const AnimatedLightNodeTpl &animatedLightT
 
 void AnimatedLightNode::init()
 {
-   _lightNode = h3dAddLightNode(this->getHandle(), "ln", _materialRes->getHandle(), "OMNI_LIGHTING", nullptr);
+   _lightNode = h3dAddLightNode(this->getHandle(), "ln", "OMNI_LIGHTING", nullptr);
    h3dSetNodeParamF(_lightNode, H3DLight::FovF, 0, 360);
    h3dSetNodeParamI(_lightNode, H3DLight::ShadowMapCountI, 0);
    h3dSetNodeParamI(_lightNode, H3DLight::DirectionalI, 0);

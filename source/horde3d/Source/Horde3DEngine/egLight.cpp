@@ -27,7 +27,6 @@ LightNode::LightNode( const LightNodeTpl &lightTpl ) :
 	SceneNode( lightTpl )
 {
    _directional = lightTpl.directional;
-	_materialRes = lightTpl.matRes;
 	_lightingContext = lightTpl.lightingContext;
 	_shadowContext = lightTpl.shadowContext;
 	_radius = lightTpl.radius; _fov = lightTpl.fov;
@@ -55,15 +54,8 @@ SceneNodeTpl *LightNode::parsingFunc( map< string, std::string > &attribs )
 	bool result = true;
 	
 	map< string, std::string >::iterator itr;
-	LightNodeTpl *lightTpl = new LightNodeTpl( "", 0x0, "", "" );
+	LightNodeTpl *lightTpl = new LightNodeTpl( "", "", "" );
 
-	itr = attribs.find( "material" );
-	if( itr != attribs.end() )
-	{
-		uint32 res = Modules::resMan().addResource( ResourceTypes::Material, itr->second, 0, false );
-		if( res != 0 )
-			lightTpl->matRes = (MaterialResource *)Modules::resMan().resolveResHandle( res );
-	}
 	itr = attribs.find( "lightingContext" );
 	if( itr != attribs.end() ) lightTpl->lightingContext = itr->second;
 	else result = false;
@@ -116,9 +108,6 @@ int LightNode::getParamI( int param )
 {
 	switch( param )
 	{
-	case LightNodeParams::MatResI:
-		if( _materialRes != 0x0 ) return _materialRes->getHandle();
-		else return 0;
 	case LightNodeParams::ShadowMapCountI:
 		return _shadowMapCount;
 	}
@@ -129,20 +118,11 @@ int LightNode::getParamI( int param )
 
 void LightNode::setParamI( int param, int value )
 {
-	Resource *res;
-	
 	switch( param )
 	{
 	case LightNodeParams::DirectionalI:
 		_directional = (value != 0);
 		markDirty();
-		return;
-	case LightNodeParams::MatResI:
-		res = Modules::resMan().resolveResHandle( value );
-		if( res == 0x0 || res->getType() == ResourceTypes::Material )
-			_materialRes = (MaterialResource *)res;
-		else
-			Modules::setError( "Invalid handle in h3dSetNodeParamI for H3DLight::MatResI" );
 		return;
 	case LightNodeParams::ShadowMapCountI:
 		if( value == 0 || value == 1 || value == 2 || value == 3 || value == 4 )

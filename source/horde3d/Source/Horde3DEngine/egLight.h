@@ -47,7 +47,6 @@ struct LightNodeParams
 
 struct LightNodeTpl : public SceneNodeTpl
 {
-	PMaterialResource  matRes;
 	std::string        lightingContext, shadowContext;
 	float              radius, fov;
 	float              col_R, col_G, col_B, colMult;
@@ -57,9 +56,9 @@ struct LightNodeTpl : public SceneNodeTpl
 	float              shadowMapBias;
    bool               directional;
 
-	LightNodeTpl( const std::string &name, MaterialResource *materialRes,
+	LightNodeTpl( const std::string &name,
 	              const std::string &lightingContext, const std::string &shadowContext ) :
-		SceneNodeTpl( SceneNodeTypes::Light, name ), matRes( materialRes ),
+		SceneNodeTpl( SceneNodeTypes::Light, name ), 
 		lightingContext( lightingContext ), shadowContext( shadowContext ),
 		radius( 100 ), fov( 90 ), col_R( 1 ), col_G( 1 ), col_B( 1 ), colMult( 1 ),
       ambCol_R( 0 ), ambCol_G( 0 ), ambCol_B( 0 ), shadowMapCount( 0 ), shadowSplitLambda( 0.5f ), 
@@ -99,7 +98,6 @@ private:
 	Matrix4f               _viewMat;
 	Vec3f                  _absPos, _spotDir;
 
-	PMaterialResource      _materialRes;
 	std::string            _lightingContext, _shadowContext;
 	float                  _radius, _fov;
    bool                   _directional;

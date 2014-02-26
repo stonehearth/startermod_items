@@ -20,7 +20,7 @@ DLL H3DNode h3dRadiantAddCubemitterNode(H3DNode parent, const char* nam, H3DRes 
 DLL void h3dRadiantAdvanceCubemitterTime(float timeDelta);
 DLL void h3dRadiantStopCubemitterNode(H3DNode node);
 DLL void h3dRadiantAdvanceAnimatedLightTime(float timeDelta);
-DLL H3DNode h3dRadiantAddAnimatedLightNode(H3DNode parent, const char* nam, H3DRes animatedLightRes, H3DRes mat);
+DLL H3DNode h3dRadiantAddAnimatedLightNode(H3DNode parent, const char* nam, H3DRes animatedLightRes);
 
 #include "../extensions/stockpile/stockpile_node.h"
 #include "../extensions/stockpile/decal_node.h"

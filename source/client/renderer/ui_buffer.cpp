@@ -131,7 +131,7 @@ void UiBuffer::allocateBuffers(int width, int height)
 
       uiPbo_[i] = h3dCreatePixelBuffer(pboName.c_str(), width * height * 4);
 
-      uiTexture_[i] = h3dCreateTexture(texName.c_str(), width, height, H3DFormats::List::TEX_BGRA8, H3DResFlags::NoTexMipmaps);
+      uiTexture_[i] = h3dCreateTexture(texName.c_str(), width, height, H3DFormats::List::TEX_BGRA8, H3DResFlags::NoTexMipmaps | H3DResFlags::NoFlush);
       unsigned char *data = (unsigned char *)h3dMapResStream(uiTexture_[i], H3DTexRes::ImageElem, 0, H3DTexRes::ImgPixelStream, false, true);
       memset(data, 0, width * height * 4);
       h3dUnmapResStream(uiTexture_[i]);
@@ -142,7 +142,7 @@ void UiBuffer::allocateBuffers(int width, int height)
       material << "   <Sampler name=\"albedoMap\" map=\"" << texName << "\" />" << std::endl;
       material << "</Material>" << std::endl;
 
-      uiMatRes_[i] = h3dAddResource(H3DResTypes::Material, matName.c_str(), 0);
+      uiMatRes_[i] = h3dAddResource(H3DResTypes::Material, matName.c_str(), H3DResFlags::NoFlush);
       bool result = h3dLoadResource(uiMatRes_[i], material.str().c_str(), material.str().length());
       ASSERT(result);
    }

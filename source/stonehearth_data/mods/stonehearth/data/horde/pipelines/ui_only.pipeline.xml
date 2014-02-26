@@ -1,0 +1,15 @@
+<!-- Forward Shading Pipeline -->
+<Pipeline name="UI_ONLY">
+   <Setup>
+   </Setup>
+   <CommandQueue>
+      <Stage id="Init">
+         <SwitchTarget target="" />
+         <ClearTarget colBuf0="true" depthBuf="true"/>
+      </Stage>
+      
+      <Stage id="Overlays">
+			<DrawOverlays context="OVERLAY"/>
+		</Stage>
+	</CommandQueue>
+</Pipeline>

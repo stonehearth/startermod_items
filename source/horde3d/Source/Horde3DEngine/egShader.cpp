@@ -417,6 +417,24 @@ bool ShaderResource::raiseError( const std::string &msg, int line )
 	return false;
 }
 
+uint32 toWriteMask(const char* writeMaskStr)
+{
+   uint32 writeMask = 0;
+   while (*writeMaskStr != 0x0)
+   {
+      if (*writeMaskStr == 'R') {
+         writeMask |= 1;
+      } else if (*writeMaskStr == 'G') {
+         writeMask |= 2;
+      } else if (*writeMaskStr == 'B') {
+         writeMask |= 4;
+      } else if (*writeMaskStr == 'A') {
+         writeMask |= 8;
+      }
+      writeMaskStr++;
+   }
+   return writeMask;
+}
 
 bool ShaderResource::parseFXSection( char *data )
 {
@@ -624,20 +642,6 @@ bool ShaderResource::parseFXSection( char *data )
 					else if( tok.checkToken( "false" ) ) context.writeDepth = false;
 					else return raiseError( "FX: invalid bool value", tok.getLine() );
 				}
-				else if( tok.checkToken( "ColorWrite" ) )
-				{
-					if( !tok.checkToken( "=" ) ) return raiseError( "FX: expected '='", tok.getLine() );
-               if( tok.checkToken( "true" ) ) context.writeColor = true;
-					else if( tok.checkToken( "false" ) ) context.writeColor = false;
-					else return raiseError( "FX: invalid bool value", tok.getLine() );
-				}
-				else if( tok.checkToken( "AlphaWrite" ) )
-				{
-					if( !tok.checkToken( "=" ) ) return raiseError( "FX: expected '='", tok.getLine() );
-               if( tok.checkToken( "true" ) ) context.writeAlpha = true;
-					else if( tok.checkToken( "false" ) ) context.writeAlpha = false;
-					else return raiseError( "FX: invalid bool value", tok.getLine() );
-				}
 				else if( tok.checkToken( "ZEnable" ) )
 				{
 					if( !tok.checkToken( "=" ) ) return raiseError( "FX: expected '='", tok.getLine() );
@@ -722,6 +726,13 @@ bool ShaderResource::parseFXSection( char *data )
 					_tmpCode1 = tok.getToken( identifier );
 					if( _tmpCode1 == "" ) return raiseError( "FX: Invalid name", tok.getLine() );
 				}
+            else if( tok.checkToken( "ColorWriteMask" ) )
+            {
+					if( !tok.checkToken( "=" ) ) return raiseError( "FX: expected '='", tok.getLine() );
+               
+               const char* mask = tok.getToken("RGBA");
+               context.writeMask = toWriteMask(mask);
+            }
 				else
 					return raiseError( "FX: unexpected token", tok.getLine() );
 				if( !tok.checkToken( ";" ) ) return raiseError( "FX: expected ';'", tok.getLine() );
