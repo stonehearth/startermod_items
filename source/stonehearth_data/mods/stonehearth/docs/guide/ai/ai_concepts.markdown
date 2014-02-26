@@ -18,11 +18,11 @@ Actions come in two flavors: Simple and Compound.
 
 Simple Actions implement the AI Action interface to do an extremely trivial task.  Examples include synchronously running an an Effect on an Entity (e.g. a pickup or eat food animation), moving an Entity from one location to another, or doing some kind of computation required by a Compound Action (e.g. finding a path from one entity to another).
 
-Simple Actions should be though of as extremely basic, generic building blocks which can be used to build complex behavior.  By analogy, a Simple Action is like an English sentence with a very simple sentence structure, especially with no contractions or conditionals (e.g. follow this path, run this animation, put this buff on this Entity, etc.) 
+Simple Actions should be thought of as extremely basic, generic building blocks which can be used to build complex behavior.  By analogy, a Simple Action is like an English sentence with a very simple sentence structure, especially with no contractions or conditionals (e.g. follow this path, run this animation, put this buff on this Entity, etc.) 
 
 ### Compound Actions
 
-Compound Actions are composed of Simple Actions using the AI System's create_compound_action method.  The Compound Action basically runs through each Simple Action sequentially and synchronously.  You can think of a Compound Action as being built up of many Simple Actions strung together with "then" statements (e.g. go to this item, then pickup the item, then carry it to this chest, then put it in the chest).
+Compound Actions are composed of Simple Actions using the AI System's "create\_compound\_action" method.  The Compound Action basically runs through each Simple Action sequentially and synchronously.  You can think of a Compound Action as being built up of many Simple Actions strung together with "then" statements (e.g. go to this item, then pickup the item, then carry it to this chest, then put it in the chest).
 
 ### No Complex Logic
 
@@ -35,7 +35,7 @@ A Task is used to track a **request** to run Actions on one or more Entities.  T
 - Change the number of times an Action should be performed.
 - Start, stop, or monitor the lifetime of the request.
 - Wait for the request to complete.
-- Change the priority of the task relative to its Task Group (see below)
+- Change the priority of the task relative to its Task Group (see below).
  
 A Task Group is used to feed a set of work items (Tasks) to Entities who are eligible to perform them (Workers).  It has methods to
 
@@ -64,7 +64,7 @@ In many cases, running Actions simply isn't sufficient for implementing Entity b
 
 To handle all these situations, you need to create a new Thread of execution to manage the complicated scenario, and use Tasks and TaskGroups to request Actions get run to carry out the details.
 
-For example, consider a crafter who needs to process is order list.  There are many, many cases where the crafter may need to do different actions based on any number of events.  Consider, for example, what should happen when the crafter is instructed to build a chair that takes 2 pieces of wood.  If we implemented this as a CompoundAction, we would need to precompute a complicated path to take the crafter from his current position, to each piece of wood, and back to the bench.  Furthermore, the Action would take a really long time to complete, during which either the wood the crafter needs would either be unavailable for other uses (which might look weird) or it might mysteriously disappear, forcing our Action to abort.
+For example, consider a crafter who needs to process his order list.  There are many, many cases where the crafter may need to do different actions based on any number of events.  Consider, for example, what should happen when the crafter is instructed to build a chair that takes 2 pieces of wood.  If we implemented this as a CompoundAction, we would need to precompute a complicated path to take the crafter from his current position, to each piece of wood, and back to the bench.  Furthermore, the Action would take a really long time to complete, during which either the wood the crafter needs would either be unavailable for other uses (which might look weird) or it might mysteriously disappear, forcing our Action to abort.
 
 Instead of using a CompoundAction, we would like to write code that looks like
 

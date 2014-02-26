@@ -62,11 +62,9 @@ end
 
 
 function SkyRenderer:add_celestial(name, colors, angles, ambient_colors, depth_offsets)
-   -- TODO: how do we support multiple (deferred) renderers here?
-   local light_mat = h3dAddResource(H3DResTypes.Material, "materials/deferred_light.material.xml", 0)
    local new_celestial = {
       name = name,
-      node = h3dAddLightNode(H3DRootNode, name, light_mat, "DIRECTIONAL_LIGHTING", "DIRECTIONAL_SHADOWMAP"),
+      node = h3dAddLightNode(H3DRootNode, name, "DIRECTIONAL_LIGHTING", "DIRECTIONAL_SHADOWMAP"),
       colors = colors,
       ambient_colors = ambient_colors,
       angles = angles,

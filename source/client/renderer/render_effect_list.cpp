@@ -363,9 +363,8 @@ LightEffect::LightEffect(RenderEntity& e, om::EffectPtr effect, const JSONNode& 
 {
    auto animatedLightFileName = node["light"].as_string();
    // TODO: for just a moment, hardcode some light values.
-   H3DRes matRes = h3dAddResource(H3DResTypes::Material, "materials/deferred_light.material.xml", 0);
    H3DRes lightRes = h3dAddResource(RT_AnimatedLightResource, animatedLightFileName.c_str(), 0);
-   H3DNode l = h3dRadiantAddAnimatedLightNode(e.GetNode(), "ln", lightRes, matRes);
+   H3DNode l = h3dRadiantAddAnimatedLightNode(e.GetNode(), "ln", lightRes);
 
    float x, y, z;
 

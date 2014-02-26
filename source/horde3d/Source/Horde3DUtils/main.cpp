@@ -479,6 +479,20 @@ DLLEXP void h3dCollectDebugFrame()
 }
 
 
+DLLEXP int h3dutCreateRenderTarget( int width, int height, H3DFormats::List format,
+                                    bool depth, int numColBufs, int samples, int numMips)
+{
+   TextureFormats::List tf;
+   if (format == H3DFormats::TEX_BGRA8) {
+      tf = TextureFormats::BGRA8;
+   } else if (format == H3DFormats::TEX_RGBA32F) {
+      tf = TextureFormats::RGBA32F;
+   } else {
+      ASSERT(0);
+   }
+   return gRDI->createRenderBuffer(width, height, tf, depth, numColBufs, samples, numMips);
+}
+
 DLLEXP void h3dutShowFrameStats( H3DRes fontMaterialRes, H3DRes boxMaterialRes, int mode )
 {
 	static stringstream text;

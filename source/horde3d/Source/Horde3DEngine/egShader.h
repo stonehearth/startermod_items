@@ -140,7 +140,7 @@ struct ShaderCombination
 
 	// Engine uniforms
 	int                 uni_currentTime;
-	int                 uni_frameBufSize;
+	int                 uni_frameBufSize, uni_viewPortSize, uni_viewPortPos;
 	int                 uni_halfTanFoV, uni_nearPlane, uni_farPlane;
 	int                 uni_viewMat, uni_viewMatInv, uni_projMat, uni_viewProjMat, uni_viewProjMatInv, uni_viewerPos;
    int                 uni_camProjMat, uni_camViewProjMat, uni_camViewProjMatInv, uni_camViewMat, uni_camViewMatInv, uni_camViewerPos;
@@ -167,34 +167,36 @@ struct ShaderCombination
 
 struct ShaderContext
 {
-	std::string                       id;
-	
-	// RenderConfig
-	BlendModes::List                  blendMode;
-	TestModes::List                   depthFunc;
-	CullModes::List                   cullMode;
+   std::string                       id;
+
+   // RenderConfig
+   BlendModes::List                  blendMode;
+   TestModes::List                   depthFunc;
+   CullModes::List                   cullMode;
    StencilOpModes::List              stencilOpModes;
    TestModes::List                   stencilFunc;
    int                               stencilRef;
-	bool                              depthTest;
-	bool                              writeDepth;
+   bool                              depthTest;
+   bool                              writeDepth;
    bool                              writeColor;
    bool                              writeAlpha;
-	bool                              alphaToCoverage;
-	
-	// Shaders
-	std::vector<ShaderCombination>    shaderCombinations;
-	int                               vertCodeIdx, fragCodeIdx;
-	bool                              compiled;
+   bool                              alphaToCoverage;
+   uint32                            writeMask;
+
+   // Shaders
+   std::vector<ShaderCombination>    shaderCombinations;
+   int                               vertCodeIdx, fragCodeIdx;
+   bool                              compiled;
 
 
-	ShaderContext() :
-		blendMode( BlendModes::Replace ), depthFunc( TestModes::LessEqual ),
-		cullMode( CullModes::Back ), depthTest( true ), writeDepth( true ), alphaToCoverage( false ),
+   ShaderContext() :
+      blendMode( BlendModes::Replace ), depthFunc( TestModes::LessEqual ),
+      cullMode( CullModes::Back ), depthTest( true ), writeDepth( true ), alphaToCoverage( false ),
       vertCodeIdx( -1 ), fragCodeIdx( -1 ), compiled( false ), stencilOpModes(StencilOpModes::Off), 
-      stencilFunc(TestModes::Always), stencilRef(0), writeColor(true), writeAlpha(true)
-	{
-	}
+      stencilFunc(TestModes::Always), stencilRef(0), writeColor(true), writeAlpha(true), 
+      writeMask(0xf)
+   {
+   }
 };
 
 // =================================================================================================

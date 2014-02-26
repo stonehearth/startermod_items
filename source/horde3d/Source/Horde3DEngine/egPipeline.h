@@ -34,7 +34,8 @@ struct PipelineResData
 	{
 		StageElem = 900,
 		StageNameStr,
-		StageActivationI
+		StageActivationI,
+      GlobalRenderTarget
 	};
 };
 
@@ -54,7 +55,8 @@ struct PipelineCommands
 		DoForwardLightLoop,
 		DoDeferredLightLoop,
 		SetUniform,
-      DrawProjections
+    BuildMipmap,
+    DrawProjections
 	};
 };
 
@@ -142,6 +144,7 @@ struct RenderTarget
 	uint32                samples;
 	float                 scale;  // Scale factor for FB width and height
 	bool                  hasDepthBuf;
+   uint32                mipLevels;
 
    uint32                rendBuf;
 
@@ -150,6 +153,7 @@ struct RenderTarget
 		hasDepthBuf = false;
 		numColBufs = 0;
 		rendBuf = 0;
+      mipLevels = 0;
 	}
 };
 
@@ -172,6 +176,7 @@ public:
 	int getElemCount( int elem );
 	int getElemParamI( int elem, int elemIdx, int param );
 	void setElemParamI( int elem, int elemIdx, int param, int value );
+	void setElemParamStr( int elem, int elemIdx, int param, const char *value );
 	const char *getElemParamStr( int elem, int elemIdx, int param );
 
 	bool getRenderTargetData( const std::string &target, int bufIndex, int *width, int *height,
@@ -183,7 +188,8 @@ private:
 
 	void addRenderTarget( const std::string &id, bool depthBuffer, uint32 numBuffers,
 	                      TextureFormats::List format, uint32 samples,
-	                      uint32 width, uint32 height, float scale );
+	                      uint32 width, uint32 height, float scale, uint32 mipLevels );
+   void addGlobalRenderTarget(const char* name);
 	RenderTarget *findRenderTarget( const std::string &id );
 	bool createRenderTargets();
 	void releaseRenderTargets();
@@ -196,8 +202,10 @@ private:
 
 private:
 	std::vector< RenderTarget >      _renderTargets;
+   std::vector< RenderTarget >      _globalRenderTargets;
 	std::vector< PipelineStagePtr >  _stages;
 	uint32                           _baseWidth, _baseHeight;
+   std::string                      _pipelineName;
 
 	friend class ResourceManager;
 	friend class Renderer;

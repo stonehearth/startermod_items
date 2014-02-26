@@ -1,34 +1,66 @@
 <!-- Forward Shading Pipeline -->
-<Pipeline name="FORWARD">
+<Pipeline name="FORWARD_POSTPROCESS">
    <Setup>
-      <RenderTarget id="SelectedTemp" numColBufs="1" depthBuf="true" format="RGBA8" scale="1.0"/>
-      <RenderTarget id="SkyTemp" numColBufs="1" depthBuf="false" format="RGBA8" scale="0.125"/>
+      <RenderTarget id="GBuffers" numColBufs="2" depthBuf="true" format="RGBA32F" scale="1.0" mipLevels="5"/>
+      <RenderTarget id="SSAOTemp" numColBufs="1" depthBuf="false" format="RGBA8" scale="1.0" />
+      <RenderTarget id="SSAOBlur" numColBufs="1" depthBuf="false" format="RGBA8" scale="1.0" />
+      <RenderTarget id="SelectedTemp" numColBufs="1" depthBuf="true" scale="1.0" format="RGBA8"/>
+      <RenderTarget id="SkyTemp" numColBufs="1" depthBuf="false" scale="0.125" format="RGBA8"/>
       <GlobalRenderTarget id="FogOfWarRT" />
    </Setup>
    <CommandQueue>
       <Stage id="Init">
+         <SwitchTarget target="GBuffers" />
+         <ClearTarget colBuf0="true" colBuf1="true" depthBuf="true" />
+
          <SwitchTarget target="" />
-         <ClearTarget colBuf0="true" depthBuf="true"/>
+         <ClearTarget colBuf0="true" depthBuf="true" />
       </Stage>
-      
+
       <Stage id="Sky">
-         <DrawGeometry context="SKY"/>
+         <DrawGeometry context="SKY" />
 
          <SwitchTarget target="SkyTemp" />
-         <DrawGeometry context="SKY"/>
+         <DrawGeometry context="SKY" />
       </Stage>
 
       <Stage id="Starfield">
          <SwitchTarget target="" />
-         <DrawGeometry context="STARFIELD"/>
+         <DrawGeometry context="STARFIELD" />
       </Stage>
 
       <Stage id="Depth">
+         <SwitchTarget target="GBuffers" />
+         <DrawGeometry context="DEPTH_LINEAR" class="~Translucent" />
+
+         <ClearTarget colBuf0="false" colBuf1="false" depthBuf="true" />
+         <DrawGeometry context="DEPTH_LINEAR_BACK" class="~Translucent" />
+
+         <SwitchTarget target="" />
          <DrawGeometry context="DEPTH" class="~Translucent" />
+      </Stage>
+
+      <Stage id="SSAO">
+         <BuildMipmaps rt="GBuffers" index="0" />
+
+         <SwitchTarget target="SSAOTemp" />
+         <BindBuffer sampler="depthBuffer" sourceRT="GBuffers" bufIndex="0" />
+         <BindBuffer sampler="normalBuffer" sourceRT="GBuffers" bufIndex="1" />
+         <DrawQuad material="materials/ssao.material.xml" context="SSAO" />
+         <UnbindBuffers />
+
+         <SwitchTarget target="SSAOBlur"/>
+         <BindBuffer sampler="depthBuffer" sourceRT="GBuffers" bufIndex="0" />
+         <BindBuffer sampler="ssaoImage" sourceRT="SSAOTemp" bufIndex="0" />
+         <DrawQuad material="materials/blur.material.xml" context="BLUR" />
+         <UnbindBuffers />
+
+         <SwitchTarget target=""/>
       </Stage>
 
       <Stage id="Light">
          <BindBuffer sampler="fowRT" sourceRT="FogOfWarRT" bufIndex="0" />
+         <BindBuffer sampler="ssaoImage" sourceRT="SSAOBlur" bufIndex="0" />
          <DoForwardLightLoop class="~Translucent" noShadows="false"/>
          <UnbindBuffers />
       </Stage>
@@ -69,7 +101,7 @@
       </Stage>
 
       <Stage id="Overlays">
-			<DrawOverlays context="OVERLAY"/>
-		</Stage>
-	</CommandQueue>
+         <DrawOverlays context="OVERLAY"/>
+      </Stage>
+   </CommandQueue>
 </Pipeline>

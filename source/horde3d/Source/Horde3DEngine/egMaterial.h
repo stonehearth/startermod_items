@@ -98,6 +98,7 @@ private:
 	bool raiseError( const std::string &msg, int line = -1 );
 
 private:
+   PMaterialResource           _parentMaterial;
 	PShaderResource             _shaderRes;
 	std::string                 _class, _notClass;
 	std::vector< MatSampler >   _samplers;

@@ -74,6 +74,7 @@ Renderer::Renderer()
 	_maxAnisoMask = 0;
 	_smSize = 0;
    _materialOverride = 0x0;
+   _curPipeline = 0x0;
 
 	_shadowRB = 0;
 	_vlPosOnly = 0;
@@ -544,6 +545,8 @@ bool Renderer::createShaderComb( const char* filename, const char *vertexShader,
 	// Misc general uniforms
 	sc.uni_currentTime = gRDI->getShaderConstLoc( shdObj, "currentTime" );
 	sc.uni_frameBufSize = gRDI->getShaderConstLoc( shdObj, "frameBufSize" );
+   sc.uni_viewPortSize = gRDI->getShaderConstLoc( shdObj, "viewPortSize" );
+   sc.uni_viewPortPos = gRDI->getShaderConstLoc( shdObj, "viewPortPos" );
    sc.uni_halfTanFoV = gRDI->getShaderConstLoc( shdObj, "halfTanFoV" );
    sc.uni_nearPlane = gRDI->getShaderConstLoc( shdObj, "nearPlane" );
    sc.uni_farPlane = gRDI->getShaderConstLoc( shdObj, "farPlane" );
@@ -612,9 +615,41 @@ void Renderer::setShaderComb( ShaderCombination *sc )
 }
 
 
+void Renderer::commitGlobalUniforms()
+{
+   for (auto& e : _uniformFloats)
+   {
+      int loc = gRDI->getShaderConstLoc(_curShader->shaderObj, e.first.c_str());
+      if (loc >= 0) {
+         gRDI->setShaderConst(loc, CONST_FLOAT, &e.second);
+      }
+   }
+
+   for (auto& e : _uniformVecs)
+   {
+      int loc = gRDI->getShaderConstLoc(_curShader->shaderObj, e.first.c_str());
+      if (loc >= 0) {
+         Vec4f& v = e.second;
+         gRDI->setShaderConst(loc, CONST_FLOAT4, &v);
+      }
+   }
+
+   for (auto& e : _uniformMats)
+   {
+      int loc = gRDI->getShaderConstLoc(_curShader->shaderObj, e.first.c_str());
+      if (loc >= 0) {
+         Matrix4f& m = e.second;
+         gRDI->setShaderConst(loc, CONST_FLOAT44, m.x);
+      }
+   }
+}
+
+
 void Renderer::commitGeneralUniforms()
 {
 	ASSERT( _curShader != 0x0 );
+
+   commitGlobalUniforms();
 
 	// Note: Make sure that all functions which modify one of the following params increase the stamp
 	if( _curShader->lastUpdateStamp != _curShaderUpdateStamp )
@@ -624,6 +659,18 @@ void Renderer::commitGeneralUniforms()
 			float dimensions[2] = { (float)gRDI->_fbWidth, (float)gRDI->_fbHeight };
 			gRDI->setShaderConst( _curShader->uni_frameBufSize, CONST_FLOAT2, dimensions );
 		}
+
+      if (_curShader->uni_viewPortSize >= 0)
+      {
+         float dimensions[2] = { (float)gRDI->_vpWidth, (float)gRDI->_vpHeight };
+			gRDI->setShaderConst( _curShader->uni_viewPortSize, CONST_FLOAT2, dimensions );
+      }
+
+      if (_curShader->uni_viewPortPos >= 0)
+      {
+         float dimensions[2] = { (float)gRDI->_vpX, (float)gRDI->_vpY };
+			gRDI->setShaderConst( _curShader->uni_viewPortPos, CONST_FLOAT2, dimensions );
+      }
 
       if ( _curShader->uni_halfTanFoV >= 0 )
       {
@@ -837,13 +884,15 @@ bool Renderer::setMaterialRec( MaterialResource *materialRes, const std::string 
 		// Setup standard shader uniforms
 		commitGeneralUniforms();
 
+      // Configure color write mask.
+      glColorMask(context->writeMask & 1 ? GL_TRUE : GL_FALSE, 
+         context->writeMask & 2 ? GL_TRUE : GL_FALSE, 
+         context->writeMask & 4 ? GL_TRUE : GL_FALSE, 
+         context->writeMask & 8 ? GL_TRUE : GL_FALSE);
+
 		// Configure depth mask
 		if( context->writeDepth ) glDepthMask( GL_TRUE );
 		else glDepthMask( GL_FALSE );
-
-      int colMask = context->writeColor ? GL_TRUE : GL_FALSE;
-      int alphaMask = context->writeAlpha ? GL_TRUE : GL_FALSE;
-      glColorMask(colMask, colMask, colMask, alphaMask);
 
 		// Configure cull mode
 		if( !Modules::config().wireframeMode )
@@ -1112,10 +1161,6 @@ bool Renderer::setMaterialRec( MaterialResource *materialRes, const std::string 
 		// Handle link of stage
 		if( _curStageMatLink != 0x0 && _curStageMatLink != materialRes )
 			result &= setMaterialRec( _curStageMatLink, shaderContext, shaderRes );
-
-		// Handle material of light source
-		if( _curLight != 0x0 && _curLight->_materialRes != 0x0 && _curLight->_materialRes != materialRes )
-			result &= setMaterialRec( _curLight->_materialRes, shaderContext, shaderRes );
 	}
 
 	// Handle link of material resource
@@ -1139,13 +1184,22 @@ bool Renderer::setMaterial( MaterialResource *materialRes, const std::string &sh
 		return false;
 	}
 
-	if( !setMaterialRec( materialRes, shaderContext, 0x0 ) )
-	{
-		_curShader = 0x0;
-		return false;
-	}
+   // First, see if the model's material has what we're looking for.
+	if (setMaterialRec(materialRes, shaderContext, 0x0)) {
+      return true;
+   }
 
-	return true;
+   // Next, try everything in the model material's chain.
+   MaterialResource* mr = materialRes->_parentMaterial;
+   while (mr != 0x0) {
+      if (setMaterialRec(mr, shaderContext, 0x0)) {
+         return true;
+      }
+      mr = mr->_parentMaterial;
+   }
+
+	_curShader = 0x0;
+	return false;
 }
 
 
@@ -2091,14 +2145,13 @@ void Renderer::drawLightGeometry( const std::string &shaderContext, const std::s
 			                      ftoi_r( bbw * gRDI->_fbWidth ), ftoi_r( bbh * gRDI->_fbHeight ) );
 			glEnable( GL_SCISSOR_TEST );
 		}
-		
 		// Render
       std::ostringstream reason;
       reason << "drawing light geometry for light " << _curLight->getName();
 		Modules::sceneMan().updateQueues( reason.str().c_str(), _curCamera->getFrustum(), lightFrus,
 		                                  order, SceneNodeFlags::NoDraw, selectedOnly ? SceneNodeFlags::Selected : 0, false, true );
 		setupViewMatrices( _curCamera->getViewMat(), _curCamera->getProjMat() );
-		drawRenderables( shaderContext.empty() ? _curLight->_lightingContext : shaderContext,
+      drawRenderables( _curLight->_lightingContext + "_" + _curPipeline->_pipelineName,
 		                 theClass, false, &_curCamera->getFrustum(),
 		                 lightFrus, order, occSet );
 		Modules().stats().incStat( EngineStats::LightPassCount, 1 );
@@ -2196,7 +2249,7 @@ void Renderer::drawLightShapes( const std::string &shaderContext, bool noShadows
 		{	
          updateShadowMap(lightFrus, minDist, maxDist);
 			setupShadowMap( false );
-			curMatRes = 0x0;			
+			curMatRes = 0x0;
 		}
 		else
 		{
@@ -2205,26 +2258,16 @@ void Renderer::drawLightShapes( const std::string &shaderContext, bool noShadows
 
 		setupViewMatrices( _curCamera->getViewMat(), _curCamera->getProjMat() );
 
+      // TODO(klochek): wait, what?  Pretty sure this is bogus, now.
       if (!_curLight->_directional) {
-         if( curMatRes != _curLight->_materialRes || 
-               isShaderContextSwitch(shaderContext.empty() ? _curLight->_lightingContext : shaderContext, _curLight->_materialRes)) {
-			   if( !setMaterial( _curLight->_materialRes,
-				                 shaderContext.empty() ? _curLight->_lightingContext : shaderContext ) )
-			   {
-				   continue;
-			   }
-			   curMatRes = _curLight->_materialRes;
-		   } else {
-			   commitGeneralUniforms();
-		   }
+			commitGeneralUniforms();
       }
 
 		glCullFace( GL_FRONT );
 		glDisable( GL_DEPTH_TEST );
 
-		if (_curLight->_directional) {       
-			curMatRes = _curLight->_materialRes;
-         drawFSQuad(curMatRes, shaderContext.empty() ? _curLight->_lightingContext : shaderContext);
+		if (_curLight->_directional) {
+         drawFSQuad(curMatRes, _curLight->_lightingContext + "_" + _curPipeline->_pipelineName);
       } else if (_curLight->_fov < 180) {
 			float r = _curLight->_radius * tanf( degToRad( _curLight->_fov / 2 ) );
 			drawCone( _curLight->_radius, r, _curLight->_absTrans );
@@ -2253,6 +2296,19 @@ void Renderer::drawLightShapes( const std::string &shaderContext, bool noShadows
 // =================================================================================================
 // Scene Node Rendering Functions
 // =================================================================================================
+
+void Renderer::setGlobalUniform(const char* str, UniformType::List kind, void* value)
+{
+   float *f = (float*)value;
+   if (kind == UniformType::FLOAT) {
+      _uniformFloats[std::string(str)] = *f;
+   } else if (kind == UniformType::VEC4) {
+      _uniformVecs[std::string(str)] = Vec4f(f[0], f[1], f[2], f[3]);
+   } else if (kind == UniformType::MAT44) {
+      _uniformMats[std::string(str)] = Matrix4f(f);
+   }
+}
+
 
 void Renderer::drawRenderables( const std::string &shaderContext, const std::string &theClass, bool debugView,
                                 const Frustum *frust1, const Frustum *frust2, RenderingOrder::List order,
@@ -3027,10 +3083,11 @@ void Renderer::drawParticles( const std::string &shaderContext, const std::strin
 // Main Rendering Functions
 // =================================================================================================
 
-void Renderer::render( CameraNode *camNode )
+void Renderer::render( CameraNode *camNode, PipelineResource* pRes )
 {
    radiant::perfmon::SwitchToCounter("render scene");
 	_curCamera = camNode;
+   _curPipeline = pRes;
 	if( _curCamera == 0x0 ) return;
 
    gRDI->_frameDebugInfo.setViewerFrustum_(camNode->getFrustum());
@@ -3046,7 +3103,7 @@ void Renderer::render( CameraNode *camNode )
 	else _maxAnisoMask = SS_ANISO16;
 
 	gRDI->setViewport( _curCamera->_vpX, _curCamera->_vpY, _curCamera->_vpWidth, _curCamera->_vpHeight );
-	if( Modules::config().debugViewMode || _curCamera->_pipelineRes == 0x0 )
+	if( Modules::config().debugViewMode || _curPipeline == 0x0 )
 	{
 		renderDebugView();
 		finishRendering();
@@ -3063,9 +3120,9 @@ void Renderer::render( CameraNode *camNode )
 		gRDI->setRenderBuffer( 0 );
 
 	// Process pipeline commands
-	for( uint32 i = 0; i < _curCamera->_pipelineRes->_stages.size(); ++i )
+	for( uint32 i = 0; i < _curPipeline->_stages.size(); ++i )
 	{
-		PipelineStagePtr &stage = _curCamera->_pipelineRes->_stages[i];
+		PipelineStagePtr &stage = _curPipeline->_stages[i];
 		if( !stage->enabled ) continue;
 		_curStageMatLink = stage->matLink;
 
@@ -3100,6 +3157,22 @@ void Renderer::render( CameraNode *camNode )
 					                       _curCamera->_outputTex->getRBObject() : 0 );
 				}
 				break;
+
+         case PipelineCommands::BuildMipmap: 
+            {
+               rt = (RenderTarget *)pc.params[0].getPtr();
+               int index = pc.params[1].getInt();
+
+               RDIRenderBuffer &rendBuf = gRDI->_rendBufs.getRef( rt->rendBuf );
+               uint32 texGlObj = gRDI->_textures.getRef(rendBuf.colTexs[index]).glObj;
+               glActiveTexture(GL_TEXTURE15);
+               glEnable(GL_TEXTURE_2D);
+               glBindTexture(GL_TEXTURE_2D, texGlObj);
+               glGenerateMipmapEXT(GL_TEXTURE_2D);
+               glBindTexture(GL_TEXTURE_2D, 0);
+               glDisable(GL_TEXTURE_2D);
+            }
+            break;
 
 			case PipelineCommands::BindBuffer:
             {

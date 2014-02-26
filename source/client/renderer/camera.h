@@ -13,7 +13,7 @@ BEGIN_RADIANT_CLIENT_NAMESPACE
 class Camera
 {
    public:
-      Camera(H3DNode parent, const char* name,H3DRes pipeline);
+      Camera(H3DNode parent, const char* name);
       virtual ~Camera();
 
       void OrbitPointBy(const csg::Point3f &point, float xRot, float yRot, float maxX, float minX);
