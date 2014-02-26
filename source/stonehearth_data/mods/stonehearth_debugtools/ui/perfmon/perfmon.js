@@ -40,18 +40,19 @@ App.StonehearthPerfmonView = App.View.extend({
       self._timeSuffixes = {
         '-2': 'n',
         '-1': 'u',
-         '0': 'm', // milliseconds is the default
+         '0': 'm', // milliseconds is the default scale
          '1': '',
          '2': 'mins',
          '3': 'hrs',
          '4': 'days'
       };
 
+      // the key of the timeScale corresponds to the key of the timeSuffix
       self._timeScales = {
          'min': 2,
-         '2': 1000*60,
-         '3': 1000*60*60,
-         '4': 1000*60*60*24,
+         '2': 1000*60,       // milliseconds/min
+         '3': 1000*60*60,    // milliseconds/hr
+         '4': 1000*60*60*24, // milliseconds/day
          'max': 4
       };
 
