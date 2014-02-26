@@ -234,7 +234,7 @@ protected:
 	void drawFSQuad( Resource *matRes, const std::string &shaderContext );
 	void drawGeometry( const std::string &shaderContext, const std::string &theClass,
 	                   RenderingOrder::List order, int filterRequired, int occSet, float frustStart, float frustEnd );
-   void drawProjections(const std::string &shaderContext);
+   void drawProjections(const std::string &shaderContext, uint32 userFlags );
 	void drawLightGeometry( const std::string &shaderContext, const std::string &theClass,
 	                        bool noShadows, RenderingOrder::List order, int occSet, bool selectedOnly );
 	void drawLightShapes( const std::string &shaderContext, bool noShadows, int occSet );

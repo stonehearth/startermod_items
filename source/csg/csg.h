@@ -20,7 +20,7 @@ float InvSqrt(float value);
 
 // Bias: towards zero
 template <typename T>
-T floor0( const T& value )
+T trunc( const T& value )
 {
    T result = std::floor(std::fabs( value ));
    return static_cast<T>((value < 0.0) ? -result : result);

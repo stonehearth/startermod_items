@@ -91,7 +91,7 @@ function NewGameCallHandler:embark_server(session, response)
    local y = radiant.terrain.get_height(Point2(x, z))
 
    -- reveal scenaraios around the staring location
-   scenario_service:reveal_starting_location(x, z)
+   --scenario_service:reveal_starting_location(x, z)
 
    return { x = x, y = y, z = z }
 end
@@ -99,7 +99,6 @@ end
 function NewGameCallHandler:embark_client(session, response)
    _radiant.call('stonehearth:embark_server'):done(
       function (o)
-         -- reconcile these with the camera constants later
          local camera_height = 30
          local target_distance = 70
          local camera_service = stonehearth.camera
@@ -248,7 +247,7 @@ function NewGameCallHandler:create_camp(session, response, pt)
 
    radiant.entities.pickup_item(worker1, faction:create_entity('stonehearth:oak_log'))
    radiant.entities.pickup_item(worker2, faction:create_entity('stonehearth:oak_log'))
-   radiant.entities.pickup_item(worker3, faction:create_entity('stonehearth:trapper:trapper_kit'))
+   radiant.entities.pickup_item(worker3, faction:create_entity('stonehearth:trapper:trapper_knife'))
    radiant.entities.pickup_item(worker4, faction:create_entity('stonehearth:carpenter:saw'))
 
    -- start the game master service

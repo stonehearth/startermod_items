@@ -36,7 +36,7 @@ std::shared_ptr<PathFinder> PathFinder::Create(Simulation& sim, std::string name
    return pathfinder;
 }
 
-void PathFinder::ComputeCounters(std::function<void(const char*, int, const char*)> const& addCounter)
+void PathFinder::ComputeCounters(std::function<void(const char*, double, const char*)> const& addCounter)
 {
    int count = 0;
    int running_count = 0;

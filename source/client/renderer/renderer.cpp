@@ -90,8 +90,6 @@ void Renderer::OneTimeIninitializtion()
    drawWorldStages_.insert(std::string("Light"));
    drawWorldStages_.insert(std::string("Fog"));
    drawWorldStages_.insert(std::string("Translucent"));
-   drawWorldStages_.insert(std::string("Selected"));
-   drawWorldStages_.insert(std::string("Selected_Fast"));
    drawWorldStages_.insert(std::string("Overlays"));
    drawWorldStages_.insert(std::string("Projections"));
 
@@ -209,8 +207,8 @@ void Renderer::OneTimeIninitializtion()
       h3dAddResource(H3DResTypes::Material, "materials/fow_explored.material.xml", 0), 
       Pipeline::GetInstance().CreateVoxelGeometryFromRegion("littlecube", littleCube), 1000);
 
-   csg::Region3 r;
-   r.Add(csg::Region3::Cube(csg::Region3::Point(-10, 0, -10), csg::Region3::Point(10, 100, 10)));
+   csg::Region2 r;
+   r.Add(csg::Rect2(csg::Region2::Point(-10, -10), csg::Region2::Point(10, 10)));
    UpdateFoW(fowExploredNode_, r);
 
    // Add camera   
@@ -296,7 +294,7 @@ void Renderer::OneTimeIninitializtion()
    initialized_ = true;
 }
 
-void Renderer::UpdateFoW(H3DNode node, const csg::Region3& region)
+void Renderer::UpdateFoW(H3DNode node, const csg::Region2& region)
 {
    if (region.GetCubeCount() >= 1000) {
       return;
@@ -306,12 +304,12 @@ void Renderer::UpdateFoW(H3DNode node, const csg::Region3& region)
    for (const auto& c : region) 
    {
       float px = (c.max + c.min).x * 0.5f;
-      float py = (c.max + c.min).y * 0.5f;
-      float pz = (c.max + c.min).z * 0.5f;
+      float py = -50.0f;
+      float pz = (c.max + c.min).y * 0.5f;
 
       float xSize = (float)c.max.x - c.min.x;
-      float zSize = (float)c.max.z - c.min.z;
-      float ySize = (float)c.max.y - c.min.y;
+      float zSize = (float)c.max.y - c.min.y;
+      float ySize = 100.0f;
       f[0] = xSize; f[1] =  0; f[2] =   0; f[3] =  0;
       f[4] =  0; f[5] = ySize; f[6] =   0; f[7] =  0;
       f[8] =  0; f[9] =  0; f[10] = zSize; f[11] = 0;
@@ -322,8 +320,8 @@ void Renderer::UpdateFoW(H3DNode node, const csg::Region3& region)
 
    h3dUnmapNodeParamV(node, H3DInstanceNodeParams::InstanceBuffer, (f - start) * 4);
    const auto& bounds = region.GetBounds();
-   h3dUpdateBoundingBox(node, (float)bounds.min.x, (float)bounds.min.y, (float)bounds.min.z, 
-      (float)bounds.max.x, (float)bounds.max.y, (float)bounds.max.z);
+   h3dUpdateBoundingBox(node, (float)bounds.min.x, -50.0f, (float)bounds.min.y, 
+      (float)bounds.max.x, -50.0f, (float)bounds.max.y);
 }
 
 void Renderer::RenderFogOfWarRT()
@@ -660,6 +658,14 @@ void Renderer::ApplyConfig(const RendererConfig& newConfig, bool persistConfig)
       config.Set("renderer.use_fast_hilite", config_.use_fast_hilite.value);
    }
 
+   if (config_.use_fast_hilite.value) {
+      drawWorldStages_.insert(std::string("Selected_Fast"));
+      drawWorldStages_.erase(std::string("Selected"));
+   } else {
+      drawWorldStages_.erase(std::string("Selected_Fast"));
+      drawWorldStages_.insert(std::string("Selected"));
+   }
+
    // We just flushed/loaded our pipeline, so don't forget to reset the draw bits!
    if (drawWorld_) {
       SetEnabledStages(drawWorldStages_);
@@ -844,29 +850,29 @@ HWND Renderer::GetWindowHandle() const
 
 void Renderer::SetVisibilityRegions(std::string const& visible_region_uri, std::string const& explored_region_uri)
 {
-   om::Region3BoxedPtr visibleRegionBoxed, exploredRegionBoxed;
+   om::Region2BoxedPtr visibleRegionBoxed, exploredRegionBoxed;
 
    dm::Store const& store = Client::GetInstance().GetStore();
 
-   visibleRegionBoxed = om::ObjectFormatter().GetObject<om::Region3Boxed>(store, visible_region_uri);
-   exploredRegionBoxed = om::ObjectFormatter().GetObject<om::Region3Boxed>(store, explored_region_uri);
+   visibleRegionBoxed = om::ObjectFormatter().GetObject<om::Region2Boxed>(store, visible_region_uri);
+   exploredRegionBoxed = om::ObjectFormatter().GetObject<om::Region2Boxed>(store, explored_region_uri);
 
    visibilityTrace_ = visibleRegionBoxed->TraceChanges("render visible region", dm::RENDER_TRACES)
                          ->OnModified([=](){
-                            csg::Region3 visibleRegion = visibleRegionBoxed->Get();
+                            csg::Region2 visibleRegion = visibleRegionBoxed->Get();
                             // TODO: give visibleRegion to horde
-                            int num_cubes = visibleRegion.GetCubeCount();
-                            R_LOG(3) << "Client visibility cubes: " << num_cubes;
+                            //int num_cubes = visibleRegion.GetCubeCount();
+                            //R_LOG(3) << "Client visibility cubes: " << num_cubes;
                          })
                          ->PushObjectState(); // Immediately send the current state to listener
 
    exploredTrace_ = exploredRegionBoxed->TraceChanges("render explored region", dm::RENDER_TRACES)
                          ->OnModified([=](){
-                            csg::Region3 exploredRegion = exploredRegionBoxed->Get();
+                            csg::Region2 exploredRegion = exploredRegionBoxed->Get();
 
                             Renderer::GetInstance().UpdateFoW(Renderer::GetInstance().fowExploredNode_, exploredRegion);
-                            int num_cubes = exploredRegion.GetCubeCount();
-                            R_LOG(3) << "Client explored cubes: " << num_cubes;
+                            //int num_cubes = exploredRegion.GetCubeCount();
+                            //R_LOG(3) << "Client explored cubes: " << num_cubes;
                          })
                          ->PushObjectState(); // Immediately send the current state to listener
 }

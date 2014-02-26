@@ -580,7 +580,7 @@ void ScriptHost::ProfileMemory(bool value)
    }
 }
 
-void ScriptHost::ComputeCounters(std::function<void(const char*, int, const char*)> const& addCounter) const
+void ScriptHost::ComputeCounters(std::function<void(const char*, double, const char*)> const& addCounter) const
 {
    addCounter("lua:alloced_bytes", GetAllocBytesCount(), "memory");
    for (auto const& entry : performanceCounters_) {
@@ -588,7 +588,7 @@ void ScriptHost::ComputeCounters(std::function<void(const char*, int, const char
    }
 }
 
-void ScriptHost::SetPerformanceCounter(const char* name, int value, const char* kind)
+void ScriptHost::SetPerformanceCounter(const char* name, double value, const char* kind)
 {
    performanceCounters_[BUILD_STRING("lua:" << name)] = std::make_pair(value, kind);
 }

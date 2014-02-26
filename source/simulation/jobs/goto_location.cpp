@@ -60,6 +60,7 @@ bool GotoLocation::Work(const platform::timer &timer)
    if (!entity) {
       return false;
    }
+
    if (target_is_entity_) {
       auto target = target_entity_.lock();
       if (!target) {
@@ -72,38 +73,53 @@ bool GotoLocation::Work(const platform::timer &timer)
       target_location_ = mob->GetLocation();
    }
 
+   // stepSize should be no more than 1.0 to prevent skipping a voxel in the navgrid test
+   // unfortunately, entities can still wander through diagonal cracks
+   float const stepSize = 1.0;
+   float const maxDistance = speed_ * GetSim().GetBaseWalkSpeed();
+   float remainingDistance = maxDistance;
    auto mob = entity->GetComponent<om::Mob>();
-   csg::Point3f current = mob->GetLocation();
-   csg::Point3f direction = csg::Point3f(target_location_ - current);
+   bool finished = false;
+   csg::Point3f direction;
 
-   float maxDistance = speed_ * GetSim().GetBaseWalkSpeed();
-   float togo = direction.Length() - close_to_distance_;
-   direction.Normalize();
+   while (!finished && remainingDistance > 0) {
+      csg::Point3f const current_location = mob->GetLocation();
 
-   csg::Point3f desiredLocation, actualLocation;
-   float distance;
-   bool finished;
+      // project the target location to our current standing location
+      // we're just walking towards x,z and ignoring y
+      target_location_.y = current_location.y;
 
-   if (togo < maxDistance) {
-      Report("arriving");
-      distance = togo;
-      finished = true;
-   } else {
-      Report("moving");
-      distance = maxDistance;
-      finished = false;
+      direction = csg::Point3f(target_location_ - current_location);
+      float const targetDistance = direction.Length() - close_to_distance_;
+      direction.Normalize();
+
+      float moveDistance = std::min(stepSize, remainingDistance);
+
+      if (targetDistance <= moveDistance) {
+         Report("arriving");
+         moveDistance = targetDistance;
+         finished = true;
+      } else {
+         Report("moving");
+         finished = false;
+      }
+
+      csg::Point3f desiredLocation, actualLocation;
+      desiredLocation = current_location + direction * moveDistance;
+      bool passable = GetStandableLocation(entity, desiredLocation, actualLocation);
+
+      if (passable) {
+         mob->MoveTo(actualLocation);
+      } else {
+         Report("unpassable");
+         finished = true;
+      }
+
+      remainingDistance -= stepSize;
    }
 
-   desiredLocation = current + direction * distance;
-   bool passable = GetStandableLocation(entity, desiredLocation, actualLocation);
+   mob->TurnTo(angle(direction) * 180 / csg::k_pi);
 
-   if (passable) {
-      mob->TurnTo(angle(direction) * 180 / csg::k_pi);
-      mob->MoveTo(actualLocation);
-   } else {
-      Report("unpassable");
-      finished = true;
-   }
    if (finished && luabind::type(arrived_cb_) == LUA_TFUNCTION) {
       luabind::call_function<void>(arrived_cb_);
    }

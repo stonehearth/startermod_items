@@ -14,6 +14,7 @@ void radiant::om::RegisterObjectTypes(dm::Store& store)
 
       OM_ALL_OBJECTS
       OM_ALL_COMPONENTS
+      OM_OBJECT(Region2Boxed, boxed_region2)
       OM_OBJECT(Region3Boxed, boxed_region3)
       OM_OBJECT(JsonBoxed, boxed_json)
 

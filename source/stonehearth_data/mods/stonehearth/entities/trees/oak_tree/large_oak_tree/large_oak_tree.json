@@ -18,7 +18,8 @@
       },
       "unit_info": {
          "name": "Large Oak Tree", 
-         "description": "100's of years old. Too bad..."
+         "description": "100's of years old. Too bad...",
+         "portrait": "file(large_oak_tree.png)"
       }, 
       "stonehearth:resource_node": {
          "resource": "stonehearth:oak_log", 

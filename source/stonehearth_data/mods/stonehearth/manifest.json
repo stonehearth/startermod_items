@@ -55,7 +55,7 @@
       "carpenter:outfit" : "file(entities/professions/carpenter/carpenter_outfit)",
       "carpenter:saw" : "file(entities/professions/carpenter/carpenter_saw)",
 
-      "trapper:trapper_kit" : "file(professions/trapper/trapper_kit)",
+      "trapper:trapper_knife" : "file(professions/trapper/trapper_knife)",
 
       "trapper:description" : "file(professions/trapper/trapper_description.json)",
       "trapper:outfit" : "file(professions/trapper/trapper_outfit)",
@@ -75,6 +75,7 @@
       "rabbit_pelt" : "file(entities/critters/rabbit/rabbit_pelt)",
       "rabbit_jerky" : "file(entities/critters/rabbit/rabbit_jerky)",
       "sheep" : "file(entities/critters/sheep)",
+      "sheep_jerky" : "file(entities/critters/sheep/sheep_jerky)",
       "wolf" : "file(entities/critters/wolf)",
       "wolf:teeth_weapon" : "file(entities/critters/wolf/wolf_teeth.json)",
       "male_1" : "file(entities/humans/male_1)",

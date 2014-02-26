@@ -21,18 +21,67 @@ App.StonehearthPerfmonView = App.View.extend({
    forwardHistory: [],
 
    init: function() {
-      this._suffixTypes = {
-         'memory' : {
-            base : 1024.0,
-            suffix : [ 'B', 'KB', 'MB', 'GB', 'TB', 'PB' ],
-         },
-         default : {
-            base : 1000.0,
-            suffix : [ '', 'K', 'M', 'G', 'T', 'P' ],
-         }
+      var self = this;
+
+      self._defaultPrecision = 2;
+
+      self._defaultSuffixes = {
+         '-3': 'n',
+         '-2': 'u',
+         '-1': 'm',
+          '0': '',
+          '1': 'K',
+          '2': 'M',
+          '3': 'G',
+          '4': 'T',
+          '5': 'P'
+       };
+
+      self._timeSuffixes = {
+        '-2': 'n',
+        '-1': 'u',
+         '0': 'm', // milliseconds is the default
+         '1': '',
+         '2': 'mins',
+         '3': 'hrs',
+         '4': 'days'
       };
-      this._perf_trace = new RadiantTrace();
-      this._super();
+
+      self._timeScales = {
+         'min': 2,
+         '2': 1000*60,
+         '3': 1000*60*60,
+         '4': 1000*60*60*24,
+         'max': 4
+      };
+
+      self._formatFunctions = {
+         memory: function(value) {
+            return self._formatNormalized(value, 'B', 1024);
+         },
+
+         time: function(value) {
+            var timeScales = self._timeScales;
+            var absValue = Math.abs(value);
+
+            for (var i = timeScales.max; i >= timeScales.min; i--) {
+               if (absValue >= timeScales[i]) {
+                  value /= timeScales[i];
+                  value = value.toFixed(self._defaultPrecision);
+                  return value + ' ' + self._timeSuffixes[i];
+               }
+            }
+
+            return self._formatNormalized(value, 's', 1000, self._timeSuffixes)
+         },
+
+         default: function(value) {
+            return self._formatNormalized(value);
+         },
+      },
+
+      self._perf_trace = new RadiantTrace();
+      self._super();
    },
 
    didInsertElement: function() {
@@ -60,21 +109,47 @@ App.StonehearthPerfmonView = App.View.extend({
       this._super();
    },
 
-   _formatCounter: function(d) {
-      var s = this._suffixTypes[d.type]
-      if (!s) {
-         s = this._suffixTypes.default;
+   _formatNormalized: function(value, unit, base, suffixes, precision) {
+      var self = this;
+      unit = unit || '';
+      suffixes = suffixes || self._defaultSuffixes;
+
+      var result = self._normalize(value, base, precision);
+      var suffix = suffixes[result.scale] + unit;
+      return result.value + ' ' + suffix;
+   },
+
+   // works for negative numbers and numbers < 1
+   _normalize: function(value, base, precision) {
+      var self = this;
+      // This is harder to read but works when arg is boolean:
+      //    arg = (typeof arg === 'undefined') ? 1000 : arg;
+      base = base || 1000;
+      precision = precision || self._defaultPrecision;
+      var epsilon = 0.000001;
+      var scale = 0;
+
+      var absValue = Math.abs(value)                               // handle negative numbers
+      if (absValue > epsilon) {                                    // treat rounding errors near 0 as 0
+         scale = Math.floor(Math.log(absValue) / Math.log(base));  // find the exponent for the base
+         value /= Math.pow(base, scale);                           // normalize the value
       }
-      suffix_index = 0;
-      var count = d.value
-      while (count > s.base) {
-         count = count / s.base;
-         suffix_index += 1;
+
+      if (scale != 0) {
+         value = value.toFixed(precision);
       }
-      if (suffix_index != 0) {
-         count = count.toFixed(2)
+      
+      return { value: value, scale: scale }
+   },
+
+   _formatCounter: function(data) {
+      var formatFn = this._formatFunctions[data.type];
+
+      if (!formatFn) {
+         formatFn = this._formatFunctions.default;
       }
-      return count + ' ' + s.suffix[suffix_index]
+
+      return formatFn(data.value);
    },
 
    _updateCounters: function (data) {

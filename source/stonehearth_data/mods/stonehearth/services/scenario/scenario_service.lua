@@ -21,6 +21,8 @@ function ScenarioService:initialize(feature_size, rng)
    self._reveal_distance = radiant.util.get_config('sight_radius', 64) * 2
    self._revealed_region = Region2()
    self._dormant_scenarios = {}
+   self._last_optimized_rect_count = 10
+   self._region_optimization_threshold = radiant.util.get_config('region_optimization_threshold', 1.2)
 
    local scenario_index = radiant.resources.load_json('stonehearth:scenarios:scenario_index')
    local categories = {}
@@ -107,21 +109,18 @@ function ScenarioService:reveal_around_entities()
 end
 
 function ScenarioService:reveal_region(world_space_region)
+   local revealed_region = self._revealed_region
    local bounded_world_space_region, unrevealed_region, new_region
-   local num_rects, rect, key, dormant_scenario, properties
+   local key, dormant_scenario, properties
    local cpu_timer = Timer(Timer.CPU_TIME)
    cpu_timer:start()
 
    bounded_world_space_region = self:_bound_region_by_terrain(world_space_region)
    new_region = self:_region_to_habitat_space(bounded_world_space_region)
 
-   unrevealed_region = new_region - self._revealed_region
-   num_rects = unrevealed_region:get_num_rects()
+   unrevealed_region = new_region - revealed_region
 
-   -- use c++ base 0 array indexing
-   for n=0, num_rects-1 do
-      rect = unrevealed_region:get_rect(n)
-
+   for rect in unrevealed_region:each_cube() do
       for j = rect.min.y, rect.max.y-1 do
          for i = rect.min.x, rect.max.x-1 do
             key = self:_get_coordinate_key(i, j)
@@ -141,11 +140,17 @@ function ScenarioService:reveal_region(world_space_region)
       end
    end
 
-   self._revealed_region:add_region(unrevealed_region)
+   revealed_region:add_unique_region(unrevealed_region)
+
+   local num_rects = revealed_region:get_num_rects()
+   if num_rects >= self._last_optimized_rect_count * self._region_optimization_threshold then
+      log:info('Optimizing scenario region')
+      revealed_region:optimize_by_oct_tree(8)
+      self._last_optimized_rect_count = revealed_region:get_num_rects()
+   end
 
    cpu_timer:stop()
-   if num_rects ~= 0 then
-      log:info('%d rects in revealed region', self._revealed_region:get_num_rects())
+   if unrevealed_region:get_num_rects() > 0 then
       log:info('ScenarioService:reveal_region time: %.3fs', cpu_timer:seconds())
    end
 end

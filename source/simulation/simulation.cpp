@@ -400,7 +400,7 @@ void Simulation::PushPerformanceCounters()
    if (perf_counter_deferred_) {
       json::Node counters(JSON_ARRAY);
 
-      auto addCounter = [&counters](const char* name, int value, const char* type) {
+      auto addCounter = [&counters](const char* name, double value, const char* type) {
          json::Node row;
          row.set("name", name);
          row.set("value", value);

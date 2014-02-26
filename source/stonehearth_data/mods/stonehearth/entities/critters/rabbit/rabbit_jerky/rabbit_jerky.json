@@ -3,8 +3,7 @@
    "type": "entity",
    "components": {
       "unit_info": {
-         "name": "Rabbit jerky",
-         "description": "Tough and stringy, but nutritious!"
+         "name": "Rabbit jerky"
       }
    }
 }

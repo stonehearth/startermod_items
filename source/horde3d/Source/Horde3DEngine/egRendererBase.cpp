@@ -134,29 +134,12 @@ bool RenderDevice::init(int glMajor, int glMinor, bool msaaWindowSupported, bool
       Modules::log().writeError( "OpenGL %d.%d not available", glMajor, glMinor );
       failed = true;
    }
-	
 	// Check that required extensions are supported
 	if( !glExt::EXT_framebuffer_object )
 	{
 		Modules::log().writeError( "Extension EXT_framebuffer_object not supported" );
 		failed = true;
-	}
-	if( !glExt::EXT_texture_filter_anisotropic )
-	{
-		Modules::log().writeError( "Extension EXT_texture_filter_anisotropic not supported" );
-		failed = true;
-	}
-	if( !glExt::EXT_texture_compression_s3tc )
-	{
-		Modules::log().writeError( "Extension EXT_texture_compression_s3tc not supported" );
-		failed = true;
-	}
-	if( !glExt::EXT_texture_sRGB )
-	{
-		Modules::log().writeError( "Extension EXT_texture_sRGB not supported" );
-		failed = true;
-	}
-	
+	}	
 	if( failed )
 	{
 		Modules::log().writeError( "Failed to init renderer backend, debug info following" );
@@ -424,7 +407,7 @@ uint32 RenderDevice::createTexture( TextureTypes::List type, int width, int heig
 	tex.width = width;
 	tex.height = height;
 	tex.depth = (type == TextureTypes::Tex3D ? depth : 1);
-	tex.sRGB = sRGB && Modules::config().sRGBLinearization;
+   tex.sRGB = sRGB && Modules::config().sRGBLinearization && glExt::EXT_texture_sRGB;
 	tex.genMips = genMips;
 	tex.hasMips = hasMips;
 	
@@ -432,15 +415,6 @@ uint32 RenderDevice::createTexture( TextureTypes::List type, int width, int heig
 	{
 	case TextureFormats::BGRA8:
 		tex.glFmt = tex.sRGB ? GL_SRGB8_ALPHA8_EXT : GL_RGBA8;
-		break;
-	case TextureFormats::DXT1:
-		tex.glFmt = tex.sRGB ? GL_COMPRESSED_SRGB_ALPHA_S3TC_DXT1_EXT : GL_COMPRESSED_RGBA_S3TC_DXT1_EXT;
-		break;
-	case TextureFormats::DXT3:
-		tex.glFmt = tex.sRGB ? GL_COMPRESSED_SRGB_ALPHA_S3TC_DXT3_EXT : GL_COMPRESSED_RGBA_S3TC_DXT3_EXT;
-		break;
-	case TextureFormats::DXT5:
-		tex.glFmt = tex.sRGB ? GL_COMPRESSED_SRGB_ALPHA_S3TC_DXT5_EXT : GL_COMPRESSED_RGBA_S3TC_DXT5_EXT;
 		break;
 	case TextureFormats::RGBA16F:
 		tex.glFmt = GL_RGBA16F_ARB;
@@ -969,7 +943,7 @@ uint32 RenderDevice::createRenderBuffer( uint32 width, uint32 height, TextureFor
       RDITexture &tex = _textures.getRef(texObj);
       glBindTexture(GL_TEXTURE_2D, tex.glObj);
       glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_COMPARE_MODE, GL_NONE );
-      glTexParameteri(GL_TEXTURE_2D, GL_DEPTH_TEXTURE_MODE, GL_INTENSITY);
+      //glTexParameteri(GL_TEXTURE_2D, GL_DEPTH_TEXTURE_MODE, GL_INTENSITY);
       glBindTexture(GL_TEXTURE_2D, 0);
 		
       uploadTextureData( texObj, 0, 0, 0x0 );
@@ -1376,7 +1350,10 @@ void RenderDevice::applySamplerState( RDITexture &tex )
 		glTexParameteri( target, GL_TEXTURE_MIN_FILTER, magFilters[(state & SS_FILTER_MASK) >> SS_FILTER_START] );
 
 	glTexParameteri( target, GL_TEXTURE_MAG_FILTER, magFilters[(state & SS_FILTER_MASK) >> SS_FILTER_START] );
-	glTexParameteri( target, GL_TEXTURE_MAX_ANISOTROPY_EXT, maxAniso[(state & SS_ANISO_MASK) >> SS_ANISO_START] );
+
+   if (glExt::EXT_texture_filter_anisotropic) {
+	   glTexParameteri( target, GL_TEXTURE_MAX_ANISOTROPY_EXT, maxAniso[(state & SS_ANISO_MASK) >> SS_ANISO_START] );
+   }
 	glTexParameteri( target, GL_TEXTURE_WRAP_S, wrapModes[(state & SS_ADDRU_MASK) >> SS_ADDRU_START] );
 	glTexParameteri( target, GL_TEXTURE_WRAP_T, wrapModes[(state & SS_ADDRV_MASK) >> SS_ADDRV_START] );
 	glTexParameteri( target, GL_TEXTURE_WRAP_R, wrapModes[(state & SS_ADDRW_MASK) >> SS_ADDRW_START] );

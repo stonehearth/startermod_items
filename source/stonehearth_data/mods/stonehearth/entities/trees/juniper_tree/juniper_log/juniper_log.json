@@ -18,7 +18,9 @@
       "unit_info": {
          "name": "Juniper Log", 
          "description": "Looks a lot like an oak log...",
-         "icon" : "file(log.png)"
+         "icon" : "file(log.png)",
+         "portrait": "file(juniper_log.png)",
+         "character_sheet_info" : "file(../../log_character_sheet_info.json)"         
       }
    }
 }

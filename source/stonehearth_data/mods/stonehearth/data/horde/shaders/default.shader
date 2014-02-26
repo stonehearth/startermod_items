@@ -83,7 +83,7 @@ context SELECTED_FAST
   PixelShader = compile GLSL FS_SELECTED_FAST;
   ZWriteEnable = false;
   BlendMode = Add;
-  CullMode = None;
+  CullMode = Back;
 }
 
 context SELECTED_SCREENSPACE_OUTLINER

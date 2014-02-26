@@ -25,7 +25,7 @@ public:
    void ClearMemoryProfile();
    void ProfileMemory(bool value);
    void WriteMemoryProfile(std::string const& filename) const;
-   void ComputeCounters(std::function<void(const char*, int, const char*)> const& addCounter) const;
+   void ComputeCounters(std::function<void(const char*, double, const char*)> const& addCounter) const;
 
    typedef std::function<luabind::object(lua_State* L, JSONNode const& json)> JsonToLuaFn;
    void AddJsonToLuaConverter(JsonToLuaFn fn);
@@ -102,7 +102,7 @@ private:
    void OnError(std::string description);
    luabind::object GetManifest(std::string const& mod_name);
    luabind::object GetJson(std::string const& mod_name);
-   void SetPerformanceCounter(const char* name, int value, const char* kind);
+   void SetPerformanceCounter(const char* name, double value, const char* kind);
    
 private:
    lua_State*           L_;
@@ -121,7 +121,7 @@ private:
    typedef std::unordered_map<void*, int>          Allocations;
    std::unordered_map<void *, std::string>         alloc_backmap;
    std::unordered_map<std::string, Allocations>    alloc_map;
-   std::unordered_map<std::string, std::pair<int, std::string>>   performanceCounters_;
+   std::unordered_map<std::string, std::pair<double, std::string>>   performanceCounters_;
    std::unordered_map<dm::ObjectType, ObjectToLuaFn>  object_cast_table_;
 };
 

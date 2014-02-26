@@ -379,10 +379,13 @@ App.StonehearthCrafterView = App.View.extend({
 
    _enableDisableTrash: function() {
       var list = this.get('context.stonehearth:workshop.order_list');
-      if (list && list.length > 0) {
-         this.$('#garbageButton').css('opacity', '1');
-      } else {
-         this.$('#garbageButton').css('opacity', '0.3');
+
+      if (this.$('#garbageButton')) {
+         if (list && list.length > 0) {
+            this.$('#garbageButton').css('opacity', '1');
+         } else {
+            this.$('#garbageButton').css('opacity', '0.3');
+         }
       }
    }
 

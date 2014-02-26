@@ -7,7 +7,7 @@
          "stacks": 1
       },
       "stonehearth:material" : {
-         "tags" : "fiber resource"
+         "tags" : "fiber"
       },
       "model_variants": {
          "default": {

@@ -488,7 +488,8 @@ struct H3DNodeParams
 	enum List
 	{
 		NameStr = 1,
-		AttachmentStr
+		AttachmentStr,
+      UserFlags
 	};
 };
 

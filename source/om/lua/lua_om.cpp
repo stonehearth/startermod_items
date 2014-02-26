@@ -17,6 +17,7 @@ using namespace ::luabind;
 using namespace ::radiant;
 using namespace ::radiant::om;
 
+DEFINE_INVALID_JSON_CONVERSION(Region2BoxedPtrBoxed)
 DEFINE_INVALID_JSON_CONVERSION(Region3BoxedPtrBoxed)
 DEFINE_INVALID_JSON_CONVERSION(DeepRegionGuard)
 IMPLEMENT_TRIVIAL_TOSTRING(Region2Boxed)
