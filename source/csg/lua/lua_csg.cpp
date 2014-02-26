@@ -15,13 +15,13 @@ using namespace ::luabind;
 using namespace ::radiant;
 using namespace ::radiant::csg;
 
-template <typename T> std::string repr_point(T const& obj)
+template <typename T> std::string repr_point(T const& obj, const char* tname)
 {
    std::ostringstream buf;
-   buf << "_radiant.csg." << GetShortTypeName<T>() << "(";
+   buf << "_radiant.csg." << tname << "(";
    for (int i = 0; i < T::Dimension; i++) {
       buf << obj[i];
-      if (i < T::Dimension) {
+      if (i < T::Dimension - 1) {
          buf << ", ";
       }
    }
@@ -29,19 +29,19 @@ template <typename T> std::string repr_point(T const& obj)
    return buf.str();
 }
 
-template <typename T> std::string repr_cube(T const& obj)
+template <typename T> std::string repr_cube(T const& obj, const char* tname)
 {
    std::ostringstream buf;
-   buf << "_radiant.csg." << GetShortTypeName<T>() << "(";
+   buf << "_radiant.csg." << tname << "(";
    buf << lua::Repr(obj.min) << ", ";
    buf << lua::Repr(obj.min) << ")";
    return buf.str();
 }
 
-template <typename T> std::string repr_region(T const& obj)
+template <typename T> std::string repr_region(T const& obj, const char* tname)
 {
    std::ostringstream buf;
-   buf << "_radiant.csg." << GetShortTypeName<T>() << "(";
+   buf << "_radiant.csg." << tname << "(";
    buf << lua::Repr(obj.min) << ", ";
    buf << lua::Repr(obj.min) << ")";
    return buf.str();
@@ -49,20 +49,20 @@ template <typename T> std::string repr_region(T const& obj)
 
 #define DECLARE_TYPE(lower, T) \
    template <> std::string lua::Repr(T const& obj) { \
-      return repr_ ## lower<T>(obj); \
+      return repr_ ## lower<T>(obj, #T); \
    } \
 
-DECLARE_TYPE(point, csg::Point1)
-DECLARE_TYPE(point, csg::Point2)
-DECLARE_TYPE(point, csg::Point3)
-DECLARE_TYPE(point, csg::Point1f)
-DECLARE_TYPE(point, csg::Point2f)
-DECLARE_TYPE(point, csg::Point3f)
-DECLARE_TYPE(cube,  csg::Line1)
-DECLARE_TYPE(cube, csg::Rect2)
-DECLARE_TYPE(cube, csg::Rect2f)
-DECLARE_TYPE(cube, csg::Cube3)
-DECLARE_TYPE(cube, csg::Cube3f)
+DECLARE_TYPE(point, Point1)
+DECLARE_TYPE(point, Point2)
+DECLARE_TYPE(point, Point3)
+DECLARE_TYPE(point, Point1f)
+DECLARE_TYPE(point, Point2f)
+DECLARE_TYPE(point, Point3f)
+DECLARE_TYPE(cube,  Line1)
+DECLARE_TYPE(cube, Rect2)
+DECLARE_TYPE(cube, Rect2f)
+DECLARE_TYPE(cube, Cube3)
+DECLARE_TYPE(cube, Cube3f)
 DEFINE_INVALID_LUA_CONVERSION(csg::Region1)
 DEFINE_INVALID_LUA_CONVERSION(csg::Region2)
 DEFINE_INVALID_LUA_CONVERSION(csg::Region2f)

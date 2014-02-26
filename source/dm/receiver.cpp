@@ -36,7 +36,7 @@ void Receiver::ProcessUpdate(tesseract::protocol::UpdateObject const& msg)
    ASSERT(obj);
    ASSERT(type == obj->GetObjectType());
 
-   obj->LoadObject(update);
+   obj->LoadObject(REMOTING, update);
 }
 
 void Receiver::ProcessRemove(tesseract::protocol::RemoveObjects const& msg)

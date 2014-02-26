@@ -77,26 +77,24 @@ void DataObject::SetJsonNode(lua_State* L, json::Node const& node)
 }
 #endif
 
-void DataObject::SaveValue(dm::Store const& store, Protocol::LuaDataObject *msg) const
+void DataObject::SaveValue(dm::Store const& store, dm::SerializationType r, Protocol::LuaDataObject *msg) const
 {
-   lua_State* L = store.GetInterpreter();
-   ASSERT(L);
+   lua::ScriptHost* s = lua::ScriptHost::GetScriptHost(store.GetInterpreter());
+   ASSERT(s);
 
-   std::string repr;
-   lua::ScriptHost* s = lua::ScriptHost::GetScriptHost(L);
    if (s) {
-      repr = s->LuaToString(data_object_);
+      std::string repr = s->LuaToString(data_object_);
+      msg->set_repr_representation(repr);
    }
-   msg->set_lua_object(repr);
 }
 
-void DataObject::LoadValue(dm::Store const& store, const Protocol::LuaDataObject &msg)
+void DataObject::LoadValue(dm::Store const& store, dm::SerializationType  r, const Protocol::LuaDataObject &msg)
 {
-   lua_State* L = store.GetInterpreter();
-   ASSERT(L);
-   lua::ScriptHost* s = lua::ScriptHost::GetScriptHost(L);
+   lua::ScriptHost* s = lua::ScriptHost::GetScriptHost(store.GetInterpreter());
+   ASSERT(s);
    if (s) {
-      data_object_ = s->StringToLua(msg.lua_object());
+      data_object_ = s->StringToLua(msg.repr_representation());
+      dirty_ = true;
    }
 }
 

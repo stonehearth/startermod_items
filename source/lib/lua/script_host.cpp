@@ -595,6 +595,7 @@ void ScriptHost::SetPerformanceCounter(const char* name, double value, const cha
 
 luabind::object ScriptHost::StringToLua(std::string const& str)
 {
+   LOG_(0) << " evaling: " << str;
    std::string eval = BUILD_STRING("return " << str);
    int ret = luaL_loadstring(L_, eval.c_str());
    if (ret != 0) {

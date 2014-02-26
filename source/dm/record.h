@@ -15,8 +15,8 @@ public:
    }
 
    void GetDbgInfo(DbgInfo &info) const override;
-   void LoadValue(Protocol::Value const& msg) override;
-   void SaveValue(Protocol::Value* msg) const override;
+   void LoadValue(SerializationType r, Protocol::Value const& msg) override;
+   void SaveValue(SerializationType r, Protocol::Value* msg) const override;
 
    void ConstructObject() override;
    

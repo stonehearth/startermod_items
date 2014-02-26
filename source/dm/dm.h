@@ -8,6 +8,11 @@
 
 BEGIN_RADIANT_DM_NAMESPACE
 
+enum SerializationType {
+   PERSISTANCE = 1,
+   REMOTING    = 2,
+};
+
 enum {
    SetObjectType = 1,
    MapObjectType,

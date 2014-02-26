@@ -6,6 +6,7 @@ StockpileComponent.__classname = 'StockpileComponent'
 local log = radiant.log.create_logger('stockpile')
 
 local Cube3 = _radiant.csg.Cube3
+local Point2 = _radiant.csg.Point2
 local Point3 = _radiant.csg.Point3
 local Region3 = _radiant.csg.Region3
 
@@ -48,7 +49,7 @@ function StockpileComponent:__init(entity, data_binding)
    self._data = {
       stocked_items = {},
       item_locations = {},
-      size  = { 0, 0 },
+      size  = Point2(0, 0),
       filter = self._filter
    }
    self._data_binding = data_binding
@@ -150,8 +151,8 @@ function StockpileComponent:on_gameloop()
 end
 
 function StockpileComponent:extend(json)
-   if json.size then
-      self:set_size(json.size)
+   if json.size then      
+      self:set_size(json.size.x, json.size.y)
    end
 end
 
@@ -169,14 +170,14 @@ end
 
 function StockpileComponent:_get_bounds()
    local size = self:get_size()
-   local bounds = Cube3(Point3(0, 0, 0), Point3(size[1], 1, size[2]))
+   local bounds = Cube3(Point3(0, 0, 0), Point3(size.x, 1, size.y))
    return bounds
 end
 
 function StockpileComponent:get_bounds()
    local size = self:get_size()
    local origin = radiant.entities.get_world_grid_location(self._entity)
-   local bounds = Cube3(origin, Point3(origin.x + size[1], origin.y + 1, origin.z + size[2]))
+   local bounds = Cube3(origin, Point3(origin.x + size.x, origin.y + 1, origin.z + size.y))
    return bounds
 end
 
@@ -194,11 +195,11 @@ function StockpileComponent:bounds_contain(item_entity)
 end
 
 function StockpileComponent:get_size()
-   return { self._data.size[1], self._data.size[2] }
+   return self._data.size
 end
 
-function StockpileComponent:set_size(size)
-   self._data.size = { size[1], size[2] }
+function StockpileComponent:set_size(x, y)
+   self._data.size = Point2(x, y)
    self:_rebuild_item_data()
 end
 

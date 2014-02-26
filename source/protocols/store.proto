@@ -156,7 +156,7 @@ message LuaControllerObject {
 };
 
 message LuaDataObject {
-   optional string lua_object = 1;
+   optional string repr_representation = 1;
    extend Value {
       required LuaDataObject extension  = 205;
    }

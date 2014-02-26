@@ -28,11 +28,11 @@ function StockpileRenderer:_update()
    local data = self._data_store:get_data()
    if data and data.size then
       local size = data.size
-      if self._size[1] ~= size[1] or self._size[2] ~= size[2] then
-         self._size = { size[1], size[2] }
+      if self._size ~= size then
+         self._size = size
          self._region:modify(function(cursor)
             cursor:clear()
-            cursor:add_cube(Rect2(Point2(0, 0), Point2(size[1], size[2])))
+            cursor:add_cube(Rect2(Point2(0, 0), size))
          end)
          
          self:_clear()

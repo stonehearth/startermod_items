@@ -14,7 +14,7 @@ public:
    SetTraceBuffered(const char* reason, S const& set);
 
    void Flush();
-   bool SaveObjectDelta(Protocol::Value* value) override;
+   bool SaveObjectDelta(SerializationType r, Protocol::Value* value) override;
 
 private:
    void ClearCachedState() override;

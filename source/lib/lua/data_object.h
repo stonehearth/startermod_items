@@ -23,8 +23,8 @@ public:
    void SetJsonNode(lua_State* L, json::Node const& node);
 #endif
 
-   void SaveValue(dm::Store const& store, Protocol::LuaDataObject *msg) const;
-   void LoadValue(dm::Store const& store, const Protocol::LuaDataObject &msg);
+   void SaveValue(dm::Store const& store, dm::SerializationType r, Protocol::LuaDataObject *msg) const;
+   void LoadValue(dm::Store const& store, dm::SerializationType r, const Protocol::LuaDataObject &msg);
 
 public:
    luabind::object            data_object_;

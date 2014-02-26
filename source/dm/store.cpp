@@ -127,7 +127,7 @@ bool Store::Save(std::string &error)
             for (ObjectId id : keys) {
                Object* obj = objects_[id];
                msg.Clear();
-               obj->SaveObject(&msg);
+               obj->SaveObject(PERSISTANCE, &msg);
                cos.WriteLittleEndian32(msg.ByteSize());
                msg.SerializeToCodedStream(&cos);
             }
@@ -227,7 +227,7 @@ bool Store::Load(std::string &error, ObjectMap& objects)
                ASSERT(msg.object_type() == obj->GetObjectType());
 
                obj->SetObjectMetadata(id, *this);
-               obj->LoadObject(msg);
+               obj->LoadObject(PERSISTANCE, msg);
             }
          }
       }

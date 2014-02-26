@@ -15,7 +15,7 @@ public:
    RecordTraceBuffered(const char* reason, Record const& r, Tracer&);
 
    void Flush() override;
-   bool SaveObjectDelta(Protocol::Value* value) override;
+   bool SaveObjectDelta(SerializationType r, Protocol::Value* value) override;
 
 private:
    void NotifyRecordChanged() override;

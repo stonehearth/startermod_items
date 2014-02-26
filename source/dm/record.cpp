@@ -39,7 +39,7 @@ void Record::ConstructObject()
    InitializeRecordFields();
 }
  
-void Record::LoadValue(Protocol::Value const& msg)
+void Record::LoadValue(SerializationType r, Protocol::Value const& msg)
 {
    ASSERT(GetFields().empty());
 
@@ -54,7 +54,7 @@ void Record::LoadValue(Protocol::Value const& msg)
    ASSERT(registerOffset_ == fields_.size());
 }
 
-void Record::SaveValue(Protocol::Value* msg) const
+void Record::SaveValue(SerializationType r, Protocol::Value* msg) const
 {
    for (const auto& field : GetFields()) {
       Protocol::Record::Entry* entry = msg->AddExtension(Protocol::Record::record_fields);

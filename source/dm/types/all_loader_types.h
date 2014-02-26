@@ -30,11 +30,11 @@ IMPLEMENT_DM_EXTENSION(lua::ControllerObject, Protocol::LuaControllerObject::ext
 
 template<>
 struct dm::SaveImpl<lua::DataObject> {
-   static void SaveValue(const dm::Store& store, Protocol::Value* msg, lua::DataObject const& obj) {
-      obj.SaveValue(store, msg->MutableExtension(Protocol::LuaDataObject::extension));
+   static void SaveValue(const dm::Store& store, dm::SerializationType r, Protocol::Value* msg, lua::DataObject const& obj) {
+      obj.SaveValue(store, r, msg->MutableExtension(Protocol::LuaDataObject::extension));
    }
-   static void LoadValue(const Store& store, const Protocol::Value& msg, lua::DataObject& obj) {
-      obj.LoadValue(store, msg.GetExtension(Protocol::LuaDataObject::extension));
+   static void LoadValue(const Store& store, dm::SerializationType r, const Protocol::Value& msg, lua::DataObject& obj) {
+      obj.LoadValue(store, r, msg.GetExtension(Protocol::LuaDataObject::extension));
    }
    static void GetDbgInfo(lua::DataObject const& obj, dm::DbgInfo &info) {
       info.os << "[data_object]";
@@ -45,7 +45,7 @@ struct dm::SaveImpl<lua::DataObject> {
 template<>
 struct radiant::dm::SaveImpl<radiant::json::Node>
 {
-   static void SaveValue(const Store& store, Protocol::Value* msg, const radiant::json::Node& node) {
+   static void SaveValue(const Store& store, SerializationType r, Protocol::Value* msg, const radiant::json::Node& node) {
       // A compile error here probably means you do not have the corrent
       // template specialization for your type.  See IMPLEMENT_DM_EXTENSION
       // below.
@@ -54,7 +54,7 @@ struct radiant::dm::SaveImpl<radiant::json::Node>
       ASSERT(libjson::is_valid(txt));
       msg->SetExtension(Protocol::string, node.write());
    }
-   static void LoadValue(const Store& store, const Protocol::Value& msg, radiant::json::Node& node) {
+   static void LoadValue(const Store& store, SerializationType r, const Protocol::Value& msg, radiant::json::Node& node) {
       std::string txt = msg.GetExtension(Protocol::string);
       ASSERT(!txt.empty());
       ASSERT(libjson::is_valid(txt));
@@ -64,20 +64,3 @@ struct radiant::dm::SaveImpl<radiant::json::Node>
       info.os << "... json ...";
    }
 };
-
-#if 0
-template<>
-struct dm::SaveImpl<lua::DataObject> {
-   static void SaveValue(const dm::Store& store, Protocol::Value* msg, lua::DataObject const& obj) {
-      SaveImpl<json::Node>::SaveValue(store, msg, obj.GetJsonNode());
-   }
-   static void LoadValue(const Store& store, const Protocol::Value& msg, lua::DataObject& obj) {
-      json::Node node;
-      SaveImpl<json::Node>::LoadValue(store, msg, node);
-      obj.SetJsonNode(store.GetInterpreter(), node);
-   }
-   static void GetDbgInfo(lua::DataObject const& obj, dm::DbgInfo &info) {
-      info.os << "[data_object " << obj.GetJsonNode().write() << "]";
-   }
-};
-#endif

@@ -12,13 +12,13 @@ class Store;
 template<typename T>
 struct SaveImpl
 {
-   static void SaveValue(const Store& store, Protocol::Value* msg, const T& obj) {
+   static void SaveValue(Store const& store, SerializationType r, Protocol::Value* msg, const T& obj) {
       // A compile error here probably means you do not have the corrent
       // template specialization for your type.  See IMPLEMENT_DM_EXTENSION
       // below.
       obj.SaveValue(store, msg);
    }
-   static void LoadValue(const Store& store, const Protocol::Value& msg, T& obj) {
+   static void LoadValue(Store const& store, SerializationType r, Protocol::Value const& msg, T& obj) {
       obj.LoadValue(store, msg);
    }
    static void GetDbgInfo(T const& obj, DbgInfo &info) {
@@ -30,11 +30,11 @@ struct SaveImpl
 template <class T>
 struct SaveImpl<std::shared_ptr<T>>
 {
-   static void SaveValue(const Store& store, Protocol::Value* msg, const std::shared_ptr<T>& value) {
+   static void SaveValue(Store const& store, SerializationType r, Protocol::Value* msg, const std::shared_ptr<T>& value) {
       ObjectId id = value ? value->GetObjectId() : 0;
       msg->SetExtension(Protocol::Ref::ref_object_id, id);
    }
-   static void LoadValue(const Store& store, const Protocol::Value& msg, std::shared_ptr<T>& value) {
+   static void LoadValue(Store const& store, SerializationType r, Protocol::Value const& msg, std::shared_ptr<T>& value) {
       ObjectId id = msg.GetExtension(Protocol::Ref::ref_object_id);
       value = store.FetchObject<T>(id);
    }
@@ -53,10 +53,10 @@ struct SaveImpl<std::shared_ptr<T>>
 template <class T>
 struct SaveImpl<std::weak_ptr<T>>
 {
-   static void SaveValue(const Store& store, Protocol::Value* msg, const std::weak_ptr<T>& value) {
-      SaveImpl<std::shared_ptr<T>>().SaveValue(store, msg, value.lock());
+   static void SaveValue(Store const& store, SerializationType r, Protocol::Value* msg, const std::weak_ptr<T>& value) {
+      SaveImpl<std::shared_ptr<T>>().SaveValue(store, r, msg, value.lock());
    }
-   static void LoadValue(const Store& store, const Protocol::Value& msg, std::weak_ptr<T>& value) {
+   static void LoadValue(Store const& store, SerializationType r, Protocol::Value const& msg, std::weak_ptr<T>& value) {
       ObjectId id = msg.GetExtension(Protocol::Ref::ref_object_id);
       value = store.FetchObject<T>(id);
    }
@@ -75,10 +75,10 @@ struct SaveImpl<std::weak_ptr<T>>
 #define IMPLEMENT_DM_EXTENSION(T, E) \
 template<> \
 struct ::radiant::dm::SaveImpl<T> { \
-   static void SaveValue(const Store& store, Protocol::Value* msg, const T& obj) { \
+   static void SaveValue(Store const& store, SerializationType r, Protocol::Value* msg, const T& obj) { \
       obj.SaveValue(msg->MutableExtension(E)); \
    } \
-   static void LoadValue(const Store& store, const Protocol::Value& msg, T& obj) { \
+   static void LoadValue(Store const& store, SerializationType r, Protocol::Value const& msg, T& obj) { \
       obj.LoadValue(msg.GetExtension(E)); \
    } \
    static void GetDbgInfo(T const& obj, DbgInfo &info) { \
@@ -90,10 +90,10 @@ struct ::radiant::dm::SaveImpl<T> { \
 template<> \
 struct ::radiant::dm::SaveImpl<T> \
 { \
-   static void SaveValue(const Store& store, Protocol::Value* msg, const T& value) { \
+   static void SaveValue(Store const& store, SerializationType r, Protocol::Value* msg, const T& value) { \
       msg->SetExtension(E, value); \
    } \
-   static void LoadValue(const Store& store, const Protocol::Value& msg, T& value) { \
+   static void LoadValue(Store const& store, SerializationType r, Protocol::Value const& msg, T& value) { \
       value = msg.GetExtension(E); \
    } \
    static void GetDbgInfo(T const& obj, DbgInfo &info) { \
@@ -105,10 +105,10 @@ struct ::radiant::dm::SaveImpl<T> \
 template<> \
 struct ::radiant::dm::SaveImpl<T> \
 { \
-   static void SaveValue(const Store& store, Protocol::Value* msg, const T& value) { \
+   static void SaveValue(Store const& store, SerializationType r, Protocol::Value* msg, const T& value) { \
       msg->SetExtension(Protocol::integer, (int)value); \
    } \
-   static void LoadValue(const Store& store, const Protocol::Value& msg, T& value) { \
+   static void LoadValue(Store const& store, SerializationType r, Protocol::Value const& msg, T& value) { \
       value = (T)msg.GetExtension(Protocol::integer); \
    } \
    static void GetDbgInfo(T const& obj, DbgInfo &info) { \
@@ -120,9 +120,9 @@ struct ::radiant::dm::SaveImpl<T> \
 template<> \
 struct ::radiant::dm::SaveImpl<T> \
 { \
-   static void SaveValue(const Store& store, Protocol::Value* msg, T value) { \
+   static void SaveValue(Store const& store, SerializationType r, Protocol::Value* msg, T value) { \
    } \
-   static void LoadValue(const Store& store, const Protocol::Value& msg, T value) { \
+   static void LoadValue(Store const& store, SerializationType r, Protocol::Value const& msg, T value) { \
    } \
    static void GetDbgInfo(T const& obj, DbgInfo &info) { \
    } \

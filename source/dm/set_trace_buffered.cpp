@@ -25,7 +25,7 @@ void SetTraceBuffered<S>::Flush()
 }
 
 template <typename S>
-bool SetTraceBuffered<S>::SaveObjectDelta(Protocol::Value* value)
+bool SetTraceBuffered<S>::SaveObjectDelta(SerializationType r, Protocol::Value* value)
 {
    Store const& store = GetStore();
    Protocol::Set::Update* msg = value->MutableExtension(Protocol::Set::extension);
@@ -35,11 +35,11 @@ bool SetTraceBuffered<S>::SaveObjectDelta(Protocol::Value* value)
    if (!added_.empty() || !removed_.empty()) {
       for (const Value& item : added_) {
          Protocol::Value* submsg = msg->add_added();
-         SaveImpl<Value>::SaveValue(store, submsg, item);
+         SaveImpl<Value>::SaveValue(store, r, submsg, item);
       }
       for (const Value& item : removed_) {
          Protocol::Value* submsg = msg->add_removed();
-         SaveImpl<Value>::SaveValue(store, submsg, item);
+         SaveImpl<Value>::SaveValue(store, r, submsg, item);
       }
       return true;
    }

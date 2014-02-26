@@ -28,19 +28,19 @@ TracePtr Array<T, C>::TraceObjectChanges(const char* reason, Tracer* tracer) con
 }
 
 template <class T, int C>
-void Array<T, C>::LoadValue(Protocol::Value const& value)
+void Array<T, C>::LoadValue(SerializationType r, Protocol::Value const& value)
 {
    int i, c = valmsg.ExtensionSize(Protocol::Array<T, C>::extension);
    T item;
    for (i = 0; i < c; i++) {
       const Protocol::Array<T, C>::Entry& msg = valmsg.GetExtension(Protocol::Array<T, C>::extension, i);
-      SaveImpl<T>::LoadValue(GetStore(), msg.value(), item);
+      SaveImpl<T>::LoadValue(GetStore(), r, msg.value(), item);
       Set(msg.index(), item);
    }
 }
 
 template <class T, int C>
-void Array<T, C>::SaveValue(Protocol::Value* msg) const
+void Array<T, C>::SaveValue(SerializationType r, Protocol::Value* msg) const
 {
    NOT_YET_IMPLEMENTED();
 }

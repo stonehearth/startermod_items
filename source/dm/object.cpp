@@ -45,19 +45,19 @@ Store& Object::GetStore() const
    return Store::GetStore(id_.store);
 }
 
-void Object::LoadObject(Protocol::Object const& msg)
+void Object::LoadObject(SerializationType r, Protocol::Object const& msg)
 {
    id_.id = msg.object_id();
    timestamp_ = msg.timestamp();
-   LoadValue(msg.value());
+   LoadValue(r, msg.value());
 }
 
-void Object::SaveObject(Protocol::Object* msg) const
+void Object::SaveObject(SerializationType r, Protocol::Object* msg) const
 {
    msg->set_object_id(id_.id);
    msg->set_object_type(GetObjectType());
    msg->set_timestamp(timestamp_);
-   SaveValue(msg->mutable_value());
+   SaveValue(r, msg->mutable_value());
 }
 
 bool Object::IsValid() const
