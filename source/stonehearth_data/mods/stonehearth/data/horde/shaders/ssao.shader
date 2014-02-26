@@ -83,8 +83,8 @@ vec3 getRandomVec(const vec2 texCoords)
 
 void main()
 {
-  float radius = 1.5;
-  const float intensity = 0.6;
+  float radius = 0.5;
+  const float intensity = 0.5;
 
   vec4 attribs = texture2D(depthBuffer, texCoords);
   vec3 origin = toCameraSpace(texCoords, attribs.r);
@@ -118,7 +118,7 @@ void main()
     // sampleOcclusion = sampledDepths.r < ssaoSample.z ? (1.0 * rangeCheck) : 0.0;
 
     // New hotness:
-    sampleOcclusion = ((sampledDepths.x < ssaoSample.z) && (sampledDepths.y >= ssaoSample.z)) ? (1.0 * rangeCheck) : 0.0;
+    sampleOcclusion = ((sampledDepths.x < ssaoSample.z) && (sampledDepths.y >= ssaoSample.z)) ? (1.0 * 1) : 0.0;
 
 
     occlusion += sampleOcclusion;

@@ -795,7 +795,7 @@ DLL void h3dRelease();
 	Returns:
 		nothing
 */
-DLL void h3dRender( H3DNode cameraNode );
+DLL void h3dRender( H3DNode cameraNode, H3DRes pipelineRes );
 
 /* Function: h3dFinalizeFrame
 		Marker for end of frame.
@@ -2106,12 +2106,11 @@ DLL H3DNode h3dAddLightNode( H3DNode parent, const char *name,
 	Parameters:
 		parent       - handle to parent node to which the new node will be attached
 		name         - name of the node
-		pipelineRes  - pipeline resource used for rendering
 		
 	Returns:
 		handle to the created node or 0 in case of failure
 */
-DLL H3DNode h3dAddCameraNode( H3DNode parent, const char *name, H3DRes pipelineRes );
+DLL H3DNode h3dAddCameraNode( H3DNode parent, const char *name);
 
 /* Function: h3dSetupCameraView
 		Sets the planes of a camera viewing frustum.

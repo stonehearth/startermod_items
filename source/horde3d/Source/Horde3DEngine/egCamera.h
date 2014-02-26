@@ -15,7 +15,6 @@
 
 #include "egPrerequisites.h"
 #include "egScene.h"
-#include "egPipeline.h"
 #include "egTexture.h"
 #include <cstring>
 
@@ -62,8 +61,8 @@ struct CameraNodeTpl : public SceneNodeTpl
 	bool                orthographic;
 	bool                occlusionCulling;
 
-	CameraNodeTpl( const std::string &name, PipelineResource *pipelineRes ) :
-		SceneNodeTpl( SceneNodeTypes::Camera, name ), pipeRes( pipelineRes ),
+	CameraNodeTpl( const std::string &name) :
+		SceneNodeTpl( SceneNodeTypes::Camera, name ),
 		outputTex( 0x0 ),
 		// Default params: fov=45, aspect=4/3
 		leftPlane( -0.055228457f ), rightPlane( 0.055228457f ), bottomPlane( -0.041421354f ),
@@ -103,7 +102,6 @@ private:
 	void onPostUpdate();
 
 private:
-	PPipelineResource   _pipelineRes;
 	PTextureResource    _outputTex;
 	Matrix4f            _viewMat, _projMat;
 	Frustum             _frustum;

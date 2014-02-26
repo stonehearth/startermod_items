@@ -72,6 +72,109 @@ Renderer::Renderer() :
    assert(renderer_.get() == nullptr);
    renderer_.reset(this);
 
+   InitWindow();
+
+   InitHorde();
+
+   SetupGlfwHandlers();
+
+   MakeRendererResources();
+
+   ApplyConfig(config_, false);
+
+   LoadResources();
+
+   memset(&input_.mouse, 0, sizeof input_.mouse);
+   input_.focused = true;
+
+   // If the mod is unzipped, put a watch on the filesystem directory where the resources live
+   // so we can dynamically load resources whenever the file changes.
+   std::string fspath = std::string("mods/") + resourcePath_;
+   if (boost::filesystem::is_directory(fspath)) {
+      fileWatcher_.addWatch(strutil::utf8_to_unicode(fspath), [](FW::WatchID watchid, const std::wstring& dir, const std::wstring& filename, FW::Action action) -> void {
+         Renderer::GetInstance().FlushMaterials();
+      }, true);
+   }
+
+   OnWindowResized(windowWidth_, windowHeight_);
+
+   SetShowDebugShapes(false);
+
+   h3dSetResParamStr(currentPipeline_, H3DPipeRes::GlobalRenderTarget, 0, fowRenderTarget_, "FogOfWarRT");
+
+   SetDrawWorld(false);
+   initialized_ = true;
+}
+
+void Renderer::MakeRendererResources()
+{
+   // Overlays
+   fontMatRes_ = h3dAddResource( H3DResTypes::Material, "overlays/font.material.xml", 0 );
+
+   H3DRes veclookup = h3dCreateTexture("RandomVectorLookup", 4, 4, H3DFormats::TEX_RGBA32F, H3DResFlags::NoTexMipmaps | H3DResFlags::NoQuery | H3DResFlags::NoFlush);
+
+   csg::RandomNumberGenerator &rng = csg::RandomNumberGenerator::DefaultInstance();
+   float *data2 = (float *)h3dMapResStream(veclookup, H3DTexRes::ImageElem, 0, H3DTexRes::ImgPixelStream, false, true);
+   for (int i = 0; i < 16; i++)
+   {
+      float x = rng.GetReal(-1.0f, 1.0f);
+      float y = rng.GetReal(-1.0f, 1.0f);
+      float z = rng.GetReal(-1.0f, 1.0f);
+      Horde3D::Vec3f v(x,y,z);
+      v.normalize();
+
+      data2[(i * 4) + 0] = v.x;
+      data2[(i * 4) + 1] = v.y;
+      data2[(i * 4) + 2] = v.z;
+   }
+   h3dUnmapResStream(veclookup);
+
+   BuildSkySphere();
+
+   BuildStarfield();
+
+   fowRenderTarget_ = h3dutCreateRenderTarget(512, 512, H3DFormats::TEX_BGRA8, false, 1, 0, 0);
+
+   csg::Region3::Cube littleCube(csg::Region3::Point(0, 0, 0), csg::Region3::Point(1, 1, 1));
+   /*fowVisibleNode_ = h3dAddInstanceNode(H3DRootNode, "fow_visiblenode", 
+      h3dAddResource(H3DResTypes::Material, "materials/fow_visible.material.xml", 0), 
+      Pipeline::GetInstance().CreateVoxelGeometryFromRegion("littlecube", littleCube), 1000);*/
+   fowExploredNode_ = h3dAddInstanceNode(H3DRootNode, "fow_explorednode", 
+      h3dAddResource(H3DResTypes::Material, "materials/fow_explored.material.xml", 0), 
+      Pipeline::GetInstance().CreateVoxelGeometryFromRegion("littlecube", littleCube), 1000);
+
+   csg::Region2 r;
+   r.Add(csg::Rect2(csg::Region2::Point(-10, -10), csg::Region2::Point(10, 10)));
+   UpdateFoW(fowExploredNode_, r);
+
+   // Add camera   
+   camera_ = new Camera(H3DRootNode, "Camera");
+
+   // Add another camera--this is exclusively for the fog-of-war pipeline.
+   fowCamera_ = new Camera(H3DRootNode, "FowCamera");
+}
+
+void Renderer::InitHorde()
+{
+   GLFWwindow* window = glfwGetCurrentContext();
+   int numWindowSamples = glfwGetWindowAttrib(window, GLFW_SAMPLES);
+   // Init Horde, looking for OpenGL 2.0 minimum.
+   std::string s = (radiant::core::System::GetInstance().GetTempDirectory() / "gfx.log").string();
+   if (!h3dInit(2, 0, numWindowSamples > 0, config_.enable_gl_logging.value, s.c_str())) {
+      h3dutDumpMessages();
+      throw std::runtime_error("Unable to initialize renderer.  Check horde log for details.");
+   }
+
+   // Set options
+   h3dSetOption(H3DOptions::LoadTextures, 1);
+   h3dSetOption(H3DOptions::TexCompression, 0);
+   h3dSetOption(H3DOptions::MaxAnisotropy, 1);
+   h3dSetOption(H3DOptions::FastAnimation, 1);
+   h3dSetOption(H3DOptions::DumpFailedShaders, 1);
+}
+
+void Renderer::InitWindow()
+{
    glfwSetErrorCallback([](int errorCode, const char* errorString) {
       Renderer::GetInstance().lastGlfwError_ = BUILD_STRING(errorString << " (code: " << std::to_string(errorCode) << ")");
    });
@@ -105,79 +208,14 @@ Renderer::Renderer() :
 
    glfwMakeContextCurrent(window);
    glfwGetWindowSize(window, &windowWidth_, &windowHeight_);
-   int numWindowSamples = glfwGetWindowAttrib(window, GLFW_SAMPLES);
    if (!inFullscreen_) {
       SetWindowPos(GetWindowHandle(), NULL, windowX, windowY, 0, 0, SWP_NOSIZE);
    }
-   // Init Horde, looking for OpenGL 2.0 minimum.
-   std::string s = (radiant::core::System::GetInstance().GetTempDirectory() / "gfx.log").string();
-   if (!h3dInit(2, 0, numWindowSamples > 0, config_.enable_gl_logging.value, s.c_str())) {
-      h3dutDumpMessages();
-      throw std::runtime_error("Unable to initialize renderer.  Check horde log for details.");
-   }
+}
 
-   // Set options
-   h3dSetOption(H3DOptions::LoadTextures, 1);
-   h3dSetOption(H3DOptions::TexCompression, 0);
-   h3dSetOption(H3DOptions::MaxAnisotropy, 1);
-   h3dSetOption(H3DOptions::FastAnimation, 1);
-   h3dSetOption(H3DOptions::DumpFailedShaders, 1);
-
-   H3DRes veclookup = h3dCreateTexture("RandomVectorLookup", 4, 4, H3DFormats::TEX_RGBA32F, H3DResFlags::NoTexMipmaps | H3DResFlags::NoQuery | H3DResFlags::NoFlush);
-
-   ApplyConfig(config_, false);
-
-   // Overlays
-   fontMatRes_ = h3dAddResource( H3DResTypes::Material, "overlays/font.material.xml", 0 );
-   panelMatRes_ = h3dAddResource( H3DResTypes::Material, "overlays/panel.material.xml", 0 );
-
-   csg::RandomNumberGenerator &rng = csg::RandomNumberGenerator::DefaultInstance();
-   float *data2 = (float *)h3dMapResStream(veclookup, H3DTexRes::ImageElem, 0, H3DTexRes::ImgPixelStream, false, true);
-   for (int i = 0; i < 16; i++)
-   {
-      float x = rng.GetReal(-1.0f, 1.0f);
-      float y = rng.GetReal(-1.0f, 1.0f);
-      float z = rng.GetReal(-1.0f, 1.0f);
-      Horde3D::Vec3f v(x,y,z);
-      v.normalize();
-
-      data2[(i * 4) + 0] = v.x;
-      data2[(i * 4) + 1] = v.y;
-      data2[(i * 4) + 2] = v.z;
-   }
-   h3dUnmapResStream(veclookup);
-
-   BuildSkySphere();
-
-   BuildStarfield();
-
-   LoadResources();
-
-   fowRenderTarget_ = h3dutCreateRenderTarget(512, 512, H3DFormats::TEX_BGRA8, false, 1, 0, 0);
-
-   csg::Region3::Cube littleCube(csg::Region3::Point(0, 0, 0), csg::Region3::Point(1, 1, 1));
-   /*fowVisibleNode_ = h3dAddInstanceNode(H3DRootNode, "fow_visiblenode", 
-      h3dAddResource(H3DResTypes::Material, "materials/fow_visible.material.xml", 0), 
-      Pipeline::GetInstance().CreateVoxelGeometryFromRegion("littlecube", littleCube), 1000);*/
-   fowExploredNode_ = h3dAddInstanceNode(H3DRootNode, "fow_explorednode", 
-      h3dAddResource(H3DResTypes::Material, "materials/fow_explored.material.xml", 0), 
-      Pipeline::GetInstance().CreateVoxelGeometryFromRegion("littlecube", littleCube), 1000);
-
-   csg::Region2 r;
-   r.Add(csg::Rect2(csg::Region2::Point(-10, -10), csg::Region2::Point(10, 10)));
-   UpdateFoW(fowExploredNode_, r);
-
-   // Add camera   
-   camera_ = new Camera(H3DRootNode, "Camera", currentPipeline_);
-   h3dSetNodeParamI(camera_->GetNode(), H3DCamera::PipeResI, currentPipeline_);
-
-   H3DRes fp = h3dAddResource(H3DResTypes::Pipeline, "pipelines/fow.pipeline.xml", 0);
-   fowCamera_ = new Camera(H3DRootNode, "FowCamera", fp);
-   h3dSetNodeParamI(fowCamera_->GetNode(), H3DCamera::PipeResI, fp);
-
-   memset(&input_.mouse, 0, sizeof input_.mouse);
-   input_.focused = true;
-
+void Renderer::SetupGlfwHandlers()
+{
+   GLFWwindow *window = glfwGetCurrentContext();
    glfwSetWindowSizeCallback(window, [](GLFWwindow *window, int newWidth, int newHeight) { 
       Renderer::GetInstance().resize_pending_ = true;
       Renderer::GetInstance().nextHeight_ = newHeight;
@@ -233,23 +271,6 @@ Renderer::Renderer() :
       R_LOG(0) << "window closed.  exiting process";
       TerminateProcess(GetCurrentProcess(), 1);
    });
-
-   // If the mod is unzipped, put a watch on the filesystem directory where the resources live
-   // so we can dynamically load resources whenever the file changes.
-   std::string fspath = std::string("mods/") + resourcePath_;
-   if (boost::filesystem::is_directory(fspath)) {
-      fileWatcher_.addWatch(strutil::utf8_to_unicode(fspath), [](FW::WatchID watchid, const std::wstring& dir, const std::wstring& filename, FW::Action action) -> void {
-         Renderer::GetInstance().FlushMaterials();
-      }, true);
-   }
-
-   OnWindowResized(windowWidth_, windowHeight_);
-   SetShowDebugShapes(false);
-
-   h3dSetResParamStr(currentPipeline_, H3DPipeRes::GlobalRenderTarget, 0, fowRenderTarget_, "FogOfWarRT");
-
-   SetDrawWorld(false);
-   initialized_ = true;
 }
 
 void Renderer::UpdateFoW(H3DNode node, const csg::Region2& region)
@@ -268,10 +289,10 @@ void Renderer::UpdateFoW(H3DNode node, const csg::Region2& region)
       float xSize = (float)c.max.x - c.min.x;
       float zSize = (float)c.max.y - c.min.y;
       float ySize = 100.0f;
-      f[0] = xSize; f[1] =  0; f[2] =   0; f[3] =  0;
-      f[4] =  0; f[5] = ySize; f[6] =   0; f[7] =  0;
-      f[8] =  0; f[9] =  0; f[10] = zSize; f[11] = 0;
-      f[12] = px; f[13] = py - (ySize /2); f[14] =  pz; f[15] = 1;
+      f[0] = xSize; f[1] = 0;                f[2] =   0;    f[3] =  0;
+      f[4] = 0;     f[5] = ySize;            f[6] =   0;    f[7] =  0;
+      f[8] = 0;     f[9] = 0;                f[10] = zSize; f[11] = 0;
+      f[12] = px;   f[13] = py - (ySize /2); f[14] =  pz;   f[15] = 1;
       
       f += 16;
    }
@@ -327,7 +348,7 @@ void Renderer::RenderFogOfWarRT()
    H3DRes fp = h3dAddResource(H3DResTypes::Pipeline, "pipelines/fow.pipeline.xml", 0);
    h3dSetResParamStr(fp, H3DPipeRes::GlobalRenderTarget, 0, fowRenderTarget_, "FogOfWarRT");
 
-   h3dRender(fowCamera_->GetNode());
+   h3dRender(fowCamera_->GetNode(), fp);
 
    Horde3D::Matrix4f pm;
    h3dGetCameraProjMat(fowCamera_->GetNode(), pm.x);
@@ -501,17 +522,10 @@ void Renderer::GetConfigOptions()
 {
    const core::Config& config = core::Config::GetInstance();
 
-   // "Uses the forward-renderer, instead of the deferred renderer."
-   config_.use_forward_renderer.value = config.Get("renderer.use_forward_renderer", true);
-
-   // "Enables SSAO blur."
-   config_.use_ssao_blur.value = config.Get("renderer.use_ssao_blur", true);
+   config_.enable_ssao.value = config.Get("renderer.enable_ssao", false);
 
    // "Enables shadows."
    config_.use_shadows.value = config.Get("renderer.enable_shadows", true);
-
-   // "Enables Screen-Space Ambient Occlusion (SSAO)."
-   config_.use_ssao.value = config.Get("renderer.enable_ssao", true);
 
    // "Sets the number of Multi-Sample Anti Aliasing samples to use."
    config_.num_msaa_samples.value = config.Get("renderer.msaa_samples", 0);
@@ -541,7 +555,7 @@ void Renderer::GetConfigOptions()
    resourcePath_ = config.Get("renderer.resource_path", "stonehearth/data/horde");
 }
 
-void Renderer::ApplyConfig(const RendererConfig& newConfig, bool persistConfig)
+void Renderer::UpdateConfig(const RendererConfig& newConfig)
 {
    memcpy(&config_, &newConfig, sizeof(RendererConfig));
 
@@ -552,12 +566,43 @@ void Renderer::ApplyConfig(const RendererConfig& newConfig, bool persistConfig)
    // Presently, only the engine can decide if certain features are even allowed to run.
    config_.num_msaa_samples.allowed = gpuCaps.MSAASupported;
    config_.use_shadows.allowed = rendererCaps.ShadowsSupported;
+}
 
-   if (config_.use_forward_renderer.value) {
-      SetCurrentPipeline("pipelines/forward_postprocess.pipeline.xml");
+void Renderer::PersistConfig()
+{
+   core::Config& config = core::Config::GetInstance();
+
+   config.Set("renderer.enable_ssao", config_.enable_ssao.value);
+
+   config.Set("renderer.enable_shadows", config_.use_shadows.value);
+   config.Set("renderer.msaa_samples", config_.num_msaa_samples.value);
+
+   config.Set("renderer.shadow_resolution", config_.shadow_resolution.value);
+
+   config.Set("renderer.enable_vsync", config_.enable_vsync.value);
+
+   config.Set("renderer.enable_fullscreen", config_.enable_fullscreen.value);
+
+   config.Set("renderer.screen_width", config_.screen_width.value);
+   config.Set("renderer.screen_height", config_.screen_height.value);
+   config.Set("renderer.draw_distance", config_.draw_distance.value);
+
+   config.Set("renderer.last_window_x", config_.last_window_x.value);
+   config.Set("renderer.last_window_y", config_.last_window_y.value);
+   config.Set("renderer.use_fast_hilite", config_.use_fast_hilite.value);
+}
+
+void Renderer::ApplyConfig(const RendererConfig& newConfig, bool persistConfig)
+{
+   UpdateConfig(newConfig);
+
+   // Super hard-coded setting for now.
+   if (config_.enable_ssao.value) {
+      worldPipeline_ = "pipelines/forward_postprocess.pipeline.xml";
    } else {
-      SetCurrentPipeline("pipelines/deferred_lighting.xml");
+      worldPipeline_ = "pipelines/forward.pipeline.xml";
    }
+   SetCurrentPipeline(worldPipeline_);
 
    int oldMSAACount = (int)h3dGetOption(H3DOptions::SampleCount);
 
@@ -586,24 +631,7 @@ void Renderer::ApplyConfig(const RendererConfig& newConfig, bool persistConfig)
 
    if (persistConfig)
    {
-      core::Config& config = core::Config::GetInstance();
-
-      config.Set("renderer.enable_shadows", config_.use_shadows.value);
-      config.Set("renderer.msaa_samples", config_.num_msaa_samples.value);
-
-      config.Set("renderer.shadow_resolution", config_.shadow_resolution.value);
-
-      config.Set("renderer.enable_vsync", config_.enable_vsync.value);
-
-      config.Set("renderer.enable_fullscreen", config_.enable_fullscreen.value);
-
-      config.Set("renderer.screen_width", config_.screen_width.value);
-      config.Set("renderer.screen_height", config_.screen_height.value);
-      config.Set("renderer.draw_distance", config_.draw_distance.value);
-
-      config.Set("renderer.last_window_x", config_.last_window_x.value);
-      config.Set("renderer.last_window_y", config_.last_window_y.value);
-      config.Set("renderer.use_fast_hilite", config_.use_fast_hilite.value);
+      PersistConfig();
    }
 }
 
@@ -897,7 +925,7 @@ void Renderer::RenderOneFrame(int now, float alpha)
       RenderFogOfWarRT();
    }
 
-   h3dRender(camera_->GetNode());
+   h3dRender(camera_->GetNode(), currentPipeline_);
 
    // Finish rendering of frame
    UpdateCamera();
@@ -910,7 +938,6 @@ void Renderer::RenderOneFrame(int now, float alpha)
    float delta = (now - last_render_time_) / 1000.0f;
    h3dRadiantAdvanceCubemitterTime(delta);
    h3dRadiantAdvanceAnimatedLightTime(delta);
-
 
    // Remove all overlays
    h3dClearOverlays();
@@ -1094,24 +1121,12 @@ void Renderer::ResizeViewport()
    h3dSetupCameraView( camera, 45.0f, width / (float)height, 2.0f, config_.draw_distance.value);
 }
 
-void Renderer::SetEnabledStages(std::unordered_set<std::string>& stages)
-{
-   int stageCount = h3dGetResElemCount(currentPipeline_, H3DPipeRes::StageElem);
-
-   for (int i = 0; i < stageCount; i++)
-   {
-      const std::string curStageName(h3dGetResParamStr(currentPipeline_, H3DPipeRes::StageElem, i, H3DPipeRes::StageNameStr));
-      int enabled = stages.find(curStageName) != stages.end() ? 1 : 0;
-      h3dSetResParamI(currentPipeline_, H3DPipeRes::StageElem, i, H3DPipeRes::StageActivationI, enabled);
-   }
-}
-
 void Renderer::SetDrawWorld(bool drawWorld) 
 {
    drawWorld_ = drawWorld;
 
    if (drawWorld_) {
-      SetCurrentPipeline("pipelines/forward_postprocess.pipeline.xml");
+      SetCurrentPipeline(worldPipeline_);
    } else {
       SetCurrentPipeline("pipelines/ui_only.pipeline.xml");
    }
@@ -1315,7 +1330,7 @@ void Renderer::SetCurrentPipeline(std::string name)
    } else {
       p = i->second;
    }
-   if (p != currentPipeline_ && camera_ != NULL) {
+   if (camera_ != NULL) {
       h3dSetNodeParamI(camera_->GetNode(), H3DCamera::PipeResI, p);
    }
    currentPipeline_ = p;

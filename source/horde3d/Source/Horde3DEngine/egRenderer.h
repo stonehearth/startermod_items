@@ -204,7 +204,7 @@ public:
    static void drawInstanceNode(const std::string &shaderContext, const std::string &theClass, bool debugView,
       const Frustum *frust1, const Frustum *frust2, RenderingOrder::List order, int occSet);
 
-	void render( CameraNode *camNode );
+   void render( CameraNode *camNode, PipelineResource *pRes );
 	void finalizeFrame();
 
 	uint32 getFrameID() { return _frameID; }
@@ -289,6 +289,7 @@ protected:
 	uint32                             _quadIdxBuf;
 	uint32                             _particleVBO;
 
+   PipelineResource                   *_curPipeline;
 	MaterialResource                   *_curStageMatLink;
 	CameraNode                         *_curCamera;
 	LightNode                          *_curLight;

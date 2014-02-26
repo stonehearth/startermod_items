@@ -111,12 +111,15 @@ DLLEXP void h3dRelease()
 }
 
 
-DLLEXP void h3dRender( NodeHandle cameraNode )
+DLLEXP void h3dRender( NodeHandle cameraNode, ResHandle pipelineRes )
 {
 	SceneNode *sn = Modules::sceneMan().resolveNodeHandle( cameraNode );
 	APIFUNC_VALIDATE_NODE_TYPE( sn, SceneNodeTypes::Camera, "h3dRender", APIFUNC_RET_VOID );
+
+   Resource* pres = Modules::resMan().resolveResHandle(pipelineRes);
+   APIFUNC_VALIDATE_RES_TYPE(pres, ResourceTypes::Pipeline, "h3dRender", APIFUNC_RET_VOID);
 	
-	Modules::renderer().render( (CameraNode *)sn );
+   Modules::renderer().render( (CameraNode *)sn, (PipelineResource*)pres );
 }
 
 
@@ -1000,15 +1003,13 @@ DLLEXP NodeHandle h3dAddLightNode( NodeHandle parent, const char *name,
 }
 
 
-DLLEXP NodeHandle h3dAddCameraNode( NodeHandle parent, const char *name, ResHandle pipelineRes )
+DLLEXP NodeHandle h3dAddCameraNode( NodeHandle parent, const char *name)
 {
 	SceneNode *parentNode = Modules::sceneMan().resolveNodeHandle( parent );
 	APIFUNC_VALIDATE_NODE( parentNode, "h3dAddCameraNode", 0 );
-	Resource *pipeRes = Modules::resMan().resolveResHandle( pipelineRes );
-	APIFUNC_VALIDATE_RES_TYPE( pipeRes, ResourceTypes::Pipeline, "h3dAddCameraNode", 0 );
 	
 	//Modules::log().writeInfo( "Adding Camera node '%s'", safeStr( name ).c_str() );
-	CameraNodeTpl tpl( safeStr( name, 0 ), (PipelineResource *)pipeRes );
+	CameraNodeTpl tpl( safeStr( name, 0 ));
 	SceneNode *sn = Modules::sceneMan().findType( SceneNodeTypes::Camera )->factoryFunc( tpl );
 	return Modules::sceneMan().addNode( sn, *parentNode );
 }

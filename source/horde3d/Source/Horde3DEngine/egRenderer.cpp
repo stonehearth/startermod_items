@@ -74,6 +74,7 @@ Renderer::Renderer()
 	_maxAnisoMask = 0;
 	_smSize = 0;
    _materialOverride = 0x0;
+   _curPipeline = 0x0;
 
 	_shadowRB = 0;
 	_vlPosOnly = 0;
@@ -2150,7 +2151,7 @@ void Renderer::drawLightGeometry( const std::string &shaderContext, const std::s
 		Modules::sceneMan().updateQueues( reason.str().c_str(), _curCamera->getFrustum(), lightFrus,
 		                                  order, SceneNodeFlags::NoDraw, selectedOnly ? SceneNodeFlags::Selected : 0, false, true );
 		setupViewMatrices( _curCamera->getViewMat(), _curCamera->getProjMat() );
-      drawRenderables( _curLight->_lightingContext + "_" + _curCamera->_pipelineRes->_pipelineName,
+      drawRenderables( _curLight->_lightingContext + "_" + _curPipeline->_pipelineName,
 		                 theClass, false, &_curCamera->getFrustum(),
 		                 lightFrus, order, occSet );
 		Modules().stats().incStat( EngineStats::LightPassCount, 1 );
@@ -2266,7 +2267,7 @@ void Renderer::drawLightShapes( const std::string &shaderContext, bool noShadows
 		glDisable( GL_DEPTH_TEST );
 
 		if (_curLight->_directional) {
-         drawFSQuad(curMatRes, _curLight->_lightingContext + "_" + _curCamera->_pipelineRes->_pipelineName);
+         drawFSQuad(curMatRes, _curLight->_lightingContext + "_" + _curPipeline->_pipelineName);
       } else if (_curLight->_fov < 180) {
 			float r = _curLight->_radius * tanf( degToRad( _curLight->_fov / 2 ) );
 			drawCone( _curLight->_radius, r, _curLight->_absTrans );
@@ -3082,10 +3083,11 @@ void Renderer::drawParticles( const std::string &shaderContext, const std::strin
 // Main Rendering Functions
 // =================================================================================================
 
-void Renderer::render( CameraNode *camNode )
+void Renderer::render( CameraNode *camNode, PipelineResource* pRes )
 {
    radiant::perfmon::SwitchToCounter("render scene");
 	_curCamera = camNode;
+   _curPipeline = pRes;
 	if( _curCamera == 0x0 ) return;
 
    gRDI->_frameDebugInfo.setViewerFrustum_(camNode->getFrustum());
@@ -3101,7 +3103,7 @@ void Renderer::render( CameraNode *camNode )
 	else _maxAnisoMask = SS_ANISO16;
 
 	gRDI->setViewport( _curCamera->_vpX, _curCamera->_vpY, _curCamera->_vpWidth, _curCamera->_vpHeight );
-	if( Modules::config().debugViewMode || _curCamera->_pipelineRes == 0x0 )
+	if( Modules::config().debugViewMode || _curPipeline == 0x0 )
 	{
 		renderDebugView();
 		finishRendering();
@@ -3118,9 +3120,9 @@ void Renderer::render( CameraNode *camNode )
 		gRDI->setRenderBuffer( 0 );
 
 	// Process pipeline commands
-	for( uint32 i = 0; i < _curCamera->_pipelineRes->_stages.size(); ++i )
+	for( uint32 i = 0; i < _curPipeline->_stages.size(); ++i )
 	{
-		PipelineStagePtr &stage = _curCamera->_pipelineRes->_stages[i];
+		PipelineStagePtr &stage = _curPipeline->_stages[i];
 		if( !stage->enabled ) continue;
 		_curStageMatLink = stage->matLink;
 
