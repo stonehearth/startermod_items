@@ -559,13 +559,6 @@ void Renderer::ApplyConfig(const RendererConfig& newConfig, bool persistConfig)
       SetCurrentPipeline("pipelines/deferred_lighting.xml");
    }
 
-   // TODO: kill this.
-   /*SetStageEnable("SSAO", config_.use_ssao.value);
-   SetStageEnable("Simple, once-pass SSAO Blur", config_.use_ssao_blur.value);
-   // Turn on copying if we're using SSAO, but not using blur.
-   SetStageEnable("SSAO Copy", config_.use_ssao.value && !config_.use_ssao_blur.value);
-   SetStageEnable("SSAO Default", !config_.use_ssao.value);*/
-
    int oldMSAACount = (int)h3dGetOption(H3DOptions::SampleCount);
 
    h3dSetOption(H3DOptions::EnableShadows, config_.use_shadows.value ? 1.0f : 0.0f);
@@ -585,6 +578,9 @@ void Renderer::ApplyConfig(const RendererConfig& newConfig, bool persistConfig)
    if (camera_) {
       ResizeViewport();
    }
+
+   SetStageEnable("Selected_Fast", config_.use_fast_hilite.value);
+   SetStageEnable("Selected", !config_.use_fast_hilite.value);
 
    glfwSwapInterval(config_.enable_vsync.value ? 1 : 0);
 
