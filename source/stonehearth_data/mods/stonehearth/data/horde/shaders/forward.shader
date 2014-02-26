@@ -263,14 +263,16 @@ void main( void )
 
 uniform vec3 lightAmbientColor;
 uniform sampler2D cloudMap;
-uniform float currentTime;
+uniform sampler2D fowRT;
 uniform sampler2D ssaoImage;
 uniform vec2 viewPortSize;
 uniform vec2 viewPortPos;
+uniform float currentTime;
 
 varying vec4 pos;
 varying vec3 albedo;
 varying vec3 tsbNormal;
+varying vec4 projFowPos;
 
 void main( void )
 {
@@ -289,6 +291,10 @@ void main( void )
   // Mix light and shadow and ambient light.
   lightColor = cloudColor * (shadowTerm * lightColor * albedo) + (lightAmbientColor - ssao) * albedo;
   
+  // Mix in fog of war.
+  float fowValue = texture2D(fowRT, projFowPos.xy).a;
+  lightColor *= fowValue;
+
   gl_FragColor = vec4(lightColor, 1.0);
 }
 

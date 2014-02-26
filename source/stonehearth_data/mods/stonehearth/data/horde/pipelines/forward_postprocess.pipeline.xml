@@ -6,6 +6,7 @@
       <RenderTarget id="SSAOBlur" numColBufs="1" depthBuf="false" format="RGBA8" scale="1.0" />
       <RenderTarget id="SelectedTemp" numColBufs="1" depthBuf="true" scale="1.0" format="RGBA8"/>
       <RenderTarget id="SkyTemp" numColBufs="1" depthBuf="false" scale="0.125" format="RGBA8"/>
+      <GlobalRenderTarget id="FogOfWarRT" />
    </Setup>
    <CommandQueue>
       <Stage id="Init">
@@ -24,6 +25,7 @@
       </Stage>
 
       <Stage id="Starfield">
+         <SwitchTarget target="" />
          <DrawGeometry context="STARFIELD" />
       </Stage>
 
@@ -57,11 +59,16 @@
       </Stage>
 
       <Stage id="Light">
+         <BindBuffer sampler="fowRT" sourceRT="FogOfWarRT" bufIndex="0" />
          <BindBuffer sampler="ssaoImage" sourceRT="SSAOBlur" bufIndex="0" />
          <DoForwardLightLoop class="~Translucent" noShadows="false"/>
          <UnbindBuffers />
       </Stage>
 
+      <Stage id="Projections">
+         <!-- '1' is terrain only. -->
+         <DrawProjections context="PROJECTION" userFlags="1" />
+      </Stage>
 
       <Stage id="Fog">
          <BindBuffer sampler="skySampler" sourceRT="SkyTemp" bufIndex="0"/>
