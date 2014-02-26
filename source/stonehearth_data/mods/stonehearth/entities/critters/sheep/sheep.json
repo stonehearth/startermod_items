@@ -26,6 +26,21 @@
          "wait_text" : "This sheep is still quite naked.",
          "renew_effect" : "/stonehearth/data/effects/fursplosion_effect/growing_wool_effect.json"
       },      
+      "stonehearth:loot_table" : {
+        "num_drops" : {
+          "min" : 2,
+          "max" : 3
+        },
+        "items" : {
+          "jerky" : {
+            "uri" : "stonehearth:sheep_jerky"
+          },
+          "pelt" : {
+            "uri" : "stonehearth:wool_bundle",
+            "unique" : true
+          }
+        }
+      },      
       "stonehearth:ai" : {
          "actions" : [
             "stonehearth:actions:wander",

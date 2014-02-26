@@ -84,7 +84,7 @@ function ExecutionUnitV2:get_action_interface()
 end
 
 function ExecutionUnitV2:is_preemptable()
-   return self._action.is_preemptable
+   return self._action.preemptable
 end
 
 function ExecutionUnitV2:get_action()
@@ -149,6 +149,10 @@ function ExecutionUnitV2:_start_thinking(entity_state)
    if self:in_state(ABORTING, ABORTED, DEAD) then
       self._log:detail('ignoring "start_thinking" in state "%s"', self._state)
       return
+   end
+
+   if self._state == THINKING then
+      return self:_start_thinking_from_thinking(entity_state)
    end
 
    if self._state == 'stopped' then
@@ -292,6 +296,13 @@ function ExecutionUnitV2:_start_thinking_from_stopped(entity_state)
    assert(not self._thinking)
 
    self:_set_state(THINKING)
+   self:_do_start_thinking(entity_state)
+end
+
+function ExecutionUnitV2:_start_thinking_from_thinking(entity_state)
+   assert(self._thinking)
+
+   self:_do_stop_thinking()
    self:_do_start_thinking(entity_state)
 end
 

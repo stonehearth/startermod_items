@@ -35,7 +35,7 @@ function ExecutionFrame:__init(thread, debug_route, entity, name, args, action_i
    self._execution_units = {}
    self._execution_unit_keys = {}
    self._saved_think_output = {}
-   self._runnable_unit_count = {}
+   self._runnable_unit_count = 0
 
    self._log = radiant.log.create_logger('ai.exec_frame')
    local prefix = string.format('%s (%s)', self._debug_route, self._name)
@@ -47,6 +47,10 @@ function ExecutionFrame:__init(thread, debug_route, entity, name, args, action_i
    self:_create_execution_units()
    self._ai_component = entity:get_component('stonehearth:ai')
    radiant.events.listen(self._ai_component, 'stonehearth:action_index_changed', self, self._on_action_index_changed)
+
+   if name == 'stonehearth:top' then
+      radiant.events.listen(entity, 'stonehearth:carry_block:carrying_changed', self, self._on_carrying_changed)
+   end
 end
 
 function ExecutionFrame:get_id()
@@ -57,6 +61,13 @@ function ExecutionFrame:_unknown_transition(msg)
    local err = string.format('bad frame transition "%s" from "%s"', msg, self._state)
    self._log:info(err)
    error(err)
+end
+
+function ExecutionFrame:_on_carrying_changed()
+   self._log:detail('carrying changed!  going to restart thinking... (state:%s)', self._state)
+   if self:in_state('thinking', 'starting_thinking', 'ready', 'running') then
+      self:_restart_thinking()
+   end
 end
 
 function ExecutionFrame:_start_thinking(entity_state)
@@ -136,7 +147,7 @@ function ExecutionFrame:_unit_not_ready(unit)
 end
 
 function ExecutionFrame:_stop()
-   if self:in_state('starting', 'started') then
+   if self:in_state('ready', 'starting', 'started') then
       return self:_stop_from_started()
    end
    if self._state == 'finished' then
@@ -210,54 +221,65 @@ function ExecutionFrame:_remove_action(unit)
    self:_unknown_transition('remove_action')
 end
 
-function ExecutionFrame:_start_thinking_from_stopped(entity_state)
-   self._log:debug('_start_thinking_from_stopped')
+function ExecutionFrame:_restart_thinking(entity_state)
+   self._log:detail('_restart_thinking')
+   if self._active_unit and not self._active_unit:is_preemptable() then
+      self._log:detail('active unit "%s" is not pre-emptable.', self._active_unit:get_name())
+      return
+   end
+
    if entity_state then
       self:_set_current_entity_state(entity_state)
    else
       self:_capture_entity_state()
    end
-   assert(self._active_unit == nil)
-   assert(self._current_entity_state)
 
-   self:_set_state(STARTING_THINKING)
-
-   -- before starting, make a clone of our entity state for each execution unit.  we
-   -- clone it now rather than inline in the loop to prevent corrupting future states
-   -- if the current unit become ready immediately (like, before _start_thinking even
-   -- returns!)
-   self._runnable_unit_count = 0
-   local cloned_state = {}
+   -- see which units we can restart and clone the state for them
+   local rethinking_units = {}
    for _, unit in pairs(self._execution_units) do
-      cloned_state[unit] = self:_clone_entity_state('new speculation for unit')
-   end
-   
-   -- finally, start all the units with the cloned state
-   for _, unit in pairs(self._execution_units) do
-      unit:_start_thinking(cloned_state[unit])
-
-      -- if the action errors or aborts during start_thinking, just bail immediately
-      if self._state ~= STARTING_THINKING then
-         return
+      if self:_is_strictly_better_than_active(unit) then
+         rethinking_units[unit] = self:_clone_entity_state('new speculation for unit')
       end
    end
 
-   -- if anything became ready during the think, use it immediately.  otherwise,
-   -- transition to THINKING.
+   -- start them all...
+   local current_state = self._state
+   for unit, entity_state in pairs(rethinking_units) do
+      self._log:detail('calling start_thinking on unit "%s".', unit:get_name())
+      assert(unit:in_state('stopped', 'thinking'))
+      unit:_start_thinking(entity_state)
+
+      -- if units bail or abort, the current pcall should have been interrupted.
+      -- verify that this is so
+      assert(self._state == current_state)
+   end
+
+   -- if anything became ready during the think, use it immediately.
    local unit = self:_get_best_execution_unit()
-   if unit then
+   if unit and unit ~= self._active_unit then
+      self._log:detail('%s -> %s', self._active_unit and self._active_unit:get_name() or '', unit:get_name())
       local think_output = self._saved_think_output[unit]
       assert(think_output)
-      self._log:detail('using "%s" as active unit in start_thinking.', unit:get_name())
+      self._log:detail('using "%s" as active unit in _restart_thinking.', unit:get_name())
       self:_set_active_unit(unit, think_output)
       self:_set_state(READY)
-   else
+      return true
+   end   
+end
+
+function ExecutionFrame:_start_thinking_from_stopped(entity_state)   
+   self._log:debug('_start_thinking_from_stopped')
+   
+   self._runnable_unit_count = 0
+   self:_set_state(STARTING_THINKING)
+   if not self:_restart_thinking(entity_state) then
       self:_set_state(THINKING)
    end
 end
 
 function ExecutionFrame:_do_destroy()
    radiant.events.unlisten(self._ai_component, 'stonehearth:action_index_changed', self, self._on_action_index_changed)
+   radiant.events.unlisten(self._entity, 'stonehearth:carry_block:carrying_changed', self, self._on_carrying_changed)
 end
 
 function ExecutionFrame:start_thinking(entity_state)
@@ -434,6 +456,8 @@ end
 function ExecutionFrame:_do_unit_ready_bookkeeping(unit, think_output)
    -- remember the think output.  the frame caller up the stack will
    -- use it during the election, later.
+   assert(think_output)
+   self._log:detail('setting think output for %s to %s', unit:get_name(), tostring(think_output))
    self._saved_think_output[unit] = think_output
    self._runnable_unit_count = self._runnable_unit_count + 1
 end
@@ -715,6 +739,8 @@ function ExecutionFrame:_destroy_from_switching()
 end
 
 function ExecutionFrame:abort()
+   assert(not self._aborting)
+   self._aborting = true
    assert(self:_no_other_thread_is_running())
    self:_exit_protected_call(ABORT_FRAME)
 end
@@ -862,9 +888,11 @@ end
 function ExecutionFrame:_remove_action_from_running(unit)
    self._log:detail('_remove_action_from_running (state: %s)', self._state)
    if unit == self._active_unit then
-      self._thread:interrupt(function()
-         self:abort()
-      end)
+      if not self._aborting then
+         self._thread:interrupt(function()
+            self:abort()
+         end)
+      end
    else
       self:_remove_execution_unit(unit, true)
    end
@@ -944,7 +972,6 @@ end
 function ExecutionFrame:_set_current_entity_state(state)
    self._log:debug('set_current_entity_state')
    assert(state)
-   assert(self:get_state() == STOPPED)
 
    for key, value in pairs(state) do
       self._log:spam('  CURRENT.%s = %s', key, tostring(value))
@@ -978,7 +1005,6 @@ end
 
 function ExecutionFrame:_capture_entity_state()
    self._log:debug('_capture_entity_state')
-   assert(self:in_state(STOPPED))
    
    local state = self:_create_entity_state()
    self:_set_current_entity_state(state)
@@ -1002,7 +1028,7 @@ function ExecutionFrame:_is_strictly_better_than_active(unit)
       self._log:spam('  unit %s priority %d > active unit "%s" priority %d.  therefore is better!',
                      unit:get_name(), unit_priority, self._active_unit:get_name(), active_priority)
       return true
-   elseif unit_priority > active_priority then
+   elseif unit_priority < active_priority then
       self._log:spam('  unit %s priority %d < active unit "%s" priority %d.  therefore is not better!',
                      unit:get_name(), unit_priority, self._active_unit:get_name(), active_priority)
       return false

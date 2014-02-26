@@ -12,6 +12,7 @@ function Town:__init(name)
 
    self._task_groups = {
       workers = self._scheduler:create_task_group('stonehearth:work', {})
+                               :set_priority(stonehearth.constants.priorities.top.WORK)
                                :set_counter_name('workers')
    }
    self._unit_controllers = {}
