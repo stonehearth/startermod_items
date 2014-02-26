@@ -588,14 +588,14 @@ button.ui-button::-moz-focus-inner {
 .ui-slider {
    position: relative;
    text-align: left;
-   background: #222 !important;
-   border: 3px solid #000 !important;
+   background: #000 !important;
+   border: 2px solid #423d37 !important;
 }
 .ui-slider .ui-slider-handle {
    position: absolute;
    z-index: 2;
-   width: 1.2em;
-   height: 1.2em;
+   width: 15px;
+   height: 6px;
    cursor: default;
    background: #ffc000 !important;
    border: 3px solid #000 !important;
@@ -616,7 +616,7 @@ button.ui-button::-moz-focus-inner {
 }
 
 .ui-slider-horizontal {
-   height: .8em;
+   height: 4px;
 }
 .ui-slider-horizontal .ui-slider-handle {
    top: -.3em;

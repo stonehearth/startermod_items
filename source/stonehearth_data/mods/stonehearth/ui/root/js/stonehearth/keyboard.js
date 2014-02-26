@@ -26,6 +26,10 @@ $(document).ready(function(){
          this._hotkeyScope = $(element);
       },
 
+      getFocus: function() {
+         return this._hotkeyScope;
+      },
+
       handleKeyEvent: function(e) {
          var key = String.fromCharCode(e.keyCode).toLowerCase();
 
