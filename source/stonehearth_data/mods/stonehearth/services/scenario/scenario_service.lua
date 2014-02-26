@@ -112,8 +112,6 @@ function ScenarioService:reveal_region(world_space_region)
    local revealed_region = self._revealed_region
    local bounded_world_space_region, unrevealed_region, new_region
    local key, dormant_scenario, properties
-   local cpu_timer = Timer(Timer.CPU_TIME)
-   cpu_timer:start()
 
    bounded_world_space_region = self:_bound_region_by_terrain(world_space_region)
    new_region = self:_region_to_habitat_space(bounded_world_space_region)
@@ -134,7 +132,12 @@ function ScenarioService:reveal_region(world_space_region)
                   properties.size.width, properties.size.length
                )
 
-               self:_activate_scenario(properties, dormant_scenario.offset_x, dormant_scenario.offset_y)
+               local seconds = Timer.measure(
+                  function()
+                     self:_activate_scenario(properties, dormant_scenario.offset_x, dormant_scenario.offset_y)
+                  end
+               )
+               log:info('Activated scenario "%s" in %.3fs', properties.name, seconds)
             end
          end
       end
@@ -143,15 +146,11 @@ function ScenarioService:reveal_region(world_space_region)
    revealed_region:add_unique_region(unrevealed_region)
 
    local num_rects = revealed_region:get_num_rects()
+
    if num_rects >= self._last_optimized_rect_count * self._region_optimization_threshold then
       log:info('Optimizing scenario region')
       revealed_region:optimize_by_oct_tree(8)
       self._last_optimized_rect_count = revealed_region:get_num_rects()
-   end
-
-   cpu_timer:stop()
-   if unrevealed_region:get_num_rects() > 0 then
-      log:info('ScenarioService:reveal_region time: %.3fs', cpu_timer:seconds())
    end
 end
 

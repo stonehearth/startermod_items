@@ -68,7 +68,7 @@ function TerrainService:_update_regions()
                      log:info('Optimization time: %.3fs', seconds)
 
                      -- performance counters standardize on milliseconds
-                     radiant.set_performance_counter('explored_region:optimization_time', seconds*1000, "time")
+                     radiant.set_performance_counter('explored_region:last_optimization_time', seconds*1000, "time")
 
                      self._last_optimized_rect_count = region2:get_num_rects()
                   end
