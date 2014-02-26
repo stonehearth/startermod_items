@@ -16,7 +16,7 @@
          <ClearTarget colBuf0="true" depthBuf="true" />
       </Stage>
 
-      <Stage id="Sky">
+      <!--Stage id="Sky">
          <DrawGeometry context="SKY" />
 
          <SwitchTarget target="SkyTemp" />
@@ -25,7 +25,7 @@
 
       <Stage id="Starfield">
          <DrawGeometry context="STARFIELD" />
-      </Stage>
+      </Stage-->
 
       <Stage id="Depth">
          <SwitchTarget target="GBuffers" />

@@ -642,20 +642,6 @@ bool ShaderResource::parseFXSection( char *data )
 					else if( tok.checkToken( "false" ) ) context.writeDepth = false;
 					else return raiseError( "FX: invalid bool value", tok.getLine() );
 				}
-				else if( tok.checkToken( "ColorWrite" ) )
-				{
-					if( !tok.checkToken( "=" ) ) return raiseError( "FX: expected '='", tok.getLine() );
-               if( tok.checkToken( "true" ) ) context.writeColor = true;
-					else if( tok.checkToken( "false" ) ) context.writeColor = false;
-					else return raiseError( "FX: invalid bool value", tok.getLine() );
-				}
-				else if( tok.checkToken( "AlphaWrite" ) )
-				{
-					if( !tok.checkToken( "=" ) ) return raiseError( "FX: expected '='", tok.getLine() );
-               if( tok.checkToken( "true" ) ) context.writeAlpha = true;
-					else if( tok.checkToken( "false" ) ) context.writeAlpha = false;
-					else return raiseError( "FX: invalid bool value", tok.getLine() );
-				}
 				else if( tok.checkToken( "ZEnable" ) )
 				{
 					if( !tok.checkToken( "=" ) ) return raiseError( "FX: expected '='", tok.getLine() );

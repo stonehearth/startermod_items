@@ -62,7 +62,7 @@ context DIRECTIONAL_LIGHTING_FORWARD_POSTPROCESS
 
 context DEPTH_LINEAR
 {
-  VertexShader = compile GLSL VS_GENERAL;
+  VertexShader = compile GLSL VS_GENERAL_POSTPROCESS;
   PixelShader = compile GLSL FS_DEPTH_LINEAR;
   CullMode = Back;
 }
@@ -204,6 +204,32 @@ void main( void )
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 // POST-PROCESS SPECIFIC CONTEXTS
 ////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+[[VS_GENERAL_POSTPROCESS]]
+#include "shaders/utilityLib/vertCommon.glsl"
+
+uniform mat4 viewProjMat;
+
+attribute vec3 vertPos;
+attribute vec3 normal;
+attribute vec3 color;
+
+varying vec4 pos;
+varying vec4 vsPos;
+varying vec3 tsbNormal;
+varying vec3 albedo;
+varying float worldScale;
+
+void main( void )
+{
+  pos = calcWorldPos(vec4(vertPos, 1.0));
+  vsPos = calcViewPos(pos);
+  tsbNormal = calcWorldVec(normal);
+  albedo = color;
+  worldScale = getWorldScale();
+  gl_Position = viewProjMat * pos;
+}
 
 
 

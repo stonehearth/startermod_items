@@ -884,18 +884,14 @@ bool Renderer::setMaterialRec( MaterialResource *materialRes, const std::string 
 		commitGeneralUniforms();
 
       // Configure color write mask.
-      glColorMask(context->writeMask & 1, 
-         context->writeMask & 2, 
-         context->writeMask & 4, 
-         context->writeMask & 8);
+      glColorMask(context->writeMask & 1 ? GL_TRUE : GL_FALSE, 
+         context->writeMask & 2 ? GL_TRUE : GL_FALSE, 
+         context->writeMask & 4 ? GL_TRUE : GL_FALSE, 
+         context->writeMask & 8 ? GL_TRUE : GL_FALSE);
 
 		// Configure depth mask
 		if( context->writeDepth ) glDepthMask( GL_TRUE );
 		else glDepthMask( GL_FALSE );
-
-      int colMask = context->writeColor ? GL_TRUE : GL_FALSE;
-      int alphaMask = context->writeAlpha ? GL_TRUE : GL_FALSE;
-      glColorMask(colMask, colMask, colMask, alphaMask);
 
 		// Configure cull mode
 		if( !Modules::config().wireframeMode )

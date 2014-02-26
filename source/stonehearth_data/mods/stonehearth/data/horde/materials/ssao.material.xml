@@ -1,4 +1,4 @@
-<Material parent="materials/base.material.xml">
+<Material>
   <Sampler name="randomVectorLookup" map="RandomVectorLookup" />
   <Shader source="shaders/ssao.shader" />
 </Material>

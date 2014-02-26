@@ -248,7 +248,7 @@ Renderer::Renderer() :
 
    h3dSetResParamStr(currentPipeline_, H3DPipeRes::GlobalRenderTarget, 0, fowRenderTarget_, "FogOfWarRT");
 
-   SetDrawWorld(false);
+   SetDrawWorld(true);
    initialized_ = true;
 }
 
@@ -560,11 +560,11 @@ void Renderer::ApplyConfig(const RendererConfig& newConfig, bool persistConfig)
    }
 
    // TODO: kill this.
-   SetStageEnable("SSAO", config_.use_ssao.value);
+   /*SetStageEnable("SSAO", config_.use_ssao.value);
    SetStageEnable("Simple, once-pass SSAO Blur", config_.use_ssao_blur.value);
    // Turn on copying if we're using SSAO, but not using blur.
    SetStageEnable("SSAO Copy", config_.use_ssao.value && !config_.use_ssao_blur.value);
-   SetStageEnable("SSAO Default", !config_.use_ssao.value);
+   SetStageEnable("SSAO Default", !config_.use_ssao.value);*/
 
    int oldMSAACount = (int)h3dGetOption(H3DOptions::SampleCount);
 
