@@ -1,5 +1,6 @@
 App.StonehearthSettingsView = App.View.extend({
    templateName: 'settings',
+   modal: true,
 
    fromResToVal : function(shadowRes, shadowsEnabled) {
       if (!shadowsEnabled) {
@@ -51,9 +52,11 @@ App.StonehearthSettingsView = App.View.extend({
 
       var self = this;
 
-      $("#horizon").click(function() {
-         self.destroy();
-      });
+      this.$('#settings').position({
+            my: 'center center',
+            at: 'center center',
+            of: '#modalOverlay'
+         });
 
       var reloadableCallback = function() {
          self.reloadableSettingDidChange();

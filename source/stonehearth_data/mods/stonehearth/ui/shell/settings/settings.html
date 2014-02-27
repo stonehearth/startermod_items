@@ -1,43 +1,42 @@
 <script type="text/x-handlebars" data-template-name="settings">
-<div class="horizon">
-   <div class="settings">
-      <div id="inner">
-         <h1>{{i18n stonehearth:settings_title}}</h1>
+   <div id="settings" class="settings gui">
+      <div class="window">
+         <div class="title">{{i18n stonehearth:settings_title}}, <span id="gfxCardString"></span></div>
          
-         <h4 id="gfxCardString"></h4>
+         
 
-         <table>
-            <tr>
-               <td>{{i18n stonehearth:settings_gfx_enable_vsync}}
-               <td>
-                  <input type="checkbox" id="opt_enableVsync" {{bindAttr checked="vsync_enabled"}}>
-                  <label class="chkSetting" for="opt_enableVsync"></label>
-            <tr>
-               <td>{{i18n stonehearth:settings_gfx_enable_fullscreen}}
-               <td>
-                  <input type="checkbox" id="opt_enableFullscreen" {{bindAttr checked="fullscreen_enabled"}}>
-                  <label class="chkSetting" for="opt_enableFullscreen"></label>
-            <tr>
-               <td>{{i18n stonehearth:settings_gfx_msaa}}
-               <td>
-                  <div id="aaNumSlider"></div>
-                  <div id="aaNumDescription" class="sliderDescription"></div>
-            <tr>
-               <td>{{i18n stonehearth:settings_gfx_shadows}}
-               <td>
-                  <div id="shadowResSlider"></div>
-                  <div id="shadowResDescription" class="sliderDescription"></div>
-            <tr>
-               <td>{{i18n stonehearth:settings_gfx_drawdistance}}
-               <td>
-                  <div id="drawDistSlider"></div>
-                  <div id="drawDistDescription" class="sliderDescription"></div>               
-            <tr>
-               <td>{{i18n stonehearth:settings_gfx_fasthilite}}
-               <td>
-                  <input type="checkbox" id="opt_useFastHilite" {{bindAttr checked="use_fast_hilite"}}>
-                  <label class="chkSetting" for="opt_useFastHilite"></label>
-         </table>
+         <div class="setting">
+            <input type="checkbox" id="opt_enableVsync" {{bindAttr checked="vsync_enabled"}}>
+            <label for="opt_enableVsync">{{i18n stonehearth:settings_gfx_enable_vsync}}</label>
+         </div>
+
+         <div class="setting">
+            <input type="checkbox" id="opt_enableFullscreen" {{bindAttr checked="fullscreen_enabled"}}>
+            <label for="opt_enableFullscreen">{{i18n stonehearth:settings_gfx_enable_fullscreen}}</label>
+         </div>
+
+         <div class="setting">
+            {{i18n stonehearth:settings_gfx_msaa}}
+            <div id="aaNumSlider"></div>
+            <div id="aaNumDescription" class="sliderDescription"></div>
+         </div>
+
+         <div class="setting">
+            {{i18n stonehearth:settings_gfx_shadows}}
+            <div id="shadowResSlider"></div>
+            <div id="shadowResDescription" class="sliderDescription"></div>
+         </div>
+
+         <div class="setting">
+            {{i18n stonehearth:settings_gfx_drawdistance}}
+            <div id="drawDistSlider"></div>
+            <div id="drawDistDescription" class="sliderDescription"></div>               
+         </div>
+
+         <div class="setting">
+            <input type="checkbox" id="opt_useFastHilite" {{bindAttr checked="use_fast_hilite"}}>
+            <label class="chkSetting" for="opt_useFastHilite">{{i18n stonehearth:settings_gfx_fasthilite}}</label>
+         </div>
       
          <div id=buttons>
             <button id="applyButton" disabled {{action applySettings target=view}}>{{i18n stonehearth:ok}}</button>
@@ -45,5 +44,4 @@
          </div>
       </div>
    </div>
-</div>
 </script>

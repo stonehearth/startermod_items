@@ -76,6 +76,10 @@
    "wildlife_3": "Plentiful",
    "wildlife_4": "Abundant",
 
+   "esc_menu_options": "Options",
+   "esc_menu_quit_to_menu": "Quit to Main Menu",
+   "esc_menu_exit_game": "Exit Game",
+
    "embark_title" : "Click the map to choose your settlement's location",
    "embark_at_this_location" : "Embark here!",
    "embark_clear_selection" : "Choose another location",
