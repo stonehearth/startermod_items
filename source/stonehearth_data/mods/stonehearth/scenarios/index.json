@@ -1,11 +1,13 @@
 {
    "scenarios" : [
-      "file(bunnies/bunny_nest.json)",
-      "file(sheep/herd_of_sheep.json)"
+      "file(fox_nest)",
+      "file(rabbit_nest)",
+      "file(squirrel_nest)",
+      "file(racoon_nest)"
    ],
    "categories" : {
       "wildlife" : {
-         "frequency" : 1.20,
+         "frequency" : 5.20,
          "priority" : 0
       },
       "ruins" : {

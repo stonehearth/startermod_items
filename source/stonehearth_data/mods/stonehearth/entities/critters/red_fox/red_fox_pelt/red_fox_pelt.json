@@ -6,6 +6,13 @@
       "unit_info": {
          "name": "Racoon pelt",
          "description": "Soft, supple, and quite dead"
-      }
+      },
+      "model_variants": {
+         "default": {
+            "models": [
+               "file(fur_pelt.qb)"
+            ]
+         }
+      }      
    }
 }

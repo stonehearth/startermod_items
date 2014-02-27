@@ -11,7 +11,7 @@ function RabbitTest:__init()
    
    self:place_citizen(6, 6) 
    self:place_item('stonehearth:rabbit', 0, 0)
-   self:place_item('stonehearth:sheep', -3, -6)
+   --self:place_item('stonehearth:sheep', -3, -6)
    self:place_item('stonehearth:racoon', 3, 3)
    self:place_item('stonehearth:red_fox', 3, -3)
    self:place_item('stonehearth:squirrel', -3, 3)
