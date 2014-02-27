@@ -31,6 +31,7 @@ protected:
 class RenderAnimationEffect : public RenderEffect {
 public:
    RenderAnimationEffect(RenderEntity& e, om::EffectPtr effect, const JSONNode& node);
+   ~RenderAnimationEffect();
 
    void Update(FrameStartInfo const& info, bool& done) override;
 
@@ -172,6 +173,7 @@ private:
 struct RenderInnerEffectList {
    RenderInnerEffectList() {}
    RenderInnerEffectList(RenderEntity& e, om::EffectPtr effect);
+   ~RenderInnerEffectList();
 
    void Update(FrameStartInfo const& info, bool& finished);
 private:

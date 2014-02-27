@@ -1,0 +1,11 @@
+{
+   "mixins": "stonehearth:mixins:resources:fur_pelt",
+
+   "type": "entity",
+   "components": {
+      "unit_info": {
+         "name": "Racoon pelt",
+         "description": "Soft, supple, and quite dead"
+      }
+   }
+}

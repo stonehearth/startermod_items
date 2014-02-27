@@ -29,7 +29,7 @@ end
 function EffectManager:on_event_loop(e)
    for effect, _ in pairs(self._effects) do
       effect:update(e)
-      if effect:finished() then
+      if effect:is_finished() then
          self._effects[effect] = nil
       end
    end

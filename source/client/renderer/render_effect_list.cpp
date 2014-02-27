@@ -95,6 +95,7 @@ RenderEffectList::RenderEffectList(RenderEntity& entity, om::EffectListPtr effec
 
 RenderEffectList::~RenderEffectList()
 {
+   EL_LOG_NOPREFIX(9) << "destroying render effect list";
 }
 
 void RenderEffectList::AddEffect(int effect_id, const om::EffectPtr effect)
@@ -166,6 +167,11 @@ RenderInnerEffectList::RenderInnerEffectList(RenderEntity& renderEntity, om::Eff
    } catch (std::exception& e) {
       EL_LOG(5) << "failed to create effect: " << e.what();
    }
+}
+
+RenderInnerEffectList::~RenderInnerEffectList()
+{
+   EL_LOG_NOPREFIX(9) << "destroying render inner effect list";
 }
 
 void RenderInnerEffectList::Update(FrameStartInfo const& info, bool& finished)
@@ -240,6 +246,10 @@ RenderAnimationEffect::RenderAnimationEffect(RenderEntity& e, om::EffectPtr effe
    }
 }
 
+RenderAnimationEffect::~RenderAnimationEffect()
+{
+   EL_LOG(9) << "destroying animation effect" << animationName_;
+}
 
 void RenderAnimationEffect::Update(FrameStartInfo const& info, bool& finished)
 {
