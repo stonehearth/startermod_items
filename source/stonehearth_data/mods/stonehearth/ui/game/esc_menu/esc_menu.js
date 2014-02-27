@@ -32,6 +32,10 @@ App.StonehearthEscMenuView = App.View.extend({
    },
 
    actions: {
+      resume: function() {
+         App.escMenu.destroy();
+      },
+
       qyuitToMainMenu: function() {
 
       },
