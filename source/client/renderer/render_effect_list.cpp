@@ -133,36 +133,36 @@ RenderInnerEffectList::RenderInnerEffectList(RenderEntity& renderEntity, om::Eff
    log_prefix_ = BUILD_STRING("[" << *renderEntity.GetEntity() << " inner_effect_list" << "]");
    try {
       std::string name = effect->GetName();
-
-      JSONNode const& data = res::ResourceManager2::GetInstance().LookupJson(name);
-      for (const JSONNode& node : data["tracks"]) {
-         std::string type = node["type"].as_string();
-         std::shared_ptr<RenderEffect> e;
-         if (type == "animation_effect") {
-            e = std::make_shared<RenderAnimationEffect>(renderEntity, effect, node); 
-         } else if (type == "attach_item_effect") {
-            e = std::make_shared<RenderAttachItemEffect>(renderEntity, effect, node); 
-         } else if (type == "floating_combat_text") {
-            e = std::make_shared<FloatingCombatTextEffect>(renderEntity, effect, node); 
-         } else if (type == "hide_bone") {
-            e = std::make_shared<HideBoneEffect>(renderEntity, effect, node);
-         } else if (type == "activity_overlay_effect") {
-            e = std::make_shared<ActivityOverlayEffect>(renderEntity, effect, node);
-         } else if (type == "unit_status_effect") {
-            e = std::make_shared<UnitStatusEffect>(renderEntity, effect, node);
-         } else if (type == "sound_effect") {
-            if (PlaySoundEffect::ShouldCreateSound()) {
-               e = std::make_shared<PlaySoundEffect>(renderEntity, effect, node); 
+      res::ResourceManager2::GetInstance().LookupJson(name, [&](const JSONNode& data) {
+         for (const JSONNode& node : data["tracks"]) {
+            std::string type = node["type"].as_string();
+            std::shared_ptr<RenderEffect> e;
+            if (type == "animation_effect") {
+               e = std::make_shared<RenderAnimationEffect>(renderEntity, effect, node); 
+            } else if (type == "attach_item_effect") {
+               e = std::make_shared<RenderAttachItemEffect>(renderEntity, effect, node); 
+            } else if (type == "floating_combat_text") {
+               e = std::make_shared<FloatingCombatTextEffect>(renderEntity, effect, node); 
+            } else if (type == "hide_bone") {
+               e = std::make_shared<HideBoneEffect>(renderEntity, effect, node);
+            } else if (type == "activity_overlay_effect") {
+               e = std::make_shared<ActivityOverlayEffect>(renderEntity, effect, node);
+            } else if (type == "unit_status_effect") {
+               e = std::make_shared<UnitStatusEffect>(renderEntity, effect, node);
+            } else if (type == "sound_effect") {
+               if (PlaySoundEffect::ShouldCreateSound()) {
+                  e = std::make_shared<PlaySoundEffect>(renderEntity, effect, node); 
+               }
+            } else if (type == "cubemitter") {
+               e = std::make_shared<CubemitterEffect>(renderEntity, effect, node);
+            } else if (type == "light") {
+               e = std::make_shared<LightEffect>(renderEntity, effect, node);
             }
-         } else if (type == "cubemitter") {
-            e = std::make_shared<CubemitterEffect>(renderEntity, effect, node);
-         } else if (type == "light") {
-            e = std::make_shared<LightEffect>(renderEntity, effect, node);
+            if (e) {
+               effects_.push_back(e);
+            }
          }
-         if (e) {
-            effects_.push_back(e);
-         }
-      }
+      });
    } catch (std::exception& e) {
       EL_LOG(5) << "failed to create effect: " << e.what();
    }
@@ -216,8 +216,10 @@ RenderAnimationEffect::RenderAnimationEffect(RenderEntity& e, om::EffectPtr effe
    
       // compute the location of the animation
       std::string animationTable = entity->GetComponent<om::RenderInfo>()->GetAnimationTable();
-      json::Node json = res::ResourceManager2::GetInstance().LookupJson(animationTable);
-      std::string animationRoot = json.get<std::string>("animation_root", "");
+      std::string animationRoot;
+      res::ResourceManager2::GetInstance().LookupJson(animationTable, [&](const json::Node& json) {
+         animationRoot = json.get<std::string>("animation_root", "");
+      });
 
       animationName_ = animationRoot + "/" + animationName_;
       animation_ = res::ResourceManager2::GetInstance().LookupAnimation(animationName_);
@@ -645,8 +647,10 @@ FloatingCombatTextEffect::FloatingCombatTextEffect(RenderEntity& e, om::EffectPt
       if (render_info) {
          std::string animationTableName = render_info->GetAnimationTable();
 
-         json::Node json = res::ResourceManager2::GetInstance().LookupJson(animationTableName);
-         json::Node cs = json.get<JSONNode>("collision_shape", JSONNode());
+         json::Node cs;
+         res::ResourceManager2::GetInstance().LookupJson(animationTableName, [&](const json::Node& json) {
+            cs = json.get<JSONNode>("collision_shape", JSONNode());
+         });
          height_ = cs.get<float>("height", 4.0f);
          height_ *= 0.1f; // xxx - take this out of the same place where we store the face that the model is 10x too big
       }

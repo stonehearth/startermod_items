@@ -33,6 +33,7 @@ private:
 
 struct Function : public json::Node
 {
+   Function();
    Function(std::string const& name, json::Node const& n);
 
    static const std::string SERVER;
@@ -58,8 +59,8 @@ struct Manifest : public json::Node
 {
    DECLARE_MOD_OBJECT(Manifest);
 
-   FunctionsBlock get_functions();
-   Function get_function(std::string name);
+   FunctionsBlock get_functions() const;
+   Function get_function(std::string name) const;
 };
 
 END_RADIANT_RES_NAMESPACE

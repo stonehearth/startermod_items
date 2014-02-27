@@ -207,8 +207,12 @@ void Simulation::CreateNew()
 
    game_api_ = scriptHost_->Require("radiant.server");
    for (std::string const& mod_name : resource_manager.GetModuleNames()) {
-      json::Node manifest = resource_manager.LookupManifest(mod_name);
-      std::string script_name = manifest.get<std::string>("server_init_script", "");
+      std::string script_name;
+
+      resource_manager.LookupManifest(mod_name, [&](const res::Manifest& manifest) {
+         script_name = manifest.get<std::string>("server_init_script", "");
+      });
+
       if (!script_name.empty()) {
          try {
             luabind::globals(L)[mod_name] = scriptHost_->Require(script_name);
@@ -221,8 +225,10 @@ void Simulation::CreateNew()
    scriptHost_->Trigger("radiant:modules_loaded");
 
    std::string const module = config.Get<std::string>("game.mod");
-   json::Node const manifest = resource_manager.LookupManifest(module);
-   std::string const default_script = module + "/" + manifest.get<std::string>("game.script");
+   std::string default_script;
+   resource_manager.LookupManifest(module, [&](const res::Manifest& manifest) {
+      default_script = module + "/" + manifest.get<std::string>("game.script");
+   });
 
    std::string const game_script = config.Get("game.script", default_script);
    object game_ctor = scriptHost_->RequireScript(game_script);

@@ -422,8 +422,11 @@ void Client::run(int server_port)
 
    core::Config const& config = core::Config::GetInstance();
    std::string const loader = config.Get<std::string>("game.mod");
-   json::Node const manifest = res::ResourceManager2::GetInstance().LookupManifest(loader);
-   std::string docroot = "http://radiant/" + manifest.get<std::string>("loader.ui.homepage");
+
+   std::string docroot;
+   res::ResourceManager2::GetInstance().LookupManifest(loader, [&](const res::Manifest& m) {
+      docroot = "http://radiant/" + m.get<std::string>("loader.ui.homepage");
+   });
 
    // skip title screen if there is a script override
    if (config.Has("game.script")) {
@@ -491,8 +494,10 @@ void Client::run(int server_port)
    res::ResourceManager2 &resource_manager = res::ResourceManager2::GetInstance();
    scriptHost_->Require("radiant.client");
    for (std::string const& mod_name : resource_manager.GetModuleNames()) {
-      json::Node manifest = resource_manager.LookupManifest(mod_name);
-      std::string script_name = manifest.get<std::string>("client_init_script", "");
+      std::string script_name;
+      resource_manager.LookupManifest(mod_name, [&](const res::Manifest& manifest) {
+         script_name = manifest.get<std::string>("client_init_script", "");
+      });
       if (!script_name.empty()) {
          try {
             luabind::globals(L)[mod_name] = scriptHost_->Require(script_name);
@@ -1067,18 +1072,7 @@ void Client::RemoveCursor(CursorStackId id)
 rpc::ReactorDeferredPtr Client::GetModules(rpc::Function const& fn)
 {
    rpc::ReactorDeferredPtr d = std::make_shared<rpc::ReactorDeferred>(fn.route);
-   JSONNode result;
-   auto& rm = res::ResourceManager2::GetInstance();
-   for (std::string const& modname : rm.GetModuleNames()) {
-      JSONNode manifest;
-      try {
-         manifest = rm.LookupManifest(modname).get_internal_node();
-      } catch (std::exception const&) {
-         // Just use an empty manifest...f
-      }
-      manifest.set_name(modname);
-      result.push_back(manifest);
-   }
+   JSONNode result = res::ResourceManager2::GetInstance().GetModules();
    d->Resolve(result);
    return d;
 }

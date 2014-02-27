@@ -20,8 +20,12 @@ public:
    static ResourceManager2& GetInstance();
 
    std::vector<std::string> const& GetModuleNames() const;
-   Manifest LookupManifest(std::string const& modname) const;
-   JSONNode const& LookupJson(std::string path) const;
+
+   void LookupManifest(std::string const& modname, std::function<void(Manifest const& m)> callback) const;
+   void LookupJson(std::string const& path, std::function<void(JSONNode const& n)> callback) const;
+   const JSONNode GetModules() const;
+
+
    AnimationPtr LookupAnimation(std::string path) const;
 
    std::string ConvertToCanonicalPath(std::string path, const char* search_ext) const;
@@ -31,6 +35,8 @@ public:
    std::shared_ptr<std::istream> OpenResource(std::string const& stream) const;
 
 private:
+   JSONNode const& LookupJsonUnsafe(std::string path) const;
+   Manifest LookupManifestUnsafe(std::string const& modname) const;
    ResourceManager2();
    static std::unique_ptr<ResourceManager2> singleton_;
 

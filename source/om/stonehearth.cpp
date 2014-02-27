@@ -82,8 +82,11 @@ GetLuaComponentUri(std::string name)
       modname = name.substr(0, offset);
       name = name.substr(offset + 1, std::string::npos);
 
-      json::Node manifest = res::ResourceManager2::GetInstance().LookupManifest(modname);
-      return manifest.get_node("components").get<std::string>(name);
+      std::string result;
+      res::ResourceManager2::GetInstance().LookupManifest(modname, [&](const res::Manifest& manifest) {
+         result = manifest.get_node("components").get<std::string>(name);
+      });
+      return result;
    }
    // xxx: throw an exception...
    return "";
@@ -258,68 +261,70 @@ void Stonehearth::InitEntity(EntityPtr entity, std::string const& uri, lua_State
    bool is_server = object_cast<bool>(globals(L)["radiant"]["is_server"]);
 
    entity->SetUri(uri);
-
-   JSONNode const& node = res::ResourceManager2::GetInstance().LookupJson(uri);
-   auto i = node.find("components");
-   if (i != node.end() && i->type() == JSON_NODE) {
-      for (auto const& entry : *i) {
-         // Native components...
-   #define OM_OBJECT(Cls, lower) \
-         if (entry.name() == #lower) { \
-            auto component = entity->AddComponent<Cls>(); \
-            component->ExtendObject(json::Node(entry)); \
-            continue; \
-         }
-         OM_ALL_COMPONENTS
-   #undef OM_OBJECT
-
-         // Lua components...
-         object component_data = lua::ScriptHost::JsonToLua(L, entry);
-         if (is_server) {
-            object component = Stonehearth::AddComponent(L, entity, entry.name());
-            if (type(component) != LUA_TNIL) {
-               object extend = component["extend"];
-               if (type(extend) == LUA_TFUNCTION) {
-                  call_function<void>(extend, component, component_data);
-               }
+   res::ResourceManager2::GetInstance().LookupJson(uri, [&](const JSONNode& node) {
+      auto i = node.find("components");
+      if (i != node.end() && i->type() == JSON_NODE) {
+         for (auto const& entry : *i) {
+            // Native components...
+      #define OM_OBJECT(Cls, lower) \
+            if (entry.name() == #lower) { \
+               auto component = entity->AddComponent<Cls>(); \
+               component->ExtendObject(json::Node(entry)); \
+               continue; \
             }
-         } else {
-            SetLuaComponentData(L, entity, entry.name(), component_data);
-         }
-      }
-   }
-   // go through again and call the post create function...
-   if (is_server) {
-      for (auto const& entry : entity->GetComponents()) {
-         dm::ObjectPtr obj = entry.second;
-         if (obj->GetObjectType() == DataStoreObjectType) {
-            DataStorePtr ds = std::static_pointer_cast<DataStore>(obj);
-            object controller = ds->GetController();
-            if (controller && controller.is_valid()) {
-               object on_created = controller["on_created"];
-               if (type(on_created) == LUA_TFUNCTION) {
-                  call_function<void>(on_created, controller);
-               }
-            }
-         }
-      }
-   }
+            OM_ALL_COMPONENTS
+      #undef OM_OBJECT
 
-   // xxx: refaactor me!!!111!
-   if (L) {
-      json::Node n(node);
-      std::string init_script = n.get<std::string>("init_script", "");
-      if (!init_script.empty()) {
-         try {        
-            object fn = lua::ScriptHost::RequireScript(L, init_script);
-            if (!fn.is_valid() || type(fn) != LUA_TFUNCTION) {
-               E_LOG(3) << "failed to load init script " << init_script << "... skipping.";
+            // Lua components...
+            object component_data = lua::ScriptHost::JsonToLua(L, entry);
+            if (is_server) {
+               object component = Stonehearth::AddComponent(L, entity, entry.name());
+               if (type(component) != LUA_TNIL) {
+                  object extend = component["extend"];
+                  if (type(extend) == LUA_TFUNCTION) {
+                     call_function<void>(extend, component, component_data);
+                  }
+               }
             } else {
-               call_function<void>(fn, EntityRef(entity));
+               SetLuaComponentData(L, entity, entry.name(), component_data);
             }
-         } catch (std::exception &e) {
-            E_LOG(3) << "failed to run init script for " << uri << ": " << e.what();
          }
       }
-   }
+
+
+      // go through again and call the post create function...
+      if (is_server) {
+         for (auto const& entry : entity->GetComponents()) {
+            dm::ObjectPtr obj = entry.second;
+            if (obj->GetObjectType() == DataStoreObjectType) {
+               DataStorePtr ds = std::static_pointer_cast<DataStore>(obj);
+               object controller = ds->GetController();
+               if (controller && controller.is_valid()) {
+                  object on_created = controller["on_created"];
+                  if (type(on_created) == LUA_TFUNCTION) {
+                     call_function<void>(on_created, controller);
+                  }
+               }
+            }
+         }
+      }
+
+      // xxx: refaactor me!!!111!
+      if (L) {
+         json::Node n(node);
+         std::string init_script = n.get<std::string>("init_script", "");
+         if (!init_script.empty()) {
+            try {        
+               object fn = lua::ScriptHost::RequireScript(L, init_script);
+               if (!fn.is_valid() || type(fn) != LUA_TFUNCTION) {
+                  E_LOG(3) << "failed to load init script " << init_script << "... skipping.";
+               } else {
+                  call_function<void>(fn, EntityRef(entity));
+               }
+            } catch (std::exception &e) {
+               E_LOG(3) << "failed to run init script for " << uri << ": " << e.what();
+            }
+         }
+      }
+   });
 }

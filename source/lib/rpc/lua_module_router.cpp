@@ -38,8 +38,11 @@ ReactorDeferredPtr LuaModuleRouter::Call(Function const& fn)
       std::string const& module = match[1];
       std::string const& route = match[2];
 
-      res::Manifest manifest = res::ResourceManager2::GetInstance().LookupManifest(module);
-      res::Function f = manifest.get_function(route);
+      res::Function f;
+      res::ResourceManager2::GetInstance().LookupManifest(module, [&](const res::Manifest& manifest) {
+         f = manifest.get_function(route);
+      });
+
       if (!f || f.endpoint() != endpoint_) {
          return nullptr;
       }
