@@ -345,6 +345,7 @@ Client::Client() :
          node.set("gfx_card_renderer", Renderer::GetInstance().GetStats().gpu_renderer);
          node.set("gfx_card_driver", Renderer::GetInstance().GetStats().gl_version);
          node.set("use_fast_hilite", makeRendererConfigNode(cfg.use_fast_hilite));
+         node.set("enable_ssao", makeRendererConfigNode(cfg.enable_ssao));
 
          result->Resolve(node);
       } catch (std::exception const& e) {
@@ -369,6 +370,7 @@ Client::Client() :
          newCfg.enable_vsync.value = params.get<bool>("vsync", oldCfg.enable_vsync.value);
          newCfg.draw_distance.value = params.get<float>("draw_distance", oldCfg.draw_distance.value);
          newCfg.use_fast_hilite.value = params.get<bool>("use_fast_hilite", oldCfg.use_fast_hilite.value);
+         newCfg.enable_ssao.value = params.get<bool>("enable_ssao", oldCfg.enable_ssao.value);
          
          Renderer::GetInstance().ApplyConfig(newCfg, persistConfig);
 

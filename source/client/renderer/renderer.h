@@ -164,7 +164,8 @@ class Renderer
 
       ViewMode GetViewMode() const { return viewMode_; }
       void SetViewMode(ViewMode mode);
-      void SetCurrentPipeline(std::string pipeline);
+      void SetCurrentPipeline(const std::string& pipeline);
+      H3DRes GetPipeline(const std::string& name);
       bool ShouldHideRenderGrid(const csg::Point3& normal);
 
       void FlushMaterials();
@@ -192,7 +193,7 @@ class Renderer
       void GetConfigOptions();
       void BuildSkySphere();
       void BuildStarfield();
-      void SetStageEnable(const char* stageName, bool enabled);
+      void SetStageEnable(H3DRes pipeRes, const char* stageName, bool enabled);
       void OnWindowResized(int newWidth, int newHeight);
       void OnKey(int key, int down);
       void OnMouseWheel(double value);

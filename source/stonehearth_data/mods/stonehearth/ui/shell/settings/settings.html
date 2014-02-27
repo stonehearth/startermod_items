@@ -38,6 +38,11 @@
             <label class="chkSetting" for="opt_useFastHilite">{{i18n stonehearth:settings_gfx_fasthilite}}</label>
          </div>
       
+         <div class="setting">
+            <input type="checkbox" id="opt_enableSsao" {{bindAttr checked="enable_ssao"}}>
+            <label class="chkSetting" for="opt_enableSsao">{{i18n stonehearth:settings_gfx_enable_ssao}}</label>
+         </div>
+
          <div id=buttons>
             <button id="applyButton" disabled {{action applySettings target=view}}>{{i18n stonehearth:ok}}</button>
             <button {{action cancel target=view}}>{{i18n stonehearth:cancel}}</button>

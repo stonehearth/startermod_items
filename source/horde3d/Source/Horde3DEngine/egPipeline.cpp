@@ -58,6 +58,7 @@ void PipelineResource::release()
 {
 	releaseRenderTargets();
 	_renderTargets.clear();
+   _globalRenderTargets.clear();
 	_stages.clear();
 }
 

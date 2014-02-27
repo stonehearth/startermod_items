@@ -26,6 +26,7 @@
    "settings_gfx_shadows" : "Shadow Detail",
    "settings_gfx_drawdistance" : "Draw Distance",
    "settings_gfx_fasthilite" : "Fast Selection Effect",
+   "settings_gfx_enable_ssao" : "Enable Ambient Occlusion",
 
    "settings_shadow_0" : "off",
    "settings_shadow_1" : "just a touch",

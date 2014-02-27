@@ -64,7 +64,7 @@ Renderer::Renderer() :
    currentPipeline_(0),
    iconified_(false),
    resize_pending_(false),
-   drawWorld_(false)
+   drawWorld_(true)
 {
    terrainConfig_ = res::ResourceManager2::GetInstance().LookupJson("stonehearth/renderers/terrain/terrain_renderer.json");
    GetConfigOptions();
@@ -99,8 +99,6 @@ Renderer::Renderer() :
    OnWindowResized(windowWidth_, windowHeight_);
 
    SetShowDebugShapes(false);
-
-   h3dSetResParamStr(currentPipeline_, H3DPipeRes::GlobalRenderTarget, 0, fowRenderTarget_, "FogOfWarRT");
 
    SetDrawWorld(false);
    initialized_ = true;
@@ -603,7 +601,10 @@ void Renderer::ApplyConfig(const RendererConfig& newConfig, bool persistConfig)
    } else {
       worldPipeline_ = "pipelines/forward.pipeline.xml";
    }
-   SetCurrentPipeline(worldPipeline_);
+
+   if (drawWorld_) {
+      SetCurrentPipeline(worldPipeline_);
+   }
 
    int oldMSAACount = (int)h3dGetOption(H3DOptions::SampleCount);
 
@@ -611,22 +612,20 @@ void Renderer::ApplyConfig(const RendererConfig& newConfig, bool persistConfig)
    h3dSetOption(H3DOptions::ShadowMapSize, (float)config_.shadow_resolution.value);
    h3dSetOption(H3DOptions::SampleCount, (float)config_.num_msaa_samples.value);
 
-   if (oldMSAACount != (int)h3dGetOption(H3DOptions::SampleCount))
+   /*if (oldMSAACount != (int)h3dGetOption(H3DOptions::SampleCount))
    {
       // MSAA change requires that we reload our pipelines (so that we can regenerate our
       // render target textures with the appropriate sampling).
       FlushMaterials();
 
       LoadResources();
-   }
+   }*/
 
    // Propagate far-plane value.
-   if (camera_) {
-      ResizeViewport();
-   }
+   ResizeViewport();
 
-   SetStageEnable("Selected_Fast", config_.use_fast_hilite.value);
-   SetStageEnable("Selected", !config_.use_fast_hilite.value);
+   SetStageEnable(GetPipeline(worldPipeline_), "Selected_Fast", config_.use_fast_hilite.value);
+   SetStageEnable(GetPipeline(worldPipeline_), "Selected", !config_.use_fast_hilite.value);
 
    glfwSwapInterval(config_.enable_vsync.value ? 1 : 0);
 
@@ -715,16 +714,16 @@ SystemStats Renderer::GetStats()
    return result;
 }
 
-void Renderer::SetStageEnable(const char* stageName, bool enabled)
+void Renderer::SetStageEnable(H3DRes pipeRes, const char* stageName, bool enabled)
 {
-   int stageCount = h3dGetResElemCount(currentPipeline_, H3DPipeRes::StageElem);
+   int stageCount = h3dGetResElemCount(pipeRes, H3DPipeRes::StageElem);
 
    for (int i = 0; i < stageCount; i++)
    {
-      const char* curStageName = h3dGetResParamStr(currentPipeline_, H3DPipeRes::StageElem, i, H3DPipeRes::StageNameStr);
+      const char* curStageName = h3dGetResParamStr(pipeRes, H3DPipeRes::StageElem, i, H3DPipeRes::StageNameStr);
       if (_strcmpi(stageName, curStageName) == 0)
       {
-         h3dSetResParamI(currentPipeline_, H3DPipeRes::StageElem, i, H3DPipeRes::StageActivationI, enabled ? 1 : 0);
+         h3dSetResParamI(pipeRes, H3DPipeRes::StageElem, i, H3DPipeRes::StageActivationI, enabled ? 1 : 0);
          break;
       }
    }
@@ -924,6 +923,7 @@ void Renderer::RenderOneFrame(int now, float alpha)
    
    if (drawWorld_) {
       RenderFogOfWarRT();
+      h3dSetResParamStr(currentPipeline_, H3DPipeRes::GlobalRenderTarget, 0, fowRenderTarget_, "FogOfWarRT");
    }
 
    h3dRender(camera_->GetNode(), currentPipeline_);
@@ -1124,6 +1124,9 @@ void Renderer::ResizeViewport()
 
 void Renderer::SetDrawWorld(bool drawWorld) 
 {
+   if (drawWorld_ == drawWorld) {
+      return;
+   }
    drawWorld_ = drawWorld;
 
    if (drawWorld_) {
@@ -1131,6 +1134,10 @@ void Renderer::SetDrawWorld(bool drawWorld)
    } else {
       SetCurrentPipeline("pipelines/ui_only.pipeline.xml");
    }
+
+   //FlushMaterials();
+
+   //LoadResources();
 }
 
 void* Renderer::GetNextUiBuffer()
@@ -1318,7 +1325,12 @@ core::Guard Renderer::TraceSelected(H3DNode node, UpdateSelectionFn fn)
    return core::Guard([=]() { selectableCbs_.erase(node); });
 }
 
-void Renderer::SetCurrentPipeline(std::string name)
+void Renderer::SetCurrentPipeline(const std::string& name)
+{
+   currentPipeline_ = GetPipeline(name);
+}
+
+H3DRes Renderer::GetPipeline(const std::string& name)
 {
    H3DRes p = 0;
 
@@ -1326,15 +1338,12 @@ void Renderer::SetCurrentPipeline(std::string name)
    if (i == pipelines_.end()) {
       p = h3dAddResource(H3DResTypes::Pipeline, name.c_str(), 0);
       pipelines_[name] = p;
-
       LoadResources();
+      h3dResizePipelineBuffers(p, windowWidth_, windowHeight_);
    } else {
       p = i->second;
    }
-   if (camera_ != NULL) {
-      h3dSetNodeParamI(camera_->GetNode(), H3DCamera::PipeResI, p);
-   }
-   currentPipeline_ = p;
+   return p;
 }
 
 bool Renderer::ShouldHideRenderGrid(const csg::Point3& normal)
