@@ -565,6 +565,7 @@ void Renderer::UpdateConfig(const RendererConfig& newConfig)
    // Presently, only the engine can decide if certain features are even allowed to run.
    config_.num_msaa_samples.allowed = gpuCaps.MSAASupported;
    config_.use_shadows.allowed = rendererCaps.ShadowsSupported;
+   config_.enable_ssao.allowed = rendererCaps.SsaoSupported;
 }
 
 void Renderer::PersistConfig()
@@ -595,6 +596,7 @@ void Renderer::ApplyConfig(const RendererConfig& newConfig, bool persistConfig)
 {
    UpdateConfig(newConfig);
 
+   config_.enable_ssao.value &= config_.enable_ssao.allowed;
    // Super hard-coded setting for now.
    if (config_.enable_ssao.value) {
       worldPipeline_ = "pipelines/forward_postprocess.pipeline.xml";

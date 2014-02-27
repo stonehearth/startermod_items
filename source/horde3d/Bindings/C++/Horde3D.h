@@ -69,6 +69,7 @@ struct H3DGpuCaps
 struct H3DRendererCaps
 {
    bool ShadowsSupported;
+   bool SsaoSupported;
 };
 
 
