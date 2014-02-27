@@ -164,7 +164,6 @@ class Renderer
 
       ViewMode GetViewMode() const { return viewMode_; }
       void SetViewMode(ViewMode mode);
-      void SetCurrentPipeline(const std::string& pipeline);
       H3DRes GetPipeline(const std::string& name);
       bool ShouldHideRenderGrid(const csg::Point3& normal);
 
@@ -232,7 +231,7 @@ class Renderer
       uint32            fowRenderTarget_;
 
       H3DResourceMap    pipelines_;
-   	H3DRes            currentPipeline_;
+   	std::string       currentPipeline_;
 
       H3DRes            fontMatRes_;
       H3DRes            panelMatRes_;

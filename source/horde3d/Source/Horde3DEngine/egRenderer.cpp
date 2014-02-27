@@ -131,12 +131,16 @@ void Renderer::setGpuCompatibility()
    // Shadows: we don't trust intel less than gl version 30.
    // TODO: Eventually, we get to a nice big matrix of manufacturer/driver.
    gpuCompatibility_.canDoShadows = !(gpu == CardType::INTEL && glVer < 30);
+
+   // SSAO: arbitrarily gate SSAO with gl version >= 4.0
+   gpuCompatibility_.canDoSsao = glVer >= 40;
 }
 
 void Renderer::getEngineCapabilities(EngineRendererCaps* rendererCaps, EngineGpuCaps* gpuCaps) const
 {
    if (rendererCaps) {
       rendererCaps->ShadowsSupported = gpuCompatibility_.canDoShadows;
+      rendererCaps->SsaoSupported = gpuCompatibility_.canDoSsao;
    }
 
    if (gpuCaps) {

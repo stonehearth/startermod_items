@@ -61,7 +61,7 @@ Renderer::Renderer() :
    screen_resize_slot_("screen resize"),
    show_debug_shapes_changed_slot_("show debug shapes"),
    lastGlfwError_("none"),
-   currentPipeline_(0),
+   currentPipeline_(""),
    iconified_(false),
    resize_pending_(false),
    drawWorld_(true)
@@ -344,7 +344,7 @@ void Renderer::RenderFogOfWarRT()
    h3dSetNodeParamF(fowCamera_->GetNode(), H3DCamera::NearPlaneF, 0, -max.z);
    h3dSetNodeParamF(fowCamera_->GetNode(), H3DCamera::FarPlaneF, 0, -min.z);
 
-   H3DRes fp = h3dAddResource(H3DResTypes::Pipeline, "pipelines/fow.pipeline.xml", 0);
+   H3DRes fp = GetPipeline("pipelines/fow.pipeline.xml");
    h3dSetResParamStr(fp, H3DPipeRes::GlobalRenderTarget, 0, fowRenderTarget_, "FogOfWarRT");
 
    h3dRender(fowCamera_->GetNode(), fp);
@@ -565,6 +565,7 @@ void Renderer::UpdateConfig(const RendererConfig& newConfig)
    // Presently, only the engine can decide if certain features are even allowed to run.
    config_.num_msaa_samples.allowed = gpuCaps.MSAASupported;
    config_.use_shadows.allowed = rendererCaps.ShadowsSupported;
+   config_.enable_ssao.allowed = rendererCaps.SsaoSupported;
 }
 
 void Renderer::PersistConfig()
@@ -595,15 +596,12 @@ void Renderer::ApplyConfig(const RendererConfig& newConfig, bool persistConfig)
 {
    UpdateConfig(newConfig);
 
+   config_.enable_ssao.value &= config_.enable_ssao.allowed;
    // Super hard-coded setting for now.
    if (config_.enable_ssao.value) {
       worldPipeline_ = "pipelines/forward_postprocess.pipeline.xml";
    } else {
       worldPipeline_ = "pipelines/forward.pipeline.xml";
-   }
-
-   if (drawWorld_) {
-      SetCurrentPipeline(worldPipeline_);
    }
 
    int oldMSAACount = (int)h3dGetOption(H3DOptions::SampleCount);
@@ -612,7 +610,8 @@ void Renderer::ApplyConfig(const RendererConfig& newConfig, bool persistConfig)
    h3dSetOption(H3DOptions::ShadowMapSize, (float)config_.shadow_resolution.value);
    h3dSetOption(H3DOptions::SampleCount, (float)config_.num_msaa_samples.value);
 
-   /*if (oldMSAACount != (int)h3dGetOption(H3DOptions::SampleCount))
+   /* Unused, until we can reload the window without bringing everything down.
+   if (oldMSAACount != (int)h3dGetOption(H3DOptions::SampleCount))
    {
       // MSAA change requires that we reload our pipelines (so that we can regenerate our
       // render target textures with the appropriate sampling).
@@ -922,11 +921,13 @@ void Renderer::RenderOneFrame(int now, float alpha)
    perfmon::SwitchToCounter("render h3d");
    
    if (drawWorld_) {
+      currentPipeline_ = worldPipeline_;
+
       RenderFogOfWarRT();
-      h3dSetResParamStr(currentPipeline_, H3DPipeRes::GlobalRenderTarget, 0, fowRenderTarget_, "FogOfWarRT");
+      h3dSetResParamStr(GetPipeline(currentPipeline_), H3DPipeRes::GlobalRenderTarget, 0, fowRenderTarget_, "FogOfWarRT");
    }
 
-   h3dRender(camera_->GetNode(), currentPipeline_);
+   h3dRender(camera_->GetNode(), GetPipeline(currentPipeline_));
 
    // Finish rendering of frame
    UpdateCamera();
@@ -1130,14 +1131,10 @@ void Renderer::SetDrawWorld(bool drawWorld)
    drawWorld_ = drawWorld;
 
    if (drawWorld_) {
-      SetCurrentPipeline(worldPipeline_);
+      currentPipeline_ = worldPipeline_;
    } else {
-      SetCurrentPipeline("pipelines/ui_only.pipeline.xml");
+      currentPipeline_ = "pipelines/ui_only.pipeline.xml";
    }
-
-   //FlushMaterials();
-
-   //LoadResources();
 }
 
 void* Renderer::GetNextUiBuffer()
@@ -1323,11 +1320,6 @@ core::Guard Renderer::TraceSelected(H3DNode node, UpdateSelectionFn fn)
 {
    selectableCbs_[node] = fn;
    return core::Guard([=]() { selectableCbs_.erase(node); });
-}
-
-void Renderer::SetCurrentPipeline(const std::string& name)
-{
-   currentPipeline_ = GetPipeline(name);
 }
 
 H3DRes Renderer::GetPipeline(const std::string& name)

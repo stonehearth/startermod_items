@@ -134,11 +134,13 @@ struct PipeSamplerBinding
 
 struct GpuCompatibility {
    bool canDoShadows;
+   bool canDoSsao;
 };
 
 struct EngineRendererCaps
 {
    bool ShadowsSupported;
+   bool SsaoSupported;
 };
 
 struct UniformType

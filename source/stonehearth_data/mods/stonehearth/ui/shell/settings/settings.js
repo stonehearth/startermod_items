@@ -110,6 +110,10 @@ App.StonehearthSettingsView = App.View.extend({
 
             self.set('context.use_fast_hilite', o.use_fast_hilite.value);
 
+            self.set('context.ssao_forbidden', !o.enable_ssao.allowed);
+            if (!o.enable_ssao.allowed) {
+               o.enable_ssao.value = false;
+            }
             self.set('context.enable_ssao', o.enable_ssao.value);
 
             $('#gfxCardString').html(i18n.t('stonehearth:settings_gfx_cardinfo', {
