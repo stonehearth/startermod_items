@@ -1,0 +1,39 @@
+{
+   "type" : "entity",
+   "mixins" : "stonehearth:mixins:critter",   
+   "components": {
+      "unit_info" : {
+        "name": "A racoon",
+        "description": "Small forest creature",
+        "portrait": "file(portrait.png)",
+        "faction": "critter",
+        "character_sheet_info" : "file(racoon_character_sheet_info.json)"
+      },
+      "stonehearth:loot_table" : {
+        "num_drops" : {
+          "min" : 2,
+          "max" : 3
+        },
+        "items" : {
+          "jerky" : {
+            "uri" : "stonehearth:racoon_jerky"
+          },
+          "pelt" : {
+            "uri" : "stonehearth:racoon_pelt",
+            "unique" : true
+          }
+        }
+      },      
+      "render_info" : {
+         "animation_table" : "file(/data/rigs/critters/rabbit)",
+         "scale" : 0.12
+      },
+      "model_variants": {
+         "default": {
+            "models": [
+               "file(racoon.qb)"
+            ]
+         }
+      }
+   }
+}

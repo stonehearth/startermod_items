@@ -46,7 +46,8 @@ function RunEffectAction:run(ai, entity, args)
    for i = 1, times do
       log:debug('starting new effect "%s"', effect_name)
       self._effect = radiant.effects.run_effect(entity, effect_name, nil, args.args)
-      self._effect:on_finished(function()
+
+      radiant.events.listen(entity, 'stonehearth:on_effect_finished', function ()
             if self._effect then
                self._effect:stop()
                log:debug('stopped effect "%s" and resuming', effect_name)

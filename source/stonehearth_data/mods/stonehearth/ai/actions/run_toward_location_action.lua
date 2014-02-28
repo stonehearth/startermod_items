@@ -25,6 +25,7 @@ function RunTowardLocation:run(ai, entity, args)
    end
 
    self._effect = radiant.effects.run_effect(entity, 'run')
+                                       :set_cleanup_on_finish(false)
    local arrived_fn = function()
       ai:resume('mover finished')
    end

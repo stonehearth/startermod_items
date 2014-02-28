@@ -148,7 +148,7 @@ function ScenarioService:reveal_region(world_space_region)
    local num_rects = revealed_region:get_num_rects()
 
    if num_rects >= self._last_optimized_rect_count * self._region_optimization_threshold then
-      log:info('Optimizing scenario region')
+      log:debug('Optimizing scenario region')
       revealed_region:optimize_by_oct_tree(8)
       self._last_optimized_rect_count = revealed_region:get_num_rects()
    end

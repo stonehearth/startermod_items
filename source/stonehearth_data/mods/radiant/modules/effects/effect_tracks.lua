@@ -20,6 +20,7 @@ function EffectTracks:__init(mgr, entity, effect_path, effect_name, start_time, 
    self._running = true
    self._entity = entity
    self._effect_path = effect_path
+   self._cleanup_on_finish = true
 
    if args then
       radiant.check.is_table(args)
@@ -62,8 +63,12 @@ function EffectTracks:get_name()
    return self._name
 end
 
-function EffectTracks:cleanup()
-   self._on_finished_fn = nil
+function EffectTracks:set_cleanup_on_finish(val)
+   self._cleanup_on_finish = val
+   return self
+end
+
+function EffectTracks:_cleanup()
    log:debug('cleaning up effect "%s"', self._name)
    if self._effect_list and self._effect_list:is_valid() then
       self._effect_list:remove_effect(self._effect)
@@ -71,26 +76,12 @@ function EffectTracks:cleanup()
    self._mgr:_remove_effect(self)
 end
 
-function EffectTracks:finished()
+function EffectTracks:is_finished()
    return not self._running
 end
 
-function EffectTracks:on_finished(fn)
-   self._on_finished_fn = fn
-end
-
-
 function EffectTracks:stop()
-   if self._running then
-      self._running = false
-      if self._on_finished_fn then
-         self._on_finished_fn()
-      end
-      radiant.events.trigger(self._entity, 'stonehearth:on_effect_finished', {
-         effect = self._effect_path
-      })
-      self:cleanup()
-   end
+   self:_cleanup()
 end
 
 function EffectTracks:update(e)
@@ -103,7 +94,22 @@ function EffectTracks:update(e)
          end
       end
       if all_finished then
-         self:stop()
+         self:_finish()
+      end
+   end
+end
+
+--- Finish means, "the effect has played all the way through to completion".  Specifically,
+-- stopped effects will not trigger the finish event!  Note that events on the server don't
+-- loop, so "completion" for an animation means it just ran through once!!
+function EffectTracks:_finish()
+   if self._running then
+      self._running = false
+      radiant.events.trigger(self._entity, 'stonehearth:on_effect_finished', {
+         effect = self._effect_path
+      })
+      if self._cleanup_on_finish then
+         self:_cleanup()
       end
    end
 end

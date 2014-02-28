@@ -1,0 +1,9 @@
+{
+   "mixins": "stonehearth:mixins:resources:jerky",
+   "type": "entity",
+   "components": {
+      "unit_info": {
+         "name": "Squirrel jerky"
+      }
+   }
+}
