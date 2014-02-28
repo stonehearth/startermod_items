@@ -410,8 +410,7 @@
 
       "ambient:summer_day"   : "file(data/ambient/sh_amb_summer_day.ogg)",
       "ambient:summer_night" : "file(data/ambient/sh_amb_summer_night.ogg)",
-      "ambient:dusk_wolves" : "file(data/ambient/sh_amb_dusk_wolves.ogg)",
-
+      
       "scenarios:scenario_index" : "file(scenarios/index.json)"
    },
    "functions" : {
