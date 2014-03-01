@@ -1,0 +1,7 @@
+{
+   "info" : {
+      "name" : "Autotest Framework"
+   },
+
+   "server_init_script" : "file(autotest)"
+}

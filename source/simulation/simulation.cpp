@@ -63,7 +63,7 @@ namespace po = boost::program_options;
 
 Simulation::Simulation() :
    _showDebugNodes(false),
-   _singleStepPathFinding(true),
+   _singleStepPathFinding(false),
    store_(nullptr),
    paused_(false),
    noidle_(false),
@@ -290,15 +290,10 @@ void Simulation::CreateGameModules()
       });
       if (!script_name.empty()) {
          try {
-            luabind::object mod_lua_object = scriptHost_->Require(script_name);
-            om::DataStorePtr ds = GetStore().AllocObject<om::DataStore>();
-            ds->SetController(lua::ControllerObject(script_name, mod_lua_object));
-            ds->SetData(luabind::newtable(L));
-            mod_list->AddMod(mod_name, ds);
-            luabind::globals(L)[mod_name] = mod_lua_object;
-            luabind::object args(luabind::newtable(L));
-            args["datastore"] = ds;
-            scriptHost_->TriggerOn(mod_lua_object, "radiant:construct", args);
+            luabind::object obj = scriptHost_->Require(script_name);
+            mod_list->AddMod(mod_name, obj);
+            luabind::globals(L)[mod_name] = obj;
+            scriptHost_->TriggerOn(obj, "radiant:construct", luabind::object());
          } catch (std::exception const& e) {
             SIM_LOG(1) << "module " << mod_name << " failed to load " << script_name << ": " << e.what();
          }
@@ -308,9 +303,10 @@ void Simulation::CreateGameModules()
    scriptHost_->Trigger("radiant:modules_loaded");
 
    std::string const module = config.Get<std::string>("game.main_mod", "stonehearth");
-   om::DataStorePtr ds = mod_list->GetMod(module);
-   ASSERT(ds);
-   scriptHost_->TriggerOn(ds->GetController().GetLuaObject(), "radiant:new_game", luabind::newtable(L));
+   luabind::object obj = mod_list->GetMod(module);
+   if (obj) {
+      scriptHost_->TriggerOn(obj, "radiant:new_game", luabind::newtable(L));
+   }
 }
 
 void Simulation::LoadGameModules()

@@ -18,6 +18,10 @@ function radiant.create_datastore(data)
    return datastore
 end
 
+function radiant.exit(code)
+   _host:exit(code)
+end
+
 radiant.log = require 'modules.log'
 radiant.util = require 'lib.util'
 radiant.check = require 'lib.check'

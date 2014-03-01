@@ -23,6 +23,7 @@ ifeq ($(RUN_STAGED),)
 else
   RUN_ROOT=$(STAGE_ROOT)
 endif
+STONEHEARTH_APP = ../../build/source/stonehearth/$(MSBUILD_CONFIGURATION)/Stonehearth.exe
 
 .PHONY: default
 default: submodules configure crash_reporter stonehearth
@@ -75,11 +76,15 @@ symbols:
 ide: configure
 	start build/Stonehearth.sln
 
+.PHONY: run-autotest
+run-autotest:
+	cd $(RUN_ROOT) && ($(STONEHEARTH_APP) --game.main_mod=stonehearth_autotest&)
+
 run-%-test:
-	cd $(RUN_ROOT) && ../../build/source/stonehearth/$(MSBUILD_CONFIGURATION)/Stonehearth.exe --game.main_mod=stonehearth_tests --mods.stonehearth_tests.test=$*_test&
+	cd $(RUN_ROOT) && $(STONEHEARTH_APP) --game.main_mod=stonehearth_tests --mods.stonehearth_tests.test=$*_test&
 
 run:
-	cd $(RUN_ROOT) && ../../build/source/stonehearth/$(MSBUILD_CONFIGURATION)/Stonehearth.exe&
+	cd $(RUN_ROOT) && $(STONEHEARTH_APP)&
 
 # make a decoda project!
 .PHONY: decoda-project

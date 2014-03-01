@@ -15,6 +15,7 @@ function Inventory:create_stockpile(location, size)
    entity:get_component('unit_info'):set_faction(self._faction)
 
    self._nextStockpileNo = self._nextStockpileNo + 1
+   return entity
 end
 
 function Inventory:add_storage(storage_entity)

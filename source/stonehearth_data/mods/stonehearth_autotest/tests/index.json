@@ -1,0 +1,8 @@
+{
+   "test_groups" : {
+      "all" : [
+         "file(calendar_autotests.lua)",
+         "file(stockpile_autotests.lua)"
+      ]
+   }
+}

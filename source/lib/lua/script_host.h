@@ -96,6 +96,7 @@ private:
    static void* LuaAllocFn(void *ud, void *ptr, size_t osize, size_t nsize);
    static void LuaTrackLine(lua_State *L, lua_Debug *ar);
    void Log(const char* category, int level, const char* str);
+   void Exit(int code);
    int GetLogLevel(std::string const& category);
    uint GetRealTime();
    void ReportStackException(std::string const& category, std::string const& error, std::string const& traceback) const;

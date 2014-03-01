@@ -234,6 +234,7 @@ ScriptHost::ScriptHost()
          namespace_("lua") [
             lua::RegisterType<ScriptHost>()
                .def("log",             &ScriptHost::Log)
+               .def("exit",            &ScriptHost::Exit)
                .def("get_realtime",    &ScriptHost::GetRealTime)
                .def("get_log_level",   &ScriptHost::GetLogLevel)
                .def("get_config",      &ScriptHost::GetConfig)
@@ -470,6 +471,15 @@ void ScriptHost::Log(const char* category, int level, const char* str)
       LOG_CATEGORY_(level, BUILD_STRING("mod " << category)) << str;
    }
 }
+
+void ScriptHost::Exit(int code)
+{
+   LOG_(0) << "exiting with code " << code << " by mod request.";
+   // NOOOOOOOOOOOO!  Can we gracefully shutdown?  So far this is used exclusively
+   // by the autotest framework.
+   TerminateProcess(GetCurrentProcess(), code);
+}
+
 
 uint ScriptHost::GetRealTime()
 {
@@ -740,6 +750,8 @@ std::string ScriptHost::LuaToString(luabind::object obj)
             }
          } else if (t == LUA_TBOOLEAN) {
             os << (object_cast<bool>(obj) ? "true" : "false");
+         } else if (t == LUA_TFUNCTION) {
+            os << "\"function\"";
          }
       }
       route.pop_back();

@@ -1,0 +1,21 @@
+{
+   "info" : {
+      "name" : "Stonehearth Autotest: Automated Testing for Stonehearth"
+   },
+
+   "server_init_script" : "file(stonehearth_autotest)",
+
+   "functions" : {
+      "get_world_generation_progress": {
+         "controller" : "file(call_handlers/world_generation_call_handler.lua)",
+         "endpoint" : "server"
+      }
+   },
+
+  "ui" :  {
+      "homepage" : "http://radiant/stonehearth/ui/root/index.html?skip_title=true)",
+      "js" : [
+         "file(js/e2e_automation_hook.js)"
+      ]
+   }
+}

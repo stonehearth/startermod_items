@@ -1,6 +1,6 @@
 local trapper_class = {}
 
-function trapper_class.promote(entity, workshop_component)
+function trapper_class.promote(entity)
 
    --Add the necessary components
    local profession_description = radiant.resources.load_json('stonehearth:trapper:description')
