@@ -35,7 +35,6 @@ using namespace radiant::json;
 
 template <> Node json::encode(om::Entity const& obj)
 {
-   om::ObjectFormatter f;
    std::string debug_text = obj.GetDebugText();
    std::string uri = obj.GetUri();
    Node node;
@@ -46,23 +45,25 @@ template <> Node json::encode(om::Entity const& obj)
    if (!debug_text.empty()) {
       node.set("debug_text", debug_text);
    }
-   auto const& components = obj.GetComponents();
-   for (auto const& entry : components) {
-      dm::ObjectPtr c = entry.second;
-      node.set(entry.first, f.GetPathToObject(c));
+   for (auto const& entry : obj.GetComponents()) {
+      node.set(entry.first, entry.second->GetStoreAddress());
+   }
+
+   lua::ScriptHost *scriptHost = lua::ScriptHost::GetScriptHost(obj);
+   for (auto const& entry : obj.GetLuaComponents()) {
+      node.set(entry.first, scriptHost->LuaToJson(entry.second));
    }
    return node;
 }
 
 template <> Node json::encode(om::EntityContainer const& obj)
 {
-   om::ObjectFormatter f;
    Node node;
 
    for (auto const& entry : obj.EachChild()) {
       om::EntityPtr child = entry.second.lock();
       if (child) {
-         node.set(stdutil::ToString(entry.first), f.GetPathToObject(child));
+         node.set(stdutil::ToString(entry.first), child->GetStoreAddress());
       }
    }
    return node;
@@ -87,11 +88,11 @@ template <> Node json::encode(om::Mob const& obj)
    Node node;
 
    node.set("transform", obj.GetTransform());
-   node.set("entity", om::ObjectFormatter().GetPathToObject(obj.GetEntityPtr()));
+   node.set("entity", obj.GetEntityPtr()->GetStoreAddress());
    node.set("moving", obj.GetMoving());
    om::EntityPtr parent = obj.GetParent().lock();
    if (parent) {
-      node.set("parent", om::ObjectFormatter().GetPathToObject(parent));
+      node.set("parent", parent->GetStoreAddress());
    }
 
    return node;
@@ -131,7 +132,7 @@ template <> Node json::encode(om::CarryBlock const& obj)
 
    om::EntityPtr carrying = obj.GetCarrying().lock();
    if (carrying) {
-      node.set("carrying", om::ObjectFormatter().GetPathToObject(carrying));
+      node.set("carrying", carrying->GetStoreAddress());
    } else {
       node.set("carrying", "");
    }   
@@ -162,13 +163,12 @@ template <> Node json::encode(om::DataStore const& obj)
 
 template <> Node json::encode(om::ErrorBrowser const& obj)
 {
-   om::ObjectFormatter f;
    Node node;
 
    JSONNode entries(JSON_ARRAY);
    entries.set_name("entries");
    for (auto const& e: obj.GetEntries()) {
-      entries.push_back(JSONNode("", f.GetPathToObject(e)));
+      entries.push_back(JSONNode("", e->GetStoreAddress()));
    }
 
    node.set("entries", entries);

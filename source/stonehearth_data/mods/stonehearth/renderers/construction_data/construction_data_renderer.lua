@@ -2,7 +2,7 @@ local voxel_brush_util = require 'services.build.voxel_brush_util'
 local Point3 = _radiant.csg.Point3
 local ConstructionDataRenderer = class()
 
-function ConstructionDataRenderer:__init(render_entity, data_store)
+function ConstructionDataRenderer:update(render_entity, data_store)
    self._parent_node = render_entity:get_node()
    self._entity = render_entity:get_entity()
    self._data_store = data_store

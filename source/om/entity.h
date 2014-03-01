@@ -10,6 +10,7 @@
 #include "dm/boxed.h"
 #include "dm/map.h"
 #include "dm/store.h"
+#include "lib/lua/bind.h"
 
 BEGIN_RADIANT_OM_NAMESPACE
 
@@ -21,22 +22,33 @@ public:
 
    void Destroy();
 
-   typedef dm::Map<std::string, dm::ObjectPtr> ComponentMap;
+   typedef dm::Map<std::string, ComponentPtr>      ComponentMap;
+   typedef dm::Map<std::string, luabind::object>   LuaComponentMap;
 
    const ComponentMap& GetComponents() const { return components_; }
+   const LuaComponentMap& GetLuaComponents() const { return lua_components_; }
+
    std::shared_ptr<dm::MapTrace<ComponentMap>> TraceComponents(const char* reason, int category)
    {
       return components_.TraceChanges(reason, category);
    }
+   std::shared_ptr<dm::MapTrace<LuaComponentMap>> TraceLuaComponents(const char* reason, int category)
+   {
+      return lua_components_.TraceChanges(reason, category);
+   }
 
    template <class T> std::shared_ptr<T> AddComponent();
    template <class T> std::shared_ptr<T> GetComponent() const;
+   ComponentPtr AddComponent(std::string const& name);
+   ComponentPtr GetComponent(std::string const& name) const;
 
-   dm::ObjectPtr GetComponent(std::string const& name) const;
-   void AddComponent(std::string const& name, DataStorePtr component);
+   luabind::object GetLuaComponent(std::string const& name) const;
+   void AddLuaComponent(std::string const& name, luabind::object obj);
 
    template <class T> std::weak_ptr<T> AddComponentRef() { return AddComponent<T>(); }
    template <class T> std::weak_ptr<T> GetComponentRef() const { return GetComponent<T>(); }
+
+   void RemoveComponent(std::string const& name);
    
    std::weak_ptr<Entity> GetRef() { return shared_from_this(); }
    std::shared_ptr<Entity> GetPtr() { return shared_from_this(); }
@@ -62,6 +74,7 @@ private:
    dm::Boxed<std::string>  debug_text_;
    dm::Boxed<std::string>  uri_;
    ComponentMap            components_;
+   LuaComponentMap         lua_components_;
 
 private:
    std::weak_ptr<Mob>      cached_mob_component_;

@@ -1,16 +1,8 @@
 local Color4 = _radiant.csg.Color4
 local CityPlanComponent = class()
 
-function CityPlanComponent:__init(entity, data_binding)
+function CityPlanComponent:__create(entity, json)
    self._entity = entity
-   self._data_binding = data_binding
-end
-
-function CityPlanComponent:__tojson()
-   return {}
-end
-
-function CityPlanComponent:extend(json)
 end
 
 function CityPlanComponent:add_blueprint(blueprint, location)

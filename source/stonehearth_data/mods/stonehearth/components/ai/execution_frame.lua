@@ -242,7 +242,6 @@ function ExecutionFrame:_restart_thinking(entity_state)
       end
    end
 
-   -- start them all...
    local current_state = self._state
    for unit, entity_state in pairs(rethinking_units) do
       self._log:detail('calling start_thinking on unit "%s".', unit:get_name())

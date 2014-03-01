@@ -352,6 +352,15 @@ std::shared_ptr<Object> Store::FetchObject(std::string const& addr, ObjectType t
    return ObjectPtr();
 }  
 
+bool Store::IsValidStoreAddress(std::string const& addr) const
+{
+   std::smatch match;
+   if (std::regex_match(addr, match, object_address_regex__)) {
+      return name_ == match[1];
+   }
+   return false;
+}
+
 std::vector<ObjectId> Store::GetModifiedSince(GenerationId when)
 {
    std::vector<ObjectId> result;

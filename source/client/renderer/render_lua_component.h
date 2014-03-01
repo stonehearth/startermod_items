@@ -11,12 +11,15 @@ class Renderer;
 
 class RenderLuaComponent : public RenderComponent {
 public:
-   RenderLuaComponent(RenderEntity& entity, std::string const& name, om::DataStorePtr ds);
+   RenderLuaComponent(RenderEntity& entity, std::string const& name, luabind::object obj);
    ~RenderLuaComponent();
+
+   void Update(RenderEntity& re, luabind::object obj);
 
 private:
    RenderEntity&        entity_;
    luabind::object      obj_;
+   luabind::object      update_fn_;
 };
 
 END_RADIANT_CLIENT_NAMESPACE

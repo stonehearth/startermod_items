@@ -77,25 +77,11 @@ int call_impl(lua_State* L, int start, std::string const& obj, std::string const
    fn.route = route;
 
    for (int i = start; i <= top; i++) {
-      JSONNode arg;
-      bool converted = false;
       object obj = object(from_stack(L, i));
-      if (type(obj) == LUA_TUSERDATA) {
-         try {
-            object toarg = obj["__toarg"];
-            if (toarg.is_valid() && type(toarg) == LUA_TFUNCTION) {
-               arg = JSONNode("", call_function<std::string>(toarg, obj));
-               converted = true;
-            }
-         } catch (std::exception& e) {
-            RPC_LOG(1) << "failed to convert arg " << (i - start) << " calling " << fn << ". falling back to script host (" << e.what() << ")";
-         }         
-      }
-      if (!converted) {
-         arg = lua::ScriptHost::LuaToJson(L, obj);
-      }
+      JSONNode arg = lua::ScriptHost::LuaToJson(L, obj);
       fn.args.push_back(arg);
    }
+   LOG_(0) << fn.args.write_formatted();
 
    std::string name = BUILD_STRING("lua " << fn);
    ReactorDeferredPtr d = GetReactor(L)->Call(fn);

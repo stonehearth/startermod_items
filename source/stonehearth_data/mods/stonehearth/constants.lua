@@ -22,6 +22,7 @@ local constants = {
 
       -- Priorities for basic needs
       top = {
+         IDLE = 1,
          ADMIRE_FIRE = 2,
          WORK = 10,
          CRAFT = 10,

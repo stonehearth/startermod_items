@@ -3,7 +3,7 @@ local Color3 = _radiant.csg.Color3
 
 local NoConstructionZoneRenderer = class()
 
-function NoConstructionZoneRenderer:__init(render_entity, data_store)
+function NoConstructionZoneRenderer:update(render_entity, data_store)
    self._parent_node = render_entity:get_node()
    self._data_store = data_store
 

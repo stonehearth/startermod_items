@@ -163,7 +163,7 @@ void Mob::ExtendObject(json::Node const& obj)
    transform_ = obj.get<csg::Transform>("transform", csg::Transform(csg::Point3f(0, 0, 0), csg::Quaternion(1, 0, 0, 0)));
    
    if (obj.has("parent")) {
-      parent_ = ObjectFormatter().GetObject<Entity>(GetStore(), obj.get<std::string>("parent", ""));
+      parent_ = GetStore().FetchObject<Entity>(obj.get<std::string>("parent", ""));
    }
 }
 

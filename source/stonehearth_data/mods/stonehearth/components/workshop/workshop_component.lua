@@ -11,34 +11,25 @@ local CraftOrderList = require 'components.workshop.craft_order_list'
 
 local WorkshopComponent = class()
 
-function WorkshopComponent:__init(entity, datastore)
+function WorkshopComponent:__create(entity, json)
    self._entity = entity
    self._bench_outputs = {}              -- An array of finished products on the bench, to be added to the outbox. Nil if nothing.
    self._outbox_entity = nil
 
-   self._data = datastore:get_data()
-   self._data.crafter = nil
-   self._data.order_list = {}
+   self._craft_order_list = CraftOrderList()
 
-   self._craft_order_list = CraftOrderList(self._data, function()
-         self._datastore:mark_changed()
-      end)
+   self._data = {
+      order_list = self._craft_order_list
+   }
+   self.__savestate = radiant.create__savestate(self._data)
 
-   self._datastore = datastore
-   self._datastore:mark_changed()
-end
-
-function WorkshopComponent:extend(json)
-   if json then
-      self._construction_ingredients = json.ingredients
-      self._build_sound_effect = json.build_sound_effect
-      if json.skin_class then 
-         self._data.skin_class = json.skin_class
-      else 
-         --xxx populate a default skin
-      end
+   self._construction_ingredients = json.ingredients
+   self._build_sound_effect = json.build_sound_effect
+   if json.skin_class then 
+      self._data.skin_class = json.skin_class
+   else 
+      --xxx populate a default skin
    end
-   self._datastore:mark_changed()
 end
 
 --[[UI Interaction Functions
@@ -129,7 +120,7 @@ function WorkshopComponent:set_crafter(crafter)
    local current = self:get_crafter()
    if not crafter or not current or current:get_id() ~= crafter:get_id() then
       self._data.crafter = crafter
-      self._datastore:mark_changed()
+      self.__savestate:mark_changed()
 
       local commandComponent = self._entity:get_component('stonehearth:commands')
       if crafter then

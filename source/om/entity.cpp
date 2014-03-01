@@ -1,6 +1,6 @@
 #include "pch.h"
 #include "entity.h"
-#include "om/components/unit_info.ridl.h"
+#include "om/all_components.h"
 
 using namespace ::radiant;
 using namespace ::radiant::om;
@@ -41,32 +41,28 @@ Entity::~Entity()
 
 void Entity::Destroy()
 {
-   for (const auto& entry : components_.GetContents()) {
-      if (entry.second->GetObjectType() == DataStoreObjectType) {
-         om::DataStorePtr ds = std::static_pointer_cast<DataStore>(entry.second);
-         luabind::object controller = ds->GetController().GetLuaObject();
-         if (controller) {
-            lua_State* L = lua::ScriptHost::GetCallbackThread(controller.interpreter());
-            try {
-               luabind::object destroy = controller["destroy"];
-               if (destroy) {
-                  E_LOG(3) << "destroying component " << entry.first;
-                  luabind::object cb(L, destroy);
-                  cb(controller);
-               }
-            } catch (std::exception const& e) {
-               E_LOG(1) << "error destroying component '" << entry.first << "':" << e.what();
-            }
+   for (const auto& entry : lua_components_.GetContents()) {
+      luabind::object obj = entry.second;
+      lua_State* L = lua::ScriptHost::GetCallbackThread(obj.interpreter());
+      try {
+         luabind::object destroy = obj["__destroy"];
+         if (destroy) {
+            E_LOG(3) << "destroying component " << entry.first;
+            luabind::object cb(L, destroy);
+            cb(obj);
          }
+      } catch (std::exception const& e) {
+         E_LOG(1) << "error destroying component '" << entry.first << "':" << e.what();
       }
    }
 }
 
 void Entity::InitializeRecordFields()
 {
-   AddRecordField("components",  components_);
-   AddRecordField("debug_text",  debug_text_);
-   AddRecordField("uri",         uri_);
+   AddRecordField("components",      components_);
+   AddRecordField("lua_components",  lua_components_);
+   AddRecordField("debug_text",      debug_text_);
+   AddRecordField("uri",             uri_);
    E_LOG(3) << "creating entity " << GetObjectId();
 }
 
@@ -85,15 +81,46 @@ template <class T> std::shared_ptr<T> Entity::AddComponent()
    return component;
 }
 
-dm::ObjectPtr Entity::GetComponent(std::string const& name) const
+
+ComponentPtr Entity::AddComponent(std::string const& name)
+{
+   ComponentPtr obj = GetComponent(name);
+
+   if (!obj) {
+#define OM_OBJECT(Clas, lower)  \
+      else if (name == #lower) { \
+         obj = AddComponent<Clas>(); \
+      } 
+
+      if (false) {
+      } OM_ALL_COMPONENTS
+#undef OM_OBJECT
+   }
+   return obj;
+}
+
+
+ComponentPtr Entity::GetComponent(std::string const& name) const
 {
    return components_.Get(name, nullptr);
 }
 
-void Entity::AddComponent(std::string const& name, DataStorePtr component)
+void Entity::AddLuaComponent(std::string const& name, luabind::object component)
 {
-   ASSERT(!components_.Contains(name));
-   components_.Add(name, component);
+   // client side lua will use set_lua_component_data to construct temporary objects...
+   // ASSERT(!lua_components_.Contains(name));
+
+   // xxx: need to fire a trace here...
+   lua_components_.Add(name, component);
+}
+
+luabind::object Entity::GetLuaComponent(std::string const& name) const
+{
+   auto i = lua_components_.find(name);
+   if (i != lua_components_.end()) {
+      return i->second;
+   }
+   return luabind::object();
 }
 
 template <class T> std::shared_ptr<T> Entity::GetComponent() const
@@ -103,6 +130,12 @@ template <class T> std::shared_ptr<T> Entity::GetComponent() const
       component = std::static_pointer_cast<T>(GetComponent(T::GetClassNameLower()));
    }
    return component;
+}
+
+void Entity::RemoveComponent(std::string const& name)
+{
+   components_.Remove(name);
+   lua_components_.Remove(name);
 }
 
 #define OM_OBJECT(Clas, lower) \

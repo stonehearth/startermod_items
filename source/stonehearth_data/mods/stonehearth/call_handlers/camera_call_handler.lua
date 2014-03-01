@@ -10,7 +10,7 @@ end
 
 function CameraCallHandler:get_camera_tracker(session, request)
    if not camera_tracker then
-      camera_tracker = _radiant.client.create_data_store()
+      camera_tracker = _radiant.client.create_datastore()
 
       radiant.events.listen(camera, 'stonehearth:camera:update', function(e)
             if e then

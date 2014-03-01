@@ -4,24 +4,20 @@
 
 local ProfessionComponent = class()
 
-function ProfessionComponent:__init(entity)
+function ProfessionComponent:__create(entity, json)
    self._entity = entity
-   self._info = {}
-end
-
-function ProfessionComponent:extend(json)
-   self:set_info(json)
-end
-
-function ProfessionComponent:set_info(info)
-   self._info = info
-   if self._info and self._info.name then 
+   self._info = json
+   if self._info.name then 
       self._entity:add_component('unit_info'):set_description(self._info.name)
 
       --Let people know that the promotion has (probably) happened.
       local object_tracker_service = stonehearth.object_tracker
       radiant.events.trigger(object_tracker_service, 'stonehearth:promote', {entity = self._entity})
    end
+end
+
+function ProfessionComponent:change_profession(json)
+   self._info = json
 end
 
 function ProfessionComponent:get_name()

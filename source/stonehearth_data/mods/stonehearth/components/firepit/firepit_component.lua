@@ -7,7 +7,7 @@ local log = radiant.log.create_logger('firepit')
 local FirepitComponent = class()
 FirepitComponent.__classname = 'FirepitComponent'
 
-function FirepitComponent:__init(entity, data_store)
+function FirepitComponent:__create(entity, json)
    radiant.check.is_entity(entity)
    self._entity = entity
 
@@ -17,10 +17,9 @@ function FirepitComponent:__init(entity, data_store)
 
    self._seats = nil
 
-   self._data = data_store:get_data()
+   self._data = {}
    self._data.is_lit = false
-   self._data_store = data_store
-   self._data_store:mark_changed()
+   self.__savestate = radiant.create_datastore(self._data)
 
    --Listen on terrain for when this entity is added/removed
    local added_cb = function(id, entity)
@@ -31,6 +30,7 @@ function FirepitComponent:__init(entity, data_store)
    end
    self._promise = radiant.terrain.trace_world_entities('firepit self-tracker',
       added_cb, removed_cb)
+
 end
 
 function FirepitComponent:destroy()
@@ -44,13 +44,6 @@ end
 
 function FirepitComponent:get_entity()
       return self._entity
-end
-
-function FirepitComponent:extend(json)
-   -- TODO: replace this with firepit made of fire, wolves won't go near fire
-   if json and json.effective_radius then
-      self._effective_raidus = json.effective_radius
-   end
 end
 
 function FirepitComponent:get_fuel_material()

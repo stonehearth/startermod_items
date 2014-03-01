@@ -39,29 +39,31 @@ const size_t GetClassTypeId()
 }
 
 template <class T>
-std::string TypeToJson(T const& obj, luabind::object state)
+std::string TypeToJson(T const& obj)
 {
    return json::encode(obj).write();
 }
 
 template <class T>
-std::string TypePointerToJson(std::shared_ptr<T> obj, luabind::object state)
+std::string TypePointerToJson(std::shared_ptr<T> obj)
 {
    if (!obj) {
       return "null";
    }
+   // this is somewhat stupid... we conver the objec to json, then write
+   // it, then pass it back to someone who might actually have wanted a
+   // json object (and will decode it!).  it would be nice to just return
+   // a JSONNode, but what if the caller is from lua?  Ug.
    return json::encode(obj).write();
 }
 
 template <class T>
-std::string StrongGameObjectToJson(std::shared_ptr<T> obj, luabind::object state)
+std::string StrongGameObjectToJson(std::shared_ptr<T> obj)
 {
    if (!obj) {
       return "null";
    }
-   std::ostringstream output;
-   output << '"' << ::radiant::om::ObjectFormatter().GetPathToObject(obj) << '"';
-   return output.str();
+   return obj->GetStoreAddress();
 }
 
 template <class T>
@@ -93,9 +95,9 @@ static bool operator==(std::weak_ptr<T> lhs, std::weak_ptr<T> rhs)
 }
 
 template <class T>
-std::string WeakGameObjectToJson(std::weak_ptr<T> o, luabind::object state)
+std::string WeakGameObjectToJson(std::weak_ptr<T> o)
 {
-   return StrongGameObjectToJson(o.lock(), state);
+   return StrongGameObjectToJson(o.lock());
 }
 
 

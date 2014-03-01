@@ -3,26 +3,12 @@ stonehearth = {
    constants = require 'constants'
 }
 
-local function create_datastore(stonehearth_datastore, name)
-   local data = stonehearth_datastore:get_data()
-   local datastore = data[name]
-   if not datastore then
-      datastore = _radiant.sim.create_data_store()
-      data[name] = datastore
-      stonehearth_datastore:mark_changed()
-   end
-   return datastore
-end
-
-local function create_service(stonehearth_datastore, name)
+local function create_service(name)
    local path = string.format('services.%s.%s_service', name, name)         
-   local datastore = create_datastore(stonehearth_datastore, name)
-   return require(path)(datastore)
+   return require(path)()
 end
 
-radiant.events.listen(stonehearth, 'radiant:construct', function(args)
-      
-      local datastore = args.datastore
+radiant.events.listen(stonehearth, 'radiant:construct', function(args)     
       local service_creation_order = {
          'ai',
          'events',
@@ -43,8 +29,14 @@ radiant.events.listen(stonehearth, 'radiant:construct', function(args)
          'threads',
          'town',         
       }
+      local datastore = _radiant.sim.create_datastore(stonehearth)
+      local data = datastore:get_data()
+
       for _, name in ipairs(service_creation_order) do
-         stonehearth[name] = create_service(datastore, name)
+         local service = create_service(name)
+         stonehearth[name] = service
+         data[name] = service['get_datastore'] and service:get_datastore() or nil
       end
    end)
+
 return stonehearth

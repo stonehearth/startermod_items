@@ -12,7 +12,7 @@ local QuantityTracker = class()
 --  @param filter_fn - function takes and item and returns true if useful to the tracker, false otherwise
 --  @param identifier_fn - function takes an item and returns a unique id for its class. Can be uri, or material type, etc.
 function QuantityTracker:__init(faction, filter_fn, identifier_fn)
-   self._data_store = _radiant.sim.create_data_store()
+   self._data_store = _radiant.sim.create_datastore(self)
    self._data = self._data_store:get_data()
    self._inventory = inventory_service:get_inventory(faction)
 

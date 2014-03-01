@@ -15,7 +15,7 @@ luabind::object json_to_lua(dm::Store const& store, lua_State* L, JSONNode const
 {
    try {
       if (node.type() == JSON_STRING) {
-         dm::ObjectPtr obj = om::ObjectFormatter().GetObject(store, node.as_string());
+         dm::ObjectPtr obj = store.FetchObject<dm::Object>(node.as_string());
          if (obj) {
 
             if (obj->GetObjectType() == DataStoreObjectType) {

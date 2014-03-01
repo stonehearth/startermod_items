@@ -53,9 +53,10 @@ om::EntityRef Sim_CreateEntity(lua_State* L, std::string const& uri)
 om::DataStorePtr Sim_AllocDataStore(lua_State* L)
 {
    // make sure we return the strong pointer version
-   om::DataStorePtr db = Sim_AllocObject<om::DataStore>(L);
-   db->SetData(newtable(L));
-   return db;
+   om::DataStorePtr datastore = Sim_AllocObject<om::DataStore>(L);
+   datastore->SetData(newtable(L));
+
+   return datastore;
 }
 
 
@@ -65,7 +66,7 @@ luabind::object Sim_GetObject(lua_State* L, object id)
    dm::ObjectId object_id = object_cast<int>(id);
 
    dm::Store& store = GetSim(L).GetStore();
-   dm::ObjectPtr obj = store.FetchObject(object_id, -1);
+   dm::ObjectPtr obj = store.FetchObject<dm::Object>(object_id);
 
    lua::ScriptHost* host = lua::ScriptHost::GetScriptHost(L);
    luabind::object lua_obj = host->CastObjectToLua(obj);
@@ -148,7 +149,7 @@ void lua::sim::open(lua_State* L, Simulation* sim)
             def("destroy_entity",           &Sim_DestroyEntity),
             def("alloc_region",             &Sim_AllocObject<om::Region3Boxed>),
             def("alloc_region2",            &Sim_AllocObject<om::Region2Boxed>),
-            def("create_data_store",        &Sim_AllocDataStore),
+            def("create_datastore",         &Sim_AllocDataStore),
             def("create_path_finder",       &Sim_CreatePathFinder),
             def("create_follow_path",       &Sim_CreateFollowPath),
             def("create_goto_location",     &Sim_CreateGotoLocation),

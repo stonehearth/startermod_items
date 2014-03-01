@@ -51,6 +51,7 @@ Create a new CraftOrder
 function CraftOrder:__init(recipe, condition, faction, on_change_cb)
    self._id = craft_order_id
    craft_order_id = craft_order_id + 1
+   self._data_store = _radiant.sim.create_datastore(self)
 
    self._enabled = true
    self._is_crafting = false
@@ -67,8 +68,8 @@ function CraftOrder:__init(recipe, condition, faction, on_change_cb)
    end
 end
 
-function CraftOrder:__tojson()
-   local json = {
+function CraftOrder:__get_data()
+   return {
       id = self._id,
       recipe = self._recipe,
       condition = self._condition,
@@ -76,13 +77,13 @@ function CraftOrder:__tojson()
       portrait = self._recipe.portrait,
       is_crafting = self._is_crafting
    }
-   return radiant.json.encode(json)
 end
 
 --[[
    Destructor??
 ]]
 function CraftOrder:destroy()
+   self._data_store:mark_changed()
    self._on_change_cb()
 end
 
@@ -101,6 +102,7 @@ end
 
 function CraftOrder:toggle_enabled()
    self._enabled = not self._enabled
+   self._data_store:mark_changed()
    self._on_change_cb()
 end
 
@@ -111,6 +113,7 @@ end
 function CraftOrder:set_crafting_status(status)
    if status ~= self._is_crafting then
       self._is_crafting = status
+      self._data_store:mark_changed()
       self._on_change_cb()
    end
 end

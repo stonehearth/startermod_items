@@ -26,7 +26,7 @@ void TraceObjectRouter::CheckDeferredTraces()
          continue;
       }
       std::string const& uri = i->first;
-      dm::ObjectPtr obj = om::ObjectFormatter().GetObject(store_, uri);
+      dm::ObjectPtr obj = store_.FetchObject<dm::Object>(uri);
       if (obj) {
          InstallTrace(uri, d, obj);
          i = deferred_traces_.erase(i);
@@ -44,15 +44,15 @@ ReactorDeferredPtr TraceObjectRouter::InstallTrace(Trace const& trace)
    if (d) {
       return d;
    }
-   om::ObjectFormatter of;
-   if (!of.IsPathInStore(store_, trace.route)) {
-	   // Make sure the path is actually valid for this store (for example, if someone is trying
-	   // to trace the authoring store and this is the router for the game store, we should
-	   // just bail unconditionally).
-	   return nullptr;
+
+   if (!store_.IsValidStoreAddress(trace.route)) {
+      // Make sure the path is actually valid for this store (for example, if someone is trying
+      // to trace the authoring store and this is the router for the game store, we should
+      // just bail unconditionally).
+      return nullptr;
    }
 
-   dm::ObjectPtr obj = of.GetObject(store_, trace.route);
+   dm::ObjectPtr obj = store_.FetchObject<dm::Object>(trace.route);
    if (obj) {
       ReactorDeferredPtr deferred = std::make_shared<ReactorDeferred>(trace.desc());
       InstallTrace(trace.route, deferred, obj);

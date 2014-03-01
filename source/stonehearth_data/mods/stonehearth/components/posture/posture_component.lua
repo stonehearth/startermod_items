@@ -1,21 +1,17 @@
 local PostureComponent = class()
 
 
-function PostureComponent:__init(entity, data_object)
+function PostureComponent:__create(entity, json)
    radiant.check.is_entity(entity)
    self._entity = entity
    self._set_postures = {}
    self._log = radiant.log.create_logger('posture')
    self._log:set_prefix(string.format('postures for %s', tostring(entity)))
 
-   self._data_object = data_object
-   local data = data_object:get_data()
-   data.postures = self._set_postures
-   self._data_object:mark_changed()
-end
-
-function PostureComponent:trace(reason)
-   return self._data_object:trace_data(reason)
+   self._postures = {}
+   self.__savestate = radiant.create_datastore({
+      postures = self._set_postures
+   })
 end
 
 function PostureComponent:get_posture()
@@ -25,7 +21,8 @@ end
 function PostureComponent:set_posture(posture_name)
    self._log:debug('adding posture %s', posture_name)
    table.insert(self._set_postures, posture_name)
-   self._data_object:mark_changed()
+   radiant.events.trigger(self._entity, 'stonehearth:posture_changed')
+   self.__savestate:mark_changed()
 end
 
 function PostureComponent:unset_posture(posture_name)
@@ -33,7 +30,9 @@ function PostureComponent:unset_posture(posture_name)
       if v == posture_name then 
          self._log:debug('removing posture %s', posture_name)
          table.remove(self._set_postures, i)
-         self._data_object:mark_changed()
+         
+         radiant.events.trigger(self._entity, 'stonehearth:posture_changed')
+         self.__savestate:mark_changed()
          return
       end
    end

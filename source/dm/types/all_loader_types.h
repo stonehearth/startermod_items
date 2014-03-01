@@ -41,6 +41,25 @@ struct dm::SaveImpl<lua::DataObject> {
    }
 };
 
+template<>
+struct dm::SaveImpl<luabind::object> {
+   static void SaveValue(const dm::Store& store, dm::SerializationType r, Protocol::Value* msg, luabind::object const& obj) {
+      lua::ScriptHost *scriptHost = lua::ScriptHost::GetScriptHost(store);
+      std::string repr = scriptHost->LuaToString(obj);
+      dm::SaveImpl<std::string>::SaveValue(store, r, msg, repr);
+   }
+   static void LoadValue(const Store& store, dm::SerializationType r, const Protocol::Value& msg, luabind::object& obj) {
+      std::string repr;
+      dm::SaveImpl<std::string>::LoadValue(store, r, msg, repr);
+
+      lua::ScriptHost *scriptHost = lua::ScriptHost::GetScriptHost(store);
+      obj = scriptHost->StringToLua(repr);
+   }
+   static void GetDbgInfo(lua::DataObject const& obj, dm::DbgInfo &info) {
+      info.os << "[lua_object]";
+   }
+};
+
 
 template<>
 struct radiant::dm::SaveImpl<radiant::json::Node>

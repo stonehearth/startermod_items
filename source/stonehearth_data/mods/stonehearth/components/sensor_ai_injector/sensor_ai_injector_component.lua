@@ -1,12 +1,10 @@
 local SensorAiInjectorComponent = class()
 local log = radiant.log.create_logger('ai.sensor_injector')
 
-function SensorAiInjectorComponent:__init(entity)
+function SensorAiInjectorComponent:__create(entity, json)
    self._entity = entity
    self._injected_ais = {}
-end
 
-function SensorAiInjectorComponent:extend(json)
    assert(json.sensor)
    assert(json.ai)
 

@@ -854,8 +854,8 @@ void Renderer::SetVisibilityRegions(std::string const& visible_region_uri, std::
 
    dm::Store const& store = Client::GetInstance().GetStore();
 
-   visibleRegionBoxed = om::ObjectFormatter().GetObject<om::Region2Boxed>(store, visible_region_uri);
-   exploredRegionBoxed = om::ObjectFormatter().GetObject<om::Region2Boxed>(store, explored_region_uri);
+   visibleRegionBoxed = store.FetchObject<om::Region2Boxed>(visible_region_uri);
+   exploredRegionBoxed = store.FetchObject<om::Region2Boxed>(explored_region_uri);
 
    visibilityTrace_ = visibleRegionBoxed->TraceChanges("render visible region", dm::RENDER_TRACES)
                          ->OnModified([=](){

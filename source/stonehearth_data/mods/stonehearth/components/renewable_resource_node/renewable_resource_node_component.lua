@@ -2,21 +2,21 @@ local calendar = stonehearth.calendar
 
 local RenewableResourceNodeComponent = class()
 
-function RenewableResourceNodeComponent:__init(entity)
+function RenewableResourceNodeComponent:__create(entity, json)
    self._entity = entity
-   self._resource = nil       -- the entity spawned when the resource is harvested
-   self._renewal_time = nil   -- how long until the resource respawns
    self._calendar_constants = calendar.get_constants();
-   self._harvest_command_name = nil   --name of the cmd that harvests the resource
+   
    self._original_description = self._entity:get_component('unit_info'):get_description()
    self._wait_text = self._original_description
    self._render_info = self._entity:add_component('render_info')
-end
-   
-function RenewableResourceNodeComponent:extend(json)
-   if json.resource then
-      self._resource = json.resource
-   end
+
+   self._resource = json.resource
+   self._wait_text = json.wait_text
+   self._renew_effect = json.renew_effect
+   self._harvest_command_name = json.harvest_command --name of the cmd that harvests the resource
+   self._harvest_overlay_effect = json.harvest_overlay_effect
+
+
    if json.renewal_time then
       local duration = string.sub(json.renewal_time, 1, -2)
       local time_unit = string.sub(json.renewal_time, -1, -1)
@@ -27,21 +27,8 @@ function RenewableResourceNodeComponent:extend(json)
          assert(false, 'durations under 1 hour are not supported for renewable resource nodes!')
       end
 
-      self._renewal_time = tonumber(duration)
+      self._renewal_time = tonumber(duration) -- how long until the resource respawns
    end
-   if json.harvest_command then
-      self._harvest_command_name = json.harvest_command
-   end
-   if json.wait_text then
-      self._wait_text = json.wait_text
-   end
-
-   --If this renewable resource wants us to run an effect on renew, do it!
-   if json.renew_effect then
-      self._renew_effect = json.renew_effect
-   end
-
-   self._harvest_overlay_effect = json.harvest_overlay_effect
 end
 
 function RenewableResourceNodeComponent:get_harvest_overlay_effect()

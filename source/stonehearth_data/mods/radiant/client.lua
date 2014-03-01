@@ -11,7 +11,6 @@ end
 
 radiant.log = require 'modules.log'
 radiant.util = require 'lib.util'
-radiant.json = require 'lualibs.dkjson'
 radiant.resources = require 'modules.resources'
 radiant.check = require 'lib.check'
 radiant.events = require 'modules.events'

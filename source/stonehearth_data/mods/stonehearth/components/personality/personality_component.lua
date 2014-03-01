@@ -9,24 +9,21 @@ local calendar = stonehearth.calendar
 local personality_service = stonehearth.personality
 local rng = _radiant.csg.get_default_rng()
 
-function Personality:__init(entity, data_store)
+function Personality:__init()
+   local a = 1
+end
+
+function Personality:__create(entity, json)
    self._entity = entity
    self._first_entry = true
 
-   self._data = data_store:get_data()
-   self._data.personality = nil
-   self._data.substitutions = {}
-   
-   self._data.log = {}              --Full list of entries for a person
-   self._data.todays_events = {}    --Each notable thing that's happened today
-
-   self._data_store = data_store
-   self._data_store:mark_changed()
-
+   self._data = {
+      log = {},
+      substitutions = {},
+      todays_events = {}    --Each notable thing that's happened today
+   }
+   self.__savestate = radiant.create_datastore(self._data)
    radiant.events.listen(calendar, 'stonehearth:midnight', self, self.on_midnight)
-end
-
-function Personality:extend(json)
 end
 
 function Personality:set_personality(personality)
@@ -109,7 +106,7 @@ function Personality:_add_log_entry(entry_title, entry_text)
    stonehearth.events:add_entry(name .. ': ' .. entry_text)
 
    --Let the journal UI know to update itself, if visible
-   self._data_store:mark_changed()
+   self.__savestate:mark_changed()
 
    --If the show journal command is not yet enabled, enable it
    if self._first_entry then

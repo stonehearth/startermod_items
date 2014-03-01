@@ -25,7 +25,7 @@ ReactorDeferredPtr LuaObjectRouter::Call(Function const& fn)
    ReactorDeferredPtr d;
 
    try {
-      dm::ObjectPtr o = om::ObjectFormatter().GetObject(store_, fn.object);
+      dm::ObjectPtr o = store_.FetchObject<dm::Object>(fn.object);
       if (!o) {
          return nullptr;
       }

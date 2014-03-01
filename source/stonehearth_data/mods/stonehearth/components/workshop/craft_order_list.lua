@@ -7,12 +7,14 @@
 local CraftOrder = require 'components.workshop.craft_order'
 
 local CraftOrderList = class()
-function CraftOrderList:__init(data, on_change_cb)
-   self._on_change_cb = on_change_cb
+function CraftOrderList:__init()
+   self._datastore = _radiant.sim.create_datastore(self)
+   self.__savestate = self._datastore
+   
+   local data = self._datastore:get_data()
    if not data.orders then
       data.orders = {}
    end
-   self._data = data
    self._orders = data.orders
 end
 
@@ -37,7 +39,7 @@ end
 function CraftOrderList:add_order(recipe, condition, faction)
    local order = CraftOrder(recipe, condition, faction, function()
          self:_on_order_list_changed()
-      end )
+      end)
    table.insert(self._orders, order)
    self:_on_order_list_changed()
 end
@@ -109,7 +111,7 @@ function CraftOrderList:_find_index_of(order_id)
 end
 
 function CraftOrderList:_on_order_list_changed()
-   self._on_change_cb()
+   self._datastore:mark_changed()
    radiant.events.trigger(self, 'order_list_changed')
 end
 

@@ -144,7 +144,7 @@ void Simulation::OneTimeIninitializtion()
    core_reactor_->AddRoute("radiant:server:get_error_browser", [this](rpc::Function const& f) {
       rpc::ReactorDeferredPtr d = std::make_shared<rpc::ReactorDeferred>("get error browser");
       json::Node obj;
-      obj.set("error_browser", om::ObjectFormatter().GetPathToObject(error_browser_));
+      obj.set("error_browser", error_browser_->GetStoreAddress());
       d->Resolve(obj);
       return d;
    });

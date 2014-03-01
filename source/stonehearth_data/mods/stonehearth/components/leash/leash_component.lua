@@ -1,29 +1,12 @@
 local LeashComponent = class()
 
-function LeashComponent:__init(entity, data_store)
+function LeashComponent:__create(entity, json)
    radiant.check.is_entity(entity)
    self._entity = entity
-   self._info = {}
-   self._data_store = data_store
+   self._info = json
+   self.__savestate = radiant.create_datastore(self._info)
 end
 
--- local promise = leash:get_data_store():trace_data('reason why tracking')
--- promise:on_changed(function() end)
---   later...
--- promise:destroy()
-
-function LeashComponent:get_data_store(json)
-   return self._data_store
-end
-
-function LeashComponent:extend(json)
-   self:set_info(json)
-end
-
-function LeashComponent:set_info(info)
-   self._info = info
-   self._data_store:update(self._info)
-end
 
 function LeashComponent:set_to_entity_location(entity)
    self:set_location(radiant.entities.get_location_aligned(entity))
@@ -35,7 +18,7 @@ end
 
 function LeashComponent:set_location(point)
    self._info.position = point
-   self._data_store:mark_changed()
+   self.__savestate:mark_changed()
 end
 
 function LeashComponent:get_radius()
@@ -44,7 +27,7 @@ end
 
 function LeashComponent:set_radius(number)
    self._info.radius = number
-   self._data_store:mark_changed()
+   self.__savestate:mark_changed()
 end
 
 

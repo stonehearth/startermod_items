@@ -70,6 +70,8 @@ public:
       return FetchObject(addr, -1);
    }
 
+   bool IsValidStoreAddress(std::string const& addr) const;
+
 
    template<class T> T* FetchStaticObject(ObjectId id) const {
       Object* obj = FetchStaticObject(id);

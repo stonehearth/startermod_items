@@ -1,6 +1,6 @@
 local CityPlanRenderer = class()
 
-function CityPlanRenderer:__init(render_entity, data_store)
+function CityPlanRenderer:update(render_entity, data_store)
    self._blueprints = {}
    self._node = render_entity:get_node()
    self._data_store = data_store

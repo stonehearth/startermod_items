@@ -10,10 +10,17 @@ function radiant.get_object(addr)
    return _radiant.sim.get_object(addr)
 end
 
+function radiant.create_datastore(data)
+   local datastore = _radiant.sim.create_datastore()
+   if data then
+      datastore:update(data)
+   end
+   return datastore
+end
+
 radiant.log = require 'modules.log'
 radiant.util = require 'lib.util'
 radiant.check = require 'lib.check'
-radiant.json = require 'lualibs.dkjson'
 radiant.gamestate = require 'modules.gamestate'
 radiant.resources = require 'modules.resources'
 radiant.events = require 'modules.events'

@@ -16,7 +16,7 @@ function EntityTracker:__init(tracker_name, filter_fn, event_array)
    local removed_cb = function(id)
       self:_on_entity_remove(id)
    end
-   self._data_store = _radiant.sim.create_data_store()
+   self._data_store = _radiant.sim.create_datastore(self)
    self._data = self._data_store:get_data()
    self._data.entities = {}
    self._tracked_entities = {} -- used to avoid an O(n) removal for non workers

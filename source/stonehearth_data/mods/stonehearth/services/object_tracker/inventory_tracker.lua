@@ -9,7 +9,7 @@
 local InventoryTracker = class()
 
 function InventoryTracker:__init()
-   self._data_store = _radiant.sim.create_data_store()
+   self._data_store = _radiant.sim.create_datastore(self)
    self._data = self._data_store:get_data()
 
    if not self._data.entity_types then

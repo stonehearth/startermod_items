@@ -36,8 +36,8 @@ public:
    luabind::object StringToLua(std::string const& str);
    std::string LuaToString(luabind::object obj);
 
-   void ReportCStackThreadException(lua_State* L, std::exception const& e);
-   void ReportLuaStackException(std::string const& error, std::string const& traceback);
+   void ReportCStackThreadException(lua_State* L, std::exception const& e) const;
+   void ReportLuaStackException(std::string const& error, std::string const& traceback) const;
    void Trigger(const std::string& eventName);
    void TriggerOn(luabind::object obj, const std::string& eventName, luabind::object args);
 
@@ -78,6 +78,9 @@ public:
 
 public: // the static interface
    static ScriptHost* GetScriptHost(lua_State*);
+   static ScriptHost* GetScriptHost(dm::ObjectPtr obj);
+   static ScriptHost* GetScriptHost(dm::Object const& obj);
+   static ScriptHost* GetScriptHost(dm::Store const& store);
    static lua_State* GetInterpreter(lua_State* L) { return GetScriptHost(L)->GetInterpreter(); }
    static lua_State* GetCallbackThread(lua_State* L) { return GetScriptHost(L)->GetCallbackThread(); }
    static luabind::object Require(lua_State* L, std::string const& path) { return GetScriptHost(L)->Require(path); }
@@ -95,7 +98,9 @@ private:
    void Log(const char* category, int level, const char* str);
    int GetLogLevel(std::string const& category);
    uint GetRealTime();
-   void ReportStackException(std::string const& category, std::string const& error, std::string const& traceback);
+   void ReportStackException(std::string const& category, std::string const& error, std::string const& traceback) const;
+   luabind::object GetObjectRepresentation(luabind::object o, std::string const& format) const;
+   bool IsNumericTable(luabind::object tbl) const;
 
 private:
    luabind::object LoadScript(std::string path);

@@ -4,17 +4,18 @@ local calendar = stonehearth.calendar
 
 local BuffsComponent = class()
 
-function BuffsComponent:__init(entity, data_binding)
-   self._data_binding = data_binding
-   self._entity = entity
-   self._attributes_component = entity:add_component('stonehearth:attributes')
+function BuffsComponent:__init()
    self._buffs = {}
    self._controllers = {}
    self._attribute_modifiers = {}
    self._injected_ais = {}
    self._effects = {}
-   self._data_binding:update(self._buffs)
    self._calendar_constants = calendar:get_constants()
+end
+
+function BuffsComponent:__create(entity, json)
+   self._entity = entity   
+   self.__savestate = radiant.create_datastore(self._buffs)
 end
 
 function BuffsComponent:add_buff(uri)
@@ -33,7 +34,7 @@ function BuffsComponent:add_buff(uri)
       self:_inject_ai(uri, buff)
       self:_apply_controller(uri, buff)
 
-      self._data_binding:mark_changed()
+      self.__savestate:mark_changed()
    end
 
    return buff
@@ -51,7 +52,7 @@ function BuffsComponent:remove_buff(uri)
    self:_remove_modifiers(uri);
    self:_uninject_ai(uri)
 
-   self._data_binding:mark_changed()
+   self.__savestate:mark_changed()
 end
 
 function BuffsComponent:_apply_controller(uri, buff)
@@ -92,10 +93,10 @@ function BuffsComponent:_apply_modifiers(uri, buff)
    local modifiers = buff:get_modifiers()
 
    if modifiers then
-
+      local attributes = self._entity:add_component('stonehearth:attributes')
       self._attribute_modifiers[uri] = {}
       for name, modifier in pairs(modifiers) do
-         local attribute_modifier = self._attributes_component:modify_attribute(name)
+         local attribute_modifier = attributes:modify_attribute(name)
 
          for type, value in pairs (modifier) do
             if type == 'multiply' then

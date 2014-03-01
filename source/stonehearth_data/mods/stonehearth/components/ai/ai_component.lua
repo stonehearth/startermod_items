@@ -5,15 +5,18 @@ local log = radiant.log.create_logger('ai.component')
 
 local action_key_to_activity = {}
 
-function AIComponent:__init(entity)
-   self._entity = entity
+function AIComponent:__init()
    self._observers = {}
    self._action_index = {}
    self._execution_count = 0
 end
 
-function AIComponent:extend(json)
-   stonehearth.ai:start_ai(self._entity, json)
+function AIComponent:__create(entity, json)
+   self._entity = entity
+   radiant.events.listen(entity, 'stonehearth:entity_created', function()
+         stonehearth.ai:start_ai(self._entity, json)
+         return radiant.events.UNLISTEN
+      end)
 end
 
 function AIComponent:get_entity()

@@ -32,7 +32,7 @@ om::EntityRef Client_GetEntity(object id)
    }
    if (type(id) == LUA_TSTRING) {
       dm::Store& store = Client::GetInstance().GetStore();
-      dm::ObjectPtr obj = om::ObjectFormatter().GetObject(store, object_cast<std::string>(id));
+      dm::ObjectPtr obj = store.FetchObject<dm::Object>(object_cast<std::string>(id));
       if (obj->GetObjectType() == om::EntityObjectType) {
          return std::static_pointer_cast<om::Entity>(obj);
       }
@@ -153,7 +153,7 @@ std::weak_ptr<RenderEntity> Client_CreateRenderEntity(H3DNode parent, luabind::o
       // arg is a path to an object (e.g. /objects/3).  If this leads to a Entity, we're all good
       std::string path = luabind::object_cast<std::string>(arg);
       dm::Store& store = Client::GetInstance().GetStore();
-      dm::ObjectPtr obj =  om::ObjectFormatter().GetObject(store, path);
+      dm::ObjectPtr obj = store.FetchObject<dm::Object>(path);
       if (obj && obj->GetObjectType() == om::Entity::DmType) {
          entity = std::static_pointer_cast<om::Entity>(obj);
       }
@@ -419,7 +419,7 @@ void lua::client::open(lua_State* L)
             def("create_designation_node",         &Client_CreateDesignationNode),
             def("alloc_region",                    &Client_AllocObject<om::Region3Boxed>),
             def("alloc_region2",                   &Client_AllocObject<om::Region2Boxed>),
-            def("create_data_store",               &Client_CreateDataStore),
+            def("create_datastore",                &Client_CreateDataStore),
             def("is_valid_standing_region",        &Client_IsValidStandingRegion),
             def("is_key_down",                     &Client_IsKeyDown),
             def("is_mouse_button_down",            &Client_IsMouseButtonDown),

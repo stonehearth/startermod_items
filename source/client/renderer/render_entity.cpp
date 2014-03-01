@@ -68,6 +68,14 @@ void RenderEntity::FinishConstruction()
                                           RemoveComponent(name);
                                        })
                                        ->PushObjectState();
+      lua_components_trace_ = entity->TraceLuaComponents("render", dm::RENDER_TRACES)
+                                       ->OnAdded([this](std::string const& name, luabind::object obj) {
+                                          AddLuaComponent(name, obj);
+                                       })
+                                       ->OnRemoved([this](std::string const& name) {
+                                          RemoveComponent(name);
+                                       })
+                                       ->PushObjectState();
    }
 
    UpdateInvariantRenderers();
@@ -230,12 +238,17 @@ void RenderEntity::AddComponent(std::string const& name, std::shared_ptr<dm::Obj
             components_[name] = std::make_shared<RenderRegionCollisionShape>(*this, obj);
             break;
          }
-         case om::DataStoreObjectType: {
-            om::DataStorePtr obj = std::static_pointer_cast<om::DataStore>(value);
-            components_[name] = std::make_shared<RenderLuaComponent>(*this, name, obj);
-            break;
-         }
       }
+   }
+}
+
+void RenderEntity::AddLuaComponent(std::string const& name, luabind::object obj)
+{
+   auto i = components_.find(name);
+   if (i == components_.end()) {
+      components_[name] = std::make_shared<RenderLuaComponent>(*this, name, obj);
+   } else {
+      std::static_pointer_cast<RenderLuaComponent>(i->second)->Update(*this, obj);
    }
 }
 

@@ -454,7 +454,7 @@ void Client::OneTimeIninitializtion()
    core_reactor_->AddRoute("radiant:client:get_error_browser", [this](rpc::Function const& f) {
       rpc::ReactorDeferredPtr d = std::make_shared<rpc::ReactorDeferred>("get error browser");
       json::Node obj;
-      obj.set("error_browser", om::ObjectFormatter().GetPathToObject(error_browser_));
+      obj.set("error_browser", error_browser_->GetStoreAddress());
       d->Resolve(obj);
       return d;
    });
@@ -987,7 +987,7 @@ void Client::SelectEntity(om::EntityPtr obj)
          if (renderEntity) {
             renderEntity->SetSelected(true);
          }
-         std::string uri = om::ObjectFormatter().GetPathToObject(obj);
+         std::string uri = obj->GetStoreAddress();
          selectionChanged.push_back(JSONNode("selected_entity", uri));
       } else {
          CLIENT_LOG(3) << "Cleared selected actor.";
