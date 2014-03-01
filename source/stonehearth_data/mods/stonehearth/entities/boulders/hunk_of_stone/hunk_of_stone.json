@@ -1,0 +1,27 @@
+{
+   "mixins": "stonehearth:mixins:item_properties",
+   "type": "entity",
+   "components": {
+      "item": {
+         "material": "stone",
+         "stacks": 10
+      },
+      "stonehearth:material" : {
+         "tags" : "stone resource"
+      },
+      "model_variants": {
+         "default": {
+            "models": [
+               "file(hunk_of_stone.qb)"
+            ]
+         }
+      },
+      "unit_info": {
+         "name": "Hunk 'o Stone",
+         "description": "A heavy, ordinary rock.",
+         "icon" : "file(hunk_of_stone.png)",
+         "portrait": "file(hunk_of_stone.png)",
+         "character_sheet_info" : "file(hunk_of_stone_character_sheet_info.json)"
+      }
+   }
+}

@@ -1,0 +1,21 @@
+{
+   "name" : "entity_cluster",
+   "activation_type" : "revealed",
+   "size" : {
+      "width" : 4,
+      "length" : 4
+   },
+   "weight" : 10,
+   "difficulty" : 0,
+   "unique" : false,
+   "script" : "file(entity_cluster.lua)",
+
+   "scenario_info" : {
+      "entity_type" : "stonehearth:rabbit",
+      "entity_footprint_size" : 1,
+      "quantity" : {
+         "min" : 2,
+         "max" : 5
+      }
+   }
+}

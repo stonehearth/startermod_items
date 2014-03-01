@@ -1,0 +1,30 @@
+{
+   "type" : "entity",
+   "components" : {
+	   "stonehearth:commands" : {
+	   	"commands" : [
+            "file(/data/commands/chop_tree)"
+			]
+	   },
+      "unit_info" : {
+         "character_sheet_info" : "file(boulder_character_sheet_info.json)"
+      },
+      "render_info" : {
+         "scale" : 1
+      },
+      "destination" : {
+         "region" : [
+            {
+               "min" : { "x" : -1, "y" : 0, "z" : -1 },
+               "max" : { "x" :  1, "y" : 1, "z" :  1 }
+            }
+         ]
+      },
+      "stonehearth:resource_node": {
+         "resource": "stonehearth:hunk_of_stone", 
+         "harvest_overlay_effect" : "/stonehearth/data/effects/mine_overlay_effect",
+         "durability": 2
+      }   
+	}
+}
+
