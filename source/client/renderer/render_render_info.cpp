@@ -192,7 +192,7 @@ void RenderRenderInfo::AddModelNode(om::RenderInfoPtr render_info, std::string c
 {
    ASSERT(nodes_.find(bone) == nodes_.end());
 
-   csg::Point3f origin = csg::Point3f::zero;
+   csg::Point3f origin = csg::Point3f(0.5f, 0.0f, 0.5f);
    auto i = bones_offsets_.find(bone);
    if (i != bones_offsets_.end()) {
       origin = i->second;
