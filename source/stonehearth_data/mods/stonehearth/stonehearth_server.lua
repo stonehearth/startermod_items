@@ -29,13 +29,11 @@ radiant.events.listen(stonehearth, 'radiant:construct', function(args)
          'threads',
          'town',         
       }
-      local datastore = _radiant.sim.create_datastore(stonehearth)
-      local data = datastore:get_data()
+      local datastore = radiant.create_datastore(stonehearth)
 
       for _, name in ipairs(service_creation_order) do
          local service = create_service(name)
          stonehearth[name] = service
-         data[name] = service['get_datastore'] and service:get_datastore() or nil
       end
    end)
 

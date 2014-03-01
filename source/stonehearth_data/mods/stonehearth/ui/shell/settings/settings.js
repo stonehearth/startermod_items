@@ -1,5 +1,6 @@
 App.StonehearthSettingsView = App.View.extend({
    templateName: 'settings',
+   modal: true,
 
    fromResToVal : function(shadowRes, shadowsEnabled) {
       if (!shadowsEnabled) {
@@ -51,9 +52,11 @@ App.StonehearthSettingsView = App.View.extend({
 
       var self = this;
 
-      $("#horizon").click(function() {
-         self.destroy();
-      });
+      this.$('#settings').position({
+            my: 'center center',
+            at: 'center center',
+            of: '#modalOverlay'
+         });
 
       var reloadableCallback = function() {
          self.reloadableSettingDidChange();
@@ -67,6 +70,7 @@ App.StonehearthSettingsView = App.View.extend({
       $('#opt_enableFullscreen').change(anythingChangedCallback);
       $('#opt_useFastHilite').change(anythingChangedCallback);
       $('#opt_shadowRes').change(anythingChangedCallback);
+      $('#opt_enableSsao').change(anythingChangedCallback);
 
       $('#opt_numSamples').change(reloadableCallback);
       $('#opt_shadowRes').change(reloadableCallback);
@@ -80,7 +84,8 @@ App.StonehearthSettingsView = App.View.extend({
                "fullscreen" : o.fullscreen.value,
                "msaa" : o.msaa.value,
                "draw_distance" : o.draw_distance.value,
-               "use_fast_hilite" : o.use_fast_hilite.value
+               "use_fast_hilite" : o.use_fast_hilite.value,
+               "enable_ssao" : o.enable_ssao.value
             };
 
             self.set('context.shadows_forbidden', !o.shadows.allowed);
@@ -104,6 +109,12 @@ App.StonehearthSettingsView = App.View.extend({
             self.set('context.draw_distance', o.draw_distance.value);
 
             self.set('context.use_fast_hilite', o.use_fast_hilite.value);
+
+            self.set('context.ssao_forbidden', !o.enable_ssao.allowed);
+            if (!o.enable_ssao.allowed) {
+               o.enable_ssao.value = false;
+            }
+            self.set('context.enable_ssao', o.enable_ssao.value);
 
             $('#gfxCardString').html(i18n.t('stonehearth:settings_gfx_cardinfo', {
                "gpuRenderer": o.gfx_card_renderer, 
@@ -160,7 +171,8 @@ App.StonehearthSettingsView = App.View.extend({
          "shadow_res" :  this.fromValToRes($( "#shadowResSlider" ).slider( "value" )),
          "persistConfig" : persistConfig,
          "draw_distance" : $( "#drawDistSlider" ).slider( "value" ),
-         "use_fast_hilite" : $('#opt_useFastHilite').is(':checked')
+         "use_fast_hilite" : $('#opt_useFastHilite').is(':checked'),
+         "enable_ssao" : $('#opt_enableSsao').is(':checked'),
       };
       return newConfig;
    },

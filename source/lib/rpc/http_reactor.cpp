@@ -166,8 +166,9 @@ bool HttpReactor::HttpGetFile(std::string const& uri, int &code, std::string& co
 
    try {
       if (boost::ends_with(uri, ".json")) {
-         JSONNode const& node = rm.LookupJson(uri);
-         content = node.write();
+         rm.LookupJson(uri, [&](const JSONNode& node) {
+            content = node.write();
+         });
       } else {
          RPC_LOG(5) << "reading file " << uri;
          std::shared_ptr<std::istream> is = rm.OpenResource(uri);

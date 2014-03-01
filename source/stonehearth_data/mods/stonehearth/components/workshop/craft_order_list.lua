@@ -8,8 +8,7 @@ local CraftOrder = require 'components.workshop.craft_order'
 
 local CraftOrderList = class()
 function CraftOrderList:__init()
-   self._datastore = _radiant.sim.create_datastore(self)
-   self.__savestate = self._datastore
+   self.__savestate = radiant.create_datastore()
    
    local data = self._datastore:get_data()
    if not data.orders then

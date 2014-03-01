@@ -12,7 +12,7 @@ function RenewableResourceNodeComponent:__create(entity, json)
 
    self._resource = json.resource
    self._wait_text = json.wait_text
-   self._renew_effect = json.renew_effect
+   self._renew_effect_name = json.renew_effect
    self._harvest_command_name = json.harvest_command --name of the cmd that harvests the resource
    self._harvest_overlay_effect = json.harvest_overlay_effect
 
@@ -55,7 +55,7 @@ function RenewableResourceNodeComponent:spawn_resource(location)
       self._entity:get_component('unit_info'):set_description(self._wait_text)
    
       --Listen for renewal triggers, if relevant
-      if self._renew_effect then
+      if self._renew_effect_name then
          radiant.events.listen(self._entity, 'stonehearth:on_effect_trigger', self, self.on_effect_trigger)
          radiant.events.listen(self._entity, 'stonehearth:on_effect_finished', self, self.on_effect_finished)
       end
@@ -71,7 +71,7 @@ function RenewableResourceNodeComponent:on_effect_trigger(e)
    local info = e.info
    local effect = e.effect
 
-   if e.info.info.event == "change_model" and  self._renew_effect then
+   if e.info.info.event == "change_model" and  self._renew_effect_name then
       self:_reset_model()
    end
 end
@@ -82,6 +82,10 @@ function RenewableResourceNodeComponent:on_effect_finished(e)
    local effect = e.effect
    if effect == self._renew_effect then
       self:_reset_model()
+      if self._renew_effect then
+         self._renew_effect:stop()
+         self._renew_effect = nil
+      end
    end
 end
 
@@ -94,8 +98,8 @@ end
 
 function RenewableResourceNodeComponent:renew(location)
    --If we have a renew effect associated, run it. If not, just swap the model.
-   if self._renew_effect then
-      radiant.effects.run_effect(self._entity, self._renew_effect)
+   if self._renew_effect_name then
+      self._renew_effect = radiant.effects.run_effect(self._entity, self._renew_effect_name)
    else 
       self._render_info:set_model_variant('')
    end

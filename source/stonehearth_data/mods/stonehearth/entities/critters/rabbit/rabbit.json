@@ -1,6 +1,6 @@
 {
    "type" : "entity",
-   "mixins" : "stonehearth:mixins:mob",   
+   "mixins" : "stonehearth:mixins:critter",   
    "components": {
       "unit_info" : {
         "name": "A rabbit",
@@ -8,14 +8,6 @@
         "portrait": "file(portrait.png)",
         "faction": "critter",
         "character_sheet_info" : "file(rabbit_character_sheet_info.json)"
-      },
-      "stonehearth:ai" : {
-         "actions" : [
-            "stonehearth:actions:idle:look_around",
-            "stonehearth:actions:wander",
-            "stonehearth:actions:wander_when_bored",
-            "stonehearth:actions:choose_point_around_leash"
-         ]
       },
       "stonehearth:loot_table" : {
         "num_drops" : {
@@ -30,16 +22,6 @@
             "uri" : "stonehearth:rabbit_pelt",
             "unique" : true
           }
-        }
-      },      
-      "stonehearth:attributes": {
-        "health": {
-          "type" : "basic", 
-          "value" :  1
-        },
-        "speed" : {
-          "type" : "basic", 
-          "value": 50
         }
       },      
       "render_info" : {

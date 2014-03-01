@@ -151,7 +151,7 @@ function ExecutionUnitV2:_start_thinking(entity_state)
       return
    end
 
-   if self._state == THINKING then
+   if self:in_state(THINKING, READY) then
       return self:_start_thinking_from_thinking(entity_state)
    end
 

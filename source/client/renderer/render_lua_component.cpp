@@ -18,9 +18,11 @@ RenderLuaComponent::RenderLuaComponent(RenderEntity& entity, std::string const& 
       std::string component_name = name.substr(offset + 1, std::string::npos);
 
       auto const& res = res::ResourceManager2::GetInstance();
-      json::Node const& manifest = res.LookupManifest(modname);
-      json::Node cr = manifest.get_node("component_renderers");
-      std::string path = cr.get<std::string>(component_name, "");
+      std::string path;
+      res.LookupManifest(modname, [&](const res::Manifest &manifest) {
+         json::Node cr = manifest.get_node("component_renderers");
+         path = cr.get<std::string>(component_name, "");
+      });
 
       if (!path.empty()) {
          lua::ScriptHost* script = Renderer::GetInstance().GetScriptHost();

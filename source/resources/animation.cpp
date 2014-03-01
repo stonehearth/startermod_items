@@ -114,7 +114,7 @@ void Animation::MoveNodes(float offset, AnimationFn fn)
 
 #define FRAME(count) (float *)(_base + header->firstFrameOffset + ((count) * (header->numBones * sizeof(float) * 7)))
 
-   ANI_LOG(9) << "Rendering animation offset " << offset << " frame " << f << " interpolated " << alpha << ".";
+   ANI_LOG(9) << "Rendering animation offset " << offset << " frame (" << f << " to " << n << " alpha:" << std::setw(2) << alpha << ").";
 
    char *boneptr = ((char *)(header + 1));
    float *first = FRAME(f);

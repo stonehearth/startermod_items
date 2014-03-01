@@ -1,0 +1,26 @@
+{
+   "type" : "entity",
+   "mixins" : "stonehearth:mixins:mob",
+   "components": {
+      "unit_info" : {
+        "faction": "critter"
+      },
+      "stonehearth:ai" : {
+         "actions" : [
+            "stonehearth:actions:wander",
+            "stonehearth:actions:wander_when_bored",
+            "stonehearth:actions:choose_point_around_leash"
+         ]
+      },
+      "stonehearth:attributes": {
+        "health": {
+          "type" : "basic", 
+          "value" :  1
+        },
+        "speed" : {
+          "type" : "basic", 
+          "value": 50
+        }
+      }
+   }
+}

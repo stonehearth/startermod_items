@@ -16,8 +16,8 @@ function EntityTracker:__init(tracker_name, filter_fn, event_array)
    local removed_cb = function(id)
       self:_on_entity_remove(id)
    end
-   self._data_store = _radiant.sim.create_datastore(self)
-   self._data = self._data_store:get_data()
+   self.__savestate = radiant.create_datastore(self)
+   self._data = self.__savestate:get_data()
    self._data.entities = {}
    self._tracked_entities = {} -- used to avoid an O(n) removal for non workers
    
@@ -32,22 +32,18 @@ function EntityTracker:__init(tracker_name, filter_fn, event_array)
    end
 end
 
-function EntityTracker:get_data_store()
-   return self._data_store
-end
-
 function EntityTracker:_on_entity_add(id, entity)
    if self._filter_fn(entity) then
       self:_add_entity(entity)
       --table.insert(self._data.entities, entity)
-      --self._data_store:mark_changed()
+      --self.__savestate:mark_changed()
       --self._tracked_entities[entity:get_id()] = true
    end
 end
 
 function EntityTracker:_add_entity(entity)
    table.insert(self._data.entities, entity)
-   self._data_store:mark_changed()
+   self.__savestate:mark_changed()
    self._tracked_entities[entity:get_id()] = true
 end
 
@@ -69,7 +65,7 @@ end
 function EntityTracker:_on_entity_remove(id)
    if self._tracked_entities[id] then
       self._tracked_entities[id] = nil
-      self._data_store:mark_changed()
+      self.__savestate:mark_changed()
 
       -- Handlebars can't handle (heh) associative arrays (GAH!)
       for i, entity in ipairs(self._data.entities) do

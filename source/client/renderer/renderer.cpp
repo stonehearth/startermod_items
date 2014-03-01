@@ -30,9 +30,6 @@ using namespace ::radiant::client;
 
 #define R_LOG(level)      LOG(renderer.renderer, level)
 
-std::vector<float> ssaoSamplerData;
-
-H3DRes ssaoMat;
 H3DNode meshNode;
 H3DNode starfieldMeshNode;
 H3DRes starfieldMat;
@@ -64,38 +61,126 @@ Renderer::Renderer() :
    screen_resize_slot_("screen resize"),
    show_debug_shapes_changed_slot_("show debug shapes"),
    lastGlfwError_("none"),
-   currentPipeline_(0),
+   currentPipeline_(""),
    iconified_(false),
    resize_pending_(false),
-   drawWorld_(false)
+   drawWorld_(true)
 {
    OneTimeIninitializtion();
 }
 
 void Renderer::OneTimeIninitializtion()
 {
-   terrainConfig_ = res::ResourceManager2::GetInstance().LookupJson("stonehearth/renderers/terrain/terrain_renderer.json");
+   res::ResourceManager2::GetInstance().LookupJson("stonehearth/renderers/terrain/terrain_renderer.json", [&](const json::Node& n) {
+      terrainConfig_ = n;
+   });
    GetConfigOptions();
-
-   uiOnlyStages_.insert(std::string("Init"));
-   uiOnlyStages_.insert(std::string("Overlays"));
-
-   fowOnlyStages_.insert(std::string("FogOfWar_RT"));
-
-   drawWorldStages_.insert(std::string("Init"));
-   drawWorldStages_.insert(std::string("Sky"));
-   drawWorldStages_.insert(std::string("Starfield"));
-   drawWorldStages_.insert(std::string("Depth"));
-   drawWorldStages_.insert(std::string("FogOfWar"));
-   drawWorldStages_.insert(std::string("Light"));
-   drawWorldStages_.insert(std::string("Fog"));
-   drawWorldStages_.insert(std::string("Translucent"));
-   drawWorldStages_.insert(std::string("Overlays"));
-   drawWorldStages_.insert(std::string("Projections"));
 
    assert(renderer_.get() == nullptr);
    renderer_.reset(this);
 
+   InitWindow();
+
+   InitHorde();
+
+   SetupGlfwHandlers();
+
+   MakeRendererResources();
+
+   ApplyConfig(config_, false);
+
+   LoadResources();
+
+   memset(&input_.mouse, 0, sizeof input_.mouse);
+   input_.focused = true;
+
+   // If the mod is unzipped, put a watch on the filesystem directory where the resources live
+   // so we can dynamically load resources whenever the file changes.
+   std::string fspath = std::string("mods/") + resourcePath_;
+   if (boost::filesystem::is_directory(fspath)) {
+      fileWatcher_.addWatch(strutil::utf8_to_unicode(fspath), [](FW::WatchID watchid, const std::wstring& dir, const std::wstring& filename, FW::Action action) -> void {
+         Renderer::GetInstance().FlushMaterials();
+      }, true);
+   }
+
+   OnWindowResized(windowWidth_, windowHeight_);
+
+   SetShowDebugShapes(false);
+
+   SetDrawWorld(false);
+   initialized_ = true;
+}
+
+void Renderer::MakeRendererResources()
+{
+   // Overlays
+   fontMatRes_ = h3dAddResource( H3DResTypes::Material, "overlays/font.material.xml", 0 );
+   panelMatRes_ = h3dAddResource( H3DResTypes::Material, "overlays/panel.material.xml", 0 );
+
+   H3DRes veclookup = h3dCreateTexture("RandomVectorLookup", 4, 4, H3DFormats::TEX_RGBA32F, H3DResFlags::NoTexMipmaps | H3DResFlags::NoQuery | H3DResFlags::NoFlush);
+
+   csg::RandomNumberGenerator &rng = csg::RandomNumberGenerator::DefaultInstance();
+   float *data2 = (float *)h3dMapResStream(veclookup, H3DTexRes::ImageElem, 0, H3DTexRes::ImgPixelStream, false, true);
+   for (int i = 0; i < 16; i++)
+   {
+      float x = rng.GetReal(-1.0f, 1.0f);
+      float y = rng.GetReal(-1.0f, 1.0f);
+      float z = rng.GetReal(-1.0f, 1.0f);
+      Horde3D::Vec3f v(x,y,z);
+      v.normalize();
+
+      data2[(i * 4) + 0] = v.x;
+      data2[(i * 4) + 1] = v.y;
+      data2[(i * 4) + 2] = v.z;
+   }
+   h3dUnmapResStream(veclookup);
+
+   BuildSkySphere();
+
+   BuildStarfield();
+
+   fowRenderTarget_ = h3dutCreateRenderTarget(512, 512, H3DFormats::TEX_BGRA8, false, 1, 0, 0);
+
+   csg::Region3::Cube littleCube(csg::Region3::Point(0, 0, 0), csg::Region3::Point(1, 1, 1));
+   /*fowVisibleNode_ = h3dAddInstanceNode(H3DRootNode, "fow_visiblenode", 
+      h3dAddResource(H3DResTypes::Material, "materials/fow_visible.material.xml", 0), 
+      Pipeline::GetInstance().CreateVoxelGeometryFromRegion("littlecube", littleCube), 1000);*/
+   fowExploredNode_ = h3dAddInstanceNode(H3DRootNode, "fow_explorednode", 
+      h3dAddResource(H3DResTypes::Material, "materials/fow_explored.material.xml", 0), 
+      Pipeline::GetInstance().CreateVoxelGeometryFromRegion("littlecube", littleCube), 1000);
+
+   csg::Region2 r;
+   r.Add(csg::Rect2(csg::Region2::Point(-10, -10), csg::Region2::Point(10, 10)));
+   UpdateFoW(fowExploredNode_, r);
+
+   // Add camera   
+   camera_ = new Camera(H3DRootNode, "Camera");
+
+   // Add another camera--this is exclusively for the fog-of-war pipeline.
+   fowCamera_ = new Camera(H3DRootNode, "FowCamera");
+}
+
+void Renderer::InitHorde()
+{
+   GLFWwindow* window = glfwGetCurrentContext();
+   int numWindowSamples = glfwGetWindowAttrib(window, GLFW_SAMPLES);
+   // Init Horde, looking for OpenGL 2.0 minimum.
+   std::string s = (radiant::core::System::GetInstance().GetTempDirectory() / "gfx.log").string();
+   if (!h3dInit(2, 0, numWindowSamples > 0, config_.enable_gl_logging.value, s.c_str())) {
+      h3dutDumpMessages();
+      throw std::runtime_error("Unable to initialize renderer.  Check horde log for details.");
+   }
+
+   // Set options
+   h3dSetOption(H3DOptions::LoadTextures, 1);
+   h3dSetOption(H3DOptions::TexCompression, 0);
+   h3dSetOption(H3DOptions::MaxAnisotropy, 1);
+   h3dSetOption(H3DOptions::FastAnimation, 1);
+   h3dSetOption(H3DOptions::DumpFailedShaders, 1);
+}
+
+void Renderer::InitWindow()
+{
    glfwSetErrorCallback([](int errorCode, const char* errorString) {
       Renderer::GetInstance().lastGlfwError_ = BUILD_STRING(errorString << " (code: " << std::to_string(errorCode) << ")");
    });
@@ -129,98 +214,14 @@ void Renderer::OneTimeIninitializtion()
 
    glfwMakeContextCurrent(window);
    glfwGetWindowSize(window, &windowWidth_, &windowHeight_);
-   int numWindowSamples = glfwGetWindowAttrib(window, GLFW_SAMPLES);
    if (!inFullscreen_) {
       SetWindowPos(GetWindowHandle(), NULL, windowX, windowY, 0, 0, SWP_NOSIZE);
    }
-   // Init Horde, looking for OpenGL 2.0 minimum.
-   std::string s = (radiant::core::System::GetInstance().GetTempDirectory() / "gfx.log").string();
-   if (!h3dInit(2, 0, numWindowSamples > 0, config_.enable_gl_logging.value, s.c_str())) {
-      h3dutDumpMessages();
-      throw std::runtime_error("Unable to initialize renderer.  Check horde log for details.");
-   }
+}
 
-   // Set options
-   h3dSetOption(H3DOptions::LoadTextures, 1);
-   h3dSetOption(H3DOptions::TexCompression, 0);
-   h3dSetOption(H3DOptions::MaxAnisotropy, 1);
-   h3dSetOption(H3DOptions::FastAnimation, 1);
-   h3dSetOption(H3DOptions::DumpFailedShaders, 1);
-
-   ApplyConfig(config_, false);
-
-   SetEnabledStages(uiOnlyStages_);
-
-   // Overlays
-   fontMatRes_ = h3dAddResource( H3DResTypes::Material, "overlays/font.material.xml", 0 );
-   panelMatRes_ = h3dAddResource( H3DResTypes::Material, "overlays/panel.material.xml", 0 );
-     
-   ssaoMat = h3dAddResource(H3DResTypes::Material, "materials/ssao.material.xml", 0);
-
-   csg::RandomNumberGenerator &rng = csg::RandomNumberGenerator::DefaultInstance();
-   H3DRes veclookup = h3dCreateTexture("RandomVectorLookup", 4, 4, H3DFormats::TEX_RGBA32F, H3DResFlags::NoTexMipmaps);
-   float *data2 = (float *)h3dMapResStream(veclookup, H3DTexRes::ImageElem, 0, H3DTexRes::ImgPixelStream, false, true);
-   for (int i = 0; i < 16; i++)
-   {
-      float x = rng.GetReal(-1.0f, 1.0f);
-      float y = rng.GetReal(-1.0f, 1.0f);
-      float z = 0;
-      Horde3D::Vec3f v(x,y,z);
-      v.normalize();
-
-      data2[(i * 4) + 0] = v.x;
-      data2[(i * 4) + 1] = v.y;
-      data2[(i * 4) + 2] = v.z;
-   }
-   h3dUnmapResStream(veclookup);
-
-   BuildSkySphere();
-
-   BuildStarfield();
-
-   LoadResources();
-
-   // Sampler kernel generation--a work in progress.
-   const int KernelSize = 16;
-   for (int i = 0; i < KernelSize; ++i) {
-      float x = rng.GetReal(-1.0f, 1.0f);
-      float y = rng.GetReal(-1.0f, 1.0f);
-      float z = rng.GetReal(-0.5f, 0.5f);
-      Horde3D::Vec3f v(x,y,z);
-      v.normalize();
-
-      float scale = (float)i / (float)KernelSize;
-      float f = scale;// * scale;
-      v *= ((1.0f - f) * 0.3f) + (f);
-
-      ssaoSamplerData.push_back(v.x);
-      ssaoSamplerData.push_back(v.y);
-      ssaoSamplerData.push_back(v.z);
-      ssaoSamplerData.push_back(0.0);
-   }
-
-   csg::Region3::Cube littleCube(csg::Region3::Point(0, 0, 0), csg::Region3::Point(1, 1, 1));
-   /*fowVisibleNode_ = h3dAddInstanceNode(H3DRootNode, "fow_visiblenode", 
-      h3dAddResource(H3DResTypes::Material, "materials/fow_visible.material.xml", 0), 
-      Pipeline::GetInstance().CreateVoxelGeometryFromRegion("littlecube", littleCube), 1000);*/
-   fowExploredNode_ = h3dAddInstanceNode(H3DRootNode, "fow_explorednode", 
-      h3dAddResource(H3DResTypes::Material, "materials/fow_explored.material.xml", 0), 
-      Pipeline::GetInstance().CreateVoxelGeometryFromRegion("littlecube", littleCube), 1000);
-
-   csg::Region2 r;
-   r.Add(csg::Rect2(csg::Region2::Point(-10, -10), csg::Region2::Point(10, 10)));
-   UpdateFoW(fowExploredNode_, r);
-
-   // Add camera   
-   camera_ = new Camera(H3DRootNode, "Camera", currentPipeline_);
-   h3dSetNodeParamI(camera_->GetNode(), H3DCamera::PipeResI, currentPipeline_);
-
-   fowCamera_ = new Camera(H3DRootNode, "FowCamera", currentPipeline_);
-   h3dSetNodeParamI(fowCamera_->GetNode(), H3DCamera::PipeResI, currentPipeline_);
-
-   memset(&input_.mouse, 0, sizeof input_.mouse);
-   input_.focused = true;
-
+void Renderer::SetupGlfwHandlers()
+{
+   GLFWwindow *window = glfwGetCurrentContext();
    glfwSetWindowSizeCallback(window, [](GLFWwindow *window, int newWidth, int newHeight) { 
       Renderer::GetInstance().resize_pending_ = true;
       Renderer::GetInstance().nextHeight_ = newHeight;
@@ -276,22 +277,6 @@ void Renderer::OneTimeIninitializtion()
       R_LOG(0) << "window closed.  exiting process";
       TerminateProcess(GetCurrentProcess(), 1);
    });
-
-   // If the mod is unzipped, put a watch on the filesystem directory where the resources live
-   // so we can dynamically load resources whenever the file changes.
-   std::string fspath = std::string("mods/") + resourcePath_;
-   if (boost::filesystem::is_directory(fspath)) {
-      fileWatcher_.addWatch(strutil::utf8_to_unicode(fspath), [](FW::WatchID watchid, const std::wstring& dir, const std::wstring& filename, FW::Action action) -> void {
-         Renderer::GetInstance().FlushMaterials();
-      }, true);
-   }
-
-   OnWindowResized(windowWidth_, windowHeight_);
-   SetShowDebugShapes(false);
-
-   //cursorNode = h3dAddProjectorNode(H3DRootNode, "cursorNode", h3dAddResource(H3DResTypes::Material, "materials/trapper_proj.material.xml", 0));
-   //h3dSetNodeTransform(cursorNode, 2, 0, 0, 0, 45, 0, 4, 1, 4);
-   initialized_ = true;
 }
 
 void Renderer::UpdateFoW(H3DNode node, const csg::Region2& region)
@@ -310,10 +295,10 @@ void Renderer::UpdateFoW(H3DNode node, const csg::Region2& region)
       float xSize = (float)c.max.x - c.min.x;
       float zSize = (float)c.max.y - c.min.y;
       float ySize = 100.0f;
-      f[0] = xSize; f[1] =  0; f[2] =   0; f[3] =  0;
-      f[4] =  0; f[5] = ySize; f[6] =   0; f[7] =  0;
-      f[8] =  0; f[9] =  0; f[10] = zSize; f[11] = 0;
-      f[12] = px; f[13] = py - (ySize /2); f[14] =  pz; f[15] = 1;
+      f[0] = xSize; f[1] = 0;                f[2] =   0;    f[3] =  0;
+      f[4] = 0;     f[5] = ySize;            f[6] =   0;    f[7] =  0;
+      f[8] = 0;     f[9] = 0;                f[10] = zSize; f[11] = 0;
+      f[12] = px;   f[13] = py - (ySize /2); f[14] =  pz;   f[15] = 1;
       
       f += 16;
    }
@@ -366,14 +351,10 @@ void Renderer::RenderFogOfWarRT()
    h3dSetNodeParamF(fowCamera_->GetNode(), H3DCamera::NearPlaneF, 0, -max.z);
    h3dSetNodeParamF(fowCamera_->GetNode(), H3DCamera::FarPlaneF, 0, -min.z);
 
-   // Turn off all pipeline stages, save for 'FogOfWar_RT'
-   SetEnabledStages(fowOnlyStages_);
+   H3DRes fp = GetPipeline("pipelines/fow.pipeline.xml");
+   h3dSetResParamStr(fp, H3DPipeRes::GlobalRenderTarget, 0, fowRenderTarget_, "FogOfWarRT");
 
-   // Render
-   h3dRender(fowCamera_->GetNode());
-
-   // Revert all pipeline stages.
-   SetEnabledStages(drawWorldStages_);
+   h3dRender(fowCamera_->GetNode(), fp);
 
    Horde3D::Matrix4f pm;
    h3dGetCameraProjMat(fowCamera_->GetNode(), pm.x);
@@ -387,10 +368,8 @@ void Renderer::RenderFogOfWarRT()
    };
    Horde3D::Matrix4f biasMatrix(m);
    c = biasMatrix * c;
-   // This means we can't support FoW lookups in non-default materials!.  How to fix....
-   h3dSetMaterialArrayUniform(
-      h3dAddResource(H3DResTypes::Material, "materials/default_material.xml", 0),
-      "fowViewMatCols", c.x, 16);
+
+   h3dSetGlobalUniform("fowViewMat", H3DUniformType::MAT44, c.x);
 }
 
 void Renderer::SetSkyColors(const csg::Point3f& startCol, const csg::Point3f& endCol)
@@ -473,7 +452,6 @@ void Renderer::BuildSkySphere()
 
    skysphereMat = h3dAddResource(H3DResTypes::Material, "materials/skysphere.material.xml", 0);
    H3DRes geoRes = h3dutCreateGeometryRes("skysphere", 2046, 2048 * 3, (float*)spVerts, spInds, nullptr, nullptr, nullptr, texData, nullptr);
-
    H3DNode modelNode = h3dAddModelNode(H3DRootNode, "skysphere_model", geoRes);
    meshNode = h3dAddMeshNode(modelNode, "skysphere_mesh", skysphereMat, 0, 2048 * 3, 0, 2045);
    h3dSetNodeFlags(modelNode, H3DNodeFlags::NoCastShadow | H3DNodeFlags::NoRayQuery, true);
@@ -550,17 +528,10 @@ void Renderer::GetConfigOptions()
 {
    const core::Config& config = core::Config::GetInstance();
 
-   // "Uses the forward-renderer, instead of the deferred renderer."
-   config_.use_forward_renderer.value = config.Get("renderer.use_forward_renderer", true);
-
-   // "Enables SSAO blur."
-   config_.use_ssao_blur.value = config.Get("renderer.use_ssao_blur", true);
+   config_.enable_ssao.value = config.Get("renderer.enable_ssao", false);
 
    // "Enables shadows."
    config_.use_shadows.value = config.Get("renderer.enable_shadows", true);
-
-   // "Enables Screen-Space Ambient Occlusion (SSAO)."
-   config_.use_ssao.value = config.Get("renderer.enable_ssao", true);
 
    // "Sets the number of Multi-Sample Anti Aliasing samples to use."
    config_.num_msaa_samples.value = config.Get("renderer.msaa_samples", 0);
@@ -590,7 +561,7 @@ void Renderer::GetConfigOptions()
    resourcePath_ = config.Get("renderer.resource_path", "stonehearth/data/horde");
 }
 
-void Renderer::ApplyConfig(const RendererConfig& newConfig, bool persistConfig)
+void Renderer::UpdateConfig(const RendererConfig& newConfig)
 {
    memcpy(&config_, &newConfig, sizeof(RendererConfig));
 
@@ -601,18 +572,44 @@ void Renderer::ApplyConfig(const RendererConfig& newConfig, bool persistConfig)
    // Presently, only the engine can decide if certain features are even allowed to run.
    config_.num_msaa_samples.allowed = gpuCaps.MSAASupported;
    config_.use_shadows.allowed = rendererCaps.ShadowsSupported;
+   config_.enable_ssao.allowed = rendererCaps.SsaoSupported;
+}
 
-   if (config_.use_forward_renderer.value) {
-      SetCurrentPipeline("pipelines/forward.pipeline.xml");
+void Renderer::PersistConfig()
+{
+   core::Config& config = core::Config::GetInstance();
+
+   config.Set("renderer.enable_ssao", config_.enable_ssao.value);
+
+   config.Set("renderer.enable_shadows", config_.use_shadows.value);
+   config.Set("renderer.msaa_samples", config_.num_msaa_samples.value);
+
+   config.Set("renderer.shadow_resolution", config_.shadow_resolution.value);
+
+   config.Set("renderer.enable_vsync", config_.enable_vsync.value);
+
+   config.Set("renderer.enable_fullscreen", config_.enable_fullscreen.value);
+
+   config.Set("renderer.screen_width", config_.screen_width.value);
+   config.Set("renderer.screen_height", config_.screen_height.value);
+   config.Set("renderer.draw_distance", config_.draw_distance.value);
+
+   config.Set("renderer.last_window_x", config_.last_window_x.value);
+   config.Set("renderer.last_window_y", config_.last_window_y.value);
+   config.Set("renderer.use_fast_hilite", config_.use_fast_hilite.value);
+}
+
+void Renderer::ApplyConfig(const RendererConfig& newConfig, bool persistConfig)
+{
+   UpdateConfig(newConfig);
+
+   config_.enable_ssao.value &= config_.enable_ssao.allowed;
+   // Super hard-coded setting for now.
+   if (config_.enable_ssao.value) {
+      worldPipeline_ = "pipelines/forward_postprocess.pipeline.xml";
    } else {
-      SetCurrentPipeline("pipelines/deferred_lighting.xml");
+      worldPipeline_ = "pipelines/forward.pipeline.xml";
    }
-
-   SetStageEnable("SSAO", config_.use_ssao.value);
-   SetStageEnable("Simple, once-pass SSAO Blur", config_.use_ssao_blur.value);
-   // Turn on copying if we're using SSAO, but not using blur.
-   SetStageEnable("SSAO Copy", config_.use_ssao.value && !config_.use_ssao_blur.value);
-   SetStageEnable("SSAO Default", !config_.use_ssao.value);
 
    int oldMSAACount = (int)h3dGetOption(H3DOptions::SampleCount);
 
@@ -620,6 +617,7 @@ void Renderer::ApplyConfig(const RendererConfig& newConfig, bool persistConfig)
    h3dSetOption(H3DOptions::ShadowMapSize, (float)config_.shadow_resolution.value);
    h3dSetOption(H3DOptions::SampleCount, (float)config_.num_msaa_samples.value);
 
+   /* Unused, until we can reload the window without bringing everything down.
    if (oldMSAACount != (int)h3dGetOption(H3DOptions::SampleCount))
    {
       // MSAA change requires that we reload our pipelines (so that we can regenerate our
@@ -627,50 +625,19 @@ void Renderer::ApplyConfig(const RendererConfig& newConfig, bool persistConfig)
       FlushMaterials();
 
       LoadResources();
-   }
+   }*/
 
    // Propagate far-plane value.
-   if (camera_) {
-      ResizeViewport();
-   }
+   ResizeViewport();
+
+   SetStageEnable(GetPipeline(worldPipeline_), "Selected_Fast", config_.use_fast_hilite.value);
+   SetStageEnable(GetPipeline(worldPipeline_), "Selected", !config_.use_fast_hilite.value);
 
    glfwSwapInterval(config_.enable_vsync.value ? 1 : 0);
 
    if (persistConfig)
    {
-      core::Config& config = core::Config::GetInstance();
-
-      config.Set("renderer.enable_shadows", config_.use_shadows.value);
-      config.Set("renderer.msaa_samples", config_.num_msaa_samples.value);
-
-      config.Set("renderer.shadow_resolution", config_.shadow_resolution.value);
-
-      config.Set("renderer.enable_vsync", config_.enable_vsync.value);
-
-      config.Set("renderer.enable_fullscreen", config_.enable_fullscreen.value);
-
-      config.Set("renderer.screen_width", config_.screen_width.value);
-      config.Set("renderer.screen_height", config_.screen_height.value);
-      config.Set("renderer.draw_distance", config_.draw_distance.value);
-
-      config.Set("renderer.last_window_x", config_.last_window_x.value);
-      config.Set("renderer.last_window_y", config_.last_window_y.value);
-      config.Set("renderer.use_fast_hilite", config_.use_fast_hilite.value);
-   }
-
-   if (config_.use_fast_hilite.value) {
-      drawWorldStages_.insert(std::string("Selected_Fast"));
-      drawWorldStages_.erase(std::string("Selected"));
-   } else {
-      drawWorldStages_.erase(std::string("Selected_Fast"));
-      drawWorldStages_.insert(std::string("Selected"));
-   }
-
-   // We just flushed/loaded our pipeline, so don't forget to reset the draw bits!
-   if (drawWorld_) {
-      SetEnabledStages(drawWorldStages_);
-   } else {
-      SetEnabledStages(uiOnlyStages_);
+      PersistConfig();
    }
 }
 
@@ -753,16 +720,16 @@ SystemStats Renderer::GetStats()
    return result;
 }
 
-void Renderer::SetStageEnable(const char* stageName, bool enabled)
+void Renderer::SetStageEnable(H3DRes pipeRes, const char* stageName, bool enabled)
 {
-   int stageCount = h3dGetResElemCount(currentPipeline_, H3DPipeRes::StageElem);
+   int stageCount = h3dGetResElemCount(pipeRes, H3DPipeRes::StageElem);
 
    for (int i = 0; i < stageCount; i++)
    {
-      const char* curStageName = h3dGetResParamStr(currentPipeline_, H3DPipeRes::StageElem, i, H3DPipeRes::StageNameStr);
+      const char* curStageName = h3dGetResParamStr(pipeRes, H3DPipeRes::StageElem, i, H3DPipeRes::StageNameStr);
       if (_strcmpi(stageName, curStageName) == 0)
       {
-         h3dSetResParamI(currentPipeline_, H3DPipeRes::StageElem, i, H3DPipeRes::StageActivationI, enabled ? 1 : 0);
+         h3dSetResParamI(pipeRes, H3DPipeRes::StageElem, i, H3DPipeRes::StageActivationI, enabled ? 1 : 0);
          break;
       }
    }
@@ -771,40 +738,51 @@ void Renderer::SetStageEnable(const char* stageName, bool enabled)
 void Renderer::FlushMaterials() {
    H3DRes r = 0;
    while ((r = h3dGetNextResource(H3DResTypes::Shader, r)) != 0) {
-      h3dUnloadResource(r);
+      if (!(h3dGetResFlags(r) & H3DResFlags::NoFlush)) {
+         h3dUnloadResource(r);
+      }
    }
 
    r = 0;
    while ((r = h3dGetNextResource(H3DResTypes::Material, r)) != 0) {
-      if (!uiBuffer_.isUiMaterial(r))
-      {
+      if (!(h3dGetResFlags(r) & H3DResFlags::NoFlush)) {
          h3dUnloadResource(r);
       }
    }
 
    r = 0;
    while ((r = h3dGetNextResource(H3DResTypes::Pipeline, r)) != 0) {
-      h3dUnloadResource(r);
+      if (!(h3dGetResFlags(r) & H3DResFlags::NoFlush)) {
+         h3dUnloadResource(r);
+      }
    }
 
    r = 0;
    while ((r = h3dGetNextResource(H3DResTypes::ParticleEffect, r)) != 0) {
-      h3dUnloadResource(r);
+      if (!(h3dGetResFlags(r) & H3DResFlags::NoFlush)) {
+         h3dUnloadResource(r);
+      }
    }
 
    r = 0;
    while ((r = h3dGetNextResource(H3DResTypes::Code, r)) != 0) {
-      h3dUnloadResource(r);
+      if (!(h3dGetResFlags(r) & H3DResFlags::NoFlush)) {
+         h3dUnloadResource(r);
+      }
    }
 
    r = 0;
    while ((r = h3dGetNextResource(RT_CubemitterResource, r)) != 0) {
-      h3dUnloadResource(r);
+      if (!(h3dGetResFlags(r) & H3DResFlags::NoFlush)) {
+         h3dUnloadResource(r);
+      }
    }
 
    r = 0;
    while ((r = h3dGetNextResource(RT_AnimatedLightResource, r)) != 0) {
-      h3dUnloadResource(r);
+      if (!(h3dGetResFlags(r) & H3DResFlags::NoFlush)) {
+         h3dUnloadResource(r);
+      }
    }
 
    ResizePipelines();
@@ -932,8 +910,6 @@ void Renderer::RenderOneFrame(int now, float alpha)
    fileWatcher_.update();
    LoadResources();
 
-   h3dSetMaterialArrayUniform( ssaoMat, "samplerKernel", ssaoSamplerData.data(), ssaoSamplerData.size());
-   
    float skysphereDistance = config_.draw_distance.value * 0.4f;
    float starsphereDistance = config_.draw_distance.value * 0.9f;
    // Update the position of the sky so that it is always around the camera.  This isn't strictly
@@ -952,10 +928,13 @@ void Renderer::RenderOneFrame(int now, float alpha)
    perfmon::SwitchToCounter("render h3d");
    
    if (drawWorld_) {
+      currentPipeline_ = worldPipeline_;
+
       RenderFogOfWarRT();
+      h3dSetResParamStr(GetPipeline(currentPipeline_), H3DPipeRes::GlobalRenderTarget, 0, fowRenderTarget_, "FogOfWarRT");
    }
 
-   h3dRender(camera_->GetNode());
+   h3dRender(camera_->GetNode(), GetPipeline(currentPipeline_));
 
    // Finish rendering of frame
    UpdateCamera();
@@ -968,7 +947,6 @@ void Renderer::RenderOneFrame(int now, float alpha)
    float delta = (now - last_render_time_) / 1000.0f;
    h3dRadiantAdvanceCubemitterTime(delta);
    h3dRadiantAdvanceAnimatedLightTime(delta);
-
 
    // Remove all overlays
    h3dClearOverlays();
@@ -1152,26 +1130,17 @@ void Renderer::ResizeViewport()
    h3dSetupCameraView( camera, 45.0f, width / (float)height, 2.0f, config_.draw_distance.value);
 }
 
-void Renderer::SetEnabledStages(std::unordered_set<std::string>& stages)
-{
-   int stageCount = h3dGetResElemCount(currentPipeline_, H3DPipeRes::StageElem);
-
-   for (int i = 0; i < stageCount; i++)
-   {
-      const std::string curStageName(h3dGetResParamStr(currentPipeline_, H3DPipeRes::StageElem, i, H3DPipeRes::StageNameStr));
-      int enabled = stages.find(curStageName) != stages.end() ? 1 : 0;
-      h3dSetResParamI(currentPipeline_, H3DPipeRes::StageElem, i, H3DPipeRes::StageActivationI, enabled);
-   }
-}
-
 void Renderer::SetDrawWorld(bool drawWorld) 
 {
+   if (drawWorld_ == drawWorld) {
+      return;
+   }
    drawWorld_ = drawWorld;
 
    if (drawWorld_) {
-      SetEnabledStages(drawWorldStages_);
+      currentPipeline_ = worldPipeline_;
    } else {
-      SetEnabledStages(uiOnlyStages_);
+      currentPipeline_ = "pipelines/ui_only.pipeline.xml";
    }
 }
 
@@ -1360,7 +1329,7 @@ core::Guard Renderer::TraceSelected(H3DNode node, UpdateSelectionFn fn)
    return core::Guard([=]() { selectableCbs_.erase(node); });
 }
 
-void Renderer::SetCurrentPipeline(std::string name)
+H3DRes Renderer::GetPipeline(const std::string& name)
 {
    H3DRes p = 0;
 
@@ -1368,15 +1337,12 @@ void Renderer::SetCurrentPipeline(std::string name)
    if (i == pipelines_.end()) {
       p = h3dAddResource(H3DResTypes::Pipeline, name.c_str(), 0);
       pipelines_[name] = p;
-
       LoadResources();
+      h3dResizePipelineBuffers(p, windowWidth_, windowHeight_);
    } else {
       p = i->second;
    }
-   if (p != currentPipeline_ && camera_ != NULL) {
-      h3dSetNodeParamI(camera_->GetNode(), H3DCamera::PipeResI, p);
-   }
-   currentPipeline_ = p;
+   return p;
 }
 
 bool Renderer::ShouldHideRenderGrid(const csg::Point3& normal)

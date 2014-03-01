@@ -4,7 +4,7 @@ local ObjectTrackerCallHandler = class()
 
 function format_response(tracker)
    return {
-      tracker = tracker:get_data_store()
+      tracker = tracker
    }
 end
 

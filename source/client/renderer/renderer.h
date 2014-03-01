@@ -64,9 +64,7 @@ struct RendererConfigEntry {
 };
 
 struct RendererConfig {
-   RendererConfigEntry<bool> use_forward_renderer;
-   RendererConfigEntry<bool> use_ssao;
-   RendererConfigEntry<bool> use_ssao_blur;
+   RendererConfigEntry<bool> enable_ssao;
    RendererConfigEntry<bool> use_shadows;
    RendererConfigEntry<bool> enable_vsync;
    RendererConfigEntry<bool> enable_fullscreen;
@@ -120,6 +118,12 @@ class Renderer
       SystemStats GetStats();
       const RendererConfig& GetRendererConfig() const { return config_; }
       void ApplyConfig(const RendererConfig& newConfig, bool persistConfig);
+      void PersistConfig();
+      void UpdateConfig(const RendererConfig& newConfig);
+      void SetupGlfwHandlers();
+      void InitWindow();
+      void InitHorde();
+      void MakeRendererResources();
 
       void SelectSaneVideoMode(bool fullscreen, int* width, int* height, int* windowX, int* windowY, GLFWmonitor** monitor);
       void GetViewportMouseCoords(double& x, double& y);
@@ -161,7 +165,7 @@ class Renderer
 
       ViewMode GetViewMode() const { return viewMode_; }
       void SetViewMode(ViewMode mode);
-      void SetCurrentPipeline(std::string pipeline);
+      H3DRes GetPipeline(const std::string& name);
       bool ShouldHideRenderGrid(const csg::Point3& normal);
 
       void FlushMaterials();
@@ -184,13 +188,12 @@ class Renderer
       RendererConfig config_;
 
    private:
-      void SetEnabledStages(std::unordered_set<std::string>& stages);
       void RenderFogOfWarRT();
       H3DRes BuildSphereGeometry();
       void GetConfigOptions();
       void BuildSkySphere();
       void BuildStarfield();
-      void SetStageEnable(const char* stageName, bool enabled);
+      void SetStageEnable(H3DRes pipeRes, const char* stageName, bool enabled);
       void OnWindowResized(int newWidth, int newHeight);
       void OnKey(int key, int down);
       void OnMouseWheel(double value);
@@ -227,9 +230,10 @@ class Renderer
       int               uiWidth_;
       int               uiHeight_;
       bool              drawWorld_;
+      uint32            fowRenderTarget_;
 
       H3DResourceMap    pipelines_;
-   	H3DRes            currentPipeline_;
+   	std::string       currentPipeline_;
 
       H3DRes            fontMatRes_;
       H3DRes            panelMatRes_;
@@ -239,6 +243,7 @@ class Renderer
       Camera            *camera_, *fowCamera_;
       FW::FileWatcher   fileWatcher_;
 
+      std::string       worldPipeline_;
 
       H3DNode     fowExploredNode_, fowVisibleNode_;
       core::Guard           traces_;
@@ -272,7 +277,6 @@ class Renderer
       
       std::string       resourcePath_;
       std::string       lastGlfwError_;
-      std::unordered_set<std::string>     uiOnlyStages_, fowOnlyStages_, drawWorldStages_;
 
       dm::TracePtr      visibilityTrace_;
       dm::TracePtr      exploredTrace_;

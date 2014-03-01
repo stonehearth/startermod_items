@@ -26,6 +26,7 @@
       "cursors:over_selection" : "file(data/cursors/over_selection.cur)",
 
       "mixins:mob" : "file(mixins/mob)",
+      "mixins:critter" : "file(mixins/critter)",
       "mixins:base_human" : "file(mixins/base_human)",
       "mixins:crafter_workbench" : "file(mixins/crafter_workbench)",
       "mixins:tree" : "file(mixins/tree)",
@@ -74,6 +75,15 @@
       "rabbit" : "file(entities/critters/rabbit)",
       "rabbit_pelt" : "file(entities/critters/rabbit/rabbit_pelt)",
       "rabbit_jerky" : "file(entities/critters/rabbit/rabbit_jerky)",
+      "squirrel" : "file(entities/critters/squirrel)",
+      "squirrel_pelt" : "file(entities/critters/squirrel/squirrel_pelt)",
+      "squirrel_jerky" : "file(entities/critters/squirrel/squirrel_jerky)",
+      "racoon" : "file(entities/critters/racoon)",
+      "racoon_pelt" : "file(entities/critters/racoon/racoon_pelt)",
+      "racoon_jerky" : "file(entities/critters/racoon/racoon_jerky)",
+      "red_fox" : "file(entities/critters/red_fox)",
+      "red_fox_pelt" : "file(entities/critters/red_fox/red_fox_pelt)",
+      "red_fox_jerky" : "file(entities/critters/red_fox/red_fox_jerky)",
       "sheep" : "file(entities/critters/sheep)",
       "sheep_jerky" : "file(entities/critters/sheep/sheep_jerky)",
       "wolf" : "file(entities/critters/wolf)",
@@ -382,7 +392,7 @@
       "sounds:rooster_call" : "file(data/sounds/effects/sh_rooster_call.wav)",
       "sounds:workshop_bench" : "file(data/sounds/effects/sh_workshop_bench.wav)",
       "sounds:weaver_bench" : "file(data/sounds/effects/sh_weaver_bench.wav)",
-      "sounds:sleeping_lullaby" : "file(data/sounds/effects/sleeping_lullaby.wav)",
+      "sounds:sleeping_lullaby" : "file(data/sounds/effects/sh_sleeping_lullaby.wav)",
       "sounds:eating" : "file(data/sounds/effects/sh_eating.wav)",
       "sounds:twinkle" : "file(data/sounds/effects/sh_twinkle.wav)",
       "sounds:object_appear_01" : "file(data/sounds/effects/sh_object_appear_01.wav)",
@@ -400,8 +410,7 @@
 
       "ambient:summer_day"   : "file(data/ambient/sh_amb_summer_day.ogg)",
       "ambient:summer_night" : "file(data/ambient/sh_amb_summer_night.ogg)",
-      "ambient:dusk_wolves" : "file(data/ambient/sh_amb_dusk_wolves.ogg)",
-
+      
       "scenarios:scenario_index" : "file(scenarios/index.json)"
    },
    "functions" : {
@@ -644,6 +653,7 @@
          "file(ui/debug/error_browser/error_browser.html)",
          "file(ui/debug/error_dialog/error_dialog.html)",
          "file(ui/game/game.html)",
+         "file(ui/game/esc_menu/esc_menu.html)",
          "file(ui/game/task_manager/task_manager.html)",   
          "file(ui/game/create_camp/create_camp.html)",
          "file(ui/game/help_camera/help_camera.html)",
@@ -677,6 +687,7 @@
          "file(ui/debug/error_browser/error_browser.js)",
          "file(ui/debug/error_dialog/error_dialog.js)",
          "file(ui/game/game.js)",
+         "file(ui/game/esc_menu/esc_menu.js)",
          "file(ui/game/task_manager/task_manager.js)",   
          "file(ui/game/create_camp/create_camp.js)",
          "file(ui/game/help_camera/help_camera.js)",
@@ -713,6 +724,7 @@
          "file(ui/debug/error_browser/error_browser.less)",
          "file(ui/debug/error_dialog/error_dialog.less)",
          "file(ui/game/game.less)",
+         "file(ui/game/esc_menu/esc_menu.less)",
          "file(ui/game/task_manager/task_manager.less)",   
          "file(ui/game/create_camp/create_camp.less)",
          "file(ui/game/help_camera/help_camera.less)",

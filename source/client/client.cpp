@@ -107,10 +107,13 @@ Client::~Client()
 void Client::InitializeUI()
 {
    core::Config const& config = core::Config::GetInstance();
-   std::string const main_mod = config.Get<std::string>("game.main_mod", "stonehearth");
-   json::Node const manifest = res::ResourceManager2::GetInstance().LookupManifest(main_mod);
-   std::string docroot = manifest.get<std::string>("ui.homepage", "about:");
-
+   std::string main_mod = config.Get<std::string>("game.main_mod", "stonehearth");
+   
+   std::string docroot;
+   res::ResourceManager2& resource_manager = res::ResourceManager2::GetInstance();
+   resource_manager.LookupManifest(main_mod, [&](const res::Manifest& manifest) {
+      docroot = manifest.get<std::string>("ui.homepage", "about:");
+   });
    browser_->Navigate(docroot);
 }
 
@@ -417,6 +420,7 @@ void Client::OneTimeIninitializtion()
          node.set("gfx_card_renderer", Renderer::GetInstance().GetStats().gpu_renderer);
          node.set("gfx_card_driver", Renderer::GetInstance().GetStats().gl_version);
          node.set("use_fast_hilite", makeRendererConfigNode(cfg.use_fast_hilite));
+         node.set("enable_ssao", makeRendererConfigNode(cfg.enable_ssao));
 
          result->Resolve(node);
       } catch (std::exception const& e) {
@@ -441,6 +445,7 @@ void Client::OneTimeIninitializtion()
          newCfg.enable_vsync.value = params.get<bool>("vsync", oldCfg.enable_vsync.value);
          newCfg.draw_distance.value = params.get<float>("draw_distance", oldCfg.draw_distance.value);
          newCfg.use_fast_hilite.value = params.get<bool>("use_fast_hilite", oldCfg.use_fast_hilite.value);
+         newCfg.enable_ssao.value = params.get<bool>("enable_ssao", oldCfg.enable_ssao.value);
          
          Renderer::GetInstance().ApplyConfig(newCfg, persistConfig);
 
@@ -583,7 +588,7 @@ void Client::ShutdownGameObjects()
 
 void Client::InitializeLuaObjects()
 {
-   res::ResourceManager2 &resource_manager = res::ResourceManager2::GetInstance();
+   res::ResourceManager2& resource_manager = res::ResourceManager2::GetInstance();
    lua_State* L = scriptHost_->GetInterpreter();
 
    hover_cursor_ = LoadCursor("stonehearth:cursors:hover");
@@ -591,8 +596,10 @@ void Client::InitializeLuaObjects()
 
    scriptHost_->Require("radiant.client");
    for (std::string const& mod_name : resource_manager.GetModuleNames()) {
-      json::Node manifest = resource_manager.LookupManifest(mod_name);
-      std::string script_name = manifest.get<std::string>("client_init_script", "");
+      std::string script_name;
+      resource_manager.LookupManifest(mod_name, [&](const res::Manifest& manifest) {
+         script_name = manifest.get<std::string>("client_init_script", "");
+      });
       if (!script_name.empty()) {
          try {
             luabind::globals(L)[mod_name] = scriptHost_->Require(script_name);
@@ -1136,18 +1143,7 @@ void Client::RemoveCursor(CursorStackId id)
 rpc::ReactorDeferredPtr Client::GetModules(rpc::Function const& fn)
 {
    rpc::ReactorDeferredPtr d = std::make_shared<rpc::ReactorDeferred>(fn.route);
-   JSONNode result;
-   auto& rm = res::ResourceManager2::GetInstance();
-   for (std::string const& modname : rm.GetModuleNames()) {
-      JSONNode manifest;
-      try {
-         manifest = rm.LookupManifest(modname).get_internal_node();
-      } catch (std::exception const&) {
-         // Just use an empty manifest...f
-      }
-      manifest.set_name(modname);
-      result.push_back(manifest);
-   }
+   JSONNode result = res::ResourceManager2::GetInstance().GetModules();
    d->Resolve(result);
    return d;
 }

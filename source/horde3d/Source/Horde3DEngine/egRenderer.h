@@ -19,6 +19,7 @@
 #include "egModel.h"
 #include <vector>
 #include <algorithm>
+#include <unordered_map>
 
 struct glslopt_ctx;
 
@@ -133,12 +134,25 @@ struct PipeSamplerBinding
 
 struct GpuCompatibility {
    bool canDoShadows;
+   bool canDoSsao;
 };
 
 struct EngineRendererCaps
 {
    bool ShadowsSupported;
+   bool SsaoSupported;
 };
+
+struct UniformType
+{
+   enum List
+   {
+      FLOAT = 1,
+      VEC4  = 2,
+      MAT44 = 3
+   };
+};
+
 
 
 class Renderer
@@ -163,6 +177,7 @@ public:
 	void releaseShaderComb( ShaderCombination &sc );
 	void setShaderComb( ShaderCombination *sc );
 	void commitGeneralUniforms();
+   void commitGlobalUniforms();
 	bool setMaterial( MaterialResource *materialRes, const std::string &shaderContext );
 	
 	bool createShadowRB( uint32 width, uint32 height );
@@ -191,12 +206,12 @@ public:
    static void drawInstanceNode(const std::string &shaderContext, const std::string &theClass, bool debugView,
       const Frustum *frust1, const Frustum *frust2, RenderingOrder::List order, int occSet);
 
-	void render( CameraNode *camNode );
+   void render( CameraNode *camNode, PipelineResource *pRes );
 	void finalizeFrame();
 
 	uint32 getFrameID() { return _frameID; }
 	ShaderCombination *getCurShader() { return _curShader; }
-	CameraNode *getCurCamera() { return _curCamera; }
+	CameraNode *getCurCamera() const { return _curCamera; }
 	uint32 getQuadIdxBuf() { return _quadIdxBuf; }
 	uint32 getParticleVBO() { return _particleVBO; }
 
@@ -207,6 +222,8 @@ public:
    uint32 getShadowRendBuf() const { return _shadowRB; }
 
    void getEngineCapabilities(EngineRendererCaps* rendererCaps, EngineGpuCaps* gpuCaps) const;
+
+   void setGlobalUniform(const char* uniName, UniformType::List kind, void* value);
 
 protected:
    ShaderCombination* findShaderCombination(ShaderResource* r, ShaderContext* context) const;
@@ -259,6 +276,10 @@ protected:
 	std::vector< PipeSamplerBinding >  _pipeSamplerBindings;
 	std::vector< char >                _occSets;  // Actually bool
 	std::vector< OccProxy >            _occProxies[2];  // 0: renderables, 1: lights
+
+   std::unordered_map<std::string, float> _uniformFloats;
+   std::unordered_map<std::string, Vec4f> _uniformVecs;
+   std::unordered_map<std::string, Matrix4f> _uniformMats;
 	
 	std::vector< OverlayBatch >        _overlayBatches;
 	OverlayVert                        *_overlayVerts;
@@ -270,6 +291,7 @@ protected:
 	uint32                             _quadIdxBuf;
 	uint32                             _particleVBO;
 
+   PipelineResource                   *_curPipeline;
 	MaterialResource                   *_curStageMatLink;
 	CameraNode                         *_curCamera;
 	LightNode                          *_curLight;

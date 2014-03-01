@@ -44,8 +44,11 @@ GetLuaComponentUri(std::string name)
       modname = name.substr(0, offset);
       name = name.substr(offset + 1, std::string::npos);
 
-      json::Node manifest = res::ResourceManager2::GetInstance().LookupManifest(modname);
-      return manifest.get_node("components").get<std::string>(name);
+      std::string result;
+      res::ResourceManager2::GetInstance().LookupManifest(modname, [&](const res::Manifest& manifest) {
+         result = manifest.get_node("components").get<std::string>(name);
+      });
+      return result;
    }
    // xxx: throw an exception...
    return "";
@@ -160,46 +163,45 @@ Stonehearth::InitEntity(EntityPtr entity, std::string const& uri, lua_State* L)
    bool is_server = object_cast<bool>(globals(L)["radiant"]["is_server"]);
 
    entity->SetUri(uri);
-
-   JSONNode const& node = res::ResourceManager2::GetInstance().LookupJson(uri);
-   auto i = node.find("components");
-   if (i != node.end() && i->type() == JSON_NODE) {
-      for (auto const& entry : *i) {
-         std::string const& component_name = entry.name();
-         ComponentPtr component = entity->AddComponent(component_name);
-         if (component) {
-            component->ExtendObject(json::Node(entry));
-         } else {
-            object lua_component;
-            if (is_server) {
-               object component_data = lua::ScriptHost::JsonToLua(L, entry);
-               lua_component = ConstructLuaComponent(scriptHost, component_name, entity, component_data);
+   res::ResourceManager2::GetInstance().LookupJson(uri, [&](const JSONNode& node) {
+      auto i = node.find("components");
+      if (i != node.end() && i->type() == JSON_NODE) {
+         for (auto const& entry : *i) {
+            std::string const& component_name = entry.name();
+            ComponentPtr component = entity->AddComponent(component_name);
+            if (component) {
+               component->ExtendObject(json::Node(entry));
             } else {
-               lua_component = lua::ScriptHost::JsonToLua(L, entry);
-            }
-            if (lua_component) {
-               entity->AddLuaComponent(component_name, lua_component);
+               object lua_component;
+               if (is_server) {
+                  object component_data = lua::ScriptHost::JsonToLua(L, entry);
+                  lua_component = ConstructLuaComponent(scriptHost, component_name, entity, component_data);
+               } else {
+                  lua_component = lua::ScriptHost::JsonToLua(L, entry);
+               }
+               if (lua_component) {
+                  entity->AddLuaComponent(component_name, lua_component);
+               }
             }
          }
       }
-   }
 
-
-   // xxx: refaactor me!!!111!
-   if (L) {
-      json::Node n(node);
-      std::string init_script = n.get<std::string>("init_script", "");
-      if (!init_script.empty()) {
-         try {        
-            object fn = lua::ScriptHost::RequireScript(L, init_script);
-            if (!fn.is_valid() || type(fn) != LUA_TFUNCTION) {
-               E_LOG(3) << "failed to load init script " << init_script << "... skipping.";
-            } else {
-               call_function<void>(fn, EntityRef(entity));
+      // xxx: refaactor me!!!111!
+      if (L) {
+         json::Node n(node);
+         std::string init_script = n.get<std::string>("init_script", "");
+         if (!init_script.empty()) {
+            try {        
+               object fn = lua::ScriptHost::RequireScript(L, init_script);
+               if (!fn.is_valid() || type(fn) != LUA_TFUNCTION) {
+                  E_LOG(3) << "failed to load init script " << init_script << "... skipping.";
+               } else {
+                  call_function<void>(fn, EntityRef(entity));
+               }
+            } catch (std::exception &e) {
+               E_LOG(3) << "failed to run init script for " << uri << ": " << e.what();
             }
-         } catch (std::exception &e) {
-            E_LOG(3) << "failed to run init script for " << uri << ": " << e.what();
          }
       }
-   }
+   });
 }

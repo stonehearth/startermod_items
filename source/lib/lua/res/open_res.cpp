@@ -16,14 +16,24 @@ AnimationPtr load_animation(std::string uri)
 
 object load_json(lua_State* L, std::string const& uri)
 {
-   JSONNode node = res::ResourceManager2::GetInstance().LookupJson(uri);
-   return lua::ScriptHost::JsonToLua(L, node);
+   object result;
+
+   res::ResourceManager2::GetInstance().LookupJson(uri, [&](const json::Node& node) {
+      result = lua::ScriptHost::JsonToLua(L, node);
+   });
+
+   return result;
 }
 
 object load_manifest(lua_State* L, std::string const& mod_name)
 {
-   res::Manifest m = res::ResourceManager2::GetInstance().LookupManifest(mod_name);
-   return lua::ScriptHost::JsonToLua(L, m.get_internal_node());
+   object result;
+
+   res::ResourceManager2::GetInstance().LookupManifest(mod_name, [&](const res::Manifest& m) {
+      result = lua::ScriptHost::JsonToLua(L, m.get_internal_node());
+   });
+
+   return result;
 }
 
 DEFINE_INVALID_JSON_CONVERSION(Animation);

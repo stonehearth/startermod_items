@@ -61,7 +61,7 @@ function voxel_brush_util.create_construction_data_node(parent_node, entity, reg
       local stencil = region:get()
       if stencil then
          local render_info = entity:get_component('render_info')
-         local material = render_info and render_info:get_material() or 'materials/default_material.xml'
+         local material = render_info and render_info:get_material() or 'materials/voxel.material.xml'
 
          paint_mode = paint_mode and paint_mode or construction_data.paint_mode
          local brush = voxel_brush_util.create_brush(construction_data, paint_mode)

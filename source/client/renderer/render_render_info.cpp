@@ -112,7 +112,7 @@ void RenderRenderInfo::CheckMaterial(om::RenderInfoPtr render_info)
 {
    std::string material_path = render_info->GetMaterial();
    if (material_path.empty()) {
-      material_path = "materials/default_material.xml";
+      material_path = "materials/voxel.material.xml";
    }
    if (material_path_ != material_path) {
       material_path_  = material_path;
@@ -258,14 +258,15 @@ void RenderRenderInfo::RebuildBoneOffsets(om::RenderInfoPtr render_info)
    bones_offsets_.clear();
    std::string const& animation_table_name = render_info->GetAnimationTable();
    if (!animation_table_name.empty()) {
-      json::Node table = res::ResourceManager2::GetInstance().LookupJson(animation_table_name);
-      for (const auto& entry : table.get("skeleton", JSONNode())) {
-         csg::Point3f pt;
-         for (int j = 0; j < 3; j++) {
-            pt[j] = json::Node(entry).get(j, 0.0f);
+      res::ResourceManager2::GetInstance().LookupJson(animation_table_name, [&](const json::Node& table) {
+         for (const auto& entry : table.get("skeleton", JSONNode())) {
+            csg::Point3f pt;
+            for (int j = 0; j < 3; j++) {
+               pt[j] = json::Node(entry).get(j, 0.0f);
+            }
+            bones_offsets_[entry.name()] = pt;
          }
-         bones_offsets_[entry.name()] = pt;
-      }
+      });
    }
 }
 

@@ -395,7 +395,7 @@ public:
 
 	// Renderbuffers
 	uint32 createRenderBuffer( uint32 width, uint32 height, TextureFormats::List format,
-	                           bool depth, uint32 numColBufs, uint32 samples );
+	                           bool depth, uint32 numColBufs, uint32 samples, uint32 numMips = 0 );
 	void destroyRenderBuffer( uint32 rbObj );
 	uint32 getRenderBufferTex( uint32 rbObj, uint32 bufIndex );
 	void setRenderBuffer( uint32 rbObj );

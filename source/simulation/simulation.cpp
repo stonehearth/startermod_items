@@ -284,8 +284,10 @@ void Simulation::CreateGameModules()
    om::ModListPtr mod_list = root_entity_->AddComponent<om::ModList>();
    
    for (std::string const& mod_name : resource_manager.GetModuleNames()) {      
-      json::Node manifest = resource_manager.LookupManifest(mod_name);
-      std::string script_name = manifest.get<std::string>("server_init_script", "");
+      std::string script_name;
+      resource_manager.LookupManifest(mod_name, [&](const res::Manifest& manifest) {
+         script_name = manifest.get<std::string>("server_init_script", "");
+      });
       if (!script_name.empty()) {
          try {
             luabind::object mod_lua_object = scriptHost_->Require(script_name);

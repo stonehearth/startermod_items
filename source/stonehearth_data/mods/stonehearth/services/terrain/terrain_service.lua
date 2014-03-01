@@ -58,17 +58,17 @@ function TerrainService:_update_regions()
                   local num_rects = region2:get_num_rects()
 
                   if num_rects >= self._last_optimized_rect_count * self._region_optimization_threshold then
-                     log:info('Optimizing explored region')
+                     log:debug('Optimizing explored region')
 
                      local seconds = Timer.measure(
                         function()
                            region2:optimize_by_oct_tree(64)
                         end
                      )
-                     log:info('Optimization time: %.3fs', seconds)
+                     log:debug('Optimization time: %.3fs', seconds)
 
                      -- performance counters standardize on milliseconds
-                     radiant.set_performance_counter('explored_region:optimization_time', seconds*1000, "time")
+                     radiant.set_performance_counter('explored_region:last_optimization_time', seconds*1000, "time")
 
                      self._last_optimized_rect_count = region2:get_num_rects()
                   end

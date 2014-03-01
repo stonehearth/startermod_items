@@ -25,7 +25,6 @@ using namespace std;
 CameraNode::CameraNode( const CameraNodeTpl &cameraTpl ) :
 	SceneNode( cameraTpl )
 {
-	_pipelineRes = cameraTpl.pipeRes;
 	_outputTex = cameraTpl.outputTex;
 	_outputBufferIndex = cameraTpl.outputBufferIndex;
 	_vpX = 0; _vpY = 0; _vpWidth = 320; _vpHeight = 240;
@@ -42,7 +41,6 @@ CameraNode::CameraNode( const CameraNodeTpl &cameraTpl ) :
 
 CameraNode::~CameraNode()
 {
-	_pipelineRes = 0x0;
 	_outputTex = 0x0;
 	if( _occSet >= 0 ) Modules::renderer().unregisterOccSet( _occSet );
 }
@@ -53,15 +51,8 @@ SceneNodeTpl *CameraNode::parsingFunc( map< string, std::string > &attribs )
 	bool result = true;
 	
 	map< string, std::string >::iterator itr;
-	CameraNodeTpl *cameraTpl = new CameraNodeTpl( "", 0x0 );
+	CameraNodeTpl *cameraTpl = new CameraNodeTpl( "");
 
-	itr = attribs.find( "pipeline" );
-	if( itr != attribs.end() )
-	{
-		uint32 res = Modules::resMan().addResource( ResourceTypes::Pipeline, itr->second, 0, false );
-		cameraTpl->pipeRes = (PipelineResource *)Modules::resMan().resolveResHandle( res );
-	}
-	else result = false;
 	itr = attribs.find( "outputTex" );
 	if( itr != attribs.end() )
 	{	
@@ -120,8 +111,6 @@ int CameraNode::getParamI( int param )
 {
 	switch( param )
 	{
-	case CameraNodeParams::PipeResI:
-		return _pipelineRes != 0x0 ? _pipelineRes->getHandle() : 0;
 	case CameraNodeParams::OutTexResI:
 		return _outputTex != 0x0 ? _outputTex->getHandle() : 0;
 	case CameraNodeParams::OutBufIndexI:
@@ -150,13 +139,6 @@ void CameraNode::setParamI( int param, int value )
 	
 	switch( param )
 	{
-	case CameraNodeParams::PipeResI:
-		res = Modules::resMan().resolveResHandle( value );
-		if( res != 0x0 && res->getType() == ResourceTypes::Pipeline )
-			_pipelineRes = (PipelineResource *)res;
-		else
-			Modules::setError( "Invalid handle in h3dSetNodeParamI for H3DCamera::PipeResI" );
-		return;
 	case CameraNodeParams::OutTexResI:
 		res = Modules::resMan().resolveResHandle( value );
 		if( res == 0x0 || (res->getType() == ResourceTypes::Texture &&

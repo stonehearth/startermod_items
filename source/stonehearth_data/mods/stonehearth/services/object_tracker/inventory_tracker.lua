@@ -9,8 +9,8 @@
 local InventoryTracker = class()
 
 function InventoryTracker:__init()
-   self._data_store = _radiant.sim.create_datastore(self)
-   self._data = self._data_store:get_data()
+   self._datastore = radiant.create_datastore(self)
+   self._data = self._datastore:get_data()
 
    if not self._data.entity_types then
       self._data.entity_types = {}
@@ -26,10 +26,6 @@ function InventoryTracker:__init()
       self:_on_entity_remove(id)
    end
    self._promise = radiant.terrain.trace_world_entities('inventory tracker', added_cb, removed_cb)
-end
-
-function InventoryTracker:get_data_store()
-   return self._data_store;
 end
 
 --[[
@@ -74,7 +70,7 @@ function InventoryTracker:_on_entity_add(id, entity)
          table.insert(self._data.entity_types, new_entity_data)
       end
 
-      self._data_store:mark_changed()
+      self._datastore:mark_changed()
       self._tracked_entities[entity:get_id()] = true
    end
 end
@@ -83,7 +79,7 @@ function InventoryTracker:_on_entity_remove(id)
    if self._tracked_entities[id] then
       self._data.num_entities = self._data.num_entities - 1
       self._tracked_entities[id] = nil
-      self._data_store:mark_changed()
+      self._datastore:mark_changed()
 
       local target_entity = radiant.entities.get_entity(id)
 

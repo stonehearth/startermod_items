@@ -1,5 +1,5 @@
 {
-   "name" : "bunny_nest",
+   "name" : "critter_nest",
    "category" : "wildlife",
    "habitat_types" : ["plains", "foothills"],
    "activation_type" : "revealed",
@@ -10,5 +10,13 @@
    "weight" : 10,
    "difficulty" : 0,
    "unique" : false,
-   "script" : "file(bunny_nest.lua)"
+   "script" : "file(critter_nest.lua)",
+
+   "scenario_info" : {
+      "critter_type" : "stonehearth:rabbit",
+      "num_critters" : {
+         "min" : 2,
+         "max" : 5
+      }
+   }
 }

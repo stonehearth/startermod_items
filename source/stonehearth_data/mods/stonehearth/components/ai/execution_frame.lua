@@ -245,7 +245,7 @@ function ExecutionFrame:_restart_thinking(entity_state)
    local current_state = self._state
    for unit, entity_state in pairs(rethinking_units) do
       self._log:detail('calling start_thinking on unit "%s".', unit:get_name())
-      assert(unit:in_state('stopped', 'thinking'))
+      assert(unit:in_state('stopped', 'thinking', 'ready'))
       unit:_start_thinking(entity_state)
 
       -- if units bail or abort, the current pcall should have been interrupted.

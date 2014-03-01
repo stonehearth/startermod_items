@@ -12,8 +12,8 @@ local QuantityTracker = class()
 --  @param filter_fn - function takes and item and returns true if useful to the tracker, false otherwise
 --  @param identifier_fn - function takes an item and returns a unique id for its class. Can be uri, or material type, etc.
 function QuantityTracker:__init(faction, filter_fn, identifier_fn)
-   self._data_store = _radiant.sim.create_datastore(self)
-   self._data = self._data_store:get_data()
+   self.__savestate = radiant.create_datastore()
+   self._data = self.__savestate:get_data()
    self._inventory = inventory_service:get_inventory(faction)
 
    self._data.tracked_items = {}
@@ -24,8 +24,8 @@ function QuantityTracker:__init(faction, filter_fn, identifier_fn)
    radiant.events.listen(self._inventory, 'stonehearth:item_removed', self, self.on_item_removed)
 end
 
-function QuantityTracker:get_data_store()
-   return self._data_store;
+function QuantityTracker:get__savestate()
+   return self.__savestate;
 end
 
 function QuantityTracker:get_quantity(identifier)
@@ -57,7 +57,7 @@ function QuantityTracker:on_item_added(e)
             count = 1
          }
       end
-      self._data_store:mark_changed()
+      self.__savestate:mark_changed()
    end
 end
 
@@ -67,7 +67,7 @@ function QuantityTracker:on_item_removed(e)
    local item_data = self._data.tracked_items[identifier]
    if item_data then
       item_data.count = item_data.count - 1
-      self._data_store:mark_changed()
+      self.__savestate:mark_changed()
    end
 end
 

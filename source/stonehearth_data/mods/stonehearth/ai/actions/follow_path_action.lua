@@ -37,7 +37,10 @@ function FollowPathAction:run(ai, entity, args)
       speed = math.floor(50 + (50 * speed / 60)) / 100
    end
 
+   -- make sure the event doesn't clean up after itself when the effect finishes.  otherwise,
+   -- people will only play through the animation once.
    self._effect = radiant.effects.run_effect(entity, 'run')
+                                    :set_cleanup_on_finish(false)
    local arrived_fn = function()
       if self._postures_trace then
          self._postures_trace:destroy()

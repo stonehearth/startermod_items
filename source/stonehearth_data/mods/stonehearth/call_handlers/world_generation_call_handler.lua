@@ -5,7 +5,7 @@ local progress = nil
 
 function WorldGenerationCallHandler:get_world_generation_progress(session, request) 
    if not progress then
-      progress = _radiant.sim.create_datastore(self)
+      progress = radiant.create_datastore()
       radiant.events.listen(radiant.events, 'stonehearth:generate_world_progress', function(e)
             progress:update({
                progress = e.progress

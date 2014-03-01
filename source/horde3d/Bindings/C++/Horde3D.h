@@ -69,6 +69,7 @@ struct H3DGpuCaps
 struct H3DRendererCaps
 {
    bool ShadowsSupported;
+   bool SsaoSupported;
 };
 
 
@@ -183,7 +184,8 @@ struct H3DResTypes
 		ParticleEffect,
 		Pipeline,
       VoxelGeometry,
-      PixelBuffer
+      PixelBuffer,
+      RenderBuffer
 	};
 };
 
@@ -209,7 +211,8 @@ struct H3DResFlags
 		TexCubemap = 8,
 		TexDynamic = 16,
 		TexRenderable = 32,
-		TexSRGB = 64
+		TexSRGB = 64,
+      NoFlush = 128
 	};
 };
 
@@ -423,7 +426,8 @@ struct H3DPipeRes
 	{
 		StageElem = 900,
 		StageNameStr,
-		StageActivationI
+		StageActivationI,
+      GlobalRenderTarget
 	};
 };
 
@@ -681,6 +685,17 @@ struct H3DEmitter
 };
 
 
+struct H3DUniformType
+{
+   enum List
+   {
+      FLOAT = 1,
+      VEC4  = 2,
+      MAT44 = 3
+   };
+};
+
+
 /* Group: Basic functions */
 /* Function: h3dGetVersionString
 		Returns the engine version string.
@@ -781,7 +796,7 @@ DLL void h3dRelease();
 	Returns:
 		nothing
 */
-DLL void h3dRender( H3DNode cameraNode );
+DLL void h3dRender( H3DNode cameraNode, H3DRes pipelineRes );
 
 /* Function: h3dFinalizeFrame
 		Marker for end of frame.
@@ -881,6 +896,7 @@ DLL void h3dResetStats();
 
 DLL void h3dSetGlobalShaderFlag(const char* flagName, bool value);
 
+DLL void h3dSetGlobalUniform(const char* uniName, H3DUniformType::List kind, void* value);
 
 /* Function: h3dShowOverlays
 		Displays overlays on the screen.
@@ -1767,6 +1783,8 @@ DLL int h3dGetNodeFlags( H3DNode node );
 DLL void h3dSetNodeFlags( H3DNode node, int flags, bool recursive );
 DLL void h3dTwiddleNodeFlags( H3DNode node, int flags, bool on, bool recursive );
 
+DLL int h3dGetResFlags( H3DRes res );
+
 /* Function: h3dGetNodeAABB
 		Gets the bounding box of a scene node.
 	
@@ -2069,14 +2087,13 @@ DLL H3DNode h3dAddJointNode( H3DNode parent, const char *name, int jointIndex );
 	Parameters:
 		parent           - handle to parent node to which the new node will be attached
 		name             - name of the node
-		materialRes      - material resource for light configuration or 0 if not used
 		lightingContext  - name of the shader context used for doing light calculations
 		shadowContext    - name of the shader context used for doing shadow map rendering
 		
 	Returns:
 		handle to the created node or 0 in case of failure
 */
-DLL H3DNode h3dAddLightNode( H3DNode parent, const char *name, H3DRes materialRes,
+DLL H3DNode h3dAddLightNode( H3DNode parent, const char *name,
                              const char *lightingContext, const char *shadowContext );
 
 
@@ -2090,12 +2107,11 @@ DLL H3DNode h3dAddLightNode( H3DNode parent, const char *name, H3DRes materialRe
 	Parameters:
 		parent       - handle to parent node to which the new node will be attached
 		name         - name of the node
-		pipelineRes  - pipeline resource used for rendering
 		
 	Returns:
 		handle to the created node or 0 in case of failure
 */
-DLL H3DNode h3dAddCameraNode( H3DNode parent, const char *name, H3DRes pipelineRes );
+DLL H3DNode h3dAddCameraNode( H3DNode parent, const char *name);
 
 /* Function: h3dSetupCameraView
 		Sets the planes of a camera viewing frustum.

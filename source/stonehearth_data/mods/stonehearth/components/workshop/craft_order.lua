@@ -51,7 +51,7 @@ Create a new CraftOrder
 function CraftOrder:__init(recipe, condition, faction, on_change_cb)
    self._id = craft_order_id
    craft_order_id = craft_order_id + 1
-   self._data_store = _radiant.sim.create_datastore(self)
+   self._data_store = radiant.create_datastore()
 
    self._enabled = true
    self._is_crafting = false

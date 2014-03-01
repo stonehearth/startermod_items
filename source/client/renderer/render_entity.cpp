@@ -153,35 +153,39 @@ void RenderEntity::UpdateInvariantRenderers()
       std::string uri = entity->GetUri();
       if (!uri.empty()) {
          auto const& res = res::ResourceManager2::GetInstance();
-         json::Node json = res.LookupJson(uri);
-         if (json.has("entity_data")) {
-            for (auto const& entry : json.get_node("entity_data")) {
-               std::string name = entry.name();
-               size_t offset = name.find(':');
-               if (offset != std::string::npos) {
-                  lua::ScriptHost* script = Renderer::GetInstance().GetScriptHost();
-                  std::string modname = name.substr(0, offset);
-                  std::string invariant_name = name.substr(offset + 1, std::string::npos);
+         res.LookupJson(uri, [&](const json::Node& json) {
+            if (json.has("entity_data")) {
+               for (auto const& entry : json.get_node("entity_data")) {
+                  std::string name = entry.name();
+                  size_t offset = name.find(':');
+                  if (offset != std::string::npos) {
+                     lua::ScriptHost* script = Renderer::GetInstance().GetScriptHost();
+                     std::string modname = name.substr(0, offset);
+                     std::string invariant_name = name.substr(offset + 1, std::string::npos);
 
-                  json::Node manifest = res.LookupManifest(modname);
-                  json::Node invariants = manifest.get_node("invariant_renderers");
-                  std::string path = invariants.get<std::string>(invariant_name, "");
-                  if (!path.empty()) {
-                     luabind::object ctor = script->RequireScript(path);
+                     std::string path;
+                     res.LookupManifest(modname, [&](const res::Manifest& manifest) {
+                        const json::Node invariants = manifest.get_node("invariant_renderers");
+                        path = invariants.get<std::string>(invariant_name, "");
+                     });
 
-                     std::weak_ptr<RenderEntity> re = shared_from_this();
-                     luabind::object render_invariant;
-                     try {
-                        render_invariant = luabind::call_function<luabind::object>(ctor, re, script->JsonToLua(entry));
-                     } catch (std::exception const& e) {
-                        script->ReportCStackThreadException(ctor.interpreter(), e);
-                        continue;
+                     if (!path.empty()) {
+                        luabind::object ctor = script->RequireScript(path);
+
+                        std::weak_ptr<RenderEntity> re = shared_from_this();
+                        luabind::object render_invariant;
+                        try {
+                           render_invariant = luabind::call_function<luabind::object>(ctor, re, script->JsonToLua(entry));
+                        } catch (std::exception const& e) {
+                           script->ReportCStackThreadException(ctor.interpreter(), e);
+                           continue;
+                        }
+                        lua_invariants_[name] = render_invariant;
                      }
-                     lua_invariants_[name] = render_invariant;
                   }
                }
             }
-         }
+         });
       }
    }
 }

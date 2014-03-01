@@ -9,8 +9,8 @@ using namespace ::radiant;
 using namespace ::radiant::client;
 
 
-Camera::Camera(H3DNode parent, const char* name,H3DRes pipeline) :
-   node_(h3dAddCameraNode(parent, name, pipeline))
+Camera::Camera(H3DNode parent, const char* name) :
+   node_(h3dAddCameraNode(parent, name))
 {
    
 }

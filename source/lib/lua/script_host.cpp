@@ -87,6 +87,8 @@ void ScriptHost::AddJsonToLuaConverter(JsonToLuaFn fn)
 
 JSONNode ScriptHost::LuaToJson(luabind::object current_obj)
 {
+   std::vector<luabind::object> route;
+
    luabind::object obj = GetObjectRepresentation(current_obj, "__tojson");
 
    int t = luabind::type(obj);
@@ -140,6 +142,10 @@ JSONNode ScriptHost::LuaToJson(luabind::object current_obj)
       return JSONNode("", double_value);
    } else if (t == LUA_TBOOLEAN) {
       return JSONNode("", object_cast<bool>(obj));
+   } else if (t == LUA_TNIL) {
+      return JSONNode("", nullptr);
+   } else if (t == LUA_TFUNCTION) {
+      return JSONNode("", "function");
    }
    throw std::logic_error("invalid lua type found while converting to json");
 }
@@ -180,8 +186,11 @@ luabind::object ScriptHost::JsonToLua(JSONNode const& json)
 
 luabind::object ScriptHost::GetJson(std::string const& uri)
 {
-   json::Node json = res::ResourceManager2::GetInstance().LookupJson(uri);
-   return JsonToLua(json.get_internal_node());
+   luabind::object result;
+   res::ResourceManager2::GetInstance().LookupJson(uri, [&](const json::Node& json) {
+      result = JsonToLua(json.get_internal_node());
+   });
+   return result;
 }
 
 res::AnimationPtr ScriptHost_LoadAnimation(std::string uri)

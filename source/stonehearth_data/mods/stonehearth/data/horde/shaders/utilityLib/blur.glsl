@@ -1,21 +1,18 @@
-//-------------------------------------------------------------------------
-float fetch_eye_z(vec2 uv, sampler2D depthbuff)
-{
-    float z = texture2D(depthbuff, uv).r;
-    return z;
-}
 
+const float g_BlurFalloff = 0.1;
+//const float g_Sharpness = 0.0;
+
+// Removed the depth-sensitivity from the sampler; it causes some aliasing in the resulting
+// blur, and does NOT remove the worst depth-sensitive artifacts.
 //-------------------------------------------------------------------------
-float BlurFunction(vec2 uv, float r, float center_c, float center_d, inout float w_total, sampler2D depthbuff, sampler2D ssaobuff)
+float BlurFunction(vec2 uv, float r, float pixelDepth, inout float w_total, sampler2D depthbuff, sampler2D ssaobuff)
 {
     float c = texture2D(ssaobuff, uv).r;
-    float d = fetch_eye_z(uv, depthbuff);
-    float g_BlurFalloff = 0.2;
-    float g_Sharpness = 1.0;
+    //float sampleDepth = texture2D(depthbuff, uv).r;
 
-    float ddiff = d - center_d;
-    float w = exp(-r*r*g_BlurFalloff - ddiff*ddiff*g_Sharpness);
+    //float ddiff = abs(sampleDepth - pixelDepth);
+    float w = exp(-r*r*g_BlurFalloff);// - ddiff*ddiff*g_Sharpness);
+
     w_total += w;
-
-    return w*c;
+    return w * c; 
 }
