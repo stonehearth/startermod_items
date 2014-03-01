@@ -70,7 +70,7 @@ function StockpileComponent:get_entity()
    return self._entity
 end
 
-function StockpileComponent:destroy()
+function StockpileComponent:__destroy()
    log:info('%s destroying stockpile component', self._entity)
    all_stockpiles[self._entity:get_id()] = nil
    for id, item in pairs(self._data.stocked_items) do

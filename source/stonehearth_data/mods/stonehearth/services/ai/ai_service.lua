@@ -63,7 +63,9 @@ end
 function AiService:remove_custom_action(entity, action_ctor, injecting_entity)
    log:debug('removing action "%s" (%s) from %s', action_ctor.name, tostring(action_ctor), entity)
    local ai_component = self:_get_ai_component(entity)
-   ai_component:remove_action(action_ctor)
+   if ai_component then
+      ai_component:remove_action(action_ctor)
+   end
 end
 
 function AiService:add_observer(entity, uri, ...)
@@ -84,6 +86,9 @@ function AiService:_get_ai_component(arg0)
       entity = self._entities[id]
    else
       entity = arg0
+      if not entity:is_valid() then
+         return nil
+      end
       id = entity:get_id()
    end
    local ai_component = self._ai_components[id]

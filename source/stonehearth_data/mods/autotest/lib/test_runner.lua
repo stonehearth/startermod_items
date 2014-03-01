@@ -44,9 +44,13 @@ end
 function TestRunner:sleep(ms)
    local wakeup = radiant.gamestate.now() + ms
    repeat
-      radiant.set_timer(wakeup, function() self._thread:resume() end)
+      radiant.set_timer(wakeup, function()
+            if not self._thread:is_finished() then
+               self._thread:resume()
+            end
+         end)            
       self._thread:suspend()
-   until radiant.gamestate.now() >= wakeup
+   until self._thread:is_finished() or radiant.gamestate.now() >= wakeup
 end
 
 return TestRunner

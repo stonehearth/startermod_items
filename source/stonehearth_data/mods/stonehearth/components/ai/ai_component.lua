@@ -32,7 +32,7 @@ function AIComponent:get_debug_info()
    return {}
 end
 
-function AIComponent:destroy()
+function AIComponent:__destroy()
    stonehearth.ai:stop_ai(self._entity:get_id(), self)
 
    self._dead = true

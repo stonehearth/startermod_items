@@ -61,6 +61,7 @@ function autotest.run_script(env, script)
    local total = #tests
    for i, test in ipairs(tests) do
       autotest.log('running test %s (%d of %d)', test.name, i, total)
+      env:clear()
       local success, err = TestRunner():run(env, test.fn)
       if not success then
          error(err)
@@ -80,8 +81,9 @@ function autotest.run_tests(test_scripts)
                for i, script in ipairs(test_scripts) do
                   autotest.run_script(env, script)
                end
+               radiant.events.trigger(autotest, 'autotest:finished')
             end)
-         :start()
+         :start()   
 end
 
 return autotest

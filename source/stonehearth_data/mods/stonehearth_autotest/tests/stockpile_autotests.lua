@@ -9,7 +9,7 @@ function stockpile_tests.basic_restock(env, runner)
          runner:success()
       end)
 
-   runner:sleep(2000000)
+   runner:sleep(12000)
    runner:fail('worker failed to put log in stockpile')
 end
 

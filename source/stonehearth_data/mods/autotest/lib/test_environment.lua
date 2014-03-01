@@ -25,6 +25,13 @@ function TestEnvironment:__init()
       end)
 end
 
+function TestEnvironment:clear()
+   for _, entity in ipairs(self._all_entities) do
+      radiant.entities.destroy_entity(entity)
+   end
+   self._all_entities = {}
+end
+
 function TestEnvironment:run(testfn)
    local execute = coroutine.wrap(testfn)   
 end
