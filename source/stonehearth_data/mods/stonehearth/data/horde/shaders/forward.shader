@@ -289,7 +289,7 @@ void main( void )
   cloudColor = cloudColor * texture2D(cloudMap, fragCoord.yx / 192.0 + (cloudSpeed / 10.0)).xyz;
 
   // Mix light and shadow and ambient light.
-  lightColor = cloudColor * (shadowTerm * lightColor * albedo) + (lightAmbientColor - ssao) * albedo;
+  lightColor = cloudColor * ((shadowTerm * lightColor * albedo) + (lightAmbientColor - ssao) * albedo);
   
   // Mix in fog of war.
   float fowValue = texture2D(fowRT, projFowPos.xy).a;

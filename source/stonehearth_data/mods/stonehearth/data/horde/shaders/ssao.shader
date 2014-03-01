@@ -53,7 +53,7 @@ out vec4 fragColor;
 vec2 getSampleDepth(const vec2 texCoords, const float screenSpaceDistance) {
   ivec2 pixelCoords = ivec2(floor(texCoords * frameBufSize));
 
-  int mipLevel = clamp(int(floor(log2(screenSpaceDistance))) - LOG_MAX_OFFSET, 0, MAX_MIP_LEVEL);
+  int mipLevel = 0;//clamp(int(floor(log2(screenSpaceDistance) - LOG_MAX_OFFSET)), 0, MAX_MIP_LEVEL);
 
   return texelFetch(depthBuffer, pixelCoords >> mipLevel, mipLevel).ra;
 }
@@ -97,7 +97,7 @@ void main()
   mat3 tbn = mat3(tangent, bitangent, normal);
 
   float occlusion = 0.0;
-  for (int i = 0; i < NUM_SAMPLES; i++) {
+  for (int i = 0; i < NUM_SAMPLES; i+=4) {
     // get sample position:
     vec3 cameraSpaceSample = tbn * samplerKernel[i];
     vec3 ssaoSample = (cameraSpaceSample * radius) + origin;
@@ -113,18 +113,19 @@ void main()
     float sampleOcclusion;
     // Range check:
     float rangeCheck = abs(origin.z - sampledDepths.r) <  radius ? 1.0 : 0.0;
+    //float normalCheck = abs(dot(normal, normalize(cameraSpaceSample)));
 
     // Old and busted:
-    // sampleOcclusion = sampledDepths.r < ssaoSample.z ? (1.0 * rangeCheck) : 0.0;
+    //sampleOcclusion = sampledDepths.r < ssaoSample.z ? (1.0 * rangeCheck) : 0.0;
 
     // New hotness:
-    sampleOcclusion = ((sampledDepths.x < ssaoSample.z) && (sampledDepths.y >= ssaoSample.z)) ? (1.0 * 1) : 0.0;
+    sampleOcclusion = ((sampledDepths.x < ssaoSample.z) && (sampledDepths.y >= ssaoSample.z)) ? 1.0 : 0.0;
 
 
     occlusion += sampleOcclusion;
   }
 
-  occlusion /= NUM_SAMPLES;
+  occlusion /= (NUM_SAMPLES / 4);
   occlusion *= intensity;
 
   fragColor = vec4(vec3(occlusion), 1.0);

@@ -41,7 +41,7 @@
       </Stage>
 
       <Stage id="SSAO">
-         <BuildMipmaps rt="GBuffers" index="0" />
+         <!--BuildMipmaps rt="GBuffers" index="0" /-->
 
          <SwitchTarget target="SSAOTemp" />
          <BindBuffer sampler="depthBuffer" sourceRT="GBuffers" bufIndex="0" />
