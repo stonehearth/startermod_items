@@ -30,6 +30,7 @@
       "mixins:base_human" : "file(mixins/base_human)",
       "mixins:crafter_workbench" : "file(mixins/crafter_workbench)",
       "mixins:tree" : "file(mixins/tree)",
+      "mixins:boulder" : "file(mixins/boulder)",
       "mixins:item_properties" : "file(mixins/item_properties)",
       "mixins:placed_properties" : "file(mixins/placed_properties)",
       "mixins:resources:jerky" : "file(mixins/resources/jerky)",
@@ -99,6 +100,11 @@
       "effects:talisman_glow" : "file(data/effects/talisman_glow)",
 
       "wool_bundle" : "file(entities/cloth/wool/wool_bundle)",
+
+      "hunk_of_stone" : "file(entities/boulders/hunk_of_stone)",
+      "small_boulder" : "file(entities/boulders/small_boulder)",
+      "medium_boulder" : "file(entities/boulders/medium_boulder)",
+      "large_boulder" : "file(entities/boulders/large_boulder)",
 
       "oak_log" : "file(entities/trees/oak_tree/oak_log)",
       "small_oak_tree" : "file(entities/trees/oak_tree/small_oak_tree)",

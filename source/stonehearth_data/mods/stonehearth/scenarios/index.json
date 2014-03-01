@@ -3,9 +3,16 @@
       "file(fox_nest)",
       "file(rabbit_nest)",
       "file(squirrel_nest)",
-      "file(racoon_nest)"
+      "file(racoon_nest)",
+      "file(terrain/small_boulder_cluster)",
+      "file(terrain/medium_boulder_cluster)",
+      "file(terrain/large_boulder_cluster)"
    ],
    "categories" : {
+      "terrain" : {
+         "frequency" : 25.0,
+         "priority" : 0
+      },
       "wildlife" : {
          "frequency" : 5.20,
          "priority" : 0

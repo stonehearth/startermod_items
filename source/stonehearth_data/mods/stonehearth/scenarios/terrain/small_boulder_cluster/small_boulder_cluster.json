@@ -1,0 +1,18 @@
+{
+   "mixins" : "file(../../entity_cluster)",
+   "name" : "small_boulder_cluster",
+   "category" : "terrain",
+   "habitat_types" : ["plains", "foothills"],
+   "size" : {
+      "width" : 16,
+      "length" : 16
+   },
+   "scenario_info" : {
+      "entity_type" : "stonehearth:small_boulder",
+      "entity_footprint_size" : 1,
+      "quantity" : {
+         "min" : 1,
+         "max" : 3
+      }
+   }
+}

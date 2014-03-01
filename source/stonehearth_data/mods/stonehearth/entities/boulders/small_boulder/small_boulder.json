@@ -1,0 +1,34 @@
+{
+   "mixins": "stonehearth:mixins:boulder", 
+   "type": "entity", 
+   "components": {
+      "model_variants": {
+         "default": {
+            "models": [
+               {
+                  "type": "one_of",
+                  "items": [
+                     "file(small_boulder_1.qb)"
+                  ]
+               }
+            ]
+         }
+      }, 
+      "unit_info": {
+         "name": "Small Boulder", 
+         "description": "Harvestable for stone",
+         "portrait": "file(small_boulder.png)"
+      }, 
+      "stonehearth:resource_node": {
+         "durability": 2
+      },
+      "region_collision_shape" : {
+         "region": [
+            {
+               "min" : { "x" : -1, "y" : 0, "z" : -1 },
+               "max" : { "x" :  1, "y" : 3, "z" :  1 }
+            }
+         ]
+      }
+   }
+}
