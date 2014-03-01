@@ -2752,15 +2752,6 @@ void Renderer::drawVoxelMeshes_Instances(const std::string &shaderContext, const
       // TODO(klochek): awful--but how to fix?  We can keep cramming stuff into the InstanceKey, but to what end?
       VoxelMeshNode* vmn = (VoxelMeshNode*)instanceKind.second.front().node;
 
-      float offset_x, offset_y;
-      if (gRDI->getShadowOffsets(&offset_x, &offset_y) || vmn->getParentModel()->getPolygonOffset(offset_x, offset_y))
-      {
-         glEnable(GL_POLYGON_OFFSET_FILL);
-         glPolygonOffset(offset_x, offset_y);
-      } else {
-         glDisable(GL_POLYGON_OFFSET_FILL);
-      }
-
 		// Bind geometry
 		// Indices
 		gRDI->setIndexBuffer(curVoxelGeoRes->getIndexBuf(),
@@ -2800,6 +2791,15 @@ void Renderer::drawVoxelMeshes_Instances(const std::string &shaderContext, const
 			Vec4f color( 0.5f, 0.75f, 1, 1 );
 			gRDI->setShaderConst( Modules::renderer()._defColShader_color, CONST_FLOAT4, &color.x );
 		}
+
+      float offset_x, offset_y;
+      if (gRDI->getShadowOffsets(&offset_x, &offset_y) || vmn->getParentModel()->getPolygonOffset(offset_x, offset_y))
+      {
+         glEnable(GL_POLYGON_OFFSET_FILL);
+         glPolygonOffset(offset_x, offset_y);
+      } else {
+         glDisable(GL_POLYGON_OFFSET_FILL);
+      }
 
       if (useInstancing) {
          drawVoxelMesh_Instances_WithInstancing(instanceKind.second, vmn);
