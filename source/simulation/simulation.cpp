@@ -63,7 +63,7 @@ namespace po = boost::program_options;
 
 Simulation::Simulation() :
    _showDebugNodes(false),
-   _singleStepPathFinding(false),
+   _singleStepPathFinding(true),
    store_(nullptr),
    paused_(false),
    noidle_(false),

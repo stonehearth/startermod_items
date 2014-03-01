@@ -89,6 +89,7 @@ Stonehearth::AddComponent(lua_State* L, EntityRef e, std::string name)
          lua::ScriptHost* scriptHost = lua::ScriptHost::GetScriptHost(L);
          om::ComponentPtr obj = entity->AddComponent(name);
          if (obj) {
+            obj->ExtendObject(JSONNode());
             component = scriptHost->CastObjectToLua(obj);
          } else {
             component = ConstructLuaComponent(scriptHost, name, e, luabind::newtable(L));
