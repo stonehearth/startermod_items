@@ -410,6 +410,8 @@
       "sounds:snare_01" : "file(data/sounds/effects/sh_snare_01.wav)",
       "sounds:snare_02" : "file(data/sounds/effects/sh_snare_02.wav)",
       "sounds:snare_03" : "file(data/sounds/effects/sh_snare_03.wav)",
+      "sounds:gate_open" : "file(data/sounds/effects/sh_gate_open.wav)",
+      "sounds:gate_close" : "file(data/sounds/effects/sh_gate_close.wav)",
                
       "music:title_screen"    : "file(data/music/startmenumusic.ogg)",
       "music:world_start"     : "file(data/music/levelmusic.ogg)",
