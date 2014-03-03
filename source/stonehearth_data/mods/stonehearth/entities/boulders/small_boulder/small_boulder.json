@@ -20,7 +20,7 @@
          "portrait": "file(small_boulder.png)"
       }, 
       "stonehearth:resource_node": {
-         "durability": 2
+         "durability": 1
       },
       "region_collision_shape" : {
          "region": [

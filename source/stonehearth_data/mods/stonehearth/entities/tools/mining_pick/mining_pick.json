@@ -1,0 +1,16 @@
+{
+   "type": "entity", 
+   "components": {
+      "model_variants": {
+         "default": {
+            "models": [
+               "file(mining_pick.qb)"
+            ]
+         }
+      }, 
+      "unit_info": {
+         "name": "Mining Pick", 
+         "description": "..."
+      }
+   }
+}

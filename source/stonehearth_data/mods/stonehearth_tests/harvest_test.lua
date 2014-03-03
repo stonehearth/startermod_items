@@ -7,6 +7,7 @@ function HarvestTest:__init()
 
    self:place_tree(-9, -9)
    self:place_tree(12, -2)
+   self:place_item('stonehearth:medium_boulder', 1, 1)
    self:place_citizen(12, 12)
    if true then return end
    self:place_citizen(8, 10)

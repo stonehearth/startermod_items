@@ -21,7 +21,9 @@
          ]
       },
       "stonehearth:resource_node": {
-         "harvest_overlay_effect" : "/stonehearth/data/effects/chop_overlay_effect"
+         "harvest_overlay_effect" : "/stonehearth/data/effects/chop_overlay_effect",
+         "harvester_effect" : "chop",
+         "description" : "chop_tree"
       }   
 	}
 }
