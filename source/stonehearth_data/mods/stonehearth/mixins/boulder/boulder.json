@@ -12,14 +12,6 @@
       "render_info" : {
          "scale" : 1
       },
-      "destination" : {
-         "region" : [
-            {
-               "min" : { "x" : -1, "y" : 0, "z" : -1 },
-               "max" : { "x" :  1, "y" : 1, "z" :  1 }
-            }
-         ]
-      },
       "stonehearth:resource_node": {
          "resource": "stonehearth:hunk_of_stone", 
          "harvest_overlay_effect" : "/stonehearth/data/effects/mine_overlay_effect",
