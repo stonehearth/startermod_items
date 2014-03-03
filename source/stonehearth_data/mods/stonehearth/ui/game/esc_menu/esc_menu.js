@@ -1,13 +1,3 @@
-$(document).ready(function(){
-   $(document).keyup(function(e) {
-      if(e.keyCode == 27 && !App.escMenu){
-         App.escMenu = App.gameView.addView(App.StonehearthEscMenuView)
-      } else {
-         App.escMenu.destroy();
-      }
-   });
-});
-
 
 App.StonehearthEscMenuView = App.View.extend({
    templateName: 'escMenu',
@@ -15,11 +5,6 @@ App.StonehearthEscMenuView = App.View.extend({
    modal: true,
 
    init: function() {
-      this._super();
-   },
-
-   destroy: function() {
-      App.escMenu = null;
       this._super();
    },
 
@@ -32,8 +17,9 @@ App.StonehearthEscMenuView = App.View.extend({
    },
 
    actions: {
+
       resume: function() {
-         App.escMenu.destroy();
+         this.destroy();
       },
 
       qyuitToMainMenu: function() {
