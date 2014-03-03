@@ -65,7 +65,7 @@ function FollowEntity:_pick_nearby_location(target)
 end
 
 function FollowEntity:run(ai, entity, args)
-   --ai:execute('stonehearth:gotoward_location', { location = self._target_destination})
+   --ai:execute('stonehearth:go_toward_location', { location = self._target_destination})
     ai:execute('stonehearth:goto_location', { location = self._target_destination})
 end
 
