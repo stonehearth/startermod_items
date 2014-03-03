@@ -219,7 +219,7 @@ private:
       bool                        perf_hud_shown_;
       bool                        connected_;
       bool                        enable_debug_cursor_;
-
+      luabind::object             radiant_;
 
       dm::TracerSyncPtr           object_model_traces_;
       dm::TracerBufferedPtr       game_render_tracer_;

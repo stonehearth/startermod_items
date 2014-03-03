@@ -65,6 +65,10 @@ luabind::object Client_GetObject(lua_State* L, object id)
    return lua_obj;
 }
 
+void Client_SelectEntity(lua_State* L, om::EntityRef e)
+{
+   Client::GetInstance().SelectEntity(e.lock());
+}
 
 om::EntityRef Client_GetSelectedEntity()
 {
@@ -403,6 +407,7 @@ void lua::client::open(lua_State* L)
       namespace_("_radiant") [
          namespace_("client") [
             def("get_object",                      &Client_GetObject),
+            def("select_entity",                   &Client_SelectEntity),
             def("get_selected_entity",             &Client_GetSelectedEntity),
             def("create_empty_authoring_entity",   &Client_CreateEmptyAuthoringEntity),
             def("create_authoring_entity",         &Client_CreateAuthoringEntity),

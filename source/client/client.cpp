@@ -588,13 +588,18 @@ void Client::ShutdownGameObjects()
 
 void Client::InitializeLuaObjects()
 {
+   core::Config &config = core::Config::GetInstance();
    res::ResourceManager2& resource_manager = res::ResourceManager2::GetInstance();
    lua_State* L = scriptHost_->GetInterpreter();
 
+   // xxx: the module init sequnce on the client and server share a ton of code.  refactor!!
+   luabind::object main_mod_obj;
+   std::string const main_mod_name = config.Get<std::string>("game.main_mod", "stonehearth");
+
    hover_cursor_ = LoadCursor("stonehearth:cursors:hover");
    default_cursor_ = LoadCursor("stonehearth:cursors:default");
-
-   scriptHost_->Require("radiant.client");
+   
+   radiant_ = scriptHost_->Require("radiant.client");
    for (std::string const& mod_name : resource_manager.GetModuleNames()) {
       std::string script_name;
       resource_manager.LookupManifest(mod_name, [&](const res::Manifest& manifest) {
@@ -602,7 +607,13 @@ void Client::InitializeLuaObjects()
       });
       if (!script_name.empty()) {
          try {
-            luabind::globals(L)[mod_name] = scriptHost_->Require(script_name);
+            luabind::object obj = scriptHost_->Require(script_name);
+            if (obj) {
+               luabind::globals(L)[mod_name] = obj;
+               if (mod_name == main_mod_name) {
+                  main_mod_obj = obj;
+               }
+            }
          } catch (std::exception const& e) {
             CLIENT_LOG(1) << "module " << mod_name << " failed to load " << script_name << ": " << e.what();
          }
@@ -611,6 +622,10 @@ void Client::InitializeLuaObjects()
    // this locks down the environment!  all types must be registered by now!!
    scriptHost_->Require("radiant.lualibs.strict");
    scriptHost_->Trigger("radiant:modules_loaded");
+
+   if (main_mod_obj) {
+      scriptHost_->TriggerOn(main_mod_obj, "radiant:new_game", luabind::newtable(L));
+   }
 }
 
 void Client::ShutdownLuaObjects()
@@ -671,7 +686,15 @@ void Client::mainloop()
 
    Renderer::GetInstance().HandleResize();
 
-   perfmon::SwitchToCounter("Update browser frambuffer");
+   perfmon::SwitchToCounter("update lua");
+   try {
+      luabind::call_function<int>(radiant_["update"]);
+   } catch (std::exception const& e) {
+      CLIENT_LOG(3) << "error in client update: " << e.what();
+      GetScriptHost()->ReportCStackThreadException(GetScriptHost()->GetCallbackThread(), e);
+   }
+
+   perfmon::SwitchToCounter("update browser frambuffer");
    browser_->UpdateBrowserFrambufferPtrs(
       (unsigned int*)Renderer::GetInstance().GetLastUiBuffer(), 
       (unsigned int*)Renderer::GetInstance().GetNextUiBuffer());

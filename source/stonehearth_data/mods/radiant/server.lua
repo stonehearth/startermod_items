@@ -33,7 +33,6 @@ radiant.entities = require 'modules.entities'
 radiant.terrain = require 'modules.terrain'
 radiant.mods = require 'modules.mods'
 
-radiant.gamestate._start()
 radiant.log.info('server', 'radiant api initialized.')
 
 require 'modules.timer'

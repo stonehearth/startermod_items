@@ -51,7 +51,7 @@ end
 function TaskGroup:remove_worker(id)
    local entry = self._workers[id]
    if entry then
-      for task, _ in entry.feeding do
+      for task, _ in pairs(entry.feeding) do
          task:_unfeed_worker(id)
       end
       self._workers[id] = nil
@@ -197,14 +197,18 @@ function TaskGroup:_prioritize_worker_queue()
 
    -- workers with the lowest fitness value get to go first
    for id, entry in pairs(self._workers) do
-      local worker_fitness = self:_get_worker_fitness(entry)
-      if worker_fitness then
-         local matching_entry = {
-            worker = entry.worker,
-            worker_fitness = worker_fitness,
-            task_rankings = self:_prioritize_tasks_for_worker(entry)
-         }
-         table.insert(workers, matching_entry)
+      if not entry.worker:is_valid() then
+         self:remove_worker(id)
+      else
+         local worker_fitness = self:_get_worker_fitness(entry)
+         if worker_fitness then
+            local matching_entry = {
+               worker = entry.worker,
+               worker_fitness = worker_fitness,
+               task_rankings = self:_prioritize_tasks_for_worker(entry)
+            }
+            table.insert(workers, matching_entry)
+         end
       end
    end
    self:_set_performance_counter('worker_queue_len', #workers)

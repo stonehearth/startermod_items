@@ -1,14 +1,44 @@
-local TestEnvironment = require 'lib.test_environment'
-local TestRunner = require 'lib.test_runner'
-
+local _success
 local _all_tests = {}
+local _test_thread
+local _main_thread
 
 local autotest = {
-   __savestate = {}
+   __savestate = {},
+   ui = require 'lib.server.autotest_ui_server',
+   env = require 'lib.server.autotest_environment',
 }
 
-function autotest.log(format, ...)
+function autotest.log(format, ...) 
    radiant.log.write('autotest', 0, format, ...)
+end
+
+function autotest.fail(format, ...)
+   local e = string.format(format, ...)
+   autotest.log(e)
+   radiant.events.trigger(autotest, 'autotest:finished', { errorcode = 1 })
+   _test_thread:terminate()
+   _main_thread:terminate()
+end
+
+function autotest.success()
+   _success = true
+   _test_thread:terminate()
+end
+
+function autotest.sleep(ms)
+   assert(stonehearth.threads:get_current_thread() == _test_thread)
+
+   local wakeup = radiant.gamestate.now() + ms
+   repeat
+      local thread = _test_thread
+      radiant.set_timer(wakeup, function()
+            if not thread:is_finished() then
+               thread:resume()
+            end
+         end)
+      thread:suspend()
+   until thread:is_finished() or radiant.gamestate.now() >= wakeup
 end
 
 function autotest.check_table(expected, actual, route)
@@ -39,15 +69,33 @@ function autotest.check_table(expected, actual, route)
    return true
 end
 
+local function _run_test(fn)
+   assert(not _test_thread, 'tried to run test before another finished!')
+
+   -- we create a new thread here so we can call thread:terminate() as soon
+   -- as the test function calls :success() or :fail()
+   _test_thread = stonehearth.threads:create_thread()
+                     :set_thread_main(function()
+                           fn()
+                        end)
+                        
+   _success = false
+   autotest.env.clear()
+   _test_thread:start()
+   _test_thread:wait()
+   _test_thread = nil
+   if not _success then
+      autotest.fail('test failed to call :success() or :fail()')
+   end
+end
+
 -- run a single autotest script
 -- Loads the lua script referred to by the script parameter and runs all
--- tests for that script against the specified environment.  Each test
--- in the script is simply a function that gets passed the an (env, runner)
--- tuple (see TestEnvionment and TestRunner)
+-- tests for that script against the specified environment.
 --
 -- @param env the test environment used to run the script
 -- @param script the name of the script containing the tests to run
-function autotest.run_script(env, script)
+local function _run_script(script)
    local obj = radiant.mods.load_script(script)
    assert(obj, string.format('failed to load test script "%s"', script))
 
@@ -61,10 +109,26 @@ function autotest.run_script(env, script)
    local total = #tests
    for i, test in ipairs(tests) do
       autotest.log('running test %s (%d of %d)', test.name, i, total)
-      env:clear()
-      local success, err = TestRunner():run(env, test.fn)
-      if not success then
-         error(err)
+      _run_test(test.fn)
+   end
+end
+
+local function _run_group(index, key)
+   local group = index[key]
+   if not group then
+      autotest.fail('undefined test group "%s"', key)
+   end
+   -- first run all the groups
+   if group.groups then
+      for i, gname in ipairs(group.groups) do
+         _run_group(index, gname)
+      end
+   end
+
+   -- now run all scripts for this group
+   if group.scripts then
+      for i, script in ipairs(group.scripts) do
+         _run_script(script)
       end
    end
 end
@@ -73,17 +137,16 @@ end
 -- Runs through all the scripts in the test_scripts table.
 -- @param test_scripts A numeric table containing a list of test scripts
 -- to run
-function autotest.run_tests(test_scripts)
+function autotest.run_tests(index, name)
    -- xxx: move threads into radiant?
-   stonehearth.threads:create_thread()
+   _main_thread = stonehearth.threads:create_thread()
          :set_thread_main(function()
-               local env = TestEnvironment()
-               for i, script in ipairs(test_scripts) do
-                  autotest.run_script(env, script)
-               end
-               radiant.events.trigger(autotest, 'autotest:finished')
+               autotest.env.create_world()
+               _run_group(index.groups, name)
+               radiant.events.trigger(autotest, 'autotest:finished', { errorcode = 0 })
             end)
-         :start()   
+            
+   _main_thread:start()
 end
 
 return autotest
