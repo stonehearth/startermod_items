@@ -595,7 +595,11 @@
       "get_camera_tracker": {
          "controller" : "file(call_handlers/camera_call_handler.lua)",
          "endpoint" : "client"
-      }
+      },
+      "enable_camera_movement": {
+         "controller" : "file(call_handlers/camera_call_handler.lua)",
+         "endpoint" : "client"
+      }      
    },
    "components" :  {
       "ai" : "file(components/ai/ai_component.lua)",
@@ -672,6 +676,7 @@
          "file(ui/game/show_workshop/show_workshop.html)",
          "file(ui/game/character_sheets/simple_character_sheet/simple_character_sheet.html)",
          "file(ui/game/character_sheets/citizen_character_sheet/citizen_character_sheet.html)",
+         "file(ui/game/character_sheets/stockpile_character_sheet/stockpile_character_sheet.html)",
          "file(ui/game/clock_widget/clock_widget.html)",
          "file(ui/game/people_picker/people_picker.html)",
          "file(ui/game/promote/promote.html)",
@@ -681,7 +686,6 @@
          "file(ui/game/start_menu/start_menu.html)",
          "file(ui/game/main_actionbar/tip_popup.html)",
          "file(ui/game/event_log/event_log.html)",
-         "file(ui/game/show_stockpile/show_stockpile.html)",
          "file(ui/game/build/build.html)"
       ],
       "js" : [
@@ -707,6 +711,7 @@
          "file(ui/game/character_sheets/show_character_sheet.js)",
          "file(ui/game/character_sheets/simple_character_sheet/simple_character_sheet.js)",
          "file(ui/game/character_sheets/citizen_character_sheet/citizen_character_sheet.js)",
+         "file(ui/game/character_sheets/stockpile_character_sheet/stockpile_character_sheet.js)",
          "file(ui/game/clock_widget/clock_widget.js)",
          "file(ui/game/people_picker/people_picker.js)",
          "file(ui/game/promote/promote.js)",
@@ -717,7 +722,6 @@
          "file(ui/game/main_actionbar/tip_popup.js)",
          "file(ui/game/create_stockpile/create_stockpile.js)",
          "file(ui/game/event_log/event_log.js)",
-         "file(ui/game/show_stockpile/show_stockpile.js)",
          "file(ui/game/build/build.js)"
       ],
       "less" : [
@@ -743,6 +747,7 @@
          "file(ui/game/show_workshop/show_workshop.less)",
          "file(ui/game/character_sheets/simple_character_sheet/simple_character_sheet.less)",
          "file(ui/game/character_sheets/citizen_character_sheet/citizen_character_sheet.less)",
+         "file(ui/game/character_sheets/stockpile_character_sheet/stockpile_character_sheet.less)",
          "file(ui/game/clock_widget/clock_widget.less)",
          "file(ui/game/people_picker/people_picker.less)",
          "file(ui/game/promote/promote.less)",
@@ -752,7 +757,6 @@
          "file(ui/game/start_menu/start_menu.less)",
          "file(ui/game/main_actionbar/tip_popup.less)",
          "file(ui/game/event_log/event_log.less)",
-         "file(ui/game/show_stockpile/show_stockpile.less)",
          "file(ui/game/build/build.less)"
       ]
    }

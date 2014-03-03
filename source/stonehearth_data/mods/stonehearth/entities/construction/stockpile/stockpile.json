@@ -3,13 +3,14 @@
    "components" : {
       "unit_info" : {
          "name" : "Stockpile",
-         "description" : "For storing things"
+         "description" : "For storing things",
+         "portrait": "file(portrait.png)",
+         "character_sheet_info" : "file(stockpile_character_sheet_info.json)"
       },
       "stonehearth:stockpile" : {
       },
       "stonehearth:commands" : {
          "commands" : [
-            "file(/data/commands/show_stockpile)",
             "file(/data/commands/destroy_entity)"
          ]
       }

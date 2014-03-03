@@ -1,15 +1,5 @@
-$(document).ready(function(){
-   // When we get the show_workshop event, toggle the crafting window
-   // for this entity.
-   $(top).on("radiant_show_stockpile", function (_, e) {
-      var view = App.gameView.addView(App.StonehearthShowStockpileView, { uri: e.entity });
-   });
-});
-
-// Expects the uri to be an entity with a stonehearth:workshop
-// component
-App.StonehearthShowStockpileView = App.View.extend({
-   templateName: 'stonehearthShowStockpile',
+App.StonehearthStockpileCharacterSheetView = App.View.extend({
+   templateName: 'stockpileCharacterSheet',
 
    components: {
       "unit_info": {},
@@ -197,5 +187,4 @@ App.StonehearthShowStockpileView = App.View.extend({
          self.noneButton.removeClass('on')
       }
    }
-
 });
