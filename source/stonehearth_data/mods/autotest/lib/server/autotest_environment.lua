@@ -2,41 +2,37 @@ local Cube3 = _radiant.csg.Cube3
 local Point3 = _radiant.csg.Point3
 local Terrain = _radiant.om.Terrain
 
-local TestEnvironment = class()
-function TestEnvironment:__init()
-   
-   self._size = 32
-   self._default_faction = 'civ'
+local WORLD_SIZE = 32
+local DEFAULT_FACTION = 'civ'
 
+local _all_entities = {}
+
+local env = {}
+function env.create_world()
    local region3 = _radiant.sim.alloc_region()
    region3:modify(function(r3)
-      r3:add_cube(Cube3(Point3(0, -16, 0), Point3(self._size, 0, self._size), Terrain.SOIL_STRATA))
-      r3:add_cube(Cube3(Point3(0,   0, 0), Point3(self._size, 1, self._size), Terrain.GRASS))
+      r3:add_cube(Cube3(Point3(0, -16, 0), Point3(WORLD_SIZE, 0, WORLD_SIZE), Terrain.SOIL_STRATA))
+      r3:add_cube(Cube3(Point3(0,   0, 0), Point3(WORLD_SIZE, 1, WORLD_SIZE), Terrain.GRASS))
    end)
 
    local terrain = radiant._root_entity:add_component('terrain')
-   terrain:set_tile_size(self._size)
-   terrain:add_tile(Point3(-self._size / 2, 0, -self._size / 2), region3)
+   terrain:set_tile_size(WORLD_SIZE)
+   terrain:add_tile(Point3(-WORLD_SIZE / 2, 0, -WORLD_SIZE / 2), region3)
 
    -- listen for every entity creation event so we can tear them all down between tests
-   self._all_entities = {}
    radiant.events.listen(radiant.events, 'stonehearth:entity_created', function(e)
-         table.insert(self._all_entities, e.entity)
+         table.insert(_all_entities, e.entity)
       end)
 end
 
-function TestEnvironment:clear()
-   for _, entity in ipairs(self._all_entities) do
+function env.clear()
+   for _, entity in ipairs(_all_entities) do
       radiant.entities.destroy_entity(entity)
    end
-   self._all_entities = {}
+   _all_entities = {}
 end
 
-function TestEnvironment:run(testfn)
-   local execute = coroutine.wrap(testfn)   
-end
-
-function TestEnvironment:create_entity(x, z, uri, options)
+function env.create_entity(x, z, uri, options)
    options = options or {}
    
    local entity = radiant.entities.create_entity(uri)
@@ -48,9 +44,9 @@ function TestEnvironment:create_entity(x, z, uri, options)
    return entity
 end
 
-function TestEnvironment:create_person(x, z, options)
+function env.create_person(x, z, options)
    options = options or {}
-   local faction = options.faction or self._default_faction
+   local faction = options.faction or DEFAULT_FACTION
    local culture = 'stonehearth:factions:ascendancy' -- ascendancy is not a faction.  it's a.. culture or something
 
    local pop = stonehearth.population:get_faction(faction, culture)
@@ -65,10 +61,10 @@ function TestEnvironment:create_person(x, z, options)
    return person
 end
 
-function TestEnvironment:create_stockpile(x, z, options)
+function env.create_stockpile(x, z, options)
    options = options or {}
    
-   local faction = options.faction or self._default_faction
+   local faction = options.faction or DEFAULT_FACTION
    local size = options.size or { x = 2, y = 2}
 
    local location = Point3(x, 1, z)
@@ -77,4 +73,4 @@ function TestEnvironment:create_stockpile(x, z, options)
    return inventory:create_stockpile(location, size)
 end
 
-return TestEnvironment
+return env
