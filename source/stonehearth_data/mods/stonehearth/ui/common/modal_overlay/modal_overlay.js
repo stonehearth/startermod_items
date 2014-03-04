@@ -22,6 +22,12 @@ App.StonehearthModalOverlayView = App.View.extend({
          });
       */
       radiant.keyboard.setFocus(null);
+
+      var index = App.stonehearth.modalStack.indexOf(this)
+      if (index > -1) {
+         App.stonehearth.modalStack.splice(index, 1);
+      }
+
       this._super();
    },
 

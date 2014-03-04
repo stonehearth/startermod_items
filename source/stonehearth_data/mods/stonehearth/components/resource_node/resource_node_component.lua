@@ -10,8 +10,17 @@ function ResourceNodeComponent:extend(json)
    if json.durability then
       self._durability = json.durability
    end
+
    if json.resource then
       self._resource = json.resource
+   end
+
+   if json.harvester_effect then
+      self._harvester_effect = json.harvester_effect
+   end
+
+   if json.description then
+      self._description = json.description
    end
 
    self._harvest_overlay_effect = json.harvest_overlay_effect
@@ -20,6 +29,16 @@ end
 function ResourceNodeComponent:get_harvest_overlay_effect()
    return self._harvest_overlay_effect
 end
+
+
+function ResourceNodeComponent:get_harvester_effect()
+   return self._harvester_effect
+end
+
+function ResourceNodeComponent:get_description()
+   return self._description
+end
+
 
 function ResourceNodeComponent:spawn_resource(collect_location)
    if self._resource then

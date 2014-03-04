@@ -136,8 +136,25 @@ App.StonehearthCitizenCharacterSheetView = App.View.extend({
    },
 
    didInsertElement: function() {
+      var self = this;
+
       var p = this.get('context.stonehearth:personality');
       var b = this.get('context.stonehearth:buffs');
+
+      this.$('#name').focus(function (e) {
+         radiant.call('stonehearth:enable_camera_movement', false)
+      });
+
+      this.$('#name').blur(function (e) {
+         radiant.call('stonehearth:enable_camera_movement', true)
+      });
+
+      this.$('#name').keypress(function (e) {
+            if (e.which == 13) {
+               radiant.call('stonehearth:set_display_name', self.uri, $(this).val())
+               $(this).blur();
+           }
+         });
 
       if (p) {
          $('#personality').html($.t(p.personality));   

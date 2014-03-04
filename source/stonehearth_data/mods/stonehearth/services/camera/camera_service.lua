@@ -42,10 +42,18 @@ function CameraService:__init()
     end)
 
   self._input_capture:on_input(function(e)
+      if self._camera_disabled then
+         return false
+      end
+
       self:_on_input(e)
             -- Don't consume the event, since the UI might want to do something, too.
       return false
     end)
+end
+
+function CameraService:enable_camera_movement(enabled)
+  self._camera_disabled = not enabled
 end
 
 function CameraService:_get_orbit_target() 
@@ -443,7 +451,9 @@ function CameraService:_calculate_scroll(e, focused)
 end
 
 function CameraService:_update_camera(frame_time)
-  self:_process_keys()
+  if not self._camera_disabled then
+    self:_process_keys()
+  end
 
   local scaled_continuous_delta = Vec3(self._continuous_delta)
   scaled_continuous_delta:scale(frame_time / 1000.0)

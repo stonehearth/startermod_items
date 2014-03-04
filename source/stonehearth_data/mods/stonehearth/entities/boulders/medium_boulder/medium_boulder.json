@@ -24,6 +24,14 @@
       "stonehearth:resource_node": {
          "durability": 6
       },
+      "destination" : {
+         "region" : [
+            {
+               "min" : { "x" : -2, "y" : 0, "z" : -2 },
+               "max" : { "x" :  2, "y" : 1, "z" :  2 }
+            }
+         ]
+      },      
       "region_collision_shape" : {
          "region": [
             {
