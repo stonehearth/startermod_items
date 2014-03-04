@@ -33,12 +33,11 @@ using namespace std;
 
 VoxelMeshNode::VoxelMeshNode( const VoxelMeshNodeTpl &meshTpl ) :
 	SceneNode( meshTpl ),
-	_materialRes( meshTpl.matRes ), _batchStart( meshTpl.batchStart ), _batchCount( meshTpl.batchCount ),
-	_vertRStart( meshTpl.vertRStart ), _vertREnd( meshTpl.vertREnd ), _lodLevel( meshTpl.lodLevel ),
+   _materialRes( meshTpl.matRes ), _lodLevel(0),
 	_parentModel( 0x0 )
 {
 	_renderable = true;
-	
+
 	if( _materialRes != 0x0 )
 		_sortKey = (float)_materialRes->getHandle();
 }
@@ -57,41 +56,7 @@ VoxelMeshNode::~VoxelMeshNode()
 
 SceneNodeTpl *VoxelMeshNode::parsingFunc( map< string, std::string > &attribs )
 {
-	bool result = true;
-	
-	map< string, std::string >::iterator itr;
-	VoxelMeshNodeTpl *meshTpl = new VoxelMeshNodeTpl( "", 0x0, 0, 0, 0, 0 );
-
-	itr = attribs.find( "material" );
-	if( itr != attribs.end() )
-	{
-		uint32 res = Modules::resMan().addResource( ResourceTypes::Material, itr->second, 0, false );
-		if( res != 0 )
-			meshTpl->matRes = (MaterialResource *)Modules::resMan().resolveResHandle( res );
-	}
-	else result = false;
-	itr = attribs.find( "batchStart" );
-	if( itr != attribs.end() ) meshTpl->batchStart = atoi( itr->second.c_str() );
-	else result = false;
-	itr = attribs.find( "batchCount" );
-	if( itr != attribs.end() ) meshTpl->batchCount = atoi( itr->second.c_str() );
-	else result = false;
-	itr = attribs.find( "vertRStart" );
-	if( itr != attribs.end() ) meshTpl->vertRStart = atoi( itr->second.c_str() );
-	else result = false;
-	itr = attribs.find( "vertREnd" );
-	if( itr != attribs.end() ) meshTpl->vertREnd = atoi( itr->second.c_str() );
-	else result = false;
-
-	itr = attribs.find( "lodLevel" );
-	if( itr != attribs.end() ) meshTpl->lodLevel = atoi( itr->second.c_str() );
-
-	if( !result )
-	{
-		delete meshTpl; meshTpl = 0x0;
-	}
-	
-	return meshTpl;
+	return 0x0;
 }
 
 
@@ -119,13 +84,13 @@ int VoxelMeshNode::getParamI( int param )
 		if( _materialRes != 0x0 ) return _materialRes->getHandle();
 		else return 0;
 	case VoxelMeshNodeParams::BatchStartI:
-		return _batchStart;
+      return getBatchStart();
 	case VoxelMeshNodeParams::BatchCountI:
-		return _batchCount;
+      return getBatchCount();
 	case VoxelMeshNodeParams::VertRStartI:
-		return _vertRStart;
+      return getVertRStart();
 	case VoxelMeshNodeParams::VertREndI:
-		return _vertREnd;
+      return getVertREnd();
 	case VoxelMeshNodeParams::LodLevelI:
 		return _lodLevel;
 	}
@@ -163,6 +128,7 @@ void VoxelMeshNode::setParamI( int param, int value )
 const InstanceKey* VoxelMeshNode::getInstanceKey() {
    _instanceKey.geoResource = _parentModel->getVoxelGeometryResource();
    _instanceKey.matResource = _materialRes;
+   _instanceKey.lodLevel = _lodLevel;
    return &_instanceKey;
 }
 
@@ -213,7 +179,7 @@ bool VoxelMeshNode::checkIntersection( const Vec3f &rayOrig, const Vec3f &rayDir
 	bool intersection = false;
 	
 	// Check triangles
-	for( uint32 i = _batchStart; i < _batchStart + _batchCount; i += 3 )
+   for( uint32 i = getBatchStart(); i < getBatchStart() + getBatchCount(); i += 3 )
 	{
 		Vec3f *vert0, *vert1, *vert2;
 		
@@ -252,6 +218,13 @@ bool VoxelMeshNode::checkIntersection( const Vec3f &rayOrig, const Vec3f &rayDir
 }
 
 
+uint32 VoxelMeshNode::calcLodLevel( const Vec3f &viewPoint )
+{
+   _lodLevel = _parentModel->calcLodLevel(viewPoint);
+   return _lodLevel;
+}
+
+
 void VoxelMeshNode::onAttach( SceneNode &parentNode )
 {
 	// Find parent model node
@@ -273,5 +246,27 @@ void VoxelMeshNode::onPostUpdate()
 	_bBox = _localBBox;
 	_bBox.transform( _absTrans );
 }
+
+
+uint32 VoxelMeshNode::getBatchStart() const { 
+   return getParentModel()->getVoxelGeometryResource()->_indexOffsets[_lodLevel]; 
+}
+
+
+uint32 VoxelMeshNode::getBatchCount() const { 
+   return getParentModel()->getVoxelGeometryResource()->_indexOffsets[_lodLevel + 1] - 
+      getParentModel()->getVoxelGeometryResource()->_indexOffsets[_lodLevel]; 
+}
+
+
+uint32 VoxelMeshNode::getVertRStart() const { 
+   return getParentModel()->getVoxelGeometryResource()->_vertexOffsets[_lodLevel];
+}
+
+
+uint32 VoxelMeshNode::getVertREnd() const { 
+   return getParentModel()->getVoxelGeometryResource()->_vertexOffsets[_lodLevel + 1] - 1; 
+}
+
 
 }  // namespace

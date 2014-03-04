@@ -64,7 +64,7 @@ public:
 	void initDefault();
 	void release();
 	bool load( const char *data, int size );
-   bool loadData(VoxelVertexData *vertices, int vcount, uint32 *indicies, int icount);
+   bool loadData(VoxelVertexData *vertices, int vertexOffsets[], uint32 *indicies, int indexOffsets[], int numLodLevels);
 
 	int getElemCount( int elem );
 	int getElemParamI( int elem, int elemIdx, int param );
@@ -92,6 +92,9 @@ private:
 	bool                        _16BitIndices;
 	char                        *_indexData;
 	VoxelVertexData             *_vertexData;
+
+   int                         _vertexOffsets[5], _indexOffsets[5];
+   int                         _numLodLevels;
 
 	friend class Renderer;
 	friend class VoxelModelNode;

@@ -2792,6 +2792,12 @@ void Renderer::drawVoxelMeshes_Instances(const std::string &shaderContext, const
 			gRDI->setShaderConst( Modules::renderer()._defColShader_color, CONST_FLOAT4, &color.x );
 		}
 
+      int lodLevelConst = gRDI->getShaderConstLoc(Modules::renderer().getCurShader()->shaderObj, "lodlevel");
+      if (lodLevelConst > -1) {
+         static Vec4f lodColors[4] = {Vec4f(1,0,0,1), Vec4f(0,1,0,1), Vec4f(0,0,1,1), Vec4f(1, 0, 1, 1)};
+         gRDI->setShaderConst(lodLevelConst, RDIShaderConstType::CONST_FLOAT4, &(lodColors[instanceKey.lodLevel].x));
+      }
+
       float offset_x, offset_y;
       if (gRDI->getShadowOffsets(&offset_x, &offset_y) || vmn->getParentModel()->getPolygonOffset(offset_x, offset_y))
       {

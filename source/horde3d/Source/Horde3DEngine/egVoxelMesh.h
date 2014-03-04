@@ -18,7 +18,6 @@
 #include "egAnimation.h"
 #include "utMath.h"
 
-
 namespace Horde3D {
 
 class MaterialResource;
@@ -46,14 +45,9 @@ struct VoxelMeshNodeParams
 struct VoxelMeshNodeTpl : public SceneNodeTpl
 {
 	PMaterialResource  matRes;
-	uint32             batchStart, batchCount;
-	uint32             vertRStart, vertREnd;
-	uint32             lodLevel;
-
-	VoxelMeshNodeTpl( const std::string &name, MaterialResource *materialRes, uint32 batchStart,
-	             uint32 batchCount, uint32 vertRStart, uint32 vertREnd ) :
-		SceneNodeTpl( SceneNodeTypes::VoxelMesh, name ), matRes( materialRes ), batchStart( batchStart ),
-		batchCount( batchCount ), vertRStart( vertRStart ), vertREnd( vertREnd ), lodLevel( 0 )
+   
+	VoxelMeshNodeTpl( const std::string &name, MaterialResource *materialRes) :
+		SceneNodeTpl( SceneNodeTypes::VoxelMesh, name ), matRes( materialRes )
 	{
 	}
 };
@@ -76,12 +70,13 @@ public:
 	void onPostUpdate();
 
 	MaterialResource *getMaterialRes() const { return _materialRes; }
-	uint32 getBatchStart() const { return _batchStart; }
-	uint32 getBatchCount() const { return _batchCount; }
-	uint32 getVertRStart() const { return _vertRStart; }
-	uint32 getVertREnd() const { return _vertREnd; }
+	uint32 getBatchStart() const;
+	uint32 getBatchCount() const;
+	uint32 getVertRStart() const;
+	uint32 getVertREnd() const;
 	uint32 getLodLevel() const { return _lodLevel; }
 	VoxelModelNode *getParentModel() const { return _parentModel; }
+	uint32 calcLodLevel( const Vec3f &viewPoint );
 
    const InstanceKey* getInstanceKey();
 
@@ -91,8 +86,6 @@ protected:
 
 protected:
 	PMaterialResource   _materialRes;
-	uint32              _batchStart, _batchCount;
-	uint32              _vertRStart, _vertREnd;
 	uint32              _lodLevel;
 	
 	VoxelModelNode      *_parentModel;

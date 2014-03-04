@@ -53,8 +53,8 @@ struct VoxelModelNodeTpl : public SceneNodeTpl
 
 	VoxelModelNodeTpl( const std::string &name, VoxelGeometryResource *geoRes ) :
 		SceneNodeTpl( SceneNodeTypes::VoxelModel, name ), geoRes( geoRes ),
-			lodDist1( Math::MaxFloat ), lodDist2( Math::MaxFloat ),
-			lodDist3( Math::MaxFloat ), lodDist4( Math::MaxFloat ),
+			lodDist1(500 ), lodDist2( 800 ),
+			lodDist3( 900 ), lodDist4( Math::MaxFloat ),
 			softwareSkinning( false )
 	{
 	}
@@ -93,7 +93,7 @@ public:
 	bool updateVoxelGeometry();
 	uint32 calcLodLevel( const Vec3f &viewPoint );
 
-	VoxelGeometryResource *getVoxelGeometryResource() { return _geometryRes; }
+	VoxelGeometryResource *getVoxelGeometryResource() const { return _geometryRes; }
 	bool jointExists( uint32 jointIndex ) { return jointIndex < _skinMatRows.size() / 3; }
 	void setSkinningMat( uint32 index, const Matrix4f &mat )
 		{ _skinMatRows[index * 3 + 0] = mat.getRow( 0 );

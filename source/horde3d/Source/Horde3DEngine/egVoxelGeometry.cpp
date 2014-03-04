@@ -112,26 +112,32 @@ bool VoxelGeometryResource::raiseError( const std::string &msg )
 	return false;
 }
 
-bool VoxelGeometryResource::loadData(VoxelVertexData *vertices, int vcount, uint32 *indicies, int icount)
+bool VoxelGeometryResource::loadData(VoxelVertexData *vertices, int vertexOffsets[], uint32 *indicies, int indexOffsets[], int numLodLevels)
 {
-	_vertCount = vcount;
+   _numLodLevels = numLodLevels;
+   for (int i = 0; i < numLodLevels + 1; i++) {
+      _vertexOffsets[i] = vertexOffsets[i];
+      _indexOffsets[i] = indexOffsets[i];
+   }
+
+	_vertCount = vertexOffsets[numLodLevels];
 	_vertexData = new VoxelVertexData[_vertCount];
    ::memcpy(_vertexData, vertices, _vertCount * sizeof VoxelVertexData);
 
-	_indexCount = icount;
+	_indexCount = indexOffsets[numLodLevels];
 
    _16BitIndices = false;
 	//_16BitIndices = icount <= 65535;
 
-	_indexData = new char[icount * (_16BitIndices ? 2 : 4)];
+	_indexData = new char[_indexCount * (_16BitIndices ? 2 : 4)];
 
    if (_16BitIndices) {
       uint16* i16 = (uint16*)_indexData;
-      for (int i = 0; i < icount; i++) {
+      for (int i = 0; i < _indexCount; i++) {
          *i16++ = (uint16)indicies[i];
       }
    } else {
-      ::memcpy(_indexData, indicies, icount * sizeof uint32);
+      ::memcpy(_indexData, indicies, _indexCount * sizeof uint32);
    }
 
 	// Load morph targets

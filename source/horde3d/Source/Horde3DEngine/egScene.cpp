@@ -439,14 +439,7 @@ void SpatialGraph::query(const SpatialQuery& query, RenderableQueues& renderable
          if (query.frustum.cullBox( node->_bBox ) && (query.secondaryFrustum == 0x0 || query.secondaryFrustum->cullBox( node ->_bBox ))) {
             continue;
          }
-
-         if( node->_type == SceneNodeTypes::Mesh )  // TODO: Generalize and optimize this
-         {
-            uint32 curLod = ((MeshNode *)node)->getParentModel()->calcLodLevel( camPos );
-            if( ((MeshNode *)node)->getLodLevel() != curLod ) {
-               continue;
-            }
-         }
+         node->calcLodLevel( camPos );
 				
          float sortKey = 0;
 

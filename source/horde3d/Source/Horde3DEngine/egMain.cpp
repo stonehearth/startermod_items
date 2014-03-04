@@ -961,8 +961,7 @@ DLLEXP NodeHandle h3dAddMeshNode( NodeHandle parent, const char *name, ResHandle
 	return Modules::sceneMan().addNode( sn, *parentNode );
 }
 
-DLLEXP NodeHandle h3dAddVoxelMeshNode( NodeHandle parent, const char *name, ResHandle materialRes,
-                                  int batchStart, int batchCount, int vertRStart, int vertREnd )
+DLLEXP NodeHandle h3dAddVoxelMeshNode( NodeHandle parent, const char *name, ResHandle materialRes  )
 {
 	SceneNode *parentNode = Modules::sceneMan().resolveNodeHandle( parent );
 	APIFUNC_VALIDATE_NODE( parentNode, "h3dAddVoxelMeshNode", 0 );
@@ -970,8 +969,7 @@ DLLEXP NodeHandle h3dAddVoxelMeshNode( NodeHandle parent, const char *name, ResH
 	APIFUNC_VALIDATE_RES_TYPE( matRes, ResourceTypes::Material, "h3dAddVoxelMeshNode", 0 );
 
 	//Modules::log().writeInfo( "Adding VoxelMesh node '%s'", safeStr( name ).c_str() );
-	VoxelMeshNodeTpl tpl( safeStr( name, 0 ), (MaterialResource *)matRes, (unsigned)batchStart,
-	                 (unsigned)batchCount, (unsigned)vertRStart, (unsigned)vertREnd );
+	VoxelMeshNodeTpl tpl( safeStr( name, 0 ), (MaterialResource *)matRes );
 	SceneNode *sn = Modules::sceneMan().findType( SceneNodeTypes::VoxelMesh )->factoryFunc( tpl );
 	return Modules::sceneMan().addNode( sn, *parentNode );
 }

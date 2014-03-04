@@ -2049,8 +2049,7 @@ DLL bool h3dSetModelMorpher( H3DNode modelNode, const char *target, float weight
 */
 DLL H3DNode h3dAddMeshNode( H3DNode parent, const char *name, H3DRes materialRes, 
                             int batchStart, int batchCount, int vertRStart, int vertREnd );
-DLL H3DNode h3dAddVoxelMeshNode( H3DNode parent, const char *name, H3DRes materialRes, 
-                            int batchStart, int batchCount, int vertRStart, int vertREnd );
+DLL H3DNode h3dAddVoxelMeshNode( H3DNode parent, const char *name, H3DRes materialRes );
 
 
 /* Group: Joint-specific scene graph functions */
