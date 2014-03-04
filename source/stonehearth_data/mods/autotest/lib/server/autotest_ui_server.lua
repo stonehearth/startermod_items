@@ -1,3 +1,4 @@
+local Point2 = _radiant.csg.Point2
 local commands = require 'lib.common.autotest_ui_commands'
 local ResponseQueue = require 'lib.common.response_queue'
 
@@ -13,6 +14,14 @@ end
 
 function ui_server.sleep(ms)
    _client:send(commands.WAIT_REALTIME, ms)
+end
+
+function ui_server.click_terrain(x, y, z)
+   if z == nil then
+      local h = radiant.terrain.get_height(Point2(x, y))
+      x, y, z = x, h, y
+   end
+   _client:send(commands.CLICK_TERRAIN, x, y, z)
 end
 
 function ui_server.click_dom_element(jq_selector)

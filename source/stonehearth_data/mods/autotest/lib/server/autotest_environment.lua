@@ -44,6 +44,16 @@ function env.create_entity(x, z, uri, options)
    return entity
 end
 
+function env.create_entity_cluster(x, y, w, h, uri, options)
+   local entities = {}
+   for i=x,x+w do
+      for j=y,y+h do
+         table.insert(entities, env.create_entity(i, j, uri, options))
+      end
+   end
+   return entities
+end
+
 function env.create_person(x, z, options)
    options = options or {}
    local faction = options.faction or DEFAULT_FACTION
