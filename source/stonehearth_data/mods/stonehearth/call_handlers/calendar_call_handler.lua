@@ -8,9 +8,9 @@ function CalendarCallHandler:get_clock_object(session, request)
    if not clock_object then
       clock_object = radiant.create_datastore()
       radiant.events.listen(calendar, 'stonehearth:minutely', function(e)
-            clock_object:update(calendar:get_time_and_date())
+            clock_object:set_data(calendar:get_time_and_date())
          end)
-      clock_object:update(calendar:get_time_and_date())
+      clock_object:set_data(calendar:get_time_and_date())
    end
    return { clock_object = clock_object }
 end

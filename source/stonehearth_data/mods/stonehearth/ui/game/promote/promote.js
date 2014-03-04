@@ -45,7 +45,8 @@ App.StonehearthClassesPromoteView = App.View.extend({
          for (var i = 0; i < self._workers.length; i++) {
             var uri = self._workers[i]['__self']
             if (uri == data.selected_entity) {
-               self.set('context.citizenToPromote', self._workers[i]);
+               self.set('context.selectedUnitName', self._workers[i].unit_info.name);
+               self._selectedUnitUri = uri;
                foundWorker = true;
                break;
             }
@@ -71,7 +72,8 @@ App.StonehearthClassesPromoteView = App.View.extend({
       $(top).off("radiant_selection_changed.promote_view");
       App.gameView.getView(App.StonehearthUnitFrameView).supressSelection(false);
       if (this.get('context') != null) {
-         this.set('context.citizenToPromote', undefined);
+         self._selectedUnitUri = undefined;
+         this.set('context.selectedUnitName', undefined);
       }
 
       if (this._trace) {
@@ -106,9 +108,12 @@ App.StonehearthClassesPromoteView = App.View.extend({
                               bottom: 50
                            },
                            callback: function(person) {
+                              // `person` is part of the people picker's model.  it will be destroyed as
+                              // soon as that view is destroyed, which will happen immediately after the
+                              // callback is fired!  scrape everything we need out of it before this happens.
                               radiant.call('radiant:play_sound', 'stonehearth:sounds:ui:promotion_menu:select' );
-                              self.set('context.citizenToPromote', person);
-
+                              self.set('context.selectedUnitName', person.unit_info.name);
+                              self._selectedUnitUri = person.__self;
                               self._gotoApproveStep()
                            }
                         });
@@ -171,14 +176,12 @@ App.StonehearthClassesPromoteView = App.View.extend({
    _promoteCitizen: function() {
       var self = this;
 
-      if (this.get('context.citizenToPromote') == undefined) {
+      if (!self._selectedUnitUri) {
          self.destroy();
          return;
       }
       
-      var person = this.get('context.citizenToPromote').__self;
-
-      radiant.call('stonehearth:grab_promotion_talisman', person, self.talisman)
+      radiant.call('stonehearth:grab_promotion_talisman', self._selectedUnitUri, self.talisman)
          .done(function(data) {
             radiant.log.info("promote finished!", data)
          })

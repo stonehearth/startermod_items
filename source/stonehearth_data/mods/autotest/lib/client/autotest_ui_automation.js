@@ -6,7 +6,7 @@ $(document).ready(function(){
                
                if (cmd == 'CLICK_DOM_ELEMENT') {
                   var jqselector = data[1];
-                  $(jqselector).click();
+                  $(jqselector)[0].click();
                }
             });
 });

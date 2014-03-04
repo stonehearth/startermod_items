@@ -87,66 +87,81 @@ void ScriptHost::AddJsonToLuaConverter(JsonToLuaFn fn)
 
 JSONNode ScriptHost::LuaToJson(luabind::object current_obj)
 {
-   std::vector<luabind::object> route;
+   std::vector<luabind::object> visited;
 
-   luabind::object obj = GetObjectRepresentation(current_obj, "__tojson");
+   std::function<JSONNode(luabind::object const&)> luaToJson;
 
-   int t = luabind::type(obj);
-
-   if (obj != current_obj && t == LUA_TSTRING) {
-      // don't modify it.. it's already been converted
-      std::string str = object_cast<std::string>(obj);
-      // return JSONNode("", str);
-      boost::algorithm::trim(str);
-      if (str[0] == '{' || str[0] == '[') {
-         return libjson::parse(str);
-      }
-      return JSONNode("", str);
-   } else if (t == LUA_TTABLE) {
-      if (IsNumericTable(obj)) {
-         JSONNode result(JSON_ARRAY);
-         luabind::object entry;
-         int i = 1;
-         for (;;) {
-            luabind::object entry = obj[i++];
-            if (luabind::type(entry) == LUA_TNIL) {
-               break;
+   luaToJson = [&luaToJson, &visited, this] (luabind::object const& current_obj) -> JSONNode {
+      luabind::object obj = GetObjectRepresentation(current_obj, "__tojson");
+      int t = luabind::type(obj);
+      if (t == LUA_TTABLE) {
+         for (luabind::object const& o : visited) {
+            if (current_obj == o) {
+               return JSONNode("", "visited node");
             }
-            result.push_back(LuaToJson(entry));
          }
-         return result;
-      } else {
-         JSONNode result(JSON_NODE);
-         for (iterator i(obj), end; i != end; i++) {
-            JSONNode key = LuaToJson(i.key());
-            JSONNode value = LuaToJson(*i);
-            value.set_name(key.as_string());
-            result.push_back(value);
+         visited.push_back(current_obj);
+      }
+
+      if (obj != current_obj && t == LUA_TSTRING) {
+         // don't modify it.. it's already been converted
+         std::string str = object_cast<std::string>(obj);
+         // return JSONNode("", str);
+         boost::algorithm::trim(str);
+         if (str[0] == '{' || str[0] == '[') {
+            return libjson::parse(str);
          }
-         return result;
+         return JSONNode("", str);
+      } else if (t == LUA_TTABLE) {
+
+         if (IsNumericTable(obj)) {
+            JSONNode result(JSON_ARRAY);
+            luabind::object entry;
+            int i = 1;
+            for (;;) {
+               luabind::object entry = obj[i++];
+               if (luabind::type(entry) == LUA_TNIL) {
+                  break;
+               }
+               result.push_back(luaToJson(entry));
+            }
+            return result;
+         } else {
+            JSONNode result(JSON_NODE);
+            for (iterator i(obj), end; i != end; i++) {
+               JSONNode key = luaToJson(i.key());
+               JSONNode value = luaToJson(*i);
+               value.set_name(key.as_string());
+               result.push_back(value);
+            }
+            return result;
+         }
+      } else if (t == LUA_TUSERDATA) {
+         class_info ci = call_function<class_info>(globals(L_)["class_info"], obj);
+         LUA_LOG(1) << "lua userdata object of type " << ci.name << " does not implement __tojson";
+         return JSONNode("", "\"userdata\"");
+      } else if (t == LUA_TSTRING) {
+         std::string str = object_cast<std::string>(obj);
+         boost::algorithm::replace_all(str, "\"", "\\'");
+         return JSONNode("", str);
+      } else if (t == LUA_TNUMBER) {
+         std::ostringstream formatter;
+         double double_value = object_cast<double>(obj);
+         int int_value = static_cast<int>(double_value);
+         if (csg::IsZero(double_value - int_value)) {
+            return JSONNode("", int_value);
+         }
+         return JSONNode("", double_value);
+      } else if (t == LUA_TBOOLEAN) {
+         return JSONNode("", object_cast<bool>(obj));
+      } else if (t == LUA_TNIL) {
+         return JSONNode("", nullptr);
+      } else if (t == LUA_TFUNCTION) {
+         return JSONNode("", "function");
       }
-   } else if (t == LUA_TUSERDATA) {
-      class_info ci = call_function<class_info>(globals(L_)["class_info"], obj);
-      throw std::logic_error(BUILD_STRING("lua userdata object of type " << ci.name << " does not implement __tojson"));
-   } else if (t == LUA_TSTRING) {
-      std::string str = object_cast<std::string>(obj);
-      boost::algorithm::replace_all(str, "\"", "\\'");
-      return JSONNode("", str);
-   } else if (t == LUA_TNUMBER) {
-      std::ostringstream formatter;
-      double double_value = object_cast<double>(obj);
-      int int_value = static_cast<int>(double_value);
-      if (csg::IsZero(double_value - int_value)) {
-         return JSONNode("", int_value);
-      }
-      return JSONNode("", double_value);
-   } else if (t == LUA_TBOOLEAN) {
-      return JSONNode("", object_cast<bool>(obj));
-   } else if (t == LUA_TNIL) {
-      return JSONNode("", nullptr);
-   } else if (t == LUA_TFUNCTION) {
-      return JSONNode("", "function");
-   }
+      return JSONNode("", BUILD_STRING("\"" << "invalid lua type " << t << "\""));
+   };
+   return luaToJson(current_obj);
    throw std::logic_error("invalid lua type found while converting to json");
 }
 
@@ -232,7 +247,7 @@ ScriptHost::ScriptHost()
    module(L_) [
       namespace_("_radiant") [
          namespace_("lua") [
-            lua::RegisterType<ScriptHost>()
+            lua::RegisterType<ScriptHost>("ScriptHost")
                .def("log",             &ScriptHost::Log)
                .def("exit",            &ScriptHost::Exit)
                .def("get_realtime",    &ScriptHost::GetRealTime)
@@ -703,20 +718,23 @@ luabind::object ScriptHost::GetObjectRepresentation(luabind::object obj, std::st
 
 std::string ScriptHost::LuaToString(luabind::object obj)
 {
-   std::vector<luabind::object> route;
+   std::vector<luabind::object> visited;
 
    std::function<void(std::ostringstream&, luabind::object const&)> luaToString;
-   luaToString = [&] (std::ostringstream& os, luabind::object const& current_obj) {
-      for (luabind::object const& o : route) {
-         if (current_obj == o) {
-            LOG_(0) << "found cycle!  stopping. " << os.str();
-            return;
-         }
-      }
 
-      route.push_back(current_obj);
+   luaToString = [&visited, &luaToString, this] (std::ostringstream& os, luabind::object const& current_obj) {
       luabind::object obj = GetObjectRepresentation(current_obj, "__repr");
       int t = luabind::type(obj);
+
+      if (t == LUA_TTABLE) {
+         for (luabind::object const& o : visited) {
+            if (current_obj == o) {
+               os << "\"visited node\"";
+               return;
+            }
+         }
+         visited.push_back(current_obj);
+      }
 
       if (obj != current_obj && t == LUA_TSTRING) {
          // don't modify it.. it's a lua string meant to be evaled.
@@ -754,7 +772,6 @@ std::string ScriptHost::LuaToString(luabind::object obj)
             os << "\"function\"";
          }
       }
-      route.pop_back();
    };
 
    std::ostringstream buffer;

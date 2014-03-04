@@ -133,20 +133,33 @@ local function _run_group(index, key)
    end
 end
 
--- runs a set of autotest scripts
--- Runs through all the scripts in the test_scripts table.
--- @param test_scripts A numeric table containing a list of test scripts
--- to run
-function autotest.run_tests(index, name)
+local function _run_thread(fn)
    -- xxx: move threads into radiant?
+   assert(not _main_thread)
    _main_thread = stonehearth.threads:create_thread()
          :set_thread_main(function()
                autotest.env.create_world()
-               _run_group(index.groups, name)
+               fn()
                radiant.events.trigger(autotest, 'autotest:finished', { errorcode = 0 })
             end)
             
    _main_thread:start()
+end
+
+-- runs a set of autotest scripts
+-- Runs through all the scripts in the test_scripts table.
+-- @param test_scripts A numeric table containing a list of test scripts
+-- to run
+function autotest.run_group(index, name)
+   _run_thread(function()
+         _run_group(index.groups, name)
+      end)
+end
+
+function autotest.run_script(script)
+   _run_thread(function()
+         _run_script(script)
+      end)
 end
 
 return autotest

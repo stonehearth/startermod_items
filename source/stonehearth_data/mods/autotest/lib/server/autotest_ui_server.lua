@@ -11,6 +11,14 @@ function ui_server.push_unitframe_command_button(entity, command)
    _client:send(commands.CLICK_DOM_ELEMENT, jq_selector)
 end
 
+function ui_server.sleep(ms)
+   _client:send(commands.WAIT_REALTIME, ms)
+end
+
+function ui_server.click_dom_element(jq_selector)
+   _client:send(commands.CLICK_DOM_ELEMENT, jq_selector)
+end
+
 function ui_server._fail_from_client(session, response, msg)
    autotest.fail('automation client requested abort: "%s"', msg)
 end

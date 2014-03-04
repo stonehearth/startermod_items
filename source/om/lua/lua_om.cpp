@@ -68,15 +68,15 @@ void radiant::om::RegisterLuaTypes(lua_State* L)
             RegisterModelLayer(L),
             LuaEntity::RegisterLuaTypes(L),
             LuaDataStore::RegisterLuaTypes(L),
-            lua::RegisterStrongGameObject<Region2Boxed>(L)
+            lua::RegisterStrongGameObject<Region2Boxed>(L, "Region2Boxed")
                .def("get",       &Region2Boxed::Get)
                .def("modify",    &ModifyBoxed<Region2Boxed>)
             ,
-            lua::RegisterStrongGameObject<Region3Boxed>(L)
+            lua::RegisterStrongGameObject<Region3Boxed>(L, "Region3Boxed")
                .def("get",       &Region3Boxed::Get)
                .def("modify",    &ModifyBoxed<Region3Boxed>)
             ,
-            luabind::class_<LuaDeepRegionGuard, std::shared_ptr<LuaDeepRegionGuard>>(GetShortTypeName<LuaDeepRegionGuard>())
+            luabind::class_<LuaDeepRegionGuard, std::shared_ptr<LuaDeepRegionGuard>>("LuaDeepRegionGuard")
                .def("on_changed",         &LuaDeepRegionGuard::OnChanged)
                .def("push_object_state",  &LuaDeepRegionGuard::PushObjectState)
                .def("destroy",            &LuaDeepRegionGuard::Destroy)

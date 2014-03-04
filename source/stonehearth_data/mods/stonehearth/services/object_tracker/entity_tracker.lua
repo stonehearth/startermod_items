@@ -16,12 +16,13 @@ function EntityTracker:__init(tracker_name, filter_fn, event_array)
    local removed_cb = function(id)
       self:_on_entity_remove(id)
    end
-   self.__savestate = radiant.create_datastore(self)
-   self._data = self.__savestate:get_data()
-   self._data.entities = {}
-   self._tracked_entities = {} -- used to avoid an O(n) removal for non workers
-   
+   self._entities = {}
+   self._tracked_entities = {} -- used to avoid an O(n) removal for non workers  
    self._filter_fn = filter_fn
+
+   self.__savestate = radiant.create_datastore({
+         entities = self._entities,
+      })
 
    self._promise = radiant.terrain.trace_world_entities(tracker_name, added_cb, removed_cb)
 
@@ -30,19 +31,17 @@ function EntityTracker:__init(tracker_name, filter_fn, event_array)
    for i, event in ipairs(event_array) do
       radiant.events.listen(object_tracker_service, event.event_name, self, self.on_entity_change)
    end
+
 end
 
 function EntityTracker:_on_entity_add(id, entity)
    if self._filter_fn(entity) then
       self:_add_entity(entity)
-      --table.insert(self._data.entities, entity)
-      --self.__savestate:mark_changed()
-      --self._tracked_entities[entity:get_id()] = true
    end
 end
 
 function EntityTracker:_add_entity(entity)
-   table.insert(self._data.entities, entity)
+   table.insert(self._entities, entity)
    self.__savestate:mark_changed()
    self._tracked_entities[entity:get_id()] = true
 end
@@ -65,15 +64,15 @@ end
 function EntityTracker:_on_entity_remove(id)
    if self._tracked_entities[id] then
       self._tracked_entities[id] = nil
-      self.__savestate:mark_changed()
 
       -- Handlebars can't handle (heh) associative arrays (GAH!)
-      for i, entity in ipairs(self._data.entities) do
+      for i, entity in ipairs(self._entities) do
          if entity and entity:get_id() == id then
-            table.remove(self._data.entities, i)
+            table.remove(self._entities, i)
             break
          end
       end
+      self.__savestate:mark_changed()
    end
 end
 

@@ -14,7 +14,7 @@ function CameraCallHandler:get_camera_tracker(session, request)
 
       radiant.events.listen(camera, 'stonehearth:camera:update', function(e)
             if e then
-                camera_tracker:update({
+                camera_tracker:set_data({
                    pan = e.pan,
                    zoom = e.zoom,
                   orbit = e.orbit

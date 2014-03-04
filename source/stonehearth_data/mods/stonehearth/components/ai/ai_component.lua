@@ -13,7 +13,7 @@ end
 
 function AIComponent:__create(entity, json)
    self._entity = entity
-   radiant.events.listen(entity, 'stonehearth:entity_created', function()
+   radiant.events.listen(entity, 'stonehearth:entity:post_create', function()
          stonehearth.ai:start_ai(self._entity, json)
          return radiant.events.UNLISTEN
       end)

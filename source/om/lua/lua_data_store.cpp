@@ -12,7 +12,7 @@ using namespace ::radiant;
 using namespace ::radiant::om;
 
 IMPLEMENT_TRIVIAL_TOSTRING(lua::DataObject);
-DEFINE_INVALID_JSON_CONVERSION(lua::DataObject);
+DEFINE_INVALID_JSON_CONVERSION(std::shared_ptr<lua::DataObject>);
 
 static std::shared_ptr<lua::BoxedTraceWrapper<dm::BoxedTrace<dm::Boxed<lua::DataObject>>>>
 DataStore_Trace(std::shared_ptr<DataStore> data_store, const char* reason)
@@ -55,12 +55,12 @@ scope LuaDataStore::RegisterLuaTypes(lua_State* L)
 {
    return
       // references to DataStore's are used where lua should not be able to keep objects alive, e.g. component data
-      lua::RegisterStrongGameObject<DataStore>(L)
-         .def("update",         &DataStore_SetData) // xxx: don't we need to adopt(_2) here?
+      lua::RegisterStrongGameObject<DataStore>(L, "DataStore")
+         .def("set_data",       &DataStore_SetData) // xxx: don't we need to adopt(_2) here?
          .def("get_data",       &DataStore_GetData) // xxx: don't we need dependency(_1, _2) here?
          .def("trace_data",     &DataStore_Trace)
          .def("mark_changed",   &DataStore_MarkChanged)
       ,
-      luabind::class_<lua::DataObject, std::shared_ptr<lua::DataObject>>(GetShortTypeName<lua::DataObject>())
+      lua::RegisterTypePtr<lua::DataObject>("DataObject")
       ;
 }

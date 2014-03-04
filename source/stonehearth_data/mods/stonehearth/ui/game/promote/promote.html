@@ -11,8 +11,8 @@
 
             <a href='#' {{action chooseCitizen target=view}}>
                <div id="chooseButton">
-                  {{#if citizenToPromote}}
-                     {{citizenToPromote.unit_info.name}}
+                  {{#if selectedUnitName}}
+                     {{selectedUnitName}}
                   {{else}}
                      {{i18n stonehearth:promote_scroll_choose}}
                   {{/if}}

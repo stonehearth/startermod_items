@@ -297,11 +297,11 @@ scope Register${class_upper}(lua_State* L)
 {
    return
 %if is_component:
-      lua::RegisterWeakGameObjectDerived<${class_upper}, ${C.__bases__[0]().name}>(L)
+      lua::RegisterWeakGameObjectDerived<${class_upper}, ${C.__bases__[0]().name}>(L, "${class_upper}")
 %elif C._lua_weak_ref:
-      lua::RegisterWeakGameObject<${class_upper}>(L)
+      lua::RegisterWeakGameObject<${class_upper}>(L, "${class_upper}")
 %else:
-      lua::RegisterStrongGameObject<${class_upper}>(L)
+      lua::RegisterStrongGameObject<${class_upper}>(L, "${class_upper}")
 %endif
 ## - Enum -----------------------------------------------------------------------------------
 % for name, enum in env.properties(C, ridl.Enum):

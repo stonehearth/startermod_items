@@ -159,6 +159,9 @@ local function build(class, shared_objs, shared)
       __repr = function (t)
             return t.__savestate
          end,
+      __tojson = function (t)
+            return t.__savestate
+         end,
    }
    
    -- Repository for storing inherited base objects

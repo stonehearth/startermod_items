@@ -97,13 +97,6 @@ static luabind::class_<T> Register(struct lua_State* L, const char* name)
       ;
 }
 
-template <typename T>
-static luabind::scope RegisterWithIterator(struct lua_State* L, const char* name)
-{
-   typedef PointIterator<T> Iterator;
-   lua::RegisterTypePtr<Iterator>()
-}
-
 scope LuaCube::RegisterLuaTypes(lua_State* L)
 {
    return
@@ -117,6 +110,6 @@ scope LuaCube::RegisterLuaTypes(lua_State* L)
       Register<Cube3f>(L, "Cube3f"),
       Register<Rect2>(L,  "Rect2"),
       Register<Line1>(L,  "Line1"),
-      lua::RegisterType<PointIterator<Cube3>>()
+      lua::RegisterType<PointIterator<Cube3>>("Cube3Iterator")
    ;
 }

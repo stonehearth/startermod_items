@@ -7,14 +7,14 @@ function WorldGenerationCallHandler:get_world_generation_progress(session, reque
    if not progress then
       progress = radiant.create_datastore()
       radiant.events.listen(radiant.events, 'stonehearth:generate_world_progress', function(e)
-            progress:update({
+            progress:set_data({
                progress = e.progress
             })
             if e.progress == 100 then
                return radiant.events.UNLISTEN
             end
          end)
-      progress:update({});
+      progress:set_data({});
    end
    return { tracker = progress }
 end

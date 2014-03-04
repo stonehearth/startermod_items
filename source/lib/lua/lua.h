@@ -11,7 +11,7 @@ class TraceWrapper;
 
 #define DEFINE_INVALID_LUA_CONVERSION(T) \
    template <> std::string lua::Repr(T const&) { \
-      throw std::invalid_argument(BUILD_STRING("cannot encode lua userdata object of type " << GetShortTypeName<T>() << " as string")); \
+      throw std::invalid_argument(BUILD_STRING("cannot encode lua userdata object of type " << typeid(T).name() << " as string")); \
    }
 
 template <typename T> std::string Repr(T const& obj);

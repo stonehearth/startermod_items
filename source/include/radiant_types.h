@@ -16,6 +16,11 @@ namespace radiant {
 
 
    // helper functions for types
+   template <class T>
+   static inline const char* GetTypeName()
+   {
+      return typeid(T).name();
+   }
 
    template <class T>
    static inline const char* GetShortTypeName()

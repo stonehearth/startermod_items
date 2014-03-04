@@ -49,7 +49,7 @@ void ModelLayer::Init(json::Node const& obj)
       } else if (e.type() == JSON_NODE) {
          if (e.get<std::string>("type", "") == "one_of") {
             json::Node items = e.get("items", json::Node());
-            uint c = rng.GetInt(0, items.size() - 1);
+            int c = rng.GetInt(0, items.size() - 1);
             ASSERT(c < items.size());
             model_name = items.get<std::string>(c);
          }

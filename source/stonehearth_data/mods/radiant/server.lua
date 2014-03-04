@@ -13,7 +13,7 @@ end
 function radiant.create_datastore(data)
    local datastore = _radiant.sim.create_datastore()
    if data then
-      datastore:update(data)
+      datastore:set_data(data)
    end
    return datastore
 end

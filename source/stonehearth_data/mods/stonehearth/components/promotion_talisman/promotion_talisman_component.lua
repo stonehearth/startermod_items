@@ -5,12 +5,12 @@
 
 local PromotionTalismanComponent = class()
 
-function PromotionTalismanComponent:_create(entity, json)
+function PromotionTalismanComponent:__create(entity, json)
    self._entity = entity
    self._info = json
    self._profession_name = json.profession_name or ''
 
-   radiant.events.listen(entity, 'stonehearth:entity_created', function()
+   radiant.events.listen(entity, 'stonehearth:entity:post_create', function()
          self:_set_profession_name()
          return radiant.events.UNLISTEN
       end)

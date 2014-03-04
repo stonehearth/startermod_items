@@ -53,7 +53,7 @@ function FabricatorComponent:start_project(name, blueprint)
       project = project,
       blueprint = blueprint
    }
-   self._data_binding:update(self._data)
+   self._data_binding:set_data(self._data)
    
    -- stick the fabricator entity in the blueprint and projects, too
    blueprint:add_component('stonehearth:construction_data'):set_fabricator_entity(self._entity)

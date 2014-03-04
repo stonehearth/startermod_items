@@ -20,7 +20,7 @@ function env.create_world()
    terrain:add_tile(Point3(-WORLD_SIZE / 2, 0, -WORLD_SIZE / 2), region3)
 
    -- listen for every entity creation event so we can tear them all down between tests
-   radiant.events.listen(radiant.events, 'stonehearth:entity_created', function(e)
+   radiant.events.listen(radiant.events, 'stonehearth:entity:post_create', function(e)
          table.insert(_all_entities, e.entity)
       end)
 end

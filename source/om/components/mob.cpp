@@ -110,12 +110,17 @@ csg::Point3f Mob::GetWorldLocation() const
 csg::Transform Mob::GetWorldTransform() const
 {
    EntityPtr parent = (*parent_).lock();
-   if (!parent) {
+   MobPtr mob = nullptr;
+   
+   if (parent) {
+      mob = parent->GetComponent<om::Mob>();
+   }
+   if (!mob) {
       return GetTransform();
    }
 
    const csg::Transform& local = GetTransform();
-   csg::Transform world = parent->AddComponent<Mob>()->GetWorldTransform();
+   csg::Transform world = mob->GetWorldTransform();
 
    world.position += world.orientation.rotate(csg::Point3f(local.position));
    world.orientation *= local.orientation;

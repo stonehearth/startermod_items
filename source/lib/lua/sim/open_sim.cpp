@@ -156,7 +156,7 @@ void lua::sim::open(lua_State* L, Simulation* sim)
             def("create_goto_entity",       &Sim_CreateGotoEntity),
             def("create_job",               &Sim_CreateJob),
             
-            lua::RegisterTypePtr<Path>()
+            lua::RegisterTypePtr<Path>("Path")
                .def("is_empty",           &Path::IsEmpty)
                .def("get_distance",       &Path::GetDistance)
                .def("get_points",         &Path::GetPoints, return_stl_iterator)
@@ -166,7 +166,7 @@ void lua::sim::open(lua_State* L, Simulation* sim)
                .def("get_finish_point",   &Path::GetFinishPoint)
                .def("get_destination_point_of_interest",   &Path::GetDestinationPointOfInterest)
             ,
-            lua::RegisterTypePtr<PathFinder>()
+            lua::RegisterTypePtr<PathFinder>("PathFinder")
                .def("get_id",             &PathFinder::GetId)
                .def("set_source",         &PathFinder::SetSource)
                .def("add_destination",    &PathFinder::AddDestination)
@@ -182,16 +182,16 @@ void lua::sim::open(lua_State* L, Simulation* sim)
                .def("restart",            &PathFinder::RestartSearch)
                .def("describe_progress",  &PathFinder::DescribeProgress)
             ,
-            lua::RegisterType<Simulation>()
+            lua::RegisterType<Simulation>("Simulation")
             ,
-            lua::RegisterTypePtr<FollowPath>()
+            lua::RegisterTypePtr<FollowPath>("FollowPath")
                .def("get_name", &FollowPath::GetName)
                .def("stop",     &FollowPath::Stop)
             ,
-            lua::RegisterTypePtr<GotoLocation>()
+            lua::RegisterTypePtr<GotoLocation>("GotoLocation")
                .def("stop",     &GotoLocation::Stop)
             ,
-            lua::RegisterTypePtr<LuaJob>()
+            lua::RegisterTypePtr<LuaJob>("LuaJob")
 
          ]
       ]
