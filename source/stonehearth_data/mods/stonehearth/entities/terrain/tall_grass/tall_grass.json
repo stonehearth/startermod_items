@@ -1,0 +1,38 @@
+{
+   "type" : "entity",
+   "components" : {
+	   "stonehearth:commands" : {
+	   	"commands" : [
+            
+			]
+	   },
+      "unit_info" : {
+         "name": "Tall Grass", 
+         "description": "Harvestable for thatch",
+         "portrait": "file(portrait.png)",
+         "character_sheet_info" : "file(tall_grass_character_sheet_info.json)"
+      },
+      "model_variants": {
+         "default": {
+            "models": [
+               {
+                  "type": "one_of",
+                  "items": [
+                     "file(tall_grass.qb)"
+                  ]
+               }
+            ]
+         }
+      },      
+      "render_info" : {
+         "scale" : 0.1
+      },
+      "stonehearth:resource_node": {
+         "resource": "stonehearth:hunk_of_stone", 
+         "harvest_overlay_effect" : "/stonehearth/data/effects/mine_overlay_effect",
+         "harvester_effect" : "mine",
+         "description" : "mine_boulder",
+         "durability": 2
+      }   
+	}
+}
