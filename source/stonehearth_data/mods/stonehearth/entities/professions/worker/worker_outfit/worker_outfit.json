@@ -26,8 +26,8 @@
          "render_type" : "merge_with_model",
          "injected_ai" : {
             "actions" : [
-               "stonehearth:actions:chop_tree_action",
-               "stonehearth:actions:chop_tree_adjacent_action",
+               "stonehearth:actions:harvest_resource_node_action",
+               "stonehearth:actions:harvest_resource_node_adjacent_action",
                "stonehearth:actions:harvest_plant",
                "stonehearth:actions:harvest_plant_adjacent",
                "stonehearth:actions:worker_task_dispatcher",

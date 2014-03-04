@@ -8,6 +8,10 @@ function CameraCallHandler:camera_look_at_entity(session, request, entity)
    request:resolve({})
 end
 
+function CameraCallHandler:enable_camera_movement(session, requiest, enable)
+  camera:enable_camera_movement(enable)
+end
+
 function CameraCallHandler:get_camera_tracker(session, request)
    if not camera_tracker then
       camera_tracker = _radiant.client.create_datastore()

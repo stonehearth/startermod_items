@@ -190,6 +190,8 @@ App = Ember.Application.createWithMixins({
   	}
 });
 
+App.stonehearth = {};
+
 App.Router.map(function() {
 
 });

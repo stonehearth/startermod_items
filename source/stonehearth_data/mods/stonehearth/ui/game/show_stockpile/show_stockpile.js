@@ -50,9 +50,18 @@ App.StonehearthShowStockpileView = App.View.extend({
          self._selectNone();
       });
 
-      $('#stockpileWindow').find('#name').keypress(function (e) {
+      this.$('#name').focus(function (e) {
+         radiant.call('stonehearth:enable_camera_movement', false)
+      });
+
+      this.$('#name').blur(function (e) {
+         radiant.call('stonehearth:enable_camera_movement', true)
+      });
+
+      this.$('#name').keypress(function (e) {
          if (e.which == 13) {
-            radiant.call('stonehearth:set_display_name', self.uri, $(this).val())
+            radiant.call('stonehearth:set_display_name', self.uri, $(this).val());
+            $(this).blur();
         }
       });
 

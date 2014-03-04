@@ -168,19 +168,19 @@ function Town:place_item_type_in_world(entity_uri, full_item_uri, location, rota
    return task
 end
 
-function Town:harvest_resource_node(tree)
-   if not radiant.util.is_a(tree, Entity) then
+function Town:harvest_resource_node(node)
+   if not radiant.util.is_a(node, Entity) then
       return false
    end
 
-   local id = tree:get_id()
+   local id = node:get_id()
    if not self._harvest_tasks[id] then
-      local node_component = tree:get_component('stonehearth:resource_node')
+      local node_component = node:get_component('stonehearth:resource_node')
       if node_component then
          local effect_name = node_component:get_harvest_overlay_effect()
-         self._harvest_tasks[id] = self:create_worker_task('stonehearth:chop_tree', { tree = tree })
-                                      :set_source(tree)
-                                      :add_entity_effect(tree, effect_name)
+         self._harvest_tasks[id] = self:create_worker_task('stonehearth:harvest_resource_node', { node = node })
+                                      :set_source(node)
+                                      :add_entity_effect(node, effect_name)
                                       :once()
                                       :start()
       end

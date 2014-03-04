@@ -4,12 +4,24 @@ function ResourceNodeComponent:__create(entity, json)
    self._entity = entity
    self._durability = json.durability or 1
    self._resource = json.resource
+   self._harvester_effect = json.harvester_effect
+   self._description = json.description
    self._harvest_overlay_effect = json.harvest_overlay_effect
 end
 
 function ResourceNodeComponent:get_harvest_overlay_effect()
    return self._harvest_overlay_effect
 end
+
+
+function ResourceNodeComponent:get_harvester_effect()
+   return self._harvester_effect
+end
+
+function ResourceNodeComponent:get_description()
+   return self._description
+end
+
 
 function ResourceNodeComponent:spawn_resource(collect_location)
    if self._resource then
