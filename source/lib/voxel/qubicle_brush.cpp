@@ -25,7 +25,8 @@ QubicleBrush::QubicleBrush() :
    paint_mode_(Color),
    offset_mode_(Matrix),
    qubicle_file_(""),
-   clip_whitespace_(false)
+   clip_whitespace_(false),
+   lod_level_(0)
 {
 }
 
@@ -34,7 +35,8 @@ QubicleBrush::QubicleBrush(std::istream& in) :
    paint_mode_(Color),
    offset_mode_(Matrix),
    qubicle_file_(""),
-   clip_whitespace_(false)
+   clip_whitespace_(false),
+   lod_level_(0)
 {
    in >> qubicle_file_;
    qubicle_matrix_ = &qubicle_file_.begin()->second;
@@ -46,7 +48,19 @@ QubicleBrush::QubicleBrush(QubicleMatrix const* m) :
    paint_mode_(Color),
    offset_mode_(Matrix),
    qubicle_file_(""),
-   clip_whitespace_(false)
+   clip_whitespace_(false),
+   lod_level_(0)
+{
+}
+
+QubicleBrush::QubicleBrush(QubicleMatrix const* m, int lod_level) :
+   normal_(0, 0, -1),
+   qubicle_matrix_(m),
+   paint_mode_(Color),
+   offset_mode_(Matrix),
+   qubicle_file_(""),
+   clip_whitespace_(false),
+   lod_level_(lod_level)
 {
 }
 
@@ -90,7 +104,9 @@ csg::Region3 QubicleBrush::PreparePaintBrush()
    if (!qubicle_matrix_) {
       throw std::logic_error("could not find qubicle matrix for voxel brush");
    }
-   csg::Region3 brush = MatrixToRegion3(*qubicle_matrix_);
+
+   const QubicleMatrix loddedMatrix = Lod(*qubicle_matrix_, lod_level_);
+   csg::Region3 brush = MatrixToRegion3(loddedMatrix);
 
    // rotate if necessary...
    if (normal_ != csg::Point3(0, 0, -1)) {
@@ -99,6 +115,25 @@ csg::Region3 QubicleBrush::PreparePaintBrush()
       brush = csg::Reface(brush, normal_);
    }
    return brush;
+}
+
+QubicleMatrix QubicleBrush::Lod(const QubicleMatrix& m, int lod_level)
+{
+   const csg::Point3& size = m.GetSize();
+   QubicleMatrix result(size, m.GetPosition(), m.GetName());
+
+   // Version 1: stupid as hell.
+   /*const int lod_factor = pow(2, lod_level);
+
+   for (int x = 0; x < size.x; x++) {
+      for (int y = 0; y < size.y; y++) {
+         for (int z = 0; z < size.z; z++) {
+            result.Set(x, y, z, m.At((x / lod_factor) * lod_factor, (y / lod_factor) * lod_factor, (z / lod_factor) * lod_factor));
+         }
+      }
+   }*/
+
+   return result;
 }
 
 csg::Region3 QubicleBrush::IterateThroughStencil(csg::Region3 const& brush,

@@ -249,23 +249,27 @@ void VoxelMeshNode::onPostUpdate()
 
 
 uint32 VoxelMeshNode::getBatchStart() const { 
-   return getParentModel()->getVoxelGeometryResource()->_indexOffsets[_lodLevel]; 
+   int r = getParentModel()->getVoxelGeometryResource()->_indexOffsets[_lodLevel];  
+   return r;
 }
 
 
 uint32 VoxelMeshNode::getBatchCount() const { 
-   return getParentModel()->getVoxelGeometryResource()->_indexOffsets[_lodLevel + 1] - 
-      getParentModel()->getVoxelGeometryResource()->_indexOffsets[_lodLevel]; 
+   int r1 = getParentModel()->getVoxelGeometryResource()->_indexOffsets[_lodLevel + 1];
+   int r2 = getParentModel()->getVoxelGeometryResource()->_indexOffsets[_lodLevel];
+   return r1 - r2;      
 }
 
 
 uint32 VoxelMeshNode::getVertRStart() const { 
-   return getParentModel()->getVoxelGeometryResource()->_vertexOffsets[_lodLevel];
+   int r = getParentModel()->getVoxelGeometryResource()->_vertexOffsets[_lodLevel];
+   return r;
 }
 
 
-uint32 VoxelMeshNode::getVertREnd() const { 
-   return getParentModel()->getVoxelGeometryResource()->_vertexOffsets[_lodLevel + 1] - 1; 
+uint32 VoxelMeshNode::getVertREnd() const {
+   int r = getParentModel()->getVoxelGeometryResource()->_vertexOffsets[_lodLevel + 1] - 1;
+   return r;
 }
 
 

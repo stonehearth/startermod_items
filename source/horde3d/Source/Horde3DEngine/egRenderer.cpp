@@ -2747,8 +2747,6 @@ void Renderer::drawVoxelMeshes_Instances(const std::string &shaderContext, const
       bool useInstancing = instanceKind.second.size() >= VoxelInstanceCutoff && gRDI->getCaps().hasInstancing;
       Modules::config().setGlobalShaderFlag("DRAW_WITH_INSTANCING", useInstancing);
 
-      // Shadow offsets will always win against the custom model offsets (which we don't care about
-      // during a shadow pass.)
       // TODO(klochek): awful--but how to fix?  We can keep cramming stuff into the InstanceKey, but to what end?
       VoxelMeshNode* vmn = (VoxelMeshNode*)instanceKind.second.front().node;
 
@@ -2798,6 +2796,8 @@ void Renderer::drawVoxelMeshes_Instances(const std::string &shaderContext, const
          gRDI->setShaderConst(lodLevelConst, RDIShaderConstType::CONST_FLOAT4, &(lodColors[instanceKey.lodLevel].x));
       }
 
+      // Shadow offsets will always win against the custom model offsets (which we don't care about
+      // during a shadow pass.)
       float offset_x, offset_y;
       if (gRDI->getShadowOffsets(&offset_x, &offset_y) || vmn->getParentModel()->getPolygonOffset(offset_x, offset_y))
       {
@@ -2838,7 +2838,7 @@ void Renderer::drawVoxelMesh_Instances_WithInstancing(const RenderableQueue& ren
    radiant::perfmon::SwitchToCounter("draw mesh instances");
    // Draw instanced meshes.
    gRDI->setVertexBuffer(1, _vbInstanceVoxelData, 0, sizeof(float) * 16);
-   gRDI->drawInstanced(RDIPrimType::PRIM_TRILIST, vmn->getBatchCount(), 0, renderableQueue.size());
+   gRDI->drawInstanced(RDIPrimType::PRIM_TRILIST, vmn->getBatchCount(), vmn->getBatchStart(), renderableQueue.size());
    radiant::perfmon::SwitchToCounter("drawVoxelMeshes_Instances");
 
 	// Render

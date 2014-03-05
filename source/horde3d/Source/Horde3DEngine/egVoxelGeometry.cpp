@@ -79,6 +79,7 @@ void VoxelGeometryResource::initDefault()
 	_16BitIndices = false;
 	_indexBuf = defIndexBuffer;
 	_vertexBuf = defVertexBuffer;
+   _numLodLevels = 1;
 }
 
 
