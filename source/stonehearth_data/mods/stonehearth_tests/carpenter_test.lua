@@ -12,7 +12,7 @@ function CarpenterTest:__init()
    self:create_world()
 
    --Add a worker
-   --local worker = self:place_citizen(-5, -5)
+   local worker = self:place_citizen(-5, -5)
 
    --Create the carpenter. You will have to create the bench as part of the test
    local carpenter = self:place_citizen(-12, 7,'carpenter')

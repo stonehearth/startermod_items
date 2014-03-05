@@ -1,0 +1,18 @@
+{
+   "type": "entity",
+   "components" : {
+      "unit_info" : {
+         "name" : "Farmer's Field",
+         "description" : "For tilling and growing",
+         "portrait": "file(portrait.png)",
+         "character_sheet_info" : "file(field_character_sheet_info.json)"
+      },
+      "stonehearth:farmer_field" : {
+      },
+      "stonehearth:commands" : {
+         "commands" : [
+            "file(/data/commands/destroy_entity)"
+         ]
+      }
+   }
+}
