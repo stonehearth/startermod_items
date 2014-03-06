@@ -30,9 +30,9 @@
          "track" : {
             "type": "one_of",
             "items": [
-               "stonehearth:sounds:hammer_sound_01",
-               "stonehearth:sounds:hammer_sound_02",
-               "stonehearth:sounds:hammer_sound_03"
+               "stonehearth:sounds:mine_01",
+               "stonehearth:sounds:mine_02",
+               "stonehearth:sounds:mine_03"
             ]
          }
       },
