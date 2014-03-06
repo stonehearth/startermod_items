@@ -118,60 +118,26 @@ csg::Region3 QubicleBrush::PreparePaintBrush()
    return brush;
 }
 
-bool pairSort(const std::pair<int,int>& a, const std::pair<int,int>& b)
-{
-   /// Smallest -> Greatest
-   return a.second > b.second;
-}
-
-float cubeRoot(float n)
-{
-   return pow(n, 1.0/3.0);
-}
-
-
-float PivotXyz(float n)
-{
-   return n > 0.008856f ? cubeRoot(n) : (903.3f * n + 16.0f) / 116.0f;
-}
-
-float PivotRgb(float n)
-{
-   return (n > 0.04045f ? pow((n + 0.055f) / 1.055f, 2.4f) : n / 12.92f) * 100.0f;
-}
-csg::Point3f rgbToLab(const csg::Color4& rgba)
-{
-   const csg::Point3f whiteXyz(95.047f, 100.0f, 108.883f);
-   // First, to Xyz, even though I don't care about sRGB.
-   const csg::Point3f nRGB(
-      PivotRgb(rgba.r / 255.0f), 
-      PivotRgb(rgba.g / 255.0f), 
-      PivotRgb(rgba.b / 255.0f));
-
-   const csg::Point3f xyz(
-      (nRGB.x * 0.4124f + nRGB.y * 0.3576f + nRGB.z * 0.1805f),
-      (nRGB.x * 0.2126f + nRGB.y * 0.7152f + nRGB.z * 0.0722f),
-      (nRGB.x * 0.0193f + nRGB.y * 0.1192f + nRGB.z * 0.9505f));
-
-   const csg::Point3f lab1(
-      PivotXyz(xyz.x / whiteXyz.x),
-      PivotXyz(xyz.y / whiteXyz.y),
-      PivotXyz(xyz.z / whiteXyz.z));
-
-   return csg::Point3f(std::max(0.0f, 116.0f * lab1.y - 16),
-      500.0f * (lab1.x - lab1.y),
-      200.0f * (lab1.y - lab1.z));
-}
-
 float colorDistance(int colorA, int colorB)
 {
    const csg::Color4 cA = csg::Color4::FromInteger(colorA);
    const csg::Color4 cB = csg::Color4::FromInteger(colorB);
 
-   const csg::Point3f labA = rgbToLab(cA);
-   const csg::Point3f labB = rgbToLab(cB);
+   const csg::Point3f hslA = cA.ToHsl();
+   const csg::Point3f hslB = cB.ToHsl();
 
-   return labA.DistanceTo(labB);
+   float dH = hslA.x - hslB.x;
+   float dS = hslA.y - hslB.y;
+   float dL = hslA.z - hslB.z;
+
+   // HSL distance, but we bias against lightness (valuing hue/saturation more.)
+   return sqrt((dH * dH) + (dS * dS) + (dL * dL / 10.0f));
+}
+
+bool pairSort(const std::pair<int,int>& a, const std::pair<int,int>& b)
+{
+   /// Smallest -> Greatest
+   return a.second > b.second;
 }
 
 QubicleMatrix QubicleBrush::Lod(const QubicleMatrix& m, int lod_level)
@@ -183,60 +149,72 @@ QubicleMatrix QubicleBrush::Lod(const QubicleMatrix& m, int lod_level)
    const csg::Point3& size = m.GetSize();
    QubicleMatrix result(size, m.GetPosition(), m.GetName());
 
-
-   // Version 1: stupid as hell.
-   /*
-   const int lod_factor = pow(2, lod_level);
-      
-   for (int x = 0; x < size.x; x++) {
-      for (int y = 0; y < size.y; y++) {
-         for (int z = 0; z < size.z; z++) {
-            result.Set(x, y, z, m.At((x / lod_factor) * lod_factor, (y / lod_factor) * lod_factor, (z / lod_factor) * lod_factor));
-         }
-      }
-   }*/
-
    // Lod level 1:
    // Collect up all color frequencies
-   std::unordered_set<int> colorSet;
-   std::vector<int> colorVec;
+   std::unordered_map<int, int> colorCounts;
+   std::vector<std::pair<int, int> > colorVec;
    for (int x = 0; x < size.x; x ++) {
       for (int y = 0; y < size.y; y ++) {
          for (int z = 0; z < size.z; z ++) {
             int colorI = m.At(x,y,z);
             csg::Color4 color = csg::Color4::FromInteger(colorI);
             if (color.a > 0) {
-               color.a = 0;
-               colorSet.insert(color.ToInteger());
+               int colNoAlpha = csg::Color3::FromInteger(colorI).ToInteger();
+               if (colorCounts.find(colNoAlpha) == colorCounts.end()) {
+                  colorCounts[colNoAlpha] = 0;
+               }
+               colorCounts[colNoAlpha]++;
             }
          }
       }
    }
-   for (const int colorI : colorSet) {
-      colorVec.push_back(colorI);
+
+   // Sort colours by frequency (greatest to least).
+   for (const auto& col : colorCounts) {
+      colorVec.push_back(std::pair<int,int>(col.first, col.second));
+   }
+   std::sort(colorVec.begin(), colorVec.end(), pairSort);
+
+   // Construct a palette of (at most 4) colours.  For each colour in the matrix, compare against 
+   // the present palette, and if nothing too similar is present, add it to the palette.  Because 
+   // we've sorted the colours by frequency, we'll definitely get the most prominent colours in the 
+   // palette. Arguably, you could bias the minimum distance bigger as you add more colours, but 
+   // beware!  Distances in colour space are weird, and reducing palettes in such a manner can 
+   // produce...interesting...results.
+   std::vector<int> finalPalette;
+   for (const auto& colorFreq : colorVec) {
+      const float MinDist = 0.15f;
+      bool tooSimilar = false;
+      for (const auto& paletteColor : finalPalette) {
+         if (colorDistance(colorFreq.first, paletteColor) < MinDist) {
+            tooSimilar = true;
+            break;
+         }
+      }
+
+      if (!tooSimilar) {
+         finalPalette.push_back(colorFreq.first);
+      }
+
+      if (finalPalette.size() > 3) {
+         break;
+      }
    }
 
+   // Map the colours onto the generated palette.
    std::unordered_map<int, int> colorMap;
-   for (int passes = 0; passes < 2; passes++) {
-      const float MinDist = 5.7f * (passes + 2);
-      for (int i = 0; i < colorVec.size(); i++) {
-         float minDist = MinDist;
-         int mostSimilarIdx = i;
-         for (int j = i + 1; j < colorVec.size(); j++) {
-            float d = colorDistance(colorVec[i], colorVec[j]);
-            if (d < minDist) {
-               mostSimilarIdx = j;
-               minDist = d;
-            }
+   for (const auto& colorFreq : colorVec) {
+      float minDist = 9999999;
+      uint32 mostSimilarIdx = 0;
+
+      for (uint32 j = 0; j < finalPalette.size(); j++) {
+         float d = colorDistance(colorFreq.first, finalPalette[j]);
+         if (d < minDist) {
+            mostSimilarIdx = j;
+            minDist = d;
          }
-
-         colorMap[colorVec[i]] = colorVec[mostSimilarIdx];
       }
-      colorVec.clear();
-
-      for (const auto& vals : colorMap) {
-         colorVec.push_back(vals.second);
-      }
+      colorMap[colorFreq.first] = finalPalette[mostSimilarIdx];
    }
 
    // Replace the colors using the map.
@@ -246,18 +224,10 @@ QubicleMatrix QubicleBrush::Lod(const QubicleMatrix& m, int lod_level)
             int colorI = m.At(x,y,z);
             csg::Color4 color = csg::Color4::FromInteger(colorI);
             if (color.a > 0) {
-               csg::Color4 c = color;
-               c.a = 0;
-               colorI = c.ToInteger();
-
-               int nextCol = colorI;
-               do {
-                  colorI = nextCol;
-                  nextCol = colorMap[colorI];
-               } while (nextCol != colorI);
-               c = csg::Color4::FromInteger(colorI);
-               c.a = color.a;
-               result.Set(x,y,z, c.ToInteger());
+               colorI = csg::Color3::FromInteger(colorI).ToInteger();
+               csg::Color4 mappedColor = csg::Color4::FromInteger(colorMap[colorI]);
+               mappedColor.a = color.a;
+               result.Set(x,y,z, mappedColor.ToInteger());
             } else {
                result.Set(x,y,z, colorI);
             }
