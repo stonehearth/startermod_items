@@ -13,6 +13,7 @@ function FarmingTest:__init()
    --place the hoes and board
    self:place_item('stonehearth:farmer_coordination_board', 4, 0)
    self:place_item('stonehearth:farmer_hoe', 4, 1)
+   self:place_item('stonehearth:farmer_hoe', 4, 2)
 
    self:place_citizen(-1,2)
    self:place_citizen(-1,5)
