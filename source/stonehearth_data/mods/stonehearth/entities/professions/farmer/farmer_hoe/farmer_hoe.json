@@ -22,7 +22,7 @@
          },
          "equipped" : {
             "models": [
-               "file(carpenter_saw_equipped.qb)"
+               "file(farmer_hoe_equipped.qb)"
             ]
          }
       },
