@@ -13,7 +13,10 @@ function Town:__init(name)
    self._task_groups = {
       workers = self._scheduler:create_task_group('stonehearth:work', {})
                                :set_priority(stonehearth.constants.priorities.top.WORK)
-                               :set_counter_name('workers')
+                               :set_counter_name('workers'), 
+      farmers = self._scheduler:create_task_group('stonehearth:farm', {})
+                               :set_priority(stonehearth.constants.priorities.top.WORK)
+                               :set_counter_name('farmers'), 
    }
    self._unit_controllers = {}
    self._thread_orchestrators = {}
@@ -26,6 +29,13 @@ end
 -- xxx: this is a stopgap until we can provide a better interface
 function Town:create_worker_task(activity_name, args)
    return self._task_groups.workers:create_task(activity_name, args)
+end
+
+-- xxx: this is a stopgap until we can provide a better interface
+-- Yes, since I'm duplicating it for farmers
+-- TODO: fix and generalize
+function Town:create_farmer_task(activity_name, args)
+   return self._task_groups.farmers:create_task(activity_name, args)
 end
 
 function Town:join_task_group(entity, name)

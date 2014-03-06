@@ -67,14 +67,11 @@ end
 
 -- runs on the server!
 function FarmingCallHandler:create_new_field(session, response, location, size)
-   --TODO: move to a global farming service/field manager
+   --TODO: move to a global farming service/field manager ?
    local entity = radiant.entities.create_entity('stonehearth:farmer:field')   
    radiant.terrain.place_entity(entity, location)
-   entity:get_component('stonehearth:farmer_field'):set_size(size)
-   --xxx localize
-   entity:get_component('unit_info'):set_display_name('New Field Foo')
-   entity:get_component('unit_info'):set_faction(session.faction)
-
+   entity:get_component('stonehearth:farmer_field'):init_contents(size, location, 'New Field foo', session.faction)
+   
    return { field = entity}
 end
 

@@ -318,6 +318,8 @@
       "actions:wait_for_teardown" : "file(ai/actions/wait_for_teardown_action.lua)",
       "actions:teardown_structure" : "file(ai/actions/teardown_structure_action.lua)",
       "actions:teardown_structure_adjacent" : "file(ai/actions/teardown_structure_adjacent_action.lua)",
+      "actions:farmer_task_dispatcher" : "file(ai/actions/farmer_task_dispatcher.lua)",
+      "actions:till_field" : "file(ai/actions/till_field_action.lua)",
 
       "actions:follow_entity" : "file(ai/actions/follow_entity.lua)",
 

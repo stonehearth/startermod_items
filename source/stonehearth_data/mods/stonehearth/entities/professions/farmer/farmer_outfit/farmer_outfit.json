@@ -24,6 +24,8 @@
          "render_type" : "merge_with_model",
          "injected_ai" : {
             "actions" : [
+               "stonehearth:actions:farmer_task_dispatcher",
+               "stonehearth:actions:till_field"
             ]
          },
          "injected_commands" : [
