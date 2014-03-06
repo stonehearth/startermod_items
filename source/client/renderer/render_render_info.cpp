@@ -226,7 +226,7 @@ void RenderRenderInfo::AddModelNode(om::RenderInfoPtr render_info, std::string c
             .PaintOnce();
          all_models += model;
       }
-      csg::RegionToMesh(all_models, mesh, -origin);
+      csg::RegionToMesh(all_models, mesh, -origin, true);
    };
 
    H3DNodeUnique node = pipeline.AddSharedMeshNode(parent, key, material_path_, generate_matrix);

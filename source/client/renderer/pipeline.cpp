@@ -163,7 +163,7 @@ H3DNodeUnique Pipeline::CreateVoxelNode(H3DNode parent,
                                         csg::Point3f const& offset)
 {
    csg::mesh_tools::mesh mesh;
-   csg::RegionToMesh(model, mesh, offset);
+   csg::RegionToMesh(model, mesh, offset, false);
    return AddDynamicMeshNode(parent, mesh, material);
 }
 
