@@ -305,8 +305,7 @@ function Thread:resume(reason)
          self._log:detail('resume called when trying to suspend.  skipping the suspend.')
          self._should_resume = true
       end         
-   else
-      assert(not self._should_resume)
+   elseif not self._should_resume then
       self._should_resume = true
       Thread.schedule_thread(self)
    end

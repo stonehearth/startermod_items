@@ -1,5 +1,6 @@
-local Cube3 = _radiant.csg.Cube3
-local Point3 = _radiant.csg.Point3
+local Cube3   = _radiant.csg.Cube3
+local Point3  = _radiant.csg.Point3
+local Point3f = _radiant.csg.Point3f
 local Terrain = _radiant.om.Terrain
 
 local WORLD_SIZE = 32
@@ -23,6 +24,7 @@ function env.create_world()
    radiant.events.listen(radiant.events, 'stonehearth:entity:post_create', function(e)
          table.insert(_all_entities, e.entity)
       end)
+      
 end
 
 function env.clear()
@@ -30,6 +32,11 @@ function env.clear()
       radiant.entities.destroy_entity(entity)
    end
    _all_entities = {}
+   
+   -- move the camera to a decent spot
+   local CAMERA_POSITION = Point3f(11, 16, 39)
+   local CAMERA_LOOK_AT = Point3f(3.5, 1, 12.5)
+   autotest.ui.move_camera(CAMERA_POSITION, CAMERA_LOOK_AT)
 end
 
 function env.create_entity(x, z, uri, options)

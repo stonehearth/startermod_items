@@ -70,8 +70,11 @@ function CreateWorkshop:_complete_construction(crafter, ghost_workshop, outbox_e
    end
    radiant.entities.destroy_entity(ghost_workshop)
 
-   -- assign the crafter to the workshop
+   -- assign the crafter to the workshop and vice versa
+   local crafter_component = crafter:get_component('stonehearth:crafter')
+   assert(crafter_component, 'crafter has no crafter component while building workshop!')
    workshop_component:set_crafter(crafter)
+   crafter_component:set_workshop(workshop_component)
    
    stonehearth.analytics:send_design_event('game:place_workshop', workshop_entity)
    

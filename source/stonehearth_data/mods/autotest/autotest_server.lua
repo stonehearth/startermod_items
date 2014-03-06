@@ -1,6 +1,7 @@
 local _success
 local _all_tests = {}
 local _test_thread
+local _test_thread_suspended
 local _main_thread
 
 local autotest = {
@@ -24,6 +25,21 @@ end
 function autotest.success()
    _success = true
    _test_thread:terminate()
+end
+
+function autotest.suspend()
+   assert(stonehearth.threads:get_current_thread() == _test_thread)
+   _test_thread_suspended = true
+   _test_thread:suspend()
+end
+
+function autotest.resume()
+   assert(_test_thread_suspended)
+   if _test_thread then
+      assert(not _test_thread:is_finished())
+      _test_thread:resume()
+      _test_thread_suspended = false
+   end
 end
 
 function autotest.sleep(ms)

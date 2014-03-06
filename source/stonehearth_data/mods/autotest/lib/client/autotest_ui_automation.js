@@ -6,7 +6,11 @@ $(document).ready(function(){
                
                if (cmd == 'CLICK_DOM_ELEMENT') {
                   var jqselector = data[1];
-                  $(jqselector)[0].click();
+                  var element = $(jqselector)[0];
+                  if (!element) {
+                     console.error('could not find element matching selector: ', jqselector)
+                  }
+                  element.click();
                }
             });
 });

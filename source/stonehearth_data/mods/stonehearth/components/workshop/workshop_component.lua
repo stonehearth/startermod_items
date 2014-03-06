@@ -17,19 +17,13 @@ function WorkshopComponent:__create(entity, json)
    self._outbox_entity = nil
 
    self._craft_order_list = CraftOrderList()
-
-   self._data = {
-      order_list = self._craft_order_list
-   }
-   self.__savestate = radiant.create__savestate(self._data)
-
+   self.__savestate = radiant.create_datastore({
+         order_list = self._craft_order_list,
+         skin_class = json.skin_class or 'default'
+      })
+   self.__savestate:set_controller(self)
    self._construction_ingredients = json.ingredients
    self._build_sound_effect = json.build_sound_effect
-   if json.skin_class then 
-      self._data.skin_class = json.skin_class
-   else 
-      --xxx populate a default skin
-   end
 end
 
 --[[UI Interaction Functions
@@ -110,7 +104,7 @@ end
    Returns the crafter associated with this WorkshopComponent
 ]]
 function WorkshopComponent:get_crafter()
-   return self._data.crafter
+   return self._crafter
 end
 
 --[[
@@ -119,7 +113,8 @@ end
 function WorkshopComponent:set_crafter(crafter)
    local current = self:get_crafter()
    if not crafter or not current or current:get_id() ~= crafter:get_id() then
-      self._data.crafter = crafter
+      self._crafter = crafter
+      self.__savestate:get_data().crafter = crafter
       self.__savestate:mark_changed()
 
       local commandComponent = self._entity:get_component('stonehearth:commands')

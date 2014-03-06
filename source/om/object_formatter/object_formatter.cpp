@@ -31,6 +31,7 @@ JSONNode ObjectFormatter::ObjectToJson(dm::ObjectPtr obj) const
          JSONNode result = i->second(*this, obj);
          if (result.type() == JSON_NODE) {
             result.push_back(JSONNode("__self", obj->GetStoreAddress()));
+            result.push_back(JSONNode("__type", obj->GetObjectClassNameLower()));
          }
          return result;
       }

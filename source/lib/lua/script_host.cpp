@@ -142,7 +142,7 @@ JSONNode ScriptHost::LuaToJson(luabind::object current_obj)
          return JSONNode("", "\"userdata\"");
       } else if (t == LUA_TSTRING) {
          std::string str = object_cast<std::string>(obj);
-         boost::algorithm::replace_all(str, "\"", "\\'");
+         //boost::algorithm::replace_all(str, "\"", "\\'");
          return JSONNode("", str);
       } else if (t == LUA_TNUMBER) {
          std::ostringstream formatter;

@@ -18,11 +18,14 @@ radiant.mods = require 'modules.mods'
 radiant.gamestate = require 'modules.gamestate'
 radiant.entities = require 'modules.client_entities'
 
+require 'modules.timer'
+
 local api = {}
 
 -- xxx: radiant client and server need to share much more stuff!!! -- tony
 function api.update()
    radiant.events._update()
+   radiant._fire_timers()
 end
 
 return api

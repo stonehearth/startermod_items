@@ -26,7 +26,9 @@ App.StonehearthCrafterView = App.View.extend({
             }
          },
          "order_list" : {
-            "recipe" : {}
+            "orders" : {
+               "recipe" : {}
+            }
          }
       }
 
@@ -351,19 +353,20 @@ App.StonehearthCrafterView = App.View.extend({
    _initButtonStates: function() {
       var currentOrdersList = $('#orders');
       //Set the default state of the buttons
+      var self = this;
       if (currentOrdersList[0].scrollHeight > currentOrdersList.height()) {
-         this.$('#orderListUpBtn').show();
-         this.$('#orderListDownBtn').show();
+         self.$('#orderListUpBtn').show();
+         self.$('#orderListDownBtn').show();
       } else {
-         this.$('#orderListUpBtn').hide();
-         this.$('#orderListDownBtn').hide();
+         self.$('#orderListUpBtn').hide();
+         self.$('#orderListDownBtn').hide();
       }
 
       //Register an event to toggle the buttons when the scroll state changes
       currentOrdersList.on("overflowchanged", function(event){
          console.log("overflowchanged!");
-         this.$('#orderListUpBtn').toggle();
-         this.$('#orderListDownBtn').toggle();
+         self.$('#orderListUpBtn').toggle();
+         self.$('#orderListDownBtn').toggle();
       });
    },
 
@@ -375,10 +378,10 @@ App.StonehearthCrafterView = App.View.extend({
 
    _orderListObserver: function() {
       this._enableDisableTrash();
-   }.observes('context.stonehearth:workshop.order_list'),
+   }.observes('context.stonehearth:workshop.order_list.orders'),
 
    _enableDisableTrash: function() {
-      var list = this.get('context.stonehearth:workshop.order_list');
+      var list = this.get('context.stonehearth:workshop.order_list.orders');
 
       if (this.$('#garbageButton')) {
          if (list && list.length > 0) {
