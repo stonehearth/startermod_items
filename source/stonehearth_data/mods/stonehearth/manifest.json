@@ -107,6 +107,8 @@
       "medium_boulder" : "file(entities/boulders/medium_boulder)",
       "large_boulder" : "file(entities/boulders/large_boulder)",
 
+      "terrain:tall_grass" : "file(entities/terrain/tall_grass)",
+
       "oak_log" : "file(entities/trees/oak_tree/oak_log)",
       "small_oak_tree" : "file(entities/trees/oak_tree/small_oak_tree)",
       "medium_oak_tree" : "file(entities/trees/oak_tree/medium_oak_tree)",
