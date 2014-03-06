@@ -3,6 +3,7 @@
 #include "csg/util.h"
 #include "qubicle_file.h"
 #include "qubicle_brush.h"
+#include <unordered_set>
 
 using namespace ::radiant;
 using namespace ::radiant::voxel;
@@ -117,14 +118,76 @@ csg::Region3 QubicleBrush::PreparePaintBrush()
    return brush;
 }
 
+bool pairSort(const std::pair<int,int>& a, const std::pair<int,int>& b)
+{
+   /// Smallest -> Greatest
+   return a.second > b.second;
+}
+
+float cubeRoot(float n)
+{
+   return pow(n, 1.0/3.0);
+}
+
+
+float PivotXyz(float n)
+{
+   return n > 0.008856f ? cubeRoot(n) : (903.3f * n + 16.0f) / 116.0f;
+}
+
+float PivotRgb(float n)
+{
+   return (n > 0.04045f ? pow((n + 0.055f) / 1.055f, 2.4f) : n / 12.92f) * 100.0f;
+}
+csg::Point3f rgbToLab(const csg::Color4& rgba)
+{
+   const csg::Point3f whiteXyz(95.047f, 100.0f, 108.883f);
+   // First, to Xyz, even though I don't care about sRGB.
+   const csg::Point3f nRGB(
+      PivotRgb(rgba.r / 255.0f), 
+      PivotRgb(rgba.g / 255.0f), 
+      PivotRgb(rgba.b / 255.0f));
+
+   const csg::Point3f xyz(
+      (nRGB.x * 0.4124f + nRGB.y * 0.3576f + nRGB.z * 0.1805f),
+      (nRGB.x * 0.2126f + nRGB.y * 0.7152f + nRGB.z * 0.0722f),
+      (nRGB.x * 0.0193f + nRGB.y * 0.1192f + nRGB.z * 0.9505f));
+
+   const csg::Point3f lab1(
+      PivotXyz(xyz.x / whiteXyz.x),
+      PivotXyz(xyz.y / whiteXyz.y),
+      PivotXyz(xyz.z / whiteXyz.z));
+
+   return csg::Point3f(std::max(0.0f, 116.0f * lab1.y - 16),
+      500.0f * (lab1.x - lab1.y),
+      200.0f * (lab1.y - lab1.z));
+}
+
+float colorDistance(int colorA, int colorB)
+{
+   const csg::Color4 cA = csg::Color4::FromInteger(colorA);
+   const csg::Color4 cB = csg::Color4::FromInteger(colorB);
+
+   const csg::Point3f labA = rgbToLab(cA);
+   const csg::Point3f labB = rgbToLab(cB);
+
+   return labA.DistanceTo(labB);
+}
+
 QubicleMatrix QubicleBrush::Lod(const QubicleMatrix& m, int lod_level)
 {
+   if (lod_level == 0) {
+      return m;
+   }
+
    const csg::Point3& size = m.GetSize();
    QubicleMatrix result(size, m.GetPosition(), m.GetName());
 
-   // Version 1: stupid as hell.
-   /*const int lod_factor = pow(2, lod_level);
 
+   // Version 1: stupid as hell.
+   /*
+   const int lod_factor = pow(2, lod_level);
+      
    for (int x = 0; x < size.x; x++) {
       for (int y = 0; y < size.y; y++) {
          for (int z = 0; z < size.z; z++) {
@@ -132,6 +195,75 @@ QubicleMatrix QubicleBrush::Lod(const QubicleMatrix& m, int lod_level)
          }
       }
    }*/
+
+   // Lod level 1:
+   // Collect up all color frequencies
+   std::unordered_set<int> colorSet;
+   std::vector<int> colorVec;
+   for (int x = 0; x < size.x; x ++) {
+      for (int y = 0; y < size.y; y ++) {
+         for (int z = 0; z < size.z; z ++) {
+            int colorI = m.At(x,y,z);
+            csg::Color4 color = csg::Color4::FromInteger(colorI);
+            if (color.a > 0) {
+               color.a = 0;
+               colorSet.insert(color.ToInteger());
+            }
+         }
+      }
+   }
+   for (const int colorI : colorSet) {
+      colorVec.push_back(colorI);
+   }
+
+   std::unordered_map<int, int> colorMap;
+   for (int passes = 0; passes < 2; passes++) {
+      const float MinDist = 5.7f * (passes + 2);
+      for (int i = 0; i < colorVec.size(); i++) {
+         float minDist = MinDist;
+         int mostSimilarIdx = i;
+         for (int j = i + 1; j < colorVec.size(); j++) {
+            float d = colorDistance(colorVec[i], colorVec[j]);
+            if (d < minDist) {
+               mostSimilarIdx = j;
+               minDist = d;
+            }
+         }
+
+         colorMap[colorVec[i]] = colorVec[mostSimilarIdx];
+      }
+      colorVec.clear();
+
+      for (const auto& vals : colorMap) {
+         colorVec.push_back(vals.second);
+      }
+   }
+
+   // Replace the colors using the map.
+   for (int x = 0; x < size.x; x++) {
+      for (int y = 0; y < size.y; y++) {
+         for (int z = 0; z < size.z; z++) {
+            int colorI = m.At(x,y,z);
+            csg::Color4 color = csg::Color4::FromInteger(colorI);
+            if (color.a > 0) {
+               csg::Color4 c = color;
+               c.a = 0;
+               colorI = c.ToInteger();
+
+               int nextCol = colorI;
+               do {
+                  colorI = nextCol;
+                  nextCol = colorMap[colorI];
+               } while (nextCol != colorI);
+               c = csg::Color4::FromInteger(colorI);
+               c.a = color.a;
+               result.Set(x,y,z, c.ToInteger());
+            } else {
+               result.Set(x,y,z, colorI);
+            }
+         }
+      }
+   }
 
    return result;
 }

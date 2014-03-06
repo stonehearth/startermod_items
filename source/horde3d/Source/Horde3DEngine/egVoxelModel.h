@@ -53,8 +53,8 @@ struct VoxelModelNodeTpl : public SceneNodeTpl
 
 	VoxelModelNodeTpl( const std::string &name, VoxelGeometryResource *geoRes ) :
 		SceneNodeTpl( SceneNodeTypes::VoxelModel, name ), geoRes( geoRes ),
-			lodDist1(10 ), lodDist2( 50 ),
-			lodDist3( 100 ), lodDist4( Math::MaxFloat ),
+			lodDist1(50 ), lodDist2( Math::MaxFloat ),
+			lodDist3( 700 ), lodDist4( Math::MaxFloat ),
 			softwareSkinning( false )
 	{
 	}
