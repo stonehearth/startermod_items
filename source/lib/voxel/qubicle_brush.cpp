@@ -323,7 +323,19 @@ csg::Region3 QubicleBrush::MatrixToRegion3(QubicleMatrix const& matrix)
 
 #define OFFSET(x_, y_, z_)          ((y_ * size.z * size.x) + (z_ * size.x) + x_)
 #define PROCESSED(x, y, z)          processed[OFFSET(x, y, z)]
-#define MATCHES(c, m)               ((paint_mode_ == Color) ? ((c) == (m)) : (csg::Color4::FromInteger(c).a > 0))
+#define MATCHES(c, m)               ((paint_mode_ == Color) ? (csg::Color3::FromInteger(c).ToInteger() == csg::Color3::FromInteger(m).ToInteger()) : (csg::Color4::FromInteger(c).a > 0))
+
+   // Strip out all the alpha=0 voxels before proceeding.
+   for (int x = 0; x < size.x; x++) {
+      for (int y = 0; y < size.y; y++) {
+         for (int z = 0; z < size.z; z++) {
+            csg::Color4 c = csg::Color4::FromInteger(matrix.At(x, y, z));
+            if (c.a == 0) {
+               PROCESSED(x, y, z) = true;
+            }
+         }
+      }
+   }
 
    // From: http://mikolalysenko.github.com/MinecraftMeshes2/js/greedy.js
    // There it is, that's a straw, you see? You watching? And my straw
@@ -340,14 +352,6 @@ csg::Region3 QubicleBrush::MatrixToRegion3(QubicleMatrix const& matrix)
                continue;
             }
             int color = matrix.At(x, y, z);
-            csg::Color4 color4 = csg::Color4::FromInteger(color);
-
-            // fully transparent pixels should be skipped
-            if (color4.a == 0) {
-               PROCESSED(x, y, z) = true;
-               x++;
-               continue;
-            }
 
             // we've found an unprocessed pixel, non-transparent at x, y, z.
             // get the biggest rect we can.  start off in the xz-plane
@@ -387,7 +391,7 @@ finished_xyz:
             csg::Point3 cmin = csg::Point3(x, y, z);
             csg::Point3 cmax = csg::Point3(x_max, y_max, z_max);
 
-            result.AddUnique(csg::Cube3(cmin + offset, cmax + offset, color));
+            result.AddUnique(csg::Cube3(cmin + offset, cmax + offset, csg::Color3::FromInteger(color).ToInteger()));
 
             for (v = y; v < y_max; v++) {
                for (w = z; w < z_max; w++) {

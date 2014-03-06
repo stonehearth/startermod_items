@@ -29,7 +29,7 @@ csg::Region3 Stonehearth::ComputeStandingRegion(const csg::Region3& r, int heigh
       standing.Add(csg::Cube3(p0 + csg::Point3(0, 0, h), p0 + csg::Point3(w, height, h + 1)));  // bottom
       standing.Add(csg::Cube3(p0 + csg::Point3(w, 0, 0), p0 + csg::Point3(w + 1, height, h)));  // right
    }
-   standing.Optimize();
+   standing.OptimizeByMerge();
 
    return standing;
 }
