@@ -135,9 +135,6 @@ const InstanceKey* VoxelMeshNode::getInstanceKey() {
 
 bool VoxelMeshNode::checkIntersection( const Vec3f &rayOrig, const Vec3f &rayDir, Vec3f &intsPos, Vec3f &intsNorm ) const
 {
-	// Collision check is only done for base LOD
-	if( _lodLevel != 0 ) return false;
-
 	if( !rayAABBIntersection( rayOrig, rayDir, _bBox.min(), _bBox.max() ) ) return false;
 
    if (_parentModel->useCoarseCollisionBox()) {
