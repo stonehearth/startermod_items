@@ -675,6 +675,8 @@
          "file(ui/debug/error_browser/error_browser.html)",
          "file(ui/debug/error_dialog/error_dialog.html)",
          "file(ui/game/game.html)",
+         "file(ui/game/modes/zones_mode/zones_mode.html)",
+         "file(ui/game/modes/build_mode/build_mode.html)",
          "file(ui/game/esc_menu/esc_menu.html)",
          "file(ui/game/task_manager/task_manager.html)",   
          "file(ui/game/create_camp/create_camp.html)",
@@ -691,7 +693,7 @@
          "file(ui/game/unit_frame/unit_frame.html)",
          "file(ui/game/resource_scoreboard/resource_scoreboard.html)",
          "file(ui/game/start_menu/start_menu.html)",
-         "file(ui/game/main_actionbar/tip_popup.html)",
+         "file(ui/game/tip_popup/tip_popup.html)",
          "file(ui/game/event_log/event_log.html)",
          "file(ui/game/build/build.html)"
       ],
@@ -709,6 +711,9 @@
          "file(ui/debug/error_browser/error_browser.js)",
          "file(ui/debug/error_dialog/error_dialog.js)",
          "file(ui/game/game.js)",
+         "file(ui/game/modes/zones_mode/zones_mode.js)",
+         "file(ui/game/modes/build_mode/build_mode.js)",
+         "file(ui/game/modes/mode_manager.js)",
          "file(ui/game/esc_menu/esc_menu.js)",
          "file(ui/game/task_manager/task_manager.js)",   
          "file(ui/game/create_camp/create_camp.js)",
@@ -726,10 +731,9 @@
          "file(ui/game/unit_frame/unit_frame.js)",
          "file(ui/game/resource_scoreboard/resource_scoreboard.js)",
          "file(ui/game/start_menu/start_menu.js)",
-         "file(ui/game/main_actionbar/tip_popup.js)",
-         "file(ui/game/create_stockpile/create_stockpile.js)",
-         "file(ui/game/event_log/event_log.js)",
-         "file(ui/game/build/build.js)"
+         "file(ui/game/start_menu/stonehearth_menu.js)",
+         "file(ui/game/tip_popup/tip_popup.js)",
+         "file(ui/game/event_log/event_log.js)"
       ],
       "less" : [
          "file(entities/professions/carpenter/skin/workshop.less)",
@@ -746,6 +750,8 @@
          "file(ui/debug/error_browser/error_browser.less)",
          "file(ui/debug/error_dialog/error_dialog.less)",
          "file(ui/game/game.less)",
+         "file(ui/game/modes/zones_mode/zones_mode.less)",
+         "file(ui/game/modes/build_mode/build_mode.less)",
          "file(ui/game/esc_menu/esc_menu.less)",
          "file(ui/game/task_manager/task_manager.less)",   
          "file(ui/game/create_camp/create_camp.less)",
@@ -762,7 +768,8 @@
          "file(ui/game/place_item/place_item.less)",
          "file(ui/game/resource_scoreboard/resource_scoreboard.less)",
          "file(ui/game/start_menu/start_menu.less)",
-         "file(ui/game/main_actionbar/tip_popup.less)",
+         "file(ui/game/start_menu/stonehearth_menu.less)",
+         "file(ui/game/tip_popup/tip_popup.less)",
          "file(ui/game/event_log/event_log.less)",
          "file(ui/game/build/build.less)"
       ]

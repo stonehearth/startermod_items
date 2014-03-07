@@ -1,45 +1,23 @@
 App.StonehearthStartMenuView = App.View.extend({
    templateName: 'stonehearthStartMenu',
+   classNames: ['flex', 'fullScreen'],
 
    components: {
 
    },
 
    menuActions: {
-      createStockpile: {
-         click: function () {
-            $(top).trigger('radiant_create_stockpile');
-         }
+      create_stockpile: function () {
+         App.stonehearthClient.createStockpile();
       },
-      buildCarpenterWorkshop: {
-         click: function () {
-            $(top).trigger('build_workshop.stonehearth', {
-               uri: '/stonehearth/entities/professions/carpenter/profession_description.json'
-            });
-         }
+      build_wall: function () {
+         App.stonehearthClient.buildWall();
       },
-      buildWeaverWorkshop: {
-         click: function () {
-            $(top).trigger('build_workshop.stonehearth', {
-               uri: '/stonehearth/entities/professions/weaver/profession_description.json'
-            });
-         }
+      build_simple_room: function () {
+         App.stonehearthClient.buildRoom();
       },
-
-      buildWallLoop: {
-         click: function () {
-            $(top).trigger('radiant_create_wall');
-         }         
-      },
-      buildRoom: {
-         click: function () {
-            $(top).trigger('radiant_create_room');
-         }         
-      },
-      placeItem: {
-         click: function () {
-            $(top).trigger('radiant_show_placement_menu');
-         }         
+      placeItem: function () {
+         $(top).trigger('radiant_show_placement_menu');
       }
    },
 
@@ -49,6 +27,20 @@ App.StonehearthStartMenuView = App.View.extend({
          radiant.call('radiant:play_sound', 'stonehearth:sounds:ui:start_menu:trigger_click' );
       });
 
+      $.get('/stonehearth/data/ui/start_menu.json')
+         .done(function(json) {
+            App.stonehearth.startMenu = self.$('#startMenu');
+            self.$('#startMenu').stonehearthMenu({ 
+                  data : json,
+                  click : function (id, nodeData) {
+                     self._onMenuClick(id, nodeData);
+                  }
+               });
+
+
+         });
+      
+      /*
       $( '#startMenu' ).dlmenu({
          animationClasses : { 
             classin : 'dl-animate-in-sh', 
@@ -76,17 +68,18 @@ App.StonehearthStartMenuView = App.View.extend({
       $('#startMenu').on( 'mousedown', 'li', function() {
          radiant.call('radiant:play_sound', "stonehearth:sounds:ui:action_click");
       });
+      */
 
    },
 
-   onMenuClick: function(menuId) {
-      this.menuActions[menuId].click();
-   },
+   _onMenuClick: function(menuId, nodeData) {
+      //radiant.keyboard.setFocus(this.$());
+      var menuAction = this.menuActions[menuId];
 
-   destroy: function() {
-      $('#startMenu').off('mouseover.start_menu');
-      $('#startMenu').off('click.start_menu');
-      this._super();
+      // do the menu action
+      if (menuAction) {
+         menuAction();
+      }
    }
 
 });

@@ -1,0 +1,129 @@
+{
+   "harvest_menu" : {
+      "name" : "Harvest",
+      "description" : "xxx",
+      "class" : "dock",
+      "icon" : "/stonehearth/ui/game/start_menu/images/dock_harvest.png",
+      "hotkey" : "h",
+      "items" : {
+            "harvest" : {
+                "name" : "Harvest Resources",
+                "description" : "xxx",
+                "class" : "button",
+                "hotkey" : "h"
+            },
+            "obliterate" : {
+                "name" : "Obliterate",
+                "description" : "xxx",
+                "class" : "button",
+                "hotkey" : "x"
+            }
+      }
+   },
+   "zone_menu" : {
+      "name" : "Zones",
+      "description" : "xxx",
+      "class" : "dock",
+      "icon" : "/stonehearth/ui/game/start_menu/images/dock_zone.png",
+      "hotkey" : "z",
+      "game_mode" : "zones",
+      "items" : {
+            "create_stockpile" : {
+                "name" : "Stockpile",
+                "description" : "xxx",
+                "class" : "button",
+                "icon" : "/stonehearth/ui/game/start_menu/images/zone_stockpile.png",
+                "hotkey" : "o"
+            },
+            "create_farm" : {
+                "name" : "Farm",
+                "description" : "xxx",
+                "class" : "button",
+                "icon" : "/stonehearth/ui/game/start_menu/images/zone_farm.png",
+                "hotkey" : "f"
+            }
+      }
+   },
+   "build_menu" : {
+      "name" : "Build",
+      "description" : "xxx",
+      "class" : "dock",
+      "icon" : "/stonehearth/ui/game/start_menu/images/dock_build.png",
+      "hotkey" : "b",
+      "game_mode" : "build",
+      "items" : {
+            "build_simple_room" : {
+                "name" : "Simple Room",
+                "description" : "xxx",
+                "class" : "button",
+                "icon" : "/stonehearth/ui/game/start_menu/images/build_simple_room.png",
+                "hotkey" : "r"
+            },
+            "build_wall" : {
+                "name" : "Walls",
+                "description" : "xxx",
+                "class" : "button",
+                "icon" : "/stonehearth/ui/game/start_menu/images/build_wall.png",
+                "hotkey" : "l"
+            }
+      }
+   },
+   "town_menu" : {
+      "name" : "Town Info",
+      "description" : "xxx",
+      "class" : "town",
+      "items" : {
+            "town_inventory" : {
+                "name" : "Inventory",
+                "description" : "xxx",
+                "class" : "button"
+            },
+            "town_citizens" : {
+                "name" : "Citizens",
+                "description" : "xxx",
+                "class" : "button"
+            }
+      }      
+   },
+   "jobs_menu" : {
+      "name" : "Jobs",
+      "description" : "xxx",
+      "class" : "dock",
+      "icon" : "/stonehearth/ui/game/start_menu/images/dock_jobs.png",
+      "items" : {
+            "promote" : {
+                "name" : "Promote a Worker",
+                "description" : "xxx",
+                "class" : "button"
+            }
+      }      
+   },
+   "defend_menu" : {
+      "name" : "Defend",
+      "description" : "xxx",
+      "class" : "dock",
+      "icon" : "/stonehearth/ui/game/start_menu/images/dock_defend.png",
+      "items" : {
+            "create_squad" : {
+                "name" : "Create Squad",
+                "description" : "xxx",
+                "class" : "button"
+            },
+            "guard_area" : {
+                "name" : "Guard Area",
+                "description" : "xxx",
+                "class" : "button"
+            },
+            "patrol" : {
+                "name" : "Patrol Route",
+                "description" : "xxx",
+                "class" : "button"
+            }
+      }      
+   },
+   "config_menu" : {
+      "name" : "Config",
+      "description" : "xxx",
+      "class" : "dock"
+   }
+}

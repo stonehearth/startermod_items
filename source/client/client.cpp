@@ -388,6 +388,9 @@ Client::Client() :
       d->Resolve(obj);
       return d;
    });
+   core_reactor_->AddRouteV("radiant:client:deactivate_all_tools", [this](rpc::Function const& f) {
+      DeactivateAllTools();
+   });
 
 }
 
@@ -1179,3 +1182,19 @@ void Client::ProcessBrowserJobQueue()
    }
    browserJobQueue_.clear();
 }
+
+XZRegionSelectorPtr Client::CreateXZRegionSelector()
+{
+   XZRegionSelectorPtr selector = std::make_shared<XZRegionSelector>(GetTerrain());
+   xz_selectors_.push_back(selector);
+   return selector;
+}
+
+void Client::DeactivateAllTools()
+{
+   stdutil::ForEachPrune<XZRegionSelector>(xz_selectors_, [=](XZRegionSelectorPtr s) {
+      s->Deactivate();
+   });
+   xz_selectors_.clear();
+}
+   

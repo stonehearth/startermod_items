@@ -19,12 +19,22 @@ App.RootView = Ember.ContainerView.extend({
       App.shellView = this._shellView;
       App.debugView = this._debugView;
 
+      this._game_mode_manager = new GameModeManager();
+
       App.gotoGame = function() {
          self.gotoGame();
       }
 
       App.gotoShell = function() {
          self.gotoShell();
+      }
+
+      App.getGameMode = function() {
+         return self._game_mode_manager.getGameMode();
+      }
+
+      App.setGameMode = function(mode) {
+         self._game_mode_manager.setGameMode(mode);
       }
    },
 

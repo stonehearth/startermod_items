@@ -11,6 +11,9 @@ class Renderer;
 class PerfHud;
 class RenderContext;
 class Clock;
+class XZRegionSelector;
+
+DECLARE_SHARED_POINTER_TYPES(XZRegionSelector)
 
 #define CLIENT_LOG(level)     LOG(client, level)
 

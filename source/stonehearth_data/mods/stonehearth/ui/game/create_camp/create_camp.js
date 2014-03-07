@@ -45,8 +45,8 @@ App.StonehearthCreateCampView = App.View.extend({
          radiant.call('radiant:play_sound', 'stonehearth:sounds:box_grab' );
          var self = this;
          self._hideCrate();
-         $(top).trigger('radiant_create_stockpile', {
-            callback : function(response) {
+         App.stonehearthClient.createStockpile()
+            .always(function(response) {
                if(response.result) {
                   radiant.call('radiant:play_sound', 'stonehearth:sounds:place_structure' );
                   setTimeout( function() {
@@ -55,9 +55,8 @@ App.StonehearthCreateCampView = App.View.extend({
                } else {
                   self._showCrate();
                   radiant.call('radiant:play_sound', 'stonehearth:sounds:box_bounce' );
-               }
-            }
-         });
+               }               
+            });
       },
 
       finish: function () {
