@@ -641,6 +641,7 @@
       "portal" : "file(components/portal/portal_component.lua)",
       "no_construction_zone" : "file(components/no_construction_zone/no_construction_zone_component.lua)",
       "construction_data" : "file(components/construction_data/construction_data_component.lua)",
+      "construction_progress" : "file(components/construction_progress/construction_progress_component.lua)",
       "personality" : "file(components/personality/personality_component.lua)",
       "loot_table" : "file(components/loot_table/loot_table_component.lua)",
       "inventory" : "file(components/inventory/inventory_component.lua)",

@@ -7,6 +7,7 @@
 ]]
 
 local Point3 = _radiant.csg.Point3
+local WorkAtWorkshop = require 'services.town.orchestrators.work_at_workshop_orchestrator'
 local CraftOrderList = require 'components.workshop.craft_order_list'
 
 local WorkshopComponent = class()
@@ -24,6 +25,13 @@ function WorkshopComponent:__create(entity, json)
    self.__savestate:set_controller(self)
    self._construction_ingredients = json.ingredients
    self._build_sound_effect = json.build_sound_effect
+end
+
+function WorkshopComponent:__destroy()
+   if self._orchestrator then
+      self._orchestrator:destroy()
+      self._orchestrator = nil
+   end
 end
 
 --[[UI Interaction Functions
@@ -136,6 +144,15 @@ function WorkshopComponent:set_crafter(crafter)
       -- xxx, localize                                          
       local crafter_name = radiant.entities.get_name(crafter)
       radiant.entities.set_description(self._entity, 'owned by ' .. crafter_name)
+
+      local faction = radiant.entities.get_faction(self._entity)
+      local town = stonehearth.town:get_town(faction)
+      self._orchestrator = town:create_orchestrator(WorkAtWorkshop, {
+            crafter = crafter,
+            workshop = self._entity,
+            craft_order_list = self._craft_order_list,
+         })
+
    end
 end
 
@@ -160,10 +177,6 @@ function WorkshopComponent:pop_bench_output()
    if #self._bench_outputs > 0 then
       return table.remove(self._bench_outputs)
    end
-end
-
-function WorkshopComponent:get_craft_order_list()
-   return self._craft_order_list
 end
 
 function WorkshopComponent:finish_construction(faction, outbox_entity)

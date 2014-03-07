@@ -26,11 +26,11 @@ function BuildService:_unpackage_proxy_data(proxy, entity_map)
    -- what gets created server-side.  So instead, look up the actual entity that
    -- got created in the entity map and shove that into the component.
    if proxy.dependencies then
-      local cd = entity:add_component('stonehearth:construction_data')
+      local progress = entity:add_component('stonehearth:construction_progress')
       for _, dependency_id in ipairs(proxy.dependencies) do
          local dep = entity_map[dependency_id];
          assert(dep, string.format('could not find dependency entity %d in entity map', dependency_id))
-         cd:add_dependency(dep);
+         progress:add_dependency(dep);
       end
    end
    if proxy.children then
@@ -45,7 +45,7 @@ end
 
 function BuildService:build_structures(faction, changes)
    local root = radiant.entities.get_root_entity()
-   local city_plan = root:add_component('stonehearth:city_plan')
+   local town = stonehearth.town:get_town(faction)
    
    self._faction = faction
 
@@ -59,8 +59,8 @@ function BuildService:build_structures(faction, changes)
 
       -- If this proxy needs to be added to the terrain, go ahead and do that now.
       -- This will also create fabricators for all the descendants of this entity
-      if (proxy.add_to_build_plan) then
-         city_plan:add_blueprint(entity)
+      if proxy.add_to_build_plan then
+         town:add_construction_project(entity)
       end
    end
    

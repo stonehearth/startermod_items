@@ -1,5 +1,4 @@
 local CollectIngredients = require 'services.town.orchestrators.collect_ingredients_orchestrator'
-local WorkAtWorkshop = require 'services.town.orchestrators.work_at_workshop_orchestrator'
 
 local CreateWorkshop = class()
 
@@ -7,13 +6,16 @@ function CreateWorkshop:run(town, args)
    local crafter = args.crafter
    local ghost_workshop = args.ghost_workshop
    local outbox_entity = args.outbox_entity
-   local task_group = args.task_group
 
    local json = ghost_workshop:get_component('stonehearth:ghost_item'):get_full_sized_json()
    local workshop_data = json.components['stonehearth:workshop']
 
+   self._task_group = town:create_task_group('stonehearth:top', {})
+                                                  :set_priority(stonehearth.constants.priorities.top.CRAFT)
+                                                  :add_worker(crafter)
+
    town:run_orchestrator(CollectIngredients, {
-      task_group = task_group,
+      task_group = self._task_group,
       workshop = ghost_workshop,
       ingredients = workshop_data.ingredients
    })
@@ -30,16 +32,7 @@ function CreateWorkshop:run(town, args)
       return
    end
 
-   local workshop = self:_complete_construction(crafter, ghost_workshop, outbox_entity, args.workshop_task_group)
-
-   -- fire put the orchestrator
-   town:create_orchestrator(WorkAtWorkshop, {
-         crafter = crafter,
-         task_group  = task_group,
-         workshop = workshop:get_entity(),
-         craft_order_list = workshop:get_craft_order_list(),         
-      })
-      
+   self:_complete_construction(crafter, ghost_workshop, outbox_entity, args.workshop_task_group)
    return true
 end
 
@@ -47,6 +40,10 @@ function CreateWorkshop:stop()
    if self._collector then
       self._collector:destroy()
       self._collector = nil
+   end
+   if self._task_group then
+      self._task_group:destroy()
+      self._task_group = nil
    end
 end
 
@@ -73,12 +70,10 @@ function CreateWorkshop:_complete_construction(crafter, ghost_workshop, outbox_e
    -- assign the crafter to the workshop and vice versa
    local crafter_component = crafter:get_component('stonehearth:crafter')
    assert(crafter_component, 'crafter has no crafter component while building workshop!')
-   workshop_component:set_crafter(crafter)
    crafter_component:set_workshop(workshop_component)
+   workshop_component:set_crafter(crafter)
    
    stonehearth.analytics:send_design_event('game:place_workshop', workshop_entity)
-   
-   return workshop_component
 end
 
 return CreateWorkshop

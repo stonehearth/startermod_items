@@ -156,19 +156,29 @@ function ProxyBuilder:_package_proxy(proxy)
       package.components['stonehearth:construction_data'] = data
    end
 
-   -- Package the child and dependency lists.
+   -- Package the child and dependency lists.  Build it as a table first to
+   -- make sure we don't get duplicates in the children/dependency list,
+   -- then shove it into the package.dependencies
+   local all_dependencies = {}
    local children = proxy:get_children()
    if next(children) then
       package.children = {}
       for id, _ in pairs(children) do
+         all_dependencies[id] = true
          table.insert(package.children, id)
       end
    end
    
    local dependencies = proxy:get_dependencies()
    if next(dependencies) then
-      package.dependencies = {}
       for id, _ in pairs(dependencies) do
+         all_dependencies[id] = true
+      end
+   end
+
+   if next(all_dependencies) then
+      package.dependencies = {}
+      for id, _ in pairs(all_dependencies) do
          table.insert(package.dependencies, id)
       end
    end

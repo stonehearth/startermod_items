@@ -17,7 +17,6 @@ function Fabricator:__init(name, entity, blueprint)
    self._entity = entity
    self._blueprint = blueprint
    self._teardown = false
-   self._dependencies = {}
    self._faction = radiant.entities.get_faction(blueprint)
 
    self._resource_material = blueprint:get_component('stonehearth:construction_data'):get_material()
@@ -69,8 +68,23 @@ function Fabricator:__init(name, entity, blueprint)
       self._project_ladder:set_region(_radiant.sim.alloc_region())
    end
    
-   self:_initialize_dependencies()
+   local progress = self._project:get_component('stonehearth:construction_progress')
+   if progress then
+      self._dependencies_finished = progress:check_dependencies()
+      radiant.events.listen(self._project, 'stonehearth:construction_dependencies_finished', self, self._on_dependencies_finished)
+   else
+      self._dependencies_finished = true
+   end
    self:_trace_blueprint_and_project()
+end
+
+function Fabricator:_on_dependencies_finished(e)
+   self._dependencies_finished = e.finished
+   if e.finished then
+      self:_start_project()
+   else
+      self:_stop_project()
+   end
 end
 
 function Fabricator:get_material()
@@ -360,7 +374,7 @@ function Fabricator:_trace_blueprint_and_project()
          end)
       end
 
-      self._project:add_component('stonehearth:construction_data')
+      self._project:add_component('stonehearth:construction_progress')
                      :set_finished(finished)
       if finished then
          self:_stop_project()
@@ -376,119 +390,6 @@ function Fabricator:_trace_blueprint_and_project()
    self._project_region_trace = self._project:add_component('destination'):trace_region('updating fabricator')
                                        :on_changed(update_fabricator_region)
    update_fabricator_region()
-end
-
---- Tracks projects which must be completed before this one can start.
--- This is actually an enormous pain.  The stonehearth:construction_data component of our blueprint
--- contains a list of dependencies to other *blueprints*.  That's not very useful: we need to know
--- the actual projects which are being built from the blueprint.  That information is stored in the
--- stonehearth:fabricator component attached to the blueprint.  Unfortunately, we're not guaranteed
--- all the dependencies have been started at the time _initialize_dependencies() gets called.  If
--- the stonehearth:fabricator does not yet exist, how are we supposed to get the blueprint?
---
--- So we use this two step process: first, listen for stonehearth:construction_fabricator_changed
--- notifications on the blueprint.  When those fire, we'll have the fabricator and can ask *it*
--- for the project.  In the interval between now and when we actually get the project, we assume
--- that the project has not been completed.
-function Fabricator:_initialize_dependencies()
-   local dependencies = self._construction_data:get_dependencies()
-
-   self._dependencies = {}
-   if dependencies then
-      for id, blueprint in pairs(dependencies) do
-         -- Listen for changes to the blueprint's fabricator entity so we can find the actual
-         -- project for this blueprint
-         radiant.events.listen(blueprint, 'stonehearth:construction_fabricator_changed', self, self._on_construction_fabricator_changed)
-
-         -- Create a new dependency tracking the blueprint. 
-         self._dependencies[id] = {
-            blueprint = blueprint
-         }
-
-         -- Try to find the right project. We might not be able to if the blueprint hasn't
-         -- actually been started yet.  If it hasn't, the change notification above will fire
-         -- when it has and we'll get the project then.
-         local cd = blueprint:get_component('stonehearth:construction_data')
-         if cd then
-            local fabricator = cd:get_fabricator_entity()
-            self:_update_dependency_fabricator(blueprint, fabricator)
-         end
-      end
-   end
-   self._dependencies_finished = false
-   self:_check_dependencies()
-end
-
---- Handle stonehearth:construction_fabricator_changed events
-function Fabricator:_on_construction_fabricator_changed(e)
-   local id = e.entity:get_id()
-   local dependency = self._dependencies[id]
-   if dependency then
-      self:_update_dependency_fabricator(e.entity, e.fabricator_entity)
-   end
-end
-
---- Wires up the actual project for the specified blueprint
-function Fabricator:_update_dependency_fabricator(blueprint, fabricator)
-   if blueprint and fabricator then
-      local id = blueprint:get_id()
-      local dependency = self._dependencies[id]
-      if dependency then
-         local fc = fabricator:get_component('stonehearth:fabricator')
-         if fc then
-            local project = fc:get_project()
-            if dependency.project then
-               assert(dependency.project:get_id() == project:get_id(), 'dependency project change!  ug!!')
-            else 
-               -- Yay!  we've finally gotten the project for this dependency.  Listen for
-               -- construction_finished notifications so we can keep up-to-date and see
-               -- if we're ready to build.
-               dependency.project = project
-               radiant.events.listen(project, 'stonehearth:construction_finished',
-                                     self, self._on_construction_finished)
-               self:_check_dependencies()
-            end
-         end
-      end
-   end
-end
-
---- Handle stonehearth:construction_finished events
--- Just check to see if it's time to build yet.
-function Fabricator:_on_construction_finished(e)
-   self:_check_dependencies()
-end
-
---- Starts or stops construction of the project, depending on the state of our dependencies
-function Fabricator:_check_dependencies()
-   local last_dependencies_finished = self._dependencies_finished
-   
-   -- Assume we're good to go.  If not, the loop below will catch it.
-   self._dependencies_finished = true
-   for id, dependency in pairs(self._dependencies) do
-      local project = dependency.project
-      if not project then
-         -- We haven't gotten a project for this dependency yet, most likely because
-         -- *this* project got processed by the city_plan before the dependency.  No
-         -- biggie, we'll pick it up soon in a stonehearth:construction_fabricator_changed
-         -- notification.  For now, assume the project is not finished and bail.
-         self._dependencies_finished = false
-         break
-      end
-      local cd = project:get_component('stonehearth:construction_data')
-      if cd and not cd:get_finished() then
-         -- The project is actually not finished.  Definitely bail!
-         self._dependencies_finished = false
-         break
-      end
-   end
-   
-   -- Start or stop the project if the _dependencies_finished bit has flipped.
-   if last_dependencies_finished and not self._dependencies_finished then
-      self:_stop_project()
-   elseif not last_dependencies_finished and self._dependencies_finished then
-      self:_start_project()
-   end
 end
 
 return Fabricator

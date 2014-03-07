@@ -23,4 +23,3 @@ function PromoteTest:__init()
 end
 
 return PromoteTest
-

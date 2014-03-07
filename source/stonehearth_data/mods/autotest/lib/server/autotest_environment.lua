@@ -24,7 +24,8 @@ function env.create_world()
    radiant.events.listen(radiant.events, 'stonehearth:entity:post_create', function(e)
          table.insert(_all_entities, e.entity)
       end)
-      
+
+   env.town = stonehearth.town:get_town(DEFAULT_FACTION)
 end
 
 function env.clear()

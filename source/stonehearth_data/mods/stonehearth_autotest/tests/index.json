@@ -13,7 +13,8 @@
          "scripts" : [
             "file(end_to_end/harvest_autotests.lua)",
             "file(end_to_end/promote_autotests.lua)",
-            "file(end_to_end/carpenter_autotests.lua)"
+            "file(end_to_end/carpenter_autotests.lua)",
+            "file(end_to_end/construction_autotests.lua)"
          ]
       },
 

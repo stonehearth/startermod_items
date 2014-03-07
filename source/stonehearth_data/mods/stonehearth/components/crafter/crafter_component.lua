@@ -22,6 +22,13 @@ function CrafterComponent:__create(entity, json)
    })
 end
 
+function CrafterComponent:__destroy()
+   if self._orchestrator then
+      self._orchestrator:destroy()
+      self._orchestrator = nil
+   end
+end
+
 function CrafterComponent:get_work_effect()
    return self._work_effect
 end
@@ -40,13 +47,8 @@ function CrafterComponent:create_workshop(ghost_workshop, outbox_location, outbo
    -- create a task group for the workshop.  we'll use this both to build it and
    -- to feed the crafter orders when it's finally created
    local town = stonehearth.town:get_town(faction)
-   local workshop_task_group = town:create_task_group('stonehearth:top', {})
-                                                  :set_priority(stonehearth.constants.priorities.top.CRAFT)
-                                                  :add_worker(self._entity)
-
-   town:create_orchestrator(CreateWorkshop, {
+   self._orchestrator = town:create_orchestrator(CreateWorkshop, {
       crafter = self._entity,
-      task_group  = workshop_task_group,
       ghost_workshop = ghost_workshop,
       outbox_entity = outbox_entity,
    })

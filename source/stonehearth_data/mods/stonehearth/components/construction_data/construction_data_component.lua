@@ -44,39 +44,6 @@ function ConstructionDataComponent:get_normal()
    return self._data.normal
 end
 
-function ConstructionDataComponent:set_finished(finished)
-   local changed = self._data.finished ~= finished
-   if changed then
-      self._data.finished = finished
-      self.__savestate:mark_changed()
-
-      log:debug('%s trigger stonehearth:construction_finished event (finished = %s)',
-                  self._entity, tostring(finished))
-
-      radiant.events.trigger(self._entity, 'stonehearth:construction_finished', { 
-         entity = self._entity,
-         finished = finished   
-      })
-   end
-   return self
-end
-
-function ConstructionDataComponent:get_finished()
-   return self._data.finished
-end
-
-function ConstructionDataComponent:get_dependencies()
-   return self._data.dependencies
-end
-
-function ConstructionDataComponent:add_dependency(dep)
-   if not self._data.dependencies then
-      self._data.dependencies = {}
-   end
-   self._data.dependencies[dep:get_id()] = dep
-   self.__savestate:mark_changed()
-end
-
 function ConstructionDataComponent:get_max_workers()
    if self._data.max_workers then
       return self._data.max_workers

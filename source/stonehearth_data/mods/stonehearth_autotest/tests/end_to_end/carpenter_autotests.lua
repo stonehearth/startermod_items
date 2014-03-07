@@ -33,8 +33,9 @@ function carpenter_tests.place_workshop()
          local name = e.item:get_component('unit_info'):get_display_name() 
          if name == 'Table for One' then
             autotest.success()
+         else
+            autotest.fail('expected Table for One and got "%s"', name)
          end
-         autotest.fail('expected Table for One and got "%s"', name)
       end)
 
    autotest.sleep(120 * 10000)

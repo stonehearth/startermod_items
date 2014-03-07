@@ -1,3 +1,4 @@
+local Point3 = _radiant.csg.Point3
 local Entity = _radiant.om.Entity
 local UnitController = require 'services.town.unit_controller'
 local Promote = require 'services.town.orchestrators.promote_orchestrator'
@@ -9,6 +10,9 @@ function Town:__init(name)
    self._scheduler = stonehearth.tasks:create_scheduler(name)
                                        :set_counter_name(name)
 
+   self._town_entity = radiant.entities.create_entity()
+   radiant.entities.add_child(radiant._root_entity, self._town_entity, Point3(0, 0, 0))
+
    self._task_groups = {
       workers = self._scheduler:create_task_group('stonehearth:work', {})
                                :set_priority(stonehearth.constants.priorities.top.WORK)
@@ -17,6 +21,7 @@ function Town:__init(name)
    self._unit_controllers = {}
    self._thread_orchestrators = {}
    self._harvest_tasks = {}
+   self._buildings = {}
 end
 
 function Town:destroy()
@@ -114,6 +119,14 @@ function Town:create_orchestrator(orchestrator_ctor, args)
    self._thread_orchestrators[thread] = {}
    table.insert(self._thread_orchestrators[thread], orchestrator)
    thread:start()
+   
+   return {
+      destroy = function()
+            if not thread:is_finished() then
+               thread:terminate()
+            end
+         end
+   }
 end
 
 function Town:promote_citizen(person, talisman)
@@ -221,5 +234,15 @@ function Town:harvest_renewable_resource_node(plant)
    return true
 end
 
+function Town:add_construction_project(building)
+   local city_plan = self._town_entity:add_component('stonehearth:city_plan')
+   city_plan:add_blueprint(building)
+
+   table.insert(self._buildings, building)
+   radiant.events.trigger(self, 'stonehearth:building_added', {
+         town = self,
+         building = building,
+      })
+end
 return Town
 
