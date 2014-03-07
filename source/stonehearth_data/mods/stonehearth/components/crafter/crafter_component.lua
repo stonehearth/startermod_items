@@ -4,6 +4,7 @@
 ]]
 
 local CrafterComponent = class()
+local CreateWorkshop = require 'services.town.orchestrators.create_workshop_orchestrator'
 
 function CrafterComponent:__create(entity, json)
    self._entity = entity
@@ -23,6 +24,32 @@ end
 
 function CrafterComponent:get_work_effect()
    return self._work_effect
+end
+
+
+function CrafterComponent:create_workshop(ghost_workshop, outbox_location, outbox_size)
+   local faction = radiant.entities.get_faction(self._entity)
+   local outbox_entity = radiant.entities.create_entity('stonehearth:workshop_outbox')
+   radiant.terrain.place_entity(outbox_entity, outbox_location)
+   outbox_entity:get_component('unit_info'):set_faction(faction)
+
+   local outbox_component = outbox_entity:get_component('stonehearth:stockpile')
+   outbox_component:set_size(outbox_size.x, outbox_size.y)
+   outbox_component:set_outbox(true)
+
+   -- create a task group for the workshop.  we'll use this both to build it and
+   -- to feed the crafter orders when it's finally created
+   local town = stonehearth.town:get_town(faction)
+   local workshop_task_group = town:create_task_group('stonehearth:top', {})
+                                                  :set_priority(stonehearth.constants.priorities.top.CRAFT)
+                                                  :add_worker(self._entity)
+
+   town:create_orchestrator(CreateWorkshop, {
+      crafter = self._entity,
+      task_group  = workshop_task_group,
+      ghost_workshop = ghost_workshop,
+      outbox_entity = outbox_entity,
+   })
 end
 
 function CrafterComponent:set_workshop(workshop_component)

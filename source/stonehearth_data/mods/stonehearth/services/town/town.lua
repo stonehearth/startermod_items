@@ -1,7 +1,6 @@
 local Entity = _radiant.om.Entity
 local UnitController = require 'services.town.unit_controller'
 local Promote = require 'services.town.orchestrators.promote_orchestrator'
-local CreateWorkshop = require 'services.town.orchestrators.create_workshop_orchestrator'
 local Town = class()
 
 function Town:__init(name)
@@ -26,6 +25,12 @@ end
 -- xxx: this is a stopgap until we can provide a better interface
 function Town:create_worker_task(activity_name, args)
    return self._task_groups.workers:create_task(activity_name, args)
+end
+
+function Town:create_task_group(name, args)
+   -- xxx: stash it away for when we care to enumerate everything everyone in the town
+   -- is doing
+   return self._scheduler:create_task_group(name, args)
 end
 
 function Town:join_task_group(entity, name)
@@ -214,30 +219,6 @@ function Town:harvest_renewable_resource_node(plant)
       end
    end
    return true
-end
-
-function Town:create_workshop(crafter, ghost_workshop, outbox_location, outbox_size)
-   local faction = radiant.entities.get_faction(crafter)
-   local outbox_entity = radiant.entities.create_entity('stonehearth:workshop_outbox')
-   radiant.terrain.place_entity(outbox_entity, outbox_location)
-   outbox_entity:get_component('unit_info'):set_faction(faction)
-
-   local outbox_component = outbox_entity:get_component('stonehearth:stockpile')
-   outbox_component:set_size(outbox_size.x, outbox_size.y)
-   outbox_component:set_outbox(true)
-
-   -- create a task group for the workshop.  we'll use this both to build it and
-   -- to feed the crafter orders when it's finally created
-   local workshop_task_group = self._scheduler:create_task_group('stonehearth:top', {})
-                                                  :set_priority(stonehearth.constants.priorities.top.CRAFT)
-                                                  :add_worker(crafter)
-
-   self:create_orchestrator(CreateWorkshop, {
-      crafter = crafter,
-      task_group  = workshop_task_group,
-      ghost_workshop = ghost_workshop,
-      outbox_entity = outbox_entity,
-   })
 end
 
 return Town

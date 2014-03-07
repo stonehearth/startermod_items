@@ -224,8 +224,11 @@ function WorkshopCallHandler:create_outbox(session, response, location, outbox_s
    local ghost_workshop = radiant.entities.get_entity(ghost_workshop_entity_id)
    local crafter = radiant.entities.get_entity(crafter_id)
 
-   local town = stonehearth.town:get_town(session.faction)
-   town:create_workshop(crafter, ghost_workshop, location, outbox_size)
+   local crafter_component = crafter:get_component('stonehearth:crafter')
+   if not crafter_component then
+      return false
+   end
+   crafter_component:create_workshop(ghost_workshop, location, outbox_size)
    return true
 end
 
