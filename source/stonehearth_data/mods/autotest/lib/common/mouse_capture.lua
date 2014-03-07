@@ -3,7 +3,6 @@ local Point3 = _radiant.csg.Point3
 local Point3f = _radiant.csg.Point3f
 
 local _captures = {}
-local _region_selector
 
 local MouseEvent = class()
 function MouseEvent:__init(o)
@@ -47,15 +46,33 @@ end
 
 local RegionSelector = class()
 function RegionSelector:__init(p0, p1)
-   self._p0 = p0
-   self._p1 = p1
-   self._drag_end = Point3(p0.x, p0.y, p0.z)
 end
 
 function RegionSelector:destroy()
+   self._client_attached = false
+   self._server_attached = false
    self._progress_cb = nil
    self._done_cb = nil
    self._fail_cb = nil
+   self._p0 = nil
+   self._p1 = nil
+end
+
+function RegionSelector:is_active()
+   return self._client_attached and self._server_attached
+end
+
+function RegionSelector:notify_client_attached()
+   self._client_attached = true
+   self:_schedule_callback()
+end
+
+function RegionSelector:set_region(p0, p1)
+   self._server_attached = true
+   self._p0 = p0
+   self._p1 = p1
+   self._drag_end = Point3(p0.x, p0.y, p0.z)
+   self:_schedule_callback()
 end
 
 function RegionSelector:progress(cb)
@@ -77,10 +94,12 @@ function RegionSelector:fail(cb)
 end
 
 function RegionSelector:_schedule_callback()
-   local now = radiant.gamestate.now()
-   radiant.set_timer(now + 20, function ()
-         self:_fire_next_callback()
-      end)
+   if self._client_attached and self._server_attached then
+      local now = radiant.gamestate.now()
+      radiant.set_timer(now + 20, function ()
+            self:_fire_next_callback()
+         end)
+   end
 end
 
 function RegionSelector:_fire_next_callback()
@@ -99,6 +118,8 @@ function RegionSelector:_fire_next_callback()
    end
 end
 
+local _region_selector = RegionSelector()
+
 local function _capture_input_patch()
    local c = MouseCapture()
    _captures[c] = true
@@ -106,13 +127,10 @@ local function _capture_input_patch()
 end
 
 local function _select_xz_region_patch()
-   if not _region_selector then
-      error('server failed to push an xz region before client request')
-   end
-   local promise = _region_selector
-   _region_selector:_schedule_callback()
-   _region_selector = nil
-   return promise
+   assert(not _region_selector:is_active())
+
+   _region_selector:notify_client_attached()
+   return _region_selector
 end
 
 local function send_event(e)
@@ -132,10 +150,8 @@ function mouse_capture.click(x, y, z)
 end
 
 function mouse_capture.set_select_xz_region(p0, p1)
-   if _region_selector then
-      error('cannot have more than 1 region selector active in autotest')
-   end
-   _region_selector = RegionSelector(p0, p1)
+   assert(not _region_selector:is_active(), 'cannot have more than 1 region selector active in autotest')
+   _region_selector:set_region(p0, p1)
 end
 
 local _radiant_client_capture_input = _radiant.client._capture_input

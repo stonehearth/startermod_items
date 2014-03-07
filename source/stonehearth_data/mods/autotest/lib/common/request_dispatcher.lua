@@ -1,23 +1,19 @@
 local RequestDispatcher = class()
 
-function RequestDispatcher:__init(promise)
+function RequestDispatcher:__init()
    self.on = {} -- filled in by request creator
    self._recv_queue = {}
    self._suspend_until_realtime = 0
-   self:set_promise(promise)
 end
 
-function RequestDispatcher:set_promise(promise)
-   if promise then
-      self._promise = promise
-      self._promise:progress(function(...)
-            local msg = ...
-            table.insert(self._recv_queue, msg)
-         end)
-      self._queue = {}
+function RequestDispatcher:connect(connect_fn)
+   self._promise = _radiant.call(connect_fn)
+                              :progress(function(...)
+                                 local msg = ...
+                                 table.insert(self._recv_queue, msg)
+                              end)
 
-      radiant.events.listen(radiant.events, 'stonehearth:gameloop', self, self._process_queue)
-   end
+   radiant.events.listen(radiant.events, 'stonehearth:gameloop', self, self._process_queue)
 end
 
 function RequestDispatcher:pause_for_realtime(ms)

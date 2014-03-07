@@ -11,8 +11,10 @@ function carpenter_tests.place_workshop()
    -- the outbox before selecting the workshop location.  otherwise, the
    -- ui and the server will race to see if it gets there in time!
    autotest.ui.push_unitframe_command_button(carpenter, 'build_workshop')
-   autotest.ui.set_next_designation_region(4, 8, 4, 4) 
+   autotest.ui.sleep(500)
    autotest.ui.click_terrain(4, 4)
+   autotest.ui.sleep(500)
+   autotest.ui.set_next_designation_region(4, 8, 4, 4) 
 
    local workshop
    radiant.events.listen(carpenter, 'stonehearth:crafter:workshop_changed', function (e)

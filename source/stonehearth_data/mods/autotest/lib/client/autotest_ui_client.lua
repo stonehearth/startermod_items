@@ -9,6 +9,7 @@ local _mouse_capture = require 'lib.common.mouse_capture'
 local _select_xz_region = _radiant.client._select_xz_region
 local _browser = ResponseQueue()
 local _server = RequestDispatcher()
+local _browser_cmd_queue = {}
 
 _server.on[commands.WAIT_REALTIME] = function(ms)
    _server:pause_for_realtime(ms)
@@ -52,8 +53,7 @@ function ui_client.connect()
    stonehearth.camera:set_position(CAMERA_POSITION, true)
    stonehearth.camera:look_at(CAMERA_LOOK_AT)
 
-   local promise = _radiant.call('autotest:ui:connect_client_to_server')
-   _server:set_promise(promise)
+   _server:connect('autotest:ui:connect_client_to_server')
 end
 
 return ui_client
