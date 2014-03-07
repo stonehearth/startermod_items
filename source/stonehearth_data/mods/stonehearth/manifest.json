@@ -121,6 +121,8 @@
       "large_juniper_tree" : "file(entities/trees/juniper_tree/large_juniper_tree)",
 
       "berry_bush" : "file(entities/plants/berry_bush)",
+      "tilled_dirt" : "file(entities/terrain/tilled_dirt)",
+      "corn" : "file(entities/plants/corn)",
 
       "pink_flower" : "file(entities/ground_clutter/pink_flower)",
 
@@ -211,6 +213,7 @@
       "actions:goto_item_made_of" : "file(ai/actions/goto_item_made_of.lua)",
       "actions:goto_entity_with_entity_data" : "file(ai/actions/goto_entity_with_entity_data_action.lua)",
       "actions:create_proxy_entity" : "file(ai/actions/create_proxy_entity.lua)",
+      "actions:create_entity" : "file(ai/actions/create_entity.lua)",
       "actions:fear_fire" : "file(ai/actions/fear_fire_action.lua)",
       "actions:run_effect_action" : "file(ai/actions/run_effect_action.lua)",
       "actions:start_effect" : "file(ai/actions/start_effect.lua)",
@@ -320,6 +323,7 @@
       "actions:teardown_structure_adjacent" : "file(ai/actions/teardown_structure_adjacent_action.lua)",
       "actions:farmer_task_dispatcher" : "file(ai/actions/farmer_task_dispatcher.lua)",
       "actions:till_field" : "file(ai/actions/till_field_action.lua)",
+      "actions:plant_crop" : "file(ai/actions/plant_crop.lua)",
 
       "actions:follow_entity" : "file(ai/actions/follow_entity.lua)",
 
@@ -531,6 +535,10 @@
       },
       "create_outbox" : {
          "controller" : "file(call_handlers/workshop_call_handler.lua)",
+         "endpoint" : "server"
+      },
+      "plant_crop" : {
+         "controller" : "file(call_handlers/resource_call_handler.lua)",
          "endpoint" : "server"
       },
       "harvest_tree" : {

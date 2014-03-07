@@ -226,6 +226,25 @@ function Town:harvest_renewable_resource_node(plant)
    return true
 end
 
+--- Tell farmers to plan the crop_type in the designated locations
+-- REVIEW QUESTION: should all these functions really go here, in the town? 
+-- @param soil_plots: array of entities on top of which to plant the crop
+-- @param crop_type: the name of the thing to plant (ie, stonehearth:corn, etc)
+function Town:plant_crop(soil_plots, crop_type)
+   if not soil_plots[1] or not crop_type then
+      return false
+   end
+   for i, plot in ipairs(soil_plots) do
+      --TODO: store these tasks, so they can be cancelled
+      self:create_farmer_task('stonehearth:plant_crop', {target_plot = plot, crop_type = crop_type, location = radiant.entities.get_world_grid_location(plot) })
+                              :set_source(plot)
+                              --TODO: :add_entity_effect(plot, effect_name)
+                              :set_name('plant_crop')
+                              :once()
+                              :start()
+   end
+end
+
 function Town:create_workshop(crafter, ghost_workshop, outbox_location, outbox_size)
    local faction = radiant.entities.get_faction(crafter)
    local outbox_entity = radiant.entities.create_entity('stonehearth:workshop_outbox')

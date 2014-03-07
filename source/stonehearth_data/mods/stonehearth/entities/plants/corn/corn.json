@@ -1,0 +1,36 @@
+{
+   "type": "entity", 
+   "components": {
+      "model_variants": {
+         "default": {
+            "models": [
+               "file(corn_4.qb)"
+            ]
+         },
+         "just_planted": {
+            "models": [
+               "file(corn_1.qb)"
+            ]
+         },
+         "growing": {
+            "models": [
+               "file(corn_2.qb)"
+            ]
+         },
+         "budding": {
+            "models": [
+               "file(corn_3.qb)"
+            ]
+         },
+         "ripe": {
+            "models": [
+               "file(corn4.qb)"
+            ]
+         }
+      },
+      "unit_info": {
+         "name": "Corn Plant", 
+         "description": "Its syrup was the beginning of the end."
+      }
+   }
+}
