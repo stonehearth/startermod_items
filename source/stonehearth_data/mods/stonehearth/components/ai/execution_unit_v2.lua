@@ -131,7 +131,9 @@ function ExecutionUnitV2:get_debug_info()
       state = self._state,
       action = self:_get_action_debug_info(),
       think_output = stonehearth.ai:format_args(self._think_output),
-      execution_frames = {}
+      execution_frames = {
+         __numeric = true,
+      }
    }
    if self._execute_frame then
       table.insert(info.execution_frames, self._execute_frame:get_debug_info())

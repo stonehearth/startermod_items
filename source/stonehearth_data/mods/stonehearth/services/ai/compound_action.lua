@@ -180,7 +180,9 @@ function CompoundAction:get_debug_info()
       does = self.does,
       args = stonehearth.ai:format_args(self._args),
       priority = self.priority,
-      execution_frames = {}
+      execution_frames = {
+         __numeric = true,
+      }
    }
    local frames = (#self._thinking_frames > 0) and self._thinking_frames or self._running_frames
    for _, f in ipairs(frames) do

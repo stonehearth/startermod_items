@@ -8,6 +8,7 @@ local autotest = {
    __savestate = {},
    ui = require 'lib.server.autotest_ui_server',
    env = require 'lib.server.autotest_environment',
+   util = require 'lib.server.autotest_util_server',
 }
 
 function autotest.log(format, ...) 

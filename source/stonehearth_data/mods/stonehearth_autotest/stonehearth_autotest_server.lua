@@ -10,6 +10,7 @@ radiant.events.listen(mod, 'radiant:new_game', function(args)
          autotest.run_group(index, 'all')
          --autotest.run_script('stonehearth_autotest/tests/end_to_end/construction_autotests.lua')
          --autotest.run_script('stonehearth_autotest/tests/end_to_end/carpenter_autotests.lua')
+         --autotest.run_script('stonehearth_autotest/tests/end_to_end/food_autotests.lua')
       end)
    end)
 

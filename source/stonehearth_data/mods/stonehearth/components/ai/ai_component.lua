@@ -13,6 +13,8 @@ end
 
 function AIComponent:__create(entity, json)
    self._entity = entity
+   self.__savestate = radiant.create_datastore()
+   self.__savestate:set_controller(self)
    radiant.events.listen(entity, 'stonehearth:entity:post_create', function()
          stonehearth.ai:start_ai(self._entity, json)
          return radiant.events.UNLISTEN

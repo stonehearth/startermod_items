@@ -1089,7 +1089,9 @@ function ExecutionFrame:get_debug_info()
          name = self._name,
       },
       args = stonehearth.ai:format_args(self._args),
-      execution_units = {}
+      execution_units = {
+         __numeric = true,
+      }
    }
    for _, unit in pairs(self._execution_units) do
       table.insert(info.execution_units, unit:get_debug_info())
