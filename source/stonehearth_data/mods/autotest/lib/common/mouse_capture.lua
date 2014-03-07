@@ -3,6 +3,8 @@ local Point3 = _radiant.csg.Point3
 local Point3f = _radiant.csg.Point3f
 
 local _captures = {}
+local _mouse_queue = {}
+local _mouse_queue_timer_set
 
 local MouseEvent = class()
 function MouseEvent:__init(o)
@@ -118,11 +120,39 @@ function RegionSelector:_fire_next_callback()
    end
 end
 
+local function call_mouse_callbacks(e)
+   for cap, _ in pairs(_captures) do
+      if cap.callback then
+         cap.callback(e)
+      end
+   end
+end
+
+local function start_mouse_queue_timer()
+   if not _mouse_queue_timer_set then
+      _mouse_queue_timer_set = true
+      radiant.set_timer(10, function()
+            _mouse_queue_timer_set = false
+            if #_mouse_queue > 0 and next(_captures) then
+               local event = table.remove(_mouse_queue, 1)
+               call_mouse_callbacks(event)
+               start_mouse_queue_timer()
+            end
+         end)
+   end
+end
+
+local function queue_mouse_event(e)
+   table.insert(_mouse_queue, e)
+   start_mouse_queue_timer();
+end
+
 local _region_selector = RegionSelector()
 
 local function _capture_input_patch()
    local c = MouseCapture()
    _captures[c] = true
+   start_mouse_queue_timer()
    return c
 end
 
@@ -133,20 +163,12 @@ local function _select_xz_region_patch()
    return _region_selector
 end
 
-local function send_event(e)
-   for cap, _ in pairs(_captures) do
-      if cap.callback then
-         cap.callback(e)
-      end
-   end
-end
-
 local mouse_capture = {}
 
 function mouse_capture.click(x, y, z)
    local pt = _radiant.renderer.camera.world_to_screen(Point3f(x, y, z))
-   send_event(MouseEvent({ x = pt.x, y = pt.y, down = { 1 } }))
-   send_event(MouseEvent({ x = pt.x, y = pt.y, up = { 1 } }))
+   queue_mouse_event(MouseEvent({ x = pt.x, y = pt.y, down = { 1 } }))
+   queue_mouse_event(MouseEvent({ x = pt.x, y = pt.y, up = { 1 } }))
 end
 
 function mouse_capture.set_select_xz_region(p0, p1)
