@@ -17,14 +17,13 @@ end
 
 function ProxyRoof:cover_region(region2)
    local data = self:add_construction_data()
-   -- data.needs_scaffolding = true
-   self:update_datastore()   
 
    -- add the region before we try to create the brush, otherwise
    -- we'll have no idea where to place things
-   local data = self:add_construction_data()
-   data.nine_grid_region = region2
-   self:update_datastore()
+   data:modify_data(function (o)
+         -- o.needs_scaffolding = true
+         o.nine_grid_region = region2
+      end)
 
    local brush = self:get_voxel_brush()
    local collsion_shape = brush:paint_once()

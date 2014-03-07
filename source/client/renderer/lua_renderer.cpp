@@ -1,7 +1,6 @@
 #include "pch.h"
 #include "renderer.h"
 #include "client/client.h"
-#include "om/object_formatter/object_formatter.h"
 #include "lua_renderer.h"
 #include "h3d_resource_types.h"
 #include "lib/json/core_json.h"

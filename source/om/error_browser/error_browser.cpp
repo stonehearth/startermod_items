@@ -22,3 +22,13 @@ void ErrorBrowser::AddRecord(ErrorBrowser::Record const& r)
    entry->Set(n);
    entries_.Add(entry);
 }
+
+void ErrorBrowser::SerializeToJson(json::Node& node) const
+{
+   JSONNode entries(JSON_ARRAY);
+   entries.set_name("entries");
+   for (auto const& e: GetEntries()) {
+      entries.push_back(JSONNode("", e->GetStoreAddress()));
+   }
+   node.set("entries", entries);
+}

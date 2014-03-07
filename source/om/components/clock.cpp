@@ -15,7 +15,11 @@ void Clock::ConstructObject()
    time_ = 0;
 }
 
-void Clock::ExtendObject(json::Node const& obj)
+void Clock::LoadFromJson(json::Node const& obj)
 {
 }
 
+void Clock::SerializeToJson(json::Node& node) const
+{
+   Component::SerializeToJson(node);
+}

@@ -90,8 +90,9 @@ function ProxyContainer:_remove_child(id)
 end
 
 function ProxyContainer:_add_nobuild_zone(entity, origin, cursor)
-   local fabinfo = entity:get_component_data('stonehearth:construction_data')
-   if fabinfo then
+   local datastore = entity:get_component('stonehearth:construction_data')
+   if datastore then
+      local fabinfo = datastore:get_data()
       local offset = entity:get_component('mob'):get_world_grid_location() - origin
       local region = entity:get_component('destination'):get_region():get()
 
@@ -133,7 +134,7 @@ function ProxyContainer:_rebuild_zone()
             end
          end
       end)
-      entity:set_component_data('stonehearth:no_construction_zone', { region2 = self._rgn2 })
+      entity:add_component('stonehearth:no_construction_zone', { region2 = self._rgn2 })
    end
 end
 

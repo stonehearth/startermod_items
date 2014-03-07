@@ -9,8 +9,19 @@ std::ostream& operator<<(std::ostream& os, TargetTables const& o)
    return (os << "[TargetTables]");
 }
 
-void TargetTables::ExtendObject(json::Node const& obj)
+void TargetTables::LoadFromJson(json::Node const& obj)
 {
+}
+
+void TargetTables::SerializeToJson(json::Node& node) const
+{
+   Component::SerializeToJson(node);
+
+   for (auto const& entry : tables_) {
+      json::Node table;
+      entry.second->SerializeToJson(table);
+      node.set(stdutil::ToString(entry.first), table);
+   }
 }
 
 TargetTablePtr TargetTables::AddTable(std::string const& category)

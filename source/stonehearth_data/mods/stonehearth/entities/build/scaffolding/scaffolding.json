@@ -14,7 +14,7 @@
          "project_adjacent_to_base" : true,
          "allow_diagonal_adjacency" : true,
          "max_workers" : 1,
-         "material_tag": "wood resource"
+         "material": "wood resource"
       }
    },
    "entity_data" : {

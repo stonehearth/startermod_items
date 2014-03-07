@@ -81,7 +81,6 @@ int call_impl(lua_State* L, int start, std::string const& obj, std::string const
       JSONNode arg = lua::ScriptHost::LuaToJson(L, obj);
       fn.args.push_back(arg);
    }
-   LOG_(0) << fn.args.write_formatted();
 
    std::string name = BUILD_STRING("lua " << fn);
    ReactorDeferredPtr d = GetReactor(L)->Call(fn);

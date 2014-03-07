@@ -11,6 +11,14 @@ std::ostream& operator<<(std::ostream& os, const Sensor& o)
    return os;
 }
 
+void Sensor::LoadFromJson(json::Node const& node)
+{
+}
+
+void Sensor::SerializeToJson(json::Node& node) const
+{
+}
+
 void Sensor::UpdateIntersection(std::unordered_map<dm::ObjectId, om::EntityRef> const& intersection)
 {
    // xxx: move this whole routine into the dm::Set class?  It would

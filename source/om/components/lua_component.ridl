@@ -65,11 +65,11 @@ static std::ostream& operator<<(std::ostream& os, ${class_formal_parameter})
 }
 
 % if is_component:
-static ${class_return_type} ${class_upper}_ExtendObject(lua_State* L, ${class_formal_parameter}, object obj)
+static ${class_return_type} ${class_upper}_LoadFromJson(lua_State* L, ${class_formal_parameter}, object obj)
 {
    ${class_to_pointer}
    if (instance)  {
-      instance->ExtendObject(lua::ScriptHost::LuaToJson(L, obj));
+      instance->LoadFromJson(lua::ScriptHost::LuaToJson(L, obj));
       return instance;
    }
    throw std::invalid_argument("invalid reference in native ${class_lower}::extend");
@@ -314,7 +314,7 @@ scope Register${class_upper}(lua_State* L)
          ]
 % endfor
 % if is_component:
-         .def("extend",                &${class_upper}_ExtendObject)
+         .def("load_from_json",                &${class_upper}_LoadFromJson)
 % endif
 ## - Boxed -----------------------------------------------------------------------------------
 % for name, boxed in env.properties(C, dm.Boxed):

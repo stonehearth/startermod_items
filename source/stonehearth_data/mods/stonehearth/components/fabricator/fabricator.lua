@@ -20,11 +20,7 @@ function Fabricator:__init(name, entity, blueprint)
    self._dependencies = {}
    self._faction = radiant.entities.get_faction(blueprint)
 
-   local resource_data = blueprint:get_component('stonehearth:construction_data'):get_data()
-   self._resource_material = resource_data.material_tag
-   if not self._resource_material then
-      self._resource_material = 'wood resource'
-   end
+   self._resource_material = blueprint:get_component('stonehearth:construction_data'):get_material()
    
    -- initialize the fabricator entity.  we'll manually update the
    -- adjacent region of the destination so we can build the project
@@ -62,8 +58,8 @@ function Fabricator:__init(name, entity, blueprint)
 
    -- get fabrication specific info, if available.  copy it into the project, too
    -- so everything gets rendered correctly.
-   self._project:add_component('stonehearth:construction_data')
-                  :extend(self._construction_data:get_data()) -- actually 'load' or something.
+   local state = self._construction_data:get_savestate()
+   self._project:add_component('stonehearth:construction_data', state)
 
    -- hold onto the blueprint ladder component, if it exists.  we'll replicate
    -- the ladder into the project as it gets built up.

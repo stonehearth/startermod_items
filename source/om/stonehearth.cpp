@@ -7,7 +7,6 @@
 #include "resources/res_manager.h"
 #include "resources/exceptions.h"
 #include "lib/lua/script_host.h"
-#include "om/object_formatter/object_formatter.h"
 
 using namespace ::radiant;
 using namespace ::radiant::om;
@@ -55,10 +54,25 @@ GetLuaComponentUri(std::string name)
 }
 
 static object
-ConstructLuaComponent(lua::ScriptHost* scriptHost, std::string const& name, om::EntityRef entity, luabind::object component_data)
+ConstructLuaComponent(lua::ScriptHost* scriptHost, std::string const& name, om::EntityRef e, luabind::object component_data)
 {
    object obj;
    lua_State* L = scriptHost->GetInterpreter();
+
+   // xxx: this is somewhat gross.  we should simply bind a different function in the
+   // client vs the server!
+   bool is_server = object_cast<bool>(globals(L)["radiant"]["is_server"]);
+   if (!is_server) {
+      // stick it in a datastore.
+      om::EntityPtr entity = e.lock();
+      if (entity) {
+         ASSERT(entity->GetStoreId() != 1); // not in the game store!!
+         om::DataStorePtr datastore = entity->GetStore().AllocObject<om::DataStore>();
+         datastore->SetData(component_data);
+         return luabind::object(L, datastore);
+      }
+      return component_data;
+   }
 
    try {
       std::string uri = GetLuaComponentUri(name);
@@ -68,7 +82,7 @@ ConstructLuaComponent(lua::ScriptHost* scriptHost, std::string const& name, om::
          if (obj) {
             object __create = obj["__create"];
             if (type(__create) == LUA_TFUNCTION) {
-               call_function<void>(__create, obj, entity, component_data);
+               call_function<void>(__create, obj, e, component_data);
             }                  
          }
       }
@@ -89,7 +103,7 @@ Stonehearth::AddComponent(lua_State* L, EntityRef e, std::string name)
          lua::ScriptHost* scriptHost = lua::ScriptHost::GetScriptHost(L);
          om::ComponentPtr obj = entity->AddComponent(name);
          if (obj) {
-            obj->ExtendObject(JSONNode());
+            obj->LoadFromJson(JSONNode());
             component = scriptHost->CastObjectToLua(obj);
          } else {
             component = ConstructLuaComponent(scriptHost, name, e, luabind::newtable(L));
@@ -106,27 +120,20 @@ object
 Stonehearth::SetComponentData(lua_State* L, EntityRef e, std::string name, object data)
 {
    object result;
-   // xxx: this is somewhat gross.  we should simply bind a different function in the
-   // client vs the server!
-   bool is_server = object_cast<bool>(globals(L)["radiant"]["is_server"]);
-   if (is_server) {
-      om::EntityPtr entity = e.lock();
-      if (entity) {
-         lua::ScriptHost* scriptHost = lua::ScriptHost::GetScriptHost(L);
-         entity->RemoveComponent(name);
-         om::ComponentPtr obj = entity->AddComponent(name);
-         if (obj) {
-            obj->ExtendObject(scriptHost->LuaToJson(data));
-            result = scriptHost->CastObjectToLua(obj);
-         } else {
-            result = ConstructLuaComponent(scriptHost, name, e, data);
-            if (result) {
-               entity->AddLuaComponent(name, result);
-            }
+   om::EntityPtr entity = e.lock();
+   if (entity) {
+      lua::ScriptHost* scriptHost = lua::ScriptHost::GetScriptHost(L);
+      entity->RemoveComponent(name);
+      om::ComponentPtr obj = entity->AddComponent(name);
+      if (obj) {
+         obj->LoadFromJson(scriptHost->LuaToJson(data));
+         result = scriptHost->CastObjectToLua(obj);
+      } else {
+         result = ConstructLuaComponent(scriptHost, name, e, data);
+         if (result) {
+            entity->AddLuaComponent(name, result);
          }
       }
-   } else {
-      NOT_YET_IMPLEMENTED();
    }
    return result;
 }
@@ -149,19 +156,12 @@ Stonehearth::GetComponent(lua_State* L, EntityRef e, std::string name)
    return component;
 }
 
-object
-Stonehearth::GetComponentData(lua_State* L, EntityRef e, std::string name)
-{
-   return GetComponent(L, e, name);
-}
-
 void
 Stonehearth::InitEntity(EntityPtr entity, std::string const& uri, lua_State* L)
 {
    ASSERT(L);
 
    lua::ScriptHost* scriptHost = lua::ScriptHost::GetScriptHost(L);
-   bool is_server = object_cast<bool>(globals(L)["radiant"]["is_server"]);
 
    entity->SetUri(uri);
    res::ResourceManager2::GetInstance().LookupJson(uri, [&](const JSONNode& node) {
@@ -171,15 +171,10 @@ Stonehearth::InitEntity(EntityPtr entity, std::string const& uri, lua_State* L)
             std::string const& component_name = entry.name();
             ComponentPtr component = entity->AddComponent(component_name);
             if (component) {
-               component->ExtendObject(json::Node(entry));
+               component->LoadFromJson(json::Node(entry));
             } else {
-               object lua_component;
-               if (is_server) {
-                  object component_data = lua::ScriptHost::JsonToLua(L, entry);
-                  lua_component = ConstructLuaComponent(scriptHost, component_name, entity, component_data);
-               } else {
-                  lua_component = lua::ScriptHost::JsonToLua(L, entry);
-               }
+               object component_data = lua::ScriptHost::JsonToLua(L, entry);
+               object lua_component = ConstructLuaComponent(scriptHost, component_name, entity, component_data);
                if (lua_component) {
                   entity->AddLuaComponent(component_name, lua_component);
                }
@@ -205,4 +200,6 @@ Stonehearth::InitEntity(EntityPtr entity, std::string const& uri, lua_State* L)
          }
       }
    });
+
+   entity->SetDebugText(BUILD_STRING(*entity));
 }

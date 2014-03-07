@@ -801,8 +801,14 @@ luabind::object ScriptHost::CastObjectToLua(dm::ObjectPtr obj)
 bool ScriptHost::IsNumericTable(luabind::object tbl) const
 {
    iterator i(tbl), end;
-   if (i == end) {
+
+   // used to treat empty tables as numeric
+   object __numeric = tbl["__numeric"];
+   if (__numeric.is_valid() && type(__numeric) == LUA_TBOOLEAN && object_cast<bool>(__numeric)) {
       return true;
+   }
+   if (i == end) {
+      return false; // assume empty tables are objects.
    }
    return luabind::type(tbl) == LUA_TTABLE && luabind::type(tbl[1]) != LUA_TNIL;
 }

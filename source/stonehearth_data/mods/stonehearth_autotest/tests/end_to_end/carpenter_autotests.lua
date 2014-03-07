@@ -35,7 +35,7 @@ function carpenter_tests.place_workshop()
          autotest.fail('expected Table for One and got "%s"', name)
       end)
 
-   autotest.sleep(120000)
+   autotest.sleep(120 * 10000)
    autotest.fail('failed to carpenter')
 end
 

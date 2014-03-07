@@ -7,7 +7,6 @@
 #include "reactor_deferred.h"
 #include "function.h"
 #include "dm/store.h"
-#include "om/object_formatter/object_formatter.h"
 #include "om/components/data_store.ridl.h"
 
 using namespace ::radiant;

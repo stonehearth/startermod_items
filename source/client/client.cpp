@@ -19,7 +19,6 @@
 #include "resources/manifest.h"
 #include "resources/res_manager.h"
 #include "om/stonehearth.h"
-#include "om/object_formatter/object_formatter.h"
 #include "horde3d/Source/Horde3DEngine/egModules.h"
 #include "horde3d/Source/Horde3DEngine/egCom.h"
 #include "lib/rpc/trace.h"

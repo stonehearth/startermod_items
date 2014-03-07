@@ -137,20 +137,22 @@ function ProxyBuilder:_package_proxy(proxy)
          package.add_to_build_plan = true
       end
    end
-
+   
    -- Package up the trival components...
-   package.components = {
-      mob = entity:get_component_data('mob'),
-      destination = entity:get_component_data('destination'),
-   }
+   package.components = {}
+   for _, name in ipairs({'mob', 'destination'}) do
+      local component = entity:get_component(name)
+      package.components[name] = component and component:serialize() or {}
+   end   
    
    -- Package up the stonehearth:construction_data component.  This is almost
    -- trivial, but not quite.
-   local data = entity:get_component_data('stonehearth:construction_data')
-   if data then
+   local datastore = entity:get_component('stonehearth:construction_data')
+   if datastore then
       -- remove the paint_mode.  we just set it here so the blueprint
       -- would be rendered differently
-      data.paint_mode = nil     
+      local data = datastore:get_data()
+      data.paint_mode = nil
       package.components['stonehearth:construction_data'] = data
    end
 

@@ -26,7 +26,8 @@ public:
    }
 
    void LoadValue(SerializationType r, Protocol::Value const& msg) override;
-   void SaveValue(SerializationType r, Protocol::Value* msg) const override;   
+   void SaveValue(SerializationType r, Protocol::Value* msg) const override;
+   
    void GetDbgInfo(DbgInfo &info) const override;
 
    // Make a boxed value behave just like a value for read-only operations.

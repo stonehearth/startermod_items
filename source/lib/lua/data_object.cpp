@@ -58,7 +58,7 @@ json::Node const& DataObject::GetJsonNode() const
    if (dirty_) {
       DO_LOG(8) << "recomputing json node";
       if (data_object_.is_valid() && luabind::type(data_object_) != LUA_TNIL) {
-         cached_json_ = ScriptHost::LuaToJson(data_object_.interpreter(), data_object_);
+         cached_json_ = ScriptHost::LuaToJson(data_object_.interpreter(), data_object_);         
       } else {
          cached_json_ = JSONNode();
       }

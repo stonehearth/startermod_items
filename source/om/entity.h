@@ -59,6 +59,8 @@ public:
    std::string GetUri() const { return *uri_; }
    void SetUri(std::string str) { uri_ = str; }
 
+   void SerializeToJson(json::Node& node) const;
+
 private:
    template <typename T> void CacheComponent(std::shared_ptr<T> component) { }
    template <typename T> std::shared_ptr<T> GetCachedComponent() const { return nullptr; }

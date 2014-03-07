@@ -10,6 +10,17 @@ std::ostream& operator<<(std::ostream& os, VerticalPathingRegion const& o)
    return (os << "[VerticalPathingRegion]");
 }
 
-void VerticalPathingRegion::ExtendObject(json::Node const& obj)
+void VerticalPathingRegion::LoadFromJson(json::Node const& obj)
 {
+}
+
+void VerticalPathingRegion::SerializeToJson(json::Node& node) const
+{
+   Component::SerializeToJson(node);
+
+   om::Region3BoxedPtr region = GetRegion();
+   if (region) {
+      node.set("region", region->Get());
+   }
+   node.set("normal", GetNormal());
 }

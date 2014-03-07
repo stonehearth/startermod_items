@@ -10,10 +10,9 @@ local FabricatorComponent = class()
 local log = radiant.log.create_logger('build')
 
 -- this is the component which manages the fabricator entity.
-function FabricatorComponent:__init(entity, data_binding)
+function FabricatorComponent:__create(entity, json)
    self._entity = entity
-   self._data_binding = data_binding
-   self._data = data_binding:get_data()
+   self.__savestate = radiant.create_datastore({})
 end
 
 function FabricatorComponent:add_block(material, location)
@@ -42,18 +41,21 @@ function FabricatorComponent:start_project(name, blueprint)
    -- so the pathfinder can find it's way to regions which need to be constructed
    local project = self._fabricator:get_project()
 
-   local ci = blueprint:get_component_data('stonehearth:construction_data')
-   if ci.needs_scaffolding then
-      ci.normal = Point3(ci.normal.x, ci.normal.y, ci.normal.z)
-      self:_add_scaffolding_to_project(project, blueprint, ci.normal)
+   local ci = blueprint:get_component('stonehearth:construction_data')
+   if ci:needs_scaffolding() then
+      local normal = ci:get_normal()
+      assert(radiant.util.is_a(normal, Point3))
+      self:_add_scaffolding_to_project(project, blueprint, normal)
    end
 
    -- remember the blueprint and project 
-   self._data = {
-      project = project,
-      blueprint = blueprint
-   }
-   self._data_binding:set_data(self._data)
+   self._project = project
+   self._blueprint = blueprint
+   
+   self.__savestate:set_data({
+      project = self._project,
+      blueprint = self._blueprint,
+   })
    
    -- stick the fabricator entity in the blueprint and projects, too
    blueprint:add_component('stonehearth:construction_data'):set_fabricator_entity(self._entity)
@@ -63,11 +65,11 @@ function FabricatorComponent:start_project(name, blueprint)
 end
 
 function FabricatorComponent:get_blueprint()
-   return self._data.blueprint
+   return self._blueprint
 end
 
 function FabricatorComponent:get_project()
-   return self._data.project
+   return self._project
 end
 
 function FabricatorComponent:_add_scaffolding_to_project(project, blueprint, normal)

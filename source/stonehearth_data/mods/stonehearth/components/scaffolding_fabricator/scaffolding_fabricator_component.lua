@@ -10,10 +10,9 @@ local COORD_MAX = 1000000 -- 1 million enough?
 -- this is the component which manages the ScaffoldingFabricator entity.
 -- this is the blueprint for the scaffolding.  the actual scaffolding
 -- which appears in the world is created by a fabricator.
-function ScaffoldingFabricator:__init(entity, data_binding)
+function ScaffoldingFabricator:__create(entity, json)
    self._entity = entity
 end
-
 
 function ScaffoldingFabricator:support_project(project, blueprint, normal)
    assert(normal)

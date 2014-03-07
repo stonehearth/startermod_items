@@ -1,6 +1,7 @@
 #include "radiant.h"
 #include "store.h"
 #include "boxed.h"
+#include "lib/json/node.h"
 #include "dbg_indenter.h"
 
 using namespace radiant;

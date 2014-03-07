@@ -3,7 +3,6 @@
 #include "open.h"
 #include "om/all_objects.h"
 #include "om/all_components.h"
-#include "om/object_formatter/object_formatter.h"
 #include "lib/lua/script_host.h"
 #include "om/lua/lua_om.h"
 

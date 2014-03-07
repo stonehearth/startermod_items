@@ -31,11 +31,13 @@ function FabricatorRenderer:_update()
    end
 
    local blueprint = self._data.blueprint
-   local construction_data = blueprint:get_component_data('stonehearth:construction_data')
-   local region = self._destination:get_region()
-
-   if construction_data.brush then
-      self._node = voxel_brush_util.create_construction_data_node(self._parent_node, self._entity, region, construction_data, 'blueprint')
+   local component_data = blueprint:get_component('stonehearth:construction_data')
+   if component_data then
+      local construction_data = component_data:get_data()
+      if construction_data.brush then
+         local region = self._destination:get_region()
+         self._node = voxel_brush_util.create_construction_data_node(self._parent_node, self._entity, region, construction_data, 'blueprint')
+      end
    end
 end
 

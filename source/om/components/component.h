@@ -16,8 +16,6 @@ class Component : public dm::Record
 public:
    Component() { }
 
-   virtual void ExtendObject(json::Node const& obj) { };
-
    EntityPtr GetEntityPtr() const { return (*entity_).lock(); }
    EntityRef GetEntityRef() const { return (*entity_); }
    Entity& GetEntity() const { return *(*entity_).lock(); }

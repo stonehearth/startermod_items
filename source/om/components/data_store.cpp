@@ -14,11 +14,6 @@ luabind::object DataStore::GetData() const
    return (*data_).GetDataObject();
 }
 
-JSONNode DataStore::GetJsonNode() const
-{
-   return (*data_).GetJsonNode();
-}
-
 void DataStore::SetData(luabind::object o)
 {
    data_.Modify([o](lua::DataObject& obj) {
@@ -32,3 +27,15 @@ void DataStore::MarkDataChanged()
       obj.MarkDirty();
    });
 }
+
+void DataStore::LoadFromJson(json::Node const& obj)
+{
+   NOT_YET_IMPLEMENTED(); // and probably shouldn't be...
+}
+
+void DataStore::SerializeToJson(json::Node& node) const
+{
+   node = (*data_).GetJsonNode();
+   Record::SerializeToJson(node);
+}
+

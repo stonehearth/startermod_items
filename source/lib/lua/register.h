@@ -4,7 +4,6 @@
 #include "lib/lua/lua.h"
 #include "lib/json/node.h"
 #include "lib/lua/script_host.h"
-#include "om/object_formatter/object_formatter.h" // xxx: for GetPathToObject...
 
 BEGIN_RADIANT_LUA_NAMESPACE
 
@@ -86,6 +85,25 @@ template<typename T>
 static dm::ObjectId WeakGetObjectId(std::weak_ptr<T> o)
 {
    return SharedGetObjectId(o.lock());
+}
+
+template<typename T>
+static luabind::object StrongSerializeToJson(lua_State* L, std::shared_ptr<T> obj)
+{
+   luabind::object result;
+   if (obj) {
+      lua::ScriptHost* scriptHost = lua::ScriptHost::GetScriptHost(L);
+      json::Node json_data;
+      obj->SerializeToJson(json_data);
+      result = scriptHost->JsonToLua(json_data);
+   }
+   return result;
+}
+
+template<typename T>
+static luabind::object WeakSerializeToJson(lua_State* L, std::weak_ptr<T> o)
+{
+   return StrongSerializeToJson(L, o.lock());
 }
 
 template<typename T>
@@ -175,6 +193,7 @@ luabind::class_<T, std::shared_ptr<T>> RegisterStrongGameObject(lua_State* L, co
       .def("get_id",         &SharedGetObjectId<T>)
       .def("get_type_id",    &GetTypeId<T>)
       .def("get_type_name",  &GetTypeName<T>)
+      .def("serialize",      &StrongSerializeToJson<T>)
       .scope [
          def("get_type_id",   &GetClassTypeId<T>),
          def("get_type_name", &GetStaticTypeName<T>) 
@@ -197,6 +216,7 @@ luabind::class_<T, std::weak_ptr<T>> RegisterWeakGameObject(lua_State* L, const 
       .def("get_id",         &WeakGetObjectId<T>)
       .def("get_type_id",    &GetTypeId<T>)
       .def("get_type_name",  &GetTypeName<T>)
+      .def("serialize",      &WeakSerializeToJson<T>)
       .def("equals",         (bool (*)(std::weak_ptr<T>, std::weak_ptr<T>))&operator==)
       .scope [
          def("get_type_id",   &GetClassTypeId<T>),
@@ -222,6 +242,7 @@ luabind::class_<Derived, Base, std::weak_ptr<Derived>> RegisterWeakGameObjectDer
       .def("get_id",         &WeakGetObjectId<Derived>)
       .def("get_type_id",    &GetTypeId<Derived>)
       .def("get_type_name",  &GetTypeName<Derived>)
+      .def("serialize",      &WeakSerializeToJson<Derived>)
       .scope [
          def("get_type_id",   &GetClassTypeId<Derived>),
          def("get_type_name", &GetStaticTypeName<Derived>)

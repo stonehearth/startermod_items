@@ -9,6 +9,11 @@ std::ostream& operator<<(std::ostream& os, ModList const& o)
    return (os << "[ModList]");
 }
 
-void ModList::ExtendObject(json::Node const& obj)
+void ModList::LoadFromJson(json::Node const& obj)
 {
+}
+
+void ModList::SerializeToJson(json::Node& node) const
+{
+   Component::SerializeToJson(node);
 }

@@ -30,7 +30,8 @@ RenderLuaComponent::RenderLuaComponent(RenderEntity& entity, std::string const& 
          ctor = luabind::object(script->GetCallbackThread(), ctor);
 
          try {
-            obj_ = ctor();
+            std::weak_ptr<RenderEntity> re = entity.shared_from_this();
+            obj_ = ctor(re);
             if (obj_) {
                update_fn_ = obj_["update"];
                Update(entity, obj);

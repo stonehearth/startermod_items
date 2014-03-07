@@ -24,7 +24,6 @@
 #include "om/components/terrain.ridl.h"
 #include "om/components/entity_container.ridl.h"
 #include "om/components/target_tables.ridl.h"
-#include "om/object_formatter/object_formatter.h"
 #include "om/components/data_store.ridl.h"
 //#include "native_commands/create_room_cmd.h"
 #include "jobs/job.h"

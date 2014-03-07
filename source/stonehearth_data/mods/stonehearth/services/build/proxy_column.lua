@@ -14,25 +14,34 @@ function ProxyColumn:__init(parent_proxy, arg1)
    end)
    
    local data = self:add_construction_data()
-   data.connected_to = {}
-   self:update_datastore()
+   data:modify_data(function(o)
+         o.connected_to = {}
+      end)
 end
 
 function ProxyColumn:connect_to_wall(wall)
    local data = self:add_construction_data()
-   table.insert(data.connected_to, wall:get_entity())   
-   self:update_datastore()
+   data:modify_data(function(o)
+         table.insert(o.connected_to, wall:get_entity())   
+      end)
 end
 
 function ProxyColumn:remove_wall_connection(wall)
    local data = self:add_construction_data()
    local id = wall:get_entity():get_id()
-   for i, wall_entity in ipairs(data.connected_to) do
+
+   local remove_index
+   for i, wall_entity in ipairs(data:get_data().connected_to) do
       if wall_entity:get_id() == id then
-         table.remove(data.connected_to, i)
-         self:update_datastore()
+         remove_index = i
          break
       end
+   end
+   
+   if remove_index then
+      data:modify_data(function(o)
+            table.remove(o.connected_to, remove_index)
+         end)
    end
 end
 

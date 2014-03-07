@@ -2,7 +2,9 @@ local CommandsComponent = class()
 
 function CommandsComponent:__init(entity, data_binding)
    --self._commands = {}
-   self._commands = {}
+   self._commands = {
+      __numeric = true
+   }
 end
 
 function CommandsComponent:__create(entity, json)

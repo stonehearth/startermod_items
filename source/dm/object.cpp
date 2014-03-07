@@ -2,6 +2,7 @@
 #include "object.h"
 #include "store.h"
 #include "dbg_info.h"
+#include "lib/json/node.h"
 #include "protocols/store.pb.h"
 
 using namespace ::radiant;
@@ -81,3 +82,14 @@ std::string Object::GetStoreAddress() const
 {
    return BUILD_STRING("object://" << GetStore().GetName() << "/" << GetObjectId());
 }
+
+void Object::LoadFromJson(json::Node const& obj)
+{
+}
+
+void Object::SerializeToJson(json::Node& node) const
+{
+   node.set("__self", GetStoreAddress());
+   node.set("__type", GetObjectClassNameLower());
+}
+

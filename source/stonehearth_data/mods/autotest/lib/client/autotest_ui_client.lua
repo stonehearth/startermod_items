@@ -44,6 +44,8 @@ function ui_client._connect_browser_to_client(session, response)
 end
 
 function ui_client.connect()
+   _mouse_capture.hook()
+   
    -- pick a better start point...
    local CAMERA_POSITION = Point3f(10.44, 16.90, 39.23)
    local CAMERA_LOOK_AT = Point3f(3.5, 1, 12.5)
@@ -53,7 +55,5 @@ function ui_client.connect()
    local promise = _radiant.call('autotest:ui:connect_client_to_server')
    _server:set_promise(promise)
 end
-
-_mouse_capture.hook()
 
 return ui_client

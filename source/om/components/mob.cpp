@@ -1,6 +1,5 @@
 #include "pch.h"
 #include "mob.ridl.h"
-#include "om/object_formatter/object_formatter.h"
 #include "csg/util.h" // xxx: should be in csg/csg.h
 
 using namespace ::radiant;
@@ -162,13 +161,26 @@ csg::Point3 Mob::GetGridLocation() const
    return csg::ToClosestInt(GetLocation());
 }
 
-void Mob::ExtendObject(json::Node const& obj)
+void Mob::LoadFromJson(json::Node const& obj)
 {
    SetInterpolateMovement(obj.get<bool>("interpolate_movement", false));
    transform_ = obj.get<csg::Transform>("transform", csg::Transform(csg::Point3f(0, 0, 0), csg::Quaternion(1, 0, 0, 0)));
    
    if (obj.has("parent")) {
       parent_ = GetStore().FetchObject<Entity>(obj.get<std::string>("parent", ""));
+   }
+}
+
+void Mob::SerializeToJson(json::Node& node) const
+{
+   Component::SerializeToJson(node);
+
+   node.set("transform", GetTransform());
+   node.set("entity", GetEntityPtr()->GetStoreAddress());
+   node.set("moving", GetMoving());
+   om::EntityPtr parent = GetParent().lock();
+   if (parent) {
+      node.set("parent", parent->GetStoreAddress());
    }
 }
 

@@ -5,6 +5,7 @@
 #define END_RADIANT_DM_NAMESPACE    } }
 
 #include "protocols/forward_defines.h"
+#include "lib/json/json.h"
 
 BEGIN_RADIANT_DM_NAMESPACE
 

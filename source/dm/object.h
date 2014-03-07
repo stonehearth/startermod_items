@@ -29,6 +29,8 @@ public:
    virtual TracePtr TraceObjectChanges(const char* reason, Tracer* tracer) const = 0;
    void LoadObject(SerializationType r, Protocol::Object const& msg);
    void SaveObject(SerializationType r, Protocol::Object* msg) const;
+   virtual void LoadFromJson(json::Node const& obj);
+   virtual void SerializeToJson(json::Node& node) const;
    std::string GetStoreAddress() const;
 
    //virtual void Initialize(Store& s, const Protocol::Object& msg);

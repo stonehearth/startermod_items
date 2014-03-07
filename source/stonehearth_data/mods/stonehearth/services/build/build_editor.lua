@@ -6,6 +6,7 @@ local Point3 = _radiant.csg.Point3
 
 function BuildEditor:__init()
    self._model = _radiant.client.create_datastore()
+   self._model:set_controller(self)
 end
 
 function BuildEditor:get_model()

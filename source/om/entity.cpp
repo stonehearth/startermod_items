@@ -66,6 +66,29 @@ void Entity::InitializeRecordFields()
    E_LOG(3) << "creating entity " << GetObjectId();
 }
 
+void Entity::SerializeToJson(json::Node& node) const
+{
+   Record::SerializeToJson(node);
+
+   std::string debug_text = GetDebugText();
+   std::string uri = GetUri();
+
+   if (!uri.empty()) {
+      node.set("uri", uri);
+   }
+   if (!debug_text.empty()) {
+      node.set("debug_text", debug_text);
+   }
+   for (auto const& entry : GetComponents()) {
+      node.set(entry.first, entry.second->GetStoreAddress());
+   }
+
+   lua::ScriptHost *scriptHost = lua::ScriptHost::GetScriptHost(GetStore().GetInterpreter());
+   for (auto const& entry : GetLuaComponents()) {
+      node.set(entry.first, scriptHost->LuaToJson(entry.second));
+   }
+}
+
 template <class T> std::shared_ptr<T> Entity::AddComponent()
 {
    std::shared_ptr<T> component = GetComponent<T>();

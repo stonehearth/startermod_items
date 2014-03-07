@@ -6,22 +6,42 @@ local Point3 = _radiant.csg.Point3
 
 local log = radiant.log.create_logger('build')
 
--- xxx: it would be nice if we could update the datastore once at an appropriate
--- time in the gameloop instead of everytime the normal or tangent changes.
-function ConstructionDataComponent:get_data()
-   return self._data
+function ConstructionDataComponent:__create(entity, json)
+   self._entity = entity
+   self._data = json
+   if not self._data.material then
+      self._data.material = 'wood resource'
+   end
+   self.__savestate = radiant.create_datastore(self._data)
+   self.__savestate:modify_data(function (o)
+          if o.normal then
+             o.normal = Point3(o.normal.x, o.normal.y, o.normal.z)
+          end
+      end)
 end
 
-function ConstructionDataComponent:__create(entity, json)
-   self._data = json
-   self._entity = entity
-   self.__savestate = radiant.create_datastore(self._data)
+function ConstructionDataComponent:get_material()
+   return self._data.material
+end
+
+function ConstructionDataComponent:needs_scaffolding()
+   return self._data.needs_scaffolding
+end
+
+function ConstructionDataComponent:get_savestate()
+   -- xxx: this isn't even a copy!  it's the *actual data*
+   return self.__savestate:get_data()
 end
 
 function ConstructionDataComponent:set_normal(normal)
+   assert(radiant.util.is_a(normal, Point3))
    self._data.normal = normal
    self.__savestate:mark_changed()
    return self
+end
+
+function ConstructionDataComponent:get_normal()
+   return self._data.normal
 end
 
 function ConstructionDataComponent:set_finished(finished)

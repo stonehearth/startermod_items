@@ -19,6 +19,21 @@ void TargetTableEntry::ConstructObject()
    value_ = 0;
 }
 
+void TargetTableEntry::LoadFromJson(json::Node const& node)
+{
+}
+
+void TargetTableEntry::SerializeToJson(json::Node& node) const
+{
+   Record::SerializeToJson(node);
+
+   node.set("expire_time", GetExpireTime());
+   node.set("value", GetValue());
+   EntityPtr target = GetTarget().lock();
+   if (target) {
+      node.set("target", target->GetStoreAddress());
+   }
+}
 
 bool TargetTableEntry::Update(int now, int interval)
 {

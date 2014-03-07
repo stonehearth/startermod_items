@@ -22,7 +22,6 @@
 #include "pipeline.h"
 #include <unordered_set>
 #include <string>
-#include "om/object_formatter/object_formatter.h"
 #include "client/client.h"
 
 using namespace ::radiant;
