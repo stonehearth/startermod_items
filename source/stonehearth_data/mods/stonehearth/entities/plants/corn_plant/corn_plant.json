@@ -1,0 +1,31 @@
+{
+   "type": "entity", 
+   "components": {
+      "model_variants": {
+         "default": {
+            "models": [
+               "file(corn_4.qb)"
+            ]
+         }
+      },
+      "unit_info": {
+         "name": "Corn Plant", 
+         "description": "Its syrup heralds apocalypse."
+      },
+      "stonehearth:commands" : {
+         "commands" : [
+            "file(/data/commands/harvest_planted)"
+         ]
+      },
+      "stonehearth:resource_node": {
+         "harvest_overlay_effect" : "/stonehearth/data/effects/chop_overlay_effect",
+         "harvester_effect" : "fiddle",
+         "resource": "stonehearth:corn_basket",
+         "description" : "harvest_plant",
+         "durability": 1
+      },
+      "stonehearth:material" : {
+         "tags" :  "crop corn"
+      }
+   }
+}

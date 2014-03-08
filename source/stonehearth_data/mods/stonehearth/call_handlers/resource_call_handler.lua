@@ -26,7 +26,7 @@ function ResourceCallHandler:plant_crop(session, response, soil_plot, crop_type)
    --TODO: remove this when we actually get the correct data from the UI
    local soil_plots = {soil_plot}
    if not crop_type then
-      crop_type = 'stonehearth:corn'
+      crop_type = 'stonehearth:corn_seedling'
    end
 
    return town:plant_crop(soil_plots, crop_type)

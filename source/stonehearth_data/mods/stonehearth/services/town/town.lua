@@ -188,11 +188,22 @@ function Town:harvest_resource_node(node)
       local node_component = node:get_component('stonehearth:resource_node')
       if node_component then
          local effect_name = node_component:get_harvest_overlay_effect()
-         self._harvest_tasks[id] = self:create_worker_task('stonehearth:harvest_resource_node', { node = node })
-                                      :set_source(node)
-                                      :add_entity_effect(node, effect_name)
-                                      :once()
-                                      :start()
+         --If the node is of type crop, have farmers harvest it
+         --TODO: make create X task, where you pass in the type of work group
+         local material_component = node:get_component('stonehearth:material')
+         if material_component and material_component:has_tag('crop') then
+            self._harvest_tasks[id] = self:create_farmer_task('stonehearth:harvest_resource_node', { node = node })
+                                         :set_source(node)
+                                         :add_entity_effect(node, effect_name)
+                                         :once()
+                                         :start()
+         else 
+            self._harvest_tasks[id] = self:create_worker_task('stonehearth:harvest_resource_node', { node = node })
+                                         :set_source(node)
+                                         :add_entity_effect(node, effect_name)
+                                         :once()
+                                         :start()
+         end
       end
    end
    return true
@@ -208,11 +219,20 @@ function Town:harvest_renewable_resource_node(plant)
       local node_component = plant:get_component('stonehearth:renewable_resource_node')
       if node_component then
          local effect_name = node_component:get_harvest_overlay_effect()
+         local material_component = plant:get_component('stonehearth:material')
+         if material_component and material_component:has_tag('crop') then
+            self._harvest_tasks[id] = self:create_farmer_task('stonehearth:harvest_plant', { plant = plant })
+                                   :set_source(plant)
+                                   :add_entity_effect(plant, effect_name)
+                                   :once()
+                                   :start()
+         else
          self._harvest_tasks[id] = self:create_worker_task('stonehearth:harvest_plant', { plant = plant })
                                    :set_source(plant)
                                    :add_entity_effect(plant, effect_name)
                                    :once()
                                    :start()
+         end
 
          radiant.events.listen(plant, 'stonehearth:is_harvestable', function(e) 
                local plant = e.entity
@@ -228,6 +248,7 @@ end
 
 --- Tell farmers to plan the crop_type in the designated locations
 -- REVIEW QUESTION: should all these functions really go here, in the town? 
+-- TODO: move this to the farm
 -- @param soil_plots: array of entities on top of which to plant the crop
 -- @param crop_type: the name of the thing to plant (ie, stonehearth:corn, etc)
 function Town:plant_crop(soil_plots, crop_type)
@@ -245,6 +266,7 @@ function Town:plant_crop(soil_plots, crop_type)
    end
 end
 
+-- TODO: move this to the crafter (unless Tony does it first)
 function Town:create_workshop(crafter, ghost_workshop, outbox_location, outbox_size)
    local faction = radiant.entities.get_faction(crafter)
    local outbox_entity = radiant.entities.create_entity('stonehearth:workshop_outbox')

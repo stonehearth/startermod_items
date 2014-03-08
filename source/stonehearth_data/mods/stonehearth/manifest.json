@@ -122,7 +122,10 @@
 
       "berry_bush" : "file(entities/plants/berry_bush)",
       "tilled_dirt" : "file(entities/terrain/tilled_dirt)",
-      "corn" : "file(entities/plants/corn)",
+      "corn_seedling" : "file(entities/plants/corn_seedling)",
+      "corn_plant" : "file(entities/plants/corn_plant)",
+      "corn_basket" : "file(entities/plants/corn_basket)",
+      "corn_cob" : "file(entities/plants/corn_cob)",
 
       "pink_flower" : "file(entities/ground_clutter/pink_flower)",
 
@@ -667,7 +670,9 @@
       "personality" : "file(components/personality/personality_component.lua)",
       "loot_table" : "file(components/loot_table/loot_table_component.lua)",
       "inventory" : "file(components/inventory/inventory_component.lua)",
-      "carry_block" : "file(components/carry_block/carry_block_component.lua)"
+      "carry_block" : "file(components/carry_block/carry_block_component.lua)",
+      "growing" : "file(components/growing/growing_component.lua)", 
+      "crop" : "file(components/crop/crop_component.lua)"
    },
    "component_renderers" : {
       "stockpile" : "file(renderers/stockpile/stockpile_renderer.lua)",

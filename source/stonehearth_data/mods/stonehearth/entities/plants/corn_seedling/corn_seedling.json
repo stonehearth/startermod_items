@@ -24,13 +24,29 @@
          },
          "ripe": {
             "models": [
-               "file(corn4.qb)"
+               "file(corn_4.qb)"
             ]
          }
       },
       "unit_info": {
-         "name": "Corn Plant", 
-         "description": "Its syrup was the beginning of the end."
+         "name": "Corn Seedling", 
+         "description": "Slow-motion, high stakes gambling."
+      },
+      "stonehearth:commands" : {
+         "commands" : [
+         ]
+      },
+      "stonehearth:crop" : {
+         "final_entity" : "stonehearth:corn_plant"
+      }, 
+      "stonehearth:growing" : {
+         "growth_period" : "1h",
+         "growth_stages" : [
+            "just_planted",
+            "growing",
+            "budding",
+            "ripe"
+         ]
       }
    }
 }
