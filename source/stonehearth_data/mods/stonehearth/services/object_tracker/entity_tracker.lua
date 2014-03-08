@@ -34,6 +34,10 @@ function EntityTracker:__init(tracker_name, filter_fn, event_array)
 
 end
 
+function EntityTracker:get_entities()
+   return self._entities
+end
+
 function EntityTracker:_on_entity_add(id, entity)
    if self._filter_fn(entity) then
       self:_add_entity(entity)

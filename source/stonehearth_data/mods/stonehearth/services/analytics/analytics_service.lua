@@ -24,17 +24,14 @@ function AnalyticsService:on_ten_minute_poll()
       -- xxx Fix to show breakdown by class when we can listen on worker class changes; 
       -- Right now, the worker scheduler thinks everyone is a worker since everyone is added a worker
       local citizen_tracker = object_tracker:get_worker_tracker(faction_id)
-      local c_data = citizen_tracker:get_data_store():get_data()
-      if c_data.entities then
-         send_string = send_string .. "_Num_citizens_" .. #c_data.entities
-      end
+      send_string = send_string .. "_Num_citizens_" .. #citizen_tracker:get_entities()
 
       --Send data about resources
       local resource_tracker = object_tracker:get_resource_tracker(faction_id)
-      local r_data = resource_tracker:get_data_store():get_data()
+      local items = resource_tracker:get_tracked_items()
 
       send_string = send_string .. "_Resources_"
-      for uri, data in pairs(r_data.tracked_items) do
+      for uri, data in pairs(items) do
          send_string = send_string .. data.name .. "_" .. data.count
       end   
    end

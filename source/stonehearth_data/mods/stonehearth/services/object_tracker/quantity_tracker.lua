@@ -24,8 +24,8 @@ function QuantityTracker:__init(faction, filter_fn, identifier_fn)
    radiant.events.listen(self._inventory, 'stonehearth:item_removed', self, self.on_item_removed)
 end
 
-function QuantityTracker:get__savestate()
-   return self.__savestate;
+function QuantityTracker:get_tracked_items()
+   return self._data.tracked_items
 end
 
 function QuantityTracker:get_quantity(identifier)
