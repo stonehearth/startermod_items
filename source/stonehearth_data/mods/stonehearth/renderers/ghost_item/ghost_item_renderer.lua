@@ -2,12 +2,12 @@ local Point3 = _radiant.csg.Point3
 
 local GhostItemRenderer = class()
 
-function GhostItemRenderer:update(render_entity, data_store)
+function GhostItemRenderer:update(render_entity, datastore)
    self._parent_node = render_entity:get_node()
    self._ghost_item_rendered = nil
 
-   self._data_store  = data_store
-   self._promise = data_store:trace_data('rendering a ghost item')
+   self._data_store  = datastore
+   self._promise = datastore:trace_data('rendering a ghost item')
                                  :on_changed(function()
                                     self:_update()
                                  end)

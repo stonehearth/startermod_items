@@ -45,7 +45,7 @@ end
 function MaterialComponent:remove_tag(tag)
    if self._tags then
       self._tags[tag] = nil
-      self._data_binding:mark_changed()
+      self.__savestate:mark_changed()
    end
 end
 

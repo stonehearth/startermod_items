@@ -88,12 +88,6 @@ function FirepitComponent:_shutdown()
    self._seats = nil
 end
 
---- Returns the firepit's datastore.
--- Useful for people listening in on when the fires are lit.
-function FirepitComponent:get_data_store()
-   return self._data_store
-end
-
 --- Reused between this and when we check to see if we should
 -- light the fire after place.
 function FirepitComponent:_start_or_stop_firepit()
@@ -181,7 +175,7 @@ function FirepitComponent:light()
    end
    self._data.is_lit = true
    radiant.events.trigger(self._entity, 'stonehearth:fire:lit', { lit = true })
-   self._data_store:mark_changed()
+   self.__savestate:mark_changed()
 end
 
 --- If there is wood, destroy it and extinguish the particles

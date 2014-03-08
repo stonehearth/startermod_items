@@ -2,13 +2,13 @@ local voxel_brush_util = require 'services.build.voxel_brush_util'
 local Point3 = _radiant.csg.Point3
 local FabricatorRenderer = class()
 
-function FabricatorRenderer:update(render_entity, data_store)
+function FabricatorRenderer:update(render_entity, datastore)
    self._parent_node = render_entity:get_node()
    self._entity = render_entity:get_entity()
 
-   self._data = data_store:get_data()
-   self._data_store = data_store
-   self._ds_promise = data_store:trace_data('rendering a fabrication')
+   self._data = datastore:get_data()
+   self._data_store = datastore
+   self._ds_promise = datastore:trace_data('rendering a fabrication')
                         :on_changed(function()
                            self:_update()
                         end)
