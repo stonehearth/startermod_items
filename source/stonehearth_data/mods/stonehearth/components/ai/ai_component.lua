@@ -16,7 +16,7 @@ function AIComponent:__create(entity, json)
    self.__savestate = radiant.create_datastore()
    self.__savestate:set_controller(self)
    radiant.events.listen(entity, 'stonehearth:entity:post_create', function()
-         stonehearth.ai:start_ai(self._entity, json)
+         stonehearth.ai:start_ai(self._entity, self, json)
          return radiant.events.UNLISTEN
       end)
 end
@@ -121,7 +121,7 @@ function AIComponent:restart()
    self._thread:set_thread_main(function()
       self._execution_frame = self:_create_execution_frame()
       while not self._dead do
-         self._execution_frame:run()
+         self._execution_frame:run({})
          if self._execution_frame:get_state() == 'dead' then
             self._execution_frame = self:_create_execution_frame()
          else
@@ -137,10 +137,11 @@ function AIComponent:_create_execution_frame()
    local route = string.format('e:%d %s', self._entity:get_id(), radiant.entities.get_name(self._entity))
    self._thread:set_thread_data('stonehearth:run_stack', {})
    self._thread:set_thread_data('stonehearth:unwind_to_frame', nil)
-   return ExecutionFrame(self._thread, route, self._entity, 'stonehearth:top', {}, self._action_index)
+   return ExecutionFrame(self._thread, route, self._entity, 'stonehearth:top', self._action_index)
 end
 
 function AIComponent:_terminate_thread()
+   log:debug('terminating ai thread')
    if self._execution_frame then
       self._execution_frame:destroy('terminating thread')
    end
