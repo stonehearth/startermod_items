@@ -40,13 +40,25 @@ function env.clear()
    autotest.ui.move_camera(CAMERA_POSITION, CAMERA_LOOK_AT)
 end
 
-function env.create_entity(x, z, uri, options)
-   options = options or {}
-   
-   local entity = radiant.entities.create_entity(uri)
+local function apply_options_to_entity(entity, options)
    if options.faction then
       radiant.entities.set_faction(entity, options.faction)
    end
+   if options.attributes then
+      for name, value in pairs(options.attributes) do
+         entity:get_component('stonehearth:attributes'):set_attribute(name, value)
+      end
+   end
+   if options.profession then
+      local papi = radiant.mods.require(string.format('stonehearth.professions.%s.%s', options.profession, options.profession))
+      papi.promote(entity)
+   end   
+end
+
+function env.create_entity(x, z, uri, options)
+   local entity = radiant.entities.create_entity(uri)
+   apply_options_to_entity(entity, options or {})
+   
    local location = Point3(x, 1, z)
    radiant.terrain.place_entity(entity, location)
    return entity
@@ -69,11 +81,8 @@ function env.create_person(x, z, options)
 
    local pop = stonehearth.population:get_faction(faction, culture)
    local person = pop:create_new_citizen()
+   apply_options_to_entity(person, options)
 
-   if options.profession then
-      local papi = radiant.mods.require(string.format('stonehearth.professions.%s.%s', options.profession, options.profession))
-      papi.promote(person)
-   end
    local location = Point3(x, 1, z)
    radiant.terrain.place_entity(person, location)
    return person

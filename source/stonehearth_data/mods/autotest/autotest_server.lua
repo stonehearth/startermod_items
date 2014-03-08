@@ -16,7 +16,7 @@ function autotest.log(format, ...)
 end
 
 function autotest.fail(format, ...)
-   local e = string.format(format, ...)
+   local e = format and string.format(format, ...) or 'no error provided'
    autotest.log(e)
    radiant.events.trigger(autotest, 'autotest:finished', { errorcode = 1 })
    _test_thread:terminate()

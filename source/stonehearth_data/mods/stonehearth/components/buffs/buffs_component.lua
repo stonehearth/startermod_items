@@ -35,6 +35,11 @@ function BuffsComponent:add_buff(uri)
       self:_apply_controller(uri, buff)
 
       self.__savestate:mark_changed()
+      radiant.events.trigger(self._entity, 'stonehearth:buff_added', {
+            entity = self._entity,
+            uri = uri,
+            buff = buff,
+         })
    end
 
    return buff
