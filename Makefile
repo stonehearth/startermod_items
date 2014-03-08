@@ -78,13 +78,13 @@ ide: configure
 
 .PHONY: run-autotest
 run-autotest:
-	cd $(RUN_ROOT) && ($(STONEHEARTH_APP) --game.main_mod=stonehearth_autotest&)
+	cd $(RUN_ROOT) && ($(STONEHEARTH_APP) $(FLAGS) --game.main_mod=stonehearth_autotest&)
 
 run-%-test:
-	cd $(RUN_ROOT) && $(STONEHEARTH_APP) --game.main_mod=stonehearth_tests --mods.stonehearth_tests.test=$*_test&
+	cd $(RUN_ROOT) && $(STONEHEARTH_APP) $(FLAGS) --game.main_mod=stonehearth_tests --mods.stonehearth_tests.test=$*_test&
 
 run:
-	cd $(RUN_ROOT) && $(STONEHEARTH_APP)&
+	cd $(RUN_ROOT) && $(STONEHEARTH_APP) $(FLAGS) &
 
 # make a decoda project!
 .PHONY: decoda-project

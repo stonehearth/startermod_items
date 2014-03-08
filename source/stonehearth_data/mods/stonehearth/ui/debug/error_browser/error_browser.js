@@ -51,11 +51,11 @@ App.StonehearthErrorBrowserView = App.View.extend({
       var self = this;
       radiant.call('radiant:client:get_error_browser')
          .done(function(obj) {
-            self._installTrace('client_errors',  obj.error_browser)
+            self._installTrace('client_errors', obj.error_browser);
          })
       radiant.call('radiant:server:get_error_browser')
-         .done(function(obj) {
-            self._installTrace('server_errors',  obj.error_browser)
+         .done(function (obj) {
+            self._installTrace('server_errors', obj.error_browser);
          })
 
       var self = this;

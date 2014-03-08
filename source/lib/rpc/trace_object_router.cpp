@@ -102,6 +102,7 @@ void TraceObjectRouter::InstallTrace(std::string const& uri, ReactorDeferredPtr 
           if (obj->GetObjectType() == om::JsonBoxedObjectType) {
              // writing this code makes me a bad person.  i'm certain of it. =(
              data = std::static_pointer_cast<om::JsonBoxed>(obj)->Get();
+             obj->SerializeToJson(data);
           } else {
             obj->SerializeToJson(data);
           }
