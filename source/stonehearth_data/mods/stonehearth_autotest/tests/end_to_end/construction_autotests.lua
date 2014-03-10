@@ -14,8 +14,7 @@ function construction_tests.simple_build()
             end)
       end)
    
-   autotest.ui.click_dom_element('#startMenuTrigger')
-   autotest.ui.click_dom_element('#startMenu a[hotkey="t"]')
+   autotest.ui.click_dom_element('#startMenu #build_menu')
    autotest.ui.click_dom_element('#startMenu a[hotkey="l"]')
 
    autotest.ui.click_terrain(7, 4)
