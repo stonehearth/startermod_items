@@ -21,6 +21,10 @@ function HungerObserver:__init(entity)
    radiant.events.listen(entity, 'stonehearth:attribute_changed:hunger', self, self._hunger_changed)
 end
 
+function HungerObserver:destroy()
+   radiant.events.unlisten(self._entity, 'stonehearth:attribute_changed:hunger', self, self._hunger_changed)
+end
+
 function HungerObserver:_hunger_changed()
    local hunger = self._attributes_component:get_attribute('hunger')
 

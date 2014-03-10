@@ -15,7 +15,6 @@ function AiService:__init(datastore)
    self.RESERVATION_LEASE_NAME = 'ai_reservation'
 
    self._action_registry = {}
-   self._observer_registry = {}
    self._entities = {}
    self._ai_components = {}
    

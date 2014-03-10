@@ -9,7 +9,7 @@ function MaterialsComponent:__init()
 end
 
 function MaterialsComponent:__create(entity, data_binding)
-   self.__savestate = radiant.create_datastore{ 
+   self.__savestate = radiant.create_datastore({
          materials = self._materials 
       })
 
