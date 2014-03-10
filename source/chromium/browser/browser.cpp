@@ -404,7 +404,7 @@ bool Browser::HasMouseFocus(int x, int y)
       return false;
    }
    uint32 pixel = _lastBrowserFramebuffer[x + (y * _uiWidth)];
-   return ((pixel >> 24) && 0xff) != 0;
+   return ((pixel >> 24) & 0xff) != 0;
 }
 
 CefRefPtr<CefResourceHandler> Browser::GetResourceHandler(CefRefPtr<CefBrowser> browser,
