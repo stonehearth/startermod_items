@@ -876,7 +876,7 @@ Matrix3::operator-() const
 {
     Matrix3 result;
 
-    for (unsigned int i = 0; i < 16; ++i)
+    for (unsigned int i = 0; i < ARRAYSIZE(result.v); ++i)
     {
         result.v[i] = -v[i];
     }
