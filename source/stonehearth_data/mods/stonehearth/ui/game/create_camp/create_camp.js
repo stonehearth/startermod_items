@@ -31,7 +31,8 @@ App.StonehearthCreateCampView = App.View.extend({
                   radiant.call('radiant:play_sound', 'stonehearth:sounds:banner_plant' );
                      setTimeout( function() {
                         radiant.call('radiant:play_sound', 'stonehearth:sounds:ui:start_menu:paper_menu' );
-                        self._gotoStockpileStep();
+                        //self._gotoStockpileStep();
+                        self._gotoFinishStep();
                      }, 1000);
                } else {
                   self._showBanner();
@@ -76,7 +77,8 @@ App.StonehearthCreateCampView = App.View.extend({
    _gotoFinishStep: function() {
       radiant.call('radiant:play_sound', 'stonehearth:sounds:ui:start_menu:paper_menu' );
       var self = this
-      this._hideScroll('#scroll2');
+      //this._hideScroll('#scroll2');
+      this._hideScroll('#scroll1');
    },
 
    _bounceBanner: function() {
