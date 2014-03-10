@@ -22,7 +22,6 @@
 #include "pipeline.h"
 #include <unordered_set>
 #include <string>
-#include "om/object_formatter/object_formatter.h"
 #include "client/client.h"
 
 using namespace ::radiant;
@@ -65,6 +64,11 @@ Renderer::Renderer() :
    iconified_(false),
    resize_pending_(false),
    drawWorld_(true)
+{
+   OneTimeIninitializtion();
+}
+
+void Renderer::OneTimeIninitializtion()
 {
    res::ResourceManager2::GetInstance().LookupJson("stonehearth/renderers/terrain/terrain_renderer.json", [&](const json::Node& n) {
       terrainConfig_ = n;
@@ -795,7 +799,7 @@ void Renderer::Initialize(om::EntityPtr rootObject)
    debugShapes_ = h3dRadiantAddDebugShapes(H3DRootNode, "renderer debug shapes");
 }
 
-void Renderer::Cleanup()
+void Renderer::Shutdown()
 {
    rootRenderObject_ = NULL;
    for (auto& e : entities_) {
@@ -827,8 +831,8 @@ void Renderer::SetVisibilityRegions(std::string const& visible_region_uri, std::
 
    dm::Store const& store = Client::GetInstance().GetStore();
 
-   visibleRegionBoxed = om::ObjectFormatter().GetObject<om::Region2Boxed>(store, visible_region_uri);
-   exploredRegionBoxed = om::ObjectFormatter().GetObject<om::Region2Boxed>(store, explored_region_uri);
+   visibleRegionBoxed = store.FetchObject<om::Region2Boxed>(visible_region_uri);
+   exploredRegionBoxed = store.FetchObject<om::Region2Boxed>(explored_region_uri);
 
    visibilityTrace_ = visibleRegionBoxed->TraceChanges("render visible region", dm::RENDER_TRACES)
                          ->OnModified([=](){

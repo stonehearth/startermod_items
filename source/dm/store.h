@@ -36,14 +36,10 @@ public:
 
    void RegisterAllocator(ObjectType t, ObjectAllocFn allocator);
 
-   ObjectPtr AllocObject(ObjectType t);
-   ObjectPtr AllocSlaveObject(ObjectType t, ObjectId id);
+   ObjectPtr AllocObject(ObjectType t, ObjectId id = 0);
 
    template<class T> std::shared_ptr<T> AllocObject() {
-      auto obj = std::make_shared<T>();
-      obj->Initialize(*this, GetNextObjectId());
-      OnAllocObject(obj);
-      return obj;
+      return std::static_pointer_cast<T>(AllocObject(T::GetObjectTypeStatic()));
    }
 
    std::shared_ptr<Object> FetchObject(ObjectId id, ObjectType type) const;
@@ -60,6 +56,23 @@ public:
       return FetchObject(id, -1);
    }
 
+   std::shared_ptr<Object> FetchObject(std::string const& addr, ObjectType type) const;
+   template<class T> std::shared_ptr<T> FetchObject(std::string const& addr) const {
+      ObjectPtr obj = FetchObject(addr, T::DmType);
+      if (obj) {
+         std::shared_ptr<T> result = std::dynamic_pointer_cast<T>(obj);
+         ASSERT(result);
+         return result;
+      }
+      return nullptr;
+   }
+   template<> std::shared_ptr<Object> FetchObject(std::string const& addr) const {
+      return FetchObject(addr, -1);
+   }
+
+   bool IsValidStoreAddress(std::string const& addr) const;
+
+
    template<class T> T* FetchStaticObject(ObjectId id) const {
       Object* obj = FetchStaticObject(id);
       T* result = dynamic_cast<T*>(obj);
@@ -68,7 +81,12 @@ public:
    }
    Object* FetchStaticObject(ObjectId id) const;
 
-   void Reset();
+   typedef std::unordered_map<ObjectId, std::shared_ptr<Object>> ObjectMap;
+   typedef std::unordered_map<ObjectId, std::weak_ptr<Object>> WeakObjectMap;
+
+   bool Save(std::string& error);
+   bool Load(std::string& error, ObjectMap& objects);
+
    GenerationId GetNextGenerationId();
    GenerationId GetCurrentGenerationId();
    ObjectId GetNextObjectId();
@@ -114,7 +132,6 @@ protected: // Internal interface for Objects only
    friend Record;
    static Store& GetStore(int id);
    void RegisterObject(Object& obj);
-   void SignalRegistered(Object const* pobj);
    void UnregisterObject(const Object& obj);
    void OnAllocObject(std::shared_ptr<Object> obj);
 
@@ -128,14 +145,6 @@ private:
 
    static Store*  stores_[5];
 
-   struct DynamicObject {
-      std::weak_ptr<Object>      object;
-      ObjectType                 type;
-
-      DynamicObject() { }
-      DynamicObject(std::weak_ptr<Object> o, ObjectType t) : object(o), type(t) { }
-   };
-
    int            storeId_;
    std::string    name_;
    ObjectId       nextObjectId_;
@@ -144,9 +153,9 @@ private:
 
    std::vector<ObjectId>   destroyed_;
 
-   std::unordered_map<ObjectId, Object*>                     objects_;
-   std::unordered_map<ObjectType, ObjectAllocFn>             allocators_;
-   mutable std::unordered_map<ObjectId, DynamicObject>       dynamicObjects_;
+   std::unordered_map<ObjectId, Object*>                       objects_;
+   std::unordered_map<ObjectType, ObjectAllocFn>               allocators_;
+   mutable WeakObjectMap dynamicObjects_;
 
    TraceMap       traces_;
    TracerMap      tracers_;

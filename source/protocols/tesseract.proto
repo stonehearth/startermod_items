@@ -41,6 +41,7 @@ message Update {
       UpdateDebugShapes = 7;
       EndUpdate = 9;
       PostCommandReply = 11;
+      ClearClientState = 12;
       DefineRemoteObject = 13;
    }
    required Type     type = 1;
@@ -108,6 +109,12 @@ message UpdateDebugShapes {
 message EndUpdate {
    extend Update {
       optional EndUpdate extension = 109;
+   }
+}
+
+message ClearClientState {
+   extend Update {
+      optional ClearClientState extension = 108;
    }
 }
 

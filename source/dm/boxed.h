@@ -14,6 +14,7 @@ public:
 
    enum { DmType = OT };
    Boxed() : Object() { }
+   static ObjectType GetObjectTypeStatic() { return OT; }
    ObjectType GetObjectType() const override { return OT; }
    const char *GetObjectClassNameLower() const override { return "boxed"; }
    std::shared_ptr<BoxedTrace<Boxed>> TraceChanges(const char* reason, int category) const;
@@ -24,8 +25,9 @@ public:
       return (os << "boxed " << typeid(T).name());
    }
 
-   void LoadValue(Protocol::Value const& msg) override;
-   void SaveValue(Protocol::Value* msg) const override;   
+   void LoadValue(SerializationType r, Protocol::Value const& msg) override;
+   void SaveValue(SerializationType r, Protocol::Value* msg) const override;
+   
    void GetDbgInfo(DbgInfo &info) const override;
 
    // Make a boxed value behave just like a value for read-only operations.

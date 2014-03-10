@@ -27,7 +27,7 @@ function Log.write_(category, level, format, ...)
    if radiant.log.is_enabled(category, level) then
       local args = {...}
       for i, arg in ipairs(args) do
-         if type(arg) == 'userdata' then
+         if type(arg) ~= 'number' then
             args[i] = tostring(arg)
          end
       end
@@ -108,7 +108,7 @@ function Log.create_logger(sub_category, prefix)
             end
             local args = {...}
             for i, arg in ipairs(args) do
-               if type(arg) == 'userdata' then
+               if type(arg) ~= 'string' then
                   args[i] = tostring(arg)
                end
             end

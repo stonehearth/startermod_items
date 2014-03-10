@@ -14,9 +14,11 @@
    MAP(int, om::EntityRef) \
    MAP(int, om::EffectPtr) \
    MAP(std::string, dm::ObjectPtr) \
+   MAP(std::string, om::ComponentPtr) \
    MAP(std::string, om::Selection) \
    MAP(std::string, om::SensorPtr) \
    MAP(std::string, om::DataStorePtr) \
    MAP(std::string, om::TargetTableGroupPtr) \
    MAP(std::string, om::ModelLayerPtr) \
+   MAP(std::string, luabind::object) \
    MAP3(csg::Point3, om::Region3BoxedPtr, csg::Point3::Hash)

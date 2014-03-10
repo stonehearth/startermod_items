@@ -12,6 +12,7 @@ include_directories(${Horde3D_INCLUDE_DIRS})
 add_library(lua
             script_host.cpp
             data_object.cpp
+            controller_object.cpp
             lua_supplemental.cpp
             analytics/open_analytics.cpp
             audio/open_audio.cpp

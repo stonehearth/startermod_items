@@ -11,11 +11,7 @@ std::ostream& operator<<(std::ostream& os, EffectList const& o)
    return (os << "[EffectList]");
 }
 
-void EffectList::ConstructObject()
-{
-}
-
-void EffectList::ExtendObject(json::Node const& obj)
+void EffectList::LoadFromJson(json::Node const& obj)
 {
    default_ = obj.get<std::string>("default", "");
    default_in_list_ = 0;
@@ -25,6 +21,18 @@ void EffectList::ExtendObject(json::Node const& obj)
    for (json::Node const& entry : obj.get_node("effects")) {
       std::string path = entry.as<std::string>();
       AddEffect(path, 0);
+   }
+}
+
+void EffectList::SerializeToJson(json::Node& node) const
+{
+   Component::SerializeToJson(node);
+
+   node.set("default", *default_);
+   for (auto const& entry : EachEffect()) {
+      json::Node effect;
+      entry.second->SerializeToJson(effect);
+      node.set(stdutil::ToString(entry.first), effect);
    }
 }
 

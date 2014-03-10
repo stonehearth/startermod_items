@@ -3,13 +3,28 @@ decoda_name = "radiant server"
 
 radiant = {
    is_server = true,
-   _root_entity = _radiant.sim.get_entity(1)
+   _root_entity = _radiant.sim.get_object(1)
 }
+
+function radiant.get_object(addr)
+   return _radiant.sim.get_object(addr)
+end
+
+function radiant.create_datastore(data)
+   local datastore = _radiant.sim.create_datastore()
+   if data then
+      datastore:set_data(data)
+   end
+   return datastore
+end
+
+function radiant.exit(code)
+   _host:exit(code)
+end
 
 radiant.log = require 'modules.log'
 radiant.util = require 'lib.util'
 radiant.check = require 'lib.check'
-radiant.json = require 'lualibs.dkjson'
 radiant.gamestate = require 'modules.gamestate'
 radiant.resources = require 'modules.resources'
 radiant.events = require 'modules.events'
@@ -17,9 +32,7 @@ radiant.effects = require 'modules.effects'
 radiant.entities = require 'modules.entities'
 radiant.terrain = require 'modules.terrain'
 radiant.mods = require 'modules.mods'
-radiant.pathfinder = require 'modules.pathfinder'
 
-radiant.gamestate._start()
 radiant.log.info('server', 'radiant api initialized.')
 
 require 'modules.timer'
@@ -76,7 +89,6 @@ function api.update(profile_this_frame)
    radiant.log.spam('radiant', 'finishing frame %d', radiant.gamestate.now())
 
    _stop_profiling()
-   return radiant.gamestate.now()
 end
 
 return api

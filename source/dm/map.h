@@ -18,8 +18,8 @@ public:
    Map() : Object() { }
    DEFINE_DM_OBJECT_TYPE(Map, map);
 
-   void LoadValue(Protocol::Value const& value) override;
-   void SaveValue(Protocol::Value* msg) const override;
+   void LoadValue(SerializationType r, Protocol::Value const& value) override;
+   void SaveValue(SerializationType r, Protocol::Value* msg) const override;
    void GetDbgInfo(DbgInfo &info) const override;
    std::ostream& GetDebugDescription(std::ostream& os) const {
       return (os << "map size:" << items_.size());

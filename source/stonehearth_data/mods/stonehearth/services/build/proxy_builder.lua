@@ -137,36 +137,48 @@ function ProxyBuilder:_package_proxy(proxy)
          package.add_to_build_plan = true
       end
    end
-
+   
    -- Package up the trival components...
-   package.components = {
-      mob = entity:get_component_data('mob'),
-      destination = entity:get_component_data('destination'),
-   }
+   package.components = {}
+   for _, name in ipairs({'mob', 'destination'}) do
+      local component = entity:get_component(name)
+      package.components[name] = component and component:serialize() or {}
+   end   
    
    -- Package up the stonehearth:construction_data component.  This is almost
    -- trivial, but not quite.
-   local data = entity:get_component_data('stonehearth:construction_data')
-   if data then
+   local datastore = entity:get_component('stonehearth:construction_data')
+   if datastore then
       -- remove the paint_mode.  we just set it here so the blueprint
       -- would be rendered differently
-      data.paint_mode = nil     
+      local data = datastore:get_data()
+      data.paint_mode = nil
       package.components['stonehearth:construction_data'] = data
    end
 
-   -- Package the child and dependency lists.
+   -- Package the child and dependency lists.  Build it as a table first to
+   -- make sure we don't get duplicates in the children/dependency list,
+   -- then shove it into the package.dependencies
+   local all_dependencies = {}
    local children = proxy:get_children()
    if next(children) then
       package.children = {}
       for id, _ in pairs(children) do
+         all_dependencies[id] = true
          table.insert(package.children, id)
       end
    end
    
    local dependencies = proxy:get_dependencies()
    if next(dependencies) then
-      package.dependencies = {}
       for id, _ in pairs(dependencies) do
+         all_dependencies[id] = true
+      end
+   end
+
+   if next(all_dependencies) then
+      package.dependencies = {}
+      for id, _ in pairs(all_dependencies) do
          table.insert(package.dependencies, id)
       end
    end

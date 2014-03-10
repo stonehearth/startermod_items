@@ -13,6 +13,21 @@ std::ostream& operator<<(std::ostream& os, TargetTable const& o)
    return (os << "[TargetTable]");
 }
 
+void TargetTable::LoadFromJson(json::Node const& node)
+{
+}
+
+void TargetTable::SerializeToJson(json::Node& node) const
+{
+   Record::SerializeToJson(node);
+
+   for (auto const& entry : entries_) {
+      json::Node e;
+      entry.second->SerializeToJson(e);
+      node.set(stdutil::ToString(entry.first), e);
+   }
+}
+
 TargetTableEntryPtr TargetTable::AddEntry(om::EntityRef e)
 {
    TargetTableEntryPtr entry;

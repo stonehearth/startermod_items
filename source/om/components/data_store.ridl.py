@@ -14,11 +14,11 @@ class DataStore(dm.Record):
    """
    void MarkDataChanged();
    luabind::object GetData() const;
-   JSONNode GetJsonNode() const;
    void SetData(luabind::object o);
    """
 
    _includes = [
+      "dm/record.h",
       "lib/lua/controller_object.h",
       "lib/lua/data_object.h",
    ]

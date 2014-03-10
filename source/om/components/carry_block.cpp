@@ -15,8 +15,20 @@ std::ostream& operator<<(std::ostream& os, CarryBlock const& o)
 }
 
 
-void CarryBlock::ExtendObject(json::Node const& obj)
+void CarryBlock::LoadFromJson(json::Node const& obj)
 {
+}
+
+void CarryBlock::SerializeToJson(json::Node& node) const
+{
+   Component::SerializeToJson(node);
+
+   om::EntityPtr carrying = GetCarrying().lock();
+   if (carrying) {
+      node.set("carrying", carrying->GetStoreAddress());
+   } else {
+      node.set("carrying", "");
+   }   
 }
 
 bool CarryBlock::IsCarrying() const

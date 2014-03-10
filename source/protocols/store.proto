@@ -2,6 +2,13 @@ import "radiant.proto";
 
 package Protocol;
 
+message Store {
+   optional int32 version = 1;
+   optional int32 store_id = 2;
+   optional int32 next_object_id = 3;
+   optional int32 next_generation = 4;
+};
+
 message Object {
    required int32 object_id = 1;
    required int32 timestamp = 2;
@@ -140,3 +147,17 @@ message Selection {
       required Selection extension  = 203;
    }
 }
+
+message LuaControllerObject {
+   optional string lua_script = 1;
+   extend Value {
+      required LuaControllerObject extension  = 204;
+   }
+};
+
+message LuaDataObject {
+   optional string repr_representation = 1;
+   extend Value {
+      required LuaDataObject extension  = 205;
+   }
+};

@@ -77,23 +77,8 @@ int call_impl(lua_State* L, int start, std::string const& obj, std::string const
    fn.route = route;
 
    for (int i = start; i <= top; i++) {
-      JSONNode arg;
-      bool converted = false;
       object obj = object(from_stack(L, i));
-      if (type(obj) == LUA_TUSERDATA) {
-         try {
-            object toarg = obj["__toarg"];
-            if (toarg.is_valid() && type(toarg) == LUA_TFUNCTION) {
-               arg = JSONNode("", call_function<std::string>(toarg, obj));
-               converted = true;
-            }
-         } catch (std::exception& e) {
-            RPC_LOG(1) << "failed to convert arg " << (i - start) << " calling " << fn << ". falling back to script host (" << e.what() << ")";
-         }         
-      }
-      if (!converted) {
-         arg = lua::ScriptHost::LuaToJson(L, obj);
-      }
+      JSONNode arg = lua::ScriptHost::LuaToJson(L, obj);
       fn.args.push_back(arg);
    }
 
@@ -138,6 +123,7 @@ LuaDeferredPtr trace_obj(lua_State* L, object obj)
 }
 
 IMPLEMENT_TRIVIAL_TOSTRING(CoreReactor);
+DEFINE_INVALID_LUA_CONVERSION(CoreReactor)
 DEFINE_INVALID_JSON_CONVERSION(CoreReactor);
 DEFINE_INVALID_JSON_CONVERSION(LuaDeferred);
 DEFINE_INVALID_JSON_CONVERSION(Session);
@@ -147,8 +133,8 @@ void lua::rpc::open(lua_State* L, CoreReactorPtr reactor)
    module(L) [
       namespace_("_radiant") [
          namespace_("rpc") [
-            lua::RegisterType<CoreReactor>(),
-            lua::RegisterTypePtr<LuaDeferred>()
+            lua::RegisterType<CoreReactor>("CoreReactor"),
+            lua::RegisterTypePtr<LuaDeferred>("LuaDeferred")
                .def("resolve",    &LuaDeferred::Resolve)
                .def("reject",     &LuaDeferred::Reject)
                .def("notify",     &LuaDeferred::Notify)
@@ -156,7 +142,7 @@ void lua::rpc::open(lua_State* L, CoreReactorPtr reactor)
                .def("fail",       &LuaDeferred_Fail)
                .def("progress",   &LuaDeferred_Progress)
                .def("always",     &LuaDeferred_Always),
-            lua::RegisterTypePtr<Session>()
+            lua::RegisterTypePtr<Session>("Session")
                .def_readonly("faction", &Session::faction)
          ]
       ]

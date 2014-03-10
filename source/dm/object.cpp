@@ -2,6 +2,7 @@
 #include "object.h"
 #include "store.h"
 #include "dbg_info.h"
+#include "lib/json/node.h"
 #include "protocols/store.pb.h"
 
 using namespace ::radiant;
@@ -13,30 +14,10 @@ Object::Object()
    id_.store = 0;
 }
 
-void Object::Initialize(Store& store, ObjectId id)
-{
-   // prevent stack based allocation of objects... too dangerous
-#if 0
-   char* stackpointer;
-   __asm {
-      mov stackpointer, esp;
-   }
-   int offset = abs(((char *)(this)) - stackpointer);
-   if (offset < 64 * 1024) {
-      ASSERT(false);
-   }
-#endif
-   ASSERT(id);
-   SetObjectMetadata(id, store);
-   GetStore().SignalRegistered(this);
-}
-
-void Object::InitializeSlave(Store& store, ObjectId id)
+void Object::SetObjectMetadata(ObjectId id, Store& store)
 {
    id_.id = id;
    id_.store = store.GetStoreId();
-   store.RegisterObject(*this);   
-   // A LoadValue's coming... don't worry
 }
 
 Object::~Object()
@@ -65,19 +46,19 @@ Store& Object::GetStore() const
    return Store::GetStore(id_.store);
 }
 
-void Object::LoadObject(Protocol::Object const& msg)
+void Object::LoadObject(SerializationType r, Protocol::Object const& msg)
 {
    id_.id = msg.object_id();
    timestamp_ = msg.timestamp();
-   LoadValue(msg.value());
+   LoadValue(r, msg.value());
 }
 
-void Object::SaveObject(Protocol::Object* msg) const
+void Object::SaveObject(SerializationType r, Protocol::Object* msg) const
 {
    msg->set_object_id(id_.id);
    msg->set_object_type(GetObjectType());
    msg->set_timestamp(timestamp_);
-   SaveValue(msg->mutable_value());
+   SaveValue(r, msg->mutable_value());
 }
 
 bool Object::IsValid() const
@@ -97,12 +78,18 @@ bool Object::WriteDbgInfoHeader(DbgInfo &info) const
    return true;
 }
 
-void Object::SetObjectMetadata(ObjectId id, Store& store)
+std::string Object::GetStoreAddress() const
 {
-   id_.id = id;
-   id_.store = store.GetStoreId();
+   return BUILD_STRING("object://" << GetStore().GetName() << "/" << GetObjectId());
+}
 
-   MarkChanged();
-   store.RegisterObject(*this);   
+void Object::LoadFromJson(json::Node const& obj)
+{
+}
+
+void Object::SerializeToJson(json::Node& node) const
+{
+   node.set("__self", GetStoreAddress());
+   node.set("__type", GetObjectClassNameLower());
 }
 

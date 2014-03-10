@@ -43,6 +43,8 @@ public:
       json::Node     node_;
    };
 
+   void SerializeToJson(json::Node& node) const override;
+
 public:
    DEFINE_OM_OBJECT_TYPE(ErrorBrowser, error_browser);
    void AddRecord(Record const& r);

@@ -20,8 +20,8 @@ public:
    }
 
    void GetDbgInfo(DbgInfo &info) const override;
-   void LoadValue(Protocol::Value const& value) override;
-   void SaveValue(Protocol::Value* msg) const override;
+   void LoadValue(SerializationType r, Protocol::Value const& value) override;
+   void SaveValue(SerializationType r, Protocol::Value* msg) const override;
 
    void Clear();
    void Remove(const T& item);

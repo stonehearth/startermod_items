@@ -1,5 +1,10 @@
 {
    "info" :{
       "name" : "Stonehearth Unit Tests"
+   },
+
+   "server_init_script" : "file(stonehearth_tests_server)",
+   "ui" :  {
+      "homepage" : "http://radiant/stonehearth/ui/root/index.html?skip_title=true)"
    }
 }

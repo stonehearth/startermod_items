@@ -16,8 +16,13 @@ void Terrain::CreateNew()
 {
 }
 
-void Terrain::ExtendObject(json::Node const& obj)
+void Terrain::LoadFromJson(json::Node const& obj)
 {
+}
+
+void Terrain::SerializeToJson(json::Node& node) const
+{
+   Component::SerializeToJson(node);
 }
 
 void Terrain::AddTile(csg::Point3 const& tile_offset, Region3BoxedPtr region3)

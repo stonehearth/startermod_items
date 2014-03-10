@@ -61,8 +61,8 @@ App.StonehearthObjectBrowserView = App.View.extend({
                  .replace(/>/g, '&gt;')
                  .replace(/ /g, '&nbsp;')
                  .replace(/\n/g, '<br>')
-                 .replace(/(\/[^"]*)/g, '<a href="$1">$1</a>')
-                 .replace(/"(mod:\/\/[^"]*)"/g, '<a href="$1">$1</a>')
+                 .replace(/"(object:\/\/[^"]*)"/g, '<a href="$1">$1</a>')
+                 //.replace(/(\/[^"]*)/g, '<a href="$1">$1</a>')
    },
 
    fetch: function(uri) {

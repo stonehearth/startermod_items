@@ -9,26 +9,21 @@
 
 local PlaceableItemProxyComponent = class()
 
-function PlaceableItemProxyComponent:__init(entity, data_binding)
+function PlaceableItemProxyComponent:__create(entity, json)
    self._entity = entity               --The 1x1 placeable cube
    self._full_sized_entity = nil       --Onced initialized, the actual full-sized entity
-
-   self._data = data_binding:get_data()
-   self._data.entity_id = entity:get_id()
-
    self._under_construction = false
 
-   self._data_binding = data_binding
-   self._data_binding:mark_changed()
-end
+   self._data = {
+      entity_id = entity:get_id()
+   }
 
-function PlaceableItemProxyComponent:extend(json)
    if json and json.full_sized_entity then
       self._data.full_sized_entity_uri = json.full_sized_entity;
-      self._data_binding:mark_changed()
-
       self:_create_derived_components()
    end
+
+   self.__savestate = radiant.create_datastore(self._data)   
 end
 
 function PlaceableItemProxyComponent:get_full_sized_entity()
@@ -75,8 +70,7 @@ function PlaceableItemProxyComponent:_create_derived_components()
    if json and json.components then
       for i, component in ipairs(clone_components) do
          if json.components[component] then
-            local the_component = self._entity:add_component(component)
-            the_component:extend(json.components[component])
+            self._entity:add_component(component, json.components[component])
          end
       end
    end
@@ -86,7 +80,7 @@ function PlaceableItemProxyComponent:_create_derived_components()
 
    commands:modify_command('place_item', function (command_data)
       command_data.event_data.full_sized_entity_uri = full_sized_uri
-      command_data.event_data.proxy = self._data_binding
+      command_data.event_data.proxy = self
       command_data.event_data.item_name = self._entity:add_component('unit_info'):get_display_name()
    end)
 end

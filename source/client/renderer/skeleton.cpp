@@ -57,6 +57,7 @@ void Skeleton::ApplyScaleToBones()
       tx *= (_scale / sx);
       ty *= (_scale / sy);
       tz *= (_scale / sz);
+      LOG_(0) << "setting scale of " << bone << " to " << _scale;
       h3dSetNodeTransform(bone, tx, ty, tz, rx, ry, rz, _scale, _scale, _scale);
    }
 }

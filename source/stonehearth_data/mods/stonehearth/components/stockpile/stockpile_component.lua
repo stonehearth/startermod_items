@@ -6,6 +6,7 @@ StockpileComponent.__classname = 'StockpileComponent'
 local log = radiant.log.create_logger('stockpile')
 
 local Cube3 = _radiant.csg.Cube3
+local Point2 = _radiant.csg.Point2
 local Point3 = _radiant.csg.Point3
 local Region3 = _radiant.csg.Region3
 
@@ -40,7 +41,7 @@ function get_stockpile_containing_entity(entity)
    end
 end
 
-function StockpileComponent:__init(entity, data_binding)
+function StockpileComponent:__create(entity, json)
    self._entity = entity
    self._filter = nil
 
@@ -48,11 +49,10 @@ function StockpileComponent:__init(entity, data_binding)
    self._data = {
       stocked_items = {},
       item_locations = {},
-      size  = { 0, 0 },
+      size  = Point2(0, 0),
       filter = self._filter
    }
-   self._data_binding = data_binding
-   self._data_binding:update(self._data)
+   self.__savestate = radiant.create_datastore(self._data)
 
    self._destination:set_region(_radiant.sim.alloc_region())
                     :set_reserved(_radiant.sim.alloc_region())
@@ -60,13 +60,17 @@ function StockpileComponent:__init(entity, data_binding)
 
    radiant.events.listen(radiant.events, 'stonehearth:gameloop', self, self.on_gameloop)
    all_stockpiles[self._entity:get_id()] = self
+
+   if json.size then      
+      self:set_size(json.size.x, json.size.y)
+   end
 end
 
 function StockpileComponent:get_entity()
    return self._entity
 end
 
-function StockpileComponent:destroy()
+function StockpileComponent:__destroy()
    log:info('%s destroying stockpile component', self._entity)
    all_stockpiles[self._entity:get_id()] = nil
    for id, item in pairs(self._data.stocked_items) do
@@ -97,7 +101,7 @@ end
 function StockpileComponent:set_filter(filter)
    self._filter = filter
    self._data.filter = self._filter
-   self._data_binding:update(self._data)
+   self.__savestate:mark_changed()
 
    -- for items that no longer match the filter, 
    -- remove then re-add the item from its parent. Other stockpiles
@@ -149,12 +153,6 @@ function StockpileComponent:on_gameloop()
    self:_rebuild_item_data()
 end
 
-function StockpileComponent:extend(json)
-   if json.size then
-      self:set_size(json.size)
-   end
-end
-
 function StockpileComponent:get_items()
    return self._data.stocked_items;
 end
@@ -169,14 +167,14 @@ end
 
 function StockpileComponent:_get_bounds()
    local size = self:get_size()
-   local bounds = Cube3(Point3(0, 0, 0), Point3(size[1], 1, size[2]))
+   local bounds = Cube3(Point3(0, 0, 0), Point3(size.x, 1, size.y))
    return bounds
 end
 
 function StockpileComponent:get_bounds()
    local size = self:get_size()
    local origin = radiant.entities.get_world_grid_location(self._entity)
-   local bounds = Cube3(origin, Point3(origin.x + size[1], origin.y + 1, origin.z + size[2]))
+   local bounds = Cube3(origin, Point3(origin.x + size.x, origin.y + 1, origin.z + size.y))
    return bounds
 end
 
@@ -194,11 +192,11 @@ function StockpileComponent:bounds_contain(item_entity)
 end
 
 function StockpileComponent:get_size()
-   return { self._data.size[1], self._data.size[2] }
+   return self._data.size
 end
 
-function StockpileComponent:set_size(size)
-   self._data.size = { size[1], size[2] }
+function StockpileComponent:set_size(x, y)
+   self._data.size = Point2(x, y)
    self:_rebuild_item_data()
 end
 
@@ -272,7 +270,7 @@ function StockpileComponent:_add_item_to_stock(entity)
    
    -- hold onto the item...
    self._data.stocked_items[entity:get_id()] = entity
-   self._data_binding:mark_changed()
+   self.__savestate:mark_changed()
 
    -- add the item to the inventory 
    radiant.events.trigger(self._entity, "stonehearth:item_added", { 
@@ -296,7 +294,7 @@ function StockpileComponent:_remove_item_from_stock(id)
    
    local entity = self._data.stocked_items[id]
    self._data.stocked_items[id] = nil
-   self._data_binding:mark_changed()
+   self.__savestate:mark_changed()
 
    --Remove items that have been taken out of the stockpile
    if entity and entity:is_valid() then
@@ -322,7 +320,7 @@ function StockpileComponent:_rebuild_item_data()
    
    self._data.stocked_items = {}
    self._data.item_locations = {}
-   self._data_binding:mark_changed()
+   self.__savestate:mark_changed()
 
    local ec = radiant.entities.get_root_entity()
                   :get_component('entity_container')

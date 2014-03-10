@@ -10,6 +10,7 @@ extern float k_pi;
 extern float k_epsilon;
 
 bool IsZero(float value);
+bool IsZero(double value);
 bool AreEqual(float v1, float v2);
 float Sqrt(float value);
 void SinCos(float value, float& sin, float& cos);

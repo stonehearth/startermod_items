@@ -641,6 +641,7 @@
       "portal" : "file(components/portal/portal_component.lua)",
       "no_construction_zone" : "file(components/no_construction_zone/no_construction_zone_component.lua)",
       "construction_data" : "file(components/construction_data/construction_data_component.lua)",
+      "construction_progress" : "file(components/construction_progress/construction_progress_component.lua)",
       "personality" : "file(components/personality/personality_component.lua)",
       "loot_table" : "file(components/loot_table/loot_table_component.lua)",
       "inventory" : "file(components/inventory/inventory_component.lua)",
@@ -657,13 +658,9 @@
    "invariant_renderers" : {
       "scaffolding_render_data" : "file(renderers/scaffolding/scaffolding_renderer.lua)"
    },
-   "loader" :  {
-      "ui" : {
-         "homepage" : "file(/ui/root/index.html)"
-      }
-   },
    "ui" :  {
-      "html" : [     
+      "homepage" : "http://radiant/stonehearth/ui/root/index.html",
+      "html" : [
          "file(ui/common/modal_overlay/modal_overlay.html)",
          "file(ui/shell/shell.html)",
          "file(ui/shell/title/title.html)",

@@ -16,6 +16,7 @@ BEGIN_RADIANT_HORDE3D_NAMESPACE
 template<typename T> class ValueEmitter
 {
 public:
+   virtual ~ValueEmitter() { }
    virtual void init() = 0;
    virtual T nextValue(float time) = 0;
 

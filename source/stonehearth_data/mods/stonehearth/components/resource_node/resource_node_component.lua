@@ -1,28 +1,11 @@
 local ResourceNodeComponent = class()
 
-function ResourceNodeComponent:__init(entity)
+function ResourceNodeComponent:__create(entity, json)
    self._entity = entity
-   self._durability = 1
-end
-   
-function ResourceNodeComponent:extend(json)
-   -- not really...
-   if json.durability then
-      self._durability = json.durability
-   end
-
-   if json.resource then
-      self._resource = json.resource
-   end
-
-   if json.harvester_effect then
-      self._harvester_effect = json.harvester_effect
-   end
-
-   if json.description then
-      self._description = json.description
-   end
-
+   self._durability = json.durability or 1
+   self._resource = json.resource
+   self._harvester_effect = json.harvester_effect
+   self._description = json.description
    self._harvest_overlay_effect = json.harvest_overlay_effect
 end
 

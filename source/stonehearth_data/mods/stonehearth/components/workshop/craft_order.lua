@@ -55,8 +55,8 @@ function CraftOrder:__init(recipe, condition, faction, on_change_cb)
    self._enabled = true
    self._is_crafting = false
    self._recipe = recipe
-   self._faction = faction
-   self._on_change_cb = on_change_cb   
+   self._faction = faction   
+   self._on_change_cb = on_change_cb
 
    self._condition = condition
    if self._condition.type == "make" then
@@ -65,25 +65,27 @@ function CraftOrder:__init(recipe, condition, faction, on_change_cb)
    elseif self._condition.type == "maintain" then
       self._condition.at_least = tonumber(self._condition.at_least)
    end
+   self.__savestate = radiant.create_datastore()
+   self:_on_changed()
 end
 
-function CraftOrder:__tojson()
-   local json = {
+function CraftOrder:_on_changed()
+   self.__savestate:set_data({
       id = self._id,
       recipe = self._recipe,
       condition = self._condition,
       enabled = self._enabled,
       portrait = self._recipe.portrait,
       is_crafting = self._is_crafting
-   }
-   return radiant.json.encode(json)
+   })
+   self._on_change_cb()
 end
 
 --[[
    Destructor??
 ]]
 function CraftOrder:destroy()
-   self._on_change_cb()
+   self:_on_changed()
 end
 
 -- Getters and Setters
@@ -101,7 +103,7 @@ end
 
 function CraftOrder:toggle_enabled()
    self._enabled = not self._enabled
-   self._on_change_cb()
+   self:_on_changed()
 end
 
 function CraftOrder:get_condition()
@@ -111,7 +113,7 @@ end
 function CraftOrder:set_crafting_status(status)
    if status ~= self._is_crafting then
       self._is_crafting = status
-      self._on_change_cb()
+      self:_on_changed()
    end
 end
 
@@ -140,6 +142,7 @@ end
 function CraftOrder:on_item_created()
    if self._condition.type == "make" then
       self._condition.remaining = self._condition.remaining - 1
+      self:_on_changed()
    end
 end
 

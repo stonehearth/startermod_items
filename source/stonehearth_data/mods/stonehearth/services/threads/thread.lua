@@ -233,6 +233,10 @@ function Thread:_call_interrupt(fn)
    fn()
 end
 
+function Thread:is_finished()
+   return self._finished
+end
+
 function Thread:wait()
    local log = Thread.get_current_thread()._log
    log:detail('thread %d waiting for thread %d to finish', Thread.get_current_thread()._id, self._id)
@@ -301,8 +305,7 @@ function Thread:resume(reason)
          self._log:detail('resume called when trying to suspend.  skipping the suspend.')
          self._should_resume = true
       end         
-   else
-      assert(not self._should_resume)
+   elseif not self._should_resume then
       self._should_resume = true
       Thread.schedule_thread(self)
    end

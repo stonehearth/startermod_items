@@ -19,12 +19,12 @@ function entities.create_entity(ref)
       return _radiant.sim.create_empty_entity()
    end
    local entity = _radiant.sim.create_entity(ref)
-   -- trigger 'stonehearth:entity_created' first so components can finalize entity
+   -- trigger 'stonehearth:entity:post_create' first so components can finalize entity
    -- creation.
-   radiant.events.trigger(entity, 'stonehearth:entity_created', { entity = entity})
+   radiant.events.trigger(entity, 'stonehearth:entity:post_create', { entity = entity})
 
    -- trigger the global 'stonehearth:entity_created' to notify mods
-   radiant.events.trigger(radiant.events, 'stonehearth:entity_created', { entity = entity})
+   radiant.events.trigger(radiant.events, 'stonehearth:entity:post_create', { entity = entity })
    return entity
 end
 
@@ -39,7 +39,10 @@ function entities.destroy_entity(entity)
          end
          singleton._entity_dtors[id] = nil
       end
+      radiant.events.trigger(entity, 'stonehearth:entity:pre_destroy', { entity = entity })      
+      radiant.events.trigger(radiant.events, 'stonehearth:entity:pre_destroy', { entity = entity })      
       _radiant.sim.destroy_entity(entity)
+      radiant.events.trigger(radiant.events, 'stonehearth:entity:post_destroy', { id = id })
    end
 end
 
@@ -128,11 +131,14 @@ function entities.get_world_grid_location(entity)
    return mob and mob:get_world_grid_location() or Point3(0, 0, 0)
 end
 
-function entities.distance_between(entity_a, entity_b)
-   local loc_a = radiant.entities.get_world_grid_location(entity_a)
-   local loc_b = radiant.entities.get_world_grid_location(entity_b)
-
-   return loc_a:distance_to(loc_b)
+function entities.distance_between(object_a, object_b)
+   if radiant.util.is_a(object_a, Entity) then
+      object_a = radiant.entities.get_world_grid_location(object_a)
+   end
+   if radiant.util.is_a(object_b, Entity) then
+      object_b = radiant.entities.get_world_grid_location(object_b)
+   end
+   return object_a:distance_to(object_b)
 end
 
 function entities.move_to(entity, location)
@@ -262,7 +268,8 @@ end
 
 -- id here can be an int (e.g. 999) or uri (e.g. '/o/stores/server/objects/999')
 function entities.get_entity(id)
-   return _radiant.sim.get_entity(id)
+   local entity = _radiant.sim.get_object(id)
+   return entity
 end
 
 

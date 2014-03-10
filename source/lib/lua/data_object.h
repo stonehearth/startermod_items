@@ -17,8 +17,14 @@ public:
    void SetDataObject(luabind::object o);
    luabind::object GetDataObject() const;
    void MarkDirty();
+
    json::Node const& GetJsonNode() const;
+#if 0
    void SetJsonNode(lua_State* L, json::Node const& node);
+#endif
+
+   void SaveValue(dm::Store const& store, dm::SerializationType r, Protocol::LuaDataObject *msg) const;
+   void LoadValue(dm::Store const& store, dm::SerializationType r, const Protocol::LuaDataObject &msg);
 
 public:
    luabind::object            data_object_;

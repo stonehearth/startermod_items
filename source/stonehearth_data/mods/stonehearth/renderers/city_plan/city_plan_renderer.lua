@@ -1,28 +1,19 @@
 local CityPlanRenderer = class()
 
-function CityPlanRenderer:__init(render_entity, data_store)
+function CityPlanRenderer:__init(render_entity)
    self._blueprints = {}
-   self._node = render_entity:get_node()
-   self._data_store = data_store
-   
-   self._promise = data_store:trace_data('updating render orders')
-   self._promise:on_changed(function ()
-         self:_update()
-      end)
-   self:_update()
+   self._parent_node = render_entity:get_node()
 end
 
-function CityPlanRenderer:_update()
-   local data = self._data_store:get_data()
-   
+function CityPlanRenderer:update(render_entity, data)
    if not data or not data.blueprints then
       return
    end
-   
+  
    -- add new entries.
    for id, entity in pairs(data.blueprints) do
       if not self._blueprints[id] then
-         self._blueprints[id] = _client:create_render_entity(self._node, entity)
+         self._blueprints[id] = _client:create_render_entity(self._parent_node, entity)
       end
    end
    
@@ -35,7 +26,6 @@ function CityPlanRenderer:_update()
 end
 
 function CityPlanRenderer:destroy()
-   self._promise:destroy()
 end
 
 return CityPlanRenderer

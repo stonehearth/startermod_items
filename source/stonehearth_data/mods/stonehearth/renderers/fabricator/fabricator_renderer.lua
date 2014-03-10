@@ -2,13 +2,13 @@ local voxel_brush_util = require 'services.build.voxel_brush_util'
 local Point3 = _radiant.csg.Point3
 local FabricatorRenderer = class()
 
-function FabricatorRenderer:__init(render_entity, data_store)
+function FabricatorRenderer:update(render_entity, datastore)
    self._parent_node = render_entity:get_node()
    self._entity = render_entity:get_entity()
 
-   self._data = data_store:get_data()
-   self._data_store = data_store
-   self._ds_promise = data_store:trace_data('rendering a fabrication')
+   self._data = datastore:get_data()
+   self._data_store = datastore
+   self._ds_promise = datastore:trace_data('rendering a fabrication')
                         :on_changed(function()
                            self:_update()
                         end)
@@ -31,11 +31,13 @@ function FabricatorRenderer:_update()
    end
 
    local blueprint = self._data.blueprint
-   local construction_data = blueprint:get_component_data('stonehearth:construction_data')
-   local region = self._destination:get_region()
-
-   if construction_data.brush then
-      self._node = voxel_brush_util.create_construction_data_node(self._parent_node, self._entity, region, construction_data, 'blueprint')
+   local component_data = blueprint:get_component('stonehearth:construction_data')
+   if component_data then
+      local construction_data = component_data:get_data()
+      if construction_data.brush then
+         local region = self._destination:get_region()
+         self._node = voxel_brush_util.create_construction_data_node(self._parent_node, self._entity, region, construction_data, 'blueprint')
+      end
    end
 end
 

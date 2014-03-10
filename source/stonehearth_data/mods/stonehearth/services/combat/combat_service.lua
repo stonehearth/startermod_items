@@ -33,4 +33,5 @@ function CombatService:apply_damage(source_entity, target_entity, damage)
    end
 end
 
-return CombatService()
+return CombatService
+

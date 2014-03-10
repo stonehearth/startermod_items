@@ -33,6 +33,8 @@ class Component;
 class Selection;
 class TileAddress;
 
+DECLARE_SHARED_POINTER_TYPES(Component)
+
 std::string GetObjectName(dm::ObjectPtr obj);
 std::string GetObjectName(const dm::Object& obj);
 std::string GetObjectNameLower(dm::ObjectPtr obj);

@@ -3,10 +3,11 @@
 #include "trace.h"
 #include "reactor_deferred.h"
 #include "trace_object_router.h"
-#include "om/object_formatter/object_formatter.h"
+#include "om/json.h"
 #include "dm/object.h"
 #include "dm/store.h"
 #include "dm/trace.h"
+#include "lib/json/node.h"
 
 using namespace ::radiant;
 using namespace ::radiant::rpc;
@@ -26,7 +27,7 @@ void TraceObjectRouter::CheckDeferredTraces()
          continue;
       }
       std::string const& uri = i->first;
-      dm::ObjectPtr obj = om::ObjectFormatter().GetObject(store_, uri);
+      dm::ObjectPtr obj = store_.FetchObject<dm::Object>(uri);
       if (obj) {
          InstallTrace(uri, d, obj);
          i = deferred_traces_.erase(i);
@@ -44,15 +45,15 @@ ReactorDeferredPtr TraceObjectRouter::InstallTrace(Trace const& trace)
    if (d) {
       return d;
    }
-   om::ObjectFormatter of;
-   if (!of.IsPathInStore(store_, trace.route)) {
-	   // Make sure the path is actually valid for this store (for example, if someone is trying
-	   // to trace the authoring store and this is the router for the game store, we should
-	   // just bail unconditionally).
-	   return nullptr;
+
+   if (!store_.IsValidStoreAddress(trace.route)) {
+      // Make sure the path is actually valid for this store (for example, if someone is trying
+      // to trace the authoring store and this is the router for the game store, we should
+      // just bail unconditionally).
+      return nullptr;
    }
 
-   dm::ObjectPtr obj = of.GetObject(store_, trace.route);
+   dm::ObjectPtr obj = store_.FetchObject<dm::Object>(trace.route);
    if (obj) {
       ReactorDeferredPtr deferred = std::make_shared<ReactorDeferred>(trace.desc());
       InstallTrace(trace.route, deferred, obj);
@@ -97,7 +98,14 @@ void TraceObjectRouter::InstallTrace(std::string const& uri, ReactorDeferredPtr 
       auto obj = entry.obj.lock();
       auto deferred = entry.deferred.lock();
       if (obj && deferred) {
-         JSONNode data = om::ObjectFormatter().ObjectToJson(obj);
+         json::Node data;
+          if (obj->GetObjectType() == om::JsonBoxedObjectType) {
+             // writing this code makes me a bad person.  i'm certain of it. =(
+             data = std::static_pointer_cast<om::JsonBoxed>(obj)->Get();
+             obj->SerializeToJson(data);
+          } else {
+            obj->SerializeToJson(data);
+          }
          deferred->Notify(data);
       } else {
          traces_.erase(uri);

@@ -24,6 +24,12 @@ function client_entities.destroy_entity(entity)
    end
 end
 
+-- id here can be an int (e.g. 999) or uri (e.g. '/o/stores/server/objects/999')
+function client_entities.get_entity(id)
+   local entity = _radiant.client.get_object(id)
+   return entity
+end
+
 function client_entities.get_entity_data(entity, key)
    if entity then
       local uri = entity:get_uri()

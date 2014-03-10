@@ -32,13 +32,24 @@ var StonehearthClient;
       _callTool: function(toolFunction) {
          var self = this;
 
+         var deferred = new $.Deferred();
+
          this.deactivateAllTools()
             .always(function() {
-               self._activeTool = toolFunction().always(function (){
-                  self._activeTool = null;
-               })
-               return self._activeTool;
+               // when all tools are deactivated, activate the tool specified in the params
+               self._activeTool = toolFunction()
+                  .done(function(response) {
+                     deferred.resolve(response);
+                  })
+                  .fail(function(response) {
+                     deferred.reject(response);
+                  })
+                  .always(function (){
+                     self._activeTool = null;
+                  })
             });
+
+         return deferred;
       },
 
       createStockpile: function() {

@@ -29,4 +29,5 @@ function InventoryService:enumerate_items(faction, cb)
    end
 end
 
-return InventoryService()
+return InventoryService
+

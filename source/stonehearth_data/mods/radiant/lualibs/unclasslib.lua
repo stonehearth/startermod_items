@@ -152,7 +152,16 @@ local function build(class, shared_objs, shared)
    -- New object
    local obj = {
       __type = 'object',
-      __classname = class.__classname, -- added by tony @ radiant for debugging
+      __classname = class.__classname,  -- added by tony @ radiant for debugging
+
+      -- save/load implementation for radiant
+      __savestate = {},
+      __repr = function (t)
+            return t.__savestate
+         end,
+      __tojson = function (t)
+            return t.__savestate
+         end,
    }
    
    -- Repository for storing inherited base objects

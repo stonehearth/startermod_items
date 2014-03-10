@@ -2,7 +2,6 @@
    Tell a worker to collect food and resources from a plant. 
 ]]
 
-local event_service = stonehearth.events
 local Entity = _radiant.om.Entity
 local Point3 = _radiant.csg.Point3
 

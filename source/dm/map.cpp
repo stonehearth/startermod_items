@@ -28,33 +28,33 @@ TracePtr Map<K, V, H>::TraceObjectChanges(const char* reason, Tracer* tracer) co
 }
 
 template <class K, class V, class H>
-void Map<K, V, H>::LoadValue(Protocol::Value const& value)
+void Map<K, V, H>::LoadValue(SerializationType r, Protocol::Value const& value)
 {
    auto msg = value.GetExtension(Protocol::Map::extension);
    K key;
    V val;
 
    for (Protocol::Map::Entry const& entry : msg.added()) {
-      SaveImpl<K>::LoadValue(GetStore(), entry.key(), key);
-      SaveImpl<V>::LoadValue(GetStore(), entry.value(), val);
+      SaveImpl<K>::LoadValue(GetStore(), r, entry.key(), key);
+      SaveImpl<V>::LoadValue(GetStore(), r, entry.value(), val);
       Add(key, val);
    }
    for (Protocol::Value const& removed : msg.removed()) {
-      SaveImpl<K>::LoadValue(GetStore(), removed, key);
+      SaveImpl<K>::LoadValue(GetStore(), r, removed, key);
       Remove(key);
    }
 }
 
 template <class K, class V, class H>
-void Map<K, V, H>::SaveValue(Protocol::Value* value) const
+void Map<K, V, H>::SaveValue(SerializationType r, Protocol::Value* value) const
 {
    Store const& store = GetStore();
    Protocol::Map::Update* msg = value->MutableExtension(Protocol::Map::extension);
 
    for (auto const& entry : items_) {
       Protocol::Map::Entry* submsg = msg->add_added();
-      SaveImpl<Key>::SaveValue(store, submsg->mutable_key(), entry.first);
-      SaveImpl<Value>::SaveValue(store, submsg->mutable_value(), entry.second);
+      SaveImpl<Key>::SaveValue(store, r, submsg->mutable_key(), entry.first);
+      SaveImpl<Value>::SaveValue(store, r, submsg->mutable_value(), entry.second);
    }
 }
 

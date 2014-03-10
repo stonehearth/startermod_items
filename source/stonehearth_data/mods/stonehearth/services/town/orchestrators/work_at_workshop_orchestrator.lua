@@ -8,9 +8,12 @@ function WorkAtWorkshop:run(town, args)
    self._town = town
    self._thread = stonehearth.threads:get_current_thread()
    self._workshop = args.workshop
-   self._task_group = args.task_group
    self._crafter = args.crafter
    self._craft_order_list = args.craft_order_list
+
+   self._task_group = town:create_task_group('stonehearth:top', {})
+                                                  :set_priority(stonehearth.constants.priorities.top.CRAFT)
+                                                  :add_worker(self._crafter)
 
    local faction = radiant.entities.get_faction(self._crafter)
    self._inventory = stonehearth.inventory:get_inventory(faction)

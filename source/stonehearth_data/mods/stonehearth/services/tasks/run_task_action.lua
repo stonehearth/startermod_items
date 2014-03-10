@@ -21,7 +21,7 @@ function RunTaskAction:_create_execution_frame(ai)
       self._ai = ai
       self._log = ai:get_log()
 
-      self._execution_frame = ai:spawn(self._activity.name, self._activity.args)
+      self._execution_frame = ai:spawn(self._activity.name)
       radiant.events.listen(self._task, 'started', self, self._start_stop_thinking)
       radiant.events.listen(self._task, 'stopped', self, self._start_stop_thinking)
       radiant.events.listen(self._task, 'work_available', self, self._start_stop_thinking)
@@ -34,7 +34,7 @@ function RunTaskAction:_start_stop_thinking()
       self._log:debug('_start_stop_thinking (should? %s  currently? %s)', tostring(should_think), tostring(self._thinking))
       if should_think and not self._thinking then
          self._thinking = true
-         local think_output = self._execution_frame:start_thinking(self._ai.CURRENT)
+         local think_output = self._execution_frame:start_thinking(self._activity.args, self._ai.CURRENT)
          if think_output then
             -- hmmm.  we need to set the thing output upward toward our dispatcher.  this needs
             -- to match the expected type.  we have *no way* of knowing that type, though (at least
@@ -105,8 +105,6 @@ end
 function RunTaskAction:stop()
    if self._execution_frame then
       self._execution_frame:stop()
-      self._execution_frame:destroy()
-      self._execution_frame = nil
    end
    self._task:__action_stopped(self)
 end

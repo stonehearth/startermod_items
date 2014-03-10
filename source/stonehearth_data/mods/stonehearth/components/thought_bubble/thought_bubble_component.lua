@@ -7,13 +7,10 @@ Here are the rules
 - Removing a thought that has never been set is a no-op, so it's ok.
 
 ]]
-function ThoughtBubbleComponent:__init(entity, data_binding)
-   self._data_binding = data_binding
+function ThoughtBubbleComponent:__create(entity, json)
    self._entity = entity
-   self._thought_effect = nil
-   self._thought_uri = nil
    self._thought_priority = 0
-   --self._data_binding:update(self._statuses)
+   self.__savestate = radiant.create_datastore()
 end
 
 function ThoughtBubbleComponent:set_thought(uri, priority)
@@ -37,7 +34,7 @@ function ThoughtBubbleComponent:set_thought(uri, priority)
    self._thought_uri = uri
    self._thought_priority = priority
 
-   --self._data_binding:mark_changed()   
+   --self.__savestate:mark_changed()   
    return self._thought_effect
 end
 

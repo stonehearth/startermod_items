@@ -4,23 +4,19 @@
 
 local ProfessionComponent = class()
 
-function ProfessionComponent:__init(entity)
+function ProfessionComponent:__create(entity, json)
    self._entity = entity
-   self._info = {}
-end
-
-function ProfessionComponent:extend(json)
-   self:set_info(json)
-end
-
-function ProfessionComponent:set_info(info)
-   self._info = info
-   if self._info and self._info.name then 
+   self._info = json
+   if self._info.name then 
       self._entity:add_component('unit_info'):set_description(self._info.name)
 
       --Let people know that the promotion has (probably) happened.
-      local object_tracker_service = stonehearth.object_tracker
-      radiant.events.trigger(object_tracker_service, 'stonehearth:promote', {entity = self._entity})
+      -- xxx: is there a better way?  How about if the town listens to all 'stonehearth:profession_changed'
+      -- messages from its citizens?  That sounds good!!
+      radiant.events.trigger(stonehearth.object_tracker, 'stonehearth:promote', {entity = self._entity})
+
+      -- so good!  keep this one, lose the top one.  too much "collusion" between components =)
+      radiant.events.trigger(self._entity, 'stonehearth:profession_changed', { entity = entity })
    end
 end
 

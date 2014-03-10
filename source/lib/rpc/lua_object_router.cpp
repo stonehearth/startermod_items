@@ -7,7 +7,6 @@
 #include "reactor_deferred.h"
 #include "function.h"
 #include "dm/store.h"
-#include "om/object_formatter/object_formatter.h"
 #include "om/components/data_store.ridl.h"
 
 using namespace ::radiant;
@@ -25,7 +24,7 @@ ReactorDeferredPtr LuaObjectRouter::Call(Function const& fn)
    ReactorDeferredPtr d;
 
    try {
-      dm::ObjectPtr o = om::ObjectFormatter().GetObject(store_, fn.object);
+      dm::ObjectPtr o = store_.FetchObject<dm::Object>(fn.object);
       if (!o) {
          return nullptr;
       }
@@ -35,7 +34,7 @@ ReactorDeferredPtr LuaObjectRouter::Call(Function const& fn)
       }
       om::DataStorePtr db = std::dynamic_pointer_cast<om::DataStore>(o);
 
-      object obj = db->GetController();
+      object obj = db->GetController().GetLuaObject();
       if (!obj.is_valid()) {
          return nullptr;
       }

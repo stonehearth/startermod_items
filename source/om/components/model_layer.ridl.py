@@ -14,7 +14,6 @@ class ModelLayer(dm.Record):
    )
    models = dm.Set(std.string(), iterate='define', singular_name='model')
    layer = dm.Boxed(layer_type)
-   variants = dm.Boxed(std.string())
 
    _generate_construct_object = True
 
@@ -25,7 +24,6 @@ class ModelLayer(dm.Record):
 
    _public = \
    """
-   void Init(json::Node const& obj);
    """
 
    _global_post = \

@@ -18,9 +18,11 @@ function Proxy:__init(derived, parent_proxy, arg1)
       parent_proxy:add_child(derived)
    end
 
-   self._construction_data = self._entity:get_component_data('stonehearth:construction_data')
+   self._construction_data = self._entity:get_component('stonehearth:construction_data')
    if self._construction_data then
-      self._construction_data.paint_mode = "blueprint"
+      self._construction_data:modify_data(function(data)
+            data.paint_mode = "blueprint"
+         end)
    end
    -- proxies get rendered in blueprint
    self._entity:add_component('render_info')
@@ -117,22 +119,16 @@ function Proxy:add_dependency(dependency)
    return self._derived
 end
 
-function Proxy:update_datastore()
-   if self._construction_data then
-      self:get_entity():set_component_data('stonehearth:construction_data', self._construction_data)
-   end
-end
-
 function Proxy:get_construction_data()
    return self._construction_data
 end
 
 function Proxy:add_construction_data()
    if not self._construction_data then
-      self._construction_data = {
+      local data = {
          paint_mode = 'blueprint'
       }
-      self:update_datastore()
+      self._construction_data = self._entity:add_component_data('stonehearth:construction_data', data)
    end
    return self._construction_data
 end

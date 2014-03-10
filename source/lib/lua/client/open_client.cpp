@@ -32,12 +32,42 @@ om::EntityRef Client_GetEntity(object id)
    }
    if (type(id) == LUA_TSTRING) {
       dm::Store& store = Client::GetInstance().GetStore();
-      dm::ObjectPtr obj = om::ObjectFormatter().GetObject(store, object_cast<std::string>(id));
+      dm::ObjectPtr obj = store.FetchObject<dm::Object>(object_cast<std::string>(id));
       if (obj->GetObjectType() == om::EntityObjectType) {
          return std::static_pointer_cast<om::Entity>(obj);
       }
    }
    return om::EntityRef();
+}
+
+luabind::object Client_GetObject(lua_State* L, object id)
+{
+   Client &client = Client::GetInstance();
+   dm::ObjectPtr obj;
+   luabind::object lua_obj;
+
+   int id_type = type(id);
+
+   if (id_type == LUA_TNUMBER) {
+      dm::ObjectId object_id = object_cast<int>(id);
+      obj = client.GetStore().FetchObject<dm::Object>(object_id);
+   } else if (id_type == LUA_TSTRING) {
+      const char* addr = object_cast<const char*>(id);
+      obj = client.GetStore().FetchObject<dm::Object>(addr);
+      if (!obj) {
+         obj = client.GetAuthoringStore().FetchObject<dm::Object>(addr);
+      }
+   }
+   if (obj) {
+      lua::ScriptHost* host = lua::ScriptHost::GetScriptHost(L);
+      lua_obj = host->CastObjectToLua(obj);
+   }
+   return lua_obj;
+}
+
+void Client_SelectEntity(lua_State* L, om::EntityRef e)
+{
+   Client::GetInstance().SelectEntity(e.lock());
 }
 
 om::EntityRef Client_GetSelectedEntity()
@@ -127,7 +157,7 @@ std::weak_ptr<RenderEntity> Client_CreateRenderEntity(H3DNode parent, luabind::o
       // arg is a path to an object (e.g. /objects/3).  If this leads to a Entity, we're all good
       std::string path = luabind::object_cast<std::string>(arg);
       dm::Store& store = Client::GetInstance().GetStore();
-      dm::ObjectPtr obj =  om::ObjectFormatter().GetObject(store, path);
+      dm::ObjectPtr obj = store.FetchObject<dm::Object>(path);
       if (obj && obj->GetObjectType() == om::Entity::DmType) {
          entity = std::static_pointer_cast<om::Entity>(obj);
       }
@@ -348,6 +378,11 @@ IMPLEMENT_TRIVIAL_TOSTRING(Input)
 IMPLEMENT_TRIVIAL_TOSTRING(MouseInput)
 IMPLEMENT_TRIVIAL_TOSTRING(KeyboardInput)
 IMPLEMENT_TRIVIAL_TOSTRING(RawInput)
+DEFINE_INVALID_LUA_CONVERSION(Input)
+DEFINE_INVALID_LUA_CONVERSION(MouseInput)
+DEFINE_INVALID_LUA_CONVERSION(KeyboardInput)
+DEFINE_INVALID_LUA_CONVERSION(RawInput)
+DEFINE_INVALID_LUA_CONVERSION(RayCastResult)
 
 static bool Client_IsKeyDown(int key)
 {
@@ -371,7 +406,8 @@ void lua::client::open(lua_State* L)
    module(L) [
       namespace_("_radiant") [
          namespace_("client") [
-            def("get_entity",                      &Client_GetEntity),
+            def("get_object",                      &Client_GetObject),
+            def("select_entity",                   &Client_SelectEntity),
             def("get_selected_entity",             &Client_GetSelectedEntity),
             def("create_empty_authoring_entity",   &Client_CreateEmptyAuthoringEntity),
             def("create_authoring_entity",         &Client_CreateAuthoringEntity),
@@ -388,25 +424,25 @@ void lua::client::open(lua_State* L)
             def("create_designation_node",         &Client_CreateDesignationNode),
             def("alloc_region",                    &Client_AllocObject<om::Region3Boxed>),
             def("alloc_region2",                   &Client_AllocObject<om::Region2Boxed>),
-            def("create_data_store",               &Client_CreateDataStore),
+            def("create_datastore",                &Client_CreateDataStore),
             def("is_valid_standing_region",        &Client_IsValidStandingRegion),
             def("is_key_down",                     &Client_IsKeyDown),
             def("is_mouse_button_down",            &Client_IsMouseButtonDown),
             
-            lua::RegisterTypePtr<CaptureInputPromise>()
+            lua::RegisterTypePtr<CaptureInputPromise>("CaptureInputPromise")
                .def("on_input",          &CaptureInputPromise::OnInput)
                .def("destroy",           &CaptureInputPromise::Destroy)
             ,
-            lua::RegisterTypePtr<TraceRenderFramePromise>()
+            lua::RegisterTypePtr<TraceRenderFramePromise>("TraceRenderFramePromise")
                .def("on_server_tick",    &TraceRenderFramePromise::OnServerTick)
                .def("on_frame_start",    &TraceRenderFramePromise::OnFrameStart)
                .def("destroy",           &TraceRenderFramePromise::Destroy)
             ,
-            lua::RegisterTypePtr<SetCursorPromise>()
+            lua::RegisterTypePtr<SetCursorPromise>("SetCursorPromise")
                .def("destroy",           &SetCursorPromise::Destroy)
             ,
             // xxx: Input, MouseInput, KeyboardInput, etc. should be in open_core.cpp, right?
-            lua::RegisterType<Input>()
+            lua::RegisterType<Input>("Input")
                .enum_("constants") [
                   value("MOUSE", Input::MOUSE),
                   value("KEYBOARD", Input::KEYBOARD),
@@ -418,7 +454,7 @@ void lua::client::open(lua_State* L)
                .def_readonly("raw_input", &Input::raw_input)
                .def_readonly("focused",   &Input::focused)
             ,
-            lua::RegisterType<MouseInput>()
+            lua::RegisterType<MouseInput>("MouseInput")
                .def_readonly("x",       &MouseInput::x)
                .def_readonly("y",       &MouseInput::y)
                .def_readonly("dx",      &MouseInput::dx)
@@ -434,7 +470,7 @@ void lua::client::open(lua_State* L)
                   value("MOUSE_BUTTON_4",    GLFW_MOUSE_BUTTON_4)
                ]
             ,
-            lua::RegisterType<KeyboardInput>()
+            lua::RegisterType<KeyboardInput>("KeyboardInput")
                .enum_("constants") [
                   
                   value("KEY_SPACE",         GLFW_KEY_SPACE),
@@ -548,7 +584,7 @@ void lua::client::open(lua_State* L)
                .def_readonly("key",    &KeyboardInput::key)
                .def_readonly("down",   &KeyboardInput::down)
             ,
-            lua::RegisterType<RawInput>()
+            lua::RegisterType<RawInput>("RawInput")
          ]
       ]
    ];

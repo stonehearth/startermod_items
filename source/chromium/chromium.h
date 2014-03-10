@@ -22,6 +22,7 @@ public:
 
    typedef std::function<void(std::string const& uri, JSONNode const& query, std::string const& postdata, rpc::HttpDeferredPtr response)> HandleRequestCb;
 
+   virtual void Navigate(std::string const& uri) = 0;
    virtual bool HasMouseFocus(int screen_x, int screen_y) = 0;
    virtual void UpdateDisplay(PaintCb cb) = 0;
    virtual void Work() = 0;

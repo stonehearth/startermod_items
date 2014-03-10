@@ -9,6 +9,10 @@ function SleepObserver:__init(entity)
    radiant.events.listen(calendar, 'stonehearth:hourly', self, self.on_hourly)
 end
 
+function SleepObserver:destroy()
+   radiant.events.unlisten(calendar, 'stonehearth:hourly', self, self.on_hourly)
+end
+
 function SleepObserver:on_hourly(e)
    local sleepiness = self._attributes_component:get_attribute('sleepiness')
 

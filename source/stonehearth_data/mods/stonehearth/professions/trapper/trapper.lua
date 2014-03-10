@@ -1,11 +1,10 @@
 local trapper_class = {}
 
-function trapper_class.promote(entity, workshop_component)
+function trapper_class.promote(entity)
 
    --Add the necessary components
-   local profession_description = radiant.resources.load_json('stonehearth:trapper:description')
-   local profession_component = entity:add_component('stonehearth:profession')
-   profession_component:set_info(profession_description.profession)
+   local profession_description = radiant.resources.load_json('stonehearth:worker:profession_description')
+   local profession_component = entity:add_component('stonehearth:profession', profession_description.profession)
 
    --Slap a new outfit on the crafter
    local equipment = entity:add_component('stonehearth:equipment')

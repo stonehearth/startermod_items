@@ -1,42 +1,42 @@
 local InventoryComponent = class()
 
-function InventoryComponent:__init(entity, data_binding)
+function InventoryComponent:__create(entity, json)
    self._entity = entity
-   self._item_entities = {}
-   self._data_binding = data_binding
-   
-   self._data = {}
-   self._data.items = self._item_entities
-   self._data.capacity = 4 --xxx hardcoded
-
-   self._data_binding:update(self._data)
+   self._items = {
+      __numeric = true
+   }
+   self._capacity = json.capacity or 4
+   self.__savestate = radiant.create_datastore({
+         items = self._items,
+         capacity = self._capacity,
+      })
 end
    
 function InventoryComponent:add_item(item)
    if not self:is_full() then
-      table.insert(self._item_entities, item)
-      self._data_binding:update(self._data)
+      table.insert(self._items, item)
+      self.__savestate:mark_changed()
    end
 end
 
 function InventoryComponent:get_items()
-   return self._item_entities
+   return self._items
 end
 
 function InventoryComponent:is_empty()
-   return #self._item_entities == 0
+   return #self._items == 0
 end
 
 function InventoryComponent:is_full()
-   return #self._item_entities == self._data.capacity
+   return #self._items == self._capacity
 end
 
 function InventoryComponent:remove_first_item()
    local item = nil
 
    if not self:is_empty() then
-      item = table.remove(self._item_entities, 1)
-      self._data_binding:update(self._data)
+      item = table.remove(self._items, 1)
+      self.__savestate:mark_changed()
    end
    
    return item

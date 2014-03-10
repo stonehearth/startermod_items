@@ -1,13 +1,13 @@
 local EquipmentComponent = class()
 
 function EquipmentComponent:__init(entity)
-   self._entity = entity
    self._equipped_items = {} 
    self._injected_ais = {}
    self._injected_commands = {}
 end
 
-function EquipmentComponent:extend(json)
+function EquipmentComponent:__create(entity, json)
+   self._entity = entity
    assert(json)
    -- xxx, interate over all the items in the json array and equip them
 end
@@ -19,10 +19,10 @@ function EquipmentComponent:equip_item(item)
    end
    assert(radiant.check.is_entity(item))
 
-   local item_info = item:add_component('stonehearth:equipment_piece'):get_info();
-   self:_setup_item_rendering(item, item_info.render_type)
-   self:_inject_item_ai(item, item_info.injected_ai)
-   self:_inject_item_commands(item, item_info.injected_commands)
+   local ep = item:add_component('stonehearth:equipment_piece');
+   self:_setup_item_rendering(item, ep:get_render_type())
+   self:_inject_item_ai(item, ep:get_injected_ai())
+   self:_inject_item_commands(item, ep:get_injected_commands())
 
    table.insert(self._equipped_items, item)
 end
@@ -47,10 +47,10 @@ function EquipmentComponent:unequip_item(uri)
 end
 
 function EquipmentComponent:_remove_item(item)
-   local item_info = item:add_component('stonehearth:equipment_piece'):get_info();
-   self:_remove_item_rendering(item, item_info.render_type)
-   self:_revoke_injected_item_ai(item, item_info.injected_ai)
-   self:_revoke_injected_item_commands(item, item_info.injected_commands)
+   local ep = item:add_component('stonehearth:equipment_piece');
+   self:_remove_item_rendering(item, ep:get_render_type())
+   self:_revoke_injected_item_ai(item, ep:get_injected_ai())
+   self:_revoke_injected_item_commands(item, ep:get_injected_commands())
 end
 
 --- Handles all the rendering details of how the item will be rendered on the guy equipping the item

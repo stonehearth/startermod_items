@@ -5,13 +5,13 @@
 
 local CenterOfAttentionSpot = class()
 
-function CenterOfAttentionSpot:__init(entity)
-   self._entity = entity
+function CenterOfAttentionSpot:__init()
    self._coa_entity = nil
    self._spot_id = nil
 end
 
-function CenterOfAttentionSpot:extend(json)
+function CenterOfAttentionSpot:__create(entity, json)
+   self._entity = entity
 end
 
 --- Add this component/entity duo to a center of attention

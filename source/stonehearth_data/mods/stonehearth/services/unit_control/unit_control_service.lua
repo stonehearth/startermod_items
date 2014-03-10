@@ -63,5 +63,4 @@ function UnitControlService:_move_unit(e)
    end
 end  
 
-UnitControlService:__init()
 return UnitControlService

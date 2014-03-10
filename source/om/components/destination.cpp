@@ -16,6 +16,7 @@ std::ostream& operator<<(std::ostream& os, const Destination& o)
 
 void Destination::ConstructObject()
 {
+   Component::ConstructObject();
    auto_update_adjacent_ = false;
 }
 
@@ -29,7 +30,7 @@ void Destination::ConstructObject()
  *     }
  */
 
-void Destination::ExtendObject(json::Node const& obj)
+void Destination::LoadFromJson(json::Node const& obj)
 {
    if (obj.has("region")) {
       region_ = GetStore().AllocObject<Region3Boxed>();
@@ -47,6 +48,23 @@ void Destination::ExtendObject(json::Node const& obj)
    SetAutoUpdateAdjacent(auto_update_adjacent);
 
    D_LOG(5) << "finished constructing new destination for entity " << GetEntity().GetObjectId();
+}
+
+
+void Destination::SerializeToJson(json::Node& node) const
+{
+   Component::SerializeToJson(node);
+
+   om::Region3BoxedPtr region = GetRegion();
+   if (region) {
+      node.set("region", region->Get());
+   }
+   om::Region3BoxedPtr adjacent = GetAdjacent();
+   if (adjacent) {
+      node.set("adjacent", adjacent->Get());
+   }
+   node.set("auto_update_adjacent", GetAutoUpdateAdjacent());
+   node.set("allow_diagonal_adjacency", GetAllowDiagonalAdjacency());
 }
 
 Destination& Destination::SetAutoUpdateAdjacent(bool value)

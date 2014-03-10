@@ -102,11 +102,12 @@ class Renderer
       static Renderer& GetInstance();
 
       void Initialize(om::EntityPtr rootObject);
+      void Shutdown();
+
       void SetScriptHost(lua::ScriptHost* host);
       lua::ScriptHost* GetScriptHost() const;
       void DecodeDebugShapes(const ::radiant::protocol::shapelist& msg);
       void RenderOneFrame(int now, float alpha);
-      void Cleanup();
       void LoadResources();
       void ShowPerfHud(bool value);
       void SetServerTick(int tick);
@@ -213,6 +214,7 @@ class Renderer
 
       void DispatchInputEvent();
       bool LoadMissingResources();
+      void OneTimeIninitializtion();
 
    protected:
       struct RenderMapEntry {

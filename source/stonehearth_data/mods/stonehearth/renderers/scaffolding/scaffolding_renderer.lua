@@ -89,10 +89,11 @@ function ScaffoldingRenderer:_update_shape()
 
    -- Compute the y-rotation for all the nodes.  This is based on the direction of
    -- the scaffolding normal contained in the stonehearth:construction_data component.
+   self._tangent = 'x'
    self._rotation = 0
-   local construction_data = self._entity:get_component_data('stonehearth:construction_data')
-   assert(construction_data)
-   if construction_data then
+   local datastore = self._entity:get_component('stonehearth:construction_data')
+   if datastore then
+      local construction_data = datastore:get_data()
       local normal = construction_data.normal
       if normal then
          self._rotation = ROTATION_TABLE[normal.x][normal.z]
