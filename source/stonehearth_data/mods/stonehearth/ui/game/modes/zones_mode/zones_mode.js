@@ -22,7 +22,11 @@ App.StonehearthZonesModeView = App.View.extend({
             }
          } 
       });
-
+      
+      $(document).mousemove( function(e) {
+         self.mouseX = e.pageX; 
+         self.mouseY = e.pageY;
+      });
    },
    
    didInsertElement: function() {
@@ -72,11 +76,21 @@ App.StonehearthZonesModeView = App.View.extend({
    },
 
    _showStockpileUi: function(entity) {
+      var self = this;
+
       if (this._propertyView) {
          this._propertyView.destroy();
       };
 
       var uri = typeof(entity) == 'string' ? entity : entity.__self;
-      this._propertyView = App.gameView.addView(App.StonehearthStockpileView, { uri: uri });
+      
+      this._propertyView = App.gameView.addView(App.StonehearthStockpileView, { 
+            uri: uri,
+            position: {
+               my : 'center bottom',
+               at : 'left+' + self.mouseX + " " + 'top+' + (self.mouseY - 10),
+               of : $(document)
+            }
+         });
    },
 });

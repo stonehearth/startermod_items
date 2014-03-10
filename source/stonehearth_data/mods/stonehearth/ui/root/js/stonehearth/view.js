@@ -27,6 +27,14 @@
       this._super();
    },
 
+   didInsertElement: function() {
+      var position = this.get('position');
+
+      if (position) {
+         this.$().children().position(position);
+      }
+   },
+
    my: function(selector) {
       if (!selector) {
          return this.$();
