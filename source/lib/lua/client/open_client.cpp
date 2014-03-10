@@ -51,7 +51,7 @@ luabind::object Client_GetObject(lua_State* L, object id)
    if (id_type == LUA_TNUMBER) {
       dm::ObjectId object_id = object_cast<int>(id);
       obj = client.GetStore().FetchObject<dm::Object>(object_id);
-   } else if (id_type = LUA_TSTRING) {
+   } else if (id_type == LUA_TSTRING) {
       const char* addr = object_cast<const char*>(id);
       obj = client.GetStore().FetchObject<dm::Object>(addr);
       if (!obj) {
