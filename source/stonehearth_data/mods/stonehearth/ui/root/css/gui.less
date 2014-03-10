@@ -14,7 +14,7 @@
 
    .title {
       .controlFont;
-      margin: -29px -29px 10px -29px;
+      margin: -20px -20px 0px -20px;
       padding: 10px;
       background-color: #6c6045;
       border-width: 9px 9px 13px 9px;
@@ -35,6 +35,18 @@
          .outlined(#b4b495);
          background: #9e9e82;
          border-image: url(images/gui/button_hover.png) 9 9 13 9 repeat;
+      };
+   }
+
+   button.warn {
+      .outlined(#cd4848);
+      background: #b33131;
+      border-image: url(images/gui/button_warn.png) 9 9 13 9 repeat;
+
+      &:hover {
+         .outlined(#fc5050);
+         background: #f93030;
+         border-image: url(images/gui/button_warn_hover.png) 9 9 13 9 repeat;
       };
    }
 

@@ -93,6 +93,9 @@ $.widget( "stonehearth.stonehearthMenu", {
 
       this.menu.on( 'click', '.menuItem', function() {
 
+         // close all open tooltips
+         self.menu.find('.menuItem').tooltipster('hide');
+
          var id = $(this).attr('id');
          var nodeData = self._dataToMenuItemMap[id]
 
@@ -156,6 +159,12 @@ $.widget( "stonehearth.stonehearthMenu", {
                      .append('<div class=hotkey>' + hotkey + '</div>')
                      .appendTo(el);
 
+
+         item.tooltipster({
+            content: $('<div class=title>' + node.name + '</div>' + 
+                       '<div class=description>' + node.description + '</div>' + 
+                       '<div class=hotkey>' + $.t('hotkey') + ' <span class=key>' + hotkey + '</span></div>')
+         });
 
          self._dataToMenuItemMap[key] = node;
 

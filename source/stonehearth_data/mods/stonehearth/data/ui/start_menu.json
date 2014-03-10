@@ -1,20 +1,20 @@
 {
    "harvest_menu" : {
       "name" : "Harvest",
-      "description" : "xxx",
+      "description" : "Commands for harvesting and removing resources from the ground.",
       "class" : "dock",
       "icon" : "/stonehearth/ui/game/start_menu/images/dock_harvest.png",
       "hotkey" : "h",
       "items" : {
             "harvest" : {
                 "name" : "Harvest Resources",
-                "description" : "xxx",
+                "description" : "Harvest resources from the ground, like wood, stone, and ore.",
                 "class" : "button",
                 "hotkey" : "h"
             },
             "obliterate" : {
                 "name" : "Obliterate",
-                "description" : "xxx",
+                "description" : "Completely destroy resources that are in your way, instead of collecting them.",
                 "class" : "button",
                 "hotkey" : "x"
             }
