@@ -47,6 +47,10 @@ function ExecutionFrame:__init(thread, debug_route, entity, activity_name, actio
 
    if activity_name == 'stonehearth:top' then
       radiant.events.listen(entity, 'stonehearth:carry_block:carrying_changed', self, self._on_carrying_changed)
+      self._position_trace = radiant.entities.trace_location(self._entity, 'find path to entity')
+                                                :on_changed(function()
+                                                   self:_on_position_changed()
+                                                end)
    end
 end
 
@@ -60,13 +64,21 @@ function ExecutionFrame:_unknown_transition(msg)
    error(err)
 end
 
-function ExecutionFrame:_on_carrying_changed()
-   self._log:detail('carrying changed!  going to restart thinking... (state:%s)', self._state)
-
-   if self:in_state('thinking', 'starting_thinking', 'ready', 'running') then
-      self:_restart_thinking()
+function ExecutionFrame:_on_position_changed()
+   if self._last_captured_location then
+      local distance = radiant.entities.distance_between(self._entity, self._last_captured_location)
+      if distance > 3 then
+         self._log:detail('entity moved!  going to restart thinking... (state:%s)', self._state)
+         self:_restart_thinking()
+      end
    end
 end
+
+function ExecutionFrame:_on_carrying_changed()
+   self._log:detail('carrying changed!  going to restart thinking... (state:%s)', self._state)
+   self:_restart_thinking()
+end
+
 
 function ExecutionFrame:_start_thinking(args, entity_state)
    assert(args, "_start_thinking called with no arguments.")
@@ -212,6 +224,9 @@ function ExecutionFrame:_remove_action(unit)
    if self:in_state('running', 'switching', 'starting') then
       return self:_remove_action_from_running(unit)
    end
+   if self._state == 'stopping' then
+      return self:_remove_action_from_stopping(unit)
+   end
    if self._state == 'stopped' then
       return self:_remove_action_from_stopped(unit)
    end
@@ -222,9 +237,9 @@ function ExecutionFrame:_remove_action(unit)
 end
 
 function ExecutionFrame:_restart_thinking(entity_state)
-   self._log:detail('_restart_thinking')
-   if self._active_unit and not self._active_unit:is_preemptable() then
-      self._log:detail('active unit "%s" is not pre-emptable.', self._active_unit:get_name())
+   self._log:detail('_restart_thinking (state:%s)', self._state)
+
+   if not self:in_state('thinking', 'starting_thinking', 'ready', 'running') then
       return
    end
 
@@ -244,7 +259,7 @@ function ExecutionFrame:_restart_thinking(entity_state)
 
    local current_state = self._state
    for unit, entity_state in pairs(rethinking_units) do
-      self._log:detail('calling start_thinking on unit "%s".', unit:get_name())
+      self._log:detail('calling start_thinking on unit "%s" (unit state:%s).', unit:get_name(), unit:get_state())
       assert(unit:in_state('stopped', 'thinking', 'ready'))
       unit:_start_thinking(self._args, entity_state)
 
@@ -280,6 +295,10 @@ function ExecutionFrame:_start_thinking_from_stopped(args, entity_state)
 end
 
 function ExecutionFrame:_do_destroy()
+   if self._position_trace then
+      self._position_trace:destroy()
+      self._position_trace = nil
+   end
    radiant.events.unlisten(self._ai_component, 'stonehearth:action_index_changed', self, self._on_action_index_changed)
    radiant.events.unlisten(self._entity, 'stonehearth:carry_block:carrying_changed', self, self._on_carrying_changed)
 end
@@ -439,18 +458,10 @@ function ExecutionFrame:_stop_thinking_from_started()
    assert(self._active_unit)
    
    for _, unit in pairs(self._execution_units) do
-      if not self:_is_strictly_better_than_active(unit) then
+      if unit ~= self._active_unit and not self:_is_strictly_better_than_active(unit) then
          unit:_stop_thinking() -- this guy has no prayer...  just stop
       else
          -- let better ones keep processing.  they may prempt in the future
-         -- xxx: there's a problem... once we start running the CURRENT state
-         -- will quickly become out of date.  do we stop_thinking/start_thinking
-         -- them periodically?
-
-         -- xxx: disable for now...
-         if unit ~= self._active_unit and not self._active_unit:is_preemptable() then
-            unit:_stop_thinking()
-         end
       end
    end
 end
@@ -674,10 +685,16 @@ function ExecutionFrame:_stop_from_running()
    assert(self._thread:is_running() or stonehearth.threads:get_current_thread() == nil)
    assert(self._active_unit)
 
+   -- move into the stopping state, so we can take extra special care when stopping.
+   -- for example, somewhere deep below we may stop a RunActionTask, which will
+   -- ask it's parent Task to remove the action from the index.  Normally removing an
+   -- action from the index while it's currently running forces an abort, but we
+   -- certainly don't want to do that here!
+   self:_set_state(STOPPING)
+   self:_set_active_unit(nil)
    for _, unit in pairs(self._execution_units) do
       unit:_stop()
    end
-   self:_set_active_unit(nil)
    self:_set_state(STOPPED)
 end
    
@@ -827,6 +844,10 @@ function ExecutionFrame:_remove_action_from_stopped(unit)
    self:_remove_execution_unit(unit)
 end
 
+function ExecutionFrame:_remove_action_from_stopping(unit)
+   self:_remove_execution_unit(unit)
+end
+
 function ExecutionFrame:_remove_action_from_finished(unit)
    self:_remove_execution_unit(unit)
 end
@@ -948,6 +969,10 @@ function ExecutionFrame:_set_current_entity_state(state)
    for key, value in pairs(state) do
       self._log:spam('  CURRENT.%s = %s', key, tostring(value))
    end
+
+   -- remember where we think we are so we can restart thinking if we
+   -- move too far away from it.
+   self._last_captured_location = state.location
    
    -- we explicitly do not clone this state.  compound actions expect us
    -- to propogate side-effects of executing this frame back in the state
@@ -1026,8 +1051,8 @@ function ExecutionFrame:_get_best_execution_unit()
       local name = unit:get_name()
       local priority = unit:get_priority()
       local is_runnable = unit:is_runnable()
-      self._log:spam('  unit %s has priority %d (weight: %d  runnable: %s)',
-                     name, priority, unit:get_weight(), tostring(is_runnable))
+      self._log:spam('  unit %s has priority %d (weight: %d  runnable: %s  state:%s)',
+                     name, priority, unit:get_weight(), tostring(is_runnable), unit:get_state())
       if is_runnable then
          if priority >= best_priority then
             if priority > best_priority then

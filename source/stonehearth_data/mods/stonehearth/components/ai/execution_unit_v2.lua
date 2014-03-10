@@ -5,7 +5,6 @@ local READY = 'ready'
 local STARTED = 'started'
 local STARTING = 'starting'
 local RUNNING = 'running'
-local FINISHED = 'finished'
 local STOPPING = 'stopping'
 local STOPPED = 'stopped'
 local DEAD = 'dead'
@@ -78,10 +77,6 @@ function ExecutionUnitV2:get_action_interface()
    return self._ai_interface
 end
 
-function ExecutionUnitV2:is_preemptable()
-   return self._action.preemptable
-end
-
 function ExecutionUnitV2:get_action()
    return self._action
 end
@@ -100,7 +95,7 @@ function ExecutionUnitV2:get_weight()
 end
 
 function ExecutionUnitV2:is_runnable()
-   return self._action.priority > 0 and self._state == READY
+   return self._action.priority > 0 and self:in_state(READY, RUNNING)
 end
 
 function ExecutionUnitV2:get_current_entity_state()
@@ -191,8 +186,8 @@ function ExecutionUnitV2:_clear_think_output()
    if self:in_state('thinking', 'ready') then
       return self:_clear_think_output_from_thinking()
    end
-   if self._state == 'finished' then
-      return self:_clear_think_output_from_finished()
+   if self._state == 'stopped' then
+      return -- who cares?
    end
    self:_unknown_transition('clear_think_output')   
 end
@@ -261,8 +256,8 @@ function ExecutionUnitV2:_stop()
    if self._state == 'running' then
       return self:_stop_from_running()
    end
-   if self._state == 'finished' then
-      return self:_stop_from_finished()
+   if self._state == 'stopped' then
+      return -- duh.
    end
    if self:in_state('stopped', 'stopping', 'stop_thinking') then
       return -- nop
@@ -286,9 +281,6 @@ function ExecutionUnitV2:_destroy()
    end
    if self._state == 'running' then
       return self:_destroy_from_running()
-   end
-   if self._state == 'finished' then
-      return self:_destroy_from_finished()
    end
    if self._state == 'aborting' then
       return self:_destroy_from_aborting()
@@ -343,11 +335,6 @@ function ExecutionUnitV2:_clear_think_output_from_thinking()
    self._frame:_unit_not_ready(self)
 end
 
-
-function ExecutionUnitV2:_clear_think_output_from_finished()
-   -- who cares?
-end
-
 function ExecutionUnitV2:_stop_thinking_from_thinking()
    assert(self._thinking)
    self:_do_stop_thinking()
@@ -377,7 +364,8 @@ function ExecutionUnitV2:_run_from_ready()
    self:_set_state(RUNNING)
    self:_do_stop_thinking()
    self:_call_run()
-   self:_set_state(FINISHED)
+   self._log:detail('run finished... stopping')
+   self:_do_stop()
 end
 
 function ExecutionUnitV2:_run_from_started()
@@ -385,7 +373,8 @@ function ExecutionUnitV2:_run_from_started()
 
    self:_set_state(RUNNING)
    self:_call_run()
-   self:_set_state(FINISHED)
+   self._log:detail('run finished... stopping')
+   self:_do_stop()
 end
 
 function ExecutionUnitV2:_stop_from_thinking()
@@ -415,11 +404,6 @@ function ExecutionUnitV2:_stop_from_running()
       self._current_execution_frame:stop(true)
       self._current_execution_frame = nil
    end  
-   self:_do_stop()
-end
-
-function ExecutionUnitV2:_stop_from_finished()
-   assert(not self._thinking)
    self:_do_stop()
 end
 
@@ -467,14 +451,6 @@ function ExecutionUnitV2:_destroy_from_running()
    assert(not self._thinking)
    self:_destroy_execution_frames()
    self:_call_stop()
-   self:_call_destroy()
-   self:_set_state(DEAD)
-end
-
-function ExecutionUnitV2:_destroy_from_finished()
-   assert(not self._thinking)
-   assert(not self._current_execution_frame)
-   self:_destroy_execution_frames()
    self:_call_destroy()
    self:_set_state(DEAD)
 end
