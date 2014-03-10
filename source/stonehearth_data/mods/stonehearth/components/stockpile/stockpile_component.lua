@@ -101,7 +101,7 @@ end
 function StockpileComponent:set_filter(filter)
    self._filter = filter
    self._data.filter = self._filter
-   self.__savestate:marh_changed()
+   self.__savestate:mark_changed()
 
    -- for items that no longer match the filter, 
    -- remove then re-add the item from its parent. Other stockpiles
