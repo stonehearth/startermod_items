@@ -4,18 +4,12 @@ local HarvestTest = class(MicroWorld)
 function HarvestTest:__init()
    self[MicroWorld]:__init()
    self:create_world()
-<<<<<<< HEAD
 
    self:place_item_cluster('stonehearth:terrain:tall_grass', -8, 2, 6, 4)
    self:place_item_cluster('stonehearth:terrain:tall_grass', -8, 8, 2, 2)
    self:place_item('stonehearth:medium_oak_tree', -9, -9)
    self:place_item('stonehearth:medium_oak_tree', 12, -2)
-=======
-   --self:place_item('stonehearth:oak_log', 0, 0)
-   --self:place_item('stonehearth:oak_log', 0, 1)
-   self:place_tree(-9, -9)   
-   self:place_tree(12, -2)
->>>>>>> develop
+
    self:place_item('stonehearth:small_boulder', 1, 1)
    self:place_item('stonehearth:medium_boulder', 4, 4)
    self:place_item('stonehearth:large_boulder', 8, 8)
