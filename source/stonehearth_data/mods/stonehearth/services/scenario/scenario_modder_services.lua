@@ -18,7 +18,7 @@ function ScenarioModderServices:place_entity(uri, x, y)
    -- switch from lua height_map base 1 coordinates to c++ base 0 coordinates
    -- swtich from scenario coordinates to world coordinates
    radiant.terrain.place_entity(entity, Point3(x-1 + self._offset_x, 1, y-1 + self._offset_y))
-   self:_set_random_facing(entity)
+   --self:_set_random_facing(entity)
    return entity
 end
 
@@ -50,6 +50,7 @@ function ScenarioModderServices:place_entity_cluster(uri, quantity, entity_radiu
       end
    end
 end
+
 
 -- Private API starts here
 function ScenarioModderServices:__init(rng)

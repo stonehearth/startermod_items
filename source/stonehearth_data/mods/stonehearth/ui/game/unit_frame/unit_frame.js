@@ -17,14 +17,23 @@ App.StonehearthUnitFrameView = App.View.extend({
       $(top).on("radiant_selection_changed.unit_frame", function (_, data) {
          if (!self._supressSelection) {
            var selected = data.selected_entity;
-           self._selected_entity = selected;
-           if (self._selected_entity) {
-              self.set('uri', self._selected_entity);
+           self._selectedEntity = selected;
+           
+           if (App.getGameMode() == 'normal' && self._selectedEntity) {
+              self.set('uri', self._selectedEntity);
               self.show();
            } else {
               //self.set('uri', null);
               self.hide();
            }
+         }
+      });
+
+      $(top).on('mode_changed.unit_frame', function(_, mode) {
+         if (mode == 'normal' && self._selectedEntity) {
+            self.show();
+         } else {
+            self.hide();
          }
       });
    },
@@ -130,11 +139,15 @@ App.StonehearthUnitFrameView = App.View.extend({
    },
 
    show: function() {
-      $('#unitFrame').show();
+      try {
+         this.$().fadeIn();
+      } catch (err) {
+        console.log(err);
+      }
    },
 
    hide: function() {
-      $('#unitFrame').hide();
+      this.$().fadeOut();
    }
 
 });

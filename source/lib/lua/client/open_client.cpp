@@ -189,9 +189,9 @@ Client_QueryScene(lua_State* L, int x, int y)
 }
 
 rpc::LuaDeferredPtr Client_SelectXZRegion(lua_State* L)
-{
-   Client &c = Client::GetInstance();
-   auto d = std::make_shared<XZRegionSelector>(c.GetTerrain())->Activate();
+{  
+   XZRegionSelectorPtr selector = Client::GetInstance().CreateXZRegionSelector();
+   auto d = selector->Activate();
 
    rpc::LuaDeferredPtr result = std::make_shared<rpc::LuaDeferred>("select xz region");
    d->Progress([L, result](csg::Cube3 const& c) {

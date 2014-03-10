@@ -23,9 +23,9 @@ class XZRegionSelector : public std::enable_shared_from_this<XZRegionSelector>
       ~XZRegionSelector();
 
       std::shared_ptr<Deferred> Activate();
+      void Deactivate();
 
    protected:
-      void Deactivate();
       bool onInputEvent(Input const& evt);
       void SelectP0(const MouseInput &me);
       void SelectP1(const MouseInput &me);

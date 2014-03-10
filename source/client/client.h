@@ -27,10 +27,6 @@
 #include "core/unique_resource.h"
 #include "core/shared_resource.h"
 
-//#include <SFML/Audio.hpp>
-
-namespace sf{class Sound;}
-
 BEGIN_RADIANT_CLIENT_NAMESPACE
 
 class InputEvent;
@@ -80,6 +76,8 @@ class Client : public core::Singleton<Client> {
 
       typedef int TraceRenderFrameId;
       typedef std::function<void(float)> TraceRenderFrameHandlerCb;
+
+      XZRegionSelectorPtr Client::CreateXZRegionSelector();
 
    private:
       NO_COPY_CONSTRUCTOR(Client);
@@ -137,7 +135,8 @@ class Client : public core::Singleton<Client> {
       void HandleServerCallRequest(std::string const& obj, std::string const& function_name, json::Node const& node, rpc::HttpDeferredPtr response);
       void BrowserCallRequestHandler(json::Node const& query, std::string const& postdata, rpc::HttpDeferredPtr response);
       void CallHttpReactor(std::string parts, json::Node query, std::string postdata, rpc::HttpDeferredPtr response);
-
+      void InitDataModel();
+      void DeactivateAllTools();
       void RequestReload();
       void OneTimeIninitializtion();
       void InitializeUI();
@@ -229,6 +228,7 @@ private:
       dm::TracePtr                selected_trace_;
       dm::TracePtr                root_object_trace_;
       std::shared_ptr<rpc::TraceObjectRouter> trace_object_router_;
+      std::vector<XZRegionSelectorRef> xz_selectors_;
 };
 
 END_RADIANT_CLIENT_NAMESPACE

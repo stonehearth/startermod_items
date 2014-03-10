@@ -4,22 +4,27 @@ local HarvestTest = class(MicroWorld)
 function HarvestTest:__init()
    self[MicroWorld]:__init()
    self:create_world()
+<<<<<<< HEAD
+
+   self:place_item_cluster('stonehearth:terrain:tall_grass', -8, 2, 6, 4)
+   self:place_item_cluster('stonehearth:terrain:tall_grass', -8, 8, 2, 2)
+   self:place_item('stonehearth:medium_oak_tree', -9, -9)
+   self:place_item('stonehearth:medium_oak_tree', 12, -2)
+=======
    --self:place_item('stonehearth:oak_log', 0, 0)
    --self:place_item('stonehearth:oak_log', 0, 1)
    self:place_tree(-9, -9)   
    self:place_tree(12, -2)
+>>>>>>> develop
    self:place_item('stonehearth:small_boulder', 1, 1)
    self:place_item('stonehearth:medium_boulder', 4, 4)
    self:place_item('stonehearth:large_boulder', 8, 8)
-   self:place_citizen(12, 12)
-   if true then return end
-   self:place_citizen(8, 10)
-   self:place_citizen(0, 0)
-   local worker = self:place_citizen(-5, -5)
-   local faction = worker:get_component('unit_info'):get_faction()
+   self:place_citizen(12, 12, 'trapper')
+   self:place_citizen(10, 10)
 
+   
    self:at(10,  function()
-         self:place_stockpile_cmd(faction, 12, 12, 4, 4)
+         --self:place_stockpile_cmd(faction, 12, 12, 4, 4)
       end)
 
    self:at(100, function()

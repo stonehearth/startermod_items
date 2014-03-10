@@ -21,6 +21,8 @@ XZRegionSelector::~XZRegionSelector()
 
 std::shared_ptr<XZRegionSelector::Deferred> XZRegionSelector::Activate()
 {
+   ASSERT(_inputHandlerId == 0);
+
    _startedP0 = false;
    _finishedP0 = false;
    _finished = false;
@@ -43,7 +45,10 @@ void XZRegionSelector::Deactivate()
       Client::GetInstance().RemoveInputHandler(_inputHandlerId);
       _inputHandlerId = 0;
    }
-   deferred_ = nullptr;
+   if (deferred_) {
+      deferred_->Reject("tool deactivated");
+      deferred_ = nullptr;
+   }
 }
 
 bool XZRegionSelector::onInputEvent(Input const& evt)
@@ -59,6 +64,7 @@ bool XZRegionSelector::onInputEvent(Input const& evt)
       if (_startedP0) {
          if (_finished) {
             deferred_->Resolve(csg::Cube3::Construct(_p0, _p1));
+            deferred_ = nullptr;
             Deactivate();
          } else {
             deferred_->Notify(csg::Cube3::Construct(_p0, _p1));

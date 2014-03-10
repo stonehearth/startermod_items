@@ -7,6 +7,8 @@ $(document).ready(function(){
          if (App.stonehearth.modalStack.length > 0) {
             var modal = App.stonehearth.modalStack.pop();
             modal.ownerView.destroy();
+         } else if (App.stonehearth.startMenu.stonehearthMenu("getMenu")){
+            App.stonehearth.startMenu.stonehearthMenu("hideMenu")
          } else {
             App.gameView.addView(App.StonehearthEscMenuView);
          }
