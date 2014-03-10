@@ -19,16 +19,11 @@ App.StonehearthStockpileView = App.View.extend({
    didInsertElement: function() {
       this._super();
       var self = this;
-      this.taxonomyGrid = $('#taxonomyGrid');
-      this.allNoneGrid = $('#allNoneGrid');
-      this.allButton = this.allNoneGrid.find('#all');
-      this.noneButton = this.allNoneGrid.find('#none');
-      this.items = this.taxonomyGrid.find('.category');
-      this.groups = this.taxonomyGrid.find('.group');
-
-      $( '#allNoneGrid' ).togglegrid({
-         radios: true
-      });
+      this.taxonomyGrid = this.$('#taxonomyGrid');
+      this.allButton = this.$('#all');
+      this.noneButton = this.$('#none');
+      this.items = this.$('.category');
+      this.groups = this.$('.group');
 
       this.taxonomyGrid.togglegrid();
 
@@ -65,7 +60,7 @@ App.StonehearthStockpileView = App.View.extend({
 
       this.items.find('img').tooltipster();
 
-      self._refeshGrids();
+      self._refreshGrids();
    },
 
    _selectAll : function() {
@@ -80,7 +75,7 @@ App.StonehearthStockpileView = App.View.extend({
       this._setStockpileFilter();
    },
 
-   _refeshGrids : function() {
+   _refreshGrids : function() {
       if (!this.items) {
          return;
       }
@@ -109,15 +104,18 @@ App.StonehearthStockpileView = App.View.extend({
 
          this._updateGroups();
       } else {
-         this.allButton.addClass('on');
+         this.allButton.attr('checked', 'checked');
+         this.groups.attr('checked', 'checked');
+         this.items.addClass('on');
       }
 
    }.observes('context.stonehearth:stockpile.filter'),
 
    _toggleGroup : function(element) {
-      var on = element.hasClass('on');
+      var foo = element.attr('checked');
+      var on = !(element.attr('checked') == 'checked');
 
-      element.siblings().each(function(i, sibling) {
+      element.parent().siblings().each(function(i, sibling) {
          var category = $(sibling);
 
          if (category.hasClass('category')) {
@@ -158,41 +156,41 @@ App.StonehearthStockpileView = App.View.extend({
 
       this.groups.each(function (i, group) {
          var allOn = true;
-         $(group).siblings().each(function(i, sibling) {
+         $(group).parent().siblings().each(function(i, sibling) {
             var category = $(sibling);
 
             if (category.hasClass('category')) {
-               if (!category.hasClass('on')) {
+               if (category.hasClass('on')) {
+                  noGroupsOn = false;
+               } else {
                   allOn = false;
                   allGroupsOn = false;
-               } else {
-                  noGroupsOn = false;
                }
             }
          });
 
          if (allOn) {
-            $(group).addClass('on');
+            $(group).attr('checked', 'checked')
          } else {
-            $(group).removeClass('on');
+            $(group).removeAttr('checked')
          }         
 
       });
 
       if (allGroupsOn) {
-         self.allButton.addClass('on')
-         self.items.removeClass('on');
-         self.groups.removeClass('on');
+         self.allButton.attr('checked', 'checked')
+         //self.items.removeClass('on');
+         //self.groups.removeClass('on');
       } else {
-         self.allButton.removeClass('on')
+         self.allButton.removeAttr('checked')
       }
 
       if (noGroupsOn) {
-         self.noneButton.addClass('on')
-         self.items.removeClass('on');
-         self.groups.removeClass('on');
+         self.noneButton.attr('checked', 'checked')
+         //self.items.removeClass('on');
+         //self.groups.removeClass('on');
       } else {
-         self.noneButton.removeClass('on')
+         self.noneButton.removeAttr('checked')
       }
    }
 

@@ -11,6 +11,10 @@ App.StonehearthZonesModeView = App.View.extend({
          self._onEntitySelected(e);
       });
 
+      $(top).on('select_stockpile', function(_, stockpile) {
+         self._showStockpileUi(stockpile);
+      });
+
       $(top).on('mode_changed', function(_, mode) {
          if (mode != 'zones') {
             if (self._propertyView) {
@@ -72,6 +76,7 @@ App.StonehearthZonesModeView = App.View.extend({
          this._propertyView.destroy();
       };
 
-      this._propertyView = App.gameView.addView(App.StonehearthStockpileView, { uri: entity.__self });
+      var uri = typeof(entity) == 'string' ? entity : entity.__self;
+      this._propertyView = App.gameView.addView(App.StonehearthStockpileView, { uri: uri });
    },
 });

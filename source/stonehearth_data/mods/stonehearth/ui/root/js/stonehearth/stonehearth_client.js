@@ -63,6 +63,10 @@ var StonehearthClient;
 
          return this._callTool(function() {
             return radiant.call('stonehearth:choose_stockpile_location')
+               .done(function(response) {
+                  // XXX, instead of this, we should select the entity using radiant.client
+                  $(top).trigger('select_stockpile', response.stockpile);
+               })
                .always(function(response) {
                   radiant.call('radiant:play_sound', 'stonehearth:sounds:place_structure' );
                   $(top).trigger('radiant_hide_tip');
