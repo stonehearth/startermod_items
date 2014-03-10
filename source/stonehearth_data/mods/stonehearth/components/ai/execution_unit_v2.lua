@@ -243,26 +243,26 @@ function ExecutionUnitV2:_run()
    self:_unknown_transition('run')   
 end
 
-function ExecutionUnitV2:_stop(from_running_ok)
+function ExecutionUnitV2:_stop()
    if self:in_state(ABORTING, ABORTED, DEAD) then
       self._log:detail('ignoring "stop" in state "%s"', self._state)
       return
    end
 
    if self:in_state('thinking', 'ready') then
-      return self:_stop_from_thinking(from_running_ok)
+      return self:_stop_from_thinking()
    end
    if self._state == 'starting' then
-      return self:_stop_from_starting(from_running_ok)
+      return self:_stop_from_starting()
    end
    if self._state == 'started' then
-      return self:_stop_from_started(from_running_ok)
+      return self:_stop_from_started()
    end
    if self._state == 'running' then
-      return self:_stop_from_running(from_running_ok)
+      return self:_stop_from_running()
    end
    if self._state == 'finished' then
-      return self:_stop_from_finished(from_running_ok)
+      return self:_stop_from_finished()
    end
    if self:in_state('stopped', 'stopping', 'stop_thinking') then
       return -- nop
@@ -407,27 +407,14 @@ function ExecutionUnitV2:_stop_from_started()
    self:_do_stop()
 end
 
-function ExecutionUnitV2:_stop_from_running(from_running_ok)
+function ExecutionUnitV2:_stop_from_running()
    assert(not self._thinking)
+   assert(self._thread:is_running() or stonehearth.threads:get_current_thread() == nil)
 
-   if self._thread:is_running() then
-      -- assume our calling frame knows what it's doing.  if not,
-      -- we're totally going to get screwed
-      assert(from_running_ok)
-
-      -- our execute frame must be dead and buried if our owning frame has the
-      -- audicity to kill us while running
-      if self._current_execution_frame then
-         assert(self._current_execution_frame:get_state() == STOPPED)
-         self._current_execution_frame =  nil
-      end
-   elseif (stonehearth.threads:get_current_thread() == nil) then
-      -- we're being stopped from a C callback into the game engine.  this is ok!
-   else
-      -- some other thread is trying to stop us?  not ok!
-      error("non-owning thread attempting to stop execution unit")
-   end
-   
+   if self._current_execution_frame then
+      self._current_execution_frame:stop(true)
+      self._current_execution_frame = nil
+   end  
    self:_do_stop()
 end
 
@@ -439,6 +426,7 @@ end
 function ExecutionUnitV2:_destroy_from_thinking()
    assert(self._thinking)
    assert(not self._current_execution_frame)
+   self:_destroy_execution_frames()
    self:_call_stop_thinking()
    self:_call_destroy()
    self:_set_state(DEAD)
@@ -447,6 +435,8 @@ end
 function ExecutionUnitV2:_destroy_from_starting()
    assert(self._thinking)
    assert(not self._current_execution_frame)
+   self:_destroy_execution_frames()
+
    if self._thinking then
       self:_call_stop_thinking()
    end
@@ -460,6 +450,7 @@ end
 function ExecutionUnitV2:_destroy_from_stopping()
    assert(not self._thinking)
    assert(not self._current_execution_frame)
+   self:_destroy_execution_frames()
    self:_call_destroy()
    self:_set_state(DEAD)
 end
@@ -467,16 +458,14 @@ end
 function ExecutionUnitV2:_destroy_from_stopped()
    assert(not self._thinking)
    assert(not self._current_execution_frame)
+   self:_destroy_execution_frames()
    self:_call_destroy()
    self:_set_state(DEAD)
 end
 
 function ExecutionUnitV2:_destroy_from_running()
    assert(not self._thinking)
-   if self._current_execution_frame then
-      self._current_execution_frame:destroy()
-      self._current_execution_frame = nil
-   end
+   self:_destroy_execution_frames()
    self:_call_stop()
    self:_call_destroy()
    self:_set_state(DEAD)
@@ -485,11 +474,13 @@ end
 function ExecutionUnitV2:_destroy_from_finished()
    assert(not self._thinking)
    assert(not self._current_execution_frame)
+   self:_destroy_execution_frames()
    self:_call_destroy()
    self:_set_state(DEAD)
 end
 
 function ExecutionUnitV2:_destroy_from_aborting()
+   self:_destroy_execution_frames()
    if self._thinking then
       self:_call_stop_thinking()
    end
@@ -545,6 +536,14 @@ function ExecutionUnitV2:_do_stop_thinking()
    self._thinking = false
    
    self:_call_stop_thinking()
+end
+
+function ExecutionUnitV2:_destroy_execution_frames()
+   for _, frame in pairs(self._execution_frames) do
+      frame:destroy()
+   end
+   self._execution_frames = {}
+   self._current_execution_frame = nil
 end
 
 -- the interface facing actions (i.e. the 'ai' interface)

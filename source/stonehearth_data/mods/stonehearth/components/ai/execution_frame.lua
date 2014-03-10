@@ -15,9 +15,7 @@ local STARTED = 'started'
 local RUNNING = 'running'
 local FINISHED = 'finished'
 local STOPPING = 'stopping'
-local SWITCHING = 'switching'
 local STOPPED = 'stopped'
-local UNWINDING = 'unwinding'
 local DEAD = 'dead'
 
 local ABORT_FRAME = ':aborted_frame:'
@@ -148,15 +146,18 @@ function ExecutionFrame:_unit_not_ready(unit)
    self:_unknown_transition('unit_not_ready')
 end
 
-function ExecutionFrame:_stop(unwinding)
+function ExecutionFrame:_stop()
    if self:in_state('ready', 'starting', 'started') then
-      return self:_stop_from_started(unwinding)
+      return self:_stop_from_started()
+   end
+   if self._state == 'thinking' then
+      return self:_stop_from_thinking()
    end
    if self._state == 'finished' then
-      return self:_stop_from_finished(unwinding)
+      return self:_stop_from_finished()
    end
    if self._state == 'running' then
-      return self:_stop_from_running(unwinding)
+      return self:_stop_from_running()
    end
    if self._state == 'stopped' then
       return -- nop
@@ -172,9 +173,6 @@ function ExecutionFrame:_destroy()
    
    if self:in_state('starting', 'started', 'ready', 'starting_thinking', 'thinking') then
       return self:_destroy_from_starting()
-   end
-   if self:in_state('switching', 'unwinding') then
-      return self:_destroy_from_switching() -- intentionally aliased
    end
    if self._state == 'running' then
       return self:_destroy_from_running()
@@ -418,7 +416,6 @@ function ExecutionFrame:_create_execution_units()
    end
 end
 
-
 function ExecutionFrame:_stop_thinking_from_thinking()
    assert(not self._active_unit)
    for _, unit in pairs(self._execution_units) do
@@ -511,9 +508,7 @@ function ExecutionFrame:_unit_ready_from_running(unit, think_output)
 
       -- how do we switch to a different unit?  follow the bouncing ball --> switch_step(...).
 
-      -- switch_step(1) - change our state to SWITCHING so we'll stop dispatching
-      -- messages to our regular states (particuarly get us out of the running state!)
-      self:_set_state(SWITCHING)
+      assert(self._state == RUNNING)
       assert(not self._switch_to_unit)
       self._switch_to_unit = unit
       
@@ -646,8 +641,6 @@ function ExecutionFrame:_run_from_started()
       else
          self._log:debug('active unit switched from "%s" to "%s" in run.  re-running',
                          running_unit:get_name(), self._active_unit:get_name())
-         assert(self._state == SWITCHING)
-         self:_set_state(RUNNING)
          running_unit = self._active_unit
       end
    until finished
@@ -665,20 +658,24 @@ function ExecutionFrame:_stop_from_started()
    self:_set_state(STOPPED)
 end
 
-function ExecutionFrame:_stop_from_running(unwinding)
+function ExecutionFrame:_stop_from_thinking()
+   assert(not self._active_unit)
+   for _, unit in pairs(self._execution_units) do
+      unit:_stop_thinking()
+   end
+   self:_set_state(STOPPED)
+end
+
+function ExecutionFrame:_stop_from_running()
    -- stop from running can only happen if there are no other threads running.
    -- this can occur when an entity is destroyed from a C callback into the
    -- game engine.  if we were running at the time, we'll take the standard
    -- unwind pcall path where we simply get destroyed
-   if unwinding then
-      assert(self._thread:is_running())
-   else
-      assert(stonehearth.threads:get_current_thread() == nil)
-   end
-   
+   assert(self._thread:is_running() or stonehearth.threads:get_current_thread() == nil)
    assert(self._active_unit)
+
    for _, unit in pairs(self._execution_units) do
-      unit:_stop(unwinding)
+      unit:_stop()
    end
    self:_set_active_unit(nil)
    self:_set_state(STOPPED)
@@ -735,17 +732,6 @@ function ExecutionFrame:_destroy_from_running()
    self:_do_destroy()
 end
 
-function ExecutionFrame:_destroy_from_switching()
-   self._log:debug('_destroy_from_switching (state: %s)', self._state)
-   for _, unit in pairs(self._execution_units) do
-      unit:_destroy()
-   end
-   self._execution_units = {}
-   self._execution_unit_keys = {}
-   self:_set_state(DEAD)
-   self:_do_destroy()
-end
-
 function ExecutionFrame:abort()
    self._log:debug('abort')
    assert(not self._aborting)
@@ -782,10 +768,6 @@ function ExecutionFrame:_unwind_call_stack(exit_handler)
    -- switch_step(4) - unfortunately, we may be really really deep in nested calls
    -- which all need to be unwound before we can switch.  unwind them all first.
    if current_run_frame ~= going_to_frame then
-      self._log:detail('still unwinding... stopping self')
-      self:_stop(true)
-      assert(self:in_state(STOPPED))
-      
       -- if the next frame is where we want to go, only unwind 1 frame so we
       -- end up back in the protected run loop in :_run_from_*.  otherwise,
       -- jump back 2 frames
@@ -801,15 +783,24 @@ function ExecutionFrame:_unwind_call_stack(exit_handler)
    end
 
    self._log:detail('reached unwind frame!... starting new unit')
+   self._thread:set_thread_data('stonehearth:unwind_to_frame', nil)
    
    -- switch_step(7) - we have finally unwound all our called frames (stopping them
    -- along the way), and have reached the switching frame!
-   assert(self:in_state(SWITCHING))
+   assert(self:in_state(RUNNING))
    assert(self._switch_to_unit)
    assert(self._switch_to_unit:get_state() == 'ready')
    self._active_unit, self._switch_to_unit = self._switch_to_unit, nil
+
+   -- stop everything but the active unit
+   for _, unit in pairs(self._execution_units) do
+      if unit ~= self._active_unit then
+         unit:_stop(true)
+      end
+   end
+   -- start the active unit and start the rest of them thinking again.
    self._active_unit:_start()
-   self._thread:set_thread_data('stonehearth:unwind_to_frame', nil)
+   self:_restart_thinking()
 end
  
 function ExecutionFrame:_add_action_from_thinking(key, entry)
@@ -1173,8 +1164,7 @@ function ExecutionFrame:_protected_call(fn, exit_handler)
       elseif err == UNWIND_NEXT_FRAME then
          self:_cleanup_protected_call_exit()
          exit_handler()
-         self:_log_stack('in UNWIND_NEXT_FRAME handler...')
-         
+         self:_log_stack('in UNWIND_NEXT_FRAME handler...')         
          -- it's magic.  don't question it (there's a 2nd pcall in run...
          self:_exit_protected_call(UNWIND_NEXT_FRAME_2)
       else
