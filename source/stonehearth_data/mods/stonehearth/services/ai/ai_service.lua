@@ -95,10 +95,8 @@ function AiService:_get_ai_component(arg0)
    return ai_component
 end
 
-function AiService:start_ai(entity, obj)
+function AiService:start_ai(entity, ai_component, obj)
    local id = entity:get_id()
-   local ai_component = entity:get_component('stonehearth:ai')
-   assert(ai_component)
 
    self._entities[id] = entity
    self._ai_components[id] = ai_component

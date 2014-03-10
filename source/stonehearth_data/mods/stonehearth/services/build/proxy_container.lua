@@ -111,7 +111,7 @@ function ProxyContainer:_add_nobuild_zone(entity, origin, cursor)
          local grow_size = Point2(1, 1)
          local zone_offset = Point2(0, 0)
          for _, obj in ipairs(fabinfo.connected_to) do
-            local oci = obj:get_component_data('stonehearth:construction_data')
+            local oci = obj:get_component('stonehearth:construction_data')
             if oci and oci.normal then
                if zone_offset.x == 0 then zone_offset.x = oci.normal.x end
                if zone_offset.y == 0 then zone_offset.y = oci.normal.z end

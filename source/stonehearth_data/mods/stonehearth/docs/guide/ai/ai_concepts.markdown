@@ -10,7 +10,7 @@ This guide details the various moving parts in the AI System.  For more informat
   
 Actions are the fundamental building blocks which drive Entity behavior.  
 
-An Entity's "stonehearth:ai_component" manages the Entity behavior.   It contains an index of all potentially runnable Actions and a Thread object to run them.  The AI Component Thread will pick the most suitable Action at the current moment, run it (synchronously), and spin back around to pick the next Action.  Each Action may be decomposed into simpler actions, which forms a stack of currently running Actions on the AI Component Thread.
+An Entity's "stonehearth:ai" component manages the Entity behavior.   It contains an index of all potentially runnable Actions and a Thread object to run them.  The AI Component Thread will pick the most suitable Action at the current moment, run it (synchronously), and spin back around to pick the next Action.  Each Action may be decomposed into simpler actions, which forms a stack of currently running Actions on the AI Component Thread.
 
 Actions come in two flavors: Simple and Compound.
 

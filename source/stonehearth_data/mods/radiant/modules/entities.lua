@@ -131,11 +131,14 @@ function entities.get_world_grid_location(entity)
    return mob and mob:get_world_grid_location() or Point3(0, 0, 0)
 end
 
-function entities.distance_between(entity_a, entity_b)
-   local loc_a = radiant.entities.get_world_grid_location(entity_a)
-   local loc_b = radiant.entities.get_world_grid_location(entity_b)
-
-   return loc_a:distance_to(loc_b)
+function entities.distance_between(object_a, object_b)
+   if radiant.util.is_a(object_a, Entity) then
+      object_a = radiant.entities.get_world_grid_location(object_a)
+   end
+   if radiant.util.is_a(object_b, Entity) then
+      object_b = radiant.entities.get_world_grid_location(object_b)
+   end
+   return object_a:distance_to(object_b)
 end
 
 function entities.move_to(entity, location)

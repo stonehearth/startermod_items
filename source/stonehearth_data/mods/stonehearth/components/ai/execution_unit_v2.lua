@@ -5,15 +5,15 @@ local READY = 'ready'
 local STARTED = 'started'
 local STARTING = 'starting'
 local RUNNING = 'running'
-local FINISHED = 'finished'
 local STOPPING = 'stopping'
+local FINISHED = 'finished'
 local STOPPED = 'stopped'
 local DEAD = 'dead'
 local ABORTING = 'aborting'
 local ABORTED = 'aborted'
 local placeholders = require 'services.ai.placeholders'
 
-function ExecutionUnitV2:__init(frame, thread, debug_route, entity, injecting_entity, action, args, action_index)
+function ExecutionUnitV2:__init(frame, thread, debug_route, entity, injecting_entity, action, action_index)
    assert(action.name)
    assert(action.does)
    assert(action.args)
@@ -25,9 +25,8 @@ function ExecutionUnitV2:__init(frame, thread, debug_route, entity, injecting_en
    self._debug_route = debug_route .. ' u:' .. tostring(self._id)
    self._entity = entity
    self._action = action
-   self._args = args
    self._action_index = action_index
-
+   self._execution_frames = {}
    self._think_output_types = self._action.think_output or self._action.args
      
    self._ai_interface = { ___execution_unit = self }   
@@ -72,19 +71,11 @@ function ExecutionUnitV2:__init(frame, thread, debug_route, entity, injecting_en
    self._log:set_prefix(prefix)
    self._log:debug('creating execution unit')
    
-   if self:_verify_arguments(args, self._action.args) then
-      self:_set_state(STOPPED)
-   else
-      assert(false, 'put ourselves in the dead state')
-   end
+   self:_set_state(STOPPED)
 end
 
 function ExecutionUnitV2:get_action_interface()
    return self._ai_interface
-end
-
-function ExecutionUnitV2:is_preemptable()
-   return self._action.preemptable
 end
 
 function ExecutionUnitV2:get_action()
@@ -105,7 +96,7 @@ function ExecutionUnitV2:get_weight()
 end
 
 function ExecutionUnitV2:is_runnable()
-   return self._action.priority > 0 and self._state == READY
+   return self._action.priority > 0 and self:in_state(READY, RUNNING)
 end
 
 function ExecutionUnitV2:get_current_entity_state()
@@ -135,8 +126,8 @@ function ExecutionUnitV2:get_debug_info()
          __numeric = true,
       }
    }
-   if self._execute_frame then
-      table.insert(info.execution_frames, self._execute_frame:get_debug_info())
+   if self._current_execution_frame then
+      table.insert(info.execution_frames, self._current_execution_frame:get_debug_info())
    end
    return info
 end
@@ -147,7 +138,16 @@ function ExecutionUnitV2:_unknown_transition(msg)
    error(err)
 end
 
-function ExecutionUnitV2:_start_thinking(entity_state)
+function ExecutionUnitV2:_start_thinking(args, entity_state)
+   assert(args, '_start_thinking called with no args')
+   assert(entity_state, '_start_thinking called with no entity_state')
+
+  if not self:_verify_arguments(args, self._action.args) then      
+      self:_stop()
+      return
+   end
+   self._args = args
+    
    if self:in_state(ABORTING, ABORTED, DEAD) then
       self._log:detail('ignoring "start_thinking" in state "%s"', self._state)
       return
@@ -188,7 +188,7 @@ function ExecutionUnitV2:_clear_think_output()
       return self:_clear_think_output_from_thinking()
    end
    if self._state == 'finished' then
-      return self:_clear_think_output_from_finished()
+      return -- who cares?
    end
    self:_unknown_transition('clear_think_output')   
 end
@@ -239,26 +239,26 @@ function ExecutionUnitV2:_run()
    self:_unknown_transition('run')   
 end
 
-function ExecutionUnitV2:_stop(invalid_transition_ok)
+function ExecutionUnitV2:_stop()
    if self:in_state(ABORTING, ABORTED, DEAD) then
       self._log:detail('ignoring "stop" in state "%s"', self._state)
       return
    end
 
    if self:in_state('thinking', 'ready') then
-      return self:_stop_from_thinking(invalid_transition_ok)
+      return self:_stop_from_thinking()
    end
    if self._state == 'starting' then
-      return self:_stop_from_starting(invalid_transition_ok)
+      return self:_stop_from_starting()
    end
    if self._state == 'started' then
-      return self:_stop_from_started(invalid_transition_ok)
+      return self:_stop_from_started()
    end
    if self._state == 'running' then
-      return self:_stop_from_running(invalid_transition_ok)
+      return self:_stop_from_running()
    end
    if self._state == 'finished' then
-      return self:_stop_from_finished(invalid_transition_ok)
+      return self:_stop_from_finished()
    end
    if self:in_state('stopped', 'stopping', 'stop_thinking') then
       return -- nop
@@ -267,6 +267,7 @@ function ExecutionUnitV2:_stop(invalid_transition_ok)
 end
 
 function ExecutionUnitV2:_destroy()
+   self._log:detail('destroy')
    if self:in_state('thinking', 'ready') then
       return self:_destroy_from_thinking()
    end
@@ -282,11 +283,11 @@ function ExecutionUnitV2:_destroy()
    if self._state == 'running' then
       return self:_destroy_from_running()
    end
-   if self._state == 'finished' then
-      return self:_destroy_from_finished()
-   end
    if self._state == 'aborting' then
       return self:_destroy_from_aborting()
+   end
+   if self._state == 'destroy' then
+      return self:_destroy_from_finished()
    end
    if self._state == 'dead' then
       return -- nop
@@ -336,11 +337,6 @@ function ExecutionUnitV2:_clear_think_output_from_thinking()
 
    self:_set_state(THINKING)
    self._frame:_unit_not_ready(self)
-end
-
-
-function ExecutionUnitV2:_clear_think_output_from_finished()
-   -- who cares?
 end
 
 function ExecutionUnitV2:_stop_thinking_from_thinking()
@@ -402,38 +398,26 @@ function ExecutionUnitV2:_stop_from_started()
    self:_do_stop()
 end
 
-function ExecutionUnitV2:_stop_from_running(frame_will_kill_running_action)
-   assert(not self._thinking)
-
-   if (self._thread:is_running()) then
-      -- assume our calling frame knows what it's doing.  if not,
-      -- we're totally going to get screwed
-      assert(frame_will_kill_running_action)
-
-      -- our execute frame must be dead and buried if our owning frame has the
-      -- audicity to kill us while running
-      if self._execute_frame then
-         assert(self._execute_frame:get_state() == 'dead')
-         self._execute_frame =  nil
-      end
-   elseif (stonehearth.threads:get_current_thread() == nil) then
-      -- we're being stopped from a C callback into the game engine.  this is ok!
-   else
-      -- some other thread is trying to stop us?  not ok!
-      error("non-owning thread attempting to stop execution unit")
-   end
-   
-   self:_do_stop()
-end
-
 function ExecutionUnitV2:_stop_from_finished()
    assert(not self._thinking)
    self:_do_stop()
 end
 
+function ExecutionUnitV2:_stop_from_running()
+   assert(not self._thinking)
+   assert(self._thread:is_running() or stonehearth.threads:get_current_thread() == nil)
+
+   if self._current_execution_frame then
+      self._current_execution_frame:stop(true)
+      self._current_execution_frame = nil
+   end  
+   self:_do_stop()
+end
+
 function ExecutionUnitV2:_destroy_from_thinking()
    assert(self._thinking)
-   assert(not self._execute_frame)
+   assert(not self._current_execution_frame)
+   self:_destroy_execution_frames()
    self:_call_stop_thinking()
    self:_call_destroy()
    self:_set_state(DEAD)
@@ -441,7 +425,9 @@ end
 
 function ExecutionUnitV2:_destroy_from_starting()
    assert(self._thinking)
-   assert(not self._execute_frame)
+   assert(not self._current_execution_frame)
+   self:_destroy_execution_frames()
+
    if self._thinking then
       self:_call_stop_thinking()
    end
@@ -454,23 +440,23 @@ end
 
 function ExecutionUnitV2:_destroy_from_stopping()
    assert(not self._thinking)
-   assert(not self._execute_frame)
+   assert(not self._current_execution_frame)
+   self:_destroy_execution_frames()
    self:_call_destroy()
    self:_set_state(DEAD)
 end
 
 function ExecutionUnitV2:_destroy_from_stopped()
    assert(not self._thinking)
-   assert(not self._execute_frame)
+   assert(not self._current_execution_frame)
+   self:_destroy_execution_frames()
    self:_call_destroy()
    self:_set_state(DEAD)
 end
 
 function ExecutionUnitV2:_destroy_from_running()
    assert(not self._thinking)
-   if self._execute_frame then
-      self._execute_frame:destroy()
-   end
+   self:_destroy_execution_frames()
    self:_call_stop()
    self:_call_destroy()
    self:_set_state(DEAD)
@@ -478,12 +464,14 @@ end
 
 function ExecutionUnitV2:_destroy_from_finished()
    assert(not self._thinking)
-   assert(not self._execute_frame)
+   assert(not self._current_execution_frame)
+   self:_destroy_execution_frames()
    self:_call_destroy()
    self:_set_state(DEAD)
 end
 
 function ExecutionUnitV2:_destroy_from_aborting()
+   self:_destroy_execution_frames()
    if self._thinking then
       self:_call_stop_thinking()
    end
@@ -541,6 +529,14 @@ function ExecutionUnitV2:_do_stop_thinking()
    self:_call_stop_thinking()
 end
 
+function ExecutionUnitV2:_destroy_execution_frames()
+   for _, frame in pairs(self._execution_frames) do
+      frame:destroy()
+   end
+   self._execution_frames = {}
+   self._current_execution_frame = nil
+end
+
 -- the interface facing actions (i.e. the 'ai' interface)
 function ExecutionUnitV2:__get_log()
    return self._log
@@ -549,14 +545,25 @@ end
 function ExecutionUnitV2:__execute(name, args)
    self._log:debug('__execute %s %s called', name, stonehearth.ai:format_args(args))
    assert(self._thread:is_running())
-   assert(not self._execute_frame)
+   assert(not self._current_execution_frame)
 
    local ExecutionFrame = require 'components.ai.execution_frame'
-   self._execute_frame = ExecutionFrame(self._thread, self._debug_route, self._entity, name, args, self._action_index)
-   self._execute_frame:run()
-   self._execute_frame:stop()
-   self._execute_frame:destroy()
-   self._execute_frame = nil
+   self._current_execution_frame = self._execution_frames[name]
+   if not self._current_execution_frame then
+      self._current_execution_frame = ExecutionFrame(self._thread, self._debug_route, self._entity, name, self._action_index)
+      self._execution_frames[name] = self._current_execution_frame
+   end
+
+   assert(self._current_execution_frame)
+   assert(self._current_execution_frame:get_state() == STOPPED)
+
+   local think_output = self._current_execution_frame:start_thinking(args or {})
+   if not think_output then
+      self:__abort('execution of %s did not start immediately.  aborting.', name)
+   end
+   self._current_execution_frame:run()
+   self._current_execution_frame:stop()
+   self._current_execution_frame = nil
 end 
 
 function ExecutionUnitV2:__set_think_output(args)
@@ -570,11 +577,11 @@ function ExecutionUnitV2:__clear_think_output(format, ...)
    self:_clear_think_output()
 end
 
-function ExecutionUnitV2:__spawn(name, args)   
-   self._log:debug('__spawn %s %s called', name, stonehearth.ai:format_args(args))
+function ExecutionUnitV2:__spawn(activity_name)
+   self._log:debug('__spawn %s called', activity_name)
   
    local ExecutionFrame = require 'components.ai.execution_frame'  
-   return ExecutionFrame(self._thread, self._debug_route, self._entity, name, args, self._action_index)
+   return ExecutionFrame(self._thread, self._debug_route, self._entity, activity_name, self._action_index)
 end
 
 function ExecutionUnitV2:__suspend(format, ...)

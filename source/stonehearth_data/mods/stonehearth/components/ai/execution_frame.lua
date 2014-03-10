@@ -15,21 +15,18 @@ local STARTED = 'started'
 local RUNNING = 'running'
 local FINISHED = 'finished'
 local STOPPING = 'stopping'
-local SWITCHING = 'switching'
 local STOPPED = 'stopped'
-local UNWINDING = 'unwinding'
 local DEAD = 'dead'
 
 local ABORT_FRAME = ':aborted_frame:'
 local UNWIND_NEXT_FRAME = ':unwind_next_frame:'
 local UNWIND_NEXT_FRAME_2 = ':unwind_next_frame_2:'
 
-function ExecutionFrame:__init(thread, debug_route, entity, name, args, action_index)
+function ExecutionFrame:__init(thread, debug_route, entity, activity_name, action_index)
    self._id = stonehearth.ai:get_next_object_id()
    self._debug_route = debug_route .. ' f:' .. tostring(self._id)
-   self._name = name
-   self._args = args or {}
    self._entity = entity
+   self._activity_name = activity_name
    self._action_index = action_index
    self._thread = thread
    self._execution_units = {}
@@ -37,8 +34,8 @@ function ExecutionFrame:__init(thread, debug_route, entity, name, args, action_i
    self._saved_think_output = {}
    self._runnable_unit_count = 0
 
+   local prefix = string.format('%s (%s)', self._debug_route, self._activity_name)
    self._log = radiant.log.create_logger('ai.exec_frame')
-   local prefix = string.format('%s (%s)', self._debug_route, self._name)
    self._log:set_prefix(prefix)
    self._log:debug('creating execution frame')
    
@@ -48,8 +45,12 @@ function ExecutionFrame:__init(thread, debug_route, entity, name, args, action_i
    self._ai_component = entity:get_component('stonehearth:ai')
    radiant.events.listen(self._ai_component, 'stonehearth:action_index_changed', self, self._on_action_index_changed)
 
-   if name == 'stonehearth:top' then
+   if activity_name == 'stonehearth:top' then
       radiant.events.listen(entity, 'stonehearth:carry_block:carrying_changed', self, self._on_carrying_changed)
+      self._position_trace = radiant.entities.trace_location(self._entity, 'find path to entity')
+                                                :on_changed(function()
+                                                   self:_on_position_changed()
+                                                end)
    end
 end
 
@@ -63,16 +64,27 @@ function ExecutionFrame:_unknown_transition(msg)
    error(err)
 end
 
-function ExecutionFrame:_on_carrying_changed()
-   self._log:detail('carrying changed!  going to restart thinking... (state:%s)', self._state)
-   if self:in_state('thinking', 'starting_thinking', 'ready', 'running') then
-      self:_restart_thinking()
+function ExecutionFrame:_on_position_changed()
+   if self._last_captured_location then
+      local distance = radiant.entities.distance_between(self._entity, self._last_captured_location)
+      if distance > 3 then
+         self._log:detail('entity moved!  going to restart thinking... (state:%s)', self._state)
+         self:_restart_thinking()
+      end
    end
 end
 
-function ExecutionFrame:_start_thinking(entity_state)
+function ExecutionFrame:_on_carrying_changed()
+   self._log:detail('carrying changed!  going to restart thinking... (state:%s)', self._state)
+   self:_restart_thinking()
+end
+
+
+function ExecutionFrame:_start_thinking(args, entity_state)
+   assert(args, "_start_thinking called with no arguments.")
+
    if self._state == 'stopped' then
-      return self:_start_thinking_from_stopped(entity_state)
+      return self:_start_thinking_from_stopped(args, entity_state)
    end
    self:_unknown_transition('start_thinking')
 end
@@ -87,7 +99,7 @@ function ExecutionFrame:_stop_thinking()
    if self:in_state('starting', 'started') then
       return self:_stop_thinking_from_started() -- intentionally aliased
    end
-   if self._state == 'dead' then
+   if self:in_state('stopped', 'dead') then
       return -- nop
    end
    self:_unknown_transition('stop_thinking')
@@ -150,6 +162,9 @@ function ExecutionFrame:_stop()
    if self:in_state('ready', 'starting', 'started') then
       return self:_stop_from_started()
    end
+   if self._state == 'thinking' then
+      return self:_stop_from_thinking()
+   end
    if self._state == 'finished' then
       return self:_stop_from_finished()
    end
@@ -170,9 +185,6 @@ function ExecutionFrame:_destroy()
    
    if self:in_state('starting', 'started', 'ready', 'starting_thinking', 'thinking') then
       return self:_destroy_from_starting()
-   end
-   if self:in_state('switching', 'unwinding') then
-      return self:_destroy_from_switching() -- intentionally aliased
    end
    if self._state == 'running' then
       return self:_destroy_from_running()
@@ -212,6 +224,9 @@ function ExecutionFrame:_remove_action(unit)
    if self:in_state('running', 'switching', 'starting') then
       return self:_remove_action_from_running(unit)
    end
+   if self._state == 'stopping' then
+      return self:_remove_action_from_stopping(unit)
+   end
    if self._state == 'stopped' then
       return self:_remove_action_from_stopped(unit)
    end
@@ -222,9 +237,9 @@ function ExecutionFrame:_remove_action(unit)
 end
 
 function ExecutionFrame:_restart_thinking(entity_state)
-   self._log:detail('_restart_thinking')
-   if self._active_unit and not self._active_unit:is_preemptable() then
-      self._log:detail('active unit "%s" is not pre-emptable.', self._active_unit:get_name())
+   self._log:detail('_restart_thinking (state:%s)', self._state)
+
+   if not self:in_state('thinking', 'starting_thinking', 'ready', 'running') then
       return
    end
 
@@ -244,9 +259,9 @@ function ExecutionFrame:_restart_thinking(entity_state)
 
    local current_state = self._state
    for unit, entity_state in pairs(rethinking_units) do
-      self._log:detail('calling start_thinking on unit "%s".', unit:get_name())
+      self._log:detail('calling start_thinking on unit "%s" (unit state:%s).', unit:get_name(), unit:get_state())
       assert(unit:in_state('stopped', 'thinking', 'ready'))
-      unit:_start_thinking(entity_state)
+      unit:_start_thinking(self._args, entity_state)
 
       -- if units bail or abort, the current pcall should have been interrupted.
       -- verify that this is so
@@ -266,9 +281,12 @@ function ExecutionFrame:_restart_thinking(entity_state)
    end   
 end
 
-function ExecutionFrame:_start_thinking_from_stopped(entity_state)   
+function ExecutionFrame:_start_thinking_from_stopped(args, entity_state)   
    self._log:debug('_start_thinking_from_stopped')
    
+   self._args = args
+   self._log:debug('set execution frame arguments to %s %s', self._activity_name, stonehearth.ai.format_args(self._args))
+
    self._runnable_unit_count = 0
    self:_set_state(STARTING_THINKING)
    if not self:_restart_thinking(entity_state) then
@@ -277,16 +295,20 @@ function ExecutionFrame:_start_thinking_from_stopped(entity_state)
 end
 
 function ExecutionFrame:_do_destroy()
+   if self._position_trace then
+      self._position_trace:destroy()
+      self._position_trace = nil
+   end
    radiant.events.unlisten(self._ai_component, 'stonehearth:action_index_changed', self, self._on_action_index_changed)
    radiant.events.unlisten(self._entity, 'stonehearth:carry_block:carrying_changed', self, self._on_carrying_changed)
 end
 
-function ExecutionFrame:start_thinking(entity_state)
+function ExecutionFrame:start_thinking(args, entity_state)
    self._log:spam('start_thinking (state: %s)', self._state)
-   assert(entity_state)
-   assert(self:get_state() == STOPPED)
+   assert(args, "start_thinking called with no arguments")
+   assert(self:get_state() == STOPPED, string.format('start thinking called from non-stopped state "%s"', self:get_state()))
 
-   self:_start_thinking(entity_state)
+   self:_start_thinking(args, entity_state)
    if self:in_state(READY) then
       assert(self._active_unit_think_output)
       return self._active_unit_think_output
@@ -342,7 +364,7 @@ function ExecutionFrame:start()
       end)
 end
 
-function ExecutionFrame:run()
+function ExecutionFrame:run(args)
    assert(self._thread:is_running())
 
    self._log:spam('run')
@@ -357,7 +379,8 @@ function ExecutionFrame:run()
       end
       
       if self:in_state(STOPPED) then
-         self:_start_thinking()
+         assert(args, "run from stopped state must pass in arguments!")
+         self:_start_thinking(args)
          self:wait_until(READY)
       end
       if self:in_state(READY) then
@@ -402,16 +425,15 @@ function ExecutionFrame:destroy()
 end
 
 function ExecutionFrame:_create_execution_units()
-   local actions = self._action_index[self._name]
+   local actions = self._action_index[self._activity_name]
    if not actions then
-      self._log:warning('no actions for %s at the moment.  this is actually ok for tasks (they may come later)', self._name)
+      self._log:warning('no actions for %s at the moment.  this is actually ok for tasks (they may come later)', self._activity_name)
       return
    end
    for key, entry in pairs(actions) do
       self:_add_execution_unit(key, entry)
    end
 end
-
 
 function ExecutionFrame:_stop_thinking_from_thinking()
    assert(not self._active_unit)
@@ -436,18 +458,10 @@ function ExecutionFrame:_stop_thinking_from_started()
    assert(self._active_unit)
    
    for _, unit in pairs(self._execution_units) do
-      if not self:_is_strictly_better_than_active(unit) then
+      if unit ~= self._active_unit and not self:_is_strictly_better_than_active(unit) then
          unit:_stop_thinking() -- this guy has no prayer...  just stop
       else
          -- let better ones keep processing.  they may prempt in the future
-         -- xxx: there's a problem... once we start running the CURRENT state
-         -- will quickly become out of date.  do we stop_thinking/start_thinking
-         -- them periodically?
-
-         -- xxx: disable for now...
-         if unit ~= self._active_unit and not self._active_unit:is_preemptable() then
-            unit:_stop_thinking()
-         end
       end
    end
 end
@@ -505,9 +519,7 @@ function ExecutionFrame:_unit_ready_from_running(unit, think_output)
 
       -- how do we switch to a different unit?  follow the bouncing ball --> switch_step(...).
 
-      -- switch_step(1) - change our state to SWITCHING so we'll stop dispatching
-      -- messages to our regular states (particuarly get us out of the running state!)
-      self:_set_state(SWITCHING)
+      assert(self._state == RUNNING)
       assert(not self._switch_to_unit)
       self._switch_to_unit = unit
       
@@ -519,7 +531,7 @@ function ExecutionFrame:_unit_ready_from_running(unit, think_output)
       self._thread:interrupt(function()
             local unwind_frame = self._thread:get_thread_data('stonehearth:unwind_to_frame')
             assert(unwind_frame, 'entered unwind frame interrupt with no unwind frame!')
-            self._log:detail('starting unwind to frame %s', unwind_frame._name)
+            self._log:detail('starting unwind to frame %s', unwind_frame._activity_name)
             
             -- make sure we unwind the frame at the top of the stack.  'self' is the
             -- frame that wants to get ready, which is way up the stack.
@@ -618,9 +630,8 @@ function ExecutionFrame:_start_from_thinking()
    -- 1) we become ready, but the owning task won't let us actually run for a little bit.
    -- 2) simultaneously, something causes us to become unready and go back to thinking and
    --    our task decides it's ok for us to go.
-   -- in this case, just abort.
-   self._log:detail('aborting in start_from_thinking state.')
-   self:abort()
+   -- in this case, just abort ignor it
+   self._log:detail('ignoring start from thinking state.')
 end
 
 function ExecutionFrame:_run_from_started()
@@ -641,8 +652,6 @@ function ExecutionFrame:_run_from_started()
       else
          self._log:debug('active unit switched from "%s" to "%s" in run.  re-running',
                          running_unit:get_name(), self._active_unit:get_name())
-         assert(self._state == SWITCHING)
-         self:_set_state(RUNNING)
          running_unit = self._active_unit
       end
    until finished
@@ -660,18 +669,32 @@ function ExecutionFrame:_stop_from_started()
    self:_set_state(STOPPED)
 end
 
+function ExecutionFrame:_stop_from_thinking()
+   assert(not self._active_unit)
+   for _, unit in pairs(self._execution_units) do
+      unit:_stop_thinking()
+   end
+   self:_set_state(STOPPED)
+end
+
 function ExecutionFrame:_stop_from_running()
    -- stop from running can only happen if there are no other threads running.
    -- this can occur when an entity is destroyed from a C callback into the
    -- game engine.  if we were running at the time, we'll take the standard
    -- unwind pcall path where we simply get destroyed
-   assert(stonehearth.threads:get_current_thread() == nil)
-   
+   assert(self._thread:is_running() or stonehearth.threads:get_current_thread() == nil)
    assert(self._active_unit)
+
+   -- move into the stopping state, so we can take extra special care when stopping.
+   -- for example, somewhere deep below we may stop a RunActionTask, which will
+   -- ask it's parent Task to remove the action from the index.  Normally removing an
+   -- action from the index while it's currently running forces an abort, but we
+   -- certainly don't want to do that here!
+   self:_set_state(STOPPING)
+   self:_set_active_unit(nil)
    for _, unit in pairs(self._execution_units) do
       unit:_stop()
    end
-   self:_set_active_unit(nil)
    self:_set_state(STOPPED)
 end
    
@@ -680,7 +703,7 @@ function ExecutionFrame:_stop_from_finished()
    assert(not self._active_unit)
    for _, unit in pairs(self._execution_units) do
       self._log:detail('stopping execution unit "%s"', unit:get_name())
-      unit:_stop()
+      unit:_stop(true)
    end
    self:_set_state(STOPPED)
 end
@@ -726,18 +749,8 @@ function ExecutionFrame:_destroy_from_running()
    self:_do_destroy()
 end
 
-function ExecutionFrame:_destroy_from_switching()
-   self._log:debug('_destroy_from_switching (state: %s)', self._state)
-   for _, unit in pairs(self._execution_units) do
-      unit:_destroy()
-   end
-   self._execution_units = {}
-   self._execution_unit_keys = {}
-   self:_set_state(DEAD)
-   self:_do_destroy()
-end
-
 function ExecutionFrame:abort()
+   self._log:debug('abort')
    assert(not self._aborting)
    self._aborting = true
    assert(self:_no_other_thread_is_running())
@@ -754,7 +767,7 @@ function ExecutionFrame:_log_stack(msg)
    local runstack = self._thread:get_thread_data('stonehearth:run_stack')
    for i = #runstack,1,-1 do
       local f = runstack[i]
-      self._log:spam('  [%d] - (%5d) %s', i, f._id, f._name, stonehearth.ai.format_args(f._args))
+      self._log:spam('  [%d] - (%5d) %s', i, f._id, f._activity_name, stonehearth.ai.format_args(f._args))
    end
 end
 
@@ -762,41 +775,16 @@ function ExecutionFrame:_unwind_call_stack(exit_handler)
    local going_to_frame = self._thread:get_thread_data('stonehearth:unwind_to_frame')
    assert(going_to_frame)
 
-   self:_log_stack(string.format('_unwind_call_stack %s', going_to_frame._name))
+   self:_log_stack(string.format('_unwind_call_stack %s', going_to_frame._activity_name))
    local current_run_frame = self:_get_top_of_stack()
 
    assert(current_run_frame)
    assert(current_run_frame == self)
    assert(self._thread:is_running())   
 
-   -- switch_step(3) - we're back the thread that needs to switch to a new
-   -- execution unit.  kill the execution unit here.  we might not have an
-   -- active unit.  if we do, we're going to need to kill it...
-   local key_for_unit_to_replace
-   if self._active_unit then
-      self._log:detail('still unwinding... destroying active unit %s', self._active_unit:get_name())
-      -- hold onto this just in case we need it later, then kill the unit
-      key_for_unit_to_replace = self._execution_unit_keys[self._active_unit]
-      local unit = self._active_unit
-      self._active_unit = nil
-      unit:_stop(true)
-      unit:_destroy()
-      self:_remove_execution_unit(unit)
-   end
-   
    -- switch_step(4) - unfortunately, we may be really really deep in nested calls
    -- which all need to be unwound before we can switch.  unwind them all first.
    if current_run_frame ~= going_to_frame then
-      self._log:detail('still unwinding... destroying self')
-      self:_set_state(UNWINDING)
-      self:_destroy()
-      assert(self:in_state(DEAD))
-      
-      -- remove our frame from the runstack, since the guy waiting for the
-      -- run to finish won't have the opportunity to
-      --local run_stack = self._thread:get_thread_data('stonehearth:run_stack')
-      --table.remove(run_stack)
-      
       -- if the next frame is where we want to go, only unwind 1 frame so we
       -- end up back in the protected run loop in :_run_from_*.  otherwise,
       -- jump back 2 frames
@@ -812,30 +800,29 @@ function ExecutionFrame:_unwind_call_stack(exit_handler)
    end
 
    self._log:detail('reached unwind frame!... starting new unit')
+   self._thread:set_thread_data('stonehearth:unwind_to_frame', nil)
    
-   -- switch_step(7) - we have finally unwound all our called frames (destroying them
-   -- along the way), and have reached the switching frame!  before doing so, make a
-   -- new unit to replace the guy that just died.
-   assert(self:in_state(SWITCHING))
-   if key_for_unit_to_replace then
-      self:_add_execution_unit(key_for_unit_to_replace)
-   end
-   -- there's no need to start it thinking.  we're switching to a new unit, so
-   -- this one can't possibly be good for anything (at least not before we
-   -- exit running or kill that other thing...)
-
-   -- switch_step(8) - yay!  now we can finally switch to the other unit. way back at step
-   -- 1 we stashed that away.  take it out now!
+   -- switch_step(7) - we have finally unwound all our called frames (stopping them
+   -- along the way), and have reached the switching frame!
+   assert(self:in_state(RUNNING))
    assert(self._switch_to_unit)
    assert(self._switch_to_unit:get_state() == 'ready')
    self._active_unit, self._switch_to_unit = self._switch_to_unit, nil
+
+   -- stop everything but the active unit
+   for _, unit in pairs(self._execution_units) do
+      if unit ~= self._active_unit then
+         unit:_stop(true)
+      end
+   end
+   -- start the active unit and start the rest of them thinking again.
    self._active_unit:_start()
-   self._thread:set_thread_data('stonehearth:unwind_to_frame', nil)
+   self:_restart_thinking()
 end
  
 function ExecutionFrame:_add_action_from_thinking(key, entry)
    local unit = self:_add_execution_unit(key, entry)
-   unit:_start_thinking(self:_clone_entity_state('new speculation for unit'))
+   unit:_start_thinking(self._args, self:_clone_entity_state('new speculation for unit'))
 end
 
 function ExecutionFrame:_add_action_from_ready(key, entry)
@@ -845,7 +832,7 @@ end
 
 function ExecutionFrame:_add_action_from_running(key, entry)
    local unit = self:_add_execution_unit(key, entry)
-   unit:_start_thinking(self:_create_entity_state())
+   unit:_start_thinking(self._args, self:_create_entity_state())
 end
 
 function ExecutionFrame:_add_action_from_stopped(key, entry)
@@ -854,19 +841,19 @@ function ExecutionFrame:_add_action_from_stopped(key, entry)
 end
 
 function ExecutionFrame:_remove_action_from_stopped(unit)
-   unit:_destroy()
+   self:_remove_execution_unit(unit)
+end
+
+function ExecutionFrame:_remove_action_from_stopping(unit)
    self:_remove_execution_unit(unit)
 end
 
 function ExecutionFrame:_remove_action_from_finished(unit)
-   unit:_destroy()
    self:_remove_execution_unit(unit)
 end
 
 function ExecutionFrame:_remove_action_from_thinking(unit)
-   unit:_stop_thinking(0)
-   unit:_destroy()
-   self:_remove_execution_unit(unit, true)
+   self:_remove_execution_unit(unit)
 end
 
 function ExecutionFrame:_remove_action_from_ready(unit)
@@ -878,9 +865,9 @@ function ExecutionFrame:_remove_action_from_ready(unit)
          self._ready_cb(self, nil)
       end     
       self:_set_state(STOPPED)
-      self:_start_thinking(self._current_entity_state)
+      self:_restart_thinking(self._current_entity_state)
    else
-      self:_remove_execution_unit(unit, true)  
+      self:_remove_execution_unit(unit)
    end
 end
 
@@ -893,7 +880,7 @@ function ExecutionFrame:_remove_action_from_running(unit)
          end)
       end
    else
-      self:_remove_execution_unit(unit, true)
+      self:_remove_execution_unit(unit)
    end
 end
 
@@ -914,8 +901,16 @@ function ExecutionFrame:_remove_execution_unit(unit)
 end
 
 function ExecutionFrame:_on_action_index_changed(add_remove, key, entry, does)
-   self._log:debug('on_action_index_changed %s (key:%s state:%s)', add_remove, tostring(key), self._state)
-   if self._name == does and self:get_state() ~= DEAD then
+   if self._log:is_enabled(radiant.log.DETAIL) then
+      local key_name
+      if type(key) == 'table' and key.name then
+         key_name = 'dynamic_action:' .. key.name
+      else
+         key_name = tostring(key_name)
+      end
+      self._log:debug('on_action_index_changed %s (key:%s state:%s)', add_remove, key_name, self._state)
+   end
+   if self._activity_name == does and self:get_state() ~= DEAD then
       local unit = self._execution_units[key]
       if add_remove == 'add' then
          if not unit then         
@@ -936,9 +931,9 @@ function ExecutionFrame:_add_execution_unit(key, entry)
    self._log:debug('adding new execution unit: %s', name)
 
    if not entry then
-      local actions = self._action_index[self._name]
+      local actions = self._action_index[self._activity_name]
       if not actions then
-         self._log:warning('no actions for %s at the moment.  this is actually ok for tasks (they may come later)', self._name)
+         self._log:warning('no actions for %s at the moment.  this is actually ok for tasks (they may come later)', self._activity_name)
          return
       end
       entry = actions[key]
@@ -959,7 +954,6 @@ function ExecutionFrame:_add_execution_unit(key, entry)
                                 self._entity,
                                 entry.injecting_entity,
                                 action,
-                                self._args,
                                 self._action_index)
 
    assert(not self._execution_units[key])
@@ -975,6 +969,10 @@ function ExecutionFrame:_set_current_entity_state(state)
    for key, value in pairs(state) do
       self._log:spam('  CURRENT.%s = %s', key, tostring(value))
    end
+
+   -- remember where we think we are so we can restart thinking if we
+   -- move too far away from it.
+   self._last_captured_location = state.location
    
    -- we explicitly do not clone this state.  compound actions expect us
    -- to propogate side-effects of executing this frame back in the state
@@ -1048,13 +1046,13 @@ function ExecutionFrame:_get_best_execution_unit()
    local best_priority = 0
    local active_units = nil
    
-   self._log:spam('%s looking for best execution unit for "%s"', self._entity, self._name)
+   self._log:spam('%s looking for best execution unit for "%s"', self._entity, self._activity_name)
    for _, unit in pairs(self._execution_units) do
       local name = unit:get_name()
       local priority = unit:get_priority()
       local is_runnable = unit:is_runnable()
-      self._log:spam('  unit %s has priority %d (weight: %d  runnable: %s)',
-                     name, priority, unit:get_weight(), tostring(is_runnable))
+      self._log:spam('  unit %s has priority %d (weight: %d  runnable: %s  state:%s)',
+                     name, priority, unit:get_weight(), tostring(is_runnable), unit:get_state())
       if is_runnable then
          if priority >= best_priority then
             if priority > best_priority then
@@ -1076,7 +1074,7 @@ function ExecutionFrame:_get_best_execution_unit()
    
    -- choose a random unit amoung all the units with the highest priority (they all tie)
    local active_unit = active_units[math.random(#active_units)]
-   self._log:spam('%s  best unit for "%s" is "%s" (priority: %d)', self._entity, self._name, active_unit:get_name(), best_priority)
+   self._log:spam('%s  best unit for "%s" is "%s" (priority: %d)', self._entity, self._activity_name, active_unit:get_name(), best_priority)
    
    return active_unit
 end
@@ -1086,7 +1084,7 @@ function ExecutionFrame:get_debug_info()
       id = 'f:' .. tostring(self._id),
       state = self:get_state(),
       activity = {
-         name = self._name,
+         name = self._activity_name,
       },
       args = stonehearth.ai:format_args(self._args),
       execution_units = {
@@ -1191,13 +1189,13 @@ function ExecutionFrame:_protected_call(fn, exit_handler)
       elseif err == UNWIND_NEXT_FRAME then
          self:_cleanup_protected_call_exit()
          exit_handler()
-         self:_log_stack('in UNWIND_NEXT_FRAME handler...')
-         
+         self:_log_stack('in UNWIND_NEXT_FRAME handler...')         
          -- it's magic.  don't question it (there's a 2nd pcall in run...
          self:_exit_protected_call(UNWIND_NEXT_FRAME_2)
       else
-         self._log:info("aborting on error '%s'", err)
-         self:_destroy()
+         self._log:info("aborting on error '%s' (state:%s)", err, self._state)
+         self:_stop(true)
+         assert(self._state == STOPPED, string.format('stop during abort took us to non-stopped state "%s"', self._state))
          self:_cleanup_protected_call_exit()
          exit_handler()
          
@@ -1206,7 +1204,7 @@ function ExecutionFrame:_protected_call(fn, exit_handler)
          if #run_stack == 0 then
             return false
          end
-         self:_exit_protected_call(ABORT_FRAME)
+         self:_exit_protected_call(err)
          radiant.not_reached()
       end
    end
