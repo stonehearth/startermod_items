@@ -6,6 +6,7 @@ local STARTED = 'started'
 local STARTING = 'starting'
 local RUNNING = 'running'
 local STOPPING = 'stopping'
+local FINISHED = 'finished'
 local STOPPED = 'stopped'
 local DEAD = 'dead'
 local ABORTING = 'aborting'
@@ -186,7 +187,7 @@ function ExecutionUnitV2:_clear_think_output()
    if self:in_state('thinking', 'ready') then
       return self:_clear_think_output_from_thinking()
    end
-   if self._state == 'stopped' then
+   if self._state == 'finished' then
       return -- who cares?
    end
    self:_unknown_transition('clear_think_output')   
@@ -256,8 +257,8 @@ function ExecutionUnitV2:_stop()
    if self._state == 'running' then
       return self:_stop_from_running()
    end
-   if self._state == 'stopped' then
-      return -- duh.
+   if self._state == 'finished' then
+      return self:_stop_from_finished()
    end
    if self:in_state('stopped', 'stopping', 'stop_thinking') then
       return -- nop
@@ -284,6 +285,9 @@ function ExecutionUnitV2:_destroy()
    end
    if self._state == 'aborting' then
       return self:_destroy_from_aborting()
+   end
+   if self._state == 'destroy' then
+      return self:_destroy_from_finished()
    end
    if self._state == 'dead' then
       return -- nop
@@ -364,8 +368,7 @@ function ExecutionUnitV2:_run_from_ready()
    self:_set_state(RUNNING)
    self:_do_stop_thinking()
    self:_call_run()
-   self._log:detail('run finished... stopping')
-   self:_do_stop()
+   self:_set_state(FINISHED)
 end
 
 function ExecutionUnitV2:_run_from_started()
@@ -373,8 +376,7 @@ function ExecutionUnitV2:_run_from_started()
 
    self:_set_state(RUNNING)
    self:_call_run()
-   self._log:detail('run finished... stopping')
-   self:_do_stop()
+   self:_set_state(FINISHED)
 end
 
 function ExecutionUnitV2:_stop_from_thinking()
@@ -392,6 +394,11 @@ function ExecutionUnitV2:_stop_from_starting()
 end
 
 function ExecutionUnitV2:_stop_from_started()
+   assert(not self._thinking)
+   self:_do_stop()
+end
+
+function ExecutionUnitV2:_stop_from_finished()
    assert(not self._thinking)
    self:_do_stop()
 end
@@ -451,6 +458,14 @@ function ExecutionUnitV2:_destroy_from_running()
    assert(not self._thinking)
    self:_destroy_execution_frames()
    self:_call_stop()
+   self:_call_destroy()
+   self:_set_state(DEAD)
+end
+
+function ExecutionUnitV2:_destroy_from_finished()
+   assert(not self._thinking)
+   assert(not self._current_execution_frame)
+   self:_destroy_execution_frames()
    self:_call_destroy()
    self:_set_state(DEAD)
 end
