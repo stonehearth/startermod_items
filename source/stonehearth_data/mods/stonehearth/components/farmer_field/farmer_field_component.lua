@@ -2,6 +2,8 @@
    Stores data about the field in question
 ]]
 
+local farming_service = stonehearth.farming
+
 local FarmerFieldComponent = class()
 FarmerFieldComponent.__classname = 'FarmerFieldComponent'
 
@@ -74,19 +76,27 @@ function FarmerFieldComponent:till_location(field_spacer)
    --TODO: get general fertility data from a global service
    --and maybe local fertility data too
    local local_fertility = rng:get_gaussian(self._data.general_fertility, 10)
+   local target_model_variant = nil
    if local_fertility < 10 then
-      render_info:set_model_variant('poor')
+      target_model_variant = 'dirt_1'
    elseif local_fertility < 25 then
-      render_info:set_model_variant('fair')
+      target_model_variant = 'dirt_2'
    elseif local_fertility < 35 then
-      render_info:set_model_variant('good')
+      target_model_variant = 'dirt_3'
    else 
-      render_info:set_model_variant('excellent')
+      target_model_variant = 'dirt_4'
    end
+   render_info:set_model_variant(target_model_variant)
+   local dirt_name, dirt_description = farming_service:get_dirt_descriptions(target_model_variant)
+   radiant.entities.set_name(field_spacer, dirt_name)
+   radiant.entities.set_description(field_spacer, dirt_description)
+
 
    --Add the growX command to the dirt here
    --TODO: move this funtionality to some brush tool
    local plant_crop_command = field_spacer:add_component('stonehearth:commands'):add_command('stonehearth/data/commands/plant_crop')
+
+   self.__savestate:mark_changed()
 end
 
 

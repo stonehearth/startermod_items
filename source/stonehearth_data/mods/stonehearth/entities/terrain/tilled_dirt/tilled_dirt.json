@@ -7,25 +7,33 @@
                "file(untilled_ground.qb)"
             ]
          },
-         "poor": {
+         "dirt_1": {
             "models": [
                "file(poor_dirt.qb)"
-            ]
+            ],
+            "unit_info_name" : "Poor Dirt",
+            "unit_info_description" : "Can barely sustain life."
          },
-         "fair": {
+         "dirt_2": {
             "models": [
                "file(fair_dirt.qb)"
-            ]
+            ],
+            "unit_info_name" : "Fair Dirt",
+            "unit_info_description" : "Meh. It's dirt."
          },
-         "good": {
+         "dirt_3": {
             "models": [
                "file(good_dirt.qb)"
-            ]
+            ],
+            "unit_info_name" : "Good Dirt",
+            "unit_info_description" : "Home to well-behaved earthworms."
          },
-         "excellent": {
+         "dirt_4": {
             "models": [
                "file(excellent_dirt.qb)"
-            ]
+            ],
+            "unit_info_name" : "Rich Dirt",
+            "unit_info_description" : "Thick and loamy."
          }
       },
       "unit_info": {

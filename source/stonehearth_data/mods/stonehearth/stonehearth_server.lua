@@ -27,7 +27,8 @@ radiant.events.listen(stonehearth, 'radiant:construct', function(args)
          'tasks',
          'terrain',
          'threads',
-         'town',         
+         'town',
+         'farming'   
       }
       local datastore = radiant.create_datastore(stonehearth)
 
