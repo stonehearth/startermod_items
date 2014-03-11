@@ -1,0 +1,31 @@
+{
+   "groups" : {
+      "all" : {
+         "name" : "All Tests",
+         "groups" : [
+            "blackbox",
+            "end_to_end"
+         ]
+      },
+
+      "end_to_end" : {
+         "name" : "end to end tests",
+         "scripts" : [
+            "file(end_to_end/harvest_autotests.lua)",
+            "file(end_to_end/food_autotests.lua)",
+            "file(end_to_end/promote_autotests.lua)",
+            "file(end_to_end/carpenter_autotests.lua)",
+            "file(end_to_end/construction_autotests.lua)",
+            "file(end_to_end/sleep_autotests.lua)"
+         ]
+      },
+
+      "blackbox" : {
+         "name" : "blackbox tests",
+         "scripts" : [
+            "file(blackbox/calendar_autotests.lua)",
+            "file(blackbox/stockpile_autotests.lua)"
+         ]
+      }
+   }
+}

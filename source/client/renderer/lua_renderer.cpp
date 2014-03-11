@@ -1,7 +1,6 @@
 #include "pch.h"
 #include "renderer.h"
 #include "client/client.h"
-#include "om/object_formatter/object_formatter.h"
 #include "lua_renderer.h"
 #include "h3d_resource_types.h"
 #include "lib/json/core_json.h"
@@ -79,6 +78,11 @@ static csg::Quaternion Camera_GetOrientation()
    return Renderer::GetInstance().GetCamera()->GetOrientation();
 }
 
+static csg::Point2f Camera_WorldToScreen(csg::Point3f const& pt)
+{
+   return Renderer::GetInstance().GetCamera()->WorldToScreen(pt);
+}
+
 static csg::Ray3 Scene_GetScreenRay(double windowX, double windowY)
 {
    csg::Ray3 result;
@@ -148,7 +152,8 @@ void LuaRenderer::RegisterType(lua_State* L)
                def("set_position", &Camera_SetPosition),
                def("look_at",      &Camera_LookAt),
                def("set_orientation", &Camera_SetOrientation),
-               def("get_orientation", &Camera_GetOrientation)
+               def("get_orientation", &Camera_GetOrientation),
+               def("world_to_screen", &Camera_WorldToScreen)
             ],
             namespace_("scene") [
                lua::RegisterType<RayCastResult>("RayCastResult")

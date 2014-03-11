@@ -1,5 +1,7 @@
 #include "pch.h"
+#include "dm/store.h"
 #include "data_object.h"
+#include "protocols/store.pb.h"
 
 using namespace radiant;
 using namespace radiant::lua;
@@ -46,6 +48,7 @@ luabind::object DataObject::GetDataObject() const
 
 void DataObject::MarkDirty()
 {
+   // xxx: look for cycles!
    DO_LOG(8) << "mark dirty";
    dirty_ = true;
 }
@@ -55,7 +58,7 @@ json::Node const& DataObject::GetJsonNode() const
    if (dirty_) {
       DO_LOG(8) << "recomputing json node";
       if (data_object_.is_valid() && luabind::type(data_object_) != LUA_TNIL) {
-         cached_json_ = ScriptHost::LuaToJson(data_object_.interpreter(), data_object_);
+         cached_json_ = ScriptHost::LuaToJson(data_object_.interpreter(), data_object_);         
       } else {
          cached_json_ = JSONNode();
       }
@@ -64,6 +67,7 @@ json::Node const& DataObject::GetJsonNode() const
    return cached_json_;
 }
 
+#if 0
 void DataObject::SetJsonNode(lua_State* L, json::Node const& node)
 {
    DO_LOG(8) << "set json node";
@@ -72,3 +76,26 @@ void DataObject::SetJsonNode(lua_State* L, json::Node const& node)
    data_object_ = ScriptHost::JsonToLua(L, node);
    DO_LOG(8) << "post set json node";
 }
+#endif
+
+void DataObject::SaveValue(dm::Store const& store, dm::SerializationType r, Protocol::LuaDataObject *msg) const
+{
+   lua::ScriptHost* s = lua::ScriptHost::GetScriptHost(store.GetInterpreter());
+   ASSERT(s);
+
+   if (s) {
+      std::string repr = s->LuaToString(data_object_);
+      msg->set_repr_representation(repr);
+   }
+}
+
+void DataObject::LoadValue(dm::Store const& store, dm::SerializationType  r, const Protocol::LuaDataObject &msg)
+{
+   lua::ScriptHost* s = lua::ScriptHost::GetScriptHost(store.GetInterpreter());
+   ASSERT(s);
+   if (s) {
+      data_object_ = s->StringToLua(msg.repr_representation());
+      dirty_ = true;
+   }
+}
+

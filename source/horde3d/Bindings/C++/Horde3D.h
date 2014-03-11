@@ -1937,6 +1937,7 @@ DLL H3DNode h3dAddInstanceNode( H3DNode parent, const char *name, H3DRes materia
 DLL void* h3dMapNodeParamV( H3DNode node, int param);
 DLL void h3dUnmapNodeParamV( H3DNode node, int param, int mappedLength);
 DLL H3DNode h3dAddProjectorNode( H3DNode parent, const char *name, H3DRes materialRes );
+DLL void h3dWorldToScreenPos( H3DNode cameraNode, float x, float y, float z, float *sx, float *sy, float *depth, float *clip);
 
 namespace Horde3D {
    class HudElementNode;

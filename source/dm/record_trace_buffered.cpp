@@ -30,7 +30,7 @@ void RecordTraceBuffered<R>::Flush()
 }
 
 template <typename R>
-bool RecordTraceBuffered<R>::SaveObjectDelta(Protocol::Value* value)
+bool RecordTraceBuffered<R>::SaveObjectDelta(SerializationType r, Protocol::Value* value)
 {
    // Nothing to do...
    return false;

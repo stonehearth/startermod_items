@@ -7,34 +7,31 @@
 ]]
 
 local Point3 = _radiant.csg.Point3
+local WorkAtWorkshop = require 'services.town.orchestrators.work_at_workshop_orchestrator'
 local CraftOrderList = require 'components.workshop.craft_order_list'
 
 local WorkshopComponent = class()
 
-function WorkshopComponent:__init(entity, data_binding)
-   self._craft_order_list = CraftOrderList(data_binding)  -- The list of things we need to work on
+function WorkshopComponent:__create(entity, json)
    self._entity = entity
    self._bench_outputs = {}              -- An array of finished products on the bench, to be added to the outbox. Nil if nothing.
    self._outbox_entity = nil
-   self._data = data_binding:get_data()
-   self._data.crafter = nil
-   self._data.order_list = self._craft_order_list
 
-   self._data_binding = data_binding
-   self._data_binding:mark_changed()
+   self._craft_order_list = CraftOrderList()
+   self.__savestate = radiant.create_datastore({
+         order_list = self._craft_order_list,
+         skin_class = json.skin_class or 'default'
+      })
+   self.__savestate:set_controller(self)
+   self._construction_ingredients = json.ingredients
+   self._build_sound_effect = json.build_sound_effect
 end
 
-function WorkshopComponent:extend(json)
-   if json then
-      self._construction_ingredients = json.ingredients
-      self._build_sound_effect = json.build_sound_effect
-      if json.skin_class then 
-         self._data.skin_class = json.skin_class
-      else 
-         --xxx populate a default skin
-      end
+function WorkshopComponent:__destroy()
+   if self._orchestrator then
+      self._orchestrator:destroy()
+      self._orchestrator = nil
    end
-   self._data_binding:mark_changed()
 end
 
 --[[UI Interaction Functions
@@ -115,7 +112,7 @@ end
    Returns the crafter associated with this WorkshopComponent
 ]]
 function WorkshopComponent:get_crafter()
-   return self._data.crafter
+   return self._crafter
 end
 
 --[[
@@ -124,8 +121,9 @@ end
 function WorkshopComponent:set_crafter(crafter)
    local current = self:get_crafter()
    if not crafter or not current or current:get_id() ~= crafter:get_id() then
-      self._data.crafter = crafter
-      self._data_binding:mark_changed()
+      self._crafter = crafter
+      self.__savestate:get_data().crafter = crafter
+      self.__savestate:mark_changed()
 
       local commandComponent = self._entity:get_component('stonehearth:commands')
       if crafter then
@@ -146,6 +144,15 @@ function WorkshopComponent:set_crafter(crafter)
       -- xxx, localize                                          
       local crafter_name = radiant.entities.get_name(crafter)
       radiant.entities.set_description(self._entity, 'owned by ' .. crafter_name)
+
+      local faction = radiant.entities.get_faction(self._entity)
+      local town = stonehearth.town:get_town(faction)
+      self._orchestrator = town:create_orchestrator(WorkAtWorkshop, {
+            crafter = crafter,
+            workshop = self._entity,
+            craft_order_list = self._craft_order_list,
+         })
+
    end
 end
 
@@ -170,10 +177,6 @@ function WorkshopComponent:pop_bench_output()
    if #self._bench_outputs > 0 then
       return table.remove(self._bench_outputs)
    end
-end
-
-function WorkshopComponent:get_craft_order_list()
-   return self._craft_order_list
 end
 
 function WorkshopComponent:finish_construction(faction, outbox_entity)

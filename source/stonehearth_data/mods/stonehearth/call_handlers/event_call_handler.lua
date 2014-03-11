@@ -1,10 +1,18 @@
-local EventTracker = require 'services.event.event_tracker'
+
+local datastore
 
 local EventCallHandler = class()
-
 function EventCallHandler:get_event_tracker(session, request)
-   local event_tracker = EventTracker()
-   return { tracker = event_tracker:get_data_store() }
+   if not datastore then
+      datastore = radiant.create_datastore()
+      radiant.events.listen(stonehearth.events, 'stonehearth:new_event', function(e)
+            datastore:set_data({
+                  text = e.text,
+                  type = e.type,
+               })
+         end)
+   end
+   return { tracker = datastore }
 end
 
 return EventCallHandler

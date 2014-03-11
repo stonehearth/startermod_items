@@ -12,10 +12,10 @@ using namespace ::radiant;
 using namespace ::radiant::om;
 
 IMPLEMENT_TRIVIAL_TOSTRING(lua::DataObject);
-DEFINE_INVALID_JSON_CONVERSION(lua::DataObject);
+DEFINE_INVALID_JSON_CONVERSION(std::shared_ptr<lua::DataObject>);
 
 static std::shared_ptr<lua::BoxedTraceWrapper<dm::BoxedTrace<dm::Boxed<lua::DataObject>>>>
-DataStore_Trace(std::shared_ptr<DataStore> data_store, const char* reason)
+DataStore_Trace(DataStorePtr data_store, const char* reason)
 {
    if (data_store) {
       auto trace = data_store->TraceData(reason, dm::LUA_ASYNC_TRACES);
@@ -25,7 +25,7 @@ DataStore_Trace(std::shared_ptr<DataStore> data_store, const char* reason)
 }
 
 DataStorePtr
-DataStore_SetData(std::shared_ptr<DataStore> data_store, object data)
+DataStore_SetData(DataStorePtr data_store, object data)
 {
    if (data_store) {
       data_store->SetData(data);
@@ -33,18 +33,8 @@ DataStore_SetData(std::shared_ptr<DataStore> data_store, object data)
    return data_store;
 }
 
-
-DataStorePtr
-DataStore_SetController(std::shared_ptr<DataStore> data_store, object controller)
-{
-   if (data_store) {
-      data_store->SetController(lua::ControllerObject(controller));
-   }
-   return data_store;
-}
-
 object
-DataStore_GetData(std::shared_ptr<DataStore> data_store)
+DataStore_GetData(DataStorePtr data_store)
 {
    if (data_store) {
       return data_store->GetData();
@@ -52,11 +42,35 @@ DataStore_GetData(std::shared_ptr<DataStore> data_store)
    return object();
 }
 
+void
+DataStore_ModifyData(lua_State* L, DataStorePtr data_store, luabind::object cb)
+{
+   if (data_store) {
+      lua_State* cb_thread = lua::ScriptHost::GetCallbackThread(L);
+      try {
+         object safe_cb(cb_thread, cb);
+         safe_cb(data_store->GetData());
+         data_store->MarkDataChanged();
+      } catch (std::exception const& e) {
+         lua::ScriptHost::ReportCStackException(L, e);
+      }
+   }
+}
+
 DataStorePtr
-DataStore_MarkChanged(std::shared_ptr<DataStore> data_store)
+DataStore_MarkChanged(DataStorePtr data_store)
 {
    if (data_store) {
       data_store->MarkDataChanged();
+   }
+   return data_store;
+}
+
+DataStorePtr
+DataStore_SetController(DataStorePtr data_store, luabind::object obj)
+{
+   if (data_store) {
+      data_store->SetController(lua::ControllerObject("", obj));
    }
    return data_store;
 }
@@ -65,13 +79,14 @@ scope LuaDataStore::RegisterLuaTypes(lua_State* L)
 {
    return
       // references to DataStore's are used where lua should not be able to keep objects alive, e.g. component data
-      lua::RegisterStrongGameObject<DataStore>()
-         .def("update",         &DataStore_SetData) // xxx: don't we need to adopt(_2) here?
+      lua::RegisterStrongGameObject<DataStore>(L, "DataStore")
+         .def("set_data",       &DataStore_SetData) // xxx: don't we need to adopt(_2) here?
          .def("get_data",       &DataStore_GetData) // xxx: don't we need dependency(_1, _2) here?
+         .def("modify_data",    &DataStore_ModifyData) // xxx: don't we need dependency(_1, _2) here?
          .def("trace_data",     &DataStore_Trace)
-         .def("mark_changed",   &DataStore_MarkChanged)
          .def("set_controller", &DataStore_SetController)
+         .def("mark_changed",   &DataStore_MarkChanged)
       ,
-      luabind::class_<lua::DataObject, std::shared_ptr<lua::DataObject>>(GetShortTypeName<lua::DataObject>())
+      lua::RegisterTypePtr<lua::DataObject>("DataObject")
       ;
 }

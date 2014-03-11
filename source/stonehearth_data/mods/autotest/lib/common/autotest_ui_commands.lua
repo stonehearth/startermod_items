@@ -1,0 +1,10 @@
+local commands = {
+   WAIT_REALTIME        = 'WAIT_REALTIME',
+   MOVE_CAMERA          = 'MOVE_CAMERA',
+   SELECT_ENTITY        = 'SELECT_ENTITY',
+   CLICK_DOM_ELEMENT    = 'CLICK_DOM_ELEMENT',
+   CLICK_WORLD_COORD    = 'CLICK_WORLD_COORD',
+   SET_SELECT_XZ_REGION = 'SET_SELECT_XZ_REGION',
+}
+
+return commands

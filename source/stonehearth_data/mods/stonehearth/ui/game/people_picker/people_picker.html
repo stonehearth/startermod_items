@@ -3,7 +3,7 @@
       <div id="title">{{view.title}}</div>
       <div id="list">
          {{#each entities}}
-            <a href="#" {{action selectPerson this target="view"}}>
+            <a id="choice" href="#" {{action selectPerson this target="view"}}>
                <div>{{this.unit_info.name}}</div>
             </a>
          {{/each}}

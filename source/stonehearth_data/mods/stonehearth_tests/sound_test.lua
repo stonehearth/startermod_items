@@ -14,7 +14,6 @@ function SoundTest:__init()
    --local json = {
    --   track = 'stonehearth:music:title_screen'
    --}
-   --_radiant.audio.play_music(radiant.json.encode(json))
    _radiant.audio.play_music('stonehearth:music:title_screen', 'bgm')
 
    ---[[

@@ -7,22 +7,24 @@
 local CraftOrder = require 'components.workshop.craft_order'
 
 local CraftOrderList = class()
-function CraftOrderList:__init(data_binding)
-   self._data_binding = data_binding
-   self._data = self._data_binding:get_data()
-   self._orders = {}
-end
-
-function CraftOrderList:__tojson()
-   return radiant.json.encode(self._orders)
+function CraftOrderList:__init()
+   self._orders = {
+      __numeric = true
+   }
+   self.__savestate = radiant.create_datastore({
+         orders = self._orders,
+      })
 end
 
 function CraftOrderList:is_paused()
-   return self._data.is_paused
+   return self._is_paused
 end
 
 function CraftOrderList:toggle_pause()
-   self._data.is_paused = not self._data.is_paused
+   self._is_paused = not self._is_paused
+   self.__savestate:modify_data(function (data)
+         data.is_paused = self._is_paused
+      end)
    self:_on_order_list_changed()
 end
 
@@ -35,7 +37,7 @@ end
 function CraftOrderList:add_order(recipe, condition, faction)
    local order = CraftOrder(recipe, condition, faction, function()
          self:_on_order_list_changed()
-      end )
+      end)
    table.insert(self._orders, order)
    self:_on_order_list_changed()
 end
@@ -107,8 +109,8 @@ function CraftOrderList:_find_index_of(order_id)
 end
 
 function CraftOrderList:_on_order_list_changed()
-   self._data_binding:mark_changed()
    radiant.events.trigger(self, 'order_list_changed')
+   self.__savestate:mark_changed()
 end
 
 

@@ -130,3 +130,11 @@ void Camera::SetBases(const csg::Point3f& forward, const csg::Point3f& up, const
 Camera::~Camera()
 {
 }
+
+csg::Point2f Camera::WorldToScreen(csg::Point3f const& world)
+{
+   csg::Point2f screen;
+   h3dWorldToScreenPos(node_.get(), world.x, world.y, world.z, &screen.x, &screen.y, NULL, NULL);
+   return screen;   
+}
+

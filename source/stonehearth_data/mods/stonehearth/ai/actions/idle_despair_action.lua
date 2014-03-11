@@ -1,4 +1,3 @@
-local event_service = stonehearth.events
 local IdleDespairAction = class()
 
 IdleDespairAction.name = 'despair'
@@ -11,7 +10,7 @@ IdleDespairAction.preemptable = true
 
 function IdleDespairAction:run(ai, entity)
    local name = radiant.entities.get_display_name(entity)
-   event_service:add_entry(name .. ' is so hungry it feels like despair.', 'warning')
+   stonehearth.events:add_entry(name .. ' is so hungry it feels like despair.', 'warning')
 
    for i = 1, 3 do
       ai:execute('stonehearth:run_effect', { effect = 'idle_despair' })

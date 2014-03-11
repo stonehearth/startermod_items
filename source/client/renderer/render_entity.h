@@ -52,6 +52,7 @@ class RenderEntity : public std::enable_shared_from_this<RenderEntity>
       void UpdateNodeFlags();
       void UpdateInvariantRenderers();
       void AddComponent(std::string const& key, std::shared_ptr<dm::Object> value);
+      void AddLuaComponent(std::string const& key, luabind::object obj);
       void RemoveComponent(std::string const& key);
       void OnSelected(om::Selection& sel, const csg::Ray3& ray,
                       const csg::Point3f& intersection, const csg::Point3f& normal);
@@ -72,6 +73,7 @@ protected:
       bool              initialized_;
       core::Guard       renderer_guard_;
       dm::TracePtr      components_trace_;
+      dm::TracePtr      lua_components_trace_;
 };
 
 typedef std::shared_ptr<RenderEntity>  RenderEntityPtr;

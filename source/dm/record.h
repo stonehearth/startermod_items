@@ -15,14 +15,12 @@ public:
    }
 
    void GetDbgInfo(DbgInfo &info) const override;
-   void LoadValue(Protocol::Value const& msg) override;
-   void SaveValue(Protocol::Value* msg) const override;
+   void LoadValue(SerializationType r, Protocol::Value const& msg) override;
+   void SaveValue(SerializationType r, Protocol::Value* msg) const override;
 
-   void Initialize(Store& s, ObjectId id) override;
-   void InitializeSlave(Store& s, ObjectId id) override;
-
-   virtual void ConstructObject() { };
-   virtual void InitializeRecordFields() { };
+   void ConstructObject() override;
+   
+   virtual void InitializeRecordFields() = 0;
 
    bool IsRemoteRecord() const { return slave_; }
    std::vector<std::pair<std::string, ObjectId>> const& GetFields() const { return fields_; }
@@ -32,8 +30,6 @@ protected:
 
    bool FieldIsUnique(std::string name, Object& field);
    void AddRecordField(std::string name, Object& field);
-   void AddRecordField(std::string name, ObjectId id);
-   void InitializeRecord();
    
 private:
    NO_COPY_CONSTRUCTOR(Record);
@@ -44,6 +40,7 @@ private:
    bool                    slave_;
    int                     registerOffset_;
    mutable int             saveCount_;
+   bool                    constructed_;
 };
 
 END_RADIANT_DM_NAMESPACE

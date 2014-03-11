@@ -24,6 +24,7 @@ public:
    typedef std::function<void(const CefCursorHandle cursor)> CursorChangeCb;
    
 public:  // IBrowser Interface
+   void Navigate(std::string const& uri) override;
    bool HasMouseFocus(int screen_x, int screen_y) override;
    void UpdateDisplay(PaintCb cb) override;
    void Work() override;
@@ -145,6 +146,7 @@ private:
    int32                         _uiHeight;
    uint32                        *_browserFramebuffer, *_lastBrowserFramebuffer;
    HandleRequestCb               _requestHandler;
+   HWND                          _parentWindow;
    int                           _drawCount;
 };
 

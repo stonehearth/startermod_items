@@ -5,7 +5,7 @@
 
 local CarryBlock = class()
 
-function CarryBlock:__init(entity)
+function CarryBlock:__create(entity, json)
    self._entity = entity
    self._carry_block = entity:add_component('carry_block')
 

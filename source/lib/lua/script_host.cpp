@@ -10,6 +10,7 @@
 #include "lib/perfmon/timer.h"
 #include "lib/perfmon/store.h"
 #include "lib/perfmon/timeline.h"
+#include "om/components/data_store.ridl.h"
 
 extern "C" int luaopen_lpeg (lua_State *L);
 
@@ -18,6 +19,7 @@ using namespace ::radiant;
 using namespace ::radiant::lua;
 
 DEFINE_INVALID_JSON_CONVERSION(ScriptHost);
+DEFINE_INVALID_LUA_CONVERSION(ScriptHost)
 
 static std::string GetLuaTraceback(lua_State* L)
 {
@@ -63,39 +65,104 @@ ScriptHost* ScriptHost::GetScriptHost(lua_State *L)
    return sh;
 }
 
+ScriptHost* ScriptHost::GetScriptHost(dm::ObjectPtr obj)
+{
+   return obj ? GetScriptHost(*obj) : nullptr;
+}
+
+ScriptHost* ScriptHost::GetScriptHost(dm::Object const& obj)
+{
+   return GetScriptHost(obj.GetStore());
+}
+
+ScriptHost* ScriptHost::GetScriptHost(dm::Store const& store)
+{
+   return GetScriptHost(store.GetInterpreter());
+}
+
 void ScriptHost::AddJsonToLuaConverter(JsonToLuaFn fn)
 {
    to_lua_converters_.emplace_back(fn);
 }
 
-JSONNode ScriptHost::LuaToJson(luabind::object obj)
+JSONNode ScriptHost::LuaToJson(luabind::object current_obj)
 {
-   int t = type(obj);
-   if (t == LUA_TTABLE || t == LUA_TUSERDATA) {
-      try {
-         object coder = globals(L_)["radiant"]["json"];
-         std::string json = call_function<std::string>(coder["encode"], obj);
-         return libjson::parse(json);
-      } catch (std::exception& e) {
-         LUA_LOG(1) << "failed to convert coded json string to node: " << e.what();
-         ReportCStackThreadException(obj.interpreter(), e);
-         return JSONNode();
+   std::vector<luabind::object> visited;
+
+   std::function<JSONNode(luabind::object const&)> luaToJson;
+
+   luaToJson = [&luaToJson, &visited, this] (luabind::object const& current_obj) -> JSONNode {
+      luabind::object obj = GetObjectRepresentation(current_obj, "__tojson");
+      int t = luabind::type(obj);
+      if (t == LUA_TTABLE) {
+         for (luabind::object const& o : visited) {
+            if (current_obj == o) {
+               return JSONNode("", "visited node");
+            }
+         }
+         visited.push_back(current_obj);
       }
-   } else if (t == LUA_TSTRING) {
-      return JSONNode("", object_cast<std::string>(obj));
-   } else if (t == LUA_TNUMBER) {
-      std::ostringstream formatter;
-      float value = object_cast<float>(obj);
-      int int_value = static_cast<int>(value);
-      if (csg::IsZero(value - int_value)) {
-         return JSONNode("", int_value);
+
+      if (obj != current_obj && t == LUA_TSTRING) {
+         // don't modify it.. it's already been converted
+         std::string str = object_cast<std::string>(obj);
+         // return JSONNode("", str);
+         boost::algorithm::trim(str);
+         if (str[0] == '{' || str[0] == '[') {
+            return libjson::parse(str);
+         }
+         return JSONNode("", str);
+      } else if (t == LUA_TTABLE) {
+
+         if (IsNumericTable(obj)) {
+            JSONNode result(JSON_ARRAY);
+            luabind::object entry;
+            int i = 1;
+            for (;;) {
+               luabind::object entry = obj[i++];
+               if (luabind::type(entry) == LUA_TNIL) {
+                  break;
+               }
+               result.push_back(luaToJson(entry));
+            }
+            return result;
+         } else {
+            JSONNode result(JSON_NODE);
+            for (iterator i(obj), end; i != end; i++) {
+               JSONNode key = luaToJson(i.key());
+               JSONNode value = luaToJson(*i);
+               value.set_name(key.as_string());
+               result.push_back(value);
+            }
+            return result;
+         }
+      } else if (t == LUA_TUSERDATA) {
+         class_info ci = call_function<class_info>(globals(L_)["class_info"], obj);
+         LUA_LOG(1) << "lua userdata object of type " << ci.name << " does not implement __tojson";
+         return JSONNode("", "\"userdata\"");
+      } else if (t == LUA_TSTRING) {
+         std::string str = object_cast<std::string>(obj);
+         //boost::algorithm::replace_all(str, "\"", "\\'");
+         return JSONNode("", str);
+      } else if (t == LUA_TNUMBER) {
+         std::ostringstream formatter;
+         double double_value = object_cast<double>(obj);
+         int int_value = static_cast<int>(double_value);
+         if (csg::IsZero(double_value - int_value)) {
+            return JSONNode("", int_value);
+         }
+         return JSONNode("", double_value);
+      } else if (t == LUA_TBOOLEAN) {
+         return JSONNode("", object_cast<bool>(obj));
+      } else if (t == LUA_TNIL) {
+         return JSONNode("", nullptr);
+      } else if (t == LUA_TFUNCTION) {
+         return JSONNode("", "function");
       }
-      return JSONNode("", value);
-   } else if (t == LUA_TBOOLEAN) {
-      return JSONNode("", object_cast<bool>(obj));
-   }
-   LUA_LOG(1) << "unknown type converting lua to json: " << t;
-   return JSONNode();
+      return JSONNode("", BUILD_STRING("\"" << "invalid lua type " << t << "\""));
+   };
+   return luaToJson(current_obj);
+   throw std::logic_error("invalid lua type found while converting to json");
 }
 
 luabind::object ScriptHost::JsonToLua(JSONNode const& json)
@@ -160,8 +227,9 @@ IMPLEMENT_TRIVIAL_TOSTRING(ScriptHost);
 
 ScriptHost::ScriptHost() 
 {
-   *current_file = '\0';
    current_line = 0;
+   *current_file = '\0';
+   current_file[ARRAY_SIZE(current_file) - 1] = '\0';
 
    bytes_allocated_ = 0;
    filter_c_exceptions_ = core::Config::GetInstance().Get<bool>("lua.filter_exceptions", true);
@@ -179,13 +247,14 @@ ScriptHost::ScriptHost()
    module(L_) [
       namespace_("_radiant") [
          namespace_("lua") [
-            lua::RegisterType<ScriptHost>()
+            lua::RegisterType<ScriptHost>("ScriptHost")
                .def("log",             &ScriptHost::Log)
+               .def("exit",            &ScriptHost::Exit)
                .def("get_realtime",    &ScriptHost::GetRealTime)
                .def("get_log_level",   &ScriptHost::GetLogLevel)
                .def("get_config",      &ScriptHost::GetConfig)
                .def("set_performance_counter", &ScriptHost::SetPerformanceCounter)
-               .def("report_error",    (void (ScriptHost::*)(std::string const& error, std::string const& traceback))&ScriptHost::ReportLuaStackException)
+               .def("report_error",    (void (ScriptHost::*)(std::string const& error, std::string const& traceback) const)&ScriptHost::ReportLuaStackException)
                .def("require",         (luabind::object (ScriptHost::*)(std::string const& name))&ScriptHost::Require)
                .def("require_script",  (luabind::object (ScriptHost::*)(std::string const& name))&ScriptHost::RequireScript)
          ]
@@ -235,25 +304,16 @@ void* ScriptHost::LuaAllocFn(void *ud, void *ptr, size_t osize, size_t nsize)
 
    host->bytes_allocated_ += (nsize - osize);
    
-#if !defined(ENABLE_MEMPRO)
-   if (nsize == 0) {
-      free(ptr);
-      realloced = nullptr;
-   } else {
-      realloced = realloc(ptr, nsize);
-   }
-#else
    if (nsize == 0) {
       delete [] ptr;
       realloced = nullptr;
    } else {
-      void *realloced = new char[nsize];
+      realloced = new char[nsize];
       if (osize) {
          memcpy(realloced, ptr, std::min(nsize, osize));
          delete [] ptr;
       }
    }
-#endif
 
    if (host->profile_memory_) {
       std::string const& key = host->alloc_backmap[ptr];
@@ -276,7 +336,7 @@ void ScriptHost::LuaTrackLine(lua_State *L, lua_Debug *ar)
    s->current_line = ar->currentline;
 }
 
-void ScriptHost::ReportCStackThreadException(lua_State* L, std::exception const& e)
+void ScriptHost::ReportCStackThreadException(lua_State* L, std::exception const& e) const
 {
    std::string error = BUILD_STRING("c++ exception: " << e.what());
    std::string traceback = GetLuaTraceback(L);
@@ -286,12 +346,12 @@ void ScriptHost::ReportCStackThreadException(lua_State* L, std::exception const&
    }
 }
 
-void ScriptHost::ReportLuaStackException(std::string const& error, std::string const& traceback)
+void ScriptHost::ReportLuaStackException(std::string const& error, std::string const& traceback) const
 {
    ReportStackException("lua", error, traceback);
 }
 
-void ScriptHost::ReportStackException(std::string const& category, std::string const& error, std::string const& traceback)
+void ScriptHost::ReportStackException(std::string const& category, std::string const& error, std::string const& traceback) const
 {
    LUA_LOG(0) << "-- Script Error (" << category << ") Begin ------------------------------- ";
    if (!error.empty()) {
@@ -427,6 +487,15 @@ void ScriptHost::Log(const char* category, int level, const char* str)
    }
 }
 
+void ScriptHost::Exit(int code)
+{
+   LOG_(0) << "exiting with code " << code << " by mod request.";
+   // NOOOOOOOOOOOO!  Can we gracefully shutdown?  So far this is used exclusively
+   // by the autotest framework.
+   TerminateProcess(GetCurrentProcess(), code);
+}
+
+
 uint ScriptHost::GetRealTime()
 {
    return perfmon::Timer::GetCurrentTimeMs();
@@ -492,6 +561,16 @@ void ScriptHost::Trigger(const std::string& eventName)
    try {
       luabind::object radiant = globals(cb_thread_)["radiant"];
       radiant["events"]["trigger"](radiant, eventName);
+   } catch (std::exception const& e) {
+      ReportCStackThreadException(cb_thread_, e);
+   }
+}
+
+void ScriptHost::TriggerOn(luabind::object obj, const std::string& eventName, luabind::object args)
+{
+   try {
+      luabind::object radiant = globals(cb_thread_)["radiant"];
+      radiant["events"]["trigger"](obj, eventName, args);
    } catch (std::exception const& e) {
       ReportCStackThreadException(cb_thread_, e);
    }
@@ -582,4 +661,154 @@ void ScriptHost::ComputeCounters(std::function<void(const char*, double, const c
 void ScriptHost::SetPerformanceCounter(const char* name, double value, const char* kind)
 {
    performanceCounters_[BUILD_STRING("lua:" << name)] = std::make_pair(value, kind);
+}
+
+luabind::object ScriptHost::StringToLua(std::string const& str)
+{
+   std::string eval = BUILD_STRING("return " << str);
+   int ret = luaL_loadstring(L_, eval.c_str());
+   if (ret != 0) {
+      LOG_(0) << " error evaling string: " << eval;
+      OnError(lua_tostring(L_, -1));
+      lua_pop(L_, 1);
+      return luabind::object();
+   }
+   ret = lua_pcall(L_, 0, LUA_MULTRET, 0);
+   if (ret != 0) {
+      LOG_(0) << " error evaling string: " << eval;
+      OnError(lua_tostring(L_, -1));
+      lua_pop(L_, 1);
+      return luabind::object();
+   }
+
+   luabind::object obj(luabind::from_stack(L_, -1));
+   lua_pop(L_, 1);
+   return obj;
+}
+
+luabind::object ScriptHost::GetObjectRepresentation(luabind::object obj, std::string const& format) const
+{
+   auto convert = [=](luabind::object& o) -> bool {
+      switch (luabind::type(o)) {
+      case LUA_TTABLE:
+      case LUA_TUSERDATA:
+         try {
+            luabind::object __translator = o[format];
+            if (__translator) {
+               luabind::object translated = luabind::call_function<luabind::object>(__translator, o);
+               if (translated) {
+                  o = translated;
+                  return true;
+               }
+            }
+         } catch (std::exception& e) {
+            LUA_LOG(1) << "call to " << format << " failed: " << e.what();
+            ReportCStackThreadException(L_, e);
+         }
+      }
+      return false;
+   };
+
+   luabind::object result(obj);
+   while (convert(result)) {
+      continue;
+   }
+   return result;
+}
+
+std::string ScriptHost::LuaToString(luabind::object obj)
+{
+   std::vector<luabind::object> visited;
+
+   std::function<void(std::ostringstream&, luabind::object const&)> luaToString;
+
+   luaToString = [&visited, &luaToString, this] (std::ostringstream& os, luabind::object const& current_obj) {
+      luabind::object obj = GetObjectRepresentation(current_obj, "__repr");
+      int t = luabind::type(obj);
+
+      if (t == LUA_TTABLE) {
+         for (luabind::object const& o : visited) {
+            if (current_obj == o) {
+               os << "\"visited node\"";
+               return;
+            }
+         }
+         visited.push_back(current_obj);
+      }
+
+      if (obj != current_obj && t == LUA_TSTRING) {
+         // don't modify it.. it's a lua string meant to be evaled.
+         os << object_cast<std::string>(obj);
+      } else {
+         if (t == LUA_TTABLE) {
+            os << "{ ";
+            for (iterator i(obj), end; i != end; i++) {
+               os << "[";
+                  luaToString(os, i.key());
+               os << "] = ";
+                  luaToString(os, *i);
+               os << ", ";
+            }
+            os << " }";
+         } else if (t == LUA_TUSERDATA) {
+            class_info ci = call_function<class_info>(globals(L_)["class_info"], obj);
+            throw std::logic_error(BUILD_STRING("lua userdata object of type " << ci.name << " does not implement __repr"));
+         } else if (t == LUA_TSTRING) {
+            std::string str = object_cast<std::string>(obj);
+            boost::algorithm::replace_all(str, "'", "\\'");
+            os << "'" << str << "'";
+         } else if (t == LUA_TNUMBER) {
+            std::ostringstream formatter;
+            double double_value = object_cast<double>(obj);
+            int int_value = static_cast<int>(double_value);
+            if (csg::IsZero(double_value - int_value)) {
+               os << int_value;
+            } else {
+               os << double_value;
+            }
+         } else if (t == LUA_TBOOLEAN) {
+            os << (object_cast<bool>(obj) ? "true" : "false");
+         } else if (t == LUA_TFUNCTION) {
+            os << "\"function\"";
+         }
+      }
+   };
+
+   std::ostringstream buffer;
+   luaToString(buffer, obj);
+
+   std::string repr = buffer.str();
+   return repr;
+}
+
+void ScriptHost::AddObjectToLuaConvertor(dm::ObjectType type, ObjectToLuaFn cast_fn)
+{
+   ASSERT(!object_cast_table_[type]);
+   object_cast_table_[type] = cast_fn;
+}
+
+luabind::object ScriptHost::CastObjectToLua(dm::ObjectPtr obj)
+{
+   if (!obj) {
+      return luabind::object();
+   }
+
+   ObjectToLuaFn cast_fn = object_cast_table_[obj->GetObjectType()];
+   ASSERT(cast_fn);
+   return cast_fn(L_, obj);
+}
+
+bool ScriptHost::IsNumericTable(luabind::object tbl) const
+{
+   iterator i(tbl), end;
+
+   // used to treat empty tables as numeric
+   object __numeric = tbl["__numeric"];
+   if (__numeric.is_valid() && type(__numeric) == LUA_TBOOLEAN && object_cast<bool>(__numeric)) {
+      return true;
+   }
+   if (i == end) {
+      return false; // assume empty tables are objects.
+   }
+   return luabind::type(tbl) == LUA_TTABLE && luabind::type(tbl[1]) != LUA_TNIL;
 }

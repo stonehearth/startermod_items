@@ -59,21 +59,21 @@ function CompoundAction:start_thinking(ai, entity, args)
    end
    
    self._thinking = true
-   self:_start_thinking(1)
+   self:_start_thinking(1, args)
 end
 
-function CompoundAction:_start_thinking(index)
+function CompoundAction:_start_thinking(index, args)
    assert(self._thinking)
 
    while index <= #self._activities do
       local activity = self._activities[index]
       self:_spam_current_state('start_thinking (%d of %d - %s)', index, #self._activities, activity.name)
 
-      local replaced = self:_replace_placeholders(activity.args)
-      local frame = self._ai:spawn(activity.name, replaced)
+      local transformed_args = self:_replace_placeholders(activity.args)
+      local frame = self._ai:spawn(activity.name, transformed_args)
       table.insert(self._thinking_frames, frame)
 
-      local think_output = frame:start_thinking(self._ai.CURRENT)
+      local think_output = frame:start_thinking(transformed_args, self._ai.CURRENT)
       if think_output then
          self:_spam_current_state('after start_thinking (%d of %d - %s)', index, #self._activities, activity.name)
          assert(self._thinking)
@@ -163,11 +163,12 @@ function CompoundAction:stop()
 end
 
 function CompoundAction:destroy()
+   self._log:detail('destroying all compound action frames')
    local frames = (#self._thinking_frames > 0) and self._thinking_frames or self._running_frames
    
    for i = #frames, 1, -1 do
       local frame = frames[i]
-      frame:destroy() -- must be asynchronous!
+      frame:destroy() -- must be synchronous!
    end
    if self._action.destroy then
       self._action:destroy(self._ai, self._entity, self._injecting_entity)
@@ -180,7 +181,9 @@ function CompoundAction:get_debug_info()
       does = self.does,
       args = stonehearth.ai:format_args(self._args),
       priority = self.priority,
-      execution_frames = {}
+      execution_frames = {
+         __numeric = true,
+      }
    }
    local frames = (#self._thinking_frames > 0) and self._thinking_frames or self._running_frames
    for _, f in ipairs(frames) do

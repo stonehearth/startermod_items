@@ -17,5 +17,6 @@
       OM_OBJECT(CarryBlock,            carry_block) \
       OM_OBJECT(UnitInfo,              unit_info) \
       OM_OBJECT(Item,                  item) \
+      OM_OBJECT(ModList,               mod_list) \
 
 #endif // _RADIANT_OM_ALL_COMPONENT_DEFS

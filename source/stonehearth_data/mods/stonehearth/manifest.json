@@ -107,6 +107,8 @@
       "medium_boulder" : "file(entities/boulders/medium_boulder)",
       "large_boulder" : "file(entities/boulders/large_boulder)",
 
+      "terrain:tall_grass" : "file(entities/terrain/tall_grass)",
+
       "oak_log" : "file(entities/trees/oak_tree/oak_log)",
       "small_oak_tree" : "file(entities/trees/oak_tree/small_oak_tree)",
       "medium_oak_tree" : "file(entities/trees/oak_tree/medium_oak_tree)",
@@ -374,6 +376,9 @@
       "sounds:axe_chopping_sound_01" : "file(data/sounds/effects/sh_axe_01.wav)",
       "sounds:axe_chopping_sound_02" : "file(data/sounds/effects/sh_axe_02.wav)",
       "sounds:axe_chopping_sound_03" : "file(data/sounds/effects/sh_axe_03.wav)",
+      "sounds:mine_01" : "file(data/sounds/effects/sh_mine_01.wav)",
+      "sounds:mine_02" : "file(data/sounds/effects/sh_mine_02.wav)",
+      "sounds:mine_03" : "file(data/sounds/effects/sh_mine_03.wav)",
       "sounds:firepit_ignite_sound" : "file(data/sounds/effects/sh_firepit_ignite_01.wav)",
       "sounds:firepit_loop_sound" : "file(data/sounds/effects/sh_firepit_loop.wav)",
       "sounds:hammer_sound_01" : "file(data/sounds/effects/sh_hammer_01.wav)",
@@ -410,6 +415,8 @@
       "sounds:snare_01" : "file(data/sounds/effects/sh_snare_01.wav)",
       "sounds:snare_02" : "file(data/sounds/effects/sh_snare_02.wav)",
       "sounds:snare_03" : "file(data/sounds/effects/sh_snare_03.wav)",
+      "sounds:gate_open" : "file(data/sounds/effects/sh_gate_open.wav)",
+      "sounds:gate_close" : "file(data/sounds/effects/sh_gate_close.wav)",
                
       "music:title_screen"    : "file(data/music/startmenumusic.ogg)",
       "music:world_start"     : "file(data/music/levelmusic.ogg)",
@@ -595,7 +602,11 @@
       "get_camera_tracker": {
          "controller" : "file(call_handlers/camera_call_handler.lua)",
          "endpoint" : "client"
-      }
+      },
+      "enable_camera_movement": {
+         "controller" : "file(call_handlers/camera_call_handler.lua)",
+         "endpoint" : "client"
+      }      
    },
    "components" :  {
       "ai" : "file(components/ai/ai_component.lua)",
@@ -630,6 +641,7 @@
       "portal" : "file(components/portal/portal_component.lua)",
       "no_construction_zone" : "file(components/no_construction_zone/no_construction_zone_component.lua)",
       "construction_data" : "file(components/construction_data/construction_data_component.lua)",
+      "construction_progress" : "file(components/construction_progress/construction_progress_component.lua)",
       "personality" : "file(components/personality/personality_component.lua)",
       "loot_table" : "file(components/loot_table/loot_table_component.lua)",
       "inventory" : "file(components/inventory/inventory_component.lua)",
@@ -646,13 +658,9 @@
    "invariant_renderers" : {
       "scaffolding_render_data" : "file(renderers/scaffolding/scaffolding_renderer.lua)"
    },
-   "loader" :  {
-      "ui" : {
-         "homepage" : "file(/ui/root/index.html)"
-      }
-   },
    "ui" :  {
-      "html" : [     
+      "homepage" : "http://radiant/stonehearth/ui/root/index.html",
+      "html" : [
          "file(ui/common/modal_overlay/modal_overlay.html)",
          "file(ui/shell/shell.html)",
          "file(ui/shell/title/title.html)",
@@ -664,6 +672,9 @@
          "file(ui/debug/error_browser/error_browser.html)",
          "file(ui/debug/error_dialog/error_dialog.html)",
          "file(ui/game/game.html)",
+         "file(ui/game/modes/zones_mode/zones_mode.html)",
+         "file(ui/game/modes/zones_mode/stockpile/stockpile.html)",
+         "file(ui/game/modes/build_mode/build_mode.html)",
          "file(ui/game/esc_menu/esc_menu.html)",
          "file(ui/game/task_manager/task_manager.html)",   
          "file(ui/game/create_camp/create_camp.html)",
@@ -679,9 +690,8 @@
          "file(ui/game/unit_frame/unit_frame.html)",
          "file(ui/game/resource_scoreboard/resource_scoreboard.html)",
          "file(ui/game/start_menu/start_menu.html)",
-         "file(ui/game/main_actionbar/tip_popup.html)",
+         "file(ui/game/tip_popup/tip_popup.html)",
          "file(ui/game/event_log/event_log.html)",
-         "file(ui/game/show_stockpile/show_stockpile.html)",
          "file(ui/game/build/build.html)"
       ],
       "js" : [
@@ -698,6 +708,10 @@
          "file(ui/debug/error_browser/error_browser.js)",
          "file(ui/debug/error_dialog/error_dialog.js)",
          "file(ui/game/game.js)",
+         "file(ui/game/modes/zones_mode/zones_mode.js)",
+         "file(ui/game/modes/zones_mode/stockpile/stockpile.js)",
+         "file(ui/game/modes/build_mode/build_mode.js)",
+         "file(ui/game/modes/mode_manager.js)",
          "file(ui/game/esc_menu/esc_menu.js)",
          "file(ui/game/task_manager/task_manager.js)",   
          "file(ui/game/create_camp/create_camp.js)",
@@ -714,11 +728,9 @@
          "file(ui/game/unit_frame/unit_frame.js)",
          "file(ui/game/resource_scoreboard/resource_scoreboard.js)",
          "file(ui/game/start_menu/start_menu.js)",
-         "file(ui/game/main_actionbar/tip_popup.js)",
-         "file(ui/game/create_stockpile/create_stockpile.js)",
-         "file(ui/game/event_log/event_log.js)",
-         "file(ui/game/show_stockpile/show_stockpile.js)",
-         "file(ui/game/build/build.js)"
+         "file(ui/game/start_menu/stonehearth_menu.js)",
+         "file(ui/game/tip_popup/tip_popup.js)",
+         "file(ui/game/event_log/event_log.js)"
       ],
       "less" : [
          "file(entities/professions/carpenter/skin/workshop.less)",
@@ -735,6 +747,9 @@
          "file(ui/debug/error_browser/error_browser.less)",
          "file(ui/debug/error_dialog/error_dialog.less)",
          "file(ui/game/game.less)",
+         "file(ui/game/modes/zones_mode/zones_mode.less)",
+         "file(ui/game/modes/zones_mode/stockpile/stockpile.less)",
+         "file(ui/game/modes/build_mode/build_mode.less)",
          "file(ui/game/esc_menu/esc_menu.less)",
          "file(ui/game/task_manager/task_manager.less)",   
          "file(ui/game/create_camp/create_camp.less)",
@@ -750,9 +765,9 @@
          "file(ui/game/place_item/place_item.less)",
          "file(ui/game/resource_scoreboard/resource_scoreboard.less)",
          "file(ui/game/start_menu/start_menu.less)",
-         "file(ui/game/main_actionbar/tip_popup.less)",
+         "file(ui/game/start_menu/stonehearth_menu.less)",
+         "file(ui/game/tip_popup/tip_popup.less)",
          "file(ui/game/event_log/event_log.less)",
-         "file(ui/game/show_stockpile/show_stockpile.less)",
          "file(ui/game/build/build.less)"
       ]
    }

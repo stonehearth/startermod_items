@@ -35,6 +35,11 @@ public:
    std::shared_ptr<std::istream> OpenResource(std::string const& stream) const;
 
 private:
+   enum MixinMode {
+      MIX_UNDER,
+      MIX_OVER,
+   };
+
    JSONNode const& LookupJsonUnsafe(std::string path) const;
    Manifest LookupManifestUnsafe(std::string const& modname) const;
    ResourceManager2();
@@ -47,8 +52,8 @@ private:
    AnimationPtr LoadAnimation(std::string const& canonical_path) const;
    JSONNode LoadJson(std::string const& path) const;
    void ParseNodeMixin(std::string const& path, JSONNode& node) const;
-   void ApplyMixin(std::string const& mixin, JSONNode& n) const;
-   void ExtendNode(JSONNode& node, const JSONNode& parent) const;
+   void ApplyMixin(std::string const& mixin, JSONNode& n, MixinMode mode) const;
+   void ExtendNode(JSONNode& node, const JSONNode& parent, MixinMode mode) const;
    std::string ExpandMacro(std::string const& current, std::string const& base_path, bool full) const;
    void ExpandMacros(std::string const& base_path, JSONNode& node, bool full) const;
    std::string ConvertToAbsolutePath(std::string const& current, std::string const& base_path) const;

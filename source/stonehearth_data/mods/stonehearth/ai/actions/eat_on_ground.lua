@@ -1,5 +1,3 @@
-local event_service = stonehearth.events
-
 local EatOnGround = class()
 EatOnGround.name = 'eat on the ground'
 EatOnGround.does = 'stonehearth:eat'

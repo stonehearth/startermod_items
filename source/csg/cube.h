@@ -13,6 +13,7 @@ public:
    typedef S ScalarType;
    typedef Point<S, C> Point;
    typedef Region<S, C> Region;
+
 public:
    static Cube<S, C> zero;
    static Cube<S, C> one;

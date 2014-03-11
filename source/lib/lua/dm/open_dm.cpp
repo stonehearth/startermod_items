@@ -24,7 +24,7 @@ void RegisterGenericTrace(lua_State* L)
    module(L) [
       namespace_("_radiant") [
          namespace_("om") [
-            luabind::class_<Trace, std::shared_ptr<Trace>>(GetShortTypeName<Trace>())
+            luabind::class_<Trace, std::shared_ptr<Trace>>(GetTypeName<Trace>())
                .def("on_changed",         &Trace::OnChanged)
                .def("on_destroyed",       &Trace::OnDestroyed)
                .def("push_object_state",  &Trace::PushObjectState)
@@ -42,14 +42,14 @@ void RegisterMap(lua_State* L)
    module(L) [
       namespace_("_radiant") [
          namespace_("om") [
-            luabind::class_<Trace, std::shared_ptr<Trace>>(GetShortTypeName<Trace>())
+            luabind::class_<Trace, std::shared_ptr<Trace>>(GetTypeName<Trace>())
                .def("on_added",           &Trace::OnAdded)
                .def("on_removed",         &Trace::OnRemoved)
                .def("on_destroyed",       &Trace::OnDestroyed)
                .def("push_object_state",  &Trace::PushObjectState)
                .def("destroy",            &Trace::Destroy)
             ,
-            luabind::class_<Iterator, std::shared_ptr<Iterator>>(GetShortTypeName<Iterator>())
+            luabind::class_<Iterator, std::shared_ptr<Iterator>>(GetTypeName<Iterator>())
          ]
       ]
    ];
@@ -62,7 +62,7 @@ void RegisterBoxed(lua_State* L)
    module(L) [
       namespace_("_radiant") [
          namespace_("om") [
-            luabind::class_<Trace, std::shared_ptr<Trace>>(GetShortTypeName<Trace>())
+            luabind::class_<Trace, std::shared_ptr<Trace>>(GetTypeName<Trace>())
                .def("on_changed",         &Trace::OnChanged)
                .def("on_destroyed",       &Trace::OnDestroyed)
                .def("push_object_state",  &Trace::PushObjectState)
@@ -80,14 +80,14 @@ void RegisterSet(lua_State* L)
    module(L) [
       namespace_("_radiant") [
          namespace_("om") [
-            luabind::class_<Trace, std::shared_ptr<Trace>>(GetShortTypeName<Trace>())
+            luabind::class_<Trace, std::shared_ptr<Trace>>(GetTypeName<Trace>())
                .def("on_added",           &Trace::OnAdded)
                .def("on_removed",         &Trace::OnRemoved)
                .def("on_destroyed",       &Trace::OnDestroyed)
                .def("push_object_state",  &Trace::PushObjectState)
                .def("destroy",            &Trace::Destroy)
             ,
-            luabind::class_<Iterator, std::shared_ptr<Iterator>>(GetShortTypeName<Iterator>())
+            luabind::class_<Iterator, std::shared_ptr<Iterator>>(GetTypeName<Iterator>())
          ]
       ]
    ];

@@ -5,7 +5,7 @@ local ProxyRoomBuilder = require 'services.build.proxy_room_builder'
 local Point3 = _radiant.csg.Point3
 
 function BuildEditor:__init()
-   self._model = _radiant.client.create_data_store()
+   self._model = _radiant.client.create_datastore()
    self._model:set_controller(self)
 end
 

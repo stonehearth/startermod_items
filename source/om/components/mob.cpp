@@ -1,6 +1,5 @@
 #include "pch.h"
 #include "mob.ridl.h"
-#include "om/object_formatter/object_formatter.h"
 #include "csg/util.h" // xxx: should be in csg/csg.h
 
 using namespace ::radiant;
@@ -15,6 +14,7 @@ std::ostream& operator<<(std::ostream& os, Mob const& o)
 
 void Mob::ConstructObject()
 {
+   Component::ConstructObject();
    transform_ = csg::Transform(csg::Point3f::zero, csg::Quaternion());
    aabb_ = csg::Cube3f::zero;
    interpolate_movement_ = false;
@@ -109,12 +109,17 @@ csg::Point3f Mob::GetWorldLocation() const
 csg::Transform Mob::GetWorldTransform() const
 {
    EntityPtr parent = (*parent_).lock();
-   if (!parent) {
+   MobPtr mob = nullptr;
+   
+   if (parent) {
+      mob = parent->GetComponent<om::Mob>();
+   }
+   if (!mob) {
       return GetTransform();
    }
 
    const csg::Transform& local = GetTransform();
-   csg::Transform world = parent->AddComponent<Mob>()->GetWorldTransform();
+   csg::Transform world = mob->GetWorldTransform();
 
    world.position += world.orientation.rotate(csg::Point3f(local.position));
    world.orientation *= local.orientation;
@@ -156,13 +161,26 @@ csg::Point3 Mob::GetGridLocation() const
    return csg::ToClosestInt(GetLocation());
 }
 
-void Mob::ExtendObject(json::Node const& obj)
+void Mob::LoadFromJson(json::Node const& obj)
 {
    SetInterpolateMovement(obj.get<bool>("interpolate_movement", false));
    transform_ = obj.get<csg::Transform>("transform", csg::Transform(csg::Point3f(0, 0, 0), csg::Quaternion(1, 0, 0, 0)));
    
    if (obj.has("parent")) {
-      parent_ = ObjectFormatter().GetObject<Entity>(GetStore(), obj.get<std::string>("parent", ""));
+      parent_ = GetStore().FetchObject<Entity>(obj.get<std::string>("parent", ""));
+   }
+}
+
+void Mob::SerializeToJson(json::Node& node) const
+{
+   Component::SerializeToJson(node);
+
+   node.set("transform", GetTransform());
+   node.set("entity", GetEntityPtr()->GetStoreAddress());
+   node.set("moving", GetMoving());
+   om::EntityPtr parent = GetParent().lock();
+   if (parent) {
+      node.set("parent", parent->GetStoreAddress());
    }
 }
 

@@ -1,0 +1,12 @@
+{
+   "info" : {
+      "name" : "Stonehearth Autotest: Automated Testing for Stonehearth"
+   },
+
+   "server_init_script" : "file(stonehearth_autotest_server)",
+   "client_init_script" : "file(stonehearth_autotest_client)",
+
+   "ui" :  {
+      "homepage" : "http://radiant/stonehearth/ui/root/index.html?skip_title=true)"
+   }
+}

@@ -30,6 +30,8 @@ class Camera
       void GetBases(csg::Point3f* const forward, csg::Point3f* const up, csg::Point3f* const left) const;
       csg::Matrix4 GetMatrix() const;
 
+      csg::Point2f WorldToScreen(csg::Point3f const& world);
+
    private:
       NO_COPY_CONSTRUCTOR(Camera);
 

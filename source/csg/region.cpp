@@ -402,7 +402,7 @@ void Region<S, C>::OptimizeOneTagByMerge()
    if (IsEmpty()) {
       return;
    }
-   DEBUG_ONLY(ASSERT(ContainsAtMostOneTag()););
+   DEBUG_ONLY(ASSERT(ContainsAtMostOneTag());)
    Validate();
    S areaBefore = GetArea();
 
@@ -523,7 +523,7 @@ void Region<S, C>::OptimizeOneTagByOctTree(S minCubeSize)
    if (IsEmpty()) {
       return;
    }
-   DEBUG_ONLY(ASSERT(ContainsAtMostOneTag()););
+   DEBUG_ONLY(ASSERT(ContainsAtMostOneTag());)
    Validate();
 
    S areaBefore = GetArea();

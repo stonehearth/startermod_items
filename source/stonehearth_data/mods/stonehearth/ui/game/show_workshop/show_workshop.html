@@ -10,7 +10,7 @@
          </div>
       </div>
 
-      {{#if stonehearth:workshop.order_list}}
+      {{#if stonehearth:workshop.order_list.orders}}
          <a {{action togglePause target="view"}} >
             <div id="statusSign" {{bindAttr class=workshopIsPaused:closed:open}}>
                <div id="message">
@@ -50,7 +50,7 @@
          <h3 class="uisounds">{{category}}</h3>
          <div>
             {{#each recipes}}
-               <a href="#" {{action select this target="view"}} class="recipeLink uisounds">{{this.recipe_name}}</a>
+               <a {{bindAttr recipe_name = "this.recipe_name"}}href="#" {{action select this target="view"}} class="recipeLink uisounds">{{this.recipe_name}}</a>
                <br>
             {{/each}}
          </div>
@@ -118,7 +118,7 @@
    <div id="orderList">
 
       <div id="orders">
-      {{#each stonehearth:workshop.order_list}}
+      {{#each stonehearth:workshop.order_list.orders}}
          {{#if is_crafting}}
             <div class="orderListItem inProgressOrder" {{bindAttr data-orderId = "id"}}>
                <label class="craftingLabel">{{../../craftingStatus}}</label>

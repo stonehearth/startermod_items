@@ -19,7 +19,6 @@
 #include "resources/manifest.h"
 #include "resources/res_manager.h"
 #include "om/stonehearth.h"
-#include "om/object_formatter/object_formatter.h"
 #include "horde3d/Source/Horde3DEngine/egModules.h"
 #include "horde3d/Source/Horde3DEngine/egCom.h"
 #include "lib/rpc/trace.h"
@@ -84,45 +83,120 @@ json::Node makeRendererConfigNode(RendererConfigEntry<T>& e) {
 
 Client::Client() :
    _tcp_socket(_io_service),
-   last_sequence_number_(-1),
    rootObject_(NULL),
-   store_(2, "game"),
-   authoringStore_(3, "tmp"),
-   nextTraceId_(1),
+   store_(nullptr),
+   authoringStore_(nullptr),
    uiCursor_(NULL),
    currentCursor_(NULL),
-   last_server_request_id_(0),
    next_input_id_(1),
    mouse_x_(0),
    mouse_y_(0),
    perf_hud_shown_(false),
    connected_(false),
-   game_clock_(new Clock()),
+   game_clock_(nullptr),
    enable_debug_cursor_(false)
 {
-   om::RegisterObjectTypes(store_);
-   om::RegisterObjectTypes(authoringStore_);
-   receiver_ = std::make_shared<dm::Receiver>(store_);
+}
 
-   error_browser_ = authoringStore_.AllocObject<om::ErrorBrowser>();
+Client::~Client()
+{
+   Shutdown();
+}
 
-   scriptHost_.reset(new lua::ScriptHost());
-   scriptHost_->SetNotifyErrorCb([=](om::ErrorBrowser::Record const& r) {
-      error_browser_->AddRecord(r);
+void Client::InitializeUI()
+{
+   core::Config const& config = core::Config::GetInstance();
+   std::string main_mod = config.Get<std::string>("game.main_mod", "stonehearth");
+   
+   std::string docroot;
+   res::ResourceManager2& resource_manager = res::ResourceManager2::GetInstance();
+   resource_manager.LookupManifest(main_mod, [&](const res::Manifest& manifest) {
+      docroot = manifest.get<std::string>("ui.homepage", "about:");
    });
+   browser_->Navigate(docroot);
+}
+
+void Client::OneTimeIninitializtion()
+{
+   core::Config const& config = core::Config::GetInstance();
+
+   // connect to the server...
+   setup_connections();
+
+   // renderer...
+   Renderer& renderer = Renderer::GetInstance();
+   HWND hwnd = renderer.GetWindowHandle();
+   renderer.SetInputHandler([=](Input const& input) {
+      OnInput(input);
+   });
+
+   // browser...
+   int screen_width = renderer.GetWidth();
+   int screen_height = renderer.GetHeight();
+
+   browser_.reset(chromium::CreateBrowser(hwnd, "", screen_width, screen_height, 1338));
+   browser_->SetCursorChangeCb([=](HCURSOR cursor) {
+      if (uiCursor_) {
+         DestroyCursor(uiCursor_);
+      }
+      if (cursor) {
+         uiCursor_ = CopyCursor(cursor);
+      } else {
+         uiCursor_ = NULL;
+      }
+   });
+   browser_->SetRequestHandler([=](std::string const& uri, JSONNode const& query, std::string const& postdata, rpc::HttpDeferredPtr response) {
+      BrowserRequestHandler(uri, query, postdata, response);
+   });
+
+   int ui_width, ui_height;
+   browser_->GetBrowserSize(ui_width, ui_height);
+   renderer.SetUITextureSize(ui_width, ui_height);
+   browserResizeGuard_ = renderer.OnScreenResize([this](csg::Point2 const& r) {
+      browser_->OnScreenResize(r.x, r.y);
+   });
+
+   if (config.Get("enable_debug_keys", false)) {
+      _commands[GLFW_KEY_F1] = [this]() {
+         enable_debug_cursor_ = !enable_debug_cursor_;
+         CLIENT_LOG(0) << "debug cursor " << (enable_debug_cursor_ ? "ON" : "OFF");
+         if (!enable_debug_cursor_) {
+            json::Node args;
+            args.set("enabled", false);
+            core_reactor_->Call(rpc::Function("radiant:debug_navgrid", args));
+         }
+      };
+      _commands[GLFW_KEY_F3] = [=]() { core_reactor_->Call(rpc::Function("radiant:toggle_step_paths")); };
+      _commands[GLFW_KEY_F4] = [=]() { core_reactor_->Call(rpc::Function("radiant:step_paths")); };
+      _commands[GLFW_KEY_F5] = [=]() { RequestReload(); };
+      _commands[GLFW_KEY_F6] = [=]() { core_reactor_->Call(rpc::Function("radiant:server:save")); };
+      _commands[GLFW_KEY_F7] = [=]() { core_reactor_->Call(rpc::Function("radiant:server:load")); };
+      _commands[GLFW_KEY_F9] = [=]() { core_reactor_->Call(rpc::Function("radiant:toggle_debug_nodes")); };
+      _commands[GLFW_KEY_F10] = [&renderer, this]() {
+         perf_hud_shown_ = !perf_hud_shown_;
+         renderer.ShowPerfHud(perf_hud_shown_);
+      };
+      _commands[GLFW_KEY_F12] = [&renderer]() {
+         // Toggling this causes large memory leak in malloc (30 MB per toggle in a 25 tile world)
+         renderer.SetShowDebugShapes(!renderer.ShowDebugShapes());
+      };
+      _commands[GLFW_KEY_PAUSE] = []() {
+         // throw an exception that is not caught by Client::OnInput
+         throw std::string("User hit crash key");
+      };
+      _commands[GLFW_KEY_NUM_LOCK] = [=]() { core_reactor_->Call(rpc::Function("radiant:profile_next_lua_upate")); };
+      _commands[GLFW_KEY_KP_7] = [=]() { core_reactor_->Call(rpc::Function("radiant:start_lua_memory_profile")); };
+      _commands[GLFW_KEY_KP_1] = [=]() { core_reactor_->Call(rpc::Function("radiant:stop_lua_memory_profile")); };
+      _commands[GLFW_KEY_KP_DECIMAL] = [=]() { core_reactor_->Call(rpc::Function("radiant:clear_lua_memory_profile")); };
+      _commands[GLFW_KEY_KP_ENTER] = [=]() { core_reactor_->Call(rpc::Function("radiant:write_lua_memory_profile")); };
+      // _commands[VK_NUMPAD0] = std::shared_ptr<command>(new command_build_blueprint(*_proxy_manager, *_renderer, 500));
+   }
 
    // Reactors...
    core_reactor_ = std::make_shared<rpc::CoreReactor>();
    http_reactor_ = std::make_shared<rpc::HttpReactor>(*core_reactor_);
 
-   // Routers...
-   trace_object_router_ = std::make_shared<rpc::TraceObjectRouter>(GetStore());
-   core_reactor_->AddRouter(std::make_shared<rpc::LuaModuleRouter>(scriptHost_.get(), "client"));
-   core_reactor_->AddRouter(std::make_shared<rpc::LuaObjectRouter>(scriptHost_.get(), GetAuthoringStore()));
-   core_reactor_->AddRouter(trace_object_router_);
-   core_reactor_->AddRouter(std::make_shared<rpc::TraceObjectRouter>(GetAuthoringStore()));
-
-   // protobuf router should be last!
+   // Routers... 
    protobuf_router_ = std::make_shared<rpc::ProtobufRouter>([this](proto::PostCommandRequest const& request) {
       proto::Request msg;
       msg.set_type(proto::Request::PostCommandRequest);   
@@ -131,7 +205,7 @@ Client::Client() :
 
       send_queue_->Push(msg);
    });
-   core_reactor_->AddRouter(protobuf_router_);
+   core_reactor_->SetRemoteRouter(protobuf_router_);
 
    // core functionality exposed by the client...
    core_reactor_->AddRoute("radiant:get_modules", [this](rpc::Function const& f) {
@@ -384,91 +458,103 @@ Client::Client() :
    core_reactor_->AddRoute("radiant:client:get_error_browser", [this](rpc::Function const& f) {
       rpc::ReactorDeferredPtr d = std::make_shared<rpc::ReactorDeferred>("get error browser");
       json::Node obj;
-      obj.set("error_browser", om::ObjectFormatter().GetPathToObject(error_browser_));
+      obj.set("error_browser", error_browser_->GetStoreAddress());
       d->Resolve(obj);
       return d;
    });
 
+   core_reactor_->AddRouteV("radiant:client:deactivate_all_tools", [this](rpc::Function const& f) {
+      DeactivateAllTools();
+   });
+
 }
 
-Client::~Client()
+void Client::Initialize()
 {
-   octtree_.release();
+   InitializeDataObjects();
+   InitializeGameObjects();
+   InitializeLuaObjects();
 }
 
-extern bool realtime;
-void Client::run(int server_port)
+void Client::Shutdown()
 {
-   server_port_ = server_port;
-   setup_connections();
+   ShutdownLuaObjects();
+   ShutdownGameObjects();
+   ShutdownDataObjects();
+}
 
-   hover_cursor_ = LoadCursor("stonehearth:cursors:hover");
-   default_cursor_ = LoadCursor("stonehearth:cursors:default");
+void Client::InitializeDataObjects()
+{
+   store_.reset(new dm::Store(2, "game"));
+   authoringStore_.reset(new dm::Store(3, "tmp"));
 
-   octtree_ = std::unique_ptr<phys::OctTree>(new phys::OctTree(dm::RENDER_TRACES));
-      
+   om::RegisterObjectTypes(*store_);
+   om::RegisterObjectTypes(*authoringStore_);
+
+   receiver_ = std::make_shared<dm::Receiver>(*store_);
+
+   game_render_tracer_ = std::make_shared<dm::TracerBuffered>("client render", *store_);
+   authoring_render_tracer_ = std::make_shared<dm::TracerBuffered>("client tmp render", *authoringStore_);
+   store_->AddTracer(game_render_tracer_, dm::RENDER_TRACES);
+   store_->AddTracer(game_render_tracer_, dm::LUA_SYNC_TRACES);
+   store_->AddTracer(game_render_tracer_, dm::LUA_ASYNC_TRACES);
+   store_->AddTracer(game_render_tracer_, dm::RPC_TRACES);
+
+   object_model_traces_ = std::make_shared<dm::TracerSync>("client om");
+   authoringStore_->AddTracer(authoring_render_tracer_, dm::RENDER_TRACES);
+   authoringStore_->AddTracer(authoring_render_tracer_, dm::LUA_SYNC_TRACES);
+   authoringStore_->AddTracer(authoring_render_tracer_, dm::LUA_ASYNC_TRACES);
+   authoringStore_->AddTracer(authoring_render_tracer_, dm::RPC_TRACES);
+   authoringStore_->AddTracer(object_model_traces_, dm::OBJECT_MODEL_TRACES);
+}
+
+void Client::ShutdownDataObjects()
+{
+   game_render_tracer_.reset();
+   authoring_render_tracer_.reset();
+   object_model_traces_.reset();
+
+   receiver_.reset();
+   authoringStore_.reset();
+   store_.reset();
+}
+
+void Client::InitializeGameObjects()
+{
    Renderer& renderer = Renderer::GetInstance();
+
+   octtree_.reset(new phys::OctTree(dm::RENDER_TRACES));
+   scriptHost_.reset(new lua::ScriptHost());
+
+   error_browser_ = authoringStore_->AllocObject<om::ErrorBrowser>();
+   scriptHost_.reset(new lua::ScriptHost());
+   scriptHost_->SetNotifyErrorCb([=](om::ErrorBrowser::Record const& r) {
+      error_browser_->AddRecord(r);
+   });
+   luaModuleRouter_ = std::make_shared<rpc::LuaModuleRouter>(scriptHost_.get(), "client");
+   luaObjectRouter_ = std::make_shared<rpc::LuaObjectRouter>(scriptHost_.get(), GetAuthoringStore());
+   traceObjectRouter_ = std::make_shared<rpc::TraceObjectRouter>(*store_);
+   traceAuthoredObjectRouter_ = std::make_shared<rpc::TraceObjectRouter>(*authoringStore_);
+
+   core_reactor_->AddRouter(traceObjectRouter_);
+   core_reactor_->AddRouter(traceAuthoredObjectRouter_);
+   core_reactor_->AddRouter(luaModuleRouter_);
+   core_reactor_->AddRouter(luaObjectRouter_);
 
    Horde3D::Modules::log().SetNotifyErrorCb([=](om::ErrorBrowser::Record const& r) {
       error_browser_->AddRecord(r);
    });
-
-   HWND hwnd = renderer.GetWindowHandle();
-   //defaultCursor_ = (HCURSOR)GetClassLong(hwnd_, GCL_HCURSOR);
-
-   renderer.SetInputHandler([=](Input const& input) {
-      OnInput(input);
-   });
-
-   core::Config const& config = core::Config::GetInstance();
-   std::string const loader = config.Get<std::string>("game.mod");
-
-   std::string docroot;
-   res::ResourceManager2::GetInstance().LookupManifest(loader, [&](const res::Manifest& m) {
-      docroot = "http://radiant/" + m.get<std::string>("loader.ui.homepage");
-   });
-
-   // skip title screen if there is a script override
-   if (config.Has("game.script")) {
-      docroot += "?skip_title=true";
-   }
-
-   int screen_width = renderer.GetWidth();
-   int screen_height = renderer.GetHeight();
-   browser_.reset(chromium::CreateBrowser(hwnd, docroot, screen_width, screen_height, 1338));
-   browser_->SetCursorChangeCb([=](HCURSOR cursor) {
-      if (uiCursor_) {
-         DestroyCursor(uiCursor_);
-      }
-      if (cursor) {
-         uiCursor_ = CopyCursor(cursor);
-      } else {
-         uiCursor_ = NULL;
-      }
-   });
-  
-
-   browser_->SetRequestHandler([=](std::string const& uri, JSONNode const& query, std::string const& postdata, rpc::HttpDeferredPtr response) {
-      BrowserRequestHandler(uri, query, postdata, response);
-   });
-
-   int ui_width, ui_height;
-   browser_->GetBrowserSize(ui_width, ui_height);
-   renderer.SetUITextureSize(ui_width, ui_height);
-
-   guards_ += renderer.OnScreenResize([this](csg::Point2 const& r) {
-      browser_->OnScreenResize(r.x, r.y);
-   });
+   game_clock_.reset(new Clock());
 
    lua_State* L = scriptHost_->GetInterpreter();
    lua_State* callback_thread = scriptHost_->GetCallbackThread();
    renderer.SetScriptHost(GetScriptHost());
    csg::RegisterLuaTypes(L);
-   store_.SetInterpreter(callback_thread); // xxx move to dm open or something
-   authoringStore_.SetInterpreter(callback_thread); // xxx move to dm open or something
+   store_->SetInterpreter(callback_thread); // xxx move to dm open or something
+   authoringStore_->SetInterpreter(callback_thread); // xxx move to dm open or something
+   lua::om::register_json_to_lua_objects(L, *store_);
+   lua::om::register_json_to_lua_objects(L, *authoringStore_);
    lua::om::open(L);
-   lua::om::register_json_to_lua_objects(L, store_);
-   lua::om::register_json_to_lua_objects(L, authoringStore_);
    lua::dm::open(L);
    lua::client::open(L);
    lua::res::open(L);
@@ -476,23 +562,48 @@ void Client::run(int server_port)
    lua::rpc::open(L, core_reactor_);
    lua::analytics::open(L);
    lua::audio::open(L);
+}
 
+void Client::ShutdownGameObjects()
+{
+   Renderer::GetInstance().Shutdown();
+   rootObject_.reset();
+   hilightedObjects_.clear();
+   authoredEntities_.clear();
+   
+   game_clock_.reset();
+   Horde3D::Modules::log().SetNotifyErrorCb(nullptr);
+   scriptHost_->SetNotifyErrorCb(nullptr);
 
-   game_render_tracer_ = std::make_shared<dm::TracerBuffered>("client render", store_);
-   authoring_render_tracer_ = std::make_shared<dm::TracerBuffered>("client tmp render", authoringStore_);
-   store_.AddTracer(game_render_tracer_, dm::RENDER_TRACES);
-   store_.AddTracer(game_render_tracer_, dm::LUA_SYNC_TRACES);
-   store_.AddTracer(game_render_tracer_, dm::LUA_ASYNC_TRACES);
-   store_.AddTracer(game_render_tracer_, dm::RPC_TRACES);
-   object_model_traces_ = std::make_shared<dm::TracerSync>("client om");
-   authoringStore_.AddTracer(authoring_render_tracer_, dm::RENDER_TRACES);
-   authoringStore_.AddTracer(authoring_render_tracer_, dm::LUA_SYNC_TRACES);
-   authoringStore_.AddTracer(authoring_render_tracer_, dm::LUA_ASYNC_TRACES);
-   authoringStore_.AddTracer(authoring_render_tracer_, dm::RPC_TRACES);
-   authoringStore_.AddTracer(object_model_traces_, dm::OBJECT_MODEL_TRACES);
+   core_reactor_->RemoveRouter(luaModuleRouter_);
+   core_reactor_->RemoveRouter(luaObjectRouter_);
+   core_reactor_->RemoveRouter(traceObjectRouter_);
+   core_reactor_->RemoveRouter(traceAuthoredObjectRouter_);
 
-   res::ResourceManager2 &resource_manager = res::ResourceManager2::GetInstance();
-   scriptHost_->Require("radiant.client");
+   luaModuleRouter_ = nullptr;
+   luaObjectRouter_ = nullptr;
+   traceObjectRouter_ = nullptr;
+   traceAuthoredObjectRouter_ = nullptr;
+
+   error_browser_.reset();
+   scriptHost_.reset();
+   octtree_.reset();
+}
+
+void Client::InitializeLuaObjects()
+{
+   core::Config &config = core::Config::GetInstance();
+   res::ResourceManager2& resource_manager = res::ResourceManager2::GetInstance();
+   lua_State* L = scriptHost_->GetInterpreter();
+
+   // xxx: the module init sequnce on the client and server share a ton of code.  refactor!!
+   luabind::object main_mod_obj;
+   std::string const main_mod_name = config.Get<std::string>("game.main_mod", "stonehearth");
+
+   hover_cursor_ = LoadCursor("stonehearth:cursors:hover");
+   default_cursor_ = LoadCursor("stonehearth:cursors:default");
+   
+   radiant_ = scriptHost_->Require("radiant.client");
    for (std::string const& mod_name : resource_manager.GetModuleNames()) {
       std::string script_name;
       resource_manager.LookupManifest(mod_name, [&](const res::Manifest& manifest) {
@@ -500,7 +611,13 @@ void Client::run(int server_port)
       });
       if (!script_name.empty()) {
          try {
-            luabind::globals(L)[mod_name] = scriptHost_->Require(script_name);
+            luabind::object obj = scriptHost_->Require(script_name);
+            if (obj) {
+               luabind::globals(L)[mod_name] = obj;
+               if (mod_name == main_mod_name) {
+                  main_mod_obj = obj;
+               }
+            }
          } catch (std::exception const& e) {
             CLIENT_LOG(1) << "module " << mod_name << " failed to load " << script_name << ": " << e.what();
          }
@@ -510,48 +627,30 @@ void Client::run(int server_port)
    scriptHost_->Require("radiant.lualibs.strict");
    scriptHost_->Trigger("radiant:modules_loaded");
 
-   if (config.Get("enable_debug_keys", false)) {
-      _commands[GLFW_KEY_F1] = [this]() {
-         enable_debug_cursor_ = !enable_debug_cursor_;
-         CLIENT_LOG(0) << "debug cursor " << (enable_debug_cursor_ ? "ON" : "OFF");
-         if (!enable_debug_cursor_) {
-            json::Node args;
-            args.set("enabled", false);
-            core_reactor_->Call(rpc::Function("radiant:debug_navgrid", args));
-         }
-      };
-      _commands[GLFW_KEY_F3] = [=]() { core_reactor_->Call(rpc::Function("radiant:toggle_step_paths")); };
-      _commands[GLFW_KEY_F4] = [=]() { core_reactor_->Call(rpc::Function("radiant:step_paths")); };
-      _commands[GLFW_KEY_F9] = [=]() { core_reactor_->Call(rpc::Function("radiant:toggle_debug_nodes")); };
-      _commands[GLFW_KEY_F10] = [&renderer, this]() {
-         perf_hud_shown_ = !perf_hud_shown_;
-         renderer.ShowPerfHud(perf_hud_shown_);
-      };
-      _commands[GLFW_KEY_F12] = [&renderer]() {
-         // Toggling this causes large memory leak in malloc (30 MB per toggle in a 25 tile world)
-         renderer.SetShowDebugShapes(!renderer.ShowDebugShapes());
-      };
-      _commands[GLFW_KEY_PAUSE] = []() {
-         // throw an exception that is not caught by Client::OnInput
-         throw std::string("User hit crash key");
-      };
-      _commands[GLFW_KEY_NUM_LOCK] = [=]() { core_reactor_->Call(rpc::Function("radiant:profile_next_lua_upate")); };
-      _commands[GLFW_KEY_KP_7] = [=]() { core_reactor_->Call(rpc::Function("radiant:start_lua_memory_profile")); };
-      _commands[GLFW_KEY_KP_1] = [=]() { core_reactor_->Call(rpc::Function("radiant:stop_lua_memory_profile")); };
-      _commands[GLFW_KEY_KP_DECIMAL] = [=]() { core_reactor_->Call(rpc::Function("radiant:clear_lua_memory_profile")); };
-      _commands[GLFW_KEY_KP_ENTER] = [=]() { core_reactor_->Call(rpc::Function("radiant:write_lua_memory_profile")); };
-      // _commands[VK_NUMPAD0] = std::shared_ptr<command>(new command_build_blueprint(*_proxy_manager, *_renderer, 500));
+   if (main_mod_obj) {
+      scriptHost_->TriggerOn(main_mod_obj, "radiant:new_game", luabind::newtable(L));
    }
+}
 
-   int last_event_time = 0;
+void Client::ShutdownLuaObjects()
+{
+   // keep the cursors around between save/load...
+}
+
+void Client::run(int server_port)
+{
+   Renderer& renderer = Renderer::GetInstance();
+   
+   server_port_ = server_port;
+
+   OneTimeIninitializtion();
+   Initialize();
+   InitializeUI();
+
    while (renderer.IsRunning()) {
       perfmon::BeginFrame(perf_hud_shown_);
       perfmon::TimelineCounterGuard tcg("client run loop") ;
-
-      static int last_stat_dump = 0;
       mainloop();
-
-      int now = timeGetTime();
    }
 }
 
@@ -591,7 +690,15 @@ void Client::mainloop()
 
    Renderer::GetInstance().HandleResize();
 
-   perfmon::SwitchToCounter("Update browser frambuffer");
+   perfmon::SwitchToCounter("update lua");
+   try {
+      luabind::call_function<int>(radiant_["update"]);
+   } catch (std::exception const& e) {
+      CLIENT_LOG(3) << "error in client update: " << e.what();
+      GetScriptHost()->ReportCStackThreadException(GetScriptHost()->GetCallbackThread(), e);
+   }
+
+   perfmon::SwitchToCounter("update browser frambuffer");
    browser_->UpdateBrowserFrambufferPtrs(
       (unsigned int*)Renderer::GetInstance().GetLastUiBuffer(), 
       (unsigned int*)Renderer::GetInstance().GetNextUiBuffer());
@@ -640,19 +747,6 @@ om::TerrainPtr Client::GetTerrain()
    return rootObject_ ? rootObject_->GetComponent<om::Terrain>() : nullptr;
 }
 
-void Client::Reset()
-{
-
-   Renderer::GetInstance().Cleanup();
-   octtree_->Cleanup();
-
-   store_.Reset();
-   receiver_ = std::make_shared<dm::Receiver>(store_);
-
-   rootObject_ = nullptr;
-   selectedObject_ = om::EntityRef();
-}
-
 bool Client::ProcessMessage(const proto::Update& msg)
 {
 #define DISPATCH_MSG(MsgName) \
@@ -669,6 +763,7 @@ bool Client::ProcessMessage(const proto::Update& msg)
       DISPATCH_MSG(RemoveObjects);
       DISPATCH_MSG(UpdateDebugShapes);
       DISPATCH_MSG(PostCommandReply);
+      DISPATCH_MSG(ClearClientState);
    default:
       ASSERT(false);
    }
@@ -683,18 +778,14 @@ void Client::PostCommandReply(const proto::PostCommandReply& msg)
 
 void Client::BeginUpdate(const proto::BeginUpdate& msg)
 {
-   if (msg.sequence_number() != last_sequence_number_) {
-      if (last_sequence_number_ > 0) {
-         Reset();
-      }
-      last_sequence_number_ = msg.sequence_number();
-   }
 }
 
 
 void Client::EndUpdate(const proto::EndUpdate& msg)
 {
-   trace_object_router_->CheckDeferredTraces();
+   if (traceObjectRouter_) {
+      traceObjectRouter_->CheckDeferredTraces();
+   }
 
    if (!rootObject_) {
       auto rootEntity = GetStore().FetchObject<om::Entity>(1);
@@ -747,6 +838,13 @@ void Client::UpdateDebugShapes(const proto::UpdateDebugShapes& msg)
 {
    Renderer::GetInstance().DecodeDebugShapes(msg.shapelist());
 }
+
+void Client::ClearClientState(const proto::ClearClientState& msg)
+{
+   Shutdown();
+   Initialize();
+}
+
 
 void Client::process_messages()
 {
@@ -923,7 +1021,7 @@ void Client::SelectEntity(om::EntityPtr obj)
          if (renderEntity) {
             renderEntity->SetSelected(true);
          }
-         std::string uri = om::ObjectFormatter().GetPathToObject(obj);
+         std::string uri = obj->GetStoreAddress();
          selectionChanged.push_back(JSONNode("selected_entity", uri));
       } else {
          CLIENT_LOG(3) << "Cleared selected actor.";
@@ -935,7 +1033,7 @@ void Client::SelectEntity(om::EntityPtr obj)
 
 om::EntityPtr Client::GetEntity(dm::ObjectId id)
 {
-   dm::ObjectPtr obj = store_.FetchObject<dm::Object>(id);
+   dm::ObjectPtr obj = store_->FetchObject<dm::Object>(id);
    return (obj && obj->GetObjectType() == om::Entity::DmType) ? std::static_pointer_cast<om::Entity>(obj) : nullptr;
 }
 
@@ -1136,7 +1234,7 @@ void Client::CallHttpReactor(std::string path, json::Node query, std::string pos
 
 om::EntityPtr Client::CreateEmptyAuthoringEntity()
 {
-   om::EntityPtr entity = authoringStore_.AllocObject<om::Entity>();   
+   om::EntityPtr entity = authoringStore_->AllocObject<om::Entity>();   
    authoredEntities_[entity->GetObjectId()] = entity;
    CLIENT_LOG(7) << "created new authoring entity " << *entity;
    return entity;
@@ -1168,7 +1266,6 @@ void Client::DestroyAuthoringEntity(dm::ObjectId id)
    }
 }
 
-
 void Client::ProcessBrowserJobQueue()
 {
    perfmon::TimelineCounterGuard tcg("process job queue") ;
@@ -1179,3 +1276,24 @@ void Client::ProcessBrowserJobQueue()
    }
    browserJobQueue_.clear();
 }
+
+XZRegionSelectorPtr Client::CreateXZRegionSelector()
+{
+   XZRegionSelectorPtr selector = std::make_shared<XZRegionSelector>(GetTerrain());
+   xz_selectors_.push_back(selector);
+   return selector;
+}
+
+void Client::DeactivateAllTools()
+{
+   stdutil::ForEachPrune<XZRegionSelector>(xz_selectors_, [=](XZRegionSelectorPtr s) {
+      s->Deactivate();
+   });
+   xz_selectors_.clear();
+}
+   
+void Client::RequestReload()
+{
+   core_reactor_->Call(rpc::Function("radiant:server:reload"));
+}
+

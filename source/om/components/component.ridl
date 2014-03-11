@@ -17,9 +17,9 @@ class ${C.__name__} : public ${C.__bases__[0]().name}
 {
 public:
    DEFINE_OM_OBJECT_TYPE(${C.__name__}, ${C.__name__ | env.lower});
-%if is_component:
-   void ExtendObject(json::Node const& obj) override;
-%endif
+
+   void LoadFromJson(json::Node const& obj) override;
+   void SerializeToJson(json::Node& node) const override;
 
 ## -------------------------------------------------------------------------
 ##  Enum

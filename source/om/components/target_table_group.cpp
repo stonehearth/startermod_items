@@ -21,6 +21,22 @@ TargetTablePtr TargetTableGroup::AddTable()
    return table;
 }
 
+void TargetTableGroup::LoadFromJson(json::Node const& node)
+{
+}
+
+void TargetTableGroup::SerializeToJson(json::Node& node) const
+{
+   Record::SerializeToJson(node);
+
+   for (auto const& entry : tables_) {
+      json::Node table;
+      entry->SerializeToJson(table);
+      node.add(table);
+   }
+}
+
+
 template<class T>
 bool pairCompare(const T & x, const T & y) {
    return x.second < y.second; 

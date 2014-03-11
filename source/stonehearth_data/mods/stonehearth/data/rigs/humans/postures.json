@@ -9,8 +9,7 @@
    "sitting" : {
       "idle_breathe" : "sitting_idle",
       "idle_sway" : "sitting_idle",
-      "idle_look_around" : "sitting_idle",
-      "eat" : "sitting_eat"
+      "idle_look_around" : "sitting_idle"
    },
    "sitting_on_chair" : {
       "eat" : "sitting_on_chair_eat"

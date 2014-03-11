@@ -12,14 +12,24 @@ std::ostream& operator<<(std::ostream& os, ModelVariants const& o)
    return (os << "[ModelVariants]");
 }
 
-void ModelVariants::ExtendObject(json::Node const& obj)
+void ModelVariants::LoadFromJson(json::Node const& obj)
 {
    // All entities with models must have a render_info...
    GetEntity().AddComponent<RenderInfo>();
 
    for (auto const& e : obj) {
       ModelLayerPtr layer = AddVariant(e.name());
-      layer->Init(e);
+      layer->LoadFromJson(e);
+   }
+}
+
+void ModelVariants::SerializeToJson(json::Node& node) const
+{
+   Component::SerializeToJson(node);
+   for (auto const& entry : EachVariant()) {
+      json::Node variant;
+      entry.second->SerializeToJson(variant);
+      node.set(stdutil::ToString(entry.first), variant);
    }
 }
 

@@ -7,21 +7,16 @@
 
 local GhostItemComponent = class()
 
-function GhostItemComponent:__init(entity, data_binding)
+function GhostItemComponent:__create(entity, json)
    self._entity = entity
 
-   self._data = data_binding:get_data()
-
-   self._data.full_sized_mod_url = ''
-   self._data.unit_info_name = 'Ghooooost Item'
-   self._data.unit_info_description = 'Whoooo aaaammmm Iiiiiiii?'
-   self._data.unit_info_icon = ''
-
-   self._data_binding = data_binding
-   self._data_binding:mark_changed()
-end
-
-function GhostItemComponent:extend(json)
+   self._data = {
+      full_sized_mod_url = '',
+      unit_info_name = 'Ghooooost Item',
+      unit_info_description = 'Whoooo aaaammmm Iiiiiiii?',
+      unit_info_icon = '',
+   }
+   self.__savestate = radiant.create_datastore(self._data)
 end
 
 function GhostItemComponent:set_full_sized_mod_uri(real_item_uri)
@@ -38,7 +33,7 @@ function GhostItemComponent:set_full_sized_mod_uri(real_item_uri)
          self._data.unit_info_icon = data.icon and data.icon or ''
       end
    end
-   self._data_binding:mark_changed()
+   self.__savestate:mark_changed()
 end
 
 function GhostItemComponent:get_full_sized_mod_uri()

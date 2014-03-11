@@ -6,17 +6,22 @@ local Point2 = _radiant.csg.Point2
 
 local StockpileRenderer = class()
 
-function StockpileRenderer:__init(render_entity, data_store)
+function StockpileRenderer:update(render_entity, savestate)
    self._parent_node = render_entity:get_node()
    self._size = { 0, 0 }   
-   self._data_store = data_store
+   self._savestate = savestate
    self._region = _radiant.client.alloc_region2()
 
-   self._promise = data_store:trace_data('rendering stockpile designation')
+   if self._promise then
+      self._promise:destroy()
+      self._promise = nil
+   end
+   
+   self._promise = savestate:trace_data('rendering stockpile designation')
    self._promise:on_changed(function()
          self:_update()
       end)
-   self:_update()      
+   self:_update()
 end
 
 --- xxx: someone call destroy please!!
@@ -25,14 +30,14 @@ function StockpileRenderer:destroy()
 end
 
 function StockpileRenderer:_update()
-   local data = self._data_store:get_data()
+   local data = self._savestate:get_data()
    if data and data.size then
       local size = data.size
-      if self._size[1] ~= size[1] or self._size[2] ~= size[2] then
-         self._size = { size[1], size[2] }
+      if self._size ~= size then
+         self._size = size
          self._region:modify(function(cursor)
             cursor:clear()
-            cursor:add_cube(Rect2(Point2(0, 0), Point2(size[1], size[2])))
+            cursor:add_cube(Rect2(Point2(0, 0), size))
          end)
          
          self:_clear()

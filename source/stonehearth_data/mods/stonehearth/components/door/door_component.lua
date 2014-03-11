@@ -1,13 +1,13 @@
 local DoorComponent = class()
 
 function DoorComponent:__init(entity)
-   self._entity = entity
    self._info = {}
    self._in_sensor = {}
    self._tracked_entities = {}
 end
 
-function DoorComponent:extend(json)
+function DoorComponent:__create(entity, json)
+   self._entity = entity   
    assert(json.sensor)
 
    local sensor_list = self._entity:get_component('sensor_list')

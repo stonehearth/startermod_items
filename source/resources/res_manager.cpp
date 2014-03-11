@@ -480,12 +480,12 @@ void ResourceManager2::ParseNodeMixin(std::string const& path, JSONNode& new_nod
       json::Node mixins = node.get_node("mixins");
       if (mixins.type() == JSON_STRING) {
          std::string mixin = node.get<std::string>("mixins");
-         ApplyMixin(mixin, new_node);
+         ApplyMixin(mixin, new_node, MIX_UNDER);
       } else if (mixins.type() == JSON_ARRAY) {
          // if the node is an array, load this shit in in a loop
          for (JSONNode const &child : mixins.get_internal_node()) {
             std::string mixin = child.as_string();
-            ApplyMixin(mixin, new_node);
+            ApplyMixin(mixin, new_node, MIX_UNDER);
          }
       } else {
          throw json::InvalidJson("invalid json node type in mixin. Mixins must be a string or an array.");
@@ -496,14 +496,14 @@ void ResourceManager2::ParseNodeMixin(std::string const& path, JSONNode& new_nod
    auto i = mixintos_.find(path);
    if (i != mixintos_.end()) {
       for (std::string const& mixin : i->second) {
-         ApplyMixin(mixin, new_node);
+         ApplyMixin(mixin, new_node, MIX_OVER);
       }
    }
 
    RES_LOG(5) << "node " << path << " post-all-mixins: " << new_node.write_formatted();
 }
 
-void ResourceManager2::ApplyMixin(std::string const& mixin_name, JSONNode& new_node) const
+void ResourceManager2::ApplyMixin(std::string const& mixin_name, JSONNode& new_node, MixinMode mode) const
 {
    JSONNode mixin_node;
    std::string uri = ExpandMacro(mixin_name, mixin_name, true);
@@ -516,11 +516,11 @@ void ResourceManager2::ApplyMixin(std::string const& mixin_name, JSONNode& new_n
 
    RES_LOG(7) << "node pre-mixin: " << new_node.write_formatted();
    RES_LOG(7) << "mixing with (mixin:" << mixin_name << " uri:" << uri << ") : " << mixin_node.write_formatted();
-   ExtendNode(new_node, mixin_node);
+   ExtendNode(new_node, mixin_node, mode);
    RES_LOG(7) << "node post-mixin: " << new_node.write_formatted();
 }
 
-void ResourceManager2::ExtendNode(JSONNode& new_node, const JSONNode& mixin_node) const
+void ResourceManager2::ExtendNode(JSONNode& new_node, const JSONNode& mixin_node, MixinMode mode) const
 {
    ASSERT(new_node.name() == "mixins" || new_node.type() == mixin_node.type());
 
@@ -532,7 +532,7 @@ void ResourceManager2::ExtendNode(JSONNode& new_node, const JSONNode& mixin_node
             auto current = new_node.find(name);
             if (current != new_node.end()) {
                RES_LOG(9) << "extending new_node key " << name << " with mixin_node";
-               ExtendNode(*current, i);
+               ExtendNode(*current, i, mode);
             } else {
                RES_LOG(9) << "adding new_node key " << name << " from mixin_node";
                new_node.push_back(i);
@@ -551,9 +551,18 @@ void ResourceManager2::ExtendNode(JSONNode& new_node, const JSONNode& mixin_node
          break;
       }
    default:
-      if (new_node.name() != mixin_node.name()) {
-         RES_LOG(9) << "replacing new_node with mixin_node";
+      RES_LOG(9) << "replacing new_node with mixin_node";
+      ASSERT(new_node.name() == mixin_node.name());
+      if (mode == MIX_UNDER) {
+         // we want to mix the mixin_node underneath the new_node.  So the new_node should
+         // override anything that appears in the mixin with the current name.  Therefore,
+         // the right course of action is to do nothing, since we know the names match.
+      } else if (mode == MIX_OVER) {
+         // we want to mix the mixin_node on *top* of the new_node.  So clobber it.
          new_node = mixin_node;
+      } else {
+         // Logically unreachable.
+         ASSERT(false);
       }
       break;      
    }

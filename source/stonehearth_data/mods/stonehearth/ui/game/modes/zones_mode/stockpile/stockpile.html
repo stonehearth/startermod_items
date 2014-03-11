@@ -1,0 +1,89 @@
+<script type="text/x-handlebars" data-template-name="stonehearthStockpile">
+   <div id="stockpileWindow" class="gui">
+      <div class="window">
+         <div class="title">
+            <input id="name" onClick="this.select();" type="text" {{bindAttr value=unit_info.name}} />
+         </div>
+
+         <p>{{i18n stonehearth:stockpile_help}}</p>
+
+         <input type="checkbox" id="all">
+         <label for="all">{{i18n stonehearth:stockpile_all}}</label>
+
+         <input type="checkbox" id="none">
+         <label for="none">{{i18n stonehearth:stockpile_none}}</label>
+
+         <!--
+         <table id="allNoneGrid">
+            <tr>
+               <td class="toggleButton" id="all">{{i18n stonehearth:stockpile_all}}
+               <td class="toggleButton" id="none">{{i18n stonehearth:stockpile_none}}
+         </table>
+         -->
+
+         <table id="taxonomyGrid" cellspacing="0" cellpadding="0">
+            <tr>
+               <td>
+                  <input type="checkbox" id="resources" class="toggleButton group">
+                  <label for="resources">{{i18n stonehearth:stockpile_resources}}</label>
+
+               <td class="toggleButton category" id="wood" filter="resource wood"><img title="{{i18n stonehearth:stockpile_tooltip_wood}}">
+               <td class="toggleButton category" id="stone" filter="resource stone"><img title="{{i18n stonehearth:stockpile_tooltip_stone}}">
+               <td class="toggleButton category" id="ore" filter="resource metal"><img title="{{i18n stonehearth:stockpile_tooltip_ore}}">
+               <td class="toggleButton category" id="animal_part" filter="resource animal_part"><img title="{{i18n stonehearth:stockpile_tooltip_animal_part}}">
+               <td colspan="99">
+            <tr>
+               <td>
+                  <input type="checkbox" id="construction" class="toggleButton group">
+                  <label for="construction">{{i18n stonehearth:stockpile_construction}}</label>
+
+               <td class="toggleButton category" id="portal" filter="portal"><img title="{{i18n stonehearth:stockpile_tooltip_portal}}">
+               <td class="toggleButton category" id="furniture" filter="furniture"><img title="{{i18n stonehearth:stockpile_tooltip_furniture}}">
+               <td class="toggleButton category" id="defense" filter="defense"><img title="{{i18n stonehearth:stockpile_tooltip_defense}}">
+               <td class="toggleButton category" id="light" filter="light_source"><img title="{{i18n stonehearth:stockpile_tooltip_light}}">
+               <td class="toggleButton category" id="decoration" filter="decoration"><img title="{{i18n stonehearth:stockpile_tooltip_decoration}}">
+               <td colspan="99">
+            <tr>
+               <td>
+                  <input type="checkbox" id="goods" class="toggleButton group">
+                  <label for="goods">{{i18n stonehearth:stockpile_goods}}</label>
+               <td class="toggleButton category" id="refined_cloth" filter="refined cloth"><img title="{{i18n stonehearth:stockpile_tooltip_refined_cloth}}">
+               <td class="toggleButton category" id="refined_animal_part" filter="refined animal_part"><img title="{{i18n stonehearth:stockpile_tooltip_refined_animal_part}}">
+               <td class="toggleButton category" id="refined_ore" filter="refined ore"><img title="{{i18n stonehearth:stockpile_tooltip_refined_ore}}">
+               <td colspan="99">
+            <tr>
+               <td>
+                  <input type="checkbox" id="gear" class="toggleButton group">
+                  <label for="gear">{{i18n stonehearth:stockpile_gear}}</label>
+
+               <td class="toggleButton category" id="melee_weapon" filter="melee weapon"><img title="{{i18n stonehearth:stockpile_tooltip_melee_weapon}}">
+               <td class="toggleButton category" id="ranged_weapon" filter="ranged weapon"><img title="{{i18n stonehearth:stockpile_tooltip_ranged_weapon}}">
+               <td class="toggleButton category" id="light_armor" filter="light armor"><img title="{{i18n stonehearth:stockpile_tooltip_light_armor}}">
+               <td class="toggleButton category" id="heavy_armor" filter="heavy armor"><img title="{{i18n stonehearth:stockpile_tooltip_heavy_armor}}">
+               <td class="toggleButton category" id="exotic_gear" filter="exotic"><img title="{{i18n stonehearth:stockpile_tooltip_exotic_gear}}">
+               <td colspan="99">
+            <tr>
+               <td>
+                  <input type="checkbox" id="food_and_drink" class="toggleButton group">
+                  <label for="food_and_drink">{{i18n stonehearth:stockpile_food_and_drink}}</label>
+
+               <td class="toggleButton category" id="fruit" filter="food_container"><img title="{{i18n stonehearth:stockpile_tooltip_fruit}}">
+               <td class="toggleButton category" id="baked" filter="baked food"><img title="{{i18n stonehearth:stockpile_tooltip_baked}}">
+               <td class="toggleButton category" id="meat" filter="meat"><img title="{{i18n stonehearth:stockpile_tooltip_meat}}">
+               <td class="toggleButton category" id="drink" filter="drink"><img title="{{i18n stonehearth:stockpile_tooltip_drink}}">
+               <td colspan="99">
+            <tr>
+               <td>
+                  <input type="checkbox" id="wealth" class="toggleButton group">
+                  <label for="wealth">{{i18n stonehearth:stockpile_wealth}}</label>
+
+               <td class="toggleButton category" id="gold" filter="gold"><img title="{{i18n stonehearth:stockpile_tooltip_gold}}">
+               <td class="toggleButton category" id="gem" filter="treasure"><img title="{{i18n stonehearth:stockpile_tooltip_gem}}">
+               <td colspan="99">
+         </table>
+
+         <button class="warn">{{i18n stonehearth:remove}}</button>
+         <button class="ok"></button>
+      </div>
+   </div>
+</script>

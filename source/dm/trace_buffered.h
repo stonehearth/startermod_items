@@ -9,7 +9,7 @@ class TraceBuffered
 {
 public:
    virtual void Flush() = 0;
-   virtual bool SaveObjectDelta(Protocol::Value* value) = 0;
+   virtual bool SaveObjectDelta(SerializationType r, Protocol::Value* value) = 0;
 };
 
 END_RADIANT_DM_NAMESPACE

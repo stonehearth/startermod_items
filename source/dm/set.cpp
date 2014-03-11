@@ -29,30 +29,30 @@ TracePtr Set<V>::TraceObjectChanges(const char* reason, Tracer* tracer) const
 }
 
 template <class T>
-void Set<T>::LoadValue(Protocol::Value const& value)
+void Set<T>::LoadValue(SerializationType r, Protocol::Value const& value)
 {
    auto const& msg = value.GetExtension(Protocol::Set::extension);
    T v;
 
    for (const Protocol::Value& item : msg.added()) {
-      SaveImpl<T>::LoadValue(GetStore(), item, v);
+      SaveImpl<T>::LoadValue(GetStore(), r, item, v);
       Add(v);
    }
    for (const Protocol::Value& item : msg.removed()) {
-      SaveImpl<T>::LoadValue(GetStore(), item, v);
+      SaveImpl<T>::LoadValue(GetStore(), r, item, v);
       Remove(v);
    }
 }
 
 template <class T>
-void Set<T>::SaveValue(Protocol::Value* value) const
+void Set<T>::SaveValue(SerializationType r, Protocol::Value* value) const
 {
    Store const& store = GetStore();
    Protocol::Set::Update* msg = value->MutableExtension(Protocol::Set::extension);
 
    for (const Value& item : items_) {
       Protocol::Value* submsg = msg->add_added();
-      SaveImpl<Value>::SaveValue(store, submsg, item);
+      SaveImpl<Value>::SaveValue(store, r, submsg, item);
    }
 }
 

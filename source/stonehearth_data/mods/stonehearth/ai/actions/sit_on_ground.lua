@@ -1,5 +1,3 @@
-local event_service = stonehearth.events
-
 local SitOnGround = class()
 SitOnGround.name = 'sit on ground'
 SitOnGround.does = 'stonehearth:sit_on_ground'

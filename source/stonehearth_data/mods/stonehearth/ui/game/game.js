@@ -8,9 +8,9 @@ App.StonehearthGameUiView = App.ContainerView.extend({
             "StonehearthEventLogView"
             ],
          complete: [
+            "StonehearthStartMenuView",
             "StonehearthCalendarView",
             "StonehearthUnitFrameView",
-            "StonehearthStartMenuView",
             "StonehearthResourceScoreboardView",
             "StonehearthTaskManagerView"
          ]
@@ -18,6 +18,7 @@ App.StonehearthGameUiView = App.ContainerView.extend({
       
       this._addViews(this.views.initial);
       this._traceCalendar();
+
    },
 
    destroy: function() {

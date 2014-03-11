@@ -3,7 +3,6 @@
 #include "open.h"
 #include "om/all_objects.h"
 #include "om/all_components.h"
-#include "om/object_formatter/object_formatter.h"
 #include "lib/lua/script_host.h"
 #include "om/lua/lua_om.h"
 
@@ -15,7 +14,7 @@ luabind::object json_to_lua(dm::Store const& store, lua_State* L, JSONNode const
 {
    try {
       if (node.type() == JSON_STRING) {
-         dm::ObjectPtr obj = om::ObjectFormatter().GetObject(store, node.as_string());
+         dm::ObjectPtr obj = store.FetchObject<dm::Object>(node.as_string());
          if (obj) {
 
             if (obj->GetObjectType() == DataStoreObjectType) {

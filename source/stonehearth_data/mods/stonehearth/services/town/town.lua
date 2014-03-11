@@ -1,7 +1,7 @@
+local Point3 = _radiant.csg.Point3
 local Entity = _radiant.om.Entity
 local UnitController = require 'services.town.unit_controller'
 local Promote = require 'services.town.orchestrators.promote_orchestrator'
-local CreateWorkshop = require 'services.town.orchestrators.create_workshop_orchestrator'
 local Town = class()
 
 function Town:__init(name)
@@ -9,6 +9,9 @@ function Town:__init(name)
    self._log = radiant.log.create_logger('town', name)
    self._scheduler = stonehearth.tasks:create_scheduler(name)
                                        :set_counter_name(name)
+
+   self._town_entity = radiant.entities.create_entity()
+   radiant.entities.add_child(radiant._root_entity, self._town_entity, Point3(0, 0, 0))
 
    self._task_groups = {
       workers = self._scheduler:create_task_group('stonehearth:work', {})
@@ -18,6 +21,7 @@ function Town:__init(name)
    self._unit_controllers = {}
    self._thread_orchestrators = {}
    self._harvest_tasks = {}
+   self._buildings = {}
 end
 
 function Town:destroy()
@@ -26,6 +30,12 @@ end
 -- xxx: this is a stopgap until we can provide a better interface
 function Town:create_worker_task(activity_name, args)
    return self._task_groups.workers:create_task(activity_name, args)
+end
+
+function Town:create_task_group(name, args)
+   -- xxx: stash it away for when we care to enumerate everything everyone in the town
+   -- is doing
+   return self._scheduler:create_task_group(name, args)
 end
 
 function Town:join_task_group(entity, name)
@@ -109,6 +119,14 @@ function Town:create_orchestrator(orchestrator_ctor, args)
    self._thread_orchestrators[thread] = {}
    table.insert(self._thread_orchestrators[thread], orchestrator)
    thread:start()
+   
+   return {
+      destroy = function()
+            if not thread:is_finished() then
+               thread:terminate()
+            end
+         end
+   }
 end
 
 function Town:promote_citizen(person, talisman)
@@ -216,29 +234,15 @@ function Town:harvest_renewable_resource_node(plant)
    return true
 end
 
-function Town:create_workshop(crafter, ghost_workshop, outbox_location, outbox_size)
-   local faction = radiant.entities.get_faction(crafter)
-   local outbox_entity = radiant.entities.create_entity('stonehearth:workshop_outbox')
-   radiant.terrain.place_entity(outbox_entity, outbox_location)
-   outbox_entity:get_component('unit_info'):set_faction(faction)
+function Town:add_construction_project(building)
+   local city_plan = self._town_entity:add_component('stonehearth:city_plan')
+   city_plan:add_blueprint(building)
 
-   local outbox_component = outbox_entity:get_component('stonehearth:stockpile')
-   outbox_component:set_size(outbox_size)
-   outbox_component:set_outbox(true)
-
-   -- create a task group for the workshop.  we'll use this both to build it and
-   -- to feed the crafter orders when it's finally created
-   local workshop_task_group = self._scheduler:create_task_group('stonehearth:top', {})
-                                                  :set_priority(stonehearth.constants.priorities.top.CRAFT)
-                                                  :add_worker(crafter)
-
-   self:create_orchestrator(CreateWorkshop, {
-      crafter = crafter,
-      task_group  = workshop_task_group,
-      ghost_workshop = ghost_workshop,
-      outbox_entity = outbox_entity,
-   })
+   table.insert(self._buildings, building)
+   radiant.events.trigger(self, 'stonehearth:building_added', {
+         town = self,
+         building = building,
+      })
 end
-
 return Town
 

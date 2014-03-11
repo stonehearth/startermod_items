@@ -23,15 +23,16 @@ public:
    Object();
    virtual const char *GetObjectClassNameLower() const = 0;
    virtual void GetDbgInfo(DbgInfo &info) const = 0;
-   virtual void LoadValue(Protocol::Value const& msg) = 0;
-   virtual void SaveValue(Protocol::Value* msg) const = 0;
+   virtual void LoadValue(SerializationType r, Protocol::Value const& msg) = 0;
+   virtual void SaveValue(SerializationType r, Protocol::Value* msg) const = 0;
    virtual TracePtr TraceObjectChanges(const char* reason, int category) const = 0;
    virtual TracePtr TraceObjectChanges(const char* reason, Tracer* tracer) const = 0;
-   void LoadObject(Protocol::Object const& msg);
-   void SaveObject(Protocol::Object* msg) const;
+   void LoadObject(SerializationType r, Protocol::Object const& msg);
+   void SaveObject(SerializationType r, Protocol::Object* msg) const;
+   virtual void LoadFromJson(json::Node const& obj);
+   virtual void SerializeToJson(json::Node& node) const;
+   std::string GetStoreAddress() const;
 
-   virtual void Initialize(Store& s, ObjectId id);
-   virtual void InitializeSlave(Store& s, ObjectId id);
    //virtual void Initialize(Store& s, const Protocol::Object& msg);
    virtual ~Object();
 
@@ -41,6 +42,8 @@ public:
    GenerationId GetLastModified() const { return timestamp_; }
 
    virtual ObjectType GetObjectType() const = 0;
+
+   virtual void ConstructObject() { };
 
    bool IsValid() const;
 

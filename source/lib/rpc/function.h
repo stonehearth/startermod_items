@@ -10,12 +10,13 @@ class Function : public Request
 {
 public:
    Function() :
-      args(JSONNode())
+      args(JSON_ARRAY)
    {
    }
 
    Function(std::string const& r) :
-      route(r)
+      route(r),
+      args(JSON_ARRAY)
    {
    }
 

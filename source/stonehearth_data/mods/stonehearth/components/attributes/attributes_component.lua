@@ -40,27 +40,24 @@ local rng = _radiant.csg.get_default_rng()
 
 local AttributesComponent = class()
 
-function AttributesComponent:__init(entity, data_binding)
-   self._entity = entity
-   self._data_binding = data_binding
-
+function AttributesComponent:__init()
    self._attributes = {}
    self._modifiers = {}
    self._dependencies = {}
-
-   self._data_binding:update(self._attributes)
-
 end
 
 --- Given the type of attribute, handle as needed
-function AttributesComponent:extend(json)
+function AttributesComponent:__create(entity, json)
+   self._entity = entity
+   self.__savestate = radiant.create_datastore(self._attributes)
+
    if json then
       self._incoming_json = json
       for n, v in pairs(json) do
          self:_add_new_attribute(n, v)
       end
       self._incoming_json = nil
-      self._data_binding:mark_changed()
+      self.__savestate:mark_changed()
    end
 end
 
@@ -247,7 +244,7 @@ function AttributesComponent:_recalculate(name)
          self:_recalculate(v)
       end
    end
-   self._data_binding:mark_changed()
+   self.__savestate:mark_changed()
 end
 
 return AttributesComponent

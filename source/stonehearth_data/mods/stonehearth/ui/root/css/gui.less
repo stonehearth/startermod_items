@@ -14,7 +14,7 @@
 
    .title {
       .controlFont;
-      margin: -29px -29px 10px -29px;
+      margin: -20px -20px 0px -20px;
       padding: 10px;
       background-color: #6c6045;
       border-width: 9px 9px 13px 9px;
@@ -36,6 +36,36 @@
          background: #9e9e82;
          border-image: url(images/gui/button_hover.png) 9 9 13 9 repeat;
       };
+   }
+
+   button.warn {
+      .outlined(#cd4848);
+      background: #b33131;
+      border-image: url(images/gui/button_warn.png) 9 9 13 9 repeat;
+
+      &:hover {
+         .outlined(#41c565);
+         background: #f93030;
+         border-image: url(images/gui/button_warn_hover.png) 9 9 13 9 repeat;
+      };
+   }
+
+   button.ok {
+      float: right;
+      background-image: url(images/gui/ok_check.png);
+      background-position: center;
+      background-repeat: no-repeat;
+      height: 66px;
+      width: 60px;
+      background-color: #31b349;
+      border-image: url(images/gui/button_ok.png) 9 9 13 9 repeat;
+
+      &:hover {
+         .outlined(#2dd85c);
+         background-color: #1ec63d;
+         border-image: url(images/gui/button_ok_hover.png) 9 9 13 9 repeat;
+      };
+
    }
 
    label {

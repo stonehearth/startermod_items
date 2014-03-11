@@ -6,14 +6,6 @@
 
 local PlacedItem = class()
 
-function PlacedItem:__init(entity, data_store)
-   self._entity = entity
-
-   self._proxy_uri = nil  --Hopefully this is set by the time the user tries to move the item again
-
-   self:_init_commands()
-end
-
 --- Programatically add the 'move_item' command
 -- Note that move item ideally requires the url of thep proxy, which we don't have yet.
 -- Hope it gets set by the extend function (if we're going to place the item manually)
@@ -31,10 +23,11 @@ end
 
 -- If the proxy entity is set by the json file, add that here
 -- Otherwise, it might be set by set_proxy
-function PlacedItem:extend(json)
-   if json and json.proxy_entity then
-      self._proxy_uri = json.proxy_entity
-   end
+function PlacedItem:__create(entity, json)
+   self._entity = entity
+   self._proxy_uri = json.proxy_entity
+
+   self:_init_commands()
 end
 
 function PlacedItem:set_proxy(proxy_entity)

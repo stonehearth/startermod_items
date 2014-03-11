@@ -4,7 +4,7 @@ local CompoundActionFactory = require 'services.ai.compound_action_factory'
 local placeholders = require 'services.ai.placeholders'
 local log = radiant.log.create_logger('ai.service')
 
-function AiService:__init()
+function AiService:__init(datastore)
    -- SUSPEND_THREAD is a unique, non-integer token which indicates the thread
    -- should suspend.  It must be non-intenger, as yielding an int means "wait
    -- until this time".  By creating a table, we guarantee the value of
@@ -15,7 +15,6 @@ function AiService:__init()
    self.RESERVATION_LEASE_NAME = 'ai_reservation'
 
    self._action_registry = {}
-   self._observer_registry = {}
    self._entities = {}
    self._ai_components = {}
    
@@ -63,7 +62,9 @@ end
 function AiService:remove_custom_action(entity, action_ctor, injecting_entity)
    log:debug('removing action "%s" (%s) from %s', action_ctor.name, tostring(action_ctor), entity)
    local ai_component = self:_get_ai_component(entity)
-   ai_component:remove_action(action_ctor)
+   if ai_component then
+      ai_component:remove_action(action_ctor)
+   end
 end
 
 function AiService:add_observer(entity, uri, ...)
@@ -84,16 +85,17 @@ function AiService:_get_ai_component(arg0)
       entity = self._entities[id]
    else
       entity = arg0
+      if not entity:is_valid() then
+         return nil
+      end
       id = entity:get_id()
    end
    local ai_component = self._ai_components[id]
    return ai_component
 end
 
-function AiService:start_ai(entity, obj)
+function AiService:start_ai(entity, ai_component, obj)
    local id = entity:get_id()
-   local ai_component = entity:get_component('stonehearth:ai')
-   assert(ai_component)
 
    self._entities[id] = entity
    self._ai_components[id] = ai_component
@@ -168,4 +170,4 @@ function AiService:get_next_object_id()
    return LAST_ID
 end
 
-return AiService()
+return AiService

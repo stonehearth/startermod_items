@@ -13,8 +13,20 @@ std::ostream& operator<<(std::ostream& os, EntityContainer const& o)
    return (os << "[EntityContainer]");
 }
 
-void EntityContainer::ExtendObject(json::Node const& obj)
+void EntityContainer::LoadFromJson(json::Node const& obj)
 {
+}
+
+void EntityContainer::SerializeToJson(json::Node& node) const
+{
+   Component::SerializeToJson(node);
+
+   for (auto const& entry : EachChild()) {
+      om::EntityPtr child = entry.second.lock();
+      if (child) {
+         node.set(stdutil::ToString(entry.first), child->GetStoreAddress());
+      }
+   }
 }
 
 void EntityContainer::AddChild(std::weak_ptr<Entity> c)

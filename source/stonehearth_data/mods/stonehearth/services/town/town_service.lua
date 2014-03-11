@@ -15,4 +15,5 @@ function TownService:get_town(faction)
    return town
 end
 
-return TownService()
+return TownService
+

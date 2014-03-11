@@ -1,6 +1,7 @@
 #include "radiant.h"
 #include "store.h"
 #include "boxed.h"
+#include "lib/json/node.h"
 #include "dbg_indenter.h"
 
 using namespace radiant;
@@ -25,16 +26,16 @@ TracePtr Boxed<T, OT>::TraceObjectChanges(const char* reason, Tracer* tracer) co
 }
 
 template <class T, int OT>
-void Boxed<T, OT>::LoadValue(Protocol::Value const& msg)
+void Boxed<T, OT>::LoadValue(SerializationType r, Protocol::Value const& msg)
 {
-   SaveImpl<T>::LoadValue(GetStore(), msg, value_);
+   SaveImpl<T>::LoadValue(GetStore(), r, msg, value_);
    GetStore().OnBoxedChanged(*this, value_);
 }
 
 template <class T, int OT>
-void Boxed<T, OT>::SaveValue(Protocol::Value* msg) const
+void Boxed<T, OT>::SaveValue(SerializationType r, Protocol::Value* msg) const
 {
-   SaveImpl<T>::SaveValue(GetStore(), msg, value_);
+   SaveImpl<T>::SaveValue(GetStore(), r, msg, value_);
 }
 
 template <class T, int OT>

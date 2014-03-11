@@ -1,5 +1,3 @@
-local event_service = stonehearth.events
-
 local Flee = class()
 
 local Point3 = _radiant.csg.Point3
@@ -90,7 +88,7 @@ function Flee:run(ai, entity)
    radiant.entities.drop_carrying_on_ground(entity)
 
    local entity_name = radiant.entities.get_display_name(entity)
-   event_service:add_entry(entity_name .. ' is in trouble!')
+   stonehearth.events:add_entry(entity_name .. ' is in trouble!')
 
    ai:execute('stonehearth:run_away_from_entity', self:get_closest_enemy())
 end

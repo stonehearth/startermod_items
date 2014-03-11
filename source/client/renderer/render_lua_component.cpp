@@ -9,7 +9,7 @@ using namespace ::radiant::client;
 
 #define LC_LOG(level)      LOG(renderer.lua_component, level)
 
-RenderLuaComponent::RenderLuaComponent(RenderEntity& entity, std::string const& name, om::DataStorePtr ds) :
+RenderLuaComponent::RenderLuaComponent(RenderEntity& entity, std::string const& name, luabind::object obj) :
    entity_(entity)
 {
    size_t offset = name.find(':');
@@ -27,14 +27,32 @@ RenderLuaComponent::RenderLuaComponent(RenderEntity& entity, std::string const& 
       if (!path.empty()) {
          lua::ScriptHost* script = Renderer::GetInstance().GetScriptHost();
          luabind::object ctor = script->RequireScript(path);
+         ctor = luabind::object(script->GetCallbackThread(), ctor);
 
-         std::weak_ptr<RenderEntity> re = entity.shared_from_this();
          try {
-            obj_ = script->CallFunction<luabind::object>(ctor, re, ds);
+            std::weak_ptr<RenderEntity> re = entity.shared_from_this();
+            obj_ = ctor(re);
+            if (obj_) {
+               update_fn_ = obj_["update"];
+               Update(entity, obj);
+            }
          } catch (std::exception const& e) {
             script->ReportCStackThreadException(ctor.interpreter(), e);
          }
       }
+   }
+}
+
+void RenderLuaComponent::Update(RenderEntity& entity, luabind::object obj)
+{
+   try {
+      if (update_fn_) {
+         std::weak_ptr<RenderEntity> re = entity.shared_from_this();
+         update_fn_(obj_, re, obj);
+      }
+   } catch (std::exception const& e) {
+      lua::ScriptHost* script = Renderer::GetInstance().GetScriptHost();
+      script->ReportCStackThreadException(update_fn_.interpreter(), e);
    }
 }
 

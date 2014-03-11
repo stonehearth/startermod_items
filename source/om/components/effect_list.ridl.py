@@ -13,7 +13,6 @@ class EffectList(Component):
    remove_effect = ridl.Method(c.void(), ('effect', std.shared_ptr(Effect())))
    default = dm.Boxed(std.string(), get=None, set=None, trace=None) 
      
-   _generate_construct_object = True
    _includes = [ "dm/set.h" ]
    _lua_includes = [ "om/components/effect.ridl.h" ]
    _private = \

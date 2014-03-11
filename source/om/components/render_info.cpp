@@ -13,15 +13,26 @@ std::ostream& operator<<(std::ostream& os, RenderInfo const& o)
 
 void RenderInfo::ConstructObject()
 {
+   Component::ConstructObject();
    scale_ = 0.1f;
 }
 
-void RenderInfo::ExtendObject(json::Node const& obj)
+void RenderInfo::LoadFromJson(json::Node const& obj)
 {
    scale_ = obj.get<float>("scale", *scale_);
    material_ = obj.get<std::string>("material", "materials/voxel.material.xml");
    model_variant_ = obj.get<std::string>("model_variant", *model_variant_);
    animation_table_ = obj.get<std::string>("animation_table", *animation_table_);
+}
+
+void RenderInfo::SerializeToJson(json::Node& node) const
+{
+   Component::SerializeToJson(node);
+
+   node.set("scale", GetScale());
+   node.set("material", GetMaterial());
+   node.set("model_variant", GetModelVariant());
+   node.set("animation_table", GetAnimationTable());
 }
 
 void RenderInfo::AttachEntity(om::EntityRef e)

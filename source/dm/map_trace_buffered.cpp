@@ -40,7 +40,7 @@ void MapTraceBuffered<M>::Flush()
 }
 
 template <typename M>
-bool MapTraceBuffered<M>::SaveObjectDelta(Protocol::Value* value)
+bool MapTraceBuffered<M>::SaveObjectDelta(SerializationType r, Protocol::Value* value)
 {
    Store const& store = GetStore();
    Protocol::Map::Update* msg = value->MutableExtension(Protocol::Map::extension);
@@ -50,11 +50,11 @@ bool MapTraceBuffered<M>::SaveObjectDelta(Protocol::Value* value)
    if (!changed_.empty() || !removed_.empty()) {
       for (auto const& entry : changed_) {
          Protocol::Map::Entry* submsg = msg->add_added();
-         SaveImpl<Key>::SaveValue(store, submsg->mutable_key(), entry.first);
-         SaveImpl<Value>::SaveValue(store, submsg->mutable_value(), entry.second);
+         SaveImpl<Key>::SaveValue(store, r, submsg->mutable_key(), entry.first);
+         SaveImpl<Value>::SaveValue(store, r, submsg->mutable_value(), entry.second);
       }
       for (auto const& key : removed_) {
-         SaveImpl<Key>::SaveValue(store, msg->add_removed(), key);
+         SaveImpl<Key>::SaveValue(store, r, msg->add_removed(), key);
       }
       return true;
    }

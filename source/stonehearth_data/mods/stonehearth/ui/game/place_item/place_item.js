@@ -36,16 +36,6 @@ $(document).ready(function(){
 
    });
 
-   //Fires when someone clicks the "place" button in the UI to bring up the picker
-   $(top).on("radiant_show_placement_menu", function (_, e) {
-      radiant.call('radiant:play_sound', 'stonehearth:sounds:ui:start_menu:page_up_right' )
-      radiant.call('stonehearth:get_placable_items_tracker')
-            .done(function(response) {
-            App.gameView.addView(App.StonehearthPlaceItemView, {
-                  uri: response.tracker
-               });
-         });
-   });
 });
 
 App.StonehearthPlaceItemView = App.View.extend({

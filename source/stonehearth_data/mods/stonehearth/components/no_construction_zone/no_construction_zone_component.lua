@@ -1,9 +1,8 @@
 local NoConstructionZoneComponent = class()
 
-function NoConstructionZoneComponent:__init(entity, data_binding)
+function NoConstructionZoneComponent:__init(entity, json)
    self._entity = entity
    self._rgn = _radiant.client.alloc_region()
-   self._data_binding = data_binding
 end
 
 return NoConstructionZoneComponent

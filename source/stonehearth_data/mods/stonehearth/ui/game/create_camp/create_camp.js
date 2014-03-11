@@ -31,7 +31,8 @@ App.StonehearthCreateCampView = App.View.extend({
                   radiant.call('radiant:play_sound', 'stonehearth:sounds:banner_plant' );
                      setTimeout( function() {
                         radiant.call('radiant:play_sound', 'stonehearth:sounds:ui:start_menu:paper_menu' );
-                        self._gotoStockpileStep();
+                        //self._gotoStockpileStep();
+                        self._gotoFinishStep();
                      }, 1000);
                } else {
                   self._showBanner();
@@ -45,8 +46,8 @@ App.StonehearthCreateCampView = App.View.extend({
          radiant.call('radiant:play_sound', 'stonehearth:sounds:box_grab' );
          var self = this;
          self._hideCrate();
-         $(top).trigger('radiant_create_stockpile', {
-            callback : function(response) {
+         App.stonehearthClient.createStockpile()
+            .always(function(response) {
                if(response.result) {
                   radiant.call('radiant:play_sound', 'stonehearth:sounds:place_structure' );
                   setTimeout( function() {
@@ -55,9 +56,8 @@ App.StonehearthCreateCampView = App.View.extend({
                } else {
                   self._showCrate();
                   radiant.call('radiant:play_sound', 'stonehearth:sounds:box_bounce' );
-               }
-            }
-         });
+               }               
+            });
       },
 
       finish: function () {
@@ -77,7 +77,8 @@ App.StonehearthCreateCampView = App.View.extend({
    _gotoFinishStep: function() {
       radiant.call('radiant:play_sound', 'stonehearth:sounds:ui:start_menu:paper_menu' );
       var self = this
-      this._hideScroll('#scroll2');
+      //this._hideScroll('#scroll2');
+      this._hideScroll('#scroll1');
    },
 
    _bounceBanner: function() {

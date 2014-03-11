@@ -1021,7 +1021,6 @@ DLLEXP void h3dSetupCameraView( NodeHandle cameraNode, float fov, float aspect, 
 	((CameraNode *)sn)->setupViewParams( fov, aspect, nearDist, farDist );
 }
 
-
 DLLEXP void h3dGetCameraProjMat( NodeHandle cameraNode, float *projMat )
 {
 	SceneNode *sn = Modules::sceneMan().resolveNodeHandle( cameraNode );
@@ -1050,6 +1049,26 @@ void h3dGetCameraFrustum( NodeHandle cameraNode, Frustum* f )
    f->buildViewFrustum(cn->getViewMat(), cn->getProjMat());
 }
 
+DLLEXP void h3dWorldToScreenPos(NodeHandle cameraNode, float x, float y, float z, float *sx, float *sy, float *depth, float *clip)
+{
+   CameraNode *cn = (CameraNode *)Modules::sceneMan().resolveNodeHandle( cameraNode );
+   APIFUNC_VALIDATE_NODE_TYPE( cn, SceneNodeTypes::Camera, "h3dWorldToScreenPos", APIFUNC_RET_VOID );
+
+   Modules::sceneMan().updateNodes();
+   Vec4f screen = cn->toScreenPos(Vec3f(x, y, z));
+   if (sx) {
+      *sx = screen.x;
+   }
+   if (sy) {
+      *sy = screen.y;
+   }
+   if (depth) {
+      *depth = screen.z;
+   }
+   if (clip) {
+      *clip = screen.w;
+   }
+}
 
 DLLEXP NodeHandle h3dAddEmitterNode( NodeHandle parent, const char *name, ResHandle materialRes,
                                      ResHandle particleEffectRes, int maxParticleCount, int respawnCount )

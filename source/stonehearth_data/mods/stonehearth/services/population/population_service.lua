@@ -20,4 +20,4 @@ function PopulationService:get_all_factions()
    return self._factions
 end
 
-return PopulationService()
+return PopulationService

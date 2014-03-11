@@ -2,12 +2,8 @@ local rng = _radiant.csg.get_default_rng()
 
 local LootTableComponent = class()
 
-function LootTableComponent:__init(entity)
+function LootTableComponent:__create(entity, json)
    self._entity = entity
-   self._loot_table = nil            -- the loot dropped on the ground when the entity is killed
-end
-   
-function LootTableComponent:extend(json)
    self._loot_table = json
    self._num_shares = 0
    for _, item in ipairs(self._loot_table.items) do

@@ -12,10 +12,9 @@ local min_height = 10
 local CameraService = class()
 
 function CameraService:__init()
-  self:set_position(Vec3(0, 120, 190))
+  self:set_position(Vec3(0, 120, 190), true)
   self:look_at(Vec3(0, -5, -150))
 
-  self._next_position = self:get_position()
   self._continuous_delta = Vec3(0, 0, 0)
   self._impulse_delta = Vec3(0, 0, 0)
 
@@ -42,10 +41,18 @@ function CameraService:__init()
     end)
 
   self._input_capture:on_input(function(e)
+      if self._camera_disabled then
+         return false
+      end
+
       self:_on_input(e)
             -- Don't consume the event, since the UI might want to do something, too.
       return false
     end)
+end
+
+function CameraService:enable_camera_movement(enabled)
+  self._camera_disabled = not enabled
 end
 
 function CameraService:_get_orbit_target() 
@@ -307,7 +314,7 @@ function CameraService:_calculate_drag(e)
       self._drag_start = screen_ray.origin + screen_ray.direction
     end
 
-    local root = _radiant.client.get_entity(1)
+    local root = radiant.entities.get_entity(1)
     local terrain_comp = root:get_component('terrain')
     local bounds = terrain_comp:get_bounds():to_float()
     if not bounds:contains(self._drag_start) then
@@ -443,7 +450,9 @@ function CameraService:_calculate_scroll(e, focused)
 end
 
 function CameraService:_update_camera(frame_time)
-  self:_process_keys()
+  if not self._camera_disabled then
+    self:_process_keys()
+  end
 
   local scaled_continuous_delta = Vec3(self._continuous_delta)
   scaled_continuous_delta:scale(frame_time / 1000.0)
@@ -452,16 +461,18 @@ function CameraService:_update_camera(frame_time)
   self._impulse_delta = Vec3(0, 0, 0)
 
   local lerp_pos = self:get_position():lerp(self._next_position, smoothness * frame_time)
-  self:set_position(lerp_pos)
-
+   _radiant.renderer.camera.set_position(lerp_pos)
 end
 
 function CameraService:get_position()
   return _radiant.renderer.camera.get_position()
 end
 
-function CameraService:set_position(new_pos)
-  return _radiant.renderer.camera.set_position(new_pos)
+function CameraService:set_position(position, without_lerp)
+  self._next_position = position
+  if without_lerp then
+     return _radiant.renderer.camera.set_position(position)
+  end
 end
 
 function CameraService:look_at(where)
@@ -473,5 +484,4 @@ function CameraService:look_at_entity(entity)
   self:look_at(Vec3(location.x, location.y, location.z))
 end
 
-CameraService:__init()
 return CameraService

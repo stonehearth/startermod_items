@@ -77,7 +77,7 @@ void Streamer::QueueUnsavedObjects()
          proto::Update update;
          update.set_type(proto::Update::UpdateObject);
          Protocol::Object* msg = update.MutableExtension(proto::UpdateObject::extension)->mutable_object();
-         entry.second->SaveObject(msg);
+         entry.second->SaveObject(REMOTING, msg);
          STREAMER_LOG(5) << "sending new object state for object " << entry.first;
          QueueUpdate(update);
       }
@@ -179,7 +179,7 @@ void Streamer::OnModified(TraceBufferedRef t, Object const* obj)
          msg->set_object_id(id);
          msg->set_object_type(obj->GetObjectType());
          msg->set_timestamp(obj->GetLastModified());
-         if (trace->SaveObjectDelta(msg->mutable_value())) {
+         if (trace->SaveObjectDelta(REMOTING, msg->mutable_value())) {
             STREAMER_LOG(5) << "queuing object state for object " << id;
             object_updates_[id].emplace_back(update);
          } else {

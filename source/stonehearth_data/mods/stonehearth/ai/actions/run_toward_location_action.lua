@@ -5,7 +5,7 @@ local Entity = _radiant.om.Entity
 local RunTowardLocation = class()
 
 RunTowardLocation.name = 'run to location'
-RunTowardLocation.does = 'stonehearth:gotoward_location'
+RunTowardLocation.does = 'stonehearth:go_toward_location'
 RunTowardLocation.args = {
    location = Point3,     -- location to go to
 }

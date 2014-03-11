@@ -17,8 +17,8 @@ public:
       return (os << "array size:" << C);
    }
 
-   void LoadValue(Protocol::Value const& value) override;
-   void SaveValue(Protocol::Value* msg) const override;
+   void LoadValue(SerializationType r, Protocol::Value const& value) override;
+   void SaveValue(SerializationType r, Protocol::Value* msg) const override;
    void GetDbgInfo(DbgInfo &info) const override;
 
    int Size() const { return C; }

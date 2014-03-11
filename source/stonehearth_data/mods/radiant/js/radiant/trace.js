@@ -106,7 +106,7 @@ var RadiantTrace;
          var self = this;
 
          Ember.assert("attempting to fetch something that's not a uri " + uri.toString(), toString.call(uri) == '[object String]')
-         Ember.assert(uri + ' does not appear to be a uri while fetching.', uri[0] == '/')
+         Ember.assert(uri + ' does not appear to be a uri while fetching.', uri.indexOf('object://') == 0 || uri[0] == '/')
 
          self._log(level, 'fetching uri: ' + uri);
 

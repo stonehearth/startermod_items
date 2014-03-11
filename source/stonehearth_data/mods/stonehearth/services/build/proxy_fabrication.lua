@@ -29,23 +29,27 @@ end
 
 function ProxyFabrication:set_normal(normal)
    self._normal = normal
-   self:add_construction_data().normal = normal
-   self:update_datastore()
+
+   local data = self:add_construction_data()
+   data:modify_data(function(o)
+         o.normal = normal
+      end)
+
    return self._derived
 end
 
 function ProxyFabrication:get_voxel_brush()
-   local construction_data = self:get_construction_data()
-   assert(construction_data, 'fabrication is missing stonehearth:construction component')
+   local datastore = self:get_construction_data()
+   assert(datastore, 'fabrication is missing stonehearth:construction component')
 
-   return voxel_brush_util.create_brush(construction_data)
+   return voxel_brush_util.create_brush(datastore:get_data())
 end
 
-function ProxyFabrication:extend(json)
+function ProxyFabrication:__create(entity, json)
    if json.normal then
-      self._normal = Point3(json.normal.x, json.normal.y, json.normal.z)
+      local normal = Point3(json.normal.x, json.normal.y, json.normal.z)
+      self:set_normal(normal)
    end
-   self:update_datastore()
    return self._derived
 end
 

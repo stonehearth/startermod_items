@@ -12,6 +12,8 @@ class Trace;
 class UnTrace;
 class LuaDeferred;
 class LuaRouter;
+class LuaObjectRouter;
+class LuaModuleRouter;
 class HttpDeferred;
 class HttpReactor;
 class ReactorDeferred;
@@ -23,6 +25,8 @@ class IRouter;
 
 DECLARE_SHARED_POINTER_TYPES(LuaDeferred)
 DECLARE_SHARED_POINTER_TYPES(LuaRouter)
+DECLARE_SHARED_POINTER_TYPES(LuaObjectRouter)
+DECLARE_SHARED_POINTER_TYPES(LuaModuleRouter)
 DECLARE_SHARED_POINTER_TYPES(HttpDeferred)
 DECLARE_SHARED_POINTER_TYPES(ReactorDeferred)
 DECLARE_SHARED_POINTER_TYPES(CoreReactor)

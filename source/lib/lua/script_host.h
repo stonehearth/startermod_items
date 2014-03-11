@@ -32,12 +32,21 @@ public:
 
    luabind::object JsonToLua(JSONNode const& json);
    JSONNode LuaToJson(luabind::object obj);
-   void ReportCStackThreadException(lua_State* L, std::exception const& e);
-   void ReportLuaStackException(std::string const& error, std::string const& traceback);
+   
+   luabind::object StringToLua(std::string const& str);
+   std::string LuaToString(luabind::object obj);
+
+   void ReportCStackThreadException(lua_State* L, std::exception const& e) const;
+   void ReportLuaStackException(std::string const& error, std::string const& traceback) const;
    void Trigger(const std::string& eventName);
+   void TriggerOn(luabind::object obj, const std::string& eventName, luabind::object args);
 
    typedef std::function<void(::radiant::om::ErrorBrowser::Record const&)> ReportErrorCb;
    void SetNotifyErrorCb(ReportErrorCb const& cb);
+
+   typedef std::function<luabind::object(lua_State*L, dm::ObjectPtr)> ObjectToLuaFn;
+   void AddObjectToLuaConvertor(dm::ObjectType type,  ObjectToLuaFn cast_fn);
+   luabind::object CastObjectToLua(dm::ObjectPtr obj);
 
    template <typename T, typename A0, typename A1, typename A2, typename A3, typename A4>
    T CallFunction(A0 const& a0, A1 const& a1, A2 const& a2, A3 const& a3, A4 const& a4) {
@@ -69,6 +78,9 @@ public:
 
 public: // the static interface
    static ScriptHost* GetScriptHost(lua_State*);
+   static ScriptHost* GetScriptHost(dm::ObjectPtr obj);
+   static ScriptHost* GetScriptHost(dm::Object const& obj);
+   static ScriptHost* GetScriptHost(dm::Store const& store);
    static lua_State* GetInterpreter(lua_State* L) { return GetScriptHost(L)->GetInterpreter(); }
    static lua_State* GetCallbackThread(lua_State* L) { return GetScriptHost(L)->GetCallbackThread(); }
    static luabind::object Require(lua_State* L, std::string const& path) { return GetScriptHost(L)->Require(path); }
@@ -84,9 +96,12 @@ private:
    static void* LuaAllocFn(void *ud, void *ptr, size_t osize, size_t nsize);
    static void LuaTrackLine(lua_State *L, lua_Debug *ar);
    void Log(const char* category, int level, const char* str);
+   void Exit(int code);
    int GetLogLevel(std::string const& category);
    uint GetRealTime();
-   void ReportStackException(std::string const& category, std::string const& error, std::string const& traceback);
+   void ReportStackException(std::string const& category, std::string const& error, std::string const& traceback) const;
+   luabind::object GetObjectRepresentation(luabind::object o, std::string const& format) const;
+   bool IsNumericTable(luabind::object tbl) const;
 
 private:
    luabind::object LoadScript(std::string path);
@@ -113,6 +128,7 @@ private:
    std::unordered_map<void *, std::string>         alloc_backmap;
    std::unordered_map<std::string, Allocations>    alloc_map;
    std::unordered_map<std::string, std::pair<double, std::string>>   performanceCounters_;
+   std::unordered_map<dm::ObjectType, ObjectToLuaFn>  object_cast_table_;
 };
 
 END_RADIANT_LUA_NAMESPACE

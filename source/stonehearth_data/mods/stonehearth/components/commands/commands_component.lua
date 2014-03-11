@@ -1,16 +1,18 @@
 local CommandsComponent = class()
 
 function CommandsComponent:__init(entity, data_binding)
-   self._entity = entity
    --self._commands = {}
-
-   self._data = data_binding:get_data()
-   self._data.commands = {}
-   self._data_binding = data_binding
-   self._data_binding:mark_changed()
+   self._commands = {
+      __numeric = true
+   }
 end
 
-function CommandsComponent:extend(json)
+function CommandsComponent:__create(entity, json)
+   self._entity = entity
+   self.__savestate = radiant.create_datastore({
+      commands = self._commands
+   })
+
    -- not really...
    if json.commands then
       for _, uri in pairs(json.commands) do
@@ -24,16 +26,16 @@ function CommandsComponent:add_command(uri)
    local t = self:_replace_variables(json)
    self:_set_defaults(t)
 
-   table.insert(self._data.commands, t)
-   self._data_binding:mark_changed()
+   table.insert(self._commands, t)
+   self.__savestate:mark_changed()
    return t
 end
 
 function CommandsComponent:remove_command(name)
-   for i, command in ipairs(self._data.commands) do
+   for i, command in ipairs(self._commands) do
       if command.name == name then
-         table.remove(self._data.commands, i)
-         self._data_binding:mark_changed()
+         table.remove(self._commands, i)
+         self.__savestate:mark_changed()
          break;
       end
    end
@@ -43,7 +45,7 @@ function CommandsComponent:modify_command(name, cb)
    local command = self:_find_command_by_name(name)
    if command then
       cb(command)
-      self._data_binding:mark_changed()
+      self.__savestate:mark_changed()
    end
 end
 
@@ -96,7 +98,7 @@ function CommandsComponent:enable_command(name, status)
             command.description = command.disabled_description
          end
       end
-      self._data_binding:mark_changed()
+      self.__savestate:mark_changed()
    end
 end
 
@@ -105,7 +107,7 @@ end
    we can't find a command by that name.
 ]]
 function CommandsComponent:_find_command_by_name(name)
-   for i, command in ipairs(self._data.commands) do
+   for i, command in ipairs(self._commands) do
       if command.name == name then
          return command
       end

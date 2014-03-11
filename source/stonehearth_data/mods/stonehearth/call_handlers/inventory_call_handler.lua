@@ -48,12 +48,14 @@ function InventoryCallHandler:choose_stockpile_location(session, response)
          end)
       :done(function (box)
             local size = {
-               box.max.x - box.min.x + 1,
-               box.max.z - box.min.z + 1,
+               x = box.max.x - box.min.x + 1,
+               y = box.max.z - box.min.z + 1,
             }
             _radiant.call('stonehearth:create_stockpile', box.min, size)
                      :done(function(r)
-                           response:resolve(true)
+                           response:resolve({
+                                 stockpile = r.stockpile
+                              })
                         end)
                      :always(function()
                            cleanup()

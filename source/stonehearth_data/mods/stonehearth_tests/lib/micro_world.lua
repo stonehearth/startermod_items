@@ -1,5 +1,6 @@
 local MicroWorld = class()
 
+local Point2 = _radiant.csg.Point2
 local Point3 = _radiant.csg.Point3
 local Cube3 = _radiant.csg.Cube3
 local Point3 = _radiant.csg.Point3
@@ -72,7 +73,7 @@ function MicroWorld:place_stockpile_cmd(faction, x, z, w, h)
    h = h and h or 3
 
    local location = Point3(x, 1, z)
-   local size = { w, h }
+   local size = Point2( w, h )
 
    local inventory = stonehearth.inventory:get_inventory(faction)
    inventory:create_stockpile(location, size)

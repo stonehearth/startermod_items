@@ -16,5 +16,6 @@
 #include "om/components/carry_block.ridl.h"
 #include "om/components/unit_info.ridl.h"
 #include "om/components/item.ridl.h"
+#include "om/components/mod_list.ridl.h"
 
 #endif // _RADIANT_OM_ALL_COMPONENTS

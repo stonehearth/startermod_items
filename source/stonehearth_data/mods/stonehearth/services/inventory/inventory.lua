@@ -9,12 +9,13 @@ end
 function Inventory:create_stockpile(location, size)
    local entity = radiant.entities.create_entity('stonehearth:stockpile')   
    radiant.terrain.place_entity(entity, location)
-   entity:get_component('stonehearth:stockpile'):set_size(size)
+   entity:get_component('stonehearth:stockpile'):set_size(size.x, size.y)
    --xxx localize
    entity:get_component('unit_info'):set_display_name('Stockpile No.' .. self._nextStockpileNo)
    entity:get_component('unit_info'):set_faction(self._faction)
 
    self._nextStockpileNo = self._nextStockpileNo + 1
+   return entity
 end
 
 function Inventory:add_storage(storage_entity)

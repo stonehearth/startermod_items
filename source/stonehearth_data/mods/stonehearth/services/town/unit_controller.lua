@@ -3,7 +3,7 @@ local UnitController = class()
 
 function UnitController:__init(scheduler, entity)
    self._task_group = scheduler:create_task_group('stonehearth:unit_control', {})
-                               :set_priority(stonehearth.constants.priorities.top.UNIT_CONTROL)   
+                               :set_priority(stonehearth.constants.priorities.top.UNIT_CONTROL)
                                :set_counter_name('unit_controller:' .. entity:get_id())
    self._task_group:add_worker(entity)
    self._scheduled_tasks = {}

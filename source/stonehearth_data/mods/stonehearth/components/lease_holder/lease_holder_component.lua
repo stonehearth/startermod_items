@@ -6,13 +6,13 @@
 ]]
 local LeaseHolderComponent = class()
 
-function LeaseHolderComponent:__init(entity, data_store)
+function LeaseHolderComponent:__create(entity, json)
    self._entity = entity  -- the entity this component is attached to
    self._leases = {}
-
-   self._data_store = data_store
-   local data = self._data_store:get_data()
-   data.leases = self._leases
+   
+   self.__savestate = radiant.create_datastore({
+         leases = self._leases,
+      })
 end
 
 function LeaseHolderComponent:_add_lease(lease_name, entity)
@@ -22,7 +22,7 @@ function LeaseHolderComponent:_add_lease(lease_name, entity)
       self._leases[lease_name] = leases
    end
    leases[entity:get_id()] = entity
-   self._data_store:mark_changed()
+   self.__savestate:mark_changed()
 end
 
 function LeaseHolderComponent:_remove_lease(lease_name, entity)
@@ -33,7 +33,7 @@ function LeaseHolderComponent:_remove_lease(lease_name, entity)
          if not next(leases) then
             self._leases[lease_name] = nil
          end
-         self._data_store:mark_changed()
+         self.__savestate:mark_changed()
       end
    end
 end

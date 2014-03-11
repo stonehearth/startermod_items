@@ -4,16 +4,15 @@
 
 local MaterialsComponent = class()
 
-function MaterialsComponent:__init(entity, data_binding)
-   self._data_binding = data_binding
+function MaterialsComponent:__init()
    self._materials = {}
-   self._data = { 
-      materials = self._materials 
-   }
-   self._data_binding:update(self._data)
 end
 
-function MaterialsComponent:extend(json)
+function MaterialsComponent:__create(entity, data_binding)
+   self.__savestate = radiant.create_datastore({
+         materials = self._materials 
+      })
+
    if json then
       for i, v in ipairs(json.materials) do
          self:add_material(v)
@@ -27,12 +26,12 @@ end
 
 function MaterialsComponent:add_material(material)
    self._materials[material] = true
-   self._data_binding:mark_changed()
+   self.__savestate:mark_changed()
 end
 
 function MaterialsComponent:remove_material(material)
    self._materials[material] = nil
-   self._data_binding:mark_changed()
+   self.__savestate:mark_changed()
 end
 
 
