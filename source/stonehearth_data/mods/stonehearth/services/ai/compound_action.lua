@@ -40,6 +40,7 @@ function CompoundAction:__init(entity, injecting_entity, action_ctor, activities
    self._previous_think_output = {}
    self.version = 2
    self._id = stonehearth.ai:get_next_object_id()   
+   self._log = radiant.log.create_logger('compound_action')
 end
 
 function CompoundAction:start_thinking(ai, entity, args)

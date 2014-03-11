@@ -62,12 +62,16 @@ om::DataStorePtr Sim_AllocDataStore(lua_State* L)
 
 luabind::object Sim_GetObject(lua_State* L, object id)
 {
-   ASSERT(type(id) == LUA_TNUMBER);
-   dm::ObjectId object_id = object_cast<int>(id);
+   dm::ObjectPtr obj;
 
-   dm::Store& store = GetSim(L).GetStore();
-   dm::ObjectPtr obj = store.FetchObject<dm::Object>(object_id);
-
+   int id_type = type(id);
+   if (id_type == LUA_TNUMBER) {
+      dm::ObjectId object_id = object_cast<int>(id);
+      obj = GetSim(L).GetStore().FetchObject<dm::Object>(object_id);
+   } else if (id_type == LUA_TSTRING) {
+      const char* addr = object_cast<const char*>(id);
+      obj = GetSim(L).GetStore().FetchObject<dm::Object>(addr);
+   }
    lua::ScriptHost* host = lua::ScriptHost::GetScriptHost(L);
    luabind::object lua_obj = host->CastObjectToLua(obj);
    return lua_obj;

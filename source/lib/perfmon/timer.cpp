@@ -55,7 +55,7 @@ CounterValueType Timer::GetCurrentTime()
    return value.QuadPart;
 }
 
-uint Timer::GetCurrentTimeMs()
+uint64 Timer::GetCurrentTimeMs()
 {
    return perfmon::CounterToMilliseconds(GetCurrentTime());
 }

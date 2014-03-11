@@ -164,11 +164,16 @@ function Task:_stop()
 end
 
 function Task:_feed_worker(worker)
-   stonehearth.ai:add_custom_action(worker, self._action_ctor)
+   if worker and worker:is_valid() then
+      worker:get_component('stonehearth:ai'):add_custom_action(self._action_ctor)
+   end
 end
 
-function Task:_unfeed_worker(worker)
-   stonehearth.ai:remove_custom_action(worker, self._action_ctor)
+function Task:_unfeed_worker(worker_id)
+   local worker = radiant.entities.get_entity(worker_id)
+   if worker and worker:is_valid() then
+      worker:get_component('stonehearth:ai'):remove_custom_action(self._action_ctor)
+   end
 end
 
 function Task:_estimate_task_distance(worker)

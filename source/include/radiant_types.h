@@ -7,6 +7,9 @@ namespace radiant {
    typedef unsigned int       uint, uint32, uint;
    typedef signed int         sint32, int32;
 
+   typedef unsigned long long uint64;
+   typedef signed long long   sint64, int64;
+
    typedef unsigned short     uint16;
    typedef signed short       sint16, int16;
 

@@ -77,6 +77,23 @@ void Store::RegisterAllocator(ObjectType t, ObjectAllocFn allocator)
 
 bool Store::Save(std::string &error)
 {
+   {
+      std::ofstream textfile("save.txt");
+
+      Protocol::Object msg;
+      std::set<ObjectId> keys;
+      for (auto const& entry : objects_) {
+         keys.insert(entry.first);
+      };
+
+      for (ObjectId id : keys) {
+         Object* obj = objects_[id];
+         msg.Clear();
+         obj->SaveObject(PERSISTANCE, &msg);
+         textfile << protocol::describe(msg) << "\n\n";
+      }      
+   }
+
    // The C++ Google Protobuf docs claim FileOutputStream avoids an extra copy of the data
    // introduced by OstreamOutputStream, so lets' use that.
    int fd = _open("save.bin", O_WRONLY | O_BINARY | O_CREAT, S_IREAD | S_IWRITE);
