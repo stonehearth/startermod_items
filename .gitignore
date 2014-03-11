@@ -54,10 +54,10 @@ Thumbs.db
 *shdDump*.txt
 *~
 
-# Visual Studio files #
+# Decoda #
 #######################
-stonehearth.deproj
-stonehearth.deuser
+*.deproj
+*.deuser
 
 # Python genearted files
 *.pyc

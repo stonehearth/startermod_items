@@ -80,11 +80,14 @@ function CompoundAction:_start_thinking(index, args)
          table.insert(self._previous_think_output, think_output)
          index = index + 1
       else
+         self:_spam_current_state('registering on_ready handler (%d of %d - %s)', index, #self._activities, activity.name)
          frame:on_ready(function(frame, think_output)
             if not think_output then
                local msg = string.format('previous frame f:%d became unready.  aborting', frame:get_id())
                self._log:debug(msg)
                self._ai:abort(msg)
+            else
+               self:_spam_current_state('frame became ready! (%d of %d - %s)', index, #self._activities, activity.name)
             end
             assert(self._thinking, 'received ready callback while not thinking.')
             table.insert(self._previous_think_output, think_output)
@@ -100,6 +103,7 @@ end
 function CompoundAction:_set_think_output()
    assert(self._thinking)
    
+   self._log:detail('all frames ready!  calling set_think_output.')
    if self._think_output_placeholders then
       local replaced = self:_replace_placeholders(self._think_output_placeholders)
       self._ai:set_think_output(replaced)

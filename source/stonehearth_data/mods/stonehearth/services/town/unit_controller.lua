@@ -1,12 +1,15 @@
 local constants = require 'constants'
 local UnitController = class()
 
-function UnitController:__init(scheduler, entity)
-   self._task_group = scheduler:create_task_group('stonehearth:unit_control', {})
-                               :set_priority(stonehearth.constants.priorities.top.UNIT_CONTROL)
+function UnitController:__init(scheduler, entity, activity_name, priority)
+   self._task_group = scheduler:create_task_group(activity_name, {})
+                               :set_priority(priority)   
                                :set_counter_name('unit_controller:' .. entity:get_id())
    self._task_group:add_worker(entity)
    self._scheduled_tasks = {}
+end
+
+function UnitController:destroy()
 end
 
 function UnitController:create_immediate_task(name, args)
@@ -34,7 +37,7 @@ end
 
 function UnitController:_create_task(name, args)
    return self._task_group:create_task(name, args)
-                              :set_priority(constants.priorities.unit_control.DEFAULT)
+                          :set_priority(constants.priorities.unit_control.DEFAULT)
 end
 
 return UnitController

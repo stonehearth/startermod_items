@@ -411,12 +411,23 @@ end
 
 function entities.consume_stack(item)
    local item_component = item:get_component('item')
-   if item_component and item_component:get_stacks() > 1 then
-      local stacks = item_component:get_stacks() - 1
-      item_component:set_stacks(stacks)
-      return item
+   local success = false
+   local stacks = 0
+
+   if item_component then
+      stacks = item_component:get_stacks()
+      if stacks > 0 then
+         stacks = stacks - 1
+         item_component:set_stacks(stacks)
+         success = true
+      end
    end
-   entities.destroy_entity(item)
+
+   if stacks == 0 then
+      entities.destroy_entity(item)
+   end
+
+   return success
 end
 
 function entities.increment_carrying(entity)

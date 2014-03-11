@@ -4,7 +4,7 @@ local RunTaskAction = require 'services.tasks.run_task_action'
 
 local NEXT_TASK_ID = 1
 local STARTED = 'started'
-local STOPPED = 'stopped'
+local PAUSED = 'paused'
 local COMPLETED = 'completed'
 
 local INFINITE = 999999 -- infinite enough?
@@ -20,7 +20,7 @@ function Task:__init(task_group, activity)
    self._log = radiant.log.create_logger('task', 'task:'..tostring(self._id))   
    self._log:debug('creating new task for %s', task_group:get_name())
    
-   self:_set_state(STOPPED)
+   self:_set_state(PAUSED)
    self:set_name(activity.name)
    self._complete_count = 0
    self._running_actions = {}
@@ -29,15 +29,20 @@ function Task:__init(task_group, activity)
    self._priority = 1
    self._max_workers = INFINITE
    self._complete_count = 0
+   self._currently_feeding = false
 end
 
-function Task:destroy()
+function Task:stop()
    if self._task_group then
-      self:stop()
-      self._task_group:_on_task_destroy(self)
+      self:pause()
+      self._task_group:_on_task_stop(self)
       self._task_group = nil
       self:_set_state(COMPLETED)
    end
+end
+
+function Task:destroy()
+   self:stop()
 end
 
 function Task:get_name()
@@ -45,48 +50,48 @@ function Task:get_name()
 end
 
 function Task:set_name(format, ...)
-   assert(self._state == STOPPED)
+   assert(self._state == PAUSED)
    self._name = '[' .. self._id .. ':' .. string.format(format, ...) .. ']'
    return self
 end
 
 function Task:set_source(source)
-   assert(self._state == STOPPED)
+   assert(self._state == PAUSED)
    self._source = source
    return self
 end
 
 function Task:set_priority(priority)
-   assert(self._state == STOPPED)
+   assert(self._state == PAUSED)
    self._priority = priority
    return self
 end
 
 function Task:set_max_workers(max_workers)
-   assert(self._state == STOPPED)
+   assert(self._state == PAUSED)
    self._max_workers = max_workers
    return self
 end
 
 function Task:add_entity_effect(entity, effect_name)
-   assert(self._state == STOPPED)
+   assert(self._state == PAUSED)
    self._entity_effect_names[entity] = effect_name
    return self
 end
 
 function Task:once()
-   assert(self._state == STOPPED)
+   assert(self._state == PAUSED)
    return self:times(1)
 end
 
 function Task:times(n)
-   assert(self._state == STOPPED)
+   assert(self._state == PAUSED)
    self._times = n
    return self
 end
 
 function Task:start()  
-   assert(self._state == STOPPED)
+   assert(self._state == PAUSED)
    self:_set_state(STARTED)
 
    self:_create_action()
@@ -95,14 +100,14 @@ function Task:start()
    -- ask the task group to start feeding us workers.  we'll inject
    -- the an action to perform this task into these workers as they're
    -- fed to us.
-   self._task_group:_start_feeding_task(self)
+   self:_start_feeding()
    return self
 end
 
-function Task:stop()
-   if self._state ~= STOPPED then
-      self:_stop()
-      self:_set_state(STOPPED)
+function Task:pause()
+   if self._state ~= PAUSED then
+      self:_pause()
+      self:_set_state(PAUSED)
    end
    return self
 end
@@ -157,9 +162,9 @@ function Task:_create_action()
    end
 end
 
-function Task:_stop()
+function Task:_pause()
    -- stop asking for workers.
-   self._task_group:_stop_feeding_task(self)
+   self:_stop_feeding()
    self:_destroy_entity_effects()
 end
 
@@ -267,6 +272,21 @@ function Task:_action_is_active(action)
    return self._running_actions[action]
 end
 
+function Task:_stop_feeding()
+   if self._currently_feeding then
+      self._currently_feeding = false
+      self._task_group:_stop_feeding_task(self)
+   end
+end
+
+function Task:_start_feeding()
+   if not self._currently_feeding then
+      self._currently_feeding = true
+      self._task_group:_start_feeding_task(self)
+   end
+end
+
+
 function Task:_log_state(tag)
    if self._log:is_enabled(radiant.log.DETAIL) then
       local running_count = 0
@@ -315,7 +335,7 @@ function Task:__action_try_start(action)
    -- that they don't have a shot (this may trigger them to stop_thinking)
    if not self:_is_work_available() then
       radiant.events.trigger_async(self, 'work_available', self, false)
-      self._task_group:_stop_feeding_task(self)
+      self:_stop_feeding()
    end
    self._task_group:_notify_worker_started_task(self, action:get_entity())
 
@@ -341,16 +361,13 @@ function Task:__action_destroyed(action)
 end
 
 function Task:__action_stopped(action)
-   self:_log_state('entering __action_can_stopped')
+   self:_log_state('entering __action_stopped')
 
    if self._task_group then
-      local work_was_available = self:_is_work_available()
       self._running_actions[action] = nil
-      local work_is_available = self:_is_work_available()
-
-      if work_is_available and not work_was_available then
+      if self:_is_work_available() then
          radiant.events.trigger_async(self, 'work_available', self, true)
-         self._task_group:_start_feeding_task(self)
+         self:_start_feeding()
       end
 
       self._task_group:_notify_worker_stopped_task(self, action:get_entity())
@@ -362,7 +379,7 @@ function Task:__action_stopped(action)
       end
    end
    
-   self:_log_state('exiting __action_can_stopped')
+   self:_log_state('exiting __action_stopped')
 end
 
 return Task

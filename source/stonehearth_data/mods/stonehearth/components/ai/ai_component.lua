@@ -92,12 +92,14 @@ function AIComponent:add_observer(key, observer)
    self._observers[key] = observer
 end
 
-function AIComponent:remove_observer(observer)
+function AIComponent:remove_observer(key)
+   local observer = self._observers[key]
+
    if observer then
-      if observer.destroy_observer then
-         observer:destroy_observer()
+      if observer.destroy then
+         observer:destroy()
       end
-      self._observer[key] = nil
+      self._observers[key] = nil
    end
 end
 

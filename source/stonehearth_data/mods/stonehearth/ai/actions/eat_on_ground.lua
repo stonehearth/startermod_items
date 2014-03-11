@@ -9,6 +9,6 @@ local ai = stonehearth.ai
 return ai:create_compound_action(EatOnGround)
             :execute('stonehearth:wait_for_attribute_above', { attribute = 'hunger', value = 120 })
             :execute('stonehearth:get_food')
-            :execute('stonehearth:wander', { radius = 5 })
+            :execute('stonehearth:wander', { radius = 5, radius_min = 3 })
             :execute('stonehearth:sit_on_ground')
             :execute('stonehearth:eat_carrying')

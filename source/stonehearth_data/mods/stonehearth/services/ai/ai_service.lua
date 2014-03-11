@@ -73,9 +73,9 @@ function AiService:add_observer(entity, uri, ...)
    ai_component:add_observer(uri, ctor(entity, ...))
 end
 
-function AiService:remove_observer(entity, observer)
+function AiService:remove_observer(entity, uri)
    local ai_component = self:_get_ai_component(entity)
-   ai_component:remove_observer(observer)
+   ai_component:remove_observer(uri)
 end
 
 function AiService:_get_ai_component(arg0)

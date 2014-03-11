@@ -1,3 +1,5 @@
+local log = radiant.log.create_logger('commands')
+
 local CommandsComponent = class()
 
 function CommandsComponent:__init(entity, data_binding)
@@ -46,6 +48,8 @@ function CommandsComponent:modify_command(name, cb)
    if command then
       cb(command)
       self.__savestate:mark_changed()
+   else
+      log:error('Cannot modify command "%s". It was not found.', name)
    end
 end
 
@@ -99,6 +103,8 @@ function CommandsComponent:enable_command(name, status)
          end
       end
       self.__savestate:mark_changed()
+   else
+      log:error('Cannot modify command "%s". It was not found.', name)
    end
 end
 

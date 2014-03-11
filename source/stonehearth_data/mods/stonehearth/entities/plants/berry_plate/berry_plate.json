@@ -5,6 +5,9 @@
          "name": "Plate of berries",
          "description": "TODO: invent whipped cream."
       },
+      "stonehearth:material" : {
+         "tags" : "food"
+      },
       "model_variants": {
          "default": {
             "models": [

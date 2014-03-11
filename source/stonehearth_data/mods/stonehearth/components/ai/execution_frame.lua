@@ -325,22 +325,37 @@ function ExecutionFrame:on_ready(ready_cb)
 
    assert(not self._ready_cb_pending)
    local current_thread = stonehearth.threads:get_current_thread()
-   self._ready_cb = function(...)
-         local args = { ... }
+   self._ready_cb = function(think_output)
+         local arg = think_output and stonehearth.ai:format_args(think_output) or 'nil'
          if current_thread and not current_thread:is_running() then
+            -- super gross here... the on_ready callback is used by compound actions and run_action_tasks to
+            -- bubble up ready notifications to their parent.  they must be called on the ai thread, as calling
+            -- set_think_output() may cause an action to be run!  if we are not on the ai thread, we need to
+            -- context switch over there to deliver the callback.
+            -- occasionally, we will be asekd to deliever mutiple on_ready() callbacks before the ai thread
+            -- actually gets scheduled (e.g. an actino becomes ready and immediately after the task kills it).
+            -- so, when we arrive on the other thread, make sure the think_output has actually changed before
+            -- firing the cb.
+            self._ready_cb_counter = self._ready_cb_counter and self._ready_cb_counter + 1 or 1
+            local count = self._ready_cb_counter
+
+            self._log:detail('(%d) ai thread is not running trying to deliver on_ready(%s) notification.  thunking.', count, arg)
+
             current_thread:interrupt(function()
+                  self._log:detail('(%d) calling on_ready(%s) notification with thunk', count, arg)
                   self._ready_cb_pending = true
                   if self._ready_cb then
-                     self._ready_cb(unpack(args))
+                     ready_cb(self, think_output)
                   else
-                     self._log:detail('ready_cb became unregistered while switching thread context.')
+                     self._log:detail('(%d) ready_cb became unregistered while switching thread context.', count)
                   end
                   self._ready_cb_pending = false
                end)
          else
             -- sometimes there is no thread (e.g. in pathfinder callbacks).
             -- just use whatever thread we're on.
-            ready_cb(unpack(args))
+            self._log:detail('calling on_ready(%s) notification without thunk', arg)
+            ready_cb(self, think_output)
          end
       end
 end
@@ -528,6 +543,7 @@ function ExecutionFrame:_unit_ready_from_running(unit, think_output)
       -- to the current frame
       assert(not self._thread:get_thread_data('stonehearth:unwind_to_frame'))
       self._thread:set_thread_data('stonehearth:unwind_to_frame', self)
+      self._log:detail('thunking back to run thread to unwind stack.')
       self._thread:interrupt(function()
             local unwind_frame = self._thread:get_thread_data('stonehearth:unwind_to_frame')
             assert(unwind_frame, 'entered unwind frame interrupt with no unwind frame!')
@@ -576,7 +592,7 @@ function ExecutionFrame:_unit_not_ready_from_ready(unit)
       self:_set_state(THINKING)
       if self._ready_cb then
          self._log:debug('sending unready notification')
-         self._ready_cb(self, nil)
+         self._ready_cb(nil)
       end
    end
 end
@@ -862,7 +878,7 @@ function ExecutionFrame:_remove_action_from_ready(unit)
       self:_set_active_unit(nil)
       if self._ready_cb then
          self._log:debug('sending unready notification')
-         self._ready_cb(self, nil)
+         self._ready_cb(nil)
       end     
       self:_set_state(STOPPED)
       self:_restart_thinking(self._current_entity_state)
@@ -1128,13 +1144,16 @@ function ExecutionFrame:_set_state(state)
    self._log:debug('state change %s -> %s', tostring(self._state), state)
    self._state = state
    
+   local going_to_frame = self._thread:get_thread_data('stonehearth:unwind_to_frame')
+   assert(not going_to_frame)
+ 
    if self._state == self._waiting_until then
       self._calling_thread:resume('transitioned to ' .. self._state)
    end
    if self._ready_cb and state == READY then
       assert(self._active_unit)
       assert(self._active_unit_think_output)
-      self._ready_cb(self, self._active_unit_think_output)
+      self._ready_cb(self._active_unit_think_output)
    end
 end
 
