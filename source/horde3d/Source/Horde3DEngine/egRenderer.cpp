@@ -1917,13 +1917,15 @@ void Renderer::drawFSQuad( Resource *matRes, const std::string &shaderContext )
 void Renderer::drawLodGeometry(const std::string &shaderContext, const std::string &theClass,
                              RenderingOrder::List order, int filterRequried, int occSet, float frustStart, float frustEnd, int lodLevel)
 {
-   Frustum f;
-   float fStart = (1.0f - frustStart) * _curCamera->_frustNear + (frustStart * _curCamera->_frustFar);
-   float fEnd = (1.0f - frustEnd) * _curCamera->_frustNear + (frustEnd * _curCamera->_frustFar);
+   Frustum f = _curCamera->getFrustum();
 
-   f.buildViewFrustum(_curCamera->getAbsTrans(), _curCamera->getParamF(CameraNodeParams::FOVf, 0), 
-      _curCamera->_vpWidth / (float)_curCamera->_vpHeight, fStart, fEnd);
+   if (frustStart != 0.0f || frustEnd != 1.0f) {
+      float fStart = (1.0f - frustStart) * _curCamera->_frustNear + (frustStart * _curCamera->_frustFar);
+      float fEnd = (1.0f - frustEnd) * _curCamera->_frustNear + (frustEnd * _curCamera->_frustFar);
 
+      f.buildViewFrustum(_curCamera->getAbsTrans(), _curCamera->getParamF(CameraNodeParams::FOVf, 0), 
+         _curCamera->_vpWidth / (float)_curCamera->_vpHeight, fStart, fEnd);
+   }
    Modules::sceneMan().updateQueues("drawing geometry", f, 0x0, order, SceneNodeFlags::NoDraw, 
       filterRequried, false, true );
 	
