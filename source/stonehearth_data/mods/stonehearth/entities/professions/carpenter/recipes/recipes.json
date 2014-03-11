@@ -16,7 +16,6 @@
       {
          "category" : "Tools, Weapons & Armor",
          "recipes" : [
-            "file(farmer_coordination_board_recipe.json)",
             "file(hoe_recipe.json)",
             "file(wooden_sword_recipe.json)",
             "file(wooden_buckler_recipe.json)"

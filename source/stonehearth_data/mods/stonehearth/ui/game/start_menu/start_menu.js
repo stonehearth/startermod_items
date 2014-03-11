@@ -10,6 +10,9 @@ App.StonehearthStartMenuView = App.View.extend({
       create_stockpile: function () {
          App.stonehearthClient.createStockpile();
       },
+      create_farm : function () {
+         App.stonehearthClient.createFarm();
+      },
       build_wall: function () {
          App.stonehearthClient.buildWall();
       },

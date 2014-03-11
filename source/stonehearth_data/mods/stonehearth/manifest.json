@@ -161,9 +161,6 @@
       "firepit_proxy" : "file(entities/gizmos/firepit/firepit_proxy.json)",
       "firepit_seat" : "file(entities/gizmos/firepit/firepit_seat.json)",
 
-      "farmer_coordination_board" :       "file(entities/professions/farmer/farmer_coordination_board)",
-      "farmer_coordination_board_proxy" : "file(entities/professions/farmer/farmer_coordination_board/farmer_coordination_board_proxy.json)",
-
       "farmer_hoe" : "file(entities/professions/farmer/farmer_hoe)", 
 
       "not_much_of_a_bed" : "file(entities/furniture/not_much_of_a_bed)",
@@ -764,8 +761,7 @@
          "file(ui/game/start_menu/start_menu.js)",
          "file(ui/game/start_menu/stonehearth_menu.js)",
          "file(ui/game/tip_popup/tip_popup.js)",
-         "file(ui/game/event_log/event_log.js)",
-         "file(ui/game/farming/new_field.js)"
+         "file(ui/game/event_log/event_log.js)"
       ],
       "less" : [
          "file(entities/professions/carpenter/skin/workshop.less)",

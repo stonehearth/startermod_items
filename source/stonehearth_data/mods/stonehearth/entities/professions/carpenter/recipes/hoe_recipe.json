@@ -3,7 +3,7 @@
 
    "work_units"  : 3,
    "recipe_name" : "Hoe",
-   "description" : "Confers the rights and responsibilities and priviledges of the Farmer class.",
+   "description" : "Promotes a worker into a Farmer.",
    "flavor"      : "Hoedown time!!!!",
    "portrait"    : "/stonehearth/entities/professions/farmer/farmer_hoe/farmer_hoe.png",
    "category"    : "tools",
