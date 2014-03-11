@@ -44,10 +44,28 @@
       border-image: url(images/gui/button_warn.png) 9 9 13 9 repeat;
 
       &:hover {
-         .outlined(#fc5050);
+         .outlined(#41c565);
          background: #f93030;
          border-image: url(images/gui/button_warn_hover.png) 9 9 13 9 repeat;
       };
+   }
+
+   button.ok {
+      float: right;
+      background-image: url(images/gui/ok_check.png);
+      background-position: center;
+      background-repeat: no-repeat;
+      height: 66px;
+      width: 60px;
+      background-color: #31b349;
+      border-image: url(images/gui/button_ok.png) 9 9 13 9 repeat;
+
+      &:hover {
+         .outlined(#2dd85c);
+         background-color: #1ec63d;
+         border-image: url(images/gui/button_ok_hover.png) 9 9 13 9 repeat;
+      };
+
    }
 
    label {
