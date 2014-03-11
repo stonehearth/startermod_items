@@ -1,0 +1,13 @@
+{
+   "type" : "command",
+
+   "name": "new_field",
+   "tooltip": "Designate Field",
+   "description": "Mark a place to break ground.",
+   "icon": "file(new_field.png)",
+
+   "action": "fire_event",
+   "event_name": "new_field.stonehearth",
+   "event_data": {
+   }
+}

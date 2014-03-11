@@ -24,6 +24,7 @@
             "stonehearth:actions:goto_item_made_of",
             "stonehearth:actions:goto_entity_with_entity_data",
             "stonehearth:actions:create_proxy_entity",
+            "stonehearth:actions:create_entity",
             "stonehearth:actions:idle_top_action",
             "stonehearth:actions:idle_action",
             "stonehearth:actions:idle_breathe_action",

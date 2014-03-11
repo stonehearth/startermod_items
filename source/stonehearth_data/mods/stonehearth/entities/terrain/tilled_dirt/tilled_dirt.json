@@ -1,0 +1,37 @@
+{
+   "type": "entity",
+   "components": {
+      "model_variants": {
+         "default": {
+            "models": [
+               "file(untilled_ground.qb)"
+            ]
+         },
+         "poor": {
+            "models": [
+               "file(poor_dirt.qb)"
+            ]
+         },
+         "fair": {
+            "models": [
+               "file(fair_dirt.qb)"
+            ]
+         },
+         "good": {
+            "models": [
+               "file(good_dirt.qb)"
+            ]
+         },
+         "excellent": {
+            "models": [
+               "file(excellent_dirt.qb)"
+            ]
+         }
+      },
+      "unit_info": {
+         "name": "Tilled Earth",
+         "description": "Dirty, in the purest sense.",
+         "icon" : "file(tilled_dirt.png)"
+      }
+   }
+}

@@ -57,6 +57,10 @@
       "carpenter:outfit" : "file(entities/professions/carpenter/carpenter_outfit)",
       "carpenter:saw" : "file(entities/professions/carpenter/carpenter_saw)",
 
+      "farmer:profession_description" : "file(entities/professions/farmer/profession_description.json)",
+      "farmer:outfit" : "file(entities/professions/farmer/farmer_outfit)",
+      "farmer:field" : "file(entities/professions/farmer/field)",
+      
       "trapper:trapper_knife" : "file(professions/trapper/trapper_knife)",
 
       "trapper:description" : "file(professions/trapper/trapper_description.json)",
@@ -119,6 +123,11 @@
       "large_juniper_tree" : "file(entities/trees/juniper_tree/large_juniper_tree)",
 
       "berry_bush" : "file(entities/plants/berry_bush)",
+      "tilled_dirt" : "file(entities/terrain/tilled_dirt)",
+      "corn_seedling" : "file(entities/plants/corn_seedling)",
+      "corn_plant" : "file(entities/plants/corn_plant)",
+      "corn_basket" : "file(entities/plants/corn_basket)",
+      "corn_cob" : "file(entities/plants/corn_cob)",
 
       "pink_flower" : "file(entities/ground_clutter/pink_flower)",
 
@@ -151,6 +160,11 @@
       "firepit" : "file(entities/gizmos/firepit)",
       "firepit_proxy" : "file(entities/gizmos/firepit/firepit_proxy.json)",
       "firepit_seat" : "file(entities/gizmos/firepit/firepit_seat.json)",
+
+      "farmer_coordination_board" :       "file(entities/professions/farmer/farmer_coordination_board)",
+      "farmer_coordination_board_proxy" : "file(entities/professions/farmer/farmer_coordination_board/farmer_coordination_board_proxy.json)",
+
+      "farmer_hoe" : "file(entities/professions/farmer/farmer_hoe)", 
 
       "not_much_of_a_bed" : "file(entities/furniture/not_much_of_a_bed)",
       "not_much_of_a_bed_proxy" : "file(entities/furniture/not_much_of_a_bed/not_much_of_a_bed_proxy.json)",
@@ -204,6 +218,7 @@
       "actions:goto_item_made_of" : "file(ai/actions/goto_item_made_of.lua)",
       "actions:goto_entity_with_entity_data" : "file(ai/actions/goto_entity_with_entity_data_action.lua)",
       "actions:create_proxy_entity" : "file(ai/actions/create_proxy_entity.lua)",
+      "actions:create_entity" : "file(ai/actions/create_entity.lua)",
       "actions:fear_fire" : "file(ai/actions/fear_fire_action.lua)",
       "actions:run_effect_action" : "file(ai/actions/run_effect_action.lua)",
       "actions:start_effect" : "file(ai/actions/start_effect.lua)",
@@ -311,6 +326,9 @@
       "actions:wait_for_teardown" : "file(ai/actions/wait_for_teardown_action.lua)",
       "actions:teardown_structure" : "file(ai/actions/teardown_structure_action.lua)",
       "actions:teardown_structure_adjacent" : "file(ai/actions/teardown_structure_adjacent_action.lua)",
+      "actions:farmer_task_dispatcher" : "file(ai/actions/farmer_task_dispatcher.lua)",
+      "actions:till_field" : "file(ai/actions/till_field_action.lua)",
+      "actions:plant_crop" : "file(ai/actions/plant_crop.lua)",
 
       "actions:follow_entity" : "file(ai/actions/follow_entity.lua)",
 
@@ -527,6 +545,10 @@
          "controller" : "file(call_handlers/workshop_call_handler.lua)",
          "endpoint" : "server"
       },
+      "plant_crop" : {
+         "controller" : "file(call_handlers/resource_call_handler.lua)",
+         "endpoint" : "server"
+      },
       "harvest_tree" : {
          "controller": "file(call_handlers/resource_call_handler.lua)",
          "endpoint" : "server"
@@ -574,6 +596,14 @@
       "place_item_type_in_world" : {
          "endpoint" : "server",
          "controller" : "file(call_handlers/place_item_call_handler.lua)"
+      },
+      "choose_new_field_location": {
+         "controller" : "file(call_handlers/farming_call_handler.lua)",
+         "endpoint" : "client"
+      },
+      "create_new_field": {
+         "controller" : "file(call_handlers/farming_call_handler.lua)",
+         "endpoint" : "server"
       },
       "choose_stockpile_location": {
          "controller" : "file(call_handlers/inventory_call_handler.lua)",
@@ -626,6 +656,7 @@
       "ghost_item" : "file(components/place_item/ghost_item_component.lua)",
       "placed_item" : "file(components/place_item/placed_item_component.lua)",
       "firepit" : "file(components/firepit/firepit_component.lua)",
+      "farmer_field" : "file(components/farmer_field/farmer_field_component.lua)",
       "lease" : "file(components/lease/lease_component.lua)",
       "lease_holder" : "file(components/lease_holder/lease_holder_component.lua)",
       "sensor_ai_injector"  : "file(components/sensor_ai_injector/sensor_ai_injector_component.lua)",
@@ -645,13 +676,16 @@
       "personality" : "file(components/personality/personality_component.lua)",
       "loot_table" : "file(components/loot_table/loot_table_component.lua)",
       "inventory" : "file(components/inventory/inventory_component.lua)",
-      "carry_block" : "file(components/carry_block/carry_block_component.lua)"
+      "carry_block" : "file(components/carry_block/carry_block_component.lua)",
+      "growing" : "file(components/growing/growing_component.lua)", 
+      "crop" : "file(components/crop/crop_component.lua)"
    },
    "component_renderers" : {
       "stockpile" : "file(renderers/stockpile/stockpile_renderer.lua)",
       "city_plan" : "file(renderers/city_plan/city_plan_renderer.lua)",
       "ghost_item" : "file(renderers/ghost_item/ghost_item_renderer.lua)",
       "fabricator" : "file(renderers/fabricator/fabricator_renderer.lua)",
+      "farmer_field" : "file(renderers/farmer_field/farmer_field_renderer.lua)",
       "no_construction_zone" : "file(renderers/no_construction_zone/no_construction_zone_renderer.lua)",
       "construction_data" : "file(renderers/construction_data/construction_data_renderer.lua)"
    },
@@ -730,7 +764,8 @@
          "file(ui/game/start_menu/start_menu.js)",
          "file(ui/game/start_menu/stonehearth_menu.js)",
          "file(ui/game/tip_popup/tip_popup.js)",
-         "file(ui/game/event_log/event_log.js)"
+         "file(ui/game/event_log/event_log.js)",
+         "file(ui/game/farming/new_field.js)"
       ],
       "less" : [
          "file(entities/professions/carpenter/skin/workshop.less)",
