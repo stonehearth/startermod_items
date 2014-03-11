@@ -10,29 +10,25 @@ local Point3 = _radiant.csg.Point3
 local Region3 = _radiant.csg.Region3
 local rng = _radiant.csg.get_default_rng()
 
-function FarmerFieldComponent:__init(entity, data_binding)
+function FarmerFieldComponent:__create(entity, json)
    self._entity = entity
-   self._data = data_binding:get_data()
 
-   self._data.size = {0, 0}
-   self._data.location = nil
-   self._data.contents = {}
-
-   --TODO: get field's general fertility data from a global service
-   self._data.general_fertility = rng:get_int(1, 40)
-
-   self._data_binding = data_binding
-   self._data_binding:mark_changed()
-
-   --TODO: listen on changes to faction, like stockpile?
-end
-
-function FarmerFieldComponent:extend(json)
    if json.size then
       self:set_size(json.size)
    end
-end
 
+   self._data = {
+      size = {0, 0}, 
+      location = nil,
+      contents = {},
+      general_fertility = rng:get_int(1, 40)   --TODO; get from global service
+   }
+
+   self.__savestate = radiant.create_datastore(self._data)
+   self.__savestate:mark_changed()
+
+   --TODO: listen on changes to faction, like stockpile?
+end
 
 --TODO: Depending on how we eventually designate whether fields can overlap (no?)
 --consider moving this into a central service
@@ -63,6 +59,7 @@ function FarmerFieldComponent:init_contents(size, location, name, faction)
    end
 
    --TODO: where to schedule tasks for planting and harvesting and destroying things?
+   self.__savestate:mark_changed()
 end
 
 --- Swap field spacer for a plot of dirt

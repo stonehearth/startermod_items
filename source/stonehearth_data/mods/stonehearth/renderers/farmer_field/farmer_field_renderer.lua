@@ -9,13 +9,15 @@ local Point2 = _radiant.csg.Point2
 
 local FarmerFieldRenderer = class()
 
-function FarmerFieldRenderer:__init(render_entity, data_store)
+-- Review Q: It's the same name as _update except without the _? 
+-- Can we get a more descriptive name?
+function FarmerFieldRenderer:update(render_entity, savestate)
    self._parent_node = render_entity:get_node()
    self._size = { 0, 0 }   
-   self._data_store = data_store
+   self._savestate = savestate
    self._region = _radiant.client.alloc_region2()
 
-   self._promise = data_store:trace_data('rendering farmer field designation')
+   self._promise = savestate:trace_data('rendering farmer field designation')
    self._promise:on_changed(function()
          self:_update()
       end)
@@ -27,7 +29,7 @@ function FarmerFieldRenderer:destroy()
 end
 
 function FarmerFieldRenderer:_update()
-   local data = self._data_store:get_data()
+   local data = self._savestate:get_data()
    if data and data.size then
       local size = data.size
       if self._size[1] ~= size[1] or self._size[2] ~= size[2] then

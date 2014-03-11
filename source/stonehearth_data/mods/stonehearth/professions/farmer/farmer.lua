@@ -4,10 +4,9 @@ function farmer_class.promote(entity)
 
    --Add the necessary components
    local profession_description = radiant.resources.load_json('stonehearth:farmer:profession_description')
-   local profession_component = entity:add_component('stonehearth:profession')
-   profession_component:set_info(profession_description.profession)
-
-   --Slap a new outfit on the crafter
+   local profession_component = entity:add_component('stonehearth:profession', profession_description.profession)
+   
+   --Slap a new outfit on the farmer
    local equipment = entity:add_component('stonehearth:equipment')
 
    --TODO: change this into a farmer outfit

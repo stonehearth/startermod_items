@@ -5,17 +5,16 @@
 ]]
 local CropComponent = class()
 
-function CropComponent:__init(entity, data_binding)
+function CropComponent:__create(entity, json)
    self._entity = entity
-end
 
-function CropComponent:extend(json)
    if json then
       if json.final_entity then
          self._final_entity = json.final_entity
          radiant.events.listen(self._entity, 'stonehearth:growth_complete', self, self._on_growth_complete)
       end
    end
+
 end
 
 function CropComponent:_on_growth_complete()

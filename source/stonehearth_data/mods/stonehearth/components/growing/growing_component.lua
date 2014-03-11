@@ -1,18 +1,13 @@
 local calendar = stonehearth.calendar
 local GrowingComponent = class()
 
-function GrowingComponent:__init(entity, data_binding)
+
+
+function GrowingComponent:__create(entity, json)
    self._entity = entity
-   self._data = data_binding:get_data()
+   self._data = {}
 
-   self._data_binding = data_binding
-   self._data_binding:mark_changed()
-
-end
-
-function GrowingComponent:extend(json)
    if json then
-
       if json.growth_period then
          local duration = string.sub(json.growth_period, 1, -2)
          local time_unit = string.sub(json.growth_period, -1, -1)
@@ -39,9 +34,11 @@ function GrowingComponent:extend(json)
          --Every hour, check if we should be growing by some period
          radiant.events.listen(calendar, 'stonehearth:hourly', self, self.on_hourly)
       end
-
-      self._data_binding:mark_changed()
    end
+
+
+   self.__savestate = radiant.create_datastore(self._data)
+   self.__savestate:mark_changed()
 end
 
 function GrowingComponent:on_hourly()
@@ -49,6 +46,7 @@ function GrowingComponent:on_hourly()
       self:grow()
    else 
       self._data.growth_countdown = self._data.growth_countdown - 1
+      self.__savestate:mark_changed()
    end
 end
 
@@ -61,6 +59,7 @@ function GrowingComponent:grow()
    if self._data.curr_stage >= #self._growth_stages then
       self:stop_growing()
    end
+   self.__savestate:mark_changed()
 end
 
 --- When we're done growing, stop listening and fire an event
