@@ -212,7 +212,7 @@ const std::string PipelineResource::parseStage( XMLNode const &node, PipelineSta
 
          float frustStart = (float)atof(node1.getAttribute("frustum_start", "0.0"));
          float frustEnd = (float)atof(node1.getAttribute("frustum_end", "1.0"));
-         bool useLodPolygonOffset = _stricmp(node1.getAttribute("lodPolygonOffset", "true"), "true") == 0 ? true : false;
+         int lodLevel = atoi(node1.getAttribute("forceLodLevel", "-1"));
 			
 			stage->commands.push_back( PipelineCommand( PipelineCommands::DrawGeometry ) );
 			vector< PipeCmdParam > &params = stage->commands.back().params;
@@ -223,7 +223,7 @@ const std::string PipelineResource::parseStage( XMLNode const &node, PipelineSta
 			params[3].setInt( 0 );
          params[4].setFloat(frustStart);
          params[5].setFloat(frustEnd);
-         params[6].setBool(useLodPolygonOffset);
+         params[6].setInt(lodLevel);
 		}
 		else if( strcmp( node1.getName(), "DrawSelected" ) == 0 )
 		{
@@ -234,7 +234,7 @@ const std::string PipelineResource::parseStage( XMLNode const &node, PipelineSta
 			if( _stricmp( orderStr, "FRONT_TO_BACK" ) == 0 ) order = RenderingOrder::FrontToBack;
 			else if( _stricmp( orderStr, "BACK_TO_FRONT" ) == 0 ) order = RenderingOrder::BackToFront;
 			else if( _stricmp( orderStr, "NONE" ) == 0 ) order = RenderingOrder::None;
-         bool useLodPolygonOffset = _stricmp(node1.getAttribute("lodPolygonOffset", "true"), "false") == 0 ? false : true;
+         int lodLevel = atoi(node1.getAttribute("forceLodLevel", "-1"));
 			
 			stage->commands.push_back( PipelineCommand( PipelineCommands::DrawGeometry ) );
 			vector< PipeCmdParam > &params = stage->commands.back().params;
@@ -245,7 +245,7 @@ const std::string PipelineResource::parseStage( XMLNode const &node, PipelineSta
 			params[3].setInt( SceneNodeFlags::Selected );
          params[4].setFloat(0.0);
          params[5].setFloat(1.0);
-         params[6].setBool(useLodPolygonOffset);
+         params[6].setInt(lodLevel);
 		}
 		else if( strcmp( node1.getName(), "DrawProjections" ) == 0 )
 		{

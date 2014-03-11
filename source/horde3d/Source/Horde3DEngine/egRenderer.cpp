@@ -1631,7 +1631,7 @@ void Renderer::updateShadowMap(const Frustum* lightFrus, float minDist, float ma
       _lightMats[i] = lightProjMat * lightViewMat;
 		setupViewMatrices( lightViewMat, lightProjMat );
 		
-		// Render
+		// Render at lodlevel = 1 (don't need the higher poly count for shadows, yay!)
 		drawRenderables( _curLight->_shadowContext, "", false, &frustum, 0x0, RenderingOrder::None, -1, 1 );
 	}
 
@@ -1914,59 +1914,48 @@ void Renderer::drawFSQuad( Resource *matRes, const std::string &shaderContext )
 	gRDI->draw( PRIM_TRILIST, 0, 3 );
 }
 
+void Renderer::drawLodGeometry(const std::string &shaderContext, const std::string &theClass,
+                             RenderingOrder::List order, int filterRequried, int occSet, float frustStart, float frustEnd, int lodLevel)
+{
+   Frustum f;
+   float fStart = (1.0f - frustStart) * _curCamera->_frustNear + (frustStart * _curCamera->_frustFar);
+   float fEnd = (1.0f - frustEnd) * _curCamera->_frustNear + (frustEnd * _curCamera->_frustFar);
+
+   f.buildViewFrustum(_curCamera->getAbsTrans(), _curCamera->getParamF(CameraNodeParams::FOVf, 0), 
+      _curCamera->_vpWidth / (float)_curCamera->_vpHeight, fStart, fEnd);
+
+   Modules::sceneMan().updateQueues("drawing geometry", f, 0x0, order, SceneNodeFlags::NoDraw, 
+      filterRequried, false, true );
+	
+	setupViewMatrices( _curCamera->getViewMat(), _curCamera->getProjMat() );
+	drawRenderables( shaderContext, theClass, false, &_curCamera->getFrustum(), 0x0, order, occSet, lodLevel );
+}
+
 
 void Renderer::drawGeometry( const std::string &shaderContext, const std::string &theClass,
-                             RenderingOrder::List order, int filterRequried, int occSet, float frustStart, float frustEnd, bool useLodPolygonOffset, bool forceLod )
+                             RenderingOrder::List order, int filterRequired, int occSet, float frustStart, float frustEnd, int forceLodLevel )
 {
-   Frustum f = _curCamera->getFrustum();
-   if (frustStart != 0.0f || frustEnd != 1.0) {
-      float fStart = (1.0f - frustStart) * _curCamera->_frustNear + (frustStart * _curCamera->_frustFar);
-      float fEnd = (1.0f - frustEnd) * _curCamera->_frustNear + (frustEnd * _curCamera->_frustFar);
-      f.buildViewFrustum(_curCamera->getAbsTrans(), _curCamera->getParamF(CameraNodeParams::FOVf, 0), _curCamera->_vpWidth / (float)_curCamera->_vpHeight, fStart, fEnd);
-
-      Modules::sceneMan().updateQueues("drawing geometry", f, 0x0, order,
-	                                    SceneNodeFlags::NoDraw, filterRequried, false, true, false );
-	
-	   setupViewMatrices( _curCamera->getViewMat(), _curCamera->getProjMat() );
-	   drawRenderables( shaderContext, theClass, false, &_curCamera->getFrustum(), 0x0, order, occSet, 1 );
-   } else if (forceLod) {
-      // Force lod to an arbitrary level (useful for depth and light passes).
-      float fStart = _curCamera->_frustNear;
-      float fEnd = _curCamera->_frustFar;
-      f.buildViewFrustum(_curCamera->getAbsTrans(), _curCamera->getParamF(CameraNodeParams::FOVf, 0), _curCamera->_vpWidth / (float)_curCamera->_vpHeight, fStart, fEnd);
-
-      Modules::sceneMan().updateQueues("drawing geometry", f, 0x0, order,
-	                                    SceneNodeFlags::NoDraw, filterRequried, false, true, false, 0);
-	
-	   setupViewMatrices( _curCamera->getViewMat(), _curCamera->getProjMat() );
-	   drawRenderables( shaderContext, theClass, false, &_curCamera->getFrustum(), 0x0, order, occSet, 1);
+   if (forceLodLevel >= 0) {
+      drawLodGeometry(shaderContext, theClass, order, filterRequired, occSet, frustStart, frustEnd, forceLodLevel);
    } else {
-      // Draw LOD-ed geometry.
-      if (useLodPolygonOffset) {
+
+      if (forceLodLevel >= -1) {
          _lod_polygon_offset_x = 0.0;
-         _lod_polygon_offset_y = -1.0;
+         _lod_polygon_offset_y = -2.0;
       }
 
-      float fStart = (1.0f - 0.0) * _curCamera->_frustNear + (0.0 * _curCamera->_frustFar);
-      float fEnd = (1.0f - 0.41) * _curCamera->_frustNear + (0.41 * _curCamera->_frustFar);
-      f.buildViewFrustum(_curCamera->getAbsTrans(), _curCamera->getParamF(CameraNodeParams::FOVf, 0), _curCamera->_vpWidth / (float)_curCamera->_vpHeight, fStart, fEnd);
+      float fStart = std::max(frustStart, 0.0f);
+      float fEnd = std::min(0.41f, frustEnd);
+      if (fStart < fEnd) {
+         drawLodGeometry(shaderContext, theClass, order, filterRequired, occSet, fStart, fEnd, 0);
+      }
 
-      Modules::sceneMan().updateQueues("drawing geometry", f, 0x0, order,
-	                                    SceneNodeFlags::NoDraw, filterRequried, false, true, false, 0);
-	
-	   setupViewMatrices( _curCamera->getViewMat(), _curCamera->getProjMat() );
-	   drawRenderables( shaderContext, theClass, false, &_curCamera->getFrustum(), 0x0, order, occSet, 0);
+      fStart = std::max(frustStart, 0.39f);
+      fEnd = std::min(1.0f, frustEnd);
+      if (fStart < fEnd) {
+         drawLodGeometry(shaderContext, theClass, order, filterRequired, occSet, fStart, fEnd, 1);
+      }
 
-      fStart = (1.0f - 0.39) * _curCamera->_frustNear + (0.39 * _curCamera->_frustFar);
-      fEnd = (1.0f - 1.0) * _curCamera->_frustNear + (1.0 * _curCamera->_frustFar);
-      f.buildViewFrustum(_curCamera->getAbsTrans(), _curCamera->getParamF(CameraNodeParams::FOVf, 0), _curCamera->_vpWidth / (float)_curCamera->_vpHeight, fStart, fEnd);
-
-      Modules::sceneMan().updateQueues("drawing geometry", f, 0x0, order,
-	                                    SceneNodeFlags::NoDraw, filterRequried, false, true, false, 0);
-	
-	   setupViewMatrices( _curCamera->getViewMat(), _curCamera->getProjMat() );
-
-	   drawRenderables( shaderContext, theClass, false, &_curCamera->getFrustum(), 0x0, order, occSet, 1 );
       _lod_polygon_offset_x = 0.0;
       _lod_polygon_offset_y = 0.0;
    }
@@ -1993,7 +1982,9 @@ void Renderer::drawProjections( const std::string &shaderContext, uint32 userFla
 	                                    SceneNodeFlags::NoDraw, 0, false, true, false, userFlags);
 
       _projectorMat = n->getAbsTrans();
-      drawRenderables( shaderContext, "", false, &_curCamera->getFrustum(), 0x0, RenderingOrder::None, -1, 0);
+
+      // Don't need higher poly counts for projection geometry, so render at lod level 1.
+      drawRenderables( shaderContext, "", false, &_curCamera->getFrustum(), 0x0, RenderingOrder::None, -1, 1);
    }
 
    _materialOverride = 0x0;
@@ -3281,7 +3272,7 @@ void Renderer::render( CameraNode *camNode, PipelineResource* pRes )
 			case PipelineCommands::DrawGeometry:
 				drawGeometry( pc.params[0].getString(), pc.params[1].getString(),
 				              (RenderingOrder::List)pc.params[2].getInt(),
-                          pc.params[3].getInt(), _curCamera->_occSet, pc.params[4].getFloat(), pc.params[5].getFloat(), pc.params[6].getBool() );
+                          pc.params[3].getInt(), _curCamera->_occSet, pc.params[4].getFloat(), pc.params[5].getFloat(), pc.params[6].getInt() );
 				break;
 
          case PipelineCommands::DrawProjections:

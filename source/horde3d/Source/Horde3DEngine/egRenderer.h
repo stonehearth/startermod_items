@@ -249,8 +249,10 @@ protected:
 	void bindPipeBuffer( uint32 rbObj, const std::string &sampler, uint32 bufIndex );
 	void clear( bool depth, bool buf0, bool buf1, bool buf2, bool buf3, float r, float g, float b, float a, int stencilVal );
 	void drawFSQuad( Resource *matRes, const std::string &shaderContext );
-	void drawGeometry( const std::string &shaderContext, const std::string &theClass,
-	                   RenderingOrder::List order, int filterRequired, int occSet, float frustStart, float frustEnd, bool useLodPolygonOffset=true, bool forceLod=false );
+   void drawLodGeometry( const std::string &shaderContext, const std::string &theClass,
+                         RenderingOrder::List order, int filterRequried, int occSet, float frustStart, float frustEnd, int lodLevel);
+   void drawGeometry( const std::string &shaderContext, const std::string &theClass,
+	                   RenderingOrder::List order, int filterRequired, int occSet, float frustStart, float frustEnd, int forceLodLevel=-1);
    void drawProjections(const std::string &shaderContext, uint32 userFlags );
 	void drawLightGeometry( const std::string &shaderContext, const std::string &theClass,
 	                        bool noShadows, RenderingOrder::List order, int occSet, bool selectedOnly );
