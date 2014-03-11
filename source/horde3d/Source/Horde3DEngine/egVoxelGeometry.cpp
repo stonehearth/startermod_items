@@ -339,4 +339,34 @@ void VoxelGeometryResource::updateDynamicVertData()
 	}
 }
 
+
+inline uint32 VoxelGeometryResource::clampLodLevel(int lodLevel) const
+{
+   return lodLevel < _numLodLevels ? lodLevel : _numLodLevels - 1;
+}
+
+uint32 VoxelGeometryResource::getBatchStart(int lodLevel) const
+{
+   return _indexOffsets[clampLodLevel(lodLevel)];
+}
+
+uint32 VoxelGeometryResource::getBatchCount(int lodLevel) const
+{
+   lodLevel = clampLodLevel(lodLevel);
+   int r1 = _indexOffsets[lodLevel + 1];
+   int r2 = _indexOffsets[lodLevel];
+   return r1 - r2;
+}
+
+uint32 VoxelGeometryResource::getVertRStart(int lodLevel) const
+{
+   return _vertexOffsets[clampLodLevel(lodLevel)];
+}
+
+uint32 VoxelGeometryResource::getVertREnd(int lodLevel) const
+{
+   return _vertexOffsets[clampLodLevel(lodLevel) + 1] - 1;
+}
+
+
 }  // namespace

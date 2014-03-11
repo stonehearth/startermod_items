@@ -24,7 +24,7 @@
       </Stage>
 
       <Stage id="Depth">
-         <DrawGeometry context="DEPTH" class="~Translucent" />
+         <DrawGeometry context="DEPTH" class="~Translucent" lodPolygonOffset="false" />
       </Stage>
 
       <Stage id="Light">

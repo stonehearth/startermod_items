@@ -194,17 +194,17 @@ public:
 	void clearOverlays();
 	
 	static void drawMeshes( const std::string &shaderContext, const std::string &theClass, bool debugView,
-		const Frustum *frust1, const Frustum *frust2, RenderingOrder::List order, int occSet );
+		const Frustum *frust1, const Frustum *frust2, RenderingOrder::List order, int occSet, int lodLevel );
 	static void drawVoxelMeshes( const std::string &shaderContext, const std::string &theClass, bool debugView,
-		const Frustum *frust1, const Frustum *frust2, RenderingOrder::List order, int occSet );
+		const Frustum *frust1, const Frustum *frust2, RenderingOrder::List order, int occSet, int lodLevel );
 	static void drawVoxelMeshes_Instances( const std::string &shaderContext, const std::string &theClass, bool debugView,
-		const Frustum *frust1, const Frustum *frust2, RenderingOrder::List order, int occSet );
+		const Frustum *frust1, const Frustum *frust2, RenderingOrder::List order, int occSet, int lodLevel );
 	static void drawParticles( const std::string &shaderContext, const std::string &theClass, bool debugView,
-		const Frustum *frust1, const Frustum *frust2, RenderingOrder::List order, int occSet );
+		const Frustum *frust1, const Frustum *frust2, RenderingOrder::List order, int occSet, int lodLevel );
    static void drawHudElements(const std::string &shaderContext, const std::string &theClass, bool debugView,
-      const Frustum *frust1, const Frustum *frust2, RenderingOrder::List order, int occSet);
+      const Frustum *frust1, const Frustum *frust2, RenderingOrder::List order, int occSet, int lodLevel );
    static void drawInstanceNode(const std::string &shaderContext, const std::string &theClass, bool debugView,
-      const Frustum *frust1, const Frustum *frust2, RenderingOrder::List order, int occSet);
+      const Frustum *frust1, const Frustum *frust2, RenderingOrder::List order, int occSet, int lodLevel );
 
    void render( CameraNode *camNode, PipelineResource *pRes );
 	void finalizeFrame();
@@ -250,16 +250,16 @@ protected:
 	void clear( bool depth, bool buf0, bool buf1, bool buf2, bool buf3, float r, float g, float b, float a, int stencilVal );
 	void drawFSQuad( Resource *matRes, const std::string &shaderContext );
 	void drawGeometry( const std::string &shaderContext, const std::string &theClass,
-	                   RenderingOrder::List order, int filterRequired, int occSet, float frustStart, float frustEnd );
+	                   RenderingOrder::List order, int filterRequired, int occSet, float frustStart, float frustEnd, bool useLodPolygonOffset=true, bool forceLod=false );
    void drawProjections(const std::string &shaderContext, uint32 userFlags );
 	void drawLightGeometry( const std::string &shaderContext, const std::string &theClass,
 	                        bool noShadows, RenderingOrder::List order, int occSet, bool selectedOnly );
 	void drawLightShapes( const std::string &shaderContext, bool noShadows, int occSet );
 	
 	void drawRenderables( const std::string &shaderContext, const std::string &theClass, bool debugView,
-		const Frustum *frust1, const Frustum *frust2, RenderingOrder::List order, int occSet );
-   static void drawVoxelMesh_Instances_WithInstancing(const RenderableQueue& renderableQueue, const VoxelMeshNode* vmn);
-   static void drawVoxelMesh_Instances_WithoutInstancing(const RenderableQueue& renderableQueue, const VoxelMeshNode* vmn);
+		const Frustum *frust1, const Frustum *frust2, RenderingOrder::List order, int occSet, int lodLevel );
+   static void drawVoxelMesh_Instances_WithInstancing(const RenderableQueue& renderableQueue, const VoxelMeshNode* vmn, int lodLevel);
+   static void drawVoxelMesh_Instances_WithoutInstancing(const RenderableQueue& renderableQueue, const VoxelMeshNode* vmn, int lodLevel);
 	void renderDebugView();
 	void finishRendering();
    void logPerformanceData();
@@ -314,6 +314,10 @@ protected:
 
    // Feature-level compatibility of the card, determined by GPU specifics.
    GpuCompatibility                    gpuCompatibility_;
+
+   float                              _lod_polygon_offset_x;
+   float                              _lod_polygon_offset_y;
+
 public:
    // needed to draw debug shapes in extensions!
    glslopt_ctx*                       _glsl_opt_ctx;

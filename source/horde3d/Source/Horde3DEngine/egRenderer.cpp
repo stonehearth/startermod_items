@@ -84,6 +84,8 @@ Renderer::Renderer()
    _vlInstanceVoxelModel = 0;
 	_vlParticle = 0;
    bool openglES = false;
+   _lod_polygon_offset_x = 0.0f;
+   _lod_polygon_offset_y = 0.0f;
 #if defined(OPTIMIZE_GSLS)
    _glsl_opt_ctx = glslopt_initialize(openglES);
 #endif
@@ -1602,12 +1604,12 @@ void Renderer::updateShadowMap(const Frustum* lightFrus, float minDist, float ma
 
          lightProjMat = calcDirectionalLightShadowProj(litAabb, frustum, lightViewMat, numMaps);
       }
-	
+
 		// Generate render queue with shadow casters for current slice
 	   // Build optimized light projection matrix
 		frustum.buildViewFrustum( lightViewMat, lightProjMat );
 		Modules::sceneMan().updateQueues("rendering shadowmap", frustum, 0x0, RenderingOrder::None,
-			SceneNodeFlags::NoDraw | SceneNodeFlags::NoCastShadow, 0, false, true );
+			SceneNodeFlags::NoDraw | SceneNodeFlags::NoCastShadow, 0, false, true, false, 0 );
 		
       //gRDI->_frameDebugInfo.addShadowCascadeFrustum_(frustum);
 
@@ -1630,7 +1632,7 @@ void Renderer::updateShadowMap(const Frustum* lightFrus, float minDist, float ma
 		setupViewMatrices( lightViewMat, lightProjMat );
 		
 		// Render
-		drawRenderables( _curLight->_shadowContext, "", false, &frustum, 0x0, RenderingOrder::None, -1 );
+		drawRenderables( _curLight->_shadowContext, "", false, &frustum, 0x0, RenderingOrder::None, -1, 1 );
 	}
 
 	// Map from post-projective space [-1,1] to texture space [0,1]
@@ -1914,19 +1916,60 @@ void Renderer::drawFSQuad( Resource *matRes, const std::string &shaderContext )
 
 
 void Renderer::drawGeometry( const std::string &shaderContext, const std::string &theClass,
-                             RenderingOrder::List order, int filterRequried, int occSet, float frustStart, float frustEnd )
+                             RenderingOrder::List order, int filterRequried, int occSet, float frustStart, float frustEnd, bool useLodPolygonOffset, bool forceLod )
 {
    Frustum f = _curCamera->getFrustum();
    if (frustStart != 0.0f || frustEnd != 1.0) {
       float fStart = (1.0f - frustStart) * _curCamera->_frustNear + (frustStart * _curCamera->_frustFar);
       float fEnd = (1.0f - frustEnd) * _curCamera->_frustNear + (frustEnd * _curCamera->_frustFar);
       f.buildViewFrustum(_curCamera->getAbsTrans(), _curCamera->getParamF(CameraNodeParams::FOVf, 0), _curCamera->_vpWidth / (float)_curCamera->_vpHeight, fStart, fEnd);
-   }
-	Modules::sceneMan().updateQueues("drawing geometry", f, 0x0, order,
-	                                 SceneNodeFlags::NoDraw, filterRequried, false, true );
+
+      Modules::sceneMan().updateQueues("drawing geometry", f, 0x0, order,
+	                                    SceneNodeFlags::NoDraw, filterRequried, false, true, false );
 	
-	setupViewMatrices( _curCamera->getViewMat(), _curCamera->getProjMat() );
-	drawRenderables( shaderContext, theClass, false, &_curCamera->getFrustum(), 0x0, order, occSet );
+	   setupViewMatrices( _curCamera->getViewMat(), _curCamera->getProjMat() );
+	   drawRenderables( shaderContext, theClass, false, &_curCamera->getFrustum(), 0x0, order, occSet, 1 );
+   } else if (forceLod) {
+      // Force lod to an arbitrary level (useful for depth and light passes).
+      float fStart = _curCamera->_frustNear;
+      float fEnd = _curCamera->_frustFar;
+      f.buildViewFrustum(_curCamera->getAbsTrans(), _curCamera->getParamF(CameraNodeParams::FOVf, 0), _curCamera->_vpWidth / (float)_curCamera->_vpHeight, fStart, fEnd);
+
+      Modules::sceneMan().updateQueues("drawing geometry", f, 0x0, order,
+	                                    SceneNodeFlags::NoDraw, filterRequried, false, true, false, 0);
+	
+	   setupViewMatrices( _curCamera->getViewMat(), _curCamera->getProjMat() );
+	   drawRenderables( shaderContext, theClass, false, &_curCamera->getFrustum(), 0x0, order, occSet, 1);
+   } else {
+      // Draw LOD-ed geometry.
+      if (useLodPolygonOffset) {
+         _lod_polygon_offset_x = 0.0;
+         _lod_polygon_offset_y = -1.0;
+      }
+
+      float fStart = (1.0f - 0.0) * _curCamera->_frustNear + (0.0 * _curCamera->_frustFar);
+      float fEnd = (1.0f - 0.41) * _curCamera->_frustNear + (0.41 * _curCamera->_frustFar);
+      f.buildViewFrustum(_curCamera->getAbsTrans(), _curCamera->getParamF(CameraNodeParams::FOVf, 0), _curCamera->_vpWidth / (float)_curCamera->_vpHeight, fStart, fEnd);
+
+      Modules::sceneMan().updateQueues("drawing geometry", f, 0x0, order,
+	                                    SceneNodeFlags::NoDraw, filterRequried, false, true, false, 0);
+	
+	   setupViewMatrices( _curCamera->getViewMat(), _curCamera->getProjMat() );
+	   drawRenderables( shaderContext, theClass, false, &_curCamera->getFrustum(), 0x0, order, occSet, 0);
+
+      fStart = (1.0f - 0.39) * _curCamera->_frustNear + (0.39 * _curCamera->_frustFar);
+      fEnd = (1.0f - 1.0) * _curCamera->_frustNear + (1.0 * _curCamera->_frustFar);
+      f.buildViewFrustum(_curCamera->getAbsTrans(), _curCamera->getParamF(CameraNodeParams::FOVf, 0), _curCamera->_vpWidth / (float)_curCamera->_vpHeight, fStart, fEnd);
+
+      Modules::sceneMan().updateQueues("drawing geometry", f, 0x0, order,
+	                                    SceneNodeFlags::NoDraw, filterRequried, false, true, false, 0);
+	
+	   setupViewMatrices( _curCamera->getViewMat(), _curCamera->getProjMat() );
+
+	   drawRenderables( shaderContext, theClass, false, &_curCamera->getFrustum(), 0x0, order, occSet, 1 );
+      _lod_polygon_offset_x = 0.0;
+      _lod_polygon_offset_y = 0.0;
+   }
 }
 
 
@@ -1950,7 +1993,7 @@ void Renderer::drawProjections( const std::string &shaderContext, uint32 userFla
 	                                    SceneNodeFlags::NoDraw, 0, false, true, false, userFlags);
 
       _projectorMat = n->getAbsTrans();
-      drawRenderables( shaderContext, "", false, &_curCamera->getFrustum(), 0x0, RenderingOrder::None, -1);
+      drawRenderables( shaderContext, "", false, &_curCamera->getFrustum(), 0x0, RenderingOrder::None, -1, 0);
    }
 
    _materialOverride = 0x0;
@@ -2152,12 +2195,16 @@ void Renderer::drawLightGeometry( const std::string &shaderContext, const std::s
 		// Render
       std::ostringstream reason;
       reason << "drawing light geometry for light " << _curLight->getName();
-		Modules::sceneMan().updateQueues( reason.str().c_str(), _curCamera->getFrustum(), lightFrus,
+
+
+      drawGeometry(_curLight->_lightingContext + "_" + _curPipeline->_pipelineName, theClass, order, 0, occSet, 0.0, 1.0);
+
+		/*Modules::sceneMan().updateQueues( reason.str().c_str(), _curCamera->getFrustum(), 0x0,
 		                                  order, SceneNodeFlags::NoDraw, selectedOnly ? SceneNodeFlags::Selected : 0, false, true );
 		setupViewMatrices( _curCamera->getViewMat(), _curCamera->getProjMat() );
       drawRenderables( _curLight->_lightingContext + "_" + _curPipeline->_pipelineName,
 		                 theClass, false, &_curCamera->getFrustum(),
-		                 lightFrus, order, occSet );
+		                 0x0, order, occSet, 0 );*/
 		Modules().stats().incStat( EngineStats::LightPassCount, 1 );
 
 		// Reset
@@ -2316,7 +2363,7 @@ void Renderer::setGlobalUniform(const char* str, UniformType::List kind, void* v
 
 void Renderer::drawRenderables( const std::string &shaderContext, const std::string &theClass, bool debugView,
                                 const Frustum *frust1, const Frustum *frust2, RenderingOrder::List order,
-                                int occSet )
+                                int occSet, int lodLevel )
 {
 	ASSERT( _curCamera != 0x0 );
 	
@@ -2334,11 +2381,11 @@ void Renderer::drawRenderables( const std::string &shaderContext, const std::str
 	while( itr != Modules::sceneMan()._registry.end() )
 	{
 		if( itr->second.renderFunc != 0x0 ) {
-			(*itr->second.renderFunc)( shaderContext, theClass, debugView, frust1, frust2, order, occSet );
+			(*itr->second.renderFunc)( shaderContext, theClass, debugView, frust1, frust2, order, occSet, lodLevel );
       }
 
       if (itr->second.instanceRenderFunc != 0x0) {
-         (*itr->second.instanceRenderFunc)( shaderContext, theClass, debugView, frust1, frust2, order, occSet );
+         (*itr->second.instanceRenderFunc)( shaderContext, theClass, debugView, frust1, frust2, order, occSet, lodLevel );
       }
 
 
@@ -2355,7 +2402,7 @@ void Renderer::drawRenderables( const std::string &shaderContext, const std::str
 
 void Renderer::drawMeshes( const std::string &shaderContext, const std::string &theClass, bool debugView,
                            const Frustum *frust1, const Frustum *frust2, RenderingOrder::List order,
-                           int occSet )
+                           int occSet, int lodLevel )
 {
 	if( frust1 == 0x0 ) return;
 	
@@ -2531,7 +2578,7 @@ void Renderer::drawMeshes( const std::string &shaderContext, const std::string &
 
 void Renderer::drawHudElements(const std::string &shaderContext, const std::string &theClass, bool debugView,
                                const Frustum *frust1, const Frustum *frust2, RenderingOrder::List order,
-                               int occSet)
+                               int occSet, int lodLevel)
 {
    radiant::perfmon::TimelineCounterGuard dvm("drawHudElements");
 	if( frust1 == 0x0 ) return;
@@ -2551,7 +2598,7 @@ void Renderer::drawHudElements(const std::string &shaderContext, const std::stri
 
 void Renderer::drawVoxelMeshes(const std::string &shaderContext, const std::string &theClass, bool debugView,
                                const Frustum *frust1, const Frustum *frust2, RenderingOrder::List order,
-                               int occSet)
+                               int occSet, int lodLevel)
 {
    radiant::perfmon::TimelineCounterGuard dvm("drawVoxelMeshes");
 	if( frust1 == 0x0 ) return;
@@ -2568,7 +2615,7 @@ void Renderer::drawVoxelMeshes(const std::string &shaderContext, const std::stri
 		// Check that mesh is valid
 		if( modelNode->getVoxelGeometryResource() == 0x0 )
 			continue;
-		if( meshNode->getBatchStart() + meshNode->getBatchCount() > modelNode->getVoxelGeometryResource()->_indexCount )
+		if( meshNode->getBatchStart(lodLevel) + meshNode->getBatchCount(lodLevel) > modelNode->getVoxelGeometryResource()->_indexCount )
 			continue;
 		
 		uint32 queryObj = 0;
@@ -2654,7 +2701,7 @@ void Renderer::drawVoxelMeshes(const std::string &shaderContext, const std::stri
 			Modules::renderer().setShaderComb( &Modules::renderer()._defColorShader );
 			Modules::renderer().commitGeneralUniforms();
 			
-			uint32 curLod = meshNode->getLodLevel();
+			uint32 curLod = lodLevel;
 			Vec4f color;
 			if( curLod == 0 ) color = Vec4f( 0.5f, 0.75f, 1, 1 );
 			else if( curLod == 1 ) color = Vec4f( 0.25f, 0.75, 0.75f, 1 );
@@ -2667,7 +2714,13 @@ void Renderer::drawVoxelMeshes(const std::string &shaderContext, const std::stri
 
 		ShaderCombination *curShader = Modules::renderer().getCurShader();
 		
-		// World transformation
+      int lodLevelConst = gRDI->getShaderConstLoc(Modules::renderer().getCurShader()->shaderObj, "lodlevel");
+      if (lodLevelConst > -1) {
+         Vec4f lodValue(lodLevel,0,0,1);
+         gRDI->setShaderConst(lodLevelConst, RDIShaderConstType::CONST_FLOAT4, &(lodValue.x));
+      }
+
+      // World transformation
 		if( curShader->uni_worldMat >= 0 )
 		{
 			gRDI->setShaderConst( curShader->uni_worldMat, CONST_FLOAT44, &meshNode->_absTrans.x[0] );
@@ -2690,22 +2743,29 @@ void Renderer::drawVoxelMeshes(const std::string &shaderContext, const std::stri
 		if( queryObj )
 			gRDI->beginQuery( queryObj );
 		
+      float lodOffsetX = Modules::renderer()._lod_polygon_offset_x;
+      float lodOffsetY = Modules::renderer()._lod_polygon_offset_y;
       // Shadow offsets will always win against the custom model offsets (which we don't care about
       // during a shadow pass.)
       float offset_x, offset_y;
       if (gRDI->getShadowOffsets(&offset_x, &offset_y) || modelNode->getPolygonOffset(offset_x, offset_y))
       {
          glEnable(GL_POLYGON_OFFSET_FILL);
-         glPolygonOffset(offset_x, offset_y);
+         glPolygonOffset(
+            lodOffsetX + offset_x, 
+            lodOffsetY + offset_y);
+      } else if (lodOffsetX != 0 || lodOffsetY != 0) {
+         glEnable(GL_POLYGON_OFFSET_FILL);
+         glPolygonOffset(lodOffsetX, lodOffsetY);
       } else {
          glDisable(GL_POLYGON_OFFSET_FILL);
       }
 
 		// Render
-		gRDI->drawIndexed( PRIM_TRILIST, meshNode->getBatchStart(), meshNode->getBatchCount(),
-		                   meshNode->getVertRStart(), meshNode->getVertREnd() - meshNode->getVertRStart() + 1 );
+		gRDI->drawIndexed( PRIM_TRILIST, meshNode->getBatchStart(lodLevel), meshNode->getBatchCount(lodLevel),
+		                   meshNode->getVertRStart(lodLevel), meshNode->getVertREnd(lodLevel) - meshNode->getVertRStart(lodLevel) + 1 );
 		Modules::stats().incStat( EngineStats::BatchCount, 1 );
-		Modules::stats().incStat( EngineStats::TriCount, meshNode->getBatchCount() / 3.0f );
+		Modules::stats().incStat( EngineStats::TriCount, meshNode->getBatchCount(lodLevel) / 3.0f );
 
 		if( queryObj )
 			gRDI->endQuery( queryObj );
@@ -2722,7 +2782,7 @@ void Renderer::drawVoxelMeshes(const std::string &shaderContext, const std::stri
 
 void Renderer::drawVoxelMeshes_Instances(const std::string &shaderContext, const std::string &theClass, bool debugView,
                                const Frustum *frust1, const Frustum *frust2, RenderingOrder::List order,
-                               int occSet)
+                               int occSet, int lodLevel)
 {
    const unsigned int VoxelInstanceCutoff = 10;
    radiant::perfmon::TimelineCounterGuard dvm("drawVoxelMeshes_Instances");
@@ -2792,25 +2852,32 @@ void Renderer::drawVoxelMeshes_Instances(const std::string &shaderContext, const
 
       int lodLevelConst = gRDI->getShaderConstLoc(Modules::renderer().getCurShader()->shaderObj, "lodlevel");
       if (lodLevelConst > -1) {
-         static Vec4f lodColors[4] = {Vec4f(1,0,0,1), Vec4f(0,1,0,1), Vec4f(0,0,1,1), Vec4f(1, 0, 1, 1)};
-         gRDI->setShaderConst(lodLevelConst, RDIShaderConstType::CONST_FLOAT4, &(lodColors[instanceKey.lodLevel].x));
+         Vec4f lodValue(lodLevel,0,0,1);
+         gRDI->setShaderConst(lodLevelConst, RDIShaderConstType::CONST_FLOAT4, &(lodValue.x));
       }
 
+      float lodOffsetX = Modules::renderer()._lod_polygon_offset_x;
+      float lodOffsetY = Modules::renderer()._lod_polygon_offset_y;
       // Shadow offsets will always win against the custom model offsets (which we don't care about
       // during a shadow pass.)
       float offset_x, offset_y;
       if (gRDI->getShadowOffsets(&offset_x, &offset_y) || vmn->getParentModel()->getPolygonOffset(offset_x, offset_y))
       {
          glEnable(GL_POLYGON_OFFSET_FILL);
-         glPolygonOffset(offset_x, offset_y);
+         glPolygonOffset(
+            lodOffsetX + offset_x, 
+            lodOffsetY + offset_y);
+      } else if (lodOffsetX != 0 || lodOffsetY != 0) {
+         glEnable(GL_POLYGON_OFFSET_FILL);
+         glPolygonOffset(lodOffsetX, lodOffsetY);
       } else {
          glDisable(GL_POLYGON_OFFSET_FILL);
       }
 
       if (useInstancing) {
-         drawVoxelMesh_Instances_WithInstancing(instanceKind.second, vmn);
+         drawVoxelMesh_Instances_WithInstancing(instanceKind.second, vmn, lodLevel);
       } else {
-         drawVoxelMesh_Instances_WithoutInstancing(instanceKind.second, vmn);
+         drawVoxelMesh_Instances_WithoutInstancing(instanceKind.second, vmn, lodLevel);
       }
    }
 
@@ -2818,7 +2885,7 @@ void Renderer::drawVoxelMeshes_Instances(const std::string &shaderContext, const
    glDisable(GL_POLYGON_OFFSET_FILL);
 }
 
-void Renderer::drawVoxelMesh_Instances_WithInstancing(const RenderableQueue& renderableQueue, const VoxelMeshNode* vmn)
+void Renderer::drawVoxelMesh_Instances_WithInstancing(const RenderableQueue& renderableQueue, const VoxelMeshNode* vmn, int lodLevel)
 {
    // Collect transform data for every node of this mesh/material kind.
    radiant::perfmon::SwitchToCounter("copy mesh instances");
@@ -2838,15 +2905,15 @@ void Renderer::drawVoxelMesh_Instances_WithInstancing(const RenderableQueue& ren
    radiant::perfmon::SwitchToCounter("draw mesh instances");
    // Draw instanced meshes.
    gRDI->setVertexBuffer(1, _vbInstanceVoxelData, 0, sizeof(float) * 16);
-   gRDI->drawInstanced(RDIPrimType::PRIM_TRILIST, vmn->getBatchCount(), vmn->getBatchStart(), renderableQueue.size());
+   gRDI->drawInstanced(RDIPrimType::PRIM_TRILIST, vmn->getBatchCount(lodLevel), vmn->getBatchStart(lodLevel), renderableQueue.size());
    radiant::perfmon::SwitchToCounter("drawVoxelMeshes_Instances");
 
 	// Render
 	Modules::stats().incStat( EngineStats::BatchCount, 1 );
-   Modules::stats().incStat( EngineStats::TriCount, (vmn->getBatchCount() / 3.0f) * renderableQueue.size() );
+   Modules::stats().incStat( EngineStats::TriCount, (vmn->getBatchCount(lodLevel) / 3.0f) * renderableQueue.size() );
 }
 
-void Renderer::drawVoxelMesh_Instances_WithoutInstancing(const RenderableQueue& renderableQueue, const VoxelMeshNode* vmn)
+void Renderer::drawVoxelMesh_Instances_WithoutInstancing(const RenderableQueue& renderableQueue, const VoxelMeshNode* vmn, int lodLevel)
 {
    // Collect transform data for every node of this mesh/material kind.
    radiant::perfmon::SwitchToCounter("draw mesh instances");
@@ -2858,18 +2925,18 @@ void Renderer::drawVoxelMesh_Instances_WithoutInstancing(const RenderableQueue& 
 		const VoxelModelNode *modelNode = meshNode->getParentModel();
 		
       gRDI->setShaderConst( curShader->uni_worldMat, CONST_FLOAT44, &meshNode->_absTrans.x[0] );
-      gRDI->drawIndexed(RDIPrimType::PRIM_TRILIST, vmn->getBatchStart(), vmn->getBatchCount(), 
-         vmn->getVertRStart(), vmn->getVertREnd() - vmn->getVertRStart() + 1);
+      gRDI->drawIndexed(RDIPrimType::PRIM_TRILIST, vmn->getBatchStart(lodLevel), vmn->getBatchCount(lodLevel),
+         vmn->getVertRStart(lodLevel), vmn->getVertREnd(lodLevel) - vmn->getVertRStart(lodLevel) + 1);
 
       Modules::stats().incStat( EngineStats::BatchCount, 1 );
    }
-   Modules::stats().incStat( EngineStats::TriCount, (vmn->getBatchCount() / 3.0f) * renderableQueue.size() );
+   Modules::stats().incStat( EngineStats::TriCount, (vmn->getBatchCount(lodLevel) / 3.0f) * renderableQueue.size() );
 }
 
 
 void Renderer::drawInstanceNode(const std::string &shaderContext, const std::string &theClass, bool debugView,
                                const Frustum *frust1, const Frustum *frust2, RenderingOrder::List order,
-                               int occSet)
+                               int occSet, int lodLevel)
 {
 	if( frust1 == 0x0 || Modules::renderer().getCurCamera() == 0x0 ) return;
 	if( debugView ) return;  // Don't render in debug view
@@ -2934,7 +3001,7 @@ void Renderer::drawInstanceNode(const std::string &shaderContext, const std::str
 
 void Renderer::drawParticles( const std::string &shaderContext, const std::string &theClass, bool debugView,
                               const Frustum *frust1, const Frustum * /*frust2*/, RenderingOrder::List /*order*/,
-                              int occSet )
+                              int occSet, int lodLevel )
 {
 	if( frust1 == 0x0 || Modules::renderer().getCurCamera() == 0x0 ) return;
 	if( debugView ) return;  // Don't render particles in debug view
@@ -3214,7 +3281,7 @@ void Renderer::render( CameraNode *camNode, PipelineResource* pRes )
 			case PipelineCommands::DrawGeometry:
 				drawGeometry( pc.params[0].getString(), pc.params[1].getString(),
 				              (RenderingOrder::List)pc.params[2].getInt(),
-                          pc.params[3].getInt(), _curCamera->_occSet, pc.params[4].getFloat(), pc.params[5].getFloat() );
+                          pc.params[3].getInt(), _curCamera->_occSet, pc.params[4].getFloat(), pc.params[5].getFloat(), pc.params[6].getBool() );
 				break;
 
          case PipelineCommands::DrawProjections:
@@ -3308,7 +3375,6 @@ void Renderer::renderDebugView()
 
 	// Draw renderable nodes as wireframe
 	setupViewMatrices( _curCamera->getViewMat(), _curCamera->getProjMat() );
-	//drawRenderables( "", "", true, &_curCamera->getFrustum(), 0x0, RenderingOrder::None, -1 );
 
 	// Draw bounding boxes
 	glDisable( GL_CULL_FACE );
@@ -3322,14 +3388,15 @@ void Renderer::renderDebugView()
    Modules::sceneMan().updateQueues( "rendering debug view", _curCamera->getFrustum(), 0x0, RenderingOrder::None,
 	                                 SceneNodeFlags::NoDraw, 0, true, true, true );
 	gRDI->setShaderConst( Modules::renderer()._defColShader_color, CONST_FLOAT4, &color[0] );
-   for (const auto& queue : Modules::sceneMan().getRenderableQueues())
+	drawRenderables( "", "", true, &_curCamera->getFrustum(), 0x0, RenderingOrder::None, -1, 0 );
+   /*for (const auto& queue : Modules::sceneMan().getRenderableQueues())
    {
       for( const auto& entry : queue.second )
 	   {
 		   const SceneNode *sn = entry.node;
 		   drawAABB( sn->_bBox.min(), sn->_bBox.max() );
 	   }
-   }
+   }*/
 
 	Modules::sceneMan().updateQueues( "rendering debug view", _curCamera->getFrustum(), 0x0, RenderingOrder::None,
 	                                  SceneNodeFlags::NoDraw, 0, true, true );

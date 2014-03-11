@@ -34,12 +34,10 @@ const int QueryCacheSize = 32;
 struct InstanceKey {
    Resource* geoResource;
    MaterialResource* matResource;
-   int lodLevel;
 
    bool operator==(const InstanceKey& other) const {
       return geoResource == other.geoResource &&
-         matResource == other.matResource &&
-         lodLevel == other.lodLevel;
+         matResource == other.matResource;
    }
    bool operator!=(const InstanceKey& other) const {
       return !(other == *this);
@@ -48,7 +46,7 @@ struct InstanceKey {
 
 struct hash_InstanceKey {
    size_t operator()(const InstanceKey& x) const {
-      return (uint32)(x.geoResource) ^ (uint32)(x.matResource) ^ x.lodLevel;
+      return (uint32)(x.geoResource) ^ (uint32)(x.matResource);
    }
 };
 
@@ -145,7 +143,7 @@ public:
    virtual void* mapParamV( int param );
    virtual void unmapParamV( int param, int mappedLength );
 
-	virtual uint32 calcLodLevel( const Vec3f &viewPoint );
+	virtual void setLodLevel( int lodLevel );
 
 	virtual bool canAttach( SceneNode &parent );
 	void markDirty();
@@ -289,7 +287,7 @@ typedef SceneNodeTpl *(*NodeTypeParsingFunc)( std::map< std::string, std::string
 typedef SceneNode *(*NodeTypeFactoryFunc)( const SceneNodeTpl &tpl );
 typedef void (*NodeTypeRenderFunc)( const std::string &shaderContext, const std::string &theClass, bool debugView,
                                     const Frustum *frust1, const Frustum *frust2, RenderingOrder::List order,
-                                    int occSet );
+                                    int occSet, int lodLevel );
 
 struct NodeRegEntry
 {
@@ -347,7 +345,7 @@ public:
 	int castRay( SceneNode &node, const Vec3f &rayOrig, const Vec3f &rayDir, int numNearest );
 	bool getCastRayResult( int index, CastRayResult &crr );
 
-	int checkNodeVisibility( SceneNode &node, CameraNode &cam, bool checkOcclusion, bool calcLod );
+	int checkNodeVisibility( SceneNode &node, CameraNode &cam, bool checkOcclusion );
 
 	SceneNode &getRootNode() { return *_nodes[0]; }
 	SceneNode &getDefCamNode() { return *_nodes[1]; }

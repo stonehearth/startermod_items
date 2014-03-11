@@ -45,7 +45,7 @@ SceneNode *DebugShapesNode::factoryFunc(const SceneNodeTpl &nodeTpl)
 }
 
 void DebugShapesNode::renderFunc(const std::string &shaderContext, const std::string &theClass, bool debugView,
-                                 const Frustum *frust1, const Frustum *frust2, RenderingOrder::List order, int occSet)
+                                 const Frustum *frust1, const Frustum *frust2, RenderingOrder::List order, int occSet, int lodLevel)
 {
    bool first = true;
    float old_line_width = 1.0f;

@@ -130,13 +130,14 @@ float colorDistance(int colorA, int colorB)
    float dS = hslA.y - hslB.y;
    float dL = hslA.z - hslB.z;
 
+   // TODO: This is incredibly wrong, but works!  Still, fix this soon-ish....
    // HSL distance, but we bias against lightness (valuing hue/saturation more.)
    return sqrt((dH * dH) + (dS * dS) + (dL * dL / 10.0f));
 }
 
 bool pairSort(const std::pair<int,int>& a, const std::pair<int,int>& b)
 {
-   /// Smallest -> Greatest
+   // Greatest -> Smallest
    return a.second > b.second;
 }
 

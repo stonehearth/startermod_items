@@ -56,7 +56,7 @@ SceneNode *StockpileNode::factoryFunc(const SceneNodeTpl &nodeTpl)
 }
 
 void StockpileNode::renderFunc(const std::string &shaderContext, const std::string &theClass, bool debugView,
-                                 const Frustum *frust1, const Frustum *frust2, RenderingOrder::List order, int occSet)
+                                 const Frustum *frust1, const Frustum *frust2, RenderingOrder::List order, int occSet, int lodLevel)
 {
 }
 

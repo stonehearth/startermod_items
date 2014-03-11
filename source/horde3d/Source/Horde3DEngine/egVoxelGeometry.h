@@ -79,6 +79,11 @@ public:
 	uint32 getVertexBuf() const { return _vertexBuf; }
 	uint32 getIndexBuf() const { return _indexBuf; }
 
+   uint32 getBatchStart(int lodLevel) const;
+   uint32 getBatchCount(int lodLevel) const;
+   uint32 getVertRStart(int lodLevel) const;
+   uint32 getVertREnd(int lodLevel) const;
+   uint32 clampLodLevel(int lodLevel) const;
 public:
 	static uint32 defVertexBuffer, defIndexBuffer;
 

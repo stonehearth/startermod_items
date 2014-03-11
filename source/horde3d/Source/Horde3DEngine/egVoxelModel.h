@@ -91,7 +91,6 @@ public:
 	void setParamF( int param, int compIdx, float value );
 
 	bool updateVoxelGeometry();
-	uint32 calcLodLevel( const Vec3f &viewPoint );
 
 	VoxelGeometryResource *getVoxelGeometryResource() const { return _geometryRes; }
 	bool jointExists( uint32 jointIndex ) { return jointIndex < _skinMatRows.size() / 3; }

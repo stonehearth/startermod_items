@@ -239,9 +239,8 @@ void SceneNode::updateBBox(const BoundingBox& b)
 }
 
 
-uint32 SceneNode::calcLodLevel( const Vec3f &viewPoint )
+void SceneNode::setLodLevel( int lodLevel )
 {
-	return 0;
 }
 
 
@@ -439,8 +438,7 @@ void SpatialGraph::query(const SpatialQuery& query, RenderableQueues& renderable
          if (query.frustum.cullBox( node->_bBox ) && (query.secondaryFrustum == 0x0 || query.secondaryFrustum->cullBox( node ->_bBox ))) {
             continue;
          }
-         node->calcLodLevel( camPos );
-				
+
          float sortKey = 0;
 
          switch( query.order )
@@ -633,7 +631,7 @@ void SceneManager::updateQueues( const char* reason, const Frustum &frustum1, co
        }
     }
  
-    _spatialGraph->query(query, sqr.renderableQueues, sqr.instanceRenderableQueues, sqr.lightQueue);
+    _spatialGraph->query(sqr.query, sqr.renderableQueues, sqr.instanceRenderableQueues, sqr.lightQueue);
 }
 
 
@@ -942,7 +940,7 @@ bool SceneManager::getCastRayResult( int index, CastRayResult &crr )
 }
 
 
-int SceneManager::checkNodeVisibility( SceneNode &node, CameraNode &cam, bool checkOcclusion, bool calcLod )
+int SceneManager::checkNodeVisibility( SceneNode &node, CameraNode &cam, bool checkOcclusion )
 {
 	// Note: This function is a bit hacky with all the hard-coded node types
 	
@@ -971,8 +969,6 @@ int SceneManager::checkNodeVisibility( SceneNode &node, CameraNode &cam, bool ch
 	// Frustum culling
 	if( cam.getFrustum().cullBox( node.getBBox() ) )
 		return -1;
-	else if( calcLod )
-		return node.calcLodLevel( cam.getAbsPos() );
 	else
 		return 0;
 }

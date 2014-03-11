@@ -70,13 +70,11 @@ public:
 	void onPostUpdate();
 
 	MaterialResource *getMaterialRes() const { return _materialRes; }
-	uint32 getBatchStart() const;
-	uint32 getBatchCount() const;
-	uint32 getVertRStart() const;
-	uint32 getVertREnd() const;
-	uint32 getLodLevel() const { return _lodLevel; }
+	uint32 getBatchStart(int lodLevel) const;
+	uint32 getBatchCount(int lodLevel) const;
+	uint32 getVertRStart(int lodLevel) const;
+	uint32 getVertREnd(int lodLevel) const;
 	VoxelModelNode *getParentModel() const { return _parentModel; }
-	uint32 calcLodLevel( const Vec3f &viewPoint );
 
    const InstanceKey* getInstanceKey();
 
@@ -86,7 +84,6 @@ protected:
 
 protected:
 	PMaterialResource   _materialRes;
-	uint32              _lodLevel;
 	
 	VoxelModelNode      *_parentModel;
 	BoundingBox         _localBBox;
