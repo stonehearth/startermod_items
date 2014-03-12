@@ -123,28 +123,32 @@ function TerrainService:_get_entity_visible_region(entity)
    local y_min = quantize(0)
    local y_max = quantize(200)
    local region = Region2()
-   local semi_major_axis, semi_minor_axis, pt, rect
+   local semi_major_axis, semi_minor_axis, mob, pt, rect
 
    semi_major_axis = self._sight_radius
    -- quantize delta to make sure the major and minor axes reveal at the same time
    semi_minor_axis = semi_major_axis - quantize(semi_major_axis * 0.4)
 
-   pt = entity:add_component('mob'):get_world_grid_location()
+   mob = entity:get_component('mob')
+      
+   if mob then
+      pt = mob:get_world_grid_location()
 
-   -- remember +1 on max
-   rect = Rect2(
-      Point2(quantize(pt.x-semi_major_axis),   quantize(pt.z-semi_minor_axis)),
-      Point2(quantize(pt.x+semi_major_axis+1), quantize(pt.z+semi_minor_axis+1))
-   )
+      -- remember +1 on max
+      rect = Rect2(
+         Point2(quantize(pt.x-semi_major_axis),   quantize(pt.z-semi_minor_axis)),
+         Point2(quantize(pt.x+semi_major_axis+1), quantize(pt.z+semi_minor_axis+1))
+      )
 
-   region:add_cube(rect)
+      region:add_cube(rect)
 
-   rect = Rect2(
-      Point2(quantize(pt.x-semi_minor_axis),   quantize(pt.z-semi_major_axis)),
-      Point2(quantize(pt.x+semi_minor_axis+1), quantize(pt.z+semi_major_axis+1))
-   )
+      rect = Rect2(
+         Point2(quantize(pt.x-semi_minor_axis),   quantize(pt.z-semi_major_axis)),
+         Point2(quantize(pt.x+semi_minor_axis+1), quantize(pt.z+semi_major_axis+1))
+      )
 
-   region:add_cube(rect)
+      region:add_cube(rect)
+   end
 
    return region
 end
