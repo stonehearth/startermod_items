@@ -1,6 +1,6 @@
 local InventoryComponent = class()
 
-function InventoryComponent:__create(entity, json)
+function InventoryComponent:initialize(entity, json)
    self._entity = entity
    self._items = {
       __numeric = true

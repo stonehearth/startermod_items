@@ -89,7 +89,7 @@ Stonehearth::AddComponent(lua_State* L, EntityRef e, std::string name)
             obj->LoadFromJson(JSONNode());
             component = scriptHost->CastObjectToLua(obj);
          } else {
-            component = ConstructLuaComponent(scriptHost, name, e, "__create", luabind::newtable(L));
+            component = ConstructLuaComponent(scriptHost, name, e, "initialize", luabind::newtable(L));
             if (component) {
                entity->AddLuaComponent(name, component);
             }
@@ -112,7 +112,7 @@ Stonehearth::SetComponentData(lua_State* L, EntityRef e, std::string name, objec
          obj->LoadFromJson(scriptHost->LuaToJson(data));
          result = scriptHost->CastObjectToLua(obj);
       } else {
-         result = ConstructLuaComponent(scriptHost, name, e, "__create", data);
+         result = ConstructLuaComponent(scriptHost, name, e, "initialize", data);
          if (result) {
             entity->AddLuaComponent(name, result);
          }
@@ -157,7 +157,7 @@ Stonehearth::InitEntity(EntityPtr entity, std::string const& uri, lua_State* L)
                component->LoadFromJson(json::Node(entry));
             } else {
                object component_data = lua::ScriptHost::JsonToLua(L, entry);
-               object lua_component = ConstructLuaComponent(scriptHost, component_name, entity, "__create", component_data);
+               object lua_component = ConstructLuaComponent(scriptHost, component_name, entity, "initialize", component_data);
                if (lua_component) {
                   entity->AddLuaComponent(component_name, lua_component);
                }

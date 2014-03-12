@@ -8,7 +8,7 @@ function MaterialComponent:__init()
    self._tags = {}
 end
 
-function MaterialComponent:__create(entity, json)
+function MaterialComponent:initialize(entity, json)
    if json.tags then
       for _, tag in ipairs(self:_split_string(json.tags)) do
          self._tags[tag] = true

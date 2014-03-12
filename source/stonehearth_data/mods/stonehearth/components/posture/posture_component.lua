@@ -5,7 +5,7 @@ function PostureComponent:__init()
    self._set_postures = {}
 end
 
-function PostureComponent:__create(entity, json)
+function PostureComponent:initialize(entity, json)
    self._entity = entity
    self.__savestate = radiant.create_datastore({
       set_postures = self._set_postures

@@ -10,7 +10,7 @@ function CenterOfAttentionSpot:__init()
    self._spot_id = nil
 end
 
-function CenterOfAttentionSpot:__create(entity, json)
+function CenterOfAttentionSpot:initialize(entity, json)
    self._entity = entity
 end
 

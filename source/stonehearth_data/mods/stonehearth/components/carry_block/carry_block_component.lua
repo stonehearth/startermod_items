@@ -5,7 +5,7 @@
 
 local CarryBlock = class()
 
-function CarryBlock:__create(entity, json)
+function CarryBlock:initialize(entity, json)
    self.__savestate = radiant.create_datastore({})
    self:_finish_initialization(entity)
 end
@@ -60,7 +60,7 @@ function CarryBlock:_on_carrying_changed(item)
       end
    end
    self.__savestate:modify_data(function(o)
-         carrying = item
+         o.carrying = item
       end)
 end
 

@@ -10,7 +10,6 @@ function ThreadsService:__init()
       end)
 end
 
-
 function ThreadsService:initialize()
 end
 

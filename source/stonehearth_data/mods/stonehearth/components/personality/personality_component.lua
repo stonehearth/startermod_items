@@ -13,7 +13,7 @@ function Personality:__init()
    local a = 1
 end
 
-function Personality:__create(entity, json)
+function Personality:initialize(entity, json)
    self._entity = entity
    self._first_entry = true
 

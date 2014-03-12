@@ -1,7 +1,7 @@
 local SensorAiInjectorComponent = class()
 local log = radiant.log.create_logger('ai.sensor_injector')
 
-function SensorAiInjectorComponent:__create(entity, json)
+function SensorAiInjectorComponent:initialize(entity, json)
    self._entity = entity
    self._injected_ais = {}
 

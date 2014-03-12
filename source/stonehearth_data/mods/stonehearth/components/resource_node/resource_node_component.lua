@@ -1,6 +1,6 @@
 local ResourceNodeComponent = class()
 
-function ResourceNodeComponent:__create(entity, json)
+function ResourceNodeComponent:initialize(entity, json)
    self._entity = entity
    self._durability = json.durability or 1
    self._resource = json.resource

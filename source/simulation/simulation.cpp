@@ -827,6 +827,7 @@ void Simulation::Reload()
 
 void Simulation::Save()
 {
+   SIM_LOG(0) << "starting save.";
    std::string error;
    if (!store_->Save(error)) {
       SIM_LOG(0) << "failed to save: " << error;
@@ -836,6 +837,7 @@ void Simulation::Save()
 
 void Simulation::Load()
 {
+   SIM_LOG(0) << "starting loadin...";
    // delete all the streamers before shutting down so we don't spam them with delete requests,
    // then create new streamers. 
    for (std::shared_ptr<RemoteClient> client : _clients) {
@@ -848,14 +850,13 @@ void Simulation::Load()
    Initialize();
 
    radiant_ = scriptHost_->Require("radiant.server");
-
    std::string error;
    dm::Store::ObjectMap objects;
    // Re-initialize the game
    if (!store_->Load(error, objects)) {
       SIM_LOG(0) << "failed to load: " << error;
    }
-   SIM_LOG(0) << "loaded.";
+   
    scriptHost_->TriggerOn(radiant_, "radiant:load", luabind::object());
 
    root_entity_ = store_->FetchObject<om::Entity>(1);
@@ -883,7 +884,7 @@ void Simulation::Load()
    }
 
    LoadGameModules();
-
+   SIM_LOG(0) << "done loadin...";
 }
 
 void Simulation::Reset()

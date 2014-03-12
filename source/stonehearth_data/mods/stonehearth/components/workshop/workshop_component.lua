@@ -12,7 +12,7 @@ local CraftOrderList = require 'components.workshop.craft_order_list'
 
 local WorkshopComponent = class()
 
-function WorkshopComponent:__create(entity, json)
+function WorkshopComponent:initialize(entity, json)
    self._entity = entity
    self._bench_outputs = {}              -- An array of finished products on the bench, to be added to the outbox. Nil if nothing.
    self._outbox_entity = nil
@@ -27,7 +27,7 @@ function WorkshopComponent:__create(entity, json)
    self._build_sound_effect = json.build_sound_effect
 end
 
-function WorkshopComponent:__destroy()
+function WorkshopComponent:destroy()
    if self._orchestrator then
       self._orchestrator:destroy()
       self._orchestrator = nil

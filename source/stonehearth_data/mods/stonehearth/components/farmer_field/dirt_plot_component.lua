@@ -3,7 +3,7 @@ local farming_service = stonehearth.farming
 
 local DirtPlotComponent = class()
 
-function DirtPlotComponent:__create(entity, json)
+function DirtPlotComponent:initialize(entity, json)
    self._entity = entity
    self._data = {
       fertility = 0,

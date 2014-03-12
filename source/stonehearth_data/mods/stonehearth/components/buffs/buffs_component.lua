@@ -13,7 +13,7 @@ function BuffsComponent:__init()
    self._calendar_constants = calendar:get_constants()
 end
 
-function BuffsComponent:__create(entity, json)
+function BuffsComponent:initialize(entity, json)
    self._entity = entity   
    self.__savestate = radiant.create_datastore(self._buffs)
 end

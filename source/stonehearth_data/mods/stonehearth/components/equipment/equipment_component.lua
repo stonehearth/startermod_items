@@ -6,7 +6,7 @@ function EquipmentComponent:__init(entity)
    self._injected_commands = {}
 end
 
-function EquipmentComponent:__create(entity, json)
+function EquipmentComponent:initialize(entity, json)
    self._entity = entity
    assert(json)
    -- xxx, interate over all the items in the json array and equip them

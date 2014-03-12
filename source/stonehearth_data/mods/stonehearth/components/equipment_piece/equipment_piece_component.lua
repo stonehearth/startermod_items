@@ -1,6 +1,6 @@
 local EquipmentPieceComponent = class()
 
-function EquipmentPieceComponent:__create(entity, json)
+function EquipmentPieceComponent:initialize(entity, json)
    self._entity = entity
 
    assert(json.render_type)

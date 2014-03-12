@@ -3,7 +3,7 @@ local GrowingComponent = class()
 
 
 
-function GrowingComponent:__create(entity, json)
+function GrowingComponent:initialize(entity, json)
    self._entity = entity
    self._data = {}
 
@@ -39,7 +39,7 @@ function GrowingComponent:__create(entity, json)
    self.__savestate:mark_changed()
 end
 
-function GrowingComponent:__destroy()
+function GrowingComponent:destroy()
    radiant.events.unlisten(calendar, 'stonehearth:hourly', self, self.on_hourly)
 end
 

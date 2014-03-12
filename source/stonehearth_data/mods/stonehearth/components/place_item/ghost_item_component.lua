@@ -7,7 +7,7 @@
 
 local GhostItemComponent = class()
 
-function GhostItemComponent:__create(entity, json)
+function GhostItemComponent:initialize(entity, json)
    self._entity = entity
 
    self._data = {

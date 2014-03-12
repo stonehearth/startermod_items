@@ -1,6 +1,6 @@
 local LeashComponent = class()
 
-function LeashComponent:__create(entity, json)
+function LeashComponent:initialize(entity, json)
    radiant.check.is_entity(entity)
    self._entity = entity
    self._sv = {}

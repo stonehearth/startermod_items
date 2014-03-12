@@ -3,7 +3,7 @@
 ]]
 local LeaseComponent = class()
 
-function LeaseComponent:__create(entity, json)
+function LeaseComponent:initialize(entity, json)
    self._entity = entity  -- the entity we will be leasing
    self._leases = {}
    

@@ -7,7 +7,7 @@ local log = radiant.log.create_logger('firepit')
 local FirepitComponent = class()
 FirepitComponent.__classname = 'FirepitComponent'
 
-function FirepitComponent:__create(entity, json)
+function FirepitComponent:initialize(entity, json)
    radiant.check.is_entity(entity)
    self._entity = entity
 

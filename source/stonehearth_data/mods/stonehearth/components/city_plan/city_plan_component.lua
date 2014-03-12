@@ -1,7 +1,7 @@
 local Color4 = _radiant.csg.Color4
 local CityPlanComponent = class()
 
-function CityPlanComponent:__create(entity, json)
+function CityPlanComponent:initialize(entity, json)
    self._entity = entity
 end
 

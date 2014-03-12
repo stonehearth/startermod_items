@@ -45,7 +45,7 @@ function ProxyFabrication:get_voxel_brush()
    return voxel_brush_util.create_brush(datastore:get_data())
 end
 
-function ProxyFabrication:__create(entity, json)
+function ProxyFabrication:initialize(entity, json)
    if json.normal then
       local normal = Point3(json.normal.x, json.normal.y, json.normal.z)
       self:set_normal(normal)

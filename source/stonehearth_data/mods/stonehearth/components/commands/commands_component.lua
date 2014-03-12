@@ -9,7 +9,7 @@ function CommandsComponent:__init(entity, data_binding)
    }
 end
 
-function CommandsComponent:__create(entity, json)
+function CommandsComponent:initialize(entity, json)
    self._entity = entity
    self.__savestate = radiant.create_datastore({
       commands = self._commands

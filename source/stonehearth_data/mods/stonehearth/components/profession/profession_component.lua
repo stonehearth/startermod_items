@@ -4,7 +4,7 @@
 
 local ProfessionComponent = class()
 
-function ProfessionComponent:__create(entity, json)
+function ProfessionComponent:initialize(entity, json)
    self._entity = entity
    self._info = json
    if self._info.name then 

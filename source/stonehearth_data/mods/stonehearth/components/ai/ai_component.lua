@@ -11,7 +11,7 @@ function AIComponent:__init()
    self._execution_count = 0
 end
 
-function AIComponent:__create(entity, json)
+function AIComponent:initialize(entity, json)
    self._entity = entity
    self.__savestate = radiant.create_datastore({
          actions = {},
@@ -49,7 +49,7 @@ function AIComponent:get_debug_info()
    return {}
 end
 
-function AIComponent:__destroy()
+function AIComponent:destroy()
    self._dead = true
    self:_terminate_thread()
 

@@ -5,7 +5,7 @@ local Region3 = _radiant.csg.Region3
 local PortalComponent = class()
 local log = radiant.log.create_logger('build')
 
-function PortalComponent:__create(entity, json)
+function PortalComponent:initialize(entity, json)
 end
 
 return PortalComponent

@@ -8,7 +8,7 @@ function MaterialsComponent:__init()
    self._materials = {}
 end
 
-function MaterialsComponent:__create(entity, data_binding)
+function MaterialsComponent:initialize(entity, data_binding)
    self.__savestate = radiant.create_datastore({
          materials = self._materials 
       })

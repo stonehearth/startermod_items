@@ -12,7 +12,7 @@ local Point3 = _radiant.csg.Point3
 local Region3 = _radiant.csg.Region3
 local rng = _radiant.csg.get_default_rng()
 
-function FarmerFieldComponent:__create(entity, json)
+function FarmerFieldComponent:initialize(entity, json)
    self._entity = entity
 
    if json.size then

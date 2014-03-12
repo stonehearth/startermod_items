@@ -6,7 +6,7 @@
 ]]
 local LeaseHolderComponent = class()
 
-function LeaseHolderComponent:__create(entity, json)
+function LeaseHolderComponent:initialize(entity, json)
    self._entity = entity  -- the entity this component is attached to
    self._leases = {}
    

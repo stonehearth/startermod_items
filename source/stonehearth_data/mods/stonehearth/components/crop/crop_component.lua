@@ -4,7 +4,7 @@
 ]]
 local CropComponent = class()
 
-function CropComponent:__create(entity, json)
+function CropComponent:initialize(entity, json)
    self._entity = entity
    self._resource_pairings = json.resource_pairings
    radiant.events.listen(radiant.events, 'stonehearth:entity:post_create', self, self._on_create_complete)

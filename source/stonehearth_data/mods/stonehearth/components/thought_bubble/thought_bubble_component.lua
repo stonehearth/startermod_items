@@ -7,7 +7,7 @@ Here are the rules
 - Removing a thought that has never been set is a no-op, so it's ok.
 
 ]]
-function ThoughtBubbleComponent:__create(entity, json)
+function ThoughtBubbleComponent:initialize(entity, json)
    self._entity = entity
    self._thought_priority = 0
    self.__savestate = radiant.create_datastore()

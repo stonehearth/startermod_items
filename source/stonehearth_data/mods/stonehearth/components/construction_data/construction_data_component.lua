@@ -6,7 +6,7 @@ local Point3 = _radiant.csg.Point3
 
 local log = radiant.log.create_logger('build')
 
-function ConstructionDataComponent:__create(entity, json)
+function ConstructionDataComponent:initialize(entity, json)
    self._entity = entity
    self._data = json
    if not self._data.material then

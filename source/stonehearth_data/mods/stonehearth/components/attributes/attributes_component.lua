@@ -47,7 +47,7 @@ function AttributesComponent:__init()
 end
 
 --- Given the type of attribute, handle as needed
-function AttributesComponent:__create(entity, json)
+function AttributesComponent:initialize(entity, json)
    self._entity = entity
    self.__savestate = radiant.create_datastore({
          attributes = self._attributes,

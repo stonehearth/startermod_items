@@ -2,7 +2,7 @@ local rng = _radiant.csg.get_default_rng()
 
 local LootTableComponent = class()
 
-function LootTableComponent:__create(entity, json)
+function LootTableComponent:initialize(entity, json)
    self._entity = entity
    self._loot_table = json
    self._num_shares = 0
