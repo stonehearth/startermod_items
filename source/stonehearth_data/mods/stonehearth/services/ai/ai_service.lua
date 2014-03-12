@@ -14,14 +14,14 @@ function AiService:__init()
    self.KILL_THREAD = { name = "KILL_THREAD" }
    self.RESERVATION_LEASE_NAME = 'ai_reservation'
 
-   self._entities = {}
-   self._ai_components = {}
-   
    for name, value in pairs(placeholders) do
       AiService[name] = value
    end
    AiService.ANY = { ANY = 'Any lua value will do' }
    AiService.NIL = { NIL = 'The nil value' }
+end
+
+function AiService:load(savestate)   
 end
 
 -- injecting entity may be null

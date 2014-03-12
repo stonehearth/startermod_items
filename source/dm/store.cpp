@@ -77,6 +77,7 @@ void Store::RegisterAllocator(ObjectType t, ObjectAllocFn allocator)
 
 bool Store::Save(std::string &error)
 {
+   uint size;
    {
       std::ofstream textfile("save.txt");
 
@@ -96,7 +97,7 @@ bool Store::Save(std::string &error)
 
    // The C++ Google Protobuf docs claim FileOutputStream avoids an extra copy of the data
    // introduced by OstreamOutputStream, so lets' use that.
-   int fd = _open("save.bin", O_WRONLY | O_BINARY | O_CREAT, S_IREAD | S_IWRITE);
+   int fd = _open("save.bin", O_WRONLY | O_BINARY | O_TRUNC, S_IREAD | S_IWRITE);
    if (fd < 0) {
       error = "could not open save file";
       return false;
@@ -112,7 +113,7 @@ bool Store::Save(std::string &error)
             msg.set_store_id(storeId_);
             msg.set_next_object_id(nextObjectId_);
             msg.set_next_generation(nextGenerationId_);
-
+         
             cos.WriteLittleEndian32(msg.ByteSize());
             msg.SerializeToCodedStream(&cos);
          }
@@ -129,7 +130,9 @@ bool Store::Save(std::string &error)
                   msg->set_object_type(obj->GetObjectType());
                }
             }
-            cos.WriteLittleEndian32(update.ByteSize());
+            size = update.ByteSize();
+            STORE_LOG(8) << "writing alloced objects size:" << size;
+            cos.WriteLittleEndian32(size);
             update.SerializeToCodedStream(&cos);
          }
 
@@ -145,7 +148,10 @@ bool Store::Save(std::string &error)
                Object* obj = objects_[id];
                msg.Clear();
                obj->SaveObject(PERSISTANCE, &msg);
-               cos.WriteLittleEndian32(msg.ByteSize());
+
+               size = msg.ByteSize();
+               STORE_LOG(8) << "writing object " << id << " size " << size;
+               cos.WriteLittleEndian32(size);
                msg.SerializeToCodedStream(&cos);
             }
          }
@@ -189,6 +195,7 @@ bool Store::Load(std::string &error, ObjectMap& objects)
             if (!cis.ReadLittleEndian32(&size)) {
                return false;
             }
+            STORE_LOG(8) << "read alloced objects size:" << size;
             limit = cis.PushLimit(size);
             if (!msg.ParseFromCodedStream(&cis)) {
                return false;
@@ -233,12 +240,15 @@ bool Store::Load(std::string &error, ObjectMap& objects)
                msg.Clear();
                limit = cis.PushLimit(size);
                if (!msg.ParseFromCodedStream(&cis)) {
+                  STORE_LOG(8) << "failed to parse msg size " << size << ".  aborting.";
                   return false;
                }
                cis.PopLimit(limit);
 
                ObjectId id = msg.object_id();
                Object* obj = FetchStaticObject(id);
+
+               STORE_LOG(8) << "read object " << id << " size " << size;
 
                ASSERT(obj);
                ASSERT(msg.object_type() == obj->GetObjectType());

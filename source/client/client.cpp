@@ -83,7 +83,6 @@ json::Node makeRendererConfigNode(RendererConfigEntry<T>& e) {
 
 Client::Client() :
    _tcp_socket(_io_service),
-   rootObject_(NULL),
    store_(nullptr),
    authoringStore_(nullptr),
    uiCursor_(NULL),
@@ -126,6 +125,7 @@ void Client::OneTimeIninitializtion()
    // renderer...
    Renderer& renderer = Renderer::GetInstance();
    HWND hwnd = renderer.GetWindowHandle();
+
    renderer.SetInputHandler([=](Input const& input) {
       OnInput(input);
    });
@@ -523,6 +523,8 @@ void Client::InitializeGameObjects()
 {
    Renderer& renderer = Renderer::GetInstance();
 
+   renderer.Initialize();
+
    octtree_.reset(new phys::OctTree(dm::RENDER_TRACES));
    scriptHost_.reset(new lua::ScriptHost());
 
@@ -744,7 +746,8 @@ void Client::mainloop()
 
 om::TerrainPtr Client::GetTerrain()
 {
-   return rootObject_ ? rootObject_->GetComponent<om::Terrain>() : nullptr;
+   om::EntityPtr rootObject = rootObject_.lock();   
+   return rootObject ? rootObject->GetComponent<om::Terrain>() : nullptr;
 }
 
 bool Client::ProcessMessage(const proto::Update& msg)
@@ -787,11 +790,11 @@ void Client::EndUpdate(const proto::EndUpdate& msg)
       traceObjectRouter_->CheckDeferredTraces();
    }
 
-   if (!rootObject_) {
+   if (!rootObject_.lock()) {
       auto rootEntity = GetStore().FetchObject<om::Entity>(1);
       if (rootEntity) {
          rootObject_ = rootEntity;
-         Renderer::GetInstance().Initialize(rootObject_);
+         Renderer::GetInstance().SetRootEntity(rootEntity);
          octtree_->SetRootEntity(rootEntity);
       }
    }
@@ -842,6 +845,17 @@ void Client::UpdateDebugShapes(const proto::UpdateDebugShapes& msg)
 void Client::ClearClientState(const proto::ClearClientState& msg)
 {
    Shutdown();
+
+   // remove all the input handlers except the one in the renderer.  this will
+   // stop all tools as well as clearing out stale lua objects which had the
+   // mouse captured (like the camera service)
+   input_handlers_.clear();
+   Renderer& renderer = Renderer::GetInstance();
+   renderer.SetInputHandler([=](Input const& input) {
+      OnInput(input);
+   });
+
+
    Initialize();
 }
 
@@ -890,7 +904,7 @@ void Client::OnMouseInput(Input const& input)
    }
 
    if (!CallInputHandlers(input)) {
-      if (rootObject_ && input.mouse.up[0]) {
+      if (input.mouse.up[0]) {
          CLIENT_LOG(5) << "updating selection...";
          UpdateSelection(input.mouse);
       }
@@ -1093,7 +1107,7 @@ void Client::HilightMouseover()
    // hilight something
    if (selection.HasEntities()) {
       om::EntityPtr hilightEntity = GetEntity(selection.GetEntities().front());
-      if (hilightEntity && hilightEntity != rootObject_) {
+      if (hilightEntity && hilightEntity != rootObject_.lock()) {
          RenderEntityPtr renderObject = renderer.GetRenderObject(hilightEntity);
          if (renderObject) {
             renderObject->SetSelected(true);

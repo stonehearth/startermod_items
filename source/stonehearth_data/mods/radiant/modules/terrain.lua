@@ -3,8 +3,6 @@ local Point3 = _radiant.csg.Point3
 local Terrain = {}
 local singleton = {}
 
-local _terrain = radiant._root_entity:add_component('terrain')
-
 function Terrain.place_entity(entity, location)
    local render_info = entity:add_component('render_info')
    local variant = render_info:get_model_variant()
@@ -17,7 +15,8 @@ function Terrain.place_entity(entity, location)
       if type(location) == "table" then
          location = Point3(location.x, location.y, location.z)
       end
-      _terrain:place_entity(entity, location)
+      local terrain = radiant._root_entity:add_component('terrain')
+      terrain:place_entity(entity, location)
    end
 end
 
@@ -67,7 +66,8 @@ function Terrain.each_world_entity()
 end
 
 function Terrain.get_height(location)
-   return _terrain:get_height(location)
+   local terrain = radiant._root_entity:add_component('terrain')
+   return terrain:get_height(location)
 end
 
 return Terrain

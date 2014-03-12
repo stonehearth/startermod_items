@@ -183,6 +183,10 @@ bool Modules::init(int glMajor, int glMinor, bool msaaWindowSupported, bool enab
 	return true;
 }
 
+void Modules::reset()
+{
+	_sceneManager->reset();
+}
 
 void Modules::release()
 {

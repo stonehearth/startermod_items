@@ -79,15 +79,11 @@ void Renderer::OneTimeIninitializtion()
    renderer_.reset(this);
 
    InitWindow();
-
    InitHorde();
-
    SetupGlfwHandlers();
-
    MakeRendererResources();
 
    ApplyConfig(config_, false);
-
    LoadResources();
 
    memset(&input_.mouse, 0, sizeof input_.mouse);
@@ -103,7 +99,6 @@ void Renderer::OneTimeIninitializtion()
    }
 
    OnWindowResized(windowWidth_, windowHeight_);
-
    SetShowDebugShapes(false);
 
    SetDrawWorld(false);
@@ -134,29 +129,7 @@ void Renderer::MakeRendererResources()
    }
    h3dUnmapResStream(veclookup);
 
-   BuildSkySphere();
-
-   BuildStarfield();
-
    fowRenderTarget_ = h3dutCreateRenderTarget(512, 512, H3DFormats::TEX_BGRA8, false, 1, 0, 0);
-
-   csg::Region3::Cube littleCube(csg::Region3::Point(0, 0, 0), csg::Region3::Point(1, 1, 1));
-   /*fowVisibleNode_ = h3dAddInstanceNode(H3DRootNode, "fow_visiblenode", 
-      h3dAddResource(H3DResTypes::Material, "materials/fow_visible.material.xml", 0), 
-      Pipeline::GetInstance().CreateVoxelGeometryFromRegion("littlecube", littleCube), 1000);*/
-   fowExploredNode_ = h3dAddInstanceNode(H3DRootNode, "fow_explorednode", 
-      h3dAddResource(H3DResTypes::Material, "materials/fow_explored.material.xml", 0), 
-      Pipeline::GetInstance().CreateVoxelGeometryFromRegion("littlecube", littleCube), 1000);
-
-   csg::Region2 r;
-   r.Add(csg::Rect2(csg::Region2::Point(-10, -10), csg::Region2::Point(10, 10)));
-   UpdateFoW(fowExploredNode_, r);
-
-   // Add camera   
-   camera_ = new Camera(H3DRootNode, "Camera");
-
-   // Add another camera--this is exclusively for the fog-of-war pipeline.
-   fowCamera_ = new Camera(H3DRootNode, "FowCamera");
 }
 
 void Renderer::InitHorde()
@@ -310,6 +283,10 @@ void Renderer::UpdateFoW(H3DNode node, const csg::Region2& region)
 
 void Renderer::RenderFogOfWarRT()
 {
+   if (!camera_) {
+      return;
+   }
+
    // Create an ortho camera covering the largest volume that can be seen of the actual possible frustum
    Horde3D::Matrix4f fowView, camProj;
    Horde3D::Frustum camFrust;
@@ -634,8 +611,7 @@ void Renderer::ApplyConfig(const RendererConfig& newConfig, bool persistConfig)
 
    glfwSwapInterval(config_.enable_vsync.value ? 1 : 0);
 
-   if (persistConfig)
-   {
+   if (persistConfig) {
       PersistConfig();
    }
 }
@@ -793,18 +769,55 @@ Renderer::~Renderer()
    glfwTerminate();
 }
 
-void Renderer::Initialize(om::EntityPtr rootObject)
+void Renderer::SetRootEntity(om::EntityPtr rootObject)
 {
    rootRenderObject_ = CreateRenderObject(H3DRootNode, rootObject);
+}
+
+void Renderer::Initialize()
+{
+   BuildSkySphere();
+   BuildStarfield();
+
+   csg::Region3::Cube littleCube(csg::Region3::Point(0, 0, 0), csg::Region3::Point(1, 1, 1));
+   /*fowVisibleNode_ = h3dAddInstanceNode(H3DRootNode, "fow_visiblenode", 
+      h3dAddResource(H3DResTypes::Material, "materials/fow_visible.material.xml", 0), 
+      Pipeline::GetInstance().CreateVoxelGeometryFromRegion("littlecube", littleCube), 1000);*/
+   fowExploredNode_ = h3dAddInstanceNode(H3DRootNode, "fow_explorednode", 
+      h3dAddResource(H3DResTypes::Material, "materials/fow_explored.material.xml", 0), 
+      Pipeline::GetInstance().CreateVoxelGeometryFromRegion("littlecube", littleCube), 1000);
+
+   csg::Region2 r;
+   r.Add(csg::Rect2(csg::Region2::Point(-10, -10), csg::Region2::Point(10, 10)));
+   UpdateFoW(fowExploredNode_, r);
+
+   // Add camera   
+   camera_ = new Camera(H3DRootNode, "Camera");
+
+   // Add another camera--this is exclusively for the fog-of-war pipeline.
+   fowCamera_ = new Camera(H3DRootNode, "FowCamera");
+
    debugShapes_ = h3dRadiantAddDebugShapes(H3DRootNode, "renderer debug shapes");
+
+   ResizeViewport();
 }
 
 void Renderer::Shutdown()
 {
-   rootRenderObject_ = NULL;
+   show_debug_shapes_changed_slot_.Clear();
+   server_tick_slot_.Clear();
+   render_frame_start_slot_.Clear();
+
+   rootRenderObject_ = nullptr;
    for (auto& e : entities_) {
       e.clear();
    }
+
+   debugShapes_ = 0;
+   fowExploredNode_ = 0;
+   delete camera_;      camera_ = nullptr;
+   delete fowCamera_;   fowCamera_ = nullptr;
+   h3dReset();
    
    ASSERT(RenderEntity::GetTotalObjectCount() == 0);
 }
@@ -909,34 +922,37 @@ void Renderer::RenderOneFrame(int now, float alpha)
    fileWatcher_.update();
    LoadResources();
 
-   float skysphereDistance = config_.draw_distance.value * 0.4f;
-   float starsphereDistance = config_.draw_distance.value * 0.9f;
-   // Update the position of the sky so that it is always around the camera.  This isn't strictly
-   // necessary for rendering, but very important for culling!  Horde doesn't (yet) know that
-   // some nodes should _always_ be drawn.
-   h3dSetNodeTransform(meshNode, 
-      camera_->GetPosition().x, -(skysphereDistance * 0.5f) + camera_->GetPosition().y, camera_->GetPosition().z,
-      25.0, 0.0, 0.0,
-      skysphereDistance, skysphereDistance, skysphereDistance);
-   h3dSetNodeTransform(starfieldMeshNode, 
-      camera_->GetPosition().x, camera_->GetPosition().y, camera_->GetPosition().z,
-      0.0, 0.0, 0.0, 
-      starsphereDistance, starsphereDistance, starsphereDistance);
+   if (camera_) {
+      float skysphereDistance = config_.draw_distance.value * 0.4f;
+      float starsphereDistance = config_.draw_distance.value * 0.9f;
+      // Update the position of the sky so that it is always around the camera.  This isn't strictly
+      // necessary for rendering, but very important for culling!  Horde doesn't (yet) know that
+      // some nodes should _always_ be drawn.
+      h3dSetNodeTransform(meshNode, 
+         camera_->GetPosition().x, -(skysphereDistance * 0.5f) + camera_->GetPosition().y, camera_->GetPosition().z,
+         25.0, 0.0, 0.0,
+         skysphereDistance, skysphereDistance, skysphereDistance);
+      h3dSetNodeTransform(starfieldMeshNode, 
+         camera_->GetPosition().x, camera_->GetPosition().y, camera_->GetPosition().z,
+         0.0, 0.0, 0.0, 
+         starsphereDistance, starsphereDistance, starsphereDistance);
 
-   // Render scene
-   perfmon::SwitchToCounter("render h3d");
+      // Render scene
+      perfmon::SwitchToCounter("render h3d");
    
-   if (drawWorld_) {
-      currentPipeline_ = worldPipeline_;
+      if (drawWorld_) {
+         currentPipeline_ = worldPipeline_;
 
-      RenderFogOfWarRT();
-      h3dSetResParamStr(GetPipeline(currentPipeline_), H3DPipeRes::GlobalRenderTarget, 0, fowRenderTarget_, "FogOfWarRT");
+         RenderFogOfWarRT();
+         h3dSetResParamStr(GetPipeline(currentPipeline_), H3DPipeRes::GlobalRenderTarget, 0, fowRenderTarget_, "FogOfWarRT");
+      }
+
+      h3dRender(camera_->GetNode(), GetPipeline(currentPipeline_));
+
+      // Finish rendering of frame
+      UpdateCamera();
    }
 
-   h3dRender(camera_->GetNode(), GetPipeline(currentPipeline_));
-
-   // Finish rendering of frame
-   UpdateCamera();
    perfmon::SwitchToCounter("render finalize");
    h3dFinalizeFrame();
 
@@ -967,19 +983,22 @@ bool Renderer::IsRunning() const
 
 void Renderer::GetCameraToViewportRay(int viewportX, int viewportY, csg::Ray3* ray)
 {
-   // compute normalized window coordinates in preparation for casting a ray
-   // through the scene
-   float vw = (float)h3dGetNodeParamI(camera_->GetNode(), H3DCamera::ViewportWidthI);
-   float vh = (float)h3dGetNodeParamI(camera_->GetNode(), H3DCamera::ViewportHeightI);
+   ASSERT(camera_);
+   if (camera_) {
+      // compute normalized window coordinates in preparation for casting a ray
+      // through the scene
+      float vw = (float)h3dGetNodeParamI(camera_->GetNode(), H3DCamera::ViewportWidthI);
+      float vh = (float)h3dGetNodeParamI(camera_->GetNode(), H3DCamera::ViewportHeightI);
 
-   float nwx = viewportX / (float)vw;
-   float nwy = 1.0f - (viewportY / (float)vh);
+      float nwx = viewportX / (float)vw;
+      float nwy = 1.0f - (viewportY / (float)vh);
 
-   // calculate the ray starting at the eye position of the camera, casting
-   // through the specified window coordinates into the scene
-   h3dutPickRay(camera_->GetNode(), nwx, nwy,
-                &ray->origin.x, &ray->origin.y, &ray->origin.z,
-                &ray->direction.x, &ray->direction.y, &ray->direction.z);
+      // calculate the ray starting at the eye position of the camera, casting
+      // through the specified window coordinates into the scene
+      h3dutPickRay(camera_->GetNode(), nwx, nwy,
+                   &ray->origin.x, &ray->origin.y, &ray->origin.z,
+                   &ray->direction.x, &ray->direction.y, &ray->direction.z);
+   }
 }
 
 void Renderer::CastRay(const csg::Point3f& origin, const csg::Point3f& direction, RayCastResult* result)
@@ -1094,8 +1113,6 @@ void Renderer::ResizePipelines()
 
 void Renderer::ResizeViewport()
 {
-   H3DNode camera = camera_->GetNode();
-
    double desiredAspect = windowWidth_ / (double)windowHeight_;
    int left = 0;
    int top = 0;
@@ -1119,14 +1136,18 @@ void Renderer::ResizeViewport()
    R_LOG(3) << "Window resized to " << windowWidth_ << "x" << windowHeight_ << ", viewport is (" << left << ", " << top << ", " << width << ", " << height << ")";
 
    // Resize viewport
-   h3dSetOverlayAspectRatio((float)desiredAspect);
-   h3dSetNodeParamI( camera, H3DCamera::ViewportXI, left);
-   h3dSetNodeParamI( camera, H3DCamera::ViewportYI, top);
-   h3dSetNodeParamI( camera, H3DCamera::ViewportWidthI, width);
-   h3dSetNodeParamI( camera, H3DCamera::ViewportHeightI, height);
+   if (camera_) {
+      H3DNode camera = camera_->GetNode();
+
+      h3dSetOverlayAspectRatio((float)desiredAspect);
+      h3dSetNodeParamI(camera, H3DCamera::ViewportXI, left);
+      h3dSetNodeParamI(camera, H3DCamera::ViewportYI, top);
+      h3dSetNodeParamI(camera, H3DCamera::ViewportWidthI, width);
+      h3dSetNodeParamI(camera, H3DCamera::ViewportHeightI, height);
    
-   // Set virtual camera parameters
-   h3dSetupCameraView( camera, 45.0f, width / (float)height, 2.0f, config_.draw_distance.value);
+      // Set virtual camera parameters
+      h3dSetupCameraView( camera, 45.0f, width / (float)height, 2.0f, config_.draw_distance.value);
+   }
 }
 
 void Renderer::SetDrawWorld(bool drawWorld) 
@@ -1135,7 +1156,6 @@ void Renderer::SetDrawWorld(bool drawWorld)
       return;
    }
    drawWorld_ = drawWorld;
-
    if (drawWorld_) {
       currentPipeline_ = worldPipeline_;
    } else {
@@ -1209,6 +1229,8 @@ void Renderer::RemoveRenderObject(int sid, dm::ObjectId id)
 
 void Renderer::UpdateCamera()
 {
+   ASSERT(camera_);
+
    //Let the audio listener know where the camera is
    sf::Listener::setPosition(camera_->GetPosition().x, camera_->GetPosition().y, camera_->GetPosition().z);
 }
@@ -1295,25 +1317,30 @@ void Renderer::OnKey(int key, int down)
 
 void Renderer::GetViewportMouseCoords(double& x, double& y)
 {
-   int vx = h3dGetNodeParamI(camera_->GetNode(), H3DCamera::ViewportXI);
-   int vy = h3dGetNodeParamI(camera_->GetNode(), H3DCamera::ViewportYI);
+   if (camera_) {
+      int vx = h3dGetNodeParamI(camera_->GetNode(), H3DCamera::ViewportXI);
+      int vy = h3dGetNodeParamI(camera_->GetNode(), H3DCamera::ViewportYI);
 
-   x = x - vx;
-   y = y - vy;
+      x = x - vx;
+      y = y - vy;
+   } else {
+      x = y = 0;
+   }
 }
 
 void Renderer::OnWindowResized(int newWidth, int newHeight) {
-   if (newWidth == 0 || newHeight == 0)
-   {
+   if (newWidth == 0 || newHeight == 0) {
       return;
    }
 
    ResizeWindow(newWidth, newHeight);
    ResizeViewport();
    ResizePipelines();
-   screen_resize_slot_.Signal(csg::Point2(
-      h3dGetNodeParamI(camera_->GetNode(), H3DCamera::ViewportWidthI), 
-      h3dGetNodeParamI(camera_->GetNode(), H3DCamera::ViewportHeightI)));
+   if (camera_) {
+      screen_resize_slot_.Signal(csg::Point2(
+         h3dGetNodeParamI(camera_->GetNode(), H3DCamera::ViewportWidthI), 
+         h3dGetNodeParamI(camera_->GetNode(), H3DCamera::ViewportHeightI)));
+   }
 }
 
 void Renderer::OnFocusChanged(int wasFocused) {

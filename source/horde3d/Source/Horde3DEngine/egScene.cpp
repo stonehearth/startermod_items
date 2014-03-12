@@ -509,31 +509,46 @@ void SpatialGraph::query(const SpatialQuery& query, RenderableQueues& renderable
 
 SceneManager::SceneManager()
 {
-	SceneNode *rootNode = GroupNode::factoryFunc( GroupNodeTpl( "RootNode" ) );
-	rootNode->_handle = RootNode;
-	_nodes.push_back( rootNode );
-
-	_spatialGraph = new SpatialGraph();
-
-   _queryCacheCount = 0;
-   _currentQuery = -1;
-   for (int i = 0; i < QueryCacheSize; i++)
-   {
-      _queryCache[i].lightQueue.reserve(20);
-   }
+   initialize();
 }
 
 
 SceneManager::~SceneManager()
 {
-	delete _spatialGraph;
-
-	for( uint32 i = 0; i < _nodes.size(); ++i )
-	{
-		delete _nodes[i]; _nodes[i] = 0x0;
-	}
+   shutdown();
 }
 
+void SceneManager::reset()
+{
+   shutdown();
+   initialize();
+}
+
+void SceneManager::shutdown()
+{
+   delete _spatialGraph; _spatialGraph = nullptr;
+
+   for( uint32 i = 0; i < _nodes.size(); ++i ) {
+      delete _nodes[i]; _nodes[i] = 0x0;
+   }
+   _nodes.resize(0);
+   _freeList.clear();
+}
+
+void SceneManager::initialize()
+{
+   SceneNode *rootNode = GroupNode::factoryFunc( GroupNodeTpl( "RootNode" ) );
+   rootNode->_handle = RootNode;
+   _nodes.push_back( rootNode );
+
+   _spatialGraph = new SpatialGraph();  
+   _queryCacheCount = 0;
+   _currentQuery = -1;
+
+   for (int i = 0; i < QueryCacheSize; i++) {
+      _queryCache[i].lightQueue.reserve(20);
+   }
+}
 
 void SceneManager::registerType( int type, const std::string &typeString, NodeTypeParsingFunc pf,
 								 NodeTypeFactoryFunc ff, NodeTypeRenderFunc rf, NodeTypeRenderFunc irf )

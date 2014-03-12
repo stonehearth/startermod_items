@@ -10,6 +10,11 @@ Selection::Selection() :
 {
 }
 
+bool Selection::operator==(Selection const& other) const
+{
+   return false;
+}
+
 void Selection::Clear()
 {
    flags_ = 0;
