@@ -4,6 +4,12 @@ function FarmingService:__init()
    self:_load_dirt_descriptions()
 end
 
+function FarmingService:initialize()
+end
+
+function FarmingService:restore(savestate)
+end
+
 function FarmingService:_load_dirt_descriptions()
    local dirt_data = radiant.resources.load_json('stonehearth:tilled_dirt')
    self._dirt_data = {}

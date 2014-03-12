@@ -50,7 +50,7 @@ end
 
 function Inventory:_on_item_added(e)
    local storage_id = e.storage:get_id()
-   assert(self._data.storage[id], 'tried to add an item to an untracked storage entity ' .. tostring(e.storage))
+   assert(self._data.storage[storage_id], 'tried to add an item to an untracked storage entity ' .. tostring(e.storage))
 
    table.insert(self._data.storage[storage_id], e.item:get_id())
    self.__savestate:mark_changed()
