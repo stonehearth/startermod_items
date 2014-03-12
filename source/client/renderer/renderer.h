@@ -101,7 +101,8 @@ class Renderer
    public:
       static Renderer& GetInstance();
 
-      void Initialize(om::EntityPtr rootObject);
+      void SetRootEntity(om::EntityPtr rootObject);
+      void Initialize();
       void Shutdown();
 
       void SetScriptHost(lua::ScriptHost* host);

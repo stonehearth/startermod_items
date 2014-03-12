@@ -16,7 +16,8 @@ function AIComponent:__create(entity, json)
    self.__savestate = radiant.create_datastore()
    self.__savestate:set_controller(self)
    radiant.events.listen(entity, 'stonehearth:entity:post_create', function()
-         stonehearth.ai:start_ai(self._entity, self, json)
+         self:_create(json)
+         self:_start()
          return radiant.events.UNLISTEN
       end)
 end
@@ -35,8 +36,6 @@ function AIComponent:get_debug_info()
 end
 
 function AIComponent:__destroy()
-   stonehearth.ai:stop_ai(self._entity:get_id(), self)
-
    self._dead = true
    self:_terminate_thread()
 
@@ -49,7 +48,12 @@ function AIComponent:__destroy()
    self._action_index = {}
 end
 
-function AIComponent:add_action(key, action_ctor, injecting_entity)
+function AIComponent:add_action(uri, injecting_entity)
+   local ctor = radiant.mods.load_script(uri)
+   self:_add_action(uri, ctor, injecting_entity)
+end
+
+function AIComponent:_add_action(key, action_ctor, injecting_entity)
    local does = action_ctor.does
    assert(does)
    assert(not action_key_to_activity[key] or action_key_to_activity[key] == does)
@@ -87,34 +91,53 @@ function AIComponent:remove_action(key)
    end
 end
 
-function AIComponent:add_observer(key, observer)
-   assert(not self._observers[key])
-   self._observers[key] = observer
+function AIComponent:add_custom_action(action_ctor, injecting_entity)
+   log:debug('adding action "%s" (%s) to %s', action_ctor.name, tostring(action_ctor), self._entity)
+   self:_add_action(action_ctor, action_ctor, injecting_entity)
 end
 
-function AIComponent:remove_observer(observer)
+function AIComponent:remove_custom_action(action_ctor, injecting_entity)
+   log:debug('removing action "%s" (%s) from %s', action_ctor.name, tostring(action_ctor), self._entity)
+   self:remove_action(action_ctor)
+end
+
+function AIComponent:add_observer(uri)
+   local ctor = radiant.mods.load_script(uri)
+   assert(not self._observers[uri])
+   self._observers[uri] = ctor(self._entity)
+end
+
+function AIComponent:remove_observer(key)
+   local observer = self._observers[key]
+
    if observer then
-      if observer.destroy_observer then
-         observer:destroy_observer()
+      if observer.destroy then
+         observer:destroy()
       end
-      self._observer[key] = nil
+      self._observers[key] = nil
    end
 end
 
--- shouldn't need this...  threads should restart themselves... but
--- what if we die while trying to restart?  ug!
-function AIComponent:restart_if_terminated()
-   if not self._thread then
-      self:restart()
+
+function AIComponent:_create(json)
+   if json.actions then
+      for _, uri in ipairs(json.actions) do
+         self:add_action(uri)
+      end
+   end
+
+   if json.observers then
+      for _, uri in ipairs(json.observers) do
+         self:add_observer(uri)
+      end
    end
 end
 
-function AIComponent:restart()
+function AIComponent:_start()
    assert(not self._dead)
+   assert(not self._thread)
 
    radiant.check.is_entity(self._entity)
-   self:_terminate_thread()
-   
    self._thread = stonehearth.threads:create_thread()
                                      :set_debug_name('e:%d', self._entity:get_id())
 

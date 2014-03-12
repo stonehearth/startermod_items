@@ -21,6 +21,7 @@ function RunTaskAction:_create_execution_frame(ai)
       self._ai = ai
       self._log = ai:get_log()
 
+      self._log:detail('creating execution frame for %s', self._activity.name)
       self._execution_frame = ai:spawn(self._activity.name)
       radiant.events.listen(self._task, 'started', self, self._start_stop_thinking)
       radiant.events.listen(self._task, 'stopped', self, self._start_stop_thinking)
@@ -43,10 +44,18 @@ function RunTaskAction:_start_stop_thinking()
             --
             --    self._ai:set_think_output(think_output) -- this one's wrong...
             --
+            self._log:debug('execution frame was ready immediately!  calling set_think_output.')
             self._ai:set_think_output()
          else
+            self._log:debug('execution frame was not ready immediately!  registering on_ready handler.')
             self._execution_frame:on_ready(function(frame, think_output)
-               self._ai:set_think_output()
+               if not think_output then
+                  self._log:debug('received unready notification from injected action.')
+                  self._ai:clear_think_output()
+               else
+                  self._log:debug('received ready notification from injected action. (should_think: %s', tostring(self._should_think))
+                  self._ai:set_think_output()
+               end
             end)
          end
 

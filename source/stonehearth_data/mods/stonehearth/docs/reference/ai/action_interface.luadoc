@@ -1,48 +1,75 @@
 -- @title Action Interface
 -- @book reference
--- @section ai/action
+-- @section ai/Action
 
 --[[ @markdown
-## this is a markdown comment ##
-it has lots and **lots** of markdown in it
-yay!
+First _foo_ line.
+
+Second line.
 ]]--
 
--- @class Action
-   -- This is a doc string for the action
-   -- actions are awesome.
-   -- who wouldn't love an action?
-local Action = class()
-
--- Requests that the action begin computing how to start
-   -- blah
-   -- blah
-   -- blah
-   -- put example code here....
-   -- @param ai The ai interface currently running this action
-   -- @param entity The entity this action is currently controlling
-   -- @param args The arguments used for this action 
-function Action:start_thinking(ai, entity, args) end
-
 --[[ @markdown
-## This is even more markdown!!! ##
-it has lots and **lots** of markdown in it
-yay!
+## This is a markdown comment! ##
+It has lots and **lots** of markdown in it yay!
 
-    function LuaMethod:__init(class_name, method_name, comment, method)
-       self.class_name = class_name
-       self.method_name = method_name
-    end
+Sample code block
+
+      function LuaMethod:__init(class_name, method_name, comment, method)
+         self.class_name = class_name
+         self.method_name = method_name
+      end
 
 End of code block
 ]]--
 
--- Notification that the action will be run soon.
-   -- Your action's stop function is guaranteed to be called before the
-   -- action is destroyed.
-   -- @param ai The ai interface currently running this action
-   -- @param entity The entity this action is currently controlling
-   -- @param args The arguments used for this action 
+-- @class Action
+   -- This is a doc string for the Action
+   -- Actions are awesome.
+   -- who wouldn't love an Action?
+local Action = class()
+
+-- Look for a solution to accomplish the goal of the Action.
+   -- This may be a long running function and the Action should call "ai:set\_think\_output" when a solution is found.
+   -- If this solution is selected for execution, "start" will be called.
+   -- Regardless of whether the Action finishes thinking or is selected,
+   -- "stop\_thinking" will eventually be called to clean up resources.
+   -- @param ai The ai interface currently running this Action.
+   -- @param entity The Entity this Action is currently controlling.
+   -- @param args The arguments used for this Action.
+function Action:start_thinking(ai, entity, args) end
+
+-- Notification that the Action has been selected for execution.
+   -- Your Action's stop function is guaranteed to be called before the Action is destroyed.
+   -- @param ai The ai interface currently running this Action.
+   -- @param entity The Entity this Action is currently controlling.
+   -- @param args The arguments used for this Action.
 function Action:start(ai, entity, args) end
+
+-- Clean up any resources used in start\_thinking.
+   -- This may be called before start\_thinking finds a solution as another Action was accepted for execution.
+   -- @param ai The ai interface currently running this Action.
+   -- @param entity The Entity this Action is currently controlling.
+   -- @param args The arguments used for this Action.
+function Action:stop_thinking(ai, entity, args) end
+
+-- Execute the Action
+   -- This implementation cannot block for a long period of time.
+   -- @param ai The ai interface currently running this Action.
+   -- @param entity The Entity this Action is currently controlling.
+   -- @param args The arguments used for this Action.
+function Action:run(ai, entity, args) end
+
+-- Clean up any resources used in the last invocation.
+   -- Action may be called upon to run again.
+   -- @param ai The ai interface currently running this Action.
+   -- @param entity The Entity this Action is currently controlling.
+   -- @param args The arguments used for this Action.
+function Action:stop(ai, entity, args) end
+
+-- This Action will no longer be run. Clean up all resources and prepare to be garbage collected.
+   -- @param ai The ai interface currently running this Action.
+   -- @param entity The Entity this Action is currently controlling.
+   -- @param args The arguments used for this Action.
+function Action:destroy(ai, entity, args) end
 
 return Action

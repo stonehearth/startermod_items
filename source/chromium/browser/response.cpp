@@ -53,7 +53,7 @@ bool Response::ProcessRequest(CefRefPtr<CefRequest> request,
 }
 
 void Response::GetResponseHeaders(CefRefPtr<CefResponse> response,
-                                  int64& response_length,
+                                  ::int64& response_length,
                                   CefString& redirectUrl)
 {
    if (!_mimeType.empty()) {

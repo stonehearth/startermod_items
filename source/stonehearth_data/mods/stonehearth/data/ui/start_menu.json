@@ -5,6 +5,7 @@
       "class" : "dock",
       "icon" : "/stonehearth/ui/game/start_menu/images/dock_harvest.png",
       "hotkey" : "h",
+      "game_mode" : "normal",
       "items" : {
             "harvest" : {
                 "name" : "Harvest Resources",
@@ -72,6 +73,7 @@
       "name" : "Town Info",
       "description" : "xxx",
       "class" : "town",
+      "game_mode" : "normal",
       "items" : {
             "town_inventory" : {
                 "name" : "Inventory",
@@ -90,6 +92,7 @@
       "description" : "xxx",
       "class" : "dock",
       "icon" : "/stonehearth/ui/game/start_menu/images/dock_jobs.png",
+      "game_mode" : "normal",
       "items" : {
             "promote" : {
                 "name" : "Promote a Worker",
@@ -103,6 +106,7 @@
       "description" : "xxx",
       "class" : "dock",
       "icon" : "/stonehearth/ui/game/start_menu/images/dock_defend.png",
+      "game_mode" : "normal",
       "items" : {
             "create_squad" : {
                 "name" : "Create Squad",
@@ -124,6 +128,7 @@
    "config_menu" : {
       "name" : "Config",
       "description" : "xxx",
-      "class" : "dock"
+      "class" : "dock",
+      "game_mode" : "normal"
    }
 }

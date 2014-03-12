@@ -98,7 +98,7 @@ private:
    void Log(const char* category, int level, const char* str);
    void Exit(int code);
    int GetLogLevel(std::string const& category);
-   uint GetRealTime();
+   double GetRealTime();
    void ReportStackException(std::string const& category, std::string const& error, std::string const& traceback) const;
    luabind::object GetObjectRepresentation(luabind::object o, std::string const& format) const;
    bool IsNumericTable(luabind::object tbl) const;

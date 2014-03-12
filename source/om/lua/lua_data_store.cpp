@@ -42,18 +42,35 @@ DataStore_GetData(DataStorePtr data_store)
    return object();
 }
 
-void
-DataStore_ModifyData(lua_State* L, DataStorePtr data_store, luabind::object cb)
+
+static void
+DataStore_CallDataCb(lua_State* L, DataStorePtr data_store, luabind::object cb)
 {
    if (data_store) {
       lua_State* cb_thread = lua::ScriptHost::GetCallbackThread(L);
       try {
          object safe_cb(cb_thread, cb);
          safe_cb(data_store->GetData());
-         data_store->MarkDataChanged();
       } catch (std::exception const& e) {
          lua::ScriptHost::ReportCStackException(L, e);
       }
+   }
+}
+
+void
+DataStore_ModifyData(lua_State* L, DataStorePtr data_store, luabind::object cb)
+{
+   if (data_store) {
+      DataStore_CallDataCb(L, data_store, cb);
+      data_store->MarkDataChanged();
+   }
+}
+
+void
+DataStore_ReadData(lua_State* L, DataStorePtr data_store, luabind::object cb)
+{
+   if (data_store) {
+      DataStore_CallDataCb(L, data_store, cb);
    }
 }
 
@@ -83,6 +100,7 @@ scope LuaDataStore::RegisterLuaTypes(lua_State* L)
          .def("set_data",       &DataStore_SetData) // xxx: don't we need to adopt(_2) here?
          .def("get_data",       &DataStore_GetData) // xxx: don't we need dependency(_1, _2) here?
          .def("modify_data",    &DataStore_ModifyData) // xxx: don't we need dependency(_1, _2) here?
+         .def("read_data",      &DataStore_ReadData) // xxx: don't we need dependency(_1, _2) here?
          .def("trace_data",     &DataStore_Trace)
          .def("set_controller", &DataStore_SetController)
          .def("mark_changed",   &DataStore_MarkChanged)

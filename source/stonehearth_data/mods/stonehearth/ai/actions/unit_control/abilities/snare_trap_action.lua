@@ -33,13 +33,24 @@ function SnareTrap:_trap_entity(entity)
    local trap = buff:get_controller():get_trap()
 
    local commands = trap:add_component('stonehearth:commands')
-   commands:modify_command('harvest_trapped_beast', function (command_data)
+
+   commands:modify_command('harvest_trapped_beast',
+      function (command_data)
          command_data.args = {
             self._entity,
             trap
          }
-      end)
+      end
+   )
 
+   commands:modify_command('tame_trapped_beast',
+      function (command_data)
+         command_data.args = {
+            self._entity,
+            trap
+         }
+      end
+   )
 end
 
 return SnareTrap

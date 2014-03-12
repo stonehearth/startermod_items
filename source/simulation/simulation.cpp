@@ -187,8 +187,6 @@ void Simulation::ShutdownDataObjects()
 
 void Simulation::InitializeDataObjectTraces()
 {
-   ASSERT(root_entity_);
-
    object_model_traces_ = std::make_shared<dm::TracerSync>("sim objects");
    pathfinder_traces_ = std::make_shared<dm::TracerSync>("sim pathfinder");
    lua_traces_ = std::make_shared<dm::TracerBuffered>("sim lua", *store_);  
@@ -205,9 +203,7 @@ void Simulation::InitializeDataObjectTraces()
       } else if (type == om::EntityObjectType) {
          entityMap_[id] = std::static_pointer_cast<om::Entity>(obj);
       }
-   })->PushStoreState();
-
-   GetOctTree().SetRootEntity(root_entity_);
+   })->PushStoreState();   
 }
 
 void Simulation::ShutdownDataObjectTraces()
@@ -250,6 +246,7 @@ void Simulation::ShutdownGameObjects()
 {
    clock_ = nullptr;
    root_entity_ = nullptr;
+   modList_ = nullptr;
 
    entity_jobs_schedulers_.clear();
    jobs_.clear();
@@ -278,47 +275,42 @@ void Simulation::CreateGameModules()
    using namespace luabind;
    core::Config const& config = core::Config::GetInstance();
    res::ResourceManager2 &resource_manager = res::ResourceManager2::GetInstance();
-   lua_State* L = scriptHost_->GetInterpreter();
 
-   om::ModListPtr mod_list = root_entity_->AddComponent<om::ModList>();
-   
-   for (std::string const& mod_name : resource_manager.GetModuleNames()) {      
-      std::string script_name;
-      resource_manager.LookupManifest(mod_name, [&](const res::Manifest& manifest) {
-         script_name = manifest.get<std::string>("server_init_script", "");
-      });
-      if (!script_name.empty()) {
-         try {
-            luabind::object obj = scriptHost_->Require(script_name);
-            mod_list->AddMod(mod_name, obj);
-            luabind::globals(L)[mod_name] = obj;
-            scriptHost_->TriggerOn(obj, "radiant:construct", luabind::object());
-         } catch (std::exception const& e) {
-            SIM_LOG(1) << "module " << mod_name << " failed to load " << script_name << ": " << e.what();
-         }
-      }
+   CreateModules();
+   for (auto const& entry : modList_->EachMod()) {
+      scriptHost_->TriggerOn(entry.second, "radiant:construct", luabind::object());
    }
-   scriptHost_->Require("radiant.lualibs.strict");
    scriptHost_->Trigger("radiant:modules_loaded");
 
    std::string const module = config.Get<std::string>("game.main_mod", "stonehearth");
-   luabind::object obj = mod_list->GetMod(module);
+   luabind::object obj = modList_->GetMod(module);
    if (obj) {
-      scriptHost_->TriggerOn(obj, "radiant:new_game", luabind::newtable(L));
+      lua_State* L = scriptHost_->GetInterpreter();
+      scriptHost_->TriggerOn(obj, "radiant:new_game", luabind::newtable(L)); 
    }
 }
 
 void Simulation::LoadGameModules()
 {
-   scriptHost_->Require("radiant.lualibs.strict");
-   for (auto const& entry : datastores_) {
-      om::DataStorePtr ds = entry.second.lock();
-      if (ds) {
-         std::string script = ds->GetController().GetLuaSource();
-         if (!script.empty()) {
-            luabind::object obj = scriptHost_->Require(script);
-            ds->GetController().SetLuaObject(obj);
-         }
+   // Stash the savestate away before we blow away the ModList component with the
+   // new module script objects.
+   std::map<std::string, luabind::object> savestates;
+   for (auto const& entry : modList_->EachMod()) {
+      savestates[entry.first] = entry.second;
+   }
+
+   // Now load up the modules.
+   CreateModules();
+
+   // Ask them all to load
+   lua_State* L = scriptHost_->GetInterpreter();
+   for (auto const& entry : modList_->EachMod()) {
+      std::string const& mod_name = entry.first;
+      luabind::object savestate = savestates[mod_name];
+      if (savestate && savestate.is_valid()) {
+         luabind::object e(luabind::newtable(L));
+         e["savestate"] = savestate;
+         scriptHost_->TriggerOn(entry.second, "radiant:load", e);
       }
    }
    scriptHost_->Trigger("radiant:game_loaded");
@@ -336,6 +328,7 @@ void Simulation::CreateGame()
    ASSERT(root_entity_->GetObjectId() == 1);
    clock_ = root_entity_->AddComponent<om::Clock>();
    now_ = clock_->GetTime();
+   modList_ = root_entity_->AddComponent<om::ModList>();
 
    error_browser_ = store_->AllocObject<om::ErrorBrowser>();
    scriptHost_->SetNotifyErrorCb([=](om::ErrorBrowser::Record const& r) {
@@ -343,8 +336,10 @@ void Simulation::CreateGame()
    });
 
    InitializeDataObjectTraces();
+   GetOctTree().SetRootEntity(root_entity_);
 
    radiant_ = scriptHost_->Require("radiant.server");
+   scriptHost_->TriggerOn(radiant_, "radiant:construct", luabind::object());
    CreateGameModules();
 }
 
@@ -847,40 +842,75 @@ void Simulation::Load()
    Shutdown();
    Initialize();
 
+   radiant_ = scriptHost_->Require("radiant.server");
+
    std::string error;
    dm::Store::ObjectMap objects;
+   // Re-initialize the game
    if (!store_->Load(error, objects)) {
       SIM_LOG(0) << "failed to load: " << error;
    }
    SIM_LOG(0) << "loaded.";
+   scriptHost_->TriggerOn(radiant_, "radiant:load", luabind::object());
 
-   // create new streamers for all the clients and buffer a notification to clear out all their old
-   // state
-   ASSERT(buffered_updates_.empty());
-   proto::Update msg;
-   msg.set_type(proto::Update::ClearClientState);
-   buffered_updates_.emplace_back(msg);
-
-   for (std::shared_ptr<RemoteClient> client : _clients) {
-      client->streamer = std::make_shared<dm::Streamer>(*store_, dm::PLAYER_1_TRACES, client->send_queue.get());
-   }
-
-   // Re-initialize the game
    root_entity_ = store_->FetchObject<om::Entity>(1);
    ASSERT(root_entity_);
    clock_ = root_entity_->AddComponent<om::Clock>();
    now_ = clock_->GetTime();
+   modList_ = root_entity_->AddComponent<om::ModList>();
+
+   InitializeDataObjectTraces();
+   GetOctTree().SetRootEntity(root_entity_);
 
    error_browser_ = store_->AllocObject<om::ErrorBrowser>();
    scriptHost_->SetNotifyErrorCb([=](om::ErrorBrowser::Record const& r) {
       error_browser_->AddRecord(r);
    });
 
-   InitializeDataObjectTraces();
-   radiant_ = scriptHost_->Require("radiant.server");
+   // create new streamers for all the clients and buffer a notification to clear out all their old
+   // state
+   ASSERT(buffered_updates_.empty());
+   proto::Update msg;
+   msg.set_type(proto::Update::ClearClientState);
+   for (std::shared_ptr<RemoteClient> client : _clients) {
+      client->send_queue->Push(msg);
+      client->streamer = std::make_shared<dm::Streamer>(*store_, dm::PLAYER_1_TRACES, client->send_queue.get());
+   }
+
    LoadGameModules();
+
 }
 
 void Simulation::Reset()
 {
 }
+
+void Simulation::CreateModule(std::string const& mod_name)
+{
+   lua_State* L = scriptHost_->GetInterpreter();
+   res::ResourceManager2 &resource_manager = res::ResourceManager2::GetInstance();
+   std::string script_name;
+
+   resource_manager.LookupManifest(mod_name, [&](const res::Manifest& manifest) {
+      script_name = manifest.get<std::string>("server_init_script", "");
+   });
+   if (!script_name.empty()) {
+      try {
+         luabind::object obj = scriptHost_->Require(script_name);
+         modList_->AddMod(mod_name, obj);
+         luabind::globals(L)[mod_name] = obj;
+      } catch (std::exception const& e) {
+         SIM_LOG(1) << "module " << mod_name << " failed to load " << script_name << ": " << e.what();
+      }
+   }
+}
+
+void Simulation::CreateModules()
+{
+   res::ResourceManager2 &resource_manager = res::ResourceManager2::GetInstance();
+   for (std::string const& mod_name : resource_manager.GetModuleNames()) {      
+      CreateModule(mod_name);
+   }
+   scriptHost_->Require("radiant.lualibs.strict");
+}
+

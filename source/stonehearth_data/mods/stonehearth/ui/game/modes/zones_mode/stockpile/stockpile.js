@@ -16,7 +16,6 @@ App.StonehearthStockpileView = App.View.extend({
       "stonehearth:stockpile" : {}
    },
 
-   modal: true,
 
    didInsertElement: function() {
       this._super();
@@ -60,8 +59,13 @@ App.StonehearthStockpileView = App.View.extend({
         }
       });
 
+      this.$('button.ok').click(function() {
+         self.destroy();
+      });
+
       this.items.find('img').tooltipster();
 
+      //this.$('#stockpileWindow').click(function() { return false; });
       //this.$().click(function() { self.destroy(); });
 
       self._refreshGrids();

@@ -1,15 +1,15 @@
 local Task = require 'services.tasks.task'
 local TaskGroup = class()
 
-function TaskGroup:__init(scheduler, name, args)
+function TaskGroup:__init(scheduler, activity_name, args)
    args = args or {}
    self._activity = {
-      name = name,
+      name = activity_name,
       args = args
    }
-   self._log = radiant.log.create_logger('task_group', name)
+   self._log = radiant.log.create_logger('task_group', activity_name)
    self._scheduler = scheduler
-   self._counter_name = name
+   self._counter_name = activity_name
 
    -- a table of all the workers which belong to the task group.   only
    -- workers in this group may run these tasks.  workers can be in
@@ -64,12 +64,12 @@ function TaskGroup:set_priority(priority)
    return self
 end
 
-function TaskGroup:create_task(name, args)
-   assert(type(name) == 'string')
+function TaskGroup:create_task(activity_name, args)
+   assert(type(activity_name) == 'string')
    assert(args == nil or type(args) == 'table')
 
    local activity = {
-      name = name,
+      name = activity_name,
       args = args or {}
    }
    
@@ -84,7 +84,7 @@ function TaskGroup:create_task(name, args)
    return task
 end
 
-function TaskGroup:_on_task_destroy(task)
+function TaskGroup:_on_task_stop(task)
    self._log:debug('removing task %s from group', task:get_name())
    if self._tasks[task] then
       self._tasks[task] = nil

@@ -107,10 +107,24 @@ typename Map<K, V, H>::ContainerType::const_iterator Map<K, V, H>::Remove(typena
    return result;
 }
 
+template <typename T> bool Equals(T const& lhs, T const& rhs) {
+   return lhs == rhs;
+}
+
+template <typename T> bool Equals(std::weak_ptr<T> const& lhs, std::weak_ptr<T> const& rhs) {
+   return lhs.lock() == rhs.lock();
+}
+
 template <class K, class V, class H>
 void Map<K, V, H>::Add(K const& key, V const& value) {
-   auto result = items_.insert(std::make_pair(key, value));
-   if (result.second) {
+   auto i = items_.find(key);
+   if (i != items_.end()) {
+      if (!Equals(i->second, value)) {
+         i->second = value;
+         GetStore().OnMapChanged(*this, key, value);
+      }
+   } else {
+      items_[key] = value;
       GetStore().OnMapChanged(*this, key, value);
    }
 }

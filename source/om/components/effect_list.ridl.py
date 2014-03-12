@@ -15,6 +15,11 @@ class EffectList(Component):
      
    _includes = [ "dm/set.h" ]
    _lua_includes = [ "om/components/effect.ridl.h" ]
+   _public = \
+   """
+   void OnLoadObject(dm::SerializationType r) override;
+   """
+
    _private = \
    """
    void AddRemoveDefault();

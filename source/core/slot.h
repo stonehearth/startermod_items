@@ -51,6 +51,12 @@ public:
       firing_ = false;
    }
 
+   void Clear()
+   {
+      ASSERT(!firing_);
+      callbacks_.clear();
+   }
+
 private:
    void Remove(int id) {
       if (firing_) {

@@ -136,6 +136,8 @@ private:
    void ShutdownLuaObjects();
 
    void CreateGame();
+   void CreateModule(std::string const& name);
+   void CreateModules();
 
 private:
    std::unique_ptr<dm::Store>                            store_;
@@ -191,6 +193,7 @@ private:
    core::Guard                         on_frame_end_guard_;
    om::ErrorBrowserPtr                 error_browser_;
    om::EntityPtr                       root_entity_;
+   om::ModListPtr                      modList_;
    om::ClockPtr                        clock_;
    float                               game_speed_;
 };

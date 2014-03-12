@@ -242,6 +242,7 @@
       "actions:replace_proxy_with_item" : "file(ai/actions/replace_proxy_with_item_action.lua)",
       "actions:trigger_event" : "file(ai/actions/trigger_event.lua)",
       "actions:wander" : "file(ai/actions/wander_action.lua)",
+      "actions:wander_within_leash" : "file(ai/actions/wander_within_leash_action.lua)",
       "actions:wander_when_bored" : "file(ai/actions/wander_when_bored.lua)",
       "actions:wait_for_attribute_above" : "file(ai/actions/wait_for_attribute_above.lua)",
       "actions:choose_point_around_leash" : "file(ai/actions/choose_point_around_leash.lua)",
@@ -281,6 +282,7 @@
       "actions:sit_on_chair_adjacent" : "file(ai/actions/sit_on_chair_adjacent.lua)",
       "actions:eat" : "file(ai/actions/eat.lua)",
       "actions:eat_carrying" : "file(ai/actions/eat_carrying.lua)",
+      "actions:eat_item" : "file(ai/actions/eat_item.lua)",
       "actions:eat_on_chair" : "file(ai/actions/eat_on_chair.lua)",
       "actions:eat_on_ground" : "file(ai/actions/eat_on_ground.lua)",
       "actions:get_food_on_ground" : "file(ai/actions/get_food_on_ground_action.lua)",
@@ -295,11 +297,21 @@
       "actions:unit_control:unload_inventory" : "file(ai/actions/unit_control/unload_inventory.lua)",
       "actions:unit_control:abilities:snare_trap" : "file(ai/actions/unit_control/abilities/snare_trap_action.lua)",
       "actions:unit_control:harvest_trapped_beast" : "file(ai/actions/unit_control/harvest_trapped_beast_action.lua)",
+      "actions:unit_control:tame_trapped_beast" : "file(ai/actions/unit_control/tame_trapped_beast_action.lua)",
+
+      "actions:unit_control:harvest_trapped_beast_adjacent" : "file(ai/actions/unit_control/harvest_trapped_beast_adjacent_action.lua)",
+      "actions:unit_control:tame_trapped_beast_adjacent" : "file(ai/actions/unit_control/tame_trapped_beast_adjacent_action.lua)",
+
+      "actions:ambient_pet_behavior:dispatcher" : "file(ai/actions/pet/ambient_pet_dispatcher.lua)",
+      "actions:pet:check_out_random_friend" : "file(ai/actions/pet/check_out_random_friend_action.lua)",
+      "actions:pet:run_in_circles" : "file(ai/actions/pet/run_in_circles_action.lua)",
+      "actions:pet:pet_eat_from_ground" : "file(ai/actions/pet/pet_eat_from_ground_action.lua)",
+      "actions:pet:eat_from_container" : "file(ai/actions/pet/pet_eat_from_container_action.lua)",
+      "actions:pet:pet_sleep_on_ground" : "file(ai/actions/pet/pet_sleep_on_ground.lua)",
 
       "actions:drop_inventory_items" : "file(ai/actions/drop_inventory_items.lua)",
       "actions:get_town_banner" : "file(ai/actions/get_town_banner.lua)",
       "actions:goto_town_banner" : "file(ai/actions/goto_town_banner.lua)",
-      "actions:harvest_trapped_beast_adjacent" : "file(ai/actions/unit_control/harvest_trapped_beast_adjacent_action.lua)",
       "actions:harvest_resource_node_action" : "file(ai/actions/harvest_resource_node.lua)",
       "actions:harvest_resource_node_adjacent_action" : "file(ai/actions/harvest_resource_node_adjacent.lua)",
       "actions:harvest_plant" : "file(ai/actions/harvest_plant.lua)",
@@ -479,7 +491,11 @@
          "endpoint" : "server"
       },
       "harvest_trapped_beast" : {
-         "controller": "file(call_handlers/unit_control/harvest_trapped_beast_call_handler.lua)",
+         "controller": "file(call_handlers/unit_control/trapped_beast_call_handler.lua)",
+         "endpoint" : "server"
+      },
+      "tame_trapped_beast" : {
+         "controller": "file(call_handlers/unit_control/trapped_beast_call_handler.lua)",
          "endpoint" : "server"
       },
       "release_from_captivity" : {

@@ -29,6 +29,8 @@ public:
       number_ = number;
    }
 
+   bool operator==(Selection const& other) const;
+
    template <class T> Selection(std::shared_ptr<T> obj) {
       flags_ = HAS_OBJECT;
       objectType_ = obj->GetObjectType();

@@ -46,7 +46,7 @@ $.widget( "stonehearth.stonehearthMenu", {
    },
 
    setGameMode: function(mode) {
-      if (mode == "normal") {
+      if (mode == "normal" && this.getGameMode() != "normal") {
          this.hideMenu();
          return;
       }
@@ -99,9 +99,10 @@ $.widget( "stonehearth.stonehearthMenu", {
          var id = $(this).attr('id');
          var nodeData = self._dataToMenuItemMap[id]
 
-         // xxx, this doesn't go here...
+         // deactivate any tools that are open
          App.stonehearthClient.deactivateAllTools();
 
+         // if this menu has sub-items, hide any menus that are open now so we can show a new one
          if (nodeData.items) {
             if (self.getMenu() == id) {
                self.hideMenu();

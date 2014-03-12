@@ -1,6 +1,4 @@
 local MicroWorld = require 'lib.micro_world'
-
-local Point3 = _radiant.csg.Point3
 local rng = _radiant.csg.get_default_rng()
 
 local PetTest = class(MicroWorld)
@@ -9,45 +7,67 @@ function PetTest:__init()
    self[MicroWorld]:__init()
    self:create_world()
 
+   local faction = 'civ'
+   local humans = {}
+   local critters = {}
+
+   local worker1 = self:place_citizen(-7, -7)
+   table.insert(humans, worker1)
+   local worker2 = self:place_citizen( 7, -7)
+   table.insert(humans, worker2)
+   local worker3 = self:place_citizen(-7,  7)
+   table.insert(humans, worker3)
    local trapper = self:place_citizen(7, 7, 'trapper')
-   local faction = radiant.entities.get_faction(trapper)
-   local rabbit = self:place_item('stonehearth:rabbit', -7, -7)
+   table.insert(humans, trapper)
 
-   -- tame the rabbit
-   local equipment = rabbit:add_component('stonehearth:equipment')
-   equipment:equip_item('stonehearth:pet_collar')
-   
-   --Make the rabbit from the same faction as the trapper
-   radiant.entities.set_faction(rabbit, faction)
+   local critter1 = self:place_item('stonehearth:red_fox', 2, 2)
+   table.insert(critters, critter1)
+   local critter2 = self:place_item('stonehearth:racoon', -2, 2)
+   table.insert(critters, critter2)
+   local critter3 = self:place_item('stonehearth:rabbit', 2, -2)
+   table.insert(critters, critter3)
+   local critter4 = self:place_item('stonehearth:squirrel', -2, -2)
+   table.insert(critters, critter4)
 
-   local scheduler = stonehearth.tasks:create_scheduler('stonehearth:pet_scheduler')
+   self:place_item('stonehearth:berry_basket', 10, 10)
+   self:place_item('stonehearth:berry_plate', -10, 10)
+   self:place_item('stonehearth:berry_plate', 10, -10)
+   self:place_item('stonehearth:berry_plate', -10, -10)
+   self:place_item('stonehearth:arch_backed_chair', 5, 5)
+   self:place_item('stonehearth:comfy_bed', -4, -4)
 
-   local task_group = scheduler:create_task_group('stonehearth:top')
-                               :set_priority(stonehearth.constants.priorities.top.WORK)
-                               :add_worker(rabbit)
-                               :set_counter_name('pets')
+   local town = stonehearth.town:get_town(faction)
 
-   local task = task_group:create_task('stonehearth:follow_entity', { target = trapper })
-                          :times(100)
-                          :start()
+   -- tame the critters
+   for _, critter in pairs(critters) do
+      local equipment = critter:add_component('stonehearth:equipment')
+      equipment:equip_item('stonehearth:pet_collar')
+      town:add_pet(critter)
+   end
+
+   self:at(1000,
+      function()
+         for _, critter in pairs(critters) do
+            --critter:add_component('stonehearth:attributes'):set_attribute('hunger', 120)
+         end
+
+         for _, human in pairs(humans) do
+            --human:add_component('stonehearth:attributes'):set_attribute('hunger', 120)
+         end
+      end
+   )
+
+   self:at(20000,
+      function()
+         for _, critter in pairs(critters) do
+            --critter:add_component('stonehearth:attributes'):set_attribute('sleepiness', 120)
+         end
+
+         for _, human in pairs(humans) do
+            --human:add_component('stonehearth:attributes'):set_attribute('sleepiness', 120)
+         end
+      end
+   )
 end
-
---TODO: move to the orchestrator, when we have it, so we can alternate people
---we're obsessed with
-function PetTest:_pick_target(entity)
-   --if we don't have an idol, pick one based on our faction
-   local faction = radiant.entities.get_faction(entity)
-   local population_faction = stonehearth.population:get_faction(faction)
-   local citizen_table = population_faction:get_citizens()
-   local i = rng:get_int(1, #citizen_table)
-   local target = citizen_table[i]
-
-   entity:get_component('unit_info'):set_description("Fascinated by " .. target:get_component('unit_info'):get_display_name())
-   return target
-end
-
-   -- self:at(3000, function()
-   --    rabbit:add_component('stonehearth:attributes'):set_attribute('sleepiness', 100)
-   --    end)
 
 return PetTest

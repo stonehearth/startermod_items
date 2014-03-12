@@ -91,4 +91,12 @@ function api.update(profile_this_frame)
    _stop_profiling()
 end
 
+radiant.events.listen(api, 'radiant:load', function(args)
+      radiant._root_entity = _radiant.sim.get_object(1)
+   end)
+
+radiant.events.listen(api, 'radiant:construct', function(args)
+      radiant._root_entity = _radiant.sim.get_object(1)
+   end)
+
 return api
