@@ -1,17 +1,16 @@
 EventService = class()
 
-function EventService:__init()
+function EventService:initialize()
    self._entries = {}
    self.__savestate = radiant.create_datastore({
          entries = self._entries
       })
 end
 
-function EventService:load(savestate)
+function EventService:restore(savestate)
    self.__savestate = savestate
    self.__savestate:read_data(function(o)
-         self._entries = o.entries
-         assert(self._entries)
+         self._entries = o.entries or {}
       end)
 end
 

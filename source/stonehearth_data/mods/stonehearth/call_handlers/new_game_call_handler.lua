@@ -17,7 +17,7 @@ function NewGameCallHandler:new_game(session, response, num_tiles_x, num_tiles_y
    local wgs = stonehearth.world_generation
    local blueprint
 
-   wgs:initialize(seed, true)
+   wgs:create_new_game(seed, true)
 
    local generation_method = radiant.util.get_config('world_generation.method', 'default')
 

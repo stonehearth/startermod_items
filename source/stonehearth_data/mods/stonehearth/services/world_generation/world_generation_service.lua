@@ -22,7 +22,7 @@ local log = radiant.log.create_logger('world_generation')
 function WorldGenerationService:__init()
 end
 
-function WorldGenerationService:initialize(seed, async)
+function WorldGenerationService:create_new_game(seed, async)
    self:set_seed(seed)
    self._async = async
    self._enable_scenarios = radiant.util.get_config('enable_scenarios', true)
@@ -38,7 +38,7 @@ function WorldGenerationService:initialize(seed, async)
    self._landscaper = Landscaper(self._terrain_info, self._rng, self._async)
 
    self._scenario_service = stonehearth.scenario
-   self._scenario_service:initialize(self._feature_size, self._rng)
+   self._scenario_service:create_new_game(self._feature_size, self._rng)
    self._habitat_manager = HabitatManager(self._terrain_info, self._landscaper)
 
    self.blueprint_generator = BlueprintGenerator()

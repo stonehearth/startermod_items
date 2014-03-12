@@ -21,7 +21,12 @@ function AiService:__init()
    AiService.NIL = { NIL = 'The nil value' }
 end
 
-function AiService:load(savestate)   
+function AiService:initialize()
+   -- nothing to do.
+end
+
+function AiService:restore(savestate)
+   -- nothing to do.
 end
 
 -- injecting entity may be null

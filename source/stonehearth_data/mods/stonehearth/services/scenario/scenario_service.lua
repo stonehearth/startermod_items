@@ -15,7 +15,7 @@ local ScenarioService = class()
 function ScenarioService:__init()
 end
 
-function ScenarioService:initialize(feature_size, rng)
+function ScenarioService:create_new_game(feature_size, rng)
    self._feature_size = feature_size
    self._rng = rng
    self._reveal_distance = radiant.util.get_config('sight_radius', 64) * 2

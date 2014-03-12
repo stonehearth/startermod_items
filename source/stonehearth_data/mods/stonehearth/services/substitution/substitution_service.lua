@@ -77,6 +77,12 @@ function SubstitutionService:__init()
    self._substitution_tables = {}
 end
 
+function SubstitutionService:initialize()
+end
+
+function SubstitutionService:restore(savestate)
+end
+
 --- Populate the dictionary with a data blob of json
 --  For each item in the substitution table json, find it's namespace
 --  split the namespace by : (or any other punctutation)

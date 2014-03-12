@@ -4,7 +4,7 @@ local RenewableResourceNodeComponent = class()
 
 function RenewableResourceNodeComponent:__create(entity, json)
    self._entity = entity
-   self._calendar_constants = calendar.get_constants();
+   self._calendar_constants = calendar:get_constants();
    
    self._original_description = self._entity:get_component('unit_info'):get_description()
    self._wait_text = self._original_description
