@@ -234,6 +234,7 @@ protected:
 	void createPrimitives();
 	
 	bool setMaterialRec( MaterialResource *materialRes, const std::string &shaderContext, ShaderResource *shaderRes );
+   void updateLodUniform(int lodLevel, float lodDist1, float lodDist2);
 	
 	void setupShadowMap( bool noShadows );
 	Matrix4f calcCropMatrix( const Frustum &frustSlice, const Vec3f lightPos, const Matrix4f &lightViewProjMat );
@@ -305,6 +306,7 @@ protected:
 	float                              _smSize;
 	float                              _splitPlanes[5];
 	Matrix4f                           _lightMats[4];
+   Vec4f                              _lodValues;
 
 	uint32                             _vlPosOnly, _vlOverlay, _vlModel, _vlParticle, _vlVoxelModel, _vlClipspace, _vlPosColTex, _vlInstanceVoxelModel;
 	uint32                             _vbCube, _ibCube, _vbSphere, _ibSphere;

@@ -168,7 +168,7 @@ uniform vec3 lightAmbientColor;
 uniform sampler2D cloudMap;
 uniform sampler2D fowRT;
 uniform float currentTime;
-uniform vec4 lodlevel;
+uniform vec4 lodLevels;
 
 varying vec4 vsPos;
 varying vec4 pos;
@@ -198,19 +198,11 @@ void main( void )
   float fowValue = texture2D(fowRT, projFowPos.xy).a;
   lightColor *= fowValue;
 
-  float n = 2.0;
-  float f = 1000.0;
-
-  float f1S = n;
-  float f1E = (1.0 - 0.41) * n + (0.41 * f);
-  float f2S = (1.0 - 0.39) * n + (0.39 * f);
-  float f2E = f;
-  float d = f1E - f2S;
-
-  if (lodlevel.x == 0.0) {
-    lightColor *= clamp((f1E - -vsPos.z) / d, 0.0, 1.0);
+  // Do LOD blending.
+  if (lodLevels.x == 0.0) {
+    lightColor *= clamp((lodLevels.y - -vsPos.z) / lodLevels.w, 0.0, 1.0);
   } else {
-    lightColor *= clamp((-vsPos.z - f2S) / d, 0.0, 1.0);  
+    lightColor *= clamp((-vsPos.z - lodLevels.z) / lodLevels.w, 0.0, 1.0);
   }
 
   gl_FragColor = vec4(lightColor, 1.0);
@@ -285,7 +277,7 @@ uniform sampler2D ssaoImage;
 uniform vec2 viewPortSize;
 uniform vec2 viewPortPos;
 uniform float currentTime;
-uniform vec4 lodlevel;
+uniform vec4 lodLevels;
 
 varying vec4 vsPos;
 varying vec4 pos;
@@ -314,19 +306,12 @@ void main( void )
   float fowValue = texture2D(fowRT, projFowPos.xy).a;
   lightColor *= fowValue;
 
-  float n = 2.0;
-  float f = 1000.0;
+  // Do LOD blending.
 
-  float f1S = n;
-  float f1E = (1.0 - 0.41) * n + (0.41 * f);
-  float f2S = (1.0 - 0.39) * n + (0.39 * f);
-  float f2E = f;
-  float d = f1E - f2S;
-
-  if (lodlevel.x == 0.0) {
-    lightColor *= clamp((f1E - -vsPos.z) / d, 0.0, 1.0);
+  if (lodLevels.x == 0.0) {
+    lightColor *= clamp((lodLevels.y - -vsPos.z) / lodLevels.w, 0.0, 1.0);
   } else {
-    lightColor *= clamp((-vsPos.z - f2S) / d, 0.0, 1.0);  
+    lightColor *= clamp((-vsPos.z - lodLevels.z) / lodLevels.w, 0.0, 1.0);
   }
 
   gl_FragColor = vec4(lightColor, 1.0);

@@ -551,6 +551,7 @@ bool Renderer::createShaderComb( const char* filename, const char *vertexShader,
 	// Misc general uniforms
 	sc.uni_currentTime = gRDI->getShaderConstLoc( shdObj, "currentTime" );
 	sc.uni_frameBufSize = gRDI->getShaderConstLoc( shdObj, "frameBufSize" );
+   sc.uni_lodLevels = gRDI->getShaderConstLoc( shdObj, "lodLevels" );
    sc.uni_viewPortSize = gRDI->getShaderConstLoc( shdObj, "viewPortSize" );
    sc.uni_viewPortPos = gRDI->getShaderConstLoc( shdObj, "viewPortPos" );
    sc.uni_halfTanFoV = gRDI->getShaderConstLoc( shdObj, "halfTanFoV" );
@@ -665,6 +666,11 @@ void Renderer::commitGeneralUniforms()
 			float dimensions[2] = { (float)gRDI->_fbWidth, (float)gRDI->_fbHeight };
 			gRDI->setShaderConst( _curShader->uni_frameBufSize, CONST_FLOAT2, dimensions );
 		}
+
+      if( _curShader->uni_lodLevels >= 0 )
+      {
+         gRDI->setShaderConst( _curShader->uni_lodLevels, CONST_FLOAT4, &_lodValues );
+      }
 
       if (_curShader->uni_viewPortSize >= 0)
       {
@@ -1914,10 +1920,22 @@ void Renderer::drawFSQuad( Resource *matRes, const std::string &shaderContext )
 	gRDI->draw( PRIM_TRILIST, 0, 3 );
 }
 
+void Renderer::updateLodUniform(int lodLevel, float lodDist1, float lodDist2)
+{
+   float nearV = _curCamera->getParamF(CameraNodeParams::NearPlaneF, 0);
+   float farV = _curCamera->getParamF(CameraNodeParams::FarPlaneF, 0);
+   _lodValues.x = lodLevel;
+   _lodValues.y = (1.0 - lodDist1) * nearV + (lodDist1 * farV);
+   _lodValues.z = (1.0 - lodDist2) * nearV + (lodDist2 * farV);
+   _lodValues.w = (_lodValues.y - _lodValues.z);
+}
+
 void Renderer::drawLodGeometry(const std::string &shaderContext, const std::string &theClass,
                              RenderingOrder::List order, int filterRequried, int occSet, float frustStart, float frustEnd, int lodLevel)
 {
+   updateLodUniform(lodLevel, 0.41, 0.39);
    Frustum f = _curCamera->getFrustum();
+
 
    if (frustStart != 0.0f || frustEnd != 1.0f) {
       float fStart = (1.0f - frustStart) * _curCamera->_frustNear + (frustStart * _curCamera->_frustFar);
@@ -2842,12 +2860,6 @@ void Renderer::drawVoxelMeshes_Instances(const std::string &shaderContext, const
 			Vec4f color( 0.5f, 0.75f, 1, 1 );
 			gRDI->setShaderConst( Modules::renderer()._defColShader_color, CONST_FLOAT4, &color.x );
 		}
-
-      int lodLevelConst = gRDI->getShaderConstLoc(Modules::renderer().getCurShader()->shaderObj, "lodlevel");
-      if (lodLevelConst > -1) {
-         Vec4f lodValue(lodLevel,0,0,1);
-         gRDI->setShaderConst(lodLevelConst, RDIShaderConstType::CONST_FLOAT4, &(lodValue.x));
-      }
 
       float lodOffsetX = Modules::renderer()._lod_polygon_offset_x;
       float lodOffsetY = Modules::renderer()._lod_polygon_offset_y;
