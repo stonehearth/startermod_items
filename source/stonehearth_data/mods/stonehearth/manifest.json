@@ -545,7 +545,7 @@
          "controller" : "file(call_handlers/resource_call_handler.lua)",
          "endpoint" : "server"
       },
-      "break_down_object" : {
+      "raze_crop" : {
          "controller" : "file(call_handlers/resource_call_handler.lua)",
          "endpoint" : "server"
       },

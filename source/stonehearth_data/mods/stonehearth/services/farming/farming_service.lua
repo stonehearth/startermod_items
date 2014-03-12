@@ -38,6 +38,22 @@ function FarmingService:plant_crop(faction, soil_plots, crop_type)
                               :once()
                               :start()
    end
+   return true
+end
+
+function FarmingService:harvest_crops(faction, soil_plots)
+   if not soil_plots[1] then
+      return false
+   end
+   local town = stonehearth.town:get_town(faction)
+   for i, plot in ipairs(soil_plots) do 
+      local plot_component = plot:get_component('stonehearth:dirt_plot')
+      local plant = plot_component:get_contents()
+      if plant then
+         town:harvest_resource_node(plant)
+      end
+   end
+   return true
 end
 
 return FarmingService

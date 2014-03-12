@@ -2,8 +2,8 @@
    "type" : "command",
 
    "name": "harvest_planted",
-   "tooltip" : "Harvest!",
-   "description" : "Time to reap calories.",
+   "tooltip" : "Harvest",
+   "description" : "Reap whatever's available.",
 
    "default_enabled": true,  
    "icon": "file(harvest_planted.png)",

@@ -7,9 +7,8 @@
    "icon": "file(raze_crop.png)",
 
    "action": "call",
-   "function" : "stonehearth:break_down_object",
+   "function" : "stonehearth:raze_crop",
    "args" : [
-      "{{self}}",
-      "farmers"
+      "{{self}}"
    ]
 }

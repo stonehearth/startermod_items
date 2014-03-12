@@ -39,6 +39,10 @@ function DirtPlotComponent:set_fertility_moisture(fertility, moisture)
    self.__savestate:mark_changed()
 end
 
+function DirtPlotComponent:get_contents()
+   return self._data.contents
+end
+
 --TODO: incorporate the moisture of the soil
 function DirtPlotComponent:_update_visible_soil_state()
    local fertility_category = nil
@@ -89,13 +93,14 @@ function DirtPlotComponent:plant_crop(crop_type)
    command_component:add_command('/stonehearth/data/commands/raze_crop')
 
    --listen for when the crop is grown, and swapped for its final phase
-   radiant.events.listen(self._data.contents, 'stonehearth:crop_swap', self, self._on_crop_swapped)
+   --radiant.events.listen(self._data.contents, 'stonehearth:crop_swap', self, self._on_crop_swapped)
 
    --listen for if the planted crop gets destroyed for any reason
-   radiant.events.listen(self._data.contents, 'stonehearth:entity:pre_destroy', self, self._on_crop_removed)
+   radiant.events.listen(planted_entity, 'stonehearth:entity:pre_destroy', self, self._on_crop_removed)
 
 end
 
+--[[
 function DirtPlotComponent:_on_crop_swapped(e)
    --unlisten on the previous two possible fates of the crop.
    radiant.events.unlisten(self._data.contents, 'stonehearth:crop_swap', self, self._on_crop_swapped)
@@ -107,6 +112,7 @@ function DirtPlotComponent:_on_crop_swapped(e)
    --listen for when the new planted crop is destroyed
    radiant.events.listen(self._data.contents, 'stonehearth:entity:pre_destroy', self, self._on_crop_removed)
 end
+]]
 
 --- Called when something is removed from me
 function DirtPlotComponent:_on_crop_removed()
@@ -114,7 +120,7 @@ function DirtPlotComponent:_on_crop_removed()
    assert(self._data.contents ~= nil, "error, removing a crop that isn't there")
 
    --unlisten on crop removal
-   radiant.events.unlisten(self._data.contents, 'stonehearth:crop_removed', self, self._on_crop_removed)
+   --radiant.events.unlisten(self._data.contents, 'stonehearth:entity:pre_destroy', self, self._on_crop_removed)
 
    --Hide the raze command, add the plant command
    local command_component = self._entity:add_component('stonehearth:commands')
@@ -122,6 +128,8 @@ function DirtPlotComponent:_on_crop_removed()
    command_component:add_command('/stonehearth/data/commands/plant_crop')
 
    self._data.contents = nil
+
+   return radiant.events.UNLISTEN
 end
 
 

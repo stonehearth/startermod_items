@@ -33,10 +33,12 @@ function GrowingComponent:__create(entity, json)
       if self._data.curr_stage < #self._growth_stages then
          --Every hour, check if we should be growing by some period
          radiant.events.listen(calendar, 'stonehearth:hourly', self, self.on_hourly)
+         radiant.events.listen(self._entity, 'stonehearth:entity:pre_destroy', self, self._on_destroy)
       end
    end
 
-
+   self._stage_data = radiant.resources.load_json(self._entity:get_uri()).components.model_variants
+   
    self.__savestate = radiant.create_datastore(self._data)
    self.__savestate:mark_changed()
 end
@@ -50,14 +52,26 @@ function GrowingComponent:on_hourly()
    end
 end
 
+function GrowingComponent:_on_destroy()
+   radiant.events.unlisten(calendar, 'stonehearth:hourly', self, self.on_hourly)
+   return radiant.events.UNLISTEN
+end
+
 --- Do whatever is necessary to get to the next step of growth
 function GrowingComponent:grow()
    --TODO: run growth effect, if we have one
    self._data.curr_stage = self._data.curr_stage + 1
-   self._render_info:set_model_variant(self._growth_stages[self._data.curr_stage])
+   local stage_name = self._growth_stages[self._data.curr_stage]
+   self._render_info:set_model_variant(stage_name)
+
+   radiant.entities.set_name(self._entity, self._stage_data[stage_name].name)
+   radiant.entities.set_description(self._entity, self._stage_data[stage_name].description)
+
    --TODO: use events to tell crop component to suck nutrients out of the soil?
+   --TODO: stop growth if some condition is not met
+   radiant.events.trigger(self._entity, 'stonehearth:growing', {entity = self._entity, stage = stage_name})
    if self._data.curr_stage >= #self._growth_stages then
-      self:stop_growing()
+      self:stop_growing()   
    end
    self.__savestate:mark_changed()
 end
