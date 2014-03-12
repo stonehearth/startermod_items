@@ -1933,9 +1933,12 @@ void Renderer::updateLodUniform(int lodLevel, float lodDist1, float lodDist2)
 void Renderer::drawLodGeometry(const std::string &shaderContext, const std::string &theClass,
                              RenderingOrder::List order, int filterRequried, int occSet, float frustStart, float frustEnd, int lodLevel)
 {
+   // These two magic values represent the normalized distances to the end of the first LOD level,
+   // and the beginning of the second LOD level.  A larger first value implies an overlap between
+   // the two, which is desirable for blending smoothly between the two levels.
    updateLodUniform(lodLevel, 0.41, 0.39);
-   Frustum f = _curCamera->getFrustum();
 
+   Frustum f = _curCamera->getFrustum();
 
    if (frustStart != 0.0f || frustEnd != 1.0f) {
       float fStart = (1.0f - frustStart) * _curCamera->_frustNear + (frustStart * _curCamera->_frustFar);
@@ -1958,8 +1961,7 @@ void Renderer::drawGeometry( const std::string &shaderContext, const std::string
    if (forceLodLevel >= 0) {
       drawLodGeometry(shaderContext, theClass, order, filterRequired, occSet, frustStart, frustEnd, forceLodLevel);
    } else {
-
-      if (forceLodLevel >= -1) {
+      if (forceLodLevel == -1) {
          _lod_polygon_offset_x = 0.0;
          _lod_polygon_offset_y = -2.0;
       }
