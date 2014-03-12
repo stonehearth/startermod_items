@@ -23,4 +23,8 @@ function SleepObserver:on_hourly(e)
    self._attributes_component:set_attribute('sleepiness', sleepiness)
 end
 
+function SleepObserver:destroy()
+   radiant.events.unlisten(calendar, 'stonehearth:hourly', self, self.on_hourly)
+end
+
 return SleepObserver

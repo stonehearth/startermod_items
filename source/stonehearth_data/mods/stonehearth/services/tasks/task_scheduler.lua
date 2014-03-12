@@ -27,8 +27,8 @@ function TaskScheduler:set_counter_name(counter_name)
 end
 
 
-function TaskScheduler:create_task_group(name, args)
-   local task_group = TaskGroup(self, name, args)
+function TaskScheduler:create_task_group(activity_name, args)
+   local task_group = TaskGroup(self, activity_name, args)
    table.insert(self._task_groups, task_group)
    return task_group
 end

@@ -122,7 +122,7 @@ function TerrainService:_get_entity_visible_region(entity)
    -- quantize delta to make sure the major and minor axes reveal at the same time
    semi_minor_axis = semi_major_axis - quantize(semi_major_axis * 0.4)
 
-   pt = radiant.entities.get_world_grid_location(entity)
+   pt = entity:add_component('mob'):get_world_grid_location()
 
    -- remember +1 on max
    rect = Rect2(

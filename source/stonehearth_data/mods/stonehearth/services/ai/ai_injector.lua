@@ -43,8 +43,8 @@ function AiInjector:destroy()
    end
 
    if self._injected.observers then
-      for _, observer  in ipairs(self._injected.observers) do
-         ai_component:remove_observer(self._entity, observer)
+      for _, uri  in ipairs(self._injected.observers) do
+         ai_component:remove_observer(self._entity, uri)
       end
    end
 end

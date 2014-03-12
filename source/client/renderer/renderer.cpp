@@ -788,7 +788,7 @@ void Renderer::Initialize()
       Pipeline::GetInstance().CreateVoxelGeometryFromRegion("littlecube", littleCube), 1000);
 
    csg::Region2 r;
-   r.Add(csg::Rect2(csg::Region2::Point(-10, -10), csg::Region2::Point(10, 10)));
+   r.Add(csg::Rect2(csg::Region2::Point(-1000, -1000), csg::Region2::Point(1000, 1000)));
    UpdateFoW(fowExploredNode_, r);
 
    // Add camera   

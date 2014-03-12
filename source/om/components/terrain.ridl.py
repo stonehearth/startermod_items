@@ -26,13 +26,15 @@ class Terrain(Component):
    tiles = dm.Map(csg.Point3(), Region3BoxedPtr(), singular_name='tile', add=None, remove=None, get=None)
    tile_size = dm.Boxed(c.int())
 
-   get_bounds = ridl.Method(csg.Cube3())
+   cached_bounds = dm.Boxed(csg.Cube3())
+   cached_bounds_is_valid = dm.Boxed(c.bool())
+
+   get_bounds = ridl.Method(csg.Cube3()).const
    add_tile = ridl.Method(c.void(),
                           ('tile_offset', csg.Point3().const.ref),
                           ('region3', Region3BoxedPtr()))
-   create_new = ridl.Method(c.void())
    place_entity = ridl.Method(c.void(), ('e', EntityRef()), ('location', csg.Point3().const.ref))
-   get_height =  ridl.Method(c.int(), ('location', csg.Point2().const.ref))
+   get_height =  ridl.Method(c.int(), ('location', csg.Point2().const.ref)).const
 
    _includes = [
       "om/region.h",
@@ -41,5 +43,10 @@ class Terrain(Component):
 
    _public = \
    """
-   Region3BoxedPtr GetTile(csg::Point3 const& location, csg::Point3& tile_offset);
+   Region3BoxedPtr GetTile(csg::Point3 const& location, csg::Point3& tile_offset) const;
+   """
+
+   _private = \
+   """
+   csg::Cube3 CalculateBounds() const;
    """

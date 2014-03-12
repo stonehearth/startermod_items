@@ -39,6 +39,7 @@
       ADD_CATEGORY(pathfinder) \
       ADD_CATEGORY(follow_path) \
       ADD_CATEGORY(goto_location) \
+      ADD_CATEGORY(terrain) \
    END_GROUP(simulation) \
    \
    BEGIN_GROUP(horde) \

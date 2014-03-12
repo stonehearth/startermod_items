@@ -29,13 +29,17 @@ function FollowEntity:start_thinking(ai, entity, args)
    local distance = radiant.entities.distance_between(entity, target)
    if distance <= 3 then 
       if not self._trace then
-      self._trace = radiant.entities.trace_location(target, 'find path to entity')
-      :on_changed(function()
-         self:start_thinking(ai, entity, args)
-      end)
-      :on_destroyed(function()
-         ai:abort('target destination destroyed')
-      end)
+         self._trace = radiant.entities.trace_location(target, 'find path to entity')
+            :on_changed(
+               function()
+                  self:start_thinking(ai, entity, args)
+               end
+            )
+            :on_destroyed(
+               function()
+                  ai:abort('target destination destroyed')
+               end
+            )
       end
       return
    end
@@ -52,7 +56,8 @@ function FollowEntity:stop_thinking(ai, entity)
    end
 end
 
-
+-- Err, this could pick something down a cliff or across a long fence...
+-- maybe go to the actual target location but stop when within a certain distance
 function FollowEntity:_pick_nearby_location(target)
    local target_location = radiant.entities.get_world_grid_location(target)
    local radius = 2

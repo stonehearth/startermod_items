@@ -64,6 +64,7 @@ function ScenarioService:initialize(feature_size, rng)
 end
 
 function ScenarioService:_register_events()
+   -- TODO: in multiplayer, scenario service needs to reveal for all factions
    self._faction = stonehearth.population:get_faction('civ', 'stonehearth:factions:ascendancy')
    radiant.events.listen(radiant.events, 'stonehearth:very_slow_poll', self, self._on_poll)
 end
@@ -72,7 +73,8 @@ function ScenarioService:_on_poll()
    self:reveal_around_entities()
 end
 
-function ScenarioService:reveal_starting_location(x, z)
+-- hack until we make place non-static scenarios after banner placement
+function ScenarioService:clear_starting_location(x, z)
    local reveal_distance = self._reveal_distance
    local region = Region2()
 
@@ -84,7 +86,11 @@ function ScenarioService:reveal_starting_location(x, z)
       )
    )
 
-   self:reveal_region(region)
+   self:reveal_region(region,
+      function (scenario_properties)
+         return scenario_properties.category ~= 'wildlife'
+      end
+   )
 end
 
 function ScenarioService:reveal_around_entities()
@@ -94,7 +100,7 @@ function ScenarioService:reveal_around_entities()
    local pt, rect
 
    for _, entity in pairs(citizens) do
-      pt = radiant.entities.get_world_grid_location(entity)
+      pt = entity:add_component('mob'):get_world_grid_location()
 
       -- remember +1 on max
       rect = Rect2(
@@ -108,7 +114,7 @@ function ScenarioService:reveal_around_entities()
    self:reveal_region(region)
 end
 
-function ScenarioService:reveal_region(world_space_region)
+function ScenarioService:reveal_region(world_space_region, activation_filter)
    local revealed_region = self._revealed_region
    local bounded_world_space_region, unrevealed_region, new_region
    local key, dormant_scenario, properties
@@ -132,12 +138,19 @@ function ScenarioService:reveal_region(world_space_region)
                   properties.size.width, properties.size.length
                )
 
-               local seconds = Timer.measure(
-                  function()
-                     self:_activate_scenario(properties, dormant_scenario.offset_x, dormant_scenario.offset_y)
-                  end
-               )
-               log:info('Activated scenario "%s" in %.3fs', properties.name, seconds)
+               -- hack until we make place non-static scenarios after banner placement
+               local activate = true
+               if activation_filter then
+                  activate = activation_filter(properties)
+               end
+               if activate then
+                  local seconds = Timer.measure(
+                     function()
+                        self:_activate_scenario(properties, dormant_scenario.offset_x, dormant_scenario.offset_y)
+                     end
+                  )
+                  log:info('Activated scenario "%s" in %.3fs', properties.name, seconds)
+               end
             end
          end
       end

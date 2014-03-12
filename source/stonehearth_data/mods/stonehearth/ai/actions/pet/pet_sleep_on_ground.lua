@@ -1,12 +1,12 @@
-local CritterSleepOnGround = class()
-CritterSleepOnGround.name = 'critter sleep on ground'
-CritterSleepOnGround.does = 'stonehearth:sleep_exhausted'
-CritterSleepOnGround.args = {}
-CritterSleepOnGround.version = 2
-CritterSleepOnGround.priority = 1
+local PetSleepOnGround = class()
+PetSleepOnGround.name = 'critter sleep on ground'
+PetSleepOnGround.does = 'stonehearth:sleep_exhausted'
+PetSleepOnGround.args = {}
+PetSleepOnGround.version = 2
+PetSleepOnGround.priority = 1
 
-
-function CritterSleepOnGround:run(ai, entity)
+-- TODO: refactor this with sleep_on_ground and sleep_in_bed-adjacent
+function PetSleepOnGround:run(ai, entity)
    --TODO: does the critter have a sit action?
    ai:execute('stonehearth:run_effect', { effect = 'sit_on_ground' })
 
@@ -18,12 +18,11 @@ function CritterSleepOnGround:run(ai, entity)
    radiant.entities.set_attribute(entity, 'sleepiness', 0)
 end
 
-function CritterSleepOnGround:stop(ai, entity)
+function PetSleepOnGround:stop(ai, entity)
    -- xxx, localize
    local name = radiant.entities.get_display_name(entity)
    radiant.entities.unthink(entity, '/stonehearth/data/effects/thoughts/sleepy')
    radiant.entities.remove_buff(entity, 'stonehearth:buffs:sleeping');   
 end
 
-return CritterSleepOnGround
-
+return PetSleepOnGround
