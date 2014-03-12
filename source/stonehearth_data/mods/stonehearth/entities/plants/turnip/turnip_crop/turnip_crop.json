@@ -1,0 +1,52 @@
+{
+   "type": "entity", 
+   "components": {
+      "model_variants": {
+         "default": {
+            "models": [
+               "file(turnip_4.qb)"
+            ]
+         },
+         "just_planted": {
+            "models": [
+               "file(turnip_1.qb)"
+            ]
+         },
+         "growing": {
+            "models": [
+               "file(turnip_2.qb)"
+            ]
+         },
+         "budding": {
+            "models": [
+               "file(turnip_3.qb)"
+            ]
+         },
+         "ripe": {
+            "models": [
+               "file(turnip_4.qb)"
+            ]
+         }
+      },
+      "unit_info": {
+         "name": "Turnip Seedling", 
+         "description": "Slow-motion, high stakes gambling."
+      },
+      "stonehearth:commands" : {
+         "commands" : [
+         ]
+      },
+      "stonehearth:crop" : {
+         "final_entity" : "stonehearth:turnip_plant"
+      }, 
+      "stonehearth:growing" : {
+         "growth_period" : "1h",
+         "growth_stages" : [
+            "just_planted",
+            "growing",
+            "budding",
+            "ripe"
+         ]
+      }
+   }
+}

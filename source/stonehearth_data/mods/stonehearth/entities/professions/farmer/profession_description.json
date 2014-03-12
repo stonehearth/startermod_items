@@ -1,0 +1,8 @@
+{
+   "profession" : {
+      "profession_type": "farmer",
+      "name": "Farmer",      
+      "script": "file(/professions/farmer/farmer.lua)",
+      "description": "Farmer"
+   }
+}

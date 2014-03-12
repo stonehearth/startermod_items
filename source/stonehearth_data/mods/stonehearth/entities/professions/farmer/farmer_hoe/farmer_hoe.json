@@ -1,0 +1,48 @@
+{
+   "type": "entity",
+   "mixins": "stonehearth:mixins:item_properties",
+   "components" : {
+      "unit_info" : {
+         "name" :  "Farmer's Hoe",
+         "description" : "Upgrades a citizen into a Farmer",
+         "portrait": "file(farmer_hoe.png)",
+         "character_sheet_info" : "file(farmer_hoe_character_sheet_info.json)"
+      },
+      "item" : {
+         "stacks" : 1
+      },
+       "stonehearth:material" : {
+         "tags" : "tool"
+      },
+      "model_variants": {
+         "default": {
+            "models": [
+               "file(farmer_hoe.qb)"
+            ]
+         },
+         "equipped" : {
+            "models": [
+               "file(farmer_hoe_equipped.qb)"
+            ]
+         }
+      },
+      "stonehearth:commands" : {
+         "commands" : [
+            "file(/data/commands/promote_to_profession)"
+         ]
+      },
+      "effect_list" : {
+         "effects" : [
+            "stonehearth:effects:talisman_glow"
+         ]  
+      },
+      "stonehearth:promotion_talisman": {
+         "script": "file(/professions/farmer/farmer.lua)",
+         "profession_name" : "Farmer"
+      }
+   },
+   "entity_data" : {
+      "stonehearth:activity_name" : "promote_farmer"
+   }
+}
+

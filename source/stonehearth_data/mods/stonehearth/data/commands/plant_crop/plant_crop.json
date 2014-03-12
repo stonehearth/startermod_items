@@ -1,0 +1,14 @@
+{
+   "type" : "command",
+
+   "name": "plant_crop",
+   "tooltip": "Plant a crop!",
+   "description" : "Plant something in this square.",
+   "icon": "file(plant_crop.png)",
+
+   "action": "call",
+   "function" : "stonehearth:plant_crop",
+   "args" : [
+      "{{self}}"
+   ]
+}

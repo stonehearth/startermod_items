@@ -1,4 +1,3 @@
-local personality_service = require 'services.personality.personality_service'
 local Entity = _radiant.om.Entity
 
 local GrabTalismanAction = class()
