@@ -2,8 +2,8 @@
    "type" : "command",
 
    "name": "raze_crop",
-   "tooltip": "Raze this crop!",
-   "description" : "Destroy the plant in this square.",
+   "tooltip": "Clear Ground",
+   "description" : "Clear or harvest the contents of this plot.",
    "icon": "file(raze_crop.png)",
 
    "action": "call",

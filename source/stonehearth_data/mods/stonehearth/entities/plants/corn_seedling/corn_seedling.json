@@ -10,35 +10,27 @@
          "corn_1": {
             "models": [
                "file(corn_1.qb)"
-            ],
-            "name": "Corn Seedling", 
-            "description": "Don't harvest yet."
+            ]
          },
          "corn_2": {
             "models": [
                "file(corn_2.qb)"
-            ],
-            "name": "Corn Sprout", 
-            "description": "Not edible yet!"
+            ]
          },
          "corn_3": {
             "models": [
                "file(corn_3.qb)"
-            ],
-            "name": "Green Corn", 
-            "description": "Extremely unsatisfying to eat."
+            ]
          },
          "corn_4": {
             "models": [
                "file(corn_4.qb)"
-            ],
-            "name": "Ripe Corn", 
-            "description": "Eat me! Eat Me!"
+            ]
          }
       },
       "unit_info": {
          "name": "Corn Seedling", 
-         "description": "Slow-motion, high stakes gambling."
+         "description": "Slow-mo, high-stakes gambling."
       },
       "stonehearth:commands" : {
          "commands" : [
@@ -49,16 +41,31 @@
          "resource_pairings" : {
             "corn_3": "stonehearth:corn_cob",
             "corn_4": "stonehearth:corn_basket"
-         },
-         "final_entity" : "stonehearth:corn_plant"
+         }
       }, 
       "stonehearth:growing" : {
          "growth_period" : "1h",
          "growth_stages" : [
-            "corn_1",
-            "corn_2",
-            "corn_3",
-            "corn_4"
+            {
+               "model_name" : "corn_1",
+               "name": "Corn Seedling", 
+               "description": "Slow-mo, high-stakes gambling."
+            },
+            {
+               "model_name" : "corn_2",
+               "name": "Corn Sprout", 
+               "description": "Not edible yet!"
+            },
+            {
+               "model_name" : "corn_3",
+               "name": "Green Corn", 
+               "description": "Extremely unsatisfying to eat."
+            },
+            {
+               "model_name" : "corn_4",
+               "name": "Ripe Corn", 
+               "description": "Eat me! Eat Me!"
+            }
          ]
       },
       "stonehearth:resource_node": {
