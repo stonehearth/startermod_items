@@ -1,0 +1,17 @@
+{
+   "type": "entity",
+   "components": {
+      "model_variants": {
+         "default": {
+            "models": [
+               "file(default_object.qb)"
+            ]
+         }
+      },
+      "unit_info": {
+         "name": "Default object",
+         "description": "Mysterious",
+         "icon" : "file(default_object.png)"
+      }
+   }
+}

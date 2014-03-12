@@ -17,7 +17,7 @@ function NewGameCallHandler:new_game(session, response, num_tiles_x, num_tiles_y
    local wgs = stonehearth.world_generation
    local blueprint
 
-   wgs:initialize(seed, true)
+   wgs:create_new_game(seed, true)
 
    local generation_method = radiant.util.get_config('world_generation.method', 'default')
 
@@ -90,9 +90,6 @@ function NewGameCallHandler:embark_server(session, response)
    local z = wgs.start_z
    local y = radiant.terrain.get_height(Point2(x, z))
 
-   -- reveal scenaraios around the staring location
-   --scenario_service:reveal_starting_location(x, z)
-
    return { x = x, y = y, z = z }
 end
 
@@ -133,16 +130,16 @@ function NewGameCallHandler:choose_camp_location(session, response)
    -- capture the mouse.  Call our _on_mouse_event each time, passing in
    -- the entity that we're supposed to create whenever the user clicks.
    self._capture = _radiant.client.capture_input()
-   self._capture:on_input(function(e)
+   self._capture:on_input(
+      function(e)
          if e.type == _radiant.client.Input.MOUSE then
-            self:_on_mouse_event(e.mouse, response)
-            return true
+            return self:_on_mouse_event(e.mouse, response)
          elseif e.type == _radiant.client.Input.KEYBOARD then
-            self:_on_keyboard_event(e.keyboard, response)
-            return true
+            return self:_on_keyboard_event(e.keyboard, response)
          end
          return false
-      end)
+      end
+   )
 end
 
 -- called each time the mouse moves on the client.
@@ -175,15 +172,16 @@ function NewGameCallHandler:_on_mouse_event(e, response)
       -- called.  this will return a Deferred object which we can use to track
       -- the call's progress
       _radiant.call('stonehearth:create_camp', pt)
-               :always(function ()
-                     -- whether the request succeeds or fails, go ahead and destroy
-                     -- the authoring entity.  do it after the request returns to avoid
-                     -- the ugly flickering that would occur had we destroyed it when
-                     -- we uninstalled the mouse cursor
-                     _radiant.client.destroy_authoring_entity(self._cursor_entity:get_id())
-                     response:resolve({ result = true })
-                  end)
-
+         :always(
+            function ()
+               -- whether the request succeeds or fails, go ahead and destroy
+               -- the authoring entity.  do it after the request returns to avoid
+               -- the ugly flickering that would occur had we destroyed it when
+               -- we uninstalled the mouse cursor
+               _radiant.client.destroy_authoring_entity(self._cursor_entity:get_id())
+               response:resolve({ result = true })
+            end
+         )
    end
 
    -- return true to prevent the mouse event from propogating to the UI
@@ -206,6 +204,10 @@ function NewGameCallHandler:_destroy_capture()
 end
 
 function NewGameCallHandler:create_camp(session, response, pt)
+   -- remove wildlife near the banner
+   -- this will go away when we do banner dependent scenario placement
+   stonehearth.scenario:clear_starting_location(pt.x, pt.z)
+
    local faction = stonehearth.population:get_faction('civ', 'stonehearth:factions:ascendancy')
    local town = stonehearth.town:get_town(session.faction)
 

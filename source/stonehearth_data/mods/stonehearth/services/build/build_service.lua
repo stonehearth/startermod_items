@@ -3,6 +3,12 @@ local BuildService = class()
 function BuildService:__init(datastore)
 end
 
+function BuildService:initialize()
+end
+
+function BuildService:restore(saved_variables)
+end
+
 
 --- Convert the proxy to an honest to goodness entity
 -- The entity_map contains a map from proxy entity ids to the entities that

@@ -3,7 +3,7 @@ local HarvestTrappedBeastAdjacent = class()
 local Entity = _radiant.om.Entity
 
 HarvestTrappedBeastAdjacent.name = 'harvest trapped beast adjacent'
-HarvestTrappedBeastAdjacent.does = 'stonehearth:harvest_trapped_beast_adjacent'
+HarvestTrappedBeastAdjacent.does = 'stonehearth:unit_control:harvest_trapped_beast_adjacent'
 HarvestTrappedBeastAdjacent.args = {
    trap = Entity
 }

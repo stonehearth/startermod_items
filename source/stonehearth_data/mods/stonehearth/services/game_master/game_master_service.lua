@@ -5,6 +5,12 @@ function GameMasterService:__init()
    self._scenarions = {}
 end
 
+function GameMasterService:initialize()
+end
+
+function GameMasterService:restore(saved_variables)
+end
+
 function GameMasterService:start()
    -- xxx, hardcoded. Make data driven
    local scenario = WolfScenario()

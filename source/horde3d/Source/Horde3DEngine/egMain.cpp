@@ -110,6 +110,10 @@ DLLEXP void h3dRelease()
 	initialized = false;
 }
 
+DLLEXP void h3dReset()
+{
+	Modules::reset();
+}
 
 DLLEXP void h3dRender( NodeHandle cameraNode, ResHandle pipelineRes )
 {

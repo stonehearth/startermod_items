@@ -15,11 +15,19 @@ local ScenarioService = class()
 function ScenarioService:__init()
 end
 
-function ScenarioService:initialize(feature_size, rng)
+function ScenarioService:initialize()
+end
+
+function ScenarioService:restore(saved_variables)
+   log:write(0, 'store not implemented for scenario service!')
+end
+
+function ScenarioService:create_new_game(feature_size, rng)
    self._feature_size = feature_size
    self._rng = rng
    self._reveal_distance = radiant.util.get_config('sight_radius', 64) * 2
    self._revealed_region = Region2()
+   self._scenario_properties = {}
    self._dormant_scenarios = {}
    self._last_optimized_rect_count = 10
    self._region_optimization_threshold = radiant.util.get_config('region_optimization_threshold', 1.2)
@@ -40,7 +48,7 @@ function ScenarioService:initialize(feature_size, rng)
       -- parse category
       category = categories[properties.category]
       if category then
-         category:add(properties)
+         category:add(properties.name, properties.weight)
       else
          log:error('Error parsing "%s": Category "%s" has not been defined.', file, tostring(properties.category))
       end
@@ -56,6 +64,8 @@ function ScenarioService:initialize(feature_size, rng)
       if not ActivationType.is_valid(properties.activation_type) then
          log:error('Error parsing "%s": Invalid activation_type "%s".', file, tostring(properties.activation_type))
       end
+
+      self._scenario_properties[properties.name] = properties
    end
 
    self._categories = categories
@@ -64,6 +74,7 @@ function ScenarioService:initialize(feature_size, rng)
 end
 
 function ScenarioService:_register_events()
+   -- TODO: in multiplayer, scenario service needs to reveal for all factions
    self._faction = stonehearth.population:get_faction('civ', 'stonehearth:factions:ascendancy')
    radiant.events.listen(radiant.events, 'stonehearth:very_slow_poll', self, self._on_poll)
 end
@@ -72,7 +83,8 @@ function ScenarioService:_on_poll()
    self:reveal_around_entities()
 end
 
-function ScenarioService:reveal_starting_location(x, z)
+-- hack until we make place non-static scenarios after banner placement
+function ScenarioService:clear_starting_location(x, z)
    local reveal_distance = self._reveal_distance
    local region = Region2()
 
@@ -84,34 +96,42 @@ function ScenarioService:reveal_starting_location(x, z)
       )
    )
 
-   self:reveal_region(region)
+   self:reveal_region(region,
+      function (scenario_properties)
+         return scenario_properties.category ~= 'wildlife'
+      end
+   )
 end
 
 function ScenarioService:reveal_around_entities()
    local reveal_distance = self._reveal_distance
    local citizens = self._faction:get_citizens()
    local region = Region2()
-   local pt, rect
+   local mob, pt, rect
 
    for _, entity in pairs(citizens) do
-      pt = radiant.entities.get_world_grid_location(entity)
+      mob = entity:get_component('mob')
 
-      -- remember +1 on max
-      rect = Rect2(
-         Point2(pt.x-reveal_distance,   pt.z-reveal_distance),
-         Point2(pt.x+reveal_distance+1, pt.z+reveal_distance+1)
-      )
+      if mob then
+         pt = mob:get_world_grid_location()
 
-      region:add_cube(rect)
+         -- remember +1 on max
+         rect = Rect2(
+            Point2(pt.x-reveal_distance,   pt.z-reveal_distance),
+            Point2(pt.x+reveal_distance+1, pt.z+reveal_distance+1)
+         )
+
+         region:add_cube(rect)
+      end
    end
 
    self:reveal_region(region)
 end
 
-function ScenarioService:reveal_region(world_space_region)
+function ScenarioService:reveal_region(world_space_region, activation_filter)
    local revealed_region = self._revealed_region
    local bounded_world_space_region, unrevealed_region, new_region
-   local key, dormant_scenario, properties
+   local key, scenario_info, name, properties
 
    bounded_world_space_region = self:_bound_region_by_terrain(world_space_region)
    new_region = self:_region_to_habitat_space(bounded_world_space_region)
@@ -123,21 +143,29 @@ function ScenarioService:reveal_region(world_space_region)
          for i = rect.min.x, rect.max.x-1 do
             key = self:_get_coordinate_key(i, j)
 
-            dormant_scenario = self._dormant_scenarios[key]
-            if dormant_scenario ~= nil then
-               properties = dormant_scenario.properties
+            scenario_info = self._dormant_scenarios[key]
+            if scenario_info ~= nil then
+               name = scenario_info.name
+               properties = self._scenario_properties[name]
 
                self:_mark_scenario_map(self._dormant_scenarios, nil,
-                  dormant_scenario.offset_x, dormant_scenario.offset_y,
+                  scenario_info.offset_x, scenario_info.offset_y,
                   properties.size.width, properties.size.length
                )
 
-               local seconds = Timer.measure(
-                  function()
-                     self:_activate_scenario(properties, dormant_scenario.offset_x, dormant_scenario.offset_y)
-                  end
-               )
-               log:info('Activated scenario "%s" in %.3fs', properties.name, seconds)
+               -- hack until we make place non-static scenarios after banner placement
+               local activate = true
+               if activation_filter then
+                  activate = activation_filter(properties)
+               end
+               if activate then
+                  local seconds = Timer.measure(
+                     function()
+                        self:_activate_scenario(properties, scenario_info.offset_x, scenario_info.offset_y)
+                     end
+                  )
+                  log:info('Activated scenario "%s" in %.3fs', properties.name, seconds)
+               end
             end
          end
       end
@@ -187,15 +215,20 @@ function ScenarioService:mark_scenarios(habitat_map, elevation_map, tile_offset_
    local rng = self._rng
    local feature_size = self._feature_size
    local feature_width, feature_length, voxel_width, voxel_length
-   local selected_scenarios, site, sites, num_sites, roll, offset_x, offset_y, habitat_types
+   local selected_scenarios, site, sites, num_sites, roll, habitat_types, residual_x, residual_y
+   local offset_x, offset_y, feature_offset_x, feature_offset_y, intra_cell_offset_x, intra_cell_offset_y
    local static_scenarios = {}
 
    selected_scenarios = self:_select_scenarios(habitat_map)
 
    for _, properties in pairs(selected_scenarios) do
       habitat_types = properties.habitat_types
+
+      -- dimensions of the scenario in voxels
       voxel_width = properties.size.width
       voxel_length = properties.size.length
+
+      -- get dimensions of the scenario in feature cells
       feature_width, feature_length = self:_get_dimensions_in_feature_units(voxel_width, voxel_length)
 
       -- get a list of valid locations
@@ -206,12 +239,21 @@ function ScenarioService:mark_scenarios(habitat_map, elevation_map, tile_offset_
          roll = rng:get_int(1, num_sites)
          site = sites[roll]
 
+         feature_offset_x = (site.x-1)*feature_size
+         feature_offset_y = (site.y-1)*feature_size
+
+         residual_x = feature_width*feature_size - voxel_width
+         residual_y = feature_length*feature_size - voxel_length
+
+         intra_cell_offset_x = rng:get_int(0, residual_x)
+         intra_cell_offset_y = rng:get_int(0, residual_y)
+
          -- these are in C++ base 0 array coordinates
-         offset_x = (site.x-1)*feature_size + tile_offset_x
-         offset_y = (site.y-1)*feature_size + tile_offset_y
+         offset_x = tile_offset_x + feature_offset_x + intra_cell_offset_x
+         offset_y = tile_offset_y + feature_offset_y + intra_cell_offset_y
 
          local scenario_info = {
-            properties = properties,
+            name = properties.name,
             offset_x = offset_x,
             offset_y = offset_y
          }
@@ -225,7 +267,7 @@ function ScenarioService:mark_scenarios(habitat_map, elevation_map, tile_offset_
          self:_mark_habitat_map(habitat_map, site.x, site.y, feature_width, feature_length)
 
          if properties.unique then
-            self:_remove_scenario(properties)
+            self:_remove_scenario_from_selector(properties)
          end
       end
    end
@@ -234,9 +276,13 @@ function ScenarioService:mark_scenarios(habitat_map, elevation_map, tile_offset_
 end
 
 function ScenarioService:place_static_scenarios(scenarios)
+   local name, properties
+
    for _, scenario_info in pairs(scenarios) do
-      if scenario_info.properties.activation_type == ActivationType.static then
-         self:_activate_scenario(scenario_info.properties, scenario_info.offset_x, scenario_info.offset_y)
+      name = scenario_info.name
+      properties = self._scenario_properties[name]
+      if properties.activation_type == ActivationType.static then
+         self:_activate_scenario(properties, scenario_info.offset_x, scenario_info.offset_y)
       end
    end
 end
@@ -290,12 +336,13 @@ end
 function ScenarioService:_select_scenarios(habitat_map)
    local categories = self._categories
    local scenarios = {}
-   local list
+   local scenario_names, properties
 
    for key, _ in pairs(categories) do
-      list = categories[key]:select_scenarios(habitat_map)
-      for _, item in pairs(list) do
-         table.insert(scenarios, item)
+      scenario_names = categories[key]:select_scenarios(habitat_map)
+      for _, name in pairs(scenario_names) do
+         properties = self._scenario_properties[name]
+         table.insert(scenarios, properties)
       end
    end
 
@@ -331,9 +378,11 @@ function ScenarioService:_sort_scenarios(scenarios)
    table.sort(scenarios, comparator)
 end
 
-function ScenarioService:_remove_scenario(scenario)
-   local name = scenario.name
-   local category = scenario.category
+function ScenarioService:_remove_scenario_from_selector(properties)
+   local name = properties.name
+   local category = properties.category
+
+   -- just remove from future selection, don't remove from master index
    self._categories[category]:remove(name)
 end
 

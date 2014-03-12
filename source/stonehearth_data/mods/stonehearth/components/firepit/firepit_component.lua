@@ -97,8 +97,8 @@ function FirepitComponent:_start_or_stop_firepit()
    end
 
    --Only light fires after dark
-   local time_constants = stonehearth.calendar.get_constants()
-   local curr_time = stonehearth.calendar.get_time_and_date()
+   local time_constants = stonehearth.calendar:get_constants()
+   local curr_time = stonehearth.calendar:get_time_and_date()
    local should_light_fire = curr_time.hour >= time_constants.event_times.sunset or
                              curr_time.hour < time_constants.event_times.sunrise
 

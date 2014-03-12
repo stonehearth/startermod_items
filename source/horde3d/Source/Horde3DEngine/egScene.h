@@ -322,6 +322,8 @@ public:
 	SceneManager();
 	~SceneManager();
 
+        void reset();
+
 	void registerType( int type, const std::string &typeString, NodeTypeParsingFunc pf,
 	                   NodeTypeFactoryFunc ff, NodeTypeRenderFunc rf, NodeTypeRenderFunc irf );
 	NodeRegEntry *findType( int type );
@@ -363,7 +365,8 @@ protected:
    int _checkQueryCache(const SpatialQuery& query);
 	NodeHandle parseNode( SceneNodeTpl &tpl, SceneNode *parent );
 	void removeNodeRec( SceneNode &node );
-
+        void shutdown();
+        void initialize();
 	void castRayInternal( SceneNode &node );
 
 protected:

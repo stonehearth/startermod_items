@@ -57,6 +57,10 @@
       "carpenter:outfit" : "file(entities/professions/carpenter/carpenter_outfit)",
       "carpenter:saw" : "file(entities/professions/carpenter/carpenter_saw)",
 
+      "farmer:profession_description" : "file(entities/professions/farmer/profession_description.json)",
+      "farmer:outfit" : "file(entities/professions/farmer/farmer_outfit)",
+      "farmer:field" : "file(entities/professions/farmer/field)",
+      
       "trapper:trapper_knife" : "file(professions/trapper/trapper_knife)",
 
       "trapper:description" : "file(professions/trapper/trapper_description.json)",
@@ -119,6 +123,11 @@
       "large_juniper_tree" : "file(entities/trees/juniper_tree/large_juniper_tree)",
 
       "berry_bush" : "file(entities/plants/berry_bush)",
+      "tilled_dirt" : "file(entities/terrain/tilled_dirt)",
+      "corn_seedling" : "file(entities/plants/corn_seedling)",
+      "corn_plant" : "file(entities/plants/corn_plant)",
+      "corn_basket" : "file(entities/plants/corn_basket)",
+      "corn_cob" : "file(entities/plants/corn_cob)",
 
       "pink_flower" : "file(entities/ground_clutter/pink_flower)",
 
@@ -151,6 +160,8 @@
       "firepit" : "file(entities/gizmos/firepit)",
       "firepit_proxy" : "file(entities/gizmos/firepit/firepit_proxy.json)",
       "firepit_seat" : "file(entities/gizmos/firepit/firepit_seat.json)",
+
+      "farmer_hoe" : "file(entities/professions/farmer/farmer_hoe)", 
 
       "not_much_of_a_bed" : "file(entities/furniture/not_much_of_a_bed)",
       "not_much_of_a_bed_proxy" : "file(entities/furniture/not_much_of_a_bed/not_much_of_a_bed_proxy.json)",
@@ -231,6 +242,7 @@
       "actions:replace_proxy_with_item" : "file(ai/actions/replace_proxy_with_item_action.lua)",
       "actions:trigger_event" : "file(ai/actions/trigger_event.lua)",
       "actions:wander" : "file(ai/actions/wander_action.lua)",
+      "actions:wander_within_leash" : "file(ai/actions/wander_within_leash_action.lua)",
       "actions:wander_when_bored" : "file(ai/actions/wander_when_bored.lua)",
       "actions:wait_for_attribute_above" : "file(ai/actions/wait_for_attribute_above.lua)",
       "actions:choose_point_around_leash" : "file(ai/actions/choose_point_around_leash.lua)",
@@ -270,6 +282,7 @@
       "actions:sit_on_chair_adjacent" : "file(ai/actions/sit_on_chair_adjacent.lua)",
       "actions:eat" : "file(ai/actions/eat.lua)",
       "actions:eat_carrying" : "file(ai/actions/eat_carrying.lua)",
+      "actions:eat_item" : "file(ai/actions/eat_item.lua)",
       "actions:eat_on_chair" : "file(ai/actions/eat_on_chair.lua)",
       "actions:eat_on_ground" : "file(ai/actions/eat_on_ground.lua)",
       "actions:get_food_on_ground" : "file(ai/actions/get_food_on_ground_action.lua)",
@@ -284,11 +297,21 @@
       "actions:unit_control:unload_inventory" : "file(ai/actions/unit_control/unload_inventory.lua)",
       "actions:unit_control:abilities:snare_trap" : "file(ai/actions/unit_control/abilities/snare_trap_action.lua)",
       "actions:unit_control:harvest_trapped_beast" : "file(ai/actions/unit_control/harvest_trapped_beast_action.lua)",
+      "actions:unit_control:tame_trapped_beast" : "file(ai/actions/unit_control/tame_trapped_beast_action.lua)",
+
+      "actions:unit_control:harvest_trapped_beast_adjacent" : "file(ai/actions/unit_control/harvest_trapped_beast_adjacent_action.lua)",
+      "actions:unit_control:tame_trapped_beast_adjacent" : "file(ai/actions/unit_control/tame_trapped_beast_adjacent_action.lua)",
+
+      "actions:ambient_pet_behavior:dispatcher" : "file(ai/actions/pet/ambient_pet_dispatcher.lua)",
+      "actions:pet:check_out_random_friend" : "file(ai/actions/pet/check_out_random_friend_action.lua)",
+      "actions:pet:run_in_circles" : "file(ai/actions/pet/run_in_circles_action.lua)",
+      "actions:pet:pet_eat_from_ground" : "file(ai/actions/pet/pet_eat_from_ground_action.lua)",
+      "actions:pet:eat_from_container" : "file(ai/actions/pet/pet_eat_from_container_action.lua)",
+      "actions:pet:pet_sleep_on_ground" : "file(ai/actions/pet/pet_sleep_on_ground.lua)",
 
       "actions:drop_inventory_items" : "file(ai/actions/drop_inventory_items.lua)",
       "actions:get_town_banner" : "file(ai/actions/get_town_banner.lua)",
       "actions:goto_town_banner" : "file(ai/actions/goto_town_banner.lua)",
-      "actions:harvest_trapped_beast_adjacent" : "file(ai/actions/unit_control/harvest_trapped_beast_adjacent_action.lua)",
       "actions:harvest_resource_node_action" : "file(ai/actions/harvest_resource_node.lua)",
       "actions:harvest_resource_node_adjacent_action" : "file(ai/actions/harvest_resource_node_adjacent.lua)",
       "actions:harvest_plant" : "file(ai/actions/harvest_plant.lua)",
@@ -311,6 +334,9 @@
       "actions:wait_for_teardown" : "file(ai/actions/wait_for_teardown_action.lua)",
       "actions:teardown_structure" : "file(ai/actions/teardown_structure_action.lua)",
       "actions:teardown_structure_adjacent" : "file(ai/actions/teardown_structure_adjacent_action.lua)",
+      "actions:farmer_task_dispatcher" : "file(ai/actions/farmer_task_dispatcher.lua)",
+      "actions:till_field" : "file(ai/actions/till_field_action.lua)",
+      "actions:plant_crop" : "file(ai/actions/plant_crop.lua)",
 
       "actions:follow_entity" : "file(ai/actions/follow_entity.lua)",
 
@@ -465,7 +491,11 @@
          "endpoint" : "server"
       },
       "harvest_trapped_beast" : {
-         "controller": "file(call_handlers/unit_control/harvest_trapped_beast_call_handler.lua)",
+         "controller": "file(call_handlers/unit_control/trapped_beast_call_handler.lua)",
+         "endpoint" : "server"
+      },
+      "tame_trapped_beast" : {
+         "controller": "file(call_handlers/unit_control/trapped_beast_call_handler.lua)",
          "endpoint" : "server"
       },
       "release_from_captivity" : {
@@ -527,6 +557,14 @@
          "controller" : "file(call_handlers/workshop_call_handler.lua)",
          "endpoint" : "server"
       },
+      "plant_crop" : {
+         "controller" : "file(call_handlers/resource_call_handler.lua)",
+         "endpoint" : "server"
+      },
+      "raze_crop" : {
+         "controller" : "file(call_handlers/resource_call_handler.lua)",
+         "endpoint" : "server"
+      },
       "harvest_tree" : {
          "controller": "file(call_handlers/resource_call_handler.lua)",
          "endpoint" : "server"
@@ -574,6 +612,14 @@
       "place_item_type_in_world" : {
          "endpoint" : "server",
          "controller" : "file(call_handlers/place_item_call_handler.lua)"
+      },
+      "choose_new_field_location": {
+         "controller" : "file(call_handlers/farming_call_handler.lua)",
+         "endpoint" : "client"
+      },
+      "create_new_field": {
+         "controller" : "file(call_handlers/farming_call_handler.lua)",
+         "endpoint" : "server"
       },
       "choose_stockpile_location": {
          "controller" : "file(call_handlers/inventory_call_handler.lua)",
@@ -626,6 +672,7 @@
       "ghost_item" : "file(components/place_item/ghost_item_component.lua)",
       "placed_item" : "file(components/place_item/placed_item_component.lua)",
       "firepit" : "file(components/firepit/firepit_component.lua)",
+      "farmer_field" : "file(components/farmer_field/farmer_field_component.lua)",
       "lease" : "file(components/lease/lease_component.lua)",
       "lease_holder" : "file(components/lease_holder/lease_holder_component.lua)",
       "sensor_ai_injector"  : "file(components/sensor_ai_injector/sensor_ai_injector_component.lua)",
@@ -645,13 +692,17 @@
       "personality" : "file(components/personality/personality_component.lua)",
       "loot_table" : "file(components/loot_table/loot_table_component.lua)",
       "inventory" : "file(components/inventory/inventory_component.lua)",
-      "carry_block" : "file(components/carry_block/carry_block_component.lua)"
+      "carry_block" : "file(components/carry_block/carry_block_component.lua)",
+      "growing" : "file(components/growing/growing_component.lua)", 
+      "crop" : "file(components/crop/crop_component.lua)", 
+      "dirt_plot" : "file(components/farmer_field/dirt_plot_component.lua)"
    },
    "component_renderers" : {
       "stockpile" : "file(renderers/stockpile/stockpile_renderer.lua)",
       "city_plan" : "file(renderers/city_plan/city_plan_renderer.lua)",
       "ghost_item" : "file(renderers/ghost_item/ghost_item_renderer.lua)",
       "fabricator" : "file(renderers/fabricator/fabricator_renderer.lua)",
+      "farmer_field" : "file(renderers/farmer_field/farmer_field_renderer.lua)",
       "no_construction_zone" : "file(renderers/no_construction_zone/no_construction_zone_renderer.lua)",
       "construction_data" : "file(renderers/construction_data/construction_data_renderer.lua)"
    },

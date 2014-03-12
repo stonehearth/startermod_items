@@ -5,6 +5,13 @@ function TownService:__init()
    self._towns = {}
 end
 
+function TownService:initialize()
+end
+
+function TownService:restore(saved_variables)
+   radiant.log.write('town', 0, 'restore not implemented for town service!')
+end
+
 function TownService:get_town(faction)
    -- todo: break out by faction, too!
    local town = self._towns[faction]

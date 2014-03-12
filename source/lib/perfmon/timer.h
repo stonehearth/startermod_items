@@ -17,7 +17,7 @@ public:
    CounterValueType Restart();
 
    static CounterValueType GetCurrentTime();
-   static uint GetCurrentTimeMs();
+   static uint64 GetCurrentTimeMs();
 
 private:
    CounterValueType    start_time_;

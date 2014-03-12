@@ -26,6 +26,7 @@ local constants = {
          ADMIRE_FIRE = 2,
          WORK = 10,
          CRAFT = 10,
+         AMBIENT_PET_BEHAVIOR = 10,
          EAT = 20,
          SLEEP = 40,
          UNIT_CONTROL = 1000,
@@ -48,13 +49,6 @@ local constants = {
    construction = {
       STOREY_HEIGHT = 6,
       MAX_WALL_SPAN = 8,
-   },
-
-
-   -- Constants for the worker scheduler tasks
-   worker_scheduler = {
-      -- The number of ticks to wait before picking the best solution to dispatch
-      DISPATCHER_WAIT_TIME = 3,
    },
 
    input = {

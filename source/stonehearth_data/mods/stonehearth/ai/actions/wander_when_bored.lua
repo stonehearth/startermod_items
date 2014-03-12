@@ -10,4 +10,4 @@ WanderWhenBored.priority = 1
 
 local ai = stonehearth.ai
 return ai:create_compound_action(WanderWhenBored)
-         :execute('stonehearth:wander', { radius = 5, radius_min = 2 })
+         :execute('stonehearth:wander_within_leash', { radius = 5, radius_min = 2 })

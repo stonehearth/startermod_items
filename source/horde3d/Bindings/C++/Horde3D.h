@@ -780,6 +780,7 @@ DLL bool h3dInit(int glMajor, int glMinor, bool msaaWindowSupported, bool enable
 		nothing
 */
 DLL void h3dRelease();
+DLL void h3dReset();
 
 
 /* Function: h3dRender

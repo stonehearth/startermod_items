@@ -1,6 +1,12 @@
 local CombatService = class()
 local Damage = require 'services.combat.damage'
 
+function CombatService:initialize()
+end
+
+function CombatService:restore(savestate)
+end
+
 function CombatService:resolve(damage)
    -- run an effect if it's a hit
    -- xxx, assumit it's a hit for now

@@ -25,9 +25,6 @@ function trapper_class.demote(entity)
   -- remove the inventory
   entity:remove_component('stonehearth:inventory')
   
-  --move saw back to the bench
-  --local crafter_component = entity:get_component("stonehearth:crafter")
-  --local bench_component = crafter_component:get_workshop()
 end
 
 return trapper_class

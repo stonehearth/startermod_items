@@ -7,17 +7,16 @@
 using namespace ::radiant;
 using namespace ::radiant::om;
 
+#define TERRAIN_LOG(level)    LOG(simulation.terrain, level)
+
 std::ostream& operator<<(std::ostream& os, Terrain const& o)
 {
    return (os << "[Terrain]");
 }
 
-void Terrain::CreateNew()
-{
-}
-
 void Terrain::LoadFromJson(json::Node const& obj)
 {
+   cached_bounds_ = csg::Cube3::zero;
 }
 
 void Terrain::SerializeToJson(json::Node& node) const
@@ -29,33 +28,54 @@ void Terrain::AddTile(csg::Point3 const& tile_offset, Region3BoxedPtr region3)
 {
    // tiles are stored using the location of their 0, 0 coordinate in the world
    tiles_.Add(tile_offset, region3);
+
+   cached_bounds_ = CalculateBounds();
 }
 
-csg::Cube3 Terrain::GetBounds()
+csg::Cube3 Terrain::GetBounds() const
 {
+   return cached_bounds_;
+}
+
+// TODO: May need to extend this to a Region instead of a Cube
+csg::Cube3 Terrain::CalculateBounds() const
+{
+   int const tileSize = GetTileSize();
+   csg::Point3 const cubeSize(tileSize, tileSize, tileSize);
    csg::Cube3 result = csg::Cube3::zero;
 
    if (tiles_.Size() > 0) {
-      const auto& firstTile = tiles_.begin();
-      result = csg::Cube3(firstTile->first, firstTile->first + csg::Point3(GetTileSize(), GetTileSize(), GetTileSize()));
-      for (const auto& tile : tiles_) {
+      auto const& firstTile = tiles_.begin();
+      result = csg::Cube3(firstTile->first, firstTile->first + cubeSize);
+      for (auto const& tile : tiles_) {
          result.Grow(tile.first);
-         result.Grow(tile.first + csg::Point3(GetTileSize(), GetTileSize(), GetTileSize()));
+         result.Grow(tile.first + cubeSize);
       }
    }
+
    return result;
 }
 
 void Terrain::PlaceEntity(EntityRef e, csg::Point3 const& location)
 {
+   csg::Point3 placed_location;
    auto entity = e.lock();
    if (entity) {
-      int height = GetHeight(csg::Point2(location.x, location.z));
+      csg::Cube3 bounds = GetBounds();
 
-      if (height != INT_MIN) {
+      if (bounds.Contains(location)) {
+         placed_location = location;
+      } else {
+         TERRAIN_LOG(5) << "Cannot place entity at " << location << " because it is not in the world. Moving to closest world location.";
+         placed_location = bounds.GetClosestPoint(location);
+      }
+
+      placed_location.y = GetHeight(csg::Point2(placed_location.x, placed_location.z));
+
+      if (placed_location.y != INT_MIN) {
          auto mob = entity->GetComponent<Mob>();
          if (mob) {
-            mob->MoveToGridAligned(csg::Point3(location.x, height, location.z));
+            mob->MoveToGridAligned(placed_location);
          }
       }
    }
@@ -63,10 +83,10 @@ void Terrain::PlaceEntity(EntityRef e, csg::Point3 const& location)
 
 // returns the maximum height at (x,z)
 // returns INT_MIN if no cube is found over (x,z)
-int Terrain::GetHeight(csg::Point2 const& location2)
+int Terrain::GetHeight(csg::Point2 const& location2) const
 {
    int max_y = INT_MIN;
-   csg::Point3 location3 = csg::Point3(location2.x, 0, location2.y);
+   csg::Point3 const location3 = csg::Point3(location2.x, 0, location2.y);
    csg::Point3 tile_offset;
    Region3BoxedPtr region_ptr = GetTile(location3, tile_offset);
    csg::Point3 const& region_local_pt = location3 - tile_offset;
@@ -86,10 +106,10 @@ int Terrain::GetHeight(csg::Point2 const& location2)
    return max_y;
 }
 
-Region3BoxedPtr Terrain::GetTile(csg::Point3 const& location, csg::Point3& tile_offset)
+Region3BoxedPtr Terrain::GetTile(csg::Point3 const& location, csg::Point3& tile_offset) const
 {
    // O(n) search - consider optimizing
-   for (auto& entry : tiles_) {
+   for (auto const& entry : tiles_) {
       tile_offset = entry.first;
       if (location.x >= tile_offset.x && location.x < tile_offset.x + tile_size_ &&
           location.z >= tile_offset.z && location.z < tile_offset.z + tile_size_) {

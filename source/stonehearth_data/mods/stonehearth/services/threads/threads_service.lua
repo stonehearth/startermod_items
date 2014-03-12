@@ -10,6 +10,13 @@ function ThreadsService:__init()
       end)
 end
 
+
+function ThreadsService:initialize()
+end
+
+function ThreadsService:restore(saved_variables)
+end
+
 function ThreadsService:create_thread()
    return Thread.new()
 end

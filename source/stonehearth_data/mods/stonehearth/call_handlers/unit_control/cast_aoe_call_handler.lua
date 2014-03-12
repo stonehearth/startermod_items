@@ -10,18 +10,16 @@ local offscreen_pos = Point3(-1000000, 0, -1000000)
 function CastAoeCallHandler:client_cast_aoe(session, response, entity, spell)
 
    self._capture = _radiant.client.capture_input()
-   self._capture:on_input(function(e)
+   self._capture:on_input(
+      function(e)
          if e.type == _radiant.client.Input.MOUSE then
-            self:_on_mouse_event(e.mouse, response, entity, spell)
-            return true
+            return self:_on_mouse_event(e.mouse, response, entity, spell)
          elseif e.type == _radiant.client.Input.KEYBOARD then
-            self:_on_keyboard_event(e.keyboard, response)
-            return true
+            return self:_on_keyboard_event(e.keyboard, response)
          end
          return false
-      end)
-
-   return true
+      end
+   )
 end
 
 -- called each time the mouse moves on the client.
@@ -38,14 +36,15 @@ function CastAoeCallHandler:_on_mouse_event(e, response, entity, spell)
    pt.y = pt.y + 1
 
    local in_range = entity:get_component('mob'):get_world_grid_location():distance_to(pt) <= range
-   local material
+   local material, material_path
 
    if in_range then
-      material = h3dAddResource(H3DResTypes.Material, "materials/aoe_reticle/aoe_reticle.material.xml", 0)
-      
+      material_path = "materials/aoe_reticle/aoe_reticle.material.xml"
    else
-      material = h3dAddResource(H3DResTypes.Material, "materials/out_of_range_reticle/out_of_range_reticle.material.xml", 0)
+      material_path = "materials/out_of_range_reticle/out_of_range_reticle.material.xml"
    end
+
+   material = h3dAddResource(H3DResTypes.Material, material_path, 0)
 
    if not self._cursor_node then
       self._cursor_node = h3dAddProjectorNode(H3DRootNode, "cursornode", material)
@@ -60,17 +59,16 @@ function CastAoeCallHandler:_on_mouse_event(e, response, entity, spell)
    if e:up(1) and in_range and s.location then
       
       _radiant.call('stonehearth:server_cast_aoe', entity:get_id(), spell, pt)
-               :always(function ()
-                     -- whether the request succeeds or fails, go ahead and destroy
-                     -- the authoring entity.  do it after the request returns to avoid
-                     -- the ugly flickering that would occur had we destroyed it when
-                     -- we uninstalled the mouse cursor
-                     self:_cleanup()
-                     response:resolve({ result = true })
-                  end)
-
-
-      response:resolve({ result = true })
+         :always(
+            function ()
+               -- whether the request succeeds or fails, go ahead and destroy
+               -- the authoring entity.  do it after the request returns to avoid
+               -- the ugly flickering that would occur had we destroyed it when
+               -- we uninstalled the mouse cursor
+               self:_cleanup()
+               response:resolve({ result = true })
+            end
+         )
    end
 
    -- return true to prevent the mouse event from propogating to the UI

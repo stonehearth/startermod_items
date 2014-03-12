@@ -496,9 +496,9 @@ void ScriptHost::Exit(int code)
 }
 
 
-uint ScriptHost::GetRealTime()
+double ScriptHost::GetRealTime()
 {
-   return perfmon::Timer::GetCurrentTimeMs();
+   return perfmon::Timer::GetCurrentTimeMs() / 1000.0;
 }
 
 int ScriptHost::GetLogLevel(std::string const& category)

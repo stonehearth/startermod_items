@@ -54,4 +54,10 @@ function HungerObserver:on_hourly(e)
    self._attributes_component:set_attribute('hunger', hunger)
 end
 
+function HungerObserver:destroy()
+   local entity = self._entity
+   radiant.events.unlisten(calendar, 'stonehearth:hourly', self, self.on_hourly)
+   radiant.events.unlisten(entity, 'stonehearth:attribute_changed:hunger', self, self._hunger_changed)
+end
+
 return HungerObserver

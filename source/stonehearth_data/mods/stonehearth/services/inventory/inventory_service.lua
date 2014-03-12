@@ -6,27 +6,33 @@ function InventoryService:__init()
    self._inventories = {}
 end
 
+function InventoryService:initialize()   
+   self.__savestate = radiant.create_datastore({
+         inventories = self._inventories
+      })
+end
+
+function InventoryService:restore(savestate)
+   self.__savestate = savestate
+   self.__savestate:read_data(function(o)
+         for faction, ss in pairs(o.inventories) do
+            local inventory = Inventory(faction)
+            inventory:restore(ss)
+            self._inventories[faction] = inventory
+         end
+      end)
+end
+
 function InventoryService:get_inventory(faction)
    radiant.check.is_string(faction)
    local inventory = self._inventories[faction]
    if not inventory then
       inventory = Inventory(faction)
+      inventory:initialize()
       self._inventories[faction] = inventory
+      self.__savestate:mark_changed()
    end
    return inventory
-end
-
-function InventoryService:enumerate_items(faction, cb)
-   local notified = {}
-   
-   for id, stockpile in pairs(self._stockpiles) do
-      for item_id, item in pairs(stockpile:get_items()) do
-         if not notified[item_id] then
-            notified[item_id] = true
-            cb(notified)
-         end
-      end
-   end
 end
 
 return InventoryService

@@ -5,12 +5,29 @@ local personality_service = stonehearth.personality
 
 --Separate the faction name (player chosen) from the kingdom name (ascendency, etc.)
 function PopulationFaction:__init(faction, kingdom)
-   self._faction = faction
-   self._data = radiant.resources.load_json(kingdom)
-   self._faction_name = faction --TODO: differentiate b/w user id and name?
-
-   self._kingdom = self._data.kingdom_id
    self._citizens = {}
+end
+
+function PopulationFaction:initialize(faction, kingdom)
+   self._faction = faction
+   self._kingdom = kingdom
+   self.__savestate = radiant.create_datastore({
+         faction = faction,
+         kingdom = kingdom,
+         citizens = self._citizens,
+      })
+
+   self._data = radiant.resources.load_json(kingdom)
+end
+
+function PopulationFaction:restore(saved_variables)
+   self.__savestate = saved_variables
+   self.__savestate:read_data(function(o)
+         self._faction = o.faction
+         self._kingdom = o.kingdom
+         self._citizens = o.citizens
+      end)
+   self._data = radiant.resources.load_json(self._kingdom)
 end
 
 function PopulationFaction:create_new_citizen()   
@@ -37,12 +54,13 @@ function PopulationFaction:create_new_citizen()
       self:customize_citizen(citizen, all_variants, "root")
    end
 
-   citizen:add_component('unit_info'):set_faction(self._faction_name) -- xxx: for now...
+   citizen:add_component('unit_info'):set_faction(self._faction) -- xxx: for now...
    --citizen:add_component('unit_info'):set_kingdom(self.kingdom)
 
    self:_set_citizen_initial_state(citizen, gender)
 
    table.insert(self._citizens, citizen)
+   self.__savestate:mark_changed()
 
    return citizen
 end
@@ -94,7 +112,7 @@ end
 
 function PopulationFaction:create_entity(uri)
    local entity = radiant.entities.create_entity(uri)
-   entity:add_component('unit_info'):set_faction(self._faction_name)
+   entity:add_component('unit_info'):set_faction(self._faction)
    return entity
 end
 

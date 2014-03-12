@@ -5,6 +5,7 @@ local ValleyShapes = class()
 function ValleyShapes:__init(rng)
    self._rng = rng
 
+   -- TODO: read theses from a JSON file
    self._shapes = {
       { 
          1, 0, 1,

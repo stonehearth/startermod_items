@@ -1,0 +1,28 @@
+{
+   "type":"recipe",
+
+   "work_units"  : 3,
+   "recipe_name" : "Farmer Coordinator",
+   "description" : "Advanced communication technology directs and organizes farmers. Also creates a few starter hoes.",
+   "flavor"      : "Prevents arguments about hoes.",
+   "portrait"    : "/stonehearth/entities/professions/farmer/farmer_coordination_board/farmer_coordination_board.png",
+   "category"    : "tools",
+
+   "ingredients": [
+      {
+         "material" : "wood resource",
+         "count" : 5
+      }
+  ],
+  "produces": [
+      {
+         "item":"stonehearth:farmer_coordination_board_proxy"
+      },
+      {
+        "item":"stonehearth:farmer_hoe"
+      },
+      {
+        "item":"stonehearth:farmer_hoe"
+      }
+  ]
+}
