@@ -258,6 +258,14 @@ bool Store::Load(std::string &error, ObjectMap& objects)
             }
          }
       }
+      {
+         for (auto const& entry : dynamicObjects_) {
+            ObjectPtr obj = entry.second.lock();
+            if (obj) {
+               obj->OnLoadObject(PERSISTANCE);
+            }
+         }
+      }
    }
    _close(fd);
    return true;

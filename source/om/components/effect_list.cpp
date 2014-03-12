@@ -54,7 +54,6 @@ void EffectList::AddRemoveDefault()
          default_in_list_ = effect->GetEffectId();
       }
    }
-
 }
 
 EffectPtr EffectList::AddEffect(std::string const& effectName, int startTime)
@@ -81,3 +80,12 @@ void EffectList::RemoveEffect(EffectPtr effect)
    AddRemoveDefault();
 }
 
+void EffectList::OnLoadObject(dm::SerializationType r)
+{
+   // Remove all effects from an Entity after loading.  Whoever put the effect on there
+   // to begin with is responsible for putting it back at load time.
+   if (r == dm::PERSISTANCE) {
+      effects_.Clear();
+      AddRemoveDefault();
+   }
+}

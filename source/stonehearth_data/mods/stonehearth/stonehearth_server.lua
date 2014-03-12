@@ -40,7 +40,9 @@ radiant.events.listen(stonehearth, 'radiant:load', function(e)
       local savestate = e.savestate
       for _, name in ipairs(service_creation_order) do
          local service = create_service(name)
-         service:load(savestate[name])
+         if service.load then
+            service:load(savestate[name])
+         end
 
          stonehearth[name] = service
       end
