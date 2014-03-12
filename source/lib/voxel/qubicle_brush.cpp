@@ -197,7 +197,7 @@ QubicleMatrix QubicleBrush::Lod(const QubicleMatrix& m, int lod_level)
          finalPalette.push_back(colorFreq.first);
       }
 
-      if (finalPalette.size() > 3) {
+      if (finalPalette.size() > 1) {
          break;
       }
    }
