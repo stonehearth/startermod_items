@@ -7,7 +7,7 @@ function LeaseComponent:initialize(entity, json)
    self._entity = entity  -- the entity we will be leasing
    self._leases = {}
    
-   self.__savestate = radiant.create_datastore({
+   self.__saved_variables = radiant.create_datastore({
          leases = self._leases,
       })
 end
@@ -19,7 +19,7 @@ function LeaseComponent:acquire(lease_name, entity)
    if self:can_acquire(lease_name, entity) then
       self._leases[lease_name] = entity
       entity:add_component('stonehearth:lease_holder'):_add_lease(lease_name, self._entity)
-      self.__savestate:mark_changed()
+      self.__saved_variables:mark_changed()
       return true
    end
    return false
@@ -48,7 +48,7 @@ function LeaseComponent:release(lease_name, entity)
    if self:can_acquire(lease_name, entity) then
       self._leases[lease_name] = nil
       entity:add_component('stonehearth:lease_holder'):_remove_lease(lease_name, self._entity)
-      self.__savestate:mark_changed()
+      self.__saved_variables:mark_changed()
       return true
    end
    return false

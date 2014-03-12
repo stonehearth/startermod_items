@@ -14,7 +14,7 @@ function ConstructionProgress:initialize(entity, json)
       dependencies = self._dependencies,
       finished = false,
    }
-   self.__savestate = radiant.create_datastore(self._data)
+   self.__saved_variables = radiant.create_datastore(self._data)
 end
 
 function ConstructionProgress:get_dependencies()
@@ -53,7 +53,7 @@ function ConstructionProgress:add_dependency(blueprint)
       local fabricator = cd:get_fabricator_entity()
       self:_update_dependency_fabricator(blueprint, fabricator)
    end
-   self.__savestate:mark_changed()
+   self.__saved_variables:mark_changed()
    self:check_dependencies()
 end
 
@@ -84,7 +84,7 @@ function ConstructionProgress:_update_dependency_fabricator(blueprint, fabricato
                radiant.events.listen(project, 'stonehearth:construction_finished',
                                      self, self._on_construction_finished)
 
-               self.__savestate:mark_changed()
+               self.__saved_variables:mark_changed()
                self:check_dependencies()
             end
          end
@@ -139,7 +139,7 @@ function ConstructionProgress:set_finished(finished)
    local changed = self._data.finished ~= finished
    if changed then
       self._data.finished = finished
-      self.__savestate:mark_changed()
+      self.__saved_variables:mark_changed()
 
       log:debug('%s trigger stonehearth:construction_finished event (finished = %s)',
                   self._entity, tostring(finished))

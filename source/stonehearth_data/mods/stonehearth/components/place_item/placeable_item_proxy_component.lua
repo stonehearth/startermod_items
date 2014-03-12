@@ -23,7 +23,7 @@ function PlaceableItemProxyComponent:initialize(entity, json)
       self:_create_derived_components()
    end
 
-   self.__savestate = radiant.create_datastore(self._data)   
+   self.__saved_variables = radiant.create_datastore(self._data)   
 end
 
 function PlaceableItemProxyComponent:get_full_sized_entity()

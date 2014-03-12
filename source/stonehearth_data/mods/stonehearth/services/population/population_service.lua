@@ -6,14 +6,14 @@ function PopulationService:__init()
 end
 
 function PopulationService:initialize()   
-   self.__savestate = radiant.create_datastore({
+   self.__saved_variables = radiant.create_datastore({
          factions = self._factions
       })
 end
 
-function PopulationService:restore(savestate)
-   self.__savestate = savestate
-   self.__savestate:read_data(function(o)
+function PopulationService:restore(saved_variables)
+   self.__saved_variables = saved_variables
+   self.__saved_variables:read_data(function(o)
          for faction, ss in pairs(o.factions) do
             local pop = PopulationFaction(faction)
             pop:restore(ss)

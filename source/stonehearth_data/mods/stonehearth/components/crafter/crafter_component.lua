@@ -17,7 +17,7 @@ function CrafterComponent:initialize(entity, json)
       self._craftable_recipes = {}
    end
    
-   self.__savestate = radiant.create_datastore({
+   self.__saved_variables = radiant.create_datastore({
       craftable_recipes = self._craftable_recipes
    })
 end

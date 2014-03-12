@@ -19,7 +19,7 @@ function FirepitComponent:initialize(entity, json)
 
    self._data = {}
    self._data.is_lit = false
-   self.__savestate = radiant.create_datastore(self._data)
+   self.__saved_variables = radiant.create_datastore(self._data)
 
    --Listen on terrain for when this entity is added/removed
    local added_cb = function(id, entity)
@@ -175,7 +175,7 @@ function FirepitComponent:light()
    end
    self._data.is_lit = true
    radiant.events.trigger(self._entity, 'stonehearth:fire:lit', { lit = true })
-   self.__savestate:mark_changed()
+   self.__saved_variables:mark_changed()
 end
 
 --- If there is wood, destroy it and extinguish the particles

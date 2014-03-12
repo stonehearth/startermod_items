@@ -13,11 +13,11 @@ end
 
 function AIComponent:initialize(entity, json)
    self._entity = entity
-   self.__savestate = radiant.create_datastore({
+   self.__saved_variables = radiant.create_datastore({
          actions = {},
          observers = {},
       })
-   self.__savestate:set_controller(self)
+   self.__saved_variables:set_controller(self)
 
    radiant.events.listen(entity, 'stonehearth:entity:post_create', function()
          self:_initialize(json)
@@ -28,7 +28,7 @@ end
 
 function AIComponent:restore(entity, saved_variables)
    self._entity = entity
-   self.__savestate = saved_variables
+   self.__saved_variables = saved_variables
    radiant.events.listen(radiant, 'radiant:game_loaded', function()
          self:_restore(saved_variables)
          self:_start()
@@ -64,7 +64,7 @@ end
 
 function AIComponent:add_action(uri, injecting_entity)
    if injecting_entity == nil then
-      self.__savestate:modify_data(function (o)
+      self.__saved_variables:modify_data(function (o)
             o.actions[uri] = true
          end)
    end
@@ -108,7 +108,7 @@ end
 
 function AIComponent:remove_action(key)
    if type(key) == 'string' then
-      self.__savestate:modify_data(function (o)
+      self.__saved_variables:modify_data(function (o)
             o.actions[key] = false
          end)
    end
@@ -132,7 +132,7 @@ function AIComponent:remove_custom_action(action_ctor, injecting_entity)
 end
 
 function AIComponent:add_observer(uri)
-   self.__savestate:modify_data(function (o)
+   self.__saved_variables:modify_data(function (o)
          o.observers[uri] = true
       end)
    self:_add_observer_script(uri)
@@ -145,7 +145,7 @@ function AIComponent:_add_observer_script(uri)
 end
 
 function AIComponent:remove_observer(key)
-   self.__savestate:modify_data(function (o)
+   self.__saved_variables:modify_data(function (o)
          o.observers[key] = nil
       end)
 
@@ -175,7 +175,7 @@ function AIComponent:_initialize(json)
 end
 
 function AIComponent:_restore()
-   self.__savestate:read_data(function(o)
+   self.__saved_variables:read_data(function(o)
          for uri, _ in pairs(o.actions) do
             self:_add_action_script(uri)
          end

@@ -4,11 +4,11 @@ function LeashComponent:initialize(entity, json)
    radiant.check.is_entity(entity)
    self._entity = entity
    self._sv = {}
-   self.__savestate = radiant.create_datastore(self._sv)
+   self.__saved_variables = radiant.create_datastore(self._sv)
 end
 
 function LeashComponent:restore(entity, saved_variables)
-   self.__savestate = saved_variables
+   self.__saved_variables = saved_variables
    self._sv = saved_variables:get_data()
 end
 
@@ -22,7 +22,7 @@ end
 
 function LeashComponent:set_location(point)
    self._sv.position = point
-   self.__savestate:mark_changed()
+   self.__saved_variables:mark_changed()
 end
 
 function LeashComponent:get_radius()
@@ -31,7 +31,7 @@ end
 
 function LeashComponent:set_radius(number)
    self._sv.radius = number
-   self.__savestate:mark_changed()
+   self.__saved_variables:mark_changed()
 end
 
 

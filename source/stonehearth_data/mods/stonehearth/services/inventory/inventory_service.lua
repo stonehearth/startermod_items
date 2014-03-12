@@ -7,14 +7,14 @@ function InventoryService:__init()
 end
 
 function InventoryService:initialize()   
-   self.__savestate = radiant.create_datastore({
+   self.__saved_variables = radiant.create_datastore({
          inventories = self._inventories
       })
 end
 
-function InventoryService:restore(savestate)
-   self.__savestate = savestate
-   self.__savestate:read_data(function(o)
+function InventoryService:restore(saved_variables)
+   self.__saved_variables = saved_variables
+   self.__saved_variables:read_data(function(o)
          for faction, ss in pairs(o.inventories) do
             local inventory = Inventory(faction)
             inventory:restore(ss)
@@ -30,7 +30,7 @@ function InventoryService:get_inventory(faction)
       inventory = Inventory(faction)
       inventory:initialize()
       self._inventories[faction] = inventory
-      self.__savestate:mark_changed()
+      self.__saved_variables:mark_changed()
    end
    return inventory
 end

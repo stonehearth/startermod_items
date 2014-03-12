@@ -20,7 +20,7 @@ function EntityTracker:__init(tracker_name, filter_fn, event_array)
    self._tracked_entities = {} -- used to avoid an O(n) removal for non workers  
    self._filter_fn = filter_fn
 
-   self.__savestate = radiant.create_datastore({
+   self.__saved_variables = radiant.create_datastore({
          entities = self._entities,
       })
 
@@ -46,7 +46,7 @@ end
 
 function EntityTracker:_add_entity(entity)
    table.insert(self._entities, entity)
-   self.__savestate:mark_changed()
+   self.__saved_variables:mark_changed()
    self._tracked_entities[entity:get_id()] = true
 end
 
@@ -76,7 +76,7 @@ function EntityTracker:_on_entity_remove(id)
             break
          end
       end
-      self.__savestate:mark_changed()
+      self.__saved_variables:mark_changed()
    end
 end
 

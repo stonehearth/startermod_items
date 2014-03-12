@@ -35,8 +35,8 @@ function GrowingComponent:initialize(entity, json)
       end
    end
    
-   self.__savestate = radiant.create_datastore(self._data)
-   self.__savestate:mark_changed()
+   self.__saved_variables = radiant.create_datastore(self._data)
+   self.__saved_variables:mark_changed()
 end
 
 function GrowingComponent:destroy()
@@ -49,7 +49,7 @@ function GrowingComponent:on_hourly()
       self:grow()
    else 
       self._data.growth_countdown = self._data.growth_countdown - 1
-      self.__savestate:mark_changed()
+      self.__saved_variables:mark_changed()
    end
 end
 
@@ -65,7 +65,7 @@ function GrowingComponent:grow()
    if self._data.curr_stage >= #self._growth_stages then
       self:stop_growing()   
    end
-   self.__savestate:mark_changed()
+   self.__saved_variables:mark_changed()
 end
 
 function GrowingComponent:_set_stage()

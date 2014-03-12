@@ -26,8 +26,8 @@ function FarmerFieldComponent:initialize(entity, json)
       general_fertility = rng:get_int(1, 40)   --TODO; get from global service
    }
 
-   self.__savestate = radiant.create_datastore(self._data)
-   self.__savestate:mark_changed()
+   self.__saved_variables = radiant.create_datastore(self._data)
+   self.__saved_variables:mark_changed()
 
    --TODO: listen on changes to faction, like stockpile?
 end
@@ -65,7 +65,7 @@ function FarmerFieldComponent:init_contents(size, location, name, faction)
    end
 
    --TODO: where to schedule tasks for planting and harvesting and destroying things?
-   self.__savestate:mark_changed()
+   self.__saved_variables:mark_changed()
 end
 
 --- Call when it's time to till the ground for the first time

@@ -5,7 +5,7 @@ local _test_thread_suspended
 local _main_thread
 
 local autotest = {
-   __savestate = {},
+   __saved_variables = {},
    ui = require 'lib.server.autotest_ui_server',
    env = require 'lib.server.autotest_environment',
    util = require 'lib.server.autotest_util_server',

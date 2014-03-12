@@ -22,7 +22,7 @@ function Personality:initialize(entity, json)
       substitutions = {},
       todays_events = {}    --Each notable thing that's happened today
    }
-   self.__savestate = radiant.create_datastore(self._data)
+   self.__saved_variables = radiant.create_datastore(self._data)
    radiant.events.listen(calendar, 'stonehearth:midnight', self, self.on_midnight)
 end
 
@@ -106,7 +106,7 @@ function Personality:_add_log_entry(entry_title, entry_text)
    stonehearth.events:add_entry(name .. ': ' .. entry_text)
 
    --Let the journal UI know to update itself, if visible
-   self.__savestate:mark_changed()
+   self.__saved_variables:mark_changed()
 
    --If the show journal command is not yet enabled, enable it
    if self._first_entry then

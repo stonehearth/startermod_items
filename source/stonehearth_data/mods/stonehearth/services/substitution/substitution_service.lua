@@ -80,7 +80,7 @@ end
 function SubstitutionService:initialize()
 end
 
-function SubstitutionService:restore(savestate)
+function SubstitutionService:restore(saved_variables)
 end
 
 --- Populate the dictionary with a data blob of json

@@ -28,12 +28,12 @@ function CalendarService:initialize()
       _fired_sunset_today = false,
       _fired_midnight_today = false
    }
-   self.__savestate = radiant.create_datastore(self._data)
+   self.__saved_variables = radiant.create_datastore(self._data)
 end
 
-function CalendarService:restore(savestate)
-   self.__savestate = savestate
-   self._data = savestate:get_data()
+function CalendarService:restore(saved_variables)
+   self.__saved_variables = saved_variables
+   self._data = saved_variables:get_data()
 end
 
 function CalendarService:set_time(hour, minute, second)
@@ -116,7 +116,7 @@ function CalendarService:_on_event_loop(e)
 
    self._data._lastNow = now
 
-   self.__savestate:mark_changed()
+   self.__saved_variables:mark_changed()
 end
 
 function CalendarService:update_timers(dt)

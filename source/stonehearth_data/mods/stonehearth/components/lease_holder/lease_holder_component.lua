@@ -10,7 +10,7 @@ function LeaseHolderComponent:initialize(entity, json)
    self._entity = entity  -- the entity this component is attached to
    self._leases = {}
    
-   self.__savestate = radiant.create_datastore({
+   self.__saved_variables = radiant.create_datastore({
          leases = self._leases,
       })
 end
@@ -22,7 +22,7 @@ function LeaseHolderComponent:_add_lease(lease_name, entity)
       self._leases[lease_name] = leases
    end
    leases[entity:get_id()] = entity
-   self.__savestate:mark_changed()
+   self.__saved_variables:mark_changed()
 end
 
 function LeaseHolderComponent:_remove_lease(lease_name, entity)
@@ -33,7 +33,7 @@ function LeaseHolderComponent:_remove_lease(lease_name, entity)
          if not next(leases) then
             self._leases[lease_name] = nil
          end
-         self.__savestate:mark_changed()
+         self.__saved_variables:mark_changed()
       end
    end
 end

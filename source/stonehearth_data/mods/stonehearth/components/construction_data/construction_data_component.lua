@@ -12,8 +12,8 @@ function ConstructionDataComponent:initialize(entity, json)
    if not self._data.material then
       self._data.material = 'wood resource'
    end
-   self.__savestate = radiant.create_datastore(self._data)
-   self.__savestate:modify_data(function (o)
+   self.__saved_variables = radiant.create_datastore(self._data)
+   self.__saved_variables:modify_data(function (o)
           if o.normal then
              o.normal = Point3(o.normal.x, o.normal.y, o.normal.z)
           end
@@ -30,13 +30,13 @@ end
 
 function ConstructionDataComponent:get_savestate()
    -- xxx: this isn't even a copy!  it's the *actual data*
-   return self.__savestate:get_data()
+   return self.__saved_variables:get_data()
 end
 
 function ConstructionDataComponent:set_normal(normal)
    assert(radiant.util.is_a(normal, Point3))
    self._data.normal = normal
-   self.__savestate:mark_changed()
+   self.__saved_variables:mark_changed()
    return self
 end
 
@@ -53,7 +53,7 @@ end
 
 function ConstructionDataComponent:set_fabricator_entity(fentity)
    self._data.fabricator_entity = fentity
-   self.__savestate:mark_changed()
+   self.__saved_variables:mark_changed()
 
    log:debug('%s trigger stonehearth:construction_fabricator_changed event (fabricator_entity = %s)',
                self._entity, fentity)

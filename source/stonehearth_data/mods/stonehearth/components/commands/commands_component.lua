@@ -11,7 +11,7 @@ end
 
 function CommandsComponent:initialize(entity, json)
    self._entity = entity
-   self.__savestate = radiant.create_datastore({
+   self.__saved_variables = radiant.create_datastore({
       commands = self._commands
    })
 
@@ -29,7 +29,7 @@ function CommandsComponent:add_command(uri)
    self:_set_defaults(t)
 
    table.insert(self._commands, t)
-   self.__savestate:mark_changed()
+   self.__saved_variables:mark_changed()
    return t
 end
 
@@ -37,7 +37,7 @@ function CommandsComponent:remove_command(name)
    for i, command in ipairs(self._commands) do
       if command.name == name then
          table.remove(self._commands, i)
-         self.__savestate:mark_changed()
+         self.__saved_variables:mark_changed()
          break;
       end
    end
@@ -47,7 +47,7 @@ function CommandsComponent:modify_command(name, cb)
    local command = self:_find_command_by_name(name)
    if command then
       cb(command)
-      self.__savestate:mark_changed()
+      self.__saved_variables:mark_changed()
    else
       log:error('Cannot modify command "%s". It was not found.', name)
    end
@@ -102,7 +102,7 @@ function CommandsComponent:enable_command(name, status)
             command.description = command.disabled_description
          end
       end
-      self.__savestate:mark_changed()
+      self.__saved_variables:mark_changed()
    else
       log:error('Cannot modify command "%s". It was not found.', name)
    end

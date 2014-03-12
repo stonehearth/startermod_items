@@ -15,7 +15,7 @@ end
 
 function BuffsComponent:initialize(entity, json)
    self._entity = entity   
-   self.__savestate = radiant.create_datastore(self._buffs)
+   self.__saved_variables = radiant.create_datastore(self._buffs)
 end
 
 function BuffsComponent:add_buff(uri)
@@ -34,7 +34,7 @@ function BuffsComponent:add_buff(uri)
       self:_inject_ai(uri, buff)
       self:_apply_controller(uri, buff)
 
-      self.__savestate:mark_changed()
+      self.__saved_variables:mark_changed()
       radiant.events.trigger(self._entity, 'stonehearth:buff_added', {
             entity = self._entity,
             uri = uri,
@@ -57,7 +57,7 @@ function BuffsComponent:remove_buff(uri)
    self:_remove_modifiers(uri);
    self:_uninject_ai(uri)
 
-   self.__savestate:mark_changed()
+   self.__saved_variables:mark_changed()
 end
 
 function BuffsComponent:_apply_controller(uri, buff)

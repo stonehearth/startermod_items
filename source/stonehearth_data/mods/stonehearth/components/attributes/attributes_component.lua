@@ -49,7 +49,7 @@ end
 --- Given the type of attribute, handle as needed
 function AttributesComponent:initialize(entity, json)
    self._entity = entity
-   self.__savestate = radiant.create_datastore({
+   self.__saved_variables = radiant.create_datastore({
          attributes = self._attributes,
          modifiers = self._modifiers,
          dependencies = self._dependencies,
@@ -61,13 +61,13 @@ function AttributesComponent:initialize(entity, json)
          self:_add_new_attribute(n, v)
       end
       self._incoming_json = nil
-      self.__savestate:mark_changed()
+      self.__saved_variables:mark_changed()
    end
 end
 
 function AttributesComponent:restore(entity, saved_variables)
    self._entity = entity
-   self.__savestate = saved_variables
+   self.__saved_variables = saved_variables
    saved_variables:read_data(function(o)
          self._attributes = o.attributes
          self._modifiers = o.modifiers
@@ -258,7 +258,7 @@ function AttributesComponent:_recalculate(name)
          self:_recalculate(v)
       end
    end
-   self.__savestate:mark_changed()
+   self.__saved_variables:mark_changed()
 end
 
 return AttributesComponent

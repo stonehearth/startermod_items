@@ -11,7 +11,7 @@ function CraftOrderList:__init()
    self._orders = {
       __numeric = true
    }
-   self.__savestate = radiant.create_datastore({
+   self.__saved_variables = radiant.create_datastore({
          orders = self._orders,
       })
 end
@@ -22,7 +22,7 @@ end
 
 function CraftOrderList:toggle_pause()
    self._is_paused = not self._is_paused
-   self.__savestate:modify_data(function (data)
+   self.__saved_variables:modify_data(function (data)
          data.is_paused = self._is_paused
       end)
    self:_on_order_list_changed()
@@ -110,7 +110,7 @@ end
 
 function CraftOrderList:_on_order_list_changed()
    radiant.events.trigger(self, 'order_list_changed')
-   self.__savestate:mark_changed()
+   self.__saved_variables:mark_changed()
 end
 
 

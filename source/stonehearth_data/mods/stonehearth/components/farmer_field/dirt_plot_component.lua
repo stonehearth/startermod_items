@@ -13,8 +13,8 @@ function DirtPlotComponent:initialize(entity, json)
       field_location = nil,
       contents = nil
    }
-   self.__savestate = radiant.create_datastore(self._data)
-   self.__savestate:mark_changed()
+   self.__saved_variables = radiant.create_datastore(self._data)
+   self.__saved_variables:mark_changed()
 
    --listen for when something gets put on me
    --radiant.events.listen(self._entity, 'stonehearth:crop_planted', self, self._on_crop_planted)
@@ -26,7 +26,7 @@ end
 function DirtPlotComponent:set_field(parent_field, location)
    self._data.parent_field = parent_field
    self._data.field_location = location
-   self.__savestate:mark_changed()
+   self.__saved_variables:mark_changed()
 end
 
 --- Given data about the plot, set the right state variables
@@ -36,7 +36,7 @@ function DirtPlotComponent:set_fertility_moisture(fertility, moisture)
    self._data.fertility = fertility
    self._data.moisture = moisture
    self:_update_visible_soil_state()
-   self.__savestate:mark_changed()
+   self.__saved_variables:mark_changed()
 end
 
 function DirtPlotComponent:get_contents()

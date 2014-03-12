@@ -293,11 +293,11 @@ void Simulation::CreateGameModules()
 
 void Simulation::LoadGameModules()
 {
-   // Stash the savestate away before we blow away the ModList component with the
+   // Stash the saved_variables away before we blow away the ModList component with the
    // new module script objects.
-   std::map<std::string, luabind::object> savestates;
+   std::map<std::string, luabind::object> saved;
    for (auto const& entry : modList_->EachMod()) {
-      savestates[entry.first] = entry.second;
+      saved[entry.first] = entry.second;
    }
 
    // Now load up the modules.
@@ -307,10 +307,10 @@ void Simulation::LoadGameModules()
    lua_State* L = scriptHost_->GetInterpreter();
    for (auto const& entry : modList_->EachMod()) {
       std::string const& mod_name = entry.first;
-      luabind::object savestate = savestates[mod_name];
-      if (savestate && savestate.is_valid()) {
+      luabind::object saved_variables = saved[mod_name];
+      if (saved_variables && saved_variables.is_valid()) {
          luabind::object e(luabind::newtable(L));
-         e["savestate"] = savestate;
+         e["saved_variables"] = saved_variables;
          scriptHost_->TriggerOn(entry.second, "radiant:load", e);
       }
    }
