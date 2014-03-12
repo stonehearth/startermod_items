@@ -138,6 +138,7 @@ function entities.distance_between(object_a, object_b)
    if radiant.util.is_a(object_b, Entity) then
       object_b = radiant.entities.get_world_grid_location(object_b)
    end
+   -- xxx: verify a and b are both Point3s...
    return object_a:distance_to(object_b)
 end
 

@@ -18,6 +18,7 @@
 #include "dm/tracer_buffered.h"
 #include "dm/tracer_sync.h"
 #include "om/entity.h"
+#include "om/stonehearth.h"
 #include "om/components/clock.ridl.h"
 #include "om/components/mod_list.ridl.h"
 #include "om/components/mob.ridl.h"
@@ -313,6 +314,10 @@ void Simulation::LoadGameModules()
          scriptHost_->TriggerOn(entry.second, "radiant:load", e);
       }
    }
+   for (auto const& entry : entityMap_) {
+      om::Stonehearth::RestoreLuaComponents(scriptHost_.get(), entry.second);
+   }
+
    scriptHost_->Trigger("radiant:game_loaded");
 }
 

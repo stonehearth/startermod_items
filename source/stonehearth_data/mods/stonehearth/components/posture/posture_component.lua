@@ -1,17 +1,22 @@
 local PostureComponent = class()
 
+function PostureComponent:__init()
+   self._log = radiant.log.create_logger('posture')
+   self._set_postures = {}
+end
 
 function PostureComponent:__create(entity, json)
-   radiant.check.is_entity(entity)
    self._entity = entity
-   self._set_postures = {}
-   self._log = radiant.log.create_logger('posture')
-   self._log:set_prefix(string.format('postures for %s', tostring(entity)))
-
-   self._postures = {}
    self.__savestate = radiant.create_datastore({
-      postures = self._set_postures
+      set_postures = self._set_postures
    })
+end
+
+function PostureComponent:restore(entity, saved_variables)
+   self.__savestate = saved_variables
+   saved_variables:read_data(function (o) 
+         self._set_postures = o.set_postures
+      end)
 end
 
 function PostureComponent:get_posture()

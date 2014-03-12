@@ -16,14 +16,13 @@ class Stonehearth
 {
 public:
    // xxx this file has no reason to exist anymore now that lua handles most of this
-   static csg::Region3 ComputeStandingRegion(const csg::Region3& r, int height);
-
    static void InitEntity(om::EntityPtr entity, std::string const& uri, lua_State* L);
    static luabind::object AddComponent(lua_State* L, om::EntityRef e, std::string name);
    static luabind::object GetComponent(lua_State* L, om::EntityRef e, std::string name);
    static luabind::object AddComponentData(lua_State* L, om::EntityRef e, std::string name);
    static luabind::object GetComponentData(lua_State* L, om::EntityRef e, std::string name);
    static luabind::object SetComponentData(lua_State* L, om::EntityRef e, std::string name, luabind::object data);
+   static void RestoreLuaComponents(lua::ScriptHost* scriptHost, EntityPtr entity);
 
 private:
    static void InitEntityByUri(om::EntityPtr entity, std::string const& uri, lua_State* L);

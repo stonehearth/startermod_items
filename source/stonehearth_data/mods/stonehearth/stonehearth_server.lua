@@ -29,9 +29,6 @@ local function create_service(name)
    return require(path)()
 end
 
-local function create_services(init_fn, savestate)
-end
-
 radiant.events.listen(stonehearth, 'radiant:construct', function(args)
       for _, name in ipairs(service_creation_order) do
          local service = create_service(name)
