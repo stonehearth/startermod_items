@@ -31,7 +31,7 @@ function CalendarService:initialize()
    self.__savestate = radiant.create_datastore(self._data)
 end
 
-function CalendarService:load_game(savestate)
+function CalendarService:restore(savestate)
    self.__savestate = savestate
    self._data = savestate:get_data()
 end

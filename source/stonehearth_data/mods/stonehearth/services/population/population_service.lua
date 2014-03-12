@@ -5,15 +5,34 @@ function PopulationService:__init()
    self._factions = {}
 end
 
+function PopulationService:initialize()   
+   self.__savestate = radiant.create_datastore({
+         factions = self._factions
+      })
+end
+
+function PopulationService:restore(savestate)
+   self.__savestate = savestate
+   self.__savestate:read_data(function(o)
+         for faction, ss in pairs(o.factions) do
+            local pop = PopulationFaction(faction)
+            pop:restore(ss)
+            self._factions[faction] = pop
+         end
+      end)
+end
+
+
 --TODO: civ is assumed to be the user faction in many places. Stamp this out!
 function PopulationService:get_faction(faction, kingdom)
    radiant.check.is_string(faction)
-   local scheduler = self._factions[faction]
-   if not scheduler and kingdom then
-      scheduler = PopulationFaction(faction, kingdom)
-      self._factions[faction] = scheduler
+   local pop = self._factions[faction]
+   if not pop and kingdom then
+      pop = PopulationFaction()
+      pop:initialize(faction, kingdom)
+      self._factions[faction] = pop
    end
-   return scheduler
+   return pop
 end
 
 function PopulationService:get_all_factions()

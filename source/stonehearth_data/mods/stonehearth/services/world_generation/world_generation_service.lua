@@ -22,6 +22,13 @@ local log = radiant.log.create_logger('world_generation')
 function WorldGenerationService:__init()
 end
 
+function WorldGenerationService:initialize()
+end
+
+function WorldGenerationService:restore(saved_variables)
+   log:write(0, 'store not implemented for world generation service!')
+end
+
 function WorldGenerationService:create_new_game(seed, async)
    self:set_seed(seed)
    self._async = async

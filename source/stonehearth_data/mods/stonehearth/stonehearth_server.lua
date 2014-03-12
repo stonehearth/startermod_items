@@ -29,22 +29,23 @@ local function create_service(name)
    return require(path)()
 end
 
-local function create_services(init_fn, ...)
-   for _, name in ipairs(service_creation_order) do
-      local service = create_service(name)
-      if service[init_fn] then
-         service[init_fn](service, ...)
-      end
-      stonehearth[name] = service
-   end
+local function create_services(init_fn, savestate)
 end
 
 radiant.events.listen(stonehearth, 'radiant:construct', function(args)
-      create_services('initialize')
+      for _, name in ipairs(service_creation_order) do
+         local service = create_service(name)
+         service:initialize()
+         stonehearth[name] = service
+      end
    end)
 
 radiant.events.listen(stonehearth, 'radiant:load', function(e)      
-      create_services('restore', e.savestate)
+      for _, name in ipairs(service_creation_order) do
+         local service = create_service(name)
+         service:restore(e.savestate[name])
+         stonehearth[name] = service
+      end
    end)
 
 return stonehearth

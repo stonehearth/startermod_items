@@ -7,6 +7,14 @@ function TasksService:__init()
    self._schedulers = {}
 end
 
+function TasksService:initialize()
+end
+
+function TasksService:restore(saved_variables)
+   -- the tasks service doesn't save or restore tasks.  we leave
+   -- that up to the owners of the tasks themselves
+end
+
 function TasksService:create_scheduler(name)
    -- todo: break out by faction, too!
    local scheduler = self._schedulers[name]

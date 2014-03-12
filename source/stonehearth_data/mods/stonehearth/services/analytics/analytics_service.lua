@@ -9,6 +9,12 @@ function AnalyticsService:__init(datastore)
    radiant.events.listen(radiant.events, 'stonehearth:ten_minute_poll', self, self.on_ten_minute_poll)
 end
 
+function AnalyticsService:initialize()
+end
+
+function AnalyticsService:restore(saved_variables)
+end
+
 function AnalyticsService:on_minute_poll()
    _radiant.analytics.DesignEvent('game:is_running'):send_event()
 end

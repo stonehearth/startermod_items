@@ -28,7 +28,7 @@ function InventoryService:get_inventory(faction)
    local inventory = self._inventories[faction]
    if not inventory then
       inventory = Inventory(faction)
-      inventory:create()
+      inventory:initialize()
       self._inventories[faction] = inventory
       self.__savestate:mark_changed()
    end

@@ -20,6 +20,13 @@ function TerrainService:__init()
    self:_register_events()
 end
 
+function TerrainService:initialize()
+end
+
+function TerrainService:restore(saved_variables)
+   log:write(0, 'store not implemented for terrain service!')
+end
+
 function TerrainService:_register_events()
    radiant.events.listen(radiant.events, 'stonehearth:very_slow_poll', self, self._on_poll)
 end
