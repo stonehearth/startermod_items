@@ -7,22 +7,22 @@
                "file(corn_4.qb)"
             ]
          },
-         "just_planted": {
+         "corn_1": {
             "models": [
                "file(corn_1.qb)"
             ]
          },
-         "growing": {
+         "corn_2": {
             "models": [
                "file(corn_2.qb)"
             ]
          },
-         "budding": {
+         "corn_3": {
             "models": [
                "file(corn_3.qb)"
             ]
          },
-         "ripe": {
+         "corn_4": {
             "models": [
                "file(corn_4.qb)"
             ]
@@ -42,10 +42,10 @@
       "stonehearth:growing" : {
          "growth_period" : "1h",
          "growth_stages" : [
-            "just_planted",
-            "growing",
-            "budding",
-            "ripe"
+            "corn_1",
+            "corn_2",
+            "corn_3",
+            "corn_4"
          ]
       }
    }

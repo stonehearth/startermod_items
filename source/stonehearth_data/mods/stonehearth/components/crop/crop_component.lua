@@ -23,7 +23,10 @@ function CropComponent:_on_growth_complete()
    local location = radiant.entities.get_world_grid_location(self._entity)
    radiant.terrain.remove_entity(self._entity)
    radiant.terrain.place_entity(new_entity, location)
+   radiant.events.trigger(self._entity, 'stonehearth:crop_swap', {final_crop = new_entity})
    radiant.entities.destroy_entity(self._entity)
+
+   --TODO: when this new crop is harvested, tell the ground it's standing on that that it's gone
 end
 
 return CropComponent

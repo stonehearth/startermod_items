@@ -4,7 +4,7 @@
       "model_variants": {
          "default": {
             "models": [
-               "file(corn_4.qb)"
+               "file(/entities/plants/corn_seedling/corn_4.qb)"
             ]
          }
       },

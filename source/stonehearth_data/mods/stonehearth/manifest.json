@@ -215,7 +215,6 @@
       "actions:goto_item_made_of" : "file(ai/actions/goto_item_made_of.lua)",
       "actions:goto_entity_with_entity_data" : "file(ai/actions/goto_entity_with_entity_data_action.lua)",
       "actions:create_proxy_entity" : "file(ai/actions/create_proxy_entity.lua)",
-      "actions:create_entity" : "file(ai/actions/create_entity.lua)",
       "actions:fear_fire" : "file(ai/actions/fear_fire_action.lua)",
       "actions:run_effect_action" : "file(ai/actions/run_effect_action.lua)",
       "actions:start_effect" : "file(ai/actions/start_effect.lua)",
@@ -546,6 +545,10 @@
          "controller" : "file(call_handlers/resource_call_handler.lua)",
          "endpoint" : "server"
       },
+      "break_down_object" : {
+         "controller" : "file(call_handlers/resource_call_handler.lua)",
+         "endpoint" : "server"
+      },
       "harvest_tree" : {
          "controller": "file(call_handlers/resource_call_handler.lua)",
          "endpoint" : "server"
@@ -675,7 +678,8 @@
       "inventory" : "file(components/inventory/inventory_component.lua)",
       "carry_block" : "file(components/carry_block/carry_block_component.lua)",
       "growing" : "file(components/growing/growing_component.lua)", 
-      "crop" : "file(components/crop/crop_component.lua)"
+      "crop" : "file(components/crop/crop_component.lua)", 
+      "dirt_plot" : "file(components/farmer_field/dirt_plot_component.lua)"
    },
    "component_renderers" : {
       "stockpile" : "file(renderers/stockpile/stockpile_renderer.lua)",

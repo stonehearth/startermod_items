@@ -43,8 +43,12 @@ function FarmerFieldComponent:init_contents(size, location, name, faction)
    for x=1, self._data.size[1] do
       self._data.contents[x] = {}
       for y=1, self._data.size[2] do
-         -- TODO: remove the default object; we just need it for visual effect for testing
          local field_spacer = radiant.entities.create_entity('stonehearth:tilled_dirt') 
+         local render_info = field_spacer:add_component('render_info')
+         render_info:set_model_variant('untilled_ground')
+         local dirt_plot_component = field_spacer:get_component('stonehearth:dirt_plot')
+         dirt_plot_component:set_field(self._entity, location)
+
          self._data.contents[x][y] = field_spacer
          local grid_location = Point3(location.x + x-1, 0, location.z + y-1)
          radiant.terrain.place_entity(field_spacer, grid_location)
@@ -64,39 +68,16 @@ function FarmerFieldComponent:init_contents(size, location, name, faction)
    self.__savestate:mark_changed()
 end
 
---- Swap field spacer for a plot of dirt
+--- Call when it's time to till the ground for the first time
 --  TODO: model varients for the dirt
 function FarmerFieldComponent:till_location(field_spacer)
-   --TODO: Determine delete tool functionality.
-   --If there was something planted before us, nuke it
-
-   --Replace whatever was there before with freshly tilled earth.
-   local render_info = field_spacer:add_component('render_info')
-
    --TODO: get general fertility data from a global service
    --and maybe local fertility data too
    local local_fertility = rng:get_gaussian(self._data.general_fertility, 10)
-   local target_model_variant = nil
-   if local_fertility < 10 then
-      target_model_variant = 'dirt_1'
-   elseif local_fertility < 25 then
-      target_model_variant = 'dirt_2'
-   elseif local_fertility < 35 then
-      target_model_variant = 'dirt_3'
-   else 
-      target_model_variant = 'dirt_4'
-   end
-   render_info:set_model_variant(target_model_variant)
-   local dirt_name, dirt_description = farming_service:get_dirt_descriptions(target_model_variant)
-   radiant.entities.set_name(field_spacer, dirt_name)
-   radiant.entities.set_description(field_spacer, dirt_description)
+   local dirt_plot_component = field_spacer:get_component('stonehearth:dirt_plot')
 
-
-   --Add the growX command to the dirt here
-   --TODO: move this funtionality to some brush tool
-   local plant_crop_command = field_spacer:add_component('stonehearth:commands'):add_command('stonehearth/data/commands/plant_crop')
-
-   self.__savestate:mark_changed()
+   --TODO: set moisture correctly
+   dirt_plot_component:set_fertility_moisture(local_fertility, 50)
 end
 
 

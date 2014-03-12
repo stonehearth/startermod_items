@@ -4,6 +4,11 @@
       "model_variants": {
          "default": {
             "models": [
+               "file(dirt_1.qb)"
+            ]
+         },
+         "untilled_ground": {
+            "models": [
                "file(untilled_ground.qb)"
             ]
          },
@@ -40,6 +45,12 @@
          "name": "Tilled Earth",
          "description": "Dirty, in the purest sense.",
          "icon" : "file(tilled_dirt.png)"
+      }, 
+      "stonehearth:dirt_plot" : {}, 
+      "stonehearth:commands" : {
+         "commands" : [
+            "file(/data/commands/plant_crop)"
+         ]
       }
    }
 }

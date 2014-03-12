@@ -1,0 +1,15 @@
+{
+   "type" : "command",
+
+   "name": "raze_crop",
+   "tooltip": "Raze this crop!",
+   "description" : "Destroy the plant in this square.",
+   "icon": "file(raze_crop.png)",
+
+   "action": "call",
+   "function" : "stonehearth:break_down_object",
+   "args" : [
+      "{{self}}",
+      "farmers"
+   ]
+}
