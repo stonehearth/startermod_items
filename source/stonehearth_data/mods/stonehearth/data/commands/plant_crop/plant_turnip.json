@@ -1,0 +1,15 @@
+{
+   "type" : "command",
+
+   "name": "plant_turnip",
+   "tooltip": "Plant a Turnip!",
+   "description" : "Plant a turnip in this square.",
+   "icon": "file(plant_crop.png)",
+
+   "action": "call",
+   "function" : "stonehearth:plant_crop",
+   "args" : [
+      "{{self}}", 
+      "stonehearth:turnip_crop"
+   ]
+}

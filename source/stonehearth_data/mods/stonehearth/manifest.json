@@ -128,6 +128,9 @@
       "corn_plant" : "file(entities/plants/corn_plant)",
       "corn_basket" : "file(entities/plants/corn_basket)",
       "corn_cob" : "file(entities/plants/corn_cob)",
+      "turnip_crop" : "file(entities/plants/turnip/turnip_crop)",
+      "turnip" : "file(entities/plants/turnip/turnip_serving)",
+      "turnip_basket" : "file(entities/plants/turnip/turnip_basket)",
 
       "pink_flower" : "file(entities/ground_clutter/pink_flower)",
 

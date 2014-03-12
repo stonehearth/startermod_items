@@ -4,49 +4,79 @@
       "model_variants": {
          "default": {
             "models": [
-               "file(turnip_4.qb)"
+               "file(turnip_crop_4.qb)"
             ]
          },
-         "just_planted": {
+         "turnip_1": {
             "models": [
-               "file(turnip_1.qb)"
+               "file(turnip_crop_1.qb)"
             ]
          },
-         "growing": {
+         "turnip_2": {
             "models": [
-               "file(turnip_2.qb)"
+               "file(turnip_crop_2.qb)"
             ]
          },
-         "budding": {
+         "turnip_3": {
             "models": [
-               "file(turnip_3.qb)"
+               "file(turnip_crop_3.qb)"
             ]
          },
-         "ripe": {
+         "turnip_4": {
             "models": [
-               "file(turnip_4.qb)"
+               "file(turnip_crop_4.qb)"
             ]
          }
       },
       "unit_info": {
          "name": "Turnip Seedling", 
-         "description": "Slow-motion, high stakes gambling."
+         "description": "A unrealized turnip."
       },
       "stonehearth:commands" : {
          "commands" : [
+            "file(/data/commands/harvest_planted)"
          ]
       },
       "stonehearth:crop" : {
-         "final_entity" : "stonehearth:turnip_plant"
+         "resource_pairings" : {
+            "turnip_3": "stonehearth:turnip",
+            "turnip_4": "stonehearth:turnip_basket"
+         }
       }, 
       "stonehearth:growing" : {
          "growth_period" : "1h",
          "growth_stages" : [
-            "just_planted",
-            "growing",
-            "budding",
-            "ripe"
+            {
+               "model_name" : "turnip_1",
+               "name": "Turnip Seedling", 
+               "description": "A unrealized turnip."
+            },
+            {
+               "model_name" : "turnip_2",
+               "name": "Turnip Sprout", 
+               "description": "Not edible yet!"
+            },
+            {
+               "model_name" : "turnip_3",
+               "name": "Baby Turnip", 
+               "description": "Small. Bitter."
+            },
+            {
+               "model_name" : "turnip_4",
+               "name": "Ripe Turnip", 
+               "description": "Delicious!"
+            }
          ]
+      },
+      "stonehearth:resource_node": {
+         "harvest_overlay_effect" : "/stonehearth/data/effects/chop_overlay_effect",
+         "harvester_effect" : "fiddle",
+         "resource": "",
+         "description" : "harvest_plant",
+         "durability": 1
+      },
+      "stonehearth:material" : {
+         "tags" :  "crop turnip"
       }
    }
 }

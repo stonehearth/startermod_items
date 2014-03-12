@@ -89,7 +89,11 @@ function DirtPlotComponent:plant_crop(crop_type)
 
    --Hide the plant command, add the raze command
    local command_component = self._entity:add_component('stonehearth:commands')
-   command_component:remove_command('plant_crop')
+   --TODO: programatically remove all plant commands
+   --command_component:remove_command('plant_crop')
+   command_component:remove_command('plant_corn')
+   command_component:remove_command('plant_turnip')
+
    command_component:add_command('/stonehearth/data/commands/raze_crop')
 
    --listen for when the crop is grown, and swapped for its final phase
@@ -108,7 +112,10 @@ function DirtPlotComponent:_on_crop_removed()
    --Hide the raze command, add the plant command
    local command_component = self._entity:add_component('stonehearth:commands')
    command_component:remove_command('raze_crop')
-   command_component:add_command('/stonehearth/data/commands/plant_crop')
+   --TODO: programatically add all plant commands from farm
+   --command_component:add_command('/stonehearth/data/commands/plant_crop')
+   command_component:add_command('/stonehearth/data/commands/plant_crop/plant_turnip.json')
+   command_component:add_command('/stonehearth/data/commands/plant_crop/plant_corn.json')
 
    self._data.contents = nil
 
