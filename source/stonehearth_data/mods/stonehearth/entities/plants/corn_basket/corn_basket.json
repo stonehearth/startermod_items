@@ -1,0 +1,32 @@
+{
+   "mixins": "stonehearth:mixins:item_properties",
+   "type": "entity",
+   "components": {
+      "item": {
+         "stacks" : 10,
+         "maxStacks" : 10
+      },
+      "model_variants": {
+         "default": {
+            "models": [
+               "file(corn_basket.qb)"
+            ]
+         }
+      },
+      "unit_info": {
+         "name": "Basket of Corn",
+         "description": "Sweet and crunchy.",
+         "icon" : "file(corn_basket.png)"
+      },
+      "stonehearth:material" : {
+         "tags" :  "resource vegetable food_container corn"
+      }
+   },
+   "entity_data" : {
+      "stonehearth:food_container" : {
+         "effect": "fiddle",
+         "food": "stonehearth:corn_cob",
+         "consume_stacks": true
+      }
+   }
+}

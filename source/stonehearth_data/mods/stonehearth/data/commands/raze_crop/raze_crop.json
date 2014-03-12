@@ -1,0 +1,14 @@
+{
+   "type" : "command",
+
+   "name": "raze_crop",
+   "tooltip": "Clear Ground",
+   "description" : "Clear or harvest the contents of this plot.",
+   "icon": "file(raze_crop.png)",
+
+   "action": "call",
+   "function" : "stonehearth:raze_crop",
+   "args" : [
+      "{{self}}"
+   ]
+}

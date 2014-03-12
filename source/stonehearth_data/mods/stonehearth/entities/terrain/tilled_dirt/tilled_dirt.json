@@ -1,0 +1,56 @@
+{
+   "type": "entity",
+   "components": {
+      "model_variants": {
+         "default": {
+            "models": [
+               "file(dirt_1.qb)"
+            ]
+         },
+         "untilled_ground": {
+            "models": [
+               "file(untilled_ground.qb)"
+            ]
+         },
+         "dirt_1": {
+            "models": [
+               "file(poor_dirt.qb)"
+            ],
+            "unit_info_name" : "Poor Dirt",
+            "unit_info_description" : "Can barely sustain life."
+         },
+         "dirt_2": {
+            "models": [
+               "file(fair_dirt.qb)"
+            ],
+            "unit_info_name" : "Fair Dirt",
+            "unit_info_description" : "Meh. It's dirt."
+         },
+         "dirt_3": {
+            "models": [
+               "file(good_dirt.qb)"
+            ],
+            "unit_info_name" : "Good Dirt",
+            "unit_info_description" : "Home to well-behaved earthworms."
+         },
+         "dirt_4": {
+            "models": [
+               "file(excellent_dirt.qb)"
+            ],
+            "unit_info_name" : "Rich Dirt",
+            "unit_info_description" : "Thick and loamy."
+         }
+      },
+      "unit_info": {
+         "name": "Tilled Earth",
+         "description": "Dirty, in the purest sense.",
+         "icon" : "file(tilled_dirt.png)"
+      }, 
+      "stonehearth:dirt_plot" : {}, 
+      "stonehearth:commands" : {
+         "commands" : [
+            "file(/data/commands/plant_crop)"
+         ]
+      }
+   }
+}

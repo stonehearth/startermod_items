@@ -1,0 +1,16 @@
+{
+   "type" : "command",
+
+   "name": "harvest_planted",
+   "tooltip" : "Harvest",
+   "description" : "Reap whatever's available.",
+
+   "default_enabled": true,  
+   "icon": "file(harvest_planted.png)",
+
+   "action": "call",
+   "function": "stonehearth:harvest_tree",
+   "args": [
+      "{{self}}"
+   ]
+}

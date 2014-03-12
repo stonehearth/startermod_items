@@ -1,0 +1,36 @@
+{
+   "type": "entity",
+   "mixins" : "stonehearth:mixins:item_properties",
+   "components" : {
+      "unit_info" : {
+      },
+      "render_info" : {
+      },
+      "model_variants": {
+         "default": {
+            "layer": "clothing",
+            "models": [
+               "file(farmer_outfit.qb)"
+            ]
+         },
+         "female" : {
+            "layer": "clothing",
+            "models": [
+               "file(farmer_outfit_female.qb)"
+            ]
+         }
+      },
+      "stonehearth:equipment_piece" : {
+         "render_type" : "merge_with_model",
+         "injected_ai" : {
+            "actions" : [
+               "stonehearth:actions:farmer_task_dispatcher",
+               "stonehearth:actions:till_field", 
+               "stonehearth:actions:plant_crop"
+            ]
+         },
+         "injected_commands" : [
+         ]
+      }
+   }
+}
