@@ -11,7 +11,7 @@ end
 function PopulationFaction:initialize(faction, kingdom)
    self._faction = faction
    self._kingdom = kingdom
-   self.__savestate = radiant.create_datastore({
+   self.__saved_variables = radiant.create_datastore({
          faction = faction,
          kingdom = kingdom,
          citizens = self._citizens,
@@ -21,8 +21,8 @@ function PopulationFaction:initialize(faction, kingdom)
 end
 
 function PopulationFaction:restore(saved_variables)
-   self.__savestate = saved_variables
-   self.__savestate:read_data(function(o)
+   self.__saved_variables = saved_variables
+   self.__saved_variables:read_data(function(o)
          self._faction = o.faction
          self._kingdom = o.kingdom
          self._citizens = o.citizens
@@ -60,7 +60,7 @@ function PopulationFaction:create_new_citizen()
    self:_set_citizen_initial_state(citizen, gender)
 
    table.insert(self._citizens, citizen)
-   self.__savestate:mark_changed()
+   self.__saved_variables:mark_changed()
 
    return citizen
 end

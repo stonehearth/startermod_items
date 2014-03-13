@@ -34,6 +34,10 @@ function WeightedSet:choose_random()
       self:_calculate_total_weight()
    end
 
+   if self._total_weight == 0 then
+      return nil
+   end
+
    local roll = self._rng:get_int(1, self._total_weight)
    local sum = 0
 
@@ -45,7 +49,8 @@ function WeightedSet:choose_random()
       end
    end
 
-   -- error: roll > total weight
+   -- should never get here
+   assert(roll <= self._total_weight)
    assert(false)
 end
 

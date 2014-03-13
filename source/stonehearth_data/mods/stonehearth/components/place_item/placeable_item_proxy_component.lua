@@ -9,7 +9,7 @@
 
 local PlaceableItemProxyComponent = class()
 
-function PlaceableItemProxyComponent:__create(entity, json)
+function PlaceableItemProxyComponent:initialize(entity, json)
    self._entity = entity               --The 1x1 placeable cube
    self._full_sized_entity = nil       --Onced initialized, the actual full-sized entity
    self._under_construction = false
@@ -23,7 +23,7 @@ function PlaceableItemProxyComponent:__create(entity, json)
       self:_create_derived_components()
    end
 
-   self.__savestate = radiant.create_datastore(self._data)   
+   self.__saved_variables = radiant.create_datastore(self._data)   
 end
 
 function PlaceableItemProxyComponent:get_full_sized_entity()

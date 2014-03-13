@@ -10,7 +10,7 @@
    "habitat_types" : ["plains", "foothills"],
    "scenario_info" : {
       "entity_type" : "stonehearth:medium_boulder",
-      "entity_footprint_size" : 4,
+      "entity_footprint_length" : 2,
       "quantity" : {
          "min" : 1,
          "max" : 2

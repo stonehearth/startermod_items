@@ -12,22 +12,22 @@ local CraftOrderList = require 'components.workshop.craft_order_list'
 
 local WorkshopComponent = class()
 
-function WorkshopComponent:__create(entity, json)
+function WorkshopComponent:initialize(entity, json)
    self._entity = entity
    self._bench_outputs = {}              -- An array of finished products on the bench, to be added to the outbox. Nil if nothing.
    self._outbox_entity = nil
 
    self._craft_order_list = CraftOrderList()
-   self.__savestate = radiant.create_datastore({
+   self.__saved_variables = radiant.create_datastore({
          order_list = self._craft_order_list,
          skin_class = json.skin_class or 'default'
       })
-   self.__savestate:set_controller(self)
+   self.__saved_variables:set_controller(self)
    self._construction_ingredients = json.ingredients
    self._build_sound_effect = json.build_sound_effect
 end
 
-function WorkshopComponent:__destroy()
+function WorkshopComponent:destroy()
    if self._orchestrator then
       self._orchestrator:destroy()
       self._orchestrator = nil
@@ -122,8 +122,8 @@ function WorkshopComponent:set_crafter(crafter)
    local current = self:get_crafter()
    if not crafter or not current or current:get_id() ~= crafter:get_id() then
       self._crafter = crafter
-      self.__savestate:get_data().crafter = crafter
-      self.__savestate:mark_changed()
+      self.__saved_variables:get_data().crafter = crafter
+      self.__saved_variables:mark_changed()
 
       local commandComponent = self._entity:get_component('stonehearth:commands')
       if crafter then

@@ -6,7 +6,7 @@
 local CrafterComponent = class()
 local CreateWorkshop = require 'services.town.orchestrators.create_workshop_orchestrator'
 
-function CrafterComponent:__create(entity, json)
+function CrafterComponent:initialize(entity, json)
    self._entity = entity
    self._work_effect = json.work_effect
    if json.recipe_list then
@@ -17,12 +17,12 @@ function CrafterComponent:__create(entity, json)
       self._craftable_recipes = {}
    end
    
-   self.__savestate = radiant.create_datastore({
+   self.__saved_variables = radiant.create_datastore({
       craftable_recipes = self._craftable_recipes
    })
 end
 
-function CrafterComponent:__destroy()
+function CrafterComponent:destroy()
    if self._orchestrator then
       self._orchestrator:destroy()
       self._orchestrator = nil

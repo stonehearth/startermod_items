@@ -11,12 +11,26 @@ function AIComponent:__init()
    self._execution_count = 0
 end
 
-function AIComponent:__create(entity, json)
+function AIComponent:initialize(entity, json)
    self._entity = entity
-   self.__savestate = radiant.create_datastore()
-   self.__savestate:set_controller(self)
+   self.__saved_variables = radiant.create_datastore({
+         actions = {},
+         observers = {},
+      })
+   self.__saved_variables:set_controller(self)
+
    radiant.events.listen(entity, 'stonehearth:entity:post_create', function()
-         self:_create(json)
+         self:_initialize(json)
+         self:_start()
+         return radiant.events.UNLISTEN
+      end)
+end
+
+function AIComponent:restore(entity, saved_variables)
+   self._entity = entity
+   self.__saved_variables = saved_variables
+   radiant.events.listen(radiant, 'radiant:game_loaded', function()
+         self:_restore(saved_variables)
          self:_start()
          return radiant.events.UNLISTEN
       end)
@@ -35,7 +49,7 @@ function AIComponent:get_debug_info()
    return {}
 end
 
-function AIComponent:__destroy()
+function AIComponent:destroy()
    self._dead = true
    self:_terminate_thread()
 
@@ -49,6 +63,16 @@ function AIComponent:__destroy()
 end
 
 function AIComponent:add_action(uri, injecting_entity)
+   if injecting_entity == nil then
+      self.__saved_variables:modify_data(function (o)
+            o.actions[uri] = true
+         end)
+   end
+
+   self:_add_action_script(uri, injecting_entity)
+end
+
+function AIComponent:_add_action_script(uri, injecting_entity)
    local ctor = radiant.mods.load_script(uri)
    self:_add_action(uri, ctor, injecting_entity)
 end
@@ -83,6 +107,12 @@ function AIComponent:_add_action(key, action_ctor, injecting_entity)
 end
 
 function AIComponent:remove_action(key)
+   if type(key) == 'string' then
+      self.__saved_variables:modify_data(function (o)
+            o.actions[key] = false
+         end)
+   end
+
    local does = action_key_to_activity[key]
    if does then
       local entry = self._action_index[does][key]
@@ -102,12 +132,23 @@ function AIComponent:remove_custom_action(action_ctor, injecting_entity)
 end
 
 function AIComponent:add_observer(uri)
+   self.__saved_variables:modify_data(function (o)
+         o.observers[uri] = true
+      end)
+   self:_add_observer_script(uri)
+end
+
+function AIComponent:_add_observer_script(uri)
    local ctor = radiant.mods.load_script(uri)
    assert(not self._observers[uri])
    self._observers[uri] = ctor(self._entity)
 end
 
 function AIComponent:remove_observer(key)
+   self.__saved_variables:modify_data(function (o)
+         o.observers[key] = nil
+      end)
+
    local observer = self._observers[key]
 
    if observer then
@@ -119,7 +160,7 @@ function AIComponent:remove_observer(key)
 end
 
 
-function AIComponent:_create(json)
+function AIComponent:_initialize(json)
    if json.actions then
       for _, uri in ipairs(json.actions) do
          self:add_action(uri)
@@ -131,6 +172,17 @@ function AIComponent:_create(json)
          self:add_observer(uri)
       end
    end
+end
+
+function AIComponent:_restore()
+   self.__saved_variables:read_data(function(o)
+         for uri, _ in pairs(o.actions) do
+            self:_add_action_script(uri)
+         end
+         for uri, _ in pairs(o.observers) do
+            self:_add_observer_script(uri)
+         end
+      end)
 end
 
 function AIComponent:_start()

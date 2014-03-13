@@ -2,7 +2,7 @@ local calendar = stonehearth.calendar
 
 local RenewableResourceNodeComponent = class()
 
-function RenewableResourceNodeComponent:__create(entity, json)
+function RenewableResourceNodeComponent:initialize(entity, json)
    self._entity = entity
    self._calendar_constants = calendar:get_constants();
    

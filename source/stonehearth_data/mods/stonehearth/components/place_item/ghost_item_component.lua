@@ -7,7 +7,7 @@
 
 local GhostItemComponent = class()
 
-function GhostItemComponent:__create(entity, json)
+function GhostItemComponent:initialize(entity, json)
    self._entity = entity
 
    self._data = {
@@ -16,7 +16,7 @@ function GhostItemComponent:__create(entity, json)
       unit_info_description = 'Whoooo aaaammmm Iiiiiiii?',
       unit_info_icon = '',
    }
-   self.__savestate = radiant.create_datastore(self._data)
+   self.__saved_variables = radiant.create_datastore(self._data)
 end
 
 function GhostItemComponent:set_full_sized_mod_uri(real_item_uri)
@@ -33,7 +33,7 @@ function GhostItemComponent:set_full_sized_mod_uri(real_item_uri)
          self._data.unit_info_icon = data.icon and data.icon or ''
       end
    end
-   self.__savestate:mark_changed()
+   self.__saved_variables:mark_changed()
 end
 
 function GhostItemComponent:get_full_sized_mod_uri()

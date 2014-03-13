@@ -38,7 +38,7 @@ end
 function PersonalityService:initialize()
 end
 
-function PersonalityService:restore(savestate)
+function PersonalityService:restore(saved_variables)
 end
 
 --- When a notable event happens, produce a log entry for the relevant entity if appropriate

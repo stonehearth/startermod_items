@@ -9,8 +9,8 @@
 local InventoryTracker = class()
 
 function InventoryTracker:__init()
-   self.__savestate = radiant.create_datastore({})
-   self._data = self.__savestate:get_data()
+   self.__saved_variables = radiant.create_datastore({})
+   self._data = self.__saved_variables:get_data()
 
    if not self._data.entity_types then
       self._data.entity_types = {}
@@ -70,7 +70,7 @@ function InventoryTracker:_on_entity_add(id, entity)
          table.insert(self._data.entity_types, new_entity_data)
       end
 
-      self.__savestate:mark_changed()
+      self.__saved_variables:mark_changed()
       self._tracked_entities[entity:get_id()] = true
    end
 end
@@ -79,7 +79,7 @@ function InventoryTracker:_on_entity_remove(id)
    if self._tracked_entities[id] then
       self._data.num_entities = self._data.num_entities - 1
       self._tracked_entities[id] = nil
-      self.__savestate:mark_changed()
+      self.__saved_variables:mark_changed()
 
       local target_entity = radiant.entities.get_entity(id)
 

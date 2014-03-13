@@ -8,8 +8,8 @@ function MaterialsComponent:__init()
    self._materials = {}
 end
 
-function MaterialsComponent:__create(entity, data_binding)
-   self.__savestate = radiant.create_datastore({
+function MaterialsComponent:initialize(entity, data_binding)
+   self.__saved_variables = radiant.create_datastore({
          materials = self._materials 
       })
 
@@ -26,12 +26,12 @@ end
 
 function MaterialsComponent:add_material(material)
    self._materials[material] = true
-   self.__savestate:mark_changed()
+   self.__saved_variables:mark_changed()
 end
 
 function MaterialsComponent:remove_material(material)
    self._materials[material] = nil
-   self.__savestate:mark_changed()
+   self.__saved_variables:mark_changed()
 end
 
 

@@ -155,12 +155,12 @@ local function build(class, shared_objs, shared)
       __classname = class.__classname,  -- added by tony @ radiant for debugging
 
       -- save/load implementation for radiant
-      __savestate = {},
+      __saved_variables = {},
       __repr = function (t)
-            return t.__savestate
+            return t.__saved_variables
          end,
       __tojson = function (t)
-            return t.__savestate
+            return t.__saved_variables
          end,
    }
    

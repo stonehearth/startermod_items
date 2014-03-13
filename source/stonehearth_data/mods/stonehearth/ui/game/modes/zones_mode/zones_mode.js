@@ -15,6 +15,10 @@ App.StonehearthZonesModeView = App.View.extend({
          self._showStockpileUi(stockpile);
       });
 
+      $(top).on('select_farm', function(_, farm) {
+         self._showFarmUi(farm);
+      });
+
       $(top).on('mode_changed', function(_, mode) {
          if (mode != 'zones') {
             if (self._propertyView) {
@@ -72,6 +76,8 @@ App.StonehearthZonesModeView = App.View.extend({
 
       if (entity['stonehearth:stockpile']) {
          this._showStockpileUi(entity);
+      } else if (entity['stonehearth:farmer:field']) {
+         this._showFarmUi(entity);
       }
    },
 
@@ -93,4 +99,17 @@ App.StonehearthZonesModeView = App.View.extend({
             }
          });
    },
+
+   _showFarmUi: function(entity) {
+      /*
+      this._propertyView = App.gameView.addView(App.StonehearthFarmView, { 
+            uri: uri,
+            position: {
+               my : 'center bottom',
+               at : 'left+' + self.mouseX + " " + 'top+' + (self.mouseY - 10),
+               of : $(document)
+            }
+         });
+      */
+   }
 });

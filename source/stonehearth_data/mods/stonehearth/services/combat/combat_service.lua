@@ -4,7 +4,7 @@ local Damage = require 'services.combat.damage'
 function CombatService:initialize()
 end
 
-function CombatService:restore(savestate)
+function CombatService:restore(saved_variables)
 end
 
 function CombatService:resolve(damage)

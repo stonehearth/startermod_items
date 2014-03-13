@@ -14,6 +14,7 @@
 
    "scenario_info" : {
       "critter_type" : "stonehearth:rabbit",
+      "critter_length" : 1,
       "num_critters" : {
          "min" : 2,
          "max" : 5

@@ -16,23 +16,6 @@ static const std::regex entity_macro_regex__("^([^:\\\\/]+):([^\\\\/]+)$");
 
 #define E_LOG(level)    LOG(om.entity, level)
 
-csg::Region3 Stonehearth::ComputeStandingRegion(const csg::Region3& r, int height)
-{
-   csg::Region3 standing;
-   for (const csg::Cube3& c : r) {
-      auto p0 = c.GetMin();
-      auto p1 = c.GetMax();
-      auto w = p1[0] - p0[0], h = p1[2] - p0[2];
-      standing.Add(csg::Cube3(p0 - csg::Point3(0, 0, 1), p0 + csg::Point3(w, height, 0)));  // top
-      standing.Add(csg::Cube3(p0 - csg::Point3(1, 0, 0), p0 + csg::Point3(0, height, h)));  // left
-      standing.Add(csg::Cube3(p0 + csg::Point3(0, 0, h), p0 + csg::Point3(w, height, h + 1)));  // bottom
-      standing.Add(csg::Cube3(p0 + csg::Point3(w, 0, 0), p0 + csg::Point3(w + 1, height, h)));  // right
-   }
-   standing.Optimize();
-
-   return standing;
-}
-
 static std::string
 GetLuaComponentUri(std::string name)
 {
@@ -54,7 +37,7 @@ GetLuaComponentUri(std::string name)
 }
 
 static object
-ConstructLuaComponent(lua::ScriptHost* scriptHost, std::string const& name, om::EntityRef e, luabind::object component_data)
+ConstructLuaComponent(lua::ScriptHost* scriptHost, std::string const& name, om::EntityRef e, std::string const& init_fn, luabind::object component_data)
 {
    object obj;
    lua_State* L = scriptHost->GetInterpreter();
@@ -80,9 +63,9 @@ ConstructLuaComponent(lua::ScriptHost* scriptHost, std::string const& name, om::
       if (ctor) {
          obj = ctor();
          if (obj) {
-            object __create = obj["__create"];
-            if (type(__create) == LUA_TFUNCTION) {
-               call_function<void>(__create, obj, e, component_data);
+            object init_fn_obj = obj[init_fn];
+            if (type(init_fn_obj) == LUA_TFUNCTION) {
+               init_fn_obj(obj, e, component_data);
             }                  
          }
       }
@@ -106,7 +89,7 @@ Stonehearth::AddComponent(lua_State* L, EntityRef e, std::string name)
             obj->LoadFromJson(JSONNode());
             component = scriptHost->CastObjectToLua(obj);
          } else {
-            component = ConstructLuaComponent(scriptHost, name, e, luabind::newtable(L));
+            component = ConstructLuaComponent(scriptHost, name, e, "initialize", luabind::newtable(L));
             if (component) {
                entity->AddLuaComponent(name, component);
             }
@@ -129,7 +112,7 @@ Stonehearth::SetComponentData(lua_State* L, EntityRef e, std::string name, objec
          obj->LoadFromJson(scriptHost->LuaToJson(data));
          result = scriptHost->CastObjectToLua(obj);
       } else {
-         result = ConstructLuaComponent(scriptHost, name, e, data);
+         result = ConstructLuaComponent(scriptHost, name, e, "initialize", data);
          if (result) {
             entity->AddLuaComponent(name, result);
          }
@@ -174,7 +157,7 @@ Stonehearth::InitEntity(EntityPtr entity, std::string const& uri, lua_State* L)
                component->LoadFromJson(json::Node(entry));
             } else {
                object component_data = lua::ScriptHost::JsonToLua(L, entry);
-               object lua_component = ConstructLuaComponent(scriptHost, component_name, entity, component_data);
+               object lua_component = ConstructLuaComponent(scriptHost, component_name, entity, "initialize", component_data);
                if (lua_component) {
                   entity->AddLuaComponent(component_name, lua_component);
                }
@@ -203,3 +186,17 @@ Stonehearth::InitEntity(EntityPtr entity, std::string const& uri, lua_State* L)
 
    entity->SetDebugText(BUILD_STRING(*entity));
 }
+
+void
+Stonehearth::RestoreLuaComponents(lua::ScriptHost* scriptHost, EntityPtr entity)
+{
+   for (auto const& entry : entity->GetLuaComponents()) {
+      std::string component_name = entry.first;
+      luabind::object saved_variables = entry.second;
+      object lua_component = ConstructLuaComponent(scriptHost, component_name, entity, "restore", saved_variables);
+      if (lua_component && lua_component.is_valid()) {
+         entity->AddLuaComponent(component_name, lua_component);
+      }
+   }
+}
+

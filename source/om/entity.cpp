@@ -45,7 +45,7 @@ void Entity::Destroy()
       luabind::object obj = entry.second;
       lua_State* L = lua::ScriptHost::GetCallbackThread(obj.interpreter());
       try {
-         luabind::object destroy = obj["__destroy"];
+         luabind::object destroy = obj["destroy"];
          if (destroy) {
             E_LOG(3) << "destroying component " << entry.first;
             luabind::object cb(L, destroy);

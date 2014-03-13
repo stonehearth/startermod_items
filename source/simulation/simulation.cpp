@@ -18,6 +18,7 @@
 #include "dm/tracer_buffered.h"
 #include "dm/tracer_sync.h"
 #include "om/entity.h"
+#include "om/stonehearth.h"
 #include "om/components/clock.ridl.h"
 #include "om/components/mod_list.ridl.h"
 #include "om/components/mob.ridl.h"
@@ -292,11 +293,11 @@ void Simulation::CreateGameModules()
 
 void Simulation::LoadGameModules()
 {
-   // Stash the savestate away before we blow away the ModList component with the
+   // Stash the saved_variables away before we blow away the ModList component with the
    // new module script objects.
-   std::map<std::string, luabind::object> savestates;
+   std::map<std::string, luabind::object> saved;
    for (auto const& entry : modList_->EachMod()) {
-      savestates[entry.first] = entry.second;
+      saved[entry.first] = entry.second;
    }
 
    // Now load up the modules.
@@ -306,13 +307,17 @@ void Simulation::LoadGameModules()
    lua_State* L = scriptHost_->GetInterpreter();
    for (auto const& entry : modList_->EachMod()) {
       std::string const& mod_name = entry.first;
-      luabind::object savestate = savestates[mod_name];
-      if (savestate && savestate.is_valid()) {
+      luabind::object saved_variables = saved[mod_name];
+      if (saved_variables && saved_variables.is_valid()) {
          luabind::object e(luabind::newtable(L));
-         e["savestate"] = savestate;
+         e["saved_variables"] = saved_variables;
          scriptHost_->TriggerOn(entry.second, "radiant:load", e);
       }
    }
+   for (auto const& entry : entityMap_) {
+      om::Stonehearth::RestoreLuaComponents(scriptHost_.get(), entry.second);
+   }
+
    scriptHost_->Trigger("radiant:game_loaded");
 }
 
@@ -822,6 +827,7 @@ void Simulation::Reload()
 
 void Simulation::Save()
 {
+   SIM_LOG(0) << "starting save.";
    std::string error;
    if (!store_->Save(error)) {
       SIM_LOG(0) << "failed to save: " << error;
@@ -831,6 +837,7 @@ void Simulation::Save()
 
 void Simulation::Load()
 {
+   SIM_LOG(0) << "starting loadin...";
    // delete all the streamers before shutting down so we don't spam them with delete requests,
    // then create new streamers. 
    for (std::shared_ptr<RemoteClient> client : _clients) {
@@ -843,14 +850,13 @@ void Simulation::Load()
    Initialize();
 
    radiant_ = scriptHost_->Require("radiant.server");
-
    std::string error;
    dm::Store::ObjectMap objects;
    // Re-initialize the game
    if (!store_->Load(error, objects)) {
       SIM_LOG(0) << "failed to load: " << error;
    }
-   SIM_LOG(0) << "loaded.";
+   
    scriptHost_->TriggerOn(radiant_, "radiant:load", luabind::object());
 
    root_entity_ = store_->FetchObject<om::Entity>(1);
@@ -878,7 +884,7 @@ void Simulation::Load()
    }
 
    LoadGameModules();
-
+   SIM_LOG(0) << "done loadin...";
 }
 
 void Simulation::Reset()

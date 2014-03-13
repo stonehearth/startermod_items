@@ -7,7 +7,7 @@ end
 function FarmingService:initialize()
 end
 
-function FarmingService:restore(savestate)
+function FarmingService:restore(saved_variables)
 end
 
 function FarmingService:_load_dirt_descriptions()

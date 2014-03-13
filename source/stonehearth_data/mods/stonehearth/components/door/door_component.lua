@@ -6,7 +6,7 @@ function DoorComponent:__init(entity)
    self._tracked_entities = {}
 end
 
-function DoorComponent:__create(entity, json)
+function DoorComponent:initialize(entity, json)
    self._entity = entity   
    assert(json.sensor)
 

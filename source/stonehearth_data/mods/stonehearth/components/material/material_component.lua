@@ -8,13 +8,13 @@ function MaterialComponent:__init()
    self._tags = {}
 end
 
-function MaterialComponent:__create(entity, json)
+function MaterialComponent:initialize(entity, json)
    if json.tags then
       for _, tag in ipairs(self:_split_string(json.tags)) do
          self._tags[tag] = true
       end
    end
-   self.__savestate = radiant.create_datastore({
+   self.__saved_variables = radiant.create_datastore({
          tags = self._tags
       })
 end
@@ -38,14 +38,14 @@ end
 function MaterialComponent:add_tag(tag)
    if not self._tags then
       self._tags[tag] = true
-      self.__savestate:mark_changed()
+      self.__saved_variables:mark_changed()
    end
 end
 
 function MaterialComponent:remove_tag(tag)
    if self._tags then
       self._tags[tag] = nil
-      self.__savestate:mark_changed()
+      self.__saved_variables:mark_changed()
    end
 end
 

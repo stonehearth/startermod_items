@@ -25,7 +25,7 @@ function AiService:initialize()
    -- nothing to do.
 end
 
-function AiService:restore(savestate)
+function AiService:restore(saved_variables)
    -- nothing to do.
 end
 

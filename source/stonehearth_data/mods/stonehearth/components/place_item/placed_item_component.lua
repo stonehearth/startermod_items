@@ -23,7 +23,7 @@ end
 
 -- If the proxy entity is set by the json file, add that here
 -- Otherwise, it might be set by set_proxy
-function PlacedItem:__create(entity, json)
+function PlacedItem:initialize(entity, json)
    self._entity = entity
    self._proxy_uri = json.proxy_entity
 

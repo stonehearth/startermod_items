@@ -11,13 +11,13 @@ local FarmerFieldRenderer = class()
 
 -- Review Q: It's the same name as _update except without the _? 
 -- Can we get a more descriptive name?
-function FarmerFieldRenderer:update(render_entity, savestate)
+function FarmerFieldRenderer:update(render_entity, saved_variables)
    self._parent_node = render_entity:get_node()
    self._size = { 0, 0 }   
-   self._savestate = savestate
+   self._savestate = saved_variables
    self._region = _radiant.client.alloc_region2()
 
-   self._promise = savestate:trace_data('rendering farmer field designation')
+   self._promise = saved_variables:trace_data('rendering farmer field designation')
    self._promise:on_changed(function()
          self:_update()
       end)

@@ -18,15 +18,16 @@ function ScenarioModderServices:place_entity(uri, x, y)
    -- switch from lua height_map base 1 coordinates to c++ base 0 coordinates
    -- swtich from scenario coordinates to world coordinates
    radiant.terrain.place_entity(entity, Point3(x-1 + self._offset_x, 1, y-1 + self._offset_y))
-   --self:_set_random_facing(entity)
+   self:_set_random_facing(entity)
    return entity
 end
 
-function ScenarioModderServices:place_entity_cluster(uri, quantity, entity_radius)
+function ScenarioModderServices:place_entity_cluster(uri, quantity, entity_footprint_length)
    local rng = self.rng
    local size = self._properties.size
    local grid_spacing = self:_get_perturbation_grid_spacing(size.width, size.length, quantity)
    local grid = PerturbationGrid(size.width, size.length, grid_spacing, self.rng)
+   local margin_size = math.floor(entity_footprint_length / 2)
    local num_cells_x, num_cells_y = grid:get_dimensions()
    local cells_left = num_cells_x * num_cells_y
    local num_selected = 0
@@ -38,7 +39,7 @@ function ScenarioModderServices:place_entity_cluster(uri, quantity, entity_radiu
          probability = (quantity - num_selected) / cells_left
 
          if rng:get_real(0, 1) < probability then
-            x, y = grid:get_perturbed_coordinates(i, j, entity_radius)
+            x, y = grid:get_perturbed_coordinates(i, j, margin_size)
             self:place_entity(uri, x, y)
             num_selected = num_selected + 1
 

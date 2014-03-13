@@ -5,7 +5,7 @@
 
 local PromotionTalismanComponent = class()
 
-function PromotionTalismanComponent:__create(entity, json)
+function PromotionTalismanComponent:initialize(entity, json)
    self._entity = entity
    self._info = json
    self._profession_name = json.profession_name or ''

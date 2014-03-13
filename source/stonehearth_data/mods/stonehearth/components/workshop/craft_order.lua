@@ -65,12 +65,12 @@ function CraftOrder:__init(recipe, condition, faction, on_change_cb)
    elseif self._condition.type == "maintain" then
       self._condition.at_least = tonumber(self._condition.at_least)
    end
-   self.__savestate = radiant.create_datastore()
+   self.__saved_variables = radiant.create_datastore()
    self:_on_changed()
 end
 
 function CraftOrder:_on_changed()
-   self.__savestate:set_data({
+   self.__saved_variables:set_data({
       id = self._id,
       recipe = self._recipe,
       condition = self._condition,

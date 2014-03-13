@@ -6,10 +6,10 @@ local Point2 = _radiant.csg.Point2
 
 local StockpileRenderer = class()
 
-function StockpileRenderer:update(render_entity, savestate)
+function StockpileRenderer:update(render_entity, saved_variables)
    self._parent_node = render_entity:get_node()
    self._size = { 0, 0 }   
-   self._savestate = savestate
+   self._savestate = saved_variables
    self._region = _radiant.client.alloc_region2()
 
    if self._promise then
@@ -17,7 +17,7 @@ function StockpileRenderer:update(render_entity, savestate)
       self._promise = nil
    end
    
-   self._promise = savestate:trace_data('rendering stockpile designation')
+   self._promise = saved_variables:trace_data('rendering stockpile designation')
    self._promise:on_changed(function()
          self:_update()
       end)
