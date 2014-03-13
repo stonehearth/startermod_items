@@ -1,0 +1,14 @@
+{
+   "type" : "command",
+
+   "name": "release_pet",
+   "tooltip": "Release Pet",
+   "description" : "Tell this pet you don't want it anymore.",
+   "icon": "file(release_pet.png)",
+
+   "action": "call",
+   "function": "stonehearth:release_pet",
+   "args": [
+      "{{self}}"
+   ]
+}

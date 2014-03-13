@@ -32,7 +32,7 @@
             ]
          },
          "injected_commands" : [
-            "file(/data/commands/release_into_wild)"
+            "file(/data/commands/release_pet)"
          ]
       }
    }

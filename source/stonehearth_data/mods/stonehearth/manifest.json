@@ -501,7 +501,7 @@
          "controller": "file(call_handlers/unit_control/trapped_beast_call_handler.lua)",
          "endpoint" : "server"
       },
-      "release_from_captivity" : {
+      "release_pet" : {
          "controller": "file(call_handlers/unit_control/pet_call_handler.lua)",
          "endpoint" : "server"    
       },
