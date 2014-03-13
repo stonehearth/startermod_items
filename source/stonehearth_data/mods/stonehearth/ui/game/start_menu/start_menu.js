@@ -30,48 +30,46 @@ App.StonehearthStartMenuView = App.View.extend({
          radiant.call('radiant:play_sound', 'stonehearth:sounds:ui:start_menu:trigger_click' );
       });
 
+      App.stonehearth.startMenu = self.$('#startMenu');
+
+      /*
+      radiant.call('stonehearth:get_start_menu_data')
+         .done(function (obj) {
+            radiant.trace(obj.datastore)
+               .progress(function(result) {
+                  self._buildMenu(result);
+               })
+               .fail(function(e) {
+                  console.log(e);
+               });
+         });
+      */
+
       $.get('/stonehearth/data/ui/start_menu.json')
          .done(function(json) {
-            App.stonehearth.startMenu = self.$('#startMenu');
-            self.$('#startMenu').stonehearthMenu({ 
-                  data : json,
-                  click : function (id, nodeData) {
-                     self._onMenuClick(id, nodeData);
-                  }
-               });
-
-
+            self._buildMenu(json);
          });
-      
+
       /*
-      $( '#startMenu' ).dlmenu({
-         animationClasses : { 
-            classin : 'dl-animate-in-sh', 
-            classout : 'dl-animate-out-sh' 
-         },
-         onLinkClick : function( el, ev ) { 
-            var menuId = $(el).find("a").attr('menuId');
-            self.onMenuClick(menuId)
-         }
-      });
-
-      $('#startMenuTrigger').hover(
-         function() {
-            $(this).removeClass('startMenuHoverOut')
-            $(this).addClass('startMenuHoverIn')
-         }, function() {
-            $(this).removeClass('startMenuHoverIn')
-            $(this).addClass('startMenuHoverOut')
-      });      
-
       $('#startMenu').on( 'mouseover', 'a', function() {
-         radiant.call('radiant:play_sound', "stonehearth:sounds:ui:action_hover");
+         radiant.call('radiant:play_sound', "stoneheardh:sounds:ui:action_hover");
       });
 
       $('#startMenu').on( 'mousedown', 'li', function() {
          radiant.call('radiant:play_sound', "stonehearth:sounds:ui:action_click");
       });
       */
+
+   },
+
+   _buildMenu : function(data) {
+      var self = this;
+      this.$('#startMenu').stonehearthMenu({ 
+         data : data,
+         click : function (id, nodeData) {
+            self._onMenuClick(id, nodeData);
+         }
+      });
 
    },
 

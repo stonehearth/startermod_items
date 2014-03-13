@@ -4,18 +4,20 @@ function weaver_class.promote(entity, workshop_component)
 
    --Add the necessary components
    local profession_description = radiant.resources.load_json('stonehearth:weaver:profession_description')
-   local profession_component = entity:add_component('stonehearth:profession')
-   profession_component:set_info(profession_description.profession)
-
-   local crafter_component = entity:add_component("stonehearth:crafter")
-   crafter_component:set_info(profession_description.crafter)
-
-   crafter_component:set_workshop(workshop_component)
-   workshop_component:set_crafter(entity)
+   entity:add_component('stonehearth:profession', profession_description.profession)
+   entity:add_component("stonehearth:crafter", profession_description.crafter)
 
    --Slap a new outfit on the crafter
    local equipment = entity:add_component('stonehearth:equipment')
    equipment:equip_item('stonehearth:weaver:outfit')
+
+   --Make sure that the build workshop command has a reference to this file
+   local command_component = entity:get_component('stonehearth:commands')
+   if command_component then
+      command_component:modify_command('build_workshop', function(command) 
+            command.event_data.profession_info = '/stonehearth/professions/weaver/weaver_description.json'
+         end)
+   end
 end
 
 function weaver_class.demote(entity)
