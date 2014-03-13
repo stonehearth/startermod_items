@@ -344,7 +344,7 @@ public:
 	void clearFindResults() { _findResults.resize( 0 ); }
 	SceneNode *getFindResult( int index ) { return (unsigned)index < _findResults.size() ? _findResults[index] : 0x0; }
 	
-	int castRay( SceneNode &node, const Vec3f &rayOrig, const Vec3f &rayDir, int numNearest );
+	int castRay( SceneNode &node, const Vec3f &rayOrig, const Vec3f &rayDir, int numNearest, int userFlags );
 	bool getCastRayResult( int index, CastRayResult &crr );
 
 	int checkNodeVisibility( SceneNode &node, CameraNode &cam, bool checkOcclusion, bool calcLod );
@@ -367,7 +367,7 @@ protected:
 	void removeNodeRec( SceneNode &node );
         void shutdown();
         void initialize();
-	void castRayInternal( SceneNode &node );
+	void castRayInternal( SceneNode &node, int userFlags );
 
 protected:
 	std::vector< SceneNode *>      _nodes;  // _nodes[0] is root node

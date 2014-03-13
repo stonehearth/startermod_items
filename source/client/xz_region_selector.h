@@ -19,7 +19,7 @@ class XZRegionSelector : public std::enable_shared_from_this<XZRegionSelector>
       DECLARE_SHARED_POINTER_TYPES(Deferred)
 
    public:
-      XZRegionSelector(om::TerrainPtr terrain);
+      XZRegionSelector(om::TerrainPtr terrain, int userFlags);
       ~XZRegionSelector();
 
       std::shared_ptr<Deferred> Activate();
@@ -43,6 +43,7 @@ class XZRegionSelector : public std::enable_shared_from_this<XZRegionSelector>
       bool                             _finishedP0;
       bool                             _startedP0;
       bool                             _finished;
+      int                          _userFlags;
 };
 
 

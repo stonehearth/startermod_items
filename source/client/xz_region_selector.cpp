@@ -8,9 +8,10 @@
 using namespace radiant;
 using namespace radiant::client;
 
-XZRegionSelector::XZRegionSelector(om::TerrainPtr terrain) :   
+XZRegionSelector::XZRegionSelector(om::TerrainPtr terrain, int userFlags) :   
    _inputHandlerId(0),
-   _terrain(terrain)
+   _terrain(terrain),
+   _userFlags(userFlags)
 {
 }
 
@@ -106,7 +107,7 @@ bool XZRegionSelector::GetHoverBrick(int x, int y, csg::Point3 &pt)
 {
    om::Selection s;
 
-   Renderer::GetInstance().QuerySceneRay(x, y, s);
+   Renderer::GetInstance().QuerySceneRay(x, y, _userFlags, s);
    if (!s.HasBlock()) {
       return false;
    }
