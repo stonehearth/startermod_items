@@ -77,7 +77,7 @@ class Client : public core::Singleton<Client> {
       typedef int TraceRenderFrameId;
       typedef std::function<void(float)> TraceRenderFrameHandlerCb;
 
-      XZRegionSelectorPtr Client::CreateXZRegionSelector();
+      XZRegionSelectorPtr Client::CreateXZRegionSelector(int userFlags);
 
    private:
       NO_COPY_CONSTRUCTOR(Client);

@@ -47,6 +47,7 @@ struct RayCastResult
 
    H3DNode      node;
    bool         is_valid;
+   int          numOtherResults;
 };
 
 struct FrameStartInfo {
@@ -147,7 +148,7 @@ class Renderer
       void GetCameraToViewportRay(int viewportX, int viewportY, csg::Ray3* ray);
       void CastRay(const csg::Point3f& origin, const csg::Point3f& direction, RayCastResult* result);
       void CastScreenCameraRay(int viewportX, int viewportY, RayCastResult* result);
-      void QuerySceneRay(int viewportX, int viewportY, om::Selection &result);
+      void QuerySceneRay(int viewportX, int viewportY, om::Selection &result, int userFlags=0);
 
       typedef std::function<void (const Input&)> InputEventCb;
       void SetInputHandler(InputEventCb fn) { input_cb_ = fn; }

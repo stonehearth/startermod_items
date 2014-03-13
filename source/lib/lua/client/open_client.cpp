@@ -188,9 +188,9 @@ Client_QueryScene(lua_State* L, int x, int y)
    return result;
 }
 
-rpc::LuaDeferredPtr Client_SelectXZRegion(lua_State* L)
+rpc::LuaDeferredPtr Client_SelectXZRegionWithFlags(lua_State* L, int userFlagMask)
 {  
-   XZRegionSelectorPtr selector = Client::GetInstance().CreateXZRegionSelector();
+   XZRegionSelectorPtr selector = Client::GetInstance().CreateXZRegionSelector(userFlagMask);
    auto d = selector->Activate();
 
    rpc::LuaDeferredPtr result = std::make_shared<rpc::LuaDeferred>("select xz region");
@@ -206,6 +206,12 @@ rpc::LuaDeferredPtr Client_SelectXZRegion(lua_State* L)
 
    return result;
 }
+
+rpc::LuaDeferredPtr Client_SelectXZRegion(lua_State* L)
+{  
+   return Client_SelectXZRegionWithFlags(L, 0);
+}
+
 
 class CaptureInputPromise;
 class TraceRenderFramePromise;
@@ -416,6 +422,7 @@ void lua::client::open(lua_State* L)
             def("capture_input",                   &Client_CaptureInput),
             def("query_scene",                     &Client_QueryScene),
             def("select_xz_region",                &Client_SelectXZRegion),
+            def("select_xz_region",                &Client_SelectXZRegionWithFlags),
             def("trace_render_frame",              &Client_TraceRenderFrame),
             def("set_cursor",                      &Client_SetCursor),
             def("create_blueprint_node",           &Client_CreateBlueprintNode),
