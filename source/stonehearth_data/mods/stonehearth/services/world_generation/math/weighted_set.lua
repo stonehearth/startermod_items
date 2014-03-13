@@ -24,15 +24,16 @@ function WeightedSet:remove(item)
    self:add(item, nil)
 end
 
-function WeightedSet:get(item)
-   return self._map[item]
+function WeightedSet:get_probability(item)
+   self:_calculate_total_weight()
+
+   local item_weight = self._map[item]
+   return item_weight / self._total_weight
 end
 
 -- current implementation is O(n)
 function WeightedSet:choose_random()
-   if not self._total_is_valid then
-      self:_calculate_total_weight()
-   end
+   self:_calculate_total_weight()
 
    if self._total_weight == 0 then
       return nil
@@ -55,6 +56,10 @@ function WeightedSet:choose_random()
 end
 
 function WeightedSet:_calculate_total_weight()
+   if self._total_is_valid then
+      return
+   end
+
    local sum = 0
 
    for item, weight in pairs(self._map) do

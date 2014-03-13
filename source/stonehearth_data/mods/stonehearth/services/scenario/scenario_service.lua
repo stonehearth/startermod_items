@@ -27,7 +27,6 @@ function ScenarioService:create_new_game(feature_size, rng)
    self._rng = rng
    self._reveal_distance = radiant.util.get_config('sight_radius', 64) * 2
    self._revealed_region = Region2()
-   self._scenario_properties = {}
    self._dormant_scenarios = {}
    self._last_optimized_rect_count = 10
    self._region_optimization_threshold = radiant.util.get_config('region_optimization_threshold', 1.2)
@@ -48,7 +47,7 @@ function ScenarioService:create_new_game(feature_size, rng)
       -- parse category
       category = categories[properties.category]
       if category then
-         category:add(properties.name, properties.weight)
+         category:add(properties)
       else
          log:error('Error parsing "%s": Category "%s" has not been defined.', file, tostring(properties.category))
       end
@@ -64,8 +63,6 @@ function ScenarioService:create_new_game(feature_size, rng)
       if not ActivationType.is_valid(properties.activation_type) then
          log:error('Error parsing "%s": Invalid activation_type "%s".', file, tostring(properties.activation_type))
       end
-
-      self._scenario_properties[properties.name] = properties
    end
 
    self._categories = categories
@@ -131,7 +128,7 @@ end
 function ScenarioService:reveal_region(world_space_region, activation_filter)
    local revealed_region = self._revealed_region
    local bounded_world_space_region, unrevealed_region, new_region
-   local key, scenario_info, name, properties
+   local key, scenario_info, properties
 
    bounded_world_space_region = self:_bound_region_by_terrain(world_space_region)
    new_region = self:_region_to_habitat_space(bounded_world_space_region)
@@ -145,8 +142,7 @@ function ScenarioService:reveal_region(world_space_region, activation_filter)
 
             scenario_info = self._dormant_scenarios[key]
             if scenario_info ~= nil then
-               name = scenario_info.name
-               properties = self._scenario_properties[name]
+               properties = scenario_info.properties
 
                self:_mark_scenario_map(self._dormant_scenarios, nil,
                   scenario_info.offset_x, scenario_info.offset_y,
@@ -253,7 +249,7 @@ function ScenarioService:mark_scenarios(habitat_map, elevation_map, tile_offset_
          offset_y = tile_offset_y + feature_offset_y + intra_cell_offset_y
 
          local scenario_info = {
-            name = properties.name,
+            properties = properties,
             offset_x = offset_x,
             offset_y = offset_y
          }
@@ -276,11 +272,10 @@ function ScenarioService:mark_scenarios(habitat_map, elevation_map, tile_offset_
 end
 
 function ScenarioService:place_static_scenarios(scenarios)
-   local name, properties
+   local properties
 
    for _, scenario_info in pairs(scenarios) do
-      name = scenario_info.name
-      properties = self._scenario_properties[name]
+      properties = scenario_info.properties
       if properties.activation_type == ActivationType.static then
          self:_activate_scenario(properties, scenario_info.offset_x, scenario_info.offset_y)
       end
@@ -340,8 +335,7 @@ function ScenarioService:_select_scenarios(habitat_map)
 
    for key, _ in pairs(categories) do
       scenario_names = categories[key]:select_scenarios(habitat_map)
-      for _, name in pairs(scenario_names) do
-         properties = self._scenario_properties[name]
+      for _, properties in pairs(scenario_names) do
          table.insert(scenarios, properties)
       end
    end
