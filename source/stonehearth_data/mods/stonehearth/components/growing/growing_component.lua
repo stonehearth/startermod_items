@@ -6,6 +6,7 @@ local GrowingComponent = class()
 function GrowingComponent:initialize(entity, json)
    self._entity = entity
    self._data = {}
+   self._calendar_constants = calendar:get_constants();
 
    
    if json.growth_period then

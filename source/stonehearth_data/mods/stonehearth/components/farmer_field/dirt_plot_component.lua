@@ -11,13 +11,14 @@ function DirtPlotComponent:initialize(entity, json)
       fertility_category = nil,
       parent_field = nil,
       field_location = nil,
-      contents = nil
+      contents = nil, 
+      last_planted_type = nil,
+      player_override = false,
+      auto_replant = nil, 
+      auto_harvest = nil
    }
    self.__saved_variables = radiant.create_datastore(self._data)
    self.__saved_variables:mark_changed()
-
-   --listen for when something gets put on me
-   --radiant.events.listen(self._entity, 'stonehearth:crop_planted', self, self._on_crop_planted)
 end
 
 --- Set the field and location in field for this plot
@@ -41,6 +42,26 @@ end
 
 function DirtPlotComponent:get_contents()
    return self._data.contents
+end
+
+function DirtPlotComponent:get_last_planted_type()
+   return self._data.last_planted_type
+end
+
+--- Did the player override the field policy for this plot? 
+--  If so set the player override and the auto-replant/harvest for this plot
+function DirtPlotComponent:set_player_override(player_override, do_replant, do_harvest)
+   self._data.player_override = player_override
+   self._data.auto_replant = do_replant
+   self._data.do_harvest = do_harvest
+end
+
+function DirtPlotComponent:get_player_override()
+   return self._data.player_override
+end
+
+function DirtPlotComponent:get_replant()
+   return self._data.auto_replant
 end
 
 --TODO: incorporate the moisture of the soil
@@ -88,6 +109,7 @@ function DirtPlotComponent:plant_crop(crop_type)
    local planted_entity = radiant.entities.create_entity(crop_type)
    radiant.terrain.place_entity(planted_entity, radiant.entities.get_world_grid_location(self._entity))
    self._data.contents = planted_entity
+   self._data.last_planted_type = crop_type
 
    --If the planted entity is a crop, add a reference to the dirt it sits on. 
 
@@ -99,9 +121,6 @@ function DirtPlotComponent:plant_crop(crop_type)
    command_component:remove_command('plant_turnip')
 
    command_component:add_command('/stonehearth/data/commands/raze_crop')
-
-   --listen for when the crop is grown, and swapped for its final phase
-   --radiant.events.listen(self._data.contents, 'stonehearth:crop_swap', self, self._on_crop_swapped)
 
    --listen for if the planted crop gets destroyed for any reason
    radiant.events.listen(planted_entity, 'stonehearth:entity:pre_destroy', self, self._on_crop_removed)
@@ -126,6 +145,9 @@ function DirtPlotComponent:_on_crop_removed()
    command_component:add_command('/stonehearth/data/commands/plant_crop/plant_corn.json')
 
    self._data.contents = nil
+
+   --Tell the field that we're empty, so it can decide what to do next
+   radiant.events.trigger(self._entity, 'stonehearth:crop_removed', {plot_entity = self._entity, location = self._data.field_location})
 
    return radiant.events.UNLISTEN
 end
