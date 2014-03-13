@@ -177,7 +177,7 @@ static luabind::object
 Client_QueryScene(lua_State* L, int x, int y)
 {
    om::Selection s;
-   Renderer::GetInstance().QuerySceneRay(x, y, s);
+   Renderer::GetInstance().QuerySceneRay(x, y, 0, s);
 
    using namespace luabind;
    object result = newtable(L);

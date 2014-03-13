@@ -977,7 +977,7 @@ void Client::UpdateSelection(const MouseInput &mouse)
    perfmon::TimelineCounterGuard tcg("update selection") ;
 
    om::Selection s;
-   Renderer::GetInstance().QuerySceneRay(mouse.x, mouse.y, s);
+   Renderer::GetInstance().QuerySceneRay(mouse.x, mouse.y, 0, s);
 
    if (s.HasEntities()) {
       auto entity = GetEntity(s.GetEntities().front());
@@ -1090,7 +1090,7 @@ void Client::HilightMouseover()
    auto &renderer = Renderer::GetInstance();
    csg::Point2 pt = renderer.GetMousePosition();
 
-   renderer.QuerySceneRay(pt.x, pt.y, selection);
+   renderer.QuerySceneRay(pt.x, pt.y, 0, selection);
 
    om::EntityPtr selectedObject = selectedObject_.lock();
    for (const auto &e: hilightedObjects_) {
@@ -1124,7 +1124,7 @@ void Client::UpdateDebugCursor()
       auto &renderer = Renderer::GetInstance();
       csg::Point2 pt = renderer.GetMousePosition();
 
-      renderer.QuerySceneRay(pt.x, pt.y, selection);
+      renderer.QuerySceneRay(pt.x, pt.y, 0, selection);
       if (selection.HasBlock()) {
          json::Node args;
          csg::Point3 pt = selection.GetBlock() + csg::ToInt(selection.GetNormal());

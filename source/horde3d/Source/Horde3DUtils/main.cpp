@@ -862,7 +862,7 @@ DLLEXP H3DNode h3dutPickNode( H3DNode cameraNode, float nwx, float nwy )
 	float ox, oy, oz, dx, dy, dz;
 	h3dutPickRay( cameraNode, nwx, nwy, &ox, &oy, &oz, &dx, &dy, &dz );
 	
-	if( h3dCastRay( H3DRootNode, ox, oy, oz, dx, dy, dz, 1 ) == 0 )
+	if( h3dCastRay( H3DRootNode, ox, oy, oz, dx, dy, dz, 1, 0 ) == 0 )
 	{
 		return 0;
 	}

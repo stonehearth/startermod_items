@@ -890,12 +890,12 @@ int SceneManager::findNodes( SceneNode &startNode, const std::string &name, int 
 }
 
 
-void SceneManager::castRayInternal( SceneNode &node )
+void SceneManager::castRayInternal( SceneNode &node, int userFlags )
 {
 	if( !(node._flags & SceneNodeFlags::NoRayQuery) )
 	{
 		Vec3f intsPos, intsNorm;
-		if( node.checkIntersection( _rayOrigin, _rayDirection, intsPos, intsNorm ) )
+      if( (node._userFlags & userFlags) == userFlags && node.checkIntersection( _rayOrigin, _rayDirection, intsPos, intsNorm ) )
 		{
 			float dist = (intsPos - _rayOrigin).length();
 
@@ -929,13 +929,13 @@ void SceneManager::castRayInternal( SceneNode &node )
 
 		for( size_t i = 0, s = node._children.size(); i < s; ++i )
 		{
-			castRayInternal( *node._children[i] );
+			castRayInternal( *node._children[i], userFlags );
 		}
 	}
 }
 
 
-int SceneManager::castRay( SceneNode &node, const Vec3f &rayOrig, const Vec3f &rayDir, int numNearest )
+int SceneManager::castRay( SceneNode &node, const Vec3f &rayOrig, const Vec3f &rayDir, int numNearest, int userFlags )
 {
 	_castRayResults.resize( 0 );  // Clear without affecting capacity
 
@@ -945,7 +945,7 @@ int SceneManager::castRay( SceneNode &node, const Vec3f &rayOrig, const Vec3f &r
 	_rayDirection = rayDir;
 	_rayNum = numNearest;
 
-	castRayInternal( node );
+	castRayInternal( node, userFlags );
 
 	return (int)_castRayResults.size();
 }

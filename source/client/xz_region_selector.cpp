@@ -107,7 +107,7 @@ bool XZRegionSelector::GetHoverBrick(int x, int y, csg::Point3 &pt)
 {
    om::Selection s;
 
-   Renderer::GetInstance().QuerySceneRay(x, y, s, _userFlags);
+   Renderer::GetInstance().QuerySceneRay(x, y, _userFlags, s);
    if (!s.HasBlock()) {
       return false;
    }
