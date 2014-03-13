@@ -26,7 +26,7 @@ function farmer_class.demote(entity)
 
    local equipment = entity:add_component('stonehearth:equipment')
    local outfit = equipment:unequip_item('stonehearth:worker_outfit')
-   
+
    if outfit then
       radiant.entities.destroy_entity(outfit)
    end
