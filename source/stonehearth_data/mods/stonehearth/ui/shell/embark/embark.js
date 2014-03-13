@@ -63,6 +63,8 @@ App.StonehearthEmbarkView = App.View.extend({
 
       $('#map').stonehearthMap('suspend');
 
+      // Must show before setting position. jQueryUI does not support positioning of hidden elements.
+      self.my('#embarkPin').show();
       self.my('#embarkPin').position({
          my: 'left+' + 12 * cellX + ' top+' + 12 * cellY,
          at: 'left top',
@@ -146,6 +148,7 @@ App.StonehearthEmbarkView = App.View.extend({
 
       try {
          self.my('#embarkPin').tooltipster('destroy');
+         self.my('#embarkPin').hide();
          radiant.call('radiant:play_sound', 'stonehearth:sounds:ui:carpenter_menu:menu_closed' );
       } catch(e) {
       }

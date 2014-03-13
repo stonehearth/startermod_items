@@ -50,16 +50,17 @@
 
       "pet_collar" : "file(entities/critters/collars/pet_collar.json)",
 
-      "worker:profession_description" : "file(entities/professions/worker/profession_description.json)",
+      "worker:profession_description" : "file(professions/worker/worker_description.json)",
 
-      "carpenter:profession_description" : "file(entities/professions/carpenter/profession_description.json)",
-      "carpenter:workbench" : "file(entities/professions/carpenter/carpenter_workbench)",
-      "carpenter:outfit" : "file(entities/professions/carpenter/carpenter_outfit)",
-      "carpenter:saw" : "file(entities/professions/carpenter/carpenter_saw)",
+      "carpenter:profession_description" : "file(professions/carpenter/carpenter_description.json)",
+      "carpenter:workbench" : "file(professions/carpenter/carpenter_workbench)",
+      "carpenter:outfit" : "file(professions/carpenter/carpenter_outfit)",
+      "carpenter:saw" : "file(professions/carpenter/carpenter_saw)",
 
-      "farmer:profession_description" : "file(entities/professions/farmer/profession_description.json)",
-      "farmer:outfit" : "file(entities/professions/farmer/farmer_outfit)",
-      "farmer:field" : "file(entities/professions/farmer/field)",
+      "farmer:profession_description" : "file(professions/farmer/farmer_description.json)",
+      "farmer:outfit" : "file(professions/farmer/farmer_outfit)",
+      "farmer:field" : "file(professions/farmer/field)",
+      "farmer_hoe" : "file(professions/farmer/farmer_hoe)", 
       
       "trapper:trapper_knife" : "file(professions/trapper/trapper_knife)",
 
@@ -67,14 +68,14 @@
       "trapper:outfit" : "file(professions/trapper/trapper_outfit)",
       "trapper:snare_trap" : "file(professions/trapper/snare_trap)",
 
-      "weaver:profession_description" : "file(entities/professions/weaver/profession_description.json)",
-      "weaver:workbench" : "file(entities/professions/weaver/weaver_workbench)",
-      "weaver:outfit" : "file(entities/professions/weaver/weaver_outfit)",
-      "weaver:spindle" : "file(entities/professions/weaver/weaver_spindle)",
+      "weaver:profession_description" : "file(professions/weaver/weaver_description.json)",
+      "weaver:workbench" : "file(professions/weaver/weaver_workbench)",
+      "weaver:outfit" : "file(professions/weaver/weaver_outfit)",
+      "weaver:spindle" : "file(professions/weaver/weaver_spindle)",
 
       "stockpile" : "file(entities/construction/stockpile)",
 
-      "worker_outfit" : "file(entities/professions/worker/worker_outfit)",
+      "worker_outfit" : "file(professions/worker/worker_outfit)",
       "worker_axe" : "file(entities/tools/worker_axe)",
       "worker_hammer" : "file(entities/tools/worker_hammer)",
       "mining_pick" : "file(entities/tools/mining_pick)",
@@ -128,6 +129,9 @@
       "corn_plant" : "file(entities/plants/corn_plant)",
       "corn_basket" : "file(entities/plants/corn_basket)",
       "corn_cob" : "file(entities/plants/corn_cob)",
+      "turnip_crop" : "file(entities/plants/turnip/turnip_crop)",
+      "turnip" : "file(entities/plants/turnip/turnip_serving)",
+      "turnip_basket" : "file(entities/plants/turnip/turnip_basket)",
 
       "pink_flower" : "file(entities/ground_clutter/pink_flower)",
 
@@ -161,7 +165,6 @@
       "firepit_proxy" : "file(entities/gizmos/firepit/firepit_proxy.json)",
       "firepit_seat" : "file(entities/gizmos/firepit/firepit_seat.json)",
 
-      "farmer_hoe" : "file(entities/professions/farmer/farmer_hoe)", 
 
       "not_much_of_a_bed" : "file(entities/furniture/not_much_of_a_bed)",
       "not_much_of_a_bed_proxy" : "file(entities/furniture/not_much_of_a_bed/not_much_of_a_bed_proxy.json)",
@@ -498,7 +501,7 @@
          "controller": "file(call_handlers/unit_control/trapped_beast_call_handler.lua)",
          "endpoint" : "server"
       },
-      "release_from_captivity" : {
+      "release_pet" : {
          "controller": "file(call_handlers/unit_control/pet_call_handler.lua)",
          "endpoint" : "server"    
       },
@@ -784,8 +787,8 @@
          "file(ui/game/event_log/event_log.js)"
       ],
       "less" : [
-         "file(entities/professions/carpenter/skin/workshop.less)",
-         "file(entities/professions/weaver/skin/workshop.less)",
+         "file(professions/carpenter/skin/workshop.less)",
+         "file(professions/weaver/skin/workshop.less)",
          "file(ui/common/modal_overlay/modal_overlay.less)",
          "file(ui/shell/shell.less)",
          "file(ui/shell/title/title.less)",

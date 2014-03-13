@@ -15,7 +15,7 @@ function carpenter_class.promote(entity)
    local command_component = entity:get_component('stonehearth:commands')
    if command_component then
       command_component:modify_command('build_workshop', function(command) 
-            command.event_data.profession_info = '/stonehearth/entities/professions/carpenter/profession_description.json'
+            command.event_data.profession_info = '/stonehearth/professions/carpenter/carpenter_description.json'
          end)
    end
 end

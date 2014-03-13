@@ -4,7 +4,7 @@
    "components": {
       "unit_info": {
          "name": "A Turnip",
-         "description": "Crunch and spray."
+         "description": "Used as shields by princesses."
       },      
       "stonehearth:material" : {
          "tags" : "food"
@@ -20,10 +20,10 @@
    "entity_data" : {
       "stonehearth:food" : {
          "sitting_on_chair" : {
-            "satisfaction" : 200
+            "satisfaction" : 70
          },
          "default" : {
-            "satisfaction" : 100
+            "satisfaction" : 50
          }
       }
    }   

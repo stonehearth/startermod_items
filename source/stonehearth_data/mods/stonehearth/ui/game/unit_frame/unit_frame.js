@@ -80,14 +80,14 @@ App.StonehearthUnitFrameView = App.View.extend({
         this.hide();
       }
       
-      this.my('#unitFrame > #buffs').find('.item').each(function() {
+      this.$('#unitFrame > #buffs').find('.item').each(function() {
         $(this).tooltipster({
             content: $('<div class=title>' + $(this).attr('title') + '</div>' + 
                        '<div class=description>' + $(this).attr('description') + '</div>')
          });
       });
 
-      this.my('#unitFrame > #commandButtons').find('[title]').each(function() {
+      this.$('#unitFrame > #commandButtons').find('[title]').each(function() {
         $(this).tooltipster({
             content: $('<div class=title>' + $(this).attr('title') + '</div>' + 
                        '<div class=description>' + $(this).attr('description') + '</div>' + 
@@ -95,25 +95,15 @@ App.StonehearthUnitFrameView = App.View.extend({
          });
       });
 
-      this.my('#inventory').tooltipster({
+      this.$('#inventory').tooltipster({
             content: $('<div class=title>' + i18n.t('stonehearth:inventory_title') + '</div>' + 
                        '<div class=description>' + i18n.t('stonehearth:inventory_description') + '</div>')
         });
 
-      var commands = this.get('context.stonehearth:commands.commands');
-      var inventory = this.get('context.stonehearth:inventory');
       
-      if (!commands || commands.length == 0 ) {
-        this.my('#commandButtons').hide();
-      } else {
-        this.my('#commandButtons').show();
-      }
+      this._updateCommandButtons();      
+      this._updateInventory();      
 
-      if (!inventory) {
-        this.my('#inventory').hide()
-      } else {
-        this.my('#inventory').show()
-      }
       /*
       $('[title]').tooltipster({
         content: $('<span>hi - ' + $(this).attr(title) + '</span>')
@@ -137,6 +127,25 @@ App.StonehearthUnitFrameView = App.View.extend({
       });
       */
    },
+
+   _updateCommandButtons: function() {
+      var commands = this.get('context.stonehearth:commands.commands');
+      if (!commands || commands.length == 0 ) {
+        this.$('#commandButtons').hide();
+      } else {
+        this.$('#commandButtons').show();
+      }
+   }.observes('context.stonehearth:commands.commands'),
+
+   _updateInventory: function() {
+      var inventory = this.get('context.stonehearth:inventory');
+      if (!inventory) {
+        this.$('#inventory').hide()
+      } else {
+        this.$('#inventory').show()
+      }
+
+   }.observes('context.stonehearth:inventory'),
 
    show: function() {
       try {

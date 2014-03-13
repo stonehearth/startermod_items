@@ -1,6 +1,6 @@
 local PetCallHandler = class()
 
-function PetCallHandler:release_from_captivity(session, response, critter)
+function PetCallHandler:release_pet(session, response, critter)
    local equipment = critter:get_component('stonehearth:equipment')
    if equipment then
       local outfit = equipment:unequip_item('stonehearth:pet_collar')

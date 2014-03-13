@@ -76,7 +76,11 @@ end
 --  @param e.crop = new crop planted
 function DirtPlotComponent:plant_crop(crop_type)
    --Assert that there's nothing here 
-   assert(self._data.contents == nil, "error, trying to plant on an occupied square")
+   --TODO: use tasks to make sure things aren't planted twice
+   --assert(self._data.contents == nil, "error, trying to plant on an occupied square")
+   if self._data.contents ~= nil then
+      return
+   end
 
    --Unlisten on the event
    --radiant.events.unlisten(self._entity, 'stonehearth:crop_planted', self, self._on_crop_planted)
@@ -89,7 +93,11 @@ function DirtPlotComponent:plant_crop(crop_type)
 
    --Hide the plant command, add the raze command
    local command_component = self._entity:add_component('stonehearth:commands')
-   command_component:remove_command('plant_crop')
+   --TODO: programatically remove all plant commands
+   --command_component:remove_command('plant_crop')
+   command_component:remove_command('plant_corn')
+   command_component:remove_command('plant_turnip')
+
    command_component:add_command('/stonehearth/data/commands/raze_crop')
 
    --listen for when the crop is grown, and swapped for its final phase
@@ -103,12 +111,19 @@ end
 --- Called when something is removed from me
 function DirtPlotComponent:_on_crop_removed()
    --Assert that there's something here 
-   assert(self._data.contents ~= nil, "error, removing a crop that isn't there")
+   --TODO: use tasks to only allow things to be planted/harvested once
+   --assert(self._data.contents ~= nil, "error, removing a crop that isn't there")
+   if self._data.contents == nil then
+      return
+   end
 
    --Hide the raze command, add the plant command
    local command_component = self._entity:add_component('stonehearth:commands')
    command_component:remove_command('raze_crop')
-   command_component:add_command('/stonehearth/data/commands/plant_crop')
+   --TODO: programatically add all plant commands from farm
+   --command_component:add_command('/stonehearth/data/commands/plant_crop')
+   command_component:add_command('/stonehearth/data/commands/plant_crop/plant_turnip.json')
+   command_component:add_command('/stonehearth/data/commands/plant_crop/plant_corn.json')
 
    self._data.contents = nil
 
