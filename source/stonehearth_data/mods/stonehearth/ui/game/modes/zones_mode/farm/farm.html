@@ -1,0 +1,50 @@
+<script type="text/x-handlebars" data-template-name="stonehearthFarm">
+   <div id="farmWindow" class="gui">
+      <div class="window">
+         <div class="title">
+            <input id="name" onClick="this.select();" type="text" {{bindAttr value=unit_info.name}} />
+         </div>
+
+         <h2>{{i18n stonehearth:farm_crop_rotation}}</h2>
+
+         <div>
+            {{#each view.crop_rotation}}
+               <span class="cropRotationSlot">{{ this.crop }}</span>
+            {{/each}}     
+            <span class="cropRotationSlot"><a {{action addCrop target="view"}}><button id="addCropButton" class="plus"></button></a></span>
+         </div>
+
+         <h2>{{i18n stonehearth:farm_manually_place_crops}}</h2>
+
+         <div>insert the palette</div>
+
+         <div>
+            <input type="checkbox" id="autoHarvest">
+            <label for="autoHarvest">{{i18n stonehearth:farm_auto_harvest}}</label>
+         </div>
+
+         <div>
+            <input type="checkbox" id="autoReplant">
+            <label for="autoReplant">{{i18n stonehearth:farm_auto_replant}}</label>
+         </div>
+
+         <p></p>
+
+         <button class="warn">{{i18n stonehearth:remove}}</button>
+         <button class="ok"></button>
+
+      </div>
+   </div>
+</script>
+
+<script type="text/x-handlebars" data-template-name="stonehearthCropPalette">
+   <div id="cropPalette" class="gui">
+      <div class="window">
+         this is the crop palette<br>
+         {{#each items}}
+            <img {{bindAttr src="icon"}} />
+         {{/each}}
+      </div>
+   </div>
+</script>
+

@@ -2,7 +2,6 @@
    "name" : "herd_of_sheep",
    "category" : "wildlife",
    "habitat_types" : ["plains"],
-   "activation_type" : "revealed",
    "size" : {
       "width" : 16,
       "length" : 16

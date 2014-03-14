@@ -8,44 +8,51 @@ local log = radiant.log.create_logger('scenario_service')
 -- frequency - The probability or expected number of scenarios in the category
 --             that will (attempt to) be placed in a tile. Frequencies > 1.00 are supported.
 -- priority - The order in which the scenarios will be placed (lower priorites may not find a site).
-function ScenarioSelector:__init(frequency, priority, rng)
+function ScenarioSelector:__init(frequency, priority, activation_type, rng)
    self.frequency = frequency
    self.priority = priority
+   self.activation_type = activation_type
    self._rng = rng
-   self._scenario_weights = WeightedSet(self._rng)
-   self._scenario_properties = {}
+   self._scenarios = {}
 end
 
 function ScenarioSelector:add(properties)
-   self._scenario_weights:add(properties.name, properties.weight)
-   self._scenario_properties[properties.name] = properties
+   self._scenarios[properties.name] = properties
 end
 
 function ScenarioSelector:remove(name)
-   self._scenario_weights:remove(properties.name)
-   self._scenario_properties[properties.name] = nil
+   self._scenarios[properties.name] = nil
 end
 
 function ScenarioSelector:select_scenarios(habitat_map)
    local rng = self._rng
    local frequency = self.frequency
-   local name, properties
-   local selected_scenarios = {}
+   local selected = {}
+   local candidates = {}
+   local num_candidates = 0
+   local properties
 
-   while frequency > 0 do
-      if rng:get_real(0, 1) < frequency then
-         name = self._scenario_weights:choose_random()
-         if name ~= nil then
-            properties = self._scenario_properties[name]
-            table.insert(selected_scenarios, properties)
-         end
-      end
-      frequency = frequency - 1.00
+   candidates = WeightedSet(self._rng)
+
+   for _, properties in pairs(self._scenarios) do
+      candidates:add(properties, properties.weight)
+      num_candidates = num_candidates + 1
    end
 
-   return selected_scenarios
+   if num_candidates > 0 then
+      while frequency > 0 do
+         if rng:get_real(0, 1) < frequency then
+            properties = candidates:choose_random()
+            table.insert(selected, properties)
+         end
+         frequency = frequency - 1.00
+      end
+   end
+
+   return selected
 end
 
+-- for future use when moving to a more transparent density metric
 function ScenarioSelector:_calculate_habitat_areas(habitat_map)
    local habitat_areas = Histogram()
 

@@ -29,29 +29,21 @@ function BlueprintGenerator:generate_blueprint(width, height, seed)
       return rng:get_gaussian(55, 50)
    end
 
-   while (true) do
-      noise_map:fill_ij(noise_fn)
-      FilterFns.filter_2D_050(height_map, noise_map, noise_map.width, noise_map.height, 6)
+   noise_map:fill_ij(noise_fn)
+   FilterFns.filter_2D_050(height_map, noise_map, noise_map.width, noise_map.height, 6)
 
-      for j=1, height do
-         for i=1, width do
-            value = height_map:get(i, j)
-            if value >= mountains_threshold then
-               terrain_type = TerrainType.mountains
-            elseif value >= foothills_threshold then
-               terrain_type = TerrainType.foothills
-            else
-               terrain_type = TerrainType.plains
-            end
-            blueprint:get(i, j).terrain_type = terrain_type
+   for j=1, height do
+      for i=1, width do
+         value = height_map:get(i, j)
+         if value >= mountains_threshold then
+            terrain_type = TerrainType.mountains
+         elseif value >= foothills_threshold then
+            terrain_type = TerrainType.foothills
+         else
+            terrain_type = TerrainType.plains
          end
+         blueprint:get(i, j).terrain_type = terrain_type
       end
-
-      -- need this for maps with small sample size
-      if self:_is_playable_map(blueprint) then
-         break
-      end
-      log:info('World blueprint not within parameters. Regenerating.')
    end
 
    return blueprint
@@ -110,61 +102,6 @@ function BlueprintGenerator:shard_and_store_map(blueprint, key, full_map)
          blueprint:get(i, j)[key] = local_map
       end
    end
-end
-
-function BlueprintGenerator:_is_playable_map(blueprint)
-   local histogram = Histogram()
-   local i, j, terrain_type, mountains_probability
-
-   for j=1, blueprint.height do
-      for i=1, blueprint.width do
-         terrain_type = blueprint:get(i, j).terrain_type
-         histogram:increment(terrain_type)
-      end
-   end
-
-   log:debug('Terrain distribution:')
-   histogram:print(log, TerrainType.get_terrain_order())
-
-   mountains_probability = histogram:get_probability(TerrainType.mountains)
-
-   return MathFns.in_bounds(mountains_probability, 0.20, 0.40)
-end
-
-function BlueprintGenerator:get_static_blueprint()
-   local blueprint = self:get_empty_blueprint(5, 5)
-
-   blueprint:get(1, 1).terrain_type = TerrainType.plains
-   blueprint:get(2, 1).terrain_type = TerrainType.plains
-   blueprint:get(3, 1).terrain_type = TerrainType.foothills
-   blueprint:get(4, 1).terrain_type = TerrainType.mountains
-   blueprint:get(5, 1).terrain_type = TerrainType.mountains
-
-   blueprint:get(1, 2).terrain_type = TerrainType.plains
-   blueprint:get(2, 2).terrain_type = TerrainType.plains
-   blueprint:get(3, 2).terrain_type = TerrainType.plains
-   blueprint:get(4, 2).terrain_type = TerrainType.foothills
-   blueprint:get(5, 2).terrain_type = TerrainType.mountains
-
-   blueprint:get(1, 3).terrain_type = TerrainType.foothills
-   blueprint:get(2, 3).terrain_type = TerrainType.plains
-   blueprint:get(3, 3).terrain_type = TerrainType.plains
-   blueprint:get(4, 3).terrain_type = TerrainType.plains
-   blueprint:get(5, 3).terrain_type = TerrainType.foothills
-
-   blueprint:get(1, 4).terrain_type = TerrainType.mountains
-   blueprint:get(2, 4).terrain_type = TerrainType.foothills
-   blueprint:get(3, 4).terrain_type = TerrainType.foothills
-   blueprint:get(4, 4).terrain_type = TerrainType.plains
-   blueprint:get(5, 4).terrain_type = TerrainType.plains
-
-   blueprint:get(1, 5).terrain_type = TerrainType.mountains
-   blueprint:get(2, 5).terrain_type = TerrainType.mountains
-   blueprint:get(3, 5).terrain_type = TerrainType.mountains
-   blueprint:get(4, 5).terrain_type = TerrainType.foothills
-   blueprint:get(5, 5).terrain_type = TerrainType.plains
-
-   return blueprint
 end
 
 return BlueprintGenerator

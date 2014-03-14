@@ -98,8 +98,6 @@ function WorldGenerationService:set_blueprint(blueprint)
          blueprint.origin_x = math.floor(blueprint.width * tile_size / 2)
          blueprint.origin_y = math.floor(blueprint.height * tile_size / 2)
 
-         self:_mark_scenarios(blueprint)
-
          -- create the overview map
          self.overview_map:derive_overview_map(full_elevation_map, full_feature_map,
                                                blueprint.origin_x, blueprint.origin_y)
@@ -200,7 +198,7 @@ function WorldGenerationService:_generate_tile_impl(i, j)
    local blueprint = self._blueprint
    local tile_size = self._tile_size
    local tile_map, tile_info, tile_seed
-   local micro_map, elevation_map, feature_map, static_scenarios
+   local micro_map, elevation_map, feature_map, habitat_map
    local offset_x, offset_y, offset
 
    tile_info = blueprint:get(i, j)
@@ -220,7 +218,7 @@ function WorldGenerationService:_generate_tile_impl(i, j)
    micro_map = tile_info.micro_map
    elevation_map = tile_info.elevation_map
    feature_map = tile_info.feature_map
-   static_scenarios = tile_info.static_scenarios
+   habitat_map = tile_info.habitat_map
 
    -- generate the high resolution heightmap for the tile
    local seconds = Timer.measure(
@@ -238,10 +236,7 @@ function WorldGenerationService:_generate_tile_impl(i, j)
    self:_place_flora(tile_map, feature_map, offset)
 
    -- place scenarios
-   self:_place_static_scenarios(static_scenarios)
-
-   -- release resources that are no longer needed
-   tile_info.static_scenarios = nil
+   self:_place_scenarios(habitat_map, elevation_map, offset)
 
    tile_info.generated = true
 end
@@ -274,31 +269,17 @@ function WorldGenerationService:_place_flora(tile_map, feature_map, offset)
    self:_yield()
 end
 
-function WorldGenerationService:_mark_scenarios(blueprint)
-   local tile_size = self._tile_size
-   local habitat_map, elevation_map, offset_x, offset_y, tile_info
-   local static_scenarios = {}
-
-   for j=1, blueprint.height do
-      for i=1, blueprint.width do
-         tile_info = blueprint:get(i, j)
-         habitat_map = tile_info.habitat_map
-         elevation_map = tile_info.elevation_map
-         offset_x, offset_y = self:get_tile_origin(i, j, blueprint)
-
-         if self._enable_scenarios then
-            static_scenarios = self._scenario_service:mark_scenarios(habitat_map, elevation_map, offset_x, offset_y)
-         end
-
-         tile_info.static_scenarios = static_scenarios
-      end
+function WorldGenerationService:_place_scenarios(habitat_map, elevation_map, offset)
+   if not self._enable_scenarios then
+      return
    end
-end
 
-function WorldGenerationService:_place_static_scenarios(static_scenarios)
    local seconds = Timer.measure(
       function()
-         self._scenario_service:place_static_scenarios(static_scenarios)
+         self._scenario_service:place_static_scenarios(habitat_map, elevation_map, offset.x, offset.z)
+
+         -- TODO move placement of revealed scenarios to after banner placement
+         self._scenario_service:place_revealed_scenarios(habitat_map, elevation_map, offset.x, offset.z)
       end
    )
 

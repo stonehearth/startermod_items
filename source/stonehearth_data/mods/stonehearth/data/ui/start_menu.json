@@ -7,11 +7,12 @@
       "hotkey" : "h",
       "game_mode" : "normal",
       "items" : {
-            "harvest" : {
+            "harvest_resources" : {
                 "name" : "Harvest Resources",
                 "description" : "Harvest resources from the ground, like wood, stone, and ore.",
+                "icon" : "/stonehearth/ui/game/start_menu/images/harvest.png",
                 "class" : "button",
-                "hotkey" : "h"
+                "hotkey" : "r"
             },
             "obliterate" : {
                 "name" : "Obliterate",

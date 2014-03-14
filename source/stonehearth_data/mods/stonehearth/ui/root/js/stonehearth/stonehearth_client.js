@@ -52,6 +52,20 @@ var StonehearthClient;
          return deferred;
       },
 
+      boxHarvestResources: function() {
+         $(top).trigger('radiant_show_tip', { 
+            title : 'Click and drag to harvest resources',
+            description : 'Drag out a box to choose which resources to harvest'
+         });
+
+         return this._callTool(function() {
+            return radiant.call('stonehearth:box_harvest_resources')
+               .always(function(response) {
+                  $(top).trigger('radiant_hide_tip');
+               });
+         });
+      },
+
       createStockpile: function() {
          radiant.call('radiant:play_sound', 'stonehearth:sounds:ui:start_menu:popup' );
          
