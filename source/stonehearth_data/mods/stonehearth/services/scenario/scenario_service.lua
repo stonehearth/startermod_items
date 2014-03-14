@@ -25,6 +25,7 @@ end
 function ScenarioService:create_new_game(feature_size, rng)
    self._feature_size = feature_size
    self._rng = rng
+   self._difficulty_increment_distance = radiant.util.get_config('difficulty_increment_distance', 256)
    self._reveal_distance = radiant.util.get_config('sight_radius', 64) * 2
    self._revealed_region = Region2()
    self._dormant_scenarios = {}
@@ -37,7 +38,12 @@ function ScenarioService:create_new_game(feature_size, rng)
 
    -- load all the categories
    for name, properties in pairs(scenario_index.categories) do
-      categories[name] = ScenarioSelector(properties.frequency, properties.priority, self._rng)
+      -- parse activation type
+      if not ActivationType.is_valid(properties.activation_type) then
+         log:error('Error parsing "%s": Invalid activation_type "%s".', file, tostring(properties.activation_type))
+      end
+
+      categories[name] = ScenarioSelector(properties.frequency, properties.priority, properties.activation_type, self._rng)
    end
 
    -- load the scenarios into the categories
@@ -58,11 +64,6 @@ function ScenarioService:create_new_game(feature_size, rng)
       if error_message then
          log:error('Error parsing "%s": "%s"', file, error_message)
       end
-
-      -- parse activation type
-      if not ActivationType.is_valid(properties.activation_type) then
-         log:error('Error parsing "%s": Invalid activation_type "%s".', file, tostring(properties.activation_type))
-      end
    end
 
    self._categories = categories
@@ -80,21 +81,25 @@ function ScenarioService:_on_poll()
    self:reveal_around_entities()
 end
 
--- hack until we make place non-static scenarios after banner placement
-function ScenarioService:clear_starting_location(x, z)
+function ScenarioService:set_starting_location(x, y)
+   self._starting_location = Point2(x, y)
+
+   -- hack to remove wildlife around banner
+   -- this should go away when we place scenarios after the banner is down
    local reveal_distance = self._reveal_distance
    local region = Region2()
 
    region:add_cube(
       Rect2(
          -- remember +1 on max
-         Point2(x-reveal_distance,   z-reveal_distance),
-         Point2(x+reveal_distance+1, z+reveal_distance+1)
+         Point2(x-reveal_distance,   y-reveal_distance),
+         Point2(x+reveal_distance+1, y+reveal_distance+1)
       )
    )
 
    self:reveal_region(region,
       function (scenario_properties)
+         --return true -- CHECKCHECK
          return scenario_properties.category ~= 'wildlife'
       end
    )
@@ -144,10 +149,7 @@ function ScenarioService:reveal_region(world_space_region, activation_filter)
             if scenario_info ~= nil then
                properties = scenario_info.properties
 
-               self:_mark_scenario_map(self._dormant_scenarios, nil,
-                  scenario_info.offset_x, scenario_info.offset_y,
-                  properties.size.width, properties.size.length
-               )
+               self:_mark_scenario_map(self._dormant_scenarios, nil, scenario_info)
 
                -- hack until we make place non-static scenarios after banner placement
                local activate = true
@@ -191,11 +193,12 @@ function ScenarioService:_get_terrain_region()
    return region
 end
 
-function ScenarioService:_mark_scenario_map(map, value, world_offset_x, world_offset_y, width, length)
+function ScenarioService:_mark_scenario_map(map, value, scenario_info)
+   local properties = scenario_info.properties
    local feature_x, feature_y, feature_width, feature_length, key
 
-   feature_x, feature_y = self:_get_feature_space_coords(world_offset_x, world_offset_y)
-   feature_width, feature_length = self:_get_dimensions_in_feature_units(width, length)
+   feature_x, feature_y = self:_get_feature_space_coords(scenario_info.offset_x, scenario_info.offset_y)
+   feature_width, feature_length = self:_get_dimensions_in_feature_units(properties.size.width, properties.size.length)
 
    -- i, j are offsets so using base 0
    for j=0, feature_length-1 do
@@ -207,17 +210,57 @@ function ScenarioService:_mark_scenario_map(map, value, world_offset_x, world_of
    end
 end
 
-function ScenarioService:mark_scenarios(habitat_map, elevation_map, tile_offset_x, tile_offset_y)
+function ScenarioService:_derive_difficulty_map(habitat_map, tile_offset_x, tile_offset_y)
+   local feature_size = self._feature_size
+   local starting_location = self._starting_location
+   local difficulty_increment_distance = self._difficulty_increment_distance
+   local cell_center = feature_size/2
+   local difficulty_map = Array2D(habitat_map.width, habitat_map.height)
+
+   difficulty_map:fill_ij(
+      function (i, j)
+         local x = tile_offset_x + (i-1)*feature_size + cell_center
+         local y = tile_offset_y + (j-1)*feature_size + cell_center
+         local tile_center = Point2(x, y)
+         local distance = starting_location.distance_to(tile_center)
+         local difficulty = math.floor(distance/difficulty_increment_distance)
+         return difficulty
+      end
+   )
+
+   return difficulty_map
+end
+
+function ScenarioService:place_static_scenarios(habitat_map, elevation_map, tile_offset_x, tile_offset_y)
+   local scenarios = self:_select_scenarios(habitat_map, 'static')
+
+   self:_place_scenarios(scenarios, habitat_map, elevation_map, tile_offset_x, tile_offset_y,
+      function (scenario_info)
+         local si = scenario_info
+         self:_activate_scenario(si.properties, si.offset_x, si.offset_y)
+      end
+   )
+end
+
+function ScenarioService:place_revealed_scenarios(habitat_map, elevation_map, tile_offset_x, tile_offset_y)
+   local scenarios = self:_select_scenarios(habitat_map, 'revealed')
+
+   self:_place_scenarios(scenarios, habitat_map, elevation_map, tile_offset_x, tile_offset_y,
+      function (scenario_info)
+         self:_mark_scenario_map(self._dormant_scenarios, scenario_info, scenario_info)
+      end
+   )
+end
+
+function ScenarioService:_place_scenarios(scenarios, habitat_map, elevation_map, tile_offset_x, tile_offset_y, place_fn)
    local rng = self._rng
    local feature_size = self._feature_size
    local feature_width, feature_length, voxel_width, voxel_length
-   local selected_scenarios, site, sites, num_sites, roll, habitat_types, residual_x, residual_y
+   local site, sites, num_sites, roll, habitat_types, residual_x, residual_y
    local offset_x, offset_y, feature_offset_x, feature_offset_y, intra_cell_offset_x, intra_cell_offset_y
-   local static_scenarios = {}
+   local scenario_info
 
-   selected_scenarios = self:_select_scenarios(habitat_map)
-
-   for _, properties in pairs(selected_scenarios) do
+   for _, properties in pairs(scenarios) do
       habitat_types = properties.habitat_types
 
       -- dimensions of the scenario in voxels
@@ -248,36 +291,19 @@ function ScenarioService:mark_scenarios(habitat_map, elevation_map, tile_offset_
          offset_x = tile_offset_x + feature_offset_x + intra_cell_offset_x
          offset_y = tile_offset_y + feature_offset_y + intra_cell_offset_y
 
-         local scenario_info = {
+         scenario_info = {
             properties = properties,
             offset_x = offset_x,
             offset_y = offset_y
          }
 
-         if properties.activation_type == ActivationType.static then
-            table.insert(static_scenarios, scenario_info)
-         else
-            self:_mark_scenario_map(self._dormant_scenarios, scenario_info, offset_x, offset_y, voxel_width, voxel_length)
-         end
+         place_fn(scenario_info)
 
          self:_mark_habitat_map(habitat_map, site.x, site.y, feature_width, feature_length)
 
          if properties.unique then
             self:_remove_scenario_from_selector(properties)
          end
-      end
-   end
-
-   return static_scenarios
-end
-
-function ScenarioService:place_static_scenarios(scenarios)
-   local properties
-
-   for _, scenario_info in pairs(scenarios) do
-      properties = scenario_info.properties
-      if properties.activation_type == ActivationType.static then
-         self:_activate_scenario(properties, scenario_info.offset_x, scenario_info.offset_y)
       end
    end
 end
@@ -328,21 +354,26 @@ function ScenarioService:_find_valid_sites(habitat_map, elevation_map, habitat_t
 end
 
 -- get a list of scenarios from all the categories
-function ScenarioService:_select_scenarios(habitat_map)
+function ScenarioService:_select_scenarios(habitat_map, activation_type)
    local categories = self._categories
-   local scenarios = {}
-   local scenario_names, properties
+   local selected_scenarios = {}
+   local selector, list
 
    for key, _ in pairs(categories) do
-      scenario_names = categories[key]:select_scenarios(habitat_map)
-      for _, properties in pairs(scenario_names) do
-         table.insert(scenarios, properties)
+      selector = categories[key]
+
+      if selector.activation_type == activation_type then
+         list = selector:select_scenarios(habitat_map)
+
+         for _, properties in pairs(list) do
+            table.insert(selected_scenarios, properties)
+         end
       end
    end
 
-   self:_sort_scenarios(scenarios)
+   self:_sort_scenarios(selected_scenarios)
 
-   return scenarios
+   return selected_scenarios
 end
 
 -- order first by priority, then by area, then by weight

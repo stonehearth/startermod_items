@@ -42,7 +42,8 @@
             "turnip_3": "stonehearth:turnip",
             "turnip_4": "stonehearth:turnip_basket"
          },
-         "harvest_threshhold" : "turnip_4"
+         "harvest_threshhold" : "turnip_4",
+         "plant_overlay_effect" : "/stonehearth/data/effects/plant_crop_overlay_effect/plant_corn_overlay_effect.json"
       }, 
       "stonehearth:growing" : {
          "growth_period" : "1h",

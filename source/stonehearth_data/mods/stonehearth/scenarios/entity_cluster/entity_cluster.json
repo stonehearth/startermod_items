@@ -1,6 +1,5 @@
 {
    "name" : "entity_cluster",
-   "activation_type" : "revealed",
    "size" : {
       "width" : 16,
       "length" : 16
