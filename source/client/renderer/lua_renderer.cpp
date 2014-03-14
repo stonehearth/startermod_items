@@ -93,14 +93,14 @@ static csg::Ray3 Scene_GetScreenRay(double windowX, double windowY)
 static RayCastResult Scene_CastRay(const csg::Point3f& origin, const csg::Point3f& direction) 
 {
    RayCastResult r;
-   Renderer::GetInstance().CastRay(origin, direction, &r);
+   Renderer::GetInstance().CastRay(origin, direction, 0, &r);
    return r;
 }
 
 static RayCastResult Scene_CastScreenRay(double windowX, double windowY) 
 {
    RayCastResult r;
-   Renderer::GetInstance().CastScreenCameraRay((int)windowX, (int)windowY, &r);
+   Renderer::GetInstance().CastScreenCameraRay((int)windowX, (int)windowY, 0, &r);
    return r;
 }
 

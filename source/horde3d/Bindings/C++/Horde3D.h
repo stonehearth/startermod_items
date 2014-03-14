@@ -1858,7 +1858,7 @@ DLL H3DNode h3dGetNodeFindResult( int index );
 	Returns:
 		number of intersections
 	*/
-DLL int h3dCastRay( H3DNode node, float ox, float oy, float oz, float dx, float dy, float dz, int numNearest );
+DLL int h3dCastRay( H3DNode node, float ox, float oy, float oz, float dx, float dy, float dz, int numNearest, int userFlags );
 
 /*	Function: h3dGetCastRayResult
 		Returns a result of a previous castRay query.

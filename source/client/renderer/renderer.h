@@ -47,6 +47,7 @@ struct RayCastResult
 
    H3DNode      node;
    bool         is_valid;
+   int          numOtherResults;
 };
 
 struct FrameStartInfo {
@@ -145,9 +146,9 @@ class Renderer
       core::Guard TraceSelected(H3DNode node, UpdateSelectionFn fn);
 
       void GetCameraToViewportRay(int viewportX, int viewportY, csg::Ray3* ray);
-      void CastRay(const csg::Point3f& origin, const csg::Point3f& direction, RayCastResult* result);
-      void CastScreenCameraRay(int viewportX, int viewportY, RayCastResult* result);
-      void QuerySceneRay(int viewportX, int viewportY, om::Selection &result);
+      void CastRay(const csg::Point3f& origin, const csg::Point3f& direction, int userFlags, RayCastResult* result);
+      void CastScreenCameraRay(int viewportX, int viewportY, int userFlags, RayCastResult* result);
+      void QuerySceneRay(int viewportX, int viewportY, int userFlags, om::Selection &result);
 
       typedef std::function<void (const Input&)> InputEventCb;
       void SetInputHandler(InputEventCb fn) { input_cb_ = fn; }
