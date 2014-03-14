@@ -41,7 +41,8 @@
          "resource_pairings" : {
             "turnip_3": "stonehearth:turnip",
             "turnip_4": "stonehearth:turnip_basket"
-         }
+         },
+         "harvest_threshhold" : "turnip_4"
       }, 
       "stonehearth:growing" : {
          "growth_period" : "1h",

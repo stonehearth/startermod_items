@@ -9,7 +9,7 @@ function DirtPlotComponent:initialize(entity, json)
       fertility = 0,
       moisture = 0,
       fertility_category = nil,
-      parent_field = nil,
+      parent_field_component = nil,
       field_location = nil,
       contents = nil, 
       last_planted_type = nil,
@@ -24,8 +24,8 @@ end
 --- Set the field and location in field for this plot
 --  @param field: the field entity that we care about
 --  @param location: the x/y coordinates of the plot. location[1] is x, location[2] is y
-function DirtPlotComponent:set_field(parent_field, location)
-   self._data.parent_field = parent_field
+function DirtPlotComponent:set_field(parent_field_component, location)
+   self._data.parent_field_component = parent_field_component
    self._data.field_location = location
    self.__saved_variables:mark_changed()
 end
@@ -62,6 +62,10 @@ end
 
 function DirtPlotComponent:get_replant()
    return self._data.auto_replant
+end
+
+function DirtPlotComponent:get_auto_harvest()
+   return self._data.auto_harvest
 end
 
 --TODO: incorporate the moisture of the soil
@@ -124,7 +128,13 @@ function DirtPlotComponent:plant_crop(crop_type)
 
    --listen for if the planted crop gets destroyed for any reason
    radiant.events.listen(planted_entity, 'stonehearth:entity:pre_destroy', self, self._on_crop_removed)
+   radiant.events.listen(planted_entity, 'stonehearth:crop_harvestable', self, self._on_crop_harvestable)
+end
 
+--- If the crop is now harvestable, let the field know, so it can handle it according to policy
+function DirtPlotComponent:_on_crop_harvestable(e)
+   local crop = e.crop
+   self._data.parent_field_component:determine_auto_harvest(self, crop)
 end
 
 --- Called when something is removed from me
@@ -143,6 +153,9 @@ function DirtPlotComponent:_on_crop_removed()
    --command_component:add_command('/stonehearth/data/commands/plant_crop')
    command_component:add_command('/stonehearth/data/commands/plant_crop/plant_turnip.json')
    command_component:add_command('/stonehearth/data/commands/plant_crop/plant_corn.json')
+
+   --unlisten on the other handlers
+   radiant.events.unlisten(self._data.contents, 'stonehearth:crop_harvestable', self, self._on_crop_harvestable)
 
    self._data.contents = nil
 

@@ -41,7 +41,8 @@
          "resource_pairings" : {
             "corn_3": "stonehearth:corn_cob",
             "corn_4": "stonehearth:corn_basket"
-         }
+         }, 
+         "harvest_threshhold" : "corn_4"
       }, 
       "stonehearth:growing" : {
          "growth_period" : "1h",

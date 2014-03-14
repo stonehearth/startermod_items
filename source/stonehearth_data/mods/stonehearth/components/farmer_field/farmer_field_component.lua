@@ -84,7 +84,7 @@ function FarmerFieldComponent:_init_dirt_plot(location, x, y)
    local render_info = field_spacer:add_component('render_info')
    render_info:set_model_variant('untilled_ground')
    local dirt_plot_component = field_spacer:get_component('stonehearth:dirt_plot')
-   dirt_plot_component:set_field(self._entity, {x=x, y=y})
+   dirt_plot_component:set_field(self, {x=x, y=y})
 
    local grid_location = Point3(location.x + x-1, 0, location.z + y-1)
    radiant.terrain.place_entity(field_spacer, grid_location)
@@ -95,10 +95,15 @@ function FarmerFieldComponent:_init_dirt_plot(location, x, y)
    return field_spacer
 end
 
---- When a crop is removed, figure out if we should auto-re-plant
+--- On crop remove, figure out if we should auto-replant the last-planted
+function FarmerFieldComponent:_on_crop_removed(e)
+   self:_determine_replant(e)
+end
+
+--- Given the field and dirt data, replant the last crop
 --  Always do whatever is set on the plot, if anything
 --  If nothing is set on the plot, follow the policy on the field
-function FarmerFieldComponent:_on_crop_removed(e)
+function FarmerFieldComponent:_determine_replant(e)
    local plot_entity = e.plot_entity
    local dirt_component = plot_entity:get_component('stonehearth:dirt_plot')
    local do_replant = self._data.auto_replant
@@ -111,6 +116,18 @@ function FarmerFieldComponent:_on_crop_removed(e)
       local field_location = e.location
       local last_type = dirt_component:get_last_planted_type()
       farming_service:plant_crop(radiant.entities.get_faction(self._entity), {plot_entity}, last_type)
+   end
+end
+
+--- Given the field and dirt data, harvest the crop
+function FarmerFieldComponent:determine_auto_harvest(dirt_component, crop)
+   local do_harvest = self._data.auto_harvest
+   if dirt_component:get_player_override() then
+      do_harvest = dirt_component:get_auto_harvest()
+   end
+   if do_harvest then
+      local town = stonehearth.town:get_town(radiant.entities.get_faction(self._entity))
+      return town:harvest_resource_node(crop)
    end
 end
 

@@ -7,6 +7,7 @@ local CropComponent = class()
 function CropComponent:initialize(entity, json)
    self._entity = entity
    self._resource_pairings = json.resource_pairings
+   self._harvest_threshhold = json.harvest_threshhold
    radiant.events.listen(radiant.events, 'stonehearth:entity:post_create', self, self._on_create_complete)
 end
 
@@ -20,12 +21,15 @@ function CropComponent:_on_create_complete()
    return radiant.events.UNLISTEN
 end
 
---- As we grow, change the resources we yield
+--- As we grow, change the resources we yield and, if appropriate, command harvest
 function CropComponent:_on_grow_period(e)
    local stage = e.stage
    if self._resource_pairings[stage] then
       local resource_component = self._entity:get_component('stonehearth:resource_node')
       resource_component:set_resource(self._resource_pairings[stage])
+   end
+   if stage == self._harvest_threshhold then
+      radiant.events.trigger(self._entity, 'stonehearth:crop_harvestable', {crop = self._entity})
    end
 end
 
