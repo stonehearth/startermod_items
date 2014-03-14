@@ -1,13 +1,4 @@
-$(document).ready(function(){
-   // When we get the show_workshop event, toggle the crafting window
-   // for this entity.
-   $(top).on("radiant_show_stockpile", function (_, e) {
-      var view = App.gameView.addView(App.StonehearthStockpileView, { uri: e.entity });
-   });
-});
 
-// Expects the uri to be an entity with a stonehearth:workshop
-// component
 App.StonehearthStockpileView = App.View.extend({
    templateName: 'stonehearthStockpile',
 

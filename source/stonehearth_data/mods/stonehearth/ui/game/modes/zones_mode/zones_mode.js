@@ -76,7 +76,7 @@ App.StonehearthZonesModeView = App.View.extend({
 
       if (entity['stonehearth:stockpile']) {
          this._showStockpileUi(entity);
-      } else if (entity['stonehearth:farmer:field']) {
+      } else if (entity['stonehearth:farmer_field']) {
          this._showFarmUi(entity);
       }
    },
@@ -95,21 +95,30 @@ App.StonehearthZonesModeView = App.View.extend({
             position: {
                my : 'center bottom',
                at : 'left+' + self.mouseX + " " + 'top+' + (self.mouseY - 10),
-               of : $(document)
+               of : $(document),
+               collision : 'fit'
             }
          });
    },
 
    _showFarmUi: function(entity) {
-      /*
+      var self = this;
+
+      if (this._propertyView) {
+         this._propertyView.destroy();
+      };
+
+      var uri = typeof(entity) == 'string' ? entity : entity.__self;
+
       this._propertyView = App.gameView.addView(App.StonehearthFarmView, { 
             uri: uri,
             position: {
                my : 'center bottom',
                at : 'left+' + self.mouseX + " " + 'top+' + (self.mouseY - 10),
-               of : $(document)
+               of : $(document),
+               collision : 'fit'
             }
          });
-      */
+
    }
 });

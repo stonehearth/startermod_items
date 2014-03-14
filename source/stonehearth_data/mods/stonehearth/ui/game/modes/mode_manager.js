@@ -113,7 +113,8 @@ $(document).ready(function() {
       _getModeForEntity: function(entity) {
          var mode = this.modes.NORMAL;
 
-         if (entity['stonehearth:stockpile']) {
+         if (entity['stonehearth:stockpile'] ||
+             entity['stonehearth:farmer_field']) {
             mode = this.modes.ZONES;
          }
 

@@ -109,6 +109,8 @@ $.widget( "stonehearth.stonehearthMenu", {
             } else {
                self.showMenu(id);
             }
+         } else {
+            self.hideMenu();
          }
          
          if (self.options.click) {

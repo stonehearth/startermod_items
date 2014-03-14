@@ -165,6 +165,11 @@
    "stockpile_tooltip_gold" : "gold",
    "stockpile_tooltip_gem" : "gems and trophies",
 
+   "farm_crop_rotation" : "Crop Rotation",
+   "farm_manually_place_crops" : "Manually Place Crops",
+   "farm_auto_harvest" : "Harvest placed crops automatically",
+   "farm_auto_replant" : "Replant placed crops automatically",
+
    "show_workshop_description" : "Owned by ",
    "craft_number_left": "Craft",
    "craft_number_right": "right now.",

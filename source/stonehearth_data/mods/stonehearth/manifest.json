@@ -19,6 +19,7 @@
       "cursors:camera_move_up" : "file(data/cursors/camera_move_up.cur)",
       "cursors:create_door" : "file(data/cursors/create_door.cur)",
       "cursors:create_roof" : "file(data/cursors/create_roof.cur)",
+      "cursors:harvest" : "file(data/cursors/harvest.cur)",
       "cursors:create_stockpile" : "file(data/cursors/create_stockpile.cur)",
       "cursors:create_walls" : "file(data/cursors/create_walls.cur)",
       "cursors:default" : "file(data/cursors/default.cur)",
@@ -568,6 +569,14 @@
          "controller" : "file(call_handlers/resource_call_handler.lua)",
          "endpoint" : "server"
       },
+      "box_harvest_resources" : {
+         "controller": "file(call_handlers/resource_call_handler.lua)",
+         "endpoint" : "client"
+      },
+      "server_box_harvest_resources" : {
+         "controller": "file(call_handlers/resource_call_handler.lua)",
+         "endpoint" : "server"
+      },
       "harvest_tree" : {
          "controller": "file(call_handlers/resource_call_handler.lua)",
          "endpoint" : "server"
@@ -728,6 +737,7 @@
          "file(ui/game/game.html)",
          "file(ui/game/modes/zones_mode/zones_mode.html)",
          "file(ui/game/modes/zones_mode/stockpile/stockpile.html)",
+         "file(ui/game/modes/zones_mode/farm/farm.html)",
          "file(ui/game/modes/build_mode/build_mode.html)",
          "file(ui/game/esc_menu/esc_menu.html)",
          "file(ui/game/task_manager/task_manager.html)",   
@@ -764,6 +774,7 @@
          "file(ui/game/game.js)",
          "file(ui/game/modes/zones_mode/zones_mode.js)",
          "file(ui/game/modes/zones_mode/stockpile/stockpile.js)",
+         "file(ui/game/modes/zones_mode/farm/farm.js)",
          "file(ui/game/modes/build_mode/build_mode.js)",
          "file(ui/game/modes/mode_manager.js)",
          "file(ui/game/esc_menu/esc_menu.js)",
@@ -803,6 +814,7 @@
          "file(ui/game/game.less)",
          "file(ui/game/modes/zones_mode/zones_mode.less)",
          "file(ui/game/modes/zones_mode/stockpile/stockpile.less)",
+         "file(ui/game/modes/zones_mode/farm/farm.less)",
          "file(ui/game/modes/build_mode/build_mode.less)",
          "file(ui/game/esc_menu/esc_menu.less)",
          "file(ui/game/task_manager/task_manager.less)",   

@@ -21,11 +21,18 @@
       border-image: url(images/gui/title.png) 9 9 13 9 repeat;
    }
 
+   h2 {
+      color: #fff;
+      font-size: 18px;
+   }
+
    button {
       .control;
       .outlined(#9da8b0);
       color: #000;
       background: #7e8994;
+      background-position: center;
+      background-repeat: no-repeat;
       border-width: 9px 9px 13px 9px;
       border-image: url(images/gui/button.png) 9 9 13 9 repeat;
       padding: 10px;
@@ -33,7 +40,7 @@
 
       &:hover {
          .outlined(#b4b495);
-         background: #9e9e82;
+         background-color: #9e9e82;
          border-image: url(images/gui/button_hover.png) 9 9 13 9 repeat;
       };
    }
@@ -44,7 +51,7 @@
       border-image: url(images/gui/button_warn.png) 9 9 13 9 repeat;
 
       &:hover {
-         .outlined(#41c565);
+         .outlined(#cd4848);
          background: #f93030;
          border-image: url(images/gui/button_warn_hover.png) 9 9 13 9 repeat;
       };
@@ -53,8 +60,6 @@
    button.ok {
       float: right;
       background-image: url(images/gui/ok_check.png);
-      background-position: center;
-      background-repeat: no-repeat;
       height: 66px;
       width: 60px;
       background-color: #31b349;
@@ -65,7 +70,12 @@
          background-color: #1ec63d;
          border-image: url(images/gui/button_ok_hover.png) 9 9 13 9 repeat;
       };
+   }
 
+   button.plus {
+      background-image: url(images/gui/button_plus.png);
+      height: 66px;
+      width: 60px;
    }
 
    label {
