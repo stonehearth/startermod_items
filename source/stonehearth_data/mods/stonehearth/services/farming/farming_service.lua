@@ -5,7 +5,14 @@ function FarmingService:__init()
    self._crop_overlays = {}
 end
 
+--- Track the crops currently available to each community
+--  Start the town with a certain number of crops
 function FarmingService:initialize()
+   self._data = {
+      town_crops = {}
+   }
+   self.__saved_variables = radiant.create_datastore(self._data)
+   self.__saved_variables:mark_changed()
 end
 
 function FarmingService:restore(saved_variables)
@@ -20,9 +27,38 @@ function FarmingService:_load_dirt_descriptions()
    self._dirt_data['dirt_4'] = dirt_data.components.model_variants['dirt_4']
 end
 
+--TODO: revisit when we gate farmables by seeds that people start with
+function FarmingService:_load_initial_crops()
+   self._initial_crops = radiant.resources.load_json('farmer:initial_crops')
+end
+
 function FarmingService:get_dirt_descriptions(dirt_type)
    local dirt_details = self._dirt_data[dirt_type]
    return dirt_details.unit_info_name, dirt_details.unit_info_description
+end
+
+--- Get the crop types available to a faction. Start with a couple if there are none so far.
+function FarmingService:get_all_crop_types(faction)
+   return self:_get_crop_list(faction)
+end
+
+--- Add a new crop type to the faction
+function FarmingService:add_crop_type(faction, new_crop_uri)
+   local crop_list = self:_get_crop_list(faction)
+   table.insert(crop_list, new_crop_uri)
+   return crop_list
+end
+
+function FarmingService:_get_crop_list(faction)
+   local crop_list = self._data.town_crops[faction]
+   if not crop_list then
+      --TODO: where is the kingdom name from? Originally, I'd put it into unit_info,
+      --but Tony took it out again. We need to keep some "game variables" and this is
+      --definitely one of them
+      crop_list = self._initial_crops['ascendancy']
+      self._data.town_crops[faction] = crop_list
+   end
+   return crop_list
 end
 
 --- Tell farmers to plan the crop_type in the designated locations

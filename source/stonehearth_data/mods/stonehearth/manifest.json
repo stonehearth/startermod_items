@@ -62,6 +62,7 @@
       "farmer:outfit" : "file(professions/farmer/farmer_outfit)",
       "farmer:field" : "file(professions/farmer/field)",
       "farmer_hoe" : "file(professions/farmer/farmer_hoe)", 
+      "farmer:initial_crops" : "file(services/farming/data/initial_crops.json)",
       
       "trapper:trapper_knife" : "file(professions/trapper/trapper_knife)",
 
@@ -561,14 +562,6 @@
          "controller" : "file(call_handlers/workshop_call_handler.lua)",
          "endpoint" : "server"
       },
-      "plant_crop" : {
-         "controller" : "file(call_handlers/resource_call_handler.lua)",
-         "endpoint" : "server"
-      },
-      "raze_crop" : {
-         "controller" : "file(call_handlers/resource_call_handler.lua)",
-         "endpoint" : "server"
-      },
       "box_harvest_resources" : {
          "controller": "file(call_handlers/resource_call_handler.lua)",
          "endpoint" : "client"
@@ -630,6 +623,14 @@
          "endpoint" : "client"
       },
       "create_new_field": {
+         "controller" : "file(call_handlers/farming_call_handler.lua)",
+         "endpoint" : "server"
+      },
+      "plant_crop" : {
+         "controller" : "file(call_handlers/farming_call_handler.lua)",
+         "endpoint" : "server"
+      },
+      "raze_crop" : {
          "controller" : "file(call_handlers/farming_call_handler.lua)",
          "endpoint" : "server"
       },

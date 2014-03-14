@@ -82,27 +82,5 @@ function ResourceCallHandler:shear_sheep(session, response, sheep)
    asset(false, 'shear_sheep was broken, so i deleted it =)  -tony')
 end
 
---TODO: Send an array of soil_plots and the type of the crop for batch planting
-function ResourceCallHandler:plant_crop(session, response, soil_plot, crop_type)
-   --TODO: remove this when we actually get the correct data from the UI
-   local soil_plots = {soil_plot}
-   if not crop_type then
-      crop_type = 'stonehearth:turnip_crop'
-   end
-
-   return farming_service:plant_crop(session.faction, soil_plots, crop_type)
-end
-
---TODO: Send an array of soil_plots and the type of the crop for batch planting
---Give a set of plots to clear, harvest the plants inside
-function ResourceCallHandler:raze_crop(session, response, soil_plot)
-   --TODO: remove this when we actually get the correct data from the UI
-   local soil_plots = {soil_plot}
-   for i, plot in ipairs(soil_plots) do 
-      local plot_component = plot:get_component('stonehearth:dirt_plot') 
-   end
-
-   return farming_service:harvest_crops(session.faction, soil_plots)
-end
 
 return ResourceCallHandler
