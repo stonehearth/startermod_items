@@ -80,10 +80,11 @@ function StockpileComponent:destroy()
       self._ec_trace:destroy()
       self._ec_trace = nil
    end
-   if self._task then
-      self._task:destroy()
-      self._task = nil
-   end
+   --if self._task then
+   --   self._task:destroy()
+   --   self._task = nil
+   --end
+   self:_destroy_tasks()
    if self._ec_trace then
       self._ec_trace:destroy()
       self._ec_trace = nil
@@ -406,26 +407,40 @@ function StockpileComponent:_is_in_filter(entity)
    return in_filter
 end
 
+function StockpileComponent:_destroy_tasks()
+   if self._task then
+      self._task:destroy()
+      self._task = nil
+   end
+   if self._task_f then
+      self._task_f:destroy()
+      self._task_f = nil
+   end
+end
 
---- Creates worker tasks for keeping the stockpile full
--- We schedule two tasks to try to fill up the stockpile.  The first looks for
--- workers who aren't carrying anything and asks them to pick up any item which
--- belongs in the stockpile and is not in *any* other stockpile.  The second
--- asks workers who are carrying items which belong in our stockpile to drop
--- them inside us.
-
+--- Workers and farmers restock stockpiles.
 function StockpileComponent:_create_worker_tasks()
    if self._is_outbox then
       return
    end
 
-   if self._task ~= nil then
-      self._task:destroy()
-      self._task = nil
-   end
+   --if self._task ~= nil then
+   --   self._task:destroy()
+   --   self._task = nil
+   --end
+
+   self:_destroy_tasks()
 
    local town = stonehearth.town:get_town(self._faction)
    self._task = town:create_worker_task('stonehearth:restock_stockpile', { stockpile = self })
+                                   :set_source(self._entity)
+                                   :set_name('restock task')
+                                   :start()
+
+   --Experiment in allowing farmers to haul things to stockpiles
+   --TODO: allow this behavior to be more pervasive? Let create_task take an array of
+   --possible target work groups?
+   self._task_f = town:create_farmer_task('stonehearth:restock_stockpile', { stockpile = self })
                                    :set_source(self._entity)
                                    :set_name('restock task')
                                    :start()

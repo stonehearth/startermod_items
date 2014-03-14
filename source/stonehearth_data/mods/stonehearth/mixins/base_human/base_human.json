@@ -39,6 +39,7 @@
             "stonehearth:actions:harvest_resource_node_adjacent_action",
             "stonehearth:actions:harvest_plant",
             "stonehearth:actions:harvest_plant_adjacent",
+            "stonehearth:actions:restock_stockpile",
          ],
           "observers": [
             "stonehearth:observers:sleep",

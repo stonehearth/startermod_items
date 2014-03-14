@@ -27,7 +27,6 @@
          "injected_ai" : {
             "actions" : [
                "stonehearth:actions:worker_task_dispatcher",
-               "stonehearth:actions:restock_stockpile",
                "stonehearth:actions:place_item",
                "stonehearth:actions:place_item_type",
                "stonehearth:actions:light_firepit",               
