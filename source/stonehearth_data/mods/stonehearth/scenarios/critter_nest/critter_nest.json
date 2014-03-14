@@ -2,7 +2,6 @@
    "name" : "critter_nest",
    "category" : "wildlife",
    "habitat_types" : ["plains", "foothills"],
-   "activation_type" : "revealed",
    "size" : {
       "width" : 16,
       "length" : 16

@@ -11,23 +11,28 @@
    "categories" : {
       "terrain" : {
          "frequency" : 25.0,
-         "priority" : 0
+         "priority" : 0,
+         "activation_type" : "static"
       },
       "wildlife" : {
          "frequency" : 3.0,
-         "priority" : 0
+         "priority" : 0,
+         "activation_type" : "revealed"
       },
       "ruins" : {
          "frequency" : 0.20,
-         "priority" : 3
+         "priority" : 3,
+         "activation_type" : "revealed"
       },
       "encounter" : {
          "frequency" : 0.20,
-         "priority" : 8
+         "priority" : 8,
+         "activation_type" : "revealed"
       },
       "boss" : {
          "frequency" : 0.05,
-         "priority" : 10
+         "priority" : 10,
+         "activation_type" : "revealed"
       }
    }
 }

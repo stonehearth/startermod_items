@@ -202,9 +202,7 @@ function NewGameCallHandler:_destroy_capture()
 end
 
 function NewGameCallHandler:create_camp(session, response, pt)
-   -- remove wildlife near the banner
-   -- this will go away when we do banner dependent scenario placement
-   stonehearth.scenario:clear_starting_location(pt.x, pt.z)
+   stonehearth.scenario:set_starting_location(pt.x, pt.z)
 
    local faction = stonehearth.population:get_faction('civ', 'stonehearth:factions:ascendancy')
    local town = stonehearth.town:get_town(session.faction)
