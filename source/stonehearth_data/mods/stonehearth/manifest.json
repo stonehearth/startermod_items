@@ -343,7 +343,7 @@
       "actions:till_field" : "file(ai/actions/till_field_action.lua)",
       "actions:plant_crop" : "file(ai/actions/plant_crop.lua)",
 
-      "actions:follow_entity" : "file(ai/actions/follow_entity.lua)",
+      "actions:follow_entity" : "file(ai/actions/follow_entity_action.lua)",
 
       "tasks:collect_ingredients" : "file(services/tasks/compound_tasks/collect_ingredients_compound_task.lua)",
       "tasks:work_at_workshop" : "file(services/tasks/compound_tasks/work_at_workshop_orchestrator.lua)",

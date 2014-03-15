@@ -323,33 +323,20 @@ function ExecutionFrame:on_ready(ready_cb)
       return
    end
 
-   assert(not self._ready_cb_pending)
-   local current_thread = stonehearth.threads:get_current_thread()
+   local calling_thread = stonehearth.threads:get_current_thread()
    self._ready_cb = function(think_output)
          local arg = think_output and stonehearth.ai:format_args(think_output) or 'nil'
-         if current_thread and not current_thread:is_running() then
-            -- super gross here... the on_ready callback is used by compound actions and run_action_tasks to
-            -- bubble up ready notifications to their parent.  they must be called on the ai thread, as calling
-            -- set_think_output() may cause an action to be run!  if we are not on the ai thread, we need to
-            -- context switch over there to deliver the callback.
-            -- occasionally, we will be asekd to deliever mutiple on_ready() callbacks before the ai thread
-            -- actually gets scheduled (e.g. an actino becomes ready and immediately after the task kills it).
-            -- so, when we arrive on the other thread, make sure the think_output has actually changed before
-            -- firing the cb.
-            self._ready_cb_counter = self._ready_cb_counter and self._ready_cb_counter + 1 or 1
-            local count = self._ready_cb_counter
 
-            self._log:detail('(%d) ai thread is not running trying to deliver on_ready(%s) notification.  thunking.', count, arg)
-
-            current_thread:interrupt(function()
-                  self._log:detail('(%d) calling on_ready(%s) notification with thunk', count, arg)
-                  self._ready_cb_pending = true
-                  if self._ready_cb then
-                     ready_cb(self, think_output)
-                  else
-                     self._log:detail('(%d) ready_cb became unregistered while switching thread context.', count)
-                  end
-                  self._ready_cb_pending = false
+         if calling_thread and not calling_thread:is_running() then
+            -- this interrupt is synchronous to make sure we deliver the callback in the current.
+            -- state.  for example, soon after we return from this function, a task might kill
+            -- an action that's running this frame (ending up stopping the frame before the 
+            -- thread which wants the on_ready() notification actually gets scheduled!)
+            self._log:detail('ai thread is not running trying to deliver on_ready(%s) notification.  thunking.', arg)
+            calling_thread:sync_interrupt(function()
+                  assert(self._ready_cb)
+                  self._log:detail('calling on_ready(%s) notification with thunk', arg)
+                  ready_cb(self, think_output)
                end)
          else
             -- sometimes there is no thread (e.g. in pathfinder callbacks).
@@ -544,7 +531,7 @@ function ExecutionFrame:_unit_ready_from_running(unit, think_output)
       assert(not self._thread:get_thread_data('stonehearth:unwind_to_frame'))
       self._thread:set_thread_data('stonehearth:unwind_to_frame', self)
       self._log:detail('thunking back to run thread to unwind stack.')
-      self._thread:interrupt(function()
+      self._thread:sync_interrupt(function()
             local unwind_frame = self._thread:get_thread_data('stonehearth:unwind_to_frame')
             assert(unwind_frame, 'entered unwind frame interrupt with no unwind frame!')
             self._log:detail('starting unwind to frame %s', unwind_frame._activity_name)
@@ -891,7 +878,7 @@ function ExecutionFrame:_remove_action_from_running(unit)
    self._log:detail('_remove_action_from_running (state: %s)', self._state)
    if unit == self._active_unit then
       if not self._aborting then
-         self._thread:interrupt(function()
+         self._thread:sync_interrupt(function()
             self:abort()
          end)
       end
