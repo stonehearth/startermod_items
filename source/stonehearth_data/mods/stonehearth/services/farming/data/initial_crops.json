@@ -2,7 +2,7 @@
    "ascendancy" : [
       {
          "crop_type" : "stonehearth:turnip_crop",
-         "quantity" : 10,
+         "quantity" : 10
       },
       {
          "crop_type" : "stonehearth:corn_seedling",
@@ -12,7 +12,7 @@
    "rayyas_children" : [
       {
          "crop_type" : "stonehearth:turnip_crop",
-         "quantity" : 10,
+         "quantity" : 10
       },
       {
          "crop_type" : "stonehearth:corn_seedling",
@@ -22,7 +22,7 @@
    "northern_alliance" : [
       {
          "crop_type" : "stonehearth:turnip_crop",
-         "quantity" : 10,
+         "quantity" : 10
       },
       {
          "crop_type" : "stonehearth:corn_seedling",

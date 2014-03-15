@@ -3,13 +3,23 @@ App.StonehearthFarmView = App.View.extend({
 
    components: {
       "unit_info": {},
-      "stonehearth:stockpile" : {}
+      "stonehearth:farmer_field" : {}
    },
 
 
    init: function() {
+      var self = this;
       this._super();
       this.set('foo', 'hello world');
+
+      $('#addCropButton').prop('disabled', true);
+
+      //Get the crops available for this farm
+      radiant.call('stonehearth:get_all_crops')
+         .done(function(o){
+            self.set('all_crops', o.all_crops);
+            $('#addCropButton').prop('disabled', false);
+         });
 
       //xxx placeholder
       this.set('crop_rotation', []);
@@ -65,16 +75,7 @@ App.StonehearthFarmView = App.View.extend({
                         self.addCropToRotation($(item).attr('crop'));
                      },
                      context: {
-                        items : [
-                           {
-                              crop: "corn",
-                              icon: "..."
-                           },
-                           {
-                              crop: "turnip",
-                              icon: "..."
-                           }
-                        ]
+                        items : self.get('all_crops')
                      },
                      position: {
                         my : 'center',
@@ -89,6 +90,11 @@ App.StonehearthFarmView = App.View.extend({
 App.StonehearthFarmCropPalette = App.View.extend({
    templateName: 'stonehearthCropPalette',
    modal: true,
+
+   init: function() {
+      this._super();
+
+   },
 
    didInsertElement: function() {
       this._super();

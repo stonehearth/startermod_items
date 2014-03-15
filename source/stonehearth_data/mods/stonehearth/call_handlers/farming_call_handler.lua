@@ -103,7 +103,7 @@ end
 
 --- Returns the crops available for planting to this faction
 function FarmingCallHandler:get_all_crops(session)
-   return farming_service:get_all_crop_types(session.faction)
+   return {all_crops = farming_service:get_all_crop_types(session.faction)}
 end
 
 return FarmingCallHandler

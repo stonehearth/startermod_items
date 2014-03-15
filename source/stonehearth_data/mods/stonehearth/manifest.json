@@ -634,6 +634,10 @@
          "controller" : "file(call_handlers/farming_call_handler.lua)",
          "endpoint" : "server"
       },
+      "get_all_crops" : {
+         "controller" : "file(call_handlers/farming_call_handler.lua)",
+         "endpoint" : "server"
+      },
       "choose_stockpile_location": {
          "controller" : "file(call_handlers/inventory_call_handler.lua)",
          "endpoint" : "client"
