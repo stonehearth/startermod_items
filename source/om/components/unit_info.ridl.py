@@ -11,3 +11,4 @@ class UnitInfo(Component):
    faction = dm.Boxed(std.string())
    kingdom = dm.Boxed(std.string())
    icon = dm.Boxed(std.string())
+   player_id = dm.Boxed(std.string())

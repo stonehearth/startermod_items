@@ -9,7 +9,7 @@ function CollisionTest:__init()
    self:place_item_cluster('stonehearth:berry_basket', -5, -5, 4, 4);
 
    local worker = self:place_citizen(13, 13)
-   local faction = worker:get_component('unit_info'):get_faction()   
+   local player_id = worker:get_component('unit_info'):get_player_id()   
 ---[[
    self:place_item('stonehearth:picket_fence', 0, 3)
    self:place_item('stonehearth:picket_fence', 2, 3)
@@ -31,7 +31,7 @@ function CollisionTest:__init()
 
 ]]
 
-   self:place_stockpile_cmd(faction, 10, 10, 2, 2)
+   self:place_stockpile_cmd(player_id, 10, 10, 2, 2)
    
 end
 

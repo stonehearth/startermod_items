@@ -69,12 +69,12 @@ end
 -- @param tree The entity which you would like chopped down
 -- @return true on success, false on failure
 function ResourceCallHandler:harvest_tree(session, response, tree)
-   local town = stonehearth.town:get_town(session.faction)
+   local town = stonehearth.town:get_town(session.player_id)
    return town:harvest_resource_node(tree)
 end
 
 function ResourceCallHandler:harvest_plant(session, response, plant)
-   local town = stonehearth.town:get_town(session.faction)
+   local town = stonehearth.town:get_town(session.player_id)
    return town:harvest_renewable_resource_node(plant)
 end
 

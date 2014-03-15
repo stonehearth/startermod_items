@@ -70,12 +70,8 @@ end
 
 -- runs on the server!
 function FarmingCallHandler:create_new_field(session, response, location, size)
-   --TODO: move to a global farming service/field manager ?
-   local entity = radiant.entities.create_entity('stonehearth:farmer:field')   
-   radiant.terrain.place_entity(entity, location)
-   entity:get_component('stonehearth:farmer_field'):init_contents(size, location, 'New Field foo', session.faction)
-   
-   return { field = entity}
+   local entity = stonehearth.farming:create_new_field(session, location, size)
+   return { field = entity }
 end
 
 --TODO: Send an array of soil_plots and the type of the crop for batch planting
@@ -86,7 +82,7 @@ function FarmingCallHandler:plant_crop(session, response, soil_plot, crop_type)
       crop_type = 'stonehearth:turnip_crop'
    end
 
-   return farming_service:plant_crop(session.faction, soil_plots, crop_type)
+   return farming_service:plant_crop(session.player_id, soil_plots, crop_type)
 end
 
 --TODO: Send an array of soil_plots and the type of the crop for batch planting
@@ -98,12 +94,12 @@ function FarmingCallHandler:raze_crop(session, response, soil_plot)
       local plot_component = plot:get_component('stonehearth:dirt_plot') 
    end
 
-   return farming_service:harvest_crops(session.faction, soil_plots)
+   return farming_service:harvest_crops(session, soil_plots)
 end
 
---- Returns the crops available for planting to this faction
+--- Returns the crops available for planting to this player
 function FarmingCallHandler:get_all_crops(session)
-   return {all_crops = farming_service:get_all_crop_types(session.faction)}
+   return {all_crops = farming_service:get_all_crop_types(session)}
 end
 
 return FarmingCallHandler

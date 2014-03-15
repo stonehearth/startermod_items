@@ -13,15 +13,13 @@ function farmer_class.promote(entity)
    equipment:equip_item('stonehearth:farmer:outfit')
 
    --Add them to the farmer scheduler
-   local faction = radiant.entities.get_faction(entity)
-   local town = stonehearth.town:get_town(faction)
+   local town = stonehearth.town:get_town(entity)
    town:join_task_group(entity, 'farmers')
 end
 
 function farmer_class.demote(entity)
 
-   local faction = radiant.entities.get_faction(entity)
-   local town = stonehearth.town:get_town(faction)
+   local town = stonehearth.town:get_town(entity)
    town:leave_task_group(entity, 'farmers')
 
    local equipment = entity:add_component('stonehearth:equipment')

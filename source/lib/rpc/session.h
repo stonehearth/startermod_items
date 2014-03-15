@@ -12,6 +12,8 @@ public:
 
 public:
    std::string          faction;
+   std::string          kingdom;
+   std::string          player_id;
 };
 
 std::ostream& operator<<(std::ostream& os, Session const& s);

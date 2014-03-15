@@ -67,7 +67,7 @@ function MoveUnitCallHandler:server_move_unit(session, response, entity_id, loca
       return
    end
    
-   local town = stonehearth.town:get_town(session.faction)
+   local town = stonehearth.town:get_town(session.player_id)
    town:command_unit(entity, 'stonehearth:unit_control:move_unit', { location = pt })
             :once()
             :start()

@@ -37,9 +37,9 @@
       "mixins:resources:jerky" : "file(mixins/resources/jerky)",
       "mixins:resources:fur_pelt" : "file(mixins/resources/fur_pelt)",
 
-      "factions:ascendancy" : "file(services/population/data/ascendancy.json)",
-      "factions:northern_alliance" : "file(services/population/data/northern_alliance.json)",
-      "factions:rayyas_children" : "file(services/population/data/rayyas_children.json)",
+      "kingdoms:ascendancy" : "file(services/population/data/ascendancy.json)",
+      "kingdoms:northern_alliance" : "file(services/population/data/northern_alliance.json)",
+      "kingdoms:rayyas_children" : "file(services/population/data/rayyas_children.json)",
 
       "default_object" : "file(entities/generic/default_object)",
 

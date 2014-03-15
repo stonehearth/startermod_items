@@ -10,7 +10,11 @@ end
 --  Start the town with a certain number of crops
 function FarmingService:initialize()
    self._data = {
-      town_crops = {}
+      -- we probably want different crop inventories per town, but right now there's
+      -- at most one town per player (and only 1 player.  ha!).  until we get that
+      -- straightend out, let's just assume a player can use all the crops in all
+      -- his towns
+      player_crops = {}
    }
    self.__saved_variables = radiant.create_datastore(self._data)
    self.__saved_variables:mark_changed()
@@ -19,6 +23,23 @@ end
 function FarmingService:restore(saved_variables)
 end
 
+function FarmingService:create_new_field(session, location, size)
+   local entity = radiant.entities.create_entity('stonehearth:farmer:field')   
+   radiant.terrain.place_entity(entity, location)
+   
+   local town = stonehearth.town:get_town(session.player_id)
+
+   local unit_info = entity:get_component('unit_info')
+   unit_info:set_display_name('New Field foo')
+   unit_info:set_faction(session.faction)
+   unit_info:set_player_id(session.player_id)
+
+   local farmer_field = entity:get_component('stonehearth:farmer_field')
+   farmer_field:create_dirt_plots(town, location, size)
+
+   return entity
+end
+   
 function FarmingService:_load_dirt_descriptions()
    local dirt_data = radiant.resources.load_json('stonehearth:tilled_dirt')
    self._dirt_data = {}
@@ -58,34 +79,32 @@ function FarmingService:get_dirt_descriptions(dirt_type)
    return dirt_details.unit_info_name, dirt_details.unit_info_description
 end
 
---- Get the crop types available to a faction. Start with a couple if there are none so far.
-function FarmingService:get_all_crop_types(faction)
-   return self:_get_crop_list(faction)
+--- Get the crop types available to a player. Start with a couple if there are none so far.
+function FarmingService:get_all_crop_types(session)
+   return self:_get_crop_list(session)
 end
 
---- Add a new crop type to the faction
-function FarmingService:add_crop_type(faction, new_crop_uri)
-   local crop_list = self:_get_crop_list(faction)
+--- Add a new crop type to the player
+function FarmingService:add_crop_type(session, new_crop_uri)
+   local crop_list = self:_get_crop_list(session)
    table.insert(crop_list, new_crop_uri)
    return crop_list
 end
 
-function FarmingService:_get_crop_list(faction)
-   local crop_list = self._data.town_crops[faction]
+function FarmingService:_get_crop_list(session)
+   local player_id = session.player_id
+   local crop_list = self._data.player_crops[player_id]
    if not crop_list then
-      --TODO: where is the kingdom name from? Originally, I'd put it into unit_info,
-      --but Tony took it out again. We need to keep some "game variables" and this is
-      --definitely one of them
-      --TODO: fix quantity
+      -- start out with the default crops for this player's kingdom.
       crop_list = {} 
-      for i, crop in ipairs(self._initial_crops['ascendancy']) do
+      for i, crop in ipairs(self._initial_crops[session.kingddom]) do
          crop_list[i] = {
             crop_type = crop.crop_type,
             crop_info = self:_get_crop_details(crop.crop_type),
             quantity = crop.quantity
          }
       end
-      self._data.town_crops[faction] = crop_list
+      self._data.player_crops[player_id] = crop_list
    end
    return crop_list
 end
@@ -94,11 +113,11 @@ end
 -- @param faction: the group that should be planting the crop
 -- @param soil_plots: array of entities on top of which to plant the crop
 -- @param crop_type: the name of the thing to plant (ie, stonehearth:corn, etc)
-function FarmingService:plant_crop(faction, soil_plots, crop_type)
+function FarmingService:plant_crop(player_id, soil_plots, crop_type)
    if not soil_plots[1] or not crop_type then
       return false
    end
-   local town = stonehearth.town:get_town(faction)
+   local town = stonehearth.town:get_town(player_id)
    for i, plot in ipairs(soil_plots) do
       --TODO: store these tasks, so they can be cancelled
       local overlay_effect = self:_get_overlay_for_crop(crop_type)
@@ -114,11 +133,11 @@ function FarmingService:plant_crop(faction, soil_plots, crop_type)
    return true
 end
 
-function FarmingService:harvest_crops(faction, soil_plots)
+function FarmingService:harvest_crops(session, soil_plots)
    if not soil_plots[1] then
       return false
    end
-   local town = stonehearth.town:get_town(faction)
+   local town = stonehearth.town:get_town(session.player_id)
    for i, plot in ipairs(soil_plots) do 
       local plot_component = plot:get_component('stonehearth:dirt_plot')
       local plant = plot_component:get_contents()

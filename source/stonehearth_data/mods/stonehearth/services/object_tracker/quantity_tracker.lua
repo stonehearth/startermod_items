@@ -8,13 +8,13 @@ local inventory_service = stonehearth.inventory
 local QuantityTracker = class()
 
 --- A mechaism for tracking how many of a thing you have
---  @param faction - the faction this tracker belongs to
+--  @param player_id - the player_id this tracker belongs to
 --  @param filter_fn - function takes and item and returns true if useful to the tracker, false otherwise
 --  @param identifier_fn - function takes an item and returns a unique id for its class. Can be uri, or material type, etc.
-function QuantityTracker:__init(faction, filter_fn, identifier_fn)
+function QuantityTracker:__init(player_id, filter_fn, identifier_fn)
    self.__saved_variables = radiant.create_datastore()
    self._data = self.__saved_variables:get_data()
-   self._inventory = inventory_service:get_inventory(faction)
+   self._inventory = inventory_service:get_inventory(player_id)
 
    self._data.tracked_items = {}
    self._filter_fn = filter_fn

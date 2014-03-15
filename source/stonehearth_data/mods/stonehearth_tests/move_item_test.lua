@@ -13,11 +13,11 @@ function MoveItemTest:__init()
 
    local worker = self:place_citizen(-8, 8)
    local worker2 = self:place_citizen(-8, 10)
-   local faction = radiant.entities.get_faction(worker)
+   local player_id = radiant.entities.get_player_id(worker)
 
    --local bed = self:place_item('stonehearth:comfy_bed', 0, 0)
    self:place_item_cluster('stonehearth:oak_log', -10, 0, 3, 3)
-   local bed = self:place_item('stonehearth:firepit', 0, 0, faction)
+   local bed = self:place_item('stonehearth:firepit', 0, 0, player_id)
 
    local calendar = stonehearth.calendar
    calendar:set_time(21, 59, 0)

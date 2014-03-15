@@ -132,7 +132,7 @@ function PlaceItemCallHandler:place_item_in_world(session, response, entity_id, 
       return false
    end
 
-   local town = stonehearth.town:get_town(session.faction)
+   local town = stonehearth.town:get_town(session.player_id)
    town:place_item_in_world(item, full_sized_uri, location, rotation)
 
    return true
@@ -144,7 +144,7 @@ end
 function PlaceItemCallHandler:place_item_type_in_world(session, response, entity_uri, full_item_uri, location, rotation)
    local location = Point3(location.x, location.y, location.z)
 
-   local town = stonehearth.town:get_town(session.faction)
+   local town = stonehearth.town:get_town(session.player_id)
    town:place_item_type_in_world(entity_uri, full_item_uri, location, rotation)
    
    return true

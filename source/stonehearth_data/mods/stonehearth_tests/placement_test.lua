@@ -13,7 +13,7 @@ function PlacementTest:__init()
 
    local citizen = self:place_citizen(12, 12)
    local citizen2 = self:place_citizen(-12, -12)
-   local faction = radiant.entities.get_faction(citizen)
+   local player_id = radiant.entities.get_player_id(citizen)
 ---[[
    self:place_item('stonehearth:comfy_bed_proxy', 0, 0)
    self:place_item('stonehearth:arch_backed_chair_proxy', 0, 0)
@@ -33,8 +33,8 @@ function PlacementTest:__init()
    self:place_item('stonehearth:picket_fence_proxy', 5, 3)
    self:place_item('stonehearth:picket_fence_proxy', 6, 3)
 
-   self:place_item('stonehearth:firepit_proxy', 7, 3, faction)
-   self:place_item('stonehearth:firepit', 9, 3, faction)
+   self:place_item('stonehearth:firepit_proxy', 7, 3, player_id)
+   self:place_item('stonehearth:firepit', 9, 3, player_id)
 
    local tree = self:place_tree(-5, -12)
 --]]

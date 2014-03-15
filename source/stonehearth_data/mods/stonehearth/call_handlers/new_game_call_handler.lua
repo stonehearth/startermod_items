@@ -17,6 +17,10 @@ function NewGameCallHandler:new_game(session, response, num_tiles_x, num_tiles_y
    local wgs = stonehearth.world_generation
    local blueprint
 
+   stonehearth.town:add_town(session)
+   stonehearth.inventory:add_inventory(session)
+   stonehearth.population:add_population(session)
+
    wgs:create_new_game(seed, true)
 
    local generation_method = radiant.util.get_config('world_generation.method', 'default')
@@ -204,8 +208,8 @@ end
 function NewGameCallHandler:create_camp(session, response, pt)
    stonehearth.scenario:set_starting_location(pt.x, pt.z)
 
-   local faction = stonehearth.population:get_faction('civ', 'stonehearth:factions:ascendancy')
-   local town = stonehearth.town:get_town(session.faction)
+   local town = stonehearth.town:get_town(session.player_id)
+   local pop = stonehearth.population:get_population(session.player_id)
 
    -- place the stanfard in the middle of the camp
    local location = Point3(pt.x, pt.y, pt.z)
@@ -217,36 +221,36 @@ function NewGameCallHandler:create_camp(session, response, pt)
    local camp_x = pt.x
    local camp_z = pt.z
 
-   local worker1 = self:place_citizen(camp_x-3, camp_z-3)
+   local worker1 = self:place_citizen(pop, camp_x-3, camp_z-3)
    radiant.events.trigger(personality_service, 'stonehearth:journal_event', 
                           {entity = worker1, description = 'person_embarks'})
 
-   local worker2 = self:place_citizen(camp_x+0, camp_z-3)
+   local worker2 = self:place_citizen(pop, camp_x+0, camp_z-3)
     radiant.events.trigger(personality_service, 'stonehearth:journal_event', 
                            {entity = worker2, description = 'person_embarks'})
 
-   local worker3 = self:place_citizen(camp_x+3, camp_z-3)
+   local worker3 = self:place_citizen(pop, camp_x+3, camp_z-3)
    radiant.events.trigger(personality_service, 'stonehearth:journal_event', 
                           {entity = worker3, description = 'person_embarks'})
 
-   local worker4 = self:place_citizen(camp_x-3, camp_z+3)
+   local worker4 = self:place_citizen(pop, camp_x-3, camp_z+3)
    radiant.events.trigger(personality_service, 'stonehearth:journal_event', 
                           {entity = worker4, description = 'person_embarks'})
 
-   local worker5 = self:place_citizen(camp_x+3, camp_z+3)
+   local worker5 = self:place_citizen(pop, camp_x+3, camp_z+3)
    radiant.events.trigger(personality_service, 'stonehearth:journal_event', 
                           {entity = worker5, description = 'person_embarks'})
 
-   local worker6 = self:place_citizen(camp_x-3, camp_z+0)
+   local worker6 = self:place_citizen(pop, camp_x-3, camp_z+0)
    radiant.events.trigger(personality_service, 'stonehearth:journal_event', 
                           {entity = worker6, description = 'person_embarks'})
 
-   self:place_item('stonehearth:firepit', camp_x, camp_z+3, 'civ')
+   self:place_item(pop, 'stonehearth:firepit', camp_x, camp_z+3)
 
-   radiant.entities.pickup_item(worker1, faction:create_entity('stonehearth:oak_log'))
-   radiant.entities.pickup_item(worker2, faction:create_entity('stonehearth:oak_log'))
-   radiant.entities.pickup_item(worker3, faction:create_entity('stonehearth:trapper:trapper_knife'))
-   radiant.entities.pickup_item(worker4, faction:create_entity('stonehearth:carpenter:saw'))
+   radiant.entities.pickup_item(worker1, pop:create_entity('stonehearth:oak_log'))
+   radiant.entities.pickup_item(worker2, pop:create_entity('stonehearth:oak_log'))
+   radiant.entities.pickup_item(worker3, pop:create_entity('stonehearth:trapper:trapper_knife'))
+   radiant.entities.pickup_item(worker4, pop:create_entity('stonehearth:carpenter:saw'))
 
    -- start the game master service
    --game_master.start()
@@ -254,38 +258,27 @@ function NewGameCallHandler:create_camp(session, response, pt)
    return {}
 end
 
-function NewGameCallHandler:place_citizen(x, z, profession)
+function NewGameCallHandler:place_citizen(pop, x, z, profession)
    --TODO: faction denotes which player is playing. Have user pick?
-   local faction = stonehearth.population:get_faction('civ','stonehearth:factions:ascendancy')
-   local citizen = faction:create_new_citizen()
+   local citizen = pop:create_new_citizen()
    if not profession then
       profession = 'worker'
    end
-   faction:promote_citizen(citizen, profession)
+   pop:promote_citizen(citizen, profession)
 
    radiant.terrain.place_entity(citizen, Point3(x, 1, z))
    return citizen
 end
 
-function NewGameCallHandler:place_item(uri, x, z, faction)
+function NewGameCallHandler:place_item(pop, uri, x, z)
    local entity = radiant.entities.create_entity(uri)
    radiant.terrain.place_entity(entity, Point3(x, 1, z))
-   if faction then
-      entity:add_component('unit_info'):set_faction(faction)
-   end
+
+   local unit_info = entity:add_component('unit_info')
+   unit_info:set_faction(pop:get_faction())
+   unit_info:set_player_id(pop:get_player_id())
+
    return entity
 end
-
-function NewGameCallHandler:place_stockpile(faction, x, z, w, h)
-   w = w and w or 3
-   h = h and h or 3
-
-   local location = Point3(x, 1, z)
-   local size = { w, h }
-
-   local inventory = stonehearth.inventory:get_inventory(faction)
-   inventory:create_stockpile(location, size)
-end
-
 
 return NewGameCallHandler

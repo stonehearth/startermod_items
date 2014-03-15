@@ -15,12 +15,7 @@ local rng = _radiant.csg.get_default_rng()
 function FarmerFieldComponent:initialize(entity, json)
    self._entity = entity
 
-   if json.size then
-      self:set_size(json.size)
-   end
-
    --TODO: add some of these things to CREATE so they can be loaded properly
-      
    self._data = {
       size = {0, 0}, 
       location = nil,
@@ -30,10 +25,8 @@ function FarmerFieldComponent:initialize(entity, json)
       auto_replant = true
    }
 
-
    self.__saved_variables = radiant.create_datastore(self._data)
    self.__saved_variables:mark_changed()
-
    --TODO: listen on changes to faction, like stockpile?
 end
 
@@ -51,23 +44,20 @@ end
 
 --TODO: Depending on how we eventually designate whether fields can overlap (no?)
 --consider moving this into a central service
-function FarmerFieldComponent:init_contents(size, location, name, faction)
+function FarmerFieldComponent:create_dirt_plots(town, location, size)
    self._data.size = { size[1], size[2] }
    self._data.location = location
-   self._entity:get_component('unit_info'):set_display_name(name)
-   self._entity:get_component('unit_info'):set_faction(faction)
 
    for x=1, self._data.size[1] do
       self._data.contents[x] = {}
       for y=1, self._data.size[2] do
          --init the dirt plot
-         self._data.contents[x][y] = self:_init_dirt_plot(location, x, y)
+         local field_spacer = self:_init_dirt_plot(location, x, y)
+         self._data.contents[x][y] = field_spacer
 
          -- Tell the farmer scheduler to till this
-         -- TODO: store tasks somewhere so they can be cancelled
-         local town = stonehearth.town:get_town(faction)
-         town:create_farmer_task('stonehearth:till_field', { field_spacer = self._data.contents[x][y], field = self })
-                                   :set_source(self._data.contents[x][y])
+         town:create_farmer_task('stonehearth:till_field', { field_spacer = field_spacer, field = self })
+                                   :set_source(field_spacer)
                                    :set_name('till field task')
                                    :once()
                                    :start()
@@ -115,7 +105,7 @@ function FarmerFieldComponent:_determine_replant(e)
    if do_replant then
       local field_location = e.location
       local last_type = dirt_component:get_last_planted_type()
-      farming_service:plant_crop(radiant.entities.get_faction(self._entity), {plot_entity}, last_type)
+      farming_service:plant_crop(radiant.entities.get_player_id(self._entity), {plot_entity}, last_type)
    end
 end
 
@@ -126,7 +116,7 @@ function FarmerFieldComponent:determine_auto_harvest(dirt_component, crop)
       do_harvest = dirt_component:get_auto_harvest()
    end
    if do_harvest then
-      local town = stonehearth.town:get_town(radiant.entities.get_faction(self._entity))
+      local town = stonehearth.town:get_town(self._entity)
       return town:harvest_resource_node(crop)
    end
 end

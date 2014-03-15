@@ -10,6 +10,15 @@ local _all_entities = {}
 
 local env = {}
 function env.create_world()
+   env.session = {
+      player_id = 'player_1',
+      faction = 'civ',
+      kingdom = 'stonehearth:kingdoms:ascendancy',
+   }
+   stonehearth.town:add_town(env.session)
+   stonehearth.inventory:add_inventory(env.session)
+   stonehearth.population:add_population(env.session)
+
    local region3 = _radiant.sim.alloc_region()
    region3:modify(function(r3)
       r3:add_cube(Cube3(Point3(0, -16, 0), Point3(WORLD_SIZE, 0, WORLD_SIZE), Terrain.SOIL_STRATA))
@@ -25,7 +34,7 @@ function env.create_world()
          table.insert(_all_entities, e.entity)
       end)
 
-   env.town = stonehearth.town:get_town(DEFAULT_FACTION)
+   env.town = stonehearth.town:get_town(env.session.player_id)
 end
 
 function env.clear()
@@ -76,10 +85,9 @@ end
 
 function env.create_person(x, z, options)
    options = options or {}
-   local faction = options.faction or DEFAULT_FACTION
-   local culture = 'stonehearth:factions:ascendancy' -- ascendancy is not a faction.  it's a.. culture or something
+   local player_id = options.player_id or 'player_1'
 
-   local pop = stonehearth.population:get_faction(faction, culture)
+   local pop = stonehearth.population:get_population(player_id)
    local person = pop:create_new_citizen()
    apply_options_to_entity(person, options)
 
@@ -95,7 +103,7 @@ function env.create_stockpile(x, z, options)
    local size = options.size or { x = 2, y = 2}
 
    local location = Point3(x, 1, z)
-   local inventory = stonehearth.inventory:get_inventory(faction)
+   local inventory = stonehearth.inventory:get_inventory(env.session.player_id)
 
    return inventory:create_stockpile(location, size)
 end

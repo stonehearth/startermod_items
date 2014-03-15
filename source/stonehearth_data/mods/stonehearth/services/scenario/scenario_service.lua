@@ -73,7 +73,7 @@ end
 
 function ScenarioService:_register_events()
    -- TODO: in multiplayer, scenario service needs to reveal for all factions
-   self._faction = stonehearth.population:get_faction('civ', 'stonehearth:factions:ascendancy')
+   self._faction = stonehearth.population:get_population('player_1')
    radiant.events.listen(radiant.events, 'stonehearth:very_slow_poll', self, self._on_poll)
 end
 

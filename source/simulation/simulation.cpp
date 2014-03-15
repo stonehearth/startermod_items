@@ -87,6 +87,8 @@ void Simulation::OneTimeIninitializtion()
    // sessions (xxx: stub it out for single player)
    session_ = std::make_shared<rpc::Session>();
    session_->faction = "civ";
+   session_->kingdom = "stonehearth:kingdoms:ascendancy";
+   session_->player_id = "player_1";
 
    // reactors...
    core_reactor_ = std::make_shared<rpc::CoreReactor>();

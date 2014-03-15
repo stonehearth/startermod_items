@@ -15,8 +15,7 @@ function WorkAtWorkshop:run(town, args)
                                                   :set_priority(stonehearth.constants.priorities.top.CRAFT)
                                                   :add_worker(self._crafter)
 
-   local faction = radiant.entities.get_faction(self._crafter)
-   self._inventory = stonehearth.inventory:get_inventory(faction)
+   self._inventory = stonehearth.inventory:get_inventory(town:get_player_id())
 
    radiant.events.listen(self._craft_order_list, 'order_list_changed', self, self._on_order_list_changed)
    self:_on_order_list_changed(self._craft_order_list, not self._craft_order_list:get_next_order())

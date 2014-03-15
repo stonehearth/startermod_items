@@ -31,15 +31,15 @@ function ObjectTrackerService:_find_tracker(name, ctor)
    return tracker
 end
 
-function ObjectTrackerService:get_worker_tracker(faction)
-   local tracker_name = 'get_worker_tracker:' .. faction
+function ObjectTrackerService:get_worker_tracker(player_id)
+   local tracker_name = 'get_worker_tracker:' .. player_id
    local factory_fn = function()
       local filter_fn = function(entity)
          local profession = entity:get_component('stonehearth:profession')
 
          return profession and 
                 profession:get_profession_type() == 'worker' and
-                radiant.entities.get_faction(entity) == faction
+                radiant.entities.get_player_id(entity) == player_id
       end
       local event_array = {}
       event_array[1] = {event_name = 'stonehearth:promote'}
@@ -48,16 +48,16 @@ function ObjectTrackerService:get_worker_tracker(faction)
    return self:_find_tracker(tracker_name, factory_fn)
 end
 
-function ObjectTrackerService:get_placable_items_tracker(faction)
-   local tracker_name = 'get_placable_items_tracker:' .. faction
+function ObjectTrackerService:get_placable_items_tracker(player_id)
+   local tracker_name = 'get_placable_items_tracker:' .. player_id
 
    return self:_find_tracker(tracker_name, function()
       return InventoryTracker()
    end)
 end
 
-function ObjectTrackerService:get_resource_tracker(faction)
-   local tracker_name = 'get_resource_tracker:' .. faction
+function ObjectTrackerService:get_resource_tracker(player_id)
+   local tracker_name = 'get_resource_tracker:' .. player_id
 
    return self:_find_tracker(tracker_name, function()
       --Create filter function for wood and identification
@@ -81,12 +81,12 @@ function ObjectTrackerService:get_resource_tracker(faction)
             return item:get_uri(), nil, nil
          end
       end
-      return QuantityTracker(faction, filter_fn, identifier_fn)
+      return QuantityTracker(player_id, filter_fn, identifier_fn)
    end)
 end 
 
-function ObjectTrackerService:get_craftable_tracker(faction)
-   local tracker_name = 'get_craftable_tracker:' .. faction
+function ObjectTrackerService:get_craftable_tracker(player_id)
+   local tracker_name = 'get_craftable_tracker:' .. player_id
 
    return self:_find_tracker(tracker_name, function()
       local filter_fn = function(item)
@@ -98,7 +98,7 @@ function ObjectTrackerService:get_craftable_tracker(faction)
          return item:get_uri(), nil
       end
       
-      return QuantityTracker(faction, filter_fn, identifier_fn)
+      return QuantityTracker(player_id, filter_fn, identifier_fn)
    end)
 end 
 
