@@ -230,7 +230,7 @@ end
 function Fabricator:_start_fabricate_task() 
    assert(not self._fabricate_task)
 
-   local town = stonehearth.town:get_town(self._entity)
+   local town = stonehearth.town:get_town(self._blueprint)
    self._fabricate_task = town:create_worker_task('stonehearth:fabricate_structure', { fabricator = self })
                                    :set_name('fabricate')
                                    :set_source(self._entity)

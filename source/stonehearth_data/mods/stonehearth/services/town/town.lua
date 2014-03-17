@@ -299,8 +299,6 @@ function Town:harvest_renewable_resource_node(plant)
 end
 
 function Town:add_construction_project(building)
-   local city_plan = self._town_entity:add_component('stonehearth:city_plan')
-   city_plan:add_blueprint(building)
    table.insert(self._buildings, building)
    radiant.events.trigger(self, 'stonehearth:building_added', {
          town = self,

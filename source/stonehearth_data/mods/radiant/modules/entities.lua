@@ -136,6 +136,15 @@ function entities.set_faction(entity, faction)
    return entity:add_component('unit_info'):set_faction(faction)
 end
 
+function entities.set_player_id(entity, player_id)
+   assert(entity, 'no entity passed to set_player_id')
+   assert(player_id, 'no player_id passed to set_player_id')
+   if entities.is_entity(player_id) then
+      player_id = player_id:add_component('unit_info'):get_player_id()
+   end
+   return entity:add_component('unit_info'):set_player_id(player_id)
+end
+
 function entities.get_world_grid_location(entity)
    local mob = entity:get_component('mob')
    return mob and mob:get_world_grid_location() or Point3(0, 0, 0)

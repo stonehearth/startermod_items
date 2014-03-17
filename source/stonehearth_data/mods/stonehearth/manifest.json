@@ -699,7 +699,6 @@
       "equipment_piece" : "file(components/equipment_piece/equipment_piece_component.lua)",
       "attributes" : "file(components/attributes/attributes_component.lua)",
       "buffs" : "file(components/buffs/buffs_component.lua)",
-      "city_plan" : "file(components/city_plan/city_plan_component.lua)",
       "fabricator" : "file(components/fabricator/fabricator_component.lua)",
       "scaffolding_fabricator" : "file(components/scaffolding_fabricator/scaffolding_fabricator_component.lua)",
       "portal" : "file(components/portal/portal_component.lua)",
@@ -716,7 +715,6 @@
    },
    "component_renderers" : {
       "stockpile" : "file(renderers/stockpile/stockpile_renderer.lua)",
-      "city_plan" : "file(renderers/city_plan/city_plan_renderer.lua)",
       "ghost_item" : "file(renderers/ghost_item/ghost_item_renderer.lua)",
       "fabricator" : "file(renderers/fabricator/fabricator_renderer.lua)",
       "farmer_field" : "file(renderers/farmer_field/farmer_field_renderer.lua)",
