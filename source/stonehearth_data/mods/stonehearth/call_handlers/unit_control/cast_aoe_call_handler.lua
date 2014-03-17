@@ -80,7 +80,7 @@ function CastAoeCallHandler:server_cast_aoe(session, response, entity_id, spell,
    local pt = Point3(location.x, location.y, location.z)
 
    local spell = 'stonehearth:unit_control:abilities:' .. spell
-   local town = stonehearth.town:get_town(session.faction)
+   local town = stonehearth.town:get_town(session.player_id)
    town:command_unit(entity, spell, { location = pt })
             :once()
             :start()

@@ -3,8 +3,7 @@
    "components": {
       "unit_info" : {
         "name": "Leather ball",
-        "description": "",
-        "faction": "civ"
+        "description": ""
       },
       "sensor_list" : {
          "sensors" : {

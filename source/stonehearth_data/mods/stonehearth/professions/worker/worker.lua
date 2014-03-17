@@ -12,15 +12,13 @@ function worker_class.promote(entity)
    local profession_description = radiant.resources.load_json('stonehearth:worker:profession_description')
    local profession_component = entity:add_component('stonehearth:profession', profession_description.profession)
 
-   local faction = radiant.entities.get_faction(entity)
-   local town = stonehearth.town:get_town(faction)
+   local town = stonehearth.town:get_town(entity)
    town:join_task_group(entity, 'workers')
 end
 
 
 function worker_class.demote(entity)
-   local faction = radiant.entities.get_faction(entity)
-   local town = stonehearth.town:get_town(faction)
+   local town = stonehearth.town:get_town(entity)
    town:leave_task_group(entity, 'workers')
 
    local equipment = entity:add_component('stonehearth:equipment')

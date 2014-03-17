@@ -39,11 +39,11 @@ function TerrainService:_update_regions()
    local old_visible_region, new_visible_region
    local explored_region_boxed, explored_region, unexplored_region
 
-   for faction_name, visible_region_boxed in pairs(self._visible_regions) do
-      explored_region_boxed = self:get_explored_region(faction_name)
+   for faction, visible_region_boxed in pairs(self._visible_regions) do
+      explored_region_boxed = self:get_explored_region(faction)
 
       old_visible_region = visible_region_boxed:get()
-      new_visible_region = self:_get_visible_region(faction_name)
+      new_visible_region = self:_get_visible_region(faction)
 
       if not self:_are_equivalent_regions(old_visible_region, new_visible_region) then
          visible_region_boxed:modify(
@@ -95,18 +95,19 @@ function TerrainService:_get_terrain_region()
    return region
 end
 
-function TerrainService:_get_visible_region(faction_name)
+function TerrainService:_get_visible_region(faction)
    local terrain_bounds = self:_get_terrain_region()
    local visible_region = Region2()
-   local faction, citizens, entity_region, bounded_visible_region
+   local pop, citizens, entity_region, bounded_visible_region
 
    -- TODO: where do we get the kingdom name from?
-   faction = stonehearth.population:get_faction(faction_name, 'stonehearth:factions:ascendancy')
-   citizens = faction:get_citizens()
-
-   for _, entity in pairs(citizens) do
-      entity_region = self:_get_entity_visible_region(entity)
-      visible_region:add_region(entity_region)
+   local friendly_pops = stonehearth.population:get_friendly_populations(faction)
+   for player_id, pop in pairs(friendly_pops) do
+      citizens = pop:get_citizens()
+      for _, entity in pairs(citizens) do
+         entity_region = self:_get_entity_visible_region(entity)
+         visible_region:add_region(entity_region)
+      end
    end
 
    bounded_visible_region = _radiant.csg.intersect_region2(visible_region, terrain_bounds)

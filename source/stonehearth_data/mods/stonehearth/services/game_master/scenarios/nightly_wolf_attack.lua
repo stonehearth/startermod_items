@@ -9,7 +9,8 @@ function NightlyWolfAttack:__init()
 end
 
 function NightlyWolfAttack:load_faction()
-   self._civ_faction = stonehearth.population:get_faction('stonehearth:factions:ascendancy')
+   -- this code is old and broken. =(
+   self._civ_faction = 'civ'
 end
 
 function NightlyWolfAttack:on_hourly()

@@ -1,3 +1,4 @@
+local Array2D = require 'services.world_generation.array_2D'
 local MathFns = require 'services.world_generation.math.math_fns'
 local HabitatType = require 'services.world_generation.habitat_type'
 local ActivationType = require 'services.scenario.activation_type'
@@ -26,7 +27,9 @@ function ScenarioService:create_new_game(feature_size, rng)
    self._feature_size = feature_size
    self._rng = rng
    self._difficulty_increment_distance = radiant.util.get_config('difficulty_increment_distance', 256)
-   self._reveal_distance = radiant.util.get_config('sight_radius', 64) * 2
+   -- use reduced spawn range until fog of war is implemented
+   --self._reveal_distance = radiant.util.get_config('sight_radius', 64) * 2
+   self._reveal_distance = radiant.util.get_config('sight_radius', 64) + 8
    self._revealed_region = Region2()
    self._dormant_scenarios = {}
    self._last_optimized_rect_count = 10
@@ -72,13 +75,36 @@ function ScenarioService:create_new_game(feature_size, rng)
 end
 
 function ScenarioService:_register_events()
-   -- TODO: in multiplayer, scenario service needs to reveal for all factions
-   self._faction = stonehearth.population:get_faction('civ', 'stonehearth:factions:ascendancy')
+   -- TODO: in multiplayer, scenario service needs to reveal for all factions.  we actually need
+   -- to iterate over all player popluations rather than just the hardcoded "player_1".  When the
+   -- service to iterate over all players in the game is written, change this bit. -- tony
+   self._faction = stonehearth.population:get_population('player_1')
    radiant.events.listen(radiant.events, 'stonehearth:very_slow_poll', self, self._on_poll)
 end
 
 function ScenarioService:_on_poll()
-   self:reveal_around_entities()
+   self:_reveal_around_entities()
+end
+
+function ScenarioService:place_static_scenarios(habitat_map, elevation_map, tile_offset_x, tile_offset_y)
+   local scenarios = self:_select_scenarios(habitat_map, 'static')
+
+   self:_place_scenarios(scenarios, habitat_map, elevation_map, tile_offset_x, tile_offset_y,
+      function (scenario_info)
+         local si = scenario_info
+         self:_activate_scenario(si.properties, si.offset_x, si.offset_y)
+      end
+   )
+end
+
+function ScenarioService:place_revealed_scenarios(habitat_map, elevation_map, tile_offset_x, tile_offset_y)
+   local scenarios = self:_select_scenarios(habitat_map, 'revealed')
+
+   self:_place_scenarios(scenarios, habitat_map, elevation_map, tile_offset_x, tile_offset_y,
+      function (scenario_info)
+         self:_mark_scenario_map(self._dormant_scenarios, scenario_info, scenario_info)
+      end
+   )
 end
 
 function ScenarioService:set_starting_location(x, y)
@@ -103,31 +129,6 @@ function ScenarioService:set_starting_location(x, y)
          return scenario_properties.category ~= 'wildlife'
       end
    )
-end
-
-function ScenarioService:reveal_around_entities()
-   local reveal_distance = self._reveal_distance
-   local citizens = self._faction:get_citizens()
-   local region = Region2()
-   local mob, pt, rect
-
-   for _, entity in pairs(citizens) do
-      mob = entity:get_component('mob')
-
-      if mob then
-         pt = mob:get_world_grid_location()
-
-         -- remember +1 on max
-         rect = Rect2(
-            Point2(pt.x-reveal_distance,   pt.z-reveal_distance),
-            Point2(pt.x+reveal_distance+1, pt.z+reveal_distance+1)
-         )
-
-         region:add_cube(rect)
-      end
-   end
-
-   self:reveal_region(region)
 end
 
 function ScenarioService:reveal_region(world_space_region, activation_filter)
@@ -180,6 +181,31 @@ function ScenarioService:reveal_region(world_space_region, activation_filter)
    end
 end
 
+function ScenarioService:_reveal_around_entities()
+   local reveal_distance = self._reveal_distance
+   local citizens = self._faction:get_citizens()
+   local region = Region2()
+   local mob, pt, rect
+
+   for _, entity in pairs(citizens) do
+      mob = entity:get_component('mob')
+
+      if mob then
+         pt = mob:get_world_grid_location()
+
+         -- remember +1 on max
+         rect = Rect2(
+            Point2(pt.x-reveal_distance,   pt.z-reveal_distance),
+            Point2(pt.x+reveal_distance+1, pt.z+reveal_distance+1)
+         )
+
+         region:add_cube(rect)
+      end
+   end
+
+   self:reveal_region(region)
+end
+
 function ScenarioService:_bound_region_by_terrain(region)
    local terrain_bounds = self:_get_terrain_region()
    return _radiant.csg.intersect_region2(region, terrain_bounds)
@@ -210,7 +236,7 @@ function ScenarioService:_mark_scenario_map(map, value, scenario_info)
    end
 end
 
-function ScenarioService:_derive_difficulty_map(habitat_map, tile_offset_x, tile_offset_y)
+function ScenarioService:derive_difficulty_map(habitat_map, tile_offset_x, tile_offset_y)
    local feature_size = self._feature_size
    local starting_location = self._starting_location
    local difficulty_increment_distance = self._difficulty_increment_distance
@@ -222,34 +248,13 @@ function ScenarioService:_derive_difficulty_map(habitat_map, tile_offset_x, tile
          local x = tile_offset_x + (i-1)*feature_size + cell_center
          local y = tile_offset_y + (j-1)*feature_size + cell_center
          local tile_center = Point2(x, y)
-         local distance = starting_location.distance_to(tile_center)
+         local distance = starting_location:distance_to(tile_center)
          local difficulty = math.floor(distance/difficulty_increment_distance)
          return difficulty
       end
    )
 
    return difficulty_map
-end
-
-function ScenarioService:place_static_scenarios(habitat_map, elevation_map, tile_offset_x, tile_offset_y)
-   local scenarios = self:_select_scenarios(habitat_map, 'static')
-
-   self:_place_scenarios(scenarios, habitat_map, elevation_map, tile_offset_x, tile_offset_y,
-      function (scenario_info)
-         local si = scenario_info
-         self:_activate_scenario(si.properties, si.offset_x, si.offset_y)
-      end
-   )
-end
-
-function ScenarioService:place_revealed_scenarios(habitat_map, elevation_map, tile_offset_x, tile_offset_y)
-   local scenarios = self:_select_scenarios(habitat_map, 'revealed')
-
-   self:_place_scenarios(scenarios, habitat_map, elevation_map, tile_offset_x, tile_offset_y,
-      function (scenario_info)
-         self:_mark_scenario_map(self._dormant_scenarios, scenario_info, scenario_info)
-      end
-   )
 end
 
 function ScenarioService:_place_scenarios(scenarios, habitat_map, elevation_map, tile_offset_x, tile_offset_y, place_fn)

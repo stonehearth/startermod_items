@@ -36,7 +36,7 @@ function PetTest:__init()
    self:place_item('stonehearth:arch_backed_chair', 5, 5)
    self:place_item('stonehearth:comfy_bed', -4, -4)
 
-   local town = stonehearth.town:get_town(faction)
+   local town = stonehearth.town:get_town(worker1)
 
    -- tame the critters
    for _, critter in pairs(critters) do

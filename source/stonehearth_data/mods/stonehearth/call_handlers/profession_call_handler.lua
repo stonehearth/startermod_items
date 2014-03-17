@@ -6,7 +6,7 @@ local ProfessionCallHandler = class()
 -- by doing a POST to the route for this file specified in the manifest.
 
 function ProfessionCallHandler:grab_promotion_talisman(session, response, person, talisman)
-   local town = stonehearth.town:get_town(session.faction)
+   local town = stonehearth.town:get_town(session.player_id)
    town:promote_citizen(person, talisman)
    return true
 end

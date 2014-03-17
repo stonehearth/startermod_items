@@ -46,7 +46,7 @@ function CrafterComponent:create_workshop(ghost_workshop, outbox_location, outbo
 
    -- create a task group for the workshop.  we'll use this both to build it and
    -- to feed the crafter orders when it's finally created
-   local town = stonehearth.town:get_town(faction)
+   local town = stonehearth.town:get_town(self._entity)
    self._orchestrator = town:create_orchestrator(CreateWorkshop, {
       crafter = self._entity,
       ghost_workshop = ghost_workshop,

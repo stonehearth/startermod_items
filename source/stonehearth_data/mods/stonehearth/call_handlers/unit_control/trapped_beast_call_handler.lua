@@ -8,7 +8,7 @@ function TrappedBeastCallHandler:harvest_trapped_beast(session, response, entity
       -- entity no longer exists
       return false
    end
-   local town = stonehearth.town:get_town(session.faction)
+   local town = stonehearth.town:get_town(session.player_id)
    town:command_unit_scheduled(entity, 'stonehearth:unit_control:harvest_trapped_beast', { trap = trap_entity })
             :add_entity_effect(trap_entity, '/stonehearth/data/effects/trapped_beast_overlay_effect/harvest_trapped_beast_overlay_effect.json')
             :once()
@@ -23,7 +23,7 @@ function TrappedBeastCallHandler:tame_trapped_beast(session, response, entity, t
       return false
    end
 
-   local town = stonehearth.town:get_town(session.faction)
+   local town = stonehearth.town:get_town(session.player_id)
    town:command_unit_scheduled(entity, 'stonehearth:unit_control:tame_trapped_beast', { trap = trap_entity })
             :add_entity_effect(trap_entity, '/stonehearth/data/effects/trapped_beast_overlay_effect/tame_trapped_beast_overlay_effect.json')
             :once()

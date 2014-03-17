@@ -1,12 +1,14 @@
 local Inventory = class()
 
-function Inventory:__init(faction)
-   self._faction = faction
+function Inventory:__init()
 end
 
-function Inventory:initialize()
+function Inventory:initialize(session)   
    self._data = {
       next_stockpile_no = 1,
+      player_id = session.player_id,
+      kingdom = session.kingdom,
+      faction = session.faction,
       storage = {},
    }
    self.__saved_variables = radiant.create_datastore(self._data)
@@ -24,7 +26,8 @@ function Inventory:create_stockpile(location, size)
 
    --xxx localize
    entity:get_component('unit_info'):set_display_name('Stockpile No.' .. self._data.next_stockpile_no)
-   entity:get_component('unit_info'):set_faction(self._faction)
+   entity:get_component('unit_info'):set_player_id(self._data.player_id)
+   entity:get_component('unit_info'):set_faction(self._data.faction)
 
    self._data.next_stockpile_no = self._data.next_stockpile_no + 1
    self.__saved_variables:mark_changed()

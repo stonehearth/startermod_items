@@ -13,11 +13,11 @@ GetTownBanner.version = 2
 GetTownBanner.priority = 1
 
 function GetTownBanner:start_thinking(ai, entity, args)
-   local faction = radiant.entities.get_faction(entity)
-   local town = stonehearth.town:get_town(faction)
-   local banner = town:get_banner()
-
-   ai:set_think_output({ banner = banner })
+   local town = stonehearth.town:get_town(entity)
+   if town then
+      local banner = town:get_banner()
+      ai:set_think_output({ banner = banner })
+   end
 end
 
 return GetTownBanner
