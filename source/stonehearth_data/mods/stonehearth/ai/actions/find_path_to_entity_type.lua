@@ -54,8 +54,6 @@ function FindPathToEntityType:_remove_destination(id)
          -- rats!  the thing we found earlier is no longer in the world.  revoke our
          -- current solution and restart the pathfinder
          self._ai:clear_think_output('previous destination is gone!')
-         self:_stop_pathfinder(self._ai, self._entity)
-         self:_start_pathfinder(self._ai, self._entity, self._args)
       else
          -- a destination was removed, but it's not our current solution.  just
          -- ignore it

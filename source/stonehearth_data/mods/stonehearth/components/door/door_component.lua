@@ -103,8 +103,7 @@ function DoorComponent:_valid_entity(entity)
       return false
    end
 
-   --if radiant.entities.get_faction(entity) ~= radiant.entities.get_faction(self._entity) then
-   if radiant.entities.get_faction(entity) ~= 'civ' then
+   if radiant.entities.get_faction(entity) ~= radiant.entities.get_faction(self._entity) then
       return false
    end
    

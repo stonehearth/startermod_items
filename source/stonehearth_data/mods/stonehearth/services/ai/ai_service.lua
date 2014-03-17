@@ -54,11 +54,6 @@ end
 
 function AiService:create_compound_action(action_ctor)
    assert(action_ctor)
-   -- cannot implement anything here.  it gets really confusing (where does start_thinking forward
-   -- its args to?  the next action in the chain or the calling action?)
-   assert(not action_ctor.start_thinking, 'compound actions must not contain implementation')
-   assert(not action_ctor.stop_thinking, 'compound actions must not contain implementation')
-   
    return CompoundActionFactory(action_ctor)
 end
 

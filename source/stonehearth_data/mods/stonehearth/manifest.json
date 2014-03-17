@@ -37,9 +37,9 @@
       "mixins:resources:jerky" : "file(mixins/resources/jerky)",
       "mixins:resources:fur_pelt" : "file(mixins/resources/fur_pelt)",
 
-      "factions:ascendancy" : "file(services/population/data/ascendancy.json)",
-      "factions:northern_alliance" : "file(services/population/data/northern_alliance.json)",
-      "factions:rayyas_children" : "file(services/population/data/rayyas_children.json)",
+      "kingdoms:ascendancy" : "file(services/population/data/ascendancy.json)",
+      "kingdoms:northern_alliance" : "file(services/population/data/northern_alliance.json)",
+      "kingdoms:rayyas_children" : "file(services/population/data/rayyas_children.json)",
 
       "default_object" : "file(entities/generic/default_object)",
 
@@ -62,6 +62,7 @@
       "farmer:outfit" : "file(professions/farmer/farmer_outfit)",
       "farmer:field" : "file(professions/farmer/field)",
       "farmer_hoe" : "file(professions/farmer/farmer_hoe)", 
+      "farmer:initial_crops" : "file(services/farming/data/initial_crops.json)",
       
       "trapper:trapper_knife" : "file(professions/trapper/trapper_knife)",
 
@@ -342,7 +343,7 @@
       "actions:till_field" : "file(ai/actions/till_field_action.lua)",
       "actions:plant_crop" : "file(ai/actions/plant_crop.lua)",
 
-      "actions:follow_entity" : "file(ai/actions/follow_entity.lua)",
+      "actions:follow_entity" : "file(ai/actions/follow_entity_action.lua)",
 
       "tasks:collect_ingredients" : "file(services/tasks/compound_tasks/collect_ingredients_compound_task.lua)",
       "tasks:work_at_workshop" : "file(services/tasks/compound_tasks/work_at_workshop_orchestrator.lua)",
@@ -561,14 +562,6 @@
          "controller" : "file(call_handlers/workshop_call_handler.lua)",
          "endpoint" : "server"
       },
-      "plant_crop" : {
-         "controller" : "file(call_handlers/resource_call_handler.lua)",
-         "endpoint" : "server"
-      },
-      "raze_crop" : {
-         "controller" : "file(call_handlers/resource_call_handler.lua)",
-         "endpoint" : "server"
-      },
       "box_harvest_resources" : {
          "controller": "file(call_handlers/resource_call_handler.lua)",
          "endpoint" : "client"
@@ -633,6 +626,18 @@
          "controller" : "file(call_handlers/farming_call_handler.lua)",
          "endpoint" : "server"
       },
+      "plant_crop" : {
+         "controller" : "file(call_handlers/farming_call_handler.lua)",
+         "endpoint" : "server"
+      },
+      "raze_crop" : {
+         "controller" : "file(call_handlers/farming_call_handler.lua)",
+         "endpoint" : "server"
+      },
+      "get_all_crops" : {
+         "controller" : "file(call_handlers/farming_call_handler.lua)",
+         "endpoint" : "server"
+      },
       "choose_stockpile_location": {
          "controller" : "file(call_handlers/inventory_call_handler.lua)",
          "endpoint" : "client"
@@ -694,7 +699,6 @@
       "equipment_piece" : "file(components/equipment_piece/equipment_piece_component.lua)",
       "attributes" : "file(components/attributes/attributes_component.lua)",
       "buffs" : "file(components/buffs/buffs_component.lua)",
-      "city_plan" : "file(components/city_plan/city_plan_component.lua)",
       "fabricator" : "file(components/fabricator/fabricator_component.lua)",
       "scaffolding_fabricator" : "file(components/scaffolding_fabricator/scaffolding_fabricator_component.lua)",
       "portal" : "file(components/portal/portal_component.lua)",
@@ -711,7 +715,6 @@
    },
    "component_renderers" : {
       "stockpile" : "file(renderers/stockpile/stockpile_renderer.lua)",
-      "city_plan" : "file(renderers/city_plan/city_plan_renderer.lua)",
       "ghost_item" : "file(renderers/ghost_item/ghost_item_renderer.lua)",
       "fabricator" : "file(renderers/fabricator/fabricator_renderer.lua)",
       "farmer_field" : "file(renderers/farmer_field/farmer_field_renderer.lua)",

@@ -56,7 +56,7 @@ end
 
 function MicroWorld:place_citizen(x, z, profession, data)
    local pop_service = radiant.mods.load('stonehearth').population
-   local pop = pop_service:get_faction('civ', 'stonehearth:factions:ascendancy')
+   local pop = pop_service:get_faction('civ', 'stonehearth:kingdoms:ascendancy')
    local citizen = pop:create_new_citizen()
    profession = profession and profession or 'worker'
 

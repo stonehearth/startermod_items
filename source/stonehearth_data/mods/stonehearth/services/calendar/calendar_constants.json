@@ -7,6 +7,7 @@
    "months_per_year" : 12,
 
    "start" : {
+      "second" : 0,
       "minute" : 0,
       "hour" : 8,
       "day" : 1,

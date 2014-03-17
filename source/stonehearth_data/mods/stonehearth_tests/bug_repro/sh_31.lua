@@ -18,16 +18,16 @@ function FoodTest:__init()
    local worker = self:place_citizen(-5, -5)
    worker:add_component('stonehearth:attributes'):set_attribute('hunger', 70)
 
-   local faction = worker:get_component('unit_info'):get_faction()
+   local player_id = worker:get_component('unit_info'):get_player_id()
    
    --self:place_item('stonehearth:berry_basket', 0, 0)
    
    self:at(10,  function()
-         --self:place_stockpile_cmd(faction, 8, 8, 4, 4)
+         --self:place_stockpile_cmd(player_id, 8, 8, 4, 4)
       end)
 
    self:at(100, function()
-         --bush:get_component('stonehearth:commands'):do_command('chop', faction)
+         --bush:get_component('stonehearth:commands'):do_command('chop', player_id)
       end)
 end
 

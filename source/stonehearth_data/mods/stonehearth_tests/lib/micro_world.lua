@@ -17,6 +17,15 @@ function MicroWorld:__init(size)
 end
 
 function MicroWorld:create_world()
+   local session = {
+      player_id = 'player_1',
+      faction = 'civ',
+      kingdom = 'stonehearth:kingdoms:ascendancy',
+   }
+   stonehearth.town:add_town(session)
+   stonehearth.inventory:add_inventory(session)
+   stonehearth.population:add_population(session)
+
    local region3 = _radiant.sim.alloc_region()
    region3:modify(function(r3)
       r3:add_cube(Cube3(Point3(0, -16, 0), Point3(self._size, 0, self._size), Terrain.SOIL_STRATA))
@@ -36,10 +45,10 @@ function MicroWorld:place_tree(x, z)
    return self:place_item('stonehearth:small_oak_tree', x, z)
 end
 
-function MicroWorld:place_item(uri, x, z, faction)
+function MicroWorld:place_item(uri, x, z, player_id)
    local entity = radiant.entities.create_entity(uri)
-   if faction then
-      entity:add_component('unit_info'):set_faction(faction)
+   if player_id then
+      entity:add_component('unit_info'):set_player_id(player_id)
    end
    radiant.terrain.place_entity(entity, Point3(x, 1, z))
    return entity
@@ -56,7 +65,7 @@ function MicroWorld:place_item_cluster(uri, x, z, w, h)
 end
 
 function MicroWorld:place_citizen(x, z, profession, data)
-   local pop = stonehearth.population:get_faction('civ', 'stonehearth:factions:ascendancy')
+   local pop = stonehearth.population:get_population('player_1')
    local citizen = pop:create_new_citizen()
    profession = profession and profession or 'worker'
 
@@ -68,14 +77,14 @@ function MicroWorld:place_citizen(x, z, profession, data)
    return citizen
 end
 
-function MicroWorld:place_stockpile_cmd(faction, x, z, w, h)
+function MicroWorld:place_stockpile_cmd(player_id, x, z, w, h)
    w = w and w or 3
    h = h and h or 3
 
    local location = Point3(x, 1, z)
    local size = Point2( w, h )
 
-   local inventory = stonehearth.inventory:get_inventory(faction)
+   local inventory = stonehearth.inventory:get_inventory(player_id)
    inventory:create_stockpile(location, size)
 end
 

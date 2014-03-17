@@ -110,6 +110,16 @@ function entities.get_faction(entity)
    return unit_info and unit_info:get_faction() or nil
 end
 
+function entities.get_player_id(entity)
+   local unit_info = entity:get_component('unit_info')
+   return unit_info and unit_info:get_player_id() or nil
+end
+
+function entities.get_kingdom(entity)
+   local unit_info = entity:get_component('unit_info')
+   return unit_info and unit_info:get_kingdom() or nil
+end
+
 function entities.is_entity(entity)
    if type(entity.get_type_name) == 'function' then
       return entity:get_type_name() == 'class radiant::om::Entity'
@@ -124,6 +134,15 @@ function entities.set_faction(entity, faction)
       faction = faction:add_component('unit_info'):get_faction()
    end
    return entity:add_component('unit_info'):set_faction(faction)
+end
+
+function entities.set_player_id(entity, player_id)
+   assert(entity, 'no entity passed to set_player_id')
+   assert(player_id, 'no player_id passed to set_player_id')
+   if entities.is_entity(player_id) then
+      player_id = player_id:add_component('unit_info'):get_player_id()
+   end
+   return entity:add_component('unit_info'):set_player_id(player_id)
 end
 
 function entities.get_world_grid_location(entity)
@@ -303,20 +322,28 @@ function entities.set_display_name(entity, name)
 end
 
 function entities.get_attribute(entity, attribute_name)
-   return entity:add_component('stonehearth:attributes'):get_attribute(attribute_name)
+   if entity and entity:is_valid() then
+      return entity:add_component('stonehearth:attributes'):get_attribute(attribute_name)
+   end
 end
 
 
 function entities.set_attribute(entity, attribute_name, value)
-   entity:add_component('stonehearth:attributes'):set_attribute(attribute_name, value)
+   if entity and entity:is_valid() then
+      entity:add_component('stonehearth:attributes'):set_attribute(attribute_name, value)
+   end
 end
 
 function entities.add_buff(entity, buff_name)
-   return entity:add_component('stonehearth:buffs'):add_buff(buff_name)
+   if entity and entity:is_valid() then
+      return entity:add_component('stonehearth:buffs'):add_buff(buff_name)
+   end
 end
 
 function entities.remove_buff(entity, buff_name)
-   entity:add_component('stonehearth:buffs'):remove_buff(buff_name)
+   if entity and entity:is_valid() then
+      entity:add_component('stonehearth:buffs'):remove_buff(buff_name)
+   end
 end
 
 function entities.has_buff(entity, buff_name)
@@ -324,16 +351,21 @@ function entities.has_buff(entity, buff_name)
 end
 
 function entities.set_posture(entity, posture)
-   entity:add_component('stonehearth:posture'):set_posture(posture)
+   if entity and entity:is_valid() then
+      entity:add_component('stonehearth:posture'):set_posture(posture)
+   end
 end
 
 function entities.unset_posture(entity, posture)
-   entity:add_component('stonehearth:posture'):unset_posture(posture)
+   if entity and entity:is_valid() then
+      entity:add_component('stonehearth:posture'):unset_posture(posture)
+   end
 end
 
 function entities.get_posture(entity)
    return entity:add_component('stonehearth:posture'):get_posture()
 end
+
 --[[
    Tell the entity (a mob, probably) to pick up the item
    entity: probably a mob

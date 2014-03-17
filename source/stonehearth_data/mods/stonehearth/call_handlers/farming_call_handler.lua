@@ -3,6 +3,9 @@ local Cube3 = _radiant.csg.Cube3
 local Color3 = _radiant.csg.Color3
 local Rect2 = _radiant.csg.Rect2
 local Point2 = _radiant.csg.Point2
+
+local farming_service = stonehearth.farming
+
 local FarmingCallHandler = class()
 
 -- runs on the client!!
@@ -67,12 +70,36 @@ end
 
 -- runs on the server!
 function FarmingCallHandler:create_new_field(session, response, location, size)
-   --TODO: move to a global farming service/field manager ?
-   local entity = radiant.entities.create_entity('stonehearth:farmer:field')   
-   radiant.terrain.place_entity(entity, location)
-   entity:get_component('stonehearth:farmer_field'):init_contents(size, location, 'New Field foo', session.faction)
-   
-   return { field = entity}
+   local entity = stonehearth.farming:create_new_field(session, location, size)
+   return { field = entity }
+end
+
+--TODO: Send an array of soil_plots and the type of the crop for batch planting
+function FarmingCallHandler:plant_crop(session, response, soil_plot, crop_type)
+   --TODO: remove this when we actually get the correct data from the UI
+   local soil_plots = {soil_plot}
+   if not crop_type then
+      crop_type = 'stonehearth:turnip_crop'
+   end
+
+   return farming_service:plant_crop(session.player_id, soil_plots, crop_type)
+end
+
+--TODO: Send an array of soil_plots and the type of the crop for batch planting
+--Give a set of plots to clear, harvest the plants inside
+function FarmingCallHandler:raze_crop(session, response, soil_plot)
+   --TODO: remove this when we actually get the correct data from the UI
+   local soil_plots = {soil_plot}
+   for i, plot in ipairs(soil_plots) do 
+      local plot_component = plot:get_component('stonehearth:dirt_plot') 
+   end
+
+   return farming_service:harvest_crops(session, soil_plots)
+end
+
+--- Returns the crops available for planting to this player
+function FarmingCallHandler:get_all_crops(session)
+   return {all_crops = farming_service:get_all_crop_types(session)}
 end
 
 return FarmingCallHandler

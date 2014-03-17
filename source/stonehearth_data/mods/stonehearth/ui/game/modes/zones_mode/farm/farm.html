@@ -42,7 +42,9 @@
       <div class="window">
          this is the crop palette<br>
          {{#each items}}
-            <img class="item" {{bindAttr src="icon" crop="crop"}} />
+            <img class="item tooltip" {{bindAttr src="crop_info.icon"
+                                       crop="crop_info.crop_type"
+                                       title="crop_info.name"}} />
          {{/each}}
       </div>
    </div>

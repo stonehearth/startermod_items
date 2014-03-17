@@ -15,8 +15,8 @@ function CarpenterTest:__init()
    local worker = self:place_citizen(-5, -5)
 
    --Create the carpenter. You will have to create the bench as part of the test
-   local carpenter = self:place_citizen(-12, 7,'weaver')
-   local faction = radiant.entities.get_faction(carpenter)
+   local carpenter = self:place_citizen(-12, 7, 'carpenter')
+   local player_id = radiant.entities.get_player_id(carpenter)
 
    self:place_item('stonehearth:arch_backed_chair_proxy', 0, 0)
    self:place_item('stonehearth:comfy_bed_proxy', 1, 0)
@@ -34,8 +34,8 @@ function CarpenterTest:__init()
    self:place_item('stonehearth:picket_fence_proxy', 4, 3)
    self:place_item('stonehearth:picket_fence_proxy', 5, 3)
    self:place_item('stonehearth:picket_fence_proxy', 6, 3)
-   self:place_item('stonehearth:firepit_proxy', 7, 3, faction)
-   self:place_item('stonehearth:firepit', 9, 3, faction)
+   self:place_item('stonehearth:firepit_proxy', 7, 3, player_id)
+   self:place_item('stonehearth:firepit', 9, 3, player_id)
 
    -- put some items in the world
    self:place_item_cluster('stonehearth:oak_log', -10, 0, 3, 3)

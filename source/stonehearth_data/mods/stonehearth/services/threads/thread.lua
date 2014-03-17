@@ -218,14 +218,27 @@ function Thread:report_thread_error(err)
    radiant.check.report_thread_error(self._co, 'thread error: ' .. err)   
 end
 
-function Thread:interrupt(fn)
+function Thread:_interrupt(fn, sync)
    if not self._finished then
       if self:is_running() then
          fn()
       else
          self:send_msg('thread:call_interrupt', fn)
+         if sync then
+            self._log:error('scheduling thread immediately to deliver interrupt.')
+            Thread.resume_thread(self)
+            self._log:error('finished delivering interrupt.')
+         end
       end
    end
+end
+
+function Thread:async_interrupt(fn)
+   self:_interrupt(fn, false)
+end
+
+function Thread:sync_interrupt(fn)
+   self:_interrupt(fn, true)
 end
 
 function Thread:_call_interrupt(fn)

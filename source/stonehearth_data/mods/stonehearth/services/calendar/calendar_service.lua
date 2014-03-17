@@ -1,33 +1,55 @@
-
+CalendarTimer = require 'services.calendar.calendar_timer'
 CalendarService = class()
+
+
+local TIME_UNITS = {
+   'second',
+   'minute',
+   'hour',
+   'day',
+   'month',
+   'year',
+}
+
+local TIME_INTERVALS = {}
+local TIME_DURATIONS = {}
 
 function CalendarService:__init()
    self._timers = {}
    self._constants = radiant.resources.load_json('/stonehearth/services/calendar/calendar_constants.json')
+   
+   
+   -- build the TIME_UNIT_DURATION_S table containing how many seconds each unit of time is   
+   TIME_INTERVALS.second = self._constants.seconds_per_minute
+   TIME_INTERVALS.minute = self._constants.minutes_per_hour
+   TIME_INTERVALS.hour = self._constants.hours_per_day
+   TIME_INTERVALS.day = self._constants.days_per_month
+   TIME_INTERVALS.month = self._constants.months_per_year
+
+   TIME_DURATIONS.second = 1
+   TIME_DURATIONS.minute = TIME_DURATIONS.second * self._constants.seconds_per_minute
+   TIME_DURATIONS.hour = TIME_DURATIONS.minute * self._constants.minutes_per_hour
+   TIME_DURATIONS.day = TIME_DURATIONS.hour * self._constants.hours_per_day
+   TIME_DURATIONS.month = TIME_DURATIONS.day * self._constants.days_per_month
+   TIME_DURATIONS.year = TIME_DURATIONS.month * self._constants.months_per_year
+
    radiant.events.listen(radiant.events, 'stonehearth:gameloop', self, self._on_event_loop)
 end
 
 function CalendarService:initialize()
    self._data = {
       --the calendar data to export
-      date = {
-         second = 0,
-         hour = self._constants.start.hour,
-         minute = self._constants.start.minute,
-         day = self._constants.start.day,
-         month = self._constants.start.month,
-         year = self._constants.start.year
-      },
-
-      _lastNow = 0,
-      _remainderTime = 0,
-
+      date = {},
+      
       -- When you change the start time change these to match
       _fired_sunrise_today = true,
       _fired_noon_today = true,
       _fired_sunset_today = false,
       _fired_midnight_today = false
    }
+   for _, unit in ipairs(TIME_UNITS) do
+      self._data.date[unit] = self._constants.start[unit]
+   end
    self.__saved_variables = radiant.create_datastore(self._data)
 end
 
@@ -36,32 +58,57 @@ function CalendarService:restore(saved_variables)
    self._data = saved_variables:get_data()
 end
 
-function CalendarService:set_time(hour, minute, second)
-   self._data.date.hour = hour;
-   self._data.date.minute = minute;
-   self._data.date.second = second;
+function CalendarService:get_elapsed_time()
+   return radiant.gamestate.now() / self._constants.ticks_per_second
 end
 
-function CalendarService:set_timer(hours, minutes, seconds, fn)
-   local timer_length = (hours * self._constants.minutes_per_hour * self._constants.seconds_per_minute ) +
-                            (minutes * self._constants.seconds_per_minute) + seconds
+-- sets a calendar timer.  
+-- Either the number of seconds in gametime or a string of the form 1d1h1m1s.  zero
+-- values can be omitted.  For example:
+--    set_timer(120, cb)  -- 2 minute timer
+--    set_timer('2m', cb) -- also a 2 minute timer
+--    set_timer('1d1s', cb) -- a timer for 1 day and 1 second.
 
-
-   local timer = {
-      length = timer_length,
-      fn = fn
-   }
-   table.insert(self._timers, timer)
-   return timer
+function CalendarService:set_timer(duration, fn)
+   return self:_create_timer(duration, fn, false)
 end
 
-function CalendarService:remove_timer(t)
-   for i, timer in ipairs(self._timers) do
-      if timer == t then
-         table.remove(self._timers, i)
-         return
+function CalendarService:set_interval(duration, fn)
+   return self:_create_timer(duration, fn, true)
+end
+
+function CalendarService:_create_timer(duration, fn, repeating)
+   assert(type(fn) == 'function')
+   
+   local timeout_s = 0
+
+   if type(duration) == 'string' then
+      local function match(f, d)
+         return d * (string.match(duration, '(%d+)' .. f) or 0)
       end
+      timeout_s = match('Y', TIME_DURATIONS.year) +
+                  match('M', TIME_DURATIONS.month) +
+                  match('d', TIME_DURATIONS.day) +
+                  match('h', TIME_DURATIONS.hour)  +
+                  match('m', TIME_DURATIONS.minute) +
+                  match('s', TIME_DURATIONS.second)
+   else
+      timeout_s = duration
    end
+   assert(timeout_s > 0, 'invalid duration passed to calendar set timer, "%s"', tostring(duration))
+
+   local timer = CalendarTimer(self:get_elapsed_time() + timeout_s, fn, repeating)
+
+   -- if we're currently firing timers, the _next_timers variable will contain the timers
+   -- we'll check next gameloop. stick the timer in there instead of the timers array.  this
+   -- prevents us from modifying the _timers array during iteration, which could make us
+   -- accidently skip timers.
+   if self._next_timers then
+      table.insert(self._next_timers, timer)
+   else
+      table.insert(self._timers, timer)
+   end
+   return timer
 end
 
 function CalendarService:get_constants()
@@ -72,36 +119,24 @@ end
 function CalendarService:_on_event_loop(e)
    local now = e.now
 
-   -- determine how many seconds have gone by since the last loop
-   local dt = now - self._data._lastNow + self._data._remainderTime
-   self._data._remainderTime = dt % self._constants.ticks_per_second;
-   local t = math.floor(dt / self._constants.ticks_per_second)
+   local last_hour = self._data.date.hour 
 
-   -- set the calendar data
-   local sec = self._data.date.second + t;
-   self._data.date.second = sec % self._constants.seconds_per_minute
+   local remaining = math.floor(e.now / self._constants.ticks_per_second)
 
-   local min = self._data.date.minute + math.floor(sec / self._constants.seconds_per_minute)
-   self._data.date.minute = min % self._constants.minutes_per_hour
-
-   local hour = self._data.date.hour + math.floor(min / self._constants.minutes_per_hour)
-   self._data.date.hour = hour % self._constants.hours_per_day
-
-   local day = self._data.date.day + math.floor(hour / self._constants.hours_per_day)
-   self._data.date.day = day % self._constants.days_per_month
-
-   local month = self._data.date.month + math.floor(day / self._constants.days_per_month)
-   self._data.date.month = month % self._constants.months_per_year
-
-   local year = self._data.date.year + math.floor(month / self._constants.months_per_year)
-   self._data.date.year = year
-
-   if sec >= self._constants.seconds_per_minute  then
-      radiant.events.trigger(self, 'stonehearth:minutely', { now = self._data.date})
+   -- compute the time based on how much time has passed and the time offset.
+   local date = self._data.date
+   for _, unit in ipairs(TIME_UNITS) do
+      remaining = self._constants.start[unit] + remaining
+      date[unit] = math.floor(remaining % TIME_INTERVALS[unit])
+      remaining = remaining - date[unit]
+      if remaining == 0  then
+         break
+      end
+      remaining = remaining / TIME_INTERVALS[unit]
    end
 
-   if min >= self._constants.minutes_per_hour then
-      radiant.events.trigger(self, 'stonehearth:hourly', {now = self._data.date})
+   if last_hour ~= nil and last_hour ~= self._data.date.hour then
+      radiant.events.trigger(self, 'stonehearth:hourly', { now = self._data.date })
    end
 
    self:fire_time_of_day_events()
@@ -112,21 +147,26 @@ function CalendarService:_on_event_loop(e)
    -- the date, formatting into a string
    self._data.date.date = self:format_date()
 
-   self:update_timers(t)
-
-   self._data._lastNow = now
-
+   self:_update_timers()
    self.__saved_variables:mark_changed()
 end
 
-function CalendarService:update_timers(dt)
+function CalendarService:_update_timers()
+   self._next_timers = {}
+   local elapsed = self:get_elapsed_time()
    for i, timer in ipairs(self._timers) do
-      timer.length = timer.length - dt
-      if timer.length <= 0 then
-         timer.fn()
-         table.remove(self._timers, i)
+      if timer.active then
+         if timer.expire_time <= elapsed then
+            timer.fn()
+            timer.active = timer.repeating
+         end
+         if timer.active then
+            table.insert(self._next_timers, timer)
+         end
       end
    end
+   self._timers = self._next_timers
+   self._next_timers = nil
 end
 --[[
    If the hour is greater than the set time of day, then fire the

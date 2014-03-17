@@ -23,16 +23,23 @@ function InventoryService:restore(saved_variables)
       end)
 end
 
-function InventoryService:get_inventory(faction)
-   radiant.check.is_string(faction)
-   local inventory = self._inventories[faction]
-   if not inventory then
-      inventory = Inventory(faction)
-      inventory:initialize()
-      self._inventories[faction] = inventory
-      self.__saved_variables:mark_changed()
-   end
+function InventoryService:add_inventory(session)
+   radiant.check.is_string(session.player_id)
+   radiant.check.is_string(session.faction)
+   radiant.check.is_string(session.kingdom)
+
+   assert(not self._inventories[session.player_id])
+
+   local inventory = Inventory()
+   inventory:initialize(session)
+   self._inventories[session.player_id] = inventory
+   self.__saved_variables:mark_changed()
    return inventory
+end
+
+function InventoryService:get_inventory(player_id)
+   radiant.check.is_string(player_id)
+   return self._inventories[player_id]
 end
 
 return InventoryService

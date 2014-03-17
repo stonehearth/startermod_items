@@ -150,7 +150,8 @@ var RadiantTrace;
          };
 
          $.each(obj, function(k, v) {
-            if (properties[k] == undefined) {
+            var sub_properties = properties[k] || properties['*']
+            if (sub_properties == undefined) {
                eobj.set(k, v);
             } else {
                self._log(level, 'fetching child object: ' + k);
@@ -159,7 +160,7 @@ var RadiantTrace;
                var uri = ((obj instanceof Array) || (obj instanceof Object)) ? null : obj.toString();
 
                if (v) {
-                  self._expand_object(v, properties[k], level + 1)
+                  self._expand_object(v, sub_properties, level + 1)
                      .progress(function(child_eobj) {
                         self._log(level, 'child object ' + k + ' resolved to:', child_eobj);
 

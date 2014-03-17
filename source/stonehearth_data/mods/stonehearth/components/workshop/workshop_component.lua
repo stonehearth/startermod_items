@@ -145,8 +145,7 @@ function WorkshopComponent:set_crafter(crafter)
       local crafter_name = radiant.entities.get_name(crafter)
       radiant.entities.set_description(self._entity, 'owned by ' .. crafter_name)
 
-      local faction = radiant.entities.get_faction(self._entity)
-      local town = stonehearth.town:get_town(faction)
+      local town = stonehearth.town:get_town(self._entity)
       self._orchestrator = town:create_orchestrator(WorkAtWorkshop, {
             crafter = crafter,
             workshop = self._entity,
@@ -179,8 +178,7 @@ function WorkshopComponent:pop_bench_output()
    end
 end
 
-function WorkshopComponent:finish_construction(faction, outbox_entity)
-   self._entity:add_component('unit_info'):set_faction(faction)
+function WorkshopComponent:finish_construction(outbox_entity)
    self._outbox_entity = outbox_entity
 end
 

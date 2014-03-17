@@ -9,14 +9,19 @@ function resources.load_animation(uri)
    return _radiant.res.load_animation(uri)
 end
 
-function resources.load_json(uri)
-   -- the json loader will convert the json object to a lua table, which can be really
-   -- expensive for large json objects.  maybe lua objects would get created, etc.  so
-   -- cache it so we only do that conversion once.
-   local json = singleton._cached_json[uri]
+function resources.load_json(uri, cached)
+   local json
+   if cached then
+      -- the json loader will convert the json object to a lua table, which can be really
+      -- expensive for large json objects.  maybe lua objects would get created, etc.  so
+      -- cache it so we only do that conversion once.
+      json = singleton._cached_json[uri]
+   end
    if not json then
       json = _radiant.res.load_json(uri)
-      singleton._cached_json[uri] = json
+      if cached then
+         singleton._cached_json[uri] = json
+      end
    end
    return json
 end

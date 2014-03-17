@@ -62,9 +62,9 @@ function PetOrchestrator:_run_follow_friend(pet, town)
       :start()
 
    -- stop after _follow_time game seconds
-   stonehearth.calendar:set_timer(0, 0, self._follow_time,
+   stonehearth.calendar:set_timer(self._follow_time,
       function ()
-         task:stop()
+         task:destroy()
       end
    )
 
@@ -90,7 +90,7 @@ end
 function PetOrchestrator:_suspend(duration)
    local thread = stonehearth.threads:get_current_thread()
 
-   stonehearth.calendar:set_timer(0, 0, duration,
+   stonehearth.calendar:set_timer(duration,
       function ()
          -- looks like case is handled if thread was already terminated
          thread:resume()

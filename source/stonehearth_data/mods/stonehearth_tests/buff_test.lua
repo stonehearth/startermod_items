@@ -9,7 +9,7 @@ function BuffTest:__init()
    local citizen_1 = self:place_citizen(5, -5)
    local citizen_2 = self:place_citizen(-5, -5)
    local citizen_3 = self:place_citizen(0, 0)
-   local faction = citizen_2:get_component('unit_info'):get_faction()
+   local player_id = citizen_2:get_component('unit_info'):get_player_id()
    radiant.entities.add_buff(citizen_2, 'stonehearth:buffs:groggy')
 
    radiant.entities.add_buff(citizen_1, 'stonehearth:buffs:starving')
@@ -21,7 +21,7 @@ function BuffTest:__init()
    self:place_item('stonehearth:comfy_bed', 0, 0)
 
    self:at(10,  function()
-         self:place_stockpile_cmd(faction, 12, 12, 4, 4)
+         self:place_stockpile_cmd(player_id, 12, 12, 4, 4)
       end)
 end
 

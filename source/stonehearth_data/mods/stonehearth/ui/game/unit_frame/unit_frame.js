@@ -5,7 +5,11 @@ App.StonehearthUnitFrameView = App.View.extend({
       "stonehearth:commands": {
          commands: []
       },
-      "stonehearth:buffs" : {},
+      "stonehearth:buffs" : {
+         "buffs" : {
+            "*" : {}
+         }
+      },
       "stonehearth:inventory" : {},
       "unit_info": {}
    },
@@ -52,7 +56,7 @@ App.StonehearthUnitFrameView = App.View.extend({
 
    buffs: function() {
         var vals = [];
-        var attributeMap = this.get('context.stonehearth:buffs');
+        var attributeMap = this.get('context.stonehearth:buffs.buffs');
         
         if (attributeMap) {
            $.each(attributeMap, function(k ,v) {
