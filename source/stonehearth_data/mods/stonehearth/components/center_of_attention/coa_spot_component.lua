@@ -24,8 +24,8 @@ end
 -- @param seat_id Optionally, the unique ID of this spot relative to the coe
 function CenterOfAttentionSpot:add_to_center_of_attention(coa_entity, spot_id)
    self.__saved_variables = {
-      coa_entity = coa_entity
-      spot_id = spot_id
+      coa_entity = coa_entity,
+      spot_id = spot_id,
    }
 end
 
