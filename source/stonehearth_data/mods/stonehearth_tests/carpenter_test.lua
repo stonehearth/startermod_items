@@ -15,7 +15,7 @@ function CarpenterTest:__init()
    local worker = self:place_citizen(-5, -5)
 
    --Create the carpenter. You will have to create the bench as part of the test
-   local carpenter = self:place_citizen(-12, 7,'weaver')
+   local carpenter = self:place_citizen(-12, 7, 'carpenter')
    local player_id = radiant.entities.get_player_id(carpenter)
 
    self:place_item('stonehearth:arch_backed_chair_proxy', 0, 0)

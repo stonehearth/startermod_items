@@ -15,12 +15,16 @@ function CommandsComponent:initialize(entity, json)
       commands = self._commands
    })
 
-   -- not really...
    if json.commands then
       for _, uri in pairs(json.commands) do
          self:add_command(uri)
       end
    end
+end
+
+function CommandsComponent:restore(entity, saved_variables)
+   self.__saved_variables = saved_variables
+   self._commands = self.__saved_variables:get_data().commands
 end
 
 function CommandsComponent:add_command(uri)

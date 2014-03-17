@@ -17,9 +17,15 @@ function ConstructionProgress:initialize(entity, json)
    self.__saved_variables = radiant.create_datastore(self._data)
 end
 
+function ConstructionProgress:restore(entity, saved_variables)
+   self._entity = entity
+   self.__saved_variables = saved_variables
+end
+
 function ConstructionProgress:get_dependencies()
    return self._data.dependencies
 end
+
 
 --- Tracks projects which must be completed before this one can start.
 -- This is actually an enormous pain.  The stonehearth:construction_data component of our blueprint

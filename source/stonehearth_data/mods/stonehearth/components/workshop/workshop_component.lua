@@ -178,8 +178,7 @@ function WorkshopComponent:pop_bench_output()
    end
 end
 
-function WorkshopComponent:finish_construction(faction, outbox_entity)
-   self._entity:add_component('unit_info'):set_faction(faction)
+function WorkshopComponent:finish_construction(outbox_entity)
    self._outbox_entity = outbox_entity
 end
 

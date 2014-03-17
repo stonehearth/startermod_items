@@ -20,6 +20,11 @@ function ConstructionDataComponent:initialize(entity, json)
       end)
 end
 
+function ConstructionDataComponent:restore(entity, saved_variables)
+   self._entity = entity
+   self.__saved_variables = saved_variables
+end
+
 function ConstructionDataComponent:get_material()
    return self._data.material
 end

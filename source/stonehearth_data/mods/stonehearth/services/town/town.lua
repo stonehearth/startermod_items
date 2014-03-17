@@ -37,6 +37,10 @@ function Town:get_faction()
    return self._faction
 end
 
+function Town:get_player_id()
+   return self._player_id
+end
+
 function Town:destroy()
 end
 

@@ -48,7 +48,6 @@ function CreateWorkshop:stop()
 end
 
 function CreateWorkshop:_complete_construction(crafter, ghost_workshop, outbox_entity, workshop_task_group)
-   local faction = radiant.entities.get_faction(crafter)
    local real_item_uri = ghost_workshop:get_component('stonehearth:ghost_item'):get_full_sized_mod_uri();
 
    local workshop_entity = radiant.entities.create_entity(real_item_uri)
@@ -59,7 +58,9 @@ function CreateWorkshop:_complete_construction(crafter, ghost_workshop, outbox_e
    local q = ghost_workshop:get_component('mob'):get_rotation()
    radiant.terrain.place_entity(workshop_entity, location)
    workshop_entity:get_component('mob'):set_rotation(q)
-   workshop_component:finish_construction(faction, outbox_entity)
+   workshop_component:finish_construction(outbox_entity)
+   radiant.entities.set_faction(workshop_entity, crafter)
+   radiant.entities.set_player_id(workshop_entity, crafter)
 
    -- destroy the ghost entity and everything we put in it to make the workbench
    for id, item in ghost_workshop:add_component('entity_container'):each_child() do
