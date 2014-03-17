@@ -54,6 +54,7 @@
 #include "dm/receiver.h"
 #include "dm/tracer_sync.h"
 #include "dm/tracer_buffered.h"
+#include "core/system.h"
 
 //  #include "GFx/AS3/AS3_Global.h"
 #include "client.h"
@@ -1151,8 +1152,16 @@ Client::Cursor Client::LoadCursor(std::string const& path)
    } else {
       std::shared_ptr<std::istream> is = res::ResourceManager2::GetInstance().OpenResource(filename);
       std::string buffer = io::read_contents(*is);
-      std::string tempname = boost::filesystem::temp_directory_path().string() + boost::filesystem::unique_path().string();
-      std::ofstream(tempname, std::ios::out | std::ios::binary).write(buffer.c_str(), buffer.size());
+      // we used to use boost::filesystem routines to create a temporary path.  Unfortuantely, boost is pretty
+      // paranoid about that sort of thing and tries to create a path that's cryptographically random.  This
+      // ends up spinning up the crypto service, which does like 50- registry reads, creates additional temporary
+      // files in AppData\Roaming\Microsoft\Crypto\RSA\{$GUID} and all sorts of crazy things.  It's just a cursor,
+      // sheesh!  Furthemore, many of these things may fail is the app is not "properly installed", which
+      // can cause problems on systems where we didn't even *do* and install (like if the user extracted a
+      // zipfile).  So just pick something "random enough"
+      boost::filesystem::path tmpdir = core::System::GetInstance().GetTempDirectory();
+      std::string tempname = BUILD_STRING("cursor" << GetCurrentProcessId() << platform::get_current_time_in_ms());
+      std::ofstream((tmpdir / tempname).string(), std::ios::out | std::ios::binary).write(buffer.c_str(), buffer.size());
 
       HCURSOR hcursor = (HCURSOR)LoadImageA(GetModuleHandle(NULL), tempname.c_str(), IMAGE_CURSOR, 0, 0, LR_LOADFROMFILE | LR_DEFAULTSIZE);
       if (hcursor) {
