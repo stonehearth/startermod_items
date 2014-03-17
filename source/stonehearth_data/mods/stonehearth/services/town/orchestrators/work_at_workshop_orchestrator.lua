@@ -103,6 +103,7 @@ function WorkAtWorkshop:_add_outputs_to_bench(recipe)
    for i, product in ipairs(recipe.produces) do
       local item = radiant.entities.create_entity(product.item)
       item:add_component('mob'):set_location_grid_aligned(Point3(0, 1, 0))
+      radiant.entities.set_faction(item, self._crafter)
 
       self._workshop:add_component('entity_container'):add_child(item)
       stonehearth.analytics:send_design_event('game:craft', self._workshop, item)

@@ -36,7 +36,6 @@ function PopulationService:add_population(session)
    return pop
 end
 
---TODO: civ is assumed to be the user faction in many places. Stamp this out!
 function PopulationService:get_population(player_id)
    radiant.check.is_string(player_id)
    assert(self._populations[player_id])

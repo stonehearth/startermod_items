@@ -26,7 +26,6 @@ function TownService:add_town(session)
    return town
 end
 
---TODO: civ is assumed to be the user faction in many places. Stamp this out!
 function TownService:get_town(arg1)
    local player_id
    if type(arg1) == 'string' then

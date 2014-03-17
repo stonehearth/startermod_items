@@ -96,13 +96,16 @@ function FarmingService:_get_crop_list(session)
    local crop_list = self._data.player_crops[player_id]
    if not crop_list then
       -- start out with the default crops for this player's kingdom.
-      crop_list = {} 
-      for i, crop in ipairs(self._initial_crops[session.kingddom]) do
-         crop_list[i] = {
-            crop_type = crop.crop_type,
-            crop_info = self:_get_crop_details(crop.crop_type),
-            quantity = crop.quantity
-         }
+      crop_list = {}
+      local kingdom_crops = self._initial_crops[session.kingdom]
+      if kingdom_crops then
+         for i, crop in ipairs(kingdom_crops) do
+            crop_list[i] = {
+               crop_type = crop.crop_type,
+               crop_info = self:_get_crop_details(crop.crop_type),
+               quantity = crop.quantity
+            }
+         end
       end
       self._data.player_crops[player_id] = crop_list
    end
