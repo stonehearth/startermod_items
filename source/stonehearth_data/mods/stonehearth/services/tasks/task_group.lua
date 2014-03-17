@@ -84,7 +84,7 @@ function TaskGroup:create_task(activity_name, args)
    return task
 end
 
-function TaskGroup:_on_task_stop(task)
+function TaskGroup:_on_task_destroy(task)
    self._log:debug('removing task %s from group', task:get_name())
    if self._tasks[task] then
       self._tasks[task] = nil
@@ -94,6 +94,7 @@ function TaskGroup:_on_task_stop(task)
 end
 
 function TaskGroup:_unfeed_workers_from_task(task)
+   self._log:debug('removing workers from task %s', task:get_name())
    for worker_id, entry in pairs(self._workers) do
       if entry.feeding[task] then
          task:_unfeed_worker(entry.worker)

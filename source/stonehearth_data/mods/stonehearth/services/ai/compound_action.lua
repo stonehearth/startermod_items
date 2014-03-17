@@ -41,6 +41,25 @@ function CompoundAction:__init(entity, injecting_entity, action_ctor, activities
    self.version = 2
    self._id = stonehearth.ai:get_next_object_id()   
    self._log = radiant.log.create_logger('compound_action')
+
+   -- if the action has start_thinking or stop_thinking methods, create a temporary
+   -- ai object we can use to forward the think output to the first execution frame
+   -- in the compound action.
+   if self._action.start_thinking or self._action.stop_thinking then
+      self._action_ai = {
+         set_think_output = function(_, think_output)
+            self:_spam_current_state('compound action became ready!')
+            think_output = think_output or self._args
+            table.insert(self._previous_think_output, think_output)
+            self:_start_thinking(1)
+         end,
+         clear_think_output = function(_)
+            local msg = string.format('compound action became unready.  aborting')
+            self._log:debug(msg)
+            self._ai:abort(msg)
+         end,
+      }
+   end
 end
 
 function CompoundAction:start_thinking(ai, entity, args)
@@ -60,12 +79,25 @@ function CompoundAction:start_thinking(ai, entity, args)
    end
    
    self._thinking = true
-   self:_start_thinking(1, args)
+   self:_start_thinking(0)
 end
 
-function CompoundAction:_start_thinking(index, args)
+function CompoundAction:_start_thinking(index)
    assert(self._thinking)
 
+   -- index is the frame in the compound action which needs to start thinking first.  use 0
+   -- as a sentinel to refer to the compound action itself. 
+   if index == 0 then
+      if self._action.start_thinking then
+         self:_spam_current_state('start_thinking (compound action)')
+         self._action.start_thinking(self._action, self._action_ai, self._entity, self._args)
+         return
+      else
+         index = 1
+      end
+   end
+
+   -- now ask all the compound actions to start thinking, in order.
    while index <= #self._activities do
       local activity = self._activities[index]
       self:_spam_current_state('start_thinking (%d of %d - %s)', index, #self._activities, activity.name)
@@ -115,11 +147,14 @@ end
 
 function CompoundAction:stop_thinking(ai, entity, ...)
    self._thinking = false
-   
+
    self._previous_think_output = {}
    for i=#self._thinking_frames,1,-1 do
       self._thinking_frames[i]:stop_thinking() -- must be asynchronous!
       self._thinking_frames[i]:on_ready(nil)
+   end
+   if self._action.stop_thinking then
+      self._action.stop_thinking(self._action, self._action_ai, self._entity, self._args)
    end
    self._log:debug('switching thinking frames to running frames')   
    self._running_frames = self._thinking_frames
@@ -176,7 +211,7 @@ function CompoundAction:destroy()
       frame:destroy() -- must be synchronous!
    end
    if self._action.destroy then
-      self._action:destroy(self._ai, self._entity, self._injecting_entity)
+      self._action:destroy(self._ai, self._entity, self._args)
    end
 end
 

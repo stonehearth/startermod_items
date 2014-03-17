@@ -24,29 +24,30 @@ function FollowEntity:start_thinking(ai, entity, args)
    --end
 
    --If I'm within 3 of my target, trace the target's move so we get called
-   --again on change. 
+   --again on change.
    local target = args.target
-   local distance = radiant.entities.distance_between(entity, target)
-   if distance <= 3 then 
-      if not self._trace then
-         self._trace = radiant.entities.trace_location(target, 'find path to entity')
-            :on_changed(
-               function()
-                  self:start_thinking(ai, entity, args)
-               end
-            )
-            :on_destroyed(
-               function()
-                  ai:abort('target destination destroyed')
-               end
-            )
+   local distance = 3
+
+   local function check_distance()
+      local distance = radiant.entities.distance_between(entity, target)
+      if distance > 3 then 
+         local location = self:_pick_nearby_location(target)
+         ai:set_think_output({ location = location })
+         return true
       end
-      return
    end
 
-   --Otherwise, pick a location within 3 of my target and go there
-   self._target_destination = self:_pick_nearby_location(target)
-   ai:set_think_output()
+   local started = check_distance()
+   if not started then
+      assert(not self._trace)
+      self._trace = radiant.entities.trace_location(target, 'find path to entity')
+         :on_changed(function()
+               check_distance()
+            end)
+         :on_destroyed(function()
+               ai:abort('target destination destroyed')
+            end)
+   end
 end
 
 function FollowEntity:stop_thinking(ai, entity)
@@ -69,13 +70,6 @@ function FollowEntity:_pick_nearby_location(target)
    return destination
 end
 
-function FollowEntity:run(ai, entity, args)
-   --ai:execute('stonehearth:go_toward_location', { location = self._target_destination})
-    ai:execute('stonehearth:goto_location', { location = self._target_destination})
-end
-
-return FollowEntity
-
---local ai = stonehearth.ai
---return ai:create_compound_action(FollowHumanWhenBored)
---         :execute('stonehearth:follow_human')
+local ai = stonehearth.ai
+return ai:create_compound_action(FollowEntity)
+         :execute('stonehearth:goto_location', { location = ai.PREV.location })

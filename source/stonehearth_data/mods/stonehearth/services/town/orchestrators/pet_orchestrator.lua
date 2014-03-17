@@ -64,7 +64,7 @@ function PetOrchestrator:_run_follow_friend(pet, town)
    -- stop after _follow_time game seconds
    stonehearth.calendar:set_timer(0, 0, self._follow_time,
       function ()
-         task:stop()
+         task:destroy()
       end
    )
 

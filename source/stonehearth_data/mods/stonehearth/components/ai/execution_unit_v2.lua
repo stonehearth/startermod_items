@@ -559,7 +559,7 @@ function ExecutionUnitV2:__execute(name, args)
 
    local think_output = self._current_execution_frame:start_thinking(args or {})
    if not think_output then
-      self:__abort('execution of %s did not start immediately.  aborting.', name)
+      error(string.format('execution of %s did not start immediately.', name))
    end
    self._current_execution_frame:run()
    self._current_execution_frame:stop()
@@ -620,7 +620,7 @@ function ExecutionUnitV2:__abort(reason, ...)
    else
       self._log:debug('not on the right thread to abort.  thunking over...')
       self:_set_state(ABORTING)
-      self._thread:interrupt(function()
+      self._thread:async_interrupt(function()
             self._frame:abort()
             radiant.not_reached('abort does not return')
          end)

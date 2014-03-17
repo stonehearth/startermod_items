@@ -7,11 +7,11 @@
 
          <h2>{{i18n stonehearth:farm_crop_rotation}}</h2>
 
-         <div>
-            {{#each view.crop_rotation}}
-               <span class="cropRotationSlot">{{ this.crop }}</span>
+         <div id="cropRotation">
+            {{#each crop_rotation}}
+               <div class="cropRotationSlot crop">{{ this.crop }}</div>
             {{/each}}     
-            <span class="cropRotationSlot"><a {{action addCrop target="view"}}><button id="addCropButton" class="plus"></button></a></span>
+            <div class="cropRotationSlot"><a {{action addCropButtonClicked target="view"}}><button id="addCropButton" class="plus"></button></a></div>
          </div>
 
          <h2>{{i18n stonehearth:farm_manually_place_crops}}</h2>
@@ -26,7 +26,7 @@
          <div>
             <input type="checkbox" id="autoReplant">
             <label for="autoReplant">{{i18n stonehearth:farm_auto_replant}}</label>
-         </div>
+      </div>
 
          <p></p>
 
@@ -42,7 +42,9 @@
       <div class="window">
          this is the crop palette<br>
          {{#each items}}
-            <img {{bindAttr src="icon"}} />
+            <img class="item tooltip" {{bindAttr src="crop_info.icon"
+                                       crop="crop_info.crop_type"
+                                       title="crop_info.name"}} />
          {{/each}}
       </div>
    </div>

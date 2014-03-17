@@ -1,4 +1,5 @@
 local Point3 = _radiant.csg.Point3
+local Point3 = _radiant.csg.Point3
 local Entity = _radiant.om.Entity
 local RunTaskAction = require 'services.tasks.run_task_action'
 
@@ -32,17 +33,19 @@ function Task:__init(task_group, activity)
    self._currently_feeding = false
 end
 
-function Task:stop()
+function Task:destroy()
+   self._log:detail('user initiated destroy  (state:%s).', self._state)
+   self:_destroy()
+end
+
+function Task:_destroy()
    if self._task_group then
-      self:pause()
-      self._task_group:_on_task_stop(self)
+      self:_stop_feeding()
+      self:_destroy_entity_effects()
+      self._task_group:_on_task_destroy(self)
       self._task_group = nil
       self:_set_state(COMPLETED)
    end
-end
-
-function Task:destroy()
-   self:stop()
 end
 
 function Task:get_name()
@@ -105,14 +108,17 @@ function Task:start()
 end
 
 function Task:pause()
+   self._log:detail('user initiated pause.')
    if self._state ~= PAUSED then
-      self:_pause()
+      self:_stop_feeding()
+      self:_destroy_entity_effects()
       self:_set_state(PAUSED)
    end
    return self
 end
 
 function Task:wait()
+   self._log:detail('user initiated wait.')
    local thread = stonehearth.threads:get_current_thread()
    assert(thread, 'no thread running in Task:wait()')
 
@@ -162,21 +168,20 @@ function Task:_create_action()
    end
 end
 
-function Task:_pause()
-   -- stop asking for workers.
-   self:_stop_feeding()
-   self:_destroy_entity_effects()
-end
-
 function Task:_feed_worker(worker)
    if worker and worker:is_valid() then
       worker:get_component('stonehearth:ai'):add_custom_action(self._action_ctor)
    end
 end
 
-function Task:_unfeed_worker(worker_id)
-   local worker = radiant.entities.get_entity(worker_id)
+function Task:_unfeed_worker(worker)
+   if type(worker) == 'number' then
+      worker = radiant.entities.get_entity(worker)
+   end
+   assert(radiant.util.is_a(worker, Entity))
+   
    if worker and worker:is_valid() then
+      self._log:detail('unfeeding worker %s', worker)
       worker:get_component('stonehearth:ai'):remove_custom_action(self._action_ctor)
    end
 end
@@ -380,7 +385,7 @@ function Task:__action_stopped(action)
 
       if self:_is_work_finished() then
          self._log:debug('task reached max number of completions (%d).  stopping and completing!', self._times)
-         self:destroy()
+         self:_destroy()
       end
    end
    
