@@ -2,16 +2,15 @@ local RunEffectTimedAction = class()
 RunEffectTimedAction.name = 'run effect timed...'
 RunEffectTimedAction.does = 'stonehearth:run_effect_timed'
 RunEffectTimedAction.args = {
-   effect = 'string',   -- effect name
-   duration = 'number'       -- hours to run the effect for
+   effect = 'string',    -- effect name
+   duration = 'string'   -- game time for the effect to run (see stonehearth.calender:set_timer for formatting)
 }
 RunEffectTimedAction.version = 2
 RunEffectTimedAction.priority = 1
 
--- XXX: THIS SHOUD NOT BE HOURS! !  CONVERT CALENDAR TIME TO TICKS!!!
 function RunEffectTimedAction:run(ai, entity, args)
    self._effect = radiant.effects.run_effect(entity, args.effect)
-   self._timer = stonehearth.calendar:set_timer(args.duration, 0, 0, function()
+   self._timer = stonehearth.calendar:set_timer(args.duration, function()
       ai:resume()
       self._timer = nil
    end)
