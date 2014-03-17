@@ -334,6 +334,7 @@ end
 function entities.get_posture(entity)
    return entity:add_component('stonehearth:posture'):get_posture()
 end
+
 --[[
    Tell the entity (a mob, probably) to pick up the item
    entity: probably a mob

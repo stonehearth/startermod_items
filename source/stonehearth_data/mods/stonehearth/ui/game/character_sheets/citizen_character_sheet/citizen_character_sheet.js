@@ -4,7 +4,11 @@ App.StonehearthCitizenCharacterSheetView = App.View.extend({
 
    components: {
       "unit_info": {},
-      "stonehearth:buffs" : {},
+      "stonehearth:buffs" : {
+         "buffs" : {
+            "*" : {}
+         }
+      },
       "stonehearth:attributes" : {},
       'stonehearth:personality' : {}
    },
@@ -93,7 +97,7 @@ App.StonehearthCitizenCharacterSheetView = App.View.extend({
    },
 
    _sortBuffsByAttribute: function() {
-      var allBuffs = this.get('context.stonehearth:buffs');
+      var allBuffs = this.get('context.stonehearth:buffs.buffs');
       var buffsByAttribute = {};
       if (allBuffs) {
          $.each(allBuffs, function(k ,v) {

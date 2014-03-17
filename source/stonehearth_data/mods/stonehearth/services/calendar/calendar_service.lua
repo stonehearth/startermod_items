@@ -50,7 +50,6 @@ function CalendarService:initialize()
    for _, unit in ipairs(TIME_UNITS) do
       self._data.date[unit] = self._constants.start[unit]
    end
-   self._current_game_seconds = 0
    self.__saved_variables = radiant.create_datastore(self._data)
 end
 
@@ -59,8 +58,8 @@ function CalendarService:restore(saved_variables)
    self._data = saved_variables:get_data()
 end
 
-function CalendarService:get_elapsed_game_time()
-   return self._current_game_seconds
+function CalendarService:get_elapsed_time()
+   return radiant.gamestate.now() / self._constants.ticks_per_second
 end
 
 -- sets a calendar timer.  
@@ -71,11 +70,11 @@ end
 --    set_timer('1d1s', cb) -- a timer for 1 day and 1 second.
 
 function CalendarService:set_timer(duration, fn)
-   self:_create_timer(duration, fn, false)
+   return self:_create_timer(duration, fn, false)
 end
 
 function CalendarService:set_interval(duration, fn)
-   self:_create_timer(duration, fn, true)
+   return self:_create_timer(duration, fn, true)
 end
 
 function CalendarService:_create_timer(duration, fn, repeating)
@@ -87,18 +86,18 @@ function CalendarService:_create_timer(duration, fn, repeating)
       local function match(f, d)
          return d * (string.match(duration, '(%d+)' .. f) or 0)
       end
-      timeout_s = match('Y', TIMER_DURATIONS.year) +
-                  match('M', TIMER_DURATIONS.month) +
-                  match('d', TIMER_DURATIONS.day) +
-                  match('h', TIMER_DURATIONS.hour)  +
-                  match('m', TIMER_DURATIONS.minute) +
-                  match('s', TIMER_DURATIONS.second)
+      timeout_s = match('Y', TIME_DURATIONS.year) +
+                  match('M', TIME_DURATIONS.month) +
+                  match('d', TIME_DURATIONS.day) +
+                  match('h', TIME_DURATIONS.hour)  +
+                  match('m', TIME_DURATIONS.minute) +
+                  match('s', TIME_DURATIONS.second)
    else
       timeout_s = duration
    end
    assert(timeout_s > 0, 'invalid duration passed to calendar set timer, "%s"', tostring(duration))
 
-   local timer = CalendarTimer(self._current_game_seconds + timeout_s, fn, repeating)
+   local timer = CalendarTimer(self:get_elapsed_time() + timeout_s, fn, repeating)
 
    -- if we're currently firing timers, the _next_timers variable will contain the timers
    -- we'll check next gameloop. stick the timer in there instead of the timers array.  this
@@ -122,19 +121,18 @@ function CalendarService:_on_event_loop(e)
 
    local last_hour = self._data.date.hour 
 
-   self._current_game_seconds = math.floor(e.now / self._constants.ticks_per_second)
+   local remaining = math.floor(e.now / self._constants.ticks_per_second)
 
    -- compute the time based on how much time has passed and the time offset.
    local date = self._data.date
-   local time_reminaing = self._current_game_seconds
    for _, unit in ipairs(TIME_UNITS) do
-      time_reminaing = self._constants.start[unit] + time_reminaing
-      date[unit] = math.floor(time_reminaing % TIME_INTERVALS[unit])
-      time_reminaing = time_reminaing - date[unit]
-      if time_reminaing == 0  then
+      remaining = self._constants.start[unit] + remaining
+      date[unit] = math.floor(remaining % TIME_INTERVALS[unit])
+      remaining = remaining - date[unit]
+      if remaining == 0  then
          break
       end
-      time_reminaing = time_reminaing / TIME_INTERVALS[unit]
+      remaining = remaining / TIME_INTERVALS[unit]
    end
 
    if last_hour ~= nil and last_hour ~= self._data.date.hour then
@@ -155,9 +153,10 @@ end
 
 function CalendarService:_update_timers()
    self._next_timers = {}
+   local elapsed = self:get_elapsed_time()
    for i, timer in ipairs(self._timers) do
       if timer.active then
-         if timer.expire_time <= self._current_game_seconds then
+         if timer.expire_time <= elapsed then
             timer.fn()
             timer.active = timer.repeating
          end
