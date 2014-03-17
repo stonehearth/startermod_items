@@ -44,15 +44,22 @@ function Buff:_create_controller()
    if self._data.controller then
       self._controller = radiant.mods.load_script(self._data.controller)()
       if self._controller.on_buff_added then
-         self._controller.on_buff_added(self._entity, self)
+         self._controller:on_buff_added(self._entity, self)
       end
    end
+end
+
+function Buff:get_controller()
+   if not self._controller then
+      self:_create_controller()
+   end
+   return self._controller
 end
 
 function Buff:_destroy_controller()
    if self._controller then
       if self._controller.on_buff_removed then
-         self._controller.on_buff_removed(self._entity, self)
+         self._controller:on_buff_removed(self._entity, self)
       end
       self._controller = nil
    end
