@@ -322,20 +322,28 @@ function entities.set_display_name(entity, name)
 end
 
 function entities.get_attribute(entity, attribute_name)
-   return entity:add_component('stonehearth:attributes'):get_attribute(attribute_name)
+   if entity and entity:is_valid() then
+      return entity:add_component('stonehearth:attributes'):get_attribute(attribute_name)
+   end
 end
 
 
 function entities.set_attribute(entity, attribute_name, value)
-   entity:add_component('stonehearth:attributes'):set_attribute(attribute_name, value)
+   if entity and entity:is_valid() then
+      entity:add_component('stonehearth:attributes'):set_attribute(attribute_name, value)
+   end
 end
 
 function entities.add_buff(entity, buff_name)
-   return entity:add_component('stonehearth:buffs'):add_buff(buff_name)
+   if entity and entity:is_valid() then
+      return entity:add_component('stonehearth:buffs'):add_buff(buff_name)
+   end
 end
 
 function entities.remove_buff(entity, buff_name)
-   entity:add_component('stonehearth:buffs'):remove_buff(buff_name)
+   if entity and entity:is_valid() then
+      entity:add_component('stonehearth:buffs'):remove_buff(buff_name)
+   end
 end
 
 function entities.has_buff(entity, buff_name)
@@ -343,11 +351,15 @@ function entities.has_buff(entity, buff_name)
 end
 
 function entities.set_posture(entity, posture)
-   entity:add_component('stonehearth:posture'):set_posture(posture)
+   if entity and entity:is_valid() then
+      entity:add_component('stonehearth:posture'):set_posture(posture)
+   end
 end
 
 function entities.unset_posture(entity, posture)
-   entity:add_component('stonehearth:posture'):unset_posture(posture)
+   if entity and entity:is_valid() then
+      entity:add_component('stonehearth:posture'):unset_posture(posture)
+   end
 end
 
 function entities.get_posture(entity)

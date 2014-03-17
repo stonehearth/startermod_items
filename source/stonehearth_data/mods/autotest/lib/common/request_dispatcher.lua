@@ -17,7 +17,7 @@ function RequestDispatcher:connect(connect_fn)
 end
 
 function RequestDispatcher:pause_for_realtime(ms)
-   self._suspend_until_realtime = _host:get_realtime() + ms
+   self._suspend_until_realtime = _host:get_realtime() + (ms / 1000.0)
 end
 
 function RequestDispatcher:_process_queue()

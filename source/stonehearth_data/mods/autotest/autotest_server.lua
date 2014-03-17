@@ -112,17 +112,19 @@ end
 --
 -- @param env the test environment used to run the script
 -- @param script the name of the script containing the tests to run
-local function _run_script(script)
+local function _run_script(script, function_name)
    local obj = radiant.mods.load_script(script)
    assert(obj, string.format('failed to load test script "%s"', script))
 
    local tests = {}
    for name, fn in pairs(obj) do
-      if type(fn) == 'function' then
+      local matches = not function_name or name == function_name
+      if type(fn) == 'function' and matches then
          table.insert(tests, { name = name, fn = fn })
       end
    end
 
+   autotest.log('running script %s', script)
    local total = #tests
    for i, test in ipairs(tests) do
       autotest.log('running test %s (%d of %d)', test.name, i, total)
@@ -155,7 +157,6 @@ local function _run_thread(fn)
    assert(not _main_thread)
    _main_thread = stonehearth.threads:create_thread()
          :set_thread_main(function()
-               autotest.env.create_world()
                fn()
                radiant.events.trigger(autotest, 'autotest:finished', { errorcode = 0 })
             end)
@@ -176,6 +177,12 @@ end
 function autotest.run_script(script)
    _run_thread(function()
          _run_script(script)
+      end)
+end
+
+function autotest.run_test(script, name)
+   _run_thread(function()
+         _run_script(script, name)
       end)
 end
 

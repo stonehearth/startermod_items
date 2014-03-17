@@ -15,6 +15,9 @@ function CarryBlock:restore(entity, saved_variables)
    self:_finish_initialization(entity)
 end
 
+function CarryBlock:destroy()
+end
+
 function CarryBlock:_finish_initialization(entity)
    self._entity = entity
    self._carry_block = entity:add_component('carry_block')
@@ -26,11 +29,15 @@ end
 
 function CarryBlock:set_carrying(item)
    if not item or not item:is_valid() then
-      self._carry_block:clear_carrying()
+      if self._carry_block:is_valid() then
+         self._carry_block:clear_carrying()
+      end
       radiant.entities.unset_posture(self._entity, 'carrying')
       radiant.entities.remove_buff(self._entity, 'stonehearth:buffs:carrying')
    else
-      self._carry_block:set_carrying(item)
+      if self._carry_block:is_valid() then
+         self._carry_block:set_carrying(item)
+      end
       radiant.entities.set_posture(self._entity, 'carrying')
       radiant.entities.add_buff(self._entity, 'stonehearth:buffs:carrying')      
    end
