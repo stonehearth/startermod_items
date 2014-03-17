@@ -23,17 +23,18 @@ function AnalyticsService:on_ten_minute_poll()
    local send_string = ""
 
    -- Send some data for each faction
-   local factions = population_service:get_all_factions()
-   for faction_id, faction in pairs(factions) do
-
+   -- xxx: this is slightly confused.  don't we want to do it for all players?  when this
+   -- code was originally written, the population service tracked pops by faction (not player)
+   local populations = population_service:get_all_populations()
+   for player_id, pop in pairs(populations) do
       --Send data about # workers
       -- xxx Fix to show breakdown by class when we can listen on worker class changes; 
       -- Right now, the worker scheduler thinks everyone is a worker since everyone is added a worker
-      local citizen_tracker = object_tracker:get_worker_tracker(faction_id)
+      local citizen_tracker = object_tracker:get_worker_tracker(player_id)
       send_string = send_string .. "_Num_citizens_" .. #citizen_tracker:get_entities()
 
       --Send data about resources
-      local resource_tracker = object_tracker:get_resource_tracker(faction_id)
+      local resource_tracker = object_tracker:get_resource_tracker(player_id)
       local items = resource_tracker:get_tracked_items()
 
       send_string = send_string .. "_Resources_"

@@ -49,9 +49,9 @@ function BuildService:_unpackage_proxy_data(proxy, entity_map)
    return entity
 end
 
-function BuildService:build_structures(faction, changes)
+function BuildService:build_structures(session, changes)
    local root = radiant.entities.get_root_entity()
-   local town = stonehearth.town:get_town(faction)
+   local town = stonehearth.town:get_town(session.player_id)
    
    self._faction = faction
 

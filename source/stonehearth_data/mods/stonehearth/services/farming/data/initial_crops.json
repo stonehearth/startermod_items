@@ -1,5 +1,5 @@
 {
-   "ascendancy" : [
+   "stonehearth:kingdoms:ascendancy" : [
       {
          "crop_type" : "stonehearth:turnip_crop",
          "quantity" : 10
@@ -9,7 +9,7 @@
          "quantity" : 5
       }
    ], 
-   "rayyas_children" : [
+   "stonehearth:kingdoms:rayyas_children" : [
       {
          "crop_type" : "stonehearth:turnip_crop",
          "quantity" : 10
@@ -19,7 +19,7 @@
          "quantity" : 5
       }
    ], 
-   "northern_alliance" : [
+   "stonehearth:kingdoms:northern_alliance" : [
       {
          "crop_type" : "stonehearth:turnip_crop",
          "quantity" : 10

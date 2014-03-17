@@ -1,5 +1,4 @@
 local priorities = require('constants').priorities.worker_task
-local inventory_service = stonehearth.inventory
 
 local StockpileComponent = class()
 StockpileComponent.__classname = 'StockpileComponent'
@@ -145,12 +144,12 @@ function StockpileComponent:on_gameloop()
                            end)
 
    local unit_info = self._entity:add_component('unit_info')
-   self._unit_info_trace = unit_info:trace_faction('stockpile tracking faction')
+   self._unit_info_trace = unit_info:trace_player_id('stockpile tracking player_id')
                                        :on_changed(function()
-                                             self:_assign_to_faction()
+                                             self:_assign_to_player()
                                           end)
       
-   self:_assign_to_faction()
+   self:_assign_to_player()
    self:_rebuild_item_data()
 end
 
@@ -333,22 +332,22 @@ function StockpileComponent:_rebuild_item_data()
    end
 end
 
-function StockpileComponent:_assign_to_faction()
-   local faction = self._entity:add_component('unit_info'):get_faction()
+function StockpileComponent:_assign_to_player()
+   local player_id = self._entity:add_component('unit_info'):get_player_id()
 
-   local old_faction = self._faction
-   self._faction = faction
+   local old_player_id = self._player_id
+   self._player_id = player_id
    
-   if not old_faction or self._faction ~= old_faction then
-      if old_faction then
+   if not old_player_id or self._player_id ~= old_player_id then
+      if old_player_id then
          -- unregister from the current inventory service
-         local inventory = inventory_service:get_inventory(old_faction)
+         local inventory = stonehearth.inventory:get_inventory(old_player_id)
          inventory:remove_storage(self._entity)
       end
 
-      -- register with the inventory service for this faction
-      if faction then
-         local inventory = inventory_service:get_inventory(faction)
+      -- register with the inventory service for this player_id
+      if player_id then
+         local inventory = stonehearth.inventory:get_inventory(player_id)
          inventory:add_storage(self._entity)
          radiant.events.listen(inventory, 'stonehearth:item_added', self, self._on_item_added_to_inventory)
          radiant.events.listen(inventory, 'stonehearth:item_removed', self, self._on_item_removed_from_inventory)
@@ -431,7 +430,7 @@ function StockpileComponent:_create_worker_tasks()
 
    self:_destroy_tasks()
 
-   local town = stonehearth.town:get_town(self._faction)
+   local town = stonehearth.town:get_town(self._entity)
    self._task = town:create_worker_task('stonehearth:restock_stockpile', { stockpile = self })
                                    :set_source(self._entity)
                                    :set_name('restock task')

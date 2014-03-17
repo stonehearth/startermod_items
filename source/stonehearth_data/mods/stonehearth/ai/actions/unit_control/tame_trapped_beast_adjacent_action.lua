@@ -32,7 +32,7 @@ function TameTrappedBeastAdjacent:run(ai, entity, args)
       local faction = radiant.entities.get_faction(self._entity)
       pet:add_component('unit_info'):set_faction(faction)
 
-      local town = stonehearth.town:get_town(faction)
+      local town = stonehearth.town:get_town(self._entity)
       town:add_pet(pet)
    end
 end

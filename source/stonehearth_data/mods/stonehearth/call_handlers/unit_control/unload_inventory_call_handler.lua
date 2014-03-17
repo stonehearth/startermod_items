@@ -9,7 +9,7 @@ function UnloadInventoryCallHandler:unload_inventory(session, response, entity)
       return
    end
    
-   local town = stonehearth.town:get_town(session.faction)
+   local town = stonehearth.town:get_town(session.player_id)
    town:command_unit(entity, 'stonehearth:unit_control:unload_inventory')
             :once()
             :start()

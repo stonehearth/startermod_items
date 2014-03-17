@@ -75,8 +75,10 @@ function ScenarioService:create_new_game(feature_size, rng)
 end
 
 function ScenarioService:_register_events()
-   -- TODO: in multiplayer, scenario service needs to reveal for all factions
-   self._faction = stonehearth.population:get_faction('civ', 'stonehearth:factions:ascendancy')
+   -- TODO: in multiplayer, scenario service needs to reveal for all factions.  we actually need
+   -- to iterate over all player popluations rather than just the hardcoded "player_1".  When the
+   -- service to iterate over all players in the game is written, change this bit. -- tony
+   self._faction = stonehearth.population:get_population('player_1')
    radiant.events.listen(radiant.events, 'stonehearth:very_slow_poll', self, self._on_poll)
 end
 

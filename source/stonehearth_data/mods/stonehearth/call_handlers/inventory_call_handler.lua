@@ -69,7 +69,7 @@ end
 
 -- runs on the server!
 function InventoryCallHandler:create_stockpile(session, response, location, size)
-   local inventory = stonehearth.inventory:get_inventory(session.faction)
+   local inventory = stonehearth.inventory:get_inventory(session.player_id)
    local stockpile = inventory:create_stockpile(location, size)
    return { stockpile = stockpile }
 end

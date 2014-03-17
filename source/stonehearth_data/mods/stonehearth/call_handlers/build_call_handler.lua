@@ -11,7 +11,7 @@ function BuildCallHandler:get_build_editor(session, request)
 end
 
 function BuildCallHandler:build_structures(session, request, changes)
-   stonehearth.build:build_structures(session.faction, changes)
+   stonehearth.build:build_structures(session, changes)
    return { success = true }
 end
 

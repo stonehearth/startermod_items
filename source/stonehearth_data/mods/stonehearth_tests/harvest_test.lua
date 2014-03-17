@@ -18,11 +18,11 @@ function HarvestTest:__init()
 
    
    self:at(10,  function()
-         --self:place_stockpile_cmd(faction, 12, 12, 4, 4)
+         --self:place_stockpile_cmd(player_id, 12, 12, 4, 4)
       end)
 
    self:at(100, function()
-         --tree:get_component('stonehearth:commands'):do_command('chop', faction)
+         --tree:get_component('stonehearth:commands'):do_command('chop', player_id)
       end)
 end
 

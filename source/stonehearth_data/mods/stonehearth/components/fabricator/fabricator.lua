@@ -217,7 +217,7 @@ end
 function Fabricator:_start_teardown_task()
    assert(not self._teardown_task)
    
-   local town = stonehearth.town:get_town(self._faction)
+   local town = stonehearth.town:get_town(self._entity)
    self._teardown_task = town:create_worker_task('stonehearth:teardown_structure', { fabricator = self })
                                    :set_name('teardown')
                                    :set_source(self._entity)
@@ -230,7 +230,7 @@ end
 function Fabricator:_start_fabricate_task() 
    assert(not self._fabricate_task)
 
-   local town = stonehearth.town:get_town(self._faction)  
+   local town = stonehearth.town:get_town(self._entity)
    self._fabricate_task = town:create_worker_task('stonehearth:fabricate_structure', { fabricator = self })
                                    :set_name('fabricate')
                                    :set_source(self._entity)

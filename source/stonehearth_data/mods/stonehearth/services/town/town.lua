@@ -7,13 +7,13 @@ local CreateWorkshop = require 'services.town.orchestrators.create_workshop_orch
 
 local Town = class()
 
-function Town:__init(faction_name)
-   assert(faction_name)
-   self._faction_name = faction_name
+function Town:__init(session)   
+   self._faction = session.faction
+   self._player_id = session.player_id
 
-   self._log = radiant.log.create_logger('town', faction_name)
-   self._scheduler = stonehearth.tasks:create_scheduler(faction_name)
-                                       :set_counter_name(faction_name)
+   self._log = radiant.log.create_logger('town', self._player_id)
+   self._scheduler = stonehearth.tasks:create_scheduler(self._player_id)
+                                       :set_counter_name(self._player_id)
 
    self._town_entity = radiant.entities.create_entity()
    radiant.entities.add_child(radiant._root_entity, self._town_entity, Point3(0, 0, 0))
@@ -34,7 +34,7 @@ function Town:__init(faction_name)
 end
 
 function Town:get_faction()
-   return self._faction_name
+   return self._faction
 end
 
 function Town:destroy()
@@ -74,7 +74,7 @@ end
 
 -- does not tame the pet, just adds it to the town
 function Town:add_pet(entity)
-   entity:add_component('unit_info'):set_faction(self._faction_name)
+   entity:add_component('unit_info'):set_faction(self._faction)
 
    self:_add_unit_controller(entity, 'stonehearth:ambient_pet_behavior',
       stonehearth.constants.priorities.top.AMBIENT_PET_BEHAVIOR)

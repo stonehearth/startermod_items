@@ -13,9 +13,9 @@ function FirePitTest:__init()
 
    self:place_item_cluster('stonehearth:oak_log', -10, 0, 3, 3)
 
-   local faction = radiant.entities.get_faction(worker)
-   self:place_item('stonehearth:firepit_proxy', 1, 1, faction)
-   local firepit = self:place_item('stonehearth:firepit', 8, 8, faction)
+   local player_id = radiant.entities.get_player_id(worker)
+   self:place_item('stonehearth:firepit_proxy', 1, 1, player_id)
+   local firepit = self:place_item('stonehearth:firepit', 8, 8, player_id)
    --[[
    radiant.events.trigger(stonehearth.calendar, 'stonehearth:hourly')
    --firepit:get_component('stonehearth:firepit'):_init_gather_wood_task()

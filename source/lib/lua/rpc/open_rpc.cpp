@@ -144,6 +144,8 @@ void lua::rpc::open(lua_State* L, CoreReactorPtr reactor)
                .def("always",     &LuaDeferred_Always),
             lua::RegisterTypePtr<Session>("Session")
                .def_readonly("faction", &Session::faction)
+               .def_readonly("kingdom", &Session::kingdom)
+               .def_readonly("player_id", &Session::player_id)
          ]
       ]
    ];

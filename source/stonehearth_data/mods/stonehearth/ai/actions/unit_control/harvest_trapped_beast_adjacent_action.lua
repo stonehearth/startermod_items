@@ -91,14 +91,13 @@ function HarvestTrappedBeastAdjacent:_spawn_loot(beast)
 end
 
 function HarvestTrappedBeastAdjacent:_schedule_pickup_item(item)
-   local faction = radiant.entities.get_faction(self._entity)
-   local town = stonehearth.town:get_town(faction)
-
-   town:command_unit_scheduled(self._entity, 'stonehearth:loot_item', { item = item })
-         --:add_entity_effect(loot_item, '/stonehearth/data/effects/chop_overlay_effect')
-         :once()
-         :start()
-
+   local town = stonehearth.town:get_town(self._entity)
+   if town then
+      town:command_unit_scheduled(self._entity, 'stonehearth:loot_item', { item = item })
+            --:add_entity_effect(loot_item, '/stonehearth/data/effects/chop_overlay_effect')
+            :once()
+            :start() 
+   end
 end
 
 return HarvestTrappedBeastAdjacent
