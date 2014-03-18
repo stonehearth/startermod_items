@@ -47,7 +47,7 @@ function MouseCapture:on_input(cb)
 end
 
 local RegionSelector = class()
-function RegionSelector:__init(p0, p1)
+function RegionSelector:__init()
 end
 
 function RegionSelector:destroy()
@@ -97,8 +97,7 @@ end
 
 function RegionSelector:_schedule_callback()
    if self._client_attached and self._server_attached then
-      local now = radiant.gamestate.now()
-      radiant.set_timer(now + 20, function ()
+      radiant.set_realtime_timer(20, function ()
             self:_fire_next_callback()
          end)
    end
@@ -131,7 +130,7 @@ end
 local function start_mouse_queue_timer()
    if not _mouse_queue_timer_set then
       _mouse_queue_timer_set = true
-      radiant.set_timer(10, function()
+      radiant.set_realtime_timer(10, function()
             _mouse_queue_timer_set = false
             if #_mouse_queue > 0 and next(_captures) then
                local event = table.remove(_mouse_queue, 1)

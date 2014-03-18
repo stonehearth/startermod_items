@@ -14,6 +14,13 @@ function ScaffoldingFabricator:initialize(entity, json)
    self._entity = entity
 end
 
+function ScaffoldingFabricator:destroy()
+   if self._project_trace then
+      self._project_trace:destroy()
+      self._project_trace = nil
+   end
+end
+
 function ScaffoldingFabricator:support_project(project, blueprint, normal)
    assert(normal)
    

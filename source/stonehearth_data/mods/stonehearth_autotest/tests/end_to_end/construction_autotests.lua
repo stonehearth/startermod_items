@@ -9,6 +9,7 @@ function construction_tests.simple_build()
    radiant.events.listen(autotest.env.town, 'stonehearth:building_added', function (e)
          radiant.events.listen(e.building, 'stonehearth:construction_finished', function (e)
                if e.finished then
+                  -- xxx: doesn't wait for the scaffolding to be finished, unfortunately
                   autotest.success()
                end
             end)

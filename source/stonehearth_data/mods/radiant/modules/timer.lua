@@ -2,7 +2,7 @@
 local _timers = {}
 
 function radiant._fire_timers()
-   local now = radiant.gamestate.now()
+   local now = _host:get_realtime()
 
    table.sort(_timers, function (l, r) return l.time > r.time end)
    
@@ -14,10 +14,14 @@ function radiant._fire_timers()
    end
 end
 
-function radiant.set_timer(time, fn)
-   local now = radiant.gamestate.now()
+function radiant.get_realtime()
+   return _host:get_realtime()
+end
+
+function radiant.set_realtime_timer(time, fn)
+   local now = _host:get_realtime()
    table.insert(_timers, {
-         time = time,
+         time = now + (time / 1000.0),
          fn = fn
       })
 end

@@ -45,17 +45,16 @@ end
 
 function autotest.sleep(ms)
    assert(stonehearth.threads:get_current_thread() == _test_thread)
-
-   local wakeup = radiant.gamestate.now() + ms
+   local wakeup = radiant.get_realtime() + (ms / 1000.0)
    repeat
       local thread = _test_thread
-      radiant.set_timer(wakeup, function()
+      radiant.set_realtime_timer(ms, function()
             if not thread:is_finished() then
                thread:resume()
             end
          end)
       thread:suspend()
-   until thread:is_finished() or radiant.gamestate.now() >= wakeup
+   until thread:is_finished() or radiant.get_realtime() >= wakeup
 end
 
 function autotest.check_table(expected, actual, route)

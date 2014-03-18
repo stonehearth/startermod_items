@@ -71,7 +71,7 @@ function EntityTracker:_on_entity_remove(id)
 
       -- Handlebars can't handle (heh) associative arrays (GAH!)
       for i, entity in ipairs(self._entities) do
-         if entity and entity:get_id() == id then
+         if entity and entity:is_valid() and entity:get_id() == id then
             table.remove(self._entities, i)
             break
          end

@@ -103,7 +103,7 @@ function AIComponent:_add_action(key, action_ctor, injecting_entity)
       injecting_entity = injecting_entity,
    }
    self._action_index[does][key] = entry
-   radiant.events.trigger(self, 'stonehearth:action_index_changed', 'add', key, entry, does)
+   radiant.events.trigger(self, 'stonehearth:action_index_changed:' .. does, 'add', key, entry, does)
 end
 
 function AIComponent:remove_action(key)

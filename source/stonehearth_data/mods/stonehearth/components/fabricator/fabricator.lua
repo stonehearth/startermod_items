@@ -16,6 +16,8 @@ function Fabricator:__init(name, entity, blueprint)
    
    self._entity = entity
    self._blueprint = blueprint
+   assert(radiant.entities.get_player_id(self._blueprint) ~= '')
+   
    self._teardown = false
    self._faction = radiant.entities.get_faction(blueprint)
 
@@ -46,12 +48,13 @@ function Fabricator:__init(name, entity, blueprint)
    -- no need to update their transform.
    local rgn = _radiant.sim.alloc_region()
    self._project = radiant.entities.create_entity(blueprint:get_uri())
+   radiant.entities.set_faction(self._project, blueprint)
+   radiant.entities.set_player_id(self._project, blueprint)
+
    self._project:add_component('destination')
-                     :set_region(rgn)
-                     
+                     :set_region(rgn)                    
    self._project:add_component('region_collision_shape')
                      :set_region(rgn)
-   radiant.entities.set_faction(self._project, blueprint)
    self._entity:add_component('entity_container')
                      :add_child(self._project)
 
@@ -76,6 +79,15 @@ function Fabricator:__init(name, entity, blueprint)
       self._dependencies_finished = true
    end
    self:_trace_blueprint_and_project()
+end
+
+function Fabricator:destroy()
+   for _, trace in ipairs(self._traces) do
+      trace:destroy()
+   end
+   self._traces = {}
+   self:_untrace_blueprint_and_project()
+   self:_stop_project()
 end
 
 function Fabricator:_on_dependencies_finished(e)
@@ -172,15 +184,6 @@ function Fabricator:remove_block(location)
       end   
    end
    return true
-end
-
-function Fabricator:destroy()
-   for _, trace in ipairs(self._traces) do
-      trace:destroy()
-   end
-   self._traces = {}
-   self:_untrace_blueprint_and_project()
-   self:_stop_project()
 end
 
 function Fabricator:_start_project()

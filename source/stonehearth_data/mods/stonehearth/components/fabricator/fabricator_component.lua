@@ -15,6 +15,13 @@ function FabricatorComponent:initialize(entity, json)
    self.__saved_variables = radiant.create_datastore({})
 end
 
+function FabricatorComponent:destroy()
+   if self._fabricator then
+      self._fabricator:destroy()
+      self._fabricator = nil
+   end
+end
+
 function FabricatorComponent:add_block(material, location)
    return self._fabricator:add_block(material, location)
 end
@@ -83,6 +90,7 @@ function FabricatorComponent:_add_scaffolding_to_project(project, blueprint, nor
                   :set_normal(normal)
    scaffolding:add_component('stonehearth:scaffolding_fabricator'):support_project(project, blueprint, normal)
    radiant.entities.set_faction(scaffolding, project)
+   radiant.entities.set_player_id(scaffolding, project)
 
    -- create a fabricator entity to build the scaffolding
    local name = string.format('scaffolding for %s', self.name)

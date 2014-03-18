@@ -12,7 +12,6 @@ function RunEffectTimedAction:run(ai, entity, args)
    self._effect = radiant.effects.run_effect(entity, args.effect)
    self._timer = stonehearth.calendar:set_timer(args.duration, function()
       ai:resume()
-      self._timer = nil
    end)
    ai:suspend()
 end
@@ -21,6 +20,10 @@ function RunEffectTimedAction:stop()
    if self._effect then
       self._effect:stop()
       self._effect = nil
+   end
+   if self._timer then
+      self._timer:destroy()
+      self._timer = nil
    end
 end
 

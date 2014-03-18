@@ -36,7 +36,7 @@ end
 function Thread.schedule_thread(thread)
    assert(not thread._finished)
    if not Thread.is_scheduled[thread] then
-      thread._log:detail('scheduling thread')
+      thread._log:detail('adding thread to scheduled list')
       Thread.is_scheduled[thread] = true
       table.insert(Thread.scheduled, thread)
    end
@@ -44,7 +44,7 @@ end
 
 function Thread.resume_thread(thread)
    local success, thread_status, result1 = thread:_do_resume()
-   assert(success)
+   assert(success, 'thread coroutine failed to resume')
 
    local status = coroutine.status(thread._co)
    if status == 'dead' then
@@ -192,7 +192,6 @@ function Thread:start(...)
 
    self._co = coroutine.create(function ()
          -- make a pcall.. this only works because we've installed coco
-
          local error_handler = function(err)
             local traceback = debug.traceback()
             _host:report_error(err, traceback)
@@ -200,10 +199,12 @@ function Thread:start(...)
             return err
          end
          xpcall(function()
+               self._running = true
                self:_dispatch_messages()
                self._should_resume = true
                self._thread_main(unpack(args))
                self._should_resume = false
+               self._running = false
             end, error_handler)
       end)
    Thread.all_threads[self._co] = self
@@ -220,14 +221,20 @@ end
 
 function Thread:_interrupt(fn, sync)
    if not self._finished then
+      local current = Thread.get_current_thread()
+      self._log:detail('thread %s is currently running in :interrupt', current and tostring(current:get_id()) or 'nil')
       if self:is_running() then
          fn()
       else
-         self:send_msg('thread:call_interrupt', fn)
          if sync then
-            self._log:error('scheduling thread immediately to deliver interrupt.')
-            Thread.resume_thread(self)
-            self._log:error('finished delivering interrupt.')
+            self:send_msg('thread:call_interrupt', fn)
+            if coroutine.status(self._co) == 'suspended' then
+               self._log:detail('switching to thread immediately to deliver interrupt.')
+               Thread.resume_thread(self)
+               self._log:detail('finished delivering interrupt.')
+            else
+               self._log:detail('coroutine not at top of the stack.  will have to handle msg later.')
+            end
          end
       end
    end
@@ -275,6 +282,7 @@ end
 
 function Thread:is_running()
    return Thread.get_current_thread() == self
+   --return self._running
 end
 
 function Thread:suspend(reason)
@@ -340,10 +348,15 @@ function Thread:terminate(err)
 end
 
 function Thread:_do_resume()
-   assert(self._co)
-   assert(not self:is_running())
+   assert(self._co, 'thread has no coroutine in resume')
+   assert(not self:is_running(), 'thread is not running in resume')
+   if coroutine.status(self._co) ~= 'suspended' then
+      local co = coroutine.running()
+      local thread = Thread.all_threads[co]
+   end
+   assert(coroutine.status(self._co) == 'suspended', 'thread coroutine not suspened in _do_resume()')
 
-   self._log:spam('coroutine.resume...')
+   self._log:spam('coroutine.resume (status:%s).', coroutine.status(self._co))
    return coroutine.resume(self._co)
 end
 
@@ -351,13 +364,19 @@ function Thread:_do_yield(...)
    assert(self._co)
    assert(self:is_running())
 
+   self._running = false
    coroutine.yield(...)
+
    -- if we got terminated while suspended, just yield indefinitely.
    -- we'll be destroyed when the last reference goes away
    while self._finished do
       coroutine.yield(Thread.SUSPEND)
+      self._log:spam('coroutine resumed after thread died (weird!).  yielding.')
    end
-  
+   self._log:detail('coroutine returned from yield.')
+
+   self._running = true
+   
    assert(self:is_running())
 end
 
@@ -369,6 +388,7 @@ end
 
 function Thread:_on_thread_exit(err)
    self._log:detail('thread %d has finished', self._id)
+   self._running = false
    self._finished = true
    self._msgs = {}
    for _, fn in ipairs(self._exit_handlers) do
@@ -380,33 +400,6 @@ function Thread:_on_thread_exit(err)
       self._parent:send_msg('child_thread_exit', self, err)
    end
 end
-
-   --[[ this should never happen, as thread main is in a coroutine!
-function Thread:_resume()
-   assert(self._co)
-   assert(self._suspended)
-   assert(not self._finished)
-
-   self._suspended = false
-
-   local success, thread_status, wait_obj = self:_do_resume()
-   if not success then
-      radiant.check.report_thread_error(self._co, 'thread error: ' .. tostring(thread_status))
-      self._co = nil
-      return Thread.KILL, thread_status
-   end
-
-   local status = coroutine.status(self._co)
-   if status == 'dead' then
-      return Thread.DEAD
-   elseif status == 'suspended' then
-      self._suspended = true
-      return thread_status, wait_obj
-   else
-      error(string.format('unknown status "%s" returned from coroutine.status', status))
-   end
-end
-   ]]
 
 function Thread:_dispatch_messages()
    -- keep draining the queue till it's empty

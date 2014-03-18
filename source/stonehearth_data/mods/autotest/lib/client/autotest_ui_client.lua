@@ -19,19 +19,25 @@ _server.on[commands.SELECT_ENTITY] = function(entity)
    if not entity or not entity:is_valid() then
       _fail('could not select invalid entity')
    end
+   autotest.log('selecting entity: %s', tostring(entity))
    _radiant.client.select_entity(entity)
 end
 
 _server.on[commands.CLICK_DOM_ELEMENT] = function(jq_selector)
+   autotest.log('clicking on DOM element "%s"', jq_selector)
    _browser:send(commands.CLICK_DOM_ELEMENT, jq_selector)
 end
 
 _server.on[commands.CLICK_WORLD_COORD] = function(x, y, z)
+   autotest.log('clicking on world coodrinate (%d, %d, %d)', x, y, z)
    _mouse_capture.click(x, y, z)
 end
 
 _server.on[commands.SET_SELECT_XZ_REGION] = function(p0, p1)
-   _mouse_capture.set_select_xz_region(Point3(p0.x, p0.y, p0.z), Point3(p1.x, p1.y, p1.z))
+   local p0 = Point3(p0.x, p0.y, p0.z)
+   local p1 = Point3(p1.x, p1.y, p1.z)
+   autotest.log('setting xz region to %s - %s', p0, p1)
+   _mouse_capture.set_select_xz_region(p0, p1)
 end
 
 _server.on[commands.MOVE_CAMERA] = function(position, look_at)
