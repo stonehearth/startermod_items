@@ -199,12 +199,10 @@ function Thread:start(...)
             return err
          end
          xpcall(function()
-               self._running = true
                self:_dispatch_messages()
                self._should_resume = true
                self._thread_main(unpack(args))
                self._should_resume = false
-               self._running = false
             end, error_handler)
       end)
    Thread.all_threads[self._co] = self
@@ -282,7 +280,6 @@ end
 
 function Thread:is_running()
    return Thread.get_current_thread() == self
-   --return self._running
 end
 
 function Thread:suspend(reason)
@@ -364,7 +361,6 @@ function Thread:_do_yield(...)
    assert(self._co)
    assert(self:is_running())
 
-   self._running = false
    coroutine.yield(...)
 
    -- if we got terminated while suspended, just yield indefinitely.
@@ -375,8 +371,6 @@ function Thread:_do_yield(...)
    end
    self._log:detail('coroutine returned from yield.')
 
-   self._running = true
-   
    assert(self:is_running())
 end
 
@@ -388,7 +382,6 @@ end
 
 function Thread:_on_thread_exit(err)
    self._log:detail('thread %d has finished', self._id)
-   self._running = false
    self._finished = true
    self._msgs = {}
    for _, fn in ipairs(self._exit_handlers) do
