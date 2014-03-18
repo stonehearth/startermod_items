@@ -59,7 +59,9 @@ function ResourceCallHandler:server_box_harvest_resources(session, response, box
                       Point3(box.max.x, box.max.y, box.max.z))
 
    for i, entity in radiant.terrain.get_entities_in_box(cube) do
-      if entity:get_component('stonehearth:resource_node') then
+      if entity:get_component('stonehearth:renewable_resource_node') then
+         self:harvest_plant(session, response, entity)
+      elseif entity:get_component('stonehearth:resource_node') then
          self:harvest_tree(session, response, entity)
       end
    end

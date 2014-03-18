@@ -34,7 +34,7 @@ function TrapperTest:__init()
    radiant.terrain.place_entity(banner_entity, Point3(11, 0, 11))
 
    self:at(10,  function()
-         self:place_stockpile_cmd('civ', 12, 12, 4, 4)
+         self:place_stockpile_cmd('player_1', 12, 12, 4, 4)
       end)
 
 end
