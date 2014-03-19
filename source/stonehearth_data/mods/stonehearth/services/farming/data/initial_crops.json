@@ -1,6 +1,9 @@
 {
    "stonehearth:kingdoms:ascendancy" : [
       {
+         "crop_type" : "fallow"
+      },
+      {
          "crop_type" : "stonehearth:turnip_crop",
          "quantity" : 10
       },
@@ -10,6 +13,9 @@
       }
    ], 
    "stonehearth:kingdoms:rayyas_children" : [
+      {
+         "crop_type" : "fallow"
+      },
       {
          "crop_type" : "stonehearth:turnip_crop",
          "quantity" : 10
@@ -21,6 +27,9 @@
    ], 
    "stonehearth:kingdoms:northern_alliance" : [
       {
+         "crop_type" : "fallow"
+      },
+      {
          "crop_type" : "stonehearth:turnip_crop",
          "quantity" : 10
       },
@@ -28,5 +37,12 @@
          "crop_type" : "stonehearth:corn_seedling",
          "quantity" : 5
       }
-   ]
+   ], 
+   "data" : {
+      "fallow" : {
+         "name" : "Fallow", 
+         "description" : "Let the soil renew itself", 
+         "icon" : "file(fallow.png)"   
+      }
+   }
 }

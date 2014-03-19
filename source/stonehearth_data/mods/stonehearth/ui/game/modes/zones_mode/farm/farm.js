@@ -22,12 +22,26 @@ App.StonehearthFarmView = App.View.extend({
          });
 
       //xxx placeholder
-      this.set('crop_rotation', []);
+      //this.set('crop_rotation', []);
+     
    },
+
+   //Temporary
+   _setCurrCrop: function() {
+      var curr_crop_name = this.get('context.stonehearth:farmer_field.crop_queue')[0].name;
+      this.set('context.curr_crop_name', curr_crop_name)
+   }.observes('context.stonehearth:farmer_field'),
 
    didInsertElement: function() {
       this._super();
       var self = this;
+
+      if (this.get('context.stonehearth:farmer_field') == undefined ) {
+         return;
+      }
+
+      //ar curr_crop_name = this.get('context.stonehearth:farmer_field.crop_queue')[0].name;
+      //this.set('context.curr_crop_name', curr_crop_name)
 
       this.$('#name').focus(function (e) {
          radiant.call('stonehearth:enable_camera_movement', false)
@@ -45,11 +59,25 @@ App.StonehearthFarmView = App.View.extend({
       });
 
       this.$('button.warn').click(function() {
+         self.deleteFarm();
+         self.destroy();
+      });
+
+      this.$('button.ok').click(function() {
          self.destroy();
       });
 
       this.$('#farmWindow').draggable();
 
+      $('.tooltip').tooltipster({
+            position: 'bottom'
+      });
+      $('.tooltip').tooltipster('enable');
+
+   },
+
+   deleteFarm: function(){
+      radiant.call('stonehearth:destroy_entity', this.uri)
    },
 
    destroy : function() {
@@ -66,20 +94,28 @@ App.StonehearthFarmView = App.View.extend({
       console.log(this.get('crop_rotation'));
    },
 
+   //temporary
+   change_default_crop: function(cropId) {
+      var field = this.get('context.stonehearth:farmer_field').__self;
+      radiant.call_obj(field, 'change_default_crop', cropId);
+   },
+
    actions :  {
       addCropButtonClicked: function() {
          var self = this;
          palette = App.gameView.addView(App.StonehearthFarmCropPalette, { 
                      click: function(item) {
-                        var cropId = $(item).attr('crop')
-                        self.addCropToRotation($(item).attr('crop'));
+                        var cropId = $(item).attr('crop');
+                        //TODO: add back when we make the queue
+                        //self.addCropToRotation($(item).attr('crop'));
+                        self.change_default_crop(cropId);
                      },
                      context: {
                         items : self.get('all_crops')
                      },
                      position: {
-                        my : 'center',
-                        at : 'center',
+                        my : 'center bottom',
+                        at : 'left bottom', //'bottom',
                         of : this.$('#addCropButton')
                      }
                   });
@@ -93,7 +129,6 @@ App.StonehearthFarmCropPalette = App.View.extend({
 
    init: function() {
       this._super();
-
    },
 
    didInsertElement: function() {
