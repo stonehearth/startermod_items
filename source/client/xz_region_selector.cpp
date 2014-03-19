@@ -121,20 +121,30 @@ bool XZRegionSelector::GetHoverBrick(int x, int y, csg::Point3 &pt)
    return true;
 }
 
+bool XZRegionSelector::IsValidLocation(int x, int y, int z) 
+{
+   // If we're only selecting the terrain and therefore ignoring entities (done when
+   // harvesting, for example), then simply return true.
+   if (_userFlags == 1) {
+      return true;
+   }
+
+   // Otherwise, consult the octree for standability.
+   auto const& octtree = Client::GetInstance().GetOctTree();
+   return octtree.CanStandOn(nullptr, csg::Point3(x, y, z));
+}
+
 
 void XZRegionSelector::ValidateP1(int newx, int newz)
 {
    int dx = (newx >= _p0.x) ? 1 : -1;
    int dz = (newz >= _p0.z) ? 1 : -1;
    int validx, validz;
-   auto const& octtree = Client::GetInstance().GetOctTree();
-
-#define OK(x, y, z) octtree.CanStandOn(nullptr, csg::Point3(x, y, z))
 
    // grow in the x direction
    for (validx = _p0.x + dx; validx != newx + dx; validx += dx) {
       for (int z = _p0.z; z != newz + dz; z += dz) {
-         if (!OK(validx, _p0.y, z)) {
+         if (!IsValidLocation(validx, _p0.y, z)) {
             goto z_check;
          }
       }
@@ -145,7 +155,7 @@ z_check:
    // grow in the z direction
    for (validz = _p0.z + dz; validz != newz + dz; validz += dz) {
       for (int x = _p0.x; x != validx + dx; x += dx) {
-         if (!OK(x, _p0.y, validz)) {
+         if (!IsValidLocation(x, _p0.y, validz)) {
             goto finished;
          }
       }
