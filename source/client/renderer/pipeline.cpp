@@ -19,11 +19,6 @@ using ::radiant::csg::Point3;
 using namespace ::radiant;
 using namespace ::radiant::client;
 
-enum UserFlags {
-   None = 0,
-   Terrain = 1
-};
-
 DEFINE_SINGLETON(Pipeline);
 
 static const struct {
@@ -53,10 +48,10 @@ H3DRes Pipeline::CreateVoxelGeometryFromRegion(const std::string& geoName, csg::
    return h3dutCreateVoxelGeometryRes(geoName.c_str(), (VoxelGeometryVertex*)mesh.vertices.data(), mesh.vertices.size(), (uint*)mesh.indices.data(), mesh.indices.size());
 }
 
-H3DNode Pipeline::AddDynamicMeshNode(H3DNode parent, const csg::mesh_tools::mesh& m, std::string const& material)
+H3DNode Pipeline::AddDynamicMeshNode(H3DNode parent, const csg::mesh_tools::mesh& m, std::string const& material, int userFlags)
 {   
    H3DRes geometry = ConvertMeshToGeometryResource(m);
-   return CreateModelNode(parent, geometry, m.indices.size(), m.vertices.size(), material, UserFlags::Terrain);
+   return CreateModelNode(parent, geometry, m.indices.size(), m.vertices.size(), material, userFlags);
 }
 
 H3DNode Pipeline::AddSharedMeshNode(H3DNode parent, ResourceCacheKey const& key, std::string const& material, std::function<void(csg::mesh_tools::mesh &)> create_mesh_fn)
@@ -142,8 +137,8 @@ H3DNodeUnique Pipeline::CreateBlueprintNode(H3DNode parent,
       outline_mesh.AddRegion(outline, csg::ToFloat(pi));
       panels_mesh.AddRegion(panels, csg::ToFloat(pi));
    });
-   AddDynamicMeshNode(group, panels_mesh, material_path);
-   AddDynamicMeshNode(group, outline_mesh, material_path);
+   AddDynamicMeshNode(group, panels_mesh, material_path, 0);
+   AddDynamicMeshNode(group, outline_mesh, material_path, 0);
 
    return group;
 }
@@ -151,11 +146,12 @@ H3DNodeUnique Pipeline::CreateBlueprintNode(H3DNode parent,
 H3DNodeUnique Pipeline::CreateVoxelNode(H3DNode parent,
                                         csg::Region3 const& model,
                                         std::string const& material,
-                                        csg::Point3f const& offset)
+                                        csg::Point3f const& offset,
+                                        int userFlags)
 {
    csg::mesh_tools::mesh mesh;
    csg::RegionToMesh(model, mesh, offset);
-   return AddDynamicMeshNode(parent, mesh, material);
+   return AddDynamicMeshNode(parent, mesh, material, userFlags);
 }
 
 void Pipeline::AddDesignationStripes(csg::mesh_tools::mesh& m, csg::Region2 const& panels)
@@ -265,13 +261,13 @@ Pipeline::CreateDesignationNode(H3DNode parent,
    AddDesignationStripes(stripes_mesh, plane);
 
    H3DNode group = h3dAddGroupNode(parent, "designation group node");
-   H3DNode stripes = AddDynamicMeshNode(group, stripes_mesh, "materials/designation/stripes.material.xml");
+   H3DNode stripes = AddDynamicMeshNode(group, stripes_mesh, "materials/designation/stripes.material.xml", 0);
    h3dSetNodeParamI(stripes, H3DModel::UseCoarseCollisionBoxI, 1);
    h3dSetNodeParamI(stripes, H3DModel::PolygonOffsetEnabledI, 1);
    h3dSetNodeParamF(stripes, H3DModel::PolygonOffsetF, 0, -1.0);
    h3dSetNodeParamF(stripes, H3DModel::PolygonOffsetF, 1, -.01f);
 
-   H3DNode outline = AddDynamicMeshNode(group, outline_mesh, "materials/designation/outline.material.xml");
+   H3DNode outline = AddDynamicMeshNode(group, outline_mesh, "materials/designation/outline.material.xml", 0);
    h3dSetNodeParamI(outline, H3DModel::UseCoarseCollisionBoxI, 1);
    h3dSetNodeParamI(outline, H3DModel::PolygonOffsetEnabledI, 1);
    h3dSetNodeParamF(outline, H3DModel::PolygonOffsetF, 0, -1.0);

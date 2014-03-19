@@ -294,8 +294,8 @@ HideBoneEffect::HideBoneEffect(RenderEntity& e, om::EffectPtr effect, const JSON
 {
    auto i = node.find("bone");
    if (i != node.end()) {
-      boneNodeFlags_ = h3dGetNodeFlags(boneNode_);
       boneNode_ = entity_.GetSkeleton().GetSceneNode(i->as_string());
+      boneNodeFlags_ = h3dGetNodeFlags(boneNode_);
    }
 }
 

@@ -91,7 +91,7 @@ H3DNodeUnique Client_CreateVoxelNode(lua_State* L,
                                      std::string const& material_path,
                                      csg::Point3f const& origin)
 {
-   return Pipeline::GetInstance().CreateVoxelNode(parent, model, material_path, -origin);
+   return Pipeline::GetInstance().CreateVoxelNode(parent, model, material_path, -origin, 0);
 }
 
 H3DNode Client_CreateQubicleMatrixNode(lua_State* L, 

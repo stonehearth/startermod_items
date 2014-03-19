@@ -13,6 +13,12 @@
 
 BEGIN_RADIANT_CLIENT_NAMESPACE
 
+enum UserFlags {
+   None = 0,
+   Terrain = 1
+};
+
+
 class Pipeline : public core::Singleton<Pipeline> {
    public:
       Pipeline();
@@ -22,10 +28,10 @@ class Pipeline : public core::Singleton<Pipeline> {
 
       // dynamic meshes are likely unique (and therefore do not need to share geometry with anyone) and are likely
       // to change (e.g. the terrain).
-      H3DNode AddDynamicMeshNode(H3DNode parent, const csg::mesh_tools::mesh& m, std::string const& material);
+      H3DNode AddDynamicMeshNode(H3DNode parent, const csg::mesh_tools::mesh& m, std::string const& material, int userFlags);
       H3DNode AddSharedMeshNode(H3DNode parent, ResourceCacheKey const& key, std::string const& material, std::function<void(csg::mesh_tools::mesh &)> create_mesh_fn);
 
-      H3DNodeUnique CreateVoxelNode(H3DNode parent, csg::Region3 const& model, std::string const& material_path, csg::Point3f const& offset);
+      H3DNodeUnique CreateVoxelNode(H3DNode parent, csg::Region3 const& model, std::string const& material_path, csg::Point3f const& offset, int userFlags);
       H3DNodeUnique CreateBlueprintNode(H3DNode parent, csg::Region3 const& model, float thickness, std::string const& material_path, csg::Point3f const& offset);
       H3DNodeUnique CreateDesignationNode(H3DNode parent, csg::Region2 const& model, csg::Color3 const& outline_color, csg::Color3 const& stripes_color);
       H3DNodeUnique CreateQubicleMatrixNode(H3DNode parent, std::string const& qubicle_file, std::string const& qubicle_matrix, csg::Point3f const& origin);
