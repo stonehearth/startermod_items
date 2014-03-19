@@ -468,6 +468,20 @@ void Client::OneTimeIninitializtion()
       DeactivateAllTools();
    });
 
+   core_reactor_->AddRouteV("radiant:client:select_entity", [this](rpc::Function const& f) {
+      json::Node params(json::Node(f.args).get_node(0));
+      std::string uri = params.as<std::string>("");
+      CLIENT_LOG(5) << "radiant:client:select_entity " << uri;
+      om::EntityPtr entity = GetStore().FetchObject<om::Entity>(uri);
+      if (!entity) {
+         entity = GetAuthoringStore().FetchObject<om::Entity>(uri);
+      }
+      if (entity) {
+         CLIENT_LOG(5) << " selecting " << *entity;
+         SelectEntity(entity);
+      }
+   });
+
 }
 
 void Client::Initialize()

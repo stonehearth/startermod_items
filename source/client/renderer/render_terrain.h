@@ -50,7 +50,9 @@ private:
       om::Region3BoxedRef        region;
       dm::TracePtr               trace;
 
-      RenderTile() { }
+      RenderTile() { 
+         _node = 0;
+      }
       ~RenderTile() {
          if (_node) {
             h3dRemoveNode(_node);

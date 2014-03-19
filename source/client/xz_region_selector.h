@@ -32,6 +32,7 @@ class XZRegionSelector : public std::enable_shared_from_this<XZRegionSelector>
 
       bool GetHoverBrick(int x, int y, csg::Point3 &pt);
       void ValidateP1(int x, int z);
+      bool IsValidLocation(int x, int y, int z);
 
    protected:
       std::shared_ptr<Deferred>        deferred_;

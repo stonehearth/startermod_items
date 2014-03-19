@@ -78,7 +78,7 @@ ide: configure
 
 .PHONY: run-autotest
 run-autotest:
-	cd $(RUN_ROOT) && ($(STONEHEARTH_APP) $(FLAGS) --game.main_mod=stonehearth_autotest&)
+	scripts/test/run_autotest.sh
 
 run-%-test:
 	cd $(RUN_ROOT) && $(STONEHEARTH_APP) $(FLAGS) --game.main_mod=stonehearth_tests --mods.stonehearth_tests.test=$*_test&
