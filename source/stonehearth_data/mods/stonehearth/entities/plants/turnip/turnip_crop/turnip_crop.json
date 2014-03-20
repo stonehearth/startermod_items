@@ -29,8 +29,8 @@
          }
       },
       "unit_info": {
-         "name": "Turnip Seedling", 
-         "description": "A unrealized turnip.",
+         "name": "Turnip", 
+         "description": "Steeped in the soil.",
          "icon" : "file(icon.png)",
          "portrait" : "file(portrait.png)"
       },
