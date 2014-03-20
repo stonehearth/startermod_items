@@ -60,9 +60,8 @@ function NewGameCallHandler:generate_start_location(session, response, feature_c
    local wgs = stonehearth.world_generation
    local x, z = wgs.overview_map:get_coords_of_cell_center(feature_cell_x, feature_cell_y)
 
-   -- TODO: store this better
-   wgs.start_x = x
-   wgs.start_z = z
+   -- better place to store this?
+   wgs.generation_location = Point3(x, 0, z)
 
    local radius = 2
    local blueprint = wgs:get_blueprint()
@@ -90,11 +89,15 @@ end
 function NewGameCallHandler:embark_server(session, response)
    local scenario_service = stonehearth.scenario
    local wgs = stonehearth.world_generation
-   local x = wgs.start_x
-   local z = wgs.start_z
+   local x = wgs.generation_location.x
+   local z = wgs.generation_location.z
    local y = radiant.terrain.get_height(Point2(x, z))
 
-   return { x = x, y = y, z = z }
+   return {
+      x = x,
+      y = y,
+      z = z
+   }
 end
 
 function NewGameCallHandler:embark_client(session, response)
@@ -206,7 +209,7 @@ function NewGameCallHandler:_destroy_capture()
 end
 
 function NewGameCallHandler:create_camp(session, response, pt)
-   stonehearth.scenario:set_starting_location(pt.x, pt.z)
+   stonehearth.world_generation:set_starting_location(Point2(pt.x, pt.z))
 
    local town = stonehearth.town:get_town(session.player_id)
    local pop = stonehearth.population:get_population(session.player_id)

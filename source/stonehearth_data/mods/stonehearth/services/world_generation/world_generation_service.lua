@@ -50,6 +50,8 @@ function WorldGenerationService:create_new_game(seed, async)
 
    self.blueprint_generator = BlueprintGenerator()
    self.overview_map = OverviewMap(self._terrain_info, self._landscaper)
+
+   self._starting_location = nil
 end
 
 function WorldGenerationService:set_seed(seed)
@@ -110,6 +112,31 @@ end
 
 function WorldGenerationService:get_blueprint()
    return self._blueprint
+end
+
+function WorldGenerationService:set_starting_location(location)
+   self._starting_location = location
+   self._scenario_service:set_starting_location(location)
+
+   self:_place_scenarios_on_generated_tiles()
+end
+
+function WorldGenerationService:_place_scenarios_on_generated_tiles()
+   assert(self._blueprint)
+   local blueprint = self._blueprint
+   local tile_info, habitat_map, elevation_map, offset_x, offset_y
+
+   for j=1, blueprint.height do
+      for i=1, blueprint.width do
+         offset_x, offset_y = self:get_tile_origin(i, j, blueprint)
+
+         tile_info = blueprint:get(i, j)
+         habitat_map = tile_info.habitat_map
+         elevation_map = tile_info.elevation_map
+
+         self._scenario_service:place_revealed_scenarios(habitat_map, elevation_map, offset_x, offset_y)
+      end
+   end
 end
 
 -- get the (i,j) index of the blueprint tile for the world coordinates (x,y)
@@ -199,7 +226,7 @@ function WorldGenerationService:_generate_tile_impl(i, j)
    local tile_size = self._tile_size
    local tile_map, tile_info, tile_seed
    local micro_map, elevation_map, feature_map, habitat_map
-   local offset_x, offset_y, offset
+   local offset_x, offset_y
 
    tile_info = blueprint:get(i, j)
    assert(not tile_info.generated)
@@ -208,7 +235,6 @@ function WorldGenerationService:_generate_tile_impl(i, j)
 
    -- calculate the world offset of the tile
    offset_x, offset_y = self:get_tile_origin(i, j, blueprint)
-   offset = Point3(offset_x, 0, offset_y)
 
    -- make each tile deterministic on its coordinates (and game seed)
    tile_seed = self:_get_tile_seed(i, j)
@@ -230,18 +256,19 @@ function WorldGenerationService:_generate_tile_impl(i, j)
    self:_yield()
 
    -- render heightmap to region3
-   self:_render_heightmap_to_region3(tile_map, feature_map, offset)
+   self:_render_heightmap_to_region3(tile_map, feature_map, offset_x, offset_y)
 
    -- place flora
-   self:_place_flora(tile_map, feature_map, offset)
+   self:_place_flora(tile_map, feature_map, offset_x, offset_y)
 
    -- place scenarios
-   self:_place_scenarios(habitat_map, elevation_map, offset)
+   self:_place_scenarios(habitat_map, elevation_map, offset_x, offset_y)
 
    tile_info.generated = true
 end
 
-function WorldGenerationService:_render_heightmap_to_region3(tile_map, feature_map, offset)
+function WorldGenerationService:_render_heightmap_to_region3(tile_map, feature_map, offset_x, offset_y)
+   local offset = Point3(offset_x, 0, offset_y)
    local renderer = self._height_map_renderer
    local region3_boxed
 
@@ -258,10 +285,10 @@ function WorldGenerationService:_render_heightmap_to_region3(tile_map, feature_m
    self:_yield()
 end
 
-function WorldGenerationService:_place_flora(tile_map, feature_map, offset)
+function WorldGenerationService:_place_flora(tile_map, feature_map, offset_x, offset_y)
    local seconds = Timer.measure(
       function()
-         self._landscaper:place_flora(tile_map, feature_map, offset.x, offset.z)
+         self._landscaper:place_flora(tile_map, feature_map, offset_x, offset_y)
       end
    )
 
@@ -269,17 +296,20 @@ function WorldGenerationService:_place_flora(tile_map, feature_map, offset)
    self:_yield()
 end
 
-function WorldGenerationService:_place_scenarios(habitat_map, elevation_map, offset)
+function WorldGenerationService:_place_scenarios(habitat_map, elevation_map, offset_x, offset_y)
    if not self._enable_scenarios then
       return
    end
 
    local seconds = Timer.measure(
       function()
-         self._scenario_service:place_static_scenarios(habitat_map, elevation_map, offset.x, offset.z)
+         self._scenario_service:place_static_scenarios(habitat_map, elevation_map, offset_x, offset_y)
 
-         -- TODO move placement of revealed scenarios to after banner placement
-         self._scenario_service:place_revealed_scenarios(habitat_map, elevation_map, offset.x, offset.z)
+         if self._starting_location then
+            -- add scenarios as tiles are generated
+            -- if this is before the starting location is determined, we will add them when set_starting_location is called
+            self._scenario_service:place_revealed_scenarios(habitat_map, elevation_map, offset_x, offset_y)
+         end
       end
    )
 
