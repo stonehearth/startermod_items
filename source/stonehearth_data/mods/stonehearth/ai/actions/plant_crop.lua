@@ -11,7 +11,7 @@ PlantCrop.args = {
    crop_type = 'string'
 }
 PlantCrop.version = 2
-PlantCrop.priority = 1
+PlantCrop.priority =  1
 
 local ai = stonehearth.ai
 return ai:create_compound_action(PlantCrop)

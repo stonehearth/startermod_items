@@ -201,6 +201,7 @@ function Town:place_item_in_world(item_proxy, full_sized_uri, location, rotation
          rotation = rotation,
          finish_fn = remove_ghost_entity
       })
+      :set_priority(stonehearth.constants.priorities.worker_task.PLACE_ITEM)                    
       :once()
       :start()
 
@@ -228,6 +229,7 @@ function Town:place_item_type_in_world(entity_uri, full_item_uri, location, rota
          rotation = rotation,
          finish_fn = remove_ghost_entity
       })
+      :set_priority(stonehearth.constants.priorities.worker_task.PLACE_ITEM)                    
       :once()
       :start()
 
@@ -251,12 +253,14 @@ function Town:harvest_resource_node(node)
             self._harvest_tasks[id] = self:create_farmer_task('stonehearth:harvest_resource_node', { node = node })
                                          :set_source(node)
                                          :add_entity_effect(node, effect_name)
+                                         :set_priority(stonehearth.constants.priorities.farmer_task.HARVEST)
                                          :once()
                                          :start()
          else 
             self._harvest_tasks[id] = self:create_worker_task('stonehearth:harvest_resource_node', { node = node })
                                          :set_source(node)
                                          :add_entity_effect(node, effect_name)
+                                         :set_priority(stonehearth.constants.priorities.worker_task.HARVEST)
                                          :once()
                                          :start()
          end
@@ -280,12 +284,14 @@ function Town:harvest_renewable_resource_node(plant)
             self._harvest_tasks[id] = self:create_farmer_task('stonehearth:harvest_plant', { plant = plant })
                                    :set_source(plant)
                                    :add_entity_effect(plant, effect_name)
+                                   :set_priority(stonehearth.constants.priorities.farmer_task.HARVEST)
                                    :once()
                                    :start()
          else
          self._harvest_tasks[id] = self:create_worker_task('stonehearth:harvest_plant', { plant = plant })
                                    :set_source(plant)
                                    :add_entity_effect(plant, effect_name)
+                                   :set_priority(stonehearth.constants.priorities.worker_task.HARVEST)
                                    :once()
                                    :start()
          end

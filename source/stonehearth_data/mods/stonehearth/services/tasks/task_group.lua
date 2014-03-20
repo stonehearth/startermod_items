@@ -60,6 +60,10 @@ function TaskGroup:remove_worker(id)
 end
 
 function TaskGroup:set_priority(priority)
+   -- if called, this will override the priority of the tasks in
+   -- the group with `priority`.  why would we ever want to do that?
+   -- shouldn't they use their priority of the tasks be different so
+   -- the caller can influence the election? -- tony
    self._priority = priority
    return self
 end

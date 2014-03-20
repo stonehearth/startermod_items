@@ -150,6 +150,7 @@ function FirepitComponent:_init_gather_wood_task()
 
    self._light_task = town:create_worker_task('stonehearth:light_firepit', { firepit = self })
                                    :set_name('light firepit')
+                                   :set_priority(stonehearth.constants.priorities.worker_task.LIGHT_FIRE)
                                    :once()
                                    :start()
 end
