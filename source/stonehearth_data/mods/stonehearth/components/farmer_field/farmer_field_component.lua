@@ -71,6 +71,7 @@ function FarmerFieldComponent:create_dirt_plots(town, location, size)
          self._data.contents[x][y].till_task = town:create_farmer_task('stonehearth:till_field', { field_spacer = field_spacer, field = self })
                                    :set_source(field_spacer)
                                    :set_name('till field task')
+                                   :set_priority(stonehearth.constants.priorities.farmer_task.TILL)
                                    :once()
                                    :start()
       end

@@ -134,6 +134,7 @@ function FarmingService:plant_crop(player_id, soil_plots, crop_type)
                               :set_source(plot)
                               :add_entity_effect(plot, overlay_effect)
                               :set_name('plant_crop')
+                              :set_priority(stonehearth.constants.priorities.farmer_task.PLANT)
                               :once()
                               :start()
    end

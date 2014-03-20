@@ -434,6 +434,7 @@ function StockpileComponent:_create_worker_tasks()
    self._task = town:create_worker_task('stonehearth:restock_stockpile', { stockpile = self })
                                    :set_source(self._entity)
                                    :set_name('restock task')
+                                   :set_priority(stonehearth.constants.priorities.worker_task.RESTOCK_STOCKPILE)
                                    :start()
 
    --Experiment in allowing farmers to haul things to stockpiles
@@ -442,6 +443,7 @@ function StockpileComponent:_create_worker_tasks()
    self._task_f = town:create_farmer_task('stonehearth:restock_stockpile', { stockpile = self })
                                    :set_source(self._entity)
                                    :set_name('restock task')
+                                   :set_priority(stonehearth.constants.priorities.farmer_task.RESTOCK_STOCKPILE)
                                    :start()
 end
 
