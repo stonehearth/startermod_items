@@ -194,9 +194,10 @@ function FarmerFieldComponent:till_location(field_spacer)
    dirt_plot_component:set_fertility_moisture(local_fertility, 50)
 
    --Check if we should automatically plant something here
-   local e = {}
-   e.plot_entity = field_spacer
-   self:_determine_replant(e)
+   --(TODO: for now, initial planting handled by the UI)
+   --local e = {}
+   --e.plot_entity = field_spacer
+   --self:_determine_replant(e)
 end
 
 
