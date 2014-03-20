@@ -3,7 +3,7 @@
 # move into the stonehearth directory and start the process in the background
 # $! returns the pid of the most recently executed program.
 cd source/stonehearth_data
-../../build/source/stonehearth/RelWithDebInfo/Stonehearth.exe&
+../../build/source/stonehearth/RelWithDebInfo/Stonehearth.exe --game.main_mod=stonehearth_autotest --simulation.game_speed=3&
 stonehearth_pid=$!
 echo stonehearth pid is $stonehearth_pid
 

@@ -17,7 +17,8 @@ message Object {
 };
 
 message Value {
-   extensions 1 to 999;
+   extensions 2 to 2000;
+   optional int32 type_id = 1;
 };
 
 message Record {
@@ -26,7 +27,7 @@ message Record {
       required int32    value = 2;
    }
    extend Value {
-      repeated Entry record_fields = 1;
+      repeated Entry record_fields = 3;
    }
 }
 
@@ -98,16 +99,28 @@ extend Value {
    required bool boolean = 102;
    required float floatingpoint = 103;
    required radiant.protocol.transform transform = 104;
-   required radiant.protocol.point2i point2i = 105;
-   required radiant.protocol.point3i point3i = 106;
-   required radiant.protocol.point3f point3f = 107;
-   required radiant.protocol.cube3i cube3i  = 108;
-   required radiant.protocol.cube3f cube3f  = 109;
-   required radiant.protocol.cube2i cube2i  = 110;
-   required radiant.protocol.region3i region3i  = 111;
-   required radiant.protocol.region2i region2i  = 112;
-   required radiant.protocol.sphere3f sphere3f  = 113;
-   required radiant.protocol.color color = 120;
+   required radiant.protocol.point1i point1i = 105;
+   required radiant.protocol.point1f point1f = 106;
+   required radiant.protocol.point2i point2i = 107;
+   required radiant.protocol.point2f point2f = 108;
+   required radiant.protocol.point3i point3i = 109;
+   required radiant.protocol.point3f point3f = 110;
+   required radiant.protocol.cube3i cube3i  = 111;
+   required radiant.protocol.cube3f cube3f  = 112;
+   required radiant.protocol.cube2i cube2i  = 113;
+   required radiant.protocol.cube2f cube2f  = 114;
+   required radiant.protocol.cube1i cube1i  = 115;
+   required radiant.protocol.cube1f cube1f  = 116;
+   required radiant.protocol.region3i region3i  = 118;
+   required radiant.protocol.region3f region3f  = 119;
+   required radiant.protocol.region2i region2i  = 120;
+   required radiant.protocol.region2f region2f  = 121;
+   required radiant.protocol.region1i region1i  = 122;
+   required radiant.protocol.region1f region1f  = 123;
+   required radiant.protocol.sphere3f sphere3f  = 124;
+   required radiant.protocol.color color = 125;
+   required radiant.protocol.quaternion quaternion = 126;
+   required radiant.protocol.ray3f ray3f = 127;
 };
 
 message Animation {
@@ -156,8 +169,36 @@ message LuaControllerObject {
 };
 
 message LuaDataObject {
-   optional string repr_representation = 1;
+   optional Value lua_object = 1;
    extend Value {
       required LuaDataObject extension  = 205;
    }
+};
+
+message LuaObject {
+   extend Value {
+      required LuaObject extension = 206;
+   }
+   enum Type {
+      BOOLEAN = 1;
+      NUMBER = 2;
+      STRING = 3;
+      TABLE = 4;
+      USERDATA = 5;
+      NIL = 6;
+      FUNCTION = 7;
+   }
+   message Table {
+      message Entry {
+         required LuaObject   key = 1;
+         required LuaObject   value = 2;
+      }
+      repeated Entry    entries = 1;
+   };
+   optional Type        type = 1;
+   optional bool        boolean_value = 2;
+   optional double      number_value = 3;
+   optional string      string_value = 4;
+   optional Table       table_value = 5;   
+   optional Value       userdata_value = 6;   
 };

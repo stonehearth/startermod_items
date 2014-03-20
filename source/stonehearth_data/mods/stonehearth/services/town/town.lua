@@ -72,7 +72,7 @@ end
 function Town:leave_task_group(entity, name)
    local task_group = self._task_groups[name]
    assert(task_group, string.format('unknown task group "%s"', name))
-   task_group:remove_worker(entity)
+   task_group:remove_worker(entity:get_id())
    return self
 end
 

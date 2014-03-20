@@ -3,7 +3,7 @@ local InventoryComponent = class()
 function InventoryComponent:initialize(entity, json)
    self._entity = entity
    self._items = {
-      __numeric = true
+      n = 0,
    }
    self._capacity = json.capacity or 4
    self.__saved_variables = radiant.create_datastore({

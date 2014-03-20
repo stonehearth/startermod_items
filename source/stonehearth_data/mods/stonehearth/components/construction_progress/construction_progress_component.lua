@@ -20,6 +20,7 @@ end
 function ConstructionProgress:restore(entity, saved_variables)
    self._entity = entity
    self.__saved_variables = saved_variables
+   self._data = self.__saved_variables:get_data()
 end
 
 function ConstructionProgress:get_dependencies()
