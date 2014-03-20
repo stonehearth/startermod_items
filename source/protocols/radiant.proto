@@ -102,6 +102,16 @@ message region2f {
    optional color      color = 2;
 }
 
+message region1i {
+   repeated cube1i     cubes = 1;
+   optional color      color = 2;
+}
+
+message region1f {
+   repeated cube1f     cubes = 1;
+   optional color      color = 2;
+}
+
 message sphere3f {
    required point3f  center = 1;
    required float    radius = 2;

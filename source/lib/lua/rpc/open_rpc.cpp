@@ -133,8 +133,8 @@ void lua::rpc::open(lua_State* L, CoreReactorPtr reactor)
    module(L) [
       namespace_("_radiant") [
          namespace_("rpc") [
-            lua::RegisterType<CoreReactor>("CoreReactor"),
-            lua::RegisterTypePtr<LuaDeferred>("LuaDeferred")
+            lua::RegisterType_NoTypeInfo<CoreReactor>("CoreReactor"),
+            lua::RegisterTypePtr_NoTypeInfo<LuaDeferred>("LuaDeferred")
                .def("resolve",    &LuaDeferred::Resolve)
                .def("reject",     &LuaDeferred::Reject)
                .def("notify",     &LuaDeferred::Notify)
@@ -142,7 +142,7 @@ void lua::rpc::open(lua_State* L, CoreReactorPtr reactor)
                .def("fail",       &LuaDeferred_Fail)
                .def("progress",   &LuaDeferred_Progress)
                .def("always",     &LuaDeferred_Always),
-            lua::RegisterTypePtr<Session>("Session")
+            lua::RegisterTypePtr_NoTypeInfo<Session>("Session")
                .def_readonly("faction", &Session::faction)
                .def_readonly("kingdom", &Session::kingdom)
                .def_readonly("player_id", &Session::player_id)

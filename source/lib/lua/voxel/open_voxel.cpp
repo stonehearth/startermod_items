@@ -36,7 +36,7 @@ void lua::voxel::open(lua_State* L)
          namespace_("voxel") [
             def("create_brush",    &Voxel_CreateBrush),
             def("create_nine_grid_brush",    &Voxel_CreateNineGridBrush),
-            lua::RegisterTypePtr<QubicleBrush>("QubicleBrush")
+            lua::RegisterTypePtr_NoTypeInfo<QubicleBrush>("QubicleBrush")
                .enum_("constants") [
                   value("Color",    QubicleBrush::Color),
                   value("Opaque",   QubicleBrush::Opaque)
@@ -47,7 +47,7 @@ void lua::voxel::open(lua_State* L)
                .def("paint_once",             &QubicleBrush::PaintOnce)
                .def("paint_through_stencil",  &QubicleBrush::PaintThroughStencil)
             ,
-            lua::RegisterTypePtr<NineGridBrush>("NineGridBrush")
+            lua::RegisterTypePtr_NoTypeInfo<NineGridBrush>("NineGridBrush")
                .enum_("constants") [
                   value("Color",    NineGridBrush::Color),
                   value("Opaque",   NineGridBrush::Opaque)

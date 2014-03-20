@@ -1091,7 +1091,7 @@ function ExecutionFrame:get_debug_info()
       },
       args = stonehearth.ai:format_args(self._args),
       execution_units = {
-         __numeric = true,
+         n = 0,
       }
    }
    for _, unit in pairs(self._execution_units) do

@@ -14,6 +14,8 @@
 #include "lib/crash_reporter/client/crash_reporter_client.h"
 #include "csg/random_number_generator.h"
 #include "lib/json/json.h"
+#include "type_registry/type_registry.h"
+#include <google/protobuf/stubs/common.h>
 
 using namespace radiant;
 using radiant::client::Application;
@@ -33,12 +35,6 @@ static std::string const HELP_MESSAGE = BUILD_STRING(
    "To show this message again use:\n" <<
    "      " << EXE_NAME << " help"
 );
-
-void protobuf_log_handler(google::protobuf::LogLevel level, const char* filename,
-                          int line, const std::string& message)
-{
-   LOG(network, 1) << message;
-}
 
 Application::Application()
 {
@@ -133,6 +129,7 @@ int Application::Run(int argc, const char** argv)
          std::exit(0);
       }
 
+      TypeRegistry::Initialize();
       json::InitialzeErrorHandler();
       core::Config::GetInstance().Load(argc, argv);
 
@@ -143,6 +140,10 @@ int Application::Run(int argc, const char** argv)
       }
       radiant::logger::Init(core::System::GetInstance().GetTempDirectory() / LOG_FILENAME);
       radiant::logger::InitLogLevels();
+      google::protobuf::SetLogHandler([](google::protobuf::LogLevel level, const char* filename, int line, const std::string& message) {
+         LOG(protobuf, 0) << " " << message;
+      });
+
    } catch (std::exception const& e) {
       std::string const error_message = BUILD_STRING("Error starting application:\n\n" << e.what());
       try {
@@ -162,9 +163,6 @@ int Application::Run(int argc, const char** argv)
    // Exception handling after initializing crash reporter
    crash_reporter::client::CrashReporterClient::RunWithExceptionWrapper([&]() {
       core::Config& config = core::Config::GetInstance();
-
-      // factor this out into some protobuf helper like we did with log
-      google::protobuf::SetLogHandler(protobuf_log_handler);
 
       // Need to load all singletons before spawning threads.
       res::ResourceManager2::GetInstance();

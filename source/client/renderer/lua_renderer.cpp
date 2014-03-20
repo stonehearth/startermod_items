@@ -156,7 +156,7 @@ void LuaRenderer::RegisterType(lua_State* L)
                def("world_to_screen", &Camera_WorldToScreen)
             ],
             namespace_("scene") [
-               lua::RegisterType<RayCastResult>("RayCastResult")
+               lua::RegisterType_NoTypeInfo<RayCastResult>("RayCastResult")
                   .def(tostring(const_self))
                   .def(constructor<>())
                   .def_readonly("is_valid",          &RayCastResult::is_valid)

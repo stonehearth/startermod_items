@@ -797,6 +797,7 @@ MAKE_REGION(Region3f)
 MAKE_REGION(Region2)
 MAKE_REGION(Region2f)
 MAKE_REGION(Region1)
+MAKE_REGION(Region1f)
 
 #define DEFINE_REGION_CONVERSIONS(C) \
    template Region<float, C> csg::ToFloat(Region<int, C> const&); \

@@ -13,12 +13,14 @@ class Quaternion;
 template <class S, int C> class Region;
 
 typedef Region<int, 1>   Region1;
+typedef Region<float, 1> Region1f;
 typedef Region<int, 2>   Region2;
 typedef Region<float, 2> Region2f;
 typedef Region<int, 3>   Region3;
 typedef Region<float, 3> Region3f;
 
 DECLARE_SHARED_POINTER_TYPES(Region1);
+DECLARE_SHARED_POINTER_TYPES(Region1f);
 DECLARE_SHARED_POINTER_TYPES(Region2);
 DECLARE_SHARED_POINTER_TYPES(Region2f);
 DECLARE_SHARED_POINTER_TYPES(Region3);
@@ -40,6 +42,7 @@ template <typename S, int C> class Cube;
 typedef Cube<int, 1> Line1;
 typedef Cube<int, 2> Rect2;
 typedef Cube<int, 3> Cube3;
+typedef Cube<float, 1> Line1f;
 typedef Cube<float, 2> Rect2f;
 typedef Cube<float, 3> Cube3f;
 
