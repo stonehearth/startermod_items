@@ -35,6 +35,7 @@
                 "description" : "xxx",
                 "class" : "button",
                 "icon" : "/stonehearth/ui/game/start_menu/images/zone_stockpile.png",
+                "sticky" : true,
                 "hotkey" : "o"
             },
             "create_farm" : {
@@ -42,6 +43,7 @@
                 "description" : "xxx",
                 "class" : "button",
                 "icon" : "/stonehearth/ui/game/start_menu/images/zone_farm.png",
+                "sticky" : true,
                 "hotkey" : "f"
             }
       }

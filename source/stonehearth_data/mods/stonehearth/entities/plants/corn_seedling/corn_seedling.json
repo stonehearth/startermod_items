@@ -31,7 +31,8 @@
       "unit_info": {
          "name": "Corn Seedling", 
          "description": "Slow-mo, high-stakes gambling.", 
-         "icon" : "file(corn.png)"
+         "icon" : "file(icon.png)",
+         "portrait" : "file(portrait.png)"
       },
       "stonehearth:commands" : {
          "commands" : [

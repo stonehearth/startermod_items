@@ -54,6 +54,11 @@ App.StonehearthStockpileView = App.View.extend({
          self.destroy();
       });
 
+      this.$('button.warn').click(function() {
+         radiant.call('stonehearth:destroy_entity', self.uri)
+         self.destroy();
+      });
+
       this.items.find('img').tooltipster();
 
       //this.$('#stockpileWindow').click(function() { return false; });
