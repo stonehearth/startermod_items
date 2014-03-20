@@ -56,7 +56,9 @@ function FarmingCallHandler:choose_new_field_location(session, response)
             }
             _radiant.call('stonehearth:create_new_field', box.min, size)
                      :done(function(r)
-                           response:resolve(true)
+                           response:resolve({
+                                 field = r.field
+                              })
                         end)
                      :always(function()
                            cleanup()
