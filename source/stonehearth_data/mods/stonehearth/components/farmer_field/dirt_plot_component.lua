@@ -134,7 +134,9 @@ end
 --- If the crop is now harvestable, let the field know, so it can handle it according to policy
 function DirtPlotComponent:_on_crop_harvestable(e)
    local crop = e.crop
-   self._data.parent_field_component:determine_auto_harvest(self, crop)
+   if self._data.parent_field_component then
+      self._data.parent_field_component:determine_auto_harvest(self, crop)
+   end
 end
 
 --- Called when something is removed from me
@@ -159,7 +161,7 @@ function DirtPlotComponent:_on_crop_removed()
 
    self._data.contents = nil
 
-   --Tell the field that we're empty, so it can decide what to do next
+   --Tell the listening field that we're empty, so it can decide what to do next
    radiant.events.trigger(self._entity, 'stonehearth:crop_removed', {plot_entity = self._entity, location = self._data.field_location})
 
    return radiant.events.UNLISTEN

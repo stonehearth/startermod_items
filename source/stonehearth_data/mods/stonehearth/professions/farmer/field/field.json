@@ -8,11 +8,6 @@
          "character_sheet_info" : "file(field_character_sheet_info.json)"
       },
       "stonehearth:farmer_field" : {
-      },
-      "stonehearth:commands" : {
-         "commands" : [
-            "file(/data/commands/destroy_entity)"
-         ]
       }
    }
 }

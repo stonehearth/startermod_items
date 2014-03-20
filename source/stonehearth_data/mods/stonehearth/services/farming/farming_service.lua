@@ -52,14 +52,18 @@ end
 --TODO: revisit when we gate farmables by seeds that people start with
 function FarmingService:_load_initial_crops()
    self._initial_crops = radiant.resources.load_json('stonehearth:farmer:initial_crops')
+
+   --Pre-load the details for the non-crop "fallow"
+   self._crop_details['fallow'] = self._initial_crops.data.fallow
 end
 
 --- Given a new crop type, record some important things about it
-function FarmingService:_get_crop_details(crop_type)
+function FarmingService:get_crop_details(crop_type)
    local details = self._crop_details[crop_type]
    if not details then
       local crop_data = radiant.resources.load_json(crop_type)
       details = {}
+      details.uri = crop_type
       details.overlay = crop_data.components['stonehearth:crop'].plant_overlay_effect
       details.name = crop_data.components.unit_info.name
       details.description = crop_data.components.unit_info.description
@@ -70,7 +74,7 @@ function FarmingService:_get_crop_details(crop_type)
 end
 
 function FarmingService:_get_overlay_for_crop(crop_type)
-   return self:_get_crop_details(crop_type).overlay
+   return self:get_crop_details(crop_type).overlay
 end
 
 
@@ -102,7 +106,7 @@ function FarmingService:_get_crop_list(session)
          for i, crop in ipairs(kingdom_crops) do
             crop_list[i] = {
                crop_type = crop.crop_type,
-               crop_info = self:_get_crop_details(crop.crop_type),
+               crop_info = self:get_crop_details(crop.crop_type),
                quantity = crop.quantity
             }
          end
@@ -130,6 +134,7 @@ function FarmingService:plant_crop(player_id, soil_plots, crop_type)
                               :set_source(plot)
                               :add_entity_effect(plot, overlay_effect)
                               :set_name('plant_crop')
+                              :set_priority(stonehearth.constants.priorities.farmer_task.PLANT)
                               :once()
                               :start()
    end

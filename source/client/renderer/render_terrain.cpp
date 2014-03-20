@@ -251,7 +251,7 @@ void RenderTerrain::UpdateRenderRegion(RenderTilePtr render_tile)
       mesh = csg::mesh_tools().SetTesselator(tess_map)
                               .ConvertRegionToMesh(tesselatedRegion);
    
-      H3DNode node = Pipeline::GetInstance().AddDynamicMeshNode(terrain_root_node_.get(), mesh, "materials/voxel.material.xml");
+      H3DNode node = Pipeline::GetInstance().AddDynamicMeshNode(terrain_root_node_.get(), mesh, "materials/voxel.material.xml", UserFlags::Terrain);
       h3dSetNodeTransform(node, (float)render_tile->location.x, (float)render_tile->location.y, (float)render_tile->location.z, 0, 0, 0, 1, 1, 1);
       render_tile->SetNode(node);
    }

@@ -110,8 +110,11 @@ $.widget( "stonehearth.stonehearthMenu", {
                self.showMenu(id);
             }
          } else {
-            self.hideMenu();
+            if (!nodeData.sticky) {
+               self.hideMenu();
+            }            
          }
+
          
          if (self.options.click) {
             self.options.click(id, nodeData);
