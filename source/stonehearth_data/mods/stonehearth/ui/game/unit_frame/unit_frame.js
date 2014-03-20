@@ -42,11 +42,9 @@ App.StonehearthUnitFrameView = App.View.extend({
       var self = this;
       var selectedEntity = this.get('uri');
       if (App.getGameMode() == 'normal' && selectedEntity) {
-         var f = $('#unitFrame');
-         f.show();
+        this.set('visible', true);
       } else {
-        var f = $('#unitFrame');
-         f.hide();
+        this.set('visible', false);
       }
    },
 
@@ -85,7 +83,6 @@ App.StonehearthUnitFrameView = App.View.extend({
         this.hide();
       }
     */
-      this.unitFrame = this.$('#unitFrame');
       this.$('#unitFrame > #buffs').find('.item').each(function() {
         $(this).tooltipster({
             content: $('<div class=title>' + $(this).attr('title') + '</div>' + 
