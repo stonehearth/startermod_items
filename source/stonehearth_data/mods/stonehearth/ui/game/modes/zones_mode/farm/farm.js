@@ -59,7 +59,7 @@ App.StonehearthFarmView = App.View.extend({
       });
 
       this.$('button.warn').click(function() {
-         self.deleteFarm();
+         radiant.call('stonehearth:destroy_entity', self.uri)
          self.destroy();
       });
 
@@ -74,10 +74,6 @@ App.StonehearthFarmView = App.View.extend({
       });
       $('.tooltip').tooltipster('enable');
 
-   },
-
-   deleteFarm: function(){
-      radiant.call('stonehearth:destroy_entity', this.uri)
    },
 
    destroy : function() {
