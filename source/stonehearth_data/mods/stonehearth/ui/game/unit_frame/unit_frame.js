@@ -153,14 +153,24 @@ App.StonehearthUnitFrameView = App.View.extend({
 
    show: function() {
       try {
-         this.$().fadeIn();
+
+         this.$("#unitFrame").show();
+         /*
+            .position({
+               my : 'center',
+               at : 'left+' + App.stonehearthClient.mouseX + " " + 'top+' + App.stonehearthClient.mouseY,
+               of : $(document),
+               collision : 'fit'
+            });
+          */
+
       } catch (err) {
         console.log(err);
       }
    },
 
    hide: function() {
-      this.$().fadeOut();
+      this.$().hide();
    }
 
 });
