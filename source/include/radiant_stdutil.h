@@ -14,6 +14,7 @@
 #include <functional>
 
 namespace radiant {
+
    namespace strutil {
       template <class S1, class S2> inline bool endsWith(S1 const& subject, S2 const& suffix)
       {

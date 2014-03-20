@@ -11,7 +11,7 @@ template <typename T>
 static luabind::scope Register(struct lua_State* L, const char* name)
 {
    return
-      lua::RegisterTypePtr<T>(name)
+      lua::RegisterTypePtr_NoTypeInfo<T>(name)
          .def(constructor<int, int>())
          .def("get",    &T::get)
          .def("set",    &T::set)

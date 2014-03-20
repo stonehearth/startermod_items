@@ -4,6 +4,7 @@
 #include <memory>
 #include "dbg_info.h"
 #include "protocols/store.pb.h"
+#include "lib/typeinfo/typeinfo.h"
 
 BEGIN_RADIANT_DM_NAMESPACE
 
@@ -16,9 +17,11 @@ struct SaveImpl
       // A compile error here probably means you do not have the corrent
       // template specialization for your type.  See IMPLEMENT_DM_EXTENSION
       // below.
+      //msg->set_type_id(typeinfo::Type<T>::id);
       obj.SaveValue(store, msg);
    }
    static void LoadValue(Store const& store, SerializationType r, Protocol::Value const& msg, T& obj) {
+      //ASSERT(msg.type_id() == typeinfo::Type<T>::id);
       obj.LoadValue(store, msg);
    }
    static void GetDbgInfo(T const& obj, DbgInfo &info) {
@@ -32,6 +35,7 @@ struct SaveImpl<std::shared_ptr<T>>
 {
    static void SaveValue(Store const& store, SerializationType r, Protocol::Value* msg, const std::shared_ptr<T>& value) {
       ObjectId id = value ? value->GetObjectId() : 0;
+      //msg->set_type_id(value ? value->GetObjectType() : -1);
       msg->SetExtension(Protocol::Ref::ref_object_id, id);
    }
    static void LoadValue(Store const& store, SerializationType r, Protocol::Value const& msg, std::shared_ptr<T>& value) {
@@ -53,8 +57,11 @@ struct SaveImpl<std::shared_ptr<T>>
 template <class T>
 struct SaveImpl<std::weak_ptr<T>>
 {
-   static void SaveValue(Store const& store, SerializationType r, Protocol::Value* msg, const std::weak_ptr<T>& value) {
-      SaveImpl<std::shared_ptr<T>>().SaveValue(store, r, msg, value.lock());
+   static void SaveValue(Store const& store, SerializationType r, Protocol::Value* msg, const std::weak_ptr<T>& v) {
+      std::shared_ptr<T> value = v.lock();
+      ObjectId id = value ? value->GetObjectId() : 0;
+      //msg->set_type_id(value ? value->GetObjectType() : -1);
+      msg->SetExtension(Protocol::Ref::ref_object_id, id);
    }
    static void LoadValue(Store const& store, SerializationType r, Protocol::Value const& msg, std::weak_ptr<T>& value) {
       ObjectId id = msg.GetExtension(Protocol::Ref::ref_object_id);
@@ -76,9 +83,11 @@ struct SaveImpl<std::weak_ptr<T>>
 template<> \
 struct ::radiant::dm::SaveImpl<T> { \
    static void SaveValue(Store const& store, SerializationType r, Protocol::Value* msg, const T& obj) { \
+      /*msg->set_type_id(typeinfo::Type<T>::id); */ \
       obj.SaveValue(msg->MutableExtension(E)); \
    } \
    static void LoadValue(Store const& store, SerializationType r, Protocol::Value const& msg, T& obj) { \
+      /*ASSERT(msg.type_id() == typeinfo::Type<T>::id);*/ \
       obj.LoadValue(msg.GetExtension(E)); \
    } \
    static void GetDbgInfo(T const& obj, DbgInfo &info) { \
@@ -91,9 +100,11 @@ template<> \
 struct ::radiant::dm::SaveImpl<T> \
 { \
    static void SaveValue(Store const& store, SerializationType r, Protocol::Value* msg, const T& value) { \
+      /*msg->set_type_id(typeinfo::Type<T>::id); */\
       msg->SetExtension(E, value); \
    } \
    static void LoadValue(Store const& store, SerializationType r, Protocol::Value const& msg, T& value) { \
+      /*ASSERT(msg.type_id() == typeinfo::Type<T>::id);*/ \
       value = msg.GetExtension(E); \
    } \
    static void GetDbgInfo(T const& obj, DbgInfo &info) { \
@@ -106,9 +117,11 @@ template<> \
 struct ::radiant::dm::SaveImpl<T> \
 { \
    static void SaveValue(Store const& store, SerializationType r, Protocol::Value* msg, const T& value) { \
+      /*msg->set_type_id(typeinfo::Type<int>::id); */\
       msg->SetExtension(Protocol::integer, (int)value); \
    } \
    static void LoadValue(Store const& store, SerializationType r, Protocol::Value const& msg, T& value) { \
+      /*ASSERT(msg.type_id() == typeinfo::Type<int>::id); */\
       value = (T)msg.GetExtension(Protocol::integer); \
    } \
    static void GetDbgInfo(T const& obj, DbgInfo &info) { \

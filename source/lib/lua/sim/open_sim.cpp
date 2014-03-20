@@ -160,7 +160,7 @@ void lua::sim::open(lua_State* L, Simulation* sim)
             def("create_goto_entity",       &Sim_CreateGotoEntity),
             def("create_job",               &Sim_CreateJob),
             
-            lua::RegisterTypePtr<Path>("Path")
+            lua::RegisterTypePtr_NoTypeInfo<Path>("Path")
                .def("is_empty",           &Path::IsEmpty)
                .def("get_distance",       &Path::GetDistance)
                .def("get_points",         &Path::GetPoints, return_stl_iterator)
@@ -170,7 +170,7 @@ void lua::sim::open(lua_State* L, Simulation* sim)
                .def("get_finish_point",   &Path::GetFinishPoint)
                .def("get_destination_point_of_interest",   &Path::GetDestinationPointOfInterest)
             ,
-            lua::RegisterTypePtr<PathFinder>("PathFinder")
+            lua::RegisterTypePtr_NoTypeInfo<PathFinder>("PathFinder")
                .def("get_id",             &PathFinder::GetId)
                .def("set_source",         &PathFinder::SetSource)
                .def("add_destination",    &PathFinder::AddDestination)
@@ -186,16 +186,16 @@ void lua::sim::open(lua_State* L, Simulation* sim)
                .def("restart",            &PathFinder::RestartSearch)
                .def("describe_progress",  &PathFinder::DescribeProgress)
             ,
-            lua::RegisterType<Simulation>("Simulation")
+            lua::RegisterType_NoTypeInfo<Simulation>("Simulation")
             ,
-            lua::RegisterTypePtr<FollowPath>("FollowPath")
+            lua::RegisterTypePtr_NoTypeInfo<FollowPath>("FollowPath")
                .def("get_name", &FollowPath::GetName)
                .def("stop",     &FollowPath::Stop)
             ,
-            lua::RegisterTypePtr<GotoLocation>("GotoLocation")
+            lua::RegisterTypePtr_NoTypeInfo<GotoLocation>("GotoLocation")
                .def("stop",     &GotoLocation::Stop)
             ,
-            lua::RegisterTypePtr<LuaJob>("LuaJob")
+            lua::RegisterTypePtr_NoTypeInfo<LuaJob>("LuaJob")
 
          ]
       ]

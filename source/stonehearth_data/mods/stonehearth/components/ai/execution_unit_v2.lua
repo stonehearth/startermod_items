@@ -123,7 +123,7 @@ function ExecutionUnitV2:get_debug_info()
       action = self:_get_action_debug_info(),
       think_output = stonehearth.ai:format_args(self._think_output),
       execution_frames = {
-         __numeric = true,
+         n = 0,
       }
    }
    if self._current_execution_frame then

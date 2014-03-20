@@ -436,20 +436,20 @@ void lua::client::open(lua_State* L)
             def("is_key_down",                     &Client_IsKeyDown),
             def("is_mouse_button_down",            &Client_IsMouseButtonDown),
             
-            lua::RegisterTypePtr<CaptureInputPromise>("CaptureInputPromise")
+            lua::RegisterTypePtr_NoTypeInfo<CaptureInputPromise>("CaptureInputPromise")
                .def("on_input",          &CaptureInputPromise::OnInput)
                .def("destroy",           &CaptureInputPromise::Destroy)
             ,
-            lua::RegisterTypePtr<TraceRenderFramePromise>("TraceRenderFramePromise")
+            lua::RegisterTypePtr_NoTypeInfo<TraceRenderFramePromise>("TraceRenderFramePromise")
                .def("on_server_tick",    &TraceRenderFramePromise::OnServerTick)
                .def("on_frame_start",    &TraceRenderFramePromise::OnFrameStart)
                .def("destroy",           &TraceRenderFramePromise::Destroy)
             ,
-            lua::RegisterTypePtr<SetCursorPromise>("SetCursorPromise")
+            lua::RegisterTypePtr_NoTypeInfo<SetCursorPromise>("SetCursorPromise")
                .def("destroy",           &SetCursorPromise::Destroy)
             ,
             // xxx: Input, MouseInput, KeyboardInput, etc. should be in open_core.cpp, right?
-            lua::RegisterType<Input>("Input")
+            lua::RegisterType_NoTypeInfo<Input>("Input")
                .enum_("constants") [
                   value("MOUSE", Input::MOUSE),
                   value("KEYBOARD", Input::KEYBOARD),
@@ -461,7 +461,7 @@ void lua::client::open(lua_State* L)
                .def_readonly("raw_input", &Input::raw_input)
                .def_readonly("focused",   &Input::focused)
             ,
-            lua::RegisterType<MouseInput>("MouseInput")
+            lua::RegisterType_NoTypeInfo<MouseInput>("MouseInput")
                .def_readonly("x",       &MouseInput::x)
                .def_readonly("y",       &MouseInput::y)
                .def_readonly("dx",      &MouseInput::dx)
@@ -477,7 +477,7 @@ void lua::client::open(lua_State* L)
                   value("MOUSE_BUTTON_4",    GLFW_MOUSE_BUTTON_4)
                ]
             ,
-            lua::RegisterType<KeyboardInput>("KeyboardInput")
+            lua::RegisterType_NoTypeInfo<KeyboardInput>("KeyboardInput")
                .enum_("constants") [
                   
                   value("KEY_SPACE",         GLFW_KEY_SPACE),
@@ -591,7 +591,7 @@ void lua::client::open(lua_State* L)
                .def_readonly("key",    &KeyboardInput::key)
                .def_readonly("down",   &KeyboardInput::down)
             ,
-            lua::RegisterType<RawInput>("RawInput")
+            lua::RegisterType_NoTypeInfo<RawInput>("RawInput")
          ]
       ]
    ];

@@ -47,7 +47,7 @@ void lua::res::open(lua_State* L)
             def("load_animation",   &load_animation),
             def("load_manifest",    &load_manifest),
 
-            lua::RegisterTypePtr<Animation>("Animation")
+            lua::RegisterTypePtr_NoTypeInfo<Animation>("Animation")
                .def("get_duration",    &Animation::GetDuration)
          ]
       ]

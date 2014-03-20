@@ -222,7 +222,7 @@ function CompoundAction:get_debug_info()
       args = stonehearth.ai:format_args(self._args),
       priority = self.priority,
       execution_frames = {
-         __numeric = true,
+         n = 0,
       }
    }
    local frames = (#self._thinking_frames > 0) and self._thinking_frames or self._running_frames

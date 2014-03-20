@@ -27,6 +27,8 @@ function CrafterComponent:restore(entity, saved_variables)
    self._entity = entity
    self.__saved_variables = saved_variables
    self._data = self.__saved_variables:get_data()
+   -- what about the orchestrator?  hmm...  will the town restore it for us?
+   -- how do we get a pointer to it so we can destroy it?
 end
 
 function CrafterComponent:destroy()

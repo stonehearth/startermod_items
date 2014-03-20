@@ -16,10 +16,12 @@ Rect2 Rect2::one(Point2(0, 0), Point2(1, 1));
 Line1 Line1::zero(Point1(0), Point1(0));
 Line1 Line1::one(Point1(0), Point1(1));
 
-Rect2f Rect2f::zero(Point2f(0, 0), Point2f(0, 0));
-Rect2f Rect2f::one(Point2f(0, 0), Point2f(1, 1));
 Cube3f Cube3f::zero(Point3f(0, 0, 0), Point3f(0, 0, 0));
 Cube3f Cube3f::one(Point3f(0, 0, 0), Point3f(1, 1, 1));
+Rect2f Rect2f::zero(Point2f(0, 0), Point2f(0, 0));
+Rect2f Rect2f::one(Point2f(0, 0), Point2f(1, 1));
+Line1f Line1f::zero(Point1f(0), Point1f(0));
+Line1f Line1f::one(Point1f(0), Point1f(1));
 
 Point3 Cube3::PointIterator::end(INT_MAX, INT_MAX, INT_MAX);
 
@@ -308,7 +310,7 @@ MAKE_CUBE(Cube3f)
 MAKE_CUBE(Rect2)
 MAKE_CUBE(Rect2f)
 MAKE_CUBE(Line1)
-
+MAKE_CUBE(Line1f)
 
 #define DEFINE_CUBE_CONVERSIONS(C) \
    template Cube<float, C> csg::ToFloat(Cube<int, C> const&); \

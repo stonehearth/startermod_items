@@ -23,7 +23,7 @@ typedef dm::Boxed<csg::Region3, Region3BoxedObjectType> Region3Boxed;
 DECLARE_SHARED_POINTER_TYPES(Region2Boxed);
 DECLARE_SHARED_POINTER_TYPES(Region3Boxed);
 
-// A poitner to a region in a box, in a box!  useful to checking
+// A pointer to a region in a box, in a box!  useful to checking
 // when pointers that are shared with other people change.
 typedef dm::Boxed<Region2BoxedPtr> Region2BoxedPtrBoxed;
 typedef dm::Boxed<Region3BoxedPtr> Region3BoxedPtrBoxed;

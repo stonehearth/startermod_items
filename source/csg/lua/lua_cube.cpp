@@ -110,6 +110,6 @@ scope LuaCube::RegisterLuaTypes(lua_State* L)
       Register<Cube3f>(L, "Cube3f"),
       Register<Rect2>(L,  "Rect2"),
       Register<Line1>(L,  "Line1"),
-      lua::RegisterType<PointIterator<Cube3>>("Cube3Iterator")
+      lua::RegisterType_NoTypeInfo<PointIterator<Cube3>>("Cube3Iterator")
    ;
 }
