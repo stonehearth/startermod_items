@@ -18,15 +18,15 @@ function FarmerFieldComponent:initialize(entity, json)
 
    --TODO: add some of these things to CREATE so they can be loaded properly
    if not self._sv._initialized then
-      self._sv._initialized = true,
-      self._sv.size = {0, 0}, 
-      self._sv.location = nil,
-      self._sv.contents = {},
-      self._sv.general_fertility = rng:get_int(1, 40),   --TODO; get from global service
-      self._sv.crop_queue = {farming_service:get_crop_details('fallow')},
-      --self._sv.crop_queue = {},
-      self._sv.curr_crop = 1,
-      self._sv.auto_harvest = true, 
+      self._sv._initialized = true
+      self._sv.size = {0, 0}
+      self._sv.location = nil
+      self._sv.contents = {}
+      self._sv.general_fertility = rng:get_int(1, 40)   --TODO; get from global service
+      self._sv.crop_queue = {farming_service:get_crop_details('fallow')}
+      --self._sv.crop_queue = {}
+      self._sv.curr_crop = 1
+      self._sv.auto_harvest = true
       self._sv.auto_replant = true
    end
    --self.__saved_variables:mark_changed()

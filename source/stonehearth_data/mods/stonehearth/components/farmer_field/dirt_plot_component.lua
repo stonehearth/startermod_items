@@ -13,7 +13,7 @@ function DirtPlotComponent:initialize(entity, json)
       self._sv.fertility_category = nil
       self._sv.parent_field_component = nil
       self._sv.field_location = nil
-      self._sv.contents = nil,
+      self._sv.contents = nil
       self._sv.last_planted_type = nil
       self._sv.player_override = false
       self._sv.auto_replant = nil
