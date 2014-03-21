@@ -40,6 +40,7 @@ namespace radiant {
 namespace Protocol {
    class Value;
    class Object;
+   class LuaObject;
    class LuaControllerObject;
    class LuaDataObject;
 }

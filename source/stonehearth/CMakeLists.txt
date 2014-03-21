@@ -43,8 +43,11 @@ target_link_libraries(stonehearth
                              simulation
                              perfmon
                              lib_json
+                             lib_marshall
+                             lib_type_info
                              analytics
                              audio
+                             type_registry
                              )
 
 add_custom_command(TARGET stonehearth

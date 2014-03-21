@@ -9,7 +9,7 @@ local CraftOrder = require 'components.workshop.craft_order'
 local CraftOrderList = class()
 function CraftOrderList:__init()
    self._orders = {
-      __numeric = true
+      n = 0,
    }
    self.__saved_variables = radiant.create_datastore({
          orders = self._orders,

@@ -20,25 +20,13 @@ App.StonehearthUnitFrameView = App.View.extend({
       var self = this;
       $(top).on("radiant_selection_changed.unit_frame", function (_, data) {
          if (!self._supressSelection) {
-           var selected = data.selected_entity;
-           self._selectedEntity = selected;
-           
-           if (App.getGameMode() == 'normal' && self._selectedEntity) {
-              self.set('uri', self._selectedEntity);
-              self.show();
-           } else {
-              //self.set('uri', null);
-              self.hide();
-           }
+           self.set('uri', data.selected_entity);
+           self._updateVisibility();
          }
       });
 
       $(top).on('mode_changed.unit_frame', function(_, mode) {
-         if (mode == 'normal' && self._selectedEntity) {
-            self.show();
-         } else {
-            self.hide();
-         }
+         self._updateVisibility();
       });
    },
 
@@ -47,6 +35,16 @@ App.StonehearthUnitFrameView = App.View.extend({
          $(top).trigger('show_character_sheet.stonehearth', {
             entity: this.get('uri') 
          });
+      }
+   },
+
+   _updateVisibility: function() {
+      var self = this;
+      var selectedEntity = this.get('uri');
+      if (App.getGameMode() == 'normal' && selectedEntity) {
+        this.set('visible', true);
+      } else {
+        this.set('visible', false);
       }
    },
 
@@ -78,12 +76,13 @@ App.StonehearthUnitFrameView = App.View.extend({
 
    //When we hover over a command button, show its tooltip
    didInsertElement: function() {
+    /*
       if (this.get('uri')) {
         this.show();
       } else {
         this.hide();
       }
-      
+    */
       this.$('#unitFrame > #buffs').find('.item').each(function() {
         $(this).tooltipster({
             content: $('<div class=title>' + $(this).attr('title') + '</div>' + 
@@ -150,18 +149,6 @@ App.StonehearthUnitFrameView = App.View.extend({
       }
 
    }.observes('context.stonehearth:inventory'),
-
-   show: function() {
-      try {
-         this.$().fadeIn();
-      } catch (err) {
-        console.log(err);
-      }
-   },
-
-   hide: function() {
-      this.$().fadeOut();
-   }
 
 });
 

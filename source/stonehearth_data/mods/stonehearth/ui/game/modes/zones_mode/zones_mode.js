@@ -26,11 +26,6 @@ App.StonehearthZonesModeView = App.View.extend({
             }
          } 
       });
-      
-      $(document).mousemove( function(e) {
-         self.mouseX = e.pageX; 
-         self.mouseY = e.pageY;
-      });
    },
    
    didInsertElement: function() {
@@ -94,7 +89,7 @@ App.StonehearthZonesModeView = App.View.extend({
             uri: uri,
             position: {
                my : 'center bottom',
-               at : 'left+' + self.mouseX + " " + 'top+' + (self.mouseY - 10),
+               at : 'left+' + App.stonehearthClient.mouseX + " " + 'top+' + (App.stonehearthClient.mouseY - 10),
                of : $(document),
                collision : 'fit'
             }
@@ -114,11 +109,11 @@ App.StonehearthZonesModeView = App.View.extend({
             uri: uri,
             position: {
                my : 'center bottom',
-               at : 'left+' + self.mouseX + " " + 'top+' + (self.mouseY - 10),
+               at : 'left+' + App.stonehearthClient.mouseX + " " + 'top+' + (App.stonehearthClient.mouseY - 10),
                of : $(document),
                collision : 'fit'
             }
-         });
+      });
 
    }
 });

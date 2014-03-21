@@ -247,7 +247,7 @@ ScriptHost::ScriptHost()
    module(L_) [
       namespace_("_radiant") [
          namespace_("lua") [
-            lua::RegisterType<ScriptHost>("ScriptHost")
+            lua::RegisterType_NoTypeInfo<ScriptHost>("ScriptHost")
                .def("log",             &ScriptHost::Log)
                .def("exit",            &ScriptHost::Exit)
                .def("get_realtime",    &ScriptHost::GetRealTime)
@@ -663,29 +663,6 @@ void ScriptHost::SetPerformanceCounter(const char* name, double value, const cha
    performanceCounters_[BUILD_STRING("lua:" << name)] = std::make_pair(value, kind);
 }
 
-luabind::object ScriptHost::StringToLua(std::string const& str)
-{
-   std::string eval = BUILD_STRING("return " << str);
-   int ret = luaL_loadstring(L_, eval.c_str());
-   if (ret != 0) {
-      LOG_(0) << " error evaling string: " << eval;
-      OnError(lua_tostring(L_, -1));
-      lua_pop(L_, 1);
-      return luabind::object();
-   }
-   ret = lua_pcall(L_, 0, LUA_MULTRET, 0);
-   if (ret != 0) {
-      LOG_(0) << " error evaling string: " << eval;
-      OnError(lua_tostring(L_, -1));
-      lua_pop(L_, 1);
-      return luabind::object();
-   }
-
-   luabind::object obj(luabind::from_stack(L_, -1));
-   lua_pop(L_, 1);
-   return obj;
-}
-
 luabind::object ScriptHost::GetObjectRepresentation(luabind::object obj, std::string const& format) const
 {
    auto convert = [=](luabind::object& o) -> bool {
@@ -716,71 +693,6 @@ luabind::object ScriptHost::GetObjectRepresentation(luabind::object obj, std::st
    return result;
 }
 
-std::string ScriptHost::LuaToString(luabind::object obj)
-{
-   std::vector<luabind::object> visited;
-
-   std::function<void(std::ostringstream&, luabind::object const&)> luaToString;
-
-   luaToString = [&visited, &luaToString, this] (std::ostringstream& os, luabind::object const& current_obj) {
-      luabind::object obj = GetObjectRepresentation(current_obj, "__repr");
-      int t = luabind::type(obj);
-
-      if (t == LUA_TTABLE) {
-         for (luabind::object const& o : visited) {
-            if (current_obj == o) {
-               os << "\"visited node\"";
-               return;
-            }
-         }
-         visited.push_back(current_obj);
-      }
-
-      if (obj != current_obj && t == LUA_TSTRING) {
-         // don't modify it.. it's a lua string meant to be evaled.
-         os << object_cast<std::string>(obj);
-      } else {
-         if (t == LUA_TTABLE) {
-            os << "{ ";
-            for (iterator i(obj), end; i != end; i++) {
-               os << "[";
-                  luaToString(os, i.key());
-               os << "] = ";
-                  luaToString(os, *i);
-               os << ", ";
-            }
-            os << " }";
-         } else if (t == LUA_TUSERDATA) {
-            class_info ci = call_function<class_info>(globals(L_)["class_info"], obj);
-            throw std::logic_error(BUILD_STRING("lua userdata object of type " << ci.name << " does not implement __repr"));
-         } else if (t == LUA_TSTRING) {
-            std::string str = object_cast<std::string>(obj);
-            boost::algorithm::replace_all(str, "'", "\\'");
-            os << "'" << str << "'";
-         } else if (t == LUA_TNUMBER) {
-            std::ostringstream formatter;
-            double double_value = object_cast<double>(obj);
-            int int_value = static_cast<int>(double_value);
-            if (csg::IsZero(double_value - int_value)) {
-               os << int_value;
-            } else {
-               os << double_value;
-            }
-         } else if (t == LUA_TBOOLEAN) {
-            os << (object_cast<bool>(obj) ? "true" : "false");
-         } else if (t == LUA_TFUNCTION) {
-            os << "\"function\"";
-         }
-      }
-   };
-
-   std::ostringstream buffer;
-   luaToString(buffer, obj);
-
-   std::string repr = buffer.str();
-   return repr;
-}
-
 void ScriptHost::AddObjectToLuaConvertor(dm::ObjectType type, ObjectToLuaFn cast_fn)
 {
    ASSERT(!object_cast_table_[type]);
@@ -803,8 +715,8 @@ bool ScriptHost::IsNumericTable(luabind::object tbl) const
    iterator i(tbl), end;
 
    // used to treat empty tables as numeric
-   object __numeric = tbl["__numeric"];
-   if (__numeric.is_valid() && type(__numeric) == LUA_TBOOLEAN && object_cast<bool>(__numeric)) {
+   object n = tbl["n"];
+   if (n.is_valid() && type(n) == LUA_TNUMBER) {
       return true;
    }
    if (i == end) {

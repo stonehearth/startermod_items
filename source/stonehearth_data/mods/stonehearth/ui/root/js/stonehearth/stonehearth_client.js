@@ -14,6 +14,12 @@ var StonehearthClient;
                console.log('error getting build editor')
                console.dir(e)
             })
+      
+         $(document).mousemove( function(e) {
+            self.mouseX = e.pageX; 
+            self.mouseY = e.pageY;
+         });
+
       },
 
       getActiveTool: function() {

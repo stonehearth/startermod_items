@@ -79,7 +79,8 @@
          ADD_CATEGORY(map) \
          ADD_CATEGORY(buffered) \
       END_GROUP(trace) \
-   END_GROUP(dm)
+   END_GROUP(dm) \
+   ADD_CATEGORY(protobuf) \
 
 
 #endif // _RADIANT_LOG_CATEGORIES_H

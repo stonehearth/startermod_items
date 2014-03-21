@@ -48,8 +48,8 @@ function TaskGroup:get_name()
    return self._activity.name
 end
 
-function TaskGroup:remove_worker(worker)
-   local id = worker:get_id()
+function TaskGroup:remove_worker(id)
+   assert(type(id) == 'number')
    local entry = self._workers[id]
    if entry then
       for task, _ in pairs(entry.feeding) do
