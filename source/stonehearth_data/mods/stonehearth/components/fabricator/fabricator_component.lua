@@ -12,7 +12,6 @@ local log = radiant.log.create_logger('build')
 -- this is the component which manages the fabricator entity.
 function FabricatorComponent:initialize(entity, json)
    self._entity = entity
-   self.__saved_variables = radiant.create_datastore({})
 end
 
 function FabricatorComponent:destroy()

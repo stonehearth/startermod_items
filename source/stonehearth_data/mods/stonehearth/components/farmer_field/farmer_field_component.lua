@@ -14,22 +14,22 @@ local rng = _radiant.csg.get_default_rng()
 
 function FarmerFieldComponent:initialize(entity, json)
    self._entity = entity
+   self._sv = self.__saved_variables:get_data()   
+   self.__saved_variables:set_controller(self)
 
    --TODO: add some of these things to CREATE so they can be loaded properly
-   self._data = {
-      size = {0, 0}, 
-      location = nil,
-      contents = {},
-      general_fertility = rng:get_int(1, 40),   --TODO; get from global service
-      crop_queue = {farming_service:get_crop_details('fallow')},
-      --crop_queue = {},
-      curr_crop = 1,
-      auto_harvest = true, 
-      auto_replant = true
-   }
-
-   self.__saved_variables = radiant.create_datastore(self._data)
-   self.__saved_variables:set_controller(self)
+   if not self._sv._initialized then
+      self._sv._initialized = true
+      self._sv.size = {0, 0}
+      self._sv.location = nil
+      self._sv.contents = {}
+      self._sv.general_fertility = rng:get_int(1, 40)   --TODO; get from global service
+      self._sv.crop_queue = {farming_service:get_crop_details('fallow')}
+      --self._sv.crop_queue = {}
+      self._sv.curr_crop = 1
+      self._sv.auto_harvest = true
+      self._sv.auto_replant = true
+   end
    --self.__saved_variables:mark_changed()
    --TODO: listen on changes to faction, like stockpile?
 end
@@ -38,13 +38,13 @@ end
 --  TODO: remove tasks also?
 function FarmerFieldComponent:destroy()
    --Unlisten on all the field plot things
-   for x=1, self._data.size[1] do
-      for y=1, self._data.size[2] do
-         local field_spacer = self._data.contents[x][y].plot
+   for x=1, self._sv.size[1] do
+      for y=1, self._sv.size[2] do
+         local field_spacer = self._sv.contents[x][y].plot
          local dirt_plot_component = field_spacer:get_component('stonehearth:dirt_plot')
          dirt_plot_component:set_field(nil, nil)
          radiant.events.unlisten(field_spacer, 'stonehearth:crop_removed', self, self._on_crop_removed)
-         local till_task =  self._data.contents[x][y].till_task
+         local till_task =  self._sv.contents[x][y].till_task
          if till_task then
             till_task:destroy()
             till_task = nil
@@ -56,19 +56,19 @@ end
 --TODO: Depending on how we eventually designate whether fields can overlap (no?)
 --consider moving this into a central service
 function FarmerFieldComponent:create_dirt_plots(town, location, size)
-   self._data.size = { size[1], size[2] }
-   self._data.location = location
+   self._sv.size = { size[1], size[2] }
+   self._sv.location = location
 
-   for x=1, self._data.size[1] do
-      self._data.contents[x] = {}
-      for y=1, self._data.size[2] do
+   for x=1, self._sv.size[1] do
+      self._sv.contents[x] = {}
+      for y=1, self._sv.size[2] do
          --init the dirt plot
          local field_spacer = self:_init_dirt_plot(location, x, y)
-         self._data.contents[x][y] = {}
-         self._data.contents[x][y].plot = field_spacer
+         self._sv.contents[x][y] = {}
+         self._sv.contents[x][y].plot = field_spacer
 
          -- Tell the farmer scheduler to till this
-         self._data.contents[x][y].till_task = town:create_farmer_task('stonehearth:till_field', { field_spacer = field_spacer, field = self })
+         self._sv.contents[x][y].till_task = town:create_farmer_task('stonehearth:till_field', { field_spacer = field_spacer, field = self })
                                    :set_source(field_spacer)
                                    :set_name('till field task')
                                    :set_priority(stonehearth.constants.priorities.farmer_task.TILL)
@@ -100,8 +100,8 @@ end
 --Fill ths in when we have a full queue implementation
 --TODO: figure out the exact interaction between the UI and the queue update mechanism
 function FarmerFieldComponent:update_queue(session, response, updated_queue, curr_crop_index)
-   self._data.crop_queue = updated_queue
-   self._data.curr_crop = curr_crop_index
+   self._sv.crop_queue = updated_queue
+   self._sv.curr_crop = curr_crop_index
    self.__saved_variables:mark_changed()
    return true
 end
@@ -109,7 +109,7 @@ end
 
 --Temporary: replaces queue item with a brand new item
 function FarmerFieldComponent:change_default_crop(session, response, new_crop)
-   self._data.crop_queue = {farming_service:get_crop_details(new_crop)}
+   self._sv.crop_queue = {farming_service:get_crop_details(new_crop)}
    self:_re_evaluate_empty()
    self.__saved_variables:mark_changed()
    return true
@@ -117,9 +117,9 @@ end
 
 --Iterate through the field. If there is an empty space, determine if we should re-plant there
 function FarmerFieldComponent:_re_evaluate_empty()
-   for x=1, self._data.size[1] do
-      for y=1, self._data.size[2] do
-         local field_spacer = self._data.contents[x][y].plot
+   for x=1, self._sv.size[1] do
+      for y=1, self._sv.size[2] do
+         local field_spacer = self._sv.contents[x][y].plot
          local dirt_plot_component = field_spacer:get_component('stonehearth:dirt_plot')
          if not dirt_plot_component:get_contents() then
             local e = {}
@@ -143,7 +143,7 @@ function FarmerFieldComponent:_determine_replant(e)
    --Figure out the policy on the field
    local plot_entity = e.plot_entity
    local dirt_component = plot_entity:get_component('stonehearth:dirt_plot')
-   local do_replant = self._data.auto_replant
+   local do_replant = self._sv.auto_replant
    local next_plant = self:_get_next_queued_crop()
 
    --Override with data from the plot, if applicable
@@ -163,7 +163,7 @@ end
 --  If the crop type is "fallow" the uri will be nil, and willr eturn nil
 --  TODO: listen on an event to determine when to roll the crops over to the next period
 function FarmerFieldComponent:_get_next_queued_crop()
-   local next_plant = self._data.crop_queue[self._data.curr_crop]
+   local next_plant = self._sv.crop_queue[self._sv.curr_crop]
    if next_plant then
       next_plant = next_plant.uri
    end
@@ -172,7 +172,7 @@ end
 
 --- Given the field and dirt data, harvest the crop
 function FarmerFieldComponent:determine_auto_harvest(dirt_component, crop)
-   local do_harvest = self._data.auto_harvest
+   local do_harvest = self._sv.auto_harvest
    if dirt_component:get_player_override() then
       do_harvest = dirt_component:get_auto_harvest()
    end
@@ -187,7 +187,7 @@ end
 function FarmerFieldComponent:till_location(field_spacer)
    --TODO: get general fertility data from a global service
    --and maybe local fertility data too
-   local local_fertility = rng:get_gaussian(self._data.general_fertility, 10)
+   local local_fertility = rng:get_gaussian(self._sv.general_fertility, 10)
    local dirt_plot_component = field_spacer:get_component('stonehearth:dirt_plot')
 
    --TODO: set moisture correctly

@@ -17,21 +17,22 @@ function Personality:initialize(entity, json)
    self._entity = entity
    self._first_entry = true
 
-   self._data = {
-      log = {},
-      substitutions = {},
-      todays_events = {}    --Each notable thing that's happened today
-   }
-   self.__saved_variables = radiant.create_datastore(self._data)
+   self._sv = self.__saved_variables:get_data()
+   if not self._sv.log then
+      self._sv.log = {}
+      self._sv.substitutions = {}
+      self._sv.todays_events = {}    --Each notable thing that's happened today
+   end
    radiant.events.listen(calendar, 'stonehearth:midnight', self, self.on_midnight)
 end
 
 function Personality:set_personality(personality)
-   self._data.personality = personality
+   self._sv.personality = personality
+   self.__saved_variables:mark_changed()
 end
 
 function Personality:get_personality()
-   return self._data.personality
+   return self._sv.personality
 end
 
 --- Call this function to add a substitution given a parameter
@@ -46,7 +47,8 @@ function Personality:add_substitution_by_parameter(key, parameter, namespace)
       namespace = 'stonehearth'
    end
    local value = personality_service:get_substitution(namespace, key, parameter)
-   self._data.substitutions[key] = value
+   self._sv.substitutions[key] = value
+   self.__saved_variables:mark_changed()
 end
 
 --- Call this function to add a substitution when you already know the value
@@ -58,13 +60,15 @@ function Personality:add_substitution(key, value)
    local data = {}
    data.type = 'string'
    data.value = value
-   self._data.substitutions[key] = data
+   self._sv.substitutions[key] = data
+   self.__saved_variables:mark_changed()
 end
 
 --Every night, dump the old log
 --TODO: Possibly add backstory, events, etc
 function Personality:on_midnight(e)
-   self._data.todays_events = {}
+   self._sv.todays_events = {}
+   self.__saved_variables:mark_changed()
 end
 
 --- Pass event name and % likelihood of logging the event.
@@ -75,15 +79,16 @@ end
 --  @param percent_chance: number between 1 and 100
 --  @param namespace - The scope of the substitution. Optional
 function Personality:register_notable_event(event_name, percent_chance, namespace)
-   if self._data.todays_events[event_name] == nil then
+   if self._sv.todays_events[event_name] == nil then
       local roll = rng:get_int(1, 100)
       if roll <= percent_chance then
-         local title, log = personality_service:get_activity_log(namespace, event_name, self._data.personality, self._data.substitutions)
+         local title, log = personality_service:get_activity_log(namespace, event_name, self._sv.personality, self._sv.substitutions)
          if log then
             self:_add_log_entry(title, log)
          end
       end
-      self._data.todays_events[event_name] = true
+      self._sv.todays_events[event_name] = true
+      self.__saved_variables:mark_changed()
    end
 end
 
@@ -91,7 +96,7 @@ end
 function Personality:_add_log_entry(entry_title, entry_text)
    --Are there any entries yet for this day? If not, add one
    local todays_date = calendar:format_date()
-   if #self._data.log == 0 or self._data.log[1].date ~= todays_date then
+   if #self._sv.log == 0 or self._sv.log[1].date ~= todays_date then
       self:_init_day(todays_date)
    end
 
@@ -99,7 +104,7 @@ function Personality:_add_log_entry(entry_title, entry_text)
    local entry = {}
    entry.text = entry_text
    entry.title = entry_title
-   table.insert(self._data.log[1].entries, entry)
+   table.insert(self._sv.log[1].entries, entry)
 
    --For now, put the note in the scrolling event log too
    local name = radiant.entities.get_display_name(self._entity)
@@ -121,7 +126,8 @@ function Personality:_init_day(day)
    local new_day_data = {}
    new_day_data.date = day
    new_day_data.entries = {}
-   table.insert(self._data.log, 1, new_day_data)
+   table.insert(self._sv.log, 1, new_day_data)
+   self.__saved_variables:mark_changed()
 end
 
 

@@ -17,12 +17,12 @@ function WorkshopComponent:initialize(entity, json)
    self._bench_outputs = {}              -- An array of finished products on the bench, to be added to the outbox. Nil if nothing.
    self._outbox_entity = nil
 
-   self._craft_order_list = CraftOrderList()
-   self.__saved_variables = radiant.create_datastore({
-         order_list = self._craft_order_list,
-         skin_class = json.skin_class or 'default'
-      })
    self.__saved_variables:set_controller(self)
+   self._sv = self.__saved_variables:get_data()
+   if not self._sv.order_list then
+      self._sv.skin_class = json.skin_class or 'default'
+      self._sv.order_list = CraftOrderList()
+   end
    self._construction_ingredients = json.ingredients
    self._build_sound_effect = json.build_sound_effect
 end
@@ -49,7 +49,7 @@ end
    Returns: true if successful add, false otherwise
 --]]
 function WorkshopComponent:add_order(session, response, recipe, condition)
-   self._craft_order_list:add_order(recipe, condition, radiant.entities.get_faction(self._entity))
+   self._sv.order_list:add_order(recipe, condition, radiant.entities.get_faction(self._entity))
    --TODO: if something fails and we know it, send error("string explaining the error") anywhere
    --to be caught by the result variable
    return true
@@ -74,7 +74,7 @@ end
    should_pause: true if we should pause, false if we should unpause.
 ]]
 function WorkshopComponent:toggle_pause(sesion, response)
-   self._craft_order_list:toggle_pause()
+   self._sv.order_list:toggle_pause()
    return true
 end
 
@@ -83,7 +83,7 @@ end
    order_list_data.newPos.
 ]]
 function WorkshopComponent:move_order(session, response, id, newPos)
-   self._craft_order_list:change_order_position(newPos, id)
+   self._sv.order_list:change_order_position(newPos, id)
    return true
 end
 
@@ -91,7 +91,7 @@ end
    Delete an order and clean up if it's the current order
 ]]
 function WorkshopComponent:delete_order(session, response, id)
-   self._craft_order_list:remove_order_id(id)
+   self._sv.order_list:remove_order_id(id)
    return true
 end
 
@@ -149,7 +149,7 @@ function WorkshopComponent:set_crafter(crafter)
       self._orchestrator = town:create_orchestrator(WorkAtWorkshop, {
             crafter = crafter,
             workshop = self._entity,
-            craft_order_list = self._craft_order_list,
+            craft_order_list = self._sv.order_list,
          })
 
    end

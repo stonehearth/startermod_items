@@ -45,7 +45,7 @@ function PickupPlacedItemAdjacent:run(ai, entity, args)
 
    --sometimes the location of the parent object is not adjacent to the
    --entity. In that case, walk over to the placed item.
-   ai:execute('stonehearth:goto_entity', { entity = pickup_item})
+   ai:execute('stonehearth:goto_entity', { entity = pickup_item })
    ai:execute('stonehearth:pickup_item_adjacent', { item = pickup_item })
    self._proxy_item = nil
 end

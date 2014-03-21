@@ -119,10 +119,8 @@ template <class K, class V, class H>
 void Map<K, V, H>::Add(K const& key, V const& value) {
    auto i = items_.find(key);
    if (i != items_.end()) {
-      if (!Equals(i->second, value)) {
-         i->second = value;
-         GetStore().OnMapChanged(*this, key, value);
-      }
+      i->second = value;
+      GetStore().OnMapChanged(*this, key, value);
    } else {
       items_[key] = value;
       GetStore().OnMapChanged(*this, key, value);

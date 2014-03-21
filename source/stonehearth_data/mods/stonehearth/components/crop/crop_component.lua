@@ -11,9 +11,6 @@ function CropComponent:initialize(entity, json)
    radiant.events.listen(radiant.events, 'stonehearth:entity:post_create', self, self._on_create_complete)
 end
 
-function CropComponent:restore(entity, save_state)
-end
-
 function CropComponent:destroy()
    radiant.events.unlisten(self._entity, 'stonehearth:growing', self, self._on_grow_period)
 end

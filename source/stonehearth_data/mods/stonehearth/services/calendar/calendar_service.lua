@@ -95,7 +95,7 @@ function CalendarService:_create_timer(duration, fn, repeating)
    else
       timeout_s = duration
    end
-   assert(timeout_s > 0, 'invalid duration passed to calendar set timer, "%s"', tostring(duration))
+   assert(timeout_s > 0, string.format('invalid duration passed to calendar set timer, "%s"', tostring(duration)))
 
    local timer = CalendarTimer(self:get_elapsed_time(), timeout_s, fn, repeating)
 
