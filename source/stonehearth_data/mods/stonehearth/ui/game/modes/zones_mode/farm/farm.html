@@ -8,6 +8,27 @@
          <h2>{{i18n stonehearth:farm_pick_crop}} {{curr_crop_name}} </h2>
 
          <div id="cropRotation">
+            <a id="addCropLink" {{action addCropButtonClicked target="view"}}>
+               {{#each stonehearth:farmer_field.crop_queue}}
+                  <div class="targetCrop">
+                     <img class="cropImage tooltip" {{bindAttr src="this.icon" title="this.name"}} />
+                  </div>
+               {{/each}}     
+            </a>
+         </div>
+
+         <p></p>
+
+         <button class="warn">{{i18n stonehearth:remove}}</button>
+         <button class="ok"></button>
+
+      </div>
+   </div>
+</script>
+
+<script type="text/x-handlebars" data-template-name="_crop_queue_and_manual_options_add_back_above_later">
+<!--
+         <div id="cropRotation">
             {{#each stonehearth:farmer_field.crop_queue}}
                
                <div class="cropRotationSlot crop">
@@ -18,7 +39,6 @@
             <div class="cropRotationSlot"><a {{action addCropButtonClicked target="view"}}><button id="addCropButton" class="dropdown"></button></a></div>
          </div>
 
-<!--
          <h2>{{i18n stonehearth:farm_manually_place_crops}}</h2>
 
          <div>insert the palette</div>
@@ -33,13 +53,6 @@
             <label for="autoReplant">{{i18n stonehearth:farm_auto_replant}}</label>
       </div>
 -->
-         <p></p>
-
-         <button class="warn">{{i18n stonehearth:remove}}</button>
-         <button class="ok"></button>
-
-      </div>
-   </div>
 </script>
 
 <script type="text/x-handlebars" data-template-name="stonehearthCropPalette">

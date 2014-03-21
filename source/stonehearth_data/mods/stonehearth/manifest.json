@@ -127,10 +127,9 @@
 
       "berry_bush" : "file(entities/plants/berry_bush)",
       "tilled_dirt" : "file(entities/terrain/tilled_dirt)",
-      "corn_seedling" : "file(entities/plants/corn_seedling)",
-      "corn_plant" : "file(entities/plants/corn_plant)",
-      "corn_basket" : "file(entities/plants/corn_basket)",
-      "corn_cob" : "file(entities/plants/corn_cob)",
+      "corn_crop"   : "file(entities/plants/corn/corn_crop)",
+      "corn_basket" : "file(entities/plants/corn/corn_basket)",
+      "corn_cob"    : "file(entities/plants/corn/corn_cob)",
       "turnip_crop" : "file(entities/plants/turnip/turnip_crop)",
       "turnip" : "file(entities/plants/turnip/turnip_serving)",
       "turnip_basket" : "file(entities/plants/turnip/turnip_basket)",

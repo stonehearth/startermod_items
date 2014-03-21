@@ -78,7 +78,7 @@ SceneNode *DecalNode::factoryFunc(const SceneNodeTpl &nodeTpl)
 }
 
 void DecalNode::renderFunc(const std::string &shaderContext, const std::string &theClass, bool debugView,
-                           const Frustum *frust1, const Frustum *frust2, RenderingOrder::List order, int occSet)
+                           const Frustum *frust1, const Frustum *frust2, RenderingOrder::List order, int occSet, int lodLevel)
 {
    bool offsetSet = false;
    for (const auto &entry : Modules::sceneMan().getRenderableQueue(SNT_DecalNode)) {

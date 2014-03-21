@@ -5,9 +5,14 @@ using namespace ::radiant;
 using namespace ::radiant::voxel;
 
 QubicleMatrix::QubicleMatrix(QubicleFile const& qubicle_file, std::string const& name) :
-   qubicle_file_(qubicle_file),
    name_(name)
 {
+}
+
+QubicleMatrix::QubicleMatrix(const csg::Point3& size, const csg::Point3& position, const std::string& name) :
+   size_(size), position_(position), name_(name)
+{
+   matrix_.resize(size.x * size.y * size.z);
 }
 
 QubicleMatrix::~QubicleMatrix()
@@ -28,6 +33,12 @@ csg::Color3 QubicleMatrix::GetColor(radiant::uint32 value) const
 {
    csg::Color4 c = csg::Color4::FromInteger(value);
    return csg::Color3(c.r, c.g, c.b);
+}
+
+void QubicleMatrix::Set(int x, int y, int z, radiant::uint32 value)
+{
+   int offset = x + (size_.x * y) + (size_.x * size_.y * z);
+   matrix_[offset] = value;
 }
 
 std::istream& QubicleMatrix::Read(const QbHeader& header, std::istream& in)

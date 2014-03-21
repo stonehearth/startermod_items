@@ -101,7 +101,7 @@ private:
    Point3f                 offset_;
 };
 
-void RegionToMesh(csg::Region3 const& region, mesh_tools::mesh &mesh, csg::Point3f const& offset);
+void RegionToMesh(csg::Region3 const& region, mesh_tools::mesh &mesh, csg::Point3f const& offset, bool optimizePlanes);
 
 END_RADIANT_CSG_NAMESPACE
 

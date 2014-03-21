@@ -31,13 +31,13 @@
 
       <Stage id="Depth">
          <SwitchTarget target="GBuffers" />
-         <DrawGeometry context="DEPTH_LINEAR" class="~Translucent" />
+         <DrawGeometry context="DEPTH_LINEAR" class="~Translucent" forceLodLevel="1" />
 
          <ClearTarget colBuf0="false" colBuf1="false" depthBuf="true" />
-         <DrawGeometry context="DEPTH_LINEAR_BACK" class="~Translucent" />
+         <DrawGeometry context="DEPTH_LINEAR_BACK" class="~Translucent" forceLodLevel="1" />
 
          <SwitchTarget target="" />
-         <DrawGeometry context="DEPTH" class="~Translucent" />
+         <DrawGeometry context="DEPTH" class="~Translucent" forceLodLevel="-2" />
       </Stage>
 
       <Stage id="SSAO">

@@ -112,7 +112,8 @@ App.StonehearthFarmView = App.View.extend({
                      position: {
                         my : 'center bottom',
                         at : 'left bottom', //'bottom',
-                        of : this.$('#addCropButton')
+                        //of : this.$('#addCropButton')
+                        of : this.$('#addCropLink')
                      }
                   });
       },

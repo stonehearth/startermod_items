@@ -132,8 +132,8 @@ void Client::OneTimeIninitializtion()
    });
 
    // browser...
-   int screen_width = renderer.GetWidth();
-   int screen_height = renderer.GetHeight();
+   int screen_width = renderer.GetWindowWidth();
+   int screen_height = renderer.GetWindowHeight();
 
    browser_.reset(chromium::CreateBrowser(hwnd, "", screen_width, screen_height, 1338));
    browser_->SetCursorChangeCb([=](HCURSOR cursor) {
