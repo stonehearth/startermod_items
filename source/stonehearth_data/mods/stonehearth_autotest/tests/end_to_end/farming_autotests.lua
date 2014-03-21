@@ -3,7 +3,7 @@ local farming_tests = {}
 function farming_tests.grow_one_turnip()
    local worker = autotest.env.create_person(2, 2, { profession = 'farmer' })
 
-   radiant.events.listen(radiant, 'stonehearth:entity:post_create', function (e)
+   radiant.events.listen(radiant, 'radiant:entity:post_create', function (e)
          if e.entity:get_uri() == 'stonehearth:turnip_basket' then
             autotest.success()
          end

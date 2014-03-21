@@ -78,13 +78,13 @@ function RegionSelector:set_region(p0, p1)
 end
 
 function RegionSelector:progress(cb)
-   assert(not self._progress_cb, 'autotest only supports 1 :fail() cb')
+   assert(not self._progress_cb, 'autotest only supports 1 :progress() cb')
    self._progress_cb = cb
    return self
 end
 
 function RegionSelector:done(cb)
-   assert(not self._done_cb, 'autotest only supports 1 :fail() cb')
+   assert(not self._done_cb, 'autotest only supports 1 :done() cb')
    self._done_cb = cb
    return self
 end

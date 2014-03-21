@@ -19,17 +19,19 @@ function ResourceCallHandler:box_harvest_resources(session, response)
    local parent_node = cursor_render_entity:get_node()
    local node
 
+   local xz_selector
    local cursor = _radiant.client.set_cursor('stonehearth:cursors:harvest')
 
    local cleanup = function()
       if node then
          h3dRemoveNode(node)
       end
+      xz_selector:destroy()
       cursor:destroy()
       _radiant.client.destroy_authoring_entity(cursor_entity:get_id())
    end
 
-   _radiant.client.select_xz_region(1)
+   xz_selector = _radiant.client.select_xz_region(1)
       :progress(function (box)
             self._region:modify(function(cursor)
                cursor:clear()
