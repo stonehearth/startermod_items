@@ -4,6 +4,7 @@ function GrowingComponent:initialize(entity, json)
    self._entity = entity
    self._growth_period = json.growth_period or '1h'
    self._growth_stages = json.growth_stages
+   self._growth_stages = json.growth_stages
 
    self._data = {
       current_growth_stage = 1,
