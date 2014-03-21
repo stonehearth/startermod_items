@@ -15,6 +15,7 @@ local rng = _radiant.csg.get_default_rng()
 function FarmerFieldComponent:initialize(entity, json)
    self._entity = entity
    self._sv = self.__saved_variables:get_data()   
+   self.__saved_variables:set_controller(self)
 
    --TODO: add some of these things to CREATE so they can be loaded properly
    if not self._sv._initialized then
@@ -193,9 +194,10 @@ function FarmerFieldComponent:till_location(field_spacer)
    dirt_plot_component:set_fertility_moisture(local_fertility, 50)
 
    --Check if we should automatically plant something here
-   local e = {}
-   e.plot_entity = field_spacer
-   self:_determine_replant(e)
+   --(TODO: for now, initial planting handled by the UI)
+   --local e = {}
+   --e.plot_entity = field_spacer
+   --self:_determine_replant(e)
 end
 
 

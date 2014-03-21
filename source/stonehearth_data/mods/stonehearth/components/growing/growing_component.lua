@@ -4,6 +4,7 @@ function GrowingComponent:initialize(entity, json)
    self._entity = entity
    self._growth_period = json.growth_period or '1h'
    self._growth_stages = json.growth_stages
+   self._growth_stages = json.growth_stages
 
    self._sv = self.__saved_variables:get_data()
    if not self._sv.current_growth_stage then
