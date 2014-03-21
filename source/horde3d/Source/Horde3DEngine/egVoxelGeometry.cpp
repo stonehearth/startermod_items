@@ -134,7 +134,7 @@ bool VoxelGeometryResource::loadData(VoxelVertexData *vertices, int vertexOffset
 
    if (_16BitIndices) {
       uint16* i16 = (uint16*)_indexData;
-      for (int i = 0; i < _indexCount; i++) {
+      for (uint32 i = 0; i < _indexCount; i++) {
          *i16++ = (uint16)indicies[i];
       }
    } else {
