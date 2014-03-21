@@ -59,7 +59,7 @@ function WorldGenerationService:set_seed(seed)
 end
 
 function WorldGenerationService:_report_progress(progress)
-   radiant.events.trigger(radiant.events, 'stonehearth:generate_world_progress', {
+   radiant.events.trigger(radiant, 'stonehearth:generate_world_progress', {
       progress = progress * 100
    })
 end

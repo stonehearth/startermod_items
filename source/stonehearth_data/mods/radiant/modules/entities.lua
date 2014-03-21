@@ -18,14 +18,7 @@ function entities.create_entity(ref)
    if not ref or #ref == 0 then
       return _radiant.sim.create_empty_entity()
    end
-   local entity = _radiant.sim.create_entity(ref)
-   -- trigger 'stonehearth:entity:post_create' first so components can finalize entity
-   -- creation.
-   radiant.events.trigger(entity, 'stonehearth:entity:post_create', { entity = entity})
-
-   -- trigger the global 'stonehearth:entity_created' to notify mods
-   radiant.events.trigger(radiant.events, 'stonehearth:entity:post_create', { entity = entity })
-   return entity
+   return _radiant.sim.create_entity(ref)
 end
 
 function entities.destroy_entity(entity)
@@ -39,10 +32,7 @@ function entities.destroy_entity(entity)
          end
          singleton._entity_dtors[id] = nil
       end
-      radiant.events.trigger(entity, 'stonehearth:entity:pre_destroy', { entity = entity })      
-      radiant.events.trigger(radiant.events, 'stonehearth:entity:pre_destroy', { entity = entity })      
       _radiant.sim.destroy_entity(entity)
-      radiant.events.trigger(radiant.events, 'stonehearth:entity:post_destroy', { id = id })
    end
 end
 

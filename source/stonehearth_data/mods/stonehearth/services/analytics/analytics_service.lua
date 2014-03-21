@@ -5,8 +5,8 @@ local population_service = stonehearth.population
 local object_tracker = stonehearth.object_tracker
 
 function AnalyticsService:__init(datastore)
-   radiant.events.listen(radiant.events, 'stonehearth:minute_poll', self, self.on_minute_poll)
-   radiant.events.listen(radiant.events, 'stonehearth:ten_minute_poll', self, self.on_ten_minute_poll)
+   radiant.events.listen(radiant, 'stonehearth:minute_poll', self, self.on_minute_poll)
+   radiant.events.listen(radiant, 'stonehearth:ten_minute_poll', self, self.on_ten_minute_poll)
 end
 
 function AnalyticsService:initialize()

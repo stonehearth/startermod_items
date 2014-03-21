@@ -127,7 +127,7 @@ function DirtPlotComponent:plant_crop(crop_type)
    command_component:add_command('/stonehearth/data/commands/raze_crop')
 
    --listen for if the planted crop gets destroyed for any reason
-   radiant.events.listen(planted_entity, 'stonehearth:entity:pre_destroy', self, self._on_crop_removed)
+   radiant.events.listen(planted_entity, 'radiant:entity:pre_destroy', self, self._on_crop_removed)
    radiant.events.listen(planted_entity, 'stonehearth:crop_harvestable', self, self._on_crop_harvestable)
 end
 

@@ -55,7 +55,7 @@ function StockpileComponent:initialize(entity, json)
                     :set_reserved(_radiant.sim.alloc_region())
                     :set_auto_update_adjacent(true)
 
-   radiant.events.listen(radiant.events, 'stonehearth:gameloop', self, self.on_gameloop)
+   radiant.events.listen(radiant, 'stonehearth:gameloop', self, self.on_gameloop)
    all_stockpiles[self._entity:get_id()] = self
 
    if json.size then      
@@ -122,7 +122,7 @@ end
 
 -- xxx: the 'fire one when i'm constructed' pattern again...
 function StockpileComponent:on_gameloop()
-   radiant.events.unlisten(radiant.events, 'stonehearth:gameloop', self, self.on_gameloop)
+   radiant.events.unlisten(radiant, 'stonehearth:gameloop', self, self.on_gameloop)
    local root = radiant.entities.get_root_entity()
    local ec = radiant.entities.get_root_entity():get_component('entity_container')
 

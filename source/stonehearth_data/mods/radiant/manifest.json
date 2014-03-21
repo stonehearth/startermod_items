@@ -1,5 +1,8 @@
 {
    "info" :{
       "name" : "Radiant Core Library"
-   }
+   },
+
+   "client_init_script" : "file(client)",
+   "server_init_script" : "file(server)"
 }

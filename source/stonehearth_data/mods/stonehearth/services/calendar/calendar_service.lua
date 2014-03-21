@@ -33,7 +33,7 @@ function CalendarService:__init()
    TIME_DURATIONS.month = TIME_DURATIONS.day * self._constants.days_per_month
    TIME_DURATIONS.year = TIME_DURATIONS.month * self._constants.months_per_year
 
-   radiant.events.listen(radiant.events, 'stonehearth:gameloop', self, self._on_event_loop)
+   radiant.events.listen(radiant, 'stonehearth:gameloop', self, self._on_event_loop)
 end
 
 function CalendarService:initialize()

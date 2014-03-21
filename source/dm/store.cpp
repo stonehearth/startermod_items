@@ -97,7 +97,7 @@ bool Store::Save(std::string &error)
 
    // The C++ Google Protobuf docs claim FileOutputStream avoids an extra copy of the data
    // introduced by OstreamOutputStream, so lets' use that.
-   int fd = _open("save.bin", O_WRONLY | O_BINARY | O_TRUNC, S_IREAD | S_IWRITE);
+   int fd = _open("save.bin", O_WRONLY | O_BINARY | O_TRUNC | O_CREAT, S_IREAD | S_IWRITE);
    if (fd < 0) {
       error = "could not open save file";
       return false;

@@ -10,7 +10,7 @@ function PromotionTalismanComponent:initialize(entity, json)
    self._info = json
    self._profession_name = json.profession_name or ''
 
-   radiant.events.listen(entity, 'stonehearth:entity:post_create', function()
+   radiant.events.listen(entity, 'radiant:entity:post_create', function()
          self:_set_profession_name()
          return radiant.events.UNLISTEN
       end)

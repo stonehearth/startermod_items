@@ -16,6 +16,17 @@ static const std::regex entity_macro_regex__("^([^:\\\\/]+):([^\\\\/]+)$");
 
 #define E_LOG(level)    LOG(om.entity, level)
 
+static void
+TriggerPostCreate(lua::ScriptHost *scriptHost, om::EntityPtr entity)
+{
+   lua_State* L = scriptHost->GetInterpreter();
+   luabind::object e(L, std::weak_ptr<om::Entity>(entity));
+   luabind::object evt(L, luabind::newtable(L));
+   evt["entity"] = e;
+   scriptHost->TriggerOn(e, "radiant:entity:post_create", evt);
+   scriptHost->Trigger("radiant:entity:post_create", evt);
+}
+
 static std::string
 GetLuaComponentUri(std::string name)
 {
@@ -185,8 +196,7 @@ Stonehearth::InitEntity(EntityPtr entity, std::string const& uri, lua_State* L)
          }
       }
    });
-
-   entity->SetDebugText(BUILD_STRING(*entity));
+   TriggerPostCreate(scriptHost, entity);
 }
 
 void
@@ -195,17 +205,24 @@ Stonehearth::RestoreLuaComponents(lua::ScriptHost* scriptHost, EntityPtr entity)
    auto restore = [scriptHost, entity](JSONNode const& data) {
       lua_State* L = scriptHost->GetInterpreter();
 
+      auto const components = data.find("components"), end = data.end();
       for (auto const& entry : entity->GetLuaComponents()) {
          std::string component_name = entry.first;
          boost::optional<om::DataStorePtr> saved_variables = luabind::object_cast_nothrow<om::DataStorePtr>(entry.second);
 
-         auto i = data.find(component_name);
-         object json = lua::ScriptHost::JsonToLua(L, i != data.end() ? *i : JSONNode());
-         object lua_component = ConstructLuaComponent(scriptHost, component_name, entity, json, *saved_variables);
+         JSONNode json;
+         if (components != end) {
+            auto const j = components->find(component_name);
+            if (j != components->end()) {
+               json = *j;
+            }
+         }
+         object lua_component = ConstructLuaComponent(scriptHost, component_name, entity, lua::ScriptHost::JsonToLua(L, json), *saved_variables);
          if (lua_component && lua_component.is_valid()) {
             entity->AddLuaComponent(component_name, lua_component);
          }
       }
+      TriggerPostCreate(scriptHost, entity);
    };
    std::string const& uri = entity->GetUri();
    if (!uri.empty()) {
@@ -213,5 +230,6 @@ Stonehearth::RestoreLuaComponents(lua::ScriptHost* scriptHost, EntityPtr entity)
    } else {
       restore(JSONNode());
    }
+
 }
 

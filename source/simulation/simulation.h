@@ -136,7 +136,7 @@ private:
    void ShutdownLuaObjects();
 
    void CreateGame();
-   void CreateModule(std::string const& name);
+   luabind::object CreateModule(std::string const& name);
    void CreateModules();
 
 private:
