@@ -168,7 +168,9 @@ uniform vec3 lightAmbientColor;
 uniform sampler2D cloudMap;
 uniform sampler2D fowRT;
 uniform float currentTime;
+uniform vec4 lodLevels;
 
+varying vec4 vsPos;
 varying vec4 pos;
 varying vec3 albedo;
 varying vec3 tsbNormal;
@@ -195,6 +197,13 @@ void main( void )
   // Mix in fog of war.
   float fowValue = texture2D(fowRT, projFowPos.xy).a;
   lightColor *= fowValue;
+
+  // Do LOD blending.
+  if (lodLevels.x == 0.0) {
+    lightColor *= clamp((lodLevels.y - -vsPos.z) / lodLevels.w, 0.0, 1.0);
+  } else {
+    lightColor *= clamp((-vsPos.z - lodLevels.z) / lodLevels.w, 0.0, 1.0);
+  }
 
   gl_FragColor = vec4(lightColor, 1.0);
 }
@@ -268,7 +277,9 @@ uniform sampler2D ssaoImage;
 uniform vec2 viewPortSize;
 uniform vec2 viewPortPos;
 uniform float currentTime;
+uniform vec4 lodLevels;
 
+varying vec4 vsPos;
 varying vec4 pos;
 varying vec3 albedo;
 varying vec3 tsbNormal;
@@ -294,6 +305,14 @@ void main( void )
   // Mix in fog of war.
   float fowValue = texture2D(fowRT, projFowPos.xy).a;
   lightColor *= fowValue;
+
+  // Do LOD blending.
+
+  if (lodLevels.x == 0.0) {
+    lightColor *= clamp((lodLevels.y - -vsPos.z) / lodLevels.w, 0.0, 1.0);
+  } else {
+    lightColor *= clamp((-vsPos.z - lodLevels.z) / lodLevels.w, 0.0, 1.0);
+  }
 
   gl_FragColor = vec4(lightColor, 1.0);
 }

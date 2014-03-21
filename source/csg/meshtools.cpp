@@ -327,11 +327,17 @@ mesh_tools::mesh& mesh_tools::mesh::FlipFaces()
    return *this;
 }
 
-void csg::RegionToMesh(csg::Region3 const& region, mesh_tools::mesh &mesh, csg::Point3f const& offset)
+void csg::RegionToMesh(csg::Region3 const& region, mesh_tools::mesh &mesh, csg::Point3f const& offset, bool optimizePlanes)
 {
    mesh.SetOffset(offset);
    csg::RegionTools3().ForEachPlane(region, [&](csg::Region2 const& plane, csg::PlaneInfo3 const& pi) {
-      mesh.AddRegion(plane, pi);
+      if (optimizePlanes) {
+         csg::Region2 optPlane = plane;
+         optPlane.OptimizeByMerge();
+         mesh.AddRegion(optPlane, pi);
+      } else {
+         mesh.AddRegion(plane, pi);
+      }
    });
 }
 

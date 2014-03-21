@@ -219,7 +219,7 @@ struct VoxelGeometryVertex {
    float color[3];
 };
 
-DLL H3DRes h3dutCreateVoxelGeometryRes( const char *name, struct VoxelGeometryVertex* vertexData, int numVertices, unsigned int* indexData, int numIndices);
+DLL H3DRes h3dutCreateVoxelGeometryRes( const char *name, struct VoxelGeometryVertex* vertexData, int vertexOffsets[], unsigned int* indexData, int indexOffsets[], int numLodLevels);
 
 /* Function: h3dutCreateTGAImage
 		Creates a TGA image in memory.

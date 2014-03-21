@@ -175,10 +175,10 @@ void VoxelModelNode::updateLocalMeshAABBs()
 		
       mesh._localBBox.clear();
 		
-		if( mesh._vertRStart < _geometryRes->getVertCount() &&
-		    mesh._vertREnd < _geometryRes->getVertCount() )
+      if( mesh.getVertRStart(0) < _geometryRes->getVertCount() &&
+		    mesh.getVertREnd(0) < _geometryRes->getVertCount() )
 		{
-			for( uint32 j = mesh._vertRStart; j <= mesh._vertREnd; ++j )
+         for( uint32 j = mesh.getVertRStart(0); j <= mesh.getVertREnd(0); ++j )
 			{
 				Vec3f &vertPos = _geometryRes->getVertexData()[j].pos;
             mesh._localBBox.addPoint(vertPos);
@@ -420,22 +420,6 @@ bool VoxelModelNode::updateVoxelGeometry()
 
 	return true;
 }
-
-
-uint32 VoxelModelNode::calcLodLevel( const Vec3f &viewPoint )
-{
-	Vec3f pos( _absTrans.c[3][0], _absTrans.c[3][1], _absTrans.c[3][2] );
-	float dist = (pos - viewPoint).length();
-	uint32 curLod = 4;
-	
-	if( dist < _lodDist1 ) curLod = 0;
-	else if( dist < _lodDist2 ) curLod = 1;
-	else if( dist < _lodDist3 ) curLod = 2;
-	else if( dist < _lodDist4 ) curLod = 3;
-
-	return curLod;
-}
-
 
 void VoxelModelNode::onPostUpdate()
 {

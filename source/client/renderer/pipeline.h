@@ -29,7 +29,7 @@ class Pipeline : public core::Singleton<Pipeline> {
       // dynamic meshes are likely unique (and therefore do not need to share geometry with anyone) and are likely
       // to change (e.g. the terrain).
       H3DNode AddDynamicMeshNode(H3DNode parent, const csg::mesh_tools::mesh& m, std::string const& material, int userFlags);
-      H3DNode AddSharedMeshNode(H3DNode parent, ResourceCacheKey const& key, std::string const& material, std::function<void(csg::mesh_tools::mesh &)> create_mesh_fn);
+      H3DNode AddSharedMeshNode(H3DNode parent, ResourceCacheKey const& key, std::string const& material, std::function<void(csg::mesh_tools::mesh &, int)> create_mesh_fn);
 
       H3DNodeUnique CreateVoxelNode(H3DNode parent, csg::Region3 const& model, std::string const& material_path, csg::Point3f const& offset, int userFlags);
       H3DNodeUnique CreateBlueprintNode(H3DNode parent, csg::Region3 const& model, float thickness, std::string const& material_path, csg::Point3f const& offset);
@@ -41,8 +41,8 @@ class Pipeline : public core::Singleton<Pipeline> {
    private:
       void AddDesignationBorder(csg::mesh_tools::mesh& m, csg::EdgeMap2& edgemap);
       void AddDesignationStripes(csg::mesh_tools::mesh& m, csg::Region2 const& panels);
-      H3DNode CreateModelNode(H3DNode parent, H3DRes geometry, int indexCount, int vertexCount, std::string const& material, int flag);
-      H3DRes ConvertMeshToGeometryResource(const csg::mesh_tools::mesh& m);
+      H3DNode CreateModelNode(H3DNode parent, H3DRes geometry, std::string const& material, int flag);
+      H3DRes ConvertMeshToGeometryResource(const csg::mesh_tools::mesh& m, int indexOffsets[], int vertexOffsets[], int numLodLevels);
 
    private:
       typedef std::unordered_map<std::string, voxel::QubicleFilePtr> QubicleMap;

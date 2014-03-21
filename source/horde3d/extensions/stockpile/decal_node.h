@@ -28,7 +28,7 @@ public:
 	static Horde3D::SceneNode *factoryFunc(const Horde3D::SceneNodeTpl &nodeTpl);
 	static void renderFunc(const std::string &shaderContext, const std::string &theClass, bool debugView,
 		                    const Horde3D::Frustum *frust1, const Horde3D::Frustum *frust2,
-                          Horde3D::RenderingOrder::List order, int occSet);
+                          Horde3D::RenderingOrder::List order, int occSet, int lodLevel);
 
    static bool InitExtension();
 

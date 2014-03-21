@@ -598,13 +598,13 @@ DLLEXP void h3dutFreeMem( char **ptr )
 	delete[] *ptr; *ptr = 0x0;
 }
 
-DLLEXP H3DRes h3dutCreateVoxelGeometryRes( const char *name, struct VoxelGeometryVertex* vertexData, int numVertices, unsigned int* indexData, int numIndices)
+DLLEXP H3DRes h3dutCreateVoxelGeometryRes( const char *name, struct VoxelGeometryVertex* vertexData, int vertexOffsets[], unsigned int* indexData, int indexOffsets[], int numLodLevels)
 {
-	if( numVertices == 0 || numIndices == 0 ) return 0;
+	if( numLodLevels <= 0 || vertexOffsets[1] == 0 || indexOffsets[1] == 0 ) return 0;
 
 	H3DRes res = h3dAddResource(H3DResTypes::VoxelGeometry, name, 0);
    VoxelGeometryResource *geoRes = (VoxelGeometryResource* )Horde3D::Modules::resMan().resolveResHandle( res );
-   geoRes->loadData((Horde3D::VoxelVertexData*)vertexData, numVertices, indexData, numIndices);
+   geoRes->loadData((Horde3D::VoxelVertexData*)vertexData, vertexOffsets, indexData, indexOffsets, numLodLevels);
 
    return res;
 }
