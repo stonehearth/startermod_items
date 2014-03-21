@@ -327,12 +327,6 @@ Point<S, C> Region<S, C>::GetClosestPoint2(const Point& from, S *dSquared) const
 }
 
 template <class S, int C>
-void Region<S, C>::Optimize()
-{
-   // Consider calling OptimizeByMerge();
-}
-
-template <class S, int C>
 bool Region<S, C>::ContainsAtMostOneTag() const
 {
    if (IsEmpty()) {
@@ -784,7 +778,6 @@ void Region<S, C>::Validate() const
    template bool Cls::Intersects(const Cls::Cube&) const; \
    template bool Cls::Contains(const Cls::Point&) const; \
    template Cls::Point Cls::GetClosestPoint2(const Cls::Point&, Cls::ScalarType*) const; \
-   template void Cls::Optimize(); \
    template void Cls::OptimizeByMerge(); \
    template void Cls::OptimizeByOctTree(Cls::ScalarType); \
    template Cls::Cube Cls::GetBounds() const; \

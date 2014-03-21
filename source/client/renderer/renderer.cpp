@@ -258,27 +258,26 @@ void Renderer::UpdateFoW(H3DNode node, const csg::Region2& region)
    }
    float* start = (float*)h3dMapNodeParamV(node, H3DInstanceNodeParams::InstanceBuffer);
    float* f = start;
+   float ySize = 100.0f;
    for (const auto& c : region) 
    {
       float px = (c.max + c.min).x * 0.5f;
-      float py = -50.0f;
       float pz = (c.max + c.min).y * 0.5f;
 
       float xSize = (float)c.max.x - c.min.x;
       float zSize = (float)c.max.y - c.min.y;
-      float ySize = 100.0f;
       f[0] = xSize; f[1] = 0;                f[2] =   0;    f[3] =  0;
       f[4] = 0;     f[5] = ySize;            f[6] =   0;    f[7] =  0;
       f[8] = 0;     f[9] = 0;                f[10] = zSize; f[11] = 0;
-      f[12] = px;   f[13] = py - (ySize /2); f[14] =  pz;   f[15] = 1;
+      f[12] = px;   f[13] = -ySize/2.0f;     f[14] =  pz;   f[15] = 1;
       
       f += 16;
    }
 
    h3dUnmapNodeParamV(node, H3DInstanceNodeParams::InstanceBuffer, (f - start) * 4);
    const auto& bounds = region.GetBounds();
-   h3dUpdateBoundingBox(node, (float)bounds.min.x, -50.0f, (float)bounds.min.y, 
-      (float)bounds.max.x, -50.0f, (float)bounds.max.y);
+   h3dUpdateBoundingBox(node, (float)bounds.min.x, -ySize/2.0f, (float)bounds.min.y, 
+      (float)bounds.max.x, ySize/2.0f, (float)bounds.max.y);   
 }
 
 void Renderer::RenderFogOfWarRT()

@@ -22,6 +22,7 @@ public:
    QubicleBrush();
    QubicleBrush(std::istream& in);
    QubicleBrush(QubicleMatrix const*);
+   QubicleBrush(QubicleMatrix const*, int);
 
    QubicleBrush& SetNormal(csg::Point3 const& normal);
    QubicleBrush& SetOffsetMode(OffsetMode mode);
@@ -35,8 +36,10 @@ private:
    csg::Region3 PreparePaintBrush();
    csg::Region3 MatrixToRegion3(QubicleMatrix const& matrix);
    csg::Region3 IterateThroughStencil(csg::Region3 const& brush, csg::Region3 const& stencil);
+   QubicleMatrix Lod(const QubicleMatrix& m, int lod_level);
 
 private:
+   int                   lod_level_;
    OffsetMode            offset_mode_;
    PaintMode             paint_mode_;
    csg::Point3           normal_;

@@ -218,15 +218,15 @@ void RenderRenderInfo::AddModelNode(om::RenderInfoPtr render_info, std::string c
       key.AddElement("matrix", matrix);
    }
 
-   auto generate_matrix = [&matrices, &origin, &pipeline](csg::mesh_tools::mesh &mesh) {
+   auto generate_matrix = [&matrices, &origin, &pipeline](csg::mesh_tools::mesh &mesh, int lodLevel) {
       csg::Region3 all_models;
       for (voxel::QubicleMatrix const* matrix : matrices) {
-         csg::Region3 model = voxel::QubicleBrush(matrix)
+         csg::Region3 model = voxel::QubicleBrush(matrix, lodLevel)
             .SetOffsetMode(voxel::QubicleBrush::File)
             .PaintOnce();
          all_models += model;
       }
-      csg::RegionToMesh(all_models, mesh, -origin);
+      csg::RegionToMesh(all_models, mesh, -origin, true);
    };
 
    H3DNodeUnique node = pipeline.AddSharedMeshNode(parent, key, material_path_, generate_matrix);

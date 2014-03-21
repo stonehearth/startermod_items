@@ -79,6 +79,7 @@ void VoxelGeometryResource::initDefault()
 	_16BitIndices = false;
 	_indexBuf = defIndexBuffer;
 	_vertexBuf = defVertexBuffer;
+   _numLodLevels = 1;
 }
 
 
@@ -112,26 +113,32 @@ bool VoxelGeometryResource::raiseError( const std::string &msg )
 	return false;
 }
 
-bool VoxelGeometryResource::loadData(VoxelVertexData *vertices, int vcount, uint32 *indicies, int icount)
+bool VoxelGeometryResource::loadData(VoxelVertexData *vertices, int vertexOffsets[], uint32 *indicies, int indexOffsets[], int numLodLevels)
 {
-	_vertCount = vcount;
+   _numLodLevels = numLodLevels;
+   for (int i = 0; i < numLodLevels + 1; i++) {
+      _vertexOffsets[i] = vertexOffsets[i];
+      _indexOffsets[i] = indexOffsets[i];
+   }
+
+	_vertCount = vertexOffsets[numLodLevels];
 	_vertexData = new VoxelVertexData[_vertCount];
    ::memcpy(_vertexData, vertices, _vertCount * sizeof VoxelVertexData);
 
-	_indexCount = icount;
+	_indexCount = indexOffsets[numLodLevels];
 
    _16BitIndices = false;
 	//_16BitIndices = icount <= 65535;
 
-	_indexData = new char[icount * (_16BitIndices ? 2 : 4)];
+	_indexData = new char[_indexCount * (_16BitIndices ? 2 : 4)];
 
    if (_16BitIndices) {
       uint16* i16 = (uint16*)_indexData;
-      for (int i = 0; i < icount; i++) {
+      for (int i = 0; i < _indexCount; i++) {
          *i16++ = (uint16)indicies[i];
       }
    } else {
-      ::memcpy(_indexData, indicies, icount * sizeof uint32);
+      ::memcpy(_indexData, indicies, _indexCount * sizeof uint32);
    }
 
 	// Load morph targets
@@ -331,5 +338,35 @@ void VoxelGeometryResource::updateDynamicVertData()
 		gRDI->updateBufferData( _vertexBuf, 0, _vertCount * sizeof( Vec3f ), _vertexData );
 	}
 }
+
+
+inline uint32 VoxelGeometryResource::clampLodLevel(int lodLevel) const
+{
+   return lodLevel < _numLodLevels ? lodLevel : _numLodLevels - 1;
+}
+
+uint32 VoxelGeometryResource::getBatchStart(int lodLevel) const
+{
+   return _indexOffsets[clampLodLevel(lodLevel)];
+}
+
+uint32 VoxelGeometryResource::getBatchCount(int lodLevel) const
+{
+   lodLevel = clampLodLevel(lodLevel);
+   int r1 = _indexOffsets[lodLevel + 1];
+   int r2 = _indexOffsets[lodLevel];
+   return r1 - r2;
+}
+
+uint32 VoxelGeometryResource::getVertRStart(int lodLevel) const
+{
+   return _vertexOffsets[clampLodLevel(lodLevel)];
+}
+
+uint32 VoxelGeometryResource::getVertREnd(int lodLevel) const
+{
+   return _vertexOffsets[clampLodLevel(lodLevel) + 1] - 1;
+}
+
 
 }  // namespace

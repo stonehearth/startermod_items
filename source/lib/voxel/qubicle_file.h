@@ -11,16 +11,17 @@ BEGIN_RADIANT_VOXEL_NAMESPACE
 
 class QubicleMatrix {
 public:
+   QubicleMatrix(const csg::Point3& size, const csg::Point3& position, const std::string& name);
    ~QubicleMatrix();
 
    std::string const& GetName() const { return name_; }
    std::istream& Read(QbHeader const& header, std::istream& in);  
    const csg::Point3& GetSize() const { return size_; }
    const csg::Point3& GetPosition() const { return position_; }
-   QubicleFile const& GetSourceFile() const { return qubicle_file_; }
 
    uint32 At(int x, int  y, int z) const;
    csg::Color3 GetColor(uint32 value) const;
+   void Set(int x, int y, int z, uint32);
 
 private:
    friend QubicleFile;
@@ -31,7 +32,6 @@ private:
    csg::Point3          position_;
    std::vector<uint32>  matrix_;
    std::string          name_;
-   QubicleFile const&   qubicle_file_;
 };
 
 class QubicleFile {

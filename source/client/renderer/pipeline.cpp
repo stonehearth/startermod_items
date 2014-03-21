@@ -45,16 +45,20 @@ Pipeline::~Pipeline()
 H3DRes Pipeline::CreateVoxelGeometryFromRegion(const std::string& geoName, csg::Region3 const& region)
 {
    auto& mesh = CreateMeshFromRegion(region);
-   return h3dutCreateVoxelGeometryRes(geoName.c_str(), (VoxelGeometryVertex*)mesh.vertices.data(), mesh.vertices.size(), (uint*)mesh.indices.data(), mesh.indices.size());
+   int vertexOffsets[2] = {0, mesh.vertices.size()};
+   int indexOffsets[2] = {0, mesh.indices.size()};
+   return h3dutCreateVoxelGeometryRes(geoName.c_str(), (VoxelGeometryVertex*)mesh.vertices.data(), vertexOffsets, (uint*)mesh.indices.data(), indexOffsets, 1);
 }
 
 H3DNode Pipeline::AddDynamicMeshNode(H3DNode parent, const csg::mesh_tools::mesh& m, std::string const& material, int userFlags)
-{   
-   H3DRes geometry = ConvertMeshToGeometryResource(m);
-   return CreateModelNode(parent, geometry, m.indices.size(), m.vertices.size(), material, userFlags);
+{
+   int vertexOffsets[2] = {0, m.vertices.size()};
+   int indexOffsets[2] = {0, m.indices.size()};
+   H3DRes geometry = ConvertMeshToGeometryResource(m, indexOffsets, vertexOffsets, 1);
+   return CreateModelNode(parent, geometry, material, userFlags);
 }
 
-H3DNode Pipeline::AddSharedMeshNode(H3DNode parent, ResourceCacheKey const& key, std::string const& material, std::function<void(csg::mesh_tools::mesh &)> create_mesh_fn)
+H3DNode Pipeline::AddSharedMeshNode(H3DNode parent, ResourceCacheKey const& key, std::string const& material, std::function<void(csg::mesh_tools::mesh &, int lodLevel)> create_mesh_fn)
 {   
    H3DRes geometry;
    auto i = resource_cache_.find(key);
@@ -62,31 +66,36 @@ H3DNode Pipeline::AddSharedMeshNode(H3DNode parent, ResourceCacheKey const& key,
       P_LOG(7) << "using cached geometry for " << key.GetDescription();
       geometry = i->second;
    } else {
+      int vertexOffsets[5];
+      int indexOffsets[5];
+      vertexOffsets[0] = 0;
+      indexOffsets[0] = 0;
       P_LOG(7) << "creating new geometry for " << key.GetDescription();
       csg::mesh_tools::mesh m;
-      create_mesh_fn(m);
-      geometry = ConvertMeshToGeometryResource(m);
+
+      for (int i = 0; i < 4; i++) {
+         create_mesh_fn(m, i);
+         vertexOffsets[i + 1] = m.vertices.size();
+         indexOffsets[i + 1] = m.indices.size();
+      }
+      geometry = ConvertMeshToGeometryResource(m, indexOffsets, vertexOffsets, 4);
       resource_cache_[key] = geometry;
    }
 
-   int indexCount = h3dGetResParamI(geometry, Horde3D::VoxelGeometryResData::VoxelGeometryElem, 0, 
-                                    Horde3D::VoxelGeometryResData::VoxelGeoIndexCountI);
-   int vertexCount = h3dGetResParamI(geometry, Horde3D::VoxelGeometryResData::VoxelGeometryElem, 0, 
-                                     Horde3D::VoxelGeometryResData::VoxelGeoVertexCountI);
-
-   return CreateModelNode(parent, geometry, indexCount, vertexCount, material, UserFlags::None);
+   return CreateModelNode(parent, geometry, material, UserFlags::None);
 }
 
 
-H3DRes Pipeline::ConvertMeshToGeometryResource(const csg::mesh_tools::mesh& m)
+H3DRes Pipeline::ConvertMeshToGeometryResource(const csg::mesh_tools::mesh& m, int indexOffsets[], int vertexOffsets[], int numLodLevels)
 {
    std::string name = BUILD_STRING("geo" << unique_id_++);
 
    return h3dutCreateVoxelGeometryRes(name.c_str(),
       (VoxelGeometryVertex *)m.vertices.data(),
-      m.vertices.size(),
+      vertexOffsets,
       (uint *)m.indices.data(),
-      m.indices.size());
+      indexOffsets,
+      numLodLevels);
 }
 
 csg::mesh_tools::mesh Pipeline::CreateMeshFromRegion(csg::Region3 const& region)
@@ -99,7 +108,7 @@ csg::mesh_tools::mesh Pipeline::CreateMeshFromRegion(csg::Region3 const& region)
    return mesh;
 }
 
-H3DNode Pipeline::CreateModelNode(H3DNode parent, H3DRes geometry, int indexCount, int vertexCount, std::string const& material, int userFlags)
+H3DNode Pipeline::CreateModelNode(H3DNode parent, H3DRes geometry, std::string const& material, int userFlags)
 {
    ASSERT(!material.empty());
 
@@ -110,7 +119,7 @@ H3DNode Pipeline::CreateModelNode(H3DNode parent, H3DRes geometry, int indexCoun
 
    H3DRes matRes = h3dAddResource(H3DResTypes::Material, material.c_str(), 0);
    H3DNode model_node = h3dAddVoxelModelNode(parent, model_name.c_str(), geometry);
-   H3DNode mesh_node = h3dAddVoxelMeshNode(model_node, mesh_name.c_str(), matRes, 0, indexCount, 0, vertexCount - 1);
+   H3DNode mesh_node = h3dAddVoxelMeshNode(model_node, mesh_name.c_str(), matRes);
    h3dSetNodeParamI(mesh_node, H3DNodeParams::UserFlags, userFlags);
 
    // xxx: how do res, matRes, and mesh_node get deleted? - tony
@@ -150,7 +159,7 @@ H3DNodeUnique Pipeline::CreateVoxelNode(H3DNode parent,
                                         int userFlags)
 {
    csg::mesh_tools::mesh mesh;
-   csg::RegionToMesh(model, mesh, offset);
+   csg::RegionToMesh(model, mesh, offset, false);
    return AddDynamicMeshNode(parent, mesh, material, userFlags);
 }
 
