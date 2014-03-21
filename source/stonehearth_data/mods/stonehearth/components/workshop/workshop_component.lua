@@ -49,7 +49,7 @@ end
    Returns: true if successful add, false otherwise
 --]]
 function WorkshopComponent:add_order(session, response, recipe, condition)
-   self._sv.order_list:add_order(recipe, condition, radiant.entities.get_faction(self._entity))
+   self._sv.order_list:add_order(recipe, condition, session.player_id)
    --TODO: if something fails and we know it, send error("string explaining the error") anywhere
    --to be caught by the result variable
    return true
