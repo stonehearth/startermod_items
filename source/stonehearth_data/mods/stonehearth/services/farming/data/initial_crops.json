@@ -8,7 +8,7 @@
          "quantity" : 10
       },
       {
-         "crop_type" : "stonehearth:corn_seedling",
+         "crop_type" : "stonehearth:corn_crop",
          "quantity" : 5
       }
    ], 
@@ -21,7 +21,7 @@
          "quantity" : 10
       },
       {
-         "crop_type" : "stonehearth:corn_seedling",
+         "crop_type" : "stonehearth:corn_crop",
          "quantity" : 5
       }
    ], 
@@ -34,7 +34,7 @@
          "quantity" : 10
       },
       {
-         "crop_type" : "stonehearth:corn_seedling",
+         "crop_type" : "stonehearth:corn_crop",
          "quantity" : 5
       }
    ], 

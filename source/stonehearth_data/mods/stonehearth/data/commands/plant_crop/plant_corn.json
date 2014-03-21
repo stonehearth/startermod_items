@@ -10,6 +10,6 @@
    "function" : "stonehearth:plant_crop",
    "args" : [
       "{{self}}", 
-      "stonehearth:corn_seedling"
+      "stonehearth:corn_crop"
    ]
 }
