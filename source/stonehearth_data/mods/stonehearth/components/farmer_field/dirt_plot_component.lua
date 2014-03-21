@@ -5,28 +5,28 @@ local DirtPlotComponent = class()
 
 function DirtPlotComponent:initialize(entity, json)
    self._entity = entity
-   self._data = {
-      fertility = 0,
-      moisture = 0,
-      fertility_category = nil,
-      parent_field_component = nil,
-      field_location = nil,
-      contents = nil, 
-      last_planted_type = nil,
-      player_override = false,
-      auto_replant = nil, 
-      auto_harvest = nil
-   }
-   self.__saved_variables = radiant.create_datastore(self._data)
-   self.__saved_variables:mark_changed()
+   self._sv = self.__saved_variables:get_data()
+   if not self._sv._initialized then
+      self._sv._initialized = true
+      self._sv.fertility = 0
+      self._sv.moisture = 0
+      self._sv.fertility_category = nil
+      self._sv.parent_field_component = nil
+      self._sv.field_location = nil
+      self._sv.contents = nil,
+      self._sv.last_planted_type = nil
+      self._sv.player_override = false
+      self._sv.auto_replant = nil
+      self._sv.auto_harvest = nil
+   end
 end
 
 --- Set the field and location in field for this plot
 --  @param field: the field entity that we care about
 --  @param location: the x/y coordinates of the plot. location[1] is x, location[2] is y
 function DirtPlotComponent:set_field(parent_field_component, location)
-   self._data.parent_field_component = parent_field_component
-   self._data.field_location = location
+   self._sv.parent_field_component = parent_field_component
+   self._sv.field_location = location
    self.__saved_variables:mark_changed()
 end
 
@@ -34,48 +34,48 @@ end
 --  @param fertility: a number between 0 and 40
 --  @param moisture: a number between 0 and 100
 function DirtPlotComponent:set_fertility_moisture(fertility, moisture)
-   self._data.fertility = fertility
-   self._data.moisture = moisture
+   self._sv.fertility = fertility
+   self._sv.moisture = moisture
    self:_update_visible_soil_state()
    self.__saved_variables:mark_changed()
 end
 
 function DirtPlotComponent:get_contents()
-   return self._data.contents
+   return self._sv.contents
 end
 
 function DirtPlotComponent:get_last_planted_type()
-   return self._data.last_planted_type
+   return self._sv.last_planted_type
 end
 
 --- Did the player override the field policy for this plot? 
 --  If so set the player override and the auto-replant/harvest for this plot
 function DirtPlotComponent:set_player_override(player_override, do_replant, do_harvest)
-   self._data.player_override = player_override
-   self._data.auto_replant = do_replant
-   self._data.do_harvest = do_harvest
+   self._sv.player_override = player_override
+   self._sv.auto_replant = do_replant
+   self._sv.do_harvest = do_harvest
 end
 
 function DirtPlotComponent:get_player_override()
-   return self._data.player_override
+   return self._sv.player_override
 end
 
 function DirtPlotComponent:get_replant()
-   return self._data.auto_replant
+   return self._sv.auto_replant
 end
 
 function DirtPlotComponent:get_auto_harvest()
-   return self._data.auto_harvest
+   return self._sv.auto_harvest
 end
 
 --TODO: incorporate the moisture of the soil
 function DirtPlotComponent:_update_visible_soil_state()
    local fertility_category = nil
-   if  self._data.fertility < 10 then
+   if  self._sv.fertility < 10 then
       fertility_category = 'dirt_1'
-   elseif  self._data.fertility < 25 then
+   elseif  self._sv.fertility < 25 then
       fertility_category = 'dirt_2'
-   elseif  self._data.fertility < 35 then
+   elseif  self._sv.fertility < 35 then
       fertility_category = 'dirt_3'
    else 
       fertility_category = 'dirt_4'
@@ -83,8 +83,8 @@ function DirtPlotComponent:_update_visible_soil_state()
 
    --If the category has changed, propagate the change through all
    --visible elements
-   if fertility_category ~= self._data.fertility_category then
-      self._data.fertility_category = fertility_category
+   if fertility_category ~= self._sv.fertility_category then
+      self._sv.fertility_category = fertility_category
 
       local render_info = self._entity:add_component('render_info')
       render_info:set_model_variant(fertility_category)
@@ -102,8 +102,8 @@ end
 function DirtPlotComponent:plant_crop(crop_type)
    --Assert that there's nothing here 
    --TODO: use tasks to make sure things aren't planted twice
-   --assert(self._data.contents == nil, "error, trying to plant on an occupied square")
-   if self._data.contents ~= nil then
+   --assert(self._sv.contents == nil, "error, trying to plant on an occupied square")
+   if self._sv.contents ~= nil then
       return
    end
 
@@ -112,8 +112,8 @@ function DirtPlotComponent:plant_crop(crop_type)
 
    local planted_entity = radiant.entities.create_entity(crop_type)
    radiant.terrain.place_entity(planted_entity, radiant.entities.get_world_grid_location(self._entity))
-   self._data.contents = planted_entity
-   self._data.last_planted_type = crop_type
+   self._sv.contents = planted_entity
+   self._sv.last_planted_type = crop_type
 
    --If the planted entity is a crop, add a reference to the dirt it sits on. 
 
@@ -134,8 +134,8 @@ end
 --- If the crop is now harvestable, let the field know, so it can handle it according to policy
 function DirtPlotComponent:_on_crop_harvestable(e)
    local crop = e.crop
-   if self._data.parent_field_component then
-      self._data.parent_field_component:determine_auto_harvest(self, crop)
+   if self._sv.parent_field_component then
+      self._sv.parent_field_component:determine_auto_harvest(self, crop)
    end
 end
 
@@ -143,8 +143,8 @@ end
 function DirtPlotComponent:_on_crop_removed()
    --Assert that there's something here 
    --TODO: use tasks to only allow things to be planted/harvested once
-   --assert(self._data.contents ~= nil, "error, removing a crop that isn't there")
-   if self._data.contents == nil then
+   --assert(self._sv.contents ~= nil, "error, removing a crop that isn't there")
+   if self._sv.contents == nil then
       return
    end
 
@@ -157,12 +157,12 @@ function DirtPlotComponent:_on_crop_removed()
    command_component:add_command('/stonehearth/data/commands/plant_crop/plant_corn.json')
 
    --unlisten on the other handlers
-   radiant.events.unlisten(self._data.contents, 'stonehearth:crop_harvestable', self, self._on_crop_harvestable)
+   radiant.events.unlisten(self._sv.contents, 'stonehearth:crop_harvestable', self, self._on_crop_harvestable)
 
-   self._data.contents = nil
+   self._sv.contents = nil
 
    --Tell the listening field that we're empty, so it can decide what to do next
-   radiant.events.trigger(self._entity, 'stonehearth:crop_removed', {plot_entity = self._entity, location = self._data.field_location})
+   radiant.events.trigger(self._entity, 'stonehearth:crop_removed', {plot_entity = self._entity, location = self._sv.field_location})
 
    return radiant.events.UNLISTEN
 end

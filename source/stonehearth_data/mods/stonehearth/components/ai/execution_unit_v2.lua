@@ -559,8 +559,10 @@ function ExecutionUnitV2:__execute(name, args)
 
    local think_output = self._current_execution_frame:start_thinking(args or {})
    if not think_output then
-      error(string.format('execution of %s did not start immediately.', name))
+      -- disable this for now (see PickupPlacedItemAdjacent:run.. sigh) - tony
+      -- error(string.format('execution of %s did not start immediately.', name))
    end
+   self._current_execution_frame:wait_until(READY)
    self._current_execution_frame:run()
    self._current_execution_frame:stop()
    self._current_execution_frame = nil

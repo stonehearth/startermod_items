@@ -8,25 +8,21 @@ local CreateWorkshop = require 'services.town.orchestrators.create_workshop_orch
 
 function CrafterComponent:initialize(entity, json)
    self._entity = entity
-   local craftable_recipes = {}
-   if json.recipe_list then
-      local recipe_list = radiant.resources.load_json(json.recipe_list)
-      craftable_recipes = recipe_list.craftable_recipes or {}
+   self._sv = self.__saved_variables:get_data()
+
+   self._work_effect = json.work_effect
+   if not self._sv._initialized then
+      self._sv._initialized = true
+
+      local craftable_recipes = {}
+      if json.recipe_list then
+         local recipe_list = radiant.resources.load_json(json.recipe_list)
+         craftable_recipes = recipe_list.craftable_recipes or {}
+      end
+
+      self._sv.craftable_recipes = craftable_recipes
+      self._sv.active = false
    end
-
-   self._data = {
-      work_effect = json.work_effect,
-      craftable_recipes = craftable_recipes,
-      active = false
-   }
-
-   self.__saved_variables = radiant.create_datastore(self._data)
-end
-
-function CrafterComponent:restore(entity, saved_variables)
-   self._entity = entity
-   self.__saved_variables = saved_variables
-   self._data = self.__saved_variables:get_data()
    -- what about the orchestrator?  hmm...  will the town restore it for us?
    -- how do we get a pointer to it so we can destroy it?
 end
@@ -39,7 +35,7 @@ function CrafterComponent:destroy()
 end
 
 function CrafterComponent:get_work_effect()
-   return self._data.work_effect
+   return self._work_effect
 end
 
 
@@ -66,19 +62,19 @@ function CrafterComponent:create_workshop(ghost_workshop, outbox_location, outbo
 end
 
 function CrafterComponent:set_workshop(workshop_component)
-   if workshop_component ~= self._data.workshop then
-      self._data.workshop = workshop_component
+   if workshop_component ~= self._sv.workshop then
+      self._sv.workshop = workshop_component
       self.__saved_variables:mark_changed()
 
       radiant.events.trigger(self._entity, 'stonehearth:crafter:workshop_changed', {
             entity = self._entity,
-            workshop = self._data.workshop,
+            workshop = self._sv.workshop,
          })
    end
 end
 
 function CrafterComponent:get_workshop()
-   return self._data.workshop
+   return self._sv.workshop
 end
 
 return CrafterComponent

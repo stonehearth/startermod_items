@@ -40,47 +40,38 @@ local rng = _radiant.csg.get_default_rng()
 
 local AttributesComponent = class()
 
-function AttributesComponent:__init()
-   self._attributes = {}
-   self._modifiers = {}
-   self._dependencies = {}
-end
-
 --- Given the type of attribute, handle as needed
 function AttributesComponent:initialize(entity, json)
    self._entity = entity
-   self.__saved_variables = radiant.create_datastore({
-         attributes = self._attributes,
-         modifiers = self._modifiers,
-         dependencies = self._dependencies,
-      })
+   self._sv = self.__saved_variables:get_data()
+   if not self._sv._initialized then
+      -- saved variables with leading _'s are saved, but not remoted.  keep our
+      -- bookeeping data in private variables, but make a public one called
+      -- "attributes" for remoting to the ui, which just contains the effective
+      -- value of the attribute.
+      self._sv._attribute_data = {}
+      self._sv._dependencies = {}
+      self._sv._modifiers = {}
+      self._sv.attributes = {}
 
-   if json then
       self._incoming_json = json
       for n, v in pairs(json) do
          self:_add_new_attribute(n, v)
       end
       self._incoming_json = nil
+      self._sv._initialized = true
       self.__saved_variables:mark_changed()
    end
 end
 
-function AttributesComponent:restore(entity, saved_variables)
-   self._entity = entity
-   self.__saved_variables = saved_variables
-   saved_variables:read_data(function(o)
-         self._attributes = o.attributes
-         self._modifiers = o.modifiers
-         self._dependencies = o.dependencies
-      end)
-end
-
---- Given a name of an attribute and data, add it to self._attributes
+--- Given a name of an attribute and data, add it to self._sv._attribute_data
 --  Do not replace existing entries, if already calculated.
 function AttributesComponent:_add_new_attribute(name, data)
-   if not self._attributes[name] then 
-      local new_attribute = {}
+   local new_attribute = self._sv._attribute_data[name]
+   if not new_attribute then 
+      new_attribute = {}
       new_attribute.type = data.type
+      new_attribute.private = data.private
       if new_attribute.type == 'basic' then
          new_attribute.value = data.value
       elseif new_attribute.type == 'random_range' then
@@ -91,18 +82,22 @@ function AttributesComponent:_add_new_attribute(name, data)
          new_attribute.value = self:_evaluate_equation(data.equation)
       end
       new_attribute.effective_value = new_attribute.value
-      self._attributes[name] = new_attribute
+      self._sv._attribute_data[name] = new_attribute
+
+      -- update the public one, too!
+      self:_notify_attribute_changed(name, self._sv._attribute_data[name])
    end
+   return new_attribute
 end
 
 --- Find all the variables in the string and register this attribute
 --  as dependent upon them. 
 function AttributesComponent:_load_dependencies(equation, attribute)
    for variable_name in string.gmatch(equation, "[%a_]+") do
-      local dependency_table = self._dependencies[variable_name]
+      local dependency_table = self._sv._dependencies[variable_name]
       if not dependency_table then
          dependency_table = {}
-         self._dependencies[variable_name] = dependency_table
+         self._sv._dependencies[variable_name] = dependency_table
       end
       table.insert(dependency_table, attribute)
    end
@@ -135,42 +130,43 @@ end
 --  If it doesn't exist, create it. If there is json already for it, incoming but
 --  not yet processed, process the children first.
 function AttributesComponent:get_attribute(name)
-   if not self._attributes[name] then
-      --check if this attribute just hasn't been processed yet
-      --If not, then process it (TODO: hope there's no circular dependencies)
+   local attribute_data = self._sv._attribute_data[name]
+   if not attribute_data then
+      -- check if this attribute just hasn't been processed yet
+      -- If not, then process it (TODO: hope there's no circular dependencies)
       if self._incoming_json and self._incoming_json[name] then
-         self:_add_new_attribute(name,  self._incoming_json[name])
-      else
-         self._attributes[name] = {
-            type = 'basic',
-            value = 0
-         }
+         attribute_data = self:_add_new_attribute(name,  self._incoming_json[name])
       end
    end
 
-   if self._attributes[name].effective_value then
-      return self._attributes[name].effective_value
-   else
-      return self._attributes[name].value
+   if attribute_data and not attribute_data.private then
+      if attribute_data.effective_value then
+         return attribute_data.effective_value
+      end
+      return self._sv._attribute_data[name].value
    end
 end
 
 --Note: now, only use this on basic/random values. Everything
 --else recalculates automatically 
 function AttributesComponent:set_attribute(name, value)
-   if not self._attributes[name] then
-      self._attributes[name] = {
+   local attribute_data = self._sv._attribute_data[name] 
+   if not attribute_data then
+      attribute_data = {
          type = 'basic',
-         value = 0
+         value = 0,
+         private = false,
       }
+      self._sv._attribute_data[name] = attribute_data
    else
       --If it already exists, just make sure it's not derived
-      assert(self._attributes[name].type ~='derived')
+      assert(attribute_data.type ~='derived')
+      assert(not attribute_data.private)
    end
 
-   if value ~= self._attributes[name].value then
-      self._attributes[name].value = value
-      self._attributes[name].effective_value = nil
+   if value ~= attribute_data.value then
+      attribute_data.value = value
+      attribute_data.effective_value = nil
       self:_recalculate(name)
    end
 end
@@ -178,21 +174,36 @@ end
 function AttributesComponent:modify_attribute(attribute)
    local modifier = AttributeModifier(self, attribute)
    
-   if not self._modifiers[attribute] then
-      self._modifiers[attribute] = {}
+   if not self._sv._modifiers[attribute] then
+      self._sv._modifiers[attribute] = {}
    end
    
-   table.insert(self._modifiers[attribute], modifier)
+   table.insert(self._sv._modifiers[attribute], modifier)
    return modifier
 end
 
 function AttributesComponent:_remove_modifier(attribute, attribute_modifier)
-   for i, modifier in ipairs(self._modifiers[attribute]) do
+   for i, modifier in ipairs(self._sv._modifiers[attribute]) do
       if modifier == attribute_modifier then
-         table.remove(self._modifiers[attribute], i)
+         table.remove(self._sv._modifiers[attribute], i)
          self:_recalculate(attribute)
          break
       end
+   end
+end
+
+-- called to notify the outside world that an attribute has changed.  both
+-- update the public field in our saved variables and trigger an event
+function AttributesComponent:_notify_attribute_changed(name, attribute_data)
+   if not attribute_data.private then
+      self._sv.attributes[name] = {
+         value = attribute_data.value,
+         effective_value = attribute_data.effective_value,
+      } 
+      radiant.events.trigger(self._entity, 'stonehearth:attribute_changed:' .. name, { 
+            name = name,
+            value = attribute_data.effective_value
+         })
    end
 end
 
@@ -202,7 +213,7 @@ function AttributesComponent:_recalculate(name)
    local min = nil
    local max = nil
 
-   for attribute_name, modifier_list in pairs(self._modifiers) do
+   for attribute_name, modifier_list in pairs(self._sv._modifiers) do
       if attribute_name == name then
          for _, modifier in ipairs(modifier_list) do
             local mods = modifier:_get_modifiers();
@@ -236,25 +247,24 @@ function AttributesComponent:_recalculate(name)
 
    -- careful, order is important here!
    -- Note: we assume that if this element is a derived element, it's value is already calculated.
-   self._attributes[name].effective_value = self._attributes[name].value * mult_factor
-   self._attributes[name].effective_value = self._attributes[name].effective_value + add_factor
+   local attribute_data = self._sv._attribute_data[name]
+   attribute_data.effective_value = attribute_data.value * mult_factor
+   attribute_data.effective_value = attribute_data.effective_value + add_factor
    if min then
-      self._attributes[name].effective_value = math.max(min, self._attributes[name].effective_value)
+      attribute_data.effective_value = math.max(min, attribute_data.effective_value)
    end
    if max then
-      self._attributes[name].effective_value = math.min(max, self._attributes[name].effective_value)
+      attribute_data.effective_value = math.min(max, attribute_data.effective_value)
    end
 
-   radiant.events.trigger(self._entity, 'stonehearth:attribute_changed:' .. name, { 
-         name = name,
-         value = self._attributes[name].effective_value
-      })
+   -- update our public interface to javascript with the saved value
+   self:_notify_attribute_changed(name, attribute_data)
 
    --Recalculate all the attributes that depend on this one
    --TODO: hope there's no loops! 
-   if self._dependencies[name] then
-      for i, v in pairs(self._dependencies[name]) do
-         self._attributes[v].value = self:_evaluate_equation(self._attributes[v].equation)
+   if self._sv._dependencies[name] then
+      for i, v in pairs(self._sv._dependencies[name]) do
+         self._sv._attribute_data[v].value = self:_evaluate_equation(self._sv._attribute_data[v].equation)
          self:_recalculate(v)
       end
    end

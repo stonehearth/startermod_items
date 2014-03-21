@@ -2,29 +2,17 @@ local log = radiant.log.create_logger('commands')
 
 local CommandsComponent = class()
 
-function CommandsComponent:__init(entity, data_binding)
-   --self._commands = {}
-   self._commands = {
-      n = 0,
-   }
-end
-
 function CommandsComponent:initialize(entity, json)
    self._entity = entity
-   self.__saved_variables = radiant.create_datastore({
-      commands = self._commands
-   })
-
-   if json.commands then
-      for _, uri in pairs(json.commands) do
+   self._sv = self.__saved_variables:get_data()
+   if not self._sv.commands then
+      self._sv.commands = {
+         n = 0,
+      }
+      for _, uri in pairs(json.commands or {}) do
          self:add_command(uri)
       end
    end
-end
-
-function CommandsComponent:restore(entity, saved_variables)
-   self.__saved_variables = saved_variables
-   self._commands = self.__saved_variables:get_data().commands
 end
 
 function CommandsComponent:add_command(uri)
@@ -32,15 +20,15 @@ function CommandsComponent:add_command(uri)
    local t = self:_replace_variables(json)
    self:_set_defaults(t)
 
-   table.insert(self._commands, t)
+   table.insert(self._sv.commands, t)
    self.__saved_variables:mark_changed()
    return t
 end
 
 function CommandsComponent:remove_command(name)
-   for i, command in ipairs(self._commands) do
+   for i, command in ipairs(self._sv.commands) do
       if command.name == name then
-         table.remove(self._commands, i)
+         table.remove(self._sv.commands, i)
          self.__saved_variables:mark_changed()
          break;
       end
@@ -117,7 +105,7 @@ end
    we can't find a command by that name.
 ]]
 function CommandsComponent:_find_command_by_name(name)
-   for i, command in ipairs(self._commands) do
+   for i, command in ipairs(self._sv.commands) do
       if command.name == name then
          return command
       end

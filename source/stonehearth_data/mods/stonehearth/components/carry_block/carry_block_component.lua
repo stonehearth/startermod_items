@@ -6,25 +6,15 @@
 local CarryBlock = class()
 
 function CarryBlock:initialize(entity, json)
-   self.__saved_variables = radiant.create_datastore({})
-   self:_finish_initialization(entity)
-end
-
-function CarryBlock:restore(entity, saved_variables)
-   self.__saved_variables = saved_variables
-   self:_finish_initialization(entity)
-end
-
-function CarryBlock:destroy()
-end
-
-function CarryBlock:_finish_initialization(entity)
    self._entity = entity
    self._carry_block = entity:add_component('carry_block')
    self._trace = self._carry_block:trace_carrying('adding buffs')
       :on_changed(function(item)
          self:_on_carrying_changed(item)
       end)
+end
+
+function CarryBlock:destroy()
 end
 
 function CarryBlock:set_carrying(item)
