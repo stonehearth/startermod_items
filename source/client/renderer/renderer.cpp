@@ -798,7 +798,10 @@ void Renderer::Initialize()
 
    debugShapes_ = h3dRadiantAddDebugShapes(H3DRootNode, "renderer debug shapes");
 
+   // We now have a camera, so update our viewport, and inform all interested parties of
+   // the update.
    ResizeViewport();
+   CallWindowResizeListeners();
 }
 
 void Renderer::Shutdown()
@@ -1098,14 +1101,6 @@ void Renderer::HandleResize()
    }
 }
 
-void Renderer::ResizeWindow(int width, int height)
-{
-   windowWidth_ = width;
-   windowHeight_ = height;
-
-   SetUITextureSize(windowWidth_, windowHeight_);
-}
-
 void Renderer::ResizePipelines()
 {
    for (const auto& entry : pipelines_) {
@@ -1335,9 +1330,16 @@ void Renderer::OnWindowResized(int newWidth, int newHeight) {
       return;
    }
 
-   ResizeWindow(newWidth, newHeight);
+   windowWidth_ = newWidth;
+   windowHeight_ = newHeight;
+
+   SetUITextureSize(windowWidth_, windowHeight_);
    ResizeViewport();
    ResizePipelines();
+   CallWindowResizeListeners();
+}
+
+void Renderer::CallWindowResizeListeners() {
    if (camera_) {
       screen_resize_slot_.Signal(csg::Point2(
          h3dGetNodeParamI(camera_->GetNode(), H3DCamera::ViewportWidthI), 
@@ -1425,12 +1427,12 @@ csg::Point2 Renderer::GetMousePosition() const
    return csg::Point2(input_.mouse.x, input_.mouse.y);
 }
 
-int Renderer::GetWidth() const
+int Renderer::GetWindowWidth() const
 {
    return windowWidth_;
 }
 
-int Renderer::GetHeight() const
+int Renderer::GetWindowHeight() const
 {
    return windowHeight_;
 }

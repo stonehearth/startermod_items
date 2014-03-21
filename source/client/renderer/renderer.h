@@ -114,8 +114,8 @@ class Renderer
       void ShowPerfHud(bool value);
       void SetServerTick(int tick);
 
-      int GetWidth() const;
-      int GetHeight() const;
+      int GetWindowWidth() const;
+      int GetWindowHeight() const;
       void SetUITextureSize(int width, int height);
       SystemStats GetStats();
       const RendererConfig& GetRendererConfig() const { return config_; }
@@ -210,9 +210,9 @@ class Renderer
       void CallMouseInputCallbacks();
       void UpdateFoW(H3DNode node, const csg::Region2& region);
 
-      void ResizeWindow(int width, int height);
       void ResizeViewport();
       void ResizePipelines();
+      void CallWindowResizeListeners();
 
       void DispatchInputEvent();
       bool LoadMissingResources();
