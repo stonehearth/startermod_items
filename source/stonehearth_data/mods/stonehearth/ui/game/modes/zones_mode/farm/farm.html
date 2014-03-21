@@ -5,15 +5,20 @@
             <input id="name" onClick="this.select();" type="text" {{bindAttr value=unit_info.name}} />
          </div>
 
-         <h2>{{i18n stonehearth:farm_crop_rotation}}</h2>
+         <h2>{{i18n stonehearth:farm_pick_crop}} {{curr_crop_name}} </h2>
 
          <div id="cropRotation">
-            {{#each crop_rotation}}
-               <div class="cropRotationSlot crop">{{ this.crop }}</div>
+            {{#each stonehearth:farmer_field.crop_queue}}
+               
+               <div class="cropRotationSlot crop">
+                  <img class="tooltip" {{bindAttr src="this.icon" title="this.name"}} />
+               </div>
+            
             {{/each}}     
-            <div class="cropRotationSlot"><a {{action addCropButtonClicked target="view"}}><button id="addCropButton" class="plus"></button></a></div>
+            <div class="cropRotationSlot"><a {{action addCropButtonClicked target="view"}}><button id="addCropButton" class="dropdown"></button></a></div>
          </div>
 
+<!--
          <h2>{{i18n stonehearth:farm_manually_place_crops}}</h2>
 
          <div>insert the palette</div>
@@ -27,7 +32,7 @@
             <input type="checkbox" id="autoReplant">
             <label for="autoReplant">{{i18n stonehearth:farm_auto_replant}}</label>
       </div>
-
+-->
          <p></p>
 
          <button class="warn">{{i18n stonehearth:remove}}</button>
@@ -40,11 +45,17 @@
 <script type="text/x-handlebars" data-template-name="stonehearthCropPalette">
    <div id="cropPalette" class="gui">
       <div class="window">
-         this is the crop palette<br>
+         <h2>{{i18n stonehearth:crop_selector}}</h2>
          {{#each items}}
-            <img class="item tooltip" {{bindAttr src="crop_info.icon"
-                                       crop="crop_info.crop_type"
-                                       title="crop_info.name"}} />
+            <div class="cropPickerItem">
+               <a src="">
+               <span>{{crop_info.name}}<br /></span>
+               <img class="cropPickerImage item tooltip" {{bindAttr src="crop_info.icon"
+                                          crop="crop_type"
+                                          title="crop_info.name"}} />
+               </a>
+
+            </div>
          {{/each}}
       </div>
    </div>

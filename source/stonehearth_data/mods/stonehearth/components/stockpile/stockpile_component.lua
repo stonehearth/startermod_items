@@ -42,17 +42,15 @@ end
 
 function StockpileComponent:initialize(entity, json)
    self._entity = entity
-   self._filter = nil
 
+   self._sv = self.__saved_variables:get_data()
+   if not self._sv.stocked_items then
+      self._sv.stocked_items = {}
+      self._sv.item_locations = {}
+      self._sv.size  = Point2(0, 0)
+   end
+   
    self._destination = entity:add_component('destination')
-   self._data = {
-      stocked_items = {},
-      item_locations = {},
-      size  = Point2(0, 0),
-      filter = self._filter
-   }
-   self.__saved_variables = radiant.create_datastore(self._data)
-
    self._destination:set_region(_radiant.sim.alloc_region())
                     :set_reserved(_radiant.sim.alloc_region())
                     :set_auto_update_adjacent(true)
@@ -72,7 +70,7 @@ end
 function StockpileComponent:destroy()
    log:info('%s destroying stockpile component', self._entity)
    all_stockpiles[self._entity:get_id()] = nil
-   for id, item in pairs(self._data.stocked_items) do
+   for id, item in pairs(self._sv.stocked_items) do
       self:_remove_item_from_stock(id)
    end
    if self._ec_trace then
@@ -99,18 +97,17 @@ function StockpileComponent:destroy()
 end
 
 function StockpileComponent:set_filter(filter)
-   self._filter = filter
-   self._data.filter = self._filter
+   self._sv.filter = filter
    self.__saved_variables:mark_changed()
 
    -- for items that no longer match the filter, 
    -- remove then re-add the item from its parent. Other stockpiles
    -- will be notified when it is added to the world and will
    -- reconsider it for placement.
-   for id, location in pairs(self._data.item_locations) do
+   for id, location in pairs(self._sv.item_locations) do
       local item = radiant.entities.get_entity(id)
       local can_stock = self:can_stock_entity(item)
-      local is_stocked = self._data.stocked_items[id] ~= nil
+      local is_stocked = self._sv.stocked_items[id] ~= nil
       if can_stock and not is_stocked then
          self:_add_item_to_stock(item)
       end
@@ -140,7 +137,7 @@ function StockpileComponent:on_gameloop()
    local mob = self._entity:add_component('mob')
    self._mob_trace = mob:trace_transform('stockpile tracking self position')
                         :on_changed(function()
-                              self:_rebuild_item_data()
+                              self:_rebuild_item_sv()
                            end)
 
    local unit_info = self._entity:add_component('unit_info')
@@ -150,11 +147,11 @@ function StockpileComponent:on_gameloop()
                                           end)
       
    self:_assign_to_player()
-   self:_rebuild_item_data()
+   self:_rebuild_item_sv()
 end
 
 function StockpileComponent:get_items()
-   return self._data.stocked_items;
+   return self._sv.stocked_items;
 end
 
 function StockpileComponent:set_outbox(value)
@@ -192,19 +189,19 @@ function StockpileComponent:bounds_contain(item_entity)
 end
 
 function StockpileComponent:get_size()
-   return self._data.size
+   return self._sv.size
 end
 
 function StockpileComponent:set_size(x, y)
-   self._data.size = Point2(x, y)
-   self:_rebuild_item_data()
+   self._sv.size = Point2(x, y)
+   self:_rebuild_item_sv()
 end
 
 function StockpileComponent:_add_to_region(entity)
    local location = radiant.entities.get_world_grid_location(entity)
    local pt = location - radiant.entities.get_world_grid_location(self._entity)
    log:debug('adding point %s to region', tostring(pt))
-   self._data.item_locations[entity:get_id()] = pt
+   self._sv.item_locations[entity:get_id()] = pt
    
    local was_full = self:is_full()
    self._destination:get_region():modify(function(cursor)
@@ -219,9 +216,9 @@ function StockpileComponent:_add_to_region(entity)
 end
 
 function StockpileComponent:_remove_from_region(id)
-   local pt = self._data.item_locations[id]
+   local pt = self._sv.item_locations[id]
    log:debug('removing point %s from region', tostring(pt))
-   self._data.item_locations[id] = nil
+   self._sv.item_locations[id] = nil
    
    local was_full = self:is_full()
    self._destination:get_region():modify(function(cursor)
@@ -269,7 +266,7 @@ function StockpileComponent:_add_item_to_stock(entity)
    assert(self:can_stock_entity(entity) and self:bounds_contain(entity))
    
    -- hold onto the item...
-   self._data.stocked_items[entity:get_id()] = entity
+   self._sv.stocked_items[entity:get_id()] = entity
    self.__saved_variables:mark_changed()
 
    -- add the item to the inventory 
@@ -281,19 +278,19 @@ end
 
 function StockpileComponent:_remove_item(id)
    -- remove from the region
-   if self._data.item_locations[id] then
+   if self._sv.item_locations[id] then
       self:_remove_from_region(id)
-      if self._data.stocked_items[id] then
+      if self._sv.stocked_items[id] then
          self:_remove_item_from_stock(id)
       end
    end
 end
 
 function StockpileComponent:_remove_item_from_stock(id)
-   assert(self._data.stocked_items[id])
+   assert(self._sv.stocked_items[id])
    
-   local entity = self._data.stocked_items[id]
-   self._data.stocked_items[id] = nil
+   local entity = self._sv.stocked_items[id]
+   self._sv.stocked_items[id] = nil
    self.__saved_variables:mark_changed()
 
    --Remove items that have been taken out of the stockpile
@@ -306,7 +303,7 @@ function StockpileComponent:_remove_item_from_stock(id)
    end
 end
 
-function StockpileComponent:_rebuild_item_data()
+function StockpileComponent:_rebuild_item_sv()
    self._destination:get_region():modify(function(cursor)
       cursor:clear()
       cursor:add_cube(self:_get_bounds())
@@ -318,8 +315,8 @@ function StockpileComponent:_rebuild_item_data()
    -- xxx: if this ever gets called with stocked items, we're probably
    -- going to screw up the inventory system here (they get orphended!)
    
-   self._data.stocked_items = {}
-   self._data.item_locations = {}
+   self._sv.stocked_items = {}
+   self._sv.item_locations = {}
    self.__saved_variables:mark_changed()
 
    local ec = radiant.entities.get_root_entity()
@@ -388,14 +385,14 @@ function StockpileComponent:_is_in_filter(entity)
       return false
    end
 
-   if not self._filter then 
+   if not self._sv.filter then 
       return true
    end
    
    local in_filter = false
 
-   if self._filter then 
-      for i, filter in ipairs(self._filter) do
+   if self._sv.filter then 
+      for i, filter in ipairs(self._sv.filter) do
          if material:is(filter) then
             in_filter = true
             break
@@ -434,6 +431,7 @@ function StockpileComponent:_create_worker_tasks()
    self._task = town:create_worker_task('stonehearth:restock_stockpile', { stockpile = self })
                                    :set_source(self._entity)
                                    :set_name('restock task')
+                                   :set_priority(stonehearth.constants.priorities.worker_task.RESTOCK_STOCKPILE)
                                    :start()
 
    --Experiment in allowing farmers to haul things to stockpiles
@@ -442,6 +440,7 @@ function StockpileComponent:_create_worker_tasks()
    self._task_f = town:create_farmer_task('stonehearth:restock_stockpile', { stockpile = self })
                                    :set_source(self._entity)
                                    :set_name('restock task')
+                                   :set_priority(stonehearth.constants.priorities.farmer_task.RESTOCK_STOCKPILE)
                                    :start()
 end
 

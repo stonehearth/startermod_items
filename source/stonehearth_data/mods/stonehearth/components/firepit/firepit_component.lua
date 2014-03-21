@@ -17,9 +17,11 @@ function FirepitComponent:initialize(entity, json)
 
    self._seats = nil
 
-   self._data = {}
-   self._data.is_lit = false
-   self.__saved_variables = radiant.create_datastore(self._data)
+   self._sv = self.__saved_variables:get_data()
+   if not self._sv._initialized then
+      self._sv._initialized = true
+      self._sv.is_lit = false
+   end
 
    --Listen on terrain for when this entity is added/removed
    local added_cb = function(id, entity)
@@ -150,13 +152,14 @@ function FirepitComponent:_init_gather_wood_task()
 
    self._light_task = town:create_worker_task('stonehearth:light_firepit', { firepit = self })
                                    :set_name('light firepit')
+                                   :set_priority(stonehearth.constants.priorities.worker_task.LIGHT_FIRE)
                                    :once()
                                    :start()
 end
 
 --- Returns whether or not the firepit is lit
 function FirepitComponent:is_lit()
-   return self._data.is_lit
+   return self._sv.is_lit
 end
 
 --- Adds wood to the fire
@@ -172,7 +175,7 @@ function FirepitComponent:light()
    if not self._seats then
       self:_add_seats()
    end
-   self._data.is_lit = true
+   self._sv.is_lit = true
    radiant.events.trigger(self._entity, 'stonehearth:fire:lit', { lit = true })
    self.__saved_variables:mark_changed()
 end
@@ -198,7 +201,7 @@ function FirepitComponent:_extinguish()
       self._light_task = nil
    end
 
-   self._data.is_lit = false
+   self._sv.is_lit = false
    radiant.events.trigger(self._entity, 'stonehearth:fire:lit', { lit = false })
 end
 

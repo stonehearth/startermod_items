@@ -9,20 +9,18 @@ local log = radiant.log.create_logger('build')
 function ConstructionDataComponent:initialize(entity, json)
    self._entity = entity
    self._data = json
-   if not self._data.material then
-      self._data.material = 'wood resource'
+   self._sv = self.__saved_variables:get_data()
+   if not self._sv._initialized then
+      self._sv = json
+      self._sv._initialized = true
+      self.__saved_variables:set_data(self._sv)
+      if not self._sv.material then
+         self._sv.material = 'wood resource'
+      end
+      if self._sv.normal then
+         self._sv.normal = Point3(self._sv.normal.x, self._sv.normal.y, self._sv.normal.z)
+      end
    end
-   self.__saved_variables = radiant.create_datastore(self._data)
-   self.__saved_variables:modify_data(function (o)
-          if o.normal then
-             o.normal = Point3(o.normal.x, o.normal.y, o.normal.z)
-          end
-      end)
-end
-
-function ConstructionDataComponent:restore(entity, saved_variables)
-   self._entity = entity
-   self.__saved_variables = saved_variables
 end
 
 function ConstructionDataComponent:get_material()
@@ -35,18 +33,18 @@ end
 
 function ConstructionDataComponent:get_savestate()
    -- xxx: this isn't even a copy!  it's the *actual data*
-   return self.__saved_variables:get_data()
+   return self._sv
 end
 
 function ConstructionDataComponent:set_normal(normal)
    assert(radiant.util.is_a(normal, Point3))
-   self._data.normal = normal
+   self._sv.normal = normal
    self.__saved_variables:mark_changed()
    return self
 end
 
 function ConstructionDataComponent:get_normal()
-   return self._data.normal
+   return self._sv.normal
 end
 
 function ConstructionDataComponent:get_max_workers()
@@ -57,7 +55,7 @@ function ConstructionDataComponent:get_max_workers()
 end
 
 function ConstructionDataComponent:set_fabricator_entity(fentity)
-   self._data.fabricator_entity = fentity
+   self._sv.fabricator_entity = fentity
    self.__saved_variables:mark_changed()
 
    log:debug('%s trigger stonehearth:construction_fabricator_changed event (fabricator_entity = %s)',
@@ -70,7 +68,7 @@ function ConstructionDataComponent:set_fabricator_entity(fentity)
 end
 
 function ConstructionDataComponent:get_fabricator_entity()
-   return self._data.fabricator_entity
+   return self._sv.fabricator_entity
 end
 
 function ConstructionDataComponent:get_allow_diagonal_adjacency()

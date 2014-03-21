@@ -32,6 +32,8 @@ public:
    mutable dm::GenerationId   dirty_;
 };
 
+DECLARE_SHARED_POINTER_TYPES(DataObject)
+
 END_RADIANT_LUA_NAMESPACE
 
 #endif

@@ -31,7 +31,8 @@
       "unit_info": {
          "name": "Turnip Seedling", 
          "description": "A unrealized turnip.",
-         "icon" : "file(turnip_crop.png)"
+         "icon" : "file(icon.png)",
+         "portrait" : "file(portrait.png)"
       },
       "stonehearth:commands" : {
          "commands" : [

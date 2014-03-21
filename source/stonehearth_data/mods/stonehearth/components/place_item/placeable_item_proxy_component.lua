@@ -14,16 +14,14 @@ function PlaceableItemProxyComponent:initialize(entity, json)
    self._full_sized_entity = nil       --Onced initialized, the actual full-sized entity
    self._under_construction = false
 
-   self._data = {
-      entity_id = entity:get_id()
-   }
-
-   if json and json.full_sized_entity then
-      self._data.full_sized_entity_uri = json.full_sized_entity;
-      self:_create_derived_components()
+   self._sv = self.__saved_variables:get_data()
+   if not self._sv.entity_id then
+      self._sv.entity_id = entity:get_id()
+      if json and json.full_sized_entity then
+         self._sv.full_sized_entity_uri = json.full_sized_entity;
+         self:_create_derived_components()
+      end
    end
-
-   self.__saved_variables = radiant.create_datastore(self._data)   
 end
 
 function PlaceableItemProxyComponent:get_full_sized_entity()
@@ -41,14 +39,14 @@ end
 
 --Get the uri of the full sized entity to the place command
 function PlaceableItemProxyComponent:get_full_sized_entity_uri()
-   return self._data.full_sized_entity_uri
+   return self._sv.full_sized_entity_uri
 end
 
 --[[
    Create the entity and give it our faction
 ]]
 function PlaceableItemProxyComponent:_create_full_sized_entity()
-   self._full_sized_entity = radiant.entities.create_entity(self._data.full_sized_entity_uri)
+   self._full_sized_entity = radiant.entities.create_entity(self._sv.full_sized_entity_uri)
    self._full_sized_entity:add_component('stonehearth:placed_item'):set_proxy(self._entity)
 
    local proxy_faction = radiant.entities.get_faction(self._entity)

@@ -3,12 +3,14 @@
 #include "csg/color.h"
 #include "csg/transform.h"
 #include "csg/sphere.h"
+#include "csg/ray.h"
 #include "lib/json/node.h"
 #include "lib/lua/controller_object.h"
 #include "lib/lua/data_object.h"
 #include "om/selection.h"
 #include "protocols/store.pb.h"
-#include "store.h"
+#include "dm/store.h"
+#include "lib/marshall/convert.h"
 
 IMPLEMENT_DM_BASIC_TYPE(int,  Protocol::integer);
 IMPLEMENT_DM_BASIC_TYPE(bool, Protocol::boolean);
@@ -18,15 +20,28 @@ IMPLEMENT_DM_EXTENSION(csg::Color3, Protocol::color)
 IMPLEMENT_DM_EXTENSION(csg::Color4, Protocol::color)
 IMPLEMENT_DM_EXTENSION(csg::Cube3, Protocol::cube3i)
 IMPLEMENT_DM_EXTENSION(csg::Cube3f, Protocol::cube3f)
+IMPLEMENT_DM_EXTENSION(csg::Line1, Protocol::cube1i)
+IMPLEMENT_DM_EXTENSION(csg::Rect2, Protocol::cube2i)
+IMPLEMENT_DM_EXTENSION(csg::Rect2f, Protocol::cube2f)
+IMPLEMENT_DM_EXTENSION(csg::Point1, Protocol::point1i)
+IMPLEMENT_DM_EXTENSION(csg::Point1f, Protocol::point1f)
 IMPLEMENT_DM_EXTENSION(csg::Point2, Protocol::point2i)
+IMPLEMENT_DM_EXTENSION(csg::Point2f, Protocol::point2f)
 IMPLEMENT_DM_EXTENSION(csg::Point3, Protocol::point3i)
 IMPLEMENT_DM_EXTENSION(csg::Point3f, Protocol::point3f)
 IMPLEMENT_DM_EXTENSION(csg::Region3, Protocol::region3i)
+IMPLEMENT_DM_EXTENSION(csg::Region3f, Protocol::region3f)
 IMPLEMENT_DM_EXTENSION(csg::Region2, Protocol::region2i)
+IMPLEMENT_DM_EXTENSION(csg::Region2f, Protocol::region2f)
+IMPLEMENT_DM_EXTENSION(csg::Region1, Protocol::region1i)
+IMPLEMENT_DM_EXTENSION(csg::Region1f, Protocol::region1f)
 IMPLEMENT_DM_EXTENSION(csg::Sphere, Protocol::sphere3f)
 IMPLEMENT_DM_EXTENSION(csg::Transform, Protocol::transform)
+IMPLEMENT_DM_EXTENSION(csg::Quaternion, Protocol::quaternion)
+IMPLEMENT_DM_EXTENSION(csg::Ray3, Protocol::ray3f)
 IMPLEMENT_DM_EXTENSION(om::Selection, Protocol::Selection::extension)
 IMPLEMENT_DM_EXTENSION(lua::ControllerObject, Protocol::LuaControllerObject::extension)
+
 
 template<>
 struct dm::SaveImpl<lua::DataObject> {
@@ -44,16 +59,14 @@ struct dm::SaveImpl<lua::DataObject> {
 template<>
 struct dm::SaveImpl<luabind::object> {
    static void SaveValue(const dm::Store& store, dm::SerializationType r, Protocol::Value* msg, luabind::object const& obj) {
-      lua::ScriptHost *scriptHost = lua::ScriptHost::GetScriptHost(store);
-      std::string repr = scriptHost->LuaToString(obj);
-      dm::SaveImpl<std::string>::SaveValue(store, r, msg, repr);
+      int flags;
+      if (r == REMOTING) { flags |= marshall::Convert::REMOTE; }
+      marshall::Convert(store, flags).ToProtobuf(obj, msg);
    }
    static void LoadValue(const Store& store, dm::SerializationType r, const Protocol::Value& msg, luabind::object& obj) {
-      std::string repr;
-      dm::SaveImpl<std::string>::LoadValue(store, r, msg, repr);
-
-      lua::ScriptHost *scriptHost = lua::ScriptHost::GetScriptHost(store);
-      obj = scriptHost->StringToLua(repr);
+      int flags;
+      if (r == REMOTING) { flags |= marshall::Convert::REMOTE; }
+      marshall::Convert(store, flags).ToLua(msg, obj);
    }
    static void GetDbgInfo(lua::DataObject const& obj, dm::DbgInfo &info) {
       info.os << "[lua_object]";

@@ -156,9 +156,6 @@ local function build(class, shared_objs, shared)
 
       -- save/load implementation for radiant
       __saved_variables = {},
-      __repr = function (t)
-            return t.__saved_variables
-         end,
       __tojson = function (t)
             return t.__saved_variables
          end,

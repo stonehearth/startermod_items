@@ -10,7 +10,7 @@ using namespace ::radiant::csg;
 scope LuaRandomNumberGenerator::RegisterLuaTypes(lua_State* L)
 {
    return
-   lua::RegisterType<RandomNumberGenerator>("RandomNumberGenerator")
+   lua::RegisterType_NoTypeInfo<RandomNumberGenerator>("RandomNumberGenerator")
       .def(constructor<>())
       .def(constructor<unsigned int>())
       .def("set_seed", &RandomNumberGenerator::SetSeed)

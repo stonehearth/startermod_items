@@ -2,6 +2,7 @@
 #include "dm/store.h"
 #include "data_object.h"
 #include "protocols/store.pb.h"
+#include "lib/marshall/convert.h"
 
 using namespace radiant;
 using namespace radiant::lua;
@@ -82,10 +83,10 @@ void DataObject::SaveValue(dm::Store const& store, dm::SerializationType r, Prot
 {
    lua::ScriptHost* s = lua::ScriptHost::GetScriptHost(store.GetInterpreter());
    ASSERT(s);
-
    if (s) {
-      std::string repr = s->LuaToString(data_object_);
-      msg->set_repr_representation(repr);
+      int flags;
+      if (r == dm::REMOTING) { flags |= marshall::Convert::REMOTE; }
+      marshall::Convert(store, flags).ToProtobuf(data_object_, msg->mutable_lua_object());
    }
 }
 
@@ -94,7 +95,9 @@ void DataObject::LoadValue(dm::Store const& store, dm::SerializationType  r, con
    lua::ScriptHost* s = lua::ScriptHost::GetScriptHost(store.GetInterpreter());
    ASSERT(s);
    if (s) {
-      data_object_ = s->StringToLua(msg.repr_representation());
+      int flags;
+      if (r == dm::REMOTING) { flags |= marshall::Convert::REMOTE; }
+      marshall::Convert(store, flags).ToLua(msg.lua_object(), data_object_);
       dirty_ = true;
    }
 }

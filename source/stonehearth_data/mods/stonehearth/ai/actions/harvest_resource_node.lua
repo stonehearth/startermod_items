@@ -8,7 +8,7 @@ HarvestResourceNodeAction.args = {
    node = Entity      -- the entity to harvest
 }
 HarvestResourceNodeAction.version = 2
-HarvestResourceNodeAction.priority = stonehearth.constants.priorities.worker_task.HARVEST
+HarvestResourceNodeAction.priority = 1
 
 local ai = stonehearth.ai
 return ai:create_compound_action(HarvestResourceNodeAction)

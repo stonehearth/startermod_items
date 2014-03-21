@@ -1,87 +1,64 @@
-local calendar = stonehearth.calendar
 local GrowingComponent = class()
-
-
 
 function GrowingComponent:initialize(entity, json)
    self._entity = entity
-   self._data = {}
-   self._calendar_constants = calendar:get_constants();
+   self._growth_period = json.growth_period or '1h'
+   self._growth_stages = json.growth_stages
 
-   
-   if json.growth_period then
-      local duration = string.sub(json.growth_period, 1, -2)
-      local time_unit = string.sub(json.growth_period, -1, -1)
-
-      if time_unit == 'd' then
-         duration = duration * self._calendar_constants.hours_per_day
-      elseif time_unit == 'm' then
-         assert(false, 'durations under 1 hour are not supported for renewable resource nodes!')
-      end
-      --Otherwise, we assume it's hours
-      self._growth_period = tonumber(duration)
-      self._data.growth_countdown = self._growth_period
+   self._sv = self.__saved_variables:get_data()
+   if not self._sv.current_growth_stage then
+      self._sv.current_growth_stage = 1
    end
 
-   if json.growth_stages then
-      self._growth_stages = json.growth_stages
-      self._data.curr_stage = 1
-
-      self._render_info = self._entity:add_component('render_info')
-      self:_set_stage()
-      
-      if self._data.curr_stage < #self._growth_stages then
-         --Every hour, check if we should be growing by some period
-         radiant.events.listen(calendar, 'stonehearth:hourly', self, self.on_hourly)
-      end
-   end
-   
-   self.__saved_variables = radiant.create_datastore(self._data)
-   self.__saved_variables:mark_changed()
+   self:_apply_current_stage()
+   self._growth_timer = stonehearth.calendar:set_interval(self._growth_period, function()
+         self:_grow()
+      end)
 end
 
 function GrowingComponent:destroy()
-   radiant.events.unlisten(calendar, 'stonehearth:hourly', self, self.on_hourly)
-end
-
---- Every hour, check if we should be growing
-function GrowingComponent:on_hourly()
-   if self._data.growth_countdown <= 0 then
-      self:grow()
-   else 
-      self._data.growth_countdown = self._data.growth_countdown - 1
-      self.__saved_variables:mark_changed()
-   end
+   self:_stop_growing()
 end
 
 --- Do whatever is necessary to get to the next step of growth
-function GrowingComponent:grow()
-   --TODO: run growth effect, if we have one
-   self._data.curr_stage = self._data.curr_stage + 1
-   self:_set_stage()
-
+function GrowingComponent:_grow()
    --TODO: use events to tell crop component to suck nutrients out of the soil?
    --TODO: stop growth if some condition is not met
-   radiant.events.trigger(self._entity, 'stonehearth:growing', {entity = self._entity, stage = self._growth_stages[self._data.curr_stage].model_name})
-   if self._data.curr_stage >= #self._growth_stages then
-      self:stop_growing()   
-   end
+   self._sv.current_growth_stage = math.min(self._sv.current_growth_stage + 1, #self._growth_stages)
    self.__saved_variables:mark_changed()
+
+   local finished = self._sv.current_growth_stage >= #self._growth_stages
+   local stage = self._growth_stages[self._sv.current_growth_stage]
+
+   radiant.events.trigger(self._entity, 'stonehearth:growing', {
+         entity = self._entity,
+         stage = stage and stage.model_name or nil,
+         finished = finished,
+      })
+
+   --TODO: run growth effect, if we have one
+   self:_apply_current_stage()   
+   if finished then
+      self:_stop_growing()
+   end
 end
 
-function GrowingComponent:_set_stage()
-   local stage_data = self._growth_stages[self._data.curr_stage]
-   local stage_name = stage_data.model_name
-   self._render_info:set_model_variant(stage_name)
+function GrowingComponent:_apply_current_stage()
+   local stage_data = self._growth_stages[self._sv.current_growth_stage]
+
+   self._entity:add_component('render_info')
+                     :set_model_variant(stage_data.model_name)
 
    radiant.entities.set_name(self._entity, stage_data.name)
    radiant.entities.set_description(self._entity, stage_data.description)
 end
 
---- When we're done growing, stop listening and fire an event
-function GrowingComponent:stop_growing()
-   radiant.events.unlisten(calendar, 'stonehearth:hourly', self, self.on_hourly)
-   radiant.events.trigger(self._entity, 'stonehearth:growth_complete', {entity = self._entity})
+--- When we're done growing, stop the growth timer
+function GrowingComponent:_stop_growing()
+   if self._growth_timer then
+      self._growth_timer:destroy()
+      self._growth_timer = nil
+   end
 end
 
 return GrowingComponent

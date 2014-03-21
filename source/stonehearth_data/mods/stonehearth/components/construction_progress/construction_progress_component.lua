@@ -8,22 +8,15 @@ local log = radiant.log.create_logger('build')
 
 function ConstructionProgress:initialize(entity, json)
    self._entity = entity
-   self._dependencies = {}
-   self._dependencies_finished = false
-   self._data = {
-      dependencies = self._dependencies,
-      finished = false,
-   }
-   self.__saved_variables = radiant.create_datastore(self._data)
-end
-
-function ConstructionProgress:restore(entity, saved_variables)
-   self._entity = entity
-   self.__saved_variables = saved_variables
+   self._sv = self.__saved_variables:get_data()
+   if not self._sv.dependencies then
+      self._sv.dependencies = {}
+      self._sv.dependencies_finished = false
+   end
 end
 
 function ConstructionProgress:get_dependencies()
-   return self._data.dependencies
+   return self._sv.dependencies
 end
 
 
@@ -47,7 +40,7 @@ function ConstructionProgress:add_dependency(blueprint)
    radiant.events.listen(blueprint, 'stonehearth:construction_fabricator_changed', self, self._on_construction_fabricator_changed)
 
    -- Create a new dependency tracking the blueprint. 
-   self._dependencies[id] = {
+   self._sv.dependencies[id] = {
       blueprint = blueprint
    }
 
@@ -65,7 +58,7 @@ end
 
 function ConstructionProgress:_on_construction_fabricator_changed(e)
    local id = e.entity:get_id()
-   local dependency = self._dependencies[id]
+   local dependency = self._sv.dependencies[id]
    if dependency then
       self:_update_dependency_fabricator(e.entity, e.fabricator_entity)
    end
@@ -75,7 +68,7 @@ end
 function ConstructionProgress:_update_dependency_fabricator(blueprint, fabricator)
    if blueprint and fabricator then
       local id = blueprint:get_id()
-      local dependency = self._dependencies[id]
+      local dependency = self._sv.dependencies[id]
       if dependency then
          local fc = fabricator:get_component('stonehearth:fabricator')
          if fc then
@@ -103,48 +96,48 @@ function ConstructionProgress:_on_construction_finished(e)
 end
 
 function ConstructionProgress:check_dependencies()
-   local last_dependencies_finished = self._dependencies_finished
+   local last_dependencies_finished = self._sv.dependencies_finished
    
    -- Assume we're good to go.  If not, the loop below will catch it.
-   self._dependencies_finished = true
-   for id, dependency in pairs(self._dependencies) do
+   self._sv.dependencies_finished = true
+   for id, dependency in pairs(self._sv.dependencies) do
       local project = dependency.project
       if not project then
          -- We haven't gotten a project for this dependency yet, most likely because
          -- *this* project got processed by the city_plan before the dependency.  No
          -- biggie, we'll pick it up soon in a stonehearth:construction_fabricator_changed
          -- notification.  For now, assume the project is not finished and bail.
-         self._dependencies_finished = false
+         self._sv.dependencies_finished = false
          break
       end
       local progress = project:get_component('stonehearth:construction_progress')
       if progress and not progress:get_finished() then
          -- The project is actually not finished.  Definitely bail!
-         self._dependencies_finished = false
+         self._sv.dependencies_finished = false
          break
       end
    end
    
    -- Start or stop the project if the _dependencies_finished bit has flipped.
-   if last_dependencies_finished ~= self._dependencies_finished then
+   if last_dependencies_finished ~= self._sv.dependencies_finished then
       radiant.events.trigger(self._entity, 'stonehearth:construction_dependencies_finished', { 
          entity = self._entity,
-         finished = self._dependencies_finished
+         finished = self._sv.dependencies_finished
       })
       -- if we don't have a construction_data component, forward the message along.
       local construction_data = self._entity:get_component('stonehearth:construction_data')
       if not construction_data then
-         self:set_finished(self._dependencies_finished)
+         self:set_finished(self._sv.dependencies_finished)
       end
    end
-   return self._dependencies_finished
+   return self._sv.dependencies_finished
 end
 
 -- used by the fabricator to indicate the construction is done
 function ConstructionProgress:set_finished(finished)
-   local changed = self._data.finished ~= finished
+   local changed = self._sv.finished ~= finished
    if changed then
-      self._data.finished = finished
+      self._sv.finished = finished
       self.__saved_variables:mark_changed()
 
       log:debug('%s trigger stonehearth:construction_finished event (finished = %s)',
@@ -159,7 +152,7 @@ function ConstructionProgress:set_finished(finished)
 end
 
 function ConstructionProgress:get_finished()
-   return self._data.finished
+   return self._sv.finished
 end
 
 return ConstructionProgress

@@ -7,6 +7,7 @@ local constants = {
       -- valid within the worker task scheduler, so feel free to use arbitrary
       -- numbers (xxx: this comment will be true once Tony implements the action
       -- priority system next week).
+      -- Note: use these when the task is created, not in the action header
       worker_task = {
          DEFAULT            = 2,
          RESTOCK_STOCKPILE  = 2,
@@ -18,6 +19,13 @@ local constants = {
          GATHER_RESOURCE    = 8,
          GATHER_FOOD        = 9,
          LIGHT_FIRE         = 10,
+      },
+
+      farmer_task = {
+         RESTOCK_STOCKPILE  = 2,
+         PLANT              = 3,
+         TILL               = 4,
+         HARVEST            = 5,
       },
 
       -- Priorities for basic needs

@@ -21,7 +21,7 @@ void lua::analytics::open(lua_State *L)
    module(L) [
       namespace_("_radiant") [
          namespace_("analytics") [
-            lua::RegisterType<DesignEvent>("DesignEvent")
+            lua::RegisterType_NoTypeInfo<DesignEvent>("DesignEvent")
                .def(constructor<std::string const&>())
                .def("set_value",    &DesignEvent::SetValue)
                .def("set_position", &DesignEvent::SetPosition)

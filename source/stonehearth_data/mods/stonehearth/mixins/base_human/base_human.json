@@ -72,6 +72,7 @@
          },
          "diligence_adjustment": {
             "type" : "random_range",
+            "private" : true,
             "base" :  1,
             "max"  :  9
          },
@@ -81,6 +82,7 @@
          },
          "curiosity_adjustment": {
             "type" : "random_range",
+            "private" : true,
             "base" :  1,
             "max"  :  9
          },
@@ -90,6 +92,7 @@
          },
          "inventiveness_adjustment": {
             "type" : "random_range",
+            "private" : true,
             "base" :  1,
             "max"  :  9
          },
@@ -99,6 +102,7 @@
          },
          "muscle_adjustment": {
             "type" : "random_range",
+            "private" : true,
             "base" :  1,
             "max"  :  9
          },
@@ -108,6 +112,7 @@
          },
          "speed_adjustment": {
             "type" : "random_range",
+            "private" : true,
             "base" :  1,
             "max"  :  9
          },
@@ -117,6 +122,7 @@
          },
          "stamina_adjustment": {
             "type" : "random_range",
+            "private" : true,
             "base" :  1,
             "max"  :  9
          },
@@ -126,6 +132,7 @@
          },
          "courage_adjustment": {
             "type" : "random_range",
+            "private" : true,
             "base" :  1,
             "max"  :  9
          },
@@ -135,6 +142,7 @@
          },
          "willpower_adjustment": {
             "type" : "random_range",
+            "private" : true,
             "base" :  1,
             "max"  :  9
          },
@@ -144,6 +152,7 @@
          },
          "compassion_adjustment": {
             "type" : "random_range",
+            "private" : true,
             "base" :  1,
             "max"  :  9
          },

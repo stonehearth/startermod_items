@@ -129,7 +129,7 @@ message PostCommandReply {
    }
    required int32       call_id = 1;
    optional Type        type = 2;
-   optional string      content = 3;
+   optional bytes       content = 3; // compressed json string.
 }
 
 message DefineRemoteObject {

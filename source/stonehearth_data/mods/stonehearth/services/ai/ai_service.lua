@@ -25,10 +25,6 @@ function AiService:initialize()
    -- nothing to do.
 end
 
-function AiService:restore(saved_variables)
-   -- nothing to do.
-end
-
 -- injecting entity may be null
 function AiService:inject_ai(entity, injecting_entity, ai) 
    return AiInjector(entity, injecting_entity, ai)
