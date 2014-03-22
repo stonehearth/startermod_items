@@ -669,7 +669,11 @@
       "enable_camera_movement": {
          "controller" : "file(call_handlers/camera_call_handler.lua)",
          "endpoint" : "client"
-      }      
+      },
+      "ui_mode_changed": {
+         "controller" : "file(call_handlers/ui_mode_call_handler.lua)",
+         "endpoint" : "client"
+      }
    },
    "components" :  {
       "ai" : "file(components/ai/ai_component.lua)",

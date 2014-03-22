@@ -6,6 +6,19 @@ local Point2 = _radiant.csg.Point2
 
 local StockpileRenderer = class()
 
+function StockpileRenderer:__init()
+   self._ui_view_mode = 'normal'
+   self._color = Color3(0, 153, 255)
+
+   radiant.events.listen(radiant.events, 'stonehearth:ui_mode_changed', function(e)
+      if self._ui_view_mode ~= e.mode then
+         self._color = Color3(255 - self._color.r, self._color.g, self._color.b)
+         self:_regenerate_node()
+         self._ui_view_mode = e.mode
+      end
+   end)
+end
+
 function StockpileRenderer:update(render_entity, saved_variables)
    self._parent_node = render_entity:get_node()
    self._size = { 0, 0 }   
@@ -35,15 +48,19 @@ function StockpileRenderer:_update()
       local size = data.size
       if self._size ~= size then
          self._size = size
-         self._region:modify(function(cursor)
-            cursor:clear()
-            cursor:add_cube(Rect2(Point2(0, 0), size))
-         end)
-         
-         self:_clear()
-         self._node = _radiant.client.create_designation_node(self._parent_node, self._region:get(), Color3(0, 153, 255), Color3(0, 153, 255));
+         self:_regenerate_node()
       end
    end
+end
+
+function StockpileRenderer:_regenerate_node()
+   self._region:modify(function(cursor)
+      cursor:clear()
+      cursor:add_cube(Rect2(Point2(0, 0), self._size))
+   end)
+   
+   self:_clear()
+   self._node = _radiant.client.create_designation_node(self._parent_node, self._region:get(), self._color, self._color);
 end
 
 function StockpileRenderer:_clear()
