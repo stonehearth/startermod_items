@@ -26,6 +26,11 @@ LuaDeferredPtr LuaDeferred_Done(lua_State* L, LuaDeferredPtr deferred, object cb
    return deferred;
 }
 
+LuaDeferredPtr LuaDeferred_Destroy(lua_State* L, LuaDeferredPtr deferred)
+{
+   return deferred;
+}
+
 LuaDeferredPtr LuaDeferred_Always(lua_State* L, LuaDeferredPtr deferred, object cb)
 {
    L = lua::ScriptHost::GetCallbackThread(L);
@@ -141,7 +146,9 @@ void lua::rpc::open(lua_State* L, CoreReactorPtr reactor)
                .def("done",       &LuaDeferred_Done)
                .def("fail",       &LuaDeferred_Fail)
                .def("progress",   &LuaDeferred_Progress)
-               .def("always",     &LuaDeferred_Always),
+               .def("always",     &LuaDeferred_Always)
+               .def("destroy",    &LuaDeferred_Destroy)
+               ,
             lua::RegisterTypePtr_NoTypeInfo<Session>("Session")
                .def_readonly("faction", &Session::faction)
                .def_readonly("kingdom", &Session::kingdom)
