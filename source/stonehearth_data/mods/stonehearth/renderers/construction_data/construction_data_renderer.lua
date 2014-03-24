@@ -1,4 +1,4 @@
-local voxel_brush_util = require 'services.build.voxel_brush_util'
+local voxel_brush_util = require 'services.server.build.voxel_brush_util'
 local Point3 = _radiant.csg.Point3
 local ConstructionDataRenderer = class()
 

@@ -11,6 +11,8 @@
 #include "lib/perfmon/store.h"
 #include "lib/perfmon/timeline.h"
 #include "om/components/data_store.ridl.h"
+#include "om/components/mod_list.ridl.h"
+#include "om/stonehearth.h"
 
 extern "C" int luaopen_lpeg (lua_State *L);
 
@@ -225,7 +227,8 @@ luabind::object ScriptHost::GetConfig(std::string const& flag)
 
 IMPLEMENT_TRIVIAL_TOSTRING(ScriptHost);
 
-ScriptHost::ScriptHost() 
+ScriptHost::ScriptHost(std::string const& site) :
+   site_(site)
 {
    current_line = 0;
    *current_file = '\0';
@@ -726,4 +729,72 @@ bool ScriptHost::IsNumericTable(luabind::object tbl) const
       return false; // assume empty tables are objects.
    }
    return luabind::type(tbl) == LUA_TTABLE && luabind::type(tbl[1]) != LUA_TNIL;
+}
+
+void ScriptHost::LoadGame(om::ModListPtr mods, std::map<dm::ObjectId, om::EntityPtr>& em)
+{
+   CreateModules(mods);
+
+   for (auto const& entry : em) {
+      om::EntityPtr entity = entry.second;
+      om::Stonehearth::RestoreLuaComponents(this, entity);
+   }
+   Trigger("radiant:game_loaded");
+}
+
+void ScriptHost::CreateGame(om::ModListPtr mods)
+{
+   CreateModules(mods);
+
+   core::Config const& config = core::Config::GetInstance();
+   std::string const module = config.Get<std::string>("game.main_mod", "stonehearth");
+   luabind::object obj = mods->GetMod(module);
+   if (obj) {
+      TriggerOn(obj, "radiant:new_game", luabind::newtable(L_));
+   }
+}
+
+void ScriptHost::CreateModules(om::ModListPtr mods)
+{
+   res::ResourceManager2 &resource_manager = res::ResourceManager2::GetInstance();
+
+   CreateModule(mods, "radiant");
+   for (std::string const& mod_name : resource_manager.GetModuleNames()) {
+      if (mod_name != "radiant") {
+         CreateModule(mods, mod_name);
+      }
+   }
+   Require("radiant.lualibs.strict");
+   Trigger("radiant:modules_loaded");
+}
+
+luabind::object ScriptHost::CreateModule(om::ModListPtr mods, std::string const& mod_name)
+{
+   res::ResourceManager2 &resource_manager = res::ResourceManager2::GetInstance();
+   std::string script_name;
+   luabind::object module;
+
+   std::string scriptKey = BUILD_STRING(site_ << "_init_script");
+   resource_manager.LookupManifest(mod_name, [&](const res::Manifest& manifest) {
+      script_name = manifest.get<std::string>(scriptKey, "");
+   });
+   if (!script_name.empty()) {
+      try {
+         luabind::object savestate = mods->GetMod(mod_name);
+
+         if (!savestate || !savestate.is_valid()) {
+            om::DataStorePtr datastore = mods->GetStore().AllocObject<om::DataStore>();
+            datastore->SetData(luabind::newtable(L_));
+            savestate = luabind::object(L_, datastore);
+         }
+         module = Require(script_name);
+         module["__saved_variables"] = savestate;
+         luabind::globals(L_)[mod_name] = module;
+         mods->AddMod(mod_name, module);
+         TriggerOn(module, "radiant:init", luabind::object());
+      } catch (std::exception const& e) {
+         LUA_LOG(1) << "module " << mod_name << " failed to load " << script_name << ": " << e.what();
+      }
+   }
+   return module;
 }

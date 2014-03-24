@@ -173,6 +173,8 @@ private:
       // local authoring object storage and tracking...
       std::unique_ptr<dm::Store>       authoringStore_;
       std::unordered_map<dm::ObjectId, om::EntityPtr> authoredEntities_;
+      om::EntityPtr                    localRootEntity_;
+      om::ModListPtr                   localModList_;
 
       // local collision tests...
       std::unique_ptr<phys::OctTree>     octtree_;

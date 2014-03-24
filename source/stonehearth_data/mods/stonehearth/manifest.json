@@ -37,9 +37,9 @@
       "mixins:resources:jerky" : "file(mixins/resources/jerky)",
       "mixins:resources:fur_pelt" : "file(mixins/resources/fur_pelt)",
 
-      "kingdoms:ascendancy" : "file(services/population/data/ascendancy.json)",
-      "kingdoms:northern_alliance" : "file(services/population/data/northern_alliance.json)",
-      "kingdoms:rayyas_children" : "file(services/population/data/rayyas_children.json)",
+      "kingdoms:ascendancy" : "file(services/server/population/data/ascendancy.json)",
+      "kingdoms:northern_alliance" : "file(services/server/population/data/northern_alliance.json)",
+      "kingdoms:rayyas_children" : "file(services/server/population/data/rayyas_children.json)",
 
       "default_object" : "file(entities/generic/default_object)",
 
@@ -58,7 +58,7 @@
       "farmer:outfit" : "file(professions/farmer/farmer_outfit)",
       "farmer:field" : "file(professions/farmer/field)",
       "farmer_hoe" : "file(professions/farmer/farmer_hoe)", 
-      "farmer:initial_crops" : "file(services/farming/data/initial_crops.json)",
+      "farmer:initial_crops" : "file(services/server/farming/data/initial_crops.json)",
       
       "trapper:trapper_knife" : "file(professions/trapper/trapper_knife)",
       "trapper:outfit" : "file(professions/trapper/trapper_outfit)",
@@ -336,12 +336,6 @@
       "actions:plant_crop" : "file(ai/actions/plant_crop.lua)",
 
       "actions:follow_entity" : "file(ai/actions/follow_entity_action.lua)",
-
-      "tasks:collect_ingredients" : "file(services/tasks/compound_tasks/collect_ingredients_compound_task.lua)",
-      "tasks:work_at_workshop" : "file(services/tasks/compound_tasks/work_at_workshop_orchestrator.lua)",
-      "tasks:create_workshop" : "file(services/tasks/compound_tasks/create_workshop_compound_task.lua)",
-      "tasks:promote_with_talisman" : "file(services/tasks/compound_tasks/promote_with_talisman_compound_task.lua)",
-      "tasks:clear_workshop" : "file(services/tasks/compound_tasks/clear_workshop_orchestrator.lua)",
 
       "observers:look_for_enemies" : "file(ai/observers/look_for_enemies.lua)",
       "observers:sleep" : "file(ai/observers/sleep_observer.lua)",

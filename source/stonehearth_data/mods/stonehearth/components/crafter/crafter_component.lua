@@ -4,7 +4,7 @@
 ]]
 
 local CrafterComponent = class()
-local CreateWorkshop = require 'services.town.orchestrators.create_workshop_orchestrator'
+local CreateWorkshop = require 'services.server.town.orchestrators.create_workshop_orchestrator'
 
 function CrafterComponent:initialize(entity, json)
    self._entity = entity

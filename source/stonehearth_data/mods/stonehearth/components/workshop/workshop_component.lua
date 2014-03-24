@@ -7,7 +7,7 @@
 ]]
 
 local Point3 = _radiant.csg.Point3
-local WorkAtWorkshop = require 'services.town.orchestrators.work_at_workshop_orchestrator'
+local WorkAtWorkshop = require 'services.server.town.orchestrators.work_at_workshop_orchestrator'
 local CraftOrderList = require 'components.workshop.craft_order_list'
 
 local WorkshopComponent = class()

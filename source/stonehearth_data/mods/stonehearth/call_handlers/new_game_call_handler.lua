@@ -1,6 +1,5 @@
-local MathFns = require 'services.world_generation.math.math_fns'
-local BlueprintGenerator = require 'services.world_generation.blueprint_generator'
-local game_master = require 'services.game_master.game_master_service'
+local MathFns = require 'services.server.world_generation.math.math_fns'
+local BlueprintGenerator = require 'services.server.world_generation.blueprint_generator'
 local personality_service = stonehearth.personality
 
 local Point2 = _radiant.csg.Point2
@@ -256,7 +255,7 @@ function NewGameCallHandler:create_camp(session, response, pt)
    radiant.entities.pickup_item(worker4, pop:create_entity('stonehearth:carpenter:saw'))
 
    -- start the game master service
-   --game_master.start()
+   --stonehearth.game_master.start()
 
    return {}
 end

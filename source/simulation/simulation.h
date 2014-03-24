@@ -126,8 +126,6 @@ private:
    void InitializeDataObjects();
    void InitializeDataObjectTraces();
    void InitializeGameObjects();
-   void CreateGameModules();
-   void LoadGameModules();
 
    void Shutdown();
    void ShutdownGameObjects();
@@ -136,8 +134,6 @@ private:
    void ShutdownLuaObjects();
 
    void CreateGame();
-   luabind::object CreateModule(std::string const& name);
-   void CreateModules();
 
 private:
    std::unique_ptr<dm::Store>                            store_;

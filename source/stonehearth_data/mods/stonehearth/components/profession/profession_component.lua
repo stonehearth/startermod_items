@@ -7,7 +7,12 @@ local ProfessionComponent = class()
 function ProfessionComponent:initialize(entity, json)
    self._entity = entity
    self._sv = self.__saved_variables:get_data()
-   if self._sv.profession then
+   if self._sv.profession_uri then
+      local json = radiant.resources.load_json(self._sv.profession_uri, true)
+      if json then
+         self:_load_profession_script(json)
+         self:_call_profession_script('restore', json)
+      end
    end
 end
 
@@ -19,6 +24,7 @@ function ProfessionComponent:promote_to(profession_uri)
    local json = radiant.resources.load_json(profession_uri, true)
    if json then
       self:demote()
+      self._sv.profession_uri = profession_uri
       self._sv.profession_id = json.profession_id
       self:_load_profession_script(json)
       self:_set_unit_info(json)
