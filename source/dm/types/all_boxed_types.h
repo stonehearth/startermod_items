@@ -39,5 +39,6 @@
    BOXED(json::Node) \
    BOXED(lua::ControllerObject) \
    BOXED(lua::DataObject)
+   BOXED(luabind::object)
 
 

@@ -10,7 +10,6 @@ Here are the rules
 function ThoughtBubbleComponent:initialize(entity, json)
    self._entity = entity
    self._thought_priority = 0
-   self.__saved_variables = radiant.create_datastore()
 end
 
 function ThoughtBubbleComponent:set_thought(uri, priority)

@@ -7,6 +7,7 @@
 #include "namespace.h"
 #include "protocols/forward_defines.h"
 #include "dm/dm.h"
+#include "point.h"
 
 BEGIN_RADIANT_CSG_NAMESPACE
 
@@ -45,6 +46,27 @@ public:
 
    void LoadValue(const protocol::color& c);
    void SaveValue(protocol::color *c) const;
+
+   Point3f ToHsl() const {
+      const Point3f nRGB(r / 255.0f, g / 255.0f, b / 255.0f);
+      const float cMax = std::max(std::max(nRGB.x, nRGB.y), nRGB.z);
+      const float cMin = std::min(std::min(nRGB.x, nRGB.y), nRGB.z);
+      const float delta = cMax - cMin;
+      Point3f result(0, 0, (cMax + cMin) / 2.0f);
+
+      if (delta != 0) {
+         result.y = result.z > 0.5f ? delta / (2.0f - cMax - cMin) : delta / (cMax + cMin);
+         if (cMax == nRGB.x) {
+            result.x = (nRGB.y - nRGB.z) / delta + (nRGB.y < nRGB.z ? 6.0f : 0.0f);
+         } else if (cMax == nRGB.y) {
+            result.x = (nRGB.z - nRGB.x) / delta + 2.0f;
+         } else {
+            result.x = (nRGB.x - nRGB.y) / delta + 4.0f;
+         }
+         result.x /= 6.0;
+      }
+      return result;
+   }
 
    int ToInteger() const {
       return ((unsigned int)r) |

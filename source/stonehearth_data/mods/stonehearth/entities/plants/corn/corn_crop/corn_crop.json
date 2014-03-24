@@ -29,7 +29,7 @@
          }
       },
       "unit_info": {
-         "name": "Corn Seedling", 
+         "name": "Corn", 
          "description": "Slow-mo, high-stakes gambling.", 
          "icon" : "file(icon.png)",
          "portrait" : "file(portrait.png)"

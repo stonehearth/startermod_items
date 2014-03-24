@@ -220,7 +220,7 @@ end
 function Fabricator:_start_teardown_task()
    assert(not self._teardown_task)
    
-   local town = stonehearth.town:get_town(self._entity)
+   local town = stonehearth.town:get_town(self._project)
    self._teardown_task = town:create_worker_task('stonehearth:teardown_structure', { fabricator = self })
                                    :set_name('teardown')
                                    :set_source(self._entity)

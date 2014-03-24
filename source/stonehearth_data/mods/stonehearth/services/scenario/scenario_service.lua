@@ -82,7 +82,7 @@ function ScenarioService:_register_events()
    -- to iterate over all player popluations rather than just the hardcoded "player_1".  When the
    -- service to iterate over all players in the game is written, change this bit. -- tony
    self._faction = stonehearth.population:get_population('player_1')
-   radiant.events.listen(radiant.events, 'stonehearth:very_slow_poll', self, self._on_poll)
+   radiant.events.listen(radiant, 'stonehearth:very_slow_poll', self, self._on_poll)
 end
 
 function ScenarioService:_on_poll()

@@ -166,7 +166,7 @@ Region3 csg::GetAdjacent(Region3 const& r, bool allow_diagonals, int min_y, int 
       }
    }
 
-   adjacent.Optimize();
+   adjacent.OptimizeByMerge();
    return adjacent;
 }
 

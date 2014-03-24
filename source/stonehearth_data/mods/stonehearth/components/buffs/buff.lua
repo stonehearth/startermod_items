@@ -12,6 +12,8 @@ end
 
 function Buff:_initialize(uri)
    self._data = radiant.resources.load_json(uri)
+   -- can the ui just do a GET of this file, so we don't clone the data
+   -- many, many, many times in the save file?
    self.__saved_variables = radiant.create_datastore(self._data)
    self:_create_buff()
 end

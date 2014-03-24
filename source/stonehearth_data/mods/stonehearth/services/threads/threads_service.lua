@@ -5,7 +5,7 @@ local log = radiant.log.create_logger('threads')
 local ThreadsService = class()
 
 function ThreadsService:__init()
-   radiant.events.listen(radiant.events, 'stonehearth:gameloop', function()
+   radiant.events.listen(radiant, 'stonehearth:gameloop', function()
          Thread.loop()
       end)
 end

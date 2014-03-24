@@ -38,7 +38,7 @@ function MicroWorld:create_world()
 end
 
 function MicroWorld:at(time, fn)
-   return stonehearth.calendar:set_timer(math.floor(time / 1000), fn)
+   return radiant.set_realtime_timer(math.floor(time / 1000), fn)
 end
 
 function MicroWorld:place_tree(x, z)

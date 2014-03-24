@@ -20,12 +20,10 @@ radiant.entities = require 'modules.client_entities'
 
 require 'modules.timer'
 
-local api = {}
-
 -- xxx: radiant client and server need to share much more stuff!!! -- tony
-function api.update()
+function radiant.update()
    radiant.events._update()
    radiant._fire_timers()
 end
 
-return api
+return radiant

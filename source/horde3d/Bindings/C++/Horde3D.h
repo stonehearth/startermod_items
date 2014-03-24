@@ -1886,20 +1886,18 @@ DLL bool h3dGetCastRayResult( int index, H3DNode *node, float *distance, float *
 		This function checks if a specified node is visible from the perspective of a specified
 		camera. The function always checks if the node is in the camera's frustum. If checkOcclusion
 		is true, the function will take into account the occlusion culling information from the previous
-		frame (if occlusion culling is disabled the flag is ignored). The flag calcLod determines whether the
-		detail level for the node should be returned in case it is visible. The function returns -1 if the node
-		is not visible, otherwise 0 (base LOD level) or the computed LOD level.
+		frame (if occlusion culling is disabled the flag is ignored). The function returns -1 if the node
+		is not visible, otherwise 0.
 
 	Parameters:
 		node            - node to be checked for visibility
 		cameraNode      - camera node from which the visibility test is done
 		checkOcclusion  - specifies if occlusion info from previous frame should be taken into account
-		calcLod         - specifies if LOD level should be computed
 
 	Returns:
-		computed LOD level or -1 if node is not visible
+		-1 if node is not visible, 0 otherwise.
 */
-DLL int h3dCheckNodeVisibility( H3DNode node, H3DNode cameraNode, bool checkOcclusion, bool calcLod );
+DLL int h3dCheckNodeVisibility( H3DNode node, H3DNode cameraNode, bool checkOcclusion );
 
 
 /* Group: Group-specific scene graph functions */
@@ -2051,8 +2049,7 @@ DLL bool h3dSetModelMorpher( H3DNode modelNode, const char *target, float weight
 */
 DLL H3DNode h3dAddMeshNode( H3DNode parent, const char *name, H3DRes materialRes, 
                             int batchStart, int batchCount, int vertRStart, int vertREnd );
-DLL H3DNode h3dAddVoxelMeshNode( H3DNode parent, const char *name, H3DRes materialRes, 
-                            int batchStart, int batchCount, int vertRStart, int vertREnd );
+DLL H3DNode h3dAddVoxelMeshNode( H3DNode parent, const char *name, H3DRes materialRes );
 
 
 /* Group: Joint-specific scene graph functions */

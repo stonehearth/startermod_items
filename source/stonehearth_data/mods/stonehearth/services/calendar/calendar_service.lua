@@ -33,7 +33,7 @@ function CalendarService:__init()
    TIME_DURATIONS.month = TIME_DURATIONS.day * self._constants.days_per_month
    TIME_DURATIONS.year = TIME_DURATIONS.month * self._constants.months_per_year
 
-   radiant.events.listen(radiant.events, 'stonehearth:gameloop', self, self._on_event_loop)
+   radiant.events.listen(radiant, 'stonehearth:gameloop', self, self._on_event_loop)
 end
 
 function CalendarService:initialize()
@@ -95,9 +95,9 @@ function CalendarService:_create_timer(duration, fn, repeating)
    else
       timeout_s = duration
    end
-   assert(timeout_s > 0, 'invalid duration passed to calendar set timer, "%s"', tostring(duration))
+   assert(timeout_s > 0, string.format('invalid duration passed to calendar set timer, "%s"', tostring(duration)))
 
-   local timer = CalendarTimer(self:get_elapsed_time() + timeout_s, fn, repeating)
+   local timer = CalendarTimer(self:get_elapsed_time(), timeout_s, fn, repeating)
 
    -- if we're currently firing timers, the _next_timers variable will contain the timers
    -- we'll check next gameloop. stick the timer in there instead of the timers array.  this
@@ -155,12 +155,11 @@ function CalendarService:_update_timers()
    self._next_timers = {}
    local elapsed = self:get_elapsed_time()
    for i, timer in ipairs(self._timers) do
-      if timer.active then
-         if timer.expire_time <= elapsed then
-            timer.fn()
-            timer.active = timer.repeating
+      if timer:is_active() then
+         if timer:get_expire_time() <= elapsed then
+            timer:fire()
          end
-         if timer.active then
+         if timer:is_active() then
             table.insert(self._next_timers, timer)
          end
       end

@@ -4,19 +4,16 @@
 
 local MaterialComponent = class()
 
-function MaterialComponent:__init()
-   self._tags = {}
-end
-
 function MaterialComponent:initialize(entity, json)
-   if json.tags then
-      for _, tag in ipairs(self:_split_string(json.tags)) do
-         self._tags[tag] = true
-      end
+   self._sv = self.__saved_variables:get_data()
+   if not self._sv.tags then
+      self._sv.tags = {}
+      if json.tags then
+         for _, tag in ipairs(self:_split_string(json.tags)) do
+            self._sv.tags[tag] = true
+         end
+      end      
    end
-   self.__saved_variables = radiant.create_datastore({
-         tags = self._tags
-      })
 end
 
 function MaterialComponent:is(tags_string)
@@ -24,7 +21,7 @@ function MaterialComponent:is(tags_string)
    
    local tags = self:_split_string(tags_string)
    for _, tag in ipairs(tags) do
-      if not self._tags[tag] then
+      if not self._sv.tags[tag] then
          return false
       end
    end
@@ -32,19 +29,19 @@ function MaterialComponent:is(tags_string)
 end
 
 function MaterialComponent:has_tag(tag)
-   return self._tags[tag]
+   return self._sv.tags[tag]
 end
 
 function MaterialComponent:add_tag(tag)
-   if not self._tags then
-      self._tags[tag] = true
+   if not self._sv.tags then
+      self._sv.tags[tag] = true
       self.__saved_variables:mark_changed()
    end
 end
 
 function MaterialComponent:remove_tag(tag)
-   if self._tags then
-      self._tags[tag] = nil
+   if self._sv.tags then
+      self._sv.tags[tag] = nil
       self.__saved_variables:mark_changed()
    end
 end

@@ -141,6 +141,7 @@ struct ShaderCombination
 	// Engine uniforms
 	int                 uni_currentTime;
 	int                 uni_frameBufSize, uni_viewPortSize, uni_viewPortPos;
+   int                 uni_lodLevels;
 	int                 uni_halfTanFoV, uni_nearPlane, uni_farPlane;
 	int                 uni_viewMat, uni_viewMatInv, uni_projMat, uni_viewProjMat, uni_viewProjMatInv, uni_viewerPos;
    int                 uni_camProjMat, uni_camViewProjMat, uni_camViewProjMatInv, uni_camViewMat, uni_camViewMatInv, uni_camViewerPos;

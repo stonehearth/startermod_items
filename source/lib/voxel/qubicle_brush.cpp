@@ -3,6 +3,7 @@
 #include "csg/util.h"
 #include "qubicle_file.h"
 #include "qubicle_brush.h"
+#include <unordered_set>
 
 using namespace ::radiant;
 using namespace ::radiant::voxel;
@@ -25,7 +26,8 @@ QubicleBrush::QubicleBrush() :
    paint_mode_(Color),
    offset_mode_(Matrix),
    qubicle_file_(""),
-   clip_whitespace_(false)
+   clip_whitespace_(false),
+   lod_level_(0)
 {
 }
 
@@ -34,7 +36,8 @@ QubicleBrush::QubicleBrush(std::istream& in) :
    paint_mode_(Color),
    offset_mode_(Matrix),
    qubicle_file_(""),
-   clip_whitespace_(false)
+   clip_whitespace_(false),
+   lod_level_(0)
 {
    in >> qubicle_file_;
    qubicle_matrix_ = &qubicle_file_.begin()->second;
@@ -46,7 +49,19 @@ QubicleBrush::QubicleBrush(QubicleMatrix const* m) :
    paint_mode_(Color),
    offset_mode_(Matrix),
    qubicle_file_(""),
-   clip_whitespace_(false)
+   clip_whitespace_(false),
+   lod_level_(0)
+{
+}
+
+QubicleBrush::QubicleBrush(QubicleMatrix const* m, int lod_level) :
+   normal_(0, 0, -1),
+   qubicle_matrix_(m),
+   paint_mode_(Color),
+   offset_mode_(Matrix),
+   qubicle_file_(""),
+   clip_whitespace_(false),
+   lod_level_(lod_level)
 {
 }
 
@@ -90,7 +105,9 @@ csg::Region3 QubicleBrush::PreparePaintBrush()
    if (!qubicle_matrix_) {
       throw std::logic_error("could not find qubicle matrix for voxel brush");
    }
-   csg::Region3 brush = MatrixToRegion3(*qubicle_matrix_);
+
+   const QubicleMatrix loddedMatrix = Lod(*qubicle_matrix_, lod_level_);
+   csg::Region3 brush = MatrixToRegion3(loddedMatrix);
 
    // rotate if necessary...
    if (normal_ != csg::Point3(0, 0, -1)) {
@@ -99,6 +116,127 @@ csg::Region3 QubicleBrush::PreparePaintBrush()
       brush = csg::Reface(brush, normal_);
    }
    return brush;
+}
+
+float colorDistance(int colorA, int colorB)
+{
+   const csg::Color4 cA = csg::Color4::FromInteger(colorA);
+   const csg::Color4 cB = csg::Color4::FromInteger(colorB);
+
+   const csg::Point3f hslA = cA.ToHsl();
+   const csg::Point3f hslB = cB.ToHsl();
+
+   float dH = hslA.x - hslB.x;
+   float dS = hslA.y - hslB.y;
+   float dL = hslA.z - hslB.z;
+
+   // TODO: This is incredibly wrong, but works!  Still, fix this soon-ish....
+   // HSL distance, but we bias against lightness (valuing hue/saturation more.)
+   return sqrt((dH * dH) + (dS * dS) + (dL * dL / 10.0f));
+}
+
+bool pairSort(const std::pair<int,int>& a, const std::pair<int,int>& b)
+{
+   // Greatest -> Smallest
+   return a.second > b.second;
+}
+
+QubicleMatrix QubicleBrush::Lod(const QubicleMatrix& m, int lod_level)
+{
+   if (lod_level == 0) {
+      return m;
+   }
+
+   const csg::Point3& size = m.GetSize();
+   QubicleMatrix result(size, m.GetPosition(), m.GetName());
+
+   // Lod level 1:
+   // Collect up all color frequencies
+   std::unordered_map<int, int> colorCounts;
+   std::vector<std::pair<int, int> > colorVec;
+   for (int x = 0; x < size.x; x ++) {
+      for (int y = 0; y < size.y; y ++) {
+         for (int z = 0; z < size.z; z ++) {
+            int colorI = m.At(x,y,z);
+            csg::Color4 color = csg::Color4::FromInteger(colorI);
+            if (color.a > 0) {
+               int colNoAlpha = csg::Color3::FromInteger(colorI).ToInteger();
+               if (colorCounts.find(colNoAlpha) == colorCounts.end()) {
+                  colorCounts[colNoAlpha] = 0;
+               }
+               colorCounts[colNoAlpha]++;
+            }
+         }
+      }
+   }
+
+   // Sort colours by frequency (greatest to least).
+   for (const auto& col : colorCounts) {
+      colorVec.push_back(std::pair<int,int>(col.first, col.second));
+   }
+   std::sort(colorVec.begin(), colorVec.end(), pairSort);
+
+   // Construct a palette of (at most 4) colours.  For each colour in the matrix, compare against 
+   // the present palette, and if nothing too similar is present, add it to the palette.  Because 
+   // we've sorted the colours by frequency, we'll definitely get the most prominent colours in the 
+   // palette. Arguably, you could bias the minimum distance bigger as you add more colours, but 
+   // beware!  Distances in colour space are weird, and reducing palettes in such a manner can 
+   // produce...interesting...results.
+   std::vector<int> finalPalette;
+   for (const auto& colorFreq : colorVec) {
+      const float MinDist = 0.15f;
+      bool tooSimilar = false;
+      for (const auto& paletteColor : finalPalette) {
+         if (colorDistance(colorFreq.first, paletteColor) < MinDist) {
+            tooSimilar = true;
+            break;
+         }
+      }
+
+      if (!tooSimilar) {
+         finalPalette.push_back(colorFreq.first);
+      }
+
+      if (finalPalette.size() > 1) {
+         break;
+      }
+   }
+
+   // Map the colours onto the generated palette.
+   std::unordered_map<int, int> colorMap;
+   for (const auto& colorFreq : colorVec) {
+      float minDist = 9999999;
+      uint32 mostSimilarIdx = 0;
+
+      for (uint32 j = 0; j < finalPalette.size(); j++) {
+         float d = colorDistance(colorFreq.first, finalPalette[j]);
+         if (d < minDist) {
+            mostSimilarIdx = j;
+            minDist = d;
+         }
+      }
+      colorMap[colorFreq.first] = finalPalette[mostSimilarIdx];
+   }
+
+   // Replace the colors using the map.
+   for (int x = 0; x < size.x; x++) {
+      for (int y = 0; y < size.y; y++) {
+         for (int z = 0; z < size.z; z++) {
+            int colorI = m.At(x,y,z);
+            csg::Color4 color = csg::Color4::FromInteger(colorI);
+            if (color.a > 0) {
+               colorI = csg::Color3::FromInteger(colorI).ToInteger();
+               csg::Color4 mappedColor = csg::Color4::FromInteger(colorMap[colorI]);
+               mappedColor.a = color.a;
+               result.Set(x,y,z, mappedColor.ToInteger());
+            } else {
+               result.Set(x,y,z, colorI);
+            }
+         }
+      }
+   }
+
+   return result;
 }
 
 csg::Region3 QubicleBrush::IterateThroughStencil(csg::Region3 const& brush,
@@ -156,7 +294,19 @@ csg::Region3 QubicleBrush::MatrixToRegion3(QubicleMatrix const& matrix)
 
 #define OFFSET(x_, y_, z_)          ((y_ * size.z * size.x) + (z_ * size.x) + x_)
 #define PROCESSED(x, y, z)          processed[OFFSET(x, y, z)]
-#define MATCHES(c, m)               ((paint_mode_ == Color) ? ((c) == (m)) : (csg::Color4::FromInteger(c).a > 0))
+#define MATCHES(c, m)               ((paint_mode_ == Color) ? (csg::Color3::FromInteger(c).ToInteger() == csg::Color3::FromInteger(m).ToInteger()) : (csg::Color4::FromInteger(c).a > 0))
+
+   // Strip out all the alpha=0 voxels before proceeding.
+   for (int x = 0; x < size.x; x++) {
+      for (int y = 0; y < size.y; y++) {
+         for (int z = 0; z < size.z; z++) {
+            csg::Color4 c = csg::Color4::FromInteger(matrix.At(x, y, z));
+            if (c.a == 0) {
+               PROCESSED(x, y, z) = true;
+            }
+         }
+      }
+   }
 
    // From: http://mikolalysenko.github.com/MinecraftMeshes2/js/greedy.js
    // There it is, that's a straw, you see? You watching? And my straw
@@ -173,14 +323,6 @@ csg::Region3 QubicleBrush::MatrixToRegion3(QubicleMatrix const& matrix)
                continue;
             }
             int color = matrix.At(x, y, z);
-            csg::Color4 color4 = csg::Color4::FromInteger(color);
-
-            // fully transparent pixels should be skipped
-            if (color4.a == 0) {
-               PROCESSED(x, y, z) = true;
-               x++;
-               continue;
-            }
 
             // we've found an unprocessed pixel, non-transparent at x, y, z.
             // get the biggest rect we can.  start off in the xz-plane
@@ -220,7 +362,7 @@ finished_xyz:
             csg::Point3 cmin = csg::Point3(x, y, z);
             csg::Point3 cmax = csg::Point3(x_max, y_max, z_max);
 
-            result.AddUnique(csg::Cube3(cmin + offset, cmax + offset, color));
+            result.AddUnique(csg::Cube3(cmin + offset, cmax + offset, csg::Color3::FromInteger(color).ToInteger()));
 
             for (v = y; v < y_max; v++) {
                for (w = z; w < z_max; w++) {

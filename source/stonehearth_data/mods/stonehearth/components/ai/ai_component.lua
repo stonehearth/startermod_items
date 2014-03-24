@@ -5,32 +5,15 @@ local log = radiant.log.create_logger('ai.component')
 
 local action_key_to_activity = {}
 
-function AIComponent:__init()
-   self._observers = {}
-   self._action_index = {}
-   self._execution_count = 0
-end
-
 function AIComponent:initialize(entity, json)
    self._entity = entity
-   self.__saved_variables = radiant.create_datastore({
-         actions = {},
-         observers = {},
-      })
+   self._action_index = {}
+   self._observer_instances = {}
+   self._sv = self.__saved_variables:get_data()  
    self.__saved_variables:set_controller(self)
 
-   radiant.events.listen(entity, 'stonehearth:entity:post_create', function()
+   radiant.events.listen(entity, 'radiant:entity:post_create', function()
          self:_initialize(json)
-         self:_start()
-         return radiant.events.UNLISTEN
-      end)
-end
-
-function AIComponent:restore(entity, saved_variables)
-   self._entity = entity
-   self.__saved_variables = saved_variables
-   radiant.events.listen(radiant, 'radiant:game_loaded', function()
-         self:_restore(saved_variables)
          self:_start()
          return radiant.events.UNLISTEN
       end)
@@ -53,20 +36,19 @@ function AIComponent:destroy()
    self._dead = true
    self:_terminate_thread()
 
-   for _, obs in pairs(self._observers) do
+   for _, obs in pairs(self._observer_instances) do
       if obs.destroy then
          obs:destroy(self._entity)
       end
    end
-   self._observers = {}
+   self._observer_instances = {}
    self._action_index = {}
 end
 
 function AIComponent:add_action(uri, injecting_entity)
    if injecting_entity == nil then
-      self.__saved_variables:modify_data(function (o)
-            o.actions[uri] = true
-         end)
+      self._sv.actions[uri] = true
+      self.__saved_variables:mark_changed()
    end
 
    self:_add_action_script(uri, injecting_entity)
@@ -140,55 +122,52 @@ end
 
 function AIComponent:_add_observer_script(uri)
    local ctor = radiant.mods.load_script(uri)
-   assert(not self._observers[uri])
-   self._observers[uri] = ctor(self._entity)
+   assert(not self._observer_instances[uri])
+   self._observer_instances[uri] = ctor(self._entity)
 end
 
 function AIComponent:remove_observer(key)
-   self.__saved_variables:modify_data(function (o)
-         o.observers[key] = nil
-      end)
+   self._sv.observers = nil
+   self.__saved_variables:mark_changed()
 
-   local observer = self._observers[key]
-
+   local observer = self._observer_instances[key]
    if observer then
       if observer.destroy then
          observer:destroy()
       end
-      self._observers[key] = nil
+      self._observer_instances[key] = nil
    end
 end
 
 
-function AIComponent:_initialize(json)
-   if json.actions then
-      for _, uri in ipairs(json.actions) do
+function AIComponent:_initialize(json)  
+   if self._sv.actions then
+      for uri, _ in pairs(self._sv.actions) do
+         self:_add_action_script(uri)
+      end
+   else
+      self._sv.actions = {}
+      for _, uri in ipairs(json.actions or {}) do
          self:add_action(uri)
       end
    end
-
-   if json.observers then
-      for _, uri in ipairs(json.observers) do
+   
+   if self._sv.observers then
+      for uri, _ in pairs(self._sv.observers) do
+         self:_add_observer_script(uri)
+      end
+   else
+      self._sv.observers = {}
+      for _, uri in ipairs(json.observers or {}) do
          self:add_observer(uri)
       end
    end
 end
 
-function AIComponent:_restore()
-   self.__saved_variables:read_data(function(o)
-         for uri, _ in pairs(o.actions) do
-            self:_add_action_script(uri)
-         end
-         for uri, _ in pairs(o.observers) do
-            self:_add_observer_script(uri)
-         end
-      end)
-end
-
 function AIComponent:_start()
    assert(not self._dead)
    assert(not self._thread)
-
+   
    radiant.check.is_entity(self._entity)
    self._thread = stonehearth.threads:create_thread()
                                      :set_debug_name('e:%d', self._entity:get_id())

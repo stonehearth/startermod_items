@@ -105,11 +105,11 @@ static RayCastResult Scene_CastScreenRay(double windowX, double windowY)
 }
 
 static int Screen_GetWidth() {
-   return Renderer::GetInstance().GetWidth();
+   return Renderer::GetInstance().GetWindowWidth();
 }
 
 static int Screen_GetHeight() {
-   return Renderer::GetInstance().GetHeight();
+   return Renderer::GetInstance().GetWindowHeight();
 }
 
 static void Sky_SetSkyColor(const csg::Point3f& startCol, const csg::Point3f& endCol) {

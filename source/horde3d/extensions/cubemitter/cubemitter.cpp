@@ -359,7 +359,7 @@ bool CubemitterNode::hasFinished()
 }
 
 void CubemitterNode::renderFunc(const std::string &shaderContext, const std::string &theClass, bool debugView,
-                                 const Frustum *frust1, const Frustum *frust2, RenderingOrder::List order, int occSet)
+                                 const Frustum *frust1, const Frustum *frust2, RenderingOrder::List order, int occSet, int lodLevel)
 {
 	if( frust1 == 0x0 || Modules::renderer().getCurCamera() == 0x0 ) return;
 	if( debugView ) return;  // Don't render particles in debug view

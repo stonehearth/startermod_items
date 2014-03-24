@@ -13,7 +13,7 @@ function RequestDispatcher:connect(connect_fn)
                                  table.insert(self._recv_queue, msg)
                               end)
 
-   radiant.events.listen(radiant.events, 'stonehearth:gameloop', self, self._process_queue)
+   radiant.events.listen(radiant, 'stonehearth:gameloop', self, self._process_queue)
 end
 
 function RequestDispatcher:pause_for_realtime(ms)

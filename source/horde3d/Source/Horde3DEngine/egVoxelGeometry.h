@@ -64,7 +64,7 @@ public:
 	void initDefault();
 	void release();
 	bool load( const char *data, int size );
-   bool loadData(VoxelVertexData *vertices, int vcount, uint32 *indicies, int icount);
+   bool loadData(VoxelVertexData *vertices, int vertexOffsets[], uint32 *indicies, int indexOffsets[], int numLodLevels);
 
 	int getElemCount( int elem );
 	int getElemParamI( int elem, int elemIdx, int param );
@@ -79,6 +79,11 @@ public:
 	uint32 getVertexBuf() const { return _vertexBuf; }
 	uint32 getIndexBuf() const { return _indexBuf; }
 
+   uint32 getBatchStart(int lodLevel) const;
+   uint32 getBatchCount(int lodLevel) const;
+   uint32 getVertRStart(int lodLevel) const;
+   uint32 getVertREnd(int lodLevel) const;
+   uint32 clampLodLevel(int lodLevel) const;
 public:
 	static uint32 defVertexBuffer, defIndexBuffer;
 
@@ -92,6 +97,9 @@ private:
 	bool                        _16BitIndices;
 	char                        *_indexData;
 	VoxelVertexData             *_vertexData;
+
+   int                         _vertexOffsets[5], _indexOffsets[5];
+   int                         _numLodLevels;
 
 	friend class Renderer;
 	friend class VoxelModelNode;

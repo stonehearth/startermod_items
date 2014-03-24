@@ -93,7 +93,6 @@ public:
       }
    }
 
-   void Optimize();
    void OptimizeByOctTree(S minCubeSize);
    void OptimizeByMerge();
 

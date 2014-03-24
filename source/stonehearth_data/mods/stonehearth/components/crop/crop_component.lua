@@ -8,10 +8,7 @@ function CropComponent:initialize(entity, json)
    self._entity = entity
    self._resource_pairings = json.resource_pairings
    self._harvest_threshhold = json.harvest_threshhold
-   radiant.events.listen(radiant.events, 'stonehearth:entity:post_create', self, self._on_create_complete)
-end
-
-function CropComponent:restore(entity, save_state)
+   radiant.events.listen(radiant, 'radiant:entity:post_create', self, self._on_create_complete)
 end
 
 function CropComponent:destroy()
