@@ -26,6 +26,16 @@
             "models": [
                "file(corn_4.qb)"
             ]
+         }, 
+          "corn_5": {
+            "models": [
+               "file(corn_5.qb)"
+            ]
+         },
+          "corn_8": {
+            "models": [
+               "file(corn_8.qb)"
+            ]
          }
       },
       "render_info" : {
@@ -45,13 +55,16 @@
       "stonehearth:crop" : {
          "resource_pairings" : {
             "corn_3": "stonehearth:corn_cob",
-            "corn_4": "stonehearth:corn_basket"
+            "corn_4": "stonehearth:corn_basket",
+            "corn_5": "stonehearth:amazing_corn_basket",
+            "corn_8": ""
          }, 
          "harvest_threshhold" : "corn_4", 
          "plant_overlay_effect" : "/stonehearth/data/effects/plant_crop_overlay_effect/plant_corn_overlay_effect.json" 
       }, 
       "stonehearth:growing" : {
          "growth_period" : "1h",
+         "growth_check_script" : "file(corn.lua)",
          "growth_stages" : [
             {
                "model_name" : "corn_1",
@@ -72,6 +85,18 @@
                "model_name" : "corn_4",
                "name": "Ripe Corn", 
                "description": "Eat me! Eat Me!"
+            },
+            {
+               "model_name" : "corn_5",
+               "name": "Amazing Maize", 
+               "description": "Bursting with nutrition"
+            },
+            {},
+            {},
+            {
+               "model_name" : "corn_8",
+               "name": "Corn Husk", 
+               "description": "It's dead."
             }
          ]
       },
