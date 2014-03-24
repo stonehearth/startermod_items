@@ -65,8 +65,13 @@ function ScenarioService:create_new_game(feature_size, rng)
       end
 
       -- parse habitat types
-      properties.habitat_types, error_message = self:_parse_habitat_strings(properties.habitat_types)
+      error_message = self:_parse_habitat_types(properties)
+      if error_message then
+         log:error('Error parsing "%s": "%s"', file, error_message)
+      end
 
+      -- parse difficulty
+      error_message = self:_parse_difficulty(properties)
       if error_message then
          log:error('Error parsing "%s": "%s"', file, error_message)
       end
@@ -515,8 +520,9 @@ function ScenarioService:_get_coordinate_key(x, y)
    return string.format('%d,%d', x, y)
 end
 
--- parse the array into a set so we can index by the habitat_type
-function ScenarioService:_parse_habitat_strings(strings)
+-- parse the habitat_types array into a set so we can index by the habitat_type
+function ScenarioService:_parse_habitat_types(properties)
+   local strings = properties.habitat_types
    local habitat_type
    local habitat_types = {}
    local error_message = nil
@@ -533,7 +539,29 @@ function ScenarioService:_parse_habitat_strings(strings)
       end
    end
 
-   return habitat_types, error_message
+   properties.habitat_types = habitat_types
+
+   return error_message
+end
+
+function ScenarioService:_parse_difficulty(properties)
+   local max_difficulty = 99
+   local difficulty = properties.difficulty
+
+   if not difficulty then
+      difficulty = {}
+      properties.difficulty = difficulty
+   end
+
+   if not difficulty.min then
+      difficulty.min = 0
+   end
+
+   if not difficulty.max then
+      difficulty.max = max_difficulty
+   end
+
+   return nil
 end
 
 return ScenarioService
