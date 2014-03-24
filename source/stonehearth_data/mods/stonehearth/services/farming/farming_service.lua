@@ -30,7 +30,7 @@ function FarmingService:create_new_field(session, location, size)
    local town = stonehearth.town:get_town(session.player_id)
 
    local unit_info = entity:get_component('unit_info')
-   unit_info:set_display_name('New Field foo')
+   unit_info:set_display_name('Farm plot')
    unit_info:set_faction(session.faction)
    unit_info:set_player_id(session.player_id)
 
