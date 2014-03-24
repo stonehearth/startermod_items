@@ -10,7 +10,7 @@ function util.succeed_when_destroyed(entity)
    if not entity:is_valid() then
       autotest.success()
    else
-      radiant.events.listen(radiant.events, 'stonehearth:entity:post_destroy', function()
+      radiant.events.listen(radiant, 'radiant:entity:post_destroy', function()
             if not entity:is_valid() then
                autotest.success()
                return radiant.events.UNLISTEN

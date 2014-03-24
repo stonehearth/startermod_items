@@ -7,16 +7,20 @@ local CreateWorkshop = require 'services.town.orchestrators.create_workshop_orch
 
 local Town = class()
 
-function Town:__init(session)   
-   self._faction = session.faction
-   self._player_id = session.player_id
+function Town:__init(session, saved_variables)
+   self.__saved_variables = saved_variables
+   self._sv = self.__saved_variables:get_data()
 
-   self._log = radiant.log.create_logger('town', self._player_id)
-   self._scheduler = stonehearth.tasks:create_scheduler(self._player_id)
-                                       :set_counter_name(self._player_id)
+   if session then
+      self._sv.faction = session.faction
+      self._sv.player_id = session.player_id
+      self._sv.town_entity = radiant.entities.create_entity()
+      radiant.entities.add_child(radiant._root_entity, self._sv.town_entity, Point3(0, 0, 0))
+   end
 
-   self._town_entity = radiant.entities.create_entity()
-   radiant.entities.add_child(radiant._root_entity, self._town_entity, Point3(0, 0, 0))
+   self._log = radiant.log.create_logger('town', self._sv.player_id)
+   self._scheduler = stonehearth.tasks:create_scheduler(self._sv.player_id)
+                                       :set_counter_name(self._sv.player_id)
 
    self._task_groups = {
       workers = self._scheduler:create_task_group('stonehearth:work', {})
@@ -34,11 +38,11 @@ function Town:__init(session)
 end
 
 function Town:get_faction()
-   return self._faction
+   return self._sv.faction
 end
 
 function Town:get_player_id()
-   return self._player_id
+   return self._sv.player_id
 end
 
 function Town:destroy()
@@ -78,7 +82,7 @@ end
 
 -- does not tame the pet, just adds it to the town
 function Town:add_pet(entity)
-   entity:add_component('unit_info'):set_faction(self._faction)
+   entity:add_component('unit_info'):set_faction(self._sv.faction)
 
    self:_add_unit_controller(entity, 'stonehearth:ambient_pet_behavior',
       stonehearth.constants.priorities.top.AMBIENT_PET_BEHAVIOR)

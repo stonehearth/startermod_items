@@ -106,7 +106,9 @@ function Landscaper:place_flora(tile_map, feature_map, tile_offset_x, tile_offse
       -- switch from lua height_map base 1 coordinates to c++ base 0 coordinates
       -- swtich from tile coordinates to world coordinates
       radiant.terrain.place_entity(entity, Point3(x-1+tile_offset_x, 1, y-1+tile_offset_y))
-      self:_set_random_facing(entity)
+
+      -- TODO: enable random facing when model rotations work (axis, collision, and destination regions need to rotate properly)
+      --self:_set_random_facing(entity)
       return entity
    end
 

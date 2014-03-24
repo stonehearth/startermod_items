@@ -4,7 +4,7 @@ local CompoundActionFactory = require 'services.ai.compound_action_factory'
 local placeholders = require 'services.ai.placeholders'
 local log = radiant.log.create_logger('ai.service')
 
-function AiService:__init()
+function AiService:initialize()
    -- SUSPEND_THREAD is a unique, non-integer token which indicates the thread
    -- should suspend.  It must be non-intenger, as yielding an int means "wait
    -- until this time".  By creating a table, we guarantee the value of
@@ -19,10 +19,6 @@ function AiService:__init()
    end
    AiService.ANY = { ANY = 'Any lua value will do' }
    AiService.NIL = { NIL = 'The nil value' }
-end
-
-function AiService:initialize()
-   -- nothing to do.
 end
 
 -- injecting entity may be null

@@ -7,7 +7,9 @@
       "length" : 16
    },
    "weight" : 10,
-   "difficulty" : 0,
+   "difficulty" : {
+      "min" : 0
+   },
    "unique" : false,
    "script" : "file(herd_of_sheep.lua)"
 }

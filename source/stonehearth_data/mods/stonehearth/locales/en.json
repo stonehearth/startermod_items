@@ -170,8 +170,7 @@
    "farm_auto_harvest" : "Harvest placed crops automatically",
    "farm_auto_replant" : "Replant placed crops automatically",
 
-   "farm_pick_crop" : "This Field's Default Crop:",
-   "crop_selector" : "Select another crop:",
+   "farm_pick_crop" : "Choose a crop",
 
    "show_workshop_description" : "Owned by ",
    "craft_number_left": "Craft",

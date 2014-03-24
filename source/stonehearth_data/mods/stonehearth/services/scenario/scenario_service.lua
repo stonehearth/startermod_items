@@ -17,16 +17,14 @@ function ScenarioService:__init()
 end
 
 function ScenarioService:initialize()
-end
-
-function ScenarioService:restore(saved_variables)
-   log:write(0, 'store not implemented for scenario service!')
+   log:write(0, 'initialize not implemented for scenario service!')
 end
 
 function ScenarioService:create_new_game(feature_size, rng)
    self._feature_size = feature_size
    self._rng = rng
-   self._difficulty_increment_distance = radiant.util.get_config('difficulty_increment_distance', 256)
+   self._difficulty_increment_distance = radiant.util.get_config('scenario.difficulty_increment_distance', 256)
+   self._starting_location_exclusion_radius = radiant.util.get_config('scenario.starting_location_exclusion_radius', 64)
    -- use reduced spawn range until fog of war is implemented
    --self._reveal_distance = radiant.util.get_config('sight_radius', 64) * 2
    self._reveal_distance = radiant.util.get_config('sight_radius', 64) + 8
@@ -34,6 +32,8 @@ function ScenarioService:create_new_game(feature_size, rng)
    self._dormant_scenarios = {}
    self._last_optimized_rect_count = 10
    self._region_optimization_threshold = radiant.util.get_config('region_optimization_threshold', 1.2)
+
+   assert(self._starting_location_exclusion_radius < self._difficulty_increment_distance)
 
    local scenario_index = radiant.resources.load_json('stonehearth:scenarios:scenario_index')
    local categories = {}
@@ -62,8 +62,13 @@ function ScenarioService:create_new_game(feature_size, rng)
       end
 
       -- parse habitat types
-      properties.habitat_types, error_message = self:_parse_habitat_strings(properties.habitat_types)
+      error_message = self:_parse_habitat_types(properties)
+      if error_message then
+         log:error('Error parsing "%s": "%s"', file, error_message)
+      end
 
+      -- parse difficulty
+      error_message = self:_parse_difficulty(properties)
       if error_message then
          log:error('Error parsing "%s": "%s"', file, error_message)
       end
@@ -79,7 +84,7 @@ function ScenarioService:_register_events()
    -- to iterate over all player popluations rather than just the hardcoded "player_1".  When the
    -- service to iterate over all players in the game is written, change this bit. -- tony
    self._faction = stonehearth.population:get_population('player_1')
-   radiant.events.listen(radiant.events, 'stonehearth:very_slow_poll', self, self._on_poll)
+   radiant.events.listen(radiant, 'stonehearth:very_slow_poll', self, self._on_poll)
 end
 
 function ScenarioService:_on_poll()
@@ -89,7 +94,7 @@ end
 function ScenarioService:place_static_scenarios(habitat_map, elevation_map, tile_offset_x, tile_offset_y)
    local scenarios = self:_select_scenarios(habitat_map, 'static')
 
-   self:_place_scenarios(scenarios, habitat_map, elevation_map, tile_offset_x, tile_offset_y,
+   self:_place_scenarios(scenarios, habitat_map, elevation_map, nil, tile_offset_x, tile_offset_y,
       function (scenario_info)
          local si = scenario_info
          self:_activate_scenario(si.properties, si.offset_x, si.offset_y)
@@ -98,17 +103,20 @@ function ScenarioService:place_static_scenarios(habitat_map, elevation_map, tile
 end
 
 function ScenarioService:place_revealed_scenarios(habitat_map, elevation_map, tile_offset_x, tile_offset_y)
+   local difficulty_map = self:_derive_difficulty_map(habitat_map, tile_offset_x, tile_offset_y)
    local scenarios = self:_select_scenarios(habitat_map, 'revealed')
 
-   self:_place_scenarios(scenarios, habitat_map, elevation_map, tile_offset_x, tile_offset_y,
+   self:_place_scenarios(scenarios, habitat_map, elevation_map, difficulty_map, tile_offset_x, tile_offset_y,
       function (scenario_info)
          self:_mark_scenario_map(self._dormant_scenarios, scenario_info, scenario_info)
       end
    )
 end
 
-function ScenarioService:set_starting_location(x, y)
-   self._starting_location = Point2(x, y)
+function ScenarioService:set_starting_location(location)
+   self._starting_location = location
+   local x = self._starting_location.x
+   local y = self._starting_location.y
 
    -- hack to remove wildlife around banner
    -- this should go away when we place scenarios after the banner is down
@@ -123,12 +131,12 @@ function ScenarioService:set_starting_location(x, y)
       )
    )
 
-   self:reveal_region(region,
-      function (scenario_properties)
-         --return true -- CHECKCHECK
-         return scenario_properties.category ~= 'wildlife'
-      end
-   )
+   -- self:reveal_region(region,
+   --    function (scenario_properties)
+   --       --return true -- CHECKCHECK
+   --       return scenario_properties.category ~= 'wildlife'
+   --    end
+   -- )
 end
 
 function ScenarioService:reveal_region(world_space_region, activation_filter)
@@ -236,7 +244,8 @@ function ScenarioService:_mark_scenario_map(map, value, scenario_info)
    end
 end
 
-function ScenarioService:derive_difficulty_map(habitat_map, tile_offset_x, tile_offset_y)
+-- this may eventually move outside of this class
+function ScenarioService:_derive_difficulty_map(habitat_map, tile_offset_x, tile_offset_y)
    local feature_size = self._feature_size
    local starting_location = self._starting_location
    local difficulty_increment_distance = self._difficulty_increment_distance
@@ -249,6 +258,12 @@ function ScenarioService:derive_difficulty_map(habitat_map, tile_offset_x, tile_
          local y = tile_offset_y + (j-1)*feature_size + cell_center
          local tile_center = Point2(x, y)
          local distance = starting_location:distance_to(tile_center)
+
+         if distance < self._starting_location_exclusion_radius then
+            -- sentinel that excludes placement
+            return 'x'
+         end
+
          local difficulty = math.floor(distance/difficulty_increment_distance)
          return difficulty
       end
@@ -257,16 +272,17 @@ function ScenarioService:derive_difficulty_map(habitat_map, tile_offset_x, tile_
    return difficulty_map
 end
 
-function ScenarioService:_place_scenarios(scenarios, habitat_map, elevation_map, tile_offset_x, tile_offset_y, place_fn)
+function ScenarioService:_place_scenarios(scenarios, habitat_map, elevation_map, difficulty_map, tile_offset_x, tile_offset_y, place_fn)
    local rng = self._rng
    local feature_size = self._feature_size
    local feature_width, feature_length, voxel_width, voxel_length
-   local site, sites, num_sites, roll, habitat_types, residual_x, residual_y
+   local site, sites, num_sites, roll, habitat_types, difficulty_range, residual_x, residual_y
    local offset_x, offset_y, feature_offset_x, feature_offset_y, intra_cell_offset_x, intra_cell_offset_y
    local scenario_info
 
    for _, properties in pairs(scenarios) do
       habitat_types = properties.habitat_types
+      difficulty_range = properties.difficulty
 
       -- dimensions of the scenario in voxels
       voxel_width = properties.size.width
@@ -276,15 +292,15 @@ function ScenarioService:_place_scenarios(scenarios, habitat_map, elevation_map,
       feature_width, feature_length = self:_get_dimensions_in_feature_units(voxel_width, voxel_length)
 
       -- get a list of valid locations
-      sites, num_sites = self:_find_valid_sites(habitat_map, elevation_map, habitat_types, feature_width, feature_length)
+      sites, num_sites = self:_find_valid_sites(habitat_map, elevation_map, difficulty_map, habitat_types, difficulty_range, feature_width, feature_length)
 
       if num_sites > 0 then
          -- pick a random location
          roll = rng:get_int(1, num_sites)
          site = sites[roll]
 
-         feature_offset_x = (site.x-1)*feature_size
-         feature_offset_y = (site.y-1)*feature_size
+         feature_offset_x = (site.i-1)*feature_size
+         feature_offset_y = (site.j-1)*feature_size
 
          residual_x = feature_width*feature_size - voxel_width
          residual_y = feature_length*feature_size - voxel_length
@@ -304,7 +320,7 @@ function ScenarioService:_place_scenarios(scenarios, habitat_map, elevation_map,
 
          place_fn(scenario_info)
 
-         self:_mark_habitat_map(habitat_map, site.x, site.y, feature_width, feature_length)
+         self:_mark_habitat_map(habitat_map, site.i, site.j, feature_width, feature_length)
 
          if properties.unique then
             self:_remove_scenario_from_selector(properties)
@@ -325,10 +341,34 @@ function ScenarioService:_activate_scenario(properties, offset_x, offset_y)
    scenario_script:initialize(properties, services)
 end
 
-function ScenarioService:_find_valid_sites(habitat_map, elevation_map, habitat_types, width, length)
-   local i, j, is_habitat_type, is_flat, elevation
+function ScenarioService:_find_valid_sites(habitat_map, elevation_map, difficulty_map, habitat_types, difficulty_range, width, length)
+   local i, j, is_habitat_type, is_flat, is_correct_difficulty, elevation
    local sites = {}
    local num_sites = 0
+   local is_correct_difficulty = true
+   local min_difficulty = nil
+   local max_difficulty = nil
+
+   if difficulty_range then
+      min_difficulty = difficulty_range.min
+      max_difficulty = difficulty_range.max
+   end
+
+   local is_target_difficulty = function(value)
+      if value == 'x' then
+         return false
+      end
+
+      if min_difficulty and value < min_difficulty then
+         return false
+      end
+
+      if max_difficulty and value > max_difficulty then
+         return false
+      end
+
+      return true
+   end
 
    local is_target_habitat_type = function(value)
       local found = habitat_types[value]
@@ -339,17 +379,26 @@ function ScenarioService:_find_valid_sites(habitat_map, elevation_map, habitat_t
       for i=1, habitat_map.width-(width-1) do
          -- check if block meets habitat requirements
          is_habitat_type = habitat_map:visit_block(i, j, width, length, is_target_habitat_type)
+
          if is_habitat_type then
             -- check if block is flat
             elevation = elevation_map:get(i, j)
+
             is_flat = elevation_map:visit_block(i, j, width, length,
                function (value)
                   return value == elevation
                end
             )
+
             if is_flat then
-               num_sites = num_sites + 1
-               sites[num_sites] = Point2(i, j)
+               if difficulty_map then
+                  is_correct_difficulty = difficulty_map:visit_block(i, j, width, length, is_target_difficulty)
+               end
+
+               if is_correct_difficulty then
+                  num_sites = num_sites + 1
+                  sites[num_sites] = { i = i, j = j}
+               end
             end
          end
       end
@@ -468,8 +517,9 @@ function ScenarioService:_get_coordinate_key(x, y)
    return string.format('%d,%d', x, y)
 end
 
--- parse the array into a set so we can index by the habitat_type
-function ScenarioService:_parse_habitat_strings(strings)
+-- parse the habitat_types array into a set so we can index by the habitat_type
+function ScenarioService:_parse_habitat_types(properties)
+   local strings = properties.habitat_types
    local habitat_type
    local habitat_types = {}
    local error_message = nil
@@ -486,7 +536,29 @@ function ScenarioService:_parse_habitat_strings(strings)
       end
    end
 
-   return habitat_types, error_message
+   properties.habitat_types = habitat_types
+
+   return error_message
+end
+
+function ScenarioService:_parse_difficulty(properties)
+   local max_difficulty = 99
+   local difficulty = properties.difficulty
+
+   if not difficulty then
+      difficulty = {}
+      properties.difficulty = difficulty
+   end
+
+   if not difficulty.min then
+      difficulty.min = 0
+   end
+
+   if not difficulty.max then
+      difficulty.max = max_difficulty
+   end
+
+   return nil
 end
 
 return ScenarioService

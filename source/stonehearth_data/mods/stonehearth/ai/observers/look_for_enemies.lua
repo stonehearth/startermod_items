@@ -4,12 +4,12 @@ LookForEnemies.version = 2
 function LookForEnemies:__init(entity)
    self._entity = entity
    self._aggro_table = radiant.entities.create_target_table(entity, 'aggro')
-   radiant.events.listen(radiant.events, 'stonehearth:gameloop', self, self.on_gameloop)
+   radiant.events.listen(radiant, 'stonehearth:gameloop', self, self.on_gameloop)
 end
 
 -- xxx: the 'fire one when i'm constructed' pattern again...
 function LookForEnemies:on_gameloop()
-   radiant.events.unlisten(radiant.events, 'stonehearth:gameloop', self, self.on_gameloop)
+   radiant.events.unlisten(radiant, 'stonehearth:gameloop', self, self.on_gameloop)
    self:init_sight_sensor()
 end
 
@@ -18,7 +18,7 @@ function LookForEnemies:init_sight_sensor()
 
    local list = self._entity:get_component('sensor_list')
    if list then
-      radiant.events.unlisten(radiant.events, 'stonehearth:gameloop', self, self.on_gameloop)
+      radiant.events.unlisten(radiant, 'stonehearth:gameloop', self, self.on_gameloop)
    else 
       return
    end

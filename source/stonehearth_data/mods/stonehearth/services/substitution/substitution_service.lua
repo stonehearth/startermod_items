@@ -80,9 +80,6 @@ end
 function SubstitutionService:initialize()
 end
 
-function SubstitutionService:restore(saved_variables)
-end
-
 --- Populate the dictionary with a data blob of json
 --  For each item in the substitution table json, find it's namespace
 --  split the namespace by : (or any other punctutation)

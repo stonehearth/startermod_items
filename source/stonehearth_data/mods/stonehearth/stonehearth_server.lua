@@ -27,22 +27,22 @@ local service_creation_order = {
 
 local function create_service(name)
    local path = string.format('services.%s.%s_service', name, name)
-   return require(path)()
+   local service = require(path)()
+
+   local saved_variables = stonehearth._sv[name]
+   if not saved_variables then
+      saved_variables = radiant.create_datastore()
+      stonehearth._sv[name] = saved_variables
+   end
+   service.__saved_variables = saved_variables
+   service:initialize()
+   stonehearth[name] = service
 end
 
-radiant.events.listen(stonehearth, 'radiant:construct', function(args)
+radiant.events.listen(stonehearth, 'radiant:init', function()
+      stonehearth._sv = stonehearth.__saved_variables:get_data()
       for _, name in ipairs(service_creation_order) do
-         local service = create_service(name)
-         service:initialize()
-         stonehearth[name] = service
-      end
-   end)
-
-radiant.events.listen(stonehearth, 'radiant:load', function(e)      
-      for _, name in ipairs(service_creation_order) do
-         local service = create_service(name)
-         service:restore(e.saved_variables[name])
-         stonehearth[name] = service
+         create_service(name)
       end
    end)
 

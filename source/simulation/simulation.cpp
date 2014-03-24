@@ -276,50 +276,26 @@ void Simulation::ShutdownGameObjects()
 void Simulation::CreateGameModules()
 {
    using namespace luabind;
+   lua_State* L = scriptHost_->GetInterpreter();
    core::Config const& config = core::Config::GetInstance();
    res::ResourceManager2 &resource_manager = res::ResourceManager2::GetInstance();
 
    CreateModules();
-   for (auto const& entry : modList_->EachMod()) {
-      scriptHost_->TriggerOn(entry.second, "radiant:construct", luabind::object());
-   }
-   scriptHost_->Trigger("radiant:modules_loaded");
-
    std::string const module = config.Get<std::string>("game.main_mod", "stonehearth");
    luabind::object obj = modList_->GetMod(module);
    if (obj) {
-      lua_State* L = scriptHost_->GetInterpreter();
       scriptHost_->TriggerOn(obj, "radiant:new_game", luabind::newtable(L)); 
    }
 }
 
 void Simulation::LoadGameModules()
 {
-   // Stash the saved_variables away before we blow away the ModList component with the
-   // new module script objects.
-   std::map<std::string, luabind::object> saved;
-   for (auto const& entry : modList_->EachMod()) {
-      saved[entry.first] = entry.second;
-   }
-
    // Now load up the modules.
    CreateModules();
-
-   // Ask them all to load
-   lua_State* L = scriptHost_->GetInterpreter();
-   for (auto const& entry : modList_->EachMod()) {
-      std::string const& mod_name = entry.first;
-      luabind::object saved_variables = saved[mod_name];
-      if (saved_variables && saved_variables.is_valid()) {
-         luabind::object e(luabind::newtable(L));
-         e["saved_variables"] = saved_variables;
-         scriptHost_->TriggerOn(entry.second, "radiant:load", e);
-      }
-   }
    for (auto const& entry : entityMap_) {
-      om::Stonehearth::RestoreLuaComponents(scriptHost_.get(), entry.second);
+      om::EntityPtr entity = entry.second;
+      om::Stonehearth::RestoreLuaComponents(scriptHost_.get(), entity);
    }
-
    scriptHost_->Trigger("radiant:game_loaded");
 }
 
@@ -527,8 +503,23 @@ void Simulation::DestroyEntity(dm::ObjectId id)
 {
    auto i = entityMap_.find(id);
    if (i != entityMap_.end()) {
-      i->second->Destroy();
+      om::EntityPtr entity = i->second;
+      lua_State* L = scriptHost_->GetInterpreter();
+      luabind::object e(L, std::weak_ptr<om::Entity>(entity));
+      luabind::object evt(L, luabind::newtable(L));
+      evt["entity"] = e;
+
+      scriptHost_->TriggerOn(e, "radiant:entity:pre_destroy", evt);
+      scriptHost_->Trigger("radiant:entity:pre_destroy", evt);
+
+      evt = luabind::object(L, luabind::newtable(L));
+      evt["entity_id"] = luabind::object(L, entity->GetObjectId());
+
+      entity->Destroy();
       entityMap_.erase(i);
+      entity = nullptr;
+
+      scriptHost_->Trigger("radiant:entity:post_destroy", evt);
    }
 }
 
@@ -858,8 +849,6 @@ void Simulation::Load()
    if (!store_->Load(error, objects)) {
       SIM_LOG(0) << "failed to load: " << error;
    }
-   
-   scriptHost_->TriggerOn(radiant_, "radiant:load", luabind::object());
 
    root_entity_ = store_->FetchObject<om::Entity>(1);
    ASSERT(root_entity_);
@@ -893,32 +882,48 @@ void Simulation::Reset()
 {
 }
 
-void Simulation::CreateModule(std::string const& mod_name)
+luabind::object Simulation::CreateModule(std::string const& mod_name)
 {
    lua_State* L = scriptHost_->GetInterpreter();
    res::ResourceManager2 &resource_manager = res::ResourceManager2::GetInstance();
    std::string script_name;
+   luabind::object module;
 
    resource_manager.LookupManifest(mod_name, [&](const res::Manifest& manifest) {
       script_name = manifest.get<std::string>("server_init_script", "");
    });
    if (!script_name.empty()) {
       try {
-         luabind::object obj = scriptHost_->Require(script_name);
-         modList_->AddMod(mod_name, obj);
-         luabind::globals(L)[mod_name] = obj;
+         luabind::object savestate = modList_->GetMod(mod_name);
+
+         if (!savestate || !savestate.is_valid()) {
+            om::DataStorePtr datastore = GetStore().AllocObject<om::DataStore>();
+            datastore->SetData(luabind::newtable(L));
+            savestate = luabind::object(L, datastore);
+         }
+         module = scriptHost_->Require(script_name);
+         module["__saved_variables"] = savestate;
+         luabind::globals(L)[mod_name] = module;
+         modList_->AddMod(mod_name, module);
+         scriptHost_->TriggerOn(module, "radiant:init", luabind::object());
       } catch (std::exception const& e) {
          SIM_LOG(1) << "module " << mod_name << " failed to load " << script_name << ": " << e.what();
       }
    }
+   return module;
 }
 
 void Simulation::CreateModules()
 {
    res::ResourceManager2 &resource_manager = res::ResourceManager2::GetInstance();
-   for (std::string const& mod_name : resource_manager.GetModuleNames()) {      
-      CreateModule(mod_name);
+
+   CreateModule("radiant");
+   for (std::string const& mod_name : resource_manager.GetModuleNames()) {
+      if (mod_name != "radiant") {
+         CreateModule(mod_name);
+      }
    }
    scriptHost_->Require("radiant.lualibs.strict");
+   scriptHost_->Trigger("radiant:modules_loaded");
 }
 

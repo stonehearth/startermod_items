@@ -182,16 +182,18 @@ function WorkshopCallHandler:choose_outbox_location(session, response, workbench
          return false
       end)
 
+   local xz_selector
    local cleanup = function()
       if node then
          h3dRemoveNode(node)
       end
+      xz_selector:destroy()
       stockpile_cursor:destroy()
       _radiant.client.destroy_authoring_entity(cursor_entity:get_id())
       self:_destroy_capture()
    end
 
-   _radiant.client.select_xz_region()
+   xz_selector = _radiant.client.select_xz_region()
       :progress(function (box)
             self._region:modify(function(cursor)
                cursor:clear()

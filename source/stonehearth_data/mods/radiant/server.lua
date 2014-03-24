@@ -42,8 +42,6 @@ function radiant.not_reached(reason, ...)
    assert(false, 'executed theoretically unreachable code: ' .. reason)
 end
 
-local api = {}
-
 local ProFi = require 'lib.ProFi'
 local _profile = {
    write_updates_longer_than = radiant.util.get_config('profile_long_frames', 0)
@@ -80,7 +78,7 @@ function _stop_profiling()
    end
 end
 
-function api.update(profile_this_frame)
+function radiant.update(profile_this_frame)
    _start_profiling(profile_this_frame)
 
    radiant.log.spam('radiant', 'starting frame %d', radiant.gamestate.now())
@@ -91,12 +89,8 @@ function api.update(profile_this_frame)
    _stop_profiling()
 end
 
-radiant.events.listen(api, 'radiant:load', function(args)
+radiant.events.listen(radiant, 'radiant:init', function(args)
       radiant._root_entity = _radiant.sim.get_object(1)
    end)
 
-radiant.events.listen(api, 'radiant:construct', function(args)
-      radiant._root_entity = _radiant.sim.get_object(1)
-   end)
-
-return api
+return radiant

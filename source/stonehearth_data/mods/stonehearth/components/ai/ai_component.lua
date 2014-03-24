@@ -12,7 +12,7 @@ function AIComponent:initialize(entity, json)
    self._sv = self.__saved_variables:get_data()  
    self.__saved_variables:set_controller(self)
 
-   radiant.events.listen(entity, 'stonehearth:entity:post_create', function()
+   radiant.events.listen(entity, 'radiant:entity:post_create', function()
          self:_initialize(json)
          self:_start()
          return radiant.events.UNLISTEN

@@ -23,17 +23,19 @@ function InventoryCallHandler:choose_stockpile_location(session, response)
    local node
 
    -- change the actual game cursor
+   local xz_selector
    local stockpile_cursor = _radiant.client.set_cursor('stonehearth:cursors:create_stockpile')
 
    local cleanup = function()
       if node then
          h3dRemoveNode(node)
       end
+      xz_selector:destroy()
       stockpile_cursor:destroy()
       _radiant.client.destroy_authoring_entity(cursor_entity:get_id())
    end
 
-   _radiant.client.select_xz_region()
+   xz_selector = _radiant.client.select_xz_region()
       :progress(function (box)
             self._region:modify(function(cursor)
                cursor:clear()

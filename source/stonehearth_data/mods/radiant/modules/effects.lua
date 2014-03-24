@@ -50,7 +50,7 @@ function effects.run_effect(entity, effect_name, ...)
    return effect_mgr:start_effect(effect_name, ...)
 end
 
-radiant.events.listen(radiant.events, 'stonehearth:gameloop', effects, effects._on_event_loop)
+radiant.events.listen(radiant, 'stonehearth:gameloop', effects, effects._on_event_loop)
 
 effects.__init()
 return effects

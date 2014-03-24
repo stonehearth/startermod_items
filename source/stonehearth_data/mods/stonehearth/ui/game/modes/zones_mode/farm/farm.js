@@ -69,10 +69,12 @@ App.StonehearthFarmView = App.View.extend({
 
       this.$('#farmWindow').draggable();
 
+      /*
       $('.tooltip').tooltipster({
             position: 'bottom'
       });
       $('.tooltip').tooltipster('enable');
+      */
 
    },
 
@@ -110,10 +112,9 @@ App.StonehearthFarmView = App.View.extend({
                         items : self.get('all_crops')
                      },
                      position: {
-                        my : 'center bottom',
-                        at : 'left bottom', //'bottom',
-                        //of : this.$('#addCropButton')
-                        of : this.$('#addCropLink')
+                        my : 'center',
+                        at : 'center', 
+                        of : this.$('.targetCrop')
                      }
                   });
       },
@@ -138,5 +139,7 @@ App.StonehearthFarmCropPalette = App.View.extend({
          }
          self.destroy();
       });
+
+      this.$('.item').tooltipster();
    }
 });
