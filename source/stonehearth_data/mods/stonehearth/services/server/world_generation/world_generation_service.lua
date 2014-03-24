@@ -78,7 +78,7 @@ function WorldGenerationService:set_blueprint(blueprint)
          full_feature_map = Array2D(full_elevation_map.width, full_elevation_map.height)
 
          -- determine which features will be placed in which cells
-         landscaper:mark_boulders(full_elevation_map, full_feature_map)
+         --landscaper:mark_boulders(full_elevation_map, full_feature_map)
          landscaper:mark_trees(full_elevation_map, full_feature_map)
          landscaper:mark_berry_bushes(full_elevation_map, full_feature_map)
          landscaper:mark_flowers(full_elevation_map, full_feature_map)
@@ -272,7 +272,7 @@ function WorldGenerationService:_render_heightmap_to_region3(tile_map, feature_m
       function()
          region3_boxed = renderer:create_new_region()
          renderer:render_height_map_to_region(region3_boxed, tile_map)
-         self._landscaper:place_boulders(region3_boxed, tile_map, feature_map)
+         --self._landscaper:place_boulders(region3_boxed, tile_map, feature_map)
          renderer:add_region_to_terrain(region3_boxed, offset)
       end
    )

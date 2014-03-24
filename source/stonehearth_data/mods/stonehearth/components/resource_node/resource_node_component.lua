@@ -18,7 +18,6 @@ function ResourceNodeComponent:get_harvest_overlay_effect()
    return self._harvest_overlay_effect
 end
 
-
 function ResourceNodeComponent:get_harvester_effect()
    return self._harvester_effect
 end

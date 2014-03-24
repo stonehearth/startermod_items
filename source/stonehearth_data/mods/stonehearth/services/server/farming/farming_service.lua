@@ -120,16 +120,22 @@ end
 -- @param faction: the group that should be planting the crop
 -- @param soil_plots: array of entities on top of which to plant the crop
 -- @param crop_type: the name of the thing to plant (ie, stonehearth:corn, etc)
-function FarmingService:plant_crop(player_id, soil_plots, crop_type)
+function FarmingService:plant_crop(player_id, soil_plots, crop_type, player_speficied, auto_plant, auto_harvest)
    if not soil_plots[1] or not crop_type then
       return false
    end
    local town = stonehearth.town:get_town(player_id)
    for i, plot in ipairs(soil_plots) do
+      --Tell the dirt plot whether the player wanted to autoreplant/autoharvest this plot
+      --TODO: right now these are always false for manual plant commands. Base this on the UI.
+      --TODO: maybe change this from the UI, instead of from the plant command
+      local dirt_plot_component = plot:get_component('stonehearth:dirt_plot')
+      dirt_plot_component:set_player_override(player_speficied, auto_plant, auto_harvest)
+
       --TODO: store these tasks, so they can be cancelled
       local overlay_effect = self:_get_overlay_for_crop(crop_type)
       town:create_farmer_task('stonehearth:plant_crop', {target_plot = plot, 
-                                                         dirt_plot_component = plot:get_component('stonehearth:dirt_plot'),
+                                                         dirt_plot_component = dirt_plot_component,
                                                          crop_type = crop_type})
                               :set_source(plot)
                               :add_entity_effect(plot, overlay_effect)

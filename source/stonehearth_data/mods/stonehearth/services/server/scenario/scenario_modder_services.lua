@@ -10,7 +10,11 @@ local ScenarioModderServices = class()
 -- methods and properties starting with _ are not intended for modder use
 
 -- (x, y) is valid from (1, 1) - (properties.size.width, properties.size.length)
-function ScenarioModderServices:place_entity(uri, x, y)
+function ScenarioModderServices:place_entity(uri, x, y, randomize_facing)
+   if randomize_facing == nil then
+      randomize_facing = true
+   end
+
    x, y = self:_bounds_check(x, y)
 
    local entity = radiant.entities.create_entity(uri)
@@ -18,11 +22,15 @@ function ScenarioModderServices:place_entity(uri, x, y)
    -- switch from lua height_map base 1 coordinates to c++ base 0 coordinates
    -- swtich from scenario coordinates to world coordinates
    radiant.terrain.place_entity(entity, Point3(x-1 + self._offset_x, 1, y-1 + self._offset_y))
-   self:_set_random_facing(entity)
+
+   if randomize_facing then
+      self:_set_random_facing(entity)
+   end
+
    return entity
 end
 
-function ScenarioModderServices:place_entity_cluster(uri, quantity, entity_footprint_length)
+function ScenarioModderServices:place_entity_cluster(uri, quantity, entity_footprint_length, randomize_facing)
    local rng = self.rng
    local size = self._properties.size
    local grid_spacing = self:_get_perturbation_grid_spacing(size.width, size.length, quantity)
@@ -40,7 +48,7 @@ function ScenarioModderServices:place_entity_cluster(uri, quantity, entity_footp
 
          if rng:get_real(0, 1) < probability then
             x, y = grid:get_perturbed_coordinates(i, j, margin_size)
-            self:place_entity(uri, x, y)
+            self:place_entity(uri, x, y, randomize_facing)
             num_selected = num_selected + 1
 
             if num_selected == quantity then
@@ -51,7 +59,6 @@ function ScenarioModderServices:place_entity_cluster(uri, quantity, entity_footp
       end
    end
 end
-
 
 -- Private API starts here
 function ScenarioModderServices:__init(rng)
