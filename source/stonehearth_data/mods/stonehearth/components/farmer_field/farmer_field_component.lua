@@ -23,7 +23,11 @@ function FarmerFieldComponent:initialize(entity, json)
       self._sv.size = {0, 0}
       self._sv.location = nil
       self._sv.contents = {}
-      self._sv.general_fertility = rng:get_int(1, 40)   --TODO; get from global service
+
+      local min_fertility = stonehearth.constants.soil_fertility.MIN
+      local max_fertility = stonehearth.constants.soil_fertility.MAX
+      self._sv.general_fertility = rng:get_int(min_fertility, max_fertility)   --TODO; get from global service
+      
       self._sv.crop_queue = {farming_service:get_crop_details('fallow')}
       --self._sv.crop_queue = {}
       self._sv.curr_crop = 1
@@ -144,18 +148,22 @@ function FarmerFieldComponent:_determine_replant(e)
    local plot_entity = e.plot_entity
    local dirt_component = plot_entity:get_component('stonehearth:dirt_plot')
    local do_replant = self._sv.auto_replant
+   local do_auto_harvest = self._sv.auto_harvest
    local next_plant = self:_get_next_queued_crop()
+
+   local player_override = dirt_component:get_player_override()
 
    --Override with data from the plot, if applicable
    if dirt_component:get_player_override() then
       do_replant = dirt_component:get_replant()
+      do_auto_harvest = dirt_component:get_auto_harvest()
       next_plant = dirt_component:get_last_planted_type()
    end
 
    --If we're supposed to replant, and if we have a plant to replant, do replant
    if do_replant and next_plant then
       local field_location = e.location
-      farming_service:plant_crop(radiant.entities.get_player_id(self._entity), {plot_entity}, next_plant)
+      farming_service:plant_crop(radiant.entities.get_player_id(self._entity), {plot_entity}, next_plant, player_override, do_replant, do_auto_harvest)
    end
 end
 
@@ -187,7 +195,7 @@ end
 function FarmerFieldComponent:till_location(field_spacer)
    --TODO: get general fertility data from a global service
    --and maybe local fertility data too
-   local local_fertility = rng:get_gaussian(self._sv.general_fertility, 10)
+   local local_fertility = rng:get_gaussian(self._sv.general_fertility, stonehearth.constants.soil_fertility.VARIATION)
    local dirt_plot_component = field_spacer:get_component('stonehearth:dirt_plot')
 
    --TODO: set moisture correctly

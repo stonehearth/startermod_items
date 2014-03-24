@@ -40,6 +40,10 @@ function DirtPlotComponent:set_fertility_moisture(fertility, moisture)
    self.__saved_variables:mark_changed()
 end
 
+function DirtPlotComponent:get_fertility_moisture()
+   return self._sv.fertility,  self._sv.moisture 
+end
+
 function DirtPlotComponent:get_contents()
    return self._sv.contents
 end
@@ -53,7 +57,8 @@ end
 function DirtPlotComponent:set_player_override(player_override, do_replant, do_harvest)
    self._sv.player_override = player_override
    self._sv.auto_replant = do_replant
-   self._sv.do_harvest = do_harvest
+   self._sv.auto_harvest = do_harvest
+   self.__saved_variables:mark_changed()
 end
 
 function DirtPlotComponent:get_player_override()
@@ -71,11 +76,11 @@ end
 --TODO: incorporate the moisture of the soil
 function DirtPlotComponent:_update_visible_soil_state()
    local fertility_category = nil
-   if  self._sv.fertility < 10 then
+   if  self._sv.fertility < stonehearth.constants.soil_fertility.POOR then
       fertility_category = 'dirt_1'
-   elseif  self._sv.fertility < 25 then
+   elseif  self._sv.fertility < stonehearth.constants.soil_fertility.FAIR then
       fertility_category = 'dirt_2'
-   elseif  self._sv.fertility < 35 then
+   elseif  self._sv.fertility < stonehearth.constants.soil_fertility.GOOD then
       fertility_category = 'dirt_3'
    else 
       fertility_category = 'dirt_4'
@@ -116,6 +121,8 @@ function DirtPlotComponent:plant_crop(crop_type)
    self._sv.last_planted_type = crop_type
 
    --If the planted entity is a crop, add a reference to the dirt it sits on. 
+   local crop_component = planted_entity:get_component('stonehearth:crop')
+   crop_component:set_dirt_plot(self._entity)
 
    --Hide the plant command, add the raze command
    local command_component = self._entity:add_component('stonehearth:commands')

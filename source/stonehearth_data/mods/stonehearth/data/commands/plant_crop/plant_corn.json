@@ -4,12 +4,15 @@
    "name": "plant_corn",
    "tooltip": "Plant Corn!",
    "description" : "Edible Gold.",
-   "icon": "file(plant_crop.png)",
+   "icon": "file(plant_corn.png)",
 
    "action": "call",
    "function" : "stonehearth:plant_crop",
    "args" : [
       "{{self}}", 
-      "stonehearth:corn_crop"
+      "stonehearth:corn_crop", 
+      true, 
+      false, 
+      false
    ]
 }

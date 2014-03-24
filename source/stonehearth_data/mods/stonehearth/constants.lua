@@ -63,7 +63,16 @@ local constants = {
       mouse = {
          dead_zone_size = 4
       }
-   }
+   }, 
+
+   soil_fertility = {
+      MIN  =  1,
+      POOR = 10,
+      FAIR = 25,
+      GOOD = 35,
+      MAX  = 40,
+      VARIATION = 10,
+   },
 }
 
 return constants

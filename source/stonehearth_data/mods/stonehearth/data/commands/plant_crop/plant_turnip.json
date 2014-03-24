@@ -4,12 +4,15 @@
    "name": "plant_turnip",
    "tooltip": "Plant a Turnip!",
    "description" : "Plant a turnip in this square.",
-   "icon": "file(plant_crop.png)",
+   "icon": "file(plant_turnip.png)",
 
    "action": "call",
    "function" : "stonehearth:plant_crop",
    "args" : [
       "{{self}}", 
-      "stonehearth:turnip_crop"
+      "stonehearth:turnip_crop",
+      true, 
+      false, 
+      false
    ]
 }
