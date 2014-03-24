@@ -1,17 +1,14 @@
 EventService = class()
 
 function EventService:initialize()
-   self._entries = {}
-   self.__saved_variables = radiant.create_datastore({
-         entries = self._entries
-      })
-end
 
-function EventService:restore(saved_variables)
-   self.__saved_variables = saved_variables
-   self.__saved_variables:read_data(function(o)
-         self._entries = o.entries or {}
-      end)
+   self._sv = self.__saved_variables:get_data()
+   if not self._sv.entries then
+      self._entries = {}
+      self._sv.entries = self._entries
+   else
+      self._entries = self._sv.entries
+   end
 end
 
 function EventService:add_entry(text, type)

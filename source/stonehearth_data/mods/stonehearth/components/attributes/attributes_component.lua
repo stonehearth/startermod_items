@@ -51,7 +51,6 @@ function AttributesComponent:initialize(entity, json)
       -- value of the attribute.
       self._sv._attribute_data = {}
       self._sv._dependencies = {}
-      self._sv._modifiers = {}
       self._sv.attributes = {}
 
       self._incoming_json = json
@@ -62,6 +61,10 @@ function AttributesComponent:initialize(entity, json)
       self._sv._initialized = true
       self.__saved_variables:mark_changed()
    end
+   
+   -- modifiers don't get saved.  we expect them to be re-applied by whoever
+   -- added them on load.
+   self._modifiers = {}
 end
 
 --- Given a name of an attribute and data, add it to self._sv._attribute_data
@@ -174,18 +177,18 @@ end
 function AttributesComponent:modify_attribute(attribute)
    local modifier = AttributeModifier(self, attribute)
    
-   if not self._sv._modifiers[attribute] then
-      self._sv._modifiers[attribute] = {}
+   if not self._modifiers[attribute] then
+      self._modifiers[attribute] = {}
    end
    
-   table.insert(self._sv._modifiers[attribute], modifier)
+   table.insert(self._modifiers[attribute], modifier)
    return modifier
 end
 
 function AttributesComponent:_remove_modifier(attribute, attribute_modifier)
-   for i, modifier in ipairs(self._sv._modifiers[attribute]) do
+   for i, modifier in ipairs(self._modifiers[attribute]) do
       if modifier == attribute_modifier then
-         table.remove(self._sv._modifiers[attribute], i)
+         table.remove(self._modifiers[attribute], i)
          self:_recalculate(attribute)
          break
       end
@@ -213,7 +216,7 @@ function AttributesComponent:_recalculate(name)
    local min = nil
    local max = nil
 
-   for attribute_name, modifier_list in pairs(self._sv._modifiers) do
+   for attribute_name, modifier_list in pairs(self._modifiers) do
       if attribute_name == name then
          for _, modifier in ipairs(modifier_list) do
             local mods = modifier:_get_modifiers();

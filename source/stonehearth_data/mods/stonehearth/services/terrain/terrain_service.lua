@@ -21,10 +21,7 @@ function TerrainService:__init()
 end
 
 function TerrainService:initialize()
-end
-
-function TerrainService:restore(saved_variables)
-   log:write(0, 'store not implemented for terrain service!')
+   log:write(0, 'initialize not implemented for terrain service!')
 end
 
 function TerrainService:_register_events()

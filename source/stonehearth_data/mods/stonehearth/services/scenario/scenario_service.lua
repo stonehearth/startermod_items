@@ -17,10 +17,7 @@ function ScenarioService:__init()
 end
 
 function ScenarioService:initialize()
-end
-
-function ScenarioService:restore(saved_variables)
-   log:write(0, 'store not implemented for scenario service!')
+   log:write(0, 'initialize not implemented for scenario service!')
 end
 
 function ScenarioService:create_new_game(feature_size, rng)

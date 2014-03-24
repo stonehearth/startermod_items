@@ -37,25 +37,19 @@ function CalendarService:__init()
 end
 
 function CalendarService:initialize()
-   self._data = {
-      --the calendar data to export
-      date = {},
+   self._sv = self.__saved_variables:get_data()
+   if not self._sv._date then
+      self._sv.date = {} -- the calendar data to export
+      for _, unit in ipairs(TIME_UNITS) do
+         self._sv.date[unit] = self._constants.start[unit]
+      end
       
       -- When you change the start time change these to match
-      _fired_sunrise_today = true,
-      _fired_noon_today = true,
-      _fired_sunset_today = false,
-      _fired_midnight_today = false
-   }
-   for _, unit in ipairs(TIME_UNITS) do
-      self._data.date[unit] = self._constants.start[unit]
+      self._sv._fired_sunrise_today = true
+      self._sv._fired_noon_today = true
+      self._sv._fired_sunset_today = false
+      self._sv._fired_midnight_today = false
    end
-   self.__saved_variables = radiant.create_datastore(self._data)
-end
-
-function CalendarService:restore(saved_variables)
-   self.__saved_variables = saved_variables
-   self._data = saved_variables:get_data()
 end
 
 function CalendarService:get_elapsed_time()
@@ -119,12 +113,12 @@ end
 function CalendarService:_on_event_loop(e)
    local now = e.now
 
-   local last_hour = self._data.date.hour 
+   local last_hour = self._sv.date.hour 
 
    local remaining = math.floor(e.now / self._constants.ticks_per_second)
 
    -- compute the time based on how much time has passed and the time offset.
-   local date = self._data.date
+   local date = self._sv.date
    for _, unit in ipairs(TIME_UNITS) do
       remaining = self._constants.start[unit] + remaining
       date[unit] = math.floor(remaining % TIME_INTERVALS[unit])
@@ -135,17 +129,17 @@ function CalendarService:_on_event_loop(e)
       remaining = remaining / TIME_INTERVALS[unit]
    end
 
-   if last_hour ~= nil and last_hour ~= self._data.date.hour then
-      radiant.events.trigger(self, 'stonehearth:hourly', { now = self._data.date })
+   if last_hour ~= nil and last_hour ~= self._sv.date.hour then
+      radiant.events.trigger(self, 'stonehearth:hourly', { now = self._sv.date })
    end
 
    self:fire_time_of_day_events()
 
    -- the time, formatted into a string
-   self._data.date.time = self:format_time()
+   self._sv.date.time = self:format_time()
 
    -- the date, formatting into a string
-   self._data.date.date = self:format_date()
+   self._sv.date.date = self:format_date()
 
    self:_update_timers()
    self.__saved_variables:mark_changed()
@@ -172,73 +166,73 @@ end
    relevant event.
 ]]
 function CalendarService:fire_time_of_day_events()
-   local hour = self._data.date.hour
+   local hour = self._sv.date.hour
    local curr_day_periods = self._constants.event_times
 
    if hour >= curr_day_periods.midnight and
       hour < curr_day_periods.sunrise and
-      not self._data._fired_midnight_today then
+      not self._sv._fired_midnight_today then
 
       radiant.events.trigger(self, 'stonehearth:midnight')
-      self._data._fired_midnight_today = true
+      self._sv._fired_midnight_today = true
 
-      self._data._fired_sunrise_today = false
-      self._data._fired_noon_today = false
-      self._data._fired_sunset_today = false
+      self._sv._fired_sunrise_today = false
+      self._sv._fired_noon_today = false
+      self._sv._fired_sunset_today = false
       return
    end
 
    if hour >= curr_day_periods.sunrise and
-      not self._data._fired_sunrise_today then
+      not self._sv._fired_sunrise_today then
 
       radiant.events.trigger(self, 'stonehearth:sunrise')
       --xxx localise
       stonehearth.events:add_entry('The sun has risen on ' .. self:format_date() .. '.')
-      self._data._fired_sunrise_today = true
-      self._data._fired_midnight_today = false
+      self._sv._fired_sunrise_today = true
+      self._sv._fired_midnight_today = false
       return
    end
 
    if hour >= curr_day_periods.midday and
-      not self._data._fired_noon_today then
+      not self._sv._fired_noon_today then
 
       radiant.events.trigger(self, 'stonehearth:noon')
-      self._data._fired_noon_today = true
+      self._sv._fired_noon_today = true
       return
    end
 
    if hour >= curr_day_periods.sunset and
-      not self._data._fired_sunset_today then
+      not self._sv._fired_sunset_today then
 
       radiant.events.trigger(self, 'stonehearth:sunset')
       --xxx localize
       stonehearth.events:add_entry('The sun has set.')
-      self._data._fired_sunset_today = true
+      self._sv._fired_sunset_today = true
       return
    end
 end
 
 function CalendarService:format_time()
    local suffix = "am"
-   local hour = self._data.date.hour
+   local hour = self._sv.date.hour
 
-   if self._data.date.hour == 0 then
+   if self._sv.date.hour == 0 then
       hour = 12
-   elseif self._data.date.hour > 12 then
+   elseif self._sv.date.hour > 12 then
       hour = hour - 12
       suffix = "pm"
    end
 
-   return string.format("%d : %02d %s", hour, self._data.date.minute, suffix)
+   return string.format("%d : %02d %s", hour, self._sv.date.minute, suffix)
 end
 
 function CalendarService:format_date()
-   return string.format("day %d of %s, %d", self._data.date.day, self._constants.month_names[self._data.date.month + 1],
-      self._data.date.year)
+   return string.format("day %d of %s, %d", self._sv.date.day, self._constants.month_names[self._sv.date.month + 1],
+      self._sv.date.year)
 end
 
 function CalendarService:get_time_and_date()
-   return self._data.date
+   return self._sv.date
 end
 
 return CalendarService

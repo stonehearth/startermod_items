@@ -8,9 +8,6 @@ function TasksService:__init()
 end
 
 function TasksService:initialize()
-end
-
-function TasksService:restore(saved_variables)
    -- the tasks service doesn't save or restore tasks.  we leave
    -- that up to the owners of the tasks themselves
 end

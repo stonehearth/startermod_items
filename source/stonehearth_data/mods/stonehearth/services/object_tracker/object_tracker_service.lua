@@ -16,12 +16,6 @@ function ObjectTrackerService:initialize()
    -- a load.
 end
 
-function ObjectTrackerService:restore(saved_variables)
-   -- object trackers explicitly to not save and restore
-   -- state.  it's up to the client to re-attach them after
-   -- a load.
-end
-
 function ObjectTrackerService:_find_tracker(name, ctor)
    local tracker = self._all_trackers[name]
    if not tracker then

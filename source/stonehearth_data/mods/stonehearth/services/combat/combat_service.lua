@@ -4,9 +4,6 @@ local Damage = require 'services.combat.damage'
 function CombatService:initialize()
 end
 
-function CombatService:restore(saved_variables)
-end
-
 function CombatService:resolve(damage)
    -- run an effect if it's a hit
    -- xxx, assumit it's a hit for now
