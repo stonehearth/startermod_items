@@ -10,11 +10,15 @@ local Town = class()
 function Town:__init(session, saved_variables)
    self.__saved_variables = saved_variables
    self._sv = self.__saved_variables:get_data()
-
+   
    if session then
       self._sv.faction = session.faction
       self._sv.player_id = session.player_id
       self._sv.town_entity = radiant.entities.create_entity()
+      self._sv.harvesting = {
+         resource_nodes = {},
+         renewable_resource_nodes = {}
+      }
       radiant.entities.add_child(radiant._root_entity, self._sv.town_entity, Point3(0, 0, 0))
    end
 
@@ -29,8 +33,10 @@ function Town:__init(session, saved_variables)
       farmers = self._scheduler:create_task_group('stonehearth:farm', {})
                                :set_priority(stonehearth.constants.priorities.top.WORK)
                                :set_counter_name('farmers'), 
-   }
-   self._harvest_task_groups = {
+   }   
+
+   -- a map from a profession_id to a task group for that profession
+   self._profession_to_taskgroup = {
       worker = self._task_groups.workers,
       farmer = self._task_groups.farmers,
    }
@@ -39,6 +45,17 @@ function Town:__init(session, saved_variables)
    self._thread_orchestrators = {}
    self._harvest_tasks = {}
    self._buildings = {}
+   
+   radiant.events.listen(radiant, 'radiant:game_loaded', function()
+         -- restore existing tasks, if they exist.
+         for _, node in pairs(self._sv.harvesting.resource_nodes) do
+            self:harvest_resource_node(node)
+         end
+         for _, node in pairs(self._sv.harvesting.renewable_resource_nodes) do
+            self:harvest_renewable_resource_node(node)
+         end
+         return radiant.events.UNLISTEN
+      end)
 end
 
 function Town:get_faction()
@@ -254,15 +271,18 @@ function Town:harvest_resource_node(node)
       local node_component = node:get_component('stonehearth:resource_node')
       if node_component then
          local harvest_profession = node_component:get_harvest_profession()
-         local task_group = self._harvest_task_groups[harvest_profession]
+         local task_group = self._profession_to_taskgroup[harvest_profession]
          if task_group then
             local effect_name = node_component:get_harvest_overlay_effect()
-            self._harvest_tasks[id] = task_group:create_task('stonehearth:harvest_resource_node', { node = node })
+            local task = task_group:create_task('stonehearth:harvest_resource_node', { node = node })
                                          :set_source(node)
                                          :add_entity_effect(node, effect_name)
                                          :set_priority(stonehearth.constants.priorities.farmer_task.HARVEST)
                                          :once()
                                          :start()
+            self._harvest_tasks[id] = task
+            self._sv.harvesting.resource_nodes[id] = node
+            self.__saved_variables:mark_changed()
          end
       end
    end
@@ -279,15 +299,18 @@ function Town:harvest_renewable_resource_node(plant)
       local node_component = plant:get_component('stonehearth:renewable_resource_node')
       if node_component then
       local harvest_profession = node_component:get_harvest_profession()
-         local task_group = self._harvest_task_groups[harvest_profession]
+         local task_group = self._profession_to_taskgroup[harvest_profession]
          if task_group then
             local effect_name = node_component:get_harvest_overlay_effect()
-            self._harvest_tasks[id] = task_group:create_task('stonehearth:harvest_plant', { plant = plant })
+            local task = task_group:create_task('stonehearth:harvest_plant', { plant = plant })
                                    :set_source(plant)
                                    :add_entity_effect(plant, effect_name)
                                    :set_priority(stonehearth.constants.priorities.farmer_task.HARVEST)
                                    :once()
                                    :start()
+            self._harvest_tasks[id] = task
+            self._sv.harvesting.renewable_resource_nodes[id] = plant
+            self.__saved_variables:mark_changed()
          end
 
          radiant.events.listen(plant, 'stonehearth:is_harvestable', function(e) 
