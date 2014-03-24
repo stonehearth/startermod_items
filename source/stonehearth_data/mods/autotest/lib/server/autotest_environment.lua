@@ -59,8 +59,13 @@ local function apply_options_to_entity(entity, options)
       end
    end
    if options.profession then
-      local papi = radiant.mods.require(string.format('stonehearth.professions.%s.%s', options.profession, options.profession))
-      papi.promote(entity)
+      local profession = options.profession
+      if not string.find(profession, ':') and not string.find(profession, '/') then
+         -- as a convenience for autotest writers, stick the stonehearth:profession on
+         -- there if they didn't put it there to begin with
+         profession = 'stonehearth:professions:' .. profession
+      end
+      entity:add_component('stonehearth:profession'):promote_to(profession)
    end   
 end
 

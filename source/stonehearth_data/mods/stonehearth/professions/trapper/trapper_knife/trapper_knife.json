@@ -38,8 +38,7 @@
          ]  
       },
       "stonehearth:promotion_talisman": {
-         "script": "file(/professions/trapper/trapper.lua)",
-         "profession_name" : "Trapper"
+         "profession": "stonehearth:professions:trapper"
       }
    },
    "entity_data" : {

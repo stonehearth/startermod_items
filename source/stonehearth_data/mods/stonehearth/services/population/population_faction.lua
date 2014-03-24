@@ -112,8 +112,7 @@ function PopulationFaction:create_entity(uri)
 end
 
 function PopulationFaction:promote_citizen(citizen, profession)
-   local profession_api = radiant.mods.require(string.format('stonehearth.professions.%s.%s', profession, profession))
-   profession_api.promote(citizen)
+   citizen:add_component('stonehearth:profession'):promote_to(profession)
 end
 
 function PopulationFaction:get_home_location()

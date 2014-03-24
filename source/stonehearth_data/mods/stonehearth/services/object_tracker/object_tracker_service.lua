@@ -9,7 +9,6 @@ function ObjectTrackerService:__init()
    self._all_trackers = {}
 end
 
-
 function ObjectTrackerService:initialize()
    -- object trackers explicitly to not save and restore
    -- state.  it's up to the client to re-attach them after
@@ -32,7 +31,7 @@ function ObjectTrackerService:get_worker_tracker(player_id)
          local profession = entity:get_component('stonehearth:profession')
 
          return profession and 
-                profession:get_profession_type() == 'worker' and
+                profession:get_profession_id() == 'worker' and
                 radiant.entities.get_player_id(entity) == player_id
       end
       local event_array = {}

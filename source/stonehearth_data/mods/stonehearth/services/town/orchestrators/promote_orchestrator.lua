@@ -31,17 +31,9 @@ function Promote:run(town, args)
 end
 
 function Promote:_change_profession(person, talisman)
-   --Remove the current class for the person
-   local current_profession_script = person:get_component('stonehearth:profession'):get_script()
-   local current_profession_script_api = radiant.mods.load_script(current_profession_script)
-   if current_profession_script_api.demote then
-      current_profession_script_api.demote(person)
-   end
-
    --Add the new class
    local promotion_talisman_component = talisman:get_component('stonehearth:promotion_talisman')
-   local script = promotion_talisman_component:get_script()
-   radiant.mods.load_script(script).promote(person)
+   person:add_component('stonehearth:profession'):promote_to(promotion_talisman_component:get_profession())
 
    --Log in personal event log
    local activity_name = radiant.entities.get_entity_data(talisman, 'stonehearth:activity_name')

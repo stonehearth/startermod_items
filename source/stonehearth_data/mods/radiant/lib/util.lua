@@ -71,7 +71,7 @@ end
 function util.get_config(str, default)
    -- The stack offset for the helper functions is 3...
    --    1: __get_current_module_name
-   --    2: util.config_get       
+   --    2: util.get_config       
    --    3: --> some module whose name we want! <-- 
    local modname = __get_current_module_name(3)
    local value = _host:get_config('mods.' .. modname .. "." .. str)

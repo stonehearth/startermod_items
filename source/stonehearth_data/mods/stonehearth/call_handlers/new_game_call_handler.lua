@@ -265,7 +265,7 @@ function NewGameCallHandler:place_citizen(pop, x, z, profession)
    --TODO: faction denotes which player is playing. Have user pick?
    local citizen = pop:create_new_citizen()
    if not profession then
-      profession = 'worker'
+      profession = 'stonehearth:professions:worker'
    end
    pop:promote_citizen(citizen, profession)
 
