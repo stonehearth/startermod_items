@@ -3,41 +3,24 @@ local PopulationFaction = class()
 local rng = _radiant.csg.get_default_rng()
 local personality_service = stonehearth.personality
 
---Separate the faction name (player chosen) from the kingdom name (ascendency, etc.)
-function PopulationFaction:__init()
-   self._citizens = {}
-end
-
-function PopulationFaction:initialize(session)
-   self._faction = session.faction
-   self._kingdom = session.kingdom
-   self._player_id = session.player_id
-   self.__saved_variables = radiant.create_datastore({
-         faction = self._faction,
-         kingdom = self._kingdom,
-         player_id = self._player_id,
-         citizens = self._citizens,
-      })
-
-   self._data = radiant.resources.load_json(self._kingdom)
-end
-
-function PopulationFaction:restore(saved_variables)
+function PopulationFaction:__init(session, saved_variables)
    self.__saved_variables = saved_variables
-   self.__saved_variables:read_data(function(o)
-         self._faction = o.faction
-         self._kingdom = o.kingdom
-         self._citizens = o.citizens
-      end)
-   self._data = radiant.resources.load_json(self._kingdom)
+   self._sv = self.__saved_variables:get_data()
+   if session then
+      self._sv.faction = session.faction
+      self._sv.kingdom = session.kingdom
+      self._sv.player_id = session.player_id
+      self._sv.citizens = {}
+   end
+   self._data = radiant.resources.load_json(self._sv.kingdom)
 end
 
 function PopulationFaction:get_faction()
-   return self._faction
+   return self._sv.faction
 end
 
 function PopulationFaction:get_player_id()
-   return self._player_id
+   return self._sv.player_id
 end
 
 function PopulationFaction:create_new_citizen()   
@@ -65,13 +48,13 @@ function PopulationFaction:create_new_citizen()
    end
 
    local unit_info = citizen:add_component('unit_info')
-   unit_info:set_faction(self._faction)
-   unit_info:set_kingdom(self._kingdom)
-   unit_info:set_player_id(self._player_id)
+   unit_info:set_faction(self._sv.faction)
+   unit_info:set_kingdom(self._sv.kingdom)
+   unit_info:set_player_id(self._sv.player_id)
 
    self:_set_citizen_initial_state(citizen, gender)
 
-   table.insert(self._citizens, citizen)
+   table.insert(self._sv.citizens, citizen)
    self.__saved_variables:mark_changed()
 
    return citizen
@@ -103,7 +86,7 @@ function PopulationFaction:customize_citizen(entity, all_variants, this_variant)
 end
 
 function PopulationFaction:get_citizens()
-   return self._citizens
+   return self._sv.citizens
 end
 
 function PopulationFaction:_set_citizen_initial_state(citizen, gender)
@@ -117,14 +100,14 @@ function PopulationFaction:_set_citizen_initial_state(citizen, gender)
    personality_component:set_personality(personality)
 
    --For the teacher field, assign the one appropriate for this kingdom
-   personality_component:add_substitution_by_parameter('teacher', self._kingdom, 'stonehearth')
+   personality_component:add_substitution_by_parameter('teacher', self._sv.kingdom, 'stonehearth')
    personality_component:add_substitution_by_parameter('personality_based_exclamation', personality, 'stonehearth:settler_journals')
 
 end
 
 function PopulationFaction:create_entity(uri)
    local entity = radiant.entities.create_entity(uri)
-   entity:add_component('unit_info'):set_faction(self._faction)
+   entity:add_component('unit_info'):set_faction(self._sv.faction)
    return entity
 end
 

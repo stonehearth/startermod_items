@@ -45,9 +45,13 @@ function StockpileComponent:initialize(entity, json)
 
    self._sv = self.__saved_variables:get_data()
    if not self._sv.stocked_items then
+      -- creating...
       self._sv.stocked_items = {}
       self._sv.item_locations = {}
       self._sv.size  = Point2(0, 0)
+   else
+      -- loading...
+      self:_create_worker_tasks()
    end
    
    self._destination = entity:add_component('destination')
@@ -55,7 +59,10 @@ function StockpileComponent:initialize(entity, json)
                     :set_reserved(_radiant.sim.alloc_region())
                     :set_auto_update_adjacent(true)
 
-   radiant.events.listen(radiant, 'stonehearth:gameloop', self, self.on_gameloop)
+   radiant.events.listen(self._entity, 'radiant:entity:post_create', function(e)
+         self:_finish_initialization()
+         return radiant.events.unlisten
+      end)
    all_stockpiles[self._entity:get_id()] = self
 
    if json.size then      
@@ -121,8 +128,7 @@ function StockpileComponent:set_filter(filter)
 end
 
 -- xxx: the 'fire one when i'm constructed' pattern again...
-function StockpileComponent:on_gameloop()
-   radiant.events.unlisten(radiant, 'stonehearth:gameloop', self, self.on_gameloop)
+function StockpileComponent:_finish_initialization()
    local root = radiant.entities.get_root_entity()
    local ec = radiant.entities.get_root_entity():get_component('entity_container')
 
@@ -332,11 +338,12 @@ end
 function StockpileComponent:_assign_to_player()
    local player_id = self._entity:add_component('unit_info'):get_player_id()
 
-   local old_player_id = self._player_id
-   self._player_id = player_id
-   
-   if not old_player_id or self._player_id ~= old_player_id then
-      if old_player_id then
+   local old_player_id = self._sv.player_id or ""
+   if player_id ~= old_player_id then
+      self._sv.player_id = player_id
+      self.__saved_variables:mark_changed()
+            
+      if #old_player_id > 0 then
          -- unregister from the current inventory service
          local inventory = stonehearth.inventory:get_inventory(old_player_id)
          inventory:remove_storage(self._entity)

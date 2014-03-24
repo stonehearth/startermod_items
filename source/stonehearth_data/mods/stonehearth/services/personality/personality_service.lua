@@ -38,9 +38,6 @@ end
 function PersonalityService:initialize()
 end
 
-function PersonalityService:restore(saved_variables)
-end
-
 --- When a notable event happens, produce a log entry for the relevant entity if appropriate
 --  In order to make this happen, an activity needs to have a trigger event id that matches
 --  the description in the event. If this maps to an activity, then grab the activity and
