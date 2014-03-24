@@ -28,6 +28,9 @@
             ]
          }
       },
+      "render_info" : {
+         "scale" : 0.13
+      },     
       "unit_info": {
          "name": "Corn", 
          "description": "Slow-mo, high-stakes gambling.", 
