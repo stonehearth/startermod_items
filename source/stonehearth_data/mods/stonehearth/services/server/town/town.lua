@@ -30,6 +30,10 @@ function Town:__init(session, saved_variables)
                                :set_priority(stonehearth.constants.priorities.top.WORK)
                                :set_counter_name('farmers'), 
    }
+   self._harvest_task_groups = {
+      worker = self._task_groups.workers,
+      farmer = self._task_groups.farmers,
+   }
 
    self._unit_controllers = {}
    self._thread_orchestrators = {}
@@ -249,22 +253,14 @@ function Town:harvest_resource_node(node)
    if not self._harvest_tasks[id] then
       local node_component = node:get_component('stonehearth:resource_node')
       if node_component then
-         local effect_name = node_component:get_harvest_overlay_effect()
-         --If the node is of type crop, have farmers harvest it
-         --TODO: make create X task, where you pass in the type of work group
-         local material_component = node:get_component('stonehearth:material')
-         if material_component and material_component:has_tag('crop') then
-            self._harvest_tasks[id] = self:create_farmer_task('stonehearth:harvest_resource_node', { node = node })
+         local harvest_profession = node_component:get_harvest_profession()
+         local task_group = self._harvest_task_groups[harvest_profession]
+         if task_group then
+            local effect_name = node_component:get_harvest_overlay_effect()
+            self._harvest_tasks[id] = task_group:create_task('stonehearth:harvest_resource_node', { node = node })
                                          :set_source(node)
                                          :add_entity_effect(node, effect_name)
                                          :set_priority(stonehearth.constants.priorities.farmer_task.HARVEST)
-                                         :once()
-                                         :start()
-         else 
-            self._harvest_tasks[id] = self:create_worker_task('stonehearth:harvest_resource_node', { node = node })
-                                         :set_source(node)
-                                         :add_entity_effect(node, effect_name)
-                                         :set_priority(stonehearth.constants.priorities.worker_task.HARVEST)
                                          :once()
                                          :start()
          end
@@ -282,20 +278,14 @@ function Town:harvest_renewable_resource_node(plant)
    if not self._harvest_tasks[id] then
       local node_component = plant:get_component('stonehearth:renewable_resource_node')
       if node_component then
-         local effect_name = node_component:get_harvest_overlay_effect()
-         local material_component = plant:get_component('stonehearth:material')
-         if material_component and material_component:has_tag('crop') then
-            self._harvest_tasks[id] = self:create_farmer_task('stonehearth:harvest_plant', { plant = plant })
+      local harvest_profession = node_component:get_harvest_profession()
+         local task_group = self._harvest_task_groups[harvest_profession]
+         if task_group then
+            local effect_name = node_component:get_harvest_overlay_effect()
+            self._harvest_tasks[id] = task_group:create_task('stonehearth:harvest_plant', { plant = plant })
                                    :set_source(plant)
                                    :add_entity_effect(plant, effect_name)
                                    :set_priority(stonehearth.constants.priorities.farmer_task.HARVEST)
-                                   :once()
-                                   :start()
-         else
-         self._harvest_tasks[id] = self:create_worker_task('stonehearth:harvest_plant', { plant = plant })
-                                   :set_source(plant)
-                                   :add_entity_effect(plant, effect_name)
-                                   :set_priority(stonehearth.constants.priorities.worker_task.HARVEST)
                                    :once()
                                    :start()
          end
