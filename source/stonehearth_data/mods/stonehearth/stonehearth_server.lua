@@ -26,7 +26,7 @@ local service_creation_order = {
 }
 
 local function create_service(name)
-   local path = string.format('services.%s.%s_service', name, name)
+   local path = string.format('services.server.%s.%s_service', name, name)
    local service = require(path)()
 
    local saved_variables = stonehearth._sv[name]

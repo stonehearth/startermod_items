@@ -1,10 +1,9 @@
 {
-   "profession" : {
-      "profession_type": "weaver",
-      "name": "Weaver",      
-      "script": "file(/professions/weaver/weaver.lua)",
-      "description": "Makes thread and cloth."
-   },
+   "profession_type": "weaver",
+   "name": "Weaver",      
+   "script": "file(/professions/weaver/weaver.lua)",
+   "outfit": "file(weaver_outfit)",
+   "description": "Makes thread and cloth.",
    "crafter" : {
       "work_effect": "fiddle",
       "recipe_list": "/stonehearth/professions/weaver/recipes"

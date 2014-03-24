@@ -11,7 +11,7 @@ local STOPPED = 'stopped'
 local DEAD = 'dead'
 local ABORTING = 'aborting'
 local ABORTED = 'aborted'
-local placeholders = require 'services.ai.placeholders'
+local placeholders = require 'services.server.ai.placeholders'
 
 function ExecutionUnitV2:__init(frame, thread, debug_route, entity, injecting_entity, action, action_index)
    assert(action.name)

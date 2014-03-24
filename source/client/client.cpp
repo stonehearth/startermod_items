@@ -521,6 +521,12 @@ void Client::InitializeDataObjects()
    authoringStore_->AddTracer(authoring_render_tracer_, dm::LUA_ASYNC_TRACES);
    authoringStore_->AddTracer(authoring_render_tracer_, dm::RPC_TRACES);
    authoringStore_->AddTracer(object_model_traces_, dm::OBJECT_MODEL_TRACES);
+
+   localRootEntity_ = GetAuthoringStore().AllocObject<om::Entity>();
+   ASSERT(localRootEntity_->GetObjectId() == 1);
+   localModList_ = localRootEntity_->AddComponent<om::ModList>();
+
+   error_browser_ = authoringStore_->AllocObject<om::ErrorBrowser>();
 }
 
 void Client::ShutdownDataObjects()
@@ -541,10 +547,7 @@ void Client::InitializeGameObjects()
    renderer.Initialize();
 
    octtree_.reset(new phys::OctTree(dm::RENDER_TRACES));
-   scriptHost_.reset(new lua::ScriptHost());
-
-   error_browser_ = authoringStore_->AllocObject<om::ErrorBrowser>();
-   scriptHost_.reset(new lua::ScriptHost());
+   scriptHost_.reset(new lua::ScriptHost("client"));
    scriptHost_->SetNotifyErrorCb([=](om::ErrorBrowser::Record const& r) {
       error_browser_->AddRecord(r);
    });
@@ -609,44 +612,11 @@ void Client::ShutdownGameObjects()
 
 void Client::InitializeLuaObjects()
 {
-   core::Config &config = core::Config::GetInstance();
-   res::ResourceManager2& resource_manager = res::ResourceManager2::GetInstance();
-   lua_State* L = scriptHost_->GetInterpreter();
-
-   // xxx: the module init sequnce on the client and server share a ton of code.  refactor!!
-   luabind::object main_mod_obj;
-   std::string const main_mod_name = config.Get<std::string>("game.main_mod", "stonehearth");
-
    hover_cursor_ = LoadCursor("stonehearth:cursors:hover");
    default_cursor_ = LoadCursor("stonehearth:cursors:default");
    
    radiant_ = scriptHost_->Require("radiant.client");
-   for (std::string const& mod_name : resource_manager.GetModuleNames()) {
-      std::string script_name;
-      resource_manager.LookupManifest(mod_name, [&](const res::Manifest& manifest) {
-         script_name = manifest.get<std::string>("client_init_script", "");
-      });
-      if (!script_name.empty()) {
-         try {
-            luabind::object obj = scriptHost_->Require(script_name);
-            if (obj) {
-               luabind::globals(L)[mod_name] = obj;
-               if (mod_name == main_mod_name) {
-                  main_mod_obj = obj;
-               }
-            }
-         } catch (std::exception const& e) {
-            CLIENT_LOG(1) << "module " << mod_name << " failed to load " << script_name << ": " << e.what();
-         }
-      }
-   }
-   // this locks down the environment!  all types must be registered by now!!
-   scriptHost_->Require("radiant.lualibs.strict");
-   scriptHost_->Trigger("radiant:modules_loaded");
-
-   if (main_mod_obj) {
-      scriptHost_->TriggerOn(main_mod_obj, "radiant:new_game", luabind::newtable(L));
-   }
+   scriptHost_->CreateGame(localModList_);
 }
 
 void Client::ShutdownLuaObjects()

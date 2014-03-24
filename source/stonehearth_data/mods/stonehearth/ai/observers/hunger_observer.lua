@@ -1,5 +1,4 @@
 local calendar = stonehearth.calendar
-local time_constants = radiant.resources.load_json('/stonehearth/services/calendar/calendar_constants.json')
 
 --[[
    Increases hunger attribute each hour.
@@ -47,7 +46,7 @@ end
 
 function HungerObserver:on_hourly(e)
    local hunger = self._attributes_component:get_attribute('hunger')
-   local hours_till_showing_hungry = time_constants.hours_per_day
+   local hours_till_showing_hungry = calendar:get_constants().hours_per_day
 
    -- TODO consider slowing hunger while sleepy
    hunger = hunger + ( 100 / hours_till_showing_hungry)

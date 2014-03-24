@@ -37,9 +37,9 @@
       "mixins:resources:jerky" : "file(mixins/resources/jerky)",
       "mixins:resources:fur_pelt" : "file(mixins/resources/fur_pelt)",
 
-      "kingdoms:ascendancy" : "file(services/population/data/ascendancy.json)",
-      "kingdoms:northern_alliance" : "file(services/population/data/northern_alliance.json)",
-      "kingdoms:rayyas_children" : "file(services/population/data/rayyas_children.json)",
+      "kingdoms:ascendancy" : "file(services/server/population/data/ascendancy.json)",
+      "kingdoms:northern_alliance" : "file(services/server/population/data/northern_alliance.json)",
+      "kingdoms:rayyas_children" : "file(services/server/population/data/rayyas_children.json)",
 
       "default_object" : "file(entities/generic/default_object)",
 
@@ -51,26 +51,19 @@
 
       "pet_collar" : "file(entities/critters/collars/pet_collar.json)",
 
-      "worker:profession_description" : "file(professions/worker/worker_description.json)",
-
-      "carpenter:profession_description" : "file(professions/carpenter/carpenter_description.json)",
       "carpenter:workbench" : "file(professions/carpenter/carpenter_workbench)",
       "carpenter:outfit" : "file(professions/carpenter/carpenter_outfit)",
       "carpenter:saw" : "file(professions/carpenter/carpenter_saw)",
 
-      "farmer:profession_description" : "file(professions/farmer/farmer_description.json)",
       "farmer:outfit" : "file(professions/farmer/farmer_outfit)",
       "farmer:field" : "file(professions/farmer/field)",
       "farmer_hoe" : "file(professions/farmer/farmer_hoe)", 
-      "farmer:initial_crops" : "file(services/farming/data/initial_crops.json)",
+      "farmer:initial_crops" : "file(services/server/farming/data/initial_crops.json)",
       
       "trapper:trapper_knife" : "file(professions/trapper/trapper_knife)",
-
-      "trapper:description" : "file(professions/trapper/trapper_description.json)",
       "trapper:outfit" : "file(professions/trapper/trapper_outfit)",
       "trapper:snare_trap" : "file(professions/trapper/snare_trap)",
 
-      "weaver:profession_description" : "file(professions/weaver/weaver_description.json)",
       "weaver:workbench" : "file(professions/weaver/weaver_workbench)",
       "weaver:outfit" : "file(professions/weaver/weaver_outfit)",
       "weaver:spindle" : "file(professions/weaver/weaver_spindle)",
@@ -346,12 +339,6 @@
 
       "actions:follow_entity" : "file(ai/actions/follow_entity_action.lua)",
 
-      "tasks:collect_ingredients" : "file(services/tasks/compound_tasks/collect_ingredients_compound_task.lua)",
-      "tasks:work_at_workshop" : "file(services/tasks/compound_tasks/work_at_workshop_orchestrator.lua)",
-      "tasks:create_workshop" : "file(services/tasks/compound_tasks/create_workshop_compound_task.lua)",
-      "tasks:promote_with_talisman" : "file(services/tasks/compound_tasks/promote_with_talisman_compound_task.lua)",
-      "tasks:clear_workshop" : "file(services/tasks/compound_tasks/clear_workshop_orchestrator.lua)",
-
       "observers:look_for_enemies" : "file(ai/observers/look_for_enemies.lua)",
       "observers:sleep" : "file(ai/observers/sleep_observer.lua)",
       "observers:hunger" : "file(ai/observers/hunger_observer.lua)",
@@ -457,7 +444,14 @@
       "ambient:summer_day"   : "file(data/ambient/sh_amb_summer_day.ogg)",
       "ambient:summer_night" : "file(data/ambient/sh_amb_summer_night.ogg)",
       
-      "scenarios:scenario_index" : "file(scenarios/index.json)"
+      "scenarios:scenario_index" : "file(scenarios/index.json)",
+
+      "professions:worker" : "file(professions/worker/worker_description.json)",
+      "professions:farmer" : "file(professions/farmer/farmer_description.json)",
+      "professions:carpenter" : "file(professions/carpenter/carpenter_description.json)",
+      "professions:weaver" : "file(professions/weaver/weaver_description.json)",
+      "professions:trapper" : "file(professions/trapper/trapper_description.json)"
+
    },
    "functions" : {
       "get_world_generation_progress": {

@@ -5,6 +5,8 @@
       "script": "file(/professions/carpenter/carpenter.lua)",
       "description": "Carpenter"
    },
+   "script": "file(carpenter.lua)",
+   "outfit": "file(carpenter_outfit)",
    "crafter" : {
       "work_effect": "saw",
       "recipe_list": "/stonehearth/professions/carpenter/recipes"

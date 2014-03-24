@@ -37,8 +37,7 @@
          ]  
       },
       "stonehearth:promotion_talisman": {
-         "script": "file(/professions/farmer/farmer.lua)",
-         "profession_name" : "Farmer"
+         "profession": "stonehearth:professions:farmer"
       }
    },
    "entity_data" : {

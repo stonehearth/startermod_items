@@ -49,23 +49,23 @@ function StockpileComponent:initialize(entity, json)
       self._sv.stocked_items = {}
       self._sv.item_locations = {}
       self._sv.size  = Point2(0, 0)
+      self._destination = entity:add_component('destination')
+      self._destination:set_region(_radiant.sim.alloc_region())
+                       :set_reserved(_radiant.sim.alloc_region())
+                       :set_auto_update_adjacent(true)
    else
       -- loading...
-      self:_create_worker_tasks()
+      self._destination = entity:get_component('destination')
+      self._destination:set_reserved(_radiant.sim.alloc_region()) -- xxx: clear the existing one from cpp land!
+      self:_create_worker_tasks()      
    end
-   
-   self._destination = entity:add_component('destination')
-   self._destination:set_region(_radiant.sim.alloc_region())
-                    :set_reserved(_radiant.sim.alloc_region())
-                    :set_auto_update_adjacent(true)
-
    radiant.events.listen(self._entity, 'radiant:entity:post_create', function(e)
          self:_finish_initialization()
          return radiant.events.unlisten
       end)
+      
    all_stockpiles[self._entity:get_id()] = self
-
-   if json.size then      
+   if json.size then
       self:set_size(json.size.x, json.size.y)
    end
 end

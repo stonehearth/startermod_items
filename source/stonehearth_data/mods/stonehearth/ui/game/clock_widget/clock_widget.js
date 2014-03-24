@@ -7,7 +7,7 @@ App.StonehearthCalendarView = App.View.extend({
       
       self.set('context', {});
 
-      $.get('/stonehearth/services/calendar/calendar_constants.json')
+      $.get('/stonehearth/data/calendar/calendar_constants.json')
          .done(function(json) {
             self._constants = json;
 

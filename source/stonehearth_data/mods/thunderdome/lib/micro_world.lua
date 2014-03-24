@@ -58,11 +58,9 @@ function MicroWorld:place_citizen(x, z, profession, data)
    local pop_service = radiant.mods.load('stonehearth').population
    local pop = pop_service:get_faction('civ', 'stonehearth:kingdoms:ascendancy')
    local citizen = pop:create_new_citizen()
-   profession = profession and profession or 'worker'
+   profession = profession and profession or 'stonehearth:professions:worker'
 
-   -- this is totally gross!!
-   local profession_api = radiant.mods.require(string.format('stonehearth.professions.%s.%s', profession, profession))
-   profession_api.promote(citizen, data)
+   citizen:add_component('stonehearth:profession'):promote_to(profession)
 
    radiant.terrain.place_entity(citizen, Point3(x, 1, z))
    return citizen
