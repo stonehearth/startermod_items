@@ -444,33 +444,47 @@ void getBoundsForGroupNode(float* minX, float* maxX, float *minY, float *maxY, H
 }
 
 ActivityOverlayEffect::ActivityOverlayEffect(RenderEntity& e, om::EffectPtr effect, const JSONNode& node) :
-   RenderEffect(e, "activity overlay")
+   RenderEffect(e, "activity overlay"),
+   _positioned(false)
 {
-   float minX, maxX, minY, maxY;
    json::Node cjo(node);
 
-   std::string matName = cjo.get("material", std::string("materials/chop_overlay/chop_overlay.material.xml"));
-   int overlayWidth = cjo.get("width", 64);
-   int overlayHeight = cjo.get("height", 64);
-   int yOffset = cjo.get("y_offset", 0);
-
-   H3DRes mat = h3dAddResource(H3DResTypes::Material, matName.c_str(), 0);
-   H3DRes lineMat = h3dAddResource(H3DResTypes::Material, "materials/line.material.xml", 0);
-
-   Horde3D::HudElementNode* hud = h3dAddHudElementNode(e.GetNode(), "");
-   getBoundsForGroupNode(&minX, &maxX, &minY, &maxY, e.GetNode());
-   h3dSetNodeTransform(hud->getHandle(), 0, maxY - minY + 4, 0, 0, 0, 0, 1, 1, 1);
-   hud->addScreenspaceRect(overlayWidth, overlayHeight, (int)(-overlayWidth / 2.0f), yOffset, Horde3D::Vec4f(1, 1, 1, 1), mat);
-   overlayNode_ = H3DNodeUnique(hud->getHandle());
+   _material = cjo.get("material", std::string("materials/chop_overlay/chop_overlay.material.xml"));
+   _overlayWidth = cjo.get("width", 64);
+   _overlayHeight = cjo.get("height", 64);
+   _yOffset = cjo.get("y_offset", 0);
+   _hud = h3dAddHudElementNode(e.GetNode(), "");
+   overlayNode_ = H3DNodeUnique(_hud->getHandle());
 }
 
 ActivityOverlayEffect::~ActivityOverlayEffect()
 {
 }
 
+bool ActivityOverlayEffect::PositionOverlayNode()
+{
+   float minX, maxX, minY, maxY;
+   getBoundsForGroupNode(&minX, &maxX, &minY, &maxY, entity_.GetNode());
+   if (minX > maxX || minY > maxY) {
+      EL_LOG(8) << "could not compute bounds of render entity node";
+      return false;
+   }
+   EL_LOG(8) << "render entity node bounds are " << minX << ", " << minY << ", " << maxX << ", " << maxY;
+
+   h3dSetNodeTransform(_hud->getHandle(), 0, maxY - minY + 4, 0, 0, 0, 0, 1, 1, 1);
+
+   H3DRes mat = h3dAddResource(H3DResTypes::Material, _material.c_str(), 0);
+   _hud->addScreenspaceRect(_overlayWidth, _overlayHeight, (int)(-_overlayWidth / 2.0f), _yOffset, Horde3D::Vec4f(1, 1, 1, 1), mat);
+   return true;
+}
+
 void ActivityOverlayEffect::Update(FrameStartInfo const& info, bool& finished)
 {
    finished = false;
+   if (!_positioned) {
+      PositionOverlayNode();
+      _positioned = true;
+   }
 }
 
 

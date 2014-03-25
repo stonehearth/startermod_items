@@ -127,8 +127,17 @@ public:
    void Update(FrameStartInfo const& info, bool& done) override;
 
 private:
+   bool PositionOverlayNode();
+
+private:
    void parseTransforms(const JSONNode& node, float* x, float* y, float* z);
-   H3DNodeUnique      overlayNode_;
+   Horde3D::HudElementNode *_hud;
+   H3DNodeUnique     overlayNode_;
+   int               _overlayWidth;
+   int               _overlayHeight;
+   int               _yOffset;
+   std::string       _material;
+   bool              _positioned;
 };
 
 
