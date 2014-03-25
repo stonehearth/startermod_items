@@ -148,6 +148,31 @@ void Client_DestroyAuthoringEntity(dm::ObjectId id)
    return Client::GetInstance().DestroyAuthoringEntity(id);
 }
 
+std::weak_ptr<RenderEntity> Client_GetRenderEntity(luabind::object arg)
+{
+   om::EntityPtr entity;
+   std::weak_ptr<RenderEntity> result;
+   if (luabind::type(arg) == LUA_TSTRING) {
+      // arg is a path to an object (e.g. /objects/3).  If this leads to a Entity, we're all good
+      std::string path = luabind::object_cast<std::string>(arg);
+      dm::Store& store = Client::GetInstance().GetStore();
+      dm::ObjectPtr obj = store.FetchObject<dm::Object>(path);
+      if (obj && obj->GetObjectType() == om::Entity::DmType) {
+         entity = std::static_pointer_cast<om::Entity>(obj);
+      }
+   } else {
+      try {
+         entity = luabind::object_cast<om::EntityRef>(arg).lock();
+      } catch (luabind::cast_failed&) {
+      }
+   }
+
+   if (entity) {
+      result = Renderer::GetInstance().GetRenderObject(entity);
+   }
+   return result;
+}
+
 std::weak_ptr<RenderEntity> Client_CreateRenderEntity(H3DNode parent, luabind::object arg)
 {
    om::EntityPtr entity;
@@ -419,6 +444,7 @@ void lua::client::open(lua_State* L)
             def("create_authoring_entity",         &Client_CreateAuthoringEntity),
             def("destroy_authoring_entity",        &Client_DestroyAuthoringEntity),
             def("create_render_entity",            &Client_CreateRenderEntity),
+            def("get_render_entity",               &Client_GetRenderEntity),
             def("capture_input",                   &Client_CaptureInput),
             def("query_scene",                     &Client_QueryScene),
             def("select_xz_region",                &Client_SelectXZRegion),
