@@ -81,11 +81,11 @@ public:
    }
    Object* FetchStaticObject(ObjectId id) const;
 
-   typedef std::unordered_map<ObjectId, std::shared_ptr<Object>> ObjectMap;
-   typedef std::unordered_map<ObjectId, std::weak_ptr<Object>> WeakObjectMap;
+   typedef std::unordered_map<ObjectId, ObjectPtr> ObjectMap;
+   typedef std::unordered_map<ObjectId, ObjectRef> WeakObjectMap;
 
-   bool Save(std::string& error);
-   bool Load(std::string& error, ObjectMap& objects);
+   bool Save(std::string const& filename, std::string& error);
+   bool Load(std::string const& filename, std::string& error, ObjectMap& objects);
 
    GenerationId GetNextGenerationId();
    GenerationId GetCurrentGenerationId();

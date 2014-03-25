@@ -59,5 +59,8 @@ Thumbs.db
 *.deproj
 *.deuser
 
+# Stonehearth Save State
+*.sss
+
 # Python genearted files
 *.pyc

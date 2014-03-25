@@ -147,12 +147,11 @@ function CameraService:_orbit(target, x_deg, y_deg, min_x, max_x)
 
   -- We take the orbiter to have a higher 'priority' than scrolling, so
   -- don't scroll when we orbit.
-  self._sv.position = new_position + target
+  local position = new_position + target
   self._continuous_delta = Vec3(0, 0, 0)
 
-  _radiant.renderer.camera.set_position(self._sv.position)
-  _radiant.renderer.camera.look_at(target)
-
+  self:set_position(position, true)
+  self:look_at(target)
 
   radiant.events.trigger(self, 'stonehearth:camera:update', {
     pan = false,
@@ -461,6 +460,7 @@ function CameraService:_update_camera(frame_time)
   local scaled_continuous_delta = Vec3(self._continuous_delta)
   scaled_continuous_delta:scale(frame_time / 1000.0)
   self._sv.position = self._sv.position + (scaled_continuous_delta) + self._impulse_delta
+  self.__saved_variables:mark_changed()
 
   self._impulse_delta = Vec3(0, 0, 0)
 

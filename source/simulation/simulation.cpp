@@ -151,14 +151,11 @@ void Simulation::OneTimeIninitializtion()
       return d;
    });
 
-   core_reactor_->AddRouteV("radiant:server:reload", [this](rpc::Function const& f) {
-      Reload();
-   });
    core_reactor_->AddRouteV("radiant:server:save", [this](rpc::Function const& f) {
-      Save();
+      Save(json::Node(f.args).get<std::string>("game_id"));
    });
    core_reactor_->AddRouteV("radiant:server:load", [this](rpc::Function const& f) {
-      Load();
+      Load(json::Node(f.args).get<std::string>("game_id"));
    });
 
 }
@@ -201,9 +198,7 @@ void Simulation::InitializeDataObjectTraces()
    store_trace_ = store_->TraceStore("sim")->OnAlloced([=](dm::ObjectPtr obj) {
       dm::ObjectId id = obj->GetObjectId();
       dm::ObjectType type = obj->GetObjectType();
-      if (type == om::DataStoreObjectType) {
-         datastores_[id] = std::static_pointer_cast<om::DataStore>(obj);
-      } else if (type == om::EntityObjectType) {
+      if (type == om::EntityObjectType) {
          entityMap_[id] = std::static_pointer_cast<om::Entity>(obj);
       }
    })->PushStoreState();   
@@ -373,16 +368,6 @@ void Simulation::StepPathFinding()
          SIM_LOG(5) << p->GetProgress();
       }
    });
-}
-
-void Simulation::Save(std::string id)
-{
-   ASSERT(false);
-}
-
-void Simulation::Load(std::string id)
-{  
-   ASSERT(false);
 }
 
 void Simulation::FireLuaTraces()
@@ -784,23 +769,18 @@ float Simulation::GetBaseWalkSpeed() const
    return base_walk_speed_ * game_speed_;
 }
 
-void Simulation::Reload()
-{
-   Save();
-   Load();
-}
-
-void Simulation::Save()
+void Simulation::Save(std::string const& save_id)
 {
    SIM_LOG(0) << "starting save.";
    std::string error;
-   if (!store_->Save(error)) {
+   std::string filename = BUILD_STRING(save_id << "_server.sss");
+   if (!store_->Save(filename, error)) {
       SIM_LOG(0) << "failed to save: " << error;
    }
    SIM_LOG(0) << "saved.";
 }
 
-void Simulation::Load()
+void Simulation::Load(std::string const& save_id)
 {
    SIM_LOG(0) << "starting loadin...";
    // delete all the streamers before shutting down so we don't spam them with delete requests,
@@ -818,7 +798,8 @@ void Simulation::Load()
    std::string error;
    dm::Store::ObjectMap objects;
    // Re-initialize the game
-   if (!store_->Load(error, objects)) {
+   std::string filename = BUILD_STRING(save_id << "_server.sss");
+   if (!store_->Load(filename, error, objects)) {
       SIM_LOG(0) << "failed to load: " << error;
    }
 
@@ -840,7 +821,10 @@ void Simulation::Load()
    // state
    ASSERT(buffered_updates_.empty());
    proto::Update msg;
-   msg.set_type(proto::Update::ClearClientState);
+   msg.set_type(proto::Update::LoadGame);
+   proto::LoadGame *loadGameMsg = msg.MutableExtension(proto::LoadGame::extension);
+   loadGameMsg->set_game_id(save_id);
+
    for (std::shared_ptr<RemoteClient> client : _clients) {
       client->send_queue->Push(msg);
       client->streamer = std::make_shared<dm::Streamer>(*store_, dm::PLAYER_1_TRACES, client->send_queue.get());

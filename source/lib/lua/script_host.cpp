@@ -285,6 +285,8 @@ ScriptHost::ScriptHost(std::string const& site) :
 
 ScriptHost::~ScriptHost()
 {
+   required_.clear();
+   lua_close(L_);
 }
 
 /*
@@ -731,7 +733,7 @@ bool ScriptHost::IsNumericTable(luabind::object tbl) const
    return luabind::type(tbl) == LUA_TTABLE && luabind::type(tbl[1]) != LUA_TNIL;
 }
 
-void ScriptHost::LoadGame(om::ModListPtr mods, std::map<dm::ObjectId, om::EntityPtr>& em)
+void ScriptHost::LoadGame(om::ModListPtr mods, std::unordered_map<dm::ObjectId, om::EntityPtr>& em)
 {
    CreateModules(mods);
 

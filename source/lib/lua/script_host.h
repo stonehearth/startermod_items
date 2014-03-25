@@ -20,7 +20,7 @@ public:
    lua_State* GetCallbackThread();
 
    void CreateGame(om::ModListPtr mods);
-   void LoadGame(om::ModListPtr mods, std::map<dm::ObjectId, om::EntityPtr>& em);
+   void LoadGame(om::ModListPtr mods, std::unordered_map<dm::ObjectId, om::EntityPtr>& em);
 
    luabind::object Require(std::string const& name);
    luabind::object RequireScript(std::string const& path);

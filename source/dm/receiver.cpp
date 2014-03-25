@@ -53,3 +53,8 @@ void Receiver::ProcessRemove(tesseract::protocol::RemoveObjects const& msg)
       }
    }
 }
+
+void Receiver::Shutdown()
+{
+   objects_.clear();
+}

@@ -97,7 +97,7 @@ class Client : public core::Singleton<Client> {
       void RemoveObjects(const tesseract::protocol::RemoveObjects& msg);
       void UpdateDebugShapes(const tesseract::protocol::UpdateDebugShapes& msg);
       void DefineRemoteObject(const tesseract::protocol::DefineRemoteObject& msg);
-      void ClearClientState(const tesseract::protocol::ClearClientState& msg);
+      void LoadGame(const tesseract::protocol::LoadGame& msg);
 
       void mainloop();
       void setup_connections();
@@ -142,12 +142,20 @@ class Client : public core::Singleton<Client> {
       void InitializeUI();
       void Initialize();
       void InitializeDataObjects();
+      void InitializeDataObjectTraces();
       void InitializeGameObjects();
       void InitializeLuaObjects();
       void Shutdown();
       void ShutdownGameObjects();
       void ShutdownDataObjects();
+      void ShutdownDataObjectTraces();
       void ShutdownLuaObjects();
+      void SaveGame();
+      void LoadGame();
+      void SaveClientState(std::string const& id);
+      void LoadClientState(std::string const& id);
+      void CreateGame();
+      void CreateErrorBrowser();
 
 private:
       /*
