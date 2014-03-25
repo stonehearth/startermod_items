@@ -24,14 +24,17 @@ App.StonehearthStockpileView = App.View.extend({
       });
 
       this.items.click(function() {
+         radiant.call('radiant:play_sound', 'stonehearth:sounds:ui:action_click' );
          self._itemClick($(this));
       });
 
       this.allButton.click(function() {
+         radiant.call('radiant:play_sound', 'stonehearth:sounds:ui:action_click' );
          self._selectAll();
       });
       
       this.noneButton.click(function() {
+         radiant.call('radiant:play_sound', 'stonehearth:sounds:ui:action_click' );
          self._selectNone();
       });
 
@@ -51,6 +54,7 @@ App.StonehearthStockpileView = App.View.extend({
       });
 
       this.$('button.ok').click(function() {
+         radiant.call('radiant:play_sound', 'stonehearth:sounds:ui:carpenter_menu:small_click' );
          self.destroy();
       });
 
@@ -117,6 +121,7 @@ App.StonehearthStockpileView = App.View.extend({
 
    _toggleGroup : function(element) {
       var foo = element.attr('checked');
+      radiant.call('radiant:play_sound', 'stonehearth:sounds:ui:action_click' );
       var on = !(element.attr('checked') == 'checked');
 
       element.parent().siblings().each(function(i, sibling) {
