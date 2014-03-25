@@ -26,13 +26,6 @@
       },      
       "render_info" : {
          "scale" : 0.1
-      },
-      "stonehearth:resource_node": {
-         "resource": "stonehearth:hunk_of_stone", 
-         "harvest_overlay_effect" : "/stonehearth/data/effects/mine_overlay_effect",
-         "harvester_effect" : "mine",
-         "description" : "mine_boulder",
-         "durability": 2
       }   
 	}
 }
