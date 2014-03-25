@@ -38,7 +38,6 @@ RenderRenderInfo::RenderRenderInfo(RenderEntity& entity, om::RenderInfoPtr rende
    entity_(entity),
    render_info_(render_info),
    dirty_(-1),
-   material_(0),
    use_model_variant_override_(false)
 {
    auto set_scale_dirty_bit = [=]() {
@@ -110,14 +109,32 @@ void RenderRenderInfo::AccumulateModelVariants(ModelMap& m, om::ModelVariantsPtr
 
 void RenderRenderInfo::CheckMaterial(om::RenderInfoPtr render_info)
 {
-   std::string material_path = render_info->GetMaterial();
-   if (material_path.empty()) {
-      material_path = "materials/voxel.material.xml";
+   std::string material_path;
+   if (!material_kind_override_.empty()) {
+      material_path = entity_.GetMaterialPathFromKind(material_kind_override_);
+   } else {
+      material_path = render_info->GetMaterial();
+      if (material_path.empty()) {
+         material_path = "materials/voxel.material.xml";
+      }
    }
    if (material_path_ != material_path) {
-      material_path_  = material_path;
-      H3DRes material = h3dAddResource(H3DResTypes::Material, material_path.c_str(), 0);
-      material_.reset(material);
+      material_path_ = material_path;
+   }
+}
+
+void RenderRenderInfo::ReApplyMaterial()
+{
+   H3DNode parent = entity_.GetSkeleton().GetRootNode();
+   int numNodes = h3dFindNodes(parent, "", H3DNodeTypes::VoxelMesh);
+   H3DRes material = h3dAddResource(H3DResTypes::Material, material_path_.c_str(), 0);
+
+   if (material != 0) {
+      for (int i = 0; i < numNodes; i++) {
+         H3DNode n = h3dGetNodeFindResult(i);
+
+         h3dSetNodeParamI(n, H3DVoxelMeshNodeParams::MatResI, material);
+      }
    }
 }
 
@@ -285,6 +302,10 @@ void RenderRenderInfo::Update()
             RebuildModels(render_info);
             SetDirtyBits(SCALE_DIRTY);
          }
+         if (dirty_ & MATERIAL_DIRTY && !(dirty_ & MODEL_DIRTY)) {
+            CheckMaterial(render_info);
+            ReApplyMaterial();
+         }
          if (dirty_ & SCALE_DIRTY) {
             float scale = render_info->GetScale();
             Skeleton& skeleton = entity_.GetSkeleton();
@@ -305,6 +326,12 @@ void RenderRenderInfo::Update()
       dirty_ = 0;
    }
    renderer_frame_guard_.Clear();
+}
+
+void RenderRenderInfo::SetMaterialOverride(std::string const& materialOverride)
+{
+   SetDirtyBits(MATERIAL_DIRTY);
+   material_kind_override_ = materialOverride;
 }
 
 void RenderRenderInfo::SetModelVariantOverride(bool enabled, std::string const& variant)
