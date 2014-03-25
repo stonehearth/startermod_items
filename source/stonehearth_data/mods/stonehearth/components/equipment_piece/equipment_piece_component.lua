@@ -8,12 +8,16 @@ function EquipmentPieceComponent:initialize(entity, json)
    	self._sv._injected_commands = {}
 	end
 
-   radiant.events.listen(self._entity, 'radiant:entity:post_create', function(e)
-   	local owner = self._sv.owner
-   	if owner and owner:is_valid() then
-   		self:_inject_ai()
-   	end
-   end)
+   local owner = self._sv.owner
+   if owner and owner:is_valid() then
+   	-- we can't be sure what gets loaded first: us or our owner.  if we get
+   	-- loaded first, it's way too early to inject the ai.  if the owner got loaded
+   	-- first, the 'radiant:entities:post_create' event has already been fired.
+   	-- so just load up once the whole game is loaded.
+      radiant.events.listen(radiant, 'radiant:game_loaded', function(e)
+            self:_inject_ai()
+         end)
+   end
 
    assert(json.render_type)
 end

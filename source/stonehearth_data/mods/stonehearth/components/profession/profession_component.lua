@@ -8,11 +8,14 @@ function ProfessionComponent:initialize(entity, json)
    self._entity = entity
    self._sv = self.__saved_variables:get_data()
    if self._sv.profession_uri then
-      local json = radiant.resources.load_json(self._sv.profession_uri, true)
-      if json then
-         self:_load_profession_script(json)
-         self:_call_profession_script('restore', json)
-      end
+      radiant.events.listen(entity, 'radiant:entity:post_create', function(e)
+            local json = radiant.resources.load_json(self._sv.profession_uri, true)
+            if json then
+               self:_load_profession_script(json)
+               self:_call_profession_script('restore', json)
+            end
+            return radiant.events.UNLISTEN
+         end)
    end
 end
 

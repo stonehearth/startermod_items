@@ -59,9 +59,9 @@ function StockpileComponent:initialize(entity, json)
       self._destination:set_reserved(_radiant.sim.alloc_region()) -- xxx: clear the existing one from cpp land!
       self:_create_worker_tasks()      
    end
-   radiant.events.listen(self._entity, 'radiant:entity:post_create', function(e)
+   radiant.events.listen(entity, 'radiant:entity:post_create', function(e)
          self:_finish_initialization()
-         return radiant.events.unlisten
+         return radiant.events.UNLISTEN
       end)
       
    all_stockpiles[self._entity:get_id()] = self
