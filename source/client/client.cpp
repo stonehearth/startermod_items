@@ -829,6 +829,8 @@ void Client::UpdateDebugShapes(const proto::UpdateDebugShapes& msg)
 
 void Client::ClearClientState(const proto::ClearClientState& msg)
 {
+   CLIENT_LOG(2) << "clearing client state";
+   
    Shutdown();
 
    // remove all the input handlers except the one in the renderer.  this will
