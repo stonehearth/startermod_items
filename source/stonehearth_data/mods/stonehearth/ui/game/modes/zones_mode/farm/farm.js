@@ -64,6 +64,7 @@ App.StonehearthFarmView = App.View.extend({
       });
 
       this.$('button.ok').click(function() {
+         radiant.call('radiant:play_sound', 'stonehearth:sounds:ui:carpenter_menu:small_click' );
          self.destroy();
       });
 
@@ -74,7 +75,7 @@ App.StonehearthFarmView = App.View.extend({
             position: 'bottom'
       });
       $('.tooltip').tooltipster('enable');
-      */
+      */ 
 
    },
 
@@ -103,6 +104,7 @@ App.StonehearthFarmView = App.View.extend({
          var self = this;
          palette = App.gameView.addView(App.StonehearthFarmCropPalette, { 
                      click: function(item) {
+                        radiant.call('radiant:play_sound', 'stonehearth:sounds:ui:action_click' );
                         var cropId = $(item).attr('crop');
                         //TODO: add back when we make the queue
                         //self.addCropToRotation($(item).attr('crop'));
@@ -126,6 +128,7 @@ App.StonehearthFarmCropPalette = App.View.extend({
    modal: true,
 
    init: function() {
+      radiant.call('radiant:play_sound', 'stonehearth:sounds:ui:carpenter_menu:add_remove' );
       this._super();
    },
 
