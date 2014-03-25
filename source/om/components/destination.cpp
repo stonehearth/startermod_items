@@ -41,11 +41,8 @@ void Destination::LoadFromJson(json::Node const& obj)
       (*adjacent_)->Set(obj.get("adjacent", csg::Region3()));
    }
    bool dflt = *region_ != nullptr && *adjacent_ == nullptr;
-   bool auto_update_adjacent =  obj.get<bool>("auto_update_adjacent", dflt);
+   auto_update_adjacent_ =  obj.get<bool>("auto_update_adjacent", dflt);
    allow_diagonal_adjacency_ = obj.get<bool>("allow_diagonal_adjacency", false);
-
-   // Installs traces and update derived values if true
-   SetAutoUpdateAdjacent(auto_update_adjacent);
 
    D_LOG(5) << "finished constructing new destination for entity " << GetEntity().GetObjectId();
 }
@@ -72,26 +69,30 @@ Destination& Destination::SetAutoUpdateAdjacent(bool value)
    value = !!value; // cohearse to 1 or 0
    if (auto_update_adjacent_ != value) {
       auto_update_adjacent_ = value;
-
-      if (value) {
-         dm::ObjectId component_id = GetObjectId();
-         region_trace_ = TraceRegion("auto_update_adjacent", dm::OBJECT_MODEL_TRACES)
-            ->OnChanged([this](csg::Region3 const& r) {
-               UpdateDerivedValues();
-            });
-
-         reserved_trace_ = TraceReserved("auto_update_adjacent", dm::OBJECT_MODEL_TRACES)
-            ->OnChanged([this](csg::Region3 const& r) {
-               UpdateDerivedValues();
-            });
-
-         UpdateDerivedValues();
-      } else {
-         region_trace_ = nullptr;
-         reserved_trace_ = nullptr;
-      }
+      OnAutoUpdateAdjacentChanged();
    }
    return *this;
+}
+
+void Destination::OnAutoUpdateAdjacentChanged()
+{
+   if (*auto_update_adjacent_ && !region_trace_) {
+      dm::ObjectId component_id = GetObjectId();
+      region_trace_ = TraceRegion("auto_update_adjacent", dm::OBJECT_MODEL_TRACES)
+         ->OnChanged([this](csg::Region3 const& r) {
+            UpdateDerivedValues();
+         });
+
+      reserved_trace_ = TraceReserved("auto_update_adjacent", dm::OBJECT_MODEL_TRACES)
+         ->OnChanged([this](csg::Region3 const& r) {
+            UpdateDerivedValues();
+         });
+
+      UpdateDerivedValues();
+   } else {
+      region_trace_ = nullptr;
+      reserved_trace_ = nullptr;
+   }
 }
 
 Destination& Destination::SetAllowDiagonalAdjacency(bool value)
@@ -137,6 +138,11 @@ Destination& Destination::SetAdjacent(Region3BoxedPtr r)
    // Manually setting the adjacent region turns off auto adjacency stuff by default
    SetAutoUpdateAdjacent(false);
    return *this;
+}
+
+void Destination::Initialize()
+{
+   OnAutoUpdateAdjacentChanged();
 }
 
 csg::Point3 Destination::GetBestPointOfInterest(csg::Region3 const& r, csg::Point3 const& pt) const
