@@ -300,3 +300,32 @@ void RenderEntity::SetModelVariantOverride(bool enabled, std::string const& vari
       ri->SetModelVariantOverride(enabled, variant);
    }
 }
+
+std::string const RenderEntity::GetMaterialPathFromKind(std::string const& matKind) const
+{
+   std::shared_ptr<RenderRenderInfo> ri = std::static_pointer_cast<RenderRenderInfo>(components_.at("render_info"));
+   std::string matPath;
+
+   auto lookupCallback = [&matKind, &matPath](JSONNode const& data) {
+      matPath = "materials/voxel.material.xml";
+
+      auto f = data.at("entity_data");
+      auto g = f.at("stonehearth:render_materials");
+      auto h = g.at(matKind);
+      if (!h.as_string().empty()) {
+         matPath = h.as_string();
+      }
+   };
+   if (ri) {
+      auto entity = entity_.lock();
+      res::ResourceManager2::GetInstance().LookupJson(entity->GetUri(), lookupCallback);
+   }
+
+   return matPath;
+}
+
+void RenderEntity::SetMaterialOverride(std::string const& overrideKind)
+{
+   std::shared_ptr<RenderRenderInfo> ri = std::static_pointer_cast<RenderRenderInfo>(components_.at("render_info"));
+   ri->SetMaterialOverride(overrideKind);
+}

@@ -23,13 +23,15 @@ public:
    ~RenderRenderInfo();
 
    void SetModelVariantOverride(bool enabled, std::string const& variant);
+   void SetMaterialOverride(std::string const& materialOverride);
 private:
 
 private:
    enum DirtyBits {
       ANIMATION_TABLE_DIRTY  = (1 << 0),
       MODEL_DIRTY            = (1 << 1),
-      SCALE_DIRTY            = (1 << 2)
+      SCALE_DIRTY            = (1 << 2),
+      MATERIAL_DIRTY         = (1 << 3)
    };
 
    typedef std::vector<voxel::QubicleMatrix const*> MatrixVector;
@@ -66,6 +68,7 @@ private:
    void Update();
    void SetDirtyBits(int flags);
    std::string GetModelVariant(om::RenderInfoPtr render_info) const;
+   void ReApplyMaterial();
 
 private:
    RenderEntity&           entity_;
@@ -80,8 +83,8 @@ private:
    NodeMap                 nodes_;
    BoneOffsetMap           bones_offsets_;
    std::string             model_variant_override_;
-   H3DResUnique            material_;
    std::string             material_path_;
+   std::string             material_kind_override_;
    bool                    use_model_variant_override_;
 };
 

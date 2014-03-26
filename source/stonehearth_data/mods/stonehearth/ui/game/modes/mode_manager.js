@@ -68,9 +68,11 @@ $(document).ready(function() {
             if (App.stonehearth.startMenu) {
                App.stonehearth.startMenu.stonehearthMenu('setGameMode', mode);
             }
-          
+
             // notify the rest of the ui
             $(top).trigger('mode_changed', mode);
+
+            radiant.call('stonehearth:ui_mode_changed', mode)
          }
       },
 

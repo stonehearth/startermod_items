@@ -455,7 +455,9 @@ struct H3DNodeTypes
 		Joint,
 		Light,
 		Camera,
-		Emitter
+		Emitter,
+      VoxelModel,
+      VoxelMesh,
 	};
 };
 
@@ -513,6 +515,21 @@ struct H3DProjectorNodeParams
 		MatResI = 300
 	};
 };
+
+
+struct H3DVoxelMeshNodeParams
+{
+	enum List
+	{
+		MatResI = 300,
+		BatchStartI,
+		BatchCountI,
+		VertRStartI,
+		VertREndI,
+		LodLevelI
+	};
+};
+
 
 struct H3DModel
 {

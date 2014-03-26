@@ -34,12 +34,14 @@ class RenderEntity : public std::enable_shared_from_this<RenderEntity>
       H3DNode GetParent() const; 
       H3DNode GetNode() const;
       std::string const& GetName() const;
+      std::string const GetMaterialPathFromKind(std::string const& matKind) const;
 
       static int GetTotalObjectCount();
 
       Skeleton& GetSkeleton() { return skeleton_; }
 
       void SetModelVariantOverride(bool enabled, std::string const& variant);
+      void SetMaterialOverride(std::string const& overrideKind);
 
    private:
       void LoadAspects(om::EntityPtr obj);
