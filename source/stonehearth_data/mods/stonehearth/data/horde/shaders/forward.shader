@@ -319,7 +319,9 @@ void main( void )
 
 
 [[FS_DEPTH_LINEAR]]
-#include "shaders/utilityLib/vertCommon.glsl"
+#include "shaders/utilityLib/psCommon.glsl"
+
+uniform mat4 viewMat;
 
 varying vec3 tsbNormal;
 varying float worldScale;
@@ -332,7 +334,7 @@ void main(void)
 }
 
 [[FS_DEPTH_LINEAR_BACK]]
-#include "shaders/utilityLib/vertCommon.glsl"
+#include "shaders/utilityLib/psCommon.glsl"
 
 void main(void)
 {
