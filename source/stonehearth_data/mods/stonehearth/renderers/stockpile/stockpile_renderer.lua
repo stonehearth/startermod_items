@@ -17,12 +17,15 @@ function StockpileRenderer:__init()
             self._ui_view_mode = e.mode
 
             self:_update_item_renderers(e.mode, self._stockpile_items)
-
-            self._color = Color3(255 - self._color.r, self._color.g, self._color.b)
-            self:_regenerate_node()
+            self:_update_stockpile_renderer(e.mode)
          end
       end
    end)
+end
+
+function StockpileRenderer:_update_stockpile_renderer(mode)
+   -- TODO: Here, we decide what we want the stockpile to look like.
+   self:_regenerate_node()
 end
 
 function StockpileRenderer:_update_item_renderers(mode, item_map)
