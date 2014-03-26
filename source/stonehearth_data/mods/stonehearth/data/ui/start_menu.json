@@ -1,30 +1,15 @@
 {
    "harvest_menu" : {
       "name" : "Harvest",
-      "description" : "Commands for harvesting and removing resources from the ground.",
+      "description" : "Harvest resources from the ground, like wood, stone, and ore.",
       "class" : "dock",
       "icon" : "/stonehearth/ui/game/start_menu/images/dock_harvest.png",
       "hotkey" : "h",
-      "game_mode" : "normal",
-      "items" : {
-            "harvest_resources" : {
-                "name" : "Harvest Resources",
-                "description" : "Harvest resources from the ground, like wood, stone, and ore.",
-                "icon" : "/stonehearth/ui/game/start_menu/images/harvest.png",
-                "class" : "button",
-                "hotkey" : "r"
-            },
-            "obliterate" : {
-                "name" : "Obliterate",
-                "description" : "Completely destroy resources that are in your way, instead of collecting them.",
-                "class" : "button",
-                "hotkey" : "x"
-            }
-      }
+      "game_mode" : "normal"
    },
    "zone_menu" : {
       "name" : "Zones",
-      "description" : "xxx",
+      "description" : "Designate areas of the ground for storage, farming, etc.",
       "class" : "dock",
       "icon" : "/stonehearth/ui/game/start_menu/images/dock_zone.png",
       "hotkey" : "z",
@@ -32,7 +17,7 @@
       "items" : {
             "create_stockpile" : {
                 "name" : "Stockpile",
-                "description" : "xxx",
+                "description" : "Place a stockpile for storing resources.",
                 "class" : "button",
                 "icon" : "/stonehearth/ui/game/start_menu/images/zone_stockpile.png",
                 "sticky" : true,
@@ -40,7 +25,7 @@
             },
             "create_farm" : {
                 "name" : "Farm",
-                "description" : "xxx",
+                "description" : "Place a farm on the terrain.",
                 "class" : "button",
                 "icon" : "/stonehearth/ui/game/start_menu/images/zone_farm.png",
                 "sticky" : true,
@@ -50,7 +35,7 @@
    },
    "build_menu" : {
       "name" : "Build",
-      "description" : "xxx",
+      "description" : "Build structures like houses and city walls.",
       "class" : "dock",
       "icon" : "/stonehearth/ui/game/start_menu/images/dock_build.png",
       "hotkey" : "b",
@@ -72,29 +57,12 @@
             }
       }
    },
-   "town_menu" : {
-      "name" : "Town Info",
-      "description" : "xxx",
-      "class" : "town",
-      "game_mode" : "normal",
-      "items" : {
-            "town_inventory" : {
-                "name" : "Inventory",
-                "description" : "xxx",
-                "class" : "button"
-            },
-            "town_citizens" : {
-                "name" : "Citizens",
-                "description" : "xxx",
-                "class" : "button"
-            }
-      }      
-   },
    "jobs_menu" : {
       "name" : "Jobs",
-      "description" : "xxx",
+      "description" : "Manage your settlers and promote them to new jobs.",
       "class" : "dock",
       "icon" : "/stonehearth/ui/game/start_menu/images/dock_jobs.png",
+      "hotkey" : "j",
       "game_mode" : "normal",
       "items" : {
             "promote" : {
@@ -104,9 +72,17 @@
             }
       }      
    },
+   "crafters_menu" : {
+      "name" : "Crafters",
+      "description" : "Manager all of your crafters and workshops.",
+      "class" : "dock",
+      "icon" : "/stonehearth/ui/game/start_menu/images/dock_crafters.png",
+      "hotkey" : "c",
+      "game_mode" : "normal"
+   },
    "defend_menu" : {
       "name" : "Defend",
-      "description" : "xxx",
+      "description" : "Manage your military squads.",
       "class" : "dock",
       "icon" : "/stonehearth/ui/game/start_menu/images/dock_defend.png",
       "game_mode" : "normal",
@@ -127,11 +103,5 @@
                 "class" : "button"
             }
       }      
-   },
-   "config_menu" : {
-      "name" : "Config",
-      "description" : "xxx",
-      "class" : "dock",
-      "game_mode" : "normal"
    }
 }

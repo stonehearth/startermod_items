@@ -41,6 +41,8 @@
 
 #include "radiant.h"
 #include "core/config.h"
+#include <boost/algorithm/string/predicate.hpp>
+#include <png.h>
 
 using namespace Horde3D;
 using namespace std;
@@ -49,6 +51,8 @@ using namespace std;
 #undef PLATFORM_WIN
 #endif
 
+
+static bool h3dutCreatePNGImage(FILE *fp, const unsigned char *pixels, int width, int height);
 
 namespace Horde3DUtils {
 
@@ -766,6 +770,123 @@ DLLEXP H3DRes h3dutCreateGeometryRes(
 	return res;
 }
 
+bool h3dutCreatePNGImage(FILE *fp, const unsigned char *pixels, int width, int height)
+{
+   png_structp png_ptr;
+   png_infop info_ptr;
+
+   /* Create and initialize the png_struct with the desired error handler
+    * functions.  If you want to use the default stderr and longjump method,
+    * you can supply NULL for the last three parameters.  We also check that
+    * the library version is compatible with the one used at compile time,
+    * in case we are using dynamically linked libraries.  REQUIRED.
+    */
+   png_ptr = png_create_write_struct(PNG_LIBPNG_VER_STRING, nullptr, nullptr, nullptr); // user_error_fn, user_warning_fn);
+   if (png_ptr == NULL) {
+      return false;
+   }
+
+   /* Allocate/initialize the image information data.  REQUIRED */
+   info_ptr = png_create_info_struct(png_ptr);
+   if (info_ptr == NULL) {
+      png_destroy_write_struct(&png_ptr,  NULL);
+      return false;
+   }
+
+   /* Set error handling.  REQUIRED if you aren't supplying your own
+    * error handling functions in the png_create_write_struct() call.
+    */
+   if (setjmp(png_jmpbuf(png_ptr))) {
+      /* If we get here, we had a problem writing the file */
+      png_destroy_write_struct(&png_ptr, &info_ptr);
+      return false;
+   }
+
+   /* One of the following I/O initialization functions is REQUIRED */
+
+   /* Set up the output control if you are using standard C streams */
+   png_init_io(png_ptr, fp);
+
+   /* This is the hard way */
+
+   /* Set the image information here.  Width and height are up to 2^31,
+    * bit_depth is one of 1, 2, 4, 8, or 16, but valid values also depend on
+    * the color_type selected. color_type is one of PNG_COLOR_TYPE_GRAY,
+    * PNG_COLOR_TYPE_GRAY_ALPHA, PNG_COLOR_TYPE_PALETTE, PNG_COLOR_TYPE_RGB,
+    * or PNG_COLOR_TYPE_RGB_ALPHA.  interlace is either PNG_INTERLACE_NONE or
+    * PNG_INTERLACE_ADAM7, and the compression_type and filter_type MUST
+    * currently be PNG_COMPRESSION_TYPE_BASE and PNG_FILTER_TYPE_BASE. REQUIRED
+    */
+   png_set_IHDR(png_ptr, info_ptr, width, height, 8, PNG_COLOR_TYPE_RGB,
+      PNG_INTERLACE_NONE, PNG_COMPRESSION_TYPE_BASE, PNG_FILTER_TYPE_BASE);
+
+   png_set_bgr(png_ptr);
+
+#if 0
+   /* Optional gamma chunk is strongly suggested if you have any guess
+    * as to the correct gamma of the image.
+    */
+   png_set_gAMA(png_ptr, info_ptr, gamma);
+#endif
+
+   /* Other optional chunks like cHRM, bKGD, tRNS, tIME, oFFs, pHYs */
+
+   /* Note that if sRGB is present the gAMA and cHRM chunks must be ignored
+    * on read and, if your application chooses to write them, they must
+    * be written in accordance with the sRGB profile
+    */
+
+   /* Write the file header information.  REQUIRED */
+   png_write_info(png_ptr, info_ptr);
+
+   /* If you want, you can write the info in two steps, in case you need to
+    * write your private chunk ahead of PLTE:
+    *
+    *   png_write_info_before_PLTE(write_ptr, write_info_ptr);
+    *   write_my_chunk();
+    *   png_write_info(png_ptr, info_ptr);
+    *
+    * However, given the level of known- and unknown-chunk support in 1.2.0
+    * and up, this should no longer be necessary.
+    */
+
+   /* Once we write out the header, the compression type on the text
+    * chunks gets changed to PNG_TEXT_COMPRESSION_NONE_WR or
+    * PNG_TEXT_COMPRESSION_zTXt_WR, so it doesn't get written out again
+    * at the end.
+    */
+
+   /* The easiest way to write the image (you may have a different memory
+    * layout, however, so choose what fits your needs best).  You need to
+    * use the first method if you aren't handling interlacing yourself.
+    */
+   std::vector<png_byte*> row_pointers(height);
+
+   /* Set up pointers into your "image" byte array */
+   for (int k = 0; k < height; k++) {
+      int row = height - k - 1;
+     row_pointers[k] = (png_byte*)(pixels + (row * width * 3));
+   }
+
+   /* One of the following output methods is REQUIRED */
+   png_write_image(png_ptr, row_pointers.data());
+
+   /* You can write optional chunks like tEXt, zTXt, and tIME at the end
+    * as well.  Shouldn't be necessary in 1.2.0 and up as all the public
+    * chunks are supported and you can use png_set_unknown_chunks() to
+    * register unknown chunks into the info structure to be written out.
+    */
+
+   /* It is REQUIRED to call this to finish writing the rest of the file */
+   png_write_end(png_ptr, info_ptr);
+
+   /* Clean up after the write, and free any memory allocated */
+   png_destroy_write_struct(&png_ptr, &info_ptr);
+
+   /* That's it */
+   return true;
+}
+
 DLLEXP bool h3dutCreateTGAImage( const unsigned char *pixels, int width, int height, int bpp,
                                  char **outData, int *outSize )
 {
@@ -878,45 +999,50 @@ DLLEXP H3DNode h3dutPickNode( H3DNode cameraNode, float nwx, float nwy )
 }
 
 
-DLLEXP bool h3dutScreenshot( const char *filename )
+DLLEXP bool h3dutScreenshot(const char *fname)
 {
-	if( filename == 0x0 ) return false;
-	
-	int width, height;
-	h3dGetRenderTargetData( 0, "", 0, &width, &height, 0x0, 0x0, 0 );
+   if (fname == 0x0) {
+      return false;
+   }
 
-	float *pixelsF = new float[width * height * 4];
-	h3dGetRenderTargetData( 0, "", 0, 0x0, 0x0, 0x0, pixelsF, width * height * 16 );
-	
-	// Convert to BGR8
-	unsigned char *pixels = new unsigned char[width * height * 3];
-	for( int y = 0; y < height; ++y )
-	{
-		for( int x = 0; x < width; ++x )
-		{
-			pixels[(y * width + x) * 3 + 0] = ftoi_r( clamp( pixelsF[(y * width + x) * 4 + 2], 0.f, 1.f ) * 255.f );
-			pixels[(y * width + x) * 3 + 1] = ftoi_r( clamp( pixelsF[(y * width + x) * 4 + 1], 0.f, 1.f ) * 255.f );
-			pixels[(y * width + x) * 3 + 2] = ftoi_r( clamp( pixelsF[(y * width + x) * 4 + 0], 0.f, 1.f ) * 255.f );
-		}
-	}
-	delete[] pixelsF;
-	
-	char *image;
-	int imageSize;
-	h3dutCreateTGAImage( pixels, width, height, 24, &image, &imageSize );
+   int width, height;
+   h3dGetRenderTargetData( 0, "", 0, &width, &height, 0x0, 0x0, 0 );
 
-	size_t bytesWritten = 0;
-	FILE *f = fopen( filename, "wb" );
-	if( f )
-	{
-		bytesWritten = fwrite( image, 1, imageSize, f );
-		fclose( f );
-	}
+   float *pixelsF = new float[width * height * 4];
+   h3dGetRenderTargetData( 0, "", 0, 0x0, 0x0, 0x0, pixelsF, width * height * 16 );
 
-	delete[] pixels;
-	h3dutFreeMem( &image );
+   // Convert to BGR8
+   unsigned char *pixels = new unsigned char[width * height * 3];
+   for( int y = 0; y < height; ++y )
+   {
+      for( int x = 0; x < width; ++x )
+      {
+         pixels[(y * width + x) * 3 + 0] = ftoi_r( clamp( pixelsF[(y * width + x) * 4 + 2], 0.f, 1.f ) * 255.f );
+         pixels[(y * width + x) * 3 + 1] = ftoi_r( clamp( pixelsF[(y * width + x) * 4 + 1], 0.f, 1.f ) * 255.f );
+         pixels[(y * width + x) * 3 + 2] = ftoi_r( clamp( pixelsF[(y * width + x) * 4 + 0], 0.f, 1.f ) * 255.f );
+      }
+   }
+   delete[] pixelsF;
 
-	return bytesWritten == width * height * 3 + 18;
+
+   std::string filename(fname);
+   size_t bytesWritten = 0;
+   FILE *f = fopen(fname, "wb");
+   if (f) {
+      if (boost::algorithm::ends_with(filename, ".tga")) {      
+         char *image;
+         int imageSize;
+         h3dutCreateTGAImage( pixels, width, height, 24, &image, &imageSize );
+         bytesWritten = fwrite(image, 1, imageSize, f);
+         h3dutFreeMem(&image);
+      } else if (boost::algorithm::ends_with(filename, ".png")) {
+         h3dutCreatePNGImage(f, pixels, width, height);
+      }
+      fclose(f);
+   }
+   delete[] pixels;
+
+   return bytesWritten == width * height * 3 + 18;
 }
 
 

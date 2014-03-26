@@ -21,6 +21,7 @@
 #include "om/stonehearth.h"
 #include "horde3d/Source/Horde3DEngine/egModules.h"
 #include "horde3d/Source/Horde3DEngine/egCom.h"
+#include "horde3d/Bindings/C++/Horde3DUtils.h"
 #include "lib/rpc/trace.h"
 #include "lib/rpc/untrace.h"
 #include "lib/rpc/function.h"
@@ -1303,6 +1304,7 @@ void Client::SaveGame()
    args.set("game_id", "hotkey_save");
    core_reactor_->Call(rpc::Function("radiant:server:save", args));
    SaveClientState("hotkey_save");
+   h3dutScreenshot("hotkey_save.png");
 }
 
 void Client::LoadGame()
