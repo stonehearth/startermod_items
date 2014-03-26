@@ -66,29 +66,28 @@ void Destination::SerializeToJson(json::Node& node) const
 
 Destination& Destination::SetAutoUpdateAdjacent(bool value)
 {
-   value = !!value; // cohearse to 1 or 0
-   if (auto_update_adjacent_ != value) {
-      auto_update_adjacent_ = value;
-      OnAutoUpdateAdjacentChanged();
-   }
+   auto_update_adjacent_ = value;
+   OnAutoUpdateAdjacentChanged();
    return *this;
 }
 
 void Destination::OnAutoUpdateAdjacentChanged()
 {
-   if (*auto_update_adjacent_ && !region_trace_) {
-      dm::ObjectId component_id = GetObjectId();
-      region_trace_ = TraceRegion("auto_update_adjacent", dm::OBJECT_MODEL_TRACES)
-         ->OnChanged([this](csg::Region3 const& r) {
-            UpdateDerivedValues();
-         });
+   if (*auto_update_adjacent_) {
+      if (!region_trace_) {
+         dm::ObjectId component_id = GetObjectId();
+         region_trace_ = TraceRegion("auto_update_adjacent", dm::OBJECT_MODEL_TRACES)
+            ->OnChanged([this](csg::Region3 const& r) {
+               UpdateDerivedValues();
+            });
 
-      reserved_trace_ = TraceReserved("auto_update_adjacent", dm::OBJECT_MODEL_TRACES)
-         ->OnChanged([this](csg::Region3 const& r) {
-            UpdateDerivedValues();
-         });
+         reserved_trace_ = TraceReserved("auto_update_adjacent", dm::OBJECT_MODEL_TRACES)
+            ->OnChanged([this](csg::Region3 const& r) {
+               UpdateDerivedValues();
+            });
 
-      UpdateDerivedValues();
+         UpdateDerivedValues();
+      }
    } else {
       region_trace_ = nullptr;
       reserved_trace_ = nullptr;
