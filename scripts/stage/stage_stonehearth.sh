@@ -109,11 +109,6 @@ if [ ! -z $STAGE_BIN ]; then
    cp -u $CHROMIUM_ROOT/Release/libcef.dll $OUTPUT_DIR
    cp -u $CHROMIUM_ROOT/Release/icudt.dll $OUTPUT_DIR
 
-   # libpng
-   echo Copying libpng
-   LIBPNG_ROOT=$STONEHEARTH_ROOT/modules/libpng
-   cp -u $LIBPNG_ROOT/package/lpng1610/projects/vstudio/$MODULE_BUILD_TYPE/libpng16.dll $OUTPUT_DIR
-
    echo Copying sfml 
    SFML_ROOT=$STONEHEARTH_ROOT/modules/sfml
    SFML_BUILD_ROOT=$SFML_ROOT/build/lib/$MODULE_BUILD_TYPE
