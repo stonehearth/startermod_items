@@ -82,7 +82,8 @@ function StockpileRenderer:_diff_and_update_item_renderers(updated_items)
    local removed_items = temp_items
 
    self:_update_item_renderers(self._ui_view_mode, added_items)
-   self:_update_item_renderers('', removed_items)
+   -- Not quite; ask Tony!
+   --self:_update_item_renderers('', removed_items)
 end
 
 --- xxx: someone call destroy please!!
