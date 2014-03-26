@@ -52,8 +52,8 @@ App.StonehearthCitizenCharacterSheetView = App.View.extend({
    //Call on a jquery object (usually a div) whose ID matches the name of the attribute
    _showBuffEffects: function(obj, buffsByAttribute) {
       var attrib_name = $(obj).attr('id');
-      var attrib_value = this.get('context.stonehearth:attributes.' + attrib_name + '.value');
-      var attrib_e_value = this.get('context.stonehearth:attributes.' + attrib_name + '.effective_value');
+      var attrib_value = this.get('context.stonehearth:attributes.attributes.' + attrib_name + '.value');
+      var attrib_e_value = this.get('context.stonehearth:attributes.attributes.' + attrib_name + '.effective_value');
 
       if (attrib_e_value > attrib_value) {
          //If buff, make text green
@@ -166,7 +166,7 @@ App.StonehearthCitizenCharacterSheetView = App.View.extend({
       if (b) {
          this._updateAttributes();
       }
-      
+
    }
 
 });
