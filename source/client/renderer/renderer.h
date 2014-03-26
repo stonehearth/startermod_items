@@ -81,6 +81,9 @@ struct RendererConfig {
    RendererConfigEntry<int> last_window_x;
    RendererConfigEntry<int> last_window_y;
 
+   RendererConfigEntry<int> last_screen_x;
+   RendererConfigEntry<int> last_screen_y;
+
    RendererConfigEntry<bool> enable_debug_keys;
 };
 
