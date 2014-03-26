@@ -33,8 +33,10 @@ function StockpileRenderer:_update_item_renderers(mode, item_map)
       return
    end
    for id, item in pairs(item_map) do
-      local f = _radiant.client.get_render_entity(item)
-      f:set_material_override(self:_mode_to_material_kind(mode))
+      if item:is_valid() then
+         local f = _radiant.client.get_render_entity(item)
+         f:set_material_override(self:_mode_to_material_kind(mode))
+      end
    end
 end
 
@@ -82,8 +84,7 @@ function StockpileRenderer:_diff_and_update_item_renderers(updated_items)
    local removed_items = temp_items
 
    self:_update_item_renderers(self._ui_view_mode, added_items)
-   -- Not quite; ask Tony!
-   --self:_update_item_renderers('', removed_items)
+   self:_update_item_renderers('', removed_items)
 end
 
 --- xxx: someone call destroy please!!
