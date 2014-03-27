@@ -5,6 +5,10 @@ FollowPathAction.name = 'follow path'
 FollowPathAction.does = 'stonehearth:follow_path'
 FollowPathAction.args = {
    path = Path,          -- the path to follow
+   stop_distance = {
+      type = 'number',
+      default = 0
+   }
 }
 FollowPathAction.version = 2
 FollowPathAction.priority = 1
@@ -49,7 +53,7 @@ function FollowPathAction:run(ai, entity, args)
       ai:resume('mover finished')
    end
    
-   self._mover = _radiant.sim.create_follow_path(entity, speed, path, 0, arrived_fn)   
+   self._mover = _radiant.sim.create_follow_path(entity, speed, path, args.stop_distance, arrived_fn)   
    ai:get_log():debug('starting mover %s...', self._mover:get_name());
    ai:suspend('waiting for mover to finish')
 

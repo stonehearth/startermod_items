@@ -87,29 +87,29 @@ void Sim_DestroyEntity(lua_State* L, std::weak_ptr<om::Entity> e)
    }
 }
 
-std::shared_ptr<FollowPath> Sim_CreateFollowPath(lua_State *L, om::EntityRef entity, float speed, std::shared_ptr<Path> path, float close_to_distance, object arrived_cb)
+std::shared_ptr<FollowPath> Sim_CreateFollowPath(lua_State *L, om::EntityRef entity, float speed, std::shared_ptr<Path> path, float stop_distance, object arrived_cb)
 {
    Simulation &sim = GetSim(L);
    object cb(lua::ScriptHost::GetCallbackThread(L), arrived_cb);
-   std::shared_ptr<FollowPath> fp(new FollowPath(sim, entity, speed, path, close_to_distance, cb));
+   std::shared_ptr<FollowPath> fp(new FollowPath(sim, entity, speed, path, stop_distance, cb));
    sim.AddTask(fp);
    return fp;
 }
 
-std::shared_ptr<GotoLocation> Sim_CreateGotoLocation(lua_State *L, om::EntityRef entity, float speed, const csg::Point3& location, float close_to_distance, object arrived_cb)
+std::shared_ptr<GotoLocation> Sim_CreateGotoLocation(lua_State *L, om::EntityRef entity, float speed, const csg::Point3& location, float stop_distance, object arrived_cb)
 {
    Simulation &sim = GetSim(L);
    object cb(lua::ScriptHost::GetCallbackThread(L), arrived_cb);
-   std::shared_ptr<GotoLocation> fp(new GotoLocation(sim, entity, speed, csg::ToFloat(location), close_to_distance, cb));
+   std::shared_ptr<GotoLocation> fp(new GotoLocation(sim, entity, speed, csg::ToFloat(location), stop_distance, cb));
    sim.AddTask(fp);
    return fp;
 }
 
-std::shared_ptr<GotoLocation> Sim_CreateGotoEntity(lua_State *L, om::EntityRef entity, float speed, om::EntityRef target, float close_to_distance, object arrived_cb)
+std::shared_ptr<GotoLocation> Sim_CreateGotoEntity(lua_State *L, om::EntityRef entity, float speed, om::EntityRef target, float stop_distance, object arrived_cb)
 {
    Simulation &sim = GetSim(L);
    object cb(lua::ScriptHost::GetCallbackThread(L), arrived_cb);
-   std::shared_ptr<GotoLocation> fp(new GotoLocation(sim, entity, speed, target, close_to_distance, cb));
+   std::shared_ptr<GotoLocation> fp(new GotoLocation(sim, entity, speed, target, stop_distance, cb));
    sim.AddTask(fp);
    return fp;
 }

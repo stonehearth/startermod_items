@@ -17,13 +17,13 @@ std::ostream& simulation::operator<<(std::ostream& os, GotoLocation const& o)
    return os << "[GotoLocation ...]";
 }
 
-GotoLocation::GotoLocation(Simulation& sim, om::EntityRef entity, float speed, const csg::Point3f& location, float close_to_distance, luabind::object arrived_cb) :
+GotoLocation::GotoLocation(Simulation& sim, om::EntityRef entity, float speed, const csg::Point3f& location, float stop_distance, luabind::object arrived_cb) :
    Task(sim, "goto location"),
    entity_(entity),
    target_location_(location),
    speed_(speed),
    target_is_entity_(false),
-   close_to_distance_(close_to_distance),
+   stop_distance_(stop_distance),
    arrived_cb_(arrived_cb)
 {
    if (csg::IsZero(speed)) {
@@ -32,13 +32,13 @@ GotoLocation::GotoLocation(Simulation& sim, om::EntityRef entity, float speed, c
    Report("constructor");
 }
 
-GotoLocation::GotoLocation(Simulation& sim, om::EntityRef entity, float speed, const om::EntityRef target, float close_to_distance, luabind::object arrived_cb) :
+GotoLocation::GotoLocation(Simulation& sim, om::EntityRef entity, float speed, const om::EntityRef target, float stop_distance, luabind::object arrived_cb) :
    Task(sim, "goto entity"),
    entity_(entity),
    target_entity_(target),
    speed_(speed),
    target_is_entity_(true),
-   close_to_distance_(close_to_distance),
+   stop_distance_(stop_distance),
    arrived_cb_(arrived_cb)
 {
    if (csg::IsZero(speed)) {
@@ -90,7 +90,7 @@ bool GotoLocation::Work(const platform::timer &timer)
       target_location_.y = current_location.y;
 
       direction = csg::Point3f(target_location_ - current_location);
-      float const targetDistance = direction.Length() - close_to_distance_;
+      float const targetDistance = direction.Length() - stop_distance_;
       direction.Normalize();
 
       float moveDistance = std::min(stepSize, remainingDistance);
@@ -166,6 +166,6 @@ void GotoLocation::Report(std::string msg)
    if (entity) {
       auto location = entity->GetComponent<om::Mob>()->GetWorldLocation();
       G_LOG(5) << msg << " (entity:" << entity->GetObjectId() << " " << target_location_ << " currently at " << location << 
-         ".  close to:" << close_to_distance_ << "  current d:" << target_location_.DistanceTo(location) <<  ")";
+         ".  close to:" << stop_distance_ << "  current d:" << target_location_.DistanceTo(location) <<  ")";
    }
 }
