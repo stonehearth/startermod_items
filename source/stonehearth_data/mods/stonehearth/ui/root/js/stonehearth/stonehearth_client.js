@@ -22,6 +22,10 @@ var StonehearthClient;
 
       },
 
+      gameState: {
+         saveKey: "slot_1"
+      },
+
       getActiveTool: function() {
          return this._activeTool;
       },
