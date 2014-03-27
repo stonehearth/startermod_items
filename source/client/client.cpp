@@ -161,16 +161,18 @@ void Client::OneTimeIninitializtion()
    });
 
    if (config.Get("enable_flush_and_load", false)) {
+      flushAndLoadDelay_ = config.Get("flush_and_load_delay", 1000);
       if (boost::filesystem::is_directory("mods/")) {
-         fileWatcher_.addWatch(strutil::utf8_to_unicode("mods/"), [](FW::WatchID watchid, const std::wstring& dir, const std::wstring& filename, FW::Action action) -> void {
-            if (action == FW::Action::Modified) {
+         fileWatcher_.addWatch(strutil::utf8_to_unicode("mods/"), [this](FW::WatchID watchid, const std::wstring& dir, const std::wstring& filename, FW::Action action) -> void {
+            // FW::Action::Delete followed by FW::Action::Add is used to indcate that a file has been renamed.
+            if (action == FW::Action::Modified || action == FW::Action::Add) {
                // We're getting a double-null terminated string, for some reason.  Converting to c_str fixes this.
                std::wstring washed(filename.c_str());
                std::wstring luaExt(L".lua");
                std::wstring jsonExt(L".json");
                if (boost::algorithm::ends_with(washed, luaExt) || boost::algorithm::ends_with(washed, jsonExt))
                {
-                  Client::GetInstance().InitiateFlushAndLoad();
+                  InitiateFlushAndLoad();
                }
             }
          }, true);
@@ -506,13 +508,12 @@ void Client::OneTimeIninitializtion()
 
 void Client::InitiateFlushAndLoad()
 {
-   if (!flushAndLoad_ && flushTimer_.expired()) {
-      flushAndLoad_ = true;
-      // We want to wait a bit before allowing a flush, as it's possible that multiple file changes
-      // could happen rapidly, which causes the save/load functions to race, and then Bad Things
-      // happen.
-      flushTimer_.set(1000);
-   }
+   // Set the flush and load flag and set a timer.  We defer the actual flush and load until
+   // the timer expires, both to ignore multiple callbacks from the file watcher and to make sure
+   // we load after the *last* file in a "Save All" operation from an editor has made its way to
+   // disk.
+   flushAndLoad_ = true;
+   flushAndLoadTimer_.set(flushAndLoadDelay_);
 }
 
 void Client::Initialize()
@@ -761,7 +762,8 @@ void Client::mainloop()
    //Update the audio_manager with the current time
    audio::AudioManager &a = audio::AudioManager::GetInstance();
    a.UpdateAudio();
-   if (flushAndLoad_) {
+
+   if (flushAndLoad_ && flushAndLoadTimer_.expired()) {
       flushAndLoad_ = false;
       SaveGame();
       LoadGame();

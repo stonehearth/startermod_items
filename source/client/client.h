@@ -244,7 +244,8 @@ private:
       std::vector<XZRegionSelectorRef> xz_selectors_;
       FW::FileWatcher             fileWatcher_;
       bool                        flushAndLoad_;
-      platform::timer             flushTimer_;
+      platform::timer             flushAndLoadTimer_;
+      int                         flushAndLoadDelay_;
 };
 
 END_RADIANT_CLIENT_NAMESPACE
