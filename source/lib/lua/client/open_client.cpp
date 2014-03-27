@@ -127,8 +127,8 @@ H3DNode Client_CreateQubicleMatrixNode(lua_State* L,
 H3DNode Client_CreateDesignationNode(lua_State* L, 
                                      H3DNode parent,
                                      csg::Region2 const& model,
-                                     csg::Color3 const& outline,
-                                     csg::Color3 const& stripes)
+                                     csg::Color4 const& outline,
+                                     csg::Color4 const& stripes)
 {
    return Pipeline::GetInstance().CreateDesignationNode(parent, model, outline, stripes).release();
 }

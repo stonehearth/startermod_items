@@ -3,7 +3,7 @@
 ]]
 local Cube3 = _radiant.csg.Cube3
 local Point3 = _radiant.csg.Point3
-local Color3 = _radiant.csg.Color3
+local Color4 = _radiant.csg.Color4
 local Rect2 = _radiant.csg.Rect2
 local Point2 = _radiant.csg.Point2
 
@@ -40,7 +40,7 @@ function FarmerFieldRenderer:_update()
          end)
          
          self:_clear()
-         self._node = _radiant.client.create_designation_node(self._parent_node, self._region:get(), Color3(230, 201, 54), Color3(230, 201, 54));
+         self._node = _radiant.client.create_designation_node(self._parent_node, self._region:get(), Color4(230, 201, 54, 255), Color4(230, 201, 54, 255));
       end
    end
 end

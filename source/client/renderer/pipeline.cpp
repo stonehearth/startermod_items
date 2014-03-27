@@ -138,8 +138,8 @@ H3DNodeUnique Pipeline::CreateBlueprintNode(H3DNode parent,
 
    panels_mesh.SetOffset(offset);
    outline_mesh.SetOffset(offset);
-   panels_mesh.SetColor(csg::Color3::FromString("#00DFFC"));
-   outline_mesh.SetColor(csg::Color3::FromString("#005FFB"));
+   panels_mesh.SetColor(csg::Color4::FromString("#00DFFC"));
+   outline_mesh.SetColor(csg::Color4::FromString("#005FFB"));
    csg::RegionTools3().ForEachPlane(model, [&](csg::Region2 const& plane, csg::PlaneInfo3 const& pi) {
       csg::Region2f outline = csg::RegionTools2().GetInnerBorder(plane, thickness);
       csg::Region2f panels = ToFloat(plane) - outline;
@@ -181,7 +181,7 @@ void Pipeline::AddDesignationStripes(csg::mesh_tools::mesh& m, csg::Region2 cons
             csg::Point3f(cube.min.x + x2, y, cube.min.y + y2),
             csg::Point3f(cube.min.x, y, cube.min.y + i + 0.5f),
          };
-         m.AddFace(points, csg::Point3f::unitY, csg::Color3(0, 0, 0));
+         m.AddFace(points, csg::Point3f::unitY, csg::Color4(0, 0, 0, 255));
       }
       for (float i = 0; i < size.x; i ++) {
          // xxx: why do we have to use a clockwise winding here?
@@ -197,7 +197,7 @@ void Pipeline::AddDesignationStripes(csg::mesh_tools::mesh& m, csg::Region2 cons
             csg::Point3f(cube.min.x + x2, y, cube.max.y + y2),
             csg::Point3f(cube.min.x + x3, y, cube.max.y + y3),
          };
-         m.AddFace(points, csg::Point3f::unitY, csg::Color3(0, 0, 0));
+         m.AddFace(points, csg::Point3f::unitY, csg::Color4(0, 0, 0, 255));
       }
    }
 }
@@ -253,8 +253,8 @@ void Pipeline::AddDesignationBorder(csg::mesh_tools::mesh& m, csg::EdgeMap2& edg
 H3DNodeUnique
 Pipeline::CreateDesignationNode(H3DNode parent,
                                 csg::Region2 const& plane,
-                                csg::Color3 const& outline_color,
-                                csg::Color3 const& stripes_color)
+                                csg::Color4 const& outline_color,
+                                csg::Color4 const& stripes_color)
 {
    csg::RegionTools2 tools;
 

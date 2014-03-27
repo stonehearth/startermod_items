@@ -27,10 +27,10 @@ uniform mat4 viewProjMat;
 uniform mat4 worldMat;
 
 attribute vec3 vertPos;
-attribute vec3 color;
+attribute vec4 color;
 
 varying vec3 gridLineCoords;
-varying vec3 outColor;
+varying vec4 outColor;
 
 void main() {
    gridLineCoords = vertPos;
@@ -48,14 +48,9 @@ void main() {
 
 [[FS_BLUEPRINTS_COLOR_PASS]]
 
-uniform sampler3D gridMap;
-
-varying vec3 gridLineCoords;
-varying vec3 outColor;
+varying vec4 outColor;
 
 void main() {
-   vec4 theColor = vec4(outColor, 1);
-   vec4 gridlineColor = vec4(0, .4, .8, .4);
-   gl_FragColor = vec4(theColor.rgb, 0.3);
+   gl_FragColor = vec4(outColor.rgb, 0.3);
 }
 

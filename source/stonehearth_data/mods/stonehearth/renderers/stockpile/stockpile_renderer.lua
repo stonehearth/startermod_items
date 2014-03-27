@@ -1,13 +1,13 @@
 local Cube3 = _radiant.csg.Cube3
 local Point3 = _radiant.csg.Point3
-local Color3 = _radiant.csg.Color3
+local Color4 = _radiant.csg.Color4
 local Rect2 = _radiant.csg.Rect2
 local Point2 = _radiant.csg.Point2
 
 local StockpileRenderer = class()
 
 function StockpileRenderer:__init()
-   self._color = Color3(0, 153, 255)
+   self._color = Color4(0, 153, 255, 76)
    self._ui_view_mode = 'normal'
    self._stockpile_items = {}
 
