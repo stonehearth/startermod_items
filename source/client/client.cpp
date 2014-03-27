@@ -96,7 +96,8 @@ Client::Client() :
    perf_hud_shown_(false),
    connected_(false),
    game_clock_(nullptr),
-   enable_debug_cursor_(false)
+   enable_debug_cursor_(false),
+   flushAndLoad_(false)
 {
 }
 
@@ -158,6 +159,23 @@ void Client::OneTimeIninitializtion()
    browserResizeGuard_ = renderer.OnScreenResize([this](csg::Point2 const& r) {
       browser_->OnScreenResize(r.x, r.y);
    });
+
+   if (config.Get("enable_flush_and_load", false)) {
+      if (boost::filesystem::is_directory("mods/")) {
+         fileWatcher_.addWatch(strutil::utf8_to_unicode("mods/"), [](FW::WatchID watchid, const std::wstring& dir, const std::wstring& filename, FW::Action action) -> void {
+            if (action == FW::Action::Modified) {
+               // We're getting a double-null terminated string, for some reason.  Converting to c_str fixes this.
+               std::wstring washed(filename.c_str());
+               std::wstring luaExt(L".lua");
+               std::wstring jsonExt(L".json");
+               if (boost::algorithm::ends_with(washed, luaExt) || boost::algorithm::ends_with(washed, jsonExt))
+               {
+                  Client::GetInstance().InitiateFlushAndLoad();
+               }
+            }
+         }, true);
+      }
+   }
 
    if (config.Get("enable_debug_keys", false)) {
       _commands[GLFW_KEY_F1] = [this]() {
@@ -486,6 +504,17 @@ void Client::OneTimeIninitializtion()
 
 }
 
+void Client::InitiateFlushAndLoad()
+{
+   if (!flushAndLoad_ && flushTimer_.expired()) {
+      flushAndLoad_ = true;
+      // We want to wait a bit before allowing a flush, as it's possible that multiple file changes
+      // could happen rapidly, which causes the save/load functions to race, and then Bad Things
+      // happen.
+      flushTimer_.set(1000);
+   }
+}
+
 void Client::Initialize()
 {
    InitializeDataObjects();
@@ -732,6 +761,11 @@ void Client::mainloop()
    //Update the audio_manager with the current time
    audio::AudioManager &a = audio::AudioManager::GetInstance();
    a.UpdateAudio();
+   if (flushAndLoad_) {
+      flushAndLoad_ = false;
+      SaveGame();
+      LoadGame();
+   }
 }
 
 om::TerrainPtr Client::GetTerrain()
