@@ -5,7 +5,10 @@ SleepObserver.version = 2
 
 function SleepObserver:__init(entity)
    self._entity = entity
+
    self._attributes_component = entity:add_component('stonehearth:attributes')
+   self._attributes_component:set_attribute('sleepiness', 0)
+   
    radiant.events.listen(calendar, 'stonehearth:hourly', self, self.on_hourly)
 end
 

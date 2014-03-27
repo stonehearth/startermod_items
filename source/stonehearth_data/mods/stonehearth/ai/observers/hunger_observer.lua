@@ -15,7 +15,10 @@ HungerObserver.version = 2
 
 function HungerObserver:__init(entity)
    self._entity = entity
+   
    self._attributes_component = entity:add_component('stonehearth:attributes')
+   self._attributes_component:set_attribute('hunger', 0)
+
    radiant.events.listen(calendar, 'stonehearth:hourly', self, self.on_hourly)
    radiant.events.listen(entity, 'stonehearth:attribute_changed:hunger', self, self._hunger_changed)
 end
