@@ -133,6 +133,15 @@ H3DNode Client_CreateDesignationNode(lua_State* L,
    return Pipeline::GetInstance().CreateDesignationNode(parent, model, outline, stripes).release();
 }
 
+H3DNode Client_CreateStockpileNode(lua_State* L, 
+                                   H3DNode parent,
+                                   csg::Region2 const& model,
+                                   csg::Color4 const& interior_color,
+                                   csg::Color4 const& border_color)
+{
+   return Pipeline::GetInstance().CreateStockpileNode(parent, model, interior_color, border_color).release();
+}
+
 om::EntityRef Client_CreateEmptyAuthoringEntity()
 {
    return Client::GetInstance().CreateEmptyAuthoringEntity();
@@ -455,6 +464,7 @@ void lua::client::open(lua_State* L)
             def("create_voxel_node",               &Client_CreateVoxelNode),
             def("create_qubicle_matrix_node",      &Client_CreateQubicleMatrixNode),
             def("create_designation_node",         &Client_CreateDesignationNode),
+            def("create_stockpile_node",           &Client_CreateStockpileNode),
             def("alloc_region",                    &Client_AllocObject<om::Region3Boxed>),
             def("alloc_region2",                   &Client_AllocObject<om::Region2Boxed>),
             def("create_datastore",                &Client_CreateDataStore),
