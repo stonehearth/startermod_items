@@ -834,6 +834,8 @@ void Renderer::Shutdown()
    server_tick_slot_.Clear();
    render_frame_start_slot_.Clear();
 
+   exploredTrace_ = nullptr;
+   visibilityTrace_ = nullptr;
    rootRenderObject_ = nullptr;
    for (auto& e : entities_) {
       e.clear();
@@ -864,33 +866,45 @@ HWND Renderer::GetWindowHandle() const
    return glfwGetWin32Window(glfwGetCurrentContext());
 }
 
-void Renderer::SetVisibilityRegions(std::string const& visible_region_uri, std::string const& explored_region_uri)
+bool Renderer::SetVisibleRegion(std::string const& visible_region_uri)
 {
-   om::Region2BoxedPtr visibleRegionBoxed, exploredRegionBoxed;
-
    dm::Store const& store = Client::GetInstance().GetStore();
+   om::Region2BoxedPtr visibleRegionBoxed = store.FetchObject<om::Region2Boxed>(visible_region_uri);
 
-   visibleRegionBoxed = store.FetchObject<om::Region2Boxed>(visible_region_uri);
-   exploredRegionBoxed = store.FetchObject<om::Region2Boxed>(explored_region_uri);
+   if (visibleRegionBoxed) {
+      visibilityTrace_ = visibleRegionBoxed->TraceChanges("render visible region", dm::RENDER_TRACES)
+                            ->OnModified([=](){
+                               csg::Region2 visibleRegion = visibleRegionBoxed->Get();
+                               // TODO: give visibleRegion to horde
+                               //int num_cubes = visibleRegion.GetCubeCount();
+                               //R_LOG(3) << "Client visibility cubes: " << num_cubes;
+                            })
+                            ->PushObjectState(); // Immediately send the current state to listener
+      return true;
+   }
+   R_LOG(1) << "invalid visible region reference: " << visible_region_uri;
+   return false;
+}
 
-   visibilityTrace_ = visibleRegionBoxed->TraceChanges("render visible region", dm::RENDER_TRACES)
-                         ->OnModified([=](){
-                            csg::Region2 visibleRegion = visibleRegionBoxed->Get();
-                            // TODO: give visibleRegion to horde
-                            //int num_cubes = visibleRegion.GetCubeCount();
-                            //R_LOG(3) << "Client visibility cubes: " << num_cubes;
-                         })
-                         ->PushObjectState(); // Immediately send the current state to listener
+bool Renderer::SetExploredRegion(std::string const& explored_region_uri)
+{
+   dm::Store const& store = Client::GetInstance().GetStore();
+   om::Region2BoxedPtr exploredRegionBoxed = store.FetchObject<om::Region2Boxed>(explored_region_uri);
 
-   exploredTrace_ = exploredRegionBoxed->TraceChanges("render explored region", dm::RENDER_TRACES)
-                         ->OnModified([=](){
-                            csg::Region2 exploredRegion = exploredRegionBoxed->Get();
+   if (exploredRegionBoxed) {
+      exploredTrace_ = exploredRegionBoxed->TraceChanges("render explored region", dm::RENDER_TRACES)
+                            ->OnModified([=](){
+                               csg::Region2 exploredRegion = exploredRegionBoxed->Get();
 
-                            Renderer::GetInstance().UpdateFoW(Renderer::GetInstance().fowExploredNode_, exploredRegion);
-                            //int num_cubes = exploredRegion.GetCubeCount();
-                            //R_LOG(3) << "Client explored cubes: " << num_cubes;
-                         })
-                         ->PushObjectState(); // Immediately send the current state to listener
+                               Renderer::GetInstance().UpdateFoW(Renderer::GetInstance().fowExploredNode_, exploredRegion);
+                               //int num_cubes = exploredRegion.GetCubeCount();
+                               //R_LOG(3) << "Client explored cubes: " << num_cubes;
+                            })
+                            ->PushObjectState(); // Immediately send the current state to listener
+      return true;
+   }
+   R_LOG(1) << "invalid explored region reference: " << explored_region_uri;
+   return false;
 }
 
 void Renderer::RenderOneFrame(int now, float alpha)

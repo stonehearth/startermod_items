@@ -3,6 +3,7 @@ stonehearth = {}
 
 local service_creation_order = {
    'camera',
+   'renderer',
    'sky_renderer',
    'unit_control',
 }

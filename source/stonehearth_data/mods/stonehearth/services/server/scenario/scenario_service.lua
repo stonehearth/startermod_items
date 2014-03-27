@@ -8,32 +8,56 @@ local Timer = require 'services.server.world_generation.timer'
 local Point2 = _radiant.csg.Point2
 local Rect2 = _radiant.csg.Rect2
 local Region2 = _radiant.csg.Region2
+local RandomNumberGenerator = _radiant.csg.RandomNumberGenerator
 local _terrain = radiant._root_entity:add_component('terrain')
 local log = radiant.log.create_logger('scenario_service')
 
 local ScenarioService = class()
 
-function ScenarioService:__init()
-end
-
 function ScenarioService:initialize()
-   log:write(0, 'initialize not implemented for scenario service!')
-end
+   self.__saved_variables:read_data(function(sv)
+         self._rng = sv._rng
+         self._revealed_region = sv._revealed_region
+         self._dormant_scenarios = sv._dormant_scenarios
+         self._feature_size = sv._feature_size
+      end);
 
-function ScenarioService:create_new_game(feature_size, rng)
-   self._feature_size = feature_size
-   self._rng = rng
+   self._last_optimized_rect_count = 10
+   self._reveal_distance = radiant.util.get_config('sight_radius', 64) + 8
    self._difficulty_increment_distance = radiant.util.get_config('scenario.difficulty_increment_distance', 256)
    self._starting_location_exclusion_radius = radiant.util.get_config('scenario.starting_location_exclusion_radius', 64)
-   -- use reduced spawn range until fog of war is implemented
-   --self._reveal_distance = radiant.util.get_config('sight_radius', 64) * 2
-   self._reveal_distance = radiant.util.get_config('sight_radius', 64) + 8
-   self._revealed_region = Region2()
-   self._dormant_scenarios = {}
-   self._last_optimized_rect_count = 10
    self._region_optimization_threshold = radiant.util.get_config('region_optimization_threshold', 1.2)
 
    assert(self._starting_location_exclusion_radius < self._difficulty_increment_distance)
+   
+   self:_parse_scenario_index()
+   if self._rng then
+      radiant.events.listen(radiant, 'radiant:game_loaded', function()
+            self:_register_events()
+            return radiant.events.UNLISTEN
+         end)
+   end
+end
+
+function ScenarioService:create_new_game(feature_size, seed)
+   self._feature_size = feature_size
+   self._rng = RandomNumberGenerator(seed)
+   self._revealed_region = Region2()
+   self._dormant_scenarios = {}
+   self.__saved_variables:modify_data(function (sv)
+         sv._rng = self._rng
+         sv._revealed_region = self._revealed_region
+         sv._dormant_scenarios = self._dormant_scenarios
+         sv._feature_size = self._feature_size
+      end)
+
+   self:_parse_scenario_index()
+   self:_register_events()
+end
+
+function ScenarioService:_parse_scenario_index()
+   -- use reduced spawn range until fog of war is implemented
+   --self._reveal_distance = radiant.util.get_config('sight_radius', 64) * 2
 
    local scenario_index = radiant.resources.load_json('stonehearth:scenarios:scenario_index')
    local categories = {}
@@ -45,7 +69,6 @@ function ScenarioService:create_new_game(feature_size, rng)
       if not ActivationType.is_valid(properties.activation_type) then
          log:error('Error parsing "%s": Invalid activation_type "%s".', file, tostring(properties.activation_type))
       end
-
       categories[name] = ScenarioSelector(properties.frequency, properties.priority, properties.activation_type, self._rng)
    end
 
@@ -75,8 +98,6 @@ function ScenarioService:create_new_game(feature_size, rng)
    end
 
    self._categories = categories
-
-   self:_register_events()
 end
 
 function ScenarioService:_register_events()

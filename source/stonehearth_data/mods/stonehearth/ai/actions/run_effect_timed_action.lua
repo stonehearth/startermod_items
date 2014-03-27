@@ -3,13 +3,17 @@ RunEffectTimedAction.name = 'run effect timed...'
 RunEffectTimedAction.does = 'stonehearth:run_effect_timed'
 RunEffectTimedAction.args = {
    effect = 'string',    -- effect name
-   duration = 'string'   -- game time for the effect to run (see stonehearth.calender:set_timer for formatting)
+   duration = 'string',   -- game time for the effect to run (see stonehearth.calender:set_timer for formatting)
+   delay = {
+      type = 'number',
+      default = 0
+   }
 }
 RunEffectTimedAction.version = 2
 RunEffectTimedAction.priority = 1
 
 function RunEffectTimedAction:run(ai, entity, args)
-   self._effect = radiant.effects.run_effect(entity, args.effect)
+   self._effect = radiant.effects.run_effect(entity, args.effect, args.delay)
    self._timer = stonehearth.calendar:set_timer(args.duration, function()
       ai:resume()
    end)

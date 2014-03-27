@@ -35,38 +35,37 @@ function EffectManager:on_event_loop(e)
    end
 end
 
-function EffectManager:start_effect(action, trigger_handler, args)
-   local resolved_action = self:get_resolved_action(action)
-   return self:start_action_at_time(resolved_action, radiant.gamestate.now(), trigger_handler, args)
-end
-
 function EffectManager:get_resolved_action(action)  
   if self._postures then 
-    local posture = self._posture_component:get_posture()
-    -- if a posture is set and that posture is in the override table
-    if self._postures[posture] then
-      -- if the set posture overrides this action
-      if self._postures[posture][action] then
-        -- return the override action
-        local resolved_action = self._postures[posture][action]
-        log:debug('effect %s resolved to %s [%s posture:%s]', action, resolved_action, self._entity, posture)
-        return resolved_action
+      local posture = self._posture_component:get_posture()
+      -- if a posture is set and that posture is in the override table
+      if self._postures[posture] then
+         -- if the set posture overrides this action
+         if self._postures[posture][action] then
+            -- return the override action
+            local resolved_action = self._postures[posture][action]
+            log:debug('effect %s resolved to %s [%s posture:%s]', action, resolved_action, self._entity, posture)
+            return resolved_action
+         end
       end
-    end
   end
 
   return action
 end
 
-function EffectManager:start_action_at_time(action, when, trigger_handler, args)
+-- delay is in milliseconds
+function EffectManager:start_effect(action, delay, trigger_handler, args)
+   delay = delay or 0
    radiant.check.is_string(action)
-   radiant.check.is_number(when)
+   radiant.check.is_number(delay)
+   local when = radiant.gamestate.now() + delay
+   local resolved_action = self:get_resolved_action(action)
    --TODO: there is no such function as radiant.check.is_callable
    --if trigger_handler then radiant.check.is_callable(trigger_handler) end
    if args then radiant.check.is_table(args) end
 
-   log:debug("staring effect %s at %d", action, when)
-   return self:_add_effect(action, when, trigger_handler, args);
+   log:debug("staring effect %s at %d", resolved_action, when)
+   return self:_add_effect(resolved_action, when, trigger_handler, args);
 end
 
 function EffectManager:get_effect_track(effect_name, track_name)

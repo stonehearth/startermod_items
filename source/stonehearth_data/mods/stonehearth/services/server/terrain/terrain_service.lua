@@ -9,19 +9,19 @@ local log = radiant.log.create_logger('visibility')
 
 TerrainService = class()
 
-function TerrainService:__init()
+function TerrainService:initialize()
+   self._sv = self.__saved_variables:get_data()
+   if not self._sv._visible_regions then
+      self._sv._visible_regions = {}
+      self._sv._explored_regions = {}
+   end
+
    self._sight_radius = radiant.util.get_config('sight_radius', 64)
    self._visbility_step_size = radiant.util.get_config('visibility_step_size', 8)
-   self._visible_regions = {}
-   self._explored_regions = {}
    self._last_optimized_rect_count = 10
    self._region_optimization_threshold = radiant.util.get_config('region_optimization_threshold', 1.2)
 
    self:_register_events()
-end
-
-function TerrainService:initialize()
-   log:write(0, 'initialize not implemented for terrain service!')
 end
 
 function TerrainService:_register_events()
@@ -36,7 +36,7 @@ function TerrainService:_update_regions()
    local old_visible_region, new_visible_region
    local explored_region_boxed, explored_region, unexplored_region
 
-   for faction, visible_region_boxed in pairs(self._visible_regions) do
+   for faction, visible_region_boxed in pairs(self._sv._visible_regions) do
       explored_region_boxed = self:get_explored_region(faction)
 
       old_visible_region = visible_region_boxed:get()
@@ -167,11 +167,11 @@ function TerrainService:_are_equivalent_regions(region_a, region_b)
 end
 
 function TerrainService:get_visible_region(faction)
-   return self:_get_region(self._visible_regions, faction)
+   return self:_get_region(self._sv._visible_regions, faction)
 end
 
 function TerrainService:get_explored_region(faction)
-   return self:_get_region(self._explored_regions, faction)
+   return self:_get_region(self._sv._explored_regions, faction)
 end
 
 function TerrainService:_get_region(map, faction)

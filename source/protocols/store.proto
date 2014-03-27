@@ -199,6 +199,14 @@ message LuaObject {
    optional bool        boolean_value = 2;
    optional double      number_value = 3;
    optional string      string_value = 4;
-   optional Table       table_value = 5;   
-   optional Value       userdata_value = 6;   
+   optional uint32      table_value = 5;   
+   optional Value       userdata_value = 6;
+   repeated Table       tables = 7;
+};
+
+message RandomNumberGenerator {
+   extend Value {
+      required RandomNumberGenerator extension = 207;
+   }
+   optional bytes       state = 1;
 };
