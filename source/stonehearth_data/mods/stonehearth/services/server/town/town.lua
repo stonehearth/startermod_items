@@ -15,14 +15,26 @@ function Town:__init(session, saved_variables)
       self._sv.faction = session.faction
       self._sv.player_id = session.player_id
       self._sv.town_entity = radiant.entities.create_entity()
-      self._sv.harvesting = {
-         resource_nodes = {},
-         renewable_resource_nodes = {}
-      }
+      self._sv._saved_calls = {}
+      self._sv._next_saved_call_id = 1
       radiant.entities.add_child(radiant._root_entity, self._sv.town_entity, Point3(0, 0, 0))
    end
 
    self._log = radiant.log.create_logger('town', self._sv.player_id)
+   self:_create_task_groups()
+
+   self._unit_controllers = {}
+   self._thread_orchestrators = {}
+   self._harvest_tasks = {}
+   self._buildings = {}
+   
+   radiant.events.listen(radiant, 'radiant:game_loaded', function()
+         self:_restore_saved_calls()
+         return radiant.events.UNLISTEN
+      end)
+end
+
+function Town:_create_task_groups()
    self._scheduler = stonehearth.tasks:create_scheduler(self._sv.player_id)
                                        :set_counter_name(self._sv.player_id)
 
@@ -33,29 +45,40 @@ function Town:__init(session, saved_variables)
       farmers = self._scheduler:create_task_group('stonehearth:farm', {})
                                :set_priority(stonehearth.constants.priorities.top.WORK)
                                :set_counter_name('farmers'), 
-   }   
+   }      
 
    -- a map from a profession_id to a task group for that profession
    self._profession_to_taskgroup = {
       worker = self._task_groups.workers,
       farmer = self._task_groups.farmers,
    }
+end
 
-   self._unit_controllers = {}
-   self._thread_orchestrators = {}
-   self._harvest_tasks = {}
-   self._buildings = {}
-   
-   radiant.events.listen(radiant, 'radiant:game_loaded', function()
-         -- restore existing tasks, if they exist.
-         for _, node in pairs(self._sv.harvesting.resource_nodes) do
-            self:harvest_resource_node(node)
-         end
-         for _, node in pairs(self._sv.harvesting.renewable_resource_nodes) do
-            self:harvest_renewable_resource_node(node)
-         end
-         return radiant.events.UNLISTEN
-      end)
+function Town:_remember_user_initiated_task(task, fn_name, ...)
+   -- task here may be a Task or an Orchestrator.  Both implement the is_completed
+   -- and notify_completed functions
+   if not task:is_completed() then
+      local id = self._sv._next_saved_call_id
+      self._sv._next_saved_call_id = self._sv._next_saved_call_id + 1
+      self._sv._saved_calls[id] = {
+         fn_name = fn_name,
+         args = { ... }
+      }
+      self.__saved_variables:mark_changed()
+
+      task:notify_completed(function()
+            self._sv._saved_calls[id] = nil 
+            self.__saved_variables:mark_changed()
+         end);
+   end
+end
+
+function Town:_restore_saved_calls()
+   local saved_calls = self._sv._saved_calls
+   self._sv._saved_calls = {}    
+   for _, saved_call in pairs(saved_calls) do
+      self[saved_call.fn_name](self, unpack(saved_call.args))
+   end
 end
 
 function Town:get_faction()
@@ -230,10 +253,13 @@ function Town:place_item_in_world(item_proxy, full_sized_uri, location, rotation
       :once()
       :start()
 
+   self:_remember_user_initiated_task(task, 'place_item_in_world', item_proxy, full_sized_uri, location, rotation)
+
    return task
 end
 
 function Town:place_item_type_in_world(entity_uri, full_item_uri, location, rotation)
+
    local ghost_entity = radiant.entities.create_entity()
    local ghost_entity_component = ghost_entity:add_component('stonehearth:ghost_item')
    ghost_entity_component:set_full_sized_mod_uri(full_item_uri)
@@ -258,6 +284,8 @@ function Town:place_item_type_in_world(entity_uri, full_item_uri, location, rota
       :once()
       :start()
 
+   self:_remember_user_initiated_task(task, 'place_item_type_in_world', entity_uri, full_item_uri, location, rotation)
+
    return task
 end
 
@@ -281,8 +309,7 @@ function Town:harvest_resource_node(node)
                                          :once()
                                          :start()
             self._harvest_tasks[id] = task
-            self._sv.harvesting.resource_nodes[id] = node
-            self.__saved_variables:mark_changed()
+            self:_remember_user_initiated_task(task, 'harvest_resource_node', node)
          end
       end
    end
@@ -309,8 +336,7 @@ function Town:harvest_renewable_resource_node(plant)
                                    :once()
                                    :start()
             self._harvest_tasks[id] = task
-            self._sv.harvesting.renewable_resource_nodes[id] = plant
-            self.__saved_variables:mark_changed()
+            self:_remember_user_initiated_task(task, 'harvest_renewable_resource_node', plant)
          end
 
          radiant.events.listen(plant, 'stonehearth:is_harvestable', function(e) 
