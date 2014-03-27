@@ -1,0 +1,25 @@
+<script type="text/x-handlebars" data-template-name="saveView">
+   <div id="saveView" class="gui">
+      <div class="window">
+         <div class="title">Save Game</div>
+
+         <div id="saves">
+            <table>
+            {{#each saves}}
+               <tr class="saveSlot" {{bindAttr class=current:current:notCurrent}}>
+                  <td>
+                     <div class="screenshot"></div>
+                  <td class="gameInfo">
+                     <div class="name">{{this.game_info.town_name}}</div>
+                     <div class="gameTime">{{this.game_info.game_time}}</div>
+                     <div class="time">{{this.game_info.time}}</div>
+            {{/each}}
+            </table>
+         </div>
+
+         <button id="newSave">Create New Save</button>
+      </div>
+
+      
+   </div>
+</script>
