@@ -1301,7 +1301,12 @@ void Client::RequestReload()
 void Client::SaveGame()
 {
    json::Node args;
+   json::Node metadata;
+   metadata.set("name", "Hotkey Save State");
+   metadata.set("name", "Hotkey Save State");
+
    args.set("game_id", "hotkey_save");
+   args.set("metadata", metadata);
    core_reactor_->Call(rpc::Function("radiant:server:save", args));
    SaveClientState("hotkey_save");
    h3dutScreenshot("hotkey_save.png");

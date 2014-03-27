@@ -43,8 +43,6 @@ public:
    friend std::istream& operator>>(std::istream& in, RandomNumberGenerator& rng);
 
 private:
-   NO_COPY_CONSTRUCTOR(RandomNumberGenerator);
-
    static std::map<boost::thread::id, std::unique_ptr<RandomNumberGenerator>> instances_;
    static std::recursive_mutex mutex_;
 
@@ -52,6 +50,8 @@ private:
 };
 
 std::ostream& operator<<(std::ostream& out, RandomNumberGenerator const& source);
+
+DECLARE_SHARED_POINTER_TYPES(RandomNumberGenerator);
 
 END_RADIANT_CSG_NAMESPACE
 

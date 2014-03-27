@@ -184,7 +184,8 @@ class Renderer
       void* GetLastUiBuffer();
 
       void SetDrawWorld(bool drawWorld);
-      void SetVisibilityRegions(std::string const& visible_region_uri, std::string const& explored_region_uri);
+      bool SetVisibleRegion(std::string const& visible_region_uri);
+      bool SetExploredRegion(std::string const& explored_region_uri);
 
       std::string GetHordeResourcePath() const { return resourcePath_; }
 

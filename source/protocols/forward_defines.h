@@ -41,6 +41,7 @@ namespace Protocol {
    class Value;
    class Object;
    class LuaObject;
+   class LuaObject_Table;
    class LuaControllerObject;
    class LuaDataObject;
 }

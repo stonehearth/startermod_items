@@ -116,8 +116,7 @@ function NewGameCallHandler:embark_client(session, response)
             function (o)
                log:info('Visible region uri: %s', o.visible_region_uri)
                log:info('Explored region uri: %s', o.explored_region_uri)
-               _radiant.renderer.visibility.set_visibility_regions(o.visible_region_uri, o.explored_region_uri)
-
+               stonehearth.renderer:set_visibility_regions(o.visible_region_uri, o.explored_region_uri)
                response:resolve({})
             end
          )
