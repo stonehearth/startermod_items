@@ -16,6 +16,12 @@ end
 function LookForEnemies:init_sight_sensor()
    assert(not self._sensor)
 
+   local list = self._entity:get_component('sensor_list')
+   if not list then
+      -- disable until we decide what to do with this
+      return
+   end
+
    local sensor_list = self._entity:add_component('sensor_list')
    local sensor = sensor_list:get_sensor('sight')
 
