@@ -1,6 +1,6 @@
 local Point3 = _radiant.csg.Point3
 local Cube3 = _radiant.csg.Cube3
-local Color3 = _radiant.csg.Color3
+local Color4 = _radiant.csg.Color4
 local Rect2 = _radiant.csg.Rect2
 local Point2 = _radiant.csg.Point2
 local WorkshopCallHandler = class()
@@ -204,7 +204,7 @@ function WorkshopCallHandler:choose_outbox_location(session, response, workbench
             if node then
                h3dRemoveNode(node)
             end
-            node = _radiant.client.create_designation_node(parent_node, self._region:get(), Color3(0, 153, 255), Color3(0, 153, 255));
+            node = _radiant.client.create_designation_node(parent_node, self._region:get(), Color4(0, 153, 255, 255), Color4(0, 153, 255, 255));
          end)
       :done(function (box)
             local size = Point2(box.max.x - box.min.x + 1, box.max.z - box.min.z + 1)

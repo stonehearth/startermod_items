@@ -1,15 +1,21 @@
 local Cube3 = _radiant.csg.Cube3
 local Point3 = _radiant.csg.Point3
-local Color3 = _radiant.csg.Color3
+local Color4 = _radiant.csg.Color4
 local Rect2 = _radiant.csg.Rect2
 local Point2 = _radiant.csg.Point2
 
 local StockpileRenderer = class()
 
 function StockpileRenderer:__init()
-   self._color = Color3(0, 153, 255)
+   self._color = Color4(0, 153, 255, 76)
    self._ui_view_mode = 'normal'
    self._stockpile_items = {}
+
+   _radiant.call('stonehearth:get_ui_mode'):done(
+      function (o)
+         self._ui_view_mode = o.mode
+      end
+   )
 
    radiant.events.listen(radiant.events, 'stonehearth:ui_mode_changed', function(e)
       if self._ui_view_mode ~= e.mode then
@@ -25,7 +31,20 @@ end
 
 function StockpileRenderer:_update_stockpile_renderer(mode)
    -- TODO: Here, we decide what we want the stockpile to look like.
-   self:_regenerate_node()
+   self._region:modify(function(cursor)
+      cursor:clear()
+      cursor:add_cube(Rect2(Point2(0, 0), self._size))
+   end)
+   
+   if mode == 'normal' then
+      if self._node then
+         h3dRemoveNode(self._zone_node)
+         self._zone_node = nil
+      end
+   else
+      -- We're in 'zones' mode.
+      self._zone_node = _radiant.client.create_designation_node(self._parent_node, self._region:get(), self._color, self._color);
+   end
 end
 
 function StockpileRenderer:_update_item_renderers(mode, item_map)
@@ -34,8 +53,10 @@ function StockpileRenderer:_update_item_renderers(mode, item_map)
    end
    for id, item in pairs(item_map) do
       if item:is_valid() then
-         local f = _radiant.client.get_render_entity(item)
-         f:set_material_override(self:_mode_to_material_kind(mode))
+         local re = _radiant.client.get_render_entity(item)
+         if re ~= nil then
+            re:set_material_override(self:_mode_to_material_kind(mode))
+         end
       end
    end
 end
@@ -113,13 +134,21 @@ function StockpileRenderer:_regenerate_node()
    end)
    
    self:_clear()
-   self._node = _radiant.client.create_designation_node(self._parent_node, self._region:get(), self._color, self._color);
+   if self._ui_view_mode == 'zones' then
+      self._zone_node = _radiant.client.create_designation_node(self._parent_node, self._region:get(), self._color, self._color);
+   end
+   self._node = _radiant.client.create_stockpile_node(self._parent_node, self._region:get(), Color4(255, 0, 0, 64), Color4(0, 255, 0, 64));
 end
 
 function StockpileRenderer:_clear()
    if self._node then
       h3dRemoveNode(self._node)
       self._node = nil
+   end
+
+   if self._zone_node then
+      h3dRemoveNode(self._zone_node)
+      self._zone_node = nil
    end
 end
 

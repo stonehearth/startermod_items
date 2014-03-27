@@ -333,7 +333,7 @@ bool VoxelModelNode::updateVoxelGeometry()
 	
 	// Reset vertices to base data
 	memcpy( _geometryRes->getVertexData(), _baseVoxelGeoRes->getVertexData(),
-	        _geometryRes->_vertCount * sizeof( Vec3f ) );
+	        _geometryRes->_vertCount * sizeof( VoxelVertexData ) );
 
 	VoxelVertexData *posData = _geometryRes->getVertexData();
 

@@ -200,14 +200,14 @@ bool Renderer::init(int glMajor, int glMinor, bool msaaWindowSupported, bool ena
 	VertexLayoutAttrib attribsVoxelModel[3] = {
       { "vertPos",     0, 3, 0 }, 
       { "normal",      0, 3, 12 },
-      { "color",       0, 3, 24 },
+      { "color",       0, 4, 24 },
 	};
 	_vlVoxelModel = gRDI->registerVertexLayout( 3, attribsVoxelModel );
 
 	VertexLayoutAttrib attribsInstanceVoxelModel[4] = {
       { "vertPos",     0, 3, 0 }, 
       { "normal",      0, 3, 12 },
-      { "color",       0, 3, 24 },
+      { "color",       0, 4, 24 },
       { "transform",   1, 16, 0 }
 	};
 
