@@ -1,0 +1,56 @@
+#saveView {
+   .gui;
+   position: absolute;
+
+   table {
+      border-collapse: collapse;
+   }
+
+   #saves {
+      margin-top: 10px;
+      width: 400px;
+      height: 360px;
+      overflow-y: scroll;
+   }
+      
+   td {
+      padding: 10px;
+   }
+
+   .saveSlot {
+      vertical-align: top;
+      height: 120px;
+
+      &:hover {
+         background: red;
+      }
+
+      .screenshot {
+         width: 150px;
+         height: 100px;
+         display: inline-block;
+         background: black;
+      }
+
+      .gameInfo {
+         padding-left: 10px;
+         display: inline-block;
+
+         div {
+            padding-bottom: 4px;
+         }
+
+         .name {
+            .controlFont;
+         }
+      }
+   }
+
+   .current {
+      background: yellow;
+   }
+   
+   #newSave {
+      width: 100%;
+   }
+}

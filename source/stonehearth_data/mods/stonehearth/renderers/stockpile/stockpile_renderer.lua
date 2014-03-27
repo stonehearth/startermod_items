@@ -137,7 +137,7 @@ function StockpileRenderer:_regenerate_node()
    if self._ui_view_mode == 'zones' then
       self._zone_node = _radiant.client.create_designation_node(self._parent_node, self._region:get(), self._color, self._color);
    end
-   self._node = _radiant.client.create_stockpile_node(self._parent_node, self._region:get(), Color4(255, 0, 0, 64), Color4(0, 255, 0, 64));
+   self._node = _radiant.client.create_stockpile_node(self._parent_node, self._region:get(), Color4(55, 49, 26, 48), Color4(55, 49, 26, 64));
 end
 
 function StockpileRenderer:_clear()

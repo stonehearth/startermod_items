@@ -58,7 +58,7 @@
       }
    },
    "jobs_menu" : {
-      "name" : "Jobs",
+      "name" : "Manage Jobs",
       "description" : "Manage your settlers and promote them to new jobs.",
       "class" : "dock",
       "icon" : "/stonehearth/ui/game/start_menu/images/dock_jobs.png",
@@ -73,7 +73,7 @@
       }      
    },
    "crafters_menu" : {
-      "name" : "Crafters",
+      "name" : "Manage Crafters",
       "description" : "Manager all of your crafters and workshops.",
       "class" : "dock",
       "icon" : "/stonehearth/ui/game/start_menu/images/dock_crafters.png",
@@ -81,7 +81,7 @@
       "game_mode" : "normal"
    },
    "defend_menu" : {
-      "name" : "Defend",
+      "name" : "Manage Squads",
       "description" : "Manage your military squads.",
       "class" : "dock",
       "icon" : "/stonehearth/ui/game/start_menu/images/dock_defend.png",
