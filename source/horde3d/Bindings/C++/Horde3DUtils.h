@@ -216,7 +216,7 @@ DLL H3DRes h3dutCreateGeometryRes( const char *name, int numVertices, int numTri
 struct VoxelGeometryVertex {
    float pos[3];
    float normal[3];
-   float color[3];
+   float color[4];
 };
 
 DLL H3DRes h3dutCreateVoxelGeometryRes( const char *name, struct VoxelGeometryVertex* vertexData, int vertexOffsets[], unsigned int* indexData, int indexOffsets[], int numLodLevels);

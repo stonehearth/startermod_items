@@ -138,8 +138,8 @@ H3DNodeUnique Pipeline::CreateBlueprintNode(H3DNode parent,
 
    panels_mesh.SetOffset(offset);
    outline_mesh.SetOffset(offset);
-   panels_mesh.SetColor(csg::Color3::FromString("#00DFFC"));
-   outline_mesh.SetColor(csg::Color3::FromString("#005FFB"));
+   panels_mesh.SetColor(csg::Color4::FromString("#00DFFC"));
+   outline_mesh.SetColor(csg::Color4::FromString("#005FFB"));
    csg::RegionTools3().ForEachPlane(model, [&](csg::Region2 const& plane, csg::PlaneInfo3 const& pi) {
       csg::Region2f outline = csg::RegionTools2().GetInnerBorder(plane, thickness);
       csg::Region2f panels = ToFloat(plane) - outline;
@@ -181,7 +181,7 @@ void Pipeline::AddDesignationStripes(csg::mesh_tools::mesh& m, csg::Region2 cons
             csg::Point3f(cube.min.x + x2, y, cube.min.y + y2),
             csg::Point3f(cube.min.x, y, cube.min.y + i + 0.5f),
          };
-         m.AddFace(points, csg::Point3f::unitY, csg::Color3(0, 0, 0));
+         m.AddFace(points, csg::Point3f::unitY, csg::Color4(0, 0, 0, 255));
       }
       for (float i = 0; i < size.x; i ++) {
          // xxx: why do we have to use a clockwise winding here?
@@ -197,7 +197,7 @@ void Pipeline::AddDesignationStripes(csg::mesh_tools::mesh& m, csg::Region2 cons
             csg::Point3f(cube.min.x + x2, y, cube.max.y + y2),
             csg::Point3f(cube.min.x + x3, y, cube.max.y + y3),
          };
-         m.AddFace(points, csg::Point3f::unitY, csg::Color3(0, 0, 0));
+         m.AddFace(points, csg::Point3f::unitY, csg::Color4(0, 0, 0, 255));
       }
    }
 }
@@ -253,8 +253,8 @@ void Pipeline::AddDesignationBorder(csg::mesh_tools::mesh& m, csg::EdgeMap2& edg
 H3DNodeUnique
 Pipeline::CreateDesignationNode(H3DNode parent,
                                 csg::Region2 const& plane,
-                                csg::Color3 const& outline_color,
-                                csg::Color3 const& stripes_color)
+                                csg::Color4 const& outline_color,
+                                csg::Color4 const& stripes_color)
 {
    csg::RegionTools2 tools;
 
@@ -283,6 +283,70 @@ Pipeline::CreateDesignationNode(H3DNode parent,
    h3dSetNodeParamF(outline, H3DModel::PolygonOffsetF, 1, -.01f);
 
    return group;
+}
+
+
+H3DNodeUnique
+Pipeline::CreateStockpileNode(H3DNode parent,
+                                csg::Region2 const& plane,
+                                csg::Color4 const& interior_color,
+                                csg::Color4 const& border_color)
+{
+   csg::RegionTools2 tools;
+
+   csg::mesh_tools::mesh interior_mesh, border_mesh;
+
+   interior_mesh.SetColor(interior_color);
+   border_mesh.SetColor(border_color);
+
+   CreateStockpileNodeGeometry(interior_mesh, border_mesh, plane);
+
+   H3DNode group = h3dAddGroupNode(parent, "designation group node");
+   H3DNode interior = AddDynamicMeshNode(group, interior_mesh, "materials/transparent.material.xml", 0);
+   h3dSetNodeParamI(interior, H3DModel::UseCoarseCollisionBoxI, 1);
+   h3dSetNodeParamI(interior, H3DModel::PolygonOffsetEnabledI, 1);
+   h3dSetNodeParamF(interior, H3DModel::PolygonOffsetF, 0, -1.0);
+   h3dSetNodeParamF(interior, H3DModel::PolygonOffsetF, 1, -.01f);
+   H3DNode outline = AddDynamicMeshNode(group, border_mesh, "materials/transparent.material.xml", 0);
+   h3dSetNodeParamI(outline, H3DModel::UseCoarseCollisionBoxI, 1);
+   h3dSetNodeParamI(outline, H3DModel::PolygonOffsetEnabledI, 1);
+   h3dSetNodeParamF(outline, H3DModel::PolygonOffsetF, 0, -1.0);
+   h3dSetNodeParamF(outline, H3DModel::PolygonOffsetF, 1, -.01f);
+
+   return group;
+}
+
+void Pipeline::CreateStockpileNodeGeometry(csg::mesh_tools::mesh& interior_mesh, csg::mesh_tools::mesh& border_mesh, csg::Region2 const& region)
+{
+   csg::PlaneInfo3 pi;
+   pi.reduced_coord = 1;
+   pi.reduced_value = 0;
+   pi.x = 0;
+   pi.y = 2;
+   pi.normal_dir = 1;
+
+   const csg::Point2& minbounds = region.GetBounds().min;
+   const csg::Point2& maxbounds = region.GetBounds().max;
+
+   // Interior is one shade of color....
+   interior_mesh.AddRect(csg::Rect2(
+      csg::Point2(minbounds.x + 1, minbounds.y + 1), 
+      csg::Point2(maxbounds.x - 1, maxbounds.y - 1)), pi);
+
+   // Bounds are another color....
+   // TODO: T-Junctions!
+   border_mesh.AddRect(csg::Rect2(
+      csg::Point2(minbounds.x, minbounds.y), 
+      csg::Point2(minbounds.x + 1, maxbounds.y)), pi);
+   border_mesh.AddRect(csg::Rect2(
+      csg::Point2(minbounds.x + 1, minbounds.y), 
+      csg::Point2(maxbounds.x - 1, minbounds.y + 1)), pi);
+   border_mesh.AddRect(csg::Rect2(
+      csg::Point2(minbounds.x + 1, maxbounds.y - 1), 
+      csg::Point2(maxbounds.x - 1, maxbounds.y)), pi);
+   border_mesh.AddRect(csg::Rect2(
+      csg::Point2(maxbounds.x - 1, minbounds.y), 
+      csg::Point2(maxbounds.x, maxbounds.y)), pi);
 }
 
 voxel::QubicleFile* Pipeline::LoadQubicleFile(std::string const& uri)

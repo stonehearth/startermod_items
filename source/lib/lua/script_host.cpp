@@ -679,9 +679,9 @@ luabind::object ScriptHost::GetObjectRepresentation(luabind::object obj, std::st
       case LUA_TUSERDATA:
          try {
             luabind::object __translator = o[format];
-            if (__translator) {
+            if (__translator && __translator.is_valid()) {
                luabind::object translated = luabind::call_function<luabind::object>(__translator, o);
-               if (translated) {
+               if (translated && translated.is_valid()) {
                   o = translated;
                   return true;
                }

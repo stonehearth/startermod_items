@@ -1,6 +1,6 @@
 local Point3 = _radiant.csg.Point3
 local Cube3 = _radiant.csg.Cube3
-local Color3 = _radiant.csg.Color3
+local Color4 = _radiant.csg.Color4
 local Rect2 = _radiant.csg.Rect2
 local Point2 = _radiant.csg.Point2
 local priorities = require('constants').priorities.worker_task
@@ -42,7 +42,7 @@ function ResourceCallHandler:box_harvest_resources(session, response)
             if node then
                h3dRemoveNode(node)
             end
-            node = _radiant.client.create_designation_node(parent_node, self._region:get(), Color3(0, 255, 0), Color3(0, 255, 0));
+            node = _radiant.client.create_designation_node(parent_node, self._region:get(), Color4(0, 255, 0, 255), Color4(0, 255, 0, 255));
          end)
       :done(function (box)
             _radiant.call('stonehearth:server_box_harvest_resources', box)

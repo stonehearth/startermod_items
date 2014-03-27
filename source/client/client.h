@@ -26,6 +26,8 @@
 #include "core/guard.h"
 #include "core/unique_resource.h"
 #include "core/shared_resource.h"
+#include "platform/FileWatcher.h"
+#include "platform/utils.h"
 
 BEGIN_RADIANT_CLIENT_NAMESPACE
 
@@ -108,6 +110,7 @@ class Client : public core::Singleton<Client> {
       void OnKeyboardInput(Input const& keyboard);
       void OnRawInput(Input const& keyboard);
       bool CallInputHandlers(Input const& input);
+      void InitiateFlushAndLoad();
 
       void UpdateSelection(const MouseInput &mouse);
       void CenterMap(const MouseInput &mouse);
@@ -239,6 +242,9 @@ private:
       dm::TracePtr                root_object_trace_;
       std::shared_ptr<rpc::TraceObjectRouter> trace_object_router_;
       std::vector<XZRegionSelectorRef> xz_selectors_;
+      FW::FileWatcher             fileWatcher_;
+      bool                        flushAndLoad_;
+      platform::timer             flushTimer_;
 };
 
 END_RADIANT_CLIENT_NAMESPACE
