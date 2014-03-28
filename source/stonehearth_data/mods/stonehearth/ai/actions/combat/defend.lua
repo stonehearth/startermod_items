@@ -53,7 +53,6 @@ function Defend:_on_battery(args)
    end
 
    local defend = rng:get_real(0, 1) < 0.75
-   defend = false -- CHECKCHECK
 
    if not defend then
       return

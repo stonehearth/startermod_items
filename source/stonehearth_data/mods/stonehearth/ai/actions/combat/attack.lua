@@ -14,18 +14,23 @@ Attack.priority = 1
 Attack.weight = 1
 
 function Attack:__init()
+   self._enable_combat = radiant.util.get_config('enable_combat', false)
 end
 
 function Attack:start_thinking(ai, entity, args)
    self._ai = ai
    self._entity = entity
-   --radiant.events.listen(radiant, 'stonehearth:very_slow_poll', self, self._find_target)
 
-   --self._look_for_enemies = LookForEnemies(self._entity)
+   if self._enable_combat then
+      radiant.events.listen(radiant, 'stonehearth:very_slow_poll', self, self._find_target)
+      --self._look_for_enemies = LookForEnemies(self._entity)
+   end
 end
 
 function Attack:stop_thinking(ai, entity, args)
-   --radiant.events.unlisten(radiant, 'stonehearth:very_slow_poll', self, self._find_target)
+   if self._enable_combat then
+      radiant.events.unlisten(radiant, 'stonehearth:very_slow_poll', self, self._find_target)
+   end
 end
 
 function Attack:run(ai, entity, args)
