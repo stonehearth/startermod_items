@@ -103,12 +103,11 @@ bool GotoLocation::Work(const platform::timer &timer)
          finished = false;
       }
 
-      csg::Point3f desiredLocation, actualLocation;
-      desiredLocation = current_location + direction * moveDistance;
-      bool passable = MovementHelpers::GetStandableLocation(GetSim(), entity, desiredLocation, actualLocation);
+      csg::Point3f next_location = current_location + direction * moveDistance;
+      bool passable = MovementHelpers::TestMoveXZ(GetSim(), entity, current_location, next_location);
 
       if (passable) {
-         mob->MoveTo(actualLocation);
+         mob->MoveTo(next_location);
       } else {
          Report("unpassable");
          finished = true;

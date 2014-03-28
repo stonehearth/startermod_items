@@ -40,7 +40,7 @@ bool BumpLocation::Work(platform::timer const& timer)
    auto mob = entity->GetComponent<om::Mob>();
    csg::Point3f currentLocation = mob->GetWorldLocation();
    csg::Point3f const destination = currentLocation + vector_;
-   csg::Point3f testLocation;
+   csg::Point3f nextLocation;
 
    float const distance = vector_.Length();
    float remainingDistance = distance;
@@ -48,19 +48,19 @@ bool BumpLocation::Work(platform::timer const& timer)
 
    while (!finished && remainingDistance > 0) {
       if (remainingDistance > stepSize) {
-         testLocation = currentLocation + stepVector;
+         nextLocation = currentLocation + stepVector;
          remainingDistance -= stepSize;
       } else {
-         testLocation.x = destination.x;
-         testLocation.y = currentLocation.y;
-         testLocation.z = destination.z;
+         nextLocation = destination;
          remainingDistance = 0;
          finished = true;
       }
 
-      bool passable = MovementHelpers::GetStandableLocation(GetSim(), entity, testLocation, currentLocation);
+      bool passable = MovementHelpers::TestMoveXZ(GetSim(), entity, currentLocation, nextLocation);
 
-      if (!passable) {
+      if (passable) {
+         currentLocation = nextLocation;
+      } else {
          finished = true;
       }
    }

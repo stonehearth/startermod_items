@@ -8,28 +8,32 @@
 using namespace ::radiant;
 using namespace ::radiant::simulation;
 
-// This code may find paths that are illegal under the pathfinder.
-// TODO: Reconcile this code with standard pathfinding rules.
-bool MovementHelpers::GetStandableLocation(Simulation& sim, std::shared_ptr<om::Entity> const& entity, csg::Point3f& desiredLocation, csg::Point3f& actualLocation)
+// returns true if this is a legal move (doesn't check adjacency yet though due to high game speed issues)
+// toLocation contains the updated standing location when true and is unchanged when false
+bool MovementHelpers::TestMoveXZ(Simulation& sim, std::shared_ptr<om::Entity> const& entity, csg::Point3f const& fromLocation, csg::Point3f& toLocation)
 {
    phys::OctTree const& octTree = sim.GetOctTree();
-   csg::Point3f candidate;
-   
-   candidate = desiredLocation;
+
+   csg::Point3f toLocationProjected = toLocation;
+   toLocationProjected.y = fromLocation.y;
+
+   // should perform adjacency check on fromLocation and toLocationProjected, but can't yet at high game speeds
+
+   csg::Point3f candidate = toLocationProjected;
    if (octTree.CanStandOn(entity, csg::ToClosestInt(candidate))) {
-      actualLocation = candidate;
+      toLocation = candidate;
       return true;
    }
 
-   candidate = desiredLocation + csg::Point3f::unitY;
+   candidate = toLocationProjected + csg::Point3f::unitY;
    if (octTree.CanStandOn(entity, csg::ToClosestInt(candidate))) {
-      actualLocation = candidate;
+      toLocation = candidate;
       return true;
    }
 
-   candidate = desiredLocation - csg::Point3f::unitY;
+   candidate = toLocationProjected - csg::Point3f::unitY;
    if (octTree.CanStandOn(entity, csg::ToClosestInt(candidate))) {
-      actualLocation = candidate;
+      toLocation = candidate;
       return true;
    }
 
