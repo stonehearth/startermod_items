@@ -192,8 +192,8 @@ void Client::OneTimeIninitializtion()
       _commands[GLFW_KEY_F3] = [=]() { core_reactor_->Call(rpc::Function("radiant:toggle_step_paths")); };
       _commands[GLFW_KEY_F4] = [=]() { core_reactor_->Call(rpc::Function("radiant:step_paths")); };
       _commands[GLFW_KEY_F5] = [=]() { RequestReload(); };
-      _commands[GLFW_KEY_F6] = [=]() { SaveGame(); };
-      _commands[GLFW_KEY_F7] = [=]() { LoadGame(); };
+      _commands[GLFW_KEY_F6] = [=]() { SaveGame("hotkey_save", json::Node()); };
+      _commands[GLFW_KEY_F7] = [=]() { LoadGame("hotkey_save"); };
       _commands[GLFW_KEY_F9] = [=]() { core_reactor_->Call(rpc::Function("radiant:toggle_debug_nodes")); };
       _commands[GLFW_KEY_F10] = [&renderer, this]() {
          perf_hud_shown_ = !perf_hud_shown_;
@@ -504,7 +504,12 @@ void Client::OneTimeIninitializtion()
       }
    });
 
-}
+   core_reactor_->AddRouteV("radiant:client:save_game", [this](rpc::Function const& f) {
+   });
+
+   core_reactor_->AddRouteV("radiant:client:load_game", [this](rpc::Function const& f) {
+   });
+};
 
 void Client::InitiateFlushAndLoad()
 {
@@ -765,8 +770,8 @@ void Client::mainloop()
 
    if (flushAndLoad_ && flushAndLoadTimer_.expired()) {
       flushAndLoad_ = false;
-      SaveGame();
-      LoadGame();
+      SaveGame("filewatcher_save", json::Node());
+      LoadGame("filewatcher_save");
    }
 }
 
@@ -871,7 +876,8 @@ void Client::UpdateDebugShapes(const proto::UpdateDebugShapes& msg)
 void Client::LoadGame(const proto::LoadGame& msg)
 {
    CLIENT_LOG(2) << "load game";
-   LoadClientState(msg.game_id());
+   fs::path savedir = core::Config::GetInstance().GetSaveDirectory() / msg.game_id();
+   LoadClientState(savedir);
 }
 
 
@@ -1334,41 +1340,48 @@ void Client::RequestReload()
    core_reactor_->Call(rpc::Function("radiant:server:reload"));
 }
 
-void Client::SaveGame()
+void Client::SaveGame(std::string const& saveid, json::Node const& gameinfo)
 {
-   json::Node args;
-   json::Node metadata;
-   metadata.set("name", "Hotkey Save State");
-   metadata.set("name", "Hotkey Save State");
+   fs::path savedir = core::Config::GetInstance().GetSaveDirectory() / saveid;
+   if (!fs::is_directory(savedir)) {
+      fs::create_directories(savedir);
+   } else {
+      for (fs::directory_iterator end_dir_it, it(savedir); it != end_dir_it; ++it) {
+         remove_all(it->path());
+      }
+   }
+   SaveClientState(savedir);
+   h3dutScreenshot((savedir / "screenshot.png").string().c_str() );
 
-   args.set("game_id", "hotkey_save");
-   args.set("metadata", metadata);
+   json::Node args;
+   args.set("saveid", saveid);
    core_reactor_->Call(rpc::Function("radiant:server:save", args));
-   SaveClientState("hotkey_save");
-   h3dutScreenshot("hotkey_save.png");
 }
 
-void Client::LoadGame()
+void Client::LoadGame(std::string const& saveid)
 {
-   json::Node args;
-   args.set("game_id", "hotkey_save");
-   core_reactor_->Call(rpc::Function("radiant:server:load", args));
+   fs::path savedir = core::Config::GetInstance().GetSaveDirectory() / saveid;
+   if (fs::is_directory(savedir)) {
+      json::Node args;
+      args.set("saveid", saveid);
+      core_reactor_->Call(rpc::Function("radiant:server:load", args));
+   }
 }
 
-void Client::SaveClientState(std::string const& game_id)
+void Client::SaveClientState(boost::filesystem::path const& savedir)
 {
    CLIENT_LOG(0) << "starting save.";
    std::string error;
-   std::string filename = BUILD_STRING(game_id << "_client.sss");
+   std::string filename = (savedir / "client_state.bin").string();
    if (!GetAuthoringStore().Save(filename, error)) {
       CLIENT_LOG(0) << "failed to save: " << error;
    }
    CLIENT_LOG(0) << "saved.";
 }
 
-void Client::LoadClientState(std::string const& game_id)
+void Client::LoadClientState(boost::filesystem::path const& savedir)
 {
-   CLIENT_LOG(0) << "starting loadin...";
+   CLIENT_LOG(0) << "starting loadin... " << savedir;
 
    // shutdown and initialize.  we need to initialize before creating the new streamers.  otherwise,
    // we won't have the new store for them.
@@ -1380,7 +1393,7 @@ void Client::LoadClientState(std::string const& game_id)
 
    // Re-initialize the game
    dm::Store &store = GetAuthoringStore();
-   std::string filename = BUILD_STRING(game_id << "_client.sss");
+   std::string filename = (savedir / "client_state.bin").string();
    if (!store.Load(filename, error, objects)) {
       CLIENT_LOG(0) << "failed to load: " << error;
    }

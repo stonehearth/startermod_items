@@ -112,8 +112,8 @@ private:
    void EncodeServerTick(std::shared_ptr<RemoteClient> c);
    void EncodeUpdates(std::shared_ptr<RemoteClient> c);
 
-   void Save(std::string const& id);
-   void Load(std::string const& id);
+   void Save(boost::filesystem::path const& savedir);
+   void Load(boost::filesystem::path const& savedir);
    void Reset();
 
    void OneTimeIninitializtion();
