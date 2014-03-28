@@ -49,7 +49,23 @@ function AiService:create_compound_action(action_ctor)
    return CompoundActionFactory(action_ctor)
 end
 
-function AiService:create_activity(name, args)   
+function AiService:acquire_ai_lease(target, owner)
+   if target and target:is_valid() and owner and owner:is_valid() then
+      local o = {
+         persistant = false,
+      }
+      return target:add_component('stonehearth:lease'):acquire(self.RESERVATION_LEASE_NAME, owner, o)
+   end
+   return false
+end
+
+function AiService:release_ai_lease(target, owner)
+   if target and target:is_valid() and owner and owner:is_valid() then
+      target:add_component('stonehearth:lease'):release(self.RESERVATION_LEASE_NAME, owner)
+   end
+end
+
+function AiService:create_activity(name, args)
    if args == nil then
       args = {}
    end

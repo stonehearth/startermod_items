@@ -31,6 +31,7 @@ function Task:__init(task_group, activity)
    self._max_workers = INFINITE
    self._complete_count = 0
    self._currently_feeding = false
+   self._notify_completed_cbs = {}
 end
 
 function Task:destroy()
@@ -45,7 +46,18 @@ function Task:_destroy()
       self._task_group:_on_task_destroy(self)
       self._task_group = nil
       self:_set_state(COMPLETED)
+      for _, cb in ipairs(self._notify_completed_cbs) do
+         cb()
+      end
    end
+end
+
+function Task:is_completed()
+   return self._state == COMPLETED
+end
+
+function Task:notify_completed(cb)
+   table.insert(self._notify_completed_cbs, cb)
 end
 
 function Task:get_name()

@@ -11,59 +11,55 @@ local PlaceableItemProxyComponent = class()
 
 function PlaceableItemProxyComponent:initialize(entity, json)
    self._entity = entity               --The 1x1 placeable cube
-   self._full_sized_entity = nil       --Onced initialized, the actual full-sized entity
-   self._under_construction = false
+   self._placed_entity_uri = json.full_sized_entity
 
    self._sv = self.__saved_variables:get_data()
-   if not self._sv.entity_id then
-      self._sv.entity_id = entity:get_id()
-      if json and json.full_sized_entity then
-         self._sv.full_sized_entity_uri = json.full_sized_entity;
-         self:_create_derived_components()
-      end
-   end
+   if not self._sv._initialized and self._placed_entity_uri then
+      self._sv._initialized = true
+      self:_create_derived_components()
+      self.__saved_variables:mark_changed()
+   end  
 end
 
 function PlaceableItemProxyComponent:get_full_sized_entity()
-   if not self._full_sized_entity then
-      self:_create_full_sized_entity();
+   if not self._sv.placed_entity and self._placed_entity_uri then
+      local placed_entity = radiant.entities.create_entity(self._placed_entity_uri)
+      self:set_full_sized_entity(placed_entity)
    end
-   return self._full_sized_entity
+   return self._sv.placed_entity
 end
 
 --- If something started as a big entity and then we have to carry it
 -- save it's full-sized entity here, to preserve its values
-function PlaceableItemProxyComponent:set_full_sized_entity(full_sized_entity)
-   self._full_sized_entity = full_sized_entity
-end
+function PlaceableItemProxyComponent:set_full_sized_entity(placed_entity)
+   if self._sv.placed_entity and self._sv.placed_entity:is_valid() then
+      if self._sv.placed_entity:get_id() == placed_entity:get_id() then
+         return
+      end
+      radiant.entities.destroy_entity(self._sv.placed_entity)
+   end
+   self._sv.placed_entity = placed_entity
+   if not self._placed_entity_uri then
+      self._placed_entity_uri = placed_entity:get_uri()
+      self:_create_derived_components()
+   end
+   self.__saved_variables:mark_changed()
 
---Get the uri of the full sized entity to the place command
-function PlaceableItemProxyComponent:get_full_sized_entity_uri()
-   return self._sv.full_sized_entity_uri
-end
+   placed_entity:add_component('stonehearth:placed_item')   
+                         :set_proxy_entity(self._entity)
 
---[[
-   Create the entity and give it our faction
-]]
-function PlaceableItemProxyComponent:_create_full_sized_entity()
-   self._full_sized_entity = radiant.entities.create_entity(self._sv.full_sized_entity_uri)
-   self._full_sized_entity:add_component('stonehearth:placed_item'):set_proxy(self._entity)
-
-   local proxy_faction = radiant.entities.get_faction(self._entity)
-   self._full_sized_entity:add_component('unit_info'):set_faction(proxy_faction)
 end
 
 --Copy the unit info from the big entity's json file into the proxy
 function PlaceableItemProxyComponent:_create_derived_components()
-   local full_sized_uri = self:get_full_sized_entity_uri()
-   local display_name = ''
-
+   assert(self._placed_entity_uri)
+   
    local clone_components = {
       'unit_info',
       'stonehearth:material'
    }
 
-   local json = radiant.resources.load_json(full_sized_uri)
+   local json = radiant.resources.load_json(self._placed_entity_uri)
 
    if json and json.components then
       for i, component in ipairs(clone_components) do
@@ -77,7 +73,7 @@ function PlaceableItemProxyComponent:_create_derived_components()
    commands:add_command('/stonehearth/data/commands/place_item')
 
    commands:modify_command('place_item', function (command_data)
-      command_data.event_data.full_sized_entity_uri = full_sized_uri
+      command_data.event_data.full_sized_entity_uri = self._placed_entity_uri
       command_data.event_data.proxy = self
       command_data.event_data.item_name = self._entity:add_component('unit_info'):get_display_name()
    end)

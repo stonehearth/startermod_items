@@ -21,7 +21,7 @@ function PickupPlacedItemAdjacent:start_thinking(ai, entity, args)
    if self._placed_item_component == nil then
       return
    end
-   self._proxy_item = radiant.entities.create_entity(self._placed_item_component:get_proxy())
+   self._proxy_item = self._placed_item_component:get_proxy_entity()
    self._proxy_component = self._proxy_item:add_component('stonehearth:placeable_item_proxy')
    self._proxy_component:set_full_sized_entity(item)
 

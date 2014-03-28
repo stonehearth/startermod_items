@@ -27,7 +27,9 @@ end
 
 function GhostItemRenderer:destroy()
    --Note: when we finally get an effect in here, destroying the main entity will nuke the effect too
-   _radiant.client.destroy_authoring_entity(self._ghost_entity:get_id())
+   if self._ghost_entity then
+      _radiant.client.destroy_authoring_entity(self._ghost_entity:get_id())
+   end
 end
 
 return GhostItemRenderer
