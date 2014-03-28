@@ -60,7 +60,7 @@ Thumbs.db
 *.deuser
 
 # Stonehearth Save State
-*.sss
+source/stonehearth_data/saved_games/
 
 # Python genearted files
 *.pyc

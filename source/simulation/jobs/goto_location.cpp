@@ -1,14 +1,13 @@
 #include "pch.h"
 #include "goto_location.h"
+#include "movement_helpers.h"
 #include "csg/util.h"
 #include "om/entity.h"
 #include "om/components/mob.ridl.h"
 #include "simulation/simulation.h"
-#include <boost/program_options.hpp>
 
 using namespace ::radiant;
 using namespace ::radiant::simulation;
-namespace po = boost::program_options;
 
 #define G_LOG(level)      LOG_CATEGORY(simulation.goto_location, level, GetName())
 
@@ -104,12 +103,11 @@ bool GotoLocation::Work(const platform::timer &timer)
          finished = false;
       }
 
-      csg::Point3f desiredLocation, actualLocation;
-      desiredLocation = current_location + direction * moveDistance;
-      bool passable = GetStandableLocation(entity, desiredLocation, actualLocation);
+      csg::Point3f next_location = current_location + direction * moveDistance;
+      bool passable = MovementHelpers::TestMoveXZ(GetSim(), entity, current_location, next_location);
 
       if (passable) {
-         mob->MoveTo(actualLocation);
+         mob->MoveTo(next_location);
       } else {
          Report("unpassable");
          finished = true;
@@ -124,34 +122,6 @@ bool GotoLocation::Work(const platform::timer &timer)
       luabind::call_function<void>(arrived_cb_);
    }
    return !finished;
-}
-
-// This code may find paths that are illegal under the pathfinder.
-// TODO: Reconcile this code with standard pathfinding rules.
-bool GotoLocation::GetStandableLocation(std::shared_ptr<om::Entity> const& entity, csg::Point3f& desiredLocation, csg::Point3f& actualLocation)
-{
-   phys::OctTree const& octTree = GetSim().GetOctTree();
-   csg::Point3f candidate;
-   
-   candidate = desiredLocation;
-   if (octTree.CanStandOn(entity, csg::ToClosestInt(candidate))) {
-      actualLocation = candidate;
-      return true;
-   }
-
-   candidate = desiredLocation + csg::Point3f::unitY;
-   if (octTree.CanStandOn(entity, csg::ToClosestInt(candidate))) {
-      actualLocation = candidate;
-      return true;
-   }
-
-   candidate = desiredLocation - csg::Point3f::unitY;
-   if (octTree.CanStandOn(entity, csg::ToClosestInt(candidate))) {
-      actualLocation = candidate;
-      return true;
-   }
-
-   return false;
 }
 
 void GotoLocation::Stop()

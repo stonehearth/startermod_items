@@ -6,11 +6,11 @@ local FindPathToEntity = class()
 FindPathToEntity.name = 'find path to entity'
 FindPathToEntity.does = 'stonehearth:find_path_to_entity'
 FindPathToEntity.args = {
-   finish = Entity,      -- entity to find a path to
+   destination = Entity,      -- entity to find a path to
    reserve_region = {    -- reserve the destination region?
       type = 'boolean',
       default = false,
-   }
+   },
 }
 FindPathToEntity.think_output = {
    path = Path,       -- the path to destination, from the current Entity
@@ -19,7 +19,7 @@ FindPathToEntity.version = 2
 FindPathToEntity.priority = 1
 
 function FindPathToEntity:start_thinking(ai, entity, args)
-   local destination = args.finish
+   local destination = args.destination
    
    if not destination or not destination:is_valid() then
       ai:get_log():debug('invalid entity reference.  ignorning')

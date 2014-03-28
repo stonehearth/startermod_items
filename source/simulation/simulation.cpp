@@ -152,10 +152,10 @@ void Simulation::OneTimeIninitializtion()
    });
 
    core_reactor_->AddRouteV("radiant:server:save", [this](rpc::Function const& f) {
-      Save(json::Node(f.args).get<std::string>("game_id"));
+      Save(json::Node(f.args).get<std::string>("saveid"));
    });
    core_reactor_->AddRouteV("radiant:server:load", [this](rpc::Function const& f) {
-      Load(json::Node(f.args).get<std::string>("game_id"));
+      Load(json::Node(f.args).get<std::string>("saveid"));
    });
 
 }
@@ -769,18 +769,18 @@ float Simulation::GetBaseWalkSpeed() const
    return base_walk_speed_ * game_speed_;
 }
 
-void Simulation::Save(std::string const& save_id)
+void Simulation::Save(boost::filesystem::path const& saveid)
 {
    SIM_LOG(0) << "starting save.";
    std::string error;
-   std::string filename = BUILD_STRING(save_id << "_server.sss");
+   std::string filename = (core::Config::GetInstance().GetSaveDirectory() / saveid / "server_state.bin").string();
    if (!store_->Save(filename, error)) {
       SIM_LOG(0) << "failed to save: " << error;
    }
    SIM_LOG(0) << "saved.";
 }
 
-void Simulation::Load(std::string const& save_id)
+void Simulation::Load(boost::filesystem::path const& saveid)
 {
    SIM_LOG(0) << "starting loadin...";
    // delete all the streamers before shutting down so we don't spam them with delete requests,
@@ -798,7 +798,7 @@ void Simulation::Load(std::string const& save_id)
    std::string error;
    dm::Store::ObjectMap objects;
    // Re-initialize the game
-   std::string filename = BUILD_STRING(save_id << "_server.sss");
+   std::string filename = (core::Config::GetInstance().GetSaveDirectory() / saveid / "server_state.bin").string();
    if (!store_->Load(filename, error, objects)) {
       SIM_LOG(0) << "failed to load: " << error;
    }
@@ -823,7 +823,7 @@ void Simulation::Load(std::string const& save_id)
    proto::Update msg;
    msg.set_type(proto::Update::LoadGame);
    proto::LoadGame *loadGameMsg = msg.MutableExtension(proto::LoadGame::extension);
-   loadGameMsg->set_game_id(save_id);
+   loadGameMsg->set_game_id(saveid.string());
 
    for (std::shared_ptr<RemoteClient> client : _clients) {
       client->send_queue->Push(msg);

@@ -95,7 +95,8 @@ bool FollowPath::Arrived(om::MobPtr mob)
    int unusedPoints = 0;
 
    if (stop_distance_ > 0) {
-      unusedPoints = (int)std::floor(stop_distance_ + 0.5);
+      // error on the side of getting closer than necessary
+      unusedPoints = (int)std::floor(stop_distance_);
    }
    return pursuing_ >= (int)path_->GetPoints().size() - unusedPoints;
 }
