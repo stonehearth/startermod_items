@@ -19,6 +19,13 @@ RunToEntity.priority = 2
 
 local ai = stonehearth.ai
 return ai:create_compound_action(RunToEntity)
-         :execute('stonehearth:find_path_to_entity', { finish = ai.ARGS.entity })
-         :execute('stonehearth:follow_path', { path = ai.PREV.path, stop_distance = ai.ARGS.stop_distance })
-         :set_think_output({ point_of_interest = ai.BACK(2).path:get_destination_point_of_interest() })
+         :execute('stonehearth:find_path_to_entity', {
+            destination = ai.ARGS.entity,
+         })
+         :execute('stonehearth:follow_path', {
+            path = ai.PREV.path,
+            stop_distance = ai.ARGS.stop_distance
+         })
+         :set_think_output({
+            point_of_interest = ai.BACK(2).path:get_destination_point_of_interest()
+         })
