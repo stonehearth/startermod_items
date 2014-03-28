@@ -23,7 +23,7 @@ ifeq ($(RUN_STAGED),)
 else
   RUN_ROOT=$(STAGE_ROOT)
 endif
-STONEHEARTH_APP = ../../build/source/stonehearth/$(MSBUILD_CONFIGURATION)/Stonehearth.exe
+STONEHEARTH_APP = ../../build/source/stonehearth/$(MSBUILD_CONFIGURATION)/Stonehearth.exe $(SHFLAGS)
 
 .PHONY: default
 default: submodules configure crash_reporter stonehearth
