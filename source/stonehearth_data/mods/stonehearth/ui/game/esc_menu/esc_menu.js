@@ -2,7 +2,7 @@
 App.StonehearthEscMenuView = App.View.extend({
    templateName: 'escMenu',
    classNames: ['flex'],
-   modal: true,
+modal: true,
 
    init: function() {
       this._super();
@@ -32,6 +32,14 @@ App.StonehearthEscMenuView = App.View.extend({
 
       settings: function() {
          App.gameView.addView(App.StonehearthSettingsView);
+      },
+
+      save: function() {
+         App.gameView.addView(App.StonehearthSaveView);
+      },
+
+      load: function() {
+         App.gameView.addView(App.StonehearthLoadView);
       }
 
    }
