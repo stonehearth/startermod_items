@@ -505,10 +505,33 @@ void Client::OneTimeIninitializtion()
    });
 
    core_reactor_->AddRouteV("radiant:client:save_game", [this](rpc::Function const& f) {
+      json::Node saveid(json::Node(f.args).get_node(0));
+      json::Node gameinfo(json::Node(f.args).get_node(1));
+      SaveGame(saveid.as<std::string>(), gameinfo);
    });
 
    core_reactor_->AddRouteV("radiant:client:load_game", [this](rpc::Function const& f) {
+      json::Node saveid(json::Node(f.args).get_node(0));
+      LoadGame(saveid.as<std::string>());
    });
+
+   core_reactor_->AddRouteJ("radiant:client:get_save_games", [this](rpc::Function const& f) {
+      json::Node games;
+      fs::path savedir = core::Config::GetInstance().GetSaveDirectory();
+      if (fs::is_directory(savedir)) {
+         for (fs::directory_iterator end_dir_it, it(savedir); it != end_dir_it; ++it) {
+            std::string name = it->path().filename().string();
+            std::ifstream jsonfile((it->path() / "metadata.json").string());
+            JSONNode metadata = libjson::parse(io::read_contents(jsonfile));
+            json::Node entry;
+            entry.set("screenshot", BUILD_STRING("screenshot.png"));
+            entry.set("gameinfo", metadata);
+            games.set(name, entry);
+         }
+      }
+      return games;
+   });
+
 };
 
 void Client::InitiateFlushAndLoad()
@@ -1351,7 +1374,7 @@ void Client::SaveGame(std::string const& saveid, json::Node const& gameinfo)
       }
    }
    SaveClientState(savedir);
-   h3dutScreenshot((savedir / "screenshot.png").string().c_str() );
+   SaveClientMetadata(savedir, gameinfo);
 
    json::Node args;
    args.set("saveid", saveid);
@@ -1366,6 +1389,13 @@ void Client::LoadGame(std::string const& saveid)
       args.set("saveid", saveid);
       core_reactor_->Call(rpc::Function("radiant:server:load", args));
    }
+}
+
+void Client::SaveClientMetadata(boost::filesystem::path const& savedir, json::Node const& gameinfo)
+{
+   h3dutScreenshot((savedir / "screenshot.png").string().c_str() );
+   std::ofstream metadata((savedir / "metadata.json").string());
+   metadata << gameinfo.write_formatted() << std::endl;
 }
 
 void Client::SaveClientState(boost::filesystem::path const& savedir)

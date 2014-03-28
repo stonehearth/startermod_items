@@ -14,6 +14,7 @@ public:
    typedef std::function<bool(Function const&)> CallBCb;
    typedef std::function<void(Function const&)> CallVCb;
    typedef std::function<std::string(Function const&)> CallSCb;
+   typedef std::function<JSONNode(Function const&)> CallJCb;
 
 public:
    ReactorDeferredPtr Call(Function const& fn);
@@ -27,6 +28,7 @@ public:
    void AddRouteB(std::string const& route, CallBCb cb);
    void AddRouteV(std::string const& route, CallVCb cb);
    void AddRouteS(std::string const& route, CallSCb cb);
+   void AddRouteJ(std::string const& route, CallJCb cb);
 
 private:
    std::string FindRouteToFunction(Function const& fn);
