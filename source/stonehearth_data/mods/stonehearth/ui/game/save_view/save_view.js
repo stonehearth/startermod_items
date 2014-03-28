@@ -6,6 +6,61 @@ App.StonehearthSaveView = App.View.extend({
 
    init: function() {
       this._super();
+   },
+
+   didInsertElement: function() {
+      this._super();
+      this.$('#saveView').position({
+            my: 'center center',
+            at: 'center center-150',
+            of: '#modalOverlay'
+         });
+
+   },
+
+   actions: {
+      foo: function() {
+
+      },
+   }
+
+});
+
+
+App.StonehearthLoadView = App.View.extend({
+   templateName: 'loadView',
+   classNames: ['flex'],
+   modal: true,
+
+   init: function() {
+      this._super();
+   },
+
+   didInsertElement: function() {
+      this._super();
+      this.$('#loadView').position({
+            my: 'center center',
+            at: 'center center-150',
+            of: '#modalOverlay'
+         });
+
+   },
+
+   actions: {
+      foo: function() {
+
+      },
+   }
+
+});
+
+
+App.StonehearthSaveListView = App.View.extend({
+   templateName: 'saveList',
+   classNames: [],
+
+   init: function() {
+      this._super();
       var self = this;
 
       this.set('context', {});
@@ -33,13 +88,6 @@ App.StonehearthSaveView = App.View.extend({
          })
    },
 
-   didInsertElement: function() {
-      this.$('#saveView').position({
-            my: 'center center',
-            at: 'center center',
-            of: '#modalOverlay'
-         });
-   },
 
    actions: {
 

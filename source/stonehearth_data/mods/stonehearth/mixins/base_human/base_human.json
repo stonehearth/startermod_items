@@ -39,6 +39,11 @@
             "stonehearth:actions:harvest_plant",
             "stonehearth:actions:harvest_plant_adjacent",
             "stonehearth:actions:restock_stockpile",
+            "stonehearth:actions:attack_task_dispatcher",
+            "stonehearth:actions:attack",
+            "stonehearth:actions:attack_melee_adjacent",
+            "stonehearth:actions:defend_task_dispatcher",
+            "stonehearth:actions:defend"
          ],
           "observers": [
             "stonehearth:observers:sleep",

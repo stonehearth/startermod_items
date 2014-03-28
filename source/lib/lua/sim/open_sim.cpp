@@ -4,6 +4,7 @@
 #include "simulation/simulation.h"
 #include "simulation/jobs/follow_path.h"
 #include "simulation/jobs/goto_location.h"
+#include "simulation/jobs/bump_location.h"
 #include "simulation/jobs/lua_job.h"
 #include "simulation/jobs/path_finder.h"
 #include "om/entity.h"
@@ -96,6 +97,14 @@ std::shared_ptr<FollowPath> Sim_CreateFollowPath(lua_State *L, om::EntityRef ent
    return fp;
 }
 
+std::shared_ptr<BumpLocation> Sim_CreateBumpLocation(lua_State *L, om::EntityRef entity, csg::Point3f const& vector)
+{
+   Simulation &sim = GetSim(L);
+   std::shared_ptr<BumpLocation> fp(new BumpLocation(sim, entity, vector));
+   sim.AddTask(fp);
+   return fp;
+}
+
 std::shared_ptr<GotoLocation> Sim_CreateGotoLocation(lua_State *L, om::EntityRef entity, float speed, const csg::Point3& location, float stop_distance, object arrived_cb)
 {
    Simulation &sim = GetSim(L);
@@ -138,6 +147,7 @@ DEFINE_INVALID_JSON_CONVERSION(Path);
 DEFINE_INVALID_JSON_CONVERSION(PathFinder);
 DEFINE_INVALID_JSON_CONVERSION(FollowPath);
 DEFINE_INVALID_JSON_CONVERSION(GotoLocation);
+DEFINE_INVALID_JSON_CONVERSION(BumpLocation);
 DEFINE_INVALID_JSON_CONVERSION(LuaJob);
 DEFINE_INVALID_JSON_CONVERSION(Simulation);
 DEFINE_INVALID_LUA_CONVERSION(Simulation)
@@ -156,6 +166,7 @@ void lua::sim::open(lua_State* L, Simulation* sim)
             def("create_datastore",         &Sim_AllocDataStore),
             def("create_path_finder",       &Sim_CreatePathFinder),
             def("create_follow_path",       &Sim_CreateFollowPath),
+            def("create_bump_location",     &Sim_CreateBumpLocation),
             def("create_goto_location",     &Sim_CreateGotoLocation),
             def("create_goto_entity",       &Sim_CreateGotoEntity),
             def("create_job",               &Sim_CreateJob),
@@ -194,6 +205,8 @@ void lua::sim::open(lua_State* L, Simulation* sim)
             ,
             lua::RegisterTypePtr_NoTypeInfo<GotoLocation>("GotoLocation")
                .def("stop",     &GotoLocation::Stop)
+            ,
+            lua::RegisterTypePtr_NoTypeInfo<BumpLocation>("BumpLocation")
             ,
             lua::RegisterTypePtr_NoTypeInfo<LuaJob>("LuaJob")
 

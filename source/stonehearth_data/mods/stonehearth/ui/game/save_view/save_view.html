@@ -4,22 +4,42 @@
          <div class="title">Save Game</div>
 
          <div id="saves">
-            <table>
-            {{#each saves}}
-               <tr class="saveSlot" {{bindAttr class=current:current:notCurrent}}>
-                  <td>
-                     <div class="screenshot"></div>
-                  <td class="gameInfo">
-                     <div class="name">{{this.game_info.town_name}}</div>
-                     <div class="gameTime">{{this.game_info.game_time}}</div>
-                     <div class="time">{{this.game_info.time}}</div>
-            {{/each}}
-            </table>
+            {{view "App.StonehearthSaveListView" }}
          </div>
-
-         <button id="newSave">Create New Save</button>
+         <button id="createSaveButton">Create New Save</button>
       </div>
-
-      
+     
    </div>
 </script>
+
+<script type="text/x-handlebars" data-template-name="loadView">
+   <div id="loadView" class="gui">
+      <div class="window">
+         <div class="title">Load Game</div>
+
+         <div id="saves">
+            {{view "App.StonehearthSaveListView" }}
+         </div>
+         <button id="loadButton">Load</button>
+      </div>
+     
+   </div>
+</script>
+
+<script type="text/x-handlebars" data-template-name="saveList">
+   <div class="saveList">
+      {{#each saves}}
+         <div class="saveSlot" {{bindAttr class=current:current:notCurrent}}>
+            <div class="screenshot">
+               <img {{bindAttr src=this.screenshot}} />
+            </div>
+            <div class="gameInfo">
+               <div class="name">{{this.game_info.town_name}}</div>
+               <div class="gameTime">{{this.game_info.game_time}}</div>
+               <div class="time">{{this.game_info.time}}</div>
+            </div>
+         </div>
+      {{/each}}
+   </div>
+</script>
+

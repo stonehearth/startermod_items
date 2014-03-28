@@ -21,7 +21,6 @@ public:
 
 protected:
    void Report(std::string msg);
-   bool GotoLocation::GetStandableLocation(std::shared_ptr<om::Entity> const& entity, csg::Point3f& desiredLocation, csg::Point3f& actualLocation);
 
 protected:
    om::EntityRef        entity_;

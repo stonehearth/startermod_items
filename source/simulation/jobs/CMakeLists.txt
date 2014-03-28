@@ -10,7 +10,9 @@ add_library(simulation_jobs STATIC
             entity_job_scheduler.cpp
             follow_path.cpp
             goto_location.cpp
+            bump_location.cpp
             lua_job.cpp
+            movement_helpers.cpp
             )
 
 add_dependencies(simulation_jobs
