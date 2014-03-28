@@ -22,6 +22,9 @@ App.StonehearthStartMenuView = App.View.extend({
       build_simple_room: function () {
          App.stonehearthClient.buildRoom();
       },
+      showPopulationManager: function() {
+         App.stonehearthClient.showPopulationManager();
+      },
       placeItem: function () {
          $(top).trigger('radiant_show_placement_menu');
       }

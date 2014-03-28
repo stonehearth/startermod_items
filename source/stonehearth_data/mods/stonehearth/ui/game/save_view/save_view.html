@@ -6,7 +6,7 @@
          <div id="saves">
             {{view "App.StonehearthSaveListView" }}
          </div>
-         <button id="createSaveButton">Create New Save</button>
+         <a href="#" {{action saveGame target="view"}}><button id="createSaveButton">Create New Save</button></a>
       </div>
      
    </div>
@@ -20,7 +20,7 @@
          <div id="saves">
             {{view "App.StonehearthSaveListView" }}
          </div>
-         <button id="loadButton">Load</button>
+         <a href="#" {{action loadGame target="view"}}><button id="loadButton">Load</button></a>
       </div>
      
    </div>
@@ -34,9 +34,9 @@
                <img {{bindAttr src=this.screenshot}} />
             </div>
             <div class="gameInfo">
-               <div class="name">{{this.game_info.town_name}}</div>
-               <div class="gameTime">{{this.game_info.game_time}}</div>
-               <div class="time">{{this.game_info.time}}</div>
+               <div class="name">{{this.gameinfo.town_name}}</div>
+               <div class="gameTime">{{this.gameinfo.game_time}}</div>
+               <div class="time">{{this.gameinfo.time}}</div>
             </div>
          </div>
       {{/each}}

@@ -19,8 +19,13 @@ App.StonehearthSaveView = App.View.extend({
    },
 
    actions: {
-      foo: function() {
-
+      saveGame: function() {
+         radiant.call("radiant:client:save_game", "slot_0", { 
+               name: "Save game name",
+               town_name: "Town name goes here",
+               game_time: "game time goes here",
+               time: 1337
+            })
       },
    }
 
@@ -47,8 +52,8 @@ App.StonehearthLoadView = App.View.extend({
    },
 
    actions: {
-      foo: function() {
-
+      loadGame: function() {
+         radiant.call("radiant:client:load_game", "slot_0");
       },
    }
 
@@ -67,7 +72,7 @@ App.StonehearthSaveListView = App.View.extend({
 
       var saveKey = App.stonehearthClient.gameState.saveKey;
 
-      $.get('/stonehearth/data/sample_save.json')
+      radiant.call("radiant:client:get_save_games")
          .done(function(json) {
             var vals = [];
 
