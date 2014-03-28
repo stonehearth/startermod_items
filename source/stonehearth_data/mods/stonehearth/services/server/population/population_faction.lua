@@ -15,6 +15,10 @@ function PopulationFaction:__init(session, saved_variables)
    self._data = radiant.resources.load_json(self._sv.kingdom)
 end
 
+function PopulationFaction:get_datastore(reason)
+   return self.__saved_variables
+end
+
 function PopulationFaction:get_faction()
    return self._sv.faction
 end

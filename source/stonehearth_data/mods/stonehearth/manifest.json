@@ -537,6 +537,10 @@
          "controller" : "file(call_handlers/calendar_call_handler.lua)",
          "endpoint" : "server"
       },
+      "get_population": {
+         "controller" : "file(call_handlers/population_call_handler.lua)",
+         "endpoint" : "server"
+      },
       "choose_workbench_location" : {
          "controller" : "file(call_handlers/workshop_call_handler.lua)",
          "endpoint" : "client"
@@ -761,6 +765,7 @@
          "file(ui/game/unit_frame/unit_frame.html)",
          "file(ui/game/resource_scoreboard/resource_scoreboard.html)",
          "file(ui/game/start_menu/start_menu.html)",
+         "file(ui/game/population_manager/population_manager.html)",
          "file(ui/game/tip_popup/tip_popup.html)",
          "file(ui/game/event_log/event_log.html)",
          "file(ui/game/build/build.html)"
@@ -802,6 +807,7 @@
          "file(ui/game/resource_scoreboard/resource_scoreboard.js)",
          "file(ui/game/start_menu/start_menu.js)",
          "file(ui/game/start_menu/stonehearth_menu.js)",
+         "file(ui/game/population_manager/population_manager.js)",
          "file(ui/game/tip_popup/tip_popup.js)",
          "file(ui/game/event_log/event_log.js)"
       ],
@@ -841,6 +847,7 @@
          "file(ui/game/resource_scoreboard/resource_scoreboard.less)",
          "file(ui/game/start_menu/start_menu.less)",
          "file(ui/game/start_menu/stonehearth_menu.less)",
+         "file(ui/game/population_manager/population_manager.less)",
          "file(ui/game/tip_popup/tip_popup.less)",
          "file(ui/game/event_log/event_log.less)",
          "file(ui/game/build/build.less)"

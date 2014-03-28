@@ -7,16 +7,25 @@ var RadiantTrace;
 
       init: function() {
          this._traces = {};
-
       },
 
       destroy: function() {
          this._destroyAllTraces();
       },
 
-      traceUri: function(uri, components) {
-         return this._expand_uri(uri, components);
-      },      
+      traceUri: function(uri, properties) {
+         return this._expand_uri(uri, properties);
+      },
+
+      useDeferred: function(user_deferred, properties) {
+         var info = {
+            trace: user_deferred,
+            deferred: $.Deferred(),
+            uri: '"manually created trace"',
+         };
+         self._recursive_trace(info, properties, level)
+         return info.deferred;
+      },
 
       _assert : function(e) {
          if (!e) {
@@ -48,7 +57,6 @@ var RadiantTrace;
          });
          this._traces = {};
       },
-
 
       _create_trace: function (uri, level) {
          this._log(level, 'creating new trace for ' + uri);
@@ -113,24 +121,28 @@ var RadiantTrace;
          var info = self._get_trace_reference(uri, level);
          if (!info) {
             info = self._create_trace(uri, level);
-
-            // wathc the object...
-            info.trace.progress(function(json) {
-               // whenever we get an update, expand the entire object and yield the result
-               self._log(level, 'in progress callback for ' + uri + '.  expanding...');
-               if (json) {
-                  self._expand_object(json, properties, level != undefined ? level + 1 : 0)
-                     .progress(function(eobj) {
-                        self._log(level, 'notifying deferred that uri at ' + uri + ' has changed');
-                        info.deferred.notify(eobj);
-                     });
-               } else {
-                  // should we notify or fail?
-                  info.deferred.notify(null);
-               }
-            });
+            self._recursive_trace(info, properties, level)
          }
          return info.deferred;
+      },
+
+      _recursive_trace: function(info, properties, level) {
+         var self = this;
+
+         info.trace.progress(function(json) {
+            // whenever we get an update, expand the entire object and yield the result            
+            self._log(level, 'in progress callback for ' + info.uri  + '.  expanding...');
+            if (json) {
+               self._expand_object(json, properties, level != undefined ? level + 1 : 0)
+                  .progress(function(eobj) {
+                     self._log(level, 'notifying deferred that uri at ' + info.uri + ' has changed');
+                     info.deferred.notify(eobj);
+                  });
+            } else {
+               // should we notify or fail?
+               info.deferred.notify(null);
+            }
+         });
       },
 
       _expand_object_properties: function(obj, properties, level) {
