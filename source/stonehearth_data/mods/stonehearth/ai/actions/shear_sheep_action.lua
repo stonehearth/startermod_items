@@ -2,8 +2,6 @@
    Tell a worker to collect food and resources from a plant. 
 ]]
 
-local personality_service = require 'services.personality.personality_service'
-
 local Point3 = _radiant.csg.Point3
 
 local ShearSheepAction = class()
@@ -43,7 +41,7 @@ function ShearSheepAction:run(ai, entity, path)
       personality_component:add_substitution('gather_target', spawned_item_name)
       personality_component:add_substitution_by_parameter('personality_gather_reaction', personality_component:get_personality(), 'stonehearth:settler_journals:gathering_supplies')
 
-      radiant.events.trigger(personality_service, 'stonehearth:journal_event', 
+      radiant.events.trigger(stonehearth.personality, 'stonehearth:journal_event', 
                             {entity = entity, description = 'gathering_supplies'})
 
    end   

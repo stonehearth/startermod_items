@@ -1,6 +1,6 @@
 local Point3 = _radiant.csg.Point3
 local Cube3 = _radiant.csg.Cube3
-local Color3 = _radiant.csg.Color3
+local Color4 = _radiant.csg.Color4
 local Rect2 = _radiant.csg.Rect2
 local Point2 = _radiant.csg.Point2
 
@@ -50,7 +50,7 @@ function FarmingCallHandler:choose_new_field_location(session, response)
             if node then
                h3dRemoveNode(node)
             end
-            node = _radiant.client.create_designation_node(parent_node, self._region:get(), Color3(230, 201, 54), Color3(230, 201, 54));
+            node = _radiant.client.create_designation_node(parent_node, self._region:get(), Color4(230, 201, 54, 255), Color4(230, 201, 54, 255));
          end)
       :done(function (box)
             local size = {

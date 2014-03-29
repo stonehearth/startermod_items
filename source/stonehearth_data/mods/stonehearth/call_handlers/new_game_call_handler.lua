@@ -1,6 +1,5 @@
-local MathFns = require 'services.world_generation.math.math_fns'
-local BlueprintGenerator = require 'services.world_generation.blueprint_generator'
-local game_master = require 'services.game_master.game_master_service'
+local MathFns = require 'services.server.world_generation.math.math_fns'
+local BlueprintGenerator = require 'services.server.world_generation.blueprint_generator'
 local personality_service = stonehearth.personality
 
 local Point2 = _radiant.csg.Point2
@@ -117,8 +116,7 @@ function NewGameCallHandler:embark_client(session, response)
             function (o)
                log:info('Visible region uri: %s', o.visible_region_uri)
                log:info('Explored region uri: %s', o.explored_region_uri)
-               _radiant.renderer.visibility.set_visibility_regions(o.visible_region_uri, o.explored_region_uri)
-
+               stonehearth.renderer:set_visibility_regions(o.visible_region_uri, o.explored_region_uri)
                response:resolve({})
             end
          )
@@ -256,7 +254,7 @@ function NewGameCallHandler:create_camp(session, response, pt)
    radiant.entities.pickup_item(worker4, pop:create_entity('stonehearth:carpenter:saw'))
 
    -- start the game master service
-   --game_master.start()
+   --stonehearth.game_master.start()
 
    return {}
 end
@@ -265,7 +263,7 @@ function NewGameCallHandler:place_citizen(pop, x, z, profession)
    --TODO: faction denotes which player is playing. Have user pick?
    local citizen = pop:create_new_citizen()
    if not profession then
-      profession = 'worker'
+      profession = 'stonehearth:professions:worker'
    end
    pop:promote_citizen(citizen, profession)
 

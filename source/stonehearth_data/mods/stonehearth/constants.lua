@@ -37,6 +37,8 @@ local constants = {
          AMBIENT_PET_BEHAVIOR = 10,
          EAT = 20,
          SLEEP = 40,
+         ATTACK = 50,
+         DEFEND = 100,
          UNIT_CONTROL = 1000,
          COMPELLED_BEHAVIOR = 9999999,
       },

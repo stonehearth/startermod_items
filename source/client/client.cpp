@@ -21,6 +21,7 @@
 #include "om/stonehearth.h"
 #include "horde3d/Source/Horde3DEngine/egModules.h"
 #include "horde3d/Source/Horde3DEngine/egCom.h"
+#include "horde3d/Bindings/C++/Horde3DUtils.h"
 #include "lib/rpc/trace.h"
 #include "lib/rpc/untrace.h"
 #include "lib/rpc/function.h"
@@ -54,6 +55,7 @@
 #include "dm/receiver.h"
 #include "dm/tracer_sync.h"
 #include "dm/tracer_buffered.h"
+#include "dm/store_trace.h"
 #include "core/system.h"
 
 //  #include "GFx/AS3/AS3_Global.h"
@@ -94,7 +96,8 @@ Client::Client() :
    perf_hud_shown_(false),
    connected_(false),
    game_clock_(nullptr),
-   enable_debug_cursor_(false)
+   enable_debug_cursor_(false),
+   flushAndLoad_(false)
 {
 }
 
@@ -157,6 +160,25 @@ void Client::OneTimeIninitializtion()
       browser_->OnScreenResize(r.x, r.y);
    });
 
+   if (config.Get("enable_flush_and_load", false)) {
+      flushAndLoadDelay_ = config.Get("flush_and_load_delay", 1000);
+      if (boost::filesystem::is_directory("mods/")) {
+         fileWatcher_.addWatch(strutil::utf8_to_unicode("mods/"), [this](FW::WatchID watchid, const std::wstring& dir, const std::wstring& filename, FW::Action action) -> void {
+            // FW::Action::Delete followed by FW::Action::Add is used to indcate that a file has been renamed.
+            if (action == FW::Action::Modified || action == FW::Action::Add) {
+               // We're getting a double-null terminated string, for some reason.  Converting to c_str fixes this.
+               std::wstring washed(filename.c_str());
+               std::wstring luaExt(L".lua");
+               std::wstring jsonExt(L".json");
+               if (boost::algorithm::ends_with(washed, luaExt) || boost::algorithm::ends_with(washed, jsonExt))
+               {
+                  InitiateFlushAndLoad();
+               }
+            }
+         }, true);
+      }
+   }
+
    if (config.Get("enable_debug_keys", false)) {
       _commands[GLFW_KEY_F1] = [this]() {
          enable_debug_cursor_ = !enable_debug_cursor_;
@@ -170,8 +192,8 @@ void Client::OneTimeIninitializtion()
       _commands[GLFW_KEY_F3] = [=]() { core_reactor_->Call(rpc::Function("radiant:toggle_step_paths")); };
       _commands[GLFW_KEY_F4] = [=]() { core_reactor_->Call(rpc::Function("radiant:step_paths")); };
       _commands[GLFW_KEY_F5] = [=]() { RequestReload(); };
-      _commands[GLFW_KEY_F6] = [=]() { core_reactor_->Call(rpc::Function("radiant:server:save")); };
-      _commands[GLFW_KEY_F7] = [=]() { core_reactor_->Call(rpc::Function("radiant:server:load")); };
+      _commands[GLFW_KEY_F6] = [=]() { SaveGame("hotkey_save", json::Node()); };
+      _commands[GLFW_KEY_F7] = [=]() { LoadGame("hotkey_save"); };
       _commands[GLFW_KEY_F9] = [=]() { core_reactor_->Call(rpc::Function("radiant:toggle_debug_nodes")); };
       _commands[GLFW_KEY_F10] = [&renderer, this]() {
          perf_hud_shown_ = !perf_hud_shown_;
@@ -482,6 +504,44 @@ void Client::OneTimeIninitializtion()
       }
    });
 
+   core_reactor_->AddRouteV("radiant:client:save_game", [this](rpc::Function const& f) {
+      json::Node saveid(json::Node(f.args).get_node(0));
+      json::Node gameinfo(json::Node(f.args).get_node(1));
+      SaveGame(saveid.as<std::string>(), gameinfo);
+   });
+
+   core_reactor_->AddRouteV("radiant:client:load_game", [this](rpc::Function const& f) {
+      json::Node saveid(json::Node(f.args).get_node(0));
+      LoadGame(saveid.as<std::string>());
+   });
+
+   core_reactor_->AddRouteJ("radiant:client:get_save_games", [this](rpc::Function const& f) {
+      json::Node games;
+      fs::path savedir = core::Config::GetInstance().GetSaveDirectory();
+      if (fs::is_directory(savedir)) {
+         for (fs::directory_iterator end_dir_it, it(savedir); it != end_dir_it; ++it) {
+            std::string name = it->path().filename().string();
+            std::ifstream jsonfile((it->path() / "metadata.json").string());
+            JSONNode metadata = libjson::parse(io::read_contents(jsonfile));
+            json::Node entry;
+            entry.set("screenshot", BUILD_STRING("screenshot.png"));
+            entry.set("gameinfo", metadata);
+            games.set(name, entry);
+         }
+      }
+      return games;
+   });
+
+};
+
+void Client::InitiateFlushAndLoad()
+{
+   // Set the flush and load flag and set a timer.  We defer the actual flush and load until
+   // the timer expires, both to ignore multiple callbacks from the file watcher and to make sure
+   // we load after the *last* file in a "Save All" operation from an editor has made its way to
+   // disk.
+   flushAndLoad_ = true;
+   flushAndLoadTimer_.set(flushAndLoadDelay_);
 }
 
 void Client::Initialize()
@@ -495,17 +555,22 @@ void Client::Shutdown()
 {
    ShutdownLuaObjects();
    ShutdownGameObjects();
+   ShutdownDataObjectTraces();
    ShutdownDataObjects();
 }
 
 void Client::InitializeDataObjects()
 {
+   scriptHost_.reset(new lua::ScriptHost("client"));
    store_.reset(new dm::Store(2, "game"));
    authoringStore_.reset(new dm::Store(3, "tmp"));
 
    om::RegisterObjectTypes(*store_);
    om::RegisterObjectTypes(*authoringStore_);
+}
 
+void Client::InitializeDataObjectTraces()
+{
    receiver_ = std::make_shared<dm::Receiver>(*store_);
 
    game_render_tracer_ = std::make_shared<dm::TracerBuffered>("client render", *store_);
@@ -523,14 +588,25 @@ void Client::InitializeDataObjects()
    authoringStore_->AddTracer(object_model_traces_, dm::OBJECT_MODEL_TRACES);
 }
 
-void Client::ShutdownDataObjects()
+void Client::ShutdownDataObjectTraces()
 {
    game_render_tracer_.reset();
    authoring_render_tracer_.reset();
    object_model_traces_.reset();
 
-   receiver_.reset();
+   receiver_->Shutdown();
+}
+
+void Client::ShutdownDataObjects()
+{
+   radiant_ = luabind::object();
+
+   // the script host must go last, after all the luabind::objects spread out
+   // in the system have been destroyed.
+   scriptHost_.reset();
+
    authoringStore_.reset();
+   receiver_.reset();
    store_.reset();
 }
 
@@ -541,13 +617,7 @@ void Client::InitializeGameObjects()
    renderer.Initialize();
 
    octtree_.reset(new phys::OctTree(dm::RENDER_TRACES));
-   scriptHost_.reset(new lua::ScriptHost());
 
-   error_browser_ = authoringStore_->AllocObject<om::ErrorBrowser>();
-   scriptHost_.reset(new lua::ScriptHost());
-   scriptHost_->SetNotifyErrorCb([=](om::ErrorBrowser::Record const& r) {
-      error_browser_->AddRecord(r);
-   });
    luaModuleRouter_ = std::make_shared<rpc::LuaModuleRouter>(scriptHost_.get(), "client");
    luaObjectRouter_ = std::make_shared<rpc::LuaObjectRouter>(scriptHost_.get(), GetAuthoringStore());
    traceObjectRouter_ = std::make_shared<rpc::TraceObjectRouter>(*store_);
@@ -558,9 +628,6 @@ void Client::InitializeGameObjects()
    core_reactor_->AddRouter(luaModuleRouter_);
    core_reactor_->AddRouter(luaObjectRouter_);
 
-   Horde3D::Modules::log().SetNotifyErrorCb([=](om::ErrorBrowser::Record const& r) {
-      error_browser_->AddRecord(r);
-   });
    game_clock_.reset(new Clock());
 
    lua_State* L = scriptHost_->GetInterpreter();
@@ -603,55 +670,20 @@ void Client::ShutdownGameObjects()
    traceAuthoredObjectRouter_ = nullptr;
 
    error_browser_.reset();
-   scriptHost_.reset();
    octtree_.reset();
 }
 
 void Client::InitializeLuaObjects()
 {
-   core::Config &config = core::Config::GetInstance();
-   res::ResourceManager2& resource_manager = res::ResourceManager2::GetInstance();
-   lua_State* L = scriptHost_->GetInterpreter();
-
-   // xxx: the module init sequnce on the client and server share a ton of code.  refactor!!
-   luabind::object main_mod_obj;
-   std::string const main_mod_name = config.Get<std::string>("game.main_mod", "stonehearth");
-
    hover_cursor_ = LoadCursor("stonehearth:cursors:hover");
    default_cursor_ = LoadCursor("stonehearth:cursors:default");
-   
-   radiant_ = scriptHost_->Require("radiant.client");
-   for (std::string const& mod_name : resource_manager.GetModuleNames()) {
-      std::string script_name;
-      resource_manager.LookupManifest(mod_name, [&](const res::Manifest& manifest) {
-         script_name = manifest.get<std::string>("client_init_script", "");
-      });
-      if (!script_name.empty()) {
-         try {
-            luabind::object obj = scriptHost_->Require(script_name);
-            if (obj) {
-               luabind::globals(L)[mod_name] = obj;
-               if (mod_name == main_mod_name) {
-                  main_mod_obj = obj;
-               }
-            }
-         } catch (std::exception const& e) {
-            CLIENT_LOG(1) << "module " << mod_name << " failed to load " << script_name << ": " << e.what();
-         }
-      }
-   }
-   // this locks down the environment!  all types must be registered by now!!
-   scriptHost_->Require("radiant.lualibs.strict");
-   scriptHost_->Trigger("radiant:modules_loaded");
-
-   if (main_mod_obj) {
-      scriptHost_->TriggerOn(main_mod_obj, "radiant:new_game", luabind::newtable(L));
-   }
 }
 
 void Client::ShutdownLuaObjects()
 {
    // keep the cursors around between save/load...
+   localModList_ = nullptr;
+   localRootEntity_ = nullptr;
 }
 
 void Client::run(int server_port)
@@ -663,6 +695,7 @@ void Client::run(int server_port)
    OneTimeIninitializtion();
    Initialize();
    InitializeUI();
+   CreateGame();
 
    while (renderer.IsRunning()) {
       perfmon::BeginFrame(perf_hud_shown_);
@@ -757,6 +790,12 @@ void Client::mainloop()
    //Update the audio_manager with the current time
    audio::AudioManager &a = audio::AudioManager::GetInstance();
    a.UpdateAudio();
+
+   if (flushAndLoad_ && flushAndLoadTimer_.expired()) {
+      flushAndLoad_ = false;
+      SaveGame("filewatcher_save", json::Node());
+      LoadGame("filewatcher_save");
+   }
 }
 
 om::TerrainPtr Client::GetTerrain()
@@ -781,7 +820,7 @@ bool Client::ProcessMessage(const proto::Update& msg)
       DISPATCH_MSG(RemoveObjects);
       DISPATCH_MSG(UpdateDebugShapes);
       DISPATCH_MSG(PostCommandReply);
-      DISPATCH_MSG(ClearClientState);
+      DISPATCH_MSG(LoadGame);
    default:
       ASSERT(false);
    }
@@ -857,21 +896,11 @@ void Client::UpdateDebugShapes(const proto::UpdateDebugShapes& msg)
    Renderer::GetInstance().DecodeDebugShapes(msg.shapelist());
 }
 
-void Client::ClearClientState(const proto::ClearClientState& msg)
+void Client::LoadGame(const proto::LoadGame& msg)
 {
-   Shutdown();
-
-   // remove all the input handlers except the one in the renderer.  this will
-   // stop all tools as well as clearing out stale lua objects which had the
-   // mouse captured (like the camera service)
-   input_handlers_.clear();
-   Renderer& renderer = Renderer::GetInstance();
-   renderer.SetInputHandler([=](Input const& input) {
-      OnInput(input);
-   });
-
-
-   Initialize();
+   CLIENT_LOG(2) << "load game";
+   fs::path savedir = core::Config::GetInstance().GetSaveDirectory() / msg.game_id();
+   LoadClientState(savedir);
 }
 
 
@@ -1334,3 +1363,117 @@ void Client::RequestReload()
    core_reactor_->Call(rpc::Function("radiant:server:reload"));
 }
 
+void Client::SaveGame(std::string const& saveid, json::Node const& gameinfo)
+{
+   fs::path savedir = core::Config::GetInstance().GetSaveDirectory() / saveid;
+   if (!fs::is_directory(savedir)) {
+      fs::create_directories(savedir);
+   } else {
+      for (fs::directory_iterator end_dir_it, it(savedir); it != end_dir_it; ++it) {
+         remove_all(it->path());
+      }
+   }
+   SaveClientState(savedir);
+   SaveClientMetadata(savedir, gameinfo);
+
+   json::Node args;
+   args.set("saveid", saveid);
+   core_reactor_->Call(rpc::Function("radiant:server:save", args));
+}
+
+void Client::LoadGame(std::string const& saveid)
+{
+   fs::path savedir = core::Config::GetInstance().GetSaveDirectory() / saveid;
+   if (fs::is_directory(savedir)) {
+      json::Node args;
+      args.set("saveid", saveid);
+      core_reactor_->Call(rpc::Function("radiant:server:load", args));
+   }
+}
+
+void Client::SaveClientMetadata(boost::filesystem::path const& savedir, json::Node const& gameinfo)
+{
+   h3dutScreenshot((savedir / "screenshot.png").string().c_str() );
+   std::ofstream metadata((savedir / "metadata.json").string());
+   metadata << gameinfo.write_formatted() << std::endl;
+}
+
+void Client::SaveClientState(boost::filesystem::path const& savedir)
+{
+   CLIENT_LOG(0) << "starting save.";
+   std::string error;
+   std::string filename = (savedir / "client_state.bin").string();
+   if (!GetAuthoringStore().Save(filename, error)) {
+      CLIENT_LOG(0) << "failed to save: " << error;
+   }
+   CLIENT_LOG(0) << "saved.";
+}
+
+void Client::LoadClientState(boost::filesystem::path const& savedir)
+{
+   CLIENT_LOG(0) << "starting loadin... " << savedir;
+
+   // shutdown and initialize.  we need to initialize before creating the new streamers.  otherwise,
+   // we won't have the new store for them.
+   Shutdown();
+   Initialize();
+
+   std::string error;
+   dm::Store::ObjectMap objects;
+
+   // Re-initialize the game
+   dm::Store &store = GetAuthoringStore();
+   std::string filename = (savedir / "client_state.bin").string();
+   if (!store.Load(filename, error, objects)) {
+      CLIENT_LOG(0) << "failed to load: " << error;
+   }
+   // xxx: keep the trace around all the time to populate the authoredEntities_
+   // array?  sounds good!!!
+   store.TraceStore("get entities")->OnAlloced([=](dm::ObjectPtr obj) {
+      dm::ObjectId id = obj->GetObjectId();
+      dm::ObjectType type = obj->GetObjectType();
+      if (type == om::EntityObjectType) {
+         authoredEntities_[id] = std::static_pointer_cast<om::Entity>(obj);
+      }
+   })->PushStoreState();   
+
+   localRootEntity_ = GetAuthoringStore().FetchObject<om::Entity>(1);
+   localModList_ = localRootEntity_->GetComponent<om::ModList>();
+
+   CreateErrorBrowser();
+   InitializeDataObjectTraces();
+
+   radiant_ = scriptHost_->Require("radiant.client");
+   scriptHost_->LoadGame(localModList_, authoredEntities_);
+   CLIENT_LOG(0) << "done loadin...";
+}
+
+void Client::CreateGame()
+{
+   ASSERT(!localRootEntity_);
+   ASSERT(!error_browser_);
+   ASSERT(scriptHost_);
+
+   localRootEntity_ = GetAuthoringStore().AllocObject<om::Entity>();
+   ASSERT(localRootEntity_->GetObjectId() == 1);
+   localModList_ = localRootEntity_->AddComponent<om::ModList>();
+
+   CreateErrorBrowser();
+   InitializeDataObjectTraces();
+
+   radiant_ = scriptHost_->Require("radiant.client");
+   scriptHost_->CreateGame(localModList_);
+}
+
+void Client::CreateErrorBrowser()
+{
+   ASSERT(scriptHost_);
+
+   error_browser_ = GetAuthoringStore().AllocObject<om::ErrorBrowser>();
+   auto notifyErrorFn = [this](om::ErrorBrowser::Record const& r) {
+      ASSERT(error_browser_);
+      error_browser_->AddRecord(r);
+   };
+   scriptHost_->SetNotifyErrorCb(notifyErrorFn);
+   Horde3D::Modules::log().SetNotifyErrorCb(notifyErrorFn);
+}

@@ -37,9 +37,9 @@
       "mixins:resources:jerky" : "file(mixins/resources/jerky)",
       "mixins:resources:fur_pelt" : "file(mixins/resources/fur_pelt)",
 
-      "kingdoms:ascendancy" : "file(services/population/data/ascendancy.json)",
-      "kingdoms:northern_alliance" : "file(services/population/data/northern_alliance.json)",
-      "kingdoms:rayyas_children" : "file(services/population/data/rayyas_children.json)",
+      "kingdoms:ascendancy" : "file(services/server/population/data/ascendancy.json)",
+      "kingdoms:northern_alliance" : "file(services/server/population/data/northern_alliance.json)",
+      "kingdoms:rayyas_children" : "file(services/server/population/data/rayyas_children.json)",
 
       "default_object" : "file(entities/generic/default_object)",
 
@@ -51,26 +51,19 @@
 
       "pet_collar" : "file(entities/critters/collars/pet_collar.json)",
 
-      "worker:profession_description" : "file(professions/worker/worker_description.json)",
-
-      "carpenter:profession_description" : "file(professions/carpenter/carpenter_description.json)",
       "carpenter:workbench" : "file(professions/carpenter/carpenter_workbench)",
       "carpenter:outfit" : "file(professions/carpenter/carpenter_outfit)",
       "carpenter:saw" : "file(professions/carpenter/carpenter_saw)",
 
-      "farmer:profession_description" : "file(professions/farmer/farmer_description.json)",
       "farmer:outfit" : "file(professions/farmer/farmer_outfit)",
       "farmer:field" : "file(professions/farmer/field)",
       "farmer_hoe" : "file(professions/farmer/farmer_hoe)", 
-      "farmer:initial_crops" : "file(services/farming/data/initial_crops.json)",
+      "farmer:initial_crops" : "file(services/server/farming/data/initial_crops.json)",
       
       "trapper:trapper_knife" : "file(professions/trapper/trapper_knife)",
-
-      "trapper:description" : "file(professions/trapper/trapper_description.json)",
       "trapper:outfit" : "file(professions/trapper/trapper_outfit)",
       "trapper:snare_trap" : "file(professions/trapper/snare_trap)",
 
-      "weaver:profession_description" : "file(professions/weaver/weaver_description.json)",
       "weaver:workbench" : "file(professions/weaver/weaver_workbench)",
       "weaver:outfit" : "file(professions/weaver/weaver_outfit)",
       "weaver:spindle" : "file(professions/weaver/weaver_spindle)",
@@ -204,11 +197,6 @@
       "buffs:starving" : "file(data/buffs/starving/starving_buff.json)",
       "buffs:snared" : "file(data/buffs/snared/snared_buff.json)",
 
-      "actions:attack_action" : "file(ai/actions/combat/attack_action.lua)",
-      "actions:attack_top_aggro_action" : "file(ai/actions/combat/attack_top_aggro_action.lua)",
-      "actions:attack_closest_enemy" : "file(ai/actions/combat/attack_closest_enemy_action.lua)",
-      "actions:attack:melee_action" : "file(ai/actions/combat/melee_attack_action.lua)",
-      "actions:chase_target_action" : "file(ai/actions/combat/chase_target_action.lua)",
       "actions:flee_action" : "file(ai/actions/combat/flee_action.lua)",
       "actions:find_path_to_entity" : "file(ai/actions/find_path_to_entity.lua)",
       "actions:find_path_to_entity_type" : "file(ai/actions/find_path_to_entity_type.lua)",
@@ -216,6 +204,8 @@
       "actions:run_towards_entity" : "file(ai/actions/run_towards_entity_action.lua)",
       "actions:run_to_location" : "file(ai/actions/run_to_location_action.lua)",
       "actions:run_toward_location" : "file(ai/actions/run_toward_location_action.lua)",
+      "actions:bump_entity" : "file(ai/actions/bump_entity.lua)",
+      "actions:bump_against_entity" : "file(ai/actions/bump_against_entity.lua)",
       "actions:material_to_filter_fn" : "file(ai/actions/material_to_filter_fn_action.lua)",
       "actions:key_to_entity_data_filter_fn" : "file(ai/actions/key_to_entity_data_filter_fn_action.lua)",
       "actions:goto_item_made_of" : "file(ai/actions/goto_item_made_of.lua)",
@@ -344,13 +334,18 @@
       "actions:till_field" : "file(ai/actions/till_field_action.lua)",
       "actions:plant_crop" : "file(ai/actions/plant_crop.lua)",
 
-      "actions:follow_entity" : "file(ai/actions/follow_entity_action.lua)",
+      "actions:attack_task_dispatcher" : "file(ai/actions/combat/attack_task_dispatcher.lua)",
+      "actions:attack" : "file(ai/actions/combat/attack.lua)",
+      "actions:attack_melee_adjacent" : "file(ai/actions/combat/attack_melee_adjacent.lua)",
+      "actions:defend_task_dispatcher" : "file(ai/actions/combat/defend_task_dispatcher.lua)",
+      "actions:defend" : "file(ai/actions/combat/defend.lua)",
 
-      "tasks:collect_ingredients" : "file(services/tasks/compound_tasks/collect_ingredients_compound_task.lua)",
-      "tasks:work_at_workshop" : "file(services/tasks/compound_tasks/work_at_workshop_orchestrator.lua)",
-      "tasks:create_workshop" : "file(services/tasks/compound_tasks/create_workshop_compound_task.lua)",
-      "tasks:promote_with_talisman" : "file(services/tasks/compound_tasks/promote_with_talisman_compound_task.lua)",
-      "tasks:clear_workshop" : "file(services/tasks/compound_tasks/clear_workshop_orchestrator.lua)",
+      "actions:attack_top_aggro_action" : "file(ai/actions/combat/attack_top_aggro_action.lua)",
+      "actions:attack_closest_enemy" : "file(ai/actions/combat/attack_closest_enemy_action.lua)",
+      "actions:attack:melee_action" : "file(ai/actions/combat/melee_attack_action.lua)",
+      "actions:chase_target_action" : "file(ai/actions/combat/chase_target_action.lua)",
+
+      "actions:follow_entity" : "file(ai/actions/follow_entity_action.lua)",
 
       "observers:look_for_enemies" : "file(ai/observers/look_for_enemies.lua)",
       "observers:sleep" : "file(ai/observers/sleep_observer.lua)",
@@ -457,7 +452,14 @@
       "ambient:summer_day"   : "file(data/ambient/sh_amb_summer_day.ogg)",
       "ambient:summer_night" : "file(data/ambient/sh_amb_summer_night.ogg)",
       
-      "scenarios:scenario_index" : "file(scenarios/index.json)"
+      "scenarios:scenario_index" : "file(scenarios/index.json)",
+
+      "professions:worker" : "file(professions/worker/worker_description.json)",
+      "professions:farmer" : "file(professions/farmer/farmer_description.json)",
+      "professions:carpenter" : "file(professions/carpenter/carpenter_description.json)",
+      "professions:weaver" : "file(professions/weaver/weaver_description.json)",
+      "professions:trapper" : "file(professions/trapper/trapper_description.json)"
+
    },
    "functions" : {
       "get_world_generation_progress": {
@@ -541,6 +543,10 @@
       },
       "get_clock_object": {
          "controller" : "file(call_handlers/calendar_call_handler.lua)",
+         "endpoint" : "server"
+      },
+      "get_population": {
+         "controller" : "file(call_handlers/population_call_handler.lua)",
          "endpoint" : "server"
       },
       "choose_workbench_location" : {
@@ -670,7 +676,15 @@
       "enable_camera_movement": {
          "controller" : "file(call_handlers/camera_call_handler.lua)",
          "endpoint" : "client"
-      }      
+      },
+      "ui_mode_changed": {
+         "controller" : "file(call_handlers/ui_mode_call_handler.lua)",
+         "endpoint" : "client"
+      },
+      "get_ui_mode": {
+         "controller" : "file(call_handlers/ui_mode_call_handler.lua)",
+         "endpoint" : "client"
+      }
    },
    "components" :  {
       "ai" : "file(components/ai/ai_component.lua)",
@@ -744,6 +758,7 @@
          "file(ui/game/modes/zones_mode/farm/farm.html)",
          "file(ui/game/modes/build_mode/build_mode.html)",
          "file(ui/game/esc_menu/esc_menu.html)",
+         "file(ui/game/save_view/save_view.html)",
          "file(ui/game/task_manager/task_manager.html)",   
          "file(ui/game/create_camp/create_camp.html)",
          "file(ui/game/help_camera/help_camera.html)",
@@ -758,6 +773,7 @@
          "file(ui/game/unit_frame/unit_frame.html)",
          "file(ui/game/resource_scoreboard/resource_scoreboard.html)",
          "file(ui/game/start_menu/start_menu.html)",
+         "file(ui/game/population_manager/population_manager.html)",
          "file(ui/game/tip_popup/tip_popup.html)",
          "file(ui/game/event_log/event_log.html)",
          "file(ui/game/build/build.html)"
@@ -782,6 +798,7 @@
          "file(ui/game/modes/build_mode/build_mode.js)",
          "file(ui/game/modes/mode_manager.js)",
          "file(ui/game/esc_menu/esc_menu.js)",
+         "file(ui/game/save_view/save_view.js)",
          "file(ui/game/task_manager/task_manager.js)",   
          "file(ui/game/create_camp/create_camp.js)",
          "file(ui/game/help_camera/help_camera.js)",
@@ -798,6 +815,7 @@
          "file(ui/game/resource_scoreboard/resource_scoreboard.js)",
          "file(ui/game/start_menu/start_menu.js)",
          "file(ui/game/start_menu/stonehearth_menu.js)",
+         "file(ui/game/population_manager/population_manager.js)",
          "file(ui/game/tip_popup/tip_popup.js)",
          "file(ui/game/event_log/event_log.js)"
       ],
@@ -821,6 +839,7 @@
          "file(ui/game/modes/zones_mode/farm/farm.less)",
          "file(ui/game/modes/build_mode/build_mode.less)",
          "file(ui/game/esc_menu/esc_menu.less)",
+         "file(ui/game/save_view/save_view.less)",
          "file(ui/game/task_manager/task_manager.less)",   
          "file(ui/game/create_camp/create_camp.less)",
          "file(ui/game/help_camera/help_camera.less)",
@@ -836,6 +855,7 @@
          "file(ui/game/resource_scoreboard/resource_scoreboard.less)",
          "file(ui/game/start_menu/start_menu.less)",
          "file(ui/game/start_menu/stonehearth_menu.less)",
+         "file(ui/game/population_manager/population_manager.less)",
          "file(ui/game/tip_popup/tip_popup.less)",
          "file(ui/game/event_log/event_log.less)",
          "file(ui/game/build/build.less)"

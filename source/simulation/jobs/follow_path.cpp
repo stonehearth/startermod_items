@@ -16,13 +16,13 @@ std::ostream& simulation::operator<<(std::ostream& os, FollowPath const& o)
    return os << "[FollowPath ...]";
 }
 
-FollowPath::FollowPath(Simulation& sim, om::EntityRef e, float speed, std::shared_ptr<Path> path, float close_to_distance, luabind::object unsafe_arrived_cb) :
+FollowPath::FollowPath(Simulation& sim, om::EntityRef e, float speed, std::shared_ptr<Path> path, float stop_distance, luabind::object unsafe_arrived_cb) :
    Task(sim, "follow path"),
    entity_(e),
    path_(path),
    pursuing_(0),
    speed_(speed),
-   close_to_distance_(close_to_distance)
+   stop_distance_(stop_distance)
 {
    auto entity = entity_.lock();
    if (entity) {
@@ -92,16 +92,19 @@ bool FollowPath::Work(const platform::timer &timer)
 bool FollowPath::Arrived(om::MobPtr mob)
 {
    ASSERT(path_);
-   if (close_to_distance_) {
-      ASSERT(false);
+   int unusedPoints = 0;
+
+   if (stop_distance_ > 0) {
+      // error on the side of getting closer than necessary
+      unusedPoints = (int)std::floor(stop_distance_);
    }
-   return (unsigned int)pursuing_ >= path_->GetPoints().size();
+   return pursuing_ >= (int)path_->GetPoints().size() - unusedPoints;
 }
 
 bool FollowPath::Obstructed()
 {   
    //ASSERT(_terrain && path_);
-   const std::vector<csg::Point3> &points = path_->GetPoints();
+   //const std::vector<csg::Point3> &points = path_->GetPoints();
 
    // xxx: IGNORE_OBSTRUCTED:
    return false;

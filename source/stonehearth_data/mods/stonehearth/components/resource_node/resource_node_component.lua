@@ -5,6 +5,7 @@ function ResourceNodeComponent:initialize(entity, json)
    self._durability = json.durability or 1
    self._resource = json.resource
    self._harvester_effect = json.harvester_effect
+   self._harvest_profession = json.harvest_profession
    self._description = json.description
    self._harvest_overlay_effect = json.harvest_overlay_effect
 end
@@ -20,6 +21,10 @@ end
 
 function ResourceNodeComponent:get_harvester_effect()
    return self._harvester_effect
+end
+
+function ResourceNodeComponent:get_harvest_profession()
+   return self._harvest_profession
 end
 
 function ResourceNodeComponent:get_description()

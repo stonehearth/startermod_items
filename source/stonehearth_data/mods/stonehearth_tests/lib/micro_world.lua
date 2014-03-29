@@ -38,7 +38,7 @@ function MicroWorld:create_world()
 end
 
 function MicroWorld:at(time, fn)
-   return radiant.set_realtime_timer(math.floor(time / 1000), fn)
+   return radiant.set_realtime_timer(time, fn)
 end
 
 function MicroWorld:place_tree(x, z)
@@ -67,11 +67,15 @@ end
 function MicroWorld:place_citizen(x, z, profession, data)
    local pop = stonehearth.population:get_population('player_1')
    local citizen = pop:create_new_citizen()
-   profession = profession and profession or 'worker'
+   profession = profession and profession or 'stonehearth:professions:worker'
 
-   -- this is totally gross!!
-   local profession_api = radiant.mods.require(string.format('stonehearth.professions.%s.%s', profession, profession))
-   profession_api.promote(citizen, data)
+
+   if not string.find(profession, ':') and not string.find(profession, '/') then
+      -- as a convenience for autotest writers, stick the stonehearth:profession on
+      -- there if they didn't put it there to begin with
+      profession = 'stonehearth:professions:' .. profession
+   end
+   citizen:add_component('stonehearth:profession'):promote_to(profession)
 
    radiant.terrain.place_entity(citizen, Point3(x, 1, z))
    return citizen

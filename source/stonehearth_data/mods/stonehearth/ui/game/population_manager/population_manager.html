@@ -1,0 +1,13 @@
+<script type="text/x-handlebars" data-template-name="populationManager">
+<div id="populationManager" class="gui">
+   <div class="window">
+      this is the population manager
+      {{#each citizens}}
+         <div class="row">
+            {{this.unit_info.name}}
+            {{this.stonehearth:profession.profession_uri}}
+         </div>
+      {{/each}}
+   </div>
+</div>
+</script>

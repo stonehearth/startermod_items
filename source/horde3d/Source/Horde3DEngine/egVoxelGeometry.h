@@ -44,7 +44,7 @@ struct VoxelVertexData
 {
    Vec3f  pos;
 	Vec3f  normal;
-	Vec3f  color;
+	Vec4f  color;
 };
 
 // =================================================================================================

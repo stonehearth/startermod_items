@@ -127,10 +127,19 @@ H3DNode Client_CreateQubicleMatrixNode(lua_State* L,
 H3DNode Client_CreateDesignationNode(lua_State* L, 
                                      H3DNode parent,
                                      csg::Region2 const& model,
-                                     csg::Color3 const& outline,
-                                     csg::Color3 const& stripes)
+                                     csg::Color4 const& outline,
+                                     csg::Color4 const& stripes)
 {
    return Pipeline::GetInstance().CreateDesignationNode(parent, model, outline, stripes).release();
+}
+
+H3DNode Client_CreateStockpileNode(lua_State* L, 
+                                   H3DNode parent,
+                                   csg::Region2 const& model,
+                                   csg::Color4 const& interior_color,
+                                   csg::Color4 const& border_color)
+{
+   return Pipeline::GetInstance().CreateStockpileNode(parent, model, interior_color, border_color).release();
 }
 
 om::EntityRef Client_CreateEmptyAuthoringEntity()
@@ -146,6 +155,31 @@ om::EntityRef Client_CreateAuthoringEntity(std::string const& uri)
 void Client_DestroyAuthoringEntity(dm::ObjectId id)
 {
    return Client::GetInstance().DestroyAuthoringEntity(id);
+}
+
+std::weak_ptr<RenderEntity> Client_GetRenderEntity(luabind::object arg)
+{
+   om::EntityPtr entity;
+   std::weak_ptr<RenderEntity> result;
+   if (luabind::type(arg) == LUA_TSTRING) {
+      // arg is a path to an object (e.g. /objects/3).  If this leads to a Entity, we're all good
+      std::string path = luabind::object_cast<std::string>(arg);
+      dm::Store& store = Client::GetInstance().GetStore();
+      dm::ObjectPtr obj = store.FetchObject<dm::Object>(path);
+      if (obj && obj->GetObjectType() == om::Entity::DmType) {
+         entity = std::static_pointer_cast<om::Entity>(obj);
+      }
+   } else {
+      try {
+         entity = luabind::object_cast<om::EntityRef>(arg).lock();
+      } catch (luabind::cast_failed&) {
+      }
+   }
+
+   if (entity) {
+      result = Renderer::GetInstance().GetRenderObject(entity);
+   }
+   return result;
 }
 
 std::weak_ptr<RenderEntity> Client_CreateRenderEntity(H3DNode parent, luabind::object arg)
@@ -419,6 +453,7 @@ void lua::client::open(lua_State* L)
             def("create_authoring_entity",         &Client_CreateAuthoringEntity),
             def("destroy_authoring_entity",        &Client_DestroyAuthoringEntity),
             def("create_render_entity",            &Client_CreateRenderEntity),
+            def("get_render_entity",               &Client_GetRenderEntity),
             def("capture_input",                   &Client_CaptureInput),
             def("query_scene",                     &Client_QueryScene),
             def("select_xz_region",                &Client_SelectXZRegion),
@@ -429,6 +464,7 @@ void lua::client::open(lua_State* L)
             def("create_voxel_node",               &Client_CreateVoxelNode),
             def("create_qubicle_matrix_node",      &Client_CreateQubicleMatrixNode),
             def("create_designation_node",         &Client_CreateDesignationNode),
+            def("create_stockpile_node",           &Client_CreateStockpileNode),
             def("alloc_region",                    &Client_AllocObject<om::Region3Boxed>),
             def("alloc_region2",                   &Client_AllocObject<om::Region2Boxed>),
             def("create_datastore",                &Client_CreateDataStore),

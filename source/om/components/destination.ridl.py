@@ -20,6 +20,8 @@ class Destination(Component):
 
    _private = \
    """
+   void OnAutoUpdateAdjacentChanged();
+   void Initialize() override;
    void UpdateDerivedValues();
    void ComputeAdjacentRegion(csg::Region3 const& r);
    csg::Point3 GetBestPointOfInterest(csg::Region3 const& r, csg::Point3 const& pt) const;

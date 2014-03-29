@@ -10,8 +10,8 @@ BEGIN_RADIANT_SIMULATION_NAMESPACE
 class GotoLocation : public Task
 {
 public:
-   GotoLocation(Simulation& sim, om::EntityRef entity, float speed, const csg::Point3f& location, float close_to_distance, luabind::object arrived_cb);
-   GotoLocation(Simulation& sim, om::EntityRef entity, float speed, om::EntityRef target, float close_to_distance, luabind::object arrived_cb);
+   GotoLocation(Simulation& sim, om::EntityRef entity, float speed, const csg::Point3f& location, float stop_distance, luabind::object arrived_cb);
+   GotoLocation(Simulation& sim, om::EntityRef entity, float speed, om::EntityRef target, float stop_distance, luabind::object arrived_cb);
 
 public:
    bool Work(const platform::timer &timer) override;
@@ -21,7 +21,6 @@ public:
 
 protected:
    void Report(std::string msg);
-   bool GotoLocation::GetStandableLocation(std::shared_ptr<om::Entity> const& entity, csg::Point3f& desiredLocation, csg::Point3f& actualLocation);
 
 protected:
    om::EntityRef        entity_;
@@ -29,7 +28,7 @@ protected:
    csg::Point3f         target_location_;
    float                speed_;
    bool                 target_is_entity_;
-   float                close_to_distance_;
+   float                stop_distance_;
    luabind::object      arrived_cb_;
 };
 

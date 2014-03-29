@@ -14,8 +14,8 @@ public:
    struct vertex {
       Point3f   location; // must be at offset 0
       Point3f   normal;
-      Point3f   color;
-      vertex(Point3f const& p, Point3f const& n, Point3f const& c) : location(p), normal(n), color(c) { }
+      Point4f   color;
+      vertex(Point3f const& p, Point3f const& n, Point4f const& c) : location(p), normal(n), color(c) { }
    };
 
    struct mesh {
@@ -26,18 +26,18 @@ public:
       mesh();
 
       mesh& SetOffset(csg::Point3f const& offset);
-      mesh& SetColor(csg::Color3 const& color);
+      mesh& SetColor(csg::Color4 const& color);
       mesh& FlipFaces();
-      // This is the one, true add face.  move over to it... (and when you're done, make color a Color4)
-      void AddFace(Point3f const points[], Point3f const& normal, Color3 const& color);
+      // This is the one, true add face.  move over to it...
+      void AddFace(Point3f const points[], Point3f const& normal, Color4 const& color);
       template <class S> void AddRegion(Region<S, 2> const& region, PlaneInfo<S, 3> const& pi);
       template <class S> void AddRect(Cube<S, 2> const& region, PlaneInfo<S, 3> const& pi);
 
       // xxx: nuke this one!
-      void add_face(Point3f const points[], Point3f const& normal, Point3f const& color);
+      void add_face(Point3f const points[], Point3f const& normal, Point4f const& color);
    private:
       friend mesh_tools;
-      csg::Color3     color_;
+      csg::Color4     color_;
       bool            override_color_;
       bool            flip_;
       Point3f         offset_;

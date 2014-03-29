@@ -178,6 +178,11 @@ Stonehearth::InitEntity(EntityPtr entity, std::string const& uri, lua_State* L)
          }
       }
 
+      // Initialize after all components have been added
+      for (auto const& entry : entity->GetComponents()) {
+         entry.second->Initialize();
+      }
+
       // xxx: refaactor me!!!111!
       if (L) {
          json::Node n(node);
@@ -224,12 +229,15 @@ Stonehearth::RestoreLuaComponents(lua::ScriptHost* scriptHost, EntityPtr entity)
       }
       TriggerPostCreate(scriptHost, entity);
    };
+
+   for (auto const& entry : entity->GetComponents()) {
+      entry.second->Initialize();
+   }
    std::string const& uri = entity->GetUri();
    if (!uri.empty()) {
       res::ResourceManager2::GetInstance().LookupJson(uri, restore);
    } else {
       restore(JSONNode());
    }
-
 }
 

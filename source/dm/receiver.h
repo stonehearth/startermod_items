@@ -19,6 +19,8 @@ public:
    void ProcessUpdate(tesseract::protocol::UpdateObject const& update);
    void ProcessRemove(tesseract::protocol::RemoveObjects const& update);
 
+   void Shutdown();
+
 private:
    typedef std::unordered_map<ObjectId, ObjectPtr> ObjectMap;
 

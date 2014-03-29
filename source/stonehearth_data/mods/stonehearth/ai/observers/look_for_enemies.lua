@@ -17,24 +17,31 @@ function LookForEnemies:init_sight_sensor()
    assert(not self._sensor)
 
    local list = self._entity:get_component('sensor_list')
-   if list then
-      radiant.events.unlisten(radiant, 'stonehearth:gameloop', self, self.on_gameloop)
-   else 
+   if not list then
+      -- disable until we decide what to do with this
       return
    end
 
-   self._sensor = self._entity:get_component('sensor_list'):get_sensor('sight')
+   local sensor_list = self._entity:add_component('sensor_list')
+   local sensor = sensor_list:get_sensor('sight')
+
+   if not sensor then
+      sensor = sensor_list:add_sensor('sight', 64)
+   end
+
+   self._sensor = sensor
+
    self.promise = self._sensor:trace_contents('look for enemies')
-                                 :on_added(
-                                    function (id)
-                                       self:on_added_to_sensor(id)
-                                    end
-                                 )
-                                 :on_removed(
-                                    function (id)
-                                       self:on_removed_to_sensor(id)
-                                    end
-                                 ) 
+      :on_added(
+         function (id)
+            self:on_added_to_sensor(id)
+         end
+      )
+      :on_removed(
+         function (id)
+            self:on_removed_to_sensor(id)
+         end
+      ) 
 end
 
 function LookForEnemies:on_added_to_sensor(entity_id)
@@ -43,6 +50,8 @@ function LookForEnemies:on_added_to_sensor(entity_id)
    if self:is_hostile(entity) then
       self._aggro_table:add_entry(entity)
                        :set_value(1)
+
+      local target = radiant.entities.get_target_table_top(self._entity, 'aggro')
    end
 end
 
@@ -52,7 +61,6 @@ function LookForEnemies:on_removed_to_sensor(entity_id)
       self._aggro_table:add_entry(entity)
                        :set_value(0)
    end
-
 end
 
 --- Check if an entity is hostile to the entity that owns this observer
@@ -78,7 +86,7 @@ function LookForEnemies:is_hostile(entity)
       local faction_b = unit_info_b:get_faction()
 
       -- MEGA HACK ALERT. This should be in some kind of faction allegiance lookup
-      if faction_a and faction_b and faction_a == 'civ' and faction_b == 'critter' then
+      if faction_a and faction_b and faction_a == 'civ' and faction_b ~= 'civ' then
          return false
       end
       -- END OF MEGA HACK

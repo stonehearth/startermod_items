@@ -26,6 +26,8 @@
 #include "core/guard.h"
 #include "core/unique_resource.h"
 #include "core/shared_resource.h"
+#include "platform/FileWatcher.h"
+#include "platform/utils.h"
 
 BEGIN_RADIANT_CLIENT_NAMESPACE
 
@@ -97,7 +99,7 @@ class Client : public core::Singleton<Client> {
       void RemoveObjects(const tesseract::protocol::RemoveObjects& msg);
       void UpdateDebugShapes(const tesseract::protocol::UpdateDebugShapes& msg);
       void DefineRemoteObject(const tesseract::protocol::DefineRemoteObject& msg);
-      void ClearClientState(const tesseract::protocol::ClearClientState& msg);
+      void LoadGame(const tesseract::protocol::LoadGame& msg);
 
       void mainloop();
       void setup_connections();
@@ -108,6 +110,7 @@ class Client : public core::Singleton<Client> {
       void OnKeyboardInput(Input const& keyboard);
       void OnRawInput(Input const& keyboard);
       bool CallInputHandlers(Input const& input);
+      void InitiateFlushAndLoad();
 
       void UpdateSelection(const MouseInput &mouse);
       void CenterMap(const MouseInput &mouse);
@@ -142,12 +145,21 @@ class Client : public core::Singleton<Client> {
       void InitializeUI();
       void Initialize();
       void InitializeDataObjects();
+      void InitializeDataObjectTraces();
       void InitializeGameObjects();
       void InitializeLuaObjects();
       void Shutdown();
       void ShutdownGameObjects();
       void ShutdownDataObjects();
+      void ShutdownDataObjectTraces();
       void ShutdownLuaObjects();
+      void SaveGame(std::string const& gameid, json::Node const& gameinfo);
+      void LoadGame(std::string const& gameid);
+      void SaveClientState(boost::filesystem::path const& savedir);
+      void SaveClientMetadata(boost::filesystem::path const& savedir, json::Node const& gameinfo);
+      void LoadClientState(boost::filesystem::path const& savedir);
+      void CreateGame();
+      void CreateErrorBrowser();
 
 private:
       /*
@@ -173,6 +185,8 @@ private:
       // local authoring object storage and tracking...
       std::unique_ptr<dm::Store>       authoringStore_;
       std::unordered_map<dm::ObjectId, om::EntityPtr> authoredEntities_;
+      om::EntityPtr                    localRootEntity_;
+      om::ModListPtr                   localModList_;
 
       // local collision tests...
       std::unique_ptr<phys::OctTree>     octtree_;
@@ -229,6 +243,10 @@ private:
       dm::TracePtr                root_object_trace_;
       std::shared_ptr<rpc::TraceObjectRouter> trace_object_router_;
       std::vector<XZRegionSelectorRef> xz_selectors_;
+      FW::FileWatcher             fileWatcher_;
+      bool                        flushAndLoad_;
+      platform::timer             flushAndLoadTimer_;
+      int                         flushAndLoadDelay_;
 };
 
 END_RADIANT_CLIENT_NAMESPACE

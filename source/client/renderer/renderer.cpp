@@ -234,12 +234,26 @@ void Renderer::SetupGlfwHandlers()
    });
    
    glfwSetWindowCloseCallback(window, [](GLFWwindow* window) -> void {
+      // All Win32 specific!
+
+      // This nonsense is because the upper-left corner of the window (on a multi-monitor system)
+      // will actually bleed into the adjacent window, so we need to figure out what kind of bias
+      // that needs to be _in_ the monitor.  We get that bias by calling ScreenToClient on the
+      // upper-left of the window's rect.
       RECT rect;
       GetWindowRect(Renderer::GetInstance().GetWindowHandle(), &rect);
+
+      POINT p; p.x = 0; p.y = 0;
+      POINT p2; p2.x = rect.left; p2.y = rect.top;
+      ScreenToClient(Renderer::GetInstance().GetWindowHandle(), &p2);
+      ClientToScreen(Renderer::GetInstance().GetWindowHandle(), &p);
 
       if (!Renderer::GetInstance().inFullscreen_) {
          Renderer::GetInstance().config_.last_window_x.value = (int)rect.left;
          Renderer::GetInstance().config_.last_window_y.value = (int)rect.top;
+
+         Renderer::GetInstance().config_.last_screen_x.value = p.x - p2.x;
+         Renderer::GetInstance().config_.last_screen_y.value = p.y - p2.y;
 
          Renderer::GetInstance().config_.screen_width.value = Renderer::GetInstance().windowWidth_;
          Renderer::GetInstance().config_.screen_height.value = Renderer::GetInstance().windowHeight_;
@@ -531,6 +545,9 @@ void Renderer::GetConfigOptions()
    config_.last_window_x.value = config.Get("renderer.last_window_x", 0);
    config_.last_window_y.value = config.Get("renderer.last_window_y", 0);
 
+   config_.last_screen_x.value = config.Get("renderer.last_screen_x", 0);
+   config_.last_screen_y.value = config.Get("renderer.last_screen_y", 0);
+
    config_.use_fast_hilite.value = config.Get("renderer.use_fast_hilite", false);
    
    resourcePath_ = config.Get("renderer.resource_path", "stonehearth/data/horde");
@@ -572,6 +589,9 @@ void Renderer::PersistConfig()
    config.Set("renderer.last_window_x", config_.last_window_x.value);
    config.Set("renderer.last_window_y", config_.last_window_y.value);
    config.Set("renderer.use_fast_hilite", config_.use_fast_hilite.value);
+
+   config.Set("renderer.last_screen_x", config_.last_screen_x.value);
+   config.Set("renderer.last_screen_y", config_.last_screen_y.value);
 }
 
 void Renderer::ApplyConfig(const RendererConfig& newConfig, bool persistConfig)
@@ -617,48 +637,52 @@ void Renderer::ApplyConfig(const RendererConfig& newConfig, bool persistConfig)
 
 void Renderer::SelectSaneVideoMode(bool fullscreen, int* width, int* height, int* windowX, int* windowY, GLFWmonitor** monitor) 
 {
-   int lastX = config_.last_window_x.value;
-   int lastY = config_.last_window_y.value;
-   int numMonitors;
-
-   GLFWmonitor** monitors = glfwGetMonitors(&numMonitors);
-
-   GLFWmonitor *desiredMonitor = NULL;
-   for (int i = 0; i < numMonitors; i++) 
-   {
-      int monitorX, monitorY;
-      glfwGetMonitorPos(monitors[i], &monitorX, &monitorY);
-      const GLFWvidmode* m = glfwGetVideoMode(monitors[i]);
-      
-      if ((lastX >= monitorX && lastY >= monitorY) && 
-         (lastX < monitorX + m->width && lastY < monitorY + m->height)) 
-      {
-         desiredMonitor = monitors[i];
-         break;
-      }
-   }
-   if (desiredMonitor == NULL) {
-      lastX = 0;
-      lastY = 0;
-      desiredMonitor = glfwGetPrimaryMonitor();
-   }
-
-   // At this point, we have a valid monitor, and a position.
-   *monitor = desiredMonitor;
-   *windowX = lastX;
-   *windowY = lastY;
+   *windowX = config_.last_window_x.value;
+   *windowY = config_.last_window_y.value;
 
    int last_res_width = config_.screen_width.value;
    int last_res_height = config_.screen_height.value;
-   const GLFWvidmode* m = glfwGetVideoMode(desiredMonitor);
 
    if (!fullscreen) {
       // If we're not fullscreen, then just ensure the size of the window <= the res of the monitor.
+      *monitor = glfwGetPrimaryMonitor();
+      const GLFWvidmode* m = glfwGetVideoMode(*monitor);
       *width = std::max(320, std::min(last_res_width, m->width));
       *height = std::max(240, std::min(last_res_height, m->height));
    } else {
-      *width = m->width;
-      *height = m->height;
+      // In fullscreen, try to find the monitor that contains the window's upper-left coordinate.
+      int lastX = config_.last_screen_x.value;
+      int lastY = config_.last_screen_y.value;
+      int numMonitors;
+      int monitorWidth;
+      int monitorHeight;
+      GLFWmonitor** monitors = glfwGetMonitors(&numMonitors);
+      GLFWmonitor *desiredMonitor = NULL;
+      for (int i = 0; i < numMonitors; i++) 
+      {
+         int monitorX, monitorY;
+         glfwGetMonitorPos(monitors[i], &monitorX, &monitorY);
+         const GLFWvidmode* m = glfwGetVideoMode(monitors[i]);
+      
+         if ((lastX >= monitorX && lastY >= monitorY) && 
+            (lastX < monitorX + m->width && lastY < monitorY + m->height)) 
+         {
+            desiredMonitor = monitors[i];
+            monitorWidth = m->width;
+            monitorHeight = m->height;
+            break;
+         }
+      }
+
+      if (desiredMonitor == NULL) {
+         desiredMonitor = glfwGetPrimaryMonitor();
+         const GLFWvidmode* m = glfwGetVideoMode(desiredMonitor);
+         monitorWidth = m->width;
+         monitorHeight = m->height;
+      }
+      *monitor = desiredMonitor;
+      *width = monitorWidth;
+      *height = monitorHeight;
    }
 }
 
@@ -810,6 +834,8 @@ void Renderer::Shutdown()
    server_tick_slot_.Clear();
    render_frame_start_slot_.Clear();
 
+   exploredTrace_ = nullptr;
+   visibilityTrace_ = nullptr;
    rootRenderObject_ = nullptr;
    for (auto& e : entities_) {
       e.clear();
@@ -840,33 +866,45 @@ HWND Renderer::GetWindowHandle() const
    return glfwGetWin32Window(glfwGetCurrentContext());
 }
 
-void Renderer::SetVisibilityRegions(std::string const& visible_region_uri, std::string const& explored_region_uri)
+bool Renderer::SetVisibleRegion(std::string const& visible_region_uri)
 {
-   om::Region2BoxedPtr visibleRegionBoxed, exploredRegionBoxed;
-
    dm::Store const& store = Client::GetInstance().GetStore();
+   om::Region2BoxedPtr visibleRegionBoxed = store.FetchObject<om::Region2Boxed>(visible_region_uri);
 
-   visibleRegionBoxed = store.FetchObject<om::Region2Boxed>(visible_region_uri);
-   exploredRegionBoxed = store.FetchObject<om::Region2Boxed>(explored_region_uri);
+   if (visibleRegionBoxed) {
+      visibilityTrace_ = visibleRegionBoxed->TraceChanges("render visible region", dm::RENDER_TRACES)
+                            ->OnModified([=](){
+                               csg::Region2 visibleRegion = visibleRegionBoxed->Get();
+                               // TODO: give visibleRegion to horde
+                               //int num_cubes = visibleRegion.GetCubeCount();
+                               //R_LOG(3) << "Client visibility cubes: " << num_cubes;
+                            })
+                            ->PushObjectState(); // Immediately send the current state to listener
+      return true;
+   }
+   R_LOG(1) << "invalid visible region reference: " << visible_region_uri;
+   return false;
+}
 
-   visibilityTrace_ = visibleRegionBoxed->TraceChanges("render visible region", dm::RENDER_TRACES)
-                         ->OnModified([=](){
-                            csg::Region2 visibleRegion = visibleRegionBoxed->Get();
-                            // TODO: give visibleRegion to horde
-                            //int num_cubes = visibleRegion.GetCubeCount();
-                            //R_LOG(3) << "Client visibility cubes: " << num_cubes;
-                         })
-                         ->PushObjectState(); // Immediately send the current state to listener
+bool Renderer::SetExploredRegion(std::string const& explored_region_uri)
+{
+   dm::Store const& store = Client::GetInstance().GetStore();
+   om::Region2BoxedPtr exploredRegionBoxed = store.FetchObject<om::Region2Boxed>(explored_region_uri);
 
-   exploredTrace_ = exploredRegionBoxed->TraceChanges("render explored region", dm::RENDER_TRACES)
-                         ->OnModified([=](){
-                            csg::Region2 exploredRegion = exploredRegionBoxed->Get();
+   if (exploredRegionBoxed) {
+      exploredTrace_ = exploredRegionBoxed->TraceChanges("render explored region", dm::RENDER_TRACES)
+                            ->OnModified([=](){
+                               csg::Region2 exploredRegion = exploredRegionBoxed->Get();
 
-                            Renderer::GetInstance().UpdateFoW(Renderer::GetInstance().fowExploredNode_, exploredRegion);
-                            //int num_cubes = exploredRegion.GetCubeCount();
-                            //R_LOG(3) << "Client explored cubes: " << num_cubes;
-                         })
-                         ->PushObjectState(); // Immediately send the current state to listener
+                               Renderer::GetInstance().UpdateFoW(Renderer::GetInstance().fowExploredNode_, exploredRegion);
+                               //int num_cubes = exploredRegion.GetCubeCount();
+                               //R_LOG(3) << "Client explored cubes: " << num_cubes;
+                            })
+                            ->PushObjectState(); // Immediately send the current state to listener
+      return true;
+   }
+   R_LOG(1) << "invalid explored region reference: " << explored_region_uri;
+   return false;
 }
 
 void Renderer::RenderOneFrame(int now, float alpha)

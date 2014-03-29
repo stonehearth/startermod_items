@@ -18,15 +18,17 @@ Convert::Convert(dm::Store const& store, int flags) :
 }
 
 void Convert::ToProtobuf(luabind::object const& from, Protocol::Value* to) {
-   std::vector<luabind::object> visited;
+   std::vector<luabind::object> tables;
+
    Protocol::LuaObject* msg = to->MutableExtension(Protocol::LuaObject::extension);
-   LuaToProtobuf(from, msg, visited);
+   LuaToProtobuf(from, msg, msg, tables);
 }
 
 void Convert::ToLua(Protocol::Value const& from, luabind::object &to)
 {
+   std::unordered_map<uint, luabind::object> tables;
    Protocol::LuaObject const& msg = from.GetExtension(Protocol::LuaObject::extension);
-   ProtobufToLua(msg, to);
+   ProtobufToLua(msg, to, msg, tables);
 };
 
 static luabind::object GetObjectSavedVariables(luabind::object const& obj)
@@ -78,20 +80,10 @@ void Convert::ProtobufToUserdata(Protocol::Value const& msg, luabind::object& ob
    }
 }
 
-void Convert::LuaToProtobuf(luabind::object const &from, Protocol::LuaObject* msg, std::vector<luabind::object>& visited)
+void Convert::LuaToProtobuf(luabind::object const &from, Protocol::LuaObject* msg, Protocol::LuaObject* rootmsg, std::vector<luabind::object>& tables)
 {
    luabind::object obj = GetObjectSavedVariables(from);
    int t = luabind::type(obj);
-
-   if (t == LUA_TTABLE) {
-      for (luabind::object const& o : visited) {
-         if (obj == o) {
-            msg->set_type(Protocol::LuaObject::NIL);
-            return;
-         }
-      }
-      visited.push_back(obj);
-   }
 
    switch (t) {
    case LUA_TSTRING:
@@ -121,21 +113,33 @@ void Convert::LuaToProtobuf(luabind::object const &from, Protocol::LuaObject* ms
       break;
    case LUA_TTABLE:
       {
+         uint i;
          msg->set_type(Protocol::LuaObject::TABLE);
-         Protocol::LuaObject::Table* table_msg = msg->mutable_table_value();
-         for (luabind::iterator i(obj), end; i != end; i++) {
-            luabind::object key = i.key();
-            
-            if (flags_ & Convert::REMOTE) {
-               // private variables don't get marshalled remotely.
-               if (luabind::type(key) == LUA_TSTRING &&
-                   boost::starts_with(luabind::object_cast<std::string>(key), "_")) {
-                  continue;
-               }
+         for (i = 0; i < tables.size(); i++) {
+            if (obj == tables[i]) {
+               break;
             }
-            Protocol::LuaObject::Table::Entry *entry_msg = table_msg->add_entries();
-            LuaToProtobuf(key, entry_msg->mutable_key(), visited);
-            LuaToProtobuf(*i, entry_msg->mutable_value(), visited);
+         }
+         msg->set_table_value(i);
+         if (i == tables.size()) {
+            tables.push_back(obj);
+
+            Protocol::LuaObject_Table* table_msg = rootmsg->add_tables();
+            for (luabind::iterator i(from), end; i != end; i++) {
+               luabind::object key = i.key();
+            
+               if (flags_ & Convert::REMOTE) {
+                  // private variables don't get marshalled remotely.
+                  if (luabind::type(key) == LUA_TSTRING &&
+                        boost::starts_with(luabind::object_cast<std::string>(key), "_")) {
+                     continue;
+                  }
+               }
+               Protocol::LuaObject::Table::Entry *entry_msg = table_msg->add_entries();
+               LuaToProtobuf(key, entry_msg->mutable_key(), rootmsg, tables);
+               LuaToProtobuf(*i, entry_msg->mutable_value(), rootmsg, tables);
+            }
+
          }
       }
       break;
@@ -144,7 +148,7 @@ void Convert::LuaToProtobuf(luabind::object const &from, Protocol::LuaObject* ms
    }
 }
 
-void Convert::ProtobufToLua(Protocol::LuaObject const& msg, luabind::object &obj)
+void Convert::ProtobufToLua(Protocol::LuaObject const& msg, luabind::object &obj, Protocol::LuaObject const& rootmsg, std::unordered_map<uint, luabind::object>& tables)
 {
    lua_State* L = store_.GetInterpreter();
    switch (msg.type()) {
@@ -161,25 +165,42 @@ void Convert::ProtobufToLua(Protocol::LuaObject const& msg, luabind::object &obj
    case Protocol::LuaObject::STRING:
       obj = luabind::object(L, msg.string_value());
       break;
+   case Protocol::LuaObject::TABLE: {
+         uint i = msg.table_value();
+         if (!tables[i].is_valid()) {
+            RestoreLuaTableFromProtobuf(i, rootmsg, tables);
+         }
+         obj = tables[i];
+         ASSERT(obj && obj.is_valid());
+      }
+      break;
    case Protocol::LuaObject::USERDATA: {
       Protocol::Value const& value_msg = msg.userdata_value();
       ProtobufToUserdata(value_msg, obj);
       break;
    }
-   case Protocol::LuaObject::TABLE:
-      obj = luabind::newtable(L);
-      for (Protocol::LuaObject::Table::Entry const& entry : msg.table_value().entries()) {
-         luabind::object key, value;
-         ProtobufToLua(entry.key(), key);
-         ProtobufToLua(entry.value(), value);
-         if (key.is_valid() && value.is_valid()) {
-            obj[key] = value;
-         }
-      }
-      break;
    default:
       throw std::logic_error(BUILD_STRING("unknown type " << msg.type() << " in LoadLuaValue"));
    }
+}
+
+void Convert::RestoreLuaTableFromProtobuf(uint i, Protocol::LuaObject const& rootmsg, std::unordered_map<uint, luabind::object>& tables)
+{
+   ASSERT(!tables[i].is_valid());
+   luabind::object &obj = tables[i];
+   Protocol::LuaObject_Table const& msg = rootmsg.tables(i);
+
+   lua_State* L = store_.GetInterpreter();
+   obj = luabind::newtable(L);
+   for (Protocol::LuaObject::Table::Entry const& entry : msg.entries()) {
+      luabind::object key, value;
+      ProtobufToLua(entry.key(), key, rootmsg, tables);
+      ProtobufToLua(entry.value(), value, rootmsg, tables);
+      if (key.is_valid() && value.is_valid()) {
+         obj[key] = value;
+      }
+   }
+   ASSERT(tables[i].is_valid());
 }
 
 

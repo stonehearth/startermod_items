@@ -41,7 +41,7 @@ message Update {
       UpdateDebugShapes = 7;
       EndUpdate = 9;
       PostCommandReply = 11;
-      ClearClientState = 12;
+      LoadGame = 12;
       DefineRemoteObject = 13;
    }
    required Type     type = 1;
@@ -112,10 +112,11 @@ message EndUpdate {
    }
 }
 
-message ClearClientState {
+message LoadGame {
    extend Update {
-      optional ClearClientState extension = 108;
+      optional LoadGame extension = 108;
    }
+   optional string         game_id = 1;
 }
 
 message PostCommandReply {

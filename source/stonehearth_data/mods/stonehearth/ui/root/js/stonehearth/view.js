@@ -4,15 +4,13 @@
    components: {},
 
    init: function() {
-      this._trace = new RadiantTrace();
-      this._super();
+      this._super();      
    },
 
    destroy: function() {
-      if (this._trace) {
-         this._trace.destroy();   
-         this._trace = null;
-      }
+
+      this._destroyRootTrace();
+      this._destroyRadiantTrace();
       
       if (this.modalOverlay) {
          this.modalOverlay.destroy();
@@ -43,25 +41,62 @@
       }
    },
 
-   _updatedUri: function() {
+   _destroyRadiantTrace: function() {
+      if (this._radiantTrace) {
+         this._radiantTrace.destroy();
+         this._radiantTrace = null;
+      }
+   },
+
+   _destroyRootTrace: function() {
+      if (this._rootTrace) {
+         if (this._rootTrace.destroy) {
+            this._rootTrace.destroy();
+         }
+         this._rootTrace = null;
+      }
+   },
+
+   _setRootTrace: function(trace) {
       var self = this;
 
-      if (this._trace) {
-         this._trace.destroy();
-      }
+      this._destroyRootTrace();
+      this._rootTrace = trace;
 
-      if (this.uri) {
-         console.log("setting view context for " + this.uri);
-         this._trace = new RadiantTrace()
-         this._trace.traceUri(this.uri, this.components)
-            .progress(function(eobj) {
-               console.log("setting view context for " + self.uri);
+      if (this._rootTrace) {
+         this._rootTrace.progress(function(eobj) {
+               console.log("setting view context for");
                self.set('context', eobj)
             });
       } else {
          self.set('context', {});
       }
+   },
 
+   // `trace` is an object returned from radiant.trace(), radiant.call(), etc.
+   _updatedTrace : function() {
+      this._destroyRadiantTrace();
+
+      var trace = null;
+      if (this._rootTrace) {
+         console.log("setting view context to deferred object");
+         var radiantTrace = new RadiantTrace()
+         radiantTrace.userTrace(this.trace, this.components);
+      }
+      this._setRootTrace(trace);
+   }.observes('trace'),
+
+   // `uri` is a string that's valid to pass to radiant.trace()
+   _updatedUri: function() {
+      this._destroyRadiantTrace();
+
+      var trace = null;
+      if (this.uri) {
+         console.log("setting view context for " + this.uri);
+         this._radiantTrace = new RadiantTrace()
+         trace = this._radiantTrace.traceUri(this.uri, this.components);
+      }
+      this._setRootTrace(trace);
    }.observes('uri'),
 
 });

@@ -24,8 +24,7 @@ end
 function ReplaceProxyWithItem:start(ai, entity, args)
    -- lease the proxy so no one comes out and grabs it from us during our
    -- work animation.
-   local lease_component = self._proxy:add_component('stonehearth:lease')
-   if not lease_component:acquire('ai_reservation', entity) then
+   if not stonehearth.ai:acquire_ai_lease(self._proxy, entity) then
       ai:abort('could not lease %s (%s has it).', tostring(self._proxy), tostring(lease_component:get_owner('ai_reservation')))
       return
    end
@@ -38,8 +37,8 @@ function ReplaceProxyWithItem:run(ai, entity, args)
       radiant.effects.run_effect(entity, '/stonehearth/data/effects/place_item')
 
       radiant.terrain.place_entity(self._full_sized_entity, radiant.entities.get_world_grid_location(self._proxy))
-      radiant.entities.turn_to(self._full_sized_entity, args.rotation)
-      radiant.entities.destroy_entity(self._proxy)
+      radiant.entities.turn_to(self._full_sized_entity, args.rotation)      
+      radiant.terrain.remove_entity(self._proxy)
       self._proxy = nil
    end
 end
@@ -49,10 +48,7 @@ function ReplaceProxyWithItem:stop(ai, entity, args)
       -- we got interrupted in a state where the proxy is still alive.  maybe it's sitting
       -- on the ground... (hopefully!)  take the lease off it so someone can do something
       -- with it.
-      local lease_component = self._proxy:add_component('stonehearth:lease')
-      if lease_component then
-         lease_component:release('ai_reservation', entity)
-      end
+      stonehearth.ai:release_ai_lease(self._proxy, entity)
       self._proxy = nil
    end
 end

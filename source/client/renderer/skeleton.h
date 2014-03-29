@@ -20,6 +20,7 @@ class Skeleton {
       void SetScale(float scale) { _scale = scale; }
       float GetScale() const { return _scale; }
       void ApplyScaleToBones();
+      H3DNode GetRootNode() const { return _parent; }
 
    private:
       H3DNode CreateBone(const std::string& bone);

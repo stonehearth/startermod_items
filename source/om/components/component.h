@@ -20,6 +20,7 @@ public:
    EntityRef GetEntityRef() const { return (*entity_); }
    Entity& GetEntity() const { return *(*entity_).lock(); }
    void SetEntity(EntityPtr entity) { entity_ = entity; }
+   virtual void Initialize() { }
 
 protected:
    void InitializeRecordFields() {

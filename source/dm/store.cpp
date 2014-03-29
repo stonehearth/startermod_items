@@ -75,9 +75,10 @@ void Store::RegisterAllocator(ObjectType t, ObjectAllocFn allocator)
    allocators_[t] = allocator;
 }
 
-bool Store::Save(std::string &error)
+bool Store::Save(std::string const& filename, std::string &error)
 {
    uint size;
+#if 0
    {
       std::ofstream textfile("save.txt");
 
@@ -94,10 +95,11 @@ bool Store::Save(std::string &error)
          textfile << protocol::describe(msg) << "\n\n";
       }      
    }
+#endif
 
    // The C++ Google Protobuf docs claim FileOutputStream avoids an extra copy of the data
    // introduced by OstreamOutputStream, so lets' use that.
-   int fd = _open("save.bin", O_WRONLY | O_BINARY | O_TRUNC | O_CREAT, S_IREAD | S_IWRITE);
+   int fd = _open(filename.c_str(), O_WRONLY | O_BINARY | O_TRUNC | O_CREAT, S_IREAD | S_IWRITE);
    if (fd < 0) {
       error = "could not open save file";
       return false;
@@ -161,7 +163,7 @@ bool Store::Save(std::string &error)
    return true;
 }
 
-bool Store::Load(std::string &error, ObjectMap& objects)
+bool Store::Load(std::string const& filename, std::string &error, ObjectMap& objects)
 {
    // xxx: should probably just pass the save state into the ctor...
    ASSERT(traces_.empty());
@@ -175,7 +177,7 @@ bool Store::Load(std::string &error, ObjectMap& objects)
 
    // The C++ Google Protobuf docs claim FileOutputStream avoids an extra copy of the data
    // introduced by OstreamOutputStream, so lets' use that.
-   int fd = _open("save.bin", _O_RDONLY | O_BINARY);
+   int fd = _open(filename.c_str(), _O_RDONLY | O_BINARY);
    if (fd < 0) {
       error = "could not open save file";
       return false;

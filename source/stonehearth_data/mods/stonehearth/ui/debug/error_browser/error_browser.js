@@ -33,8 +33,8 @@ App.StonehearthErrorBrowserView = App.View.extend({
    _installTrace: function(name, object) {
       var self = this;
 
-      if (this._trace[name]) {
-         this._trace[name].destroy();
+      if (this._traces[name]) {
+         this._traces[name].destroy();
       }
       var trace = new RadiantTrace();
       trace.traceUri(object, { 'entries' : [] })
@@ -42,7 +42,7 @@ App.StonehearthErrorBrowserView = App.View.extend({
             self._results[name] = data;
             self._compileData();
          });
-      this._trace[name] = trace;
+      this._traces[name] = trace;
    },
 
    didInsertElement: function() {

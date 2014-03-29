@@ -1,0 +1,35 @@
+{
+   "attack_types" : {
+      "combat_1h_backhand" : {
+         "active_frame" : 17,
+         "cooldown" : 0
+      },
+      "combat_1h_forehand" : {
+         "active_frame" : 16,
+         "cooldown" : 0
+      },
+      "combat_1h_forehand_spin" : {
+         "active_frame" : 21,
+         "cooldown" : 0
+      },
+      "combat_power_spike" : {
+         "active_frame" : 94,
+         "cooldown" : 0
+      }      
+   },
+   "defense_types" : {
+      "combat_1h_parry" : {
+         "active_frame" : 4,
+         "cooldown" : 0
+      },
+      "combat_1h_dodge" : {
+         "active_frame" : 4,
+         "cooldown" : 0
+      }
+   },
+   "hit_types" : {
+      "combat_1h_hit" : {
+         "active_frame" : 4
+      }
+   }
+}

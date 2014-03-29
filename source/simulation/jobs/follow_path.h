@@ -10,7 +10,7 @@ BEGIN_RADIANT_SIMULATION_NAMESPACE
 class FollowPath : public Task
 {
 public:
-   FollowPath(Simulation& sim, om::EntityRef entity, float speed, std::shared_ptr<Path> path, float close_to_distance, luabind::object arrived_cb);
+   FollowPath(Simulation& sim, om::EntityRef entity, float speed, std::shared_ptr<Path> path, float stop_distance, luabind::object arrived_cb);
    virtual ~FollowPath();
 
 public:
@@ -29,7 +29,7 @@ protected:
    std::shared_ptr<Path>   path_;
    float                   speed_;
    int                     pursuing_;
-   float                   close_to_distance_;
+   float                   stop_distance_;
    luabind::object         arrived_cb_;
 };
 

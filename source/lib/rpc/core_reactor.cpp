@@ -136,6 +136,15 @@ void CoreReactor::AddRouteS(std::string const& route, CallSCb cb)
    });
 }
 
+void CoreReactor::AddRouteJ(std::string const& route, CallJCb cb)
+{
+   AddRoute(route, [cb](Function const& f) -> ReactorDeferredPtr {
+      rpc::ReactorDeferredPtr d = std::make_shared<rpc::ReactorDeferred>(f.route);
+      d->Resolve(cb(f));
+      return d;
+   });
+}
+
 void CoreReactor::SetRemoteRouter(IRouterPtr router)
 {
    remoteRouter_ = router;

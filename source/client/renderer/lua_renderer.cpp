@@ -120,8 +120,12 @@ static void Sky_SetStarfieldBrightness(float brightness) {
    Renderer::GetInstance().SetStarfieldBrightness(brightness);
 }
 
-static void Renderer_SetVisibilityRegions(std::string const& visible_region_uri, std::string const& explored_region_uri) {
-   Renderer::GetInstance().SetVisibilityRegions(visible_region_uri, explored_region_uri);
+static void Renderer_SetVisibleRegion(std::string const& uri) {
+   Renderer::GetInstance().SetVisibleRegion(uri);
+}
+
+static void Renderer_SetExploredRegion(std::string const& uri) {
+   Renderer::GetInstance().SetExploredRegion(uri);
 }
 
 static void Renderer_EnablePerfLogging(bool enable)
@@ -175,7 +179,8 @@ void LuaRenderer::RegisterType(lua_State* L)
                def("set_starfield_brightness", &Sky_SetStarfieldBrightness)
             ],
             namespace_("visibility") [
-               def("set_visibility_regions", &Renderer_SetVisibilityRegions)
+               def("set_visible_region",  &Renderer_SetVisibleRegion),
+               def("set_explored_region", &Renderer_SetExploredRegion)
             ]
          ]
       ],

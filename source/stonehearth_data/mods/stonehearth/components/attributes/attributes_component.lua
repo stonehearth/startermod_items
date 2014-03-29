@@ -148,6 +148,13 @@ function AttributesComponent:get_attribute(name)
       end
       return self._sv._attribute_data[name].value
    end
+
+   -- HACK
+   -- ideally this would return nil at this point
+   -- however, this causes problems with injected attributes where they are tested before the starting value can be set
+   -- return 0 to avoid this problem for now, but this is a poor default
+   -- (e.g. injected health attribute when animating an object that can attack)
+   return 0
 end
 
 --Note: now, only use this on basic/random values. Everything

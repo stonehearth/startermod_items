@@ -48,8 +48,8 @@ RenderTerrain::RenderTerrain(const RenderEntity& entity, om::TerrainPtr terrain)
          return 0;
       };
 
-      auto parse_color = [&](std::string const& str) -> csg::Point3f {
-         csg::Point3f result(0, 0, 0);
+      auto parse_color = [&](std::string const& str) -> csg::Point4f {
+         csg::Point4f result(0, 0, 0, 1.0f);
          if (str.size() == 7) {
             for (int i = 0; i < 3; i++) {
                result[i] = (float)(hex_to_decimal(str[i*2+1]) * 16 + hex_to_decimal(str[i*2+2])) / 255.0f;
@@ -60,22 +60,22 @@ RenderTerrain::RenderTerrain(const RenderEntity& entity, om::TerrainPtr terrain)
 
       using boost::property_tree::ptree;
       json::Node config = Renderer::GetInstance().GetTerrainConfig();
-      csg::Point3f rock_layer_1_color = parse_color(config.get("rock.layer_1_color", "#ff00ff"));
-      csg::Point3f rock_layer_2_color = parse_color(config.get("rock.layer_2_color", "#ff00ff"));
-      csg::Point3f rock_layer_3_color = parse_color(config.get("rock.layer_3_color", "#ff00ff"));
-      csg::Point3f rock_layer_4_color = parse_color(config.get("rock.layer_4_color", "#ff00ff"));
-      csg::Point3f rock_layer_5_color = parse_color(config.get("rock.layer_5_color", "#ff00ff"));
-      csg::Point3f rock_layer_6_color = parse_color(config.get("rock.layer_6_color", "#ff00ff"));
-      csg::Point3f boulder_color = parse_color(config.get("rock.boulder_color", "#ff00ff"));
-      csg::Point3f soil_light_strata_color = parse_color(config.get("soil.light_strata_color", "#ffff00"));
-      csg::Point3f soil_dark_strata_color = parse_color(config.get("soil.dark_strata_color", "#ff00ff"));
-      csg::Point3f soil_default_color = parse_color(config.get("soil.default_color", "#ff00ff"));
-      csg::Point3f soil_detail_color = parse_color(config.get("soil.detail_color", "#ff00ff"));
-      csg::Point3f dark_grass_color = parse_color(config.get("grass.dark_color", "#ff00ff"));
-      csg::Point3f dark_wood_color = parse_color(config.get("wood.dark_color", "#ff00ff"));
+      csg::Point4f rock_layer_1_color = parse_color(config.get("rock.layer_1_color", "#ff00ff"));
+      csg::Point4f rock_layer_2_color = parse_color(config.get("rock.layer_2_color", "#ff00ff"));
+      csg::Point4f rock_layer_3_color = parse_color(config.get("rock.layer_3_color", "#ff00ff"));
+      csg::Point4f rock_layer_4_color = parse_color(config.get("rock.layer_4_color", "#ff00ff"));
+      csg::Point4f rock_layer_5_color = parse_color(config.get("rock.layer_5_color", "#ff00ff"));
+      csg::Point4f rock_layer_6_color = parse_color(config.get("rock.layer_6_color", "#ff00ff"));
+      csg::Point4f boulder_color = parse_color(config.get("rock.boulder_color", "#ff00ff"));
+      csg::Point4f soil_light_strata_color = parse_color(config.get("soil.light_strata_color", "#ffff00"));
+      csg::Point4f soil_dark_strata_color = parse_color(config.get("soil.dark_strata_color", "#ff00ff"));
+      csg::Point4f soil_default_color = parse_color(config.get("soil.default_color", "#ff00ff"));
+      csg::Point4f soil_detail_color = parse_color(config.get("soil.detail_color", "#ff00ff"));
+      csg::Point4f dark_grass_color = parse_color(config.get("grass.dark_color", "#ff00ff"));
+      csg::Point4f dark_wood_color = parse_color(config.get("wood.dark_color", "#ff00ff"));
 
       // xxx: this is in no way thread safe! (see SH-8)
-      static csg::Point3f detail_rings[] = {
+      static csg::Point4f detail_rings[] = {
          parse_color(config.get("grass.ring_0_color", "#ff00ff")),
          parse_color(config.get("grass.ring_1_color", "#ff00ff")),
          parse_color(config.get("grass.ring_2_color", "#ff00ff")),

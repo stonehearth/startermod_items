@@ -57,10 +57,6 @@ public:
 
    om::EntityPtr Simulation::GetEntity(dm::ObjectId id);
    void DestroyEntity(dm::ObjectId id);
-
-   void Save(std::string id);
-   void Load(std::string id);
-
    void Run(tcp::acceptor* acceptor, boost::asio::io_service* io_service);
 
    /* New object model stuff goes here */
@@ -116,9 +112,8 @@ private:
    void EncodeServerTick(std::shared_ptr<RemoteClient> c);
    void EncodeUpdates(std::shared_ptr<RemoteClient> c);
 
-   void Reload();
-   void Save();
-   void Load();
+   void Save(boost::filesystem::path const& savedir);
+   void Load(boost::filesystem::path const& savedir);
    void Reset();
 
    void OneTimeIninitializtion();
@@ -126,8 +121,6 @@ private:
    void InitializeDataObjects();
    void InitializeDataObjectTraces();
    void InitializeGameObjects();
-   void CreateGameModules();
-   void LoadGameModules();
 
    void Shutdown();
    void ShutdownGameObjects();
@@ -136,8 +129,6 @@ private:
    void ShutdownLuaObjects();
 
    void CreateGame();
-   luabind::object CreateModule(std::string const& name);
-   void CreateModules();
 
 private:
    std::unique_ptr<dm::Store>                            store_;
@@ -158,8 +149,7 @@ private:
    std::list<std::weak_ptr<Task>>               tasks_;
 
    luabind::object                              radiant_;
-   std::map<dm::ObjectId, om::EntityPtr>        entityMap_;
-   std::map<dm::ObjectId, om::DataStoreRef>     datastores_;  // intentionally sorted!
+   std::unordered_map<dm::ObjectId, om::EntityPtr>        entityMap_;
 
    rpc::SessionPtr             session_;
    rpc::CoreReactorPtr         core_reactor_;

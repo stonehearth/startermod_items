@@ -4,6 +4,7 @@
 #include "simulation/simulation.h"
 #include "simulation/jobs/follow_path.h"
 #include "simulation/jobs/goto_location.h"
+#include "simulation/jobs/bump_location.h"
 #include "simulation/jobs/lua_job.h"
 #include "simulation/jobs/path_finder.h"
 #include "om/entity.h"
@@ -87,29 +88,37 @@ void Sim_DestroyEntity(lua_State* L, std::weak_ptr<om::Entity> e)
    }
 }
 
-std::shared_ptr<FollowPath> Sim_CreateFollowPath(lua_State *L, om::EntityRef entity, float speed, std::shared_ptr<Path> path, float close_to_distance, object arrived_cb)
+std::shared_ptr<FollowPath> Sim_CreateFollowPath(lua_State *L, om::EntityRef entity, float speed, std::shared_ptr<Path> path, float stop_distance, object arrived_cb)
 {
    Simulation &sim = GetSim(L);
    object cb(lua::ScriptHost::GetCallbackThread(L), arrived_cb);
-   std::shared_ptr<FollowPath> fp(new FollowPath(sim, entity, speed, path, close_to_distance, cb));
+   std::shared_ptr<FollowPath> fp(new FollowPath(sim, entity, speed, path, stop_distance, cb));
    sim.AddTask(fp);
    return fp;
 }
 
-std::shared_ptr<GotoLocation> Sim_CreateGotoLocation(lua_State *L, om::EntityRef entity, float speed, const csg::Point3& location, float close_to_distance, object arrived_cb)
+std::shared_ptr<BumpLocation> Sim_CreateBumpLocation(lua_State *L, om::EntityRef entity, csg::Point3f const& vector)
 {
    Simulation &sim = GetSim(L);
-   object cb(lua::ScriptHost::GetCallbackThread(L), arrived_cb);
-   std::shared_ptr<GotoLocation> fp(new GotoLocation(sim, entity, speed, csg::ToFloat(location), close_to_distance, cb));
+   std::shared_ptr<BumpLocation> fp(new BumpLocation(sim, entity, vector));
    sim.AddTask(fp);
    return fp;
 }
 
-std::shared_ptr<GotoLocation> Sim_CreateGotoEntity(lua_State *L, om::EntityRef entity, float speed, om::EntityRef target, float close_to_distance, object arrived_cb)
+std::shared_ptr<GotoLocation> Sim_CreateGotoLocation(lua_State *L, om::EntityRef entity, float speed, const csg::Point3& location, float stop_distance, object arrived_cb)
 {
    Simulation &sim = GetSim(L);
    object cb(lua::ScriptHost::GetCallbackThread(L), arrived_cb);
-   std::shared_ptr<GotoLocation> fp(new GotoLocation(sim, entity, speed, target, close_to_distance, cb));
+   std::shared_ptr<GotoLocation> fp(new GotoLocation(sim, entity, speed, csg::ToFloat(location), stop_distance, cb));
+   sim.AddTask(fp);
+   return fp;
+}
+
+std::shared_ptr<GotoLocation> Sim_CreateGotoEntity(lua_State *L, om::EntityRef entity, float speed, om::EntityRef target, float stop_distance, object arrived_cb)
+{
+   Simulation &sim = GetSim(L);
+   object cb(lua::ScriptHost::GetCallbackThread(L), arrived_cb);
+   std::shared_ptr<GotoLocation> fp(new GotoLocation(sim, entity, speed, target, stop_distance, cb));
    sim.AddTask(fp);
    return fp;
 }
@@ -138,6 +147,7 @@ DEFINE_INVALID_JSON_CONVERSION(Path);
 DEFINE_INVALID_JSON_CONVERSION(PathFinder);
 DEFINE_INVALID_JSON_CONVERSION(FollowPath);
 DEFINE_INVALID_JSON_CONVERSION(GotoLocation);
+DEFINE_INVALID_JSON_CONVERSION(BumpLocation);
 DEFINE_INVALID_JSON_CONVERSION(LuaJob);
 DEFINE_INVALID_JSON_CONVERSION(Simulation);
 DEFINE_INVALID_LUA_CONVERSION(Simulation)
@@ -156,6 +166,7 @@ void lua::sim::open(lua_State* L, Simulation* sim)
             def("create_datastore",         &Sim_AllocDataStore),
             def("create_path_finder",       &Sim_CreatePathFinder),
             def("create_follow_path",       &Sim_CreateFollowPath),
+            def("create_bump_location",     &Sim_CreateBumpLocation),
             def("create_goto_location",     &Sim_CreateGotoLocation),
             def("create_goto_entity",       &Sim_CreateGotoEntity),
             def("create_job",               &Sim_CreateJob),
@@ -194,6 +205,8 @@ void lua::sim::open(lua_State* L, Simulation* sim)
             ,
             lua::RegisterTypePtr_NoTypeInfo<GotoLocation>("GotoLocation")
                .def("stop",     &GotoLocation::Stop)
+            ,
+            lua::RegisterTypePtr_NoTypeInfo<BumpLocation>("BumpLocation")
             ,
             lua::RegisterTypePtr_NoTypeInfo<LuaJob>("LuaJob")
 

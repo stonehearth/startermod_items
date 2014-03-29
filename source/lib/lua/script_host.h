@@ -4,6 +4,7 @@
 #include "platform/utils.h"
 #include "lib/lua/bind.h"
 #include "om/error_browser/error_browser.h"
+#include "om/om.h"
 #include "lib/perfmon/perfmon.h"
 
 class JSONNode;
@@ -12,11 +13,14 @@ BEGIN_RADIANT_LUA_NAMESPACE
 
 class ScriptHost {
 public:
-   ScriptHost();
+   ScriptHost(std::string const& site);
    ~ScriptHost();
 
    lua_State* GetInterpreter();
    lua_State* GetCallbackThread();
+
+   void CreateGame(om::ModListPtr mods);
+   void LoadGame(om::ModListPtr mods, std::unordered_map<dm::ObjectId, om::EntityPtr>& em);
 
    luabind::object Require(std::string const& name);
    luabind::object RequireScript(std::string const& path);
@@ -99,6 +103,8 @@ private:
    void ReportStackException(std::string const& category, std::string const& error, std::string const& traceback) const;
    luabind::object GetObjectRepresentation(luabind::object o, std::string const& format) const;
    bool IsNumericTable(luabind::object tbl) const;
+   void CreateModules(om::ModListPtr mods);
+   luabind::object CreateModule(om::ModListPtr mods, std::string const& mod_name);
 
 private:
    luabind::object LoadScript(std::string path);
@@ -110,6 +116,7 @@ private:
 private:
    lua_State*           L_;
    lua_State*           cb_thread_;
+   std::string          site_;
    std::map<std::string, luabind::object> required_;
    std::vector<JsonToLuaFn>   to_lua_converters_;
    bool                 filter_c_exceptions_;
@@ -125,6 +132,7 @@ private:
    std::unordered_map<void *, std::string>         alloc_backmap;
    std::unordered_map<std::string, Allocations>    alloc_map;
    std::unordered_map<std::string, std::pair<double, std::string>>   performanceCounters_;
+
    std::unordered_map<dm::ObjectType, ObjectToLuaFn>  object_cast_table_;
 };
 

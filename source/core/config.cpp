@@ -206,3 +206,8 @@ std::string Config::GetBuildNumber() const
 {
    return BUILD_NUMBER;
 }
+
+boost::filesystem::path Config::GetSaveDirectory() const
+{
+   return temp_directory_ / "saved_games";
+}

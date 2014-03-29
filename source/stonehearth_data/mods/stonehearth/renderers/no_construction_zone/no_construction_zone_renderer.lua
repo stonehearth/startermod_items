@@ -1,5 +1,5 @@
 local Point3 = _radiant.csg.Point3
-local Color3 = _radiant.csg.Color3
+local Color4 = _radiant.csg.Color4
 
 local NoConstructionZoneRenderer = class()
 
@@ -9,7 +9,7 @@ function NoConstructionZoneRenderer:update(render_entity, ncz)
    if ncz.region2 then
       local parent = render_entity:get_node()
       local cursor = ncz.region2:get()
-      self._node = _radiant.client.create_designation_node(parent, cursor, Color3(32, 32, 32), Color3(128, 128, 128));
+      self._node = _radiant.client.create_designation_node(parent, cursor, Color4(32, 32, 32, 255), Color4(128, 128, 128, 255));
    end
 end
 

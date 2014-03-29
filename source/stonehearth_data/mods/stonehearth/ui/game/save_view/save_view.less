@@ -1,0 +1,87 @@
+#saveView {
+   .gui;
+   position: absolute;
+
+   #saves {
+      margin-top: 10px;
+      margin-bottom: 10px;
+   }
+
+   #createSaveButton {
+      width: 100%;
+   }
+}
+
+#loadView {
+   .gui;
+   position: absolute;
+
+   #saves {
+      margin-top: 10px;
+      margin-bottom: 10px;
+   }
+
+   #loadButton {
+      width: 100%;
+   }
+}
+
+
+.saveList {
+   overflow-y: scroll;
+   width: 400px;
+   height: 360;
+   max-height: 360px;
+
+   table {
+      border-collapse: collapse;
+   }
+    
+   .current {
+      background: yellow;
+   }
+
+   td {
+      padding: 10px;
+   }
+
+   .saveSlot {
+      .handCursor;
+      position: relative;
+      height: 120px;
+      vertical-align: top;
+      
+      &:hover {
+         background: rgba(143, 120, 70, 0.3);
+      }
+
+      .screenshot {
+         position: absolute;
+         top: 10px;
+         left: 10px;
+         width: 150px;
+         height: 100px;
+         display: inline-block;
+         background: black;
+
+         img {
+            width: 150px;
+            height: auto;
+         }
+      }
+
+      .gameInfo {
+         position: absolute;
+         top: 10px;
+         left: 170px;
+
+         div {
+            padding-bottom: 4px;
+         }
+
+         .name {
+            .controlFont;
+         }
+      }
+   }
+}

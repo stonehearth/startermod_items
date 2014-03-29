@@ -177,7 +177,7 @@ void mesh_tools::AddRegionToMesh(Region2 const& region, PlaneInfoX const& pi, me
       // thing and do tesselation on the server!
       if (!tesselators_) {         
          Color3 c= Color3::FromInteger(tag);
-         Point3f color(c.r / 255.0f, c.g / 255.0f, c.b / 255.0f);
+         Point4f color(c.r / 255.0f, c.g / 255.0f, c.b / 255.0f, 1.0f);
          m.add_face(points, normal, color);
       } else {
          auto i = tesselators_->find(tag);
@@ -186,19 +186,19 @@ void mesh_tools::AddRegionToMesh(Region2 const& region, PlaneInfoX const& pi, me
          } else {
             // xxx: get the winding right...
             Color3 c = Color3::FromInteger(tag);
-            m.add_face(points, normal, Point3f(c.r/255.0f, c.g/255.0f, c.b/255.0f));
+            m.add_face(points, normal, Point4f(c.r/255.0f, c.g/255.0f, c.b/255.0f, 1.0f));
          }
       }
    }
 }
 
-void mesh_tools::mesh::AddFace(Point3f const points[], Point3f const& normal, Color3 const& color)
+void mesh_tools::mesh::AddFace(Point3f const points[], Point3f const& normal, Color4 const& color)
 {
-   csg::Point3f c;
+   csg::Point4f c;
    if (override_color_) {
-      c = Point3f(color_.r / 255.0f, color_.g / 255.0f, color_.b / 255.0f);
+      c = Point4f(color_.r / 255.0f, color_.g / 255.0f, color_.b / 255.0f, color_.a / 255.0f);
    } else {
-      c = Point3f(color.r / 255.0f, color.g / 255.0f, color.b / 255.0f);
+      c = Point4f(color.r / 255.0f, color.g / 255.0f, color.b / 255.0f, color.a / 255.0f);
    }
    
    if (vertices.empty()) {
@@ -222,7 +222,7 @@ void mesh_tools::mesh::AddFace(Point3f const points[], Point3f const& normal, Co
    indices.push_back(vlast + 3);
 }
 
-void mesh_tools::mesh::add_face(Point3f const points[], Point3f const& normal, Point3f const& color)
+void mesh_tools::mesh::add_face(Point3f const points[], Point3f const& normal, Point4f const& color)
 {
    if (vertices.empty()) {
       bounds.SetMin(points[0] + offset_);
@@ -297,7 +297,7 @@ void mesh_tools::mesh::AddRect(Cube<S, 2> const& rect, PlaneInfo<S, 3> const& p)
       RegionToolsTraits3f::ExpandPoint(p2, pi),
       RegionToolsTraits3f::ExpandPoint(p3, pi),
    };
-   AddFace(points, normal, override_color_ ? color_ : Color3::FromInteger(rect.GetTag()));
+   AddFace(points, normal, override_color_ ? color_ : Color4::FromInteger(rect.GetTag()));
 }
 
 mesh_tools::mesh::mesh() : 
@@ -307,9 +307,9 @@ mesh_tools::mesh::mesh() :
 {
 }
 
-mesh_tools::mesh& mesh_tools::mesh::SetColor(csg::Color3 const& color)
+mesh_tools::mesh& mesh_tools::mesh::SetColor(csg::Color4 const& color)
 {
-   color_ = color;
+   color_ = csg::Color4(color.r, color.g, color.b, color.a);
    override_color_ = true;
    return *this;
 }

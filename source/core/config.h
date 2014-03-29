@@ -60,6 +60,7 @@ public:
    std::string GetUserID() const;
    std::string GetSessionID() const;
    std::string GetBuildNumber() const;
+   boost::filesystem::path GetSaveDirectory() const;
 
 private:
    NO_COPY_CONSTRUCTOR(Config);

@@ -5,7 +5,11 @@ local Entity = _radiant.om.Entity
 RunEffectAction.name = 'run effect'
 RunEffectAction.does = 'stonehearth:run_effect'
 RunEffectAction.args = {
-   effect = 'string', -- effect_name
+   effect = 'string',  -- effect_name
+   delay = {
+      type = 'number',
+      default = 0
+   },
    trigger_fn = {
       type = 'function',
       default = stonehearth.ai.NIL,
@@ -45,7 +49,7 @@ function RunEffectAction:run(ai, entity, args)
    local log = ai:get_log()
    for i = 1, times do
       log:debug('starting new effect "%s"', effect_name)
-      self._effect = radiant.effects.run_effect(entity, effect_name, nil, args.args)
+      self._effect = radiant.effects.run_effect(entity, effect_name, args.delay, nil, args.args)
 
       radiant.events.listen(entity, 'stonehearth:on_effect_finished', function ()
             if self._effect then

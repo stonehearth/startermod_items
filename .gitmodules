@@ -62,3 +62,7 @@
 	path = modules/stonehearth-editor
 	url = https://github.com/radent/stonehearth-editor.git
 	branch = master
+[submodule "modules/libpng"]
+	path = modules/libpng
+	url = https://github.com/radent/libpng.git
+	branch = master

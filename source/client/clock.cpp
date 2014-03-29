@@ -16,7 +16,11 @@ Clock::Clock() :
 
 void Clock::Update(int game_time, int game_time_interval, int estimated_next_delivery)
 {
-   game_time_interval_ = std::max(game_time - game_time_start_, 0);
+   if (game_time_start_ != 0) {
+      game_time_interval_ = std::max(game_time - game_time_start_, 0);
+   } else {
+      game_time_interval_ = 0;
+   }
    game_time_start_ = game_time;
    game_time_next_delivery_ = estimated_next_delivery;
    realtime_start_ = platform::get_current_time_in_ms();

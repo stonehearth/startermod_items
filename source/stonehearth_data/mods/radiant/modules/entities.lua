@@ -540,7 +540,7 @@ end
 
 function entities.get_target_table_top(entity, table_name)
    local target_tables = entity:get_component('target_tables')
-   local top_entry = target_tables:get_top(table_name)
+   local top_entry = target_tables:get_table(table_name):get_top()
 
    if top_entry then
       return top_entry.target

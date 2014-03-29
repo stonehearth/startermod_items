@@ -1,0 +1,52 @@
+{
+    "quick_save": {
+        "screenshot": "file(path/to/screenshot.png)",
+        "game_info": {
+            "name": "Quick Save",
+            "town_name": "Midgaard",
+            "game_time": "1st of Bittermun, 1012",
+            "citizens": 12,
+            "time": 2342524312
+        }
+    },
+    "slot_1": {
+        "screenshot": "file(path/to/screenshot.png)",
+        "game_info": {
+            "name": "Quick Save",
+            "town_name": "Midgaard",
+            "game_time": "1st of Bittermun, 1012",
+            "citizens": 12,
+            "time": 2342524312
+        }
+    },
+    "slot_2": {
+        "screenshot": "file(path/to/screenshot.png)",
+        "game_info": {
+            "name": "Quick Save",
+            "town_name": "Midgaard",
+            "game_time": "1st of Bittermun, 1012",
+            "citizens": 12,
+            "time": 2342524312
+        }
+    },
+    "slot_3": {
+        "screenshot": "file(path/to/screenshot.png)",
+        "game_info": {
+            "name": "Quick Save",
+            "town_name": "Midgaard",
+            "game_time": "1st of Bittermun, 1012",
+            "citizens": 12,
+            "time": 2342524312
+        }
+    },
+    "slot_4": {
+        "screenshot": "file(path/to/screenshot.png)",
+        "game_info": {
+            "name": "Quick Save",
+            "town_name": "Midgaard",
+            "game_time": "1st of Bittermun, 1012",
+            "citizens": 12,
+            "time": 2342524312
+        }
+    }    
+}

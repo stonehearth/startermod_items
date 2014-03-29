@@ -9,6 +9,7 @@
 #include "csg/region.h"
 #include "csg/ray.h"
 #include "csg/color.h"
+#include "csg/random_number_generator.h"
 #include "lib/lua/data_object.h"
 
 using namespace radiant;
@@ -26,27 +27,28 @@ using namespace radiant;
    OBJECT_TYPE(bool,                           4,                                   RegisterNotImplementedType) \
    OBJECT_TYPE(std::string,                    5,                                   RegisterNotImplementedType) \
    \
-   OBJECT_TYPE(csg::Cube3,                   100,                                   RegisterValueType) \
-   OBJECT_TYPE(csg::Cube3f,                  101,                                   RegisterValueType) \
-   OBJECT_TYPE(csg::Rect2,                   102,                                   RegisterValueType) \
-   OBJECT_TYPE(csg::Rect2f,                  103,                                   RegisterValueType) \
-   OBJECT_TYPE(csg::Line1,                   104,                                   RegisterValueType) \
-   OBJECT_TYPE(csg::Region3,                 105,                                   RegisterValueType) \
-   OBJECT_TYPE(csg::Region3f,                106,                                   RegisterValueType) \
-   OBJECT_TYPE(csg::Region2,                 107,                                   RegisterValueType) \
-   OBJECT_TYPE(csg::Region2f,                108,                                   RegisterValueType) \
-   OBJECT_TYPE(csg::Region1,                 109,                                   RegisterValueType) \
-   OBJECT_TYPE(csg::Point1,                  110,                                   RegisterValueType) \
-   OBJECT_TYPE(csg::Point1f,                 111,                                   RegisterValueType) \
-   OBJECT_TYPE(csg::Point2,                  112,                                   RegisterValueType) \
-   OBJECT_TYPE(csg::Point2f,                 113,                                   RegisterValueType) \
-   OBJECT_TYPE(csg::Point3,                  114,                                   RegisterValueType) \
-   OBJECT_TYPE(csg::Point3f,                 115,                                   RegisterValueType) \
-   OBJECT_TYPE(csg::Transform,               116,                                   RegisterValueType) \
-   OBJECT_TYPE(csg::Quaternion,              117,                                   RegisterValueType) \
-   OBJECT_TYPE(csg::Ray3,                    118,                                   RegisterValueType) \
-   OBJECT_TYPE(csg::Color3,                  119,                                   RegisterValueType) \
-   OBJECT_TYPE(csg::Color4,                  120,                                   RegisterValueType) \
+   OBJECT_TYPE(csg::Cube3,                   100,                                   RegisterValueTypeLegacy) \
+   OBJECT_TYPE(csg::Cube3f,                  101,                                   RegisterValueTypeLegacy) \
+   OBJECT_TYPE(csg::Rect2,                   102,                                   RegisterValueTypeLegacy) \
+   OBJECT_TYPE(csg::Rect2f,                  103,                                   RegisterValueTypeLegacy) \
+   OBJECT_TYPE(csg::Line1,                   104,                                   RegisterValueTypeLegacy) \
+   OBJECT_TYPE(csg::Region3,                 105,                                   RegisterValueTypeLegacy) \
+   OBJECT_TYPE(csg::Region3f,                106,                                   RegisterValueTypeLegacy) \
+   OBJECT_TYPE(csg::Region2,                 107,                                   RegisterValueTypeLegacy) \
+   OBJECT_TYPE(csg::Region2f,                108,                                   RegisterValueTypeLegacy) \
+   OBJECT_TYPE(csg::Region1,                 109,                                   RegisterValueTypeLegacy) \
+   OBJECT_TYPE(csg::Point1,                  110,                                   RegisterValueTypeLegacy) \
+   OBJECT_TYPE(csg::Point1f,                 111,                                   RegisterValueTypeLegacy) \
+   OBJECT_TYPE(csg::Point2,                  112,                                   RegisterValueTypeLegacy) \
+   OBJECT_TYPE(csg::Point2f,                 113,                                   RegisterValueTypeLegacy) \
+   OBJECT_TYPE(csg::Point3,                  114,                                   RegisterValueTypeLegacy) \
+   OBJECT_TYPE(csg::Point3f,                 115,                                   RegisterValueTypeLegacy) \
+   OBJECT_TYPE(csg::Transform,               116,                                   RegisterValueTypeLegacy) \
+   OBJECT_TYPE(csg::Quaternion,              117,                                   RegisterValueTypeLegacy) \
+   OBJECT_TYPE(csg::Ray3,                    118,                                   RegisterValueTypeLegacy) \
+   OBJECT_TYPE(csg::Color3,                  119,                                   RegisterValueTypeLegacy) \
+   OBJECT_TYPE(csg::Color4,                  120,                                   RegisterValueTypeLegacy) \
+   OBJECT_TYPE(csg::RandomNumberGenerator,   121,                                   RegisterValueTypeLegacy) \
    \
    OBJECT_TYPE(om::ClockRef,                 om::Clock::DmType,                     RegisterGameObjectType)  \
    OBJECT_TYPE(om::EntityContainerRef,       om::EntityContainer::DmType,           RegisterGameObjectType) \
@@ -75,7 +77,7 @@ using namespace radiant;
    OBJECT_TYPE(om::ErrorBrowserPtr,          om::ErrorBrowser::DmType,              RegisterGameObjectType) \
    OBJECT_TYPE(om::Region2BoxedPtr,          om::Region2Boxed::DmType,              RegisterGameObjectType) \
    OBJECT_TYPE(om::Region3BoxedPtr,          om::Region3Boxed::DmType,              RegisterGameObjectType) \
-   OBJECT_TYPE(om::Selection,                200,                                   RegisterValueType) \
+   OBJECT_TYPE(om::Selection,                200,                                   RegisterValueTypeLegacy) \
    \
    OBJECT_TYPE(lua::ControllerObject,        300,                                   RegisterNotImplementedType) \
    OBJECT_TYPE(lua::DataObjectPtr,           301,                                   RegisterNotImplementedType) \
@@ -145,9 +147,26 @@ RegisterGameObjectType()
 }
 
 
+template<>
+struct dm::SaveImpl<csg::RandomNumberGenerator> {
+   static void SaveValue(const dm::Store& store, dm::SerializationType r, Protocol::Value* msg, csg::RandomNumberGenerator const& obj) {
+      Protocol::RandomNumberGenerator* rng_msg = msg->MutableExtension(Protocol::RandomNumberGenerator::extension);
+      rng_msg->set_state(BUILD_STRING(obj));
+   }
+   static void LoadValue(const Store& store, dm::SerializationType r, const Protocol::Value& msg, csg::RandomNumberGenerator& obj) {
+      Protocol::RandomNumberGenerator const& rng_msg = msg.GetExtension(Protocol::RandomNumberGenerator::extension);
+      std::istringstream is(rng_msg.state());
+      is >> obj;
+   }
+   static void GetDbgInfo(lua::DataObject const& obj, dm::DbgInfo &info) {
+      info.os << "[lua_object]";
+   }
+};
+
+
 template <typename T>
 void
-RegisterValueType()
+RegisterValueTypeLegacy()
 {
    // Value Conversions
    //

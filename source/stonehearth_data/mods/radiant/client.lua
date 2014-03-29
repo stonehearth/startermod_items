@@ -9,6 +9,14 @@ function radiant.get_object(addr)
    return _radiant.client.get_object(addr)
 end
 
+function radiant.create_datastore(data)
+   local datastore = _radiant.client.create_datastore()
+   if data then
+      datastore:set_data(data)
+   end
+   return datastore
+end
+
 radiant.log = require 'modules.log'
 radiant.util = require 'lib.util'
 radiant.resources = require 'modules.resources'

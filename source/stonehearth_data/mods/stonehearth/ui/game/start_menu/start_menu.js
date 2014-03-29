@@ -7,7 +7,7 @@ App.StonehearthStartMenuView = App.View.extend({
    },
 
    menuActions: {
-      harvest_resources: function () {
+      harvest_menu: function () {
          App.stonehearthClient.boxHarvestResources();
       },
       create_stockpile: function () {
@@ -21,6 +21,9 @@ App.StonehearthStartMenuView = App.View.extend({
       },
       build_simple_room: function () {
          App.stonehearthClient.buildRoom();
+      },
+      showPopulationManager: function() {
+         App.stonehearthClient.showPopulationManager();
       },
       placeItem: function () {
          $(top).trigger('radiant_show_placement_menu');

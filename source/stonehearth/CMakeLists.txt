@@ -26,6 +26,7 @@ target_link_libraries(stonehearth
                              ${Boost_LIBRARIES}
                              ${Cryptopp_LIBRARIES}
                              ${Libjson_LIBRARIES}
+                             ${Libpng_LIBRARIES}
                              comctl32
                              winmm
                              client

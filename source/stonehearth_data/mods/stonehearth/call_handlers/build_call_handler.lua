@@ -1,6 +1,6 @@
 local Point3 = _radiant.csg.Point3
 local BuildCallHandler = class()
-local BuildEditor = require 'services.build.build_editor'
+local BuildEditor = require 'services.server.build.build_editor'
 
 local build_editor
 function BuildCallHandler:get_build_editor(session, request)

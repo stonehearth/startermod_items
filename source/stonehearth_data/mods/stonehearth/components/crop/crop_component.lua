@@ -8,7 +8,7 @@ function CropComponent:initialize(entity, json)
    self._entity = entity
    self._resource_pairings = json.resource_pairings
    self._harvest_threshhold = json.harvest_threshhold
-   radiant.events.listen(radiant, 'radiant:entity:post_create', self, self._on_create_complete)
+   radiant.events.listen(entity, 'radiant:entity:post_create', self, self._on_create_complete)
 end
 
 function CropComponent:set_dirt_plot(dirt_plot)

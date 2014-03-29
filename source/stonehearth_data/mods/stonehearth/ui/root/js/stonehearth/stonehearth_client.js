@@ -17,9 +17,13 @@ var StonehearthClient;
       
          $(document).mousemove( function(e) {
             self.mouseX = e.pageX; 
-            self.mouseY = e.pageY;
+         self.mouseY = e.pageY;
          });
 
+      },
+
+      gameState: {
+         saveKey: "slot_1"
       },
 
       getActiveTool: function() {
@@ -140,6 +144,11 @@ var StonehearthClient;
          });
       },
 
+      _populationManager: null,
+      showPopulationManager: function() {
+         radiant.call('radiant:play_sound', 'stonehearth:sounds:ui:start_menu:popup' );
+         _populationManager = App.gameView.addView(App.StonehearthUnitFrameView);
+      },
    });
 
 })();
