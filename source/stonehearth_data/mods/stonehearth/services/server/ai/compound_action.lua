@@ -47,6 +47,7 @@ function CompoundAction:__init(entity, injecting_entity, action_ctor, activities
    -- in the compound action.
    if self._action.start_thinking or self._action.stop_thinking then
       self._action_ai = {
+         get_log = function() return self._ai:get_log() end,
          set_think_output = function(_, think_output)
             self:_spam_current_state('compound action became ready!')
             think_output = think_output or self._args

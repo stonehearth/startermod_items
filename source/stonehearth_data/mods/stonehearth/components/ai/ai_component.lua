@@ -98,8 +98,11 @@ function AIComponent:remove_action(key)
    local does = action_key_to_activity[key]
    if does then
       local entry = self._action_index[does][key]
+      log:detail('triggering stonehearth:action_index_changed:' .. does)
+      radiant.events.trigger(self, 'stonehearth:action_index_changed:' .. does, 'remove', key, entry, does)
       self._action_index[does][key] = nil
-      radiant.events.trigger(self, 'stonehearth:action_index_changed', 'remove', key, entry, does)
+   else
+      log:debug('could not find action for key %s in :remove_action', tostring(key))
    end
 end
 
