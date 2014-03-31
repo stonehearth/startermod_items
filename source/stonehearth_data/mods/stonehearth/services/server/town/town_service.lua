@@ -44,7 +44,6 @@ function TownService:get_town(arg1)
       return nil
    end
    radiant.check.is_string(player_id)   
-   assert(self._sv.towns[player_id])
    return self._sv.towns[player_id]
 end
 
