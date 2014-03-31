@@ -12,7 +12,8 @@ local constants = {
 }
 
 function SkyRenderer:initialize()
-   SkyRenderer:set_sky_constants()
+   self:set_sky_constants()
+   self._sv = self.__saved_variables:get_data()
    self._celestials = {}
 
    self:_init_sun()
@@ -36,6 +37,10 @@ function SkyRenderer:initialize()
                               :on_frame_start('render sky', function(now, interpolate)
                                     self:_interpolate_time(now, interpolate)
                                  end)
+
+   if self._sv.calendar_seconds then
+      self:_update_time(self._sv.calendar_seconds)
+   end
 end
 
 function SkyRenderer:set_sky_constants()
@@ -97,24 +102,25 @@ end
 function SkyRenderer:_update_time(seconds)
    -- compute the interval between calls to _update so we can interpolate
    -- between frames
-   if self._calendar_seconds then
-      self._calendar_seconds_between_updates = seconds - self._calendar_seconds
-      self._render_ms_between_updates = self._last_render_time_ms - self._render_time_at_last_update
+   if self._sv.calendar_seconds then
+      self._sv.calendar_seconds_between_updates = seconds - self._sv.calendar_seconds
+      self._render_ms_between_updates = self._sv.last_render_time_ms - self._sv.render_time_at_last_update
    end
-   self._calendar_seconds = seconds
-   self._render_time_at_last_update = self._last_render_time_ms
-   self:_update(self._calendar_seconds)
+   self._sv.calendar_seconds = seconds
+   self._sv.render_time_at_last_update = self._sv.last_render_time_ms
+   self:_update(self._sv.calendar_seconds)
+   self.__saved_variables:mark_changed()
 end
 
 function SkyRenderer:_interpolate_time(now)
-   if self._calendar_seconds_between_updates then
+   if self._sv.calendar_seconds_between_updates then
       -- assume the calendar moves foward at a rate equal to the amount it moved forward between
       -- the last two updates.  so to calculate where we are now, we just take the last update
       -- time and some fraction of the time elapsed between the last two updates.  that gap should
       -- be proportional to the percentage of time that's elapsed between the last and the next
       -- updates.  we'll use the render clock time as a gross approximation of the update timer,
       -- since we expect the calendar to move time forward at a constant rate      
-      local interpolation_time = now - self._render_time_at_last_update
+      local interpolation_time = now - self._sv.render_time_at_last_update
       if interpolation_time > self._render_ms_between_updates then
          -- cap the distance we're willing to look ahead, just in case there's some jitter in the
          -- update or render frequency
@@ -124,11 +130,12 @@ function SkyRenderer:_interpolate_time(now)
       -- a frame takes f o r e v 3 r ...) self._render_ms_between_updates will be 0 (sinnce we didn't
       -- tick the render clock).  if so, just don't bother. 
       if self._render_ms_between_updates ~= 0 then
-         local interpolation_seconds = self._calendar_seconds_between_updates * (interpolation_time / self._render_ms_between_updates)
-         self:_update(self._calendar_seconds + math.floor(interpolation_seconds))
+         local interpolation_seconds = self._sv.calendar_seconds_between_updates * (interpolation_time / self._render_ms_between_updates)
+         self:_update(self._sv.calendar_seconds + math.floor(interpolation_seconds))
       end
    end
-   self._last_render_time_ms = now
+   self._sv.last_render_time_ms = now
+   self.__saved_variables:mark_changed()
 end
 
 function SkyRenderer:_update(seconds)
