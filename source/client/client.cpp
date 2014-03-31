@@ -57,6 +57,7 @@
 #include "dm/tracer_buffered.h"
 #include "dm/store_trace.h"
 #include "core/system.h"
+#include "client/renderer/raycast_result.h"
 
 //  #include "GFx/AS3/AS3_Global.h"
 #include "client.h"
@@ -1023,11 +1024,11 @@ void Client::UpdateSelection(const MouseInput &mouse)
 {
    perfmon::TimelineCounterGuard tcg("update selection") ;
 
-   om::Selection s;
-   Renderer::GetInstance().QuerySceneRay(mouse.x, mouse.y, 0, s);
+   RaycastResult r;
+   Renderer::GetInstance().QuerySceneRay(mouse.x, mouse.y, 0, r);
 
-   if (s.HasEntities()) {
-      auto entity = GetEntity(s.GetEntities().front());
+   if (r.numResults() > 0) {
+      auto entity = GetEntity(r.objectIdOf(0));
       if (entity->GetComponent<om::Terrain>()) {
          CLIENT_LOG(3) << "clearing selection (clicked on terrain)";
          SelectEntity(nullptr);
@@ -1133,11 +1134,11 @@ void Client::HilightMouseover()
 {
    perfmon::TimelineCounterGuard tcg("hilight mouseover") ;
 
-   om::Selection selection;
+   RaycastResult r;
    auto &renderer = Renderer::GetInstance();
    csg::Point2 pt = renderer.GetMousePosition();
 
-   renderer.QuerySceneRay(pt.x, pt.y, 0, selection);
+   renderer.QuerySceneRay(pt.x, pt.y, 0, r);
 
    om::EntityPtr selectedObject = selectedObject_.lock();
    for (const auto &e: hilightedObjects_) {
@@ -1152,8 +1153,8 @@ void Client::HilightMouseover()
    hilightedObjects_.clear();
 
    // hilight something
-   if (selection.HasEntities()) {
-      om::EntityPtr hilightEntity = GetEntity(selection.GetEntities().front());
+   if (r.numResults() > 0) {
+      om::EntityPtr hilightEntity = GetEntity(r.objectIdOf(0));
       if (hilightEntity && hilightEntity != rootObject_.lock()) {
          RenderEntityPtr renderObject = renderer.GetRenderObject(hilightEntity);
          if (renderObject) {
@@ -1167,14 +1168,14 @@ void Client::HilightMouseover()
 void Client::UpdateDebugCursor()
 {
    if (enable_debug_cursor_) {
-      om::Selection selection;
+      RaycastResult r;
       auto &renderer = Renderer::GetInstance();
       csg::Point2 pt = renderer.GetMousePosition();
 
-      renderer.QuerySceneRay(pt.x, pt.y, 0, selection);
-      if (selection.HasBlock()) {
+      renderer.QuerySceneRay(pt.x, pt.y, 0, r);
+      if (r.numResults() > 0) {
          json::Node args;
-         csg::Point3 pt = selection.GetBlock() + csg::ToInt(selection.GetNormal());
+         csg::Point3 pt = r.brickOf(0) + csg::ToInt(r.normalOf(0));
          args.set("enabled", true);
          args.set("cursor", pt);
          core_reactor_->Call(rpc::Function("radiant:debug_navgrid", args));

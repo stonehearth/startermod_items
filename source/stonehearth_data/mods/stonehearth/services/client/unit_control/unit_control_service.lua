@@ -47,8 +47,8 @@ function UnitControlService:_move_unit(e)
       local ray = _radiant.renderer.scene.cast_screen_ray(e.x, e.y)
       local screen_ray = _radiant.renderer.scene.get_screen_ray(e.x, e.y)
 
-      if ray.is_valid then
-         move_location = ray.point
+      if ray:is_valid() then
+         move_location = ray:intersection_of(0)
       else 
          move_location = screen_ray.origin
       end

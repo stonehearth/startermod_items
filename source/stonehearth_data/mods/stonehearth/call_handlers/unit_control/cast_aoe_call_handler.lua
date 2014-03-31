@@ -32,7 +32,7 @@ function CastAoeCallHandler:_on_mouse_event(e, response, entity, spell)
    -- s.location contains the address of the terrain block that the mouse
    -- is currently pointing to.  if there isn't one, move the cursor
    -- way off the screen so it won't get rendered.
-   local pt = s.location and s.location or offscreen_pos
+   local pt = s:is_valid() and s:intersection_of(0) or offscreen_pos
    pt.y = pt.y + 1
 
    local in_range = entity:get_component('mob'):get_world_grid_location():distance_to(pt) <= range

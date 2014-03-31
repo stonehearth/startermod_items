@@ -23,6 +23,7 @@
 #include <unordered_set>
 #include <string>
 #include "client/client.h"
+#include "raycast_result.h"
 
 using namespace ::radiant;
 using namespace ::radiant::client;
@@ -1041,75 +1042,65 @@ void Renderer::GetCameraToViewportRay(int viewportX, int viewportY, csg::Ray3* r
    }
 }
 
-void Renderer::CastRay(const csg::Point3f& origin, const csg::Point3f& direction, int userFlags, RayCastResult* result)
+void Renderer::CastRay(const csg::Point3f& origin, const csg::Point3f& direction, int userFlags, Renderer::_RayCastResults* results)
 {
+   results->num_results = 0;
+   results->ray = csg::Ray3(origin, direction);
+
    if (!rootRenderObject_) {
       return;
    }
 
-   result->is_valid = false;
-   int numIntersections = h3dCastRay(rootRenderObject_->GetNode(),
+   results->num_results = h3dCastRay(rootRenderObject_->GetNode(),
       origin.x, origin.y, origin.z,
-      direction.x, direction.y, direction.z, 1, userFlags);
-   if (numIntersections == 0) {
+      direction.x, direction.y, direction.z, 10, userFlags);
+   
+   if (results->num_results == 0) {
       return;
    }
 
    // Pull out the intersection node and intersection point
-   H3DNode node = 0;
-
-   if (!h3dGetCastRayResult( 0, &(result->node), 0, &(result->point.x), &(result->normal.x) )) {
-      return;
+   for (int i = 0; i < results->num_results; i++) {
+      Renderer::_RayCastResult& result = results->results[i];
+      if (!h3dGetCastRayResult( i, &(result.node), 0, &(result.point.x), &(result.normal.x) )) {
+         return;
+      }
+      result.normal.Normalize();
    }
-   result->numOtherResults = numIntersections - 1;
-   result->origin = origin;
-   result->direction = direction;
-   result->normal.Normalize();
-   result->is_valid = true;
 }
 
-void Renderer::CastScreenCameraRay(int viewportX, int viewportY, int userFlags, RayCastResult* result)
+void Renderer::QuerySceneRay(const csg::Point3f& origin, const csg::Point3f& direction, int userFlags, RaycastResult &result)
 {
-   result->is_valid = false;
+   Renderer::_RayCastResults r;
+   CastRay(origin, direction, userFlags, &r);
 
-   if (!rootRenderObject_) {
+   result.setRay(r.ray);
+   if (r.num_results == 0) {
       return;
    }
 
+   for (int i = 0; i < r.num_results; i++) {
+      H3DNode node = r.results[i].node;
+      dm::ObjectId id = -1;
+
+      while (node) {
+         auto n = selectionLookup_.find(node);
+         if (n != selectionLookup_.end()) {
+            id = n->second;
+            break;
+         }
+         node = h3dGetNodeParent(node);
+      }
+  
+      result.addIntersection(r.results[i].point, r.results[i].normal, id);
+   }
+}
+
+void Renderer::QuerySceneRay(int viewportX, int viewportY, int userFlags, RaycastResult &result)
+{
    csg::Ray3 ray;
    GetCameraToViewportRay(viewportX, viewportY, &ray);
-
-   CastRay(ray.origin, ray.direction, userFlags, result);
-}
-
-void Renderer::QuerySceneRay(int viewportX, int viewportY, int userFlags, om::Selection &result)
-{
-   RayCastResult r;
-   CastScreenCameraRay(viewportX, viewportY, userFlags, &r );
-   if (!r.is_valid) {
-      return;
-   }
-
-   result.AddLocation(csg::Point3f(r.point.x, r.point.y, r.point.z),
-                      csg::Point3f(r.normal.x, r.normal.y, r.normal.z));
-
-   // Lookup the intersection object in the node registery and ask it to
-   // fill in the selection structure.
-   csg::Ray3 ray(r.point, r.direction);
-   H3DNode node = r.node;
-
-   while (node) {
-      auto i = selectableCbs_.find(node);
-      if (i != selectableCbs_.end()) {
-         // transform the interesection and the normal to the coordinate space
-         // of the node.
-         csg::Matrix4 transform = GetNodeTransform(node);
-         transform.affine_inverse();
-
-         i->second(result, ray, transform.transform(r.point), transform.rotate(r.normal));
-      }
-      node = h3dGetNodeParent(node);
-   }
+   QuerySceneRay(ray.origin, ray.direction, userFlags, result);
 }
 
 csg::Matrix4 Renderer::GetNodeTransform(H3DNode node) const

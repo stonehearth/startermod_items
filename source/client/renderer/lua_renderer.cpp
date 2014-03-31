@@ -5,6 +5,7 @@
 #include "h3d_resource_types.h"
 #include "lib/json/core_json.h"
 #include "lib/lua/register.h"
+#include "raycast_result.h"
 #include "Horde3DRadiant.h"
 
 using namespace luabind;
@@ -90,17 +91,17 @@ static csg::Ray3 Scene_GetScreenRay(double windowX, double windowY)
    return result;
 }
 
-static RayCastResult Scene_CastRay(const csg::Point3f& origin, const csg::Point3f& direction) 
+static RaycastResult Scene_CastRay(const csg::Point3f& origin, const csg::Point3f& direction) 
 {
-   RayCastResult r;
-   Renderer::GetInstance().CastRay(origin, direction, 0, &r);
+   RaycastResult r;
+   Renderer::GetInstance().QuerySceneRay(origin, direction, 0, r);
    return r;
 }
 
-static RayCastResult Scene_CastScreenRay(double windowX, double windowY) 
+static RaycastResult Scene_CastScreenRay(double windowX, double windowY) 
 {
-   RayCastResult r;
-   Renderer::GetInstance().CastScreenCameraRay((int)windowX, (int)windowY, 0, &r);
+   RaycastResult r;
+   Renderer::GetInstance().QuerySceneRay((int)windowX, (int)windowY, 0, r);
    return r;
 }
 
@@ -133,13 +134,13 @@ static void Renderer_EnablePerfLogging(bool enable)
    h3dSetOption(H3DOptions::EnableStatsLogging, enable ? 1.0f : 0.0f);
 }
 
-std::ostream& operator<<(std::ostream& os, const RayCastResult& in)
+std::ostream& operator<<(std::ostream& os, const RaycastResult& in)
 {
-   os << in.is_valid << ", " << in.point;
+   os << in.numResults();
    return os;
 }
 
-DEFINE_INVALID_JSON_CONVERSION(RayCastResult);
+DEFINE_INVALID_JSON_CONVERSION(RaycastResult);
 
 void LuaRenderer::RegisterType(lua_State* L)
 {
@@ -160,12 +161,14 @@ void LuaRenderer::RegisterType(lua_State* L)
                def("world_to_screen", &Camera_WorldToScreen)
             ],
             namespace_("scene") [
-               lua::RegisterType_NoTypeInfo<RayCastResult>("RayCastResult")
-                  .def(tostring(const_self))
-                  .def(constructor<>())
-                  .def_readonly("is_valid",          &RayCastResult::is_valid)
-                  .def_readonly("point",             &RayCastResult::point)
-                  .def_readonly("origin",            &RayCastResult::origin),
+               lua::RegisterType_NoTypeInfo<RaycastResult>("RaycastResult")
+                  .def("is_valid",          &RaycastResult::isValid)
+                  .def("num_results",       &RaycastResult::numResults)
+                  .def("intersection_of",   &RaycastResult::intersectionOf)
+                  .def("normal_of",         &RaycastResult::normalOf)
+                  .def("objectid_of",       &RaycastResult::objectIdOf)
+                  .def("brick_of",          &RaycastResult::brickOf)
+                  .def("get_ray",           &RaycastResult::ray),
                def("cast_screen_ray",    &Scene_CastScreenRay),
                def("cast_ray",           &Scene_CastRay),
                def("get_screen_ray",     &Scene_GetScreenRay)

@@ -25,6 +25,7 @@
 #include "ui_buffer.h"
 #include "glfw3.h"
 #include <unordered_set>
+#include "raycast_result.h"
 
 BEGIN_RADIANT_CLIENT_NAMESPACE
 
@@ -35,19 +36,6 @@ enum ViewMode {
    Standard = 0,
    RPG,
    MaxViewModes
-};
-
-struct RayCastResult
-{
-   csg::Point3f point;
-   csg::Point3f normal;
-   
-   csg::Point3f origin;
-   csg::Point3f direction;
-
-   H3DNode      node;
-   bool         is_valid;
-   int          numOtherResults;
 };
 
 struct FrameStartInfo {
@@ -102,6 +90,22 @@ class Renderer
       Renderer();
       ~Renderer();
 
+   private:
+      // Intermediate results from a raycast.
+      struct _RayCastResult
+      {
+         csg::Point3f point;
+         csg::Point3f normal;
+         H3DNode node;
+      };
+
+      struct _RayCastResults {
+         int num_results;
+         csg::Ray3 ray;
+         _RayCastResult results[10];
+      };
+
+
    public:
       static Renderer& GetInstance();
 
@@ -149,9 +153,8 @@ class Renderer
       core::Guard TraceSelected(H3DNode node, UpdateSelectionFn fn);
 
       void GetCameraToViewportRay(int viewportX, int viewportY, csg::Ray3* ray);
-      void CastRay(const csg::Point3f& origin, const csg::Point3f& direction, int userFlags, RayCastResult* result);
-      void CastScreenCameraRay(int viewportX, int viewportY, int userFlags, RayCastResult* result);
-      void QuerySceneRay(int viewportX, int viewportY, int userFlags, om::Selection &result);
+      void QuerySceneRay(int viewportX, int viewportY, int userFlags, RaycastResult &result);
+      void QuerySceneRay(const csg::Point3f& origin, const csg::Point3f& direction, int userFlags, RaycastResult &result);
 
       typedef std::function<void (const Input&)> InputEventCb;
       void SetInputHandler(InputEventCb fn) { input_cb_ = fn; }
@@ -213,6 +216,7 @@ class Renderer
       MouseInput WindowToBrowser(const MouseInput& mouse);
       void CallMouseInputCallbacks();
       void UpdateFoW(H3DNode node, const csg::Region2& region);
+      void CastRay(const csg::Point3f& origin, const csg::Point3f& direction, int userFlags, _RayCastResults* result);
 
       void ResizeViewport();
       void ResizePipelines();

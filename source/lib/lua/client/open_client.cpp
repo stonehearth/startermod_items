@@ -20,6 +20,7 @@
 #include "core/slot.h"
 #include "csg/region_tools.h"
 #include "glfw3.h"
+#include "client/renderer/raycast_result.h"
 
 using namespace ::radiant;
 using namespace ::radiant::client;
@@ -207,18 +208,11 @@ std::weak_ptr<RenderEntity> Client_CreateRenderEntity(H3DNode parent, luabind::o
    return result;
 }
 
-static luabind::object
+static RaycastResult
 Client_QueryScene(lua_State* L, int x, int y)
 {
-   om::Selection s;
-   Renderer::GetInstance().QuerySceneRay(x, y, 0, s);
-
-   using namespace luabind;
-   object result = newtable(L);
-   if (s.HasBlock()) {
-      result["location"] = object(L, s.GetBlock());
-      result["normal"]   = object(L, csg::ToInt(s.GetNormal()));
-   }
+   RaycastResult result;
+   Renderer::GetInstance().QuerySceneRay(x, y, 0, result);
    return result;
 }
 
@@ -422,7 +416,7 @@ DEFINE_INVALID_LUA_CONVERSION(Input)
 DEFINE_INVALID_LUA_CONVERSION(MouseInput)
 DEFINE_INVALID_LUA_CONVERSION(KeyboardInput)
 DEFINE_INVALID_LUA_CONVERSION(RawInput)
-DEFINE_INVALID_LUA_CONVERSION(RayCastResult)
+DEFINE_INVALID_LUA_CONVERSION(RaycastResult)
 
 static bool Client_IsKeyDown(int key)
 {

@@ -11,6 +11,7 @@ add_library(client_renderer STATIC
             pch.cpp
             pipeline.cpp
             skeleton.cpp
+            raycast_result.cpp
             renderer.cpp
             render_entity.cpp
             render_entity_container.cpp
