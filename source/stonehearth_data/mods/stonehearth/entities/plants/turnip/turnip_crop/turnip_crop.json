@@ -26,6 +26,11 @@
             "models": [
                "file(turnip_crop_4.qb)"
             ]
+         }, 
+         "turnip_12": {
+            "models": [
+               "file(turnip_crop_12.qb)"
+            ]
          }
       },
       "unit_info": {
@@ -42,7 +47,8 @@
       "stonehearth:crop" : {
          "resource_pairings" : {
             "turnip_3": "stonehearth:turnip",
-            "turnip_4": "stonehearth:turnip_basket"
+            "turnip_4": "stonehearth:turnip_basket", 
+            "turnip_12": ""
          },
          "harvest_threshhold" : "turnip_4",
          "plant_overlay_effect" : "/stonehearth/data/effects/plant_crop_overlay_effect/plant_corn_overlay_effect.json"
@@ -69,6 +75,11 @@
                "model_name" : "turnip_4",
                "name": "Ripe Turnip", 
                "description": "Delicious!"
+            }, {}, {}, {}, {}, {}, {}, {},
+            {
+               "model_name" : "turnip_12",
+               "name": "Rotten Turnip", 
+               "description": "Moldy and disgusting."
             }
          ]
       },
