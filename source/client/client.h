@@ -155,6 +155,7 @@ class Client : public core::Singleton<Client> {
       void ShutdownLuaObjects();
       void SaveGame(std::string const& gameid, json::Node const& gameinfo);
       void LoadGame(std::string const& gameid);
+      void DeleteSaveGame(std::string const& gameid);
       void SaveClientState(boost::filesystem::path const& savedir);
       void SaveClientMetadata(boost::filesystem::path const& savedir, json::Node const& gameinfo);
       void LoadClientState(boost::filesystem::path const& savedir);

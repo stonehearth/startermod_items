@@ -514,6 +514,10 @@ void Client::OneTimeIninitializtion()
       json::Node saveid(json::Node(f.args).get_node(0));
       LoadGame(saveid.as<std::string>());
    });
+   core_reactor_->AddRouteV("radiant:client:delete_save_game", [this](rpc::Function const& f) {
+      json::Node saveid(json::Node(f.args).get_node(0));
+      DeleteSaveGame(saveid.as<std::string>());
+   });
 
    core_reactor_->AddRouteJ("radiant:client:get_save_games", [this](rpc::Function const& f) {
       json::Node games;
@@ -902,7 +906,6 @@ void Client::LoadGame(const proto::LoadGame& msg)
    fs::path savedir = core::Config::GetInstance().GetSaveDirectory() / msg.game_id();
    LoadClientState(savedir);
 }
-
 
 void Client::process_messages()
 {
@@ -1379,6 +1382,14 @@ void Client::SaveGame(std::string const& saveid, json::Node const& gameinfo)
    json::Node args;
    args.set("saveid", saveid);
    core_reactor_->Call(rpc::Function("radiant:server:save", args));
+}
+
+void Client::DeleteSaveGame(std::string const& saveid)
+{
+   fs::path savedir = core::Config::GetInstance().GetSaveDirectory() / saveid;
+   if (fs::is_directory(savedir)) {
+      remove_all(savedir);
+   }
 }
 
 void Client::LoadGame(std::string const& saveid)
