@@ -16,10 +16,12 @@ public:
    ReactorDeferredPtr InstallTrace(Trace const& t);
 
    bool HttpGetFile(std::string const& uri, int &code, std::string& content, std::string& mimetype);
+   bool HttpGetResource(std::string const& uri, int &code, std::string& content, std::string& mimetype);
    void QueueEvent(std::string type, JSONNode payload);
    void FlushEvents();
 
 private:
+   void GetMimeType(std::string const& uri, std::string& mimetype);
    ReactorDeferredPtr GetEvents(rpc::Function const& f);
    ReactorDeferredPtr CreateDeferredResponse(Function const& fn, ReactorDeferredPtr d);
 
