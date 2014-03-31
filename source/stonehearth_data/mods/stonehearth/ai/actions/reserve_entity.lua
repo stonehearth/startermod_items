@@ -13,7 +13,7 @@ function ReserveEntity:start(ai, entity, args)
    local target = args.entity
 
    if not stonehearth.ai:acquire_ai_lease(target, entity) then
-      ai:abort('could not lease %s (%s has it).', tostring(target), tostring(self._lease_component:get_owner(stonehearth.ai.RESERVATION_LEASE_NAME)))
+      ai:abort('could not lease %s (%s has it).', tostring(target), tostring(stonehearth.ai:get_ai_lease_owner(target)))
       return
    end
    self._acquired_lease = true

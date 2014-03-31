@@ -56,7 +56,7 @@ ReactorDeferredPtr HttpReactor::InstallTrace(Trace const& t)
 {
    int code;
    std::string content, mimetype;
-   if (boost::ends_with(t.route, ".json") && HttpGetFile(t.route, code, content, mimetype)) {
+   if (boost::ends_with(t.route, ".json") && HttpGetResource(t.route, code, content, mimetype)) {
       // if we wanted to, we could put a file system watcher on this path now
       // and call Notify again later. =)
       ReactorDeferredPtr d = std::make_shared<ReactorDeferred>(BUILD_STRING("http response to " << t));
@@ -142,7 +142,50 @@ void HttpReactor::QueueEvent(std::string type, JSONNode payload)
 }
 
 // must be thread safe.  called from the client browser thread
-bool HttpReactor::HttpGetFile(std::string const& uri, int &code, std::string& content, std::string& mimetype)
+bool HttpReactor::HttpGetFile(std::string const& filename, int &code, std::string& content, std::string& mimetype)
+{
+   try {
+      RPC_LOG(5) << "reading file " << filename;
+      std::ifstream is(filename, std::ios::in | std::ios::binary);
+      content = io::read_contents(is);
+   } catch (std::exception& e) {
+      RPC_LOG(3) << "error code 404: " << e.what();
+      code = 404;
+      content = e.what();
+      return false;
+   }
+   code = 200;
+   GetMimeType(filename, mimetype);
+   return true;
+}
+
+// must be thread safe.  called from the client browser thread
+bool HttpReactor::HttpGetResource(std::string const& uri, int &code, std::string& content, std::string& mimetype)
+{
+   auto const& rm = res::ResourceManager2::GetInstance();
+
+   try {
+      if (boost::ends_with(uri, ".json")) {
+         rm.LookupJson(uri, [&](const JSONNode& node) {
+            content = node.write();
+         });
+      } else {
+         RPC_LOG(5) << "reading resource file " << uri;
+         std::shared_ptr<std::istream> is = rm.OpenResource(uri);
+         content = io::read_contents(*is);
+      }
+   } catch (std::exception& e) {
+      RPC_LOG(3) << "error code 404: " << e.what();
+      code = 404;
+      content = e.what();
+      return false;
+   }
+   code = 200;
+   GetMimeType(uri, mimetype);
+   return true;
+}
+
+void HttpReactor::GetMimeType(std::string const& uri, std::string& mimetype)
 {
    // xxx: this is in no way thread safe! (see SH-8)
    static const struct {
@@ -162,26 +205,6 @@ bool HttpReactor::HttpGetFile(std::string const& uri, int &code, std::string& co
       { "woff", "application/font-woff" },
       { "cur",  "image/vnd.microsoft.icon" },
    };
-   auto const& rm = res::ResourceManager2::GetInstance();
-
-   try {
-      if (boost::ends_with(uri, ".json")) {
-         rm.LookupJson(uri, [&](const JSONNode& node) {
-            content = node.write();
-         });
-      } else {
-         RPC_LOG(5) << "reading file " << uri;
-         std::shared_ptr<std::istream> is = rm.OpenResource(uri);
-         content = io::read_contents(*is);
-      }
-   } catch (std::exception& e) {
-      RPC_LOG(3) << "error code 404: " << e.what();
-      code = 404;
-      content = e.what();
-      return false;
-   }
-
-   code = 200;
 
    // Determine the file extension.
    std::string mimeType;
@@ -198,5 +221,4 @@ bool HttpReactor::HttpGetFile(std::string const& uri, int &code, std::string& co
    if (mimetype.empty()) {
       RPC_LOG(3) << "unrecognized mime type for uri: " <<  uri;
    }
-   return true;
 }

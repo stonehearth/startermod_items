@@ -16,9 +16,13 @@ function NewGameCallHandler:new_game(session, response, num_tiles_x, num_tiles_y
    local wgs = stonehearth.world_generation
    local blueprint
 
-   stonehearth.town:add_town(session)
-   stonehearth.inventory:add_inventory(session)
-   stonehearth.population:add_population(session)
+   -- xxx: shouldn't there be a stonehearth.game object which encapsulates all this logic?
+   local town = stonehearth.town:get_town(session.player_id)
+   if not town then
+      stonehearth.town:add_town(session)
+      stonehearth.inventory:add_inventory(session)
+      stonehearth.population:add_population(session)
+   end
 
    wgs:create_new_game(seed, true)
 

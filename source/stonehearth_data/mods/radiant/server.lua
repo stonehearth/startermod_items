@@ -44,7 +44,7 @@ end
 
 local ProFi = require 'lib.ProFi'
 local _profile = {
-   write_updates_longer_than = radiant.util.get_config('profile_long_frames', 0)
+   write_updates_longer_than = radiant.util.get_config('profile_long_frames', 0) / 1000.0
 }
 
 function _start_profiling(profile_this_frame)
@@ -69,10 +69,10 @@ function _stop_profiling()
          duration = _host:get_realtime() - _profile.start_time
       end
       if _profile.profile_this_frame or (duration and duration > _profile.write_updates_longer_than) then
-         local filename = string.format('lua_profile_%s.txt', radiant.gamestate.now())
+         local filename = string.format('lua_profile_%s__%d_ms.txt', radiant.gamestate.now(), duration * 1000)
          ProFi:writeReport(filename)
          if duration then
-            radiant.log.write('radiant', 0, 'wrote lua profile for %s ms update to %s', duration, filename)
+            radiant.log.write('radiant', 0, 'wrote lua profile for %.3f ms update to %s', duration, filename)
          end
       end
    end
