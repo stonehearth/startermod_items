@@ -40,7 +40,7 @@ function SleepInBedAdjacent:run(ai, entity, args)
    entity:get_component('mob'):set_rotation(q)
 
    -- goto sleep  
-   radiant.entities.think(entity, '/stonehearth/data/effects/thoughts/sleepy')
+   radiant.entities.think(entity, '/stonehearth/data/effects/thoughts/sleepy',  stonehearth.constants.think_priorities.SLEEPY)
    radiant.entities.add_buff(entity, 'stonehearth:buffs:sleeping');
 
    ai:execute('stonehearth:run_effect', { effect = 'goto_sleep' })

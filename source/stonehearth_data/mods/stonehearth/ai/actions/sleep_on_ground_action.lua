@@ -30,7 +30,7 @@ function SleepOnGroundAction:stop(ai, entity)
    -- xxx, localize
    local name = radiant.entities.get_display_name(entity)
    stonehearth.events:add_entry(name .. ' awakes groggy from sleeping on the cold, hard, unforgiving earth.', 'warning')
-   radiant.entities.unthink(entity, '/stonehearth/data/effects/thoughts/sleepy')
+   radiant.entities.unthink(entity, '/stonehearth/data/effects/thoughts/sleepy', stonehearth.constants.think_priorities.SLEEPY)
    radiant.entities.remove_buff(entity, 'stonehearth:buffs:sleeping');   
 end
 

@@ -41,6 +41,7 @@ local constants = {
          DEFEND = 100,
          UNIT_CONTROL = 1000,
          COMPELLED_BEHAVIOR = 9999999,
+         DIE = 10000000,
       },
 
       -- Priorites of commands issued by the player to a unit
@@ -74,6 +75,20 @@ local constants = {
       GOOD = 35,
       MAX  = 40,
       VARIATION = 10,
+   },
+
+   food = {
+      MAX_ENERGY = 100, 
+      MALNOURISHED = 25, 
+      MIN_ENERGY = 0,
+      HOURLY_ENERGY_LOSS = 5,
+      HOURLY_HP_LOSS = 100,
+      HOURLY_HP_GAIN = 10 
+   },
+
+   think_priorities = {
+      HUNGRY = 100,
+      SLEEPY = 50,
    },
 }
 

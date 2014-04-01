@@ -1,5 +1,5 @@
 local WaitForAttributeAbove = class()
-WaitForAttributeAbove.name = 'wait for attribute threshold'
+WaitForAttributeAbove.name = 'wait for attribute above threshold'
 WaitForAttributeAbove.does = 'stonehearth:wait_for_attribute_above'
 WaitForAttributeAbove.args = {
    attribute = 'string',      -- the attribute to wait for

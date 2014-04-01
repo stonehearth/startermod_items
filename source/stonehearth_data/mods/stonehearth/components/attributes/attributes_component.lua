@@ -3,6 +3,7 @@
    - basic attributes are just integers 
    - random_range attributes will get you a number between base and max, inclusive
    - derived attributes derived from equations relating other attributes. 
+   - variable attributes are changed in game, but have a min of 0 and a (soft) max of some other stat (soft to account for temp buffs)
 
    Here are the 3 example types as described in json:
    "ferocity": {
@@ -14,10 +15,14 @@
       "base" :  1,
       "max"  :  9
    },
-   "health": {
+   "max_health": {
       "type" : "derived", 
       "equation" : "muscle + willpower + discipline"
    }, 
+   "health" : {
+      "type" : "variable", 
+      "source" : "max_health"
+   }
 
    Attributes can have alphabetical characters in them, + the _ character. (But they cannot have
    numeric characters in them)
@@ -79,7 +84,7 @@ function AttributesComponent:_add_new_attribute(name, data)
          new_attribute.value = data.value
       elseif new_attribute.type == 'random_range' then
          new_attribute.value = rng:get_int(data.base, data.max)
-      elseif new_attribute.type == 'derived' then
+      elseif new_attribute.type == 'derived' or new_attribute.type == 'variable' then
          new_attribute.equation = data.equation
          self:_load_dependencies(data.equation, name)
          new_attribute.value = self:_evaluate_equation(data.equation)
@@ -157,7 +162,7 @@ function AttributesComponent:get_attribute(name)
    return 0
 end
 
---Note: now, only use this on basic/random values. Everything
+--Note: now, only use this on basic/random/variable values. Everything
 --else recalculates automatically 
 function AttributesComponent:set_attribute(name, value)
    local attribute_data = self._sv._attribute_data[name] 

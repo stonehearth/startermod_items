@@ -11,11 +11,13 @@ Defend.version = 2
 Defend.priority = 1
 Defend.weight = 1
 
-function Defend:__init()
+function Defend:__init(entity)
    self._weapon_table = CombatFns.get_weapon_table('medium_1h_weapon')
    
    self._defense_types, self._num_defense_types =
       CombatFns.get_action_types(self._weapon_table, 'defense_types')
+
+   self._attributes_component = entity:add_component('stonehearth:attributes')
 end
 
 function Defend:start_thinking(ai, entity, args)
@@ -64,6 +66,18 @@ function Defend:_on_battery(args)
 
    self:_send_battery_defended(attacker, entity)
    self._ai:set_think_output()
+end
+
+--- When you fail to defend against an attack, take HP damage
+--  TODO: determine damage based on awesomely complicated model
+--  TODO: show toasts
+function Defend:_fail()
+   local hp = self._attributes_component:get_attribute('health')
+   hp = hp - 50
+   if hp < 0 then 
+      hp = 0
+   end
+   self._attributes_component:set_attribute('health', hp )
 end
 
 function Defend:_send_battery_defended(attacker, target)

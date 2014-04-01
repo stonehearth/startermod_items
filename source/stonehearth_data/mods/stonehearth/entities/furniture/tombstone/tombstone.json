@@ -1,0 +1,29 @@
+{
+   "mixins": "stonehearth:mixins:placed_properties",
+   "type": "entity",
+   "components": {
+      "model_variants": {
+         "default": {
+            "models": [
+               "file(tombstone.qb)"
+            ]
+         }
+      },
+      "region_collision_shape" : {
+         "region": [
+            {
+               "min" : { "x" : -1, "y" : 0, "z" : -1 },
+               "max" : { "x" :  1, "y" : 1, "z" :  1 }
+            }
+         ]
+      },
+      "unit_info": {
+         "name": "X's Tombstone",
+         "description": "X is in a better place.",
+         "icon" : "file(tombstone.png)"
+      },
+      "stonehearth:material" : {
+         "tags" : "stone furniture"
+      }
+   }
+}

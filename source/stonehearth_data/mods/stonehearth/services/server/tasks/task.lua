@@ -190,7 +190,8 @@ function Task:_unfeed_worker(worker)
    if type(worker) == 'number' then
       worker = radiant.entities.get_entity(worker)
    end
-   assert(radiant.util.is_a(worker, Entity))
+   --Review q: assert is invalid if the worker is nil due to delete, how to account for this?
+   --assert(radiant.util.is_a(worker, Entity))
    
    if worker and worker:is_valid() then
       self._log:detail('unfeeding worker %s', worker)
