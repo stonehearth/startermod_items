@@ -8,7 +8,7 @@
 #include <boost/log/utility/setup/common_attributes.hpp>
 
 using namespace ::radiant;
-using namespace ::radiant::logger;
+using namespace ::radiant::log;
 
 namespace logging = boost::log;
 namespace src = boost::log::sources;
@@ -16,10 +16,11 @@ namespace sinks = boost::log::sinks;
 namespace keywords = boost::log::keywords;
 namespace attrs = boost::log::attributes;
 
-radiant::logger::LogCategories log_levels_;
+radiant::log::LogCategories log_levels_;
 uint32 default_log_level_;
-static uint32 console_log_severity_;
+std::unordered_map<std::string, radiant::log::LogLevel> log_level_names_;
 
+static uint32 console_log_severity_;
 static const uint32 DEFAULT_LOG_LEVEL = 2;
 static const uint32 DEFAULT_CONSOLE_LOG_SEVERITY = 2;
 
@@ -29,7 +30,7 @@ BOOST_LOG_ATTRIBUTE_KEYWORD(severity, "Severity", int)
 
 static boost::shared_ptr< boost::log::sinks::synchronous_sink< boost::log::sinks::text_file_backend > > file_log_sink;
 
-void radiant::logger::Init(boost::filesystem::path const& logfile)
+void radiant::log::Init(boost::filesystem::path const& logfile)
 {
    file_log_sink = boost::log::add_file_log(
       keywords::file_name = logfile.string(),
@@ -42,15 +43,22 @@ void radiant::logger::Init(boost::filesystem::path const& logfile)
    );
    boost::log::add_common_attributes();
 
+   log_level_names_["error"] = ERROR;
+   log_level_names_["warning"] = WARNING;
+   log_level_names_["info"] = INFO;
+   log_level_names_["debug"] = DEBUG;
+   log_level_names_["detail"] = DETAIL;
+   log_level_names_["spam"] = SPAM;
+
    LOG_(0) << "logger initialized";
 }
 
-int radiant::logger::GetDefaultLogLevel()
+int radiant::log::GetDefaultLogLevel()
 {
    return default_log_level_;
 }
 
-void radiant::logger::Flush()
+void radiant::log::Flush()
 {
    if (file_log_sink) {
       file_log_sink->flush();
@@ -59,17 +67,35 @@ void radiant::logger::Flush()
 
 // Returns the configure log level for a particular key, or the default
 // value if that key is not specified.
-static inline uint32 GetLogLevel(std::string const& key, uint32 deflt)
+int log::GetLogLevel(std::string const& key, int deflt)
 {
    core::Config& config = core::Config::GetInstance();
+   static const int SENTINEL = 0xd3adb33f;
    
-   static const int sentinel = -1337;
-   int log_level = config.Get<int>(key, sentinel);
-   if (log_level != sentinel) {
-      return log_level;
+   auto getLogLevel = [](std::string const& name) -> int {
+      JSONNode n = core::Config::GetInstance().Get<JSONNode>(name, JSONNode());
+      if (n.type() == JSON_STRING) {
+         auto i = log_level_names_.find(n.as_string());
+         if (i != log_level_names_.end()) {
+            return i->second;
+         }
+      } else if (n.type() == JSON_NUMBER) {
+         return n.as_int();
+      }
+      return SENTINEL;
+   };
+
+   int level = getLogLevel(key);
+   if (level != SENTINEL) {
+      return level;
    }
-   return config.Get<int>(key + ".log_level", deflt);
+   level = getLogLevel(BUILD_STRING(key << ".log_level"));
+   if (level != SENTINEL) {
+      return level;
+   }
+   return deflt;
 }
+
 
 static void InitDefaults()
 {
@@ -132,13 +158,13 @@ static void SetLogLevels()
 #undef BEGIN_GROUP
 }
 
-void radiant::logger::InitLogLevels()
+void radiant::log::InitLogLevels()
 {
    InitDefaults();
    SetLogLevels();
 }
 
-void radiant::logger::Exit()
+void radiant::log::Exit()
 {
    LOG_(0) << "logger shutting down";
 }
