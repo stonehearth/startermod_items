@@ -20,11 +20,11 @@
       "stonehearth:activity_name" : "eating_berries",
       "stonehearth:food" : {
          "sitting_on_chair" : {
-            "satisfaction" : 100,
+            "satisfaction" : 12,
             "journal_message" : "Mmmm! Berries are delicious!"
          },
          "default" : {
-            "satisfaction" : 50,
+            "satisfaction" : 10,
             "journal_message" : "Wish I could eat these berries while sitting in a chair..."
          }
       }

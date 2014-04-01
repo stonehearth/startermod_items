@@ -178,14 +178,9 @@
             "type" : "variable", 
             "equation" : "max_health"
          }, 
-         "hunger": {
-            "type" : "random_range", 
-            "base" : 1, 
-            "max"  : 30
-         },
          "calories": {
             "type" : "basic", 
-            "value" : 30
+            "value" : 100
          },
          "sleepiness": {
             "type" : "random_range", 

@@ -81,8 +81,8 @@ local constants = {
       MAX_ENERGY = 100, 
       MALNOURISHED = 25, 
       MIN_ENERGY = 0,
-      HOURLY_ENERGY_LOSS = 5,
-      HOURLY_HP_LOSS = 100,
+      HOURLY_ENERGY_LOSS = 1,
+      HOURLY_HP_LOSS = 5,
       HOURLY_HP_GAIN = 10 
    },
 

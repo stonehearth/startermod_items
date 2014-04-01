@@ -54,7 +54,7 @@
          "plant_overlay_effect" : "/stonehearth/data/effects/plant_crop_overlay_effect/plant_corn_overlay_effect.json"
       }, 
       "stonehearth:growing" : {
-         "growth_period" : "1h",
+         "growth_period" : "6h",
          "growth_stages" : [
             {
                "model_name" : "turnip_1",

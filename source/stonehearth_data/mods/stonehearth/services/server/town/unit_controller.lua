@@ -29,6 +29,7 @@ function UnitController:create_immediate_task(name, args)
    return self._immediate_task
 end
 
+-- A task that the dude will try to do when he's not given an immediate task by the player
 function UnitController:create_scheduled_task(name, args)
    local task = self:_create_task(name, args)
    table.insert(self._scheduled_tasks, task)
