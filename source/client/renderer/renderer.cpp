@@ -1382,10 +1382,10 @@ void Renderer::OnFocusChanged(int wasFocused) {
    DispatchInputEvent();
 }
 
-core::Guard Renderer::TraceSelected(H3DNode node, UpdateSelectionFn fn)
+core::Guard Renderer::TraceSelected(H3DNode node, dm::ObjectId objectId)
 {
-   selectableCbs_[node] = fn;
-   return core::Guard([=]() { selectableCbs_.erase(node); });
+   selectionLookup_[node] = objectId;
+   return core::Guard([=]() { selectionLookup_.erase(node); });
 }
 
 H3DRes Renderer::GetPipeline(const std::string& name)

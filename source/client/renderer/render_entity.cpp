@@ -53,7 +53,7 @@ RenderEntity::RenderEntity(H3DNode parent, om::EntityPtr entity) :
    skeleton_.SetSceneNode(node_.get());
 
    // xxx: convert to something more dm::Trace like...
-   renderer_guard_ += Renderer::GetInstance().TraceSelected(node_.get(), std::bind(&RenderEntity::OnSelected, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4));
+   renderer_guard_ += Renderer::GetInstance().TraceSelected(node_.get(), entity_id_);
 }
 
 void RenderEntity::FinishConstruction()

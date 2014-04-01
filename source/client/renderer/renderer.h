@@ -150,7 +150,7 @@ class Renderer
       void RemoveRenderObject(int storeId, dm::ObjectId id);
 
       typedef std::function<void(om::Selection& sel, const csg::Ray3& ray, const csg::Point3f& intersection, const csg::Point3f& normal)> UpdateSelectionFn;
-      core::Guard TraceSelected(H3DNode node, UpdateSelectionFn fn);
+      core::Guard TraceSelected(H3DNode node, dm::ObjectId objectId);//UpdateSelectionFn fn);
 
       void GetCameraToViewportRay(int viewportX, int viewportY, csg::Ray3* ray);
       void QuerySceneRay(int viewportX, int viewportY, int userFlags, RaycastResult &result);
@@ -231,7 +231,7 @@ class Renderer
          std::shared_ptr<RenderEntity>    render_entity;
          dm::TracePtr                     lifetime_trace;
       };
-      typedef std::unordered_map<H3DNode, UpdateSelectionFn>   SelectableMap;
+      typedef std::unordered_map<H3DNode, dm::ObjectId>        SelectionLookup;
       typedef std::unordered_map<dm::ObjectId, RenderMapEntry> RenderEntityMap;
       typedef std::unordered_map<std::string, H3DRes>          H3DResourceMap;
 
@@ -263,7 +263,7 @@ class Renderer
       bool              show_debug_shapes_;
 
       RenderEntityMap   entities_[5]; // by store id
-      SelectableMap     selectableCbs_;
+      SelectionLookup   selectionLookup_;
       InputEventCb      input_cb_;
 
       Input             input_;  // Mouse coordinates in the GL window-space.

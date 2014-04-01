@@ -71,6 +71,16 @@ void Client_SelectEntity(lua_State* L, om::EntityRef e)
    Client::GetInstance().SelectEntity(e.lock());
 }
 
+void Client_SelectEntityById(lua_State* L, dm::ObjectId objId)
+{
+   om::EntityPtr e = nullptr;
+
+   if (objId != 0) {
+      e = Client::GetInstance().GetEntity(objId);
+   }
+   Client::GetInstance().SelectEntity(e);
+}
+
 om::EntityRef Client_GetSelectedEntity()
 {
    return Client::GetInstance().GetSelectedEntity();
@@ -442,6 +452,7 @@ void lua::client::open(lua_State* L)
          namespace_("client") [
             def("get_object",                      &Client_GetObject),
             def("select_entity",                   &Client_SelectEntity),
+            def("select_entity_by_id",             &Client_SelectEntityById),
             def("get_selected_entity",             &Client_GetSelectedEntity),
             def("create_empty_authoring_entity",   &Client_CreateEmptyAuthoringEntity),
             def("create_authoring_entity",         &Client_CreateAuthoringEntity),

@@ -951,12 +951,7 @@ void Client::OnMouseInput(Input const& input)
       return;
    }
 
-   if (!CallInputHandlers(input)) {
-      if (input.mouse.up[0]) {
-         CLIENT_LOG(5) << "updating selection...";
-         UpdateSelection(input.mouse);
-      }
-   }
+   CallInputHandlers(input);
 }
 
 void Client::OnKeyboardInput(Input const& input)
