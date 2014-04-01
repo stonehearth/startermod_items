@@ -5,12 +5,15 @@
 #include "simulation/jobs/follow_path.h"
 #include "simulation/jobs/goto_location.h"
 #include "simulation/jobs/bump_location.h"
+#include "simulation/jobs/movement_helpers.h"
 #include "simulation/jobs/lua_job.h"
 #include "simulation/jobs/path_finder.h"
 #include "om/entity.h"
 #include "om/stonehearth.h"
 #include "om/region.h"
 #include "om/components/data_store.ridl.h"
+#include "om/components/mob.ridl.h"
+#include "om/components/destination.ridl.h"
 #include "csg/util.h"
 #include "lib/voxel/qubicle_brush.h"
 #include "lib/json/core_json.h"
@@ -88,7 +91,7 @@ void Sim_DestroyEntity(lua_State* L, std::weak_ptr<om::Entity> e)
    }
 }
 
-std::shared_ptr<FollowPath> Sim_CreateFollowPath(lua_State *L, om::EntityRef entity, float speed, std::shared_ptr<Path> path, float stop_distance, object arrived_cb)
+std::shared_ptr<FollowPath> Sim_CreateFollowPath(lua_State *L, om::EntityRef entity, float speed, PathPtr path, float stop_distance, object arrived_cb)
 {
    Simulation &sim = GetSim(L);
    object cb(lua::ScriptHost::GetCallbackThread(L), arrived_cb);
@@ -135,6 +138,42 @@ std::shared_ptr<PathFinder> Sim_CreatePathFinder(lua_State *L, om::EntityRef s, 
    return nullptr;
 }
 
+PathPtr Sim_CreateDirectPath(lua_State *L, om::EntityRef entityRef, om::EntityRef targetRef)
+{
+   Simulation &sim = GetSim(L);
+   om::EntityPtr entity = entityRef.lock();
+   om::EntityPtr target = targetRef.lock();
+
+   csg::Point3 start = entity->AddComponent<om::Mob>()->GetWorldGridLocation();
+   csg::Point3 end;
+   bool haveEndPoint = MovementHelpers::GetClosestPointAdjacentToEntity(sim, start, target, end);
+   if (!haveEndPoint) {
+      return nullptr;
+   }
+
+   std::vector<csg::Point3> points = MovementHelpers::GetPathPoints(sim, entity, start, end);
+
+   if (points.empty() || (points.back() != end)) {
+      return nullptr;
+   }
+
+   csg::Point3 poi;
+   csg::Point3 targetLocation = target->AddComponent<om::Mob>()->GetWorldGridLocation();
+   om::DestinationPtr destinationPtr = target->GetComponent<om::Destination>();
+
+   if (destinationPtr) {
+      poi = destinationPtr->GetPointOfInterest(end - targetLocation);
+      // transform poi to world coordinates
+      poi += targetLocation;
+   } else {
+      poi = targetLocation;
+   }
+
+   PathPtr path = std::make_shared<Path>(points, entityRef, targetRef, poi);
+
+   return path;
+}
+
 std::shared_ptr<LuaJob> Sim_CreateJob(lua_State *L, std::string const& name, object cb)
 {
    Simulation &sim = GetSim(L);
@@ -165,6 +204,7 @@ void lua::sim::open(lua_State* L, Simulation* sim)
             def("alloc_region2",            &Sim_AllocObject<om::Region2Boxed>),
             def("create_datastore",         &Sim_AllocDataStore),
             def("create_path_finder",       &Sim_CreatePathFinder),
+            def("create_direct_path",       &Sim_CreateDirectPath),
             def("create_follow_path",       &Sim_CreateFollowPath),
             def("create_bump_location",     &Sim_CreateBumpLocation),
             def("create_goto_location",     &Sim_CreateGotoLocation),
