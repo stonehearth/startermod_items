@@ -4,7 +4,8 @@ local TaskScheduler = class()
 function TaskScheduler:__init(name)
    self._name = name
    self._counter_name = name
-   self._log = radiant.log.create_logger('tasks.scheduler', 'scheduler: ' .. self._name)
+   self._log = radiant.log.create_logger('task_scheduler', 'scheduler: ' .. self._name)
+   self._log:debug('created task scheduler')
 
    self._task_groups = {}
    self._poll_interval = 200
@@ -34,6 +35,7 @@ function TaskScheduler:create_task_group(activity_name, args)
 end
 
 function TaskScheduler:_update()
+   self._log:debug('updating task scheduler')
    local feed_count = self._max_feed_per_interval
    for i, task_group in ipairs(self._task_groups) do
       local count = task_group:_update(feed_count)
