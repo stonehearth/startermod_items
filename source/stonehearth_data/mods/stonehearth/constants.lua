@@ -83,7 +83,8 @@ local constants = {
       MIN_ENERGY = 0,
       HOURLY_ENERGY_LOSS = 1,
       HOURLY_HP_LOSS = 5,
-      HOURLY_HP_GAIN = 10 
+      HOURLY_HP_GAIN = 10, 
+      MEALTIME_START = 10
    },
 
    think_priorities = {

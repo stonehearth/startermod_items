@@ -60,13 +60,7 @@ function CalorieObserver:_adjust_health_and_status()
          self._is_malnourished = true
          radiant.entities.add_buff(self._entity, 'stonehearth:buffs:starving')
 
-         --If the task doesn't currently exist, start the task to look for food
-         if not self._eat_task then
-            local player_id = radiant.entities.get_player_id(self._entity)
-            local town = stonehearth.town:get_town(player_id)
-            self._eat_task = town:command_unit_scheduled(self._entity, 'stonehearth:eat')
-               :start()
-         end
+         self:_start_eat_task()
       end
    elseif not malnourished then
       --increase HP (until it hits max)
@@ -93,7 +87,7 @@ function CalorieObserver:_adjust_health_and_status()
    end
 end
 
---- Every hour, lose a certain amount of energy
+--- Every hour, handle energy, eating impulses, health etc
 function CalorieObserver:_on_hourly(e)
    local calories = self._attributes_component:get_attribute('calories')
    local previous_calories = calories
@@ -107,6 +101,27 @@ function CalorieObserver:_on_hourly(e)
       self:_adjust_health_and_status()
    end
    self._attributes_component:set_attribute('calories', calories)
+
+   --If it's mealtime, everyone go eat. 
+   self:_handle_mealtimes(e.now.hour)
+end
+
+-- If it's mealtime, start the looking for food task
+-- TODO: is this necessary: If it's not mealtime, and we're not malnourished, stop eating
+function CalorieObserver:_handle_mealtimes(hour)
+   if hour == stonehearth.constants.food.MEALTIME_START then
+      self:_start_eat_task()
+   end
+end
+
+--If the task doesn't currently exist, start the task to look for food
+function CalorieObserver:_start_eat_task()
+   if not self._eat_task then
+      local player_id = radiant.entities.get_player_id(self._entity)
+      local town = stonehearth.town:get_town(player_id)
+      self._eat_task = town:command_unit_scheduled(self._entity, 'stonehearth:eat')
+         :start()
+   end
 end
 
 return CalorieObserver

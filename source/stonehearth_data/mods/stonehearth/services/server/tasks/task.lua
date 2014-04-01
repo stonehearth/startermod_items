@@ -360,7 +360,9 @@ function Task:__action_try_start(action)
       radiant.events.trigger_async(self, 'work_available', self, false)
       self:_stop_feeding()
    end
-   self._task_group:_notify_worker_started_task(self, action:get_entity())
+   if self._task_group then
+      self._task_group:_notify_worker_started_task(self, action:get_entity())
+   end
 
    self:_log_state('exiting __action_try_start')
    return true
