@@ -8,31 +8,31 @@ local all_tasks = {}
 local offscreen_pos = Point3(-1000000, 0, -1000000)
 
 function CastAoeCallHandler:client_cast_aoe(session, response, entity, spell)
+   if not self._handlers then
+      self._handlers = stonehearth.input:push_handlers(
+         function(e)
+            return self:_on_mouse_event(e, response, entity, spell)
+         end,
 
-   self._capture = _radiant.client.capture_input()
-   self._capture:on_input(
-      function(e)
-         if e.type == _radiant.client.Input.MOUSE then
-            return self:_on_mouse_event(e.mouse, response, entity, spell)
-         elseif e.type == _radiant.client.Input.KEYBOARD then
-            return self:_on_keyboard_event(e.keyboard, response)
-         end
-         return false
-      end
-   )
+         function(e)
+            return self:_on_keyboard_event(e, response)
+         end)
+   end
 end
 
 -- called each time the mouse moves on the client.
 function CastAoeCallHandler:_on_mouse_event(e, response, entity, spell)
-   assert(self._capture, "got mouse event after releasing capture")
+   assert(self._handlers, "got mouse event after releasing capture")
 
    local range = 20
    local radius = 8
    local s = _radiant.client.query_scene(e.x, e.y)
-   -- s.location contains the address of the terrain block that the mouse
-   -- is currently pointing to.  if there isn't one, move the cursor
-   -- way off the screen so it won't get rendered.
-   local pt = s:is_valid() and s:intersection_of(0) or offscreen_pos
+
+   local pt = offscreen_pos
+
+   if s:is_valid() then
+      pt = s:brick_of(0)
+   end
    pt.y = pt.y + 1
 
    local in_range = entity:get_component('mob'):get_world_grid_location():distance_to(pt) <= range
@@ -56,7 +56,7 @@ function CastAoeCallHandler:_on_mouse_event(e, response, entity, spell)
    -- if the mouse button just transitioned to up and we're actually pointing
    -- to a box on the terrain, send a message to the server to create the
    -- entity.  this is done by posting to the correct route.
-   if e:up(1) and in_range and s.location then
+   if e:up(1) and in_range and s:is_valid() then
       
       _radiant.call('stonehearth:server_cast_aoe', entity:get_id(), spell, pt)
          :always(
@@ -98,16 +98,15 @@ end
 
 -- destroy our capture object to release the mouse back to the client.  
 function CastAoeCallHandler:_cleanup(e, response)
-   if self._capture then
-      self._capture:destroy()
-      self._capture = nil
+   if self._handlers then
+      stonehearth.input:remove_handlers(self._handlers)
+      self._handlers = nil
    end
 
    if self._cursor_node then
       h3dRemoveNode(self._cursor_node)
       self._cursor_node = nil
    end
-   
 end
 
 

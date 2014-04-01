@@ -10,31 +10,26 @@ function MoveUnitCallHandler:client_move_unit(session, response, entity)
    self._cursor_entity = radiant.entities.create_entity('stonehearth:camp_standard')
    local re = _radiant.client.create_render_entity(1, self._cursor_entity)
 
-   self._capture = _radiant.client.capture_input()
-   self._capture:on_input(function(e)
-         if e.type == _radiant.client.Input.MOUSE then
-            self:_on_mouse_event(e.mouse, response)
-            return true
-         elseif e.type == _radiant.client.Input.KEYBOARD then
-            self:_on_keyboard_event(e.keyboard, response)
-            return true
-         end
-         return false
+   self._input_handlers = stonehearth.input:push_handlers(
+      function(e)
+         return self:_on_mouse_event(e, response)
+      end,
+      function(e)
+         return self:_on_keyboard_event(e, response)
       end)
-
    return true
 end
 
 -- called each time the mouse moves on the client.
 function MoveUnitCallHandler:_on_mouse_event(e, response)
-   assert(self._capture, "got mouse event after releasing capture")
+   assert(self._input_handlers, "got mouse event after releasing capture")
 
    local s = _radiant.client.query_scene(e.x, e.y)
 
    -- s.location contains the address of the terrain block that the mouse
    -- is currently pointing to.  if there isn't one, move the workshop
    -- way off the screen so it won't get rendered.
-   local pt = s:is_valid() and s:intersection_of(0) or Point3(0, -100000, 0)
+   local pt = s:is_valid() and s:brick_of(0) or Point3(0, -100000, 0)
 
    pt.y = pt.y + 1
    self._cursor_entity:add_component('mob'):set_location_grid_aligned(pt)
@@ -42,7 +37,7 @@ function MoveUnitCallHandler:_on_mouse_event(e, response)
    -- if the mouse button just transitioned to up and we're actually pointing
    -- to a box on the terrain, send a message to the server to create the
    -- entity.  this is done by posting to the correct route.
-   if e:up(1) and s.location then     
+   if e:up(1) and s:is_valid() then     
       _radiant.call('stonehearth:server_move_unit', self._entity:get_id(), pt)
                :always(function ()
                      -- whether the request succeeds or fails, go ahead and destroy
@@ -85,17 +80,15 @@ end
 
 -- destroy our capture object to release the mouse back to the client.  
 function MoveUnitCallHandler:_cleanup(e, response)
-   if self._capture then
-      self._capture:destroy()
-      self._capture = nil
+   if self._input_handlers then
+      stonehearth.input:remove_handlers(self._input_handlers)
+      self._input_handlers = nil
    end
 
    if self._cursor_entity then   
       _radiant.client.destroy_authoring_entity(self._cursor_entity:get_id())
       self._cursor_entity = nil
    end
-   
 end
-
 
 return MoveUnitCallHandler
