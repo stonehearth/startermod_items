@@ -8,7 +8,10 @@
    "title_screen_exit": "exit",
    "title_screen_settings": "settings",
    "title_screen_credits": "credits",
+   "title_screen_kingdom_of": "The Kingdom of",
+   "title_screen_continue_game": "Continue",
    "title_screen_new_game": "New Game",
+   "title_screen_load_game": "Load Game",
    "title_screen_quick_start": "Quick Start",
    "title_screen_load_game": "Load Game",
 

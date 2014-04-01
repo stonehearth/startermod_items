@@ -88,7 +88,7 @@ $.widget( "stonehearth.stonehearthMenu", {
       //this.menu.append(rootGroup);
 
       this.element.append(this.menu);
-      this.menu.find('.menuItemGroup').width(this.menu.find('.rootGroup').width());
+      
       this.hideMenu();
 
       this.menu.on( 'click', '.menuItem', function() {
@@ -125,6 +125,8 @@ $.widget( "stonehearth.stonehearthMenu", {
       this.menu.on( 'click', '.close', function() {
          self.showMenu(null);
       });
+
+      this.menu.find('.menuItemGroup').width(this.menu.find('.rootGroup').width());
 
       /*
       $(document).click(function() {

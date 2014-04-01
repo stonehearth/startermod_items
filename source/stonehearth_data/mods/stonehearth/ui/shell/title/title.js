@@ -22,6 +22,45 @@ App.StonehearthTitleScreenView = App.View.extend({
             self.set('context.releaseNotes', result);
          })
 
+      // show the load game button if there are saves
+      radiant.call("radiant:client:get_save_games")
+         .done(function(json) {
+            var vals = [];
+
+            $.each(json, function(k ,v) {
+               if(k != "__self" && json.hasOwnProperty(k)) {
+                  v['key'] = k;
+                  vals.push(v);
+               }
+            });
+
+            // sort by creation time
+            vals.sort(function(a, b){
+               var keyA = a.key;
+               var keyB = b.key;
+               // Compare the 2 keys
+               if(keyA < keyB) return 1;
+               if(keyA > keyB) return -1;
+               return 0;
+            });
+
+
+            if (vals.length > 0) {
+               self.$('#continue').show();
+               self.$('#continueGameButton').show();
+               self.$('#loadGameButton').show();
+               
+               self.set('context.lastSave', vals[0]);
+
+               var ss = vals[0].screenshot;
+               $('#titlescreen').css({
+                     background: 'url(' + ss + ')'
+                  });
+            }
+         });
+
+
+      // load the about info
       $('#about').click(function(e) {
          $('#aboutDetails').position({
               of: $( "#about" ),
@@ -31,6 +70,7 @@ App.StonehearthTitleScreenView = App.View.extend({
             .fadeIn();
       });
 
+      // input handlers
       $(document).keyup(function(e) {
          $('#titlescreen').show();
       });
@@ -61,6 +101,24 @@ App.StonehearthTitleScreenView = App.View.extend({
          App.shellView.addView(App.StonehearthEmbarkView);
          //this.get('parentView').addView(App.StonehearthLoadingScreenView)
          this.$().hide();
+      },
+
+      continueGame: function() {
+         var key = String(this.get('context.lastSave').key);
+
+         radiant.call("radiant:client:load_game", key)
+            .always(function() {
+               App.gotoGame();
+            });         
+      },
+
+      loadGame: function() {
+         this.get('parentView').addView(App.StonehearthLoadView,
+            { 
+               onLoad : function() {
+                  App.gotoGame();
+               }
+            });
       },
 
       // xxx, holy cow refactor this together with the usual flow
@@ -110,12 +168,6 @@ App.StonehearthTitleScreenView = App.View.extend({
                console.error('new_game failed:', e)
             });
 
-      },
-
-
-      loadGame: function() {
-         App.gotoGame();
-         this.$().hide();
       },
 
       exit: function() {
