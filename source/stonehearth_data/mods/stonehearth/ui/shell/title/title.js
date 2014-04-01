@@ -52,10 +52,12 @@ App.StonehearthTitleScreenView = App.View.extend({
                
                self.set('context.lastSave', vals[0]);
 
+               /*
                var ss = vals[0].screenshot;
                $('#titlescreen').css({
                      background: 'url(' + ss + ')'
                   });
+               */
             }
          });
 
