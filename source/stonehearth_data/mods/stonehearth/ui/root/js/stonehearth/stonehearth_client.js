@@ -23,8 +23,17 @@ var StonehearthClient;
       },
 
       gameState: {
-         saveKey: "slot_1"
+         settlementName: 'Lah Salitos',
+         saveKey: null
       },
+
+      settlementName: function(value) {
+         if (value) {
+            this.gameState.settlementName = value;   
+         }
+         return this.gameState.settlementName;
+      },
+
 
       getActiveTool: function() {
          return this._activeTool;
@@ -150,7 +159,7 @@ var StonehearthClient;
          _populationManager = App.gameView.addView(App.StonehearthUnitFrameView);
       },
    });
-
+   App.stonehearthClient = new StonehearthClient();
 })();
 
-App.stonehearthClient = new StonehearthClient();
+

@@ -48,8 +48,8 @@ App.StonehearthSaveView = App.StonehearthSaveLoadView.extend({
          var gameTime = App.gameView.getDate().time;
 
          radiant.call("radiant:client:save_game", String(t), { 
-               name: "Save game name",
-               town_name: "Town name goes here",
+               name: "",
+               town_name: App.stonehearthClient.settlementName(),
                game_date: gameDate,
                game_time: gameTime,
                time: d.toLocaleString()

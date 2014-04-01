@@ -16,6 +16,7 @@ $(document).ready(function(){
    var RadiantKeyboardHandler = SimpleClass.extend({
 
       _hotkeyScope: null,
+      _hotkeysEnabled: true,
 
       init: function() { 
 
@@ -30,7 +31,15 @@ $(document).ready(function(){
          return this._hotkeyScope;
       },
 
+      enableHotkeys: function(value) {
+         this._hotkeysEnabled = value;
+      },
+
       handleKeyEvent: function(e) {
+         if (!this._hotkeysEnabled) {
+            return;
+         }
+
          var key = String.fromCharCode(e.keyCode).toLowerCase();
 
          var elements = this._hotkeyScope.find("[hotkey='" + key + "']");
