@@ -543,7 +543,7 @@ void PathFinder::SolveSearch(const csg::Point3& last, PathFinderDst* dst)
    if (points.empty()) {
       points.push_back(source_->GetSourceLocation());
    }
-   csg::Point3 dst_point_of_interest = dst->GetPointfInterest(points.back());
+   csg::Point3 dst_point_of_interest = dst->GetPointOfInterest(points.back());
    PF_LOG(5) << "found solution to destination " << dst->GetEntityId();
    solution_ = std::make_shared<Path>(points, entity_.lock(), dst->GetEntity(), dst_point_of_interest);
    if (solved_cb_.is_valid()) {

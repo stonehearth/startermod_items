@@ -7,6 +7,7 @@
 #include <boost/filesystem.hpp>
 #include <iostream>
 #include <iomanip>
+#include <unordered_map>
 #include "radiant_log_categories.h"
 
 // Radiant Logging Module
@@ -39,13 +40,23 @@
 //
 
 namespace radiant {
-   namespace logger {
+   namespace log {
+      enum LogLevel {
+         ERROR = 1,
+         WARNING = 3,
+         INFO = 5,
+         DEBUG = 7,
+         DETAIL = 8,
+         SPAM = 9,
+      };
+
       void Init(boost::filesystem::path const& logfile);
       void InitConsole();
       void InitLogLevels();
       void Flush();
       void Exit();
       int GetDefaultLogLevel();
+      int GetLogLevel(std::string const& key, int deflt);
 
       struct LogCategories {
          // Log lines <= console_log_severity will be written to the debug console as well as
@@ -93,7 +104,8 @@ namespace radiant {
 #define LOG(category, level)  LOG_CATEGORY(category, level, #category)
 
 // Extern variables used by the macros.  Do not reference these directly!
-extern struct radiant::logger::LogCategories log_levels_;
+extern struct radiant::log::LogCategories log_levels_;
 extern boost::log::sources::severity_logger< int > __radiant_log_source;
+extern std::unordered_map<std::string, radiant::log::LogLevel> log_level_names_;
 
 #endif

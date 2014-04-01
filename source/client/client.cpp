@@ -528,7 +528,7 @@ void Client::OneTimeIninitializtion()
             std::ifstream jsonfile((it->path() / "metadata.json").string());
             JSONNode metadata = libjson::parse(io::read_contents(jsonfile));
             json::Node entry;
-            entry.set("screenshot", BUILD_STRING("screenshot.png"));
+            entry.set("screenshot", BUILD_STRING("/r/screenshot/" << name << "/screenshot.png"));
             entry.set("gameinfo", metadata);
             games.set(name, entry);
          }
@@ -1248,20 +1248,33 @@ rpc::ReactorDeferredPtr Client::GetModules(rpc::Function const& fn)
 void Client::BrowserRequestHandler(std::string const& path, json::Node const& query, std::string const& postdata, rpc::HttpDeferredPtr response)
 {
    try {
-      // file requests can be dispatched immediately.
-      if (!boost::starts_with(path, "/r/")) {
-         int code;
-         std::string content, mimetype;
-         if (http_reactor_->HttpGetFile(path, code, content, mimetype)) {
-            response->Resolve(rpc::HttpResponse(code, content, mimetype));
-         } else {
-            response->Reject(rpc::HttpError(code, content));
-         }
-      } else {
+      int code;      
+      std::smatch match;
+      std::string localFilePath, content, mimetype;
+
+      static const std::regex call_path_regex__("/r/call/?");
+      static const std::regex screenshot_path_regex_("/r/screenshot/(.*)");
+
+      if (std::regex_match(path, match, call_path_regex__)) {
          std::lock_guard<std::mutex> guard(browserJobQueueLock_);
          browserJobQueue_.emplace_back([=]() {
             CallHttpReactor(path, query, postdata, response);
          });
+         return;
+      }
+
+      // file requests can be dispatched immediately.
+      bool success = false;
+      if (std::regex_match(path, match, screenshot_path_regex_)) {
+         std::string localFilePath = (core::Config::GetInstance().GetSaveDirectory() / match[1].str()).string();
+         success = http_reactor_->HttpGetFile(localFilePath, code, content, mimetype);
+      } else {
+         success = http_reactor_->HttpGetResource(path, code, content, mimetype);
+      }
+      if (success) {
+         response->Resolve(rpc::HttpResponse(code, content, mimetype));
+      } else {
+         response->Reject(rpc::HttpError(code, content));
       }
    } catch (std::exception &e) {
       JSONNode fail;
@@ -1274,12 +1287,8 @@ void Client::CallHttpReactor(std::string path, json::Node query, std::string pos
 {
    JSONNode node;
    int status = 404;
-   rpc::ReactorDeferredPtr d;
+   rpc::ReactorDeferredPtr d = http_reactor_->Call(query, postdata);
 
-   std::smatch match;
-   if (std::regex_match(path, match, call_path_regex__)) {
-      d = http_reactor_->Call(query, postdata);
-   }
    if (!d) {
       response->Reject(rpc::HttpError(500, BUILD_STRING("failed to dispatch " << query)));
       return;
@@ -1298,6 +1307,7 @@ void Client::CallHttpReactor(std::string path, json::Node query, std::string pos
    d->Fail([response](JSONNode const& n) {
       response->Reject(rpc::HttpError(500, n.write()));
    });
+
    return;
 }
 

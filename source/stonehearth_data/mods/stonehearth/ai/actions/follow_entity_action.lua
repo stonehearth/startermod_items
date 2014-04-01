@@ -25,6 +25,7 @@ function FollowEntity:start_thinking(ai, entity, args)
 
    --If I'm within 3 of my target, trace the target's move so we get called
    --again on change.
+   local log = ai:get_log()
    local target = args.target
    local distance = 3
 
@@ -32,8 +33,11 @@ function FollowEntity:start_thinking(ai, entity, args)
       local distance = radiant.entities.distance_between(entity, target)
       if distance > 3 then 
          local location = self:_pick_nearby_location(target)
+         log:debug('starting to follow %s (distance: %.2f)', target, distance)
          ai:set_think_output({ location = location })
          return true
+      else
+         log:detail('too close to follow %s (distance:%.2f). monitoring.', target, distance)
       end
    end
 

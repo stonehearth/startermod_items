@@ -2,6 +2,7 @@
 #include "path.h"
 #include "path_finder.h"
 #include "path_finder_dst.h"
+#include "movement_helpers.h"
 #include "simulation/simulation.h"
 #include "om/entity.h"
 #include "om/components/mob.ridl.h"
@@ -79,44 +80,15 @@ void PathFinderDst::CreateTraces()
 
 void PathFinderDst::ClipAdjacentToTerrain()
 {
-   const auto& o = GetSim().GetOctTree();
    world_space_adjacent_region_.Clear();
 
    if (moving_) {
       //return;
    }
 
-   auto entity = entity_.lock();
+   om::EntityPtr entity = entity_.lock();
    if (entity) {
-      auto mob = entity->GetComponent<om::Mob>();
-      if (mob) {
-         csg::Point3 origin;
-         origin = mob->GetWorldGridLocation();
-
-         om::Region3BoxedPtr adjacent;
-         auto destination = entity->GetComponent<om::Destination>();
-         if (destination) {
-            adjacent = destination->GetAdjacent();
-         }
-         if (adjacent) {
-            world_space_adjacent_region_ = adjacent->Get();
-            world_space_adjacent_region_.Translate(origin);
-            o.RemoveNonStandableRegion(entity, world_space_adjacent_region_);
-         } else {
-            static csg::Point3 delta[] = {
-               csg::Point3(-1, 0,  0),
-               csg::Point3( 1, 0,  0),
-               csg::Point3( 0, 0, -1),
-               csg::Point3( 0, 0,  1)
-            };
-            for (const auto& d : delta) {
-               csg::Point3 location = origin + d;
-               if (o.CanStandOn(entity, location)) {
-                  world_space_adjacent_region_.AddUnique(csg::Cube3(location));
-               }
-            }
-         }
-      }
+      world_space_adjacent_region_ = MovementHelpers::GetRegionAdjacentToEntity(GetSim(), entity);
    }
 }
 
@@ -181,52 +153,9 @@ int PathFinderDst::EstimateMovementCost(csg::Point3 const& start, csg::Point3 co
    return cost;
 }
 
-csg::Point3 PathFinderDst::GetPointfInterest(csg::Point3 const& adjacent_pt) const
+csg::Point3 PathFinderDst::GetPointOfInterest(csg::Point3 const& adjacent_pt) const
 {
-   auto entity = GetEntity();
-   ASSERT(entity);
-
-   // Translate the point to the local coordinate system
-   csg::Point3 origin(0, 0, 0);
-   auto mob = entity->GetComponent<om::Mob>();
-   if (mob) {
-      origin = mob->GetWorldGridLocation();
-   }
-
-   csg::Point3 end(0, 0, 0);
-   om::DestinationPtr dst = entity->GetComponent<om::Destination>();
-   if (dst) {
-      DEBUG_ONLY(
-         csg::Region3 rgn = **dst->GetRegion();
-         if (dst->GetReserved()) {
-            rgn -= **dst->GetReserved();
-         }
-
-         if (dst->GetAutoUpdateAdjacent()) {
-            csg::Region3 const& adjacent = **dst->GetAdjacent();
-
-            ASSERT(world_space_adjacent_region_.GetArea() <= adjacent.GetArea());
-            for (const auto& cube : adjacent) {
-               for (const auto& pt : cube) {
-                  csg::Point3 closest = rgn.GetClosestPoint(pt);
-                  csg::Point3 d = closest - pt;
-                  // cubes adjacent to one rect in the region might actually be contained
-                  // in another rect in the region!  therefore, just ensure that the distance
-                  // from the adjacent to the non-adjacent is <= 1 (not exactly 1)...
-                  ASSERT(d.LengthSquared() <= 1);
-               }
-            }
-         }
-      )
-      end = dst->GetPointOfInterest(adjacent_pt - origin);
-   }
-
-   end += origin;
-
-   if ((csg::Point2(adjacent_pt.x, adjacent_pt.z) - csg::Point2(end.x, end.z)).LengthSquared() != 1) {
-      PF_LOG(5) << "warning: distanced from adjacent_pt " << adjacent_pt << " to " << end << " is not 1.";
-   }
-   return end;
+   return MovementHelpers::GetPointOfInterest(adjacent_pt, GetEntity());
 }
 
 void PathFinderDst::DestroyTraces()

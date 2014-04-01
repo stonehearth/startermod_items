@@ -43,14 +43,6 @@ App.StonehearthFarmView = App.View.extend({
       //ar curr_crop_name = this.get('context.stonehearth:farmer_field.crop_queue')[0].name;
       //this.set('context.curr_crop_name', curr_crop_name)
 
-      this.$('#name').focus(function (e) {
-         radiant.call('stonehearth:enable_camera_movement', false)
-      });
-
-      this.$('#name').blur(function (e) {
-         radiant.call('stonehearth:enable_camera_movement', true)
-      });
-
       this.$('#name').keypress(function (e) {
          if (e.which == 13) {
             radiant.call('stonehearth:set_display_name', self.uri, $(this).val());

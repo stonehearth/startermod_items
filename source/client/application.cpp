@@ -136,10 +136,10 @@ int Application::Run(int argc, const char** argv)
       bool show_console = false;
       DEBUG_ONLY(show_console = true;)
       if (core::Config::GetInstance().Get<bool>("logging.show_console", show_console)) {
-         radiant::logger::InitConsole();
+         radiant::log::InitConsole();
       }
-      radiant::logger::Init(core::System::GetInstance().GetTempDirectory() / LOG_FILENAME);
-      radiant::logger::InitLogLevels();
+      radiant::log::Init(core::System::GetInstance().GetTempDirectory() / LOG_FILENAME);
+      radiant::log::InitLogLevels();
       google::protobuf::SetLogHandler([](google::protobuf::LogLevel level, const char* filename, int line, const std::string& message) {
          LOG(protobuf, 0) << " " << message;
       });
@@ -188,7 +188,7 @@ int Application::Run(int argc, const char** argv)
       sim_->Run(acceptor, &_io_service);
       client_thread.join();
 
-      radiant::logger::Exit();
+      radiant::log::Exit();
    });
 
    analytics::StopSession();

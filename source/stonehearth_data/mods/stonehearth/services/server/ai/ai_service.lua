@@ -59,6 +59,11 @@ function AiService:acquire_ai_lease(target, owner)
    return false
 end
 
+function AiService:get_ai_lease_owner(target)
+   local lc = target:get_component('stonehearth:lease')
+   return lc and lc:get_owner(stonehearth.ai.RESERVATION_LEASE_NAME)
+end
+
 function AiService:release_ai_lease(target, owner)
    if target and target:is_valid() and owner and owner:is_valid() then
       target:add_component('stonehearth:lease'):release(self.RESERVATION_LEASE_NAME, owner)

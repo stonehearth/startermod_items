@@ -23,7 +23,7 @@ public:
    
    bool IsIdle() const;
    dm::ObjectId GetEntityId() const;
-   csg::Point3 GetPointfInterest(csg::Point3 const& adjacent) const;
+   csg::Point3 GetPointOfInterest(csg::Point3 const& adjacent) const;
    int EstimateMovementCost(const csg::Point3& start) const;
    void EncodeDebugShapes(protocol::shapelist *msg, csg::Color4 const& debug_color) const;
    

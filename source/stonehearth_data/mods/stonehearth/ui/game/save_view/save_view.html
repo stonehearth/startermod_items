@@ -4,8 +4,9 @@
          <div class="title">Save Game</div>
 
          <div id="saves">
-            {{view "App.StonehearthSaveListView" }}
+            {{view "App.StonehearthSaveListView"}}
          </div>
+         <a href="#" {{action deleteSaveGame target="view"}}><button id="deleteSaveButton">Delete Save</button></a>
          <a href="#" {{action saveGame target="view"}}><button id="createSaveButton">Create New Save</button></a>
       </div>
      
@@ -27,16 +28,16 @@
 </script>
 
 <script type="text/x-handlebars" data-template-name="saveList">
-   <div class="saveList">
+   <div class="saveList list">
       {{#each saves}}
-         <div class="saveSlot" {{bindAttr class=current:current:notCurrent}}>
+         <div class="saveSlot row" {{bindAttr class=current:current:notCurrent key=key}}>
             <div class="screenshot">
                <img {{bindAttr src=this.screenshot}} />
             </div>
             <div class="gameInfo">
                <div class="name">{{this.gameinfo.town_name}}</div>
-               <div class="gameTime">{{this.gameinfo.game_time}}</div>
-               <div class="time">{{this.gameinfo.time}}</div>
+               <div class="gameTime">{{this.gameinfo.game_date}}</div>
+               <div class="time">{{this.gameinfo.game_time}}</div>
             </div>
          </div>
       {{/each}}

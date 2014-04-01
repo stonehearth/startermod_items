@@ -61,3 +61,21 @@
       </a>
    </div>
 </script>
+
+<script type="text/x-handlebars" data-template-name="nameCamp">
+   <div id="nameCamp" class="gui">
+      <div class="window">
+         <div class="title">
+            {{i18n stonehearth:new_game_settlement_name_title}}
+         </div>
+
+         <p>
+            {{i18n stonehearth:new_game_settlement_name_prompt}}
+         </p>
+         <p>
+            <input id="name" onClick="this.select();" type="text" value="Zinfendell" />
+         </p>
+         <button class="ok"></button>
+      </div>
+   </div>
+</script>

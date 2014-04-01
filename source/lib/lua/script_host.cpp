@@ -507,7 +507,7 @@ double ScriptHost::GetRealTime()
 }
 
 int ScriptHost::GetLogLevel(std::string const& category)
-{   
+{
    static const int SENTINEL = 0xd3adb33f;
    size_t last = category.size();
 
@@ -518,19 +518,14 @@ int ScriptHost::GetLogLevel(std::string const& category)
    while (last != std::string::npos) {
       std::string path = category.substr(0, last);
       std::string flag = BUILD_STRING("logging.mods." << path);
-      config_level = core::Config::GetInstance().Get<int>(flag, SENTINEL);
-      if (config_level != SENTINEL) {
-         break;
-      }
-      flag = BUILD_STRING("logging.mods." << path << ".log_level");
-      config_level = core::Config::GetInstance().Get<int>(flag, SENTINEL);
+      config_level = log::GetLogLevel(flag, SENTINEL);
       if (config_level != SENTINEL) {
          break;
       }
       last = category.rfind('.', last - 1);
    }
    if (config_level == SENTINEL) {
-      config_level = core::Config::GetInstance().Get<int>("logging.log_level", logger::GetDefaultLogLevel());
+      config_level = log::GetDefaultLogLevel();
    }
    return config_level;
 }

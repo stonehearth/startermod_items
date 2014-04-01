@@ -13,11 +13,28 @@
       </div>
       <img id="logo">
       <div id="controls">
-         <a href="#" {{action newGame this target="view"}}>
+         <div id="continue">
+            <div class="gameInfo">
+               <div class="nameHeader">{{i18n stonehearth:title_screen_kingdom_of}}</div>
+               <div class="name">{{lastSave.gameinfo.town_name}}</div>
+               <div class="gameTime">{{lastSave.gameinfo.game_date}}</div>
+               <img class="banner" />
+            </div>
+         </div>
+
+         <a href="#" {{action continueGame target="view"}}>
+            <button id="continueGameButton" class="flat last">{{i18n stonehearth:title_screen_continue_game}}</button>
+         </a>         
+
+         <a href="#" {{action newGame target="view"}}>
             <button id="newGameButton" class="flat">{{i18n stonehearth:title_screen_new_game}}</button>
          </a>
-         <a href="#" {{action quickStart this target="view"}}>
-            <button id="quickStartButton" class="flat">{{i18n stonehearth:title_screen_quick_start}}</button>
+         <a href="#" {{action loadGame target="view"}}>
+            <button id="loadGameButton" class="flat">{{i18n stonehearth:title_screen_load_game}}</button>
+         </a>
+
+         <a href="#" {{action quickStart target="view"}}>
+            <button id="quickStartButton" class="flat last">{{i18n stonehearth:title_screen_quick_start}}</button>
          </a>
       </div>
 

@@ -38,14 +38,6 @@ App.StonehearthStockpileView = App.View.extend({
          self._selectNone();
       });
 
-      this.$('#name').focus(function (e) {
-         radiant.call('stonehearth:enable_camera_movement', false)
-      });
-
-      this.$('#name').blur(function (e) {
-         radiant.call('stonehearth:enable_camera_movement', true)
-      });
-
       this.$('#name').keypress(function (e) {
          if (e.which == 13) {
             radiant.call('stonehearth:set_display_name', self.uri, $(this).val());
