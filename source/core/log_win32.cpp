@@ -6,11 +6,11 @@
 #include "radiant.h"
 #include "core/config.h"
 
-using namespace radiant::logger;
+using namespace radiant::log;
 
 #pragma warning(push)
 #pragma warning(disable:4996)
-void radiant::logger::InitConsole()
+void radiant::log::InitConsole()
 {
    CONSOLE_SCREEN_BUFFER_INFO coninfo;
    CONSOLE_FONT_INFOEX fontinfo;

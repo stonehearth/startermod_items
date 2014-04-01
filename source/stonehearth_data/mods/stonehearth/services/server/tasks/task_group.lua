@@ -1,6 +1,13 @@
 local Task = require 'services.server.tasks.task'
 local TaskGroup = class()
 
+local function rank_tasks_entries(l, r)
+   if l.priority ~= r.priority then
+      return l.priority > r.priority and l or r
+   end
+   return l.distance < r.distance and l or r
+end
+
 function TaskGroup:__init(scheduler, activity_name, args)
    args = args or {}
    self._activity = {
@@ -39,7 +46,8 @@ function TaskGroup:add_worker(worker)
    self._workers[id] = {
       worker = worker,
       running = nil,
-      feeding = {},
+      active_tasks = {},
+      active_task_count = 0,
    }
    return self
 end
@@ -52,7 +60,7 @@ function TaskGroup:remove_worker(id)
    assert(type(id) == 'number')
    local entry = self._workers[id]
    if entry then
-      for task, _ in pairs(entry.feeding) do
+      for task, _ in pairs(entry.active_tasks) do
          task:_unfeed_worker(id)
       end
       self._workers[id] = nil
@@ -101,9 +109,10 @@ end
 function TaskGroup:_unfeed_workers_from_task(task)
    self._log:debug('removing workers from task %s', task:get_name())
    for worker_id, entry in pairs(self._workers) do
-      if entry.feeding[task] then
+      if entry.active_tasks[task] then
          task:_unfeed_worker(entry.worker)
-         entry.feeding[task] = nil
+         entry.active_tasks[task] = nil
+         entry.active_task_count = entry.active_task_count - 1
       end
       if entry.running == task then
          self:_notify_worker_stopped_task(task, entry.worker)
@@ -111,6 +120,8 @@ function TaskGroup:_unfeed_workers_from_task(task)
    end
 end
 
+-- called by the task to notify the group that it's ready to receive
+-- workers.
 function TaskGroup:_start_feeding_task(task)
    self._log:debug('starting to feed task %s', task:get_name())
    assert (not self._feeding[task])
@@ -119,6 +130,8 @@ function TaskGroup:_start_feeding_task(task)
    self:_set_performance_counter('feeding_task_count', self._feeding_count)
 end
 
+-- called by the task to ask the group not to send any more workers.  the
+-- task will call _start_feeding_task() when it's ready for more.
 function TaskGroup:_stop_feeding_task(task)
    self._log:debug('stopping feeding of task %s', task:get_name())
    if self._feeding[task] then
@@ -135,10 +148,12 @@ function TaskGroup:_notify_worker_started_task(task, worker)
       assert(not entry.running)
       self._log:debug('marking %s running task %s', tostring(worker), task:get_name())
       entry.running = task
+
       -- stop feeding in everyone else
-      for feeding_task, _ in pairs(entry.feeding) do
+      for feeding_task, _ in pairs(entry.active_tasks) do
          if task ~= feeding_task then
-            entry.feeding[feeding_task] = nil
+            entry.active_tasks[feeding_task] = nil
+            entry.active_task_count = entry.active_task_count - 1
             self._log:detail('removing feeding task %s from %s', feeding_task:get_name(), tostring(worker))
             feeding_task:_unfeed_worker(worker_id)
          end
@@ -152,7 +167,8 @@ function TaskGroup:_notify_worker_stopped_task(task, worker)
    if entry and task == entry.running then
       self._log:debug('clearing %s running task (was: %s)', tostring(worker), task:get_name())
       entry.running = nil
-      entry.feeding[task] = nil
+      entry.active_tasks[task] = nil
+      entry.active_task_count = entry.active_task_count - 1
    end
 end
 
@@ -160,17 +176,21 @@ function TaskGroup:_prioritize_tasks_for_worker(entry)
    local tasks = {}
 
    for task, _ in pairs(self._feeding) do
-      local task_fitness = self:_get_task_fitness(task, entry)
-      if task_fitness then
+      local priority, distance = self:_get_task_fitness(task, entry)
+      if priority then
          local matching_entry = {
             task = task,
-            task_fitness = task_fitness,
+            priority = priority,
+            distance = distance,
          }
          table.insert(tasks, matching_entry)
       end
    end
-   table.sort(tasks, function (l, r)
-         return l.task_fitness < r.task_fitness
+   table.sort(tasks, function (l, r)      
+         -- sort places entries in 'ascending' order.  for our purposes, the item at
+         -- the front of the list should be the one with the best ranking.  therefore,
+         -- 'l < r' equates to 'is l of higher priority than r'.
+         return rank_tasks_entries(l, r) == l
       end)
    return tasks
 end
@@ -183,7 +203,7 @@ function TaskGroup:_get_task_fitness(task, entry)
    assert(not entry.running)
    
    -- if the worker is already feeding in this task, don't feed again!
-   if entry.feeding[task] then
+   if entry.active_tasks[task] then
       self._log:detail('skipping fitness check on task %s for %s (already feeding)',
                        task:get_name(), tostring(entry.worker))
       return nil
@@ -192,10 +212,7 @@ function TaskGroup:_get_task_fitness(task, entry)
    self._log:detail('task %s fitness for %s priority:%d distance:%.2f',
                     task:get_name(), tostring(entry.worker), 
                     priority, distance)
-
-   -- xxx: omg, this is such a horrible, horrible hack...
-   local fitness = -priority * 50 + distance
-   return fitness
+   return priority, distance
 end
 
 function TaskGroup:_prioritize_worker_queue()
@@ -205,44 +222,31 @@ function TaskGroup:_prioritize_worker_queue()
    for id, entry in pairs(self._workers) do
       if not entry.worker:is_valid() then
          self:remove_worker(id)
-      else
-         local worker_fitness = self:_get_worker_fitness(entry)
-         if worker_fitness then
-            local matching_entry = {
-               worker = entry.worker,
-               worker_fitness = worker_fitness,
-               task_rankings = self:_prioritize_tasks_for_worker(entry)
-            }
-            table.insert(workers, matching_entry)
-         end
+      elseif not entry.running then
+         local matching_entry = {
+            worker = entry.worker,
+            active_task_count = entry.active_task_count,
+            task_rankings = self:_prioritize_tasks_for_worker(entry)
+         }
+         table.insert(workers, matching_entry)
       end
    end
    self:_set_performance_counter('worker_queue_len', #workers)
 
    table.sort(workers, function (l, r)
-         return l.worker_fitness < r.worker_fitness
+         return l.active_task_count < r.active_task_count
       end)
    
    if self._log:is_enabled(radiant.log.DETAIL) then
       for i, entry in ipairs(workers) do
-         self._log:detail('#%d : %4.2f -> %s', i, entry.worker_fitness, tostring(entry.worker))
+         self._log:detail('#%2d : %2d tasks -> %s', i, entry.active_task_count, tostring(entry.worker))
          for j, task_entry in ipairs(entry.task_rankings) do
-            self._log:detail('   %d) : %4.2f -> %s', j, task_entry.task_fitness, task_entry.task:get_name())
+            self._log:detail('   %d) : %10s (pri:%d d:%4.2f)', j, task_entry.task:get_name(), task_entry.priority, task_entry.distance)
          end
       end
    end
 
    return workers
-end
-
-function TaskGroup:_get_worker_fitness(entry)
-   if entry.running then
-      return nil
-   end
-   if #entry.feeding > 0 then
-      return nil
-   end
-   return #entry.feeding
 end
 
 function TaskGroup:_propose(worker_entry, task_entry, engagements)
@@ -251,28 +255,32 @@ function TaskGroup:_propose(worker_entry, task_entry, engagements)
    if not current then
       engagements[task_entry.task] =  {
          proposed_worker_entry = worker_entry,
-         proposed_task_fitness = task_entry.task_fitness
+         priority = task_entry.priority,
+         distance = task_entry.distance,
       }
       return true
    end
    -- if the task isn't better than the current one, keep the engagement
-   if task_entry.task_fitness >= current.proposed_task_fitness then
+   if rank_tasks_entries(task_entry, current) == current then
       return true
    end
 
    -- break it off
    local propose_again_entry = {
       task = task_entry.task,
-      task_fitness = current.proposed_task_fitness,
+      priority = current.priority,
+      distance = current.distance,
    }
    -- notify the current worker that the engagement is broken
    table.insert(current.proposed_worker_entry.task_rankings, propose_again_entry)
    table.sort(current.proposed_worker_entry.task_rankings, function (l, r)
-         return l.task_fitness < r.task_fitness
+         return rank_tasks_entries(l, r) == l
       end)
+
    -- update the engagement   
    current.proposed_worker_entry = worker_entry
-   current.proposed_task_fitness = task_entry.task_fitness
+   current.priority = task_entry.priority
+   current.distance = task_entry.distance
    return false
 end
 
@@ -310,8 +318,9 @@ function TaskGroup:_update(count)
       self._log:debug('feeding worker %s to task %s', tostring(worker), task:get_name())
       local entry = self._workers[worker:get_id()]
 
-      assert(not entry.feeding[task])
-      entry.feeding[task] = engagement.proposed_task_fitness
+      assert(not entry.active_tasks[task])
+      entry.active_tasks[task] = true
+      entry.active_task_count = entry.active_task_count + 1
       task:_feed_worker(entry.worker)
    end
    
