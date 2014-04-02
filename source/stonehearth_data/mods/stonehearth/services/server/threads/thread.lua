@@ -85,6 +85,11 @@ function Thread.wait_thread(thread)
 end
 
 function Thread.terminate_thread(thread, err)
+   if not thread._co then
+      -- never started, so there's nothing to do.
+      return
+   end
+   
    Thread.all_threads[thread._co] = nil
    Thread.scheduled[thread._id] = nil
    thread:_on_thread_exit(err)
