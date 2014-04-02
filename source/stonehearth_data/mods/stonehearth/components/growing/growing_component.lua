@@ -10,15 +10,46 @@ function GrowingComponent:initialize(entity, json)
    end
 
    self._sv = self.__saved_variables:get_data()
-   if not self._sv.current_growth_stage then
+   if not self._sv._initialized then
+      --If we're creating for the first time
+      self._sv._initialized = true
       self._sv.current_growth_stage = 1
       self._sv.growth_attempts = 0
-   end
-
-   self:_apply_current_stage()
-   self._growth_timer = stonehearth.calendar:set_interval(self._growth_period, function()
+      self._growth_timer = stonehearth.calendar:set_interval(self._growth_period, function()
          self:_grow()
       end)
+      self._sv.expire_time = self._growth_timer:get_expire_time()
+   else 
+      radiant.events.listen(radiant, 'radiant:game_loaded', function(e)
+            self:_create_load_timer()
+         end)
+   end
+
+   --Make our current model look like the saved model
+   self:_apply_current_stage()
+end
+
+--- Save and load the timer accurately
+-- If we're intializing for the first time, we can just use set_interval on the growth period.
+-- If we're loading, we confirm that we're not done growing, and if so, set a timer for the
+-- remaining duration. When the timer comes back, and IF it's still relevant, THEN set
+-- intervals for future growth periods. Finally, to determine remaining duration, every time
+-- the timer goes, remember the remaining time. 
+function GrowingComponent:_create_load_timer()
+   if self._sv.expire_time then
+      --We're still growing
+      local duration = self._sv.expire_time - stonehearth.calendar:get_elapsed_time()
+      self._timer = stonehearth.calendar:set_timer(duration, function()
+            self:_grow()
+            if self._sv.expire_time then
+               --We're going to grow more so set up the recurring growth timer
+               self._growth_timer = stonehearth.calendar:set_interval(self._growth_period, function()
+                                    self:_grow()
+                                    end)
+               self._sv.expire_time = self._growth_timer:get_expire_time()
+            end
+         end)
+   end
 end
 
 function GrowingComponent:destroy()
@@ -27,6 +58,11 @@ end
 
 --- Do whatever is necessary to get to the next step of growth
 function GrowingComponent:_grow()
+   --Save the new expire time
+   if self._growth_timer then
+      self._sv.expire_time = self._growth_timer:get_expire_time()
+   end
+
    self._sv.growth_attempts = self._sv.growth_attempts + 1
    local next_stage = math.min(self._sv.current_growth_stage + 1, #self._growth_stages)
 
@@ -83,6 +119,14 @@ function GrowingComponent:_stop_growing()
       self._growth_timer:destroy()
       self._growth_timer = nil
    end
+   if self._timer then
+      self._timer:destroy()
+      self._timer = nil
+   end
+
+   --Save the new expire time is nil
+   self._sv.expire_time = nil
+   self.__saved_variables:mark_changed()
 end
 
 return GrowingComponent

@@ -11,23 +11,42 @@ function DirtPlotComponent:initialize(entity, json)
       self._sv.fertility = 0
       self._sv.moisture = 0
       self._sv.fertility_category = nil
-      self._sv.parent_field_component = nil
+      self._sv.parent_field = nil
       self._sv.field_location = nil
       self._sv.contents = nil
       self._sv.last_planted_type = nil
       self._sv.player_override = false
       self._sv.auto_replant = nil
       self._sv.auto_harvest = nil
+   else
+      radiant.events.listen(radiant, 'radiant:game_loaded', function(e)
+            self:_set_up_listeners()
+         end)
+   end
+end
+
+
+--Set up the different listeners based on the state of the plot
+function DirtPlotComponent:_set_up_listeners()
+   --is there a crop in us? If so, set up the dirt accordingly
+   if self._sv.contents then
+      self:_set_crop_state()
    end
 end
 
 --- Set the field and location in field for this plot
 --  @param field: the field entity that we care about
---  @param location: the x/y coordinates of the plot. location[1] is x, location[2] is y
-function DirtPlotComponent:set_field(parent_field_component, location)
-   self._sv.parent_field_component = parent_field_component
+--  @param location: the x/y coordinates of the plot. location.x and location.y are the coordinates.
+function DirtPlotComponent:set_field(parent_field, location)
+   self._sv.parent_field = parent_field
    self._sv.field_location = location
    self.__saved_variables:mark_changed()
+end
+
+--- Returns the x,y coordinates in the field that this plot is at
+--  @returns location.x and location.y
+function DirtPlotComponent:get_location()
+   return self._sv.field_location
 end
 
 --- Given data about the plot, set the right state variables
@@ -124,6 +143,13 @@ function DirtPlotComponent:plant_crop(crop_type)
    local crop_component = planted_entity:get_component('stonehearth:crop')
    crop_component:set_dirt_plot(self._entity)
 
+   self:_set_crop_state()
+
+   self.__saved_variables:mark_changed()
+end
+
+--When a crop is on us, do these things:
+function DirtPlotComponent:_set_crop_state()
    --Hide the plant command, add the raze command
    local command_component = self._entity:add_component('stonehearth:commands')
    --TODO: programatically remove all plant commands
@@ -134,15 +160,16 @@ function DirtPlotComponent:plant_crop(crop_type)
    command_component:add_command('/stonehearth/data/commands/raze_crop')
 
    --listen for if the planted crop gets destroyed for any reason
-   radiant.events.listen(planted_entity, 'radiant:entity:pre_destroy', self, self._on_crop_removed)
-   radiant.events.listen(planted_entity, 'stonehearth:crop_harvestable', self, self._on_crop_harvestable)
+   radiant.events.listen(self._sv.contents, 'radiant:entity:pre_destroy', self, self._on_crop_removed)
+   radiant.events.listen(self._sv.contents, 'stonehearth:crop_harvestable', self, self._on_crop_harvestable)
 end
 
 --- If the crop is now harvestable, let the field know, so it can handle it according to policy
 function DirtPlotComponent:_on_crop_harvestable(e)
    local crop = e.crop
-   if self._sv.parent_field_component then
-      self._sv.parent_field_component:determine_auto_harvest(self, crop)
+   if self._sv.parent_field then
+      local parent_field_component = self._sv.parent_field:get_component('stonehearth:farmer_field')
+      parent_field_component:determine_auto_harvest(self, crop)
    end
 end
 
