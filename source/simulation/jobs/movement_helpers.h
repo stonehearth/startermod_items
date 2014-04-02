@@ -16,11 +16,8 @@ public:
    static std::vector<csg::Point3> GetPathPoints(Simulation& sim, om::EntityPtr const& entity, csg::Point3 const& start, csg::Point3 const& end);
 
    template <class T>
-   static bool TestMoveXZ(Simulation& sim, om::EntityPtr const& entity,
+   static bool TestAdjacentMove(Simulation& sim, om::EntityPtr const& entity, bool const reversible,
                           csg::Point<T,3> const& fromLocation, csg::Point<T,3> const& toLocation, csg::Point<T,3>& resolvedLocation);
-
-   template <class T>
-   static bool CanStandOnOneOf(Simulation& sim, om::EntityPtr const& entity, std::vector<csg::Point<T,3>> points, csg::Point<T,3>& standablePoint);
 };
 
 END_RADIANT_SIMULATION_NAMESPACE

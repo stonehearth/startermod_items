@@ -111,74 +111,64 @@ csg::Point3 MovementHelpers::GetPointOfInterest(csg::Point3 const& adjacentPoint
 }
 
 template <class T>
-bool MovementHelpers::CanStandOnOneOf(Simulation& sim, om::EntityPtr const& entity, std::vector<csg::Point<T,3>> points, csg::Point<T,3>& standablePoint)
+static std::vector<csg::Point<T,3>> GetElevations(csg::Point<T,3> const& location, bool const reversible)
 {
-   phys::OctTree const& octTree = sim.GetOctTree();
+   static csg::Point<T,3> elevations[] = {
+      csg::Point<T,3>(0,  0, 0),   // test the flat case first
+      csg::Point<T,3>(0,  1, 0),   // then up before down
+      csg::Point<T,3>(0, -1, 0),
+      csg::Point<T,3>(0, -2, 0)
+   };
 
-   for (csg::Point<T,3> const& point : points) {
-      if (octTree.CanStandOn(entity, csg::ToClosestInt(point))) {
-         standablePoint = point;
-         return true;
+   static csg::Point<T,3> reversibleElevations[] = {
+      elevations[0], elevations[1], elevations[2]
+   };
+
+   std::vector<csg::Point<T,3>> points;
+
+   if (reversible) {
+      for (auto const& offset : reversibleElevations) {
+         points.push_back(location + offset);
+      }
+   } else {
+      for (auto const& offset : elevations) {
+         points.push_back(location + offset);
       }
    }
-   return false;
+
+   return points;
 }
 
 // returns true if this is a legal move (doesn't check adjacency yet though due to high game speed issues)
 // resolvedLocation contains the updated standing location
-// not returning nullable pointer because this function will get called a lot and we want to avoid the memory allocation
+// reversible indicates whether to include moves that cannot be reversed and (may cause the entity to get stuck)
 template <class T>
-bool MovementHelpers::TestMoveXZ(Simulation& sim, om::EntityPtr const& entity,
-                                 csg::Point<T,3> const& fromLocation, csg::Point<T,3> const& toLocation, csg::Point<T,3>& resolvedLocation)
+bool MovementHelpers::TestAdjacentMove(Simulation& sim, om::EntityPtr const& entity, bool const reversible,
+                                       csg::Point<T,3> const& fromLocation, csg::Point<T,3> const& toLocation, csg::Point<T,3>& resolvedLocation)
 {
-   static csg::Point<T,3> delta_arr[] = {
-      csg::Point<T,3>::zero,   // test the flat case first
-      csg::Point<T,3>::unitY,  // then up before down
-     -csg::Point<T,3>::unitY
-                               // not testing down 2 yet since its not reversible and used by vector mover
-   };
-   static std::vector<csg::Point<T,3>> deltas(std::begin(delta_arr), std::end(delta_arr));
-
-   //ASSERT((toLocation - fromLocation).LengthSquared() <= 2); // Can't do this yet
-
    phys::OctTree const& octTree = sim.GetOctTree();
-   std::vector<csg::Point<T,3>> candidates;
-   csg::Point<T,3> result;
    csg::Point<T,3> toLocationProjected = toLocation;
    toLocationProjected.y = fromLocation.y;
-   bool passable;
 
-   for (auto const& point : deltas) {
-      candidates.push_back(toLocationProjected + point);
-   }
+   std::vector<csg::Point<T,3>> const elevations = GetElevations(toLocationProjected, reversible);
 
-   // test height requirements
-   passable = MovementHelpers::CanStandOnOneOf(sim, entity, candidates, result);
-   if (!passable) {
+   // find a valid elevation to move to
+   csg::Point<T,3> finalToLocation;
+   if (!octTree.CanStandOnOneOf(entity, elevations, finalToLocation)) {
       return false;
    }
 
-   // enforce rules for diagonal moves
-   if ((fromLocation.x != result.x) && (fromLocation.z != result.z)) {
-      csg::Point<T,3> side1 = result;
-      side1.x = fromLocation.x;
-      if (!octTree.CanStandOn(entity, csg::ToClosestInt(side1))) {
-         return false;
-      }
-
-      csg::Point<T,3> side2 = result;
-      side2.z = fromLocation.z;
-      if (!octTree.CanStandOn(entity, csg::ToClosestInt(side2))) {
-         return false;
-      }
+   // enforce rules for adjacent moves
+   if (!octTree.ValidAdjacentMove(entity, reversible, csg::ToClosestInt(fromLocation), csg::ToClosestInt(finalToLocation))) {
+      return false;
    }
 
-   resolvedLocation = result;
+   resolvedLocation = finalToLocation;
    return true;
 }
 
-template bool MovementHelpers::TestMoveXZ(Simulation&, om::EntityPtr const&, csg::Point3 const&, csg::Point3 const&, csg::Point3&);
-template bool MovementHelpers::TestMoveXZ(Simulation&, om::EntityPtr const&, csg::Point3f const&, csg::Point3f const&, csg::Point3f&);
+template bool MovementHelpers::TestAdjacentMove(Simulation&, om::EntityPtr const&, bool const, csg::Point3 const&, csg::Point3 const&, csg::Point3&);
+template bool MovementHelpers::TestAdjacentMove(Simulation&, om::EntityPtr const&, bool const, csg::Point3f const&, csg::Point3f const&, csg::Point3f&);
 
 // uses the version of Bresenham's line algorithm from Wikipedia
 std::vector<csg::Point3> MovementHelpers::GetPathPoints(Simulation& sim, om::EntityPtr const& entity, csg::Point3 const& start, csg::Point3 const& end)
@@ -214,7 +204,7 @@ std::vector<csg::Point3> MovementHelpers::GetPathPoints(Simulation& sim, om::Ent
          proposed.z = current.z + sz;
       }
 
-      passable = MovementHelpers::TestMoveXZ(sim, entity, current, proposed, next);
+      passable = MovementHelpers::TestAdjacentMove(sim, entity, false, current, proposed, next);
       if (!passable) {
          break;
       }
