@@ -190,6 +190,7 @@ App.StonehearthNameCampView = App.View.extend({
 
 
       this.$('.ok').click(function() {
+         radiant.call('radiant:play_sound', 'stonehearth:sounds:ui:start_menu:submenu_select' );
          App.stonehearthClient.settlementName(self.$('#name').val());
          App.gameView._addViews(App.gameView.views.complete);
          self.destroy();
