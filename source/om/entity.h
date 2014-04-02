@@ -67,6 +67,7 @@ private:
 
    template <> void CacheComponent(std::shared_ptr<Mob> component) { cached_mob_component_ = component; }
    template <> std::shared_ptr<Mob> GetCachedComponent() const { return cached_mob_component_.lock(); }
+   void DestroyLuaComponent(std::string const& name, luabind::object obj);
 
 private:
    void InitializeRecordFields() override;

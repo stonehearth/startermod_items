@@ -112,6 +112,15 @@ Stonehearth::AddComponent(lua_State* L, EntityRef e, std::string name)
    return component;
 }
 
+void
+Stonehearth::RemoveComponent(lua_State* L, EntityRef e, std::string name)
+{
+   auto entity = e.lock();
+   if (entity) {
+      entity->RemoveComponent(name);
+   }
+}
+
 object
 Stonehearth::SetComponentData(lua_State* L, EntityRef e, std::string name, object data)
 {
