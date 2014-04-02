@@ -25,6 +25,12 @@ function FindPathToEntity:start_thinking(ai, entity, args)
       ai:get_log():debug('invalid entity reference.  ignorning')
       return
    end
+
+   local path = _radiant.sim.create_direct_path(entity, destination);
+   if path then
+      ai:set_think_output({path = path})
+      return
+   end
    
    self._trace = radiant.entities.trace_location(destination, 'find path to entity')
       :on_changed(function()

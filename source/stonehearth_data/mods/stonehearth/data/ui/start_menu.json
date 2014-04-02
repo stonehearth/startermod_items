@@ -5,7 +5,8 @@
       "class" : "dock",
       "icon" : "/stonehearth/ui/game/start_menu/images/dock_harvest.png",
       "hotkey" : "h",
-      "game_mode" : "normal"
+      "game_mode" : "normal",
+      "soundDefault": "stonehearth:sounds:ui:start_menu:harvest_pickup"
    },
    "zone_menu" : {
       "name" : "Zones",
@@ -14,6 +15,8 @@
       "icon" : "/stonehearth/ui/game/start_menu/images/dock_zone.png",
       "hotkey" : "z",
       "game_mode" : "zones",
+      "sound": "stonehearth:sounds:ui:start_menu:wash_out",
+      "soundTwo": "stonehearth:sounds:ui:start_menu:wash_in",
       "items" : {
             "create_stockpile" : {
                 "name" : "Stockpile",
@@ -40,6 +43,8 @@
       "icon" : "/stonehearth/ui/game/start_menu/images/dock_build.png",
       "hotkey" : "b",
       "game_mode" : "build",
+      "sound": "stonehearth:sounds:ui:start_menu:wash_out",
+      "soundTwo": "stonehearth:sounds:ui:start_menu:wash_in",
       "items" : {
             "build_simple_room" : {
                 "name" : "Simple Room",
@@ -64,6 +69,8 @@
       "icon" : "/stonehearth/ui/game/start_menu/images/dock_jobs.png",
       "hotkey" : "j",
       "game_mode" : "normal",
+      "sound": "stonehearth:sounds:ui:start_menu:jobs_close",
+      "soundTwo": "stonehearth:sounds:ui:start_menu:jobs_open",
       "items" : {
             "promote" : {
                 "name" : "Promote a Worker",
@@ -78,7 +85,8 @@
       "class" : "dock",
       "icon" : "/stonehearth/ui/game/start_menu/images/dock_crafters.png",
       "hotkey" : "c",
-      "game_mode" : "normal"
+      "game_mode" : "normal",
+      "soundDefault": "stonehearth:sounds:ui:start_menu:trigger_click"
    },
    "defend_menu" : {
       "name" : "Manage Squads",
@@ -86,6 +94,8 @@
       "class" : "dock",
       "icon" : "/stonehearth/ui/game/start_menu/images/dock_defend.png",
       "game_mode" : "normal",
+      "sound": "stonehearth:sounds:ui:start_menu:defend_close",
+      "soundTwo": "stonehearth:sounds:ui:start_menu:defend_open",
       "items" : {
             "create_squad" : {
                 "name" : "Create Squad",

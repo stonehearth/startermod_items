@@ -40,7 +40,7 @@ bool BumpLocation::Work(platform::timer const& timer)
    auto mob = entity->GetComponent<om::Mob>();
    csg::Point3f currentLocation = mob->GetWorldLocation();
    csg::Point3f const destination = currentLocation + vector_;
-   csg::Point3f nextLocation;
+   csg::Point3f nextLocation, resolvedLocation;
 
    float const distance = vector_.Length();
    float remainingDistance = distance;
@@ -56,17 +56,16 @@ bool BumpLocation::Work(platform::timer const& timer)
          finished = true;
       }
 
-      bool passable = MovementHelpers::TestMoveXZ(GetSim(), entity, currentLocation, nextLocation);
+      bool passable = MovementHelpers::TestAdjacentMove(GetSim(), entity, true, currentLocation, nextLocation, resolvedLocation);
 
       if (passable) {
-         currentLocation = nextLocation;
+         currentLocation = resolvedLocation;
       } else {
          finished = true;
       }
    }
 
    mob->MoveTo(currentLocation);
-   entity_.reset();
 
    return true;
 }

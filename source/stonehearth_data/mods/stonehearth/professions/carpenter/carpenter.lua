@@ -13,6 +13,7 @@ function carpenter_class.promote(entity, json)
 end
 
 function carpenter_class.demote(entity)
+   --TODO: Fix! Currently, there is no entity:remove_component!
    entity:remove_component("stonehearth:crafter")
 end
 

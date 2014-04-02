@@ -22,6 +22,14 @@
                       'ui:hide_ui:' + this.templateName);
       }
       
+      // if there's an input on the view, unconditionally re-enable
+      // camera movement, in case the input handler code didn't do it
+      // properly.
+      if (this.$('input')) {
+         radiant.call('stonehearth:enable_camera_movement', true)
+         radiant.keyboard.enableHotkeys(true);
+      }
+
       this._super();
    },
 

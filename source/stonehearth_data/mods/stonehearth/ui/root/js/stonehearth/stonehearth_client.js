@@ -23,8 +23,17 @@ var StonehearthClient;
       },
 
       gameState: {
-         saveKey: "slot_1"
+         settlementName: 'Lah Salitos',
+         saveKey: null
       },
+
+      settlementName: function(value) {
+         if (value) {
+            this.gameState.settlementName = value;   
+         }
+         return this.gameState.settlementName;
+      },
+
 
       getActiveTool: function() {
          return this._activeTool;
@@ -71,6 +80,7 @@ var StonehearthClient;
          return this._callTool(function() {
             return radiant.call('stonehearth:box_harvest_resources')
                .always(function(response) {
+                  radiant.call('radiant:play_sound', 'stonehearth:sounds:ui:start_menu:popup' );
                   $(top).trigger('radiant_hide_tip');
                });
          });
@@ -150,7 +160,7 @@ var StonehearthClient;
          _populationManager = App.gameView.addView(App.StonehearthUnitFrameView);
       },
    });
-
+   App.stonehearthClient = new StonehearthClient();
 })();
 
-App.stonehearthClient = new StonehearthClient();
+

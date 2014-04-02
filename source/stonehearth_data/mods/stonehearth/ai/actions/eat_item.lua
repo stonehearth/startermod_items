@@ -68,8 +68,12 @@ function EatItem:stop(ai, entity, args)
          if self._food_data then
             local satisfaction = self._food_data.satisfaction
             local attributes_component = entity:add_component('stonehearth:attributes')
-            local hunger = attributes_component:get_attribute('hunger')
-            attributes_component:set_attribute('hunger', hunger - satisfaction)
+            local calories = attributes_component:get_attribute('calories')
+            calories = calories + satisfaction
+            if calories >= stonehearth.constants.food.MAX_ENERGY then
+               calories = stonehearth.constants.food.MAX_ENERGY 
+            end
+            attributes_component:set_attribute('calories', calories)
             self._food_data = nil
          end
       end

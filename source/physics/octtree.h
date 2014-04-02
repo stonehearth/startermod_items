@@ -39,12 +39,19 @@ class OctTree {
       int EstimateMovementCost(const csg::Point3& src, const std::vector<csg::Point3>& points) const;
       int EstimateMovementCost(const csg::Point3& src, const csg::Region3& dst) const;
 
+      template <class T>
+      bool CanStandOnOneOf(om::EntityPtr const& entity, std::vector<csg::Point<T,3>> const& points, csg::Point<T,3>& standablePoint) const;
+
+      bool ValidAdjacentMove(om::EntityPtr const& entity, bool const reversible, csg::Point3 const& fromLocation, csg::Point3 const& toLocation) const;
+
       void ShowDebugShapes(csg::Point3 const& pt, protocol::shapelist* msg);
 
    protected:
       bool Intersects(csg::Cube3f bounds, om::RegionCollisionShapePtr rgnCollsionShape) const;   
       void FilterAllActors(std::function <bool(om::EntityPtr)> filter);
       om::EntityPtr FindFirstActor(om::EntityPtr root, std::function <bool(om::EntityPtr)> filter);
+      bool ValidDiagonalMove(om::EntityPtr const& entity, csg::Point3 const& fromLocation, csg::Point3 const& toLocation) const;
+      bool ValidElevationChange(om::EntityPtr const& entity, bool const reversible, csg::Point3 const& fromLocation, csg::Point3 const& toLocation) const;
 
    private:
       void TraceEntity(om::EntityPtr entity);

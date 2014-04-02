@@ -88,7 +88,7 @@ $.widget( "stonehearth.stonehearthMenu", {
       //this.menu.append(rootGroup);
 
       this.element.append(this.menu);
-      this.menu.find('.menuItemGroup').width(this.menu.find('.rootGroup').width());
+      
       this.hideMenu();
 
       this.menu.on( 'click', '.menuItem', function() {
@@ -99,14 +99,18 @@ $.widget( "stonehearth.stonehearthMenu", {
          var id = $(this).attr('id');
          var nodeData = self._dataToMenuItemMap[id]
 
+         radiant.call('radiant:play_sound', nodeData.soundDefault );
+
          // deactivate any tools that are open
          App.stonehearthClient.deactivateAllTools();
 
          // if this menu has sub-items, hide any menus that are open now so we can show a new one
          if (nodeData.items) {
             if (self.getMenu() == id) {
+               radiant.call('radiant:play_sound', nodeData.sound );
                self.hideMenu();
             } else {
+               radiant.call('radiant:play_sound', nodeData.soundTwo );
                self.showMenu(id);
             }
          } else {
@@ -125,6 +129,8 @@ $.widget( "stonehearth.stonehearthMenu", {
       this.menu.on( 'click', '.close', function() {
          self.showMenu(null);
       });
+
+      this.menu.find('.menuItemGroup').width(this.menu.find('.rootGroup').width());
 
       /*
       $(document).click(function() {

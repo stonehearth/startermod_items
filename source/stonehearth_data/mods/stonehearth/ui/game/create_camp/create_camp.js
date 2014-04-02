@@ -2,15 +2,8 @@ App.StonehearthCreateCampView = App.View.extend({
 	templateName: 'createCamp',
 
    didInsertElement: function() {
+      this._super();
       if (!this.first) {
-         /// xxx localize
-         /*
-         $(top).trigger('radiant_show_tip', {
-            title : 'Choose your base camp location',
-            description : '',
-         });
-         */
-
          this.first = true;
 
          radiant.call('radiant:play_sound', 'stonehearth:sounds:ui:start_menu:loading_screen_success' );      
@@ -29,11 +22,25 @@ App.StonehearthCreateCampView = App.View.extend({
          .done(function(o) {
                if (o.result) {
                   radiant.call('radiant:play_sound', 'stonehearth:sounds:banner_plant' );
+                     /*
                      setTimeout( function() {
                         radiant.call('radiant:play_sound', 'stonehearth:sounds:ui:start_menu:paper_menu' );
                         //self._gotoStockpileStep();
                         self._gotoFinishStep();
                      }, 1000);
+*/
+
+                     // prompt the player for their settlement's name
+                     App.gameView.addView(App.StonehearthNameCampView, { 
+                           position: {
+                              my : 'center bottom',
+                              at : 'left+' + App.stonehearthClient.mouseX + " " + 'top+' + (App.stonehearthClient.mouseY - 100),
+                              of : $(document),
+                              collision : 'fit'
+                           }
+                        });
+
+                     self.destroy();
                } else {
                   self._showBanner();
                   radiant.call('radiant:play_sound', 'stonehearth:sounds:banner_bounce' );
@@ -162,5 +169,34 @@ App.StonehearthCreateCampView = App.View.extend({
          self.destroy();
       })
    }
+
+});
+
+App.StonehearthNameCampView = App.View.extend({
+   templateName: 'nameCamp',
+
+   didInsertElement: function() {
+      var self = this;
+      this._super();
+
+      this.$('#name').focus();
+
+      this.$('#name').keypress(function (e) {
+         if (e.which == 13) {
+            $(this).blur();
+            self.$('.ok').click();
+        }
+      });
+
+
+      this.$('.ok').click(function() {
+         radiant.call('radiant:play_sound', 'stonehearth:sounds:ui:start_menu:submenu_select' );
+         App.stonehearthClient.settlementName(self.$('#name').val());
+         App.gameView._addViews(App.gameView.views.complete);
+         self.destroy();
+      }),
+
+      this.$('#nameCamp').pulse();
+   },
 
 });

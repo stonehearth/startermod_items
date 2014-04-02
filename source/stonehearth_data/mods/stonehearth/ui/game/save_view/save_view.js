@@ -48,8 +48,8 @@ App.StonehearthSaveView = App.StonehearthSaveLoadView.extend({
          var gameTime = App.gameView.getDate().time;
 
          radiant.call("radiant:client:save_game", String(t), { 
-               name: "Save game name",
-               town_name: "Town name goes here",
+               name: "",
+               town_name: App.stonehearthClient.settlementName(),
                game_date: gameDate,
                game_time: gameTime,
                time: d.toLocaleString()
@@ -104,7 +104,11 @@ App.StonehearthLoadView = App.StonehearthSaveLoadView.extend({
          if (key) {
             radiant.call("radiant:client:load_game", key)
                .always(function() {
-                     self.destroy();
+                  if (self.onLoad) {
+                     self.onLoad();
+                  }
+
+                  self.destroy();
                });
          }
       },
@@ -134,7 +138,6 @@ App.StonehearthSaveListView = App.View.extend({
          .done(function(json) {
             var vals = [];
 
-            // XXX, sort by time
             $.each(json, function(k ,v) {
                if(k != "__self" && json.hasOwnProperty(k)) {
                   v['key'] = k;
@@ -145,6 +148,16 @@ App.StonehearthSaveListView = App.View.extend({
 
                   vals.push(v);
                }
+            });
+
+            // sort by creation time
+            vals.sort(function(a, b){
+               var keyA = a.key;
+               var keyB = b.key;
+               // Compare the 2 keys
+               if(keyA < keyB) return 1;
+               if(keyA > keyB) return -1;
+               return 0;
             });
 
             self.set('context.saves', vals);

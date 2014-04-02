@@ -81,12 +81,72 @@
       left: 94px;
       top: 300px;
 
+      #continue {
+         .outlined;
+         position: relative;
+         display: none;
+         background: rgba(0,0,0,0.6);
+         color: #fff;
+         text-align: left;
+         border: 3px solid #000;
+         border-bottom: 0px;
+
+         .gameInfo {
+            padding: 10px;
+
+            .nameHeader {
+               font-size: 16px;
+            }
+
+            .name {
+               font-size: 30px;
+               padding-bottom: 40px;
+            }
+
+            .gameTime {
+               font-size: 12px;
+            }
+
+            .banner {
+               position: absolute;
+               right: 10px;
+               bottom: 0px;
+               content: url(./images/continue_banner.png);
+            }
+         }
+      }
+
+      #continueGameButton {
+         display: none;
+      }
+
+      #loadGameButton {
+         display: none;
+      }
+
       button {
          display: block;
          width: 700px;
          font-size: 40px;
-         margin-bottom: 4px;
+         margin-bottom: 0px;
+         border-width: 6px 6px 0px 6px;
       }
+
+      button.last {
+         border-width: 6px 6px 14px 6px;
+         margin-bottom: 16px;
+      }
+
+      button.flat_hide {
+         background: #5d0000;
+         border-width: 6px 6px 14px 6px;
+         border-image: url(images/default/controls/button/flat_button_red.png) 6 6 14 6;
+
+         &:hover {
+            color: #ffe535;
+         }
+      }
+
    }
 
    #blog {

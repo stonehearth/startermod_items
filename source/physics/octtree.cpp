@@ -183,6 +183,89 @@ om::EntityPtr OctTree::FindFirstActor(om::EntityPtr root, std::function <bool(om
    return NULL;
 }
 
+template <class T>
+bool OctTree::CanStandOnOneOf(om::EntityPtr const& entity, std::vector<csg::Point<T,3>> const& points, csg::Point<T,3>& standablePoint) const
+{
+   for (csg::Point<T,3> const& point : points) {
+      if (navgrid_.CanStandOn(entity, csg::ToClosestInt(point))) {
+         standablePoint = point;
+         return true;
+      }
+   }
+   return false;
+}
+
+template bool OctTree::CanStandOnOneOf(om::EntityPtr const&, std::vector<csg::Point3> const& points, csg::Point3&) const;
+template bool OctTree::CanStandOnOneOf(om::EntityPtr const&, std::vector<csg::Point3f> const& points, csg::Point3f&) const;
+
+// toLocation must be in one of the 8 adjacent cells to fromLocation
+bool OctTree::ValidAdjacentMove(om::EntityPtr const& entity, bool const reversible,
+                                csg::Point3 const& fromLocation, csg::Point3 const& toLocation) const
+{
+   DEBUG_ONLY(
+      // consider returning false if these are not true
+      // keeping it DEBUG_ONLY for now to improve performance
+      float lengthSquared = (toLocation - fromLocation).LengthSquared();
+      ASSERT(lengthSquared > 0 && lengthSquared <= 2);
+      ASSERT(ValidElevationChange(entity, reversible, fromLocation, toLocation));
+      ASSERT(navgrid_.CanStandOn(entity, toLocation));
+      ASSERT(navgrid_.CanStandOn(entity, fromLocation));
+   );
+
+   if (toLocation.x != fromLocation.x || toLocation.z != fromLocation.z) {
+      return ValidDiagonalMove(entity, fromLocation, toLocation);
+   }
+   return true;
+}
+
+bool OctTree::ValidElevationChange(om::EntityPtr const& entity, bool const reversible, csg::Point3 const& fromLocation, csg::Point3 const& toLocation) const
+{
+   int const maxClimb = 1;
+   int maxDrop = -2;
+
+   if (reversible) {
+      maxDrop = -maxClimb;
+   }
+
+   if (toLocation.y - fromLocation.y > maxClimb ||
+       toLocation.y - fromLocation.y < maxDrop) {
+      return false;
+   }
+
+   return true;
+}
+
+// tests diagonal specific requirements
+bool OctTree::ValidDiagonalMove(om::EntityPtr const& entity, csg::Point3 const& fromLocation, csg::Point3 const& toLocation) const
+{
+   std::vector<csg::Point3> candidates;
+   csg::Point3 candidate, unused;
+
+   // path 1 - x first, either y value (fromLocation.y or toLocation.y) ok
+   candidate = fromLocation;
+   candidate.x = toLocation.x;
+   candidates.push_back(candidate);
+   candidate.y = toLocation.y;
+   candidates.push_back(candidate);
+
+   if (!CanStandOnOneOf(entity, candidates, unused)) {
+      return false;
+   }
+
+   // path 2 - z first, either y value (fromLocation.y or toLocation.y) ok
+   candidate = fromLocation;
+   candidate.z = toLocation.z;
+   candidates.push_back(candidate);
+   candidate.y = toLocation.y;
+   candidates.push_back(candidate);
+
+   if (!CanStandOnOneOf(entity, candidates, unused)) {
+      return false;
+   }
+
+   return true;
+}
+
 std::vector<std::pair<csg::Point3, int>> OctTree::ComputeNeighborMovementCost(om::EntityPtr entity, const csg::Point3& from) const
 {
    std::vector<std::pair<csg::Point3, int>> result;
@@ -202,7 +285,7 @@ std::vector<std::pair<csg::Point3, int>> OctTree::ComputeNeighborMovementCost(om
       csg::Point3( 1, 0,-1 ),
    };
    // xxx: this is in no way thread safe! (see SH-8)
-   static const csg::Point3 climb[] = {
+   static const csg::Point3 vertical_directions[] = {
       // ladder climbing
       csg::Point3( 0, 1, 0 ),
       csg::Point3( 0,-1, 0 ),
@@ -220,28 +303,19 @@ std::vector<std::pair<csg::Point3, int>> OctTree::ComputeNeighborMovementCost(om
 
    for (const auto& direction : diagonal_directions) {
       for (int dy = 1; dy >= -2; dy--) {
-         // Test all 3 points
-         csg::Point3 to = from + csg::Point3(0, dy, 0);
-         to.x += direction.x; // the point on the "left"
+         csg::Point3 to = from + direction + csg::Point3(0, dy, 0);
          if (!navgrid_.CanStandOn(entity, to)) {
             continue;
          }
-         to.x -= direction.x;
-         to.z += direction.z; // the point "front"
-         if (!navgrid_.CanStandOn(entity, to)) {
+         if (!ValidDiagonalMove(entity, from, to)) {
             continue;
          }
-         to.x += direction.x; // the point on the diagonal
-         if (!navgrid_.CanStandOn(entity, to)) {
-            continue;
-         }
-         // add the point on the diagonal
          result.push_back(std::make_pair(to, EstimateMovementCost(from, to)));
          break;
       }
    }
 
-   for (const auto& direction : climb) {
+   for (const auto& direction : vertical_directions) {
       csg::Point3 to = from + direction;
       if (navgrid_.CanStandOn(entity, to)) {
          result.push_back(std::make_pair(to, EstimateMovementCost(from, to)));
@@ -267,7 +341,7 @@ int OctTree::EstimateMovementCost(const csg::Point3& start, const csg::Point3& e
    int diagCost = std::min(xCost, zCost);
    int horzCost = std::max(xCost, zCost) - diagCost;
 
-   cost += (int)((horzCost + diagCost * 1.414) * COST_SCALE);
+   cost += (int)((horzCost + diagCost * 1.414213562) * COST_SCALE);
 
    return cost;
 }

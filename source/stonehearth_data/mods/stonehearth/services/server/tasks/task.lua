@@ -190,7 +190,8 @@ function Task:_unfeed_worker(worker)
    if type(worker) == 'number' then
       worker = radiant.entities.get_entity(worker)
    end
-   assert(radiant.util.is_a(worker, Entity))
+   --Review q: assert is invalid if the worker is nil due to delete, how to account for this?
+   --assert(radiant.util.is_a(worker, Entity))
    
    if worker and worker:is_valid() then
       self._log:detail('unfeeding worker %s', worker)
@@ -359,7 +360,9 @@ function Task:__action_try_start(action)
       radiant.events.trigger_async(self, 'work_available', self, false)
       self:_stop_feeding()
    end
-   self._task_group:_notify_worker_started_task(self, action:get_entity())
+   if self._task_group then
+      self._task_group:_notify_worker_started_task(self, action:get_entity())
+   end
 
    self:_log_state('exiting __action_try_start')
    return true
