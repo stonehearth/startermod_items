@@ -45,6 +45,14 @@ void LuaRenderEntity::RegisterType(lua_State* L)
                .def("get_entity",      &RenderEntity_GetEntity)
                .def("get_renderer",    &RenderEntity_GetRenderer)
                .def("set_material_override", &RenderEntity_SetMaterialOverride)
+               .def("add_query_flag",  &RenderEntity::AddQueryFlag)
+               .def("remove_query_flag", &RenderEntity::RemoveQueryFlag)
+               .def("has_query_flag",  &RenderEntity::HasQueryFlag),
+            class_<RenderEntity::QueryFlags>("QueryFlags")
+               .enum_("constants")
+            [
+               value("UNSELECTABLE", RenderEntity::QueryFlags::UNSELECTABLE)               
+            ]
          ]
       ]
    ];

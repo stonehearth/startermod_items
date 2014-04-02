@@ -1,7 +1,7 @@
 #include "pch.h"
 #include "xz_region_selector.h"
 #include "om/components/terrain.ridl.h"
-#include "om/selection.h"
+#include "client/renderer/raycast_result.h"
 #include "client/client.h"
 #include "client/renderer/renderer.h" // xxx: move to Client
 
@@ -105,18 +105,20 @@ void XZRegionSelector::SelectP1(const MouseInput &me)
 
 bool XZRegionSelector::GetHoverBrick(int x, int y, csg::Point3 &pt)
 {
-   om::Selection s;
+   RaycastResult castResult;
 
-   Renderer::GetInstance().QuerySceneRay(x, y, _userFlags, s);
-   if (!s.HasBlock()) {
+   Renderer::GetInstance().QuerySceneRay(x, y, _userFlags, castResult);
+   if (castResult.numResults() == 0) {
       return false;
    }
-   if (s.HasEntities() && (s.GetEntities().front() != _terrain->GetEntity().GetObjectId())) {
+
+   // Compare the very first intersection with the terrain.
+   if (castResult.objectIdOf(0) != _terrain->GetEntity().GetObjectId()) {
       return false;
    }
 
    // add in the normal to get the adjacent brick
-   pt = csg::ToInt(csg::ToFloat(s.GetBlock()) + s.GetNormal());
+   pt = csg::ToInt(csg::ToFloat(castResult.brickOf(0)) + castResult.normalOf(0));
 
    return true;
 }
