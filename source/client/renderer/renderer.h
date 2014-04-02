@@ -25,6 +25,7 @@
 #include "ui_buffer.h"
 #include "glfw3.h"
 #include <unordered_set>
+#include "raycast_result.h"
 
 BEGIN_RADIANT_CLIENT_NAMESPACE
 
@@ -35,19 +36,6 @@ enum ViewMode {
    Standard = 0,
    RPG,
    MaxViewModes
-};
-
-struct RayCastResult
-{
-   csg::Point3f point;
-   csg::Point3f normal;
-   
-   csg::Point3f origin;
-   csg::Point3f direction;
-
-   H3DNode      node;
-   bool         is_valid;
-   int          numOtherResults;
 };
 
 struct FrameStartInfo {
@@ -102,6 +90,22 @@ class Renderer
       Renderer();
       ~Renderer();
 
+   private:
+      // Intermediate results from a raycast.
+      struct _RayCastResult
+      {
+         csg::Point3f point;
+         csg::Point3f normal;
+         H3DNode node;
+      };
+
+      struct _RayCastResults {
+         int num_results;
+         csg::Ray3 ray;
+         _RayCastResult results[10];
+      };
+
+
    public:
       static Renderer& GetInstance();
 
@@ -146,12 +150,11 @@ class Renderer
       void RemoveRenderObject(int storeId, dm::ObjectId id);
 
       typedef std::function<void(om::Selection& sel, const csg::Ray3& ray, const csg::Point3f& intersection, const csg::Point3f& normal)> UpdateSelectionFn;
-      core::Guard TraceSelected(H3DNode node, UpdateSelectionFn fn);
+      core::Guard TraceSelected(H3DNode node, dm::ObjectId objectId);//UpdateSelectionFn fn);
 
       void GetCameraToViewportRay(int viewportX, int viewportY, csg::Ray3* ray);
-      void CastRay(const csg::Point3f& origin, const csg::Point3f& direction, int userFlags, RayCastResult* result);
-      void CastScreenCameraRay(int viewportX, int viewportY, int userFlags, RayCastResult* result);
-      void QuerySceneRay(int viewportX, int viewportY, int userFlags, om::Selection &result);
+      void QuerySceneRay(int viewportX, int viewportY, int userFlags, RaycastResult &result);
+      void QuerySceneRay(const csg::Point3f& origin, const csg::Point3f& direction, int userFlags, RaycastResult &result);
 
       typedef std::function<void (const Input&)> InputEventCb;
       void SetInputHandler(InputEventCb fn) { input_cb_ = fn; }
@@ -213,6 +216,7 @@ class Renderer
       MouseInput WindowToBrowser(const MouseInput& mouse);
       void CallMouseInputCallbacks();
       void UpdateFoW(H3DNode node, const csg::Region2& region);
+      void CastRay(const csg::Point3f& origin, const csg::Point3f& direction, int userFlags, _RayCastResults* result);
 
       void ResizeViewport();
       void ResizePipelines();
@@ -227,7 +231,7 @@ class Renderer
          std::shared_ptr<RenderEntity>    render_entity;
          dm::TracePtr                     lifetime_trace;
       };
-      typedef std::unordered_map<H3DNode, UpdateSelectionFn>   SelectableMap;
+      typedef std::unordered_map<H3DNode, dm::ObjectId>        SelectionLookup;
       typedef std::unordered_map<dm::ObjectId, RenderMapEntry> RenderEntityMap;
       typedef std::unordered_map<std::string, H3DRes>          H3DResourceMap;
 
@@ -259,7 +263,7 @@ class Renderer
       bool              show_debug_shapes_;
 
       RenderEntityMap   entities_[5]; // by store id
-      SelectableMap     selectableCbs_;
+      SelectionLookup   selectionLookup_;
       InputEventCb      input_cb_;
 
       Input             input_;  // Mouse coordinates in the GL window-space.

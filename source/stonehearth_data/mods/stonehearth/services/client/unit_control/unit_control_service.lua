@@ -4,21 +4,9 @@ local input_constants = require('constants').input
 local UnitControlService = class()
 
 function UnitControlService:initialize()
-   self._input_capture = _radiant.client.capture_input()
-   self._input_capture:on_input(function(e)
-      self:_on_input(e)
-            -- Don't consume the event, since the UI might want to do something, too.
-      return false
-    end)
-end
-
-
-function UnitControlService:_on_input(e) 
-    if e.type == _radiant.client.Input.MOUSE then
-      self:_on_mouse_input(e.mouse)
-    elseif e.type == _radiant.client.Input.KEYBOARD then
-      --self:_on_keyboard_input(e.keyboard)
-    end
+   stonehearth.input:push_mouse_handler(function(e)
+      return self:_on_mouse_input(e)
+   end)
 end
 
 function UnitControlService:_on_mouse_input(e)
@@ -32,12 +20,12 @@ function UnitControlService:_on_mouse_input(e)
          self._moved = true
          self:_move_unit(e)
       end
-
    elseif e:down(2) then
       self._moved = false
       self._mouse_down_x = e.x
       self._mouse_down_y = e.y
    end
+   return true
 end
 
 function UnitControlService:_move_unit(e)
@@ -47,8 +35,8 @@ function UnitControlService:_move_unit(e)
       local ray = _radiant.renderer.scene.cast_screen_ray(e.x, e.y)
       local screen_ray = _radiant.renderer.scene.get_screen_ray(e.x, e.y)
 
-      if ray.is_valid then
-         move_location = ray.point
+      if ray:is_valid() then
+         move_location = ray:intersection_of(0)
       else 
          move_location = screen_ray.origin
       end

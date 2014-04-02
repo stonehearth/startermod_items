@@ -180,7 +180,7 @@ Stonehearth::InitEntity(EntityPtr entity, std::string const& uri, lua_State* L)
             } else {
                object component_data = lua::ScriptHost::JsonToLua(L, entry);
                object lua_component = ConstructLuaComponent(scriptHost, component_name, entity, component_data);
-               if (lua_component) {
+               if (lua_component && lua_component.is_valid()) {
                   entity->AddLuaComponent(component_name, lua_component);
                }
             }

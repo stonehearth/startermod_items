@@ -28,5 +28,5 @@ float compute_outline_depth(sampler2D outlineDepth, const vec2 texCoords) {
   float depth3 = texture2D(outlineDepth, texCoords + vec2(offset.x * 2.0, -offset.y * 2.0)).x;
   float depth4 = texture2D(outlineDepth, texCoords + vec2(-offset.x * 2.0, -offset.y * 2.0)).x;
 
-  return min(depth1, min(depth2, min(depth3, depth4)));
+  return min(depth1, min(depth2, min(depth3, depth4))) - 0.0003;
 }

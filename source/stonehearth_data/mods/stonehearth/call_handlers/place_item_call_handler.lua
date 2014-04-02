@@ -45,17 +45,12 @@ function PlaceItemCallHandler:choose_place_item_location(session, response, targ
 
    -- capture the mouse.  Call our _on_mouse_event each time, passing in
    -- the entity that we're supposed to create whenever the user clicks.
-   self._capture = _radiant.client.capture_input()
-   self._capture:on_input(function(e)
-         if e.type == _radiant.client.Input.MOUSE then
-            self:_on_mouse_event(e.mouse, response)
-            return true
-         end
-         if e.type == _radiant.client.Input.KEYBOARD then
-            self:_on_keyboard_event(e.keyboard)
-         end
-         --Don't consume the event in case the UI wants to do something too
-         return false
+   self._input_handlers = stonehearth.input:push_handlers(
+      function(e)
+         return self:_on_mouse_event(e, response)
+      end,
+      function(e)
+         return self:_on_keyboard_event(e)
       end)
 end
 
@@ -67,7 +62,7 @@ function PlaceItemCallHandler:_on_mouse_event(e, response)
    -- s.location contains the address of the terrain block that the mouse
    -- is currently pointing to.  if there isn't one, move the workshop
    -- way off the screen so it won't get rendered.
-   local pt = s.location and s.location or Point3(0, -100000, 0)
+   local pt = s:is_valid() and s:brick_of(0) or Point3(0, -100000, 0)
 
    -- we want the workbench to be on top of that block, so add 1 to y, then
    -- move the cursor workshop to that location
@@ -79,14 +74,14 @@ function PlaceItemCallHandler:_on_mouse_event(e, response)
    -- entity.  this is done by posting to the correct route.
 
    --test for mouse right-click
-   if e:up(2) and s.location then
+   if e:up(2) and s:is_valid() then
       log:info('Pressed right click')
       self._curr_rotation = self._curr_rotation + 90
       self._curr_rotation = self._curr_rotation % 360
       self._cursor_entity:add_component('mob'):turn_to(self._curr_rotation + 180)
    end
 
-   if e:up(1) and s.location then
+   if e:up(1) and s:is_valid() then
 
       self:_destroy_capture()
       _radiant.call(self._next_call, self._target_entity_data, self._entity_uri, pt, self._curr_rotation+180)
@@ -112,14 +107,17 @@ function PlaceItemCallHandler:_on_keyboard_event(e)
    if e.key == _radiant.client.KeyboardInput.KEY_ESC and e.down then
       self:_destroy_capture()
        _radiant.client.destroy_authoring_entity(self._cursor_entity:get_id())
+      return true
    end
    return false
 end
 
 --- Destroy our capture object to release the mouse back to the client.
 function PlaceItemCallHandler:_destroy_capture()
-   self._capture:destroy()
-   self._capture = nil
+   if self._input_handlers then
+      stonehearth.input:remove_handlers(self._input_handlers)
+      self._input_handlers = nil
+   end
 end
 
 --- Tell a worker to place the item in the world

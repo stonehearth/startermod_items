@@ -55,6 +55,7 @@ class Client : public core::Singleton<Client> {
 
       void SelectEntity(om::EntityPtr obj);
       void SelectEntity(dm::ObjectId id);
+      void HilightEntity(dm::ObjectId objId);
 
       om::EntityPtr CreateEmptyAuthoringEntity();
       om::EntityPtr CreateAuthoringEntity(std::string const& uri);
@@ -116,7 +117,6 @@ class Client : public core::Singleton<Client> {
       void CenterMap(const MouseInput &mouse);
 
       void InstallCurrentCursor();
-      void HilightMouseover();
       void UpdateDebugCursor();
 
       static inline void CursorDeleter(HCURSOR hcursor) { DestroyCursor(hcursor); }
@@ -181,7 +181,7 @@ private:
       std::unique_ptr<dm::Store>       store_;
       om::EntityRef                    rootObject_;
       om::EntityRef                    selectedObject_;
-      std::vector<om::EntityRef>       hilightedObjects_;
+      om::EntityRef                    hilightedObject_;
 
       // local authoring object storage and tracking...
       std::unique_ptr<dm::Store>       authoringStore_;
