@@ -74,13 +74,13 @@ function CalorieObserver:_adjust_health_and_status()
          self._is_malnourished = false
          --TODO: discover why despair isn't being removed
          radiant.entities.remove_buff(self._entity, 'stonehearth:buffs:starving')
-
-         --Hide the hungry thought toast, if it was in effect
-         radiant.entities.unthink(self._entity, '/stonehearth/data/effects/thoughts/hungry')
       end
 
       --If our calorie count is >= max, then stop the eating task
       if calories >= stonehearth.constants.food.MAX_ENERGY and self._eat_task then
+         --Hide the hungry thought toast, if it was in effect
+         radiant.entities.unthink(self._entity, '/stonehearth/data/effects/thoughts/hungry')
+
          self._eat_task:destroy()
          self._eat_task = nil
       end
@@ -110,6 +110,9 @@ end
 -- TODO: is this necessary: If it's not mealtime, and we're not malnourished, stop eating
 function CalorieObserver:_handle_mealtimes(hour)
    if hour == stonehearth.constants.food.MEALTIME_START then
+      --show the hungry toast, if not yet showing from mealtime
+      radiant.entities.think(self._entity, '/stonehearth/data/effects/thoughts/hungry', stonehearth.constants.think_priorities.HUNGRY)
+
       self:_start_eat_task()
    end
 end
