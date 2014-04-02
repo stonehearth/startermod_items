@@ -21,8 +21,9 @@ function entities.create_entity(ref)
    return _radiant.sim.create_entity(ref)
 end
 
-function entities.destroy_entity(entity)
+function entities.destroy_entity(entity)   
    if entity and entity:is_valid() then
+      log:debug('destroying entity %s', entity)
       radiant.check.is_entity(entity)
       local id = entity:get_id()
       local dtors = singleton._entity_dtors[id]
@@ -348,7 +349,10 @@ end
 
 function entities.unset_posture(entity, posture)
    if entity and entity:is_valid() then
-      entity:add_component('stonehearth:posture'):unset_posture(posture)
+      local pc = entity:get_component('stonehearth:posture')
+      if pc then
+         pc:unset_posture(posture)
+      end
    end
 end
 
