@@ -81,6 +81,11 @@ void Client_SelectEntityById(lua_State* L, dm::ObjectId objId)
    Client::GetInstance().SelectEntity(e);
 }
 
+void Client_HilightEntityById(lua_State* L, dm::ObjectId objId)
+{
+   Client::GetInstance().HilightEntity(objId);
+}
+
 om::EntityRef Client_GetSelectedEntity()
 {
    return Client::GetInstance().GetSelectedEntity();
@@ -453,6 +458,7 @@ void lua::client::open(lua_State* L)
             def("get_object",                      &Client_GetObject),
             def("select_entity",                   &Client_SelectEntity),
             def("select_entity_by_id",             &Client_SelectEntityById),
+            def("hilight_entity_by_id",            &Client_HilightEntityById),
             def("get_selected_entity",             &Client_GetSelectedEntity),
             def("create_empty_authoring_entity",   &Client_CreateEmptyAuthoringEntity),
             def("create_authoring_entity",         &Client_CreateAuthoringEntity),

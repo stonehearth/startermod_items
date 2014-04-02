@@ -4,6 +4,7 @@ local SelectionService = class()
 
 function SelectionService:initialize()
    self._ui_view_mode = 'normal'
+   self._selected_id = 0
 
    _radiant.call('stonehearth:get_ui_mode'):done(
       function (o)
@@ -20,6 +21,10 @@ function SelectionService:initialize()
    end)
 end
 
+function SelectionService:get_selected_id()
+   return self._selected_id
+end
+
 function SelectionService:_select_entity(id)
    local obj = _radiant.client.get_object(id)
 
@@ -27,8 +32,10 @@ function SelectionService:_select_entity(id)
 
    if tc ~= nil then
       _radiant.client.select_entity_by_id(0)
+      self._selected_id = 0
    else
       _radiant.client.select_entity_by_id(id)
+      self._selected_id = id
    end
 end
 

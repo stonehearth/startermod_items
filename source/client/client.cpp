@@ -657,7 +657,7 @@ void Client::ShutdownGameObjects()
 {
    Renderer::GetInstance().Shutdown();
    rootObject_.reset();
-   hilightedObjects_.clear();
+   hilightedObject_.reset();
    authoredEntities_.clear();
    
    game_clock_.reset();
@@ -771,7 +771,6 @@ void Client::mainloop()
    }
 
    InstallCurrentCursor();
-   HilightMouseover();
    UpdateDebugCursor();
 
    // Fire the authoring traces *after* pumping the chrome message loop, since
@@ -1108,7 +1107,7 @@ void Client::InstallCurrentCursor()
       } else {
          if (!cursor_stack_.empty()) {
             cursor = cursor_stack_.back().second.get();
-         } else if (!hilightedObjects_.empty()) {
+         } else if (!hilightedObject_.expired()) {
             cursor = hover_cursor_.get();
          } else {
             cursor = default_cursor_.get();
@@ -1125,37 +1124,28 @@ void Client::InstallCurrentCursor()
    }
 }
 
-void Client::HilightMouseover()
+void Client::HilightEntity(dm::ObjectId objId)
 {
-   perfmon::TimelineCounterGuard tcg("hilight mouseover") ;
-
-   RaycastResult r;
    auto &renderer = Renderer::GetInstance();
-   csg::Point2 pt = renderer.GetMousePosition();
+   if (objId == 0) {
+      om::EntityPtr selectedObject = selectedObject_.lock();
+      om::EntityPtr hilightedObject = hilightedObject_.lock();
 
-   renderer.QuerySceneRay(pt.x, pt.y, 0, r);
-
-   om::EntityPtr selectedObject = selectedObject_.lock();
-   for (const auto &e: hilightedObjects_) {
-      om::EntityPtr entity = e.lock();
-      if (entity && entity != selectedObject) {
-         auto renderObject = renderer.GetRenderObject(entity);
+      if (hilightedObject && hilightedObject != selectedObject) {
+         auto renderObject = renderer.GetRenderObject(hilightedObject);
          if (renderObject) {
             renderObject->SetSelected(false);
          }
       }
-   }
-   hilightedObjects_.clear();
-
-   // hilight something
-   if (r.numResults() > 0) {
-      om::EntityPtr hilightEntity = GetEntity(r.objectIdOf(0));
-      if (hilightEntity && hilightEntity != rootObject_.lock()) {
-         RenderEntityPtr renderObject = renderer.GetRenderObject(hilightEntity);
+      hilightedObject_.reset();
+   } else {
+      om::EntityPtr hilightedObject = GetEntity(objId);
+      if (hilightedObject && hilightedObject != rootObject_.lock()) {
+         RenderEntityPtr renderObject = renderer.GetRenderObject(hilightedObject);
          if (renderObject) {
             renderObject->SetSelected(true);
          }
-         hilightedObjects_.push_back(hilightEntity);
+         hilightedObject_ = hilightedObject;
       }
    }
 }
