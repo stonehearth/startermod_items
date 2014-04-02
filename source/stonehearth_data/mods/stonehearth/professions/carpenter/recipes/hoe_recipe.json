@@ -2,10 +2,10 @@
    "type":"recipe",
 
    "work_units"  : 3,
-   "recipe_name" : "Hoe",
+   "recipe_name" : "Farmer's Hoe",
    "description" : "Promotes a worker into a Farmer.",
    "flavor"      : "Hoedown time!!!!",
-   "portrait"    : "/stonehearth/entities/professions/farmer/farmer_hoe/farmer_hoe.png",
+   "portrait"    : "/stonehearth/professions/farmer/farmer_hoe/farmer_hoe.png",
    "category"    : "tools",
 
    "ingredients": [
