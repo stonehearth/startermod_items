@@ -10,6 +10,10 @@ function InputService:initialize()
 
   self._input_capture = _radiant.client.capture_input()
   self._input_capture:on_input(function(e)
+    if e.type ~= _radiant.client.Input.MOUSE and e.type ~= _radiant.client.Input.KEYBOARD then
+      return false
+    end
+
     local data = e.mouse
     local stack = self._mouse_handler_func_stack
 

@@ -939,8 +939,6 @@ void Client::OnInput(Input const& input) {
 
 void Client::OnMouseInput(Input const& input)
 {
-   bool handled = false, uninstall = false;
-
    mouse_x_ = input.mouse.x;
    mouse_y_ = input.mouse.y;
 
