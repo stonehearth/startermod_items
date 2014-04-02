@@ -104,7 +104,11 @@ function SkyRenderer:_update_time(seconds)
    -- between frames
    if self._sv.calendar_seconds then
       self._sv.calendar_seconds_between_updates = seconds - self._sv.calendar_seconds
-      self._render_ms_between_updates = self._sv.last_render_time_ms - self._sv.render_time_at_last_update
+      if self._sv.last_render_time_ms then
+         self._render_ms_between_updates = self._sv.last_render_time_ms - self._sv.render_time_at_last_update
+      else
+         self._render_ms_between_updates = 0
+      end
    end
    self._sv.calendar_seconds = seconds
    self._sv.render_time_at_last_update = self._sv.last_render_time_ms

@@ -133,6 +133,9 @@ function ExecutionFrame:_unit_ready(unit, think_output)
    if self._state == 'ready' then
       return self:_unit_ready_from_ready(unit, think_output)
    end
+   if self._state == 'started' then
+      return self:_unit_ready_from_started(unit, think_output)
+   end
    if self._state == 'running' then
       return self:_unit_ready_from_running(unit, think_output)
    end
@@ -142,6 +145,7 @@ function ExecutionFrame:_unit_ready(unit, think_output)
    if self._state == 'dead' then
       return self:_unit_ready_from_dead(unit, think_output)
    end
+
    self:_unknown_transition('unit_ready')
 end
 
@@ -503,6 +507,27 @@ function ExecutionFrame:_unit_ready_from_ready(unit, think_output)
    if self:_is_strictly_better_than_active(unit) then
       self._log:detail('replacing unit "%s" with better active unit "%s"',
                        self._active_unit:get_name(), unit:get_name())
+   else
+      return
+   end
+   self:_set_active_unit(unit, think_output)
+end
+
+function ExecutionFrame:_unit_ready_from_started(unit, think_output)
+   assert(self._active_unit)
+   -- so... someone called start(), we picked an execution unit and called start()
+   -- on it.  before the original caller could call run(), *another* unit became
+   -- ready.  if that one is better than the one we picked before, we can just
+   -- switch to do it (no harm, no foul)
+   self:_do_unit_ready_bookkeeping(unit, think_output)
+
+   if self:_is_strictly_better_than_active(unit) then
+      self._log:detail('replacing unit "%s" with better active unit "%s"',
+                       self._active_unit:get_name(), unit:get_name())
+      assert(self._active_unit)
+      
+      -- we started it, so we'd best stop it before replacing it.
+      self._active_unit:_stop()
    else
       return
    end

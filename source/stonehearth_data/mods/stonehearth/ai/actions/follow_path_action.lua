@@ -29,7 +29,6 @@ function FollowPathAction:run(ai, entity, args)
       return
    end
    
-   self._ai = ai
    radiant.events.listen(entity, 'stonehearth:posture_changed', self, self._on_posture_change)
 
    local speed = radiant.entities.get_attribute(entity, 'speed')
@@ -63,7 +62,7 @@ function FollowPathAction:run(ai, entity, args)
 end
 
 function FollowPathAction:_on_posture_change()
-   self._ai:abort('posture changed while following path')
+   ai:abort('posture changed while following path')
 end
 
 function FollowPathAction:stop(ai, entity)
