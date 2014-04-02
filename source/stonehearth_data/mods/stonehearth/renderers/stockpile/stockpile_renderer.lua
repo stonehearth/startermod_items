@@ -47,6 +47,14 @@ function StockpileRenderer:_update_stockpile_renderer(mode)
    end
 end
 
+function StockpileRenderer:_update_query_flag(render_entity, mode)
+   if mode == 'normal' then
+      render_entity:remove_query_flag(_radiant.renderer.QueryFlags.UNSELECTABLE)
+   else
+      render_entity:add_query_flag(_radiant.renderer.QueryFlags.UNSELECTABLE)
+   end
+end
+
 function StockpileRenderer:_update_item_renderers(mode, item_map)
    if item_map == nil then
       return
@@ -56,6 +64,7 @@ function StockpileRenderer:_update_item_renderers(mode, item_map)
          local re = _radiant.client.get_render_entity(item)
          if re ~= nil then
             re:set_material_override(self:_mode_to_material_kind(mode))
+            self:_update_query_flag(re, mode)
          end
       end
    end

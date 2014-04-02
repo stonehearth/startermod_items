@@ -54,6 +54,8 @@ RenderEntity::RenderEntity(H3DNode parent, om::EntityPtr entity) :
 
    // xxx: convert to something more dm::Trace like...
    renderer_guard_ += Renderer::GetInstance().TraceSelected(node_.get(), entity_id_);
+
+   query_flags_ = 0;
 }
 
 void RenderEntity::FinishConstruction()
@@ -262,21 +264,6 @@ void RenderEntity::RemoveComponent(std::string const& name)
    components_.erase(name);
 }
 
-void RenderEntity::OnSelected(om::Selection& sel, const csg::Ray3& ray,
-                              const csg::Point3f& intersection, const csg::Point3f& normal)
-{
-   auto entity = entity_.lock();
-   if (entity) {
-      auto mob = entity->GetComponent<om::Mob>();
-      // xxx: don't select authored objects!
-      if (entity->GetStoreId() != 2) {
-         E_LOG(1) << "selected authoring entity " << *entity << ".  Ignoring";
-         return;
-      }
-      sel.AddEntity(entity_id_);
-   }
-}
-
 void RenderEntity::Show(bool show)
 {
    h3dTwiddleNodeFlags(node_.get(), H3DNodeFlags::NoDraw | H3DNodeFlags::NoRayQuery, true, true);
@@ -328,4 +315,19 @@ void RenderEntity::SetMaterialOverride(std::string const& overrideKind)
 {
    std::shared_ptr<RenderRenderInfo> ri = std::static_pointer_cast<RenderRenderInfo>(components_.at("render_info"));
    ri->SetMaterialOverride(overrideKind);
+}
+
+void RenderEntity::AddQueryFlag(int flag)
+{
+   query_flags_ |= flag;
+}
+
+void RenderEntity::RemoveQueryFlag(int flag)
+{
+   query_flags_ &= ~flag;
+}
+
+bool RenderEntity::HasQueryFlag(int flag) const
+{
+   return query_flags_ & flag;
 }
