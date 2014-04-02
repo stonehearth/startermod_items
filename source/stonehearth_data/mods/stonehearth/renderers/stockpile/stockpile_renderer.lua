@@ -22,7 +22,7 @@ function StockpileRenderer:__init()
          if e.mode == 'normal' or e.mode == 'zones' then
             self._ui_view_mode = e.mode
 
-            self:_update_item_renderers(e.mode, self._stockpile_items)
+            self:_update_item_states(e.mode, self._stockpile_items)
             self:_update_stockpile_renderer(e.mode)
          end
       end
@@ -55,7 +55,7 @@ function StockpileRenderer:_update_query_flag(render_entity, mode)
    end
 end
 
-function StockpileRenderer:_update_item_renderers(mode, item_map)
+function StockpileRenderer:_update_item_states(mode, item_map)
    if item_map == nil then
       return
    end
@@ -95,7 +95,7 @@ function StockpileRenderer:update(render_entity, saved_variables)
    self:_update()
 end
 
-function StockpileRenderer:_diff_and_update_item_renderers(updated_items)
+function StockpileRenderer:_diff_and_update_item_states(updated_items)
    local added_items = {}
    local temp_items = {}
 
@@ -113,8 +113,8 @@ function StockpileRenderer:_diff_and_update_item_renderers(updated_items)
    -- Rename for clarity!
    local removed_items = temp_items
 
-   self:_update_item_renderers(self._ui_view_mode, added_items)
-   self:_update_item_renderers('', removed_items)
+   self:_update_item_states(self._ui_view_mode, added_items)
+   self:_update_item_states('', removed_items)
 end
 
 --- xxx: someone call destroy please!!
@@ -125,7 +125,7 @@ end
 function StockpileRenderer:_update()
    local data = self._savestate:get_data()
    if data and data.size then
-      self:_diff_and_update_item_renderers(data.stocked_items);
+      self:_diff_and_update_item_states(data.stocked_items);
       self._stockpile_items = data.stocked_items
 
       local size = data.size
