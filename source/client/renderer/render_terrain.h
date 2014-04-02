@@ -76,8 +76,6 @@ private:
    void Update();
    void UpdateRenderRegion(RenderTilePtr render_tile);
    void TesselateTerrain(csg::Region3 const& terrain, csg::Region3& tess);
-   void OnSelected(om::Selection& sel, const csg::Ray3& ray,
-                   const csg::Point3f& intersection, const csg::Point3f& normal);
 
    void AddTerrainTypeToTesselation(csg::Region3 const& grass, csg::Region3 const& terrain, csg::Region3& tess, LayerDetailRingInfo const &rings);
    void TesselateLayer(csg::Region2 const& layer, int height, csg::Region3 const& clipper, csg::Region3& tess, LayerDetailRingInfo const &rings);

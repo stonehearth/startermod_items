@@ -61,8 +61,8 @@ end
 
 function CameraService:_get_orbit_target() 
   local r = self:_find_target()
-  if r.is_valid then
-     return r.point
+  if r:is_valid() then
+     return r:intersection_of(0)
   else
      local forward_dir = _radiant.renderer.camera.get_forward()
 
@@ -212,8 +212,8 @@ function CameraService:_calculate_jump(e)
   if e:up(3) then
     local r = _radiant.renderer.scene.cast_screen_ray(e.x, e.y)--self:_find_target()
     local r2 = self:_find_target()
-    if r.is_valid and r2.is_valid then
-      local delta = r.point - r2.point
+    if r:is_valid() and r2:is_valid() then
+      local delta = r:intersection_of(0) - r2:intersection_of(0)
       delta.y = 0
       self._impulse_delta = delta
     else
@@ -230,11 +230,11 @@ function CameraService:_calculate_zoom(e)
   end
 
   local query = _radiant.renderer.scene.cast_screen_ray(e.x, e.y)
-  if not query.is_valid then
+  if not query:is_valid() then
     return
   end
 
-  local target = query.point
+  local target = query:intersection_of(0)
   local pos = self._sv.position
 
   local distance_to_target = pos:distance_to(target)
@@ -309,8 +309,8 @@ function CameraService:_calculate_drag(e)
     self._dragging = true
     self._drag_origin = screen_ray.origin;
 
-    if r.is_valid then
-      self._drag_start = r.point
+    if r:is_valid() then
+      self._drag_start = r:intersection_of(0)
     else
       local d = -self._drag_origin.y / screen_ray.direction.y
       screen_ray.direction:scale(d)

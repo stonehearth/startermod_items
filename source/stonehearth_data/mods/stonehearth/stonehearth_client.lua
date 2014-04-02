@@ -1,11 +1,17 @@
 
 stonehearth = {}
 
+-- For services that handle input, make sure you load them in the order
+-- that you want input to be handled (i.e. xz-region-selection gets priority
+-- over unit-selection/orders.)
 local service_creation_order = {
+   'input',
    'camera',
    'renderer',
    'sky_renderer',
    'unit_control',
+   'selection',
+   'hilight'
 }
 
 local function create_service(name)

@@ -19,6 +19,11 @@ class RenderAspect;
 class RenderEntity : public std::enable_shared_from_this<RenderEntity>
 {
    public:
+      enum QueryFlags {
+         UNSELECTABLE = (1 << 0)
+      };
+
+   public:
       RenderEntity(H3DNode parent, om::EntityPtr obj);
       ~RenderEntity();
 
@@ -42,6 +47,9 @@ class RenderEntity : public std::enable_shared_from_this<RenderEntity>
 
       void SetModelVariantOverride(bool enabled, std::string const& variant);
       void SetMaterialOverride(std::string const& overrideKind);
+      void AddQueryFlag(int flag);
+      void RemoveQueryFlag(int flag);
+      bool HasQueryFlag(int flag) const;
 
    private:
       void LoadAspects(om::EntityPtr obj);
@@ -56,8 +64,6 @@ class RenderEntity : public std::enable_shared_from_this<RenderEntity>
       void AddComponent(std::string const& key, std::shared_ptr<dm::Object> value);
       void AddLuaComponent(std::string const& key, luabind::object obj);
       void RemoveComponent(std::string const& key);
-      void OnSelected(om::Selection& sel, const csg::Ray3& ray,
-                      const csg::Point3f& intersection, const csg::Point3f& normal);
 
    protected:
       static int                          totalObjectCount_;
@@ -76,6 +82,7 @@ protected:
       core::Guard       renderer_guard_;
       dm::TracePtr      components_trace_;
       dm::TracePtr      lua_components_trace_;
+      uint32            query_flags_;
 };
 
 typedef std::shared_ptr<RenderEntity>  RenderEntityPtr;
