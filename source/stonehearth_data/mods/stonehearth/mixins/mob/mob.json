@@ -20,6 +20,7 @@
             "stonehearth:actions:run_to_entity_type",
             "stonehearth:actions:run_to_location",
             "stonehearth:actions:run_toward_location",
+            "stonehearth:actions:run_toward_entity",
             "stonehearth:actions:bump_entity",
             "stonehearth:actions:bump_against_entity",
             "stonehearth:actions:material_to_filter_fn",            
@@ -55,7 +56,6 @@
             "stonehearth:actions:find_path_to_entity",
             "stonehearth:actions:find_path_to_entity_type",
             "stonehearth:actions:find_direct_path_to_entity",
-            "stonehearth:actions:run_toward_entity",
             "stonehearth:actions:add_buff",
             "stonehearth:actions:unit_control:dispatcher",
             "stonehearth:actions:compelled_behaviors:dispatcher"

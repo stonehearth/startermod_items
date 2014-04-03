@@ -1257,8 +1257,11 @@ void Renderer::UpdateCamera()
 {
    ASSERT(camera_);
 
-   //Let the audio listener know where the camera is
-   sf::Listener::setPosition(camera_->GetPosition().x, camera_->GetPosition().y, camera_->GetPosition().z);
+   // Let the audio listener know where the camera is
+   csg::Point3f position = camera_->GetPosition();
+   csg::Point3f direction = camera_->GetOrientation().rotate(csg::Point3f(0, 0, -1));
+   sf::Listener::setPosition(position.x, position.y, position.z);
+   sf::Listener::setDirection(direction.x, direction.y, direction.z);
 }
 
 void Renderer::OnMouseWheel(double value)

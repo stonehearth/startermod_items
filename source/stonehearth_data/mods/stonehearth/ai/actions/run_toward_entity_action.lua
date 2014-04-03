@@ -1,24 +1,24 @@
 local Entity = _radiant.om.Entity
 local Point3 = _radiant.csg.Point3
-local RunTowardsEntity = class()
+local RunTowardEntity = class()
 
-RunTowardsEntity.name = 'go towards entity'
-RunTowardsEntity.does = 'stonehearth:go_towards_entity'
-RunTowardsEntity.args = {
+RunTowardEntity.name = 'run toward entity'
+RunTowardEntity.does = 'stonehearth:go_toward_entity'
+RunTowardEntity.args = {
    entity = Entity,
    stop_distance = {
       type = 'number',
       default = 0
    }
 }
-RunTowardsEntity.think_output = {
+RunTowardEntity.think_output = {
    point_of_interest = Point3
 }
-RunTowardsEntity.version = 2
-RunTowardsEntity.priority = 1
+RunTowardEntity.version = 2
+RunTowardEntity.priority = 1
 
 local ai = stonehearth.ai
-return ai:create_compound_action(RunTowardsEntity)
+return ai:create_compound_action(RunTowardEntity)
          :execute('stonehearth:find_direct_path_to_entity', {
             destination = ai.ARGS.entity,
             allow_incomplete_path = true

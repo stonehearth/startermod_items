@@ -32,9 +32,9 @@ function ProxyBuilder:set_brush(type, uri)
 end
 
 function ProxyBuilder:_clear()
-   if self._input_handlers then
-      stonehearth.input:remove_handlers(self._input_handlers)
-      self._input_handlers = nil
+   if self._input_capture then
+      self._input_capture:destroy()
+      self._input_capture = nil
    end
    self._root_proxy:destroy()
    self._root_proxy = ProxyContainer(nil)
@@ -48,14 +48,14 @@ function ProxyBuilder:_start()
    self._columns = {}
    self._walls = {}
    
-   self._input_handlers = stonehearth.input:push_handlers(
-      function(e)
-         return self._on_mouse(self._derived, e)
-      end,
-      function(e)
-         return self._on_keyboard(self._derived, e)
-      end
-      )
+   self._input_capture = stonehearth.input:capture_input()
+                           :on_mouse_event(function(e)
+                                 return self._on_mouse(self._derived, e)
+                              end)
+                           :on_keyboard_event(function(e)
+                                 return self._on_keyboard(self._derived, e)
+                              end)
+
 end
 
 function ProxyBuilder:move_to(location)

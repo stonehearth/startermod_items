@@ -4,9 +4,10 @@ local input_constants = require('constants').input
 local UnitControlService = class()
 
 function UnitControlService:initialize()
-   stonehearth.input:push_mouse_handler(function(e)
-      return self:_on_mouse_input(e)
-   end)
+   self._input_capture = stonehearth.input:capture_input()
+                              :on_mouse_event(function(e)
+                                   return self:_on_mouse_input(e)
+                                 end)
 end
 
 function UnitControlService:_on_mouse_input(e)

@@ -16,6 +16,13 @@ DropCarrying.priority = 1
 
 local ai = stonehearth.ai
 return ai:create_compound_action(DropCarrying)
-         :execute('stonehearth:goto_location', { location = ai.ARGS.location  })
-         :execute('stonehearth:drop_carrying_adjacent', { location = ai.ARGS.location })
-         :set_think_output({ item = ai.PREV.item })
+         :execute('stonehearth:goto_location', {
+            location = ai.ARGS.location,
+            stop_when_adjacent = true,
+         })
+         :execute('stonehearth:drop_carrying_adjacent', {
+            location = ai.ARGS.location
+         })
+         :set_think_output({
+            item = ai.PREV.item
+         })

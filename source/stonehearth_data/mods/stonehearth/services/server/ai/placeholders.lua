@@ -39,10 +39,10 @@ function PLACEHOLDER_mt.__index(t, key)
          end
          
          local result = obj[key]
-         if not result and type(obj) == 'table' and obj.__index then
+         if result == nil and type(obj) == 'table' and obj.__index then
             result = obj.__index[key]
          end
-         if not result then
+         if result == nil then
             return INVALID_PLACEHOLDER
          end
          return result

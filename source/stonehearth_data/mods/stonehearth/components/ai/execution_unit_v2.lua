@@ -142,7 +142,7 @@ function ExecutionUnitV2:_start_thinking(args, entity_state)
    assert(args, '_start_thinking called with no args')
    assert(entity_state, '_start_thinking called with no entity_state')
 
-  if not self:_verify_arguments(args, self._action.args) then      
+  if not self:_verify_arguments('start_thinking', args, self._action.args) then      
       self:_stop()
       return
    end
@@ -324,7 +324,7 @@ function ExecutionUnitV2:_set_think_output_from_thinking(think_output)
    if not think_output then
       think_output = self._args
    end
-   self:_verify_arguments(think_output, self._think_output_types)
+   self:_verify_arguments('set_think_output', think_output, self._think_output_types)
 
    self:_set_state(READY)
    self._frame:_unit_ready(self, think_output)
@@ -646,15 +646,19 @@ function ExecutionUnitV2:__abort(reason, ...)
    end
 end
 
-function ExecutionUnitV2:_verify_arguments(args, args_prototype)
+function ExecutionUnitV2:_verify_arguments(fname, args, args_prototype)
+   local function report_error(format, ...)
+      error(string.format('error in args passed to ' .. fname .. ': ' .. format, ...))
+   end
+   
    -- special case 0 vs nil so people can leave out .args and .think_output if there are none.
    args_prototype = args_prototype and args_prototype or {}
    if args[1] then
-      error('activity arguments contains numeric elements (invalid!)')
+      report_error('activity arguments contains numeric elements (invalid!)')
       return false
    end
    if radiant.util.is_instance(args) then
-      error('attempt to pass instance for arguments (not using associative array?)')
+      report_error('attempt to pass instance for arguments (not using associative array?)')
       return false
    end
 
@@ -662,7 +666,7 @@ function ExecutionUnitV2:_verify_arguments(args, args_prototype)
    for name, value in pairs(args) do
       local expected_type = args_prototype[name]
       if not expected_type then
-         error(string.format('unexpected argument "%s" passed to "%s".', name, self:get_name()))
+         report_error('unexpected argument "%s" passed to "%s".', name, self:get_name())
          return false
       end
       if expected_type ~= stonehearth.ai.ANY then
@@ -671,8 +675,8 @@ function ExecutionUnitV2:_verify_arguments(args, args_prototype)
             expected_type = expected_type.type
          end
          if not radiant.util.is_a(value, expected_type) then
-            error(string.format('wrong type for argument "%s" in "%s" (expected:%s got %s)', name,
-                                self:get_name(), tostring(expected_type), tostring(type(value))))
+            report_error('wrong type for argument "%s" in "%s" (expected:%s got %s)', name,
+                                self:get_name(), tostring(expected_type), tostring(type(value)))
             return false                      
          end
       end
@@ -682,9 +686,9 @@ function ExecutionUnitV2:_verify_arguments(args, args_prototype)
          if type(expected_type) == 'table' then
             if radiant.util.is_class(expected_type) then
                -- we're totally missing the argument!  bail
-               error(string.format('missing argument "%s" of type "%s" in "%s".', name, radiant.util.tostring(expected_type), self:get_name()))
+               report_error('missing argument "%s" of type "%s" in "%s".', name, radiant.util.tostring(expected_type), self:get_name())
                return false
-            elseif expected_type.default then
+            elseif expected_type.default ~= nil then
                -- maybe there's a default?
                if expected_type.default == stonehearth.ai.NIL then
                   -- this one's ok.  keep going
@@ -694,7 +698,7 @@ function ExecutionUnitV2:_verify_arguments(args, args_prototype)
             end
          else
             -- we're totally missing the argument!  bail
-            error(string.format('missing argument "%s" of type "%s" in "%s".', name, radiant.util.tostring(expected_type), self:get_name()))
+            report_error('missing argument "%s" of type "%s" in "%s".', name, radiant.util.tostring(expected_type), self:get_name())
             return false
          end
       end

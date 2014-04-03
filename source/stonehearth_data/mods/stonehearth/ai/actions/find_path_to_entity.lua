@@ -7,10 +7,6 @@ FindPathToEntity.name = 'find path to entity'
 FindPathToEntity.does = 'stonehearth:find_path_to_entity'
 FindPathToEntity.args = {
    destination = Entity,      -- entity to find a path to
-   reserve_region = {    -- reserve the destination region?
-      type = 'boolean',
-      default = false,
-   },
 }
 FindPathToEntity.think_output = {
    path = Path,       -- the path to destination, from the current Entity
