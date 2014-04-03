@@ -2,7 +2,7 @@
 local AutotestServerCallHandler = class()
 
 AutotestServerCallHandler['fail'] = function (session, response)
-   return autotest.fail()
+   return autotest.fail('remote fail')
 end
 
 AutotestServerCallHandler['ui:connect_client_to_server'] = function (_, session, response)

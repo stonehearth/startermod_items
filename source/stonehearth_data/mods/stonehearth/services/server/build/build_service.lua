@@ -86,6 +86,7 @@ function BuildService:_create_fabricator(blueprint)
    -- either you're a fabricator or you contain things which may be fabricators.  not
    -- both!
    local fabricator = radiant.entities.create_entity()
+   fabricator:set_debug_text('fabricator for ' .. tostring(blueprint))
    self:_init_fabricator(fabricator, blueprint)
    self:_init_fabricator_children(fabricator, blueprint)
    return fabricator

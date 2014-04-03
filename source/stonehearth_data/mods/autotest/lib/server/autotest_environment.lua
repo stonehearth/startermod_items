@@ -31,15 +31,17 @@ function env.create_world()
 
    -- listen for every entity creation event so we can tear them all down between tests
    radiant.events.listen(radiant, 'radiant:entity:post_create', function(e)
-         table.insert(_all_entities, e.entity)
+         local entity = e.entity
+         local id = entity:get_id()
+         _all_entities[id] = entity
       end)
 
    env.town = stonehearth.town:get_town(env.session.player_id)
 end
 
 function env.clear()
-   for _, entity in ipairs(_all_entities) do
-      radiant.entities.destroy_entity(entity)
+   for id, entity in pairs(_all_entities) do
+      radiant.entities.destroy_entity(entity)      
    end
    _all_entities = {}
    

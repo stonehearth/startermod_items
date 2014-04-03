@@ -43,6 +43,7 @@ scope LuaEntity::RegisterLuaTypes(lua_State* L)
          .def("get_component" ,     &om::Stonehearth::GetComponent)
          .def("add_component" ,     &om::Stonehearth::AddComponent)
          .def("add_component" ,     &om::Stonehearth::SetComponentData)
+         .def("remove_component" ,  &om::Stonehearth::RemoveComponent)
       ;
 }
 

@@ -22,10 +22,6 @@ function EffectManager:__init(entity)
    end
 end
 
-function EffectManager:destroy(entity)
-   radiant.events.unlisten(radiant, 'stonehearth:gameloop', self, self.on_event_loop)
-end
-
 function EffectManager:on_event_loop(e)
    for effect, _ in pairs(self._effects) do
       effect:update(e)

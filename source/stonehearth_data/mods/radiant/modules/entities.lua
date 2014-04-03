@@ -7,7 +7,6 @@ local Entity = _radiant.om.Entity
 local log = radiant.log.create_logger('entities')
 
 function entities.__init()
-   singleton._entity_dtors = {}
 end
 
 function entities.get_root_entity()
@@ -23,14 +22,18 @@ end
 
 function entities.destroy_entity(entity)
    if entity and entity:is_valid() then
+      log:debug('destroying entity %s', entity)
       radiant.check.is_entity(entity)
-      local id = entity:get_id()
-      local dtors = singleton._entity_dtors[id]
-      if dtors then
-         for _, dtor in ipairs(dtors) do
-            dtor()
+
+      -- destroy all the children when destorying the parent.  should we do
+      -- this from c++?  if not, entities which get destroyed from the cpp
+      -- layer won't get this behavior.  maybe that's just impossible (i.e. forbid
+      -- it from happening, since the cpp layer knowns nothing about game logic?)
+      local ec = entity:get_component('entity_container')
+      if ec then
+         for id, child in ec:each_child() do
+            entities.destroy_entity(child)
          end
-         singleton._entity_dtors[id] = nil
       end
       _radiant.sim.destroy_entity(entity)
    end
@@ -219,15 +222,6 @@ function entities.get_entity_data(entity, key)
    end
 end
 
-function entities.on_destroy(entity, dtor)
-   radiant.check.is_entity(entity)
-   local id = entity:get_id()
-   if not singleton._entity_dtors[id] then
-      singleton._entity_dtors[id] = {}
-   end
-   table.insert(singleton._entity_dtors[id], dtor)
-end
-
 function entities.add_outfit(entity, outfit_uri)
    radiant.check.is_entity(entity)
    radiant.check.is_string(outfit_uri)
@@ -348,7 +342,10 @@ end
 
 function entities.unset_posture(entity, posture)
    if entity and entity:is_valid() then
-      entity:add_component('stonehearth:posture'):unset_posture(posture)
+      local pc = entity:get_component('stonehearth:posture')
+      if pc then
+         pc:unset_posture(posture)
+      end
    end
 end
 
