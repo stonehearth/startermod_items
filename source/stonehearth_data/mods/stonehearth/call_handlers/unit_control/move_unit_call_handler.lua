@@ -23,7 +23,7 @@ end
 
 -- called each time the mouse moves on the client.
 function MoveUnitCallHandler:_on_mouse_event(e, response)
-   assert(self._input_handlers, "got mouse event after releasing capture")
+   assert(self._input_capture, "got mouse event after releasing capture")
 
    local s = _radiant.client.query_scene(e.x, e.y)
 

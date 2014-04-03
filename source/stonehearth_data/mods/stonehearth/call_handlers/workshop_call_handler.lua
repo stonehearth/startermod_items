@@ -40,7 +40,7 @@ end
 
 -- Called each time the mouse moves on the client.
 function WorkshopCallHandler:_on_mouse_event(e, workbench_entity, response)
-   assert(self._input_handlers, "got mouse event after releasing capture")
+   assert(self._input_capture, "got mouse event after releasing capture")
 
    -- query the scene to figure out what's under the mouse cursor
    local s = _radiant.client.query_scene(e.x, e.y)
