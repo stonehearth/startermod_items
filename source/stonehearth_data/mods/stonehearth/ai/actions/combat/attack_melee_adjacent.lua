@@ -54,7 +54,7 @@ end
 function AttackMeleeAdjacent:_move_to_ideal_attack_range(ai, entity, args)
    local target = args.target
    local ideal_separation = CombatFns.get_melee_range(entity, 'medium_1h_weapon', target)
-   local current_separation = self:_distance_between(entity, target)
+   local current_separation = radiant.entities.distance_between(entity, target)
 
    if current_separation < ideal_separation then
       ai:execute('stonehearth:bump_against_entity', {
@@ -70,13 +70,6 @@ end
 
 function AttackMeleeAdjacent:_on_battery_defended(args)
    self._defended = true
-end
-
--- need non-grid aligned distance
-function AttackMeleeAdjacent:_distance_between(entity1, entity2)
-   local location1 = entity1:add_component('mob'):get_world_location()
-   local location2 = entity2:add_component('mob'):get_world_location()
-   return location1:distance_to(location2)
 end
 
 return AttackMeleeAdjacent

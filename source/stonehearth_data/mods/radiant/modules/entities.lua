@@ -140,17 +140,43 @@ end
 
 function entities.get_world_grid_location(entity)
    local mob = entity:get_component('mob')
-   return mob and mob:get_world_grid_location() or Point3(0, 0, 0)
+   if not mob then
+      error(tostring(entity) .. ' has no mob component')
+   end
+   return mob:get_world_grid_location()
+end
+
+function entities.grid_distance_between(object_a, object_b)
+   local mob
+
+   if radiant.util.is_a(object_a, Entity) then
+      mob = object_a:get_component('mob')
+      assert(mob)
+      object_a = mob:get_world_grid_location()
+   end
+   if radiant.util.is_a(object_b, Entity) then
+      mob = object_b:get_component('mob')
+      assert(mob)
+      object_b = mob:get_world_grid_location()
+   end
+   -- xxx: verify a and b are both Point3s...
+   return object_a:distance_to(object_b)
 end
 
 function entities.distance_between(object_a, object_b)
+   local mob
+
    if radiant.util.is_a(object_a, Entity) then
-      object_a = radiant.entities.get_world_grid_location(object_a)
+      mob = object_a:get_component('mob')
+      assert(mob)
+      object_a = mob:get_world_location()
    end
    if radiant.util.is_a(object_b, Entity) then
-      object_b = radiant.entities.get_world_grid_location(object_b)
+      mob = object_b:get_component('mob')
+      assert(mob)
+      object_b = mob:get_world_location()
    end
-   -- xxx: verify a and b are both Point3s...
+   -- xxx: verify a and b are both Point3fs...
    return object_a:distance_to(object_b)
 end
 

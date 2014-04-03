@@ -42,7 +42,7 @@ class OctTree {
       template <class T>
       bool CanStandOnOneOf(om::EntityPtr const& entity, std::vector<csg::Point<T,3>> const& points, csg::Point<T,3>& standablePoint) const;
 
-      bool ValidAdjacentMove(om::EntityPtr const& entity, bool const reversible, csg::Point3 const& fromLocation, csg::Point3 const& toLocation) const;
+      bool ValidMove(om::EntityPtr const& entity, bool const reversible, csg::Point3 const& fromLocation, csg::Point3 const& toLocation) const;
 
       void ShowDebugShapes(csg::Point3 const& pt, protocol::shapelist* msg);
 

@@ -22,11 +22,6 @@
 #include "protocol.h"
 
 using boost::asio::ip::tcp;
-namespace boost {
-   namespace program_options {
-      class options_description;
-   }
-}
 
 IN_RADIANT_OM_NAMESPACE(
    class Entity;
@@ -46,7 +41,6 @@ class WorkerScheduler;
 class BuildingScheduler;
 class PathFinder;
 class FollowPath;
-class GotoLocation;
 class Path;
 
 class Simulation

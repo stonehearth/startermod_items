@@ -16,4 +16,3 @@ local ai = stonehearth.ai
 return ai:create_compound_action(RunToLocation)
          :execute('stonehearth:create_proxy_entity', { location = ai.ARGS.location })
          :execute('stonehearth:goto_entity', { entity = ai.PREV.entity })
-

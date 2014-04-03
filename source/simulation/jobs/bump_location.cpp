@@ -9,8 +9,6 @@
 using namespace ::radiant;
 using namespace ::radiant::simulation;
 
-#define G_LOG(level)      LOG_CATEGORY(simulation.goto_location, level, GetName())
-
 std::ostream& simulation::operator<<(std::ostream& os, BumpLocation const& o)
 {
    return os << "[BumpLocation ...]";
@@ -30,42 +28,30 @@ bool BumpLocation::Work(platform::timer const& timer)
       return false;
    }
 
-   // stepSize should be no more than 1.0 to prevent skipping a voxel in the navgrid test
-   // unfortunately, entities can still wander through diagonal cracks
-   float const stepSize = 1.0;
-   csg::Point3f stepVector = csg::Point3f(vector_);
-   stepVector.Normalize();
-   stepVector.Scale(stepSize);
+   auto mob = entity->AddComponent<om::Mob>();
 
-   auto mob = entity->GetComponent<om::Mob>();
-   csg::Point3f currentLocation = mob->GetWorldLocation();
-   csg::Point3f const destination = currentLocation + vector_;
-   csg::Point3f nextLocation, resolvedLocation;
+   csg::Point3f const currentLocation = mob->GetWorldLocation();
+   csg::Point3 const currentGridLocation = csg::ToClosestInt(currentLocation);
 
-   float const distance = vector_.Length();
-   float remainingDistance = distance;
-   bool finished = false;
+   csg::Point3f const proposedLocation = currentLocation + vector_;
+   csg::Point3 const proposedGridLocation = csg::ToClosestInt(proposedLocation);
 
-   while (!finished && remainingDistance > 0) {
-      if (remainingDistance > stepSize) {
-         nextLocation = currentLocation + stepVector;
-         remainingDistance -= stepSize;
-      } else {
-         nextLocation = destination;
-         remainingDistance = 0;
-         finished = true;
-      }
+   std::vector<csg::Point3> points;
+   points = MovementHelpers::GetPathPoints(GetSim(), entity, currentGridLocation, proposedGridLocation);
 
-      bool passable = MovementHelpers::TestAdjacentMove(GetSim(), entity, true, currentLocation, nextLocation, resolvedLocation);
-
-      if (passable) {
-         currentLocation = resolvedLocation;
-      } else {
-         finished = true;
-      }
+   if (points.empty()) {
+      // could perform a subgrid move
+      return false;
    }
 
-   mob->MoveTo(currentLocation);
+   csg::Point3 lastPoint = points.back();
+   if (lastPoint == proposedGridLocation) {
+      // move to the proposed floating point location
+      mob->MoveTo(proposedLocation);
+   } else {
+      // proposed move was truncated, go as far as you can
+      mob->MoveToGridAligned(lastPoint);
+   }
 
-   return true;
+   return false;
 }

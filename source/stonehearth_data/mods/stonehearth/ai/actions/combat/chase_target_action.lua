@@ -18,7 +18,7 @@ function ChaseTarget:run(ai, entity, target, effect_name)
    end
 
    assert(target)
-   ai:execute('stonehearth:run_towards_entity', target, effect_name)
+   ai:execute('stonehearth:run_toward_entity', target, effect_name)
 
    --TODO: move to a death event, if such occurs.
    --Analytics:send_design_event('game:craft', entity, target)

@@ -9,7 +9,6 @@ add_library(simulation_jobs STATIC
             path_finder_dst.cpp
             entity_job_scheduler.cpp
             follow_path.cpp
-            goto_location.cpp
             bump_location.cpp
             lua_job.cpp
             movement_helpers.cpp

@@ -26,7 +26,7 @@ function FindPathToEntity:start_thinking(ai, entity, args)
       return
    end
 
-   local path = _radiant.sim.create_direct_path(entity, destination);
+   local path = _radiant.sim.create_direct_path(entity, destination, false);
    if path then
       ai:set_think_output({path = path})
       return

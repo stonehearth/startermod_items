@@ -3,7 +3,6 @@
 #include "lib/lua/script_host.h"
 #include "simulation/simulation.h"
 #include "simulation/jobs/follow_path.h"
-#include "simulation/jobs/goto_location.h"
 #include "simulation/jobs/bump_location.h"
 #include "simulation/jobs/movement_helpers.h"
 #include "simulation/jobs/lua_job.h"
@@ -108,24 +107,6 @@ std::shared_ptr<BumpLocation> Sim_CreateBumpLocation(lua_State *L, om::EntityRef
    return fp;
 }
 
-std::shared_ptr<GotoLocation> Sim_CreateGotoLocation(lua_State *L, om::EntityRef entity, float speed, const csg::Point3& location, float stop_distance, object arrived_cb)
-{
-   Simulation &sim = GetSim(L);
-   object cb(lua::ScriptHost::GetCallbackThread(L), arrived_cb);
-   std::shared_ptr<GotoLocation> fp(new GotoLocation(sim, entity, speed, csg::ToFloat(location), stop_distance, cb));
-   sim.AddTask(fp);
-   return fp;
-}
-
-std::shared_ptr<GotoLocation> Sim_CreateGotoEntity(lua_State *L, om::EntityRef entity, float speed, om::EntityRef target, float stop_distance, object arrived_cb)
-{
-   Simulation &sim = GetSim(L);
-   object cb(lua::ScriptHost::GetCallbackThread(L), arrived_cb);
-   std::shared_ptr<GotoLocation> fp(new GotoLocation(sim, entity, speed, target, stop_distance, cb));
-   sim.AddTask(fp);
-   return fp;
-}
-
 std::shared_ptr<PathFinder> Sim_CreatePathFinder(lua_State *L, om::EntityRef s, std::string name)
 {
    om::EntityPtr source = s.lock();
@@ -138,7 +119,7 @@ std::shared_ptr<PathFinder> Sim_CreatePathFinder(lua_State *L, om::EntityRef s, 
    return nullptr;
 }
 
-PathPtr Sim_CreateDirectPath(lua_State *L, om::EntityRef entityRef, om::EntityRef targetRef)
+PathPtr Sim_CreateDirectPath(lua_State *L, om::EntityRef entityRef, om::EntityRef targetRef, bool allowIncompletePath)
 {
    Simulation &sim = GetSim(L);
    om::EntityPtr entity = entityRef.lock();
@@ -153,20 +134,31 @@ PathPtr Sim_CreateDirectPath(lua_State *L, om::EntityRef entityRef, om::EntityRe
 
    std::vector<csg::Point3> points = MovementHelpers::GetPathPoints(sim, entity, start, end);
 
-   if (points.empty() || (points.back() != end)) {
+   if (points.empty()) {
+      return nullptr;
+   }
+
+   bool incompletePath = points.back() != end;
+
+   if (incompletePath && !allowIncompletePath) {
       return nullptr;
    }
 
    csg::Point3 poi;
-   csg::Point3 targetLocation = target->AddComponent<om::Mob>()->GetWorldGridLocation();
-   om::DestinationPtr destinationPtr = target->GetComponent<om::Destination>();
 
-   if (destinationPtr) {
-      poi = destinationPtr->GetPointOfInterest(end - targetLocation);
-      // transform poi to world coordinates
-      poi += targetLocation;
+   if (incompletePath) {
+      poi = points.back();
    } else {
-      poi = targetLocation;
+      csg::Point3 targetLocation = target->AddComponent<om::Mob>()->GetWorldGridLocation();
+      om::DestinationPtr destinationPtr = target->GetComponent<om::Destination>();
+
+      if (destinationPtr) {
+         poi = destinationPtr->GetPointOfInterest(end - targetLocation);
+         // transform poi to world coordinates
+         poi += targetLocation;
+      } else {
+         poi = targetLocation;
+      }
    }
 
    PathPtr path = std::make_shared<Path>(points, entityRef, targetRef, poi);
@@ -185,7 +177,6 @@ std::shared_ptr<LuaJob> Sim_CreateJob(lua_State *L, std::string const& name, obj
 DEFINE_INVALID_JSON_CONVERSION(Path);
 DEFINE_INVALID_JSON_CONVERSION(PathFinder);
 DEFINE_INVALID_JSON_CONVERSION(FollowPath);
-DEFINE_INVALID_JSON_CONVERSION(GotoLocation);
 DEFINE_INVALID_JSON_CONVERSION(BumpLocation);
 DEFINE_INVALID_JSON_CONVERSION(LuaJob);
 DEFINE_INVALID_JSON_CONVERSION(Simulation);
@@ -207,8 +198,6 @@ void lua::sim::open(lua_State* L, Simulation* sim)
             def("create_direct_path",       &Sim_CreateDirectPath),
             def("create_follow_path",       &Sim_CreateFollowPath),
             def("create_bump_location",     &Sim_CreateBumpLocation),
-            def("create_goto_location",     &Sim_CreateGotoLocation),
-            def("create_goto_entity",       &Sim_CreateGotoEntity),
             def("create_job",               &Sim_CreateJob),
             
             lua::RegisterTypePtr_NoTypeInfo<Path>("Path")
@@ -242,9 +231,6 @@ void lua::sim::open(lua_State* L, Simulation* sim)
             lua::RegisterTypePtr_NoTypeInfo<FollowPath>("FollowPath")
                .def("get_name", &FollowPath::GetName)
                .def("stop",     &FollowPath::Stop)
-            ,
-            lua::RegisterTypePtr_NoTypeInfo<GotoLocation>("GotoLocation")
-               .def("stop",     &GotoLocation::Stop)
             ,
             lua::RegisterTypePtr_NoTypeInfo<BumpLocation>("BumpLocation")
             ,
