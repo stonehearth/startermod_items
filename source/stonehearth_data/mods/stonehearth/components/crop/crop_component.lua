@@ -8,6 +8,21 @@ function CropComponent:initialize(entity, json)
    self._entity = entity
    self._resource_pairings = json.resource_pairings
    self._harvest_threshhold = json.harvest_threshhold
+
+   self._sv = self.__saved_variables:get_data()
+   if not self._sv._initialized then
+      self._sv._initialized = true
+      self._sv.harvestable = false
+   else
+      --We're loading
+      radiant.events.listen(radiant, 'radiant:game_loaded', function(e)
+            if self._sv.harvestable then
+               radiant.events.trigger(self._entity, 'stonehearth:crop_harvestable', {crop = self._entity})
+            end
+            return radiant.events.UNLISTEN
+         end)
+   end
+
    radiant.events.listen(entity, 'radiant:entity:post_create', self, self._on_create_complete)
 end
 
@@ -34,9 +49,9 @@ end
 
 --- As we grow, change the resources we yield and, if appropriate, command harvest
 function CropComponent:_on_grow_period(e)
-   local stage = e.stage
+   self._sv.stage = e.stage
    if e.stage then
-      local resource_pairing_uri = self._resource_pairings[stage]
+      local resource_pairing_uri = self._resource_pairings[self._sv.stage]
       if resource_pairing_uri then
          local resource_component = self._entity:get_component('stonehearth:resource_node')
          if resource_pairing_uri == "" then
@@ -44,7 +59,8 @@ function CropComponent:_on_grow_period(e)
          end
          resource_component:set_resource(resource_pairing_uri)
       end
-      if stage == self._harvest_threshhold then
+      if self._sv.stage == self._harvest_threshhold then
+         self._sv.harvestable = true
          radiant.events.trigger(self._entity, 'stonehearth:crop_harvestable', {crop = self._entity})
       end
    end
@@ -52,6 +68,12 @@ function CropComponent:_on_grow_period(e)
       --TODO: is growth ever really complete? Design the difference between "can't continue" and "growth complete"
       radiant.events.unlisten(self._entity, 'stonehearth:growing', self, self._on_grow_period)
    end
+   self.__saved_variables:mark_changed()
+end
+
+--- Returns true if it's time to harvest, false otherwise
+function CropComponent:is_harvestable()
+   return self._sv.harvestable
 end
 
 return CropComponent

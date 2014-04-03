@@ -106,7 +106,7 @@ end
 -- xxx: this is a stopgap until we can provide a better interface
 -- Yes, since I'm duplicating it for farmers
 -- TODO: fix and generalize
-function Town:create_farmer_task(activity_name, args)
+function Town:create_farmer_task(activity_name, args, player_init)
    return self._task_groups.farmers:create_task(activity_name, args)
 end
 
@@ -358,5 +358,45 @@ function Town:add_construction_project(building)
          building = building,
       })
 end
+
+--- Tell farmers to plan the crop_type in the designated locations
+-- @param faction: the group that should be planting the crop
+-- @param soil_plots: array of entities on top of which to plant the crop
+-- @param crop_type: the name of the thing to plant (ie, stonehearth:corn, etc)
+-- REVIEW QUESTION: this function seems like it would belong in FarmingService, but we need to save the
+-- task somewhere, and the best infrastructure is here. Long term solution? Factor out the save task ability?
+function Town:plant_crop(player_id, soil_plots, crop_type, player_speficied, auto_plant, auto_harvest, player_initialized)
+   if not soil_plots[1] or not crop_type then
+      return false
+   end
+   for i, plot in ipairs(soil_plots) do
+      --Tell the dirt plot whether the player wanted to autoreplant/autoharvest this plot
+      --TODO: right now these are always false for manual plant commands. Base this on the UI.
+      --TODO: maybe change this from the UI, instead of from the plant command
+      local dirt_plot_component = plot:get_component('stonehearth:dirt_plot')
+      dirt_plot_component:set_player_override(player_speficied, auto_plant, auto_harvest)
+
+      --TODO: store these tasks, so they can be cancelled
+      local overlay_effect = stonehearth.farming:get_overlay_for_crop(crop_type)
+      local task = self:create_farmer_task('stonehearth:plant_crop', {target_plot = plot, 
+                                                         dirt_plot_component = dirt_plot_component,
+                                                         crop_type = crop_type})
+                              :set_source(plot)
+                              :set_name('plant_crop')
+                              :set_priority(stonehearth.constants.priorities.farmer_task.PLANT)
+                              :once()
+                              
+      --TODO: track plant tasks so the most *recent* one is always executed
+      --Only track the task here if it was player initialized. Otherwise, the farm tracks it
+      --Only put toasts on player-init actions
+      if player_initialized then
+         task:add_entity_effect(plot, overlay_effect)
+         self:_remember_user_initiated_task(task, 'plant_crop', player_id, soil_plots, crop_type, player_speficied, auto_plant, auto_harvest, player_initialized)
+      end
+      task:start()
+   end
+   return true
+end
+
 return Town
 

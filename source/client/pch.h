@@ -5,7 +5,6 @@
 #include "radiant_stdutil.h"
 #include "client.h"
 #include <boost/filesystem.hpp>
-#include <boost/program_options/variables_map.hpp>
 #include <boost/algorithm/string/predicate.hpp>
 
 #endif // _RADIANT_CLIENT_PCH_H

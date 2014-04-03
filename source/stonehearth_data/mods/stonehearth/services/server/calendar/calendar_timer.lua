@@ -17,13 +17,14 @@ function CalendarTimer:is_active()
    return self._active
 end
 
+--This way you can get the new expire time during the callback, if so desired
 function CalendarTimer:fire()
-   self._fn()
    if self._repeating then
       self._expire_time = self._expire_time + self._duration
    else
       self._active = false
    end
+   self._fn()
 end
 
 function CalendarTimer:get_expire_time()

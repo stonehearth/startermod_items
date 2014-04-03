@@ -68,7 +68,6 @@
 using namespace ::radiant;
 using namespace ::radiant::client;
 namespace fs = boost::filesystem;
-namespace po = boost::program_options;
 namespace proto = ::radiant::tesseract::protocol;
 
 static const std::regex call_path_regex__("/r/call/?");

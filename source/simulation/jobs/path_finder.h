@@ -10,6 +10,7 @@
 #include "csg/color.h"
 #include "om/region.h"
 #include "path_finder_node.h"
+#include <set>
 
 BEGIN_RADIANT_SIMULATION_NAMESPACE
 

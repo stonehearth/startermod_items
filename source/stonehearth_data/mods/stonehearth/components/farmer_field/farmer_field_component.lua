@@ -17,8 +17,10 @@ function FarmerFieldComponent:initialize(entity, json)
    self._sv = self.__saved_variables:get_data()   
    self.__saved_variables:set_controller(self)
 
-   --TODO: add some of these things to CREATE so they can be loaded properly
+   self._till_tasks = {}
+
    if not self._sv._initialized then
+      -- creating for the 1st time...
       self._sv._initialized = true
       self._sv.size = {0, 0}
       self._sv.location = nil
@@ -33,13 +35,61 @@ function FarmerFieldComponent:initialize(entity, json)
       self._sv.curr_crop = 1
       self._sv.auto_harvest = true
       self._sv.auto_replant = true
+   else 
+      -- loading, wait for everything to be loaded to create the tasks
+      radiant.events.listen(radiant, 'radiant:game_loaded', function(e)
+            self:_re_init_field()
+            return radiant.events.UNLISTEN
+         end)
    end
    --self.__saved_variables:mark_changed()
    --TODO: listen on changes to faction, like stockpile?
 end
 
+--- Recreate the currently running tasks from the existing state
+--  TODO: how to hang onto the user-generated tasks if the farm isn't present?
+function FarmerFieldComponent:_re_init_field()
+   local town = stonehearth.town:get_town(self._entity)
+   for x=1, self._sv.size[1] do
+      self._till_tasks[x] = {}
+      for y=1, self._sv.size[2] do
+         local field_spacer = self._sv.contents[x][y].plot
+
+         --Listen for when stuff happens on this field
+         radiant.events.listen(field_spacer, 'stonehearth:crop_removed', self, self._on_crop_removed)
+
+         --Has this spot been tilled yet? If not, retill 
+         if not self._sv.contents[x][y].till_task_complete then
+            --We still have to till this part of the field
+            self._till_tasks[x][y] = town:create_farmer_task('stonehearth:till_field', { field_spacer = field_spacer, field = self })
+                                    :set_source(field_spacer)
+                                    :set_name('till field task')
+                                    :set_priority(stonehearth.constants.priorities.farmer_task.TILL)
+                                    :once()
+                                    :start()
+         end
+
+         --If this spot is empty of contents, determine if we should replant something
+         local dirt_plot_component = field_spacer:get_component('stonehearth:dirt_plot')
+         local plant = dirt_plot_component:get_contents()
+         if not plant then
+            local e = {}
+            e.plot_entity = field_spacer
+            self:_determine_replant(e)
+         else
+            --If a plant is harvestable, it should handle the harvest itself.
+            --there is a plant! Should we harvest it yet?
+            --local crop_component = plant:get_component('stonehearth:crop')
+            --if crop_component:is_harvestable() then
+            --   self:determine_auto_harvest(dirt_plot_component, plant)
+            --end
+         end
+
+      end
+   end
+end
+
 --- On destroy, remove all listeners from the plots
---  TODO: remove tasks also?
 function FarmerFieldComponent:destroy()
    --Unlisten on all the field plot things
    for x=1, self._sv.size[1] do
@@ -48,7 +98,7 @@ function FarmerFieldComponent:destroy()
          local dirt_plot_component = field_spacer:get_component('stonehearth:dirt_plot')
          dirt_plot_component:set_field(nil, nil)
          radiant.events.unlisten(field_spacer, 'stonehearth:crop_removed', self, self._on_crop_removed)
-         local till_task =  self._sv.contents[x][y].till_task
+         local till_task =  self._till_tasks[x][y]
          if till_task then
             till_task:destroy()
             till_task = nil
@@ -65,6 +115,7 @@ function FarmerFieldComponent:create_dirt_plots(town, location, size)
 
    for x=1, self._sv.size[1] do
       self._sv.contents[x] = {}
+      self._till_tasks[x] = {}
       for y=1, self._sv.size[2] do
          --init the dirt plot
          local field_spacer = self:_init_dirt_plot(location, x, y)
@@ -72,7 +123,8 @@ function FarmerFieldComponent:create_dirt_plots(town, location, size)
          self._sv.contents[x][y].plot = field_spacer
 
          -- Tell the farmer scheduler to till this
-         self._sv.contents[x][y].till_task = town:create_farmer_task('stonehearth:till_field', { field_spacer = field_spacer, field = self })
+         self._sv.contents[x][y].till_task_complete = false
+         self._till_tasks[x][y] = town:create_farmer_task('stonehearth:till_field', { field_spacer = field_spacer, field = self })
                                    :set_source(field_spacer)
                                    :set_name('till field task')
                                    :set_priority(stonehearth.constants.priorities.farmer_task.TILL)
@@ -84,12 +136,13 @@ function FarmerFieldComponent:create_dirt_plots(town, location, size)
 end
 
 --- Init the dirt plot's model variant, and place it in the world.
+--  The dirt plot starts invisible, and then once tilled, appears.
 function FarmerFieldComponent:_init_dirt_plot(location, x, y)
    local field_spacer = radiant.entities.create_entity('stonehearth:tilled_dirt') 
    local render_info = field_spacer:add_component('render_info')
    render_info:set_model_variant('untilled_ground')
    local dirt_plot_component = field_spacer:get_component('stonehearth:dirt_plot')
-   dirt_plot_component:set_field(self, {x=x, y=y})
+   dirt_plot_component:set_field(self._entity, {x=x, y=y})
 
    local grid_location = Point3(location.x + x-1, 0, location.z + y-1)
    radiant.terrain.place_entity(field_spacer, grid_location)
@@ -140,7 +193,7 @@ function FarmerFieldComponent:_on_crop_removed(e)
 end
 
 --- Given the field and dirt data, replant the last crop
---  Always do whatever is set on the plot, if anything
+--  Always follow the policy set on the plot, if anything
 --  If nothing is set on the plot, follow the policy on the field
 --  If the next plant is nil, then don't plant anything. 
 function FarmerFieldComponent:_determine_replant(e)
@@ -163,7 +216,7 @@ function FarmerFieldComponent:_determine_replant(e)
    --If we're supposed to replant, and if we have a plant to replant, do replant
    if do_replant and next_plant then
       local field_location = e.location
-      farming_service:plant_crop(radiant.entities.get_player_id(self._entity), {plot_entity}, next_plant, player_override, do_replant, do_auto_harvest)
+      farming_service:plant_crop(radiant.entities.get_player_id(self._entity), {plot_entity}, next_plant, player_override, do_replant, do_auto_harvest, false)
    end
 end
 
@@ -200,6 +253,10 @@ function FarmerFieldComponent:till_location(field_spacer)
 
    --TODO: set moisture correctly
    dirt_plot_component:set_fertility_moisture(local_fertility, 50)
+
+   --TODO: mark tilled task complete in the index
+   local location = dirt_plot_component:get_location()
+   self._sv.contents[location.x][location.y].till_task_complete = true
 
    --Check if we should automatically plant something here
    --(TODO: for now, initial planting handled by the UI)

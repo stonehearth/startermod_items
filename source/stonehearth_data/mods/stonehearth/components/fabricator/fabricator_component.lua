@@ -7,7 +7,7 @@ local Color4 = _radiant.csg.Color4
 local log = radiant.log.create_logger('commands')
 
 local FabricatorComponent = class()
-local log = radiant.log.create_logger('build')
+local log = radiant.log.create_logger('fabricator')
 
 -- this is the component which manages the fabricator entity.
 function FabricatorComponent:initialize(entity, json)
@@ -15,9 +15,19 @@ function FabricatorComponent:initialize(entity, json)
 end
 
 function FabricatorComponent:destroy()
+   log:debug('destroying fabricator component for %s', self._entity)
+   
    if self._fabricator then
       self._fabricator:destroy()
       self._fabricator = nil
+   end
+   if self._scaffolding_blueprint then
+      radiant.entities.destroy_entity(self._scaffolding_blueprint)
+      self._scaffolding_blueprint = nil
+   end
+   if self._scaffolding_fabricator then
+      radiant.entities.destroy_entity(self._scaffolding_fabricator)
+      self._scaffolding_fabricator = nil
    end
 end
 
@@ -92,7 +102,7 @@ function FabricatorComponent:_add_scaffolding_to_project(project, blueprint, nor
    radiant.entities.set_player_id(scaffolding, project)
 
    -- create a fabricator entity to build the scaffolding
-   local name = string.format('scaffolding for %s', self.name)
+   local name = string.format('[scaffolding for %s]', self.name)
    local fabricator = radiant.entities.create_entity()
    fabricator:set_debug_text('fabricator for scaffolding of ' .. project:get_debug_text())
    fabricator:add_component('mob'):set_transform(transform)
@@ -106,6 +116,9 @@ function FabricatorComponent:_add_scaffolding_to_project(project, blueprint, nor
    -- add the fabricator and the project to our entity container so they get rendered
    self._entity:add_component('entity_container')
                   :add_child(fabricator)
+
+   self._scaffolding_blueprint = scaffolding
+   self._scaffolding_fabricator = fabricator
 end
 
 return FabricatorComponent

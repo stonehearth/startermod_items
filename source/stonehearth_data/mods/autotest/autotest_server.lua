@@ -24,8 +24,10 @@ function autotest.fail(format, ...)
 end
 
 function autotest.success()
-   _success = true
-   _test_thread:terminate()
+   if not _test_thread:is_finished() then
+      _success = true
+      _test_thread:terminate()
+   end
 end
 
 function autotest.suspend()
@@ -99,6 +101,7 @@ local function _run_test(fn)
    autotest.env.clear()
    _test_thread:start()
    _test_thread:wait()
+   autotest.env.clear()
    _test_thread = nil
    if not _success then
       autotest.fail('test failed to call :success() or :fail()')

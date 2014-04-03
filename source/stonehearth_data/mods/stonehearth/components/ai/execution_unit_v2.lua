@@ -194,7 +194,7 @@ function ExecutionUnitV2:_clear_think_output()
 end
 
 function ExecutionUnitV2:_stop_thinking()
-   if self:in_state(ABORTING, ABORTED, DEAD) then
+   if self:in_state(ABORTED, DEAD) then
       self._log:detail('ignoring "stop_thinking" in state "%s"', self._state)
       return
    end
@@ -204,6 +204,9 @@ function ExecutionUnitV2:_stop_thinking()
    end
    if self:in_state('starting', 'started') then
       return self:_stop_thinking_from_started()
+   end
+   if self:in_state('aborting') then
+      return self:_stop_thinking_from_aborting()
    end
    if self:in_state('stopping', 'stopped', 'dead') then
       assert(not self._thinking)
@@ -240,7 +243,7 @@ function ExecutionUnitV2:_run()
 end
 
 function ExecutionUnitV2:_stop()
-   if self:in_state(ABORTING, ABORTED, DEAD) then
+   if self:in_state(ABORTED, DEAD) then
       self._log:detail('ignoring "stop" in state "%s"', self._state)
       return
    end
@@ -259,6 +262,9 @@ function ExecutionUnitV2:_stop()
    end
    if self._state == 'finished' then
       return self:_stop_from_finished()
+   end
+   if self._state == 'aborting' then
+      return self:_stop_from_aborting()
    end
    if self:in_state('stopped', 'stopping', 'stop_thinking') then
       return -- nop
@@ -352,6 +358,12 @@ function ExecutionUnitV2:_stop_thinking_from_started()
    -- stay in the started stated.
 end
 
+function ExecutionUnitV2:_stop_thinking_from_aborting()
+   if self._thinking then
+      self:_do_stop_thinking()
+   end
+end
+
 function ExecutionUnitV2:_start_from_ready()
    assert(self._thinking)
 
@@ -394,6 +406,11 @@ function ExecutionUnitV2:_stop_from_starting()
 end
 
 function ExecutionUnitV2:_stop_from_started()
+   assert(not self._thinking)
+   self:_do_stop()
+end
+
+function ExecutionUnitV2:_stop_from_aborting()
    assert(not self._thinking)
    self:_do_stop()
 end
@@ -622,7 +639,7 @@ function ExecutionUnitV2:__abort(reason, ...)
    else
       self._log:debug('not on the right thread to abort.  thunking over...')
       self:_set_state(ABORTING)
-      self._thread:async_interrupt(function()
+      self._thread:interrupt(function()
             self._frame:abort()
             radiant.not_reached('abort does not return')
          end)

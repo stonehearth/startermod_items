@@ -2,8 +2,6 @@
 #define _RADIANT_CLIENT_CLIENT_H
 
 #include <boost/filesystem.hpp>
-#include <boost/program_options.hpp>
-#include <boost/program_options/variables_map.hpp>
 #include <boost/algorithm/string/predicate.hpp>
 #include <unordered_map>
 #include <mutex>

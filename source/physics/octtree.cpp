@@ -198,38 +198,66 @@ bool OctTree::CanStandOnOneOf(om::EntityPtr const& entity, std::vector<csg::Poin
 template bool OctTree::CanStandOnOneOf(om::EntityPtr const&, std::vector<csg::Point3> const& points, csg::Point3&) const;
 template bool OctTree::CanStandOnOneOf(om::EntityPtr const&, std::vector<csg::Point3f> const& points, csg::Point3f&) const;
 
-// toLocation must be in one of the 8 adjacent cells to fromLocation
-bool OctTree::ValidAdjacentMove(om::EntityPtr const& entity, bool const reversible,
-                                csg::Point3 const& fromLocation, csg::Point3 const& toLocation) const
+bool OctTree::ValidMove(om::EntityPtr const& entity, bool const reversible,
+                        csg::Point3 const& fromLocation, csg::Point3 const& toLocation) const
 {
-   DEBUG_ONLY(
-      // consider returning false if these are not true
-      // keeping it DEBUG_ONLY for now to improve performance
-      float lengthSquared = (toLocation - fromLocation).LengthSquared();
-      ASSERT(lengthSquared > 0 && lengthSquared <= 2);
-      ASSERT(ValidElevationChange(entity, reversible, fromLocation, toLocation));
-      ASSERT(navgrid_.CanStandOn(entity, toLocation));
-      ASSERT(navgrid_.CanStandOn(entity, fromLocation));
-   );
+   int const dx = toLocation.x - fromLocation.x;
+   int const dy = toLocation.y - fromLocation.y;
+   int const dz = toLocation.z - fromLocation.z;
 
-   if (toLocation.x != fromLocation.x || toLocation.z != fromLocation.z) {
-      return ValidDiagonalMove(entity, fromLocation, toLocation);
+   // check if moving to one of the 8 adjacent x,z cells (or staying in the same cell)
+   if (dx*dx > 1 || dz*dz > 1) {
+      return false;
    }
+
+   // check both locations are standable
+   if (!navgrid_.CanStandOn(entity, toLocation) || !navgrid_.CanStandOn(entity, fromLocation)) {
+      return false;
+   }
+
+   // check elevation changes
+   if (dy != 0) {
+      if (!ValidElevationChange(entity, reversible, fromLocation, toLocation)) {
+         return false;
+      }
+   }
+
+   // if diagonal, check diagonal constraints
+   if (dx != 0 && dz != 0) {
+      if (!ValidDiagonalMove(entity, fromLocation, toLocation)) {
+         return false;
+      }
+   }
+
    return true;
 }
 
 bool OctTree::ValidElevationChange(om::EntityPtr const& entity, bool const reversible, csg::Point3 const& fromLocation, csg::Point3 const& toLocation) const
 {
-   int const maxClimb = 1;
-   int maxDrop = -2;
+   // these constants should probably be exposed by the class
+   static int const maxClimbUp = 1;
+   static int const maxClimbDown = -maxClimbUp;
+   static int const maxDrop = -2;
 
-   if (reversible) {
-      maxDrop = -maxClimb;
+   int const dy = toLocation.y - fromLocation.y;
+
+   if (dy > maxClimbUp) {
+      return false;
    }
 
-   if (toLocation.y - fromLocation.y > maxClimb ||
-       toLocation.y - fromLocation.y < maxDrop) {
-      return false;
+   int const dx = toLocation.x - fromLocation.x;
+   int const dz = toLocation.z - fromLocation.z;
+
+   // if climbing (no horizontal movement) or if reversible move
+   if ((dx == 0 && dz == 0) || reversible) {
+      if (dy < maxClimbDown) {
+         return false;
+      }
+   } else {
+      // drops must be adjacent and are non-reversible
+      if (dy < maxDrop) {
+         return false;
+      }
    }
 
    return true;

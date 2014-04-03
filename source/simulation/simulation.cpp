@@ -1,6 +1,5 @@
 #include "pch.h"
 #include <sstream>
-#include <boost/program_options.hpp>
 #include <boost/algorithm/string.hpp>
 #include "core/config.h"
 #include "resources/manifest.h"
@@ -9,7 +8,6 @@
 #include "simulation.h"
 #include "jobs/path_finder.h"
 #include "jobs/follow_path.h"
-#include "jobs/goto_location.h"
 #include "jobs/entity_job_scheduler.h"
 #include "resources/res_manager.h"
 #include "dm/store.h"
@@ -54,7 +52,6 @@ using namespace ::radiant;
 using namespace ::radiant::simulation;
 
 namespace proto = ::radiant::tesseract::protocol;
-namespace po = boost::program_options;
 
 #define SIM_LOG(level)              LOG(simulation.core, level)
 #define SIM_LOG_GAMELOOP(level)     LOG_CATEGORY(simulation.core, level, "simulation.core (time left: " << game_loop_timer_.remaining() << ")")

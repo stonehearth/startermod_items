@@ -15,6 +15,23 @@ CreateProxyEntity.think_output = {
 CreateProxyEntity.version = 2
 CreateProxyEntity.priority = 1
 
+function create_origin_region()
+   local region = _radiant.sim.alloc_region()
+   region:modify(
+      function(region3)
+         region3:add_unique_cube(
+            Cube3(
+               Point3(0, 0, 0),
+               Point3(1, 1, 1)
+            )
+         )
+      end
+   )
+   return region
+end
+
+local origin_region = create_origin_region()
+
 function CreateProxyEntity:start_thinking(ai, entity, args)
    -- generally speaking, going directly to a location is a strange
    -- thing to do.  why did we not path find to an entity?  why is
@@ -33,9 +50,17 @@ function CreateProxyEntity:start_thinking(ai, entity, args)
    -- so go ahead and make a new one.
    
    self:stop()
+
    self._proxy_entity = radiant.entities.create_entity()
-   self._proxy_entity:set_debug_text('goto location proxy entity')
+   self._proxy_entity:set_debug_text('go towards location proxy entity')
+
+   -- make the adjacent the same as the entity location, so that we actually walk to the entity location
+   local destination = self._proxy_entity:add_component('destination')
+   destination:set_region(origin_region)
+   destination:set_adjacent(origin_region)
+
    radiant.terrain.place_entity(self._proxy_entity, args.location)
+
    ai:set_think_output({ entity = self._proxy_entity })
 end
 

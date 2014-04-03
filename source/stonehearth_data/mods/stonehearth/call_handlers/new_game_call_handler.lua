@@ -138,11 +138,11 @@ function NewGameCallHandler:choose_camp_location(session, response)
    -- the entity that we're supposed to create whenever the user clicks.
    self._input_handlers = stonehearth.input:push_handlers(
       function(e)
-         return self:_on_mouse_event(e.mouse, response)
+         return self:_on_mouse_event(e, response)
       end,
 
       function(e)
-         return self:_on_keyboard_event(e.keyboard, response)
+         return self:_on_keyboard_event(e, response)
       end)
 end
 
@@ -156,7 +156,7 @@ function NewGameCallHandler:_on_mouse_event(e, response)
    -- s.location contains the address of the terrain block that the mouse
    -- is currently pointing to.  if there isn't one, move the workshop
    -- way off the screen so it won't get rendered.
-   local pt = s:is_valid() and s:intersection_of(0) or Point3(0, -100000, 0)
+   local pt = s:is_valid() and s:brick_of(0) or Point3(0, -100000, 0)
 
    pt.y = pt.y + 1
    self._cursor_entity:add_component('mob'):set_location_grid_aligned(pt)
@@ -164,7 +164,7 @@ function NewGameCallHandler:_on_mouse_event(e, response)
    -- if the mouse button just transitioned to up and we're actually pointing
    -- to a box on the terrain, send a message to the server to create the
    -- entity.  this is done by posting to the correct route.
-   if e:up(1) and s.location then
+   if e:up(1) and s:is_valid() then
       -- destroy our capture object to release the mouse back to the client.  don't
       -- destroy the authoring object yet!  doing so now will result in a brief period
       -- of time where the server side object has not yet been created, yet the client

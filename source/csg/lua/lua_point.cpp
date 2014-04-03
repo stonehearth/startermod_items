@@ -24,6 +24,11 @@ bool Point_IsAdjacentTo(T const& a, T const& b)
    return csg::IsZero(static_cast<float>(sum - 1));
 }
 
+csg::Point3 Point_ToPoint3(const csg::Point3f& p)
+{
+   return csg::ToInt(p);
+}
+
 template <typename T>
 static luabind::class_<T> RegisterCommon(struct lua_State* L, const char* name)
 {
@@ -84,7 +89,8 @@ scope LuaPoint::RegisterLuaTypes(lua_State* L)
       Register2<Point2f>(L, "Point2f"),
       Register3<Point3 >(L, "Point3"),
       Register3<Point3f>(L, "Point3f")
-         .def("lerp",   (Point3f (*)(Point3f const& a, Point3f const& b, float alpha))&csg::Interpolate),
+         .def("lerp",   (Point3f (*)(Point3f const& a, Point3f const& b, float alpha))&csg::Interpolate)
+         .def("to_point3", &Point_ToPoint3),
       lua::RegisterType<Transform>("Transform")
          .def("lerp",   (Transform (*)(Transform const& a, Transform const& b, float alpha))&csg::Interpolate),
       lua::RegisterType<Color3>("Color3")

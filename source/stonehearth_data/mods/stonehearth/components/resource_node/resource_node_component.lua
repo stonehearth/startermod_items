@@ -3,16 +3,22 @@ local ResourceNodeComponent = class()
 function ResourceNodeComponent:initialize(entity, json)
    self._entity = entity
    self._durability = json.durability or 1
-   self._resource = json.resource
    self._harvester_effect = json.harvester_effect
    self._harvest_profession = json.harvest_profession
    self._description = json.description
    self._harvest_overlay_effect = json.harvest_overlay_effect
+
+   self._sv = self.__saved_variables:get_data()
+   if not self._sv._initialized then
+      self._sv._initialized = true
+      self._sv.resource = json.resource
+   end
+
 end
 
 -- Update the resource spawned by this entity
 function ResourceNodeComponent:set_resource(resource)
-   self._resource = resource
+   self._sv.resource = resource
 end
 
 function ResourceNodeComponent:get_harvest_overlay_effect()
@@ -33,8 +39,8 @@ end
 
 -- If the resource is nil, the object will still eventually disappear
 function ResourceNodeComponent:spawn_resource(collect_location)
-   if self._resource then
-      local item = radiant.entities.create_entity(self._resource)
+   if self._sv.resource then
+      local item = radiant.entities.create_entity(self._sv.resource)
       collect_location.x = collect_location.x + math.random(-3, 3)
       collect_location.z = collect_location.z + math.random(-3, 3)      
       radiant.terrain.place_entity(item, collect_location)

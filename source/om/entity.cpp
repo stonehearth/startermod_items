@@ -42,18 +42,24 @@ Entity::~Entity()
 void Entity::Destroy()
 {
    for (const auto& entry : lua_components_.GetContents()) {
-      luabind::object obj = entry.second;
-      lua_State* L = lua::ScriptHost::GetCallbackThread(obj.interpreter());
-      try {
-         luabind::object destroy = obj["destroy"];
-         if (destroy) {
-            E_LOG(3) << "destroying component " << entry.first;
-            luabind::object cb(L, destroy);
-            cb(obj);
-         }
-      } catch (std::exception const& e) {
-         E_LOG(1) << "error destroying component '" << entry.first << "':" << e.what();
+      DestroyLuaComponent(entry.first, entry.second);
+   }
+}
+
+void Entity::DestroyLuaComponent(std::string const& name, luabind::object obj)
+{
+   lua_State* L = lua::ScriptHost::GetCallbackThread(obj.interpreter());
+   try {
+      luabind::object destroy = obj["destroy"];
+      if (destroy) {
+         E_LOG(3) << "destroying component " << name;
+         luabind::object cb(L, destroy);
+         cb(obj);
+      } else {
+         E_LOG(log::DEBUG) << "component " << name << " does not implement destroy";
       }
+   } catch (std::exception const& e) {
+      E_LOG(1) << "error destroying component '" << name << "':" << e.what();
    }
 }
 
@@ -158,7 +164,12 @@ template <class T> std::shared_ptr<T> Entity::GetComponent() const
 void Entity::RemoveComponent(std::string const& name)
 {
    components_.Remove(name);
-   lua_components_.Remove(name);
+
+   auto i = lua_components_.find(name);
+   if (i != lua_components_.end()) {
+      DestroyLuaComponent(i->first, i->second);
+      lua_components_.Remove(i);
+   }
 }
 
 #define OM_OBJECT(Clas, lower) \

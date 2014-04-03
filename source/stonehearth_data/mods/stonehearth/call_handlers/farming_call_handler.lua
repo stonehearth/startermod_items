@@ -87,7 +87,7 @@ function FarmingCallHandler:plant_crop(session, response, soil_plot, crop_type, 
       crop_type = 'stonehearth:turnip_crop'
    end
 
-   return farming_service:plant_crop(session.player_id, soil_plots, crop_type, player_speficied, auto_plant, auto_harvest)
+   return farming_service:plant_crop(session.player_id, soil_plots, crop_type, player_speficied, auto_plant, auto_harvest, true)
 end
 
 --TODO: Send an array of soil_plots and the type of the crop for batch planting

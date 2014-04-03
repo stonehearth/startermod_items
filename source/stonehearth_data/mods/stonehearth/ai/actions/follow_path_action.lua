@@ -22,13 +22,14 @@ end
 function FollowPathAction:run(ai, entity, args)
    local path = args.path
    local log = ai:get_log()
+   self._ai = ai   
    
    log:detail('following path: %s', path)
    if path:is_empty() then
       log:detail('path is empty.  returning')
       return
    end
-   
+
    radiant.events.listen(entity, 'stonehearth:posture_changed', self, self._on_posture_change)
 
    local speed = radiant.entities.get_attribute(entity, 'speed')
@@ -62,7 +63,7 @@ function FollowPathAction:run(ai, entity, args)
 end
 
 function FollowPathAction:_on_posture_change()
-   ai:abort('posture changed while following path')
+   self._ai:abort('posture changed while following path')
 end
 
 function FollowPathAction:stop(ai, entity)

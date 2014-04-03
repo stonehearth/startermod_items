@@ -159,7 +159,7 @@ bool MovementHelpers::TestAdjacentMove(Simulation& sim, om::EntityPtr const& ent
    }
 
    // enforce rules for adjacent moves
-   if (!octTree.ValidAdjacentMove(entity, reversible, csg::ToClosestInt(fromLocation), csg::ToClosestInt(finalToLocation))) {
+   if (!octTree.ValidMove(entity, reversible, csg::ToClosestInt(fromLocation), csg::ToClosestInt(finalToLocation))) {
       return false;
    }
 
@@ -170,6 +170,8 @@ bool MovementHelpers::TestAdjacentMove(Simulation& sim, om::EntityPtr const& ent
 template bool MovementHelpers::TestAdjacentMove(Simulation&, om::EntityPtr const&, bool const, csg::Point3 const&, csg::Point3 const&, csg::Point3&);
 template bool MovementHelpers::TestAdjacentMove(Simulation&, om::EntityPtr const&, bool const, csg::Point3f const&, csg::Point3f const&, csg::Point3f&);
 
+// returns the points on the direct line path from start to end
+// if end is not reachable, returns as far as it could go
 // uses the version of Bresenham's line algorithm from Wikipedia
 std::vector<csg::Point3> MovementHelpers::GetPathPoints(Simulation& sim, om::EntityPtr const& entity, csg::Point3 const& start, csg::Point3 const& end)
 {

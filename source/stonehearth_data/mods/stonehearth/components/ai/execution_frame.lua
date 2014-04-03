@@ -66,7 +66,7 @@ end
 
 function ExecutionFrame:_on_position_changed()
    if self._last_captured_location then
-      local distance = radiant.entities.distance_between(self._entity, self._last_captured_location)
+      local distance = radiant.entities.grid_distance_between(self._entity, self._last_captured_location)
       if distance > 3 then
          self._log:detail('entity moved!  going to restart thinking... (state:%s)', self._state)
          self:_restart_thinking()
@@ -337,7 +337,7 @@ function ExecutionFrame:on_ready(ready_cb)
             -- an action that's running this frame (ending up stopping the frame before the 
             -- thread which wants the on_ready() notification actually gets scheduled!)
             self._log:detail('ai thread is not running trying to deliver on_ready(%s) notification.  thunking.', arg)
-            calling_thread:sync_interrupt(function()
+            calling_thread:interrupt(function()
                   assert(self._ready_cb)
                   self._log:detail('calling on_ready(%s) notification with thunk', arg)
                   ready_cb(self, think_output)
@@ -556,7 +556,7 @@ function ExecutionFrame:_unit_ready_from_running(unit, think_output)
       assert(not self._thread:get_thread_data('stonehearth:unwind_to_frame'))
       self._thread:set_thread_data('stonehearth:unwind_to_frame', self)
       self._log:detail('thunking back to run thread to unwind stack.')
-      self._thread:sync_interrupt(function()
+      self._thread:interrupt(function()
             local unwind_frame = self._thread:get_thread_data('stonehearth:unwind_to_frame')
             assert(unwind_frame, 'entered unwind frame interrupt with no unwind frame!')
             self._log:detail('starting unwind to frame %s', unwind_frame._activity_name)
@@ -903,7 +903,7 @@ function ExecutionFrame:_remove_action_from_running(unit)
    self._log:detail('_remove_action_from_running (state: %s)', self._state)
    if unit == self._active_unit then
       if not self._aborting then
-         self._thread:sync_interrupt(function()
+         self._thread:interrupt(function()
             self:abort()
          end)
       end
