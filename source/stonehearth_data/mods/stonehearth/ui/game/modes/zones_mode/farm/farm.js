@@ -56,7 +56,7 @@ App.StonehearthFarmView = App.View.extend({
       });
 
       this.$('button.ok').click(function() {
-         radiant.call('radiant:play_sound', 'stonehearth:sounds:ui:carpenter_menu:small_click' );
+         radiant.call('radiant:play_sound', 'stonehearth:sounds:ui:start_menu:submenu_select' );
          self.destroy();
       });
 
