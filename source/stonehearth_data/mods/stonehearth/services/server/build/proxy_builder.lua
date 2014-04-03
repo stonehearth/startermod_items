@@ -32,6 +32,10 @@ function ProxyBuilder:set_brush(type, uri)
 end
 
 function ProxyBuilder:_clear()
+   if self._input_handlers then
+      stonehearth.input:remove_handlers(self._input_handlers)
+      self._input_handlers = nil
+   end
    self._root_proxy:destroy()
    self._root_proxy = ProxyContainer(nil)
    self._columns = nil
@@ -198,18 +202,10 @@ function ProxyBuilder:publish()
    --go away till the fabricator appears, but the gap is so long
    --it looks like a bug
    self:_clear()
-   if self._input_capture then
-      self._input_capture:destroy()
-      self._input_capture = nil
-   end
 end
 
 function ProxyBuilder:cancel()
    self:_clear()
-   if self._input_handlers then
-      stonehearth.input:remove_handlers(self._input_handlers)
-      self._input_handlers = nil
-   end
 end
 
 function ProxyBuilder:rotate()

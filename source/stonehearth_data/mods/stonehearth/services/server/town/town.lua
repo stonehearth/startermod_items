@@ -382,16 +382,18 @@ function Town:plant_crop(player_id, soil_plots, crop_type, player_speficied, aut
                                                          dirt_plot_component = dirt_plot_component,
                                                          crop_type = crop_type})
                               :set_source(plot)
-                              :add_entity_effect(plot, overlay_effect)
                               :set_name('plant_crop')
                               :set_priority(stonehearth.constants.priorities.farmer_task.PLANT)
                               :once()
-                              :start()
+                              
       --TODO: track plant tasks so the most *recent* one is always executed
       --Only track the task here if it was player initialized. Otherwise, the farm tracks it
+      --Only put toasts on player-init actions
       if player_initialized then
+         task:add_entity_effect(plot, overlay_effect)
          self:_remember_user_initiated_task(task, 'plant_crop', player_id, soil_plots, crop_type, player_speficied, auto_plant, auto_harvest, player_initialized)
       end
+      task:start()
    end
    return true
 end
