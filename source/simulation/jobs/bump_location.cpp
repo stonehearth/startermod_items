@@ -56,7 +56,7 @@ bool BumpLocation::Work(platform::timer const& timer)
          finished = true;
       }
 
-      bool passable = MovementHelpers::TestMoveXZ(GetSim(), entity, currentLocation, nextLocation, resolvedLocation);
+      bool passable = MovementHelpers::TestAdjacentMove(GetSim(), entity, true, currentLocation, nextLocation, resolvedLocation);
 
       if (passable) {
          currentLocation = resolvedLocation;

@@ -73,7 +73,6 @@ bool GotoLocation::Work(const platform::timer &timer)
    }
 
    // stepSize should be no more than 1.0 to prevent skipping a voxel in the navgrid test
-   // unfortunately, entities can still wander through diagonal cracks
    float const stepSize = 1.0;
    float const maxDistance = speed_ * GetSim().GetBaseWalkSpeed();
    float remainingDistance = maxDistance;
@@ -105,7 +104,7 @@ bool GotoLocation::Work(const platform::timer &timer)
 
       csg::Point3f next_location = current_location + direction * moveDistance;
       csg::Point3f resolvedLocation;
-      bool passable = MovementHelpers::TestMoveXZ(GetSim(), entity, current_location, next_location, resolvedLocation);
+      bool passable = MovementHelpers::TestAdjacentMove(GetSim(), entity, true, current_location, next_location, resolvedLocation);
 
       if (passable) {
          mob->MoveTo(resolvedLocation);

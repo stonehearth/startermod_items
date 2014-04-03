@@ -20,6 +20,7 @@
 #include "core/slot.h"
 #include "csg/region_tools.h"
 #include "glfw3.h"
+#include "client/renderer/raycast_result.h"
 
 using namespace ::radiant;
 using namespace ::radiant::client;
@@ -68,6 +69,21 @@ luabind::object Client_GetObject(lua_State* L, object id)
 void Client_SelectEntity(lua_State* L, om::EntityRef e)
 {
    Client::GetInstance().SelectEntity(e.lock());
+}
+
+void Client_SelectEntityById(lua_State* L, dm::ObjectId objId)
+{
+   om::EntityPtr e = nullptr;
+
+   if (objId != 0) {
+      e = Client::GetInstance().GetEntity(objId);
+   }
+   Client::GetInstance().SelectEntity(e);
+}
+
+void Client_HilightEntityById(lua_State* L, dm::ObjectId objId)
+{
+   Client::GetInstance().HilightEntity(objId);
 }
 
 om::EntityRef Client_GetSelectedEntity()
@@ -207,18 +223,11 @@ std::weak_ptr<RenderEntity> Client_CreateRenderEntity(H3DNode parent, luabind::o
    return result;
 }
 
-static luabind::object
+static RaycastResult
 Client_QueryScene(lua_State* L, int x, int y)
 {
-   om::Selection s;
-   Renderer::GetInstance().QuerySceneRay(x, y, 0, s);
-
-   using namespace luabind;
-   object result = newtable(L);
-   if (s.HasBlock()) {
-      result["location"] = object(L, s.GetBlock());
-      result["normal"]   = object(L, csg::ToInt(s.GetNormal()));
-   }
+   RaycastResult result;
+   Renderer::GetInstance().QuerySceneRay(x, y, 0, result);
    return result;
 }
 
@@ -422,7 +431,7 @@ DEFINE_INVALID_LUA_CONVERSION(Input)
 DEFINE_INVALID_LUA_CONVERSION(MouseInput)
 DEFINE_INVALID_LUA_CONVERSION(KeyboardInput)
 DEFINE_INVALID_LUA_CONVERSION(RawInput)
-DEFINE_INVALID_LUA_CONVERSION(RayCastResult)
+DEFINE_INVALID_LUA_CONVERSION(RaycastResult)
 
 static bool Client_IsKeyDown(int key)
 {
@@ -448,6 +457,8 @@ void lua::client::open(lua_State* L)
          namespace_("client") [
             def("get_object",                      &Client_GetObject),
             def("select_entity",                   &Client_SelectEntity),
+            def("select_entity_by_id",             &Client_SelectEntityById),
+            def("hilight_entity_by_id",            &Client_HilightEntityById),
             def("get_selected_entity",             &Client_GetSelectedEntity),
             def("create_empty_authoring_entity",   &Client_CreateEmptyAuthoringEntity),
             def("create_authoring_entity",         &Client_CreateAuthoringEntity),

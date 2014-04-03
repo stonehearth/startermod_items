@@ -23,9 +23,7 @@ RenderTerrain::RenderTerrain(const RenderEntity& entity, om::TerrainPtr terrain)
    terrain_(terrain)
 {  
    terrain_root_node_ = H3DNodeUnique(h3dAddGroupNode(entity_.GetNode(), "terrain root node"));
-   selected_guard_ = Renderer::GetInstance().TraceSelected(terrain_root_node_.get(), [this](om::Selection& sel, const csg::Ray3& ray, const csg::Point3f& intersection, const csg::Point3f& normal) {
-      OnSelected(sel, ray, intersection, normal);
-   });
+   selected_guard_ = Renderer::GetInstance().TraceSelected(terrain_root_node_.get(), entity_.GetObjectId());
 
    if (tess_map.empty()) {
       grass_ring_info_.rings.emplace_back(LayerDetailRingInfo::Ring(4, GrassDetailBase));
@@ -215,25 +213,6 @@ void RenderTerrain::AddDirtyTile(RenderTileRef tile)
       });
       ASSERT(!renderer_frame_trace_.Empty());
    }
-}
-void RenderTerrain::OnSelected(om::Selection& sel, const csg::Ray3& ray,
-                               const csg::Point3f& intersection, const csg::Point3f& normal)
-{
-   csg::Point3 brick;
-
-   for (int i = 0; i < 3; i++) {
-      // The brick origin is at the center of mass.  Adding 0.5f to the
-      // coordinate and flooring it should return a brick coordinate.
-      brick[i] = (int)std::floor(intersection[i] + 0.5f);
-
-      // We want to choose the brick that the mouse is currently over.  The
-      // intersection point is actually a point on the surface.  So to get the
-      // brick, we need to move in the opposite direction of the normal
-      if (fabs(normal[i]) > csg::k_epsilon) {
-         brick[i] += normal[i] > 0 ? -1 : 1;
-      }
-   }
-   sel.AddBlock(brick);
 }
 
 void RenderTerrain::UpdateRenderRegion(RenderTilePtr render_tile)

@@ -44,15 +44,14 @@ function ProxyBuilder:_start()
    self._columns = {}
    self._walls = {}
    
-   self._input_capture = _radiant.client.capture_input()
-   self._input_capture:on_input(function(e)
-      if e.type == _radiant.client.Input.MOUSE then
-         return self._on_mouse(self._derived, e.mouse)
-      elseif e.type == _radiant.client.Input.KEYBOARD then
-         return self._on_keyboard(self._derived, e.keyboard)
+   self._input_handlers = stonehearth.input:push_handlers(
+      function(e)
+         return self._on_mouse(self._derived, e)
+      end,
+      function(e)
+         return self._on_keyboard(self._derived, e)
       end
-      return false
-   end)   
+      )
 end
 
 function ProxyBuilder:move_to(location)
@@ -207,9 +206,9 @@ end
 
 function ProxyBuilder:cancel()
    self:_clear()
-   if self._input_capture then
-      self._input_capture:destroy()
-      self._input_capture = nil
+   if self._input_handlers then
+      stonehearth.input:remove_handlers(self._input_handlers)
+      self._input_handlers = nil
    end
 end
 

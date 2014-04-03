@@ -136,22 +136,19 @@ function NewGameCallHandler:choose_camp_location(session, response)
 
    -- capture the mouse.  Call our _on_mouse_event each time, passing in
    -- the entity that we're supposed to create whenever the user clicks.
-   self._capture = _radiant.client.capture_input()
-   self._capture:on_input(
+   self._input_handlers = stonehearth.input:push_handlers(
       function(e)
-         if e.type == _radiant.client.Input.MOUSE then
-            return self:_on_mouse_event(e.mouse, response)
-         elseif e.type == _radiant.client.Input.KEYBOARD then
-            return self:_on_keyboard_event(e.keyboard, response)
-         end
-         return false
-      end
-   )
+         return self:_on_mouse_event(e, response)
+      end,
+
+      function(e)
+         return self:_on_keyboard_event(e, response)
+      end)
 end
 
 -- called each time the mouse moves on the client.
 function NewGameCallHandler:_on_mouse_event(e, response)
-   assert(self._capture, "got mouse event after releasing capture")
+   assert(self._input_handlers, "got mouse event after releasing capture")
 
    -- query the scene to figure out what's under the mouse cursor
    local s = _radiant.client.query_scene(e.x, e.y)
@@ -159,7 +156,7 @@ function NewGameCallHandler:_on_mouse_event(e, response)
    -- s.location contains the address of the terrain block that the mouse
    -- is currently pointing to.  if there isn't one, move the workshop
    -- way off the screen so it won't get rendered.
-   local pt = s.location and s.location or Point3(0, -100000, 0)
+   local pt = s:is_valid() and s:brick_of(0) or Point3(0, -100000, 0)
 
    pt.y = pt.y + 1
    self._cursor_entity:add_component('mob'):set_location_grid_aligned(pt)
@@ -167,13 +164,12 @@ function NewGameCallHandler:_on_mouse_event(e, response)
    -- if the mouse button just transitioned to up and we're actually pointing
    -- to a box on the terrain, send a message to the server to create the
    -- entity.  this is done by posting to the correct route.
-   if e:up(1) and s.location then
+   if e:up(1) and s:is_valid() then
       -- destroy our capture object to release the mouse back to the client.  don't
       -- destroy the authoring object yet!  doing so now will result in a brief period
       -- of time where the server side object has not yet been created, yet the client
       -- authoring object has been destroyed.  that leads to flicker, which is ugly.
-      self._capture:destroy()
-      self._capture = nil
+      self:_destroy_capture()
 
       -- pass "" for the function name so the deafult (handle_request) is
       -- called.  this will return a Deferred object which we can use to track
@@ -206,8 +202,10 @@ end
 
 --- Destroy our capture object to release the mouse back to the client.
 function NewGameCallHandler:_destroy_capture()
-   self._capture:destroy()
-   self._capture = nil
+   if self._input_handlers then
+      stonehearth.input:remove_handlers(self._input_handlers)
+      self._input_handlers = nil
+   end
 end
 
 function NewGameCallHandler:create_camp(session, response, pt)

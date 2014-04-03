@@ -29,23 +29,18 @@ function WorkshopCallHandler:choose_workbench_location(session, response, workbe
 
    -- capture the mouse.  Call our _on_mouse_event each time, passing in
    -- the entity that we're supposed to create whenever the user clicks.
-   self._capture = _radiant.client.capture_input()
-   self._capture:on_input(function(e)
-         if e.type == _radiant.client.Input.MOUSE then
-            self:_on_mouse_event(e.mouse, workbench_entity, response)
-            return true
-         end
-         if e.type == _radiant.client.Input.KEYBOARD then
-            self:_on_keyboard_event(e.keyboard, response)
-         end
-         --Don't consume the event in case the UI wants to do something too
-         return false
+   self._input_handlers = stonehearth.input:push_handlers(
+      function(e)
+         return self:_on_mouse_event(e, workbench_entity, response)
+      end,
+      function(e)
+         return self:_on_keyboard_event(e, response)
       end)
 end
 
 -- Called each time the mouse moves on the client.
 function WorkshopCallHandler:_on_mouse_event(e, workbench_entity, response)
-   assert(self._capture, "got mouse event after releasing capture")
+   assert(self._input_handlers, "got mouse event after releasing capture")
 
    -- query the scene to figure out what's under the mouse cursor
    local s = _radiant.client.query_scene(e.x, e.y)
@@ -53,7 +48,7 @@ function WorkshopCallHandler:_on_mouse_event(e, workbench_entity, response)
    -- s.location contains the address of the terrain block that the mouse
    -- is currently pointing to.  if there isn't one, move the workshop
    -- way off the screen so it won't get rendered.
-   local pt = s.location and s.location or Point3(0, -100000, 0)
+   local pt = s:is_valid() and s:brick_of(0) or Point3(0, -100000, 0)
 
    -- we want the workbench to be on top of that block, so add 1 to y, then
    -- move the cursor workshop to that location
@@ -61,7 +56,7 @@ function WorkshopCallHandler:_on_mouse_event(e, workbench_entity, response)
    self._cursor_entity:add_component('mob'):set_location_grid_aligned(pt)
 
    --test for mouse right-click
-   if e:up(2) and s.location then
+   if e:up(2) and s:is_valid() then
       log:info('Pressed right click')
       self._curr_rotation = self._curr_rotation + 90
       self._curr_rotation = self._curr_rotation % 360
@@ -71,13 +66,12 @@ function WorkshopCallHandler:_on_mouse_event(e, workbench_entity, response)
    -- if the mouse button just transitioned to up and we're actually pointing
    -- to a box on the terrain, send a message to the server to create the ghost
    -- entity.  this is done by posting to the correct route.
-   if e:up(1) and s.location then
+   if e:up(1) and s:is_valid() then
       -- destroy our capture object to release the mouse back to the client.  don't
       -- destroy the authoring object yet!  doing so now will result in a brief period
       -- of time where the server side object has not yet been created, yet the client
       -- authoring object has been destroyed.  that leads to flicker, which is ugly.
-      self._capture:destroy()
-      self._capture = nil
+      self:_destroy_capture()
 
       -- pass "" for the function name so the deafult (handle_request) is
       -- called.  this will return a Deferred object which we can use to track
@@ -116,8 +110,15 @@ end
 
 --- Destroy our capture object to release the mouse back to the client.
 function WorkshopCallHandler:_destroy_capture()
-   self._capture:destroy()
-   self._capture = nil
+   if self._input_handlers then
+      stonehearth.input:remove_handlers(self._input_handlers)
+      self._input_handlers = nil
+   end
+
+   if self._kb_handler then
+      stonehearth.input:remove_keyboard_handler(self._kb_handler)
+      self._kb_handler = nil
+   end
 end
 
 --- When placing an outbox, if a key is pressed, call this function
@@ -173,13 +174,9 @@ function WorkshopCallHandler:choose_outbox_location(session, response, workbench
    local stockpile_cursor = _radiant.client.set_cursor('stonehearth:cursors:create_stockpile')
 
    -- capture the keyboard.
-   self._capture = _radiant.client.capture_input()
-   self._capture:on_input(function(e)
-         if e.type == _radiant.client.Input.KEYBOARD then
-            self:_on_outbox_keyboard_event(e.keyboard, workbench_entity, response)
-         end
-         --Don't consume the event in case the UI wants to do something too
-         return false
+   self._kb_handler = stonehearth.input:push_keyboard_handler(function(e)
+         self:_on_outbox_keyboard_event(e, workbench_entity, response)
+         return false         
       end)
 
    local xz_selector
