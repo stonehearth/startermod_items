@@ -136,19 +136,18 @@ function NewGameCallHandler:choose_camp_location(session, response)
 
    -- capture the mouse.  Call our _on_mouse_event each time, passing in
    -- the entity that we're supposed to create whenever the user clicks.
-   self._input_handlers = stonehearth.input:push_handlers(
-      function(e)
-         return self:_on_mouse_event(e, response)
-      end,
-
-      function(e)
-         return self:_on_keyboard_event(e, response)
-      end)
+   self._input_capture = stonehearth.input:capture_input()
+                           :on_mouse_event(function(e)
+                                 return self:_on_mouse_event(e, response)
+                              end)
+                           :on_keyboard_event(function(e)
+                                 return self:_on_keyboard_event(e, response)
+                              end)
 end
 
 -- called each time the mouse moves on the client.
 function NewGameCallHandler:_on_mouse_event(e, response)
-   assert(self._input_handlers, "got mouse event after releasing capture")
+   assert(self._input_capture, "got mouse event after releasing capture")
 
    -- query the scene to figure out what's under the mouse cursor
    local s = _radiant.client.query_scene(e.x, e.y)
@@ -202,9 +201,9 @@ end
 
 --- Destroy our capture object to release the mouse back to the client.
 function NewGameCallHandler:_destroy_capture()
-   if self._input_handlers then
-      stonehearth.input:remove_handlers(self._input_handlers)
-      self._input_handlers = nil
+   if self._input_capture then
+      self._input_capture:destroy()
+      self._input_capture = nil
    end
 end
 

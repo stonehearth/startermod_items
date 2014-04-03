@@ -10,19 +10,20 @@ function MoveUnitCallHandler:client_move_unit(session, response, entity)
    self._cursor_entity = radiant.entities.create_entity('stonehearth:camp_standard')
    local re = _radiant.client.create_render_entity(1, self._cursor_entity)
 
-   self._input_handlers = stonehearth.input:push_handlers(
-      function(e)
-         return self:_on_mouse_event(e, response)
-      end,
-      function(e)
-         return self:_on_keyboard_event(e, response)
-      end)
+   self._input_capture = stonehearth.input:capture_input()
+                           :on_mouse_event(function(e)
+                                 return self:_on_mouse_event(e, response)
+                              end)
+                           :on_keyboard_event(function(e)
+                                 return self:_on_keyboard_event(e, response)
+                              end)
+
    return true
 end
 
 -- called each time the mouse moves on the client.
 function MoveUnitCallHandler:_on_mouse_event(e, response)
-   assert(self._input_handlers, "got mouse event after releasing capture")
+   assert(self._input_capture, "got mouse event after releasing capture")
 
    local s = _radiant.client.query_scene(e.x, e.y)
 
@@ -80,9 +81,9 @@ end
 
 -- destroy our capture object to release the mouse back to the client.  
 function MoveUnitCallHandler:_cleanup(e, response)
-   if self._input_handlers then
-      stonehearth.input:remove_handlers(self._input_handlers)
-      self._input_handlers = nil
+   if self._input_capture then
+      self._input_capture:destroy()
+      self._input_capture = nil
    end
 
    if self._cursor_entity then   
