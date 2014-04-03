@@ -5,14 +5,14 @@ local Region3 = _radiant.csg.Region3
 local Cube3 = _radiant.csg.Cube3
 
 local Fabricator = class()
-local log = radiant.log.create_logger('build.fabricator')
+local log = radiant.log.create_logger('fabricator')
 
 local COORD_MAX = 1000000 -- 1 million enough?
 
 -- this is the component which manages the fabricator entity.
 function Fabricator:__init(name, entity, blueprint)
    self.name = name
-   log:debug('%s creating fabricator', self.name)
+   log:debug('creating fabricator for %s', self.name)
    
    self._entity = entity
    self._blueprint = blueprint
@@ -82,6 +82,8 @@ function Fabricator:__init(name, entity, blueprint)
 end
 
 function Fabricator:destroy()
+   log:debug('destroying fabricator for %s', self.name)
+
    for _, trace in ipairs(self._traces) do
       trace:destroy()
    end

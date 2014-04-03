@@ -85,6 +85,11 @@ function Thread.wait_thread(thread)
 end
 
 function Thread.terminate_thread(thread, err)
+   if not thread._co then
+      -- never started, so there's nothing to do.
+      return
+   end
+   
    Thread.all_threads[thread._co] = nil
    Thread.scheduled[thread._id] = nil
    thread:_on_thread_exit(err)
@@ -217,33 +222,23 @@ function Thread:report_thread_error(err)
    radiant.check.report_thread_error(self._co, 'thread error: ' .. err)   
 end
 
-function Thread:_interrupt(fn, sync)
+function Thread:interrupt(fn)
    if not self._finished then
       local current = Thread.get_current_thread()
       self._log:detail('thread %s is currently running in :interrupt', current and tostring(current:get_id()) or 'nil')
       if self:is_running() then
          fn()
       else
-         if sync then
-            self:send_msg('thread:call_interrupt', fn)
-            if coroutine.status(self._co) == 'suspended' then
-               self._log:detail('switching to thread immediately to deliver interrupt.')
-               Thread.resume_thread(self)
-               self._log:detail('finished delivering interrupt.')
-            else
-               self._log:detail('coroutine not at top of the stack.  will have to handle msg later.')
-            end
+         self:send_msg('thread:call_interrupt', fn)
+         if coroutine.status(self._co) == 'suspended' then
+            self._log:detail('switching to thread immediately to deliver interrupt.')
+            Thread.resume_thread(self)
+            self._log:detail('finished delivering interrupt.')
+         else
+            self._log:detail('coroutine not at top of the stack.  will have to handle msg later.')
          end
       end
    end
-end
-
-function Thread:async_interrupt(fn)
-   self:_interrupt(fn, false)
-end
-
-function Thread:sync_interrupt(fn)
-   self:_interrupt(fn, true)
 end
 
 function Thread:_call_interrupt(fn)

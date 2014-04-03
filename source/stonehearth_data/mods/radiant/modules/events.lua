@@ -95,10 +95,10 @@ function events.unlisten(object, event, self, fn)
       return
    end
 
-   for i, listener in ipairs(listeners) do
-      if listener.fn == fn and listener.self == self then
+   for i, entry in ipairs(listeners) do
+      if entry.fn == fn and entry.self == self then
          log:spam('unlistening to event ' .. event)
-         table.remove(listeners, i)
+         entry.dead = true
          return
       end
    end
@@ -124,11 +124,15 @@ function events.trigger(object, event, ...)
       local listeners = sender[event]
       if listeners then
          log:debug('trigging %d listeners for "%s"', #listeners, event)
-         local i = 1
-         while i <= #listeners do
+         local i, count = 1, #listeners
+         while i <= count do
             local entry = listeners[i]
             local result
-            if not entry.self then
+            if not entry then
+               result = radiant.events.UNLISTEN
+            elseif entry.dead then
+               result = radiant.events.UNLISTEN
+            elseif not entry.self then
                -- the object got garbage collected before it could unlisten.  it's
                -- probably buggy, but let's not let that bother us too much.  just
                -- remove it from the array.
@@ -143,10 +147,11 @@ function events.trigger(object, event, ...)
                   result = entry.self(...)
                end
             end
-
+            
             if result == radiant.events.UNLISTEN then
                log:detail('   removing listener index %d (count:%d)', i, #listeners)
                table.remove(listeners, i)
+               count = count - 1
             else
                log:detail('   advancing index %d (count:%d)', i, #listeners)
                i = i + 1
