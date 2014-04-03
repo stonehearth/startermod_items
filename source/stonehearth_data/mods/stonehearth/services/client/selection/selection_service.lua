@@ -16,9 +16,10 @@ function SelectionService:initialize()
       self._ui_view_mode = e.mode
    end)
 
-   stonehearth.input:push_mouse_handler(function(e)
-      return self:_on_mouse_input(e)
-   end)
+   self._input_capture = stonehearth.input:capture_input()
+                              :on_mouse_event(function(e)
+                                   return self:_on_mouse_input(e)
+                                 end)
 end
 
 function SelectionService:get_selected_id()
