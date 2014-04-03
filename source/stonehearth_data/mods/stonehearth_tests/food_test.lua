@@ -25,7 +25,7 @@ function FoodTest:__init()
    self:place_item('stonehearth:berry_basket', 0, 0)
    
    self:at(10,  function()
-         worker:get_component('stonehearth:attributes'):set_attribute('hunger', 81)
+         worker:get_component('stonehearth:attributes'):set_attribute('calories', 25)
          self:place_stockpile_cmd(player_id, 8, 8, 4, 4)
       end)
 

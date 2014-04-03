@@ -48,11 +48,11 @@ function PetTest:__init()
    self:at(1000,
       function()
          for _, critter in pairs(critters) do
-            --critter:add_component('stonehearth:attributes'):set_attribute('hunger', 120)
+            --critter:add_component('stonehearth:attributes'):set_attribute('calories', 25)
          end
 
          for _, human in pairs(humans) do
-            --human:add_component('stonehearth:attributes'):set_attribute('hunger', 120)
+            --human:add_component('stonehearth:attributes'):set_attribute('calories', 25)
          end
       end
    )

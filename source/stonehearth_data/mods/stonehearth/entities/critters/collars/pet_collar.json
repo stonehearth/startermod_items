@@ -16,7 +16,6 @@
                "stonehearth:actions:pet:pet_sleep_on_ground",
 
                "stonehearth:actions:wait_for_attribute_above",
-               "stonehearth:actions:eat",
                "stonehearth:actions:eat_item",
                "stonehearth:actions:pet:pet_eat_from_ground",
                "stonehearth:actions:pet:eat_from_container",
@@ -28,7 +27,7 @@
             ],
             "observers": [
                "stonehearth:observers:sleep",
-               "stonehearth:observers:hunger"
+               "stonehearth:observers:calorie"
             ]
          },
          "injected_commands" : [

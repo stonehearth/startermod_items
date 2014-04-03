@@ -15,6 +15,7 @@ function ClearWorkshop:run(thread, args)
          item = item,
       }
       task_group:create_task('stonehearth:move_item_to_outbox', args)
+                      :set_priority(stonehearth.constants.priorities.top.WORK)
                       :once()
                       :start()
                       :wait()

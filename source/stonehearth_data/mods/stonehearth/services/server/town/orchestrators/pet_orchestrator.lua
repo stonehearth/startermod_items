@@ -21,6 +21,8 @@ end
 
 function PetOrchestrator:run(town, args)
    self._pet = args.entity
+   self._task_group = self._pet:get_component('stonehearth:ai')
+                                    :get_task_group('stonehearth:ambient_pet_behavior')
    local pet = self._pet
    local faction = town:get_faction()
    local activity_fn
@@ -35,7 +37,7 @@ function PetOrchestrator:_run_idle(pet, town)
    log:debug('%s starting _run_idle', tostring(pet))
 
    local task
-   task = town:command_unit(pet, 'stonehearth:idle')
+   task = self._task_group:create_task('stonehearth:idle')
       :times(1)
       :start()
       :wait()
@@ -58,7 +60,7 @@ function PetOrchestrator:_run_follow_friend(pet, town)
    -- follow continuously
    -- will suspend and defer to idle if close to a citizen that is not moving
    local task
-   task = town:command_unit(pet, 'stonehearth:follow_entity', { target = target })
+   task = self._task_group:create_task('stonehearth:follow_entity', { target = target })
       :start()
 
    -- stop after _follow_time game seconds
@@ -74,7 +76,7 @@ end
 function PetOrchestrator:_run_play(pet, town)
    log:debug('%s starting _run_play', tostring(pet))
 
-   town:command_unit(pet, 'stonehearth:pet:play')
+   self._task_group:create_task('stonehearth:pet:play')
       :once()
       :start()
       :wait()

@@ -292,6 +292,7 @@
       
       "actions:compelled_behaviors:dispatcher" : "file(ai/actions/compelled_behaviors/compelled_behavior_dispatcher.lua)",
       "actions:compelled_behaviors:struggle" : "file(ai/actions/compelled_behaviors/struggle_action.lua)",
+      "actions:basic_needs:dispatcher" : "file(ai/actions/basic_needs/basic_needs_dispatcher.lua)",
 
       "actions:unit_control:dispatcher" : "file(ai/actions/unit_control/unit_control_dispatcher.lua)",
       "actions:unit_control:move_unit_to_location" : "file(ai/actions/unit_control/move_unit_to_location_action.lua)",

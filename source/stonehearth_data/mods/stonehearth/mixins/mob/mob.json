@@ -58,6 +58,7 @@
             "stonehearth:actions:find_direct_path_to_entity",
             "stonehearth:actions:add_buff",
             "stonehearth:actions:unit_control:dispatcher",
+            "stonehearth:actions:basic_needs:dispatcher",
             "stonehearth:actions:compelled_behaviors:dispatcher"
          ],
           "observers": [

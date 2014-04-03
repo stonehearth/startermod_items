@@ -5,7 +5,7 @@ Eat.name = 'eat to live'
 Eat.does = 'stonehearth:eat'
 Eat.args = { }
 Eat.version = 2
-Eat.priority = constants.priorities.top.EAT
+Eat.priority = 1
 
 local ai = stonehearth.ai
 return ai:create_compound_action(Eat)
