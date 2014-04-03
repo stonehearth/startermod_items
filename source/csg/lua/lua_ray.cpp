@@ -12,7 +12,6 @@ scope LuaRay::RegisterLuaTypes(lua_State* L)
 {
    return
       lua::RegisterType<Ray3>("Ray3")
-         .def(tostring(const_self))
          .def(constructor<>())
          .def(constructor<const csg::Point3f&, const csg::Point3f&>())
          .def_readwrite("origin", &csg::Ray3::origin)

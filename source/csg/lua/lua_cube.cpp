@@ -80,7 +80,6 @@ static luabind::class_<T> Register(struct lua_State* L, const char* name)
 {
    return
       lua::RegisterType<T>(name)
-         .def(tostring(const_self))
          .def(constructor<>())
          .def(constructor<const T&>())
          .def(constructor<const typename T::Point&, const typename T::Point&>())

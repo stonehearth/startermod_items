@@ -24,10 +24,34 @@ bool Point_IsAdjacentTo(T const& a, T const& b)
    return csg::IsZero(static_cast<float>(sum - 1));
 }
 
-csg::Point3 Point_ToPoint3(const csg::Point3f& p)
+// The csg version of these functions are optimized for use in templated code.  They
+// avoid copies for nop conversions by returning a const& to the input parameter.
+// For lua's "to_int" and "to_float", we always want to return a copy to avoid confusion.
+
+template <int C>
+csg::Point<int, C> Point_ToInt(csg::Point<int, C> const& p)
+{
+   return p;
+}
+
+template <int C>
+csg::Point<float, C> Pointf_ToFloat(csg::Point<float, C> const& p)
+{
+   return p;
+}
+
+template <int C>
+csg::Point<float, C> Point_ToFloat(csg::Point<int, C> const& p)
+{
+   return csg::ToFloat(p);
+}
+
+template <int C>
+csg::Point<int, C> Pointf_ToInt(csg::Point<float, C> const& p)
 {
    return csg::ToInt(p);
 }
+
 
 template <typename T>
 static luabind::class_<T> RegisterCommon(struct lua_State* L, const char* name)
@@ -83,14 +107,25 @@ scope LuaPoint::RegisterLuaTypes(lua_State* L)
 {
 
    return
-      Register1<Point1 >(L, "Point1"),
-      Register1<Point1f>(L, "Point1f"),
-      Register2<Point2 >(L, "Point2"),
-      Register2<Point2f>(L, "Point2f"),
-      Register3<Point3 >(L, "Point3"),
+      Register1<Point1 >(L, "Point1")
+         .def("to_int",             &Point_ToInt<1>)
+         .def("to_float",           &Point_ToFloat<1>),
+      Register1<Point1f>(L, "Point1f")
+         .def("to_int",             &Pointf_ToInt<1>)
+         .def("to_float",           &Pointf_ToFloat<1>),
+      Register2<Point2 >(L, "Point2")
+         .def("to_int",             &Point_ToInt<2>)
+         .def("to_float",           &Point_ToFloat<2>),
+      Register2<Point2f>(L, "Point2f")
+         .def("to_int",             &Pointf_ToInt<2>)
+         .def("to_float",           &Pointf_ToFloat<2>),
+      Register3<Point3 >(L, "Point3")
+         .def("to_int",             &Point_ToInt<3>)
+         .def("to_float",           &Point_ToFloat<3>),
       Register3<Point3f>(L, "Point3f")
-         .def("lerp",   (Point3f (*)(Point3f const& a, Point3f const& b, float alpha))&csg::Interpolate)
-         .def("to_point3", &Point_ToPoint3),
+         .def("to_int",             &Pointf_ToInt<3>)
+         .def("to_float",           &Pointf_ToFloat<3>)
+         .def("lerp",   (Point3f (*)(Point3f const& a, Point3f const& b, float alpha))&csg::Interpolate),
       lua::RegisterType<Transform>("Transform")
          .def("lerp",   (Transform (*)(Transform const& a, Transform const& b, float alpha))&csg::Interpolate),
       lua::RegisterType<Color3>("Color3")
