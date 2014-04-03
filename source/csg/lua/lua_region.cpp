@@ -60,7 +60,6 @@ static luabind::class_<T> Register(struct lua_State* L, const char* name)
 {
    return
       lua::RegisterType<T>(name)
-         .def(tostring(const_self))
          .def(constructor<>())
          .def(constructor<typename T::Cube const&>())
          .def(const_self - other<T const&>())

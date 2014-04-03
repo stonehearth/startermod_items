@@ -24,7 +24,6 @@ scope LuaQuaternion::RegisterLuaTypes(lua_State* L)
 {
    return
       lua::RegisterType<Quaternion>("Quaternion")
-         .def(tostring(const_self))
          .def(constructor<>())
          .def(constructor<const csg::Point3f&, float>())
          .def(constructor<const csg::Point3f&, const csg::Point3f&>())

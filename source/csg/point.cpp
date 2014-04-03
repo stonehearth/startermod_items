@@ -105,6 +105,7 @@ template float csg::Interpolate(float const&, float const&, float);
    template Point<float, C> csg::Interpolate(Point<float, C> const&, Point<float, C> const&, float); \
    template float csg::Interpolate(float const&, float const&, float);
 
+DEFINE_POINT_CONVERSIONS(1)
 DEFINE_POINT_CONVERSIONS(2)
 DEFINE_POINT_CONVERSIONS(3)
 
