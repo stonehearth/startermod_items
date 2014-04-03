@@ -328,25 +328,32 @@ void Pipeline::CreateStockpileNodeGeometry(csg::mesh_tools::mesh& interior_mesh,
    const csg::Point2& minbounds = region.GetBounds().min;
    const csg::Point2& maxbounds = region.GetBounds().max;
 
-   // Interior is one shade of color....
-   interior_mesh.AddRect(csg::Rect2(
-      csg::Point2(minbounds.x + 1, minbounds.y + 1), 
-      csg::Point2(maxbounds.x - 1, maxbounds.y - 1)), pi);
+   if (minbounds.x < maxbounds.x - 2 && minbounds.y < maxbounds.y - 2) {
+      // Interior is one shade of color....
+      interior_mesh.AddRect(csg::Rect2(
+         csg::Point2(minbounds.x + 1, minbounds.y + 1), 
+         csg::Point2(maxbounds.x - 1, maxbounds.y - 1)), pi);
 
-   // Bounds are another color....
-   // TODO: T-Junctions!
-   border_mesh.AddRect(csg::Rect2(
-      csg::Point2(minbounds.x, minbounds.y), 
-      csg::Point2(minbounds.x + 1, maxbounds.y)), pi);
-   border_mesh.AddRect(csg::Rect2(
-      csg::Point2(minbounds.x + 1, minbounds.y), 
-      csg::Point2(maxbounds.x - 1, minbounds.y + 1)), pi);
-   border_mesh.AddRect(csg::Rect2(
-      csg::Point2(minbounds.x + 1, maxbounds.y - 1), 
-      csg::Point2(maxbounds.x - 1, maxbounds.y)), pi);
-   border_mesh.AddRect(csg::Rect2(
-      csg::Point2(maxbounds.x - 1, minbounds.y), 
-      csg::Point2(maxbounds.x, maxbounds.y)), pi);
+      // Bounds are another color....
+      // TODO: T-Junctions!   
+      border_mesh.AddRect(csg::Rect2(
+         csg::Point2(minbounds.x, minbounds.y), 
+         csg::Point2(minbounds.x + 1, maxbounds.y)), pi);
+      border_mesh.AddRect(csg::Rect2(
+         csg::Point2(minbounds.x + 1, minbounds.y), 
+         csg::Point2(maxbounds.x - 1, minbounds.y + 1)), pi);
+      border_mesh.AddRect(csg::Rect2(
+         csg::Point2(minbounds.x + 1, maxbounds.y - 1), 
+         csg::Point2(maxbounds.x - 1, maxbounds.y)), pi);
+      border_mesh.AddRect(csg::Rect2(
+         csg::Point2(maxbounds.x - 1, minbounds.y), 
+         csg::Point2(maxbounds.x, maxbounds.y)), pi);
+   } else {
+      // Very small stockpile--draw everything the same color.
+      border_mesh.AddRect(csg::Rect2(
+         csg::Point2(minbounds.x, minbounds.y), 
+         csg::Point2(maxbounds.x, maxbounds.y)), pi);
+   }
 }
 
 voxel::QubicleFile* Pipeline::LoadQubicleFile(std::string const& uri)
