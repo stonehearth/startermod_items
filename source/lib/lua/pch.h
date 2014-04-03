@@ -7,7 +7,6 @@
 #include "resources/res_manager.h"
 #include <libjson.h>
 #include <boost/filesystem.hpp>
-#include <boost/program_options/variables_map.hpp>
 #include <boost/algorithm/string/predicate.hpp>
 #include <boost/algorithm/string.hpp>
 #include <boost/algorithm/string/split.hpp>
