@@ -18,6 +18,7 @@ function FarmingService:initialize()
    }
    self.__saved_variables = radiant.create_datastore(self._data)
    self.__saved_variables:mark_changed()
+
 end
 
 function FarmingService:restore(saved_variables)
@@ -73,7 +74,7 @@ function FarmingService:get_crop_details(crop_type)
    return details
 end
 
-function FarmingService:_get_overlay_for_crop(crop_type)
+function FarmingService:get_overlay_for_crop(crop_type)
    return self:get_crop_details(crop_type).overlay
 end
 
@@ -120,7 +121,8 @@ end
 -- @param faction: the group that should be planting the crop
 -- @param soil_plots: array of entities on top of which to plant the crop
 -- @param crop_type: the name of the thing to plant (ie, stonehearth:corn, etc)
-function FarmingService:plant_crop(player_id, soil_plots, crop_type, player_speficied, auto_plant, auto_harvest)
+function FarmingService:plant_crop(player_id, soil_plots, crop_type, player_speficied, auto_plant, auto_harvest, player_initialized)
+   --[[
    if not soil_plots[1] or not crop_type then
       return false
    end
@@ -134,7 +136,7 @@ function FarmingService:plant_crop(player_id, soil_plots, crop_type, player_spef
 
       --TODO: store these tasks, so they can be cancelled
       local overlay_effect = self:_get_overlay_for_crop(crop_type)
-      town:create_farmer_task('stonehearth:plant_crop', {target_plot = plot, 
+      local task = town:create_farmer_task('stonehearth:plant_crop', {target_plot = plot, 
                                                          dirt_plot_component = dirt_plot_component,
                                                          crop_type = crop_type})
                               :set_source(plot)
@@ -144,7 +146,9 @@ function FarmingService:plant_crop(player_id, soil_plots, crop_type, player_spef
                               :once()
                               :start()
    end
-   return true
+   ]]
+   local town = stonehearth.town:get_town(player_id)
+   return town:plant_crop(player_id, soil_plots, crop_type, player_speficied, auto_plant, auto_harvest, player_initialized)
 end
 
 function FarmingService:harvest_crops(session, soil_plots)

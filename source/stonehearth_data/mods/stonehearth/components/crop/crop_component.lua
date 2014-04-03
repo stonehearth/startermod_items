@@ -19,6 +19,7 @@ function CropComponent:initialize(entity, json)
             if self._sv.harvestable then
                radiant.events.trigger(self._entity, 'stonehearth:crop_harvestable', {crop = self._entity})
             end
+            return radiant.events.UNLISTEN
          end)
    end
 

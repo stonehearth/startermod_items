@@ -39,6 +39,7 @@ function FarmerFieldComponent:initialize(entity, json)
       -- loading, wait for everything to be loaded to create the tasks
       radiant.events.listen(radiant, 'radiant:game_loaded', function(e)
             self:_re_init_field()
+            return radiant.events.UNLISTEN
          end)
    end
    --self.__saved_variables:mark_changed()
@@ -215,7 +216,7 @@ function FarmerFieldComponent:_determine_replant(e)
    --If we're supposed to replant, and if we have a plant to replant, do replant
    if do_replant and next_plant then
       local field_location = e.location
-      farming_service:plant_crop(radiant.entities.get_player_id(self._entity), {plot_entity}, next_plant, player_override, do_replant, do_auto_harvest)
+      farming_service:plant_crop(radiant.entities.get_player_id(self._entity), {plot_entity}, next_plant, player_override, do_replant, do_auto_harvest, false)
    end
 end
 

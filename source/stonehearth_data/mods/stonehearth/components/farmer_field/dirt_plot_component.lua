@@ -21,6 +21,7 @@ function DirtPlotComponent:initialize(entity, json)
    else
       radiant.events.listen(radiant, 'radiant:game_loaded', function(e)
             self:_set_up_listeners()
+            return radiant.events.UNLISTEN
          end)
    end
 end

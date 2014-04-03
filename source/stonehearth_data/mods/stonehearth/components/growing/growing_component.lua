@@ -22,6 +22,7 @@ function GrowingComponent:initialize(entity, json)
    else 
       radiant.events.listen(radiant, 'radiant:game_loaded', function(e)
             self:_create_load_timer()
+            return radiant.events.UNLISTEN
          end)
    end
 
