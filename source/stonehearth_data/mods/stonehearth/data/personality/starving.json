@@ -1,0 +1,70 @@
+{
+   "activities" : {
+      "starving" : {
+         "id" : "starving",
+         "trigger_policy" : [
+            {
+               "trigger_id" : "starving",
+               "probability" : 80
+            }
+         ],
+         "text" : "On Hunger:",
+         "type" : "random",
+         "logs_by_personality" : {
+            "beleaguered_leader" : {
+               "logs" : [
+               "I don't know how long we can last without food.", 
+               "Has anyone found any animals to eat yet?",
+               "Keep on the lookout for berry bushes, or something!", 
+               "Got... to... keep... going....",
+               "I have to stop dreaming about food every night."
+               ]
+            },
+            "hopeless_optimist" : {
+               "logs" : [
+               "Oh, great! Another day without food... That's exactly that little push I needed for starting my diet!",
+               "Hunger really sharpens the colors in the world!", 
+               "I think there's a hole in my stomach.", 
+               "Am I invisible yet?"
+               ]
+            },
+            "lovable_rogue" : {
+               "logs" : [
+               "In retrospect, I really should have hoarded those berries.",
+               "It's a pity you can't eat silver and gold.",
+               "That wood is starting to look like chocolate...",
+               "As __teacher__ is my witness, I will never go hungry again!"
+               ]
+            },
+            "psychopathic_misanthrope" : {
+               "logs" : [
+               "Is there anyone around here I can eat?",
+               "I need to kill something small and furry.",
+               "I hate eating moss.", 
+               "Cannibalism. It's what's for dinner."
+               ]
+            },
+            "insufferable_academic" : {
+               "logs" : [
+               "Hunger is merely a state of mind.",
+               "To be, or not to be, that is the question...",
+               "The needs of the stomach are merely a distraction from the pursuits of the mind.",
+               "Mind... over... matter!",
+               "I refuse to allow my vast intellect to succumb to base starvation!",
+               "According to my research, people need to consume at least twenty four units of energy each day to mantain proper function."
+               ]
+            },
+            "diligent_sweetheart" : {
+               "logs" : [
+               "It's okay, I didn't really need to eat today.", 
+               "I wish I could bake a cheesecake.", 
+               "If we huddle around the fire at night, that's almost as good as eating, right?", 
+               "I really don't want to die here.", 
+               "__teacher__, even if I don't make it, keep my friends safe, okay?"
+               ]
+            }
+         }
+      }
+   }
+}
+            

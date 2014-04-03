@@ -52,6 +52,11 @@ function CalorieObserver:_adjust_health_and_status()
          hp = 0
       end
       self._attributes_component:set_attribute('health', hp )
+
+      --Set the journal entry
+      radiant.events.trigger(stonehearth.personality, 'stonehearth:journal_event', 
+                             {entity = self._entity, description = 'starving'})
+
       if not self._is_malnourished then
 
          --show the hungry toast, if not yet showing from mealtime
