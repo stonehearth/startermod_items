@@ -18,7 +18,7 @@ public:
    std::shared_ptr<DirectPathFinder> SetAllowIncompletePath(bool allowIncompletePath);
    PathPtr GetPath();
 
-protected:
+private:
    Simulation& sim_;
    om::EntityRef entityRef_;
    om::EntityRef targetRef_;

@@ -7,7 +7,7 @@ function food_tests.eat_food_on_ground()
 
    autotest.env.create_person(2, 2, {
          profession = 'worker',
-         attributes = { calories = 20 }
+         attributes = { calories = 0 }
       })
 
    autotest.util.succeed_when_destroyed(food)
@@ -20,7 +20,7 @@ function food_tests.eat_food_in_container()
 
    autotest.env.create_person(2, 2, {
          profession = 'worker',
-         attributes = { calories = 20  }
+         attributes = { calories = 0  }
       })
    autotest.util.succeed_when_destroyed(berry_basket)
    autotest.util.fail_if_expired(40 * 1000, 'failed to eat food')
@@ -32,11 +32,11 @@ function food_tests.eat_food_in_chair()
    local food = autotest.env.create_entity(-2, -2, 'stonehearth:rabbit_jerky')
    local p = autotest.env.create_person(2, 2, {
          profession = 'worker',
-         attributes = { calories = 20 }
+         attributes = { calories = 0 }
       })
 
    autotest.util.succeed_when_destroyed(food)
-   autotest.util.succeed_if_attribute_above(p, 'calories', 26)
+   autotest.util.succeed_if_attribute_above(p, 'calories', 0)
    autotest.util.fail_if_expired(40 * 1000, 'failed to eat food in chair')
 end
 
