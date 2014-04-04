@@ -34,6 +34,13 @@ function FindDirectPathToEntity:start_thinking(ai, entity, args)
       ai:set_think_output({ path = path })
       return
    end
+   
+   if args.allow_incomplete_path then
+      -- we said we'd take an incomplete path, but the direct path finder wouldn't
+      -- cooperate.  something is horribly wrong (e.g. the target entity have been
+      -- destroyed).
+      errror('could not find partial direct path from %s to %s.', entity, destination)
+   end
 end
 
 return FindDirectPathToEntity
