@@ -42,7 +42,7 @@ class Pipeline : public core::Singleton<Pipeline> {
    private:
       void AddDesignationBorder(csg::mesh_tools::mesh& m, csg::EdgeMap2& edgemap);
       void AddDesignationStripes(csg::mesh_tools::mesh& m, csg::Region2 const& panels);
-      void CreateStockpileNodeGeometry(csg::mesh_tools::mesh& interior_mesh, csg::mesh_tools::mesh& border_mesh, csg::Region2 const& region);
+      void CreateStockpileNodeGeometry(csg::mesh_tools::mesh& mesh, csg::Region2 const& region, csg::Color4 const& interior_color, csg::Color4 const& border_color);      
       H3DNode CreateModelNode(H3DNode parent, H3DRes geometry, std::string const& material, int flag);
       H3DRes ConvertMeshToGeometryResource(const csg::mesh_tools::mesh& m, int indexOffsets[], int vertexOffsets[], int numLodLevels);
 

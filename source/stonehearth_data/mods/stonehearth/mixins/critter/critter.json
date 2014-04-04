@@ -15,13 +15,21 @@
          ]
       },
       "stonehearth:attributes": {
-         "health": {
+         "max_health": {
             "type" : "basic", 
-            "value" :  1
+            "value" : 50
          },
+         "health": {
+            "type" : "variable", 
+            "equation" : "max_health"
+         }, 
          "speed" : {
             "type" : "basic", 
             "value": 50
+         },
+          "calories": {
+            "type" : "basic", 
+            "value" : 30
          }
       }
    }

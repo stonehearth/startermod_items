@@ -125,10 +125,13 @@ end
 --If the task doesn't currently exist, start the task to look for food
 function CalorieObserver:_start_eat_task()
    if not self._eat_task then
-      local player_id = radiant.entities.get_player_id(self._entity)
-      local town = stonehearth.town:get_town(player_id)
-      self._eat_task = town:command_unit_scheduled(self._entity, 'stonehearth:eat')
-         :start()
+      -- ask the ai component for the task group for `basic needs` and create
+      -- a task to eat at the proper priority.
+      self._eat_task = self._entity:get_component('stonehearth:ai')
+                                       :get_task_group('stonehearth:basic_needs')
+                                          :create_task('stonehearth:eat', {})
+                                             :set_priority(stonehearth.constants.priorities.basic_needs.EAT)
+                                             :start()
    end
 end
 

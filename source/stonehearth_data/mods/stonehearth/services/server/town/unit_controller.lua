@@ -3,7 +3,6 @@ local UnitController = class()
 
 function UnitController:__init(scheduler, entity, activity_name, priority)
    self._task_group = scheduler:create_task_group(activity_name, {})
-                               :set_priority(priority)   
                                :set_counter_name('unit_controller:' .. entity:get_id())
    self._task_group:add_worker(entity)
    self._scheduled_tasks = {}

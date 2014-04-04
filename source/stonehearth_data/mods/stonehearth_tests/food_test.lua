@@ -18,14 +18,14 @@ function FoodTest:__init()
 
    --self:place_citizen(10, 10)
    local worker = self:place_citizen(-5, -5)
-   worker:add_component('stonehearth:attributes'):set_attribute('hunger', 70)
+   worker:add_component('stonehearth:attributes'):set_attribute('calories', 100)
 
    local player_id = worker:get_component('unit_info'):get_player_id()
    
    self:place_item('stonehearth:berry_basket', 0, 0)
    
    self:at(10,  function()
-         worker:get_component('stonehearth:attributes'):set_attribute('hunger', 81)
+         worker:get_component('stonehearth:attributes'):set_attribute('calories', 30)
          self:place_stockpile_cmd(player_id, 8, 8, 4, 4)
       end)
 

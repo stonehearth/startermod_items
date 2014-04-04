@@ -29,18 +29,18 @@ function WorkshopCallHandler:choose_workbench_location(session, response, workbe
 
    -- capture the mouse.  Call our _on_mouse_event each time, passing in
    -- the entity that we're supposed to create whenever the user clicks.
-   self._input_handlers = stonehearth.input:push_handlers(
-      function(e)
-         return self:_on_mouse_event(e, workbench_entity, response)
-      end,
-      function(e)
-         return self:_on_keyboard_event(e, response)
-      end)
+   self._input_capture = stonehearth.input:capture_input()
+                           :on_mouse_event(function(e)
+                                 return self:_on_mouse_event(e, workbench_entity, response)
+                              end)
+                           :on_keyboard_event(function(e)
+                                 return self:_on_keyboard_event(e, response)
+                              end)
 end
 
 -- Called each time the mouse moves on the client.
 function WorkshopCallHandler:_on_mouse_event(e, workbench_entity, response)
-   assert(self._input_handlers, "got mouse event after releasing capture")
+   assert(self._input_capture, "got mouse event after releasing capture")
 
    -- query the scene to figure out what's under the mouse cursor
    local s = _radiant.client.query_scene(e.x, e.y)
@@ -110,14 +110,14 @@ end
 
 --- Destroy our capture object to release the mouse back to the client.
 function WorkshopCallHandler:_destroy_capture()
-   if self._input_handlers then
-      stonehearth.input:remove_handlers(self._input_handlers)
-      self._input_handlers = nil
+   if self._input_capture then
+      self._input_capture:destroy()
+      self._input_capture = nil
    end
 
-   if self._kb_handler then
-      stonehearth.input:remove_keyboard_handler(self._kb_handler)
-      self._kb_handler = nil
+   if self._kb_capture then
+      self._kb_capture:destroy()
+      self._kb_capture = nil
    end
 end
 
@@ -174,10 +174,11 @@ function WorkshopCallHandler:choose_outbox_location(session, response, workbench
    local stockpile_cursor = _radiant.client.set_cursor('stonehearth:cursors:create_stockpile')
 
    -- capture the keyboard.
-   self._kb_handler = stonehearth.input:push_keyboard_handler(function(e)
-         self:_on_outbox_keyboard_event(e, workbench_entity, response)
-         return false         
-      end)
+   self._kb_capture = stonehearth.input:capture_input()
+                           :on_keyboard_event(function(e)
+                                 self:_on_outbox_keyboard_event(e, workbench_entity, response)
+                                 return false
+                              end)
 
    local xz_selector
    local cleanup = function()

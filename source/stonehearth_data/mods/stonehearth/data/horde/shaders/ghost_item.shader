@@ -22,25 +22,21 @@ context BLUEPRINTS_COLOR_PASS
 }
 
 [[VS_BLUEPRINTS]]
+#include "shaders/utilityLib/vertCommon.glsl"
 
 uniform mat4 viewProjMat;
-uniform mat4 worldMat;
 
 attribute vec3 vertPos;
 attribute vec4 color;
 
-varying vec3 gridLineCoords;
 varying vec4 outColor;
 
 void main() {
-   gridLineCoords = vertPos;
    outColor = color;
-   gl_Position = viewProjMat * worldMat * vec4(vertPos, 1.0);
+   gl_Position = viewProjMat * calcWorldPos(vec4(vertPos, 1.0));
 }
 
 [[FS_BLUEPRINTS_DEPTH_PASS]]
-
-varying vec3 gridLineCoords;
 
 void main() {
    gl_FragColor = vec4(0, 0, 0, 0);

@@ -12,11 +12,12 @@ function HilightService:initialize()
       return self:_on_frame()
    end)
 
-   stonehearth.input:push_mouse_handler(function(e)
-      self._mouse_x = e.x
-      self._mouse_y = e.y
-      return false
-   end)
+   self._input_capture = stonehearth.input:capture_input()
+                              :on_mouse_event(function(e)
+                                    self._mouse_x = e.x
+                                    self._mouse_y = e.y
+                                    return false
+                                 end)
 end
 
 function HilightService:_on_frame()

@@ -11,7 +11,6 @@ function CreateWorkshop:run(town, args)
    local workshop_data = json.components['stonehearth:workshop']
 
    self._task_group = town:create_task_group('stonehearth:top', {})
-                                                  :set_priority(stonehearth.constants.priorities.top.CRAFT)
                                                   :add_worker(crafter)
 
    town:run_orchestrator(CollectIngredients, {

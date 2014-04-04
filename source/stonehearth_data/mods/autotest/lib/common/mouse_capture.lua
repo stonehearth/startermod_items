@@ -2,7 +2,6 @@ local Cube3 = _radiant.csg.Cube3
 local Point3 = _radiant.csg.Point3
 local Point3f = _radiant.csg.Point3f
 
-local _captures = {}
 local _mouse_queue = {}
 local _mouse_queue_timer_set
 
@@ -35,15 +34,6 @@ function MouseEvent:down(idx)
          return true
       end
    end
-end
-
-local MouseCapture = class()
-function MouseCapture:destroy()
-   _captures[self] = nil
-end
-
-function MouseCapture:on_input(cb)
-   self.callback = cb
 end
 
 local RegionSelector = class()
@@ -119,22 +109,14 @@ function RegionSelector:_fire_next_callback()
    end
 end
 
-local function call_mouse_callbacks(e)
-   for cap, _ in pairs(_captures) do
-      if cap.callback then
-         cap.callback(e)
-      end
-   end
-end
-
 local function start_mouse_queue_timer()
    if not _mouse_queue_timer_set then
       _mouse_queue_timer_set = true
       radiant.set_realtime_timer(10, function()
             _mouse_queue_timer_set = false
-            if #_mouse_queue > 0 and next(_captures) then
+            if #_mouse_queue > 0 then
                local event = table.remove(_mouse_queue, 1)
-               call_mouse_callbacks(event)
+               stonehearth.input:_dispatch_input(event)
                start_mouse_queue_timer()
             end
          end)
@@ -147,14 +129,6 @@ local function queue_mouse_event(e)
 end
 
 local _region_selector = RegionSelector()
-
-local function _capture_input_patch()
-   local c = MouseCapture()
-   _captures[c] = true
-   start_mouse_queue_timer()
-   return c
-end
-
 local function _select_xz_region_patch()
    assert(not _region_selector:is_active())
 
@@ -179,7 +153,7 @@ local _radiant_client_capture_input = _radiant.client._capture_input
 local _radiant_client_select_xz_region = _radiant.client.select_xz_region
 
 function mouse_capture.hook()
-   rawset(_radiant.client, 'capture_input', _capture_input_patch)
+   start_mouse_queue_timer()
    rawset(_radiant.client, 'select_xz_region', _select_xz_region_patch)
 end
 

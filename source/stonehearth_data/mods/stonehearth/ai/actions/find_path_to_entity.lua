@@ -7,10 +7,6 @@ FindPathToEntity.name = 'find path to entity'
 FindPathToEntity.does = 'stonehearth:find_path_to_entity'
 FindPathToEntity.args = {
    destination = Entity,      -- entity to find a path to
-   reserve_region = {    -- reserve the destination region?
-      type = 'boolean',
-      default = false,
-   },
 }
 FindPathToEntity.think_output = {
    path = Path,       -- the path to destination, from the current Entity
@@ -26,9 +22,12 @@ function FindPathToEntity:start_thinking(ai, entity, args)
       return
    end
 
-   local path = _radiant.sim.create_direct_path(entity, destination, false);
+   local direct_path_finder = _radiant.sim.create_direct_path_finder(entity, destination)
+                                 :set_start_location(ai.CURRENT.location)
+
+   local path = direct_path_finder:get_path()
    if path then
-      ai:set_think_output({path = path})
+      ai:set_think_output({ path = path })
       return
    end
    

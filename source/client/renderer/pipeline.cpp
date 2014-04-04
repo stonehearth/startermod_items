@@ -294,29 +294,24 @@ Pipeline::CreateStockpileNode(H3DNode parent,
 {
    csg::RegionTools2 tools;
 
-   csg::mesh_tools::mesh interior_mesh, border_mesh;
+   csg::mesh_tools::mesh mesh;
 
-   interior_mesh.SetColor(interior_color);
-   border_mesh.SetColor(border_color);
+   //interior_mesh.SetColor(interior_color);
+   //border_mesh.SetColor(border_color);
 
-   CreateStockpileNodeGeometry(interior_mesh, border_mesh, plane);
+   CreateStockpileNodeGeometry(mesh, plane, interior_color, border_color);
 
    H3DNode group = h3dAddGroupNode(parent, "designation group node");
-   H3DNode interior = AddDynamicMeshNode(group, interior_mesh, "materials/transparent.material.xml", 0);
+   H3DNode interior = AddDynamicMeshNode(group, mesh, "materials/transparent.material.xml", 0);
    h3dSetNodeParamI(interior, H3DModel::UseCoarseCollisionBoxI, 1);
    h3dSetNodeParamI(interior, H3DModel::PolygonOffsetEnabledI, 1);
    h3dSetNodeParamF(interior, H3DModel::PolygonOffsetF, 0, -1.0);
    h3dSetNodeParamF(interior, H3DModel::PolygonOffsetF, 1, -.01f);
-   H3DNode outline = AddDynamicMeshNode(group, border_mesh, "materials/transparent.material.xml", 0);
-   h3dSetNodeParamI(outline, H3DModel::UseCoarseCollisionBoxI, 1);
-   h3dSetNodeParamI(outline, H3DModel::PolygonOffsetEnabledI, 1);
-   h3dSetNodeParamF(outline, H3DModel::PolygonOffsetF, 0, -1.0);
-   h3dSetNodeParamF(outline, H3DModel::PolygonOffsetF, 1, -.01f);
 
    return group;
 }
 
-void Pipeline::CreateStockpileNodeGeometry(csg::mesh_tools::mesh& interior_mesh, csg::mesh_tools::mesh& border_mesh, csg::Region2 const& region)
+void Pipeline::CreateStockpileNodeGeometry(csg::mesh_tools::mesh& mesh, csg::Region2 const& region, csg::Color4 const& interior_color, csg::Color4 const& border_color)
 {
    csg::PlaneInfo3 pi;
    pi.reduced_coord = 1;
@@ -328,25 +323,14 @@ void Pipeline::CreateStockpileNodeGeometry(csg::mesh_tools::mesh& interior_mesh,
    const csg::Point2& minbounds = region.GetBounds().min;
    const csg::Point2& maxbounds = region.GetBounds().max;
 
-   // Interior is one shade of color....
-   interior_mesh.AddRect(csg::Rect2(
-      csg::Point2(minbounds.x + 1, minbounds.y + 1), 
-      csg::Point2(maxbounds.x - 1, maxbounds.y - 1)), pi);
+   csg::Region2 stockpileRegion;
+   stockpileRegion.Add(csg::Rect2(minbounds, maxbounds, border_color.ToInteger()));
 
-   // Bounds are another color....
-   // TODO: T-Junctions!
-   border_mesh.AddRect(csg::Rect2(
-      csg::Point2(minbounds.x, minbounds.y), 
-      csg::Point2(minbounds.x + 1, maxbounds.y)), pi);
-   border_mesh.AddRect(csg::Rect2(
-      csg::Point2(minbounds.x + 1, minbounds.y), 
-      csg::Point2(maxbounds.x - 1, minbounds.y + 1)), pi);
-   border_mesh.AddRect(csg::Rect2(
-      csg::Point2(minbounds.x + 1, maxbounds.y - 1), 
-      csg::Point2(maxbounds.x - 1, maxbounds.y)), pi);
-   border_mesh.AddRect(csg::Rect2(
-      csg::Point2(maxbounds.x - 1, minbounds.y), 
-      csg::Point2(maxbounds.x, maxbounds.y)), pi);
+   // Add an interior if we have the room (at least 3x3).
+   if (minbounds.x < maxbounds.x - 2 && minbounds.y < maxbounds.y - 2) {
+      stockpileRegion.Add(csg::Rect2(minbounds + csg::Point2(1,1), maxbounds - csg::Point2(1,1), interior_color.ToInteger()));
+   }
+   mesh.AddRegion(stockpileRegion, pi);
 }
 
 voxel::QubicleFile* Pipeline::LoadQubicleFile(std::string const& uri)

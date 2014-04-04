@@ -35,12 +35,13 @@ function TaskScheduler:create_task_group(activity_name, args)
 end
 
 function TaskScheduler:_update()
-   self._log:debug('updating task scheduler')
+   self._log:debug('updating task scheduler (%d groups)', #self._task_groups)
    local feed_count = self._max_feed_per_interval
    for i, task_group in ipairs(self._task_groups) do
       local count = task_group:_update(feed_count)
       feed_count = feed_count - count
       if feed_count <= 0 then
+         self._log:detail('feed count %d exceeded.  breaking.', feed_count)
          break
       end
    end

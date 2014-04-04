@@ -8,21 +8,20 @@ local all_tasks = {}
 local offscreen_pos = Point3(-1000000, 0, -1000000)
 
 function CastAoeCallHandler:client_cast_aoe(session, response, entity, spell)
-   if not self._handlers then
-      self._handlers = stonehearth.input:push_handlers(
-         function(e)
-            return self:_on_mouse_event(e, response, entity, spell)
-         end,
-
-         function(e)
-            return self:_on_keyboard_event(e, response)
-         end)
+   if not self._input_capture then
+      self._input_capture = stonehearth.input:capture_input()
+                              :on_mouse_event(function(e)
+                                    return self:_on_mouse_event(e, response, entity, spell)
+                                 end)
+                              :on_keyboard_event(function(e)
+                                    return self:_on_keyboard_event(e, response)
+                                 end)
    end
 end
 
 -- called each time the mouse moves on the client.
 function CastAoeCallHandler:_on_mouse_event(e, response, entity, spell)
-   assert(self._handlers, "got mouse event after releasing capture")
+   assert(self._input_capture, "got mouse event after releasing capture")
 
    local range = 20
    local radius = 8
@@ -98,9 +97,9 @@ end
 
 -- destroy our capture object to release the mouse back to the client.  
 function CastAoeCallHandler:_cleanup(e, response)
-   if self._handlers then
-      stonehearth.input:remove_handlers(self._handlers)
-      self._handlers = nil
+   if self._input_capture then
+      self._input_capture:destroy()
+      self._input_capture = nil
    end
 
    if self._cursor_node then
