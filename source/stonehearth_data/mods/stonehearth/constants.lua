@@ -81,9 +81,9 @@ local constants = {
    },
 
    food = {
-      MAX_ENERGY = 100, 
-      MALNOURISHED = 25, 
-      MIN_ENERGY = 0,
+      MAX_ENERGY = 75, 
+      MALNOURISHED = 0, 
+      MIN_ENERGY = -25,
       HOURLY_ENERGY_LOSS = 1,
       HOURLY_HP_LOSS = 5,
       HOURLY_HP_GAIN = 10, 
