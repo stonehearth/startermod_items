@@ -173,7 +173,7 @@ template bool MovementHelpers::TestAdjacentMove(Simulation&, om::EntityPtr const
 // returns the points on the direct line path from start to end
 // if end is not reachable, returns as far as it could go
 // uses the version of Bresenham's line algorithm from Wikipedia
-std::vector<csg::Point3> MovementHelpers::GetPathPoints(Simulation& sim, om::EntityPtr const& entity, csg::Point3 const& start, csg::Point3 const& end)
+std::vector<csg::Point3> MovementHelpers::GetPathPoints(Simulation& sim, om::EntityPtr const& entity, bool reversible, csg::Point3 const& start, csg::Point3 const& end)
 {
    int const x0 = start.x;
    int const z0 = start.z;
@@ -206,7 +206,7 @@ std::vector<csg::Point3> MovementHelpers::GetPathPoints(Simulation& sim, om::Ent
          proposed.z = current.z + sz;
       }
 
-      passable = MovementHelpers::TestAdjacentMove(sim, entity, false, current, proposed, next);
+      passable = MovementHelpers::TestAdjacentMove(sim, entity, reversible, current, proposed, next);
       if (!passable) {
          break;
       }

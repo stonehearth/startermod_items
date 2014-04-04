@@ -21,7 +21,8 @@ local ai = stonehearth.ai
 return ai:create_compound_action(RunTowardEntity)
          :execute('stonehearth:find_direct_path_to_entity', {
             destination = ai.ARGS.entity,
-            allow_incomplete_path = true
+            allow_incomplete_path = true,
+            reversible_path = true
          })
          :execute('stonehearth:follow_path', {
             path = ai.PREV.path,
