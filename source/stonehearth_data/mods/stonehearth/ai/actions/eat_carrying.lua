@@ -19,7 +19,6 @@ function EatCarrying:run(ai, entity)
 end
 
 function EatCarrying:stop(ai, entity, args)
-   radiant.entities.remove_carrying(entity)
 end
 
 return EatCarrying
