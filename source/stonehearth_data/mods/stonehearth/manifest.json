@@ -128,6 +128,9 @@
       "turnip_crop" : "file(entities/plants/turnip/turnip_crop)",
       "turnip" : "file(entities/plants/turnip/turnip_serving)",
       "turnip_basket" : "file(entities/plants/turnip/turnip_basket)",
+      "tester_crop" : "file(entities/plants/tester/tester_crop)",
+      "tester" : "file(entities/plants/tester/tester_serving)",
+      "tester_basket" : "file(entities/plants/tester/tester_basket)",
 
       "pink_flower" : "file(entities/ground_clutter/pink_flower)",
 

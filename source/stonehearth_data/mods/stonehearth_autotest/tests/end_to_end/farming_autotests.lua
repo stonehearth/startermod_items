@@ -1,10 +1,19 @@
 local farming_tests = {}
 
 function farming_tests.grow_one_turnip()
-   local worker = autotest.env.create_person(2, 2, { profession = 'farmer' })
+   local farmer = autotest.env.create_person(2, 2, { profession = 'farmer' })
+
+   --Add a fast-harvest test crop
+   local session = {
+      player_id = radiant.entities.get_player_id(farmer),
+      kingdom = radiant.entities.get_kingdom(farmer)
+   }
+
+   stonehearth.farming:add_crop_type(session, 'stonehearth:tester_crop')
+
 
    radiant.events.listen(radiant, 'radiant:entity:post_create', function (e)
-         if e.entity:get_uri() == 'stonehearth:turnip_basket' then
+         if e.entity:get_uri() == 'stonehearth:tester_basket' then
             autotest.success()
          end
       end)
@@ -19,7 +28,7 @@ function farming_tests.grow_one_turnip()
    autotest.ui.sleep(500)
    autotest.ui.click_dom_element('#farmWindow #addCropLink')
    autotest.ui.sleep(500)
-   autotest.ui.click_dom_element('#cropPalette img[crop="stonehearth:turnip_crop"]')
+   autotest.ui.click_dom_element('#cropPalette img[crop="stonehearth:tester_crop"]')
    autotest.ui.sleep(500)
 
    -- click ok to close the dialog

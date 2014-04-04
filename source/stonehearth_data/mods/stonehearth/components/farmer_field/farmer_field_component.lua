@@ -95,9 +95,13 @@ function FarmerFieldComponent:destroy()
    for x=1, self._sv.size[1] do
       for y=1, self._sv.size[2] do
          local field_spacer = self._sv.contents[x][y].plot
-         local dirt_plot_component = field_spacer:get_component('stonehearth:dirt_plot')
-         dirt_plot_component:set_field(nil, nil)
-         radiant.events.unlisten(field_spacer, 'stonehearth:crop_removed', self, self._on_crop_removed)
+         if field_spacer then
+            local dirt_plot_component = field_spacer:get_component('stonehearth:dirt_plot')
+            if dirt_plot_component then
+               dirt_plot_component:set_field(nil, nil)
+            end
+            radiant.events.unlisten(field_spacer, 'stonehearth:crop_removed', self, self._on_crop_removed)
+         end
          local till_task =  self._till_tasks[x][y]
          if till_task then
             till_task:destroy()

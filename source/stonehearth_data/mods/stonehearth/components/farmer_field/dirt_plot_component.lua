@@ -24,8 +24,15 @@ function DirtPlotComponent:initialize(entity, json)
             return radiant.events.UNLISTEN
          end)
    end
+
 end
 
+function DirtPlotComponent:destroy()
+   if self._sv.contents then
+      radiant.events.unlisten(self._sv.contents, 'radiant:entity:pre_destroy', self, self._on_crop_removed)
+      radiant.events.unlisten(self._sv.contents, 'stonehearth:crop_harvestable', self, self._on_crop_harvestable)
+   end
+end
 
 --Set up the different listeners based on the state of the plot
 function DirtPlotComponent:_set_up_listeners()
