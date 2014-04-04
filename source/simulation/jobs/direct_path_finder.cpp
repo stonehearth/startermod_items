@@ -14,7 +14,8 @@ DirectPathFinder::DirectPathFinder(Simulation &sim, om::EntityRef entityRef, om:
    sim_(sim),
    entityRef_(entityRef),
    targetRef_(targetRef),
-   allowIncompletePath_(false)
+   allowIncompletePath_(false),
+   reversiblePath_(false)
 {
    om::EntityPtr entity = entityRef_.lock();
    startLocation_ = entity->AddComponent<om::Mob>()->GetWorldGridLocation();
@@ -29,6 +30,12 @@ std::shared_ptr<DirectPathFinder> DirectPathFinder::SetStartLocation(csg::Point3
 std::shared_ptr<DirectPathFinder> DirectPathFinder::SetAllowIncompletePath(bool allowIncompletePath)
 {
    allowIncompletePath_ = allowIncompletePath;
+   return shared_from_this();
+}
+
+std::shared_ptr<DirectPathFinder> DirectPathFinder::SetReversiblePath(bool reversiblePath)
+{
+   reversiblePath_ = reversiblePath;
    return shared_from_this();
 }
 
@@ -48,6 +55,7 @@ PathPtr DirectPathFinder::GetPath()
    csg::Point3 const& start = startLocation_;
    csg::Point3 const targetLocation = target->AddComponent<om::Mob>()->GetWorldGridLocation();
    csg::Point3 end;
+
    bool haveEndPoint = MovementHelpers::GetClosestPointAdjacentToEntity(sim_, start, target, end);
    if (!haveEndPoint) {
       // No point inside the target's adjacent region is actually standable.  There's *no way* to
@@ -62,7 +70,7 @@ PathPtr DirectPathFinder::GetPath()
    }
 
    // Walk the path from start to end and see how far we get.  
-   std::vector<csg::Point3> points = MovementHelpers::GetPathPoints(sim_, entity, start, end);
+   std::vector<csg::Point3> points = MovementHelpers::GetPathPoints(sim_, entity, reversiblePath_, start, end);
 
    // If we didn't reach the endpoint and we don't allow incomplete paths, bail.
    bool reachedEndPoint = !points.empty() && points.back() == end;
@@ -91,18 +99,6 @@ PathPtr DirectPathFinder::GetPath()
    PathPtr path = std::make_shared<Path>(points, entityRef_, targetRef_, poi);
    return path;
 }
-
-#if 0
-PathPtr DirectPathFinder::CreateDefaultPath() const
-{
-   if (allowIncompletePath_) {
-      std::vector<csg::Point3> points;
-      points.emplace_back(startLocation_);
-      return std::make_shared<Path>(points, entityRef_, targetRef_, startLocation_);
-   }
-   return nullptr;
-}
-#endif
 
 std::ostream& simulation::operator<<(std::ostream& os, DirectPathFinder const& o)
 {

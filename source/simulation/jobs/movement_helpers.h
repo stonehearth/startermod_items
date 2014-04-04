@@ -13,7 +13,7 @@ public:
    static bool GetClosestPointAdjacentToEntity(Simulation& sim, csg::Point3 const& from, om::EntityPtr const& entity, csg::Point3& closestPoint);
    static csg::Region3 GetRegionAdjacentToEntity(Simulation& sim, om::EntityPtr const& entity);
    static csg::Point3 GetPointOfInterest(csg::Point3 const& adjacentPoint, om::EntityPtr const& entity);
-   static std::vector<csg::Point3> GetPathPoints(Simulation& sim, om::EntityPtr const& entity, csg::Point3 const& start, csg::Point3 const& end);
+   static std::vector<csg::Point3> GetPathPoints(Simulation& sim, om::EntityPtr const& entity, bool reversible, csg::Point3 const& start, csg::Point3 const& end);
 
    template <class T>
    static bool TestAdjacentMove(Simulation& sim, om::EntityPtr const& entity, bool const reversible,
