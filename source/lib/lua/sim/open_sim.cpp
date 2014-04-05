@@ -185,6 +185,7 @@ void lua::sim::open(lua_State* L, Simulation* sim)
             lua::RegisterTypePtr_NoTypeInfo<DirectPathFinder>("DirectPathFinder")
                .def("set_start_location",        &DirectPathFinder::SetStartLocation)
                .def("set_allow_incomplete_path", &DirectPathFinder::SetAllowIncompletePath)
+               .def("set_reversible_path",       &DirectPathFinder::SetReversiblePath)
                .def("get_path",                  &DirectPathFinder::GetPath)
             ,
             lua::RegisterTypePtr_NoTypeInfo<FollowPath>("FollowPath")

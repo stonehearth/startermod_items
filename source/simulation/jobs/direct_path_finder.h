@@ -16,13 +16,15 @@ public:
 public:
    std::shared_ptr<DirectPathFinder> SetStartLocation(csg::Point3 const& startLocation);
    std::shared_ptr<DirectPathFinder> SetAllowIncompletePath(bool allowIncompletePath);
+   std::shared_ptr<DirectPathFinder> SetReversiblePath(bool reversiblePath);
    PathPtr GetPath();
 
-protected:
+private:
    Simulation& sim_;
    om::EntityRef entityRef_;
    om::EntityRef targetRef_;
    bool allowIncompletePath_;
+   bool reversiblePath_;
    csg::Point3 startLocation_;
 };
 
