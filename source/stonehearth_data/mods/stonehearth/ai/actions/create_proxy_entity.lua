@@ -37,7 +37,7 @@ end
 local origin_region = create_origin_region()
 
 function CreateProxyEntity:start_thinking(ai, entity, args)
-   self:stop()
+   self:_destroy_proxy_entity()
 
    self._proxy_entity = radiant.entities.create_entity()
    self._proxy_entity:set_debug_text('go to/toward location proxy entity')
@@ -55,6 +55,14 @@ function CreateProxyEntity:start_thinking(ai, entity, args)
 end
 
 function CreateProxyEntity:stop()
+   self:_destroy_proxy_entity()
+end
+
+function CreateProxyEntity:destroy()
+   self:_destroy_proxy_entity()
+end
+
+function CreateProxyEntity:_destroy_proxy_entity()
    if self._proxy_entity then
       radiant.entities.destroy_entity(self._proxy_entity)
       self._proxy_entity = nil
