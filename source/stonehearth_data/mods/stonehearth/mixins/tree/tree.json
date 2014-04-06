@@ -12,14 +12,6 @@
       "render_info" : {
          "scale" : 1
       },
-      "destination" : {
-         "region" : [
-            {
-               "min" : { "x" : -3, "y" : 0, "z" : -3 },
-               "max" : { "x" :  4, "y" : 1, "z" :  4 }
-            }
-         ]
-      },
       "stonehearth:resource_node": {
          "harvest_profession" : "worker",
          "harvest_overlay_effect" : "/stonehearth/data/effects/chop_overlay_effect",
