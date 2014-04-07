@@ -24,6 +24,22 @@
       "stonehearth:resource_node": {
          "resource": "stonehearth:oak_log", 
          "durability": 4
+      },
+      "destination" : {
+         "region" : [
+            {
+               "min" : { "x" : -3, "y" : 0, "z" : -3 },
+               "max" : { "x" :  3, "y" : 1, "z" :  3 }
+            }
+         ]
+      },      
+      "region_collision_shape" : {
+         "region": [
+            {
+               "min" : { "x" : -2, "y" : 0,  "z" : -2 },
+               "max" : { "x" :  2, "y" : 10, "z" :  2 }
+            }
+         ]
       }
    }
 }
