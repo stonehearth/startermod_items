@@ -12,6 +12,13 @@
                "file(untilled_ground.qb)"
             ]
          },
+         "furrow": {
+            "models": [
+               "file(farm_furrow.qb)"
+            ],
+            "unit_info_name" : "Field Furrow",
+            "unit_info_description" : ""
+         },
          "dirt_1": {
             "models": [
                "file(poor_dirt.qb)"
