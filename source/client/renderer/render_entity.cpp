@@ -329,5 +329,5 @@ void RenderEntity::RemoveQueryFlag(int flag)
 
 bool RenderEntity::HasQueryFlag(int flag) const
 {
-   return query_flags_ & flag;
+   return (query_flags_ & flag) != 0;
 }
