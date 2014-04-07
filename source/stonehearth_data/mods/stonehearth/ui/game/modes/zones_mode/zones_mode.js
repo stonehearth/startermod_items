@@ -30,6 +30,14 @@ App.StonehearthZonesModeView = App.View.extend({
    
    didInsertElement: function() {
       this.$().hide();
+
+      /*
+      this.$('.modeSign').position({
+         my: 'right top',
+         at: 'right top',
+         of: $('#zonesMode')
+      });
+*/
    },
 
    destroy: function() {

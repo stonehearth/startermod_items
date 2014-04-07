@@ -9,7 +9,7 @@
       "soundDefault": "stonehearth:sounds:ui:start_menu:harvest_pickup"
    },
    "zone_menu" : {
-      "name" : "Manage Zones",
+      "name" : "Zone Tools",
       "description" : "Designate areas of the ground for storage, farming, etc.",
       "class" : "dock",
       "icon" : "/stonehearth/ui/game/start_menu/images/dock_zone.png",

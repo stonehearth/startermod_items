@@ -719,7 +719,6 @@
       "ghost_item" : "file(components/place_item/ghost_item_component.lua)",
       "placed_item" : "file(components/place_item/placed_item_component.lua)",
       "firepit" : "file(components/firepit/firepit_component.lua)",
-      "farmer_field" : "file(components/farmer_field/farmer_field_component.lua)",
       "lease" : "file(components/lease/lease_component.lua)",
       "lease_holder" : "file(components/lease_holder/lease_holder_component.lua)",
       "sensor_ai_injector"  : "file(components/sensor_ai_injector/sensor_ai_injector_component.lua)",
@@ -739,6 +738,7 @@
       "loot_table" : "file(components/loot_table/loot_table_component.lua)",
       "inventory" : "file(components/inventory/inventory_component.lua)",
       "carry_block" : "file(components/carry_block/carry_block_component.lua)",
+      "farmer_field" : "file(components/farmer_field/farmer_field_component.lua)",
       "growing" : "file(components/growing/growing_component.lua)", 
       "crop" : "file(components/crop/crop_component.lua)", 
       "dirt_plot" : "file(components/farmer_field/dirt_plot_component.lua)"
@@ -851,6 +851,7 @@
          "file(ui/debug/error_browser/error_browser.less)",
          "file(ui/debug/error_dialog/error_dialog.less)",
          "file(ui/game/game.less)",
+         "file(ui/game/modes/modes.less)",
          "file(ui/game/modes/zones_mode/zones_mode.less)",
          "file(ui/game/modes/zones_mode/stockpile/stockpile.less)",
          "file(ui/game/modes/zones_mode/farm/farm.less)",
@@ -880,3 +881,4 @@
       ]
    }
 }
+
