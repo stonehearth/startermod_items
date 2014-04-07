@@ -39,6 +39,7 @@ message Update {
       RemoveObjects = 5;
       AllocObjects = 6;
       UpdateDebugShapes = 7;
+      UpdateObjectsInfo = 8;
       EndUpdate = 9;
       PostCommandReply = 11;
       LoadGame = 12;
@@ -145,3 +146,12 @@ message ClientRequest {
    optional int32        request_id = 1;
    required string       request = 2; // json
 }
+
+message UpdateObjectsInfo {
+   extend Update {
+      optional UpdateObjectsInfo extension = 123;
+   }
+   optional uint32         update_count = 1;
+   optional uint32         remove_count = 2;
+}
+

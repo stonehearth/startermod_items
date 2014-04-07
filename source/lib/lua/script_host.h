@@ -25,6 +25,7 @@ public:
    luabind::object Require(std::string const& name);
    luabind::object RequireScript(std::string const& path);
    void GC(platform::timer &timer);
+   void FullGC();
    int GetAllocBytesCount() const;
    void ClearMemoryProfile();
    void ProfileMemory(bool value);
