@@ -59,9 +59,14 @@ end
 function WorkAtWorkshop:_process_order(order)
    local recipe = order:get_recipe()
 
+   local crafter = self._workshop:get_component('stonehearth:workshop')
+                                 :get_crafter()
+   local effect = crafter:get_component('stonehearth:crafter')
+                         :get_work_effect()
    local args = {
       workshop = self._workshop,
-      times = recipe.work_units
+      times = recipe.work_units,
+      effect = effect
    }
    local task = self._task_group:create_task('stonehearth:work_at_workshop', args)
                                      :set_priority(stonehearth.constants.priorities.top.WORK)

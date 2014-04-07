@@ -46,6 +46,7 @@ function StockpileComponent:initialize(entity, json)
    self._sv = self.__saved_variables:get_data()
    if not self._sv.stocked_items then
       -- creating...
+      self._sv.is_outbox = false
       self._sv.stocked_items = {}
       self._sv.item_locations = {}
       self._sv.size  = Point2(0, 0)
@@ -161,11 +162,11 @@ function StockpileComponent:get_items()
 end
 
 function StockpileComponent:set_outbox(value)
-   self._is_outbox = value
+   self._sv.is_outbox = value
 end
 
 function StockpileComponent:is_outbox(value)
-   return self._is_outbox
+   return self._sv.is_outbox
 end
 
 function StockpileComponent:_get_bounds()
@@ -423,7 +424,7 @@ end
 
 --- Workers and farmers restock stockpiles.
 function StockpileComponent:_create_worker_tasks()
-   if self._is_outbox then
+   if self._sv.is_outbox then
       return
    end
 
