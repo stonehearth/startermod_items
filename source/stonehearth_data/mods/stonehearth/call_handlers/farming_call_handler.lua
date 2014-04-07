@@ -50,7 +50,7 @@ function FarmingCallHandler:choose_new_field_location(session, response)
             if node then
                h3dRemoveNode(node)
             end
-            node = _radiant.client.create_designation_node(parent_node, self._region:get(), Color4(230, 201, 54, 255), Color4(230, 201, 54, 255));
+            node = _radiant.client.create_designation_node(parent_node, self._region:get(), Color4(122, 40, 0, 255), Color4(122, 40, 0, 255));
          end)
       :done(function (box)
             local size = {
