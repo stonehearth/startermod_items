@@ -35,9 +35,8 @@ function CompoundAction:__init(entity, injecting_entity, action_ctor, activities
    self._when_predicates = when_predicates
    self._activities = activities
    self._think_output_placeholders = think_output_placeholders
-   self._thinking_frames = {}
-   self._running_frames = {}
    self._previous_think_output = {}
+
    self.version = 2
    self._id = stonehearth.ai:get_next_object_id()   
    self._log = radiant.log.create_logger('compound_action')
@@ -52,7 +51,11 @@ function CompoundAction:__init(entity, injecting_entity, action_ctor, activities
             self:_spam_current_state('compound action became ready!')
             think_output = think_output or self._args
             table.insert(self._previous_think_output, think_output)
-            self:_start_thinking(1)
+
+            -- verify the compound action only calls set_think_output once at
+            -- the beginning of the thinking process
+            assert(#self._previous_think_output == 1)
+            self:_start_thinking()
          end,
          clear_think_output = function(_)
             local msg = string.format('compound action became unready.  aborting')
@@ -63,14 +66,37 @@ function CompoundAction:__init(entity, injecting_entity, action_ctor, activities
    end
 end
 
+function CompoundAction:_create_execution_frames()
+   self._execution_frames = {} 
+   for i, activity in ipairs(self._activities) do
+      self._log:detail('creating compound action frame #%d : %s', i, activity.name)
+      local frame = self._ai:spawn(activity.name)
+      table.insert(self._execution_frames, frame)
+   end
+end
+
+function CompoundAction:_destroy_execution_frames()
+   if self._execution_frames then
+      local count = #self._execution_frames
+      for i = count, 1, -1  do
+         self._execution_frames[i]:destroy()
+      end
+      self._execution_frames = nil
+   end
+end
+
 function CompoundAction:start_thinking(ai, entity, args)
-   assert(#self._thinking_frames == 0)
-   assert(#self._previous_think_output == 0)
    assert(not self._thinking)
+   assert(#self._previous_think_output == 0)
    
    self._ai = ai
    self._args = args
-   self._log = ai:get_log()   
+   self._log = ai:get_log()
+   if not self._execution_frames then
+      self:_create_execution_frames()
+   end
+
+   -- invoke all the when clauses.  if any of them return false, just bail immediately
    for i, clause_fn in ipairs(self._when_predicates) do
       if not clause_fn(ai, entity, args) then
          self._log:debug('when clause %d failed.  hanging in start_thinking intentionally', i)
@@ -79,58 +105,65 @@ function CompoundAction:start_thinking(ai, entity, args)
       self._log:spam('when %d succeeded', i)
    end
    
+   -- start thinking for real!
    self._thinking = true
-   self:_start_thinking(0)
+   self:_start_thinking()
 end
 
-function CompoundAction:_start_thinking(index)
+function CompoundAction:_start_thinking()
    assert(self._thinking)
 
    -- index is the frame in the compound action which needs to start thinking first.  use 0
    -- as a sentinel to refer to the compound action itself. 
-   if index == 0 then
+   local current_frame = #self._previous_think_output
+   if current_frame == 0 then
       if self._action.start_thinking then
          self:_spam_current_state('start_thinking (compound action)')
          self._action.start_thinking(self._action, self._action_ai, self._entity, self._args)
          return
       else
-         index = 1
+         -- the compound action does not implement start_thinking().. hrm.  what should the
+         -- result of ai.PREV of the first :execute()'ed action be?  let's just define that
+         -- to be args().
+         table.insert(self._previous_think_output, self._args)
+         current_frame = 1
       end
    end
 
    -- now ask all the compound actions to start thinking, in order.
-   while index <= #self._activities do
-      local activity = self._activities[index]
-      self:_spam_current_state('start_thinking (%d of %d - %s)', index, #self._activities, activity.name)
+
+   while current_frame <= #self._execution_frames do
+      assert(current_frame == #self._previous_think_output)
+
+      local activity = self._activities[current_frame]
+      self:_spam_current_state('start_thinking (%d of %d - %s)', current_frame, #self._activities, activity.name)
 
       local transformed_args = self:_replace_placeholders(activity.args)
-      local frame = self._ai:spawn(activity.name, transformed_args)
-      table.insert(self._thinking_frames, frame)
-
+      local frame = self._execution_frames[current_frame]
       local think_output = frame:start_thinking(transformed_args, self._ai.CURRENT)
+
       if think_output then
-         self:_spam_current_state('after start_thinking (%d of %d - %s)', index, #self._activities, activity.name)
-         assert(self._thinking)
+         self:_spam_current_state('after start_thinking (%d of %d - %s)', current_frame, #self._activities, activity.name)
          table.insert(self._previous_think_output, think_output)
-         index = index + 1
+         current_frame = current_frame + 1
       else
-         self:_spam_current_state('registering on_ready handler (%d of %d - %s)', index, #self._activities, activity.name)
+         self:_spam_current_state('registering on_ready handler (%d of %d - %s)', current_frame, #self._activities, activity.name)
          frame:on_ready(function(frame, think_output)
             if not think_output then
                local msg = string.format('previous frame f:%d became unready.  aborting', frame:get_id())
                self._log:debug(msg)
                self._ai:abort(msg)
             else
-               self:_spam_current_state('frame became ready! (%d of %d - %s)', index, #self._activities, activity.name)
+               self:_spam_current_state('frame became ready! (%d of %d - %s)', current_frame, #self._activities, activity.name)
             end
             assert(self._thinking, 'received ready callback while not thinking.')
             table.insert(self._previous_think_output, think_output)
-            self:_start_thinking(index + 1)
+            self:_start_thinking()
             -- xxx: listen for when frames become unready, right?      
          end)
          return
       end
-   end
+   end 
    self:_set_think_output()   
 end
 
@@ -149,17 +182,17 @@ end
 function CompoundAction:stop_thinking(ai, entity, ...)
    self._thinking = false
 
+
    self._previous_think_output = {}
-   for i=#self._thinking_frames,1,-1 do
-      self._thinking_frames[i]:stop_thinking() -- must be asynchronous!
-      self._thinking_frames[i]:on_ready(nil)
+   for i=#self._execution_frames, 1, -1 do
+      self._execution_frames[i]:stop_thinking() -- must be synchronous!
+      self._execution_frames[i]:on_ready(nil)
    end
+   
    if self._action.stop_thinking then
       self._action.stop_thinking(self._action, self._action_ai, self._entity, self._args)
    end
    self._log:debug('switching thinking frames to running frames')   
-   self._running_frames = self._thinking_frames
-   self._thinking_frames = {}
 end
 
 function CompoundAction:_replace_placeholders(args)
@@ -182,35 +215,30 @@ end
 
 function CompoundAction:start()
    self._log:detail('starting all compound action frames')
-   for _, frame in ipairs(self._thinking_frames) do
+   for _, frame in ipairs(self._execution_frames) do
       frame:start() -- must be synchronous!
    end
    self._log:detail('finished starting all compound action frames')
 end
 
 function CompoundAction:run(ai, entity, ...)
-   for _, frame in ipairs(self._running_frames) do
+   for _, frame in ipairs(self._execution_frames) do
       frame:run()  -- must be synchronous!
    end
 end
 
 function CompoundAction:stop()
    self._log:detail('stopping all compound action frames')
-   for _, frame in ipairs(self._running_frames) do
+   for _, frame in ipairs(self._execution_frames) do
       frame:stop() -- must be asynchronous!
    end
-   self._running_frames = {}
    self._log:detail('finished stopping all compound action frames')
 end
 
 function CompoundAction:destroy()
    self._log:detail('destroying all compound action frames')
-   local frames = (#self._thinking_frames > 0) and self._thinking_frames or self._running_frames
-   
-   for i = #frames, 1, -1 do
-      local frame = frames[i]
-      frame:destroy() -- must be synchronous!
-   end
+
+   self:_destroy_execution_frames()
    if self._action.destroy then
       self._action:destroy(self._ai, self._entity, self._args)
    end
@@ -226,9 +254,10 @@ function CompoundAction:get_debug_info()
          n = 0,
       }
    }
-   local frames = (#self._thinking_frames > 0) and self._thinking_frames or self._running_frames
-   for _, f in ipairs(frames) do
-      table.insert(info.execution_frames, f:get_debug_info())
+   if self._execution_frames then
+      for _, f in ipairs(self._execution_frames) do
+         table.insert(info.execution_frames, f:get_debug_info())
+      end
    end
    return info
 end

@@ -37,8 +37,11 @@ end
 local origin_region = create_origin_region()
 
 function CreateProxyEntity:start_thinking(ai, entity, args)
-   self:_destroy_proxy_entity()
+   -- if we already have a proxy entity, someone has screwed us by making us
+   -- thinking twice without an intervening call to stop_thinking()
+   assert(not self._proxy_entity)
 
+   self._using_proxy_entity = false
    self._proxy_entity = radiant.entities.create_entity()
    self._proxy_entity:set_debug_text('go to/toward location proxy entity')
 
@@ -54,6 +57,23 @@ function CreateProxyEntity:start_thinking(ai, entity, args)
    ai:set_think_output({ entity = self._proxy_entity })
 end
 
+function CreateProxyEntity:stop_thinking()
+   -- if we need to keep the proxy entity around, start() will have been called before
+   -- stop_thinking() to let us know.  if we don't need it, nuke it now.
+   if not self._using_proxy_entity then
+      self:_destroy_proxy_entity()
+   end
+end
+
+function CreateProxyEntity:run()
+   assert(self._using_proxy_entity and self._proxy_entity)
+end
+
+function CreateProxyEntity:start()
+   -- set a flag to keep the proxy entity around for the duration of run
+   self._using_proxy_entity = true
+end
+
 function CreateProxyEntity:stop()
    self:_destroy_proxy_entity()
 end
@@ -66,6 +86,7 @@ function CreateProxyEntity:_destroy_proxy_entity()
    if self._proxy_entity then
       radiant.entities.destroy_entity(self._proxy_entity)
       self._proxy_entity = nil
+      self._using_proxy_entity = false
    end
 end
 
