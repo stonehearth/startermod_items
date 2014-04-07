@@ -96,9 +96,13 @@ function events.unlisten(object, event, self, fn)
    end
 
    for i, entry in ipairs(listeners) do
-      if entry.fn == fn and entry.self == self then
+      if entry.fn == fn and entry.self == self and not entry.dead then
          log:spam('unlistening to event ' .. event)
-         entry.dead = true
+         if listeners._triggering then
+            entry.dead = true
+         else
+            table.remove(listeners, i)
+         end
          return
       end
    end
@@ -124,6 +128,10 @@ function events.trigger(object, event, ...)
       local listeners = sender[event]
       if listeners then
          log:debug('trigging %d listeners for "%s"', #listeners, event)
+
+         assert(not listeners._triggering)
+         listeners._triggering = true
+
          local i, count = 1, #listeners
          while i <= count do
             local entry = listeners[i]
@@ -157,6 +165,7 @@ function events.trigger(object, event, ...)
                i = i + 1
             end
          end
+         listeners._triggering = false 
       end
    end
 end
