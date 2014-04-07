@@ -41,7 +41,13 @@ function events.listen(object, event, self, fn)
    local sender = events._senders[key]
    local listeners = sender[event]
    if not listeners then
-      listeners = {}
+      -- `listeners` is a numeric array of all the people listenting to the event.
+      -- still, keep a `trigger_depth` count of how deep we are in a stack of
+      -- lua functions triggering this event so we can avoid modifying the
+      -- listener list in the middle of a trigger
+      listeners = {
+         trigger_depth = 0
+      }
       sender[event] = listeners
    end
 
@@ -98,7 +104,7 @@ function events.unlisten(object, event, self, fn)
    for i, entry in ipairs(listeners) do
       if entry.fn == fn and entry.self == self and not entry.dead then
          log:spam('unlistening to event ' .. event)
-         if listeners._triggering then
+         if listeners.trigger_depth > 0 then
             entry.dead = true
          else
             table.remove(listeners, i)
@@ -129,8 +135,7 @@ function events.trigger(object, event, ...)
       if listeners then
          log:debug('trigging %d listeners for "%s"', #listeners, event)
 
-         assert(not listeners._triggering)
-         listeners._triggering = true
+         listeners.trigger_depth = listeners.trigger_depth + 1
 
          local i, count = 1, #listeners
          while i <= count do
@@ -165,7 +170,7 @@ function events.trigger(object, event, ...)
                i = i + 1
             end
          end
-         listeners._triggering = false 
+         listeners.trigger_depth = listeners.trigger_depth - 1
       end
    end
 end
