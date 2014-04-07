@@ -9,7 +9,7 @@
       "soundDefault": "stonehearth:sounds:ui:start_menu:harvest_pickup"
    },
    "zone_menu" : {
-      "name" : "Manage Zones",
+      "name" : "Zone Tools",
       "description" : "Designate areas of the ground for storage, farming, etc.",
       "class" : "dock",
       "icon" : "/stonehearth/ui/game/start_menu/images/dock_zone.png",
@@ -46,11 +46,20 @@
       "sound": "stonehearth:sounds:ui:start_menu:wash_out",
       "soundTwo": "stonehearth:sounds:ui:start_menu:wash_in",
       "items" : {
+            "design_building" : {
+                "name" : "Design Custom Building",
+                "description" : "Design your own custom building with it's own floor-plan and structure.",
+                "class" : "button",
+                "icon" : "/stonehearth/ui/game/start_menu/images/design_building.png",
+                "sticky" : true,
+                "hotkey" : "c"
+            },
             "build_simple_room" : {
                 "name" : "Simple Room",
                 "description" : "xxx",
                 "class" : "button",
                 "icon" : "/stonehearth/ui/game/start_menu/images/build_simple_room.png",
+                "sticky" : true,
                 "hotkey" : "r"
             },
             "build_wall" : {
@@ -58,6 +67,7 @@
                 "description" : "xxx",
                 "class" : "button",
                 "icon" : "/stonehearth/ui/game/start_menu/images/build_wall.png",
+                "sticky" : true,
                 "hotkey" : "l"
             }
       }

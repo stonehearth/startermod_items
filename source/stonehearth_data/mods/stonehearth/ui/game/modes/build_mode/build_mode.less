@@ -1,17 +1,10 @@
-.gameModeOverlay {
-   width: 100%;
+#buildMode {
+   position: absolute;
+   top: 0px;
+   left: 0px;
+   right: 0px;
+   bottom: 0px;
    border-width: 100px;
-   border-image: url('images/border_no_lines.png') 50 50 50 50 repeat;
-   padding: 8px;
-
-   #header {
-      font-family: @headerFontFamily;
-      font-size: 40px;
-      color: rgba(255, 255, 255, 0.8);
-      position: absolute;
-      left: 100px;
-      bottom: 20px;
-      opacity: 0.7;
-      display: none;
-   }
+   border-image: url('../images/mode_border.png') 50 50 50 50 repeat;
+   display: flex;
 }

@@ -148,6 +148,11 @@ function FarmerFieldComponent:_init_dirt_plot(location, x, y)
    local dirt_plot_component = field_spacer:get_component('stonehearth:dirt_plot')
    dirt_plot_component:set_field(self._entity, {x=x, y=y})
 
+   -- every even column in the farm is a furrow
+   if x % 2 == 0 then
+      dirt_plot_component:set_furrow(true)
+   end
+
    local grid_location = Point3(location.x + x-1, 0, location.z + y-1)
    radiant.terrain.place_entity(field_spacer, grid_location)
 
@@ -204,6 +209,12 @@ function FarmerFieldComponent:_determine_replant(e)
    --Figure out the policy on the field
    local plot_entity = e.plot_entity
    local dirt_component = plot_entity:get_component('stonehearth:dirt_plot')
+
+   -- furrows are never planted
+   if dirt_component:is_furrow() then
+      return
+   end
+
    local do_replant = self._sv.auto_replant
    local do_auto_harvest = self._sv.auto_harvest
    local next_plant = self:_get_next_queued_crop()

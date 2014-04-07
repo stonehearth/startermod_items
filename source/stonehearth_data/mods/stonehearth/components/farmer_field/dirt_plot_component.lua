@@ -18,6 +18,7 @@ function DirtPlotComponent:initialize(entity, json)
       self._sv.player_override = false
       self._sv.auto_replant = nil
       self._sv.auto_harvest = nil
+      self._sv.is_furrow = nil
    else
       radiant.events.listen(radiant, 'radiant:game_loaded', function(e)
             self:_set_up_listeners()
@@ -55,6 +56,29 @@ end
 --  @returns location.x and location.y
 function DirtPlotComponent:get_location()
    return self._sv.field_location
+end
+
+--- Even columns of the farm field are furrows, which are not plantable
+-- @returns true if this cell of the farm is a furrow
+function DirtPlotComponent:is_furrow()
+   return self._sv.is_furrow
+end
+
+--- Set whether this cell of the farm is a furrow or now. Plants do not grow in furrows
+-- @param value: set true to make this dirt plot a furrow
+function DirtPlotComponent:set_furrow(value)
+   self._sv.is_furrow = value;
+
+   if value then 
+      local command_component = self._entity:add_component('stonehearth:commands')
+      --TODO: programatically remove all plant commands. XXX, this is baaad, and assumes 
+      -- that there are only two commands on the dirt
+      --command_component:remove_command('plant_crop')
+      command_component:remove_command('plant_corn')
+      command_component:remove_command('plant_turnip')
+   end
+
+   self.__saved_variables:mark_changed()
 end
 
 --- Given data about the plot, set the right state variables
@@ -103,7 +127,9 @@ end
 --TODO: incorporate the moisture of the soil
 function DirtPlotComponent:_update_visible_soil_state()
    local fertility_category = nil
-   if  self._sv.fertility < stonehearth.constants.soil_fertility.POOR then
+   if self._sv.is_furrow then
+      fertility_category = 'furrow'
+   elseif  self._sv.fertility < stonehearth.constants.soil_fertility.POOR then
       fertility_category = 'dirt_1'
    elseif  self._sv.fertility < stonehearth.constants.soil_fertility.FAIR then
       fertility_category = 'dirt_2'

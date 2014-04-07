@@ -1,0 +1,36 @@
+<script type="text/x-handlebars" data-template-name="buildingDesigner">
+   <div id="buildingDesigner" class="gui">
+      <div id="toolbar">
+         <div class="tool floorTool"></div>
+         <div class="tool wallTool"></div>
+         <div class="break"></div>
+
+         <div class="tool fillWallTool"></div>
+         <div class="tool fillFloorTool"></div>
+         <div class="tool roofTool"></div>
+         <div class="break"></div>
+
+         <div class="tool doorTool"></div>
+         <div class="tool windowTool"></div>
+      </div>
+
+      <div id="palettes">
+         <div id="hint" class="window">
+            hint
+         </div>
+
+         <div id="materials" class="window">
+            <div class="title">Materials</div>
+            <br><br><br>
+         </div>      
+      </div>
+
+      <div id="buildingControls" class="window">
+         <div class="title">New Building</div>
+         <br><br><br>
+         <button class="warn">{{i18n stonehearth:remove}}</button>
+         <button class="ok">Start Building</button>
+
+      </div>      
+   </div>
+</script>

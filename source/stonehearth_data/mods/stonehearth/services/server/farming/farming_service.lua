@@ -44,6 +44,7 @@ end
 function FarmingService:_load_dirt_descriptions()
    local dirt_data = radiant.resources.load_json('stonehearth:tilled_dirt')
    self._dirt_data = {}
+   self._dirt_data['furrow'] = dirt_data.components.model_variants['furrow']
    self._dirt_data['dirt_1'] = dirt_data.components.model_variants['dirt_1']
    self._dirt_data['dirt_2'] = dirt_data.components.model_variants['dirt_2']
    self._dirt_data['dirt_3'] = dirt_data.components.model_variants['dirt_3']
