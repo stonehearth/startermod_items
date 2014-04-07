@@ -41,7 +41,8 @@ Store::Store(int which, std::string const& name) :
    storeId_(which),
    nextObjectId_(1),
    nextGenerationId_(1),
-   name_(name)
+   name_(name),
+   saving_(false)
 {
    ASSERT(storeId_);
 
@@ -78,6 +79,7 @@ void Store::RegisterAllocator(ObjectType t, ObjectAllocFn allocator)
 bool Store::Save(std::string const& filename, std::string &error)
 {
    uint size;
+
 #if 0
    {
       std::ofstream textfile("save.txt");
@@ -105,6 +107,7 @@ bool Store::Save(std::string const& filename, std::string &error)
       return false;
    }
 
+   saving_ = true;
    {
       google::protobuf::io::FileOutputStream fos(fd);
       {
@@ -146,8 +149,10 @@ bool Store::Save(std::string const& filename, std::string &error)
                keys.insert(entry.first);
             };
 
+            cos.WriteLittleEndian32(keys.size());
             for (ObjectId id : keys) {
                Object* obj = objects_[id];
+
                msg.Clear();
                obj->SaveObject(PERSISTANCE, &msg);
 
@@ -159,6 +164,7 @@ bool Store::Save(std::string const& filename, std::string &error)
          }
       }
    }
+   saving_ = false;
    _close(fd);
    return true;
 }
@@ -232,11 +238,23 @@ bool Store::Load(std::string const& filename, std::string &error, ObjectMap& obj
 
          {
             Protocol::Object msg;
-            google::protobuf::uint32 size, limit;
+            google::protobuf::uint32 size, limit, total_objects, i;
 
-            for (;;) {
+            if (!cis.ReadLittleEndian32(&total_objects)) {
+               error = "could not total number of objects";
+               return false;
+            }
+            
+            int last_reported_percent = 0;
+            for (i = 0; i < total_objects; i++) {
                if (!cis.ReadLittleEndian32(&size)) {
-                  break; // what if we lost some objects while saving?
+                  error = BUILD_STRING("could not read object " << i << " or " << total_objects);
+                  return false;
+               }
+               int percent = i * 100 / total_objects;
+               if (percent - last_reported_percent > 10) {
+                  last_reported_percent = percent;
+                  LOG_(0) << " load progress " << percent << "%...";
                }
 
                msg.Clear();
@@ -258,6 +276,7 @@ bool Store::Load(std::string const& filename, std::string &error, ObjectMap& obj
                obj->SetObjectMetadata(id, *this);
                obj->LoadObject(PERSISTANCE, msg);
             }
+            LOG_(0) << " load objects finished!" << std::endl;
          }
       }
       {
@@ -275,6 +294,9 @@ bool Store::Load(std::string const& filename, std::string &error, ObjectMap& obj
 
 void Store::RegisterObject(Object& obj)
 {
+   // Saving should have no side-effects, which means we shouldn't ever see an object
+   // registered or unregistered.
+   ASSERT(!saving_);
    ASSERT(obj.IsValid());
    if (objects_.find(obj.GetObjectId()) != objects_.end()) {
       throw std::logic_error(BUILD_STRING("data mode object " << obj.GetObjectId() << "being registered twice."));
@@ -291,10 +313,14 @@ void Store::RegisterObject(Object& obj)
 
 void Store::UnregisterObject(const Object& obj)
 {
-   // std::cout << "Store " << storeId_ << " UnregisterObject(oid:" << obj.GetObjectId() << ")" << std::endl;
+   // Saving should have no side-effects, which means we shouldn't ever see an object
+   // registered or unregistered.
+   ASSERT(!saving_);
+
    ValidateObjectId(obj.GetObjectId());
 
    ObjectId id = obj.GetObjectId();
+   STORE_LOG(9) << "unregistering object " << id;
 
    objects_.erase(id);
    auto j = dynamicObjects_.find(id);

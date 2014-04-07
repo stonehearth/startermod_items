@@ -40,6 +40,7 @@ void Streamer::Flush()
 
    tracer_->Flush();
    QueueAllocated();
+   QueueUpdateInfo();
    QueueUnsavedObjects();
    QueueModifiedObjects();
    QueueDestroyedObjects();
@@ -192,4 +193,16 @@ void Streamer::OnModified(TraceBufferedRef t, Object const* obj)
 void Streamer::QueueUpdate(proto::Update const& update)
 {
    queue_->Push(protocol::Encode(update));
+}
+
+
+void Streamer::QueueUpdateInfo()
+{
+   tesseract::protocol::Update update;
+   update.set_type(proto::Update::UpdateObjectsInfo);
+   auto info_msg = update.MutableExtension(proto::UpdateObjectsInfo::extension);
+
+   info_msg->set_update_count(unsaved_objects_.size() + object_updates_.size());
+   info_msg->set_remove_count(destroyed_objects_.size());
+   QueueUpdate(update);
 }

@@ -392,6 +392,11 @@ lua_State* ScriptHost::GetCallbackThread()
    return cb_thread_;
 }
 
+void ScriptHost::FullGC()
+{
+   lua_gc(L_, LUA_GCCOLLECT, 0);
+}
+
 void ScriptHost::GC(platform::timer &timer)
 {
    bool finished = false;

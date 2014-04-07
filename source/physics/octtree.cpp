@@ -264,28 +264,39 @@ bool OctTree::ValidElevationChange(om::EntityPtr const& entity, bool const rever
 }
 
 // tests diagonal specific requirements
+// the two adjacent non-diagonal paths to the destination must be walkable with a height equal to either the from or to location
 bool OctTree::ValidDiagonalMove(om::EntityPtr const& entity, csg::Point3 const& fromLocation, csg::Point3 const& toLocation) const
 {
    std::vector<csg::Point3> candidates;
    csg::Point3 candidate, unused;
 
-   // path 1 - x first, either y value (fromLocation.y or toLocation.y) ok
+   // path 1 - x first, y value of fromLocation
    candidate = fromLocation;
    candidate.x = toLocation.x;
    candidates.push_back(candidate);
-   candidate.y = toLocation.y;
-   candidates.push_back(candidate);
+
+   if (candidate.y != toLocation.y) {
+      // path 1 - x first, y value of toLocation
+      candidate.y = toLocation.y;
+      candidates.push_back(candidate);
+   }
 
    if (!CanStandOnOneOf(entity, candidates, unused)) {
       return false;
    }
 
-   // path 2 - z first, either y value (fromLocation.y or toLocation.y) ok
+   candidates.clear();
+
+   // path 2 - z first, y value of fromLocation
    candidate = fromLocation;
    candidate.z = toLocation.z;
    candidates.push_back(candidate);
-   candidate.y = toLocation.y;
-   candidates.push_back(candidate);
+
+   if (candidate.y != toLocation.y) {
+      // path 2 - z first, y value of toLocation
+      candidate.y = toLocation.y;
+      candidates.push_back(candidate);
+   }
 
    if (!CanStandOnOneOf(entity, candidates, unused)) {
       return false;

@@ -97,7 +97,8 @@ Client::Client() :
    connected_(false),
    game_clock_(nullptr),
    enable_debug_cursor_(false),
-   flushAndLoad_(false)
+   flushAndLoad_(false),
+   initialUpdate_(false)
 {
 }
 
@@ -820,6 +821,7 @@ bool Client::ProcessMessage(const proto::Update& msg)
       DISPATCH_MSG(SetServerTick);
       DISPATCH_MSG(AllocObjects);
       DISPATCH_MSG(UpdateObject);
+      DISPATCH_MSG(UpdateObjectsInfo);
       DISPATCH_MSG(RemoveObjects);
       DISPATCH_MSG(UpdateDebugShapes);
       DISPATCH_MSG(PostCommandReply);
@@ -843,6 +845,8 @@ void Client::BeginUpdate(const proto::BeginUpdate& msg)
 
 void Client::EndUpdate(const proto::EndUpdate& msg)
 {
+   initialUpdate_ = false;
+
    if (traceObjectRouter_) {
       traceObjectRouter_->CheckDeferredTraces();
    }
@@ -874,9 +878,24 @@ void Client::AllocObjects(const proto::AllocObjects& update)
    receiver_->ProcessAlloc(update);
 }
 
+
+void Client::UpdateObjectsInfo(const proto::UpdateObjectsInfo& update)
+{
+   if (initialUpdate_) {
+      lastLoadProgress_ = 0;
+      networkUpdatesCount_ = 0;
+      ReportLoadProgress();
+   }
+   networkUpdatesExpected_ = update.update_count() + update.remove_count();
+}
+
 void Client::UpdateObject(const proto::UpdateObject& update)
 {
    receiver_->ProcessUpdate(update);
+   if (initialUpdate_) {
+      networkUpdatesCount_++;
+      ReportLoadProgress();
+   }
 }
 
 void Client::RemoveObjects(const proto::RemoveObjects& update)
@@ -892,6 +911,10 @@ void Client::RemoveObjects(const proto::RemoveObjects& update)
       }
    }
    receiver_->ProcessRemove(update);
+   if (initialUpdate_) {
+      networkUpdatesCount_++;
+      ReportLoadProgress();
+   }
 }
 
 void Client::UpdateDebugShapes(const proto::UpdateDebugShapes& msg)
@@ -1449,6 +1472,7 @@ void Client::LoadClientState(boost::filesystem::path const& savedir)
 
    radiant_ = scriptHost_->Require("radiant.client");
    scriptHost_->LoadGame(localModList_, authoredEntities_);
+   initialUpdate_ = true;
    CLIENT_LOG(0) << "done loadin...";
 }
 
@@ -1467,6 +1491,7 @@ void Client::CreateGame()
 
    radiant_ = scriptHost_->Require("radiant.client");
    scriptHost_->CreateGame(localModList_);
+   initialUpdate_ = true;
 }
 
 void Client::CreateErrorBrowser()
@@ -1480,4 +1505,17 @@ void Client::CreateErrorBrowser()
    };
    scriptHost_->SetNotifyErrorCb(notifyErrorFn);
    Horde3D::Modules::log().SetNotifyErrorCb(notifyErrorFn);
+}
+
+void Client::ReportLoadProgress()
+{
+   ASSERT(initialUpdate_);
+
+   if (networkUpdatesCount_) {
+      int percent = (networkUpdatesCount_ * 100) / networkUpdatesExpected_;
+      if (percent - lastLoadProgress_ > 10) {
+         LOG_(0) << " client load progress " << percent << "%...";
+         lastLoadProgress_ = percent;
+      }
+   }
 }

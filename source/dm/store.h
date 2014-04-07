@@ -159,6 +159,7 @@ private:
 
    TraceMap       traces_;
    TracerMap      tracers_;
+   bool           saving_;
    StoreTraces    store_traces_;
 };
 

@@ -32,6 +32,7 @@ private:
    void QueueAllocUpdates();
    void QueueDestroyed();
    void QueueUpdates();
+   void QueueUpdateInfo();
 
 private:
    typedef std::vector<tesseract::protocol::Update> UpdateList;
