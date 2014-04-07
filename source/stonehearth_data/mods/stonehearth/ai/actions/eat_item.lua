@@ -23,7 +23,6 @@ function EatItem:run(ai, entity, args)
 
    self._container_data = radiant.entities.get_entity_data(item, 'stonehearth:food_container')
    if self._container_data then
-      assert(self._container_data.consume_stacks)
       self._food = radiant.entities.create_entity(self._container_data.food)
    else
       self._food = item
