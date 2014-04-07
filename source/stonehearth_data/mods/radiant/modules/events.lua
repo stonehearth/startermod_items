@@ -29,6 +29,13 @@ end
 -- radiant.events.listen(sender, 'event_name', object, method)
 -- radiant.events.listen(sender, 'event_name', function)
 
+function events.listen_once(object, event, cb)
+   return events.listen(object, event, function()
+         cb()
+         return radiant.events.UNLISTEN
+      end)
+end
+
 function events.listen(object, event, self, fn)
    assert(object and event and self)
 
