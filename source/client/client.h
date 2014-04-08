@@ -141,7 +141,7 @@ class Client : public core::Singleton<Client> {
       void DeactivateAllTools();
       void RequestReload();
       void OneTimeIninitializtion();
-      void InitializeUI();
+      void InitializeUI(std::string const& state);
       void Initialize();
       void InitializeDataObjects();
       void InitializeDataObjectTraces();

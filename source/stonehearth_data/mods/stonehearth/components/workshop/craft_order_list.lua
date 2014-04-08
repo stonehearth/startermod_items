@@ -7,13 +7,20 @@
 local CraftOrder = require 'components.workshop.craft_order'
 
 local CraftOrderList = class()
-function CraftOrderList:__init()
-   self._orders = {
-      n = 0,
-   }
-   self.__saved_variables = radiant.create_datastore({
-         orders = self._orders,
-      })
+function CraftOrderList:initialize()
+   self._sv = self.__saved_variables:get_data()
+   if not self._sv.orders then
+      self._sv.orders = {
+         n = 0,
+      }
+      self._sv.next_order_id = 0
+      self.__saved_variables:mark_changed()
+   else
+      for i, datastore in ipairs(self._sv.orders) do
+         local order = self:_create_new_order(datastore)
+         self._sv.orders[i] = order
+      end
+   end
 end
 
 function CraftOrderList:is_paused()
@@ -35,12 +42,22 @@ end
                   If no index is selected, the order will be added to the end of the array
 ]]
 function CraftOrderList:add_order(recipe, condition, faction)
-   local order = CraftOrder(recipe, condition, faction, function()
-         self:_on_order_list_changed()
-      end)
-   table.insert(self._orders, order)
+   local order = self:_create_new_order(radiant.create_datastore())
+   self._sv.next_order_id = self._sv.next_order_id + 1
+   order:create_order(self._sv.next_order_id, recipe, condition, faction)
+   table.insert(self._sv.orders, order)
    self:_on_order_list_changed()
 end
+
+function CraftOrderList:_create_new_order(datastore)
+   local order = CraftOrder()
+   order.__saved_variables = datastore
+   order:initialize(function()
+         self:_on_order_list_changed()
+      end)
+   return order
+end
+
 
 --[[
    Iterate through the list from top to bottom. Check for the first enabled,
@@ -49,7 +66,7 @@ end
    return: nil if the list is empty.
 ]]
 function CraftOrderList:get_next_order()
-   for i, order in ipairs(self._orders) do
+   for i, order in ipairs(self._sv.orders) do
       if order:should_execute_order() then
          return order
       end
@@ -62,9 +79,9 @@ end
 ]]
 function CraftOrderList:change_order_position(new, id)
    local i = self:_find_index_of(id)
-   local order = self._orders[i]
-   table.remove(self._orders, i)
-   table.insert(self._orders, new, order)
+   local order = self._sv.orders[i]
+   table.remove(self._sv.orders, i)
+   table.insert(self._sv.orders, new, order)
    --TODO: comment out when you've fixed the drag/drop problem
    self:_on_order_list_changed()
 end
@@ -83,8 +100,8 @@ end
 function CraftOrderList:remove_order_id(order_id)
     local i = self:_find_index_of(order_id)
     if i then
-      local order = self._orders[i]
-      table.remove(self._orders, i)
+      local order = self._sv.orders[i]
+      table.remove(self._sv.orders, i)
       order:destroy()
       self:_on_order_list_changed()
    end
@@ -99,7 +116,7 @@ end
              cannot be found
 ]]
 function CraftOrderList:_find_index_of(order_id)
-   for i, order in ipairs(self._orders) do
+   for i, order in ipairs(self._sv.orders) do
       if order:get_id() == order_id then
          return i
       end

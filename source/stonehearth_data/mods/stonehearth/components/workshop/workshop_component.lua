@@ -14,17 +14,30 @@ local WorkshopComponent = class()
 
 function WorkshopComponent:initialize(entity, json)
    self._entity = entity
-   self._bench_outputs = {}              -- An array of finished products on the bench, to be added to the outbox. Nil if nothing.
-   self._outbox_entity = nil
 
    self.__saved_variables:set_controller(self)
    self._sv = self.__saved_variables:get_data()
+
+   local orderlist_datastore
    if not self._sv.order_list then
+      self._sv.outbox_entity = nil
       self._sv.skin_class = json.skin_class or 'default'
-      self._sv.order_list = CraftOrderList()
+      orderlist_datastore = radiant.create_datastore()
+   else
+      orderlist_datastore = self._sv.order_list
    end
+   self._sv.order_list = CraftOrderList()
+   self._sv.order_list.__saved_variables = orderlist_datastore
+   self._sv.order_list:initialize()
+
    self._construction_ingredients = json.ingredients
    self._build_sound_effect = json.build_sound_effect
+
+   radiant.events.listen_once(radiant, 'radiant:game_loaded', function()
+         if self._sv.crafter then
+            self:_create_workshop_orchestrator()
+         end
+      end)
 end
 
 function WorkshopComponent:destroy()
@@ -112,7 +125,7 @@ end
    Returns the crafter associated with this WorkshopComponent
 ]]
 function WorkshopComponent:get_crafter()
-   return self._crafter
+   return self._sv.crafter
 end
 
 --[[
@@ -121,8 +134,7 @@ end
 function WorkshopComponent:set_crafter(crafter)
    local current = self:get_crafter()
    if not crafter or not current or current:get_id() ~= crafter:get_id() then
-      self._crafter = crafter
-      self.__saved_variables:get_data().crafter = crafter
+      self._sv.crafter = crafter
       self.__saved_variables:mark_changed()
 
       local commandComponent = self._entity:get_component('stonehearth:commands')
@@ -134,52 +146,35 @@ function WorkshopComponent:set_crafter(crafter)
 
       local show_workshop_command = crafter:add_component('stonehearth:commands')
                                            :add_command('/stonehearth/data/commands/show_workshop_from_crafter')
-
       show_workshop_command.event_data = {
          workshop = self._entity
       }
-
       crafter:add_component('stonehearth:commands'):remove_command('build_workshop')
 
       -- xxx, localize                                          
       local crafter_name = radiant.entities.get_name(crafter)
       radiant.entities.set_description(self._entity, 'owned by ' .. crafter_name)
 
-      local town = stonehearth.town:get_town(self._entity)
-      self._orchestrator = town:create_orchestrator(WorkAtWorkshop, {
-            crafter = crafter,
-            workshop = self._entity,
-            craft_order_list = self._sv.order_list,
-         })
-
+      self:_create_workshop_orchestrator()
    end
+end
+
+function WorkshopComponent:_create_workshop_orchestrator()
+   local town = stonehearth.town:get_town(self._entity)
+   self._orchestrator = town:create_orchestrator(WorkAtWorkshop, {
+         workshop = self._entity,
+         crafter = self._sv.crafter,
+         craft_order_list = self._sv.order_list,
+      })
 end
 
 function WorkshopComponent:get_outbox()
-   return self._outbox_entity
-end
-
---[[
-   returns: true if there is an output on the bench, false
-   otherwise
-]]
-function WorkshopComponent:has_bench_outputs()
-   return #self._bench_outputs > 0
-end
-
---[[
-   Pops an entity off the bench and returns it
-   returns: an entity from the bench, or nil if there
-   are no entities left. (No return is a return of nil.)
-]]
-function WorkshopComponent:pop_bench_output()
-   if #self._bench_outputs > 0 then
-      return table.remove(self._bench_outputs)
-   end
+   return self._sv.outbox_entity
 end
 
 function WorkshopComponent:finish_construction(outbox_entity)
-   self._outbox_entity = outbox_entity
+   self._sv.outbox_entity = outbox_entity
+   self.__saved_variables:mark_changed()
 end
 
 return WorkshopComponent

@@ -35,9 +35,6 @@ local IngredientList = require 'components.workshop.ingredient_list'
 
 local CraftOrder = class()
 
---(belongs to CraftOrder) variable to assign order IDs
-local craft_order_id = 1
-
 --[[
 Create a new CraftOrder
    recipe:     The name of the thing to build in mod:// format
@@ -48,36 +45,33 @@ Create a new CraftOrder
    ingredients:TODO: the ingredients chosen by the user for the object
 ]]
 
-function CraftOrder:__init(recipe, condition, faction, on_change_cb)
-   self._id = craft_order_id
-   craft_order_id = craft_order_id + 1
+function CraftOrder:create_order(id, recipe, condition, faction)
+   assert(self._sv)
+   
+   self._sv.id = id
+   self._sv.recipe = recipe
+   self._sv.portrait = recipe.portrait
+   self._sv.condition = condition
+   self._sv.enabled = true
+   self._sv.is_crafting = true
 
-   self._enabled = true
-   self._is_crafting = false
-   self._recipe = recipe
-   self._faction = faction   
-   self._on_change_cb = on_change_cb
-
-   self._condition = condition
-   if self._condition.type == "make" then
-      self._condition.amount = tonumber(self._condition.amount)
-      self._condition.remaining = self._condition.amount
-   elseif self._condition.type == "maintain" then
-      self._condition.at_least = tonumber(self._condition.at_least)
+   local condition = self._sv.condition
+   if condition.type == "make" then
+      condition.amount = tonumber(condition.amount)
+      condition.remaining = condition.amount
+   elseif condition.type == "maintain" then
+      condition.at_least = tonumber(condition.at_least)
    end
-   self.__saved_variables = radiant.create_datastore()
    self:_on_changed()
 end
 
+function CraftOrder:initialize(on_change_cb)
+   self._sv = self.__saved_variables:get_data()
+   self._on_change_cb = on_change_cb
+end
+
 function CraftOrder:_on_changed()
-   self.__saved_variables:set_data({
-      id = self._id,
-      recipe = self._recipe,
-      condition = self._condition,
-      enabled = self._enabled,
-      portrait = self._recipe.portrait,
-      is_crafting = self._is_crafting
-   })
+   self.__saved_variables:mark_changed()
    self._on_change_cb()
 end
 
@@ -90,29 +84,29 @@ end
 
 -- Getters and Setters
 function CraftOrder:get_id()
-   return self._id
+   return self._sv.id
 end
 
 function CraftOrder:get_recipe()
-   return self._recipe
+   return self._sv.recipe
 end
 
 function CraftOrder:get_enabled()
-   return self._enabled
+   return self._sv.enabled
 end
 
 function CraftOrder:toggle_enabled()
-   self._enabled = not self._enabled
+   self._sv.enabled = not self._sv.enabled
    self:_on_changed()
 end
 
 function CraftOrder:get_condition()
-   return self._condition
+   return self._sv.condition
 end
 
 function CraftOrder:set_crafting_status(status)
-   if status ~= self._is_crafting then
-      self._is_crafting = status
+   if status ~= self._sv.is_crafting then
+      self._sv.is_crafting = status
       self:_on_changed()
    end
 end
@@ -126,22 +120,24 @@ end
    returns: true if conditions are not yet met, false if conditions are met
 ]]
 function CraftOrder:should_execute_order()
-   if self._condition.type == "make" then
-      return self._condition.remaining > 0 
-   elseif self._condition.type == "maintain" then
-      local craftable_tracker = stonehearth.object_tracker:get_craftable_tracker(self._faction)
-      local target = self._recipe.produces[1].item
+   local condition = self._sv.condition
+   if condition.type == "make" then
+      return condition.remaining > 0 
+   elseif condition.type == "maintain" then
+      local craftable_tracker = stonehearth.object_tracker:get_craftable_tracker(self._sv.faction)
+      local target = self._sv.recipe.produces[1].item
       local num_targets = craftable_tracker:get_quantity(target)
       if num_targets == nil then
          num_targets = 0
       end
-      return num_targets < self._condition.at_least
+      return num_targets < condition.at_least
    end
 end
 
 function CraftOrder:on_item_created()
-   if self._condition.type == "make" then
-      self._condition.remaining = self._condition.remaining - 1
+   local condition = self._sv.condition
+   if condition.type == "make" then
+      condition.remaining = condition.remaining - 1
       self:_on_changed()
    end
 end
@@ -154,9 +150,10 @@ end
 --             the list, false otherwise.
 function CraftOrder:is_complete()
    --check if we're done with the whole order
-   if self._condition.type == "make" then
-      return self._condition.remaining == 0
-   elseif self._condition.type == "maintain" then
+   local condition = self._sv.condition
+   if condition.type == "make" then
+      return condition.remaining == 0
+   elseif condition.type == "maintain" then
       return false
    end
 
