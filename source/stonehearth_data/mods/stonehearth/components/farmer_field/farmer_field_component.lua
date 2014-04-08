@@ -1,3 +1,5 @@
+local Point2 = _radiant.csg.Point2
+
 --[[
    Stores data about the field in question
 ]]
@@ -22,7 +24,7 @@ function FarmerFieldComponent:initialize(entity, json)
    if not self._sv._initialized then
       -- creating for the 1st time...
       self._sv._initialized = true
-      self._sv.size = {0, 0}
+      self._sv.size = Point2(0, 0)
       self._sv.location = nil
       self._sv.contents = {}
 
@@ -50,9 +52,9 @@ end
 --  TODO: how to hang onto the user-generated tasks if the farm isn't present?
 function FarmerFieldComponent:_re_init_field()
    local town = stonehearth.town:get_town(self._entity)
-   for x=1, self._sv.size[1] do
+   for x=1, self._sv.size.x do
       self._till_tasks[x] = {}
-      for y=1, self._sv.size[2] do
+      for y=1, self._sv.size.y do
          local field_spacer = self._sv.contents[x][y].plot
 
          --Listen for when stuff happens on this field
@@ -92,8 +94,8 @@ end
 --- On destroy, remove all listeners from the plots
 function FarmerFieldComponent:destroy()
    --Unlisten on all the field plot things
-   for x=1, self._sv.size[1] do
-      for y=1, self._sv.size[2] do
+   for x=1, self._sv.size.x do
+      for y=1, self._sv.size.y do
          local field_spacer = self._sv.contents[x][y].plot
          if field_spacer then
             local dirt_plot_component = field_spacer:get_component('stonehearth:dirt_plot')
@@ -114,13 +116,13 @@ end
 --TODO: Depending on how we eventually designate whether fields can overlap (no?)
 --consider moving this into a central service
 function FarmerFieldComponent:create_dirt_plots(town, location, size)
-   self._sv.size = { size[1], size[2] }
+   self._sv.size = Point2( size[1], size[2] )
    self._sv.location = location
 
-   for x=1, self._sv.size[1] do
+   for x=1, self._sv.size.x do
       self._sv.contents[x] = {}
       self._till_tasks[x] = {}
-      for y=1, self._sv.size[2] do
+      for y=1, self._sv.size.y do
          --init the dirt plot
          local field_spacer = self:_init_dirt_plot(location, x, y)
          self._sv.contents[x][y] = {}
@@ -183,8 +185,8 @@ end
 
 --Iterate through the field. If there is an empty space, determine if we should re-plant there
 function FarmerFieldComponent:_re_evaluate_empty()
-   for x=1, self._sv.size[1] do
-      for y=1, self._sv.size[2] do
+   for x=1, self._sv.size.x do
+      for y=1, self._sv.size.y do
          local field_spacer = self._sv.contents[x][y].plot
          local dirt_plot_component = field_spacer:get_component('stonehearth:dirt_plot')
          if not dirt_plot_component:get_contents() then

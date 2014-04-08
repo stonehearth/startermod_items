@@ -60,5 +60,11 @@
             "file(/data/commands/plant_crop/plant_corn.json)"
          ]
       }
-   }
+   },
+   "entity_data" : {
+      "stonehearth:render_materials" : {
+         "default" : "materials/voxel.material.xml",
+         "zones" : "materials/ghost_item.xml"
+      }
+   }   
 }
