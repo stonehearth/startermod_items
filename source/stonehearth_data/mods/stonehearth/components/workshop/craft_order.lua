@@ -52,6 +52,7 @@ function CraftOrder:create_order(id, recipe, condition, faction)
    self._sv.recipe = recipe
    self._sv.portrait = recipe.portrait
    self._sv.condition = condition
+   self._sv.faction = faction
    self._sv.enabled = true
    self._sv.is_crafting = true
 
