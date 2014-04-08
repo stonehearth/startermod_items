@@ -455,6 +455,11 @@ function entities.consume_carrying(entity)
    return nil
 end
 
+-- consume one "stack" of an entity.  if the entity has an item
+-- component and the stacks of that item are > 0, it simply decrements
+-- the stack count.  otherwise, it conumes the whole item (i.e. we
+-- destroy it!)
+-- @returns whether or not the item was consumed
 function entities.consume_stack(item)
    local item_component = item:get_component('item')
    local success = false
