@@ -107,7 +107,7 @@ Client::~Client()
    Shutdown();
 }
 
-void Client::InitializeUI()
+void Client::InitializeUI(std::string const& args)
 {
    core::Config const& config = core::Config::GetInstance();
    std::string main_mod = config.Get<std::string>("game.main_mod", "stonehearth");
@@ -117,6 +117,12 @@ void Client::InitializeUI()
    resource_manager.LookupManifest(main_mod, [&](const res::Manifest& manifest) {
       docroot = manifest.get<std::string>("ui.homepage", "about:");
    });
+   if (!args.empty()) {
+      if (docroot.find('?') == std::string::npos) {
+         docroot += '?';
+      }
+      docroot += args;
+   }
    browser_->Navigate(docroot);
 }
 
@@ -699,7 +705,6 @@ void Client::run(int server_port)
 
    OneTimeIninitializtion();
    Initialize();
-   InitializeUI();
    CreateGame();
 
    while (renderer.IsRunning()) {
@@ -927,6 +932,7 @@ void Client::LoadGame(const proto::LoadGame& msg)
    CLIENT_LOG(2) << "load game";
    fs::path savedir = core::Config::GetInstance().GetSaveDirectory() / msg.game_id();
    LoadClientState(savedir);
+   InitializeUI("state=load_finished");
 }
 
 void Client::process_messages()
@@ -1473,6 +1479,7 @@ void Client::LoadClientState(boost::filesystem::path const& savedir)
    radiant_ = scriptHost_->Require("radiant.client");
    scriptHost_->LoadGame(localModList_, authoredEntities_);
    initialUpdate_ = true;
+
    CLIENT_LOG(0) << "done loadin...";
 }
 
@@ -1481,6 +1488,8 @@ void Client::CreateGame()
    ASSERT(!localRootEntity_);
    ASSERT(!error_browser_);
    ASSERT(scriptHost_);
+
+   InitializeUI("");
 
    localRootEntity_ = GetAuthoringStore().AllocObject<om::Entity>();
    ASSERT(localRootEntity_->GetObjectId() == 1);
