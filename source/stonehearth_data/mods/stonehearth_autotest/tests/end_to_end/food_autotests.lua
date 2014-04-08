@@ -28,7 +28,7 @@ end
 
 --Tests that people will eat till all the food is gone
 function food_tests.group_eat_food()
-   --Debugging opportunity: when this number is > 1, threading/task errors!
+   --Debugging opportunity: when this number is > 2, threading/task errors!
    local num_people = 2
 
    --Create n hungry people
