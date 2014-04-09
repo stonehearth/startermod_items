@@ -7,6 +7,7 @@ local NEXT_TASK_ID = 1
 local STARTED = 'started'
 local PAUSED = 'paused'
 local COMPLETED = 'completed'
+local DESTROYED = 'destroyed'
 
 local INFINITE = 999999 -- infinite enough?
 
@@ -35,30 +36,35 @@ function Task:__init(task_group, activity)
 end
 
 function Task:destroy()
-   self._log:detail('user initiated destroy  (state:%s).', self._state)
-   self:_destroy()
-end
-
-function Task:_destroy()
-   if self._task_group then
-      self:_stop_feeding()
-      self:_destroy_entity_effects()
-
-      self._log:detail('notifying task group of destruction')
-      self._task_group:_on_task_destroy(self)
-      self._task_group = nil
-
-      self:_set_state(COMPLETED)
-      for _, cb in ipairs(self._notify_completed_cbs) do
-         cb()
-      end
+   if self._state ~= DESTROYED then
+      self._log:detail('user initiated destroy (state:%s).', self._state)
+      self:_destroy()
    else
-      self._log:detail('ignorning redunant call to :_destroy (state: %s)', self._state)
+      self._log:detail('ignorning redunant call to destroy (state: %s)', self._state)
    end
 end
 
+function Task:_destroy()
+   assert(self._state ~= DESTROYED)
+   self:_set_state(DESTROYED)
+   self:_stop_feeding()
+   self:_destroy_entity_effects()
+
+   self._log:detail('notifying task group of destruction')
+   self._task_group:_on_task_destroy(self)
+   self._task_group = nil
+end
+
+function Task:_fire_completed_cbs()
+   assert(self._state == COMPLETED)
+   for _, cb in ipairs(self._notify_completed_cbs) do
+      cb()
+   end
+end
+
+
 function Task:is_completed()
-   return self._state == COMPLETED
+   return self._state == COMPLETED or self._state == DESTROYED
 end
 
 function Task:notify_completed(cb)
@@ -139,14 +145,17 @@ function Task:wait()
    local thread = stonehearth.threads:get_current_thread()
    assert(thread, 'no thread running in Task:wait()')
 
-   if self._state ~= COMPLETED then
-      radiant.events.listen(self, COMPLETED, function()
-            thread:resume()
-            return radiant.events.UNLISTEN
-         end)
+   if not self:is_completed() then
+      local function cb()
+         radiant.events.unlisten(self, COMPLETED, cb)
+         radiant.events.unlisten(self, DESTROYED, cb)
+         thread:resume()
+      end
+      radiant.events.listen(self, COMPLETED, cb)
+      radiant.events.listen(self, DESTROYED, cb)
       
       thread:suspend()
-      assert(self._state == COMPLETED)
+      assert(self:is_completed())
    end
 
    return self._complete_count == self._times
@@ -406,8 +415,9 @@ end
 function Task:__action_stopped(action)
    self:_log_state('entering __action_stopped')
 
-   if self._task_group then
-      self._running_actions[action] = nil
+   self._running_actions[action] = nil
+
+   if self._state ~= DESTROYED then
       if self:_is_work_available() then
          radiant.events.trigger_async(self, 'work_available', self, true)
          self:_start_feeding()
@@ -418,7 +428,8 @@ function Task:__action_stopped(action)
 
       if self:_is_work_finished() then
          self._log:debug('task reached max number of completions (%d).  stopping and completing!', self._times)
-         self:_destroy()
+         self:_set_state(COMPLETED)
+         self:_fire_completed_cbs()
       end
    end
    
