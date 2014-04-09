@@ -605,6 +605,21 @@ function entities.on_entity_moved(entity, fn, reason)
    return entity:add_component('mob'):trace_transform(reason):on_changed(fn)
 end
 
+-- refactored from follow_path
+-- should probably clear up definition of speed
+function entities.get_speed(entity)
+   local speed = radiant.entities.get_attribute(entity, 'speed')
+   if speed == nil then
+      speed = 1.0
+   end
+
+   if speed > 0 then
+      speed = math.floor(50 + (50 * speed / 60)) / 100
+   end
+
+   return speed
+end
+
 -- xxx: prefer this over on_entity_moved()
 function entities.trace_location(entity, reason)
    return entity:add_component('mob'):trace_transform(reason)

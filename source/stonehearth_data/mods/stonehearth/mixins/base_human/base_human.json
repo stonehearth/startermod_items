@@ -40,11 +40,14 @@
             "stonehearth:actions:harvest_plant",
             "stonehearth:actions:harvest_plant_adjacent",
             "stonehearth:actions:restock_stockpile",
-            "stonehearth:actions:attack_task_dispatcher",
-            "stonehearth:actions:attack",
-            "stonehearth:actions:attack_melee_adjacent",
-            "stonehearth:actions:defend_task_dispatcher",
-            "stonehearth:actions:defend"
+            "stonehearth:actions:combat_task_dispatcher",
+            "stonehearth:actions:combat",
+            "stonehearth:actions:combat:attack_melee",
+            "stonehearth:actions:combat:attack_melee_adjacent",
+            "stonehearth:actions:combat:defend",
+            "stonehearth:actions:combat:idle",
+            "stonehearth:actions:combat:shuffle",
+            "stonehearth:actions:chase_entity"
          ],
           "observers": [
             "stonehearth:observers:sleep",
