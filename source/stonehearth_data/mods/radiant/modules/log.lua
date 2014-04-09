@@ -35,14 +35,17 @@ function Log.write_(category, level, format, ...)
    end
 end
 
-function Log.is_enabled(category, level)
-   local config_level = LOG_LEVELS[category]
-   if config_level == nil then
-      config_level = _host:get_log_level(category)
-      LOG_LEVELS[category] = config_level
+function Log.get_log_level(category)
+   local level = LOG_LEVELS[category]
+   if level == nil then
+      level = _host:get_log_level(category)
+      LOG_LEVELS[category] = level
    end
-   
-   return level <= config_level
+   return level
+end
+
+function Log.is_enabled(category, level)
+   return level <= Log.get_log_level(category)
 end
 
 function Log.write(category, level, format, ...)
@@ -73,6 +76,25 @@ function Log.spam(category, format, ...)
    Log.write_(category, Log.SPAM, format, ...)
 end
 
+local function create_logger_functions(logger)
+end
+
+local function logger_write(self, level, format, ...)
+   local prefix
+   if self._prefix then
+      prefix = '[' .. self._prefix .. '] '
+   else
+      prefix = ''
+   end
+   local args = {...}
+   for i, arg in ipairs(args) do
+      if type(arg) ~= 'string' then
+         args[i] = tostring(arg)
+      end
+   end
+   _host:log(self._category, level, prefix .. string.format(format, unpack(args)))
+end
+
 function Log.create_logger(sub_category, prefix)
    -- The stack offset for the helper functions is 3...
    --    1: __get_current_module_name
@@ -80,48 +102,40 @@ function Log.create_logger(sub_category, prefix)
    --    3: --> some module whose name we want! <-- 
    local category = __get_current_module_name(3) .. '.' .. sub_category
    local logger = {
-      _category = category,
       _prefix = prefix,
+      _category = category,
+      _log_level = Log.get_log_level(category),
+
       set_prefix = function (self, prefix)
             self._prefix = prefix
+            return self
          end,
+
       is_enabled = function (self, level)
             return radiant.log.is_enabled(self._category, level)
          end,
-      write = function (self, level, format, ...)
-            if self._prefix then
-               radiant.log.write(self._category, level, '[%s] '.. format, self._prefix, ...)
-            else
-               radiant.log.write(self._category, level, format, ...)
-            end            
+
+      write = logger_write,
+
+      get_log_level = function(self)
+            return self._log_level
          end,
-   }
-   
-   for keyword, level in pairs(logger_functions) do
-      if logger:is_enabled(level) then
-         logger[keyword] = function(t, format, ...)
-            local prefix
-            if t._prefix then
-               prefix = '[' .. t._prefix .. '] '
-            else
-               prefix = ''
-            end
-            local args = {...}
-            for i, arg in ipairs(args) do
-               if type(arg) ~= 'string' then
-                  args[i] = tostring(arg)
+
+      set_log_level = function(self, new_level)
+            for keyword, level in pairs(logger_functions) do
+               if level <= new_level then
+                  self[keyword] = function (l, format, ...)
+                        return logger_write(l, level, format, ...)
+                     end
+               else
+                  self[keyword] = function () end
                end
             end
-            _host:log(t._category, level, prefix .. string.format(format, unpack(args)))
-         end
-      else
-         logger[keyword] = function () end
-      end
-   end
+         end,
+   }
 
+   logger:set_log_level(Log.get_log_level(category))   
    return logger
-
-   --return Logger(category, prefix)
 end
 
 return Log
