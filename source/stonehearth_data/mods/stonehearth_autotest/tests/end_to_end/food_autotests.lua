@@ -28,12 +28,11 @@ end
 
 --Tests that people will eat till all the food is gone
 function food_tests.group_eat_food(autotest)
-   --Debugging opportunity: when this number is > 2, threading/task errors!
-   local num_people = 2
+   local num_people = 5
 
    --Create n hungry people
    for i=1,num_people do 
-      local p = autotest.env:create_person(2, 2, {
+      local p = autotest.env:create_person(2 + (i * 2), 2 + (i * 2), {
          profession = 'worker',
          attributes = { calories = 0 }
       })
@@ -44,7 +43,7 @@ function food_tests.group_eat_food(autotest)
    local baskets = {}
 
    for i=1, num_people do 
-      local b = autotest.env:create_entity(0, 0, 'stonehearth:tester_basket')
+      local b = autotest.env:create_entity(-i, 0, 'stonehearth:tester_basket')
       table.insert(baskets, b)
    end
 
