@@ -45,7 +45,6 @@ static float angle(const csg::Point3f &v)
    return (float)(atan2(v.z, -v.x) - atan2(-1, 0));
 }
 
-
 bool FollowPath::Work(const platform::timer &timer)
 {
    Report("running");
@@ -55,26 +54,28 @@ bool FollowPath::Work(const platform::timer &timer)
       return false;
    }
 
-   float maxDistance = speed_ * GetSim().GetBaseWalkSpeed();
-   auto mob = entity->GetComponent<om::Mob>();
+   float moveDistance = speed_ * GetSim().GetBaseWalkSpeed();
    const std::vector<csg::Point3> &points = path_->GetPoints();
+   auto mob = entity->GetComponent<om::Mob>();
 
-   while (!Arrived(mob) && !Obstructed() && maxDistance > 0)  {
+   while (!Arrived(mob) && !Obstructed() && moveDistance > 0)  {
       const csg::Point3f &current = mob->GetLocation();
       const csg::Point3f &goal = csg::ToFloat(points[pursuing_]);
-
       csg::Point3f direction = csg::Point3f(goal - current);
-      float distance = direction.Length();
-      if (distance < maxDistance) {
+      float goalDistance = direction.Length();
+
+      if (goalDistance < moveDistance) {
          mob->MoveTo(csg::ToFloat(points[pursuing_]));
-         maxDistance -= distance;
+         moveDistance -= goalDistance;
          pursuing_++;
       } else {
-         mob->MoveTo(current + (direction * (maxDistance / distance)));
-         maxDistance = 0;
+         mob->MoveTo(current + (direction * (moveDistance / goalDistance)));
+         moveDistance = 0;
       }
+
       mob->TurnTo(angle(direction) * 180 / csg::k_pi);
    }
+
    if (Arrived(mob)) {
       Report("arrived!");
       if (arrived_cb_.is_valid()) {
@@ -86,6 +87,7 @@ bool FollowPath::Work(const platform::timer &timer)
       }
       return false;
    }
+
    return true;
 }
 
@@ -98,6 +100,7 @@ bool FollowPath::Arrived(om::MobPtr mob)
       // error on the side of getting closer than necessary
       unusedPoints = (int)std::floor(stop_distance_);
    }
+
    return pursuing_ >= (int)path_->GetPoints().size() - unusedPoints;
 }
 
