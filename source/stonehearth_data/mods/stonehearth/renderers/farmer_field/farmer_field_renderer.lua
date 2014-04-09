@@ -35,7 +35,7 @@ function FarmerFieldRenderer:_update_field_renderer(mode)
    
    if mode == 'zones' then      
       self._zone_node = _radiant.client.create_designation_node(self._parent_node, self._region:get(), self._color, self._color);
-   else
+   elseif self._zone_node then
       h3dRemoveNode(self._zone_node)
       self._zone_node = nil
    end
@@ -68,8 +68,10 @@ end
 function FarmerFieldRenderer:_mode_to_material_kind(mode)
    if mode == 'normal' then
       return 'default'
+   elseif mode == 'zones' then
+      return 'zones'
    end
-   return mode
+   return 'default'
 end
 
 

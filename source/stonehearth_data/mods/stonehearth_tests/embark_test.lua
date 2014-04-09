@@ -22,6 +22,10 @@ function EmbarkTest:__init()
    local tree = self:place_tree(-12, -10)
    local tree = self:place_tree(-12, -8)
    local tree = self:place_tree(-12, -6)
+   local tree = self:place_tree(-12, -4)
+   local tree = self:place_tree(-12, -2)
+   local tree = self:place_tree(-12, 0)
+   local tree = self:place_tree(-12, 2)
 
 
    local worker = self:place_citizen(-5, -5)
