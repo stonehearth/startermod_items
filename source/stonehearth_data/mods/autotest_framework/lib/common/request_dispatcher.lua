@@ -26,8 +26,7 @@ function RequestDispatcher:_process_queue()
       local msg = table.remove(self._recv_queue, 1)
       local cmd = table.remove(msg, 1)
       if not self.on[cmd] then
-         autotest.fail('cannot dispatch command: %s', tostring(cmd))
-         return
+         error('cannot dispatch command: %s', tostring(cmd))
       end
       self.on[cmd](unpack(msg))
    end

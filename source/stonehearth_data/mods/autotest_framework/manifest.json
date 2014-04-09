@@ -3,8 +3,8 @@
       "name" : "Autotest Framework"
    },
 
-   "server_init_script" : "file(autotest_server)",
-   "client_init_script" : "file(autotest_client)",
+   "server_init_script" : "file(autotest_framework_server)",
+   "client_init_script" : "file(autotest_framework_client)",
    
    "functions" : {
       "fail": {
