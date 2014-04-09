@@ -110,6 +110,7 @@ App.StonehearthTitleScreenView = App.View.extend({
 
          radiant.call("radiant:client:load_game", key)
             .always(function() {
+               App.gameView._addViews(App.gameView.views.complete);
                App.gotoGame();
             });         
       },

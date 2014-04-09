@@ -1,5 +1,7 @@
 local Entity = _radiant.om.Entity
 
+-- xxx: omg, factor the container bits out of this action (better decomp and
+-- extensibility!)
 local EatItem = class()
 EatItem.name = 'eat item'
 EatItem.does = 'stonehearth:eat_item'
@@ -23,7 +25,6 @@ function EatItem:run(ai, entity, args)
 
    self._container_data = radiant.entities.get_entity_data(item, 'stonehearth:food_container')
    if self._container_data then
-      assert(self._container_data.consume_stacks)
       self._food = radiant.entities.create_entity(self._container_data.food)
    else
       self._food = item
@@ -50,6 +51,9 @@ end
 
 function EatItem:stop(ai, entity, args)
    local consumed
+   local new_calories_value
+   local attributes_component = entity:add_component('stonehearth:attributes')
+
    -- if we're interrupted, go ahead and immediately finish eating
    -- we decided it was not fun to leave this hanging
    if self._food then
@@ -67,19 +71,23 @@ function EatItem:stop(ai, entity, args)
       if consumed then
          if self._food_data then
             local satisfaction = self._food_data.satisfaction
-            local attributes_component = entity:add_component('stonehearth:attributes')
             local calories = attributes_component:get_attribute('calories')
-            calories = calories + satisfaction
-            if calories >= stonehearth.constants.food.MAX_ENERGY then
-               calories = stonehearth.constants.food.MAX_ENERGY 
+            new_calories_value = calories + satisfaction
+            if new_calories_value >= stonehearth.constants.food.MAX_ENERGY then
+               new_calories_value = stonehearth.constants.food.MAX_ENERGY 
             end
-            attributes_component:set_attribute('calories', calories)
             self._food_data = nil
          end
       end
 
       radiant.entities.destroy_entity(self._food)
       self._food = nil
+
+      -- finally, adjust calories if necessary.  this might trigger callbacks which
+      -- result in destroying the action, so make sure we do it LAST! (see calorie_obserer.lua)
+      if new_calories_value then
+         attributes_component:set_attribute('calories', new_calories_value)
+      end
    end
 end
 

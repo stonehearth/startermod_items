@@ -19,10 +19,6 @@ function EatCarrying:run(ai, entity)
 end
 
 function EatCarrying:stop(ai, entity, args)
-   if self._food then
-      radiant.entities.remove_carrying(entity)
-      self._food = nil
-   end
 end
 
 return EatCarrying

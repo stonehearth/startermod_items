@@ -1,4 +1,4 @@
-local log = radiant.log.create_logger('threads')
+local log = radiant.log.create_logger('thread')
 local next_thread_id = 1
 
 local Thread = class()
@@ -236,7 +236,7 @@ function Thread:interrupt(fn)
             Thread.resume_thread(self)
             self._log:detail('finished delivering interrupt.')
          else
-            self._log:detail('coroutine not at top of the stack.  will have to handle msg later.')
+            self._log:debug('coroutine not at top of the stack.  will have to handle msg later.')
          end
       end
    end

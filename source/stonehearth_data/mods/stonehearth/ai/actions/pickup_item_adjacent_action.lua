@@ -26,6 +26,11 @@ function PickupItemAdjacent:run(ai, entity, args)
    local item = args.item   
    radiant.check.is_entity(item)
 
+    if not item:is_valid() then
+      ai:abort('target item is no longer valid!')
+      return
+   end
+
    if radiant.entities.get_carrying(entity) ~= nil then
       ai:abort('cannot pick up another item while carrying one!')
       return

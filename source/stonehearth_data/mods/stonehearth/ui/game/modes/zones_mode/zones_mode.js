@@ -30,6 +30,14 @@ App.StonehearthZonesModeView = App.View.extend({
    
    didInsertElement: function() {
       this.$().hide();
+
+      /*
+      this.$('.modeSign').position({
+         my: 'right top',
+         at: 'right top',
+         of: $('#zonesMode')
+      });
+*/
    },
 
    destroy: function() {
@@ -87,7 +95,7 @@ App.StonehearthZonesModeView = App.View.extend({
       
       this._propertyView = App.gameView.addView(App.StonehearthStockpileView, { 
             uri: uri,
-            position: {
+            position_hide: {
                my : 'center bottom',
                at : 'left+' + App.stonehearthClient.mouseX + " " + 'top+' + (App.stonehearthClient.mouseY - 10),
                of : $(document),
@@ -107,7 +115,7 @@ App.StonehearthZonesModeView = App.View.extend({
 
       this._propertyView = App.gameView.addView(App.StonehearthFarmView, { 
             uri: uri,
-            position: {
+            position_hide: {
                my : 'center bottom',
                at : 'left+' + App.stonehearthClient.mouseX + " " + 'top+' + (App.stonehearthClient.mouseY - 10),
                of : $(document),

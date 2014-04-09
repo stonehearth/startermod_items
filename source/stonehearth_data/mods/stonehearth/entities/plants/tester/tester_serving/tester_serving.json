@@ -1,0 +1,30 @@
+{
+   "mixins": "stonehearth:mixins:item_properties",
+   "type": "entity",
+   "components": {
+      "unit_info": {
+         "name": "A Tester",
+         "description": "Used as shields by princesses."
+      },      
+      "stonehearth:material" : {
+         "tags" : "food"
+      },
+      "model_variants": {
+         "default": {
+            "models": [
+               "file(tester_serving.qb)"
+            ]
+         }
+      }
+   },
+   "entity_data" : {
+      "stonehearth:food" : {
+         "sitting_on_chair" : {
+            "satisfaction" : 70
+         },
+         "default" : {
+            "satisfaction" : 50
+         }
+      }
+   }   
+}

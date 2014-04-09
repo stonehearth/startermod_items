@@ -12,7 +12,6 @@ function WorkAtWorkshop:run(town, args)
    self._craft_order_list = args.craft_order_list
 
    self._task_group = town:create_task_group('stonehearth:top', {})
-                                                  :set_priority(stonehearth.constants.priorities.top.CRAFT)
                                                   :add_worker(self._crafter)
 
    self._inventory = stonehearth.inventory:get_inventory(town:get_player_id())
@@ -60,11 +59,17 @@ end
 function WorkAtWorkshop:_process_order(order)
    local recipe = order:get_recipe()
 
+   local crafter = self._workshop:get_component('stonehearth:workshop')
+                                 :get_crafter()
+   local effect = crafter:get_component('stonehearth:crafter')
+                         :get_work_effect()
    local args = {
       workshop = self._workshop,
-      times = recipe.work_units
+      times = recipe.work_units,
+      effect = effect
    }
    local task = self._task_group:create_task('stonehearth:work_at_workshop', args)
+                                     :set_priority(stonehearth.constants.priorities.top.WORK)
                                      :once()
                                      :start()
    if not task:wait() then

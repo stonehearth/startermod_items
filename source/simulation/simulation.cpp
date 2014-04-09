@@ -768,7 +768,11 @@ float Simulation::GetBaseWalkSpeed() const
 
 void Simulation::Save(boost::filesystem::path const& saveid)
 {
+   ASSERT(store_);
+
    SIM_LOG(0) << "starting save.";
+   scriptHost_->FullGC();
+
    std::string error;
    std::string filename = (core::Config::GetInstance().GetSaveDirectory() / saveid / "server_state.bin").string();
    if (!store_->Save(filename, error)) {

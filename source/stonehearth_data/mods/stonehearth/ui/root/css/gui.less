@@ -59,6 +59,7 @@
    }
 
    button.ok {
+      .outlined(#41c565);
       float: right;
       background-image: url(images/gui/ok_check.png);
       height: 66px;
@@ -100,6 +101,13 @@
 
       .row.selected {
          background: rgba(143, 120, 70, 1.0);
+      }
+   }
+
+   .tool {
+      .control;
+      &:hover {
+         background-color: #6c6045;
       }
    }
 }

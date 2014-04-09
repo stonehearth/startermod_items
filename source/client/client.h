@@ -94,6 +94,7 @@ class Client : public core::Singleton<Client> {
       void EndUpdate(const tesseract::protocol::EndUpdate& msg);
       void SetServerTick(const tesseract::protocol::SetServerTick& msg);
       void AllocObjects(const tesseract::protocol::AllocObjects& msg);
+      void UpdateObjectsInfo(const tesseract::protocol::UpdateObjectsInfo& update);
       void UpdateObject(const tesseract::protocol::UpdateObject& msg);
       void RemoveObjects(const tesseract::protocol::RemoveObjects& msg);
       void UpdateDebugShapes(const tesseract::protocol::UpdateDebugShapes& msg);
@@ -140,7 +141,7 @@ class Client : public core::Singleton<Client> {
       void DeactivateAllTools();
       void RequestReload();
       void OneTimeIninitializtion();
-      void InitializeUI();
+      void InitializeUI(std::string const& state);
       void Initialize();
       void InitializeDataObjects();
       void InitializeDataObjectTraces();
@@ -159,6 +160,7 @@ class Client : public core::Singleton<Client> {
       void LoadClientState(boost::filesystem::path const& savedir);
       void CreateGame();
       void CreateErrorBrowser();
+      void ReportLoadProgress();
 
 private:
       /*
@@ -246,6 +248,10 @@ private:
       bool                        flushAndLoad_;
       platform::timer             flushAndLoadTimer_;
       int                         flushAndLoadDelay_;
+      bool                        initialUpdate_;
+      int                         lastLoadProgress_;
+      int                         networkUpdatesCount_;
+      int                         networkUpdatesExpected_;
 };
 
 END_RADIANT_CLIENT_NAMESPACE

@@ -11,11 +11,17 @@ BEGIN_RADIANT_VOXEL_NAMESPACE
 
 class QubicleMatrix {
 public:
+   enum CoordinateSystem {
+      RightHanded,
+      LeftHanded
+   };
+
+public:
    QubicleMatrix(const csg::Point3& size, const csg::Point3& position, const std::string& name);
    ~QubicleMatrix();
 
    std::string const& GetName() const { return name_; }
-   std::istream& Read(QbHeader const& header, std::istream& in);  
+   std::istream& Read(QbHeader const& header, CoordinateSystem coordinate_system, std::istream& in);  
    const csg::Point3& GetSize() const { return size_; }
    const csg::Point3& GetPosition() const { return position_; }
 

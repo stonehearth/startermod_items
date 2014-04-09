@@ -19,12 +19,10 @@ function StockpileRenderer:__init()
 
    radiant.events.listen(radiant.events, 'stonehearth:ui_mode_changed', function(e)
       if self._ui_view_mode ~= e.mode then
-         if e.mode == 'normal' or e.mode == 'zones' then
-            self._ui_view_mode = e.mode
+         self._ui_view_mode = e.mode
 
-            self:_update_item_states(e.mode, self._stockpile_items)
-            self:_update_stockpile_renderer(e.mode)
-         end
+         self:_update_item_states(e.mode, self._stockpile_items)
+         self:_update_stockpile_renderer(e.mode)
       end
    end)
 end
@@ -36,22 +34,21 @@ function StockpileRenderer:_update_stockpile_renderer(mode)
       cursor:add_cube(Rect2(Point2(0, 0), self._size))
    end)
    
-   if mode == 'normal' then
-      if self._node then
+   if mode == 'zones' then
+      self._zone_node = _radiant.client.create_designation_node(self._parent_node, self._region:get(), self._color, self._color);
+   else
+      if self._zone_node then
          h3dRemoveNode(self._zone_node)
          self._zone_node = nil
       end
-   else
-      -- We're in 'zones' mode.
-      self._zone_node = _radiant.client.create_designation_node(self._parent_node, self._region:get(), self._color, self._color);
    end
 end
 
 function StockpileRenderer:_update_query_flag(render_entity, mode)
-   if mode == 'normal' then
-      render_entity:remove_query_flag(_radiant.renderer.QueryFlags.UNSELECTABLE)
-   else
+   if mode == 'zones' then
       render_entity:add_query_flag(_radiant.renderer.QueryFlags.UNSELECTABLE)
+   else
+      render_entity:remove_query_flag(_radiant.renderer.QueryFlags.UNSELECTABLE)
    end
 end
 
@@ -73,8 +70,11 @@ end
 function StockpileRenderer:_mode_to_material_kind(mode)
    if mode == 'normal' then
       return 'default'
+   elseif mode == 'zones' then
+      return 'zones'
    end
-   return mode
+   
+   return 'default'
 end
 
 function StockpileRenderer:update(render_entity, saved_variables)

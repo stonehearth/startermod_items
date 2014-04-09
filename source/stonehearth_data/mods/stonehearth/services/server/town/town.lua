@@ -13,6 +13,7 @@ function Town:__init(session, saved_variables)
    
    if session then
       self._sv.faction = session.faction
+      self._sv.kingdom = session.kingdom
       self._sv.player_id = session.player_id
       self._sv.town_entity = radiant.entities.create_entity()
       self._sv._saved_calls = {}
@@ -40,10 +41,8 @@ function Town:_create_task_groups()
 
    self._task_groups = {
       workers = self._scheduler:create_task_group('stonehearth:work', {})
-                               :set_priority(stonehearth.constants.priorities.top.WORK)
                                :set_counter_name('workers'), 
       farmers = self._scheduler:create_task_group('stonehearth:farm', {})
-                               :set_priority(stonehearth.constants.priorities.top.WORK)
                                :set_counter_name('farmers'), 
    }      
 
@@ -79,6 +78,10 @@ function Town:_restore_saved_calls()
    for _, saved_call in pairs(saved_calls) do
       self[saved_call.fn_name](self, unpack(saved_call.args))
    end
+end
+
+function Town:get_scheduler()
+   return self._scheduler
 end
 
 function Town:get_faction()
@@ -126,10 +129,10 @@ end
 
 -- does not tame the pet, just adds it to the town
 function Town:add_pet(entity)
-   entity:add_component('unit_info'):set_faction(self._sv.faction)
-
-   self:_add_unit_controller(entity, 'stonehearth:ambient_pet_behavior',
-      stonehearth.constants.priorities.top.AMBIENT_PET_BEHAVIOR)
+   local unit_info = entity:add_component('unit_info')
+   unit_info:set_faction(self._sv.faction)
+   unit_info:set_kingdom(self._sv.kingdom)
+   unit_info:set_player_id(self._sv.player_id)
 
    self:create_orchestrator(PetOrchestrator, { entity = entity })
 
@@ -166,11 +169,13 @@ function Town:get_banner()
    return self._banner
 end
 
+--- xxx: deprecated.  get rid of this
 function Town:command_unit(entity, activity_name, activity_args)
    local unit_controller = self:_get_unit_controller(entity)
    return unit_controller:create_immediate_task(activity_name, activity_args)
 end
 
+--- xxx: deprecated.  get rid of this
 function Town:command_unit_scheduled(entity, activity_name, activity_args)
    local unit_controller = self:_get_unit_controller(entity)
    return unit_controller:create_scheduled_task(activity_name, activity_args)

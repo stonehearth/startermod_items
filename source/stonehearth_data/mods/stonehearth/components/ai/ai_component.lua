@@ -8,8 +8,9 @@ local action_key_to_activity = {}
 function AIComponent:initialize(entity, json)
    self._entity = entity
    self._action_index = {}
+   self._task_groups = {}
    self._observer_instances = {}
-   self._sv = self.__saved_variables:get_data()  
+   self._sv = self.__saved_variables:get_data()
    self.__saved_variables:set_controller(self)
    self._aitrace = radiant.log.create_logger('ai_trace')
    self._aitrace:set_prefix(tostring(entity:get_id()) .. '//')
@@ -19,6 +20,23 @@ function AIComponent:initialize(entity, json)
          self:_start()
          return radiant.events.UNLISTEN
       end)
+end
+
+-- return a task group which instructs just this entity to perform
+-- the specified action
+function AIComponent:get_task_group(activity)
+   local tg = self._task_groups[activity]
+   if not tg then
+      -- grab the scheduler for the town this entity is in, create
+      -- a new task group which does this activity, and add our entity
+      -- as the only worker.
+      tg = stonehearth.town:get_town(self._entity)
+                              :get_scheduler()
+                                 :create_task_group(activity, {})
+                                    :add_worker(self._entity)
+      self._task_groups[activity] = tg
+   end
+   return tg
 end
 
 function AIComponent:get_entity()

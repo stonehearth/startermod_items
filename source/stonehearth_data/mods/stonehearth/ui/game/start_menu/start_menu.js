@@ -1,6 +1,6 @@
 App.StonehearthStartMenuView = App.View.extend({
    templateName: 'stonehearthStartMenu',
-   classNames: ['flex', 'fullScreen'],
+   //classNames: ['flex', 'fullScreen'],
 
    components: {
 
@@ -15,6 +15,10 @@ App.StonehearthStartMenuView = App.View.extend({
       },
       create_farm : function () {
          App.stonehearthClient.createFarm();
+      },
+      design_building: function () {
+         //App.stonehearthClient.buildWall();
+         $(top).trigger('stonehearth_design_building');
       },
       build_wall: function () {
          App.stonehearthClient.buildWall();

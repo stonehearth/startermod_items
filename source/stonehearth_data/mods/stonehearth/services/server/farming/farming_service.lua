@@ -44,6 +44,7 @@ end
 function FarmingService:_load_dirt_descriptions()
    local dirt_data = radiant.resources.load_json('stonehearth:tilled_dirt')
    self._dirt_data = {}
+   self._dirt_data['furrow'] = dirt_data.components.model_variants['furrow']
    self._dirt_data['dirt_1'] = dirt_data.components.model_variants['dirt_1']
    self._dirt_data['dirt_2'] = dirt_data.components.model_variants['dirt_2']
    self._dirt_data['dirt_3'] = dirt_data.components.model_variants['dirt_3']
@@ -89,10 +90,15 @@ function FarmingService:get_all_crop_types(session)
    return self:_get_crop_list(session)
 end
 
---- Add a new crop type to the player
-function FarmingService:add_crop_type(session, new_crop_uri)
+--- Add a new crop type to a specific player
+function FarmingService:add_crop_type(session, new_crop_type, quantity)
    local crop_list = self:_get_crop_list(session)
-   table.insert(crop_list, new_crop_uri)
+   local crop_data = {
+            crop_type = new_crop_type,
+            crop_info = self:get_crop_details(new_crop_type),
+            quantity = quantity
+         }
+   table.insert(crop_list, crop_data)
    return crop_list
 end
 

@@ -93,7 +93,6 @@ App.StonehearthLoadView = App.StonehearthSaveLoadView.extend({
             at: 'center center-150',
             of: '#modalOverlay'
          });
-
    },
 
    actions: {
@@ -161,11 +160,21 @@ App.StonehearthSaveListView = App.View.extend({
             });
 
             self.set('context.saves', vals);
+            Ember.run.scheduleOnce('afterRender', self, 'selectFirstItem')
          })      
    },
 
    getSelectedKey: function() {
       return this.$().find('.selected').attr('key');
+   },
+
+   selectFirstItem: function() {
+      var firstItem = this.$('.saveList').find('.row')[0];
+      
+      if (firstItem) {
+         $(firstItem).addClass('selected');
+      }
+      
    },
 
    didInsertElement: function() {

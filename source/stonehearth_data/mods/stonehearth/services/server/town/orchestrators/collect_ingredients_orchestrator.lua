@@ -16,6 +16,7 @@ function CollectIngredients:run(town, args)
       }
 
       self._task = task_group:create_task('stonehearth:collect_ingredient', args)
+                          :set_priority(stonehearth.constants.priorities.top.CRAFT)
                           :once()
                           :start()
       if not self._task:wait() then

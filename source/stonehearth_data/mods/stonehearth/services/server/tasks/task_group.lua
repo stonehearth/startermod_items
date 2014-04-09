@@ -40,6 +40,16 @@ function TaskGroup:get_activity()
    return self._activity
 end
 
+-- COMPLETELY untested.  DO NOT USE!! -- tonyc
+function TaskGroup:destroy_all_tasks()
+   assert(false)
+   for task, _ in pairs(self._tasks) do
+      task:destroy()
+   end
+   -- are they all gone?  
+   assert(next(self._tasks) == nil)
+end
+
 function TaskGroup:add_worker(worker)
    local id = worker:get_id()
    assert(not self._workers[id])
@@ -68,15 +78,6 @@ function TaskGroup:remove_worker(id)
    return self
 end
 
-function TaskGroup:set_priority(priority)
-   -- if called, this will override the priority of the tasks in
-   -- the group with `priority`.  why would we ever want to do that?
-   -- shouldn't they use their priority of the tasks be different so
-   -- the caller can influence the election? -- tony
-   self._priority = priority
-   return self
-end
-
 function TaskGroup:create_task(activity_name, args)
    assert(type(activity_name) == 'string')
    assert(args == nil or type(args) == 'table')
@@ -87,9 +88,6 @@ function TaskGroup:create_task(activity_name, args)
    }
    
    local task = Task(self, activity)
-   if self._priority then
-      task:set_priority(self._priority)
-   end
    self._tasks[task] = task
 
    self._log:debug('created task %s', task:get_name())   

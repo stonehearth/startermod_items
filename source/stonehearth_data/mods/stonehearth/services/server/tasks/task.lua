@@ -43,12 +43,17 @@ function Task:_destroy()
    if self._task_group then
       self:_stop_feeding()
       self:_destroy_entity_effects()
+
+      self._log:detail('notifying task group of destruction')
       self._task_group:_on_task_destroy(self)
       self._task_group = nil
+
       self:_set_state(COMPLETED)
       for _, cb in ipairs(self._notify_completed_cbs) do
          cb()
       end
+   else
+      self._log:detail('ignorning redunant call to :_destroy (state: %s)', self._state)
    end
 end
 
@@ -297,6 +302,7 @@ end
 
 function Task:_stop_feeding()
    if self._currently_feeding then
+      self._log:detail('asking task_group to stop feeding this task')
       self._currently_feeding = false
       self._task_group:_stop_feeding_task(self)
    end
@@ -304,6 +310,7 @@ end
 
 function Task:_start_feeding()
    if not self._currently_feeding then
+      self._log:detail('asking task_group to start feeding this task')
       self._currently_feeding = true
       self._task_group:_start_feeding_task(self)
    end
@@ -326,6 +333,12 @@ end
 function Task:__action_try_start_thinking(action)
    self:_log_state('entering __action_try_start_thinking')
 
+   -- a little bit of paranoia never hurt anyone.
+   if self._state ~= STARTED then
+      self._log:detail('task is not currently running.  cannot start_thinking! (state:%s)', self._state)
+      return false;
+   end
+
    -- actions that are already running (or we've just told to run) are of course
    -- allowed to start.
    if self:_action_is_active(action) then
@@ -343,6 +356,11 @@ end
 -- the same time.
 function Task:__action_try_start(action)
    self:_log_state('entering __action_try_start')
+
+   if self._state ~= STARTED then
+      self._log:detail('task is not currently running.  cannot start! (state:%s)', self._state)
+      return false;
+   end
 
    -- if the work "went away" before the call to __action_can_start and now, reject
    -- the request.  this usually happens because some other action ran in and grabbed

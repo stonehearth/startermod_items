@@ -7,10 +7,12 @@ local calendar = stonehearth.calendar
 
 local CalorieObserver = class()
 
---TODO: Is this init still valid? 
 function CalorieObserver:__init(entity)
    self._entity = entity
    self._eat_task = nil
+
+   --TODO: it doesn't look like observers have access to _saved_variables
+   --how should we save if the eat task is on? via a component?
 
    self._attributes_component = entity:add_component('stonehearth:attributes')
 
@@ -58,10 +60,6 @@ function CalorieObserver:_adjust_health_and_status()
                              {entity = self._entity, description = 'starving'})
 
       if not self._is_malnourished then
-
-         --show the hungry toast, if not yet showing from mealtime
-         radiant.entities.think(self._entity, '/stonehearth/data/effects/thoughts/hungry', stonehearth.constants.think_priorities.HUNGRY)
-
          self._is_malnourished = true
          radiant.entities.add_buff(self._entity, 'stonehearth:buffs:starving')
 
@@ -83,11 +81,7 @@ function CalorieObserver:_adjust_health_and_status()
 
       --If our calorie count is >= max, then stop the eating task
       if calories >= stonehearth.constants.food.MAX_ENERGY and self._eat_task then
-         --Hide the hungry thought toast, if it was in effect
-         radiant.entities.unthink(self._entity, '/stonehearth/data/effects/thoughts/hungry')
-
-         self._eat_task:destroy()
-         self._eat_task = nil
+         self:_finish_eating()
       end
    end
 end
@@ -115,21 +109,32 @@ end
 -- TODO: is this necessary: If it's not mealtime, and we're not malnourished, stop eating
 function CalorieObserver:_handle_mealtimes(hour)
    if hour == stonehearth.constants.food.MEALTIME_START then
-      --show the hungry toast, if not yet showing from mealtime
-      radiant.entities.think(self._entity, '/stonehearth/data/effects/thoughts/hungry', stonehearth.constants.think_priorities.HUNGRY)
-
       self:_start_eat_task()
    end
 end
 
 --If the task doesn't currently exist, start the task to look for food
 function CalorieObserver:_start_eat_task()
+   --show the hungry toast, if not yet showing from mealtime
+   radiant.entities.think(self._entity, '/stonehearth/data/effects/thoughts/hungry', stonehearth.constants.think_priorities.HUNGRY)
+
    if not self._eat_task then
-      local player_id = radiant.entities.get_player_id(self._entity)
-      local town = stonehearth.town:get_town(player_id)
-      self._eat_task = town:command_unit_scheduled(self._entity, 'stonehearth:eat')
-         :start()
+      -- ask the ai component for the task group for `basic needs` and create
+      -- a task to eat at the proper priority.
+      self._eat_task = self._entity:get_component('stonehearth:ai')
+                                       :get_task_group('stonehearth:basic_needs')
+                                          :create_task('stonehearth:eat', {})
+                                             :set_priority(stonehearth.constants.priorities.basic_needs.EAT)
+                                             :start()
    end
+end
+
+function CalorieObserver:_finish_eating()
+   --Hide the hungry thought toast, if it was in effect
+   radiant.entities.unthink(self._entity, '/stonehearth/data/effects/thoughts/hungry')
+   
+   self._eat_task:destroy()
+   self._eat_task = nil
 end
 
 return CalorieObserver

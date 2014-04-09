@@ -4,17 +4,12 @@
 #include "simulation/simulation.h"
 #include "simulation/jobs/follow_path.h"
 #include "simulation/jobs/bump_location.h"
-#include "simulation/jobs/movement_helpers.h"
 #include "simulation/jobs/lua_job.h"
 #include "simulation/jobs/path_finder.h"
+#include "simulation/jobs/direct_path_finder.h"
 #include "om/entity.h"
 #include "om/stonehearth.h"
-#include "om/region.h"
 #include "om/components/data_store.ridl.h"
-#include "om/components/mob.ridl.h"
-#include "om/components/destination.ridl.h"
-#include "csg/util.h"
-#include "lib/voxel/qubicle_brush.h"
 #include "lib/json/core_json.h"
 
 using namespace ::radiant;
@@ -61,7 +56,6 @@ om::DataStorePtr Sim_AllocDataStore(lua_State* L)
 
    return datastore;
 }
-
 
 luabind::object Sim_GetObject(lua_State* L, object id)
 {
@@ -119,51 +113,10 @@ std::shared_ptr<PathFinder> Sim_CreatePathFinder(lua_State *L, om::EntityRef s, 
    return nullptr;
 }
 
-PathPtr Sim_CreateDirectPath(lua_State *L, om::EntityRef entityRef, om::EntityRef targetRef, bool allowIncompletePath)
+std::shared_ptr<DirectPathFinder> Sim_CreateDirectPathFinder(lua_State *L, om::EntityRef entityRef, om::EntityRef targetRef)
 {
    Simulation &sim = GetSim(L);
-   om::EntityPtr entity = entityRef.lock();
-   om::EntityPtr target = targetRef.lock();
-
-   csg::Point3 start = entity->AddComponent<om::Mob>()->GetWorldGridLocation();
-   csg::Point3 end;
-   bool haveEndPoint = MovementHelpers::GetClosestPointAdjacentToEntity(sim, start, target, end);
-   if (!haveEndPoint) {
-      return nullptr;
-   }
-
-   std::vector<csg::Point3> points = MovementHelpers::GetPathPoints(sim, entity, start, end);
-
-   if (points.empty()) {
-      return nullptr;
-   }
-
-   bool incompletePath = points.back() != end;
-
-   if (incompletePath && !allowIncompletePath) {
-      return nullptr;
-   }
-
-   csg::Point3 poi;
-
-   if (incompletePath) {
-      poi = points.back();
-   } else {
-      csg::Point3 targetLocation = target->AddComponent<om::Mob>()->GetWorldGridLocation();
-      om::DestinationPtr destinationPtr = target->GetComponent<om::Destination>();
-
-      if (destinationPtr) {
-         poi = destinationPtr->GetPointOfInterest(end - targetLocation);
-         // transform poi to world coordinates
-         poi += targetLocation;
-      } else {
-         poi = targetLocation;
-      }
-   }
-
-   PathPtr path = std::make_shared<Path>(points, entityRef, targetRef, poi);
-
-   return path;
+   return std::make_shared<DirectPathFinder>(sim, entityRef, targetRef);
 }
 
 std::shared_ptr<LuaJob> Sim_CreateJob(lua_State *L, std::string const& name, object cb)
@@ -177,6 +130,7 @@ std::shared_ptr<LuaJob> Sim_CreateJob(lua_State *L, std::string const& name, obj
 DEFINE_INVALID_JSON_CONVERSION(Path);
 DEFINE_INVALID_JSON_CONVERSION(PathFinder);
 DEFINE_INVALID_JSON_CONVERSION(FollowPath);
+DEFINE_INVALID_JSON_CONVERSION(DirectPathFinder);
 DEFINE_INVALID_JSON_CONVERSION(BumpLocation);
 DEFINE_INVALID_JSON_CONVERSION(LuaJob);
 DEFINE_INVALID_JSON_CONVERSION(Simulation);
@@ -195,7 +149,7 @@ void lua::sim::open(lua_State* L, Simulation* sim)
             def("alloc_region2",            &Sim_AllocObject<om::Region2Boxed>),
             def("create_datastore",         &Sim_AllocDataStore),
             def("create_path_finder",       &Sim_CreatePathFinder),
-            def("create_direct_path",       &Sim_CreateDirectPath),
+            def("create_direct_path_finder",&Sim_CreateDirectPathFinder),
             def("create_follow_path",       &Sim_CreateFollowPath),
             def("create_bump_location",     &Sim_CreateBumpLocation),
             def("create_job",               &Sim_CreateJob),
@@ -227,6 +181,12 @@ void lua::sim::open(lua_State* L, Simulation* sim)
                .def("describe_progress",  &PathFinder::DescribeProgress)
             ,
             lua::RegisterType_NoTypeInfo<Simulation>("Simulation")
+            ,
+            lua::RegisterTypePtr_NoTypeInfo<DirectPathFinder>("DirectPathFinder")
+               .def("set_start_location",        &DirectPathFinder::SetStartLocation)
+               .def("set_allow_incomplete_path", &DirectPathFinder::SetAllowIncompletePath)
+               .def("set_reversible_path",       &DirectPathFinder::SetReversiblePath)
+               .def("get_path",                  &DirectPathFinder::GetPath)
             ,
             lua::RegisterTypePtr_NoTypeInfo<FollowPath>("FollowPath")
                .def("get_name", &FollowPath::GetName)

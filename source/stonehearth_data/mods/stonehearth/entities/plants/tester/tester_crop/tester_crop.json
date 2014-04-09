@@ -1,0 +1,66 @@
+{
+   "type": "entity", 
+   "components": {
+      "model_variants": {
+         "default": {
+            "models": [
+               "file(tester_crop_4.qb)"
+            ]
+         },
+         "tester_1": {
+            "models": [
+               "file(tester_crop_1.qb)"
+            ]
+         },
+         "tester_2": {
+            "models": [
+               "file(tester_crop_4.qb)"
+            ]
+         }
+      },
+      "unit_info": {
+         "name": "Tester", 
+         "description": "Steeped in the soil.",
+         "icon" : "file(icon.png)",
+         "portrait" : "file(portrait.png)"
+      },
+      "stonehearth:commands" : {
+         "commands" : [
+            "file(/data/commands/harvest_planted)"
+         ]
+      },
+      "stonehearth:crop" : {
+         "resource_pairings" : {
+            "tester_2": "stonehearth:tester_basket"
+         },
+         "harvest_threshhold" : "tester_2",
+         "plant_overlay_effect" : "/stonehearth/data/effects/plant_crop_overlay_effect/plant_corn_overlay_effect.json"
+      }, 
+      "stonehearth:growing" : {
+         "growth_period" : "10m",
+         "growth_stages" : [
+            {
+               "model_name" : "tester_1",
+               "name": "Tester Seedling", 
+               "description": "A unrealized tester."
+            },
+            {
+               "model_name" : "tester_2",
+               "name": "Ripe Tester", 
+               "description": "Delicious!"
+            }
+         ]
+      },
+      "stonehearth:resource_node": {
+         "harvest_profession" : "farmer",
+         "harvest_overlay_effect" : "/stonehearth/data/effects/chop_overlay_effect",
+         "harvester_effect" : "fiddle",
+         "resource": "",
+         "description" : "harvest_plant",
+         "durability": 1
+      },
+      "stonehearth:material" : {
+         "tags" :  "crop tester"
+      }
+   }
+}

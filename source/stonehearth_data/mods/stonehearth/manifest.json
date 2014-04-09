@@ -128,6 +128,9 @@
       "turnip_crop" : "file(entities/plants/turnip/turnip_crop)",
       "turnip" : "file(entities/plants/turnip/turnip_serving)",
       "turnip_basket" : "file(entities/plants/turnip/turnip_basket)",
+      "tester_crop" : "file(entities/plants/tester/tester_crop)",
+      "tester" : "file(entities/plants/tester/tester_serving)",
+      "tester_basket" : "file(entities/plants/tester/tester_basket)",
 
       "pink_flower" : "file(entities/ground_clutter/pink_flower)",
 
@@ -292,6 +295,7 @@
       
       "actions:compelled_behaviors:dispatcher" : "file(ai/actions/compelled_behaviors/compelled_behavior_dispatcher.lua)",
       "actions:compelled_behaviors:struggle" : "file(ai/actions/compelled_behaviors/struggle_action.lua)",
+      "actions:basic_needs:dispatcher" : "file(ai/actions/basic_needs/basic_needs_dispatcher.lua)",
 
       "actions:unit_control:dispatcher" : "file(ai/actions/unit_control/unit_control_dispatcher.lua)",
       "actions:unit_control:move_unit_to_location" : "file(ai/actions/unit_control/move_unit_to_location_action.lua)",
@@ -718,7 +722,6 @@
       "ghost_item" : "file(components/place_item/ghost_item_component.lua)",
       "placed_item" : "file(components/place_item/placed_item_component.lua)",
       "firepit" : "file(components/firepit/firepit_component.lua)",
-      "farmer_field" : "file(components/farmer_field/farmer_field_component.lua)",
       "lease" : "file(components/lease/lease_component.lua)",
       "lease_holder" : "file(components/lease_holder/lease_holder_component.lua)",
       "sensor_ai_injector"  : "file(components/sensor_ai_injector/sensor_ai_injector_component.lua)",
@@ -738,6 +741,7 @@
       "loot_table" : "file(components/loot_table/loot_table_component.lua)",
       "inventory" : "file(components/inventory/inventory_component.lua)",
       "carry_block" : "file(components/carry_block/carry_block_component.lua)",
+      "farmer_field" : "file(components/farmer_field/farmer_field_component.lua)",
       "growing" : "file(components/growing/growing_component.lua)", 
       "crop" : "file(components/crop/crop_component.lua)", 
       "dirt_plot" : "file(components/farmer_field/dirt_plot_component.lua)"
@@ -771,6 +775,7 @@
          "file(ui/game/modes/zones_mode/stockpile/stockpile.html)",
          "file(ui/game/modes/zones_mode/farm/farm.html)",
          "file(ui/game/modes/build_mode/build_mode.html)",
+         "file(ui/game/modes/build_mode/building_designer/building_designer.html)",
          "file(ui/game/esc_menu/esc_menu.html)",
          "file(ui/game/save_view/save_view.html)",
          "file(ui/game/task_manager/task_manager.html)",   
@@ -810,6 +815,7 @@
          "file(ui/game/modes/zones_mode/stockpile/stockpile.js)",
          "file(ui/game/modes/zones_mode/farm/farm.js)",
          "file(ui/game/modes/build_mode/build_mode.js)",
+         "file(ui/game/modes/build_mode/building_designer/building_designer.js)",
          "file(ui/game/modes/mode_manager.js)",
          "file(ui/game/esc_menu/esc_menu.js)",
          "file(ui/game/save_view/save_view.js)",
@@ -848,10 +854,12 @@
          "file(ui/debug/error_browser/error_browser.less)",
          "file(ui/debug/error_dialog/error_dialog.less)",
          "file(ui/game/game.less)",
+         "file(ui/game/modes/modes.less)",
          "file(ui/game/modes/zones_mode/zones_mode.less)",
          "file(ui/game/modes/zones_mode/stockpile/stockpile.less)",
          "file(ui/game/modes/zones_mode/farm/farm.less)",
          "file(ui/game/modes/build_mode/build_mode.less)",
+         "file(ui/game/modes/build_mode/building_designer/building_designer.less)",
          "file(ui/game/esc_menu/esc_menu.less)",
          "file(ui/game/save_view/save_view.less)",
          "file(ui/game/task_manager/task_manager.less)",   
@@ -876,3 +884,4 @@
       ]
    }
 }
+

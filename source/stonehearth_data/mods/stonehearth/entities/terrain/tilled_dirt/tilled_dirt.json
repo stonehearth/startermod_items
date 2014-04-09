@@ -12,6 +12,13 @@
                "file(untilled_ground.qb)"
             ]
          },
+         "furrow": {
+            "models": [
+               "file(farm_furrow.qb)"
+            ],
+            "unit_info_name" : "Field Furrow",
+            "unit_info_description" : ""
+         },
          "dirt_1": {
             "models": [
                "file(poor_dirt.qb)"
@@ -53,5 +60,11 @@
             "file(/data/commands/plant_crop/plant_corn.json)"
          ]
       }
-   }
+   },
+   "entity_data" : {
+      "stonehearth:render_materials" : {
+         "default" : "materials/voxel.material.xml",
+         "zones" : "materials/ghost_item.xml"
+      }
+   }   
 }

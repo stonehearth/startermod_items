@@ -44,9 +44,11 @@ end
 
 local ProFi = require 'lib.ProFi'
 local _profile = {
-   write_updates_longer_than = radiant.util.get_config('profile_long_frames', 0) / 1000.0
+   write_updates_longer_than = radiant.util.get_config('profile_long_frames', 0) / 1000.0,
+   count = 1
 }
 
+--[[
 function _start_profiling(profile_this_frame)
    _profile.profile_this_frame = profile_this_frame
    if _profile.write_updates_longer_than then
@@ -76,6 +78,28 @@ function _stop_profiling()
          end
       end
    end
+end
+
+]]
+
+function _start_profiling(dump_profile)
+   if dump_profile then
+      ProFi:stop()
+      _profile.running = false
+
+      local filename = string.format('lua_profile_%02d__%d.txt', _profile.count, radiant.gamestate.now())
+      ProFi:writeReport(filename)
+      radiant.log.write('radiant', 0, 'wrote lua profile %s', filename)
+      _profile.count = _profile.count + 1
+   end
+   if not _profile.running then
+      ProFi:start()
+      _profile.running = true
+   end
+end
+
+function _stop_profiling()
+   --ProFi:stop()
 end
 
 function radiant.update(profile_this_frame)

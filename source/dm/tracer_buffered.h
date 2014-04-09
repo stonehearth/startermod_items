@@ -7,6 +7,7 @@
 #include "record_trace_buffered.h"
 #include "set_trace_buffered.h"
 #include "boxed_trace_buffered.h"
+#include <unordered_set>
 
 BEGIN_RADIANT_DM_NAMESPACE
 
@@ -39,7 +40,7 @@ public:
    void Flush();
 
 private:
-   void FlushOnce(std::vector<ObjectId>& last_modified,
+   void FlushOnce(std::unordered_set<ObjectId>& last_modified,
                   std::vector<ObjectId>& last_destroyed);
    void OnObjectDestroyed(ObjectId id);
    void OnObjectModified(ObjectId id);
@@ -52,11 +53,11 @@ private:
    typedef std::unordered_map<ObjectId, TraceList> TraceMap;
 
 private:
-   std::vector<ObjectId>   modified_objects_;
-   std::vector<ObjectId>   destroyed_objects_;
-   StoreTracePtr           store_trace_;
-   TraceMap                traces_;
-   TraceBufferedMap        buffered_traces_;
+   std::unordered_set<ObjectId>  modified_objects_;
+   std::vector<ObjectId>         destroyed_objects_;
+   StoreTracePtr                 store_trace_;
+   TraceMap                      traces_;
+   TraceBufferedMap              buffered_traces_;
 };
 
 END_RADIANT_DM_NAMESPACE

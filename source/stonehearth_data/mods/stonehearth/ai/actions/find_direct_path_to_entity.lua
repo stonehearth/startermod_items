@@ -9,7 +9,11 @@ FindDirectPathToEntity.args = {
    destination = Entity,   -- entity to find a path to
    allow_incomplete_path = {
       type = 'boolean',
-      default = false
+      default = false,
+   },
+   reversible_path = {
+      type = 'boolean',
+      default = false,
    }
 }
 FindDirectPathToEntity.think_output = {
@@ -26,10 +30,21 @@ function FindDirectPathToEntity:start_thinking(ai, entity, args)
       return
    end
 
-   local path = _radiant.sim.create_direct_path(entity, destination, args.allow_incomplete_path);
+   local direct_path_finder = _radiant.sim.create_direct_path_finder(entity, destination)
+                                 :set_allow_incomplete_path(args.allow_incomplete_path)
+                                 :set_reversible_path(args.reversible_path)
+
+   local path = direct_path_finder:get_path()
    if path then
-      ai:set_think_output({path = path})
+      ai:set_think_output({ path = path })
       return
+   end
+   
+   if args.allow_incomplete_path then
+      -- we said we'd take an incomplete path, but the direct path finder wouldn't
+      -- cooperate.  something is horribly wrong (e.g. the target entity have been
+      -- destroyed).
+      errror('could not find partial direct path from %s to %s.', entity, destination)
    end
 end
 

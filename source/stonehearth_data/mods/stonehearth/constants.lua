@@ -1,7 +1,6 @@
 local constants = {
    -- Priorities
    priorities = {
-
       -- Priorities for the worker task scheduler.  Tasks with higher priorities
       -- tend to get executed before the lower ones.  The priorities are only
       -- valid within the worker task scheduler, so feel free to use arbitrary
@@ -33,10 +32,10 @@ local constants = {
          IDLE = 1,
          ADMIRE_FIRE = 2,
          WORK = 10,
-         CRAFT = 10,
          AMBIENT_PET_BEHAVIOR = 10,
-         EAT = 20,
-         SLEEP = 40,
+         CRAFT = 10,
+         BASIC_NEEDS = 20,
+         SLEEP = 40, -- todo: factor into basic_needs (just like eat...)
          ATTACK = 50,
          DEFEND = 100,
          UNIT_CONTROL = 1000,
@@ -44,6 +43,10 @@ local constants = {
          DIE = 10000000,
       },
 
+      -- basic needs
+      basic_needs = {
+         EAT = 20,
+      },
       -- Priorites of commands issued by the player to a unit
       unit_control = {
          MOVE = 2,
@@ -78,9 +81,9 @@ local constants = {
    },
 
    food = {
-      MAX_ENERGY = 100, 
-      MALNOURISHED = 25, 
-      MIN_ENERGY = 0,
+      MAX_ENERGY = 75, 
+      MALNOURISHED = 0, 
+      MIN_ENERGY = -25,
       HOURLY_ENERGY_LOSS = 1,
       HOURLY_HP_LOSS = 5,
       HOURLY_HP_GAIN = 10, 
@@ -94,3 +97,4 @@ local constants = {
 }
 
 return constants
+   

@@ -19,8 +19,6 @@ function GetFoodFromContainerAdjacent:run(ai, entity, args)
       return
    end
 
-   assert(container_data.consume_stacks)
-
    local food = radiant.entities.create_entity(container_data.food)
    
    radiant.entities.turn_to_face(entity, container)

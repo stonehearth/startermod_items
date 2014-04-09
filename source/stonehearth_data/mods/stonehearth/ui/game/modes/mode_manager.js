@@ -39,8 +39,8 @@ $(document).ready(function() {
             self._onEntitySelected(e);
          });
 
-         App.gameView.insertAt(0, this.views[this.modes.ZONES]);
-         App.gameView.insertAt(0, this.views[this.modes.BUILD]);
+         App.gameView.addView(this.views[this.modes.ZONES]);
+         App.gameView.addView(this.views[this.modes.BUILD]);
       },
 
       getGameMode: function() {

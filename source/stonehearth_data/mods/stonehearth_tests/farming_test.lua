@@ -14,12 +14,19 @@ function FarmingTest:__init()
    self:place_item('stonehearth:farmer_hoe', 4, 1)
    self:place_item('stonehearth:farmer_hoe', 4, 2)
 
-   self:place_citizen(-1,2, 'farmer')
+   local farmer = self:place_citizen(-1,2, 'farmer')
    self:place_citizen(-1,5)
 
    
    local tree = self:place_tree(-8, 0)
    local tree2 = self:place_tree(-8, 8)
+
+   local session = {
+      player_id = radiant.entities.get_player_id(farmer),
+      kingdom = radiant.entities.get_kingdom(farmer)
+   }
+
+   stonehearth.farming:add_crop_type(session, 'stonehearth:tester_crop')
 end
 
 return FarmingTest
