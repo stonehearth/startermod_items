@@ -12,7 +12,7 @@ radiant.events.listen(mod, 'radiant:new_game', function(args)
          local options = radiant.util.get_config('options', {})
          if options.script then
             if options['function'] then
-               autotest_framework.run_function(options.script, options['function'])
+               autotest_framework.run_test(options.script, options['function'])
             else
                autotest_framework.run_script(options.script)
             end
