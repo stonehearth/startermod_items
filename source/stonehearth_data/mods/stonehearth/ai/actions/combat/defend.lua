@@ -1,12 +1,16 @@
 local CombatFns = require 'ai.actions.combat.combat_fns'
+local Entity = _radiant.om.Entity
 local rng = _radiant.csg.get_default_rng()
 local log = radiant.log.create_logger('combat')
 
 local Defend = class()
 
-Defend.name = 'basic defence'
-Defend.does = 'stonehearth:defend'
-Defend.args = {}
+Defend.name = 'basic defense'
+Defend.does = 'stonehearth:combat:defend'
+Defend.args = {
+   attacker = Entity,
+   impact_time = 'number'
+}
 Defend.version = 2
 Defend.priority = 1
 Defend.weight = 1
@@ -16,34 +20,10 @@ function Defend:__init(entity)
    
    self._defense_types, self._num_defense_types =
       CombatFns.get_action_types(self._weapon_table, 'defense_types')
-
-   self._attributes_component = entity:add_component('stonehearth:attributes')
 end
 
 function Defend:start_thinking(ai, entity, args)
-   self._ai = ai
-   self._entity = entity
-   radiant.events.listen(entity, 'stonehearth:hit', self, self._on_battery)
-end
-
-function Defend:stop_thinking(ai, entity, args)
-   radiant.events.unlisten(entity, 'stonehearth:hit', self, self._on_battery)
-end
-
-function Defend:run(ai, entity, args)
-   local attacker = self._attacker
-
-   radiant.entities.turn_to_face(entity, attacker)
-
-   ai:execute('stonehearth:run_effect', {
-      effect = self._defense_name,
-      delay = self._defend_delay
-   })
-end
-
-function Defend:_on_battery(args)
    local attacker = args.attacker
-   local entity = self._entity
    local roll = rng:get_int(1, self._num_defense_types)
    local defense_name = self._defense_types[roll]
    local defense_impact_time = CombatFns.get_impact_time(self._weapon_table, 'defense_types', defense_name)
@@ -57,31 +37,33 @@ function Defend:_on_battery(args)
    local defend = rng:get_real(0, 1) < 0.75
 
    if not defend then
-      return
+      --return   -- CHECKCHECK
    end
 
    self._attacker = attacker
    self._defense_name = defense_name
    self._defend_delay = defend_delay
 
-   self:_send_battery_defended(attacker, entity)
-   self._ai:set_think_output()
+   self:_send_assault_defended(attacker, entity)
+   ai:set_think_output()
 end
 
---- When you fail to defend against an attack, take HP damage
---  TODO: determine damage based on awesomely complicated model
---  TODO: show toasts
-function Defend:_fail()
-   local hp = self._attributes_component:get_attribute('health')
-   hp = hp - 50
-   if hp < 0 then 
-      hp = 0
-   end
-   self._attributes_component:set_attribute('health', hp )
+function Defend:stop_thinking(ai, entity, args)
 end
 
-function Defend:_send_battery_defended(attacker, target)
-   radiant.events.trigger(attacker, 'stonehearth:hit_defended', {
+function Defend:run(ai, entity, args)
+   local attacker = self._attacker
+
+   radiant.entities.turn_to_face(entity, attacker)
+
+   ai:execute('stonehearth:run_effect', {
+      effect = self._defense_name,
+      delay = self._defend_delay
+   })
+end
+
+function Defend:_send_assault_defended(attacker, target)
+   radiant.events.trigger(attacker, 'stonehearth:combat:assault_defended', {
       target = target
    })
 end
