@@ -52,7 +52,7 @@ function FindPathToEntity:start_thinking(ai, entity, args)
                          :set_solved_cb(solved)
 end
 
-function FindPathToEntity:stop_thinking(ai, entity)
+function FindPathToEntity:stop_thinking(ai, entity, args)
    if self._pathfinder then
       self._pathfinder:stop()
       self._pathfinder = nil

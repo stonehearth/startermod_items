@@ -285,12 +285,31 @@ Pipeline::CreateDesignationNode(H3DNode parent,
    return group;
 }
 
-
 H3DNodeUnique
 Pipeline::CreateStockpileNode(H3DNode parent,
                                 csg::Region2 const& plane,
                                 csg::Color4 const& interior_color,
                                 csg::Color4 const& border_color)
+{
+   return CreateXZBoxNode(parent, plane, interior_color, border_color, 1.0);
+}
+
+H3DNodeUnique
+Pipeline::CreateSelectionNode(H3DNode parent,
+                                csg::Region2 const& plane,
+                                csg::Color4 const& interior_color,
+                                csg::Color4 const& border_color)
+{
+   return CreateXZBoxNode(parent, plane, interior_color, border_color, 0.2);
+}
+
+
+H3DNodeUnique
+Pipeline::CreateXZBoxNode(H3DNode parent,
+                                csg::Region2 const& plane,
+                                csg::Color4 const& interior_color,
+                                csg::Color4 const& border_color,
+                                double border_size)
 {
    csg::RegionTools2 tools;
 
@@ -299,7 +318,7 @@ Pipeline::CreateStockpileNode(H3DNode parent,
    //interior_mesh.SetColor(interior_color);
    //border_mesh.SetColor(border_color);
 
-   CreateStockpileNodeGeometry(mesh, plane, interior_color, border_color);
+   CreateXZBoxNodeGeometry(mesh, plane, interior_color, border_color, border_size);
 
    H3DNode group = h3dAddGroupNode(parent, "designation group node");
    H3DNode interior = AddDynamicMeshNode(group, mesh, "materials/transparent.material.xml", 0);
@@ -311,26 +330,33 @@ Pipeline::CreateStockpileNode(H3DNode parent,
    return group;
 }
 
-void Pipeline::CreateStockpileNodeGeometry(csg::mesh_tools::mesh& mesh, csg::Region2 const& region, csg::Color4 const& interior_color, csg::Color4 const& border_color)
+void Pipeline::CreateXZBoxNodeGeometry(csg::mesh_tools::mesh& mesh, 
+                                       csg::Region2 const& region, 
+                                       csg::Color4 const& interior_color, 
+                                       csg::Color4 const& border_color, 
+                                       double border_size)
 {
-   csg::PlaneInfo3 pi;
+   csg::PlaneInfo3f pi;
    pi.reduced_coord = 1;
    pi.reduced_value = 0;
    pi.x = 0;
    pi.y = 2;
    pi.normal_dir = 1;
 
-   const csg::Point2& minbounds = region.GetBounds().min;
-   const csg::Point2& maxbounds = region.GetBounds().max;
+   
+   csg::Rect2f bounds = csg::ToFloat(region.GetBounds());
+   bounds.SetTag(border_color.ToInteger());
 
-   csg::Region2 stockpileRegion;
-   stockpileRegion.Add(csg::Rect2(minbounds, maxbounds, border_color.ToInteger()));
+   csg::Region2f boxRegion;
+   boxRegion.Add(bounds);
 
-   // Add an interior if we have the room (at least 3x3).
-   if (minbounds.x < maxbounds.x - 2 && minbounds.y < maxbounds.y - 2) {
-      stockpileRegion.Add(csg::Rect2(minbounds + csg::Point2(1,1), maxbounds - csg::Point2(1,1), interior_color.ToInteger()));
+   // Add a border if there's room (width/height of the node is > twice the border size)
+   if (bounds.min.x < bounds.max.x - (border_size * 2) && bounds.min.y < bounds.max.y - (border_size * 2)) {
+      csg::Point2f min = csg::ToFloat(bounds.min) + csg::Point2f(border_size, border_size);
+      csg::Point2f max = csg::ToFloat(bounds.max) - csg::Point2f(border_size, border_size);
+      boxRegion.Add(csg::Rect2f(min, max, interior_color.ToInteger()));
    }
-   mesh.AddRegion(stockpileRegion, pi);
+   mesh.AddRegion(boxRegion, pi);
 }
 
 voxel::QubicleFile* Pipeline::LoadQubicleFile(std::string const& uri)

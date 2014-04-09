@@ -32,15 +32,7 @@ function FollowPathAction:run(ai, entity, args)
 
    radiant.events.listen(entity, 'stonehearth:posture_changed', self, self._on_posture_change)
 
-   local speed = radiant.entities.get_attribute(entity, 'speed')
-   if speed == nil then
-      speed = 1.0
-   end
-
-   --TODO: may need to reevaluate as we tweak attribute display
-   if speed > 0 then
-      speed = math.floor(50 + (50 * speed / 60)) / 100
-   end
+   local speed = radiant.entities.get_speed(entity)
 
    -- make sure the event doesn't clean up after itself when the effect finishes.  otherwise,
    -- people will only play through the animation once.
