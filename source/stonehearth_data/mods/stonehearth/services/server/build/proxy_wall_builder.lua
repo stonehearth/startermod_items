@@ -72,7 +72,7 @@ end
 
 function ProxyWallBuilder:_on_mouse_event(e)
    local query = _radiant.client.query_scene(e.x, e.y)
-   if query:is_valid() then
+   if query:is_valid() and query:is_valid_brick(0) then
       local world_location = self:_fit_point_to_constraints(query:brick_of(0) + query:normal_of(0):to_int())
       if self:get_column_count() == 1 then
          -- if this is the very first column, move the room around.

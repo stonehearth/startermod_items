@@ -21,6 +21,7 @@ class RaycastResult
       const csg::Point3f normalOf(int i) const;
       dm::ObjectId objectIdOf(int i) const;
       const csg::Point3 brickOf(int i) const; 
+      bool isValidBrick(int i) const;
 
       const csg::Ray3 ray() const;
 

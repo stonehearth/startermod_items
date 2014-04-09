@@ -5,6 +5,8 @@
 #include "Horde3DUtils.h"
 #include "Horde3DRadiant.h"
 #include "lib/perfmon/perfmon.h"
+#include "client/client.h"
+#include "client/renderer/renderer.h"
 
 using namespace ::radiant;
 using namespace ::radiant::client;
@@ -35,22 +37,6 @@ void RaycastResult::addIntersection(const csg::Point3f& p, const csg::Point3f& n
    _intersections.push_back(p);
    _normals.push_back(normal);
    _objIds.push_back(objId);
-
-   csg::Point3 brick;
-   // Calculate brick location!
-   for (int i = 0; i < 3; i++) {
-      // The brick origin is at the center of mass.  Adding 0.5f to the
-      // coordinate and flooring it should return a brick coordinate.
-      brick[i] = (int)std::floor(p[i] + 0.5f);
-
-      // We want to choose the brick that the mouse is currently over.  The
-      // intersection point is actually a point on the surface.  So to get the
-      // brick, we need to move in the opposite direction of the normal
-      if (fabs(normal[i]) > csg::k_epsilon) {
-         brick[i] += normal[i] > 0 ? -1 : 1;
-      }
-   }
-   _bricks.push_back(brick);
 }
 
 const csg::Point3f RaycastResult::normalOf(int i) const
@@ -75,7 +61,32 @@ void RaycastResult::setRay(const csg::Ray3& ray)
 
 const csg::Point3 RaycastResult::brickOf(int i) const
 {
-   return _bricks[i];
+   csg::Matrix4 nodeTransform = Renderer::GetInstance().GetTransformForObject(_objIds[i]);
+   nodeTransform.affine_inverse();
+   csg::Point3f normal = nodeTransform.rotate(_normals[i]);
+   csg::Point3f intersection = nodeTransform.transform(_intersections[i]);
+
+   csg::Point3 brick;
+   // Calculate brick location!
+   for (int j = 0; j < 3; j++) {
+      // The brick origin is at the center of mass.  Adding 0.5f to the
+      // coordinate and flooring it should return a brick coordinate.
+      brick[j] = (int)std::floor(intersection[j] + 0.5f);
+
+      // We want to choose the brick that the mouse is currently over.  The
+      // intersection point is actually a point on the surface.  So to get the
+      // brick, we need to move in the opposite direction of the normal
+      if (fabs(normal[j]) > csg::k_epsilon) {
+         brick[j] += normal[j] > 0 ? -1 : 1;
+      }
+   }
+   return brick;
+}
+
+bool RaycastResult::isValidBrick(int i) const
+{
+   auto terrainPtr = Client::GetInstance().GetEntity(_objIds[i])->GetComponent<om::Terrain>();
+   return (terrainPtr.get() != nullptr);
 }
 
 RaycastResult::~RaycastResult()

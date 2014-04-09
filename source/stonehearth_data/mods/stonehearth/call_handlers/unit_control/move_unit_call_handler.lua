@@ -30,7 +30,7 @@ function MoveUnitCallHandler:_on_mouse_event(e, response)
    -- s.location contains the address of the terrain block that the mouse
    -- is currently pointing to.  if there isn't one, move the workshop
    -- way off the screen so it won't get rendered.
-   local pt = s:is_valid() and s:brick_of(0) or Point3(0, -100000, 0)
+   local pt = s:is_valid() and s:is_valid_brick(0) and s:brick_of(0) or Point3(0, -100000, 0)
 
    pt.y = pt.y + 1
    self._cursor_entity:add_component('mob'):set_location_grid_aligned(pt)

@@ -1199,6 +1199,13 @@ void* Renderer::GetLastUiBuffer()
    return uiBuffer_.getLastUiBuffer();
 }
 
+csg::Matrix4 Renderer::GetTransformForObject(dm::ObjectId objId)
+{
+   const auto entity = Client::GetInstance().GetEntity(objId).get();
+   H3DNode n = GetRenderObject(entity->GetStoreId(), entity->GetObjectId())->GetNode();
+   return GetNodeTransform(n);
+}
+
 std::shared_ptr<RenderEntity> Renderer::CreateRenderObject(H3DNode parent, om::EntityPtr entity)
 {
    dm::ObjectId id = entity->GetObjectId();

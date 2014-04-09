@@ -138,6 +138,7 @@ class Renderer
       void GetViewportMouseCoords(double& x, double& y);
       csg::Point2 GetMousePosition() const;
       csg::Matrix4 GetNodeTransform(H3DNode node) const;
+      csg::Matrix4 GetTransformForObject(dm::ObjectId id);
 
       bool IsRunning() const;
       HWND GetWindowHandle() const;

@@ -168,6 +168,7 @@ void LuaRenderer::RegisterType(lua_State* L)
                   .def("normal_of",         &RaycastResult::normalOf)
                   .def("objectid_of",       &RaycastResult::objectIdOf)
                   .def("brick_of",          &RaycastResult::brickOf)
+                  .def("is_valid_brick",    &RaycastResult::isValidBrick)
                   .def("get_ray",           &RaycastResult::ray),
                def("cast_screen_ray",    &Scene_CastScreenRay),
                def("cast_ray",           &Scene_CastRay),
