@@ -396,7 +396,7 @@ function Task:__action_stopped(action)
       end
 
       self._task_group:_notify_worker_stopped_task(self, action:get_entity())
-      self:_unfeed_worker(action:get_entity():get_id())
+      --self:_unfeed_worker(action:get_entity():get_id())
 
       if self:_is_work_finished() then
          self._log:debug('task reached max number of completions (%d).  stopping and completing!', self._times)
