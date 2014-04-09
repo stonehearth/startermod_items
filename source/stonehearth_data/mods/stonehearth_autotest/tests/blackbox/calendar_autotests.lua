@@ -1,6 +1,6 @@
 local calendar_tests = {}
 
-function calendar_tests.check_constants()
+function calendar_tests.check_constants(autotest)
    local expected = {
       ticks_per_second = 9,
       seconds_per_minute = 60,
@@ -25,11 +25,11 @@ function calendar_tests.check_constants()
          sunset = 22,
       },
    }
-   local success, err = autotest.check_table(expected, stonehearth.calendar:get_constants())
+   local success, err = autotest.util:check_table(expected, stonehearth.calendar:get_constants())
    if not success then
-      autotest.fail('calendar constants wrong: %s', err)
+      autotest:fail('calendar constants wrong: %s', err)
    end
-   autotest.success()
+   autotest:success()
 end
 
 return calendar_tests

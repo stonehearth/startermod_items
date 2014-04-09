@@ -19,5 +19,6 @@ stonehearth_exitcode=$?
 echo stonehearth exited with code $stonehearth_exitcode
 
 # kill the tail process we started early and return success or failure.
+sleep 2
 kill $tail_pid
 exit $stonehearth_exitcode
