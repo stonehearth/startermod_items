@@ -17,6 +17,7 @@ class RegionCollisionShapeTracker : public CollisionTracker
 {
 public:
    RegionCollisionShapeTracker(NavGrid& ng, om::EntityPtr entity, om::RegionCollisionShapePtr rcs);
+   ~RegionCollisionShapeTracker();
 
    void Initialize() override;
    csg::Region3 GetOverlappingRegion(csg::Cube3 const& bounds) const override;

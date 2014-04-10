@@ -97,11 +97,12 @@ namespace radiant {
 // time you execute the log line (e.g. the id of the current object).
 #define LOG_CATEGORY(category, level, prefix) if (LOG_IS_ENABLED(category, level)) LOG_CATEGORY_(level, BUILD_STRING(prefix))
 
-
 // LOG writes to the log if the log level at the specified category is
 // greater or equal to the level passed in the macro.  Yes, this means
 // LOG(xxx, 0) is logged unconditionally. Don't abuse it!
 #define LOG(category, level)  LOG_CATEGORY(category, level, #category)
+
+#define LOG_I(ilevel, level, prefix) if (level <= ilevel) LOG_CATEGORY_(level, BUILD_STRING(prefix))
 
 // Extern variables used by the macros.  Do not reference these directly!
 extern struct radiant::log::LogCategories log_levels_;

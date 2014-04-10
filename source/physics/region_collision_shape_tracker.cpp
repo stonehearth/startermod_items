@@ -20,6 +20,20 @@ RegionCollisionShapeTracker::RegionCollisionShapeTracker(NavGrid& ng, om::Entity
 {
 }
 
+
+/* 
+ * -- RegionCollisionShapeTracker::~RegionCollisionShapeTracker
+ *
+ * Destroy the RegionCollisionShapeTracker.  Ask the NavGrid to mark the tiles which used
+ * to contain us as dirty.  They'll notice their weak_ptr's have expired and remove our
+ * bits from the vectors.
+ */
+
+RegionCollisionShapeTracker::~RegionCollisionShapeTracker()
+{
+   GetNavGrid().MarkDirty(last_bounds_);
+}
+
 /*
  * RegionCollisionShapeTracker::Initialize
  *

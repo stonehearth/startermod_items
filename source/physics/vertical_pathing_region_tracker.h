@@ -17,6 +17,7 @@ class VerticalPathingRegionTracker : public CollisionTracker
 {
 public:
    VerticalPathingRegionTracker(NavGrid& ng, om::EntityPtr entity, om::VerticalPathingRegionPtr rcs);
+   ~VerticalPathingRegionTracker();
 
    void Initialize() override;
    csg::Region3 GetOverlappingRegion(csg::Cube3 const& bounds) const override;

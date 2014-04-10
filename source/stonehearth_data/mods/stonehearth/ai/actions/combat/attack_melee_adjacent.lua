@@ -31,6 +31,14 @@ function AttackMeleeAdjacent:run(ai, entity, args)
    local target = args.target
    local roll = rng:get_int(1, self._num_attack_types)
    local attack_name = self._attack_types[roll]
+   local log = ai:get_log()
+   
+   if CombatFns.is_baddie(entity) then -- CHECKCHECK
+      attack_name = 'combat_power_spike'
+   else
+      attack_name = 'combat_1h_forehand'
+   end
+
    local impact_time = CombatFns.get_impact_time(self._weapon_table, 'attack_types', attack_name)
 
    radiant.entities.turn_to_face(entity, target)
@@ -38,6 +46,7 @@ function AttackMeleeAdjacent:run(ai, entity, args)
    self:_back_up_to_ideal_attack_range(ai, entity, args)
 
    radiant.events.trigger(target, 'stonehearth:combat:assault', {
+      attack_method = 'melee',
       attacker = entity,
       impact_time = impact_time
    })
@@ -48,7 +57,9 @@ function AttackMeleeAdjacent:run(ai, entity, args)
       radiant.effects.run_effect(target, 'combat_generic_hit', impact_time)
    end
 
+   log:debug('starting attack animation "%s"', attack_name)
    ai:execute('stonehearth:run_effect', { effect = attack_name })
+   log:debug('finished attack animation "%s"', attack_name)
 end
 
 function AttackMeleeAdjacent:_back_up_to_ideal_attack_range(ai, entity, args)

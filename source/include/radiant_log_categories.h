@@ -37,6 +37,7 @@
       ADD_CATEGORY(core) \
       ADD_CATEGORY(jobs) \
       ADD_CATEGORY(pathfinder) \
+      ADD_CATEGORY(direct_pathfinder) \
       ADD_CATEGORY(follow_path) \
       ADD_CATEGORY(goto_location) \
       ADD_CATEGORY(terrain) \
@@ -64,6 +65,7 @@
    BEGIN_GROUP(om) \
       ADD_CATEGORY(carry_block) \
       ADD_CATEGORY(entity) \
+      ADD_CATEGORY(region) \
       ADD_CATEGORY(target_tables) \
       ADD_CATEGORY(destination) \
       ADD_CATEGORY(mob) \

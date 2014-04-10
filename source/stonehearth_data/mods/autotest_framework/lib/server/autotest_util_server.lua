@@ -20,8 +20,7 @@ end
 function AutotestUtil:call_if_buff_added(entity, uri, cb)
    radiant.events.listen(entity, 'stonehearth:buff_added', function(e)
          if e.uri == uri then
-            cb()
-            return radiant.events.UNLISTEN
+            return cb()
          end
       end)
 end
@@ -29,12 +28,14 @@ end
 function AutotestUtil:succeed_if_buff_added(entity, uri)
    self:call_if_buff_added(entity, uri, function()
          self._autotest:success()
+         return radiant.events.UNLISTEN
       end)
 end
 
 function AutotestUtil:fail_if_buff_added(entity, uri)
    self:call_if_buff_added(entity, uri, function()
          self._autotest:fail('explicitly asked not to receive buff "%s"', uri)
+         return radiant.events.UNLISTEN
       end)
 end
 
@@ -45,7 +46,7 @@ function AutotestUtil:call_if_attribute_above(entity, attribute, threshold, cb)
    else
       radiant.events.listen(entity, 'stonehearth:attribute_changed:' .. attribute, function(e)
             if e.value > threshold then
-               cb()
+               return cb()
             end
          end)
    end
@@ -54,12 +55,14 @@ end
 function AutotestUtil:succeed_if_attribute_above(entity, attribute, threshold)
    self:call_if_attribute_above(entity, attribute, threshold, function()
          self._autotest:success()
+         return radiant.events.UNLISTEN
       end)
 end
 
 function AutotestUtil:fail_if_attribute_above(entity, attribute, threshold)
    self:call_if_attribute_above(entity, attribute, threshold, function()
          self._autotest:fail('"%s" attribute exceeded %d', attribute, threshold)
+         return radiant.events.UNLISTEN
       end)
 end
 
@@ -70,6 +73,12 @@ function AutotestUtil:fail_if_expired(timeout, format, ...)
    else
       self._autotest:fail(format, "timeout %d ms exceeded", timeout)
    end
+end
+
+function AutotestUtil:assert(condition, format, ...)
+	if not condition then
+		self._autotest:fail(format, ...)
+	end
 end
 
 function AutotestUtil:check_table(expected, actual, route)

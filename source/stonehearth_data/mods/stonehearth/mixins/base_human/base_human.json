@@ -44,7 +44,7 @@
             "stonehearth:actions:combat",
             "stonehearth:actions:combat:attack_melee",
             "stonehearth:actions:combat:attack_melee_adjacent",
-            "stonehearth:actions:combat:defend",
+            "stonehearth:actions:combat:defend_melee",
             "stonehearth:actions:combat:idle",
             "stonehearth:actions:combat:shuffle",
             "stonehearth:actions:chase_entity"

@@ -21,6 +21,20 @@ VerticalPathingRegionTracker::VerticalPathingRegionTracker(NavGrid& ng, om::Enti
 {
 }
 
+
+/* 
+ * -- VerticalPathingRegionTracker::~VerticalPathingRegionTracker
+ *
+ * Destroy the VerticalPathingRegionTracker.  Ask the NavGrid to mark the tiles which used
+ * to contain us as dirty.  They'll notice their weak_ptr's have expired and remove our
+ * bits from the vectors.
+ */
+VerticalPathingRegionTracker::~VerticalPathingRegionTracker()
+{
+   GetNavGrid().MarkDirty(last_bounds_);
+}
+
+
 /* 
  * -- VerticalPathingRegionTracker::Initialize
  *

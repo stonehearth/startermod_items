@@ -48,8 +48,11 @@ end
 
 function AutotestInstance:fail(format, ...)
    self:_check_running('fail')
+   if format then
+      local err = string.format(format, ...)
+      self._log:error("%s failed: %s", self._name, err)
+   end
    self._fail_called = true
-   -- radiant.events.async_trigger(autotest, 'autotest:finished', { errorcode = 1 })
    self._thread:terminate()
 end
 

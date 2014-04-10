@@ -26,6 +26,7 @@ private:
    bool allowIncompletePath_;
    bool reversiblePath_;
    csg::Point3 startLocation_;
+   int logLevel_;
 };
 
 std::ostream& operator<<(std::ostream& os, DirectPathFinder const& o);
