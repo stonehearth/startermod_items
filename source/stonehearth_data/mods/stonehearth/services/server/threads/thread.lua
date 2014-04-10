@@ -227,15 +227,30 @@ function Thread:interrupt(fn)
       local current = Thread.get_current_thread()
       self._log:detail('thread %s is currently running in :interrupt', current and tostring(current:get_id()) or 'nil')
       if self:is_running() then
+         -- if we're actually running now, ai:interrupt() will call fn() immediately.
          fn()
       else
          self:send_msg('thread:call_interrupt', fn)
          if coroutine.status(self._co) == 'suspended' then
+            -- if we're suspended (i.e. not actually running at all!), ai:interrupt() will
+            -- schedule and run fn() immediately.
             self._log:detail('switching to thread immediately to deliver interrupt.')
             Thread.resume_thread(self)
             self._log:detail('finished delivering interrupt.')
          else
-            self._log:debug('coroutine not at top of the stack.  will have to handle msg later.')
+            -- if we're in a running state but NOT the current thread (e.g. the
+            -- ai thread does something which triggers a cpp data trace (e.g. modifying a
+            -- region).  cpp data traces are deliever in the special callback thread so they
+            -- don't screw up the current interperter state in the event of an error).  in
+            -- cases like these, it's IMPOSSIBLE to get back to the thread immediately.
+            --
+            -- if we can't get back immediately, *anything* could happen before the
+            -- thread suspends and processes the interrupt message.  it's completely unsafe
+            -- to call fn there!  the only solution is to modify the rest of the entire codebase to
+            -- guarantee this NEVER happens.  for example, all the bits which uninject
+            -- actions (e.g. tasks, equipment pieces, buffs, etc.) need to do so from the
+            -- main lua thread and not from cpp callbacks (ideally).
+            assert(false, 'invalid thread state in Thread:interrupt (see comment).')
          end
       end
    end
@@ -271,6 +286,10 @@ function Thread:wait_for_children()
    end
    log:detail('all children have finished.')
    assert(not next(self._child_threads) )
+end
+
+function Thread:get_thread_status()
+   return self._co and coroutine.status(self._co) or 'dead'
 end
 
 function Thread:is_running()
