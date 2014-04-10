@@ -31,6 +31,13 @@ function AttackMeleeAdjacent:run(ai, entity, args)
    local target = args.target
    local roll = rng:get_int(1, self._num_attack_types)
    local attack_name = self._attack_types[roll]
+
+   if CombatFns.is_baddie(entity) then -- CHECKCHECK
+      attack_name = 'combat_power_spike'
+   else
+      attack_name = 'combat_1h_forehand'
+   end
+
    local impact_time = CombatFns.get_impact_time(self._weapon_table, 'attack_types', attack_name)
 
    radiant.entities.turn_to_face(entity, target)
