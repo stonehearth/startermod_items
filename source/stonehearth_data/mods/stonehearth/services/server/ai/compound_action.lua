@@ -92,6 +92,7 @@ function CompoundAction:start_thinking(ai, entity, args)
    self._ai = ai
    self._args = args
    self._log = ai:get_log()
+
    if not self._execution_frames then
       self:_create_execution_frames()
    end
@@ -103,6 +104,11 @@ function CompoundAction:start_thinking(ai, entity, args)
          return
       end
       self._log:spam('when %d succeeded', i)
+   end
+ 
+   -- copy ai.CURRENT into self._action_ai.CURRENT for actions that implement start_thinking()
+   if self._action_ai then
+      self._action_ai.CURRENT = ai.CURRENT
    end
    
    -- start thinking for real!
@@ -119,7 +125,7 @@ function CompoundAction:_start_thinking()
    if current_frame == 0 then
       if self._action.start_thinking then
          self:_spam_current_state('start_thinking (compound action)')
-         self._action.start_thinking(self._action, self._action_ai, self._entity, self._args)
+         self._action:start_thinking(self._action_ai, self._entity, self._args)
          return
       else
          -- the compound action does not implement start_thinking().. hrm.  what should the
