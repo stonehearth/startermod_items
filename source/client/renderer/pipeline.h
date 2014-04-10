@@ -35,6 +35,7 @@ class Pipeline : public core::Singleton<Pipeline> {
       H3DNodeUnique CreateBlueprintNode(H3DNode parent, csg::Region3 const& model, float thickness, std::string const& material_path, csg::Point3f const& offset);
       H3DNodeUnique CreateDesignationNode(H3DNode parent, csg::Region2 const& model, csg::Color4 const& outline_color, csg::Color4 const& stripes_color);
       H3DNodeUnique CreateStockpileNode(H3DNode parent, csg::Region2 const& model, csg::Color4 const& interior_color, csg::Color4 const& border_color);
+      H3DNodeUnique CreateSelectionNode(H3DNode parent, csg::Region2 const& model, csg::Color4 const& interior_color, csg::Color4 const& border_color);
       H3DNodeUnique CreateQubicleMatrixNode(H3DNode parent, std::string const& qubicle_file, std::string const& qubicle_matrix, csg::Point3f const& origin);
       H3DRes CreateVoxelGeometryFromRegion(std::string const& geoName, csg::Region3 const& region);
       csg::mesh_tools::mesh CreateMeshFromRegion(csg::Region3 const& region);
@@ -42,7 +43,8 @@ class Pipeline : public core::Singleton<Pipeline> {
    private:
       void AddDesignationBorder(csg::mesh_tools::mesh& m, csg::EdgeMap2& edgemap);
       void AddDesignationStripes(csg::mesh_tools::mesh& m, csg::Region2 const& panels);
-      void CreateStockpileNodeGeometry(csg::mesh_tools::mesh& mesh, csg::Region2 const& region, csg::Color4 const& interior_color, csg::Color4 const& border_color);      
+      H3DNodeUnique CreateXZBoxNode(H3DNode parent, csg::Region2 const& model, csg::Color4 const& interior_color, csg::Color4 const& border_color, double border_size);
+      void CreateXZBoxNodeGeometry(csg::mesh_tools::mesh& mesh, csg::Region2 const& region, csg::Color4 const& interior_color, csg::Color4 const& border_color, double border_size);      
       H3DNode CreateModelNode(H3DNode parent, H3DRes geometry, std::string const& material, int flag);
       H3DRes ConvertMeshToGeometryResource(const csg::mesh_tools::mesh& m, int indexOffsets[], int vertexOffsets[], int numLodLevels);
 

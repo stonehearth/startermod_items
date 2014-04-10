@@ -7,6 +7,7 @@ local NEXT_TASK_ID = 1
 local STARTED = 'started'
 local PAUSED = 'paused'
 local COMPLETED = 'completed'
+local DESTROYED = 'destroyed'
 
 local INFINITE = 999999 -- infinite enough?
 
@@ -32,33 +33,39 @@ function Task:__init(task_group, activity)
    self._complete_count = 0
    self._currently_feeding = false
    self._notify_completed_cbs = {}
+   self._workers_pending_unfeed = {}
 end
 
 function Task:destroy()
-   self._log:detail('user initiated destroy  (state:%s).', self._state)
-   self:_destroy()
-end
-
-function Task:_destroy()
-   if self._task_group then
-      self:_stop_feeding()
-      self:_destroy_entity_effects()
-
-      self._log:detail('notifying task group of destruction')
-      self._task_group:_on_task_destroy(self)
-      self._task_group = nil
-
-      self:_set_state(COMPLETED)
-      for _, cb in ipairs(self._notify_completed_cbs) do
-         cb()
-      end
+   if self._state ~= DESTROYED then
+      self._log:detail('user initiated destroy (state:%s).', self._state)
+      self:_destroy()
    else
-      self._log:detail('ignorning redunant call to :_destroy (state: %s)', self._state)
+      self._log:detail('ignorning redunant call to destroy (state: %s)', self._state)
    end
 end
 
+function Task:_destroy()
+   assert(self._state ~= DESTROYED)
+   self:_set_state(DESTROYED)
+   self:_stop_feeding()
+   self:_destroy_entity_effects()
+
+   self._log:detail('notifying task group of destruction')
+   self._task_group:_on_task_destroy(self)
+   self._task_group = nil
+end
+
+function Task:_fire_completed_cbs()
+   assert(self._state == COMPLETED)
+   for _, cb in ipairs(self._notify_completed_cbs) do
+      cb()
+   end
+end
+
+
 function Task:is_completed()
-   return self._state == COMPLETED
+   return self._state == COMPLETED or self._state == DESTROYED
 end
 
 function Task:notify_completed(cb)
@@ -139,14 +146,17 @@ function Task:wait()
    local thread = stonehearth.threads:get_current_thread()
    assert(thread, 'no thread running in Task:wait()')
 
-   if self._state ~= COMPLETED then
-      radiant.events.listen(self, COMPLETED, function()
-            thread:resume()
-            return radiant.events.UNLISTEN
-         end)
+   if not self:is_completed() then
+      local function cb()
+         radiant.events.unlisten(self, COMPLETED, cb)
+         radiant.events.unlisten(self, DESTROYED, cb)
+         thread:resume()
+      end
+      radiant.events.listen(self, COMPLETED, cb)
+      radiant.events.listen(self, DESTROYED, cb)
       
       thread:suspend()
-      assert(self._state == COMPLETED)
+      assert(self:is_completed())
    end
 
    return self._complete_count == self._times
@@ -186,8 +196,36 @@ function Task:_create_action()
 end
 
 function Task:_feed_worker(worker)
-   if worker and worker:is_valid() then
+   if not worker or not worker:is_valid() then
+      return
+   end
+
+   -- if the worker is in the list of workers to remove the run_task_action
+   -- from, go ahead and remove it.  this will leave the current action there
+   -- undisturbed.  otherwise, inject a new run_task_action into the worker.
+   if self._workers_pending_unfeed[worker] then
+      self._workers_pending_unfeed[worker] = nil
+   else
       worker:get_component('stonehearth:ai'):add_custom_action(self._action_ctor)
+   end
+end
+
+-- remove our action from all the workers which need to be unfed.  we defer
+-- these till we're definitely back on the main game loop to avoid the condition
+-- described in Thread:interrupt().  This loop is written in such a way that
+-- all workers will be processed, even if workers get added or removed during
+-- iteration (i.e. don't use pairs!)
+function Task:_process_deferred_unfed_workers()
+   while true do
+      local worker = next(self._workers_pending_unfeed)
+      if not worker then
+         break
+      end
+      self._workers_pending_unfeed[worker] = nil
+      if worker:is_valid() then
+         self._log:detail('removing run task action from %s', worker)
+         worker:get_component('stonehearth:ai'):remove_custom_action(self._action_ctor)
+      end
    end
 end
 
@@ -195,13 +233,26 @@ function Task:_unfeed_worker(worker)
    if type(worker) == 'number' then
       worker = radiant.entities.get_entity(worker)
    end
-   --Review q: assert is invalid if the worker is nil due to delete, how to account for this?
-   --assert(radiant.util.is_a(worker, Entity))
-   
-   if worker and worker:is_valid() then
-      self._log:detail('unfeeding worker %s', worker)
-      worker:get_component('stonehearth:ai'):remove_custom_action(self._action_ctor)
+   -- if the worker's not around anymore, go ahead and bail.
+   if not worker or not worker:is_valid() then
+      return
    end
+
+   -- if we are already planning to unfeed this worker, there's
+   -- nothing more that needs to be done
+   if self._workers_pending_unfeed[worker] then
+      return
+   end
+
+   -- if the list of unfed workers is empty, schedule a one time callback to
+   -- uninject their actions on the main loop, then add the worker to the list.
+   if next(self._workers_pending_unfeed) == nil then
+      radiant.events.listen_once(radiant, 'game:main_loop', function()
+            self:_process_deferred_unfed_workers()
+         end)
+   end
+   self._log:detail('adding worker %s to pending unfeed list', worker)
+   self._workers_pending_unfeed[worker] = true
 end
 
 function Task:_estimate_task_distance(worker)
@@ -339,6 +390,12 @@ function Task:__action_try_start_thinking(action)
       return false;
    end
 
+   local entity = action:get_entity()
+   if self._workers_pending_unfeed[entity] then
+      self._log:detail('task worker %s s pending to be removed.  cannot start_thinking!', entity)
+      return false;
+   end
+
    -- actions that are already running (or we've just told to run) are of course
    -- allowed to start.
    if self:_action_is_active(action) then
@@ -359,6 +416,12 @@ function Task:__action_try_start(action)
 
    if self._state ~= STARTED then
       self._log:detail('task is not currently running.  cannot start! (state:%s)', self._state)
+      return false;
+   end
+
+   local entity = action:get_entity()
+   if self._workers_pending_unfeed[entity] then
+      self._log:detail('task worker %s s pending to be removed.  cannot start!', entity)
       return false;
    end
 
@@ -398,7 +461,7 @@ end
 function Task:__action_destroyed(action)
    self:_log_state('entering __action_destroyed')
    if self._task_group then
-      assert(not self._running_actions[action])
+      -- assert(not self._running_actions[action])
    end
    self:_log_state('exiting __action_destroyed')
 end
@@ -406,8 +469,9 @@ end
 function Task:__action_stopped(action)
    self:_log_state('entering __action_stopped')
 
-   if self._task_group then
-      self._running_actions[action] = nil
+   self._running_actions[action] = nil
+
+   if self._state ~= DESTROYED then
       if self:_is_work_available() then
          radiant.events.trigger_async(self, 'work_available', self, true)
          self:_start_feeding()
@@ -418,7 +482,8 @@ function Task:__action_stopped(action)
 
       if self:_is_work_finished() then
          self._log:debug('task reached max number of completions (%d).  stopping and completing!', self._times)
-         self:_destroy()
+         self:_set_state(COMPLETED)
+         self:_fire_completed_cbs()
       end
    end
    

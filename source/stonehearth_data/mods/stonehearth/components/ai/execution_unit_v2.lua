@@ -95,6 +95,10 @@ function ExecutionUnitV2:get_name()
    return self._action.name
 end
 
+function ExecutionUnitV2:get_id()
+   return self._id
+end
+
 function ExecutionUnitV2:get_priority()
    return self._action.priority
 end
@@ -370,6 +374,7 @@ function ExecutionUnitV2:_stop_thinking_from_aborting()
    if self._thinking then
       self:_do_stop_thinking()
    end
+   self:_set_state(STOPPED)
 end
 
 function ExecutionUnitV2:_start_from_ready()

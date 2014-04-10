@@ -15,11 +15,18 @@ FindPathToEntity.version = 2
 FindPathToEntity.priority = 1
 
 function FindPathToEntity:start_thinking(ai, entity, args)
+   local log = ai:get_log()
    local destination = args.destination
    
    if not destination or not destination:is_valid() then
-      ai:get_log():debug('invalid entity reference.  ignorning')
+      log:debug('invalid entity reference.  ignorning')
       return
+   end
+
+   if log:is_enabled(radiant.log.DEBUG) then
+      local destination_location = radiant.entities.get_world_grid_location(destination)
+      log:debug('finding path from CURRENT.location %s to %s (@ %s)',
+                tostring(ai.CURRENT.location), tostring(destination), tostring(destination_location))
    end
 
    local direct_path_finder = _radiant.sim.create_direct_path_finder(entity, destination)
@@ -27,9 +34,11 @@ function FindPathToEntity:start_thinking(ai, entity, args)
 
    local path = direct_path_finder:get_path()
    if path then
+      log:detail('found direct path!')
       ai:set_think_output({ path = path })
       return
    end
+   log:detail('no direct path found.  starting pathfinder.')
    
    self._trace = radiant.entities.trace_location(destination, 'find path to entity')
       :on_changed(function()
@@ -40,19 +49,19 @@ function FindPathToEntity:start_thinking(ai, entity, args)
       end)
 
    local solved = function(path)
-      ai:get_log():debug('solved! %s', tostring(path))
+      log:debug('solved! %s', tostring(path))
       self._pathfinder:stop()
       self._pathfinder = nil
       ai:set_think_output({path = path})
    end
-   ai:get_log():debug('finding path from CURRENT.location %s to %s', tostring(ai.CURRENT.location), tostring(destination))
+
    self._pathfinder = _radiant.sim.create_path_finder(entity, 'find path to entity')
                          :set_source(ai.CURRENT.location)
                          :add_destination(destination)
                          :set_solved_cb(solved)
 end
 
-function FindPathToEntity:stop_thinking(ai, entity)
+function FindPathToEntity:stop_thinking(ai, entity, args)
    if self._pathfinder then
       self._pathfinder:stop()
       self._pathfinder = nil

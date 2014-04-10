@@ -11,9 +11,9 @@
       "end_to_end" : {
          "name" : "end to end tests",
          "scripts" : [
+            "file(end_to_end/food_autotests.lua)",
             "file(end_to_end/farming_autotests.lua)",
             "file(end_to_end/harvest_autotests.lua)",
-            "file(end_to_end/food_autotests.lua)",
             "file(end_to_end/promote_autotests.lua)",
             "file(end_to_end/carpenter_autotests.lua)",
             "file(end_to_end/sleep_autotests.lua)",
@@ -32,7 +32,8 @@
          "name" : "blackbox tests",
          "scripts" : [
             "file(blackbox/calendar_autotests.lua)",
-            "file(blackbox/stockpile_autotests.lua)"
+            "file(blackbox/stockpile_autotests.lua)",
+            "file(blackbox/region_autotests.lua)"
          ]
       }
    }

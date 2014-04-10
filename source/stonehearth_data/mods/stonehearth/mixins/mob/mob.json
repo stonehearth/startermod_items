@@ -50,8 +50,6 @@
             "stonehearth:actions:run_effect_action",
             "stonehearth:actions:start_effect",
             "stonehearth:actions:run_effect_timed_action",
-            "stonehearth:actions:chase_target_action",
-            "stonehearth:actions:flee_action",
             "stonehearth:actions:run_away_from_entity",
             "stonehearth:actions:find_path_to_entity",
             "stonehearth:actions:find_path_to_entity_type",

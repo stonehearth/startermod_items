@@ -9,11 +9,13 @@ function CombatTest:__init()
 
    local faction = 'civ'
 
-   local enemy = self:place_citizen(7, 7, 'trapper')
+   local enemy = self:place_citizen(14, 14, 'trapper')
    enemy:add_component('unit_info'):set_faction('raider')
 
-   local worker1 = self:place_citizen(-7, 7)
-   local worker2 = self:place_citizen(7, -7, 'carpenter')
+   --self:place_item('stonehearth:large_boulder', 0, 0)
+
+   local worker1 = self:place_citizen(-14, -14, 'carpenter')
+   local worker2 = self:place_citizen(14, -14)
 
    --self:_equip_weapon(enemy)
    --self:_equip_weapon(worker1)

@@ -42,7 +42,7 @@ function ResourceCallHandler:box_harvest_resources(session, response)
             if node then
                h3dRemoveNode(node)
             end
-            node = _radiant.client.create_designation_node(parent_node, self._region:get(), Color4(0, 255, 0, 255), Color4(0, 255, 0, 255));
+            node = _radiant.client.create_selection_node(parent_node, self._region:get(), Color4(0, 255, 0, 32), Color4(0, 255, 0, 255));
          end)
       :done(function (box)
             _radiant.call('stonehearth:server_box_harvest_resources', box)

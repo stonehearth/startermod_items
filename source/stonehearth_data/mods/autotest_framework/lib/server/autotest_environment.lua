@@ -48,7 +48,11 @@ function env.clear()
    -- move the camera to a decent spot
    local CAMERA_POSITION = Point3f(11, 16, 39)
    local CAMERA_LOOK_AT = Point3f(3.5, 1, 12.5)
-   autotest.ui.move_camera(CAMERA_POSITION, CAMERA_LOOK_AT)
+   autotest_framework.ui.move_camera(CAMERA_POSITION, CAMERA_LOOK_AT)
+end
+
+function env.get_town()
+   return env.town
 end
 
 local function apply_options_to_entity(entity, options)

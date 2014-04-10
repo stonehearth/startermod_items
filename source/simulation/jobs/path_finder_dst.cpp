@@ -88,7 +88,7 @@ void PathFinderDst::ClipAdjacentToTerrain()
 
    om::EntityPtr entity = entity_.lock();
    if (entity) {
-      world_space_adjacent_region_ = MovementHelpers::GetRegionAdjacentToEntity(GetSim(), entity);
+      world_space_adjacent_region_ = MovementHelper().GetRegionAdjacentToEntity(GetSim(), entity);
    }
 }
 
@@ -155,7 +155,7 @@ int PathFinderDst::EstimateMovementCost(csg::Point3 const& start, csg::Point3 co
 
 csg::Point3 PathFinderDst::GetPointOfInterest(csg::Point3 const& adjacent_pt) const
 {
-   return MovementHelpers::GetPointOfInterest(adjacent_pt, GetEntity());
+   return MovementHelper().GetPointOfInterest(adjacent_pt, GetEntity());
 }
 
 void PathFinderDst::DestroyTraces()

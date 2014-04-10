@@ -20,7 +20,13 @@ end
 
 function Buff:_restore(savestate)
    self.__savestate = savestate
-   self._data = self.__savestate:get_data()
+   --TODO: Investigate more: I'm not exactly sure what's going on here. Sometimes, 
+   --the data you want is in savestate:get_data, othertimes, it is in savestate.data
+   if self.__savestate.get_data then
+      self._data = self.__savestate:get_data()
+   else
+      self._data = savestate._data
+   end
    self:_create_buff()
 end
 

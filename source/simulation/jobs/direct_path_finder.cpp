@@ -10,6 +10,8 @@
 using namespace ::radiant;
 using namespace ::radiant::simulation;
 
+#define DPF_LOG(level)   LOG(simulation.direct_pathfinder, level)
+
 DirectPathFinder::DirectPathFinder(Simulation &sim, om::EntityRef entityRef, om::EntityRef targetRef) :
    sim_(sim),
    entityRef_(entityRef),
@@ -19,22 +21,26 @@ DirectPathFinder::DirectPathFinder(Simulation &sim, om::EntityRef entityRef, om:
 {
    om::EntityPtr entity = entityRef_.lock();
    startLocation_ = entity->AddComponent<om::Mob>()->GetWorldGridLocation();
+   logLevel_ = log_levels_.simulation.direct_pathfinder;
 }
 
 std::shared_ptr<DirectPathFinder> DirectPathFinder::SetStartLocation(csg::Point3 const& startLocation)
 {
+   DPF_LOG(5) << "setting start location to " << std::boolalpha << startLocation;
    startLocation_ = startLocation;
    return shared_from_this();
 }
 
 std::shared_ptr<DirectPathFinder> DirectPathFinder::SetAllowIncompletePath(bool allowIncompletePath)
 {
+   DPF_LOG(5) << "setting allow incomplete path to " << std::boolalpha << allowIncompletePath;
    allowIncompletePath_ = allowIncompletePath;
    return shared_from_this();
 }
 
 std::shared_ptr<DirectPathFinder> DirectPathFinder::SetReversiblePath(bool reversiblePath)
 {
+   DPF_LOG(5) << "setting set reversible path to " << std::boolalpha << reversiblePath;
    reversiblePath_ = reversiblePath;
    return shared_from_this();
 }
@@ -46,6 +52,7 @@ PathPtr DirectPathFinder::GetPath()
 
    if (!entity || !target) {
       // Either the source or the destination is invalid.  Return nullptr.
+      DPF_LOG(3) << "source or target entity is invalid.  returning nullptr.";
       return nullptr;
    }
 
@@ -56,25 +63,29 @@ PathPtr DirectPathFinder::GetPath()
    csg::Point3 const targetLocation = target->AddComponent<om::Mob>()->GetWorldGridLocation();
    csg::Point3 end;
 
-   bool haveEndPoint = MovementHelpers::GetClosestPointAdjacentToEntity(sim_, start, target, end);
+   bool haveEndPoint = MovementHelper(logLevel_).GetClosestPointAdjacentToEntity(sim_, start, target, end);
+
    if (!haveEndPoint) {
       // No point inside the target's adjacent region is actually standable.  There's *no way* to
       // get from here to there.  That's ok if we're just looking for a partial path, but we need
       // a point to run toward.  Just use the target's location for that.
       if (allowIncompletePath_) {
+         DPF_LOG(5) << "could not find end point in target, using destination location";
          end = targetLocation;
       } else {
          // If there's no way to get there, there's just no way to get there.  Bail.
+         DPF_LOG(5) << "could not find end point in target.  returning nullptr";
          return nullptr;
       }
    }
 
    // Walk the path from start to end and see how far we get.  
-   std::vector<csg::Point3> points = MovementHelpers::GetPathPoints(sim_, entity, reversiblePath_, start, end);
+   std::vector<csg::Point3> points = MovementHelper(logLevel_).GetPathPoints(sim_, entity, reversiblePath_, start, end);
 
    // If we didn't reach the endpoint and we don't allow incomplete paths, bail.
    bool reachedEndPoint = !points.empty() && points.back() == end;
    if (!reachedEndPoint && !allowIncompletePath_) {
+      DPF_LOG(5) << "could not find complete path to target.  returning nullptr";
       return nullptr;
    }
 
@@ -97,6 +108,7 @@ PathPtr DirectPathFinder::GetPath()
    }
 
    PathPtr path = std::make_shared<Path>(points, entityRef_, targetRef_, poi);
+   DPF_LOG(5) << "returning path: " << *path;
    return path;
 }
 

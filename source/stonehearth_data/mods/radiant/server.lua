@@ -44,6 +44,7 @@ end
 
 local ProFi = require 'lib.ProFi'
 local _profile = {
+   enabled = radiant.util.get_config('enable_lua_profling', false),
    write_updates_longer_than = radiant.util.get_config('profile_long_frames', 0) / 1000.0,
    count = 1
 }
@@ -103,14 +104,18 @@ function _stop_profiling()
 end
 
 function radiant.update(profile_this_frame)
-   _start_profiling(profile_this_frame)
+   if _profile.enabled then
+      _start_profiling(profile_this_frame)
+   end
 
    radiant.log.spam('radiant', 'starting frame %d', radiant.gamestate.now())
    radiant.events._update()
    radiant._fire_timers()
    radiant.log.spam('radiant', 'finishing frame %d', radiant.gamestate.now())
 
-   _stop_profiling()
+   if _profile.enabled then
+      _stop_profiling()
+   end
 end
 
 radiant.events.listen(radiant, 'radiant:init', function(args)

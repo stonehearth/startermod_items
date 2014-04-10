@@ -34,7 +34,7 @@ $(document).ready(function(){
    }
    window.setInterval(pumpCommandQueue, 100);
 
-   radiant.call('autotest:ui:connect_browser_to_client')
+   radiant.call('autotest_framework:ui:connect_browser_to_client')
             .progress(function (cmd) {
                // an array.  looks somethign like ['CLICK_DOM_ELEMENT', '#someButton']
                console.log('automation queuing ', cmd, 'current length is', commandQueue.length);

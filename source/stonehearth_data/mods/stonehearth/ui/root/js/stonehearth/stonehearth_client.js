@@ -142,6 +142,7 @@ var StonehearthClient;
          return this._callTool(function() {
             return radiant.call_obj(self._build_editor, 'place_new_wall')
                .always(function(response) {
+                  radiant.call('radiant:play_sound', 'stonehearth:sounds:place_structure' );
                   $(top).trigger('radiant_hide_tip');
                });
          });
@@ -151,6 +152,7 @@ var StonehearthClient;
          var self = this;
          return this._callTool(function() {
             return radiant.call_obj(self._build_editor, 'create_room');
+            radiant.call('radiant:play_sound', 'stonehearth:sounds:place_structure' );
          });
       },
 

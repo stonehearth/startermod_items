@@ -61,8 +61,10 @@ function FindPathToEntityType:_remove_destination(id)
       return
    end
    
-   self._log:detail('removing entity %d to pathfinder', id)
-   self._pathfinder:remove_destination(id)
+   if self._pathfinder then
+      self._log:detail('removing entity %d from pathfinder', id)
+      self._pathfinder:remove_destination(id)
+   end
 end
 
 function FindPathToEntityType:_start_pathfinder()

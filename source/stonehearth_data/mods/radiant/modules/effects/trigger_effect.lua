@@ -14,12 +14,11 @@ function TriggerEffect:__init(start_time, handler, info, effect, entity)
 end
 
 function TriggerEffect:update(e)
-   
    if self._trigger_time and self._trigger_time <= e.now then
       if self._handler then
          self._handler(self._info, self._effect, self._entity)
       else
-         radiant.events.trigger(self._entity, 'stonehearth:on_effect_trigger', {
+         radiant.events.trigger(self._effect, 'stonehearth:on_effect_trigger', {
             info = self._info,     
             effect = self._effect
          })
