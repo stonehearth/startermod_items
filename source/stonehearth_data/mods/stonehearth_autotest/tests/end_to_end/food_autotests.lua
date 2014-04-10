@@ -2,6 +2,19 @@ local Point3f = _radiant.csg.Point3f
 
 local food_tests = {}
 
+local function create_cluster(n, fn)
+   local r = math.max(math.floor(math.sqrt(n) / 2), 2)
+   local x, y = -r, -r
+   for i = 1,n do
+      x = x + 1
+      if x == r then
+         y = y + 1
+         x = -r
+      end
+      fn(x, y)
+   end
+end
+
 function food_tests.eat_food_on_ground(autotest)
    local food = autotest.env:create_entity(-2, -2, 'stonehearth:rabbit_jerky')
 
@@ -65,28 +78,25 @@ function food_tests.group_eat_food(autotest)
    autotest.util:fail_if_expired(500 * 1000, 'failed to eat food in chair')
 end
 
---[[
 --Tests that people will eat till they're sated
---Doesn't work, due to the kill-thread bug mentioned below. Re-enable once
---that's fixed.
 function food_tests.group_eat_till_full(autotest)
    local num_people = 10
 
    --Create 10 hungry people
    local worker_table = {}
-   for i=1,num_people do 
-      local p = autotest.env:create_person(2, 2, {
-         profession = 'worker',
-         attributes = { calories = 0 }
-      })
-      table.insert(worker_table, p)
-   end
+   create_cluster(num_people, function(x, y)
+         local p = autotest.env:create_person(x+5, y+5, {
+            profession = 'worker',
+            attributes = { calories = 0 }
+         })
+         table.insert(worker_table, p)
+      end)
 
    --Each person will need 2 servings of tester_servings to be full,
    --so we need 20 tester baskets
-   for i=1, num_people do 
-      autotest.env:create_entity(0, 0, 'stonehearth:tester_basket')
-   end
+   create_cluster(num_people, function(x, y)
+         autotest.env:create_entity(x-5, y-5, 'stonehearth:tester_basket')
+      end)
 
    --We're done if everyone's satisfaction is at 100
    local people_finished = 0
@@ -105,7 +115,6 @@ function food_tests.group_eat_till_full(autotest)
    --Adjust up?
    autotest.util:fail_if_expired(9000 * 1000, 'failed to eat food in chair')
 end
---]]
 
 function food_tests.eat_food_in_chair(autotest)
    autotest.env:create_entity(6, 6, 'stonehearth:arch_backed_chair')
