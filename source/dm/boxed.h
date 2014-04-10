@@ -12,6 +12,7 @@ class Boxed : public Object
 public:
    typedef T   Value;
 
+   // manual implementation of DEFINE_DM_OBJECT_TYPE due to the weird nature of the Boxed.
    enum { DmType = OT };
    Boxed() : Object() { }
    static ObjectType GetObjectTypeStatic() { return OT; }
@@ -20,6 +21,7 @@ public:
    std::shared_ptr<BoxedTrace<Boxed>> TraceChanges(const char* reason, int category) const;
    TracePtr TraceObjectChanges(const char* reason, int category) const override;
    TracePtr TraceObjectChanges(const char* reason, Tracer* tracer) const override;
+
 
    std::ostream& GetDebugDescription(std::ostream& os) const {
       return (os << "boxed " << typeid(T).name());

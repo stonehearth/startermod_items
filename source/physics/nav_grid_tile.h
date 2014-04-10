@@ -33,6 +33,7 @@ public:
    bool IsEmpty(csg::Cube3 const& bounds);
    bool CanStandOn(csg::Point3 const& pt);
    void FlushDirty(NavGrid& ng, csg::Point3 const& index);
+   void MarkDirty();
 
    bool IsDataResident() const;
    void SetDataResident(bool value);
@@ -46,7 +47,6 @@ private:
    std::shared_ptr<NavGridTileData> GetTileData();
 
 private:
-   void MarkDirty();
    bool IsMarked(TrackerType type, csg::Point3 const& offest);
    bool IsMarked(TrackerType type, int bit_index);
    int Offset(csg::Point3 const& pt);

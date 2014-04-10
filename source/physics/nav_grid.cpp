@@ -3,6 +3,7 @@
 #include "nav_grid.h"
 #include "nav_grid_tile.h"
 #include "dm/store.h"
+#include "dm/record_trace.h"
 #include "csg/util.h"
 #include "csg/color.h"
 #include "core/config.h"
@@ -44,33 +45,42 @@ NavGrid::NavGrid(int trace_category) :
  * If we care, create a CollisionTracker object to keep track of it.  See collision_tracker.h
  * for details.
  */
-void NavGrid::TrackComponent(std::shared_ptr<dm::Object> component)
+void NavGrid::TrackComponent(om::ComponentPtr component)
 {
    dm::ObjectId id = component->GetObjectId();
 
    switch (component->GetObjectType()) {
-   case om::TerrainObjectType: {
-      auto terrain = std::static_pointer_cast<om::Terrain>(component);
-      CollisionTrackerPtr tracker = std::make_shared<TerrainTracker>(*this, terrain->GetEntityPtr(), terrain);
-      collision_trackers_[id] = tracker;
-      tracker->Initialize();
-      break;
+      case om::TerrainObjectType: {
+         auto terrain = std::static_pointer_cast<om::Terrain>(component);
+         CollisionTrackerPtr tracker = std::make_shared<TerrainTracker>(*this, terrain->GetEntityPtr(), terrain);
+         collision_trackers_[id] = tracker;
+         tracker->Initialize();
+         break;
+      }
+      case om::RegionCollisionShapeObjectType: {
+         auto rcs = std::static_pointer_cast<om::RegionCollisionShape>(component);
+         CollisionTrackerPtr tracker = std::make_shared<RegionCollisionShapeTracker>(*this, rcs->GetEntityPtr(), rcs);
+         collision_trackers_[id] = tracker;
+         tracker->Initialize();
+         break;
+      }
+      case om::VerticalPathingRegionObjectType: {
+         auto rcs = std::static_pointer_cast<om::VerticalPathingRegion>(component);
+         CollisionTrackerPtr tracker = std::make_shared<VerticalPathingRegionTracker>(*this, rcs->GetEntityPtr(), rcs);
+         collision_trackers_[id] = tracker;
+         tracker->Initialize();
+         break;
+      }
+      default:
+         return;
    }
-   case om::RegionCollisionShapeObjectType: {
-      auto rcs = std::static_pointer_cast<om::RegionCollisionShape>(component);
-      CollisionTrackerPtr tracker = std::make_shared<RegionCollisionShapeTracker>(*this, rcs->GetEntityPtr(), rcs);
-      collision_trackers_[id] = tracker;
-      tracker->Initialize();
-      break;
-   }
-   case om::VerticalPathingRegionObjectType: {
-      auto rcs = std::static_pointer_cast<om::VerticalPathingRegion>(component);
-      CollisionTrackerPtr tracker = std::make_shared<VerticalPathingRegionTracker>(*this, rcs->GetEntityPtr(), rcs);
-      collision_trackers_[id] = tracker;
-      tracker->Initialize();
-      break;
-   }
-   }
+   collision_tracker_dtors_[id] = component->TraceChanges("nav grid destruction", GetTraceCategory())
+                                       ->OnDestroyed([this, id]() {
+                                          NG_LOG(3) << "tracker " << id << " destroyed.  updating grid.";
+                                          collision_trackers_.erase(id);
+                                          collision_tracker_dtors_.erase(id);
+                                       });
+
 }
 
 /*
@@ -227,6 +237,24 @@ void NavGrid::AddCollisionTracker(csg::Cube3 const& last_bounds, csg::Cube3 cons
    }
 }
 
+
+/*
+ * -- NavGrid::MarkDirty
+ *
+ * Used to mark all the tiles overlapping bounds as dirty.  Useful for when a collision
+ * tracker goes away.
+ */
+void NavGrid::MarkDirty(csg::Cube3 const& bounds)
+{
+   NG_LOG(3) << "mark dirty " << bounds;
+   csg::Cube3 chunks = csg::GetChunkIndex(bounds, TILE_SIZE);
+
+   // Remove trackers from tiles which no longer overlap the current bounds of the tracker,
+   // but did overlap their previous bounds.
+   for (csg::Point3 const& cursor : chunks) {
+      GridTileNonResident(cursor).MarkDirty();
+   }
+}
 
 /*
  * -- NavGrid::GridTile

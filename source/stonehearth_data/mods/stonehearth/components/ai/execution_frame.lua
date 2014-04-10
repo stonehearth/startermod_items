@@ -854,7 +854,8 @@ end
  
 function ExecutionFrame:_add_action_from_thinking(key, entry)
    local unit = self:_add_execution_unit(key, entry)
-   unit:_start_thinking(self._args, self:_clone_entity_state('new speculation for unit'))
+   local current_state = self:_create_entity_state()
+   unit:_start_thinking(self._args, current_state)
 end
 
 function ExecutionFrame:_add_action_from_ready(key, entry)
@@ -998,9 +999,7 @@ function ExecutionFrame:_set_current_entity_state(state)
    self._log:debug('set_current_entity_state')
    assert(state)
 
-   for key, value in pairs(state) do
-      self._log:spam('  CURRENT.%s = %s', key, tostring(value))
-   end
+   self:_spam_entity_state(state, 'set_current_entity_state')
 
    -- remember where we think we are so we can restart thinking if we
    -- move too far away from it.
@@ -1020,8 +1019,9 @@ function ExecutionFrame:_clone_entity_state(name)
       location = Point3(s.location.x, s.location.y, s.location.z),
       carrying = s.carrying,
    }
-  self._log:spam('cloning current state %s to %s %s', tostring(self._current_entity_state), name, tostring(cloned)) 
-  return cloned
+   self:_spam_entity_state(cloned, 'cloning current state %s to %s %s', tostring(self._current_entity_state), name, tostring(cloned))
+
+   return cloned
 end
 
 function ExecutionFrame:_create_entity_state()
@@ -1029,6 +1029,7 @@ function ExecutionFrame:_create_entity_state()
       location = radiant.entities.get_world_grid_location(self._entity),
       carrying = radiant.entities.get_carrying(self._entity),
    }
+   self:_spam_entity_state(state, 'capturing current entity state')
    return state
 end
 
@@ -1263,6 +1264,13 @@ function ExecutionFrame:_no_other_thread_is_running()
    return self._thread:is_running() or stonehearth.threads:get_current_thread() == nil
 end
 
-return ExecutionFrame
+function ExecutionFrame:_spam_entity_state(state, format, ...)
+   if self._log:is_enabled(radiant.log.SPAM) then
+      self._log:spam(format, ...)
+      for key, value in pairs(state) do      
+         self._log:spam('  CURRENT.%s = %s', key, tostring(value))
+      end   
+   end
+end
 
- 
+return ExecutionFrame

@@ -27,7 +27,7 @@ local function _run_test(name, fn)
    _current_test_instance = nil
 
    if not success then
-      fail('test "%s" failed.  aborting.', name)
+      autotest_framework.fail('test "%s" failed.  aborting.', name)
    end
 end
 

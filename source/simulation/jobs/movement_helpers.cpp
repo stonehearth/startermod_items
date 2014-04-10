@@ -9,27 +9,40 @@
 using namespace ::radiant;
 using namespace ::radiant::simulation;
 
-#define SIM_LOG(level)   LOG(simulation.core, level)
+#define MH_LOG(level)   LOG_I(_logLevel, level, "movement helpers")
 
-bool MovementHelpers::GetClosestPointAdjacentToEntity(Simulation& sim, csg::Point3 const& from, om::EntityPtr const& entity, csg::Point3& closestPoint)
+MovementHelper::MovementHelper(int logLevel) :
+   _logLevel(logLevel)
 {
-   csg::Region3 const region = MovementHelpers::GetRegionAdjacentToEntity(sim, entity);
+}
+
+bool MovementHelper::GetClosestPointAdjacentToEntity(Simulation& sim, csg::Point3 const& from, om::EntityPtr const& entity, csg::Point3& closestPoint)
+{
+   csg::Region3 const region = MovementHelper::GetRegionAdjacentToEntity(sim, entity);
 
    if (region.IsEmpty()) {
+      MH_LOG(5) << "region is empty in GetClosestPointAdjacentToEntity.  returning false";
       return false;
    }
 
    closestPoint = region.GetClosestPoint(from);
+   MH_LOG(5) << "returning pt " << closestPoint << " from GetClosestPointAdjacentToEntity.";
    return true;
 }
 
-csg::Region3 MovementHelpers::GetRegionAdjacentToEntity(Simulation& sim, om::EntityPtr const& entity)
+csg::Region3 MovementHelper::GetRegionAdjacentToEntity(Simulation& sim, om::EntityPtr const& entity)
 {
    phys::OctTree const& octTree = sim.GetOctTree();
    csg::Region3 region;
 
+   if (!entity) {
+      MH_LOG(5) << "invalid entity ptr.  returning empty region";
+      return region;
+   }
+
    om::MobPtr const mob = entity->GetComponent<om::Mob>();
    if (!mob) {
+      MH_LOG(5) << *entity <<  " has no mob component.  returning empty region";
       return region;
    }
 
@@ -45,6 +58,7 @@ csg::Region3 MovementHelpers::GetRegionAdjacentToEntity(Simulation& sim, om::Ent
       region.Translate(origin);
       octTree.RemoveNonStandableRegion(entity, region);
    } else {
+      MH_LOG(7) << *entity << " has no destination.  iterating through points adjacent to item";
       static csg::Point3 defaultAdjacentPoints[] = {
          csg::Point3(-1, 0,  0),
          csg::Point3( 1, 0,  0),
@@ -59,10 +73,11 @@ csg::Region3 MovementHelpers::GetRegionAdjacentToEntity(Simulation& sim, om::Ent
       }
    }
 
+   MH_LOG(7) << "returning adjacent region of size " << region.GetArea() << " for " << *entity;
    return region;
 }
 
-csg::Point3 MovementHelpers::GetPointOfInterest(csg::Point3 const& adjacentPoint, om::EntityPtr const& entity)
+csg::Point3 MovementHelper::GetPointOfInterest(csg::Point3 const& adjacentPoint, om::EntityPtr const& entity)
 {
    // Translate the point to the local coordinate system
    csg::Point3 origin(0, 0, 0);
@@ -104,7 +119,7 @@ csg::Point3 MovementHelpers::GetPointOfInterest(csg::Point3 const& adjacentPoint
    poi += origin;
 
    if ((csg::Point2(adjacentPoint.x, adjacentPoint.z) - csg::Point2(poi.x, poi.z)).LengthSquared() != 1) {
-      SIM_LOG(5) << "warning: distance from adjacentPoint " << adjacentPoint << " to " << poi << " is not 1.";
+      MH_LOG(5) << "warning: distance from adjacentPoint " << adjacentPoint << " to " << poi << " is not 1.";
    }
 
    return poi;
@@ -143,7 +158,7 @@ static std::vector<csg::Point<T,3>> GetElevations(csg::Point<T,3> const& locatio
 // resolvedLocation contains the updated standing location
 // reversible indicates whether to include moves that cannot be reversed and (may cause the entity to get stuck)
 template <class T>
-bool MovementHelpers::TestAdjacentMove(Simulation& sim, om::EntityPtr const& entity, bool const reversible,
+bool MovementHelper::TestAdjacentMove(Simulation& sim, om::EntityPtr const& entity, bool const reversible,
                                        csg::Point<T,3> const& fromLocation, csg::Point<T,3> const& toLocation, csg::Point<T,3>& resolvedLocation)
 {
    phys::OctTree const& octTree = sim.GetOctTree();
@@ -167,13 +182,13 @@ bool MovementHelpers::TestAdjacentMove(Simulation& sim, om::EntityPtr const& ent
    return true;
 }
 
-template bool MovementHelpers::TestAdjacentMove(Simulation&, om::EntityPtr const&, bool const, csg::Point3 const&, csg::Point3 const&, csg::Point3&);
-template bool MovementHelpers::TestAdjacentMove(Simulation&, om::EntityPtr const&, bool const, csg::Point3f const&, csg::Point3f const&, csg::Point3f&);
+template bool MovementHelper::TestAdjacentMove(Simulation&, om::EntityPtr const&, bool const, csg::Point3 const&, csg::Point3 const&, csg::Point3&);
+template bool MovementHelper::TestAdjacentMove(Simulation&, om::EntityPtr const&, bool const, csg::Point3f const&, csg::Point3f const&, csg::Point3f&);
 
 // returns the points on the direct line path from start to end
 // if end is not reachable, returns as far as it could go
 // uses the version of Bresenham's line algorithm from Wikipedia
-std::vector<csg::Point3> MovementHelpers::GetPathPoints(Simulation& sim, om::EntityPtr const& entity, bool reversible, csg::Point3 const& start, csg::Point3 const& end)
+std::vector<csg::Point3> MovementHelper::GetPathPoints(Simulation& sim, om::EntityPtr const& entity, bool reversible, csg::Point3 const& start, csg::Point3 const& end)
 {
    int const x0 = start.x;
    int const z0 = start.z;
@@ -206,7 +221,7 @@ std::vector<csg::Point3> MovementHelpers::GetPathPoints(Simulation& sim, om::Ent
          proposed.z = current.z + sz;
       }
 
-      passable = MovementHelpers::TestAdjacentMove(sim, entity, reversible, current, proposed, next);
+      passable = MovementHelper::TestAdjacentMove(sim, entity, reversible, current, proposed, next);
       if (!passable) {
          break;
       }

@@ -117,7 +117,6 @@ function food_tests.eat_food_in_chair(autotest)
       })
 
    autotest.util:succeed_when_destroyed(food)
-   autotest.util:succeed_if_attribute_above(p, 'calories', 0)
    autotest.util:fail_if_expired(40 * 1000, 'failed to eat food in chair')
 end
 
