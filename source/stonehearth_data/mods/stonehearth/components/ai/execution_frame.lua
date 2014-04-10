@@ -308,6 +308,11 @@ function ExecutionFrame:_do_destroy()
 end
 
 function ExecutionFrame:start_thinking(args, entity_state)
+   if self._aborting then
+      self._log:debug('clearing abort status from previous (presumedly failed) execution.')
+      self._aborting = false
+   end
+   
    self._log:spam('start_thinking (state: %s)', self._state)
    assert(args, "start_thinking called with no arguments")
    assert(self:get_state() == STOPPED, string.format('start thinking called from non-stopped state "%s"', self:get_state()))
@@ -380,10 +385,6 @@ function ExecutionFrame:run(args)
    self:_log_stack('making pcall')
 
    local call_fn = function()
-      if self._aborting then
-         self._log:debug('clearing abort status from previous (presumedly failed) execution.')
-         self._aborting = false
-      end
       if not self:in_state(STOPPED, READY, STARTED) then
          error(string.format('invalid initial state "%s" in run', self:get_state()))
       end
