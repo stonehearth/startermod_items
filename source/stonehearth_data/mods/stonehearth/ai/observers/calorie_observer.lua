@@ -7,20 +7,31 @@ local calendar = stonehearth.calendar
 
 local CalorieObserver = class()
 
+--TODO: now defunct?
 function CalorieObserver:__init(entity)
+end
+
+function CalorieObserver:initialize(entity, json)
    self._entity = entity
    self._eat_task = nil
-
-   --TODO: it doesn't look like observers have access to _saved_variables
-   --how should we save if the eat task is on? via a component?
-
    self._attributes_component = entity:add_component('stonehearth:attributes')
+
+   self._sv = self.__saved_variables:get_data()
+   if not self._sv._initialized then
+      self._sv._initialized = true
+      self._sv.should_be_eating = false
+   end
 
    --Hunger is on by default. If it's NOT on, don't do any of this. 
    self._enable_hunger = radiant.util.get_config('enable_hunger', true)
    if self._enable_hunger then
       radiant.events.listen(calendar, 'stonehearth:hourly', self, self._on_hourly)
       radiant.events.listen(self._entity, 'stonehearth:attribute_changed:calories', self, self._calories_changed)
+   
+      --Also, should we be eating right now? If so, let's do that
+      if self._sv.should_be_eating then
+         self:_start_eat_task()
+      end
    end
 end
 
@@ -126,6 +137,9 @@ function CalorieObserver:_start_eat_task()
                                           :create_task('stonehearth:eat', {})
                                              :set_priority(stonehearth.constants.priorities.basic_needs.EAT)
                                              :start()
+
+      self._sv.should_be_eating = true
+      self.__saved_variables:mark_changed()
    end
 end
 
@@ -133,6 +147,9 @@ function CalorieObserver:_finish_eating()
    --Hide the hungry thought toast, if it was in effect
    radiant.entities.unthink(self._entity, '/stonehearth/data/effects/thoughts/hungry')
    
+   self._sv.should_be_eating = false
+   self.__saved_variables:mark_changed()
+
    self._eat_task:destroy()
    self._eat_task = nil
 end

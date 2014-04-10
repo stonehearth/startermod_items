@@ -38,6 +38,7 @@ function AttackMeleeAdjacent:run(ai, entity, args)
    self:_back_up_to_ideal_attack_range(ai, entity, args)
 
    radiant.events.trigger(target, 'stonehearth:combat:assault', {
+      attack_method = 'melee',
       attacker = entity,
       impact_time = impact_time
    })

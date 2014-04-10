@@ -7,6 +7,9 @@ function LookForEnemies:__init(entity)
    radiant.events.listen(radiant, 'stonehearth:gameloop', self, self.on_gameloop)
 end
 
+function LookForEnemies:initialize(entity, json)
+end
+
 -- xxx: the 'fire one when i'm constructed' pattern again...
 function LookForEnemies:on_gameloop()
    radiant.events.unlisten(radiant, 'stonehearth:gameloop', self, self.on_gameloop)

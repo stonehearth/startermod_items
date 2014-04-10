@@ -13,6 +13,11 @@ function AIComponent:initialize(entity, json)
    self._sv = self.__saved_variables:get_data()
    self.__saved_variables:set_controller(self)
 
+   if not self._sv._initialized then
+      self._sv._initialized = true
+      self._sv._observer_datastores = {}
+   end
+
    radiant.events.listen(entity, 'radiant:entity:post_create', function()
          self:_initialize(json)
          self:_start()
@@ -144,7 +149,18 @@ end
 function AIComponent:_add_observer_script(uri)
    local ctor = radiant.mods.load_script(uri)
    assert(not self._observer_instances[uri])
-   self._observer_instances[uri] = ctor(self._entity)
+
+   local new_observer_instance = ctor(self._entity)
+   
+   --Do we have a datastore for this observer? if not, create one
+   if not self._sv._observer_datastores[uri] then
+      self._sv._observer_datastores[uri] = radiant.create_datastore()
+      self.__saved_variables:mark_changed()
+   end
+   new_observer_instance.__saved_variables = self._sv._observer_datastores[uri]
+   new_observer_instance:initialize(self._entity)
+
+   self._observer_instances[uri] = new_observer_instance
 end
 
 function AIComponent:remove_observer(key)
