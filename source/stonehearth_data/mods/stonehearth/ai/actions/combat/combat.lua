@@ -14,14 +14,15 @@ Combat.priority = 1
 Combat.weight = 1
 
 function Combat:__init()
+   self._ticks_per_second = stonehearth.calendar:get_constants().ticks_per_second
    self._enable_combat = radiant.util.get_config('enable_combat', false)
    self._in_combat = false
    self._engaged = false
    self._assaulted = false
    self._attacking = false
 
-   -- in game seconds
-   self._attack_global_cooldown = radiant.util.get_config('attack_global_cooldown', 111)
+   -- combat timings are all computed in milliseconds (at game speed 1) to synchronize with animations
+   self._attack_global_cooldown = radiant.util.get_config('attack_global_cooldown', 1000)
    self._attack_cooldown_end = radiant.gamestate.now()
 end
 
@@ -80,8 +81,12 @@ function Combat:run(ai, entity, args)
       end
 
       if not executed_action then
-         -- yield to allow other tasks to run (5 game seconds or about 45 ms)
-         self:_suspend(5)
+         -- yield to allow other coroutines to run
+         --self:_suspend(50)
+         facing_entity = self._target or self._attacker
+         ai:execute('stonehearth:combat:idle', {
+            facing_entity = facing_entity
+         })
       end
    end
 end
@@ -104,7 +109,7 @@ function Combat:_start_attack_cooldown()
 end
 
 function Combat:_get_game_time()
-   return stonehearth.calendar:get_elapsed_time()
+   return radiant.gamestate.now()
 end
 
 function Combat:_on_engaged(args)
@@ -160,15 +165,14 @@ function Combat:_unsubscribe_events()
    end
 end
 
--- duration is in game seconds
--- 1 game second = 9 ms (wall clock), see calendar_constants ticks_per_second
--- minimum resolution of about 5 game seconds
+-- duration is in milliseconds (at game speed 1)
+-- minimum resolution of about 50 ms
 function Combat:_suspend(duration)
    local ai = self._ai
+   local game_seconds = duration / self._ticks_per_second
 
-   stonehearth.calendar:set_timer(duration,
+   stonehearth.calendar:set_timer(game_seconds,
       function ()
-         -- looks like case is handled if thread was already terminated
          ai:resume()
       end
    )
@@ -203,6 +207,8 @@ function Combat:_get_target()
 
    return target
 end
+
+-----
 
 function Combat:_find_target_new()
    local target = radiant.entities.get_target_table_top(self._entity, 'aggro')
