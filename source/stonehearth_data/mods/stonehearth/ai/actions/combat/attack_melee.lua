@@ -30,7 +30,6 @@ function AttackMelee:run(ai, entity, args)
       end
 
       if distance > melee_range then
-         --ai:execute('stonehearth:goto_entity', { entity = target, stop_distance = melee_range })
          ai:execute('stonehearth:chase_entity', { target = target, stop_distance = melee_range })
       end
 

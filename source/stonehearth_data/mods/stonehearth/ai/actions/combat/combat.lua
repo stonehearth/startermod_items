@@ -19,6 +19,10 @@ function Combat:__init()
    self._engaged = false
    self._assaulted = false
    self._attacking = false
+
+   -- in game seconds
+   self._attack_global_cooldown = radiant.util.get_config('attack_global_cooldown', 111)
+   self._attack_cooldown_end = radiant.gamestate.now()
 end
 
 function Combat:start_thinking(ai, entity, args)
@@ -37,28 +41,47 @@ function Combat:stop_thinking(ai, entity, args)
 end
 
 function Combat:run(ai, entity, args)
-   local facing_entity
-
-   if not self._target then
-      local foo = 1
-   end
+   local executed_action, facing_entity
 
    while true do
+      executed_action = false
+
       if self._assaulted then
-         ai:execute('stonehearth:combat:defend', { attacker = self._attacker, impact_time = self._impact_time })
+         ai:execute('stonehearth:combat:defend', {
+            attack_method = self._attack_method,
+            attacker = self._attacker,
+            impact_time = self._impact_time
+         })
          self._assaulted = false
+         executed_action = true
+
       elseif self._engaged then
          facing_entity = self._target or self._attacker
-         ai:execute('stonehearth:combat:idle', { facing_entity = facing_entity })
+         ai:execute('stonehearth:combat:idle', {
+            facing_entity = facing_entity
+         })
          self._engaged = false
+         executed_action = true
+
       elseif self._target then
-         self._attacking = true
-         ai:execute('stonehearth:combat:attack', { target = self._target })
-         self._attacking = false
+         if not self:_in_attack_cooldown() then
+            self._attacking = true
+            ai:execute('stonehearth:combat:attack', {
+               target = self._target
+            })
+            self._attacking = false
+            executed_action = true
+            self:_start_attack_cooldown()
+         end
       end
 
       if not self._target then
          break
+      end
+
+      if not executed_action then
+         -- yield to allow other tasks to run (5 game seconds or about 45 ms)
+         self:_suspend(5)
       end
    end
 end
@@ -71,6 +94,19 @@ end
 function Combat:destroy(ai, entity, args)
 end
 
+function Combat:_in_attack_cooldown()
+   local now = self:_get_game_time()
+   return now < self._attack_cooldown_end
+end
+
+function Combat:_start_attack_cooldown()
+   self._attack_cooldown_end = self:_get_game_time() + self._attack_global_cooldown
+end
+
+function Combat:_get_game_time()
+   return stonehearth.calendar:get_elapsed_time()
+end
+
 function Combat:_on_engaged(args)
    -- do we need a list of engagers?
    self._engaged = true
@@ -81,6 +117,7 @@ end
 function Combat:_on_assaulted(args)
    -- create a list of attackers
    self._assaulted = true
+   self._attack_method = args.attack_method
    self._attacker = args.attacker
    self._impact_time = args.impact_time
    self:_enter_combat()
@@ -121,6 +158,22 @@ function Combat:_unsubscribe_events()
    if self._enable_combat then
       radiant.events.unlisten(radiant, 'stonehearth:very_slow_poll', self, self._find_target)
    end
+end
+
+-- duration is in game seconds
+-- 1 game second = 9 ms (wall clock), see calendar_constants ticks_per_second
+-- minimum resolution of about 5 game seconds
+function Combat:_suspend(duration)
+   local ai = self._ai
+
+   stonehearth.calendar:set_timer(duration,
+      function ()
+         -- looks like case is handled if thread was already terminated
+         ai:resume()
+      end
+   )
+
+   ai:suspend()
 end
 
 function Combat:_find_target()

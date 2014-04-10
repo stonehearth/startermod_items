@@ -3,26 +3,31 @@ local Entity = _radiant.om.Entity
 local rng = _radiant.csg.get_default_rng()
 local log = radiant.log.create_logger('combat')
 
-local Defend = class()
+local DefendMelee = class()
 
-Defend.name = 'basic defense'
-Defend.does = 'stonehearth:combat:defend'
-Defend.args = {
+DefendMelee.name = 'melee defense'
+DefendMelee.does = 'stonehearth:combat:defend'
+DefendMelee.args = {
+   attack_method = 'string',
    attacker = Entity,
    impact_time = 'number'
 }
-Defend.version = 2
-Defend.priority = 1
-Defend.weight = 1
+DefendMelee.version = 2
+DefendMelee.priority = 1
+DefendMelee.weight = 1
 
-function Defend:__init(entity)
+function DefendMelee:__init(entity)
    self._weapon_table = CombatFns.get_weapon_table('medium_1h_weapon')
    
    self._defense_types, self._num_defense_types =
       CombatFns.get_action_types(self._weapon_table, 'defense_types')
 end
 
-function Defend:start_thinking(ai, entity, args)
+function DefendMelee:start_thinking(ai, entity, args)
+   if args.attack_method ~= 'melee' then
+      return
+   end
+
    local attacker = args.attacker
    local roll = rng:get_int(1, self._num_defense_types)
    local defense_name = self._defense_types[roll]
@@ -48,10 +53,10 @@ function Defend:start_thinking(ai, entity, args)
    ai:set_think_output()
 end
 
-function Defend:stop_thinking(ai, entity, args)
+function DefendMelee:stop_thinking(ai, entity, args)
 end
 
-function Defend:run(ai, entity, args)
+function DefendMelee:run(ai, entity, args)
    local attacker = self._attacker
 
    radiant.entities.turn_to_face(entity, attacker)
@@ -62,10 +67,10 @@ function Defend:run(ai, entity, args)
    })
 end
 
-function Defend:_send_assault_defended(attacker, target)
+function DefendMelee:_send_assault_defended(attacker, target)
    radiant.events.trigger(attacker, 'stonehearth:combat:assault_defended', {
       target = target
    })
 end
 
-return Defend
+return DefendMelee

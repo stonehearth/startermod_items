@@ -347,7 +347,7 @@
       "actions:combat" : "file(ai/actions/combat/combat.lua)",
       "actions:combat:attack_melee" : "file(ai/actions/combat/attack_melee.lua)",
       "actions:combat:attack_melee_adjacent" : "file(ai/actions/combat/attack_melee_adjacent.lua)",
-      "actions:combat:defend" : "file(ai/actions/combat/defend.lua)",
+      "actions:combat:defend_melee" : "file(ai/actions/combat/defend_melee.lua)",
       "actions:combat:idle" : "file(ai/actions/combat/combat_idle.lua)",
       "actions:combat:shuffle" : "file(ai/actions/combat/combat_shuffle.lua)",
       "actions:chase_entity" : "file(ai/actions/chase_entity.lua)",
