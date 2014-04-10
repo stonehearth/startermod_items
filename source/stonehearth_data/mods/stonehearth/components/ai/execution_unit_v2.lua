@@ -71,8 +71,14 @@ function ExecutionUnitV2:__init(frame, thread, debug_route, entity, injecting_en
    self._log:set_prefix(prefix)
    self._log:debug('creating execution unit')
    self._aitrace = radiant.log.create_logger('ai_trace')
-   self._aitrace:set_prefix(self._trace_route)
    
+   -- Set the trace-route initially to the old route, so that in logging it is clear that the
+   -- frame is creating this unit.
+   self._aitrace:set_prefix(trace_route)   
+   self._aitrace:spam('@ceu@%d@%s', self._id, self:get_name())
+   self._aitrace:set_prefix(self._trace_route)   
+   
+
    self:_set_state(STOPPED)
 end
 
@@ -570,7 +576,6 @@ function ExecutionUnitV2:__execute(name, args)
    self._current_execution_frame = self._execution_frames[name]
    if not self._current_execution_frame then
       self._current_execution_frame = ExecutionFrame(self._thread, self._debug_route, self._entity, name, self._action_index, self._trace_route)
-      self._aitrace:spam('@cef@%d@%s', self._current_execution_frame._id, name)
       self._execution_frames[name] = self._current_execution_frame
    end
 

@@ -40,6 +40,11 @@ function ExecutionFrame:__init(thread, debug_route, entity, activity_name, actio
    self._log:set_prefix(prefix)
    self._log:debug('creating execution frame')
    self._aitrace = radiant.log.create_logger('ai_trace')
+
+   -- Set the trace-route initially to the old route, so that in logging it is clear that the
+   -- unit is creating this frame.
+   self._aitrace:set_prefix(trace_route)
+   self._aitrace:spam('@cef@%d@%s', self._id, self._activity_name)
    self._aitrace:set_prefix(self._trace_route)
 
    self:_set_state(STOPPED)
@@ -245,6 +250,7 @@ end
 
 function ExecutionFrame:_restart_thinking(entity_state)
    self._log:detail('_restart_thinking (state:%s)', self._state)
+   self._aitrace:spam('@r@%s', self._state)
 
    if not self:in_state('thinking', 'starting_thinking', 'ready', 'running') then
       return
@@ -993,8 +999,6 @@ function ExecutionFrame:_add_execution_unit(key, entry)
                                 action,
                                 self._action_index,
                                 self._trace_route)
-
-   self._aitrace:spam('@ceu@%d@%s', unit._id, name)
    assert(not self._execution_units[key])
    self._execution_units[key] = unit
    self._execution_unit_keys[unit] = key
@@ -1188,6 +1192,7 @@ function ExecutionFrame:wait_until(state)
       self._waiting_until = state
       while self._state ~= state do
          self._calling_thread:suspend('waiting for ' .. state)
+         self._aitrace:spam('@w@%s', state)
       end
       self._waiting_until = nil
       self._calling_thread = nil
