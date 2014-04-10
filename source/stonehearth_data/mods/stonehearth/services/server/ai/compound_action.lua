@@ -149,14 +149,17 @@ function CompoundAction:_start_thinking()
       else
          self:_spam_current_state('registering on_ready handler (%d of %d - %s)', current_frame, #self._activities, activity.name)
          frame:on_ready(function(frame, think_output)
+            self._log:detail('on_ready callback fired.')
+            assert(self._thinking, 'received ready callback while not thinking.')
+
             if not think_output then
                local msg = string.format('previous frame f:%d became unready.  aborting', frame:get_id())
                self._log:debug(msg)
                self._ai:abort(msg)
+               return
             else
                self:_spam_current_state('frame became ready! (%d of %d - %s)', current_frame, #self._activities, activity.name)
             end
-            assert(self._thinking, 'received ready callback while not thinking.')
             table.insert(self._previous_think_output, think_output)
             self:_start_thinking()
             -- xxx: listen for when frames become unready, right?      
@@ -192,7 +195,6 @@ function CompoundAction:stop_thinking(ai, entity, ...)
    if self._action.stop_thinking then
       self._action.stop_thinking(self._action, self._action_ai, self._entity, self._args)
    end
-   self._log:debug('switching thinking frames to running frames')   
 end
 
 function CompoundAction:_replace_placeholders(args)
