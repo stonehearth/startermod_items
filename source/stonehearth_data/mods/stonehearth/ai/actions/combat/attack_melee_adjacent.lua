@@ -31,7 +31,8 @@ function AttackMeleeAdjacent:run(ai, entity, args)
    local target = args.target
    local roll = rng:get_int(1, self._num_attack_types)
    local attack_name = self._attack_types[roll]
-
+   local log = ai:get_log()
+   
    if CombatFns.is_baddie(entity) then -- CHECKCHECK
       attack_name = 'combat_power_spike'
    else
@@ -56,7 +57,9 @@ function AttackMeleeAdjacent:run(ai, entity, args)
       radiant.effects.run_effect(target, 'combat_generic_hit', impact_time)
    end
 
+   log:debug('starting attack animation "%s"', attack_name)
    ai:execute('stonehearth:run_effect', { effect = attack_name })
+   log:debug('finished attack animation "%s"', attack_name)
 end
 
 function AttackMeleeAdjacent:_back_up_to_ideal_attack_range(ai, entity, args)

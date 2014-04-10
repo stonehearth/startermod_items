@@ -35,11 +35,6 @@ function RunEffectAction:run(ai, entity, args)
    -- create the effect and register a callback to resume the ai thread
    -- when it finishes.
 
-   if args.trigger_fn then
-      self._trigger_fn = args.trigger_fn
-      radiant.events.listen(entity, 'stonehearth:on_effect_trigger', self, self._on_effect_trigger)
-   end
-
    if args.facing_entity then
       radiant.entities.turn_to_face(entity, args.facing_entity)
    end
@@ -51,38 +46,38 @@ function RunEffectAction:run(ai, entity, args)
       log:debug('starting new effect "%s"', effect_name)
       self._effect = radiant.effects.run_effect(entity, effect_name, args.delay, nil, args.args)
 
-      radiant.events.listen(entity, 'stonehearth:on_effect_finished', function ()
+      if args.trigger_fn then
+         self._trigger_fn = args.trigger_fn
+         radiant.events.listen(self._effect, 'stonehearth:on_effect_trigger', self, self._on_effect_trigger)
+      end
+      radiant.events.listen_once(self._effect, 'stonehearth:on_effect_finished', function ()
             if self._effect then
-               self._effect:stop()
                log:debug('stopped effect "%s" and resuming', effect_name)
-               self._effect = nil
+               self:_destroy_effect()
                ai:resume('effect %s finished', effect_name)
             end
          end)
       ai:suspend()
-   end
-   
-   self._effect = nil 
+   end   
+   self:_destroy_effect()
 end
 
 function RunEffectAction:_on_effect_trigger(e)
-   local info = e.info
-   local effect = e.effect
+   self._trigger_fn(e.info.info)
+end
 
-   if effect == self._effect then
-      self._trigger_fn(info.info)
+function RunEffectAction:_destroy_effect()
+   if self._effect then
+      if self._trigger_fn then
+         radiant.events.unlisten(self._effect, 'stonehearth:on_effect_trigger', self, self._on_effect_trigger)
+      end
+      self._effect:stop()
+      self._effect = nil
    end
 end
 
 function RunEffectAction:stop(ai, entity, args)
-   if self._effect then
-      ai:get_log():debug('stopped effect "%s" in stop', args.effect)
-      self._effect:stop()
-      self._effect = nil
-   end
-   if self._trigger_fn then
-      radiant.events.unlisten(entity, 'stonehearth:on_effect_trigger', self, self._on_effect_trigger)
-   end
+   self:_destroy_effect()
 end
 
 return RunEffectAction
