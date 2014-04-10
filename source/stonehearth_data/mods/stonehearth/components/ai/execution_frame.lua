@@ -263,7 +263,7 @@ function ExecutionFrame:_restart_thinking(entity_state)
 
    local current_state = self._state
    for unit, entity_state in pairs(rethinking_units) do
-      self._log:detail('calling start_thinking on unit "%s" (unit state:%s).', unit:get_name(), unit:get_state())
+      self._log:detail('calling start_thinking on unit "%s" (u:%d state:%s).', unit:get_name(), unit:get_id(), unit:get_state())
       assert(unit:in_state('stopped', 'thinking', 'ready'))
       unit:_start_thinking(self._args, entity_state)
 
