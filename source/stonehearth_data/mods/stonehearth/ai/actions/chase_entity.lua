@@ -37,7 +37,7 @@ function ChaseEntity:run(ai, entity, args)
 
    local on_target_destroyed = function()
       -- currently no guarantee that stop will be called
-      self:_release_resources()
+      self:stop()
       ai:abort('target destroyed')
    end
 
@@ -54,15 +54,12 @@ function ChaseEntity:run(ai, entity, args)
 
       if path == nil then
          -- currently no guarantee that stop will be called
-         self:_release_resources()
+         self:stop()
          ai:abort('No path to entity')
          return
       end
 
-      -- make sure the event doesn't clean up after itself when the effect finishes.
-      -- otherwise, people will only play through the animation once.
-      self._effect = radiant.effects.run_effect(entity, 'run')
-                        :set_cleanup_on_finish(false)
+      self:_start_run_effect(entity)
 
       self._mover = _radiant.sim.create_follow_path(entity, speed, path, stop_distance,
          function ()
@@ -73,7 +70,6 @@ function ChaseEntity:run(ai, entity, args)
 
       ai:suspend('waiting for mover to finish')
 
-      self:_destroy_run_effect()
       self:_destroy_mover()
    end
 end
@@ -81,6 +77,7 @@ end
 function ChaseEntity:_find_path(ai, entity, target)
    local path, direct_path_finder
 
+   -- if we have an unobstructed path, return it immediately
    direct_path_finder = _radiant.sim.create_direct_path_finder(entity, target)
                            :set_reversible_path(true)
 
@@ -90,6 +87,7 @@ function ChaseEntity:_find_path(ai, entity, target)
       return path
    end
 
+   -- no direct path, wait for a solution from the pathfinder
    local on_solved = function (solved_path)
       path = solved_path
       ai:resume()
@@ -111,11 +109,16 @@ function ChaseEntity:_find_path(ai, entity, target)
    return path
 end
 
-function ChaseEntity:stop(ai, entity, args)
-   self:_release_resources()
+function ChaseEntity:_start_run_effect(entity)
+   if not self._run_effect then
+      -- make sure the event doesn't clean up after itself when the effect finishes.
+      -- otherwise, people will only play through the animation once.
+      self._run_effect = radiant.effects.run_effect(entity, 'run')
+                           :set_cleanup_on_finish(false)
+   end
 end
 
-function ChaseEntity:_release_resources()
+function ChaseEntity:stop(ai, entity, args)
    self:_destroy_trace()
    self:_destroy_mover()
    self:_destroy_run_effect()
@@ -137,9 +140,9 @@ function ChaseEntity:_destroy_mover()
 end
 
 function ChaseEntity:_destroy_run_effect()
-   if self._effect then
-      self._effect:stop()
-      self._effect = nil
+   if self._run_effect then
+      self._run_effect:stop()
+      self._run_effect = nil
    end
 end
 

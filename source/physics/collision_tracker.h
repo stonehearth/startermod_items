@@ -18,6 +18,7 @@ BEGIN_RADIANT_PHYSICS_NAMESPACE
 class CollisionTracker : public std::enable_shared_from_this<CollisionTracker> {
 public:
    CollisionTracker(NavGrid& ng, om::EntityPtr entity);
+   virtual ~CollisionTracker() { }
 
    virtual void Initialize();
    csg::Point3 GetEntityPosition() const;

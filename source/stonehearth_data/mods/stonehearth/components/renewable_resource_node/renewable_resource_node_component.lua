@@ -60,8 +60,6 @@ function RenewableResourceNodeComponent:spawn_resource(location)
    
       --Listen for renewal triggers, if relevant
       if self._renew_effect_name then
-         radiant.events.listen(self._entity, 'stonehearth:on_effect_trigger', self, self.on_effect_trigger)
-         radiant.events.listen(self._entity, 'stonehearth:on_effect_finished', self, self.on_effect_finished)
       end
 
       -- Fire an event to let everyone else know we've just been harvested
@@ -72,10 +70,7 @@ end
 
 --- If the renew effect has a trigger in it to change the model, do so. 
 function RenewableResourceNodeComponent:on_effect_trigger(e)
-   local info = e.info
-   local effect = e.effect
-
-   if e.info.info.event == "change_model" and  self._renew_effect_name then
+   if e.info.info.event == "change_model" then
       self:_reset_model()
    end
 end
@@ -83,27 +78,27 @@ end
 --- If we ran a renew effect but have no trigger to set the model, do so on finish
 --  Note: the effect in question must be == to the renew_effect
 function RenewableResourceNodeComponent:on_effect_finished(e)
-   local effect = e.effect
-   if effect == self._renew_effect then
-      self:_reset_model()
-      if self._renew_effect then
-         self._renew_effect:stop()
-         self._renew_effect = nil
-      end
-   end
+   self:_reset_model()
 end
 
 --- Reset the model to the default. Also, stop listening for effects
 function RenewableResourceNodeComponent:_reset_model()
    self._render_info:set_model_variant('')
-   radiant.events.unlisten(self._entity, 'stonehearth:on_effect_trigger', self, self.on_effect_trigger)
-   radiant.events.unlisten(self._entity, 'stonehearth:on_effect_finished', self, self.on_effect_finished)
+   if self._renew_effect then
+      radiant.events.unlisten(self._renew_effect, 'stonehearth:on_effect_trigger', self, self.on_effect_trigger)
+      radiant.events.unlisten(self._renew_effect, 'stonehearth:on_effect_finished', self, self.on_effect_finished)
+      self._renew_effect:stop()
+      self._renew_effect = nil
+   end
 end
 
 function RenewableResourceNodeComponent:renew(location)
    --If we have a renew effect associated, run it. If not, just swap the model.
    if self._renew_effect_name then
+      assert(not self._renew_effect)
       self._renew_effect = radiant.effects.run_effect(self._entity, self._renew_effect_name)
+      radiant.events.listen(self._renew_effect, 'stonehearth:on_effect_trigger', self, self.on_effect_trigger)
+      radiant.events.listen(self._renew_effect, 'stonehearth:on_effect_finished', self, self.on_effect_finished)
    else 
       self._render_info:set_model_variant('')
    end

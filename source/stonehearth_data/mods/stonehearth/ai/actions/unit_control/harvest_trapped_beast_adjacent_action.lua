@@ -12,6 +12,7 @@ HarvestTrappedBeastAdjacent.priority = stonehearth.constants.priorities.unit_con
 
 function HarvestTrappedBeastAdjacent:start(ai, entity, args)
    self._entity = entity
+   self._ai = ai
 end
 
 function HarvestTrappedBeastAdjacent:run(ai, entity, args)
@@ -76,8 +77,8 @@ function HarvestTrappedBeastAdjacent:_spawn_loot(beast)
       -- xxx - we need a way to break this lease whenever the scheduled command gets removed.
       -- otherwise, workers can't come clean up after the trapper's mess if he gets interrupted
       -- before he can carry out those commands.
-      if stonehearth.ai:acquire_ai_lease(item, self._entity) then
-         ai:abort('could not lease %s.', tostring(item))
+      if not stonehearth.ai:acquire_ai_lease(item, self._entity) then
+         self._ai:abort('could not lease %s.', tostring(item))
          return
       end
 

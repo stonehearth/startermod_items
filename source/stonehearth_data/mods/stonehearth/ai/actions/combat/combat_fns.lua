@@ -44,4 +44,10 @@ function CombatFns.get_weapon_length(weapon_class)
    return 1
 end
 
+-- for testing only
+function CombatFns.is_baddie(entity)
+   local faction = entity:add_component('unit_info'):get_faction()
+   return faction ~= 'civ'
+end
+
 return CombatFns
