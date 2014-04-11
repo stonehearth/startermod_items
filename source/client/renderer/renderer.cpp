@@ -190,6 +190,10 @@ void Renderer::InitWindow()
    if (!inFullscreen_) {
       SetWindowPos(GetWindowHandle(), NULL, windowX, windowY, 0, 0, SWP_NOSIZE);
    }
+
+   if (config_.minimized.value) {
+      glfwIconifyWindow(window);
+   }
 }
 
 void Renderer::SetupGlfwHandlers()
@@ -550,6 +554,8 @@ void Renderer::GetConfigOptions()
    config_.last_screen_y.value = config.Get("renderer.last_screen_y", 0);
 
    config_.use_fast_hilite.value = config.Get("renderer.use_fast_hilite", false);
+
+   config_.minimized.value = config.Get("renderer.minimized", false);
    
    resourcePath_ = config.Get("renderer.resource_path", "stonehearth/data/horde");
 }
