@@ -920,6 +920,9 @@ function ExecutionFrame:_remove_action_from_running(unit)
    if unit == self._active_unit then
       if not self._aborting then
          self._thread:interrupt(function()
+            self._active_unit:_stop()
+            self:_set_active_unit(nil)
+            self:_remove_execution_unit(unit)
             self:abort()
          end)
       end

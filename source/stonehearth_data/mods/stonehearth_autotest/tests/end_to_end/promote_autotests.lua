@@ -26,4 +26,20 @@ function promote_tests.promote_to_carpenter(autotest)
    autotest:fail('failed to promote')
 end
 
+--[[
+--This works when it's the only test in the file. Cleanup issue?
+function promote_tests.promote_to_trapper(autotest)
+   local worker = autotest.env:create_person(2, 2, { profession = 'worker' })
+   local knife = autotest.env:create_entity(-2, -2, 'stonehearth:trapper:trapper_knife')
+
+   -- will add the crafter component to a worker...
+   promote(autotest, worker, knife, function(e)
+         autotest:success()         
+      end)
+
+   autotest:sleep(2000 * 1000)
+   autotest:fail('failed to promote')
+end
+--]]
+
 return promote_tests
