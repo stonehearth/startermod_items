@@ -304,7 +304,7 @@ function ExecutionUnitV2:_destroy()
    if self._state == 'aborting' then
       return self:_destroy_from_aborting()
    end
-   if self._state == 'destroy' then
+   if self._state == 'finished' then
       return self:_destroy_from_finished()
    end
    if self._state == 'dead' then
