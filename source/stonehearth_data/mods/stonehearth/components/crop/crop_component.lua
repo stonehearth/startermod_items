@@ -17,7 +17,7 @@ function CropComponent:initialize(entity, json)
       --We're loading
       radiant.events.listen(radiant, 'radiant:game_loaded', function(e)
             if self._sv.harvestable then
-               radiant.events.trigger(self._entity, 'stonehearth:crop_harvestable', {crop = self._entity})
+               radiant.events.trigger_async(self._entity, 'stonehearth:crop_harvestable', {crop = self._entity})
             end
             return radiant.events.UNLISTEN
          end)
@@ -64,7 +64,7 @@ function CropComponent:_on_grow_period(e)
       end
       if self._sv.stage == self._harvest_threshhold then
          self._sv.harvestable = true
-         radiant.events.trigger(self._entity, 'stonehearth:crop_harvestable', {crop = self._entity})
+         radiant.events.trigger_async(self._entity, 'stonehearth:crop_harvestable', {crop = self._entity})
       end
    end
    if e.finished then

@@ -75,9 +75,7 @@ function FarmerFieldComponent:_re_init_field()
          local dirt_plot_component = field_spacer:get_component('stonehearth:dirt_plot')
          local plant = dirt_plot_component:get_contents()
          if not plant then
-            local e = {}
-            e.plot_entity = field_spacer
-            self:_determine_replant(e)
+            self:_determine_replant(field_spacer)
          else
             --If a plant is harvestable, it should handle the harvest itself.
             --there is a plant! Should we harvest it yet?
@@ -190,9 +188,7 @@ function FarmerFieldComponent:_re_evaluate_empty()
          local field_spacer = self._sv.contents[x][y].plot
          local dirt_plot_component = field_spacer:get_component('stonehearth:dirt_plot')
          if not dirt_plot_component:get_contents() then
-            local e = {}
-            e.plot_entity = field_spacer
-            self:_determine_replant(e)
+            self:_determine_replant(field_spacer)
          end
       end
    end
@@ -200,16 +196,18 @@ end
 
 --- On crop remove, figure out if we should auto-replant the last-planted
 function FarmerFieldComponent:_on_crop_removed(e)
-   self:_determine_replant(e)
+   self:_determine_replant(e.plot_entity)
 end
 
 --- Given the field and dirt data, replant the last crop
 --  Always follow the policy set on the plot, if anything
 --  If nothing is set on the plot, follow the policy on the field
 --  If the next plant is nil, then don't plant anything. 
-function FarmerFieldComponent:_determine_replant(e)
+function FarmerFieldComponent:_determine_replant(plot_entity)
    --Figure out the policy on the field
-   local plot_entity = e.plot_entity
+   if not plot_entity:is_valid() then
+      return
+   end
    local dirt_component = plot_entity:get_component('stonehearth:dirt_plot')
 
    -- furrows are never planted
@@ -232,7 +230,6 @@ function FarmerFieldComponent:_determine_replant(e)
 
    --If we're supposed to replant, and if we have a plant to replant, do replant
    if do_replant and next_plant then
-      local field_location = e.location
       farming_service:plant_crop(radiant.entities.get_player_id(self._entity), {plot_entity}, next_plant, player_override, do_replant, do_auto_harvest, false)
    end
 end
@@ -249,13 +246,14 @@ function FarmerFieldComponent:_get_next_queued_crop()
 end
 
 --- Given the field and dirt data, harvest the crop
-function FarmerFieldComponent:determine_auto_harvest(dirt_component, crop)
+function FarmerFieldComponent:determine_auto_harvest(dirt_component)
    local do_harvest = self._sv.auto_harvest
    if dirt_component:get_player_override() then
       do_harvest = dirt_component:get_auto_harvest()
    end
    if do_harvest then
       local town = stonehearth.town:get_town(self._entity)
+      local crop = dirt_component:get_contents()
       return town:harvest_crop(crop)
    end
 end
