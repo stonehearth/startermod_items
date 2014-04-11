@@ -94,7 +94,7 @@ function food_tests.group_eat_till_full(autotest)
 
    --Each person will need 2 servings of tester_servings to be full,
    --so we need 20 tester baskets
-   create_cluster(num_people, function(x, y)
+   create_cluster(num_people * 5, function(x, y)
          autotest.env:create_entity(x-5, y-5, 'stonehearth:tester_basket')
       end)
 
