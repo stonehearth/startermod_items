@@ -214,10 +214,15 @@ function AttributesComponent:_notify_attribute_changed(name, attribute_data)
       self._sv.attributes[name] = {
          value = attribute_data.value,
          effective_value = attribute_data.effective_value,
-      } 
-      radiant.events.trigger(self._entity, 'stonehearth:attribute_changed:' .. name, { 
-            name = name,
-            value = attribute_data.effective_value
+      }
+      
+      -- we leave the value out of the trigger to prevent the listener from reading it.
+      -- attributes change may change quite often, and by the time the event is delivered,
+      -- the value we write into the event structure may be out-of-date.  listeners should
+      -- explicity read the value from the attributes component when they receive the
+      -- event.
+      radiant.events.trigger_async(self._entity, 'stonehearth:attribute_changed:' .. name, { 
+            name = name
          })
    end
 end

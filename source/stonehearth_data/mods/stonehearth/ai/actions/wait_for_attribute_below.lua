@@ -13,15 +13,15 @@ WaitForAttributeBelow.priority = 1
 
 function WaitForAttributeBelow:start_thinking(ai, entity, args)
    self._ai = ai
+   self._log = ai:get_log()
+   self._entity = entity
+   self._attribute = args.attribute
    self._below_value = args.value
    self._signaled = false
+
    local attribute = 'stonehearth:attribute_changed:' .. args.attribute
    radiant.events.listen(entity, attribute, self, self._on_attribute_changed)
-
-   if radiant.entities.get_attribute(entity, args.attribute) <= args.value then
-      self._signaled = true
-      self._ai:set_think_output()
-   end
+   self:_on_attribute_changed()
 end
 
 function WaitForAttributeBelow:stop_thinking(ai, entity, args)
@@ -29,14 +29,21 @@ function WaitForAttributeBelow:stop_thinking(ai, entity, args)
    radiant.events.unlisten(entity, attribute, self, self._on_attribute_changed)
 end
 
-function WaitForAttributeBelow:_on_attribute_changed(e)
-   if e.value <= self._below_value and not self._signaled then
+function WaitForAttributeBelow:_on_attribute_changed()
+   local value = radiant.entities.get_attribute(self._entity, self._attribute)
+   self._log:spam('attribute:%s value:%d threshold:%d signaled:%s',
+                  self._attribute, value, self._below_value, tostring(self._signaled))
+
+   if value < self._below_value and not self._signaled then
+      self._log:detail('marking ready!')
       self._signaled = true
       self._ai:set_think_output()
-   elseif e.value > self._below_value and self._signaled then
+   elseif value >= self._below_value and self._signaled then
+      self._log:detail('unmarking ready.')
       self._signaled = false
       self._ai:clear_think_output()
-   end 
+   end
 end
+
 
 return WaitForAttributeBelow

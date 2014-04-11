@@ -26,7 +26,7 @@ function CalorieObserver:initialize(entity, json)
    self._enable_hunger = radiant.util.get_config('enable_hunger', true)
    if self._enable_hunger then
       radiant.events.listen(calendar, 'stonehearth:hourly', self, self._on_hourly)
-      radiant.events.listen(self._entity, 'stonehearth:attribute_changed:calories', self, self._calories_changed)
+      radiant.events.listen(self._entity, 'stonehearth:attribute_changed:calories', self, self._on_calories_changed)
    
       --Also, should we be eating right now? If so, let's do that
       if self._sv.should_be_eating then
@@ -38,12 +38,12 @@ end
 function CalorieObserver:destroy()
    if self._enable_hunger then
       radiant.events.unlisten(calendar, 'stonehearth:hourly', self, self._on_hourly)
-      radiant.events.unlisten(self._entity, 'stonehearth:attribute_changed:calories', self, self._calories_changed)
+      radiant.events.unlisten(self._entity, 'stonehearth:attribute_changed:calories', self, self._on_calories_changed)
    end
 end
 
 --- If calories change for any reason, adjust health
-function CalorieObserver:_calories_changed()
+function CalorieObserver:_on_calories_changed()
    self:_adjust_health_and_status()
 end
 

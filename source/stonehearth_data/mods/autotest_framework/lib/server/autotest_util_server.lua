@@ -45,7 +45,8 @@ function AutotestUtil:call_if_attribute_above(entity, attribute, threshold, cb)
       cb()
    else
       radiant.events.listen(entity, 'stonehearth:attribute_changed:' .. attribute, function(e)
-            if e.value > threshold then
+      		local value = radiant.entities.get_attribute(entity, attribute)
+            if value > threshold then
                return cb()
             end
          end)
