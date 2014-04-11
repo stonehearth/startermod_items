@@ -1,15 +1,31 @@
 
 local _timers = {}
 
+local Timer = class()
+function Timer:__init(expire_time, fn)
+   self.expire_time = expire_time
+   self._fn = fn
+end
+
+function Timer:destroy()
+   self._destroyed = true
+end
+
+function Timer:fire()
+   if not self._destroyed then
+      self._fn()
+   end   
+end
+
 function radiant._fire_timers()
    local now = _host:get_realtime()
 
-   table.sort(_timers, function (l, r) return l.time > r.time end)
+   table.sort(_timers, function (l, r) return l.expire_time > r.expire_time end)
    
    local c = #_timers
-   while c > 0 and _timers[c].time <= now do
+   while c > 0 and _timers[c].expire_time <= now do
       local timer = table.remove(_timers)
-      timer.fn()
+      timer:fire()
       c = c - 1
    end
 end
@@ -18,12 +34,12 @@ function radiant.get_realtime()
    return _host:get_realtime()
 end
 
-function radiant.set_realtime_timer(time, fn)
+function radiant.set_realtime_timer(delay_ms, fn)
    local now = _host:get_realtime()
-   table.insert(_timers, {
-         time = now + (time / 1000.0),
-         fn = fn
-      })
+   local expire_time = now + (delay_ms / 1000.0)
+   local timer = Timer(expire_time, fn)
+   table.insert(_timers, timer)
+   return timer
 end
 
 function radiant.set_performance_counter(name, value, kind)
