@@ -87,7 +87,7 @@ function CrafterComponent:set_workshop(workshop_component)
       self._sv.workshop = workshop_component
       self.__saved_variables:mark_changed()
 
-      radiant.events.trigger(self._entity, 'stonehearth:crafter:workshop_changed', {
+      radiant.events.trigger_async(self._entity, 'stonehearth:crafter:workshop_changed', {
             entity = self._entity,
             workshop = self._sv.workshop,
          })
