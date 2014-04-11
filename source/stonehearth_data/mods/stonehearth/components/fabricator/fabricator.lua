@@ -5,7 +5,7 @@ local Region3 = _radiant.csg.Region3
 local Cube3 = _radiant.csg.Cube3
 
 local Fabricator = class()
-local log = radiant.log.create_logger('fabricator')
+local log = radiant.log.create_logger('build')
 
 local COORD_MAX = 1000000 -- 1 million enough?
 
@@ -71,14 +71,15 @@ function Fabricator:__init(name, entity, blueprint)
       self._project_ladder:set_region(_radiant.sim.alloc_region())
    end
    
-   local progress = self._project:get_component('stonehearth:construction_progress')
+   local progress = self._blueprint:get_component('stonehearth:construction_progress')
    if progress then
       self._dependencies_finished = progress:check_dependencies()
-      radiant.events.listen(self._project, 'stonehearth:construction_dependencies_finished', self, self._on_dependencies_finished)
+      radiant.events.listen(self._blueprint, 'stonehearth:construction:dependencies_finished_changed', self, self._on_dependencies_finished_changed)
    else
       self._dependencies_finished = true
    end
    self:_trace_blueprint_and_project()
+   self:_start_project()
 end
 
 function Fabricator:destroy()
@@ -92,13 +93,13 @@ function Fabricator:destroy()
    self:_stop_project()
 end
 
-function Fabricator:_on_dependencies_finished(e)
-   self._dependencies_finished = e.finished
-   if e.finished then
-      self:_start_project()
-   else
-      self:_stop_project()
-   end
+function Fabricator:_on_dependencies_finished_changed()
+   self._dependencies_finished = self._blueprint:get_component('stonehearth:construction_progress')
+                                                :get_dependencies_finished()
+   log:debug('%s got stonehearth:construction:dependencies_finished_changed event (dependencies finished = %s)',
+               self._entity, tostring(self._dependencies_finished))
+                                                
+   self:_start_project()                                                
 end
 
 function Fabricator:get_material()
@@ -194,6 +195,7 @@ function Fabricator:_start_project()
    -- If we're tearing down the project, we only need to start the teardown
    -- task.  If we're building up and all our dependencies are finished
    -- building up, start the pickup and fabricate tasks
+   log:detail('%s start_project (teardown:%s deps_finished:%s)', self._blueprint, self._teardown, self._dependencies_finished)
    if self._teardown then
       run_teardown_task = true
    elseif self._dependencies_finished then
@@ -370,7 +372,6 @@ function Fabricator:_trace_blueprint_and_project()
             local clipper = Region3(Cube3(Point3(-COORD_MAX, -COORD_MAX, -COORD_MAX),
                                           Point3(COORD_MAX, top, COORD_MAX)))
             cursor:copy_region(teardown_region - clipper)
-            finished = false
          end)
       else
          dst:get_region():modify(function(cursor)
@@ -379,7 +380,7 @@ function Fabricator:_trace_blueprint_and_project()
          end)
       end
 
-      self._project:add_component('stonehearth:construction_progress')
+      self._blueprint:add_component('stonehearth:construction_progress')
                      :set_finished(finished)
       if finished then
          self:_stop_project()

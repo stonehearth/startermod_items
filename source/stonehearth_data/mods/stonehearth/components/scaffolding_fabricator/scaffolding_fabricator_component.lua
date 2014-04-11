@@ -54,8 +54,8 @@ function ScaffoldingFabricator:get_scaffolding()
 end
 
 function ScaffoldingFabricator:_update_scaffolding_size()
-   local finished = self._project:add_component('stonehearth:construction_progress')
-                                    :get_finished()
+   local finished = self._blueprint:add_component('stonehearth:construction_progress')
+                                   :get_finished()
    if not finished then
       self:_cover_project_region()
    else

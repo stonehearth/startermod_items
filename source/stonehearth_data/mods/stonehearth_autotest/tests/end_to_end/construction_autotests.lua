@@ -6,12 +6,13 @@ function construction_tests.simple_build(autotest)
    local worker = autotest.env:create_person(2, 2, { profession = 'worker' })
    local wood = autotest.env:create_entity_cluster(-2, -2, 3, 3, 'stonehearth:oak_log')
 
-   radiant.events.listen(autotest.env:get_town(), 'stonehearth:building_added', function (e)
-         local building = e.building
-         radiant.events.listen(building, 'stonehearth:construction_finished', function (e)               
-               if e.finished then
+   radiant.events.listen(autotest.env:get_town(), 'stonehearth:blueprint_added', function (e)
+         local blueprint = e.blueprint
+         radiant.events.listen(blueprint, 'stonehearth:construction:finished_changed', function ()
+               local finished = blueprint:get_component('stonehearth:construction_progress'):get_finished()
+               if finished then
                   -- xxx: doesn't wait for the scaffolding to be finished, unfortunately
-                  radiant.entities.destroy_entity(building)
+                  radiant.entities.destroy_entity(blueprint)
                   autotest:success()
                end
             end)

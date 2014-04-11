@@ -27,7 +27,7 @@ function Town:__init(session, saved_variables)
    self._unit_controllers = {}
    self._thread_orchestrators = {}
    self._harvest_tasks = {}
-   self._buildings = {}
+   self._blueprints = {}
    
    radiant.events.listen(radiant, 'radiant:game_loaded', function()
          self:_restore_saved_calls()
@@ -356,11 +356,11 @@ function Town:harvest_renewable_resource_node(plant)
    return true
 end
 
-function Town:add_construction_project(building)
-   table.insert(self._buildings, building)
-   radiant.events.trigger(self, 'stonehearth:building_added', {
+function Town:add_construction_blueprint(blueprint)
+   table.insert(self._blueprints, blueprint)
+   radiant.events.trigger_async(self, 'stonehearth:blueprint_added', {
          town = self,
-         building = building,
+         blueprint = blueprint,
       })
 end
 

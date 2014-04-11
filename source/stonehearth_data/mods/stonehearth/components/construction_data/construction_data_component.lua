@@ -57,18 +57,6 @@ end
 function ConstructionDataComponent:set_fabricator_entity(fentity)
    self._sv.fabricator_entity = fentity
    self.__saved_variables:mark_changed()
-
-   log:debug('%s trigger stonehearth:construction_fabricator_changed event (fabricator_entity = %s)',
-               self._entity, fentity)
-
-   radiant.events.trigger_async(self._entity, 'stonehearth:construction_fabricator_changed', { 
-      entity = self._entity,
-      fabricator_entity = fentity
-   })
-end
-
-function ConstructionDataComponent:get_fabricator_entity()
-   return self._sv.fabricator_entity
 end
 
 function ConstructionDataComponent:get_allow_diagonal_adjacency()

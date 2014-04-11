@@ -88,6 +88,8 @@ function ProxyWall:connect_to(column_a, column_b)
    self:connect_to_points(pos_a, pos_b)
    column_a:connect_to_wall(self)
    column_b:connect_to_wall(self)
+   self:add_dependency(column_a)
+   self:add_dependency(column_b)
    return self
 end
 

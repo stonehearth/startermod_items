@@ -10,44 +10,47 @@ function BuildService:restore(saved_variables)
 end
 
 
---- Convert the proxy to an honest to goodness entity
--- The entity_map contains a map from proxy entity ids to the entities that
+--- Convert the proxy to an honest to goodness blueprint entity
+-- The blueprint_map contains a map from proxy entity ids to the entities that
 -- get created for those proxies.
-function BuildService:_unpackage_proxy_data(proxy, entity_map)
+function BuildService:_unpackage_proxy_data(proxy, blueprint_map)
 
-   -- Create the entity for this proxy and update the entity_map
-   local entity = radiant.entities.create_entity(proxy.entity_uri)
-   entity_map[proxy.entity_id] = entity
+   -- Create the blueprint for this proxy and update the blueprint_map
+   local blueprint = radiant.entities.create_entity(proxy.entity_uri)
+   blueprint_map[proxy.entity_id] = blueprint
    
    -- Initialize all the simple components.
-   radiant.entities.set_faction(entity, self._faction)
-   radiant.entities.set_player_id(entity, self._player_id)
+   radiant.entities.set_faction(blueprint, self._faction)
+   radiant.entities.set_player_id(blueprint, self._player_id)
    if proxy.components then
       for name, data in pairs(proxy.components) do
-         entity:add_component(name, data)
+         blueprint:add_component(name, data)
       end
    end
+
+   -- all blueprints have a 'stonehearth:construction_progress' component to track whether
+   -- or not they're finished.  dependencies are also tracked here.
+   local progress = blueprint:add_component('stonehearth:construction_progress')
 
    -- Initialize the construction_data and entity_container components.  We can't
    -- handle these with :load_from_json(), since the actual value of the entities depends on
    -- what gets created server-side.  So instead, look up the actual entity that
    -- got created in the entity map and shove that into the component.
-   if proxy.dependencies then
-      local progress = entity:add_component('stonehearth:construction_progress')
+   if proxy.dependencies then      
       for _, dependency_id in ipairs(proxy.dependencies) do
-         local dep = entity_map[dependency_id];
-         assert(dep, string.format('could not find dependency entity %d in entity map', dependency_id))
+         local dep = blueprint_map[dependency_id];
+         assert(dep, string.format('could not find dependency blueprint %d in blueprint map', dependency_id))
          progress:add_dependency(dep);
       end
    end
    if proxy.children then
       for _, child_id in ipairs(proxy.children) do
-         local child_entity = entity_map[child_id]
-         assert(child_entity, string.format('could not find child entity %d in entity map', child_id))
-         entity:add_component('entity_container'):add_child(child_entity)
+         local child_entity = blueprint_map[child_id]
+         assert(child_entity, string.format('could not find child entity %d in blueprint map', child_id))
+         blueprint:add_component('entity_container'):add_child(child_entity)
       end
    end
-   return entity
+   return blueprint
 end
 
 function BuildService:build_structures(session, changes)
@@ -63,20 +66,20 @@ function BuildService:build_structures(session, changes)
    -- child is guarenteed to have already been processed)
    local entity_map = {}
    for _, proxy in ipairs(changes) do
-      local entity = self:_unpackage_proxy_data(proxy, entity_map)
+      local blueprint = self:_unpackage_proxy_data(proxy, entity_map)
       
       -- If this proxy needs to be added to the terrain, go ahead and do that now.
       -- This will also create fabricators for all the descendants of this entity
       if proxy.add_to_build_plan then
-         self:_add_blueprint(entity)
-         town:add_construction_project(entity)
+         self:_begin_construction(blueprint)
+         town:add_construction_blueprint(blueprint)
       end
    end
    
    return { success = true }
 end
 
-function BuildService:_add_blueprint(blueprint, location)
+function BuildService:_begin_construction(blueprint, location)
    -- create a new fabricator...   to... you know... fabricate
    local project = self:_create_fabricator(blueprint)
    radiant.terrain.place_entity(project, location)
