@@ -1,7 +1,7 @@
 {
    "type" : "command",
 
-   "name": "snare trap",
+   "name": "snare_trap",
    "tooltip": "Snare Trap",
    "description": "Spring a weighted net to capture small game like rabbits and squirrels.",
    "icon": "file(snare_trap.png)",
