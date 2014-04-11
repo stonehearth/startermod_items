@@ -25,7 +25,7 @@ function BuffsComponent:add_buff(uri)
       self._sv.buffs[uri] = buff
       self.__saved_variables:mark_changed()
 
-      radiant.events.trigger(self._entity, 'stonehearth:buff_added', {
+      radiant.events.trigger_async(self._entity, 'stonehearth:buff_added', {
             entity = self._entity,
             uri = uri,
             buff = buff,
@@ -46,7 +46,7 @@ function BuffsComponent:remove_buff(uri)
       buff:destroy()
       self.__saved_variables:mark_changed()
 
-      radiant.events.trigger(self._entity, 'stonehearth:buff_removed', {
+      radiant.events.trigger_async(self._entity, 'stonehearth:buff_removed', {
             entity = self._entity,
             uri = uri,
             buff = buff,
