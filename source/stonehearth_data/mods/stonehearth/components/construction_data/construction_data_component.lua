@@ -61,7 +61,7 @@ function ConstructionDataComponent:set_fabricator_entity(fentity)
    log:debug('%s trigger stonehearth:construction_fabricator_changed event (fabricator_entity = %s)',
                self._entity, fentity)
 
-   radiant.events.trigger(self._entity, 'stonehearth:construction_fabricator_changed', { 
+   radiant.events.trigger_async(self._entity, 'stonehearth:construction_fabricator_changed', { 
       entity = self._entity,
       fabricator_entity = fentity
    })
