@@ -30,8 +30,8 @@ function HarvestResourceNodeAdjacent:run(ai, entity, args)
 
    
       local description = factory:get_description()
-      radiant.events.trigger(stonehearth.personality, 'stonehearth:journal_event', 
-                             {entity = entity, description = description})
+      radiant.events.trigger_async(stonehearth.personality, 'stonehearth:journal_event', 
+                                   {entity = entity, description = description})
    end
 end
 

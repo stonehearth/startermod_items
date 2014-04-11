@@ -223,29 +223,19 @@ function NewGameCallHandler:create_camp(session, response, pt)
    local camp_x = pt.x
    local camp_z = pt.z
 
-   local worker1 = self:place_citizen(pop, camp_x-3, camp_z-3)
-   radiant.events.trigger(personality_service, 'stonehearth:journal_event', 
-                          {entity = worker1, description = 'person_embarks'})
+   local function place_citizen_embark(x, z)
+      local citizen = self:place_citizen(pop, x, z)
+      radiant.events.trigger_async(personality_service, 'stonehearth:journal_event', 
+                             {entity = citizen, description = 'person_embarks'})
+      return citizen
+   end
 
-   local worker2 = self:place_citizen(pop, camp_x+0, camp_z-3)
-    radiant.events.trigger(personality_service, 'stonehearth:journal_event', 
-                           {entity = worker2, description = 'person_embarks'})
-
-   local worker3 = self:place_citizen(pop, camp_x+3, camp_z-3)
-   radiant.events.trigger(personality_service, 'stonehearth:journal_event', 
-                          {entity = worker3, description = 'person_embarks'})
-
-   local worker4 = self:place_citizen(pop, camp_x-3, camp_z+3)
-   radiant.events.trigger(personality_service, 'stonehearth:journal_event', 
-                          {entity = worker4, description = 'person_embarks'})
-
-   local worker5 = self:place_citizen(pop, camp_x+3, camp_z+3)
-   radiant.events.trigger(personality_service, 'stonehearth:journal_event', 
-                          {entity = worker5, description = 'person_embarks'})
-
-   local worker6 = self:place_citizen(pop, camp_x-3, camp_z+0)
-   radiant.events.trigger(personality_service, 'stonehearth:journal_event', 
-                          {entity = worker6, description = 'person_embarks'})
+   local worker1 = place_citizen_embark(camp_x-3, camp_z-3)
+   local worker2 = place_citizen_embark(camp_x+0, camp_z-3)
+   local worker3 = place_citizen_embark(camp_x+3, camp_z-3)
+   local worker4 = place_citizen_embark(camp_x-3, camp_z+3)
+   local worker5 = place_citizen_embark(camp_x+3, camp_z+3)
+   local worker6 = place_citizen_embark(camp_x-3, camp_z+0)
 
    self:place_item(pop, 'stonehearth:firepit', camp_x, camp_z+3)
 

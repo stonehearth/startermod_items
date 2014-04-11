@@ -67,7 +67,7 @@ function CalorieObserver:_adjust_health_and_status()
       self._attributes_component:set_attribute('health', hp )
 
       --Set the journal entry
-      radiant.events.trigger(stonehearth.personality, 'stonehearth:journal_event', 
+      radiant.events.trigger_async(stonehearth.personality, 'stonehearth:journal_event', 
                              {entity = self._entity, description = 'starving'})
 
       if not self._is_malnourished then

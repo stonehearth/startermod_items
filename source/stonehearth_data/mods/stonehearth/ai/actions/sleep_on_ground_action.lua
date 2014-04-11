@@ -13,8 +13,8 @@ function SleepOnGroundAction:run(ai, entity)
 
    --When sleeping, we have a small chance of dreaming
    --TODO: different dreams for sleeping on the ground?
-   radiant.events.trigger(stonehearth.personality, 'stonehearth:journal_event', 
-                         {entity = entity, description = 'dreams'})
+   radiant.events.trigger_async(stonehearth.personality, 'stonehearth:journal_event', 
+                               {entity = entity, description = 'dreams'})
 
 
    -- goto sleep

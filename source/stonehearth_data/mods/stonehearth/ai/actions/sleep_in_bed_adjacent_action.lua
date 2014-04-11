@@ -27,8 +27,8 @@ function SleepInBedAdjacent:run(ai, entity, args)
    ai:execute('stonehearth:run_effect', { effect = 'yawn' })
 
    --When sleeping, we have a small chance of dreaming
-   radiant.events.trigger(stonehearth.personality, 'stonehearth:journal_event', 
-                         {entity = entity, description = 'dreams'})
+   radiant.events.trigger_async(stonehearth.personality, 'stonehearth:journal_event', 
+                                {entity = entity, description = 'dreams'})
 
    -- move directly on top of the bed
    self._restore_location = radiant.entities.get_world_grid_location(entity)

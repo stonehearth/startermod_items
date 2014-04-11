@@ -12,7 +12,7 @@ TriggerEvent.version = 2
 TriggerEvent.priority = 1
 
 function TriggerEvent:run(ai, entity, args)
-   radiant.events.trigger(args.source, args.event_name, args.event_args)
+   radiant.events.trigger_async(args.source, args.event_name, args.event_args)
 end
 
 return TriggerEvent

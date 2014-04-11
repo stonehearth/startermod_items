@@ -38,7 +38,7 @@ function Promote:_change_profession(person, talisman)
    --Log in personal event log
    local activity_name = radiant.entities.get_entity_data(talisman, 'stonehearth:activity_name')
    if activity_name then
-      radiant.events.trigger(stonehearth.personality, 'stonehearth:journal_event', 
+      radiant.events.trigger_async(stonehearth.personality, 'stonehearth:journal_event', 
                              {entity = person, description = activity_name})
    end
 end

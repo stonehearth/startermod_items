@@ -34,8 +34,8 @@ function HarvestPlantsAction:run(ai, entity, args)
       personality_component:add_substitution('gather_target', spawned_item_name)
       personality_component:add_substitution_by_parameter('personality_gather_reaction', personality_component:get_personality(), 'stonehearth:settler_journals:gathering_supplies')
 
-      radiant.events.trigger(stonehearth.personality, 'stonehearth:journal_event', 
-                            {entity = entity, description = 'gathering_supplies'})
+      radiant.events.trigger_async(stonehearth.personality, 'stonehearth:journal_event', 
+                                  {entity = entity, description = 'gathering_supplies'})
 
    end   
 end

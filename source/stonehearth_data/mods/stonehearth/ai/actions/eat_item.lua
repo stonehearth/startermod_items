@@ -44,8 +44,8 @@ function EatItem:run(ai, entity, args)
 
    -- journal stuff will get refactored at some point
    if self._food_data.journal_message then
-      radiant.events.trigger(stonehearth.personality, 'stonehearth:journal_event', 
-                             {entity = entity, description = self._food_data.journal_message})
+      radiant.events.trigger_async(stonehearth.personality, 'stonehearth:journal_event', 
+                                   {entity = entity, description = self._food_data.journal_message})
    end
 end
 
