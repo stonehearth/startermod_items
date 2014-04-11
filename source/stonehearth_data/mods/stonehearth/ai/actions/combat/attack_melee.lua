@@ -23,9 +23,13 @@ function AttackMelee:run(ai, entity, args)
       local distance = radiant.entities.distance_between(entity, target)
 
       if distance <= engage_range then
-         radiant.events.trigger(target, 'stonehearth:combat:engage', {
-            attacker = entity
-         })
+         local defender_combat_action = CombatFns.get_combat_action(target)
+         if defender_combat_action then
+            local engage_args = {
+               attacker = entity
+            }
+            defender_combat_action:begin_engage(engage_args)
+         end
          engaged = true
       end
 

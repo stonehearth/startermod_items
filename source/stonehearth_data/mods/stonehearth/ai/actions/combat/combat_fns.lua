@@ -2,6 +2,8 @@ local CombatFns = class()
 
 local MS_PER_FRAME = 1000/30
 
+local combat_actions = {}
+
 --stashing reusable functions here until we decide where to put them
 
 function CombatFns.get_weapon_table(weapon_class)
@@ -48,6 +50,18 @@ end
 function CombatFns.is_baddie(entity)
    local faction = entity:add_component('unit_info'):get_faction()
    return faction ~= 'civ'
+end
+
+function CombatFns.register_combat_action(entity, action)
+   if entity and entity:is_valid() then
+      combat_actions[entity:get_id()] = action
+   end
+end
+
+function CombatFns.get_combat_action(entity)
+   if entity and entity:is_valid() then
+      return combat_actions[entity:get_id()]
+   end
 end
 
 return CombatFns

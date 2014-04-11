@@ -23,8 +23,6 @@ end
 
 function AttackMeleeAdjacent:start(ai, entity, args)
    self._entity = entity
-   self._defended = false
-   radiant.events.listen(entity, 'stonehearth:combat:assault_defended', self, self._on_assault_defended)
 end
 
 function AttackMeleeAdjacent:run(ai, entity, args)
@@ -33,29 +31,34 @@ function AttackMeleeAdjacent:run(ai, entity, args)
    local attack_name = self._attack_types[roll]
    local log = ai:get_log()
    
+   --[[
    if CombatFns.is_baddie(entity) then -- CHECKCHECK
       attack_name = 'combat_power_spike'
    else
       attack_name = 'combat_1h_forehand'
    end
+   ]]
 
-   local impact_time = CombatFns.get_impact_time(self._weapon_table, 'attack_types', attack_name)
+   local impact_offset = CombatFns.get_impact_time(self._weapon_table, 'attack_types', attack_name)
+   local impact_time = radiant.gamestate.now() + impact_offset
 
    radiant.entities.turn_to_face(entity, target)
 
    self:_back_up_to_ideal_attack_range(ai, entity, args)
 
-   radiant.events.trigger(target, 'stonehearth:combat:assault', {
-      attack_method = 'melee',
+   self._attack_args = {
       attacker = entity,
-      impact_time = impact_time
-   })
-
-   -- trigger and response (or lack of response) execute synchronously
-   if not self._defended then
-      -- can't ai:execute this. it needs to run in parallel with the attack animation
-      radiant.effects.run_effect(target, 'combat_generic_hit', impact_time)
+      attack_action = self,
+      attack_method = 'melee',
+      impact_time = impact_time,
+   }
+   self._defender_combat_action = CombatFns.get_combat_action(target)
+   if self._defender_combat_action then
+      self._defender_combat_action:begin_assult(self._attack_args)
    end
+
+   -- can't ai:execute this. it needs to run in parallel with the attack animation
+   radiant.effects.run_effect(target, 'combat_generic_hit', impact_offset)
 
    log:debug('starting attack animation "%s"', attack_name)
    ai:execute('stonehearth:run_effect', { effect = attack_name })
@@ -76,11 +79,22 @@ function AttackMeleeAdjacent:_back_up_to_ideal_attack_range(ai, entity, args)
 end
 
 function AttackMeleeAdjacent:stop(ai, entity, args)
-   radiant.events.unlisten(entity, 'stonehearth:combat:assault_defended', self, self._on_assault_defended)
+   self._defender_combat_action = CombatFns.get_combat_action(args.target)
+   if self._defender_combat_action then
+      self._defender_combat_action:end_assult(self._attack_args)
+   end
+   self._attack_args = nil
+   self._defender_combat_action = nil
 end
 
-function AttackMeleeAdjacent:_on_assault_defended(args)
-   self._defended = true
+function AttackMeleeAdjacent:begin_defense(attack_args)
+   if attack_args == self._attack_args then
+      return {}
+   end
+end
+
+function AttackMeleeAdjacent:end_defense(attack_args)
+   return {}
 end
 
 return AttackMeleeAdjacent

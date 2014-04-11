@@ -24,24 +24,46 @@ function Combat:__init()
    -- combat timings are all computed in milliseconds (at game speed 1) to synchronize with animations
    self._attack_global_cooldown = radiant.util.get_config('attack_global_cooldown', 1000)
    self._attack_cooldown_end = radiant.gamestate.now()
+
+end
+
+function Combat:_create_action_frames()
+   -- self._idle_frame   = self._ai:spawn('stonehearth:combat:idle')
+   -- xxx: move idle over to 'stonehearth:combat' !!
+   self._attack_frame = self._ai:spawn('stonehearth:combat:attack')
+   self._defend_frame = self._ai:spawn('stonehearth:combat:defend')
 end
 
 function Combat:start_thinking(ai, entity, args)
    self._ai = ai
    self._entity = entity
    self:_subscribe_to_events()
-end
-
-function Combat:start(ai, entity, args)
-end
-
-function Combat:stop_thinking(ai, entity, args)
-   if not self._in_combat then
-      self:_unsubscribe_events()
-   end
+   self:_create_action_frames()
 end
 
 function Combat:run(ai, entity, args)
+   self._running = true
+   if self._attack_frame:get_state() == 'ready' then
+      assert(not self._defend_think_output)
+      assert(self._attack_think_output)
+      self._attack_frame:run()
+      self._attack_frame:stop()
+      self._attack_think_output = nil
+   end
+   if self._defend_frame:get_state() == 'ready' then
+      assert(not self._attack_think_output)
+      assert(self._defend_think_output)
+      self._defend_frame:run()
+      self._attack_frame:stop()
+      self._defend_think_output = nil
+   end
+   assert(self._idle_target)
+      --self._idle_frame:run({ facing_entity = self._idle_target })
+      --self._idle_frame:stop()
+end
+
+--[[
+function Combat:run_preserved_for_reference(ai, entity, args)
    local executed_action, facing_entity
 
    while true do
@@ -90,8 +112,10 @@ function Combat:run(ai, entity, args)
       end
    end
 end
+]]
 
 function Combat:stop(ai, entity, args)
+   self._running = false
    self:_unsubscribe_events()
    self:_exit_combat()
 end
@@ -112,20 +136,40 @@ function Combat:_get_game_time()
    return radiant.gamestate.now()
 end
 
-function Combat:_on_engaged(args)
-   -- do we need a list of engagers?
-   self._engaged = true
-   self._attacker = args.attacker
+function Combat:begin_engage(attack_args)
+   if not self._idle_target then
+      self._idle_target = attack_args.attacker
+   end
    self:_enter_combat()
 end
 
-function Combat:_on_assaulted(args)
-   -- create a list of attackers
-   self._assaulted = true
-   self._attack_method = args.attack_method
-   self._attacker = args.attacker
-   self._impact_time = args.impact_time
-   self:_enter_combat()
+function Combat:begin_assult(attack_args)
+   if self._attack_think_output then
+      -- busy!
+      return
+   end
+   if self._defend_think_output then
+      -- busy!
+      return
+   end
+
+   -- ok to defend!  give it a shot
+   self._defend_think_output = self._defend_frame:start_thinking(attack_args)
+   if not self._defend_think_output then
+      self._defend_frame:stop_thinking()
+      return
+   end
+
+   -- go for it!
+   if self._running then
+      --self._idle_frame:stop()
+   else
+      self:_enter_combat()
+   end
+end
+
+function Combat:end_assult(attack_args)
+   return nil
 end
 
 function Combat:_enter_combat()
@@ -147,9 +191,7 @@ function Combat:_busy()
 end
 
 function Combat:_subscribe_to_events()
-   radiant.events.listen(self._entity, 'stonehearth:combat:engage', self, self._on_engaged)
-   radiant.events.listen(self._entity, 'stonehearth:combat:assault', self, self._on_assaulted)
-
+   CombatFns.register_combat_action(self._entity, self)
    if self._enable_combat then
       radiant.events.listen(radiant, 'stonehearth:very_slow_poll', self, self._find_target)
       --self._look_for_enemies = LookForEnemies(self._entity)
@@ -157,8 +199,7 @@ function Combat:_subscribe_to_events()
 end
 
 function Combat:_unsubscribe_events()
-   radiant.events.unlisten(self._entity, 'stonehearth:combat:engage', self, self._on_engaged)
-   radiant.events.unlisten(self._entity, 'stonehearth:combat:assault', self, self._on_assaulted)
+   CombatFns.register_combat_action(self._entity, nil)
 
    if self._enable_combat then
       radiant.events.unlisten(radiant, 'stonehearth:very_slow_poll', self, self._find_target)
@@ -180,15 +221,21 @@ function Combat:_suspend(duration)
    ai:suspend()
 end
 
+--- xxx: called from start_thinking()?
 function Combat:_find_target()
-   local target = self:_get_target()
+   -- xxx: target = get_target_table_top()
+   if not self._attack_think_output then
+      local target = self:_get_target()
+      if not target then
+         return
+      end
 
-   if not target then
-      return
+      self._idle_target = target
+      self._attack_think_output = self._attack_frame:start_thinking({ target = target })
+      if self._attack_think_output then
+         self:_enter_combat()
+      end
    end
-
-   self._target = target
-   self:_enter_combat()
 end
 
 -- stupid implementation until target tables are fixed
@@ -200,8 +247,8 @@ function Combat:_get_target()
 
    if target ~= nil then
       if target:get_id() == entity:get_id() then
-         --target = nil
-         target = citizens[2]
+         target = nil
+         --target = citizens[2]
       end
    end
 
@@ -215,7 +262,6 @@ function Combat:_find_target_new()
    if not target then
       return
    end
-   self._target = target
    self:_enter_combat()
 end
 

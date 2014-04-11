@@ -9,8 +9,9 @@ DefendMelee.name = 'melee defense'
 DefendMelee.does = 'stonehearth:combat:defend'
 DefendMelee.args = {
    attack_method = 'string',
+   attack_action = 'table',   -- actually, a class, but we don't know exactly what kind!
    attacker = Entity,
-   impact_time = 'number'
+   impact_time = 'number',
 }
 DefendMelee.version = 2
 DefendMelee.priority = 1
@@ -31,25 +32,22 @@ function DefendMelee:start_thinking(ai, entity, args)
    local attacker = args.attacker
    local roll = rng:get_int(1, self._num_defense_types)
    local defense_name = self._defense_types[roll]
-   local defense_impact_time = CombatFns.get_impact_time(self._weapon_table, 'defense_types', defense_name)
-   local defend_delay = args.impact_time - defense_impact_time
+   local defend_offset = CombatFns.get_impact_time(self._weapon_table, 'defense_types', defense_name)
+   local defend_time = radiant.gamestate.now() + defend_offset
 
-   if defend_delay < 0 then
+   if defend_time > args.impact_time then
       -- too slow, cannot defend
       return
    end
 
    local defend = rng:get_real(0, 1) < 0.75
-
    if not defend then
       --return   -- CHECKCHECK
    end
 
    self._attacker = attacker
+   self._defend_offset = defend_offset
    self._defense_name = defense_name
-   self._defend_delay = defend_delay
-
-   self:_send_assault_defended(attacker, entity)
    ai:set_think_output()
 end
 
@@ -57,20 +55,25 @@ function DefendMelee:stop_thinking(ai, entity, args)
 end
 
 function DefendMelee:run(ai, entity, args)
-   local attacker = self._attacker
+   -- are we still ok?
+   local time_to_impact = args.impact_time - radiant.gamestate.now()
+   local defend_delay = time_to_impact - self._defend_offset
+   
+   if defend_delay < 0 then
+      -- nope!
+      return
+   end
 
-   radiant.entities.turn_to_face(entity, attacker)
-
-   ai:execute('stonehearth:run_effect', {
-      effect = self._defense_name,
-      delay = self._defend_delay
-   })
-end
-
-function DefendMelee:_send_assault_defended(attacker, target)
-   radiant.events.trigger(attacker, 'stonehearth:combat:assault_defended', {
-      target = target
-   })
+   local attack_action = args.attack_action
+   local defense_info = args.attack_action:begin_defense(args)
+   if defense_info then
+      radiant.entities.turn_to_face(entity, self._attacker)
+      ai:execute('stonehearth:run_effect', {
+         effect = self._defense_name,
+         delay = defend_delay,
+      })
+      attack_action:end_defense(args)
+   end
 end
 
 return DefendMelee
