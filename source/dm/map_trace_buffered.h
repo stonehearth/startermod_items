@@ -23,8 +23,8 @@ private:
 
 private:
    bool                 firing_;
-   ChangeMap            changed_;
-   KeyList              removed_;
+   ChangeMap            changed_, pending_changed_;
+   KeyList              removed_, pending_removed_;
 };
 
 END_RADIANT_DM_NAMESPACE

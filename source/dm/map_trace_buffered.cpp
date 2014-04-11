@@ -64,8 +64,7 @@ bool MapTraceBuffered<M>::SaveObjectDelta(SerializationType r, Protocol::Value* 
 template <typename M>
 void MapTraceBuffered<M>::NotifyRemoved(Key const& key)
 {
-   ASSERT(!firing_);
-   TRACE_LOG(5) << "removing " << key << " from changed set";
+   TRACE_LOG(5) << "removing " << key << " from changed set firing:" << firing_;
    if (TRACE_LOG_ENABLED(9)) {
       for (const auto& entry : changed_) {
          TRACE_LOG(9) << "  changed: " << entry.first;
@@ -75,16 +74,19 @@ void MapTraceBuffered<M>::NotifyRemoved(Key const& key)
       }
    }
 
-   changed_.erase(key);
-   stdutil::UniqueInsert(removed_, key);
-
+   if (!firing_) {
+      changed_.erase(key);
+      stdutil::UniqueInsert(removed_, key);
+   } else {
+      pending_changed_.erase(key);
+      stdutil::UniqueInsert(pending_removed_, key);
+   }
 }
 
 template <typename M>
 void MapTraceBuffered<M>::NotifyChanged(Key const& key, Value const& value)
 {
-   ASSERT(!firing_);
-   TRACE_LOG(5) << "adding " << key << " to changed set";
+   TRACE_LOG(5) << "adding " << key << " to changed set firing: " << firing_;
    if (TRACE_LOG_ENABLED(9)) {
       for (const auto& entry : changed_) {
          TRACE_LOG(9) << "  changed: " << entry.first;
@@ -94,15 +96,20 @@ void MapTraceBuffered<M>::NotifyChanged(Key const& key, Value const& value)
       }
    }
 
-   stdutil::FastRemove(removed_, key);
-   changed_[key] = value;
+   if (!firing_) {
+      stdutil::FastRemove(removed_, key);
+      changed_[key] = value;
+   } else {
+      stdutil::FastRemove(pending_removed_, key);
+      pending_changed_[key] = value;
+   }
 }
 
 template <typename M>
 void MapTraceBuffered<M>::ClearCachedState()
 {
-   changed_.clear();
-   removed_.clear();
+   changed_ = std::move(pending_changed_);
+   removed_ = std::move(pending_removed_);
 }
 
 #define CREATE_MAP(M)  template MapTraceBuffered<M>;
