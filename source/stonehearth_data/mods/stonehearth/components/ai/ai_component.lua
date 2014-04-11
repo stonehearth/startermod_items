@@ -10,6 +10,7 @@ function AIComponent:initialize(entity, json)
    self._action_index = {}
    self._task_groups = {}
    self._observer_instances = {}
+   self._all_execution_frames = {}
    self._sv = self.__saved_variables:get_data()
    self.__saved_variables:set_controller(self)
 
@@ -108,7 +109,41 @@ function AIComponent:_add_action(key, action_ctor, injecting_entity)
       injecting_entity = injecting_entity,
    }
    self._action_index[does][key] = entry
-   radiant.events.trigger(self, 'stonehearth:action_index_changed:' .. does, 'add', key, entry, does)
+   self:_notify_action_index_changed(does, 'add', key, entry)
+end
+
+function AIComponent:_notify_action_index_changed(activity_name, add_remove, key, entry)
+   local frames = self._all_execution_frames[activity_name]
+   if frames then
+      self._notifying_action_index_changed = true
+      for frame, _ in pairs(frames) do
+         frame:on_action_index_changed(add_remove, key, entry)
+      end
+      self._notifying_action_index_changed = false
+   end
+end
+
+function AIComponent:create_execution_frame(route, activity_name)
+   local frame = ExecutionFrame(self._thread, route, self._entity, activity_name, self._action_index)
+   local frames = self._all_execution_frames[activity_name]
+   self:_register_execution_frame(activity_name, frame)
+   return frame
+end
+
+function AIComponent:_register_execution_frame(activity_name, frame)
+   local frames = self._all_execution_frames[activity_name]
+   if not frames then
+      frames = {}
+      self._all_execution_frames[activity_name] = frames
+   end
+   frames[frame] = true
+end
+
+function AIComponent:_unregister_execution_frame(activity_name, frame)
+   local frames = self._all_execution_frames[activity_name]
+   if frames then
+      frames[frame] = nil
+   end
 end
 
 function AIComponent:remove_action(key)
@@ -122,8 +157,8 @@ function AIComponent:remove_action(key)
    if does then
       local entry = self._action_index[does][key]
       log:detail('triggering stonehearth:action_index_changed:' .. does)
-      radiant.events.trigger(self, 'stonehearth:action_index_changed:' .. does, 'remove', key, entry, does)
       self._action_index[does][key] = nil
+      self:_notify_action_index_changed(does, 'remove', key, entry)
    else
       log:debug('could not find action for key %s in :remove_action', tostring(key))
    end
@@ -210,11 +245,11 @@ function AIComponent:_start()
                                      :set_debug_name('e:%d', self._entity:get_id())
 
    self._thread:set_thread_main(function()
-      self._execution_frame = self:_create_execution_frame()
+      self._execution_frame = self:_create_top_execution_frame()
       while not self._dead do
          self._execution_frame:run({})
          if self._execution_frame:get_state() == 'dead' then
-            self._execution_frame = self:_create_execution_frame()
+            self._execution_frame = self:_create_top_execution_frame()
          else
             self._execution_frame:stop()
          end
@@ -224,11 +259,11 @@ function AIComponent:_start()
    self._thread:start()
 end
 
-function AIComponent:_create_execution_frame()
-   local route = string.format('e:%d %s', self._entity:get_id(), radiant.entities.get_name(self._entity))
+function AIComponent:_create_top_execution_frame()
    self._thread:set_thread_data('stonehearth:run_stack', {})
    self._thread:set_thread_data('stonehearth:unwind_to_frame', nil)
-   return ExecutionFrame(self._thread, route, self._entity, 'stonehearth:top', self._action_index)
+   local route = string.format('e:%d %s', self._entity:get_id(), radiant.entities.get_name(self._entity))
+   return self:create_execution_frame(route, 'stonehearth:top')
 end
 
 function AIComponent:_terminate_thread()

@@ -43,7 +43,6 @@ function ExecutionFrame:__init(thread, debug_route, entity, activity_name, actio
 
    self:_create_execution_units()
    self._ai_component = entity:get_component('stonehearth:ai')
-   radiant.events.listen(self._ai_component, 'stonehearth:action_index_changed:' .. self._activity_name, self, self._on_action_index_changed)
 
    if activity_name == 'stonehearth:top' then
       radiant.events.listen(entity, 'stonehearth:carry_block:carrying_changed', self, self._on_carrying_changed)
@@ -303,7 +302,9 @@ function ExecutionFrame:_do_destroy()
       self._position_trace:destroy()
       self._position_trace = nil
    end
-   radiant.events.listen(self._ai_component, 'stonehearth:action_index_changed:' .. self._activity_name, self, self._on_action_index_changed)
+   self._entity:get_component('stonehearth:ai')
+                  :_unregister_execution_frame(self._activity_name, self)
+
    radiant.events.unlisten(self._entity, 'stonehearth:carry_block:carrying_changed', self, self._on_carrying_changed)
 end
 
@@ -934,7 +935,7 @@ function ExecutionFrame:_remove_execution_unit(unit)
    end
 end
 
-function ExecutionFrame:_on_action_index_changed(add_remove, key, entry, does)
+function ExecutionFrame:on_action_index_changed(add_remove, key, entry)
    if self._log:is_enabled(radiant.log.DETAIL) then
       local key_name
       if type(key) == 'table' and key.name then
@@ -944,7 +945,7 @@ function ExecutionFrame:_on_action_index_changed(add_remove, key, entry, does)
       end
       self._log:debug('on_action_index_changed %s (key:%s state:%s)', add_remove, key_name, self._state)
    end
-   if self._activity_name == does and self:get_state() ~= DEAD then
+   if self:get_state() ~= DEAD then
       local unit = self._execution_units[key]
       if add_remove == 'add' then
          if not unit then         

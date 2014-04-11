@@ -564,16 +564,17 @@ function ExecutionUnitV2:__get_log()
    return self._log
 end
 
-function ExecutionUnitV2:__execute(name, args)
-   self._log:debug('__execute %s %s called', name, stonehearth.ai:format_args(args))
+function ExecutionUnitV2:__execute(activity_name, args)
+   self._log:debug('__execute %s %s called', activity_name, stonehearth.ai:format_args(args))
    assert(self._thread:is_running())
    assert(not self._current_execution_frame)
 
-   local ExecutionFrame = require 'components.ai.execution_frame'
-   self._current_execution_frame = self._execution_frames[name]
+   self._current_execution_frame = self._execution_frames[activity_name]
    if not self._current_execution_frame then
-      self._current_execution_frame = ExecutionFrame(self._thread, self._debug_route, self._entity, name, self._action_index)
-      self._execution_frames[name] = self._current_execution_frame
+      local ai_component = self._entity:get_component('stonehearth:ai')
+      self._current_execution_frame = ai_component:create_execution_frame(self._debug_route, activity_name)
+      --ExecutionFrame(self._thread, self._debug_route, self._entity, activity_name, self._action_index)
+      self._execution_frames[activity_name] = self._current_execution_frame
    end
 
    assert(self._current_execution_frame)
@@ -582,7 +583,7 @@ function ExecutionUnitV2:__execute(name, args)
    local think_output = self._current_execution_frame:start_thinking(args or {})
    if not think_output then
       -- disable this for now (see PickupPlacedItemAdjacent:run.. sigh) - tony
-      -- error(string.format('execution of %s did not start immediately.', name))
+      -- error(string.format('execution of %s did not start immediately.', activity_name))
    end
    self._current_execution_frame:wait_until(READY)
    self._current_execution_frame:run()
@@ -604,8 +605,8 @@ end
 function ExecutionUnitV2:__spawn(activity_name)
    self._log:debug('__spawn %s called', activity_name)
   
-   local ExecutionFrame = require 'components.ai.execution_frame'  
-   return ExecutionFrame(self._thread, self._debug_route, self._entity, activity_name, self._action_index)
+   local ai_component = self._entity:get_component('stonehearth:ai')
+   return ai_component:create_execution_frame(self._debug_route, activity_name)
 end
 
 function ExecutionUnitV2:__suspend(format, ...)
