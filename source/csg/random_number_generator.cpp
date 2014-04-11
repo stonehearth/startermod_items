@@ -55,7 +55,10 @@ template <class T>
 T RandomNumberGenerator::GetInt(T min, T max)
 {
    static_assert(std::is_integral<T>::value, "<T> must be an integral type");
-   ASSERT(min <= max);
+   if (min > max) {
+      LOG_CRITICAL() << "min:" << min << " > max:" << max << " in random number generator.  swapping.";
+      std::swap(min, max);
+   }
 
    std::uniform_int_distribution<T> distribution(min, max);
    return distribution(generator_);
@@ -66,7 +69,10 @@ template <class T>
 T RandomNumberGenerator::GetReal(T min, T max)
 {
    static_assert(std::is_floating_point<T>::value, "<T> must be a floating point type");
-   ASSERT(min <= max);
+   if (min > max) {
+      LOG_CRITICAL() << "min:" << min << " > max:" << max << " in random number generator.  swapping.";
+      std::swap(min, max);
+   }
 
    std::uniform_real_distribution<T> distribution(min, max);
    return distribution(generator_);
