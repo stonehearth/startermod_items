@@ -151,6 +151,8 @@ function TaskGroup:_notify_worker_started_task(task, worker)
       entry.running = task
       entry.available_task_count = entry.available_task_count + 1
 
+      -- Don't stop feeding everyone just because one worker is working; others might get a chance
+      -- to run, too.
       -- stop feeding in everyone else
       --[[
       for feeding_task, _ in pairs(entry.active_tasks) do
