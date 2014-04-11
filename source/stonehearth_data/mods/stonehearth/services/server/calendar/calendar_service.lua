@@ -130,7 +130,7 @@ function CalendarService:_on_event_loop(e)
    end
 
    if last_hour ~= nil and last_hour ~= self._sv.date.hour then
-      radiant.events.trigger(self, 'stonehearth:hourly', { now = self._sv.date })
+      radiant.events.trigger_async(self, 'stonehearth:hourly', { now = self._sv.date })
    end
 
    self:fire_time_of_day_events()
@@ -173,7 +173,7 @@ function CalendarService:fire_time_of_day_events()
       hour < curr_day_periods.sunrise and
       not self._sv._fired_midnight_today then
 
-      radiant.events.trigger(self, 'stonehearth:midnight')
+      radiant.events.trigger_async(self, 'stonehearth:midnight')
       self._sv._fired_midnight_today = true
 
       self._sv._fired_sunrise_today = false
@@ -185,7 +185,7 @@ function CalendarService:fire_time_of_day_events()
    if hour >= curr_day_periods.sunrise and
       not self._sv._fired_sunrise_today then
 
-      radiant.events.trigger(self, 'stonehearth:sunrise')
+      radiant.events.trigger_async(self, 'stonehearth:sunrise')
       --xxx localise
       stonehearth.events:add_entry('The sun has risen on ' .. self:format_date() .. '.')
       self._sv._fired_sunrise_today = true
@@ -196,7 +196,7 @@ function CalendarService:fire_time_of_day_events()
    if hour >= curr_day_periods.midday and
       not self._sv._fired_noon_today then
 
-      radiant.events.trigger(self, 'stonehearth:noon')
+      radiant.events.trigger_async(self, 'stonehearth:noon')
       self._sv._fired_noon_today = true
       return
    end
@@ -204,7 +204,7 @@ function CalendarService:fire_time_of_day_events()
    if hour >= curr_day_periods.sunset and
       not self._sv._fired_sunset_today then
 
-      radiant.events.trigger(self, 'stonehearth:sunset')
+      radiant.events.trigger_async(self, 'stonehearth:sunset')
       --xxx localize
       stonehearth.events:add_entry('The sun has set.')
       self._sv._fired_sunset_today = true

@@ -29,27 +29,27 @@ function EmbarkTest:__init()
 
 
    local worker = self:place_citizen(-5, -5)
-   radiant.events.trigger(personality_service, 'stonehearth:journal_event', 
+   radiant.events.trigger_async(personality_service, 'stonehearth:journal_event', 
                           {entity = worker, description = 'person_embarks'})
 
    local worker2 = self:place_citizen(-6, -5)
-   radiant.events.trigger(personality_service, 'stonehearth:journal_event', 
+   radiant.events.trigger_async(personality_service, 'stonehearth:journal_event', 
                           {entity = worker2, description = 'person_embarks'})
 
    local worker3 = self:place_citizen(-7, -5)
-   radiant.events.trigger(personality_service, 'stonehearth:journal_event', 
+   radiant.events.trigger_async(personality_service, 'stonehearth:journal_event', 
                           {entity = worker3, description = 'person_embarks'})
 
    local worker4 = self:place_citizen(-8, -5)
-   radiant.events.trigger(personality_service, 'stonehearth:journal_event', 
+   radiant.events.trigger_async(personality_service, 'stonehearth:journal_event', 
                           {entity = worker4, description = 'person_embarks'})
 
    local worker5 = self:place_citizen(-9, -5)
-   radiant.events.trigger(personality_service, 'stonehearth:journal_event', 
+   radiant.events.trigger_async(personality_service, 'stonehearth:journal_event', 
                           {entity = worker5, description = 'person_embarks'})
 
    local worker6 = self:place_citizen(-10, -5)
-   radiant.events.trigger(personality_service, 'stonehearth:journal_event', 
+   radiant.events.trigger_async(personality_service, 'stonehearth:journal_event', 
                           {entity = worker6, description = 'person_embarks'})
    
    local player_id = worker:get_component('unit_info'):get_player_id()

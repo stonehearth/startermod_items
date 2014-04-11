@@ -63,7 +63,7 @@ function RenewableResourceNodeComponent:spawn_resource(location)
       end
 
       -- Fire an event to let everyone else know we've just been harvested
-      radiant.events.trigger(self._entity, 'stonehearth:harvested', { entity = self._entity} )
+      radiant.events.trigger_async(self._entity, 'stonehearth:harvested', { entity = self._entity} )
       return item
    end
 end
@@ -110,7 +110,7 @@ function RenewableResourceNodeComponent:renew(location)
    self._entity:get_component('unit_info'):set_description(self._original_description)
 
    -- Fire an event to let everyone else know we're harvestable
-   radiant.events.trigger(self._entity, 'stonehearth:is_harvestable', { entity = self._entity} )
+   radiant.events.trigger_async(self._entity, 'stonehearth:is_harvestable', { entity = self._entity} )
 end
 
 

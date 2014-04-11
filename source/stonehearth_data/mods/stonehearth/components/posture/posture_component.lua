@@ -19,7 +19,7 @@ end
 function PostureComponent:set_posture(posture_name)
    self._log:debug('adding posture %s', posture_name)
    table.insert(self._sv.set_postures, posture_name)
-   radiant.events.trigger(self._entity, 'stonehearth:posture_changed')
+   radiant.events.trigger_async(self._entity, 'stonehearth:posture_changed')
    self.__saved_variables:mark_changed()
 end
 
@@ -29,7 +29,7 @@ function PostureComponent:unset_posture(posture_name)
          self._log:debug('removing posture %s', posture_name)
          table.remove(self._sv.set_postures, i)
          
-         radiant.events.trigger(self._entity, 'stonehearth:posture_changed')
+         radiant.events.trigger_async(self._entity, 'stonehearth:posture_changed')
          self.__saved_variables:mark_changed()
          return
       end

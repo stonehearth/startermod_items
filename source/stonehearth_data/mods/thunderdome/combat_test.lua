@@ -11,11 +11,11 @@ function CombatTest:__init()
    local p2 = self:place_citizen( 2, 0)
    radiant.entities.turn_to(p2, 90)
 
-   radiant.events.trigger(p1, 'thunderdome:set_partner', { 
+   radiant.events.trigger_async(p1, 'thunderdome:set_partner', { 
       entity = p2
    })
 
-   radiant.events.trigger(p2, 'thunderdome:set_partner', { 
+   radiant.events.trigger_async(p2, 'thunderdome:set_partner', { 
       entity = p1
    })
    

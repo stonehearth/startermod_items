@@ -153,7 +153,7 @@ function CameraService:_orbit(target, x_deg, y_deg, min_x, max_x)
   self:set_position(position, true)
   self:look_at(target)
 
-  radiant.events.trigger(self, 'stonehearth:camera:update', {
+  radiant.events.trigger_async(self, 'stonehearth:camera:update', {
     pan = false,
     orbit = true,
     zoom = false,
@@ -282,7 +282,7 @@ function CameraService:_calculate_zoom(e)
 
   self._impulse_delta = dir
 
-  radiant.events.trigger(self, 'stonehearth:camera:update', {
+  radiant.events.trigger_async(self, 'stonehearth:camera:update', {
       pan = false,
       orbit = false,
       zoom = true,
@@ -373,7 +373,7 @@ function CameraService:_calculate_keyboard_pan()
   self._continuous_delta = forward + left
 
   if x_scale ~= 0 or y_scale ~= 0 then
-    radiant.events.trigger(self, 'stonehearth:camera:update', {
+    radiant.events.trigger_async(self, 'stonehearth:camera:update', {
         pan = true,
         orbit = false,
         zoom = false,
@@ -407,7 +407,7 @@ function CameraService:_drag(x, y)
     self._sv.position = next_pos
   end
   if self._drag_start ~= drag_end then
-    radiant.events.trigger(self, 'stonehearth:camera:update', {
+    radiant.events.trigger_async(self, 'stonehearth:camera:update', {
         pan = true,
         orbit = false,
         zoom = false,

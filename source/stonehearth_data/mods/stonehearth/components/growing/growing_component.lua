@@ -81,7 +81,7 @@ function GrowingComponent:_grow()
       local stage = self._growth_stages[self._sv.current_growth_stage]
 
       --TODO: use events to tell crop component to suck nutrients out of the soil?
-      radiant.events.trigger(self._entity, 'stonehearth:growing', {
+      radiant.events.trigger_async(self._entity, 'stonehearth:growing', {
             entity = self._entity,
             stage = stage and stage.model_name or nil,
             finished = finished,

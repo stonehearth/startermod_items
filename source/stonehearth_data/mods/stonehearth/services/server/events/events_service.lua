@@ -18,7 +18,7 @@ function EventService:add_entry(text, type)
    local time = calendar:format_time()
    local entry = '[' .. time .. '] ' .. text
    table.insert(self._entries, entry)
-   radiant.events.trigger(self, 'stonehearth:new_event', { 
+   radiant.events.trigger_async(self, 'stonehearth:new_event', { 
       text = text,
       type = type
    })

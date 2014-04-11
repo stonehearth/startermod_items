@@ -17,7 +17,7 @@ function FirePitTest:__init()
    self:place_item('stonehearth:firepit_proxy', 1, 1, player_id)
    local firepit = self:place_item('stonehearth:firepit', 8, 8, player_id)
    --[[
-   radiant.events.trigger(stonehearth.calendar, 'stonehearth:hourly')
+   radiant.events.trigger_async(stonehearth.calendar, 'stonehearth:hourly')
    --firepit:get_component('stonehearth:firepit'):_init_gather_wood_task()
    self:at(20000,  function()
          radiant.entities.destroy_entity(firepit)

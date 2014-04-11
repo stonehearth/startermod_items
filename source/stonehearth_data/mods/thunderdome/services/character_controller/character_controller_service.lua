@@ -24,11 +24,11 @@ function CharacterControllerService:do_action(player_num, action, response)
    end
    
    
-   radiant.events.trigger(entity, 'thunderdome:run_effect', { 
+   radiant.events.trigger_async(entity, 'thunderdome:run_effect', { 
          effect = action
       })
 
-   radiant.events.trigger(partner, 'thunderdome:run_effect', { 
+   radiant.events.trigger_async(partner, 'thunderdome:run_effect', { 
          effect = response, 
          start_time = self:get_delay(action, response)
       })
