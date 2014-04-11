@@ -1071,15 +1071,17 @@ void Client::SelectEntity(dm::ObjectId id)
    }
 }
 
-void Client::SelectEntity(om::EntityPtr obj)
+void Client::SelectEntity(om::EntityPtr entity)
 {
+   CLIENT_LOG(3) << "selecting " << entity;
+
    om::EntityPtr selectedObject = selectedObject_.lock();
    RenderEntityPtr renderEntity;
 
-   if (selectedObject != obj) {
+   if (selectedObject != entity) {
       JSONNode selectionChanged(JSON_NODE);
 
-      if (obj && obj->GetStore().GetStoreId() != GetStore().GetStoreId()) {
+      if (entity && entity->GetStore().GetStoreId() != GetStore().GetStoreId()) {
          CLIENT_LOG(3) << "ignoring selected object with non-client store id.";
          return;
       }
@@ -1091,25 +1093,27 @@ void Client::SelectEntity(om::EntityPtr obj)
          }
       }
 
-      selectedObject_ = obj;
-      if (obj) {
-         CLIENT_LOG(3) << "Selected actor " << obj->GetObjectId();
-         selected_trace_ = obj->TraceChanges("selection", dm::RENDER_TRACES)
+      selectedObject_ = entity;
+      if (entity) {
+         CLIENT_LOG(3) << "selected entity " << *entity;
+         selected_trace_ = entity->TraceChanges("selection", dm::RENDER_TRACES)
                               ->OnDestroyed([=]() {
                                  SelectEntity(nullptr);
                               });
 
-         renderEntity = Renderer::GetInstance().GetRenderObject(obj);
+         renderEntity = Renderer::GetInstance().GetRenderObject(entity);
          if (renderEntity) {
             renderEntity->SetSelected(true);
          }
-         std::string uri = obj->GetStoreAddress();
+         std::string uri = entity->GetStoreAddress();
          selectionChanged.push_back(JSONNode("selected_entity", uri));
       } else {
-         CLIENT_LOG(3) << "Cleared selected actor.";
+         CLIENT_LOG(3) << "cleared selected entity.";
       }
 
       http_reactor_->QueueEvent("radiant_selection_changed", selectionChanged);
+   } else {
+      CLIENT_LOG(3) << "same entity.  bailing";
    }
 }
 
