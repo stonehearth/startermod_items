@@ -246,8 +246,8 @@ function Task:_unfeed_worker(worker)
 
    -- if the list of unfed workers is empty, schedule a one time callback to
    -- uninject their actions on the main loop, then add the worker to the list.
-   if next(self._workers_pending_unfeed) == nil then
-      radiant.events.listen_once(radiant, 'game:main_loop', function()
+   if table.getn(self._workers_pending_unfeed) == 0 then
+      radiant.events.listen_once(radiant, 'stonehearth:gameloop', function()
             self:_process_deferred_unfed_workers()
          end)
    end
