@@ -55,7 +55,7 @@ function food_tests.group_eat_food(autotest)
    --and when we're all gone, we should return success
    local baskets = {}
 
-create_cluster(num_people, function(x, y)
+   create_cluster(num_people, function(x, y)
          local b = autotest.env:create_entity(x - 2, y - 2, 'stonehearth:tester_basket')
          table.insert(baskets, b)
       end)
@@ -75,13 +75,12 @@ create_cluster(num_people, function(x, y)
    end)      
 
    --Adjust up?
-autotest.util:fail_if_expired(500 * 1000, 'failed to eat food in chair')
+   autotest.util:fail_if_expired(500 * 1000, 'failed to eat food in chair')
 end
 
 --Tests that people will eat till they're sated
 function food_tests.group_eat_till_full(autotest)
    local num_people = 10
-   local num_baskets = num_people * 5
 
    --Create 10 hungry people
    local worker_table = {}
@@ -95,8 +94,7 @@ function food_tests.group_eat_till_full(autotest)
 
    --Each person will need 2 servings of tester_servings to be full,
    --so we need 20 tester baskets
-
-   create_cluster(num_baskets, function(x, y)
+   create_cluster(num_people, function(x, y)
          autotest.env:create_entity(x-5, y-5, 'stonehearth:tester_basket')
       end)
 

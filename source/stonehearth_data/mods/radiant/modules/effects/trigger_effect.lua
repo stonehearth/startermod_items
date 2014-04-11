@@ -1,10 +1,10 @@
 local Effect = require 'modules.effects.effect'
 local TriggerEffect = class(Effect)
 
-function TriggerEffect:__init(start_time, handler, info, effect, entity)
-   self[Effect]:__init(info)
+function TriggerEffect:__init(start_time, handler, track, effect, entity)
+   self[Effect]:__init(track)
    --May be redundant with above?
-   self._info = info
+   self._info = track.info
    self._entity = entity
 
    self._effect = effect
@@ -18,10 +18,9 @@ function TriggerEffect:update(e)
       if self._handler then
          self._handler(self._info, self._effect, self._entity)
       else
-         radiant.events.trigger(self._effect, 'stonehearth:on_effect_trigger', {
-            info = self._info,     
-            effect = self._effect
-         })
+         if self._effect._trigger_cb then
+            self._effect._trigger_cb(self._info)
+         end
       end
       self._trigger_time = nil
    end

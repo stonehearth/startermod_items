@@ -45,33 +45,25 @@ function RunEffectAction:run(ai, entity, args)
    for i = 1, times do
       log:debug('starting new effect "%s"', effect_name)
       self._effect = radiant.effects.run_effect(entity, effect_name, args.delay, nil, args.args)
-
-      if args.trigger_fn then
-         self._trigger_fn = args.trigger_fn
-         radiant.events.listen(self._effect, 'stonehearth:on_effect_trigger', self, self._on_effect_trigger)
-      end
+      self._effect:set_trigger_cb(args.trigger_fn)
       self._effect:set_finished_cb(function()
-            if self._effect then
-               log:debug('stopped effect "%s" and resuming', effect_name)
-               self:_destroy_effect()
-               ai:resume('effect %s finished', effect_name)
-            end
-         end)
+         if self._effect then
+            log:debug('stopped effect "%s" and resuming', effect_name)
+            self:_destroy_effect()
+            ai:resume('effect %s finished', effect_name)
+         end
+      end)
+
       ai:suspend()
    end   
    self:_destroy_effect()
 end
 
-function RunEffectAction:_on_effect_trigger(e)
-   self._trigger_fn(e.info.info)
-end
-
 function RunEffectAction:_destroy_effect()
    if self._effect then
-      if self._trigger_fn then
-         radiant.events.unlisten(self._effect, 'stonehearth:on_effect_trigger', self, self._on_effect_trigger)
-      end
-      self._effect:stop()
+      self._effect:set_trigger_cb(nil)
+                  :set_finished_cb(nil)
+                  :stop()
       self._effect = nil
    end
 end
