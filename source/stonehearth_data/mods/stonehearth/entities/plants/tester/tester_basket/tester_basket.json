@@ -25,7 +25,7 @@
    "entity_data" : {
       "stonehearth:food_container" : {
          "effect": "fiddle",
-         "food": "stonehearth:tester",
+         "food": "stonehearth:tester_serving",
          "stacks_per_serving": 3
       }
    }
