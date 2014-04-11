@@ -19,11 +19,8 @@ function GetFoodFromContainerAdjacent:run(ai, entity, args)
       return
    end
 
-   local food = radiant.entities.create_entity(container_data.food)
-   
    radiant.entities.turn_to_face(entity, container)
    ai:execute('stonehearth:run_effect', { effect = container_data.effect })
-
 
    -- consume the stack after the effect finishes
    local stacks_per_serving = container_data.stacks_per_serving or 1
@@ -32,6 +29,7 @@ function GetFoodFromContainerAdjacent:run(ai, entity, args)
       ai:abort('Cannot eat: Food container is empty.')
    end
 
+   local food = radiant.entities.create_entity(container_data.food)   
    radiant.entities.pickup_item(entity, food)
 end
 

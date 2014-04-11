@@ -19,6 +19,7 @@
                "stonehearth:actions:eat_item",
                "stonehearth:actions:pet:pet_eat_from_ground",
                "stonehearth:actions:pet:eat_from_container",
+               "stonehearth:actions:pet:eat_from_container_adjacent",
 
                "stonehearth:actions:ambient_pet_behavior:dispatcher",
                "stonehearth:actions:follow_entity",

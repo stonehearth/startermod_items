@@ -9,4 +9,4 @@ PetEatFromContainerAction.priority = 1
 local ai = stonehearth.ai
 return ai:create_compound_action(PetEatFromContainerAction)
    :execute('stonehearth:goto_item_made_of', { material = 'food_container' })
-   :execute('stonehearth:eat_item', { item = ai.PREV.item })
+   :execute('stonehearth:pet_eat_from_container_adjacent', { container = ai.PREV.item })

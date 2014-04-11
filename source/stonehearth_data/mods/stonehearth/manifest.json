@@ -314,6 +314,7 @@
       "actions:pet:run_in_circles" : "file(ai/actions/pet/run_in_circles_action.lua)",
       "actions:pet:pet_eat_from_ground" : "file(ai/actions/pet/pet_eat_from_ground_action.lua)",
       "actions:pet:eat_from_container" : "file(ai/actions/pet/pet_eat_from_container_action.lua)",
+      "actions:pet:eat_from_container_adjacent" : "file(ai/actions/pet/pet_eat_from_container_adjacent_action.lua)",
       "actions:pet:pet_sleep_on_ground" : "file(ai/actions/pet/pet_sleep_on_ground.lua)",
 
       "actions:drop_inventory_items" : "file(ai/actions/drop_inventory_items.lua)",

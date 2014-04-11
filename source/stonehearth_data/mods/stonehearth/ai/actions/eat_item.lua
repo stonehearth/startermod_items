@@ -6,40 +6,22 @@ local EatItem = class()
 EatItem.name = 'eat item'
 EatItem.does = 'stonehearth:eat_item'
 EatItem.args = {
-   item = Entity,
-   face_item = {
-      type = 'boolean',
-      default = true
-   }
+   food = Entity,
 }
 EatItem.version = 2
 EatItem.priority = 1
 
 function EatItem:run(ai, entity, args)
-   local item = args.item
-   local facing_entity = nil
+   local food = args.food
 
-   if args.face_item then
-      facing_entity = item
-   end
-
-   self._container_data = radiant.entities.get_entity_data(item, 'stonehearth:food_container')
-   if self._container_data then
-      self._food = radiant.entities.create_entity(self._container_data.food)
-   else
-      self._food = item
-   end
-
-   self._food_data = self:_get_food_data(self._food, entity)
-
+   self._food_data = self:_get_food_data(food, entity)
    if not self._food_data then
-      ai:abort('Cannot eat: No food data for %s.', tostring(self._food))
+      ai:abort('Cannot eat: No food data for %s.', tostring(food))
    end
 
    ai:execute('stonehearth:run_effect', {
       effect = 'eat',
-      times = self._food_data.effect_loops or 3,
-      facing_entity = facing_entity
+      times = self._food_data.effect_loops or 3
    })
 
    -- journal stuff will get refactored at some point
@@ -50,44 +32,26 @@ function EatItem:run(ai, entity, args)
 end
 
 function EatItem:stop(ai, entity, args)
-   local consumed
-   local new_calories_value
    local attributes_component = entity:add_component('stonehearth:attributes')
 
-   -- if we're interrupted, go ahead and immediately finish eating
-   -- we decided it was not fun to leave this hanging
-   if self._food then
-      if self._container_data then
-         local container = args.item
-         consumed = radiant.entities.consume_stack(container)
-         if not consumed then
-            ai:get_log():info('%s cannot eat: Food container is now empty.', tostring(entity))
-         end
-         self._container_data = nil
-      else
-         consumed = true
+   if self._food_data then
+      -- if we're interrupted, go ahead and immediately finish eating
+      -- we decided it was not fun to leave this hanging
+      local satisfaction = self._food_data.satisfaction
+      local calories = attributes_component:get_attribute('calories')
+      local new_calories_value = calories + satisfaction
+      if new_calories_value >= stonehearth.constants.food.MAX_ENERGY then
+         new_calories_value = stonehearth.constants.food.MAX_ENERGY 
       end
-
-      if consumed then
-         if self._food_data then
-            local satisfaction = self._food_data.satisfaction
-            local calories = attributes_component:get_attribute('calories')
-            new_calories_value = calories + satisfaction
-            if new_calories_value >= stonehearth.constants.food.MAX_ENERGY then
-               new_calories_value = stonehearth.constants.food.MAX_ENERGY 
-            end
-            self._food_data = nil
-         end
-      end
-
-      radiant.entities.destroy_entity(self._food)
-      self._food = nil
+      radiant.entities.destroy_entity(args.food)
 
       -- finally, adjust calories if necessary.  this might trigger callbacks which
       -- result in destroying the action, so make sure we do it LAST! (see calorie_obserer.lua)
       if new_calories_value then
          attributes_component:set_attribute('calories', new_calories_value)
       end
+
+      self._food_data = nil
    end
 end
 

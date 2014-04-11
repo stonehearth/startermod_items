@@ -6,15 +6,13 @@ EatCarrying.version = 2
 EatCarrying.priority = 1
 
 function EatCarrying:run(ai, entity)
-   self._food = radiant.entities.get_carrying(entity)
-
-   if not self._food then
+   local food = radiant.entities.get_carrying(entity)
+   if not food then
       ai:abort('cannot eat. not carrying anything!')
    end
 
    ai:execute('stonehearth:eat_item', {
-      item = self._food,
-      face_item = false
+      food = food,
    })
 end
 

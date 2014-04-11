@@ -11,4 +11,4 @@ return ai:create_compound_action(PetEatOnGround)
    :execute('stonehearth:goto_item_made_of', { material = 'food' })
    -- reserve item after we get there. let humans reserve first
    :execute('stonehearth:reserve_entity', { entity = ai.PREV.item })
-   :execute('stonehearth:eat_item', { item = ai.PREV.entity })
+   :execute('stonehearth:eat_item', { food = ai.PREV.entity })
