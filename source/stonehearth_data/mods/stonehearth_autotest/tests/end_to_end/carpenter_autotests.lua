@@ -27,6 +27,7 @@ function carpenter_tests.place_workshop(autotest)
    autotest.ui:sleep(1000)
    autotest.ui:click_dom_element('#craftWindow #recipeList a[recipe_name="Table for One"]')
    autotest.ui:click_dom_element('#craftWindow #craftButton')
+   autotest.ui:click_dom_element('#craftWindow #closeButton')
 
    local outbox = workshop:get_component('stonehearth:workshop'):get_outbox()
    radiant.events.listen(outbox, 'stonehearth:item_added', function(e)
