@@ -38,9 +38,13 @@ function PetOrchestrator:_run_idle(pet, town)
 
    local task
    task = self._task_group:create_task('stonehearth:idle')
-      :times(1)
       :start()
-      :wait()
+
+   stonehearth.calendar:set_timer(self._idle_time, function()
+         task:destroy()
+      end)
+
+   task:wait()
 end
 
 -- Moving this into its own action didn't work. Couldn't get idle to run when close to friend (and nothing to do)
@@ -60,15 +64,14 @@ function PetOrchestrator:_run_follow_friend(pet, town)
    -- follow continuously
    -- will suspend and defer to idle if close to a citizen that is not moving
    local task
+
    task = self._task_group:create_task('stonehearth:follow_entity', { target = target })
       :start()
 
    -- stop after _follow_time game seconds
-   stonehearth.calendar:set_timer(self._follow_time,
-      function ()
+   stonehearth.calendar:set_timer(self._follow_time, function ()
          task:destroy()
-      end
-   )
+      end)
 
    task:wait()
 end
