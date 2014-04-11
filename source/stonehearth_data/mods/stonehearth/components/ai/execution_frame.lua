@@ -1074,21 +1074,10 @@ function ExecutionFrame:_is_strictly_better_than_active(unit)
       self._log:spam('  unit %s priority %d > active unit "%s" priority %d.  therefore is better!',
                      unit:get_name(), unit_priority, self._active_unit:get_name(), active_priority)
       return true
-   elseif unit_priority < active_priority then
-      self._log:spam('  unit %s priority %d < active unit "%s" priority %d.  therefore is not better!',
-                     unit:get_name(), unit_priority, self._active_unit:get_name(), active_priority)
-      return false
    end
-
-   -- if they're exactly the same, the odds of replacing the current unit
-   -- with this other one are the equal (proportional the number of other
-   -- things we've seen roll by). (xxx: technically, the odds should be a 
-   -- function of the combined weights of all the units of this priority
-   -- which are currently ready)
-   local better = rng:get_int(1, self._runnable_unit_count) == self._runnable_unit_count
-   self._log:spam('  unit "%s" and active unit "%s" both have priority %d.  tossing a coin...',
-                  unit:get_name(), self._active_unit:get_name(), unit_priority)
-   return better
+   self._log:spam('  unit %s priority %d < active unit "%s" priority %d.  therefore is not better!',
+                  unit:get_name(), unit_priority, self._active_unit:get_name(), active_priority)
+   return false
 end
 
 function ExecutionFrame:_get_best_execution_unit()
