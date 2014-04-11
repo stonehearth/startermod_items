@@ -14,6 +14,9 @@ sh_command = sh_exe_path + " " + sh_args
 
 print 'Stashing uncommitted files....'
 
+# Make sure we run our tests with other changes stashed. NOTE: this doesn't stash untracked 
+# changes, because unstashing untracked changes requires that you delete those files in your
+# tree.
 subprocess.call('git stash --keep-index')
 
 print 'Running Stonehearth autotests with exe at ' + sh_exe_path + '....'
