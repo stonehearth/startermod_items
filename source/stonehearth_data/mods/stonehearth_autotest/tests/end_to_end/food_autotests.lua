@@ -44,21 +44,21 @@ function food_tests.group_eat_food(autotest)
    local num_people = 5
 
    --Create n hungry people
-   for i=1,num_people do 
-      local p = autotest.env:create_person(2 + (i * 2), 2 + (i * 2), {
-         profession = 'worker',
-         attributes = { calories = 0 }
-      })
-   end
+   create_cluster(num_people, function(x, y)
+         local p = autotest.env:create_person(x + 2, y + 2, {
+            profession = 'worker',
+            attributes = { calories = 0 }
+         })
+      end)
 
    --Each person will need 2 servings of tester_servings to be full,
    --and when we're all gone, we should return success
    local baskets = {}
 
-   for i=1, num_people do 
-      local b = autotest.env:create_entity(-i, 0, 'stonehearth:tester_basket')
-      table.insert(baskets, b)
-   end
+create_cluster(num_people, function(x, y)
+         local b = autotest.env:create_entity(x - 2, y - 2, 'stonehearth:tester_basket')
+         table.insert(baskets, b)
+      end)
 
    local baskets_finished = 0
    radiant.events.listen(radiant, 'radiant:entity:post_destroy', function()
@@ -107,8 +107,9 @@ function food_tests.group_eat_till_full(autotest)
       autotest.util:call_if_attribute_above(person, 'calories', 70, function()
          people_finished = people_finished + 1
          if people_finished == num_people then
-            autotest:success()
+            autotest:success()            
          end
+         return radiant.events.UNLISTEN
       end)
     end
 
