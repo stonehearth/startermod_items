@@ -31,6 +31,7 @@ function Thread.get_current_thread()
    if co then
       return Thread.all_threads[co]
    end
+   return nil
 end
 
 function Thread.schedule_thread(thread)

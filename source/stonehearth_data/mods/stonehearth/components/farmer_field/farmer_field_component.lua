@@ -256,7 +256,7 @@ function FarmerFieldComponent:determine_auto_harvest(dirt_component, crop)
    end
    if do_harvest then
       local town = stonehearth.town:get_town(self._entity)
-      return town:harvest_resource_node(crop)
+      return town:harvest_crop(crop)
    end
 end
 

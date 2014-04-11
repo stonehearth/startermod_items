@@ -29,7 +29,7 @@ function CastAoeCallHandler:_on_mouse_event(e, response, entity, spell)
 
    local pt = offscreen_pos
 
-   if s:is_valid() then
+   if s:is_valid() and s:is_valid_brick(0) then
       pt = s:brick_of(0)
    end
    pt.y = pt.y + 1

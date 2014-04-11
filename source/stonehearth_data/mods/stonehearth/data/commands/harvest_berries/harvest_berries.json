@@ -10,7 +10,7 @@
    "icon": "file(gather_berries.png)",
 
    "action": "call",
-   "function": "stonehearth:harvest_plant",
+   "function": "stonehearth:harvest_entity",
    "args": [
       "{{self}}"
    ]

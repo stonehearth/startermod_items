@@ -13,6 +13,12 @@ PlantCrop.args = {
 PlantCrop.version = 2
 PlantCrop.priority =  1
 
+function PlantCrop:start_thinking(ai, entity, args)
+   if ai.CURRENT.carrying == nil then
+      ai:set_think_output()
+   end
+end
+
 local ai = stonehearth.ai
 return ai:create_compound_action(PlantCrop)
          :execute('stonehearth:goto_entity', { entity = ai.ARGS.target_plot})

@@ -24,8 +24,10 @@ function GetFoodFromContainerAdjacent:run(ai, entity, args)
    radiant.entities.turn_to_face(entity, container)
    ai:execute('stonehearth:run_effect', { effect = container_data.effect })
 
+
    -- consume the stack after the effect finishes
-   if not radiant.entities.consume_stack(container) then
+   local stacks_per_serving = container_data.stacks_per_serving or 1
+   if not radiant.entities.consume_stack(container, stacks_per_serving) then
       radiant.entities.destroy_entity(food)
       ai:abort('Cannot eat: Food container is empty.')
    end

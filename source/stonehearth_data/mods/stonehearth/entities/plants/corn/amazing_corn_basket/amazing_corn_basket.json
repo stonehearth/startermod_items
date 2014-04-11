@@ -3,8 +3,8 @@
    "type": "entity",
    "components": {
       "item": {
-         "stacks" : 10,
-         "maxStacks" : 10
+         "stacks" : 3,
+         "maxStacks" : 3
       },
       "model_variants": {
          "default": {
@@ -26,7 +26,7 @@
       "stonehearth:food_container" : {
          "effect": "fiddle",
          "food": "stonehearth:amazing_corn_cob",
-         "consume_stacks": true
+         "stacks_per_serving": 1
       }
    }
 }

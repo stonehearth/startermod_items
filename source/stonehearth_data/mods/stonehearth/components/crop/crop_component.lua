@@ -26,6 +26,10 @@ function CropComponent:initialize(entity, json)
    radiant.events.listen(entity, 'radiant:entity:post_create', self, self._on_create_complete)
 end
 
+function CropComponent:get_product()
+   return self._sv.product
+end
+
 function CropComponent:set_dirt_plot(dirt_plot)
    self._dirt_plot = dirt_plot
 end
@@ -53,11 +57,10 @@ function CropComponent:_on_grow_period(e)
    if e.stage then
       local resource_pairing_uri = self._resource_pairings[self._sv.stage]
       if resource_pairing_uri then
-         local resource_component = self._entity:get_component('stonehearth:resource_node')
          if resource_pairing_uri == "" then
             resource_pairing_uri = nil
          end
-         resource_component:set_resource(resource_pairing_uri)
+         self._sv.product = resource_pairing_uri
       end
       if self._sv.stage == self._harvest_threshhold then
          self._sv.harvestable = true

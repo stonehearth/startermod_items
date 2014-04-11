@@ -13,6 +13,10 @@ function AIComponent:initialize(entity, json)
    self._all_execution_frames = {}
    self._sv = self.__saved_variables:get_data()
    self.__saved_variables:set_controller(self)
+   self._aitrace = radiant.log.create_logger('ai_trace')
+   self._aitrace:set_prefix(tostring(entity:get_id()) .. '/')
+   local s = radiant.entities.get_name(entity) or 'noname'
+   self._aitrace:spam('@ce@%d@%s', entity:get_id(), s)
 
    if not self._sv._initialized then
       self._sv._initialized = true
@@ -103,6 +107,8 @@ function AIComponent:_add_action(key, action_ctor, injecting_entity)
       end
       assert(false, string.format('duplicate action key "%s" for "%s"', tostring(key), tostring(does)))
    end
+
+   --tracelog:spam('ai_component:add_action:%s,%s', tostring(self._entity), tostring(does))
    
    local entry = {
       action_ctor = action_ctor,
@@ -123,8 +129,8 @@ function AIComponent:_notify_action_index_changed(activity_name, add_remove, key
    end
 end
 
-function AIComponent:create_execution_frame(route, activity_name)
-   local frame = ExecutionFrame(self._thread, route, self._entity, activity_name, self._action_index)
+function AIComponent:create_execution_frame(activity_name, route, trace_route)
+   local frame = ExecutionFrame(self._thread, self._entity, self._action_index, activity_name,  route, trace_route)
    local frames = self._all_execution_frames[activity_name]
    self:_register_execution_frame(activity_name, frame)
    return frame
@@ -156,6 +162,7 @@ function AIComponent:remove_action(key)
    local does = action_key_to_activity[key]
    if does then
       local entry = self._action_index[does][key]
+      --tracelog:spam('ai_component:remove_action:%s,%s', tostring(key), tostring(self._entity))
       log:detail('triggering stonehearth:action_index_changed:' .. does)
       self._action_index[does][key] = nil
       self:_notify_action_index_changed(does, 'remove', key, entry)
@@ -247,6 +254,7 @@ function AIComponent:_start()
    self._thread:set_thread_main(function()
       self._execution_frame = self:_create_top_execution_frame()
       while not self._dead do
+         self._aitrace:spam('@loop')
          self._execution_frame:run({})
          if self._execution_frame:get_state() == 'dead' then
             self._execution_frame = self:_create_top_execution_frame()
@@ -263,7 +271,8 @@ function AIComponent:_create_top_execution_frame()
    self._thread:set_thread_data('stonehearth:run_stack', {})
    self._thread:set_thread_data('stonehearth:unwind_to_frame', nil)
    local route = string.format('e:%d %s', self._entity:get_id(), radiant.entities.get_name(self._entity))
-   return self:create_execution_frame(route, 'stonehearth:top')
+   local traceroute = string.format('%d/', self._entity:get_id())
+   return self:create_execution_frame('stonehearth:top', route, traceroute)
 end
 
 function AIComponent:_terminate_thread()

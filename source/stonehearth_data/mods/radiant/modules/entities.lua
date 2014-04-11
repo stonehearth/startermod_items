@@ -460,15 +460,19 @@ end
 -- the stack count.  otherwise, it conumes the whole item (i.e. we
 -- destroy it!)
 -- @returns whether or not the item was consumed
-function entities.consume_stack(item)
+function entities.consume_stack(item, num_stacks)
    local item_component = item:get_component('item')
    local success = false
    local stacks = 0
 
+   if num_stacks == nil then
+      num_stacks = 1
+   end
+
    if item_component then
       stacks = item_component:get_stacks()
       if stacks > 0 then
-         stacks = stacks - 1
+         stacks = math.max(0, stacks - num_stacks)
          item_component:set_stacks(stacks)
          success = true
       end

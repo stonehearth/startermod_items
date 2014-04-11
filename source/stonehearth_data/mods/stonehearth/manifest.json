@@ -319,6 +319,8 @@
       "actions:goto_town_banner" : "file(ai/actions/goto_town_banner.lua)",
       "actions:harvest_resource_node_action" : "file(ai/actions/harvest_resource_node.lua)",
       "actions:harvest_resource_node_adjacent_action" : "file(ai/actions/harvest_resource_node_adjacent.lua)",
+      "actions:harvest_crop" : "file(ai/actions/harvest_crop.lua)",
+      "actions:harvest_crop_adjacent" : "file(ai/actions/harvest_crop_adjacent.lua)",
       "actions:harvest_plant" : "file(ai/actions/harvest_plant.lua)",
       "actions:harvest_plant_adjacent" : "file(ai/actions/harvest_plant_adjacent.lua)",
       "actions:shear_sheep_action" : "file(ai/actions/shear_sheep_action.lua)",
@@ -593,11 +595,7 @@
          "controller": "file(call_handlers/resource_call_handler.lua)",
          "endpoint" : "server"
       },
-      "harvest_tree" : {
-         "controller": "file(call_handlers/resource_call_handler.lua)",
-         "endpoint" : "server"
-      },
-      "harvest_plant" : {
+      "harvest_entity" : {
          "controller": "file(call_handlers/resource_call_handler.lua)",
          "endpoint" : "server"
       },

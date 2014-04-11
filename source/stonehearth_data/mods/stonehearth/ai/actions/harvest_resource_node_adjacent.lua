@@ -28,7 +28,7 @@ function HarvestResourceNodeAdjacent:run(ai, entity, args)
             factory:spawn_resource(location)
       until not node:is_valid()   
 
-   
+    
       local description = factory:get_description()
       radiant.events.trigger_async(stonehearth.personality, 'stonehearth:journal_event', 
                                    {entity = entity, description = description})

@@ -7,7 +7,7 @@
    "icon": "file(chop_tree.png)",
 
    "action": "call",
-   "function": "stonehearth:harvest_tree",
+   "function": "stonehearth:harvest_entity",
    "args": [
       "{{self}}"
    ]

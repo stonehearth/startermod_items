@@ -20,10 +20,10 @@
    "entity_data" : {
       "stonehearth:food" : {
          "sitting_on_chair" : {
-            "satisfaction" : 12
+            "satisfaction" : 24
          },
          "default" : {
-            "satisfaction" : 10
+            "satisfaction" : 20
          }
       }
    }   

@@ -247,7 +247,7 @@ function Task:_unfeed_worker(worker)
    -- if the list of unfed workers is empty, schedule a one time callback to
    -- uninject their actions on the main loop, then add the worker to the list.
    if next(self._workers_pending_unfeed) == nil then
-      radiant.events.listen_once(radiant, 'game:main_loop', function()
+      radiant.events.listen_once(radiant, 'stonehearth:gameloop', function()
             self:_process_deferred_unfed_workers()
          end)
    end
@@ -478,6 +478,7 @@ function Task:__action_stopped(action)
       end
 
       self._task_group:_notify_worker_stopped_task(self, action:get_entity())
+      --self:_unfeed_worker(action:get_entity():get_id())
 
       if self:_is_work_finished() then
          self._log:debug('task reached max number of completions (%d).  stopping and completing!', self._times)

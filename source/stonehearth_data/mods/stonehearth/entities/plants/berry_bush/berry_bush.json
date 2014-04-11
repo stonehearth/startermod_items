@@ -3,8 +3,7 @@
    "components": {
       "stonehearth:commands" : {
          "commands" : [
-            "file(/data/commands/harvest_berries)",
-            "file(/data/commands/chop_tree)"
+            "file(/data/commands/harvest_berries)"
          ]
       },
       "model_variants": {
@@ -42,12 +41,6 @@
          "name": "Berry Bush", 
          "description": "Candy DOES grow on trees!"
       }, 
-      "stonehearth:resource_node": {
-         "harvest_profession" : "worker",
-         "harvest_overlay_effect" : "/stonehearth/data/effects/chop_overlay_effect",
-         "resource": "stonehearth:oak_log",
-         "durability": 1
-      },
       "stonehearth:renewable_resource_node": {
          "harvest_profession" : "worker",
          "resource" : "stonehearth:berry_basket",

@@ -356,6 +356,32 @@ function Town:harvest_renewable_resource_node(plant)
    return true
 end
 
+function Town:harvest_crop(crop, player_initialized)
+   if not radiant.util.is_a(crop, Entity) then
+      return false
+   end
+
+   local id = crop:get_id()
+   if not self._harvest_tasks[id] then
+      local task_group = self._task_groups.farmers
+      local task = self:create_farmer_task('stonehearth:harvest_crop', { crop = crop })
+                                   :set_source(crop)
+                                   :set_priority(stonehearth.constants.priorities.farmer_task.HARVEST)
+                                   :once()
+      self._harvest_tasks[id] = task
+
+      --Only track the task here if it was player initialized.
+      --Only put toasts on player-init actions
+      if player_initialized then
+         task:add_entity_effect(crop, '/stonehearth/data/effects/chop_overlay_effect')
+         self:_remember_user_initiated_task(task, 'harvest_crop', crop, player_initialized)
+      end
+      task:start()
+
+   end
+   return true
+end
+
 function Town:add_construction_blueprint(blueprint)
    table.insert(self._blueprints, blueprint)
    radiant.events.trigger_async(self, 'stonehearth:blueprint_added', {

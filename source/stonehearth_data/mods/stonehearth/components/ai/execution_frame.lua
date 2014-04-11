@@ -22,9 +22,10 @@ local ABORT_FRAME = ':aborted_frame:'
 local UNWIND_NEXT_FRAME = ':unwind_next_frame:'
 local UNWIND_NEXT_FRAME_2 = ':unwind_next_frame_2:'
 
-function ExecutionFrame:__init(thread, debug_route, entity, activity_name, action_index)
+function ExecutionFrame:__init(thread, entity, action_index, activity_name, debug_route, trace_route)
    self._id = stonehearth.ai:get_next_object_id()
    self._debug_route = debug_route .. ' f:' .. tostring(self._id)
+   self._trace_route = trace_route .. tostring(self._id) .. '/'
    self._entity = entity
    self._activity_name = activity_name
    self._action_index = action_index
@@ -38,7 +39,14 @@ function ExecutionFrame:__init(thread, debug_route, entity, activity_name, actio
    self._log = radiant.log.create_logger('ai.exec_frame')
    self._log:set_prefix(prefix)
    self._log:debug('creating execution frame')
-   
+   self._aitrace = radiant.log.create_logger('ai_trace')
+
+   -- Set the trace-route initially to the old route, so that in logging it is clear that the
+   -- unit is creating this frame.
+   self._aitrace:set_prefix(trace_route)
+   self._aitrace:spam('@cef@%d@%s', self._id, self._activity_name)
+   self._aitrace:set_prefix(self._trace_route)
+
    self:_set_state(STOPPED)
 
    self:_create_execution_units()
@@ -241,6 +249,7 @@ end
 
 function ExecutionFrame:_restart_thinking(entity_state)
    self._log:detail('_restart_thinking (state:%s)', self._state)
+   self._aitrace:spam('@r@%s', self._state)
 
    if not self:in_state('thinking', 'starting_thinking', 'ready', 'running') then
       return
@@ -785,6 +794,7 @@ end
 
 function ExecutionFrame:abort()
    self._log:debug('abort')
+   self:_trace_state_change('abort')
    assert(not self._aborting)
    self._aborting = true
    assert(self:_no_other_thread_is_running())
@@ -911,6 +921,9 @@ function ExecutionFrame:_remove_action_from_running(unit)
    if unit == self._active_unit then
       if not self._aborting then
          self._thread:interrupt(function()
+            self._active_unit:_stop()
+            self:_set_active_unit(nil)
+            self:_remove_execution_unit(unit)
             self:abort()
          end)
       end
@@ -926,6 +939,7 @@ function ExecutionFrame:_remove_execution_unit(unit)
    assert(unit ~= self._active_unit)
    for key, u in pairs(self._execution_units) do
       if unit == u then
+         --self._aitrace:spam('execution_frame:remove_exec_unit:%s,%s', tostring(self._entity), unit:get_name())
          self._log:debug('removing execution unit "%s"', unit:get_name())
          unit:_destroy()
          self._execution_units[key] = nil
@@ -989,8 +1003,8 @@ function ExecutionFrame:_add_execution_unit(key, entry)
                                 self._entity,
                                 entry.injecting_entity,
                                 action,
-                                self._action_index)
-
+                                self._action_index,
+                                self._trace_route)
    assert(not self._execution_units[key])
    self._execution_units[key] = unit
    self._execution_unit_keys[unit] = key
@@ -1110,7 +1124,8 @@ function ExecutionFrame:_get_best_execution_unit()
    -- choose a random unit amoung all the units with the highest priority (they all tie)
    local active_unit = active_units[math.random(#active_units)]
    self._log:spam('%s  best unit for "%s" is "%s" (priority: %d)', self._entity, self._activity_name, active_unit:get_name(), best_priority)
-   
+   self._aitrace:spam('@beu@%d', active_unit._id)
+
    return active_unit
 end
 
@@ -1161,6 +1176,7 @@ end
 
 function ExecutionFrame:_set_state(state)
    self._log:debug('state change %s -> %s', tostring(self._state), state)
+   self:_trace_state_change(state)
    self._state = state
    
    local going_to_frame = self._thread:get_thread_data('stonehearth:unwind_to_frame')
@@ -1182,6 +1198,7 @@ function ExecutionFrame:wait_until(state)
       self._waiting_until = state
       while self._state ~= state do
          self._calling_thread:suspend('waiting for ' .. state)
+         self._aitrace:spam('@w@%s', state)
       end
       self._waiting_until = nil
       self._calling_thread = nil
@@ -1264,6 +1281,10 @@ end
 
 function ExecutionFrame:_no_other_thread_is_running()
    return self._thread:is_running() or stonehearth.threads:get_current_thread() == nil
+end
+
+function ExecutionFrame:_trace_state_change(new_state)
+   self._aitrace:spam('@sc@%s', new_state)
 end
 
 function ExecutionFrame:_spam_entity_state(state, format, ...)

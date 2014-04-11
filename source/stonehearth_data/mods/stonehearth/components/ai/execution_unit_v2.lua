@@ -13,7 +13,7 @@ local ABORTING = 'aborting'
 local ABORTED = 'aborted'
 local placeholders = require 'services.server.ai.placeholders'
 
-function ExecutionUnitV2:__init(frame, thread, debug_route, entity, injecting_entity, action, action_index)
+function ExecutionUnitV2:__init(frame, thread, debug_route, entity, injecting_entity, action, action_index, trace_route)
    assert(action.name)
    assert(action.does)
    assert(action.args)
@@ -23,6 +23,7 @@ function ExecutionUnitV2:__init(frame, thread, debug_route, entity, injecting_en
    self._frame = frame
    self._thread = thread
    self._debug_route = debug_route .. ' u:' .. tostring(self._id)
+   self._trace_route = trace_route .. tostring(self._id) .. '/'
    self._entity = entity
    self._action = action
    self._action_index = action_index
@@ -65,12 +66,19 @@ function ExecutionUnitV2:__init(frame, thread, debug_route, entity, injecting_en
       end
    end
 
-
    self._log = radiant.log.create_logger('ai.exec_unit')
    local prefix = string.format('%s (%s)', self._debug_route, self:get_name())
    self._log:set_prefix(prefix)
    self._log:debug('creating execution unit')
+   self._aitrace = radiant.log.create_logger('ai_trace')
    
+   -- Set the trace-route initially to the old route, so that in logging it is clear that the
+   -- frame is creating this unit.
+   self._aitrace:set_prefix(trace_route)   
+   self._aitrace:spam('@ceu@%d@%s', self._id, self:get_name())
+   self._aitrace:set_prefix(self._trace_route)   
+   
+
    self:_set_state(STOPPED)
 end
 
@@ -547,7 +555,7 @@ function ExecutionUnitV2:_do_stop_thinking()
    self._current_entity_state = nil
    self._ai_interface.CURRENT = nil
    self._thinking = false
-   
+
    self:_call_stop_thinking()
 end
 
@@ -572,7 +580,7 @@ function ExecutionUnitV2:__execute(activity_name, args)
    self._current_execution_frame = self._execution_frames[activity_name]
    if not self._current_execution_frame then
       local ai_component = self._entity:get_component('stonehearth:ai')
-      self._current_execution_frame = ai_component:create_execution_frame(self._debug_route, activity_name)
+      self._current_execution_frame = ai_component:create_execution_frame(activity_name, self._debug_route, self._trace_route)
       --ExecutionFrame(self._thread, self._debug_route, self._entity, activity_name, self._action_index)
       self._execution_frames[activity_name] = self._current_execution_frame
    end
@@ -592,6 +600,7 @@ function ExecutionUnitV2:__execute(activity_name, args)
 end 
 
 function ExecutionUnitV2:__set_think_output(args)
+   self._aitrace:spam('@o@%s', stonehearth.ai:format_args(args))
    self._log:debug('__set_think_output %s called', stonehearth.ai:format_args(args))
    self:_set_think_output(args)
 end
@@ -606,7 +615,7 @@ function ExecutionUnitV2:__spawn(activity_name)
    self._log:debug('__spawn %s called', activity_name)
   
    local ai_component = self._entity:get_component('stonehearth:ai')
-   return ai_component:create_execution_frame(self._debug_route, activity_name)
+   return ai_component:create_execution_frame(activity_name, self._debug_route, self._trace_route)
 end
 
 function ExecutionUnitV2:__suspend(format, ...)
@@ -728,6 +737,7 @@ end
 function ExecutionUnitV2:_set_state(state)
    self._log:debug('state change %s -> %s', tostring(self._state), state)
    assert(state and self._state ~= state)
+   self._aitrace:spam('@sc@%s', state)
 
    if self._state ~= DEAD then
       self._state = state   
