@@ -61,25 +61,20 @@ function ResourceCallHandler:server_box_harvest_resources(session, response, box
                       Point3(box.max.x, box.max.y, box.max.z))
 
    for i, entity in radiant.terrain.get_entities_in_box(cube) do
-      if entity:get_component('stonehearth:renewable_resource_node') then
-         self:harvest_plant(session, response, entity)
-      elseif entity:get_component('stonehearth:resource_node') then
-         self:harvest_tree(session, response, entity)
-      end
+      self:harvest_entity(session, response, entity)
    end
 end
 
---- Remote entry point for requesting that a tree get harvested
--- @param tree The entity which you would like chopped down
--- @return true on success, false on failure
-function ResourceCallHandler:harvest_tree(session, response, tree)
+function ResourceCallHandler:harvest_entity(session, response, entity)
    local town = stonehearth.town:get_town(session.player_id)
-   return town:harvest_resource_node(tree)
-end
 
-function ResourceCallHandler:harvest_plant(session, response, plant)
-   local town = stonehearth.town:get_town(session.player_id)
-   return town:harvest_renewable_resource_node(plant)
+   if entity:get_component('stonehearth:renewable_resource_node') then
+      town:harvest_renewable_resource_node(entity)
+   elseif entity:get_component('stonehearth:resource_node') then
+      town:harvest_resource_node(entity)
+   elseif entity:get_component('stonehearth:crop') then
+      town:harvest_crop(entity, '/stonehearth/data/effects/chop_overlay_effect')
+   end
 end
 
 function ResourceCallHandler:shear_sheep(session, response, sheep)

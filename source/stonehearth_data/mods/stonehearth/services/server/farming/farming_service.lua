@@ -166,10 +166,14 @@ function FarmingService:harvest_crops(session, soil_plots)
       local plot_component = plot:get_component('stonehearth:dirt_plot')
       local plant = plot_component:get_contents()
       if plant then
-         town:harvest_resource_node(plant)
+         town:harvest_crop(plant)
       end
    end
    return true
+end
+
+function FarmingService:harvest_crop(session, crop)
+   
 end
 
 return FarmingService

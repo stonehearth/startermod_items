@@ -26,7 +26,7 @@
       "stonehearth:food_container" : {
          "effect": "fiddle",
          "food": "stonehearth:corn_cob",
-         "consume_stacks": true
+         "stacks_per_serving": 3
       }
    }
 }

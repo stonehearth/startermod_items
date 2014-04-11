@@ -23,15 +23,14 @@ function HarvestCropAction:start_thinking(ai, entity, args)
 
    -- if the thing we're carrying isn't the container for this crop, 
    -- we cannot proceed
-   local data = radiant.entities.get_entity_data(args.crop, 'stonehearth:crop')
-   if not data then
+   local crop_component = args.crop:get_component('stonehearth:crop')
+   if not crop_component then
       return
    end
 
-   if carrying:get_uri() ~= data.product then
+   if carrying:get_uri() ~= crop_component:get_product() then
       return
    end
-
 
    local item_component = carrying:add_component('item')
    if item_component:get_stacks() >= item_component:get_max_stacks() then

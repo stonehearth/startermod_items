@@ -31,7 +31,7 @@ function CarryBlock:set_carrying(item)
       radiant.entities.set_posture(self._entity, 'carrying')
       radiant.entities.add_buff(self._entity, 'stonehearth:buffs:carrying')      
    end
-   radiant.events.trigger(self._entity, 'stonehearth:carry_block:carrying_changed', {
+   radiant.events.trigger_async(self._entity, 'stonehearth:carry_block:carrying_changed', {
          entity = self._entity,
          item = item
       })

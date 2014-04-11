@@ -595,11 +595,7 @@
          "controller": "file(call_handlers/resource_call_handler.lua)",
          "endpoint" : "server"
       },
-      "harvest_tree" : {
-         "controller": "file(call_handlers/resource_call_handler.lua)",
-         "endpoint" : "server"
-      },
-      "harvest_plant" : {
+      "harvest_entity" : {
          "controller": "file(call_handlers/resource_call_handler.lua)",
          "endpoint" : "server"
       },
