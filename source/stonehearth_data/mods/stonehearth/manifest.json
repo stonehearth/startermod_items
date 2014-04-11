@@ -241,6 +241,7 @@
       "actions:drop_carrying_action" : "file(ai/actions/drop_carrying_action.lua)",
       "actions:drop_carrying_adjacent" : "file(ai/actions/drop_carrying_adjacent_action.lua)",
       "actions:drop_carrying_now" : "file(ai/actions/drop_carrying_now_action.lua)",
+      "actions:drop_carrying_when_idle" : "file(ai/actions/drop_carrying_when_idle_action.lua)",
       "actions:drop_carrying_into_entity" : "file(ai/actions/drop_carrying_into_entity.lua)",
       "actions:drop_carrying_into_entity_adjacent" : "file(ai/actions/drop_carrying_into_entity_adjacent.lua)",
       "actions:drop_carrying_into_entity_adjacent_at" : "file(ai/actions/drop_carrying_into_entity_adjacent_at.lua)",

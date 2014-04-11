@@ -13,6 +13,7 @@
             "stonehearth:actions:drop_carrying_into_entity",
             "stonehearth:actions:drop_carrying_into_entity_adjacent",
             "stonehearth:actions:drop_carrying_into_entity_adjacent_at",
+            "stonehearth:actions:drop_carrying_when_idle",            
             "stonehearth:actions:grab_promotion_talisman",            
             "stonehearth:actions:trigger_event",
             "stonehearth:actions:follow_path_action",

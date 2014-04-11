@@ -1,5 +1,3 @@
-local Point3 = _radiant.csg.Point3
-
 local WanderWhenBored = class()
 
 WanderWhenBored.name = 'wander when bored'
