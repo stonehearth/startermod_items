@@ -1,11 +1,10 @@
 mod = {}
 
 radiant.events.listen(mod, 'radiant:new_game', function(args)
-      radiant.events.listen(autotest_framework, 'autotest:finished', function(result)
-            radiant.exit(result.errorcode)
-         end)
-
       autotest_framework.env.create_world()
+      autotest_framework.set_finish_cb(function(errorcode)
+            radiant.exit(errorcode)
+         end)
 
       radiant.set_realtime_timer(3000, function()
          local index = radiant.resources.load_json('stonehearth_autotest/tests/index.json')

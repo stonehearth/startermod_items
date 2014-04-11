@@ -2,6 +2,7 @@ local AutotestInstance = require 'lib.server.autotest_instance'
 
 local _main_thread
 local _current_test_instance
+local _finish_cb
 
 local autotest_framework = {
    __saved_variables = {},
@@ -83,17 +84,21 @@ local function _run_thread(fn)
    _main_thread = stonehearth.threads:create_thread()
          :set_thread_main(function()
                fn()
-               radiant.events.trigger(autotest_framework, 'autotest:finished', { errorcode = 0 })
+               _finish_cb(0)
             end)
             
    _main_thread:start()
 end
 
 
+function autotest_framework.set_finish_cb(cb)
+   _finish_cb = cb
+end
+
 function autotest_framework.fail(format, ...)
    local err = string.format(format, ...)
    autotest_framework.log:error(err)
-   radiant.events.trigger(autotest_framework, 'autotest:finished', { errorcode = 1 })
+   _finish_cb(1)
    if _main_thread:is_running() then
       _main_thread:terminate()
    end
