@@ -15,7 +15,7 @@ sh_cwd = rad_root + '/stonehearth/source/stonehearth_data/'
 sh_exe_path = rad_root + '/stonehearth/build/source/stonehearth/RelWithDebInfo/Stonehearth.exe'
 sh_args = '--game.main_mod=stonehearth_autotest --simulation.game_speed=3 --logging.log_level=0 --logging.mods.stonehearth.ai=spam --renderer.minimized=true'
 
-sh_command = sh_exe_path + " " + sh_args
+sh_command = sh_exe_path + ' ' + sh_args
 
 return_code = 1
 
@@ -36,7 +36,7 @@ try:
   print 'Completed in ' + str((datetime.datetime.now() - t_start).total_seconds()) + ' seconds.'
 
   if return_code != 0:
-    print "Autotests failed; check stonehearth.log for more information."
+    print 'Autotests failed; check stonehearth.log for more information.'
   else:
     print 'Autotests passed!  Yay!'
 
