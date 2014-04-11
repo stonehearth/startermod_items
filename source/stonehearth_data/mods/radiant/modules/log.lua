@@ -131,6 +131,7 @@ function Log.create_logger(sub_category, prefix)
                   self[keyword] = function () end
                end
             end
+            return self
          end,
    }
 
