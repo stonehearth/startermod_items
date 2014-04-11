@@ -10,6 +10,7 @@ function carpenter_tests.place_workshop(autotest)
    -- when creating the workshop, be sure to send the size and position of
    -- the outbox before selecting the workshop location.  otherwise, the
    -- ui and the server will race to see if it gets there in time!
+   autotest.ui:sleep(500)
    autotest.ui:push_unitframe_command_button(carpenter, 'build_workshop')
    autotest.ui:sleep(500)
    autotest.ui:click_terrain(4, 4)
