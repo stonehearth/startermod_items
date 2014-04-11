@@ -18,3 +18,4 @@ return ai:create_compound_action(TeardownStructure)
                                                               location = ai.PREV.point_of_interest })
          :execute('stonehearth:teardown_structure_adjacent', { fabricator = ai.ARGS.fabricator,
                                                                block = ai.PREV.location })
+         :execute('stonehearth:drop_carrying_if_stacks_full', {})

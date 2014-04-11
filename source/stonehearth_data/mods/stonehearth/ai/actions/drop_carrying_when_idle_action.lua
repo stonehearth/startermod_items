@@ -8,8 +8,10 @@ DropCarryingWhenIdle.priority = 2
 
 function DropCarryingWhenIdle:start_thinking(ai, entity, args)
 	-- there might not be another action that wants to do anything with us while
-	-- we're carrying this thing, so drop it after a bit
-	self._timer = stonehearth.calendar:set_timer('5s', function()
+	-- we're carrying this thing, so drop it after a bit.  we use a realtime timer,
+	-- to give the processor time to do "something" with whatever we're carrying
+	-- before giving up (e.g. put it in a stockpile, build more wall with it, etc.)	
+	self._timer = radiant.set_realtime_timer(2000, function()
 			ai:set_think_output()
 		end)
 end
@@ -24,5 +26,5 @@ end
 local ai = stonehearth.ai
 return ai:create_compound_action(DropCarryingWhenIdle)
 		:when(function(ai) return ai.CURRENT.carrying ~= nil end)
-        :execute('stonehearth:wander_within_leash', { radius = 1, radius_min = 3 })
+        :execute('stonehearth:wander_within_leash', { radius = 3 })
         :execute('stonehearth:drop_carrying_now', {})

@@ -51,3 +51,4 @@ return ai:create_compound_action(HarvestCropAction)
                description = 'harvest_entity',
             },
          })
+         :execute('stonehearth:drop_carrying_if_stacks_full', {})
