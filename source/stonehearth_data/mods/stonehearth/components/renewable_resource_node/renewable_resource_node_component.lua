@@ -75,18 +75,12 @@ function RenewableResourceNodeComponent:on_effect_trigger(e)
    end
 end
 
---- If we ran a renew effect but have no trigger to set the model, do so on finish
---  Note: the effect in question must be == to the renew_effect
-function RenewableResourceNodeComponent:on_effect_finished(e)
-   self:_reset_model()
-end
-
 --- Reset the model to the default. Also, stop listening for effects
 function RenewableResourceNodeComponent:_reset_model()
    self._render_info:set_model_variant('')
    if self._renew_effect then
       radiant.events.unlisten(self._renew_effect, 'stonehearth:on_effect_trigger', self, self.on_effect_trigger)
-      radiant.events.unlisten(self._renew_effect, 'stonehearth:on_effect_finished', self, self.on_effect_finished)
+      self._renew_effect:set_finished_cb(nil)
       self._renew_effect:stop()
       self._renew_effect = nil
    end
@@ -97,8 +91,12 @@ function RenewableResourceNodeComponent:renew(location)
    if self._renew_effect_name then
       assert(not self._renew_effect)
       self._renew_effect = radiant.effects.run_effect(self._entity, self._renew_effect_name)
+      self._renew_effect:set_finished_cb(function()
+            --- If we ran a renew effect but have no trigger to set the model, do so on finish
+            self:_reset_model()
+         end)
+      
       radiant.events.listen(self._renew_effect, 'stonehearth:on_effect_trigger', self, self.on_effect_trigger)
-      radiant.events.listen(self._renew_effect, 'stonehearth:on_effect_finished', self, self.on_effect_finished)
    else 
       self._render_info:set_model_variant('')
    end

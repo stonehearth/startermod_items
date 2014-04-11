@@ -50,7 +50,7 @@ function RunEffectAction:run(ai, entity, args)
          self._trigger_fn = args.trigger_fn
          radiant.events.listen(self._effect, 'stonehearth:on_effect_trigger', self, self._on_effect_trigger)
       end
-      radiant.events.listen_once(self._effect, 'stonehearth:on_effect_finished', function ()
+      self._effect:set_finished_cb(function()
             if self._effect then
                log:debug('stopped effect "%s" and resuming', effect_name)
                self:_destroy_effect()

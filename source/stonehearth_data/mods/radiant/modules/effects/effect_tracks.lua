@@ -83,6 +83,10 @@ function EffectTracks:is_finished()
    return not self._running
 end
 
+function EffectTracks:set_finished_cb(cb)
+   self._finished_cb = cb
+end
+
 function EffectTracks:stop()
    self._log:debug('manually stopping effect')
    self:_cleanup()
@@ -117,6 +121,9 @@ function EffectTracks:_finish()
       radiant.events.trigger(self, 'stonehearth:on_effect_finished')
       if self._cleanup_on_finish then
          self:_cleanup()
+      end
+      if self._finished_cb then
+         self._finished_cb()
       end
    end
 end
