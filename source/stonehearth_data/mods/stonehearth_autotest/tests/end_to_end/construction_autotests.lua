@@ -11,9 +11,6 @@ function construction_tests.simple_build(autotest)
          if e.entity:get_uri() == 'stonehearth:scaffolding' then
             local scaffolding = e.entity
             radiant.events.listen(scaffolding, 'stonehearth:construction:finished_changed', function ()
-                  -- scaffolding should be destroyed automagically.
-                  --radiant.entities.destroy_entity(blueprint)
-
                   if construction_complete then
                      local finished = scaffolding:get_component('stonehearth:construction_progress'):get_finished()
                      local rgn = scaffolding:get_component('destination'):get_region()
@@ -27,17 +24,14 @@ function construction_tests.simple_build(autotest)
          end
    end)
 
-   -- blueprint is done!  wait for the scaffolding to be torn down before reporting success.
-   -- the scaffolding will be "done" when the scaffolding blueprint region matches the
-   -- scaffolding project.  since the original blueprint is done, the scaffolding region
-   -- should now be empty
    radiant.events.listen(autotest.env:get_town(), 'stonehearth:blueprint_added', function (e)
          local blueprint = e.blueprint
          radiant.events.listen(blueprint, 'stonehearth:construction:finished_changed', function ()
                local finished = blueprint:get_component('stonehearth:construction_progress'):get_finished()
                if finished then
                   construction_complete = true
-                  -- unlisten from notifications about the blueprint.
+                  -- unlisten from notifications about the blueprint.  The listen code above
+                  -- will now wait for the scaffolding to be torn down.
                   return radiant.events.UNLISTEN
                end
          end)
@@ -54,7 +48,7 @@ function construction_tests.simple_build(autotest)
    autotest.ui:sleep(500)
    autotest.ui:click_terrain(5, 4)
 
-   autotest:sleep(5*60*1000)
+   autotest:sleep(3*60*1000)
    autotest:fail('failed to construction')
 end
 
