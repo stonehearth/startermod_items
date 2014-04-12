@@ -108,7 +108,7 @@ int NavGridTileData::Offset(csg::Point3 const& pt)
  * so just don't bother.  This updates each of the individual TrackerType vectors first,
  * then walk through the derived vectors.
  */
-void NavGridTileData::FlushDirty(NavGrid& ng, std::vector<CollisionTrackerRef>& trackers, csg::Cube3 const& world_bounds)
+void NavGridTileData::FlushDirty(NavGrid& ng, TrackerMap& trackers, csg::Cube3 const& world_bounds)
 {
    UpdateBaseVectors(trackers, world_bounds);
    UpdateDerivedVectors(ng, world_bounds);
@@ -120,7 +120,7 @@ void NavGridTileData::FlushDirty(NavGrid& ng, std::vector<CollisionTrackerRef>& 
  *
  * Update the base vectors for the navgrid.
  */
-void NavGridTileData::UpdateBaseVectors(std::vector<CollisionTrackerRef>& trackers, csg::Cube3 const& world_bounds)
+void NavGridTileData::UpdateBaseVectors(TrackerMap& trackers, csg::Cube3 const& world_bounds)
 {
    if (dirty_ & BASE_VECTORS) {
       dirty_ &= ~BASE_VECTORS;
@@ -128,7 +128,7 @@ void NavGridTileData::UpdateBaseVectors(std::vector<CollisionTrackerRef>& tracke
       for (BitSet& bs : marked_) {
          bs.reset();
       }
-      stdutil::ForEachPrune<CollisionTracker>(trackers, [this, &world_bounds](CollisionTrackerPtr tracker) {
+      stdutil::ForEachPrune<dm::ObjectId, CollisionTracker>(trackers, [this, &world_bounds](dm::ObjectId const&, CollisionTrackerPtr tracker) {
          UpdateCollisionTracker(*tracker, world_bounds);
       });
    }

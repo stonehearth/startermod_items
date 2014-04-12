@@ -12,10 +12,10 @@ BEGIN_RADIANT_PHYSICS_NAMESPACE
 /*
  * -- NavGridTile 
  *
- * Hold the metadata for the navigation grid.  This is predominatily a list of
- * collsion trackers which overlap this tile.  The actual navgrid information is
+ * Hold the metadata for the navigation grid.  This is predominately a list of
+ * collision trackers which overlap this tile.  The actual navgrid information is
  * store in a NavGridTileData pointer referenced by the NavGridTile.  This
- * lets us keep most of the nav grid paged out, but rebuild it very quickly 
+ * lets us keep most of the navgrid paged out, but rebuild it very quickly 
  * when it's required.  in a 1024x1024x128 world there may be up to 32768 
  * NavGridTile tiles in memory, but only a handful actually need to be resident.
  * Extra care is taken to ensure that this class is as small as possible (e.g.
@@ -63,9 +63,9 @@ private:
    };
 
 private:
-   bool                                         visited_;
-   std::vector<CollisionTrackerRef>             trackers_;
-   std::shared_ptr<NavGridTileData>             data_;
+   bool                                visited_;
+   TrackerMap                          trackers_;
+   std::shared_ptr<NavGridTileData>    data_;
 };
 
 END_RADIANT_PHYSICS_NAMESPACE

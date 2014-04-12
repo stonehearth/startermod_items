@@ -22,6 +22,7 @@ public:
 
    virtual void Initialize();
    csg::Point3 GetEntityPosition() const;
+   om::EntityPtr GetEntity() const;
 
    virtual csg::Region3 GetOverlappingRegion(csg::Cube3 const& bounds) const = 0;
    virtual void MarkChanged() = 0;
@@ -29,7 +30,6 @@ public:
 
 protected:
    NavGrid& GetNavGrid() const;
-   om::EntityPtr GetEntity() const;
 
 private:
    NavGrid&       ng_;

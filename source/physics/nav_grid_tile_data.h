@@ -2,11 +2,15 @@
 #define _RADIANT_PHYSICS_NAV_GRID_TILE_DATA_H
 
 #include <bitset>
+#include <unordered_map>
 #include "namespace.h"
 #include "csg/namespace.h"
+#include "dm/dm.h"
 #include "protocols/forward_defines.h"
 
 BEGIN_RADIANT_PHYSICS_NAMESPACE
+
+typedef std::unordered_multimap<dm::ObjectId, CollisionTrackerRef> TrackerMap;
 
 /*
  * -- NavGridTileData
@@ -21,8 +25,8 @@ public:
    NavGridTileData();
    ~NavGridTileData();
 
-   void FlushDirty(NavGrid& ng, std::vector<CollisionTrackerRef>& trackers, csg::Cube3 const& world_bounds);
-   void UpdateBaseVectors(std::vector<CollisionTrackerRef>& trackers, csg::Cube3 const& world_bounds);
+   void FlushDirty(NavGrid& ng, TrackerMap& trackers, csg::Cube3 const& world_bounds);
+   void UpdateBaseVectors(TrackerMap& trackers, csg::Cube3 const& world_bounds);
    bool IsEmpty(csg::Cube3 const& bounds);
    bool CanStandOn(csg::Point3 const& pt);
    void MarkDirty();

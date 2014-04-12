@@ -1,6 +1,8 @@
 #include "radiant.h"
 #include "radiant_stdutil.h"
 #include "csg/cube.h"
+#include "collision_tracker.h"
+#include "om/entity.h"
 #include "nav_grid_tile.h"
 #include "nav_grid_tile_data.h"
 
@@ -26,8 +28,23 @@ NavGridTile::NavGridTile() :
  */
 void NavGridTile::RemoveCollisionTracker(CollisionTrackerPtr tracker)
 {
-   stdutil::FastRemove(trackers_, tracker);
-   MarkDirty();
+   om::EntityPtr entity = tracker->GetEntity();
+   if (entity) {
+      dm::ObjectId id = entity->GetObjectId();
+
+      // Run through all the trackers for the current entity.  The TrackerMap is a
+      // multimap, so this is O(1) for the find() + O(n) for the number of tracker
+      // types, but there are a only and handful of those, so consider the while
+      // loop here to be constant time.
+      auto i = trackers_.find(id), end = trackers_.end();
+      while (i != end && i->first == id) {
+         if (i->second.lock() == tracker) {
+            trackers_.erase(i);
+            MarkDirty();
+            return;
+         }
+      }
+   }
 }
 
 /*
@@ -37,7 +54,12 @@ void NavGridTile::RemoveCollisionTracker(CollisionTrackerPtr tracker)
  */
 void NavGridTile::AddCollisionTracker(CollisionTrackerPtr tracker)
 {
-   stdutil::UniqueInsert(trackers_, tracker);
+   om::EntityPtr entity = tracker->GetEntity();
+   if (entity) {
+      dm::ObjectId id = entity->GetObjectId();
+      trackers_.insert(std::make_pair(id, tracker));
+      MarkDirty();
+   }
    MarkDirty();
 }
 
