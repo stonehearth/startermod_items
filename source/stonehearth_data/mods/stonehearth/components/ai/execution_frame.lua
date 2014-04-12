@@ -286,6 +286,12 @@ function ExecutionFrame:_restart_thinking(entity_state)
       self._log:detail('%s -> %s', self._active_unit and self._active_unit:get_name() or '', unit:get_name())
       local think_output = self._saved_think_output[unit]
       assert(think_output)
+
+      if self._active_unit then
+         self._log:detail('stopping old active unit "%s" in _restart_thinking.', self._active_unit:get_name())
+         self._active_unit:stop()
+         self._active_unit = nil
+      end
       self._log:detail('using "%s" as active unit in _restart_thinking.', unit:get_name())
       self:_set_active_unit(unit, think_output)
       self:_set_state(READY)
@@ -625,6 +631,9 @@ function ExecutionFrame:_unit_not_ready_from_ready(unit)
 end
 
 function ExecutionFrame:_set_active_unit(unit, think_output)
+   -- seems like a REALLY good thing to do, put probably lots of fallout
+   -- assert(not unit or not self._active_unit, 'cannot change active unit without disposing of the previous one')
+
    local aname = self._active_unit and self._active_unit:get_name() or 'none'
    local uname = unit and unit:get_name() or 'none'
    self._log:detail('replacing active unit "%s" with "%s"', aname, uname)
@@ -634,7 +643,7 @@ function ExecutionFrame:_set_active_unit(unit, think_output)
 
    if self._current_entity_state then
       local new_entity_state
-      if unit then
+      if self._active_unit then
          new_entity_state = unit:get_current_entity_state()
          self._log:spam('copying unit state %s to current state %s', tostring(new_entity_state), tostring(self._current_entity_state))
       else
@@ -1075,7 +1084,7 @@ function ExecutionFrame:_is_strictly_better_than_active(unit)
                      unit:get_name(), unit_priority, self._active_unit:get_name(), active_priority)
       return true
    end
-   self._log:spam('  unit %s priority %d < active unit "%s" priority %d.  therefore is not better!',
+   self._log:spam('  unit %s priority %d <= active unit "%s" priority %d.  therefore is not better!',
                   unit:get_name(), unit_priority, self._active_unit:get_name(), active_priority)
    return false
 end

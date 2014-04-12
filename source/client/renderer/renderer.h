@@ -73,6 +73,8 @@ struct RendererConfig {
    RendererConfigEntry<int> last_screen_y;
 
    RendererConfigEntry<bool> enable_debug_keys;
+
+   RendererConfigEntry<bool> minimized;
 };
 
 struct SystemStats {
