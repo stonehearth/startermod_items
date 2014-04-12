@@ -83,6 +83,15 @@ function ConstructionProgress:get_finished()
    return self._sv.finished
 end
 
+function ConstructionProgress:set_scaffolding(scaffolding)
+   self._sv.scaffolding = scaffolding
+   self.__saved_variables:mark_changed()
+end
+
+function ConstructionProgress:get_scaffolding()
+   return self._sv.scaffolding
+end
+
 function ConstructionProgress:get_dependencies_finished()
    return self._sv.dependencies_finished
 end

@@ -61,7 +61,7 @@ function FabricatorComponent:start_project(name, blueprint)
    if ci:needs_scaffolding() then
       local normal = ci:get_normal()
       assert(radiant.util.is_a(normal, Point3))
-      self:_add_scaffolding_to_project(project, blueprint, normal)
+      self:_add_scaffolding(blueprint, project, normal)
    end
 
    -- remember the blueprint and project 
@@ -84,7 +84,7 @@ function FabricatorComponent:get_project()
    return self._project
 end
 
-function FabricatorComponent:_add_scaffolding_to_project(project, blueprint, normal)
+function FabricatorComponent:_add_scaffolding(blueprint, project, normal)
    -- create a scaffolding blueprint and point it to the project
    local uri = 'stonehearth:scaffolding'
    local transform = project:add_component('mob'):get_transform()
@@ -93,7 +93,7 @@ function FabricatorComponent:_add_scaffolding_to_project(project, blueprint, nor
    local scaffolding = radiant.entities.create_entity(uri)
    scaffolding:add_component('stonehearth:construction_data')
                   :set_normal(normal)
-   scaffolding:add_component('stonehearth:scaffolding_fabricator'):support_project(project, blueprint, normal)
+   scaffolding:add_component('stonehearth:scaffolding_fabricator'):support_project(project, blueprint, normal)   
    radiant.entities.set_faction(scaffolding, project)
    radiant.entities.set_player_id(scaffolding, project)
 
@@ -113,6 +113,10 @@ function FabricatorComponent:_add_scaffolding_to_project(project, blueprint, nor
    self._entity:add_component('entity_container')
                   :add_child(fabricator)
 
+   -- notify the blueprint that it has some scaffolding
+   blueprint:add_component('stonehearth:construction_progress')
+            :set_scaffolding(scaffolding)
+            
    self._scaffolding_blueprint = scaffolding
    self._scaffolding_fabricator = fabricator
 end
