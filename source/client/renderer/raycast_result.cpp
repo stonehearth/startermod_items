@@ -29,6 +29,9 @@ int RaycastResult::numResults() const
 
 const csg::Point3f RaycastResult::intersectionOf(int i) const
 {
+   if (i >= _intersections.size()) {
+      throw std::logic_error(BUILD_STRING("invalid index " << i << "in RaycastResult::intersectionOf"));
+   }
    return _intersections[i];
 }
 
@@ -41,11 +44,17 @@ void RaycastResult::addIntersection(const csg::Point3f& p, const csg::Point3f& n
 
 const csg::Point3f RaycastResult::normalOf(int i) const
 {
+   if (i >= _normals.size()) {
+      throw std::logic_error(BUILD_STRING("invalid index " << i << "in RaycastResult::normalOf"));
+   }
    return _normals[i];
 }
 
 dm::ObjectId RaycastResult::objectIdOf(int i) const
 {
+   if (i >= _objIds.size()) {
+      throw std::logic_error(BUILD_STRING("invalid index " << i << "in RaycastResult::objectIdOf"));
+   }
    return _objIds[i];
 }
 
@@ -61,6 +70,9 @@ void RaycastResult::setRay(const csg::Ray3& ray)
 
 const csg::Point3 RaycastResult::brickOf(int i) const
 {
+   if (i >= _objIds.size() || i >= _normals.size() || i >= _intersections.size()) {
+      throw std::logic_error(BUILD_STRING("invalid index " << i << "in RaycastResult::brickOf"));
+   }
    csg::Matrix4 nodeTransform = Renderer::GetInstance().GetTransformForObject(_objIds[i]);
    nodeTransform.affine_inverse();
    csg::Point3f normal = nodeTransform.rotate(_normals[i]);
@@ -85,8 +97,14 @@ const csg::Point3 RaycastResult::brickOf(int i) const
 
 bool RaycastResult::isValidBrick(int i) const
 {
-   auto terrainPtr = Client::GetInstance().GetEntity(_objIds[i])->GetComponent<om::Terrain>();
-   return (terrainPtr.get() != nullptr);
+   if (i >= _objIds.size()) {
+      return false;
+   }
+   om::EntityPtr terrain = Client::GetInstance().GetEntity(_objIds[i]);
+   if (!terrain) {
+      return false;
+   }
+   return terrain->GetComponent<om::Terrain>() != nullptr;
 }
 
 RaycastResult::~RaycastResult()
