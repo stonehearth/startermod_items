@@ -16,6 +16,7 @@ function AutotestInstance:__init(name, fn)
    self.util = AutotestUtil(self)
    self:_protect_framework_interface('ui')
    self:_protect_framework_interface('env')
+   self._error_count = _host:get_error_count()
 end
 
 function AutotestInstance:_protect_framework_interface(iname)
@@ -57,7 +58,7 @@ function AutotestInstance:fail(format, ...)
 end
 
 function AutotestInstance:script_did_error()
-   return _host:get_error_count() ~= 0
+   return _host:get_error_count() ~= self._error_count
 end
 
 function AutotestInstance:success()
