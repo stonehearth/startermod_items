@@ -183,7 +183,7 @@
          }, 
          "calories": {
             "type" : "basic", 
-            "value" : 100
+            "value" : 75
          },
          "sleepiness": {
             "type" : "random_range", 
