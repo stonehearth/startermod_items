@@ -56,6 +56,10 @@ function AutotestInstance:fail(format, ...)
    self._thread:terminate()
 end
 
+function AutotestInstance:script_did_error()
+   return _host:get_error_count() ~= 0
+end
+
 function AutotestInstance:success()
    self:_check_running('success')
    self._success_called = true
