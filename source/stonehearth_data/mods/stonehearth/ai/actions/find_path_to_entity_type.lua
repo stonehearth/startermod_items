@@ -86,7 +86,7 @@ function FindPathToEntityType:_start_pathfinder()
    end   
    
    self._log:detail('finding path from CURRENT.location %s to item type...', self._ai.CURRENT.location)
-   self._pathfinder = _radiant.sim.create_path_finder(self._entity, 'goto entity action')
+   self._pathfinder = _radiant.sim.create_astar_path_finder(self._entity, 'goto entity action')
                          :set_source(self._ai.CURRENT.location)
                          :set_solved_cb(solved)
    self._promise = radiant.terrain.trace_world_entities('find path to entity type', on_added, on_removed)
