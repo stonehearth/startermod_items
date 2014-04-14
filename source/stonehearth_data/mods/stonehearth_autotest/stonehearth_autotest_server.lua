@@ -20,7 +20,6 @@ radiant.events.listen(mod, 'radiant:new_game', function(args)
          else
             autotest_framework.run_group(index, 'all')
          end
-         --autotest_framework.run_script('stonehearth_autotest/tests/end_to_end/sleep_autotests.lua')
       end)
    end)
 

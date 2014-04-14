@@ -25,13 +25,13 @@
       "broken_end_to_end" : {
          "name" : "broken end to end tests =(.  fix this and move them back into end to end!!",
          "scripts" : [
-            "file(blackbox/stockpile_autotests.lua)"
          ]
       },
 
       "blackbox" : {
          "name" : "blackbox tests",
          "scripts" : [
+            "file(blackbox/stockpile_autotests.lua)",
             "file(blackbox/region_autotests.lua)",
             "file(blackbox/calendar_autotests.lua)"
          ]

@@ -13,6 +13,7 @@ WaitForFabricator.priority = 1
 function WaitForFabricator:start_thinking(ai, entity, args)
    self._ai = ai
    self._fabricator = args.fabricator
+   self._read = false
    
    radiant.events.listen(self._fabricator, 'needs_work', self, self._on_needs_work)
    self:_on_needs_work(self._fabricator, self._fabricator, self._fabricator:needs_work())
