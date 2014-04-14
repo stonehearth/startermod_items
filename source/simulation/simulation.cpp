@@ -6,7 +6,8 @@
 #include "radiant_exceptions.h"
 #include "platform/utils.h"
 #include "simulation.h"
-#include "jobs/path_finder.h"
+#include "jobs/bfs_path_finder.h"
+#include "jobs/a_star_path_finder.h"
 #include "jobs/follow_path.h"
 #include "jobs/entity_job_scheduler.h"
 #include "resources/res_manager.h"
@@ -348,7 +349,7 @@ void Simulation::PushPerformanceCounters()
          counters.add(row);
       };
 
-      PathFinder::ComputeCounters(addCounter);
+      AStarPathFinder::ComputeCounters(addCounter);
       GetScript().ComputeCounters(addCounter);
 
       perf_counter_deferred_->Notify(counters);

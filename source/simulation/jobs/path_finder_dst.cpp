@@ -13,11 +13,13 @@
 using namespace ::radiant;
 using namespace ::radiant::simulation;
 
-#define PF_LOG(level)   LOG_CATEGORY(simulation.pathfinder, level, pf_.GetName() << " dst " << id_)
+#define PF_LOG(level)   LOG_CATEGORY(simulation.pathfinder, level, name_ << "(dst " << id_ << ")")
 
-PathFinderDst::PathFinderDst(PathFinder &pf, om::EntityRef e) :
-   pf_(pf),
+PathFinderDst::PathFinderDst(Simulation& sim, om::EntityRef e, std::string const& name, ChangedCb changed_cb) :
+   sim_(sim),
    entity_(e),
+   name_(name),
+   changed_cb_(changed_cb),
    moving_(false)
 {
    ASSERT(!e.expired());
@@ -40,11 +42,11 @@ void PathFinderDst::CreateTraces()
          auto ep = entity_.lock();
          if (ep) {
             ClipAdjacentToTerrain();
-            pf_.RestartSearch(reason);
+            changed_cb_(reason);
          }
       };
 
-      auto& o = GetSim().GetOctTree();
+      auto& o = sim_.GetOctTree();
       auto mob = entity->GetComponent<om::Mob>();
       if (mob) {
          moving_ = mob->GetMoving();
@@ -61,7 +63,7 @@ void PathFinderDst::CreateTraces()
                                        PF_LOG(7) << "mob moving changed";
                                        moving_ = moving;
                                        if (moving_) {
-                                          pf_.RestartSearch("mob moving changed");
+                                          changed_cb_("mob moving changed");
                                        }
                                     }
                                  });
@@ -88,7 +90,7 @@ void PathFinderDst::ClipAdjacentToTerrain()
 
    om::EntityPtr entity = entity_.lock();
    if (entity) {
-      world_space_adjacent_region_ = MovementHelper().GetRegionAdjacentToEntity(GetSim(), entity);
+      world_space_adjacent_region_ = MovementHelper().GetRegionAdjacentToEntity(sim_, entity);
    }
 }
 

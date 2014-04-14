@@ -27,7 +27,7 @@ int RaycastResult::numResults() const
    return _intersections.size();
 }
 
-const csg::Point3f RaycastResult::intersectionOf(int i) const
+const csg::Point3f RaycastResult::intersectionOf(uint i) const
 {
    if (i >= _intersections.size()) {
       throw std::logic_error(BUILD_STRING("invalid index " << i << "in RaycastResult::intersectionOf"));
@@ -42,7 +42,7 @@ void RaycastResult::addIntersection(const csg::Point3f& p, const csg::Point3f& n
    _objIds.push_back(objId);
 }
 
-const csg::Point3f RaycastResult::normalOf(int i) const
+const csg::Point3f RaycastResult::normalOf(uint i) const
 {
    if (i >= _normals.size()) {
       throw std::logic_error(BUILD_STRING("invalid index " << i << "in RaycastResult::normalOf"));
@@ -50,7 +50,7 @@ const csg::Point3f RaycastResult::normalOf(int i) const
    return _normals[i];
 }
 
-dm::ObjectId RaycastResult::objectIdOf(int i) const
+dm::ObjectId RaycastResult::objectIdOf(uint i) const
 {
    if (i >= _objIds.size()) {
       throw std::logic_error(BUILD_STRING("invalid index " << i << "in RaycastResult::objectIdOf"));
@@ -68,7 +68,7 @@ void RaycastResult::setRay(const csg::Ray3& ray)
    _ray = ray;
 }
 
-const csg::Point3 RaycastResult::brickOf(int i) const
+const csg::Point3 RaycastResult::brickOf(uint i) const
 {
    if (i >= _objIds.size() || i >= _normals.size() || i >= _intersections.size()) {
       throw std::logic_error(BUILD_STRING("invalid index " << i << "in RaycastResult::brickOf"));
@@ -95,7 +95,7 @@ const csg::Point3 RaycastResult::brickOf(int i) const
    return brick;
 }
 
-bool RaycastResult::isValidBrick(int i) const
+bool RaycastResult::isValidBrick(uint i) const
 {
    if (i >= _objIds.size()) {
       return false;
