@@ -25,8 +25,8 @@ function stockpile_tests.restock_twice(autotest)
          counter = counter + 1
          if counter == 2 then
             autotest:success()
+            return radiant.events.UNLISTEN
          end
-         return radiant.events.UNLISTEN
       end)
 
    autotest:sleep(10000)
