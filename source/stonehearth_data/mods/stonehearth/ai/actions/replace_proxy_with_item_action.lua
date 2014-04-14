@@ -25,7 +25,12 @@ function ReplaceProxyWithItem:start(ai, entity, args)
    -- lease the proxy so no one comes out and grabs it from us during our
    -- work animation.
    if not stonehearth.ai:acquire_ai_lease(self._proxy, entity) then
-      ai:abort('could not lease %s (%s has it).', tostring(self._proxy), tostring(lease_component:get_owner('ai_reservation')))
+      local lease_component = self._proxy:get_component('stonehearth:lease')
+      local owner = 'unknown' 
+      if lease_component then
+         owner = tostring(lease_component:get_owner('ai_reservation'))
+      end
+      ai:abort('could not lease %s (%s has it).', tostring(self._proxy), owner)
       return
    end
 end

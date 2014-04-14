@@ -483,6 +483,7 @@ function Task:__action_stopped(action)
       if self:_is_work_finished() then
          self._log:debug('task reached max number of completions (%d).  stopping and completing!', self._times)
          self:_set_state(COMPLETED)
+         self:_destroy_entity_effects()
          self:_fire_completed_cbs()
       end
    end
