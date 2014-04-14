@@ -23,6 +23,12 @@ function PickupPlacedItemAdjacent:start_thinking(ai, entity, args)
    end
    self._proxy_item = self._placed_item_component:get_proxy_entity()
    self._proxy_component = self._proxy_item:add_component('stonehearth:placeable_item_proxy')
+   
+   if not self._proxy_item or not self._proxy_item then
+      assert(false, 'Huh? Why would either be nil?')
+      return
+   end
+   
    self._proxy_component:set_full_sized_entity(item)
 
    ai.CURRENT.carrying = self._proxy_item

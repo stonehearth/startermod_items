@@ -17,11 +17,11 @@ class RaycastResult
       int numResults() const;
       bool isValid() const;
       
-      const csg::Point3f intersectionOf(int i) const;
-      const csg::Point3f normalOf(int i) const;
-      dm::ObjectId objectIdOf(int i) const;
-      const csg::Point3 brickOf(int i) const; 
-      bool isValidBrick(int i) const;
+      const csg::Point3f intersectionOf(uint i) const;
+      const csg::Point3f normalOf(uint i) const;
+      dm::ObjectId objectIdOf(uint i) const;
+      const csg::Point3 brickOf(uint i) const; 
+      bool isValidBrick(uint i) const;
 
       const csg::Ray3 ray() const;
 

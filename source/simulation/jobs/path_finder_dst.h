@@ -16,7 +16,9 @@ class Simulation;
 
 class PathFinderDst {
 public:
-   PathFinderDst(PathFinder& pf, om::EntityRef entity);
+   typedef std::function<void(const char *reason)> ChangedCb;
+
+   PathFinderDst(Simulation& sim, om::EntityRef e, std::string const& name, ChangedCb changed_cb);
    ~PathFinderDst();
 
    om::EntityPtr GetEntity() const { return entity_.lock(); }
@@ -32,12 +34,13 @@ private:
    void DestroyTraces();
    void ClipAdjacentToTerrain();
    int EstimateMovementCost(csg::Point3 const& start, csg::Point3 const& end) const;
-   Simulation& GetSim() const { return pf_.GetSim(); }
 
 public:
-   PathFinder&                pf_;
+   Simulation&                sim_;
+   std::string                name_;
    dm::ObjectId               id_;
    om::EntityRef              entity_;
+   ChangedCb                  changed_cb_;
    bool                       moving_;
    om::DeepRegionGuardPtr     region_guard_;
    csg::Region3               world_space_adjacent_region_;
