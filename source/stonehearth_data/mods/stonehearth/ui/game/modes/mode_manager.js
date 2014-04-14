@@ -72,7 +72,17 @@ $(document).ready(function() {
             // notify the rest of the ui
             $(top).trigger('mode_changed', mode);
 
-            radiant.call('stonehearth:ui_mode_changed', mode)
+            var hudMode = 'normal'
+
+            if (mode == this.modes.ZONES || 
+                mode == this.modes.BUILD) {
+               hudMode = 'hud';
+            }
+
+            if (hudMode != this._hudMode) {
+               radiant.call('stonehearth:ui_mode_changed', hudMode);
+               this._hudMode = hudMode;
+            }
          }
       },
 

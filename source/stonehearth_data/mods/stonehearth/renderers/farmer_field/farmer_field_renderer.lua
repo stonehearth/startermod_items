@@ -8,7 +8,6 @@ local FarmerFieldRenderer = class()
 
 function FarmerFieldRenderer:__init()
    self._color = Color4(122, 40, 0, 76)
-   self._ui_view_mode = 'zones'
    self._items = {}
 
    _radiant.call('stonehearth:get_ui_mode'):done(
@@ -22,28 +21,28 @@ function FarmerFieldRenderer:__init()
          self._ui_view_mode = e.mode
 
          self:_update_item_states(e.mode, self._items)
-         self:_update_field_renderer(e.mode)
+         self:_update_field_renderer()
       end
    end)
 end
 
-function FarmerFieldRenderer:_update_field_renderer(mode)
+function FarmerFieldRenderer:_update_field_renderer()
    self._region:modify(function(cursor)
       cursor:clear()
       cursor:add_cube(Rect2(Point2(0, 0), self._size))
    end)
    
-   if mode == 'zones' then      
-      self._zone_node = _radiant.client.create_designation_node(self._parent_node, self._region:get(), self._color, self._color);
-   elseif self._zone_node then
-      h3dRemoveNode(self._zone_node)
-      self._zone_node = nil
+   if self:_show_hud() then      
+      self._hud_node = _radiant.client.create_designation_node(self._parent_node, self._region:get(), self._color, self._color);
+   elseif self._hud_node then
+      h3dRemoveNode(self._hud_node)
+      self._hud_node = nil
    end
 end
 
 
 function FarmerFieldRenderer:_update_query_flag(render_entity, mode)
-   if mode == 'zones' then
+   if self:_show_hud() then
       render_entity:add_query_flag(_radiant.renderer.QueryFlags.UNSELECTABLE)
    else
       render_entity:remove_query_flag(_radiant.renderer.QueryFlags.UNSELECTABLE)
@@ -66,12 +65,11 @@ function FarmerFieldRenderer:_update_item_states(mode, item_map)
 end
 
 function FarmerFieldRenderer:_mode_to_material_kind(mode)
-   if mode == 'normal' then
+   if self:_show_hud() then
+      return 'hud'
+   else 
       return 'default'
-   elseif mode == 'zones' then
-      return 'zones'
    end
-   return 'default'
 end
 
 
@@ -160,11 +158,16 @@ function FarmerFieldRenderer:_regenerate_node()
    end)
    
    self:_clear()
-   if self._ui_view_mode == 'zones' then
-      self._zone_node = _radiant.client.create_designation_node(self._parent_node, self._region:get(), self._color, self._color);
+   if self:_show_hud() then
+      self._hud_node = _radiant.client.create_designation_node(self._parent_node, self._region:get(), self._color, self._color);
    end
    --self._node = _radiant.client.create_stockpile_node(self._parent_node, self._region:get(), Color4(55, 49, 26, 48), Color4(55, 49, 26, 64));
 end
+
+function FarmerFieldRenderer:_show_hud()
+   return self._ui_view_mode == 'hud'
+end
+
 
 function FarmerFieldRenderer:_clear()
    if self._node then
