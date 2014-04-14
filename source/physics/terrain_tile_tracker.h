@@ -19,9 +19,11 @@ public:
    TerrainTileTracker(NavGrid& ng, om::EntityPtr entity, csg::Point3 const& pt, om::Region3BoxedPtr tile);
 
    void Initialize() override;
-   csg::Region3 GetOverlappingRegion(csg::Cube3 const& bounds) const override;
-   void MarkChanged() override;
    TrackerType GetType() const override;
+   csg::Region3 GetOverlappingRegion(csg::Cube3 const& bounds) const override;
+
+protected:
+   void MarkChanged() override;
 
 private:
    NO_COPY_CONSTRUCTOR(TerrainTileTracker)

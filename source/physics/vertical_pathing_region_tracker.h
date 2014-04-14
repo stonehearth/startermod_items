@@ -20,12 +20,12 @@ public:
    ~VerticalPathingRegionTracker();
 
    void Initialize() override;
-   csg::Region3 GetOverlappingRegion(csg::Cube3 const& bounds) const override;
-   void MarkChanged() override;
    TrackerType GetType() const override;
+   csg::Region3 GetOverlappingRegion(csg::Cube3 const& bounds) const override;
 
 private:
    om::Region3BoxedPtr GetRegion() const;
+   void MarkChanged();
 
 private:
    NO_COPY_CONSTRUCTOR(VerticalPathingRegionTracker)
