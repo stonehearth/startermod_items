@@ -1,4 +1,5 @@
 #include "radiant.h"
+#include "radiant_stdutil.h"
 #include "radiant_macros.h"
 #include "nav_grid.h"
 #include "nav_grid_tile.h"
@@ -12,6 +13,7 @@
 #include "om/components/terrain.ridl.h"
 #include "om/components/vertical_pathing_region.ridl.h"
 #include "om/components/region_collision_shape.ridl.h"
+#include "mob_tracker.h"
 #include "terrain_tracker.h"
 #include "terrain_tile_tracker.h"
 #include "region_collision_shape_tracker.h"
@@ -48,38 +50,42 @@ NavGrid::NavGrid(int trace_category) :
 void NavGrid::TrackComponent(om::ComponentPtr component)
 {
    dm::ObjectId id = component->GetObjectId();
-
+   CollisionTrackerPtr tracker;
    switch (component->GetObjectType()) {
+      case om::MobObjectType: {
+         auto mob = std::static_pointer_cast<om::Mob>(component);
+         if (mob->GetMobCollisionType() != om::Mob::NONE) {
+            tracker = std::make_shared<MobTracker>(*this, mob->GetEntityPtr(), mob);
+         }
+         break;
+      }
       case om::TerrainObjectType: {
          auto terrain = std::static_pointer_cast<om::Terrain>(component);
-         CollisionTrackerPtr tracker = std::make_shared<TerrainTracker>(*this, terrain->GetEntityPtr(), terrain);
-         collision_trackers_[id] = tracker;
-         tracker->Initialize();
+         tracker = std::make_shared<TerrainTracker>(*this, terrain->GetEntityPtr(), terrain);
          break;
       }
       case om::RegionCollisionShapeObjectType: {
          auto rcs = std::static_pointer_cast<om::RegionCollisionShape>(component);
-         CollisionTrackerPtr tracker = std::make_shared<RegionCollisionShapeTracker>(*this, rcs->GetEntityPtr(), rcs);
-         collision_trackers_[id] = tracker;
-         tracker->Initialize();
+         tracker = std::make_shared<RegionCollisionShapeTracker>(*this, rcs->GetEntityPtr(), rcs);
          break;
       }
       case om::VerticalPathingRegionObjectType: {
          auto rcs = std::static_pointer_cast<om::VerticalPathingRegion>(component);
-         CollisionTrackerPtr tracker = std::make_shared<VerticalPathingRegionTracker>(*this, rcs->GetEntityPtr(), rcs);
-         collision_trackers_[id] = tracker;
-         tracker->Initialize();
+         tracker = std::make_shared<VerticalPathingRegionTracker>(*this, rcs->GetEntityPtr(), rcs);
          break;
       }
-      default:
-         return;
    }
-   collision_tracker_dtors_[id] = component->TraceChanges("nav grid destruction", GetTraceCategory())
-                                       ->OnDestroyed([this, id]() {
-                                          NG_LOG(3) << "tracker " << id << " destroyed.  updating grid.";
-                                          collision_trackers_.erase(id);
-                                          collision_tracker_dtors_.erase(id);
-                                       });
+
+   if (tracker) {
+      collision_trackers_[id] = tracker;
+      tracker->Initialize();
+      collision_tracker_dtors_[id] = component->TraceChanges("nav grid destruction", GetTraceCategory())
+                                          ->OnDestroyed([this, id]() {
+                                             NG_LOG(3) << "tracker " << id << " destroyed.  updating grid.";
+                                             collision_trackers_.erase(id);
+                                             collision_tracker_dtors_.erase(id);
+                                          });
+   }
 
 }
 
@@ -334,13 +340,26 @@ void NavGrid::ShowDebugShapes(csg::Point3 const& pt, protocol::shapelist* msg)
    tile.ShowDebugShapes(msg, index);
 
    csg::Color4 border_color(0, 0, 128, 64);
+   csg::Color4 mob_color(128, 0, 128, 64);
    for (auto const& entry : resident_tiles_) {
       protocol::box* box = msg->add_box();
-      csg::Point3 offset = entry.first.Scaled(TILE_SIZE);
-      csg::ToFloat(offset).SaveValue(box->mutable_minimum());
-      csg::ToFloat(offset + csg::Point3(TILE_SIZE, TILE_SIZE, TILE_SIZE)).SaveValue(box->mutable_maximum());
+      csg::Point3f offset = csg::ToFloat(entry.first.Scaled(TILE_SIZE)) - csg::Point3f(0.5f, 0, 0.5f);
+      offset.SaveValue(box->mutable_minimum());
+      (offset + csg::Point3f(TILE_SIZE, TILE_SIZE, TILE_SIZE)).SaveValue(box->mutable_maximum());
       border_color.SaveValue(box->mutable_color());
    }
+   auto i = collision_trackers_.begin(), end = collision_trackers_.end();
+   for (; i != end; i++) {
+      CollisionTrackerPtr tracker = i->second;
+      if (tracker->GetType() == MOB) {
+         MobTrackerPtr mob = std::static_pointer_cast<MobTracker>(tracker);
+         csg::Point3f location = csg::ToFloat(mob->GetLastLocation()) - csg::Point3f(0.5f, 0, 0.5f);
+         protocol::box* box = msg->add_box();
+         location.SaveValue(box->mutable_minimum());
+         (location + csg::Point3f::one).SaveValue(box->mutable_maximum());
+         mob_color.SaveValue(box->mutable_color());
+      }
+   };
 }
 
 

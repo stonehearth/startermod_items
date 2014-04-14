@@ -11,13 +11,14 @@
 using namespace ::radiant;
 using namespace ::radiant::simulation;
 
-#define PF_LOG(level)   LOG_CATEGORY(simulation.pathfinder, level, pf_.GetName())
+#define PF_LOG(level)   LOG_CATEGORY(simulation.pathfinder, level, name_ << "(src)")
 
-PathFinderSrc::PathFinderSrc(PathFinder &pf, om::EntityRef e) :
-   pf_(pf),
+PathFinderSrc::PathFinderSrc(om::EntityRef e, std::string const& name, ChangedCb changed_cb) :
    entity_(e),
+   name_(name),
    moving_(false),
    collision_cb_id_(0),
+   changed_cb_(changed_cb),
    use_source_override_(false)
 {
 
@@ -28,15 +29,15 @@ PathFinderSrc::PathFinderSrc(PathFinder &pf, om::EntityRef e) :
       if (mob) {
          transform_trace_ = mob->TraceTransform("pf src", dm::PATHFINDER_TRACES)
                                     ->OnChanged([this](csg::Transform const&) {
-                                       pf_.RestartSearch("source moved");
+                                       changed_cb_("src moved");
                                     });
 
          moving_trace_ = mob->TraceMoving("pf src", dm::PATHFINDER_TRACES)
                                     ->OnChanged([this](bool const& moving) {
                                        moving_ = moving;
                                        if (moving_) {
-                                          pf_.RestartSearch("source moving changed");
-                                       }
+                                          changed_cb_("src moving changed");
+                                      }
                                     });
       }
    }

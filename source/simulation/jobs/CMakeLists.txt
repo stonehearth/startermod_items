@@ -1,13 +1,14 @@
 add_library(simulation_jobs STATIC
-			pch.cpp
+            pch.cpp
             debug_colors.cpp
             job.cpp
             task.cpp
             path.cpp
-            path_finder.cpp
+            bfs_path_finder.cpp
+            a_star_path_finder.cpp
+            direct_path_finder.cpp
             path_finder_src.cpp
             path_finder_dst.cpp
-            direct_path_finder.cpp
             entity_job_scheduler.cpp
             follow_path.cpp
             bump_location.cpp

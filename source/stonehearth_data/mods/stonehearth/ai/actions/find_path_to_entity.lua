@@ -55,7 +55,7 @@ function FindPathToEntity:start_thinking(ai, entity, args)
       ai:set_think_output({path = path})
    end
 
-   self._pathfinder = _radiant.sim.create_path_finder(entity, 'find path to entity')
+   self._pathfinder = _radiant.sim.create_astar_path_finder(entity, 'find path to entity')
                          :set_source(ai.CURRENT.location)
                          :add_destination(destination)
                          :set_solved_cb(solved)

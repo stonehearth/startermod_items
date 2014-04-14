@@ -160,20 +160,22 @@ void NavGridTileData::UpdateCollisionTracker(CollisionTracker const& tracker, cs
    // Ask the tracker to compute the overlap with this tile.  world_bounds is stored in
    // world-coordinates, so translate it back to tile-coordinates when we get it back.
    TrackerType type = tracker.GetType();
-   csg::Region3 overlap = tracker.GetOverlappingRegion(world_bounds).Translated(-world_bounds.min);
+   if (type < NUM_BIT_VECTOR_TRACKERS) {
+      csg::Region3 overlap = tracker.GetOverlappingRegion(world_bounds).Translated(-world_bounds.min);
 
-   // Now just loop through all the points and set the bit.  There's certainly a more
-   // efficient implementation which sets contiguous bits in one go, but this already
-   // doesn't appear on the profile (like < 0.1% of the total game time)
-   int count = 0;
-   for (csg::Cube3 const& cube : overlap) {
-      for (csg::Point3 const& pt : cube) {
-         NG_LOG(9) << "marking " << pt << " in vector " << type;
-         marked_[type][Offset(pt)] = true;
-         count++;
+      // Now just loop through all the points and set the bit.  There's certainly a more
+      // efficient implementation which sets contiguous bits in one go, but this already
+      // doesn't appear on the profile (like < 0.1% of the total game time)
+      int count = 0;
+      for (csg::Cube3 const& cube : overlap) {
+         for (csg::Point3 const& pt : cube) {
+            NG_LOG(9) << "marking " << pt << " in vector " << type;
+            marked_[type][Offset(pt)] = true;
+            count++;
+         }
       }
+      NG_LOG(5) << "marked " << count << " bits in vector " << type;
    }
-   NG_LOG(5) << "marked " << count << " bits in vector " << type;
 }
 
 /*
@@ -200,11 +202,6 @@ void NavGridTileData::ShowDebugShapes(protocol::shapelist* msg, csg::Cube3 const
          blocked_color.SaveValue(coord->mutable_color());
       }
    }
-
-   protocol::box* box = msg->add_box();
-   csg::ToFloat(world_bounds.min).SaveValue(box->mutable_minimum());
-   csg::ToFloat(world_bounds.max).SaveValue(box->mutable_maximum());
-   border_color.SaveValue(box->mutable_color());
 }
 
 /*

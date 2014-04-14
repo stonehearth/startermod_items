@@ -25,10 +25,13 @@ class TerrainTracker;
 class TerrainTileTracker;
 class RegionCollisionShapeTracker;
 class VerticalPathingRegionTracker;
+class MobTracker;
 
 DECLARE_SHARED_POINTER_TYPES(CollisionTracker)
 DECLARE_SHARED_POINTER_TYPES(TerrainTracker)
 DECLARE_SHARED_POINTER_TYPES(TerrainTileTracker)
+DECLARE_SHARED_POINTER_TYPES(VerticalPathingRegionTracker)
+DECLARE_SHARED_POINTER_TYPES(MobTracker)
 
 enum {
    TILE_SIZE = 16
@@ -42,14 +45,18 @@ enum {
  *             collision shape.  Mobile entities cannot overlap these voxels.
  *
  * LADDER - represents bits which overlap some entities VerticalPathingRegion
- *          region.  These bits are both traversible (i.e. you can walk through
+ *          region.  These bits are both traversable (i.e. you can walk through
  *          them) and can support an entity (i.e. you can stand on them).
  *          I guess technically that makes them more like a chute, but \/\/
  *          Ladder bits override collision bits!
  */
 enum TrackerType {
    COLLISION = 0,
-   LADDER = 1,
+   LADDER,
+
+   NUM_BIT_VECTOR_TRACKERS,
+
+   MOB,
    MAX_TRACKER_TYPES,
 };
 

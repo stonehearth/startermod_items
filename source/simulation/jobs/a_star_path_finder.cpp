@@ -1,6 +1,6 @@
 #include "pch.h"
 #include "path.h"
-#include "path_finder.h"
+#include "a_star_path_finder.h"
 #include "path_finder_src.h"
 #include "path_finder_dst.h"
 #include "simulation/simulation.h"
@@ -14,7 +14,7 @@
 using namespace ::radiant;
 using namespace ::radiant::simulation;
 
-std::vector<std::weak_ptr<PathFinder>> PathFinder::all_pathfinders_;
+std::vector<std::weak_ptr<AStarPathFinder>> AStarPathFinder::all_pathfinders_;
 
 #define PF_LOG(level)   LOG_CATEGORY(simulation.pathfinder, level, GetName())
 
@@ -22,21 +22,21 @@ std::vector<std::weak_ptr<PathFinder>> PathFinder::all_pathfinders_;
 #  define VERIFY_HEAPINESS() \
    do { \
       if (!rebuildHeap_) { \
-         _Debug_heap(open_.begin(), open_.end(), bind(&PathFinder::CompareEntries, this, _1, _2)); \
+         _Debug_heap(open_.begin(), open_.end(), bind(&AStarPathFinder::CompareEntries, this, _1, _2)); \
       } \
    } while (false);
 #else
 #  define VERIFY_HEAPINESS()
 #endif
 
-std::shared_ptr<PathFinder> PathFinder::Create(Simulation& sim, std::string name, om::EntityPtr entity)
+AStarPathFinderPtr AStarPathFinder::Create(Simulation& sim, std::string name, om::EntityPtr entity)
 {
-   std::shared_ptr<PathFinder> pathfinder(new PathFinder(sim, name, entity));
+   AStarPathFinderPtr pathfinder(new AStarPathFinder(sim, name, entity));
    all_pathfinders_.push_back(pathfinder);
    return pathfinder;
 }
 
-void PathFinder::ComputeCounters(std::function<void(const char*, double, const char*)> const& addCounter)
+void AStarPathFinder::ComputeCounters(std::function<void(const char*, double, const char*)> const& addCounter)
 {
    int count = 0;
    int running_count = 0;
@@ -44,7 +44,7 @@ void PathFinder::ComputeCounters(std::function<void(const char*, double, const c
    int closed_count = 0;
    int active_count = 0;
 
-   stdutil::ForEachPrune<PathFinder>(all_pathfinders_, [&](std::shared_ptr<PathFinder> pf) {
+   stdutil::ForEachPrune<AStarPathFinder>(all_pathfinders_, [&](AStarPathFinderPtr pf) {
       count++;
       if (pf->enabled_) {
          active_count++;
@@ -56,15 +56,15 @@ void PathFinder::ComputeCounters(std::function<void(const char*, double, const c
       closed_count += pf->closed_.size();
    });
 
-   addCounter("pathfinders:total_count", count, "counter");
-   addCounter("pathfinders:active_count", active_count, "counter");
-   addCounter("pathfinders:running_count", running_count, "counter");
-   addCounter("pathfinders:open_node_count", open_count, "counter");
-   addCounter("pathfinders:closed_node_count", closed_count, "counter");
+   addCounter("pathfinders:a_star:total_count", count, "counter");
+   addCounter("pathfinders:a_star:active_count", active_count, "counter");
+   addCounter("pathfinders:a_star:running_count", running_count, "counter");
+   addCounter("pathfinders:a_star:open_node_count", open_count, "counter");
+   addCounter("pathfinders:a_star:closed_node_count", closed_count, "counter");
 }
 
-PathFinder::PathFinder(Simulation& sim, std::string name, om::EntityPtr entity) :
-   Job(sim, name),
+AStarPathFinder::AStarPathFinder(Simulation& sim, std::string name, om::EntityPtr entity) :
+   PathFinder(sim, name),
    rebuildHeap_(false),
    restart_search_(true),
    search_exhausted_(false),
@@ -73,44 +73,38 @@ PathFinder::PathFinder(Simulation& sim, std::string name, om::EntityPtr entity) 
    debug_color_(255, 192, 0, 128)
 {
    PF_LOG(3) << "creating pathfinder";
-   source_.reset(new PathFinderSrc(*this, entity));
+
+   auto changed_cb = [this](const char* reason) {
+      RestartSearch(reason);
+   };
+   source_.reset(new PathFinderSrc(entity, GetName(), changed_cb));
 }
 
-PathFinder::~PathFinder()
+AStarPathFinder::~AStarPathFinder()
 {
    PF_LOG(3) << "destroying pathfinder";
 }
 
-PathFinderPtr PathFinder::SetSource(csg::Point3 const& location)
+AStarPathFinderPtr AStarPathFinder::SetSource(csg::Point3 const& location)
 {
    source_->SetSourceOverride(location);
    RestartSearch("source location changed");
    return shared_from_this();
 }
 
-PathFinderPtr PathFinder::SetSolvedCb(luabind::object unsafe_solved_cb)
+AStarPathFinderPtr AStarPathFinder::SetSolvedCb(SolvedCb solved_cb)
 {
-   lua_State* cb_thread = lua::ScriptHost::GetCallbackThread(unsafe_solved_cb.interpreter());  
-   solved_cb_ = luabind::object(cb_thread, unsafe_solved_cb);
+   solved_cb_ = solved_cb;
    return shared_from_this();
 }
 
-PathFinderPtr PathFinder::SetSearchExhaustedCb(luabind::object unsafe_search_exhuasted_cb)
+AStarPathFinderPtr AStarPathFinder::SetSearchExhaustedCb(ExhaustedCb exhausted_cb)
 {
-   lua_State* cb_thread = lua::ScriptHost::GetCallbackThread(unsafe_search_exhuasted_cb.interpreter());  
-   search_exhausted_cb_ = luabind::object(cb_thread, unsafe_search_exhuasted_cb);
+   exhausted_cb_ = exhausted_cb;
    return shared_from_this();
 }
 
-PathFinderPtr PathFinder::SetFilterFn(luabind::object unsafe_dst_filter)
-{
-   lua_State* cb_thread = lua::ScriptHost::GetCallbackThread(unsafe_dst_filter.interpreter());  
-   dst_filter_ = luabind::object(cb_thread, unsafe_dst_filter);
-   RestartSearch("filter function changed");
-   return shared_from_this();
-}
-
-bool PathFinder::IsIdle() const
+bool AStarPathFinder::IsIdle() const
 {
    if (!enabled_) {
       PF_LOG(5) << "is_idle: yes.  not enabled";
@@ -160,14 +154,14 @@ bool PathFinder::IsIdle() const
    return false;
 }
 
-PathFinderPtr PathFinder::Start()
+AStarPathFinderPtr AStarPathFinder::Start()
 {
    PF_LOG(5) << "start requested";
    enabled_ = true;
    return shared_from_this();
 }
 
-PathFinderPtr PathFinder::Stop()
+AStarPathFinderPtr AStarPathFinder::Stop()
 {
    PF_LOG(5) << "stop requested";
    RestartSearch("pathfinder stopped");
@@ -175,33 +169,21 @@ PathFinderPtr PathFinder::Stop()
    return shared_from_this();
 }
 
-PathFinderPtr PathFinder::AddDestination(om::EntityRef e)
+AStarPathFinderPtr AStarPathFinder::AddDestination(om::EntityRef e)
 {
    auto entity = e.lock();
    if (entity) {
-      if (dst_filter_ && luabind::type(dst_filter_) == LUA_TFUNCTION) {
-         bool ok = false;
-         lua_State* L = dst_filter_.interpreter();
-         try {
-            luabind::object e(L, std::weak_ptr<om::Entity>(entity));
-            PF_LOG(5) << "calling lua solution callback";
-            ok = lua::ScriptHost::CoerseToBool(dst_filter_(e));
-            PF_LOG(5) << "finished calling lua solution callback";
-         } catch (std::exception&) {
-         }
-         if (!ok) {
-            return shared_from_this();
-         }
-      }
-
-      destinations_[entity->GetObjectId()] = std::unique_ptr<PathFinderDst>(new PathFinderDst(*this, e));
+      auto changed_cb = [this](const char* reason) {
+         RestartSearch(reason);
+      };
+      destinations_[entity->GetObjectId()] = std::unique_ptr<PathFinderDst>(new PathFinderDst(GetSim(), entity, GetName(), changed_cb));
       restart_search_ = true;
       solution_ = nullptr;
    }
    return shared_from_this();
 }
 
-PathFinderPtr PathFinder::RemoveDestination(dm::ObjectId id)
+AStarPathFinderPtr AStarPathFinder::RemoveDestination(dm::ObjectId id)
 {
    auto i = destinations_.find(id);
    if (i != destinations_.end()) {
@@ -216,7 +198,7 @@ PathFinderPtr PathFinder::RemoveDestination(dm::ObjectId id)
    return shared_from_this();
 }
 
-void PathFinder::Restart()
+void AStarPathFinder::Restart()
 {
    PF_LOG(5) << "restarting search";
 
@@ -244,7 +226,7 @@ void PathFinder::Restart()
    }
 }
 
-void PathFinder::EncodeDebugShapes(radiant::protocol::shapelist *msg) const
+void AStarPathFinder::EncodeDebugShapes(radiant::protocol::shapelist *msg) const
 {
    if (!IsIdle()) {
       std::vector<csg::Point3> best;
@@ -296,7 +278,7 @@ void PathFinder::EncodeDebugShapes(radiant::protocol::shapelist *msg) const
    }
 }
 
-void PathFinder::Work(const platform::timer &timer)
+void AStarPathFinder::Work(const platform::timer &timer)
 {
    PF_LOG(7) << "entering work function";
 
@@ -354,7 +336,7 @@ void PathFinder::Work(const platform::timer &timer)
 }
 
 
-void PathFinder::AddEdge(const PathFinderNode &current, const csg::Point3 &next, int movementCost)
+void AStarPathFinder::AddEdge(const PathFinderNode &current, const csg::Point3 &next, int movementCost)
 {
    PF_LOG(10) << "       Adding Edge " << current.pt << " cost:" << next;
 
@@ -399,7 +381,7 @@ void PathFinder::AddEdge(const PathFinderNode &current, const csg::Point3 &next,
    VERIFY_HEAPINESS();
 }
 
-int PathFinder::EstimateCostToSolution()
+int AStarPathFinder::EstimateCostToSolution()
 {
    if (!enabled_) {
       return INT_MAX;
@@ -413,14 +395,14 @@ int PathFinder::EstimateCostToSolution()
    return open_.front().f;
 }
 
-int PathFinder::EstimateCostToDestination(const csg::Point3 &from) const
+int AStarPathFinder::EstimateCostToDestination(const csg::Point3 &from) const
 {
    ASSERT(!restart_search_);
 
    return EstimateCostToDestination(from, nullptr);
 }
 
-int PathFinder::EstimateCostToDestination(const csg::Point3 &from, PathFinderDst** closest) const
+int AStarPathFinder::EstimateCostToDestination(const csg::Point3 &from, PathFinderDst** closest) const
 {
    int hMin = INT_MAX;
 
@@ -456,7 +438,7 @@ int PathFinder::EstimateCostToDestination(const csg::Point3 &from, PathFinderDst
    return hMin;
 }
 
-PathFinderNode PathFinder::GetFirstOpen()
+PathFinderNode AStarPathFinder::GetFirstOpen()
 {
    auto result = open_.front();
 
@@ -470,7 +452,7 @@ PathFinderNode PathFinder::GetFirstOpen()
    return result;
 }
 
-void PathFinder::ReconstructPath(std::vector<csg::Point3> &solution, const csg::Point3 &dst) const
+void AStarPathFinder::ReconstructPath(std::vector<csg::Point3> &solution, const csg::Point3 &dst) const
 {
    solution.push_back(dst);
 
@@ -485,18 +467,18 @@ void PathFinder::ReconstructPath(std::vector<csg::Point3> &solution, const csg::
    std::reverse(solution.begin(), solution.end());
 }
 
-void PathFinder::RecommendBestPath(std::vector<csg::Point3> &points) const
+void AStarPathFinder::RecommendBestPath(std::vector<csg::Point3> &points) const
 {
    points.clear();
    if (!open_.empty()) {
       if (rebuildHeap_) {
-         const_cast<PathFinder*>(this)->RebuildHeap();
+         const_cast<AStarPathFinder*>(this)->RebuildHeap();
       }
       ReconstructPath(points, open_.front().pt);
    }
 }
 
-std::string PathFinder::GetProgress() const
+std::string AStarPathFinder::GetProgress() const
 {
    std::string ename;
    auto entity = entity_.lock();
@@ -506,33 +488,29 @@ std::string PathFinder::GetProgress() const
    return BUILD_STRING(GetName() << " " << ename << " (open: " << open_.size() << "  closed: " << closed_.size() << ")");
 }
 
-void PathFinder::RebuildHeap()
+void AStarPathFinder::RebuildHeap()
 {
    std::make_heap(open_.begin(), open_.end(), PathFinderNode::CompareFitness);
    VERIFY_HEAPINESS();
    rebuildHeap_ = false;
 }
 
-void PathFinder::SetSearchExhausted()
+void AStarPathFinder::SetSearchExhausted()
 {
    if (!search_exhausted_) {
       cameFrom_.clear();
       closed_.clear();
       open_.clear();
       search_exhausted_ = true;
-      if (search_exhausted_cb_.is_valid()) {
+      if (exhausted_cb_) {
          PF_LOG(5) << "calling lua search exhausted callback";
-         try {
-            search_exhausted_cb_();
-         } catch (std::exception const& e) {
-            lua::ScriptHost::ReportCStackException(search_exhausted_cb_.interpreter(), e);
-         }
+         exhausted_cb_();
          PF_LOG(5) << "finished calling lua search exhausted callback";
       }
    }
 }
 
-void PathFinder::SolveSearch(const csg::Point3& last, PathFinderDst* dst)
+void AStarPathFinder::SolveSearch(const csg::Point3& last, PathFinderDst* dst)
 {
    std::vector<csg::Point3> points;
 
@@ -546,26 +524,21 @@ void PathFinder::SolveSearch(const csg::Point3& last, PathFinderDst* dst)
    csg::Point3 dst_point_of_interest = dst->GetPointOfInterest(points.back());
    PF_LOG(5) << "found solution to destination " << dst->GetEntityId();
    solution_ = std::make_shared<Path>(points, entity_.lock(), dst->GetEntity(), dst_point_of_interest);
-   if (solved_cb_.is_valid()) {
+   if (solved_cb_) {
       PF_LOG(5) << "calling lua solved callback";
-      try {
-         solved_cb_(luabind::object(solved_cb_.interpreter(), solution_));
-      } catch (std::exception const& e) {
-         LUA_LOG(1) << "exception delivering solved cb: " << e.what();
-      }
-
+      solved_cb_(solution_);
       PF_LOG(5) << "finished calling lua solved callback";
    }
 
    VERIFY_HEAPINESS();
 }
 
-PathPtr PathFinder::GetSolution() const
+PathPtr AStarPathFinder::GetSolution() const
 {
    return solution_;
 }
 
-PathFinderPtr PathFinder::RestartSearch(const char* reason)
+AStarPathFinderPtr AStarPathFinder::RestartSearch(const char* reason)
 {
    PF_LOG(3) << "requesting search restart: " << reason;
    restart_search_ = true;
@@ -577,28 +550,28 @@ PathFinderPtr PathFinder::RestartSearch(const char* reason)
    return shared_from_this();
 }
 
-std::ostream& ::radiant::simulation::operator<<(std::ostream& o, const PathFinder& pf)
+std::ostream& ::radiant::simulation::operator<<(std::ostream& o, const AStarPathFinder& pf)
 {
    return pf.Format(o);
 }
 
-std::ostream& PathFinder::Format(std::ostream& o) const
+std::ostream& AStarPathFinder::Format(std::ostream& o) const
 {
    o << "[pf " << GetName() << "]";
    return o;        
 }
 
-bool PathFinder::IsSearchExhausted() const
+bool AStarPathFinder::IsSearchExhausted() const
 {
    return open_.empty() || search_exhausted_;
 }
 
-void PathFinder::SetDebugColor(csg::Color4 const& color)
+void AStarPathFinder::SetDebugColor(csg::Color4 const& color)
 {
    debug_color_ = color;
 }
 
-std::string PathFinder::DescribeProgress()
+std::string AStarPathFinder::DescribeProgress()
 {
    std::ostringstream progress;
    progress << GetName() << open_.size() << " open nodes. " << closed_.size() << " closed nodes. ";

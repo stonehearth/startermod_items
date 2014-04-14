@@ -16,10 +16,22 @@ BEGIN_RADIANT_SIMULATION_NAMESPACE
 class Simulation;
 class Job;
 class Task;
+class Path;
 class PathFinder;
+class PathFinderSrc;
+class PathFinderDst;
+class BfsPathFinder;
+class AStarPathFinder;
+class DirectPathFinder;
 class EntityJobScheduler;
 
+DECLARE_SHARED_POINTER_TYPES(Path)
 DECLARE_SHARED_POINTER_TYPES(PathFinder)
+DECLARE_SHARED_POINTER_TYPES(PathFinderSrc)
+DECLARE_SHARED_POINTER_TYPES(PathFinderDst)
+DECLARE_SHARED_POINTER_TYPES(BfsPathFinder)
+DECLARE_SHARED_POINTER_TYPES(AStarPathFinder)
+DECLARE_SHARED_POINTER_TYPES(DirectPathFinder)
 DECLARE_SHARED_POINTER_TYPES(EntityJobScheduler)
 
 END_RADIANT_SIMULATION_NAMESPACE

@@ -97,7 +97,7 @@ function ChaseEntity:_find_path(ai, entity, target)
       ai:resume()
    end
 
-   self._pathfinder = _radiant.sim.create_path_finder(entity, 'chase entity')
+   self._pathfinder = _radiant.sim.create_astar_path_finder(entity, 'chase entity')
                          :add_destination(target)
                          :set_solved_cb(on_solved)
                          :set_search_exhausted_cb(on_failed)

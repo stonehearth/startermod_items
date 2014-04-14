@@ -1,3 +1,9 @@
+-- NOTE NOTE NOTE NOTE NOTE NOTE NOTE NOTE NOTE NOTE NOTE NOTE NOTE NOTE NOTE NOTE NOTE NOTE NOTE
+
+-- Temporarily disabled until Tony can figure out why this doesn't work. =..(
+
+-- NOTE NOTE NOTE NOTE NOTE NOTE NOTE NOTE NOTE NOTE NOTE NOTE NOTE NOTE NOTE NOTE NOTE NOTE NOTE
+
 local DropCarryingWhenIdle = class()
 
 DropCarryingWhenIdle.name = 'drop carrying when idle'
@@ -25,6 +31,8 @@ end
 
 local ai = stonehearth.ai
 return ai:create_compound_action(DropCarryingWhenIdle)
-		:when(function(ai) return ai.CURRENT.carrying ~= nil end)
+		:when(function(ai) 
+			radiant.log.write('debuggin', 0, 'ai.CURRENT.carrying is %s', tostring(ai.CURRENT.carrying))
+			return ai.CURRENT.carrying ~= nil end)
         :execute('stonehearth:wander_within_leash', { radius = 3 })
         :execute('stonehearth:drop_carrying_now', {})

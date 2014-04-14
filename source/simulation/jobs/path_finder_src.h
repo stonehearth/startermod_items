@@ -16,7 +16,9 @@ class PathFinder;
 
 class PathFinderSrc {
 public:
-   PathFinderSrc(PathFinder& pf, om::EntityRef entity);
+   typedef std::function<void(const char *reason)> ChangedCb;
+
+   PathFinderSrc(om::EntityRef entity, std::string const& name, ChangedCb changed_cb);
    ~PathFinderSrc();
 
    bool IsIdle() const;
@@ -25,11 +27,9 @@ public:
    void SetSourceOverride(csg::Point3 const& location);
    csg::Point3 GetSourceLocation() const;
 
-protected:
-   Simulation& GetSim() const { return pf_.GetSim(); }
-
 public:
-   PathFinder&                pf_;
+   std::string                name_;
+   ChangedCb                  changed_cb_;
    om::EntityRef              entity_;
    bool                       moving_;
    core::Guard                guards_;

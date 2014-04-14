@@ -21,12 +21,14 @@ public:
    virtual ~CollisionTracker() { }
 
    virtual void Initialize();
+   virtual TrackerType GetType() const = 0;
+   virtual csg::Region3 GetOverlappingRegion(csg::Cube3 const& bounds) const = 0;
+
    csg::Point3 GetEntityPosition() const;
    om::EntityPtr GetEntity() const;
 
-   virtual csg::Region3 GetOverlappingRegion(csg::Cube3 const& bounds) const = 0;
+protected:
    virtual void MarkChanged() = 0;
-   virtual TrackerType GetType() const = 0;
 
 protected:
    NavGrid& GetNavGrid() const;
