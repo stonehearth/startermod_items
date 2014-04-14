@@ -11,6 +11,7 @@
       "end_to_end" : {
          "name" : "end to end tests",
          "scripts" : [
+            "file(end_to_end/stockpile_autotests.lua)",
             "file(end_to_end/construction_autotests.lua)",
             "file(end_to_end/harvest_autotests.lua)",
             "file(end_to_end/promote_autotests.lua)",
@@ -24,7 +25,6 @@
       "broken_end_to_end" : {
          "name" : "broken end to end tests =(.  fix this and move them back into end to end!!",
          "scripts" : [
-            "file(end_to_end/stockpile_autotests.lua)"
          ]
       },
 
