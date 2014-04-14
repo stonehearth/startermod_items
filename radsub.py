@@ -19,29 +19,15 @@ sh_command = sh_exe_path + ' ' + sh_args
 
 return_code = 1
 
-print 'Stashing uncommitted files....'
+print 'Running Stonehearth autotests with exe at ' + sh_exe_path + '....'
 
-# Make sure we run our tests with other changes stashed. NOTE: this doesn't stash untracked 
-# changes, because unstashing untracked changes requires that you delete those files in your
-# tree.
-if subprocess.call('git stash --keep-index') != 0:
-  print 'Error in git stash; aborting submit.'
-  sys.exit(1)
+return_code = subprocess.call(sh_command, cwd=sh_cwd)
 
-try:
-  print 'Running Stonehearth autotests with exe at ' + sh_exe_path + '....'
+print 'Completed in ' + str((datetime.datetime.now() - t_start).total_seconds()) + ' seconds.'
 
-  return_code = subprocess.call(sh_command, cwd=sh_cwd)
-
-  print 'Completed in ' + str((datetime.datetime.now() - t_start).total_seconds()) + ' seconds.'
-
-  if return_code != 0:
-    print 'Autotests failed; check stonehearth.log for more information.'
-  else:
-    print 'Autotests passed!  Yay!'
-
-  print 'Unstashing files....'
-finally:
-  subprocess.call('git stash pop --quiet --index')
+if return_code != 0:
+  print 'Autotests failed; check stonehearth.log for more information.'
+else:
+  print 'Autotests passed!  Yay!'
 
 sys.exit(return_code)
