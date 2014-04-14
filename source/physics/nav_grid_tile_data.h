@@ -53,7 +53,7 @@ private:
    typedef std::bitset<TILE_SIZE*TILE_SIZE*TILE_SIZE> BitSet;
 private:
    int      dirty_;
-   BitSet   marked_[MAX_TRACKER_TYPES];
+   BitSet   marked_[NUM_BIT_VECTOR_TRACKERS];
    BitSet   can_stand_;
 };
 

@@ -26,10 +26,13 @@ int Response::AddRef()
 
 int Response::Release() 
 {
-   if (--_refCount == 0) {
+   // the std::atomic<int> will guaranteed sequential consistency across threads
+   // for the -- operation.  store the result on the stack to return, later.
+   int refCount = --_refCount;
+   if (refCount == 0) {
       delete this;
    }
-   return _refCount;
+   return refCount;
 }
 
 int Response::GetRefCt()

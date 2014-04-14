@@ -38,6 +38,7 @@ class NavGrid {
       friend TerrainTileTracker;
       friend RegionCollisionShapeTracker;
       friend VerticalPathingRegionTracker;
+      friend MobTracker;
       int GetTraceCategory();
       void AddTerrainTileTracker(om::EntityRef entity, csg::Point3 const& offset, om::Region3BoxedPtr tile);
       void AddCollisionTracker(csg::Cube3 const& last_bounds, csg::Cube3 const& bounds, CollisionTrackerPtr tracker);

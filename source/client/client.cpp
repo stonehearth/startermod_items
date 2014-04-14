@@ -1188,7 +1188,7 @@ void Client::UpdateDebugCursor()
       csg::Point2 pt = renderer.GetMousePosition();
 
       renderer.QuerySceneRay(pt.x, pt.y, 0, r);
-      if (r.numResults() > 0) {
+      if (r.isValidBrick(0)) {
          json::Node args;
          csg::Point3 pt = r.brickOf(0) + csg::ToInt(r.normalOf(0));
          args.set("enabled", true);

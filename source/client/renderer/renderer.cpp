@@ -1208,6 +1208,9 @@ void* Renderer::GetLastUiBuffer()
 csg::Matrix4 Renderer::GetTransformForObject(dm::ObjectId objId)
 {
    const auto entity = Client::GetInstance().GetEntity(objId).get();
+   if (!entity) {
+      throw std::logic_error(BUILD_STRING("invalid entity id " << objId << "in Renderer::GetTransformForObject"));
+   }
    H3DNode n = GetRenderObject(entity->GetStoreId(), entity->GetObjectId())->GetNode();
    return GetNodeTransform(n);
 }
