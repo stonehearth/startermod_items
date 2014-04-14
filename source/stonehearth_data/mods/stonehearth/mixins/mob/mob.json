@@ -1,7 +1,8 @@
 {
    "components" : {
       "mob" : {
-         "interpolate_movement" : true
+         "interpolate_movement" : true,
+         "mob_collision_type" : "humanoid"
       },
       "stonehearth:ai" : {
          "actions" : [

@@ -20,6 +20,7 @@ void Mob::ConstructObject()
    interpolate_movement_ = false;
    selectable_ = true;
    moving_ = false;
+   mob_collision_type_ = NONE;
 }
 
 void Mob::MoveTo(const csg::Point3f& location)
@@ -148,7 +149,7 @@ csg::Point3f Mob::GetLocationInFront() const
    float z = (*transform_).position.z + (float)floor(translation.z + 0.5);
    return csg::Point3f(x, (*transform_).position.y, z);
 #else
-   // This seems to be the proper implemenation, but doesn't work at all.  Why?
+   // This seems to be the proper implementation, but doesn't work at all.  Why?
    NOT_TESTED();
    csg::Quaternion q = (*transform_).orientation;
    return q.rotate(csg::Point3f(0, 0, -1));
@@ -161,13 +162,28 @@ csg::Point3 Mob::GetGridLocation() const
    return csg::ToClosestInt(GetLocation());
 }
 
+static std::unordered_map<std::string, Mob::MobCollisionTypes> __str_to_type; // xxx -- would LOVE initializer here..
+
 void Mob::LoadFromJson(json::Node const& obj)
 {
    SetInterpolateMovement(obj.get<bool>("interpolate_movement", false));
    transform_ = obj.get<csg::Transform>("transform", csg::Transform(csg::Point3f(0, 0, 0), csg::Quaternion(1, 0, 0, 0)));
    
+   if (__str_to_type.empty()) {
+      __str_to_type["humanoid"] = HUMANOID;
+      __str_to_type["item"]  = ITEM;
+   }
+
    if (obj.has("parent")) {
       parent_ = GetStore().FetchObject<Entity>(obj.get<std::string>("parent", ""));
+   }
+
+   std::string t = obj.get<std::string>("mob_collision_type", "");
+   if (!t.empty()) {
+      auto i = __str_to_type.find(t);
+      if (i != __str_to_type.end()) {
+         mob_collision_type_ = i->second;
+      }
    }
 }
 

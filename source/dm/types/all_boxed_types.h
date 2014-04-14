@@ -22,6 +22,7 @@
    BOXED(om::EntityRef) \
    BOXED(om::EntityPtr) \
    BOXED(om::MobRef) \
+   BOXED(om::Mob::MobCollisionTypes) \
    BOXED(om::ModelLayer::Layer) \
    BOXED(om::TargetTableEntryPtr) \
    CREATE_BOXED(om::JsonBoxed) \
@@ -38,7 +39,7 @@
    BOXED(csg::Transform) \
    BOXED(json::Node) \
    BOXED(lua::ControllerObject) \
-   BOXED(lua::DataObject)
+   BOXED(lua::DataObject) \
    BOXED(luabind::object)
 
 

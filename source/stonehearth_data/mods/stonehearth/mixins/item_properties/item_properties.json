@@ -1,6 +1,10 @@
 {
    "components" : {
-      "item" : {}
+     "mob" : {
+        "interpolate_movement" : false,
+        "mob_collision_type" : "item"
+     },
+     "item" : {}
    },
    "entity_data" : {
       "stonehearth:render_materials" : {
