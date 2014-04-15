@@ -22,12 +22,12 @@ DECLARE_SHARED_POINTER_TYPES(BfsPathFinder)
 class BfsPathFinder : public std::enable_shared_from_this<BfsPathFinder>,
                       public PathFinder {
    public:
-      static std::shared_ptr<BfsPathFinder> Create(Simulation& sim, std::string name, om::EntityPtr entity);
+      static std::shared_ptr<BfsPathFinder> Create(Simulation& sim, om::EntityPtr entity, std::string name, int range);
       static void ComputeCounters(std::function<void(const char*, double, const char*)> const& addCounter);
       virtual ~BfsPathFinder();
 
    private:
-      BfsPathFinder(Simulation& sim, std::string name, om::EntityPtr source);
+      BfsPathFinder(Simulation& sim, om::EntityPtr entity, std::string const& name, int range);
 
    public:
       typedef std::function<void(PathPtr)> SolvedCb;
@@ -57,13 +57,24 @@ class BfsPathFinder : public std::enable_shared_from_this<BfsPathFinder>,
       void EncodeDebugShapes(protocol::shapelist *msg) const override;
 
    private:
+      void ExpandVoxelRange(csg::Point3 const& src, int new_range);
+      void ExpandTileRange(csg::Point3 const& src, int new_range);
+      void ExpandSearch(csg::Point3 const& src, platform::timer const &timer);
+      void AddTileToSearch(csg::Point3 const& index);
+
+   private:
       static std::vector<std::weak_ptr<BfsPathFinder>> all_pathfinders_;
       om::EntityRef        entity_;
       PathPtr              solution_;
       AStarPathFinderPtr   pathfinder_;
-      SolvedCb             solved_cb_;
       ExhaustedCb          exhausted_cb_;
       FilterFn             filter_fn_;
+      int                  max_range_;
+      int                  current_range_;
+      bool                 search_stalled_;
+      csg::Region3         explored_;
+      csg::Region3         unexplored_;
+      std::vector<csg::Cube3> visited_;
 };
 
 std::ostream& operator<<(std::ostream& o, const BfsPathFinder& pf);

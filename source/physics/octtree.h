@@ -35,9 +35,9 @@ class OctTree {
 
       // Path finding helpers
       std::vector<std::pair<csg::Point3, int>> ComputeNeighborMovementCost(om::EntityPtr entity, const csg::Point3& from) const;
-      int EstimateMovementCost(const csg::Point3& src, const csg::Point3& dst) const;
-      int EstimateMovementCost(const csg::Point3& src, const std::vector<csg::Point3>& points) const;
-      int EstimateMovementCost(const csg::Point3& src, const csg::Region3& dst) const;
+      int GetMovementCost(const csg::Point3& src, const csg::Point3& dst) const;
+      int GetMovementCost(const csg::Point3& src, const std::vector<csg::Point3>& points) const;
+      int GetMovementCost(const csg::Point3& src, const csg::Region3& dst) const;
 
       template <class T>
       bool CanStandOnOneOf(om::EntityPtr const& entity, std::vector<csg::Point<T,3>> const& points, csg::Point<T,3>& standablePoint) const;

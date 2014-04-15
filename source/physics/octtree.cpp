@@ -334,7 +334,7 @@ std::vector<std::pair<csg::Point3, int>> OctTree::ComputeNeighborMovementCost(om
       for (int dy = 1; dy >= -2; dy--) {
          csg::Point3 to = from + direction + csg::Point3(0, dy, 0);
          if (navgrid_.CanStandOn(entity, to)) {
-            result.push_back(std::make_pair(to, EstimateMovementCost(from, to)));
+            result.push_back(std::make_pair(to, GetMovementCost(from, to)));
             break;
          }
       }
@@ -349,7 +349,7 @@ std::vector<std::pair<csg::Point3, int>> OctTree::ComputeNeighborMovementCost(om
          if (!ValidDiagonalMove(entity, from, to)) {
             continue;
          }
-         result.push_back(std::make_pair(to, EstimateMovementCost(from, to)));
+         result.push_back(std::make_pair(to, GetMovementCost(from, to)));
          break;
       }
    }
@@ -357,19 +357,19 @@ std::vector<std::pair<csg::Point3, int>> OctTree::ComputeNeighborMovementCost(om
    for (const auto& direction : vertical_directions) {
       csg::Point3 to = from + direction;
       if (navgrid_.CanStandOn(entity, to)) {
-         result.push_back(std::make_pair(to, EstimateMovementCost(from, to)));
+         result.push_back(std::make_pair(to, GetMovementCost(from, to)));
       }
    }
    return result;
 }
 
-int OctTree::EstimateMovementCost(const csg::Point3& start, const csg::Point3& end) const
+int OctTree::GetMovementCost(const csg::Point3& start, const csg::Point3& end) const
 {
-   static int COST_SCALE = 10;
+   static int COST_SCALE = 1000;
    int cost = 0;
 
    // it's fairly expensive to climb.
-   cost += COST_SCALE * std::max(end.y - start.y, 0) * 2;
+   cost += std::max(end.y - start.y, 0) * 2;
 
    // falling is super cheap.
    cost += std::max(start.y - end.y, 0);
@@ -385,16 +385,16 @@ int OctTree::EstimateMovementCost(const csg::Point3& start, const csg::Point3& e
    return cost;
 }
 
-int OctTree::EstimateMovementCost(const csg::Point3& src, const csg::Region3& dst) const
+int OctTree::GetMovementCost(const csg::Point3& src, const csg::Region3& dst) const
 {
-   return !dst.IsEmpty() ? EstimateMovementCost(src, dst.GetClosestPoint(src)) : INT_MAX;
+   return !dst.IsEmpty() ? GetMovementCost(src, dst.GetClosestPoint(src)) : INT_MAX;
 }
 
-int OctTree::EstimateMovementCost(const csg::Point3& src, const std::vector<csg::Point3>& points) const
+int OctTree::GetMovementCost(const csg::Point3& src, const std::vector<csg::Point3>& points) const
 {
    int cost = INT_MAX;
    for (const auto& pt : points) {
-      cost = std::min(cost, EstimateMovementCost(src, pt));
+      cost = std::min(cost, GetMovementCost(src, pt));
    }
    return cost;
 }

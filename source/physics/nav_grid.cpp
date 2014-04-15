@@ -396,3 +396,17 @@ void NavGrid::EvictNextUnvisitedTile(csg::Point3 const& pt)
       last_evicted_++;
    }
 }
+
+
+/*
+ * -- NavGrid::ForEachEntityAtIndex
+ *
+ * Call the `cb` at least once (but perhaps more!) for all entities which overlap the tile
+ * at the specified index.  See NavGridTile::ForEachEntity for a more complete explanation.
+ */ 
+void NavGrid::ForEachEntityAtIndex(csg::Point3 const& index, NavGridTile::ForEachEntityCb cb)
+{
+   if (bounds_.Contains(index)) {
+      GridTileNonResident(index).ForEachEntity(cb);
+   }
+}

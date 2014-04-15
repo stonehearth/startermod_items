@@ -22,6 +22,7 @@ public:
    ~PathFinderSrc();
 
    bool IsIdle() const;
+   void Start();
    void InitializeOpenSet(std::vector<PathFinderNode>& open);
    void EncodeDebugShapes(protocol::shapelist *msg) const;
    void SetSourceOverride(csg::Point3 const& location);
@@ -36,6 +37,7 @@ public:
    dm::TracePtr               transform_trace_;
    dm::TracePtr               moving_trace_;
    phys::TerrainChangeCbId    collision_cb_id_;
+   csg::Point3                source_location_;
    csg::Point3                source_override_;
    bool                       use_source_override_;
 };

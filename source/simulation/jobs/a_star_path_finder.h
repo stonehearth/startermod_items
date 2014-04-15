@@ -40,7 +40,12 @@ class AStarPathFinder : public std::enable_shared_from_this<AStarPathFinder>,
       AStarPathFinderPtr Start();
       AStarPathFinderPtr Stop();
 
+      bool IsSolved() const;
+      bool IsSearchExhausted() const;
+
       PathPtr GetSolution() const;
+      csg::Point3 GetSourceLocation() const;
+      csg::Point3 GetFarthestSearchPoint() const;
 
       int EstimateCostToSolution();
       std::ostream& Format(std::ostream& o) const;
@@ -58,14 +63,13 @@ class AStarPathFinder : public std::enable_shared_from_this<AStarPathFinder>,
       friend PathFinderSrc;
       friend PathFinderDst;
       void Restart();
-      bool IsSearchExhausted() const;
 
    private:
       void RecommendBestPath(std::vector<csg::Point3> &points) const;
       int EstimateCostToDestination(const csg::Point3 &pt) const;
       int EstimateCostToDestination(const csg::Point3 &pt, PathFinderDst** closest) const;
 
-      PathFinderNode GetFirstOpen();
+      PathFinderNode PopClosestOpenNode();
       void ReconstructPath(std::vector<csg::Point3> &solution, const csg::Point3 &dst) const;
       void AddEdge(const PathFinderNode &current, const csg::Point3 &next, int cost);
       void RebuildHeap();
@@ -87,6 +91,7 @@ class AStarPathFinder : public std::enable_shared_from_this<AStarPathFinder>,
       bool                          enabled_;
       mutable PathPtr               solution_;
       csg::Color4                   debug_color_;
+      csg::Point3                   farthest_point_;
    
       std::vector<PathFinderNode>   open_;
       std::set<csg::Point3>         closed_;
