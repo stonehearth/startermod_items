@@ -43,6 +43,7 @@ void NavGridTile::RemoveCollisionTracker(CollisionTrackerPtr tracker)
             MarkDirty();
             return;
          }
+         i++;
       }
    }
 }
