@@ -930,7 +930,7 @@ function ExecutionFrame:_remove_action_from_running(unit)
    if unit == self._active_unit then
       if not self._aborting then
          self._thread:interrupt(function()
-            self._active_unit:_stop()
+            self:_stop()
             self:_set_active_unit(nil)
             self:_remove_execution_unit(unit)
             self:abort()
@@ -1247,8 +1247,12 @@ function ExecutionFrame:_protected_call(fn, exit_handler)
          self:_exit_protected_call(UNWIND_NEXT_FRAME_2)
       else
          self._log:info("aborting on error '%s' (state:%s)", err, self._state)
-         self:_stop(true)
-         assert(self._state == STOPPED, string.format('stop during abort took us to non-stopped state "%s"', self._state))
+         -- If the action is removed from the running state, we might be dead, and we can't
+         -- transition from dead to stopped.
+         if self._state ~= DEAD then
+            self:_stop(true)         
+            assert(self._state == STOPPED, string.format('stop during abort took us to non-stopped state "%s"', self._state))
+         end
          self:_cleanup_protected_call_exit()
          exit_handler()
          

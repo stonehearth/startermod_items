@@ -51,6 +51,7 @@ submodules:
 
 .PHONY: configure
 configure:
+	cp $(SCRIPTS_ROOT)/git_hooks/pre-push $(STONEHEARTH_ROOT)/.git/hooks/
 	-rm build/CMakeCache.txt
 	cmd.exe /c "$(CMAKE) -H. -Bbuild -G\"Visual Studio 11\""
 

@@ -22,7 +22,15 @@ function PickupPlacedItemAdjacent:start_thinking(ai, entity, args)
       return
    end
    self._proxy_item = self._placed_item_component:get_proxy_entity()
+   
    self._proxy_component = self._proxy_item:add_component('stonehearth:placeable_item_proxy')
+   
+   if not self._proxy_component then
+      --TODO: if you just return here, without the assert, the bed will disappear from the world. 
+      assert(false, 'the proxy item is invalid. WHY???')
+      return
+   end
+   
    self._proxy_component:set_full_sized_entity(item)
 
    ai.CURRENT.carrying = self._proxy_item

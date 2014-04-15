@@ -13,6 +13,7 @@ WaitForTeardown.priority = 1
 function WaitForTeardown:start_thinking(ai, entity, args)
    self._ai = ai
    self._fabricator = args.fabricator
+   self._read = false
    
    radiant.events.listen(self._fabricator, 'needs_teardown', self, self._on_needs_teardown)
    self:_on_needs_teardown(self._fabricator, self._fabricator, self._fabricator:needs_teardown())

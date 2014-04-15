@@ -9,7 +9,7 @@
    "entity_data" : {
       "stonehearth:render_materials" : {
          "default" : "materials/voxel.material.xml",
-         "zones" : "materials/ghost_item.xml"
+         "hud" : "materials/ghost_item.xml"
       }
    }
 }

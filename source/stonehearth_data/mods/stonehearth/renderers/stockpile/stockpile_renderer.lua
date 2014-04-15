@@ -22,30 +22,29 @@ function StockpileRenderer:__init()
          self._ui_view_mode = e.mode
 
          self:_update_item_states(e.mode, self._stockpile_items)
-         self:_update_stockpile_renderer(e.mode)
+         self:_update_stockpile_renderer()
       end
    end)
 end
 
-function StockpileRenderer:_update_stockpile_renderer(mode)
-   -- TODO: Here, we decide what we want the stockpile to look like.
+function StockpileRenderer:_update_stockpile_renderer()
    self._region:modify(function(cursor)
       cursor:clear()
       cursor:add_cube(Rect2(Point2(0, 0), self._size))
    end)
    
-   if mode == 'zones' then
-      self._zone_node = _radiant.client.create_designation_node(self._parent_node, self._region:get(), self._color, self._color);
+   if self:_show_hud() then
+      self._hud_node = _radiant.client.create_designation_node(self._parent_node, self._region:get(), self._color, self._color);
    else
-      if self._zone_node then
-         h3dRemoveNode(self._zone_node)
-         self._zone_node = nil
+      if self._hud_node then
+         h3dRemoveNode(self._hud_node)
+         self._hud_node = nil
       end
    end
 end
 
 function StockpileRenderer:_update_query_flag(render_entity, mode)
-   if mode == 'zones' then
+   if self:_show_hud() then
       render_entity:add_query_flag(_radiant.renderer.QueryFlags.UNSELECTABLE)
    else
       render_entity:remove_query_flag(_radiant.renderer.QueryFlags.UNSELECTABLE)
@@ -68,13 +67,11 @@ function StockpileRenderer:_update_item_states(mode, item_map)
 end
 
 function StockpileRenderer:_mode_to_material_kind(mode)
-   if mode == 'normal' then
+   if self:_show_hud() then
+      return 'hud'
+   else 
       return 'default'
-   elseif mode == 'zones' then
-      return 'zones'
    end
-   
-   return 'default'
 end
 
 function StockpileRenderer:update(render_entity, saved_variables)
@@ -143,10 +140,14 @@ function StockpileRenderer:_regenerate_node()
    end)
    
    self:_clear()
-   if self._ui_view_mode == 'zones' then
-      self._zone_node = _radiant.client.create_designation_node(self._parent_node, self._region:get(), self._color, self._color);
+   if self:_show_hud() then
+      self._hud_node = _radiant.client.create_designation_node(self._parent_node, self._region:get(), self._color, self._color);
    end
    self._node = _radiant.client.create_stockpile_node(self._parent_node, self._region:get(), Color4(55, 49, 26, 48), Color4(55, 49, 26, 64));
+end
+
+function StockpileRenderer:_show_hud()
+   return self._ui_view_mode == 'hud'
 end
 
 function StockpileRenderer:_clear()
@@ -155,9 +156,9 @@ function StockpileRenderer:_clear()
       self._node = nil
    end
 
-   if self._zone_node then
-      h3dRemoveNode(self._zone_node)
-      self._zone_node = nil
+   if self._hud_node then
+      h3dRemoveNode(self._hud_node)
+      self._hud_node = nil
    end
 end
 

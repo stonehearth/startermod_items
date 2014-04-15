@@ -1,0 +1,5 @@
+#!/bin/sh
+
+/c/python27/python ./radsub.py
+
+exit $!

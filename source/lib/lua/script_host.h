@@ -31,6 +31,7 @@ public:
    void ProfileMemory(bool value);
    void WriteMemoryProfile(std::string const& filename) const;
    void ComputeCounters(std::function<void(const char*, double, const char*)> const& addCounter) const;
+   int GetErrorCount() const;
 
    typedef std::function<luabind::object(lua_State* L, JSONNode const& json)> JsonToLuaFn;
    void AddJsonToLuaConverter(JsonToLuaFn fn);
@@ -39,7 +40,7 @@ public:
    JSONNode LuaToJson(luabind::object obj);
      
    void ReportCStackThreadException(lua_State* L, std::exception const& e) const;
-   void ReportLuaStackException(std::string const& error, std::string const& traceback) const;
+   void ReportLuaStackException(std::string const& error, std::string const& traceback);
    void Trigger(const std::string& eventName, luabind::object evt = luabind::object());
    void TriggerOn(luabind::object obj, const std::string& eventName, luabind::object evt = luabind::object());
 
@@ -128,6 +129,8 @@ private:
 
    char                 current_file[256];
    int                  current_line;
+
+   int                  error_count;  // Count of script errors encountered.
 
    typedef std::unordered_map<void*, int>          Allocations;
    std::unordered_map<void *, std::string>         alloc_backmap;

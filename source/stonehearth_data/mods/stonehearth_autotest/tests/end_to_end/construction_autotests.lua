@@ -44,9 +44,9 @@ function construction_tests.simple_build(autotest)
    autotest.ui:click_dom_element('#startMenu div[hotkey="l"]')
 
    autotest.ui:sleep(500)
-   autotest.ui:click_terrain(7, 4)
+   autotest.ui:click_terrain(2, -2)
    autotest.ui:sleep(500)
-   autotest.ui:click_terrain(5, 4)
+   autotest.ui:click_terrain(-4, -2)
 
    autotest:sleep(3*60*1000)
    autotest:fail('failed to construction')

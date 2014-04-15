@@ -3,18 +3,7 @@ local log = radiant.log.create_logger('selection_service')
 local SelectionService = class()
 
 function SelectionService:initialize()
-   self._ui_view_mode = 'normal'
    self._selected_id = 0
-
-   _radiant.call('stonehearth:get_ui_mode'):done(
-      function (o)
-         self._ui_view_mode = o.mode
-      end
-   )
-
-   radiant.events.listen(radiant.events, 'stonehearth:ui_mode_changed', function(e)
-      self._ui_view_mode = e.mode
-   end)
 
    self._input_capture = stonehearth.input:capture_input()
                               :on_mouse_event(function(e)

@@ -18,7 +18,6 @@ function FoodTest:__init()
 
    --self:place_citizen(10, 10)
    local worker = self:place_citizen(-5, -5)
-   worker:add_component('stonehearth:attributes'):set_attribute('calories', stonehearth.constants.food.MAX_ENERGY)
 
    local player_id = worker:get_component('unit_info'):get_player_id()
    

@@ -228,7 +228,8 @@ luabind::object ScriptHost::GetConfig(std::string const& flag)
 IMPLEMENT_TRIVIAL_TOSTRING(ScriptHost);
 
 ScriptHost::ScriptHost(std::string const& site) :
-   site_(site)
+   site_(site),
+   error_count(0)
 {
    current_line = 0;
    *current_file = '\0';
@@ -257,9 +258,10 @@ ScriptHost::ScriptHost(std::string const& site) :
                .def("get_log_level",   &ScriptHost::GetLogLevel)
                .def("get_config",      &ScriptHost::GetConfig)
                .def("set_performance_counter", &ScriptHost::SetPerformanceCounter)
-               .def("report_error",    (void (ScriptHost::*)(std::string const& error, std::string const& traceback) const)&ScriptHost::ReportLuaStackException)
+               .def("report_error",    (void (ScriptHost::*)(std::string const& error, std::string const& traceback))&ScriptHost::ReportLuaStackException)
                .def("require",         (luabind::object (ScriptHost::*)(std::string const& name))&ScriptHost::Require)
                .def("require_script",  (luabind::object (ScriptHost::*)(std::string const& name))&ScriptHost::RequireScript)
+               .def("get_error_count", &ScriptHost::GetErrorCount)
          ]
       ]
    ];
@@ -287,6 +289,11 @@ ScriptHost::~ScriptHost()
 {
    required_.clear();
    lua_close(L_);
+}
+
+int ScriptHost::GetErrorCount() const
+{
+   return error_count;
 }
 
 /*
@@ -351,8 +358,9 @@ void ScriptHost::ReportCStackThreadException(lua_State* L, std::exception const&
    }
 }
 
-void ScriptHost::ReportLuaStackException(std::string const& error, std::string const& traceback) const
+void ScriptHost::ReportLuaStackException(std::string const& error, std::string const& traceback)
 {
+   error_count++;
    ReportStackException("lua", error, traceback);
 }
 
