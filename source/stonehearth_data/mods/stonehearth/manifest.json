@@ -57,7 +57,7 @@
 
       "farmer:outfit" : "file(professions/farmer/farmer_outfit)",
       "farmer:field" : "file(professions/farmer/field)",
-      "farmer_hoe" : "file(professions/farmer/farmer_hoe)", 
+      "farmer:hoe" : "file(professions/farmer/farmer_hoe)", 
       "farmer:initial_crops" : "file(services/server/farming/data/initial_crops.json)",
       
       "trapper:trapper_knife" : "file(professions/trapper/trapper_knife)",
