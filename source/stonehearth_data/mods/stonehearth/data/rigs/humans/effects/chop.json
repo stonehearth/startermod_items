@@ -18,8 +18,8 @@
          "type": "sound_effect",
          "duration": 1000,
          "start_delay": 200,
-         "min_distance": 30,
-         "max_distance": 90,
+         "min_distance": 40,
+         "max_distance": 100,
          "volume": 40,
          "track" : {
             "type": "one_of",
