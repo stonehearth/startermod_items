@@ -8,6 +8,8 @@
 using namespace radiant;
 using namespace radiant::phys;
 
+#define NG_LOG(level)              LOG(physics.navgrid, level)
+
 /*
  * MobTracker::MobTracker
  *
@@ -15,9 +17,10 @@ using namespace radiant::phys;
  */
 MobTracker::MobTracker(NavGrid& ng, om::EntityPtr entity, om::MobPtr mob) :
    CollisionTracker(ng, entity),
+   last_bounds_(csg::Point3::zero, csg::Point3::zero),
    mob_(mob)
 {
-   last_position_ = GetEntityPosition();
+   NG_LOG(9) << "creating MobTracker for " << *entity;
 }
 
 
@@ -31,7 +34,7 @@ MobTracker::MobTracker(NavGrid& ng, om::EntityPtr entity, om::MobPtr mob) :
 
 MobTracker::~MobTracker()
 {
-   GetNavGrid().MarkDirty(csg::Cube3(last_position_, last_position_));
+   GetNavGrid().MarkDirty(last_bounds_);
 }
 
 /*
@@ -56,13 +59,11 @@ void MobTracker::MarkChanged()
 {
    om::MobPtr mob = mob_.lock();
    if (mob) {
-      csg::Point3 pos = GetEntityPosition();
-      if (last_position_ != pos) {
-         csg::Cube3 bounds(pos, pos);
-         csg::Cube3 last_bounds(last_position_, last_position_);
-         last_position_ = pos;
-         GetNavGrid().AddCollisionTracker(last_bounds, bounds, shared_from_this());
-      }
+      csg::Point3 pos = mob->GetWorldGridLocation();
+      csg::Cube3 bounds(pos, pos + csg::Point3(1, 1, 1));
+      NG_LOG(9) << "adding MobTracker for " << *mob->GetEntityPtr() << " to tile " << bounds << "(last bounds:" << last_bounds_ << ")";
+      GetNavGrid().AddCollisionTracker(last_bounds_, bounds, shared_from_this());
+      last_bounds_ = bounds;
    }
 }
 

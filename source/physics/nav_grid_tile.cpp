@@ -9,7 +9,7 @@
 using namespace radiant;
 using namespace radiant::phys;
 
-#define NG_LOG(level)              LOG_CATEGORY(physics.navgrid, level, "physics.navgridtile " << index_)
+#define NG_LOG(level)              LOG(physics.navgrid, level)
 
 /* 
  * -- NavGridTile::NavGridTile
@@ -206,6 +206,7 @@ std::shared_ptr<NavGridTileData> NavGridTile::GetTileData()
 void NavGridTile::ForEachEntity(ForEachEntityCb cb)
 {
    stdutil::ForEachPrune<dm::ObjectId, CollisionTracker>(trackers_, [cb](dm::ObjectId const& id, CollisionTrackerPtr tracker) {
+      NG_LOG(7) << "calling ForEachEntity callback on " << *tracker->GetEntity();
       cb(tracker->GetEntity());
    });
 }

@@ -33,6 +33,7 @@ private:
 
 private:
    om::MobRef        mob_;
+   csg::Cube3        last_bounds_;
    csg::Point3       last_position_;
 };
 

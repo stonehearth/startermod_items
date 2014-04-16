@@ -55,21 +55,27 @@ void NavGrid::TrackComponent(om::ComponentPtr component)
       case om::MobObjectType: {
          auto mob = std::static_pointer_cast<om::Mob>(component);
          if (mob->GetMobCollisionType() != om::Mob::NONE) {
+            NG_LOG(7) << "creating MobTracker for " << *component->GetEntityPtr();
             tracker = std::make_shared<MobTracker>(*this, mob->GetEntityPtr(), mob);
+         } else {
+            NG_LOG(7) << "mob for " << *component->GetEntityPtr() << " has collision type NONE.  ignoring.";
          }
          break;
       }
       case om::TerrainObjectType: {
+         NG_LOG(7) << "creating TerrainTracker for " << *component->GetEntityPtr();
          auto terrain = std::static_pointer_cast<om::Terrain>(component);
          tracker = std::make_shared<TerrainTracker>(*this, terrain->GetEntityPtr(), terrain);
          break;
       }
       case om::RegionCollisionShapeObjectType: {
+         NG_LOG(7) << "creating RegionCollisionShapeTracker for " << *component->GetEntityPtr();
          auto rcs = std::static_pointer_cast<om::RegionCollisionShape>(component);
          tracker = std::make_shared<RegionCollisionShapeTracker>(*this, rcs->GetEntityPtr(), rcs);
          break;
       }
       case om::VerticalPathingRegionObjectType: {
+         NG_LOG(7) << "creating VerticalPathingRegion for " << *component->GetEntityPtr();
          auto rcs = std::static_pointer_cast<om::VerticalPathingRegion>(component);
          tracker = std::make_shared<VerticalPathingRegionTracker>(*this, rcs->GetEntityPtr(), rcs);
          break;
@@ -238,7 +244,7 @@ void NavGrid::AddCollisionTracker(csg::Cube3 const& last_bounds, csg::Cube3 cons
 
    // Add trackers to tiles which overlap the current bounds of the tracker.
    for (csg::Point3 const& cursor : current_chunks) {
-      NG_LOG(5) << "adding tracker to grid tile at " << cursor;
+      NG_LOG(5) << "adding tracker to grid tile at " << cursor << " for " << *tracker->GetEntity();
       GridTileNonResident(cursor).AddCollisionTracker(tracker);
    }
 }
