@@ -444,6 +444,11 @@ void Simulation::EncodeUpdates(std::shared_ptr<RemoteClient> c)
    buffered_updates_.clear();
 }
 
+om::EntityPtr Simulation::GetRootEntity()
+{
+   return root_entity_;
+}
+
 phys::OctTree &Simulation::GetOctTree()
 {
    return *octtree_;

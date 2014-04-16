@@ -178,22 +178,6 @@ std::shared_ptr<T> PathFinder_SetExhausedCb(std::shared_ptr<T> pf, luabind::obje
    return pf;
 }
 
-BfsPathFinderPtr BfsPathFinder_SetSolvedCb(lua_State* L, BfsPathFinderPtr pf, luabind::object unsafe_solved_cb)
-{
-   if (pf) {
-      lua_State* cb_thread = lua::ScriptHost::GetCallbackThread(unsafe_solved_cb.interpreter());  
-      pf->SetSolvedCb([unsafe_solved_cb, cb_thread](PathPtr path) {
-         try {
-            luabind::object solved_cb = luabind::object(cb_thread, unsafe_solved_cb);
-            solved_cb(luabind::object(cb_thread, path));
-         } catch (std::exception const& e) {
-            lua::ScriptHost::ReportCStackException(cb_thread, e);
-         }
-      });
-   }
-   return pf;
-}
-
 BfsPathFinderPtr BfsPathFinder_SetFilterFn(BfsPathFinderPtr pf, luabind::object unsafe_filter_fn)
 {
    if (pf) {
