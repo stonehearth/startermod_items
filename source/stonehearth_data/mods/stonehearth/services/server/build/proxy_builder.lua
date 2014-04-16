@@ -167,8 +167,11 @@ function ProxyBuilder:_package_proxy(proxy)
    local children = proxy:get_children()
    if next(children) then
       package.children = {}
-      for id, _ in pairs(children) do
-         all_dependencies[id] = true
+      for id, child in pairs(children) do
+         -- TODO(tony): fix this!  Hack to work around adding portals as dependencies of proxies.
+         if child:get_entity():get_component('stonehearth:portal') == nil then
+            all_dependencies[id] = true
+         end
          table.insert(package.children, id)
       end
    end
