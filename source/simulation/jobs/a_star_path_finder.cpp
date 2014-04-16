@@ -68,7 +68,7 @@ AStarPathFinder::AStarPathFinder(Simulation& sim, std::string name, om::EntityPt
    rebuildHeap_(false),
    restart_search_(true),
    search_exhausted_(false),
-   enabled_(true),
+   enabled_(false),
    entity_(entity),
    debug_color_(255, 192, 0, 128)
 {
@@ -97,9 +97,15 @@ csg::Point3 AStarPathFinder::GetSourceLocation() const
    return source_->GetSourceLocation();
 }
 
-csg::Point3 AStarPathFinder::GetFarthestSearchPoint() const
+float AStarPathFinder::GetTravelDistance()
 {
-   return farthest_point_;
+   if (open_.empty()) {
+      return 0;
+   }
+   if (rebuildHeap_) {
+      RebuildHeap();
+   }
+   return open_.front().g;
 }
 
 AStarPathFinderPtr AStarPathFinder::SetSolvedCb(SolvedCb solved_cb)
@@ -224,13 +230,13 @@ void AStarPathFinder::Restart()
 
    source_->InitializeOpenSet(open_);
    for (PathFinderNode& node : open_) {
-      int h = EstimateCostToDestination(node.pt);
+      float h = EstimateCostToDestination(node.pt);
       node.f = h;
       node.g = 0;
 
       // by default search no more than 4x the distance
       if (h > 0) {
-         max_cost_to_destination_ = std::max(max_cost_to_destination_, h * 4);
+         max_cost_to_destination_ = std::max(max_cost_to_destination_, h * 4.0f);
       }
    }
 }
@@ -296,7 +302,7 @@ void AStarPathFinder::Work(const platform::timer &timer)
    closed_.insert(current.pt);
 
    PathFinderDst* closest;
-   int h = EstimateCostToDestination(current.pt, &closest);
+   float h = EstimateCostToDestination(current.pt, &closest);
    if (h == 0) {
       // xxx: be careful!  this may end up being re-entrant (for example, removing
       // destinations).
@@ -312,8 +318,8 @@ void AStarPathFinder::Work(const platform::timer &timer)
    // Check each neighbor...
    const auto& o = GetSim().GetOctTree();
    
-   auto neighbors = o.ComputeNeighborMovementCost(entity_.lock(), current.pt);
-   PF_LOG(7) << "compute neighbor movment cost from " << current.pt << " returned " << neighbors.size() << " results";
+   phys::OctTree::MovementCostVector neighbors = o.ComputeNeighborMovementCost(entity_.lock(), current.pt);
+   PF_LOG(7) << "compute neighbor movement cost from " << current.pt << " returned " << neighbors.size() << " results";
    if (neighbors.size() == 0) {
       //DebugBreak();
    }
@@ -321,7 +327,7 @@ void AStarPathFinder::Work(const platform::timer &timer)
    VERIFY_HEAPINESS();
    for (const auto& neighbor : neighbors) {
       const csg::Point3& pt = neighbor.first;
-      int cost = neighbor.second;
+      float cost = neighbor.second;
       VERIFY_HEAPINESS();
       AddEdge(current, pt, cost);
       VERIFY_HEAPINESS();
@@ -331,7 +337,7 @@ void AStarPathFinder::Work(const platform::timer &timer)
 }
 
 
-void AStarPathFinder::AddEdge(const PathFinderNode &current, const csg::Point3 &next, int movementCost)
+void AStarPathFinder::AddEdge(const PathFinderNode &current, const csg::Point3 &next, float movementCost)
 {
    PF_LOG(10) << "       Adding Edge from " << current.pt << " to " << next << " cost:" << movementCost;
 
@@ -339,7 +345,7 @@ void AStarPathFinder::AddEdge(const PathFinderNode &current, const csg::Point3 &
 
    if (closed_.find(next) == closed_.end()) {
       bool update = false;
-      int g = current.g + movementCost;
+      float g = current.g + movementCost;
 
       uint i, c = open_.size();
       for (i = 0; i < c; i++) {
@@ -349,8 +355,8 @@ void AStarPathFinder::AddEdge(const PathFinderNode &current, const csg::Point3 &
       }
       VERIFY_HEAPINESS();
 
-      int h = EstimateCostToDestination(next);
-      int f = g + h;
+      float h = EstimateCostToDestination(next);
+      float f = g + h;
 
       if (i == c) {
          // not found in the open list.  add a brand new node.
@@ -359,11 +365,6 @@ void AStarPathFinder::AddEdge(const PathFinderNode &current, const csg::Point3 &
          open_.push_back(PathFinderNode(next, f, g));
          if (!rebuildHeap_) {
             push_heap(open_.begin(), open_.end(), PathFinderNode::CompareFitness);
-         }
-         csg::Point3 src_location = source_->GetSourceLocation();
-         if ((farthest_point_ - current.pt).LengthSquared() > 
-             (farthest_point_ - src_location).LengthSquared()) {
-            farthest_point_  = current.pt;
          }
          VERIFY_HEAPINESS();
       } else {
@@ -381,32 +382,32 @@ void AStarPathFinder::AddEdge(const PathFinderNode &current, const csg::Point3 &
    VERIFY_HEAPINESS();
 }
 
-int AStarPathFinder::EstimateCostToSolution()
+float AStarPathFinder::EstimateCostToSolution()
 {
    if (!enabled_) {
-      return INT_MAX;
+      return FLT_MAX;
    }
    if (restart_search_) {
       Restart();
    }
    if (IsIdle()) {
-      return INT_MAX;
+      return FLT_MAX;
    }
    return open_.front().f;
 }
 
-int AStarPathFinder::EstimateCostToDestination(const csg::Point3 &from) const
+float AStarPathFinder::EstimateCostToDestination(const csg::Point3 &from) const
 {
    ASSERT(!restart_search_);
 
    return EstimateCostToDestination(from, nullptr);
 }
 
-int AStarPathFinder::EstimateCostToDestination(const csg::Point3 &from, PathFinderDst** result) const
+float AStarPathFinder::EstimateCostToDestination(const csg::Point3 &from, PathFinderDst** result) const
 {
-   int hMin = INT_MAX;
+   float hMin = FLT_MAX;
    dm::ObjectId closestId = -1;
-   PathFinderDst* closest;
+   PathFinderDst* closest = nullptr;
 
    ASSERT(!restart_search_);
 
@@ -422,7 +423,7 @@ int AStarPathFinder::EstimateCostToDestination(const csg::Point3 &from, PathFind
          if (!entity) {
             continue;
          }
-         int h = dst->EstimateMovementCost(from);
+         float h = dst->EstimateMovementCost(from);
          if (h < hMin) {
             closest = dst;
             closestId = i->first;
@@ -430,9 +431,8 @@ int AStarPathFinder::EstimateCostToDestination(const csg::Point3 &from, PathFind
          }
       }
    }
-   if (hMin != INT_MAX) {
-      float fudge = 1.25f; // to make the search finder at the hMin of accuracy
-      hMin ? std::max(1, (int)(hMin * fudge)) : 0;
+   if (hMin != FLT_MAX) {
+      hMin *= 1.25f;       // prefer faster over optimal...
    }
    PF_LOG(10) << "    EstimateCostToDestination returning (" << closestId << ") : " << hMin;
    if (result) {
@@ -555,7 +555,6 @@ AStarPathFinderPtr AStarPathFinder::RestartSearch(const char* reason)
    closed_.clear();
    open_.clear();
    source_->Start();
-   farthest_point_ = GetSourceLocation();
    return shared_from_this();
 }
 

@@ -305,9 +305,9 @@ bool OctTree::ValidDiagonalMove(om::EntityPtr const& entity, csg::Point3 const& 
    return true;
 }
 
-std::vector<std::pair<csg::Point3, int>> OctTree::ComputeNeighborMovementCost(om::EntityPtr entity, const csg::Point3& from) const
+OctTree::MovementCostVector OctTree::ComputeNeighborMovementCost(om::EntityPtr entity, const csg::Point3& from) const
 {
-   std::vector<std::pair<csg::Point3, int>> result;
+   MovementCostVector result;
 
    // xxx: this is in no way thread safe! (see SH-8)
    static const csg::Point3 cardinal_directions[] = {
@@ -363,39 +363,28 @@ std::vector<std::pair<csg::Point3, int>> OctTree::ComputeNeighborMovementCost(om
    return result;
 }
 
-int OctTree::GetMovementCost(const csg::Point3& start, const csg::Point3& end) const
-{
-   static int COST_SCALE = 1000;
-   int cost = 0;
 
-   // it's fairly expensive to climb.
+/*
+ * -- OctTree::GetMovementCost
+ *
+ * Get the actual cost to move from the start to the finish.  It's up to the caller
+ * to validate the parameters.
+ */
+
+float OctTree::GetMovementCost(const csg::Point3& start, const csg::Point3& end) const
+{
+   float cost = 0;
+
+   // it's fairly expensive to climb (xxx: except climbing a ladder should be free!)
    cost += std::max(end.y - start.y, 0) * 2;
 
-   // falling is super cheap.
+   // falling is super cheap (free, in fact, but leave this here just in case).
    cost += std::max(start.y - end.y, 0);
 
-   // diagonals need to be more expensive than cardinal directions
-   int xCost = abs(end.x - start.x);
-   int zCost = abs(end.z - start.z);
-   int diagCost = std::min(xCost, zCost);
-   int horzCost = std::max(xCost, zCost) - diagCost;
+   int dx = abs(end.x - start.x);
+   int dz = abs(end.z - start.z);
+   cost += std::sqrt(dx*dx + dz*dz);
 
-   cost += (int)((horzCost + diagCost * 1.414213562) * COST_SCALE);
-
-   return cost;
-}
-
-int OctTree::GetMovementCost(const csg::Point3& src, const csg::Region3& dst) const
-{
-   return !dst.IsEmpty() ? GetMovementCost(src, dst.GetClosestPoint(src)) : INT_MAX;
-}
-
-int OctTree::GetMovementCost(const csg::Point3& src, const std::vector<csg::Point3>& points) const
-{
-   int cost = INT_MAX;
-   for (const auto& pt : points) {
-      cost = std::min(cost, GetMovementCost(src, pt));
-   }
    return cost;
 }
 

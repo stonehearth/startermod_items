@@ -10,14 +10,14 @@ BEGIN_RADIANT_SIMULATION_NAMESPACE
 struct PathFinderNode
 {
    csg::Point3 pt;
-   int f, g;
+   float f, g;
 
    PathFinderNode (csg::Point3 const& p) :
-      pt(p), f(INT_MAX), g(INT_MAX)
+      pt(p), f(FLT_MAX), g(FLT_MAX)
    {
    }
 
-   PathFinderNode (csg::Point3 const& p, int _f, int _g) :
+   PathFinderNode (csg::Point3 const& p, float _f, float _g) :
       pt(p), f(_f), g(_g)
    {
    }

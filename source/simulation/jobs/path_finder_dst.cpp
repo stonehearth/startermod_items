@@ -94,37 +94,13 @@ void PathFinderDst::ClipAdjacentToTerrain()
    }
 }
 
-int PathFinderDst::EstimateMovementCost(csg::Point3 const& start) const
+float PathFinderDst::EstimateMovementCost(csg::Point3 const& start) const
 {
    if (world_space_adjacent_region_.IsEmpty()) {
       return INT_MAX;
    }
    csg::Point3 end = world_space_adjacent_region_.GetClosestPoint(start);
-   return EstimateMovementCost(start, end);
-}
-
-int PathFinderDst::EstimateMovementCost(csg::Point3 const& start, csg::Point3 const& end) const
-{
-   static int COST_SCALE = 1000;
-   int cost = 0;
-
-   // it's fairly expensive to climb.
-   cost += COST_SCALE * std::max(end.y - start.y, 0) * 2;
-
-   // falling is super cheap.
-   cost += std::max(start.y - end.y, 0);
-
-   // diagonals need to be more expensive than cardinal directions
-   int xCost = abs(end.x - start.x);
-   int zCost = abs(end.z - start.z);
-   int diagCost = std::min(xCost, zCost);
-   int horzCost = std::max(xCost, zCost) - diagCost;
-
-   cost += (int)((horzCost + diagCost * 1.414) * COST_SCALE);
-
-   PF_LOG(10) << "a* heuristic (id:" << std::setw(5) << id_ << " start:" << start << " end:" << end << " horiz:" << horzCost << " diag:" << diagCost << " total:" << cost;
-
-   return cost;
+   return sim_.GetOctTree().GetMovementCost(start, end);
 }
 
 csg::Point3 PathFinderDst::GetPointOfInterest(csg::Point3 const& adjacent_pt) const

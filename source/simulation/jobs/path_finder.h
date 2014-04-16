@@ -11,7 +11,7 @@ class PathFinder : public Job {
       PathFinder(Simulation& sim, std::string name) : Job(sim, name) { }
       virtual ~PathFinder() { };
 
-      virtual int EstimateCostToSolution() = 0;
+      virtual float EstimateCostToSolution() = 0;
 };
 
 END_RADIANT_SIMULATION_NAMESPACE
