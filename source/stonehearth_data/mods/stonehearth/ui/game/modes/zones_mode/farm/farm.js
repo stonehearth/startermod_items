@@ -110,7 +110,7 @@ App.StonehearthFarmCropPalette = App.View.extend({
    modal: true,
 
    init: function() {
-      radiant.call('radiant:play_sound', 'stonehearth:sounds:ui:carpenter_menu:add_remove' );
+      radiant.call('radiant:play_sound', 'stonehearth:sounds:ui:action_click' );
       this._super();
    },
 
