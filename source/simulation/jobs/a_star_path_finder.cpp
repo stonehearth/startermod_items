@@ -259,6 +259,7 @@ void AStarPathFinder::EncodeDebugShapes(radiant::protocol::shapelist *msg) const
       pathColor.SaveValue(coord->mutable_color());
    }
 
+#if 0
    for (const auto& node: open_) {
       if (std::find(best.begin(), best.end(), node.pt) == best.end()) {
          auto coord = msg->add_coords();
@@ -273,6 +274,7 @@ void AStarPathFinder::EncodeDebugShapes(radiant::protocol::shapelist *msg) const
          csg::Color4(0, 0, 128, 192).SaveValue(coord->mutable_color());
       }
    }
+#endif
 
    for (const auto& dst : destinations_) {
       dst.second->EncodeDebugShapes(msg, debug_color_);

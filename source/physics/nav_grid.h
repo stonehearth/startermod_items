@@ -24,7 +24,7 @@ BEGIN_RADIANT_PHYSICS_NAMESPACE
 
 class NavGrid {
    public: // public methods
-      NavGrid(int trace_category);      
+      NavGrid(int trace_category);
 
       bool CanStandOn(om::EntityPtr entity, csg::Point3 const& pt);
       void RemoveNonStandableRegion(om::EntityPtr entity, csg::Region3& r);

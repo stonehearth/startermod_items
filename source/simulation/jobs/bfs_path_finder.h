@@ -18,7 +18,13 @@ class BfsPathFinderSrc;
 class BfsPathFinderDst;
 class Simulation;
 
-DECLARE_SHARED_POINTER_TYPES(BfsPathFinder)
+/*
+ * -- BfsPathFinder
+ *
+ * The Breadth First Search pathfinder searches for the first destination that
+ * matches the specified filter (see BfsPathFinder::SetFilterFn)
+ *
+ */
 
 class BfsPathFinder : public std::enable_shared_from_this<BfsPathFinder>,
                       public PathFinder {
@@ -39,17 +45,12 @@ class BfsPathFinder : public std::enable_shared_from_this<BfsPathFinder>,
       BfsPathFinderPtr SetSolvedCb(SolvedCb solved_cb);
       BfsPathFinderPtr SetSearchExhaustedCb(ExhaustedCb exhausted_cb);
       BfsPathFinderPtr SetFilterFn(FilterFn filter_fn);
-      BfsPathFinderPtr RestartSearch(const char* reason);
       BfsPathFinderPtr Start();
       BfsPathFinderPtr Stop();
       BfsPathFinderPtr ReconsiderDestination(om::EntityRef e);
-      bool IsSearchExhausted() const;
 
       PathPtr GetSolution() const;
-
       float EstimateCostToSolution();
-      std::ostream& Format(std::ostream& o) const;
-      std::string DescribeProgress();
 
    public: // Job Interface
       bool IsIdle() const override;
@@ -68,7 +69,6 @@ class BfsPathFinder : public std::enable_shared_from_this<BfsPathFinder>,
    private:
       static std::vector<std::weak_ptr<BfsPathFinder>> all_pathfinders_;
       om::EntityRef        entity_;
-      PathPtr              solution_;
       AStarPathFinderPtr   pathfinder_;
       ExhaustedCb          exhausted_cb_;
       FilterFn             filter_fn_;
