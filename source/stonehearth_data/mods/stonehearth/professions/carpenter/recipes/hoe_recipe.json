@@ -16,7 +16,7 @@
   ],
   "produces": [
       {
-        "item":"stonehearth:farmer_hoe"
+        "item":"stonehearth:farmer:hoe"
       }
   ]
 }
