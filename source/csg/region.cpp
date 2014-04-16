@@ -8,6 +8,19 @@ using namespace ::radiant::csg;
 
 #define REGION_LOG(level)    LOG(csg.region, level)
 
+// REGION_PARANOIA_LEVEL determines how aggressively we should error check
+// regions for internal consistency.
+//
+// REGION_PARANOIA_LEVEL == 1 simply checks for unique tags and cubes added
+// via AddUnique() do not overlap the region.
+//
+// REGION_PARANOIA_LEVEL == 2 does agressive, O(n*n) error checking several
+// times per operation (sometimes n times!).  It's only useful when debugging
+// known Region errors, or changing implementation details.
+
+#define REGION_PARANOIA_LEVEL 1
+
+
 template <class S, int C>
 Region<S, C>::Region()
 {
@@ -87,7 +100,9 @@ void Region<S, C>::AddUnique(const Cube& cube)
       return;
    }
    Validate();
+#if REGION_PARANOIA_LEVEL > 0
    ASSERT(!Intersects(cube));
+#endif
 
    if (cubes_.empty() || !cubes_.back().CombineWith(cube)) {
       cubes_.push_back(cube);
@@ -116,7 +131,9 @@ void Region<S, C>::AddUnique(const Region& region)
    Validate();
    region.Validate();
    for (Cube const& cube : region) {
+#if REGION_PARANOIA_LEVEL > 0
       ASSERT(!Intersects(cube));
+#endif
       cubes_.push_back(cube);
    }
    Validate();
@@ -402,7 +419,9 @@ void Region<S, C>::OptimizeOneTagByMerge()
    if (IsEmpty()) {
       return;
    }
-   DEBUG_ONLY(ASSERT(ContainsAtMostOneTag());)
+#if REGION_PARANOIA_LEVEL > 1
+   ASSERT(ContainsAtMostOneTag());
+#endif
    Validate();
    S areaBefore = GetArea();
 
@@ -737,7 +756,7 @@ void Region<S, C>::Validate() const
    // called to ensure variants are correct whenever the state of the region changes.
    // This is INCREDIBLY slow if you do anything > O(1), so leave this compiled out (turn
    // it on if you need it!)
-#if 0
+#if REGION_PARANOIA_LEVEL > 1
    uint i, j, c = cubes_.size();
    for (i = 0; i < c; i++) {
       ASSERT(!cubes_[i].IsEmpty());
