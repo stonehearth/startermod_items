@@ -19,10 +19,10 @@
          "item":"stonehearth:farmer_coordination_board_proxy"
       },
       {
-        "item":"stonehearth:farmer_hoe"
+        "item":"stonehearth:farmer:hoe"
       },
       {
-        "item":"stonehearth:farmer_hoe"
+        "item":"stonehearth:farmer:hoe"
       }
   ]
 }
