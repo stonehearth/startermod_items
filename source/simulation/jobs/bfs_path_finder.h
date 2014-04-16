@@ -64,6 +64,7 @@ class BfsPathFinder : public std::enable_shared_from_this<BfsPathFinder>,
       void ExpandSearch(platform::timer const& timer);
       void AddTileToSearch(csg::Point3 const& index);
       void ConsiderEntity(om::EntityPtr entity);
+      void ConsiderAddedEntity(om::EntityPtr entity);
       float GetMaxExploredDistance() const;
 
    private:
@@ -77,6 +78,7 @@ class BfsPathFinder : public std::enable_shared_from_this<BfsPathFinder>,
       float                travel_distance_;
       float                max_travel_distance_;
       bool                 running_;
+      dm::TracePtr         entityAddedTrace_;
       std::unordered_set<dm::ObjectId> visited_ids_;
 };
 

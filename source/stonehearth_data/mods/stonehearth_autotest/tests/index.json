@@ -32,7 +32,6 @@
       "blackbox" : {
          "name" : "blackbox tests",
          "scripts" : [
-            "file(blackbox/stockpile_autotests.lua)",
             "file(blackbox/region_autotests.lua)",
             "file(blackbox/calendar_autotests.lua)"
          ]

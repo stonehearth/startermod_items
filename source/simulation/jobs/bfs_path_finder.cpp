@@ -8,7 +8,9 @@
 #include "physics/nav_grid.h"
 #include "om/entity.h"
 #include "om/components/mob.ridl.h"
+#include "om/components/entity_container.ridl.h"
 #include "om/components/destination.ridl.h"
+#include "dm/map_trace.h"
 #include "om/region.h"
 #include "csg/color.h"
 #include "csg/util.h"
@@ -229,6 +231,12 @@ bool BfsPathFinder::IsIdle() const
       return true;
    }
 
+   // If we haven't gone too far and there's still stuff to chew on, keep chewing!
+   if (!pathfinder_->IsIdle()) {
+      BFS_LOG(5) << "pathfinder still has work to do.  returning NOT IDLE.";
+      return false;
+   }
+
    // If we've explored farther than the maximum travel distance (plus some padding to
    // account for phys::TILE_SIZE), then there must be no solution.
    float max_explored_distanced = GetMaxExploredDistance();
@@ -257,6 +265,19 @@ BfsPathFinderPtr BfsPathFinder::Start()
    search_order_index_ = -1;
    explored_distance_ = 0;
    travel_distance_ = 0;
+   
+   om::EntityContainerPtr container = GetSim().GetRootEntity()->GetComponent<om::EntityContainer>();
+   if (container) {
+      // Suppose some item is created which is reachable, but inside the explored radius.  We
+      // really should manually add that item to the pathfinder, too, right?  To get this 100%
+      // correct, we'd need to trace every NavGridTile we've ever visited, which is ABSURDLY
+      // expensive.  Almost as good as looking at Entities that come and go from the root object
+      // (items placed on the terrain are contained by the root object).  Let's do that.
+      entityAddedTrace_ = container->TraceChildren("bfs", dm::PATHFINDER_TRACES)
+                           ->OnAdded([this](dm::ObjectId id, om::EntityRef e) {
+                                 ConsiderAddedEntity(e.lock());
+                              });
+   }
    return shared_from_this();
 }
 
@@ -273,6 +294,7 @@ BfsPathFinderPtr BfsPathFinder::Stop()
    BFS_LOG(5) << "stop requested";
    pathfinder_->Stop();
    running_ = false;
+   entityAddedTrace_= nullptr;
    return shared_from_this();
 }
 
@@ -317,14 +339,42 @@ void BfsPathFinder::ConsiderEntity(om::EntityPtr entity)
    dm::ObjectId id = entity->GetObjectId();
    visited_ids_.insert(id);
 
-   static int i = 1;
-   BFS_LOG(3) << "   count:" << i++ << " calling filter on entity " << *entity;
    if (filter_fn_(entity)) {
       BFS_LOG(7) << *entity << " passed the filter!  adding to slave pathfinder.";
       pathfinder_->AddDestination(entity);
+   } else {
+      BFS_LOG(7) << *entity << " failed the filter!!";
    }
 }
 
+
+
+/*
+ * -- BfsPathFinder::ConsiderAddedEntity
+ *
+ * Consider and entity that was newly added to the terrain.  If that Entity's location
+ * is inside the current search radius, manually add it to the pathfinder.
+ *
+ */
+
+void BfsPathFinder::ConsiderAddedEntity(om::EntityPtr entity)
+{
+   if (entity) {
+      if (pathfinder_->IsSolved()) {
+         return;
+      }
+
+      om::MobPtr mob = entity->GetComponent<om::Mob>();
+      if (mob) {
+         csg::Point3 src = pathfinder_->GetSourceLocation();
+         csg::Point3 dst = mob->GetWorldGridLocation();
+         if (src.DistanceTo(dst) <= explored_distance_) {
+            BFS_LOG(7) << "considering " << *entity << " newly added to root object";
+            ConsiderEntity(entity);
+         }
+      }
+   }
+}
 
 /*
  * -- BfsPathFinder::EncodeDebugShapes
