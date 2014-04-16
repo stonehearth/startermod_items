@@ -204,8 +204,10 @@ function Task:_feed_worker(worker)
    -- from, go ahead and remove it.  this will leave the current action there
    -- undisturbed.  otherwise, inject a new run_task_action into the worker.
    if self._workers_pending_unfeed[worker:get_id()] then
+      self._log:debug('removing pending unfeed worker run task action from %s', worker)
       self._workers_pending_unfeed[worker:get_id()] = nil
    else
+      self._log:debug('injecting run task action into %s', worker)
       worker:get_component('stonehearth:ai'):add_custom_action(self._action_ctor)
    end
 end
@@ -485,7 +487,10 @@ function Task:__action_stopped(action)
          self:_set_state(COMPLETED)
          self:_destroy_entity_effects()
          self:_fire_completed_cbs()
+         self._log:debug('destroying self after completion!')
+         self:_destroy()
       end
+
    end
    
    self:_log_state('exiting __action_stopped')
