@@ -8,6 +8,7 @@
 #include "path_finder.h"
 #include "csg/point.h"
 #include "csg/color.h"
+#include <unordered_set>
 
 BEGIN_RADIANT_SIMULATION_NAMESPACE
 
@@ -41,26 +42,28 @@ class BfsPathFinder : public std::enable_shared_from_this<BfsPathFinder>,
       BfsPathFinderPtr RestartSearch(const char* reason);
       BfsPathFinderPtr Start();
       BfsPathFinderPtr Stop();
+      BfsPathFinderPtr ReconsiderDestination(om::EntityRef e);
       bool IsSearchExhausted() const;
 
       PathPtr GetSolution() const;
 
-      int EstimateCostToSolution();
+      float EstimateCostToSolution();
       std::ostream& Format(std::ostream& o) const;
       std::string DescribeProgress();
 
    public: // Job Interface
       bool IsIdle() const override;
       bool IsFinished() const override { return false; }
-      void Work(const platform::timer &timer) override;
+      void Work(platform::timer const& timer) override;
       std::string GetProgress() const override;
       void EncodeDebugShapes(protocol::shapelist *msg) const override;
 
    private:
-      void ExpandVoxelRange(csg::Point3 const& src, int new_range);
-      void ExpandTileRange(csg::Point3 const& src, int new_range);
-      void ExpandSearch(csg::Point3 const& src, platform::timer const &timer);
+      void ExploreNextNode(csg::Point3 const& src);
+      void ExpandSearch(platform::timer const& timer);
       void AddTileToSearch(csg::Point3 const& index);
+      void ConsiderEntity(om::EntityPtr entity);
+      float GetMaxExploredDistance() const;
 
    private:
       static std::vector<std::weak_ptr<BfsPathFinder>> all_pathfinders_;
@@ -69,12 +72,12 @@ class BfsPathFinder : public std::enable_shared_from_this<BfsPathFinder>,
       AStarPathFinderPtr   pathfinder_;
       ExhaustedCb          exhausted_cb_;
       FilterFn             filter_fn_;
-      int                  max_range_;
-      int                  current_range_;
-      bool                 search_stalled_;
-      csg::Region3         explored_;
-      csg::Region3         unexplored_;
-      std::vector<csg::Cube3> visited_;
+      int                  search_order_index_;
+      float                explored_distance_;
+      float                travel_distance_;
+      float                max_travel_distance_;
+      bool                 running_;
+      std::unordered_set<dm::ObjectId> visited_ids_;
 };
 
 std::ostream& operator<<(std::ostream& o, const BfsPathFinder& pf);

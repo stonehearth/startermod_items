@@ -23,6 +23,7 @@ return ai:create_compound_action(PickupItemMadeOf)
          })
          :execute('stonehearth:pickup_item_type', {
             filter_fn = ai.PREV.filter_fn,
+            description = ai.ARGS.material,
             reconsider_event_name = ai.ARGS.reconsider_event_name,
          })
          :set_think_output({ item = ai.PREV.item })

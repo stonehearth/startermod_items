@@ -274,6 +274,7 @@ void lua::sim::open(lua_State* L, Simulation* sim)
                .def("set_solved_cb",      &PathFinder_SetSolvedCb<BfsPathFinder>)
                .def("set_search_exhausted_cb", &PathFinder_SetExhausedCb<BfsPathFinder>)
                .def("set_filter_fn",      &BfsPathFinder_SetFilterFn)
+               .def("reconsider_destination", &BfsPathFinder::ReconsiderDestination)
                .def("stop",               &BfsPathFinder::Stop)
                .def("start",              &BfsPathFinder::Start)
             ,

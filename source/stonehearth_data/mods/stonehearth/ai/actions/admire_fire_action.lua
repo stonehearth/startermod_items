@@ -31,6 +31,7 @@ local ai = stonehearth.ai
 return ai:create_compound_action(AdmireFire)
             :execute('stonehearth:drop_carrying_now', {})
             :execute('stonehearth:goto_entity_type', {
+               description = 'find lit fire',
                filter_fn = is_seat_by_lit_firepit,
             })
             :execute('stonehearth:reserve_entity', { entity = ai.PREV.destination_entity })

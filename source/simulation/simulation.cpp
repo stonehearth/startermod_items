@@ -60,12 +60,12 @@ namespace proto = ::radiant::tesseract::protocol;
 #define MEASURE_TASK_TIME(category)  perfmon::TimelineCounterGuard taskman_timer_ ## __LINE__ (perf_timeline_, category);
 
 Simulation::Simulation() :
-   _showDebugNodes(true),
-   _singleStepPathFinding(false),
    store_(nullptr),
    paused_(false),
    noidle_(false),
    _tcp_acceptor(nullptr),
+   _showDebugNodes(false),
+   _singleStepPathFinding(false),
    debug_navgrid_enabled_(false),
    profile_next_lua_update_(false)
 {
@@ -362,7 +362,6 @@ void Simulation::StepPathFinding()
    platform::timer t(1000);
    radiant::stdutil::ForEachPrune<Job>(jobs_, [&](std::shared_ptr<Job> &p) {
       if (!p->IsFinished() && !p->IsIdle()) {
-         SIM_LOG(0) << "working...";
          p->Work(t);
          SIM_LOG(0) << p->GetProgress();
       }
@@ -562,7 +561,6 @@ void Simulation::ProcessJobList()
       std::weak_ptr<Job> front = radiant::stdutil::pop_front(jobs_);
       std::shared_ptr<Job> job = front.lock();
       if (job) {
-
          if (!job->IsFinished()) {
             if (!job->IsIdle()) {
                idleCountdown = jobs_.size() + 2;

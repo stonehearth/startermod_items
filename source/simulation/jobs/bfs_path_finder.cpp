@@ -20,6 +20,32 @@ using namespace ::radiant::simulation;
 
 std::vector<std::weak_ptr<BfsPathFinder>> BfsPathFinder::all_pathfinders_;
 
+#define MAX_BFS_RADIUS 64
+#define SEARCH_ORDER_SIZE (MAX_BFS_RADIUS * MAX_BFS_RADIUS * MAX_BFS_RADIUS * 8)
+
+struct SearchOrderEntry { float d; signed char x, y, z; } searchOrder[SEARCH_ORDER_SIZE];
+struct ConstructSearchOrder {
+   ConstructSearchOrder() {
+      int i = 0;
+      for (int x = -MAX_BFS_RADIUS; x < MAX_BFS_RADIUS; x++) {
+         for (int y = -MAX_BFS_RADIUS; y < MAX_BFS_RADIUS; y++) {
+            for (int z = -MAX_BFS_RADIUS; z < MAX_BFS_RADIUS; z++) {
+               SearchOrderEntry &entry = searchOrder[i++];
+               entry.x = x;
+               entry.y = y;
+               entry.z = z;
+               entry.d = std::sqrt(static_cast<float>(x*x + y*y + z*z)) * phys::TILE_SIZE;
+            }
+         }
+      }
+      ASSERT(i == SEARCH_ORDER_SIZE);
+      std::sort(searchOrder, searchOrder + SEARCH_ORDER_SIZE, [](SearchOrderEntry const& lhs, SearchOrderEntry const& rhs) {
+         return lhs.d < rhs.d;
+      });
+   }
+};
+static ConstructSearchOrder __init;
+
 std::shared_ptr<BfsPathFinder> BfsPathFinder::Create(Simulation& sim, om::EntityPtr entity, std::string name, int range)
 {
    std::shared_ptr<BfsPathFinder> pathfinder(new BfsPathFinder(sim, entity, name, range));
@@ -34,8 +60,9 @@ void BfsPathFinder::ComputeCounters(std::function<void(const char*, double, cons
 BfsPathFinder::BfsPathFinder(Simulation& sim, om::EntityPtr entity, std::string const& name, int range) :
    PathFinder(sim, name),
    entity_(entity),
-   current_range_(-1),
-   max_range_((range / phys::TILE_SIZE) + 1)
+   search_order_index_(-1),
+   running_(false),
+   max_travel_distance_(static_cast<float>(range))
 {
    pathfinder_ = AStarPathFinder::Create(sim, BUILD_STRING(name << "(slave pathfinder)"), entity);
    BFS_LOG(3) << "creating bfs pathfinder";
@@ -72,159 +99,198 @@ BfsPathFinderPtr BfsPathFinder::SetFilterFn(FilterFn filter_fn)
 
 bool BfsPathFinder::IsIdle() const
 {
-   if (current_range_ <= max_range_) {
-      return false;
-   }
-   if (pathfinder_->IsSolved()) {
+   if (!running_) {
+      BFS_LOG(5) << "not running.  returning IDLE.";
       return true;
    }
-   return true;
+
+   if (pathfinder_->IsSolved()) {
+      BFS_LOG(5) << "solved!  returning IDLE.";
+      return true;
+   }
+
+   if (search_order_index_ >= SEARCH_ORDER_SIZE) {
+      BFS_LOG(5) << "ran out of search order nodes.  returning IDLE.";
+      return true;
+   }
+
+   if (travel_distance_ > max_travel_distance_) {
+      BFS_LOG(5) << "travel distance" << travel_distance_ << " exceeds max range of " << max_travel_distance_ << ".  returning IDLE.";
+      return true;
+   }
+
+   float max_explored_distanced = GetMaxExploredDistance();
+   if (explored_distance_ > max_explored_distanced) {
+      BFS_LOG(5) << "explored distance " << explored_distance_ << " exceeds max range of " << max_explored_distanced << ".  returning IDLE.";
+      return true;
+   }
+
+   BFS_LOG(5) << "returning not IDLE";
+   return false;
 }
 
 BfsPathFinderPtr BfsPathFinder::Start()
 {
    BFS_LOG(5) << "start requested";
+   pathfinder_->Start();
+   running_ = true;
+   search_order_index_ = -1;
+   explored_distance_ = 0;
+   travel_distance_ = 0;
    return shared_from_this();
 }
 
 BfsPathFinderPtr BfsPathFinder::Stop()
 {
    BFS_LOG(5) << "stop requested";
+   pathfinder_->Stop();
+   running_ = false;
    return shared_from_this();
+}
+
+BfsPathFinderPtr BfsPathFinder::ReconsiderDestination(om::EntityRef e)
+{
+   if (running_) {
+      om::EntityPtr entity = e.lock();
+      if (entity) {
+         dm::ObjectId id = entity->GetObjectId();
+
+         // we can only *RE*-consider something if it's already been considered.  Otherwise,
+         // wait for the BFS to find it organically.
+         if (visited_ids_.find(id) != visited_ids_.end()) {
+            BFS_LOG(3) << "reconsidering visited destination " << *entity;
+            ConsiderEntity(e.lock());
+         }
+      }
+   }
+   return shared_from_this();
+}
+
+void BfsPathFinder::ConsiderEntity(om::EntityPtr entity)
+{
+   dm::ObjectId id = entity->GetObjectId();
+   visited_ids_.insert(id);
+
+   static int i = 1;
+   BFS_LOG(3) << "   count:" << i++ << " calling filter on entity " << *entity;
+   if (filter_fn_(entity)) {
+      BFS_LOG(7) << *entity << " passed the filter!  adding to slave pathfinder.";
+      pathfinder_->AddDestination(entity);
+   }
 }
 
 void BfsPathFinder::EncodeDebugShapes(radiant::protocol::shapelist *msg) const
 {
-   csg::Color4 boxColor(128, 128, 0, 192);
-   for (auto const& cube : visited_) {
-      protocol::box* box = msg->add_box();
-      csg::Cube3f shape = csg::ToFloat(cube.Scaled(phys::TILE_SIZE));
-      shape.min.SaveValue(box->mutable_minimum());
-      shape.max.SaveValue(box->mutable_maximum());
-      boxColor.SaveValue(box->mutable_color());
-   }
-
    pathfinder_->EncodeDebugShapes(msg);
 }
 
 void BfsPathFinder::Work(platform::timer const &timer)
 {
-   BFS_LOG(7) << "entering work function "
-              << "(unexplored area:" << unexplored_.GetArea() 
-              << ", explored area:" << explored_.GetArea() << ")";
+   BFS_LOG(3) << "entering work function ("
+              << " travel distance:" << travel_distance_
+              << " explored distance:" << explored_distance_
+              << " search order index:" << search_order_index_
+              << ")";
 
-   // make sure the bounds of the search is at least as far out as the farthest
-   // block we've already tried to find.
-   csg::Point3 src = pathfinder_->GetSourceLocation();
-   csg::Point3 farthest = pathfinder_->GetFarthestSearchPoint();
-   ExpandVoxelRange(src, (int)std::ceil(src.DistanceTo(farthest)));
+   if (running_) {
+      ExpandSearch(timer);
+      if (!timer.expired() && !pathfinder_->IsIdle()) {
+         pathfinder_->Work(timer);
+         travel_distance_ = pathfinder_->GetTravelDistance();
+         BFS_LOG(9) << "setting travel distance to " << travel_distance_;
+      }
+   }
+   BFS_LOG(3) << "exiting work function";
+}
 
-   // if there are any more blocks in the unexplored space, go ahead and add
-   // their destinations now
-   ExpandSearch(src, timer);
+void BfsPathFinder::ExploreNextNode(csg::Point3 const& src_index)
+{
+   if (search_order_index_ < SEARCH_ORDER_SIZE) {
+      SearchOrderEntry const& entry = searchOrder[++search_order_index_];
 
-   if (!timer.expired() && !pathfinder_->IsIdle()) {
-      ASSERT(!pathfinder_->IsIdle());
-      pathfinder_->Work(timer);
-      BFS_LOG(8) << pathfinder_->DescribeProgress();
+      explored_distance_ = searchOrder[search_order_index_].d;
+      AddTileToSearch(src_index + csg::Point3(entry.x, entry.y, entry.z));
    }
 }
 
-void BfsPathFinder::ExpandVoxelRange(csg::Point3 const& src, int range)
+void BfsPathFinder::ExpandSearch(platform::timer const &timer)
 {
-   ExpandTileRange(src / phys::TILE_SIZE, range / phys::TILE_SIZE);
-}
+   float max_explored_distanced = GetMaxExploredDistance();
 
-void BfsPathFinder::ExpandTileRange(csg::Point3 const& src_index, int range)
-{
-   if (range > current_range_ && current_range_ <= max_range_) {
-      BFS_LOG(3) << "increasing range to " << range << " tiles";
-      current_range_ = range;
-
-      // create a big cube that covers every block in the range
-      csg::Cube3 bounds(csg::Point3(-range, -range, -range),
-                        csg::Point3(range + 1, range + 1, range + 1));
-
-      // offset it by the entity source, in tile coordinates.
-      bounds.Translate(src_index);
-      
-      // remove the explored region and add it to the fringe.
-      unexplored_ += csg::Region3(bounds) - explored_;
-   }
-}
-
-void BfsPathFinder::ExpandSearch(csg::Point3 const& src, platform::timer const &timer)
-{
-   csg::Point3 src_index = src / phys::TILE_SIZE;
-
+   // Work once to kick the pathfinder
    while (!timer.expired()) {
-      // Work once to kick the pathfinder 
       if (pathfinder_->IsSolved()) {
          BFS_LOG(9) << "pathfinder found solution while expanding search";
-         break;
+         return;
       }
+      csg::Point3 src = pathfinder_->GetSourceLocation();
+      csg::Point3 src_index = src / phys::TILE_SIZE;
 
-      if (!pathfinder_->IsIdle()) {
-         BFS_LOG(9) << "slave pathfinder is not idle.  stopping search expansion.";
-         break;
-      }
-
-      // if there are more regions we could add to the search, go ahead and
-      // add them now.
-      if (!unexplored_.IsEmpty()) {
-         csg::Point3 index = unexplored_.GetClosestPoint(src_index);
-         BFS_LOG(7) << index << " is closest tile index in unexplored to " << src_index;
-         AddTileToSearch(index);
+      if (travel_distance_ > explored_distance_) {
+         BFS_LOG(9) << "current travel distance " << travel_distance_ 
+                    << " exceeds explored distance " << explored_distance_
+                    << ".  exploring more nodes";
+         ExploreNextNode(src_index);
          continue;
       }
 
-      ASSERT(unexplored_.IsEmpty());
+      if (explored_distance_ > max_explored_distanced) {
+         BFS_LOG(3) << "current explored distance " << explored_distance_ 
+            << " exceeds max explored distance " << max_explored_distanced
+            << ".  stopping search.";
+         return;
+      }
+
+      if (!pathfinder_->IsIdle()) {
+         BFS_LOG(5) << "slave pathfinder is not idle.  stopping search expansion.";
+         return;
+      }
+
+      if (search_order_index_ >= SEARCH_ORDER_SIZE) {
+         BFS_LOG(3) << "ran out of search order nodes while expanding search";
+         return;
+      }
 
       // If the pathfinder is still idle even after adding all the tiles, we
       // need to expand the search
       BFS_LOG(7) << "pathfinder is still idle with no tiles left unexplored.  increasing range.";
-      BFS_LOG(7) << "(slave pathfinder state: " << pathfinder_->DescribeProgress() << ")";
-      ExpandTileRange(src_index, current_range_ + 1);
+      ExploreNextNode(src_index);
+      BFS_LOG(7) << "explored distance is now " << explored_distance_ << "(max: " << max_explored_distanced << ")";
    }
 }
 
 void BfsPathFinder::AddTileToSearch(csg::Point3 const& index)
 {
-   ASSERT(unexplored_.Contains(index));
-   ASSERT(!explored_.Contains(index));
-
-   unexplored_ -= index;
-   explored_.AddUnique(index);
-
    BFS_LOG(9) << "adding tile " << index << " to search.";
 
-   bool visited = false;
    phys::NavGrid& ng = GetSim().GetOctTree().GetNavGrid();
-   ng.ForEachEntityAtIndex(index, [this, &visited](om::EntityPtr entity) {
-      visited = true;
-      if (filter_fn_(entity)) {
-         pathfinder_->AddDestination(entity);
+   ng.ForEachEntityAtIndex(index, [this](om::EntityPtr entity) {
+      dm::ObjectId id = entity->GetObjectId();
+      if (visited_ids_.find(id) == visited_ids_.end()) {
+         ConsiderEntity(entity);
+      } else {
+         BFS_LOG(5) << "already visited entity " << *entity << ".  ignoring.";
       }
    });
-#if defined(ENCODE_VISITED_NODES)
-   if (visited) {
-      visited_.push_back(csg::Cube3(index, index + csg::Point3::one));
-   }
-#endif
 }
 
-int BfsPathFinder::EstimateCostToSolution()
+float BfsPathFinder::EstimateCostToSolution()
 {
    if (pathfinder_->IsSolved()) {
-      return INT_MAX;
+      BFS_LOG(3) << "solution found.  estimated cost of solution is INT_MAX";
+      return FLT_MAX;
    }
    if (!pathfinder_->IsIdle()) {
-      return pathfinder_->EstimateCostToSolution();
+      float cost = pathfinder_->EstimateCostToSolution();
+      BFS_LOG(3) << "pathfinder is running.  estimated cost of solution is " << cost;
+      return cost;
    }
-   if (unexplored_.IsEmpty() && current_range_ > max_range_) {
-      return INT_MAX;
+   if (travel_distance_ > max_travel_distance_) {
+      BFS_LOG(3) << "bfs exceeded range " << max_travel_distance_ * phys::TILE_SIZE << ".  estimated max cost is INT_MAX";
+      return FLT_MAX;
    }
-   return 0;
+   BFS_LOG(3) << "bfs still expanding.  estimated max cost is " << explored_distance_;
+   return explored_distance_;
 }
 
 std::string BfsPathFinder::GetProgress() const
@@ -234,7 +300,8 @@ std::string BfsPathFinder::GetProgress() const
    if (entity) {
       ename = BUILD_STRING(*entity);
    }
-   return BUILD_STRING(GetName() << "bfs: " << pathfinder_->GetProgress());
+   float percentExplored = search_order_index_ * 100.0f / SEARCH_ORDER_SIZE;
+   return BUILD_STRING(GetName() << "bfs (" << percentExplored << "%): " << pathfinder_->GetProgress());
 }
 
 PathPtr BfsPathFinder::GetSolution() const
@@ -267,4 +334,9 @@ bool BfsPathFinder::IsSearchExhausted() const
 std::string BfsPathFinder::DescribeProgress()
 {
    return BUILD_STRING(GetName() << " bfs progress...");
+}
+
+float BfsPathFinder::GetMaxExploredDistance() const
+{
+   return max_travel_distance_ + phys::TILE_SIZE;
 }

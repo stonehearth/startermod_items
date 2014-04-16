@@ -73,6 +73,7 @@ void EntityJobScheduler::Work(const platform::timer &timer)
 {
    PathFinderPtr p = closest_pathfinder_.lock();
    if (p) {
+      E_LOG(7) << "pumping pathfinder " << p->GetName() << " : " << p->GetProgress();
       p->Work(timer);
    }
 }
@@ -119,13 +120,13 @@ void EntityJobScheduler::EncodeDebugShapes(protocol::shapelist *msg) const
 PathFinderPtr EntityJobScheduler::GetClosestPathfinder() const
 {
    PathFinderPtr best;
-   int best_distance = INT_MAX;
+   float best_distance = FLT_MAX;
    uint i, c = pathfinders_.size();
    for (i = 0; i < c; i++) {
       PathFinderPtr p = pathfinders_[i].pathfinder.lock();
       if (p) {
          if (!p->IsIdle()) {
-            int distance = p->EstimateCostToSolution();
+            float distance = p->EstimateCostToSolution();
             if (distance < best_distance) {
                best_distance = distance;
                best = p;
