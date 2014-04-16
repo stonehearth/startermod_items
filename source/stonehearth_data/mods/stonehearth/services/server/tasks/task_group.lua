@@ -56,8 +56,8 @@ function TaskGroup:add_worker(worker)
    self._workers[id] = {
       worker = worker,
       running = nil,
-      available_tasks = {},
-      available_task_count = 0
+      all_fed_tasks = {},
+      all_fed_tasks_count = 0
    }
    return self
 end
@@ -70,7 +70,7 @@ function TaskGroup:remove_worker(id)
    assert(type(id) == 'number')
    local entry = self._workers[id]
    if entry then
-      for task, _ in pairs(entry.available_tasks) do
+      for task, _ in pairs(entry.all_fed_tasks) do
          task:_unfeed_worker(id)
       end
       self._workers[id] = nil
@@ -98,9 +98,9 @@ end
 function TaskGroup:_on_task_destroy(task)
    self._log:debug('removing task %s from group', task:get_name())
    if self._tasks[task] then
-      self._tasks[task] = nil
       self:_stop_feeding_task(task)
       self:_unfeed_workers_from_task(task)      
+      self._tasks[task] = nil
    end
 end
 
@@ -112,13 +112,13 @@ function TaskGroup:_unfeed_workers_from_task(task)
          self._log:debug('clearing %s running task %s', tostring(entry.worker), task:get_name())
          entry.running = nil
          task:_unfeed_worker(entry.worker)
-         assert(entry.available_tasks[task])
+         assert(entry.all_fed_tasks[task])
       end
-      if entry.available_tasks[task] then
+      if entry.all_fed_tasks[task] then
          self._log:debug('clearing %s available task %s', tostring(entry.worker), task:get_name())
          task:_unfeed_worker(entry.worker)
-         entry.available_tasks[task] = nil
-         entry.available_task_count = entry.available_task_count - 1
+         entry.all_fed_tasks[task] = nil
+         entry.all_fed_tasks_count = entry.all_fed_tasks_count - 1
       end
    end
 end
@@ -149,24 +149,10 @@ function TaskGroup:_notify_worker_started_task(task, worker)
    local entry = self._workers[worker_id]
    if entry then
       assert(not entry.running)
+      assert(entry.all_fed_tasks[task])
+
       self._log:debug('marking %s running task %s', tostring(worker), task:get_name())
       entry.running = task
-      entry.available_task_count = entry.available_task_count + 1
-      entry.available_tasks[task] = true
-
-      -- Don't stop feeding everyone just because one worker is working; others might get a chance
-      -- to run, too.
-      -- stop feeding in everyone else
-      --[[
-      for feeding_task, _ in pairs(entry.available_tasks) do
-         if task ~= feeding_task then
-            entry.available_tasks[feeding_task] = nil
-            entry.available_task_count = entry.available_task_count - 1
-            self._log:detail('removing feeding task %s from %s', feeding_task:get_name(), tostring(worker))
-            feeding_task:_unfeed_worker(worker_id)
-         end
-      end
-      ]]
    end
 end
 
@@ -176,8 +162,6 @@ function TaskGroup:_notify_worker_stopped_task(task, worker)
    if entry and task == entry.running then
       self._log:debug('marking %s as stopping task %s', tostring(worker), task:get_name())
       entry.running = nil
-      entry.available_tasks[task] = nil
-      entry.available_task_count = entry.available_task_count - 1
    end
 end
 
@@ -212,7 +196,7 @@ function TaskGroup:_get_task_fitness(task, entry)
    -- assert(not entry.running)
    
    -- if the worker is already feeding in this task, don't feed again!
-   if entry.available_tasks[task] then
+   if entry.all_fed_tasks[task] then
       self._log:detail('skipping fitness check on task %s for %s (already feeding)',
                        task:get_name(), tostring(entry.worker))
       return nil
@@ -234,7 +218,7 @@ function TaskGroup:_prioritize_worker_queue()
       else--if not entry.running then
          local matching_entry = {
             worker = entry.worker,
-            available_task_count = entry.available_task_count,
+            all_fed_tasks_count = entry.all_fed_tasks_count,
             task_rankings = self:_prioritize_tasks_for_worker(entry)
          }
          table.insert(workers, matching_entry)
@@ -243,12 +227,12 @@ function TaskGroup:_prioritize_worker_queue()
    self:_set_performance_counter('worker_queue_len', #workers)
 
    table.sort(workers, function (l, r)
-         return l.available_task_count < r.available_task_count
+         return l.all_fed_tasks_count < r.all_fed_tasks_count
       end)
    
    if self._log:is_enabled(radiant.log.DETAIL) then
       for i, entry in ipairs(workers) do
-         self._log:detail('%2d available tasks for %s', i, entry.available_task_count, tostring(entry.worker))
+         self._log:detail('%2d previously fed for %s', i, entry.all_fed_tasks_count, tostring(entry.worker))
          self._log:detail('%2d tasks ready for feeding:', #entry.task_rankings)
          for j, task_entry in ipairs(entry.task_rankings) do
             self._log:detail('   %d) : %10s (pri:%d d:%4.2f)', j, task_entry.task:get_name(), task_entry.priority, task_entry.distance)
@@ -328,9 +312,9 @@ function TaskGroup:_update(count)
       self._log:debug('feeding worker %s to task %s', tostring(worker), task:get_name())
       local entry = self._workers[worker:get_id()]
 
-      assert(not entry.available_tasks[task])
-      entry.available_tasks[task] = true
-      entry.available_task_count = entry.available_task_count + 1
+      assert(not entry.all_fed_tasks[task])
+      entry.all_fed_tasks[task] = true
+      entry.all_fed_tasks_count = entry.all_fed_tasks_count + 1
       task:_feed_worker(entry.worker)
    end
    
