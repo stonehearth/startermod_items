@@ -59,6 +59,7 @@ function FindPathToEntity:start_thinking(ai, entity, args)
                          :set_source(ai.CURRENT.location)
                          :add_destination(destination)
                          :set_solved_cb(solved)
+                         :start()
 end
 
 function FindPathToEntity:stop_thinking(ai, entity, args)

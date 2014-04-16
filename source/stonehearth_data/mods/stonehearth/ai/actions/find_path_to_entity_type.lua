@@ -6,7 +6,12 @@ FindPathToEntityType.name = 'find path to entity type'
 FindPathToEntityType.does = 'stonehearth:find_path_to_entity_type'
 FindPathToEntityType.args = {
    filter_fn = 'function',             -- entity to find a path to
-   reconsider_event_name = 'string',   -- name of the event used to trigger reconsidering 
+   reconsider_event_name = 'string',   -- name of the event used to trigger reconsidering
+   description = 'string',             -- description of the initiating compound task (for debugging)
+   range = {
+      default = 128,
+      type = 'number',
+   },
 }
 FindPathToEntityType.think_output = {
    destination = Entity,   -- the destination
@@ -20,6 +25,7 @@ function FindPathToEntityType:start_thinking(ai, entity, args)
    self._entity = entity
    self._args = args
    self._log = ai:get_log()
+   self._range = args.range
    self._filter_fn = args.filter_fn
    self._reconsider_event_name = args.reconsider_event_name
    self:_start_pathfinder(ai, entity, args)
@@ -30,50 +36,35 @@ function FindPathToEntityType:stop_thinking()
 end
 
 function FindPathToEntityType:_consider_destination(target)
+   if self._pathfinder then
+      self._log:detail('considering adding %s to pathfinder', target)
+      self._pathfinder:reconsider_destination(target)
+   end
+end
+
+function FindPathToEntityType:_is_valid_destination(target)
    if self._solution_path then
       -- hmm.  we already have a solution.  what if this object can provide a better one?
       -- do we really want to invalidate our current solution on the *chance* that it
       -- could be?  let's not.  let's just go with what we've got!
-      return
+      return false
    end
 
-   if self._filter_fn(target, self._ai, self._entity) then
-      local lease = target:get_component('stonehearth:lease')
-      if lease and not lease:can_acquire('ai_reservation', self._entity) then
-         self._log:debug('ignoring %s (cannot acquire ai lease)', target)
-         return
-      end
-      self._log:detail('adding entity %s to pathfinder', target)
-      self._pathfinder:add_destination(target)
+   if not self._filter_fn(target, self._ai, self._entity) then
+      return false
    end
-end
 
-function FindPathToEntityType:_remove_destination(id)
-   if self._solution_entity_id then
-      if id == self._solution_entity_id then
-         -- rats!  the thing we found earlier is no longer in the world.  revoke our
-         -- current solution and restart the pathfinder
-         self._ai:clear_think_output('previous destination is gone!')
-      else
-         -- a destination was removed, but it's not our current solution.  just
-         -- ignore it
-      end
-      return
+   local lease = target:get_component('stonehearth:lease')
+   if lease and not lease:can_acquire('ai_reservation', self._entity) then
+      self._log:debug('ignoring %s (cannot acquire ai lease)', target)
+      return false
    end
-   
-   if self._pathfinder then
-      self._log:detail('removing entity %d from pathfinder', id)
-      self._pathfinder:remove_destination(id)
-   end
+
+   self._log:detail('entity %s is ok!', target)
+   return true
 end
 
 function FindPathToEntityType:_start_pathfinder()
-   local on_added = function(id, target)
-      self:_consider_destination(target)
-   end   
-   local on_removed = function(id)
-      self:_remove_destination(id)
-   end   
    local solved = function(path)
       self._solution_path = path
       self._solution_entity_id = path:get_destination():get_id()
@@ -86,10 +77,14 @@ function FindPathToEntityType:_start_pathfinder()
    end   
    
    self._log:detail('finding path from CURRENT.location %s to item type...', self._ai.CURRENT.location)
-   self._pathfinder = _radiant.sim.create_astar_path_finder(self._entity, 'goto entity action')
-                         :set_source(self._ai.CURRENT.location)
-                         :set_solved_cb(solved)
-   self._promise = radiant.terrain.trace_world_entities('find path to entity type', on_added, on_removed)
+   local description = string.format('bfs "%s" for "%s"', self._args.description or 'anon', tostring(self._entity))
+   self._pathfinder = _radiant.sim.create_bfs_path_finder(self._entity, description, self._range)
+                        :set_source(self._ai.CURRENT.location)
+                        :set_solved_cb(solved)
+                        :set_filter_fn(function(target)
+                              return self:_is_valid_destination(target)
+                           end)
+                        :start()
 end
 
 
@@ -105,10 +100,6 @@ function FindPathToEntityType:_stop_pathfinder()
    if self._pathfinder then
       self._pathfinder:stop()
       self._pathfinder = nil
-   end
-   if self._promise then
-      self._promise:destroy()
-      self._promise = nil
    end
 end
 

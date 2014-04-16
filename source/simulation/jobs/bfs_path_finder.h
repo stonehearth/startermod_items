@@ -8,6 +8,7 @@
 #include "path_finder.h"
 #include "csg/point.h"
 #include "csg/color.h"
+#include <unordered_set>
 
 BEGIN_RADIANT_SIMULATION_NAMESPACE
 
@@ -17,17 +18,23 @@ class BfsPathFinderSrc;
 class BfsPathFinderDst;
 class Simulation;
 
-DECLARE_SHARED_POINTER_TYPES(BfsPathFinder)
+/*
+ * -- BfsPathFinder
+ *
+ * The Breadth First Search pathfinder searches for the first destination that
+ * matches the specified filter (see BfsPathFinder::SetFilterFn)
+ *
+ */
 
 class BfsPathFinder : public std::enable_shared_from_this<BfsPathFinder>,
                       public PathFinder {
    public:
-      static std::shared_ptr<BfsPathFinder> Create(Simulation& sim, std::string name, om::EntityPtr entity);
+      static std::shared_ptr<BfsPathFinder> Create(Simulation& sim, om::EntityPtr entity, std::string name, int range);
       static void ComputeCounters(std::function<void(const char*, double, const char*)> const& addCounter);
       virtual ~BfsPathFinder();
 
    private:
-      BfsPathFinder(Simulation& sim, std::string name, om::EntityPtr source);
+      BfsPathFinder(Simulation& sim, om::EntityPtr entity, std::string const& name, int range);
 
    public:
       typedef std::function<void(PathPtr)> SolvedCb;
@@ -38,32 +45,41 @@ class BfsPathFinder : public std::enable_shared_from_this<BfsPathFinder>,
       BfsPathFinderPtr SetSolvedCb(SolvedCb solved_cb);
       BfsPathFinderPtr SetSearchExhaustedCb(ExhaustedCb exhausted_cb);
       BfsPathFinderPtr SetFilterFn(FilterFn filter_fn);
-      BfsPathFinderPtr RestartSearch(const char* reason);
       BfsPathFinderPtr Start();
       BfsPathFinderPtr Stop();
-      bool IsSearchExhausted() const;
+      BfsPathFinderPtr ReconsiderDestination(om::EntityRef e);
 
       PathPtr GetSolution() const;
-
-      int EstimateCostToSolution();
-      std::ostream& Format(std::ostream& o) const;
-      std::string DescribeProgress();
+      float EstimateCostToSolution();
 
    public: // Job Interface
       bool IsIdle() const override;
       bool IsFinished() const override { return false; }
-      void Work(const platform::timer &timer) override;
+      void Work(platform::timer const& timer) override;
       std::string GetProgress() const override;
       void EncodeDebugShapes(protocol::shapelist *msg) const override;
 
    private:
+      void ExploreNextNode(csg::Point3 const& src);
+      void ExpandSearch(platform::timer const& timer);
+      void AddTileToSearch(csg::Point3 const& index);
+      void ConsiderEntity(om::EntityPtr entity);
+      void ConsiderAddedEntity(om::EntityPtr entity);
+      float GetMaxExploredDistance() const;
+
+   private:
       static std::vector<std::weak_ptr<BfsPathFinder>> all_pathfinders_;
       om::EntityRef        entity_;
-      PathPtr              solution_;
       AStarPathFinderPtr   pathfinder_;
-      SolvedCb             solved_cb_;
       ExhaustedCb          exhausted_cb_;
       FilterFn             filter_fn_;
+      int                  search_order_index_;
+      float                explored_distance_;
+      float                travel_distance_;
+      float                max_travel_distance_;
+      bool                 running_;
+      dm::TracePtr         entityAddedTrace_;
+      std::unordered_set<dm::ObjectId> visited_ids_;
 };
 
 std::ostream& operator<<(std::ostream& o, const BfsPathFinder& pf);

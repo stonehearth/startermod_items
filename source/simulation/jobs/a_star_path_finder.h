@@ -40,9 +40,14 @@ class AStarPathFinder : public std::enable_shared_from_this<AStarPathFinder>,
       AStarPathFinderPtr Start();
       AStarPathFinderPtr Stop();
 
-      PathPtr GetSolution() const;
+      bool IsSolved() const;
+      bool IsSearchExhausted() const;
 
-      int EstimateCostToSolution();
+      PathPtr GetSolution() const;
+      csg::Point3 GetSourceLocation() const;
+      float GetTravelDistance();
+
+      float EstimateCostToSolution();
       std::ostream& Format(std::ostream& o) const;
       void SetDebugColor(csg::Color4 const& color);
       std::string DescribeProgress();
@@ -58,16 +63,15 @@ class AStarPathFinder : public std::enable_shared_from_this<AStarPathFinder>,
       friend PathFinderSrc;
       friend PathFinderDst;
       void Restart();
-      bool IsSearchExhausted() const;
 
    private:
       void RecommendBestPath(std::vector<csg::Point3> &points) const;
-      int EstimateCostToDestination(const csg::Point3 &pt) const;
-      int EstimateCostToDestination(const csg::Point3 &pt, PathFinderDst** closest) const;
+      float EstimateCostToDestination(const csg::Point3 &pt) const;
+      float EstimateCostToDestination(const csg::Point3 &pt, PathFinderDst** closest) const;
 
-      PathFinderNode GetFirstOpen();
+      PathFinderNode PopClosestOpenNode();
       void ReconstructPath(std::vector<csg::Point3> &solution, const csg::Point3 &dst) const;
-      void AddEdge(const PathFinderNode &current, const csg::Point3 &next, int cost);
+      void AddEdge(const PathFinderNode &current, const csg::Point3 &next, float cost);
       void RebuildHeap();
 
       void SolveSearch(const csg::Point3& last, PathFinderDst* dst);
@@ -80,7 +84,7 @@ class AStarPathFinder : public std::enable_shared_from_this<AStarPathFinder>,
       SolvedCb                      solved_cb_;
       ExhaustedCb                   exhausted_cb_;
       bool                          search_exhausted_;
-      int                           max_cost_to_destination_;
+      float                         max_cost_to_destination_;
       int                           costToDestination_;
       bool                          rebuildHeap_;
       bool                          restart_search_;

@@ -36,14 +36,13 @@ void NavGridTile::RemoveCollisionTracker(CollisionTrackerPtr tracker)
       // multimap, so this is O(1) for the find() + O(n) for the number of tracker
       // types, but there are a only and handful of those, so consider the while
       // loop here to be constant time.
-      auto i = trackers_.find(id), end = trackers_.end();
-      while (i != end && i->first == id) {
+      auto range = trackers_.equal_range(id);
+      for (auto i = range.first; i != range.second; i++) {
          if (i->second.lock() == tracker) {
             trackers_.erase(i);
             MarkDirty();
             return;
          }
-         i++;
       }
    }
 }
@@ -99,7 +98,7 @@ bool NavGridTile::CanStandOn(csg::Point3 const& pt)
  *
  * Re-generates all the tile data.  We don't bother keeping track of what's actually
  * changed.. just start over from scratch.  The bookkeeping for "proper" change tracking
- * is more complicated and expensive relative to the cost of generating the bitvector,
+ * is more complicated and expensive relative to the cost of generating the bit vector,
  * so just don't bother.  This updates each of the individual TrackerType vectors first,
  * then walk through the derived vectors.
  */
@@ -190,4 +189,23 @@ csg::Cube3 NavGridTile::GetWorldBounds(csg::Point3 const& index) const
 std::shared_ptr<NavGridTileData> NavGridTile::GetTileData()
 {
    return data_;
+}
+
+/*
+ * -- NavGridTile::ForEachEntity
+ *
+ * Call the `cb` for all entities which overlap the tile.  This function makes
+ * no guarantees as to the number of times the cb will get called per entity!
+ * Since `trackers_` is a multimap, the cb will be called for each tracker
+ * type registered by the entity.  We could filter out duplicates but (1)
+ * that's expensive and redundant if the caller is also filtering dups and
+ * (2) most callers will already have to handle redundant calls when 
+ * iterating over a range of tiles for cases when the same entity overlaps
+ * several tiles.
+ */ 
+void NavGridTile::ForEachEntity(ForEachEntityCb cb)
+{
+   stdutil::ForEachPrune<dm::ObjectId, CollisionTracker>(trackers_, [cb](dm::ObjectId const& id, CollisionTrackerPtr tracker) {
+      cb(tracker->GetEntity());
+   });
 }

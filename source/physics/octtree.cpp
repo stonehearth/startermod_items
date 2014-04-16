@@ -305,9 +305,9 @@ bool OctTree::ValidDiagonalMove(om::EntityPtr const& entity, csg::Point3 const& 
    return true;
 }
 
-std::vector<std::pair<csg::Point3, int>> OctTree::ComputeNeighborMovementCost(om::EntityPtr entity, const csg::Point3& from) const
+OctTree::MovementCostVector OctTree::ComputeNeighborMovementCost(om::EntityPtr entity, const csg::Point3& from) const
 {
-   std::vector<std::pair<csg::Point3, int>> result;
+   MovementCostVector result;
 
    // xxx: this is in no way thread safe! (see SH-8)
    static const csg::Point3 cardinal_directions[] = {
@@ -334,7 +334,7 @@ std::vector<std::pair<csg::Point3, int>> OctTree::ComputeNeighborMovementCost(om
       for (int dy = 1; dy >= -2; dy--) {
          csg::Point3 to = from + direction + csg::Point3(0, dy, 0);
          if (navgrid_.CanStandOn(entity, to)) {
-            result.push_back(std::make_pair(to, EstimateMovementCost(from, to)));
+            result.push_back(std::make_pair(to, GetMovementCost(from, to)));
             break;
          }
       }
@@ -349,7 +349,7 @@ std::vector<std::pair<csg::Point3, int>> OctTree::ComputeNeighborMovementCost(om
          if (!ValidDiagonalMove(entity, from, to)) {
             continue;
          }
-         result.push_back(std::make_pair(to, EstimateMovementCost(from, to)));
+         result.push_back(std::make_pair(to, GetMovementCost(from, to)));
          break;
       }
    }
@@ -357,45 +357,34 @@ std::vector<std::pair<csg::Point3, int>> OctTree::ComputeNeighborMovementCost(om
    for (const auto& direction : vertical_directions) {
       csg::Point3 to = from + direction;
       if (navgrid_.CanStandOn(entity, to)) {
-         result.push_back(std::make_pair(to, EstimateMovementCost(from, to)));
+         result.push_back(std::make_pair(to, GetMovementCost(from, to)));
       }
    }
    return result;
 }
 
-int OctTree::EstimateMovementCost(const csg::Point3& start, const csg::Point3& end) const
+
+/*
+ * -- OctTree::GetMovementCost
+ *
+ * Get the actual cost to move from the start to the finish.  It's up to the caller
+ * to validate the parameters.
+ */
+
+float OctTree::GetMovementCost(const csg::Point3& start, const csg::Point3& end) const
 {
-   static int COST_SCALE = 10;
-   int cost = 0;
+   float cost = 0;
 
-   // it's fairly expensive to climb.
-   cost += COST_SCALE * std::max(end.y - start.y, 0) * 2;
+   // it's fairly expensive to climb (xxx: except climbing a ladder should be free!)
+   cost += std::max(end.y - start.y, 0) * 2;
 
-   // falling is super cheap.
+   // falling is super cheap (free, in fact, but leave this here just in case).
    cost += std::max(start.y - end.y, 0);
 
-   // diagonals need to be more expensive than cardinal directions
-   int xCost = abs(end.x - start.x);
-   int zCost = abs(end.z - start.z);
-   int diagCost = std::min(xCost, zCost);
-   int horzCost = std::max(xCost, zCost) - diagCost;
+   int dx = abs(end.x - start.x);
+   int dz = abs(end.z - start.z);
+   cost += std::sqrt(dx*dx + dz*dz);
 
-   cost += (int)((horzCost + diagCost * 1.414213562) * COST_SCALE);
-
-   return cost;
-}
-
-int OctTree::EstimateMovementCost(const csg::Point3& src, const csg::Region3& dst) const
-{
-   return !dst.IsEmpty() ? EstimateMovementCost(src, dst.GetClosestPoint(src)) : INT_MAX;
-}
-
-int OctTree::EstimateMovementCost(const csg::Point3& src, const std::vector<csg::Point3>& points) const
-{
-   int cost = INT_MAX;
-   for (const auto& pt : points) {
-      cost = std::min(cost, EstimateMovementCost(src, pt));
-   }
    return cost;
 }
 

@@ -26,14 +26,14 @@ public:
    bool IsIdle() const;
    dm::ObjectId GetEntityId() const;
    csg::Point3 GetPointOfInterest(csg::Point3 const& adjacent) const;
-   int EstimateMovementCost(const csg::Point3& start) const;
+   float EstimateMovementCost(const csg::Point3& start) const;
    void EncodeDebugShapes(protocol::shapelist *msg, csg::Color4 const& debug_color) const;
    
 private:
    void CreateTraces();
    void DestroyTraces();
    void ClipAdjacentToTerrain();
-   int EstimateMovementCost(csg::Point3 const& start, csg::Point3 const& end) const;
+   float EstimateMovementCost(csg::Point3 const& start, csg::Point3 const& end) const;
 
 public:
    Simulation&                sim_;

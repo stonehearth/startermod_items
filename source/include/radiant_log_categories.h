@@ -36,9 +36,11 @@
    BEGIN_GROUP(simulation) \
       ADD_CATEGORY(core) \
       ADD_CATEGORY(jobs) \
-      ADD_CATEGORY(pathfinder) \
-      ADD_CATEGORY(bfs_pathfinder) \
-      ADD_CATEGORY(direct_pathfinder) \
+      BEGIN_GROUP(pathfinder) \
+         ADD_CATEGORY(bfs) \
+         ADD_CATEGORY(astar) \
+         ADD_CATEGORY(direct) \
+      END_GROUP(pathfinder) \
       ADD_CATEGORY(follow_path) \
       ADD_CATEGORY(goto_location) \
       ADD_CATEGORY(terrain) \

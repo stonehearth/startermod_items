@@ -13,7 +13,7 @@
 using namespace ::radiant;
 using namespace ::radiant::simulation;
 
-#define PF_LOG(level)   LOG_CATEGORY(simulation.pathfinder, level, name_ << "(dst " << id_ << ")")
+#define PF_LOG(level)   LOG_CATEGORY(simulation.pathfinder.astar, level, name_ << "(dst " << std::setw(5) << id_ << ")")
 
 PathFinderDst::PathFinderDst(Simulation& sim, om::EntityRef e, std::string const& name, ChangedCb changed_cb) :
    sim_(sim),
@@ -23,7 +23,11 @@ PathFinderDst::PathFinderDst(Simulation& sim, om::EntityRef e, std::string const
    moving_(false)
 {
    ASSERT(!e.expired());
-   id_ = entity_.lock()->GetObjectId();
+   om::EntityPtr entity  = entity_.lock();
+   if (entity) {
+      id_ = entity->GetObjectId();
+      PF_LOG(3) << "adding path finder dst for " << *entity;
+   }
    CreateTraces();
 }
 
@@ -84,75 +88,19 @@ void PathFinderDst::ClipAdjacentToTerrain()
 {
    world_space_adjacent_region_.Clear();
 
-   if (moving_) {
-      //return;
-   }
-
    om::EntityPtr entity = entity_.lock();
    if (entity) {
       world_space_adjacent_region_ = MovementHelper().GetRegionAdjacentToEntity(sim_, entity);
    }
 }
 
-int PathFinderDst::EstimateMovementCost(const csg::Point3& from) const
+float PathFinderDst::EstimateMovementCost(csg::Point3 const& start) const
 {
-   auto entity = GetEntity();
-
-   if (!entity) {
+   if (world_space_adjacent_region_.IsEmpty()) {
       return INT_MAX;
    }
-
-   // Translate the point to the local coordinate system
-   csg::Point3 start = from;
-   auto mob = entity->GetComponent<om::Mob>();
-   if (mob) {
-      start -= mob->GetWorldGridLocation();
-   }
-
-   csg::Point3 end;
-
-   om::Region3BoxedPtr adjacent;
-   om::DestinationPtr dst = entity->GetComponent<om::Destination>();
-   if (dst) {
-      adjacent = dst->GetAdjacent();
-   }
-   if (adjacent) {
-      csg::Region3 const& adj = *adjacent;
-      if (adj.IsEmpty()) {
-         return INT_MAX;
-      }
-      end = adj.GetClosestPoint(start);      
-   } else {
-      csg::Region3 adjacent;
-      adjacent += csg::Point3(-1, 0,  0);
-      adjacent += csg::Point3( 1, 0,  0);
-      adjacent += csg::Point3( 0, 0, -1);
-      adjacent += csg::Point3( 0, 0, -1);
-      end = adjacent.GetClosestPoint(start);
-   }
-   return EstimateMovementCost(start, end);
-}
-
-int PathFinderDst::EstimateMovementCost(csg::Point3 const& start, csg::Point3 const& end) const
-{
-   static int COST_SCALE = 10;
-   int cost = 0;
-
-   // it's fairly expensive to climb.
-   cost += COST_SCALE * std::max(end.y - start.y, 0) * 2;
-
-   // falling is super cheap.
-   cost += std::max(start.y - end.y, 0);
-
-   // diagonals need to be more expensive than cardinal directions
-   int xCost = abs(end.x - start.x);
-   int zCost = abs(end.z - start.z);
-   int diagCost = std::min(xCost, zCost);
-   int horzCost = std::max(xCost, zCost) - diagCost;
-
-   cost += (int)((horzCost + diagCost * 1.414) * COST_SCALE);
-
-   return cost;
+   csg::Point3 end = world_space_adjacent_region_.GetClosestPoint(start);
+   return sim_.GetOctTree().GetMovementCost(start, end);
 }
 
 csg::Point3 PathFinderDst::GetPointOfInterest(csg::Point3 const& adjacent_pt) const
@@ -175,7 +123,7 @@ bool PathFinderDst::IsIdle() const
 
 void PathFinderDst::EncodeDebugShapes(radiant::protocol::shapelist *msg, csg::Color4 const& debug_color) const
 {
-   if (LOG_IS_ENABLED(simulation.pathfinder, 7)) {
+   if (LOG_IS_ENABLED(simulation.pathfinder.astar, 7)) {
       auto region = msg->add_region();
       debug_color.SaveValue(region->mutable_color());
       for (auto const& cube : world_space_adjacent_region_) {

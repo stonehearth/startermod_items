@@ -28,10 +28,10 @@ class NavGrid {
 
       bool CanStandOn(om::EntityPtr entity, csg::Point3 const& pt);
       void RemoveNonStandableRegion(om::EntityPtr entity, csg::Region3& r);
+      void ForEachEntityAtIndex(csg::Point3 const& index, NavGridTile::ForEachEntityCb cb);
 
       bool IsValidStandingRegion(csg::Region3 const& r);
       void ShowDebugShapes(csg::Point3 const& pt, protocol::shapelist* msg);
-   
    private: // methods for internal helper classes
       friend CollisionTracker;
       friend TerrainTracker;

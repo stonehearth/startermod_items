@@ -10,7 +10,7 @@
 using namespace ::radiant;
 using namespace ::radiant::simulation;
 
-#define DPF_LOG(level)   LOG(simulation.direct_pathfinder, level)
+#define DPF_LOG(level)   LOG(simulation.pathfinder.direct, level)
 
 DirectPathFinder::DirectPathFinder(Simulation &sim, om::EntityRef entityRef, om::EntityRef targetRef) :
    sim_(sim),
@@ -21,7 +21,7 @@ DirectPathFinder::DirectPathFinder(Simulation &sim, om::EntityRef entityRef, om:
 {
    om::EntityPtr entity = entityRef_.lock();
    startLocation_ = entity->AddComponent<om::Mob>()->GetWorldGridLocation();
-   logLevel_ = log_levels_.simulation.direct_pathfinder;
+   logLevel_ = log_levels_.simulation.pathfinder.direct;
 }
 
 std::shared_ptr<DirectPathFinder> DirectPathFinder::SetStartLocation(csg::Point3 const& startLocation)

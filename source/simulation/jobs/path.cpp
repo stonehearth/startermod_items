@@ -8,7 +8,7 @@ using namespace ::radiant::simulation;
 
 static int next_path_id_ = 1;
 
-#define PF_LOG(level)   LOG_CATEGORY(simulation.pathfinder, level, "path " << id_)
+#define PF_LOG(level)   LOG_CATEGORY(simulation.pathfinder.astar, level, "path " << id_)
 
 Path::Path(const std::vector<csg::Point3>& points, om::EntityRef source, om::EntityRef destination, csg::Point3 const& poi) :
    points_(points),

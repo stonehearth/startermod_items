@@ -5,6 +5,7 @@
 #include "simulation/jobs/follow_path.h"
 #include "simulation/jobs/bump_location.h"
 #include "simulation/jobs/lua_job.h"
+#include "simulation/jobs/bfs_path_finder.h"
 #include "simulation/jobs/a_star_path_finder.h"
 #include "simulation/jobs/direct_path_finder.h"
 #include "om/entity.h"
@@ -129,7 +130,22 @@ AStarPathFinderPtr Sim_CreateAStarPathFinder(lua_State *L, om::EntityRef s, std:
 }
 
 
-AStarPathFinderPtr AStarPathFinder_SetSolvedCb(lua_State* L, AStarPathFinderPtr pf, luabind::object unsafe_solved_cb)
+BfsPathFinderPtr Sim_CreateBfsPathFinder(lua_State *L, om::EntityRef s, std::string name, int range)
+{
+   BfsPathFinderPtr pf;
+   om::EntityPtr source = s.lock();
+   if (source) {
+      Simulation &sim = GetSim(L);
+      pf = BfsPathFinder::Create(sim, source, name, range);
+      sim.AddJobForEntity(source, pf);
+      return pf;
+   }
+   return pf;
+}
+
+
+template <typename T>
+std::shared_ptr<T> PathFinder_SetSolvedCb(lua_State* L, std::shared_ptr<T> pf, luabind::object unsafe_solved_cb)
 {
    if (pf) {
       lua_State* cb_thread = lua::ScriptHost::GetCallbackThread(unsafe_solved_cb.interpreter());  
@@ -145,7 +161,8 @@ AStarPathFinderPtr AStarPathFinder_SetSolvedCb(lua_State* L, AStarPathFinderPtr 
    return pf;
 }
 
-AStarPathFinderPtr AStarPathFinder_SetExhausedCb(AStarPathFinderPtr pf, luabind::object unsafe_exhausted_cb)
+template <typename T>
+std::shared_ptr<T> PathFinder_SetExhausedCb(std::shared_ptr<T> pf, luabind::object unsafe_exhausted_cb)
 {
    if (pf) {
       lua_State* cb_thread = lua::ScriptHost::GetCallbackThread(unsafe_exhausted_cb.interpreter());  
@@ -156,6 +173,24 @@ AStarPathFinderPtr AStarPathFinder_SetExhausedCb(AStarPathFinderPtr pf, luabind:
          } catch (std::exception const& e) {
             lua::ScriptHost::ReportCStackException(cb_thread, e);
          }
+      });
+   }
+   return pf;
+}
+
+BfsPathFinderPtr BfsPathFinder_SetFilterFn(BfsPathFinderPtr pf, luabind::object unsafe_filter_fn)
+{
+   if (pf) {
+      lua_State* cb_thread = lua::ScriptHost::GetCallbackThread(unsafe_filter_fn.interpreter());  
+      pf->SetFilterFn([unsafe_filter_fn, cb_thread](om::EntityPtr e) -> bool {
+         try {
+            luabind::object filter_fn = luabind::object(cb_thread, unsafe_filter_fn);
+            LOG(simulation.pathfinder.bfs, 5) << "calling filter function on " << *e;
+            return luabind::call_function<bool>(filter_fn, om::EntityRef(e));
+         } catch (std::exception const& e) {
+            lua::ScriptHost::ReportCStackException(cb_thread, e);
+         }
+         return false;
       });
    }
    return pf;
@@ -187,6 +222,7 @@ void lua::sim::open(lua_State* L, Simulation* sim)
             def("alloc_region2",            &Sim_AllocObject<om::Region2Boxed>),
             def("create_datastore",         &Sim_AllocDataStore),
             def("create_astar_path_finder", &Sim_CreateAStarPathFinder),
+            def("create_bfs_path_finder",   &Sim_CreateBfsPathFinder),
             def("create_direct_path_finder",&Sim_CreateDirectPathFinder),
             def("create_follow_path",       &Sim_CreateFollowPath),
             def("create_bump_location",     &Sim_CreateBumpLocation),
@@ -207,8 +243,8 @@ void lua::sim::open(lua_State* L, Simulation* sim)
                .def("set_source",         &AStarPathFinder::SetSource)
                .def("add_destination",    &AStarPathFinder::AddDestination)
                .def("remove_destination", &AStarPathFinder::RemoveDestination)
-               .def("set_solved_cb",      &AStarPathFinder_SetSolvedCb)
-               .def("set_search_exhausted_cb", &AStarPathFinder_SetExhausedCb)
+               .def("set_solved_cb",      &PathFinder_SetSolvedCb<AStarPathFinder>)
+               .def("set_search_exhausted_cb", &PathFinder_SetExhausedCb<AStarPathFinder>)
                .def("get_solution",       &AStarPathFinder::GetSolution)
                .def("set_debug_color",    &AStarPathFinder::SetDebugColor)
                .def("is_idle",            &AStarPathFinder::IsIdle)
@@ -216,6 +252,15 @@ void lua::sim::open(lua_State* L, Simulation* sim)
                .def("start",              &AStarPathFinder::Start)
                .def("restart",            &AStarPathFinder::RestartSearch)
                .def("describe_progress",  &AStarPathFinder::DescribeProgress)
+            ,
+            lua::RegisterTypePtr_NoTypeInfo<BfsPathFinder>("BfsPathFinder")
+               .def("set_source",         &BfsPathFinder::SetSource)
+               .def("set_solved_cb",      &PathFinder_SetSolvedCb<BfsPathFinder>)
+               .def("set_search_exhausted_cb", &PathFinder_SetExhausedCb<BfsPathFinder>)
+               .def("set_filter_fn",      &BfsPathFinder_SetFilterFn)
+               .def("reconsider_destination", &BfsPathFinder::ReconsiderDestination)
+               .def("stop",               &BfsPathFinder::Stop)
+               .def("start",              &BfsPathFinder::Start)
             ,
             lua::RegisterTypePtr_NoTypeInfo<DirectPathFinder>("DirectPathFinder")
                .def("set_start_location",        &DirectPathFinder::SetStartLocation)

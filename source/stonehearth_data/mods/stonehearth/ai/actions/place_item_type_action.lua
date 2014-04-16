@@ -18,7 +18,7 @@ PlaceItemType.priority = 1
 
 local ai = stonehearth.ai
 return ai:create_compound_action(PlaceItemType)
-         :execute('stonehearth:pickup_item_type', { filter_fn = ai.ARGS.filter_fn })
+         :execute('stonehearth:pickup_item_type', { filter_fn = ai.ARGS.filter_fn, description='place item type' })
          :execute('stonehearth:drop_carrying', { location = ai.ARGS.location  })
          :execute('stonehearth:replace_proxy_with_item', { proxy = ai.PREV.item, rotation = ai.ARGS.rotation  })
          :execute('stonehearth:call_function', { fn = ai.ARGS.finish_fn })

@@ -11,7 +11,7 @@
 using namespace ::radiant;
 using namespace ::radiant::simulation;
 
-#define PF_LOG(level)   LOG_CATEGORY(simulation.pathfinder, level, name_ << "(src)")
+#define PF_LOG(level)   LOG_CATEGORY(simulation.pathfinder.astar, level, name_ << "(src)")
 
 PathFinderSrc::PathFinderSrc(om::EntityRef e, std::string const& name, ChangedCb changed_cb) :
    entity_(e),
@@ -21,7 +21,6 @@ PathFinderSrc::PathFinderSrc(om::EntityRef e, std::string const& name, ChangedCb
    changed_cb_(changed_cb),
    use_source_override_(false)
 {
-
    ASSERT(!e.expired());
    auto entity = e.lock();
    if (entity) {
@@ -87,16 +86,20 @@ void PathFinderSrc::EncodeDebugShapes(radiant::protocol::shapelist *msg) const
 
 csg::Point3 PathFinderSrc::GetSourceLocation() const
 {
+   return source_location_;
+}
+
+void PathFinderSrc::Start()
+{
    if (use_source_override_) {
-      return source_override_;
-   }
-   csg::Point3 pt(0, 0, 0);
-   auto entity = entity_.lock();
-   if (entity) {
-      auto mob = entity->GetComponent<om::Mob>();
-      if (mob) {
-         pt = mob->GetWorldGridLocation();
+      source_location_ = source_override_;
+   } else {
+      auto entity = entity_.lock();
+      if (entity) {
+         auto mob = entity->GetComponent<om::Mob>();
+         if (mob) {
+            source_location_ = mob->GetWorldGridLocation();
+         }
       }
    }
-   return pt;
 }
