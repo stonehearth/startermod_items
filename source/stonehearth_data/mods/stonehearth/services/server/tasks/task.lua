@@ -203,8 +203,8 @@ function Task:_feed_worker(worker)
    -- if the worker is in the list of workers to remove the run_task_action
    -- from, go ahead and remove it.  this will leave the current action there
    -- undisturbed.  otherwise, inject a new run_task_action into the worker.
-   if self._workers_pending_unfeed[worker] then
-      self._workers_pending_unfeed[worker] = nil
+   if self._workers_pending_unfeed[worker:get_id()] then
+      self._workers_pending_unfeed[worker:get_id()] = nil
    else
       worker:get_component('stonehearth:ai'):add_custom_action(self._action_ctor)
    end
@@ -217,11 +217,12 @@ end
 -- iteration (i.e. don't use pairs!)
 function Task:_process_deferred_unfed_workers()
    while true do
-      local worker = next(self._workers_pending_unfeed)
-      if not worker then
+      local worker_id = next(self._workers_pending_unfeed)
+      if not worker_id then
          break
       end
-      self._workers_pending_unfeed[worker] = nil
+      local worker = self._workers_pending_unfeed[worker_id]
+      self._workers_pending_unfeed[worker_id] = nil
       if worker:is_valid() then
          self._log:detail('removing run task action from %s', worker)
          worker:get_component('stonehearth:ai'):remove_custom_action(self._action_ctor)
@@ -240,7 +241,7 @@ function Task:_unfeed_worker(worker)
 
    -- if we are already planning to unfeed this worker, there's
    -- nothing more that needs to be done
-   if self._workers_pending_unfeed[worker] then
+   if self._workers_pending_unfeed[worker:get_id()] then
       return
    end
 
@@ -252,7 +253,7 @@ function Task:_unfeed_worker(worker)
          end)
    end
    self._log:detail('adding worker %s to pending unfeed list', worker)
-   self._workers_pending_unfeed[worker] = true
+   self._workers_pending_unfeed[worker:get_id()] = worker
 end
 
 function Task:_estimate_task_distance(worker)
@@ -391,7 +392,7 @@ function Task:__action_try_start_thinking(action)
    end
 
    local entity = action:get_entity()
-   if self._workers_pending_unfeed[entity] then
+   if self._workers_pending_unfeed[entity:get_id()] then
       self._log:detail('task worker %s s pending to be removed.  cannot start_thinking!', entity)
       return false;
    end
@@ -420,7 +421,7 @@ function Task:__action_try_start(action)
    end
 
    local entity = action:get_entity()
-   if self._workers_pending_unfeed[entity] then
+   if self._workers_pending_unfeed[entity:get_id()] then
       self._log:detail('task worker %s s pending to be removed.  cannot start!', entity)
       return false;
    end
@@ -478,7 +479,6 @@ function Task:__action_stopped(action)
       end
 
       self._task_group:_notify_worker_stopped_task(self, action:get_entity())
-      --self:_unfeed_worker(action:get_entity():get_id())
 
       if self:_is_work_finished() then
          self._log:debug('task reached max number of completions (%d).  stopping and completing!', self._times)

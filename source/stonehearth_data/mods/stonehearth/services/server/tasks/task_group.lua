@@ -108,15 +108,17 @@ function TaskGroup:_unfeed_workers_from_task(task)
    self._log:debug('removing workers from task %s', task:get_name())
 
    for worker_id, entry in pairs(self._workers) do
+      if entry.running == task then
+         self._log:debug('clearing %s running task %s', tostring(entry.worker), task:get_name())
+         entry.running = nil
+         task:_unfeed_worker(entry.worker)
+         assert(entry.available_tasks[task])
+      end
       if entry.available_tasks[task] then
          self._log:debug('clearing %s available task %s', tostring(entry.worker), task:get_name())
          task:_unfeed_worker(entry.worker)
          entry.available_tasks[task] = nil
          entry.available_task_count = entry.available_task_count - 1
-      end
-      if entry.running == task then
-         self._log:debug('clearing %s running task %s', tostring(entry.worker), task:get_name())
-         self:_notify_worker_stopped_task(task, entry.worker)
       end
    end
 end
@@ -150,15 +152,16 @@ function TaskGroup:_notify_worker_started_task(task, worker)
       self._log:debug('marking %s running task %s', tostring(worker), task:get_name())
       entry.running = task
       entry.available_task_count = entry.available_task_count + 1
+      entry.available_tasks[task] = true
 
       -- Don't stop feeding everyone just because one worker is working; others might get a chance
       -- to run, too.
       -- stop feeding in everyone else
       --[[
-      for feeding_task, _ in pairs(entry.active_tasks) do
+      for feeding_task, _ in pairs(entry.available_tasks) do
          if task ~= feeding_task then
-            entry.active_tasks[feeding_task] = nil
-            entry.active_task_count = entry.active_task_count - 1
+            entry.available_tasks[feeding_task] = nil
+            entry.available_task_count = entry.available_task_count - 1
             self._log:detail('removing feeding task %s from %s', feeding_task:get_name(), tostring(worker))
             feeding_task:_unfeed_worker(worker_id)
          end
