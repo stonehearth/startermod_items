@@ -40,6 +40,7 @@ function ScaffoldingRenderer:__init(render_entity, ed)
    -- is a Region3() representing the area of all the current segments.  This
    -- is used to speed up iteration (see _update_shape())
    self._segments = {}
+   self._tops = {}
    self._segment_region = Region3()
 
    -- Call _update_shape whenever the collision shape changes
@@ -53,8 +54,6 @@ function ScaffoldingRenderer:__init(render_entity, ed)
       self:_update_shape()
    end
 
-   --Handle scaffolding tops
-   self._tops = {}
 end
 
 function ScaffoldingRenderer:destroy()
