@@ -47,5 +47,25 @@
          "Brynn",
          "Katla"
       ]
+   },
+   "town_pieces" : {
+      "optional_prefix" : [
+         "Kas",
+         "Hont", 
+         "Svar", 
+         "Ther"
+      ], 
+      "town_name" : [
+         "Astor",
+         "Frijd",
+         "Rhek",
+         "Aarmar"
+      ], 
+      "suffix" : [
+         "el",
+         "os",
+         "ver",
+         "sled"
+      ]
    }
 }

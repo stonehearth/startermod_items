@@ -46,5 +46,29 @@
          "Tira",
          "Chista"
       ]
+   }, 
+   "town_pieces" : {
+      "optional_prefix" : [
+         "Ist",
+         "Nhar",
+         "Wol",
+         "Ebba",
+         "Set"
+      ], 
+      "town_name" : [
+         "Marat",
+         "Kell",
+         "Souja",
+         "Nerra",
+         "Ven",
+         "Diradi",
+         "Twell"
+      ], 
+      "suffix" : [
+         "en",
+         "or",
+         "er",
+         "vo"
+      ]
    }
 }

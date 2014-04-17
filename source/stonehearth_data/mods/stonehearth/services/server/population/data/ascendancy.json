@@ -61,28 +61,57 @@
          "Marianne"
       ]
    }, 
-   "town_names" : [
-      "Zinfendell",
-      "West Rose", 
-      "Wightcoin", 
-      "Eastmoor",
-      "Knighton", 
-      "Hedgeford", 
-      "Greenwood",
-      "New Hope",
-      "Yellowspring", 
-      "Rabbiton", 
-      "Seraphia", 
-      "Lighthaven", 
-      "Goldplain",
-      "Sharptin", 
-      "Stahlgourd", 
-      "Halpurnia",
-      "Frijdom", 
-      "Benderin", 
-      "Ditterem", 
-      "Sheepsong", 
-      "Heartchell", 
-      "Sublimshire"
-   ]
+   "town_pieces" : {
+      "optional_prefix" : [
+         "New", 
+         "North",
+         "South",
+         "East",
+         "West"
+      ], 
+      "town_name" : [
+         "Zinfen",
+         "Rose",
+         "Orchard",
+         "Asp",
+         "Knight",
+         "Hedge",
+         "Green",
+         "Gold",
+         "Black",
+         "Red",
+         "Hope",
+         "Rabbit",
+         "Seraphia",
+         "Light",
+         "Sharp",
+         "Helper",
+         "Winter",
+         "Spring",
+         "River",
+         "Summer",
+         "Heart",
+         "Aye",
+         "Silver",
+         "Cherry",
+         "Flower",
+         "Roanoke", 
+         "Donner"
+      ], 
+      "suffix" : [
+         "dell",
+         "coin", 
+         "moor",
+         "ton",
+         "ford",
+         "wood",
+         "spring",
+         "haven",
+         "plain",
+         "gourd",
+         "song",
+         "shire", 
+         "ville"
+      ]
+   }
 }

@@ -28,15 +28,29 @@ function PopulationFaction:get_player_id()
 end
 
 function PopulationFaction:create_town_name()
-   local town_names = self._data.town_names
-   
-   --TODO: make this a composite
-   local this_name = 'Defaultville'
-   if town_names then
-      this_name = town_names[rng:get_int(1, #town_names)]
+   local prefixes = self._data.town_pieces.optional_prefix
+   local base_names = self._data.town_pieces.town_name
+   local suffix = self._data.town_pieces.suffix
+
+   --make a composite
+   local target_prefix = prefixes[rng:get_int(1, #prefixes)]
+   local target_base = base_names[rng:get_int(1, #base_names)]
+   local target_suffix = suffix[rng:get_int(1, #suffix)]
+
+   local composite_name = 'Defaultville'
+   if target_base then
+      composite_name = target_base
+   end
+
+   if target_prefix and rng:get_int(1, 100) < 40 then
+      composite_name = target_prefix .. ' ' .. composite_name
+   end
+
+   if target_suffix and rng:get_int(1, 100) < 80 then
+      composite_name = composite_name .. target_suffix
    end
    
-   return this_name
+   return composite_name
 end
 
 function PopulationFaction:create_new_citizen()   
