@@ -12,8 +12,6 @@ App.StonehearthGameUiView = App.ContainerView.extend({
             "StonehearthStartMenuView",
             "StonehearthResourceScoreboardView",
             "StonehearthUnitFrameView",
-            /*"StonehearthPopulationManagerView",*/
-            /*"StonehearthSaveView",*/
             "StonehearthTaskManagerView"
          ]
       };

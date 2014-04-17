@@ -64,12 +64,7 @@ App.StonehearthTitleScreenView = App.View.extend({
 
       // load the about info
       $('#about').click(function(e) {
-         $('#aboutDetails').position({
-              of: $( "#about" ),
-              my: "right bottom",
-              at: "right top-10"
-            })
-            .fadeIn();
+         self.$('#blog').toggle();
       });
 
       // input handlers
