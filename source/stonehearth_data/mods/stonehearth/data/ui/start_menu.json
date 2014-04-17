@@ -48,7 +48,7 @@
       "items" : {
             "design_building" : {
                 "name" : "Design Custom Building",
-                "description" : "Design your own custom building with it's own floor-plan and structure.",
+                "description" : "NOT YET IMPLEMENTED. Design your own custom building with it's own floor-plan and structure.",
                 "class" : "button",
                 "icon" : "/stonehearth/ui/game/start_menu/images/design_building.png",
                 "sticky" : true,
@@ -56,7 +56,7 @@
             },
             "build_simple_room" : {
                 "name" : "Simple Room",
-                "description" : "xxx",
+                "description" : "Build a small, square house.",
                 "class" : "button",
                 "icon" : "/stonehearth/ui/game/start_menu/images/build_simple_room.png",
                 "sticky" : true,
@@ -64,7 +64,7 @@
             },
             "build_wall" : {
                 "name" : "Walls",
-                "description" : "xxx",
+                "description" : "Build walls to protect your settlement.",
                 "class" : "button",
                 "icon" : "/stonehearth/ui/game/start_menu/images/build_wall.png",
                 "sticky" : true,
@@ -72,26 +72,19 @@
             }
       }
    },
-   "jobs_menu" : {
+   "population_manager" : {
       "name" : "Manage Jobs",
-      "description" : "Manage your settlers and promote them to new jobs.",
+      "description" : "NOT YET IMPLEMENTED. Manage your settlers and promote them to new jobs.",
       "class" : "dock",
       "icon" : "/stonehearth/ui/game/start_menu/images/dock_jobs.png",
       "hotkey" : "j",
       "game_mode" : "normal",
       "sound": "stonehearth:sounds:ui:start_menu:jobs_close",
-      "soundTwo": "stonehearth:sounds:ui:start_menu:jobs_open",
-      "items" : {
-            "promote" : {
-                "name" : "Promote a Worker",
-                "description" : "xxx",
-                "class" : "button"
-            }
-      }      
+      "soundTwo": "stonehearth:sounds:ui:start_menu:jobs_open"
    },
    "crafters_menu" : {
       "name" : "Manage Crafters",
-      "description" : "Manager all of your crafters and workshops.",
+      "description" : "NOT YET IMPLEMENTED. Manager all of your crafters and workshops.",
       "class" : "dock",
       "icon" : "/stonehearth/ui/game/start_menu/images/dock_crafters.png",
       "hotkey" : "c",
@@ -100,28 +93,11 @@
    },
    "defend_menu" : {
       "name" : "Manage Squads",
-      "description" : "Manage your military squads.",
+      "description" : "NOT YET IMPLEMENTED. Manage your military squads.",
       "class" : "dock",
       "icon" : "/stonehearth/ui/game/start_menu/images/dock_defend.png",
       "game_mode" : "normal",
       "sound": "stonehearth:sounds:ui:start_menu:defend_close",
-      "soundTwo": "stonehearth:sounds:ui:start_menu:defend_open",
-      "items" : {
-            "create_squad" : {
-                "name" : "Create Squad",
-                "description" : "xxx",
-                "class" : "button"
-            },
-            "guard_area" : {
-                "name" : "Guard Area",
-                "description" : "xxx",
-                "class" : "button"
-            },
-            "patrol" : {
-                "name" : "Patrol Route",
-                "description" : "xxx",
-                "class" : "button"
-            }
-      }      
+      "soundTwo": "stonehearth:sounds:ui:start_menu:defend_open"
    }
 }

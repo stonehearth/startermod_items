@@ -43,17 +43,24 @@
    #logo {
       position: absolute;
       top: 90px;
-      left: 100px;
+      right: 100px;
       content: url(./images/stonehearth_logo_a1.png);
    }
 
    #about {
       .outlined;
       position: absolute;
-      right: 10px;
-      bottom: 10px;
+      left: 10px;
+      bottom: 0px;
+      height: 65px;
+      background: url(./images/patch_notes_button.png);
+      background-position: left-top;
+      background-repeat: no-repeat;
       color: #fff;
-      text-align: right;
+      text-align: left;
+      vertical-align: middle;
+      padding-top: 12px;
+      padding-left: 72px;
    }
 
    #aboutDetails {
@@ -78,7 +85,7 @@
 
    #controls {
       position: absolute;
-      left: 94px;
+      right: 94px;
       top: 300px;
 
       #continue {
@@ -92,24 +99,25 @@
          border-bottom: 0px;
 
          .gameInfo {
-            padding: 10px;
+            padding: 36px;
+            padding-left: 100px;
 
             .nameHeader {
-               font-size: 16px;
+               font-size: 20px;
             }
 
             .name {
-               font-size: 30px;
-               padding-bottom: 40px;
+               font-size: 36px;
             }
 
             .gameTime {
+               display: none;
                font-size: 12px;
             }
 
             .banner {
                position: absolute;
-               right: 10px;
+               left: 10px;
                bottom: 0px;
                content: url(./images/continue_banner.png);
             }
@@ -150,13 +158,14 @@
    }
 
    #blog {
+      display: none;
       position: absolute;
       top: 90px;
-      right: 20px;
-      bottom: 40px;
+      left: 10px;
+      bottom: 100px;
       width: 696px;
       text-align: left;
-      background: rgba(0,0,0,0.8);
+      background: rgba(0,0,0,0.9);
       color: #fff;
       padding-top: 12px;
       border-width: 24px 66px 66px 66px;
