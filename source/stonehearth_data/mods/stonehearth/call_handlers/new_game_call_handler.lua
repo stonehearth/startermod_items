@@ -217,7 +217,7 @@ function NewGameCallHandler:create_camp(session, response, pt)
 
    local town = stonehearth.town:get_town(session.player_id)
    local pop = stonehearth.population:get_population(session.player_id)
-   local random_town_name = pop:create_town_name()
+   local random_town_name = town:get_town_name()
 
    -- place the stanfard in the middle of the camp
    local location = Point3(pt.x, pt.y, pt.z)
@@ -278,6 +278,21 @@ function NewGameCallHandler:place_item(pop, uri, x, z)
    unit_info:set_player_id(pop:get_player_id())
 
    return entity
+end
+
+function NewGameCallHandler:get_town_name(session, response)
+   local town = stonehearth.town:get_town(session.player_id)
+   if town then
+      return {townName = town:get_town_name()}
+   else
+      return {townName = 'Defaultville'}
+   end
+end
+
+function NewGameCallHandler:set_town_name(session, response, town_name)
+   local town = stonehearth.town:get_town(session.player_id)
+   town:set_town_name(town_name)
+   return true
 end
 
 return NewGameCallHandler

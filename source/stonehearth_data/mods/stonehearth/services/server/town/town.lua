@@ -95,6 +95,18 @@ end
 function Town:destroy()
 end
 
+function Town:set_town_name(town_name)
+   self._sv.town_name = town_name
+end
+
+function Town:get_town_name()
+   if not self._sv.town_name then
+       local pop = stonehearth.population:get_population(self._sv.player_id)
+       self._sv.town_name = pop:create_town_name()
+   end
+   return self._sv.town_name
+end
+
 -- xxx: this is a stopgap until we can provide a better interface
 function Town:create_worker_task(activity_name, args)
    return self._task_groups.workers:create_task(activity_name, args)

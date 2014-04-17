@@ -20,6 +20,11 @@ var StonehearthClient;
          self.mouseY = e.pageY;
          });
 
+         radiant.call('stonehearth:get_town_name')
+            .done(function(e) {
+               self.gameState.settlementName = e.townName;
+            })
+
       },
 
       gameState: {
@@ -29,7 +34,7 @@ var StonehearthClient;
 
       settlementName: function(value) {
          if (value) {
-            this.gameState.settlementName = value;   
+            this.gameState.settlementName = value;
          }
          return this.gameState.settlementName;
       },
