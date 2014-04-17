@@ -173,7 +173,12 @@ function NewGameCallHandler:_on_mouse_event(e, response)
       -- pass "" for the function name so the deafult (handle_request) is
       -- called.  this will return a Deferred object which we can use to track
       -- the call's progress
+      local default_camp_name = 'Defaultville'
       _radiant.call('stonehearth:create_camp', pt)
+         :done( function(o)
+               --Review Q: TODO: is this the right way to get data into the response:resolve?
+               default_camp_name = o.random_town_name
+            end)
          :always(
             function ()
                -- whether the request succeeds or fails, go ahead and destroy
@@ -181,7 +186,7 @@ function NewGameCallHandler:_on_mouse_event(e, response)
                -- the ugly flickering that would occur had we destroyed it when
                -- we uninstalled the mouse cursor
                _radiant.client.destroy_authoring_entity(self._cursor_entity:get_id())
-               response:resolve({ result = true })
+               response:resolve({result = true,  townName = default_camp_name})
             end
          )
    end
@@ -212,6 +217,7 @@ function NewGameCallHandler:create_camp(session, response, pt)
 
    local town = stonehearth.town:get_town(session.player_id)
    local pop = stonehearth.population:get_population(session.player_id)
+   local random_town_name = pop:create_town_name()
 
    -- place the stanfard in the middle of the camp
    local location = Point3(pt.x, pt.y, pt.z)
@@ -248,7 +254,7 @@ function NewGameCallHandler:create_camp(session, response, pt)
    -- start the game master service
    --stonehearth.game_master.start()
 
-   return {}
+   return {random_town_name = random_town_name}
 end
 
 function NewGameCallHandler:place_citizen(pop, x, z, profession)

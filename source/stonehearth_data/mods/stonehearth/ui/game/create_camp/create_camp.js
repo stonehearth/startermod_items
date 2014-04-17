@@ -37,7 +37,8 @@ App.StonehearthCreateCampView = App.View.extend({
                               at : 'left+' + App.stonehearthClient.mouseX + " " + 'top+' + (App.stonehearthClient.mouseY - 100),
                               of : $(document),
                               collision : 'fit'
-                           }
+                           }, 
+                           townName : o.townName
                         });
 
                      self.destroy();
@@ -178,6 +179,8 @@ App.StonehearthNameCampView = App.View.extend({
    didInsertElement: function() {
       var self = this;
       this._super();
+
+      this.$('#name').val(this.townName);
 
       this.$('#name').focus();
 
