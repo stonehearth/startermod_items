@@ -159,7 +159,11 @@ var StonehearthClient;
       _populationManager: null,
       showPopulationManager: function() {
          radiant.call('radiant:play_sound', 'stonehearth:sounds:ui:start_menu:popup' );
-         _populationManager = App.gameView.addView(App.StonehearthUnitFrameView);
+         if (!this._populationManager) {
+            this._populationManager = App.gameView.addView(App.StonehearthPopulationManagerView);
+         } else {
+            this._populationManager.$().toggle();
+         }
       },
    });
    App.stonehearthClient = new StonehearthClient();

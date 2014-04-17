@@ -27,6 +27,18 @@ function PopulationFaction:get_player_id()
    return self._sv.player_id
 end
 
+function PopulationFaction:create_town_name()
+   local town_names = self._data.town_names
+   
+   --TODO: make this a composite
+   local this_name = 'Defaultville'
+   if town_names then
+      this_name = town_names[rng:get_int(1, #town_names)]
+   end
+   
+   return this_name
+end
+
 function PopulationFaction:create_new_citizen()   
    local gender
 

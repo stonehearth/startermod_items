@@ -17,6 +17,7 @@ App.StonehearthStartMenuView = App.View.extend({
          App.stonehearthClient.createFarm();
       },
       design_building: function () {
+         return;
          //App.stonehearthClient.buildWall();
          $(top).trigger('stonehearth_design_building');
       },
@@ -26,7 +27,8 @@ App.StonehearthStartMenuView = App.View.extend({
       build_simple_room: function () {
          App.stonehearthClient.buildRoom();
       },
-      showPopulationManager: function() {
+      population_manager: function() {
+         return;
          App.stonehearthClient.showPopulationManager();
       },
       placeItem: function () {
@@ -42,11 +44,13 @@ App.StonehearthStartMenuView = App.View.extend({
 
       App.stonehearth.startMenu = self.$('#startMenu');
 
+      self.$('design_building').hide();
+
       /*
       radiant.call('stonehearth:get_start_menu_data')
          .done(function (obj) {
             radiant.trace(obj.datastore)
-               .progress(function(result) {
+            .progress(function(result) {
                   self._buildMenu(result);
                })
                .fail(function(e) {
