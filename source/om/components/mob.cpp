@@ -171,7 +171,7 @@ void Mob::LoadFromJson(json::Node const& obj)
    
    if (__str_to_type.empty()) {
       __str_to_type["humanoid"] = HUMANOID;
-      __str_to_type["item"]  = ITEM;
+      __str_to_type["tiny"]  = TINY;
    }
 
    if (obj.has("parent")) {

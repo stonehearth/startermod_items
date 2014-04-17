@@ -19,7 +19,7 @@ class Mob(Component):
 
    mob_collision_types = ridl.Enum('Mob', 'MobCollisionTypes',
       NONE        = 0,
-      ITEM        = 1,
+      TINY        = 1,
       HUMANOID    = 2,
    )
    mob_collision_type = dm.Boxed(mob_collision_types)
