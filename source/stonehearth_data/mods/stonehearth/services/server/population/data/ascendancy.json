@@ -60,5 +60,29 @@
          "Jess",
          "Marianne"
       ]
-   }
+   }, 
+   "town_names" : [
+      "Zinfendell",
+      "West Rose", 
+      "Wightcoin", 
+      "Eastmoor",
+      "Knighton", 
+      "Hedgeford", 
+      "Greenwood",
+      "New Hope",
+      "Yellowspring", 
+      "Rabbiton", 
+      "Seraphia", 
+      "Lighthaven", 
+      "Goldplain",
+      "Sharptin", 
+      "Stahlgourd", 
+      "Halpurnia",
+      "Frijdom", 
+      "Benderin", 
+      "Ditterem", 
+      "Sheepsong", 
+      "Heartchell", 
+      "Sublimshire"
+   ]
 }
