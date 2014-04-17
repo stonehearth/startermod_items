@@ -304,7 +304,7 @@ Quaternion::set(float z_rotation, float y_rotation, float x_rotation)
 }
 
 void
-Quaternion::get_axis_angle(Point3f& axis, float& angle)
+Quaternion::get_axis_angle(Point3f& axis, float& angle) const
 {
     angle = 2.0f*acosf(w);
     float length = sqrt(1.0f - w*w);

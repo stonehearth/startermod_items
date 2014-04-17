@@ -46,6 +46,12 @@ local constants = {
       basic_needs = {
          EAT = 20,
       },
+
+      combat = {
+         IDLE = 1,
+         ACTIVE = 10,
+      },
+
       -- Priorites of commands issued by the player to a unit
       unit_control = {
          MOVE = 2,
@@ -54,7 +60,8 @@ local constants = {
       },
 
       compelled_behavior = {
-         STRUGGLE = 4
+         STRUGGLE = 4,
+         HIT_STUN = 100
       }
    },
    
