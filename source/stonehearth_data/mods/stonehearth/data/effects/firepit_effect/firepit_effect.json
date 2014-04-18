@@ -18,18 +18,18 @@
          "type": "sound_effect",
          "duration": 500,
          "start_delay": 0,
-         "min_distance": 40,
-         "max_distance": 80,
-         "volume": 15,
+         "min_distance": 50,
+         "max_distance": 100,
+         "volume": 17,
          "track" : "stonehearth:sounds:firepit_ignite_sound"
      },
      "sound": {
          "type": "sound_effect",
          "loop" : true,
          "start_delay": 400,
-         "min_distance": 40,
+         "min_distance": 52,
          "max_distance": 400,
-         "volume": 40,
+         "volume": 45,
          "track" : "stonehearth:sounds:firepit_loop_sound"        
      },
      "light": {

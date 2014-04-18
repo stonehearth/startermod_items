@@ -6,6 +6,7 @@
 #include "radiant_file.h"
 #include "om/components/terrain.ridl.h"
 #include "csg/point.h"
+#include "csg/cube.h"
 #include "csg/color.h"
 
 BEGIN_RADIANT_CLIENT_NAMESPACE
@@ -33,6 +34,7 @@ class XZRegionSelector : public std::enable_shared_from_this<XZRegionSelector>
       bool GetHoverBrick(int x, int y, csg::Point3 &pt);
       void ValidateP1(int x, int z);
       bool IsValidLocation(int x, int y, int z);
+      csg::Cube3 CreateSelectedCube();
 
    protected:
       std::shared_ptr<Deferred>        deferred_;

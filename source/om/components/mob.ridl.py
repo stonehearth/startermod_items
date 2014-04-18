@@ -19,7 +19,7 @@ class Mob(Component):
 
    mob_collision_types = ridl.Enum('Mob', 'MobCollisionTypes',
       NONE        = 0,
-      ITEM        = 1,
+      TINY        = 1,
       HUMANOID    = 2,
    )
    mob_collision_type = dm.Boxed(mob_collision_types)
@@ -28,6 +28,7 @@ class Mob(Component):
    move_to_grid_aligned = ridl.Method(c.void(), ('location', csg.Point3().const.ref))
    turn_to = ridl.Method(c.void(), ('degrees', c.float()))
    turn_to_face_point = ridl.Method(c.void(), ('location', csg.Point3().const.ref))
+   get_facing = ridl.Method(c.float()).const
    set_rotation = ridl.Method(c.void(), ('q', csg.Quaternion().const.ref))
    get_world_aabb = ridl.Method(csg.Cube3f()).const
    get_rotation = ridl.Method(csg.Quaternion()).const

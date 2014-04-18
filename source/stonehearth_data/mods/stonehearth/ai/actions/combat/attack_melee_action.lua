@@ -1,4 +1,4 @@
-local CombatFns = require 'ai.actions.combat.combat_fns'
+local EngageContext = require 'services.server.combat.engage_context'
 local Entity = _radiant.om.Entity
 local log = radiant.log.create_logger('combat')
 
@@ -15,21 +15,23 @@ AttackMelee.weight = 1
 
 function AttackMelee:run(ai, entity, args)
    local target = args.target
-   local melee_range = CombatFns.get_melee_range(entity, 'medium_1h_weapon', target)
+
+   if not target:is_valid() then
+      ai:abort('target has been destroyed')
+      return
+   end
+
+   local melee_range = stonehearth.combat:get_melee_range(entity, 'medium_1h_weapon', target)
    local engage_range = melee_range + 2
    local engaged = false
 
+   -- TODO: abort after chasing for a while and make sure target is still valid
    while true do
       local distance = radiant.entities.distance_between(entity, target)
 
       if distance <= engage_range then
-         local defender_combat_action = CombatFns.get_combat_action(target)
-         if defender_combat_action then
-            local engage_args = {
-               attacker = entity
-            }
-            defender_combat_action:begin_engage(engage_args)
-         end
+         local context = EngageContext(entity)
+         stonehearth.combat:engage(target, context)
          engaged = true
       end
 

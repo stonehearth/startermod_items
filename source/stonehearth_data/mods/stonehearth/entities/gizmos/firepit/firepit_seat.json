@@ -1,6 +1,10 @@
 {
    "type": "entity",
    "components": {
+      "mob" : {
+        "interpolate_movement" : false,
+        "mob_collision_type" : "tiny"
+      },
       "render_info" : {},
       "stonehearth:center_of_attention_spot" : {
       }

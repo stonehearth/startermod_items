@@ -55,7 +55,7 @@ class Quaternion
       void set(float z_rotation, float y_rotation, float x_rotation); 
       void lookAt(const Point3f& from, const Point3f& target);
 
-      void get_axis_angle(Point3f& axis, float& angle);
+      void get_axis_angle(Point3f& axis, float& angle) const;
 
       void clean();       // sets near-zero elements to 0
       void Normalize();   // sets to unit Quaternion

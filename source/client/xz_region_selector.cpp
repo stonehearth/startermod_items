@@ -63,12 +63,14 @@ bool XZRegionSelector::onInputEvent(Input const& evt)
       }
 
       if (_startedP0) {
+         csg::Cube3 selectedCube = CreateSelectedCube();
+
          if (_finished) {
-            deferred_->Resolve(csg::Cube3::Construct(_p0, _p1));
+            deferred_->Resolve(selectedCube);
             deferred_ = nullptr;
             Deactivate();
          } else {
-            deferred_->Notify(csg::Cube3::Construct(_p0, _p1));
+            deferred_->Notify(selectedCube);
          }
       }
       return true;
@@ -78,6 +80,27 @@ bool XZRegionSelector::onInputEvent(Input const& evt)
       }
    }
    return false;
+}
+
+csg::Cube3 XZRegionSelector::CreateSelectedCube()
+{
+   csg::Point3 min = _p0;
+   csg::Point3 max = _p1;
+
+   // find the min and max points
+   for (int i = 0; i < 3; i++) {
+      if (min[i] > max[i]) {
+         std::swap(min[i], max[i]);
+      }
+   }
+
+   // the max point is a valid voxel index in the selected region
+   // add 1 to include this voxel in the region
+   for (int i = 0; i < 3; i++) {
+      max[i]++;
+   }
+
+   return csg::Cube3(min, max);
 }
 
 void XZRegionSelector::SelectP0(const MouseInput &me)
@@ -136,7 +159,6 @@ bool XZRegionSelector::IsValidLocation(int x, int y, int z)
    return octtree.CanStandOn(nullptr, csg::Point3(x, y, z));
 }
 
-
 void XZRegionSelector::ValidateP1(int newx, int newz)
 {
    int dx = (newx >= _p0.x) ? 1 : -1;
@@ -167,6 +189,6 @@ finished:
    validz -= dz;
 
    _p1.x = validx;
-   _p1.y = _p0.y + 1;
+   _p1.y = _p0.y;
    _p1.z = validz;
 }
