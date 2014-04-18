@@ -30,12 +30,12 @@ class RenderEntity : public std::enable_shared_from_this<RenderEntity>
       void FinishConstruction();
       void Destroy();
 
-      void Show(bool show);
       void SetSelected(bool selected);
 
       dm::ObjectId GetObjectId() const;
       om::EntityPtr GetEntity() const { return entity_.lock(); }
       void SetParent(H3DNode node);
+      void SetVisible(bool visible);
       H3DNode GetParent() const; 
       H3DNode GetNode() const;
       std::string const& GetName() const;
@@ -83,6 +83,7 @@ protected:
       dm::TracePtr      components_trace_;
       dm::TracePtr      lua_components_trace_;
       uint32            query_flags_;
+      bool              visible_;
 };
 
 typedef std::shared_ptr<RenderEntity>  RenderEntityPtr;

@@ -7,6 +7,7 @@
 #include "om/components/data_store.ridl.h"
 #include "om/stonehearth.h"
 #include "dm/trace_categories.h"
+#include "lib/lua/dm/map_trace_wrapper.h"
 #include "resources/res_manager.h"
 
 using namespace ::luabind;
@@ -31,6 +32,19 @@ lua::TraceWrapperPtr Entity_TraceObject(std::weak_ptr<Entity> e, const char *rea
    throw std::exception("cannot trace expired entity reference");
 }
 
+
+static std::shared_ptr<lua::MapTraceWrapper<dm::MapTrace<om::Entity::ComponentMap>>>
+Entity_TraceComponents(std::weak_ptr<Entity> o, const char* reason)
+{
+   auto instance = o.lock(); 
+   if (instance)  {
+      auto trace = instance->TraceComponents(reason, dm::LUA_ASYNC_TRACES);
+      return std::make_shared<lua::MapTraceWrapper<dm::MapTrace<om::Entity::ComponentMap>>>(trace);
+   }
+   throw std::invalid_argument("invalid reference in native entity::trace_components");
+}
+
+
 scope LuaEntity::RegisterLuaTypes(lua_State* L)
 {
    return
@@ -43,6 +57,7 @@ scope LuaEntity::RegisterLuaTypes(lua_State* L)
          .def("get_component" ,     &om::Stonehearth::GetComponent)
          .def("add_component" ,     &om::Stonehearth::AddComponent)
          .def("add_component" ,     &om::Stonehearth::SetComponentData)
+         .def("trace_components",   &Entity_TraceComponents)
          .def("remove_component" ,  &om::Stonehearth::RemoveComponent)
       ;
 }

@@ -21,11 +21,6 @@ om::EntityRef RenderEntity_GetEntity(RenderEntity const& e)
    return e.GetEntity();
 }
 
-void RenderEntity_SetMaterialOverride(RenderEntity & e, const std::string& matString)
-{
-   e.SetMaterialOverride(matString);
-}
-
 static std::ostream& operator<<(std::ostream& os, const RenderEntity& o)
 {
    return (os << "[RenderEntity " << o.GetObjectId() << "]");
@@ -41,13 +36,15 @@ void LuaRenderEntity::RegisterType(lua_State* L)
          namespace_("renderer") [
             class_<RenderEntity, std::weak_ptr<RenderEntity>>("RenderEntity")
                .def(tostring(self))
-               .def("get_node",        &RenderEntity::GetNode)
-               .def("get_entity",      &RenderEntity_GetEntity)
-               .def("get_renderer",    &RenderEntity_GetRenderer)
-               .def("set_material_override", &RenderEntity_SetMaterialOverride)
-               .def("add_query_flag",  &RenderEntity::AddQueryFlag)
-               .def("remove_query_flag", &RenderEntity::RemoveQueryFlag)
-               .def("has_query_flag",  &RenderEntity::HasQueryFlag),
+               .def("get_node",              &RenderEntity::GetNode)
+               .def("get_entity",            &RenderEntity_GetEntity)
+               .def("get_renderer",          &RenderEntity_GetRenderer)
+               .def("set_material_override", &RenderEntity::SetMaterialOverride)
+               .def("add_query_flag",        &RenderEntity::AddQueryFlag)
+               .def("remove_query_flag",     &RenderEntity::RemoveQueryFlag)
+               .def("has_query_flag",        &RenderEntity::HasQueryFlag)
+               .def("set_visible",           &RenderEntity::SetVisible)
+            ,
             class_<RenderEntity::QueryFlags>("QueryFlags")
                .enum_("constants")
             [

@@ -250,7 +250,8 @@ void LuaRenderer::RegisterType(lua_State* L)
       def("h3dSetNodeParamI",                &h3dSetNodeParamI),
       def("h3dSetNodeParamF",                &h3dSetNodeParamF),
       def("h3dSetNodeParamStr",              &h3dSetNodeParamStr),
-      def("h3dSetNodeFlags",                 &h3dSetNodeFlags)
+      def("h3dSetNodeFlags",                 &h3dSetNodeFlags),
+      def("h3dGetNodeFlags",                 &h3dGetNodeFlags)
    ];
    globals(L)["H3DRootNode"] = H3DRootNode;
 };
