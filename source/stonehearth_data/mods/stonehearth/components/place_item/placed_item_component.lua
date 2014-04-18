@@ -21,13 +21,14 @@ function PlacedItem:initialize(entity, json)
    end
 end
 
-function PlacedItem:set_proxy_entity(entity)   
-   if self._sv.proxy_entity and self._sv.proxy_entity:is_valid() then
-      if self._sv.proxy_entity:get_id() == entity:get_id() then
-         return
-      end
-      radiant.entities.destroy_entity(self._sv.proxy_entity)
+function PlacedItem:set_proxy_entity(entity)
+   local self_proxy = self._sv.proxy_entity
+   assert(not self_proxy or self_proxy:get_id() == entity:get_id())
+
+   if self_proxy ~= nil then
+      return
    end
+
    radiant.entities.set_faction(entity, self._entity)
    self._sv.proxy_entity = entity
    self.__saved_variables:mark_changed()

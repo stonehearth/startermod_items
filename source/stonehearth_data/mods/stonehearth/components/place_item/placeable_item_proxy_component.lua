@@ -32,12 +32,13 @@ end
 --- If something started as a big entity and then we have to carry it
 -- save it's full-sized entity here, to preserve its values
 function PlaceableItemProxyComponent:set_full_sized_entity(placed_entity)
-   if self._sv.placed_entity and self._sv.placed_entity:is_valid() then
-      if self._sv.placed_entity:get_id() == placed_entity:get_id() then
-         return
-      end
-      radiant.entities.destroy_entity(self._sv.placed_entity)
+   local self_placed_entity = self._sv.placed_entity
+   assert(not self_placed_entity or self_placed_entity:get_id() == placed_entity:get_id())
+
+   if self_placed_entity ~= nil then
+      return
    end
+
    self._sv.placed_entity = placed_entity
    if not self._placed_entity_uri then
       self._placed_entity_uri = placed_entity:get_uri()
