@@ -2,6 +2,7 @@ local priorities = require('constants').priorities.worker_task
 
 local Point3 = _radiant.csg.Point3
 local Cube3 = _radiant.csg.Cube3
+local events = stonehearth.events
 
 local log = radiant.log.create_logger('firepit')
 local FirepitComponent = class()
@@ -21,6 +22,12 @@ function FirepitComponent:initialize(entity, json)
    if not self._sv._initialized then
       self._sv._initialized = true
       self._sv.is_lit = false
+   end
+
+   --If the fire is currently lit, then run that effect immediately
+   if self._sv.is_lit then
+      self._curr_fire_effect =
+         radiant.effects.run_effect(self._entity, '/stonehearth/data/effects/firepit_effect')
    end
 
    --Listen on terrain for when this entity is added/removed
@@ -176,7 +183,7 @@ function FirepitComponent:light()
       self:_add_seats()
    end
    self._sv.is_lit = true
-   radiant.events.trigger_async(self._entity, 'stonehearth:fire:lit', { lit = true })
+   radiant.events.trigger_async(events, 'stonehearth:fire:lit', { lit = true, player_id = radiant.entities.get_player_id(self._entity) })
    self.__saved_variables:mark_changed()
 end
 
@@ -202,7 +209,7 @@ function FirepitComponent:_extinguish()
    end
 
    self._sv.is_lit = false
-   radiant.events.trigger_async(self._entity, 'stonehearth:fire:lit', { lit = false })
+   radiant.events.trigger_async(events, 'stonehearth:fire:lit', { lit = false, player_id = radiant.entities.get_player_id(self._entity) })
 end
 
 return FirepitComponent

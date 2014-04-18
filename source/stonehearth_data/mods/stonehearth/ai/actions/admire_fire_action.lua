@@ -3,9 +3,9 @@ local constants = require 'constants'
 
 AdmireFire.name = 'admire fire'
 AdmireFire.args = {}
-AdmireFire.does = 'stonehearth:top'
+AdmireFire.does = 'stonehearth:admire_fire'
 AdmireFire.version = 2
-AdmireFire.priority = constants.priorities.top.ADMIRE_FIRE
+AdmireFire.priority = 1
 AdmireFire.preemptable = true
 
 --- Given an item, determine if it's an unoccupied seat by a lit firepit

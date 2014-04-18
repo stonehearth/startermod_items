@@ -30,7 +30,8 @@ local constants = {
       -- Priorities for basic needs
       top = {
          IDLE = 1,
-         ADMIRE_FIRE = 2,
+         FREE_TIME = 2,
+         --ADMIRE_FIRE = 2,
          WORK = 10,
          AMBIENT_PET_BEHAVIOR = 10,
          CRAFT = 10,
@@ -45,6 +46,10 @@ local constants = {
       -- basic needs
       basic_needs = {
          EAT = 20,
+      },
+
+      free_time = {
+         ADMIRE_FIRE = 2
       },
 
       combat = {
