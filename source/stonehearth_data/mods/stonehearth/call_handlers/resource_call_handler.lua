@@ -36,7 +36,7 @@ function ResourceCallHandler:box_harvest_resources(session, response)
             self._region:modify(function(cursor)
                cursor:clear()
                cursor:add_cube(Rect2(Point2(0, 0), 
-                                     Point2(box.max.x - box.min.x + 1, box.max.z - box.min.z + 1)))
+                                     Point2(box.max.x - box.min.x, box.max.z - box.min.z)))
             end)
             mob:set_location_grid_aligned(box.min)
             if node then

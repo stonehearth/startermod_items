@@ -40,7 +40,7 @@ function InventoryCallHandler:choose_stockpile_location(session, response)
             self._region:modify(function(cursor)
                cursor:clear()
                cursor:add_cube(Rect2(Point2(0, 0), 
-                                     Point2(box.max.x - box.min.x + 1, box.max.z - box.min.z + 1)))
+                                     Point2(box.max.x - box.min.x, box.max.z - box.min.z)))
             end)
             mob:set_location_grid_aligned(box.min)
             if node then
@@ -50,8 +50,8 @@ function InventoryCallHandler:choose_stockpile_location(session, response)
          end)
       :done(function (box)
             local size = {
-               x = box.max.x - box.min.x + 1,
-               y = box.max.z - box.min.z + 1,
+               x = box.max.x - box.min.x,
+               y = box.max.z - box.min.z,
             }
             _radiant.call('stonehearth:create_stockpile', box.min, size)
                      :done(function(r)
