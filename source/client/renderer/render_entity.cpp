@@ -37,7 +37,8 @@ int RenderEntity::totalObjectCount_ = 0;
 RenderEntity::RenderEntity(H3DNode parent, om::EntityPtr entity) :
    entity_(entity),
    entity_id_(entity->GetObjectId()),
-   initialized_(false)
+   initialized_(false),
+   visible_(true)
 {
    ASSERT(parent);
 
@@ -120,7 +121,9 @@ void RenderEntity::SetParent(H3DNode parent)
    H3DNode node = node_.get();
    if (parent) {
       h3dSetNodeParent(node, parent);
-      h3dSetNodeFlags(node, h3dGetNodeFlags(parent), true);
+      if (visible_) {
+         h3dSetNodeFlags(node, h3dGetNodeFlags(parent), true);
+      }
    } else {
       h3dTwiddleNodeFlags(node, H3DNodeFlags::NoDraw | H3DNodeFlags::NoRayQuery, true, true);
    }
@@ -264,11 +267,6 @@ void RenderEntity::RemoveComponent(std::string const& name)
    components_.erase(name);
 }
 
-void RenderEntity::Show(bool show)
-{
-   h3dTwiddleNodeFlags(node_.get(), H3DNodeFlags::NoDraw | H3DNodeFlags::NoRayQuery, true, true);
-}
-
 void RenderEntity::SetSelected(bool selected)
 {
    h3dTwiddleNodeFlags(node_.get(), H3DNodeFlags::Selected, selected, true);
@@ -330,4 +328,17 @@ void RenderEntity::RemoveQueryFlag(int flag)
 bool RenderEntity::HasQueryFlag(int flag) const
 {
    return (query_flags_ & flag) != 0;
+}
+
+void RenderEntity::SetVisible(bool visible)
+{
+   H3DNode node = node_.get();
+   visible_ = visible;
+
+   if (visible) {
+      H3DNode parent = GetParent();
+      h3dSetNodeFlags(node, h3dGetNodeFlags(parent), true);
+   } else {
+      h3dTwiddleNodeFlags(node, H3DNodeFlags::NoDraw | H3DNodeFlags::NoRayQuery, true, true);
+   }
 }

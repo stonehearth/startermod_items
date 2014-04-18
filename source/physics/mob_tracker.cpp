@@ -20,7 +20,6 @@ MobTracker::MobTracker(NavGrid& ng, om::EntityPtr entity, om::MobPtr mob) :
    last_bounds_(csg::Point3::zero, csg::Point3::zero),
    mob_(mob)
 {
-   NG_LOG(9) << "creating MobTracker for " << *entity;
 }
 
 
@@ -46,7 +45,7 @@ MobTracker::~MobTracker()
 void MobTracker::Initialize()
 {
    CollisionTracker::Initialize();
-   // CollisionTracker already traces the mob position, so there's nothing to do!
+   MarkChanged();
 }
 
 /*

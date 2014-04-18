@@ -58,11 +58,4 @@ function PickupPlacedItemAdjacent:run(ai, entity, args)
    self._proxy_item = nil
 end
 
-function PickupPlacedItemAdjacent:stop()
-   if self._proxy_item then
-      radiant.entities.destroy_entity(self._proxy_item)
-      self._proxy_item = nil
-   end
-end
-
 return PickupPlacedItemAdjacent

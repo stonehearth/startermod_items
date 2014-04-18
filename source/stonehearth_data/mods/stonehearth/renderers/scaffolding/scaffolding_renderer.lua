@@ -28,12 +28,13 @@ function ScaffoldingRenderer:__init(render_entity, ed)
       self._origin = Point3f(0, 0, 0)
    end
 
+   self._entity_node = render_entity:get_node()
    self._pattern_width = ed.width
    self._pattern_height = ed.height
    
    -- Create a new group node to store the individual nodes of each
    -- segment of the lattice.
-   self._node = h3dAddGroupNode(render_entity:get_node(), 'scaffolding node')
+   self._node = h3dAddGroupNode(self._entity_node, 'scaffolding node')
    
    -- The segments table is a 3d-array containing each segment of the lattice,
    -- indexed by the y, x, z coordinates of each segment.  The segment_region
@@ -132,10 +133,14 @@ function ScaffoldingRenderer:_create_segment_node(pt)
    local z = 0
 
    --Derive name of matrix (part of lattice we need from pt)
-   local matrix = string.format('scaffold_%d_%d_%d',x, y, z)   
+   local matrix = string.format('scaffold_%d_%d_%d',x, y, z)
+   return self:_create_node(pt, matrix)
+end
+
+function ScaffoldingRenderer:_create_node(pt, matrix) 
    local node = _radiant.client.create_qubicle_matrix_node(self._node, self._lattice, matrix, self._origin)
    h3dSetNodeTransform(node, pt.x, pt.y, pt.z, 0, self._rotation, 0, self._scale, self._scale, self._scale)
-   
+   h3dSetNodeFlags(node, h3dGetNodeFlags(self._entity_node), true);
    return node
 end
 
@@ -199,11 +204,10 @@ function ScaffoldingRenderer:_get_top_node(pt)
       local x = (self._pattern_width - 1) - tangent % self._pattern_width
       --TODO: derive z; right now our scaffolding is always z=0
       local z = 0
-      local matrix = string.format('scaffold_%d_top_%d', x, z)   
-      local node = _radiant.client.create_qubicle_matrix_node(self._node, self._lattice, matrix, self._origin)
-      h3dSetNodeTransform(node, pt.x, pt.y, pt.z, 0, self._rotation, 0, self._scale, self._scale, self._scale)
+      local matrix = string.format('scaffold_%d_top_%d', x, z)
+      
       self._tops[pt.x][pt.z] = {
-         node = node, 
+         node = self:_create_node(pt, matrix), 
          top_y = pt.y
       }
    end

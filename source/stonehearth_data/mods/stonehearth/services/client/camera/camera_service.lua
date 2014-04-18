@@ -489,4 +489,9 @@ function CameraService:look_at_entity(entity)
   self:look_at(Vec3(location.x, location.y, location.z))
 end
 
+function CameraService:get_forward_vector()
+   -- why is this inverted?
+   return _radiant.renderer.camera.get_forward():scaled(-1)
+end
+
 return CameraService

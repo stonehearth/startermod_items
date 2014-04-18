@@ -64,3 +64,6 @@ source/stonehearth_data/saved_games/
 
 # Python genearted files
 *.pyc
+
+# Lua profile dumps
+source/stonehearth_data/lua_profile*.*
