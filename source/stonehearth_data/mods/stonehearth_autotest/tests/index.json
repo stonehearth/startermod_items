@@ -18,14 +18,14 @@
             "file(end_to_end/carpenter_autotests.lua)",
             "file(end_to_end/sleep_autotests.lua)",
             "file(end_to_end/food_autotests.lua)",
-            "file(end_to_end/farming_autotests.lua)"
+            "file(end_to_end/farming_autotests.lua)",
+            "file(end_to_end/placement_autotests.lua)"
          ]
       },
 
       "broken_end_to_end" : {
          "name" : "broken end to end tests =(.  fix this and move them back into end to end!!",
          "scripts" : [
-            "file(end_to_end/placement_autotests.lua)"
          ]
       },
 
