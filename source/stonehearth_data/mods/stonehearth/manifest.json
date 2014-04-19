@@ -298,6 +298,7 @@
       "actions:compelled_behaviors:dispatcher" : "file(ai/actions/compelled_behaviors/compelled_behavior_dispatcher.lua)",
       "actions:compelled_behaviors:struggle" : "file(ai/actions/compelled_behaviors/struggle_action.lua)",
       "actions:basic_needs:dispatcher" : "file(ai/actions/basic_needs/basic_needs_dispatcher.lua)",
+      "actions:free_time:dispatcher" : "file(ai/actions/free_time/free_time_dispatcher.lua)",
 
       "actions:unit_control:dispatcher" : "file(ai/actions/unit_control/unit_control_dispatcher.lua)",
       "actions:unit_control:move_unit_to_location" : "file(ai/actions/unit_control/move_unit_to_location_action.lua)",
@@ -365,6 +366,7 @@
       "observers:look_for_enemies" : "file(ai/observers/look_for_enemies.lua)",
       "observers:sleep" : "file(ai/observers/sleep_observer.lua)",
       "observers:calorie" : "file(ai/observers/calorie_observer.lua)",
+      "observers:free_time" : "file(ai/observers/free_time_observer.lua)",
 
       "class_info" : "file(entities/class_info)",
       "personality_types" : "file(data/personality/personality_types.json)",

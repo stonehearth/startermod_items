@@ -69,6 +69,7 @@ function PlaceableItemProxyComponent:_create_derived_components()
          end
       end
    end
+
    --Issues: if this is in a parent class, it isn't loaded by this point, so add manually
    local commands = self._entity:add_component('stonehearth:commands')
    commands:add_command('/stonehearth/data/commands/place_item')

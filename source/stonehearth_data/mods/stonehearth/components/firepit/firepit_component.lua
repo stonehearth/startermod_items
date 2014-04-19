@@ -2,6 +2,7 @@ local priorities = require('constants').priorities.worker_task
 
 local Point3 = _radiant.csg.Point3
 local Cube3 = _radiant.csg.Cube3
+local events = stonehearth.events
 
 local log = radiant.log.create_logger('firepit')
 local FirepitComponent = class()
@@ -15,12 +16,13 @@ function FirepitComponent:initialize(entity, json)
    self._curr_fire_effect = nil
    self._am_lighting_fire = false
 
-   self._seats = nil
 
    self._sv = self.__saved_variables:get_data()
    if not self._sv._initialized then
       self._sv._initialized = true
+      self._sv.seats = nil
       self._sv.is_lit = false
+      self._sv.should_already_be_lit = false
    end
 
    --Listen on terrain for when this entity is added/removed
@@ -81,13 +83,13 @@ function FirepitComponent:_shutdown()
    self:_extinguish()
    self._am_lighting_fire = false
 
-   if self._seats then
-      for i, v in ipairs(self._seats) do
+   if self._sv.seats then
+      for i, v in ipairs(self._sv.seats) do
          log:debug('destroying firepit seat %s', tostring(v))
          radiant.entities.destroy_entity(v)
       end
    end
-   self._seats = nil
+   self._sv.seats = nil
 end
 
 --- Reused between this and when we check to see if we should
@@ -105,7 +107,11 @@ function FirepitComponent:_start_or_stop_firepit()
                              curr_time.hour < time_constants.event_times.sunrise
 
    log:spam('in _start_or_stop_fire (should? %s  is? %s)', tostring(should_light_fire), tostring(self._am_lighting_fire))
-   if should_light_fire and not self._am_lighting_fire then
+
+   --If we should already be lit (ie, from load, then just jump straight to light)
+   if self._sv.should_already_be_lit then
+      self:light()
+   elseif should_light_fire and not self._am_lighting_fire then
       log:detail('decided to light the fire!')
       self._am_lighting_fire = true
       self:_init_gather_wood_task()
@@ -120,7 +126,7 @@ end
 --TODO: add a random element to the placement of the seats.
 function FirepitComponent:_add_seats()
    log:debug('adding firepit seats')
-   self._seats = {}
+   self._sv.seats = {}
    local firepit_loc = Point3(radiant.entities.get_world_grid_location(self._entity))
    self:_add_one_seat(1, Point3(firepit_loc.x + 5, firepit_loc.y, firepit_loc.z + 1))
    self:_add_one_seat(2, Point3(firepit_loc.x + -4, firepit_loc.y, firepit_loc.z))
@@ -136,7 +142,7 @@ function FirepitComponent:_add_one_seat(seat_number, location)
    local seat = radiant.entities.create_entity('stonehearth:firepit_seat')
    local seat_comp = seat:get_component('stonehearth:center_of_attention_spot')
    seat_comp:add_to_center_of_attention(self._entity, seat_number)
-   self._seats[seat_number] = seat
+   self._sv.seats[seat_number] = seat
    radiant.terrain.place_entity(seat, location)
    log:spam('place firepit seat at %s', tostring(location))
 end
@@ -170,13 +176,16 @@ end
 function FirepitComponent:light()
    log:debug('lighting the fire')
 
-   self._curr_fire_effect =
-      radiant.effects.run_effect(self._entity, '/stonehearth/data/effects/firepit_effect')
-   if not self._seats then
+   if not self._curr_fire_effect then
+      self._curr_fire_effect =
+         radiant.effects.run_effect(self._entity, '/stonehearth/data/effects/firepit_effect')
+   end
+   if not self._sv.seats then
       self:_add_seats()
    end
    self._sv.is_lit = true
-   radiant.events.trigger_async(self._entity, 'stonehearth:fire:lit', { lit = true })
+   self._sv.should_already_be_lit = true
+   radiant.events.trigger_async(events, 'stonehearth:fire:lit', { lit = true, player_id = radiant.entities.get_player_id(self._entity) })
    self.__saved_variables:mark_changed()
 end
 
@@ -194,6 +203,7 @@ function FirepitComponent:_extinguish()
 
    if self._curr_fire_effect then
       self._curr_fire_effect:stop()
+      self._curr_fire_effect = nil
    end
    
    if self._light_task then
@@ -202,7 +212,8 @@ function FirepitComponent:_extinguish()
    end
 
    self._sv.is_lit = false
-   radiant.events.trigger_async(self._entity, 'stonehearth:fire:lit', { lit = false })
+   self._sv.should_already_be_lit = false
+   radiant.events.trigger_async(events, 'stonehearth:fire:lit', { lit = false, player_id = radiant.entities.get_player_id(self._entity) })
 end
 
 return FirepitComponent

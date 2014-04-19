@@ -50,11 +50,13 @@
             "stonehearth:actions:combat:idle:ready",
             "stonehearth:actions:combat:idle:shuffle",
             "stonehearth:actions:combat:hit_stun",
-            "stonehearth:actions:chase_entity"
+            "stonehearth:actions:chase_entity", 
+            "stonehearth:actions:free_time:dispatcher" 
          ],
           "observers": [
             "stonehearth:observers:sleep",
-            "stonehearth:observers:calorie"
+            "stonehearth:observers:calorie",
+            "stonehearth:observers:free_time"
          ]
       },
       "unit_info" : {
