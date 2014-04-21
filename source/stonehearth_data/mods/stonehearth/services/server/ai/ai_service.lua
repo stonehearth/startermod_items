@@ -70,6 +70,13 @@ function AiService:release_ai_lease(target, owner)
    end
 end
 
+function AiService:can_acquire_ai_lease(target, owner)
+   if target and target:is_valid() then
+      return target:add_component('stonehearth:lease'):can_acquire(self.RESERVATION_LEASE_NAME, owner)
+   end
+end
+
+
 function AiService:create_activity(name, args)
    if args == nil then
       args = {}
