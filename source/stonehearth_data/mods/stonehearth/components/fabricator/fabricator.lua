@@ -10,42 +10,54 @@ local log = radiant.log.create_logger('build')
 local COORD_MAX = 1000000 -- 1 million enough?
 
 -- this is the component which manages the fabricator entity.
-function Fabricator:__init(name, entity, blueprint)
+function Fabricator:__init(name, entity, blueprint, project)
    self.name = name
    log:debug('creating fabricator for %s', self.name)
    
    self._entity = entity
    self._blueprint = blueprint
+   self._blueprint_ladder = blueprint:get_component('vertical_pathing_region')   
+   self._construction_data = blueprint:get_component('stonehearth:construction_data')
+   
+   assert(self._construction_data)
    assert(radiant.entities.get_player_id(self._blueprint) ~= '')
-   
-   self._teardown = false
-   self._faction = radiant.entities.get_faction(blueprint)
 
-   self._resource_material = blueprint:get_component('stonehearth:construction_data'):get_material()
-   
+   self._resource_material = self._construction_data:get_material()
+
+   self._dst = self._entity:add_component('destination')
+   if project then
+      self:_initialize_existing_project(project)
+   else
+      self:_create_new_project()
+   end
+   self:_start()
+end
+
+function Fabricator:_initialize_existing_project(project)  
+   self._project = project
+   self._project_ladder = self._project:add_component('vertical_pathing_region')
+
+   local dst = self._entity:add_component('destination')
+   dst:get_reserved():modify(function(cursor)
+      cursor:clear()
+   end)
+end
+
+function Fabricator:_create_new_project()
    -- initialize the fabricator entity.  we'll manually update the
    -- adjacent region of the destination so we can build the project
    -- in layers.  this helps prevent the worker from getting stuck
    -- and just looks cooler
-   local dst = self._entity:add_component('destination')
-   dst:set_region(_radiant.sim.alloc_region())
-      :set_reserved(_radiant.sim.alloc_region())
-      :set_adjacent(_radiant.sim.alloc_region())
+   self._dst:set_region(_radiant.sim.alloc_region())
+            :set_reserved(_radiant.sim.alloc_region())
+            :set_adjacent(_radiant.sim.alloc_region())
        
-   log:debug("%s fabricator tracing destination %d", self.name, dst:get_id())
-   self._traces = {}
-   local update_adjacent = function()
-      self:_update_adjacent()
-   end
-   table.insert(self._traces, dst:trace_region('fabricator adjacent'):on_changed(update_adjacent))
-   table.insert(self._traces, dst:trace_reserved('fabricator adjacent'):on_changed(update_adjacent))
-   
-   self._construction_data = blueprint:get_component('stonehearth:construction_data')
-   assert(self._construction_data)
-                     
+   log:debug("%s fabricator tracing destination %d", self.name, self._dst:get_id())
+
    -- create a new project.  projects start off completely unbuilt.
    -- projects are stored in as children to the fabricator, so there's
    -- no need to update their transform.
+   local blueprint = self._blueprint
    local rgn = _radiant.sim.alloc_region()
    self._project = radiant.entities.create_entity(blueprint:get_uri())
    radiant.entities.set_faction(self._project, blueprint)
@@ -63,13 +75,22 @@ function Fabricator:__init(name, entity, blueprint)
    local state = self._construction_data:get_savestate()
    self._project:add_component('stonehearth:construction_data', state)
 
-   -- hold onto the blueprint ladder component, if it exists.  we'll replicate
-   -- the ladder into the project as it gets built up.
+   -- we'll replicate the ladder into the project as it gets built up.
    self._blueprint_ladder = blueprint:get_component('vertical_pathing_region')
    if self._blueprint_ladder then
       self._project_ladder = self._project:add_component('vertical_pathing_region')
       self._project_ladder:set_region(_radiant.sim.alloc_region())
+   end   
+end
+
+function Fabricator:_start()
+   self._traces = {}
+   local update_adjacent = function()
+      self:_update_adjacent()
    end
+   local dst = self._entity:get_component('destination')
+   table.insert(self._traces, self._dst:trace_region('fabricator adjacent'):on_changed(update_adjacent))
+   table.insert(self._traces, self._dst:trace_reserved('fabricator adjacent'):on_changed(update_adjacent))
    
    local progress = self._blueprint:get_component('stonehearth:construction_progress')
    if progress then
@@ -78,6 +99,7 @@ function Fabricator:__init(name, entity, blueprint)
    else
       self._dependencies_finished = true
    end
+
    self:_trace_blueprint_and_project()
    self:_start_project()
 end

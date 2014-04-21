@@ -1,5 +1,8 @@
 ;aic
 
+; Advanced Installer and Microsoft's MSI only use the first three components of the version number
+; for the purposes of considering upgrades. It will only uninstall old versions if the three
+; component version number is larger than the existing installation.
 ;SetVersion 0.0.1
 SetVersion -fromfile ..\..\build\stage\stonehearth\Stonehearth.exe
 
