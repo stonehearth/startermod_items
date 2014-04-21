@@ -63,8 +63,10 @@ function FreeTimeObserver:_finish_admiring()
    self._sv.should_find_fires = false
    self.__saved_variables:mark_changed()
 
-   self._fire_task:destroy()
-   self._fire_task = nil
+   if self._fire_task ~= nil then
+      self._fire_task:destroy()
+      self._fire_task = nil
+   end
 end
 
 return FreeTimeObserver

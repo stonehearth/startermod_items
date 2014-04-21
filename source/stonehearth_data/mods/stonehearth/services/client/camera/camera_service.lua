@@ -460,6 +460,7 @@ function CameraService:_update_camera(frame_time)
   local scaled_continuous_delta = Vec3(self._continuous_delta)
   scaled_continuous_delta:scale(frame_time / 1000.0)
   self._sv.position = self._sv.position + (scaled_continuous_delta) + self._impulse_delta
+  self._sv.lookat = self._sv.position + self:get_forward_vector()
   self.__saved_variables:mark_changed()
 
   self._impulse_delta = Vec3(0, 0, 0)
