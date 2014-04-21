@@ -217,6 +217,7 @@ void Mob::SerializeToJson(json::Node& node) const
    node.set("transform", GetTransform());
    node.set("entity", GetEntityPtr()->GetStoreAddress());
    node.set("moving", GetMoving());
+   node.set("interpolate_movement", GetInterpolateMovement());
    om::EntityPtr parent = GetParent().lock();
    if (parent) {
       node.set("parent", parent->GetStoreAddress());

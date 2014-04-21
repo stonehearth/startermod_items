@@ -136,3 +136,9 @@ dm::ObjectId PathFinderDst::GetEntityId() const
 {
    return id_;
 }
+
+om::EntityPtr PathFinderDst::GetEntity() const
+{
+   return entity_.lock();
+}
+
