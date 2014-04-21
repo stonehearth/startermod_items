@@ -76,14 +76,14 @@ function ExecutionFrame:_on_position_changed()
       local distance = radiant.entities.grid_distance_between(self._entity, self._last_captured_location)
       if distance > 3 then
          self._log:detail('entity moved!  going to restart thinking... (state:%s)', self._state)
-         self:_restart_thinking()
+         self:_restart_thinking(nil, "entity moved")
       end
    end
 end
 
 function ExecutionFrame:_on_carrying_changed()
    self._log:detail('carrying changed!  going to restart thinking... (state:%s)', self._state)
-   self:_restart_thinking()
+   self:_restart_thinking(nil, "carrying changed")
 end
 
 
@@ -247,9 +247,9 @@ function ExecutionFrame:_remove_action(unit)
    self:_unknown_transition('remove_action')
 end
 
-function ExecutionFrame:_restart_thinking(entity_state)
+function ExecutionFrame:_restart_thinking(entity_state, debug_reason)
    self._log:detail('_restart_thinking (state:%s)', self._state)
-   self._aitrace:spam('@r@%s', self._state)
+   self._aitrace:spam('@r@%s@%s', self._state, debug_reason)
 
    if not self:in_state('thinking', 'starting_thinking', 'ready', 'running') then
       return
@@ -307,7 +307,7 @@ function ExecutionFrame:_start_thinking_from_stopped(args, entity_state)
 
    self._runnable_unit_count = 0
    self:_set_state(STARTING_THINKING)
-   if not self:_restart_thinking(entity_state) then
+   if not self:_restart_thinking(entity_state, "thinking from stopped") then
       self:_set_state(THINKING)
    end
 end
@@ -803,7 +803,7 @@ end
 
 function ExecutionFrame:abort()
    self._log:debug('abort')
-   self:_trace_state_change('abort')
+   self:_trace_state_change(tostring(self._state), 'abort')
    assert(not self._aborting)
    self._aborting = true
    assert(self:_no_other_thread_is_running())
@@ -870,7 +870,7 @@ function ExecutionFrame:_unwind_call_stack(exit_handler)
    end
    -- start the active unit and start the rest of them thinking again.
    self._active_unit:_start()
-   self:_restart_thinking()
+   self:_restart_thinking(nil, "unwinding stack")
 end
  
 function ExecutionFrame:_add_action_from_thinking(key, entry)
@@ -919,7 +919,7 @@ function ExecutionFrame:_remove_action_from_ready(unit)
          self._ready_cb(nil)
       end     
       self:_set_state(STOPPED)
-      self:_restart_thinking(self._current_entity_state)
+      self:_restart_thinking(self._current_entity_state, "removing action")
    else
       self:_remove_execution_unit(unit)
    end
@@ -1174,7 +1174,7 @@ end
 
 function ExecutionFrame:_set_state(state)
    self._log:debug('state change %s -> %s', tostring(self._state), state)
-   self:_trace_state_change(state)
+   self:_trace_state_change(tostring(self._state), state)
    self._state = state
    
    local going_to_frame = self._thread:get_thread_data('stonehearth:unwind_to_frame')
@@ -1285,8 +1285,8 @@ function ExecutionFrame:_no_other_thread_is_running()
    return self._thread:is_running() or stonehearth.threads:get_current_thread() == nil
 end
 
-function ExecutionFrame:_trace_state_change(new_state)
-   self._aitrace:spam('@sc@%s', new_state)
+function ExecutionFrame:_trace_state_change(old_state, new_state)
+   self._aitrace:spam('@sc@%s@%s', old_state, new_state)
 end
 
 function ExecutionFrame:_spam_entity_state(state, format, ...)
