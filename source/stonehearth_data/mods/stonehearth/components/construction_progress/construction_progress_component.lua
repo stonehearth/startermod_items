@@ -14,6 +14,15 @@ function ConstructionProgress:initialize(entity, json)
       self._sv.finished = false
       self._sv.dependencies_finished = false
    end
+   
+   radiant.events.listen_once(radiant, 'radiant:game_loaded', function()
+         for id, blueprint in pairs(self._sv.dependencies) do
+            radiant.events.listen(blueprint, 'stonehearth:construction:finished_changed', function()
+                  self:check_dependencies()
+               end)
+         end
+         self:check_dependencies()
+      end)   
 end
 
 --- Tracks projects which must be completed before this one can start.
@@ -33,12 +42,15 @@ end
 function ConstructionProgress:check_dependencies()
    local last_dependencies_finished = self._sv.dependencies_finished
    
+   log:debug('%s checking dependencies...', self._entity)
+
    -- Assume we're good to go.  If not, the loop below will catch it.
    self._sv.dependencies_finished = true
    for id, blueprint in pairs(self._sv.dependencies) do
       local progress = blueprint:get_component('stonehearth:construction_progress')
       if progress and not progress:get_finished() then
          -- The project is actually not finished.  Definitely bail!
+         log:debug('%s blueprint %s not finished.', self._entity, blueprint)
          self._sv.dependencies_finished = false
          break
       end

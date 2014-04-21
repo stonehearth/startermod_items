@@ -12,6 +12,16 @@ local log = radiant.log.create_logger('fabricator')
 -- this is the component which manages the fabricator entity.
 function FabricatorComponent:initialize(entity, json)
    self._entity = entity
+   self._sv = self.__saved_variables:get_data()
+
+   radiant.events.listen_once(radiant, 'radiant:game_loaded', function()
+         if self._sv.blueprint and self._sv.project then
+            self._fabricator = Fabricator(self._sv.name,
+                                          self._entity,
+                                          self._sv.blueprint,
+                                          self._sv.project)
+         end
+      end)
 end
 
 function FabricatorComponent:destroy()
@@ -21,13 +31,13 @@ function FabricatorComponent:destroy()
       self._fabricator:destroy()
       self._fabricator = nil
    end
-   if self._scaffolding_blueprint then
-      radiant.entities.destroy_entity(self._scaffolding_blueprint)
-      self._scaffolding_blueprint = nil
+   if self._sv.scaffolding_blueprint then
+      radiant.entities.destroy_entity(self._sv.scaffolding_blueprint)
+      self._sv.scaffolding_blueprint = nil
    end
-   if self._scaffolding_fabricator then
-      radiant.entities.destroy_entity(self._scaffolding_fabricator)
-      self._scaffolding_fabricator = nil
+   if self._sv.scaffolding_fabricator then
+      radiant.entities.destroy_entity(self._sv.scaffolding_fabricator)
+      self._sv.scaffolding_fabricator = nil
    end
 end
 
@@ -48,8 +58,8 @@ function FabricatorComponent:release_block(location)
 end
 
 function FabricatorComponent:start_project(name, blueprint)
-   self.name = name and name or '-- unnamed --'
-   log:debug('starting project %s', self.name)
+   self._sv.name = name and name or '-- unnamed --'
+   log:debug('starting project %s', self._sv.name)
    
    self._fabricator = Fabricator(name, self._entity, blueprint)
    
@@ -64,24 +74,20 @@ function FabricatorComponent:start_project(name, blueprint)
       self:_add_scaffolding(blueprint, project, normal)
    end
 
-   -- remember the blueprint and project 
-   self._project = project
-   self._blueprint = blueprint
-   
-   self.__saved_variables:set_data({
-      project = self._project,
-      blueprint = self._blueprint,
-   })
+   -- remember the blueprint and project
+   self._sv.project = project
+   self._sv.blueprint = blueprint
+   self.__saved_variables:mark_changed()
    
    return self
 end
 
 function FabricatorComponent:get_blueprint()
-   return self._blueprint
+   return self._sv.blueprint
 end
 
 function FabricatorComponent:get_project()
-   return self._project
+   return self._sv.project
 end
 
 function FabricatorComponent:_add_scaffolding(blueprint, project, normal)
@@ -98,7 +104,7 @@ function FabricatorComponent:_add_scaffolding(blueprint, project, normal)
    radiant.entities.set_player_id(scaffolding, project)
 
    -- create a fabricator entity to build the scaffolding
-   local name = string.format('[scaffolding for %s]', self.name)
+   local name = string.format('[scaffolding for %s]', self._sv.name)
    local fabricator = radiant.entities.create_entity()
    fabricator:set_debug_text('fabricator for scaffolding of ' .. project:get_debug_text())
    fabricator:add_component('mob'):set_transform(transform)
@@ -117,8 +123,9 @@ function FabricatorComponent:_add_scaffolding(blueprint, project, normal)
    blueprint:add_component('stonehearth:construction_progress')
             :set_scaffolding(scaffolding)
             
-   self._scaffolding_blueprint = scaffolding
-   self._scaffolding_fabricator = fabricator
+   self._sv.scaffolding_blueprint = scaffolding
+   self._sv.scaffolding_fabricator = fabricator
+   self.__saved_variables:mark_changed()
 end
 
 return FabricatorComponent
