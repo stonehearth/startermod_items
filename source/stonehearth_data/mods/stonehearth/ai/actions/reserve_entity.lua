@@ -10,8 +10,8 @@ ReserveEntity.version = 2
 ReserveEntity.priority = 1
 
 function ReserveEntity:start_thinking(ai, entity, args)
-   if not stonehearth.ai:can_acquire_ai_lease(args.entity, self._entity) then
-      self._log:debug('ignoring %s (cannot acquire ai lease)', args.entity)
+   if not stonehearth.ai:can_acquire_ai_lease(args.entity, entity) then
+      ai:get_log():debug('ignoring %s (cannot acquire ai lease)', args.entity)
       return
    end
 

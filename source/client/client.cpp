@@ -1223,13 +1223,14 @@ Client::Cursor Client::LoadCursor(std::string const& path)
       // zipfile).  So just pick something "random enough"
       boost::filesystem::path tmpdir = core::System::GetInstance().GetTempDirectory();
       std::string tempname = BUILD_STRING("cursor" << GetCurrentProcessId() << platform::get_current_time_in_ms());
-      std::ofstream((tmpdir / tempname).string(), std::ios::out | std::ios::binary).write(buffer.c_str(), buffer.size());
+      auto fulldir = tmpdir / tempname;
+      std::ofstream(fulldir.string(), std::ios::out | std::ios::binary).write(buffer.c_str(), buffer.size());
 
-      HCURSOR hcursor = (HCURSOR)LoadImageA(GetModuleHandle(NULL), tempname.c_str(), IMAGE_CURSOR, 0, 0, LR_LOADFROMFILE | LR_DEFAULTSIZE);
+      HCURSOR hcursor = (HCURSOR)LoadImageA(GetModuleHandle(NULL), fulldir.string().c_str(), IMAGE_CURSOR, 0, 0, LR_LOADFROMFILE | LR_DEFAULTSIZE);
       if (hcursor) {
          cursors_[filename] = cursor = Cursor(hcursor);
       }
-      boost::filesystem::remove(tempname);
+      boost::filesystem::remove(fulldir);
    }
    return cursor;
 }
