@@ -44,7 +44,6 @@ function ReplaceProxyWithItem:run(ai, entity, args)
       radiant.terrain.place_entity(self._full_sized_entity, radiant.entities.get_world_grid_location(self._proxy))
       radiant.entities.turn_to(self._full_sized_entity, args.rotation)      
       radiant.terrain.remove_entity(self._proxy)
-      self._proxy = nil
    end
 end
 
@@ -54,8 +53,8 @@ function ReplaceProxyWithItem:stop(ai, entity, args)
       -- on the ground... (hopefully!)  take the lease off it so someone can do something
       -- with it.
       stonehearth.ai:release_ai_lease(self._proxy, entity)
-      self._proxy = nil
    end
+   self._proxy = nil
 end
 
 return ReplaceProxyWithItem

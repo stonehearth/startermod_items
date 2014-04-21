@@ -737,7 +737,7 @@ end
 function ExecutionUnitV2:_set_state(state)
    self._log:debug('state change %s -> %s', tostring(self._state), state)
    assert(state and self._state ~= state)
-   self._aitrace:spam('@sc@%s', state)
+   self._aitrace:spam('@sc@%s@%s', tostring(self._state), state)
 
    if self._state ~= DEAD then
       self._state = state   

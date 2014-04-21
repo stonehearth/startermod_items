@@ -14,9 +14,9 @@ function AIComponent:initialize(entity, json)
    self._sv = self.__saved_variables:get_data()
    self.__saved_variables:set_controller(self)
    self._aitrace = radiant.log.create_logger('ai_trace')
-   self._aitrace:set_prefix(tostring(entity:get_id()) .. '/')
+   self._aitrace:set_prefix('e' .. tostring(entity:get_id()) .. '/')
    local s = radiant.entities.get_name(entity) or 'noname'
-   self._aitrace:spam('@ce@%d@%s', entity:get_id(), s)
+   self._aitrace:spam('@ce@%s@%s', 'e' .. tostring(entity:get_id()), s)
 
    if not self._sv._initialized then
       self._sv._initialized = true
@@ -271,7 +271,7 @@ function AIComponent:_create_top_execution_frame()
    self._thread:set_thread_data('stonehearth:run_stack', {})
    self._thread:set_thread_data('stonehearth:unwind_to_frame', nil)
    local route = string.format('e:%d %s', self._entity:get_id(), radiant.entities.get_name(self._entity))
-   local traceroute = string.format('%d/', self._entity:get_id())
+   local traceroute = string.format('%s/', 'e' .. tostring(self._entity:get_id()))
    return self:create_execution_frame('stonehearth:top', route, traceroute)
 end
 
