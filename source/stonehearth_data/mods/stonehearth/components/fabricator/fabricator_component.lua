@@ -118,11 +118,7 @@ function FabricatorComponent:_add_scaffolding(blueprint, project, normal)
    -- add the fabricator and the project to our entity container so they get rendered
    self._entity:add_component('entity_container')
                   :add_child(fabricator)
-
-   -- notify the blueprint that it has some scaffolding
-   blueprint:add_component('stonehearth:construction_progress')
-            :set_scaffolding(scaffolding)
-            
+           
    self._sv.scaffolding_blueprint = scaffolding
    self._sv.scaffolding_fabricator = fabricator
    self.__saved_variables:mark_changed()
