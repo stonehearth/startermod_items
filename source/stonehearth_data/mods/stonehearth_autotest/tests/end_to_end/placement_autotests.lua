@@ -123,7 +123,6 @@ function placement_autotests.place_multiple_times(autotest)
 end
 --]]
 
----[[
 --THIS test reproduces the invalid object error we created the tests to duplicate
 --Adding a second worker causes great confusion
 --Starting from a proxy, place it and then move it several times
@@ -135,15 +134,26 @@ function placement_autotests.two_place_multiple_times(autotest)
 
    --If the big bed moves to the target location, we win!
    local big_bed
+   local trace
    radiant.events.listen(radiant, 'radiant:entity:post_create', function (e)
       if e.entity:get_uri() == 'stonehearth:comfy_bed' then
          big_bed = e.entity
-         local trace = radiant.entities.trace_location(big_bed, 'sh placement autotest')
+         trace = radiant.entities.trace_location(big_bed, 'sh placement autotest')
             :on_changed(function()
                   local location = radiant.entities.get_world_grid_location(big_bed)
-                  if location.x == 8 and location.z == 8 then
-                     autotest:success()
-                     return radiant.events.UNLISTEN
+                  -- Check to see if the mob has a parent, meaning we're in the world, and not being
+                  -- removed.  The trace fires when being removed, AND the location is set to 0,0,0,
+                  -- which we want to ignore.
+                  if big_bed:get_component('mob'):get_parent() ~= nil then
+                     if location.x == 8 and location.z == 8 then
+                        trace:destroy()
+                        autotest:success()
+                        return radiant.events.UNLISTEN
+                     else
+                        autotest.ui:push_unitframe_command_button(big_bed, 'move_item')
+                        autotest.ui:sleep(500)
+                        autotest.ui:click_terrain(location.x + 2, location.z + 2)
+                     end
                   end
                end)
       end
@@ -154,38 +164,8 @@ function placement_autotests.two_place_multiple_times(autotest)
    autotest.ui:sleep(500)
    autotest.ui:click_terrain(2, 2)
 
-   autotest:sleep(5000)
-
-   autotest.ui:sleep(500)
-   autotest.ui:push_unitframe_command_button(big_bed, 'move_item')
-   autotest.ui:sleep(500)
-   autotest.ui:click_terrain(4, 4)
-
-   autotest:sleep(5000)
-
-   autotest.ui:sleep(500)
-   autotest.ui:push_unitframe_command_button(big_bed, 'move_item')
-   autotest.ui:sleep(500)
-   autotest.ui:click_terrain(6, 6)
-   
-   autotest:sleep(5000)
-   
-   autotest.ui:sleep(500)
-   autotest.ui:push_unitframe_command_button(big_bed, 'move_item')
-   autotest.ui:sleep(500)
-   autotest.ui:click_terrain(8, 8)
-
-   autotest:sleep(10000)
-   
-   --TODO: Why isn't the trace firing the very last time? 
-   --In any case, last-ditch effort to see if we succeeded
-   local location = radiant.entities.get_world_grid_location(big_bed)
-   if location.x == 8 and location.z == 8 then
-      autotest:success()
-   end
-
+   autotest:sleep(60000)
    autotest:fail('worker failed to move the bed')
 end
---]]
 
 return placement_autotests

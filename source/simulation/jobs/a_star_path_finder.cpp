@@ -415,22 +415,21 @@ float AStarPathFinder::EstimateCostToDestination(const csg::Point3 &from, PathFi
 
    auto i = destinations_.begin();
    while (i != destinations_.end()) {
-      auto dst = i->second.get();      
-      if (!dst->GetEntity()) {
-         i = destinations_.erase(i);
-      } else {
-         i++;
+      dm::ObjectId entityId = i->first;
+      PathFinderDst* dst = i->second.get();
 
-         om::EntityPtr entity = dst->GetEntity();
-         if (!entity) {
-            continue;
-         }
-         float h = dst->EstimateMovementCost(from);
-         if (h < hMin) {
-            closest = dst;
-            closestId = i->first;
-            hMin = h;
-         }
+      om::EntityPtr entity = dst->GetEntity();
+      if (!entity) {
+         i = destinations_.erase(i);
+         continue;
+      }
+      i++;
+
+      float h = dst->EstimateMovementCost(from);
+      if (h < hMin) {
+         closest = dst;
+         closestId = entityId;
+         hMin = h;
       }
    }
    if (hMin != FLT_MAX) {

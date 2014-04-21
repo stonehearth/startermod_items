@@ -21,7 +21,7 @@ public:
    PathFinderDst(Simulation& sim, om::EntityRef e, std::string const& name, ChangedCb changed_cb);
    ~PathFinderDst();
 
-   om::EntityPtr GetEntity() const { return entity_.lock(); }
+   om::EntityPtr GetEntity() const;
    
    bool IsIdle() const;
    dm::ObjectId GetEntityId() const;
