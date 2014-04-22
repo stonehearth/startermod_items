@@ -5,6 +5,7 @@ stonehearth = {}
 -- that you want input to be handled (i.e. xz-region-selection gets priority
 -- over unit-selection/orders.)
 local service_creation_order = {
+   'browser_data',
    'input',
    'camera',
    'renderer',
