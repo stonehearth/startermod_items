@@ -19,6 +19,10 @@ function ProxyFabrication:__init(derived,parent_proxy, arg1, component_name)
    self:add_construction_data()
 end
 
+function ProxyFabrication:get_world_location()
+   return self:get_entity():add_component('mob'):get_world_grid_location()
+end
+
 function ProxyFabrication:get_region()
    return self._rgn
 end
