@@ -1,6 +1,6 @@
 local placement_autotests = {}
 
----[[
+--[[
 --Pickup a proxy item and move it to a new location
 function placement_autotests.place_one_proxy_item(autotest)
    autotest.env:create_person(10, 10, { profession = 'worker' })
@@ -33,7 +33,7 @@ end
 --]]
 
 --Move an existing item to a new location
----[[
+--[[
 function placement_autotests.move_one_proxy_item(autotest)
    autotest.env:create_person(10, 10, { profession = 'worker' })
    local bed = autotest.env:create_entity(0, 0, 'stonehearth:comfy_bed')
