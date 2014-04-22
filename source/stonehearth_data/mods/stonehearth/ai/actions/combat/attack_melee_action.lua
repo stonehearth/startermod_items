@@ -23,14 +23,14 @@ function AttackMelee:run(ai, entity, args)
    end
 
    local melee_range = stonehearth.combat:get_melee_range(entity, 'medium_1h_weapon', target)
-   local engage_range = melee_range + 3
+   local engage_range_min = melee_range + 3
+   local engage_range_max = engage_range_min + 3
 
-   -- TODO: give up chasing after duration or distance
-   ai:execute('stonehearth:chase_entity', { target = target, stop_distance = engage_range })
+   ai:execute('stonehearth:chase_entity', { target = target, stop_distance = engage_range_min })
 
-   distance = radiant.entities.distance_between(entity, target)
+   local distance = radiant.entities.distance_between(entity, target)
 
-   if distance <= engage_range then
+   if distance < engage_range_max then
       local context = EngageContext(entity)
       stonehearth.combat:engage(target, context)
 
