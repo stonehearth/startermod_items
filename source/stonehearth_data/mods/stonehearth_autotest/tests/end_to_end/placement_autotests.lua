@@ -7,10 +7,11 @@ function placement_autotests.place_one_proxy_item(autotest)
    local bed_proxy = autotest.env:create_entity(0, 0, 'stonehearth:comfy_bed_proxy')
 
    --If the big bed moves to the target location, we win!
+   local trace
    radiant.events.listen(radiant, 'radiant:entity:post_create', function (e)
       local target_entity = e.entity
       if target_entity:get_uri() == 'stonehearth:comfy_bed' then
-         local trace = radiant.entities.trace_location(target_entity, 'sh placement autotest')
+         trace = radiant.entities.trace_location(target_entity, 'sh placement autotest')
             :on_changed(function()
                   local location = radiant.entities.get_world_grid_location(target_entity)
                   if location.x == 6 and location.z == 6 then
