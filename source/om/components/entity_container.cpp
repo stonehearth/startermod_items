@@ -54,10 +54,11 @@ EntityContainer& EntityContainer::RemoveChild(dm::ObjectId id)
 {
    auto i = children_.find(id);
    if (i != children_.end()) {
+      EntityPtr child = i->second.lock();
+
       children_.Remove(id);
       dtor_traces_.erase(id);
 
-      EntityPtr child = i->second.lock();
       if (child) {
          auto mob = child->GetComponent<Mob>();
          if (mob) {
