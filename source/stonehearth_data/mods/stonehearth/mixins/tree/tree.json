@@ -1,11 +1,6 @@
 {
    "type" : "entity",
    "components" : {
-	   "stonehearth:commands" : {
-	   	"commands" : [
-            "file(/data/commands/chop_tree)"
-			]
-	   },
       "unit_info" : {
          "character_sheet_info" : "file(tree_character_sheet_info.json)"
       },
