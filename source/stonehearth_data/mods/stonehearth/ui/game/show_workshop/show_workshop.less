@@ -24,7 +24,7 @@
    top: -1000px;
    position: absolute;
    width: 840px;
-   height: 1000px;
+   height: 900px;
    background: url('images/skin.png');
 
    #shingle {
@@ -137,18 +137,30 @@
          }
       }
 
-      #recipeAccordion {
+      #recipeItems {
          position: relative;
          top: 11px;
          left: 3px;
 
-         a:hover {
-            color:  @goldColor;
+         h3 {
+            margin: 10px 0 0 0;
          }
 
          .recipeLink {
-            display: block;
-            margin-bottom: -15px;
+            float: left;
+            width: 65px;
+            height: 69px;
+            border: 0px;
+            margin-right: 4px;
+            margin-bottom: 4px;
+            background-position: 0px -930px;
+            display: flex;
+
+            img {
+               width: 46px;
+               height: auto;
+               margin: auto;
+            }
          }
       }
 
