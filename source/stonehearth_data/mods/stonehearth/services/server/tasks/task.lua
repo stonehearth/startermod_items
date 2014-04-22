@@ -76,6 +76,10 @@ function Task:get_name()
    return self._name
 end
 
+function Task:get_id()
+   return self._id
+end
+
 function Task:set_name(format, ...)
    assert(self._state == PAUSED)
    self._name = '[' .. self._id .. ':' .. string.format(format, ...) .. ']'
@@ -96,6 +100,7 @@ end
 
 function Task:set_max_workers(max_workers)
    assert(self._state == PAUSED)
+   assert(max_workers > 0, 'Task:set_max_workers() called with non-positive value')
    self._max_workers = max_workers
    return self
 end
@@ -185,7 +190,7 @@ function Task:_create_action()
          args = activity.args,
          create_action = function(_, ai_component, entity, injecting_entity)
             local action = RunTaskAction(self, self._activity)
-            action.name = self._name .. ' run task action'
+            action.name = self._name .. ' run task action ' .. stonehearth.ai:format_activity(self._activity)
             action.does = activity.name
             action.args = activity.args
             action.priority = self._priority
@@ -328,6 +333,7 @@ end
 function Task:_is_work_available()
    -- finally, if there's just nothing to do, there's just nothing to do.
    if self:_is_work_finished() then
+      self._log:spam('work is finished, therefore no work is available.')
       return false
    end
 
@@ -335,6 +341,7 @@ function Task:_is_work_available()
    -- to start the task.
    local active_action_count = self:_get_active_action_count()
    if active_action_count >= self._max_workers then
+      self._log:spam('active action count %d exceeds max workers %d', active_action_count, self._max_workers)
       return false
    end
 
@@ -342,11 +349,16 @@ function Task:_is_work_available()
    -- minus the number of things actually done minus the number of people attempting
    -- to complete the task.  if that's 0, there's nothing left for anyone else.
    if not self._times then
+      self._log:spam('task allowed to run an unlimited number of times')
       return true
    end
 
    local active_action_count = self:_get_active_action_count()
    local work_remaining = self._times - self._complete_count - active_action_count
+   
+   self._log:spam('work remaining: %d (times:%d, complete_count:%d, active_count:%d)', 
+                  work_remaining, self._times, self._complete_count, active_action_count)
+
    return work_remaining > 0
 end
 
@@ -395,7 +407,7 @@ function Task:__action_try_start_thinking(action)
 
    local entity = action:get_entity()
    if self._workers_pending_unfeed[entity:get_id()] then
-      self._log:detail('task worker %s s pending to be removed.  cannot start_thinking!', entity)
+      self._log:detail('task worker %s pending to be removed.  cannot start_thinking!', entity)
       return false;
    end
 

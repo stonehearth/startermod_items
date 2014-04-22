@@ -51,7 +51,7 @@ function ConstructionDataComponent:get_max_workers()
    if self._data.max_workers then
       return self._data.max_workers
    end
-   return 0
+   return 4 -- completely arbitrary!  add a config option?
 end
 
 function ConstructionDataComponent:set_fabricator_entity(fentity)
@@ -68,5 +68,10 @@ function ConstructionDataComponent:get_project_adjacent_to_base()
    -- coearse to bool 
    return self._data.project_adjacent_to_base and true or false
 end
+
+function ConstructionDataComponent:get_allow_crouching_construction()
+   return self._data.allow_crouching_construction and true or false
+end
+
 
 return ConstructionDataComponent
