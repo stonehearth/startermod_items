@@ -98,7 +98,8 @@ Client::Client() :
    game_clock_(nullptr),
    enable_debug_cursor_(false),
    flushAndLoad_(false),
-   initialUpdate_(false)
+   initialUpdate_(false),
+   save_stress_test_(false)
 {
 }
 
@@ -201,6 +202,7 @@ void Client::OneTimeIninitializtion()
       _commands[GLFW_KEY_F5] = [=]() { RequestReload(); };
       _commands[GLFW_KEY_F6] = [=]() { SaveGame("hotkey_save", json::Node()); };
       _commands[GLFW_KEY_F7] = [=]() { LoadGame("hotkey_save"); };
+      _commands[GLFW_KEY_F8] = [=]() { EnableDisableSaveStressTest(); };
       _commands[GLFW_KEY_F9] = [=]() { core_reactor_->Call(rpc::Function("radiant:toggle_debug_nodes")); };
       _commands[GLFW_KEY_F10] = [&renderer, this]() {
          perf_hud_shown_ = !perf_hud_shown_;
@@ -805,6 +807,12 @@ void Client::mainloop()
       SaveGame("filewatcher_save", json::Node());
       LoadGame("filewatcher_save");
    }
+
+   if (save_stress_test_ && save_stress_test_timer_.expired()) {
+      SaveGame("filewatcher_save", json::Node());
+      LoadGame("filewatcher_save");
+      save_stress_test_timer_.set(10000);
+   }
 }
 
 om::TerrainPtr Client::GetTerrain()
@@ -1386,6 +1394,15 @@ void Client::DeactivateAllTools()
       s->Deactivate();
    });
    xz_selectors_.clear();
+}
+
+void Client::EnableDisableSaveStressTest()
+{
+   save_stress_test_ = !save_stress_test_;
+
+   if (save_stress_test_) {
+      save_stress_test_timer_.set(10000);
+   }
 }
    
 void Client::RequestReload()
