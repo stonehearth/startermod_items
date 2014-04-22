@@ -23,6 +23,10 @@ function TrapperTest:__init()
    local rabbit = self:place_item('stonehearth:rabbit', -3, -6)
    local rabbit = self:place_item('stonehearth:rabbit', 0, -6)
 
+   self:place_item('stonehearth:berry_basket', 0, 0)
+   self:place_item('stonehearth:berry_basket', 1, 1)
+      
+
    local kit = self:place_item('stonehearth:trapper:trapper_knife', -5, -5)
 
    radiant.effects.run_effect(worker, '/stonehearth/data/effects/gib_effect')
@@ -35,6 +39,9 @@ function TrapperTest:__init()
 
    self:at(10,  function()
          self:place_stockpile_cmd('player_1', 12, 12, 4, 4)
+         worker:get_component('stonehearth:attributes'):set_attribute('calories', stonehearth.constants.food.MALNOURISHED)
+         rabbit:get_component('stonehearth:attributes'):set_attribute('calories', stonehearth.constants.food.MALNOURISHED)
+
       end)
 
 end

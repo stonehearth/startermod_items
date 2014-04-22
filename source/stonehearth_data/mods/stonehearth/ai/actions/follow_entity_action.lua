@@ -35,6 +35,10 @@ function FollowEntity:start_thinking(ai, entity, args)
          local location = self:_pick_nearby_location(target)
          log:debug('starting to follow %s (distance: %.2f)', target, distance)
          ai:set_think_output({ location = location })
+         if self._trace then
+            self._trace:destroy()
+            self._trace = nil
+         end
          return true
       else
          log:detail('too close to follow %s (distance:%.2f). monitoring.', target, distance)

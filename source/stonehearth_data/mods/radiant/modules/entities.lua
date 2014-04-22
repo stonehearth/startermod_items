@@ -1,8 +1,10 @@
 local entities = {}
-local singleton = {}
+--local singleton = {}
 
 local Point2 = _radiant.csg.Point2
 local Point3 = _radiant.csg.Point3
+local Cube3 = _radiant.csg.Cube3
+local Region3 = _radiant.csg.Region3
 local Entity = _radiant.om.Entity
 local log = radiant.log.create_logger('entities')
 
@@ -37,6 +39,34 @@ function entities.destroy_entity(entity)
       end
       _radiant.sim.destroy_entity(entity)
    end
+end
+
+function entities.create_proxy_entity(use_default_adjacent_region)
+   if use_default_adjacent_region == nil then
+      use_default_adjacent_region = false
+   end
+
+   local proxy_entity = radiant.entities.create_entity()
+   proxy_entity:set_debug_text('proxy entity')
+
+   if not use_default_adjacent_region then
+      -- cache the origin region since we use this a lot
+      if entities.origin_region == nil then
+         entities.origin_region = _radiant.sim.alloc_region()
+         entities.origin_region:modify(
+            function(region3)
+               region3:add_unique_cube(Cube3(Point3(0, 0, 0), Point3(1, 1, 1)))
+            end
+         )
+      end
+
+      -- make the adjacent the same as the entity location, so that we actually go to the entity location
+      local destination = proxy_entity:add_component('destination')
+      destination:set_region(entities.origin_region)
+      destination:set_adjacent(entities.origin_region)
+   end
+
+   return proxy_entity
 end
 
 function entities.add_child(parent, child, location)

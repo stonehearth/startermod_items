@@ -45,15 +45,17 @@
    <div id="searchBox">
       <input id="searchInput" placeholder="Type to search"/>
    </div>
-   <div id="recipeAccordion">
+   <div id="recipeItems">
       {{#each stonehearth:workshop.crafter.stonehearth:crafter.craftable_recipes}}
-         <h3 class="uisounds">{{category}}</h3>
+         <h3>{{category}}</h3>
          <div>
             {{#each recipes}}
-               <a {{bindAttr recipe_name = "this.recipe_name"}}href="#" {{action select this target="view"}} class="recipeLink uisounds">{{this.recipe_name}}</a>
-               <br>
+               <a {{bindAttr recipe_name = "this.recipe_name"}}href="#" {{action select this target="view"}} class="recipeLink uisounds">
+                  <img {{bindAttr src="this.portrait" title="this.recipe_name"}} />
+               </a>
             {{/each}}
          </div>
+         <div style="clear: both"></div>
       {{/each}}
    </div>
 </script>

@@ -36,14 +36,16 @@ function CombatIdleShuffle:run(ai, entity, args)
    local enemy_direction = enemy_location - entity_location
    enemy_direction.y = 0
    enemy_direction:normalize()
-   enemy_direction:scale(1.5)
 
    local turn_magnitude = rng:get_int(1, 2) * 45
    local turn_sign = rng:get_int(0, 1) * 2 - 1
    local angle = turn_sign * turn_magnitude
 
-   local wander_direction = _rotate_facing(enemy_direction, angle)
-   local wander_location = entity_location + wander_direction
+   local wander_vector = _rotate_facing(enemy_direction, angle)
+   -- wandering at least sqrt(2) guarantees that diagonal movement will change grid location
+   wander_vector:scale(1.5)
+
+   local wander_location = entity_location + wander_vector
    local wander_grid_location = Point3(
       MathFns.round(wander_location.x),
       MathFns.round(wander_location.y),

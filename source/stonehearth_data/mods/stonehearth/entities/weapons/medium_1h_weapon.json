@@ -21,7 +21,7 @@
       {
          "name" : "combat_power_spike",
          "active_frame" : 94,
-         "cooldown" : 15000,
+         "cooldown" : 20000,
          "priority" : 1
       }      
    ],
@@ -35,7 +35,7 @@
       {
          "name" : "combat_1h_dodge",
          "active_frame" : 8,
-         "cooldown" : 6000,
+         "cooldown" : 8000,
          "priority" : 1
       }
    ],
