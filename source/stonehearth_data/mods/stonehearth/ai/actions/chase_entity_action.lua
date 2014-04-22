@@ -3,6 +3,11 @@ local Entity = _radiant.om.Entity
 local Point3 = _radiant.csg.Point3
 local ChaseEntity = class()
 
+-- ChaseEntity attempts to catch a moving target by following an initial (nonlinear) path
+-- to the target and recomputing direct (line of sight) paths as the target moves.
+-- ChaseEntity gives up when reaching the end of the inital path or a subsequent direct path
+-- that was found
+
 ChaseEntity.name = 'chase entity'
 ChaseEntity.does = 'stonehearth:chase_entity'
 ChaseEntity.args = {
@@ -25,16 +30,12 @@ function ChaseEntity:start_thinking(ai, entity, args)
    path = self:_get_direct_path(entity, target, ai.CURRENT.location)
 
    if path then
-      self:_set_think_output(ai, path, target)
+      self:_set_think_output(path, target)
       return
    end
 
    -- no direct path, wait for a solution from the pathfinder
-   path = self:_get_astar_path(entity, target, ai.CURRENT.location)
-
-   if path then
-      self:_set_think_output(ai, path, target)
-   end
+   self:_get_astar_path(entity, target, ai.CURRENT.location)
 end
 
 function ChaseEntity:_get_direct_path(entity, target, start_location_override)
@@ -49,38 +50,25 @@ function ChaseEntity:_get_direct_path(entity, target, start_location_override)
 end
 
 function ChaseEntity:_get_astar_path(entity, target, start_location_override)
-   local path = nil
-
-   local on_solved = function (solved_path)
-      path = solved_path
-      self._ai:resume()
-   end
-
-   local on_failed = function ()
-      self._ai:resume()
+   local on_solved = function (path)
+      self:_set_think_output(path, target)
    end
 
    self._path_finder = _radiant.sim.create_astar_path_finder(entity, 'chase entity')
                          :add_destination(target)
                          :set_solved_cb(on_solved)
-                         :set_search_exhausted_cb(on_failed)
-                         :start()
 
    if start_location_override ~= nil then
       self._path_finder:set_source(self._ai.CURRENT.location)
    end
 
-   self._ai:suspend('waiting for path finder to finish')
-
-   self:_destroy_path_finder()
-
-   return path
+   self._path_finder:start()
 end
 
-function ChaseEntity:_set_think_output(ai, path, target)
+function ChaseEntity:_set_think_output(path, target)
    self._path = path
    self._target_last_location = target:add_component('mob'):get_world_grid_location()
-   ai:set_think_output()
+   self._ai:set_think_output()
 end
 
 function ChaseEntity:stop_thinking(ai, entity, args)
@@ -99,7 +87,7 @@ function ChaseEntity:run(ai, entity, args)
    local target_mob = target:add_component('mob')
    local target_current_location, new_path
    local target_previous_locations = {}
-   local arrived = false
+   local finished = false
 
    local on_target_moved = function()
       target_current_location = target_mob:get_world_grid_location()
@@ -116,8 +104,7 @@ function ChaseEntity:run(ai, entity, args)
             self:_destroy_mover()
             ai:resume()
          else
-            -- try finidng paths to the previous locations
-            -- if no path, continue current path (if not exhausted) and add to the history
+            -- track target's path so we can follow or intercept
             table.insert(target_previous_locations, target_current_location)
          end
       end
@@ -138,11 +125,14 @@ function ChaseEntity:run(ai, entity, args)
 
    self:_start_run_effect(entity)
 
-   while not arrived do
+   while not finished do
       self._mover = _radiant.sim.create_follow_path(entity, speed, self._path, stop_distance,
          function ()
-            arrived = true
+            finished = true
             ai:resume('mover finished')
+            -- being finished doesn't mean we were able to catch the target
+            -- could follow target's previous locations from here, but right now we prefer 
+            -- to bail and let a higher level function decide what to do (e.g. rethink)
          end
       )
 
