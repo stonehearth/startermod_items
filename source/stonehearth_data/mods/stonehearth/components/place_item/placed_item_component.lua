@@ -30,6 +30,7 @@ function PlacedItem:set_proxy_entity(entity)
    end
 
    radiant.entities.set_faction(entity, self._entity)
+   radiant.entities.set_player_id(entity, self._entity)
    self._sv.proxy_entity = entity
    self.__saved_variables:mark_changed()
 

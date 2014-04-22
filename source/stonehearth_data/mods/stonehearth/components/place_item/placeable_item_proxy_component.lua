@@ -40,10 +40,20 @@ function PlaceableItemProxyComponent:set_full_sized_entity(placed_entity)
    end
 
    self._sv.placed_entity = placed_entity
+   --TODO: clarify: why might we be missing this URI?
    if not self._placed_entity_uri then
       self._placed_entity_uri = placed_entity:get_uri()
       self:_create_derived_components()
    end
+
+   --Copy the unit info data to the new object
+   --TODO: if we need to do this often, move to radiant.entities?
+   local unit_info_component = self._sv.placed_entity:add_component('unit_info')
+   unit_info_component:set_player_id(radiant.entities.get_player_id(self._entity))
+   unit_info_component:set_faction(radiant.entities.get_faction(self._entity))
+   unit_info_component:set_kingdom(radiant.entities.get_kingdom(self._entity))
+
+
    self.__saved_variables:mark_changed()
 
    placed_entity:add_component('stonehearth:placed_item')   
@@ -79,6 +89,8 @@ function PlaceableItemProxyComponent:_create_derived_components()
       command_data.event_data.proxy = self
       command_data.event_data.item_name = self._entity:add_component('unit_info'):get_display_name()
    end)
+   
+   --It doesn't seem like adding a unit info component 
 end
 
 return PlaceableItemProxyComponent

@@ -38,7 +38,7 @@ end
 
 function CalendarService:initialize()
    self._sv = self.__saved_variables:get_data()
-   if not self._sv._date then
+   if not self._sv.date then
       self._sv.date = {} -- the calendar data to export
       for _, unit in ipairs(TIME_UNITS) do
          self._sv.date[unit] = self._constants.start[unit]
