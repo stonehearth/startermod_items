@@ -29,9 +29,8 @@ end
 function ui_server.set_next_designation_region(x1, z1, w, h)
    local x2, z2 = x1 + w, z1 + h
    local y1 = radiant.terrain.get_height(Point2(x1, z1))
-   local y2 = radiant.terrain.get_height(Point2(x2, z2))
    local p0 = Point3(x1, y1, z1)
-   local p1 = Point3(x2, y2, z2)
+   local p1 = Point3(x2, y1 + 1, z2)
    _send(commands.SET_SELECT_XZ_REGION, p0, p1)
 end
 
