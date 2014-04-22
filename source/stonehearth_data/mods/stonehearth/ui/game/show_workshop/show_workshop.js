@@ -128,7 +128,7 @@ App.StonehearthCrafterView = App.View.extend({
          return;
       }
 
-      this._buildAccordion();
+      this._buildRecipeList();
       this._buildOrderList();
       initIncrementButtons();
 
@@ -212,15 +212,8 @@ App.StonehearthCrafterView = App.View.extend({
 
    }.observes('context.stonehearth:workshop.is_paused'),
 
-   //Attach accordion functionality to the appropriate div
-   _buildAccordion: function() {
+   _buildRecipeList: function() {
       var self = this;
-      var element = this.$("#recipeAccordion");
-      element.accordion({
-         active: 1,
-         animate: true,
-         heightStyle: "fill"
-      });
 
       this._buildRecipeArray();
 
@@ -247,10 +240,9 @@ App.StonehearthCrafterView = App.View.extend({
             self.findAndSelectRecipe();
          }
       }).focus();
-      // open the first category
-      element.find("h3")[0].click();
-      radiant.call('radiant:play_sound', 'stonehearth:sounds:ui:carpenter_menu:menu_open' );
-      element.find("a")[0].click();
+      
+      // select the first recipe
+      this.$("#recipeItems").find("a")[0].click();
    },
 
    findAndSelectRecipe: function() {
