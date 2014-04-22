@@ -488,6 +488,14 @@
 
    },
    "functions" : {
+      "save_browser_object": {
+         "controller": "file(call_handlers/browser_data_store_call_handler.lua)",
+         "endpoint": "client"
+      },
+      "load_browser_object": {
+         "controller": "file(call_handlers/browser_data_store_call_handler.lua)",
+         "endpoint": "client"
+      },
       "get_world_generation_progress": {
          "controller" : "file(call_handlers/world_generation_call_handler.lua)",
          "endpoint" : "server"
