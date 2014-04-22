@@ -41,6 +41,11 @@ function ProxyRoomBuilder:go()
    self._roof:add_dependency(self._left)
    self._roof:add_dependency(self._top)
    self._roof:add_dependency(self._right)
+
+   self._top:set_roof(self._roof)
+   self._bot:set_roof(self._roof)
+   self._left:set_roof(self._roof)
+   self._right:set_roof(self._roof)
    
    self:layout()
    
@@ -48,6 +53,12 @@ function ProxyRoomBuilder:go()
 end
 
 function ProxyRoomBuilder:layout()
+   local walls = {
+      self._bot,
+      self._right,
+      self._left,
+      self._top
+   }
    -- make sure we draw walls in counter-clockwise order so the
    -- normals face outward  
    self._bot:connect_to(self._bot_left, self._bot_right)
@@ -58,25 +69,22 @@ function ProxyRoomBuilder:layout()
    local length = self._curr_door_wall:get_length()
    local position = self._curr_door_wall:reface_point(Point3(length / 2, 0, 0))
    self._door:move_to(position)
-   self._curr_door_wall:layout()
    
    local min = self._bot_left:get_location()
    local max = self._top_right:get_location()
-   
+  
    
    local roof_min = Point2(min.x - 1, min.z - 1)
    -- add 1 to reach the edge of the column and another to reach
    -- beyond.  this will break once columns get bigger than 1x1
    local roof_max = Point2(max.x + 2, max.z + 2)
    
-   --[[
-   local roof_min = Point2(0, 0)
-   local roof_max = Point2(10, 10)
-   ]]
-   
-   -- xxx: how do we say the offset a roof should use intead of this hardcoded -1?
    self._roof:move_to(Point3(0, constants.STOREY_HEIGHT - 1, 0))
-   self._roof:cover_region(Region2(Rect2(roof_min, roof_max)))   
+   self._roof:cover_region(Region2(Rect2(roof_min, roof_max)))
+   
+   for _, wall in ipairs(walls) do
+      wall:layout()
+   end
 end
 
 function ProxyRoomBuilder:_on_mouse_event(e)

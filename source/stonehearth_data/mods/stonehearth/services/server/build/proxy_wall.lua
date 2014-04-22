@@ -6,6 +6,7 @@ local ProxyWall = class(ProxyFabrication)
 local Point3 = _radiant.csg.Point3
 local Cube3 = _radiant.csg.Cube3
 local Region3 = _radiant.csg.Region3
+local INFINITE = 100000000
 
 -- this is the component which manages the fabricator entity.
 function ProxyWall:__init(parent_proxy, arg1)
@@ -22,17 +23,48 @@ function ProxyWall:_get_tangent_and_normal_coords()
    return 'z', 'x'
 end
 
+function ProxyWall:set_roof(roof)
+   self._roof = roof
+end
+
 function ProxyWall:layout(brush) 
    -- create a region that covers the span of the wall and paint the shape
    -- of the brush into it, which will clip out all the transparent parts
+   local p0, p1 = self._start_pt, self._end_pt
+
    if not brush then
       brush = self:get_voxel_brush()
    end
-   local bounds = Region3(Cube3(self._start_pt, self._end_pt, 0))
+   local bounds = Region3(Cube3(p0, p1, 0))
+
+   -- if there's a roof over our heads, make sure the wall extends all
+   -- the way up to it.
+   if self._roof then
+      local stencil = Cube3(Point3(p0.x, p1.y, p0.z),
+                            Point3(p1.x, INFINITE, p1.z))
+      
+      -- translate the stencil into the roof's coordinate system, clip it,
+      -- then transform the result back to our coordinate system
+      local offset = self._roof:get_world_location() - self:get_world_location()
+      local roof_overhang = self._roof:get_region():get()
+                                       :clip(stencil:translated(-offset))                                       
+                                       :translated(offset)
+      
+      -- iterate through each "shingle" in the overhang, growing the wall
+      -- upwards toward the base of the shingle.
+      for shingle in roof_overhang:each_cube() do
+         local col = Cube3(Point3(shingle.min.x, p1.y, shingle.min.z),
+                           Point3(shingle.max.x, shingle.min.y, shingle.max.z))
+         bounds:add_unique_cube(col)
+      end
+   end
+
+   -- paint through the bounds stencil to draw the wall shape and colors
    local collsion_shape = brush:paint_through_stencil(bounds)
    self:get_region():modify(function(cursor)
       cursor:copy_region(collsion_shape)
    end)
+
 
    -- adjust the shape based on our children   
    for _, proxy in pairs(self:get_children()) do
