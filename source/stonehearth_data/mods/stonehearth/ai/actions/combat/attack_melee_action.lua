@@ -13,6 +13,7 @@ AttackMelee.version = 2
 AttackMelee.priority = 1
 AttackMelee.weight = 1
 
+-- TODO: rewrite this as a compound action so we don't execute the astar path finder in run
 function AttackMelee:run(ai, entity, args)
    local target = args.target
 
@@ -22,29 +23,23 @@ function AttackMelee:run(ai, entity, args)
    end
 
    local melee_range = stonehearth.combat:get_melee_range(entity, 'medium_1h_weapon', target)
-   local engage_range = melee_range + 2
-   local engaged = false
+   local engage_range = melee_range + 3
 
-   -- TODO: abort after chasing for a while and make sure target is still valid
-   while true do
-      local distance = radiant.entities.distance_between(entity, target)
+   -- TODO: give up chasing after duration or distance
+   ai:execute('stonehearth:chase_entity', { target = target, stop_distance = engage_range })
 
-      if distance <= engage_range then
-         local context = EngageContext(entity)
-         stonehearth.combat:engage(target, context)
-         engaged = true
-      end
+   distance = radiant.entities.distance_between(entity, target)
 
-      if distance > melee_range then
-         ai:execute('stonehearth:chase_entity', { target = target, stop_distance = melee_range })
-      end
+   if distance <= engage_range then
+      local context = EngageContext(entity)
+      stonehearth.combat:engage(target, context)
 
-      if engaged then
-         break
-      end
+      ai:execute('stonehearth:chase_entity', { target = target, stop_distance = melee_range })
+
+      ai:execute('stonehearth:combat:attack_melee_adjacent', { target = target })
+   else
+      -- give up and go back to start thinking
    end
-
-   ai:execute('stonehearth:combat:attack_melee_adjacent', { target = target })
 end
 
 return AttackMelee
