@@ -91,6 +91,7 @@ static luabind::class_<T> Register(struct lua_State* L, const char* name)
          .def("contains",     &T::Contains)
          .def("width",        &T::GetWidth) 
          .def("height",       &T::GetHeight)
+         .def("translate",    &T::Translate)
          .def("translated",   &T::Translated)
          .def("scaled",       &T::Scaled)
       ;

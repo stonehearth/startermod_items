@@ -101,13 +101,35 @@ function ScaffoldingFabricator:_cover_project_region()
          if not (blueprint_rgn:clip(clipper) - project_rgn):empty() then
             bounds.max = bounds.max - Point3(0, 1, 0)
          end
-         if bounds:get_area() > 0 then
-            local rgn = Region3()
-            rgn:add_cube(bounds:translated(self._sv.normal))
 
-            -- finally, don't overlap the project
-            cursor:copy_region(rgn - project_rgn)
+         -- create a vertical stripe in the scaffolding reaching from
+         -- the top of the computed project region all the way down to the
+         -- base of the scaffolding.  this is to ensure that the scaffolding
+         -- is solid (e.g. obscures doors and windows), without covering parts
+         -- of walls that will be occupied by roof (e.g. the angled supporters
+         -- of a peaked roof)
+
+         -- first make sure the scaffolding fills in all the holes across gaps
+         -- (consider the first row of a wall with a door in it)
+         local top_row_clipper = Cube3(Point3(bounds.min.x, bounds.max.y - 1, bounds.min.z), bounds.max)
+         local top_row_bounds = project_rgn:clip(top_row_clipper):get_bounds()
+         if top_row_bounds then
+            local column = Cube3(Point3(top_row_bounds.min.x, 0, top_row_bounds.min.z), top_row_bounds.max)
+            column:translate(self._sv.normal)
+            cursor:add_cube(column)
          end
+
+         -- now make sure everything goes all the way down to the bottom
+         for cube in project_rgn:each_cube() do
+            local y = math.min(bounds.max.y, cube.max.y)
+            local column = Cube3(Point3(cube.min.x, 0, cube.min.z),
+                                 Point3(cube.max.x, y, cube.max.z))
+            column:translate(self._sv.normal)
+            cursor:add_cube(column)
+         end
+
+         -- finally, don't put scaffolding where the project is slated to go!
+         cursor:subtract_region(project_rgn)
       end
    end)
    

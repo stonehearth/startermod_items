@@ -41,10 +41,6 @@ end
 
 function RenewableResourceNodeComponent:spawn_resource(location)
    if self._resource then
-      --Disable the harvest command
-      local bush_commands = self._entity:get_component('stonehearth:commands')
-      bush_commands:enable_command(self._harvest_command_name, false)
-
       --Create the harvested entity and put it on the ground
       local item = radiant.entities.create_entity(self._resource)
       radiant.terrain.place_entity(item, location)
@@ -101,11 +97,7 @@ function RenewableResourceNodeComponent:renew(location)
    else 
       self._render_info:set_model_variant('')
    end
-
-   --Enable the command again
-   local bush_commands = self._entity:get_component('stonehearth:commands')
-   bush_commands:enable_command(self._harvest_command_name, true)
-   
+  
    --Change the description
    self._entity:get_component('unit_info'):set_description(self._original_description)
 

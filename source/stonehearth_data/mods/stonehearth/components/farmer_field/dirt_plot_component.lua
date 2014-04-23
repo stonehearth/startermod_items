@@ -68,16 +68,6 @@ end
 -- @param value: set true to make this dirt plot a furrow
 function DirtPlotComponent:set_furrow(value)
    self._sv.is_furrow = value;
-
-   if value then 
-      local command_component = self._entity:add_component('stonehearth:commands')
-      --TODO: programatically remove all plant commands. XXX, this is baaad, and assumes 
-      -- that there are only two commands on the dirt
-      --command_component:remove_command('plant_crop')
-      command_component:remove_command('plant_corn')
-      command_component:remove_command('plant_turnip')
-   end
-
    self.__saved_variables:mark_changed()
 end
 
@@ -184,15 +174,6 @@ end
 
 --When a crop is on us, do these things:
 function DirtPlotComponent:_set_crop_state()
-   --Hide the plant command, add the raze command
-   local command_component = self._entity:add_component('stonehearth:commands')
-   --TODO: programatically remove all plant commands
-   --command_component:remove_command('plant_crop')
-   command_component:remove_command('plant_corn')
-   command_component:remove_command('plant_turnip')
-
-   command_component:add_command('/stonehearth/data/commands/raze_crop')
-
    --listen for if the planted crop gets destroyed for any reason
    radiant.events.listen(self._sv.contents, 'radiant:entity:pre_destroy', self, self._on_crop_removed)
    radiant.events.listen(self._sv.contents, 'stonehearth:crop_harvestable', self, self._on_crop_harvestable)
@@ -216,14 +197,6 @@ function DirtPlotComponent:_on_crop_removed()
    if self._sv.contents == nil then
       return
    end
-
-   --Hide the raze command, add the plant command
-   local command_component = self._entity:add_component('stonehearth:commands')
-   command_component:remove_command('raze_crop')
-   --TODO: programatically add all plant commands from farm
-   --command_component:add_command('/stonehearth/data/commands/plant_crop')
-   command_component:add_command('/stonehearth/data/commands/plant_crop/plant_turnip.json')
-   command_component:add_command('/stonehearth/data/commands/plant_crop/plant_corn.json')
 
    --unlisten on the other handlers
    radiant.events.unlisten(self._sv.contents, 'stonehearth:crop_harvestable', self, self._on_crop_harvestable)

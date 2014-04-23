@@ -46,6 +46,7 @@ function RegionSelector:destroy()
    self._progress_cb = nil
    self._done_cb = nil
    self._fail_cb = nil
+   self._always_cb = nil
    self._p0 = nil
    self._p1 = nil
 end
@@ -85,6 +86,12 @@ function RegionSelector:fail(cb)
    return self
 end
 
+function RegionSelector:always(cb)
+   assert(not self._always_cb, 'autotest only supports 1 :always() cb')
+   self._always_cb = cb
+   return self
+end
+
 function RegionSelector:_schedule_callback()
    if self._client_attached and self._server_attached then
       radiant.set_realtime_timer(20, function ()
@@ -100,6 +107,10 @@ function RegionSelector:_fire_next_callback()
    if self._drag_end == self._p1 then
       if self._done_cb then
          self._done_cb(Cube3(self._p0, self._drag_end))
+      end
+
+      if self._always_cb then
+         self._always_cb(Cube3(self._p0, self._drag_end))
       end
    else
       if self._progress_cb then

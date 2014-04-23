@@ -66,9 +66,11 @@ function ProxyRoomBuilder:layout()
    self._top:connect_to(self._top_right, self._top_left)
    self._left:connect_to(self._top_left, self._bot_left)
      
-   local length = self._curr_door_wall:get_length()
-   local position = self._curr_door_wall:reface_point(Point3(length / 2, 0, 0))
-   self._door:move_to(position)
+   if self._door then
+      local length = self._curr_door_wall:get_length()
+      local position = self._curr_door_wall:reface_point(Point3(length / 2, 0, 0))
+      self._door:move_to(position)
+   end
    
    local min = self._bot_left:get_location()
    local max = self._top_right:get_location()
@@ -81,7 +83,7 @@ function ProxyRoomBuilder:layout()
    
    self._roof:move_to(Point3(0, constants.STOREY_HEIGHT - 1, 0))
    self._roof:cover_region(Region2(Rect2(roof_min, roof_max)))
-   
+
    for _, wall in ipairs(walls) do
       wall:layout()
    end

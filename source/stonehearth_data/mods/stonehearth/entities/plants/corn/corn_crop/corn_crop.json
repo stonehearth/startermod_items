@@ -47,11 +47,6 @@
          "icon" : "file(icon.png)",
          "portrait" : "file(portrait.png)"
       },
-      "stonehearth:commands" : {
-         "commands" : [
-            "file(/data/commands/harvest_planted)"
-         ]
-      },
       "stonehearth:crop" : {
          "resource_pairings" : {
             "corn_3": "stonehearth:corn_cob",

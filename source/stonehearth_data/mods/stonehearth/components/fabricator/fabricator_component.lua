@@ -16,7 +16,7 @@ function FabricatorComponent:initialize(entity, json)
 
    radiant.events.listen_once(radiant, 'radiant:game_loaded', function()
          if self._sv.blueprint and self._sv.project then
-            self._fabricator = Fabricator(self._sv.name,
+            self._fabricator = Fabricator(string.format("(%s Fabricator)", tostring(self._sv.blueprint)),
                                           self._entity,
                                           self._sv.blueprint,
                                           self._sv.project)
@@ -61,7 +61,9 @@ function FabricatorComponent:start_project(name, blueprint)
    self._sv.name = name and name or '-- unnamed --'
    log:debug('starting project %s', self._sv.name)
    
-   self._fabricator = Fabricator(name, self._entity, blueprint)
+   self._fabricator = Fabricator(string.format("(%s Fabricator)", tostring(self._sv.blueprint)),
+                                 self._entity,
+                                 blueprint)
    
    -- finally, put it on the ground.  we also need to put ourselves on the ground
    -- so the pathfinder can find it's way to regions which need to be constructed
@@ -104,9 +106,9 @@ function FabricatorComponent:_add_scaffolding(blueprint, project, normal)
    radiant.entities.set_player_id(scaffolding, project)
 
    -- create a fabricator entity to build the scaffolding
-   local name = string.format('[scaffolding for %s]', self._sv.name)
+   local name = string.format('[scaffolding for %s]', tostring(blueprint))
    local fabricator = radiant.entities.create_entity()
-   fabricator:set_debug_text('fabricator for scaffolding of ' .. project:get_debug_text())
+   fabricator:set_debug_text('(Fabricator for ' .. tostring(scaffolding) .. ')')   
    fabricator:add_component('mob'):set_transform(transform)
    fabricator:add_component('stonehearth:fabricator')
                               :start_project(name, scaffolding)

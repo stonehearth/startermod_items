@@ -83,13 +83,13 @@ function BuildService:_begin_construction(blueprint, location)
    -- create a new fabricator...   to... you know... fabricate
    local project = self:_create_fabricator(blueprint)
    radiant.terrain.place_entity(project, location)
+   return project
 end
 
 function BuildService:_create_fabricator(blueprint)
    -- either you're a fabricator or you contain things which may be fabricators.  not
    -- both!
    local fabricator = radiant.entities.create_entity()
-   fabricator:set_debug_text('fabricator for ' .. tostring(blueprint))
    self:_init_fabricator(fabricator, blueprint)
    self:_init_fabricator_children(fabricator, blueprint)
    return fabricator
@@ -103,8 +103,7 @@ function BuildService:_init_fabricator(fabricator, blueprint)
    end
    local transform = blueprint_mob:get_transform()
    fabricator:add_component('mob'):set_transform(transform)
-   
-   fabricator:set_debug_text('fabricator for ' .. blueprint:get_debug_text())
+   fabricator:set_debug_text('(Fabricator for ' .. tostring(blueprint) .. ')')
    
    if blueprint:get_component('stonehearth:construction_data') then
       local name = tostring(blueprint)
