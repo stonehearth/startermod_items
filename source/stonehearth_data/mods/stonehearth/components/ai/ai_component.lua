@@ -21,13 +21,18 @@ function AIComponent:initialize(entity, json)
    if not self._sv._initialized then
       self._sv._initialized = true
       self._sv._observer_datastores = {}
-   end
-
-   radiant.events.listen(entity, 'radiant:entity:post_create', function()
+      radiant.events.listen(entity, 'radiant:entity:post_create', function()
          self:_initialize(json)
          self:_start()
          return radiant.events.UNLISTEN
       end)
+   else
+      --we're loading so instead listen on game loaded
+      radiant.events.listen_once(radiant, 'radiant:game_loaded', function(e)
+            self:_initialize(json)
+            self:_start()
+         end)
+   end
 end
 
 -- return a task group which instructs just this entity to perform
