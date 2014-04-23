@@ -781,6 +781,7 @@
       "homepage" : "http://radiant/stonehearth/ui/root/index.html",
       "html" : [
          "file(ui/common/modal_overlay/modal_overlay.html)",
+         "file(ui/common/confirm/confirm.html)",
          "file(ui/shell/shell.html)",
          "file(ui/shell/title/title.html)",
          "file(ui/shell/analytics_opt/analytics_opt.html)",
@@ -819,6 +820,7 @@
       ],
       "js" : [
          "file(ui/common/modal_overlay/modal_overlay.js)",
+         "file(ui/common/confirm/confirm.js)",
          "file(ui/shell/shell.js)",
          "file(ui/shell/title/title.js)",
          "file(ui/shell/analytics_opt/analytics_opt.js)",
@@ -860,6 +862,7 @@
          "file(ui/game/event_log/event_log.js)"
       ],
       "less" : [
+         "file(ui/common/confirm/confirm.less)",
          "file(professions/carpenter/skin/workshop.less)",
          "file(professions/weaver/skin/workshop.less)",
          "file(ui/common/modal_overlay/modal_overlay.less)",

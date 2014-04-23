@@ -22,6 +22,11 @@
    "opt_out_button" : "Nah",
    "opt_thanks" : "Thanks!",
 
+   "save_delete": "Delete",
+   "save_overwrite": "Overwrite",
+   "save_new": "New Save",
+   "load_game": "Load Game",
+
    "settings_title" : "Settings",
    "settings_gfx_cardinfo" : "__gpuRenderer__ (__gpuDriver__)",
    "settings_gfx_enable_shadows" : "Enable Shadows",
