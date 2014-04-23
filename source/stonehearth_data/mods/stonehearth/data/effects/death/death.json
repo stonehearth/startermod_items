@@ -1,0 +1,23 @@
+{
+   "type" : "effect",
+   "tracks": {
+         "sound": {
+         "type": "sound_effect",
+         "duration": 10000,
+         "start_delay": 0,
+         "min_distance": 400,
+         "max_distance": 500,
+         "volume": 100,
+         "track" : "stonehearth:sounds:death_jingle"
+      },
+       "sound": {
+         "type": "sound_effect",
+         "duration": 1000,
+         "start_delay": 0,
+         "min_distance": 40,
+         "max_distance": 100,
+         "volume": 50,
+         "track" : "stonehearth:sounds:death_poof" 
+      }
+   }
+}

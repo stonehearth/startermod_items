@@ -14,6 +14,21 @@
          "animation": "combat_1h_forehand_spin.json",
          "loop": false
       },
+       "sound": {
+         "type": "sound_effect",
+         "duration": 1000,
+         "start_delay": 400,
+         "min_distance": 30,
+         "max_distance": 90,
+         "volume": 50,
+         "track" : {
+            "type": "one_of",
+            "items": [
+               "stonehearth:sounds:woodsword_spin_01",
+               "stonehearth:sounds:woodsword_spin_02"
+            ]
+         }
+      },
       "jump": {
          "type": "cubemitter",
          "start_time" : 500,
