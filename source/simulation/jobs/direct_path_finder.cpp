@@ -12,22 +12,41 @@ using namespace ::radiant::simulation;
 
 #define DPF_LOG(level)   LOG(simulation.pathfinder.direct, level)
 
-DirectPathFinder::DirectPathFinder(Simulation &sim, om::EntityRef entityRef, om::EntityRef targetRef) :
+DirectPathFinder::DirectPathFinder(Simulation &sim, om::EntityRef entityRef) :
    sim_(sim),
    entityRef_(entityRef),
-   targetRef_(targetRef),
+   destinationRef_(),
+   startLocation_(csg::Point3::zero),
+   endLocation_(csg::Point3::zero),
+   useEntityForStartPoint_(true),
+   useEntityForEndPoint_(true),
    allowIncompletePath_(false),
    reversiblePath_(false)
 {
-   om::EntityPtr entity = entityRef_.lock();
-   startLocation_ = entity->AddComponent<om::Mob>()->GetWorldGridLocation();
    logLevel_ = log_levels_.simulation.pathfinder.direct;
 }
 
 std::shared_ptr<DirectPathFinder> DirectPathFinder::SetStartLocation(csg::Point3 const& startLocation)
 {
-   DPF_LOG(5) << "setting start location to " << std::boolalpha << startLocation;
+   DPF_LOG(5) << "setting start location to " << startLocation;
    startLocation_ = startLocation;
+   useEntityForStartPoint_ = false;
+   return shared_from_this();
+}
+
+std::shared_ptr<DirectPathFinder> DirectPathFinder::SetEndLocation(csg::Point3 const& endLocation)
+{
+   DPF_LOG(5) << "setting end location to " << endLocation;
+   endLocation_ = endLocation;
+   useEntityForEndPoint_ = false;
+   return shared_from_this();
+}
+
+std::shared_ptr<DirectPathFinder> DirectPathFinder::SetDestinationEntity(om::EntityRef destinationRef)
+{
+   DPF_LOG(5) << "setting destination entity to (id) " << destinationRef.lock()->GetObjectId();
+   destinationRef_ = destinationRef;
+   useEntityForEndPoint_ = true;
    return shared_from_this();
 }
 
@@ -45,38 +64,87 @@ std::shared_ptr<DirectPathFinder> DirectPathFinder::SetReversiblePath(bool rever
    return shared_from_this();
 }
 
+bool DirectPathFinder::GetEndPoints(csg::Point3& start, csg::Point3& end) const
+{
+   if (useEntityForStartPoint_) {
+      om::EntityPtr entity = entityRef_.lock();
+      start = entity->AddComponent<om::Mob>()->GetWorldGridLocation();
+   } else {
+      start = startLocation_;
+   }
+
+   if (useEntityForEndPoint_) {
+      om::EntityPtr destinationEntity = destinationRef_.lock();
+
+      if (!destinationEntity) {
+         DPF_LOG(3) << "destination entity is invalid.";
+         return false;
+      }
+
+      // Find the point closest to the start in the destination entity's adjacent region.
+      bool haveEndPoint = MovementHelper(logLevel_).GetClosestPointAdjacentToEntity(sim_, start, destinationEntity, end);
+
+      if (haveEndPoint) {
+         return true;
+      } else {
+         // No point inside the destination entity's adjacent region is standable.  There is *no way* to
+         // get from here to there.  That's ok if we're just looking for a partial path, but we need
+         // a point to run toward.  Just use the destination entity's location for that.
+         if (allowIncompletePath_) {
+            DPF_LOG(5) << "could not find end point in destination entity, using destination location";
+            end = destinationEntity->AddComponent<om::Mob>()->GetWorldGridLocation();
+            return true;
+         } else {
+            // If there's no way to get there, there's just no way to get there.  Bail.
+            DPF_LOG(5) << "could not find end point in destination.";
+            return false;
+         }
+      }
+   } else {
+      // Using a Point destination
+      end = endLocation_;
+      return true;
+   }
+}
+
+csg::Point3 DirectPathFinder::GetPointOfInterest(csg::Point3 const& end) const
+{
+   csg::Point3 poi;
+
+   if (useEntityForEndPoint_) {
+      om::EntityPtr destinationEntity = destinationRef_.lock();
+      csg::Point3 const destinationLocation = destinationEntity->AddComponent<om::Mob>()->GetWorldGridLocation();
+      om::DestinationPtr destinationComponent = destinationEntity->GetComponent<om::Destination>();
+
+      if (destinationComponent) {
+         // Pass in local coordinates
+         poi = destinationComponent->GetPointOfInterest(end - destinationLocation);
+         // Transform poi to world coordinates
+         poi += destinationLocation;
+      } else {
+         poi = destinationLocation;
+      }
+   } else {
+      poi = end;
+   }
+
+   return poi;
+}
+
 PathPtr DirectPathFinder::GetPath()
 {
+   csg::Point3 start, end;
    om::EntityPtr entity = entityRef_.lock();
-   om::EntityPtr target = targetRef_.lock();
 
-   if (!entity || !target) {
-      // Either the source or the destination is invalid.  Return nullptr.
-      DPF_LOG(3) << "source or target entity is invalid.  returning nullptr.";
+   if (!entity) {
+      DPF_LOG(3) << "entity is invalid. returning nullptr.";
       return nullptr;
    }
 
-   // Find a direct path to the point closest to the source from the current destination adjacent
-   // region.  There may be other points in the destination for which a direct path exists.  This
-   // method will fail to find those paths, but hey, you this is super fast.
-   csg::Point3 const& start = startLocation_;
-   csg::Point3 const targetLocation = target->AddComponent<om::Mob>()->GetWorldGridLocation();
-   csg::Point3 end;
-
-   bool haveEndPoint = MovementHelper(logLevel_).GetClosestPointAdjacentToEntity(sim_, start, target, end);
-
-   if (!haveEndPoint) {
-      // No point inside the target's adjacent region is actually standable.  There's *no way* to
-      // get from here to there.  That's ok if we're just looking for a partial path, but we need
-      // a point to run toward.  Just use the target's location for that.
-      if (allowIncompletePath_) {
-         DPF_LOG(5) << "could not find end point in target, using destination location";
-         end = targetLocation;
-      } else {
-         // If there's no way to get there, there's just no way to get there.  Bail.
-         DPF_LOG(5) << "could not find end point in target.  returning nullptr";
-         return nullptr;
-      }
+   bool success = GetEndPoints(start, end);
+   if (!success) {
+      DPF_LOG(5) << "unable to get end points. returning nullptr";
+      return nullptr;
    }
 
    // Walk the path from start to end and see how far we get.  
@@ -85,7 +153,7 @@ PathPtr DirectPathFinder::GetPath()
    // If we didn't reach the endpoint and we don't allow incomplete paths, bail.
    bool reachedEndPoint = !points.empty() && points.back() == end;
    if (!reachedEndPoint && !allowIncompletePath_) {
-      DPF_LOG(5) << "could not find complete path to target.  returning nullptr";
+      DPF_LOG(5) << "could not find complete path to destination. returning nullptr";
       return nullptr;
    }
 
@@ -95,19 +163,12 @@ PathPtr DirectPathFinder::GetPath()
       points.emplace_back(start);
    }
 
-   // We have an acceptable path!  Compute the POI and return.
-   csg::Point3 poi;
-   om::DestinationPtr destinationPtr = target->GetComponent<om::Destination>();
+   // We have an acceptable path!  Compute the POI.
+   csg::Point3 poi = GetPointOfInterest(end);
 
-   if (destinationPtr) {
-      poi = destinationPtr->GetPointOfInterest(end - targetLocation);
-      // transform poi to world coordinates
-      poi += targetLocation;
-   } else {
-      poi = targetLocation;
-   }
-
-   PathPtr path = std::make_shared<Path>(points, entityRef_, targetRef_, poi);
+   // Create the path object and return
+   // destinationRef will be invalid if using a point as the destination
+   PathPtr path = std::make_shared<Path>(points, entityRef_, destinationRef_, poi);
    DPF_LOG(5) << "returning path: " << *path;
    return path;
 }

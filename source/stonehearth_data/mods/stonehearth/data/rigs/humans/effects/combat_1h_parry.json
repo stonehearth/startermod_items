@@ -14,6 +14,22 @@
          "animation": "combat_1h_parry.json",
          "loop": true
       },
+       "sound": {
+         "type": "sound_effect",
+         "duration": 1000,
+         "start_delay": 200,
+         "min_distance": 30,
+         "max_distance": 100,
+         "volume": 60,
+         "track" : {
+            "type": "one_of",
+            "items": [
+               "stonehearth:sounds:woodsword_block_01",
+               "stonehearth:sounds:woodsword_block_02",
+               "stonehearth:sounds:woodsword_block_03"
+            ]
+         }
+      },
       "hit_spark": {
          "type": "cubemitter",
          "start_time" : 200,

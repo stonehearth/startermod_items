@@ -33,6 +33,11 @@ function HarvestTrappedBeastAdjacent:run(ai, entity, args)
    end
 end
 
+function HarvestTrappedBeastAdjacent:stop(ai, entity, args)
+   self._entity = nil
+   self._ai = nil
+end
+
 function HarvestTrappedBeastAdjacent:_harvest_beast(beast)   
    local loot = nil 
    if beast and beast:is_valid() then 
@@ -49,9 +54,18 @@ end
 
 function HarvestTrappedBeastAdjacent:_gib_beast(beast)
    local location = radiant.entities.get_world_grid_location(beast)
+
    local proxy_entity = radiant.entities.create_entity()
    radiant.terrain.place_entity(proxy_entity, location)
-   radiant.effects.run_effect(proxy_entity, '/stonehearth/data/effects/gib_effect')
+
+   local effect = radiant.effects.run_effect(proxy_entity, '/stonehearth/data/effects/gib_effect')
+
+   -- This assumes the effect always finishes and nothing else can stop it
+   effect:set_finished_cb(
+      function ()
+         radiant.entities.destroy_entity(proxy_entity)
+      end
+   )
 end
 
 function HarvestTrappedBeastAdjacent:_spawn_loot(beast)
@@ -78,6 +92,8 @@ function HarvestTrappedBeastAdjacent:_spawn_loot(beast)
       -- otherwise, workers can't come clean up after the trapper's mess if he gets interrupted
       -- before he can carry out those commands.
       if not stonehearth.ai:acquire_ai_lease(item, self._entity) then
+         radiant.entities.destroy_entity(item)
+         self:stop() -- in case stop is not called on abort
          self._ai:abort('could not lease %s.', tostring(item))
          return
       end
@@ -94,7 +110,6 @@ function HarvestTrappedBeastAdjacent:_schedule_pickup_item(item)
    local town = stonehearth.town:get_town(self._entity)
    if town then
       town:command_unit_scheduled(self._entity, 'stonehearth:loot_item', { item = item })
-            --:add_entity_effect(loot_item, '/stonehearth/data/effects/chop_overlay_effect')
             :once()
             :start() 
    end

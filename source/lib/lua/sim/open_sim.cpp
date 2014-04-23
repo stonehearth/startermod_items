@@ -102,10 +102,10 @@ std::shared_ptr<BumpLocation> Sim_CreateBumpLocation(lua_State *L, om::EntityRef
    return fp;
 }
 
-DirectPathFinderPtr Sim_CreateDirectPathFinder(lua_State *L, om::EntityRef entityRef, om::EntityRef targetRef)
+DirectPathFinderPtr Sim_CreateDirectPathFinder(lua_State *L, om::EntityRef entityRef)
 {
    Simulation &sim = GetSim(L);
-   return std::make_shared<DirectPathFinder>(sim, entityRef, targetRef);
+   return std::make_shared<DirectPathFinder>(sim, entityRef);
 }
 
 std::shared_ptr<LuaJob> Sim_CreateJob(lua_State *L, std::string const& name, object cb)
@@ -264,6 +264,8 @@ void lua::sim::open(lua_State* L, Simulation* sim)
             ,
             lua::RegisterTypePtr_NoTypeInfo<DirectPathFinder>("DirectPathFinder")
                .def("set_start_location",        &DirectPathFinder::SetStartLocation)
+               .def("set_end_location",          &DirectPathFinder::SetEndLocation)
+               .def("set_destination_entity",    &DirectPathFinder::SetDestinationEntity)
                .def("set_allow_incomplete_path", &DirectPathFinder::SetAllowIncompletePath)
                .def("set_reversible_path",       &DirectPathFinder::SetReversiblePath)
                .def("get_path",                  &DirectPathFinder::GetPath)

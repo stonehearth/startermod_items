@@ -1,12 +1,11 @@
 local Path = _radiant.sim.Path
-local Entity = _radiant.om.Entity
 local Point3 = _radiant.csg.Point3
-local FindDirectPathToEntity = class()
+local FindDirectPathToLocation = class()
 
-FindDirectPathToEntity.name = 'find direct path to entity'
-FindDirectPathToEntity.does = 'stonehearth:find_direct_path_to_entity'
-FindDirectPathToEntity.args = {
-   destination = Entity,   -- entity to find a path to
+FindDirectPathToLocation.name = 'find direct path to location'
+FindDirectPathToLocation.does = 'stonehearth:find_direct_path_to_location'
+FindDirectPathToLocation.args = {
+   destination = Point3,
    allow_incomplete_path = {
       type = 'boolean',
       default = false,
@@ -16,23 +15,18 @@ FindDirectPathToEntity.args = {
       default = false,
    }
 }
-FindDirectPathToEntity.think_output = {
+FindDirectPathToLocation.think_output = {
    path = Path,   -- the path to destination, from the current Entity
 }
-FindDirectPathToEntity.version = 2
-FindDirectPathToEntity.priority = 1
+FindDirectPathToLocation.version = 2
+FindDirectPathToLocation.priority = 1
 
-function FindDirectPathToEntity:start_thinking(ai, entity, args)
+function FindDirectPathToLocation:start_thinking(ai, entity, args)
    local destination = args.destination
    
-   if not destination or not destination:is_valid() then
-      ai:get_log():debug('invalid entity reference.  ignorning')
-      return
-   end
-
    local direct_path_finder = _radiant.sim.create_direct_path_finder(entity)
                                  :set_start_location(ai.CURRENT.location)
-                                 :set_destination_entity(destination)
+                                 :set_end_location(destination)
                                  :set_allow_incomplete_path(args.allow_incomplete_path)
                                  :set_reversible_path(args.reversible_path)
 
@@ -44,10 +38,9 @@ function FindDirectPathToEntity:start_thinking(ai, entity, args)
    
    if args.allow_incomplete_path then
       -- we said we'd take an incomplete path, but the direct path finder wouldn't
-      -- cooperate.  something is horribly wrong (e.g. the target entity have been
-      -- destroyed).
-      error('could not find partial direct path from %s to %s.', entity, destination)
+      -- cooperate.  something is horribly wrong
+      error(string.format('could not find partial direct path from %s to %s.', tostring(entity), tostring(destination)))
    end
 end
 
-return FindDirectPathToEntity
+return FindDirectPathToLocation

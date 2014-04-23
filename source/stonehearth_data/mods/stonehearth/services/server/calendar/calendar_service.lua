@@ -235,5 +235,14 @@ function CalendarService:get_time_and_date()
    return self._sv.date
 end
 
+---Use in tests to change the time of day. 
+-- @param unit - pick hour, min, day, etc
+-- @param value - a numeric value appropriate to the unit
+function CalendarService:set_time_unit_test_only(unit, value)
+   self._sv.date[unit] = value
+   self._constants.start[unit] = value
+end
+
+
 return CalendarService
 

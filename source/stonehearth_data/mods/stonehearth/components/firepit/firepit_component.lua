@@ -181,8 +181,7 @@ end
 function FirepitComponent:light()
 
    assert(not self._curr_fire_effect)
-   assert(not self._sv.seats)
-
+   
    self:_light()
 end
 
@@ -198,7 +197,7 @@ function FirepitComponent:_light()
       self:_add_seats()
    end
    self._sv.is_lit = true
-   radiant.events.trigger_async(events, 'stonehearth:fire:lit', { lit = true, player_id = radiant.entities.get_player_id(self._entity) })
+   radiant.events.trigger_async(events, 'stonehearth:fire:lit', { lit = true, player_id = radiant.entities.get_player_id(self._entity), entity = self._entity })
    self.__saved_variables:mark_changed()
 
 end
@@ -229,7 +228,7 @@ function FirepitComponent:_extinguish()
    end
 
    self._sv.is_lit = false
-   radiant.events.trigger_async(events, 'stonehearth:fire:lit', { lit = false, player_id = radiant.entities.get_player_id(self._entity) })
+   radiant.events.trigger_async(events, 'stonehearth:fire:lit', { lit = false, player_id = radiant.entities.get_player_id(self._entity), entity = self._entity  })
 end
 
 return FirepitComponent
