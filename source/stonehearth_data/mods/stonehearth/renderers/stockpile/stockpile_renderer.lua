@@ -17,14 +17,16 @@ function StockpileRenderer:__init()
       end
    )
 
-   radiant.events.listen(radiant.events, 'stonehearth:ui_mode_changed', function(e)
-      if self._ui_view_mode ~= e.mode then
-         self._ui_view_mode = e.mode
+   radiant.events.listen(radiant.events, 'stonehearth:ui_mode_changed', self, self._on_ui_mode_changed)
+end
 
-         self:_update_item_states(e.mode, self._stockpile_items)
-         self:_update_stockpile_renderer()
-      end
-   end)
+function StockpileRenderer:_on_ui_mode_changed(e)
+  if self._ui_view_mode ~= e.mode then
+     self._ui_view_mode = e.mode
+
+     self:_update_item_states(e.mode, self._stockpile_items)
+     self:_update_stockpile_renderer()
+  end
 end
 
 function StockpileRenderer:_update_stockpile_renderer()
@@ -160,6 +162,7 @@ function StockpileRenderer:_clear()
       h3dRemoveNode(self._hud_node)
       self._hud_node = nil
    end
+   radiant.events.unlisten(radiant.events, 'stonehearth:ui_mode_changed', self, self._on_ui_mode_changed)
 end
 
 
