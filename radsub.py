@@ -13,7 +13,7 @@ else:
 
 sh_cwd = rad_root + '/stonehearth/source/stonehearth_data/'
 sh_exe_path = rad_root + '/stonehearth/build/source/stonehearth/RelWithDebInfo/Stonehearth.exe'
-sh_args = '--game.main_mod=stonehearth_autotest --simulation.game_speed=3 --logging.log_level=0 --logging.mods.stonehearth.ai=spam --renderer.minimized=true'
+sh_args = '--game.main_mod=stonehearth_autotest --simulation.game_speed=4 --logging.log_level=1 --renderer.minimized=true'
 
 sh_command = sh_exe_path + ' ' + sh_args
 
