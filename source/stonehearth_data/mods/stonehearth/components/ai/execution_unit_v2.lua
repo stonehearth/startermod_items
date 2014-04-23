@@ -425,6 +425,12 @@ end
 
 function ExecutionUnitV2:_stop_from_aborting()
    assert(not self._thinking)
+   
+   if self._current_execution_frame then
+      self._current_execution_frame:stop(true)
+      self._current_execution_frame = nil
+   end  
+   
    self:_do_stop()
 end
 
@@ -525,6 +531,7 @@ end
 
 function ExecutionUnitV2:_do_stop()
    self._log:debug('_do_stop (state:%s)', tostring(self._state))
+   assert(not self._current_execution_frame)
    assert(not self._thinking)
    assert(self._started, '_do_stop called before start')
    

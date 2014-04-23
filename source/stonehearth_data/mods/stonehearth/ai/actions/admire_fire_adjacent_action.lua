@@ -13,6 +13,7 @@ AdmireFireAdjacent.priority = 3
 
 function AdmireFireAdjacent:run(ai, entity, args)
    local seat = args.seat   
+   self._ai = ai
    local firepit = self:_get_firepit_from_seat(seat)
    
    self:_trace_seat(ai, seat)
@@ -21,6 +22,7 @@ function AdmireFireAdjacent:run(ai, entity, args)
    -- without opening this file.  we shoulid use the ai-election system instead. -- tony
    radiant.entities.turn_to_face(entity, firepit:get_entity())
    while firepit:is_lit() do
+      
       local random_action = rng:get_int(1, 100)
       if random_action < 30 then
          ai:execute('stonehearth:idle:breathe')
@@ -30,6 +32,10 @@ function AdmireFireAdjacent:run(ai, entity, args)
       elseif radiant.entities.get_posture(entity) ~= 'sitting' then
          ai:execute('stonehearth:run_effect', { effect = 'idle_warm_hands' })
       end
+
+      --For testing purposes, fire an event letting people know we're admiring the fire
+      radiant.events.trigger_async(entity, 'stonehearth:admiring_fire', {})
+
    end
 end
 
@@ -44,7 +50,7 @@ function AdmireFireAdjacent:_get_firepit_from_seat(seat)
          end
       end
    end
-   ai:abort('could not find firepit from seat')
+   self._ai:abort('could not find firepit from seat')
 end
 
 function AdmireFireAdjacent:stop(ai, entity)
