@@ -67,7 +67,7 @@ function StockpileRenderer:_update_item_states(mode, item_map)
 end
 
 function StockpileRenderer:_mode_to_material_kind(mode)
-   if self:_show_hud() then
+   if mode == 'hud' then
       return 'hud'
    else 
       return 'default'
