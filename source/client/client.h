@@ -140,6 +140,7 @@ class Client : public core::Singleton<Client> {
       void InitDataModel();
       void DeactivateAllTools();
       void RequestReload();
+      void EnableDisableSaveStressTest();
       void OneTimeIninitializtion();
       void InitializeUI(std::string const& state);
       void Initialize();
@@ -233,6 +234,8 @@ private:
       bool                        perf_hud_shown_;
       bool                        connected_;
       bool                        enable_debug_cursor_;
+      bool                        save_stress_test_;
+      platform::timer             save_stress_test_timer_;
       luabind::object             radiant_;
 
       dm::TracerSyncPtr           object_model_traces_;

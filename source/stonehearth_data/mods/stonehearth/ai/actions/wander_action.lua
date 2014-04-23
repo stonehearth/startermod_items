@@ -36,7 +36,7 @@ function Wander:run(ai, entity, args)
       entity_location.z + dz
    )
 
-   ai:execute('stonehearth:go_toward_location', { location = destination })
+   ai:execute('stonehearth:go_toward_location', { destination = destination })
 end
 
 return Wander

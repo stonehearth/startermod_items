@@ -522,7 +522,7 @@ function ExecutionUnitV2:_do_start()
    self._log:debug('_do_start (state:%s)', tostring(self._state))
    assert(self._thinking)
    assert(not self._started)
-   
+      
    self:_set_state(STARTING)  
    self._started = true
    self:_call_start()
@@ -626,7 +626,8 @@ function ExecutionUnitV2:__spawn(activity_name)
 end
 
 function ExecutionUnitV2:__suspend(format, ...)
-   assert(self._thread:is_running(), 'cannot call ai:suspend() when not running')
+   assert(self._state == RUNNING, 'cannot call ai:suspend() outside of your :run() method')
+   assert(self._thread:is_running(), 'cannot call ai:suspend() when thread is not running')
    local reason = format and string.format(format, ...) or 'no reason given'
    self._log:spam('__suspend called (reason: %s)', reason)
    self._thread:suspend(reason)
@@ -744,7 +745,10 @@ end
 function ExecutionUnitV2:_set_state(state)
    self._log:debug('state change %s -> %s', tostring(self._state), state)
    assert(state and self._state ~= state)
-   self._aitrace:spam('@sc@%s@%s', tostring(self._state), state)
+
+   if self._state ~= STARTING and self._state ~= STARTED then
+      self._aitrace:spam('@sc@%s@%s', tostring(self._state), state)
+   end
 
    if self._state ~= DEAD then
       self._state = state   

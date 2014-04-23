@@ -1,11 +1,6 @@
 {
    "type": "entity", 
    "components": {
-      "stonehearth:commands" : {
-         "commands" : [
-            "file(/data/commands/harvest_berries)"
-         ]
-      },
       "model_variants": {
          "default": {
             "models": [

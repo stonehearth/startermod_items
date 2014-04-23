@@ -24,11 +24,6 @@
          "icon" : "file(icon.png)",
          "portrait" : "file(portrait.png)"
       },
-      "stonehearth:commands" : {
-         "commands" : [
-            "file(/data/commands/harvest_planted)"
-         ]
-      },
       "stonehearth:crop" : {
          "resource_pairings" : {
             "tester_2": "stonehearth:tester_basket"

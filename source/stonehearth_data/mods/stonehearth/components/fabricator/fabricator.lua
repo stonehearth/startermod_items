@@ -99,9 +99,7 @@ function Fabricator:_start()
    else
       self._dependencies_finished = true
    end
-
    self:_trace_blueprint_and_project()
-   self:_start_project()
 end
 
 function Fabricator:destroy()
@@ -350,6 +348,10 @@ function Fabricator:_update_adjacent()
    if self._construction_data:get_project_adjacent_to_base() then
       adjacent:translate(Point3(0, -bottom, 0))
    end
+
+   if self._construction_data:get_allow_crouching_construction() then
+      adjacent:add_region(adjacent:translated(Point3(0, 1, 0)))
+   end
    
    -- remove parts of the adjacent region which overlap the fabrication region.
    -- otherwise we get weird behavior where one worker can build a block right
@@ -359,6 +361,13 @@ function Fabricator:_update_adjacent()
    adjacent:subtract_region(dst_rgn)
    
    -- now subtract out all the blocks that we've reserved
+   -- XXX: i have no idea why we do this, but am too afraid to touch it.
+   -- it sounds "more reasonable" to compute the adjacent region based 
+   -- on the destination region - the reserved region, right?  or is
+   -- the idea that we shouldn't allow people to stand in spots that are
+   -- slated to be built?  if so, we need to subtract out all the standable
+   -- points adjacent to the reserved, not the actual reserved region.
+   -- le sigh. -- tony
    adjacent:subtract_region(reserved_rgn)
    
    -- finally, copy into the adjacent region for our destination

@@ -53,13 +53,7 @@
          "description": "Dirty, in the purest sense.",
          "icon" : "file(tilled_dirt.png)"
       }, 
-      "stonehearth:dirt_plot" : {}, 
-      "stonehearth:commands" : {
-         "commands" : [
-            "file(/data/commands/plant_crop/plant_turnip.json)",
-            "file(/data/commands/plant_crop/plant_corn.json)"
-         ]
-      }
+      "stonehearth:dirt_plot" : {}
    },
    "entity_data" : {
       "stonehearth:render_materials" : {

@@ -1286,7 +1286,9 @@ function ExecutionFrame:_no_other_thread_is_running()
 end
 
 function ExecutionFrame:_trace_state_change(old_state, new_state)
-   self._aitrace:spam('@sc@%s@%s', old_state, new_state)
+   if new_state ~= STARTED and new_state ~= STARTING then
+      self._aitrace:spam('@sc@%s@%s', old_state, new_state)
+   end
 end
 
 function ExecutionFrame:_spam_entity_state(state, format, ...)

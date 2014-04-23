@@ -190,6 +190,15 @@ function ProxyBuilder:_package_proxy(proxy)
       end
    end
 
+   -- borrowed scaffolding...
+   local borrowing_scaffolding = proxy:get_loaning_scaffolding_to()
+   if next(borrowing_scaffolding) then
+      package.loan_scaffolding_to = {}
+      for id, _ in pairs(borrowing_scaffolding) do
+         table.insert(package.loan_scaffolding_to, id)
+      end
+   end
+
    return package
 end
 

@@ -23,6 +23,9 @@ function CameraService:initialize()
   self._continuous_delta = Vec3(0, 0, 0)
   self._impulse_delta = Vec3(0, 0, 0)
   
+  self._mouse_dead_zone_x = 0
+  self._mouse_dead_zone_y = 0
+
   self._orbiting = false
   self._dragging = false
   self._drag_start = Vec3(0, 0, 0)

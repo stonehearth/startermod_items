@@ -17,8 +17,6 @@ App.StonehearthStartMenuView = App.View.extend({
          App.stonehearthClient.createFarm();
       },
       design_building: function () {
-         return;
-         //App.stonehearthClient.buildWall();
          $(top).trigger('stonehearth_design_building');
       },
       build_wall: function () {
