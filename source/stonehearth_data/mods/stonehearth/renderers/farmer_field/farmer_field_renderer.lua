@@ -16,14 +16,16 @@ function FarmerFieldRenderer:__init()
       end
    )
 
-   radiant.events.listen(radiant.events, 'stonehearth:ui_mode_changed', function(e)
-      if self._ui_view_mode ~= e.mode then
-         self._ui_view_mode = e.mode
+   radiant.events.listen(radiant.events, 'stonehearth:ui_mode_changed', self, self._ui_mode_changed)
+end
 
-         self:_update_item_states(e.mode, self._items)
-         self:_update_field_renderer()
-      end
-   end)
+function FarmerFieldRenderer:_ui_mode_changed(e)
+   if self._ui_view_mode ~= e.mode then
+      self._ui_view_mode = e.mode
+
+      self:_update_item_states(e.mode, self._items)
+      self:_update_field_renderer()
+   end
 end
 
 function FarmerFieldRenderer:_update_field_renderer()
@@ -39,7 +41,6 @@ function FarmerFieldRenderer:_update_field_renderer()
       self._hud_node = nil
    end
 end
-
 
 function FarmerFieldRenderer:_update_query_flag(render_entity, mode)
    if self:_show_hud() then
@@ -112,6 +113,7 @@ end
 
 function FarmerFieldRenderer:destroy()
    self:_clear()
+   radiant.events.unlisten(radiant.events, 'stonehearth:ui_mode_changed', self, self._ui_mode_changed)
 end
 
 function FarmerFieldRenderer:_update()

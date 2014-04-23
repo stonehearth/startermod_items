@@ -116,9 +116,9 @@ function StockpileRenderer:_diff_and_update_item_states(updated_items)
    self:_update_item_states('', removed_items)
 end
 
---- xxx: someone call destroy please!!
 function StockpileRenderer:destroy()
    self:_clear()
+   radiant.events.unlisten(radiant.events, 'stonehearth:ui_mode_changed', self, self._on_ui_mode_changed)
 end
 
 function StockpileRenderer:_update()
@@ -162,7 +162,6 @@ function StockpileRenderer:_clear()
       h3dRemoveNode(self._hud_node)
       self._hud_node = nil
    end
-   radiant.events.unlisten(radiant.events, 'stonehearth:ui_mode_changed', self, self._on_ui_mode_changed)
 end
 
 
