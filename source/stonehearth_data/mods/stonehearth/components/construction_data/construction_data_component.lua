@@ -8,12 +8,15 @@ local log = radiant.log.create_logger('build')
 
 function ConstructionDataComponent:initialize(entity, json)
    self._entity = entity
-   self._data = json
+   self._data = json -- xxx: copy variables out pls
    self._sv = self.__saved_variables:get_data()
+
    if not self._sv._initialized then
       self._sv = json
       self._sv._initialized = true
+      self._sv._loaning_scaffolding_to = {}
       self.__saved_variables:set_data(self._sv)
+
       if not self._sv.material then
          self._sv.material = 'wood resource'
       end
@@ -73,5 +76,19 @@ function ConstructionDataComponent:get_allow_crouching_construction()
    return self._data.allow_crouching_construction and true or false
 end
 
+-- used to loan our scaffolding to the borrower.  this means we won't
+-- try to tear down the scaffolding until our entity and the borrower
+-- entity are both finished.
+function ConstructionDataComponent:loan_scaffolding_to(borrower)
+   if borrower and borrower:is_valid() then
+      self._sv._loaning_scaffolding_to[borrower:get_id()] = borrower
+      self.__saved_variables:mark_changed()
+   end
+end
+
+-- return the map of entities that we're loaning our scaffolding to
+function ConstructionDataComponent:get_loaning_scaffolding_to()
+   return self._sv._loaning_scaffolding_to
+end
 
 return ConstructionDataComponent

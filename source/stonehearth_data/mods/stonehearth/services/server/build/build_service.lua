@@ -44,28 +44,30 @@ function BuildService:_unpackage_proxy_data(proxy, blueprint_map)
       end
    end
    if proxy.children then
+      local ec = blueprint:add_component('entity_container')
       for _, child_id in ipairs(proxy.children) do
          local child_entity = blueprint_map[child_id]
          assert(child_entity, string.format('could not find child entity %d in blueprint map', child_id))
-         blueprint:add_component('entity_container'):add_child(child_entity)
+         ec:add_child(child_entity)
       end
    end
+
    return blueprint
 end
 
-function BuildService:build_structures(session, changes)
+function BuildService:build_structures(session, proxies)
    local root = radiant.entities.get_root_entity()
    local town = stonehearth.town:get_town(session.player_id)
    
    self._faction = session.faction
    self._player_id = session.player_id
 
-   -- Create a new entity for each entry in the changes list.  The client is
+   -- Create a new entity for each entry in the proxies list.  The client is
    -- responsible for creating the list in such a way that we can do this
    -- naievely (e.g. when we encounter an item in some proxy's children list, that
    -- child is guarenteed to have already been processed)
    local entity_map = {}
-   for _, proxy in ipairs(changes) do
+   for _, proxy in ipairs(proxies) do
       local blueprint = self:_unpackage_proxy_data(proxy, entity_map)
       
       -- If this proxy needs to be added to the terrain, go ahead and do that now.
@@ -75,7 +77,21 @@ function BuildService:build_structures(session, changes)
          town:add_construction_blueprint(blueprint)
       end
    end
-   
+
+   -- xxx: this whole "borrow scaffolding from" thing should go away when we factor scaffolding
+   -- out of the fabricator and into the build service!
+   for _, proxy in ipairs(proxies) do      
+      if proxy.loan_scaffolding_to then
+         local blueprint = entity_map[proxy.entity_id]
+         local cd = blueprint:add_component('stonehearth:construction_data')
+         for _, borrower_id in ipairs(proxy.loan_scaffolding_to) do
+            local borrower = entity_map[borrower_id]
+            assert(borrower, string.format('could not find scaffolding borrower entity %d in blueprint map', borrower_id))
+            cd:loan_scaffolding_to(borrower)
+         end
+      end
+   end
+
    return { success = true }
 end
 
