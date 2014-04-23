@@ -8,6 +8,8 @@ function Proxy:__init(derived, parent_proxy, arg1)
    self._derived = derived
    self._children = {}
    self._dependencies = {}
+   self._loaning_scaffolding_to = {}
+
    if type(arg1) == 'string' or not arg1 then
       self._entity = radiant.entities.create_entity(arg1)
       self._render_entity = _radiant.client.create_render_entity(1, self._entity)   
@@ -120,6 +122,16 @@ function Proxy:add_dependency(dependency)
    return self._derived
 end
 
+function Proxy:loan_scaffolding_to(borrower)
+   local id = borrower:get_id()
+   self._loaning_scaffolding_to[id] = borrower
+   return self._derived
+end
+
+function Proxy:get_loaning_scaffolding_to(borrower)
+   return self._loaning_scaffolding_to
+end
+
 function Proxy:get_construction_data()
    return self._construction_data
 end
@@ -133,5 +145,6 @@ function Proxy:add_construction_data()
    end
    return self._construction_data
 end
+
 
 return Proxy

@@ -59,16 +59,64 @@ App.StonehearthSaveView = App.StonehearthSaveLoadView.extend({
             });
       },
 
+       overwriteSaveGame: function() {
+         var self = this;
+         var d = new Date();
+         var t = d.getTime();
+         var gameDate = App.gameView.getDate().date 
+         var gameTime = App.gameView.getDate().time;
+         var key = String(this.getListView().getSelectedKey());
+
+         App.gameView.addView(App.StonehearthConfirmView, 
+            { 
+               title : "Confirm Save Overwrite",
+               message : "Do you really want to completely, unrevokably overwrite this save game?",
+               buttons : [
+                  { 
+                     label: "Yes",
+                     click: function() {
+                        radiant.call("radiant:client:delete_save_game", key)
+                        radiant.call("radiant:client:save_game", String(t), { 
+                              name: "",
+                              town_name: App.stonehearthClient.settlementName(),
+                              game_date: gameDate,
+                              game_time: gameTime,
+                              time: d.toLocaleString()
+                           })
+                           .always(function() {
+                              self.refreshList();
+                           });
+                     }
+                  },
+                  {
+                     label: "No!"
+                  }
+               ] 
+            });
+      },
       deleteSaveGame: function() {
          var self = this;
-         var key = this.$('.saveList')
-                       .find('.selected')
-                       .attr('key');
+         var key = this.getListView().getSelectedKey();
 
          if (key) {
-            radiant.call("radiant:client:delete_save_game", String(key))
-               .always(function() {
-                  self.refreshList();
+            App.gameView.addView(App.StonehearthConfirmView, 
+               { 
+                  title : "Confirm Delete",
+                  message : "Do you really want to delete this save game?",
+                  buttons : [
+                     { 
+                        label: "Yes",
+                        click: function() {
+                           radiant.call("radiant:client:delete_save_game", String(key))
+                              .always(function() {
+                                 self.refreshList();
+                              });
+                        }
+                     },
+                     {
+                        label: "No!"
+                     }
+                  ] 
                });
          }
       }

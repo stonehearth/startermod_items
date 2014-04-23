@@ -12,6 +12,7 @@ local COORD_MAX = 1000000 -- 1 million enough?
 -- which appears in the world is created by a fabricator.
 function ScaffoldingFabricator:initialize(entity, json)
    self._entity = entity
+   self._listening_to_borrower = {}
    self._sv = self.__saved_variables:get_data()
 
    radiant.events.listen_once(radiant, 'radiant:game_loaded', function()
@@ -59,6 +60,7 @@ function ScaffoldingFabricator:_start()
    -- keep track of when the project changes so we can change the scaffolding
    self._project_dst = self._sv.project:get_component('destination')
    self._blueprint_dst = self._sv.blueprint:get_component('destination')
+   self._blueprint_cd = self._sv.blueprint:get_component('stonehearth:construction_data')
    
    self._project_trace = self._project_dst:trace_region('generating scaffolding')
    self._project_trace:on_changed(function()
@@ -67,15 +69,47 @@ function ScaffoldingFabricator:_start()
    self:_update_scaffolding_size()
 end
 
+-- returns whether or not all the blueprints that are borrowing our scafflding
+-- have finished.  this whole thing goes away once we implement scaffolding sharing
+-- in the build service!
+function ScaffoldingFabricator:_borrowers_finished()
+   local borrowing_us = self._blueprint_cd:get_loaning_scaffolding_to()
+
+   for id, borrower in pairs(borrowing_us) do
+      local borrower_cp = borrower:get_component('stonehearth:construction_progress')
+      local finished = borrower_cp:get_finished()
+      if not finished then
+         -- this one's not finished.  rats.  listen on an event so that when it is
+         -- finished, we'll go back and check our scaffolding size.  make sure we don't
+         -- listen more than once, though (since that would be extremely wasteful)
+         if not self._listening_to_borrower[id] then
+            self._listening_to_borrower[id] = true
+            radiant.events.listen(borrower, 'stonehearth:construction:finished_changed', function()
+                  self._listening_to_borrower[id] = nil
+                  self:_update_scaffolding_size()
+                  return radiant.events.UNLISTEN
+               end)
+         end
+         -- there's no need to listen on anyone else, even if they're not finished.
+         -- one listener is sufficient to start the 'check all borrowers' process all
+         -- over again.
+         return false
+      end
+   end
+   return true
+end
+
 function ScaffoldingFabricator:_update_scaffolding_size()
-   local finished = self._sv.blueprint:add_component('stonehearth:construction_progress')
-                                   :get_finished()
-   if not finished then
-      self:_cover_project_region()
+   local blueprint_finished = self._sv.blueprint:get_component('stonehearth:construction_progress')
+                                    :get_finished()
+   if blueprint_finished then
+      if self:_borrowers_finished() then
+         -- make our region completely empty.  the fabricator will worry about
+         -- the exact details of how this happens
+         self:_clear_destination_region()
+      end
    else
-      -- make our region completely empty.  the fabricator will worry about
-      -- the exact details of how this happens
-      self:_clear_destination_region()
+      self:_cover_project_region()
    end
 end
 

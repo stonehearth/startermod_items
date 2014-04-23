@@ -85,6 +85,7 @@ function ProxyRoomBuilder:layout()
    self._roof:cover_region(Region2(Rect2(roof_min, roof_max)))
 
    for _, wall in ipairs(walls) do
+      wall:loan_scaffolding_to(self._roof)
       wall:layout()
    end
 end
