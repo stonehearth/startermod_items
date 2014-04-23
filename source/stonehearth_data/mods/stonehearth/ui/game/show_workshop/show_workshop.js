@@ -50,6 +50,7 @@ App.StonehearthCrafterView = App.View.extend({
    },
 
    getWorkshop: function() {
+      radiant.call('radiant:play_sound', 'stonehearth:sounds:ui:carpenter_menu:menu_open' );
       return this.get('context.stonehearth:workshop').__self;
    },
 
