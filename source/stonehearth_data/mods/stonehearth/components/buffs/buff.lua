@@ -11,27 +11,22 @@ function Buff:__init(entity, arg1)
 end
 
 function Buff:_initialize(uri)
-   self._data = radiant.resources.load_json(uri)
    -- can the ui just do a GET of this file, so we don't clone the data
    -- many, many, many times in the save file?
-   self.__saved_variables = radiant.create_datastore(self._data)
+   self.__saved_variables = radiant.create_datastore(radiant.resources.load_json(uri))
+   self._sv = self.__saved_variables:get_data()
+   self._sv.uri = uri
    self:_create_buff()
 end
 
 function Buff:_restore(savestate)
-   self.__savestate = savestate
-   --TODO: Investigate more: I'm not exactly sure what's going on here. Sometimes, 
-   --the data you want is in savestate:get_data, othertimes, it is in savestate.data
-   if self.__savestate.get_data then
-      self._data = self.__savestate:get_data()
-   else
-      self._data = savestate._data
-   end
+   self.__saved_variables = savestate
+   self._sv = self.__saved_variables:get_data()
    self:_create_buff()
 end
 
 function Buff:destroy()
-   self._entity:add_component('stonehearth:buffs'):remove_buff(self)
+   self._entity:add_component('stonehearth:buffs'):remove_buff(self._sv.uri)
    self:_destroy_effect()
    self:_destroy_duration()
    self:_destroy_modifiers()
@@ -49,8 +44,8 @@ end
 
 function Buff:_create_controller()  
    assert(not self._controller)
-   if self._data.controller then
-      self._controller = radiant.mods.load_script(self._data.controller)()
+   if self._sv.controller then
+      self._controller = radiant.mods.load_script(self._sv.controller)()
       if self._controller.on_buff_added then
          self._controller:on_buff_added(self._entity, self)
       end
@@ -75,8 +70,8 @@ end
 
 function Buff:_create_effect()   
    assert(not self._effect)
-   if self._data.effect then
-      self._effect = radiant.effects.run_effect(self._entity, self._data.effect)
+   if self._sv.effect then
+      self._effect = radiant.effects.run_effect(self._entity, self._sv.effect)
    end
 end
 
@@ -89,7 +84,7 @@ end
 
 function Buff:_create_modifiers()   
    assert(#self._attribute_modifiers == 0)
-   local modifiers = self._data.modifiers
+   local modifiers = self._sv.modifiers
    if modifiers then
       local attributes = self._entity:add_component('stonehearth:attributes')
       for name, modifier in pairs(modifiers) do
@@ -122,19 +117,19 @@ end
 
 function Buff:_create_duration()
    local duration
-   if self._data.expire_time then
+   if self._sv.expire_time then
       -- expire_time is set to the game calendar time when the buff should
       -- expire.  if we're loading, we need to re-register the timer with
       -- this time rather than the duration
-      duration = self._data.expire_time - stonehearth.calendar:get_elapsed_time()
-   elseif self._data.duration then
-      duration = self._data.duration
+      duration = self._sv.expire_time - stonehearth.calendar:get_elapsed_time()
+   elseif self._sv.duration then
+      duration = self._sv.duration
    end
    if duration then
       self._timer = stonehearth.calendar:set_timer(duration, function()
             self:destroy()
          end)
-      self._data.expire_time = self._timer:get_expire_time()
+      self._sv.expire_time = self._timer:get_expire_time()
       self.__saved_variables:mark_changed()
    end
 end
@@ -148,7 +143,7 @@ end
 
 function Buff:_create_injected_ai()
    assert(not self._injected_ai)
-   local injected_ai = self._data.injected_ai
+   local injected_ai = self._sv.injected_ai
    if injected_ai then
       self._injected_ai = stonehearth.ai:inject_ai(self._entity, injected_ai)
    end
