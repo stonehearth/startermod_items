@@ -38,9 +38,18 @@ function ChaseEntity:start_thinking(ai, entity, args)
    self:_get_astar_path(entity, target, ai.CURRENT.location)
 end
 
-function ChaseEntity:_get_direct_path(entity, target, start_location_override)
-   local direct_path_finder = _radiant.sim.create_direct_path_finder(entity, target)
+-- destination may be an Entity or a Point3
+function ChaseEntity:_get_direct_path(entity, destination, start_location_override)
+   local direct_path_finder = _radiant.sim.create_direct_path_finder(entity)
                                  :set_reversible_path(true)
+
+   if radiant.util.is_a(destination, Entity) then
+      direct_path_finder:set_destination_entity(destination)
+   elseif radiant.util.is_a(destination, Point3) then
+      direct_path_finder:set_end_location(destination)
+   else
+      error('destination must be an Entity or a Point3')
+   end
 
    if start_location_override ~= nil then
       direct_path_finder:set_start_location(start_location_override)
@@ -49,13 +58,16 @@ function ChaseEntity:_get_direct_path(entity, target, start_location_override)
    return direct_path_finder:get_path()
 end
 
-function ChaseEntity:_get_astar_path(entity, target, start_location_override)
+-- destination must be an Entity
+function ChaseEntity:_get_astar_path(entity, destination, start_location_override)
+   radiant.check.is_entity(destination)
+
    local on_solved = function (path)
-      self:_set_think_output(path, target)
+      self:_set_think_output(path, destination)
    end
 
    self._path_finder = _radiant.sim.create_astar_path_finder(entity, 'chase entity')
-                         :add_destination(target)
+                         :add_destination(destination)
                          :set_solved_cb(on_solved)
 
    if start_location_override ~= nil then
@@ -151,28 +163,14 @@ function ChaseEntity:_find_run_time_path(entity, target, target_previous_locatio
       -- check for a direct path to the prior locations (most recent first)
       num_locations = #target_previous_locations
 
-      if num_locations > 0 then
-         self._proxy_entity = radiant.entities.create_proxy_entity(false)
+      -- if num_locations is too large, we could downsample the locations
+      for i = num_locations, 1, -1 do
+         location = target_previous_locations[i]
+         path = self:_get_direct_path(entity, location)
 
-         -- if num_locations is too large, we could downsample the locations
-         for i = num_locations, 1, -1 do
-            location = target_previous_locations[i]
-
-            -- not actually placing entity on the terrain, using y value of target
-            self._proxy_entity:add_component('mob'):move_to_grid_aligned(location)
-            radiant.entities.add_child(radiant._root_entity, self._proxy_entity, location)
-            --radiant.terrain.place_entity(self._proxy_entity, location)
-
-            path = self:_get_direct_path(entity, self._proxy_entity)
-
-            if path ~= nil then
-               break
-            end
+         if path ~= nil then
+            break
          end
-      end
-
-      if path == nil then
-         self:_destroy_proxy_entity()
       end
    end
 
@@ -195,7 +193,6 @@ function ChaseEntity:stop(ai, entity, args)
    self:_destroy_mover()
    self:_destroy_run_effect()
    self:_destroy_path_finder()
-   self:_destroy_proxy_entity()
 end
 
 function ChaseEntity:_clean_up_references()
@@ -231,13 +228,6 @@ function ChaseEntity:_destroy_path_finder()
    if self._path_finder then
       self._path_finder:stop()
       self._path_finder = nil
-   end
-end
-
-function ChaseEntity:_destroy_proxy_entity()
-   if self._proxy_entity then
-      radiant.entities.destroy_entity(self._proxy_entity)
-      self._proxy_entity = nil
    end
 end
 

@@ -29,8 +29,9 @@ function FindPathToEntity:start_thinking(ai, entity, args)
                 tostring(ai.CURRENT.location), tostring(destination), tostring(destination_location))
    end
 
-   local direct_path_finder = _radiant.sim.create_direct_path_finder(entity, destination)
+   local direct_path_finder = _radiant.sim.create_direct_path_finder(entity)
                                  :set_start_location(ai.CURRENT.location)
+                                 :set_destination_entity(destination)
 
    local path = direct_path_finder:get_path()
    if path then

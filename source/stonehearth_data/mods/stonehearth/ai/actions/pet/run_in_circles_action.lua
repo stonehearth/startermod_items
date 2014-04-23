@@ -52,7 +52,7 @@ function RunInCircles:run(ai, entity, args)
          location = location + v
 
          -- gotoward_location will suspend the thread between steps so we won't lock the thread
-         ai:execute('stonehearth:go_toward_location', { location = location })
+         ai:execute('stonehearth:go_toward_location', { destination = location })
 
          if i < 4 then
             v.x, v.z = _rotate(v.x, v.z, angle)

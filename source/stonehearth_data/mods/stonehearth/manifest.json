@@ -206,6 +206,7 @@
       "actions:find_path_to_entity" : "file(ai/actions/find_path_to_entity.lua)",
       "actions:find_path_to_entity_type" : "file(ai/actions/find_path_to_entity_type.lua)",
       "actions:find_direct_path_to_entity" : "file(ai/actions/find_direct_path_to_entity.lua)",
+      "actions:find_direct_path_to_location" : "file(ai/actions/find_direct_path_to_location.lua)",
       "actions:run_to_entity" : "file(ai/actions/run_to_entity_action.lua)",
       "actions:run_to_entity_type" : "file(ai/actions/run_to_entity_type_action.lua)",
       "actions:run_to_location" : "file(ai/actions/run_to_location_action.lua)",
