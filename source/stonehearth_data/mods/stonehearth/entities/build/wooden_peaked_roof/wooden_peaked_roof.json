@@ -9,9 +9,11 @@
       "stonehearth:construction_data" : {
          "brush": "file(wooden_peaked_roof_9g.qb)",
          "use_nine_grid" : true,
+         "allow_crouching_construction" : true,
          "grid9_tile_mode"  : "left_to_right",
          "grid9_slope_mode" : "left_to_right",
-         "needs_ladder" : true
+         "needs_ladder" : true,
+         "material": "wood resource"
       }
    }
 }
