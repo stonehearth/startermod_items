@@ -17,4 +17,4 @@ WanderWithinLeash.priority = 2
 local ai = stonehearth.ai
 return ai:create_compound_action(WanderWithinLeash)
          :execute('stonehearth:choose_point_around_leash', { radius = ai.ARGS.radius, radius_min = ai.ARGS.radius_min })
-         :execute('stonehearth:go_toward_location', { location = ai.PREV.location })
+         :execute('stonehearth:go_toward_location', { destination = ai.PREV.location })

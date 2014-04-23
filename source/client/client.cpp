@@ -809,8 +809,8 @@ void Client::mainloop()
    }
 
    if (save_stress_test_ && save_stress_test_timer_.expired()) {
-      SaveGame("filewatcher_save", json::Node());
-      LoadGame("filewatcher_save");
+      SaveGame("stress_test_save", json::Node());
+      LoadGame("stress_test_save");
       save_stress_test_timer_.set(10000);
    }
 }

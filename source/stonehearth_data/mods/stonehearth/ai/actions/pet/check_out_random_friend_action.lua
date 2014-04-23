@@ -36,7 +36,7 @@ function CheckOutRandomFriend:run(ai, entity, args)
    for i=1, 8 do
       location = self:_pick_nearby_location(target, 4)
       -- go_toward_location yields in between steps
-      ai:execute('stonehearth:go_toward_location', { location = location })
+      ai:execute('stonehearth:go_toward_location', { destination = location })
    end
 end
 

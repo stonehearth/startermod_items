@@ -11,21 +11,29 @@ BEGIN_RADIANT_SIMULATION_NAMESPACE
 class DirectPathFinder : public std::enable_shared_from_this<DirectPathFinder>
 {
 public:
-   DirectPathFinder(Simulation &sim, om::EntityRef entityRef, om::EntityRef targetRef);
+   DirectPathFinder(Simulation &sim, om::EntityRef entityRef);
 
 public:
    std::shared_ptr<DirectPathFinder> SetStartLocation(csg::Point3 const& startLocation);
+   std::shared_ptr<DirectPathFinder> SetEndLocation(csg::Point3 const& endLocation);
+   std::shared_ptr<DirectPathFinder> SetDestinationEntity(om::EntityRef destinationRef);
    std::shared_ptr<DirectPathFinder> SetAllowIncompletePath(bool allowIncompletePath);
    std::shared_ptr<DirectPathFinder> SetReversiblePath(bool reversiblePath);
    PathPtr GetPath();
 
 private:
+   bool GetEndPoints(csg::Point3& start, csg::Point3& endLocation) const;
+   csg::Point3 GetPointOfInterest(csg::Point3 const& end) const;
+
    Simulation& sim_;
+   csg::Point3 startLocation_;
+   csg::Point3 endLocation_;
    om::EntityRef entityRef_;
-   om::EntityRef targetRef_;
+   om::EntityRef destinationRef_;
+   bool useEntityForStartPoint_;
+   bool useEntityForEndPoint_;
    bool allowIncompletePath_;
    bool reversiblePath_;
-   csg::Point3 startLocation_;
    int logLevel_;
 };
 

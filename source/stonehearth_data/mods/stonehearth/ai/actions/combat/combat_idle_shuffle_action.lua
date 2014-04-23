@@ -52,7 +52,7 @@ function CombatIdleShuffle:run(ai, entity, args)
       MathFns.round(wander_location.z)
    )
 
-   ai:execute('stonehearth:go_toward_location', { location = wander_grid_location })
+   ai:execute('stonehearth:go_toward_location', { destination = wander_grid_location })
 
    local melee_range = stonehearth.combat:get_melee_range(entity, 'medium_1h_weapon', enemy)
    ai:execute('stonehearth:bump_against_entity', { entity = enemy, distance = melee_range })

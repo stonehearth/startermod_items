@@ -206,6 +206,7 @@
       "actions:find_path_to_entity" : "file(ai/actions/find_path_to_entity.lua)",
       "actions:find_path_to_entity_type" : "file(ai/actions/find_path_to_entity_type.lua)",
       "actions:find_direct_path_to_entity" : "file(ai/actions/find_direct_path_to_entity.lua)",
+      "actions:find_direct_path_to_location" : "file(ai/actions/find_direct_path_to_location.lua)",
       "actions:run_to_entity" : "file(ai/actions/run_to_entity_action.lua)",
       "actions:run_to_entity_type" : "file(ai/actions/run_to_entity_type_action.lua)",
       "actions:run_to_location" : "file(ai/actions/run_to_location_action.lua)",
@@ -470,6 +471,17 @@
       "sounds:snare_03" : "file(data/sounds/effects/sh_snare_03.wav)",
       "sounds:gate_open" : "file(data/sounds/effects/sh_gate_open.wav)",
       "sounds:gate_close" : "file(data/sounds/effects/sh_gate_close.wav)",
+      "sounds:woodsword_forehand_01" : "file(data/sounds/effects/sh_woodsword_forehand_01.wav)",
+      "sounds:woodsword_forehand_02" : "file(data/sounds/effects/sh_woodsword_forehand_02.wav)",
+      "sounds:woodsword_backhand_01" : "file(data/sounds/effects/sh_woodsword_backhand_01.wav)",
+      "sounds:woodsword_backhand_02" : "file(data/sounds/effects/sh_woodsword_backhand_02.wav)",
+      "sounds:woodsword_block_01" : "file(data/sounds/effects/sh_woodsword_block_01.wav)",
+      "sounds:woodsword_block_02" : "file(data/sounds/effects/sh_woodsword_block_02.wav)",
+      "sounds:woodsword_block_03" : "file(data/sounds/effects/sh_woodsword_block_03.wav)",
+      "sounds:woodsword_spin_01" : "file(data/sounds/effects/sh_woodsword_spin_01.wav)",
+      "sounds:woodsword_spin_02" : "file(data/sounds/effects/sh_woodsword_spin_02.wav)",
+      "sounds:death_poof" : "file(data/sounds/effects/sh_death_poof.wav)",
+      "sounds:death_jingle" : "file(data/sounds/effects/sh_death_jingle.wav)",
                
       "music:title_screen"    : "file(data/music/startmenumusic.ogg)",
       "music:world_start"     : "file(data/music/levelmusic.ogg)",
@@ -781,6 +793,7 @@
       "homepage" : "http://radiant/stonehearth/ui/root/index.html",
       "html" : [
          "file(ui/common/modal_overlay/modal_overlay.html)",
+         "file(ui/common/confirm/confirm.html)",
          "file(ui/shell/shell.html)",
          "file(ui/shell/title/title.html)",
          "file(ui/shell/analytics_opt/analytics_opt.html)",
@@ -819,6 +832,7 @@
       ],
       "js" : [
          "file(ui/common/modal_overlay/modal_overlay.js)",
+         "file(ui/common/confirm/confirm.js)",
          "file(ui/shell/shell.js)",
          "file(ui/shell/title/title.js)",
          "file(ui/shell/analytics_opt/analytics_opt.js)",
@@ -860,6 +874,7 @@
          "file(ui/game/event_log/event_log.js)"
       ],
       "less" : [
+         "file(ui/common/confirm/confirm.less)",
          "file(professions/carpenter/skin/workshop.less)",
          "file(professions/weaver/skin/workshop.less)",
          "file(ui/common/modal_overlay/modal_overlay.less)",
