@@ -1,3 +1,34 @@
+
+$(document).ready(function(){
+  var unitFrame = {
+      view: null,
+      uri: null
+  }
+
+  $(top).on("radiant_selection_changed.unit_frame", function (_, data) {
+     unitFrame.uri = data.selected_entity;
+     refreshUnitFrame();
+  });  
+
+  $(top).on('mode_changed', function(_, mode) {
+     refreshUnitFrame();
+  });
+
+  function refreshUnitFrame() {
+     var mode = App.getGameMode();
+
+     // nuke the old unit frame
+     if (unitFrame.view) {
+        unitFrame.view.destroy();
+     }
+
+     
+     if (mode != 'build' && mode != 'zones' && unitFrame.uri) {
+        unitFrame.view = App.gameView.addView(App.StonehearthUnitFrameView, { uri: unitFrame.uri });
+     }     
+  }
+});
+
 App.StonehearthUnitFrameView = App.View.extend({
 	templateName: 'unitFrame',
 
@@ -16,18 +47,7 @@ App.StonehearthUnitFrameView = App.View.extend({
 
    init: function() {
       this._super();
-
       var self = this;
-      $(top).on("radiant_selection_changed.unit_frame", function (_, data) {
-         if (!self._supressSelection) {
-           self.set('uri', data.selected_entity);
-           self._updateVisibility();
-         }
-      });
-
-      $(top).on('mode_changed.unit_frame', function(_, mode) {
-         self._updateVisibility();
-      });
    },
 
    actions: {
@@ -76,13 +96,6 @@ App.StonehearthUnitFrameView = App.View.extend({
 
    //When we hover over a command button, show its tooltip
    didInsertElement: function() {
-    /*
-      if (this.get('uri')) {
-        this.show();
-      } else {
-        this.hide();
-      }
-    */
       this.$('#unitFrame > #buffs').find('.item').each(function() {
         $(this).tooltipster({
             content: $('<div class=title>' + $(this).attr('title') + '</div>' + 
@@ -105,47 +118,28 @@ App.StonehearthUnitFrameView = App.View.extend({
 
       
       this._updateCommandButtons();      
-      this._updateInventory();      
-
-      /*
-      $('[title]').tooltipster({
-        content: $('<span>hi - ' + $(this).attr(title) + '</span>')
-      });
-  */
-
-      /*
-      $('#commandButtons')
-         .off('mouseover', '.commandButton')
-         .on('mouseover', '.commandButton', function(event){
-         var target = event.target, $cmdBtn;
-         if (target.tagName.toLowerCase() == 'img') {
-            $cmdBtn = $(target).parent('.commandButton');
-         } else {
-            $cmdBtn = $(target);
-         }
-         $cmdBtn.tooltip({
-            animation: true
-         });
-         $cmdBtn.tooltip('show');
-      });
-      */
+      this._updateInventory();
    },
 
    _updateCommandButtons: function() {
-      var commands = this.get('context.stonehearth:commands.commands');
-      if (!commands || commands.length == 0 ) {
-        this.$('#commandButtons').hide();
-      } else {
-        this.$('#commandButtons').show();
+      if (this.$()) {
+        var commands = this.get('context.stonehearth:commands.commands');
+        if (!commands || commands.length == 0 ) {
+          this.$('#commandButtons').hide();
+        } else {
+          this.$('#commandButtons').show();
+        }
       }
    }.observes('context.stonehearth:commands.commands'),
 
    _updateInventory: function() {
-      var inventory = this.get('context.stonehearth:inventory');
-      if (!inventory) {
-        this.$('#inventory').hide()
-      } else {
-        this.$('#inventory').show()
+      if (this.$()) {
+        var inventory = this.get('context.stonehearth:inventory');
+        if (!inventory) {
+          this.$('#inventory').hide()
+        } else {
+          this.$('#inventory').show()
+        }
       }
 
    }.observes('context.stonehearth:inventory'),
