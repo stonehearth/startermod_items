@@ -1,13 +1,32 @@
 
 $(document).ready(function(){
-  var unitFrame = null;
+  var unitFrame = {
+      view: null,
+      uri: null
+  }
 
   $(top).on("radiant_selection_changed.unit_frame", function (_, data) {
-    if (unitFrame) {
-      unitFrame.destroy();
-    }
-    unitFrame = App.gameView.addView(App.StonehearthUnitFrameView, { uri: data.selected_entity });
+     unitFrame.uri = data.selected_entity;
+     refreshUnitFrame();
   });  
+
+  $(top).on('mode_changed', function(_, mode) {
+     refreshUnitFrame();
+  });
+
+  function refreshUnitFrame() {
+     var mode = App.getGameMode();
+
+     // nuke the old unit frame
+     if (unitFrame.view) {
+        unitFrame.view.destroy();
+     }
+
+     
+     if (mode != 'build' && mode != 'zones' && unitFrame.uri) {
+        unitFrame.view = App.gameView.addView(App.StonehearthUnitFrameView, { uri: unitFrame.uri });
+     }     
+  }
 });
 
 App.StonehearthUnitFrameView = App.View.extend({
