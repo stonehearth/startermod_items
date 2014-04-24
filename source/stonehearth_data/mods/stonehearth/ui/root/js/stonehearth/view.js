@@ -73,7 +73,8 @@
 
       if (this._rootTrace) {
          this._rootTrace.progress(function(eobj) {
-               console.log("setting view context for");
+               console.log("setting view context for " + self.elementId + " to...");
+               console.log(eobj);
                self.set('context', eobj)
             });
       } else {

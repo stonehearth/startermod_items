@@ -11,9 +11,9 @@
    {{#each entity_types}}
       {{#if this.entities.length}}
       <a href="#" {{action onSelectItemButton this target="view" allowedKeys="ctrl"}}>
-         <div class="pickable_item" {{bindAttr title=this.entity_name}}>
+         <div class="pickable_item" {{bind-attr title=this.entity_name}}>
             <div class="num_pickable">{{this.entities.length}}</div>
-            <img class="pickable_image" {{bindAttr src= this.entity_icon}}>
+            <img class="pickable_image" {{bind-attr src= this.entity_icon}}>
          </div>
       </a>
       {{/if}}

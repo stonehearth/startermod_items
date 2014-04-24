@@ -31,9 +31,9 @@
 <script type="text/x-handlebars" data-template-name="saveList">
    <div class="saveList list">
       {{#each saves}}
-         <div class="saveSlot row" {{bindAttr class=current:current:notCurrent key=key}}>
+         <div class="saveSlot row" {{bind-attr class=current:current:notCurrent key=key}}>
             <div class="screenshot">
-               <img {{bindAttr src=this.screenshot}} />
+               <img {{bind-attr src=this.screenshot}} />
             </div>
             <div class="gameInfo">
                <div class="name">{{this.gameinfo.town_name}}</div>

@@ -17,14 +17,15 @@ function ResourceCallHandler:box_harvest_resources(session, response)
    local cursor_render_entity = _radiant.client.create_render_entity(1, cursor_entity)
    
    local parent_node = cursor_render_entity:get_node()
-   local node
+   local unique_renderable
 
    local xz_selector
    local cursor = _radiant.client.set_cursor('stonehearth:cursors:harvest')
 
    local cleanup = function()
-      if node then
-         h3dRemoveNode(node)
+      if unique_renderable then
+         unique_renderable:destroy()
+         unique_renderable = nil
       end
       xz_selector:destroy()
       cursor:destroy()
@@ -39,10 +40,11 @@ function ResourceCallHandler:box_harvest_resources(session, response)
                                      Point2(box.max.x - box.min.x, box.max.z - box.min.z)))
             end)
             mob:set_location_grid_aligned(box.min)
-            if node then
-               h3dRemoveNode(node)
+            if unique_renderable then
+               unique_renderable:destroy()
+               unique_renderable = nil
             end
-            node = _radiant.client.create_selection_node(parent_node, self._region:get(), Color4(0, 255, 0, 32), Color4(0, 255, 0, 255));
+            unique_renderable = _radiant.client.create_selection_node(parent_node, self._region:get(), Color4(0, 255, 0, 32), Color4(0, 255, 0, 255));
          end)
       :done(function (box)
             _radiant.call('stonehearth:server_box_harvest_resources', box)

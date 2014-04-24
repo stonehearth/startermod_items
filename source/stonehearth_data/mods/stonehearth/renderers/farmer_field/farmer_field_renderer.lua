@@ -34,11 +34,12 @@ function FarmerFieldRenderer:_update_field_renderer()
       cursor:add_cube(Rect2(Point2(0, 0), self._size))
    end)
    
-   if self:_show_hud() then      
-      self._hud_node = _radiant.client.create_designation_node(self._parent_node, self._region:get(), self._color, self._color);
-   elseif self._hud_node then
-      h3dRemoveNode(self._hud_node)
-      self._hud_node = nil
+   if self:_show_hud() then
+      assert(self._unique_renderable == nil)
+      self._unique_renderable = _radiant.client.create_designation_node(self._parent_node, self._region:get(), self._color, self._color);
+   elseif self._unique_renderable then
+      self._unique_renderable:destroy()
+      self._unique_renderable = nil
    end
 end
 
@@ -161,9 +162,9 @@ function FarmerFieldRenderer:_regenerate_node()
    
    self:_clear()
    if self:_show_hud() then
-      self._hud_node = _radiant.client.create_designation_node(self._parent_node, self._region:get(), self._color, self._color);
+      assert(self._unique_renderable == nil)
+      self._unique_renderable = _radiant.client.create_designation_node(self._parent_node, self._region:get(), self._color, self._color);
    end
-   --self._node = _radiant.client.create_stockpile_node(self._parent_node, self._region:get(), Color4(55, 49, 26, 48), Color4(55, 49, 26, 64));
 end
 
 function FarmerFieldRenderer:_show_hud()
@@ -172,9 +173,9 @@ end
 
 
 function FarmerFieldRenderer:_clear()
-   if self._node then
-      h3dRemoveNode(self._node)
-      self._node = nil
+   if self._unique_renderable then
+      self._unique_renderable:destroy()
+      self._unique_renderable = nil
    end
 end
 

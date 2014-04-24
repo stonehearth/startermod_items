@@ -2,7 +2,7 @@
    <div id="farmWindow" class="gui">
       <div class="window">
          <div class="title">
-            <input id="name" onClick="this.select();" type="text" {{bindAttr value=unit_info.name}} />
+            <input id="name" onClick="this.select();" type="text" {{bind-attr value=unit_info.name}} />
          </div>
 
          <center>
@@ -13,7 +13,7 @@
             <a id="addCropLink" {{action addCropButtonClicked target="view"}}>
                {{#each stonehearth:farmer_field.crop_queue}}
                   <div class="targetCrop">
-                     <img class="cropImage tooltip" {{bindAttr src="this.icon" title="this.name"}} />
+                     <img class="cropImage tooltip" {{bind-attr src="this.icon" title="this.name"}} />
                   </div>
                {{/each}}     
             </a>
@@ -34,7 +34,7 @@
             {{#each stonehearth:farmer_field.crop_queue}}
                
                <div class="cropRotationSlot crop">
-                  <img class="tooltip" {{bindAttr src="this.icon" title="this.name"}} />
+                  <img class="tooltip" {{bind-attr src="this.icon" title="this.name"}} />
                </div>
             
             {{/each}}     
@@ -62,7 +62,7 @@
       <div class="window">
          {{#each items}}
             <div class="cropPickerItem">
-               <img class="item" {{bindAttr  src = "crop_info.icon"
+               <img class="item" {{bind-attr  src = "crop_info.icon"
                                             crop = "crop_type"
                                            title = "crop_info.name"}} />
             </div>
