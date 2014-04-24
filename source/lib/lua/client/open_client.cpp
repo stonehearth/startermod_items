@@ -91,7 +91,7 @@ om::EntityRef Client_GetSelectedEntity()
    return Client::GetInstance().GetSelectedEntity();
 }
 
-H3DNodeUnique Client_CreateBlueprintNode(lua_State* L, 
+UniqueRenderable Client_CreateBlueprintNode(lua_State* L, 
                                          H3DNode parent,
                                          csg::Region3 const& model,
                                          std::string const& material_path,
@@ -101,7 +101,7 @@ H3DNodeUnique Client_CreateBlueprintNode(lua_State* L,
 }
 
 
-H3DNodeUnique Client_CreateVoxelNode(lua_State* L, 
+UniqueRenderable Client_CreateVoxelNode(lua_State* L, 
                                      H3DNode parent,
                                      csg::Region3 const& model,
                                      std::string const& material_path,
@@ -140,31 +140,31 @@ H3DNode Client_CreateQubicleMatrixNode(lua_State* L,
    return node;
 }
 
-H3DNode Client_CreateDesignationNode(lua_State* L, 
+UniqueRenderable Client_CreateDesignationNode(lua_State* L, 
                                      H3DNode parent,
                                      csg::Region2 const& model,
                                      csg::Color4 const& outline,
                                      csg::Color4 const& stripes)
 {
-   return Pipeline::GetInstance().CreateDesignationNode(parent, model, outline, stripes).release();
+   return Pipeline::GetInstance().CreateDesignationNode(parent, model, outline, stripes);
 }
 
-H3DNode Client_CreateSelectionNode(lua_State* L, 
+UniqueRenderable Client_CreateSelectionNode(lua_State* L, 
                                   H3DNode parent,
                                   csg::Region2 const& model,
                                   csg::Color4 const& interior_color,
                                   csg::Color4 const& border_color)
 {
-   return Pipeline::GetInstance().CreateSelectionNode(parent, model, interior_color, border_color).release();
+   return Pipeline::GetInstance().CreateSelectionNode(parent, model, interior_color, border_color);
 }
 
-H3DNode Client_CreateStockpileNode(lua_State* L, 
+UniqueRenderable Client_CreateStockpileNode(lua_State* L, 
                                    H3DNode parent,
                                    csg::Region2 const& model,
                                    csg::Color4 const& interior_color,
                                    csg::Color4 const& border_color)
 {
-   return Pipeline::GetInstance().CreateStockpileNode(parent, model, interior_color, border_color).release();
+   return Pipeline::GetInstance().CreateStockpileNode(parent, model, interior_color, border_color);
 }
 
 om::EntityRef Client_CreateEmptyAuthoringEntity()

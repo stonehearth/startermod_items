@@ -42,9 +42,9 @@ function FabricatorRenderer:update(render_entity, datastore)
 end
 
 function FabricatorRenderer:_update()
-   if self._node then
-      self._node:destroy()
-      self._node = nil
+   if self._unique_renderable then
+      self._unique_renderable:destroy()
+      self._unique_renderable = nil
    end
 
    if self:_show_hud() then
@@ -54,7 +54,7 @@ function FabricatorRenderer:_update()
          local construction_data = component_data:get_data()
          if construction_data.brush then
             local region = self._destination:get_region()
-            self._node = voxel_brush_util.create_construction_data_node(self._parent_node, self._entity, region, construction_data, 'blueprint')
+            self._unique_renderable = voxel_brush_util.create_construction_data_node(self._parent_node, self._entity, region, construction_data, 'blueprint')
          end
       end
    end

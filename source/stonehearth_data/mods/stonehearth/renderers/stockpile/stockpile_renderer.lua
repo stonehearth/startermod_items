@@ -36,11 +36,12 @@ function StockpileRenderer:_update_stockpile_renderer()
    end)
    
    if self:_show_hud() then
-      self._hud_node = _radiant.client.create_designation_node(self._parent_node, self._region:get(), self._color, self._color);
+      assert(self._hud_renderable == nil)
+      self._hud_renderable = _radiant.client.create_designation_node(self._parent_node, self._region:get(), self._color, self._color);
    else
-      if self._hud_node then
-         h3dRemoveNode(self._hud_node)
-         self._hud_node = nil
+      if self._hud_renderable then
+         self._hud_renderable:destroy()
+         self._hud_renderable = nil
       end
    end
 end
@@ -143,9 +144,11 @@ function StockpileRenderer:_regenerate_node()
    
    self:_clear()
    if self:_show_hud() then
-      self._hud_node = _radiant.client.create_designation_node(self._parent_node, self._region:get(), self._color, self._color);
+      assert(self._hud_renderable == nil)
+      self._hud_renderable = _radiant.client.create_designation_node(self._parent_node, self._region:get(), self._color, self._color);
    end
-   self._node = _radiant.client.create_stockpile_node(self._parent_node, self._region:get(), Color4(55, 49, 26, 48), Color4(55, 49, 26, 64));
+   assert(self._dirt_renderable == nil)
+   self._dirt_renderable = _radiant.client.create_stockpile_node(self._parent_node, self._region:get(), Color4(55, 49, 26, 48), Color4(55, 49, 26, 64));
 end
 
 function StockpileRenderer:_show_hud()
@@ -153,14 +156,14 @@ function StockpileRenderer:_show_hud()
 end
 
 function StockpileRenderer:_clear()
-   if self._node then
-      h3dRemoveNode(self._node)
-      self._node = nil
+   if self._dirt_renderable then
+      self._dirt_renderable:destroy()
+      self._dirt_renderable = nil
    end
 
-   if self._hud_node then
-      h3dRemoveNode(self._hud_node)
-      self._hud_node = nil
+   if self._hud_renderable then
+      self._hud_renderable:destroy()
+      self._hud_renderable = nil
    end
 end
 

@@ -56,7 +56,7 @@ end
 -- paint_mode is optional.  if not specified, we'll use the paint mode
 -- inside the construction_data
 function voxel_brush_util.create_construction_data_node(parent_node, entity, region, construction_data, paint_mode)
-   local node
+   local unique_renderable
    if region and construction_data.brush then
       local stencil = region:get()
       if stencil then
@@ -68,13 +68,13 @@ function voxel_brush_util.create_construction_data_node(parent_node, entity, reg
          local model = brush:paint_through_stencil(stencil)
 
          if paint_mode == 'blueprint' then
-            node = _radiant.client.create_blueprint_node(parent_node, model, material, Point3f(0.5, 0, 0.5))
+            unique_renderable = _radiant.client.create_blueprint_node(parent_node, model, material, Point3f(0.5, 0, 0.5))
          else
-            node = _radiant.client.create_voxel_node(parent_node, model, material, Point3f(0.5, 0, 0.5))
+            unique_renderable = _radiant.client.create_voxel_node(parent_node, model, material, Point3f(0.5, 0, 0.5))
          end
       end
    end
-   return node
+   return unique_renderable
 end
 
 return voxel_brush_util
