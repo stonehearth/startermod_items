@@ -1,5 +1,6 @@
 #include "pch.h"
 #include "renderer.h"
+#include "pipeline.h"
 #include "client/client.h"
 #include "lua_renderer.h"
 #include "h3d_resource_types.h"
@@ -238,6 +239,8 @@ void LuaRenderer::RegisterType(lua_State* L)
       ],
       class_<H3DNodeUnique>("H3DNodeUnique")
          .def("destroy",                     H3DNodeUnique_Destroy),
+      class_<UniqueRenderable>("UniqueRenderable")
+         .def("destroy",                     &UniqueRenderable::Destroy),
       def("h3dGetNodeParamStr",              &h3dGetNodeParamStr),
       def("h3dRemoveNode",                   &h3dRemoveNode),
       def("h3dAddProjectorNode",             &h3dAddProjectorNode),

@@ -23,15 +23,16 @@ function FarmingCallHandler:choose_new_field_location(session, response)
    -- add a render object so the cursor entity gets rendered.
    local cursor_render_entity = _radiant.client.create_render_entity(1, cursor_entity)
    local parent_node = cursor_render_entity:get_node()
-   local node
+   local unique_renderable
 
    -- change the actual game cursor
    local xz_selector
    local stockpile_cursor = _radiant.client.set_cursor('stonehearth:cursors:create_stockpile')
 
    local cleanup = function()
-      if node then
-         h3dRemoveNode(node)
+      if unique_renderable then
+         unique_renderable:destroy()
+         unique_renderable = nil
       end
       xz_selector:destroy()
       stockpile_cursor:destroy()
@@ -47,10 +48,11 @@ function FarmingCallHandler:choose_new_field_location(session, response)
                                      Point2(box.max.x - box.min.x, box.max.z - box.min.z)))
             end)
             mob:set_location_grid_aligned(box.min)
-            if node then
-               h3dRemoveNode(node)
+            if unique_renderable then
+               unique_renderable:destroy()
+               unique_renderable = nil
             end
-            node = _radiant.client.create_designation_node(parent_node, self._region:get(), Color4(122, 40, 0, 255), Color4(122, 40, 0, 255));
+            unique_renderable = _radiant.client.create_designation_node(parent_node, self._region:get(), Color4(122, 40, 0, 255), Color4(122, 40, 0, 255));
          end)
       :done(function (box)
             local size = {

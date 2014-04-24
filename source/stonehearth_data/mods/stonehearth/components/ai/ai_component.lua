@@ -267,7 +267,10 @@ function AIComponent:_start()
             self._execution_frame:stop()
          end
       end
-      self._execution_frame:destroy()
+      if self._execution_frame then
+         self._execution_frame:destroy()
+         self._execution_frame = nil
+      end
    end)
    self._thread:start()
 end
@@ -284,6 +287,7 @@ function AIComponent:_terminate_thread()
    log:debug('terminating ai thread')
    if self._execution_frame then
       self._execution_frame:destroy('terminating thread')
+      self._execution_frame = nil
    end
    if self._thread then
       local thread = self._thread

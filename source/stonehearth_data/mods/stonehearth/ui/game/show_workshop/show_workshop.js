@@ -4,6 +4,7 @@ $(document).ready(function(){
    });
 
    $(top).on("radiant_show_workshop_from_crafter", function (_, e) {
+      radiant.call('radiant:play_sound', 'stonehearth:sounds:ui:carpenter_menu:menu_open' );
       var view = App.gameView.addView(App.StonehearthCrafterView, { uri: e.event_data.workshop });
    });
 
