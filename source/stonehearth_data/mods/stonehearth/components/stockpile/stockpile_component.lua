@@ -54,16 +54,25 @@ function StockpileComponent:initialize(entity, json)
       self._destination:set_region(_radiant.sim.alloc_region())
                        :set_reserved(_radiant.sim.alloc_region())
                        :set_auto_update_adjacent(true)
+      radiant.events.listen(entity, 'radiant:entity:post_create', function(e)
+         self:_finish_initialization()
+         return radiant.events.UNLISTEN
+      end)
    else
       -- loading...
       self._destination = entity:get_component('destination')
       self._destination:set_reserved(_radiant.sim.alloc_region()) -- xxx: clear the existing one from cpp land!
-      self:_create_worker_tasks()      
+      self:_create_worker_tasks()   
+
+      --Don't start listening on created items until after we load
+      radiant.events.listen(radiant, 'radiant:game_loaded', function(e)
+         radiant.events.listen(entity, 'radiant:entity:post_create', function(e)
+            self:_finish_initialization()
+            return radiant.events.UNLISTEN
+         end)
+      end)   
    end
-   radiant.events.listen(entity, 'radiant:entity:post_create', function(e)
-         self:_finish_initialization()
-         return radiant.events.UNLISTEN
-      end)
+   
       
    all_stockpiles[self._entity:get_id()] = self
    if json.size then
