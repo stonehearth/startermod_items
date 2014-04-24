@@ -18,7 +18,9 @@ function Fabricator:__init(name, entity, blueprint, project)
    self._blueprint = blueprint
    self._blueprint_ladder = blueprint:get_component('vertical_pathing_region')   
    self._construction_data = blueprint:get_component('stonehearth:construction_data')
-   
+   self._traces = {}
+   self._activated = false
+
    assert(self._construction_data)
    assert(radiant.entities.get_player_id(self._blueprint) ~= '')
 
@@ -30,7 +32,33 @@ function Fabricator:__init(name, entity, blueprint, project)
    else
       self:_create_new_project()
    end
-   self:_start()
+
+   local update_adjacent = function()
+      self:_update_adjacent()
+   end
+
+   local dst = self._entity:get_component('destination')
+   table.insert(self._traces, self._dst:trace_region('fabricator adjacent'):on_changed(update_adjacent))
+   table.insert(self._traces, self._dst:trace_reserved('fabricator adjacent'):on_changed(update_adjacent))
+   
+   local progress = self._blueprint:get_component('stonehearth:construction_progress')
+   if progress then
+      self._dependencies_finished = progress:check_dependencies()
+      radiant.events.listen(self._blueprint, 'stonehearth:construction:dependencies_finished_changed', self, self._on_dependencies_finished_changed)
+   else
+      self._dependencies_finished = true
+   end   
+   self:_trace_blueprint_and_project()
+end
+
+function Fabricator:start_building()
+   self._activated = true
+   self:_start_project()
+end
+
+function Fabricator:stop_building()
+   self._activated = false
+   self:_stop_project()
 end
 
 function Fabricator:_initialize_existing_project(project)  
@@ -81,25 +109,6 @@ function Fabricator:_create_new_project()
       self._project_ladder = self._project:add_component('vertical_pathing_region')
       self._project_ladder:set_region(_radiant.sim.alloc_region())
    end   
-end
-
-function Fabricator:_start()
-   self._traces = {}
-   local update_adjacent = function()
-      self:_update_adjacent()
-   end
-   local dst = self._entity:get_component('destination')
-   table.insert(self._traces, self._dst:trace_region('fabricator adjacent'):on_changed(update_adjacent))
-   table.insert(self._traces, self._dst:trace_reserved('fabricator adjacent'):on_changed(update_adjacent))
-   
-   local progress = self._blueprint:get_component('stonehearth:construction_progress')
-   if progress then
-      self._dependencies_finished = progress:check_dependencies()
-      radiant.events.listen(self._blueprint, 'stonehearth:construction:dependencies_finished_changed', self, self._on_dependencies_finished_changed)
-   else
-      self._dependencies_finished = true
-   end
-   self:_trace_blueprint_and_project()
 end
 
 function Fabricator:destroy()
@@ -215,11 +224,14 @@ function Fabricator:_start_project()
    -- If we're tearing down the project, we only need to start the teardown
    -- task.  If we're building up and all our dependencies are finished
    -- building up, start the pickup and fabricate tasks
-   log:detail('%s start_project (teardown:%s deps_finished:%s)', self._blueprint, self._teardown, self._dependencies_finished)
-   if self._teardown then
-      run_teardown_task = true
-   elseif self._dependencies_finished then
-      run_fabricate_task = true
+   log:detail('%s start_project (activated:%s teardown:%s deps_finished:%s)', self._blueprint, self._activated, self._teardown, self._dependencies_finished)
+   
+   if self._activated then
+      if self._teardown then
+         run_teardown_task = true
+      elseif self._dependencies_finished then
+         run_fabricate_task = true
+      end
    end
    
    -- Now apply the deltas.  Create tasks that need creating and destroy
