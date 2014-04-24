@@ -21,6 +21,7 @@ function farming_tests.grow_one_turnip(autotest)
    
    -- create a 2x2 farm
    autotest.ui:click_dom_element('#startMenu #build_menu')
+   autotest.ui:sleep(500)
    autotest.ui:click_dom_element('#startMenu div[hotkey="f"]')
    autotest.ui:sleep(500)
    autotest.ui:set_next_designation_region(4, 8, 1, 1)
@@ -35,7 +36,7 @@ function farming_tests.grow_one_turnip(autotest)
    -- click ok to close the dialog
    autotest.ui:click_dom_element('#farmWindow .ok')
 
-   autotest:sleep(500000*60*1000)
+   autotest:sleep(60*1000)
    autotest:fail('failed to farm')
 end
 

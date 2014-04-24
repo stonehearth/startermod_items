@@ -40,8 +40,12 @@ function CalendarService:initialize()
    self._sv = self.__saved_variables:get_data()
    if not self._sv.date then
       self._sv.date = {} -- the calendar data to export
+      self._sv.start_time = {}
+      self._sv.start_game_tick = 0
+
       for _, unit in ipairs(TIME_UNITS) do
          self._sv.date[unit] = self._constants.start[unit]
+         self._sv.start_time[unit] = self._constants.start[unit]
       end
       
       -- When you change the start time change these to match
@@ -111,16 +115,15 @@ end
 
 -- recompute the game calendar based on the time
 function CalendarService:_on_event_loop(e)
-   local now = e.now
-
    local last_hour = self._sv.date.hour 
+   local elapased = e.now - self._sv.start_game_tick
 
-   local remaining = math.floor(e.now / self._constants.ticks_per_second)
+   local remaining = math.floor(elapased / self._constants.ticks_per_second)
 
    -- compute the time based on how much time has passed and the time offset.
    local date = self._sv.date
    for _, unit in ipairs(TIME_UNITS) do
-      remaining = self._constants.start[unit] + remaining
+      remaining = self._sv.start_time[unit] + remaining
       date[unit] = math.floor(remaining % TIME_INTERVALS[unit])
       remaining = remaining - date[unit]
       if remaining == 0  then
@@ -238,9 +241,15 @@ end
 ---Use in tests to change the time of day. 
 -- @param unit - pick hour, min, day, etc
 -- @param value - a numeric value appropriate to the unit
-function CalendarService:set_time_unit_test_only(unit, value)
-   self._sv.date[unit] = value
-   self._constants.start[unit] = value
+function CalendarService:set_time_unit_test_only(override)
+   -- make the start time equal to the current time, overriding stuff
+   -- that the user wants to manaully set
+   for name, value in pairs(self._sv.start_time) do
+      local new_value = override[name] or self._sv.date[name]
+      self._sv.date[name] = new_value
+      self._sv.start_time[name] = new_value
+   end
+   self._sv.start_game_tick = radiant.gamestate.now()
 end
 
 
