@@ -52,7 +52,7 @@ function FarmingCallHandler:choose_new_field_location(session, response)
                unique_renderable:destroy()
                unique_renderable = nil
             end
-            _unique_renderable = _radiant.client.create_designation_node(parent_node, self._region:get(), Color4(122, 40, 0, 255), Color4(122, 40, 0, 255));
+            unique_renderable = _radiant.client.create_designation_node(parent_node, self._region:get(), Color4(122, 40, 0, 255), Color4(122, 40, 0, 255));
          end)
       :done(function (box)
             local size = {
