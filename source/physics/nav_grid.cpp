@@ -244,12 +244,11 @@ void NavGrid::AddCollisionTracker(csg::Cube3 const& last_bounds, csg::Cube3 cons
 
    // Add trackers to tiles which overlap the current bounds of the tracker.
    for (csg::Point3 const& cursor : current_chunks) {
-      if (!previous_chunks.Contains(cursor)) {
-         NG_LOG(5) << "adding tracker to grid tile at " << cursor << " for " << *tracker->GetEntity();
-         GridTileNonResident(cursor).AddCollisionTracker(tracker);
-      }
+      NG_LOG(5) << "adding tracker to grid tile at " << cursor << " for " << *tracker->GetEntity();
+      GridTileNonResident(cursor).AddCollisionTracker(tracker);
    }
 }
+
 
 /*
  * -- NavGrid::MarkDirty
