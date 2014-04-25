@@ -24,6 +24,7 @@ function Terrain.remove_entity(entity)
    radiant.entities.remove_child(radiant._root_entity, entity)
 end
 
+-- returns the height (y coordinate) of the highest terrain voxel at (x, z)
 function Terrain.get_height(x, z)
    local terrain = radiant._root_entity:add_component('terrain')
 
@@ -34,10 +35,12 @@ function Terrain.get_height(x, z)
    return terrain:get_height(x, z)
 end
 
+-- returns whether an entity can stand on the Point3 location
 function Terrain.can_stand_on(entity, location)
    return _radiant.sim.nav_grid.can_stand_on(entity, location)
 end
 
+-- returns all entities whose locations of collision shapes intersect the cube
 function Terrain.get_entities_in_cube(cube)
    return _radiant.sim.nav_grid.get_entities_in_cube(cube)
 end

@@ -62,7 +62,7 @@ void MobTracker::MarkChanged()
       if (pos != last_bounds_.min) {
          csg::Cube3 bounds(pos, pos + csg::Point3(1, 1, 1));
          if (mob->GetMobCollisionType() == om::Mob::HUMANOID) {
-            bounds.max.y = 4;
+            bounds.max.y += 4;
          }
          NG_LOG(9) << "adding MobTracker for " << *mob->GetEntityPtr() << " to tile " << bounds << "(last bounds:" << last_bounds_ << ")";
          GetNavGrid().AddCollisionTracker(last_bounds_, bounds, shared_from_this());
