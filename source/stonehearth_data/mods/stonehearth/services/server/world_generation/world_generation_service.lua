@@ -124,13 +124,15 @@ function WorldGenerationService:_place_scenarios_on_generated_tiles()
 
    for j=1, blueprint.height do
       for i=1, blueprint.width do
-         offset_x, offset_y = self:get_tile_origin(i, j, blueprint)
-
          tile_info = blueprint:get(i, j)
-         habitat_map = tile_info.habitat_map
-         elevation_map = tile_info.elevation_map
 
-         self._scenario_service:place_revealed_scenarios(habitat_map, elevation_map, offset_x, offset_y)
+         if tile_info.generated then
+            offset_x, offset_y = self:get_tile_origin(i, j, blueprint)
+            habitat_map = tile_info.habitat_map
+            elevation_map = tile_info.elevation_map
+
+            self._scenario_service:place_revealed_scenarios(habitat_map, elevation_map, offset_x, offset_y)
+         end
       end
    end
 end
