@@ -762,7 +762,6 @@ DLLEXP int h3dFindNodes( NodeHandle startNode, const char *name, int type )
 	SceneNode *sn = Modules::sceneMan().resolveNodeHandle( startNode );
 	APIFUNC_VALIDATE_NODE( sn, "h3dFindNodes", 0 );
 
-	Modules::sceneMan().clearFindResults();
 	return Modules::sceneMan().findNodes( *sn, safeStr( name, 0 ), type );
 }
 
