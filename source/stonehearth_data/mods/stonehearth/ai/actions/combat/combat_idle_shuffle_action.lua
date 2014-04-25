@@ -60,8 +60,12 @@ function CombatIdleShuffle:_choose_destination(entity, enemy)
       angle = angles[roll]
       destination = self:_calculate_location(entity_location, enemy_direction, angle, distance)
 
-      if self:_is_valid_and_unoccupied_location(entity, destination) then
-         return destination
+      if destination ~= nil then
+         if radiant.terrain.can_stand_on(entity, destination) then
+            if not self:_is_occupied(destination) then
+               return destination
+            end
+         end
       end
 
       table.remove(angles, roll)
@@ -95,25 +99,12 @@ function CombatIdleShuffle:_calculate_location(start_location, enemy_direction, 
    return new_grid_location
 end
 
-function CombatIdleShuffle:_is_valid_and_unoccupied_location(entity, location)
-   if location == nil then
-      return false
-   end
-
-   local standable = radiant.terrain.can_stand_on(entity, location)
-   if not standable then
-      return false
-   end
-
-   -- TODO: expand cube and filter entities
+function CombatIdleShuffle:_is_occupied(location)
    local cube = Cube3(location, location + Point3(1, 1, 1))
    local entities = radiant.terrain.get_entities_in_cube(cube)
 
-   if next(entities) then
-      return false
-   end
-
-   return true
+   local occupied = next(entities) ~= nil
+   return occupied
 end
 
 return CombatIdleShuffle
