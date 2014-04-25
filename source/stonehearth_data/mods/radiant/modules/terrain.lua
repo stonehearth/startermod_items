@@ -24,6 +24,24 @@ function Terrain.remove_entity(entity)
    radiant.entities.remove_child(radiant._root_entity, entity)
 end
 
+function Terrain.get_height(x, z)
+   local terrain = radiant._root_entity:add_component('terrain')
+
+   if not terrain:in_bounds(Point3(x, 0, z)) then
+      return nil
+   end
+
+   return terrain:get_height(x, z)
+end
+
+function Terrain.can_stand_on(entity, location)
+   return _radiant.sim.nav_grid.can_stand_on(entity, location)
+end
+
+function Terrain.get_entities_in_cube(cube)
+   return _radiant.sim.nav_grid.get_entities_in_cube(cube)
+end
+
 function Terrain.trace_world_entities(reason, added_cb, removed_cb)
    local root = radiant.entities.get_root_entity()
    local ec = radiant.entities.get_root_entity():add_component('entity_container');
@@ -39,35 +57,6 @@ function Terrain.trace_world_entities(reason, added_cb, removed_cb)
                            end)
                         :on_removed(removed_cb)
                         :push_object_state()
-end
-
-function Terrain.get_entities_in_box(box)
-   local results = {}
-
-   for id, entity in radiant.terrain.each_world_entity() do
-      if entity then
-         local mob_component = entity:get_component('mob')
-         if mob_component then
-            local location = mob_component:get_world_grid_location()
-            if box:contains(location) then
-               table.insert(results, entity)
-            end
-         end
-      end
-   end   
-
-   return ipairs(results)
-end
-
-
-function Terrain.each_world_entity()
-   local ec = radiant.entities.get_root_entity():add_component('entity_container');
-   return ec:each_child()
-end
-
-function Terrain.get_height(location)
-   local terrain = radiant._root_entity:add_component('terrain')
-   return terrain:get_height(location)
 end
 
 return Terrain
