@@ -13,6 +13,23 @@
          "start_time": 0,
          "animation": "combat_1h_dodge.json",
          "loop": false
-      }          
+      },
+      "sound": {
+         "type": "sound_effect",
+         "duration": 1000,
+         "start_delay": 200,
+         "min_distance": 40,
+         "max_distance": 100,
+         "volume": 25,
+         "track" : {
+            "type": "one_of",
+            "items": [
+               "stonehearth:sounds:dodge_01",
+               "stonehearth:sounds:dodge_02",
+               "stonehearth:sounds:dodge_03"
+            ]
+         }
+      }
    }
 }
+

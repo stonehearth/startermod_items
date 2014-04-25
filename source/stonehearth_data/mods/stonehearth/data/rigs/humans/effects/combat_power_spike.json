@@ -14,6 +14,15 @@
          "animation": "combat_power_spike.json",
          "loop": false
       },
+     "sound": {
+         "type": "sound_effect",
+         "duration": 3000,
+         "start_delay": 2500,
+         "min_distance": 50,
+         "max_distance": 100,
+         "volume": 55,
+         "track" : "stonehearth:sounds:woodsword_powerspike_01"
+      },
       "cubemitter": {
          "type": "cubemitter",
          "cubemitter": "particles/combat/chi_gather.cubemitter.json",

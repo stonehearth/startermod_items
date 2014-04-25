@@ -4,6 +4,19 @@ local Point3 = _radiant.csg.Point3
 local rng = _radiant.csg.get_default_rng()
 local ExecutionFrame = class()
 
+-- errata note 1:  look at _restart_thinking()?  what crackhead wrote that (probably me).
+-- issues:
+--   1) silently nop's in most states.  why?  what if we really wanted to restart thinking
+--      in those states?  we have to magically jump to another state that is valid to do
+--      so (callers ACTAULLY do this!!).  that is b0rken.
+--   2) takes us to the READY state when true is returned, but does nothing when returning
+--      false.  it probably shouldn't take us to any state AT ALL and leave it up to the
+--      caller to determine where it wants to go.
+-- A better interafce would be to (perhaps...) simply return the most ready action, or
+-- nothing at all and let the caller use the get_best_actino (or whatever) primatives or
+-- something.... Anyway, needs much revisiting (see 'errata note 1' comments to find all
+-- the suspect code)
+
 local SET_ACTIVE_UNIT = { __comment = 'change active running unit' }
 
 -- these values are in the interface, since we trigger them as events.  don't change them!
@@ -33,7 +46,6 @@ function ExecutionFrame:__init(thread, entity, action_index, activity_name, debu
    self._execution_units = {}
    self._execution_unit_keys = {}
    self._saved_think_output = {}
-   self._runnable_unit_count = 0
 
    local prefix = string.format('%s (%s)', self._debug_route, self._activity_name)
    self._log = radiant.log.create_logger('ai.exec_frame')
@@ -76,6 +88,8 @@ function ExecutionFrame:_on_position_changed()
       local distance = radiant.entities.grid_distance_between(self._entity, self._last_captured_location)
       if distance > 3 then
          self._log:detail('entity moved!  going to restart thinking... (state:%s)', self._state)
+         -- errata note 1 : this is quite bizarre.  if we're running, we ESPECIALLY want to restart
+         -- thinking, right?  unforutnately, this does NOTHING from the RUNNING state.
          self:_restart_thinking(nil, "entity moved")
       end
    end
@@ -83,6 +97,8 @@ end
 
 function ExecutionFrame:_on_carrying_changed()
    self._log:detail('carrying changed!  going to restart thinking... (state:%s)', self._state)
+   -- errata note 1 : this is quite bizarre.  if we're running, we ESPECIALLY want to restart
+   -- thinking, right?  unforutnately, this does NOTHING from the RUNNING state.
    self:_restart_thinking(nil, "carrying changed")
 end
 
@@ -248,10 +264,11 @@ function ExecutionFrame:_remove_action(unit)
 end
 
 function ExecutionFrame:_restart_thinking(entity_state, debug_reason)
-   self._log:detail('_restart_thinking (state:%s)', self._state)
+   self._log:detail('_restart_thinking (reason:%s, state:%s)', debug_reason, self._state)
    self._aitrace:spam('@r@%s@%s', self._state, debug_reason)
 
    if not self:in_state('thinking', 'starting_thinking', 'ready', 'running') then
+      self._log:spam('_restart_thinking returning without doing anything.(state:%s)', self._state)
       return
    end
 
@@ -305,7 +322,8 @@ function ExecutionFrame:_start_thinking_from_stopped(args, entity_state)
    self._args = args
    self._log:debug('set execution frame arguments to %s %s', self._activity_name, stonehearth.ai.format_args(self._args))
 
-   self._runnable_unit_count = 0
+   -- errata note 1 : this is actually probably correct, but look at it?  wtf?  this code is extremely
+   -- opaque.
    self:_set_state(STARTING_THINKING)
    if not self:_restart_thinking(entity_state, "thinking from stopped") then
       self:_set_state(THINKING)
@@ -499,7 +517,6 @@ function ExecutionFrame:_do_unit_ready_bookkeeping(unit, think_output)
    assert(think_output)
    self._log:detail('setting think output for %s to %s', unit:get_name(), tostring(think_output))
    self._saved_think_output[unit] = think_output
-   self._runnable_unit_count = self._runnable_unit_count + 1
 end
 
 function ExecutionFrame:_unit_ready_from_starting_thinking(unit, think_output)
@@ -787,7 +804,6 @@ function ExecutionFrame:_destroy_from_stopped()
    self:_do_destroy()
 end
 
-
 function ExecutionFrame:_destroy_from_running()
    -- verify either we're the thread running or we've been destroyed from a C callback
    assert(self:_no_other_thread_is_running())
@@ -870,6 +886,10 @@ function ExecutionFrame:_unwind_call_stack(exit_handler)
    end
    -- start the active unit and start the rest of them thinking again.
    self._active_unit:_start()
+
+   -- errata note 1 : el oh el.  wtf... this isn't going to do anything from the RUNNING
+   -- state, which means none of our peers ACTUALLY get start_thinking called on them.
+   -- GOD.
    self:_restart_thinking(nil, "unwinding stack")
 end
  
@@ -917,9 +937,13 @@ function ExecutionFrame:_remove_action_from_ready(unit)
       if self._ready_cb then
          self._log:debug('sending unready notification')
          self._ready_cb(nil)
-      end     
-      self:_set_state(STOPPED)
-      self:_restart_thinking(self._current_entity_state, "removing action")
+      end
+      -- errata note 1 : again, this one is verified correct, but gross and offends
+      -- my programmer sensibilities.
+      self:_set_state(STARTING_THINKING)
+      if not self:_restart_thinking(self._current_entity_state, "removing action") then
+         self:_set_state(THINKING)
+      end
    else
       self:_remove_execution_unit(unit)
    end
