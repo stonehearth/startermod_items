@@ -29,12 +29,13 @@ class Terrain(Component):
    cached_bounds = dm.Boxed(csg.Cube3())
    cached_bounds_is_valid = dm.Boxed(c.bool())
 
+   in_bounds = ridl.Method(c.bool(), ('location', csg.Point3().const.ref)).const
    get_bounds = ridl.Method(csg.Cube3()).const
    add_tile = ridl.Method(c.void(),
                           ('tile_offset', csg.Point3().const.ref),
                           ('region3', Region3BoxedPtr()))
    place_entity = ridl.Method(c.void(), ('e', EntityRef()), ('location', csg.Point3().const.ref))
-   get_height =  ridl.Method(c.int(), ('location', csg.Point2().const.ref)).const
+   get_height =  ridl.Method(c.int(), ('x', c.int()), ('z', c.int())).const
 
    _includes = [
       "om/region.h",

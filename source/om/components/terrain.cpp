@@ -32,12 +32,18 @@ void Terrain::AddTile(csg::Point3 const& tile_offset, Region3BoxedPtr region3)
    cached_bounds_ = CalculateBounds();
 }
 
+bool Terrain::InBounds(csg::Point3 const& location) const
+{
+   bool inBounds = GetBounds().Contains(location);
+   return inBounds;
+}
+
+// if we start streaming in tiles, this will need to return a region instead of a cube
 csg::Cube3 Terrain::GetBounds() const
 {
    return cached_bounds_;
 }
 
-// TODO: May need to extend this to a Region instead of a Cube
 csg::Cube3 Terrain::CalculateBounds() const
 {
    int const tileSize = GetTileSize();
@@ -70,7 +76,7 @@ void Terrain::PlaceEntity(EntityRef e, csg::Point3 const& location)
          placed_location = bounds.GetClosestPoint(location);
       }
 
-      placed_location.y = GetHeight(csg::Point2(placed_location.x, placed_location.z));
+      placed_location.y = GetHeight(placed_location.x, placed_location.z);
 
       if (placed_location.y != INT_MIN) {
          auto mob = entity->GetComponent<Mob>();
@@ -82,11 +88,12 @@ void Terrain::PlaceEntity(EntityRef e, csg::Point3 const& location)
 }
 
 // returns the maximum height at (x,z)
-// returns INT_MIN if no cube is found over (x,z)
-int Terrain::GetHeight(csg::Point2 const& location2) const
+// throws exception if (x,z) is not in the world
+// returns INT_MIN if no cube intersects the (x,z) column
+int Terrain::GetHeight(int x, int z) const
 {
    int max_y = INT_MIN;
-   csg::Point3 const location3 = csg::Point3(location2.x, 0, location2.y);
+   csg::Point3 const location3 = csg::Point3(x, 0, z);
    csg::Point3 tile_offset;
    Region3BoxedPtr region_ptr = GetTile(location3, tile_offset);
    csg::Point3 const& region_local_pt = location3 - tile_offset;

@@ -210,3 +210,4 @@ void NavGridTile::ForEachEntity(ForEachEntityCb cb)
       cb(tracker->GetEntity());
    });
 }
+   

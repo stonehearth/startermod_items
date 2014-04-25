@@ -23,7 +23,7 @@ public:
    TrackerType GetType() const override;
    csg::Region3 GetOverlappingRegion(csg::Cube3 const& bounds) const override;
 
-   csg::Point3 const& GetLastLocation() const;
+   csg::Cube3 const& GetLastBounds() const;
 
 protected:
    void MarkChanged() override;
@@ -34,7 +34,6 @@ private:
 private:
    om::MobRef        mob_;
    csg::Cube3        last_bounds_;
-   csg::Point3       last_position_;
 };
 
 END_RADIANT_PHYSICS_NAMESPACE

@@ -17,12 +17,14 @@ function SnareTrap:run(ai, entity, args)
    local location = args.location
    local radius = 4
    
-   local box = Cube3(Point3(location.x - radius, location.y - radius, location.z - radius),
-                     Point3(location.x + radius, location.y + radius, location.z + radius))
+   local cube = Cube3(Point3(location.x - radius,   location.y - radius,   location.z - radius),
+                      Point3(location.x + radius+1, location.y + radius+1, location.z + radius+1))
+
+   local targets = radiant.terrain.get_entities_in_cube(cube)
    
-   for i, e in radiant.terrain.get_entities_in_box(box) do
-      if radiant.entities.is_hostile(e, entity) then
-         self:_trap_entity(e)
+   for _, target in pairs(targets) do
+      if radiant.entities.is_hostile(target, entity) then
+         self:_trap_entity(target)
       end
    end
 

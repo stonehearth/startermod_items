@@ -1,5 +1,6 @@
 #include "../pch.h"
 #include "open.h"
+#include "csg/util.h"
 #include "lib/lua/script_host.h"
 #include "simulation/simulation.h"
 #include "simulation/jobs/follow_path.h"
@@ -11,6 +12,7 @@
 #include "om/entity.h"
 #include "om/stonehearth.h"
 #include "om/components/data_store.ridl.h"
+#include "om/components/mob.ridl.h"
 #include "lib/json/core_json.h"
 
 using namespace ::radiant;
@@ -162,7 +164,7 @@ std::shared_ptr<T> PathFinder_SetSolvedCb(lua_State* L, std::shared_ptr<T> pf, l
 }
 
 template <typename T>
-std::shared_ptr<T> PathFinder_SetExhausedCb(std::shared_ptr<T> pf, luabind::object unsafe_exhausted_cb)
+std::shared_ptr<T> PathFinder_SetExhaustedCb(std::shared_ptr<T> pf, luabind::object unsafe_exhausted_cb)
 {
    if (pf) {
       lua_State* cb_thread = lua::ScriptHost::GetCallbackThread(unsafe_exhausted_cb.interpreter());  
@@ -194,6 +196,35 @@ BfsPathFinderPtr BfsPathFinder_SetFilterFn(BfsPathFinderPtr pf, luabind::object 
       });
    }
    return pf;
+}
+
+bool NavGrid_CanStandOn(lua_State *L, om::EntityRef entityRef, csg::Point3 const& location)
+{
+   phys::OctTree const& octTree = GetSim(L).GetOctTree();
+   om::EntityPtr entity = entityRef.lock();
+
+   if (!entity) {
+      return false;
+   }
+
+   bool standable = octTree.CanStandOn(entity, location);
+   return standable;
+}
+
+luabind::object NavGrid_GetEntitiesInCube(lua_State *L, csg::Cube3 const& cube)
+{
+   phys::NavGrid& navGrid = GetSim(L).GetOctTree().GetNavGrid();
+
+   std::unordered_map<int, om::EntityRef> entities = navGrid.GetEntitiesInCube(cube);
+
+   luabind::object result = luabind::newtable(L);
+   int i = 0;
+
+   for (auto const& entry : entities) {
+      result[i++] = entry.second;
+   }
+
+   return result;
 }
 
 DEFINE_INVALID_JSON_CONVERSION(Path);
@@ -244,7 +275,7 @@ void lua::sim::open(lua_State* L, Simulation* sim)
                .def("add_destination",    &AStarPathFinder::AddDestination)
                .def("remove_destination", &AStarPathFinder::RemoveDestination)
                .def("set_solved_cb",      &PathFinder_SetSolvedCb<AStarPathFinder>)
-               .def("set_search_exhausted_cb", &PathFinder_SetExhausedCb<AStarPathFinder>)
+               .def("set_search_exhausted_cb", &PathFinder_SetExhaustedCb<AStarPathFinder>)
                .def("get_solution",       &AStarPathFinder::GetSolution)
                .def("set_debug_color",    &AStarPathFinder::SetDebugColor)
                .def("is_idle",            &AStarPathFinder::IsIdle)
@@ -256,7 +287,7 @@ void lua::sim::open(lua_State* L, Simulation* sim)
             lua::RegisterTypePtr_NoTypeInfo<BfsPathFinder>("BfsPathFinder")
                .def("set_source",         &BfsPathFinder::SetSource)
                .def("set_solved_cb",      &PathFinder_SetSolvedCb<BfsPathFinder>)
-               .def("set_search_exhausted_cb", &PathFinder_SetExhausedCb<BfsPathFinder>)
+               .def("set_search_exhausted_cb", &PathFinder_SetExhaustedCb<BfsPathFinder>)
                .def("set_filter_fn",      &BfsPathFinder_SetFilterFn)
                .def("reconsider_destination", &BfsPathFinder::ReconsiderDestination)
                .def("stop",               &BfsPathFinder::Stop)
@@ -277,7 +308,11 @@ void lua::sim::open(lua_State* L, Simulation* sim)
             lua::RegisterTypePtr_NoTypeInfo<BumpLocation>("BumpLocation")
             ,
             lua::RegisterTypePtr_NoTypeInfo<LuaJob>("LuaJob")
-
+            ,
+            namespace_("nav_grid") [
+               def("can_stand_on",         &NavGrid_CanStandOn),
+               def("get_entities_in_cube", &NavGrid_GetEntitiesInCube)
+            ]
          ]
       ]
    ];

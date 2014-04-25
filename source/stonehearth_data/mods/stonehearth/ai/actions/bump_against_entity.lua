@@ -1,3 +1,6 @@
+local Point3f = _radiant.csg.Point3f
+local Quaternion = _radiant.csg.Quaternion
+local rng = _radiant.csg.get_default_rng()
 local Entity = _radiant.om.Entity
 
 local BumpAgainstEntity = class()
@@ -30,7 +33,17 @@ function BumpAgainstEntity:run(ai, entity, args)
 
    local vector = entity_location - bumper_location
    vector.y = 0   -- only x,z bumping permitted
-   vector:normalize()
+
+   if vector:distance_squared() ~= 0 then
+      vector:normalize()
+   else
+      -- pick a random direction (rotate the unit_x vector around the y-axis by a random angle)
+      local unit_x = Point3f(1, 0, 0)
+      local unit_y = Point3f(0, 1, 0)
+      local angle = rng:get_real(0, 2 * math.pi)
+      vector = Quaternion(unit_y, angle):rotate(unit_x)
+   end
+
    vector:scale(bump_distance)
 
    ai:execute('stonehearth:bump_entity', {
