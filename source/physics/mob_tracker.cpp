@@ -59,10 +59,17 @@ void MobTracker::MarkChanged()
    om::MobPtr mob = mob_.lock();
    if (mob) {
       csg::Point3 pos = mob->GetWorldGridLocation();
-      csg::Cube3 bounds(pos, pos + csg::Point3(1, 1, 1));
-      NG_LOG(9) << "adding MobTracker for " << *mob->GetEntityPtr() << " to tile " << bounds << "(last bounds:" << last_bounds_ << ")";
-      GetNavGrid().AddCollisionTracker(last_bounds_, bounds, shared_from_this());
-      last_bounds_ = bounds;
+      if (pos != last_bounds_.min) {
+         csg::Cube3 bounds(pos, pos + csg::Point3(1, 1, 1));
+         if (mob->GetMobCollisionType() == om::Mob::HUMANOID) {
+            bounds.max.y = 4;
+         }
+         NG_LOG(9) << "adding MobTracker for " << *mob->GetEntityPtr() << " to tile " << bounds << "(last bounds:" << last_bounds_ << ")";
+         GetNavGrid().AddCollisionTracker(last_bounds_, bounds, shared_from_this());
+         last_bounds_ = bounds;
+      } else {
+         NG_LOG(9) << "skipping MobTracker bookkeeping for " << *mob->GetEntityPtr() << " (pos ~= last bounds:" << last_bounds_ << ")";
+      }
    }
 }
 
@@ -85,7 +92,7 @@ TrackerType MobTracker::GetType() const
    return MOB;
 }
 
-csg::Point3 const& MobTracker::GetLastLocation() const
+csg::Cube3 const& MobTracker::GetLastBounds() const
 {
-   return last_position_;
+   return last_bounds_;
 }
