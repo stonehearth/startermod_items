@@ -26,6 +26,7 @@
    "save_overwrite": "Overwrite",
    "save_new": "New Save",
    "load_game": "Load Game",
+   "loading": "Loading...",
 
    "settings_title" : "Settings",
    "settings_gfx_cardinfo" : "__gpuRenderer__ (__gpuDriver__)",

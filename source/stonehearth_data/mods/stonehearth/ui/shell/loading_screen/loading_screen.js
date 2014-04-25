@@ -30,7 +30,12 @@ App.StonehearthLoadingScreenView = App.View.extend({
 
       var numBackgrounds = 6;
       var imageUrl = '/stonehearth/ui/shell/loading_screen/images/bg' + Math.floor((Math.random()*numBackgrounds)) +'.jpg';
-      $('#randomScreen').css('background-image', 'url(' + imageUrl + ')');
+      this.$('#randomScreen').css('background-image', 'url(' + imageUrl + ')');
+
+      if (this.get('hideProgress')) {
+         this.$('#controls').hide();
+         this.$('#text').show();
+      }
 
    },
 
@@ -61,6 +66,6 @@ App.StonehearthLoadingScreenView = App.View.extend({
       var max = 29;
       var min = 1;
       var random =  Math.floor(Math.random() * (max - min + 1)) + min;
-      $('#message').html($.t("loading_map_" + random));
+      this.$('#message').html($.t("loading_map_" + random));
    }
 });
