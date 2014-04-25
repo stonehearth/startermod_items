@@ -878,7 +878,7 @@ int SceneManager::_findNodes( SceneNode &startNode, const std::string &name, int
 
 	for( uint32 i = 0; i < startNode._children.size(); ++i )
 	{
-		findNodes( *startNode._children[i], name, type );
+		_findNodes( *startNode._children[i], name, type );
 	}
 }
 
