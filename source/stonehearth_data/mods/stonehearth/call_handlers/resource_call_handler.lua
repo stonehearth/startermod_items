@@ -62,7 +62,9 @@ function ResourceCallHandler:server_box_harvest_resources(session, response, box
    local cube = Cube3(Point3(box.min.x, box.min.y, box.min.z),
                       Point3(box.max.x, box.max.y, box.max.z))
 
-   for i, entity in radiant.terrain.get_entities_in_box(cube) do
+   local entities = radiant.terrain.get_entities_in_cube(cube)
+   
+   for _, entity in pairs(entities) do
       self:harvest_entity(session, response, entity)
    end
 end

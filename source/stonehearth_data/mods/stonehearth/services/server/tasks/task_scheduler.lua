@@ -10,6 +10,7 @@ function TaskScheduler:__init(name)
    self._task_groups = {}
    self._poll_interval = 200
    self._max_feed_per_interval = 1
+   self._last_task_group_index = 1
 
    self:_start_update_timer()
 end
@@ -34,17 +35,36 @@ function TaskScheduler:create_task_group(activity_name, args)
    return task_group
 end
 
+--- Update task groups with queued tasks
+--  Iterate through the task groups, starting at the saved index
+--  Feed max_feed_per_interval tasks from the task groups and then stop
+--  Also, stop if we've iterated through all the task groups and there are no more tasks to feed
+--  Save the last checked task group so we can continue from there next time
 function TaskScheduler:_update()
    self._log:debug('updating task scheduler (%d groups)', #self._task_groups)
-   local feed_count = self._max_feed_per_interval
-   for i, task_group in ipairs(self._task_groups) do
-      local count = task_group:_update(feed_count)
-      feed_count = feed_count - count
-      if feed_count <= 0 then
-         self._log:detail('feed count %d exceeded.  breaking.', feed_count)
-         break
+   
+   local num_to_feed = self._max_feed_per_interval
+   local num_groups_evaluated = 0
+
+   while num_to_feed > 0 and 
+         num_groups_evaluated < #self._task_groups and 
+         #self._task_groups > 0 do
+
+      if self._last_task_group_index > #self._task_groups then
+         self._last_task_group_index = 1
       end
+
+      local target_task_group = self._task_groups[self._last_task_group_index]
+      
+      --Increment the target task group
+      self._last_task_group_index = self._last_task_group_index + 1
+      
+      local count = target_task_group:_update(num_to_feed)
+      num_to_feed = num_to_feed - count
+
+      num_groups_evaluated = num_groups_evaluated + 1
    end
+
    self:_start_update_timer()
 end
 

@@ -1985,7 +1985,7 @@ void Renderer::drawGeometry( const std::string &shaderContext, const std::string
 
 
 void Renderer::drawProjections( const std::string &shaderContext, uint32 userFlags )
-{   
+{
    int numProjectorNodes = Modules::sceneMan().findNodes(Modules::sceneMan().getRootNode(), "", SceneNodeTypes::ProjectorNode);
 
    setupViewMatrices( _curCamera->getViewMat(), _curCamera->getProjMat() );
@@ -1996,7 +1996,7 @@ void Renderer::drawProjections( const std::string &shaderContext, uint32 userFla
    {
       ProjectorNode* n = (ProjectorNode*)Modules::sceneMan().getFindResult(i);
       
-      _materialOverride = n->getMaterialRes().getPtr();
+      _materialOverride = n->getMaterialRes();
       Frustum f;
       const BoundingBox& b = n->getBBox();
       f.buildBoxFrustum(m, b.min().x, b.max().x, b.min().y, b.max().y, b.min().z, b.max().z);

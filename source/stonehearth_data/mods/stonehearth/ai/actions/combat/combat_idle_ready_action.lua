@@ -9,7 +9,7 @@ CombatIdleReady.args = {
    enemy = Entity
 }
 CombatIdleReady.version = 2
-CombatIdleReady.priority = 0 -- CHECKCHECK disabled
+CombatIdleReady.priority = 1
 CombatIdleReady.weight = 1
 
 function CombatIdleReady:run(ai, entity, args)

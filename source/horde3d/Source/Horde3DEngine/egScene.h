@@ -341,7 +341,6 @@ public:
 	bool relocateNode( SceneNode &node, SceneNode &parent );
 	
 	int findNodes( SceneNode &startNode, const std::string &name, int type );
-	void clearFindResults() { _findResults.resize( 0 ); }
 	SceneNode *getFindResult( int index ) { return (unsigned)index < _findResults.size() ? _findResults[index] : 0x0; }
 	
 	int castRay( SceneNode &node, const Vec3f &rayOrig, const Vec3f &rayDir, int numNearest, int userFlags );
@@ -362,6 +361,7 @@ public:
    void clearQueryCache();
 
 protected:
+	int _findNodes( SceneNode &startNode, const std::string &name, int type );
    int _checkQueryCache(const SpatialQuery& query);
 	NodeHandle parseNode( SceneNodeTpl &tpl, SceneNode *parent );
 	void removeNodeRec( SceneNode &node );

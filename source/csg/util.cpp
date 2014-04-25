@@ -32,23 +32,13 @@ std::ostream& csg::operator<<(std::ostream& os, EdgeList const& f)
 
 int csg::GetChunkIndex(int value, int width)
 {
-   int index;
-   if (value >= 0) {
-      index = value / width;
-   } else {
-      index = ((value - (width - 1)) / width);
-   }
-   return index;
+   return (int) std::floor((float)value / width);
 }
 
 void csg::GetChunkIndex(int value, int chunk_width, int& index, int& offset)
 {
    index = csg::GetChunkIndex(value, chunk_width);
-   if (value >= 0) {
-      offset = value - (index * chunk_width);
-   } else {
-      offset = -(index * chunk_width) - -value;
-   }
+   offset = value - (index * chunk_width);
    ASSERT(offset >= 0 && offset < chunk_width);
 }
 

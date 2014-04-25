@@ -94,7 +94,7 @@ function NewGameCallHandler:embark_server(session, response)
    local wgs = stonehearth.world_generation
    local x = wgs.generation_location.x
    local z = wgs.generation_location.z
-   local y = radiant.terrain.get_height(Point2(x, z))
+   local y = radiant.terrain.get_height(x, z)
 
    return {
       x = x,

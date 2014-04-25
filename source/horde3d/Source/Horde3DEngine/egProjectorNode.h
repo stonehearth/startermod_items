@@ -57,12 +57,12 @@ public:
 	float getParamF( int param, int compIdx );
 	void setParamF( int param, int compIdx, float value );
 
-   PMaterialResource& getMaterialRes();
+   MaterialResource* getMaterialRes();
 
 protected:
 	ProjectorNode( const ProjectorNodeTpl &projectorTpl );
 
-protected:
+private:
 
    PMaterialResource _matRes;
 	

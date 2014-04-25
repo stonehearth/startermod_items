@@ -18,7 +18,6 @@
 
 #include "utDebug.h"
 
-
 namespace Horde3D {
 
 using namespace std;
@@ -28,9 +27,8 @@ using namespace std;
 // *************************************************************************************************
 
 ProjectorNode::ProjectorNode( const ProjectorNodeTpl &nodeTpl ) :
-	SceneNode( nodeTpl )
+   SceneNode( nodeTpl ), _matRes(nodeTpl._matRes)
 {
-   _matRes = nodeTpl._matRes;
 }
 
 
@@ -39,7 +37,7 @@ ProjectorNode::~ProjectorNode()
    _matRes = 0x0;
 }
 
-PMaterialResource& ProjectorNode::getMaterialRes()
+MaterialResource* ProjectorNode::getMaterialRes()
 {
    return _matRes;
 }

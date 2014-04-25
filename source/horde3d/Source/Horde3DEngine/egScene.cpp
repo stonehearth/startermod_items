@@ -857,23 +857,29 @@ bool SceneManager::relocateNode( SceneNode &node, SceneNode &parent )
 
 int SceneManager::findNodes( SceneNode &startNode, const std::string &name, int type )
 {
-	int count = 0;
+   _findResults.clear();
+
+   _findNodes(startNode, name, type);
+	
+	return _findResults.size();
+}
+
+
+int SceneManager::_findNodes( SceneNode &startNode, const std::string &name, int type )
+{
 	
 	if( type == SceneNodeTypes::Undefined || startNode._type == type )
 	{
 		if( name == "" || startNode._name == name )
 		{
 			_findResults.push_back( &startNode );
-			++count;
 		}
 	}
 
 	for( uint32 i = 0; i < startNode._children.size(); ++i )
 	{
-		count += findNodes( *startNode._children[i], name, type );
+		_findNodes( *startNode._children[i], name, type );
 	}
-
-	return count;
 }
 
 
