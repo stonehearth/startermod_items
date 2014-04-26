@@ -121,6 +121,7 @@ public:
 
    Cube Scaled(float factor) const { return Cube(min.Scaled(factor), max.Scaled(factor)); }
    Cube ProjectOnto(int axis, S plane) const;
+   Cube Intersection(Cube const& other) const;
 
    bool Intersects(const Cube& other) const;
    bool Contains(const Point& pt) const;

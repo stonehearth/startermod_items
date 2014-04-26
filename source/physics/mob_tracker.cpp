@@ -96,3 +96,8 @@ csg::Cube3 const& MobTracker::GetLastBounds() const
 {
    return last_bounds_;
 }
+
+bool MobTracker::Intersects(csg::Cube3 const& worldBounds) const
+{
+   return worldBounds.Intersects(last_bounds_);
+}

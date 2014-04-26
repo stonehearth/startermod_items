@@ -104,3 +104,13 @@ TrackerType VerticalPathingRegionTracker::GetType() const
 {
    return LADDER;
 }
+
+bool VerticalPathingRegionTracker::Intersects(csg::Cube3 const& worldBounds) const
+{
+   om::Region3BoxedPtr region = GetRegion();
+   if (region) {
+      csg::Point3 origin = GetEntityPosition();
+      return region->Get().Intersects(worldBounds.Translated(-origin));
+   }
+   return false;
+}

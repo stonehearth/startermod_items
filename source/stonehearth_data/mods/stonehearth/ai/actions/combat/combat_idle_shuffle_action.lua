@@ -103,8 +103,12 @@ function CombatIdleShuffle:_is_occupied(location)
    local cube = Cube3(location, location + Point3(1, 1, 1))
    local entities = radiant.terrain.get_entities_in_cube(cube)
 
-   local occupied = next(entities) ~= nil
-   return occupied
+   for id, entity in pairs(entities) do
+      if id ~= 1 then
+         return true
+      end
+   end
+   return false
 end
 
 return CombatIdleShuffle

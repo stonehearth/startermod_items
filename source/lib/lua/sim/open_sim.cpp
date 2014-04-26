@@ -215,15 +215,11 @@ luabind::object NavGrid_GetEntitiesInCube(lua_State *L, csg::Cube3 const& cube)
 {
    phys::NavGrid& navGrid = GetSim(L).GetOctTree().GetNavGrid();
 
-   std::unordered_map<int, om::EntityRef> entities = navGrid.GetEntitiesInCube(cube);
-
    luabind::object result = luabind::newtable(L);
-   int i = 0;
-
-   for (auto const& entry : entities) {
-      result[i++] = entry.second;
-   }
-
+   navGrid.ForEachEntityInBounds(cube, [L, &result](om::EntityPtr entity) {
+      ASSERT(entity);
+      result[entity->GetObjectId()] = luabind::object(L, om::EntityRef(entity));
+   });
    return result;
 }
 
