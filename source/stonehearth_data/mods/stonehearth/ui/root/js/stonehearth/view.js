@@ -4,7 +4,7 @@
    components: {},
 
    init: function() {
-      this._super();      
+      this._super();
    },
 
    destroy: function() {

@@ -23,8 +23,10 @@ function ProxyBuilder:__init(derived, on_mouse, on_keyboard)
    }
    
    self._rotation = 0
-   self._root_proxy = ProxyContainer(nil)
-   self._root_proxy:get_entity():add_component('stonehearth:no_construction_zone')
+   self._root_proxy = ProxyContainer(nil, 'stonehearth:entities:building')
+
+   local entity = self._root_proxy:get_entity()
+   entity:add_component('stonehearth:no_construction_zone')
 end
 
 function ProxyBuilder:set_brush(type, uri)
@@ -160,6 +162,11 @@ function ProxyBuilder:_package_proxy(proxy)
       package.components['stonehearth:construction_data'] = data
    end
 
+   local building = proxy:get_building()
+   if building then
+      package.building_id = building:get_id()
+   end
+   
    -- Package the child and dependency lists.  Build it as a table first to
    -- make sure we don't get duplicates in the children/dependency list,
    -- then shove it into the package.dependencies
@@ -198,6 +205,7 @@ function ProxyBuilder:_package_proxy(proxy)
          table.insert(package.loan_scaffolding_to, id)
       end
    end
+
 
    return package
 end

@@ -48,6 +48,7 @@
       "wooden_column" : "file(entities/build/wooden_column)",
       "wooden_peaked_roof" : "file(entities/build/wooden_peaked_roof)",
       "scaffolding" : "file(entities/build/scaffolding)",
+      "entities:building" : "file(entities/build/building)",
 
       "pet_collar" : "file(entities/critters/collars/pet_collar.json)",
 
@@ -718,6 +719,10 @@
          "controller" : "file(call_handlers/build_call_handler.lua)",
          "endpoint" : "server"
       },
+      "set_building_active": {
+         "controller" : "file(call_handlers/build_call_handler.lua)",
+         "endpoint" : "server"
+      },
       "set_stockpile_filter": {
          "controller" : "file(call_handlers/stockpile_call_handler.lua)",
          "endpoint" : "server"
@@ -776,6 +781,7 @@
       "no_construction_zone" : "file(components/no_construction_zone/no_construction_zone_component.lua)",
       "construction_data" : "file(components/construction_data/construction_data_component.lua)",
       "construction_progress" : "file(components/construction_progress/construction_progress_component.lua)",
+      "construction_project" : "file(components/construction_project/construction_project_component.lua)",
       "personality" : "file(components/personality/personality_component.lua)",
       "loot_table" : "file(components/loot_table/loot_table_component.lua)",
       "inventory" : "file(components/inventory/inventory_component.lua)",

@@ -48,7 +48,7 @@
       "items" : {
             "design_building" : {
                 "name" : "Design Custom Building",
-                "description" : "NOT YET IMPLEMENTED. Design your own custom building with it's own floor-plan and structure.",
+                "description" : "Design your own custom building with it's own floor-plan and structure.",
                 "class" : "button",
                 "icon" : "/stonehearth/ui/game/start_menu/images/design_building.png",
                 "sticky" : true,
@@ -87,7 +87,7 @@
       "description" : "NOT YET IMPLEMENTED. Manager all of your crafters and workshops.",
       "class" : "dock",
       "icon" : "/stonehearth/ui/game/start_menu/images/dock_crafters.png",
-      "hotkey" : "c",
+      "hotkey" : "p",
       "game_mode" : "normal",
       "soundDefault": "stonehearth:sounds:ui:start_menu:trigger_click"
    },
