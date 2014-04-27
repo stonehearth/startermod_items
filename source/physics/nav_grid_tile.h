@@ -27,7 +27,7 @@ class NavGridTile {
 public:
    NavGridTile();
 
-   typedef std::function<void(om::EntityPtr)> ForEachEntityCb;
+   typedef std::function<void(CollisionTrackerPtr)> ForEachTrackerCb;
 
    void RemoveCollisionTracker(CollisionTrackerPtr tracker);
    void AddCollisionTracker(CollisionTrackerPtr tracker);
@@ -40,7 +40,7 @@ public:
    bool IsDataResident() const;
    void SetDataResident(bool value);
 
-   void ForEachEntity(ForEachEntityCb cb);
+   void ForEachTracker(ForEachTrackerCb cb);
 
 public:
    void UpdateBaseVectors(csg::Point3 const& index);

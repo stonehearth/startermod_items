@@ -192,22 +192,22 @@ std::shared_ptr<NavGridTileData> NavGridTile::GetTileData()
 }
 
 /*
- * -- NavGridTile::ForEachEntity
+ * -- NavGridTile::ForEachTracker
  *
- * Call the `cb` for all entities which overlap the tile.  This function makes
- * no guarantees as to the number of times the cb will get called per entity!
+ * Call the `cb` for all trackers which overlap the tile.  This function makes
+ * no guarantees as to the number of times the cb will get called per tracker!
  * Since `trackers_` is a multimap, the cb will be called for each tracker
  * type registered by the entity.  We could filter out duplicates but (1)
  * that's expensive and redundant if the caller is also filtering dups and
  * (2) most callers will already have to handle redundant calls when 
- * iterating over a range of tiles for cases when the same entity overlaps
+ * iterating over a range of tiles for cases when the same tracker overlaps
  * several tiles.
  */ 
-void NavGridTile::ForEachEntity(ForEachEntityCb cb)
+void NavGridTile::ForEachTracker(ForEachTrackerCb cb)
 {
    stdutil::ForEachPrune<dm::ObjectId, CollisionTracker>(trackers_, [cb](dm::ObjectId const& id, CollisionTrackerPtr tracker) {
-      NG_LOG(7) << "calling ForEachEntity callback on " << *tracker->GetEntity();
-      cb(tracker->GetEntity());
+      NG_LOG(7) << "calling ForEachTracker callback on " << *tracker->GetEntity();
+      cb(tracker);
    });
 }
    

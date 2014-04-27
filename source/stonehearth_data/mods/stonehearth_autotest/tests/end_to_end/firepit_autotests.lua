@@ -27,7 +27,7 @@ function firepit_autotests.light_fire(autotest)
          is_lit_at_night = true
 
          --Make it midnight to reset the daily counters
-         stonehearth.calendar:set_time_unit_test_only('hour', 0)
+         stonehearth.calendar:set_time_unit_test_only({ hour = 0 })
       else 
          --The fire was just extinguished
          if is_lit_at_night and is_admiring_fire then
@@ -42,12 +42,12 @@ function firepit_autotests.light_fire(autotest)
       is_admiring_fire = true
 
       --Make it dawn
-      stonehearth.calendar:set_time_unit_test_only('hour', 6)
+      stonehearth.calendar:set_time_unit_test_only({ hour = 6 })
       return radiant.events.UNLISTEN
    end)
 
    --Make it night time so they light the fire
-   stonehearth.calendar:set_time_unit_test_only('hour', 22)
+   stonehearth.calendar:set_time_unit_test_only({ hour = 22 })
 
    autotest:sleep(200000)
    autotest:fail('worker failed to light or admire or quench the fire')
@@ -65,7 +65,7 @@ function firepit_autotests.move_lit_fire(autotest)
    radiant.entities.set_player_id(firepit, radiant.entities.get_player_id(worker))
 
    --Make it night time so they light the fire
-   stonehearth.calendar:set_time_unit_test_only('hour', 22)
+   stonehearth.calendar:set_time_unit_test_only({ hour = 22 })
 
    --Once it's lit, move it
    radiant.events.listen(stonehearth.events, 'stonehearth:fire:lit', function(e)

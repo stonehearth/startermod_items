@@ -408,95 +408,35 @@ void NavGrid::EvictNextUnvisitedTile(csg::Point3 const& pt)
  * -- NavGrid::ForEachEntityAtIndex
  *
  * Call the `cb` at least once (but perhaps more!) for all entities which overlap the tile
- * at the specified index.  See NavGridTile::ForEachEntity for a more complete explanation.
+ * at the specified index.  See NavGridTile::ForEachTracker for a more complete explanation.
  */ 
-void NavGrid::ForEachEntityAtIndex(csg::Point3 const& index, NavGridTile::ForEachEntityCb cb)
+void NavGrid::ForEachEntityAtIndex(csg::Point3 const& index, ForEachEntityCb cb)
 {
-   csg::Point3 location(
-      index.x * TILE_SIZE,
-      index.y * TILE_SIZE,
-      index.z * TILE_SIZE
-   );
-
-   if (bounds_.Contains(location)) {
-      GridTileNonResident(index).ForEachEntity(cb);
+   if (bounds_.Contains(index.Scaled(TILE_SIZE))) {
+      GridTileNonResident(index).ForEachTracker([cb](CollisionTrackerPtr tracker) {
+         cb(tracker->GetEntity());
+      });
    }
 }
 
-static void AddEntityToMap(std::unordered_map<int, om::EntityRef>& map, om::EntityPtr const& entity)
-{
-   map[entity->GetObjectId()] = om::EntityRef(entity);
-}
-
 /*
- * -- NavGrid::GetEntitiesInCube
+ * -- NavGrid::ForEachEntityInBounds
  *
- * Get entities with shapes that intersect the specified world space cube
+ * Get entities with shapes that intersect the specified world space cube.  As with 
+ * ForEachEntityAtIndex, entities may be returned more than once!
  */
-std::unordered_map<int, om::EntityRef> NavGrid::GetEntitiesInCube(csg::Cube3 const& worldCube)
+void NavGrid::ForEachEntityInBounds(csg::Cube3 const& worldBounds, ForEachEntityCb cb)
 {
-   csg::Cube3 indexCube = GetNavGridIndexCube(worldCube);
-   std::unordered_map<int, om::EntityRef> result;
-   std::unordered_map<int, om::EntityRef> visited;
+   csg::Cube3 clippedWorldBounds = worldBounds.Intersection(bounds_);
+   csg::Cube3 indexBounds = csg::GetChunkIndex(clippedWorldBounds, TILE_SIZE);
 
-   for (csg::Point3 const& index : indexCube) {
-      ForEachEntityAtIndex(index,
-         [&result, &visited, &worldCube](om::EntityPtr entity) {
-            // exit early if entity was seen before
-            auto const& iterator = visited.find(entity->GetObjectId());
-            if (iterator != visited.end()) {
-               return;
-            }
-            AddEntityToMap(visited, entity);
+   for (csg::Point3 const& index : indexBounds) {
+      ASSERT(bounds_.Contains(index.Scaled(TILE_SIZE)));
 
-            // Check if mob component intersects worldCube
-            om::MobPtr mobComponent = entity->GetComponent<om::Mob>();
-            csg::Point3 location;
-            if (mobComponent) {
-               location = mobComponent->GetWorldGridLocation();
-               if (worldCube.Contains(location)) {
-                  AddEntityToMap(result, entity);
-                  return;
-               }
-            }
-
-            // Check if collision component intersects worldCube
-            om::RegionCollisionShapePtr collisionComponent = entity->GetComponent<om::RegionCollisionShape>();
-            if (collisionComponent) {
-               // translating the region to world space is potentially expensive, so translate the worldCube
-               // to the local space of the entity for comparison instead
-               csg::Cube3 localCube = worldCube;
-               localCube.Translate(-location);
-               csg::Region3 const& region = collisionComponent->GetRegion()->Get();
-
-               if (region.Intersects(localCube)) {
-                  AddEntityToMap(result, entity);
-                  return;
-               }
-            }
+      GridTileNonResident(index).ForEachTracker([&worldBounds, cb](CollisionTrackerPtr tracker) {
+         if (tracker->Intersects(worldBounds)) {
+            cb(tracker->GetEntity());
          }
-      );
+      });
    }
-
-   return result;
-}
-
-/*
- * -- NavGrid::GetNavGridIndex
- *
- * Get the index for the NavGridTile that contains the specified world location.
- */
-csg::Point3 NavGrid::GetNavGridIndex(csg::Point3 const& location) const
-{
-   return csg::GetChunkIndex(location, TILE_SIZE);
-}
-
-/*
- * -- NavGrid::GetNavGridIndexCube
- *
- * Get the cube containing all the NavGridTile indicies for the specified world space cube.
- */
-csg::Cube3 NavGrid::GetNavGridIndexCube(csg::Cube3 const& cube) const
-{
-   return csg::GetChunkIndex(cube, TILE_SIZE);
 }

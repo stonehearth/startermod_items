@@ -87,18 +87,13 @@ App.StonehearthBuildModeView = App.View.extend({
    // make the UI respond to the entity that has been selected. Show/hide hits of UI, etc.
    _examineEntity: function(entity) {
 
-      // this is the implementation in the zones mode. The build mode will do something similar I imagine
-      /*
       if (!entity && this._subView) {
          this._destroyCurrentSubView();
       }
 
-      if (entity['stonehearth:stockpile']) {
-         this._showStockpileUi(entity);
-      } else if (entity['stonehearth:farmer_field']) {
-         this._showFarmUi(entity);
+      if (entity['stonehearth:fabricator'] || entity['stonehearth:construction_data']) {
+         this._showBuildingDesigner();
       }
-      */
    },
 
    _showStockpileUi: function(entity) {

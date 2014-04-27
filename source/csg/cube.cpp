@@ -138,6 +138,20 @@ Cube<S, C> Cube<S, C>::operator-() const
 }
 
 template <typename S, int C>
+Cube<S, C> Cube<S, C>::Intersection(Cube const& other) const
+{
+   Cube result;
+   for (int i = 0; i < C; i++) {
+      result.min[i] = std::max(min[i], other.min[i]);
+      result.max[i] = std::min(max[i], other.max[i]);
+      if (result.max[i] < result.min[i]) {
+         result.max[i] = result.min[i];
+      }
+   }
+   return result;
+}
+
+template <typename S, int C>
 Region<S, C> Cube<S, C>::operator-(const Cube& rhs) const
 {
    if (!Intersects(rhs)) {
@@ -303,6 +317,7 @@ bool Cube<S, C>::CombineWith(const Cube& cube)
    template Cls::Point Cls::GetClosestPoint2(const Cls::Point& other, Cls::ScalarType*) const; \
    template void Cls::Grow(const Cls::Point& other); \
    template void Cls::Grow(const Cls& other); \
+   template Cls Cls::Intersection(Cls const& other) const; \
    template bool Cls::CombineWith(const Cls& other); \
 
 MAKE_CUBE(Cube3)

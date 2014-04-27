@@ -74,7 +74,7 @@ $(document).ready(function() {
 
             var hudMode = 'normal'
 
-            if (mode == this.modes.ZONES || 
+            if (mode == this.modes.ZONES ||
                 mode == this.modes.BUILD) {
                hudMode = 'hud';
             }
@@ -123,14 +123,19 @@ $(document).ready(function() {
       },
 
       _getModeForEntity: function(entity) {
-         var mode = this.modes.NORMAL;
-
          if (entity['stonehearth:stockpile'] ||
              entity['stonehearth:farmer_field']) {
-            mode = this.modes.ZONES;
+            return this.modes.ZONES;
          }
 
-         return mode;
+         if (entity['stonehearth:fabricator'] ||
+             entity['stonehearth:construction_data']) {
+            if (this._currentMode == this.modes.ZONES ||
+                this._currentMode == this.modes.BUILD ) {
+               return this.modes.BUILD;
+            }
+         }
+         return this.modes.NORMAL;
       }
    });
 })();

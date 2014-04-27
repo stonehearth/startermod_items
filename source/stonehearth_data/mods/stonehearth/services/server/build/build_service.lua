@@ -97,9 +97,8 @@ end
 
 function BuildService:_begin_construction(blueprint, location)
    -- create a new fabricator...   to... you know... fabricate
-   local project = self:_create_fabricator(blueprint)
-   radiant.terrain.place_entity(project, location)
-   return project
+   local fabricator = self:_create_fabricator(blueprint)
+   radiant.terrain.place_entity(fabricator, location)
 end
 
 function BuildService:_create_fabricator(blueprint)

@@ -14,12 +14,20 @@ function FabricatorComponent:initialize(entity, json)
    self._entity = entity
    self._sv = self.__saved_variables:get_data()
 
+   if not self._sv.initialized then
+      self._sv.initialized = true
+      self._sv.activated = false
+      self.__saved_variables:mark_changed()
+   end
    radiant.events.listen_once(radiant, 'radiant:game_loaded', function()
          if self._sv.blueprint and self._sv.project then
             self._fabricator = Fabricator(string.format("(%s Fabricator)", tostring(self._sv.blueprint)),
                                           self._entity,
                                           self._sv.blueprint,
                                           self._sv.project)
+            if self._sv.activated then
+               self._fabricator:start_building()
+            end
          end
       end)
 end
@@ -38,6 +46,22 @@ function FabricatorComponent:destroy()
    if self._sv.scaffolding_fabricator then
       radiant.entities.destroy_entity(self._sv.scaffolding_fabricator)
       self._sv.scaffolding_fabricator = nil
+   end
+end
+
+function FabricatorComponent:start_building()
+   if not self._sv.activated then
+      self._sv.activated = true
+      self.__saved_variables:mark_changed()
+      self._fabricator:start_building()
+   end
+end
+
+function FabricatorComponent:stop_building()
+   if not self._sv.activated then
+      self._sv.activated = false
+      self.__saved_variables:mark_changed()
+      self._fabricator:stop_building()
    end
 end
 

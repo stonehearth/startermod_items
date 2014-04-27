@@ -65,3 +65,9 @@ TrackerType TerrainTracker::GetType() const
 {
    return COLLISION;
 }
+
+bool TerrainTracker::Intersects(csg::Cube3 const& worldBounds) const
+{
+   // leave it to the terrain tiles...
+   return false;
+}
