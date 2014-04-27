@@ -105,6 +105,7 @@ function FabricatorComponent:start_project(name, blueprint)
    self._sv.blueprint = blueprint
    self.__saved_variables:mark_changed()
    
+   self:start_building()
    return self
 end
 
