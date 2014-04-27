@@ -57,7 +57,7 @@ std::shared_ptr<sf::Sound> AudioManager::CreateSound(const std::string& uri)
 std::shared_ptr<sf::Sound> AudioManager::CreateSoundInternal(const std::string& uri) 
 {
    CleanupSounds();
-   if (sounds_.size() > MAX_SOUNDS) {
+   if (sounds_.size() >= MAX_SOUNDS) {
       return empty_sound_;
    }
 
@@ -83,6 +83,10 @@ std::shared_ptr<sf::Sound> AudioManager::CreateSoundInternal(const std::string& 
 //Every time a sound plays, cleans up any finished sounds.
 void AudioManager::CleanupSounds()
 {
+   // No need to do any work until we're at MAX_SOUNDS.
+   if (sounds_.size() < MAX_SOUNDS) {
+      return;
+   }
    uint i, c = sounds_.size();
    for (i = 0; i < c;) {
       if (sounds_[i]->getStatus() == sf::SoundSource::Status::Stopped) {

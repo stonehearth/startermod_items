@@ -843,6 +843,7 @@ float PlaySoundEffect::CalculateAttenuation(int maxDistance, int minDistance) {
 
 PlaySoundEffect::~PlaySoundEffect()
 {
+   sound_->stop();
 }
 
 /* PlaySoundEffect::Update
