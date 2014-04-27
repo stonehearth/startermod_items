@@ -358,7 +358,7 @@ const JSONNode ResourceManager2::GetModules() const
    return result;
 }
 
-AnimationPtr ResourceManager2::LookupAnimation(std::string path) const
+AnimationPtr ResourceManager2::LookupAnimation(const std::string& path) const
 {
    std::lock_guard<std::recursive_mutex> lock(mutex_);
 
@@ -400,29 +400,29 @@ std::shared_ptr<std::istream> ResourceManager2::OpenResourceCanonical(std::strin
 
 }
 
-std::string ResourceManager2::ConvertToCanonicalPath(std::string path, const char* search_ext) const
+std::string ResourceManager2::ConvertToCanonicalPath(const std::string& path, const char* search_ext) const
 {
    std::lock_guard<std::recursive_mutex> lock(mutex_);
 
-   path = ExpandMacro(path, ".", true); // so we can lookup things like 'stonehearth:wooden_axe'
+   std::string path_exp = ExpandMacro(path, ".", true); // so we can lookup things like 'stonehearth:wooden_axe'
 
    std::string modname;
    std::vector<std::string> parts;
-   ParsePath(path, modname, parts);
+   ParsePath(path_exp, modname, parts);
 
    auto i = modules_.find(modname);
    if (i == modules_.end()) {
-      throw InvalidFilePath(path);
+      throw InvalidFilePath(path_exp);
    }
 
    if (!i->second->CheckFilePath(parts)) {
       if (!search_ext) {
-         throw InvalidFilePath(path);
+         throw InvalidFilePath(path_exp);
       }
       // try the 2nd form...
       parts.push_back(parts.back() + search_ext);
       if (!i->second->CheckFilePath(parts)) {
-         throw InvalidFilePath(path);
+         throw InvalidFilePath(path_exp);
       }
    }
 
@@ -431,7 +431,7 @@ std::string ResourceManager2::ConvertToCanonicalPath(std::string path, const cha
    // finally, see if this resource has been overridden.  If so, use that path instead
    auto j = overrides_.find(canonical_path);
    if (j != overrides_.end()) {
-      RES_LOG(3) << "overriding path " << path << " with " << j->second;
+      RES_LOG(3) << "overriding path " << path_exp << " with " << j->second;
       canonical_path = j->second;
    }
    return canonical_path;

@@ -26,7 +26,7 @@ function Buff:_restore(savestate)
 end
 
 function Buff:destroy()
-   self._entity:add_component('stonehearth:buffs'):remove_buff(self._sv.uri)
+   radiant.entities.remove_buff(self._entity, self._sv.uri)
    self:_destroy_effect()
    self:_destroy_duration()
    self:_destroy_modifiers()

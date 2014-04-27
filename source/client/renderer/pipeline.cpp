@@ -295,8 +295,6 @@ Pipeline::CreateDesignationNode(H3DNode parent,
                                 csg::Color4 const& outline_color,
                                 csg::Color4 const& stripes_color)
 {
-   csg::RegionTools2 tools;
-
    csg::mesh_tools::mesh outline_mesh;
    csg::mesh_tools::mesh stripes_mesh;
 
