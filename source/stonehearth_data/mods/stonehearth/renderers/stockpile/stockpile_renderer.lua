@@ -8,25 +8,20 @@ local StockpileRenderer = class()
 
 function StockpileRenderer:__init()
    self._color = Color4(0, 153, 255, 76)
-   self._ui_view_mode = 'normal'
+   self._ui_view_mode = stonehearth.renderer:get_ui_mode()
    self._stockpile_items = {}
-
-   _radiant.call('stonehearth:get_ui_mode'):done(
-      function (o)
-         self._ui_view_mode = o.mode
-      end
-   )
 
    radiant.events.listen(radiant.events, 'stonehearth:ui_mode_changed', self, self._on_ui_mode_changed)
 end
 
 function StockpileRenderer:_on_ui_mode_changed(e)
-  if self._ui_view_mode ~= e.mode then
-     self._ui_view_mode = e.mode
+   local mode = stonehearth.renderer:get_ui_mode()
+   if self._ui_view_mode ~= mode then
+      self._ui_view_mode = mode
 
-     self:_update_item_states(e.mode, self._stockpile_items)
-     self:_update_stockpile_renderer()
-  end
+      self:_update_item_states(mode, self._stockpile_items)
+      self:_update_stockpile_renderer()
+   end
 end
 
 function StockpileRenderer:_update_stockpile_renderer()

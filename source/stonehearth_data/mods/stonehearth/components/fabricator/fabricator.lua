@@ -96,10 +96,7 @@ function Fabricator:_create_new_project()
                      :set_region(rgn)
    self._entity:add_component('entity_container')
                      :add_child(self._project)
-   self._entity:add_component('stonehearth:construction_project')
-                     :set_fabricator_entity(self._entity)
-                     :set_blueprint_entity(blueprint)
-
+                        
    -- get fabrication specific info, if available.  copy it into the project, too
    -- so everything gets rendered correctly.
    local state = self._construction_data:get_savestate()

@@ -10,20 +10,16 @@ function FarmerFieldRenderer:__init()
    self._color = Color4(122, 40, 0, 76)
    self._items = {}
 
-   _radiant.call('stonehearth:get_ui_mode'):done(
-      function (o)
-         self._ui_view_mode = o.mode
-      end
-   )
-
    radiant.events.listen(radiant.events, 'stonehearth:ui_mode_changed', self, self._ui_mode_changed)
+   self._ui_mode_changed()
 end
 
 function FarmerFieldRenderer:_ui_mode_changed(e)
-   if self._ui_view_mode ~= e.mode then
-      self._ui_view_mode = e.mode
+   local mode = stonehearth.renderer:get_ui_mode()
+   if self._ui_view_mode ~= mode then
+      self._ui_view_mode = mode
 
-      self:_update_item_states(e.mode, self._items)
+      self:_update_item_states(mode, self._items)
       self:_update_field_renderer()
    end
 end

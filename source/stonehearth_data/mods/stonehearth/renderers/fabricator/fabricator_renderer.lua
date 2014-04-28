@@ -3,20 +3,14 @@ local Point3 = _radiant.csg.Point3
 local FabricatorRenderer = class()
 
 function FabricatorRenderer:__init()
-   self._ui_view_mode = 'normal'
-
-   _radiant.call('stonehearth:get_ui_mode'):done(
-      function (o)
-         self._ui_view_mode = o.mode
-      end
-   )
-
    radiant.events.listen(radiant.events, 'stonehearth:ui_mode_changed', function(e)
-      if self._ui_view_mode ~= e.mode then
-         self._ui_view_mode = e.mode
+      local mode = stonehearth.renderer:get_ui_mode()
+      if self._ui_view_mode ~= mode then
+         self._ui_view_mode = mode
          self:_update()
       end
-   end)
+   end)  
+   self._ui_view_mode = stonehearth.renderer:get_ui_mode()
 end
 
 function FabricatorRenderer:update(render_entity, datastore)

@@ -101,7 +101,6 @@ function FabricatorComponent:start_project(name, blueprint)
    self._sv.blueprint = blueprint
    self.__saved_variables:mark_changed()
    
-   self:set_active(true)
    return self
 end
 

@@ -739,7 +739,7 @@
          "controller" : "file(call_handlers/camera_call_handler.lua)",
          "endpoint" : "client"
       },
-      "ui_mode_changed": {
+      "set_ui_mode": {
          "controller" : "file(call_handlers/ui_mode_call_handler.lua)",
          "endpoint" : "client"
       },
