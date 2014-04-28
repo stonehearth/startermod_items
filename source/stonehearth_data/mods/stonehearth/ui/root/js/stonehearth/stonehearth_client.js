@@ -163,8 +163,6 @@ var StonehearthClient;
 
       _citizenManager: null,
       showCitizenManager: function(show) {
-         //radiant.call('radiant:play_sound', 'stonehearth:sounds:ui:start_menu:popup' );
-         
          // hide the other population managers....oh lord this is ugly code
          if (this._crafterManager) {
             this._crafterManager.$().hide();
@@ -180,8 +178,6 @@ var StonehearthClient;
 
       _crafterManager: null,
       showCrafterManager: function(show) {
-         radiant.call('radiant:play_sound', 'stonehearth:sounds:ui:start_menu:popup' );
-
          // hide the other population managers....oh lord this is ugly code
          if (this._citizenManager) {
             this._citizenManager.$().hide();
