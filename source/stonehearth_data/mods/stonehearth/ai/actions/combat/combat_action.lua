@@ -100,7 +100,7 @@ function Combat:_get_target()
    local target = citizens[1]
    --local target = radiant.entities.get_target_table_top(self._entity, 'aggro')
 
-   if target ~= nil then
+   if target ~= nil and target:is_valid() then
       if target:get_id() == entity:get_id() then
          --target = nil
          target = citizens[2]

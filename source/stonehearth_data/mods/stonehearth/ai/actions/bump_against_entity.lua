@@ -16,10 +16,9 @@ BumpAgainstEntity.priority = 1
 function BumpAgainstEntity:run(ai, entity, args)
    local distance = args.distance
    local bumper = args.entity
-   local mob = entity:get_component('mob')
-   
-   if not mob then
-      ai:abort('%s is not a mob', tostring(entity))
+
+   if bumper == nil or not bumper:is_valid() then
+      return
    end
 
    local entity_location = entity:add_component('mob'):get_world_location()
