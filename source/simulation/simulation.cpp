@@ -467,14 +467,16 @@ void Simulation::DestroyEntity(dm::ObjectId id)
       om::EntityPtr entity = i->second;
       lua_State* L = scriptHost_->GetInterpreter();
       luabind::object e(L, std::weak_ptr<om::Entity>(entity));
+      luabind::object id(L, entity->GetObjectId());
       luabind::object evt(L, luabind::newtable(L));
       evt["entity"] = e;
+      evt["entity_id"] = id;
 
       scriptHost_->TriggerOn(e, "radiant:entity:pre_destroy", evt);
       scriptHost_->Trigger("radiant:entity:pre_destroy", evt);
 
       evt = luabind::object(L, luabind::newtable(L));
-      evt["entity_id"] = luabind::object(L, entity->GetObjectId());
+      evt["entity_id"] = id;
 
       entity->Destroy();
       entityMap_.erase(i);

@@ -573,7 +573,7 @@ void ScriptHost::Trigger(const std::string& eventName, luabind::object evt)
 {
    try {
       luabind::object radiant = globals(cb_thread_)["radiant"];
-      TriggerOn(globals(cb_thread_)["radiant"], eventName, evt);
+      TriggerOn(radiant, eventName, evt);
    } catch (std::exception const& e) {
       ReportCStackThreadException(cb_thread_, e);
    }

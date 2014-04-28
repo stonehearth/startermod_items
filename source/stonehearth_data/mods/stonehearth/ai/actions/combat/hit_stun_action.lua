@@ -59,7 +59,9 @@ function HitStun:_start_new_effect()
    self._hit_effect = radiant.effects.run_effect(self._entity,  'combat_1h_hit' )
    self._hit_effect:set_finished_cb(
       function ()
-         self._ai:resume()
+         if self._ai then
+            self._ai:resume()
+         end
       end
    )
 end
