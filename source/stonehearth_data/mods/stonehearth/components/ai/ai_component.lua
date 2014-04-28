@@ -194,9 +194,14 @@ function AIComponent:add_observer(uri)
 end
 
 function AIComponent:_add_observer_script(uri)
-   local ctor = radiant.mods.load_script(uri)
-   assert(not self._observer_instances[uri])
+   
+   --If we already have an observer instance at this URI, 
+   --(ie, pet collars on load) just return
+   if self._observer_instances[uri] then
+      return
+   end
 
+   local ctor = radiant.mods.load_script(uri)   
    local new_observer_instance = ctor(self._entity)
    
    --Do we have a datastore for this observer? if not, create one

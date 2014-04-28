@@ -27,6 +27,8 @@ function EmbarkTest:__init()
    local tree = self:place_tree(-12, 0)
    local tree = self:place_tree(-12, 2)
 
+   local critter1 = self:place_item('stonehearth:red_fox', 2, 2)
+
 
    local worker = self:place_citizen(-5, -5)
    radiant.events.trigger_async(personality_service, 'stonehearth:journal_event', 

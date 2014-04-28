@@ -30,6 +30,10 @@
           "calories": {
             "type" : "basic", 
             "value" : 30
+         },
+         "sleepiness": {
+            "type" : "basic", 
+            "value" : 0
          }
       }
    }
