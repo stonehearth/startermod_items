@@ -95,15 +95,19 @@ end
 -- stupid implementation until target tables are fixed
 function Combat:_get_target()
    local entity = self._entity
+   local entity_id = entity:get_id()
+   local target, target_id
+
    local pop = stonehearth.population:get_population('player_1')
    local citizens = pop:get_citizens()
-   local target = citizens[1]
    --local target = radiant.entities.get_target_table_top(self._entity, 'aggro')
 
+   target_id, target = next(citizens)
+
    if target ~= nil and target:is_valid() then
-      if target:get_id() == entity:get_id() then
+      if target_id == entity_id then
          --target = nil
-         target = citizens[2]
+         target_id, target = next(citizens, target_id)
       end
    end
 
