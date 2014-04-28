@@ -1,5 +1,5 @@
 local AssaultContext = require 'services.server.combat.assault_context'
-local HitStunContext = require 'services.server.combat.hit_stun_context'
+local BatteryContext = require 'services.server.combat.battery_context'
 local Entity = _radiant.om.Entity
 local rng = _radiant.csg.get_default_rng()
 local log = radiant.log.create_logger('combat')
@@ -52,8 +52,9 @@ function AttackMeleeAdjacent:run(ai, entity, args)
          if self._context.target_defending then
             self._hit_effect:stop()
          else
-            -- TODO: negotiate damage with defender and get appropriate effect
-            stonehearth.combat:hit_stun(target, HitStunContext())
+            -- TODO: get damage from equipped weapon modified by attack action
+            local battery_context = BatteryContext(10)
+            stonehearth.combat:battery(target, battery_context)
          end
       end
    )

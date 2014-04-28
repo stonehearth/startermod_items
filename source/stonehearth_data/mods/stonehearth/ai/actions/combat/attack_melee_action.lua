@@ -22,8 +22,9 @@ function AttackMelee:run(ai, entity, args)
       return
    end
 
-   local melee_range = stonehearth.combat:get_melee_range(entity, 'medium_1h_weapon', target)
-   local engage_range_min = melee_range + 3
+   local melee_range_ideal = stonehearth.combat:get_melee_range(entity, 'medium_1h_weapon', target)
+   local melee_range_max = melee_range_ideal + 2
+   local engage_range_min = melee_range_ideal + 3
    local engage_range_max = engage_range_min + 3
 
    ai:execute('stonehearth:chase_entity', { target = target, stop_distance = engage_range_min })
@@ -34,11 +35,11 @@ function AttackMelee:run(ai, entity, args)
       local context = EngageContext(entity)
       stonehearth.combat:engage(target, context)
 
-      ai:execute('stonehearth:chase_entity', { target = target, stop_distance = melee_range })
+      ai:execute('stonehearth:chase_entity', { target = target, stop_distance = melee_range_ideal })
 
-      ai:execute('stonehearth:combat:attack_melee_adjacent', { target = target })
-   else
-      -- give up and go back to start thinking
+      if distance < melee_range_max then
+         ai:execute('stonehearth:combat:attack_melee_adjacent', { target = target })
+      end
    end
 end
 
