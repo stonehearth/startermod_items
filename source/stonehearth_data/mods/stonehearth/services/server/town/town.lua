@@ -174,11 +174,12 @@ function Town:_get_unit_controller(entity)
 end
 
 function Town:set_banner(entity)
-   self._banner = entity
+   self._sv.banner = entity
+   self.__saved_variables:mark_changed()
 end
 
 function Town:get_banner()
-   return self._banner
+   return self._sv.banner
 end
 
 --- xxx: deprecated.  get rid of this
