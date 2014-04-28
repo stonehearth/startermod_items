@@ -361,7 +361,7 @@ public:
    void clearQueryCache();
 
 protected:
-	int _findNodes( SceneNode &startNode, const std::string &name, int type );
+	void _findNodes( SceneNode &startNode, const std::string &name, int type );
    int _checkQueryCache(const SpatialQuery& query);
 	NodeHandle parseNode( SceneNodeTpl &tpl, SceneNode *parent );
 	void removeNodeRec( SceneNode &node );
