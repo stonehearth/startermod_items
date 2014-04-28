@@ -1,7 +1,21 @@
-#populationManager {
+.populationManager {
    position: absolute;
    right: 10px;
-   top: 200px;
-   width: 400px;
-   max-height: 400px;
+   top: 300px;
+
+   .window {
+      width: 550px;
+      height: 600px;
+      max-height: 400px;      
+   }
+
+   table {
+      td:first-of-type {
+         white-space: nowrap;
+      }
+
+      td {
+         vertical-align: top;
+      }
+   }
 }

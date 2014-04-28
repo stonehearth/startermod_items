@@ -72,8 +72,8 @@
             }
       }
    },
-   "population_manager" : {
-      "name" : "Manage Jobs",
+   "citizen_manager" : {
+      "name" : "Manage Citizen",
       "description" : "NOT YET IMPLEMENTED. Manage your settlers and promote them to new jobs.",
       "class" : "dock",
       "icon" : "/stonehearth/ui/game/start_menu/images/dock_jobs.png",
@@ -82,7 +82,7 @@
       "sound": "stonehearth:sounds:ui:start_menu:jobs_close",
       "soundTwo": "stonehearth:sounds:ui:start_menu:jobs_open"
    },
-   "crafters_menu" : {
+   "crafter_manager" : {
       "name" : "Manage Crafters",
       "description" : "NOT YET IMPLEMENTED. Manager all of your crafters and workshops.",
       "class" : "dock",
@@ -91,7 +91,7 @@
       "game_mode" : "normal",
       "soundDefault": "stonehearth:sounds:ui:start_menu:trigger_click"
    },
-   "defend_menu" : {
+   "squad_manager" : {
       "name" : "Manage Squads",
       "description" : "NOT YET IMPLEMENTED. Manage your military squads.",
       "class" : "dock",

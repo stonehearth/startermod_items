@@ -161,15 +161,40 @@ var StonehearthClient;
          });
       },
 
-      _populationManager: null,
-      showPopulationManager: function() {
-         radiant.call('radiant:play_sound', 'stonehearth:sounds:ui:start_menu:popup' );
-         if (!this._populationManager) {
-            this._populationManager = App.gameView.addView(App.StonehearthPopulationManagerView);
+      _citizenManager: null,
+      showCitizenManager: function(show) {
+         //radiant.call('radiant:play_sound', 'stonehearth:sounds:ui:start_menu:popup' );
+         
+         // hide the other population managers....oh lord this is ugly code
+         if (this._crafterManager) {
+            this._crafterManager.$().hide();
+         }
+
+         // toggle the citizenManager
+         if (!this._citizenManager) {
+            this._citizenManager = App.gameView.addView(App.StonehearthCitizenManagerView);
          } else {
-            this._populationManager.$().toggle();
+            this._citizenManager.$().toggle();
          }
       },
+
+      _crafterManager: null,
+      showCrafterManager: function(show) {
+         radiant.call('radiant:play_sound', 'stonehearth:sounds:ui:start_menu:popup' );
+
+         // hide the other population managers....oh lord this is ugly code
+         if (this._citizenManager) {
+            this._citizenManager.$().hide();
+         }
+         
+         // toggle the citizenManager
+         if (!this._crafterManager) {
+            this._crafterManager = App.gameView.addView(App.StonehearthCrafterManagerView);
+         } else {
+            this._crafterManager.$().toggle();
+         }
+      },
+
    });
    App.stonehearthClient = new StonehearthClient();
 })();
