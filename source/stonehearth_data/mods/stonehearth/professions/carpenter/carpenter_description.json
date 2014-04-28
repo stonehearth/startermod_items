@@ -1,10 +1,7 @@
 {
-   "profession" : {
-      "profession_type": "carpenter",
-      "name": "Carpenter",      
-      "script": "file(/professions/carpenter/carpenter.lua)",
-      "description": "Carpenter"
-   },
+   "profession_type": "carpenter",
+   "name": "Carpenter",      
+   "description": "Builds stuff out of wood",
    "script": "file(carpenter.lua)",
    "outfit": "file(carpenter_outfit)",
    "crafter" : {
