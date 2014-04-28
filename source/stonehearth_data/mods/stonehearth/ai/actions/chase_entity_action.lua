@@ -26,16 +26,56 @@ function ChaseEntity:start_thinking(ai, entity, args)
 
    self._running = false
    self._ai = ai
+   self._entity = entity
+
+   self:_trace_target(target)
 
    path = self:_get_direct_path(entity, target, ai.CURRENT.location)
 
    if path then
-      self:_set_think_output(path, target)
+      self:_set_think_output(path)
       return
    end
 
    -- no direct path, wait for a solution from the pathfinder
    self:_get_astar_path(entity, target, ai.CURRENT.location)
+end
+
+function ChaseEntity:_trace_target(target)
+   local target_mob = target:add_component('mob')
+   local target_last_location = target:add_component('mob'):get_world_grid_location()
+   local target_previous_locations = {}
+
+   local on_target_moved = function()
+      local target_current_location = target_mob:get_world_grid_location()
+
+      if target_current_location ~= target_last_location then
+         local path = self:_find_run_time_path(self._entity, target, target_previous_locations)
+
+         target_last_location = target_current_location
+
+         if path ~= nil then
+            self._path = path
+            target_previous_locations = {}
+            self:_destroy_mover()
+            self._ai:resume()
+         else
+            -- track target's path so we can follow or intercept
+            table.insert(target_previous_locations, target_current_location)
+         end
+      end
+   end
+
+   local on_target_destroyed = function()
+      -- no guarantee that stop will be called on abort, call if explicitly
+      local ai = self._ai
+      self:stop()
+      ai:abort('target destroyed')
+   end
+
+   self._trace = radiant.entities.trace_location(target, 'chase entity')
+      :on_changed(on_target_moved)
+      :on_destroyed(on_target_destroyed)
 end
 
 -- destination may be an Entity or a Point3
@@ -63,7 +103,7 @@ function ChaseEntity:_get_astar_path(entity, destination, start_location_overrid
    radiant.check.is_entity(destination)
 
    local on_solved = function (path)
-      self:_set_think_output(path, destination)
+      self:_set_think_output(path)
    end
 
    self._path_finder = _radiant.sim.create_astar_path_finder(entity, 'chase entity')
@@ -77,15 +117,18 @@ function ChaseEntity:_get_astar_path(entity, destination, start_location_overrid
    self._path_finder:start()
 end
 
-function ChaseEntity:_set_think_output(path, target)
+function ChaseEntity:_set_think_output(path)
    self._path = path
-   self._target_last_location = target:add_component('mob'):get_world_grid_location()
    self._ai:set_think_output()
 end
 
 function ChaseEntity:stop_thinking(ai, entity, args)
    self:_destroy_path_finder()
-   self:_clean_up_references()
+
+   if not self._running then
+      self:_destroy_trace()
+      self:_clean_up_references()
+   end
 end
 
 function ChaseEntity:start(ai, entity, args)
@@ -95,45 +138,7 @@ end
 function ChaseEntity:run(ai, entity, args)
    local speed = radiant.entities.get_speed(entity)
    local stop_distance = args.stop_distance
-   local target = args.target
-   local target_mob = target:add_component('mob')
-   local target_current_location, new_path
-   local target_previous_locations = {}
    local finished = false
-
-   local on_target_moved = function()
-      target_current_location = target_mob:get_world_grid_location()
-
-      if target_current_location ~= self._target_last_location then
-
-         new_path = self:_find_run_time_path(entity, target, target_previous_locations)
-
-         self._target_last_location = target_current_location
-
-         if new_path ~= nil then
-            self._path = new_path
-            target_previous_locations = {}
-            self:_destroy_mover()
-            ai:resume()
-         else
-            -- track target's path so we can follow or intercept
-            table.insert(target_previous_locations, target_current_location)
-         end
-      end
-   end
-
-   local on_target_destroyed = function()
-      -- no guarantee that stop will be called on abort, call if explicitly
-      self:stop()
-      ai:abort('target destroyed')
-   end
-
-   self._trace = radiant.entities.trace_location(target, 'chase entity')
-      :on_changed(on_target_moved)
-      :on_destroyed(on_target_destroyed)
-
-   -- check if target has moved between start_thinking and run
-   on_target_moved()
 
    self:_start_run_effect(entity)
 
@@ -196,11 +201,9 @@ function ChaseEntity:stop(ai, entity, args)
 end
 
 function ChaseEntity:_clean_up_references()
-   if not self._running then
-      self._ai = nil
-      self._path = nil
-      self._target_last_location = nil
-   end
+   self._ai = nil
+   self._entity = nil
+   self._path = nil
 end
 
 function ChaseEntity:_destroy_trace()
