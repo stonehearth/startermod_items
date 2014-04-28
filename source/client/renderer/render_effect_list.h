@@ -158,17 +158,13 @@ private:
 
 struct PlaySoundEffect : public RenderEffect {
 public:
-   static bool ShouldCreateSound();
    PlaySoundEffect(RenderEntity& e, om::EffectPtr effect, const JSONNode& node);
    ~PlaySoundEffect();
 
    void Update(FrameStartInfo const& info, bool& done) override;
 
 private:
-   static int      numSounds_;
-
-   sf::SoundBuffer soundBuffer_;
-   sf::Sound       sound_;
+   std::shared_ptr<sf::Sound>       sound_;
    int             startTime_;   //Time when the sound starts to play
    bool            firstPlay_;   //Whether this is the first time we're playing the sound
    int             delay_;       //How long to wait before starting the sound

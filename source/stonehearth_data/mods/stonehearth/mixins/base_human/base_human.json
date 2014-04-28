@@ -2,6 +2,9 @@
    "type" : "entity",
    "mixins" : "stonehearth:mixins:mob",
    "components" : {
+      "mob" : {
+         "interpolate_movement" : false
+      },
       "stonehearth:ai" : {
          "actions" : [
             "stonehearth:actions:collect_ingredient",
@@ -51,6 +54,7 @@
             "stonehearth:actions:combat:idle:shuffle",
             "stonehearth:actions:combat:hit_stun",
             "stonehearth:actions:chase_entity", 
+            "stonehearth_autotest:actions:teleport_to_end_of_path",
             "stonehearth:actions:free_time:dispatcher" 
          ],
           "observers": [

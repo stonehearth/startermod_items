@@ -25,17 +25,12 @@ AudioManager::AudioManager() :
    efx_volume_(EFX_DEF_VOL),
    master_efx_volume_(EFX_MASTER_DEF_VOL)
 {
+   empty_sound_ = std::make_shared<sf::Sound>(sf::SoundBuffer());
 }
 
 //Iterate through the map and list, cleaning memory
 AudioManager::~AudioManager()
 {
-   //Cleanup the sound
-   uint i, c = sounds_.size();
-   for (i = 0; i < c; i++) {
-      delete sounds_[i];
-   }
-
    //Clean up all the sound buffers
    for (auto const& entry : sound_buffers_) {
       delete entry.second; // note: using delete, not delete[]. delete[] is for things allocated with new []
@@ -47,12 +42,23 @@ AudioManager::~AudioManager()
 //First, see if the soundbuffer for the uri already exists. If so, reuse.
 //If not, make a new soundbuffer for the sound. Then, load it into a new sound
 //and play that sound. 
-//TODO: merge with general sound-playing (ie, PlaySoundEffect from RenderEffectList.cpp)
-void AudioManager::PlaySound(std::string uri) 
+void AudioManager::PlaySound(const std::string& uri) 
+{
+   std::shared_ptr<sf::Sound> s = CreateSoundInternal(uri);
+   s->setVolume(efx_volume_ * master_efx_volume_);
+   s->play();
+}
+
+std::shared_ptr<sf::Sound> AudioManager::CreateSound(const std::string& uri)
+{
+   return CreateSoundInternal(uri);
+}
+
+std::shared_ptr<sf::Sound> AudioManager::CreateSoundInternal(const std::string& uri) 
 {
    CleanupSounds();
-   if (sounds_.size() > MAX_SOUNDS) {
-      return;
+   if (sounds_.size() >= MAX_SOUNDS) {
+      return empty_sound_;
    }
 
    sf::SoundBuffer *buffer = sound_buffers_[uri];
@@ -65,25 +71,27 @@ void AudioManager::PlaySound(std::string uri)
          //If this fails, log and return
          A_LOG(1) << "Can't find Sound Effect! " << uri;
          delete buffer;
-         return;
+         return empty_sound_;
       }
    }   
 
    //By now, *buffer should have the correct thing loaded inside of it
-   sf::Sound *s = new sf::Sound(*buffer);
-   sounds_.push_back(s);
-   s->setVolume(efx_volume_ * master_efx_volume_);
-   s->play();
+   sounds_.push_back(std::make_shared<sf::Sound>(*buffer));
+   return sounds_.back();
 }
 
 //Every time a sound plays, cleans up any finished sounds.
 void AudioManager::CleanupSounds()
 {
+   // No need to do any work until we're at MAX_SOUNDS.
+   if (sounds_.size() < MAX_SOUNDS) {
+      return;
+   }
    uint i, c = sounds_.size();
    for (i = 0; i < c;) {
       if (sounds_[i]->getStatus() == sf::SoundSource::Status::Stopped) {
-         delete sounds_[i];
-         sounds_[i] = sounds_[--c];
+         sounds_.erase(sounds_.begin() + i);
+         --c;
       }  else {
          i++;
       }
@@ -93,7 +101,7 @@ void AudioManager::CleanupSounds()
 
 //Set some properties on the next piece of music that plays
 //TODO: use a vector and switch if there are ever more than 2 or 3 channels
-void AudioManager::SetNextMusicVolume(int volume, std::string channel)
+void AudioManager::SetNextMusicVolume(int volume, const std::string& channel)
 {
     if (channel.compare("ambient") == 0) {
        ambient_channel_.SetNextMusicVolume(volume);
@@ -102,7 +110,7 @@ void AudioManager::SetNextMusicVolume(int volume, std::string channel)
    }
 }
 
-void AudioManager::SetNextMusicFade(int fade, std::string channel)
+void AudioManager::SetNextMusicFade(int fade, const std::string& channel)
 {
    if (channel.compare("ambient") == 0) {
        ambient_channel_.SetNextMusicFade(fade);
@@ -111,7 +119,7 @@ void AudioManager::SetNextMusicFade(int fade, std::string channel)
    }
 }
 
-void AudioManager::SetNextMusicLoop(bool loop, std::string channel)
+void AudioManager::SetNextMusicLoop(bool loop, const std::string& channel)
 {
    if (channel.compare("ambient") == 0) {
        ambient_channel_.SetNextMusicLoop(loop);
@@ -120,7 +128,7 @@ void AudioManager::SetNextMusicLoop(bool loop, std::string channel)
    }
 }
 
-void AudioManager::SetNextMusicCrossfade(bool crossfade, std::string channel)
+void AudioManager::SetNextMusicCrossfade(bool crossfade, const std::string& channel)
 {
    if (channel.compare("ambient") == 0) {
        ambient_channel_.SetNextMusicCrossfade(crossfade);
@@ -131,7 +139,7 @@ void AudioManager::SetNextMusicCrossfade(bool crossfade, std::string channel)
 
 //By default, play the music in the bgm channel. If something else
 //is specified (ambient) play it there instead.
-void AudioManager::PlayMusic(std::string track, std::string channel)
+void AudioManager::PlayMusic(const std::string& track, const std::string& channel)
 {
    if (channel.compare("ambient") == 0) {
       ambient_channel_.PlayMusic(track);

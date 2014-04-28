@@ -6,6 +6,10 @@
    "server_init_script" : "file(stonehearth_autotest_server)",
    "client_init_script" : "file(stonehearth_autotest_client)",
 
+   "aliases" : {
+      "actions:teleport_to_end_of_path" : "file(actions/teleport_to_end_of_path_action.lua)"
+   },
+
    "ui" :  {
       "homepage" : "http://radiant/stonehearth/ui/root/index.html?skip_title=true)"
    }

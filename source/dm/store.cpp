@@ -176,7 +176,6 @@ bool Store::Load(std::string const& filename, std::string &error, ObjectMap& obj
    ASSERT(tracers_.empty());
    ASSERT(store_traces_.empty());
    ASSERT(objects_.empty());
-   ASSERT(destroyed_.empty());
    ASSERT(dynamicObjects_.empty());
    ASSERT(nextObjectId_ == 1);
    ASSERT(nextGenerationId_ == 1);
@@ -338,8 +337,6 @@ void Store::UnregisterObject(const Object& obj)
    stdutil::ForEachPrune<StoreTrace>(store_traces_, [=](StoreTracePtr trace) {
       trace->SignalDestroyed(id, dynamic);
    });
-
-   destroyed_.push_back(id);
 }
 
 void Store::ValidateObjectId(ObjectId oid) const

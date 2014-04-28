@@ -24,6 +24,7 @@
 #include "om/components/mob.ridl.h"
 #include "resources/res_manager.h"
 #include "resources/animation.h"
+#include "lib/audio/audio_manager.h"
 #include "lib/json/node.h"
 #include "lib/lua/script_host.h"
 #include "lib/perfmon/perfmon.h"
@@ -151,9 +152,7 @@ RenderInnerEffectList::RenderInnerEffectList(RenderEntity& renderEntity, om::Eff
             } else if (type == "unit_status_effect") {
                e = std::make_shared<UnitStatusEffect>(renderEntity, effect, node);
             } else if (type == "sound_effect") {
-               if (PlaySoundEffect::ShouldCreateSound()) {
-                  e = std::make_shared<PlaySoundEffect>(renderEntity, effect, node); 
-               }
+               e = std::make_shared<PlaySoundEffect>(renderEntity, effect, node); 
             } else if (type == "cubemitter") {
                e = std::make_shared<CubemitterEffect>(renderEntity, effect, node);
             } else if (type == "light") {
@@ -721,25 +720,9 @@ void FloatingCombatTextEffect::Update(FrameStartInfo const& info, bool& finished
 
 /* PlaySoundEffect
  * Class to play a short sound. Loads sound into memory.
- * Can only play 250 sounds at once; limitation of sfml
- * Be sure to call ShouldCreateSound() before calling the constructor.
- * TODO: Theoretically, we could keep a hash of all the soundbuffers
- * so we could just have 1 buffer per type of sound; revisit if
- * optimization is required.
  * TODO: if we run out of sounds too quickly, only create sounds if the
  * camera is in range of them. (Make sound a ptr and create/dispose as necessary)
 **/
-
-//Static variable to keep track of the total number of sounds
-int PlaySoundEffect::numSounds_ = 0;
-
-/* PlaySoundEffect::ShouldCreateSound
- * Static function to check if we already have more than 250 sounds. If so
- * returns false. Otherwise, returns true. Call before calling the constructor.
-*/
-bool PlaySoundEffect::ShouldCreateSound() {
-   return (numSounds_ <= 250);
-}
 
 /* PlaySoundEffect
  * Constructor
@@ -757,11 +740,9 @@ PlaySoundEffect::PlaySoundEffect(RenderEntity& e, om::EffectPtr effect, const JS
 {
    startTime_ = effect->GetStartTime();
    firstPlay_ = true;
-   numSounds_++;
 
    std::string track = "";
    json::Node n(node["track"]);
-
    if (n.type() == JSON_STRING) {
       track = n.get_internal_node().as_string();
    } else if (n.type() == JSON_NODE) {
@@ -774,15 +755,11 @@ PlaySoundEffect::PlaySoundEffect(RenderEntity& e, om::EffectPtr effect, const JS
       }
    }
    
-   if (soundBuffer_.loadFromStream(audio::InputStream(track))) {
-      sound_.setBuffer(soundBuffer_);
-      AssignFromJSON_(node);
-      if (delay_ == 0) {
-         //TODO: if camera is farther than maxDistance, create sound and play
-	      sound_.play();
-      }
-   } else { 
-      EL_LOG(5) << "Can't find Sound Effect! " << track;
+   sound_ = audio::AudioManager::GetInstance().CreateSound(track);
+   AssignFromJSON_(node);
+   if (delay_ == 0) {
+      //TODO: if camera is farther than maxDistance, create sound and play
+	   sound_->play();
    }
 }
 
@@ -827,12 +804,12 @@ void PlaySoundEffect::AssignFromJSON_(const JSONNode& node) {
    i = node.find("volume");
    if (i != node.end()) {
       double value = std::min(std::max(i->as_float(), 0.0), 100.0);
-      sound_.setVolume(static_cast<float>(value));
+      sound_->setVolume(static_cast<float>(value));
    }
 
    i = node.find("pitch");
    if (i != node.end()) {
-      sound_.setPitch(static_cast<float>(i->as_float()));
+      sound_->setPitch(static_cast<float>(i->as_float()));
    }
 
    attenuation = CalculateAttenuation(maxDistance, minDistance);
@@ -842,9 +819,9 @@ void PlaySoundEffect::AssignFromJSON_(const JSONNode& node) {
    maxDistance_ = maxDistance; 
 
    //Set sound parameters
-   sound_.setLoop(loop);
-   sound_.setAttenuation(attenuation);
-   sound_.setMinDistance((float)minDistance);
+   sound_->setLoop(loop);
+   sound_->setAttenuation(attenuation);
+   sound_->setMinDistance((float)minDistance);
 }
 
 /* PlaySoundEffect::CalculateAttenuation
@@ -866,8 +843,7 @@ float PlaySoundEffect::CalculateAttenuation(int maxDistance, int minDistance) {
 
 PlaySoundEffect::~PlaySoundEffect()
 {
-    numSounds_--;
-    //TODO: if we're showing sounds based on camera location, dispose of the sound object here
+   sound_->stop();
 }
 
 /* PlaySoundEffect::Update
@@ -889,17 +865,17 @@ void PlaySoundEffect::Update(FrameStartInfo const& info, bool& finished)
    om::MobPtr mobP = entity->GetComponent<om::Mob>();
    if (mobP) {
       csg::Point3f loc = mobP -> GetWorldLocation();
-      sound_.setPosition(loc.x, loc.y, loc.z);
+      sound_->setPosition(loc.x, loc.y, loc.z);
    }
 
    if (delay_ > 0 && firstPlay_ && (info.now > startTime_+ delay_) ) {
-      sound_.play();
+      sound_->play();
       firstPlay_ = false;
       finished = false;
-   } else if (sound_.getLoop()) {
+   } else if (sound_->getLoop()) {
       finished = false;
    } else {
-      finished = info.now > startTime_ + delay_ + soundBuffer_.getDuration().asMilliseconds(); 
+      finished = info.now > startTime_ + delay_ + sound_->getBuffer()->getDuration().asMilliseconds(); 
    }
 }
 

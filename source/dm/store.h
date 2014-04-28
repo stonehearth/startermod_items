@@ -151,8 +151,6 @@ private:
    GenerationId   nextGenerationId_;
    lua_State*     L_;
 
-   std::vector<ObjectId>   destroyed_;
-
    std::unordered_map<ObjectId, Object*>                       objects_;
    std::unordered_map<ObjectType, ObjectAllocFn>               allocators_;
    mutable WeakObjectMap dynamicObjects_;
