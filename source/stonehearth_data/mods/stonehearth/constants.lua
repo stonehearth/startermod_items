@@ -36,7 +36,6 @@ local constants = {
          AMBIENT_PET_BEHAVIOR = 10,
          CRAFT = 10,
          BASIC_NEEDS = 20,
-         SLEEP = 40, -- todo: factor into basic_needs (just like eat...)
          COMBAT = 100,
          UNIT_CONTROL = 1000,
          COMPELLED_BEHAVIOR = 9999999,
@@ -46,6 +45,7 @@ local constants = {
       -- basic needs
       basic_needs = {
          EAT = 20,
+         SLEEP = 40
       },
 
       free_time = {
@@ -99,6 +99,14 @@ local constants = {
       HOURLY_HP_LOSS = 5,
       HOURLY_HP_GAIN = 10, 
       MEALTIME_START = 14
+   },
+
+   sleep = {
+      BEDTIME_START = 1,
+      EXHAUSTION = 24, 
+      MAX_SLEEPINESS = 25, 
+      HOURLY_SLEEPINESS = 1, 
+      MIN_SLEEPINESS = 0
    },
 
    think_priorities = {

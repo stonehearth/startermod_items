@@ -1,13 +1,37 @@
-<script type="text/x-handlebars" data-template-name="populationManager">
-<div id="populationManager" class="gui">
+<script type="text/x-handlebars" data-template-name="citizenManager">
+<div id="citizenManager" class="gui populationManager">
    <div class="window">
-      this is the population manager
-      {{#each citizens}}
-         <div class="row">
-            {{this.unit_info.name}}
-            {{this.stonehearth:profession.profession_uri}}
-         </div>
-      {{/each}}
+      <div class="title">Citizens</div>
+      <table>
+         <tbody>
+         {{#each citizens}}
+            <tr>
+               <td>{{this.unit_info.name}}</td>
+               <td>{{this.stonehearth:profession.profession_uri}}</td>
+               <td>Activity goes here...</td>
+            </tr>
+         {{/each}}
+         </tbody>fs
+      </table>
+   </div>
+</div>
+</script>
+
+<script type="text/x-handlebars" data-template-name="crafterManager">
+<div id="crafterManager" class="gui populationManager">
+   <div class="window">
+      <div class="title">Crafters</div>
+      <table>
+         <tbody>
+         {{#each citizens}}
+            <tr>
+               <td>{{this.unit_info.name}}</td>
+               <td>{{this.stonehearth:profession.profession_uri}}</td>
+               <td>Activity goes here...</td>
+            </tr>
+         {{/each}}
+         </tbody.
+      </table>
    </div>
 </div>
 </script>

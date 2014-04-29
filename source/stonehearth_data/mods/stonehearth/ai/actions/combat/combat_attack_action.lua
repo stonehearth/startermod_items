@@ -30,12 +30,19 @@ function CombatAttackAction:start_thinking(ai, entity, args)
          -- TODO: abort if target is not valid (out of range, not hostile, etc)
          if not args.enemy:is_valid() then
             ai:abort('enemy has been destroyed')
+            return
+         end
+
+         if not entity:is_valid() then
+            -- entity is dead, don't even bother to abort ai
+            return
          end
 
          if not state:in_cooldown('global_attack_recovery') then
             ai:set_think_output()
          else
             ai:abort('global_attack_recovery still not expired, restart thinking')
+            return
          end
       end
    )

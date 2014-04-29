@@ -150,8 +150,10 @@ function CalorieObserver:_finish_eating()
    self._sv.should_be_eating = false
    self.__saved_variables:mark_changed()
 
-   self._eat_task:destroy()
-   self._eat_task = nil
+   if self._eat_task then
+      self._eat_task:destroy()
+      self._eat_task = nil
+   end
 end
 
 return CalorieObserver

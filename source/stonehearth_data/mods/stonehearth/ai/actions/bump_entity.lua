@@ -10,12 +10,6 @@ BumpEntity.version = 2
 BumpEntity.priority = 1
 
 function BumpEntity:run(ai, entity, args)
-   local mob = entity:get_component('mob')
-   
-   if not mob then
-      ai:abort('%s is not a mob', tostring(entity))
-   end
-
    _radiant.sim.create_bump_location(entity, args.vector)
 end
 

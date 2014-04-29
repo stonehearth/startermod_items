@@ -84,14 +84,21 @@ function PopulationFaction:create_new_citizen()
 
    self:_set_citizen_initial_state(citizen, gender)
 
-   table.insert(self._sv.citizens, citizen)
+   self._sv.citizens[citizen:get_id()] = citizen
+
    self.__saved_variables:mark_changed()
+
+   radiant.events.listen(citizen, 'radiant:entity:pre_destroy', self, self._on_entity_destroyed)
 
    return citizen
 end
 
+function PopulationFaction:_on_entity_destroyed(args)
+   self._sv.citizens[args.entity_id] = nil
+   return radiant.events.UNLISTEN
+end
+
 function PopulationFaction:customize_citizen(entity, all_variants, this_variant)   
-   
    local variant = all_variants[this_variant]
 
    if not variant then

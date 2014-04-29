@@ -6,7 +6,7 @@
       "icon" : "/stonehearth/ui/game/start_menu/images/dock_harvest.png",
       "hotkey" : "h",
       "game_mode" : "normal",
-      "soundDefault": "stonehearth:sounds:ui:start_menu:harvest_pickup"
+      "clickSound": "stonehearth:sounds:ui:start_menu:harvest_pickup"
    },
    "zone_menu" : {
       "name" : "Zone Tools",
@@ -15,8 +15,8 @@
       "icon" : "/stonehearth/ui/game/start_menu/images/dock_zone.png",
       "hotkey" : "z",
       "game_mode" : "zones",
-      "sound": "stonehearth:sounds:ui:start_menu:wash_out",
-      "soundTwo": "stonehearth:sounds:ui:start_menu:wash_in",
+      "menuHideSound": "stonehearth:sounds:ui:start_menu:wash_out",
+      "menuShowSound": "stonehearth:sounds:ui:start_menu:wash_in",
       "items" : {
             "create_stockpile" : {
                 "name" : "Stockpile",
@@ -43,8 +43,8 @@
       "icon" : "/stonehearth/ui/game/start_menu/images/dock_build.png",
       "hotkey" : "b",
       "game_mode" : "build",
-      "sound": "stonehearth:sounds:ui:start_menu:wash_out",
-      "soundTwo": "stonehearth:sounds:ui:start_menu:wash_in",
+      "menuHideSound": "stonehearth:sounds:ui:start_menu:wash_out",
+      "menuShowSound": "stonehearth:sounds:ui:start_menu:wash_in",
       "items" : {
             "design_building" : {
                 "name" : "Design Custom Building",
@@ -72,32 +72,32 @@
             }
       }
    },
-   "population_manager" : {
-      "name" : "Manage Jobs",
+   "citizen_manager" : {
+      "name" : "Manage Citizen",
       "description" : "NOT YET IMPLEMENTED. Manage your settlers and promote them to new jobs.",
       "class" : "dock",
       "icon" : "/stonehearth/ui/game/start_menu/images/dock_jobs.png",
       "hotkey" : "j",
       "game_mode" : "normal",
-      "sound": "stonehearth:sounds:ui:start_menu:jobs_close",
-      "soundTwo": "stonehearth:sounds:ui:start_menu:jobs_open"
+      "menuHideSound": "stonehearth:sounds:ui:start_menu:jobs_close",
+      "menuShowSound": "stonehearth:sounds:ui:start_menu:jobs_open"
    },
-   "crafters_menu" : {
+   "crafter_manager" : {
       "name" : "Manage Crafters",
       "description" : "NOT YET IMPLEMENTED. Manager all of your crafters and workshops.",
       "class" : "dock",
       "icon" : "/stonehearth/ui/game/start_menu/images/dock_crafters.png",
       "hotkey" : "c",
       "game_mode" : "normal",
-      "soundDefault": "stonehearth:sounds:ui:start_menu:trigger_click"
+      "clickSound": "stonehearth:sounds:ui:start_menu:trigger_click"
    },
-   "defend_menu" : {
+   "squad_manager" : {
       "name" : "Manage Squads",
       "description" : "NOT YET IMPLEMENTED. Manage your military squads.",
       "class" : "dock",
       "icon" : "/stonehearth/ui/game/start_menu/images/dock_defend.png",
       "game_mode" : "normal",
-      "sound": "stonehearth:sounds:ui:start_menu:defend_close",
-      "soundTwo": "stonehearth:sounds:ui:start_menu:defend_open"
+      "menuHideSound": "stonehearth:sounds:ui:start_menu:defend_close",
+      "menuShowSound": "stonehearth:sounds:ui:start_menu:defend_open"
    }
 }
