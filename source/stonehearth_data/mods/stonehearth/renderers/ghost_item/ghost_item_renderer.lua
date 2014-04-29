@@ -2,7 +2,7 @@ local Point3 = _radiant.csg.Point3
 
 local GhostItemRenderer = class()
 
-function GhostItemRenderer:update(render_entity, datastore)
+function GhostItemRenderer:__init(render_entity, datastore)
    self._parent_node = render_entity:get_node()
    self._ghost_item_rendered = nil
 

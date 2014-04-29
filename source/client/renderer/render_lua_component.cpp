@@ -9,7 +9,7 @@ using namespace ::radiant::client;
 
 #define LC_LOG(level)      LOG(renderer.lua_component, level)
 
-RenderLuaComponent::RenderLuaComponent(RenderEntity& entity, std::string const& name, luabind::object obj) :
+RenderLuaComponent::RenderLuaComponent(RenderEntity& entity, std::string const& name, luabind::object datastore) :
    entity_(entity)
 {
    size_t offset = name.find(':');
@@ -26,47 +26,31 @@ RenderLuaComponent::RenderLuaComponent(RenderEntity& entity, std::string const& 
 
       if (!path.empty()) {
          lua::ScriptHost* script = Renderer::GetInstance().GetScriptHost();
-         luabind::object ctor = script->RequireScript(path);
-         ctor = luabind::object(script->GetCallbackThread(), ctor);
-
+         lua_State* L = script->GetCallbackThread();
          try {
+            luabind::object ctor = script->RequireScript(path);
+            ctor = luabind::object(L, ctor);
+
             std::weak_ptr<RenderEntity> re = entity.shared_from_this();
-            obj_ = ctor(re);
-            if (obj_) {
-               update_fn_ = obj_["update"];
-               Update(entity, obj);
-            }
+            component_renderer_ = ctor(re, datastore);
          } catch (std::exception const& e) {
-            script->ReportCStackThreadException(ctor.interpreter(), e);
+            script->ReportCStackThreadException(L, e);
          }
       }
-   }
-}
-
-void RenderLuaComponent::Update(RenderEntity& entity, luabind::object obj)
-{
-   try {
-      if (update_fn_) {
-         std::weak_ptr<RenderEntity> re = entity.shared_from_this();
-         update_fn_(obj_, re, obj);
-      }
-   } catch (std::exception const& e) {
-      lua::ScriptHost* script = Renderer::GetInstance().GetScriptHost();
-      script->ReportCStackThreadException(update_fn_.interpreter(), e);
    }
 }
 
 RenderLuaComponent::~RenderLuaComponent()
 {
-   if (obj_) {
+   if (component_renderer_) {
       lua::ScriptHost* script = Renderer::GetInstance().GetScriptHost();
       try {
-         luabind::object fn = obj_["destroy"];
+         luabind::object fn = component_renderer_["destroy"];
          if (fn) {
-            fn(obj_);
+            fn(component_renderer_);
          }
       } catch (std::exception const& e) {
-         script->ReportCStackThreadException(obj_.interpreter(), e);
+         script->ReportCStackThreadException(component_renderer_.interpreter(), e);
       }
    }
 }

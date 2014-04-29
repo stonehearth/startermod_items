@@ -9,6 +9,7 @@
 #include "xz_region_selector.h"
 #include "om/entity.h"
 #include "om/components/terrain.ridl.h"
+#include "om/components/mod_list.ridl.h"
 #include "om/error_browser/error_browser.h"
 #include "om/selection.h"
 #include "om/om_alloc.h"

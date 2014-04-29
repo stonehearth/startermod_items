@@ -125,16 +125,13 @@ void RenderRenderInfo::CheckMaterial(om::RenderInfoPtr render_info)
 
 void RenderRenderInfo::ReApplyMaterial()
 {
-   H3DNode parent = entity_.GetSkeleton().GetRootNode();
-   int numNodes = h3dFindNodes(parent, "", H3DNodeTypes::VoxelMesh);
    H3DRes material = h3dAddResource(H3DResTypes::Material, material_path_.c_str(), 0);
-
    if (material != 0) {
-      for (int i = 0; i < numNodes; i++) {
-         H3DNode n = h3dGetNodeFindResult(i);
-
-         h3dSetNodeParamI(n, H3DVoxelMeshNodeParams::MatResI, material);
-      }
+      entity_.ForAllSceneNodes([material](H3DNode node) {
+         if (h3dGetNodeType(node) == H3DNodeTypes::VoxelMesh) {
+            h3dSetNodeParamI(node, H3DVoxelMeshNodeParams::MatResI, material);
+         }
+      });
    }
 }
 

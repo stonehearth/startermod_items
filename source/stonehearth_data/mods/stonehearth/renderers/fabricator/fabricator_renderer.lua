@@ -2,45 +2,61 @@ local voxel_brush_util = require 'services.server.build.voxel_brush_util'
 local Point3 = _radiant.csg.Point3
 local FabricatorRenderer = class()
 
-function FabricatorRenderer:__init()
-   radiant.events.listen(radiant.events, 'stonehearth:ui_mode_changed', function(e)
-      local mode = stonehearth.renderer:get_ui_mode()
-      if self._ui_view_mode ~= mode then
-         self._ui_view_mode = mode
-         self:_update()
-      end
-   end)  
+function FabricatorRenderer:__init(render_entity, datastore)
    self._ui_view_mode = stonehearth.renderer:get_ui_mode()
-end
 
-function FabricatorRenderer:destroy()
-   radiant.events.unlisten(self._entity, 'stonehearth:selection_changed', self, self._update_color)
-   radiant.events.unlisten(self._entity, 'stonehearth:hilighted_changed', self, self._update_color)
-end
-
-function FabricatorRenderer:update(render_entity, datastore)
-   self._parent_node = render_entity:get_node()
    self._entity = render_entity:get_entity()
+   self._parent_node = render_entity:get_node()
    self._render_entity = render_entity
+
+   radiant.events.listen(radiant.events, 'stonehearth:ui_mode_changed', self, self._update_ui_mode)
    radiant.events.listen(self._entity, 'stonehearth:selection_changed', self, self._update_color)
    radiant.events.listen(self._entity, 'stonehearth:hilighted_changed', self, self._update_color)
    
    self._data = datastore:get_data()
-   self._data_store = datastore
-   self._ds_promise = datastore:trace_data('rendering a fabrication')
+
+   self._fab_trace = datastore:trace_data('rendering a fabrication')
                         :on_changed(function()
-                           self:_update()
+                           self:_recreate_render_node()
                         end)
 
+   -- xxx: don't we need to install a component trace to see if the destination changes?
    self._destination = self._entity:get_component('destination')
    if self._destination then
-      self._cs_promise = self._destination:trace_region('drawing fabricator')
+      self._dst_trace = self._destination:trace_region('drawing fabricator')
                                                 :on_changed(function ()
-                                                   self:_update()
+                                                   self:_recreate_render_node()
                                                 end)
-      self:_update()
+      self:_recreate_render_node()
    end
-   self:_update()
+   self:_recreate_render_node()   
+end
+
+function FabricatorRenderer:destroy()
+   radiant.events.unlisten(radiant.events, 'stonehearth:ui_mode_changed', self, self._update_ui_mode)
+   radiant.events.unlisten(self._entity, 'stonehearth:selection_changed', self, self._update_color)
+   radiant.events.unlisten(self._entity, 'stonehearth:hilighted_changed', self, self._update_color)
+   
+   if self._fab_trace then
+      self._fab_trace:destroy()
+      self._fab_trace = nil
+   end
+   if self._dst_trace then
+      self._dst_trace:destroy()
+      self._dst_trace = nil
+   end
+   if self._unique_renderable then
+      self._unique_renderable:destroy()
+      self._unique_renderable = nil
+   end
+end
+
+function FabricatorRenderer:_update_ui_mode()
+   local mode = stonehearth.renderer:get_ui_mode()
+   if self._ui_view_mode ~= mode then
+      self._ui_view_mode = mode
+      self:_recreate_render_node()
+   end
 end
 
 function FabricatorRenderer:_update_color()
@@ -58,13 +74,13 @@ function FabricatorRenderer:_update_color()
    self._render_entity:set_material_override(material)
 end
 
-function FabricatorRenderer:_update()
+function FabricatorRenderer:_recreate_render_node()
    if self._unique_renderable then
       self._unique_renderable:destroy()
       self._unique_renderable = nil
    end
 
-   if self:_show_hud() then
+   if self._ui_view_mode == 'hud' then
       local blueprint = self._data.blueprint
       local component_data = blueprint:get_component('stonehearth:construction_data')
       if component_data then
@@ -75,14 +91,6 @@ function FabricatorRenderer:_update()
          end
       end
    end
-end
-
-function FabricatorRenderer:_show_hud()
-   return self._ui_view_mode == 'hud'
-end
-
-
-function FabricatorRenderer:destroy()
 end
 
 return FabricatorRenderer

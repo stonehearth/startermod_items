@@ -6,16 +6,33 @@ local Point2 = _radiant.csg.Point2
 
 local FarmerFieldRenderer = class()
 
-function FarmerFieldRenderer:__init()
+function FarmerFieldRenderer:__init(render_entity, datastore)
    self._color = Color4(122, 40, 0, 76)
    self._items = {}
 
    radiant.events.listen(radiant.events, 'stonehearth:ui_mode_changed', self, self._ui_mode_changed)
    self._ui_mode_changed()
+
+   self._parent_node = render_entity:get_node()
+   self._size = { 0, 0 }   
+   self._datastore = datastore
+   self._region = _radiant.client.alloc_region2()
+
+   self._datastore_trace = datastore:trace_data('rendering farmer field designation')
+   self._datastore_trace:on_changed(function()
+         self:_update()
+      end)
+
+   self:_update()
 end
 
 function FarmerFieldRenderer:destroy()
    radiant.events.unlisten(radiant.events, 'stonehearth:ui_mode_changed', self, self._ui_mode_changed)
+   
+   if self._datastore_trace then
+      self._datastore_trace:destroy()
+      self._datastore_trace = nil
+   end
 end
 
 function FarmerFieldRenderer:_ui_mode_changed()
@@ -74,22 +91,6 @@ function FarmerFieldRenderer:_mode_to_material_kind(mode)
    end
 end
 
-
--- Review Q: It's the same name as _update except without the _? 
--- Can we get a more descriptive name?
-function FarmerFieldRenderer:update(render_entity, saved_variables)
-   self._parent_node = render_entity:get_node()
-   self._size = { 0, 0 }   
-   self._savestate = saved_variables
-   self._region = _radiant.client.alloc_region2()
-
-   self._promise = saved_variables:trace_data('rendering farmer field designation')
-   self._promise:on_changed(function()
-         self:_update()
-      end)
-   self:_update()
-end
-
 function FarmerFieldRenderer:_diff_and_update_item_states(updated_items)
    local added_items = {}
    local temp_items = {}
@@ -118,7 +119,7 @@ function FarmerFieldRenderer:destroy()
 end
 
 function FarmerFieldRenderer:_update()
-   local data = self._savestate:get_data()
+   local data = self._datastore:get_data()
    if data and data.size then
       local contents = {}
 

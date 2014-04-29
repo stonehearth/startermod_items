@@ -51,6 +51,8 @@ class RenderEntity : public std::enable_shared_from_this<RenderEntity>
       void RemoveQueryFlag(int flag);
       bool HasQueryFlag(int flag) const;
 
+      void ForAllSceneNodes(std::function<void(H3DNode node)> fn);
+      
    private:
       void LoadAspects(om::EntityPtr obj);
       void Move(bool snap);
@@ -64,6 +66,7 @@ class RenderEntity : public std::enable_shared_from_this<RenderEntity>
       void AddComponent(std::string const& key, std::shared_ptr<dm::Object> value);
       void AddLuaComponent(std::string const& key, luabind::object obj);
       void RemoveComponent(std::string const& key);
+      void ForAllSceneNodes(H3DNode node, std::function<void(H3DNode node)> fn);
 
    protected:
       static int                          totalObjectCount_;

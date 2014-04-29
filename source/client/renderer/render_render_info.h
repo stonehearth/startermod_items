@@ -24,7 +24,6 @@ public:
 
    void SetModelVariantOverride(bool enabled, std::string const& variant);
    void SetMaterialOverride(std::string const& materialOverride);
-private:
 
 private:
    enum DirtyBits {
