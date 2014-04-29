@@ -24,16 +24,16 @@ public:
    void SetNextMusicLoop(bool loop);
    void SetNextMusicCrossfade(bool crossfade);
 
-   void PlayMusic(std::string track);
+   void PlayMusic(const std::string& track);
    void UpdateMusic(int currTime);
 
 private:
-   void SetAndPlayMusic(std::string track, double target_volume);
+   void SetAndPlayMusic(const std::string& track, double target_volume);
 
-   std::unordered_map<std::string, std::string*>      music_buffers_;
+   std::unordered_map<std::string, std::string>      music_buffers_;
 
-   sf::Music*     music_;
-   sf::Music*     outgoing_music_;
+   std::unique_ptr<sf::Music>     music_;
+   std::unique_ptr<sf::Music>     outgoing_music_;
    std::string    music_name_;
    bool           loop_;
    bool           crossfade_;
