@@ -4,6 +4,7 @@ local SleepTest = class(MicroWorld)
 --[[
    Instantiate a worker and a bed. Set the time of day to night time, so
    the worker will run to his bed and go to sleep.
+   If there is a second worker, check that he sleeps on the floor.
 ]]
 
 function SleepTest:__init()
@@ -16,24 +17,25 @@ function SleepTest:__init()
    --self:place_item('stonehearth:comfy_bed', 0, 0)
    local tree = self:place_tree(-12, -12)
 
+   --Make sure pets sleep too 
+   local town = stonehearth.town:get_town(w1)
+   local critter = self:place_item('stonehearth:red_fox', 2, 2)
+   local equipment = critter:add_component('stonehearth:equipment')
+   equipment:equip_item('stonehearth:pet_collar')
+   town:add_pet(critter)
+
    ---[[
-   --500ms seconds in, set the time of day to right before sleepy time
-   self:at(500, function()
-      radiant.entities.set_attribute(w1, 'sleepiness', 80)
-      --stonehearth_calendar.set_time(0, 45, 20)
+   --A few seconds in, set the time of day to right before sleepy time
+   self:at(3000, function()
+      stonehearth.calendar:set_time_unit_test_only({ hour = stonehearth.constants.sleep.BEDTIME_START - 1, minute = 58 })
    end)
+   --Then, make someone super, super sleeply
    self:at(5000, function()
-      radiant.entities.set_attribute(w2, 'sleepiness', 800)
-      --stonehearth_calendar.set_time(0, 45, 20)
+      radiant.entities.set_attribute(w2, 'sleepiness', stonehearth.constants.sleep.EXHAUSTION)
+      radiant.entities.set_attribute(critter, 'sleepiness', stonehearth.constants.sleep.EXHAUSTION)
    end)
    --]]
 
-   ---[[
-   --5000ms seconds in, set the time back to day
-   self:at(10000, function()
-      --stonehearth_calendar.set_time(0, 50, 11)
-   end)
-   --]]
 
 end
 

@@ -11,12 +11,10 @@
             "stonehearth:actions:reserve_stockpile_space",
             "stonehearth:actions:idle:sway",
             "stonehearth:actions:idle:look_around",
-            "stonehearth:actions:sleep_action",
             "stonehearth:actions:sleep_on_ground",
             "stonehearth:actions:sleep_in_new_bed",
             "stonehearth:actions:sleep_in_own_bed",
             "stonehearth:actions:sleep_in_bed_adjacent",
-            "stonehearth:actions:sleep_when_tired",
             "stonehearth:actions:sleep_when_exhausted",
             "stonehearth:actions:sit_on_ground",
             "stonehearth:actions:sit_on_chair",
@@ -58,7 +56,7 @@
             "stonehearth:actions:free_time:dispatcher" 
          ],
           "observers": [
-            "stonehearth:observers:sleep",
+            "stonehearth:observers:sleepiness",
             "stonehearth:observers:calorie",
             "stonehearth:observers:free_time"
          ]
@@ -196,8 +194,8 @@
          },
          "sleepiness": {
             "type" : "random_range", 
-            "base" : 1, 
-            "max"  : 30
+            "base" :  4,
+            "max"  :  8
          }
 
       },

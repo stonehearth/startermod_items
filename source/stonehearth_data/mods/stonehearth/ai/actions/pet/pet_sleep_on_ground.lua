@@ -15,7 +15,7 @@ function PetSleepOnGround:run(ai, entity)
    radiant.entities.add_buff(entity, 'stonehearth:buffs:sleeping');
 
    ai:execute('stonehearth:run_effect_timed', { effect = 'sleep', duration = '1h'})
-   radiant.entities.set_attribute(entity, 'sleepiness', 0)
+   radiant.entities.set_attribute(entity, 'sleepiness', stonehearth.constants.sleep.MIN_SLEEPINESS)
 end
 
 function PetSleepOnGround:stop(ai, entity)

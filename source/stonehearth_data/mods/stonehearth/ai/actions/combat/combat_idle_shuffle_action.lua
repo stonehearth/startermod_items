@@ -20,7 +20,13 @@ CombatIdleShuffle.priority = 2
 CombatIdleShuffle.weight = 1
 
 function CombatIdleShuffle:start_thinking(ai, entity, args)
-   self._destination = self:_choose_destination(entity, args.enemy)
+   local enemy = args.enemy
+
+   if enemy == nil or not enemy:is_valid() then
+      return
+   end
+
+   self._destination = self:_choose_destination(entity, enemy)
    if self._destination then
       ai:set_think_output()
    end
@@ -103,12 +109,8 @@ function CombatIdleShuffle:_is_occupied(location)
    local cube = Cube3(location, location + Point3(1, 1, 1))
    local entities = radiant.terrain.get_entities_in_cube(cube)
 
-   for id, entity in pairs(entities) do
-      if id ~= 1 then
-         return true
-      end
-   end
-   return false
+   local occupied = next(entities) ~= nil
+   return occupied
 end
 
 return CombatIdleShuffle

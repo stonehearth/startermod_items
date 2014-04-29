@@ -99,7 +99,9 @@ $.widget( "stonehearth.stonehearthMenu", {
          var id = $(this).attr('id');
          var nodeData = self._dataToMenuItemMap[id]
 
-         radiant.call('radiant:play_sound', nodeData.soundDefault );
+         if (nodeData.clickSound) {
+            radiant.call('radiant:play_sound', nodeData.clickSound );
+         }
 
          // deactivate any tools that are open
          App.stonehearthClient.deactivateAllTools();
@@ -107,10 +109,10 @@ $.widget( "stonehearth.stonehearthMenu", {
          // if this menu has sub-items, hide any menus that are open now so we can show a new one
          if (nodeData.items) {
             if (self.getMenu() == id) {
-               radiant.call('radiant:play_sound', nodeData.sound );
+               radiant.call('radiant:play_sound', nodeData.menuHideSound );
                self.hideMenu();
             } else {
-               radiant.call('radiant:play_sound', nodeData.soundTwo );
+               radiant.call('radiant:play_sound', nodeData.menuShowSound );
                self.showMenu(id);
             }
          } else {

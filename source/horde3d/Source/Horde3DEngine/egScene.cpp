@@ -865,7 +865,7 @@ int SceneManager::findNodes( SceneNode &startNode, const std::string &name, int 
 }
 
 
-int SceneManager::_findNodes( SceneNode &startNode, const std::string &name, int type )
+void SceneManager::_findNodes( SceneNode &startNode, const std::string &name, int type )
 {
 	
 	if( type == SceneNodeTypes::Undefined || startNode._type == type )

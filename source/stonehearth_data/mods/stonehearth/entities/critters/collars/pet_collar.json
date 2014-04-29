@@ -11,7 +11,6 @@
          "injected_ai" : {
             "actions" : [
                "stonehearth:actions:sit_on_ground",
-               "stonehearth:actions:sleep_action", 
                "stonehearth:actions:sleep_when_exhausted",
                "stonehearth:actions:pet:pet_sleep_on_ground",
 
@@ -27,7 +26,7 @@
                "stonehearth:actions:pet:run_in_circles"
             ],
             "observers": [
-               "stonehearth:observers:sleep",
+            "stonehearth:observers:sleepiness",
                "stonehearth:observers:calorie"
             ]
          },

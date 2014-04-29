@@ -332,6 +332,7 @@ void Store::UnregisterObject(const Object& obj)
       stdutil::ForEachPrune<Trace>(i->second, [&](std::shared_ptr<Trace> t) {
          t->NotifyDestroyed();
       });
+      traces_.erase(i);
    }
 
    stdutil::ForEachPrune<StoreTrace>(store_traces_, [=](StoreTracePtr trace) {

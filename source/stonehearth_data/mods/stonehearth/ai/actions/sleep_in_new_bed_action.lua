@@ -2,7 +2,7 @@ local Entity = _radiant.om.Entity
 local SleepInNewBed = class()
 
 SleepInNewBed.name = 'sleep in new bed'
-SleepInNewBed.does = 'stonehearth:sleep_when_tired'
+SleepInNewBed.does = 'stonehearth:sleep'
 SleepInNewBed.args = { }
 SleepInNewBed.version = 2
 SleepInNewBed.priority = 1
