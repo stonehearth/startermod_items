@@ -1165,19 +1165,19 @@ void Client::InstallCurrentCursor()
 void Client::HilightEntity(dm::ObjectId objId)
 {
    auto &renderer = Renderer::GetInstance();
-   if (objId == 0) {
-      om::EntityPtr selectedObject = selectedObject_.lock();
-      om::EntityPtr hilightedObject = hilightedObject_.lock();
+   om::EntityPtr selectedObject = selectedObject_.lock();
+   om::EntityPtr hilightedObject = hilightedObject_.lock();
 
-      if (hilightedObject && hilightedObject != selectedObject) {
-         auto renderObject = renderer.GetRenderObject(hilightedObject);
-         if (renderObject) {
-            renderObject->SetSelected(false);
-         }
+   if (hilightedObject && hilightedObject != selectedObject) {
+      auto renderObject = renderer.GetRenderObject(hilightedObject);
+      if (renderObject) {
+         renderObject->SetSelected(false);
       }
-      hilightedObject_.reset();
-   } else {
-      om::EntityPtr hilightedObject = GetEntity(objId);
+   }
+   hilightedObject_.reset();
+
+   if (objId != 0) {
+      hilightedObject = GetEntity(objId);
       if (hilightedObject && hilightedObject != rootObject_.lock()) {
          RenderEntityPtr renderObject = renderer.GetRenderObject(hilightedObject);
          if (renderObject) {

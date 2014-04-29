@@ -14,7 +14,11 @@ function FarmerFieldRenderer:__init()
    self._ui_mode_changed()
 end
 
-function FarmerFieldRenderer:_ui_mode_changed(e)
+function FarmerFieldRenderer:destroy()
+   radiant.events.unlisten(radiant.events, 'stonehearth:ui_mode_changed', self, self._ui_mode_changed)
+end
+
+function FarmerFieldRenderer:_ui_mode_changed()
    local mode = stonehearth.renderer:get_ui_mode()
    if self._ui_view_mode ~= mode then
       self._ui_view_mode = mode

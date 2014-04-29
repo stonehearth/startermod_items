@@ -131,7 +131,7 @@ end
 function BuildService:create_fabricator_entity(blueprint)
    -- either you're a fabricator or you contain things which may be fabricators.  not
    -- both!
-   local fabricator = radiant.entities.create_entity()
+   local fabricator = radiant.entities.create_entity('stonehearth:entities:fabricator')
    self:_init_fabricator(fabricator, blueprint)
    self:_init_fabricator_children(fabricator, blueprint)
    return fabricator

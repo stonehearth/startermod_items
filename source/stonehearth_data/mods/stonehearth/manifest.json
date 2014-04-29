@@ -49,6 +49,7 @@
       "wooden_peaked_roof" : "file(entities/build/wooden_peaked_roof)",
       "scaffolding" : "file(entities/build/scaffolding)",
       "entities:building" : "file(entities/build/building)",
+      "entities:fabricator" : "file(entities/build/fabricator)",
 
       "pet_collar" : "file(entities/critters/collars/pet_collar.json)",
 

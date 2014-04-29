@@ -292,14 +292,9 @@ std::string const RenderEntity::GetMaterialPathFromKind(std::string const& matKi
    std::string matPath;
 
    auto lookupCallback = [&matKind, &matPath](JSONNode const& data) {
-      matPath = "materials/voxel.material.xml";
-
-      auto f = data.at("entity_data");
-      auto g = f.at("stonehearth:render_materials");
-      auto h = g.at(matKind);
-      if (!h.as_string().empty()) {
-         matPath = h.as_string();
-      }
+      json::Node n(data);
+      matPath = n.get("entity_data.stonehearth:render_materials." + matKind,
+                      "materials/voxel.material.xml");
    };
    if (ri) {
       auto entity = entity_.lock();

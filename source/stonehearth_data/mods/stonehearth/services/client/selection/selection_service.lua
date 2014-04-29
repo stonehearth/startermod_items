@@ -3,29 +3,44 @@ local log = radiant.log.create_logger('selection_service')
 local SelectionService = class()
 
 function SelectionService:initialize()
-   self._selected_id = 0
-
    self._input_capture = stonehearth.input:capture_input()
                               :on_mouse_event(function(e)
                                    return self:_on_mouse_input(e)
                                  end)
+   self._selected_id = 0
 end
 
 function SelectionService:get_selected_id()
    return self._selected_id
 end
 
-function SelectionService:_select_entity(id)
-   local obj = _radiant.client.get_object(id)
+function SelectionService:_select_entity(selected_id)
+   local selected_entity = _radiant.client.get_object(selected_id)
+   if not selected_entity or selected_entity:get_component('terrain') then
+      selected_entity = nil
+      selected_id = 0
+   end
 
-   local tc = obj:get_component('terrain')
+   if selected_id == self._selected_id then
+      return
+   end
 
-   if tc ~= nil then
-      _radiant.client.select_entity_by_id(0)
-      self._selected_id = 0
-   else
-      _radiant.client.select_entity_by_id(id)
-      self._selected_id = id
+   local selected, last_selected
+   if selected_id ~= 0 then
+      selected = _radiant.client.get_object(selected_id)
+   end
+   if self._selected_id ~= 0 then
+      last_selected = _radiant.client.get_object(self._selected_id)
+   end
+
+   self._selected_id = selected_id
+   _radiant.client.select_entity_by_id(selected_id)
+
+   if last_selected and last_selected:is_valid() then
+      radiant.events.trigger(last_selected, 'stonehearth:selection_changed')
+   end
+   if selected and selected:is_valid() then
+      radiant.events.trigger(selected, 'stonehearth:selection_changed')
    end
 end
 
