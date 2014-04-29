@@ -11,18 +11,16 @@ function FarmerFieldRenderer:__init(render_entity, datastore)
    self._items = {}
 
    radiant.events.listen(radiant.events, 'stonehearth:ui_mode_changed', self, self._ui_mode_changed)
-   self._ui_mode_changed()
-
    self._parent_node = render_entity:get_node()
    self._size = { 0, 0 }   
    self._datastore = datastore
    self._region = _radiant.client.alloc_region2()
+   self._ui_view_mode = stonehearth.renderer:get_ui_mode()
 
    self._datastore_trace = datastore:trace_data('rendering farmer field designation')
    self._datastore_trace:on_changed(function()
          self:_update()
       end)
-
    self:_update()
 end
 
@@ -35,8 +33,7 @@ function FarmerFieldRenderer:destroy()
    end
 end
 
-function FarmerFieldRenderer:_ui_mode_changed()
-   local mode = stonehearth.renderer:get_ui_mode()
+function FarmerFieldRenderer:_ui_mode_changed()   
    if self._ui_view_mode ~= mode then
       self._ui_view_mode = mode
 
