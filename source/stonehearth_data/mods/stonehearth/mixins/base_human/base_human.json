@@ -189,8 +189,9 @@
             "value" : 75
          },
          "sleepiness": {
-            "type" : "basic", 
-            "value" : 6
+            "type" : "random_range", 
+            "base" :  4,
+            "max"  :  8
          }
 
       },
