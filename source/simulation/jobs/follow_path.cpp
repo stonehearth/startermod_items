@@ -125,7 +125,7 @@ void FollowPath::Stop()
    }
 }
 
-void FollowPath::Report(std::string msg)
+void FollowPath::Report(std::string const& msg)
 {
    auto entity = entity_.lock();
    if (entity) {

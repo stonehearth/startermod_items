@@ -17,7 +17,7 @@ public:
 
    bool HttpGetFile(std::string const& uri, int &code, std::string& content, std::string& mimetype);
    bool HttpGetResource(std::string const& uri, int &code, std::string& content, std::string& mimetype);
-   void QueueEvent(std::string type, JSONNode payload);
+   void QueueEvent(std::string const& type, JSONNode payload);
    void FlushEvents();
 
 private:

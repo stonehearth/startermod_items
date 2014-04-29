@@ -210,7 +210,7 @@ luabind::object ScriptHost::GetJson(std::string const& uri)
    return result;
 }
 
-res::AnimationPtr ScriptHost_LoadAnimation(std::string uri)
+res::AnimationPtr ScriptHost_LoadAnimation(const std::string& uri)
 {
    return res::ResourceManager2::GetInstance().LookupAnimation(uri);
 }
@@ -414,7 +414,7 @@ void ScriptHost::GC(platform::timer &timer)
    }
 }
 
-luabind::object ScriptHost::LoadScript(std::string path)
+luabind::object ScriptHost::LoadScript(const std::string& path)
 {
    std::ifstream in;
    luabind::object obj;
@@ -447,7 +447,7 @@ luabind::object ScriptHost::LoadScript(std::string path)
    return obj;
 }
 
-void ScriptHost::OnError(std::string description)
+void ScriptHost::OnError(const std::string& description)
 {
    LUA_LOG(0) << description;
 }

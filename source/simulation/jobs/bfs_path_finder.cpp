@@ -83,7 +83,7 @@ static ConstructSearchOrder __init;
  *
  */
 
-std::shared_ptr<BfsPathFinder> BfsPathFinder::Create(Simulation& sim, om::EntityPtr entity, std::string name, int range)
+std::shared_ptr<BfsPathFinder> BfsPathFinder::Create(Simulation& sim, om::EntityPtr entity, std::string const& name, int range)
 {
    std::shared_ptr<BfsPathFinder> pathfinder(new BfsPathFinder(sim, entity, name, range));
    all_pathfinders_.push_back(pathfinder);

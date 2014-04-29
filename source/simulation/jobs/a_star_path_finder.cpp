@@ -29,7 +29,7 @@ std::vector<std::weak_ptr<AStarPathFinder>> AStarPathFinder::all_pathfinders_;
 #  define VERIFY_HEAPINESS()
 #endif
 
-AStarPathFinderPtr AStarPathFinder::Create(Simulation& sim, std::string name, om::EntityPtr entity)
+AStarPathFinderPtr AStarPathFinder::Create(Simulation& sim, std::string const& name, om::EntityPtr entity)
 {
    AStarPathFinderPtr pathfinder(new AStarPathFinder(sim, name, entity));
    all_pathfinders_.push_back(pathfinder);
@@ -63,7 +63,7 @@ void AStarPathFinder::ComputeCounters(std::function<void(const char*, double, co
    addCounter("pathfinders:a_star:closed_node_count", closed_count, "counter");
 }
 
-AStarPathFinder::AStarPathFinder(Simulation& sim, std::string name, om::EntityPtr entity) :
+AStarPathFinder::AStarPathFinder(Simulation& sim, std::string const& name, om::EntityPtr entity) :
    PathFinder(sim, name),
    rebuildHeap_(false),
    restart_search_(true),

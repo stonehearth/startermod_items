@@ -14,7 +14,7 @@ class Selection {
 public:
    Selection();
 
-   Selection(std::string str) {
+   Selection(std::string const& str) {
       flags_ = HAS_STRING;
       string_ = str;
    }
@@ -56,7 +56,7 @@ public:
    void SetBounds(const csg::Cube3& bounds);
    const csg::Cube3& GetBounds() const { return bounds_; }
 
-   void AddString(std::string s);
+   void AddString(const std::string& s);
    std::string GetString() const { return (flags_ & HAS_STRING) ? string_ : std::string(); }
    void AddNumber(int number);
 

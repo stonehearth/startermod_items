@@ -31,40 +31,6 @@ using namespace ::radiant::audio;
 //#define DEF_FADE 1000      //MS to have old music fade during crossfade
 //#define DEFAULT_LOOP true
 
-//Delcare some tweening functions to gently the fade in/out of sound effects
-//TODO: maybe add to some central tweener util?
-// see http://libclaw.sourceforge.net/tweeners.html
-claw::tween::single_tweener::easing_function
-get_audio_easing_function(const std::string& easing)
-{
-#define GET_AUDIO_EASING_FUNCTION(name) \
-   if (eq == std::string(#name)) { \
-      if (method == "in") { return claw::tween::easing_ ## name::ease_in; } \
-      if (method == "out") { return claw::tween::easing_ ## name::ease_out; } \
-      if (method == "in_out") { return claw::tween::easing_ ## name::ease_in_out; } \
-   }
-
-   int offset = easing.find('_');
-   if (offset != std::string::npos) {
-      std::string eq = easing.substr(0, offset);
-      std::string method = easing.substr(offset + 1);
-
-      GET_AUDIO_EASING_FUNCTION(back)
-      GET_AUDIO_EASING_FUNCTION(bounce)
-      GET_AUDIO_EASING_FUNCTION(circ)
-      GET_AUDIO_EASING_FUNCTION(cubic)
-      GET_AUDIO_EASING_FUNCTION(elastic)
-      GET_AUDIO_EASING_FUNCTION(linear)
-      GET_AUDIO_EASING_FUNCTION(none)
-      GET_AUDIO_EASING_FUNCTION(quad)
-      GET_AUDIO_EASING_FUNCTION(quart)
-      GET_AUDIO_EASING_FUNCTION(quint)
-      GET_AUDIO_EASING_FUNCTION(sine)
-   }
-   return claw::tween::easing_linear::ease_in;
-#undef GET_EASING_FUNCTION
-}
-
 Channel::Channel() :
    music_(nullptr),
    outgoing_music_(nullptr),
@@ -156,12 +122,12 @@ void Channel::UpdateMusic(int currTime)
       int fade = fade_;
       fading_volume_ = volume_;
       outgoing_music_.reset(music_.release());
-      fading_tweener_.reset(new claw::tween::single_tweener(fading_volume_, 0, fade, get_audio_easing_function("linear_out")));
+      fading_tweener_.reset(new claw::tween::single_tweener(fading_volume_, 0, fade, claw::tween::easing_linear::ease_out));
 
       //If crossfade option is true, then also create a rising tweener and set the new music to playing
       if (crossfade_ && !rising_tweener_.get()) {
          rising_volume_ = 0;
-         rising_tweener_.reset(new claw::tween::single_tweener(rising_volume_, volume_, fade, get_audio_easing_function("linear_in")));
+         rising_tweener_.reset(new claw::tween::single_tweener(rising_volume_, volume_, fade, claw::tween::easing_linear::ease_in));
 
          music_.reset(new sf::Music());
          SetAndPlayMusic(nextTrack_, rising_volume_);
