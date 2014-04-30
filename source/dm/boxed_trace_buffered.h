@@ -4,12 +4,15 @@
 #include "dm.h"
 #include "trace_buffered.h"
 #include "boxed_trace.h"
+#include "core/object_counter.h"
 
 BEGIN_RADIANT_DM_NAMESPACE
 
 template <typename BoxedType>
 class BoxedTraceBuffered : public TraceBuffered,
-                           public BoxedTrace<BoxedType> {
+                           public BoxedTrace<BoxedType>,
+                           public core::ObjectCounter<BoxedTraceBuffered<BoxedType>>
+{
 public:
    BoxedTraceBuffered(const char* reason, BoxedType const& b);
    

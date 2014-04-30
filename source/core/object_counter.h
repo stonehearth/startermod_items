@@ -1,12 +1,13 @@
 #ifndef _RADIANT_CORE_OBJECT_COUNTER_H
 #define _RADIANT_CORE_OBJECT_COUNTER_H
 
-#include <map>
-#include <unordered_map>
-#include <mutex>
-#include <typeindex>
 #include "radiant_macros.h"
 #include "namespace.h"
+
+#include <map>
+#include <unordered_map>
+#include <typeindex>
+#include <boost/smart_ptr/detail/spinlock.hpp>
 
 /* 
  * Object Counter
@@ -39,6 +40,7 @@ template <typename T> class ObjectCounter {}; // The nop implementation
 
 #else
 
+
 /*
  * -- Class ObjectCounterBase
  *
@@ -49,18 +51,32 @@ template <typename T> class ObjectCounter {}; // The nop implementation
 
 class ObjectCounterBase
 {
-private:
-   static std::mutex __mutex;
-   static std::unordered_map<std::type_index, size_t>  __counters;
-
-protected:
-   static void IncrementObjectCount(std::type_info const& t);
-   static void DecrementObjectCount(std::type_info const& t);
-   static size_t GetObjectCount(std::type_info const& t);
+public:
+   typedef std::unordered_map<std::type_index, int> CounterMap;
 
 public:
-   typedef std::function<bool(std::type_index const&, size_t)> ForEachObjectCountCb;
+   typedef std::function<bool(std::type_index const&, int)> ForEachObjectCountCb;
+   typedef std::unordered_map<void *, std::pair<int, std::type_index>> ObjectMap;
+
+   static CounterMap GetObjectCounts();
+   static ObjectMap GetObjects();
+   static void ForEachObjectDeltaCount(CounterMap const& checkpoint, ForEachObjectCountCb cb);
    static void ForEachObjectCount(ForEachObjectCountCb cb);
+   static void TrackObjectLifetime(bool enable);
+
+protected:
+   static void IncrementObjectCount(void* that, std::type_info const& t);
+   static void DecrementObjectCount(void* that, std::type_info const& t);
+   static int GetObjectCount(std::type_info const& t);
+
+private:
+   typedef std::unordered_map<void *, std::pair<int, std::type_index>> ObjectMap;
+
+private:
+   static boost::detail::spinlock __lock;
+   static CounterMap __counters;
+   static ObjectMap __objects;
+   static bool __track_objects;
 };
 
 /*
@@ -75,14 +91,14 @@ class ObjectCounter : public ObjectCounterBase
 {
 public:
    ObjectCounter() {
-      IncrementObjectCount(typeid(T));
+      IncrementObjectCount(this, typeid(T));
    }
 
    virtual ~ObjectCounter() {
-      DecrementObjectCount(typeid(T));
+      DecrementObjectCount(this, typeid(T));
    }
 
-   static size_t GetObjectCount() {
+   static int GetObjectCount() {
       return GetObjectCount(typeid(T));
    }
 };

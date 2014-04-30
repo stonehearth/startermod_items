@@ -4,12 +4,14 @@
 #include "dm.h"
 #include "trace_buffered.h"
 #include "record_trace.h"
+#include "core/object_counter.h"
 
 BEGIN_RADIANT_DM_NAMESPACE
 
-template <typename M>
-class RecordTraceBuffered : public RecordTrace<M>,
-                            public TraceBuffered
+template <typename R>
+class RecordTraceBuffered : public RecordTrace<R>,
+                            public TraceBuffered,
+                            public core::ObjectCounter<RecordTraceBuffered<R>>
 {
 public:
    RecordTraceBuffered(const char* reason, Record const& r, Tracer&);
