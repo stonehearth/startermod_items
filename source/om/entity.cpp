@@ -35,10 +35,6 @@ std::ostream& ::radiant::om::operator<<(std::ostream& os, Entity const& o)
    return os;
 }
 
-Entity::~Entity()
-{
-}
-
 void Entity::Destroy()
 {
    for (const auto& entry : lua_components_.GetContents()) {

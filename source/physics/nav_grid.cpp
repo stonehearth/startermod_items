@@ -230,8 +230,11 @@ void NavGrid::AddCollisionTracker(csg::Cube3 const& last_bounds, csg::Cube3 cons
    csg::Cube3 current_chunks = csg::GetChunkIndex(bounds, TILE_SIZE);
    csg::Cube3 previous_chunks = csg::GetChunkIndex(last_bounds, TILE_SIZE);
 
-   bounds_.Grow(bounds.min - csg::Point3(TILE_SIZE, TILE_SIZE, TILE_SIZE));
-   bounds_.Grow(bounds.max + csg::Point3(TILE_SIZE, TILE_SIZE, TILE_SIZE));
+   csg::Point3 chunkBoundsMin = current_chunks.min.Scaled(TILE_SIZE);
+   csg::Point3 chunkBoundsMax = current_chunks.max.Scaled(TILE_SIZE);
+
+   bounds_.Grow(chunkBoundsMin);
+   bounds_.Grow(chunkBoundsMax);
 
    // Remove trackers from tiles which no longer overlap the current bounds of the tracker,
    // but did overlap their previous bounds.

@@ -46,8 +46,19 @@ void Receiver::ProcessRemove(tesseract::protocol::RemoveObjects const& msg)
 
       ASSERT(i != objects_.end());
       if (i != objects_.end()) {
+         dm::ObjectRef o = i->second;
          RECEIVER_LOG(5) << "destroying object " << id;
          objects_.erase(i);
+
+         if (o.use_count() != 0) {
+            dm::ObjectPtr obj = o.lock();
+            dm::ObjectId id = obj->GetObjectId();
+            std::string name = obj->GetObjectClassNameLower();
+            obj = nullptr;
+
+            RECEIVER_LOG(0) << "destroy request from streamer failed to release last reference to " << name << " " << id << "(use_count: "
+               << o.use_count() << ")";
+         }
       } else {
          RECEIVER_LOG(3) << "* received remove msg for unknown object " << id;
       }

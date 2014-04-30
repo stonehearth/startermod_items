@@ -18,7 +18,6 @@ class Entity : public dm::Record,
                public std::enable_shared_from_this<Entity> {
 public:
    DEFINE_OM_OBJECT_TYPE(Entity, entity);
-   virtual ~Entity();
 
    void Destroy();
 
