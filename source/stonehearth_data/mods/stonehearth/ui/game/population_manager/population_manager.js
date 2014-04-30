@@ -3,8 +3,12 @@ App.StonehearthCitizenManagerView = App.View.extend({
 
    components: {
       "citizens" : {
-         "stonehearth:profession" : {},
-         "unit_info": {}
+         "*" : {
+            "stonehearth:profession" : {
+               "profession_uri" : {}
+            },
+            "unit_info": {},
+         }
       }
    },
 
@@ -22,6 +26,21 @@ App.StonehearthCitizenManagerView = App.View.extend({
    actions: {
 
    },
+
+   _buildCitizensArray: function() {
+        var vals = [];
+        var attributeMap = this.get('context.citizens');
+        
+        if (attributeMap) {
+           $.each(attributeMap, function(k ,v) {
+              if(k != "__self" && attributeMap.hasOwnProperty(k)) {
+                 vals.push(v);
+              }
+           });
+        }
+
+        this.set('context.citizensArray', vals);
+    }.observes('context.citizens'),
 
    //When we hover over a command button, show its tooltip
    didInsertElement: function() {
@@ -34,8 +53,12 @@ App.StonehearthCrafterManagerView = App.View.extend({
 
    components: {
       "citizens" : {
-         "stonehearth:profession" : {},
-         "unit_info": {}
+         "*" : {
+            "stonehearth:profession" : {
+               "profession_uri" : {}
+            },
+            "unit_info": {},
+         }
       }
    },
 
@@ -53,6 +76,23 @@ App.StonehearthCrafterManagerView = App.View.extend({
    actions: {
 
    },
+
+   _buildCraftersArray: function() {
+        var vals = [];
+        var attributeMap = this.get('context.citizens');
+        
+        if (attributeMap) {
+           $.each(attributeMap, function(k ,v) {
+              if(k != "__self" && attributeMap.hasOwnProperty(k)) {
+                  //xxx insert a check to see if this dude is a crafter
+                 vals.push(v);
+              }
+           });
+        }
+
+        this.set('context.craftersArray', vals);
+    }.observes('context.citizens'),
+
 
    //When we hover over a command button, show its tooltip
    didInsertElement: function() {

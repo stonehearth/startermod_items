@@ -4,14 +4,14 @@
       <div class="title">Citizens</div>
       <table>
          <tbody>
-         {{#each citizens}}
+         {{#each citizensArray}}
             <tr>
                <td>{{this.unit_info.name}}</td>
-               <td>{{this.stonehearth:profession.profession_uri}}</td>
+               <td>{{this.stonehearth:profession.profession_uri.name}}</td>
                <td>Activity goes here...</td>
             </tr>
          {{/each}}
-         </tbody>fs
+         </tbody>
       </table>
    </div>
 </div>
@@ -23,10 +23,10 @@
       <div class="title">Crafters</div>
       <table>
          <tbody>
-         {{#each citizens}}
+         {{#each craftersArray}}
             <tr>
                <td>{{this.unit_info.name}}</td>
-               <td>{{this.stonehearth:profession.profession_uri}}</td>
+               <td>{{this.stonehearth:profession.profession_uri.name}}</td>
                <td>Activity goes here...</td>
             </tr>
          {{/each}}
