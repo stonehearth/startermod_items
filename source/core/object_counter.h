@@ -1,12 +1,13 @@
 #ifndef _RADIANT_CORE_OBJECT_COUNTER_H
 #define _RADIANT_CORE_OBJECT_COUNTER_H
 
-#include <map>
-#include <unordered_map>
-#include <mutex>
-#include <typeindex>
 #include "radiant_macros.h"
 #include "namespace.h"
+
+#include <map>
+#include <unordered_map>
+#include <typeindex>
+#include <boost/smart_ptr/detail/spinlock.hpp>
 
 /* 
  * Object Counter
@@ -39,6 +40,7 @@ template <typename T> class ObjectCounter {}; // The nop implementation
 
 #else
 
+
 /*
  * -- Class ObjectCounterBase
  *
@@ -49,18 +51,24 @@ template <typename T> class ObjectCounter {}; // The nop implementation
 
 class ObjectCounterBase
 {
-private:
-   static std::mutex __mutex;
-   static std::unordered_map<std::type_index, size_t>  __counters;
+public:
+   typedef std::unordered_map<std::type_index, int> CounterMap;
+
+public:
+   typedef std::function<bool(std::type_index const&, int)> ForEachObjectCountCb;
+
+   static CounterMap GetObjectCounts();
+   static void ForEachObjectDeltaCount(CounterMap const& checkpoint, ForEachObjectCountCb cb);
+   static void ForEachObjectCount(ForEachObjectCountCb cb);
 
 protected:
    static void IncrementObjectCount(std::type_info const& t);
    static void DecrementObjectCount(std::type_info const& t);
-   static size_t GetObjectCount(std::type_info const& t);
+   static int GetObjectCount(std::type_info const& t);
 
-public:
-   typedef std::function<bool(std::type_index const&, size_t)> ForEachObjectCountCb;
-   static void ForEachObjectCount(ForEachObjectCountCb cb);
+private:
+   static boost::detail::spinlock __lock;
+   static CounterMap __counters;
 };
 
 /*
@@ -82,7 +90,7 @@ public:
       DecrementObjectCount(typeid(T));
    }
 
-   static size_t GetObjectCount() {
+   static int GetObjectCount() {
       return GetObjectCount(typeid(T));
    }
 };

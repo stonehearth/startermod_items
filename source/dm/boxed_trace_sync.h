@@ -3,11 +3,13 @@
 
 #include "dm.h"
 #include "boxed_trace.h"
+#include "core/object_counter.h"
 
 BEGIN_RADIANT_DM_NAMESPACE
 
 template <typename BoxedType>
-class BoxedTraceSync : public BoxedTrace<BoxedType>
+class BoxedTraceSync : public BoxedTrace<BoxedType>,
+                       public core::ObjectCounter<BoxedTraceSync<BoxedType>>
 {
 public:
 public:

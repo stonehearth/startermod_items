@@ -2,11 +2,13 @@
 #define _RADIANT_DM_MAP_TRACE_SYNC_H
 
 #include "map_trace.h"
+#include "core/object_counter.h"
 
 BEGIN_RADIANT_DM_NAMESPACE
 
 template <typename M>
-class MapTraceSync : public MapTrace<M>
+class MapTraceSync : public MapTrace<M>,
+                     public core::ObjectCounter<MapTraceSync<M>>
 {
 public:
 public:
