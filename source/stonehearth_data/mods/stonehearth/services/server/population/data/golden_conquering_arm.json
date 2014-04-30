@@ -1,0 +1,81 @@
+{
+   "kingdom_name" : "The Golden Conquering Arm",
+   "kingdom_id" : "goldarm",
+   "male_entities" : [
+      "stonehearth:goblin"
+   ],
+   "female_entities" : [
+      "stonehearth:goblin"
+   ],
+   "surnames" : [
+      "the Magnificent",
+      "the Puce",
+      "the Sagacious",
+      "Skull Crusher",
+      "Nail Biter",
+      "the Extemporaneous",
+      "the Orange",
+      "the Olive",
+      "Oliveskinner",
+      "the Horrendous",
+      "the Mighty",
+      "Brillaintmind",
+      "the Earnest",
+      "the Awesome",
+      "the Magnanimous",
+      "Kingmaker",
+      "the Ripped",
+      "Scarletfang",
+      "Skaleladder",
+      "the Blatant",
+      "Armguard",
+      "the Flange",
+      "Leathermail",
+      "the Expiditer",
+      "Dragonslayer",
+      "Thornpants",
+      "Deathfist",
+      "Bloodpainter"
+   ],
+   "given_names" : {
+      "male" : [
+         "Baa",
+         "Ulan",
+         "Ikh",
+         "Baatar",
+         "Zun",
+         "Muud",
+         "Govi",
+         "Omno",
+         "Hod",
+         "Veek",
+         "Gom",
+         "Morun",
+      ],
+      "female" : [
+         "Khru",
+         "Sel",
+         "Anji",
+         "Maa",
+         "Ree",
+         "Dini",
+         "Olgi",
+         "Alsa",
+         "Haaki",
+         "Erde",
+         "Arvee",
+         "Bayan"
+      ]
+   }, 
+   "town_pieces" : {
+      "optional_prefix" : [
+         "Ay"
+      ], 
+      "town_name" : [
+         "Pohk",
+      ], 
+      "suffix" : [
+         "yu"
+      ]
+   }
+}
