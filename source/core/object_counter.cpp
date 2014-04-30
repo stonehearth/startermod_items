@@ -8,10 +8,10 @@ using namespace ::radiant::core;
 
 #if defined(ENABLE_OBJECT_COUNTER)
 
-bool __track_objects;
+bool ObjectCounterBase::__track_objects;
 boost::detail::spinlock ObjectCounterBase::__lock;
 ObjectCounterBase::CounterMap ObjectCounterBase::__counters;
-ObjectCounterBase::ObjectMap __objects;
+ObjectCounterBase::ObjectMap ObjectCounterBase::__objects;
 
 typedef std::map<int, std::type_index, std::greater<int>> SortedCounters;
 
