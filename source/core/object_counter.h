@@ -56,19 +56,27 @@ public:
 
 public:
    typedef std::function<bool(std::type_index const&, int)> ForEachObjectCountCb;
+   typedef std::unordered_map<void *, std::pair<int, std::type_index>> ObjectMap;
 
    static CounterMap GetObjectCounts();
+   static ObjectMap GetObjects();
    static void ForEachObjectDeltaCount(CounterMap const& checkpoint, ForEachObjectCountCb cb);
    static void ForEachObjectCount(ForEachObjectCountCb cb);
+   static void TrackObjectLifetime(bool enable);
 
 protected:
-   static void IncrementObjectCount(std::type_info const& t);
-   static void DecrementObjectCount(std::type_info const& t);
+   static void IncrementObjectCount(void* that, std::type_info const& t);
+   static void DecrementObjectCount(void* that, std::type_info const& t);
    static int GetObjectCount(std::type_info const& t);
+
+private:
+   typedef std::unordered_map<void *, std::pair<int, std::type_index>> ObjectMap;
 
 private:
    static boost::detail::spinlock __lock;
    static CounterMap __counters;
+   static ObjectMap __objects;
+   static bool __track_objects;
 };
 
 /*
@@ -83,11 +91,11 @@ class ObjectCounter : public ObjectCounterBase
 {
 public:
    ObjectCounter() {
-      IncrementObjectCount(typeid(T));
+      IncrementObjectCount(this, typeid(T));
    }
 
    virtual ~ObjectCounter() {
-      DecrementObjectCount(typeid(T));
+      DecrementObjectCount(this, typeid(T));
    }
 
    static int GetObjectCount() {
