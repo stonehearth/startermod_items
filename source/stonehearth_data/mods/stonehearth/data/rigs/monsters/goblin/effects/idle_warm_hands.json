@@ -4,8 +4,8 @@
       "animation": {
          "type": "animation_effect",
          "start_time": 0,
-         "end_time": 100000,
-         "animation": "file(../../animations/male/combat/1h_downed.json)"
+         "animation": "idle_warm_hands.json",
+         "loop": true
       }
    }
 }

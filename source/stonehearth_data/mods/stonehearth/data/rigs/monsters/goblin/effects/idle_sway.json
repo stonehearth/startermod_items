@@ -4,7 +4,7 @@
       "animation": {
          "type": "animation_effect",
          "start_time": 0,
-         "animation": "patrol.json",
+         "animation": "idle_sway.json",
          "loop": true
       }
    }
