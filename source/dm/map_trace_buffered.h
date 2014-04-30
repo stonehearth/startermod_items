@@ -4,12 +4,15 @@
 #include "dm.h"
 #include "trace_buffered.h"
 #include "map_trace.h"
+#include "core/object_counter.h"
 
 BEGIN_RADIANT_DM_NAMESPACE
 
 template <typename M>
 class MapTraceBuffered : public TraceBuffered,
-                         public MapTrace<M> {
+                         public MapTrace<M>,
+                         public core::ObjectCounter<MapTraceBuffered<M>>
+{
 public:
    MapTraceBuffered(const char* reason, M const& m);
 

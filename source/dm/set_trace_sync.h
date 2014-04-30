@@ -3,11 +3,13 @@
 
 #include "dm.h"
 #include "set_trace.h"
+#include "core/object_counter.h"
 
 BEGIN_RADIANT_DM_NAMESPACE
 
 template <typename S>
-class SetTraceSync : public SetTrace<S>
+class SetTraceSync : public SetTrace<S>,
+                     public core::ObjectCounter<SetTraceSync<S>>
 {
 public:
    SetTraceSync(const char* reason, S const& set);
