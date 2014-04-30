@@ -3,14 +3,14 @@
    "tracks": {
       "hit_spark": {
          "type": "cubemitter",
-         "start_time" : 130,
-         "end_time" : 160,
+         "start_time" : 0,
+         "end_time" : 30,
          "cubemitter": "particles/combat/hit.cubemitter.json",
          "transforms": {
             "x":0,
             "y":1.5,
             "z":0,
-            "rx":90,
+            "rx":0,
             "ry":0,
             "rz":0
          }

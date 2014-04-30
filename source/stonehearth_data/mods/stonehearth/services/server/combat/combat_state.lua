@@ -42,16 +42,12 @@ end
 
 function CombatState:get_assault_events()
    -- clean up before returning the list
-   self:_remove_expired_assault_events()
+   self:remove_expired_assault_events()
 
    return self._assault_events
 end
 
--------------------------------------------------
--- private interface for the combat_service below
--------------------------------------------------
-
-function CombatState:_remove_expired_cooldowns()
+function CombatState:remove_expired_cooldowns()
    local now = radiant.gamestate.now()
    local cooldowns = self._cooldowns
 
@@ -63,7 +59,7 @@ function CombatState:_remove_expired_cooldowns()
    end
 end
 
-function CombatState:_remove_expired_assault_events()
+function CombatState:remove_expired_assault_events()
    local now = radiant.gamestate.now()
    local events = self._assault_events
 

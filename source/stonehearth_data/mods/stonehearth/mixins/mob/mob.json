@@ -61,9 +61,6 @@
             "stonehearth:actions:unit_control:dispatcher",
             "stonehearth:actions:basic_needs:dispatcher",
             "stonehearth:actions:compelled_behaviors:dispatcher"
-         ],
-          "observers": [
-            "stonehearth:observers:look_for_enemies"
          ]
       }
    }

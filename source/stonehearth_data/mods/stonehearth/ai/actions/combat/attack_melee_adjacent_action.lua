@@ -22,6 +22,7 @@ function AttackMeleeAdjacent:__init()
    self._num_attack_types = #self._attack_types
 end
 
+-- TODO: don't allow melee if vertical distance > 1
 function AttackMeleeAdjacent:run(ai, entity, args)
    local target = args.target
 
@@ -45,7 +46,9 @@ function AttackMeleeAdjacent:run(ai, entity, args)
    stonehearth.combat:assault(target, self._context)
 
    -- can't ai:execute this. it needs to run in parallel with the attack animation
-   self._hit_effect = radiant.effects.run_effect(target, 'combat_generic_hit', time_to_impact)
+   self._hit_effect = radiant.effects.run_effect(
+      target, '/stonehearth/data/effects/hit_sparks/blood_effect.json', time_to_impact
+   )
 
    self._timer = stonehearth.combat:set_timer(time_to_impact,
       function ()

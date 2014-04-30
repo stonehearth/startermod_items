@@ -1,5 +1,4 @@
 local constants = require 'constants'
---local LookForEnemies = require 'ai.observers.look_for_enemies'
 local log = radiant.log.create_logger('combat')
 
 local Combat = class()
@@ -40,7 +39,6 @@ function Combat:_register_events()
    if not self._registered then
       radiant.events.listen(radiant, 'stonehearth:slow_poll', self, self._find_target)
       radiant.events.listen(self._entity, 'stonehearth:combat:engage', self, self._on_engage)
-      --self._look_for_enemies = LookForEnemies(self._entity)
       self._registered = true
    end
 end
@@ -83,7 +81,8 @@ function Combat:run(ai, entity, args)
 end
 
 function Combat:_find_target()
-   local target = self:_get_target()
+   --local target = self:_get_target()
+   local target = self:_get_target_new()
 
    if target ~= nil then
       self:_set_think_output(target)
@@ -111,6 +110,12 @@ function Combat:_get_target()
       end
    end
 
+   return target
+end
+
+function Combat:_get_target_new()
+   local target_table = stonehearth.combat:get_target_table(self._entity, 'aggro')
+   local target = target_table:get_top()
    return target
 end
 
