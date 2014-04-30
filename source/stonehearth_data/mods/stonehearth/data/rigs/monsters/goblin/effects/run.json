@@ -2,10 +2,10 @@
    "type" : "effect",
    "tracks": {
       "animation": {
-            "type": "animation_effect",
-            "start_time": 0,
-            "animation": "file(../animations/male/run.json)",
-            "loop": true
+         "type": "animation_effect",
+         "start_time": 0,
+         "animation": "run.json",
+         "loop": true
       }
    }
 }

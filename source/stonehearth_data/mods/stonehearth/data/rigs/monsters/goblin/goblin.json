@@ -37,6 +37,7 @@
 		"rightFoot": [12.5,14.5,4]
 	},
    "effects_root" : "file(effects)",
+   "animation_root" : "file(animations)",
    "collision_shape" : {
       "type" : "cylinder_collision_shape",
       "radius" : 5,
