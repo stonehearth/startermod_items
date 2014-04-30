@@ -367,7 +367,7 @@
 
       "actions:run_away_from_entity" : "file(ai/actions/run_away_from_entity_action.lua)",
 
-      "observers:look_for_enemies" : "file(ai/observers/look_for_enemies.lua)",
+      "observers:enemy_observer" : "file(ai/observers/enemy_observer.lua)",
       "observers:sleepiness" : "file(ai/observers/sleepiness_observer.lua)",
       "observers:calorie" : "file(ai/observers/calorie_observer.lua)",
       "observers:free_time" : "file(ai/observers/free_time_observer.lua)",

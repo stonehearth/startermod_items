@@ -1,4 +1,5 @@
 local CombatState = require 'services.server.combat.combat_state'
+local TargetTable = require 'services.server.combat.target_table'
 local rng = _radiant.csg.get_default_rng()
 local log = radiant.log.create_logger('combat')
 
@@ -9,12 +10,14 @@ local MS_PER_FRAME = 1000/30
 function CombatService:__init()
    self._hit_stun_damage_threshold = radiant.util.get_config('hit_stun_damage_threshold', 0.10)
    self._combat_state_table = {}
+   self._target_tables = {}
 
    -- TODO: change this to minute (or ten second) poll
    radiant.events.listen(radiant, 'stonehearth:very_slow_poll', self, self._remove_expired_objects)
 end
 
 function CombatService:initialize()
+   -- TODO: implement save
    log:write(0, 'initialize not implemented for combat service!')
 end
 
@@ -77,14 +80,38 @@ function CombatService:get_combat_state(entity)
       return nil
    end
 
-   local combat_state = self._combat_state_table[entity:get_id()]
+   local entity_id = entity:get_id()
+   local combat_state = self._combat_state_table[entity_id]
 
    if combat_state == nil then
       combat_state = CombatState()
-      self._combat_state_table[entity:get_id()] = combat_state
+      self._combat_state_table[entity_id] = combat_state
    end
 
    return combat_state
+end
+
+function CombatService:get_target_table(entity, table_name)
+   if entity == nil or not entity:is_valid() then
+      return nil
+   end
+
+   local entity_id = entity:get_id()
+   local target_tables = self._target_tables[entity_id]
+
+   if target_tables == nil then
+      target_tables = {}
+      self._target_tables[entity_id] = target_tables
+   end
+
+   local target_table = target_tables[table_name]
+
+   if target_table == nil then
+      target_table = TargetTable()
+      target_tables[table_name] = target_table
+   end
+
+   return target_table
 end
 
 function CombatService:start_cooldown(entity, action_info)
@@ -173,29 +200,42 @@ function CombatService:get_assault_events(target)
 end
 
 function CombatService:_remove_expired_objects()
+   self:_clean_combat_state_table()
+   self:_clean_target_tables()
+end
+
+function CombatService:_clean_combat_state_table()
    local entity
 
    for id, combat_state in pairs(self._combat_state_table) do
-      combat_state:_remove_expired_cooldowns()
-      combat_state:_remove_expired_assault_events()
-
-      -- remove combat_state if entity is no longer valid
       entity = radiant.entities.get_entity(id)
+
       if entity == nil or not entity:is_valid() then
          -- safe to remove entries in a pairs loop: http://lua-users.org/wiki/TablesTutorial
          self._combat_state_table[id] = nil
+      else
+         combat_state:remove_expired_cooldowns()
+         combat_state:remove_expired_assault_events()
       end
    end
 end
 
--- for testing only
-function CombatService:is_baddie(entity)
-   if entity == nil or not entity:is_valid() then
-      return false
-   end
+function CombatService:_clean_target_tables()
+   local entity
 
-   local faction = entity:add_component('unit_info'):get_faction()
-   return faction ~= 'civ'
+   for id in pairs(self._target_tables) do
+      entity = radiant.entities.get_entity(id)
+
+      if entity == nil or not entity:is_valid() then
+         -- safe to remove entries in a pairs loop: http://lua-users.org/wiki/TablesTutorial
+         self._target_tables[id] = nil
+      else
+         local target_tables = self._target_tables[id]
+         for _, target_table in pairs(target_tables) do
+            target_table:remove_invalid_targets()
+         end
+      end
+   end
 end
 
 -- placeholder logic for now

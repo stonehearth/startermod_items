@@ -52,6 +52,7 @@
             "stonehearth:actions:free_time:dispatcher" 
          ],
           "observers": [
+            "stonehearth:observers:enemy_observer",
             "stonehearth:observers:sleepiness",
             "stonehearth:observers:calorie",
             "stonehearth:observers:free_time"
