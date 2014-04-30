@@ -21,8 +21,29 @@
          }
       }, 
       "stonehearth:ai": {
+         "actions" : [
+            "stonehearth:actions:idle:sway",
+            "stonehearth:actions:idle:look_around",
+            "stonehearth:actions:wander",
+            "stonehearth:actions:wander_within_leash",
+            "stonehearth:actions:wander_when_bored",
+            "stonehearth:actions:choose_point_around_leash",
+            "stonehearth:actions:wait_for_attribute_above",
+            "stonehearth:actions:wait_for_attribute_below",
+            "stonehearth:actions:combat",
+            "stonehearth:actions:combat:attack",
+            "stonehearth:actions:combat:attack:melee",
+            "stonehearth:actions:combat:attack:melee_adjacent",
+            "stonehearth:actions:combat:defend_dispatcher",
+            "stonehearth:actions:combat:defend:melee",
+            "stonehearth:actions:combat:idle_dispatcher",
+            "stonehearth:actions:combat:idle:ready",
+            "stonehearth:actions:combat:idle:shuffle",
+            "stonehearth:actions:combat:hit_stun",
+            "stonehearth:actions:chase_entity"
+         ],
          "observers": [
-            "stonehearth:observers:look_for_enemies"
+            "stonehearth:observers:enemy_observer"
          ]
       },
       "unit_info" : {
@@ -33,6 +54,10 @@
          "health": {
             "type" : "basic", 
             "value" :  100
+         },
+         "speed": {
+            "type" : "basic",
+            "value" : 50
          },
          "ferocity": {
             "type" : "basic", 
