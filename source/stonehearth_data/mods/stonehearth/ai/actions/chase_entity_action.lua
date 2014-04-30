@@ -136,7 +136,7 @@ function ChaseEntity:start(ai, entity, args)
 end
 
 function ChaseEntity:run(ai, entity, args)
-   local speed = radiant.entities.get_speed(entity)
+   local speed = radiant.entities.get_world_speed(entity)
    local stop_distance = args.stop_distance
    local finished = false
 

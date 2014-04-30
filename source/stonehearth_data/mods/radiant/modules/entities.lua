@@ -625,6 +625,7 @@ function entities.compare_attribute(entity_a, entity_b, attribute)
    return 0
 end
 
+-- we'll use a mapping table later to determine alliances / hostilities
 function entities.is_hostile(entity_a, entity_b)
    local faction_a = radiant.entities.get_faction(entity_a)
    local faction_b = radiant.entities.get_faction(entity_b)
@@ -639,19 +640,12 @@ function entities.on_entity_moved(entity, fn, reason)
    return entity:add_component('mob'):trace_transform(reason):on_changed(fn)
 end
 
--- refactored from follow_path
--- should probably clear up definition of speed
-function entities.get_speed(entity)
-   local speed = radiant.entities.get_attribute(entity, 'speed')
-   if speed == nil then
-      speed = 1.0
-   end
+function entities.get_world_speed(entity)
+   local speed_attribute = radiant.entities.get_attribute(entity, 'speed')
+   speed_attribute = speed_attribute or 50
 
-   if speed > 0 then
-      speed = math.floor(50 + (50 * speed / 60)) / 100
-   end
-
-   return speed
+   local world_speed = math.floor(50 + (50 * speed_attribute / 60)) / 100
+   return world_speed
 end
 
 -- xxx: prefer this over on_entity_moved()
