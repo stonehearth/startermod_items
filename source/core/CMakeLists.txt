@@ -13,6 +13,7 @@ add_library(core STATIC
             guard.cpp
             process.cpp
             system.cpp
+            object_counter.cpp
             )
 
 target_link_libraries(core

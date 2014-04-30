@@ -14,6 +14,7 @@
 #define DEFINE_OM_OBJECT_TYPE(Class, lower)   \
    DEFINE_OM_OBJECT_TYPE_NO_CONS(Class, lower) \
    Class() { } \
+   ~Class() { }
 
 
 #endif //  _RADIANT_OM_MACROS_H

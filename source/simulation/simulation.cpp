@@ -713,7 +713,20 @@ void Simulation::LuaGC()
 
 void Simulation::Idle()
 {
-   // use of advance considered harmful.  what if the server gets "stuck"?  (e.g. in the debugger)
+#if defined(ENABLE_OBJECT_COUNTER)
+   static int nextAuditTime = 0;
+   int now = platform::get_current_time_in_ms();
+   if (nextAuditTime == 0 || nextAuditTime < now) {
+      int c = 10;
+      LOG_(0) << "== Object Count Audit at " << now << " ============================";
+      core::ObjectCounterBase::ForEachObjectCount([&c](std::type_index const& ti, int count) {
+         LOG_(0) << "     " << count << " " << ti.name();
+         return --c > 0;
+      });
+      nextAuditTime = now + 5000;
+   }
+#endif
+
    if (!noidle_) {
       MEASURE_TASK_TIME("idle")
       SIM_LOG_GAMELOOP(7) << "idling";
