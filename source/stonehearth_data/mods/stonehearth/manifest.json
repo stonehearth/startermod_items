@@ -506,7 +506,8 @@
       "professions:farmer" : "file(professions/farmer/farmer_description.json)",
       "professions:carpenter" : "file(professions/carpenter/carpenter_description.json)",
       "professions:weaver" : "file(professions/weaver/weaver_description.json)",
-      "professions:trapper" : "file(professions/trapper/trapper_description.json)"
+      "professions:trapper" : "file(professions/trapper/trapper_description.json)",
+      "professions:footman" : "file(professions/footman/footman_description.json)"
 
    },
    "functions" : {
