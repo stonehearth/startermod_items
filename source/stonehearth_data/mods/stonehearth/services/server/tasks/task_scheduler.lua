@@ -8,7 +8,7 @@ function TaskScheduler:__init(name)
    self._log:debug('created task scheduler')
 
    self._task_groups = {}
-   self._poll_interval = radiant.util.get_config('task_poll_interval', 50)
+   self._poll_interval = radiant.util.get_config('task_poll_interval', 100)
    self._max_feed_per_interval = radiant.util.get_config('task_max_feed_per_interval', 5)
    self._last_task_group_index = 1
 
