@@ -8,7 +8,7 @@ function AnalyticsService:__init(datastore)
    local one_minute = 1000 * 60
    local minutes_elapsed = 0
 
-   -- grr.. it radiant.set_interval() would be nice, so we don't have to
+   -- grr.. radiant.set_realtime_interval() would be nice, so we don't have to
    -- keep rescheduling the timer!!
    local function timer_cb()
       minutes_elapsed = minutes_elapsed + 1
