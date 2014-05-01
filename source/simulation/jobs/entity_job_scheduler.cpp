@@ -6,7 +6,7 @@
 using namespace ::radiant;
 using namespace ::radiant::simulation;
 
-#define E_LOG(level)   LOG_CATEGORY(simulation.jobs, level, GetName())
+#define E_LOG(level)   LOG(simulation.jobs, level) << "[" << GetName() << "] "
 
 #if defined(CHECK_HEAPINESS)
 #  define VERIFY_HEAPINESS() \

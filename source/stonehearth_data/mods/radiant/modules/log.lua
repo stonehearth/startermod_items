@@ -76,23 +76,15 @@ function Log.spam(category, format, ...)
    Log.write_(category, Log.SPAM, format, ...)
 end
 
-local function create_logger_functions(logger)
-end
-
-local function logger_write(self, level, format, ...)
-   local prefix
-   if self._prefix then
-      prefix = '[' .. self._prefix .. '] '
-   else
-      prefix = ''
+local function compute_log_prefix(prefix, entity)
+   if not prefix and not entity then
+      return ''
    end
-   local args = {...}
-   for i, arg in ipairs(args) do
-      if type(arg) ~= 'string' then
-         args[i] = tostring(arg)
-      end
+   local entity_prefix
+   if entity then
+      entity_prefix = 'e:' .. tostring(entity:get_id()) .. ' ' .. radiant.entities.get_name(entity)
    end
-   _host:log(self._category, level, prefix .. string.format(format, unpack(args)))
+   return '[' .. (entity_prefix and (entity_prefix .. ' ') or '') .. prefix .. ']'
 end
 
 function Log.create_logger(sub_category, prefix)
@@ -102,12 +94,19 @@ function Log.create_logger(sub_category, prefix)
    --    3: --> some module whose name we want! <-- 
    local category = __get_current_module_name(3) .. '.' .. sub_category
    local logger = {
-      _prefix = prefix,
       _category = category,
+      _log_prefix = '',
       _log_level = Log.get_log_level(category),
 
       set_prefix = function (self, prefix)
             self._prefix = prefix
+            self._log_prefix = compute_log_prefix(self._prefix, self._entity)
+            return self
+         end,
+
+      set_entity = function (self, entity)
+            self._entity = entity
+            self._log_prefix = compute_log_prefix(self._prefix, self._entity)
             return self
          end,
 
@@ -115,7 +114,15 @@ function Log.create_logger(sub_category, prefix)
             return radiant.log.is_enabled(self._category, level)
          end,
 
-      write = logger_write,
+      write = function(self, level, format, ...)
+            local args = {...}
+            for i, arg in ipairs(args) do
+               if type(arg) ~= 'string' then
+                  args[i] = tostring(arg)
+               end
+            end
+            _host:log(self._category, level, self._log_prefix .. string.format(format, unpack(args)))
+         end,
 
       get_log_level = function(self)
             return self._log_level
@@ -124,8 +131,8 @@ function Log.create_logger(sub_category, prefix)
       set_log_level = function(self, new_level)
             for keyword, level in pairs(logger_functions) do
                if level <= new_level then
-                  self[keyword] = function (l, format, ...)
-                        return logger_write(l, level, format, ...)
+                  self[keyword] = function (self, format, ...)
+                        return self:write(level, format, ...)
                      end
                else
                   self[keyword] = function () end

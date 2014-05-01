@@ -593,7 +593,6 @@ void Simulation::ProcessJobList()
             if (!job->IsIdle()) {
                idleCountdown = jobs_.size() + 2;
                job->Work(game_loop_timer_);
-               LOG(simulation.jobs, 7) << job->GetProgress();
             }
             jobs_.push_back(front);
          } else {

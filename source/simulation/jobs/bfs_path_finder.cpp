@@ -18,7 +18,7 @@
 using namespace ::radiant;
 using namespace ::radiant::simulation;
 
-#define BFS_LOG(level)   LOG_CATEGORY(simulation.pathfinder.bfs, level, GetName())
+#define BFS_LOG(level)   LOG(simulation.pathfinder.bfs, level) << "[" << GetName() << "] "
 
 
 std::vector<std::weak_ptr<BfsPathFinder>> BfsPathFinder::all_pathfinders_;
@@ -613,4 +613,14 @@ std::ostream& ::radiant::simulation::operator<<(std::ostream& o, const BfsPathFi
 float BfsPathFinder::GetMaxExploredDistance() const
 {
    return max_travel_distance_ + phys::TILE_SIZE;
+}
+
+/*
+ * -- BfsPathFinder::Log
+ *
+ */
+
+void BfsPathFinder::Log(int level, std::string const& s)
+{
+   BFS_LOG(level) << s;
 }

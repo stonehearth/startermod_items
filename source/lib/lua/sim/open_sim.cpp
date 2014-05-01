@@ -183,11 +183,17 @@ std::shared_ptr<T> PathFinder_SetExhaustedCb(std::shared_ptr<T> pf, luabind::obj
 BfsPathFinderPtr BfsPathFinder_SetFilterFn(BfsPathFinderPtr pf, luabind::object unsafe_filter_fn)
 {
    if (pf) {
+      BfsPathFinderRef p = pf;
       lua_State* cb_thread = lua::ScriptHost::GetCallbackThread(unsafe_filter_fn.interpreter());  
-      pf->SetFilterFn([unsafe_filter_fn, cb_thread](om::EntityPtr e) -> bool {
+      pf->SetFilterFn([p, unsafe_filter_fn, cb_thread](om::EntityPtr e) -> bool {
          try {
             luabind::object filter_fn = luabind::object(cb_thread, unsafe_filter_fn);
-            LOG(simulation.pathfinder.bfs, 5) << "calling filter function on " << *e;
+            if (LOG_IS_ENABLED(simulation.pathfinder.bfs, 5)) {
+               BfsPathFinderPtr pathfinder = p.lock();
+               if (pathfinder) {
+                  pathfinder->Log(5, BUILD_STRING("calling filter function on " << *e));
+               }
+            }
             return luabind::call_function<bool>(filter_fn, om::EntityRef(e));
          } catch (std::exception const& e) {
             lua::ScriptHost::ReportCStackException(cb_thread, e);

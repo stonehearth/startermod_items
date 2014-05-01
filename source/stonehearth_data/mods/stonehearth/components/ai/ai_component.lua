@@ -134,8 +134,8 @@ function AIComponent:_notify_action_index_changed(activity_name, add_remove, key
    end
 end
 
-function AIComponent:create_execution_frame(activity_name, route, trace_route)
-   local frame = ExecutionFrame(self._thread, self._entity, self._action_index, activity_name,  route, trace_route)
+function AIComponent:create_execution_frame(activity_name, debug_route, trace_route)
+   local frame = ExecutionFrame(self._thread, self._entity, self._action_index, activity_name, debug_route, trace_route)
    local frames = self._all_execution_frames[activity_name]
    self:_register_execution_frame(activity_name, frame)
    return frame
@@ -283,9 +283,8 @@ end
 function AIComponent:_create_top_execution_frame()
    self._thread:set_thread_data('stonehearth:run_stack', {})
    self._thread:set_thread_data('stonehearth:unwind_to_frame', nil)
-   local route = string.format('e:%d %s', self._entity:get_id(), radiant.entities.get_name(self._entity))
    local traceroute = string.format('%s/', 'e' .. tostring(self._entity:get_id()))
-   return self:create_execution_frame('stonehearth:top', route, traceroute)
+   return self:create_execution_frame('stonehearth:top', '', traceroute)
 end
 
 function AIComponent:_terminate_thread()
