@@ -28,10 +28,12 @@ function AnalyticsService:on_ten_minute_poll()
    local populations = population_service:get_all_populations()
    for player_id, pop in pairs(populations) do
       --Send data about # workers
-      -- xxx Fix to show breakdown by class when we can listen on worker class changes; 
-      -- Right now, the worker scheduler thinks everyone is a worker since everyone is added a worker
-      local citizen_tracker = object_tracker:get_worker_tracker(player_id)
-      send_string = send_string .. "_Num_citizens_" .. #citizen_tracker:get_entities()
+      local citizens = pop:get_citizens()
+      local citizen_count = 0
+      for _ in pairs(citizens) do
+         citizen_count = citizen_count + 1
+      end
+      send_string = send_string .. "_Num_citizens_" .. citizen_count
 
       --Send data about resources
       local resource_tracker = object_tracker:get_resource_tracker(player_id)
