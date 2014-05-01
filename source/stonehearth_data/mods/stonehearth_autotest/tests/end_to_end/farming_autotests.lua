@@ -31,6 +31,9 @@ function farming_tests.grow_one_turnip(autotest)
    -- click ok to close the dialog
    autotest.ui:click_dom_element('#farmWindow .ok')
 
+   --Close the zones window
+   autotest.ui:click_dom_element('.stonehearthMenu .close')
+
    autotest:sleep(60*1000)
    autotest:fail('failed to farm')
 end
