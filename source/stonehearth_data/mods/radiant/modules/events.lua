@@ -10,6 +10,8 @@ local log = radiant.log.create_logger('events')
 function events.__init()
    events._senders = {}
    events._async_triggers = {}
+   events._last_10min_update_time = 0
+   events._last_1min_update_time = 0
 end
 
 function events._convert_object_to_key(object)
@@ -200,13 +202,17 @@ function events._update()
    if now.now % 1000 == 0 then
       events.trigger(radiant, 'stonehearth:very_slow_poll', now)
    end
-   --Fires once a minute
-   if now.now % 60000 == 0 then
-      events.trigger(radiant, 'stonehearth:minute_poll', now)
+
+   local real_now = radiant.get_realtime()
+
+   if real_now - events._last_1min_update_time >= 60 then 
+      events.trigger(radiant, 'stonehearth:minute_poll', real_now)
+      events._last_1min_update_time = real_now
    end
-   --Fires every 10 minutes
-   if now.now % 600000 == 0 then
-      events.trigger(radiant, 'stonehearth:ten_minute_poll', now)
+
+   if real_now - events._last_10min_update_time >= 600 then 
+      events.trigger(radiant, 'stonehearth:ten_minute_poll', real_now)
+      events._last_10min_update_time = real_now
    end
 end
 
