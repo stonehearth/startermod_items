@@ -8,7 +8,7 @@ modal: true,
       this._super();
 
       //Setting gamespeed to zero
-      radiant.call('radiant:game:set_game_speed', 0);
+      radiant.call('stonehearth:dm_pause_game');
    },
 
    didInsertElement: function() {
@@ -21,11 +21,7 @@ modal: true,
 
    destroy: function() {
       this._super();
-      var game_speed =  App.stonehearthClient.defaultGameSpeed();
-      if (App.stonehearthClient.getPaused()) {
-         game_speed = 0;
-      } 
-      radiant.call('radiant:game:set_game_speed', game_speed);
+      radiant.call('stonehearth:dm_resume_game');
    },
 
    actions: {
