@@ -34,7 +34,7 @@ struct ProjectorNodeParams
 
 struct ProjectorNodeTpl : public SceneNodeTpl
 {
-   ProjectorNodeTpl( const std::string &name, MaterialResource* matRes ) :
+   ProjectorNodeTpl( std::string const& name, MaterialResource* matRes ) :
       SceneNodeTpl( SceneNodeTypes::ProjectorNode, name ), _matRes(matRes)
 	{
 	}

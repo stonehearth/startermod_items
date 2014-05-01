@@ -1279,7 +1279,7 @@ Client::Cursor Client::LoadCursor(std::string const& path)
    return cursor;
 }
 
-Client::CursorStackId Client::InstallCursor(const std::string& name)
+Client::CursorStackId Client::InstallCursor(std::string const& name)
 {
    CursorStackId id = next_cursor_stack_id_++;
    cursor_stack_.emplace_back(std::make_pair(id, LoadCursor(name)));
@@ -1344,7 +1344,7 @@ void Client::BrowserRequestHandler(std::string const& path, json::Node const& qu
    }
 }
 
-void Client::CallHttpReactor(const std::string& path, const json::Node& query, const std::string& postdata, rpc::HttpDeferredPtr response)
+void Client::CallHttpReactor(std::string const& path, const json::Node& query, std::string const& postdata, rpc::HttpDeferredPtr response)
 {
    JSONNode node;
    int status = 404;

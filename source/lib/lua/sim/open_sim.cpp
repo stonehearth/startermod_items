@@ -118,7 +118,7 @@ std::shared_ptr<LuaJob> Sim_CreateJob(lua_State *L, std::string const& name, obj
    return job;
 }
 
-AStarPathFinderPtr Sim_CreateAStarPathFinder(lua_State *L, om::EntityRef s, const std::string& name)
+AStarPathFinderPtr Sim_CreateAStarPathFinder(lua_State *L, om::EntityRef s, std::string const& name)
 {
    AStarPathFinderPtr pf;
    om::EntityPtr source = s.lock();
@@ -132,7 +132,7 @@ AStarPathFinderPtr Sim_CreateAStarPathFinder(lua_State *L, om::EntityRef s, cons
 }
 
 
-BfsPathFinderPtr Sim_CreateBfsPathFinder(lua_State *L, om::EntityRef s, const std::string& name, int range)
+BfsPathFinderPtr Sim_CreateBfsPathFinder(lua_State *L, om::EntityRef s, std::string const& name, int range)
 {
    BfsPathFinderPtr pf;
    om::EntityPtr source = s.lock();
@@ -183,11 +183,17 @@ std::shared_ptr<T> PathFinder_SetExhaustedCb(std::shared_ptr<T> pf, luabind::obj
 BfsPathFinderPtr BfsPathFinder_SetFilterFn(BfsPathFinderPtr pf, luabind::object unsafe_filter_fn)
 {
    if (pf) {
+      BfsPathFinderRef p = pf;
       lua_State* cb_thread = lua::ScriptHost::GetCallbackThread(unsafe_filter_fn.interpreter());  
-      pf->SetFilterFn([unsafe_filter_fn, cb_thread](om::EntityPtr e) -> bool {
+      pf->SetFilterFn([p, unsafe_filter_fn, cb_thread](om::EntityPtr e) -> bool {
          try {
             luabind::object filter_fn = luabind::object(cb_thread, unsafe_filter_fn);
-            LOG(simulation.pathfinder.bfs, 5) << "calling filter function on " << *e;
+            if (LOG_IS_ENABLED(simulation.pathfinder.bfs, 5)) {
+               BfsPathFinderPtr pathfinder = p.lock();
+               if (pathfinder) {
+                  pathfinder->Log(5, BUILD_STRING("calling filter function on " << *e));
+               }
+            }
             return luabind::call_function<bool>(filter_fn, om::EntityRef(e));
          } catch (std::exception const& e) {
             lua::ScriptHost::ReportCStackException(cb_thread, e);

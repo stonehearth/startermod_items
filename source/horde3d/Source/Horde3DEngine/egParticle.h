@@ -66,10 +66,10 @@ struct ParticleChannel
 class ParticleEffectResource : public Resource
 {
 public:
-	static Resource *factoryFunc( const std::string &name, int flags )
+	static Resource *factoryFunc( std::string const& name, int flags )
 		{ return new ParticleEffectResource( name, flags ); }
 	
-	ParticleEffectResource( const std::string &name, int flags );
+	ParticleEffectResource( std::string const& name, int flags );
 	~ParticleEffectResource();
 	
 	void initDefault();
@@ -81,7 +81,7 @@ public:
 	void setElemParamF( int elem, int elemIdx, int param, int compIdx, float value );
 
 private:
-	bool raiseError( const std::string &msg, int line = -1 );
+	bool raiseError( std::string const& msg, int line = -1 );
 
 private:
 	float            _lifeMin, _lifeMax;
@@ -125,7 +125,7 @@ struct EmitterNodeTpl : public SceneNodeTpl
 	float                    delay, emissionRate, spreadAngle;
 	float                    fx, fy, fz;
 
-	EmitterNodeTpl( const std::string &name, MaterialResource *materialRes,
+	EmitterNodeTpl( std::string const& name, MaterialResource *materialRes,
 		ParticleEffectResource *effectRes, uint32 maxParticleCount, int respawnCount) :
 		SceneNodeTpl( SceneNodeTypes::Emitter, name ),
 		matRes( materialRes ), effectRes( effectRes ), maxParticleCount( maxParticleCount ),

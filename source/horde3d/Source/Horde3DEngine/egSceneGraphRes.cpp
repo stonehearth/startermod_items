@@ -25,7 +25,7 @@ namespace Horde3D {
 using namespace std;
 
 
-SceneGraphResource::SceneGraphResource( const std::string &name, int flags ) :
+SceneGraphResource::SceneGraphResource( std::string const& name, int flags ) :
 	Resource( ResourceTypes::SceneGraph, name, flags )
 {
 	initDefault();

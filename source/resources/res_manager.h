@@ -26,9 +26,9 @@ public:
    const JSONNode GetModules() const;
 
 
-   AnimationPtr LookupAnimation(const std::string& path) const;
+   AnimationPtr LookupAnimation(std::string const& path) const;
 
-   std::string ConvertToCanonicalPath(const std::string& path, const char* search_ext) const;
+   std::string ConvertToCanonicalPath(std::string const& path, const char* search_ext) const;
    std::string FindScript(std::string const& script) const;
 
    std::string GetAliasUri(std::string const& mod_name, std::string const& alias_name) const;

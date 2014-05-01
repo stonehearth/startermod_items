@@ -5,8 +5,21 @@ local population_service = stonehearth.population
 local object_tracker = stonehearth.object_tracker
 
 function AnalyticsService:__init(datastore)
-   radiant.events.listen(radiant, 'stonehearth:minute_poll', self, self.on_minute_poll)
-   radiant.events.listen(radiant, 'stonehearth:ten_minute_poll', self, self.on_ten_minute_poll)
+   local one_minute = 1000 * 60
+   local minutes_elapsed = 0
+
+   -- grr.. radiant.set_realtime_interval() would be nice, so we don't have to
+   -- keep rescheduling the timer!!
+   local function timer_cb()
+      minutes_elapsed = minutes_elapsed + 1
+      self:on_minute_poll()
+      if minutes_elapsed % 10 == 0 then
+         self:on_ten_minute_poll()
+      end
+      radiant.set_realtime_timer(one_minute, timer_cb)
+   end
+
+   radiant.set_realtime_timer(one_minute, timer_cb)
 end
 
 function AnalyticsService:initialize()

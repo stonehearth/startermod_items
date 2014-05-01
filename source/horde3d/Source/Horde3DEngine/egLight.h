@@ -56,8 +56,8 @@ struct LightNodeTpl : public SceneNodeTpl
 	float              shadowMapBias;
    bool               directional;
 
-	LightNodeTpl( const std::string &name,
-	              const std::string &lightingContext, const std::string &shadowContext ) :
+	LightNodeTpl( std::string const& name,
+	              std::string const& lightingContext, std::string const& shadowContext ) :
 		SceneNodeTpl( SceneNodeTypes::Light, name ), 
 		lightingContext( lightingContext ), shadowContext( shadowContext ),
 		radius( 100 ), fov( 90 ), col_R( 1 ), col_G( 1 ), col_B( 1 ), colMult( 1 ),

@@ -48,7 +48,7 @@ namespace FW
         class Exception : public std::runtime_error
         {
         public:
-                Exception(const std::string& message)
+                Exception(std::string const& message)
                         : std::runtime_error(message)
                 {}
         };

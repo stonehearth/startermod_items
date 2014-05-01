@@ -303,7 +303,7 @@ struct DaeGeometry
 	std::vector< DaeTriGroup >  triGroups;
 
 
-	DaeSource *findSource( const std::string &id )
+	DaeSource *findSource( std::string const& id )
 	{
 		if( id == "" ) return 0x0;
 		
@@ -316,7 +316,7 @@ struct DaeGeometry
 	}
 
 
-	DaeVSource *findVSource( const std::string &id )
+	DaeVSource *findVSource( std::string const& id )
 	{
 		if( id == "" ) return 0x0;
 		
@@ -437,7 +437,7 @@ public:
 	}
 	
 
-	DaeGeometry *findGeometry( const std::string &id )
+	DaeGeometry *findGeometry( std::string const& id )
 	{
 		if( id == "" ) return 0x0;
 		

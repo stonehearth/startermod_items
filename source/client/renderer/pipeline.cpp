@@ -77,7 +77,7 @@ Pipeline::~Pipeline()
 {
 }
 
-H3DRes Pipeline::CreateVoxelGeometryFromRegion(const std::string& geoName, csg::Region3 const& region)
+H3DRes Pipeline::CreateVoxelGeometryFromRegion(std::string const& geoName, csg::Region3 const& region)
 {
    auto& mesh = CreateMeshFromRegion(region);
    int vertexOffsets[2] = {0, mesh.vertices.size()};

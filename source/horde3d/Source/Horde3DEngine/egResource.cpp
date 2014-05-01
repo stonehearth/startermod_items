@@ -27,7 +27,7 @@ using namespace std;
 // Class Resource
 // **********************************************************************************
 
-Resource::Resource( int type, const std::string &name, int flags )
+Resource::Resource( int type, std::string const& name, int flags )
 {
 	_type = type;
 	_name = name;
@@ -188,7 +188,7 @@ ResourceManager::~ResourceManager()
 }
 
 
-void ResourceManager::registerType( int type, const std::string &typeString, ResTypeInitializationFunc inf,
+void ResourceManager::registerType( int type, std::string const& typeString, ResTypeInitializationFunc inf,
 									ResTypeReleaseFunc rf, ResTypeFactoryFunc ff )
 {
 	ResourceRegEntry entry;
@@ -203,7 +203,7 @@ void ResourceManager::registerType( int type, const std::string &typeString, Res
 }
 
 
-Resource *ResourceManager::findResource( int type, const std::string &name )
+Resource *ResourceManager::findResource( int type, std::string const& name )
 {
 	for( size_t i = 0, s = _resources.size(); i < s; ++i )
 	{
@@ -252,7 +252,7 @@ ResHandle ResourceManager::addResource( Resource &resource )
 }
 
 
-ResHandle ResourceManager::addResource( int type, const std::string &name, int flags, bool userCall )
+ResHandle ResourceManager::addResource( int type, std::string const& name, int flags, bool userCall )
 {
 	if( name == "" )
 	{	
@@ -302,7 +302,7 @@ ResHandle ResourceManager::addNonExistingResource( Resource &resource, bool user
 }
 
 
-ResHandle ResourceManager::cloneResource( Resource &sourceRes, const std::string &name )
+ResHandle ResourceManager::cloneResource( Resource &sourceRes, std::string const& name )
 {
 	// Check that name does not yet exist
 	if( name != "" )

@@ -10,7 +10,7 @@ BEGIN_RADIANT_ANALYTICS_NAMESPACE
 class EventData : public PostData
 {
 public:
-   EventData(const json::Node& event_node, const std::string& event_category);
+   EventData(const json::Node& event_node, std::string const& event_category);
    ~EventData();
 
    json::Node   GetJsonNode();

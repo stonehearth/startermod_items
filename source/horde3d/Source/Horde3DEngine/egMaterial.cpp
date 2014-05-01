@@ -25,7 +25,7 @@ namespace Horde3D {
 using namespace std;
 
 
-MaterialResource::MaterialResource( const std::string &name, int flags ) :
+MaterialResource::MaterialResource( std::string const& name, int flags ) :
 	Resource( ResourceTypes::Material, name, flags )
 {
 	initDefault();	
@@ -70,7 +70,7 @@ void MaterialResource::release()
 }
 
 
-bool MaterialResource::raiseError( const std::string &msg, int line )
+bool MaterialResource::raiseError( std::string const& msg, int line )
 {
 	// Reset
 	release();
@@ -191,7 +191,7 @@ bool MaterialResource::load( const char *data, int size )
 }
 
 
-bool MaterialResource::setUniform( const std::string &name, float a, float b, float c, float d )
+bool MaterialResource::setUniform( std::string const& name, float a, float b, float c, float d )
 {
 	for( uint32 i = 0; i < _uniforms.size(); ++i )
 	{
@@ -209,7 +209,7 @@ bool MaterialResource::setUniform( const std::string &name, float a, float b, fl
 }
 
 
-bool MaterialResource::setArrayUniform( const std::string &name, float* data, int dataCount)
+bool MaterialResource::setArrayUniform( std::string const& name, float* data, int dataCount)
 {
 	for( uint32 i = 0; i < _uniforms.size(); ++i )
 	{
@@ -229,7 +229,7 @@ bool MaterialResource::setArrayUniform( const std::string &name, float* data, in
 }
 
 
-bool MaterialResource::isOfClass( const std::string &theClass )
+bool MaterialResource::isOfClass( std::string const& theClass )
 {
 	static std::string theClass2;
 

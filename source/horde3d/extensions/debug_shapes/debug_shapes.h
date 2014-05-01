@@ -15,7 +15,7 @@ BEGIN_RADIANT_HORDE3D_NAMESPACE
 
 struct DebugShapesTpl : public SceneNodeTpl
 {
-   DebugShapesTpl(const std::string &name) :
+   DebugShapesTpl(std::string const& name) :
       SceneNodeTpl(SNT_DebugShapesNode, name)
    {
    }
@@ -32,7 +32,7 @@ public:
 
 	static SceneNodeTpl *parsingFunc(std::map< std::string, std::string > &attribs);
 	static SceneNode *factoryFunc(const SceneNodeTpl &nodeTpl);
-	static void renderFunc(const std::string &shaderContext, const std::string &theClass, bool debugView,
+	static void renderFunc(std::string const& shaderContext, std::string const& theClass, bool debugView,
 		                    const Frustum *frust1, const Frustum *frust2, RenderingOrder::List order, int occSet, int lodLevel);
    void setParamI( int param, int value );
 

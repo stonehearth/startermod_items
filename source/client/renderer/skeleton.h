@@ -13,9 +13,9 @@ class Skeleton {
       ~Skeleton();
 
       void SetSceneNode(H3DNode parent);
-      H3DNode GetSceneNode(const std::string& bone);
+      H3DNode GetSceneNode(std::string const& bone);
 
-      H3DNode AttachEntityToBone(H3DRes entity, const std::string& bone, csg::Point3f const& offset);
+      H3DNode AttachEntityToBone(H3DRes entity, std::string const& bone, csg::Point3f const& offset);
       void Clear();
       void SetScale(float scale) { _scale = scale; }
       float GetScale() const { return _scale; }
@@ -23,7 +23,7 @@ class Skeleton {
       H3DNode GetRootNode() const { return _parent; }
 
    private:
-      H3DNode CreateBone(const std::string& bone);
+      H3DNode CreateBone(std::string const& bone);
 
    protected:
       H3DNode                                _parent;

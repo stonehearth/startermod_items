@@ -48,11 +48,11 @@ class TextureResource : public Resource
 public:
 	static void initializationFunc();
 	static void releaseFunc();
-	static Resource *factoryFunc( const std::string &name, int flags )
+	static Resource *factoryFunc( std::string const& name, int flags )
 		{ return new TextureResource( name, flags ); }
 	
-	TextureResource( const std::string &name, int flags );
-	TextureResource( const std::string &name, uint32 width, uint32 height, uint32 depth,
+	TextureResource( std::string const& name, int flags );
+	TextureResource( std::string const& name, uint32 width, uint32 height, uint32 depth,
                     TextureFormats::List fmt, int flags );
 	~TextureResource();
 	
@@ -81,7 +81,7 @@ public:
 	static uint32 defTexCubeObject;
 
 protected:
-	bool raiseError( const std::string &msg );
+	bool raiseError( std::string const& msg );
 	bool checkDDS( const char *data, int size );
 	bool loadDDS( const char *data, int size );
 	bool loadSTBI( const char *data, int size );

@@ -8,8 +8,8 @@ function TaskScheduler:__init(name)
    self._log:debug('created task scheduler')
 
    self._task_groups = {}
-   self._poll_interval = 200
-   self._max_feed_per_interval = 1
+   self._poll_interval = radiant.util.get_config('task_poll_interval', 100)
+   self._max_feed_per_interval = radiant.util.get_config('task_max_feed_per_interval', 5)
    self._last_task_group_index = 1
 
    self:_start_update_timer()
@@ -50,17 +50,18 @@ function TaskScheduler:_update()
          num_groups_evaluated < #self._task_groups and 
          #self._task_groups > 0 do
 
+      -- Increment the target task group, rolling around to 1 if we exeed the number
+      -- of task groups.
       if self._last_task_group_index > #self._task_groups then
          self._last_task_group_index = 1
       end
-
-      local target_task_group = self._task_groups[self._last_task_group_index]
-      
-      --Increment the target task group
+      local i = self._last_task_group_index
       self._last_task_group_index = self._last_task_group_index + 1
-      
-      local count = target_task_group:_update(num_to_feed)
+
+      local task_group = self._task_groups[i]      
+      local count = task_group:_update(num_to_feed)
       num_to_feed = num_to_feed - count
+      self._log:detail('group %d "%s" fed %d tasks.  %d left this loop.', i, task_group:get_name(), count, num_to_feed)
 
       num_groups_evaluated = num_groups_evaluated + 1
    end

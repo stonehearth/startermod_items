@@ -162,10 +162,10 @@ struct RenderTarget
 class PipelineResource : public Resource
 {
 public:
-	static Resource *factoryFunc( const std::string &name, int flags )
+	static Resource *factoryFunc( std::string const& name, int flags )
 		{ return new PipelineResource( name, flags ); }
 	
-	PipelineResource( const std::string &name, int flags );
+	PipelineResource( std::string const& name, int flags );
 	~PipelineResource();
 	
 	void initDefault();
@@ -179,18 +179,18 @@ public:
 	void setElemParamStr( int elem, int elemIdx, int param, const char *value );
 	const char *getElemParamStr( int elem, int elemIdx, int param );
 
-	bool getRenderTargetData( const std::string &target, int bufIndex, int *width, int *height,
+	bool getRenderTargetData( std::string const& target, int bufIndex, int *width, int *height,
 	                          int *compCount, void *dataBuffer, int bufferSize );
 
 private:
-	bool raiseError( const std::string &msg, int line = -1 );
-	const std::string parseStage( XMLNode const &node, PipelineStagePtr &stage );
+	bool raiseError( std::string const& msg, int line = -1 );
+	std::string parseStage( XMLNode const &node, PipelineStagePtr &stage );
 
-	void addRenderTarget( const std::string &id, bool depthBuffer, uint32 numBuffers,
+	void addRenderTarget( std::string const& id, bool depthBuffer, uint32 numBuffers,
 	                      TextureFormats::List format, uint32 samples,
 	                      uint32 width, uint32 height, float scale, uint32 mipLevels );
    void addGlobalRenderTarget(const char* name);
-	RenderTarget *findRenderTarget( const std::string &id );
+	RenderTarget *findRenderTarget( std::string const& id );
 	bool createRenderTargets();
 	void releaseRenderTargets();
    bool loadSetupNode(XMLNode const& setupNode);

@@ -306,7 +306,7 @@ struct DaeLibVisScenes
 	}
 	
 
-	DaeVisualScene *findVisualScene( const std::string &id )
+	DaeVisualScene *findVisualScene( std::string const& id )
 	{
 		if( id == "" ) return 0x0;
 		

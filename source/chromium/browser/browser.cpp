@@ -17,7 +17,7 @@ using namespace radiant;
 using namespace radiant::chromium;
 
 static std::string GetPostData(CefRefPtr<CefRequest> request);
-static JSONNode GetQuery(const std::string& query);
+static JSONNode GetQuery(std::string const& query);
 
 IBrowser* ::radiant::chromium::CreateBrowser(HWND parentWindow, std::string const& docroot, int width, int height, int debug_port)
 {
@@ -500,7 +500,7 @@ static std::string UrlDecode(std::string const& in)
    return out;
 }
 
-static JSONNode GetQuery(const std::string& query)
+static JSONNode GetQuery(std::string const& query)
 {
    JSONNode result;
    size_t start = 0, end;

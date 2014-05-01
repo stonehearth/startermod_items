@@ -21,7 +21,7 @@ namespace radiant {
          return subject.size() >= suffix.size() && subject.substr(subject.size() - suffix.size()) == suffix;
       }
 
-      static inline std::string replace(const std::string& str, const std::string& oldStr, const std::string& newStr)
+      static inline std::string replace(std::string const& str, std::string const& oldStr, std::string const& newStr)
       {
          size_t pos = 0;
          std::string result = str;

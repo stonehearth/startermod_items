@@ -72,19 +72,19 @@ typedef SmartResPtr< MaterialResource > PMaterialResource;
 class MaterialResource : public Resource
 {
 public:
-	static Resource *factoryFunc( const std::string &name, int flags )
+	static Resource *factoryFunc( std::string const& name, int flags )
 		{ return new MaterialResource( name, flags ); }
 	
-	MaterialResource( const std::string &name, int flags );
+	MaterialResource( std::string const& name, int flags );
 	~MaterialResource();
 	Resource *clone();
 	
 	void initDefault();
 	void release();
 	bool load( const char *data, int size );
-	bool setUniform( const std::string &name, float a, float b, float c, float d );
-   bool setArrayUniform( const std::string &name, float* data, int dataCount);
-	bool isOfClass( const std::string &theClass );
+	bool setUniform( std::string const& name, float a, float b, float c, float d );
+   bool setArrayUniform( std::string const& name, float* data, int dataCount);
+	bool isOfClass( std::string const& theClass );
 
 	int getElemCount( int elem );
 	int getElemParamI( int elem, int elemIdx, int param );
@@ -95,7 +95,7 @@ public:
 	void setElemParamStr( int elem, int elemIdx, int param, const char *value );
 
 private:
-	bool raiseError( const std::string &msg, int line = -1 );
+	bool raiseError( std::string const& msg, int line = -1 );
 
 private:
    PMaterialResource           _parentMaterial;

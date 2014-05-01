@@ -77,7 +77,7 @@ SceneNode *DecalNode::factoryFunc(const SceneNodeTpl &nodeTpl)
    return new DecalNode(static_cast<const DecalTpl&>(nodeTpl));
 }
 
-void DecalNode::renderFunc(const std::string &shaderContext, const std::string &theClass, bool debugView,
+void DecalNode::renderFunc(std::string const& shaderContext, std::string const& theClass, bool debugView,
                            const Frustum *frust1, const Frustum *frust2, RenderingOrder::List order, int occSet, int lodLevel)
 {
    bool offsetSet = false;

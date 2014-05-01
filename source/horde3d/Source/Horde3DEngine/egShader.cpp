@@ -32,7 +32,7 @@ using namespace std;
 // Code Resource
 // =================================================================================================
 
-CodeResource::CodeResource( const std::string &name, int flags ) :
+CodeResource::CodeResource( std::string const& name, int flags ) :
 	Resource( ResourceTypes::Code, name, flags )
 {
 	initDefault();
@@ -70,7 +70,7 @@ void CodeResource::release()
 }
 
 
-bool CodeResource::raiseError( const std::string &msg )
+bool CodeResource::raiseError( std::string const& msg )
 {
 	// Reset
 	release();
@@ -368,7 +368,7 @@ std::string ShaderResource::_tmpCode0 = "";
 std::string ShaderResource::_tmpCode1 = "";
 
 
-ShaderResource::ShaderResource( const std::string &name, int flags ) :
+ShaderResource::ShaderResource( std::string const& name, int flags ) :
 	Resource( ResourceTypes::Shader, name, flags )
 {
 	initDefault();
@@ -403,7 +403,7 @@ void ShaderResource::release()
 }
 
 
-bool ShaderResource::raiseError( const std::string &msg, int line )
+bool ShaderResource::raiseError( std::string const& msg, int line )
 {
 	// Reset
 	release();

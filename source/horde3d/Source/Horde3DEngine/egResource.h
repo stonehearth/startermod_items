@@ -64,7 +64,7 @@ struct ResourceFlags
 class Resource
 {
 public:
-	Resource( int type, const std::string &name, int flags );
+	Resource( int type, std::string const& name, int flags );
 	virtual ~Resource();
 	virtual Resource *clone();  // TODO: Implement this for all resource types
 	
@@ -87,7 +87,7 @@ public:
 
 	int &getType() { return _type; }
 	int getFlags() { return _flags; }
-	const std::string &getName() { return _name; }
+	std::string const& getName() { return _name; }
 	ResHandle getHandle() { return _handle; }
 	bool isLoaded() { return _loaded; }
 	void addRef() { ++_refCount; }
@@ -148,7 +148,7 @@ typedef SmartResPtr< Resource > PResource;
 
 typedef void (*ResTypeInitializationFunc)();
 typedef void (*ResTypeReleaseFunc)();
-typedef Resource *(*ResTypeFactoryFunc)( const std::string &name, int flags );
+typedef Resource *(*ResTypeFactoryFunc)( std::string const& name, int flags );
 
 struct ResourceRegEntry
 {
@@ -166,14 +166,14 @@ public:
 	ResourceManager();
 	~ResourceManager();
 
-	void registerType( int type, const std::string &typeString, ResTypeInitializationFunc inf,
+	void registerType( int type, std::string const& typeString, ResTypeInitializationFunc inf,
 	                   ResTypeReleaseFunc rf, ResTypeFactoryFunc ff );
 	
 	Resource *getNextResource( int type, ResHandle start );
-	Resource *findResource( int type, const std::string &name );
-	ResHandle addResource( int type, const std::string &name, int flags, bool userCall );
+	Resource *findResource( int type, std::string const& name );
+	ResHandle addResource( int type, std::string const& name, int flags, bool userCall );
 	ResHandle addNonExistingResource( Resource &resource, bool userCall );
-	ResHandle cloneResource( Resource &sourceRes, const std::string &name );
+	ResHandle cloneResource( Resource &sourceRes, std::string const& name );
 	int removeResource( Resource &resource, bool userCall );
 	void clear();
 	ResHandle queryUnloadedResource( int index );

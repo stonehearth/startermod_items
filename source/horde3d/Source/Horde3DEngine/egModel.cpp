@@ -129,7 +129,7 @@ void ModelNode::recreateNodeList()
 
 
 void ModelNode::setupAnimStage( int stage, AnimationResource *anim, int layer,
-                                const std::string &startNode, bool additive )
+                                std::string const& startNode, bool additive )
 {
 	if( _nodeListDirty ) recreateNodeList();
 	
@@ -143,7 +143,7 @@ void ModelNode::setAnimParams( int stage, float time, float weight )
 }
 
 
-bool ModelNode::setMorphParam( const std::string &targetName, float weight )
+bool ModelNode::setMorphParam( std::string const& targetName, float weight )
 {
 	if( _geometryRes == 0x0 || _morphers.empty() ) return false;
 

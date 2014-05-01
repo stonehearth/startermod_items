@@ -100,7 +100,7 @@ struct LogMessage
 	{
 	}
 
-	LogMessage( const std::string &text, int level, float time ) :
+	LogMessage( std::string const& text, int level, float time ) :
 		text( text ), level( level ), time( time )
 	{
 	}
@@ -111,7 +111,7 @@ struct LogMessage
 class EngineLog
 {
 public:
-	EngineLog(const std::string& logFilePath);
+	EngineLog(std::string const& logFilePath);
 
 	void writeError( const char *msg, ... );
 	void writeWarning( const char *msg, ... );
@@ -131,7 +131,7 @@ public:
    void ReportError(::radiant::om::ErrorBrowser::Record const&);
 
 protected:
-	void pushMessage( const std::string &text, uint32 level );
+	void pushMessage( std::string const& text, uint32 level );
 	void pushMessage( int level, const char *msg, va_list ap );
 
 protected:

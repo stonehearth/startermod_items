@@ -29,14 +29,14 @@ bool usePinnedMemory()
 }
 
 
-PixelBufferResource::PixelBufferResource( const std::string &name) :
+PixelBufferResource::PixelBufferResource( std::string const& name) :
 	Resource( ResourceTypes::PixelBuffer, name, 0)
 {
 	initDefault();
 }
 
 
-PixelBufferResource::PixelBufferResource( const std::string &name, uint32 size) :
+PixelBufferResource::PixelBufferResource( std::string const& name, uint32 size) :
 	Resource( ResourceTypes::PixelBuffer, name, 0 ), _size(size), _buffer( 0 )
 {	
 	_loaded = true;
@@ -94,7 +94,7 @@ void PixelBufferResource::release()
 }
 
 
-bool PixelBufferResource::raiseError( const std::string &msg )
+bool PixelBufferResource::raiseError( std::string const& msg )
 {
 	// Reset
 	release();

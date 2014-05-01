@@ -21,9 +21,9 @@ public:
    AnalyticsLogger();
    ~AnalyticsLogger();
 
-   void SetBasicValues(const std::string& userid, const std::string& sessionid, const std::string& build_version);
-   void SubmitLogEvent(json::Node& event_node, const std::string& event_category);
-   void SubmitPost(json::Node& event_node, const std::string& uri, const std::string& authorization_string);
+   void SetBasicValues(std::string const& userid, std::string const& sessionid, std::string const& build_version);
+   void SubmitLogEvent(json::Node& event_node, std::string const& event_category);
+   void SubmitPost(json::Node& event_node, std::string const& uri, std::string const& authorization_string);
 
 private:
    void SendPostsToServer();

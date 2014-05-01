@@ -45,7 +45,7 @@ void GeometryResource::releaseFunc()
 }
 
 
-GeometryResource::GeometryResource( const std::string &name, int flags ) :
+GeometryResource::GeometryResource( std::string const& name, int flags ) :
 	Resource( ResourceTypes::Geometry, name, flags )
 {
 	initDefault();
@@ -132,7 +132,7 @@ void GeometryResource::release()
 }
 
 
-bool GeometryResource::raiseError( const std::string &msg )
+bool GeometryResource::raiseError( std::string const& msg )
 {
 	// Reset
 	release();

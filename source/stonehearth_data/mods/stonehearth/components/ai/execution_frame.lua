@@ -49,7 +49,9 @@ function ExecutionFrame:__init(thread, entity, action_index, activity_name, debu
 
    local prefix = string.format('%s (%s)', self._debug_route, self._activity_name)
    self._log = radiant.log.create_logger('ai.exec_frame')
-   self._log:set_prefix(prefix)
+                          :set_prefix(prefix)
+                          :set_entity(self._entity)
+
    self._log:debug('creating execution frame')
    self._aitrace = radiant.log.create_logger('ai_trace')
 

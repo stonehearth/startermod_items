@@ -63,7 +63,7 @@ void Record::SaveValue(SerializationType r, Protocol::Value* msg) const
    }
 }
 
-void Record::AddRecordField(const std::string& name, Object& field)
+void Record::AddRecordField(std::string const& name, Object& field)
 {
    auto& store = GetStore();
    ObjectId id;
@@ -83,7 +83,7 @@ void Record::AddRecordField(const std::string& name, Object& field)
    }
 }
 
-bool Record::FieldIsUnique(const std::string& name, Object& obj)
+bool Record::FieldIsUnique(std::string const& name, Object& obj)
 {
    dm::ObjectId id = obj.GetObjectId();
    for (const auto& field : fields_) {

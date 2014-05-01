@@ -51,6 +51,7 @@ class BfsPathFinder : public std::enable_shared_from_this<BfsPathFinder>,
 
       PathPtr GetSolution() const;
       float EstimateCostToSolution();
+      void Log(int level, std::string const& s);
 
    public: // Job Interface
       bool IsIdle() const override;

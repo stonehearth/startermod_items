@@ -27,7 +27,7 @@ class HudElement
 public:
    const BoundingBox& getBounds() const;
    virtual void updateGeometry(const Matrix4f& absTrans) = 0;
-   virtual void draw(const std::string &shaderContext, const std::string &theClass, Matrix4f& worldMat);
+   virtual void draw(std::string const& shaderContext, std::string const& theClass, Matrix4f& worldMat);
 
 protected:
 
@@ -38,7 +38,7 @@ class WorldspaceLineHudElement : public HudElement
 {
 public:
    void updateGeometry(const Matrix4f& absTrans);
-   void draw(const std::string &shaderContext, const std::string &theClass, Matrix4f& worldMat);
+   void draw(std::string const& shaderContext, std::string const& theClass, Matrix4f& worldMat);
 
 private:
    PMaterialResource materialRes_;
@@ -62,7 +62,7 @@ class ScreenspaceRectHudElement : public HudElement
 public:
 
    void updateGeometry(const Matrix4f& absTrans);
-   void draw(const std::string &shaderContext, const std::string &theClass, Matrix4f& worldMat);
+   void draw(std::string const& shaderContext, std::string const& theClass, Matrix4f& worldMat);
 
    ScreenspaceRectHudElement* setSize(int width, int height);
    ScreenspaceRectHudElement* setOffsets(int offsetX, int offsetY);
@@ -90,7 +90,7 @@ class WorldspaceRectHudElement : public HudElement
 public:
 
    void updateGeometry(const Matrix4f& absTrans);
-   void draw(const std::string &shaderContext, const std::string &theClass, Matrix4f& worldMat);
+   void draw(std::string const& shaderContext, std::string const& theClass, Matrix4f& worldMat);
 
    WorldspaceRectHudElement* setSize(int width, int height);
    WorldspaceRectHudElement* setOffsets(int offsetX, int offsetY);
@@ -131,7 +131,7 @@ struct HudElementNodeParams
 struct HudElementNodeTpl : public SceneNodeTpl
 {
 
-	HudElementNodeTpl( const std::string &name ) :
+	HudElementNodeTpl( std::string const& name ) :
 		SceneNodeTpl( SceneNodeTypes::HudElement, name )
 	{
 	}

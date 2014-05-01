@@ -17,7 +17,7 @@ public:
    };
 
 public:
-   QubicleMatrix(const csg::Point3& size, const csg::Point3& position, const std::string& name);
+   QubicleMatrix(const csg::Point3& size, const csg::Point3& position, std::string const& name);
    ~QubicleMatrix();
 
    std::string const& GetName() const { return name_; }
