@@ -36,8 +36,6 @@ struct Function : public json::Node
    Function();
    Function(std::string const& name, json::Node const& n);
 
-   static const std::string SERVER;
-
    std::string endpoint();
    FilePath script();
 

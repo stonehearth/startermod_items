@@ -140,7 +140,7 @@ int Application::Run(int argc, const char** argv)
       }
       radiant::log::Init(core::System::GetInstance().GetTempDirectory() / LOG_FILENAME);
       radiant::log::InitLogLevels();
-      google::protobuf::SetLogHandler([](google::protobuf::LogLevel level, const char* filename, int line, const std::string& message) {
+      google::protobuf::SetLogHandler([](google::protobuf::LogLevel level, const char* filename, int line, std::string const& message) {
          LOG(protobuf, 0) << " " << message;
       });
 

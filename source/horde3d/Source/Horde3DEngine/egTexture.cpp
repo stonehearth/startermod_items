@@ -119,7 +119,7 @@ void TextureResource::releaseFunc()
 }
 
 
-TextureResource::TextureResource( const std::string &name, int flags ) :
+TextureResource::TextureResource( std::string const& name, int flags ) :
 	Resource( ResourceTypes::Texture, name, flags )
 {
 	_texType = TextureTypes::Tex2D;
@@ -127,7 +127,7 @@ TextureResource::TextureResource( const std::string &name, int flags ) :
 }
 
 
-TextureResource::TextureResource( const std::string &name, uint32 width, uint32 height, uint32 depth,
+TextureResource::TextureResource( std::string const& name, uint32 width, uint32 height, uint32 depth,
                                   TextureFormats::List fmt, int flags ) :
 	Resource( ResourceTypes::Texture, name, flags ),
 	_width( width ), _height( height ), _depth( depth ), _rbObj( 0 )
@@ -207,7 +207,7 @@ void TextureResource::release()
 }
 
 
-bool TextureResource::raiseError( const std::string &msg )
+bool TextureResource::raiseError( std::string const& msg )
 {
 	// Reset
 	release();

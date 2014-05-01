@@ -148,7 +148,7 @@ cubemitter::ParticleData parseParticle(Node& n)
 // CubemitterResource
 // *************************************************************************************************
 
-CubemitterResource::CubemitterResource( const std::string &name, int flags ) :
+CubemitterResource::CubemitterResource( std::string const& name, int flags ) :
    Resource( RT_CubemitterResource, name, flags )
 {
 	initDefault();	
@@ -167,7 +167,7 @@ void CubemitterResource::release()
 {
 }
 
-bool CubemitterResource::raiseError( const std::string &msg, int line )
+bool CubemitterResource::raiseError( std::string const& msg, int line )
 {
 	// Reset
 	release();
@@ -358,7 +358,7 @@ bool CubemitterNode::hasFinished()
 	return true;
 }
 
-void CubemitterNode::renderFunc(const std::string &shaderContext, const std::string &theClass, bool debugView,
+void CubemitterNode::renderFunc(std::string const& shaderContext, std::string const& theClass, bool debugView,
                                  const Frustum *frust1, const Frustum *frust2, RenderingOrder::List order, int occSet, int lodLevel)
 {
 	if( frust1 == 0x0 || Modules::renderer().getCurCamera() == 0x0 ) return;

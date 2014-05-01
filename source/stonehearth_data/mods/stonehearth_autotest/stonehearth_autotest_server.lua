@@ -6,7 +6,7 @@ radiant.events.listen(mod, 'radiant:new_game', function(args)
             radiant.exit(errorcode)
          end)
 
-      radiant.set_realtime_timer(1000, function()
+      radiant.set_realtime_timer(3000, function()
          local index = radiant.resources.load_json('stonehearth_autotest/tests/index.json')
          local options = radiant.util.get_config('options', {})
          if options.script then

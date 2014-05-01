@@ -22,16 +22,16 @@ using namespace Horde3D;
 
 
 void removeGate( std::string &s );
-std::string decodeURL( const std::string &url );
-std::string extractFileName( const std::string &fullPath, bool extension );
-std::string extractFilePath( const std::string &fullPath );
-std::string cleanPath( const std::string &path );
+std::string decodeURL( std::string const& url );
+std::string extractFileName( std::string const& fullPath, bool extension );
+std::string extractFilePath( std::string const& fullPath );
+std::string cleanPath( std::string const& path );
 
-void log( const std::string &msg );
+void log( std::string const& msg );
 
 Matrix4f makeMatrix4f( float *floatArray16, bool y_up );
 
-void createDirectories( const std::string &basePath, const std::string &newPath );
+void createDirectories( std::string const& basePath, std::string const& newPath );
 
 
 

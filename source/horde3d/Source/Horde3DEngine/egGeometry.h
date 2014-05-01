@@ -85,10 +85,10 @@ class GeometryResource : public Resource
 public:
 	static void initializationFunc();
 	static void releaseFunc();
-	static Resource *factoryFunc( const std::string &name, int flags )
+	static Resource *factoryFunc( std::string const& name, int flags )
 		{ return new GeometryResource( name, flags ); }
 	
-	GeometryResource( const std::string &name, int flags );
+	GeometryResource( std::string const& name, int flags );
 	~GeometryResource();
 	Resource *clone();
 	
@@ -118,7 +118,7 @@ public:
 	static uint32 defVertBuffer, defIndexBuffer;
 
 private:
-	bool raiseError( const std::string &msg );
+	bool raiseError( std::string const& msg );
 
 private:
 	static int                  mappedWriteStream;

@@ -22,7 +22,7 @@ struct CubemitterNodeTpl : public SceneNodeTpl
    PCubemitterResource _cubemitterRes;
    PMaterialResource _matRes;
 
-   CubemitterNodeTpl(const std::string &name, const PCubemitterResource &cubeRes, const PMaterialResource &matRes) :
+   CubemitterNodeTpl(std::string const& name, const PCubemitterResource &cubeRes, const PMaterialResource &matRes) :
       SceneNodeTpl(SNT_CubemitterNode, name),
       _cubemitterRes(cubeRes), _matRes(matRes)
    {
@@ -227,10 +227,10 @@ struct CubeAttribute
 class CubemitterResource : public Resource
 {
 public:
-	static Resource *factoryFunc( const std::string &name, int flags )
+	static Resource *factoryFunc( std::string const& name, int flags )
 		{ return new CubemitterResource( name, flags ); }
 
-	CubemitterResource( const std::string &name, int flags );
+	CubemitterResource( std::string const& name, int flags );
 	~CubemitterResource();
 	
 	void initDefault();
@@ -243,7 +243,7 @@ public:
    CubemitterData emitterData;
 
 private:
-	bool raiseError( const std::string &msg, int line = -1 );
+	bool raiseError( std::string const& msg, int line = -1 );
 
 private:
 	friend class EmitterNode;
@@ -259,7 +259,7 @@ class CubemitterNode : public SceneNode
 public:
 	static SceneNodeTpl *parsingFunc( std::map< std::string, std::string > &attribs );
 	static SceneNode *factoryFunc( const SceneNodeTpl &nodeTpl );
-   static void renderFunc(const std::string &shaderContext, const std::string &theClass, bool debugView,
+   static void renderFunc(std::string const& shaderContext, std::string const& theClass, bool debugView,
                    const Frustum *frust1, const Frustum *frust2, RenderingOrder::List order, int occSet, int lodLevel);
 
 	~CubemitterNode();

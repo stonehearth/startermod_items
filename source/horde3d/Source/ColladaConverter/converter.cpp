@@ -26,7 +26,7 @@
 using namespace std;
 
 
-Converter::Converter( ColladaDocument &doc, const std::string &outPath, float *lodDists ) :
+Converter::Converter( ColladaDocument &doc, std::string const& outPath, float *lodDists ) :
 	_daeDoc( doc )
 {
 	_outPath = outPath;
@@ -150,7 +150,7 @@ void Converter::checkNodeName( SceneNode *node )
 }
 
 
-bool Converter::validateInstance( const std::string &instanceId )
+bool Converter::validateInstance( std::string const& instanceId )
 {
 	std::string id = instanceId;
 	
@@ -871,7 +871,7 @@ bool Converter::convertModel( bool optimize )
 }
 
 
-bool Converter::writeGeometry( const std::string &assetPath, const std::string &assetName )
+bool Converter::writeGeometry( std::string const& assetPath, std::string const& assetName )
 {
 	std::string fileName = _outPath + assetPath + assetName + ".geo";
 	FILE *f = fopen( fileName.c_str(), "wb" );
@@ -1095,7 +1095,7 @@ bool Converter::writeGeometry( const std::string &assetPath, const std::string &
 }
 
 
-void Converter::writeSGNode( const std::string &assetPath, SceneNode *node, unsigned int depth, ofstream &outf )
+void Converter::writeSGNode( std::string const& assetPath, SceneNode *node, unsigned int depth, ofstream &outf )
 {
 	Vec3f trans, rot, scale;
 	node->matRel.decompose( trans, rot, scale );
@@ -1185,7 +1185,7 @@ void Converter::writeSGNode( const std::string &assetPath, SceneNode *node, unsi
 }
 
 
-bool Converter::writeSceneGraph( const std::string &assetPath, const std::string &assetName )
+bool Converter::writeSceneGraph( std::string const& assetPath, std::string const& assetName )
 {
 	ofstream outf;
 	outf.open( (_outPath + assetPath + assetName + ".scene.xml").c_str(), ios::out );
@@ -1235,7 +1235,7 @@ bool Converter::writeSceneGraph( const std::string &assetPath, const std::string
 }
 
 
-bool Converter::writeModel( const std::string &assetPath, const std::string &assetName )
+bool Converter::writeModel( std::string const& assetPath, std::string const& assetName )
 {
 	bool result = true;
 	
@@ -1246,7 +1246,7 @@ bool Converter::writeModel( const std::string &assetPath, const std::string &ass
 }
 
 
-bool Converter::writeMaterials( const std::string &assetPath, bool replace )
+bool Converter::writeMaterials( std::string const& assetPath, bool replace )
 {
 	for( unsigned int i = 0; i < _daeDoc.libMaterials.materials.size(); ++i )
 	{
@@ -1350,7 +1350,7 @@ void Converter::writeAnimFrames( SceneNode &node, FILE *f )
 }
 
 
-bool Converter::writeAnimation( const std::string &assetPath, const std::string &assetName )
+bool Converter::writeAnimation( std::string const& assetPath, std::string const& assetName )
 {
 	FILE *f = fopen( (_outPath + assetPath + assetName + ".anim").c_str(), "wb" );
 	if( f == 0x0 )

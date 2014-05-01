@@ -13,7 +13,7 @@ namespace radiant {
          public:
             store();
 
-            void push_category(const std::string& category);
+            void push_category(std::string const& category);
             void pop_category(metrics::time delta);
 
             void dump_stats();
@@ -27,14 +27,14 @@ namespace radiant {
          protected:
             struct profile_entry {
                profile_entry() : duration(0) { }
-               profile_entry(const std::string& c) : category(c), duration(0) { }
+               profile_entry(std::string const& c) : category(c), duration(0) { }
 
                std::string                              category;
                metrics::time                       duration;
                std::vector<std::unique_ptr<profile_entry>>   children;
 
-               profile_entry *get_child(const std::string& subcat);
-               void dump_stats(const std::string& parent_category, metrics::time parent_duration, metrics::time overall_duration);
+               profile_entry *get_child(std::string const& subcat);
+               void dump_stats(std::string const& parent_category, metrics::time parent_duration, metrics::time overall_duration);
             };            
 
          protected:

@@ -20,7 +20,7 @@ const std::string GAME_ANALYTICS_DOMAIN = "api.gameanalytics.com";
 const std::string API_VERSION = "1";
 
 //Helper data class, Event Data
-EventData::EventData(const json::Node& event_node, const std::string& event_category)
+EventData::EventData(const json::Node& event_node, std::string const& event_category)
 : PostData(event_node, std::string(GAME_ANALYTICS_URI) + "/" + std::string(GAME_ANALYTICS_API_VERSION) + "/" + std::string(GAME_ANALYTICS_GAME_KEY) + "/" + event_category, "")
 {
    event_node_ = event_node;

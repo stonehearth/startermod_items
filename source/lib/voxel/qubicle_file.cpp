@@ -9,7 +9,7 @@ QubicleMatrix::QubicleMatrix(QubicleFile const& qubicle_file, std::string const&
 {
 }
 
-QubicleMatrix::QubicleMatrix(const csg::Point3& size, const csg::Point3& position, const std::string& name) :
+QubicleMatrix::QubicleMatrix(const csg::Point3& size, const csg::Point3& position, std::string const& name) :
    size_(size), position_(position), name_(name)
 {
    matrix_.resize(size.x * size.y * size.z);
@@ -73,7 +73,7 @@ std::istream& QubicleMatrix::Read(const QbHeader& header, CoordinateSystem coord
    return in;
 }
 
-QubicleFile::QubicleFile(const std::string& uri)
+QubicleFile::QubicleFile(std::string const& uri)
 {
    uri_ = uri;
 }

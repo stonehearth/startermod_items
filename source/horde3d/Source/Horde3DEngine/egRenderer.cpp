@@ -852,7 +852,7 @@ ShaderCombination* Renderer::findShaderCombination(ShaderResource* r, ShaderCont
    return result;
 }
 
-bool Renderer::isShaderContextSwitch(const std::string &newContext, const MaterialResource *materialRes)
+bool Renderer::isShaderContextSwitch(std::string const& newContext, const MaterialResource *materialRes)
 {
    ShaderResource *sr = materialRes->_shaderRes;
    if (sr == 0x0) {
@@ -869,7 +869,7 @@ bool Renderer::isShaderContextSwitch(const std::string &newContext, const Materi
 }
 
 
-bool Renderer::setMaterialRec( MaterialResource *materialRes, const std::string &shaderContext,
+bool Renderer::setMaterialRec( MaterialResource *materialRes, std::string const& shaderContext,
                                ShaderResource *shaderRes )
 {
    radiant::perfmon::TimelineCounterGuard smr("setMaterialRec");
@@ -1183,7 +1183,7 @@ bool Renderer::setMaterialRec( MaterialResource *materialRes, const std::string 
 }
 
 
-bool Renderer::setMaterial( MaterialResource *materialRes, const std::string &shaderContext )
+bool Renderer::setMaterial( MaterialResource *materialRes, std::string const& shaderContext )
 {
 	if( materialRes == 0x0 )
 	{	
@@ -1779,7 +1779,7 @@ void Renderer::clearOverlays()
 }
 
 
-void Renderer::drawOverlays( const std::string &shaderContext )
+void Renderer::drawOverlays( std::string const& shaderContext )
 {
 	uint32 numOverlayVerts = 0;
    float desiredAspect = Modules::config().overlayAspect;
@@ -1821,7 +1821,7 @@ void Renderer::drawOverlays( const std::string &shaderContext )
 // Pipeline Functions
 // =================================================================================================
 
-void Renderer::bindPipeBuffer( uint32 rbObj, const std::string &sampler, uint32 bufIndex )
+void Renderer::bindPipeBuffer( uint32 rbObj, std::string const& sampler, uint32 bufIndex )
 {
 	if( rbObj == 0 )
 	{
@@ -1905,7 +1905,7 @@ void Renderer::clear( bool depth, bool buf0, bool buf1, bool buf2, bool buf3,
 }
 
 
-void Renderer::drawFSQuad( Resource *matRes, const std::string &shaderContext )
+void Renderer::drawFSQuad( Resource *matRes, std::string const& shaderContext )
 {
 	if( matRes == 0x0 || matRes->getType() != ResourceTypes::Material ) return;
 
@@ -1930,7 +1930,7 @@ void Renderer::updateLodUniform(int lodLevel, float lodDist1, float lodDist2)
    _lodValues.w = (_lodValues.y - _lodValues.z);
 }
 
-void Renderer::drawLodGeometry(const std::string &shaderContext, const std::string &theClass,
+void Renderer::drawLodGeometry(std::string const& shaderContext, std::string const& theClass,
                              RenderingOrder::List order, int filterRequried, int occSet, float frustStart, float frustEnd, int lodLevel)
 {
    // These two magic values represent the normalized distances to the end of the first LOD level,
@@ -1955,7 +1955,7 @@ void Renderer::drawLodGeometry(const std::string &shaderContext, const std::stri
 }
 
 
-void Renderer::drawGeometry( const std::string &shaderContext, const std::string &theClass,
+void Renderer::drawGeometry( std::string const& shaderContext, std::string const& theClass,
                              RenderingOrder::List order, int filterRequired, int occSet, float frustStart, float frustEnd, int forceLodLevel )
 {
    if (forceLodLevel >= 0) {
@@ -1984,7 +1984,7 @@ void Renderer::drawGeometry( const std::string &shaderContext, const std::string
 }
 
 
-void Renderer::drawProjections( const std::string &shaderContext, uint32 userFlags )
+void Renderer::drawProjections( std::string const& shaderContext, uint32 userFlags )
 {
    int numProjectorNodes = Modules::sceneMan().findNodes(Modules::sceneMan().getRootNode(), "", SceneNodeTypes::ProjectorNode);
 
@@ -2106,7 +2106,7 @@ Frustum Renderer::computeDirectionalLightFrustum(float nearPlaneDist, float farP
 }
 
 
-void Renderer::drawLightGeometry( const std::string &shaderContext, const std::string &theClass,
+void Renderer::drawLightGeometry( std::string const& shaderContext, std::string const& theClass,
                                   bool noShadows, RenderingOrder::List order, int occSet, bool selectedOnly )
 {
 	Modules::sceneMan().updateQueues("drawing light geometry", _curCamera->getFrustum(), 0x0, RenderingOrder::None,
@@ -2228,7 +2228,7 @@ void Renderer::drawLightGeometry( const std::string &shaderContext, const std::s
 }
 
 
-void Renderer::drawLightShapes( const std::string &shaderContext, bool noShadows, int occSet )
+void Renderer::drawLightShapes( std::string const& shaderContext, bool noShadows, int occSet )
 {
 	MaterialResource *curMatRes = 0x0;
 	
@@ -2367,7 +2367,7 @@ void Renderer::setGlobalUniform(const char* str, UniformType::List kind, void* v
 }
 
 
-void Renderer::drawRenderables( const std::string &shaderContext, const std::string &theClass, bool debugView,
+void Renderer::drawRenderables( std::string const& shaderContext, std::string const& theClass, bool debugView,
                                 const Frustum *frust1, const Frustum *frust2, RenderingOrder::List order,
                                 int occSet, int lodLevel )
 {
@@ -2406,7 +2406,7 @@ void Renderer::drawRenderables( const std::string &shaderContext, const std::str
 }
 
 
-void Renderer::drawMeshes( const std::string &shaderContext, const std::string &theClass, bool debugView,
+void Renderer::drawMeshes( std::string const& shaderContext, std::string const& theClass, bool debugView,
                            const Frustum *frust1, const Frustum *frust2, RenderingOrder::List order,
                            int occSet, int lodLevel )
 {
@@ -2582,7 +2582,7 @@ void Renderer::drawMeshes( const std::string &shaderContext, const std::string &
 }
 
 
-void Renderer::drawHudElements(const std::string &shaderContext, const std::string &theClass, bool debugView,
+void Renderer::drawHudElements(std::string const& shaderContext, std::string const& theClass, bool debugView,
                                const Frustum *frust1, const Frustum *frust2, RenderingOrder::List order,
                                int occSet, int lodLevel)
 {
@@ -2602,7 +2602,7 @@ void Renderer::drawHudElements(const std::string &shaderContext, const std::stri
 }
 
 
-void Renderer::drawVoxelMeshes(const std::string &shaderContext, const std::string &theClass, bool debugView,
+void Renderer::drawVoxelMeshes(std::string const& shaderContext, std::string const& theClass, bool debugView,
                                const Frustum *frust1, const Frustum *frust2, RenderingOrder::List order,
                                int occSet, int lodLevel)
 {
@@ -2780,7 +2780,7 @@ void Renderer::drawVoxelMeshes(const std::string &shaderContext, const std::stri
 }
 
 
-void Renderer::drawVoxelMeshes_Instances(const std::string &shaderContext, const std::string &theClass, bool debugView,
+void Renderer::drawVoxelMeshes_Instances(std::string const& shaderContext, std::string const& theClass, bool debugView,
                                const Frustum *frust1, const Frustum *frust2, RenderingOrder::List order,
                                int occSet, int lodLevel)
 {
@@ -2928,7 +2928,7 @@ void Renderer::drawVoxelMesh_Instances_WithoutInstancing(const RenderableQueue& 
 }
 
 
-void Renderer::drawInstanceNode(const std::string &shaderContext, const std::string &theClass, bool debugView,
+void Renderer::drawInstanceNode(std::string const& shaderContext, std::string const& theClass, bool debugView,
                                const Frustum *frust1, const Frustum *frust2, RenderingOrder::List order,
                                int occSet, int lodLevel)
 {
@@ -2993,7 +2993,7 @@ void Renderer::drawInstanceNode(const std::string &shaderContext, const std::str
 }
 
 
-void Renderer::drawParticles( const std::string &shaderContext, const std::string &theClass, bool debugView,
+void Renderer::drawParticles( std::string const& shaderContext, std::string const& theClass, bool debugView,
                               const Frustum *frust1, const Frustum * /*frust2*/, RenderingOrder::List /*order*/,
                               int occSet, int lodLevel )
 {

@@ -35,7 +35,7 @@ struct InstanceNodeParams
 
 struct InstanceNodeTpl : public SceneNodeTpl
 {
-   InstanceNodeTpl( const std::string &name, MaterialResource* matRes, VoxelGeometryResource* geoRes, int maxInstances ) :
+   InstanceNodeTpl( std::string const& name, MaterialResource* matRes, VoxelGeometryResource* geoRes, int maxInstances ) :
       SceneNodeTpl( SceneNodeTypes::InstanceNode, name ), _geoRes(geoRes), _matRes(matRes), _maxInstances(maxInstances)
 	{
 	}

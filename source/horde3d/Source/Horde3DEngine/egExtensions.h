@@ -44,7 +44,7 @@ public:
 	~ExtensionManager();
 	
 	bool installExtension( IExtension *extension );
-	bool checkExtension( const std::string &name );
+	bool checkExtension( std::string const& name );
 
 protected:
 	std::vector< IExtension * >  _extensions;

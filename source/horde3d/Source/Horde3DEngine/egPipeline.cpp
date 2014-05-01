@@ -35,7 +35,7 @@ namespace Horde3D {
 using namespace std;
 
 
-PipelineResource::PipelineResource( const std::string &name, int flags ) :
+PipelineResource::PipelineResource( std::string const& name, int flags ) :
 	Resource( ResourceTypes::Pipeline, name, flags )
 {
 	initDefault();	
@@ -63,7 +63,7 @@ void PipelineResource::release()
 }
 
 
-bool PipelineResource::raiseError( const std::string &msg, int line )
+bool PipelineResource::raiseError( std::string const& msg, int line )
 {
 	// Reset
 	release();
@@ -78,7 +78,7 @@ bool PipelineResource::raiseError( const std::string &msg, int line )
 }
 
 
-const std::string PipelineResource::parseStage( XMLNode const &node, PipelineStagePtr &stage )
+std::string PipelineResource::parseStage( XMLNode const &node, PipelineStagePtr &stage )
 {
 	stage->id = node.getAttribute( "id", "" );
 
@@ -354,7 +354,7 @@ void PipelineResource::addGlobalRenderTarget(const char* name)
 }
 
 
-void PipelineResource::addRenderTarget( const std::string &id, bool depthBuf, uint32 numColBufs,
+void PipelineResource::addRenderTarget( std::string const& id, bool depthBuf, uint32 numColBufs,
 										TextureFormats::List format, uint32 samples,
 										uint32 width, uint32 height, float scale, uint32 mipLevels )
 {
@@ -374,7 +374,7 @@ void PipelineResource::addRenderTarget( const std::string &id, bool depthBuf, ui
 }
 
 
-RenderTarget *PipelineResource::findRenderTarget( const std::string &id )
+RenderTarget *PipelineResource::findRenderTarget( std::string const& id )
 {
 	if( id == "" ) return 0x0;
 	
@@ -666,7 +666,7 @@ const char *PipelineResource::getElemParamStr( int elem, int elemIdx, int param 
 }
 
 
-bool PipelineResource::getRenderTargetData( const std::string &target, int bufIndex, int *width, int *height,
+bool PipelineResource::getRenderTargetData( std::string const& target, int bufIndex, int *width, int *height,
                                             int *compCount, void *dataBuffer, int bufferSize )
 {
 	uint32 rbObj = 0;

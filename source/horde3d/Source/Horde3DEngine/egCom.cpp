@@ -267,7 +267,7 @@ void EngineLog::dumpMessages()
    _outf.flush();	
 }
 
-EngineLog::EngineLog(const std::string& logFilePath)
+EngineLog::EngineLog(std::string const& logFilePath)
 {
 	_timer.setEnabled( true );
 	_maxNumMessages = 512;

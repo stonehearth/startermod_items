@@ -70,7 +70,7 @@ void Channel::SetNextMusicCrossfade(bool crossfade)
 }
 
 
-void Channel::PlayMusic(const std::string& track)
+void Channel::PlayMusic(std::string const& track)
 {
    //If this track is already playing, then just return
    if(track.compare(music_name_) == 0) {
@@ -90,7 +90,7 @@ void Channel::PlayMusic(const std::string& track)
    }
 }
 
-void Channel::SetAndPlayMusic(const std::string& track, double target_volume)
+void Channel::SetAndPlayMusic(std::string const& track, double target_volume)
 {
    auto i = music_buffers_.find(track);
    if (i == music_buffers_.end()) {

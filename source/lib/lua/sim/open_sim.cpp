@@ -118,7 +118,7 @@ std::shared_ptr<LuaJob> Sim_CreateJob(lua_State *L, std::string const& name, obj
    return job;
 }
 
-AStarPathFinderPtr Sim_CreateAStarPathFinder(lua_State *L, om::EntityRef s, const std::string& name)
+AStarPathFinderPtr Sim_CreateAStarPathFinder(lua_State *L, om::EntityRef s, std::string const& name)
 {
    AStarPathFinderPtr pf;
    om::EntityPtr source = s.lock();
@@ -132,7 +132,7 @@ AStarPathFinderPtr Sim_CreateAStarPathFinder(lua_State *L, om::EntityRef s, cons
 }
 
 
-BfsPathFinderPtr Sim_CreateBfsPathFinder(lua_State *L, om::EntityRef s, const std::string& name, int range)
+BfsPathFinderPtr Sim_CreateBfsPathFinder(lua_State *L, om::EntityRef s, std::string const& name, int range)
 {
    BfsPathFinderPtr pf;
    om::EntityPtr source = s.lock();

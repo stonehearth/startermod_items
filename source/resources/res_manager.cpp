@@ -317,7 +317,7 @@ const JSONNode ResourceManager2::GetModules() const
    return result;
 }
 
-AnimationPtr ResourceManager2::LookupAnimation(const std::string& path) const
+AnimationPtr ResourceManager2::LookupAnimation(std::string const& path) const
 {
    std::lock_guard<std::recursive_mutex> lock(mutex_);
 
@@ -359,7 +359,7 @@ std::shared_ptr<std::istream> ResourceManager2::OpenResourceCanonical(std::strin
 
 }
 
-std::string ResourceManager2::ConvertToCanonicalPath(const std::string& path, const char* search_ext) const
+std::string ResourceManager2::ConvertToCanonicalPath(std::string const& path, const char* search_ext) const
 {
    std::lock_guard<std::recursive_mutex> lock(mutex_);
 

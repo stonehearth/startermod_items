@@ -24,7 +24,7 @@ ColladaDocument::ColladaDocument()
 }
 
 
-bool ColladaDocument::parseFile( const std::string &fileName )
+bool ColladaDocument::parseFile( std::string const& fileName )
 {
 	// Parse Collada file
 	XMLDoc doc;

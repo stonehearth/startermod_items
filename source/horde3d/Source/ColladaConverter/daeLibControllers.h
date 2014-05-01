@@ -50,7 +50,7 @@ struct DaeSkin
 	}
 	
 
-	DaeSource *findSource( const std::string &id )
+	DaeSource *findSource( std::string const& id )
 	{
 		if( id == "" ) return 0x0;
 		
@@ -208,7 +208,7 @@ struct DaeMorph
 	}
 		
 
-	DaeSource *findSource( const std::string &id )
+	DaeSource *findSource( std::string const& id )
 	{
 		if( id == "" ) return 0x0;
 		
@@ -283,7 +283,7 @@ struct DaeLibControllers
 	}
 
 	
-	DaeSkin *findSkin( const std::string &id )
+	DaeSkin *findSkin( std::string const& id )
 	{
 		if( id == "" ) return 0x0;
 		
@@ -296,7 +296,7 @@ struct DaeLibControllers
 	}
 
 
-	DaeMorph *findMorph( const std::string &id )
+	DaeMorph *findMorph( std::string const& id )
 	{
 		if( id == "" ) return 0x0;
 		

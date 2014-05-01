@@ -1407,7 +1407,7 @@ core::Guard Renderer::TraceSelected(H3DNode node, dm::ObjectId objectId)
    return core::Guard([=]() { selectionLookup_.erase(node); });
 }
 
-H3DRes Renderer::GetPipeline(const std::string& name)
+H3DRes Renderer::GetPipeline(std::string const& name)
 {
    H3DRes p = 0;
 

@@ -9,7 +9,7 @@ using namespace ::radiant;
 using namespace ::radiant::analytics;
 
 //Helper data class, Event Data
-PostData::PostData(const json::Node& node, const std::string& uri, const std::string& authorization_string)
+PostData::PostData(const json::Node& node, std::string const& uri, std::string const& authorization_string)
 {
    node_ = node;
    uri_ = uri;

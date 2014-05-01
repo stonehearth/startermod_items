@@ -28,7 +28,7 @@ TriggerPostCreate(lua::ScriptHost *scriptHost, om::EntityPtr entity)
 }
 
 static std::string
-GetLuaComponentUri(const std::string& name)
+GetLuaComponentUri(std::string const& name)
 {
    std::string modname;
    size_t offset = name.find(':');
@@ -90,7 +90,7 @@ ConstructLuaComponent(lua::ScriptHost* scriptHost, std::string const& name, om::
 }
 
 object
-Stonehearth::AddComponent(lua_State* L, EntityRef e, const std::string& name)
+Stonehearth::AddComponent(lua_State* L, EntityRef e, std::string const& name)
 {
    object component = GetComponent(L, e, name);
    if (!component) {
@@ -113,7 +113,7 @@ Stonehearth::AddComponent(lua_State* L, EntityRef e, const std::string& name)
 }
 
 void
-Stonehearth::RemoveComponent(lua_State* L, EntityRef e, const std::string& name)
+Stonehearth::RemoveComponent(lua_State* L, EntityRef e, std::string const& name)
 {
    auto entity = e.lock();
    if (entity) {
@@ -122,7 +122,7 @@ Stonehearth::RemoveComponent(lua_State* L, EntityRef e, const std::string& name)
 }
 
 object
-Stonehearth::SetComponentData(lua_State* L, EntityRef e, const std::string& name, object data)
+Stonehearth::SetComponentData(lua_State* L, EntityRef e, std::string const& name, object data)
 {
    object result;
    om::EntityPtr entity = e.lock();
@@ -144,7 +144,7 @@ Stonehearth::SetComponentData(lua_State* L, EntityRef e, const std::string& name
 }
 
 object
-Stonehearth::GetComponent(lua_State* L, EntityRef e, const std::string& name)
+Stonehearth::GetComponent(lua_State* L, EntityRef e, std::string const& name)
 {
    object component;
    lua::ScriptHost* scriptHost = lua::ScriptHost::GetScriptHost(L);

@@ -19,21 +19,21 @@ public:
    AudioManager();
    ~AudioManager();
 
-   void PlaySound(const std::string& uri);
-   std::shared_ptr<sf::Sound> CreateSound(const std::string& uri);
+   void PlaySound(std::string const& uri);
+   std::shared_ptr<sf::Sound> CreateSound(std::string const& uri);
 
    //These set the vars from whcih the next call to PlayMusic will draw its parameters
-   void SetNextMusicVolume(int volume, const std::string& channel);
-   void SetNextMusicFade(int fade, const std::string& channel);
-   void SetNextMusicLoop(bool loop, const std::string& channel);
-   void SetNextMusicCrossfade(bool crossfade, const std::string& channel);
+   void SetNextMusicVolume(int volume, std::string const& channel);
+   void SetNextMusicFade(int fade, std::string const& channel);
+   void SetNextMusicLoop(bool loop, std::string const& channel);
+   void SetNextMusicCrossfade(bool crossfade, std::string const& channel);
 
-   void PlayMusic(const std::string& track, const std::string& channel);
+   void PlayMusic(std::string const& track, std::string const& channel);
    void UpdateAudio();
 
 
 private:
-   std::shared_ptr<sf::Sound> CreateSoundInternal(const std::string& uri);
+   std::shared_ptr<sf::Sound> CreateSoundInternal(std::string const& uri);
    void CleanupSounds();
 
    std::unordered_map<std::string, sf::SoundBuffer*> sound_buffers_;

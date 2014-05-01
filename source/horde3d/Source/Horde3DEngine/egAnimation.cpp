@@ -28,7 +28,7 @@ using namespace std;
 // Animation Resource
 // =================================================================================================
 
-AnimationResource::AnimationResource( const std::string &name, int flags ) :
+AnimationResource::AnimationResource( std::string const& name, int flags ) :
 	Resource( ResourceTypes::Animation, name, flags )
 {
 	initDefault();	
@@ -63,7 +63,7 @@ void AnimationResource::release()
 }
 
 
-bool AnimationResource::raiseError( const std::string &msg )
+bool AnimationResource::raiseError( std::string const& msg )
 {
 	// Reset
 	release();
@@ -334,7 +334,7 @@ void AnimationController::updateActiveList()
 
 
 bool AnimationController::setupAnimStage( int stage, AnimationResource *anim, int layer,
-                                          const std::string &startNode, bool additive )
+                                          std::string const& startNode, bool additive )
 {
 	if( (unsigned)stage >= _animStages.size() )
 	{	

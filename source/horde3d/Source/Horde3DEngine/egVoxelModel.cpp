@@ -124,7 +124,7 @@ void VoxelModelNode::recreateNodeList()
 
 
 void VoxelModelNode::setupAnimStage( int stage, AnimationResource *anim, int layer,
-                                const std::string &startNode, bool additive )
+                                std::string const& startNode, bool additive )
 {
 	if( _nodeListDirty ) recreateNodeList();
 	
@@ -138,7 +138,7 @@ void VoxelModelNode::setAnimParams( int stage, float time, float weight )
 }
 
 
-bool VoxelModelNode::setMorphParam( const std::string &targetName, float weight )
+bool VoxelModelNode::setMorphParam( std::string const& targetName, float weight )
 {
 	if( _geometryRes == 0x0 || _morphers.empty() ) return false;
 

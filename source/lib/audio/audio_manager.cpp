@@ -42,19 +42,19 @@ AudioManager::~AudioManager()
 //First, see if the soundbuffer for the uri already exists. If so, reuse.
 //If not, make a new soundbuffer for the sound. Then, load it into a new sound
 //and play that sound. 
-void AudioManager::PlaySound(const std::string& uri) 
+void AudioManager::PlaySound(std::string const& uri) 
 {
    std::shared_ptr<sf::Sound> s = CreateSoundInternal(uri);
    s->setVolume(efx_volume_ * master_efx_volume_);
    s->play();
 }
 
-std::shared_ptr<sf::Sound> AudioManager::CreateSound(const std::string& uri)
+std::shared_ptr<sf::Sound> AudioManager::CreateSound(std::string const& uri)
 {
    return CreateSoundInternal(uri);
 }
 
-std::shared_ptr<sf::Sound> AudioManager::CreateSoundInternal(const std::string& uri) 
+std::shared_ptr<sf::Sound> AudioManager::CreateSoundInternal(std::string const& uri) 
 {
    CleanupSounds();
    if (sounds_.size() >= MAX_SOUNDS) {
@@ -101,7 +101,7 @@ void AudioManager::CleanupSounds()
 
 //Set some properties on the next piece of music that plays
 //TODO: use a vector and switch if there are ever more than 2 or 3 channels
-void AudioManager::SetNextMusicVolume(int volume, const std::string& channel)
+void AudioManager::SetNextMusicVolume(int volume, std::string const& channel)
 {
     if (channel.compare("ambient") == 0) {
        ambient_channel_.SetNextMusicVolume(volume);
@@ -110,7 +110,7 @@ void AudioManager::SetNextMusicVolume(int volume, const std::string& channel)
    }
 }
 
-void AudioManager::SetNextMusicFade(int fade, const std::string& channel)
+void AudioManager::SetNextMusicFade(int fade, std::string const& channel)
 {
    if (channel.compare("ambient") == 0) {
        ambient_channel_.SetNextMusicFade(fade);
@@ -119,7 +119,7 @@ void AudioManager::SetNextMusicFade(int fade, const std::string& channel)
    }
 }
 
-void AudioManager::SetNextMusicLoop(bool loop, const std::string& channel)
+void AudioManager::SetNextMusicLoop(bool loop, std::string const& channel)
 {
    if (channel.compare("ambient") == 0) {
        ambient_channel_.SetNextMusicLoop(loop);
@@ -128,7 +128,7 @@ void AudioManager::SetNextMusicLoop(bool loop, const std::string& channel)
    }
 }
 
-void AudioManager::SetNextMusicCrossfade(bool crossfade, const std::string& channel)
+void AudioManager::SetNextMusicCrossfade(bool crossfade, std::string const& channel)
 {
    if (channel.compare("ambient") == 0) {
        ambient_channel_.SetNextMusicCrossfade(crossfade);
@@ -139,7 +139,7 @@ void AudioManager::SetNextMusicCrossfade(bool crossfade, const std::string& chan
 
 //By default, play the music in the bgm channel. If something else
 //is specified (ambient) play it there instead.
-void AudioManager::PlayMusic(const std::string& track, const std::string& channel)
+void AudioManager::PlayMusic(std::string const& track, std::string const& channel)
 {
    if (channel.compare("ambient") == 0) {
       ambient_channel_.PlayMusic(track);

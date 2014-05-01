@@ -31,10 +31,10 @@ class XMLNode;
 class SceneGraphResource : public Resource
 {
 public:
-	static Resource *factoryFunc( const std::string &name, int flags )
+	static Resource *factoryFunc( std::string const& name, int flags )
 		{ return new SceneGraphResource( name, flags ); }
 	
-	SceneGraphResource( const std::string &name, int flags );
+	SceneGraphResource( std::string const& name, int flags );
 	~SceneGraphResource();
 	
 	void initDefault();
@@ -61,7 +61,7 @@ struct ReferenceNodeTpl : public SceneNodeTpl
 {
 	PSceneGraphResource		sgRes;
 
-	ReferenceNodeTpl( const std::string &name, SceneGraphResource *sgRes ) :
+	ReferenceNodeTpl( std::string const& name, SceneGraphResource *sgRes ) :
 		SceneNodeTpl( 0, name ), sgRes( sgRes )
 	{
 	}
