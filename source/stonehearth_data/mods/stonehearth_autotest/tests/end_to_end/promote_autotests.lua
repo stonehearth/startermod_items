@@ -17,6 +17,8 @@ function promote_tests.promote_to_carpenter(autotest)
    local worker = autotest.env:create_person(2, 2, { profession = 'worker' })
    local saw = autotest.env:create_entity(-2, -2, 'stonehearth:carpenter:saw')
 
+   autotest:sleep(1000)
+
    -- will add the crafter component to a worker...
    promote(autotest, worker, saw, function(e)
          autotest:success()         
