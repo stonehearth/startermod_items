@@ -94,15 +94,6 @@ function StockpileComponent:destroy()
       self._ec_trace:destroy()
       self._ec_trace = nil
    end
-   --if self._task then
-   --   self._task:destroy()
-   --   self._task = nil
-   --end
-   self:_destroy_tasks()
-   if self._ec_trace then
-      self._ec_trace:destroy()
-      self._ec_trace = nil
-   end
    if self._unit_info_trace then
       self._unit_info_trace:destroy()
       self._unit_info_trace = nil
@@ -111,6 +102,7 @@ function StockpileComponent:destroy()
       self._mob_trace:destroy()
       self._mob_trace= nil
    end
+   self:_destroy_tasks()
 end
 
 function StockpileComponent:set_filter(filter)
@@ -213,63 +205,50 @@ function StockpileComponent:set_size(x, y)
    self:_rebuild_item_sv()
 end
 
-function StockpileComponent:_add_to_region(entity)
-   local location = radiant.entities.get_world_grid_location(entity)
-   local pt = location - radiant.entities.get_world_grid_location(self._entity)
-   log:debug('adding point %s to region', tostring(pt))
-   self._sv.item_locations[entity:get_id()] = pt
-   
+-- notification from the 'stonehearth:restock_stockpile' action that an item has
+-- been dropped into the stockpile.  we have a trace to listen on items added to
+-- the terrain to keep track of the stockpile inventory, but there's a tiny bit
+-- of time between when items make it to the terrain and when the trace actually
+-- fires.  if in that interval, the 'stonehearth:restock_stockpile' action notifying
+-- us finishes and another one starts, it may attempt to drop another item on top
+-- of this one.  to fix this, don't wait until the terrain trace fires to modify
+-- our region.  do it immediately after the drop happens!
+function StockpileComponent:notify_restock_finished(location)
+   self:_add_to_region(location)
+end
+
+function StockpileComponent:_add_to_region(location)
+   log:debug('adding point %s to region', tostring(location))
+   local offset = location - radiant.entities.get_world_grid_location(self._entity)
+  
    local was_full = self:is_full()
    self._destination:get_region():modify(function(cursor)
-      cursor:subtract_point(pt)
+      cursor:subtract_point(offset)
    end)
    if not was_full and self:is_full() then
       radiant.events.trigger(self, 'space_available', self, false)
    end
-   
-   log:debug('finished adding point %s to region', tostring(pt))
-   self:_unreserve(location)
 end
 
-function StockpileComponent:_remove_from_region(id)
-   local pt = self._sv.item_locations[id]
-   log:debug('removing point %s from region', tostring(pt))
-   self._sv.item_locations[id] = nil
+function StockpileComponent:_remove_from_region(location)
+   log:debug('removing point %s from region', tostring(location))
+   local offset = location - radiant.entities.get_world_grid_location(self._entity)
    
    local was_full = self:is_full()
    self._destination:get_region():modify(function(cursor)
-      cursor:add_point(pt)
-   end)
-   log:debug('finished removing point %s from region', tostring(pt))
-   
+      cursor:add_point(offset)
+   end)  
    if was_full and not self:is_full() then
       radiant.events.trigger(self, 'space_available', self, true)
    end
-end
-
-function StockpileComponent:_reserve(location)
-   local pt = location - radiant.entities.get_world_grid_location(self._entity)
-   log:debug('adding point %s to reserve region', tostring(pt))
-   self._destination:get_reserved():modify(function(cursor)
-      cursor:add_point(pt)
-   end)
-   log:debug('finished adding point %s to reserve region', tostring(pt))
-end
-
-function StockpileComponent:_unreserve(location)
-   local pt = location - radiant.entities.get_world_grid_location(self._entity)
-   log:debug('removing point %s from reserve region', tostring(pt))
-   self._destination:get_reserved():modify(function(cursor)
-      cursor:subtract_point(pt)
-   end)
-   log:debug('finished removing point %s from reserve region', tostring(pt))
 end
 
 function StockpileComponent:_add_item(entity)
    if self:bounds_contain(entity) and entity:get_component('item') then
       -- whether we can stock the object or not, take this space out of
       -- our destination region.
-      self:_add_to_region(entity)
+      local location = radiant.entities.get_world_grid_location(entity)
+      self:_add_to_region(location)
      
       if self:can_stock_entity(entity) then
          log:debug('adding %s to stock', entity)
@@ -280,9 +259,18 @@ end
 
 function StockpileComponent:_add_item_to_stock(entity)
    assert(self:can_stock_entity(entity) and self:bounds_contain(entity))
-   
-   -- hold onto the item...
-   self._sv.stocked_items[entity:get_id()] = entity
+
+   local location = radiant.entities.get_world_grid_location(entity)
+   for id, existing in pairs(self._sv.stocked_items) do
+      if radiant.entities.get_world_grid_location(existing) == location then
+         log:error('putting %s on top of existing item %s in stockpile (location:%s)', entity, existing, location)
+      end
+   end
+
+   -- hold onto the item...   
+   local id = entity:get_id()
+   self._sv.item_locations[id] = location
+   self._sv.stocked_items[id] = entity
    self.__saved_variables:mark_changed()
 
    -- add the item to the inventory 
@@ -294,11 +282,13 @@ end
 
 function StockpileComponent:_remove_item(id)
    -- remove from the region
-   if self._sv.item_locations[id] then
-      self:_remove_from_region(id)
-      if self._sv.stocked_items[id] then
-         self:_remove_item_from_stock(id)
-      end
+   local location = self._sv.item_locations[id]
+   if location then
+      self._sv.item_locations[id] = nil
+      self:_remove_from_region(location)
+   end
+   if self._sv.stocked_items[id] then
+      self:_remove_item_from_stock(id)
    end
 end
 
