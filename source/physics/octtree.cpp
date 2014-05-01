@@ -210,8 +210,9 @@ bool OctTree::ValidMove(om::EntityPtr const& entity, bool const reversible,
       return false;
    }
 
-   // check both locations are standable
-   if (!navgrid_.CanStandOn(entity, toLocation) || !navgrid_.CanStandOn(entity, fromLocation)) {
+   // check that destination is standable
+   // not checking that source location is standable so that entities can move off of invalid squares (newly invalid, bugged, etc)
+   if (!navgrid_.CanStandOn(entity, toLocation)) {
       return false;
    }
 
