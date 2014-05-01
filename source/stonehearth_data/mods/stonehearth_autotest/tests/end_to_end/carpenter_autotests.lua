@@ -6,7 +6,7 @@ function carpenter_tests.place_workshop(autotest)
    local carpenter = autotest.env:create_person(2, 2, { profession = 'carpenter' })
    local wood = autotest.env:create_entity_cluster(-2, -2, 3, 3, 'stonehearth:oak_log')
 
-   autotest:sleep(2000)
+   autotest:sleep(500)
 
    -- when creating the workshop, be sure to send the size and position of
    -- the outbox before selecting the workshop location.  otherwise, the

@@ -4,17 +4,15 @@ $(document).ready(function(){
 
    var commands = {
       CLICK_DOM_ELEMENT: function(jqselector) {
-         console.log('looking for', jqselector);
          var try_click = function () {
+            console.log('looking for', jqselector);
             element = $(jqselector)[0];
             if (element) {
                console.log('clicking', element);
-               window.setTimeout(function () {
-                  element.click();
-                  finishCommand();
-               }, 200);
+               element.click();
+               finishCommand();
             } else {
-               window.setTimeout(try_click, 100)
+               console.error('could not find element to click!');
             }
          }
          try_click();

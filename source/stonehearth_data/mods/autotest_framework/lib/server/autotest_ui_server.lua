@@ -3,7 +3,7 @@ local Point3 = _radiant.csg.Point3
 local commands = require 'lib.common.autotest_ui_commands'
 local ResponseQueue = require 'lib.common.response_queue'
 
-local ui_sleep = 500
+local ui_sleep = 400
 local _client = ResponseQueue()
 local ui_server = {}
 
