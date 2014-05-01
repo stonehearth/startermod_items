@@ -558,6 +558,7 @@ void Client::OneTimeIninitializtion()
 
 void Client::EnableDisableLifetimeTracking()
 {
+#ifdef ENABLE_OBJECT_COUNTER
    debug_track_object_lifetime_ = !debug_track_object_lifetime_;
    if (!debug_track_object_lifetime_) {
       // If we're turning off, let's dump everything.
@@ -579,6 +580,7 @@ void Client::EnableDisableLifetimeTracking()
       }
    }
    core::ObjectCounterBase::TrackObjectLifetime(debug_track_object_lifetime_);
+#endif
 }
 
 void Client::InitiateFlushAndLoad()
