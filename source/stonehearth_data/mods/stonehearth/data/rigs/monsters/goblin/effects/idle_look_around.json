@@ -4,7 +4,8 @@
       "animation": {
          "type": "animation_effect",
          "start_time": 0,
-         "animation": "file(../../animations/male/combat/1h_hit.json)"
+         "animation": "idle_look_around.json",
+         "loop": true
       }
    }
 }

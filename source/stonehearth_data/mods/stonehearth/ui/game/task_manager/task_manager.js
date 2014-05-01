@@ -27,6 +27,10 @@ App.StonehearthTaskManagerView = App.View.extend({
    },
 
    _refresh: function(data) {
+      if (!this.bars) {
+         return;
+      }
+
       var self = this;
       var totalWidth = 300;
       var scale = totalWidth / data.total_time;

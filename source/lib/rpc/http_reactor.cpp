@@ -56,6 +56,7 @@ ReactorDeferredPtr HttpReactor::InstallTrace(Trace const& t)
 {
    int code;
    std::string content, mimetype;
+
    if (boost::ends_with(t.route, ".json") && HttpGetResource(t.route, code, content, mimetype)) {
       // if we wanted to, we could put a file system watcher on this path now
       // and call Notify again later. =)

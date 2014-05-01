@@ -6,6 +6,9 @@ modal: true,
 
    init: function() {
       this._super();
+
+      //Setting gamespeed to zero
+      radiant.call('radiant:game:set_game_speed', 0);
    },
 
    didInsertElement: function() {
@@ -14,6 +17,15 @@ modal: true,
             at: 'center center',
             of: '#modalOverlay'
          });
+   },
+
+   destroy: function() {
+      this._super();
+      var game_speed =  App.stonehearthClient.defaultGameSpeed();
+      if (App.stonehearthClient.getPaused()) {
+         game_speed = 0;
+      } 
+      radiant.call('radiant:game:set_game_speed', game_speed);
    },
 
    actions: {

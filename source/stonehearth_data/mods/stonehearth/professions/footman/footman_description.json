@@ -1,0 +1,7 @@
+{
+   "profession_type": "footman",
+   "name": "Footman",      
+   "description": "A melee fighter",
+   "script": "file(footman.lua)",
+   "outfit": "file(footman_outfit)"
+}

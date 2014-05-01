@@ -231,7 +231,7 @@ void ResourceManager2::ImportModuleManifests()
    // While not ideal, at least it's deterministic!  We can try to do better in a
    // future version if modders need it
    for (std::string const& modname : module_names_) {
-      json::Node manifest = LookupManifestUnsafe(modname);
+      json::Node manifest = LookupManifestInternal(modname);
       ImportModOverrides(modname, manifest.get_node("overrides"));
       ImportModMixintos(modname, manifest.get_node("mixintos"));
    }
@@ -241,13 +241,11 @@ ResourceManager2::~ResourceManager2()
 {
 }
 
-Manifest ResourceManager2::LookupManifestUnsafe(std::string const& modname) const
+Manifest ResourceManager2::LookupManifestInternal(std::string const& modname) const
 {
-   std::lock_guard<std::recursive_mutex> lock(mutex_);
-
    JSONNode result;
    try {
-      result = LookupJsonUnsafe(modname + "/manifest.json");
+      result = LookupJsonInternal(modname + "/manifest.json");
    } catch (Exception &e) {
       RES_LOG(1) << "error looking for manifest in " << modname << ": " << e.what();
    }
@@ -257,57 +255,18 @@ Manifest ResourceManager2::LookupManifestUnsafe(std::string const& modname) cons
 void ResourceManager2::LookupManifest(std::string const& modname, std::function<void(Manifest const& m)> callback) const
 {
    std::lock_guard<std::recursive_mutex> lock(mutex_);
-
-   try {
-      const JSONNode& result = LookupJsonUnsafe(modname + "/manifest.json");
-      callback(Manifest(modname, result));
-   } catch (Exception &e) {
-      RES_LOG(1) << "error looking for manifest in " << modname << ": " << e.what();
-   }
+   callback(LookupManifestInternal(modname));
 }
 
 
 void ResourceManager2::LookupJson(std::string const& path, std::function<void(JSONNode const& n)> callback) const
 {
    std::lock_guard<std::recursive_mutex> lock(mutex_);
-
-   std::shared_ptr<JSONNode> node;
-
-   // If we have already loaded the json for this file, it should already be in the
-   // map.  ConvertToCanonicalPath is quite expensive.  We need to iterate over
-   // the mixins and overrides tables and everything!  To avoid that, we store the
-   // json object both in the canonical location and whatever aliases people are
-   // using to reach that path
-   auto i = jsons_.find(path), end = jsons_.end();
-   if (i != end) {
-      node = i->second;
-   } else {
-      // Couldn't find it.  Rats.  See if we've already loaded it using a different
-      // alias.  If so, both aliases will map to the same canonical path
-      std::string canonical_path = ConvertToCanonicalPath(path, ".json");
-   
-      i = jsons_.find(canonical_path);
-      if (i != end) {
-         // Great!  It was loaded by a previous alias.  Wire up this alias, too, so we
-         // can avoid calling ConvertToCanonicalPath next time someone looks it up.
-         node = i->second;
-         jsons_[path] = i->second;
-      } else {
-         // Still couldn't find it?  Load the node and store it under the canonical path
-         // and the current key so we can find it next time (using either!)
-         node = std::make_shared<JSONNode>(LoadJson(canonical_path));
-         jsons_[path] = jsons_[canonical_path] = node;
-      }
-   }
-   ASSERT(node);  // We should have a node or have thrown an exception if the path was invalid.
-
-   callback(*node);
+   callback(LookupJsonInternal(path));
 }
 
-JSONNode const& ResourceManager2::LookupJsonUnsafe(std::string const& path) const
+JSONNode const& ResourceManager2::LookupJsonInternal(std::string const& path) const
 {
-   std::lock_guard<std::recursive_mutex> lock(mutex_);
-   
    std::shared_ptr<JSONNode> node;
 
    // If we have already loaded the json for this file, it should already be in the
@@ -347,7 +306,7 @@ const JSONNode ResourceManager2::GetModules() const
    for (std::string const& modname : GetModuleNames()) {
       JSONNode manifest;
       try {
-         manifest = LookupManifestUnsafe(modname).get_internal_node();
+         manifest = LookupManifestInternal(modname).get_internal_node();
       } catch (std::exception const&) {
          // Just use an empty manifest...f
       }
@@ -509,7 +468,7 @@ void ResourceManager2::ApplyMixin(std::string const& mixin_name, JSONNode& new_n
    std::string uri = ExpandMacro(mixin_name, mixin_name, true);
 
    try {
-      mixin_node = LookupJsonUnsafe(uri);
+      mixin_node = LookupJsonInternal(uri);
    } catch (InvalidFilePath &) {
       throw InvalidFilePath(mixin_name);
    }
@@ -603,7 +562,7 @@ std::string ResourceManager2::GetAliasUri(std::string const& mod_name, std::stri
 {
    std::lock_guard<std::recursive_mutex> lock(mutex_);
 
-   json::Node manifest = LookupManifestUnsafe(mod_name);
+   json::Node manifest = LookupManifestInternal(mod_name);
    json::Node aliases = manifest.get_node("aliases");
    std::string uri = aliases.get<std::string>(alias_name, "");
 

@@ -124,6 +124,27 @@ void Simulation::OneTimeIninitializtion()
    core_reactor_->AddRoute("radiant:game:get_perf_counters", [this](rpc::Function const& f) {
       return StartPerformanceCounterPush();
    });
+   core_reactor_->AddRoute("radiant:game:set_game_speed", [this](rpc::Function const& f) {
+      rpc::ReactorDeferredPtr result = std::make_shared<rpc::ReactorDeferred>("set game speed");
+      try {
+         json::Node node(f.args);
+         game_speed_ = node.get<float>(0, 1.0f);
+      } catch (std::exception const& e) {
+         result->RejectWithMsg(BUILD_STRING("exception: " << e.what()));
+      }
+      return result;
+   });
+   core_reactor_->AddRoute("radiant:game:get_game_speed", [this](rpc::Function const& f) {
+      rpc::ReactorDeferredPtr result = std::make_shared<rpc::ReactorDeferred>("get game speed");
+      try {
+         json::Node node;
+         node.set("game_speed", game_speed_);
+         result->Resolve(node);
+      } catch (std::exception const& e) {
+         result->RejectWithMsg(BUILD_STRING("exception: " << e.what()));
+      }
+      return result;
+   });
    core_reactor_->AddRouteV("radiant:profile_next_lua_upate", [this](rpc::Function const& f) {
       profile_next_lua_update_ = true;
       SIM_LOG(0) << "profiling next lua update";

@@ -30,6 +30,10 @@ function FreeTimeObserver:initialize(entity, json)
    end
 end
 
+function FreeTimeObserver:destroy()
+   radiant.events.unlisten(events, 'stonehearth:fire:lit', self, self._on_firepit_activity)
+end
+
 --If there is a lit fire somewhere, consider hanging out there
 --If there are no lit fires anywhere, don't look for fires. 
 function FreeTimeObserver:_on_firepit_activity(e)
@@ -43,7 +47,6 @@ function FreeTimeObserver:_on_firepit_activity(e)
          self:_finish_admiring()
       end
    end
-
 end
 
 function FreeTimeObserver:_start_admiring_fire_task()

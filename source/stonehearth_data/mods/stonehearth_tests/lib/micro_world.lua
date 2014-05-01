@@ -64,11 +64,10 @@ function MicroWorld:place_item_cluster(uri, x, z, w, h)
    end
 end
 
-function MicroWorld:place_citizen(x, z, profession, data)
+function MicroWorld:place_citizen(x, z, profession)
    local pop = stonehearth.population:get_population('player_1')
    local citizen = pop:create_new_citizen()
-   profession = profession and profession or 'stonehearth:professions:worker'
-
+   profession = profession or 'stonehearth:professions:worker'
 
    if not string.find(profession, ':') and not string.find(profession, '/') then
       -- as a convenience for autotest writers, stick the stonehearth:profession on

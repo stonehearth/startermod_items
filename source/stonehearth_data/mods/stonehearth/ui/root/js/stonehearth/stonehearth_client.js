@@ -23,13 +23,20 @@ var StonehearthClient;
          radiant.call('stonehearth:get_town_name')
             .done(function(e) {
                self.gameState.settlementName = e.townName;
-            })
+            });
+
+         radiant.call('radiant:game:get_game_speed')
+            .done(function(e){
+               self.gameState.defaultGameSpeed = e.game_speed;
+            });
 
       },
 
       gameState: {
          settlementName: 'Lah Salitos',
-         saveKey: null
+         saveKey: null, 
+         defaultGameSpeed: 1, 
+         isPaused: false
       },
 
       settlementName: function(value) {
@@ -37,6 +44,21 @@ var StonehearthClient;
             this.gameState.settlementName = value;
          }
          return this.gameState.settlementName;
+      },
+
+      defaultGameSpeed: function(value) {
+         if (value) {
+            this.gameState.defaultGameSpeed = value
+         }
+         return this.gameState.defaultGameSpeed;
+      },
+
+      getPaused: function(value) {
+         return this.gameState.isPaused;
+      },
+
+      setPaused: function(value) {
+         this.gameState.isPaused = value;
       },
 
 
