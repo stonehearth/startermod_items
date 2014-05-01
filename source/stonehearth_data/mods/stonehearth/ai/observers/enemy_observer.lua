@@ -36,7 +36,7 @@ function EnemyObserver:_init_sight_sensor()
       self._sensor = sensor_list:add_sensor('enemy_observer', sight_radius)
    end
 
-   self._trace = self._sensor:trace_contents('look for enemies')
+   self._trace = self._sensor:trace_contents('trace_enemies')
       :on_added(
          function (target_id)
             self:_on_added_to_sensor(target_id)
@@ -55,7 +55,7 @@ function EnemyObserver:_on_added_to_sensor(target_id)
 
    if radiant.entities.is_hostile(self._entity, target) then
       target_table = stonehearth.combat:get_target_table(self._entity, 'aggro')
-      target_table:add_entry(target)
+      target_table:add(target)
    end
 end
 
@@ -63,7 +63,7 @@ function EnemyObserver:_on_removed_from_sensor(target_id)
    local target = radiant.entities.get_entity(target_id)
    local target_table = stonehearth.combat:get_target_table(self._entity, 'aggro')
 
-   target_table:remove_entry(target)
+   target_table:remove(target)
 end
 
 return EnemyObserver
