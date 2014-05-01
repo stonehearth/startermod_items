@@ -29,10 +29,17 @@ function stockpile_tests.abort_stockpile_creation(autotest)
    local carry_change_count = 0
    local worker = autotest.env:create_person(2, 2, { profession = 'worker' })
    local wood = autotest.env:create_entity_cluster(-2, -2, 3, 3, 'stonehearth:oak_log')
+   local stockpile = autotest.env:create_stockpile(4, 8)
 
    radiant.events.listen(worker, 'stonehearth:carry_block:carrying_changed', function (e)
       carry_change_count = carry_change_count + 1
-      if carry_change_count == 2 then
+      if carry_change_count == 1 then
+
+         autotest.ui:select_entity(stockpile)
+         autotest.ui:click_dom_element('#stockpileWindow #none')
+         autotest.ui:click_dom_element('.stonehearthMenu .close')
+
+      elseif carry_change_count == 2 then
          if autotest:script_did_error() then
             autotest:fail('Encountered error during execution.')
          else
@@ -41,13 +48,6 @@ function stockpile_tests.abort_stockpile_creation(autotest)
          end
       end
       end)
-
-   autotest:sleep(500)
-
-   autotest.ui:click_dom_element('#startMenu #zone_menu')
-   autotest.ui:click_dom_element('#startMenu div[hotkey="o"]')
-   autotest.ui:set_next_designation_region(4, 8, 1, 1)
-   autotest.ui:click_dom_element('#stockpileWindow #none')
 
    autotest:sleep(10000)
    autotest:fail('Entity didn\'t drop its carry block.')

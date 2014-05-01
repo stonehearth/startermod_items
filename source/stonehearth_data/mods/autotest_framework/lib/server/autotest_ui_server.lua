@@ -50,6 +50,11 @@ function ui_server.click_dom_element(jq_selector)
    _client:send(commands.WAIT_REALTIME, ui_sleep)
 end
 
+function ui_server.select_entity(entity)
+   _send(commands.SELECT_ENTITY, entity)
+   _client:send(commands.WAIT_REALTIME, ui_sleep)
+end
+
 function ui_server._connect_client_to_server(session, response)
    _client:set_response(response)
 end
