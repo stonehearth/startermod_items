@@ -241,7 +241,10 @@
    "building_vision_hide_facing_walls_description" : "Hide walls that face the camera, for a cut-away view at buildings",
 
    "building_vision_hide_all_walls" : "Hide All Walls",
-   "building_vision_hide_all_walls_description" : "Hide all walls, showing just the floor of buildings"
+   "building_vision_hide_all_walls_description" : "Hide all walls, showing just the floor of buildings",
+
+   "play_pause_title" : "Pause/Resume",
+   "play_pause_description" : "Pause the game if its running, or resume if it's paused."
 
 }
 

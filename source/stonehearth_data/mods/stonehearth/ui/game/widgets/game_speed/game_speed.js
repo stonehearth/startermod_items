@@ -45,16 +45,23 @@ App.StonehearthGameSpeedWidget = App.View.extend({
 
          if (self.isPlaying) {
             radiant.call('stonehearth:set_player_game_speed', self.default_speed);
-            //App.stonehearthClient.setPaused(false)
-            //radiant.call('radiant:game:set_game_speed', App.stonehearthClient.defaultGameSpeed());
          } else {
             radiant.call('stonehearth:set_player_game_speed', 0);
-            //pause the game
-            //App.stonehearthClient.setPaused(true)
-            //radiant.call('radiant:game:set_game_speed', 0);
          }
       });
 
-      //TODO, add a tooltip
+      /*$(obj).tooltipster({
+   88              position: 'right'
+   89           });
+*/
+
+      // tooltip
+      this.$('#playPauseButton').tooltipster({
+         position: 'left',
+         content: $('<div class=title>' + i18n.t('stonehearth:play_pause_title') + '</div>' + 
+                    '<div class=description>' + i18n.t('stonehearth:play_pause_description') + '</div>' /*+ 
+                    '<div class=hotkey>' + $.t('hotkey') + ' <span class=key>' + $(this).attr('hotkey')  + '</span></div>'*/)
+      });
+
    }
 });
