@@ -9,9 +9,10 @@
 BEGIN_RADIANT_DM_NAMESPACE
 
 template <typename M>
-class MapTraceBuffered : public TraceBuffered,
-                         public MapTrace<M>,
-                         public core::ObjectCounter<MapTraceBuffered<M>>
+class MapTraceBuffered : public core::ObjectCounter<MapTraceBuffered<M>>, 
+                         public TraceBuffered,
+                         public MapTrace<M>
+                         
 {
 public:
    MapTraceBuffered(const char* reason, M const& m);

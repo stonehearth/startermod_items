@@ -9,9 +9,10 @@
 BEGIN_RADIANT_DM_NAMESPACE
 
 template <typename S>
-class SetTraceBuffered : public TraceBuffered,
-                         public SetTrace<S>,
-                         public core::ObjectCounter<SetTraceBuffered<S>>
+class SetTraceBuffered : public core::ObjectCounter<SetTraceBuffered<S>>,
+                         public TraceBuffered,
+                         public SetTrace<S>
+                         
 {
 public:
    SetTraceBuffered(const char* reason, S const& set);

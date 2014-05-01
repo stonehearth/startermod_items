@@ -8,8 +8,9 @@
 BEGIN_RADIANT_DM_NAMESPACE
 
 template <typename R>
-class RecordTraceSync : public RecordTrace<R>,
-                        public core::ObjectCounter<RecordTraceSync<R>>
+class RecordTraceSync : public core::ObjectCounter<RecordTraceSync<R>>,
+                        public RecordTrace<R>
+                        
 
 {
 public:

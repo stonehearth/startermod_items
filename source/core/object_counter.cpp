@@ -125,7 +125,7 @@ void ObjectCounterBase::ForEachObjectCount(ForEachObjectCountCb cb)
  * Add one to the count of the object type.
  */
 
-void ObjectCounterBase::IncrementObjectCount(void *that, std::type_info const& t)
+void ObjectCounterBase::IncrementObjectCount(ObjectCounterBase *that, std::type_info const& t)
 {
    std::lock_guard<boost::detail::spinlock> lock(__lock);
 
@@ -149,7 +149,7 @@ void ObjectCounterBase::IncrementObjectCount(void *that, std::type_info const& t
  * Subtract one to the count of the object type.
  */
 
-void ObjectCounterBase::DecrementObjectCount(void *that, std::type_info const& t)
+void ObjectCounterBase::DecrementObjectCount(ObjectCounterBase *that, std::type_info const& t)
 {
    std::lock_guard<boost::detail::spinlock> lock(__lock);
    __counters[std::type_index(t)]--;

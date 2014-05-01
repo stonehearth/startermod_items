@@ -9,9 +9,10 @@
 BEGIN_RADIANT_DM_NAMESPACE
 
 template <typename R>
-class RecordTraceBuffered : public RecordTrace<R>,
-                            public TraceBuffered,
-                            public core::ObjectCounter<RecordTraceBuffered<R>>
+class RecordTraceBuffered : public core::ObjectCounter<RecordTraceBuffered<R>>,
+                            public RecordTrace<R>,
+                            public TraceBuffered
+                            
 {
 public:
    RecordTraceBuffered(const char* reason, Record const& r, Tracer&);

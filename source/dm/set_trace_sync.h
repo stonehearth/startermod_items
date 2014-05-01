@@ -8,8 +8,9 @@
 BEGIN_RADIANT_DM_NAMESPACE
 
 template <typename S>
-class SetTraceSync : public SetTrace<S>,
-                     public core::ObjectCounter<SetTraceSync<S>>
+class SetTraceSync : public core::ObjectCounter<SetTraceSync<S>>,
+                     public SetTrace<S>
+                     
 {
 public:
    SetTraceSync(const char* reason, S const& set);
