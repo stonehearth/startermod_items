@@ -141,6 +141,7 @@ class Client : public core::Singleton<Client> {
       void DeactivateAllTools();
       void RequestReload();
       void EnableDisableSaveStressTest();
+      void EnableDisableLifetimeTracking();
       void OneTimeIninitializtion();
       void InitializeUI(std::string const& state);
       void Initialize();
@@ -255,6 +256,7 @@ private:
       int                         lastLoadProgress_;
       int                         networkUpdatesCount_;
       int                         networkUpdatesExpected_;
+      bool                        debug_track_object_lifetime_;
 };
 
 END_RADIANT_CLIENT_NAMESPACE

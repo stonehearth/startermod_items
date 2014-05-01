@@ -3,6 +3,7 @@
 #include "build_number.h"
 #include <boost/algorithm/string.hpp>
 #include <boost/algorithm/string/split.hpp>
+#include "core/object_counter.h"
 #include "core/config.h"
 #include "radiant_file.h"
 #include "radiant_exceptions.h"
@@ -99,7 +100,8 @@ Client::Client() :
    enable_debug_cursor_(false),
    flushAndLoad_(false),
    initialUpdate_(false),
-   save_stress_test_(false)
+   save_stress_test_(false),
+   debug_track_object_lifetime_(false)
 {
 }
 
@@ -197,12 +199,13 @@ void Client::OneTimeIninitializtion()
             core_reactor_->Call(rpc::Function("radiant:debug_navgrid", args));
          }
       };
+      _commands[GLFW_KEY_F2] = [=]() { EnableDisableLifetimeTracking(); };
       _commands[GLFW_KEY_F3] = [=]() { core_reactor_->Call(rpc::Function("radiant:toggle_step_paths")); };
       _commands[GLFW_KEY_F4] = [=]() { core_reactor_->Call(rpc::Function("radiant:step_paths")); };
       _commands[GLFW_KEY_F5] = [=]() { RequestReload(); };
       _commands[GLFW_KEY_F6] = [=]() { SaveGame("hotkey_save", json::Node()); };
       _commands[GLFW_KEY_F7] = [=]() { LoadGame("hotkey_save"); };
-      _commands[GLFW_KEY_F8] = [=]() { EnableDisableSaveStressTest(); };
+      //_commands[GLFW_KEY_F8] = [=]() { EnableDisableSaveStressTest(); };
       _commands[GLFW_KEY_F9] = [=]() { core_reactor_->Call(rpc::Function("radiant:toggle_debug_nodes")); };
       _commands[GLFW_KEY_F10] = [&renderer, this]() {
          perf_hud_shown_ = !perf_hud_shown_;
@@ -546,6 +549,31 @@ void Client::OneTimeIninitializtion()
    });
 
 };
+
+void Client::EnableDisableLifetimeTracking()
+{
+   debug_track_object_lifetime_ = !debug_track_object_lifetime_;
+   if (!debug_track_object_lifetime_) {
+      // If we're turning off, let's dump everything.
+      LOG_(0) << "-- Object lifetimes -----------------------------------";
+      auto objectmap = core::ObjectCounterBase::GetObjects();
+
+      std::map<int, std::pair<core::ObjectCounterBase*, std::type_index>> sortedMap;
+      for (const auto& pair : objectmap) {
+         sortedMap.insert(std::make_pair(pair.second.first, std::make_pair(pair.first, pair.second.second)));
+      }
+
+      for (const auto& pair : sortedMap) {
+         void* address = (void*)pair.second.first;
+         if (pair.second.second.name() == "class radiant::om::DataStore") {
+            address = (void*)dynamic_cast<radiant::om::DataStore*>(pair.second.first);
+            ASSERT(address != nullptr);
+         }
+         LOG_(0) << "     Age:" << (platform::get_current_time_in_ms() - pair.first) << " Kind: " << pair.second.second.name() << " Address: " << pair.second.first;
+      }
+   }
+   core::ObjectCounterBase::TrackObjectLifetime(debug_track_object_lifetime_);
+}
 
 void Client::InitiateFlushAndLoad()
 {
