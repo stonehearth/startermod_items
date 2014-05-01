@@ -2,10 +2,10 @@ local log = radiant.log.create_logger('combat')
 
 TargetTable = class()
 
--- TODO: decay scores over time and remove if 0
+-- TODO: decay scores over time and remove if below 0
 function TargetTable:__init()
    self._targets = {}
-   self._starting_score = 1
+   self._starting_score = 0
 end
 
 function TargetTable:get_top()
@@ -20,24 +20,46 @@ function TargetTable:get_top()
    return target
 end
 
--- target can be an entity or and entity_id
-function TargetTable:add_entry(target)
+function TargetTable:add(target)
+   self:modify_score(target, 0)
+end
+
+function TargetTable:remove(target)
+   self:set_score(target, nil)
+   -- if target is not valid, it will get cleaned up in the combat_service:_clean_target_tables
+end
+
+function TargetTable:set_score(target, score)
    if target ~= nil and target:is_valid() then
       local target_id = target:get_id()
-      local score = self._targets[target_id]
-
-      if score == nil then
-         self._targets[target_id] = self._starting_score
-      end
+      self._targets[target_id] = score
    end
 end
 
-function TargetTable:remove_entry(target)
+function TargetTable:get_score(target)
+   local score = nil
+
    if target ~= nil and target:is_valid() then
       local target_id = target:get_id()
-      self._targets[target_id] = nil
+      score = self._targets[target_id]
    end
-   -- if target is not valid, it will get cleaned up in the combat_service:_clean_target_tables
+
+   return score
+end
+
+-- modifies the score of the target by delta
+-- if target is not in the table, adds it first and adds delta to the starting score
+function TargetTable:modify_score(target, delta)
+   local score = nil
+
+   if target ~= nil and target:is_valid() then
+      local target_id = target:get_id()
+      score = self._targets[target_id] or self._starting_score
+      score = score + delta
+      self._targets[target_id] = score
+   end
+
+   return score
 end
 
 function TargetTable:remove_invalid_targets()

@@ -82,7 +82,7 @@ end
 
 function Combat:_find_target()
    --local target = self:_get_target()
-   local target = self:_get_target_new()
+   local target = self:_get_target()
 
    if target ~= nil then
       self:_set_think_output(target)
@@ -91,15 +91,20 @@ function Combat:_find_target()
    end
 end
 
--- stupid implementation until target tables are fixed
 function Combat:_get_target()
+   local target_table = stonehearth.combat:get_target_table(self._entity, 'aggro')
+   local target = target_table:get_top()
+   return target
+end
+
+-- stupid implementation until target tables are fixed
+function Combat:_get_target_old()
    local entity = self._entity
    local entity_id = entity:get_id()
    local target, target_id
 
    local pop = stonehearth.population:get_population('player_1')
    local citizens = pop:get_citizens()
-   --local target = radiant.entities.get_target_table_top(self._entity, 'aggro')
 
    target_id, target = next(citizens)
 
@@ -110,12 +115,6 @@ function Combat:_get_target()
       end
    end
 
-   return target
-end
-
-function Combat:_get_target_new()
-   local target_table = stonehearth.combat:get_target_table(self._entity, 'aggro')
-   local target = target_table:get_top()
    return target
 end
 
