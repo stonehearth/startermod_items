@@ -40,7 +40,7 @@ private:
       MIX_OVER,
    };
 
-   JSONNode const& LookupJsonInternal(std::string path) const;
+   JSONNode const& LookupJsonInternal(std::string const& path) const;
    Manifest LookupManifestInternal(std::string const& modname) const;
    ResourceManager2();
    static std::unique_ptr<ResourceManager2> singleton_;

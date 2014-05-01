@@ -12,7 +12,7 @@ std::ostream& operator<<(std::ostream& os, const Effect& o)
    return os;
 }
 
-void Effect::Init(int effect_id, std::string name, int start)
+void Effect::Init(int effect_id, const std::string& name, int start)
 {
    name_ = name;
    start_time_ = start;
@@ -29,14 +29,14 @@ void Effect::SerializeToJson(json::Node& node) const
    node.set("name", GetName());
 }
 
-void Effect::AddParam(std::string name, luabind::object o)
+void Effect::AddParam(std::string const& name, luabind::object o)
 {
    Selection s;
    s.FromLuaObject(o);
    params_.Add(name, s);
 }
 
-const Selection& Effect::GetParam(std::string param) const
+const Selection& Effect::GetParam(const std::string& param) const
 {
    static const Selection null;
    auto i = params_.find(param);

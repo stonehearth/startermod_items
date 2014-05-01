@@ -22,7 +22,7 @@ public:
 protected:
    bool Arrived(om::MobPtr mob);
    bool Obstructed();
-   void Report(std::string msg);
+   void Report(std::string const& msg);
 
 protected:
    om::EntityRef           entity_;

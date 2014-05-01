@@ -52,11 +52,13 @@ template <typename T> class ObjectCounter {}; // The nop implementation
 class ObjectCounterBase
 {
 public:
+   ObjectCounterBase() {}
+   virtual ~ObjectCounterBase() {}
    typedef std::unordered_map<std::type_index, int> CounterMap;
 
 public:
    typedef std::function<bool(std::type_index const&, int)> ForEachObjectCountCb;
-   typedef std::unordered_map<void *, std::pair<int, std::type_index>> ObjectMap;
+   typedef std::unordered_map<ObjectCounterBase *, std::pair<int, std::type_index>> ObjectMap;
 
    static CounterMap GetObjectCounts();
    static ObjectMap GetObjects();
@@ -65,12 +67,9 @@ public:
    static void TrackObjectLifetime(bool enable);
 
 protected:
-   static void IncrementObjectCount(void* that, std::type_info const& t);
-   static void DecrementObjectCount(void* that, std::type_info const& t);
+   static void IncrementObjectCount(ObjectCounterBase* that, std::type_info const& t);
+   static void DecrementObjectCount(ObjectCounterBase* that, std::type_info const& t);
    static int GetObjectCount(std::type_info const& t);
-
-private:
-   typedef std::unordered_map<void *, std::pair<int, std::type_index>> ObjectMap;
 
 private:
    static boost::detail::spinlock __lock;

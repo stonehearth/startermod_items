@@ -8,9 +8,7 @@ function harvest_tests.chop_tree(autotest)
 
    autotest.util:succeed_when_destroyed(tree)
    
-   autotest.ui:sleep(500)
    autotest.ui:click_dom_element('#startMenu #harvest_menu')
-   autotest.ui:sleep(500)
    autotest.ui:set_next_designation_region(-4, -4, 12, 12) 
    
    autotest:sleep(20000)

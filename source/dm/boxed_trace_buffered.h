@@ -9,9 +9,10 @@
 BEGIN_RADIANT_DM_NAMESPACE
 
 template <typename BoxedType>
-class BoxedTraceBuffered : public TraceBuffered,
-                           public BoxedTrace<BoxedType>,
-                           public core::ObjectCounter<BoxedTraceBuffered<BoxedType>>
+class BoxedTraceBuffered : public core::ObjectCounter<BoxedTraceBuffered<BoxedType>>,
+                           public TraceBuffered,
+                           public BoxedTrace<BoxedType>
+                           
 {
 public:
    BoxedTraceBuffered(const char* reason, BoxedType const& b);

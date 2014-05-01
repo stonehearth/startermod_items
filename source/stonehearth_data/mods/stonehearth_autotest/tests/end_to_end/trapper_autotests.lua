@@ -51,12 +51,9 @@ function trapper_tests.follow_obsession(autotest)
    equipment:equip_item('stonehearth:pet_collar')
    town:add_pet(rabbit)
 
-   autotest.ui:sleep(1000)
-
    --Move the trapper; the pet should follow
    --Now, move the trapper 
    autotest.ui:push_unitframe_command_button(trapper, 'move_unit')
-   autotest.ui:sleep(500)
    autotest.ui:click_terrain(-10, -10)
    autotest:sleep(10000)
 

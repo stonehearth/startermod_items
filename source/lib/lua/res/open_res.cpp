@@ -9,7 +9,7 @@ using namespace ::radiant;
 using namespace ::radiant::res;
 using namespace luabind;
 
-AnimationPtr load_animation(std::string uri)
+AnimationPtr load_animation(const std::string& uri)
 {
    return ResourceManager2::GetInstance().LookupAnimation(uri);
 }

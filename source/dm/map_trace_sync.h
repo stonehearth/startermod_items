@@ -7,8 +7,9 @@
 BEGIN_RADIANT_DM_NAMESPACE
 
 template <typename M>
-class MapTraceSync : public MapTrace<M>,
-                     public core::ObjectCounter<MapTraceSync<M>>
+class MapTraceSync : public core::ObjectCounter<MapTraceSync<M>>,
+                     public MapTrace<M>
+                     
 {
 public:
 public:

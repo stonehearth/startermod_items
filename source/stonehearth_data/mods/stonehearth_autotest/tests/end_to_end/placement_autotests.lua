@@ -84,7 +84,6 @@ function placement_autotests.two_place_multiple_times(autotest)
                         return radiant.events.UNLISTEN
                      else
                         autotest.ui:push_unitframe_command_button(big_bed, 'move_item')
-                        autotest.ui:sleep(500)
                         autotest.ui:click_terrain(location.x + 2, location.z + 2)
                      end
                   end
@@ -92,9 +91,7 @@ function placement_autotests.two_place_multiple_times(autotest)
       end
    end)
    
-   autotest.ui:sleep(500)
    autotest.ui:push_unitframe_command_button(bed_proxy, 'place_item')
-   autotest.ui:sleep(500)
    autotest.ui:click_terrain(2, 2)
 
    autotest:sleep(60000)

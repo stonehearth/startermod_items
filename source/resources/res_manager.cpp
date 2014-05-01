@@ -57,7 +57,7 @@ static void ParsePath(std::string const& path, std::string& modname, std::vector
    }
 }
 
-static std::string Checksum(std::string input)
+static std::string Checksum(std::string const& input)
 {
    CryptoPP::SHA256 hash;
    byte buffer[2 * CryptoPP::SHA256::DIGESTSIZE]; // Output size of the buffer
@@ -265,7 +265,7 @@ void ResourceManager2::LookupJson(std::string const& path, std::function<void(JS
    callback(LookupJsonInternal(path));
 }
 
-JSONNode const& ResourceManager2::LookupJsonInternal(std::string path) const
+JSONNode const& ResourceManager2::LookupJsonInternal(std::string const& path) const
 {
    std::shared_ptr<JSONNode> node;
 

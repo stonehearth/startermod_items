@@ -54,7 +54,7 @@ void Selection::AddLocation(const csg::Point3f& location, const csg::Point3f& no
    normal_ = normal;
 }
 
-void Selection::AddString(std::string str)
+void Selection::AddString(const std::string& str)
 {
    ASSERT((flags_ & HAS_STRING) == 0);
    flags_ |= HAS_STRING;

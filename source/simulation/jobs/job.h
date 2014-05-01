@@ -11,7 +11,7 @@ typedef unsigned int JobId;
 
 class Job {
    public:
-      Job(Simulation& sim, std::string name);
+      Job(Simulation& sim, std::string const& name);
 
       std::string GetName() const;
       Simulation& GetSim() const;

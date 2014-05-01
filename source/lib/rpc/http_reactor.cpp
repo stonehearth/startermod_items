@@ -129,7 +129,7 @@ void HttpReactor::FlushEvents()
    }
 }
 
-void HttpReactor::QueueEvent(std::string type, JSONNode payload)
+void HttpReactor::QueueEvent(std::string const& type, JSONNode payload)
 {
    RPC_LOG(5) << "queuing new event of type " << type << " in http reactor.";
 

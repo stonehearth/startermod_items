@@ -60,7 +60,7 @@ struct Manifest : public json::Node
    DECLARE_MOD_OBJECT(Manifest);
 
    FunctionsBlock get_functions() const;
-   Function get_function(std::string name) const;
+   Function get_function(std::string const& name) const;
 };
 
 END_RADIANT_RES_NAMESPACE

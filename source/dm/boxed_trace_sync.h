@@ -8,8 +8,9 @@
 BEGIN_RADIANT_DM_NAMESPACE
 
 template <typename BoxedType>
-class BoxedTraceSync : public BoxedTrace<BoxedType>,
-                       public core::ObjectCounter<BoxedTraceSync<BoxedType>>
+class BoxedTraceSync : public core::ObjectCounter<BoxedTraceSync<BoxedType>>,
+                       public BoxedTrace<BoxedType>
+                       
 {
 public:
 public:

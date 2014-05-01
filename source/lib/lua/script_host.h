@@ -109,8 +109,8 @@ private:
    luabind::object CreateModule(om::ModListPtr mods, std::string const& mod_name);
 
 private:
-   luabind::object LoadScript(std::string path);
-   void OnError(std::string description);
+   luabind::object LoadScript(const std::string& path);
+   void OnError(const std::string& description);
    luabind::object GetManifest(std::string const& mod_name);
    luabind::object GetJson(std::string const& mod_name);
    void SetPerformanceCounter(const char* name, double value, const char* kind);

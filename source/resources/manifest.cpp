@@ -57,7 +57,7 @@ FunctionsBlock Manifest::get_functions() const
    return FunctionsBlock(mod_name_, get_node("functions"));
 }
 
-Function Manifest::get_function(std::string name) const
+Function Manifest::get_function(std::string const& name) const
 {
    return get_functions().get_function(name);
 }

@@ -3,10 +3,11 @@
 
 #include <functional>
 #include "dm.h"
+#include "core/object_counter.h"
 
 BEGIN_RADIANT_DM_NAMESPACE
 
-class Trace
+class Trace : public core::ObjectCounter<Trace>
 {
 public:
    typedef std::function<void()> ModifiedCb;

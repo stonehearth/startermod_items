@@ -64,7 +64,7 @@ class Client : public core::Singleton<Client> {
       phys::OctTree& GetOctTree() const { return *octtree_; }
 
       typedef int CursorStackId;
-      CursorStackId InstallCursor(std::string name);
+      CursorStackId InstallCursor(const std::string& name);
       void RemoveCursor(CursorStackId id);
 
       typedef int InputHandlerId;
@@ -136,11 +136,12 @@ class Client : public core::Singleton<Client> {
       void ProcessBrowserJobQueue();
       void HandleServerCallRequest(std::string const& obj, std::string const& function_name, json::Node const& node, rpc::HttpDeferredPtr response);
       void BrowserCallRequestHandler(json::Node const& query, std::string const& postdata, rpc::HttpDeferredPtr response);
-      void CallHttpReactor(std::string parts, json::Node query, std::string postdata, rpc::HttpDeferredPtr response);
+      void CallHttpReactor(const std::string& parts, const json::Node& query, const std::string& postdata, rpc::HttpDeferredPtr response);
       void InitDataModel();
       void DeactivateAllTools();
       void RequestReload();
       void EnableDisableSaveStressTest();
+      void EnableDisableLifetimeTracking();
       void OneTimeIninitializtion();
       void InitializeUI(std::string const& state);
       void Initialize();
@@ -255,6 +256,7 @@ private:
       int                         lastLoadProgress_;
       int                         networkUpdatesCount_;
       int                         networkUpdatesExpected_;
+      bool                        debug_track_object_lifetime_;
 };
 
 END_RADIANT_CLIENT_NAMESPACE

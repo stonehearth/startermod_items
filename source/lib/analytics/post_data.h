@@ -9,7 +9,7 @@ BEGIN_RADIANT_ANALYTICS_NAMESPACE
 class PostData 
 {
 public:
-   PostData(json::Node event_node, std::string uri, std::string authorization_string);
+   PostData(const json::Node& event_node, const std::string& uri, const std::string& authorization_string);
    ~PostData();
 
    json::Node   GetJsonNode();

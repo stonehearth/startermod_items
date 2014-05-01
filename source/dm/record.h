@@ -28,8 +28,8 @@ public:
 protected:
    friend void dm::LoadObject(Record& record, Protocol::Value const& msg);
 
-   bool FieldIsUnique(std::string name, Object& field);
-   void AddRecordField(std::string name, Object& field);
+   bool FieldIsUnique(const std::string& name, Object& field);
+   void AddRecordField(const std::string& name, Object& field);
    
 private:
    NO_COPY_CONSTRUCTOR(Record);

@@ -180,7 +180,7 @@ void Extension::release()
    // xxx: nuke the material
 }
 
-H3DNode h3dRadiantCreateStockpileNode(H3DNode parent, std::string name)
+H3DNode h3dRadiantCreateStockpileNode(H3DNode parent, const std::string& name)
 {
 	SceneNode *parentNode = Modules::sceneMan().resolveNodeHandle( parent );
 	APIFUNC_VALIDATE_NODE(parentNode, "h3dRadiantCreateStockpileNode", 0);
@@ -205,7 +205,7 @@ bool h3dRadiantResizeStockpileNode(H3DNode node, int width, int height)
    return true;
 }
 
-::radiant::horde3d::ToastNode* h3dRadiantCreateToastNode(H3DNode parent, std::string name)
+::radiant::horde3d::ToastNode* h3dRadiantCreateToastNode(H3DNode parent, const std::string& name)
 {
    ASSERT(0);
 	SceneNode *parentNode = Modules::sceneMan().resolveNodeHandle( parent );
@@ -220,7 +220,7 @@ bool h3dRadiantResizeStockpileNode(H3DNode node, int width, int height)
    return sn;
 }
 
-std::pair<H3DNode, ::radiant::horde3d::DecalNode*> h3dRadiantCreateDecalNode(H3DNode parent, std::string name, std::string material)
+std::pair<H3DNode, ::radiant::horde3d::DecalNode*> h3dRadiantCreateDecalNode(H3DNode parent, const std::string& name, const std::string& material)
 {
 	SceneNode *parentNode = Modules::sceneMan().resolveNodeHandle( parent );
 	APIFUNC_VALIDATE_NODE(parentNode, "h3dRadiantCreateDecalNode", std::make_pair(0, nullptr));

@@ -43,13 +43,12 @@ function stockpile_tests.abort_stockpile_creation(autotest)
       end)
 
    autotest:sleep(500)
+
    autotest.ui:click_dom_element('#startMenu #zone_menu')
-   autotest.ui:sleep(500)
    autotest.ui:click_dom_element('#startMenu div[hotkey="o"]')
-   autotest.ui:sleep(500)
    autotest.ui:set_next_designation_region(4, 8, 1, 1)
-   autotest.ui:sleep(500)
    autotest.ui:click_dom_element('#stockpileWindow #none')
+
    autotest:sleep(10000)
    autotest:fail('Entity didn\'t drop its carry block.')
 end
