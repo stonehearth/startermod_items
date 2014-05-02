@@ -230,11 +230,8 @@ void NavGrid::AddCollisionTracker(csg::Cube3 const& last_bounds, csg::Cube3 cons
    csg::Cube3 current_chunks = csg::GetChunkIndex(bounds, TILE_SIZE);
    csg::Cube3 previous_chunks = csg::GetChunkIndex(last_bounds, TILE_SIZE);
 
-   csg::Point3 chunkBoundsMin = current_chunks.min.Scaled(TILE_SIZE);
-   csg::Point3 chunkBoundsMax = current_chunks.max.Scaled(TILE_SIZE);
-
-   bounds_.Grow(chunkBoundsMin);
-   bounds_.Grow(chunkBoundsMax);
+   bounds_.Grow(bounds.min - csg::Point3(TILE_SIZE, TILE_SIZE, TILE_SIZE));
+   bounds_.Grow(bounds.max + csg::Point3(TILE_SIZE, TILE_SIZE, TILE_SIZE));
 
    // Remove trackers from tiles which no longer overlap the current bounds of the tracker,
    // but did overlap their previous bounds.
@@ -249,7 +246,7 @@ void NavGrid::AddCollisionTracker(csg::Cube3 const& last_bounds, csg::Cube3 cons
    for (csg::Point3 const& cursor : current_chunks) {
       if (previous_chunks.Contains(cursor)) {
          NG_LOG(5) << "marking tracker to grid tile at " << cursor << " for " << *tracker->GetEntity() << " dirty";
-         GridTileNonResident(cursor).MarkDirty();
+         GridTileNonResident(cursor).OnTrackerChanged(tracker);
       } else {
          NG_LOG(5) << "adding tracker to grid tile at " << cursor << " for " << *tracker->GetEntity();
          GridTileNonResident(cursor).AddCollisionTracker(tracker);
@@ -258,12 +255,12 @@ void NavGrid::AddCollisionTracker(csg::Cube3 const& last_bounds, csg::Cube3 cons
 }
 
 /*
- * -- NavGrid::MarkDirty
+ * -- NavGrid::OnTrackerDestroyed
  *
  * Used to mark all the tiles overlapping bounds as dirty.  Useful for when a collision
  * tracker goes away.
  */
-void NavGrid::MarkDirty(csg::Cube3 const& bounds)
+void NavGrid::OnTrackerDestroyed(csg::Cube3 const& bounds, dm::ObjectId entityId)
 {
    NG_LOG(3) << "mark dirty " << bounds;
    csg::Cube3 chunks = csg::GetChunkIndex(bounds, TILE_SIZE);
@@ -271,7 +268,7 @@ void NavGrid::MarkDirty(csg::Cube3 const& bounds)
    // Remove trackers from tiles which no longer overlap the current bounds of the tracker,
    // but did overlap their previous bounds.
    for (csg::Point3 const& cursor : chunks) {
-      GridTileNonResident(cursor).MarkDirty();
+      GridTileNonResident(cursor).OnTrackerRemoved(entityId);
    }
 }
 

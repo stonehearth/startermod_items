@@ -82,7 +82,6 @@ private:
    rpc::ReactorDeferredPtr StartPerformanceCounterPush();
    void PushPerformanceCounters();
    void UpdateGameState();
-   void UpdateCollisions();
 
    void SendReply(tesseract::protocol::PostCommandReply const& reply);
    void InitializeModules();

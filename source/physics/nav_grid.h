@@ -35,6 +35,7 @@ class NavGrid {
 
       bool IsValidStandingRegion(csg::Region3 const& r);
       void ShowDebugShapes(csg::Point3 const& pt, protocol::shapelist* msg);
+
    private: // methods for internal helper classes
       friend CollisionTracker;
       friend TerrainTracker;
@@ -42,10 +43,12 @@ class NavGrid {
       friend RegionCollisionShapeTracker;
       friend VerticalPathingRegionTracker;
       friend MobTracker;
+      friend SensorTracker;
+
       int GetTraceCategory();
       void AddTerrainTileTracker(om::EntityRef entity, csg::Point3 const& offset, om::Region3BoxedPtr tile);
       void AddCollisionTracker(csg::Cube3 const& last_bounds, csg::Cube3 const& bounds, CollisionTrackerPtr tracker);
-      void MarkDirty(csg::Cube3 const& bounds);
+      void OnTrackerDestroyed(csg::Cube3 const& bounds, dm::ObjectId entityId);
 
    private: // methods exposed only to the OctTree
       friend OctTree;

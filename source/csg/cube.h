@@ -130,6 +130,8 @@ public:
    Point GetSize() const { return GetMax() - GetMin(); }
 
    // optimizing...
+   bool operator==(const Cube& other) const;
+   bool operator!=(const Cube& other) const;
    Cube operator&(const Cube& other) const;
    Region operator&(const Region& other) const;
    Cube operator+(const Point& other) const;

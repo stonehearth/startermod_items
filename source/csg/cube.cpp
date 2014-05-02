@@ -188,6 +188,18 @@ Region<S, C> Cube<S, C>::operator-(const Region& rhs) const
 }
 
 template <typename S, int C>
+bool Cube<S, C>::operator==(const Cube& other) const
+{
+   return min == other.min && max == other.max;
+}
+
+template <typename S, int C>
+bool Cube<S, C>::operator!=(const Cube& other) const
+{
+   return min != other.min || max != other.max;
+}
+
+template <typename S, int C>
 Cube<S, C> Cube<S, C>::operator&(const Cube& other) const
 {
    Cube result;
@@ -307,6 +319,8 @@ bool Cube<S, C>::CombineWith(const Cube& cube)
    template Cls::Cube(const Cls::Point&, const Cls::Point&, int); \
    template Cls::ScalarType Cls::GetArea() const; \
    template bool Cls::Intersects(const Cls& other) const; \
+   template bool Cls::operator==(const Cls& offset) const; \
+   template bool Cls::operator!=(const Cls& offset) const; \
    template Cls Cls::operator&(const Cls& offset) const; \
    template Cls::Region Cls::operator&(const Cls::Region& offset) const; \
    template Cls Cls::operator+(const Cls::Point& offset) const; \

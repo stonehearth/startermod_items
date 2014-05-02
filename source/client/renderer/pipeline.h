@@ -58,8 +58,8 @@ class Pipeline : public core::Singleton<Pipeline> {
    private:
       void AddDesignationBorder(csg::mesh_tools::mesh& m, csg::EdgeMap2& edgemap);
       void AddDesignationStripes(csg::mesh_tools::mesh& m, csg::Region2 const& panels);
-      UniqueRenderable CreateXZBoxNode(H3DNode parent, csg::Region2 const& model, csg::Color4 const& interior_color, csg::Color4 const& border_color, double border_size);
-      void CreateXZBoxNodeGeometry(csg::mesh_tools::mesh& mesh, csg::Region2 const& region, csg::Color4 const& interior_color, csg::Color4 const& border_color, double border_size);      
+      UniqueRenderable CreateXZBoxNode(H3DNode parent, csg::Region2 const& model, csg::Color4 const& interior_color, csg::Color4 const& border_color, float border_size);
+      void CreateXZBoxNodeGeometry(csg::mesh_tools::mesh& mesh, csg::Region2 const& region, csg::Color4 const& interior_color, csg::Color4 const& border_color, float border_size);
       H3DNode CreateModelNode(H3DNode parent, H3DRes geometry, std::string const& material, int flag);
       H3DRes ConvertMeshToGeometryResource(const csg::mesh_tools::mesh& m, int indexOffsets[], int vertexOffsets[], int numLodLevels);
 

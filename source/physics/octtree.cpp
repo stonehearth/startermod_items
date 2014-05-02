@@ -12,6 +12,7 @@
 #include "om/components/region_collision_shape.ridl.h"
 #include "om/components/sensor.ridl.h"
 #include "om/components/sensor_list.ridl.h"
+#include "sensor_tracker.h"
 
 using namespace radiant;
 using namespace radiant::phys;
@@ -85,12 +86,12 @@ void OctTree::OnComponentAdded(dm::ObjectId id, om::ComponentPtr component)
    }
    EntityMapEntry& entry = i->second;
    om::EntityPtr entity = entry.entity.lock();
-
+   
    if (entity) {
       switch (component->GetObjectType()) {
          case om::EntityContainerObjectType: {
             om::EntityContainerPtr entity_container = std::static_pointer_cast<om::EntityContainer>(component);
-            entry.children_trace = entity_container->TraceChildren("octtree", trace_category_)
+            entry.children_trace = entity_container->TraceChildren("oct tree", trace_category_)
                ->OnAdded([this](dm::ObjectId id, om::EntityRef e) {
                      TraceEntity(e.lock());
                })
@@ -98,10 +99,15 @@ void OctTree::OnComponentAdded(dm::ObjectId id, om::ComponentPtr component)
             break;
          };
          case om::SensorListObjectType: {
+            om::EntityRef e = entity;
             om::SensorListPtr sensor_list = std::static_pointer_cast<om::SensorList>(component);
-            entry.sensor_list_trace = sensor_list->TraceSensors("octtree", trace_category_)
-               ->OnAdded([this](std::string const& name, om::SensorPtr sensor) {
-                  TraceSensor(sensor);
+            entry.sensor_list_trace = sensor_list->TraceSensors("oct tree", trace_category_)
+               ->OnAdded([this, e](std::string const& name, om::SensorPtr sensor) {
+                  dm::ObjectId id = sensor->GetObjectId();
+                  ASSERT(!stdutil::contains(sensor_trackers_, id));
+                  SensorTrackerPtr sensorTracker = std::make_shared<SensorTracker>(*this, e.lock(), sensor);
+                  sensorTracker->Initialize();
+                  sensor_trackers_[id] = sensorTracker;
                })
                ->OnRemoved([this](std::string const& name) {
                   NOT_YET_IMPLEMENTED();
@@ -383,7 +389,7 @@ float OctTree::GetMovementCost(const csg::Point3& start, const csg::Point3& end)
 
    int dx = abs(end.x - start.x);
    int dz = abs(end.z - start.z);
-   cost += std::sqrt(dx*dx + dz*dz);
+   cost += static_cast<float>(std::sqrt(dx*dx + dz*dz));
 
    return cost;
 }
@@ -410,65 +416,6 @@ void OctTree::OnObjectDestroyed(dm::ObjectId id)
    }
 }
 #endif
-
-void OctTree::Update(int now)
-{
-   UpdateSensors();
-}
-
-bool OctTree::UpdateSensor(om::SensorPtr sensor)
-{
-   auto entity = sensor->GetEntity().lock();
-   if (!entity) {
-      return false;
-   }
-   auto mob = entity->GetComponent<om::Mob>();
-   if (!mob) {
-      return false;
-   }
-   csg::Point3f origin = mob->GetWorldLocation();
-   csg::Cube3f cube = sensor->GetCube() + origin;
-
-   std::unordered_map<dm::ObjectId, om::EntityRef> intersects;
-   auto i = entities_.begin();
-   while (i != entities_.end()) {
-      om::EntityPtr entity = i->second.entity.lock();
-      if (entity) {
-         om::MobPtr mob = entity->GetComponent<om::Mob>();
-         if (mob) {
-            csg::Cube3f const& box = mob->GetWorldAabb();
-            if (cube.Intersects(box)) {
-               intersects[entity->GetObjectId()] = entity;
-            }
-         }
-         i++;
-      } else {
-         i = entities_.erase(i);
-      }
-   }
-   sensor->UpdateIntersection(intersects);
-   return true;
-}
-
-void OctTree::TraceSensor(om::SensorPtr sensor)
-{
-   dm::ObjectId id = sensor->GetObjectId();
-   sensors_[id] = sensor;
-}
-
-
-void OctTree::UpdateSensors()
-{
-   auto i = sensors_.begin();
-   while (i != sensors_.end()) {
-      om::SensorPtr sensor = i->second.lock();
-      if (sensor && UpdateSensor(sensor)) {
-         i++;
-      } else {
-         i = sensors_.erase(i);
-      }
-   }
-}
 
 void OctTree::ShowDebugShapes(csg::Point3 const& pt, protocol::shapelist* msg)
 {

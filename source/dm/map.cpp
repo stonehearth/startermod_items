@@ -9,6 +9,8 @@
 using namespace radiant;
 using namespace radiant::dm;
 
+#define MAP_LOG(level)  LOG(dm.map, level) << "[map <" << GetShortTypeName<K>() << "," << GetShortTypeName<V>() << "> id:" << GetObjectId() << "] "
+
 template <class K, class V, class H>
 std::shared_ptr<MapTrace<Map<K, V, H>>> Map<K, V, H>::TraceChanges(const char* reason, int category) const
 {
@@ -95,6 +97,7 @@ bool Map<K, V, H>::IsEmpty() const
 template <class K, class V, class H>
 typename Map<K, V, H>::ContainerType const & Map<K, V, H>::GetContents() const
 {
+   MAP_LOG(7) << "returning contents size " << items_.size();
    return items_;
 }
 
@@ -103,6 +106,8 @@ typename Map<K, V, H>::ContainerType::const_iterator Map<K, V, H>::Remove(typena
 {
    K key = i->first;
    auto result = items_.erase(i);
+
+   MAP_LOG(7) << "removing " << key;
    GetStore().OnMapRemoved(*this, key);
    return result;
 }
@@ -120,9 +125,11 @@ void Map<K, V, H>::Add(K const& key, V const& value) {
    auto i = items_.find(key);
    if (i != items_.end()) {
       i->second = value;
+      MAP_LOG(7) << "modifying " << key << " (size: " << items_.size() << ")";
       GetStore().OnMapChanged(*this, key, value);
    } else {
       items_[key] = value;
+      MAP_LOG(7) << "adding " << key << " (size: " << items_.size() << ")";
       GetStore().OnMapChanged(*this, key, value);
    }
 }
@@ -148,6 +155,7 @@ V Map<K, V, H>::Get(const K& key, V default) const {
 
 template <class K, class V, class H>
 void Map<K, V, H>::Clear() {
+   MAP_LOG(7) << "clearing";
    while (!items_.empty()) {
       Remove(items_.begin()->first);
    }
@@ -156,6 +164,7 @@ void Map<K, V, H>::Clear() {
 template <class K, class V, class H>
 typename Map<K, V, H>::ContainerType const& Map<K, V, H>::GetContainer() const
 {
+   MAP_LOG(7) << "returning container size " << items_.size();
    return items_;
 }
 

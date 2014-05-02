@@ -6,6 +6,8 @@
 #include "namespace.h"
 #include "nav_grid_tile_data.h"
 #include "protocols/forward_defines.h"
+#include "csg/cube.h"
+#include "core/guard.h"
 
 BEGIN_RADIANT_PHYSICS_NAMESPACE
 
@@ -32,6 +34,9 @@ public:
    void RemoveCollisionTracker(CollisionTrackerPtr tracker);
    void AddCollisionTracker(CollisionTrackerPtr tracker);
 
+   void OnTrackerChanged(CollisionTrackerPtr tracker);
+   void OnTrackerRemoved(dm::ObjectId entityId);
+
    bool IsEmpty(csg::Cube3 const& bounds);
    bool CanStandOn(csg::Point3 const& pt);
    void FlushDirty(NavGrid& ng, csg::Point3 const& index);
@@ -41,6 +46,15 @@ public:
    void SetDataResident(bool value);
 
    void ForEachTracker(ForEachTrackerCb cb);
+
+   enum ChangeNotifications {
+      ENTITY_REMOVED = (1 << 0),
+      ENTITY_ADDED = (1 << 1),
+      ENTITY_MOVED = (1 << 2),
+   };
+   typedef std::function<void(int, dm::ObjectId, om::EntityPtr)> ChangeCb;
+   
+   core::Guard TraceEntityPositions(int flags, csg::Cube3 const& worldBounds, ChangeCb cb);
 
 public:
    void UpdateBaseVectors(csg::Point3 const& index);
@@ -60,16 +74,37 @@ private:
    csg::Cube3 GetWorldBounds(csg::Point3 const& index) const;
 
 private:
+   void OnTrackerAdded(CollisionTrackerPtr tracker);
+   void PruneExpiredChangeTrackers();
+
    enum DirtyBits {
       BASE_VECTORS =    (1 << 0),
       DERIVED_VECTORS = (1 << 1),
       ALL_DIRTY_BITS =  (-1)
    };
 
+   struct ChangeTracker {
+      int         id;
+      int         flags;
+      csg::Cube3  bounds;
+      ChangeCb    cb;
+      bool        expired;
+
+      ChangeTracker(int id, int f, csg::Cube3 const& b, ChangeCb c) :
+         id(id),
+         flags(f),
+         bounds(b),
+         cb(c),
+         expired(false)
+      {
+      }
+   };
+
 private:
-   bool                                visited_;
-   TrackerMap                          trackers_;
-   std::shared_ptr<NavGridTileData>    data_;
+   TrackerMap                                trackers_;
+   std::shared_ptr<NavGridTileData>          data_;
+   int                                       next_change_tracker_id_;
+   std::vector<ChangeTracker>                change_trackers_;
 };
 
 END_RADIANT_PHYSICS_NAMESPACE

@@ -33,7 +33,7 @@ MobTracker::MobTracker(NavGrid& ng, om::EntityPtr entity, om::MobPtr mob) :
 
 MobTracker::~MobTracker()
 {
-   GetNavGrid().MarkDirty(last_bounds_);
+   GetNavGrid().OnTrackerDestroyed(last_bounds_, GetEntityId());
 }
 
 /*
@@ -59,16 +59,16 @@ void MobTracker::MarkChanged()
    om::MobPtr mob = mob_.lock();
    if (mob) {
       csg::Point3 pos = mob->GetWorldGridLocation();
-      if (pos != last_bounds_.min) {
-         csg::Cube3 bounds(pos, pos + csg::Point3(1, 1, 1));
-         if (mob->GetMobCollisionType() == om::Mob::HUMANOID) {
-            bounds.max.y += 4;
-         }
+      csg::Cube3 bounds(pos, pos + csg::Point3(1, 1, 1));
+      if (mob->GetMobCollisionType() == om::Mob::HUMANOID) {
+         bounds.max.y += 3;
+      }
+      if (bounds != last_bounds_) {
          NG_LOG(9) << "adding MobTracker for " << *mob->GetEntityPtr() << " to tile " << bounds << "(last bounds:" << last_bounds_ << ")";
          GetNavGrid().AddCollisionTracker(last_bounds_, bounds, shared_from_this());
          last_bounds_ = bounds;
       } else {
-         NG_LOG(9) << "skipping MobTracker bookkeeping for " << *mob->GetEntityPtr() << " (pos ~= last bounds:" << last_bounds_ << ")";
+         NG_LOG(9) << "skipping MobTracker bookkeeping for " << *mob->GetEntityPtr() << " (bounds:" << bounds << " == last bounds:" << last_bounds_ << ")";
       }
    }
 }

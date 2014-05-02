@@ -26,12 +26,14 @@ class TerrainTileTracker;
 class RegionCollisionShapeTracker;
 class VerticalPathingRegionTracker;
 class MobTracker;
+class SensorTracker;
 
 DECLARE_SHARED_POINTER_TYPES(CollisionTracker)
 DECLARE_SHARED_POINTER_TYPES(TerrainTracker)
 DECLARE_SHARED_POINTER_TYPES(TerrainTileTracker)
 DECLARE_SHARED_POINTER_TYPES(VerticalPathingRegionTracker)
 DECLARE_SHARED_POINTER_TYPES(MobTracker)
+DECLARE_SHARED_POINTER_TYPES(SensorTracker)
 
 enum {
    TILE_SIZE = 16

@@ -349,7 +349,7 @@ Pipeline::CreateXZBoxNode(H3DNode parent,
                                 csg::Region2 const& plane,
                                 csg::Color4 const& interior_color,
                                 csg::Color4 const& border_color,
-                                double border_size)
+                                float border_size)
 {
    csg::RegionTools2 tools;
 
@@ -376,7 +376,7 @@ void Pipeline::CreateXZBoxNodeGeometry(csg::mesh_tools::mesh& mesh,
                                        csg::Region2 const& region, 
                                        csg::Color4 const& interior_color, 
                                        csg::Color4 const& border_color, 
-                                       double border_size)
+                                       float border_size)
 {
    csg::PlaneInfo3f pi;
    pi.reduced_coord = 1;

@@ -394,15 +394,6 @@ void Simulation::UpdateGameState()
    profile_next_lua_update_ = false;
 }
 
-void Simulation::UpdateCollisions()
-{
-   MEASURE_TASK_TIME("collisions")
-
-   // Collision detection...
-   SIM_LOG_GAMELOOP(7) << "updating collision system";
-   GetOctTree().Update(now_);
-}
-
 void Simulation::EncodeBeginUpdate(std::shared_ptr<RemoteClient> c)
 {
    proto::Update update;
@@ -676,7 +667,6 @@ void Simulation::Mainloop()
 
    if (!paused_) {
       UpdateGameState();
-      UpdateCollisions();
       ProcessTaskList();
       ProcessJobList();
       FireLuaTraces();

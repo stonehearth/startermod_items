@@ -14,7 +14,8 @@ using namespace radiant::phys;
  */
 CollisionTracker::CollisionTracker(NavGrid& ng, om::EntityPtr entity) :
    ng_(ng),
-   entity_(entity)
+   entity_(entity),
+   entityId_(entity->GetObjectId())
 {
 }
 
@@ -58,6 +59,15 @@ NavGrid& CollisionTracker::GetNavGrid() const
 om::EntityPtr CollisionTracker::GetEntity() const
 {
    return entity_.lock();
+}
+
+/* 
+ * -- CollisionTracker::GetEntityId
+ *
+ */
+dm::ObjectId CollisionTracker::GetEntityId() const
+{
+   return entityId_;
 }
 
 /* 

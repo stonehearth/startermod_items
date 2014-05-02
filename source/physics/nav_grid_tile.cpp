@@ -17,7 +17,7 @@ using namespace radiant::phys;
  * Construct a new NavGridTile.
  */
 NavGridTile::NavGridTile() :
-   visited_(false)
+   next_change_tracker_id_(0)
 {
 }
 
@@ -30,17 +30,17 @@ void NavGridTile::RemoveCollisionTracker(CollisionTrackerPtr tracker)
 {
    om::EntityPtr entity = tracker->GetEntity();
    if (entity) {
-      dm::ObjectId id = entity->GetObjectId();
+      dm::ObjectId entityId = entity->GetObjectId();
 
       // Run through all the trackers for the current entity.  The TrackerMap is a
       // multimap, so this is O(1) for the find() + O(n) for the number of tracker
       // types, but there are a only and handful of those, so consider the while
       // loop here to be constant time.
-      auto range = trackers_.equal_range(id);
+      auto range = trackers_.equal_range(entityId);
       for (auto i = range.first; i != range.second; i++) {
          if (i->second.lock() == tracker) {
             trackers_.erase(i);
-            MarkDirty();
+            OnTrackerRemoved(entityId);
             return;
          }
       }
@@ -58,9 +58,9 @@ void NavGridTile::AddCollisionTracker(CollisionTrackerPtr tracker)
    if (entity) {
       dm::ObjectId id = entity->GetObjectId();
       trackers_.insert(std::make_pair(id, tracker));
+      OnTrackerAdded(tracker);
       MarkDirty();
    }
-   MarkDirty();
 }
 
 /*
@@ -168,6 +168,85 @@ void NavGridTile::MarkDirty()
    }
 }
 
+void NavGridTile::OnTrackerChanged(CollisionTrackerPtr tracker)
+{
+   for (ChangeTracker &c : change_trackers_) {
+      if (c.flags & ENTITY_MOVED) {
+         om::EntityPtr entity = tracker->GetEntity();
+         dm::ObjectId entityId = entity->GetObjectId();
+         if (entity) {
+            if (tracker->Intersects(c.bounds)) {
+               c.cb(ENTITY_MOVED, entity->GetObjectId(), entity);
+            } else {
+               bool removed = true;
+               auto range = trackers_.equal_range(entityId);
+               for (auto i = range.first; i != range.second; i++) {
+                  CollisionTrackerPtr t = i->second.lock();
+                  if (t && t->Intersects(c.bounds)) {
+                     removed = false;
+                     break;
+                  }
+               }
+               if (removed) {
+                  c.cb(ENTITY_REMOVED, entityId, nullptr);
+               }
+            }
+         }
+      }
+   }
+   PruneExpiredChangeTrackers();
+}
+
+void NavGridTile::OnTrackerAdded(CollisionTrackerPtr tracker)
+{
+   for (ChangeTracker &c : change_trackers_) {
+      if (c.flags & ENTITY_ADDED) {
+         om::EntityPtr entity = tracker->GetEntity();
+         if (entity) {
+            if (tracker->Intersects(c.bounds)) {
+               c.cb(ENTITY_ADDED, entity->GetObjectId(), entity);
+            }
+         }
+      }
+   }
+   PruneExpiredChangeTrackers();
+}
+
+void NavGridTile::OnTrackerRemoved(dm::ObjectId entityId)
+{
+   MarkDirty();
+
+   for (ChangeTracker &c : change_trackers_) {
+      if (c.flags & ENTITY_REMOVED) {
+         bool removed = true;
+         auto range = trackers_.equal_range(entityId);
+         for (auto i = range.first; i != range.second; i++) {
+            CollisionTrackerPtr tracker = i->second.lock();
+            if (tracker && tracker->Intersects(c.bounds)) {
+               removed = false;
+               break;
+            }
+         }
+         if (removed) {
+            c.cb(ENTITY_REMOVED, entityId, nullptr);
+         }
+      }
+   }
+   PruneExpiredChangeTrackers();
+}
+
+void NavGridTile::PruneExpiredChangeTrackers()
+{
+   uint i = 0, c = change_trackers_.size();
+
+   while (i < c) {
+      if (change_trackers_[i].expired) {
+         change_trackers_[i] = change_trackers_[--c];
+      } else {
+         i++;
+      }
+   }
+}
 
 /*
  * -- NavGridTile::GetWorldBounds
@@ -210,4 +289,19 @@ void NavGridTile::ForEachTracker(ForEachTrackerCb cb)
       cb(tracker);
    });
 }
-   
+
+core::Guard NavGridTile::TraceEntityPositions(int flags, csg::Cube3 const& worldBounds, ChangeCb cb)
+{
+   int id = next_change_tracker_id_++;
+   change_trackers_.push_back(ChangeTracker(id, flags, worldBounds, cb));
+
+   return core::Guard([id, this]() {
+      // assumes tiles never get destroyed!  If so, we need to reset all the returned guards
+      for (ChangeTracker& c : change_trackers_) {
+         if (c.id == id) {
+            c.expired = true;
+            break;
+         }
+      }
+   });
+}

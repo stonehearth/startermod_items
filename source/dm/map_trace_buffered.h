@@ -12,6 +12,7 @@ class MapTraceBuffered : public TraceBuffered,
                          public MapTrace<M> {
 public:
    MapTraceBuffered(const char* reason, M const& m);
+   virtual ~MapTraceBuffered();
 
    void Flush();
    bool SaveObjectDelta(SerializationType r, Protocol::Value* value) override;

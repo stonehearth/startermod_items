@@ -629,7 +629,7 @@ void Client::InitializeGameObjects()
 
    renderer.Initialize();
 
-   octtree_.reset(new phys::OctTree(dm::RENDER_TRACES));
+   //octtree_.reset(new phys::OctTree(dm::RENDER_TRACES));
 
    luaModuleRouter_ = std::make_shared<rpc::LuaModuleRouter>(scriptHost_.get(), "client");
    luaObjectRouter_ = std::make_shared<rpc::LuaObjectRouter>(scriptHost_.get(), GetAuthoringStore());
@@ -869,7 +869,7 @@ void Client::EndUpdate(const proto::EndUpdate& msg)
       if (rootEntity) {
          rootObject_ = rootEntity;
          Renderer::GetInstance().SetRootEntity(rootEntity);
-         octtree_->SetRootEntity(rootEntity);
+         //octtree_->SetRootEntity(rootEntity);
       }
    }
 
