@@ -178,7 +178,7 @@ public:
 	void setShaderComb( ShaderCombination *sc );
 	void commitGeneralUniforms();
    void commitGlobalUniforms();
-	bool setMaterial( MaterialResource *materialRes, const std::string &shaderContext );
+	bool setMaterial( MaterialResource *materialRes, std::string const& shaderContext );
 	
 	bool createShadowRB( uint32 width, uint32 height );
 	void releaseShadowRB();
@@ -193,17 +193,17 @@ public:
 	                   MaterialResource *matRes, int flags );
 	void clearOverlays();
 	
-	static void drawMeshes( const std::string &shaderContext, const std::string &theClass, bool debugView,
+	static void drawMeshes( std::string const& shaderContext, std::string const& theClass, bool debugView,
 		const Frustum *frust1, const Frustum *frust2, RenderingOrder::List order, int occSet, int lodLevel );
-	static void drawVoxelMeshes( const std::string &shaderContext, const std::string &theClass, bool debugView,
+	static void drawVoxelMeshes( std::string const& shaderContext, std::string const& theClass, bool debugView,
 		const Frustum *frust1, const Frustum *frust2, RenderingOrder::List order, int occSet, int lodLevel );
-	static void drawVoxelMeshes_Instances( const std::string &shaderContext, const std::string &theClass, bool debugView,
+	static void drawVoxelMeshes_Instances( std::string const& shaderContext, std::string const& theClass, bool debugView,
 		const Frustum *frust1, const Frustum *frust2, RenderingOrder::List order, int occSet, int lodLevel );
-	static void drawParticles( const std::string &shaderContext, const std::string &theClass, bool debugView,
+	static void drawParticles( std::string const& shaderContext, std::string const& theClass, bool debugView,
 		const Frustum *frust1, const Frustum *frust2, RenderingOrder::List order, int occSet, int lodLevel );
-   static void drawHudElements(const std::string &shaderContext, const std::string &theClass, bool debugView,
+   static void drawHudElements(std::string const& shaderContext, std::string const& theClass, bool debugView,
       const Frustum *frust1, const Frustum *frust2, RenderingOrder::List order, int occSet, int lodLevel );
-   static void drawInstanceNode(const std::string &shaderContext, const std::string &theClass, bool debugView,
+   static void drawInstanceNode(std::string const& shaderContext, std::string const& theClass, bool debugView,
       const Frustum *frust1, const Frustum *frust2, RenderingOrder::List order, int occSet, int lodLevel );
 
    void render( CameraNode *camNode, PipelineResource *pRes );
@@ -227,13 +227,13 @@ public:
 
 protected:
    ShaderCombination* findShaderCombination(ShaderResource* r, ShaderContext* context) const;
-   bool isShaderContextSwitch(const std::string &curContext, const MaterialResource *materialRes);
+   bool isShaderContextSwitch(std::string const& curContext, const MaterialResource *materialRes);
 
    void setupViewMatrices( const Matrix4f &viewMat, const Matrix4f &projMat );
 	
 	void createPrimitives();
 	
-	bool setMaterialRec( MaterialResource *materialRes, const std::string &shaderContext, ShaderResource *shaderRes );
+	bool setMaterialRec( MaterialResource *materialRes, std::string const& shaderContext, ShaderResource *shaderRes );
    void updateLodUniform(int lodLevel, float lodDist1, float lodDist2);
 	
 	void setupShadowMap( bool noShadows );
@@ -245,21 +245,21 @@ protected:
    void quantizeShadowFrustum(const Frustum& frustSlice, int shadowMapSize, Vec3f* min, Vec3f* max);
    void updateShadowMap(const Frustum* lightFrus, float minDist, float maxDist);
 
-	void drawOverlays( const std::string &shaderContext );
+	void drawOverlays( std::string const& shaderContext );
 
-	void bindPipeBuffer( uint32 rbObj, const std::string &sampler, uint32 bufIndex );
+	void bindPipeBuffer( uint32 rbObj, std::string const& sampler, uint32 bufIndex );
 	void clear( bool depth, bool buf0, bool buf1, bool buf2, bool buf3, float r, float g, float b, float a, int stencilVal );
-	void drawFSQuad( Resource *matRes, const std::string &shaderContext );
-   void drawLodGeometry( const std::string &shaderContext, const std::string &theClass,
+	void drawFSQuad( Resource *matRes, std::string const& shaderContext );
+   void drawLodGeometry( std::string const& shaderContext, std::string const& theClass,
                          RenderingOrder::List order, int filterRequried, int occSet, float frustStart, float frustEnd, int lodLevel);
-   void drawGeometry( const std::string &shaderContext, const std::string &theClass,
+   void drawGeometry( std::string const& shaderContext, std::string const& theClass,
 	                   RenderingOrder::List order, int filterRequired, int occSet, float frustStart, float frustEnd, int forceLodLevel=-1);
-   void drawProjections(const std::string &shaderContext, uint32 userFlags );
-	void drawLightGeometry( const std::string &shaderContext, const std::string &theClass,
+   void drawProjections(std::string const& shaderContext, uint32 userFlags );
+	void drawLightGeometry( std::string const& shaderContext, std::string const& theClass,
 	                        bool noShadows, RenderingOrder::List order, int occSet, bool selectedOnly );
-	void drawLightShapes( const std::string &shaderContext, bool noShadows, int occSet );
+	void drawLightShapes( std::string const& shaderContext, bool noShadows, int occSet );
 	
-	void drawRenderables( const std::string &shaderContext, const std::string &theClass, bool debugView,
+	void drawRenderables( std::string const& shaderContext, std::string const& theClass, bool debugView,
 		const Frustum *frust1, const Frustum *frust2, RenderingOrder::List order, int occSet, int lodLevel );
    static void drawVoxelMesh_Instances_WithInstancing(const RenderableQueue& renderableQueue, const VoxelMeshNode* vmn, int lodLevel);
    static void drawVoxelMesh_Instances_WithoutInstancing(const RenderableQueue& renderableQueue, const VoxelMeshNode* vmn, int lodLevel);

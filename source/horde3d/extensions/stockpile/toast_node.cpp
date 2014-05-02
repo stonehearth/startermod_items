@@ -155,7 +155,7 @@ SceneNode *ToastNode::factoryFunc(const SceneNodeTpl &nodeTpl)
    return new ToastNode(static_cast<const ToastTpl&>(nodeTpl));
 }
 
-void ToastNode::renderFunc(const std::string &shaderContext, const std::string &theClass, bool debugView,
+void ToastNode::renderFunc(std::string const& shaderContext, std::string const& theClass, bool debugView,
                            const Frustum *frust1, const Frustum *frust2, RenderingOrder::List order, int occSet, int lodLevel)
 {
    bool offsetSet = false;

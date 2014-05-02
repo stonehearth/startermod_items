@@ -28,7 +28,7 @@ class ColladaDocument
 {
 public:
 	ColladaDocument();
-	bool parseFile( const std::string &fileName );
+	bool parseFile( std::string const& fileName );
 
 public:
 	DaeLibImages       libImages;

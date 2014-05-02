@@ -73,9 +73,7 @@ function firepit_autotests.move_lit_fire(autotest)
          return
       end
       if e.lit then
-         autotest.ui:sleep(500)
          autotest.ui:push_unitframe_command_button(firepit, 'move_item')
-         autotest.ui:sleep(500)
          autotest.ui:click_terrain(5, 5)
       end
       return radiant.events.UNLISTEN

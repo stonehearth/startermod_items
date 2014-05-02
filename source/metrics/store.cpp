@@ -25,7 +25,7 @@ store::store()
    reset();
 }
 
-void store::push_category(std::string category)
+void store::push_category(std::string const& category)
 {
    _categories.push(_categories.top()->get_child(category));
 }
@@ -52,7 +52,7 @@ void store::reset()
    _categories.push(_root_category.get());
 }
 
-store::profile_entry *store::profile_entry::get_child(std::string subcat) {
+store::profile_entry *store::profile_entry::get_child(std::string const& subcat) {
    for (unsigned int i = 0; i < children.size(); i++) {
       if (children[i]->category == subcat) {
          return children[i].get();
@@ -63,7 +63,7 @@ store::profile_entry *store::profile_entry::get_child(std::string subcat) {
    return child;
 }
 
-void store::profile_entry::dump_stats(std::string parent_category, metrics::time parent_duration, metrics::time overall_duration)
+void store::profile_entry::dump_stats(std::string const& parent_category, metrics::time parent_duration, metrics::time overall_duration)
 {
    overall_duration = std::max(overall_duration, duration);
    parent_duration = std::max(parent_duration, duration);

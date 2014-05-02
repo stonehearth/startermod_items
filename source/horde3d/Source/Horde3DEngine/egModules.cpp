@@ -79,7 +79,7 @@ void Modules::installExtensions()
 }
 
 
-bool Modules::init(int glMajor, int glMinor, bool msaaWindowSupported, bool enable_gl_logging, const std::string& logFilePath)
+bool Modules::init(int glMajor, int glMinor, bool msaaWindowSupported, bool enable_gl_logging, std::string const& logFilePath)
 {
 	// Create modules (order is important because of dependencies)
 	if( _extensionManager == 0x0 ) _extensionManager = new ExtensionManager();

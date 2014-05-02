@@ -2,20 +2,41 @@
    "mixins": "stonehearth:mixins:item_properties",
    "type": "entity",
    "components": {
-      "model_variants": {
+       "model_variants": {
          "default": {
             "models": [
                "file(wooden_sword.qb)"
+            ]
+         },
+         "equipped" : {
+            "models": [
+               "file(wooden_sword_equipped.qb)"
             ]
          }
       },
       "unit_info": {
          "name": "Wooden Sword",
-         "description": "Notched from many smites.",
+         "description": "Upgrades a citizen into a Footman",
          "icon" : "file(wooden_sword.png)"
       },
       "stonehearth:material" : {
          "tags" : "wood melee_weapon crafted"
+      },
+      "stonehearth:commands" : {
+         "commands" : [
+            "file(/data/commands/promote_to_profession)"
+         ]
+      },
+      "effect_list" : {
+         "effects" : [
+            "stonehearth:effects:talisman_glow"
+         ]  
+      },
+      "stonehearth:promotion_talisman": {
+         "profession": "stonehearth:professions:footman"
       }      
-   }
+   },
+   "entity_data" : {
+      "stonehearth:activity_name" : "promote_footman"
+   }   
 }

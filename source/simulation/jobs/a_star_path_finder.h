@@ -18,12 +18,12 @@ class AStarPathFinder : public std::enable_shared_from_this<AStarPathFinder>,
                         public PathFinder
 {
    public:
-      static std::shared_ptr<AStarPathFinder> Create(Simulation& sim, std::string name, om::EntityPtr entity);
+      static std::shared_ptr<AStarPathFinder> Create(Simulation& sim, std::string const& name, om::EntityPtr entity);
       static void ComputeCounters(std::function<void(const char*, double, const char*)> const& addCounter);
       virtual ~AStarPathFinder();
 
    private:
-      AStarPathFinder(Simulation& sim, std::string name, om::EntityPtr source);
+      AStarPathFinder(Simulation& sim, std::string const& name, om::EntityPtr source);
 
    public:
       typedef std::function<void(PathPtr)> SolvedCb;

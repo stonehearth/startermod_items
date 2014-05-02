@@ -46,7 +46,7 @@ struct VoxelMeshNodeTpl : public SceneNodeTpl
 {
 	PMaterialResource  matRes;
    
-	VoxelMeshNodeTpl( const std::string &name, MaterialResource *materialRes) :
+	VoxelMeshNodeTpl( std::string const& name, MaterialResource *materialRes) :
 		SceneNodeTpl( SceneNodeTypes::VoxelMesh, name ), matRes( materialRes )
 	{
 	}

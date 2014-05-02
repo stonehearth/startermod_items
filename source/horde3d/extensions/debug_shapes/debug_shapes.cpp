@@ -44,7 +44,7 @@ SceneNode *DebugShapesNode::factoryFunc(const SceneNodeTpl &nodeTpl)
    return new DebugShapesNode(static_cast<const DebugShapesTpl&>(nodeTpl));
 }
 
-void DebugShapesNode::renderFunc(const std::string &shaderContext, const std::string &theClass, bool debugView,
+void DebugShapesNode::renderFunc(std::string const& shaderContext, std::string const& theClass, bool debugView,
                                  const Frustum *frust1, const Frustum *frust2, RenderingOrder::List order, int occSet, int lodLevel)
 {
    bool first = true;

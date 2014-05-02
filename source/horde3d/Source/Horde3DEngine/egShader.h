@@ -31,10 +31,10 @@ typedef SmartResPtr< CodeResource > PCodeResource;
 class CodeResource : public Resource
 {
 public:
-	static Resource *factoryFunc( const std::string &name, int flags )
+	static Resource *factoryFunc( std::string const& name, int flags )
 		{ return new CodeResource( name, flags ); }
 	
-	CodeResource( const std::string &name, int flags );
+	CodeResource( std::string const& name, int flags );
 	~CodeResource();
 	Resource *clone();
 	
@@ -47,10 +47,10 @@ public:
 	std::string assembleCode();
 
 	bool isLoaded() { return _loaded; }
-	const std::string &getCode() { return _code; }
+	std::string const& getCode() { return _code; }
 
 private:
-	bool raiseError( const std::string &msg );
+	bool raiseError( std::string const& msg );
 	void updateShaders();
 
 private:
@@ -231,13 +231,13 @@ struct ShaderUniform
 class ShaderResource : public Resource
 {
 public:
-	static Resource *factoryFunc( const std::string &name, int flags )
+	static Resource *factoryFunc( std::string const& name, int flags )
 		{ return new ShaderResource( name, flags ); }
 
-	static void setPreambles( const std::string &vertPreamble, const std::string &fragPreamble )
+	static void setPreambles( std::string const& vertPreamble, std::string const& fragPreamble )
 		{ _vertPreamble = vertPreamble; _fragPreamble = fragPreamble; }
 
-	ShaderResource( const std::string &name, int flags );
+	ShaderResource( std::string const& name, int flags );
 	~ShaderResource();
 	
 	void initDefault();
@@ -251,7 +251,7 @@ public:
 	void setElemParamF( int elem, int elemIdx, int param, int compIdx, float value );
 	const char *getElemParamStr( int elem, int elemIdx, int param );
 
-	ShaderContext *findContext( const std::string &name )
+	ShaderContext *findContext( std::string const& name )
 	{
 		for( uint32 i = 0; i < _contexts.size(); ++i )
 			if( _contexts[i].id == name ) return &_contexts[i];
@@ -263,7 +263,7 @@ public:
 	CodeResource *getCode( uint32 index ) { return &_codeSections[index]; }
 
 private:
-	bool raiseError( const std::string &msg, int line = -1 );
+	bool raiseError( std::string const& msg, int line = -1 );
 	bool parseFXSection( char *data );
 	void compileCombination(ShaderContext &context, ShaderCombination &combination);
 	

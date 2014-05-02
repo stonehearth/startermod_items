@@ -5,8 +5,21 @@ local population_service = stonehearth.population
 local object_tracker = stonehearth.object_tracker
 
 function AnalyticsService:__init(datastore)
-   radiant.events.listen(radiant, 'stonehearth:minute_poll', self, self.on_minute_poll)
-   radiant.events.listen(radiant, 'stonehearth:ten_minute_poll', self, self.on_ten_minute_poll)
+   local one_minute = 1000 * 60
+   local minutes_elapsed = 0
+
+   -- grr.. radiant.set_realtime_interval() would be nice, so we don't have to
+   -- keep rescheduling the timer!!
+   local function timer_cb()
+      minutes_elapsed = minutes_elapsed + 1
+      self:on_minute_poll()
+      if minutes_elapsed % 10 == 0 then
+         self:on_ten_minute_poll()
+      end
+      radiant.set_realtime_timer(one_minute, timer_cb)
+   end
+
+   radiant.set_realtime_timer(one_minute, timer_cb)
 end
 
 function AnalyticsService:initialize()
@@ -28,10 +41,12 @@ function AnalyticsService:on_ten_minute_poll()
    local populations = population_service:get_all_populations()
    for player_id, pop in pairs(populations) do
       --Send data about # workers
-      -- xxx Fix to show breakdown by class when we can listen on worker class changes; 
-      -- Right now, the worker scheduler thinks everyone is a worker since everyone is added a worker
-      local citizen_tracker = object_tracker:get_worker_tracker(player_id)
-      send_string = send_string .. "_Num_citizens_" .. #citizen_tracker:get_entities()
+      local citizens = pop:get_citizens()
+      local citizen_count = 0
+      for _ in pairs(citizens) do
+         citizen_count = citizen_count + 1
+      end
+      send_string = send_string .. "_Num_citizens_" .. citizen_count
 
       --Send data about resources
       local resource_tracker = object_tracker:get_resource_tracker(player_id)

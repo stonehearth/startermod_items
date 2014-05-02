@@ -200,14 +200,6 @@ function events._update()
    if now.now % 1000 == 0 then
       events.trigger(radiant, 'stonehearth:very_slow_poll', now)
    end
-   --Fires once a minute
-   if now.now % 60000 == 0 then
-      events.trigger(radiant, 'stonehearth:minute_poll', now)
-   end
-   --Fires every 10 minutes
-   if now.now % 600000 == 0 then
-      events.trigger(radiant, 'stonehearth:ten_minute_poll', now)
-   end
 end
 
 radiant.create_background_task = function(name, fn)

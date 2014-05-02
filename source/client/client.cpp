@@ -3,6 +3,7 @@
 #include "build_number.h"
 #include <boost/algorithm/string.hpp>
 #include <boost/algorithm/string/split.hpp>
+#include "core/object_counter.h"
 #include "core/config.h"
 #include "radiant_file.h"
 #include "radiant_exceptions.h"
@@ -99,7 +100,8 @@ Client::Client() :
    enable_debug_cursor_(false),
    flushAndLoad_(false),
    initialUpdate_(false),
-   save_stress_test_(false)
+   save_stress_test_(false),
+   debug_track_object_lifetime_(false)
 {
 }
 
@@ -197,12 +199,13 @@ void Client::OneTimeIninitializtion()
             core_reactor_->Call(rpc::Function("radiant:debug_navgrid", args));
          }
       };
+      _commands[GLFW_KEY_F2] = [=]() { EnableDisableLifetimeTracking(); };
       _commands[GLFW_KEY_F3] = [=]() { core_reactor_->Call(rpc::Function("radiant:toggle_step_paths")); };
       _commands[GLFW_KEY_F4] = [=]() { core_reactor_->Call(rpc::Function("radiant:step_paths")); };
       _commands[GLFW_KEY_F5] = [=]() { RequestReload(); };
       _commands[GLFW_KEY_F6] = [=]() { SaveGame("hotkey_save", json::Node()); };
       _commands[GLFW_KEY_F7] = [=]() { LoadGame("hotkey_save"); };
-      _commands[GLFW_KEY_F8] = [=]() { EnableDisableSaveStressTest(); };
+      //_commands[GLFW_KEY_F8] = [=]() { EnableDisableSaveStressTest(); };
       _commands[GLFW_KEY_F9] = [=]() { core_reactor_->Call(rpc::Function("radiant:toggle_debug_nodes")); };
       _commands[GLFW_KEY_F10] = [&renderer, this]() {
          perf_hud_shown_ = !perf_hud_shown_;
@@ -246,6 +249,12 @@ void Client::OneTimeIninitializtion()
    core_reactor_->AddRoute("radiant:install_trace", [this](rpc::Function const& f) {
       json::Node args(f.args);
       std::string uri = args.get<std::string>(0, "");
+      try {
+         // Expand aliases to get the proper trace route.  This lets us trace things like 'stonehearth:foo'
+         uri = res::ResourceManager2::GetInstance().ConvertToCanonicalPath(uri, ".json");
+      } catch (std::exception const& e) {
+         // Not an alias.  And that's OK!
+      }
       return http_reactor_->InstallTrace(rpc::Trace(f.caller, f.call_id, uri));
    });
    core_reactor_->AddRoute("radiant:remove_trace", [this](rpc::Function const& f) {
@@ -546,6 +555,33 @@ void Client::OneTimeIninitializtion()
    });
 
 };
+
+void Client::EnableDisableLifetimeTracking()
+{
+#ifdef ENABLE_OBJECT_COUNTER
+   debug_track_object_lifetime_ = !debug_track_object_lifetime_;
+   if (!debug_track_object_lifetime_) {
+      // If we're turning off, let's dump everything.
+      LOG_(0) << "-- Object lifetimes -----------------------------------";
+      auto objectmap = core::ObjectCounterBase::GetObjects();
+
+      std::map<int, std::pair<core::ObjectCounterBase*, std::type_index>> sortedMap;
+      for (const auto& pair : objectmap) {
+         sortedMap.insert(std::make_pair(pair.second.first, std::make_pair(pair.first, pair.second.second)));
+      }
+
+      for (const auto& pair : sortedMap) {
+         void* address = (void*)pair.second.first;
+         if (pair.second.second.name() == "class radiant::om::DataStore") {
+            address = (void*)dynamic_cast<radiant::om::DataStore*>(pair.second.first);
+            ASSERT(address != nullptr);
+         }
+         LOG_(0) << "     Age:" << (platform::get_current_time_in_ms() - pair.first) << " Kind: " << pair.second.second.name() << " Address: " << pair.second.first;
+      }
+   }
+   core::ObjectCounterBase::TrackObjectLifetime(debug_track_object_lifetime_);
+#endif
+}
 
 void Client::InitiateFlushAndLoad()
 {
@@ -1243,7 +1279,7 @@ Client::Cursor Client::LoadCursor(std::string const& path)
    return cursor;
 }
 
-Client::CursorStackId Client::InstallCursor(std::string name)
+Client::CursorStackId Client::InstallCursor(std::string const& name)
 {
    CursorStackId id = next_cursor_stack_id_++;
    cursor_stack_.emplace_back(std::make_pair(id, LoadCursor(name)));
@@ -1308,7 +1344,7 @@ void Client::BrowserRequestHandler(std::string const& path, json::Node const& qu
    }
 }
 
-void Client::CallHttpReactor(std::string path, json::Node query, std::string postdata, rpc::HttpDeferredPtr response)
+void Client::CallHttpReactor(std::string const& path, const json::Node& query, std::string const& postdata, rpc::HttpDeferredPtr response)
 {
    JSONNode node;
    int status = 404;

@@ -953,8 +953,9 @@ void Renderer::RenderOneFrame(int now, float alpha)
                           ww,       .9f,    1, 1, };
    }
 
-   perfmon::SwitchToCounter("render fire traces") ;  
-   render_frame_start_slot_.Signal(FrameStartInfo(now, alpha, now - last_render_time_));
+   perfmon::SwitchToCounter("render fire traces");
+   int curWallTime = platform::get_current_time_in_ms();
+   render_frame_start_slot_.Signal(FrameStartInfo(now, alpha, now - last_render_time_, curWallTime - last_render_time_wallclock_));
 
    if (showStats) { 
       perfmon::SwitchToCounter("show stats") ;  
@@ -1021,6 +1022,7 @@ void Renderer::RenderOneFrame(int now, float alpha)
    glfwSwapBuffers(glfwGetCurrentContext());
 
    last_render_time_ = now;
+   last_render_time_wallclock_ = curWallTime;
 }
 
 bool Renderer::IsRunning() const
@@ -1407,7 +1409,7 @@ core::Guard Renderer::TraceSelected(H3DNode node, dm::ObjectId objectId)
    return core::Guard([=]() { selectionLookup_.erase(node); });
 }
 
-H3DRes Renderer::GetPipeline(const std::string& name)
+H3DRes Renderer::GetPipeline(std::string const& name)
 {
    H3DRes p = 0;
 

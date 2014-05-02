@@ -68,6 +68,7 @@ function FindPathToEntityType:_start_pathfinder()
       self._solution_path = path
       self._solution_entity_id = path:get_destination():get_id()
       self._log:debug('solved!')
+
       self._ai:set_think_output({path = path, destination = path:get_destination()})
    end
    if #self._args.reconsider_event_name > 0 then
@@ -76,8 +77,7 @@ function FindPathToEntityType:_start_pathfinder()
    end   
    
    self._log:detail('finding path from CURRENT.location %s to item type...', self._ai.CURRENT.location)
-   local description = string.format('bfs "%s" for "%s"', self._args.description or 'anon', tostring(self._entity))
-   self._pathfinder = _radiant.sim.create_bfs_path_finder(self._entity, description, self._range)
+   self._pathfinder = _radiant.sim.create_bfs_path_finder(self._entity, self._args.description, self._range)
                         :set_source(self._ai.CURRENT.location)
                         :set_solved_cb(solved)
                         :set_filter_fn(function(target)

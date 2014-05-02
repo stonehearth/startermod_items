@@ -1,0 +1,30 @@
+{
+	// Sublime Stonehearth Build System
+	// Sublime Build Systems are invoked via the Tools -> Build option (or Ctrl+B).
+	// This one can be used to automatically run Stonehearth.  To install:
+	//
+	//   1) Copy this file into your Sublime Packages/User directory.  For me
+	//      on Windows 8.1, this is C:\Users\Ponder\AppData\Roaming\Sublime Text 3\Packages\User
+	//      YMMV.
+	//   2) Change working_dir and PATH (below) to point to the correct dirs on your system
+	//
+	// Once installed, Stonehearth will automatically run when you press Ctrl+B when
+	// a .lua file is currently selected.  To always run Stonehearth on Ctrl+B, goto
+	// Tools -> Build System and manually select Run Stonehearth.
+	//
+	// For more information see:
+	//   http://sublime-text-unofficial-documentation.readthedocs.org/en/latest/reference/build_systems.html
+	//	
+	// Sublime by default supresses all GUIs created by the build system.  To get
+	// around this, run a python process (which gets its GUI supressed) to fork
+	// this Stonehearth process.  Something in that process breaks relative paths,
+	// so just rely on the PATH environment variable to find Stonehearth.exe
+	"cmd": ["python", "-c", "import os; os.system('Stonehearth.exe')"],
+
+
+	"working_dir" : "d:/radiant/stonehearth/source/stonehearth_data",
+	"selector" : "source.lua",
+	"env" : {
+		"PATH" : "d:/radiant/stonehearth/build/source/stonehearth/RelWithDebInfo"
+	}
+}

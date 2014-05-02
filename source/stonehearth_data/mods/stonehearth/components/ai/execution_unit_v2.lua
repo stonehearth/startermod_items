@@ -65,9 +65,11 @@ function ExecutionUnitV2:__init(frame, thread, debug_route, entity, injecting_en
       end
    end
 
-   self._log = radiant.log.create_logger('ai.exec_unit')
    local prefix = string.format('%s (%s)', self._debug_route, self:get_name())
-   self._log:set_prefix(prefix)
+   self._log = radiant.log.create_logger('ai.exec_unit')
+                          :set_prefix(prefix)
+                          :set_entity(self._entity)
+
    self._log:debug('creating execution unit')
    self._aitrace = radiant.log.create_logger('ai_trace')
    

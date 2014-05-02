@@ -28,11 +28,11 @@ class PixelBufferResource : public Resource
 {
 
 public:
-   static Resource *factoryFunc( const std::string &name, int flags )
+   static Resource *factoryFunc( std::string const& name, int flags )
       { return new PixelBufferResource( name ); }
 	
-   PixelBufferResource( const std::string &name);
-   PixelBufferResource( const std::string &name, uint32 size );
+   PixelBufferResource( std::string const& name);
+   PixelBufferResource( std::string const& name, uint32 size );
    ~PixelBufferResource();
 	
    void initDefault();
@@ -47,7 +47,7 @@ public:
    uint32 getSize() { return _size; }
 
 protected:
-   bool raiseError( const std::string &msg );
+   bool raiseError( std::string const& msg );
 	
    uint32                _size;
    uint32                _buffer;

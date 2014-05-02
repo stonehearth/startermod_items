@@ -60,7 +60,7 @@ bool ParticleChannel::parse( XMLNode &node )
 // ParticleEffectResource
 // *************************************************************************************************
 
-ParticleEffectResource::ParticleEffectResource( const std::string &name, int flags ) :
+ParticleEffectResource::ParticleEffectResource( std::string const& name, int flags ) :
 	Resource( ResourceTypes::ParticleEffect, name, flags )
 {
 	initDefault();	
@@ -92,7 +92,7 @@ void ParticleEffectResource::release()
 }
 
 
-bool ParticleEffectResource::raiseError( const std::string &msg, int line )
+bool ParticleEffectResource::raiseError( std::string const& msg, int line )
 {
 	// Reset
 	release();

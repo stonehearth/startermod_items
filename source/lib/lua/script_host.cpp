@@ -210,7 +210,7 @@ luabind::object ScriptHost::GetJson(std::string const& uri)
    return result;
 }
 
-res::AnimationPtr ScriptHost_LoadAnimation(std::string uri)
+res::AnimationPtr ScriptHost_LoadAnimation(std::string const& uri)
 {
    return res::ResourceManager2::GetInstance().LookupAnimation(uri);
 }
@@ -414,7 +414,7 @@ void ScriptHost::GC(platform::timer &timer)
    }
 }
 
-luabind::object ScriptHost::LoadScript(std::string path)
+luabind::object ScriptHost::LoadScript(std::string const& path)
 {
    std::ifstream in;
    luabind::object obj;
@@ -447,7 +447,7 @@ luabind::object ScriptHost::LoadScript(std::string path)
    return obj;
 }
 
-void ScriptHost::OnError(std::string description)
+void ScriptHost::OnError(std::string const& description)
 {
    LUA_LOG(0) << description;
 }
@@ -569,7 +569,7 @@ int ScriptHost::GetAllocBytesCount() const
    return bytes_allocated_;
 }
 
-void ScriptHost::Trigger(const std::string& eventName, luabind::object evt)
+void ScriptHost::Trigger(std::string const& eventName, luabind::object evt)
 {
    try {
       luabind::object radiant = globals(cb_thread_)["radiant"];
@@ -579,7 +579,7 @@ void ScriptHost::Trigger(const std::string& eventName, luabind::object evt)
    }
 }
 
-void ScriptHost::TriggerOn(luabind::object obj, const std::string& eventName, luabind::object evt)
+void ScriptHost::TriggerOn(luabind::object obj, std::string const& eventName, luabind::object evt)
 {
    try {
       if (!evt || !evt.is_valid()) {

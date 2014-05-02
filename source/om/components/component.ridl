@@ -1,11 +1,19 @@
 #ifndef ${env.guard_name(C)}
 #define ${env.guard_name(C)}
+
+// This file is GENERAETED by the Radiant Entertainment RIDL compiler (our own little
+// ghetto idl format based on python templates).  If you'd like to modify it's contents,
+// the source is in in source/om/components/${C.__name__ | env.lower}.ridl.py and/or
+// source/om/components/component.ridl.  The ridl compiler itself is sourced at
+// scripts/python/ridl.
+
 <%
 import ridl.ridl as ridl
 import ridl.dm_types as dm
 is_component = C.__bases__[0]().name == 'Component'
 %>
 #include "om/components/component.h"
+#include "core/object_counter.h"
 #include "om/object_enums.h"
 % for f in C._includes:
 #include "${f}"
@@ -13,7 +21,8 @@ is_component = C.__bases__[0]().name == 'Component'
 
 BEGIN_RADIANT_OM_NAMESPACE
 
-class ${C.__name__} : public ${C.__bases__[0]().name}
+class ${C.__name__} : public ${C.__bases__[0]().name},
+                      public core::ObjectCounter<${C.__name__}>
 {
 public:
    DEFINE_OM_OBJECT_TYPE(${C.__name__}, ${C.__name__ | env.lower});

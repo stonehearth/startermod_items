@@ -4,12 +4,16 @@
 #include "dm.h"
 #include "trace_buffered.h"
 #include "set_trace.h"
+#include "core/object_counter.h"
 
 BEGIN_RADIANT_DM_NAMESPACE
 
 template <typename S>
-class SetTraceBuffered : public TraceBuffered,
-                         public SetTrace<S> {
+class SetTraceBuffered : public core::ObjectCounter<SetTraceBuffered<S>>,
+                         public TraceBuffered,
+                         public SetTrace<S>
+                         
+{
 public:
    SetTraceBuffered(const char* reason, S const& set);
 

@@ -537,7 +537,7 @@ void SceneManager::initialize()
    }
 }
 
-void SceneManager::registerType( int type, const std::string &typeString, NodeTypeParsingFunc pf,
+void SceneManager::registerType( int type, std::string const& typeString, NodeTypeParsingFunc pf,
 								 NodeTypeFactoryFunc ff, NodeTypeRenderFunc rf, NodeTypeRenderFunc irf )
 {
 	NodeRegEntry entry;
@@ -559,7 +559,7 @@ NodeRegEntry *SceneManager::findType( int type )
 }
 
 
-NodeRegEntry *SceneManager::findType( const std::string &typeString )
+NodeRegEntry *SceneManager::findType( std::string const& typeString )
 {
 	map< int, NodeRegEntry >::iterator itr = _registry.begin();
 
@@ -855,7 +855,7 @@ bool SceneManager::relocateNode( SceneNode &node, SceneNode &parent )
 }
 
 
-int SceneManager::findNodes( SceneNode &startNode, const std::string &name, int type )
+int SceneManager::findNodes( SceneNode &startNode, std::string const& name, int type )
 {
    _findResults.clear();
 
@@ -865,7 +865,7 @@ int SceneManager::findNodes( SceneNode &startNode, const std::string &name, int 
 }
 
 
-void SceneManager::_findNodes( SceneNode &startNode, const std::string &name, int type )
+void SceneManager::_findNodes( SceneNode &startNode, std::string const& name, int type )
 {
 	
 	if( type == SceneNodeTypes::Undefined || startNode._type == type )

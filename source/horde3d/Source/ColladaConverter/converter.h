@@ -132,29 +132,29 @@ struct MorphTarget
 class Converter
 {
 public:
-	Converter( ColladaDocument &doc, const std::string &outPath, float *lodDists );
+	Converter( ColladaDocument &doc, std::string const& outPath, float *lodDists );
 	~Converter();
 	
 	bool convertModel( bool optimize );
 	
-	bool writeModel( const std::string &assetPath, const std::string &assetName );
-	bool writeMaterials( const std::string &assetPath, bool replace );
+	bool writeModel( std::string const& assetPath, std::string const& assetName );
+	bool writeMaterials( std::string const& assetPath, bool replace );
 	bool hasAnimation();
-	bool writeAnimation( const std::string &assetPath, const std::string &assetName );
+	bool writeAnimation( std::string const& assetPath, std::string const& assetName );
 
 private:
 	Matrix4f getNodeTransform( DaeNode &node, unsigned int frame );
 	SceneNode *findNode( const char *name, SceneNode *ignoredNode );
 	void checkNodeName( SceneNode *node );
-	bool validateInstance( const std::string &instanceId );
+	bool validateInstance( std::string const& instanceId );
 	SceneNode *processNode( DaeNode &node, SceneNode *parentNode,
 	                        Matrix4f transAccum, std::vector< Matrix4f > animTransAccum );
 	void calcTangentSpaceBasis( std::vector< Vertex > &vertices );
 	void processJoints();
 	void processMeshes( bool optimize );
-	bool writeGeometry( const std::string &assetPath, const std::string &assetName );
-	void writeSGNode( const std::string &assetPath, SceneNode *node, unsigned int depth, std::ofstream &outf );
-	bool writeSceneGraph( const std::string &assetPath, const std::string &assetName );
+	bool writeGeometry( std::string const& assetPath, std::string const& assetName );
+	void writeSGNode( std::string const& assetPath, SceneNode *node, unsigned int depth, std::ofstream &outf );
+	bool writeSceneGraph( std::string const& assetPath, std::string const& assetName );
 	void writeAnimFrames( SceneNode &node, FILE *f );
 
 private:

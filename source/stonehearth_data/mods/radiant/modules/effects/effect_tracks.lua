@@ -22,7 +22,8 @@ function EffectTracks:__init(mgr, entity, effect_path, effect_name, start_time, 
    self._start_time = start_time
 
    self._log = radiant.log.create_logger('effect')
-   self._log:set_prefix(tostring(entity) .. '->' .. effect_name)
+   self._log:set_prefix(effect_name)
+            :set_entity(entity)
    
    if args then
       radiant.check.is_table(args)

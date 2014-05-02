@@ -57,7 +57,7 @@ AnalyticsLogger::~AnalyticsLogger()
 
 //Called by StartAnalytics session, so we should never get a call to submit log event
 //with this set already.
-void AnalyticsLogger::SetBasicValues(std::string userid, std::string sessionid, std::string build_version)
+void AnalyticsLogger::SetBasicValues(std::string const& userid, std::string const& sessionid, std::string const& build_version)
 {
    userid_ = userid;
    sessionid_ = sessionid;
@@ -65,7 +65,7 @@ void AnalyticsLogger::SetBasicValues(std::string userid, std::string sessionid, 
 }
 
 //Construct the full event data and send it to the analytics server
-void AnalyticsLogger::SubmitLogEvent(json::Node event_node, std::string event_category)
+void AnalyticsLogger::SubmitLogEvent(json::Node& event_node, std::string const& event_category)
 {
    //If the user has asked us not to collect data, don't. 
    if (!analytics::GetCollectionStatus()) {
@@ -98,7 +98,7 @@ void AnalyticsLogger::SubmitLogEvent(json::Node event_node, std::string event_ca
 }
 
 //Construct the full event data and send it to the analytics server
-void AnalyticsLogger::SubmitPost(json::Node post_node, std::string uri, std::string authorization_string)
+void AnalyticsLogger::SubmitPost(json::Node& post_node, std::string const& uri, std::string const& authorization_string)
 {
    //If the user has asked us not to collect data, don't. 
    if (!analytics::GetCollectionStatus()) {
@@ -167,7 +167,7 @@ void AnalyticsLogger::SendPostsToServer()
    }
 }
 
-void AnalyticsLogger::PostJson(PostData post_data)
+void AnalyticsLogger::PostJson(PostData& post_data)
 {
    try {
       Poco::URI uri(post_data.GetUri());

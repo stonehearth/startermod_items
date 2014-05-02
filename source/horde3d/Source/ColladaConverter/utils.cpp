@@ -36,7 +36,7 @@ void removeGate( std::string &s )
 }
 
 
-std::string decodeURL( const std::string &url )
+std::string decodeURL( std::string const& url )
 {
 	std::string buf = "";
 
@@ -58,7 +58,7 @@ std::string decodeURL( const std::string &url )
 }
 
 
-std::string extractFileName( const std::string &fullPath, bool extension )
+std::string extractFileName( std::string const& fullPath, bool extension )
 {
 	int first = 0, last = (int)fullPath.length() - 1;
 	
@@ -82,7 +82,7 @@ std::string extractFileName( const std::string &fullPath, bool extension )
 }
 
 
-std::string extractFilePath( const std::string &fullPath )
+std::string extractFilePath( std::string const& fullPath )
 {
 	int last = 0;
 	
@@ -99,7 +99,7 @@ std::string extractFilePath( const std::string &fullPath )
 }
 
 
-std::string cleanPath( const std::string &path )
+std::string cleanPath( std::string const& path )
 {
 	size_t len = path.length();
 	if( len == 0 ) return path;
@@ -111,7 +111,7 @@ std::string cleanPath( const std::string &path )
 }
 
 
-void log( const std::string &msg )
+void log( std::string const& msg )
 {
 	cout << msg << endl;
 	
@@ -156,7 +156,7 @@ Matrix4f makeMatrix4f( float *floatArray16, bool y_up )
 }
 
 
-void createDirectories( const std::string &basePath, const std::string &newPath )
+void createDirectories( std::string const& basePath, std::string const& newPath )
 {
 	if( newPath.empty() ) return;
 	

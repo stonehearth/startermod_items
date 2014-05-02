@@ -41,8 +41,8 @@ public:
      
    void ReportCStackThreadException(lua_State* L, std::exception const& e) const;
    void ReportLuaStackException(std::string const& error, std::string const& traceback);
-   void Trigger(const std::string& eventName, luabind::object evt = luabind::object());
-   void TriggerOn(luabind::object obj, const std::string& eventName, luabind::object evt = luabind::object());
+   void Trigger(std::string const& eventName, luabind::object evt = luabind::object());
+   void TriggerOn(luabind::object obj, std::string const& eventName, luabind::object evt = luabind::object());
 
    typedef std::function<void(::radiant::om::ErrorBrowser::Record const&)> ReportErrorCb;
    void SetNotifyErrorCb(ReportErrorCb const& cb);
@@ -109,8 +109,8 @@ private:
    luabind::object CreateModule(om::ModListPtr mods, std::string const& mod_name);
 
 private:
-   luabind::object LoadScript(std::string path);
-   void OnError(std::string description);
+   luabind::object LoadScript(std::string const& path);
+   void OnError(std::string const& description);
    luabind::object GetManifest(std::string const& mod_name);
    luabind::object GetJson(std::string const& mod_name);
    void SetPerformanceCounter(const char* name, double value, const char* kind);

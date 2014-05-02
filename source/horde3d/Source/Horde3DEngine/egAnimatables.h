@@ -51,7 +51,7 @@ struct MeshNodeTpl : public SceneNodeTpl
 	uint32             vertRStart, vertREnd;
 	uint32             lodLevel;
 
-	MeshNodeTpl( const std::string &name, MaterialResource *materialRes, uint32 batchStart,
+	MeshNodeTpl( std::string const& name, MaterialResource *materialRes, uint32 batchStart,
 	             uint32 batchCount, uint32 vertRStart, uint32 vertREnd ) :
 		SceneNodeTpl( SceneNodeTypes::Mesh, name ), matRes( materialRes ), batchStart( batchStart ),
 		batchCount( batchCount ), vertRStart( vertRStart ), vertREnd( vertREnd ), lodLevel( 0 )
@@ -68,7 +68,7 @@ public:
 	static SceneNode *factoryFunc( const SceneNodeTpl &nodeTpl );
 
 	// IAnimatableNode
-	const std::string &getANName() { return _name; }
+	std::string const& getANName() { return _name; }
 	Matrix4f &getANRelTransRef() { return _relTrans; }
 	bool &getANIgnoreAnimRef() { return _ignoreAnim; }
 	IAnimatableNode *getANParent();
@@ -132,7 +132,7 @@ struct JointNodeTpl : public SceneNodeTpl
 {
 	uint32  jointIndex;
 
-	JointNodeTpl( const std::string &name, uint32 jointIndex ) :
+	JointNodeTpl( std::string const& name, uint32 jointIndex ) :
 		SceneNodeTpl( SceneNodeTypes::Joint, name ), jointIndex( jointIndex )
 	{
 	}
@@ -147,7 +147,7 @@ public:
 	static SceneNode *factoryFunc( const SceneNodeTpl &nodeTpl );
 	
 	// IAnimatableNode
-	const std::string &getANName() { return _name; }
+	std::string const& getANName() { return _name; }
 	Matrix4f &getANRelTransRef() { return _relTrans; }
 	bool &getANIgnoreAnimRef() { return _ignoreAnim; }
 	IAnimatableNode *getANParent();

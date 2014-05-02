@@ -106,7 +106,7 @@ struct SceneNodeTpl
 	std::string                    attachmentString;
 	std::vector< SceneNodeTpl * >  children;
 
-	SceneNodeTpl( int type, const std::string &name ) :
+	SceneNodeTpl( int type, std::string const& name ) :
 		type( type ), name( name ), scale( Vec3f ( 1, 1, 1 ) )
 	{
 	}
@@ -154,14 +154,14 @@ public:
 	int getType() { return _type; };
 	NodeHandle getHandle() { return _handle; }
 	SceneNode *getParent() { return _parent; }
-	const std::string &getName() { return _name; }
+	std::string const& getName() { return _name; }
 	std::vector< SceneNode * > &getChildren() { return _children; }
 	Matrix4f &getRelTrans() { return _relTrans; }
 	Matrix4f &getAbsTrans() { return _absTrans; }
 	const BoundingBox &getBBox() const { return _bBox; }
    void updateBBox(const BoundingBox& bbox);
 
-	const std::string &getAttachmentString() { return _attachment; }
+	std::string const& getAttachmentString() { return _attachment; }
 	void setAttachmentString( const char* attachmentData ) { _attachment = attachmentData; }
 	bool checkTransformFlag( bool reset )
 		{ bool b = _transformed; if( reset ) _transformed = false; return b; }
@@ -206,7 +206,7 @@ protected:
 
 struct GroupNodeTpl : public SceneNodeTpl
 {
-	GroupNodeTpl( const std::string &name ) :
+	GroupNodeTpl( std::string const& name ) :
 		SceneNodeTpl( SceneNodeTypes::Group, name )
 	{
 	}
@@ -285,7 +285,7 @@ protected:
 
 typedef SceneNodeTpl *(*NodeTypeParsingFunc)( std::map< std::string, std::string > &attribs );
 typedef SceneNode *(*NodeTypeFactoryFunc)( const SceneNodeTpl &tpl );
-typedef void (*NodeTypeRenderFunc)( const std::string &shaderContext, const std::string &theClass, bool debugView,
+typedef void (*NodeTypeRenderFunc)( std::string const& shaderContext, std::string const& theClass, bool debugView,
                                     const Frustum *frust1, const Frustum *frust2, RenderingOrder::List order,
                                     int occSet, int lodLevel );
 
@@ -324,10 +324,10 @@ public:
 
         void reset();
 
-	void registerType( int type, const std::string &typeString, NodeTypeParsingFunc pf,
+	void registerType( int type, std::string const& typeString, NodeTypeParsingFunc pf,
 	                   NodeTypeFactoryFunc ff, NodeTypeRenderFunc rf, NodeTypeRenderFunc irf );
 	NodeRegEntry *findType( int type );
-	NodeRegEntry *findType( const std::string &typeString );
+	NodeRegEntry *findType( std::string const& typeString );
 	
 	void updateNodes();
 	void updateSpatialNode( uint32 sgHandle ) { _spatialGraph->updateNode( sgHandle ); }
@@ -340,7 +340,7 @@ public:
 	void removeNode( SceneNode &node );
 	bool relocateNode( SceneNode &node, SceneNode &parent );
 	
-	int findNodes( SceneNode &startNode, const std::string &name, int type );
+	int findNodes( SceneNode &startNode, std::string const& name, int type );
 	SceneNode *getFindResult( int index ) { return (unsigned)index < _findResults.size() ? _findResults[index] : 0x0; }
 	
 	int castRay( SceneNode &node, const Vec3f &rayOrig, const Vec3f &rayDir, int numNearest, int userFlags );
@@ -361,7 +361,7 @@ public:
    void clearQueryCache();
 
 protected:
-	void _findNodes( SceneNode &startNode, const std::string &name, int type );
+	void _findNodes( SceneNode &startNode, std::string const& name, int type );
    int _checkQueryCache(const SpatialQuery& query);
 	NodeHandle parseNode( SceneNodeTpl &tpl, SceneNode *parent );
 	void removeNodeRec( SceneNode &node );

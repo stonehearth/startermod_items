@@ -33,7 +33,7 @@ const BoundingBox& HudElement::getBounds() const
    return bounds_;
 }
 
-void HudElement::draw(const std::string &shaderContext, const std::string &theClass, Matrix4f& worldMat)
+void HudElement::draw(std::string const& shaderContext, std::string const& theClass, Matrix4f& worldMat)
 {
 
 }
@@ -75,7 +75,7 @@ WorldspaceLineHudElement::WorldspaceLineHudElement(NodeHandle parentNode, int wi
 }
 
 
-void WorldspaceLineHudElement::draw(const std::string &shaderContext, const std::string &theClass, Matrix4f& worldMat)
+void WorldspaceLineHudElement::draw(std::string const& shaderContext, std::string const& theClass, Matrix4f& worldMat)
 {
    if (!materialRes_->isOfClass(theClass)) 
    {
@@ -164,7 +164,7 @@ ScreenspaceRectHudElement::ScreenspaceRectHudElement(int width, int height, int 
 }
 
 
-void ScreenspaceRectHudElement::draw(const std::string &shaderContext, const std::string &theClass, Matrix4f& worldMat)
+void ScreenspaceRectHudElement::draw(std::string const& shaderContext, std::string const& theClass, Matrix4f& worldMat)
 {
    if (!materialRes_->isOfClass(theClass)) 
    {
@@ -290,7 +290,7 @@ WorldspaceRectHudElement::WorldspaceRectHudElement(float width, float height, fl
 }
 
 
-void WorldspaceRectHudElement::draw(const std::string &shaderContext, const std::string &theClass, Matrix4f& worldMat)
+void WorldspaceRectHudElement::draw(std::string const& shaderContext, std::string const& theClass, Matrix4f& worldMat)
 {
    if (!materialRes_->isOfClass(theClass)) 
    {

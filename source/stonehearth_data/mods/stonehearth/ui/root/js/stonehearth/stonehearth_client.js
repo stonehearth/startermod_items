@@ -23,13 +23,12 @@ var StonehearthClient;
          radiant.call('stonehearth:get_town_name')
             .done(function(e) {
                self.gameState.settlementName = e.townName;
-            })
-
+            });
       },
 
       gameState: {
          settlementName: 'Lah Salitos',
-         saveKey: null
+         saveKey: null 
       },
 
       settlementName: function(value) {
@@ -38,7 +37,6 @@ var StonehearthClient;
          }
          return this.gameState.settlementName;
       },
-
 
       getActiveTool: function() {
          return this._activeTool;

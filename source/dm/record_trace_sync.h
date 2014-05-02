@@ -3,11 +3,15 @@
 
 #include "dm.h"
 #include "record_trace.h"
+#include "core/object_counter.h"
 
 BEGIN_RADIANT_DM_NAMESPACE
 
-template <typename M>
-class RecordTraceSync : public RecordTrace<M>                  
+template <typename R>
+class RecordTraceSync : public core::ObjectCounter<RecordTraceSync<R>>,
+                        public RecordTrace<R>
+                        
+
 {
 public:
    RecordTraceSync(const char* reason, Record const& r, Tracer&);

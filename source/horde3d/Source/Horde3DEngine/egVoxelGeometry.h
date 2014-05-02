@@ -54,10 +54,10 @@ class VoxelGeometryResource : public Resource
 public:
 	static void initializationFunc();
 	static void releaseFunc();
-	static Resource *factoryFunc( const std::string &name, int flags )
+	static Resource *factoryFunc( std::string const& name, int flags )
 		{ return new VoxelGeometryResource( name, flags ); }
 	
-	VoxelGeometryResource( const std::string &name, int flags );
+	VoxelGeometryResource( std::string const& name, int flags );
 	~VoxelGeometryResource();
 	Resource *clone();
 	
@@ -88,7 +88,7 @@ public:
 	static uint32 defVertexBuffer, defIndexBuffer;
 
 private:
-	bool raiseError( const std::string &msg );
+	bool raiseError( std::string const& msg );
 
 private:
 	int                         _mappedWriteStream;

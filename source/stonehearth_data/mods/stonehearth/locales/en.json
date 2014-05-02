@@ -232,6 +232,19 @@
 
    "inventory_title" : "Backpack",
    "inventory_description" : "The backpack can hold items for safe-keeping while you're away from town.",
-   "inventory_full" : "FULL!"
+   "inventory_full" : "FULL!",
+
+   "building_vision_show_all_walls" : "Show all walls",
+   "building_vision_show_all_walls_description" : "Show all of your buildings all of time, regardless of camera movement.",
+
+   "building_vision_hide_facing_walls" : "Hide Facing Walls",
+   "building_vision_hide_facing_walls_description" : "Hide walls that face the camera, for a cut-away view at buildings",
+
+   "building_vision_hide_all_walls" : "Hide All Walls",
+   "building_vision_hide_all_walls_description" : "Hide all walls, showing just the floor of buildings",
+
+   "play_pause_title" : "Pause/Resume",
+   "play_pause_description" : "Pause the game if its running, or resume if it's paused."
+
 }
 

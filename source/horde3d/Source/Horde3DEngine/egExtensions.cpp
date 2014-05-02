@@ -30,7 +30,7 @@ ExtensionManager::~ExtensionManager()
 }
 
 
-bool ExtensionManager::checkExtension( const std::string &name )
+bool ExtensionManager::checkExtension( std::string const& name )
 {
 	for( uint32 i = 0; i < _extensions.size(); ++i )
 	{

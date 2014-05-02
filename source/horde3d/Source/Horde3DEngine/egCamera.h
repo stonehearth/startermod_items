@@ -61,7 +61,7 @@ struct CameraNodeTpl : public SceneNodeTpl
 	bool                orthographic;
 	bool                occlusionCulling;
 
-	CameraNodeTpl( const std::string &name) :
+	CameraNodeTpl( std::string const& name) :
 		SceneNodeTpl( SceneNodeTypes::Camera, name ),
 		outputTex( 0x0 ),
 		// Default params: fov=45, aspect=4/3

@@ -6,7 +6,7 @@
       },
       "stonehearth:ai" : {
          "actions" : [
-            "stonehearth:actions:death_action",
+            "stonehearth:actions:death",
             "stonehearth:actions:die",
             "stonehearth:actions:drop_carrying_action",
             "stonehearth:actions:drop_carrying_now",
@@ -61,9 +61,6 @@
             "stonehearth:actions:unit_control:dispatcher",
             "stonehearth:actions:basic_needs:dispatcher",
             "stonehearth:actions:compelled_behaviors:dispatcher"
-         ],
-          "observers": [
-            "stonehearth:observers:look_for_enemies"
          ]
       }
    }

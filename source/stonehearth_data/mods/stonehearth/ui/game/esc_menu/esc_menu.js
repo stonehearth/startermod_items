@@ -6,6 +6,9 @@ modal: true,
 
    init: function() {
       this._super();
+
+      //Setting gamespeed to zero
+      radiant.call('stonehearth:dm_pause_game');
    },
 
    didInsertElement: function() {
@@ -14,6 +17,11 @@ modal: true,
             at: 'center center',
             of: '#modalOverlay'
          });
+   },
+
+   destroy: function() {
+      this._super();
+      radiant.call('stonehearth:dm_resume_game');
    },
 
    actions: {

@@ -10,7 +10,7 @@ BEGIN_RADIANT_HORDE3D_NAMESPACE
 
 struct DecalTpl : public Horde3D::SceneNodeTpl
 {
-   DecalTpl(const std::string &name) :
+   DecalTpl(std::string const& name) :
       Horde3D::SceneNodeTpl(SNT_DecalNode, name)
    {
    }
@@ -26,7 +26,7 @@ public:
 
 	static Horde3D::SceneNodeTpl *parsingFunc(std::map< std::string, std::string > &attribs);
 	static Horde3D::SceneNode *factoryFunc(const Horde3D::SceneNodeTpl &nodeTpl);
-	static void renderFunc(const std::string &shaderContext, const std::string &theClass, bool debugView,
+	static void renderFunc(std::string const& shaderContext, std::string const& theClass, bool debugView,
 		                    const Horde3D::Frustum *frust1, const Horde3D::Frustum *frust2,
                           Horde3D::RenderingOrder::List order, int occSet, int lodLevel);
 

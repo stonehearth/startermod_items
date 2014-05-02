@@ -40,6 +40,7 @@
       "kingdoms:ascendancy" : "file(services/server/population/data/ascendancy.json)",
       "kingdoms:northern_alliance" : "file(services/server/population/data/northern_alliance.json)",
       "kingdoms:rayyas_children" : "file(services/server/population/data/rayyas_children.json)",
+      "kingdoms:golden_conquering_arm" : "file(services/server/population/data/golden_conquering_arm.json)",
 
       "default_object" : "file(entities/generic/default_object)",
 
@@ -69,6 +70,7 @@
       "weaver:spindle" : "file(professions/weaver/weaver_spindle)",
 
       "stockpile" : "file(entities/construction/stockpile)",
+      "workshop_outbox" : "file(entities/crafting/workshop_outbox)",
 
       "worker_outfit" : "file(professions/worker/worker_outfit)",
       "worker_axe" : "file(entities/tools/worker_axe)",
@@ -96,7 +98,8 @@
       "female_1" : "file(entities/humans/female_1)",
       "female_2" : "file(entities/humans/female_2)",
       "female_3" : "file(entities/humans/female_3)",
-      "workshop_outbox" : "file(entities/crafting/workshop_outbox)",
+
+      "goblin" : "file(entities/monsters/goblin)",
 
       "effects:talisman_glow" : "file(data/effects/talisman_glow)",
 
@@ -236,8 +239,9 @@
       "actions:sleep_when_exhausted" : "file(ai/actions/sleep_when_exhausted_action.lua)",
       "actions:critter_sleep_on_ground" : "file(ai/actions/critter_sleep_on_ground.lua)",
       "actions:add_buff" : "file(ai/actions/add_buff_action.lua)",
-      "actions:death_action" : "file(ai/actions/death_action.lua)",
-      "actions:die" : "file(ai/actions/die_default.lua)",
+      "actions:death" : "file(ai/actions/death_action.lua)",
+      "actions:die" : "file(ai/actions/die_action.lua)",
+      "actions:memorialize_death" : "file(ai/actions/memorialize_death_action.lua)",
       "actions:delay_thinking" : "file(ai/actions/delay_thinking_action.lua)",
       "actions:drop_carrying_action" : "file(ai/actions/drop_carrying_action.lua)",
       "actions:drop_carrying_adjacent" : "file(ai/actions/drop_carrying_adjacent_action.lua)",
@@ -364,7 +368,7 @@
 
       "actions:run_away_from_entity" : "file(ai/actions/run_away_from_entity_action.lua)",
 
-      "observers:look_for_enemies" : "file(ai/observers/look_for_enemies.lua)",
+      "observers:enemy_observer" : "file(ai/observers/enemy_observer.lua)",
       "observers:sleepiness" : "file(ai/observers/sleepiness_observer.lua)",
       "observers:calorie" : "file(ai/observers/calorie_observer.lua)",
       "observers:free_time" : "file(ai/observers/free_time_observer.lua)",
@@ -503,7 +507,8 @@
       "professions:farmer" : "file(professions/farmer/farmer_description.json)",
       "professions:carpenter" : "file(professions/carpenter/carpenter_description.json)",
       "professions:weaver" : "file(professions/weaver/weaver_description.json)",
-      "professions:trapper" : "file(professions/trapper/trapper_description.json)"
+      "professions:trapper" : "file(professions/trapper/trapper_description.json)",
+      "professions:footman" : "file(professions/footman/footman_description.json)"
 
    },
    "functions" : {
@@ -603,6 +608,22 @@
          "endpoint" : "server"
       },
       "get_clock_object": {
+         "controller" : "file(call_handlers/calendar_call_handler.lua)",
+         "endpoint" : "server"
+      },
+      "get_player_speed": {
+         "controller" : "file(call_handlers/calendar_call_handler.lua)",
+         "endpoint" : "server"
+      },
+      "set_player_game_speed": {
+         "controller" : "file(call_handlers/calendar_call_handler.lua)",
+         "endpoint" : "server"
+      },
+      "dm_pause_game": {
+         "controller" : "file(call_handlers/calendar_call_handler.lua)",
+         "endpoint" : "server"
+      },
+      "dm_resume_game": {
          "controller" : "file(call_handlers/calendar_call_handler.lua)",
          "endpoint" : "server"
       },
@@ -826,6 +847,8 @@
          "file(ui/game/character_sheets/simple_character_sheet/simple_character_sheet.html)",
          "file(ui/game/character_sheets/citizen_character_sheet/citizen_character_sheet.html)",
          "file(ui/game/clock_widget/clock_widget.html)",
+         "file(ui/game/widgets/game_speed/game_speed.html)",
+         "file(ui/game/widgets/building_vision/building_vision.html)",
          "file(ui/game/people_picker/people_picker.html)",
          "file(ui/game/promote/promote.html)",
          "file(ui/game/place_item/place_item.html)",
@@ -869,6 +892,8 @@
          "file(ui/game/character_sheets/simple_character_sheet/simple_character_sheet.js)",
          "file(ui/game/character_sheets/citizen_character_sheet/citizen_character_sheet.js)",
          "file(ui/game/clock_widget/clock_widget.js)",
+         "file(ui/game/widgets/game_speed/game_speed.js)",
+         "file(ui/game/widgets/building_vision/building_vision.js)",
          "file(ui/game/people_picker/people_picker.js)",
          "file(ui/game/promote/promote.js)",
          "file(ui/game/place_item/place_item.js)",
@@ -912,6 +937,8 @@
          "file(ui/game/character_sheets/simple_character_sheet/simple_character_sheet.less)",
          "file(ui/game/character_sheets/citizen_character_sheet/citizen_character_sheet.less)",
          "file(ui/game/clock_widget/clock_widget.less)",
+         "file(ui/game/widgets/game_speed/game_speed.less)",
+         "file(ui/game/widgets/building_vision/building_vision.less)",
          "file(ui/game/people_picker/people_picker.less)",
          "file(ui/game/promote/promote.less)",
          "file(ui/game/unit_frame/unit_frame.less)",

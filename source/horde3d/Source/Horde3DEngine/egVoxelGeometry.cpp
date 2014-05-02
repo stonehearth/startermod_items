@@ -39,7 +39,7 @@ void VoxelGeometryResource::releaseFunc()
 	gRDI->destroyBuffer( defIndexBuffer );
 }
 
-VoxelGeometryResource::VoxelGeometryResource( const std::string &name, int flags ) :
+VoxelGeometryResource::VoxelGeometryResource( std::string const& name, int flags ) :
 	Resource( ResourceTypes::VoxelGeometry, name, flags )
 {
 	initDefault();
@@ -102,7 +102,7 @@ void VoxelGeometryResource::release()
 }
 
 
-bool VoxelGeometryResource::raiseError( const std::string &msg )
+bool VoxelGeometryResource::raiseError( std::string const& msg )
 {
 	// Reset
 	release();

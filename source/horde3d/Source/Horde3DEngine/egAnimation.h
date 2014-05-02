@@ -55,10 +55,10 @@ struct AnimResEntity
 class AnimationResource : public Resource
 {
 public:
-	static Resource *factoryFunc( const std::string &name, int flags )
+	static Resource *factoryFunc( std::string const& name, int flags )
 		{ return new AnimationResource( name, flags ); }
 	
-	AnimationResource( const std::string &name, int flags );
+	AnimationResource( std::string const& name, int flags );
 	~AnimationResource();
 	Resource *clone();
 	
@@ -72,7 +72,7 @@ public:
 	AnimResEntity *findEntity( uint32 nameId );
 
 private:
-	bool raiseError( const std::string &msg );
+	bool raiseError( std::string const& msg );
 
 private:
 	uint32                        _numFrames;
@@ -95,7 +95,7 @@ class IAnimatableNode
 {
 public:
 	virtual ~IAnimatableNode() {}
-	virtual const std::string &getANName() = 0;
+	virtual std::string const& getANName() = 0;
 	virtual IAnimatableNode *getANParent() = 0;
 	virtual Matrix4f &getANRelTransRef() = 0;
 	virtual bool &getANIgnoreAnimRef() = 0;
@@ -129,7 +129,7 @@ public:
 	void registerNode( IAnimatableNode *node );
 	
 	bool setupAnimStage( int stage, AnimationResource *anim, int layer,
-	                     const std::string &startNode, bool additive );
+	                     std::string const& startNode, bool additive );
 	bool setAnimParams( int stage, float time, float weight );
 	bool animate();
 

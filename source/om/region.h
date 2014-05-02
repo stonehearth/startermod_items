@@ -50,7 +50,7 @@ struct DeepRegionGuard : public std::enable_shared_from_this<DeepRegionGuard> {
    {
    }
 
-   ~DeepRegionGuard() {
+   virtual ~DeepRegionGuard() {
    }
 
    std::shared_ptr<DeepRegionGuard> OnChanged(std::function<void(csg::Region3 const& r)> cb)

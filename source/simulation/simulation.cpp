@@ -124,6 +124,27 @@ void Simulation::OneTimeIninitializtion()
    core_reactor_->AddRoute("radiant:game:get_perf_counters", [this](rpc::Function const& f) {
       return StartPerformanceCounterPush();
    });
+   core_reactor_->AddRoute("radiant:game:set_game_speed", [this](rpc::Function const& f) {
+      rpc::ReactorDeferredPtr result = std::make_shared<rpc::ReactorDeferred>("set game speed");
+      try {
+         json::Node node(f.args);
+         game_speed_ = node.get<float>(0, 1.0f);
+      } catch (std::exception const& e) {
+         result->RejectWithMsg(BUILD_STRING("exception: " << e.what()));
+      }
+      return result;
+   });
+   core_reactor_->AddRoute("radiant:game:get_game_speed", [this](rpc::Function const& f) {
+      rpc::ReactorDeferredPtr result = std::make_shared<rpc::ReactorDeferred>("get game speed");
+      try {
+         json::Node node;
+         node.set("game_speed", game_speed_);
+         result->Resolve(node);
+      } catch (std::exception const& e) {
+         result->RejectWithMsg(BUILD_STRING("exception: " << e.what()));
+      }
+      return result;
+   });
    core_reactor_->AddRouteV("radiant:profile_next_lua_upate", [this](rpc::Function const& f) {
       profile_next_lua_update_ = true;
       SIM_LOG(0) << "profiling next lua update";
@@ -563,7 +584,6 @@ void Simulation::ProcessJobList()
             if (!job->IsIdle()) {
                idleCountdown = jobs_.size() + 2;
                job->Work(game_loop_timer_);
-               LOG(simulation.jobs, 7) << job->GetProgress();
             }
             jobs_.push_back(front);
          } else {
@@ -703,7 +723,33 @@ void Simulation::LuaGC()
 
 void Simulation::Idle()
 {
-   // use of advance considered harmful.  what if the server gets "stuck"?  (e.g. in the debugger)
+#if defined(ENABLE_OBJECT_COUNTER)
+   static int nextAuditTime = 0;
+   static core::ObjectCounterBase::CounterMap current_checkpoint, last_checkpoint;
+
+   int now = platform::get_current_time_in_ms();
+   if (nextAuditTime == 0 || nextAuditTime < now) {
+      int c = 20;
+      LOG_(0) << "== Object Count Audit at " << now << " ============================";
+      core::ObjectCounterBase::ForEachObjectCount([&c](std::type_index const& ti, int count) {
+         LOG_(0) << "     " << std::setw(10) << count << " " << ti.name();
+         return --c > 0;
+      });
+      // It would probably be more useful to wire up the taking of the checkpoint to a hotkey
+      // so we can see how things change over a very long interval, but I am too busy (*cough*
+      // lazy *cough*) to do that right now.  -- tony
+      LOG_(0) << "-- Deltas -----------------------------------";
+      c = 20;
+      last_checkpoint = current_checkpoint;
+      current_checkpoint = core::ObjectCounterBase::GetObjectCounts();
+      core::ObjectCounterBase::ForEachObjectDeltaCount(last_checkpoint, [&c](std::type_index const& ti, int count) {
+         LOG_(0) << "     " << std::setw(10) << count << " " << ti.name() << " (total:" << current_checkpoint[ti] << ")";
+         return --c > 0;
+      });
+      nextAuditTime = now + 5000;
+   }
+#endif
+
    if (!noidle_) {
       MEASURE_TASK_TIME("idle")
       SIM_LOG_GAMELOOP(7) << "idling";

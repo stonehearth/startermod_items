@@ -54,7 +54,7 @@ struct DaeAnimation
 	}
 
 
-	DaeSource *findSource( const std::string &id )
+	DaeSource *findSource( std::string const& id )
 	{
 		if( id == "" ) return 0x0;
 
@@ -67,7 +67,7 @@ struct DaeAnimation
 	}
 
 	
-	DaeSampler *findAnimForTarget( const std::string &nodeId, const std::string &transSid, int *transValuesIndex )
+	DaeSampler *findAnimForTarget( std::string const& nodeId, std::string const& transSid, int *transValuesIndex )
 	{
 		if( nodeId == "" || transSid == "" ) return 0x0;
 		
@@ -257,7 +257,7 @@ struct DaeLibAnimations
 	}
 	
 
-	DaeSampler *findAnimForTarget( const std::string &nodeId, std::string const &transSid, int *index )
+	DaeSampler *findAnimForTarget( std::string const& nodeId, std::string const &transSid, int *index )
 	{
 		for( unsigned int i = 0; i < animations.size(); ++i )
 		{

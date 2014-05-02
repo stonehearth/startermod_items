@@ -38,6 +38,7 @@
             "stonehearth:actions:harvest_plant",
             "stonehearth:actions:harvest_plant_adjacent",
             "stonehearth:actions:restock_stockpile",
+            "stonehearth:actions:memorialize_death",
             "stonehearth:actions:combat",
             "stonehearth:actions:combat:attack",
             "stonehearth:actions:combat:attack:melee",
@@ -53,6 +54,7 @@
             "stonehearth:actions:free_time:dispatcher" 
          ],
           "observers": [
+            "stonehearth:observers:enemy_observer",
             "stonehearth:observers:sleepiness",
             "stonehearth:observers:calorie",
             "stonehearth:observers:free_time"

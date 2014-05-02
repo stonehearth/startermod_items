@@ -49,7 +49,7 @@ struct ModelNodeTpl : public SceneNodeTpl
 	float              lodDist1, lodDist2, lodDist3, lodDist4;
 	bool               softwareSkinning;
 
-	ModelNodeTpl( const std::string &name, GeometryResource *geoRes ) :
+	ModelNodeTpl( std::string const& name, GeometryResource *geoRes ) :
 		SceneNodeTpl( SceneNodeTypes::Model, name ), geoRes( geoRes ),
 			lodDist1( Math::MaxFloat ), lodDist2( Math::MaxFloat ),
 			lodDist3( Math::MaxFloat ), lodDist4( Math::MaxFloat ),
@@ -79,9 +79,9 @@ public:
 
 	void recreateNodeList();
 	void setupAnimStage( int stage, AnimationResource *anim, int layer,
-	                     const std::string &startNode, bool additive );
+	                     std::string const& startNode, bool additive );
 	void setAnimParams( int stage, float time, float weight );
-	bool setMorphParam( const std::string &targetName, float weight );
+	bool setMorphParam( std::string const& targetName, float weight );
 
 	int getParamI( int param );
 	void setParamI( int param, int value );

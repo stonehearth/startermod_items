@@ -7,7 +7,7 @@ using namespace ::radiant::simulation;
 
 JobId Job::_nextJobId = 1;
 
-Job::Job(Simulation& sim, std::string name)  :
+Job::Job(Simulation& sim, std::string const& name)  :
    _sim(sim),
    _id(_nextJobId++)
 {

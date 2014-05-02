@@ -50,7 +50,7 @@ animatedlight::RadiusData parseRadius(Node& n)
 // AnimatedLightResource
 // *************************************************************************************************
 
-AnimatedLightResource::AnimatedLightResource( const std::string &name, int flags ) :
+AnimatedLightResource::AnimatedLightResource( std::string const& name, int flags ) :
    Resource( RT_AnimatedLightResource, name, flags )
 {
 	initDefault();	
@@ -69,7 +69,7 @@ void AnimatedLightResource::release()
 {
 }
 
-bool AnimatedLightResource::raiseError( const std::string &msg, int line )
+bool AnimatedLightResource::raiseError( std::string const& msg, int line )
 {
 	// Reset
 	release();

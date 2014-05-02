@@ -43,7 +43,7 @@ struct AssetTypes
 };
 
 
-void createAssetList( const std::string &basePath, const std::string &assetPath, vector< std::string > &assetList )
+void createAssetList( std::string const& basePath, std::string const& assetPath, vector< std::string > &assetList )
 {
 	vector< std::string >  directories;
 	vector< std::string >  files;

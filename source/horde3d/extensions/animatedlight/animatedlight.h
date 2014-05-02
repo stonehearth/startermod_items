@@ -21,7 +21,7 @@ struct AnimatedLightNodeTpl : public SceneNodeTpl
 {
    PAnimatedLightResource _animatedLightRes;
 
-   AnimatedLightNodeTpl(const std::string &name, const PAnimatedLightResource &lightRes) :
+   AnimatedLightNodeTpl(std::string const& name, const PAnimatedLightResource &lightRes) :
       SceneNodeTpl(SNT_AnimatedLightNode, name), _animatedLightRes(lightRes)
    {
    }
@@ -76,10 +76,10 @@ public:
 class AnimatedLightResource : public Resource
 {
 public:
-   static Resource *factoryFunc( const std::string &name, int flags )
+   static Resource *factoryFunc( std::string const& name, int flags )
       { return new AnimatedLightResource( name, flags ); }
 
-   AnimatedLightResource( const std::string &name, int flags );
+   AnimatedLightResource( std::string const& name, int flags );
    ~AnimatedLightResource();
    void initDefault();
    void release();
@@ -91,7 +91,7 @@ public:
    AnimatedLightData lightData;
 
 private:
-   bool raiseError( const std::string &msg, int line = -1 );   
+   bool raiseError( std::string const& msg, int line = -1 );   
 };
 
 typedef SmartResPtr< AnimatedLightResource > PAnimatedLightResource;

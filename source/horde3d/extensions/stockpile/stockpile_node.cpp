@@ -55,7 +55,7 @@ SceneNode *StockpileNode::factoryFunc(const SceneNodeTpl &nodeTpl)
    return new StockpileNode(static_cast<const StockpileTpl&>(nodeTpl));
 }
 
-void StockpileNode::renderFunc(const std::string &shaderContext, const std::string &theClass, bool debugView,
+void StockpileNode::renderFunc(std::string const& shaderContext, std::string const& theClass, bool debugView,
                                  const Frustum *frust1, const Frustum *frust2, RenderingOrder::List order, int occSet, int lodLevel)
 {
 }

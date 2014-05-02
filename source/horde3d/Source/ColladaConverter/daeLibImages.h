@@ -62,7 +62,7 @@ struct DaeLibImages
 	}
 
 
-	DaeImage *findImage( const std::string &id )
+	DaeImage *findImage( std::string const& id )
 	{
 		if( id == "" ) return 0x0;
 		

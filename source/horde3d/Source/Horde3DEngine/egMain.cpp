@@ -62,7 +62,7 @@ std::string emptyString = emptyCString;
 std::string strPool[4];  // String pool for avoiding memory allocations of temporary std::string objects
 
 
-inline const std::string &safeStr( const char *str, int index )
+inline std::string const& safeStr( const char *str, int index )
 {
 	if( str != 0x0 ) return strPool[index] = str;
 	else return emptyString;
