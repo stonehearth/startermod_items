@@ -14,6 +14,9 @@
             ]
          }
       },
+      "stonehearth:equipment_piece" : {
+         "render_type" : "merge_with_model"
+      },
       "unit_info": {
          "name": "Wooden Sword",
          "description": "Upgrades a citizen into a Footman",
@@ -37,6 +40,10 @@
       }      
    },
    "entity_data" : {
+      "stonehearth:weapon_data" : {
+         "base_damage" : 10,
+         "reach" : 1
+      },
       "stonehearth:activity_name" : "promote_footman"
    }   
 }

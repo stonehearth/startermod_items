@@ -9,38 +9,44 @@ function CombatTest:__init()
    self:create_world()
    self:create_enemy_kingdom()
 
-   -- for i = -10, 10 do
-   --    self:place_item('stonehearth:small_boulder', i, 0)
-   -- end
+   for i = -10, 10 do
+      --self:place_item('stonehearth:small_boulder', i, 0)
+   end
 
-   local enemy1 = self:place_enemy(-2, -2)
-   local enemy2 = self:place_enemy(-2,  2)
-   local enemy3 = self:place_enemy( 2, -2)
+   local citizens = {
+      self:place_citizen(-15, -15),
+      self:place_citizen(-15,  15),
+      -- self:place_citizen( 15, -15),
+      -- self:place_citizen( 15,  15),
+   }
 
-   local worker1 = self:place_citizen(-15, -15)
-   local worker2 = self:place_citizen(-15,  15)
-   local worker3 = self:place_citizen( 15, -15)
-   -- local worker4 = self:place_citizen(-10, -10)
-   -- local worker5 = self:place_citizen(-10,  10)
-   -- local worker6 = self:place_citizen( 10, -10)
-   -- local worker7 = self:place_citizen( 10,  10)
-   -- local worker8 = self:place_citizen(  1,   1)
+   local enemies = {
+      self:place_enemy(-2, -2),
+      self:place_enemy(-2,  2),
+      -- self:place_enemy( 2, -2),
+      -- self:place_enemy( 2,  2),
+   }
 
-   --self:_equip_weapon(enemy1)
-   --self:_equip_weapon(worker1)
-   --self:_equip_weapon(worker2)
+   self:equip_all(citizens)
+   self:equip_all(enemies)
 
    -- self:at(3000,
    --    function ()
-   --       local attributes_component = worker1:add_component('stonehearth:attributes')
+   --       local attributes_component = citizens[1]:add_component('stonehearth:attributes')
    --       attributes_component:set_attribute('health', 0)
    --    end
    -- )
 end
 
+function CombatTest:equip_all(entities)
+   for _, entity in pairs(entities) do
+      self:equip_weapon(entity)
+   end
+end
+
 function CombatTest:equip_weapon(entity)
    local equipment = entity:add_component('stonehearth:equipment')
-   equipment:equip_item('stonehearth:wooden_sword')
+   equipment:equip_item('stonehearth:wooden_sword', 'main_hand')
 end
 
 function CombatTest:create_enemy_kingdom()

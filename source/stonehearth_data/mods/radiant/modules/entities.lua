@@ -264,6 +264,16 @@ function entities.get_world_grid_location(entity)
    end
 end
 
+function entities.get_equipped_item(entity, slot)
+   local equipment_component = entity:get_component('stonehearth:equipment')
+   if equipment_component == nil then
+      return nil
+   end
+
+   local item = equipment_component:get_item_in_slot(slot)
+   return item
+end
+
 function entities.get_entity_data(entity, key)
    if entity then
       --xxx: what is this : business? (Tony asked me to put this comment here)

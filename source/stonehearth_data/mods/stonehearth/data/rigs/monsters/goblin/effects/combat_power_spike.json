@@ -6,6 +6,9 @@
          "start_time": 0,
          "end_time": 0,
          "item": "stonehearth:wooden_sword",
+         "render_info": {
+            "model_variant": "equipped"
+         },
          "bone": "mainHand"
       },     
       "animation": {

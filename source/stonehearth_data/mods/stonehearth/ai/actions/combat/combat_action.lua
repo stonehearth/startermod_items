@@ -81,7 +81,6 @@ function Combat:run(ai, entity, args)
 end
 
 function Combat:_find_target()
-   --local target = self:_get_target()
    local target = self:_get_target()
 
    if target ~= nil then

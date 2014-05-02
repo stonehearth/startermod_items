@@ -106,7 +106,7 @@ function DefendMelee:run(ai, entity, args)
 
    ai:execute('stonehearth:run_effect', {
       effect = self._defend_info.name,
-      delay = defend_delay,
+      delay = defend_delay
    })
 end
 

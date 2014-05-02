@@ -6,6 +6,9 @@
          "start_time": 0,
          "end_time": 0,
          "item": "stonehearth:wooden_sword",
+         "render_info": {
+            "model_variant": "equipped"
+         },
          "bone": "mainHand"
       },     
       "animation": {
@@ -14,7 +17,7 @@
          "animation": "combat_1h_backhand.json",
          "loop": false
       },
-       "sound": {
+      "sound": {
          "type": "sound_effect",
          "duration": 1000,
          "start_delay": 400,

@@ -8,17 +8,26 @@ CombatService = class()
 local MS_PER_FRAME = 1000/30
 
 function CombatService:__init()
+end
+
+-- TODO: move target tables and combat state into components
+function CombatService:initialize()
+   -- should we save this?
    self._hit_stun_damage_threshold = radiant.util.get_config('hit_stun_damage_threshold', 0.10)
-   self._combat_state_table = {}
-   self._target_tables = {}
+
+   self._sv = self.__saved_variables:get_data()
+   if not self._sv._combat_state_table then
+      self._sv._combat_state_table = {}
+      self._sv._target_tables = {}
+   end
+
+   self._combat_state_table = self._sv._combat_state_table
+   self._target_tables = self._sv._target_tables
 
    -- TODO: change this to minute (or ten second) poll
    radiant.events.listen(radiant, 'stonehearth:very_slow_poll', self, self._remove_expired_objects)
-end
 
-function CombatService:initialize()
-   -- TODO: implement save
-   log:write(0, 'initialize not implemented for combat service!')
+   log:write(0, 'initialize not tested for combat service!')
 end
 
 function CombatService:get_weapon_table(weapon_class)
@@ -54,11 +63,11 @@ function CombatService:set_timer(duration, fn)
    return stonehearth.calendar:set_timer(game_seconds, fn)
 end
 
-function CombatService:get_melee_range(attacker, weapon_class, target)
+function CombatService:get_melee_range(attacker, weapon_data, target)
    local attacker_radius = self:get_entity_radius(attacker)
    local target_radius = self:get_entity_radius(target)
-   local weapon_length = self:get_weapon_length(weapon_class)
-   return attacker_radius + weapon_length + target_radius
+   local weapon_reach = weapon_data.reach
+   return attacker_radius + weapon_reach + target_radius
 end
 
 function CombatService:get_entity_radius(entity)
@@ -66,11 +75,6 @@ function CombatService:get_entity_radius(entity)
       return 1
    end
 
-   -- TODO: get a real value
-   return 1
-end
-
-function CombatService:get_weapon_length(weapon_class)
    -- TODO: get a real value
    return 1
 end

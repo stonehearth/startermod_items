@@ -9,7 +9,8 @@ local AttackMeleeAdjacent = class()
 AttackMeleeAdjacent.name = 'attack melee adjacent'
 AttackMeleeAdjacent.does = 'stonehearth:combat:attack_melee_adjacent'
 AttackMeleeAdjacent.args = {
-   target = Entity
+   target = Entity,
+   weapon = Entity
 }
 AttackMeleeAdjacent.version = 2
 AttackMeleeAdjacent.priority = 1
@@ -25,19 +26,21 @@ end
 -- TODO: don't allow melee if vertical distance > 1
 function AttackMeleeAdjacent:run(ai, entity, args)
    local target = args.target
+   local weapon = args.weapon
 
    if not target:is_valid() then
       ai:abort('enemy has been destroyed')
       return
    end
 
+   local weapon_data = radiant.entities.get_entity_data(weapon, 'stonehearth:weapon_data')
    local attack_info = stonehearth.combat:choose_action(entity, self._attack_types)
    local time_to_impact = stonehearth.combat:get_time_to_impact(attack_info)
    local impact_time = radiant.gamestate.now() + time_to_impact
 
    radiant.entities.turn_to_face(entity, target)
 
-   local melee_range = stonehearth.combat:get_melee_range(entity, 'medium_1h_weapon', target)
+   local melee_range = stonehearth.combat:get_melee_range(entity, weapon_data, target)
    ai:execute('stonehearth:bump_against_entity', { entity = target, distance = melee_range })
 
    stonehearth.combat:start_cooldown(entity, attack_info)
@@ -55,8 +58,9 @@ function AttackMeleeAdjacent:run(ai, entity, args)
          if self._context.target_defending then
             self._hit_effect:stop()
          else
-            -- TODO: get damage from equipped weapon modified by attack action
-            local battery_context = BatteryContext(10)
+            -- TODO: get damage modifiers from action and attributes
+            local base_damage = weapon_data.base_damage
+            local battery_context = BatteryContext(base_damage)
             stonehearth.combat:battery(target, battery_context)
          end
       end
