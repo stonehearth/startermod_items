@@ -1,18 +1,20 @@
 {
-   "scenarios" : [
-      "file(fox_nest)",
-      "file(rabbit_nest)",
-      "file(squirrel_nest)",
-      "file(racoon_nest)",
-      "file(terrain/small_boulder_cluster)",
-      "file(terrain/medium_boulder_cluster)",
-      "file(terrain/large_boulder_cluster)"
-   ],
+   "scenarios" : {
+      "static" : [
+         "file(static/fox_nest)",
+         "file(static/rabbit_nest)",
+         "file(static/squirrel_nest)",
+         "file(static/racoon_nest)",
+         "file(static/terrain/small_boulder_cluster)",
+         "file(static/terrain/medium_boulder_cluster)",
+         "file(static/terrain/large_boulder_cluster)"
+      ]
+   },
    "categories" : {
       "terrain" : {
          "frequency" : 25.0,
          "priority" : 0,
-         "activation_type" : "static"
+         "activation_type" : "immediate"
       },
       "wildlife" : {
          "frequency" : 3.0,
@@ -22,16 +24,6 @@
       "ruins" : {
          "frequency" : 0.20,
          "priority" : 3,
-         "activation_type" : "revealed"
-      },
-      "encounter" : {
-         "frequency" : 0.20,
-         "priority" : 8,
-         "activation_type" : "revealed"
-      },
-      "boss" : {
-         "frequency" : 0.05,
-         "priority" : 10,
          "activation_type" : "revealed"
       }
    }

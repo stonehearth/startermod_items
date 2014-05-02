@@ -1,20 +1,20 @@
 local Array2D = require 'services.server.world_generation.array_2D'
 local MathFns = require 'services.server.world_generation.math.math_fns'
 local HabitatType = require 'services.server.world_generation.habitat_type'
-local ActivationType = require 'services.server.scenario.activation_type'
-local ScenarioSelector = require 'services.server.scenario.scenario_selector'
-local ScenarioModderServices = require 'services.server.scenario.scenario_modder_services'
+local ActivationType = require 'services.server.static_scenario.activation_type'
+local ScenarioSelector = require 'services.server.static_scenario.scenario_selector'
+local ScenarioModderServices = require 'services.server.static_scenario.scenario_modder_services'
 local Timer = require 'services.server.world_generation.timer'
 local Point2 = _radiant.csg.Point2
 local Rect2 = _radiant.csg.Rect2
 local Region2 = _radiant.csg.Region2
 local RandomNumberGenerator = _radiant.csg.RandomNumberGenerator
 local _terrain = radiant._root_entity:add_component('terrain')
-local log = radiant.log.create_logger('scenario_service')
+local log = radiant.log.create_logger('static_scenario_service')
 
-local ScenarioService = class()
+local StaticScenarioService = class()
 
-function ScenarioService:initialize()
+function StaticScenarioService:initialize()
    self.__saved_variables:read_data(function(sv)
          self._rng = sv._rng
          self._revealed_region = sv._revealed_region
@@ -39,7 +39,7 @@ function ScenarioService:initialize()
    end
 end
 
-function ScenarioService:create_new_game(feature_size, seed)
+function StaticScenarioService:create_new_game(feature_size, seed)
    self._feature_size = feature_size
    self._rng = RandomNumberGenerator(seed)
    self._revealed_region = Region2()
@@ -55,7 +55,7 @@ function ScenarioService:create_new_game(feature_size, seed)
    self:_register_events()
 end
 
-function ScenarioService:_parse_scenario_index()
+function StaticScenarioService:_parse_scenario_index()
    -- use reduced spawn range until fog of war is implemented
    --self._reveal_distance = radiant.util.get_config('sight_radius', 64) * 2
 
@@ -73,7 +73,7 @@ function ScenarioService:_parse_scenario_index()
    end
 
    -- load the scenarios into the categories
-   for _, file in pairs(scenario_index.scenarios) do
+   for _, file in pairs(scenario_index.scenarios.static) do
       properties = radiant.resources.load_json(file)
 
       -- parse category
@@ -100,7 +100,7 @@ function ScenarioService:_parse_scenario_index()
    self._categories = categories
 end
 
-function ScenarioService:_register_events()
+function StaticScenarioService:_register_events()
    -- TODO: in multiplayer, scenario service needs to reveal for all factions.  we actually need
    -- to iterate over all player popluations rather than just the hardcoded "player_1".  When the
    -- service to iterate over all players in the game is written, change this bit. -- tony
@@ -108,12 +108,12 @@ function ScenarioService:_register_events()
    radiant.events.listen(radiant, 'stonehearth:very_slow_poll', self, self._on_poll)
 end
 
-function ScenarioService:_on_poll()
+function StaticScenarioService:_on_poll()
    self:_reveal_around_entities()
 end
 
-function ScenarioService:place_static_scenarios(habitat_map, elevation_map, tile_offset_x, tile_offset_y)
-   local scenarios = self:_select_scenarios(habitat_map, 'static')
+function StaticScenarioService:place_immediate_scenarios(habitat_map, elevation_map, tile_offset_x, tile_offset_y)
+   local scenarios = self:_select_scenarios(habitat_map, ActivationType.immediate)
 
    self:_place_scenarios(scenarios, habitat_map, elevation_map, nil, tile_offset_x, tile_offset_y,
       function (scenario_info)
@@ -123,9 +123,9 @@ function ScenarioService:place_static_scenarios(habitat_map, elevation_map, tile
    )
 end
 
-function ScenarioService:place_revealed_scenarios(habitat_map, elevation_map, tile_offset_x, tile_offset_y)
+function StaticScenarioService:place_revealed_scenarios(habitat_map, elevation_map, tile_offset_x, tile_offset_y)
    local difficulty_map = self:_derive_difficulty_map(habitat_map, tile_offset_x, tile_offset_y)
-   local scenarios = self:_select_scenarios(habitat_map, 'revealed')
+   local scenarios = self:_select_scenarios(habitat_map, ActivationType.revealed)
 
    self:_place_scenarios(scenarios, habitat_map, elevation_map, difficulty_map, tile_offset_x, tile_offset_y,
       function (scenario_info)
@@ -134,7 +134,7 @@ function ScenarioService:place_revealed_scenarios(habitat_map, elevation_map, ti
    )
 end
 
-function ScenarioService:set_starting_location(location)
+function StaticScenarioService:set_starting_location(location)
    self._starting_location = location
    local x = self._starting_location.x
    local y = self._starting_location.y
@@ -160,7 +160,7 @@ function ScenarioService:set_starting_location(location)
    -- )
 end
 
-function ScenarioService:reveal_region(world_space_region, activation_filter)
+function StaticScenarioService:reveal_region(world_space_region, activation_filter)
    local revealed_region = self._revealed_region
    local bounded_world_space_region, unrevealed_region, new_region
    local key, scenario_info, properties
@@ -210,7 +210,7 @@ function ScenarioService:reveal_region(world_space_region, activation_filter)
    end
 end
 
-function ScenarioService:_reveal_around_entities()
+function StaticScenarioService:_reveal_around_entities()
    local reveal_distance = self._reveal_distance
    local citizens = self._faction:get_citizens()
    local region = Region2()
@@ -235,20 +235,20 @@ function ScenarioService:_reveal_around_entities()
    self:reveal_region(region)
 end
 
-function ScenarioService:_bound_region_by_terrain(region)
+function StaticScenarioService:_bound_region_by_terrain(region)
    local terrain_bounds = self:_get_terrain_region()
    return _radiant.csg.intersect_region2(region, terrain_bounds)
 end
 
  -- this will eventually be a non-rectangular region composed of the tiles that have been generated
-function ScenarioService:_get_terrain_region()
+function StaticScenarioService:_get_terrain_region()
    local region = Region2()
    local bounds = _terrain:get_bounds():project_onto_xz_plane()
    region:add_cube(bounds)
    return region
 end
 
-function ScenarioService:_mark_scenario_map(map, value, scenario_info)
+function StaticScenarioService:_mark_scenario_map(map, value, scenario_info)
    local properties = scenario_info.properties
    local feature_x, feature_y, feature_width, feature_length, key
 
@@ -266,7 +266,7 @@ function ScenarioService:_mark_scenario_map(map, value, scenario_info)
 end
 
 -- this may eventually move outside of this class
-function ScenarioService:_derive_difficulty_map(habitat_map, tile_offset_x, tile_offset_y)
+function StaticScenarioService:_derive_difficulty_map(habitat_map, tile_offset_x, tile_offset_y)
    local feature_size = self._feature_size
    local starting_location = self._starting_location
    local difficulty_increment_distance = self._difficulty_increment_distance
@@ -293,7 +293,7 @@ function ScenarioService:_derive_difficulty_map(habitat_map, tile_offset_x, tile
    return difficulty_map
 end
 
-function ScenarioService:_place_scenarios(scenarios, habitat_map, elevation_map, difficulty_map, tile_offset_x, tile_offset_y, place_fn)
+function StaticScenarioService:_place_scenarios(scenarios, habitat_map, elevation_map, difficulty_map, tile_offset_x, tile_offset_y, place_fn)
    local rng = self._rng
    local feature_size = self._feature_size
    local feature_width, feature_length, voxel_width, voxel_length
@@ -351,7 +351,7 @@ function ScenarioService:_place_scenarios(scenarios, habitat_map, elevation_map,
 end
 
 -- TODO: randomize orientation in place_entity
-function ScenarioService:_activate_scenario(properties, offset_x, offset_y)
+function StaticScenarioService:_activate_scenario(properties, offset_x, offset_y)
    local services, scenario_script
 
    services = ScenarioModderServices(self._rng)
@@ -362,7 +362,7 @@ function ScenarioService:_activate_scenario(properties, offset_x, offset_y)
    scenario_script:initialize(properties, services)
 end
 
-function ScenarioService:_find_valid_sites(habitat_map, elevation_map, difficulty_map, habitat_types, difficulty_range, width, length)
+function StaticScenarioService:_find_valid_sites(habitat_map, elevation_map, difficulty_map, habitat_types, difficulty_range, width, length)
    local i, j, is_habitat_type, is_flat, is_correct_difficulty, elevation
    local sites = {}
    local num_sites = 0
@@ -429,7 +429,7 @@ function ScenarioService:_find_valid_sites(habitat_map, elevation_map, difficult
 end
 
 -- get a list of scenarios from all the categories
-function ScenarioService:_select_scenarios(habitat_map, activation_type)
+function StaticScenarioService:_select_scenarios(habitat_map, activation_type)
    local categories = self._categories
    local selected_scenarios = {}
    local selector, list
@@ -452,7 +452,7 @@ function ScenarioService:_select_scenarios(habitat_map, activation_type)
 end
 
 -- order first by priority, then by area, then by weight
-function ScenarioService:_sort_scenarios(scenarios)
+function StaticScenarioService:_sort_scenarios(scenarios)
    local comparator = function(a, b)
       local category_a = a.category
       local category_b = b.category
@@ -478,7 +478,7 @@ function ScenarioService:_sort_scenarios(scenarios)
    table.sort(scenarios, comparator)
 end
 
-function ScenarioService:_remove_scenario_from_selector(properties)
+function StaticScenarioService:_remove_scenario_from_selector(properties)
    local name = properties.name
    local category = properties.category
 
@@ -486,11 +486,11 @@ function ScenarioService:_remove_scenario_from_selector(properties)
    self._categories[category]:remove(name)
 end
 
-function ScenarioService:_mark_habitat_map(habitat_map, i, j, width, length)
+function StaticScenarioService:_mark_habitat_map(habitat_map, i, j, width, length)
    habitat_map:set_block(i, j, width, length, HabitatType.occupied)
 end
 
-function ScenarioService:_region_to_habitat_space(region)
+function StaticScenarioService:_region_to_habitat_space(region)
    local new_region = Region2()
    local num_rects = region:get_num_rects()
    local rect, new_rect
@@ -506,7 +506,7 @@ function ScenarioService:_region_to_habitat_space(region)
    return new_region
 end
 
-function ScenarioService:_rect_to_habitat_space(rect)
+function StaticScenarioService:_rect_to_habitat_space(rect)
    local feature_size = self._feature_size
    local min, max
 
@@ -523,23 +523,23 @@ function ScenarioService:_rect_to_habitat_space(rect)
    return Rect2(min, max)
 end
 
-function ScenarioService:_get_dimensions_in_feature_units(width, length)
+function StaticScenarioService:_get_dimensions_in_feature_units(width, length)
    local feature_size = self._feature_size
    return math.ceil(width/feature_size), math.ceil(length/feature_size)
 end
 
-function ScenarioService:_get_feature_space_coords(x, y)
+function StaticScenarioService:_get_feature_space_coords(x, y)
    local feature_size = self._feature_size
    return math.floor(x/feature_size),
           math.floor(y/feature_size)
 end
 
-function ScenarioService:_get_coordinate_key(x, y)
+function StaticScenarioService:_get_coordinate_key(x, y)
    return string.format('%d,%d', x, y)
 end
 
 -- parse the habitat_types array into a set so we can index by the habitat_type
-function ScenarioService:_parse_habitat_types(properties)
+function StaticScenarioService:_parse_habitat_types(properties)
    local strings = properties.habitat_types
    local habitat_type
    local habitat_types = {}
@@ -562,7 +562,7 @@ function ScenarioService:_parse_habitat_types(properties)
    return error_message
 end
 
-function ScenarioService:_parse_difficulty(properties)
+function StaticScenarioService:_parse_difficulty(properties)
    local max_difficulty = 99
    local difficulty = properties.difficulty
 
@@ -582,4 +582,4 @@ function ScenarioService:_parse_difficulty(properties)
    return nil
 end
 
-return ScenarioService
+return StaticScenarioService
