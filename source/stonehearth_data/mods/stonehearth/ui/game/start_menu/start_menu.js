@@ -3,8 +3,15 @@ App.StonehearthStartMenuView = App.View.extend({
    //classNames: ['flex', 'fullScreen'],
 
    components: {
-
+      "citizens" : {
+         "*" : {
+            "stonehearth:profession" : {},
+            "unit_info": {},
+         }
+      }
    },
+
+   _foundProfessions : {},
 
    menuActions: {
       harvest_menu: function () {
@@ -36,8 +43,19 @@ App.StonehearthStartMenuView = App.View.extend({
       }
    },
 
+
+   init: function() {
+      this._super();
+      var self = this;
+   },
+
    didInsertElement: function() {
       var self = this;
+
+      if (!this.$()) {
+         return;
+      }
+
       $('#startMenuTrigger').click(function() {
          radiant.call('radiant:play_sound', 'stonehearth:sounds:ui:start_menu:trigger_click' );
       });
@@ -64,16 +82,62 @@ App.StonehearthStartMenuView = App.View.extend({
             self._buildMenu(json);
          });
 
+      radiant.call('stonehearth:get_population')
+         .done(function(response){
+            self.set('uri', response.population);
+         });
+
       /*
       $('#startMenu').on( 'mouseover', 'a', function() {
-         radiant.call('radiant:play_sound', "stoneheardh:sounds:ui:action_hover");
+         radiant.call('radiant:play_sound', 'stoneheardh:sounds:ui:action_hover');
       });
 
       $('#startMenu').on( 'mousedown', 'li', function() {
-         radiant.call('radiant:play_sound', "stonehearth:sounds:ui:action_click");
+         radiant.call('radiant:play_sound', 'stonehearth:sounds:ui:action_click');
       });
       */
 
+   },
+
+   _onCitizensChanged: function() {
+      var vals = [];
+      var citizenMap = this.get('context.citizens');
+     
+      if (citizenMap) {
+         $.each(citizenMap, function(k ,v) {
+            if(k != "__self" && citizenMap.hasOwnProperty(k)) {
+               vals.push(v);
+            }
+         });
+      }
+
+      this.set('context.citizensArray', vals);
+    }.observes('context.citizens.[]'),
+
+   _onCitizenProfessionChanged: function() {
+      var self = this;
+      var citizensArray = this.get('context.citizensArray');
+
+      self._foundProfessions = {}
+      $.each(citizensArray, function(i, citizen) {
+         var profession_uri = citizen['stonehearth:profession']['profession_uri'];
+         self._foundProfessions[profession_uri] = true;
+      });
+
+      self._updateMenuLocks();
+   }.observes('context.citizensArray.@each.stonehearth:profession'),
+
+   _updateMenuLocks: function() {
+      var self = this;
+
+      if (!self.$()) {
+         return;
+      }
+
+      $.each(this._foundProfessions, function(profession, _) {
+         $( ".selector" ).progressbar({ disabled: true });
+         self.$('#startMenu').stonehearthMenu('unlock', profession);
+      });
    },
 
    _buildMenu : function(data) {
@@ -95,7 +159,8 @@ App.StonehearthStartMenuView = App.View.extend({
       if (menuAction) {
          menuAction();
       }
-   }
+   },
+
 
 });
 

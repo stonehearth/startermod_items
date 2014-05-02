@@ -1,6 +1,7 @@
 $.widget( "stonehearth.stonehearthMenu", {
    
    _dataToMenuItemMap: {},
+   _foundProfessions: {},
 
    options: {
       // callbacks
@@ -92,6 +93,10 @@ $.widget( "stonehearth.stonehearthMenu", {
       this.hideMenu();
 
       this.menu.on( 'click', '.menuItem', function() {
+         if ($(this).hasClass('locked')) {
+            // xxx, hey doug, play a "denied" sound here. 
+            return;
+         }
 
          // close all open tooltips
          self.menu.find('.menuItem').tooltipster('hide');
@@ -162,6 +167,8 @@ $.widget( "stonehearth.stonehearthMenu", {
 
       $.each(nodes, function(key, node) {
          var hotkey = node.hotkey || '';
+         var description = node.description;
+         var name = node.name;
 
          var item = $('<div>')
                      .attr('id', key)
@@ -173,10 +180,19 @@ $.widget( "stonehearth.stonehearthMenu", {
                      .append('<div class=hotkey>' + hotkey + '</div>')
                      .appendTo(el);
 
+         // if this node requires a profession to unlock, note that and style the node as locked
+         if (node.required_profession && !self._foundProfessions[node.required_profession]) {
+            item.attr('required_profession', node.required_profession)
+               .addClass('locked')
+               .append('<div class="lock"></div>');
+
+            description = node.locked_description;
+            name = name + ' (Locked)'; // xxx, localize
+         }
 
          item.tooltipster({
-            content: $('<div class=title>' + node.name + '</div>' + 
-                       '<div class=description>' + node.description + '</div>' + 
+            content: $('<div class=title>' + name + '</div>' + 
+                       '<div class=description>' + description + '</div>' + 
                        '<div class=hotkey>' + $.t('hotkey') + ' <span class=key>' + hotkey + '</span></div>')
          });
 
@@ -193,6 +209,15 @@ $.widget( "stonehearth.stonehearthMenu", {
                    .addClass('header')
                    .appendTo(el);         
       }
+   },
+
+   unlock: function(profession) {
+      var unlockedButtons = this.element.find('[required_profession="' + profession + '"]');
+      unlockedButtons.each(function(i) {
+         $(this).removeClass('locked');
+         $(this).find('.lock').remove();
+      });
+      this._foundProfessions[profession] = true;
    }
 
 });
