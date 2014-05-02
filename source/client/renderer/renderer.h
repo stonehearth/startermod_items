@@ -41,9 +41,10 @@ enum ViewMode {
 struct FrameStartInfo {
    int         now;
    float       interpolate;
-   int         frame_time;
+   int         frame_time;  // How long, in game-ms, was this frame?  (This is dependent on game-speed.)
+   int         frame_time_wallclock;  // Wall-clock time.  (This is dependent on inertial reference frames.)
 
-   FrameStartInfo(int n, float i, int ft) : now(n), interpolate(i), frame_time(ft) { }
+   FrameStartInfo(int n, float i, int ft, int ftw) : now(n), interpolate(i), frame_time(ft), frame_time_wallclock(ftw) { }
 };
 
 template<typename T>
@@ -284,6 +285,7 @@ class Renderer
       std::unique_ptr<PerfHud>            perf_hud_;
 
       int               last_render_time_;
+      int               last_render_time_wallclock_;
       bool              resize_pending_;
       bool              inFullscreen_;
       int               nextWidth_, nextHeight_;
