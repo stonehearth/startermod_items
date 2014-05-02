@@ -57,7 +57,7 @@ function CreateWorkshop:_complete_construction(crafter, ghost_workshop, outbox_e
    local q = ghost_workshop:get_component('mob'):get_rotation()
    radiant.terrain.place_entity(workshop_entity, location)
    workshop_entity:get_component('mob'):set_rotation(q)
-   workshop_component:finish_construction(outbox_entity)
+   workshop_component:finish_construction(workshop_entity, outbox_entity)
    radiant.entities.set_faction(workshop_entity, crafter)
    radiant.entities.set_player_id(workshop_entity, crafter)
 

@@ -172,7 +172,8 @@ function WorkshopComponent:get_outbox()
    return self._sv.outbox_entity
 end
 
-function WorkshopComponent:finish_construction(outbox_entity)
+function WorkshopComponent:finish_construction(workshop_entity, outbox_entity)
+   self._sv.workshop_entity = workshop_entity
    self._sv.outbox_entity = outbox_entity
    self.__saved_variables:mark_changed()
 end

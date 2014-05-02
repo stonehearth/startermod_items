@@ -23,14 +23,23 @@
       <div class="title">Crafters</div>
       <table>
          <tbody>
-         {{#each craftersArray}}
-            <tr>
-               <td>{{this.unit_info.name}}</td>
-               <td>{{this.stonehearth:profession.profession_uri.name}}</td>
-               <td>Activity goes here...</td>
-            </tr>
+         {{#each citizensArray}}
+            {{#if this.stonehearth:crafter}}
+               <tr>
+                  <td>{{this.unit_info.name}}</td>
+                  <td>{{this.stonehearth:profession.profession_uri.name}}</td>
+                  <td>Activity goes here...</td>
+                  <td>
+                     {{#if this.stonehearth:crafter.workshop}}
+                        <a {{action craft this target="view"}} ><button>Craft</button></a>
+                     {{else}}
+                        <a {{action placeWorkshop this target="view"}} ><button>Place Workshop</button></a>
+                     {{/if}}
+                  </td>
+               </tr>
+            {{/if}}
          {{/each}}
-         </tbody.
+         </tbody>
       </table>
    </div>
 </div>
