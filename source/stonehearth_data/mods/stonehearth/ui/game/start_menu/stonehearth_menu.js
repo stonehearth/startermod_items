@@ -166,6 +166,8 @@ $.widget( "stonehearth.stonehearthMenu", {
                          .appendTo(self.menu);
 
       $.each(nodes, function(key, node) {
+         self._dataToMenuItemMap[key] = node;
+
          var hotkey = node.hotkey || '';
          var description = node.description;
          var name = node.name;
@@ -187,16 +189,9 @@ $.widget( "stonehearth.stonehearthMenu", {
                .append('<div class="lock"></div>');
 
             description = node.locked_description;
-            name = name + ' (Locked)'; // xxx, localize
          }
 
-         item.tooltipster({
-            content: $('<div class=title>' + name + '</div>' + 
-                       '<div class=description>' + description + '</div>' + 
-                       '<div class=hotkey>' + $.t('hotkey') + ' <span class=key>' + hotkey + '</span></div>')
-         });
-
-         self._dataToMenuItemMap[key] = node;
+         self._buildTooltip(item);
 
          if (node.items) {
 
@@ -212,12 +207,40 @@ $.widget( "stonehearth.stonehearthMenu", {
    },
 
    unlock: function(profession) {
+      var self = this;
+      this._foundProfessions[profession] = true;
+
       var unlockedButtons = this.element.find('[required_profession="' + profession + '"]');
       unlockedButtons.each(function(i) {
-         $(this).removeClass('locked');
-         $(this).find('.lock').remove();
+         var item = $(this);
+         item.removeClass('locked');
+         item.find('.lock').remove();
+         item.tooltipster('destroy');
+         self._buildTooltip(item);
       });
-      this._foundProfessions[profession] = true;
+
+      
+   },
+
+   _buildTooltip: function(item) {
+      var self = this;
+      var id = item.attr('id');
+      var node = self._dataToMenuItemMap[id];
+
+      var name = node.name;
+      var description = node.description;
+      var hotkey = node.hotkey;
+
+      if (node.required_profession && !self._foundProfessions[node.required_profession]) {
+         name = node.locked_name;
+         description = node.locked_description;
+      }      
+
+      item.tooltipster({
+         content: $('<div class=title>' + name + '</div>' + 
+                    '<div class=description>' + description + '</div>' + 
+                    '<div class=hotkey>' + $.t('hotkey') + ' <span class=key>' + hotkey + '</span></div>')
+      });
    }
 
 });
