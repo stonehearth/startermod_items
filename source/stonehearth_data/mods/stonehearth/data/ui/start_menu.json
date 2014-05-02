@@ -28,11 +28,14 @@
             },
             "create_farm" : {
                 "name" : "Farm",
+                "locked_name" : "Farm (Locked)",
                 "description" : "Place a farm on the terrain.",
+                "locked_description" : "Create a farmer to unlock this zone.",
                 "class" : "button",
                 "icon" : "/stonehearth/ui/game/start_menu/images/zone_farm.png",
                 "sticky" : true,
-                "hotkey" : "f"
+                "hotkey" : "f",
+                "required_profession" : "stonehearth:professions:farmer"
             }
       }
    },

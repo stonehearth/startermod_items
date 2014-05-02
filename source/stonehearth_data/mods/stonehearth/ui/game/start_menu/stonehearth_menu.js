@@ -1,6 +1,7 @@
 $.widget( "stonehearth.stonehearthMenu", {
    
    _dataToMenuItemMap: {},
+   _foundProfessions: {},
 
    options: {
       // callbacks
@@ -92,6 +93,10 @@ $.widget( "stonehearth.stonehearthMenu", {
       this.hideMenu();
 
       this.menu.on( 'click', '.menuItem', function() {
+         if ($(this).hasClass('locked')) {
+            // xxx, hey doug, play a "denied" sound here. 
+            return;
+         }
 
          // close all open tooltips
          self.menu.find('.menuItem').tooltipster('hide');
@@ -161,7 +166,11 @@ $.widget( "stonehearth.stonehearthMenu", {
                          .appendTo(self.menu);
 
       $.each(nodes, function(key, node) {
+         self._dataToMenuItemMap[key] = node;
+
          var hotkey = node.hotkey || '';
+         var description = node.description;
+         var name = node.name;
 
          var item = $('<div>')
                      .attr('id', key)
@@ -173,14 +182,16 @@ $.widget( "stonehearth.stonehearthMenu", {
                      .append('<div class=hotkey>' + hotkey + '</div>')
                      .appendTo(el);
 
+         // if this node requires a profession to unlock, note that and style the node as locked
+         if (node.required_profession && !self._foundProfessions[node.required_profession]) {
+            item.attr('required_profession', node.required_profession)
+               .addClass('locked')
+               .append('<div class="lock"></div>');
 
-         item.tooltipster({
-            content: $('<div class=title>' + node.name + '</div>' + 
-                       '<div class=description>' + node.description + '</div>' + 
-                       '<div class=hotkey>' + $.t('hotkey') + ' <span class=key>' + hotkey + '</span></div>')
-         });
+            description = node.locked_description;
+         }
 
-         self._dataToMenuItemMap[key] = node;
+         self._buildTooltip(item);
 
          if (node.items) {
 
@@ -193,6 +204,43 @@ $.widget( "stonehearth.stonehearthMenu", {
                    .addClass('header')
                    .appendTo(el);         
       }
+   },
+
+   unlock: function(profession) {
+      var self = this;
+      this._foundProfessions[profession] = true;
+
+      var unlockedButtons = this.element.find('[required_profession="' + profession + '"]');
+      unlockedButtons.each(function(i) {
+         var item = $(this);
+         item.removeClass('locked');
+         item.find('.lock').remove();
+         item.tooltipster('destroy');
+         self._buildTooltip(item);
+      });
+
+      
+   },
+
+   _buildTooltip: function(item) {
+      var self = this;
+      var id = item.attr('id');
+      var node = self._dataToMenuItemMap[id];
+
+      var name = node.name;
+      var description = node.description;
+      var hotkey = node.hotkey;
+
+      if (node.required_profession && !self._foundProfessions[node.required_profession]) {
+         name = node.locked_name;
+         description = node.locked_description;
+      }      
+
+      item.tooltipster({
+         content: $('<div class=title>' + name + '</div>' + 
+                    '<div class=description>' + description + '</div>' + 
+                    '<div class=hotkey>' + $.t('hotkey') + ' <span class=key>' + hotkey + '</span></div>')
+      });
    }
 
 });
