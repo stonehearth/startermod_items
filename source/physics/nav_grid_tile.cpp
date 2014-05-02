@@ -1,6 +1,7 @@
 #include "radiant.h"
 #include "radiant_stdutil.h"
 #include "csg/cube.h"
+#include "csg/region.h"
 #include "collision_tracker.h"
 #include "om/entity.h"
 #include "nav_grid_tile.h"
@@ -17,8 +18,16 @@ using namespace radiant::phys;
  * Construct a new NavGridTile.
  */
 NavGridTile::NavGridTile() :
-   next_change_tracker_id_(0)
+   changed_slot_("tile changes")
 {
+}
+
+NavGridTile::NavGridTile(NavGridTile &&other) :
+   changed_slot_("tile changes")
+{
+   ASSERT(other.data_ == nullptr);
+   ASSERT(other.trackers_.empty());
+   ASSERT(other.changed_slot_.IsEmpty());
 }
 
 /*
@@ -57,9 +66,20 @@ void NavGridTile::AddCollisionTracker(CollisionTrackerPtr tracker)
    om::EntityPtr entity = tracker->GetEntity();
    if (entity) {
       dm::ObjectId id = entity->GetObjectId();
-      trackers_.insert(std::make_pair(id, tracker));
-      OnTrackerAdded(tracker);
+      TrackerMap::const_iterator i;
+      auto range = trackers_.equal_range(id);
+      for (i = range.first; i != range.second; i++) {
+         if (i->second.lock() == tracker) {
+            break;
+         }
+      }
       MarkDirty();
+      if (i == range.second) {
+         trackers_.insert(std::make_pair(id, tracker));
+         changed_slot_.Signal(ChangeNotification(ENTITY_ADDED, id, tracker));
+      } else {
+         changed_slot_.Signal(ChangeNotification(ENTITY_MOVED, id, tracker));         
+      }
    }
 }
 
@@ -168,84 +188,10 @@ void NavGridTile::MarkDirty()
    }
 }
 
-void NavGridTile::OnTrackerChanged(CollisionTrackerPtr tracker)
-{
-   for (ChangeTracker &c : change_trackers_) {
-      if (c.flags & ENTITY_MOVED) {
-         om::EntityPtr entity = tracker->GetEntity();
-         dm::ObjectId entityId = entity->GetObjectId();
-         if (entity) {
-            if (tracker->Intersects(c.bounds)) {
-               c.cb(ENTITY_MOVED, entity->GetObjectId(), entity);
-            } else {
-               bool removed = true;
-               auto range = trackers_.equal_range(entityId);
-               for (auto i = range.first; i != range.second; i++) {
-                  CollisionTrackerPtr t = i->second.lock();
-                  if (t && t->Intersects(c.bounds)) {
-                     removed = false;
-                     break;
-                  }
-               }
-               if (removed) {
-                  c.cb(ENTITY_REMOVED, entityId, nullptr);
-               }
-            }
-         }
-      }
-   }
-   PruneExpiredChangeTrackers();
-}
-
-void NavGridTile::OnTrackerAdded(CollisionTrackerPtr tracker)
-{
-   for (ChangeTracker &c : change_trackers_) {
-      if (c.flags & ENTITY_ADDED) {
-         om::EntityPtr entity = tracker->GetEntity();
-         if (entity) {
-            if (tracker->Intersects(c.bounds)) {
-               c.cb(ENTITY_ADDED, entity->GetObjectId(), entity);
-            }
-         }
-      }
-   }
-   PruneExpiredChangeTrackers();
-}
-
 void NavGridTile::OnTrackerRemoved(dm::ObjectId entityId)
 {
    MarkDirty();
-
-   for (ChangeTracker &c : change_trackers_) {
-      if (c.flags & ENTITY_REMOVED) {
-         bool removed = true;
-         auto range = trackers_.equal_range(entityId);
-         for (auto i = range.first; i != range.second; i++) {
-            CollisionTrackerPtr tracker = i->second.lock();
-            if (tracker && tracker->Intersects(c.bounds)) {
-               removed = false;
-               break;
-            }
-         }
-         if (removed) {
-            c.cb(ENTITY_REMOVED, entityId, nullptr);
-         }
-      }
-   }
-   PruneExpiredChangeTrackers();
-}
-
-void NavGridTile::PruneExpiredChangeTrackers()
-{
-   uint i = 0, c = change_trackers_.size();
-
-   while (i < c) {
-      if (change_trackers_[i].expired) {
-         change_trackers_[i] = change_trackers_[--c];
-      } else {
-         i++;
-      }
-   }
+   changed_slot_.Signal(ChangeNotification(ENTITY_REMOVED, entityId, nullptr));
 }
 
 /*
@@ -282,26 +228,37 @@ std::shared_ptr<NavGridTileData> NavGridTile::GetTileData()
  * iterating over a range of tiles for cases when the same tracker overlaps
  * several tiles.
  */ 
-void NavGridTile::ForEachTracker(ForEachTrackerCb cb)
+bool NavGridTile::ForEachTracker(ForEachTrackerCb cb)
 {
-   stdutil::ForEachPrune<dm::ObjectId, CollisionTracker>(trackers_, [cb](dm::ObjectId const& id, CollisionTrackerPtr tracker) {
-      NG_LOG(7) << "calling ForEachTracker callback on " << *tracker->GetEntity();
-      cb(tracker);
-   });
+   return ForEachTrackerInRange(trackers_.begin(), trackers_.end(), cb);
 }
 
-core::Guard NavGridTile::TraceEntityPositions(int flags, csg::Cube3 const& worldBounds, ChangeCb cb)
-{
-   int id = next_change_tracker_id_++;
-   change_trackers_.push_back(ChangeTracker(id, flags, worldBounds, cb));
 
-   return core::Guard([id, this]() {
-      // assumes tiles never get destroyed!  If so, we need to reset all the returned guards
-      for (ChangeTracker& c : change_trackers_) {
-         if (c.id == id) {
-            c.expired = true;
-            break;
+bool NavGridTile::ForEachTrackerForEntity(dm::ObjectId entityId, ForEachTrackerCb cb)
+{
+   auto range = trackers_.equal_range(entityId);
+   return ForEachTrackerInRange(range.first, range.second, cb);
+}
+
+bool NavGridTile::ForEachTrackerInRange(TrackerMap::const_iterator begin, TrackerMap::const_iterator end, ForEachTrackerCb cb)
+{
+   while (begin != end) {
+      CollisionTrackerPtr tracker = begin->second.lock();
+      if (tracker) {
+         NG_LOG(7) << "calling ForEachTracker callback on " << *tracker->GetEntity();
+
+         ++begin;
+         if (!cb(tracker)) {
+            return false;
          }
+      } else {
+         begin = trackers_.erase(begin);
       }
-   });
+   }
+   return true;
+}
+
+core::Guard NavGridTile::RegisterChangeCb(ChangeCb cb)
+{
+   return changed_slot_.Register(cb);
 }

@@ -3,6 +3,7 @@
 #include "octtree.h"
 #include "collision_tracker.h"
 #include "sensor_tracker.h"
+#include "sensor_tile_tracker.h"
 #include "csg/util.h"
 #include "om/entity.h"
 #include "om/components/sensor.ridl.h"
@@ -11,7 +12,17 @@
 using namespace radiant;
 using namespace radiant::phys;
 
-#define ST_LOG(level)              LOG(physics.sensor_tracker, level) << "[sensor " << (sensor_.lock()->GetName()) << " for " << *entity_.lock() << "] "
+#define ST_LOG(level)              LOG(physics.sensor_tracker, level) << "[" << GetLogPrefix() << "] "
+
+#define ST_LOG_SENSOR_CONTENTS(level, contents) \
+   if (LOG_IS_ENABLED(physics.sensor_tracker, level)) { \
+      for (auto const& entry : contents) { \
+         om::EntityPtr entity = entry.second.lock(); \
+         if (entity) { \
+            ST_LOG(level) << "   " << entry.first << " -> " << *entity; \
+         } \
+      } \
+   }
 
 
 /* 
@@ -19,8 +30,8 @@ using namespace radiant::phys;
  *
  * Nothing to see here, move along...
  */
-SensorTracker::SensorTracker(OctTree& octtree, om::EntityPtr entity, om::SensorPtr sensor) :
-   octtree_(octtree),
+SensorTracker::SensorTracker(NavGrid& navgrid, om::EntityPtr entity, om::SensorPtr sensor) :
+   navgrid_(navgrid),
    entity_(entity),
    sensor_(sensor),
    bounds_(csg::Point3::zero, csg::Point3::zero),
@@ -42,7 +53,7 @@ void SensorTracker::Initialize()
       om::MobPtr mob = entity->GetComponent<om::Mob>();
       if (mob) {
          mob_ = mob;
-         mob_trace_ = mob->TraceTransform("sensor tracker", octtree_.GetNavGrid().GetTraceCategory())
+         mob_trace_ = mob->TraceTransform("sensor tracker", navgrid_.GetTraceCategory())
             ->OnModified([this]() {
                OnSensorMoved();
             })
@@ -68,6 +79,16 @@ void SensorTracker::OnSensorMoved()
    }
 }
 
+NavGrid& SensorTracker::GetNavGrid() const
+{
+   return navgrid_;
+}
+
+csg::Cube3 const& SensorTracker::GetBounds() const
+{
+   return bounds_;
+}
+
 void SensorTracker::TraceNavGridTiles()
 {
    ST_LOG(5) << "tracking tiles (bounds: " << bounds_ << " last_bounds: " << last_bounds_ << ")";
@@ -79,7 +100,7 @@ void SensorTracker::TraceNavGridTiles()
    // but did overlap their previous bounds.
    for (csg::Point3 const& cursor : previous) {
       if (!current.Contains(cursor)) {
-         RemoveAllEntitiesFrom(cursor);
+         _sensorTileTrackers.erase(cursor);
       }
    }
 
@@ -87,104 +108,17 @@ void SensorTracker::TraceNavGridTiles()
                                             current.max - csg::Point3(1, 0, 1));
 
    for (csg::Point3 const& cursor : current) {
-      if (!previous.Contains(cursor)) {
-         int flag;
-         if (inner.Contains(cursor)) {
-            // We're on the inner ring.  Need to subscribe to remove events.
-            flag = NavGridTile::ENTITY_ADDED;
-         } else {
-            // We're on the fringe.  Need to subscribe to move events.
-            flag = NavGridTile::ENTITY_MOVED;
-         }
-         TraceNavGridTile(cursor, flag);
-      }
-   }
-}
+      // We're on the inner ring.  Need to subscribe to remove events.
+      // We're on the fringe.  Need to subscribe to move events.
+      int flags = inner.Contains(cursor) ? NavGridTile::ENTITY_ADDED : NavGridTile::ENTITY_MOVED;
+      flags |= NavGridTile::ENTITY_REMOVED;
 
-void SensorTracker::TraceNavGridTile(csg::Point3 const& index, int add_move_flag)
-{
-   auto i = tile_map_.find(index);
-   if (i != tile_map_.end() && i->second.add_move_flag == add_move_flag) {
-      ST_LOG(7) << "ignoring tile at " << index << ".  tracking data exists and is correct.";
-      return; // already perfectly traced
-   }
-   
-   ST_LOG(8) << "installing new tracker at " << index << "(add_move_flag: " << add_move_flag << ")";
-   NavGridTile& tile = octtree_.GetNavGrid().GridTileNonResident(index);
-   core::Guard guard = tile.TraceEntityPositions(add_move_flag | NavGridTile::ENTITY_REMOVED, bounds_, 
-      [this, index](int reason, dm::ObjectId entityId, om::EntityPtr entity) {
-         OnEntityChanged(index, reason, entityId, entity);
-      });
-   tile_map_.insert(std::make_pair(index,  NavGridChangeTracker(add_move_flag, std::move(guard))));
-
-   ST_LOG(8) << "manually updating all entities at " << index << "(add_move_flag: " << add_move_flag << ")";
-   tile.ForEachTracker([this, index, add_move_flag](CollisionTrackerPtr tracker) {
-      om::EntityPtr entity = tracker->GetEntity();
-      if (entity && tracker->Intersects(bounds_)) {
-         OnEntityChanged(index, add_move_flag, entity->GetObjectId(), entity);
+      auto i = _sensorTileTrackers.find(cursor);
+      if (i != _sensorTileTrackers.end()) {
+         i->second->UpdateFlags(flags);
       } else {
-         OnEntityChanged(index, NavGridTile::ENTITY_REMOVED, entity->GetObjectId(), entity);
+         _sensorTileTrackers[cursor] = std::make_shared<SensorTileTracker>(*this, cursor, flags);
       }
-   });
-}
-
-void SensorTracker::RemoveAllEntitiesFrom(csg::Point3 const& index)
-{
-   ST_LOG(5) << "removing all entities at tile " << index;
-
-   auto i = tile_map_.find(index);
-   if (i != tile_map_.end()) {
-      EntityFlatMap entity_map = std::move(i->second).entities;
-      tile_map_.erase(i);
-
-      for (const auto& entry : entity_map) {
-         TryRemoveEntityFromSensor(entry.first);
-      }
-   }
-}
-
-void SensorTracker::OnEntityChanged(csg::Point3 const& index, int f, dm::ObjectId entityId, om::EntityPtr entity)
-{
-   om::SensorPtr sensor = sensor_.lock();
-   if (sensor) {
-      switch (f) {
-      case NavGridTile::ENTITY_REMOVED:
-         OnEntityRemovedFromTile(index, *sensor, entityId);
-         break;
-
-      case NavGridTile::ENTITY_ADDED:
-      case NavGridTile::ENTITY_MOVED:
-         OnEntityAddedToTile(index, *sensor, entityId, entity);
-         break;
-      }
-   }
-}
-
-void SensorTracker::OnEntityRemovedFromTile(csg::Point3 const& index, om::Sensor& s, dm::ObjectId entityId)
-{
-   ST_LOG(5) << "checking status for entity " << entityId << " in OnEntityRemovedFromTile at " << index;
-
-   auto i = tile_map_.find(index);
-   if (i != tile_map_.end()) {
-      EntityFlatMap& entity_map = i->second.entities;
-      auto j = entity_map.find(entityId);
-      if (j != entity_map.end()) {
-         entity_map.erase(j);
-         ST_LOG(7) << "was tracked by tile!  seeing if we need to remove it...";
-         TryRemoveEntityFromSensor(entityId);
-      }
-   }
-}
-
-void SensorTracker::OnEntityAddedToTile(csg::Point3 const& index, om::Sensor& s, dm::ObjectId entityId, om::EntityRef e)
-{
-   ST_LOG(5) << "checking status for entity " << entityId << " in OnEntityAddedToTile at " << index;
-
-   auto i = tile_map_.find(index);
-   ASSERT(i != tile_map_.end());
-   if (i != tile_map_.end()) {
-      i->second.entities[entityId] = e;
-      TryAddEntityToSensor(entityId, e);
    }
 }
 
@@ -196,14 +130,15 @@ void SensorTracker::TryRemoveEntityFromSensor(dm::ObjectId entityId)
       if (contents.find(entityId) != contents.end()) {
          // xxx: to avoid this iteration, we could keep a count of the number of tiles which have an entity >_<
          // or a backmap of entity ids to tiles which have that entity...
-         for (auto const& map : tile_map_) {
-            if (stdutil::contains(map.second.entities, entityId)) {
+         for (auto const& entry: _sensorTileTrackers) {
+            if (entry.second->ContainsEntity(entityId)) {
                ST_LOG(7) << "entity " << entityId << " still in the tile_map.  not removing from sensor.";
                return;
             }
          }
          ST_LOG(7) << "entity " << entityId << " eradicated from the tile_map.  removing from sensor.";
          contents.Remove(entityId);
+         ST_LOG_SENSOR_CONTENTS(9, contents)
       }
    }
 }
@@ -216,8 +151,20 @@ void SensorTracker::TryAddEntityToSensor(dm::ObjectId entityId, om::EntityRef e)
       if (contents.find(entityId) == contents.end()) {
          ST_LOG(7) << "entity " << *e.lock() << " first added to tile map.  adding to sensor!.";
          contents.Add(entityId, e);
+         ST_LOG_SENSOR_CONTENTS(9, contents)
       } else {
          ST_LOG(7) << "entity " << *e.lock() << " already in the tile_map.  not adding to sensor.";
       }
    }
+}
+
+std::string SensorTracker::GetLogPrefix() const
+{
+   om::SensorPtr sensor = sensor_.lock();
+   om::EntityPtr entity = entity_.lock();
+   std::string entityName = "expired";
+   if (entity) {
+      entityName = BUILD_STRING(*entity);
+   }
+   return BUILD_STRING("sensor " << (sensor ? sensor->GetName() : std::string("expired")) << " for " << entityName);
 }

@@ -226,12 +226,15 @@ int NavGrid::GetTraceCategory()
  */
 void NavGrid::AddCollisionTracker(csg::Cube3 const& last_bounds, csg::Cube3 const& bounds, CollisionTrackerPtr tracker)
 {
-   NG_LOG(3) << "collision notify bounds " << bounds << "changed (last_bounds: " << last_bounds << ")";
+   NG_LOG(3) << "collision tracker bounds " << bounds << " changed (last_bounds: " << last_bounds << ")";
    csg::Cube3 current_chunks = csg::GetChunkIndex(bounds, TILE_SIZE);
    csg::Cube3 previous_chunks = csg::GetChunkIndex(last_bounds, TILE_SIZE);
 
-   bounds_.Grow(bounds.min - csg::Point3(TILE_SIZE, TILE_SIZE, TILE_SIZE));
-   bounds_.Grow(bounds.max + csg::Point3(TILE_SIZE, TILE_SIZE, TILE_SIZE));
+   csg::Point3 chunkBoundsMin = current_chunks.min.Scaled(TILE_SIZE);
+   csg::Point3 chunkBoundsMax = current_chunks.max.Scaled(TILE_SIZE);
+
+   bounds_.Grow(chunkBoundsMin);
+   bounds_.Grow(chunkBoundsMax);
 
    // Remove trackers from tiles which no longer overlap the current bounds of the tracker,
    // but did overlap their previous bounds.
@@ -244,13 +247,8 @@ void NavGrid::AddCollisionTracker(csg::Cube3 const& last_bounds, csg::Cube3 cons
 
    // Add trackers to tiles which overlap the current bounds of the tracker.
    for (csg::Point3 const& cursor : current_chunks) {
-      if (previous_chunks.Contains(cursor)) {
-         NG_LOG(5) << "marking tracker to grid tile at " << cursor << " for " << *tracker->GetEntity() << " dirty";
-         GridTileNonResident(cursor).OnTrackerChanged(tracker);
-      } else {
-         NG_LOG(5) << "adding tracker to grid tile at " << cursor << " for " << *tracker->GetEntity();
-         GridTileNonResident(cursor).AddCollisionTracker(tracker);
-      }
+      NG_LOG(5) << "adding tracker for grid tile at " << cursor << " for " << *tracker->GetEntity();
+      GridTileNonResident(cursor).AddCollisionTracker(tracker);
    }
 }
 
@@ -309,7 +307,7 @@ NavGridTile& NavGrid::GridTile(csg::Point3 const& pt, bool make_resident)
    NavGridTileMap::iterator i = tiles_.find(pt);
    if (i == tiles_.end()) {
       NG_LOG(5) << "constructing new grid tile at " << pt;
-      i = tiles_.insert(std::make_pair(pt, NavGridTile())).first;
+      i = tiles_.emplace(std::make_pair(pt, NavGridTile())).first;
    }
    NavGridTile& tile = i->second;
 
@@ -361,10 +359,10 @@ void NavGrid::ShowDebugShapes(csg::Point3 const& pt, protocol::shapelist* msg)
       CollisionTrackerPtr tracker = i->second;
       if (tracker->GetType() == MOB) {
          MobTrackerPtr mob = std::static_pointer_cast<MobTracker>(tracker);
-         csg::Point3f location = csg::ToFloat(mob->GetLastBounds().min) - csg::Point3f(0.5f, 0, 0.5f);
+         csg::Cube3f bounds = csg::ToFloat(mob->GetBounds()).Translated(-csg::Point3f(0.5f, 0, 0.5f));
          protocol::box* box = msg->add_box();
-         location.SaveValue(box->mutable_minimum());
-         (location + csg::Point3f::one).SaveValue(box->mutable_maximum());
+         bounds.min.SaveValue(box->mutable_minimum());
+         bounds.max.SaveValue(box->mutable_maximum());
          mob_color.SaveValue(box->mutable_color());
       }
    };
@@ -415,6 +413,7 @@ void NavGrid::ForEachEntityAtIndex(csg::Point3 const& index, ForEachEntityCb cb)
    if (bounds_.Contains(index.Scaled(TILE_SIZE))) {
       GridTileNonResident(index).ForEachTracker([cb](CollisionTrackerPtr tracker) {
          cb(tracker->GetEntity());
+         return true;
       });
    }
 }
@@ -437,6 +436,7 @@ void NavGrid::ForEachEntityInBounds(csg::Cube3 const& worldBounds, ForEachEntity
          if (tracker->Intersects(worldBounds)) {
             cb(tracker->GetEntity());
          }
+         return true;
       });
    }
 }

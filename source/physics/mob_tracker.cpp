@@ -56,19 +56,15 @@ void MobTracker::Initialize()
  */
 void MobTracker::MarkChanged()
 {
-   om::MobPtr mob = mob_.lock();
-   if (mob) {
-      csg::Point3 pos = mob->GetWorldGridLocation();
-      csg::Cube3 bounds(pos, pos + csg::Point3(1, 1, 1));
-      if (mob->GetMobCollisionType() == om::Mob::HUMANOID) {
-         bounds.max.y += 3;
-      }
-      if (bounds != last_bounds_) {
-         NG_LOG(9) << "adding MobTracker for " << *mob->GetEntityPtr() << " to tile " << bounds << "(last bounds:" << last_bounds_ << ")";
-         GetNavGrid().AddCollisionTracker(last_bounds_, bounds, shared_from_this());
-         last_bounds_ = bounds;
+   om::EntityPtr entity = GetEntity();
+   if (entity) {
+      bounds_ = ComputeWorldBounds();
+      if (bounds_ != last_bounds_) {
+         NG_LOG(9) << "MobTracker for " << *entity << " changed (bounds:" << bounds_ << " last bounds:" << last_bounds_ << ")";
+         last_bounds_ = bounds_;
+         GetNavGrid().AddCollisionTracker(last_bounds_, bounds_, shared_from_this());
       } else {
-         NG_LOG(9) << "skipping MobTracker bookkeeping for " << *mob->GetEntityPtr() << " (bounds:" << bounds << " == last bounds:" << last_bounds_ << ")";
+         NG_LOG(9) << "skipping MobTracker bookkeeping for " << *entity << " (bounds:" << bounds_ << " == last bounds:" << last_bounds_ << ")";
       }
    }
 }
@@ -77,14 +73,12 @@ void MobTracker::MarkChanged()
 /*
  * MobTracker::GetOverlappingRegion
  *
- * Theoretically returns the region which overlaps the specified bounds.  In practice,
- * this is used to update bit-vectors in the NavGridTileData structure, which we don't
- * contribute to.  If this gets called, something terribly, terribly wrong has happened.
+ * Return the part of our region which overlaps the specified bounds.  Bounds are in
+ * world space coordinates, so be sure to transform the region before clipping!
  */
 csg::Region3 MobTracker::GetOverlappingRegion(csg::Cube3 const& bounds) const
 {
-   NOT_YET_IMPLEMENTED();
-   return csg::Region3::empty;
+   return ComputeWorldBounds().Translated(GetEntityPosition()) & bounds;
 }
 
 TrackerType MobTracker::GetType() const
@@ -92,12 +86,27 @@ TrackerType MobTracker::GetType() const
    return MOB;
 }
 
-csg::Cube3 const& MobTracker::GetLastBounds() const
+csg::Cube3 const& MobTracker::GetBounds() const
 {
-   return last_bounds_;
+   return bounds_;
 }
 
 bool MobTracker::Intersects(csg::Cube3 const& worldBounds) const
 {
-   return worldBounds.Intersects(last_bounds_);
+   return worldBounds.Intersects(bounds_);
+}
+
+csg::Cube3 MobTracker::ComputeWorldBounds() const
+{
+   om::MobPtr mob = mob_.lock();
+   if (!mob) {
+      return csg::Cube3(csg::Point3::zero, csg::Point3::zero);
+   }
+
+   csg::Point3 pos = mob->GetWorldGridLocation();
+   csg::Cube3 bounds(pos, pos + csg::Point3(1, 1, 1));
+   if (mob->GetMobCollisionType() == om::Mob::HUMANOID) {
+      bounds.max.y += 3;
+   }
+   return bounds;
 }

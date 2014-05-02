@@ -73,6 +73,9 @@ void OctTree::TraceEntity(om::EntityPtr entity)
                                              ->OnAdded([this, id](std::string const& name, om::ComponentPtr component) {
                                                 OnComponentAdded(id, component);
                                              })
+                                             ->OnDestroyed([this, id]() {
+                                                entities_.erase(id);
+                                             })
                                              ->PushObjectState();
       }
    }
@@ -91,7 +94,7 @@ void OctTree::OnComponentAdded(dm::ObjectId id, om::ComponentPtr component)
       switch (component->GetObjectType()) {
          case om::EntityContainerObjectType: {
             om::EntityContainerPtr entity_container = std::static_pointer_cast<om::EntityContainer>(component);
-            entry.children_trace = entity_container->TraceChildren("oct tree", trace_category_)
+            entry.children_trace = entity_container->TraceChildren("octtree", trace_category_)
                ->OnAdded([this](dm::ObjectId id, om::EntityRef e) {
                      TraceEntity(e.lock());
                })
@@ -104,10 +107,17 @@ void OctTree::OnComponentAdded(dm::ObjectId id, om::ComponentPtr component)
             entry.sensor_list_trace = sensor_list->TraceSensors("oct tree", trace_category_)
                ->OnAdded([this, e](std::string const& name, om::SensorPtr sensor) {
                   dm::ObjectId id = sensor->GetObjectId();
+
+                  dm::TracePtr dtorTrace = sensor->TraceObjectChanges("octtree dtor", trace_category_);
+                  dtorTrace->OnDestroyed_([this, id] {
+                     sensor_trackers_.erase(id);
+                  });
+
                   ASSERT(!stdutil::contains(sensor_trackers_, id));
-                  SensorTrackerPtr sensorTracker = std::make_shared<SensorTracker>(*this, e.lock(), sensor);
+                  SensorTrackerPtr sensorTracker = std::make_shared<SensorTracker>(navgrid_, e.lock(), sensor);
                   sensorTracker->Initialize();
-                  sensor_trackers_[id] = sensorTracker;
+
+                  sensor_trackers_[id] = std::make_pair(sensorTracker, dtorTrace);
                })
                ->OnRemoved([this](std::string const& name) {
                   NOT_YET_IMPLEMENTED();

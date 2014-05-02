@@ -9,6 +9,7 @@
 #include "radiant_exceptions.h"
 #include "xz_region_selector.h"
 #include "om/entity.h"
+#include "om/components/mod_list.ridl.h"
 #include "om/components/terrain.ridl.h"
 #include "om/error_browser/error_browser.h"
 #include "om/selection.h"
@@ -252,7 +253,7 @@ void Client::OneTimeIninitializtion()
       try {
          // Expand aliases to get the proper trace route.  This lets us trace things like 'stonehearth:foo'
          uri = res::ResourceManager2::GetInstance().ConvertToCanonicalPath(uri, ".json");
-      } catch (std::exception const& e) {
+      } catch (std::exception const&) {
          // Not an alias.  And that's OK!
       }
       return http_reactor_->InstallTrace(rpc::Trace(f.caller, f.call_id, uri));
@@ -665,7 +666,7 @@ void Client::InitializeGameObjects()
 
    renderer.Initialize();
 
-   //octtree_.reset(new phys::OctTree(dm::RENDER_TRACES));
+   octtree_.reset(new phys::OctTree(dm::RENDER_TRACES));
 
    luaModuleRouter_ = std::make_shared<rpc::LuaModuleRouter>(scriptHost_.get(), "client");
    luaObjectRouter_ = std::make_shared<rpc::LuaObjectRouter>(scriptHost_.get(), GetAuthoringStore());
@@ -905,7 +906,7 @@ void Client::EndUpdate(const proto::EndUpdate& msg)
       if (rootEntity) {
          rootObject_ = rootEntity;
          Renderer::GetInstance().SetRootEntity(rootEntity);
-         //octtree_->SetRootEntity(rootEntity);
+         octtree_->SetRootEntity(rootEntity);
       }
    }
 

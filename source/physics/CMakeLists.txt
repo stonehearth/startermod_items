@@ -11,6 +11,7 @@ add_library(physics STATIC
             region_collision_shape_tracker.cpp
             vertical_pathing_region_tracker.cpp
             sensor_tracker.cpp
+            sensor_tile_tracker.cpp
             )
 
 add_dependencies(physics

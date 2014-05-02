@@ -140,7 +140,7 @@ public:
    Region operator-(const Region& other) const;
 
    std::ostream& Format(std::ostream& os) const {
-      os << "( " << min << " - " << max << " )";
+      os << "(" << min << " - " << max << ")";
       return os;
    }
 

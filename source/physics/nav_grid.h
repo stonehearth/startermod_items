@@ -44,6 +44,7 @@ class NavGrid {
       friend VerticalPathingRegionTracker;
       friend MobTracker;
       friend SensorTracker;
+      friend SensorTileTracker;
 
       int GetTraceCategory();
       void AddTerrainTileTracker(om::EntityRef entity, csg::Point3 const& offset, om::Region3BoxedPtr tile);

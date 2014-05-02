@@ -97,7 +97,7 @@ void PathFinderDst::ClipAdjacentToTerrain()
 float PathFinderDst::EstimateMovementCost(csg::Point3 const& start) const
 {
    if (world_space_adjacent_region_.IsEmpty()) {
-      return INT_MAX;
+      return FLT_MAX;
    }
    csg::Point3 end = world_space_adjacent_region_.GetClosestPoint(start);
    return sim_.GetOctTree().GetMovementCost(start, end);
