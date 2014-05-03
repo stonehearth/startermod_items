@@ -22,13 +22,10 @@ function StaticScenarioService:initialize()
          self._feature_size = sv._feature_size
       end);
 
+   self._dm = stonehearth.dm
    self._last_optimized_rect_count = 10
    self._reveal_distance = radiant.util.get_config('sight_radius', 64) + 8
-   self._difficulty_increment_distance = radiant.util.get_config('scenario.difficulty_increment_distance', 256)
-   self._starting_location_exclusion_radius = radiant.util.get_config('scenario.starting_location_exclusion_radius', 64)
    self._region_optimization_threshold = radiant.util.get_config('region_optimization_threshold', 1.2)
-
-   assert(self._starting_location_exclusion_radius < self._difficulty_increment_distance)
    
    self:_parse_scenario_index()
    if self._rng then
@@ -64,7 +61,7 @@ function StaticScenarioService:_parse_scenario_index()
    local properties, category, error_message
 
    -- load all the categories
-   for name, properties in pairs(scenario_index.categories) do
+   for name, properties in pairs(scenario_index.static.categories) do
       -- parse activation type
       if not ActivationType.is_valid(properties.activation_type) then
          log:error('Error parsing "%s": Invalid activation_type "%s".', file, tostring(properties.activation_type))
@@ -73,7 +70,7 @@ function StaticScenarioService:_parse_scenario_index()
    end
 
    -- load the scenarios into the categories
-   for _, file in pairs(scenario_index.scenarios.static) do
+   for _, file in pairs(scenario_index.static.scenarios) do
       properties = radiant.resources.load_json(file)
 
       -- parse category
@@ -124,7 +121,8 @@ function StaticScenarioService:place_immediate_scenarios(habitat_map, elevation_
 end
 
 function StaticScenarioService:place_revealed_scenarios(habitat_map, elevation_map, tile_offset_x, tile_offset_y)
-   local difficulty_map = self:_derive_difficulty_map(habitat_map, tile_offset_x, tile_offset_y)
+   local difficulty_map = self._dm:derive_difficulty_map(habitat_map, tile_offset_x, tile_offset_y, 
+      self._feature_size, self._starting_location)
    local scenarios = self:_select_scenarios(habitat_map, ActivationType.revealed)
 
    self:_place_scenarios(scenarios, habitat_map, elevation_map, difficulty_map, tile_offset_x, tile_offset_y,
@@ -265,33 +263,6 @@ function StaticScenarioService:_mark_scenario_map(map, value, scenario_info)
    end
 end
 
--- this may eventually move outside of this class
-function StaticScenarioService:_derive_difficulty_map(habitat_map, tile_offset_x, tile_offset_y)
-   local feature_size = self._feature_size
-   local starting_location = self._starting_location
-   local difficulty_increment_distance = self._difficulty_increment_distance
-   local cell_center = feature_size/2
-   local difficulty_map = Array2D(habitat_map.width, habitat_map.height)
-
-   difficulty_map:fill_ij(
-      function (i, j)
-         local x = tile_offset_x + (i-1)*feature_size + cell_center
-         local y = tile_offset_y + (j-1)*feature_size + cell_center
-         local tile_center = Point2(x, y)
-         local distance = starting_location:distance_to(tile_center)
-
-         if distance < self._starting_location_exclusion_radius then
-            -- sentinel that excludes placement
-            return 'x'
-         end
-
-         local difficulty = math.floor(distance/difficulty_increment_distance)
-         return difficulty
-      end
-   )
-
-   return difficulty_map
-end
 
 function StaticScenarioService:_place_scenarios(scenarios, habitat_map, elevation_map, difficulty_map, tile_offset_x, tile_offset_y, place_fn)
    local rng = self._rng

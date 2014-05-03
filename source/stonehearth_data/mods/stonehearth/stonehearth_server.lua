@@ -12,6 +12,7 @@ local service_creation_order = {
    'personality',
    'inventory',
    'population',
+   'dm',
    'static_scenario',
    'object_tracker',
    'world_generation',
