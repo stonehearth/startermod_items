@@ -40,7 +40,7 @@ function WorldGenerationService:create_new_game(seed, async)
    self._height_map_renderer = HeightMapRenderer(self._terrain_info)
    self._landscaper = Landscaper(self._terrain_info, self._rng, self._async)
 
-   self._scenario_service = stonehearth.scenario
+   self._scenario_service = stonehearth.static_scenario
    self._scenario_service:create_new_game(self._feature_size, seed)
    self._habitat_manager = HabitatManager(self._terrain_info, self._landscaper)
 
@@ -301,7 +301,7 @@ function WorldGenerationService:_place_scenarios(habitat_map, elevation_map, off
 
    local seconds = Timer.measure(
       function()
-         self._scenario_service:place_static_scenarios(habitat_map, elevation_map, offset_x, offset_y)
+         self._scenario_service:place_immediate_scenarios(habitat_map, elevation_map, offset_x, offset_y)
 
          if self._starting_location then
             -- add scenarios as tiles are generated

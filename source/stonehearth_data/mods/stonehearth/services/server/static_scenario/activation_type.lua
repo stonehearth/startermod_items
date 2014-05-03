@@ -1,6 +1,6 @@
 local ActivationType = {}
 
-ActivationType.static   = 'static'
+ActivationType.immediate = 'immediate'
 ActivationType.revealed = 'revealed'
 
 function ActivationType.is_valid(value)
