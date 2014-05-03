@@ -61,41 +61,60 @@ void MobTracker::MarkChanged()
       bounds_ = ComputeWorldBounds();
       if (bounds_ != last_bounds_) {
          NG_LOG(9) << "MobTracker for " << *entity << " changed (bounds:" << bounds_ << " last bounds:" << last_bounds_ << ")";
-         last_bounds_ = bounds_;
          GetNavGrid().AddCollisionTracker(last_bounds_, bounds_, shared_from_this());
+         last_bounds_ = bounds_;
       } else {
          NG_LOG(9) << "skipping MobTracker bookkeeping for " << *entity << " (bounds:" << bounds_ << " == last bounds:" << last_bounds_ << ")";
       }
    }
 }
 
-
 /*
  * MobTracker::GetOverlappingRegion
  *
  * Return the part of our region which overlaps the specified bounds.  Bounds are in
- * world space coordinates, so be sure to transform the region before clipping!
+ * world space coordinates!
  */
 csg::Region3 MobTracker::GetOverlappingRegion(csg::Cube3 const& bounds) const
 {
-   return ComputeWorldBounds().Translated(GetEntityPosition()) & bounds;
+   return ComputeWorldBounds() & bounds;
 }
 
+/*
+ * MobTracker::GetType
+ *
+ * Return the type of the mob tracker
+ */
 TrackerType MobTracker::GetType() const
 {
    return MOB;
 }
 
+/*
+ * MobTracker::GetBounds
+ *
+ * Return the bounds of the mob in this tracker, in world coordinates
+ */
 csg::Cube3 const& MobTracker::GetBounds() const
 {
    return bounds_;
 }
 
+/*
+ * MobTracker::Intersects
+ *
+ * Return whether or not the specified `worldBounds` overlaps with this entity.
+ */
 bool MobTracker::Intersects(csg::Cube3 const& worldBounds) const
 {
    return worldBounds.Intersects(bounds_);
 }
 
+/*
+ * MobTracker::ComputeWorldBounds
+ *
+ * Compute the bounds of the entity based on its location and collision type.
+ */
 csg::Cube3 MobTracker::ComputeWorldBounds() const
 {
    om::MobPtr mob = mob_.lock();

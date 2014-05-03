@@ -22,6 +22,13 @@ NavGridTile::NavGridTile() :
 {
 }
 
+/* 
+ * -- NavGridTile::NavGridTile
+ *
+ * Construct a new NavGridTile.  This is a fake move constructor so we can put
+ * these things in a std::unordered_map<> by value.  ASSERT() that we're not
+ * trying to move an actual, live tile.
+ */
 NavGridTile::NavGridTile(NavGridTile &&other) :
    changed_slot_("tile changes")
 {
@@ -233,13 +240,26 @@ bool NavGridTile::ForEachTracker(ForEachTrackerCb cb)
    return ForEachTrackerInRange(trackers_.begin(), trackers_.end(), cb);
 }
 
-
+/*
+ * -- NavGridTile::ForEachTrackerForEntity
+ *
+ * Call the `cb` for all trackers for the specified `entityId`.  Stops iteration when
+ * the `cb` returns false.  Returns whether or not we made it through the whole
+ * list.
+ */ 
 bool NavGridTile::ForEachTrackerForEntity(dm::ObjectId entityId, ForEachTrackerCb cb)
 {
    auto range = trackers_.equal_range(entityId);
    return ForEachTrackerInRange(range.first, range.second, cb);
 }
 
+/*
+ * -- NavGridTile::ForEachTrackerInRange
+ *
+ * Call the `cb` for all trackers in the specified range.  Stops iteration when
+ * the `cb` returns false.  Returns whether or not we made it through the whole
+ * list.
+ */ 
 bool NavGridTile::ForEachTrackerInRange(TrackerMap::const_iterator begin, TrackerMap::const_iterator end, ForEachTrackerCb cb)
 {
    while (begin != end) {
@@ -258,6 +278,12 @@ bool NavGridTile::ForEachTrackerInRange(TrackerMap::const_iterator begin, Tracke
    return true;
 }
 
+/*
+ * -- NavGridTile::RegisterChangeCb
+ *
+ * Calls the `cb` whenever the state of the NavGridTile changes.  See 
+ * NavGridTile::ChangeNotification for more details.
+ */ 
 core::Guard NavGridTile::RegisterChangeCb(ChangeCb cb)
 {
    return changed_slot_.Register(cb);

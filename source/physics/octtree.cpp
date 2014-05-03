@@ -49,7 +49,8 @@ T WorldToLocal(const T& coord, const om::Entity& entity)
 
 OctTree::OctTree(int trace_category) :
    trace_category_(trace_category),
-   navgrid_(trace_category)
+   navgrid_(trace_category),
+   enable_sensor_traces_(false)
 {
 }
 
@@ -102,27 +103,29 @@ void OctTree::OnComponentAdded(dm::ObjectId id, om::ComponentPtr component)
             break;
          };
          case om::SensorListObjectType: {
-            om::EntityRef e = entity;
-            om::SensorListPtr sensor_list = std::static_pointer_cast<om::SensorList>(component);
-            entry.sensor_list_trace = sensor_list->TraceSensors("oct tree", trace_category_)
-               ->OnAdded([this, e](std::string const& name, om::SensorPtr sensor) {
-                  dm::ObjectId id = sensor->GetObjectId();
+            if (enable_sensor_traces_) {
+               om::EntityRef e = entity;
+               om::SensorListPtr sensor_list = std::static_pointer_cast<om::SensorList>(component);
+               entry.sensor_list_trace = sensor_list->TraceSensors("oct tree", trace_category_)
+                  ->OnAdded([this, e](std::string const& name, om::SensorPtr sensor) {
+                     dm::ObjectId id = sensor->GetObjectId();
 
-                  dm::TracePtr dtorTrace = sensor->TraceObjectChanges("octtree dtor", trace_category_);
-                  dtorTrace->OnDestroyed_([this, id] {
-                     sensor_trackers_.erase(id);
-                  });
+                     dm::TracePtr dtorTrace = sensor->TraceObjectChanges("octtree dtor", trace_category_);
+                     dtorTrace->OnDestroyed_([this, id] {
+                        sensor_trackers_.erase(id);
+                     });
 
-                  ASSERT(!stdutil::contains(sensor_trackers_, id));
-                  SensorTrackerPtr sensorTracker = std::make_shared<SensorTracker>(navgrid_, e.lock(), sensor);
-                  sensorTracker->Initialize();
+                     ASSERT(!stdutil::contains(sensor_trackers_, id));
+                     SensorTrackerPtr sensorTracker = std::make_shared<SensorTracker>(navgrid_, e.lock(), sensor);
+                     sensorTracker->Initialize();
 
-                  sensor_trackers_[id] = std::make_pair(sensorTracker, dtorTrace);
-               })
-               ->OnRemoved([this](std::string const& name) {
-                  NOT_YET_IMPLEMENTED();
-               })
-               ->PushObjectState();
+                     sensor_trackers_[id] = std::make_pair(sensorTracker, dtorTrace);
+                  })
+                  ->OnRemoved([this](std::string const& name) {
+                     NOT_YET_IMPLEMENTED();
+                  })
+                  ->PushObjectState();
+            }
          }
       }
       navgrid_.TrackComponent(component);
@@ -441,4 +444,9 @@ bool OctTree::CanStandOn(om::EntityPtr entity, const csg::Point3& at) const
 void OctTree::RemoveNonStandableRegion(om::EntityPtr e, csg::Region3& r) const
 {
    return navgrid_.RemoveNonStandableRegion(e, r);
+}
+
+void OctTree::EnableSensorTraces(bool enabled)
+{
+   enable_sensor_traces_ = enabled;
 }

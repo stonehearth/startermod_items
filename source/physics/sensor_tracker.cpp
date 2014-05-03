@@ -74,8 +74,11 @@ void SensorTracker::OnSensorMoved()
       csg::Point3 location = mob->GetWorldGridLocation();
       bounds_ = sensor->GetCube().Translated(location);
 
-      ST_LOG(3) << "sensor moved to " << location << ".  bounds are now " << bounds_;
-      TraceNavGridTiles();
+      ST_LOG(3) << "sensor moved to " << location << ".  bounds are now " << bounds_ << "(last bounds: " << last_bounds_ << ")";
+      if (bounds_ != last_bounds_) {
+         TraceNavGridTiles();
+         last_bounds_ = bounds_;
+      }
    }
 }
 
@@ -108,10 +111,11 @@ void SensorTracker::TraceNavGridTiles()
                                             current.max - csg::Point3(1, 0, 1));
 
    for (csg::Point3 const& cursor : current) {
-      // We're on the inner ring.  Need to subscribe to remove events.
-      // We're on the fringe.  Need to subscribe to move events.
-      int flags = inner.Contains(cursor) ? NavGridTile::ENTITY_ADDED : NavGridTile::ENTITY_MOVED;
-      flags |= NavGridTile::ENTITY_REMOVED;
+      int flags = NavGridTile::ENTITY_ADDED | NavGridTile::ENTITY_REMOVED;
+      if (!inner.Contains(cursor)) {
+         // We're on the fringe.  Need to subscribe to move events.
+         flags |= NavGridTile::ENTITY_MOVED;
+      }
 
       auto i = _sensorTileTrackers.find(cursor);
       if (i != _sensorTileTrackers.end()) {

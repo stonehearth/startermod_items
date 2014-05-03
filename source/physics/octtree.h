@@ -17,6 +17,8 @@ class OctTree {
       void SetRootEntity(om::EntityPtr);
       void Cleanup();
 
+      void EnableSensorTraces(bool enabled);
+
       // good!
       bool CanStandOn(om::EntityPtr entity, const csg::Point3& at) const;
       void RemoveNonStandableRegion(om::EntityPtr e, csg::Region3& r) const;
@@ -67,6 +69,7 @@ class OctTree {
       std::map<dm::ObjectId, std::pair<SensorTrackerPtr, dm::TracePtr>>  sensor_trackers_;
       core::Guard                               guards_;
       mutable NavGrid                           navgrid_;
+      bool                                      enable_sensor_traces_;
       int                                       trace_category_;
 };
 

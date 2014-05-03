@@ -235,6 +235,8 @@ void Simulation::ShutdownDataObjectTraces()
 void Simulation::InitializeGameObjects()
 {
    octtree_ = std::unique_ptr<phys::OctTree>(new phys::OctTree(dm::OBJECT_MODEL_TRACES));
+   octtree_->EnableSensorTraces(true);
+
    scriptHost_.reset(new lua::ScriptHost("server"));
 
    lua_State* L = scriptHost_->GetInterpreter();

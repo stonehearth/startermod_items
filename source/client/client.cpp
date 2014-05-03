@@ -625,24 +625,27 @@ void Client::InitializeDataObjectTraces()
 
    game_render_tracer_ = std::make_shared<dm::TracerBuffered>("client render", *store_);
    authoring_render_tracer_ = std::make_shared<dm::TracerBuffered>("client tmp render", *authoringStore_);
+   game_object_model_traces_ = std::make_shared<dm::TracerSync>("client om");
    store_->AddTracer(game_render_tracer_, dm::RENDER_TRACES);
    store_->AddTracer(game_render_tracer_, dm::LUA_SYNC_TRACES);
    store_->AddTracer(game_render_tracer_, dm::LUA_ASYNC_TRACES);
    store_->AddTracer(game_render_tracer_, dm::RPC_TRACES);
+   store_->AddTracer(game_object_model_traces_, dm::OBJECT_MODEL_TRACES);
 
-   object_model_traces_ = std::make_shared<dm::TracerSync>("client om");
+   authoring_object_model_traces_ = std::make_shared<dm::TracerSync>("client om");
    authoringStore_->AddTracer(authoring_render_tracer_, dm::RENDER_TRACES);
    authoringStore_->AddTracer(authoring_render_tracer_, dm::LUA_SYNC_TRACES);
    authoringStore_->AddTracer(authoring_render_tracer_, dm::LUA_ASYNC_TRACES);
    authoringStore_->AddTracer(authoring_render_tracer_, dm::RPC_TRACES);
-   authoringStore_->AddTracer(object_model_traces_, dm::OBJECT_MODEL_TRACES);
+   authoringStore_->AddTracer(authoring_object_model_traces_, dm::OBJECT_MODEL_TRACES);
 }
 
 void Client::ShutdownDataObjectTraces()
 {
    game_render_tracer_.reset();
    authoring_render_tracer_.reset();
-   object_model_traces_.reset();
+   game_object_model_traces_.reset();
+   authoring_object_model_traces_.reset();
 
    receiver_->Shutdown();
 }

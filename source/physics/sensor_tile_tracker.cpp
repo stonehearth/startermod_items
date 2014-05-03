@@ -13,14 +13,36 @@
 using namespace radiant;
 using namespace radiant::phys;
 
-#define ST_LOG(level)              LOG(physics.sensor_tracker, level) << "[" << _sensorTracker.GetLogPrefix() << " @ " << _index << "] "
+#define ST_LOG(level)              LOG(physics.sensor_tracker, level) << "[" << _sensorTracker.GetLogPrefix() << " @ index " << _index << "] "
+
+static std::string FlagsToString(int flags)
+{
+   bool first = true;
+   std::ostringstream s;
+
+#define ADD_FLAG(name)              \
+   if (flags & NavGridTile::name) { \
+      if (!first) {                 \
+         s << " ";                  \
+      }                             \
+      s << #name;                   \
+      first = false;                \
+   }
+
+   ADD_FLAG(ENTITY_ADDED)
+   ADD_FLAG(ENTITY_MOVED)
+   ADD_FLAG(ENTITY_REMOVED)
+
+#undef ADD_FLAG
+   return s.str();
+}
 
 SensorTileTracker::SensorTileTracker(SensorTracker& sensorTracker, csg::Point3 const& index, int flags) :
    _index(index),
    _sensorTracker(sensorTracker),
    _flags(0)
 {
-   ST_LOG(8) << "installing new tracker at " << index << "(flags: " << flags << ")";
+   ST_LOG(8) << "installing new tracker at " << index << "(flags: " << FlagsToString(flags) << ")";
 
    NavGridTile& tile = _sensorTracker.GetNavGrid().GridTileNonResident(_index);
    _ngtChangeGuard = tile.RegisterChangeCb([this](NavGridTile::ChangeNotification const& n) {
@@ -37,10 +59,12 @@ SensorTileTracker::~SensorTileTracker()
 
 void SensorTileTracker::UpdateFlags(int flags)
 {
-   if (flags == _flags) {
-      ST_LOG(8) << "current flags == new flags (" << flags << ").  nop.";
+   // If the flags haven't changed and the move flag is *not* set, we don't have to craw
+   // everything.
+   if (flags == _flags && ((_flags & NavGridTile::ENTITY_MOVED) == 0)) {
+      ST_LOG(8) << "current flags == new flags (" << FlagsToString(flags) << ").  nop.";
    } else {
-      ST_LOG(8) << "setting flags to " << _flags << ")";
+      ST_LOG(8) << "setting flags to " << FlagsToString(_flags) << ")";
       _flags = flags;
 
       EntityFlatMap entitiesToRemove = std::move(_entities);
@@ -48,19 +72,30 @@ void SensorTileTracker::UpdateFlags(int flags)
 
       NavGridTile& tile = _sensorTracker.GetNavGrid().GridTileNonResident(_index);
       tile.ForEachTracker([this, &entitiesToRemove](CollisionTrackerPtr tracker) {
+         csg::Cube3 const& bounds = _sensorTracker.GetBounds();
          om::EntityPtr entity = tracker->GetEntity();
-         if (entity && tracker->Intersects(_sensorTracker.GetBounds())) {
-            dm::ObjectId entityId = entity->GetObjectId();
-            entitiesToRemove.erase(entityId);
-            _entities[entityId] = entity;
+         if (entity) {
+            if (tracker->Intersects(bounds)) {
+               ST_LOG(7) << "in init sensor tile " << *entity << " overlaps " << bounds << " (~" << tracker->GetOverlappingRegion(bounds).GetBounds() << ")";
+
+               dm::ObjectId entityId = entity->GetObjectId();
+               entitiesToRemove.erase(entityId);
+               _entities[entityId] = entity;
+            } else {
+               ST_LOG(7) << "in init sensor tile " << *entity << " does not overlap " << bounds << ".";
+            }
+         } else {
+            ST_LOG(7) << "got invalid entity in sensor tracker.  seriously?";
          }
          return true;
       });
 
       for (auto const& entry : entitiesToRemove) {
+         ST_LOG(7) << "in init sensor tile, removing " << entry.first << " from sensor";
          _sensorTracker.TryRemoveEntityFromSensor(entry.first);
       }
       for (auto const& entry : _entities) {
+         ST_LOG(7) << "in init sensor tile, adding " << entry.first << " to sensor";
          _sensorTracker.TryAddEntityToSensor(entry.first, entry.second);
       }
    }
@@ -73,7 +108,7 @@ bool SensorTileTracker::ContainsEntity(dm::ObjectId entityId)
 
 void SensorTileTracker::OnTileChanged(NavGridTile::ChangeNotification const& n)
 {
-   ST_LOG(8) << "got change notification (entityId:" << n.entityId << " reason:" << n.reason << ")";
+   ST_LOG(8) << "got change notification (entityId:" << n.entityId << " reason:" << FlagsToString(n.reason) << " flags:" << FlagsToString(_flags) << ")";
    if ((n.reason & _flags) != 0) {
       switch (n.reason) {
       case NavGridTile::ENTITY_ADDED:
@@ -98,11 +133,13 @@ void SensorTileTracker::OnTrackerAdded(CollisionTrackerPtr tracker)
    if (entity) {
       dm::ObjectId entityId = entity->GetObjectId();
       if (tracker->Intersects(bounds)) {
-         ST_LOG(7) << "added" << *entity << " overlaps " << bounds << " (~" << tracker->GetOverlappingRegion(bounds).GetBounds() << ")";
+         ST_LOG(7) << "added " << *entity << " overlaps " << bounds << " (~" << tracker->GetOverlappingRegion(bounds).GetBounds() << ")";
          OnEntityAdded(entityId, entity);
       } else {
-         ST_LOG(7) << "added" << *entity << " does not overlap " << bounds << ".  ignoring.";
+         ST_LOG(7) << "added " << *entity << " does not overlap " << bounds << ".  ignoring.";
       }
+   } else {
+      ST_LOG(3) << "invalid entity!  why does this tracker still exists?";
    }
 }
 
@@ -120,6 +157,8 @@ void SensorTileTracker::OnTrackerChanged(CollisionTrackerPtr tracker)
          ST_LOG(7) "moved " << *entity << " does not overlap " << bounds << ".  checking for removal...";
          OnEntityRemoved(entityId);
       }
+   } else {
+      ST_LOG(3) << "invalid entity!  why does this tracker still exists?";
    }
 }
 

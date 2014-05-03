@@ -3,7 +3,7 @@ local Point3  = _radiant.csg.Point3
 local Point3f = _radiant.csg.Point3f
 local Terrain = _radiant.om.Terrain
 
-local WORLD_SIZE = 32
+local WORLD_SIZE = 64
 local DEFAULT_FACTION = 'civ'
 
 local _all_entities = {}
