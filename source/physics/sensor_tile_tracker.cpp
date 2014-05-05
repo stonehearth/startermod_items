@@ -92,13 +92,7 @@ void SensorTileTracker::UpdateFlags(int flags)
       NavGridTile& tile = navgrid.GridTileNonResident(_index);
 
       _ngtChangeGuard = tile.RegisterChangeCb([this](NavGridTile::ChangeNotification const& n) {
-         ST_LOG(8) << "got change notification (entityId:" << n.entityId << " reason:" << FlagsToString(n.reason) << " flags:" << FlagsToString(_flags) << ")";
-         if ((n.reason & (NavGridTile::ENTITY_ADDED | NavGridTile::ENTITY_MOVED)) != 0 &&
-             (_flags & NavGridTile::ENTITY_MOVED) == 0) {
-            ASSERT(n.tracker);
-            _sensorTracker.AddEntity(n.entityId, n.tracker->GetEntity());
-         }
-         _sensorTracker.CheckEntity(n.entityId, n.tracker ? n.tracker->GetEntity() : om::EntityRef());
+         CheckEntity(n.reason, n.entityId, n.tracker ? n.tracker->GetEntity() : nullptr);
       });
 
    } else if ((_flags & NavGridTile::ENTITY_MOVED) == 0) {
@@ -112,8 +106,28 @@ void SensorTileTracker::UpdateFlags(int flags)
    // Loop through every tracker on this tile and figure out if it overlaps our sensor bounds.
    NavGridTile& tile = navgrid.GridTileNonResident(_index);
    tile.ForEachTracker([this](CollisionTrackerPtr tracker) {
-      dm::ObjectId id = tracker->GetEntityId();
-      _sensorTracker.CheckEntity(id, tracker->GetEntity());
+      om::EntityPtr entity = tracker->GetEntity();
+      dm::ObjectId entityId = entity->GetObjectId();
+      CheckEntity(NavGridTile::ENTITY_MOVED, entityId, entity);
       return true;
    });
+}
+
+/* 
+ * -- SensorTileTracker::CheckEntity
+ *
+ * Check to see if an entity is inside/outside the sensor.  If we only care about adds and
+ * this is an add notification, the entity definitely is!  Otherwise, we just don't know and
+ * have to ask the SensorTracker.
+ */
+void SensorTileTracker::CheckEntity(NavGridTile::ChangeNotifications reason, dm::ObjectId entityId, om::EntityPtr entity)
+{
+   ST_LOG(8) << "got change notification (entityId:" << entityId << " reason:" << FlagsToString(reason) << " flags:" << FlagsToString(_flags) << ")";
+   if ((reason & (NavGridTile::ENTITY_ADDED | NavGridTile::ENTITY_MOVED)) != 0 &&
+       (_flags & NavGridTile::ENTITY_MOVED) == 0) {
+          ASSERT(entity);
+          _sensorTracker.AddEntity(entityId, entity);
+          return;
+   }
+   _sensorTracker.CheckEntity(entityId, entity);
 }

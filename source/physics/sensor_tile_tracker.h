@@ -22,6 +22,9 @@ public:
    void UpdateFlags(int flags);
 
 private:
+   void CheckEntity(NavGridTile::ChangeNotifications reason, dm::ObjectId entityId, om::EntityPtr entity);
+
+private:
    SensorTracker& _sensorTracker;
    core::Guard    _ngtChangeGuard;
    int            _flags;
