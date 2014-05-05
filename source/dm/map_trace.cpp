@@ -6,6 +6,8 @@
 using namespace radiant;
 using namespace radiant::dm;
 
+#define TRACE_LOG(level)            LOG(dm.trace.map, level) << "[map trace <" << GetShortTypeName<M::Key>() << "," << GetShortTypeName<M::Value>() << "> " << GetReason() << " id:" << GetMapObjectId() << "] "
+
 template <typename M>
 MapTrace<M>::MapTrace(const char* reason, M const& m) :
    TraceImpl(reason),
@@ -50,6 +52,7 @@ std::shared_ptr<MapTrace<M>> MapTrace<M>::OnUpdated(UpdatedCb updated)
 template <typename M>
 void MapTrace<M>::SignalObjectState()
 {
+   TRACE_LOG(9) << "signaling object state of " << map_.Size() << " entries";
    SignalUpdated(map_.GetContainer(), KeyList());
 }
 
@@ -94,6 +97,12 @@ void MapTrace<M>::SignalUpdated(ChangeMap const& changed, KeyList const& removed
          }
       }
    }
+}
+
+template <typename M>
+ObjectId MapTrace<M>::GetMapObjectId() const
+{
+   return map_.GetObjectId();
 }
 
 #define CREATE_MAP(M)    template MapTrace<M>;

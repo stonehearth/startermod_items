@@ -550,7 +550,7 @@ float BfsPathFinder::EstimateCostToSolution()
       return cost;
    }
    if (travel_distance_ > max_travel_distance_) {
-      BFS_LOG(3) << "bfs exceeded range " << max_travel_distance_ * phys::TILE_SIZE << ".  estimated max cost is INT_MAX";
+      BFS_LOG(3) << "bfs exceeded range " << max_travel_distance_ * phys::TILE_SIZE << ".  estimated max cost is FLT_MAX";
       return FLT_MAX;
    }
    BFS_LOG(3) << "bfs still expanding.  estimated max cost is " << explored_distance_;
@@ -620,7 +620,7 @@ float BfsPathFinder::GetMaxExploredDistance() const
  *
  */
 
-void BfsPathFinder::Log(int level, std::string const& s)
+void BfsPathFinder::Log(uint level, std::string const& s)
 {
    BFS_LOG(level) << s;
 }

@@ -235,6 +235,8 @@ void Simulation::ShutdownDataObjectTraces()
 void Simulation::InitializeGameObjects()
 {
    octtree_ = std::unique_ptr<phys::OctTree>(new phys::OctTree(dm::OBJECT_MODEL_TRACES));
+   octtree_->EnableSensorTraces(true);
+
    scriptHost_.reset(new lua::ScriptHost("server"));
 
    lua_State* L = scriptHost_->GetInterpreter();
@@ -413,15 +415,6 @@ void Simulation::UpdateGameState()
       GetScript().ReportCStackThreadException(GetScript().GetCallbackThread(), e);
    }
    profile_next_lua_update_ = false;
-}
-
-void Simulation::UpdateCollisions()
-{
-   MEASURE_TASK_TIME("collisions")
-
-   // Collision detection...
-   SIM_LOG_GAMELOOP(7) << "updating collision system";
-   GetOctTree().Update(now_);
 }
 
 void Simulation::EncodeBeginUpdate(std::shared_ptr<RemoteClient> c)
@@ -696,7 +689,6 @@ void Simulation::Mainloop()
 
    if (!paused_) {
       UpdateGameState();
-      UpdateCollisions();
       ProcessTaskList();
       ProcessJobList();
       FireLuaTraces();

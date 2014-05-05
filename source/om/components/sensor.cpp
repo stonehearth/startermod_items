@@ -22,7 +22,7 @@ void Sensor::SerializeToJson(json::Node& node) const
 void Sensor::UpdateIntersection(std::unordered_map<dm::ObjectId, om::EntityRef> const& intersection)
 {
    // xxx: move this whole routine into the dm::Set class?  It would
-   // facilitiate optimization...
+   // facilitate optimization...
 
    EntityRef e = GetEntity();
    EntityPtr entity = e.lock();
@@ -49,4 +49,9 @@ void Sensor::UpdateIntersection(std::unordered_map<dm::ObjectId, om::EntityRef> 
          }
       }
    }
+}
+
+dm::Map<dm::ObjectId, std::weak_ptr<Entity>>& Sensor::GetContainer()
+{
+   return contents_;
 }

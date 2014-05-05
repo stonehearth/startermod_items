@@ -32,6 +32,7 @@ protected:
    void SignalChanged(Key const& key, Value const& value) ;
    void SignalObjectState() override;
    void SignalUpdated(ChangeMap const& changed, KeyList const& removed);
+   ObjectId GetMapObjectId() const;
 
 protected:
    friend Store;

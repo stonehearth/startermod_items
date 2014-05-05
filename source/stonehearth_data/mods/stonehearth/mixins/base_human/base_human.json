@@ -50,7 +50,7 @@
             "stonehearth:actions:combat:idle:shuffle",
             "stonehearth:actions:combat:hit_stun",
             "stonehearth:actions:chase_entity", 
-            "stonehearth:actions:free_time:dispatcher"
+            "stonehearth:actions:free_time:dispatcher" 
          ],
           "observers": [
             "stonehearth:observers:enemy_observer",
