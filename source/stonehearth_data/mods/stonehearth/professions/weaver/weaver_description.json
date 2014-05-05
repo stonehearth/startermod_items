@@ -1,5 +1,5 @@
 {
-   "profession_type": "weaver",
+   "profession_id": "weaver",
    "name": "Weaver",      
    "script": "file(/professions/weaver/weaver.lua)",
    "outfit": "file(weaver_outfit)",

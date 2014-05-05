@@ -1,5 +1,5 @@
 {
-   "profession_type": "carpenter",
+   "profession_id": "carpenter",
    "name": "Carpenter",      
    "description": "Builds stuff out of wood",
    "script": "file(carpenter.lua)",

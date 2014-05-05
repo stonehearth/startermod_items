@@ -1,5 +1,5 @@
 {
-   "profession_type": "footman",
+   "profession_id": "footman",
    "name": "Footman",      
    "description": "A melee fighter",
    "script": "file(footman.lua)",

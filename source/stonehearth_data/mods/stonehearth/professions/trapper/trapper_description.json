@@ -1,5 +1,5 @@
 {
-  "profession_type": "trapper",
+  "profession_id": "trapper",
   "name": "Trapper",      
   "description": "Traps stuff, yay.",
   "script": "file(/professions/trapper/trapper.lua)",

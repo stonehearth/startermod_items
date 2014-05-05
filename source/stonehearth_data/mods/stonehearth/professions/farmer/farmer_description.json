@@ -1,5 +1,5 @@
 {
-  "profession_type": "farmer",
+  "profession_id": "farmer",
   "name": "Farmer",      
   "script": "file(farmer.lua)",
   "outfit": "file(farmer_outfit)",
