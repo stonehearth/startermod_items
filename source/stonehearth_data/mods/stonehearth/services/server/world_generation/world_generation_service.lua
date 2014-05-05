@@ -42,6 +42,9 @@ function WorldGenerationService:create_new_game(seed, async)
 
    self._scenario_service = stonehearth.static_scenario
    self._scenario_service:create_new_game(self._feature_size, seed)
+
+   stonehearth.dynamic_scenario:create_new_game()
+
    self._habitat_manager = HabitatManager(self._terrain_info, self._landscaper)
 
    self.blueprint_generator = BlueprintGenerator()
