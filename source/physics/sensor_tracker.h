@@ -13,6 +13,10 @@ BEGIN_RADIANT_PHYSICS_NAMESPACE
 /* 
  * -- SensorTracker
  *
+ * Tracks individual Sensors for Entities in the world.  Most of the work is done by
+ * the SensorTileTracker, which tracks changes to individual NavGrid tiles.  The
+ * SensorTracker just manages the lifetime aof the SensorTrackerTiles and arbitrates
+ * access to the actual sensor data.
  */
 class SensorTracker : public std::enable_shared_from_this<SensorTracker> {
 public:
@@ -24,8 +28,8 @@ public:
    NavGrid& GetNavGrid() const;
    csg::Cube3 const& GetBounds() const;
 
-   void TryRemoveEntityFromSensor(dm::ObjectId entityId); 
-   void TryAddEntityToSensor(dm::ObjectId entityId, om::EntityRef e);
+   void OnEntityRemovedFromSensorTileTracker(dm::ObjectId entityId); 
+   void OnEntityAddedToSensorTileTracker(dm::ObjectId entityId, om::EntityRef e);
 
 private:
    void OnSensorMoved();
@@ -33,7 +37,7 @@ private:
 
 private:
    typedef std::unordered_map<csg::Point3, SensorTileTrackerPtr, csg::Point3::Hash>    SensorTileTrackers;
-
+   typedef std::unordered_map<dm::ObjectId, int> EntitiesTrackedMap;
 private:
    NavGrid&          navgrid_;
    csg::Cube3        last_bounds_;
@@ -43,6 +47,7 @@ private:
    om::MobRef        mob_;
    dm::TracePtr      mob_trace_;
    SensorTileTrackers  _sensorTileTrackers;
+   EntitiesTrackedMap  _entitiesTracked;
 };
 
 END_RADIANT_PHYSICS_NAMESPACE

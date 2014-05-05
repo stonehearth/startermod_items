@@ -14,6 +14,9 @@ using namespace radiant::phys;
 
 #define ST_LOG(level)              LOG(physics.sensor_tracker, level) << "[" << GetLogPrefix() << "] "
 
+// Logs the contents of the sensor, if the physics.sensor_tracker log level exceeds the
+// specified level. 
+
 #define ST_LOG_SENSOR_CONTENTS(level, contents) \
    if (LOG_IS_ENABLED(physics.sensor_tracker, level)) { \
       for (auto const& entry : contents) { \
@@ -42,6 +45,8 @@ SensorTracker::SensorTracker(NavGrid& navgrid, om::EntityPtr entity, om::SensorP
 /* 
  * -- SensorTracker::Initialize
  *
+ * Create a trace on the Mob component of the Entity owning this sensor so we can
+ * track its position in the world.
  */
 void SensorTracker::Initialize()
 {
@@ -65,6 +70,8 @@ void SensorTracker::Initialize()
 /* 
  * -- SensorTracker::OnSensorMoved
  *
+ * Called when the Entity the sensor is attached to moves.  If this results in a
+ * change in our bounds, re-evaluate the status of all the SensorTileTrackers.
  */
 void SensorTracker::OnSensorMoved()
 {
@@ -82,16 +89,35 @@ void SensorTracker::OnSensorMoved()
    }
 }
 
+/* 
+ * -- SensorTracker::GetNavGrid
+ *
+ * Return the NavGrid object.
+ */
 NavGrid& SensorTracker::GetNavGrid() const
 {
    return navgrid_;
 }
 
+/* 
+ * -- SensorTracker::GetBounds
+ *
+ * Return a csg::Cube3 representing the visible region of the sensor, in world
+ * coordinates.
+ */
 csg::Cube3 const& SensorTracker::GetBounds() const
 {
    return bounds_;
 }
 
+/* 
+ * -- SensorTracker::TraceNavGridTiles
+ *
+ * Applies differences from last_boudns_ to bounds_ to all the SensorTileTrackers.
+ * Trackers which are no longer in the bounds are removed, and trackers which have
+ * moves from the interior region to the fringe (or vice versa) will recompute
+ * their overlapping Entities.
+ */
 void SensorTracker::TraceNavGridTiles()
 {
    ST_LOG(5) << "tracking tiles (bounds: " << bounds_ << " last_bounds: " << last_bounds_ << ")";
@@ -107,8 +133,15 @@ void SensorTracker::TraceNavGridTiles()
       }
    }
 
-   csg::Cube3 inner = csg::Cube3::Construct(current.min + csg::Point3(1, 0, 1),
-                                            current.max - csg::Point3(1, 0, 1));
+   // The `inner` cube represents the set of NavGridTiles for which Entities are
+   // definitely inside the sensor.  It is much more efficient to track these, since
+   // we don't have to check their collision shape against the sensor shape when they
+   // move.  Use the `inner` box to determine which flags to pass to the SensorTileTracker
+   // (ADDED only for things in `inner` and ADDED | CHANGED for things outside of
+   // `inner`, otherwise knows as the "fringe").
+
+   csg::Cube3 inner = csg::Cube3::Construct(current.min + csg::Point3(1, 1, 1),
+                                            current.max - csg::Point3(1, 1, 1));
 
    for (csg::Point3 const& cursor : current) {
       int flags = NavGridTile::ENTITY_ADDED | NavGridTile::ENTITY_REMOVED;
@@ -126,42 +159,66 @@ void SensorTracker::TraceNavGridTiles()
    }
 }
 
-void SensorTracker::TryRemoveEntityFromSensor(dm::ObjectId entityId)
+
+/* 
+ * -- SensorTracker::OnEntityRemovedFromSensorTileTracker
+ *
+ * Called by a SensorTileTracker whenever an Entity leaves the tracker.  We keep a reference
+ * count of how many SensorTileTrackers can see the entity, and only get rid of it when
+ * that count goes to 0.
+ */
+void SensorTracker::OnEntityRemovedFromSensorTileTracker(dm::ObjectId entityId)
 {
    auto sensor = sensor_.lock();
    if (sensor) {
-      auto& contents = sensor->GetContainer();
-      if (contents.find(entityId) != contents.end()) {
-         // xxx: to avoid this iteration, we could keep a count of the number of tiles which have an entity >_<
-         // or a backmap of entity ids to tiles which have that entity...
-         for (auto const& entry: _sensorTileTrackers) {
-            if (entry.second->ContainsEntity(entityId)) {
-               ST_LOG(7) << "entity " << entityId << " still in the tile_map.  not removing from sensor.";
-               return;
-            }
-         }
+      auto i = _entitiesTracked.find(entityId);
+      ASSERT(i != _entitiesTracked.end());
+      if (i != _entitiesTracked.end() && i->second == 1) {
+         _entitiesTracked.erase(i);
+
+         auto& contents = sensor->GetContainer();
+         ST_LOG(7) << "reference count for entity " << entityId << " is now 0 in remove";
          ST_LOG(7) << "entity " << entityId << " eradicated from the tile_map.  removing from sensor.";
          contents.Remove(entityId);
          ST_LOG_SENSOR_CONTENTS(9, contents)
+      } else {
+         --i->second;
+         ST_LOG(7) << "reference count for entity " << entityId << " is now " << i->second << " in remove";
       }
    }
 }
 
-void SensorTracker::TryAddEntityToSensor(dm::ObjectId entityId, om::EntityRef e)
+/* 
+ * -- SensorTracker::OnEntityAddedToSensorTileTracker
+ *
+ * Called by a SensorTileTracker whenever an Entity enters the tracker.  We keep a reference
+ * count of how many SensorTileTrackers can see the entity, and only get rid of it when
+ * that count goes to 0.
+ */
+void SensorTracker::OnEntityAddedToSensorTileTracker(dm::ObjectId entityId, om::EntityRef e)
 {
    auto sensor = sensor_.lock();
    if (sensor) {
-      auto& contents = sensor->GetContainer();
-      if (contents.find(entityId) == contents.end()) {
+      auto i = _entitiesTracked.find(entityId);
+      if (i != _entitiesTracked.end()) {
+         ++i->second;
+      } else {
+         _entitiesTracked[entityId] = 1;
+
+         auto& contents = sensor->GetContainer();
          ST_LOG(7) << "entity " << *e.lock() << " first added to tile map.  adding to sensor!.";
          contents.Add(entityId, e);
          ST_LOG_SENSOR_CONTENTS(9, contents)
-      } else {
-         ST_LOG(7) << "entity " << *e.lock() << " already in the tile_map.  not adding to sensor.";
       }
+      ST_LOG(7) << "reference count for entity " << entityId << " is now " << _entitiesTracked[entityId] << " in add";
    }
 }
 
+/* 
+ * -- SensorTracker::GetLogPrefix
+ *
+ * Helper for SensorTrackerTiles to make the log look prettier.
+ */
 std::string SensorTracker::GetLogPrefix() const
 {
    om::SensorPtr sensor = sensor_.lock();

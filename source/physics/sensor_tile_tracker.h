@@ -11,6 +11,8 @@ BEGIN_RADIANT_PHYSICS_NAMESPACE
 /* 
  * -- SensorTileTracker
  *
+ * Tracks which entities overlap the sensor for a particular NavGridTile, and
+ * communicates that back to the SensorTracker for updating the sensor contents.
  */
 class SensorTileTracker {
 public:
