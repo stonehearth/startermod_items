@@ -299,7 +299,7 @@ void RenderRenderInfo::Update()
             RebuildModels(render_info);
             SetDirtyBits(SCALE_DIRTY);
          }
-         if (dirty_ & MATERIAL_DIRTY && !(dirty_ & MODEL_DIRTY)) {
+         if (dirty_ & MATERIAL_DIRTY) {
             CheckMaterial(render_info);
             ReApplyMaterial();
          }

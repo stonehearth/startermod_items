@@ -47,7 +47,6 @@ class Pipeline : public core::Singleton<Pipeline> {
       H3DNode AddSharedMeshNode(H3DNode parent, ResourceCacheKey const& key, std::string const& material, std::function<void(csg::mesh_tools::mesh &, int)> create_mesh_fn);
 
       UniqueRenderable CreateVoxelNode(H3DNode parent, csg::Region3 const& model, std::string const& material_path, csg::Point3f const& offset, int userFlags);
-      UniqueRenderable CreateBlueprintNode(H3DNode parent, csg::Region3 const& model, float thickness, std::string const& material_path, csg::Point3f const& offset);
       UniqueRenderable CreateDesignationNode(H3DNode parent, csg::Region2 const& model, csg::Color4 const& outline_color, csg::Color4 const& stripes_color);
       UniqueRenderable CreateStockpileNode(H3DNode parent, csg::Region2 const& model, csg::Color4 const& interior_color, csg::Color4 const& border_color);
       UniqueRenderable CreateSelectionNode(H3DNode parent, csg::Region2 const& model, csg::Color4 const& interior_color, csg::Color4 const& border_color);

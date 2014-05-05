@@ -8,7 +8,6 @@ function Proxy:__init(derived, parent_proxy, uri_or_entity)
    self._derived = derived
    self._children = {}
    self._dependencies = {}
-   self._building = parent_proxy
    self._loaning_scaffolding_to = {}
 
    if type(uri_or_entity) == 'string' or not uri_or_entity then
@@ -31,7 +30,6 @@ function Proxy:__init(derived, parent_proxy, uri_or_entity)
    -- proxies get rendered in blueprint
    self._entity:add_component('render_info')
                      :set_material('materials/blueprint_gridlines.xml')
-                     --:set_model_mode('blueprint')
 end
 
 function Proxy:destroy()
@@ -119,6 +117,11 @@ end
 
 function Proxy:get_building()
    return self._building
+end
+
+function Proxy:set_building(building)
+   self._building = building
+   return self._derived
 end
 
 function Proxy:add_dependency(dependency)

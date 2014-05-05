@@ -24,6 +24,7 @@ function ProxyBuilder:__init(derived, on_mouse, on_keyboard)
    
    self._rotation = 0
    self._root_proxy = ProxyContainer(nil, 'stonehearth:entities:building')
+                        :set_building(self._root_proxy)
 
    local entity = self._root_proxy:get_entity()
    entity:add_component('stonehearth:no_construction_zone')
@@ -39,7 +40,7 @@ function ProxyBuilder:_clear()
       self._input_capture = nil
    end
    self._root_proxy:destroy()
-   self._root_proxy = ProxyContainer(nil)
+   self._root_proxy = nil
    self._columns = nil
    self._walls = nil
 end
@@ -81,22 +82,29 @@ end
 
 function ProxyBuilder:add_column()
    local column = ProxyColumn(self._root_proxy, self._brushes.column)
+                     :set_building(self._root_proxy)
+
    table.insert(self._columns, column)
    return column
 end
 
 function ProxyBuilder:add_wall()
    local wall = ProxyWall(self._root_proxy, self._brushes.wall)
+                     :set_building(self._root_proxy)
+
    table.insert(self._walls, wall)
    return wall
 end
 
 function ProxyBuilder:add_door()
    return ProxyPortal(self._root_proxy, self._brushes.door)
+            :set_building(self._root_proxy)
+
 end
 
 function ProxyBuilder:add_roof()
    return ProxyRoof(self._root_proxy, self._brushes.roof)
+            :set_building(self._root_proxy)
 end
 
 function ProxyBuilder:shift_down()
@@ -218,6 +226,12 @@ function ProxyBuilder:publish()
    end
 
    _radiant.call('stonehearth:build_structures', changed)
+      :done(function(e)
+            local id, blueprint = next(e.blueprints)
+            if blueprint and blueprint:is_valid() then
+               stonehearth.selection:select_entity(blueprint)
+            end
+         end)
    --TODO: you COULD put this in an "always" so the capture doesn't
    --go away till the fabricator appears, but the gap is so long
    --it looks like a bug

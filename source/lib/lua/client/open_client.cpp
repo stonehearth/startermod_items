@@ -91,16 +91,6 @@ om::EntityRef Client_GetSelectedEntity()
    return Client::GetInstance().GetSelectedEntity();
 }
 
-UniqueRenderable Client_CreateBlueprintNode(lua_State* L, 
-                                         H3DNode parent,
-                                         csg::Region3 const& model,
-                                         std::string const& material_path,
-                                         csg::Point3f const& origin)
-{
-   return Pipeline::GetInstance().CreateBlueprintNode(parent, model, 0.05f, material_path, -origin);
-}
-
-
 UniqueRenderable Client_CreateVoxelNode(lua_State* L, 
                                      H3DNode parent,
                                      csg::Region3 const& model,
@@ -480,7 +470,6 @@ void lua::client::open(lua_State* L)
             def("select_xz_region",                &Client_SelectXZRegionWithFlags),
             def("trace_render_frame",              &Client_TraceRenderFrame),
             def("set_cursor",                      &Client_SetCursor),
-            def("create_blueprint_node",           &Client_CreateBlueprintNode),
             def("create_voxel_node",               &Client_CreateVoxelNode),
             def("create_qubicle_matrix_node",      &Client_CreateQubicleMatrixNode),
             def("create_designation_node",         &Client_CreateDesignationNode),

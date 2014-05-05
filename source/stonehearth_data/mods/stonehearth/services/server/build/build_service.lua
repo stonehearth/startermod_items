@@ -58,7 +58,10 @@ end
 function BuildService:build_structures(session, proxies)
    local root = radiant.entities.get_root_entity()
    local town = stonehearth.town:get_town(session.player_id)
-   
+   local result = {
+      blueprints = {}
+   }
+
    self._faction = session.faction
    self._player_id = session.player_id
 
@@ -75,9 +78,10 @@ function BuildService:build_structures(session, proxies)
       if proxy.add_to_build_plan then
          blueprint:add_component('unit_info')
                   :set_display_name(string.format('!! Building %d', radiant.get_realtime()))
-         
          self:_begin_construction(blueprint)
          town:add_construction_blueprint(blueprint)
+
+         result.blueprints[blueprint:get_id()] = blueprint
       end
    end
 
@@ -103,7 +107,7 @@ function BuildService:build_structures(session, proxies)
       end
    end
 
-   return { success = true }
+   return result
 end
 
 function BuildService:set_building_active(building, active)

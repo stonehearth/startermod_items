@@ -162,35 +162,6 @@ H3DNode Pipeline::CreateModelNode(H3DNode parent, H3DRes geometry, std::string c
    return model_node;
 }
 
-UniqueRenderable Pipeline::CreateBlueprintNode(H3DNode parent,
-                                            csg::Region3 const& model,
-                                            float thickness,
-                                            std::string const& material_path,
-                                            csg::Point3f const& offset)
-{
-   H3DNode group = h3dAddGroupNode(parent, BUILD_STRING("blueprint node " << unique_id_++).c_str());
-
-   csg::mesh_tools::mesh panels_mesh, outline_mesh;
-
-   panels_mesh.SetOffset(offset);
-   outline_mesh.SetOffset(offset);
-   panels_mesh.SetColor(csg::Color4::FromString("#00DFFC"));
-   outline_mesh.SetColor(csg::Color4::FromString("#005FFB"));
-   csg::RegionTools3().ForEachPlane(model, [&](csg::Region2 const& plane, csg::PlaneInfo3 const& pi) {
-      csg::Region2f outline = csg::RegionTools2().GetInnerBorder(plane, thickness);
-      csg::Region2f panels = ToFloat(plane) - outline;
-      outline_mesh.AddRegion(outline, csg::ToFloat(pi));
-      panels_mesh.AddRegion(panels, csg::ToFloat(pi));
-   });
-   UniqueRenderable n1 = AddDynamicMeshNode(group, panels_mesh, material_path, 0);
-   UniqueRenderable n2 = AddDynamicMeshNode(group, outline_mesh, material_path, 0);
-
-   UniqueRenderable result(group, 0);
-   result.AddChild(n1);
-   result.AddChild(n2);
-   return result;
-}
-
 UniqueRenderable Pipeline::CreateVoxelNode(H3DNode parent,
                                         csg::Region3 const& model,
                                         std::string const& material,
