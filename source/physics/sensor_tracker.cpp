@@ -100,17 +100,6 @@ NavGrid& SensorTracker::GetNavGrid() const
 }
 
 /* 
- * -- SensorTracker::GetBounds
- *
- * Return a csg::Cube3 representing the visible region of the sensor, in world
- * coordinates.
- */
-csg::Cube3 const& SensorTracker::GetBounds() const
-{
-   return bounds_;
-}
-
-/* 
  * -- SensorTracker::TraceNavGridTiles
  *
  * Applies differences from last_boudns_ to bounds_ to all the SensorTileTrackers.
@@ -130,6 +119,9 @@ void SensorTracker::TraceNavGridTiles()
    for (csg::Point3 const& cursor : previous) {
       if (!current.Contains(cursor)) {
          _sensorTileTrackers.erase(cursor);
+         navgrid_.ForEachEntityAtIndex(cursor, [this](om::EntityPtr entity) {
+            CheckEntity(entity->GetObjectId(), entity);
+         });
       }
    }
 
@@ -159,61 +151,6 @@ void SensorTracker::TraceNavGridTiles()
    }
 }
 
-
-/* 
- * -- SensorTracker::OnEntityRemovedFromSensorTileTracker
- *
- * Called by a SensorTileTracker whenever an Entity leaves the tracker.  We keep a reference
- * count of how many SensorTileTrackers can see the entity, and only get rid of it when
- * that count goes to 0.
- */
-void SensorTracker::OnEntityRemovedFromSensorTileTracker(dm::ObjectId entityId)
-{
-   auto sensor = sensor_.lock();
-   if (sensor) {
-      auto i = _entitiesTracked.find(entityId);
-      ASSERT(i != _entitiesTracked.end());
-      if (i != _entitiesTracked.end() && i->second == 1) {
-         _entitiesTracked.erase(i);
-
-         auto& contents = sensor->GetContainer();
-         ST_LOG(7) << "reference count for entity " << entityId << " is now 0 in remove";
-         ST_LOG(7) << "entity " << entityId << " eradicated from the tile_map.  removing from sensor.";
-         contents.Remove(entityId);
-         ST_LOG_SENSOR_CONTENTS(9, contents)
-      } else {
-         --i->second;
-         ST_LOG(7) << "reference count for entity " << entityId << " is now " << i->second << " in remove";
-      }
-   }
-}
-
-/* 
- * -- SensorTracker::OnEntityAddedToSensorTileTracker
- *
- * Called by a SensorTileTracker whenever an Entity enters the tracker.  We keep a reference
- * count of how many SensorTileTrackers can see the entity, and only get rid of it when
- * that count goes to 0.
- */
-void SensorTracker::OnEntityAddedToSensorTileTracker(dm::ObjectId entityId, om::EntityRef e)
-{
-   auto sensor = sensor_.lock();
-   if (sensor) {
-      auto i = _entitiesTracked.find(entityId);
-      if (i != _entitiesTracked.end()) {
-         ++i->second;
-      } else {
-         _entitiesTracked[entityId] = 1;
-
-         auto& contents = sensor->GetContainer();
-         ST_LOG(7) << "entity " << *e.lock() << " first added to tile map.  adding to sensor!.";
-         contents.Add(entityId, e);
-         ST_LOG_SENSOR_CONTENTS(9, contents)
-      }
-      ST_LOG(7) << "reference count for entity " << entityId << " is now " << _entitiesTracked[entityId] << " in add";
-   }
-}
-
 /* 
  * -- SensorTracker::GetLogPrefix
  *
@@ -228,4 +165,41 @@ std::string SensorTracker::GetLogPrefix() const
       entityName = BUILD_STRING(*entity);
    }
    return BUILD_STRING("sensor " << (sensor ? sensor->GetName() : std::string("expired")) << " for " << entityName);
+}
+
+/* 
+ * -- SensorTracker::CheckEntity
+ *
+ * Check to see whether or not the entity should be added to the sensor
+ */
+void SensorTracker::CheckEntity(dm::ObjectId entityId, om::EntityRef e)
+{
+   auto sensor = sensor_.lock();
+   if (sensor) {
+      bool intersects = navgrid_.IntersectsWorldBounds(entityId, bounds_);
+      if (intersects) {
+         if (!e.expired()) {
+            AddEntity(entityId, e);
+         }
+      } else {
+         ST_LOG(7) << "removing entity " << entityId << " from sensor";
+         auto& contents = sensor->GetContainer();
+         contents.Remove(entityId);
+      }
+   }
+}
+
+/* 
+ * -- SensorTracker::AddEntity
+ *
+ * Unconditionally adds and Entity to the sensor.
+ */
+void SensorTracker::AddEntity(dm::ObjectId entityId, om::EntityRef e)
+{
+   auto sensor = sensor_.lock();
+   if (sensor) {
+      ST_LOG(7) << "adding entity " << entityId << " to sensor";
+      auto& contents = sensor->GetContainer();
+      contents.Add(entityId, e);
+   }
 }

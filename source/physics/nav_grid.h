@@ -2,6 +2,7 @@
 #define _RADIANT_PHYSICS_NAV_GRID_H
 
 #include <unordered_map>
+#include <boost/container/flat_map.hpp>
 #include "namespace.h"
 #include "om/om.h"
 #include "om/region.h"
@@ -32,6 +33,7 @@ class NavGrid {
       void RemoveNonStandableRegion(om::EntityPtr entity, csg::Region3& r);
       void ForEachEntityAtIndex(csg::Point3 const& index, ForEachEntityCb cb);
       void ForEachEntityInBounds(csg::Cube3 const& worldBounds, ForEachEntityCb cb);
+      bool IntersectsWorldBounds(dm::ObjectId entityId, csg::Cube3 const& worldBounds);
 
       bool IsValidStandingRegion(csg::Region3 const& r);
       void ShowDebugShapes(csg::Point3 const& pt, protocol::shapelist* msg);
@@ -65,7 +67,8 @@ class NavGrid {
    private: // private types
       typedef std::unordered_map<csg::Point3, NavGridTile, csg::Point3::Hash> NavGridTileMap;
       typedef std::vector<std::pair<csg::Point3, bool>> ResidentTileList;
-      typedef std::unordered_map<dm::ObjectId, CollisionTrackerPtr> CollisionTrackerMap;
+      typedef boost::container::flat_map<dm::ObjectId, CollisionTrackerPtr> CollisionTrackerFlatMap;
+      typedef std::unordered_map<dm::ObjectId, CollisionTrackerFlatMap> CollisionTrackerMap;
       typedef std::unordered_map<dm::ObjectId, dm::TracePtr> CollisionTrackerDtorMap;
       typedef std::unordered_map<csg::Point3, CollisionTrackerPtr, csg::Point3::Hash> TerrainTileCollisionTrackerMap;
 

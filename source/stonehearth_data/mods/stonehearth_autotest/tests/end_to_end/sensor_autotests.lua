@@ -77,7 +77,7 @@ end
 -- make sure a sensor can detect the ground and itself.
 function sensor_tests.trivial(autotest)
    local entity = create_default_sensor(autotest)
-   check_sensor(autotest, entity, { radiant.get_object(1), entity })
+   check_sensor(autotest, entity, { entity })
    autotest:success()
 end
 
@@ -96,7 +96,7 @@ function sensor_tests.out_of_range(autotest)
       OUTSIDE_SENSOR_1,
    }
 
-   local no_log_in_sensor = { radiant.get_object(1), entity }
+   local no_log_in_sensor = { entity }
    for _, point in ipairs(path) do
       move_to(autotest, log, point)
       check_sensor(autotest, entity, no_log_in_sensor)
@@ -109,11 +109,11 @@ function sensor_tests.move_out_of_range(autotest)
    local log = autotest.env:create_entity(OUTSIDE_SENSOR_1.x, OUTSIDE_SENSOR_1.z, 'stonehearth:oak_log')
 
    local function move_out_of_range(inside, outside)
-      autotest:log('moving object from inside to outside sensor range (%d, %d -> %d, %d)', inside.x, inside.z, outside.x, outside.z)
+      autotest:log('moving %s from inside to outside sensor range (%d, %d -> %d, %d)', log, inside.x, inside.z, outside.x, outside.z)
       move_to(autotest, log, inside)
-      check_sensor(autotest, entity, { radiant.get_object(1), entity, log })
+      check_sensor(autotest, entity, { entity, log })
       move_to(autotest, log, outside)
-      check_sensor(autotest, entity, { radiant.get_object(1), entity })
+      check_sensor(autotest, entity, { entity })
    end
    move_out_of_range(INSISE_SENSOR_FRINGE_1, OUTSIDE_SENSOR_1)
    move_out_of_range(INSISE_SENSOR_FRINGE_1, OUTSIDE_SENSOR_FRINGE_1)
@@ -127,11 +127,11 @@ function sensor_tests.move_into_range(autotest)
    local log = autotest.env:create_entity(OUTSIDE_SENSOR_1.x, OUTSIDE_SENSOR_1.z, 'stonehearth:oak_log')
 
    local function move_into_range(outside, inside)
-      autotest:log('moving object from outside to inside sensor range (%d, %d -> %d, %d)', outside.x, outside.z, inside.x, inside.z)
+      autotest:log('moving %s from outside to inside sensor range (%d, %d -> %d, %d)', log, outside.x, outside.z, inside.x, inside.z)
       move_to(autotest, log, outside)
-      check_sensor(autotest, entity, { radiant.get_object(1), entity })
+      check_sensor(autotest, entity, { entity })
       move_to(autotest, log, inside)
-      check_sensor(autotest, entity, { radiant.get_object(1), entity, log })
+      check_sensor(autotest, entity, { entity, log })
    end
    move_into_range(OUTSIDE_SENSOR_1, INSISE_SENSOR_FRINGE_1)
    move_into_range(OUTSIDE_SENSOR_1, INSIDE_SENSOR_INTERIOR_1)
@@ -159,7 +159,7 @@ function sensor_tests.moving_sensor(autotest)
    end
 
    local function check_moving_sensor(sensor_entity)
-      local expected = { radiant.get_object(1), sensor_entity }
+      local expected = { sensor_entity }
       local pos = radiant.entities.get_world_grid_location(sensor_entity)
       for _, entry in ipairs(logs) do
          local log_pos = entry.position

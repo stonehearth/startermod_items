@@ -50,6 +50,7 @@ NavGrid::NavGrid(int trace_category) :
 void NavGrid::TrackComponent(om::ComponentPtr component)
 {
    dm::ObjectId id = component->GetObjectId();
+   dm::ObjectId entityId = component->GetEntity().GetObjectId();
    CollisionTrackerPtr tracker;
    switch (component->GetObjectType()) {
       case om::MobObjectType: {
@@ -83,12 +84,13 @@ void NavGrid::TrackComponent(om::ComponentPtr component)
    }
 
    if (tracker) {
-      collision_trackers_[id] = tracker;
+      collision_trackers_[entityId][id] = tracker;
       tracker->Initialize();
       collision_tracker_dtors_[id] = component->TraceChanges("nav grid destruction", GetTraceCategory())
-                                          ->OnDestroyed([this, id]() {
+                                          ->OnDestroyed([this, id, entityId]() {
                                              NG_LOG(3) << "tracker " << id << " destroyed.  updating grid.";
-                                             collision_trackers_.erase(id);
+                                             CollisionTrackerPtr keepAlive = collision_trackers_[entityId][id];
+                                             collision_trackers_[entityId].erase(id);
                                              collision_tracker_dtors_.erase(id);
                                           });
    }
@@ -356,14 +358,16 @@ void NavGrid::ShowDebugShapes(csg::Point3 const& pt, protocol::shapelist* msg)
    }
    auto i = collision_trackers_.begin(), end = collision_trackers_.end();
    for (; i != end; i++) {
-      CollisionTrackerPtr tracker = i->second;
-      if (tracker->GetType() == MOB) {
-         MobTrackerPtr mob = std::static_pointer_cast<MobTracker>(tracker);
-         csg::Cube3f bounds = csg::ToFloat(mob->GetBounds()).Translated(-csg::Point3f(0.5f, 0, 0.5f));
-         protocol::box* box = msg->add_box();
-         bounds.min.SaveValue(box->mutable_minimum());
-         bounds.max.SaveValue(box->mutable_maximum());
-         mob_color.SaveValue(box->mutable_color());
+      for (auto const& entry : i->second) {
+         CollisionTrackerPtr tracker = entry.second;
+         if (tracker->GetType() == MOB) {
+            MobTrackerPtr mob = std::static_pointer_cast<MobTracker>(tracker);
+            csg::Cube3f bounds = csg::ToFloat(mob->GetBounds()).Translated(-csg::Point3f(0.5f, 0, 0.5f));
+            protocol::box* box = msg->add_box();
+            bounds.min.SaveValue(box->mutable_minimum());
+            bounds.max.SaveValue(box->mutable_maximum());
+            mob_color.SaveValue(box->mutable_color());
+         }
       }
    };
 }
@@ -439,4 +443,18 @@ void NavGrid::ForEachEntityInBounds(csg::Cube3 const& worldBounds, ForEachEntity
          return true;
       });
    }
+}
+
+bool NavGrid::IntersectsWorldBounds(dm::ObjectId entityId, csg::Cube3 const& worldBounds)
+{
+   auto i = collision_trackers_.find(entityId);
+   if (i != collision_trackers_.end()) {
+      for (auto const& entry : i->second) {
+         CollisionTrackerPtr tracker = entry.second;
+         if (tracker->Intersects(worldBounds)) {
+            return true;
+         }
+      }
+   }
+   return false;
 }

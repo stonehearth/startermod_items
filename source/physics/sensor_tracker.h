@@ -26,10 +26,9 @@ public:
    void Initialize();
    std::string GetLogPrefix() const;
    NavGrid& GetNavGrid() const;
-   csg::Cube3 const& GetBounds() const;
 
-   void OnEntityRemovedFromSensorTileTracker(dm::ObjectId entityId); 
-   void OnEntityAddedToSensorTileTracker(dm::ObjectId entityId, om::EntityRef e);
+   void CheckEntity(dm::ObjectId entityId, om::EntityRef e);
+   void AddEntity(dm::ObjectId entityId, om::EntityRef e);
 
 private:
    void OnSensorMoved();
