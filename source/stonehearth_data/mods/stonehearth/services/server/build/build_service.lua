@@ -31,7 +31,7 @@ function BuildService:_unpackage_proxy_data(proxy, blueprint_map)
    -- all blueprints have a 'stonehearth:construction_progress' component to track whether
    -- or not they're finished.  dependencies are also tracked here.
    local progress = blueprint:add_component('stonehearth:construction_progress')
-
+  
    -- Initialize the construction_data and entity_container components.  We can't
    -- handle these with :load_from_json(), since the actual value of the entities depends on
    -- what gets created server-side.  So instead, look up the actual entity that
@@ -73,16 +73,27 @@ function BuildService:build_structures(session, proxies)
       -- If this proxy needs to be added to the terrain, go ahead and do that now.
       -- This will also create fabricators for all the descendants of this entity
       if proxy.add_to_build_plan then
+         blueprint:add_component('unit_info')
+                  :set_display_name(string.format('!! Building %d', radiant.get_realtime()))
+         
          self:_begin_construction(blueprint)
          town:add_construction_blueprint(blueprint)
       end
    end
 
-   -- xxx: this whole "borrow scaffolding from" thing should go away when we factor scaffolding
-   -- out of the fabricator and into the build service!
-   for _, proxy in ipairs(proxies) do      
+   for _, proxy in ipairs(proxies) do
+      local blueprint = entity_map[proxy.entity_id]
+
+      if proxy.building_id then
+         local progress = blueprint:get_component('stonehearth:construction_progress')
+         local building = entity_map[proxy.building_id]
+         assert(building, string.format('could not find building %d in blueprint map', proxy.building_id))
+         progress:set_building_entity(building);
+      end
+   
+      -- xxx: this whole "borrow scaffolding from" thing should go away when we factor scaffolding
+      -- out of the fabricator and into the build service!
       if proxy.loan_scaffolding_to then
-         local blueprint = entity_map[proxy.entity_id]
          local cd = blueprint:add_component('stonehearth:construction_data')
          for _, borrower_id in ipairs(proxy.loan_scaffolding_to) do
             local borrower = entity_map[borrower_id]
@@ -95,16 +106,32 @@ function BuildService:build_structures(session, proxies)
    return { success = true }
 end
 
+function BuildService:set_building_active(building, active)
+   local function _set_active_recursive(blueprint, active)
+      local ec = blueprint:get_component('entity_container')  
+      if ec then
+         for id, child in ec:each_child() do
+            _set_active_recursive(child, active)
+         end
+      end
+      local cp = blueprint:get_component('stonehearth:construction_progress')
+      if cp then
+         cp:set_active(active)
+      end
+   end  
+   _set_active_recursive(building, active)
+end
+
 function BuildService:_begin_construction(blueprint, location)
    -- create a new fabricator...   to... you know... fabricate
-   local fabricator = self:_create_fabricator(blueprint)
+   local fabricator = self:create_fabricator_entity(blueprint)
    radiant.terrain.place_entity(fabricator, location)
 end
 
-function BuildService:_create_fabricator(blueprint)
+function BuildService:create_fabricator_entity(blueprint)
    -- either you're a fabricator or you contain things which may be fabricators.  not
    -- both!
-   local fabricator = radiant.entities.create_entity()
+   local fabricator = radiant.entities.create_entity('stonehearth:entities:fabricator')
    self:_init_fabricator(fabricator, blueprint)
    self:_init_fabricator_children(fabricator, blueprint)
    return fabricator
@@ -128,13 +155,16 @@ function BuildService:_init_fabricator(fabricator, blueprint)
                      :set_material('materials/blueprint_gridlines.xml')
                      --:set_model_mode('opaque')
    end
+   blueprint:add_component('stonehearth:construction_progress')   
+               :set_fabricator_entity(fabricator)
+
 end
 
 function BuildService:_init_fabricator_children(fabricator, blueprint)
    local ec = blueprint:get_component('entity_container')  
    if ec then
       for id, child in ec:each_child() do
-         local fc = self:_create_fabricator(child)
+         local fc = self:create_fabricator_entity(child)
          fabricator:add_component('entity_container'):add_child(fc)
       end
    end

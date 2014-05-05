@@ -19,7 +19,7 @@ function Fabricator:__init(name, entity, blueprint, project)
    self._blueprint_ladder = blueprint:get_component('vertical_pathing_region')   
    self._construction_data = blueprint:get_component('stonehearth:construction_data')
    self._traces = {}
-   self._activated = false
+   self._active = false
 
    assert(self._construction_data)
    assert(radiant.entities.get_player_id(self._blueprint) ~= '')
@@ -51,14 +51,13 @@ function Fabricator:__init(name, entity, blueprint, project)
    self:_trace_blueprint_and_project()
 end
 
-function Fabricator:start_building()
-   self._activated = true
-   self:_start_project()
-end
-
-function Fabricator:stop_building()
-   self._activated = false
-   self:_stop_project()
+function Fabricator:set_active(active)
+   self._active = active
+   if self._active then
+      self:_start_project()
+   else
+      self:_stop_project()
+   end
 end
 
 function Fabricator:_initialize_existing_project(project)  
@@ -97,11 +96,12 @@ function Fabricator:_create_new_project()
                      :set_region(rgn)
    self._entity:add_component('entity_container')
                      :add_child(self._project)
-
+                        
    -- get fabrication specific info, if available.  copy it into the project, too
    -- so everything gets rendered correctly.
    local state = self._construction_data:get_savestate()
    self._project:add_component('stonehearth:construction_data', state)
+                     :set_fabricator_entity(self._entity)
 
    -- we'll replicate the ladder into the project as it gets built up.
    self._blueprint_ladder = blueprint:get_component('vertical_pathing_region')
@@ -224,9 +224,9 @@ function Fabricator:_start_project()
    -- If we're tearing down the project, we only need to start the teardown
    -- task.  If we're building up and all our dependencies are finished
    -- building up, start the pickup and fabricate tasks
-   log:detail('%s start_project (activated:%s teardown:%s deps_finished:%s)', self._blueprint, self._activated, self._teardown, self._dependencies_finished)
-   
-   if self._activated then
+   log:detail('%s start_project (activated:%s teardown:%s deps_finished:%s)', self._blueprint, self._active, self._teardown, self._dependencies_finished)
+
+   if self._active then
       if self._teardown then
          run_teardown_task = true
       elseif self._dependencies_finished then

@@ -2,8 +2,26 @@ local Renderer = class()
 
 function Renderer:initialize()
    self._sv = self.__saved_variables:get_data()
+
    if self._sv.visible_region_uri then
       self:_install_regions()
+   end
+   self:set_ui_mode('normal')
+end
+
+function Renderer:get_ui_mode()
+   return self._ui_mode
+end
+
+function Renderer:set_ui_mode(ui_mode)
+   if self._ui_mode ~= ui_mode then
+      self._ui_mode = ui_mode
+      if ui_mode == 'normal' then
+         h3dSetGlobalUniform("gridlineAlpha", 0.0)
+      elseif ui_mode == 'hud' then
+         h3dSetGlobalUniform("gridlineAlpha", 0.5)
+      end
+      radiant.events.trigger_async(radiant.events, 'stonehearth:ui_mode_changed')
    end
 end
 

@@ -1,0 +1,10 @@
+{
+   "type": "entity",
+   "entity_data" : {
+      "stonehearth:render_materials" : {
+         "selected" : "materials/blueprint_gridlines_selected.xml",
+         "building_selected" : "materials/blueprint_gridlines_building_selected.xml",
+         "hover" : "materials/blueprint_gridlines_hover.xml"
+      }
+   }   
+}

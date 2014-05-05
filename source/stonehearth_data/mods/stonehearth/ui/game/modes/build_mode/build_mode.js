@@ -9,20 +9,14 @@ App.StonehearthBuildModeView = App.View.extend({
 
       // track the selection
       $(top).on("radiant_selection_changed", function (_, e) {
-         self._onEntitySelected(e);
+         self._selectedEntity = e.selected_entity;
+         self._onStateChanged()
       });
-
-      /*
-      $(top).on('select_stockpile', function(_, stockpile) {
-         self._showStockpileUi(stockpile);
-      });
-      */
 
       // track game mode changes and nuke any UI that we've show when we exit build mode
       $(top).on('mode_changed', function(_, mode) {
-         if (mode != 'build') {
-            self._destroyCurrentSubView();
-         } 
+         self._mode = mode;
+         self._onStateChanged();
       });
 
       // show the building designer when the "design building" button on the start menu
@@ -39,82 +33,43 @@ App.StonehearthBuildModeView = App.View.extend({
 
    // Nuke the trace on the selected entity
    destroy: function() {
-      if (this.selectedEntityTrace) {
-         this.selectedEntityTrace.destroy();
-         this.selectedEntityTrace = null;
-      }
-
-      this._destroyCurrentSubView();
+      this._destroyBuildingDesigner();
       this._super();
    },
 
-   _showBuildingDesigner: function() {
-      this._destroyCurrentSubView();
-      this._subView = App.gameView.addView(App.StonehearthBuildingDesignerView);
-   },
-
-   _destroyCurrentSubView: function() {
-      if (this._subView) {
-         this._subView.destroy();
+   _showBuildingDesigner: function(uri) {
+      if (this._buildDesignerView) {
+         this._buildDesignerView.set('uri', uri);
+      } else {      
+         this._buildDesignerView = App.gameView.addView(App.StonehearthBuildingDesignerView, {
+               uri: uri
+            });
       }
    },
 
-   // when an entity is selected, trace it to determine if the UI cares about that
-   // entity and how to respond
-   _onEntitySelected: function(e) {
-      var self = this;
-      var entity = e.selected_entity
-      
-      if (!entity) {
-         return;
-      }
-
-      // nuke the old trace
-      if (self.selectedEntityTrace) {
-         self.selectedEntityTrace.destroy();
-      }
-
-      // trace the properties so we can tell if we need to popup the properties window for the object
-      self.selectedEntityTrace = radiant.trace(entity)
-         .progress(function(result) {
-            self._examineEntity(result);
-         })
-         .fail(function(e) {
-            console.log(e);
-         });
-   },
-
-   // make the UI respond to the entity that has been selected. Show/hide hits of UI, etc.
-   _examineEntity: function(entity) {
-
-      if (!entity && this._subView) {
-         this._destroyCurrentSubView();
-      }
-
-      if (entity['stonehearth:fabricator'] || entity['stonehearth:construction_data']) {
-         this._showBuildingDesigner();
+   _destroyBuildingDesigner: function() {
+      if (this._buildDesignerView) {
+         this._buildDesignerView.destroy();
+         this._buildDesignerView = null;
       }
    },
 
-   _showStockpileUi: function(entity) {
-      // not applicable for the build mode. Shown as an example
-      /* 
-      var self = this;
+   _onStateChanged: function() {
+      var showSubView = this._selectedEntity && this._mode == 'build';
 
-      this._destroyCurrentSubView();
-
-      var uri = typeof(entity) == 'string' ? entity : entity.__self;
-      
-      this._subView = App.gameView.addView(App.StonehearthStockpileView, { 
-            uri: uri,
-            position: {
-               my : 'center bottom',
-               at : 'left+' + App.stonehearthClient.mouseX + " " + 'top+' + (App.stonehearthClient.mouseY - 10),
-               of : $(document),
-               collision : 'fit'
-            }
-         });
+      /*
+      if (showSubView) {
+         showSubView = (this._selectedEntity['stonehearth:fabricator'] ||
+                        this._selectedEntity['stonehearth:construction_data']);
+      }
       */
+
+      if (showSubView) {
+         //var uri = typeof(entity) == 'string' ? this._selectedEntity : this._selectedEntity.__self;
+         this._showBuildingDesigner(this._selectedEntity);
+      } else {
+         this._destroyBuildingDesigner();
+      }
    },
 
 });

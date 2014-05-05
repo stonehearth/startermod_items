@@ -15,22 +15,22 @@
       </div>
 
       <div id="palettes">
+         <div id="materials" class="window">
+            <div class="title">{{ blueprint.unit_info.name }}</div>
+            <div class="description">{{ blueprint.unit_info.description }}</div>
+         </div>
+
          <div id="hint" class="window">
             hint
          </div>
 
-         <div id="materials" class="window">
-            <div class="title">Materials</div>
+         <div id="buildingControls" class="window">
+            <div class="title">{{ building.unit_info.name }}</div>
             <br><br><br>
+            <button class="warn" id="stopBuilding">{{i18n stonehearth:remove}}</button>
+            <button class="ok" id="startBuilding">Start Building</button>
          </div>      
       </div>
 
-      <div id="buildingControls" class="window">
-         <div class="title">New Building</div>
-         <br><br><br>
-         <button class="warn">{{i18n stonehearth:remove}}</button>
-         <button class="ok">Start Building</button>
-
-      </div>      
    </div>
 </script>

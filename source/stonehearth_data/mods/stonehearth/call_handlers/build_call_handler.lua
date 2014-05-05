@@ -15,4 +15,10 @@ function BuildCallHandler:build_structures(session, request, changes)
    return { success = true }
 end
 
+-- set whether or not the specified building should be worked on.
+function BuildCallHandler:set_building_active(session, request, building, active)
+   stonehearth.build:set_building_active(building, active)
+   return { success = true }
+end
+
 return BuildCallHandler

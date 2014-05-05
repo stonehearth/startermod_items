@@ -1,0 +1,10 @@
+{
+   "type": "entity", 
+   "components": {
+      "unit_info": {
+         "icon": "...",
+         "name": "Building", 
+         "description": "A building.  woot!!"
+      }
+   }
+}

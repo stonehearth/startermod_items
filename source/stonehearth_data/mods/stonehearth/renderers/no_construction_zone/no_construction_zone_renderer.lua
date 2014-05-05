@@ -3,7 +3,7 @@ local Color4 = _radiant.csg.Color4
 
 local NoConstructionZoneRenderer = class()
 
-function NoConstructionZoneRenderer:update(render_entity, ncz)
+function NoConstructionZoneRenderer:__init(render_entity, ncz)
    self:_destroy_node()
    
    if ncz.region2 then

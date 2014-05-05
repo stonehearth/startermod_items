@@ -6,27 +6,43 @@ local Point2 = _radiant.csg.Point2
 
 local StockpileRenderer = class()
 
-function StockpileRenderer:__init()
+function StockpileRenderer:__init(render_entity, datastore)
    self._color = Color4(0, 153, 255, 76)
-   self._ui_view_mode = 'normal'
+   self._ui_view_mode = stonehearth.renderer:get_ui_mode()
    self._stockpile_items = {}
 
-   _radiant.call('stonehearth:get_ui_mode'):done(
-      function (o)
-         self._ui_view_mode = o.mode
-      end
-   )
-
    radiant.events.listen(radiant.events, 'stonehearth:ui_mode_changed', self, self._on_ui_mode_changed)
+
+   self._parent_node = render_entity:get_node()
+   self._size = { 0, 0 }   
+   self._datastore = datastore
+   self._region = _radiant.client.alloc_region2()
+  
+   self._datastore_trace = datastore:trace_data('rendering stockpile designation')
+   self._datastore_trace:on_changed(function()
+         self:_update()
+      end)
+   self:_update()
 end
 
-function StockpileRenderer:_on_ui_mode_changed(e)
-  if self._ui_view_mode ~= e.mode then
-     self._ui_view_mode = e.mode
+function StockpileRenderer:destroy()
+   if self._datastore_trace then
+      self._datastore_trace:destroy()
+      self._datastore_trace = nil
+   end
+   self:_destroy_renderables()
+   radiant.events.unlisten(radiant.events, 'stonehearth:ui_mode_changed', self, self._on_ui_mode_changed)
+end
 
-     self:_update_item_states(e.mode, self._stockpile_items)
-     self:_update_stockpile_renderer()
-  end
+
+function StockpileRenderer:_on_ui_mode_changed(e)
+   local mode = stonehearth.renderer:get_ui_mode()
+   if self._ui_view_mode ~= mode then
+      self._ui_view_mode = mode
+
+      self:_update_item_states(mode, self._stockpile_items)
+      self:_update_stockpile_renderer()
+   end
 end
 
 function StockpileRenderer:_update_stockpile_renderer()
@@ -77,24 +93,6 @@ function StockpileRenderer:_mode_to_material_kind(mode)
    end
 end
 
-function StockpileRenderer:update(render_entity, saved_variables)
-   self._parent_node = render_entity:get_node()
-   self._size = { 0, 0 }   
-   self._savestate = saved_variables
-   self._region = _radiant.client.alloc_region2()
-
-   if self._promise then
-      self._promise:destroy()
-      self._promise = nil
-   end
-   
-   self._promise = saved_variables:trace_data('rendering stockpile designation')
-   self._promise:on_changed(function()
-         self:_update()
-      end)
-   self:_update()
-end
-
 function StockpileRenderer:_diff_and_update_item_states(updated_items)
    local added_items = {}
    local temp_items = {}
@@ -117,13 +115,8 @@ function StockpileRenderer:_diff_and_update_item_states(updated_items)
    self:_update_item_states('', removed_items)
 end
 
-function StockpileRenderer:destroy()
-   self:_clear()
-   radiant.events.unlisten(radiant.events, 'stonehearth:ui_mode_changed', self, self._on_ui_mode_changed)
-end
-
 function StockpileRenderer:_update()
-   local data = self._savestate:get_data()
+   local data = self._datastore:get_data()
    if data and data.size then
       self:_diff_and_update_item_states(data.stocked_items);
       self._stockpile_items = data.stocked_items
@@ -142,7 +135,8 @@ function StockpileRenderer:_regenerate_node()
       cursor:add_cube(Rect2(Point2(0, 0), self._size))
    end)
    
-   self:_clear()
+   self:_destroy_renderables()
+   
    if self:_show_hud() then
       assert(self._hud_renderable == nil)
       self._hud_renderable = _radiant.client.create_designation_node(self._parent_node, self._region:get(), self._color, self._color);
@@ -155,7 +149,7 @@ function StockpileRenderer:_show_hud()
    return self._ui_view_mode == 'hud'
 end
 
-function StockpileRenderer:_clear()
+function StockpileRenderer:_destroy_renderables()
    if self._dirt_renderable then
       self._dirt_renderable:destroy()
       self._dirt_renderable = nil

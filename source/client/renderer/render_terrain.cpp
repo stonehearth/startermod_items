@@ -230,7 +230,7 @@ void RenderTerrain::UpdateRenderRegion(RenderTilePtr render_tile)
       mesh = csg::mesh_tools().SetTesselator(tess_map)
                               .ConvertRegionToMesh(tesselatedRegion);
    
-      UniqueRenderable terrainRenderable = Pipeline::GetInstance().AddDynamicMeshNode(terrain_root_node_.get(), mesh, "materials/voxel.material.xml", UserFlags::Terrain);
+      UniqueRenderable terrainRenderable = Pipeline::GetInstance().AddDynamicMeshNode(terrain_root_node_.get(), mesh, "materials/terrain.material.xml", UserFlags::Terrain);
       h3dSetNodeTransform(terrainRenderable.getNode(), (float)render_tile->location.x, (float)render_tile->location.y, (float)render_tile->location.z, 0, 0, 0, 1, 1, 1);
       render_tile->SetNode(terrainRenderable.getNode());
       // It's okay to just drop UniqueRenderable on the floor, here (at least, right now), since we don't (as yet) free terrain resources.

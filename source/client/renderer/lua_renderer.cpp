@@ -141,6 +141,11 @@ std::ostream& operator<<(std::ostream& os, const RaycastResult& in)
    return os;
 }
 
+void h3dSetGlobalUniformFloat(const char* name, float value)
+{
+   h3dSetGlobalUniform(name, H3DUniformType::FLOAT, &value);
+}
+
 DEFINE_INVALID_JSON_CONVERSION(RaycastResult);
 
 void LuaRenderer::RegisterType(lua_State* L)
@@ -149,7 +154,6 @@ void LuaRenderer::RegisterType(lua_State* L)
       namespace_("_radiant") [
          namespace_("renderer") [
             def("enable_perf_logging", &Renderer_EnablePerfLogging),
-
             namespace_("camera") [
                def("translate",    &Camera_Translate),
                def("get_forward",  &Camera_GetForward),
@@ -254,7 +258,8 @@ void LuaRenderer::RegisterType(lua_State* L)
       def("h3dSetNodeParamF",                &h3dSetNodeParamF),
       def("h3dSetNodeParamStr",              &h3dSetNodeParamStr),
       def("h3dSetNodeFlags",                 &h3dSetNodeFlags),
-      def("h3dGetNodeFlags",                 &h3dGetNodeFlags)
+      def("h3dGetNodeFlags",                 &h3dGetNodeFlags),
+      def("h3dSetGlobalUniform",             &h3dSetGlobalUniformFloat)
    ];
    globals(L)["H3DRootNode"] = H3DRootNode;
 };

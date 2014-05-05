@@ -2,12 +2,14 @@ local voxel_brush_util = require 'services.server.build.voxel_brush_util'
 local Point3 = _radiant.csg.Point3
 local ConstructionDataRenderer = class()
 
-function ConstructionDataRenderer:__init(render_entity)
+function ConstructionDataRenderer:__init(render_entity, datastore)
    self._parent_node = render_entity:get_node()
    self._entity = render_entity:get_entity()
    self._render_entity = render_entity 
    -- self:_set_render_mode('rpg')
 
+   self._construction_data = datastore:get_data()
+   
    self._component_trace = self._entity:trace_components('render construction component')
                               :on_added(function(key, value)
                                     self:_trace_collision_shape()
@@ -15,6 +17,7 @@ function ConstructionDataRenderer:__init(render_entity)
                               :on_removed(function(key)
                                     self:_trace_collision_shape()
                                  end)
+   self:_trace_collision_shape()
 end
 
 function ConstructionDataRenderer:destroy()
@@ -30,14 +33,6 @@ function ConstructionDataRenderer:destroy()
       self._unique_renderable:destroy()
       self._unique_renderable = nil
    end
-end
-
-function ConstructionDataRenderer:update(render_entity, obj)
-   self:_trace_collision_shape()  
-   self._construction_data = self._entity:get_component('stonehearth:construction_data'):get_data()
-
-   self:_trace_collision_shape()
-   self:_recreate_render_node()
 end
 
 function ConstructionDataRenderer:_trace_collision_shape()
