@@ -14,20 +14,19 @@ function CombatTest:__init()
    end
 
    local citizens = {
-      self:place_citizen(-15, -15),
-      self:place_citizen(-15,  15),
-      -- self:place_citizen( 15, -15),
-      -- self:place_citizen( 15,  15),
+      self:place_citizen(-15, -15, 'footman', 'stonehearth:wooden_sword'),
+      -- self:place_citizen(-15,  15, 'footman', 'stonehearth:wooden_sword'),
+      -- self:place_citizen( 15, -15, 'footman', 'stonehearth:wooden_sword'),
+      -- self:place_citizen( 15,  15, 'footman', 'stonehearth:wooden_sword'),
    }
 
    local enemies = {
       self:place_enemy(-2, -2),
-      self:place_enemy(-2,  2),
+      -- self:place_enemy(-2,  2),
       -- self:place_enemy( 2, -2),
       -- self:place_enemy( 2,  2),
    }
 
-   self:equip_all(citizens)
    self:equip_all(enemies)
 
    -- self:at(3000,
@@ -40,13 +39,19 @@ end
 
 function CombatTest:equip_all(entities)
    for _, entity in pairs(entities) do
-      self:equip_weapon(entity)
+      self:equip_weapon(entity, 'stonehearth:wooden_sword')
    end
 end
 
-function CombatTest:equip_weapon(entity)
+function CombatTest:equip_weapon(entity, weapon_uri)
+   local weapon = radiant.entities.create_entity(weapon_uri)
    local equipment = entity:add_component('stonehearth:equipment')
-   equipment:equip_item('stonehearth:wooden_sword', 'main_hand')
+   equipment:equip_item(weapon, 'mainHand')
+
+   -- HACK: remove the talisman glow effect from the weapon
+   -- might want to remove other talisman related commands as well
+   -- TODO: make the effects and commands specific to the model variant
+   weapon:remove_component('effect_list')
 end
 
 function CombatTest:create_enemy_kingdom()

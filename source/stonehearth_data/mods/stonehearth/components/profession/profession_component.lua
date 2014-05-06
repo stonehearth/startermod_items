@@ -23,7 +23,7 @@ function ProfessionComponent:get_profession_id()
    return self._sv.profession_id
 end
 
-function ProfessionComponent:promote_to(profession_uri)
+function ProfessionComponent:promote_to(profession_uri, talisman_uri)
    local json = radiant.resources.load_json(profession_uri, true)
    if json then
       self:demote()
@@ -32,7 +32,7 @@ function ProfessionComponent:promote_to(profession_uri)
       self:_load_profession_script(json)
       self:_set_unit_info(json)
       self:_equip_outfit(json)
-      self:_call_profession_script('promote', json)
+      self:_call_profession_script('promote', json, talisman_uri)
 
       --Let people know that the promotion has (probably) happened.
       -- xxx: is there a better way?  How about if the town listens to all 'stonehearth:profession_changed'
