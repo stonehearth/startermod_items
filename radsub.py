@@ -11,10 +11,15 @@ if os.environ.has_key('RADIANT_ROOT'):
 else:
   rad_root = '..'
 
+if '-d' in sys.argv:
+  build_type = 'Debug'
+else:
+  build_type = 'RelWithDebInfo'
+  
 
 sh_cwd = rad_root + '/stonehearth/source/stonehearth_data/'
-sh_exe_path = rad_root + '/stonehearth/build/source/stonehearth/RelWithDebInfo/Stonehearth.exe'
-sh_args = '--game.main_mod=stonehearth_autotest --simulation.game_speed=4 --logging.log_level=1 --renderer.minimized=true'
+sh_exe_path = rad_root + '/stonehearth/build/source/stonehearth/' + build_type + '/Stonehearth.exe'
+sh_args = '--game.main_mod=stonehearth_autotest --simulation.game_speed=4 --logging.log_level=1'
 
 if '-i' in sys.argv:
   print 'Running in interactive mode'

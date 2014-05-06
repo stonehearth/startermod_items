@@ -28,7 +28,13 @@
             <div class="title">{{ building.unit_info.name }}</div>
             <br><br><br>
             <button class="warn" id="stopBuilding">{{i18n stonehearth:remove}}</button>
-            <button class="ok" id="startBuilding">Start Building</button>
+            <button {{bind-attr class=building.active:pause:start}} id="startBuilding">
+               {{#if building.active }}
+               Pause Building
+               {{else}}
+               Start Building
+               {{/if}}
+            </button>
          </div>      
       </div>
 

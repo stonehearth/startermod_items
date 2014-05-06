@@ -6,6 +6,7 @@ App.StonehearthBuildingDesignerView = App.View.extend({
 
    components: {
       'unit_info': {},
+      'stonehearth:construction_progress' : {},
       'stonehearth:construction_data' : {
          'fabricator_entity' : {
             'stonehearth:fabricator' : {}      
@@ -18,9 +19,10 @@ App.StonehearthBuildingDesignerView = App.View.extend({
    // building for the selected parts.  it's used to populate the building view
    blueprint_components: {
       'unit_info': {},
-      'stonehearth:construction_progress' : {                  
+      'stonehearth:construction_progress' : {
          'building_entity' : {
-            'unit_info' : {}
+            'unit_info' : {},
+            'stonehearth:construction_progress': {},
          }
       }
    },
@@ -52,8 +54,19 @@ App.StonehearthBuildingDesignerView = App.View.extend({
          building_entity = blueprint_entity['stonehearth:construction_progress']['building_entity'];         
       }
       self.set('context.building', building_entity);
+      self.set('context.building.active', building_entity['stonehearth:construction_progress'].active);
       self.set('context.blueprint', blueprint_entity);
    }.observes('context'),
+
+   _activeUpdated: function() {
+      var building = this.get('context.building');
+      var value = false;
+      if (!building) {
+         return;
+      }
+      value = building['stonehearth:construction_progress'].active;
+      this.set('context.building.active', value)
+   }.observes('context.building.stonehearth:construction_progress.active'),
 
    didInsertElement: function() {
       var self = this;
@@ -62,7 +75,7 @@ App.StonehearthBuildingDesignerView = App.View.extend({
       var set_building_active = function(value) {
          var building_entity = self.get('context.building');
          if (building_entity) {
-            console.log('setting building ' + building_entity.__self + 'active!')
+            var value = !self.get('context.building.active')
             radiant.call('stonehearth:set_building_active', building_entity.__self, value)
          }
       }
