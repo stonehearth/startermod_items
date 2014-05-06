@@ -7,6 +7,7 @@ local service_creation_order = {
    'ai',
    'events',
    'calendar',
+   'game_speed',
    'combat',
    'substitution',
    'personality',

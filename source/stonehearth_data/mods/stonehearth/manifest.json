@@ -613,20 +613,24 @@
          "controller" : "file(call_handlers/calendar_call_handler.lua)",
          "endpoint" : "server"
       },
-      "get_player_speed": {
-         "controller" : "file(call_handlers/calendar_call_handler.lua)",
+      "get_game_speed_service": {
+         "controller" : "file(call_handlers/game_speed_call_handler.lua)",
+         "endpoint" : "server"
+      },
+      "get_default_speed": {
+         "controller" : "file(call_handlers/game_speed_call_handler.lua)",
          "endpoint" : "server"
       },
       "set_player_game_speed": {
-         "controller" : "file(call_handlers/calendar_call_handler.lua)",
+         "controller" : "file(call_handlers/game_speed_call_handler.lua)",
          "endpoint" : "server"
       },
       "dm_pause_game": {
-         "controller" : "file(call_handlers/calendar_call_handler.lua)",
+         "controller" : "file(call_handlers/game_speed_call_handler.lua)",
          "endpoint" : "server"
       },
       "dm_resume_game": {
-         "controller" : "file(call_handlers/calendar_call_handler.lua)",
+         "controller" : "file(call_handlers/game_speed_call_handler.lua)",
          "endpoint" : "server"
       },
       "get_population": {
