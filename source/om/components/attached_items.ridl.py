@@ -5,5 +5,5 @@ import ridl.c_types as c
 from ridl.om_types import *
 
 class AttachedItems(Component):
-   items = dm.Map(std.string(), EntityRef(), singular_name='item', add='declare', iterate='define', num=None)
+   items = dm.Map(std.string(), EntityRef(), singular_name='item', add='declare', num=None)
    ContainsItem = ridl.Method(c.bool(), ('key', std.string().const.ref)).const
