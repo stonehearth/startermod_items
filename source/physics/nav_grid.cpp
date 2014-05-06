@@ -416,6 +416,8 @@ void NavGrid::ForEachEntityAtIndex(csg::Point3 const& index, ForEachEntityCb cb)
 {
    if (bounds_.Contains(index.Scaled(TILE_SIZE))) {
       GridTileNonResident(index).ForEachTracker([cb](CollisionTrackerPtr tracker) {
+         ASSERT(tracker);
+         ASSERT(tracker->GetEntity());
          cb(tracker->GetEntity());
          return true;
       });
