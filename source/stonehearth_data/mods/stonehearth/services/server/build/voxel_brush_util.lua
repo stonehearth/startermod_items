@@ -64,14 +64,10 @@ function voxel_brush_util.create_construction_data_node(parent_node, entity, reg
          local material = render_info and render_info:get_material() or 'materials/voxel.material.xml'
 
          paint_mode = paint_mode and paint_mode or construction_data.paint_mode
-         local brush = voxel_brush_util.create_brush(construction_data, paint_mode)
+         local brush = voxel_brush_util.create_brush(construction_data, paint_mode) 
          local model = brush:paint_through_stencil(stencil)
 
-         if paint_mode == 'blueprint' then
-            unique_renderable = _radiant.client.create_blueprint_node(parent_node, model, material, Point3f(0.5, 0, 0.5))
-         else
-            unique_renderable = _radiant.client.create_voxel_node(parent_node, model, material, Point3f(0.5, 0, 0.5))
-         end
+         unique_renderable = _radiant.client.create_voxel_node(parent_node, model, material, Point3f(0.5, 0, 0.5))
       end
    end
    return unique_renderable

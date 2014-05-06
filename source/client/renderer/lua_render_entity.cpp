@@ -44,6 +44,7 @@ void LuaRenderEntity::RegisterType(lua_State* L)
                .def("remove_query_flag",     &RenderEntity::RemoveQueryFlag)
                .def("has_query_flag",        &RenderEntity::HasQueryFlag)
                .def("set_visible",           &RenderEntity::SetVisible)
+               .def("get_material_path",     &RenderEntity::GetMaterialPathFromKind)
             ,
             class_<RenderEntity::QueryFlags>("QueryFlags")
                .enum_("constants")

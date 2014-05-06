@@ -3,7 +3,7 @@ local log = radiant.log.create_logger('hilight_service')
 local HilightService = class()
 
 function HilightService:initialize()
-   self._hilghted_entity_id = 0
+   self._hilighted_entity_id = 0
    self._mouse_x = 0
    self._mouse_y = 0
 
@@ -20,11 +20,13 @@ function HilightService:initialize()
                                  end)
 end
 
+function HilightService:get_hilighted_id()
+   return self._hilighted_entity_id
+end
+
 function HilightService:_on_frame()
    local results = _radiant.client.query_scene(self._mouse_x, self._mouse_y)
-
-   -- Clear existing hilight.
-   _radiant.client.hilight_entity_by_id(0)
+   local hilghted_entity_id = 0
 
    if results:is_valid() then
       -- Look for a selectable object to hilight.
@@ -36,11 +38,31 @@ function HilightService:_on_frame()
          local re = _radiant.client.get_render_entity(obj)
 
          if re and not re:has_query_flag(_radiant.renderer.QueryFlags.UNSELECTABLE) then
-            _radiant.client.hilight_entity_by_id(id)
+            hilghted_entity_id = id
             break
          end
       end
 
+   end
+   if hilghted_entity_id ~= self._hilighted_entity_id then
+      local last_hilghted_entity, hilghted_entity
+      if hilghted_entity_id ~= 0 then
+         hilghted_entity = _radiant.client.get_object(hilghted_entity_id)
+      end
+      if self._hilighted_entity_id ~= 0 then
+         last_hilghted_entity = _radiant.client.get_object(self._hilighted_entity_id)
+      end
+
+      self._last_hilighted_entity_id = self._hilighted_entity_id
+      self._hilighted_entity_id = hilghted_entity_id
+      _radiant.client.hilight_entity_by_id(hilghted_entity_id)
+
+      if last_hilghted_entity and last_hilghted_entity:is_valid() then
+         radiant.events.trigger(last_hilghted_entity, 'stonehearth:hilighted_changed')
+      end
+      if hilghted_entity and hilghted_entity:is_valid() then
+         radiant.events.trigger(hilghted_entity, 'stonehearth:hilighted_changed')
+      end
    end
 
    return false

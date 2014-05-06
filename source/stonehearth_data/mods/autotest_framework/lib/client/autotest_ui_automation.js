@@ -12,7 +12,7 @@ $(document).ready(function(){
                element.click();
                finishCommand();
             } else {
-               console.error('could not find element to click!');
+               console.error('could not find element to click! ' + jqselector);
             }
          }
          try_click();

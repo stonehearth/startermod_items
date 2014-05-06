@@ -4,7 +4,7 @@
    components: {},
 
    init: function() {
-      this._super();      
+      this._super();
    },
 
    destroy: function() {
@@ -73,8 +73,7 @@
 
       if (this._rootTrace) {
          this._rootTrace.progress(function(eobj) {
-               console.log("setting view context for " + self.elementId + " to...");
-               console.log(eobj);
+               console.log("setting view context for " + self.elementId + " to...", eobj);
                self.set('context', eobj)
             });
       } else {

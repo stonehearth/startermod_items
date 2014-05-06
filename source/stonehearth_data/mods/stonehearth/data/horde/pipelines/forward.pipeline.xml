@@ -34,7 +34,7 @@
       </Stage>
 
       <Stage id="Projections">
-         <!-- '1' is terrain only. -->
+         <!-- '1' is UserFlags::Terrain only (see pipeline.h for enum definition). -->
          <DrawProjections context="PROJECTION" userFlags="1" />
       </Stage>
 

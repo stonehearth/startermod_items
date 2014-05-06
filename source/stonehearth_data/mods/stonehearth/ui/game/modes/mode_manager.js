@@ -89,7 +89,7 @@ $(document).ready(function() {
             }
 
             if (hudMode != this._hudMode) {
-               radiant.call('stonehearth:ui_mode_changed', hudMode);
+               radiant.call('stonehearth:set_ui_mode', hudMode);
                this._hudMode = hudMode;
             }
          }
@@ -138,7 +138,8 @@ $(document).ready(function() {
          }
 
          if (entity['stonehearth:fabricator'] ||
-             entity['stonehearth:construction_data']) {
+             entity['stonehearth:construction_data'] ||
+             entity['stonehearth:construction_progress']) {
             if (this._currentMode == this.modes.ZONES ||
                 this._currentMode == this.modes.BUILD ) {
                return this.modes.BUILD;

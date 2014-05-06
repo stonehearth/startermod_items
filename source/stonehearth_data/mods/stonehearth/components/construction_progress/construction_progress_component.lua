@@ -12,6 +12,7 @@ function ConstructionProgress:initialize(entity, json)
    if not self._sv.dependencies then
       self._sv.dependencies = {}
       self._sv.finished = false
+      self._sv.active = false
       self._sv.dependencies_finished = false
    end
    
@@ -22,7 +23,7 @@ function ConstructionProgress:initialize(entity, json)
                end)
          end
          self:check_dependencies()
-      end)   
+      end)
 end
 
 --- Tracks projects which must be completed before this one can start.
@@ -89,6 +90,54 @@ function ConstructionProgress:set_finished(finished)
       })
    end
    return self
+end
+
+-- set the active states.  workers will only try to build building that are active.
+-- simply forwards the request to the fabricator of the fabricator entity.  we duplicate
+-- the active state here as a convienence to clients/
+function ConstructionProgress:set_active(active)
+   if active ~= self._sv.active then
+      if self._sv.fabricator_entity then
+         local fc = self._sv.fabricator_entity:get_component('stonehearth:fabricator')
+         if fc then
+            fc:set_active(active)
+         end
+         self._sv.active = active
+         self.__saved_variables:mark_changed()
+      end
+   end
+end
+
+function ConstructionProgress:get_active()
+   return self._sv.active
+end
+
+-- return the entity representing the buliding for which this wall, column,
+-- floor, etc. is a part of.  is usefull for getting *way* deep in the structual
+-- tree up to the construction blueprint which is actually interesting to the
+-- user.
+function ConstructionProgress:get_building_entity()
+   return self._sv.building
+end
+
+-- sets the entity representing the buliding for which this wall, column,
+-- floor, etc. is a part of.  is usefull for getting *way* deep in the structual
+-- tree up to the construction blueprint which is actually interesting to the
+-- user.
+function ConstructionProgress:set_building_entity(building_entity)
+   self._sv.building_entity = building_entity
+   self.__saved_variables:mark_changed()
+end
+
+-- returns the fabricator entity which is using our blueprint as a reference
+function ConstructionProgress:get_fabricator_entity()
+   return self._sv.fabricator_entity
+end
+
+-- sets the fabricator entity which is using our blueprint as a reference
+function ConstructionProgress:set_fabricator_entity(fabricator_entity)
+   self._sv.fabricator_entity = fabricator_entity
+   self.__saved_variables:mark_changed()
 end
 
 function ConstructionProgress:get_finished()

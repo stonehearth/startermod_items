@@ -4,7 +4,7 @@ local Proxy = require 'services.server.build.proxy'
 local ProxyFabrication = class(Proxy)
 local Point3 = _radiant.csg.Point3
 
-function ProxyFabrication:__init(derived,parent_proxy, arg1, component_name)
+function ProxyFabrication:__init(derived, parent_proxy, arg1, component_name)
    self[Proxy]:__init(derived, parent_proxy, arg1, component_name)
 
    local entity = self:get_entity()

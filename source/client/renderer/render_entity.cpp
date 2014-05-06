@@ -34,6 +34,12 @@ int RenderEntity::totalObjectCount_ = 0;
 
 #define E_LOG(level)      LOG(renderer.entity, level)
 
+// Contains a map from H3DNodes to RenderEntities.  This map is maintained by the
+// RenderEntities, adding themselves to the map in the constructor and removing
+// themselves in the destructor.  Since we only render on one thread for now,
+// we don't need any locking of synchronization on the map.
+static std::unordered_map<H3DNode, std::weak_ptr<RenderEntity>> nodeToRenderEntity;
+
 RenderEntity::RenderEntity(H3DNode parent, om::EntityPtr entity) :
    entity_(entity),
    entity_id_(entity->GetObjectId()),
@@ -61,6 +67,8 @@ RenderEntity::RenderEntity(H3DNode parent, om::EntityPtr entity) :
 
 void RenderEntity::FinishConstruction()
 {
+   nodeToRenderEntity[node_.get()] = shared_from_this();
+
    auto entity = GetEntity();
    if (entity) {
       components_trace_ = entity->TraceComponents("render", dm::RENDER_TRACES)
@@ -87,6 +95,8 @@ void RenderEntity::FinishConstruction()
 
 RenderEntity::~RenderEntity()
 {
+   nodeToRenderEntity.erase(node_.get());
+
    Destroy();
    totalObjectCount_--;
 }
@@ -254,11 +264,14 @@ void RenderEntity::AddComponent(std::string const& name, std::shared_ptr<dm::Obj
 void RenderEntity::AddLuaComponent(std::string const& name, luabind::object obj)
 {
    auto i = components_.find(name);
-   if (i == components_.end()) {
-      components_[name] = std::make_shared<RenderLuaComponent>(*this, name, obj);
-   } else {
-      std::static_pointer_cast<RenderLuaComponent>(i->second)->Update(*this, obj);
+   if (i != components_.end()) {
+      // the component changed.  we could make the existing lua component renderer
+      // smart enough to re-initialize itself with the new component data, but this
+      // happens so infrequently it's not worth it to push the additional complexity
+      // onto modders.  just nuke the one we have and create another one.
+      components_.erase(i);
    }
+   components_[name] = std::make_shared<RenderLuaComponent>(*this, name, obj);
 }
 
 
@@ -288,24 +301,17 @@ void RenderEntity::SetModelVariantOverride(bool enabled, std::string const& vari
 
 std::string const RenderEntity::GetMaterialPathFromKind(std::string const& matKind) const
 {
-   std::shared_ptr<RenderRenderInfo> ri = std::static_pointer_cast<RenderRenderInfo>(components_.at("render_info"));
    std::string matPath;
+   auto entity = entity_.lock();
 
-   auto lookupCallback = [&matKind, &matPath](JSONNode const& data) {
-      matPath = "materials/voxel.material.xml";
-
-      auto f = data.at("entity_data");
-      auto g = f.at("stonehearth:render_materials");
-      auto h = g.at(matKind);
-      if (!h.as_string().empty()) {
-         matPath = h.as_string();
-      }
-   };
-   if (ri) {
-      auto entity = entity_.lock();
+   if (entity) {
+      auto lookupCallback = [&matKind, &matPath](JSONNode const& data) {
+         json::Node n(data);
+         matPath = n.get("entity_data.stonehearth:render_materials." + matKind,
+            "materials/voxel.material.xml");
+      };
       res::ResourceManager2::GetInstance().LookupJson(entity->GetUri(), lookupCallback);
    }
-
    return matPath;
 }
 
@@ -340,5 +346,47 @@ void RenderEntity::SetVisible(bool visible)
       h3dSetNodeFlags(node, h3dGetNodeFlags(parent), true);
    } else {
       h3dTwiddleNodeFlags(node, H3DNodeFlags::NoDraw | H3DNodeFlags::NoRayQuery, true, true);
+   }
+}
+
+void RenderEntity::ForAllSceneNodes(std::function<void(H3DNode node)> fn)
+{
+   ForAllSceneNodes(node_.get(), fn);
+}
+
+
+/*
+ * -- RenderEntity::ForAllSceneNodes
+ *
+ * Call `fn` for every node which "belongs" to this Entity.  We define "belongs" to
+ * mean the node is a descendant of the group node created for this RenderEntity,
+ * but not a descendant of any of this RenderEntity's children.  For example, if
+ * 3 swords are contained in a chest, calling ForAllSceneNodes on the node for the
+ * chest will *not* iterate through the nodes of the swords.
+ */
+void RenderEntity::ForAllSceneNodes(H3DNode node, std::function<void(H3DNode node)> fn)
+{
+   // Look in the `nodeToRenderEntity` map to see if this is the root node for
+   // a RenderEntity.  If so, and that RenderEntity isn't us, then we must have
+   // descended down to a child Entity which is wired up underneath us in the
+   // scene graph.  Stop recurring!
+   auto i = nodeToRenderEntity.find(node);
+   if (i != nodeToRenderEntity.end()) {
+      RenderEntityPtr re = i->second.lock();
+      if (re.get() != this) {
+         return;
+      }
+   }
+   // Call the callback for this node
+   fn(node);
+
+   // Recur through all the children
+   int j = 0;
+   while (true) {
+      H3DNode child = h3dGetNodeChild(node, j++);
+      if (child == 0) {
+         break;
+      }
+      ForAllSceneNodes(child, fn);
    }
 }

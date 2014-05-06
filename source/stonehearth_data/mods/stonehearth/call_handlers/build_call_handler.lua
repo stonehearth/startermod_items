@@ -11,7 +11,12 @@ function BuildCallHandler:get_build_editor(session, request)
 end
 
 function BuildCallHandler:build_structures(session, request, changes)
-   stonehearth.build:build_structures(session, changes)
+   return stonehearth.build:build_structures(session, changes)
+end
+
+-- set whether or not the specified building should be worked on.
+function BuildCallHandler:set_building_active(session, request, building, active)
+   stonehearth.build:set_building_active(building, active)
    return { success = true }
 end
 

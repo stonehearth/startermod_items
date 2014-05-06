@@ -45,7 +45,7 @@ App.StonehearthCalendarView = App.View.extend({
                'track': 'stonehearth:ambient:summer_day',
                'channel': 'ambient',
                'fade': 4000, 
-               'volume' : 40 });
+               'volume' : 60 });
             radiant.call('radiant:play_music', {
                'track': 'stonehearth:music:world_start',
                'channel': 'bgm',
@@ -58,7 +58,7 @@ App.StonehearthCalendarView = App.View.extend({
                'track': 'stonehearth:ambient:summer_day',
                'channel': 'ambient',
                'fade': 4000,
-               'volume' : 40 
+               'volume' : 60 
             }); 
                     
 

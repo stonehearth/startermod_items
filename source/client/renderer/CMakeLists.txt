@@ -33,6 +33,7 @@ add_library(client_renderer STATIC
             perfhud/timeline.cpp
             perfhud/timeline_column.cpp
             perfhud/render_context.cpp
+            render_node.cpp
             )
 
 add_dependencies(client_renderer
