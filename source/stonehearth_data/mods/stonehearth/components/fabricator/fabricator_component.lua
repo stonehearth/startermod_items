@@ -137,10 +137,6 @@ function FabricatorComponent:_add_scaffolding(blueprint, project, normal)
    fabricator:add_component('stonehearth:fabricator')
                               :start_project(name, scaffolding)
                               
-   -- render fabricators in blueprint mode
-   fabricator:add_component('render_info')
-               :set_material('materials/blueprint_gridlines.xml')
-               
    -- add the fabricator and the project to our entity container so they get rendered
    self._entity:add_component('entity_container')
                   :add_child(fabricator)

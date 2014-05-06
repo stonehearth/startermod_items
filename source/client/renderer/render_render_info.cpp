@@ -109,17 +109,9 @@ void RenderRenderInfo::AccumulateModelVariants(ModelMap& m, om::ModelVariantsPtr
 
 void RenderRenderInfo::CheckMaterial(om::RenderInfoPtr render_info)
 {
-   std::string material_path;
-   if (!material_kind_override_.empty()) {
-      material_path = entity_.GetMaterialPathFromKind(material_kind_override_);
-   } else {
-      material_path = render_info->GetMaterial();
-      if (material_path.empty()) {
-         material_path = "materials/voxel.material.xml";
-      }
-   }
-   if (material_path_ != material_path) {
-      material_path_ = material_path;
+   material_path_ = render_info->GetMaterial();
+   if (material_path_.empty()) {
+      material_path_ = "materials/voxel.material.xml";
    }
 }
 
@@ -127,11 +119,9 @@ void RenderRenderInfo::ReApplyMaterial()
 {
    H3DRes material = h3dAddResource(H3DResTypes::Material, material_path_.c_str(), 0);
    if (material != 0) {
-      entity_.ForAllSceneNodes([material](H3DNode node) {
-         if (h3dGetNodeType(node) == H3DNodeTypes::VoxelMesh) {
-            h3dSetNodeParamI(node, H3DVoxelMeshNodeParams::MatResI, material);
-         }
-      });
+      for (auto& entry : nodes_) {
+         entry.second.node.SetOverrideMaterial(override_material_);
+      }
    }
 }
 
@@ -243,12 +233,12 @@ void RenderRenderInfo::AddModelNode(om::RenderInfoPtr render_info, std::string c
       csg::RegionToMesh(all_models, mesh, -origin, true);
    };
 
-   H3DNodeUnique node = pipeline.AddSharedMeshNode(parent, key, material_path_, generate_matrix);
+   RenderNode node = pipeline.AddSharedMeshNode(parent, key, material_path_, generate_matrix);
 
-   h3dSetNodeParamI(node.get(), H3DModel::PolygonOffsetEnabledI, 1);
-   h3dSetNodeParamF(node.get(), H3DModel::PolygonOffsetF, 0, polygon_offset * 0.04f);
-   h3dSetNodeParamF(node.get(), H3DModel::PolygonOffsetF, 1, polygon_offset * 10.0f);
-   h3dSetNodeTransform(node.get(), 0, 0, 0, 0, 0, 0, scale, scale, scale);
+   h3dSetNodeParamI(node.GetNode(), H3DModel::PolygonOffsetEnabledI, 1);
+   h3dSetNodeParamF(node.GetNode(), H3DModel::PolygonOffsetF, 0, polygon_offset * 0.04f);
+   h3dSetNodeParamF(node.GetNode(), H3DModel::PolygonOffsetF, 1, polygon_offset * 10.0f);
+   h3dSetNodeTransform(node.GetNode(), 0, 0, 0, 0, 0, 0, scale, scale, scale);
    nodes_[bone] = NodeMapEntry(matrices, node);
 }
 
@@ -309,7 +299,7 @@ void RenderRenderInfo::Update()
             skeleton.SetScale(scale);
 
             for (auto const& entry : nodes_) {
-               H3DNode node = entry.second.node.get();
+               H3DNode node = entry.second.node.GetNode();
                float tx, ty, tz, rx, ry, rz, sx, sy, sz;
 
                h3dGetNodeTransform(node, &tx, &ty, &tz, &rx, &ry, &rz, &sx, &sy, &sz);
@@ -327,8 +317,15 @@ void RenderRenderInfo::Update()
 
 void RenderRenderInfo::SetMaterialOverride(std::string const& materialOverride)
 {
+   if (materialOverride.empty()) {
+      override_material_.reset();
+   } else {
+      std::string material = entity_.GetMaterialPathFromKind(materialOverride);
+      if (!material.empty()) {
+         override_material_ = h3dAddResource(H3DResTypes::Material, material.c_str(), 0);
+      }
+   }
    SetDirtyBits(MATERIAL_DIRTY);
-   material_kind_override_ = materialOverride;
 }
 
 void RenderRenderInfo::SetModelVariantOverride(bool enabled, std::string const& variant)

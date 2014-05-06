@@ -34,6 +34,7 @@ function FarmerFieldRenderer:destroy()
 end
 
 function FarmerFieldRenderer:_ui_mode_changed()   
+   local mode = stonehearth.renderer:get_ui_mode()
    if self._ui_view_mode ~= mode then
       self._ui_view_mode = mode
 
@@ -49,11 +50,11 @@ function FarmerFieldRenderer:_update_field_renderer()
    end)
    
    if self:_show_hud() then
-      assert(self._unique_renderable == nil)
-      self._unique_renderable = _radiant.client.create_designation_node(self._parent_node, self._region:get(), self._color, self._color);
-   elseif self._unique_renderable then
-      self._unique_renderable:destroy()
-      self._unique_renderable = nil
+      assert(self._render_node == nil)
+      self._render_node = _radiant.client.create_designation_node(self._parent_node, self._region:get(), self._color, self._color);
+   elseif self._render_node then
+      self._render_node:destroy()
+      self._render_node = nil
    end
 end
 
@@ -160,8 +161,8 @@ function FarmerFieldRenderer:_regenerate_node()
    
    self:_clear()
    if self:_show_hud() then
-      assert(self._unique_renderable == nil)
-      self._unique_renderable = _radiant.client.create_designation_node(self._parent_node, self._region:get(), self._color, self._color);
+      assert(self._render_node == nil)
+      self._render_node = _radiant.client.create_designation_node(self._parent_node, self._region:get(), self._color, self._color);
    end
 end
 
@@ -171,9 +172,9 @@ end
 
 
 function FarmerFieldRenderer:_clear()
-   if self._unique_renderable then
-      self._unique_renderable:destroy()
-      self._unique_renderable = nil
+   if self._render_node then
+      self._render_node:destroy()
+      self._render_node = nil
    end
 end
 

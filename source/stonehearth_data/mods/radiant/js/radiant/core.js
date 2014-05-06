@@ -10,6 +10,9 @@ var radiant = {
       warning : function (msg) {
          console.log(msg);
       },
+      debug : function () {
+         console.log(arguments);
+      },
    },
 
    report_error: function(msg, obj) {

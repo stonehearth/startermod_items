@@ -39,16 +39,16 @@ App.StonehearthBuildingDesignerView = App.View.extend({
 
       var fabricator_component = context['stonehearth:fabricator'];
       var construction_data_component = context['stonehearth:construction_data'];
-      var construnction_progress_component = context['stonehearth:construnction_progress_component'];
+      var construnction_progress_component = context['stonehearth:construction_progress'];
       
       if (fabricator_component) {
          blueprint_entity = fabricator_component['blueprint'];
       } else if (construction_data_component) {
          blueprint_entity = construction_data_component.fabricator_entity['stonehearth:fabricator'].blueprint;
       } else if (construnction_progress_component) {
-         blueprint_entity = context
+         building_entity = blueprint_entity = context
       }
-      if (blueprint_entity) {
+      if (blueprint_entity && !building_entity) {
          building_entity = blueprint_entity['stonehearth:construction_progress']['building_entity'];         
       }
       self.set('context.building', building_entity);
@@ -62,6 +62,7 @@ App.StonehearthBuildingDesignerView = App.View.extend({
       var set_building_active = function(value) {
          var building_entity = self.get('context.building');
          if (building_entity) {
+            console.log('setting building ' + building_entity.__self + 'active!')
             radiant.call('stonehearth:set_building_active', building_entity.__self, value)
          }
       }

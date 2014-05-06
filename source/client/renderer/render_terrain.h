@@ -9,6 +9,7 @@
 #include "om/om.h"
 #include "dm/dm.h"
 #include "csg/util.h"
+#include "render_node.h"
 
 BEGIN_RADIANT_CLIENT_NAMESPACE
 
@@ -50,25 +51,14 @@ private:
       om::Region3BoxedRef        region;
       dm::TracePtr               trace;
 
-      RenderTile() { 
-         _node = 0;
-      }
-      ~RenderTile() {
-         if (_node) {
-            h3dRemoveNode(_node);
-            _node = 0;
-         }
-      }
+      RenderTile() { }
 
-      void SetNode(H3DNode n) {
-         if (_node) {
-            h3dRemoveNode(_node);
-         }
+      void SetNode(RenderNode n) {
          _node = n;
       }
 
    private:
-      H3DNode                    _node;
+      RenderNode _node;
    };
    DECLARE_SHARED_POINTER_TYPES(RenderTile)
 

@@ -29,9 +29,9 @@ function ConstructionDataRenderer:destroy()
       self._collision_shape_trace:destroy()
       self._collision_shape_trace = nil
    end
-   if self._unique_renderable then
-      self._unique_renderable:destroy()
-      self._unique_renderable = nil
+   if self._render_node then
+      self._render_node:destroy()
+      self._render_node = nil
    end
 end
 
@@ -71,15 +71,15 @@ function ConstructionDataRenderer:_set_render_mode(mode)
 end
 
 function ConstructionDataRenderer:_recreate_render_node()
-   if self._unique_renderable then
-      self._unique_renderable:destroy()
-      self._unique_renderable = nil
+   if self._render_node then
+      self._render_node:destroy()
+      self._render_node = nil
    end
    
    if self._construction_data and self._collision_shape then   
       local region = self._collision_shape:get_region()
       if region and not region:get():empty() then
-         self._unique_renderable = voxel_brush_util.create_construction_data_node(self._parent_node, self._entity, region, self._construction_data)
+         self._render_node = voxel_brush_util.create_construction_data_node(self._parent_node, self._entity, region, self._construction_data)
       end
       self:_update_camera()
    end

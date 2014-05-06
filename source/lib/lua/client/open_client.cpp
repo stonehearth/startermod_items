@@ -91,22 +91,22 @@ om::EntityRef Client_GetSelectedEntity()
    return Client::GetInstance().GetSelectedEntity();
 }
 
-UniqueRenderable Client_CreateVoxelNode(lua_State* L, 
-                                     H3DNode parent,
-                                     csg::Region3 const& model,
-                                     std::string const& material_path,
-                                     csg::Point3f const& origin)
+RenderNode Client_CreateVoxelNode(lua_State* L, 
+                                  H3DNode parent,
+                                  csg::Region3 const& model,
+                                  std::string const& material_path,
+                                  csg::Point3f const& origin)
 {
    return Pipeline::GetInstance().CreateVoxelNode(parent, model, material_path, -origin, 0);
 }
 
-H3DNode Client_CreateQubicleMatrixNode(lua_State* L, 
-                                       H3DNode parent,
-                                       std::string const& qubicle_file,
-                                       std::string const& qubicle_matrix,
-                                       csg::Point3f const& origin)
+RenderNode Client_CreateQubicleMatrixNode(lua_State* L, 
+                                          H3DNode parent,
+                                          std::string const& qubicle_file,
+                                          std::string const& qubicle_matrix,
+                                          csg::Point3f const& origin)
 {
-   H3DNode node = 0;
+   RenderNode node;
    Pipeline& pipeline = Pipeline::GetInstance();
 
    voxel::QubicleFile* qubicle = pipeline.LoadQubicleFile(qubicle_file);
@@ -130,7 +130,7 @@ H3DNode Client_CreateQubicleMatrixNode(lua_State* L,
    return node;
 }
 
-UniqueRenderable Client_CreateDesignationNode(lua_State* L, 
+RenderNode Client_CreateDesignationNode(lua_State* L, 
                                      H3DNode parent,
                                      csg::Region2 const& model,
                                      csg::Color4 const& outline,
@@ -139,7 +139,7 @@ UniqueRenderable Client_CreateDesignationNode(lua_State* L,
    return Pipeline::GetInstance().CreateDesignationNode(parent, model, outline, stripes);
 }
 
-UniqueRenderable Client_CreateSelectionNode(lua_State* L, 
+RenderNode Client_CreateSelectionNode(lua_State* L, 
                                   H3DNode parent,
                                   csg::Region2 const& model,
                                   csg::Color4 const& interior_color,
@@ -148,7 +148,7 @@ UniqueRenderable Client_CreateSelectionNode(lua_State* L,
    return Pipeline::GetInstance().CreateSelectionNode(parent, model, interior_color, border_color);
 }
 
-UniqueRenderable Client_CreateStockpileNode(lua_State* L, 
+RenderNode Client_CreateStockpileNode(lua_State* L, 
                                    H3DNode parent,
                                    csg::Region2 const& model,
                                    csg::Color4 const& interior_color,

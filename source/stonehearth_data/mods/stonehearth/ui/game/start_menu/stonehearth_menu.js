@@ -184,11 +184,14 @@ $.widget( "stonehearth.stonehearthMenu", {
 
          // if this node requires a profession to unlock, note that and style the node as locked
          if (node.required_profession && !self._foundProfessions[node.required_profession]) {
+
+            /* can put back once the population service in start_menu.js is properly initialized
             item.attr('required_profession', node.required_profession)
                .addClass('locked')
                .append('<div class="lock"></div>');
 
             description = node.locked_description;
+            */
          }
 
          self._buildTooltip(item);

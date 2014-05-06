@@ -7,7 +7,6 @@ App.StonehearthEventLogView = App.View.extend({
       var self = this;
       radiant.call('stonehearth:get_event_tracker')
          .done(function(response) {
-            console.log(response.tracker);
             self.trace = radiant.trace(response.tracker)
                .progress(function(data) {
                   self.addEvent(data);

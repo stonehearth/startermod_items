@@ -26,8 +26,8 @@ function ProxyBuilder:__init(derived, on_mouse, on_keyboard)
    self._root_proxy = ProxyContainer(nil, 'stonehearth:entities:building')
                         :set_building(self._root_proxy)
 
-   local entity = self._root_proxy:get_entity()
-   entity:add_component('stonehearth:no_construction_zone')
+   -- local entity = self._root_proxy:get_entity()
+   -- entity:add_component('stonehearth:no_construction_zone')
 end
 
 function ProxyBuilder:set_brush(type, uri)

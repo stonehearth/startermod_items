@@ -301,19 +301,17 @@ void RenderEntity::SetModelVariantOverride(bool enabled, std::string const& vari
 
 std::string const RenderEntity::GetMaterialPathFromKind(std::string const& matKind) const
 {
-   std::shared_ptr<RenderRenderInfo> ri = std::static_pointer_cast<RenderRenderInfo>(components_.at("render_info"));
    std::string matPath;
+   auto entity = entity_.lock();
 
-   auto lookupCallback = [&matKind, &matPath](JSONNode const& data) {
-      json::Node n(data);
-      matPath = n.get("entity_data.stonehearth:render_materials." + matKind,
-                      "materials/voxel.material.xml");
-   };
-   if (ri) {
-      auto entity = entity_.lock();
+   if (entity) {
+      auto lookupCallback = [&matKind, &matPath](JSONNode const& data) {
+         json::Node n(data);
+         matPath = n.get("entity_data.stonehearth:render_materials." + matKind,
+            "materials/voxel.material.xml");
+      };
       res::ResourceManager2::GetInstance().LookupJson(entity->GetUri(), lookupCallback);
    }
-
    return matPath;
 }
 

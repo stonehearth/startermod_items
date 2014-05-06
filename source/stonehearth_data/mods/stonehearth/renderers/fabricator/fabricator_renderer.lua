@@ -70,7 +70,9 @@ function FabricatorRenderer:destroy()
    radiant.events.unlisten(radiant.events, 'stonehearth:ui_mode_changed', self, self._update_ui_mode)
    radiant.events.unlisten(self._entity, 'stonehearth:selection_changed', self, self._update_render_state)
    radiant.events.unlisten(self._entity, 'stonehearth:hilighted_changed', self, self._update_render_state)
-   radiant.events.unlisten(self._building, 'stonehearth:building_selected_changed', self, self._update_render_state)
+   if self._building then
+      radiant.events.unlisten(self._building, 'stonehearth:building_selected_changed', self, self._update_render_state)
+   end
    
    if self._fab_trace then
       self._fab_trace:destroy()
@@ -80,9 +82,9 @@ function FabricatorRenderer:destroy()
       self._dst_trace:destroy()
       self._dst_trace = nil
    end
-   if self._unique_renderable then
-      self._unique_renderable:destroy()
-      self._unique_renderable = nil
+   if self._render_node then
+      self._render_node:destroy()
+      self._render_node = nil
    end
 end
 
@@ -95,8 +97,8 @@ function FabricatorRenderer:_update_ui_mode()
 end
 
 function FabricatorRenderer:_update_render_state()
-   if self._unique_renderable then
-      local material = ''
+   if self._render_node then
+      local material = 'normal'
       local entity_id = self._entity:get_id()
       
       if stonehearth.selection:get_selected_id() == self._entity:get_id() then
@@ -106,8 +108,8 @@ function FabricatorRenderer:_update_render_state()
       elseif self._building and selected_building and (selected_building:get_id() == self._building:get_id()) then
          material = 'building_selected'
       end
-      radiant.log.write('sup', 0, '%s -> %s', tostring(self._entity), material)
-      self._render_entity:set_material_override(material)
+      material = self._render_entity:get_material_path(material)
+      self._render_node:set_material(material)
    end
 end
 
@@ -128,9 +130,9 @@ function FabricatorRenderer:_recreate_render_node()
       end
    end
 
-   if self._unique_renderable then
-      self._unique_renderable:destroy()
-      self._unique_renderable = nil
+   if self._render_node then
+      self._render_node:destroy()
+      self._render_node = nil
    end
 
    if self._ui_view_mode == 'hud' then
@@ -140,7 +142,7 @@ function FabricatorRenderer:_recreate_render_node()
          local construction_data = component_data:get_data()
          if construction_data.brush then
             local region = self._destination:get_region()
-            self._unique_renderable = voxel_brush_util.create_construction_data_node(self._parent_node, self._entity, region, construction_data, 'xxblueprint')
+            self._render_node = voxel_brush_util.create_construction_data_node(self._parent_node, self._entity, region, construction_data, 'blueprint')
             self:_update_render_state()
          end
       end

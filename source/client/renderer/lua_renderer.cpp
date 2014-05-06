@@ -243,8 +243,11 @@ void LuaRenderer::RegisterType(lua_State* L)
       ],
       class_<H3DNodeUnique>("H3DNodeUnique")
          .def("destroy",                     H3DNodeUnique_Destroy),
-      class_<UniqueRenderable>("UniqueRenderable")
-         .def("destroy",                     &UniqueRenderable::Destroy),
+      class_<RenderNode>("RenderNode")
+         .def("get_node",                    &RenderNode::GetNode)
+         .def("destroy",                     &RenderNode::Destroy)
+         .def("set_material",                static_cast<RenderNode& (RenderNode::*)(std::string const&)>(&RenderNode::SetMaterial))
+      ,
       def("h3dGetNodeParamStr",              &h3dGetNodeParamStr),
       def("h3dRemoveNode",                   &h3dRemoveNode),
       def("h3dAddProjectorNode",             &h3dAddProjectorNode),

@@ -9,9 +9,9 @@ function ProxyContainer:__init(parent_proxy, uri_or_entity)
 
    self._all_children = {}
    self:_trace_all_children(self:get_entity())
-   self:get_entity():add_component('stonehearth:no_construction_zone')
 
-   self:_rebuild_zone()
+   --self:get_entity():add_component('stonehearth:no_construction_zone')
+   --self:_rebuild_zone()
 end
 
 function ProxyContainer:_trace_all_children(entity)

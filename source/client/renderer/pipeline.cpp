@@ -33,40 +33,27 @@ static const struct {
    { 0, 2, 1, voxel::LEFT_MASK,   csg::Point3f( 1,  0,  0) },
 };
 
-UniqueRenderable::UniqueRenderable() :
-   _node(0),
-   _geoRes(0)
+/*
+ * -- h3dUnloadResourceNop
+ *
+ * Used to "remove" resources from the SharedMaterial type.  Since materials are
+ * highly reused, we don't bother unloading them.  Someone is almost certainly
+ * going to come load it again!
+ */
+void h3dUnloadResourceNop(H3DRes)
 {
 }
 
-UniqueRenderable::UniqueRenderable(H3DNode node, H3DRes geometryResource) :
-   _node(node),
-   _geoRes(geometryResource)
+/*
+ * -- h3dRemoveResourceVoid
+ *
+ * Remove the 'int' return type from h3dRemoveResource so we can use it as a template
+ * parameter in the SharedGeometry type.
+ */
+void h3dRemoveResourceVoid(H3DRes res)
 {
+   h3dRemoveResource(res);
 }
-
-void UniqueRenderable::AddChild(const UniqueRenderable& r)
-{
-   _children.push_back(r);
-}
-
-void UniqueRenderable::Destroy()
-{
-   if (_geoRes) {
-      h3dRemoveResource(_geoRes);
-   }
-
-   if (_node) {
-      h3dRemoveNode(_node);
-   }
-
-   for (auto& child : _children) {
-      child.Destroy();
-   }
-
-   h3dReleaseUnusedResources();
-}
-
 
 Pipeline::Pipeline() :
    unique_id_(1)
@@ -85,17 +72,19 @@ H3DRes Pipeline::CreateVoxelGeometryFromRegion(std::string const& geoName, csg::
    return h3dutCreateVoxelGeometryRes(geoName.c_str(), (VoxelGeometryVertex*)mesh.vertices.data(), vertexOffsets, (uint*)mesh.indices.data(), indexOffsets, 1);
 }
 
-UniqueRenderable Pipeline::AddDynamicMeshNode(H3DNode parent, const csg::mesh_tools::mesh& m, std::string const& material, int userFlags)
+RenderNode Pipeline::AddDynamicMeshNode(H3DNode parent, const csg::mesh_tools::mesh& m, std::string const& material, int userFlags)
 {
    int vertexOffsets[2] = {0, m.vertices.size()};
    int indexOffsets[2] = {0, m.indices.size()};
    H3DRes geometry = ConvertMeshToGeometryResource(m, indexOffsets, vertexOffsets, 1);
-   H3DNode node = CreateModelNode(parent, geometry, material, userFlags);
+   RenderNode node = CreateModelNode(parent, geometry, material, userFlags);
 
-   return UniqueRenderable(node, geometry);
+   // Attach the geometry to the RenderNode so it will be released when the node is destroyed
+   node.SetGeometry(geometry);
+   return node;
 }
 
-H3DNode Pipeline::AddSharedMeshNode(H3DNode parent, ResourceCacheKey const& key, std::string const& material, std::function<void(csg::mesh_tools::mesh &, int lodLevel)> create_mesh_fn)
+RenderNode Pipeline::AddSharedMeshNode(H3DNode parent, ResourceCacheKey const& key, std::string const& material, std::function<void(csg::mesh_tools::mesh &, int lodLevel)> create_mesh_fn)
 {   
    H3DRes geometry;
    auto i = resource_cache_.find(key);
@@ -145,7 +134,7 @@ csg::mesh_tools::mesh Pipeline::CreateMeshFromRegion(csg::Region3 const& region)
    return mesh;
 }
 
-H3DNode Pipeline::CreateModelNode(H3DNode parent, H3DRes geometry, std::string const& material, int userFlags)
+RenderNode Pipeline::CreateModelNode(H3DNode parent, H3DRes geometry, std::string const& material, int userFlags)
 {
    ASSERT(!material.empty());
 
@@ -159,14 +148,16 @@ H3DNode Pipeline::CreateModelNode(H3DNode parent, H3DRes geometry, std::string c
    H3DNode mesh_node = h3dAddVoxelMeshNode(model_node, mesh_name.c_str(), matRes);
    h3dSetNodeParamI(mesh_node, H3DNodeParams::UserFlags, userFlags);
 
-   return model_node;
+   return RenderNode(model_node)
+            .SetMaterial(matRes)
+            .SetMesh(mesh_node);
 }
 
-UniqueRenderable Pipeline::CreateVoxelNode(H3DNode parent,
-                                        csg::Region3 const& model,
-                                        std::string const& material,
-                                        csg::Point3f const& offset,
-                                        int userFlags)
+RenderNode Pipeline::CreateVoxelNode(H3DNode parent,
+                                           csg::Region3 const& model,
+                                           std::string const& material,
+                                           csg::Point3f const& offset,
+                                           int userFlags)
 {
    csg::mesh_tools::mesh mesh;
    csg::RegionToMesh(model, mesh, offset, false);
@@ -260,7 +251,7 @@ void Pipeline::AddDesignationBorder(csg::mesh_tools::mesh& m, csg::EdgeMap2& edg
    }
 }
 
-UniqueRenderable
+RenderNode
 Pipeline::CreateDesignationNode(H3DNode parent,
                                 csg::Region2 const& plane,
                                 csg::Color4 const& outline_color,
@@ -278,25 +269,25 @@ Pipeline::CreateDesignationNode(H3DNode parent,
    AddDesignationStripes(stripes_mesh, plane);
 
    H3DNode group = h3dAddGroupNode(parent, "designation group node");
-   UniqueRenderable stripes = AddDynamicMeshNode(group, stripes_mesh, "materials/designation/stripes.material.xml", 0);
-   h3dSetNodeParamI(stripes._node, H3DModel::UseCoarseCollisionBoxI, 1);
-   h3dSetNodeParamI(stripes._node, H3DModel::PolygonOffsetEnabledI, 1);
-   h3dSetNodeParamF(stripes._node, H3DModel::PolygonOffsetF, 0, -1.0);
-   h3dSetNodeParamF(stripes._node, H3DModel::PolygonOffsetF, 1, -.01f);
+   RenderNode stripes = AddDynamicMeshNode(group, stripes_mesh, "materials/designation/stripes.material.xml", 0);
+   h3dSetNodeParamI(stripes.GetNode(), H3DModel::UseCoarseCollisionBoxI, 1);
+   h3dSetNodeParamI(stripes.GetNode(), H3DModel::PolygonOffsetEnabledI, 1);
+   h3dSetNodeParamF(stripes.GetNode(), H3DModel::PolygonOffsetF, 0, -1.0);
+   h3dSetNodeParamF(stripes.GetNode(), H3DModel::PolygonOffsetF, 1, -.01f);
 
-   UniqueRenderable outline = AddDynamicMeshNode(group, outline_mesh, "materials/designation/outline.material.xml", 0);
-   h3dSetNodeParamI(outline._node, H3DModel::UseCoarseCollisionBoxI, 1);
-   h3dSetNodeParamI(outline._node, H3DModel::PolygonOffsetEnabledI, 1);
-   h3dSetNodeParamF(outline._node, H3DModel::PolygonOffsetF, 0, -1.0);
-   h3dSetNodeParamF(outline._node, H3DModel::PolygonOffsetF, 1, -.01f);
+   RenderNode outline = AddDynamicMeshNode(group, outline_mesh, "materials/designation/outline.material.xml", 0);
+   h3dSetNodeParamI(outline.GetNode(), H3DModel::UseCoarseCollisionBoxI, 1);
+   h3dSetNodeParamI(outline.GetNode(), H3DModel::PolygonOffsetEnabledI, 1);
+   h3dSetNodeParamF(outline.GetNode(), H3DModel::PolygonOffsetF, 0, -1.0);
+   h3dSetNodeParamF(outline.GetNode(), H3DModel::PolygonOffsetF, 1, -.01f);
 
-   UniqueRenderable result(group, 0);
+   RenderNode result(group);
    result.AddChild(stripes);
    result.AddChild(outline);
    return result;
 }
 
-UniqueRenderable
+RenderNode
 Pipeline::CreateStockpileNode(H3DNode parent,
                                 csg::Region2 const& plane,
                                 csg::Color4 const& interior_color,
@@ -305,22 +296,22 @@ Pipeline::CreateStockpileNode(H3DNode parent,
    return CreateXZBoxNode(parent, plane, interior_color, border_color, 1.0);
 }
 
-UniqueRenderable
+RenderNode
 Pipeline::CreateSelectionNode(H3DNode parent,
-                                csg::Region2 const& plane,
-                                csg::Color4 const& interior_color,
-                                csg::Color4 const& border_color)
+                              csg::Region2 const& plane,
+                              csg::Color4 const& interior_color,
+                              csg::Color4 const& border_color)
 {
-   return CreateXZBoxNode(parent, plane, interior_color, border_color, 0.2);
+   return CreateXZBoxNode(parent, plane, interior_color, border_color, 0.2f);
 }
 
 
-UniqueRenderable
+RenderNode
 Pipeline::CreateXZBoxNode(H3DNode parent,
-                                csg::Region2 const& plane,
-                                csg::Color4 const& interior_color,
-                                csg::Color4 const& border_color,
-                                float border_size)
+                          csg::Region2 const& plane,
+                          csg::Color4 const& interior_color,
+                          csg::Color4 const& border_color,
+                          float border_size)
 {
    csg::RegionTools2 tools;
 
@@ -332,13 +323,13 @@ Pipeline::CreateXZBoxNode(H3DNode parent,
    CreateXZBoxNodeGeometry(mesh, plane, interior_color, border_color, border_size);
 
    H3DNode group = h3dAddGroupNode(parent, "designation group node");
-   UniqueRenderable interior = AddDynamicMeshNode(group, mesh, "materials/transparent.material.xml", 0);
-   h3dSetNodeParamI(interior._node, H3DModel::UseCoarseCollisionBoxI, 1);
-   h3dSetNodeParamI(interior._node, H3DModel::PolygonOffsetEnabledI, 1);
-   h3dSetNodeParamF(interior._node, H3DModel::PolygonOffsetF, 0, -1.0);
-   h3dSetNodeParamF(interior._node, H3DModel::PolygonOffsetF, 1, -.01f);
+   RenderNode interior = AddDynamicMeshNode(group, mesh, "materials/transparent.material.xml", 0);
+   h3dSetNodeParamI(interior.GetNode(), H3DModel::UseCoarseCollisionBoxI, 1);
+   h3dSetNodeParamI(interior.GetNode(), H3DModel::PolygonOffsetEnabledI, 1);
+   h3dSetNodeParamF(interior.GetNode(), H3DModel::PolygonOffsetF, 0, -1.0);
+   h3dSetNodeParamF(interior.GetNode(), H3DModel::PolygonOffsetF, 1, -.01f);
 
-   UniqueRenderable result(group, 0);
+   RenderNode result(group);
    result.AddChild(interior);
    return result;
 }

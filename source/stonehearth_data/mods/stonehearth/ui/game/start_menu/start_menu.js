@@ -84,7 +84,8 @@ App.StonehearthStartMenuView = App.View.extend({
 
       radiant.call('stonehearth:get_population')
          .done(function(response){
-            self.set('uri', response.population);
+            // xxx: setting 'uri' causes the view to re-reinitialize itself!
+            //self.set('uri', response.population);
          });
 
       /*
