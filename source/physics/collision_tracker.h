@@ -27,6 +27,7 @@ public:
 
    csg::Point3 GetEntityPosition() const;
    om::EntityPtr GetEntity() const;
+   dm::ObjectId GetEntityId() const;
 
 protected:
    virtual void MarkChanged() = 0;
@@ -38,6 +39,7 @@ private:
    NavGrid&       ng_;
    dm::ObjectId   object_id_;
    om::EntityRef  entity_;
+   dm::ObjectId   entityId_;
    dm::TracePtr   trace_;
 };
 

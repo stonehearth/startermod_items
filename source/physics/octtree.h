@@ -17,6 +17,8 @@ class OctTree {
       void SetRootEntity(om::EntityPtr);
       void Cleanup();
 
+      void EnableSensorTraces(bool enabled);
+
       // good!
       bool CanStandOn(om::EntityPtr entity, const csg::Point3& at) const;
       void RemoveNonStandableRegion(om::EntityPtr e, csg::Region3& r) const;
@@ -24,8 +26,6 @@ class OctTree {
       // unknown...
       NavGrid& GetNavGrid() { return navgrid_; } // sigh
       NavGrid const& GetNavGrid() const { return navgrid_; } // sigh
-
-      void Update(int now);
 
       typedef std::function<bool (om::EntityPtr )>   QueryCallback;
       typedef std::function<void (om::EntityPtr, float)> RayQueryCallback;
@@ -56,9 +56,6 @@ class OctTree {
    private:
       void TraceEntity(om::EntityPtr entity);
       void OnComponentAdded(dm::ObjectId id, om::ComponentPtr component);
-      void TraceSensor(om::SensorPtr sensor);
-      void UpdateSensors();
-      bool UpdateSensor(om::SensorPtr sensor);
     
    protected:
       struct EntityMapEntry
@@ -69,9 +66,10 @@ class OctTree {
          dm::TracePtr   sensor_list_trace;
       };
       std::map<dm::ObjectId, EntityMapEntry>    entities_;
-      std::map<dm::ObjectId, om::SensorRef>     sensors_;
+      std::map<dm::ObjectId, std::pair<SensorTrackerPtr, dm::TracePtr>>  sensor_trackers_;
       core::Guard                               guards_;
       mutable NavGrid                           navgrid_;
+      bool                                      enable_sensor_traces_;
       int                                       trace_category_;
 };
 

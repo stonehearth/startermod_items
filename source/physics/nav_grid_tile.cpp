@@ -1,6 +1,7 @@
 #include "radiant.h"
 #include "radiant_stdutil.h"
 #include "csg/cube.h"
+#include "csg/region.h"
 #include "collision_tracker.h"
 #include "om/entity.h"
 #include "nav_grid_tile.h"
@@ -17,8 +18,23 @@ using namespace radiant::phys;
  * Construct a new NavGridTile.
  */
 NavGridTile::NavGridTile() :
-   visited_(false)
+   changed_slot_("tile changes")
 {
+}
+
+/* 
+ * -- NavGridTile::NavGridTile
+ *
+ * Construct a new NavGridTile.  This is a fake move constructor so we can put
+ * these things in a std::unordered_map<> by value.  ASSERT() that we're not
+ * trying to move an actual, live tile.
+ */
+NavGridTile::NavGridTile(NavGridTile &&other) :
+   changed_slot_("tile changes")
+{
+   ASSERT(other.data_ == nullptr);
+   ASSERT(other.trackers_.empty());
+   ASSERT(other.changed_slot_.IsEmpty());
 }
 
 /*
@@ -30,17 +46,17 @@ void NavGridTile::RemoveCollisionTracker(CollisionTrackerPtr tracker)
 {
    om::EntityPtr entity = tracker->GetEntity();
    if (entity) {
-      dm::ObjectId id = entity->GetObjectId();
+      dm::ObjectId entityId = entity->GetObjectId();
 
       // Run through all the trackers for the current entity.  The TrackerMap is a
       // multimap, so this is O(1) for the find() + O(n) for the number of tracker
       // types, but there are a only and handful of those, so consider the while
       // loop here to be constant time.
-      auto range = trackers_.equal_range(id);
+      auto range = trackers_.equal_range(entityId);
       for (auto i = range.first; i != range.second; i++) {
          if (i->second.lock() == tracker) {
             trackers_.erase(i);
-            MarkDirty();
+            OnTrackerRemoved(entityId);
             return;
          }
       }
@@ -57,10 +73,21 @@ void NavGridTile::AddCollisionTracker(CollisionTrackerPtr tracker)
    om::EntityPtr entity = tracker->GetEntity();
    if (entity) {
       dm::ObjectId id = entity->GetObjectId();
-      trackers_.insert(std::make_pair(id, tracker));
+      TrackerMap::const_iterator i;
+      auto range = trackers_.equal_range(id);
+      for (i = range.first; i != range.second; i++) {
+         if (i->second.lock() == tracker) {
+            break;
+         }
+      }
       MarkDirty();
+      if (i == range.second) {
+         trackers_.insert(std::make_pair(id, tracker));
+         changed_slot_.Signal(ChangeNotification(ENTITY_ADDED, id, tracker));
+      } else {
+         changed_slot_.Signal(ChangeNotification(ENTITY_MOVED, id, tracker));         
+      }
    }
-   MarkDirty();
 }
 
 /*
@@ -168,6 +195,11 @@ void NavGridTile::MarkDirty()
    }
 }
 
+void NavGridTile::OnTrackerRemoved(dm::ObjectId entityId)
+{
+   MarkDirty();
+   changed_slot_.Signal(ChangeNotification(ENTITY_REMOVED, entityId, nullptr));
+}
 
 /*
  * -- NavGridTile::GetWorldBounds
@@ -203,11 +235,56 @@ std::shared_ptr<NavGridTileData> NavGridTile::GetTileData()
  * iterating over a range of tiles for cases when the same tracker overlaps
  * several tiles.
  */ 
-void NavGridTile::ForEachTracker(ForEachTrackerCb cb)
+bool NavGridTile::ForEachTracker(ForEachTrackerCb cb)
 {
-   stdutil::ForEachPrune<dm::ObjectId, CollisionTracker>(trackers_, [cb](dm::ObjectId const& id, CollisionTrackerPtr tracker) {
-      NG_LOG(7) << "calling ForEachTracker callback on " << *tracker->GetEntity();
-      cb(tracker);
-   });
+   return ForEachTrackerInRange(trackers_.begin(), trackers_.end(), cb);
 }
-   
+
+/*
+ * -- NavGridTile::ForEachTrackerForEntity
+ *
+ * Call the `cb` for all trackers for the specified `entityId`.  Stops iteration when
+ * the `cb` returns false.  Returns whether or not we made it through the whole
+ * list.
+ */ 
+bool NavGridTile::ForEachTrackerForEntity(dm::ObjectId entityId, ForEachTrackerCb cb)
+{
+   auto range = trackers_.equal_range(entityId);
+   return ForEachTrackerInRange(range.first, range.second, cb);
+}
+
+/*
+ * -- NavGridTile::ForEachTrackerInRange
+ *
+ * Call the `cb` for all trackers in the specified range.  Stops iteration when
+ * the `cb` returns false.  Returns whether or not we made it through the whole
+ * list.
+ */ 
+bool NavGridTile::ForEachTrackerInRange(TrackerMap::const_iterator begin, TrackerMap::const_iterator end, ForEachTrackerCb cb)
+{
+   while (begin != end) {
+      CollisionTrackerPtr tracker = begin->second.lock();
+      if (tracker) {
+         NG_LOG(7) << "calling ForEachTracker callback on " << *tracker->GetEntity();
+
+         ++begin;
+         if (!cb(tracker)) {
+            return false;
+         }
+      } else {
+         begin = trackers_.erase(begin);
+      }
+   }
+   return true;
+}
+
+/*
+ * -- NavGridTile::RegisterChangeCb
+ *
+ * Calls the `cb` whenever the state of the NavGridTile changes.  See 
+ * NavGridTile::ChangeNotification for more details.
+ */ 
+core::Guard NavGridTile::RegisterChangeCb(ChangeCb cb)
+{
+   return changed_slot_.Register(cb);
+}

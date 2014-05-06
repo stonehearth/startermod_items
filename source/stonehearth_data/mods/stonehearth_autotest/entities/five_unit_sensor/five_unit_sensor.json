@@ -1,0 +1,29 @@
+{
+   "components": {
+      "mob" : {
+         "interpolate_movement" : false,
+         "mob_collision_type" : "tiny"
+      },
+      "model_variants": {
+         "default": {
+            "models": [
+               "file(five_unit_sensor.qb)"
+            ]
+         }
+      },
+      "sensor_list": {
+         "sensors": {
+            "sight": {
+               "type": "sensor",
+               "radius": 10
+            }
+         }
+      },
+      "unit_info": {
+         "name": "Test Sensor",
+         "description": "Radius is 5 units",
+         "icon" : "file(five_unit_sensor.png)",
+         "portrait": "file(five_unit_sensor.png)"
+      }
+   }
+}

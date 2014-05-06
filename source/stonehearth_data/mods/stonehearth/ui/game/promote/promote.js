@@ -13,6 +13,38 @@ $(document).ready(function(){
 App.StonehearthClassesPromoteView = App.View.extend({
    templateName: 'stonehearthClassesPromote',
    modal: false,
+   components: {
+      'citizens' : {
+         '*' : {
+            'stonehearth:profession' : {},
+            'unit_info': {}
+         }
+      }
+   },
+
+   _worker_filter_fn: function(person) {
+      return person['stonehearth:profession'].profession_id == 'worker';
+   },
+
+   _buildPeopleArray: function() {
+      var vals = [];
+      var citizenMap = this.get('context.citizens');
+      var self = this;
+     
+      if (citizenMap) {
+         $.each(citizenMap, function(k ,v) {
+            if(k == '__self' || !citizenMap.hasOwnProperty(k)) {
+               return;
+            }
+
+            if (self._worker_filter_fn(v)) {
+               vals.push(v);
+            }
+         });
+      }
+
+      this.set('context.citizensArray', vals);
+   }.observes('context.citizens.[]'),
 
    init: function() {
       this._super();
@@ -20,32 +52,22 @@ App.StonehearthClassesPromoteView = App.View.extend({
 
       App.gameView.getView(App.StonehearthUnitFrameView).supressSelection(true);
       
-      radiant.call('stonehearth:get_worker_tracker')
+      radiant.call('stonehearth:get_population')
          .done(function(response) {
-            self._worker_tracker = response.tracker;
-            self._trace = new RadiantTrace();
-            self._trace.traceUri(response.tracker, 
-               {
-                  'entities': {
-                     'unit_info' : {}
-                  }
-               })
-               .progress(function(data) {
-                  self._workers = data.entities;
-               });
-         });
-
+            self.set('uri', response.population);
+         })
 
       $(top).on("radiant_selection_changed.promote_view", function (_, data) {
-         if (!self._workers) {
+         var workers = self.get('context.citizensArray');
+         if (!workers) {
             return;
          }
 
          var foundWorker = false;
-         for (var i = 0; i < self._workers.length; i++) {
-            var uri = self._workers[i]['__self']
+         for (var i = 0; i < workers.length; i++) {
+            var uri = workers[i]['__self']
             if (uri == data.selected_entity) {
-               self.set('context.selectedUnitName', self._workers[i].unit_info.name);
+               self.set('context.selectedUnitName', workers[i].unit_info.name);
                self._selectedUnitUri = uri;
                foundWorker = true;
                break;
@@ -98,26 +120,29 @@ App.StonehearthClassesPromoteView = App.View.extend({
          console.log('instantiate the picker!');
 
          var self = this;
-         radiant.call('stonehearth:get_worker_tracker')
-            .done(function(response) {
-               App.gameView.addView(App.StonehearthPeoplePickerView, {
-                           uri: response.tracker,
-                           title: 'Choose the worker to promote', //xxx localize
-                           css: {
-                              left: 703,
-                              bottom: 50
-                           },
-                           callback: function(person) {
-                              // `person` is part of the people picker's model.  it will be destroyed as
-                              // soon as that view is destroyed, which will happen immediately after the
-                              // callback is fired!  scrape everything we need out of it before this happens.
-                              radiant.call('radiant:play_sound', 'stonehearth:sounds:ui:promotion_menu:select' );
-                              self.set('context.selectedUnitName', person.unit_info.name);
-                              self._selectedUnitUri = person.__self;
-                              self._gotoApproveStep()
-                           }
-                        });
-            });
+         App.gameView.addView(App.StonehearthPeoplePickerView, {
+                     uri: self.get('uri'),
+                     title: 'Choose the worker to promote', //xxx localize
+                     css: {
+                        left: 703,
+                        bottom: 50
+                     },
+                     // A user-specified function to filter the citizens that come back from
+                     // the server.
+                     filter_fn: self._worker_filter_fn,
+                     // Additional components of the citizen entity that we want retrieved
+                     // (for our function).
+                     additional_components: { "stonehearth:profession" : {} },
+                     callback: function(person) {
+                        // `person` is part of the people picker's model.  it will be destroyed as
+                        // soon as that view is destroyed, which will happen immediately after the
+                        // callback is fired!  scrape everything we need out of it before this happens.
+                        radiant.call('radiant:play_sound', 'stonehearth:sounds:ui:promotion_menu:select' );
+                        self.set('context.selectedUnitName', person.unit_info.name);
+                        self._selectedUnitUri = person.__self;
+                        self._gotoApproveStep()
+                     }
+                  });
       },
 
       approve: function() {

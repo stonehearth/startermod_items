@@ -8,7 +8,7 @@ from ridl.om_types import *
 class Sensor(dm.Record):
    entity = dm.Boxed(EntityRef())
    name = dm.Boxed(std.string())
-   cube = dm.Boxed(csg.Cube3f())
+   cube = dm.Boxed(csg.Cube3())
    contents = dm.Map(dm.ObjectId(), std.weak_ptr(Entity()), iterate='define')
 
    _lua_weak_ref = True
@@ -20,13 +20,14 @@ class Sensor(dm.Record):
    _public = \
    """
    void UpdateIntersection(std::unordered_map<dm::ObjectId, om::EntityRef> const&);
+   dm::Map<dm::ObjectId, std::weak_ptr<Entity>>& GetContainer();
    """
 
    _protected = \
    """
    friend SensorList;
 
-   void Construct(om::EntityRef entity, std::string name, const csg::Cube3f& cube) {
+   void Construct(om::EntityRef entity, std::string name, const csg::Cube3& cube) {
       entity_ = entity;
       name_ = name;
       cube_ = cube;

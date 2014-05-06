@@ -20,6 +20,7 @@
    BEGIN_GROUP(physics) \
       ADD_CATEGORY(collision) \
       ADD_CATEGORY(navgrid) \
+      ADD_CATEGORY(sensor_tracker) \
    END_GROUP(physics) \
    \
    BEGIN_GROUP(csg) \
@@ -78,6 +79,10 @@
       ADD_CATEGORY(store) \
       ADD_CATEGORY(streamer) \
       ADD_CATEGORY(receiver) \
+      ADD_CATEGORY(boxed) \
+      ADD_CATEGORY(set) \
+      ADD_CATEGORY(map) \
+      ADD_CATEGORY(buffered) \
       BEGIN_GROUP(trace) \
          ADD_CATEGORY(boxed) \
          ADD_CATEGORY(set) \

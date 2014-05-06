@@ -54,44 +54,7 @@ function CalendarService:initialize()
       self._sv._fired_noon_today = true
       self._sv._fired_sunset_today = false
       self._sv._fired_midnight_today = false
-
-      -- Set saved speed based on user settings
-      _radiant.call('radiant:game:get_game_speed')
-         :done(function(r)
-            self._sv._default_game_speed = r.game_speed
-            self._sv._user_requested_speed = self._sv._default_game_speed 
-            end)
-   else
-      --We're loading! set the game speed based on the saved variable 
-      _radiant.call('radiant:game:set_game_speed', self._sv._user_requested_speed)
    end
-end
-
---- Get the last speed the user specified
-function CalendarService:get_user_requested_speed()
-   return self._sv._user_requested_speed
-end
-
---- Get the "default speed"
---  TODO: Depending on the final UI, this may not be necessary, but while we want to 
---  respect the game speed set in user settings, this is relevant to getting the
---  originally set speed back to loaded games
-function CalendarService:get_default_speed()
-   return self._sv._default_game_speed
-end
-
---- Set the speed of the game
---  @param speed: a float representing the speed
---  @param user_set: true if the speed change was requested by the user
---  false if it was requested by the game (for a cut scene, dialog, etc)
---  Note: if the game changes the speed automatically don't save it
---  to the _sv._user_speed variable, so we can use the value in the _sv
---  variable to restore the speed to its previous user requested setting. 
-function CalendarService:set_game_speed(speed, user_set)
-   if user_set then
-      self._sv._user_requested_speed = speed
-   end
-   _radiant.call('radiant:game:set_game_speed', speed)
 end
 
 function CalendarService:get_elapsed_time()

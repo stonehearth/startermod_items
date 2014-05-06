@@ -10,8 +10,6 @@ $(document).ready(function(){
          } else if (App.stonehearth.startMenu.stonehearthMenu("getMenu")){
             App.stonehearth.startMenu.stonehearthMenu("hideMenu")
          } else {
-            //Temp, try setting gamespeed to zero
-            radiant.call('radiant:game:set_game_speed')
             App.gameView.addView(App.StonehearthEscMenuView);
          }
       }

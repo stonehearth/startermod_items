@@ -2,7 +2,7 @@
    <div id="peoplePicker">
       <div id="title">{{view.title}}</div>
       <div id="list">
-         {{#each entities}}
+         {{#each citizensArray}}
             <a id="choice" href="#" {{action selectPerson this target="view"}}>
                <div>{{this.unit_info.name}}</div>
             </a>

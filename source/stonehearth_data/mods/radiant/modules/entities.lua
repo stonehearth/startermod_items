@@ -78,6 +78,7 @@ function entities.add_child(parent, child, location)
    component:add_child(child)
    if location then
       entities.move_to(child, location)
+   else
    end
 end
 

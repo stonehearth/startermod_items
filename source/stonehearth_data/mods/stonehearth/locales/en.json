@@ -243,8 +243,10 @@
    "building_vision_hide_all_walls" : "Hide All Walls",
    "building_vision_hide_all_walls_description" : "Hide all walls, showing just the floor of buildings",
 
-   "play_pause_title" : "Pause/Resume",
-   "play_pause_description" : "Pause the game if its running, or resume if it's paused."
+   "pause_title" : "Pause Game",
+   "pause_description" : "Pause the game if its running.",
+   "play_title" : "Play Game",
+   "play_description" : "Make the game run at normal speed."
 
 }
 

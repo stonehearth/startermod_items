@@ -7,7 +7,7 @@
 using namespace radiant;
 using namespace radiant::dm;
 
-#define TRACE_LOG(level)            LOG_CATEGORY(dm.trace.map, level, "buf map<" << GetShortTypeName<M::Key>() << "," << GetShortTypeName<M::Value>() << "> " << GetReason())
+#define TRACE_LOG(level)            LOG(dm.trace.map, level) << "[buf map trace<" << GetShortTypeName<M::Key>() << "," << GetShortTypeName<M::Value>() << "> " << GetReason() << " id:" << GetMapObjectId() << "] "
 #define TRACE_LOG_ENABLED(level)    LOG_IS_ENABLED(dm.trace.map, level)
 
 template <typename M>
@@ -15,14 +15,19 @@ MapTraceBuffered<M>::MapTraceBuffered(const char* reason, M const& m) :
    MapTrace(reason, m),
    firing_(false)
 {
-   TRACE_LOG(5) << "creating trace for object " << GetObjectId();
+   TRACE_LOG(5) << "creating trace";
+}
+
+template <typename M>
+MapTraceBuffered<M>::~MapTraceBuffered()
+{
 }
 
 template <typename M>
 void MapTraceBuffered<M>::Flush()
 {
    if (TRACE_LOG_ENABLED(9)) {
-      TRACE_LOG(5) << "flushing trace for object " << GetObjectId();
+      TRACE_LOG(5) << "flushing trace";
       for (const auto& entry : changed_) {
          TRACE_LOG(9) << "  changed: " << entry.first;
       }
@@ -45,7 +50,7 @@ bool MapTraceBuffered<M>::SaveObjectDelta(SerializationType r, Protocol::Value* 
    Store const& store = GetStore();
    Protocol::Map::Update* msg = value->MutableExtension(Protocol::Map::extension);
 
-   TRACE_LOG(5) << "saving trace for object " << GetObjectId();
+   TRACE_LOG(5) << "saving trace";
 
    if (!changed_.empty() || !removed_.empty()) {
       for (auto const& entry : changed_) {
@@ -108,6 +113,7 @@ void MapTraceBuffered<M>::NotifyChanged(Key const& key, Value const& value)
 template <typename M>
 void MapTraceBuffered<M>::ClearCachedState()
 {
+   TRACE_LOG(7) << "clearing cached state";
    changed_ = std::move(pending_changed_);
    removed_ = std::move(pending_removed_);
 }

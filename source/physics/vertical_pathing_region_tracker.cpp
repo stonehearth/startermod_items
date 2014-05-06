@@ -31,7 +31,7 @@ VerticalPathingRegionTracker::VerticalPathingRegionTracker(NavGrid& ng, om::Enti
  */
 VerticalPathingRegionTracker::~VerticalPathingRegionTracker()
 {
-   GetNavGrid().MarkDirty(last_bounds_);
+   GetNavGrid().OnTrackerDestroyed(last_bounds_, GetEntityId());
 }
 
 

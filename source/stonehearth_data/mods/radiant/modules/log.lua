@@ -84,7 +84,7 @@ local function compute_log_prefix(prefix, entity)
    if entity then
       entity_prefix = 'e:' .. tostring(entity:get_id()) .. ' ' .. radiant.entities.get_name(entity)
    end
-   return '[' .. (entity_prefix and (entity_prefix .. ' ') or '') .. prefix .. ']'
+   return '[' .. (entity_prefix and (entity_prefix .. ' ') or '') .. prefix .. '] '
 end
 
 function Log.create_logger(sub_category, prefix)

@@ -173,9 +173,15 @@ App.StonehearthCrafterView = App.View.extend({
 
       radiant.call_obj(workshop, 'resolve_order_options', recipe)
          .done(function(return_data){
-            self.$("#portrait").attr("src", return_data.portrait);
-            self.$("#usefulText").html(return_data.description);
-            self.$("#flavorText").html(return_data.flavor);
+            var portrait = self.$("#portrait");
+            if (portrait) {
+               // we assuming that if the portrait div is there, everything else
+               // is too.  this could go away if the sheet is closed before our
+               // call comes back!
+               self.$("#portrait").attr("src", return_data.portrait);
+               self.$("#usefulText").html(return_data.description);
+               self.$("#flavorText").html(return_data.flavor);
+            }
          });
    },
 

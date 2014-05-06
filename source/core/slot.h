@@ -51,6 +51,12 @@ public:
       firing_ = false;
    }
 
+   bool IsEmpty()
+   {
+      ASSERT(!firing_);
+      return callbacks_.empty();
+   }
+
    void Clear()
    {
       ASSERT(!firing_);

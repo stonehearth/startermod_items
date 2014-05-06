@@ -33,7 +33,7 @@ MobTracker::MobTracker(NavGrid& ng, om::EntityPtr entity, om::MobPtr mob) :
 
 MobTracker::~MobTracker()
 {
-   GetNavGrid().MarkDirty(last_bounds_);
+   GetNavGrid().OnTrackerDestroyed(last_bounds_, GetEntityId());
 }
 
 /*
@@ -56,48 +56,76 @@ void MobTracker::Initialize()
  */
 void MobTracker::MarkChanged()
 {
-   om::MobPtr mob = mob_.lock();
-   if (mob) {
-      csg::Point3 pos = mob->GetWorldGridLocation();
-      if (pos != last_bounds_.min) {
-         csg::Cube3 bounds(pos, pos + csg::Point3(1, 1, 1));
-         if (mob->GetMobCollisionType() == om::Mob::HUMANOID) {
-            bounds.max.y += 4;
-         }
-         NG_LOG(9) << "adding MobTracker for " << *mob->GetEntityPtr() << " to tile " << bounds << "(last bounds:" << last_bounds_ << ")";
-         GetNavGrid().AddCollisionTracker(last_bounds_, bounds, shared_from_this());
-         last_bounds_ = bounds;
+   om::EntityPtr entity = GetEntity();
+   if (entity) {
+      bounds_ = ComputeWorldBounds();
+      if (bounds_ != last_bounds_) {
+         NG_LOG(9) << "MobTracker for " << *entity << " changed (bounds:" << bounds_ << " last bounds:" << last_bounds_ << ")";
+         GetNavGrid().AddCollisionTracker(last_bounds_, bounds_, shared_from_this());
+         last_bounds_ = bounds_;
       } else {
-         NG_LOG(9) << "skipping MobTracker bookkeeping for " << *mob->GetEntityPtr() << " (pos ~= last bounds:" << last_bounds_ << ")";
+         NG_LOG(9) << "skipping MobTracker bookkeeping for " << *entity << " (bounds:" << bounds_ << " == last bounds:" << last_bounds_ << ")";
       }
    }
 }
 
-
 /*
  * MobTracker::GetOverlappingRegion
  *
- * Theoretically returns the region which overlaps the specified bounds.  In practice,
- * this is used to update bit-vectors in the NavGridTileData structure, which we don't
- * contribute to.  If this gets called, something terribly, terribly wrong has happened.
+ * Return the part of our region which overlaps the specified bounds.  Bounds are in
+ * world space coordinates!
  */
 csg::Region3 MobTracker::GetOverlappingRegion(csg::Cube3 const& bounds) const
 {
-   NOT_YET_IMPLEMENTED();
-   return csg::Region3::empty;
+   return ComputeWorldBounds() & bounds;
 }
 
+/*
+ * MobTracker::GetType
+ *
+ * Return the type of the mob tracker
+ */
 TrackerType MobTracker::GetType() const
 {
    return MOB;
 }
 
-csg::Cube3 const& MobTracker::GetLastBounds() const
+/*
+ * MobTracker::GetBounds
+ *
+ * Return the bounds of the mob in this tracker, in world coordinates
+ */
+csg::Cube3 const& MobTracker::GetBounds() const
 {
-   return last_bounds_;
+   return bounds_;
 }
 
+/*
+ * MobTracker::Intersects
+ *
+ * Return whether or not the specified `worldBounds` overlaps with this entity.
+ */
 bool MobTracker::Intersects(csg::Cube3 const& worldBounds) const
 {
-   return worldBounds.Intersects(last_bounds_);
+   return worldBounds.Intersects(bounds_);
+}
+
+/*
+ * MobTracker::ComputeWorldBounds
+ *
+ * Compute the bounds of the entity based on its location and collision type.
+ */
+csg::Cube3 MobTracker::ComputeWorldBounds() const
+{
+   om::MobPtr mob = mob_.lock();
+   if (!mob) {
+      return csg::Cube3(csg::Point3::zero, csg::Point3::zero);
+   }
+
+   csg::Point3 pos = mob->GetWorldGridLocation();
+   csg::Cube3 bounds(pos, pos + csg::Point3(1, 1, 1));
+   if (mob->GetMobCollisionType() == om::Mob::HUMANOID) {
+      bounds.max.y += 3;
+   }
+   return bounds;
 }
