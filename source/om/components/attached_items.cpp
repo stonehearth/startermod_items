@@ -26,8 +26,14 @@ AttachedItems& AttachedItems::AddItem(std::string key, std::weak_ptr<Entity> val
    om::EntityPtr item = value.lock();
 
    if (item) {
-      if (items_.Contains(key)) {
-         AT_LOG(1) << "Warning: replacing existing item on bone " << key << " without removing it first.  Make sure it is not orphaned.";
+      om::EntityPtr previousItem = GetItem(key).lock();
+      if (previousItem) {
+         if (previousItem->GetObjectId() == item->GetObjectId()) {
+            AT_LOG(3) << *item << " already attached to bone " << key << " on " << GetEntity();
+            return *this;
+         }
+         AT_LOG(1) << "Warning: " << GetEntity() << "replacing " << *previousItem << " on bone " << key << " without removing it first.  "
+            << "Make sure it is not orphaned.";
       }
 
       AT_LOG(3) << GetEntity() << " putting " << *item << " on bone " << key;
