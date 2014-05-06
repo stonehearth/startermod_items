@@ -14,7 +14,7 @@
       OM_OBJECT(SensorList,            sensor_list) \
       OM_OBJECT(TargetTables,          target_tables) \
       OM_OBJECT(Destination,           destination) \
-      OM_OBJECT(CarryBlock,            carry_block) \
+      OM_OBJECT(AttachedItems,         attached_items) \
       OM_OBJECT(UnitInfo,              unit_info) \
       OM_OBJECT(Item,                  item) \
       OM_OBJECT(ModList,               mod_list) \

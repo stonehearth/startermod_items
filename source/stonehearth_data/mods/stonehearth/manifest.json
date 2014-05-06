@@ -369,6 +369,7 @@
       "actions:run_away_from_entity" : "file(ai/actions/run_away_from_entity_action.lua)",
 
       "observers:enemy_observer" : "file(ai/observers/enemy_observer.lua)",
+      "observers:carry_observer" : "file(ai/observers/carry_observer.lua)",
       "observers:sleepiness" : "file(ai/observers/sleepiness_observer.lua)",
       "observers:calorie" : "file(ai/observers/calorie_observer.lua)",
       "observers:free_time" : "file(ai/observers/free_time_observer.lua)",
@@ -800,7 +801,6 @@
       "personality" : "file(components/personality/personality_component.lua)",
       "loot_table" : "file(components/loot_table/loot_table_component.lua)",
       "inventory" : "file(components/inventory/inventory_component.lua)",
-      "carry_block" : "file(components/carry_block/carry_block_component.lua)",
       "farmer_field" : "file(components/farmer_field/farmer_field_component.lua)",
       "growing" : "file(components/growing/growing_component.lua)", 
       "crop" : "file(components/crop/crop_component.lua)", 

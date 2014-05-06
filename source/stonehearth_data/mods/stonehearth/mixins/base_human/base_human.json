@@ -54,6 +54,7 @@
          ],
           "observers": [
             "stonehearth:observers:enemy_observer",
+            "stonehearth:observers:carry_observer",
             "stonehearth:observers:sleepiness",
             "stonehearth:observers:calorie",
             "stonehearth:observers:free_time"
@@ -199,8 +200,6 @@
       },
       "stonehearth:material" : {
          "tags" : "meat"
-      },
-      "stonehearth:carry_block": {
       },
       "stonehearth:equipment" : {
       }

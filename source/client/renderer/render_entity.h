@@ -87,6 +87,7 @@ protected:
 };
 
 typedef std::shared_ptr<RenderEntity>  RenderEntityPtr;
+typedef std::weak_ptr<RenderEntity>  RenderEntityRef;
 
 END_RADIANT_CLIENT_NAMESPACE
 

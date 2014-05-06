@@ -10,7 +10,7 @@
 #include "render_destination.h"
 #include "render_effect_list.h"
 #include "render_render_info.h"
-#include "render_carry_block.h"
+#include "render_attached_items.h"
 #include "render_lua_component.h"
 #include "render_region_collision_shape.h"
 #include "render_vertical_pathing_region.h"
@@ -23,7 +23,7 @@
 #include "om/components/terrain.ridl.h"
 #include "om/components/effect_list.ridl.h"
 #include "om/components/render_info.ridl.h"
-#include "om/components/carry_block.ridl.h"
+#include "om/components/attached_items.ridl.h"
 #include "om/selection.h"
 #include "lib/lua/script_host.h"
 
@@ -232,9 +232,9 @@ void RenderEntity::AddComponent(std::string const& name, std::shared_ptr<dm::Obj
             components_[name] = std::make_shared<RenderEffectList>(*this, el);
             break;
          }
-         case om::CarryBlockObjectType: {
-            om::CarryBlockPtr renderRegion = std::static_pointer_cast<om::CarryBlock>(value);
-            components_[name] = std::make_shared<RenderCarryBlock>(*this, renderRegion);
+         case om::AttachedItemsObjectType: {
+            om::AttachedItemsPtr renderRegion = std::static_pointer_cast<om::AttachedItems>(value);
+            components_[name] = std::make_shared<RenderAttachedItems>(*this, renderRegion);
             break;
          }
          case om::VerticalPathingRegionObjectType: {

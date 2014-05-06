@@ -11,8 +11,9 @@
 
 #define ALL_DM_MAP_TYPES \
    MAP(int, om::TargetTableEntryPtr) \
-   MAP(int, om::EntityRef) \
    MAP(int, om::EffectPtr) \
+   MAP(int, om::EntityRef) \
+   MAP(std::string, om::EntityRef) \
    MAP(std::string, dm::ObjectPtr) \
    MAP(std::string, om::ComponentPtr) \
    MAP(std::string, om::Selection) \

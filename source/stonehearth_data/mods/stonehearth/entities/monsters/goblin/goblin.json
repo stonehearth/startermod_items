@@ -43,7 +43,8 @@
             "stonehearth:actions:chase_entity"
          ],
          "observers": [
-            "stonehearth:observers:enemy_observer"
+            "stonehearth:observers:enemy_observer",
+            "stonehearth:observers:carry_observer"
          ]
       },
       "unit_info" : {
