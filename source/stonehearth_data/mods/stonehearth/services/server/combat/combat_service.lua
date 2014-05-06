@@ -30,15 +30,10 @@ function CombatService:initialize()
    log:write(0, 'initialize not tested for combat service!')
 end
 
-function CombatService:get_weapon_table(weapon_class)
-   local file_name = string.format('/stonehearth/entities/weapons/%s.json', weapon_class)
-   local weapon_table = radiant.resources.load_json(file_name)
-   return weapon_table
-end
+function CombatService:get_action_types(entity, action_type)
+   local action_types = radiant.entities.get_entity_data(entity, action_type)
 
-function CombatService:get_action_types(weapon_table, action_type)
-   local action_types = weapon_table[action_type]
-
+   -- TODO: just sort once...
    table.sort(action_types,
       function (a, b)
          return a.priority > b.priority

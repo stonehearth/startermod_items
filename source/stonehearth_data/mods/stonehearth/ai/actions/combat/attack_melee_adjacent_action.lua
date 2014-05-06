@@ -16,11 +16,8 @@ AttackMeleeAdjacent.version = 2
 AttackMeleeAdjacent.priority = 1
 AttackMeleeAdjacent.weight = 1
 
-function AttackMeleeAdjacent:__init()
-   self._weapon_table = stonehearth.combat:get_weapon_table('medium_1h_weapon')
-   
-   self._attack_types = stonehearth.combat:get_action_types(self._weapon_table, 'attack_types')
-   self._num_attack_types = #self._attack_types
+function AttackMeleeAdjacent:__init(entity)
+   self._attack_types = stonehearth.combat:get_action_types(entity, 'stonehearth:combat:melee_attacks')
 end
 
 -- TODO: don't allow melee if vertical distance > 1
@@ -33,7 +30,7 @@ function AttackMeleeAdjacent:run(ai, entity, args)
       return
    end
 
-   local weapon_data = radiant.entities.get_entity_data(weapon, 'stonehearth:weapon_data')
+   local weapon_data = radiant.entities.get_entity_data(weapon, 'stonehearth:combat:weapon_data')
    local attack_info = stonehearth.combat:choose_action(entity, self._attack_types)
    local time_to_impact = stonehearth.combat:get_time_to_impact(attack_info)
    local impact_time = radiant.gamestate.now() + time_to_impact

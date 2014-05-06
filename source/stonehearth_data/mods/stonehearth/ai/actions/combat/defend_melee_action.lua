@@ -12,10 +12,7 @@ DefendMelee.priority = 1
 DefendMelee.weight = 1
 
 function DefendMelee:__init(entity)
-   self._weapon_table = stonehearth.combat:get_weapon_table('medium_1h_weapon')
-   
-   self._defense_types = stonehearth.combat:get_action_types(self._weapon_table, 'defense_types')
-   self._num_defense_types = #self._defense_types
+   self._defense_types = stonehearth.combat:get_action_types(entity, 'stonehearth:combat:melee_defenses')
 end
 
 function DefendMelee:start_thinking(ai, entity, args)

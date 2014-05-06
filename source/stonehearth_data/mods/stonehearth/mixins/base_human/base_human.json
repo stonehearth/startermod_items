@@ -196,12 +196,61 @@
             "base" :  4,
             "max"  :  8
          }
-
       },
       "stonehearth:material" : {
          "tags" : "meat"
       },
       "stonehearth:equipment" : {
       }
+   },
+   "entity_data" : {
+      "stonehearth:combat:melee_attacks" : [
+         {
+            "name" : "combat_1h_backhand",
+            "active_frame" : 17,
+            "cooldown" : 0,
+            "priority" : 0
+         },
+         {
+            "name" : "combat_1h_forehand",
+            "active_frame" : 16,
+            "cooldown" : 0,
+            "priority" : 0
+         },
+         {
+            "name" : "combat_1h_forehand_spin",
+            "active_frame" : 21,
+            "cooldown" : 8000,
+            "priority" : 1
+         },
+         {
+            "name" : "combat_power_spike",
+            "active_frame" : 94,
+            "cooldown" : 20000,
+            "priority" : 1
+         }      
+      ],
+      "stonehearth:combat:melee_defenses" : [
+         {
+            "name" : "combat_1h_parry",
+            "active_frame" : 4,
+            "cooldown" : 0,
+            "priority" : 0
+         },
+         {
+            "name" : "combat_1h_dodge",
+            "active_frame" : 8,
+            "cooldown" : 8000,
+            "priority" : 1
+         }
+      ],
+      "stonehearth:combat:hit_stun" : [
+         {
+            "name" : "combat_1h_hit",
+            "active_frame" : 4,
+            "cooldown" : 0,
+            "priority" : 0
+         }
+      ]
    }
 }

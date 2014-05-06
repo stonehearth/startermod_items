@@ -45,7 +45,7 @@
       }      
    },
    "entity_data" : {
-      "stonehearth:weapon_data" : {
+      "stonehearth:combat:weapon_data" : {
          "base_damage" : 10,
          "reach" : 1
       },

@@ -76,8 +76,18 @@ function Combat:_clear_think_output()
    end
 end
 
+function Combat:start(ai, entity, args)
+   radiant.entities.set_posture(entity, 'combat')
+end
+
 function Combat:run(ai, entity, args)
    ai:execute('stonehearth:combat', { enemy = self._enemy })
+end
+
+function Combat:stop(ai, entity, args)
+   -- TODO: figure out where to unset the combat posture
+   -- weapon might blink during the next start_thinking
+   radiant.entities.unset_posture(entity, 'combat')
 end
 
 function Combat:_find_target()
@@ -93,27 +103,6 @@ end
 function Combat:_get_target()
    local target_table = stonehearth.combat:get_target_table(self._entity, 'aggro')
    local target = target_table:get_top()
-   return target
-end
-
--- stupid implementation until target tables are fixed
-function Combat:_get_target_old()
-   local entity = self._entity
-   local entity_id = entity:get_id()
-   local target, target_id
-
-   local pop = stonehearth.population:get_population('player_1')
-   local citizens = pop:get_citizens()
-
-   target_id, target = next(citizens)
-
-   if target ~= nil and target:is_valid() then
-      if target_id == entity_id then
-         --target = nil
-         target_id, target = next(citizens, target_id)
-      end
-   end
-
    return target
 end
 
