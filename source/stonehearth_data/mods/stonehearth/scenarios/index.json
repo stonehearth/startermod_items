@@ -26,5 +26,10 @@
             "activation_type" : "revealed"
          }
       }
+   },
+   "dynamic" : {
+      "scenarios" : [
+         "file(dynamic/spawner)"
+      ]
    }
 }

@@ -1,0 +1,8 @@
+{
+   "name" : "spawner",
+   "category" : "jerks",
+   "difficulty" : {
+      "min" : 0
+   },
+   "script" : "file(spawner.lua)"
+}
