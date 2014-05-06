@@ -15,7 +15,12 @@
          }
       },
       "stonehearth:equipment_piece" : {
-         "render_type" : "merge_with_model"
+         "render_type" : "attach_to_bone",
+         "render_info" : {
+            "model_variant" : "equipped",
+            "default_bone" : "mainHand",
+            "posture" : "combat"
+         }
       },
       "unit_info": {
          "name": "Wooden Sword",

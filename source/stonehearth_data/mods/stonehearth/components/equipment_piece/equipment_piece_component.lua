@@ -48,10 +48,48 @@ end
 
 function EquipmentPieceComponent:_setup_item_rendering()
 	local render_type = self._json.render_type
+
    if render_type == 'merge_with_model' then
       local render_info = self._sv.owner:add_component('render_info')
       render_info:attach_entity(self._entity)
+
+   elseif render_type == 'attach_to_bone' then
+      local model_variant = self._json.render_info.model_variant
+      if model_variant then
+         local render_info = self._entity:add_component('render_info')
+         render_info:set_model_variant(model_variant)
+      end
+
+      local posture = self._json.render_info.posture
+      if posture then
+         radiant.events.listen(self._sv.owner, 'stonehearth:posture_changed', self, self._on_posture_changed)
+         self:_on_posture_changed()
+      else
+         self:_attach_to_bone()
+      end
    end
+end
+
+function EquipmentPieceComponent:_on_posture_changed()
+   local posture = radiant.entities.get_posture(self._sv.owner)
+
+   if posture == self._json.render_info.posture then
+      self:_attach_to_bone()
+   else
+      self:_remove_from_bone()
+   end
+end
+
+function EquipmentPieceComponent:_attach_to_bone()
+   local attached_items = self._sv.owner:add_component('attached_items')
+   local bone_name = self._json.render_info.default_bone
+   attached_items:add_item(bone_name, self._entity)
+end
+
+function EquipmentPieceComponent:_remove_from_bone()
+   local attached_items = self._sv.owner:add_component('attached_items')
+   local bone_name = self._json.render_info.default_bone
+   attached_items:remove_item(bone_name)
 end
 
 function EquipmentPieceComponent:_inject_ai()
@@ -96,10 +134,15 @@ end
 
 function EquipmentPieceComponent:_remove_item_rendering()
 	assert(self._sv.owner and self._sv.owner:is_valid())
-
 	local render_type = self._json.render_type
+
    if render_type == 'merge_with_model' then
       self._sv.owner:add_component('render_info'):remove_entity(self._entity:get_uri())
+   elseif render_type == 'attach_to_bone' then
+      if self._json.render_info.posture then
+         radiant.events.unlisten(self._sv.owner, 'stonehearth:posture_changed', self, self._on_posture_changed)
+      end
+      self:_remove_from_bone()
    end
 end
 
