@@ -125,7 +125,7 @@ bool FollowPath::Work(const platform::timer &timer)
 bool FollowPath::Arrived(om::MobPtr mob)
 {
    ASSERT(path_);
-   return pursuing_ >= stopIndex_;
+   return pursuing_ > stopIndex_;
 }
 
 bool FollowPath::Obstructed()
