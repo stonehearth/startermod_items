@@ -113,6 +113,19 @@ local constants = {
       HUNGRY = 100,
       SLEEPY = 50,
    },
+
+   --Constants that contribute to the scoare
+   score = {
+      DEFAULT_MIN = 0,
+      DEFAULT_MAX = 10,
+      DEFAULT_AVERAGE = 5,
+
+      energy = {
+         EAT_ONCE_TODAY = 1,
+         EAT_AT_MEALTIME = 1,
+         NO_FOOD_TODAY = -1
+      }
+   },
 }
 
 return constants
