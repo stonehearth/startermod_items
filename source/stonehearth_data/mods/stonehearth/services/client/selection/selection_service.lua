@@ -24,8 +24,15 @@ function SelectionService:_select_entity(id)
       _radiant.client.select_entity_by_id(0)
       self._selected_id = 0
    else
-      _radiant.client.select_entity_by_id(id)
-      self._selected_id = id
+      local entity = radiant.entities.get_entity(id)
+      local player_id = radiant.entities.get_player_id(entity)
+      --if  player_id == 'player_1' or player_id == '' then
+         _radiant.client.select_entity_by_id(id)
+         self._selected_id = id
+      --[[else
+         _radiant.client.select_entity_by_id(0)
+         self._selected_id = 0
+      end]]
    end
 end
 

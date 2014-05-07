@@ -40,7 +40,13 @@
             "stonehearth:actions:combat:idle:ready",
             "stonehearth:actions:combat:idle:shuffle",
             "stonehearth:actions:combat:hit_stun",
-            "stonehearth:actions:chase_entity"
+            "stonehearth:actions:chase_entity",
+            "stonehearth:actions:restock_stockpile",
+            "stonehearth:actions:reserve_stockpile_space",
+            "stonehearth:actions:worker_task_dispatcher",
+            "stonehearth:actions:place_item",
+            "stonehearth:actions:place_item_type",
+            "stonehearth:actions:stockpile_arson"       
          ],
          "observers": [
             "stonehearth:observers:enemy_observer"
@@ -48,12 +54,13 @@
       },
       "unit_info" : {
          "name": "A Goblin",
+         "faction": "goblin",
          "description": "Attracted to shiny things"
       },
       "stonehearth:attributes": {
          "health": {
             "type" : "basic", 
-            "value" :  100
+            "value" :  5000
          },
          "speed": {
             "type" : "basic",
@@ -61,8 +68,10 @@
          },
          "ferocity": {
             "type" : "basic", 
-            "value" :  100
+            "value" :  5000
          }
-      } 
+      },
+      "stonehearth:carry_block": {
+      }
    }
 }

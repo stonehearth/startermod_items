@@ -368,6 +368,8 @@
 
       "actions:run_away_from_entity" : "file(ai/actions/run_away_from_entity_action.lua)",
 
+      "actions:stockpile_arson" : "file(ai/actions/stockpile_arson_action.lua)",
+
       "observers:enemy_observer" : "file(ai/observers/enemy_observer.lua)",
       "observers:sleepiness" : "file(ai/observers/sleepiness_observer.lua)",
       "observers:calorie" : "file(ai/observers/calorie_observer.lua)",

@@ -6,26 +6,53 @@ function Spawner:__init()
 end
 
 function Spawner:initialize(properties)
+   local session = {
+      player_id = 'game_master',
+      faction = 'goblin',
+      kingdom = 'stonehearth:kingdoms:golden_conquering_arm'
+   }
+   self._town = stonehearth.town:add_town(session)
+   self._inventory = stonehearth.inventory:add_inventory(session)
+   self._population = stonehearth.population:add_population(session)
+   self._population:create_town_name()
    radiant.events.listen(stonehearth.object_tracker, 'stonehearth:promote', self, self._on_promote)
 end
 
 function Spawner:_on_promote(e)
-   local promoted_entity = e.entity
-   if promoted_entity:get_component('stonehearth:profession'):get_profession_id() == 'carpenter' then
-
-
+   if e.entity:get_component('stonehearth:profession'):get_profession_id() == 'carpenter' then
       local explored_regions = stonehearth.terrain:get_explored_region('civ'):get()
       local region_bounds = explored_regions:get_bounds()
 
-      local spawn_point = Point2(region_bounds.max.x + 1, 1 + (region_bounds.max.y + region_bounds.min.y) / 2)
+      local spawn_point = Point3(region_bounds.max.x + 1, 1, 1 + (region_bounds.max.y + region_bounds.min.y) / 2)
 
+      self._goblin = self._population:create_new_citizen()
+      radiant.terrain.place_entity(self._goblin, spawn_point)
+      self._town:join_task_group(self._goblin, 'workers')
+      self._stockpile = self._inventory:create_stockpile(spawn_point, {x=2, y=1})
+      self._stockpile_comp = self._stockpile:get_component('stonehearth:stockpile')
+      self._stockpile_comp:set_filter({'resource wood'})
 
-      local tombstone = radiant.entities.create_entity('stonehearth:tombstone')
-      radiant.entities.set_name(tombstone, 'title')
-      radiant.entities.set_description(tombstone, 'description')
-      radiant.terrain.place_entity(tombstone, Point3(spawn_point.x, 1, spawn_point.y))
-      return radiant.events.UNLISTEN
+      radiant.events.listen(self._stockpile, 'stonehearth:item_added', self, self._item_added)
    end
+end
+
+function Spawner:_item_added(e)
+   if self._stockpile:is_valid() and self._stockpile_comp:is_full() and self._goblin:is_valid() then
+      self._goblin:get_component('stonehearth:ai')
+         :get_task_group('stonehearth:work')
+         :create_task('stonehearth:stockpile_arson', { 
+            stockpile_comp = self._stockpile_comp, 
+            location = self._stockpile:get_component('mob'):get_grid_location()
+         })
+         :set_priority(stonehearth.constants.priorities.top.WORK)
+         :once()
+         :start()
+   end
+end
+
+function Spawner:_item_removed(e)
+
+
 end
 
 return Spawner
