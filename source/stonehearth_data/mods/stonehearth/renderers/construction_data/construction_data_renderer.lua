@@ -87,7 +87,7 @@ function ConstructionDataRenderer:_compute_rpg_region(region)
          local local_origin = radiant.entities.get_world_grid_location(self._entity)
          local base = building_origin - local_origin
          local clipper = Cube3(Point3(-INFINITE, base.y,    -INFINITE),
-                               Point3( INFINITE, base.y + 1, INFINITE))
+                               Point3( INFINITE, base.y + 2, INFINITE))
          self._rpg_region:modify(function(cursor)
                cursor:copy_region(region:get():clipped(clipper))
             end)
