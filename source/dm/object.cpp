@@ -14,6 +14,17 @@ Object::Object()
    id_.store = 0;
 }
 
+// Object::operator==
+//
+// This is a bizarre little function.  It exists soley for the implementation of
+// == in lua.  We know objects can't be copied, so they're only equal if their pointers
+// are equal.  This also happens to work if this is NULL or &rhs is NULL, which means
+// it works for invalid references (e.g. std::weak_ptr<Object> which has expired.
+bool Object::operator==(Object const &rhs) const
+{
+   return this == &rhs;
+}
+
 void Object::SetObjectMetadata(ObjectId id, Store& store)
 {
    id_.id = id;
