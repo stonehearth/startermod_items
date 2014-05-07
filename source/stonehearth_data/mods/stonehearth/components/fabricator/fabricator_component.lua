@@ -7,16 +7,21 @@ local Color4 = _radiant.csg.Color4
 local log = radiant.log.create_logger('commands')
 
 local FabricatorComponent = class()
-local log = radiant.log.create_logger('fabricator')
 
 -- this is the component which manages the fabricator entity.
 function FabricatorComponent:initialize(entity, json)
+   self._log = radiant.log.create_logger('build')
+                        :set_prefix('fab component')
+                        :set_entity(entity)
+
    self._entity = entity
    self._sv = self.__saved_variables:get_data()
+
 
    if not self._sv.initialized then
       self._sv.initialized = true
       self._sv.active = false
+      self._sv.teardown = false
       self.__saved_variables:mark_changed()
    end
    radiant.events.listen_once(radiant, 'radiant:game_loaded', function()
@@ -25,13 +30,14 @@ function FabricatorComponent:initialize(entity, json)
                                           self._entity,
                                           self._sv.blueprint,
                                           self._sv.project)
+            self._fabricator:set_teardown(self._sv.teardown)
             self._fabricator:set_active(self._sv.active)
          end
       end)
 end
 
 function FabricatorComponent:destroy()
-   log:debug('destroying fabricator component for %s', self._entity)
+   self._log:debug('destroying fabricator component')
    
    if self._fabricator then
       self._fabricator:destroy()
@@ -47,17 +53,25 @@ function FabricatorComponent:destroy()
    end
 end
 
-function FabricatorComponent:set_active(active)
-   log:error('%s setting active to %s', self._entity, tostring(active))
+function FabricatorComponent:set_active(enabled)
+   self._log:info('setting active to %s', tostring(enabled))
    
-   self._fabricator:set_active(active)
+   self._fabricator:set_active(enabled)
    
    -- scaffolding entities are child of the fabricator, so start them, too
    if self._sv.scaffolding_blueprint then
-      stonehearth.build:set_building_active(self._sv.scaffolding_blueprint, active)
+      stonehearth.build:set_active(self._sv.scaffolding_blueprint, enabled)
    end
 
-   self._sv.active = active
+   self._sv.active = enabled
+   self.__saved_variables:mark_changed()
+end
+
+function FabricatorComponent:set_teardown(enabled)
+   self._log:info('setting teardown to %s', tostring(enabled))
+   
+   self._fabricator:set_teardown(enabled)
+   self._sv.teardown = enabled
    self.__saved_variables:mark_changed()
 end
 
@@ -79,7 +93,7 @@ end
 
 function FabricatorComponent:start_project(name, blueprint)
    self._sv.name = name and name or '-- unnamed --'
-   log:debug('starting project %s', self._sv.name)
+   self._log:debug('starting project %s', self._sv.name)
    
    self._fabricator = Fabricator(string.format("(%s Fabricator)", tostring(self._sv.blueprint)),
                                  self._entity,

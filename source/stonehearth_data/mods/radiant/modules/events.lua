@@ -25,17 +25,20 @@ function events._convert_object_to_key(object)
    return object
 end
 
--- takes 2 forms:
--- radiant.events.listen(sender, 'event_name', object, method)
--- radiant.events.listen(sender, 'event_name', function)
-
-function events.listen_once(object, event, cb)
+function events.listen_once(object, event, obj, method)
    return events.listen(object, event, function()
-         cb()
+         if method then
+            method(obj)
+         else
+            obj()
+         end
          return radiant.events.UNLISTEN
       end)
 end
 
+-- takes 2 forms:
+-- radiant.events.listen(sender, 'event_name', object, method)
+-- radiant.events.listen(sender, 'event_name', function)
 function events.listen(object, event, self, fn)
    assert(object and event and self)
 

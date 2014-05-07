@@ -112,6 +112,26 @@ function ConstructionProgress:get_active()
    return self._sv.active
 end
 
+function ConstructionProgress:set_teardown(teardown)
+   if teardown ~= self._sv.teardown then
+      if self._sv.fabricator_entity then
+         local fc = self._sv.fabricator_entity:get_component('stonehearth:fabricator')
+         if fc then
+            fc:set_teardown(teardown)
+         end
+         self._sv.teardown = teardown
+         self.__saved_variables:mark_changed()
+         radiant.events.trigger_async(self._entity, 'stonehearth:construction:teardown_changed', { 
+            entity = self._entity
+         })
+      end
+   end
+end
+
+function ConstructionProgress:get_teardown()
+   return self._sv.teardown
+end
+
 -- return the entity representing the buliding for which this wall, column,
 -- floor, etc. is a part of.  is usefull for getting *way* deep in the structual
 -- tree up to the construction blueprint which is actually interesting to the

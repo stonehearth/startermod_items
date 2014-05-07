@@ -27,7 +27,7 @@
          <div id="buildingControls" class="window">
             <div class="title">{{ building.unit_info.name }}</div>
             <br><br><br>
-            <button class="warn" id="stopBuilding">{{i18n stonehearth:remove}}</button>
+            <button class="warn" id="removeBuilding">{{i18n stonehearth:remove}}</button>
             <button {{bind-attr class=building.active:pause:start}} id="startBuilding">
                {{#if building.active }}
                Pause Building

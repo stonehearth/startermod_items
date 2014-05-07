@@ -23,6 +23,7 @@ function ScaffoldingFabricator:initialize(entity, json)
 end
 
 function ScaffoldingFabricator:destroy()
+   radiant.events.unlisten(self._sv.blueprint, 'stonehearth:construction:teardown_changed', self, self._update_scaffolding_size)
    if self._project_trace then
       self._project_trace:destroy()
       self._project_trace = nil
@@ -61,6 +62,8 @@ function ScaffoldingFabricator:_start()
    self._project_dst = self._sv.project:get_component('destination')
    self._blueprint_dst = self._sv.blueprint:get_component('destination')
    self._blueprint_cd = self._sv.blueprint:get_component('stonehearth:construction_data')
+   self._blueprint_cp = self._sv.blueprint:get_component('stonehearth:construction_progress')
+   radiant.events.listen(self._sv.blueprint, 'stonehearth:construction:teardown_changed', self, self._update_scaffolding_size)
    
    self._project_trace = self._project_dst:trace_region('generating scaffolding')
    self._project_trace:on_changed(function()
@@ -100,17 +103,32 @@ function ScaffoldingFabricator:_borrowers_finished()
 end
 
 function ScaffoldingFabricator:_update_scaffolding_size()
-   local blueprint_finished = self._sv.blueprint:get_component('stonehearth:construction_progress')
-                                    :get_finished()
-   if blueprint_finished then
-      if self:_borrowers_finished() then
-         -- make our region completely empty.  the fabricator will worry about
-         -- the exact details of how this happens
-         self:_clear_destination_region()
+   local blueprint_teardown = self._blueprint_cp:get_teardown()
+   local blueprint_finished = self._blueprint_cp:get_finished()
+   if not blueprint_teardown then
+      if blueprint_finished then
+         if self:_borrowers_finished() then
+            -- make our region completely empty.  the fabricator will worry about
+            -- the exact details of how this happens
+            self:_clear_destination_region()
+         end
+      else
+         self:_cover_project_region()
       end
    else
       self:_cover_project_region()
+      -- now strip off the top row...
+      self._entity_dst:get_region():modify(function(cursor) 
+         local bounds = cursor:get_bounds()
+         if cursor:get_area() > 0 then
+            local top_row = Cube3(Point3(-COORD_MAX, bounds.max.y - 1, -COORD_MAX),
+                                  Point3( COORD_MAX, bounds.max.y,  COORD_MAX))
+            cursor:subtract_cube(top_row)
+         end
+      end)
+
    end
+   self:_update_ladder_region()
 end
 
 function ScaffoldingFabricator:_cover_project_region()
@@ -166,7 +184,9 @@ function ScaffoldingFabricator:_cover_project_region()
          cursor:subtract_region(project_rgn)
       end
    end)
-   
+end
+
+function ScaffoldingFabricator:_update_ladder_region()
    -- put a ladder in column 0.  this one is 2 units away from the
    -- project in the direction of the normal (as the scaffolding itself
    -- is 1 unit away)

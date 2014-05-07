@@ -105,7 +105,7 @@ function FabricatorRenderer:_update_render_state()
          material = 'selected'
       elseif stonehearth.hilight:get_hilighted_id() == entity_id then
          material = 'hover'
-      elseif self._building and selected_building and (selected_building:get_id() == self._building:get_id()) then
+      elseif self._building and self._building:is_valid() and self._building == selected_building then
          material = 'building_selected'
       end
       material = self._render_entity:get_material_path(material)
@@ -114,7 +114,12 @@ function FabricatorRenderer:_update_render_state()
 end
 
 function FabricatorRenderer:_get_building()
-   return self._data.blueprint:get_component('stonehearth:construction_progress'):get_data().building_entity
+   if self._data and self._data.blueprint then      
+      local cp = self._data.blueprint:get_component('stonehearth:construction_progress')
+      if cp then 
+         return cp:get_data().building_entity
+      end
+   end
 end
 
 function FabricatorRenderer:_recreate_render_node()
