@@ -14,7 +14,7 @@ function Fabricator:__init(name, entity, blueprint, project)
    self.name = name
 
    self._log = radiant.log.create_logger('build')
-                        :set_prefix(name)
+                        :set_prefix('fab for ' .. tostring(blueprint))
                         :set_entity(entity)
 
    self._log:debug('creating fabricator')
@@ -136,8 +136,8 @@ function Fabricator:_on_dependencies_finished_changed()
                                                 :get_dependencies_finished()
    self._log:debug('got stonehearth:construction:dependencies_finished_changed event (dependencies finished = %s)',
                    tostring(self._dependencies_finished))
-                                                
-   self:_start_project()                                                
+
+   self:_start_project()
 end
 
 function Fabricator:get_material()
@@ -236,57 +236,73 @@ function Fabricator:_start_project()
    -- building up, start the pickup and fabricate tasks
    self._log:detail('start_project (activated:%s teardown:%s deps_finished:%s)', self._active, self._should_teardown, self._dependencies_finished)
 
-   if self._active then
+   if self._active and self._dependencies_finished then
       if self._should_teardown then
          run_teardown_task = true
-      elseif self._dependencies_finished then
+      else
          run_fabricate_task = true
       end
    end
    
    -- Now apply the deltas.  Create tasks that need creating and destroy
    -- ones that need destroying.
-   if run_teardown_task and not self._teardown_task then
+   if run_teardown_task then
       self:_start_teardown_task()
-   elseif not run_teardown_task and self._teardown_task then
-      self._teardown_task:destroy()
-      self._teardown_task = nil
-      radiant.events.trigger(self, 'needs_teardown', self, false)
+   else
+      self:_destroy_teardown_task()
    end
    
-   if run_fabricate_task and not self._fabricate_task then
+   if run_fabricate_task then
       self:_start_fabricate_task()
-   elseif not run_fabricate_task and self._fabricate_task then
-      self._fabricate_task:destroy()
-      self._fabricate_task = nil
-      radiant.events.trigger(self, 'needs_work', self, false)
+   else
+      self:_destroy_fabricate_task()
    end
 end
 
 function Fabricator:_start_teardown_task()
-   assert(not self._teardown_task)
-   
-   local town = stonehearth.town:get_town(self._project)
-   self._teardown_task = town:create_worker_task('stonehearth:teardown_structure', { fabricator = self })
-                                   :set_name('teardown')
-                                   :set_source(self._entity)
-                                   :set_max_workers(self:get_max_workers())
-                                   :set_priority(priorities.TEARDOWN_BUILDING)
-                                   :start()
-   radiant.events.trigger(self, 'needs_teardown', self, true)
+   if not self._teardown_task then
+      self._log:debug('starting teardown task')
+      local town = stonehearth.town:get_town(self._project)
+      self._teardown_task = town:create_worker_task('stonehearth:teardown_structure', { fabricator = self })
+                                      :set_name('teardown')
+                                      :set_source(self._entity)
+                                      :set_max_workers(self:get_max_workers())
+                                      :set_priority(priorities.TEARDOWN_BUILDING)
+                                      :start()
+      radiant.events.trigger(self, 'needs_teardown', self, true) -- xxx: can we nuke these???
+   end
 end
- 
-function Fabricator:_start_fabricate_task() 
-   assert(not self._fabricate_task)
 
-   local town = stonehearth.town:get_town(self._blueprint)
-   self._fabricate_task = town:create_worker_task('stonehearth:fabricate_structure', { fabricator = self })
-                                   :set_name('fabricate')
-                                   :set_source(self._entity)
-                                   :set_max_workers(self:get_max_workers())
-                                   :set_priority(priorities.CONSTRUCT_BUILDING)
-                                   :start()
-   radiant.events.trigger(self, 'needs_work', self, true)
+function Fabricator:_destroy_teardown_task()
+   if self._teardown_task then
+      self._log:debug('destroying teardown task')
+      self._teardown_task:destroy()
+      self._teardown_task = nil
+      radiant.events.trigger(self, 'needs_teardown', self, false)
+   end
+end
+
+function Fabricator:_start_fabricate_task() 
+   if not self._fabricate_task then
+      self._log:debug('starting fabricate task')
+      local town = stonehearth.town:get_town(self._blueprint)
+      self._fabricate_task = town:create_worker_task('stonehearth:fabricate_structure', { fabricator = self })
+                                      :set_name('fabricate')
+                                      :set_source(self._entity)
+                                      :set_max_workers(self:get_max_workers())
+                                      :set_priority(priorities.CONSTRUCT_BUILDING)
+                                      :start()
+      radiant.events.trigger(self, 'needs_work', self, true)
+   end
+end
+
+function Fabricator:_destroy_fabricate_task()
+   if self._fabricate_task then
+      self._log:debug('destroying fabricate task')
+      self._fabricate_task:destroy()
+      self._fabricate_task = nil
+      radiant.events.trigger(self, 'needs_work', self, false)
+   end      
 end
 
 function Fabricator:needs_work()
@@ -411,6 +427,7 @@ function Fabricator:_update_fabricator_region()
          local clipper = Region3(Cube3(Point3(-COORD_MAX, -COORD_MAX, -COORD_MAX),
                                        Point3(COORD_MAX, top, COORD_MAX)))
          cursor:copy_region(teardown_region - clipper)
+         finished = cursor:empty()
       end)
    else
       self._log:debug('updating build region')
