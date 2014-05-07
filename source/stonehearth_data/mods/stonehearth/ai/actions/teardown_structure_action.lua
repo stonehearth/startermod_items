@@ -12,7 +12,7 @@ TeardownStructure.priority = 1
 
 local ai = stonehearth.ai
 return ai:create_compound_action(TeardownStructure)
-         :execute('stonehearth:wait_for_teardown', { fabricator = ai.ARGS.fabricator })
+         :execute('stonehearth:drop_carrying_if_stacks_full', {})
          :execute('stonehearth:goto_entity', { entity = ai.ARGS.fabricator:get_entity() })
          :execute('stonehearth:reserve_entity_destination', { entity = ai.ARGS.fabricator:get_entity(),
                                                               location = ai.PREV.point_of_interest })

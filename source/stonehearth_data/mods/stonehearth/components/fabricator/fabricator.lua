@@ -269,7 +269,6 @@ function Fabricator:_start_teardown_task()
                                       :set_max_workers(self:get_max_workers())
                                       :set_priority(priorities.TEARDOWN_BUILDING)
                                       :start()
-      radiant.events.trigger(self, 'needs_teardown', self, true) -- xxx: can we nuke these???
    end
 end
 
@@ -278,7 +277,6 @@ function Fabricator:_destroy_teardown_task()
       self._log:debug('destroying teardown task')
       self._teardown_task:destroy()
       self._teardown_task = nil
-      radiant.events.trigger(self, 'needs_teardown', self, false)
    end
 end
 
@@ -292,7 +290,6 @@ function Fabricator:_start_fabricate_task()
                                       :set_max_workers(self:get_max_workers())
                                       :set_priority(priorities.CONSTRUCT_BUILDING)
                                       :start()
-      radiant.events.trigger(self, 'needs_work', self, true)
    end
 end
 
@@ -301,7 +298,6 @@ function Fabricator:_destroy_fabricate_task()
       self._log:debug('destroying fabricate task')
       self._fabricate_task:destroy()
       self._fabricate_task = nil
-      radiant.events.trigger(self, 'needs_work', self, false)
    end      
 end
 
@@ -340,12 +336,10 @@ function Fabricator:_stop_project()
    if self._teardown_task then
       self._teardown_task:destroy()
       self._teardown_task = nil
-      radiant.events.trigger(self, 'needs_teardown', self, false)
    end
    if self._fabricate_task then
       self._fabricate_task:destroy()
       self._fabricate_task = nil
-      radiant.events.trigger(self, 'needs_work', self, false)
    end
 end
 
