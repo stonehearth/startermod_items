@@ -96,27 +96,7 @@ function FabricatorRenderer:_update_ui_mode()
    end
 end
 
-function FabricatorRenderer:_update_render_state()
-   if self._render_node then
-      local material = 'normal'
-      local entity_id = self._entity:get_id()
-      local selected = stonehearth.selection:get_selected_id() == self._entity:get_id()
-      local hovered = stonehearth.hilight:get_hilighted_id() == entity_id
-      local building_selected = self._building and self._building == selected_building
-
-      if selected then         
-         material = 'selected'
-      elseif hovered then
-         material = building_selected and 'building_selected_hover' or 'hover'
-      elseif building_selected then
-         material = 'building_selected'
-      end
-      material = self._render_entity:get_material_path(material)
-      self._render_node:set_material(material)
-   end
-end
-
-function FabricatorRenderer:_recreate_render_node()
+function FabricatorRenderer:_update_building()
    -- update our building pointer and subscribe to the stonehearth:building_selected_changed notification.
    -- walls and such don't move from building to building, so we only need to do this once.
    if not self._building then
@@ -130,6 +110,35 @@ function FabricatorRenderer:_recreate_render_node()
          end
       end
    end
+end
+
+function FabricatorRenderer:_update_render_state()
+   if self._render_node then
+
+      self:_update_building()
+
+      local material
+      local entity_id = self._entity:get_id()
+      local selected = stonehearth.selection:get_selected_id() == self._entity:get_id()
+      local hovered = stonehearth.hilight:get_hilighted_id() == entity_id
+      local building_selected = self._building and self._building == selected_building
+
+      if selected then         
+         material = 'selected'
+      elseif hovered then
+         material = building_selected and 'building_selected_hover' or 'hover'
+      elseif building_selected then
+         material = 'building_selected'
+      else
+         material = 'normal'
+      end
+      material = self._render_entity:get_material_path(material)
+      self._render_node:set_material(material)
+   end
+end
+
+function FabricatorRenderer:_recreate_render_node()
+   self:_update_building()
 
    if self._render_node then
       self._render_node:destroy()
