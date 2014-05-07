@@ -96,10 +96,28 @@ function FabricatorRenderer:_update_ui_mode()
    end
 end
 
+function FabricatorRenderer:_update_building()
+   -- update our building pointer and subscribe to the stonehearth:building_selected_changed notification.
+   -- walls and such don't move from building to building, so we only need to do this once.
+   if not self._building then
+      if self._blueprint_contruction_progress then
+         local building = self._blueprint_contruction_progress:get_data().building_entity
+         if building then
+            self._building = building
+            all_buildings_map[self._entity:get_id()] = building
+            update_selected_building()
+            radiant.events.listen(self._building, 'stonehearth:building_selected_changed', self, self._update_render_state)
+         end
+      end
+   end
+end
+
 function FabricatorRenderer:_update_render_state()
    if self._render_node then
       local material = 'normal'
       local entity_id = self._entity:get_id()
+      
+      self:_update_building()
       
       if stonehearth.selection:get_selected_id() == self._entity:get_id() then
          material = 'selected'
@@ -114,19 +132,7 @@ function FabricatorRenderer:_update_render_state()
 end
 
 function FabricatorRenderer:_recreate_render_node()
-   -- update our building pointer and subscribe to the stonehearth:building_selected_changed notification.
-   -- walls and such don't move from building to building, so we only need to do this once.
-   if not self._building then
-      if self._blueprint_contruction_progress then
-         local building = self._blueprint_contruction_progress:get_data().building_entity
-         if building then
-            self._building = building
-            all_buildings_map[self._entity:get_id()] = building
-            update_selected_building()
-            radiant.events.listen(self._building, 'stonehearth:building_selected_changed', self, self._update_render_state)
-         end
-      end
-   end
+   self:_update_building()
 
    if self._render_node then
       self._render_node:destroy()
