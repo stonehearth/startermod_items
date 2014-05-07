@@ -80,7 +80,7 @@ end
 
 function DefendMelee:_set_think_output()
    if not self._think_output_set then
-      self._ai:set_think_output() -- CHECKCHECK
+      self._ai:set_think_output()
       self._think_output_set = true
    end
 end

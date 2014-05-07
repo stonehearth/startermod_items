@@ -22,7 +22,12 @@ end
 function FollowPathAction:run(ai, entity, args)
    local path = args.path
    local log = ai:get_log()
-   self._ai = ai   
+   self._ai = ai
+   self._entity = entity
+
+   -- make sure we record the starting posture. if the posture changed recently, the async trigger
+   -- may not have fired yet and we want to know if it has really changed or not.
+   self._starting_posture = radiant.entities.get_posture(entity)
    
    log:detail('following path: %s', path)
    if path:is_empty() then
@@ -52,7 +57,11 @@ function FollowPathAction:run(ai, entity, args)
 end
 
 function FollowPathAction:_on_posture_change()
-   self._ai:abort('posture changed while following path')
+   local new_posture = radiant.entities.get_posture(self._entity)
+
+   if new_posture ~= self._starting_posture then
+      self._ai:abort('posture changed (to %s) while following path', new_posture)
+   end
 end
 
 function FollowPathAction:stop(ai, entity)
@@ -67,6 +76,10 @@ function FollowPathAction:stop(ai, entity)
       self._effect:stop()
       self._effect = nil
    end
+
+   self._ai = nil
+   self._entity = nil
+   self._starting_posture = nil
 end
 
 return FollowPathAction

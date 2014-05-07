@@ -2,6 +2,7 @@ local Path = _radiant.sim.Path
 local Entity = _radiant.om.Entity
 local Point3 = _radiant.csg.Point3
 local ChaseEntity = class()
+local log = radiant.log.create_logger('chase_entity')
 
 -- ChaseEntity attempts to catch a moving target by following an initial (nonlinear) path
 -- to the target and recomputing direct (line of sight) paths as the target moves.
@@ -21,16 +22,15 @@ ChaseEntity.version = 2
 ChaseEntity.priority = 1
 
 function ChaseEntity:start_thinking(ai, entity, args)
-   local target = args.target
-   local path
-
    self._running = false
    self._ai = ai
    self._entity = entity
+   self._target = args.target
+   self._target_location_history = {}
 
-   self:_trace_target(target)
+   self:_trace_target()
 
-   path = self:_get_direct_path(entity, target, ai.CURRENT.location)
+   local path = self:_get_direct_path(self._entity, self._target, ai.CURRENT.location)
 
    if path then
       self:_set_think_output(path)
@@ -38,30 +38,26 @@ function ChaseEntity:start_thinking(ai, entity, args)
    end
 
    -- no direct path, wait for a solution from the pathfinder
-   self:_get_astar_path(entity, target, ai.CURRENT.location)
+   self:_get_astar_path(self._entity, self._target, ai.CURRENT.location)
 end
 
-function ChaseEntity:_trace_target(target)
-   local target_mob = target:add_component('mob')
-   local target_last_location = target:add_component('mob'):get_world_grid_location()
-   local target_previous_locations = {}
+function ChaseEntity:_trace_target()
+   local target_mob = self._target:add_component('mob')
+   local target_last_location = self._target:add_component('mob'):get_world_grid_location()
 
    local on_target_moved = function()
       local target_current_location = target_mob:get_world_grid_location()
 
       if target_current_location ~= target_last_location then
-         local path = self:_find_run_time_path(self._entity, target, target_previous_locations)
-
+         -- include target_current_location in target_location_history before recalculating path
+         table.insert(self._target_location_history, target_current_location)
          target_last_location = target_current_location
 
-         if path ~= nil then
-            self._path = path
-            target_previous_locations = {}
+         local found_path = self:_try_recalculate_path()
+         if found_path then
+            -- restart the mover using the new path
             self:_destroy_mover()
             self._ai:resume()
-         else
-            -- track target's path so we can follow or intercept
-            table.insert(target_previous_locations, target_current_location)
          end
       end
    end
@@ -73,9 +69,55 @@ function ChaseEntity:_trace_target(target)
       ai:abort('target destroyed')
    end
 
-   self._trace = radiant.entities.trace_location(target, 'chase entity')
+   self._trace = radiant.entities.trace_location(self._target, 'chase entity')
       :on_changed(on_target_moved)
       :on_destroyed(on_target_destroyed)
+end
+
+function ChaseEntity:_try_recalculate_path()
+   local unused_points = {}
+   local path = self:_search_for_new_path(self._entity, self._target, self._target_location_history, unused_points)
+
+   if path ~= nil then
+      log:info('new path to target %s found %s -> %s', self._target, path:get_start_point(), path:get_finish_point())
+      self._path = path
+      self._target_location_history = unused_points
+      return true
+   else
+      log:info('no direct path to target %s at found.', self._target)
+      return false
+   end
+end
+
+-- don't use astar_path_finder here because it could stall for a long time, leaving the entity frozen
+function ChaseEntity:_search_for_new_path(entity, target, target_location_history, unused_points)
+   local path, location, num_locations, i, n
+
+   -- check for a direct path to the target
+   path = self:_get_direct_path(entity, target)
+
+   if path == nil then
+      -- check for a direct path to the prior locations (most recent first)
+      num_locations = #target_location_history
+
+      -- if num_locations is too large, we could downsample the locations
+      for i = num_locations, 1, -1 do
+         location = target_location_history[i]
+         path = self:_get_direct_path(entity, location)
+
+         if path ~= nil then
+            -- why doesn't a for loop work here?
+            n = i + 1
+            while n <= num_locations do
+               table.insert(unused_points, target_location_history[n])
+               n = n + 1
+            end
+            break
+         end
+      end
+   end
+
+   return path
 end
 
 -- destination may be an Entity or a Point3
@@ -137,49 +179,40 @@ end
 
 function ChaseEntity:run(ai, entity, args)
    local speed = radiant.entities.get_world_speed(entity)
-   local stop_distance = args.stop_distance
+   local stop_distance, is_partial_path
    local finished = false
 
    self:_start_run_effect(entity)
 
    while not finished do
+      is_partial_path = next(self._target_location_history) ~= nil
+
+      if is_partial_path then
+         -- path doesn't reach destination, so stop distance isn't well defined
+         stop_distance = 0
+      else
+         stop_distance = args.stop_distance
+      end
+
       self._mover = _radiant.sim.create_follow_path(entity, speed, self._path, stop_distance,
          function ()
-            finished = true
+            if is_partial_path then
+               -- we only recalculate the path if the target moves.
+               -- if it stopped when there was no direct path, try one last time to reach it.
+               local found_path = self:_try_recalculate_path()
+               -- we're done if no path could be found. let start_thinking find an a_star path or new target.
+               finished = not found_path
+            else
+               -- path was complete and mover finished. yay!
+               finished = true
+            end
+
             ai:resume('mover finished')
-            -- being finished doesn't mean we were able to catch the target
-            -- could follow target's previous locations from here, but right now we prefer 
-            -- to bail and let a higher level function decide what to do (e.g. rethink)
          end
       )
 
       ai:suspend('waiting for mover to finish')
    end
-end
-
--- don't use astar_path_finder here because it could stall for a long time, leaving the entity frozen
-function ChaseEntity:_find_run_time_path(entity, target, target_previous_locations)
-   local path, location, num_locations
-
-   -- check for a direct path to the target
-   path = self:_get_direct_path(entity, target)
-
-   if path == nil then
-      -- check for a direct path to the prior locations (most recent first)
-      num_locations = #target_previous_locations
-
-      -- if num_locations is too large, we could downsample the locations
-      for i = num_locations, 1, -1 do
-         location = target_previous_locations[i]
-         path = self:_get_direct_path(entity, location)
-
-         if path ~= nil then
-            break
-         end
-      end
-   end
-
-   return path
 end
 
 function ChaseEntity:_start_run_effect(entity)
@@ -203,6 +236,8 @@ end
 function ChaseEntity:_clean_up_references()
    self._ai = nil
    self._entity = nil
+   self._target = nil
+   self._target_location_history = nil
    self._path = nil
 end
 

@@ -12,8 +12,9 @@ end
 
 -- TODO: move target tables and combat state into components
 function CombatService:initialize()
-   -- should we save this?
-   self._hit_stun_damage_threshold = radiant.util.get_config('hit_stun_damage_threshold', 0.10)
+   -- always stun for now
+   --self._hit_stun_damage_threshold = radiant.util.get_config('hit_stun_damage_threshold', 0.10)
+   self._hit_stun_damage_threshold = 0
 
    self._sv = self.__saved_variables:get_data()
    if not self._sv._combat_state_table then
@@ -140,6 +141,9 @@ function CombatService:get_cooldown_end_time(entity, action_name)
    return combat_state:get_cooldown_end_time(action_name)
 end
 
+-- Notify target that it is about to be attacked.
+-- If target is not otherwise engaged in another combat action, target should stop
+-- and defend itself, which allows attacker to close to the proper distance.
 function CombatService:engage(target, context)
    if target == nil or not target:is_valid() then
       return nil
@@ -148,6 +152,8 @@ function CombatService:engage(target, context)
    radiant.events.trigger_async(target, 'stonehearth:combat:engage', context)
 end
 
+-- Ntify target that an attack has begun and will impact soon.
+-- Target has opportunity to defend itself if it can react before the impact time.
 function CombatService:assault(target, context)
    if target == nil or not target:is_valid() then
       return nil
@@ -159,6 +165,7 @@ function CombatService:assault(target, context)
    radiant.events.trigger_async(target, 'stonehearth:combat:assault', context)
 end
 
+-- Notify target that it has been hit by an attack.
 function CombatService:battery(target, context)
    if target == nil or not target:is_valid() then
       return nil
@@ -181,6 +188,7 @@ function CombatService:battery(target, context)
    end
 end
 
+-- Notify target that it is now stunned an any action in progress will be cancelled.
 function CombatService:hit_stun(target, context)
    if target == nil or not target:is_valid() then
       return nil

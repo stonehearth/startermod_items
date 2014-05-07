@@ -612,7 +612,7 @@ end
 
 function ExecutionUnitV2:__abort(reason, ...)
    local reason = reason and string.format(reason, ...) or 'no reason given'
-   self._log:debug('__abort %s called (state: %s)', tostring(reason), self._state)
+   self._log:warning('__abort %s called (state: %s)', tostring(reason), self._state)
 
    if self._thread:is_running() then
       -- abort is not allowed to return.  evar!  so if the thread is currently

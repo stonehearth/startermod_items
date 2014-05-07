@@ -21,14 +21,11 @@ function Combat:start_thinking(ai, entity, args)
    self._entity = entity
    self._think_output_set = false
 
-   local events = stonehearth.combat:get_assault_events(entity)
-   local context = events[1] -- just pick the first attacker for now
-   if context ~= nil and context.attacker ~= nil then
-      self:_set_think_output(context.attacker)
-      return
-   end
+   self:_find_target()
 
-   self:_register_events()
+   if not self._think_output_set then
+      self:_register_events()
+   end
 end
 
 function Combat:stop_thinking(ai, entity, args)
@@ -37,6 +34,7 @@ end
 
 function Combat:_register_events()
    if not self._registered then
+      -- TODO: replace slow_poll with a listen on target table changed
       radiant.events.listen(radiant, 'stonehearth:slow_poll', self, self._find_target)
       radiant.events.listen(self._entity, 'stonehearth:combat:engage', self, self._on_engage)
       self._registered = true
@@ -85,25 +83,28 @@ function Combat:run(ai, entity, args)
 end
 
 function Combat:stop(ai, entity, args)
-   -- TODO: figure out where to unset the combat posture
-   -- weapon might blink during the next start_thinking
    radiant.entities.unset_posture(entity, 'combat')
 end
 
 function Combat:_find_target()
-   local target = self:_get_target()
+   local target_table = stonehearth.combat:get_target_table(self._entity, 'aggro')
+   local target = target_table:get_top()
+
+   -- if target table has no opinion, double check the assault events
+   if target == nil then
+      -- TODO: probably listen on both the assault events and target table
+      local events = stonehearth.combat:get_assault_events(self._entity)
+      local context = events[1] -- pick the assault that was initiated first
+
+      if context ~= nil and context.attacker ~= nil and context.attacker:is_valid() then
+         target = context.attacker
+      end
+   end
 
    if target ~= nil then
       self:_set_think_output(target)
-   else
-      self:_clear_think_output()
+      return radiant.events.UNLISTEN
    end
-end
-
-function Combat:_get_target()
-   local target_table = stonehearth.combat:get_target_table(self._entity, 'aggro')
-   local target = target_table:get_top()
-   return target
 end
 
 return Combat

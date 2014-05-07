@@ -28,21 +28,28 @@ function AttackMelee:run(ai, entity, args)
    local melee_range_max = melee_range_ideal + 2
    local engage_range_min = melee_range_ideal + 3
    local engage_range_max = engage_range_min + 3
+   local distance
 
    ai:execute('stonehearth:chase_entity', { target = target, stop_distance = engage_range_min })
+   distance = radiant.entities.distance_between(entity, target)
 
-   local distance = radiant.entities.distance_between(entity, target)
-
-   if distance < engage_range_max then
-      local context = EngageContext(entity)
-      stonehearth.combat:engage(target, context)
-
-      ai:execute('stonehearth:chase_entity', { target = target, stop_distance = melee_range_ideal })
-
-      if distance < melee_range_max then
-         ai:execute('stonehearth:combat:attack_melee_adjacent', { target = target, weapon = weapon })
-      end
+   if distance > engage_range_max then
+      log:info('%s unable to get within maximum engagement range (%f) of %s. Giving up.', entity, engage_range_max, target)
+      return
    end
+
+   local context = EngageContext(entity)
+   stonehearth.combat:engage(target, context)
+
+   ai:execute('stonehearth:chase_entity', { target = target, stop_distance = melee_range_ideal })
+   distance = radiant.entities.distance_between(entity, target)
+
+   if distance > melee_range_max then
+      log:info('%s unable to get within melee range (%f) of %s. Giving up.', entity, melee_range_max, target)
+      return
+   end
+   
+   ai:execute('stonehearth:combat:attack_melee_adjacent', { target = target, weapon = weapon })
 end
 
 return AttackMelee
