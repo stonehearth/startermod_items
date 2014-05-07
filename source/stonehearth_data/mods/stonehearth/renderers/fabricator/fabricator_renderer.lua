@@ -100,12 +100,15 @@ function FabricatorRenderer:_update_render_state()
    if self._render_node then
       local material = 'normal'
       local entity_id = self._entity:get_id()
-      
-      if stonehearth.selection:get_selected_id() == self._entity:get_id() then
+      local selected = stonehearth.selection:get_selected_id() == self._entity:get_id()
+      local hovered = stonehearth.hilight:get_hilighted_id() == entity_id
+      local building_selected = self._building and self._building == selected_building
+
+      if selected then         
          material = 'selected'
-      elseif stonehearth.hilight:get_hilighted_id() == entity_id then
-         material = 'hover'
-      elseif self._building and self._building:is_valid() and self._building == selected_building then
+      elseif hovered then
+         material = building_selected and 'building_selected_hover' or 'hover'
+      elseif building_selected then
          material = 'building_selected'
       end
       material = self._render_entity:get_material_path(material)
