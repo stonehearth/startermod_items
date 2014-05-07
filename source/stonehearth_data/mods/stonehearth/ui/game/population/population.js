@@ -7,6 +7,7 @@ var StonehearthPopulation;
          "citizens" : {
             "*" : {
                "unit_info": {},           
+               "stonehearth:ai" : {},
                "stonehearth:profession" : {
                   "profession_uri" : {}
                },

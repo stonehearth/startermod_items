@@ -24,6 +24,7 @@ function ExecutionUnitV2:__init(frame, thread, debug_route, entity, injecting_en
    self._debug_route = debug_route .. ' u:' .. tostring(self._id)
    self._trace_route = trace_route .. tostring(self._id) .. '/'
    self._entity = entity
+   self._ai_component = entity:get_component('stonehearth:ai')
    self._action = action
    self._action_index = action_index
    self._execution_frames = {}
@@ -41,6 +42,7 @@ function ExecutionUnitV2:__init(frame, thread, debug_route, entity, injecting_en
    chain_function('resume')
    chain_function('abort')
    chain_function('get_log')   
+   chain_function('set_status_text')   
   
    local actions = {
       'start_thinking',
@@ -485,6 +487,10 @@ function ExecutionUnitV2:_do_start()
    assert(self._thinking)
    assert(not self._started)
       
+   if self._action.status_text then
+      self._ai_component:set_status_text(self._action.status_text)
+   end
+
    self:_set_state(STARTING)  
    self._started = true
    self:_call_start()
@@ -541,6 +547,10 @@ function ExecutionUnitV2:__get_log()
    return self._log
 end
 
+function ExecutionUnitV2:__set_status_text(format, ...)
+   self._ai_component:set_status_text(string.format(format, ...))
+end
+
 function ExecutionUnitV2:__execute(activity_name, args)
    self._log:debug('__execute %s %s called', activity_name, stonehearth.ai:format_args(args))
    assert(self._thread:is_running())
@@ -548,8 +558,7 @@ function ExecutionUnitV2:__execute(activity_name, args)
 
    self._current_execution_frame = self._execution_frames[activity_name]
    if not self._current_execution_frame then
-      local ai_component = self._entity:get_component('stonehearth:ai')
-      self._current_execution_frame = ai_component:create_execution_frame(activity_name, self._debug_route, self._trace_route)
+      self._current_execution_frame = self._ai_component:create_execution_frame(activity_name, self._debug_route, self._trace_route)
       --ExecutionFrame(self._thread, self._debug_route, self._entity, activity_name, self._action_index)
       self._execution_frames[activity_name] = self._current_execution_frame
    end
@@ -583,8 +592,7 @@ end
 function ExecutionUnitV2:__spawn(activity_name)
    self._log:debug('__spawn %s called', activity_name)
   
-   local ai_component = self._entity:get_component('stonehearth:ai')
-   return ai_component:create_execution_frame(activity_name, self._debug_route, self._trace_route)
+   return self._ai_component:create_execution_frame(activity_name, self._debug_route, self._trace_route)
 end
 
 function ExecutionUnitV2:__suspend(format, ...)

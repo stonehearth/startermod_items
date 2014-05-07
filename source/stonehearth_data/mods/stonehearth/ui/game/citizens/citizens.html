@@ -8,7 +8,7 @@
             <tr class="row" {{bind-attr profession=this.stonehearth:profession.profession_uri.alias id=this.__id}}>
                <td>{{this.unit_info.name}}</td>
                <td>{{this.stonehearth:profession.profession_uri.name}}</td>
-               <td>Activity goes here...</td>
+               <td>{{this.stonehearth:ai.status_text}}</td>
             </tr>
          {{/each}}
          </tbody>
