@@ -165,6 +165,11 @@ $.widget( "stonehearth.stonehearthMenu", {
                          .append('<div class=close></div>')
                          .appendTo(self.menu);
 
+      // add a special background div for the root group
+      if (depth == 0) {
+         el.append('<div class=background></div>');
+      }
+      
       $.each(nodes, function(key, node) {
          self._dataToMenuItemMap[key] = node;
 
@@ -200,6 +205,7 @@ $.widget( "stonehearth.stonehearthMenu", {
 
             self._addItems(node.items, key, node.name, depth + 1);
          }
+
       });
 
       if (name) {

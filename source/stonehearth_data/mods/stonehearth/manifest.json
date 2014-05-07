@@ -63,7 +63,7 @@
       "farmer:hoe" : "file(professions/farmer/farmer_hoe)", 
       "farmer:initial_crops" : "file(services/server/farming/data/initial_crops.json)",
       
-      "trapper:trapper_knife" : "file(professions/trapper/trapper_knife)",
+      "trapper:knife" : "file(professions/trapper/trapper_knife)",
       "trapper:outfit" : "file(professions/trapper/trapper_outfit)",
       "trapper:snare_trap" : "file(professions/trapper/snare_trap)",
 
@@ -288,6 +288,7 @@
       "actions:fill_outbox_action" : "file(ai/actions/fill_outbox_action.lua)",
       "actions:gather_and_craft_action" : "file(ai/actions/gather_and_craft_action.lua)",
       "actions:grab_promotion_talisman" : "file(ai/actions/grab_talisman_action.lua)",
+      "actions:grab_promotion_talisman_type" : "file(ai/actions/grab_talisman_type_action.lua)",
       "actions:admire_fire" : "file(ai/actions/admire_fire_action.lua)",
       "actions:admire_fire_adjacent" : "file(ai/actions/admire_fire_adjacent_action.lua)",
       "actions:sit_on_ground" : "file(ai/actions/sit_on_ground.lua)",
@@ -505,6 +506,7 @@
       
       "scenarios:scenario_index" : "file(scenarios/index.json)",
 
+      "professions:index" : "file(professions/index.json)",
       "professions:worker" : "file(professions/worker/worker_description.json)",
       "professions:farmer" : "file(professions/farmer/farmer_description.json)",
       "professions:carpenter" : "file(professions/carpenter/carpenter_description.json)",
@@ -729,6 +731,10 @@
          "controller" : "file(call_handlers/farming_call_handler.lua)",
          "endpoint" : "server"
       },
+      "get_inventory": {
+         "controller" : "file(call_handlers/inventory_call_handler.lua)",
+         "endpoint" : "server"
+      },
       "choose_stockpile_location": {
          "controller" : "file(call_handlers/inventory_call_handler.lua)",
          "endpoint" : "client"
@@ -865,12 +871,14 @@
          "file(ui/game/widgets/game_speed/game_speed.html)",
          "file(ui/game/widgets/building_vision/building_vision.html)",
          "file(ui/game/people_picker/people_picker.html)",
-         "file(ui/game/promote/promote.html)",
          "file(ui/game/place_item/place_item.html)",
          "file(ui/game/unit_frame/unit_frame.html)",
          "file(ui/game/resource_scoreboard/resource_scoreboard.html)",
          "file(ui/game/start_menu/start_menu.html)",
-         "file(ui/game/population_manager/population_manager.html)",
+         "file(ui/game/town/town.html)",
+         "file(ui/game/citizens/citizens.html)",
+         "file(ui/game/crafters/crafters.html)",
+         "file(ui/game/promotion_wizard/promotion_wizard.html)",
          "file(ui/game/tip_popup/tip_popup.html)",
          "file(ui/game/event_log/event_log.html)",
          "file(ui/game/build/build.html)"
@@ -890,6 +898,8 @@
          "file(ui/debug/error_browser/error_browser.js)",
          "file(ui/debug/error_dialog/error_dialog.js)",
          "file(ui/game/game.js)",
+         "file(ui/game/inventory/inventory.js)",
+         "file(ui/game/population/population.js)",
          "file(ui/game/modes/zones_mode/zones_mode.js)",
          "file(ui/game/modes/zones_mode/stockpile/stockpile.js)",
          "file(ui/game/modes/zones_mode/farm/farm.js)",
@@ -910,13 +920,15 @@
          "file(ui/game/widgets/game_speed/game_speed.js)",
          "file(ui/game/widgets/building_vision/building_vision.js)",
          "file(ui/game/people_picker/people_picker.js)",
-         "file(ui/game/promote/promote.js)",
          "file(ui/game/place_item/place_item.js)",
          "file(ui/game/unit_frame/unit_frame.js)",
          "file(ui/game/resource_scoreboard/resource_scoreboard.js)",
          "file(ui/game/start_menu/start_menu.js)",
          "file(ui/game/start_menu/stonehearth_menu.js)",
-         "file(ui/game/population_manager/population_manager.js)",
+         "file(ui/game/town/town.js)",
+         "file(ui/game/citizens/citizens.js)",
+         "file(ui/game/crafters/crafters.js)",
+         "file(ui/game/promotion_wizard/promotion_wizard.js)",
          "file(ui/game/tip_popup/tip_popup.js)",
          "file(ui/game/event_log/event_log.js)"
       ],
@@ -955,13 +967,15 @@
          "file(ui/game/widgets/game_speed/game_speed.less)",
          "file(ui/game/widgets/building_vision/building_vision.less)",
          "file(ui/game/people_picker/people_picker.less)",
-         "file(ui/game/promote/promote.less)",
          "file(ui/game/unit_frame/unit_frame.less)",
          "file(ui/game/place_item/place_item.less)",
          "file(ui/game/resource_scoreboard/resource_scoreboard.less)",
          "file(ui/game/start_menu/start_menu.less)",
          "file(ui/game/start_menu/stonehearth_menu.less)",
-         "file(ui/game/population_manager/population_manager.less)",
+         "file(ui/game/town/town.less)",
+         "file(ui/game/citizens/citizens.less)",
+         "file(ui/game/crafters/crafters.less)",
+         "file(ui/game/promotion_wizard/promotion_wizard.less)",
          "file(ui/game/tip_popup/tip_popup.less)",
          "file(ui/game/event_log/event_log.less)",
          "file(ui/game/build/build.less)"

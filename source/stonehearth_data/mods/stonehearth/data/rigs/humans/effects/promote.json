@@ -39,6 +39,14 @@
          "render_info": {
             "model_variant": "equipped"
          }
+      },
+      "cleanup_trigger" : {
+            "type": "trigger_effect",
+            "start_frame": 200,
+            "info": {
+               "event": "remove_talisman",
+               "talisman": "{{talisman}}"
+            }
       }
    }
 }

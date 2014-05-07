@@ -1,0 +1,21 @@
+<script type="text/x-handlebars" data-template-name="citizens">
+<div id="citizens" class="gui populationManager">
+   <div class="window">
+      <div class="title">Citizens</div>
+      <table class="list">
+         <tbody>
+         {{#each citizensArray}}
+            <tr class="row" {{bind-attr profession=this.stonehearth:profession.profession_uri.alias id=this.__id}}>
+               <td>{{this.unit_info.name}}</td>
+               <td>{{this.stonehearth:profession.profession_uri.name}}</td>
+               <td>Activity goes here...</td>
+            </tr>
+         {{/each}}
+         </tbody>
+      </table>
+
+      <button id="promoteButton" class="disabled">{{i18n stonehearth:citizens_promote}}</button>
+   </div>
+
+</div>
+</script>

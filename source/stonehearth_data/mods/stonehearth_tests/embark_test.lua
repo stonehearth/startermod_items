@@ -61,7 +61,7 @@ function EmbarkTest:__init()
    local pop = stonehearth.population:get_population(player_id)
    radiant.entities.pickup_item(worker, pop:create_entity('stonehearth:oak_log'))
    radiant.entities.pickup_item(worker2, pop:create_entity('stonehearth:oak_log'))
-   radiant.entities.pickup_item(worker3, pop:create_entity('stonehearth:trapper:trapper_knife'))
+   radiant.entities.pickup_item(worker3, pop:create_entity('stonehearth:trapper:knife'))
    radiant.entities.pickup_item(worker4, pop:create_entity('stonehearth:carpenter:saw'))
    
 end

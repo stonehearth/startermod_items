@@ -5,28 +5,48 @@ local Promote = class()
 function Promote:run(town, args)
    local person = args.person
    local talisman = args.talisman
-
+   
    local args = {
-      talisman = talisman,
-      trigger_fn = function(info)
+      trigger_fn = function(info, args)
          if info.event == "change_outfit" then
-            self:_change_profession(person, talisman)
+            self:_change_profession(person, args.talisman)
+         elseif info.event == "remove_talisman" then
+            -- xx for now destroy the talisman. Eventually store it in the talisman component so we can bring it back when the civ is demoted
+            radiant.entities.remove_carrying(person)
+            radiant.entities.destroy_entity(args.talisman)            
          end
       end
    }
 
+   local result
+   
+   -- talisman can be an entity, or a uri to an entity type
+   if type(talisman) == 'string' then
+      -- talisman is a uri
+      local filter_fn = function(item)
+         return item:get_uri() == talisman
+      end
 
-   local result = town:command_unit(person, 'stonehearth:grab_promotion_talisman', args)
+      args.filter_fn = filter_fn
+
+      result = town:command_unit(person, 'stonehearth:grab_promotion_talisman_type', args)
                         :once()
                         :start()
                         :wait()
+   else
+      -- talisman is an entity
+      args.talisman = talisman
+
+      result = town:command_unit(person, 'stonehearth:grab_promotion_talisman', args)
+                           :once()
+                           :start()
+                           :wait()
+   end
+
    if not result then
       return false
    end
 
-   --They carry the saw invisibly for a block. How do avoid this?
-   radiant.entities.remove_carrying(person)
-   radiant.entities.destroy_entity(talisman)
    return true
 end
 

@@ -32,6 +32,9 @@ App.StonehearthStartMenuView = App.View.extend({
       build_simple_room: function () {
          App.stonehearthClient.buildRoom();
       },
+      town_menu: function() {
+         App.stonehearthClient.showTownMenu();
+      },
       citizen_manager: function() {
          App.stonehearthClient.showCitizenManager();
       },

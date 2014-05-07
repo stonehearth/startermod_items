@@ -4,9 +4,9 @@ local promote_tests = {}
 -- happens (probably mid-air)
 local function promote(autotest, worker, talisman, cb)
    autotest.ui:push_unitframe_command_button(talisman, 'promote_to_profession')
-   autotest.ui:click_dom_element('#promoteScroll #chooseButton')
+   autotest.ui:click_dom_element('#scroll #chooseButton')
    autotest.ui:click_dom_element('#peoplePicker #list #choice')
-   autotest.ui:click_dom_element('#promoteScroll #approveStamper')
+   autotest.ui:click_dom_element('#scroll #approveStamper')
    radiant.events.listen(worker, 'stonehearth:profession_changed', function (e)
          cb(e)
          return radiant.events.UNLISTEN

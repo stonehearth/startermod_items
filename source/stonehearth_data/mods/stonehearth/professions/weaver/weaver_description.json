@@ -1,6 +1,7 @@
 {
    "profession_type": "weaver",
    "name": "Weaver",      
+   "icon" : "file(images/jobButton.png)",
    "script": "file(/professions/weaver/weaver.lua)",
    "outfit": "file(weaver_outfit)",
    "description": "Makes thread and cloth.",
