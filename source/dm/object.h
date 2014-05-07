@@ -21,6 +21,7 @@ class Object
 {
 public:
    Object();
+   bool operator==(Object const &rhs) const;
    virtual const char *GetObjectClassNameLower() const = 0;
    virtual void GetDbgInfo(DbgInfo &info) const = 0;
    virtual void LoadValue(SerializationType r, Protocol::Value const& msg) = 0;
