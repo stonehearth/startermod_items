@@ -78,4 +78,10 @@ function InventoryCallHandler:create_stockpile(session, response, location, size
    return { stockpile = stockpile }
 end
 
+function InventoryCallHandler:get_inventory(session, response, location, size)
+   local inventory = stonehearth.inventory:get_inventory(session.player_id)
+   return { inventory = inventory }
+end
+
+
 return InventoryCallHandler

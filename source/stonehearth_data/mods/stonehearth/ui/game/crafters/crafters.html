@@ -1,0 +1,27 @@
+<script type="text/x-handlebars" data-template-name="crafters">
+<div id="crafters" class="gui populationManager">
+   <div class="window">
+      <div class="title">Crafters</div>
+      <table>
+         <tbody>
+         {{#each citizensArray}}
+            {{#if this.stonehearth:crafter}}
+               <tr>
+                  <td>{{this.unit_info.name}}</td>
+                  <td>{{this.stonehearth:profession.profession_uri.name}}</td>
+                  <td>Activity goes here...</td>
+                  <td>
+                     {{#if this.stonehearth:crafter.workshop}}
+                        <a {{action showWorkshop this target="view"}} ><button>{{i18n stonehearth:crafters_show_workshop}}</button></a>
+                     {{else}}
+                        <a {{action placeWorkshop this target="view"}} ><button>{{i18n stonehearth:crafters_place_workshop}}</button></a>
+                     {{/if}}
+                  </td>
+               </tr>
+            {{/if}}
+         {{/each}}
+         </tbody>
+      </table>
+   </div>
+</div>
+</script>

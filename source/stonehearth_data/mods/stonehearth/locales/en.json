@@ -1,9 +1,12 @@
 {
    "ok" : "OK",
    "cancel" : "Cancel",
+   "back" : "Back",
+   "next" : "Next",
    "hotkey" : "hot key: ",
    "loading" : "Loading...",
    "remove" : "Remove",
+   "close" : "Close",
 
    "title_screen_exit": "exit",
    "title_screen_settings": "settings",
@@ -201,10 +204,10 @@
    "build_workshop_requirements" : "Requirements",
    "build_workshop_create_stockpile" : "Crafter's Stockpile",
    "build_workshop_create_stockpile_description" : "The crafter will store crafted goods in this stockpile.<p>You probably want to place it near the workbench, but hey, it's your decision.",
-   "promote_scroll_title": "Promotion to __promotionClass__",
+   "promote_scroll_title": "Promotion to ",
    "promote_scroll_text_1" : "In honor of steadfast efforts and resilience, we hereby advance",
    "promote_scroll_choose": "choose a citizen...",
-   "promote_scroll_text_2": "to the role of __promotionClass__ this __date__",
+   "promote_scroll_text_2": "today, __date__",
    "promote_scroll_approve": "APPROVE",
    "promote_scroll_approved": "APPROVED",
    "item_placement_title": "Place",
@@ -229,6 +232,15 @@
    "courage_attribute" : "Courage",
    "willpower_attribute" : "Willpower",
    "compassion_attribute" : "Compassion",
+
+   "citizens_promote" : "Promote Settler",
+   "crafters_place_workshop" : "Place Workshop",
+   "crafters_show_workshop" : "Show Workshop",
+
+   "citizens_choose_job_title" : "Choose a Job",
+   "citizens_choose_job_subtitle" : "Available Jobs",
+   "citizens_confirm_job_title" : "Choose a Job",
+   "citizens_choose_job_description" : "Here are the jobs available to your citizens. Craft tools to unlock new jobs!",
 
    "inventory_title" : "Backpack",
    "inventory_description" : "The backpack can hold items for safe-keeping while you're away from town.",

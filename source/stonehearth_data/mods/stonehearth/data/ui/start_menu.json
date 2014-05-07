@@ -75,6 +75,15 @@
             }
       }
    },
+   "town_menu" : {
+      "name" : "Town Info",
+      "description" : "General information about your town, how your citizens are feeling, and the wealth you've accumulated!",
+      "class" : "dock",
+      "icon" : "/stonehearth/ui/game/start_menu/images/town.png",
+      "hotkey" : "t",
+      "game_mode" : "normal",
+      "clickSound": "stonehearth:sounds:ui:start_menu:trigger_click"
+   },   
    "citizen_manager" : {
       "name" : "Manage Citizen",
       "description" : "NOT YET IMPLEMENTED. Manage your settlers and promote them to new jobs.",
