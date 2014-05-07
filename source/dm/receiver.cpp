@@ -21,7 +21,9 @@ void Receiver::ProcessAlloc(tesseract::protocol::AllocObjects const& msg)
       ASSERT(!store_.FetchStaticObject(id));
 
       RECEIVER_LOG(5) << "allocating object " << id << " of type " << entry.object_type();
-      objects_[id] = store_.AllocObject(entry.object_type(), id);
+      dm::ObjectPtr obj = store_.AllocObject(entry.object_type(), id);
+      objects_[id] = obj;
+      RECEIVER_LOG(3) << "finished allocating object " << id << " of type " << obj->GetObjectClassNameLower();
    }
 }
 
@@ -47,7 +49,7 @@ void Receiver::ProcessRemove(tesseract::protocol::RemoveObjects const& msg)
       ASSERT(i != objects_.end());
       if (i != objects_.end()) {
          dm::ObjectRef o = i->second;
-         RECEIVER_LOG(5) << "destroying object " << id;
+         RECEIVER_LOG(3) << "destroying object " << id << " " << o.lock()->GetObjectClassNameLower();
          objects_.erase(i);
 
          if (o.use_count() != 0) {
