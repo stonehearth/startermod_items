@@ -10,7 +10,7 @@ function FarmerFieldRenderer:__init(render_entity, datastore)
    self._color = Color4(122, 40, 0, 76)
    self._items = {}
 
-   radiant.events.listen(radiant.events, 'stonehearth:ui_mode_changed', self, self._ui_mode_changed)
+   radiant.events.listen(radiant, 'stonehearth:ui_mode_changed', self, self._ui_mode_changed)
    self._parent_node = render_entity:get_node()
    self._size = { 0, 0 }   
    self._datastore = datastore
@@ -25,7 +25,7 @@ function FarmerFieldRenderer:__init(render_entity, datastore)
 end
 
 function FarmerFieldRenderer:destroy()
-   radiant.events.unlisten(radiant.events, 'stonehearth:ui_mode_changed', self, self._ui_mode_changed)
+   radiant.events.unlisten(radiant, 'stonehearth:ui_mode_changed', self, self._ui_mode_changed)
    
    if self._datastore_trace then
       self._datastore_trace:destroy()
@@ -113,7 +113,7 @@ end
 
 function FarmerFieldRenderer:destroy()
    self:_clear()
-   radiant.events.unlisten(radiant.events, 'stonehearth:ui_mode_changed', self, self._ui_mode_changed)
+   radiant.events.unlisten(radiant, 'stonehearth:ui_mode_changed', self, self._ui_mode_changed)
 end
 
 function FarmerFieldRenderer:_update()

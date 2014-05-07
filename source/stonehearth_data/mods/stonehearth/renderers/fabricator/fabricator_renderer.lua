@@ -45,7 +45,7 @@ function FabricatorRenderer:__init(render_entity, datastore)
 
    self._data = datastore:get_data()
 
-   radiant.events.listen(radiant.events, 'stonehearth:ui_mode_changed', self, self._update_ui_mode)
+   radiant.events.listen(radiant, 'stonehearth:ui_mode_changed', self, self._update_ui_mode)
    radiant.events.listen(self._entity, 'stonehearth:selection_changed', self, self._update_render_state)
    radiant.events.listen(self._entity, 'stonehearth:hilighted_changed', self, self._update_render_state)
    
@@ -67,7 +67,7 @@ function FabricatorRenderer:__init(render_entity, datastore)
 end
 
 function FabricatorRenderer:destroy()
-   radiant.events.unlisten(radiant.events, 'stonehearth:ui_mode_changed', self, self._update_ui_mode)
+   radiant.events.unlisten(radiant, 'stonehearth:ui_mode_changed', self, self._update_ui_mode)
    radiant.events.unlisten(self._entity, 'stonehearth:selection_changed', self, self._update_render_state)
    radiant.events.unlisten(self._entity, 'stonehearth:hilighted_changed', self, self._update_render_state)
    if self._building then
@@ -113,24 +113,12 @@ function FabricatorRenderer:_update_render_state()
    end
 end
 
-function FabricatorRenderer:_get_building()
-   if not self._building_contruction_progress then
-      if self._data and self._data.blueprint then      
-         local cp = self._data.blueprint:get_component('stonehearth:construction_progress')
-         if cp then 
-            self._building_contruction_progress = cp
-            return cp:get_data().building_entity
-         end
-      end
-   end
-end
-
 function FabricatorRenderer:_recreate_render_node()
    -- update our building pointer and subscribe to the stonehearth:building_selected_changed notification.
    -- walls and such don't move from building to building, so we only need to do this once.
    if not self._building then
       if self._blueprint_contruction_progress then
-         local building = self._blueprint_contruction_progress:get_data().building
+         local building = self._blueprint_contruction_progress:get_data().building_entity
          if building then
             self._building = building
             all_buildings_map[self._entity:get_id()] = building

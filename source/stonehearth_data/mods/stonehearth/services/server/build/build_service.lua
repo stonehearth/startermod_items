@@ -171,9 +171,9 @@ function BuildService:_init_fabricator(fabricator, blueprint)
       local name = tostring(blueprint)
       fabricator:add_component('stonehearth:fabricator')
                      :start_project(name, blueprint)
+      blueprint:add_component('stonehearth:construction_progress')   
+                  :set_fabricator_entity(fabricator)
    end
-   blueprint:add_component('stonehearth:construction_progress')   
-               :set_fabricator_entity(fabricator)
 
 end
 

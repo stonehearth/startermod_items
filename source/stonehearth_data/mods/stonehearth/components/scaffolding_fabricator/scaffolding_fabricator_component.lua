@@ -150,7 +150,7 @@ function ScaffoldingFabricator:_cover_project_region()
          local clipper = Cube3(Point3(-COORD_MAX, bounds.min.y, -COORD_MAX),
                                Point3( COORD_MAX, bounds.max.y,  COORD_MAX))
                                
-         if not (blueprint_rgn:clip(clipper) - project_rgn):empty() then
+         if not (blueprint_rgn:clipped(clipper) - project_rgn):empty() then
             bounds.max = bounds.max - Point3(0, 1, 0)
          end
 
@@ -164,7 +164,7 @@ function ScaffoldingFabricator:_cover_project_region()
          -- first make sure the scaffolding fills in all the holes across gaps
          -- (consider the first row of a wall with a door in it)
          local top_row_clipper = Cube3(Point3(bounds.min.x, bounds.max.y - 1, bounds.min.z), bounds.max)
-         local top_row_bounds = project_rgn:clip(top_row_clipper):get_bounds()
+         local top_row_bounds = project_rgn:clipped(top_row_clipper):get_bounds()
          if top_row_bounds then
             local column = Cube3(Point3(top_row_bounds.min.x, 0, top_row_bounds.min.z), top_row_bounds.max)
             column:translate(self._sv.normal)

@@ -196,6 +196,14 @@ end
 function ConstructionProgress:set_building_entity(building_entity)
    self._sv.building_entity = building_entity
    self.__saved_variables:mark_changed()
+
+   if self._sv.fabricator_entity then
+      local project = self._sv.fabricator_entity:get_component('stonehearth:fabricator'):get_project()
+      if project then
+         project:add_component('stonehearth:construction_data')
+                :set_building_entity(building_entity)
+      end
+   end
 end
 
 -- returns the fabricator entity which is using our blueprint as a reference
@@ -205,8 +213,18 @@ end
 
 -- sets the fabricator entity which is using our blueprint as a reference
 function ConstructionProgress:set_fabricator_entity(fabricator_entity)
+   assert(fabricator_entity:get_component('stonehearth:fabricator'))
+   
    self._sv.fabricator_entity = fabricator_entity
    self.__saved_variables:mark_changed()
+
+   if self._sv.building_entity then
+      local project = fabricator_entity:get_component('stonehearth:fabricator'):get_project()
+      if project then
+         project:add_component('stonehearth:construction_data')
+                :set_building_entity(self._sv.building_entity)
+      end
+   end
 end
 
 function ConstructionProgress:get_finished()
