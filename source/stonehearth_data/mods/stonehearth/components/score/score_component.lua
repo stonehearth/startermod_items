@@ -87,7 +87,7 @@ function ScoreComponent:change_score(key, modifier)
    --If the score data doesn't exist, make something up
    if not score_data then
       score_data = {
-         starting_score = stonehearth.constants.score.DEFAULT + modifier
+         starting_score = stonehearth.constants.score.DEFAULT_VALUE + modifier
       }
       self:_add_new_score_type(key, score_data)
    else
@@ -115,7 +115,27 @@ function ScoreComponent:change_score(key, modifier)
          self._sv.scores[score_data.contributes_to] = self:_calculate_score_for_aggregate(score_data.contributes_to)
       end
    end
+
+   --Mostly for autotests, trigger that the score has changed
+   radiant.events.trigger_async(self._entity, 'stonehearth:score_changed', {
+         key = key, 
+         modifier = modifier, 
+         new_score = score_data.score
+      })
+
    self.__saved_variables:mark_changed()
+end
+
+--- Given a key, get the score associated with it and return it
+function ScoreComponent:get_score(key)
+   local score_data = self._sv.scores[key]
+   if not score_data then
+      score_data = {
+         starting_score = stonehearth.constants.score.DEFAULT
+      }
+      self:_add_new_score_type(key, score_data)
+   end
+   return score_data.score
 end
 
 function ScoreComponent:_add_score_event(path, value, journal_type)

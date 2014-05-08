@@ -24,6 +24,14 @@ function EatItem:run(ai, entity, args)
       times = self._food_data.effect_loops or 3
    })
 
+   --fire an event with all the data we currently have about the fact that we ate this food
+   radiant.events.trigger_async(entity, 'stonehearth:eat_food', {
+         consumer = entity, 
+         time = stonehearth.calendar:get_time_and_date(), 
+         food_uri = food:get_uri()
+      })
+
+   --TODO: make the journal work off event above, instead of its own event
    -- journal stuff will get refactored at some point
    if self._food_data.journal_message then
       radiant.events.trigger_async(stonehearth.personality, 'stonehearth:journal_event', 

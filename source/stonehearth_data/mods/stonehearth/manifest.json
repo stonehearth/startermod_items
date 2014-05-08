@@ -372,7 +372,7 @@
       "observers:sleepiness" : "file(ai/observers/sleepiness_observer.lua)",
       "observers:calorie" : "file(ai/observers/calorie_observer.lua)",
       "observers:free_time" : "file(ai/observers/free_time_observer.lua)",
-      "observers:energy_score" : "file(ai/observers/energy_score_observer.lua)",
+      "observers:nutrition_score" : "file(ai/observers/nutrition_score_observer.lua)",
 
       "class_info" : "file(entities/class_info)",
       "personality_types" : "file(data/personality/personality_types.json)",

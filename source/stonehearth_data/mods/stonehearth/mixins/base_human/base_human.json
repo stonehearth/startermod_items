@@ -57,7 +57,7 @@
             "stonehearth:observers:sleepiness",
             "stonehearth:observers:calorie",
             "stonehearth:observers:free_time", 
-            "stonehearth:observers:energy_score"
+            "stonehearth:observers:nutrition_score"
          ]
       },
       "unit_info" : {
@@ -204,25 +204,25 @@
       "stonehearth:carry_block": {
       },
       "stonehearth:score" : {
-         "energy" : {
-            "starting_score" : 5,
+         "nutrition" : {
+            "starting_score" : 50,
             "weight" : 1,
             "contributes_to" : "happiness",
-            "max" : 10,
-            "min" : 1
-            },
-         "shelter" : {
-            "starting_score" : 5,
-            "weight" : 1,
-            "contributes_to" : "happiness",
-            "max" : 10,
+            "max" : 100,
             "min" : 1
             },
          "safety" : {
-            "starting_score" : 5,
+            "starting_score" : 50,
             "weight" : 1,
             "contributes_to" : "happiness",
-            "max" : 10,
+            "max" : 100,
+            "min" : 1
+            },
+         "belonging" : {
+            "starting_score" : 50,
+            "weight" : 1,
+            "contributes_to" : "happiness",
+            "max" : 100,
             "min" : 1
          }
       },
