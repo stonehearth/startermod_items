@@ -93,6 +93,8 @@ static luabind::class_<T> Register(struct lua_State* L, const char* name)
          .def("height",       &T::GetHeight)
          .def("translate",    &T::Translate)
          .def("translated",   &T::Translated)
+         .def("inflated",     &T::Inflated)
+         .def("get_border",   &T::GetBorder)
          .def("scaled",       &T::Scaled)
       ;
 }

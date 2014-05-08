@@ -347,7 +347,7 @@ public:
 };
 
 template <typename S, int C>
-std::ostream& operator<<(std::ostream& os, const Point<S, C>& in)
+std::ostream& operator<<(std::ostream& os, Point<S, C> const& in)
 {
    return in.Print(os);
 }

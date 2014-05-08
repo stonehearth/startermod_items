@@ -166,7 +166,7 @@ end
 function AIComponent:remove_action(key)
    if type(key) == 'string' then
       self.__saved_variables:modify_data(function (o)
-            o.actions[key] = false
+            o._actions[key] = false
          end)
    end
 

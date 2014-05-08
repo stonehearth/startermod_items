@@ -18,8 +18,8 @@ public:
 
 public:
    Region();
-   Region(const Cube& cube);
-   Region(const Region&& r);
+   Region(Cube const& cube);
+   Region(Region const&& r);
    Region(protocol::region3i const& msg) { LoadValue(msg); }
 
    static const Region empty;
@@ -31,44 +31,45 @@ public:
 public:
    S GetArea() const;
    bool IsEmpty() const;
-   bool Intersects(const Cube& cube) const;
-   bool Contains(const Point& pt) const;
+   bool Intersects(Cube const& cube) const;
+   bool Contains(Point const& pt) const;
    
-   Point GetClosestPoint2(const Point& src, S *dSquared) const;
-   Point GetClosestPoint(const Point& src) const { return GetClosestPoint2(src, nullptr); }
+   Point GetClosestPoint2(Point const& src, S *dSquared) const;
+   Point GetClosestPoint(Point const& src) const { return GetClosestPoint2(src, nullptr); }
    Cube GetBounds() const;
    int GetRectCount() const { return cubes_.size(); }
    Cube GetRect(int i) const { return cubes_[i]; }
 
    int GetCubeCount() const { return cubes_.size(); }
-   const Cube& operator[](int i) const { return cubes_[i]; }
-   void Translate(const Point& pt);
-   Region Translated(const Point& pt) const;
-   Region Inflated(const Point& pt) const;
+   Cube const& operator[](int i) const { return cubes_[i]; }
+   void Translate(Point const& pt);
+   Region Translated(Point const& pt) const;
+   Region Inflated(Point const& pt) const;
 
    // xxx: make regions fluent!
    void Clear();
-   void Add(const Point& point);
-   void Add(const Cube& cube);
-   void Add(const Region& region);
-   void AddUnique(const Cube& cube);
-   void AddUnique(const Region& region);  
-   void Subtract(const Point& point);
-   void Subtract(const Cube& cube);
-   void Subtract(const Region& region);
+   void Add(Point const& point);
+   void Add(Cube const& cube);
+   void Add(Region const& region);
+   void AddUnique(Point const& cube);
+   void AddUnique(Cube const& cube);
+   void AddUnique(Region const& region);  
+   void Subtract(Point const& point);
+   void Subtract(Cube const& cube);
+   void Subtract(Region const& region);
 
-   Region<S, C> operator-(const Cube& cube) const;
-   Region<S, C> operator-(const Region& region) const;
-   Region<S, C> operator&(const Cube& cube) const;
-   Region<S, C> operator&(const Region& region) const;
-   const Region<S, C>& operator+=(const Region& region);
-   const Region<S, C>& operator-=(const Region& region);
-   const Region<S, C>& operator&=(const Cube& cube);
-   const Region<S, C>& operator&=(const Region& region);
-   const Region<S, C>& operator+=(const Cube& cube);
-   const Region<S, C>& operator-=(const Cube& cube);
-   const Region<S, C>& operator+=(const Point& pt) { return operator+=(Cube(pt)); }
-   const Region<S, C>& operator-=(const Point& pt) { return operator-=(Cube(pt)); }
+   Region<S, C> operator-(Cube const& cube) const;
+   Region<S, C> operator-(Region const& region) const;
+   Region<S, C> operator&(Cube const& cube) const;
+   Region<S, C> operator&(Region const& region) const;
+   Region<S, C> const& operator+=(Region const& region);
+   Region<S, C> const& operator-=(Region const& region);
+   Region<S, C> const& operator&=(Cube const& cube);
+   Region<S, C> const& operator&=(Region const& region);
+   Region<S, C> const& operator+=(Cube const& cube);
+   Region<S, C> const& operator-=(Cube const& cube);
+   Region<S, C> const& operator+=(Point const& pt) { return operator+=(Cube(pt)); }
+   Region<S, C> const& operator-=(Point const& pt) { return operator-=(Cube(pt)); }
 
 private:
    void Validate() const;
@@ -101,7 +102,7 @@ private:
 };
 
 template <typename S, int C>
-std::ostream& operator<<(std::ostream& os, const Region<S, C>& o)
+std::ostream& operator<<(std::ostream& os, Region<S, C> const& o)
 {
    os << "(" << o.GetCubeCount() << " cubes of area " << o.GetArea() << ")";
    return os;
