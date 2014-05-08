@@ -28,7 +28,7 @@ Region<S, C>::Region()
 }
 
 template <class S, int C>
-Region<S, C>::Region(const Cube& cube)
+Region<S, C>::Region(Cube const& cube)
 {
    cubes_.reserve(64);
    if (!cube.IsEmpty()) {
@@ -37,7 +37,7 @@ Region<S, C>::Region(const Cube& cube)
 }
 
 template <class S, int C>
-Region<S, C>::Region(const Region&& r)
+Region<S, C>::Region(Region const&& r)
 {
    cubes_ = std::move(r.cubes_);
 }
@@ -73,28 +73,34 @@ void Region<S, C>::Clear()
 }
 
 template <class S, int C>
-void Region<S, C>::Add(const Region& region)
+void Region<S, C>::Add(Region const& region)
 {
-   for (const Cube& c : region) {
+   for (Cube const& c : region) {
       Add(c);
    }
 }
 
 template <class S, int C>
-void Region<S, C>::Add(const Cube& cube)
+void Region<S, C>::Add(Cube const& cube)
 {
    Subtract(cube);
    AddUnique(cube);
 }
 
 template <class S, int C>
-void Region<S, C>::Add(const Point& point)
+void Region<S, C>::Add(Point const& point)
 {
    Add(Cube(point));
 }
 
 template <class S, int C>
-void Region<S, C>::AddUnique(const Cube& cube)
+void Region<S, C>::AddUnique(Point const& pt)
+{
+   AddUnique(Cube(pt));
+}
+
+template <class S, int C>
+void Region<S, C>::AddUnique(Cube const& cube)
 {
    if (cube.IsEmpty()) {
       return;
@@ -126,7 +132,7 @@ void Region<S, C>::AddUnique(const Cube& cube)
 }
 
 template <class S, int C>
-void Region<S, C>::AddUnique(const Region& region)
+void Region<S, C>::AddUnique(Region const& region)
 {
    Validate();
    region.Validate();
@@ -140,13 +146,13 @@ void Region<S, C>::AddUnique(const Region& region)
 }
 
 template <class S, int C>
-void Region<S, C>::Subtract(const Point& pt)
+void Region<S, C>::Subtract(Point const& pt)
 {
    Subtract(Cube(pt));
 }
 
 template <class S, int C>
-void Region<S, C>::Subtract(const Cube& cube)
+void Region<S, C>::Subtract(Cube const& cube)
 {
    CubeVector added;
 
@@ -178,7 +184,7 @@ void Region<S, C>::Subtract(const Cube& cube)
 }
 
 template <class S, int C>
-Region<S, C> Region<S, C>::operator-(const Cube& cube) const
+Region<S, C> Region<S, C>::operator-(Cube const& cube) const
 {
    Region result(*this);
    result -= cube;
@@ -186,7 +192,7 @@ Region<S, C> Region<S, C>::operator-(const Cube& cube) const
 }
 
 template <class S, int C>
-Region<S, C> Region<S, C>::operator-(const Region& r) const
+Region<S, C> Region<S, C>::operator-(Region const& r) const
 {
    Region result(*this);
    for (const auto& c : r) {
@@ -196,21 +202,21 @@ Region<S, C> Region<S, C>::operator-(const Region& r) const
 }
 
 template <class S, int C>
-const Region<S, C>& Region<S, C>::operator-=(const Cube& cube)
+Region<S, C> const& Region<S, C>::operator-=(Cube const& cube)
 {
    Subtract(cube);
    return *this;
 }
 
 template <class S, int C>
-const Region<S, C>& Region<S, C>::operator+=(const Cube& cube)
+Region<S, C> const& Region<S, C>::operator+=(Cube const& cube)
 {
    Add(cube);
    return *this;
 }
 
 template <class S, int C>
-Region<S, C> Region<S, C>::operator&(const Region& r) const
+Region<S, C> Region<S, C>::operator&(Region const& r) const
 {
    Region result = *this;
    result &= r;
@@ -218,7 +224,7 @@ Region<S, C> Region<S, C>::operator&(const Region& r) const
 }
 
 template <class S, int C>
-Region<S, C> Region<S, C>::operator&(const Cube& c) const
+Region<S, C> Region<S, C>::operator&(Cube const& c) const
 {
    Region result = *this;
    result &= c;
@@ -226,7 +232,7 @@ Region<S, C> Region<S, C>::operator&(const Cube& c) const
 }
 
 template <class S, int C>
-const Region<S, C>& Region<S, C>::operator&=(const Cube& cube)
+Region<S, C> const& Region<S, C>::operator&=(Cube const& cube)
 {
    unsigned int i = 0;
    unsigned int size = cubes_.size();
@@ -252,7 +258,7 @@ const Region<S, C>& Region<S, C>::operator&=(const Cube& cube)
 
 
 template <class S, int C>
-const Region<S, C>& Region<S, C>::operator&=(const Region& other)
+Region<S, C> const& Region<S, C>::operator&=(Region const& other)
 {
    Region result;
 
@@ -271,7 +277,7 @@ const Region<S, C>& Region<S, C>::operator&=(const Region& other)
 }
 
 template <class S, int C>
-const Region<S, C>& Region<S, C>::operator-=(const Region& r)
+Region<S, C> const& Region<S, C>::operator-=(Region const& r)
 {
    Subtract(r);
    return *this;
@@ -279,7 +285,7 @@ const Region<S, C>& Region<S, C>::operator-=(const Region& r)
 
 
 template <class S, int C>
-void Region<S, C>::Subtract(const Region& r)
+void Region<S, C>::Subtract(Region const& r)
 {
    for (const auto &rc : r) {
       Subtract(rc);
@@ -287,7 +293,7 @@ void Region<S, C>::Subtract(const Region& r)
 }
 
 template <class S, int C>
-const Region<S, C>& Region<S, C>::operator+=(const Region& r)
+Region<S, C> const& Region<S, C>::operator+=(Region const& r)
 {
    for (const auto &rc : r) {
       Add(rc);
@@ -296,9 +302,9 @@ const Region<S, C>& Region<S, C>::operator+=(const Region& r)
 }
 
 template <class S, int C>
-bool Region<S, C>::Intersects(const Cube& cube) const
+bool Region<S, C>::Intersects(Cube const& cube) const
 {
-   for (const Cube& c : *this) {
+   for (Cube const& c : *this) {
       if (cube.Intersects(c)) {
          return true;
       }
@@ -306,7 +312,7 @@ bool Region<S, C>::Intersects(const Cube& cube) const
    return false;
 }
 template <class S, int C>
-bool Region<S, C>::Contains(const Point& pt) const
+bool Region<S, C>::Contains(Point const& pt) const
 {
    for (Cube const& cube : cubes_) {
       if (cube.Contains(pt)) {
@@ -317,7 +323,7 @@ bool Region<S, C>::Contains(const Point& pt) const
 }
 
 template <class S, int C>
-Point<S, C> Region<S, C>::GetClosestPoint2(const Point& from, S *dSquared) const
+Point<S, C> Region<S, C>::GetClosestPoint2(Point const& from, S *dSquared) const
 {
    ASSERT(!IsEmpty());
 
@@ -675,7 +681,7 @@ Cube<S, C> Region<S, C>::GetBounds() const
 }
 
 template <class S, int C>
-void Region<S, C>::Translate(const Point& pt)
+void Region<S, C>::Translate(Point const& pt)
 {
    for (auto &c : cubes_) {
       c.Translate(pt);
@@ -683,7 +689,7 @@ void Region<S, C>::Translate(const Point& pt)
 }
 
 template <class S, int C>
-Region<S, C> Region<S, C>::Translated(const Point& pt) const
+Region<S, C> Region<S, C>::Translated(Point const& pt) const
 {
    Region result = (*this);
    result.Translate(pt);
@@ -779,6 +785,7 @@ void Region<S, C>::Validate() const
    template void Cls::Add(const Cls&); \
    template void Cls::Add(const Cls::Cube&); \
    template void Cls::Add(const Cls::Point&); \
+   template void Cls::AddUnique(const Cls::Point&); \
    template void Cls::AddUnique(const Cls::Cube&); \
    template void Cls::AddUnique(const Cls&); \
    template void Cls::Subtract(const Cls&); \

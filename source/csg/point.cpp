@@ -34,6 +34,9 @@ const Point2 Point2::one(1, 1);
 const Point1 Point1::zero(0);
 const Point1 Point1::one(1);
 
+const Point1f Point1f::zero(0);
+const Point1f Point1f::one(1);
+
 
 template <int C>
 Point<float, C> csg::ToFloat(Point<int, C> const& pt) {
