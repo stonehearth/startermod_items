@@ -47,7 +47,7 @@ function ProxyWall:layout(brush)
       -- then transform the result back to our coordinate system
       local offset = self._roof:get_world_location() - self:get_world_location()
       local roof_overhang = self._roof:get_region():get()
-                                       :clip(stencil:translated(-offset))                                       
+                                       :clipped(stencil:translated(-offset))                                       
                                        :translated(offset)
       
       -- iterate through each "shingle" in the overhang, growing the wall

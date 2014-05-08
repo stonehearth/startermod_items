@@ -54,7 +54,9 @@ App.StonehearthBuildingDesignerView = App.View.extend({
          building_entity = blueprint_entity['stonehearth:construction_progress']['building_entity'];         
       }
       self.set('context.building', building_entity);
-      self.set('context.building.active', building_entity['stonehearth:construction_progress'].active);
+      if (building_entity) {
+         self.set('context.building.active', building_entity['stonehearth:construction_progress'].active);
+      }
       self.set('context.blueprint', blueprint_entity);
    }.observes('context'),
 
@@ -72,19 +74,20 @@ App.StonehearthBuildingDesignerView = App.View.extend({
       var self = this;
       this._super();
 
-      var set_building_active = function(value) {
+      this.$('#startBuilding').click(function() {
          var building_entity = self.get('context.building');
          if (building_entity) {
             var value = !self.get('context.building.active')
+            //stonehearth.server.build.set_building_active(building_entity.__self, value);
             radiant.call('stonehearth:set_building_active', building_entity.__self, value)
          }
-      }
-
-      this.$('#startBuilding').click(function() {
-         set_building_active(true);
       });
-      this.$('#stopBuilding').click(function() {
-         set_building_active(false);
+      this.$('#removeBuilding').click(function() {
+         var building_entity = self.get('context.building');
+         if (building_entity) {
+            //stonehearth.server.build.remove_building(building_entity.__self, value);
+            radiant.call('stonehearth:set_building_teardown', building_entity.__self, true)
+         }
       });
    },
 

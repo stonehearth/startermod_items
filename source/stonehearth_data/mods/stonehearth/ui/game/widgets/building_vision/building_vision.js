@@ -4,6 +4,12 @@ App.StonehearthBuildingVisionWidget = App.View.extend({
    didInsertElement: function() {
       var self = this;
       var palette = this.$('#palette');
+      var currentMode = 'normal';
+
+      var setCurrentMode = function(mode) {
+        currentMode = mode;
+        radiant.call('stonehearth:set_building_vision_mode', currentMode);
+      }
 
       // input handlers
       this.$().hover(
@@ -14,16 +20,26 @@ App.StonehearthBuildingVisionWidget = App.View.extend({
             palette.fadeOut();
          });
 
-      this.$('#showAllWalls').click(function() {
+      this.$('#cycleVisionMode').click(function() {
+         if (currentMode == 'normal') {
+            setCurrentMode('xray');
+         } else if (currentMode == 'xray') {
+            setCurrentMode('rpg');
+         } else {
+            setCurrentMode('normal');
+         }
+      });
 
+      this.$('#showAllWalls').click(function() {
+        setCurrentMode('normal');
       });
 
       this.$('#hideFacingWalls').click(function() {
-
+        setCurrentMode('xray');
       });
 
       this.$('#hideAllWalls').click(function() {
-
+        setCurrentMode('rpg');
       });
 
       // tooltips

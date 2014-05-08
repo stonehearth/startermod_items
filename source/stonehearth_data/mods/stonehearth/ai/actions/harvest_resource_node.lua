@@ -10,6 +10,10 @@ HarvestResourceNodeAction.args = {
 HarvestResourceNodeAction.version = 2
 HarvestResourceNodeAction.priority = 1
 
+function HarvestResourceNodeAction:start(ai, entity, args)
+   ai:set_status_text('harvesting ' .. radiant.entities.get_name(args.node))
+end
+
 local ai = stonehearth.ai
 return ai:create_compound_action(HarvestResourceNodeAction)
          :when( function (ai) return ai.CURRENT.carrying == nil end )

@@ -110,20 +110,36 @@ function BuildService:build_structures(session, proxies)
    return result
 end
 
-function BuildService:set_building_active(building, active)
-   local function _set_active_recursive(blueprint, active)
+function BuildService:set_active(building, enabled)
+   local function _set_active_recursive(blueprint, enabled)
       local ec = blueprint:get_component('entity_container')  
       if ec then
          for id, child in ec:each_child() do
-            _set_active_recursive(child, active)
+            _set_active_recursive(child, enabled)
          end
       end
       local cp = blueprint:get_component('stonehearth:construction_progress')
       if cp then
-         cp:set_active(active)
+         cp:set_active(enabled)
       end
    end  
-   _set_active_recursive(building, active)
+   _set_active_recursive(building, enabled)
+end
+
+function BuildService:set_teardown(blueprint, enabled)
+   local function _set_teardown_recursive(blueprint)
+      local ec = blueprint:get_component('entity_container')  
+      if ec then
+         for id, child in ec:each_child() do
+            _set_teardown_recursive(child, enabled)
+         end
+      end
+      local cp = blueprint:get_component('stonehearth:construction_progress')
+      if cp then
+         cp:set_teardown(enabled)
+      end
+   end  
+   _set_teardown_recursive(blueprint, enabled)
 end
 
 function BuildService:_begin_construction(blueprint, location)
@@ -155,9 +171,9 @@ function BuildService:_init_fabricator(fabricator, blueprint)
       local name = tostring(blueprint)
       fabricator:add_component('stonehearth:fabricator')
                      :start_project(name, blueprint)
+      blueprint:add_component('stonehearth:construction_progress')   
+                  :set_fabricator_entity(fabricator)
    end
-   blueprint:add_component('stonehearth:construction_progress')   
-               :set_fabricator_entity(fabricator)
 
 end
 

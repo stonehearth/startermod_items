@@ -11,7 +11,7 @@ function StockpileRenderer:__init(render_entity, datastore)
    self._ui_view_mode = stonehearth.renderer:get_ui_mode()
    self._stockpile_items = {}
 
-   radiant.events.listen(radiant.events, 'stonehearth:ui_mode_changed', self, self._on_ui_mode_changed)
+   radiant.events.listen(radiant, 'stonehearth:ui_mode_changed', self, self._on_ui_mode_changed)
 
    self._parent_node = render_entity:get_node()
    self._size = { 0, 0 }   
@@ -31,7 +31,7 @@ function StockpileRenderer:destroy()
       self._datastore_trace = nil
    end
    self:_destroy_renderables()
-   radiant.events.unlisten(radiant.events, 'stonehearth:ui_mode_changed', self, self._on_ui_mode_changed)
+   radiant.events.unlisten(radiant, 'stonehearth:ui_mode_changed', self, self._on_ui_mode_changed)
 end
 
 

@@ -10,6 +10,7 @@ function Inventory:initialize(session)
       kingdom = session.kingdom,
       faction = session.faction,
       storage = {},
+      items = {},
    }
    self.__saved_variables = radiant.create_datastore(self._data)
 end
@@ -36,7 +37,7 @@ end
 
 function Inventory:add_storage(storage_entity)
    assert(not self._data.storage[storage_entity:get_id()])
-   self._data.storage[storage_entity:get_id()] = {}
+   self._data.storage[storage_entity:get_id()] = storage_entity
    self.__saved_variables:mark_changed()
    radiant.events.listen(storage_entity, "stonehearth:item_added",   self, self._on_item_added)
    radiant.events.listen(storage_entity, "stonehearth:item_removed", self, self._on_item_removed)
@@ -53,24 +54,24 @@ end
 
 function Inventory:_on_item_added(e)
    local storage_id = e.storage:get_id()
+   local item = e.item
    assert(self._data.storage[storage_id], 'tried to add an item to an untracked storage entity ' .. tostring(e.storage))
 
-   table.insert(self._data.storage[storage_id], e.item:get_id())
+   self._data.items[item:get_id()] = item
    self.__saved_variables:mark_changed()
    radiant.events.trigger(self, 'stonehearth:item_added', { item = e.item })
 end
 
 function Inventory:_on_item_removed(e)
    local storage_id = e.storage:get_id()
+   local item = e.item
+   local id = item:get_id()
    assert(self._data.storage[storage_id], 'tried to remove an item to an untracked storage entity ' .. tostring(e.storage))
 
-   for i, item in ipairs(self._data.storage[storage_id]) do
-      if item == e.item:get_id() then
-         table.remove(self._data.storage[storage_id], i)
-         self.__saved_variables:mark_changed()
-         radiant.events.trigger(self, 'stonehearth:item_removed', { item = e.item })
-         break
-      end
+   if self._data.items[id] then
+      self._data.items[id] = nil
+      self.__saved_variables:mark_changed()
+      radiant.events.trigger(self, 'stonehearth:item_removed', { item = item })
    end
 end
 

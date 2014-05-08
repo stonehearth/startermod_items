@@ -28,16 +28,10 @@ function ProfessionComponent:promote_to(profession_uri, talisman_uri)
    if json then
       self:demote()
       self._sv.profession_uri = profession_uri
-      self._sv.profession_id = json.profession_id
       self:_load_profession_script(json)
       self:_set_unit_info(json)
       self:_equip_outfit(json)
       self:_call_profession_script('promote', json, talisman_uri)
-
-      --Let people know that the promotion has (probably) happened.
-      -- xxx: is there a better way?  How about if the town listens to all 'stonehearth:profession_changed'
-      -- messages from its citizens?  That sounds good!!
-      radiant.events.trigger(stonehearth.object_tracker, 'stonehearth:promote', { entity = self._entity })
 
       -- so good!  keep this one, lose the top one.  too much "collusion" between components =)
       radiant.events.trigger(self._entity, 'stonehearth:profession_changed', { entity = self._entity })

@@ -11,7 +11,7 @@ function PromoteTest:__init()
    self:create_world()
 
    --Create the saw 
-   self:place_item('stonehearth:carpenter:saw', -12, -12)
+   self:place_item('stonehearth:carpenter:saw', 10, 10)
 
    self:place_citizen(-1,2)
    local worker = self:place_citizen(12, 12)
@@ -24,7 +24,7 @@ function PromoteTest:__init()
    local player_id = radiant.entities.get_player_id(worker)
 
    self:at(10,  function()
-         self:place_stockpile_cmd(player_id, 12, 12, 4, 4)
+         --self:place_stockpile_cmd(player_id, 12, 12, 4, 4)
       end)
 end
 

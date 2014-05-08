@@ -8,6 +8,8 @@ local PromotionTalismanComponent = class()
 function PromotionTalismanComponent:initialize(entity, json)
    self._entity = entity
    self._json = json
+   self._sv = self.__saved_variables:get_data()
+   self._sv.profession = self:get_profession();
 
    radiant.events.listen(entity, 'radiant:entity:post_create', function()
          self:_set_profession_name()

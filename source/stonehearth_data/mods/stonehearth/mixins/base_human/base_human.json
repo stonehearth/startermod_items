@@ -8,6 +8,8 @@
             "stonehearth:actions:reserve_stockpile_space",
             "stonehearth:actions:idle:sway",
             "stonehearth:actions:idle:look_around",
+            "stonehearth:actions:grab_promotion_talisman",                        
+            "stonehearth:actions:grab_promotion_talisman_type",                        
             "stonehearth:actions:sleep_on_ground",
             "stonehearth:actions:sleep_in_new_bed",
             "stonehearth:actions:sleep_in_own_bed",
