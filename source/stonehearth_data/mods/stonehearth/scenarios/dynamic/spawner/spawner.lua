@@ -4,7 +4,7 @@ local Point2 = _radiant.csg.Point2
 local Point3 = _radiant.csg.Point3
 
 --[[ 
-Goblin Theif (aka Goblin Jerk) narrative:
+Goblin Thief (aka Goblin Jerk) narrative:
 When the camp standard is placed, we want to start gently (and then not-so-gently) harassing the player.
 To wit: spawn a little thief, somewhere just outside the explored area.  And then this little guy goes back
 and forth stealing wood (probably should just be from the stockpile, but for now, anywhere.)
@@ -13,7 +13,7 @@ and forth stealing wood (probably should just be from the stockpile, but for now
 function Spawner:__init()
 end
 
-function Spawner:initialize(properties)
+function Spawner:start()
    -- Hack #1: We want some reasonable place to put faction initialization; in some random scenario
    -- is likely not the correct place.
    local session = {
@@ -21,19 +21,17 @@ function Spawner:initialize(properties)
       faction = 'goblin',
       kingdom = 'stonehearth:kingdoms:golden_conquering_arm'
    }
-   self._town = stonehearth.town:add_town(session)
-   self._inventory = stonehearth.inventory:add_inventory(session)
-   self._population = stonehearth.population:add_population(session)
-   self._population:create_town_name()
-
-   radiant.events.listen(radiant, 'radiant:entity:post_create', function (e)
-      if e.entity:get_uri() == 'stonehearth:camp_standard' then
-         -- Once the camp-standard has been placed, wait some time before spawning the first
-         -- jerk.
-         self:_schedule_next_spawn(rng:get_int(3600 * 1, 3600 * 1))
-         return radiant.events.UNLISTEN
-      end
-   end)
+   if stonehearth.town:get_town(session.player_id) == nil then
+      self._town = stonehearth.town:add_town(session)
+      self._inventory = stonehearth.inventory:add_inventory(session)
+      self._population = stonehearth.population:add_population(session)
+      self._population:create_town_name()
+   else
+      self._town = stonehearth.town:get_town(session.player_id)
+      self._inventory = stonehearth.inventory:get_inventory(session.player_id)
+      self._population = stonehearth.population:get_population(session.player_id)
+   end
+   self:_schedule_next_spawn(rng:get_int(3600 * 1, 3600 * 1))
 end
 
 function Spawner:_schedule_next_spawn(t)
@@ -78,7 +76,7 @@ function Spawner:_goblin_killed(e)
    self._stockpile_comp = nil
    self._goblin = nil
 
-   self:_schedule_next_spawn(rng:get_int(3600 * 1, 3600 * 1))
+   radiant.events.trigger(self, 'stonehearth:dynamic_scenario:finished')
 end
 
 function Spawner:_item_added(e)
