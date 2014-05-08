@@ -59,6 +59,7 @@ App.RootView = Ember.ContainerView.extend({
       $('#' + this._shellView.elementId).hide();
       $('#' + this._gameView.elementId).show();
 
+      this._gameView.initGameServices();
 
       radiant.call('radiant:play_music', {
             'track': 'stonehearth:music:world_start',

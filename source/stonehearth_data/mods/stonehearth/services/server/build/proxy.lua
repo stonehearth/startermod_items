@@ -4,17 +4,17 @@ local voxel_brush_util = require 'services.server.build.voxel_brush_util'
 local Proxy = class()
 local Point3 = _radiant.csg.Point3
 
-function Proxy:__init(derived, parent_proxy, arg1)
+function Proxy:__init(derived, parent_proxy, uri_or_entity)
    self._derived = derived
    self._children = {}
    self._dependencies = {}
    self._loaning_scaffolding_to = {}
 
-   if type(arg1) == 'string' or not arg1 then
-      self._entity = radiant.entities.create_entity(arg1)
-      self._render_entity = _radiant.client.create_render_entity(1, self._entity)   
+   if type(uri_or_entity) == 'string' or not uri_or_entity then
+      self._entity = radiant.entities.create_entity(uri_or_entity)
+      self._render_entity = _radiant.client.create_render_entity(1, self._entity)
    else
-      self._entity = arg1
+      self._entity = uri_or_entity
    end
 
    if parent_proxy then
@@ -30,7 +30,6 @@ function Proxy:__init(derived, parent_proxy, arg1)
    -- proxies get rendered in blueprint
    self._entity:add_component('render_info')
                      :set_material('materials/blueprint_gridlines.xml')
-                     --:set_model_mode('blueprint')
 end
 
 function Proxy:destroy()
@@ -114,6 +113,15 @@ end
 
 function Proxy:get_dependencies()
    return self._dependencies
+end
+
+function Proxy:get_building()
+   return self._building
+end
+
+function Proxy:set_building(building)
+   self._building = building
+   return self._derived
 end
 
 function Proxy:add_dependency(dependency)

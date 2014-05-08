@@ -2,7 +2,8 @@ local Vec3 = _radiant.csg.Point3f
 
 local AnalyticsService = class()
 local population_service = stonehearth.population
-local object_tracker = stonehearth.object_tracker
+-- the object tracker is dead
+-- local object_tracker = stonehearth.object_tracker 
 
 function AnalyticsService:__init(datastore)
    local one_minute = 1000 * 60
@@ -49,13 +50,15 @@ function AnalyticsService:on_ten_minute_poll()
       send_string = send_string .. "_Num_citizens_" .. citizen_count
 
       --Send data about resources
+      --[[
       local resource_tracker = object_tracker:get_resource_tracker(player_id)
       local items = resource_tracker:get_tracked_items()
 
       send_string = send_string .. "_Resources_"
       for uri, data in pairs(items) do
          send_string = send_string .. data.name .. "_" .. data.count
-      end   
+      end 
+      ]]  
    end
 
    _radiant.analytics.DesignEvent('game:user_stats'):set_area(send_string):send_event()

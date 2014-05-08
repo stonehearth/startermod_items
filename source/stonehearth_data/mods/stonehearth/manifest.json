@@ -49,6 +49,8 @@
       "wooden_column" : "file(entities/build/wooden_column)",
       "wooden_peaked_roof" : "file(entities/build/wooden_peaked_roof)",
       "scaffolding" : "file(entities/build/scaffolding)",
+      "entities:building" : "file(entities/build/building)",
+      "entities:fabricator" : "file(entities/build/fabricator)",
 
       "pet_collar" : "file(entities/critters/collars/pet_collar.json)",
 
@@ -61,7 +63,7 @@
       "farmer:hoe" : "file(professions/farmer/farmer_hoe)", 
       "farmer:initial_crops" : "file(services/server/farming/data/initial_crops.json)",
       
-      "trapper:trapper_knife" : "file(professions/trapper/trapper_knife)",
+      "trapper:knife" : "file(professions/trapper/trapper_knife)",
       "trapper:outfit" : "file(professions/trapper/trapper_outfit)",
       "trapper:snare_trap" : "file(professions/trapper/snare_trap)",
 
@@ -286,6 +288,7 @@
       "actions:fill_outbox_action" : "file(ai/actions/fill_outbox_action.lua)",
       "actions:gather_and_craft_action" : "file(ai/actions/gather_and_craft_action.lua)",
       "actions:grab_promotion_talisman" : "file(ai/actions/grab_talisman_action.lua)",
+      "actions:grab_promotion_talisman_type" : "file(ai/actions/grab_talisman_type_action.lua)",
       "actions:admire_fire" : "file(ai/actions/admire_fire_action.lua)",
       "actions:admire_fire_adjacent" : "file(ai/actions/admire_fire_adjacent_action.lua)",
       "actions:sit_on_ground" : "file(ai/actions/sit_on_ground.lua)",
@@ -344,10 +347,8 @@
       "actions:idle:warm_hands" : "file(ai/actions/idle_warm_hands_action.lua)",
       "actions:work_at_workshop" : "file(ai/actions/work_at_workshop_action.lua)",
       "actions:move_item_to_outbox" : "file(ai/actions/move_item_to_outbox_action.lua)",
-      "actions:wait_for_fabricator" : "file(ai/actions/wait_for_fabricator_action.lua)",
       "actions:fabricate_structure" : "file(ai/actions/fabricate_structure_action.lua)",
       "actions:fabricate_structure_adjacent" : "file(ai/actions/fabricate_structure_adjacent_action.lua)",
-      "actions:wait_for_teardown" : "file(ai/actions/wait_for_teardown_action.lua)",
       "actions:teardown_structure" : "file(ai/actions/teardown_structure_action.lua)",
       "actions:teardown_structure_adjacent" : "file(ai/actions/teardown_structure_adjacent_action.lua)",
       "actions:farmer_task_dispatcher" : "file(ai/actions/farmer_task_dispatcher.lua)",
@@ -504,6 +505,7 @@
       
       "scenarios:scenario_index" : "file(scenarios/index.json)",
 
+      "professions:index" : "file(professions/index.json)",
       "professions:worker" : "file(professions/worker/worker_description.json)",
       "professions:farmer" : "file(professions/farmer/farmer_description.json)",
       "professions:carpenter" : "file(professions/carpenter/carpenter_description.json)",
@@ -728,6 +730,10 @@
          "controller" : "file(call_handlers/farming_call_handler.lua)",
          "endpoint" : "server"
       },
+      "get_inventory": {
+         "controller" : "file(call_handlers/inventory_call_handler.lua)",
+         "endpoint" : "server"
+      },
       "choose_stockpile_location": {
          "controller" : "file(call_handlers/inventory_call_handler.lua)",
          "endpoint" : "client"
@@ -741,6 +747,14 @@
          "endpoint" : "client"
       },
       "build_structures": {
+         "controller" : "file(call_handlers/build_call_handler.lua)",
+         "endpoint" : "server"
+      },
+      "set_building_active": {
+         "controller" : "file(call_handlers/build_call_handler.lua)",
+         "endpoint" : "server"
+      },
+      "set_building_teardown": {
          "controller" : "file(call_handlers/build_call_handler.lua)",
          "endpoint" : "server"
       },
@@ -760,7 +774,11 @@
          "controller" : "file(call_handlers/camera_call_handler.lua)",
          "endpoint" : "client"
       },
-      "ui_mode_changed": {
+      "set_ui_mode": {
+         "controller" : "file(call_handlers/ui_mode_call_handler.lua)",
+         "endpoint" : "client"
+      },
+      "set_building_vision_mode": {
          "controller" : "file(call_handlers/ui_mode_call_handler.lua)",
          "endpoint" : "client"
       },
@@ -803,6 +821,7 @@
       "no_construction_zone" : "file(components/no_construction_zone/no_construction_zone_component.lua)",
       "construction_data" : "file(components/construction_data/construction_data_component.lua)",
       "construction_progress" : "file(components/construction_progress/construction_progress_component.lua)",
+      "construction_project" : "file(components/construction_project/construction_project_component.lua)",
       "personality" : "file(components/personality/personality_component.lua)",
       "loot_table" : "file(components/loot_table/loot_table_component.lua)",
       "inventory" : "file(components/inventory/inventory_component.lua)",
@@ -856,12 +875,14 @@
          "file(ui/game/widgets/game_speed/game_speed.html)",
          "file(ui/game/widgets/building_vision/building_vision.html)",
          "file(ui/game/people_picker/people_picker.html)",
-         "file(ui/game/promote/promote.html)",
          "file(ui/game/place_item/place_item.html)",
          "file(ui/game/unit_frame/unit_frame.html)",
          "file(ui/game/resource_scoreboard/resource_scoreboard.html)",
          "file(ui/game/start_menu/start_menu.html)",
-         "file(ui/game/population_manager/population_manager.html)",
+         "file(ui/game/town/town.html)",
+         "file(ui/game/citizens/citizens.html)",
+         "file(ui/game/crafters/crafters.html)",
+         "file(ui/game/promotion_wizard/promotion_wizard.html)",
          "file(ui/game/tip_popup/tip_popup.html)",
          "file(ui/game/event_log/event_log.html)",
          "file(ui/game/build/build.html)"
@@ -881,6 +902,8 @@
          "file(ui/debug/error_browser/error_browser.js)",
          "file(ui/debug/error_dialog/error_dialog.js)",
          "file(ui/game/game.js)",
+         "file(ui/game/inventory/inventory.js)",
+         "file(ui/game/population/population.js)",
          "file(ui/game/modes/zones_mode/zones_mode.js)",
          "file(ui/game/modes/zones_mode/stockpile/stockpile.js)",
          "file(ui/game/modes/zones_mode/farm/farm.js)",
@@ -901,13 +924,15 @@
          "file(ui/game/widgets/game_speed/game_speed.js)",
          "file(ui/game/widgets/building_vision/building_vision.js)",
          "file(ui/game/people_picker/people_picker.js)",
-         "file(ui/game/promote/promote.js)",
          "file(ui/game/place_item/place_item.js)",
          "file(ui/game/unit_frame/unit_frame.js)",
          "file(ui/game/resource_scoreboard/resource_scoreboard.js)",
          "file(ui/game/start_menu/start_menu.js)",
          "file(ui/game/start_menu/stonehearth_menu.js)",
-         "file(ui/game/population_manager/population_manager.js)",
+         "file(ui/game/town/town.js)",
+         "file(ui/game/citizens/citizens.js)",
+         "file(ui/game/crafters/crafters.js)",
+         "file(ui/game/promotion_wizard/promotion_wizard.js)",
          "file(ui/game/tip_popup/tip_popup.js)",
          "file(ui/game/event_log/event_log.js)"
       ],
@@ -946,13 +971,15 @@
          "file(ui/game/widgets/game_speed/game_speed.less)",
          "file(ui/game/widgets/building_vision/building_vision.less)",
          "file(ui/game/people_picker/people_picker.less)",
-         "file(ui/game/promote/promote.less)",
          "file(ui/game/unit_frame/unit_frame.less)",
          "file(ui/game/place_item/place_item.less)",
          "file(ui/game/resource_scoreboard/resource_scoreboard.less)",
          "file(ui/game/start_menu/start_menu.less)",
          "file(ui/game/start_menu/stonehearth_menu.less)",
-         "file(ui/game/population_manager/population_manager.less)",
+         "file(ui/game/town/town.less)",
+         "file(ui/game/citizens/citizens.less)",
+         "file(ui/game/crafters/crafters.less)",
+         "file(ui/game/promotion_wizard/promotion_wizard.less)",
          "file(ui/game/tip_popup/tip_popup.less)",
          "file(ui/game/event_log/event_log.less)",
          "file(ui/game/build/build.less)"

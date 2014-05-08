@@ -3,15 +3,15 @@ local ProxyContainer = class(Proxy)
 local Point2 = _radiant.csg.Point2
 local Point3 = _radiant.csg.Point3
 
-function ProxyContainer:__init(parent_proxy)
-   self[Proxy]:__init(self, parent_proxy, nil, nil)
+function ProxyContainer:__init(parent_proxy, uri_or_entity)
+   self[Proxy]:__init(self, parent_proxy, uri_or_entity)
    self._rgn2 = _radiant.client.alloc_region2()
 
    self._all_children = {}
    self:_trace_all_children(self:get_entity())
-   self:get_entity():add_component('stonehearth:no_construction_zone')
 
-   self:_rebuild_zone()
+   --self:get_entity():add_component('stonehearth:no_construction_zone')
+   --self:_rebuild_zone()
 end
 
 function ProxyContainer:_trace_all_children(entity)

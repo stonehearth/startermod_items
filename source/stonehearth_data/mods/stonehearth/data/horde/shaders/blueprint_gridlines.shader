@@ -1,5 +1,7 @@
 [[FX]]
 
+float4 blueprintColor = { 1.0, 1.0, 0.0, 0.5 };
+
 sampler3D gridMap = sampler_state
 {
    Texture = "textures/common/gridMap.dds";
@@ -31,6 +33,7 @@ context BLUEPRINTS_COLOR_PASS
 
 uniform mat4 viewProjMat;
 uniform mat4 worldMat;
+uniform vec4 blueprintColor;
 
 attribute vec3 vertPos;
 attribute vec3 color;
@@ -40,7 +43,7 @@ varying vec3 outColor;
 
 void main() {
    gridLineCoords = vertPos;
-   outColor = color;
+   outColor = vec3(blueprintColor.x, blueprintColor.y, blueprintColor.z);
    gl_Position = viewProjMat * worldMat * vec4(vertPos, 1.0);
 }
 

@@ -1,5 +1,5 @@
 App.StonehearthPeoplePickerView = App.View.extend({
-   filter_fn: function(person) {
+   filterFn: function(person) {
       return true;
    },
    templateName: 'stonehearthPeoplePicker',
@@ -10,6 +10,18 @@ App.StonehearthPeoplePickerView = App.View.extend({
             'unit_info': {}
          }
       }
+   },
+
+   init: function() {
+      this._super();
+      var self = this;
+      
+      $(top).on('keyup keydown', function(e){
+         if (e.keyCode == 27) {
+            //If escape, close window
+            self.destroy();
+         }
+      });
    },
 
    destroy: function() {
@@ -37,17 +49,12 @@ App.StonehearthPeoplePickerView = App.View.extend({
       }
 
       this._super(options);
-   },
 
-   init: function() {
-      this._super();
-      var self = this;
-      $(top).on('keyup keydown', function(e){
-         if (e.keyCode == 27) {
-            //If escape, close window
-            self.destroy();
-         }
-      });
+      radiant.call('stonehearth:get_population')
+         .done(function(response){
+            var uri = response.population;
+            self.set('uri', uri);
+         });      
    },
 
    _buildPeopleArray: function() {
@@ -61,7 +68,7 @@ App.StonehearthPeoplePickerView = App.View.extend({
                return;
             }
 
-            if (self.filter_fn(v)) {
+            if (self.filterFn(v)) {
                vals.push(v);
             }
          });
@@ -72,19 +79,10 @@ App.StonehearthPeoplePickerView = App.View.extend({
 
 
    didInsertElement: function() {
-      //TODO: animate in
-      var css = this.get('css');
-      if (css) {
-         $('#peoplePicker').css(css)
-      }
+      this._super();
 
       var title = this.get('title');
       var c = this.get('context');
-
-      if(!this.pulsed) {
-         //$('#peoplePicker').pulse();
-         this.pulsed = true;
-      }
    },
 
    actions: {

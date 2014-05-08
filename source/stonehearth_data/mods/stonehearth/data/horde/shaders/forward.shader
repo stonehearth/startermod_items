@@ -1,6 +1,14 @@
 [[FX]]
 
+float4 gridlineColor = { 0.0, 0.0, 0.0, 0.0 };
+
 // Samplers
+sampler3D gridMap = sampler_state
+{
+   Texture = "textures/common/gridMap.dds";
+   Filter = Bilinear;
+};
+
 sampler2D cloudMap = sampler_state
 {
   Texture = "textures/environment/cloudmap.png";
@@ -118,6 +126,7 @@ varying vec3 tsbNormal;
 varying vec3 albedo;
 varying vec4 projShadowPos[3];
 varying vec4 projFowPos;
+varying vec3 gridLineCoords;
 
 void main( void )
 {
@@ -131,6 +140,8 @@ void main( void )
   projShadowPos[2] = shadowMats[2] * pos;
 
   projFowPos = fowViewMat * pos;
+
+  gridLineCoords = vertPos;
 
   gl_Position = viewProjMat * pos;
 }
@@ -278,12 +289,16 @@ uniform vec2 viewPortSize;
 uniform vec2 viewPortPos;
 uniform float currentTime;
 uniform vec4 lodLevels;
+uniform sampler3D gridMap;
+uniform float gridlineAlpha;
+uniform vec4 gridlineColor;
 
 varying vec4 vsPos;
 varying vec4 pos;
 varying vec3 albedo;
 varying vec3 tsbNormal;
 varying vec4 projFowPos;
+varying vec3 gridLineCoords;
 
 void main( void )
 {
@@ -314,7 +329,19 @@ void main( void )
     lightColor *= clamp((-vsPos.z - lodLevels.z) / lodLevels.w, 0.0, 1.0);
   }
 
+  // gridlineAlpha is a single float containing the global opacity of gridlines for all
+  // nodes.  gridlineColor is the per-material color of the gridline to use.  Only draw
+  // them if both are > 0.0.
+  if (gridlineAlpha * gridlineColor.a > 0.0) {
+    vec4 gridline = texture3D(gridMap, gridLineCoords + vec3(0.5, 0.0, 0.5));
+    gridline = vec4(1.0, 1.0, 1.0, 1.0) - gridline;
+    gridline *= gridlineAlpha;
+    lightColor = lightColor * (1.0 - gridline.a) + gridline.rgb * gridlineColor.rgb;
+  }
+
   gl_FragColor = vec4(lightColor, 1.0);
+
+
 }
 
 

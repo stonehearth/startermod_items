@@ -15,7 +15,6 @@ local service_creation_order = {
    'population',
    'dm',
    'static_scenario',
-   'object_tracker',
    'world_generation',
    'build',
    'game_master',

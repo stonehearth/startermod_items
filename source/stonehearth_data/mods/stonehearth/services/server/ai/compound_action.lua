@@ -44,9 +44,12 @@ function CompoundAction:__init(entity, injecting_entity, action_ctor, activities
    -- if the action has start_thinking or stop_thinking methods, create a temporary
    -- ai object we can use to forward the think output to the first execution frame
    -- in the compound action.
-   if self._action.start_thinking or self._action.stop_thinking then
+   if self._action.start_thinking or self._action.stop_thinking or self._action.start or self._action.stop then
       self._action_ai = {
          get_log = function() return self._ai:get_log() end,
+         set_status_text = function(_, ...)
+            self._ai:set_status_text(...)
+         end,
          set_think_output = function(_, think_output)
             self:_spam_current_state('compound action became ready!')
             think_output = think_output or self._args
@@ -223,6 +226,11 @@ end
 
 function CompoundAction:start()
    self._log:detail('starting all compound action frames')
+   
+   if self._action.start then
+      self._action:start(self._action_ai, self._entity, self._args)
+   end
+
    for _, frame in ipairs(self._execution_frames) do
       frame:start() -- must be synchronous!
    end
@@ -230,6 +238,9 @@ function CompoundAction:start()
 end
 
 function CompoundAction:run(ai, entity, ...)
+   if self._action.status_text then
+      self._ai:set_status_text(self._action.status_text)
+   end   
    for _, frame in ipairs(self._execution_frames) do
       frame:run()  -- must be synchronous!
    end
@@ -237,6 +248,11 @@ end
 
 function CompoundAction:stop()
    self._log:detail('stopping all compound action frames')
+   
+   if self._action.stop then
+      self._action:stop(self._action_ai, self._entity, self._args)
+   end
+
    for _, frame in ipairs(self._execution_frames) do
       frame:stop() -- must be asynchronous!
    end

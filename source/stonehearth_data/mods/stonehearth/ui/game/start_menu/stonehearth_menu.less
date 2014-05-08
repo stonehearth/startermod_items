@@ -1,4 +1,5 @@
 .stonehearthMenu {
+	position: relative;
    display: inline-block;
    text-align: center;
    margin: auto;
@@ -67,9 +68,17 @@
 	.rootGroup {
 		position: relative;
 		bottom: -8px;
-		background: #322f28;
-		border-width: 10px 10px 10px 10px;
-		border-image: url(images/bg_border.png) 10 10 10 10;
+
+		.background {
+			position: absolute;
+			bottom: 0px;
+			left: -10px;
+			right: -10px;
+			height: 80px;
+			background: #322f28;
+			border-width: 10px 10px 10px 10px;
+			border-image: url(images/bg_border.png) 10 10 10 10;
+		}
 
 		.close {
 			display: none;
@@ -78,6 +87,7 @@
 
 	.menuItemGroup {
 		position: absolute;
+		left: -10px;
 		bottom: 90px;
 
 		background: #322f28;

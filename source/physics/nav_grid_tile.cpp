@@ -262,18 +262,21 @@ bool NavGridTile::ForEachTrackerForEntity(dm::ObjectId entityId, ForEachTrackerC
  */ 
 bool NavGridTile::ForEachTrackerInRange(TrackerMap::const_iterator begin, TrackerMap::const_iterator end, ForEachTrackerCb cb)
 {
+   // It's important here not to modify the trackers array at all during iterator.
+   // Otherwise, we'll invalidate the `end` iterator and certainly blow up somewhere!
    while (begin != end) {
       CollisionTrackerPtr tracker = begin->second.lock();
       if (tracker) {
          NG_LOG(7) << "calling ForEachTracker callback on " << *tracker->GetEntity();
 
-         ++begin;
          if (!cb(tracker)) {
             return false;
          }
       } else {
-         begin = trackers_.erase(begin);
+         // Do not erase the tracker here!  That would invalidate the `end` iterator.
+         // Just leave it dangling, and someone else will clean it up later.
       }
+      ++begin;
    }
    return true;
 }

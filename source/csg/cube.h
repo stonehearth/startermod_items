@@ -20,8 +20,8 @@ public:
 
 public:
    Cube();
-   Cube(const Point& max_value, int tag = 0);
-   Cube(const Point& min_value, const Point& max_value, int tag = 0);
+   Cube(Point const& max_value, int tag = 0);
+   Cube(Point const& min_value, Point const& max_value, int tag = 0);
 
    static Cube Construct(Point min_value, Point max_value, int tag = 0) {
       for (int i = 0; i < C; i++) {
@@ -33,7 +33,7 @@ public:
    }
 
    struct PointIterator {
-      PointIterator(const Cube& c, const Point& iter) :
+      PointIterator(Cube const& c, Point const& iter) :
          min(c.GetMin()),
          max(c.GetMax()),
          axis_(0)
@@ -91,53 +91,51 @@ public:
 
    S GetArea() const;
    bool IsEmpty() const { return GetArea() == 0; }
-   const Point& GetMin() const { return min; }
-   const Point& GetMax() const { return max; }
-   void SetMin(const Point& min_value) { min = min_value; }
-   void SetMax(const Point& max_value) { max = max_value; }
-   void Grow(const Point& pt);
-   void Grow(const Cube& cube); 
-   bool CombineWith(const Cube& cube);
+   Point const& GetMin() const { return min; }
+   Point const& GetMax() const { return max; }
+   void SetMin(Point const& min_value) { min = min_value; }
+   void SetMax(Point const& max_value) { max = max_value; }
+   void Grow(Point const& pt);
+   void Grow(Cube const& cube); 
+   bool CombineWith(Cube const& cube);
 
    void SetZero() {
       min.SetZero();
       max.SetZero();
    }
 
-   void Translate(const Point& pt) {
+   void Translate(Point const& pt) {
       min += pt;
       max += pt;
    }
 
-   Cube Translated(const Point& pt) const {
+   Cube Translated(Point const& pt) const {
       Cube result(*this);
       result.Translate(pt);
       return result;
    }
 
-   Cube Inflated(Point amount) const {
-      return Cube(min - amount, max + amount, GetTag());
-   }
-
+   Cube Inflated(Point const& amount) const;
    Cube Scaled(float factor) const { return Cube(min.Scaled(factor), max.Scaled(factor)); }
    Cube ProjectOnto(int axis, S plane) const;
    Cube Intersection(Cube const& other) const;
+   Region GetBorder() const;
 
-   bool Intersects(const Cube& other) const;
-   bool Contains(const Point& pt) const;
-   Point GetClosestPoint2(const Point& other, S* dSquared) const;
-   Point GetClosestPoint(const Point& other) const { return GetClosestPoint2(other, nullptr); }
+   bool Intersects(Cube const& other) const;
+   bool Contains(Point const& pt) const;
+   Point GetClosestPoint2(Point const& other, S* dSquared) const;
+   Point GetClosestPoint(Point const& other) const { return GetClosestPoint2(other, nullptr); }
    Point GetSize() const { return GetMax() - GetMin(); }
 
    // optimizing...
-   bool operator==(const Cube& other) const;
-   bool operator!=(const Cube& other) const;
-   Cube operator&(const Cube& other) const;
-   Region operator&(const Region& other) const;
-   Cube operator+(const Point& other) const;
+   bool operator==(Cube const& other) const;
+   bool operator!=(Cube const& other) const;
+   Cube operator&(Cube const& other) const;
+   Region operator&(Region const& other) const;
+   Cube operator+(Point const& other) const;
    Cube operator-() const;
-   Region operator-(const Cube& other) const;
-   Region operator-(const Region& other) const;
+   Region operator-(Cube const& other) const;
+   Region operator-(Region const& other) const;
 
    std::ostream& Format(std::ostream& os) const {
       os << "(" << min << " - " << max << ")";
@@ -171,7 +169,7 @@ private:
 };
 
 template <typename S, int C>
-std::ostream& operator<<(std::ostream& os, const Cube<S, C>& in)
+std::ostream& operator<<(std::ostream& os, Cube<S, C> const& in)
 {
    return in.Format(os);
 }

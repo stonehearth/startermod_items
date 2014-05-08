@@ -1,9 +1,11 @@
 {
-   "profession_type": "carpenter",
+   "alias": "stonehearth:professions:carpenter",
    "name": "Carpenter",      
-   "description": "Builds stuff out of wood",
+   "description": "The carpenter crafts tools and furniture from wood. The tools he makes unlocks several other jobs.",
+   "icon" : "file(images/jobButton.png)",
    "script": "file(carpenter.lua)",
    "outfit": "file(carpenter_outfit)",
+   "talisman_uri" : "stonehearth:carpenter:saw",
    "crafter" : {
       "work_effect": "saw",
       "recipe_list": "/stonehearth/professions/carpenter/recipes"

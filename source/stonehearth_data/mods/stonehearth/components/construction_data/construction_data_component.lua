@@ -62,6 +62,11 @@ function ConstructionDataComponent:set_fabricator_entity(fentity)
    self.__saved_variables:mark_changed()
 end
 
+function ConstructionDataComponent:set_building_entity(entity)
+   self._sv.building_entity = entity
+   self.__saved_variables:mark_changed()
+end
+
 function ConstructionDataComponent:get_allow_diagonal_adjacency()
    -- coearse to bool 
    return self._data.allow_diagonal_adjacency and true or false

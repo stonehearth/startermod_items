@@ -15,7 +15,6 @@ function WorkAtWorkshop:run(town, args)
                                                   :add_worker(self._crafter)
 
    self._inventory = stonehearth.inventory:get_inventory(town:get_player_id())
-
    radiant.events.listen(self._craft_order_list, 'order_list_changed', self, self._on_order_list_changed)
    self:_on_order_list_changed(self._craft_order_list, not self._craft_order_list:get_next_order())
 

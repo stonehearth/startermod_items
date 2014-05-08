@@ -1,0 +1,4 @@
+<Material>
+	<Shader source="shaders/blueprint_gridlines.shader"/>
+   <Uniform name="blueprintColor" a="1.0" b="0.94" c="0.51" d="1.0"/>
+</Material>

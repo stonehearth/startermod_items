@@ -1562,7 +1562,7 @@ bool Renderer::LoadMissingResources()
       try {
          inf = resourceManager.OpenResource(resourcePath);
       } catch (std::exception const&) {
-         R_LOG(1) << "failed to load render resource " << resourceName;
+         R_LOG(0) << "failed to load render resource " << resourceName;
       }
       if (inf) {
          std::string buffer = io::read_contents(*inf);
