@@ -97,25 +97,4 @@ function Combat:_get_target()
    return target
 end
 
--- stupid implementation until target tables are fixed
-function Combat:_get_target_old()
-   local entity = self._entity
-   local entity_id = entity:get_id()
-   local target, target_id
-
-   local pop = stonehearth.population:get_population('player_1')
-   local citizens = pop:get_citizens()
-
-   target_id, target = next(citizens)
-
-   if target ~= nil and target:is_valid() then
-      if target_id == entity_id then
-         --target = nil
-         target_id, target = next(citizens, target_id)
-      end
-   end
-
-   return target
-end
-
 return Combat

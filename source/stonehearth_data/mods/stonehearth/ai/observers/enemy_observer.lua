@@ -30,7 +30,7 @@ end
 function EnemyObserver:_init_sight_sensor()
    local sight_radius = radiant.util.get_config('sight_radius', 64)
    local sensor_list = self._entity:add_component('sensor_list')
-   local sensor = sensor_list:get_sensor('enemy_observer')
+   self._sensor = sensor_list:get_sensor('enemy_observer')
 
    if self._sensor == nil then
       self._sensor = sensor_list:add_sensor('enemy_observer', sight_radius)
@@ -54,8 +54,12 @@ function EnemyObserver:_on_added_to_sensor(target_id)
    local target_table
 
    if radiant.entities.is_hostile(self._entity, target) then
-      target_table = stonehearth.combat:get_target_table(self._entity, 'aggro')
-      target_table:add(target)
+      -- That which cannot be killed should probably not be attacked.
+      local attribs = target:get_component('stonehearth:attributes')
+      if attribs and attribs:get_attribute('health') then
+         target_table = stonehearth.combat:get_target_table(self._entity, 'aggro')
+         target_table:add(target)
+      end
    end
 end
 

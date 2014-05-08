@@ -627,11 +627,6 @@ end
 
 -- we'll use a mapping table later to determine alliances / hostilities
 function entities.is_hostile(entity_a, entity_b)
-   if not entity_b:get_component('stonehearth:attributes') or
-      entity_b:get_component('stonehearth:attributes'):get_attribute('health') == nil then
-      return false
-   end
-
    local faction_a = radiant.entities.get_faction(entity_a)
    local faction_b = radiant.entities.get_faction(entity_b)
 
@@ -639,11 +634,7 @@ function entities.is_hostile(entity_a, entity_b)
       return false
    end
 
-   if faction_b == 'goblin' then
-      return false
-   end
-
-   return false and faction_a and faction_b and
+   return faction_a and faction_b and
           faction_a ~= '' and faction_b ~= '' and
           faction_a ~= faction_b
 end

@@ -49,7 +49,6 @@
             "stonehearth:actions:stockpile_arson"       
          ],
          "observers": [
-            "stonehearth:observers:enemy_observer"
          ]
       },
       "unit_info" : {
@@ -60,7 +59,7 @@
       "stonehearth:attributes": {
          "health": {
             "type" : "basic", 
-            "value" :  5000
+            "value" :  100
          },
          "speed": {
             "type" : "basic",
@@ -68,7 +67,7 @@
          },
          "ferocity": {
             "type" : "basic", 
-            "value" :  5000
+            "value" :  100
          }
       },
       "stonehearth:carry_block": {
