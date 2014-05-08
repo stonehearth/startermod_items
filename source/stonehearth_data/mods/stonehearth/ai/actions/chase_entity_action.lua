@@ -132,6 +132,7 @@ function ChaseEntity:stop_thinking(ai, entity, args)
 end
 
 function ChaseEntity:start(ai, entity, args)
+   ai:set_status_text('chasing ' .. radiant.entities.get_name(args.target))
    self._running = true
 end
 

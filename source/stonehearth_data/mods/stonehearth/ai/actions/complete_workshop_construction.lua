@@ -3,6 +3,7 @@ local Entity = _radiant.om.Entity
 local ConstructWorkshop = class()
 ConstructWorkshop.name = 'complete workshop'
 ConstructWorkshop.does = 'stonehearth:complete_workshop_construction'
+ConstructWorkshop.status_text = 'building workshop'
 ConstructWorkshop.args = {
    ghost_workshop = Entity,
    sound_effect = 'string'

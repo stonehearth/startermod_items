@@ -32,6 +32,10 @@ function EatItem:run(ai, entity, args)
 end
 
 function EatItem:stop(ai, entity, args)
+   ai:set_status_text('eating ' .. radiant.entities.get_name(args.food))
+end   
+
+function EatItem:stop(ai, entity, args)
    local attributes_component = entity:add_component('stonehearth:attributes')
 
    if self._food_data then
