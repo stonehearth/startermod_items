@@ -20,7 +20,9 @@ App.StonehearthBuildingVisionWidget = App.View.extend({
             palette.fadeOut();
          });
 
-      this.$('#cycleVisionMode').click(function() {
+      this.$('#visionButton').click(function() {
+         self.$('#visionButton').removeClass(currentMode);
+
          if (currentMode == 'normal') {
             setCurrentMode('xray');
          } else if (currentMode == 'xray') {
@@ -28,37 +30,15 @@ App.StonehearthBuildingVisionWidget = App.View.extend({
          } else {
             setCurrentMode('normal');
          }
+
+         self.$('#visionButton').addClass(currentMode);
       });
 
-      this.$('#showAllWalls').click(function() {
-        setCurrentMode('normal');
-      });
 
-      this.$('#hideFacingWalls').click(function() {
-        setCurrentMode('xray');
-      });
-
-      this.$('#hideAllWalls').click(function() {
-        setCurrentMode('rpg');
-      });
-
-      // tooltips
-      this.$('#showAllWalls').tooltipster({
-         content: $('<div class=title>' + i18n.t('stonehearth:building_vision_show_all_walls') + '</div>' + 
-                    '<div class=description>' + i18n.t('stonehearth:building_vision_show_all_walls_description') + '</div>' /*+ 
-                    '<div class=hotkey>' + $.t('hotkey') + ' <span class=key>' + $(this).attr('hotkey')  + '</span></div>'*/)
-      });
-
-      this.$('#hideFacingWalls').tooltipster({
-         content: $('<div class=title>' + i18n.t('stonehearth:building_vision_hide_facing_walls') + '</div>' + 
-                    '<div class=description>' + i18n.t('stonehearth:building_vision_hide_facing_walls_description') + '</div>' /*+ 
-                    '<div class=hotkey>' + $.t('hotkey') + ' <span class=key>' + $(this).attr('hotkey')  + '</span></div>'*/)
-      });
-
-      this.$('#hideAllWalls').tooltipster({
-         content: $('<div class=title>' + i18n.t('stonehearth:building_vision_hide_all_walls') + '</div>' + 
-                    '<div class=description>' + i18n.t('stonehearth:building_vision_hide_all_walls_description') + '</div>' /*+ 
-                    '<div class=hotkey>' + $.t('hotkey') + ' <span class=key>' + $(this).attr('hotkey')  + '</span></div>'*/)
+      this.$('#visionButton').tooltipster({
+         content: $('<div class=title>' + i18n.t('stonehearth:building_vision') + '</div>' + 
+                    '<div class=description>' + i18n.t('stonehearth:building_vision_description') + '</div>' + 
+                    '<div class=hotkey>' + $.t('hotkey') + ' <span class=key>' + self.$('#visionButton').attr('hotkey')  + '</span></div>')
       });
 
    }

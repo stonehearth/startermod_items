@@ -166,7 +166,7 @@ end
 function AIComponent:remove_action(key)
    if type(key) == 'string' then
       self.__saved_variables:modify_data(function (o)
-            o.actions[key] = false
+            o._actions[key] = false
          end)
    end
 
@@ -269,7 +269,7 @@ function AIComponent:_start()
 
    self._sv.status_text = ''
    self.__saved_variables:mark_changed()
-   
+
    self._thread:set_thread_main(function()
       self._execution_frame = self:_create_top_execution_frame()
       while not self._dead do
