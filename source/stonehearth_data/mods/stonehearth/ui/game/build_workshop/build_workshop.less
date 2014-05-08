@@ -1,46 +1,44 @@
-#crafterBuildWorkshopScroll {
-
-   #page1 {
-      position: absolute;
-      bottom: -87px;
-      left: 599px;
+#buildWorkshop {
+   .crate {
+      content: url('./images/crate.png');
+      width: 140px;
+      padding-left: 40px;
    }
 
-   #page2 {
-      position: absolute;
-      bottom: -97px;
-      left: 609px;
+   #pages {
+      position: relative;
 
-      .crate {
-         content: url('./images/crate.png');
-         width: 140px;
-         padding-left: 40px;
+      #page1 {
+
+      }
+
+      #page2 {
+         display: none;
       }
    }
 
    .scroll {
-      width: 722px;
-      height: 364px;
-      background: url('./images/scroll_bg.png');
-
-      .content {
-         position: relative;
-         padding: 30px 40px 40px 40px;
-         color: #c1d9ec;
-         font-size: 18px;
-      }
-
-      .title {
-         .controlFont;
-         text-shadow: none;
-         color: #c1d9ec;
-         font-size: 32px;
-      }
+      .noOutline;
+      position: absolute;
+      left: 0px;
+      top: 0px;
+      width: 560px;
+      height: 505px;
+      color: #000;
+      background: url('./images/parchment.png');
 
       .subtitle {
          .controlFont;
+         padding-top: 10px;
+         color: #000;
          text-shadow: none;
-         color: #c1d9ec;
+         font-size: 32px;
+      }
+
+      .subtitle2 {
+         .controlFont;
+         color: #000;
+         text-shadow: none;
          font-size: 21px;         
       }
 
@@ -61,8 +59,10 @@
       }
 
       .description {
-         padding-top: 16px;
-         width: 412px;
+         position: absolute;
+         left: 30px;
+         top: 328px;
+         width: 500px;
       }
 
       .portrait {
@@ -71,7 +71,6 @@
          right: 30px;
          width: 220px;
          height: 220px;         
-         border: 4px solid #6fa7d2;
          display: flex;
          text-align: center;
          align-items: center;
