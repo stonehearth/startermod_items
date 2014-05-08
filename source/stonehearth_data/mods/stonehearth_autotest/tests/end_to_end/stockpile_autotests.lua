@@ -31,7 +31,7 @@ function stockpile_tests.abort_stockpile_creation(autotest)
    local wood = autotest.env:create_entity_cluster(-2, -2, 3, 3, 'stonehearth:oak_log')
    local stockpile = autotest.env:create_stockpile(4, 8)
 
-   radiant.events.listen(worker, 'stonehearth:attached_items:carrying_changed', function (e)
+   radiant.events.listen(worker, 'stonehearth:carry_block:carrying_changed', function (e)
       carry_change_count = carry_change_count + 1
       if carry_change_count == 1 then
 
@@ -58,7 +58,7 @@ function stockpile_tests.dont_pickup_stocked_items(autotest)
    local worker = autotest.env:create_person(2, 2, { profession = 'worker' })
    local stockpile = autotest.env:create_stockpile(3, 3, { size = { x = 3, y = 3 }})
 
-   radiant.events.listen(worker, 'stonehearth:attached_items:carrying_changed', function()
+   radiant.events.listen(worker, 'stonehearth:carry_block:carrying_changed', function()
          autotest:fail('worker should not have picked up log already in stockpile')
       end)
 
@@ -104,7 +104,7 @@ function stockpile_tests.restock_newly_created_items(autotest)
    autotest:sleep(500)
 
    -- now make a log.  we're successful if the restock task decides to pick it up
-   radiant.events.listen(worker, 'stonehearth:attached_items:carrying_changed', function (e)
+   radiant.events.listen(worker, 'stonehearth:carry_block:carrying_changed', function (e)
          autotest:success()
          return radiant.events.UNLISTEN
       end)

@@ -319,11 +319,11 @@ end
    returns: entity that is being carried, nil otherwise
 ]]
 function entities.get_carrying(entity)
-   local attached_items = entity:get_component('attached_items')
-   if not attached_items then
+   local carry_block = entity:get_component('stonehearth:carry_block')
+   if not carry_block then
       return nil
    end
-   return attached_items:get_item('carry')
+   return carry_block:get_carrying()
 end
 
 --[[
@@ -335,11 +335,11 @@ end
 function entities.is_carrying(entity)
    radiant.check.is_entity(entity)
 
-   local attached_items = entity:get_component('attached_items')
-   if not attached_items then
+   local carry_block = entity:get_component('stonehearth:carry_block')
+   if not carry_block then
       return false
    end
-   return attached_items:contains_item('carry')
+   return carry_block:is_carrying()
 end
 
 -- id here can be an int (e.g. 999) or uri (e.g. '/o/stores/server/objects/999')
@@ -435,16 +435,16 @@ function entities.pickup_item(entity, item)
    radiant.check.is_entity(entity)
    radiant.check.is_entity(item)
 
-   local attached_items = entity:get_component('attached_items')
-   assert(attached_items)
+   local carry_block = entity:get_component('stonehearth:carry_block')
+   assert(carry_block)
 
-   local current_item = attached_items:get_item('carry')
+   local current_item = carry_block:get_carrying()
    if current_item ~= nil and current_item:is_valid() then
       -- cannot pickup an item while carrying another!
       return false
    end
 
-   attached_items:add_item('carry', item)
+   carry_block:set_carrying(item)
    return true
 end
 
@@ -568,11 +568,11 @@ end
 -- Determines the carried item from the entity
 -- @param entity The entity that is carrying the droppable item
 function entities.remove_carrying(entity)
-   local attached_items = entity:get_component('attached_items')
-   if attached_items then
-      local item = attached_items:get_item('carry')
+   local carry_block = entity:get_component('stonehearth:carry_block')
+   if carry_block then
+      local item = carry_block:get_carrying()
       if item then
-         attached_items:remove_item('carry')
+         carry_block:set_carrying(nil)
          return item
       end
    end

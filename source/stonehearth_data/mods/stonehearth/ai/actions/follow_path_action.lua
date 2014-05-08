@@ -60,7 +60,8 @@ function FollowPathAction:_on_posture_change()
    local new_posture = radiant.entities.get_posture(self._entity)
 
    if new_posture ~= self._starting_posture then
-      self._ai:abort('posture changed (to %s) while following path', tostring(new_posture))
+      self._ai:abort('posture changed (from %s to %s) while following path',
+         tostring(self._starting_posture), tostring(new_posture))
    end
 end
 
