@@ -58,7 +58,8 @@
             "stonehearth:observers:enemy_observer",
             "stonehearth:observers:sleepiness",
             "stonehearth:observers:calorie",
-            "stonehearth:observers:free_time"
+            "stonehearth:observers:free_time", 
+            "stonehearth:observers:nutrition_score"
          ]
       },
       "unit_info" : {
@@ -203,6 +204,29 @@
          "tags" : "meat"
       },
       "stonehearth:carry_block": {
+      },
+      "stonehearth:score" : {
+         "nutrition" : {
+            "starting_score" : 50,
+            "weight" : 1,
+            "contributes_to" : "happiness",
+            "max" : 100,
+            "min" : 1
+            },
+         "safety" : {
+            "starting_score" : 50,
+            "weight" : 1,
+            "contributes_to" : "happiness",
+            "max" : 100,
+            "min" : 1
+            },
+         "belonging" : {
+            "starting_score" : 50,
+            "weight" : 1,
+            "contributes_to" : "happiness",
+            "max" : 100,
+            "min" : 1
+         }
       },
       "stonehearth:equipment" : {
       }

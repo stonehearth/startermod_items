@@ -373,6 +373,7 @@
       "observers:sleepiness" : "file(ai/observers/sleepiness_observer.lua)",
       "observers:calorie" : "file(ai/observers/calorie_observer.lua)",
       "observers:free_time" : "file(ai/observers/free_time_observer.lua)",
+      "observers:nutrition_score" : "file(ai/observers/nutrition_score_observer.lua)",
 
       "class_info" : "file(entities/class_info)",
       "personality_types" : "file(data/personality/personality_types.json)",
@@ -812,6 +813,7 @@
       "equipment" : "file(components/equipment/equipment_component.lua)",
       "equipment_piece" : "file(components/equipment_piece/equipment_piece_component.lua)",
       "attributes" : "file(components/attributes/attributes_component.lua)",
+      "score" : "file(components/score/score_component.lua)",
       "buffs" : "file(components/buffs/buffs_component.lua)",
       "fabricator" : "file(components/fabricator/fabricator_component.lua)",
       "scaffolding_fabricator" : "file(components/scaffolding_fabricator/scaffolding_fabricator_component.lua)",

@@ -453,7 +453,7 @@ function Fabricator:_update_fabricator_region()
                         rank = rank + 1
                      end
                   end
-                  table.insert(points_by_connect_count[c], pt)
+                  table.insert(points_by_connect_count[rank], pt)
                end
             end
          end
