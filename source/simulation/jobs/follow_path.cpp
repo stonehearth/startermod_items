@@ -22,15 +22,17 @@ FollowPath::FollowPath(Simulation& sim, om::EntityRef e, float speed, std::share
    path_(path),
    pursuing_(0),
    speed_(speed),
-   stopDistance_(stopDistance)
+   stopDistance_(stopDistance),
+   stopIndex_(-1)
 {
-   stopIndex_ = CalculateStopIndex(path_->GetPoints(), path_->GetDestinationPointOfInterest(), stopDistance_);
-
-   auto entity = entity_.lock();
+   om::EntityPtr entity = entity_.lock();
    if (entity) {
-      auto mob = entity->GetComponent<om::Mob>();
+      om::MobPtr mob = entity->GetComponent<om::Mob>();
       mob->SetMoving(false);
+      csg::Point3f startLocation = mob->GetWorldLocation();
+      stopIndex_ = CalculateStopIndex(startLocation, path_->GetPoints(), path_->GetDestinationPointOfInterest(), stopDistance_);
    }
+
    lua_State* cb_thread = lua::ScriptHost::GetCallbackThread(unsafe_arrived_cb.interpreter());  
    arrived_cb_ = luabind::object(cb_thread, unsafe_arrived_cb);
 
@@ -42,7 +44,7 @@ FollowPath::~FollowPath()
    Report("destroying pathfinder");
 }
 
-int FollowPath::CalculateStopIndex(std::vector<csg::Point3> const& points, csg::Point3 const& pointOfInterest, float stopDistance) const
+int FollowPath::CalculateStopIndex(csg::Point3f const& startLocation, std::vector<csg::Point3> const& points, csg::Point3 const& pointOfInterest, float stopDistance) const
 {
    int lastIndex = points.size()-1;
 
@@ -54,10 +56,11 @@ int FollowPath::CalculateStopIndex(std::vector<csg::Point3> const& points, csg::
    csg::Point3 currentPoint;
    float distance = 0;
    int index = lastIndex;
+   int i;
 
    // Distance is the path distance to the POI, not the shortest euclidian distance
    // because the path may curl upon itself
-   for (int i = lastIndex; i >= 0; --i) {
+   for (i = lastIndex; i >= 0; --i) {
       currentPoint = points[i];
       distance += currentPoint.DistanceTo(previousPoint);
       if (distance > stopDistance) {
@@ -66,6 +69,13 @@ int FollowPath::CalculateStopIndex(std::vector<csg::Point3> const& points, csg::
       }
       index = i;
       previousPoint = currentPoint;
+   }
+
+   // If the entire travelled path is still less than the stopDistance, we don't need to move at all
+   if (index == 0) {
+      if (startLocation.DistanceTo(csg::ToFloat(pointOfInterest)) <= stopDistance) {
+         index = -1;
+      }
    }
 
    return index;

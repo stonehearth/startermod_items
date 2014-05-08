@@ -30,6 +30,12 @@ function AttackMeleeAdjacent:run(ai, entity, args)
       return
    end
 
+   local melee_range_ideal, melee_range_max = stonehearth.combat:get_melee_range(entity, weapon_data, target)
+   local distance = radiant.entities.distance_between(entity, target)
+   if distance > melee_range_max then
+      ai:abort('target out of melee range')
+   end
+
    local weapon_data = radiant.entities.get_entity_data(weapon, 'stonehearth:combat:weapon_data')
    local attack_info = stonehearth.combat:choose_action(entity, self._attack_types)
    local time_to_impact = stonehearth.combat:get_time_to_impact(attack_info)
@@ -37,8 +43,7 @@ function AttackMeleeAdjacent:run(ai, entity, args)
 
    radiant.entities.turn_to_face(entity, target)
 
-   local melee_range = stonehearth.combat:get_melee_range(entity, weapon_data, target)
-   ai:execute('stonehearth:bump_against_entity', { entity = target, distance = melee_range })
+   ai:execute('stonehearth:bump_against_entity', { entity = target, distance = melee_range_ideal })
 
    stonehearth.combat:start_cooldown(entity, attack_info)
 

@@ -63,7 +63,9 @@ function CombatService:get_melee_range(attacker, weapon_data, target)
    local attacker_radius = self:get_entity_radius(attacker)
    local target_radius = self:get_entity_radius(target)
    local weapon_reach = weapon_data.reach
-   return attacker_radius + weapon_reach + target_radius
+   local melee_range_ideal = attacker_radius + weapon_reach + target_radius
+   local melee_range_max = melee_range_ideal + 2
+   return melee_range_ideal, melee_range_max
 end
 
 function CombatService:get_entity_radius(entity)

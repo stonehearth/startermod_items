@@ -20,7 +20,7 @@ public:
    void Stop();
 
 protected:
-   int CalculateStopIndex(std::vector<csg::Point3> const& points, csg::Point3 const& pointOfInterest, float stopDistance) const;
+   int CalculateStopIndex(csg::Point3f const& startLocation, std::vector<csg::Point3> const& points, csg::Point3 const& pointOfInterest, float stopDistance) const;
    bool Arrived(om::MobPtr mob);
    bool Obstructed();
    void Report(std::string const& msg);

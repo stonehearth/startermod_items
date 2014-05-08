@@ -24,8 +24,7 @@ function AttackMelee:run(ai, entity, args)
 
    local weapon = radiant.entities.get_equipped_item(entity, 'mainHand')
    local weapon_data = radiant.entities.get_entity_data(weapon, 'stonehearth:combat:weapon_data')
-   local melee_range_ideal = stonehearth.combat:get_melee_range(entity, weapon_data, target)
-   local melee_range_max = melee_range_ideal + 2
+   local melee_range_ideal, melee_range_max = stonehearth.combat:get_melee_range(entity, weapon_data, target)
    local engage_range_min = melee_range_ideal + 3
    local engage_range_max = engage_range_min + 3
    local distance
