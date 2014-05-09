@@ -14,6 +14,7 @@ function TerrainService:initialize()
    if not self._sv._visible_regions then
       self._sv._visible_regions = {}
       self._sv._explored_regions = {}
+      self._sv._convex_hull = {}
    end
 
    self._sight_radius = radiant.util.get_config('sight_radius', 64)
@@ -30,6 +31,54 @@ end
 
 function TerrainService:_on_poll()
    self:_update_regions()
+   self:_update_convex_hull()
+end
+
+-- Jarvis 'Gift-Wrapping' Algorithm
+function TerrainService:_update_convex_hull()
+   -- Get the new points from the citizens.
+   local new_points = {}
+   local friendly_pops = stonehearth.population:get_friendly_populations('civ')
+   for player_id, pop in pairs(friendly_pops) do
+      citizens = pop:get_citizens()
+      for _, entity in pairs(citizens) do
+         table.insert(new_points, entity:get_component('mob'):get_world_grid_location())
+      end
+   end
+
+   if #new_points < 1 then
+      return
+   end
+
+   -- Look for a new left-most point from the new points
+   local new_hull_point = #self._sv._convex_hull > 0 and self._sv._convex_hull[1] or new_points[1]
+
+   -- If we find that point, remove it from the set of new points.
+   for _, v in pairs(new_points) do
+      if v.x < new_hull_point.x then
+         new_hull_point = v
+      end
+   end
+
+   for i, v in pairs(self._sv._convex_hull) do
+      table.insert(new_points, v)
+   end
+
+   -- Finally, build the hull
+   local new_hull = {}
+   local i = 1
+   repeat
+      table.insert(new_hull, new_hull_point)
+      local endpoint = new_points[1]
+
+      for j, v in pairs(new_points) do
+         if (endpoint == new_hull_point) or self:_is_left_of(new_hull_point, endpoint, v) then
+            endpoint = v
+         end
+      end
+      i = i + 1
+      new_hull_point = endpoint
+   until endpoint ~= new_hull[1]
 end
 
 function TerrainService:_update_regions()
