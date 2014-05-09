@@ -36,7 +36,7 @@ function(PROCESS_RADIANT_IDLS RIDL_TEMPLATE RIDL_EXT GENERATED_SRC)
 endfunction()
 
 SET(RIDL_SOURCES 
-    carry_block.ridl.py
+    attached_items.ridl.py
     clock.ridl.py
     data_store.ridl.py
     destination.ridl.py
@@ -71,7 +71,6 @@ add_library(om_generated_headers
 add_library(om_components STATIC
             ${RIDL_LUA_COMPONENTS}
             pch.cpp
-            carry_block.cpp
             clock.cpp
             component.cpp
             data_store.cpp
@@ -85,6 +84,7 @@ add_library(om_components STATIC
             render_info.cpp
             model_layer.cpp
             model_variants.cpp
+            attached_items.cpp
             sensor.cpp
             sensor_list.cpp
             target_tables.cpp

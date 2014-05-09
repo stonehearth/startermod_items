@@ -23,6 +23,9 @@
       "stonehearth:equipment_piece" : {
          "render_type" : "merge_with_model",
          "injected_ai" : {
+            "observers": [
+               "stonehearth:observers:enemy_observer"
+            ]            
          },
          "injected_commands" : [
          ]

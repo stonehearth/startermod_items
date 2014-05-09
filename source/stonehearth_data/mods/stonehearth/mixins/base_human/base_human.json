@@ -51,11 +51,17 @@
             "stonehearth:actions:combat:idle:ready",
             "stonehearth:actions:combat:idle:shuffle",
             "stonehearth:actions:combat:hit_stun",
-            "stonehearth:actions:chase_entity", 
+            "stonehearth:actions:combat:find_target",
+            "stonehearth:actions:combat:create_engage_callback",
+            "stonehearth:actions:combat:get_melee_range",
+            "stonehearth:actions:combat:set_global_attack_cooldown",
+            "stonehearth:actions:combat:wait_for_global_attack_cooldown",
+            "stonehearth:actions:chase_entity",
+            "stonehearth:actions:set_posture",
+            "stonehearth:actions:unset_posture",
             "stonehearth:actions:free_time:dispatcher" 
          ],
           "observers": [
-            "stonehearth:observers:enemy_observer",
             "stonehearth:observers:sleepiness",
             "stonehearth:observers:calorie",
             "stonehearth:observers:free_time", 
@@ -198,12 +204,11 @@
             "base" :  4,
             "max"  :  8
          }
-
       },
       "stonehearth:material" : {
          "tags" : "meat"
       },
-      "stonehearth:carry_block": {
+      "stonehearth:carry_block" : {
       },
       "stonehearth:score" : {
          "nutrition" : {
@@ -230,5 +235,47 @@
       },
       "stonehearth:equipment" : {
       }
+   },
+   "entity_data" : {
+      "stonehearth:combat:melee_attacks" : [
+         {
+            "name" : "combat_1h_backhand",
+            "active_frame" : 17,
+            "cooldown" : 0,
+            "priority" : 0
+         },
+         {
+            "name" : "combat_1h_forehand",
+            "active_frame" : 16,
+            "cooldown" : 0,
+            "priority" : 0
+         },
+         {
+            "name" : "combat_1h_forehand_spin",
+            "active_frame" : 21,
+            "cooldown" : 8000,
+            "priority" : 1
+         },
+         {
+            "name" : "combat_power_spike",
+            "active_frame" : 94,
+            "cooldown" : 20000,
+            "priority" : 1
+         }      
+      ],
+      "stonehearth:combat:melee_defenses" : [
+         {
+            "name" : "combat_1h_parry",
+            "active_frame" : 4,
+            "cooldown" : 0,
+            "priority" : 0
+         },
+         {
+            "name" : "combat_1h_dodge",
+            "active_frame" : 8,
+            "cooldown" : 8000,
+            "priority" : 1
+         }
+      ]
    }
 }

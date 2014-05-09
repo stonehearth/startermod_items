@@ -365,9 +365,16 @@
       "actions:combat:idle:ready" : "file(ai/actions/combat/combat_idle_ready_action.lua)",
       "actions:combat:idle:shuffle" : "file(ai/actions/combat/combat_idle_shuffle_action.lua)",
       "actions:combat:hit_stun" : "file(ai/actions/combat/hit_stun_action.lua)",
+      "actions:combat:find_target" : "file(ai/actions/combat/find_target_action.lua)",
+      "actions:combat:create_engage_callback" : "file(ai/actions/combat/create_engage_callback_action.lua)",
+      "actions:combat:get_melee_range" : "file(ai/actions/combat/get_melee_range_action.lua)",
+      "actions:combat:set_global_attack_cooldown" : "file(ai/actions/combat/set_global_attack_cooldown_action.lua)",
+      "actions:combat:wait_for_global_attack_cooldown" : "file(ai/actions/combat/wait_for_global_attack_cooldown_action.lua)",
       "actions:chase_entity" : "file(ai/actions/chase_entity_action.lua)",
-
       "actions:run_away_from_entity" : "file(ai/actions/run_away_from_entity_action.lua)",
+
+      "actions:set_posture" : "file(ai/actions/set_posture_action.lua)",
+      "actions:unset_posture" : "file(ai/actions/unset_posture_action.lua)",
 
       "observers:enemy_observer" : "file(ai/observers/enemy_observer.lua)",
       "observers:sleepiness" : "file(ai/observers/sleepiness_observer.lua)",
