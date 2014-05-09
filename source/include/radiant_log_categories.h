@@ -64,6 +64,7 @@
       ADD_CATEGORY(renderer) \
       ADD_CATEGORY(animation) \
       ADD_CATEGORY(pipeline) \
+      ADD_CATEGORY(render_node) \
    END_GROUP(renderer) \
    \
    BEGIN_GROUP(om) \

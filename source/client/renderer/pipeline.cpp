@@ -1,4 +1,5 @@
 #include "pch.h"
+#include <regex>
 #include "radiant_macros.h"
 #include "pipeline.h"
 #include "metrics.h"
@@ -66,102 +67,14 @@ Pipeline::~Pipeline()
 
 H3DRes Pipeline::CreateVoxelGeometryFromRegion(std::string const& geoName, csg::Region3 const& region)
 {
-   auto& mesh = CreateMeshFromRegion(region);
-   int vertexOffsets[2] = {0, mesh.vertices.size()};
-   int indexOffsets[2] = {0, mesh.indices.size()};
-   return h3dutCreateVoxelGeometryRes(geoName.c_str(), (VoxelGeometryVertex*)mesh.vertices.data(), vertexOffsets, (uint*)mesh.indices.data(), indexOffsets, 1);
-}
-
-RenderNode Pipeline::AddDynamicMeshNode(H3DNode parent, const csg::mesh_tools::mesh& m, std::string const& material, int userFlags)
-{
-   int vertexOffsets[2] = {0, m.vertices.size()};
-   int indexOffsets[2] = {0, m.indices.size()};
-   H3DRes geometry = ConvertMeshToGeometryResource(m, indexOffsets, vertexOffsets, 1);
-   RenderNode node = CreateModelNode(parent, geometry, material, userFlags);
-
-   // Attach the geometry to the RenderNode so it will be released when the node is destroyed
-   node.SetGeometry(geometry);
-   return node;
-}
-
-RenderNode Pipeline::AddSharedMeshNode(H3DNode parent, ResourceCacheKey const& key, std::string const& material, std::function<void(csg::mesh_tools::mesh &, int lodLevel)> create_mesh_fn)
-{   
-   H3DRes geometry;
-   auto i = resource_cache_.find(key);
-   if (i != resource_cache_.end()) {
-      P_LOG(7) << "using cached geometry for " << key.GetDescription();
-      geometry = i->second;
-   } else {
-      int vertexOffsets[5];
-      int indexOffsets[5];
-      vertexOffsets[0] = 0;
-      indexOffsets[0] = 0;
-      P_LOG(7) << "creating new geometry for " << key.GetDescription();
-      csg::mesh_tools::mesh m;
-
-      for (int i = 0; i < 4; i++) {
-         create_mesh_fn(m, i);
-         vertexOffsets[i + 1] = m.vertices.size();
-         indexOffsets[i + 1] = m.indices.size();
-      }
-      geometry = ConvertMeshToGeometryResource(m, indexOffsets, vertexOffsets, 4);
-      resource_cache_[key] = geometry;
-   }
-
-   return CreateModelNode(parent, geometry, material, UserFlags::None);
-}
-
-
-H3DRes Pipeline::ConvertMeshToGeometryResource(const csg::mesh_tools::mesh& m, int indexOffsets[], int vertexOffsets[], int numLodLevels)
-{
-   std::string name = BUILD_STRING("geo" << unique_id_++);
-
-   return h3dutCreateVoxelGeometryRes(name.c_str(),
-      (VoxelGeometryVertex *)m.vertices.data(),
-      vertexOffsets,
-      (uint *)m.indices.data(),
-      indexOffsets,
-      numLodLevels);
-}
-
-csg::mesh_tools::mesh Pipeline::CreateMeshFromRegion(csg::Region3 const& region)
-{
    csg::mesh_tools::mesh mesh;
    csg::RegionTools3().ForEachPlane(region, [&](csg::Region2 const& plane, csg::PlaneInfo3 const& pi) {
       mesh.AddRegion(plane, pi);
    });
 
-   return mesh;
-}
-
-RenderNode Pipeline::CreateModelNode(H3DNode parent, H3DRes geometry, std::string const& material, int userFlags)
-{
-   ASSERT(!material.empty());
-
-   std::string name = "mesh data ";
-
-   std::string model_name = BUILD_STRING("model" << unique_id_++);
-   std::string mesh_name = BUILD_STRING("mesh" << unique_id_++);
-
-   H3DRes matRes = h3dAddResource(H3DResTypes::Material, material.c_str(), 0);
-   H3DNode model_node = h3dAddVoxelModelNode(parent, model_name.c_str(), geometry);
-   H3DNode mesh_node = h3dAddVoxelMeshNode(model_node, mesh_name.c_str(), matRes);
-   h3dSetNodeParamI(mesh_node, H3DNodeParams::UserFlags, userFlags);
-
-   return RenderNode(model_node)
-            .SetMaterial(matRes)
-            .SetMesh(mesh_node);
-}
-
-RenderNode Pipeline::CreateVoxelNode(H3DNode parent,
-                                           csg::Region3 const& model,
-                                           std::string const& material,
-                                           csg::Point3f const& offset,
-                                           int userFlags)
-{
-   csg::mesh_tools::mesh mesh;
-   csg::RegionToMesh(model, mesh, offset, false);
-   return AddDynamicMeshNode(parent, mesh, material, userFlags);
+   int vertexOffsets[2] = {0, mesh.vertices.size()};
+   int indexOffsets[2] = {0, mesh.indices.size()};
+   return h3dutCreateVoxelGeometryRes(geoName.c_str(), (VoxelGeometryVertex*)mesh.vertices.data(), vertexOffsets, (uint*)mesh.indices.data(), indexOffsets, 1);
 }
 
 void Pipeline::AddDesignationStripes(csg::mesh_tools::mesh& m, csg::Region2 const& panels)
@@ -269,13 +182,17 @@ Pipeline::CreateDesignationNode(H3DNode parent,
    AddDesignationStripes(stripes_mesh, plane);
 
    H3DNode group = h3dAddGroupNode(parent, "designation group node");
-   RenderNode stripes = AddDynamicMeshNode(group, stripes_mesh, "materials/designation/stripes.material.xml", 0);
+   RenderNode stripes = RenderNode::CreateCsgMeshNode(group, stripes_mesh)
+      .SetMaterial("materials/designation/stripes.material.xml");
+
    h3dSetNodeParamI(stripes.GetNode(), H3DModel::UseCoarseCollisionBoxI, 1);
    h3dSetNodeParamI(stripes.GetNode(), H3DModel::PolygonOffsetEnabledI, 1);
    h3dSetNodeParamF(stripes.GetNode(), H3DModel::PolygonOffsetF, 0, -1.0);
    h3dSetNodeParamF(stripes.GetNode(), H3DModel::PolygonOffsetF, 1, -.01f);
 
-   RenderNode outline = AddDynamicMeshNode(group, outline_mesh, "materials/designation/outline.material.xml", 0);
+   RenderNode outline = RenderNode::CreateCsgMeshNode(group, outline_mesh)
+      .SetMaterial("materials/designation/outline.material.xml");
+
    h3dSetNodeParamI(outline.GetNode(), H3DModel::UseCoarseCollisionBoxI, 1);
    h3dSetNodeParamI(outline.GetNode(), H3DModel::PolygonOffsetEnabledI, 1);
    h3dSetNodeParamF(outline.GetNode(), H3DModel::PolygonOffsetF, 0, -1.0);
@@ -323,7 +240,10 @@ Pipeline::CreateXZBoxNode(H3DNode parent,
    CreateXZBoxNodeGeometry(mesh, plane, interior_color, border_color, border_size);
 
    H3DNode group = h3dAddGroupNode(parent, "designation group node");
-   RenderNode interior = AddDynamicMeshNode(group, mesh, "materials/transparent.material.xml", 0);
+
+   RenderNode interior = RenderNode::CreateCsgMeshNode(group, mesh)
+      .SetMaterial("materials/transparent.material.xml");
+
    h3dSetNodeParamI(interior.GetNode(), H3DModel::UseCoarseCollisionBoxI, 1);
    h3dSetNodeParamI(interior.GetNode(), H3DModel::PolygonOffsetEnabledI, 1);
    h3dSetNodeParamF(interior.GetNode(), H3DModel::PolygonOffsetF, 0, -1.0);
@@ -384,4 +304,26 @@ voxel::QubicleFile* Pipeline::LoadQubicleFile(std::string const& uri)
    qubicle_files_[path] = f;
 
    return f.get();
+}
+
+SharedMaterial Pipeline::GetSharedMaterial(std::string const& material)
+{
+   // xxx: share these one day?
+   return h3dAddResource(H3DResTypes::Material, material.c_str(), 0);
+}
+
+bool Pipeline::GetSharedGeometry(ResourceCacheKey const& key, GeometryInfo& geo)
+{
+   auto i = geometry_cache_.find(key);
+   if (i == geometry_cache_.end()) {
+      return false;
+   }
+   geo = i->second;
+   return true;
+}
+
+void Pipeline::SetSharedGeometry(ResourceCacheKey const& key, GeometryInfo const& geo)
+{
+   ASSERT(geometry_cache_.find(key) == geometry_cache_.end());
+   geometry_cache_[key] = geo;
 }

@@ -26,12 +26,13 @@ class Pipeline : public core::Singleton<Pipeline> {
 
       voxel::QubicleFile* LoadQubicleFile(std::string const& name);
 
+      bool GetSharedGeometry(ResourceCacheKey const& key, GeometryInfo& geo);
+      void SetSharedGeometry(ResourceCacheKey const& key, GeometryInfo const& geo);
+
       // dynamic meshes are likely unique (and therefore do not need to share geometry with anyone) and are likely
       // to change (e.g. the terrain).
-      RenderNode AddDynamicMeshNode(H3DNode parent, const csg::mesh_tools::mesh& m, std::string const& material, int userFlags);
-      RenderNode AddSharedMeshNode(H3DNode parent, ResourceCacheKey const& key, std::string const& material, std::function<void(csg::mesh_tools::mesh &, int)> create_mesh_fn);
+      SharedMaterial GetSharedMaterial(std::string const& uri);
 
-      RenderNode CreateVoxelNode(H3DNode parent, csg::Region3 const& model, std::string const& material_path, csg::Point3f const& offset, int userFlags);
       RenderNode CreateDesignationNode(H3DNode parent, csg::Region2 const& model, csg::Color4 const& outline_color, csg::Color4 const& stripes_color);
       RenderNode CreateStockpileNode(H3DNode parent, csg::Region2 const& model, csg::Color4 const& interior_color, csg::Color4 const& border_color);
       RenderNode CreateSelectionNode(H3DNode parent, csg::Region2 const& model, csg::Color4 const& interior_color, csg::Color4 const& border_color);
@@ -43,17 +44,16 @@ class Pipeline : public core::Singleton<Pipeline> {
       void AddDesignationStripes(csg::mesh_tools::mesh& m, csg::Region2 const& panels);
       RenderNode CreateXZBoxNode(H3DNode parent, csg::Region2 const& model, csg::Color4 const& interior_color, csg::Color4 const& border_color, float border_size);
       void CreateXZBoxNodeGeometry(csg::mesh_tools::mesh& mesh, csg::Region2 const& region, csg::Color4 const& interior_color, csg::Color4 const& border_color, float border_size);
-      RenderNode CreateModelNode(H3DNode parent, H3DRes geometry, std::string const& material, int flag);
-      H3DRes ConvertMeshToGeometryResource(const csg::mesh_tools::mesh& m, int indexOffsets[], int vertexOffsets[], int numLodLevels);
+      SharedGeometry CreateMeshGeometryFromObj(std::string const& geoName, std::istream& stream);
 
    private:
       typedef std::unordered_map<std::string, voxel::QubicleFilePtr> QubicleMap;
-      typedef std::unordered_map<ResourceCacheKey, H3DRes, ResourceCacheKey::Hash> ResourceMap;
+      typedef std::unordered_map<ResourceCacheKey, GeometryInfo, ResourceCacheKey::Hash> GeometryMap;
 
    private:
       int             unique_id_;
       QubicleMap      qubicle_files_; // xxx: shouldn't this be in the resource manager?
-      ResourceMap     resource_cache_;
+      GeometryMap     geometry_cache_;
 };
 
 END_RADIANT_CLIENT_NAMESPACE

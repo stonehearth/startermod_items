@@ -233,7 +233,8 @@ void RenderRenderInfo::AddModelNode(om::RenderInfoPtr render_info, std::string c
       csg::RegionToMesh(all_models, mesh, -origin, true);
    };
 
-   RenderNode node = pipeline.AddSharedMeshNode(parent, key, material_path_, generate_matrix);
+   RenderNode node = RenderNode::CreateSharedCsgMeshNode(parent, key, generate_matrix)
+                        .SetMaterial(material_path_);
 
    h3dSetNodeParamI(node.GetNode(), H3DModel::PolygonOffsetEnabledI, 1);
    h3dSetNodeParamF(node.GetNode(), H3DModel::PolygonOffsetF, 0, polygon_offset * 0.04f);

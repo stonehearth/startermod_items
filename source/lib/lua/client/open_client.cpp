@@ -97,7 +97,20 @@ RenderNode Client_CreateVoxelNode(lua_State* L,
                                   std::string const& material_path,
                                   csg::Point3f const& origin)
 {
-   return Pipeline::GetInstance().CreateVoxelNode(parent, model, material_path, -origin, 0);
+   csg::mesh_tools::mesh mesh;
+   csg::RegionToMesh(model, mesh, -origin, false);
+
+   return RenderNode::CreateCsgMeshNode(parent, mesh)
+      .SetMaterial(material_path);
+}
+
+
+RenderNode Client_CreateObjNode(lua_State* L, 
+                                RenderNode const& parent,
+                                std::string const& objfile)
+{
+   NOT_YET_IMPLEMENTED();
+   return RenderNode();
 }
 
 RenderNode Client_CreateQubicleMatrixNode(lua_State* L, 
@@ -118,13 +131,14 @@ RenderNode Client_CreateQubicleMatrixNode(lua_State* L,
          key.AddElement("origin", origin);
          key.AddElement("matrix", matrix);
 
+         // xxx: can we create a shared mesh without lod levels?
          auto create_mesh = [&matrix, &origin](csg::mesh_tools::mesh &mesh, int lodLevel) {
             csg::Region3 model = voxel::QubicleBrush(matrix)
                .SetOffsetMode(voxel::QubicleBrush::Matrix)
                .PaintOnce();
             csg::RegionToMesh(model, mesh, -origin, true);
          };
-         node = pipeline.AddSharedMeshNode(parent, key, "materials/voxel.material.xml", create_mesh);
+         node = RenderNode::CreateSharedCsgMeshNode(parent, key, create_mesh);
       }
    }
    return node;
@@ -471,6 +485,7 @@ void lua::client::open(lua_State* L)
             def("trace_render_frame",              &Client_TraceRenderFrame),
             def("set_cursor",                      &Client_SetCursor),
             def("create_voxel_node",               &Client_CreateVoxelNode),
+            def("create_obj_node",                 &Client_CreateObjNode),
             def("create_qubicle_matrix_node",      &Client_CreateQubicleMatrixNode),
             def("create_designation_node",         &Client_CreateDesignationNode),
             def("create_selection_node",           &Client_CreateSelectionNode),
