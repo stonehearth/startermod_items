@@ -40,7 +40,14 @@
             "stonehearth:actions:combat:idle:ready",
             "stonehearth:actions:combat:idle:shuffle",
             "stonehearth:actions:combat:hit_stun",
-            "stonehearth:actions:chase_entity"
+            "stonehearth:actions:combat:find_target",
+            "stonehearth:actions:combat:create_engage_callback",
+            "stonehearth:actions:combat:get_melee_range",
+            "stonehearth:actions:combat:set_global_attack_cooldown",
+            "stonehearth:actions:combat:wait_for_global_attack_cooldown",
+            "stonehearth:actions:chase_entity",
+            "stonehearth:actions:set_posture",
+            "stonehearth:actions:unset_posture"
          ],
          "observers": [
             "stonehearth:observers:enemy_observer"
@@ -63,7 +70,10 @@
             "type" : "basic", 
             "value" :  100
          }
-      } 
+      },
+      "stonehearth:posture": [
+         "combat"
+      ]
    },
    "entity_data" : {
       "stonehearth:combat:melee_attacks" : [
@@ -104,14 +114,6 @@
             "active_frame" : 8,
             "cooldown" : 8000,
             "priority" : 1
-         }
-      ],
-      "stonehearth:combat:hit_stun" : [
-         {
-            "name" : "combat_1h_hit",
-            "active_frame" : 4,
-            "cooldown" : 0,
-            "priority" : 0
          }
       ]
    }

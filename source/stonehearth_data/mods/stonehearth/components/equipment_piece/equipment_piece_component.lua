@@ -1,4 +1,5 @@
 local EquipmentPieceComponent = class()
+local log = radiant.log.create_logger('equipment_piece')
 
 function EquipmentPieceComponent:initialize(entity, json)
    self._entity = entity
@@ -83,12 +84,14 @@ end
 function EquipmentPieceComponent:_attach_to_bone()
    local attached_items = self._sv.owner:add_component('attached_items')
    local bone_name = self._json.render_info.default_bone
+   log:debug('%s attaching %s to bone %s', self._sv.owner, self._entity, bone_name)
    attached_items:add_item(bone_name, self._entity)
 end
 
 function EquipmentPieceComponent:_remove_from_bone()
    local attached_items = self._sv.owner:add_component('attached_items')
    local bone_name = self._json.render_info.default_bone
+   log:debug('%s detaching item on bone %s', self._sv.owner, self._entity, bone_name)
    attached_items:remove_item(bone_name)
 end
 

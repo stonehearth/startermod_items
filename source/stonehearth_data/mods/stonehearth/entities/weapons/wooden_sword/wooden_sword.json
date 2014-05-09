@@ -46,8 +46,8 @@
    },
    "entity_data" : {
       "stonehearth:combat:weapon_data" : {
-         "base_damage" : 10,
-         "reach" : 1
+         "base_damage" : 1,
+         "reach" : 1.5
       },
       "stonehearth:activity_name" : "promote_footman"
    }   

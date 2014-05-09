@@ -10,7 +10,6 @@ AttackMeleeAdjacent.name = 'attack melee adjacent'
 AttackMeleeAdjacent.does = 'stonehearth:combat:attack_melee_adjacent'
 AttackMeleeAdjacent.args = {
    target = Entity,
-   weapon = Entity
 }
 AttackMeleeAdjacent.version = 2
 AttackMeleeAdjacent.priority = 1
@@ -23,20 +22,25 @@ end
 -- TODO: don't allow melee if vertical distance > 1
 function AttackMeleeAdjacent:run(ai, entity, args)
    local target = args.target
-   local weapon = args.weapon
 
    if not target:is_valid() then
-      ai:abort('enemy has been destroyed')
+      log:info('Target has been destroyed')
+      ai:abort('Target has been destroyed')
       return
    end
 
+   local weapon = stonehearth.combat:get_melee_weapon(entity)
+   local weapon_data = radiant.entities.get_entity_data(weapon, 'stonehearth:combat:weapon_data')
+   assert(weapon_data)
+   
    local melee_range_ideal, melee_range_max = stonehearth.combat:get_melee_range(entity, weapon_data, target)
    local distance = radiant.entities.distance_between(entity, target)
    if distance > melee_range_max then
-      ai:abort('target out of melee range')
+      log:warning('%s unable to get within maximum melee range (%f) of %s', entity, melee_range_max, target)
+      ai:abort('Target out of melee range')
+      return
    end
 
-   local weapon_data = radiant.entities.get_entity_data(weapon, 'stonehearth:combat:weapon_data')
    local attack_info = stonehearth.combat:choose_action(entity, self._attack_types)
    local time_to_impact = stonehearth.combat:get_time_to_impact(attack_info)
    local impact_time = radiant.gamestate.now() + time_to_impact
@@ -72,8 +76,11 @@ function AttackMeleeAdjacent:run(ai, entity, args)
 end
 
 function AttackMeleeAdjacent:stop(ai, entity, args)
-   if radiant.gamestate.now() < self._context.impact_time then
-      self._hit_effect:stop()
+   if self._hit_effect ~= nil then
+      if radiant.gamestate.now() < self._context.impact_time then
+         self._hit_effect:stop()
+      end
+      self._hit_effect = nil
    end
 
    if self._timer ~= nil then

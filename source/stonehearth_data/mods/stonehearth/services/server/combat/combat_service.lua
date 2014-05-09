@@ -27,120 +27,6 @@ function CombatService:initialize()
 
    -- TODO: change this to minute (or ten second) poll
    radiant.events.listen(radiant, 'stonehearth:very_slow_poll', self, self._remove_expired_objects)
-
-   log:write(0, 'initialize not tested for combat service!')
-end
-
-function CombatService:get_action_types(entity, action_type)
-   local action_types = radiant.entities.get_entity_data(entity, action_type)
-
-   -- TODO: just sort once...
-   table.sort(action_types,
-      function (a, b)
-         return a.priority > b.priority
-      end
-   )
-   return action_types
-end
-
-function CombatService:get_time_to_impact(action_info)
-   -- should we subtract 1 off the active frame?
-   return action_info.active_frame * MS_PER_FRAME
-end
-
--- used for synchronizing animation
-function CombatService:ms_to_game_seconds(ms)
-   return ms / stonehearth.calendar:get_constants().ticks_per_second
-end
-
--- duration is in milliseconds at game speed 1
-function CombatService:set_timer(duration, fn)
-   local game_seconds = self:ms_to_game_seconds(duration)
-   return stonehearth.calendar:set_timer(game_seconds, fn)
-end
-
-function CombatService:get_melee_range(attacker, weapon_data, target)
-   local attacker_radius = self:get_entity_radius(attacker)
-   local target_radius = self:get_entity_radius(target)
-   local weapon_reach = weapon_data.reach
-   local melee_range_ideal = attacker_radius + weapon_reach + target_radius
-   local melee_range_max = melee_range_ideal + 2
-   return melee_range_ideal, melee_range_max
-end
-
-function CombatService:get_entity_radius(entity)
-   if entity == nil or not entity:is_valid() then
-      return 1
-   end
-
-   -- TODO: get a real value
-   return 1
-end
-
-function CombatService:get_combat_state(entity)
-   if entity == nil or not entity:is_valid() then
-      return nil
-   end
-
-   local entity_id = entity:get_id()
-   local combat_state = self._combat_state_table[entity_id]
-
-   if combat_state == nil then
-      combat_state = CombatState()
-      self._combat_state_table[entity_id] = combat_state
-   end
-
-   return combat_state
-end
-
-function CombatService:get_target_table(entity, table_name)
-   if entity == nil or not entity:is_valid() then
-      return nil
-   end
-
-   local entity_id = entity:get_id()
-   local target_tables = self._target_tables[entity_id]
-
-   if target_tables == nil then
-      target_tables = {}
-      self._target_tables[entity_id] = target_tables
-   end
-
-   local target_table = target_tables[table_name]
-
-   if target_table == nil then
-      target_table = TargetTable()
-      target_tables[table_name] = target_table
-   end
-
-   return target_table
-end
-
-function CombatService:start_cooldown(entity, action_info)
-   if entity == nil or not entity:is_valid() then
-      return
-   end
-
-   local combat_state = self._combat_state_table[entity:get_id()]
-   combat_state:start_cooldown(action_info.name, action_info.cooldown)
-end
-
-function CombatService:in_cooldown(entity, action_name)
-   if entity == nil or not entity:is_valid() then
-      return false
-   end
-
-   local combat_state = self._combat_state_table[entity:get_id()]
-   return combat_state:in_cooldown(action_name)
-end
-
-function CombatService:get_cooldown_end_time(entity, action_name)
-   if entity == nil or not entity:is_valid() then
-      return nil
-   end
-
-   local combat_state = self._combat_state_table[entity:get_id()]
-   return combat_state:get_cooldown_end_time(action_name)
 end
 
 -- Notify target that it is about to be attacked.
@@ -208,6 +94,118 @@ function CombatService:get_assault_events(target)
    return combat_state:get_assault_events()
 end
 
+function CombatService:start_cooldown(entity, action_info)
+   if entity == nil or not entity:is_valid() then
+      return
+   end
+
+   local combat_state = self._combat_state_table[entity:get_id()]
+   combat_state:start_cooldown(action_info.name, action_info.cooldown)
+end
+
+function CombatService:in_cooldown(entity, action_name)
+   if entity == nil or not entity:is_valid() then
+      return false
+   end
+
+   local combat_state = self._combat_state_table[entity:get_id()]
+   return combat_state:in_cooldown(action_name)
+end
+
+function CombatService:get_cooldown_end_time(entity, action_name)
+   if entity == nil or not entity:is_valid() then
+      return nil
+   end
+
+   local combat_state = self._combat_state_table[entity:get_id()]
+   return combat_state:get_cooldown_end_time(action_name)
+end
+
+function CombatService:get_melee_weapon(entity)
+   -- currently stored in a named slot on the equipment component. this might change.
+   return radiant.entities.get_equipped_item(entity, 'melee_weapon')
+end
+
+function CombatService:get_melee_range(attacker, weapon_data, target)
+   local attacker_radius = self:get_entity_radius(attacker)
+   local target_radius = self:get_entity_radius(target)
+   local weapon_reach = weapon_data.reach
+   local melee_range_ideal = attacker_radius + weapon_reach + target_radius
+   local melee_range_max = melee_range_ideal + 2
+   return melee_range_ideal, melee_range_max
+end
+
+function CombatService:get_engage_range(attacker, weapon_data, target)
+   local melee_range_ideal = self:get_melee_range(attacker, weapon_data, target)
+   local engage_range_ideal = melee_range_ideal + 3
+   local engage_range_max = engage_range_ideal + 3
+   return engage_range_ideal, engage_range_max
+end
+
+function CombatService:get_entity_radius(entity)
+   if entity == nil or not entity:is_valid() then
+      return 1
+   end
+
+   -- TODO: get a real value
+   return 1
+end
+
+function CombatService:get_time_to_impact(action_info)
+   -- should we subtract 1 off the active frame?
+   return action_info.active_frame * MS_PER_FRAME
+end
+
+-- used for synchronizing animation
+function CombatService:ms_to_game_seconds(ms)
+   return ms / stonehearth.calendar:get_constants().ticks_per_second
+end
+
+-- duration is in milliseconds at game speed 1
+function CombatService:set_timer(duration, fn)
+   local game_seconds = self:ms_to_game_seconds(duration)
+   return stonehearth.calendar:set_timer(game_seconds, fn)
+end
+
+function CombatService:get_combat_state(entity)
+   if entity == nil or not entity:is_valid() then
+      return nil
+   end
+
+   local entity_id = entity:get_id()
+   local combat_state = self._combat_state_table[entity_id]
+
+   if combat_state == nil then
+      combat_state = CombatState()
+      self._combat_state_table[entity_id] = combat_state
+   end
+
+   return combat_state
+end
+
+function CombatService:get_target_table(entity, table_name)
+   if entity == nil or not entity:is_valid() then
+      return nil
+   end
+
+   local entity_id = entity:get_id()
+   local target_tables = self._target_tables[entity_id]
+
+   if target_tables == nil then
+      target_tables = {}
+      self._target_tables[entity_id] = target_tables
+   end
+
+   local target_table = target_tables[table_name]
+
+   if target_table == nil then
+      target_table = TargetTable()
+      target_tables[table_name] = target_table
+   end
+
+   return target_table
+end
+
 function CombatService:_remove_expired_objects()
    self:_clean_combat_state_table()
    self:_clean_target_tables()
@@ -245,6 +243,18 @@ function CombatService:_clean_target_tables()
          end
       end
    end
+end
+
+function CombatService:get_action_types(entity, action_type)
+   local action_types = radiant.entities.get_entity_data(entity, action_type)
+
+   -- TODO: just sort once...
+   table.sort(action_types,
+      function (a, b)
+         return a.priority > b.priority
+      end
+   )
+   return action_types
 end
 
 -- placeholder logic for now

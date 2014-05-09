@@ -15,24 +15,31 @@ ChaseEntity.args = {
    target = Entity,
    stop_distance = {
       type = 'number',
-      default = 1
-   }
+      default = 1,
+   },
+   grid_location_changed_cb = {  -- triggered as the chasing entity changes grid locations
+      type = 'function',
+      default = stonehearth.ai.NIL,
+   },
 }
 ChaseEntity.version = 2
 ChaseEntity.priority = 1
 
 function ChaseEntity:start_thinking(ai, entity, args)
-   self._running = false
+   self._selected_to_run = false
+   self._moving = false
    self._ai = ai
    self._entity = entity
    self._target = args.target
    self._target_location_history = {}
 
-   self:_trace_target()
+   self:_trace_target_location()
 
    local path = self:_get_direct_path(self._entity, self._target, ai.CURRENT.location)
 
    if path then
+      -- only an approximate location as the target may move or we may exit early based on stop_distance
+      ai.CURRENT.location = path:get_finish_point()
       self:_set_think_output(path)
       return
    end
@@ -41,7 +48,7 @@ function ChaseEntity:start_thinking(ai, entity, args)
    self:_get_astar_path(self._entity, self._target, ai.CURRENT.location)
 end
 
-function ChaseEntity:_trace_target()
+function ChaseEntity:_trace_target_location()
    local target_mob = self._target:add_component('mob')
    local target_last_location = self._target:add_component('mob'):get_world_grid_location()
 
@@ -53,11 +60,15 @@ function ChaseEntity:_trace_target()
          table.insert(self._target_location_history, target_current_location)
          target_last_location = target_current_location
 
-         local found_path = self:_try_recalculate_path()
-         if found_path then
-            -- restart the mover using the new path
-            self:_destroy_mover()
-            self._ai:resume()
+         -- don't waste cycles recalculating the path if we haven't started running yet,
+         -- especially since a future solution may make the current solution obsolete
+         if self._moving then
+            local found_path = self:_try_recalculate_path()
+            if found_path then
+               -- restart the mover using the new path
+               self:_destroy_mover()
+               self._ai:resume()
+            end
          end
       end
    end
@@ -66,10 +77,10 @@ function ChaseEntity:_trace_target()
       -- no guarantee that stop will be called on abort, call if explicitly
       local ai = self._ai
       self:stop()
-      ai:abort('target destroyed')
+      ai:abort('Target destroyed')
    end
 
-   self._trace = radiant.entities.trace_location(self._target, 'chase entity')
+   self._trace_target = radiant.entities.trace_location(self._target, 'chase entity')
       :on_changed(on_target_moved)
       :on_destroyed(on_target_destroyed)
 end
@@ -79,12 +90,12 @@ function ChaseEntity:_try_recalculate_path()
    local path = self:_search_for_new_path(self._entity, self._target, self._target_location_history, unused_points)
 
    if path ~= nil then
-      log:info('new path to target %s found %s -> %s', self._target, path:get_start_point(), path:get_finish_point())
+      log:info('New path to target %s found %s -> %s', self._target, path:get_start_point(), path:get_finish_point())
       self._path = path
       self._target_location_history = unused_points
       return true
    else
-      log:info('no direct path to target %s at found.', self._target)
+      log:info('No direct path to target %s at found.', self._target)
       return false
    end
 end
@@ -130,7 +141,7 @@ function ChaseEntity:_get_direct_path(entity, destination, start_location_overri
    elseif radiant.util.is_a(destination, Point3) then
       direct_path_finder:set_end_location(destination)
    else
-      error('destination must be an Entity or a Point3')
+      error('Destination must be an Entity or a Point3')
    end
 
    if start_location_override ~= nil then
@@ -167,25 +178,36 @@ end
 function ChaseEntity:stop_thinking(ai, entity, args)
    self:_destroy_path_finder()
 
-   if not self._running then
-      self:_destroy_trace()
+   if not self._selected_to_run then
+      self:_destroy_trace_target()
       self:_clean_up_references()
    end
 end
 
 function ChaseEntity:start(ai, entity, args)
-   self._running = true
+   self._selected_to_run = true
 end
 
 function ChaseEntity:run(ai, entity, args)
    local speed = radiant.entities.get_world_speed(entity)
-   local stop_distance, is_partial_path
    local finished = false
 
+   -- trace entity location before checking early exit, so that we fire the callback at least once
+   self:_trace_entity_location(args.grid_location_changed_cb)
+
+   -- FollowPath stops on grid positions, so don't move if we're within a half cell
+   -- otherwise this will cause bouncing when we call BumpAgainstEntity
+   local distance = radiant.entities.distance_between(entity, args.target)
+   if distance < args.stop_distance + 0.5 then
+      return
+   end
+
    self:_start_run_effect(entity)
+   self._moving = true
 
    while not finished do
-      is_partial_path = next(self._target_location_history) ~= nil
+      local stop_distance
+      local is_partial_path = next(self._target_location_history) ~= nil
 
       if is_partial_path then
          -- path doesn't reach destination, so stop distance isn't well defined
@@ -207,12 +229,29 @@ function ChaseEntity:run(ai, entity, args)
                finished = true
             end
 
-            ai:resume('mover finished')
+            ai:resume('Mover finished')
          end
       )
 
-      ai:suspend('waiting for mover to finish')
+      ai:suspend('Waiting for mover to finish')
    end
+end
+
+function ChaseEntity:_trace_entity_location(callback)
+   local mob = self._entity:add_component('mob')
+   local last_location = self._entity:add_component('mob'):get_world_grid_location()
+
+   local on_moved = function()
+      local current_location = mob:get_world_grid_location()
+      if current_location ~= last_location then
+         callback()
+      end
+      last_location = current_location
+   end
+
+   self._trace_entity = radiant.entities.trace_location(self._entity, 'chase entity')
+      :on_changed(on_moved)
+      :push_object_state()
 end
 
 function ChaseEntity:_start_run_effect(entity)
@@ -225,9 +264,11 @@ function ChaseEntity:_start_run_effect(entity)
 end
 
 function ChaseEntity:stop(ai, entity, args)
-   self._running = false
+   self._selected_to_run = false
+   self._moving = false
    self:_clean_up_references()
-   self:_destroy_trace()
+   self:_destroy_trace_entity()
+   self:_destroy_trace_target()
    self:_destroy_mover()
    self:_destroy_run_effect()
    self:_destroy_path_finder()
@@ -241,10 +282,17 @@ function ChaseEntity:_clean_up_references()
    self._path = nil
 end
 
-function ChaseEntity:_destroy_trace()
-   if self._trace then
-      self._trace:destroy()
-      self._trace = nil
+function ChaseEntity:_destroy_trace_entity()
+   if self._trace_entity then
+      self._trace_entity:destroy()
+      self._trace_entity = nil
+   end
+end
+
+function ChaseEntity:_destroy_trace_target()
+   if self._trace_target then
+      self._trace_target:destroy()
+      self._trace_target = nil
    end
 end
 
