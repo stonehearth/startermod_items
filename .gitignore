@@ -59,6 +59,11 @@ Thumbs.db
 *.deproj
 *.deuser
 
+# Sublime #
+#######################
+*.sublime-project
+*.sublime-workspace
+
 # Stonehearth Save State
 source/stonehearth_data/saved_games/
 
