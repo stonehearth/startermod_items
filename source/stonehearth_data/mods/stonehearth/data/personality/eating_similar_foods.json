@@ -80,6 +80,29 @@
                "__recent_food__? Super filling!", 
                "This __recent_food__ is going to fuel today's great works!"
                ]
+            },
+            "beleaguered_leader" : {
+               "logs" : [
+               "Wow. Who'd have guessed that __recent_food__ was a superfood?",
+               "That was a surprisngly satisfying __recent_food__.",
+               "That __recent_food__ was so good I should really prioritize eating more of it.",
+               "Arr! Now I feel like a superhero!"
+               ]
+            },
+            "hopeless_optimist" : {
+               "logs" : [
+               "Wow! I feel great!", 
+               "We need to make more food like this __recent_food__ so everyone can eat some!",
+               "Grow grow grow, grow more of this __recent_food__."
+               ]
+            },
+            "lovable_rogue" : {
+               "logs" : [
+               "Wow, who knew __recent_food__ was so incredibly slimming?", 
+               "This __recent_food__ is the best thing I've eaten in a long time.",
+               "I bet there's a market for food this good. Unless I should keep it all to myself?",
+               "This was an amazing __recent_food__. Praise __teacher__ and the Church of Plenty!"
+               ]
             }
          }
       },
