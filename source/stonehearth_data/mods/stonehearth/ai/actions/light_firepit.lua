@@ -13,6 +13,10 @@ LightFirepit.args = {
 LightFirepit.version = 2
 LightFirepit.priority = 1
 
+function LightFirepit:start(ai, entity, args)
+   ai:set_status_text('lighting ' .. radiant.entities.get_name(args.firepit:get_entity()))
+end
+
 local ai = stonehearth.ai
 return ai:create_compound_action(LightFirepit)
             :execute('stonehearth:pickup_item_made_of', { material = ai.ARGS.firepit:get_fuel_material() })

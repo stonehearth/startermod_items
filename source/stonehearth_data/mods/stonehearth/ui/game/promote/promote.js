@@ -1,13 +1,4 @@
-$(document).ready(function(){
 
-   $(top).on("radiant_promote_to_profession", function (_, e) {
-      radiant.call('radiant:play_sound', 'stonehearth:sounds:ui:promotion_menu:scroll_open' );
-      var view = App.gameView.addView(App.StonehearthClassesPromoteView, { 
-         talisman: e.entity,
-         promotionClass : e.event_data.promotion_name
-      });
-   });
-});
 
 // Expects the uri to be an entity with a stonehearth:workshop
 // component
@@ -24,7 +15,7 @@ App.StonehearthClassesPromoteView = App.View.extend({
    },
 
    _worker_filter_fn: function(person) {
-      return person['stonehearth:profession'].profession_id == 'worker';
+      return person['stonehearth:profession'].profession_uri == 'stonehearth:professions:worker';
    },
 
    _buildPeopleArray: function() {
@@ -108,6 +99,7 @@ App.StonehearthClassesPromoteView = App.View.extend({
 
    didInsertElement: function() {
       if (this.get('context')) {
+         radiant.call('radiant:play_sound', 'stonehearth:sounds:ui:promotion_menu:scroll_open' );
          $('#crafterPromoteScroll')
             .hide()
             .fadeIn();

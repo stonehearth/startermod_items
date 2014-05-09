@@ -25,7 +25,7 @@ App.StonehearthCraftersView = App.View.extend({
    },
 
    actions: {
-      craft: function(crafter) {
+      showWorkshop: function(crafter) {
          var workshop = crafter['stonehearth:crafter']['workshop']['workshop_entity'];
          $(top).trigger("radiant_show_workshop_from_crafter", {
             event_data: {
@@ -34,6 +34,11 @@ App.StonehearthCraftersView = App.View.extend({
          });
       },
       placeWorkshop: function(crafter) {
+         $(top).trigger('build_workshop', {
+            event_data : {
+               crafter: crafter.__self   
+            }
+         })
       }
    },
 

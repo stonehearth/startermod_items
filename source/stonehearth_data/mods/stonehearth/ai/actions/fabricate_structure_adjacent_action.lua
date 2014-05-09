@@ -35,6 +35,10 @@ function FabricateStructureAdjacent:run(ai, entity, args)
    until not self._current_block
 end
 
+function FabricateStructureAdjacent:start(ai, entity)
+   ai:set_status_text('building...')
+end
+
 function FabricateStructureAdjacent:stop(ai, entity)
    if self._current_block then
       self._fabricator:release_block(self._current_block)

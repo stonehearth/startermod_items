@@ -66,6 +66,10 @@ function CalorieObserver:_adjust_health_and_status()
       end
       self._attributes_component:set_attribute('health', hp )
 
+      --Send general malnourishment notice
+      radiant.events.trigger_async(self._entity, 'stonehearth:malnourishment_event')
+
+      --TODO: convert this to use the general one
       --Set the journal entry
       radiant.events.trigger_async(stonehearth.personality, 'stonehearth:journal_event', 
                              {entity = self._entity, description = 'starving'})

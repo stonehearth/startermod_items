@@ -186,6 +186,7 @@ end
 
 function ChaseEntity:start(ai, entity, args)
    self._selected_to_run = true
+   ai:set_status_text('chasing ' .. radiant.entities.get_name(args.target))
 end
 
 function ChaseEntity:run(ai, entity, args)

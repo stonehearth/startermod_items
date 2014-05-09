@@ -2,8 +2,7 @@ $(document).ready(function(){
 
    $(top).on("build_workshop.stonehearth", function (_, e) {
       var view = App.gameView.addView(App.StonehearthCrafterBuildWorkshopView, {
-         uri: e.event_data.profession_info, 
-         crafter: e.event_data.crafter
+         uri: e.event_data.crafter
       });
    });
 });
@@ -14,6 +13,12 @@ App.StonehearthCrafterBuildWorkshopView = App.View.extend({
    templateName: 'stonehearthCrafterBuildWorkshop',
    intialized: false,
 
+      components: {
+         "stonehearth:profession" : {
+            "profession_uri" : {}
+         },
+      },
+   
    init: function() {
       this._super();
 
@@ -21,21 +26,13 @@ App.StonehearthCrafterBuildWorkshopView = App.View.extend({
 
    didInsertElement: function() {
       var self = this;
-      if (this.get('context.workshop') && !this.intialized) {
-         //Only start drawing the screen if we have the workshop, to avoid flicker
-         this._super();
-
-         $('#crafterBuildWorkshopScroll') //xxx make aop
-            .hide()
-            .fadeIn();
-
-         this.createWorkbench(this.get('context.workshop.workbench_type'));
-
-         this.intialized = true;
+      if (!this.initialized) {
+         this.createWorkbench();   
+         this.initialized = true;
       }
    },
 
-   createWorkbench: function(workbenchType) {
+   createWorkbench: function() {
       radiant.call('radiant:play_sound', 'stonehearth:sounds:ui:start_menu:popup' );
       radiant.call('radiant:play_sound', 'stonehearth:sounds:ui:start_menu:page_up' );
       var self = this;
@@ -50,6 +47,7 @@ App.StonehearthCrafterBuildWorkshopView = App.View.extend({
       // this. All the work is done in the client and server
 
       var workbenchEntity = null;
+      var workbenchType = this.get('context.stonehearth:profession.profession_uri.workshop.workbench_type');
       radiant.call('stonehearth:choose_workbench_location', workbenchType)
          .done(function(o){
             workbenchEntity = o.workbench_entity
@@ -65,7 +63,8 @@ App.StonehearthCrafterBuildWorkshopView = App.View.extend({
                   description : 'Your crafter will store crafted goods in the outbox.'
                });
 
-               radiant.call('stonehearth:choose_outbox_location', workbenchEntity, self.crafter)
+               var crafter = self.get('context');
+               radiant.call('stonehearth:choose_outbox_location', workbenchEntity, crafter = crafter.__self)
                   .done(function(o) {
                      if (o.cancelled) {
                         $(top).trigger('radiant_hide_tip');
@@ -82,28 +81,15 @@ App.StonehearthCrafterBuildWorkshopView = App.View.extend({
 
    _gotoPage2 : function() {
       radiant.call('radiant:play_sound', 'stonehearth:sounds:place_structure' );
-      radiant.call('radiant:play_sound', 'stonehearth:sounds:ui:start_menu:popup' );
-      radiant.call('radiant:play_sound', 'stonehearth:sounds:ui:start_menu:page_up' );
-      this._hideScroll('#page1');
+      this.$('#page2').show();
    },
 
    _finish : function() {
       radiant.call('radiant:play_sound', 'stonehearth:sounds:place_structure' );
-      radiant.call('radiant:play_sound', 'stonehearth:sounds:ui:start_menu:page_down' );
       var self = this;
 
       $(top).trigger('radiant_hide_tip');
-      this._hideScroll('#page2', function() {
-         self.destroy();
-      });
-   },
-
-   _hideScroll: function(id, callback) {
-     $(id).animate({ 'bottom' : -400 }, 200, function() { 
-         if (callback) {
-            callback(); 
-         }
-      }); 
+      this.destroy();
    },
 
 
