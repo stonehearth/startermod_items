@@ -31,7 +31,7 @@ end
 
 function TerrainService:_on_poll()
    self:_update_regions()
-   self:_update_convex_hull()
+   --self:_update_convex_hull()
 end
 
 -- Jarvis 'Gift-Wrapping' Algorithm
@@ -40,7 +40,7 @@ function TerrainService:_update_convex_hull()
    local new_points = {}
    local friendly_pops = stonehearth.population:get_friendly_populations('civ')
    for player_id, pop in pairs(friendly_pops) do
-      citizens = pop:get_citizens()
+      local citizens = pop:get_citizens()
       for _, entity in pairs(citizens) do
          table.insert(new_points, entity:get_component('mob'):get_world_grid_location())
       end
