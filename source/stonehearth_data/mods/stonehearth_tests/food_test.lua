@@ -22,7 +22,7 @@ function FoodTest:__init()
    local player_id = worker:get_component('unit_info'):get_player_id()
    
    self:place_item('stonehearth:berry_basket', 0, 0)
-   --self:place_item('stonehearth:corn_basket', 1, 1)
+   self:place_item('stonehearth:corn_basket', 1, 1)
    
    self:at(10,  function()
          worker:get_component('stonehearth:attributes'):set_attribute('calories', stonehearth.constants.food.MALNOURISHED)

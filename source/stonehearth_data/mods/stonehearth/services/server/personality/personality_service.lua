@@ -62,7 +62,7 @@ end
 function PersonalityService:_make_substitutions(person, substitutions)
    local personality_component = person:get_component('stonehearth:personality')
    for key, value in pairs(substitutions) do
-      personality_component:add_substitution('key', value)
+      personality_component:add_substitution(key, value)
    end
 end
 

@@ -7,6 +7,8 @@
       "stonehearth:personal_logs:dreams", 
       "stonehearth:personal_logs:gathering_supplies", 
       "stonehearth:personal_logs:starving", 
-      "stonehearth:personal_logs:no_food_all_day" 
+      "stonehearth:personal_logs:no_food_all_day",
+      "stonehearth:personal_logs:eat_once_daily", 
+      "stonehearth:personal_logs:flavor_fatigue" 
    ]
 }

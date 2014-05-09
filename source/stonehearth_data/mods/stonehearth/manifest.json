@@ -387,6 +387,8 @@
       "personal_logs:gathering_supplies" :"file(data/personality/gathering_supplies.json)",
       "personal_logs:starving" : "file(data/personality/starving.json)",
       "personal_logs:no_food_all_day" : "file(data/personality/no_food_all_day.json)",
+      "personal_logs:eat_once_daily" : "file(data/personality/eat_once_per_day.json)",
+      "personal_logs:flavor_fatigue" : "file(data/personality/eating_similar_foods.json)",
 
       "sounds:ui:action_hover" : "file(data/sounds/ui/action/action_hover.wav)",
       "sounds:ui:action_click" : "file(data/sounds/ui/action/action_click.wav)",
