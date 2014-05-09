@@ -6,7 +6,7 @@
    -- eating the same food X times in a row
    -- eating a different food than the last food you ate
    -- eating really nutritious food
-   -- losing health due to malnourishment
+   -- losing health due to malnourishment [complete]
 ]]
 
 local NutritionScoreObserver = class()
@@ -44,7 +44,8 @@ end
 --Once per day, if you lose health due to malnourishment, take a hit to the nutrition score
 function NutritionScoreObserver:_on_malnourishment(e)
    if not self._sv.malnourished_today then
-      self._score_component:change_score('nutrition', stonehearth.constants.score.nutrition.MALNOURISHMENT_PENALTY)
+      local journal_data = {entity = self._entity, description = 'starving', tags = {'malnourishment', 'hunger', 'food'}}
+      self._score_component:change_score('nutrition', stonehearth.constants.score.nutrition.MALNOURISHMENT_PENALTY, journal_data)
       self._sv.malnourished_today = true
    end
 end
@@ -56,12 +57,15 @@ function NutritionScoreObserver:_on_midnight(e)
    --Reset daily counters
    self._sv.eaten_today = false
    self._sv.malnourished_today = false
+
+   self.__saved_variables:mark_changed()
 end
 
 --Test if we've eaten anything today. If not, change score
 function NutritionScoreObserver:_test_not_eaten_today()
    if not self._sv.eaten_today then
-      self._score_component:change_score('nutrition', stonehearth.constants.score.nutrition.NO_FOOD_TODAY)
+      local journal_data = {entity = self._entity, description = 'foodless', tags = {'foodless', 'hunger', 'food'}}
+      self._score_component:change_score('nutrition', stonehearth.constants.score.nutrition.NO_FOOD_TODAY, journal_data)
    end
 end
 
@@ -100,6 +104,7 @@ function NutritionScoreObserver:_on_eat(e)
 
    --Mark it true that we've eaten today
    self._sv.eaten_today = true
+   self.__saved_variables:mark_changed()
 end
 
 --Add the food to the front/top of our record. Trim the record if we need to. 

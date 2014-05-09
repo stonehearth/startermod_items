@@ -78,13 +78,14 @@ end
 --  @param event_name: name of the event to look up
 --  @param percent_chance: number between 1 and 100
 --  @param namespace - The scope of the substitution. Optional
-function Personality:register_notable_event(event_name, percent_chance, namespace)
+--  @param score_metadata - optional, if present, gives data about the score this entry corresponds to
+function Personality:register_notable_event(event_name, percent_chance, namespace, score_metadata)
    if self._sv.todays_events[event_name] == nil then
       local roll = rng:get_int(1, 100)
       if roll <= percent_chance then
          local title, log = personality_service:get_activity_log(namespace, event_name, self._sv.personality, self._sv.substitutions)
          if log then
-            self:_add_log_entry(title, log)
+            self:_add_log_entry(title, log, score_metadata)
          end
       end
       self._sv.todays_events[event_name] = true
@@ -93,7 +94,7 @@ function Personality:register_notable_event(event_name, percent_chance, namespac
 end
 
 --- Insert a brand new entry into the log
-function Personality:_add_log_entry(entry_title, entry_text)
+function Personality:_add_log_entry(entry_title, entry_text, score_metadata)
    --Are there any entries yet for this day? If not, add one
    local todays_date = calendar:format_date()
    if #self._sv.log == 0 or self._sv.log[1].date ~= todays_date then
@@ -106,9 +107,14 @@ function Personality:_add_log_entry(entry_title, entry_text)
    entry.title = entry_title
    table.insert(self._sv.log[1].entries, entry)
 
+   --If there is score metadata and if it the modifier is negative, show as warning
+   local log_type = 'info'
+   if score_metadata and score_metadata.score_mod < 0 then
+      log_type = 'warning'
+   end
    --For now, put the note in the scrolling event log too
    local name = radiant.entities.get_display_name(self._entity)
-   stonehearth.events:add_entry(name .. ': ' .. entry_text)
+   stonehearth.events:add_entry(name .. ': ' .. entry_text, log_type)
 
    --Let the journal UI know to update itself, if visible
    self.__saved_variables:mark_changed()

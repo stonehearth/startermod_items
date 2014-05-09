@@ -80,8 +80,11 @@ function ScoreComponent:_add_aggregate_dependencies(aggregate_name, dependency_n
    end
 end
 
---Given a key and a modifier, update the score at that key
-function ScoreComponent:change_score(key, modifier)
+--- Given a key and a modifier, update the score at that key
+--  @param key - the name of the score to update
+--  @param modifier - the number to add to the score associated with the key
+--  @param journal_data - a bag of stuff to pass to the journal entry associated with this score
+function ScoreComponent:change_score(key, modifier, journal_data)
    local score_data = self._sv.scores[key]
 
    --If the score data doesn't exist, make something up
@@ -115,6 +118,14 @@ function ScoreComponent:change_score(key, modifier)
          self._sv.scores[score_data.contributes_to] = self:_calculate_score_for_aggregate(score_data.contributes_to)
       end
    end
+
+   --Since the score should trigger a journal entry, have that pop in
+   --If every score-related thing is going to prompt a journal entry, make an assert instead of an if statement
+   if journal_data then
+      local score_metadata = {score_name = key, score_mod = modifier}
+      stonehearth.personality:log_journal_entry(journal_data, score_metadata)   
+   end
+
 
    --Mostly for autotests, trigger that the score has changed
    radiant.events.trigger_async(self._entity, 'stonehearth:score_changed', {

@@ -377,6 +377,7 @@
 
       "class_info" : "file(entities/class_info)",
       "personality_types" : "file(data/personality/personality_types.json)",
+      "personal_log_index" : "file(data/personality/all_logs.json)",
       "personal_logs:chopping_wood" : "file(data/personality/chopping_wood.json)",
       "personal_logs:embarking" :     "file(data/personality/embarking.json)",
       "personal_logs:eating_berries" :"file(data/personality/eating_berries.json)",
@@ -385,6 +386,7 @@
       "personal_logs:dreams" :"file(data/personality/dreams.json)",
       "personal_logs:gathering_supplies" :"file(data/personality/gathering_supplies.json)",
       "personal_logs:starving" : "file(data/personality/starving.json)",
+      "personal_logs:no_food_all_day" : "file(data/personality/no_food_all_day.json)",
 
       "sounds:ui:action_hover" : "file(data/sounds/ui/action/action_hover.wav)",
       "sounds:ui:action_click" : "file(data/sounds/ui/action/action_click.wav)",
