@@ -51,6 +51,7 @@ using namespace std;
 #undef PLATFORM_WIN
 #endif
 
+#define R_LOG(level)    LOG(horde.renderer, level)
 
 static bool h3dutCreatePNGImage(FILE *fp, const unsigned char *pixels, int width, int height);
 
@@ -291,116 +292,28 @@ DLLEXP bool h3dutLoadResourcesFromDisk( const char *contentDir )
 
 DLLEXP bool h3dutDumpMessages()
 {
-	/*if( !outf.is_open() )
-	{
-		// Reset log file
-		outf.setf( ios::fixed );
-		outf.precision( 3 );
+   int level;
+   float time;
+   std::string text = h3dGetMessage( &level, &time );
+   while( text != "" ) {
+      std::string category = "debug";
+      switch( level ) {
+      case 1:
+         category = "err";
+         break;
+      case 2:
+         category = "warn";
+         break;
+      case 3:
+         category = "info";
+         break;
+      }
 
-      boost::filesystem::path filename = radiant::core::Config::GetInstance().GetTempDirectory() / "horde3d_log.html";
-		outf.open(filename.string(), ios::out );
-		if( !outf ) return false;
+      R_LOG(1) << time << " : " << category << " : " << text;
+      text = h3dGetMessage( &level, &time );
+   }
 
-		outf << "<html>\n";
-		outf << "<head>\n";
-		outf << "<meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\" />\n";
-		outf << "<title>Horde3D Log</title>\n";
-		outf << "<style type=\"text/css\">\n";
-		
-		outf << "body, html {\n";
-		outf << "background: #000000;\n";
-		outf << "width: 1000px;\n";
-		outf << "font-family: Arial;\n";
-		outf << "font-size: 16px;\n";
-		outf << "color: #C0C0C0;\n";
-		outf << "}\n";
-
-		outf << "h1 {\n";
-		outf << "color : #FFFFFF;\n";
-		outf << "border-bottom : 1px dotted #888888;\n";
-		outf << "}\n";
-
-		outf << "pre {\n";
-		outf << "font-family : arial;\n";
-		outf << "margin : 0;\n";
-		outf << "}\n";
-
-		outf << ".box {\n";
-		outf << "border : 1px dotted #818286;\n";
-		outf << "padding : 5px;\n";
-		outf << "margin: 5px;\n";
-		outf << "width: 950px;\n";
-		outf << "background-color : #292929;\n";
-		outf << "}\n";
-
-		outf << ".err {\n";
-		outf << "color: #EE1100;\n";
-		outf << "font-weight: bold\n";
-		outf << "}\n";
-
-		outf << ".warn {\n";
-		outf << "color: #FFCC00;\n";
-		outf << "font-weight: bold\n";
-		outf << "}\n";
-
-		outf << ".info {\n";
-		outf << "color: #C0C0C0;\n";
-		outf << "}\n";
-
-		outf << ".debug {\n";
-		outf << "color: #CCA0A0;\n";
-		outf << "}\n";
-
-		outf << "</style>\n";
-		outf << "</head>\n\n";
-
-		outf << "<body>\n";
-		outf << "<h1>Horde3D Log</h1>\n";
-		outf << "<h3>" << h3dGetVersionString() << "</h3>\n";
-		outf << "<div class=\"box\">\n";
-		outf << "<table>\n";
-
-		outf.flush();
-	}
-
-	int level;
-	float time;
-	std::string text = h3dGetMessage( &level, &time );
-	
-	while( text != "" )
-	{
-		outf << "<tr>\n";
-		outf << "<td width=\"100\">";
-		outf << time;
-		outf << "</td>\n";
-		outf << "<td class=\"";
-		
-		switch( level )
-		{
-		case 1:
-			outf << "err";
-			break;
-		case 2:
-			outf << "warn";
-			break;
-		case 3:
-			outf << "info";
-			break;
-		default:
-			outf << "debug";
-		}
-		
-		outf << "\"><pre>\n";
-		outf << text.c_str();
-		outf << "\n</pre></td>\n";
-		outf << "</tr>\n";
-
-		outf.flush();
-		
-		text = h3dGetMessage( &level, &time );
-	}*/
-	
-	return true;
+   return true;
 }
 
 

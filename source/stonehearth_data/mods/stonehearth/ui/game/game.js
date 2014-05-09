@@ -17,8 +17,6 @@ App.StonehearthGameUiView = App.ContainerView.extend({
       };
       
       this._addViews(this.views.initial);
-      this._traceCalendar();
-
    },
 
    destroy: function() {
@@ -28,6 +26,16 @@ App.StonehearthGameUiView = App.ContainerView.extend({
 
    getDate: function() {
       return this._date;
+   },
+
+   initGameServices: function() {
+      if (!this._gameServicesInitialized) {
+         App.population = new StonehearthPopulation();
+         App.inventory = new StonehearthInventory();
+         this._traceCalendar();
+
+         this._gameServicesInitialized = true;         
+      }
    },
 
    _addViews: function(views) {

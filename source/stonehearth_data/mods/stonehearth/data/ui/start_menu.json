@@ -51,7 +51,7 @@
       "items" : {
             "design_building" : {
                 "name" : "Design Custom Building",
-                "description" : "NOT YET IMPLEMENTED. Design your own custom building with it's own floor-plan and structure.",
+                "description" : "Design your own custom building with it's own floor-plan and structure.",
                 "class" : "button",
                 "icon" : "/stonehearth/ui/game/start_menu/images/design_building.png",
                 "sticky" : true,
@@ -75,6 +75,15 @@
             }
       }
    },
+   "town_menu" : {
+      "name" : "Town Info",
+      "description" : "General information about your town, how your citizens are feeling, and the wealth you've accumulated!",
+      "class" : "dock",
+      "icon" : "/stonehearth/ui/game/start_menu/images/town.png",
+      "hotkey" : "t",
+      "game_mode" : "normal",
+      "clickSound": "stonehearth:sounds:ui:start_menu:trigger_click"
+   },   
    "citizen_manager" : {
       "name" : "Manage Citizen",
       "description" : "NOT YET IMPLEMENTED. Manage your settlers and promote them to new jobs.",
@@ -90,7 +99,7 @@
       "description" : "NOT YET IMPLEMENTED. Manager all of your crafters and workshops.",
       "class" : "dock",
       "icon" : "/stonehearth/ui/game/start_menu/images/dock_crafters.png",
-      "hotkey" : "c",
+      "hotkey" : "p",
       "game_mode" : "normal",
       "clickSound": "stonehearth:sounds:ui:start_menu:trigger_click"
    },

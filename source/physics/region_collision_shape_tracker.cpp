@@ -31,7 +31,7 @@ RegionCollisionShapeTracker::RegionCollisionShapeTracker(NavGrid& ng, om::Entity
 
 RegionCollisionShapeTracker::~RegionCollisionShapeTracker()
 {
-   GetNavGrid().MarkDirty(last_bounds_);
+   GetNavGrid().OnTrackerDestroyed(last_bounds_, GetEntityId());
 }
 
 /*

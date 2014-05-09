@@ -4,21 +4,41 @@
    right: 28px;
    display: flex;
    width: 105px;
+   margin: auto;
 
-   #playPauseButton {
-      .control;
-      width: 24px;
-      height: 24px;
-      background-repeat: no-repeat;
+   #controls {
       margin: auto;
+      display: inline-block;
+
+      div {
+         .control;
+         width: 35px;
+         height: 35px;
+         background-repeat: no-repeat;
+         display: inline-block;
+      }
+
    }
 
-   #playPauseButton.showPause {
+   #pauseButton.selected {
+      background-image: url(./images/pause_selected.png);   
+   }
+   #pauseButton.unselected {
       background-image: url(./images/pause.png);   
    }
 
-   #playPauseButton.showPlay {
-      background-image: url(./images/play.png);
+   #playButton.selected {
+      background-image: url(./images/play_selected.png);   
+   }
+   #playButton.unselected {
+      background-image: url(./images/play.png);   
+   }
+
+   #ffButton.selected {
+      background-image: url(./images/fast_forward_selected.png);   
+   }
+   #ffButton.unSelected {
+      background-image: url(./images/fast_forward.png);   
    }
 
 }

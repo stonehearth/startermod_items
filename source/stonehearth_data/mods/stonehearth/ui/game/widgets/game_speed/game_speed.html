@@ -1,5 +1,8 @@
 <script type="text/x-handlebars" data-template-name="stonehearthGameSpeed">
    <div id="gameSpeed">
-      <div id="playPauseButton" class="showPause uisounds">
+      <div id="controls">
+         <div id="pauseButton" {{bind-attr class=isPaused:selected:unselected}}></div>
+         <div id="playButton"  {{bind-attr class=isPlay:selected:unselected}}></div>
+      </div>
    </div>
 </script>

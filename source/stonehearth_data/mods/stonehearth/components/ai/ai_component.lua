@@ -21,6 +21,7 @@ function AIComponent:initialize(entity, json)
    if not self._sv._initialized then
       self._sv._initialized = true
       self._sv._observer_datastores = {}
+      self._sv.status_text = ''
       radiant.events.listen(entity, 'radiant:entity:post_create', function()
          self:_initialize(json)
          self:_start()
@@ -78,9 +79,14 @@ function AIComponent:destroy()
    self._action_index = {}
 end
 
+function AIComponent:set_status_text(text)
+   self._sv.status_text = text
+   self.__saved_variables:mark_changed()
+end
+
 function AIComponent:add_action(uri, injecting_entity)
    if injecting_entity == nil then
-      self._sv.actions[uri] = true
+      self._sv._actions[uri] = true
       self.__saved_variables:mark_changed()
    end
 
@@ -160,7 +166,7 @@ end
 function AIComponent:remove_action(key)
    if type(key) == 'string' then
       self.__saved_variables:modify_data(function (o)
-            o.actions[key] = false
+            o._actions[key] = false
          end)
    end
 
@@ -188,7 +194,7 @@ end
 
 function AIComponent:add_observer(uri)
    self.__saved_variables:modify_data(function (o)
-         o.observers[uri] = true
+         o._observers[uri] = true
       end)
    self:_add_observer_script(uri)
 end
@@ -216,7 +222,7 @@ function AIComponent:_add_observer_script(uri)
 end
 
 function AIComponent:remove_observer(key)
-   self._sv.observers = nil
+   self._sv._observers = nil
    self.__saved_variables:mark_changed()
 
    local observer = self._observer_instances[key]
@@ -230,23 +236,23 @@ end
 
 
 function AIComponent:_initialize(json)  
-   if self._sv.actions then
-      for uri, _ in pairs(self._sv.actions) do
+   if self._sv._actions then
+      for uri, _ in pairs(self._sv._actions) do
          self:_add_action_script(uri)
       end
    else
-      self._sv.actions = {}
+      self._sv._actions = {}
       for _, uri in ipairs(json.actions or {}) do
          self:add_action(uri)
       end
    end
    
-   if self._sv.observers then
-      for uri, _ in pairs(self._sv.observers) do
+   if self._sv._observers then
+      for uri, _ in pairs(self._sv._observers) do
          self:_add_observer_script(uri)
       end
    else
-      self._sv.observers = {}
+      self._sv._observers = {}
       for _, uri in ipairs(json.observers or {}) do
          self:add_observer(uri)
       end
@@ -260,6 +266,9 @@ function AIComponent:_start()
    radiant.check.is_entity(self._entity)
    self._thread = stonehearth.threads:create_thread()
                                      :set_debug_name('e:%d', self._entity:get_id())
+
+   self._sv.status_text = ''
+   self.__saved_variables:mark_changed()
 
    self._thread:set_thread_main(function()
       self._execution_frame = self:_create_top_execution_frame()

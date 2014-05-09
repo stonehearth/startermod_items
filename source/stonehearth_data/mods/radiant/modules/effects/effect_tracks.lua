@@ -45,7 +45,7 @@ function EffectTracks:__init(mgr, entity, effect_path, effect_name, start_time, 
          local animation = self._mgr._animation_root .. '/' .. e.animation
          self._effects[name] = AnimationEffect(animation, start_time, e)
       elseif e.type == "trigger_effect" then
-         self._effects[name] = TriggerEffect(start_time, trigger_handler, e, self, entity)
+         self._effects[name] = TriggerEffect(start_time, trigger_handler, e, self, entity, args)
       elseif e.type == "attack_frame_data" then
          self._effects[name] = FrameDataEffect(start_time, trigger_handler, e, self._effect)
       elseif e.type == "sound_effect" then

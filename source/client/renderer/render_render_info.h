@@ -11,6 +11,7 @@
 #include "om/components/model_layer.ridl.h"
 #include "om/components/model_variants.ridl.h"
 #include "lib/voxel/forward_defines.h"
+#include "render_node.h"
 
 BEGIN_RADIANT_CLIENT_NAMESPACE
 
@@ -24,7 +25,6 @@ public:
 
    void SetModelVariantOverride(bool enabled, std::string const& variant);
    void SetMaterialOverride(std::string const& materialOverride);
-private:
 
 private:
    enum DirtyBits {
@@ -43,10 +43,10 @@ private:
 
    struct NodeMapEntry {
       NodeMapEntry() : node(0) { }
-      NodeMapEntry(MatrixVector const& v, H3DNodeUnique n) : matrices(v), node(n) { }
+      NodeMapEntry(MatrixVector const& v, RenderNode n) : matrices(v), node(n) { }
 
       MatrixVector         matrices;
-      H3DNodeUnique        node;
+      RenderNode           node;
    };
 
    typedef std::unordered_map<std::string, NodeMapEntry> NodeMap;
@@ -84,7 +84,7 @@ private:
    BoneOffsetMap           bones_offsets_;
    std::string             model_variant_override_;
    std::string             material_path_;
-   std::string             material_kind_override_;
+   SharedMaterial          override_material_;
    bool                    use_model_variant_override_;
 };
 

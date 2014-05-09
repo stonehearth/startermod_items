@@ -31,12 +31,10 @@ void SensorList::SerializeToJson(json::Node& node) const
    }
 }
 
-SensorRef SensorList::AddSensor(std::string const& name, int radius)
+SensorRef SensorList::AddSensor(std::string const& name, int r)
 {
-   // xxx: use region3's for sensors?
-   float r = (float)radius;
    SensorPtr sensor = GetStore().AllocObject<Sensor>();
-   csg::Cube3f box(csg::Point3f(-r, -r, -r), csg::Point3f(r, r, r));
+   csg::Cube3 box(csg::Point3(-r, -r, -r), csg::Point3(r, r, r));
    sensor->SetCube(box);
    sensor->SetEntity(GetEntityRef());
 

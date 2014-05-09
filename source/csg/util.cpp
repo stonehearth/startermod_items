@@ -4,7 +4,7 @@
 using namespace ::radiant;
 using namespace ::radiant::csg;
 
-// Most of this code is slated to be eliminated once tesselations moves to the
+// Most of this code is slated to be eliminated once tessellations moves to the
 // server and we use region_tools for edging
 #define EDGE_LOG(level)
 

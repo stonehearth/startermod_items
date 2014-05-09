@@ -3,6 +3,7 @@ local Idle = class()
 
 Idle.name = 'idle'
 Idle.does = 'stonehearth:idle'
+Idle.status_text = 'idle'
 Idle.args = { }
 Idle.version = 2
 Idle.priority = 1

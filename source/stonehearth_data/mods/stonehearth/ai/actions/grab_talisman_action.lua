@@ -10,6 +10,10 @@ GrabTalismanAction.args = {
 GrabTalismanAction.version = 2
 GrabTalismanAction.priority = 1
 
+function GrabTalismanAction:start(ai, entity, args)
+   ai:set_status_text('promoting...')
+end
+
 local ai = stonehearth.ai
 return ai:create_compound_action(GrabTalismanAction)
             :execute('stonehearth:drop_carrying_now')

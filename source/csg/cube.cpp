@@ -89,7 +89,7 @@ Cube<S, C>::Cube() :
 }
 
 template <typename S, int C>
-Cube<S, C>::Cube(const Point& min_value, int tag) :
+Cube<S, C>::Cube(Point const& min_value, int tag) :
    tag_(tag),
    min(min_value)
 {
@@ -99,7 +99,7 @@ Cube<S, C>::Cube(const Point& min_value, int tag) :
 }
 
 template <typename S, int C>
-Cube<S, C>::Cube(const Point& min_value, const Point& max_value, int tag) :
+Cube<S, C>::Cube(Point const& min_value, Point const& max_value, int tag) :
    tag_(tag),
    min(min_value),
    max(max_value)
@@ -120,7 +120,7 @@ S Cube<S, C>::GetArea() const
 }
 
 template <typename S, int C>
-bool Cube<S, C>::Intersects(const Cube& other) const
+bool Cube<S, C>::Intersects(Cube const& other) const
 {
    for (int i = 0; i < C; i++) {
       if (csg::IsGreaterEqual(min[i], other.max[i]) ||
@@ -151,8 +151,34 @@ Cube<S, C> Cube<S, C>::Intersection(Cube const& other) const
    return result;
 }
 
+
 template <typename S, int C>
-Region<S, C> Cube<S, C>::operator-(const Cube& rhs) const
+Cube<S, C> Cube<S, C>::Inflated(Point const& amount) const
+{
+   Point newMin = min - amount;
+   Point newMax = max + amount;
+   for (int i = 0; i < C; i++) {
+      if (newMin[i] >= newMax[i] || newMax[i] <= newMin[i]) {
+         return Cube::zero;
+      }
+   }
+   return Cube(newMin, newMax);
+}
+
+template <typename S, int C>
+Region<S, C> Cube<S, C>::GetBorder() const
+{
+   Region result(*this);
+
+   Cube inner = Inflated(-Point::one);
+   if (inner != Cube::zero) {
+      result.Subtract(inner);
+   }
+   return result;
+}
+
+template <typename S, int C>
+Region<S, C> Cube<S, C>::operator-(Cube const& rhs) const
 {
    if (!Intersects(rhs)) {
       return Region(*this);
@@ -182,13 +208,25 @@ Region<S, C> Cube<S, C>::operator-(const Cube& rhs) const
 }
 
 template <typename S, int C>
-Region<S, C> Cube<S, C>::operator-(const Region& rhs) const
+Region<S, C> Cube<S, C>::operator-(Region const& rhs) const
 {
    return Region(*this) - rhs;
 }
 
 template <typename S, int C>
-Cube<S, C> Cube<S, C>::operator&(const Cube& other) const
+bool Cube<S, C>::operator==(Cube const& other) const
+{
+   return min == other.min && max == other.max;
+}
+
+template <typename S, int C>
+bool Cube<S, C>::operator!=(Cube const& other) const
+{
+   return min != other.min || max != other.max;
+}
+
+template <typename S, int C>
+Cube<S, C> Cube<S, C>::operator&(Cube const& other) const
 {
    Cube result;
 
@@ -204,7 +242,7 @@ Cube<S, C> Cube<S, C>::operator&(const Cube& other) const
 }
 
 template <typename S, int C>
-Region<S, C> Cube<S, C>::operator&(const Region& region) const
+Region<S, C> Cube<S, C>::operator&(Region const& region) const
 {
    Region result;
 
@@ -218,13 +256,13 @@ Region<S, C> Cube<S, C>::operator&(const Region& region) const
 }
 
 template <typename S, int C>
-Cube<S, C> Cube<S, C>::operator+(const Point& offset) const
+Cube<S, C> Cube<S, C>::operator+(Point const& offset) const
 {
    return Cube(min + offset, max + offset, tag_);
 }
 
 template <typename S, int C>
-Point<S, C> Cube<S, C>::GetClosestPoint2(const Point& other, S* d) const
+Point<S, C> Cube<S, C>::GetClosestPoint2(Point const& other, S* d) const
 {
    Point result;
    for (int i = 0; i < C; i++) {
@@ -240,7 +278,7 @@ Point<S, C> Cube<S, C>::GetClosestPoint2(const Point& other, S* d) const
 }
 
 template <typename S, int C>
-bool Cube<S, C>::Contains(const Point& pt) const
+bool Cube<S, C>::Contains(Point const& pt) const
 {
    for (int i = 0; i < C; i++) {
       if (!IsBetween(min[i], pt[i], max[i])) {
@@ -251,7 +289,7 @@ bool Cube<S, C>::Contains(const Point& pt) const
 }
 
 template <class S, int C>
-void Cube<S, C>::Grow(const Point& pt)
+void Cube<S, C>::Grow(Point const& pt)
 {
    for (int i = 0; i < C; i++) {
       min[i] = std::min(min[i], pt[i]);
@@ -260,7 +298,7 @@ void Cube<S, C>::Grow(const Point& pt)
 }
 
 template <class S, int C>
-void Cube<S, C>::Grow(const Cube& cube)
+void Cube<S, C>::Grow(Cube const& cube)
 {
    Grow(cube.min);
    Grow(cube.max);
@@ -287,7 +325,7 @@ Cube<int, C> const& csg::ToInt(Cube<int, C> const& cube) {
 }
 
 template <class S, int C>
-bool Cube<S, C>::CombineWith(const Cube& cube)
+bool Cube<S, C>::CombineWith(Cube const& cube)
 {
    if (tag_ != cube.tag_) {
       return false;
@@ -307,6 +345,8 @@ bool Cube<S, C>::CombineWith(const Cube& cube)
    template Cls::Cube(const Cls::Point&, const Cls::Point&, int); \
    template Cls::ScalarType Cls::GetArea() const; \
    template bool Cls::Intersects(const Cls& other) const; \
+   template bool Cls::operator==(const Cls& offset) const; \
+   template bool Cls::operator!=(const Cls& offset) const; \
    template Cls Cls::operator&(const Cls& offset) const; \
    template Cls::Region Cls::operator&(const Cls::Region& offset) const; \
    template Cls Cls::operator+(const Cls::Point& offset) const; \
@@ -319,6 +359,7 @@ bool Cube<S, C>::CombineWith(const Cube& cube)
    template void Cls::Grow(const Cls& other); \
    template Cls Cls::Intersection(Cls const& other) const; \
    template bool Cls::CombineWith(const Cls& other); \
+   template Cls::Region Cls::GetBorder() const; \
 
 MAKE_CUBE(Cube3)
 MAKE_CUBE(Cube3f)

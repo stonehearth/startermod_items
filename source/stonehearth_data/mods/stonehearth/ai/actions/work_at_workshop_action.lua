@@ -11,6 +11,10 @@ WorkAtWorkshop.args = {
 WorkAtWorkshop.version = 2
 WorkAtWorkshop.priority = 1
 
+function WorkAtWorkshop:start(ai, entity, args)
+   ai:set_status_text('crafting...(insert item being crafter here)')
+end
+
 local ai = stonehearth.ai
 return ai:create_compound_action(WorkAtWorkshop)
             :execute('stonehearth:goto_entity', { entity = ai.ARGS.workshop })

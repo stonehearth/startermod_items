@@ -15,6 +15,10 @@ end
 
 function EnemyObserver:destroy()
    -- TODO: confirm trace and sensor are destroyed when entity is destroyed
+   if self._trace then
+      self._trace:destroy()
+      self._trace = nil
+   end
 end
 
 function EnemyObserver:_on_start()
@@ -37,16 +41,13 @@ function EnemyObserver:_init_sight_sensor()
    end
 
    self._trace = self._sensor:trace_contents('trace_enemies')
-      :on_added(
-         function (target_id)
+      :on_added(function (target_id)
             self:_on_added_to_sensor(target_id)
-         end
-      )
-      :on_removed(
-         function (target_id)
+         end)
+      :on_removed(function (target_id)
             self:_on_removed_from_sensor(target_id)
-         end
-      )
+         end)
+      :push_object_state()
 end
 
 function EnemyObserver:_on_added_to_sensor(target_id)

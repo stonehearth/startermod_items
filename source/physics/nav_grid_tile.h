@@ -6,6 +6,8 @@
 #include "namespace.h"
 #include "nav_grid_tile_data.h"
 #include "protocols/forward_defines.h"
+#include "csg/cube.h"
+#include "core/slot.h"
 
 BEGIN_RADIANT_PHYSICS_NAMESPACE
 
@@ -23,34 +25,62 @@ BEGIN_RADIANT_PHYSICS_NAMESPACE
  * information rather than stored in this class).
  */
 
-class NavGridTile {
+class NavGridTile;
+DECLARE_SHARED_POINTER_TYPES(NavGridTile)
+
+class NavGridTile : public std::enable_shared_from_this<NavGridTile> {
 public:
    NavGridTile();
+   NavGridTile(NavGridTile &&other);
 
-   typedef std::function<void(CollisionTrackerPtr)> ForEachTrackerCb;
+   typedef std::function<bool(CollisionTrackerPtr)> ForEachTrackerCb;
 
    void RemoveCollisionTracker(CollisionTrackerPtr tracker);
    void AddCollisionTracker(CollisionTrackerPtr tracker);
 
+   void OnTrackerRemoved(dm::ObjectId entityId);
+
    bool IsEmpty(csg::Cube3 const& bounds);
    bool CanStandOn(csg::Point3 const& pt);
    void FlushDirty(NavGrid& ng, csg::Point3 const& index);
-   void MarkDirty();
 
    bool IsDataResident() const;
    void SetDataResident(bool value);
 
-   void ForEachTracker(ForEachTrackerCb cb);
+   bool ForEachTracker(ForEachTrackerCb cb);
+   bool ForEachTrackerForEntity(dm::ObjectId entityId, ForEachTrackerCb cb);
+
+   enum ChangeNotifications {
+      ENTITY_REMOVED = (1 << 0),
+      ENTITY_ADDED   = (1 << 1),
+      ENTITY_MOVED   = (1 << 2),
+   };
+   struct ChangeNotification {
+      dm::ObjectId         entityId;
+      ChangeNotifications  reason;
+      CollisionTrackerPtr  tracker;
+   
+      ChangeNotification(ChangeNotifications r, dm::ObjectId i, CollisionTrackerPtr t) :
+         entityId(i),
+         reason(r),
+         tracker(t) { }
+   };
+
+   typedef std::function<void(ChangeNotification const&)> ChangeCb;
+
+   core::Guard RegisterChangeCb(ChangeCb cb);
 
 public:
    void UpdateBaseVectors(csg::Point3 const& index);
    void ShowDebugShapes(protocol::shapelist* msg, csg::Point3 const& index);
 
 private:
+   NO_COPY_CONSTRUCTOR(NavGridTile);
    friend NavGridTileData;
    std::shared_ptr<NavGridTileData> GetTileData();
 
 private:
+   void MarkDirty();
    bool IsMarked(TrackerType type, csg::Point3 const& offest);
    bool IsMarked(TrackerType type, int bit_index);
    int Offset(csg::Point3 const& pt);
@@ -60,16 +90,21 @@ private:
    csg::Cube3 GetWorldBounds(csg::Point3 const& index) const;
 
 private:
+   void OnTrackerAdded(CollisionTrackerPtr tracker);
+   void PruneExpiredChangeTrackers();
+   bool ForEachTrackerInRange(TrackerMap::const_iterator begin, TrackerMap::const_iterator end, ForEachTrackerCb cb);
+
    enum DirtyBits {
       BASE_VECTORS =    (1 << 0),
       DERIVED_VECTORS = (1 << 1),
       ALL_DIRTY_BITS =  (-1)
    };
 
+
 private:
-   bool                                visited_;
-   TrackerMap                          trackers_;
-   std::shared_ptr<NavGridTileData>    data_;
+   TrackerMap                                trackers_;
+   std::shared_ptr<NavGridTileData>          data_;
+   core::Slot<ChangeNotification>            changed_slot_;
 };
 
 END_RADIANT_PHYSICS_NAMESPACE

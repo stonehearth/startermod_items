@@ -8,6 +8,8 @@
             "stonehearth:actions:reserve_stockpile_space",
             "stonehearth:actions:idle:sway",
             "stonehearth:actions:idle:look_around",
+            "stonehearth:actions:grab_promotion_talisman",                        
+            "stonehearth:actions:grab_promotion_talisman_type",                        
             "stonehearth:actions:sleep_on_ground",
             "stonehearth:actions:sleep_in_new_bed",
             "stonehearth:actions:sleep_in_own_bed",
@@ -50,12 +52,13 @@
             "stonehearth:actions:combat:idle:shuffle",
             "stonehearth:actions:combat:hit_stun",
             "stonehearth:actions:chase_entity", 
-            "stonehearth:actions:free_time:dispatcher"
+            "stonehearth:actions:free_time:dispatcher" 
          ],
           "observers": [
             "stonehearth:observers:sleepiness",
             "stonehearth:observers:calorie",
-            "stonehearth:observers:free_time"
+            "stonehearth:observers:free_time", 
+            "stonehearth:observers:nutrition_score"
          ]
       },
       "unit_info" : {
@@ -200,6 +203,29 @@
          "tags" : "meat"
       },
       "stonehearth:carry_block": {
+      },
+      "stonehearth:score" : {
+         "nutrition" : {
+            "starting_score" : 50,
+            "weight" : 1,
+            "contributes_to" : "happiness",
+            "max" : 100,
+            "min" : 1
+            },
+         "safety" : {
+            "starting_score" : 50,
+            "weight" : 1,
+            "contributes_to" : "happiness",
+            "max" : 100,
+            "min" : 1
+            },
+         "belonging" : {
+            "starting_score" : 50,
+            "weight" : 1,
+            "contributes_to" : "happiness",
+            "max" : 100,
+            "min" : 1
+         }
       },
       "stonehearth:equipment" : {
       }

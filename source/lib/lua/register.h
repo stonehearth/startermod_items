@@ -230,6 +230,7 @@ luabind::class_<T, std::shared_ptr<T>> RegisterStrongGameObject(lua_State* L, co
 
    return luabind::class_<T, std::shared_ptr<T>>(name)
       .def(tostring(luabind::const_self)) 
+      .def(luabind::self == luabind::self)
       .def("__get_userdata_type_id", &Type::GetTypeId)
       .def("__tojson",       &StrongGameObjectToJson<T>)
       .def("__repr",         &StrongGameObjectRepr<T>)
@@ -256,6 +257,7 @@ luabind::class_<T, std::weak_ptr<T>> RegisterWeakGameObject(lua_State* L, const 
    });
    return luabind::class_<T, std::weak_ptr<T>>(name)
       .def(tostring(luabind::const_self))
+      .def(luabind::self == luabind::self)
       .def("is_valid",       &WeakPtr_IsValid<T>)
       .def("__get_userdata_type_id", &Type::GetTypeId)
       .def("__tojson",       &WeakGameObjectToJson<T>)
@@ -286,6 +288,7 @@ luabind::class_<Derived, Base, std::weak_ptr<Derived>> RegisterWeakGameObjectDer
    });
    return luabind::class_<Derived, Base, std::weak_ptr<Derived>>(name)
       .def(tostring(luabind::const_self))
+      .def(luabind::self == luabind::self)
       .def("is_valid",       &WeakPtr_IsValid<Derived>)
       .def("__get_userdata_type_id", &Type::GetTypeId)
       .def("__tojson",       &WeakGameObjectToJson<Derived>)

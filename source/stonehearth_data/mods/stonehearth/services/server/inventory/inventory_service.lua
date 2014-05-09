@@ -47,6 +47,7 @@ end
 
 function InventoryService:get_inventory(player_id)
    radiant.check.is_string(player_id)
+   assert(self._inventories[player_id])
    return self._inventories[player_id]
 end
 

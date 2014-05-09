@@ -1,7 +1,10 @@
 {
   "profession_id": "trapper",
   "name": "Trapper",      
+  "alias": "stonehearth:professions:trapper",
+  "icon" : "file(images/jobButton.png)",
   "description": "Traps stuff, yay.",
+  "talisman_uri" : "stonehearth:trapper:knife",
   "script": "file(/professions/trapper/trapper.lua)",
   "outfit": "file(trapper_outfit)"
 }

@@ -139,8 +139,8 @@ end
 
 function ScaffoldingRenderer:_create_node(pt, matrix) 
    local node = _radiant.client.create_qubicle_matrix_node(self._node, self._lattice, matrix, self._origin)
-   h3dSetNodeTransform(node, pt.x, pt.y, pt.z, 0, self._rotation, 0, self._scale, self._scale, self._scale)
-   h3dSetNodeFlags(node, h3dGetNodeFlags(self._entity_node), true);
+   h3dSetNodeTransform(node:get_node(), pt.x, pt.y, pt.z, 0, self._rotation, 0, self._scale, self._scale, self._scale)
+   h3dSetNodeFlags(node:get_node(), h3dGetNodeFlags(self._entity_node), true);
    return node
 end
 
@@ -166,7 +166,7 @@ function ScaffoldingRenderer:_remove_segment(pt)
          local segment = row[pt.z]
          if segment then
             if segment.node then
-               h3dRemoveNode(segment.node)
+               segment.node:destroy()
             end
             row[pt.z] = nil
          end
@@ -184,11 +184,11 @@ function ScaffoldingRenderer:_move_top(pt)
       --If the top y has changed...   
       if new_top_y <= -1 then
          --If the top y is -1, then we should remove the node
-         h3dRemoveNode(top_data.node)
+         top_data.node:destroy()
          self._tops[pt.x][pt.z] = nil
       else
          --Otherwise, just move the top
-         h3dSetNodeTransform(top_data.node, pt.x, new_top_y, pt.z, 0, self._rotation, 0, self._scale, self._scale, self._scale)
+         h3dSetNodeTransform(top_data.node:get_node(), pt.x, new_top_y, pt.z, 0, self._rotation, 0, self._scale, self._scale, self._scale)
       end
    end
 end

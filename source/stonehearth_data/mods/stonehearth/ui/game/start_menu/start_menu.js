@@ -32,6 +32,9 @@ App.StonehearthStartMenuView = App.View.extend({
       build_simple_room: function () {
          App.stonehearthClient.buildRoom();
       },
+      town_menu: function() {
+         App.stonehearthClient.showTownMenu();
+      },
       citizen_manager: function() {
          App.stonehearthClient.showCitizenManager();
       },
@@ -84,7 +87,8 @@ App.StonehearthStartMenuView = App.View.extend({
 
       radiant.call('stonehearth:get_population')
          .done(function(response){
-            self.set('uri', response.population);
+            // xxx: setting 'uri' causes the view to re-reinitialize itself!
+            //self.set('uri', response.population);
          });
 
       /*

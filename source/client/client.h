@@ -239,8 +239,9 @@ private:
       platform::timer             save_stress_test_timer_;
       luabind::object             radiant_;
 
-      dm::TracerSyncPtr           object_model_traces_;
+      dm::TracerSyncPtr           game_object_model_traces_;
       dm::TracerBufferedPtr       game_render_tracer_;
+      dm::TracerSyncPtr           authoring_object_model_traces_;
       dm::TracerBufferedPtr       authoring_render_tracer_;
       dm::ReceiverPtr             receiver_;
       dm::TracePtr                authoring_store_alloc_trace_;

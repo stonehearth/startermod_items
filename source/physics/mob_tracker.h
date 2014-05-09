@@ -24,16 +24,20 @@ public:
    csg::Region3 GetOverlappingRegion(csg::Cube3 const& bounds) const override;
    bool Intersects(csg::Cube3 const& worldBounds) const override;
 
-   csg::Cube3 const& GetLastBounds() const;
+   csg::Cube3 const& GetBounds() const;
 
 protected:
    void MarkChanged() override;
+
+private:
+   csg::Cube3 ComputeWorldBounds() const;
 
 private:
    NO_COPY_CONSTRUCTOR(MobTracker)
 
 private:
    om::MobRef        mob_;
+   csg::Cube3        bounds_;
    csg::Cube3        last_bounds_;
 };
 

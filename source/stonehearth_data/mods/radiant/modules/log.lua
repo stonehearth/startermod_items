@@ -82,12 +82,16 @@ local function compute_log_prefix(prefix, entity)
    end
    local entity_prefix
    if entity then
-      entity_prefix = 'e:' .. tostring(entity:get_id()) .. ' ' .. radiant.entities.get_name(entity)
+      local name = radiant.entities.get_name(entity)
+      entity_prefix = 'e:' .. tostring(entity:get_id())
+      if name then
+         entity_prefix = entity_prefix .. ' ' .. name .. ' '
+      end
    end
-   return '[' .. (entity_prefix and (entity_prefix .. ' ') or '') .. prefix .. ']'
+   return '[' .. (entity_prefix and (entity_prefix .. ' ') or '') .. prefix .. '] '
 end
 
-function Log.create_logger(sub_category, prefix)
+function Log.create_logger(sub_category)
    -- The stack offset for the helper functions is 3...
    --    1: __get_current_module_name
    --    2: Log.create_logger       

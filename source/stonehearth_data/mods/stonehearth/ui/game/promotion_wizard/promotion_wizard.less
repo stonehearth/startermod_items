@@ -1,0 +1,113 @@
+#promotionWizard {
+
+   #jobsPage {
+      #jobs {
+         .jobButton {
+            .control;
+            display: inline-block;
+            //margin-right: 4px;
+            //margin-bottom: 4px;
+
+            &:hover {
+               -webkit-filter: brightness(1.4);
+            }
+         }
+
+         .jobButton.locked {
+            border: solid 2px red;
+         }
+      }
+
+      #info {
+         padding: 8px 0px;
+         height: 100px;
+         #name {
+            .controlFont;
+            color: #fff;
+            margin-bottom: 10px;
+         }
+
+         #description {
+
+         }
+      }
+   }
+
+   #finishPage {
+      display: none;
+
+      #scroll {
+         .noOutline;
+         position: relative;
+         width: 560px;
+         height: 420px;
+         color: #000;
+         margin-left: -4px;
+         margin-top: 10px;
+         background: url(images/scroll.png);
+
+
+         #content {
+            padding: 10px;
+      
+            #title {
+               font-family: @controlFontFamily;
+               text-align: center;
+               font-size: 36px;
+               padding-bottom: 10px;
+            }
+
+            #chooseButton {
+               .controlFont;
+               display: block;
+               text-align: center;
+               font-size: 32px;
+               border-bottom: 3px solid rgba(0,0,0,0.4);
+               padding-top: 10px;
+               margin-bottom: 10px;
+            }
+
+            #approveStamp {
+               .controlFont;
+               position: absolute;
+               bottom: 24px;
+               right: 24px;
+               width: 160px;
+               border: 5px solid rgba(0,0,0,0.4);
+               padding: 8px;
+               text-align: center;
+               font-size: 26px;
+               color: rgba(0,0,0,0.4);
+               text-shadow: none;
+            }
+
+            #approvedStamp {
+               .controlFont;
+               position: absolute;
+               bottom: 20px;
+               right: 20px;
+               width: 192px;
+               height: 54px;
+               text-align: center;
+               vertical-align: middle;
+               font-size: 28px;
+               color: #c3b288;
+               text-shadow: none;
+               padding-top: 20px;
+               background: url(images/approved_stamp.png);
+               display: none;
+            }
+
+            #approveStamper {
+               position: absolute;
+               bottom: 100px;
+               right: 20px;
+               width: 199px;
+               height: 193px;
+               background: url(images/approve_stamper.png);
+               display: none;
+            }
+         }
+      }
+   }
+}

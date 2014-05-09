@@ -9,6 +9,10 @@ RestockStockpile.args = {
 RestockStockpile.version = 2
 RestockStockpile.priority = 1
 
+function RestockStockpile:start(ai, entity, args)
+   ai:set_status_text('restoocking ' .. radiant.entities.get_name(args.stockpile:get_entity()))
+end
+
 local ai = stonehearth.ai
 return ai:create_compound_action(RestockStockpile)
          :execute('stonehearth:wait_for_stockpile_space', { stockpile = ai.ARGS.stockpile })

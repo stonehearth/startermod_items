@@ -4,6 +4,7 @@ local PlaceItemType = class()
 
 PlaceItemType.name = 'place an item'
 PlaceItemType.does = 'stonehearth:place_item_type'
+PlaceItemType.status_text = 'placing item'
 PlaceItemType.args = {
    filter_fn = 'function',
    location = Point3,
