@@ -218,6 +218,13 @@
             "max" : 100,
             "min" : 1
             },
+         "shelter" : {
+            "starting_score" : 50,
+            "weight" : 1,
+            "contributes_to" : "happiness",
+            "max" : 100,
+            "min" : 1
+            },
          "safety" : {
             "starting_score" : 50,
             "weight" : 1,

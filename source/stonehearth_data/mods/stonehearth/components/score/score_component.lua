@@ -115,7 +115,7 @@ function ScoreComponent:change_score(key, modifier, journal_data)
       --Change dependent scores
       if score_data.contributes_to then
          --TODO: accomodate more than 1 score
-         self._sv.scores[score_data.contributes_to] = self:_calculate_score_for_aggregate(score_data.contributes_to)
+         self._sv.scores[score_data.contributes_to].score = self:_calculate_score_for_aggregate(score_data.contributes_to)
       end
    end
 
