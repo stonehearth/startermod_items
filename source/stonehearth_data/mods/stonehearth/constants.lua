@@ -113,6 +113,25 @@ local constants = {
       HUNGRY = 100,
       SLEEPY = 50,
    },
+
+   --Constants that contribute to the scoare
+   score = {
+      DEFAULT_MIN = 0,
+      DEFAULT_MAX = 100,
+      DEFAULT_VALUE = 50,
+
+      nutrition = {
+         EAT_ONCE_TODAY = 10,
+         SIMPLE_EATING_SCORE_CAP = 50,   --if score is already > than this, don't apply the eat once bonus
+         HOMOGENEITY_THRESHHOLD = 3,     --apply eat same food penalty if we eat more than this number of foods in a row
+         EAT_SAME_FOODS = -10,
+         EAT_DIFFERENT_FOODS = 10,       --bonus if what we just at != what we ate right before that
+         NO_FOOD_TODAY = -10,            --penalty if we've eaten nothing today, applied at midnight
+         EAT_NUTRITIOUS_FOOD = 10,       --applied if the food is really satisfying
+         NUTRITION_THRESHHOLD = 30,      --satisfaction has to be this or greater to get bonus
+         MALNOURISHMENT_PENALTY = -10    --if malnourished, extra penalty once per day
+      }
+   },
 }
 
 return constants

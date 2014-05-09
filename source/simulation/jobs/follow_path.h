@@ -20,6 +20,7 @@ public:
    void Stop();
 
 protected:
+   int CalculateStopIndex(csg::Point3f const& startLocation, std::vector<csg::Point3> const& points, csg::Point3 const& pointOfInterest, float stopDistance) const;
    bool Arrived(om::MobPtr mob);
    bool Obstructed();
    void Report(std::string const& msg);
@@ -29,7 +30,8 @@ protected:
    std::shared_ptr<Path>   path_;
    float                   speed_;
    int                     pursuing_;
-   float                   stop_distance_;
+   int                     stopIndex_;
+   float                   stopDistance_;
    luabind::object         arrived_cb_;
 };
 

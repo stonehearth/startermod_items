@@ -11,6 +11,9 @@ TeardownStructureAdjacent.args = {
 TeardownStructureAdjacent.version = 2
 TeardownStructureAdjacent.priority = 1
 
+function TeardownStructureAdjacent:start(ai, entity, args)
+   ai:set_status_text('tearing down structures...')
+end
 
 function TeardownStructureAdjacent:start_thinking(ai, entity, args)
    local carrying = ai.CURRENT.carrying

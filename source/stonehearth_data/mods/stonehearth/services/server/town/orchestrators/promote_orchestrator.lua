@@ -53,7 +53,7 @@ end
 function Promote:_change_profession(person, talisman)
    --Add the new class
    local promotion_talisman_component = talisman:get_component('stonehearth:promotion_talisman')
-   person:add_component('stonehearth:profession'):promote_to(promotion_talisman_component:get_profession())
+   person:add_component('stonehearth:profession'):promote_to(promotion_talisman_component:get_profession(), talisman:get_uri())
 
    --Log in personal event log
    local activity_name = radiant.entities.get_entity_data(talisman, 'stonehearth:activity_name')

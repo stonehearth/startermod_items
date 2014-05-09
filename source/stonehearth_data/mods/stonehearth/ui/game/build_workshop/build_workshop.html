@@ -1,11 +1,44 @@
 <script type="text/x-handlebars" data-template-name="stonehearthCrafterBuildWorkshop">
-   <div id="crafterBuildWorkshopScroll">
+<div id="buildWorkshop" class="gui populationManager">
 
-      <div class="scroll" id="page2">
-         <div class="content">
-            <div class="title">
-               {{i18n stonehearth:build_workshop_create_stockpile}}
+   <div class="window" id="jobsPage">
+      <div class="title">{{i18n stonehearth:build_workshop}}</div>
+
+      <div id="pages">
+         <div class="scroll" id="page1">
+            <center>
+               <div class="subtitle">
+                  {{stonehearth:profession.profession_uri.workshop.name}}
+               </div>
+               <div class="subtitle2">
+                  Click on the ground to place the workshop
+               </div>
+            </center>
+
+            <div class='portrait'>
+               <img {{bind-attr src=workshop.portrait}} />
             </div>
+
+            <div class="description">
+               <div class="subtitle2">{{i18n stonehearth:build_workshop_requirements}}</div>
+               {{#each stonehearth:profession.profession_uri.workshop.ingredients}}
+                  <div>{{this.count}} {{this.material}}</div>
+               {{/each}}
+               <p>
+                  {{{stonehearth:profession.profession_uri.workshop.long_description}}}
+               </p>
+            </div>
+         </div>
+
+         <div class="scroll" id="page2">
+            <center>
+               <div class="subtitle">
+                  {{i18n stonehearth:build_workshop_create_stockpile}}
+               </div>
+               <div class="subtitle2">
+                  Click and drag on the ground to place the stockpile
+               </div>
+            </center>
 
             <div class='portrait'>
                <img class='crate' />
@@ -14,33 +47,9 @@
             <div class="description">
                {{i18n stonehearth:build_workshop_create_stockpile_description}}
             </div>
-            
          </div>
-      </div>
 
-      <div class="scroll" id="page1">
-         <div class="content">
-            <div class="title">
-               {{workshop.name}}
-            </div>
-
-            <div class="subtitle">
-               {{i18n stonehearth:build_workshop_requirements}}
-               {{#each workshop.ingredients}}
-                  <div>{{this.count}} {{this.material}}</div>
-               {{/each}}
-            </div>
-
-            <div class='portrait'>
-               <img {{bind-attr src=workshop.portrait}} />
-            </div>
-
-            <div class="description">
-               {{{workshop.long_description}}}
-            </div>
-         </div>
       </div>
 
    </div>
-
 </script>

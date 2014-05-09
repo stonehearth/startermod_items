@@ -41,8 +41,12 @@ function CombatIdleShuffle:run(ai, entity, args)
 
    ai:execute('stonehearth:go_toward_location', { destination = self._destination })
 
-   local melee_range = stonehearth.combat:get_melee_range(entity, 'medium_1h_weapon', enemy)
-   ai:execute('stonehearth:bump_against_entity', { entity = enemy, distance = melee_range })
+   local weapon = stonehearth.combat:get_melee_weapon(entity)
+   local weapon_data = radiant.entities.get_entity_data(weapon, 'stonehearth:combat:weapon_data')
+   assert(weapon_data)
+   
+   local melee_range_ideal = stonehearth.combat:get_melee_range(entity, weapon_data, enemy)
+   ai:execute('stonehearth:bump_against_entity', { entity = enemy, distance = melee_range_ideal })
 
    ai:execute('stonehearth:turn_to_face_entity', { entity = enemy })
    ai:execute('stonehearth:run_effect', { effect = 'combat_1h_idle' })

@@ -53,7 +53,7 @@
    END_GROUP(horde) \
    \
    BEGIN_GROUP(renderer) \
-      ADD_CATEGORY(carry_block) \
+      ADD_CATEGORY(attached_items) \
       ADD_CATEGORY(effects_list) \
       ADD_CATEGORY(entity) \
       ADD_CATEGORY(entity_container) \
@@ -68,7 +68,7 @@
    END_GROUP(renderer) \
    \
    BEGIN_GROUP(om) \
-      ADD_CATEGORY(carry_block) \
+      ADD_CATEGORY(attached_items) \
       ADD_CATEGORY(entity) \
       ADD_CATEGORY(region) \
       ADD_CATEGORY(target_tables) \

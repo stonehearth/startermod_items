@@ -5,6 +5,7 @@ local DirtPlotComponent =  require 'components.farmer_field.dirt_plot_component'
 local PlantCrop = class()
 PlantCrop.name = 'plant crop'
 PlantCrop.does = 'stonehearth:plant_crop'
+PlantCrop.status_text = 'planting crop'
 PlantCrop.args = {
    target_plot = Entity,
    dirt_plot_component = DirtPlotComponent,

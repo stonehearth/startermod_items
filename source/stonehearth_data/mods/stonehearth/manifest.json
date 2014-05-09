@@ -365,14 +365,22 @@
       "actions:combat:idle:ready" : "file(ai/actions/combat/combat_idle_ready_action.lua)",
       "actions:combat:idle:shuffle" : "file(ai/actions/combat/combat_idle_shuffle_action.lua)",
       "actions:combat:hit_stun" : "file(ai/actions/combat/hit_stun_action.lua)",
+      "actions:combat:find_target" : "file(ai/actions/combat/find_target_action.lua)",
+      "actions:combat:create_engage_callback" : "file(ai/actions/combat/create_engage_callback_action.lua)",
+      "actions:combat:get_melee_range" : "file(ai/actions/combat/get_melee_range_action.lua)",
+      "actions:combat:set_global_attack_cooldown" : "file(ai/actions/combat/set_global_attack_cooldown_action.lua)",
+      "actions:combat:wait_for_global_attack_cooldown" : "file(ai/actions/combat/wait_for_global_attack_cooldown_action.lua)",
       "actions:chase_entity" : "file(ai/actions/chase_entity_action.lua)",
-
       "actions:run_away_from_entity" : "file(ai/actions/run_away_from_entity_action.lua)",
+
+      "actions:set_posture" : "file(ai/actions/set_posture_action.lua)",
+      "actions:unset_posture" : "file(ai/actions/unset_posture_action.lua)",
 
       "observers:enemy_observer" : "file(ai/observers/enemy_observer.lua)",
       "observers:sleepiness" : "file(ai/observers/sleepiness_observer.lua)",
       "observers:calorie" : "file(ai/observers/calorie_observer.lua)",
       "observers:free_time" : "file(ai/observers/free_time_observer.lua)",
+      "observers:nutrition_score" : "file(ai/observers/nutrition_score_observer.lua)",
 
       "class_info" : "file(entities/class_info)",
       "personality_types" : "file(data/personality/personality_types.json)",
@@ -812,6 +820,7 @@
       "equipment" : "file(components/equipment/equipment_component.lua)",
       "equipment_piece" : "file(components/equipment_piece/equipment_piece_component.lua)",
       "attributes" : "file(components/attributes/attributes_component.lua)",
+      "score" : "file(components/score/score_component.lua)",
       "buffs" : "file(components/buffs/buffs_component.lua)",
       "fabricator" : "file(components/fabricator/fabricator_component.lua)",
       "scaffolding_fabricator" : "file(components/scaffolding_fabricator/scaffolding_fabricator_component.lua)",

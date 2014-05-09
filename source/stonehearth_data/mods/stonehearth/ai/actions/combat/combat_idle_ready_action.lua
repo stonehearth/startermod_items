@@ -21,9 +21,7 @@ function CombatIdleReady:run(ai, entity, args)
    ai:execute('stonehearth:turn_to_face_entity', { entity = args.enemy })
    
    -- TODO: get the idle animation appropriate to the weapon
-   ai:execute('stonehearth:run_effect', {
-      effect = 'combat_1h_idle'
-   })
+   ai:execute('stonehearth:run_effect', { effect = 'combat_1h_idle' })
 end
 
 return CombatIdleReady

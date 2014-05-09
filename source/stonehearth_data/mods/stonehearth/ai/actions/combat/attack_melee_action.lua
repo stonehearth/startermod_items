@@ -1,6 +1,4 @@
-local EngageContext = require 'services.server.combat.engage_context'
 local Entity = _radiant.om.Entity
-local log = radiant.log.create_logger('combat')
 
 local AttackMelee = class()
 
@@ -13,34 +11,19 @@ AttackMelee.version = 2
 AttackMelee.priority = 1
 AttackMelee.weight = 1
 
--- TODO: rewrite this as a compound action so we don't execute the astar path finder in run
-function AttackMelee:run(ai, entity, args)
-   local target = args.target
-
-   if not target:is_valid() then
-      ai:abort('target has been destroyed')
-      return
-   end
-
-   local melee_range_ideal = stonehearth.combat:get_melee_range(entity, 'medium_1h_weapon', target)
-   local melee_range_max = melee_range_ideal + 2
-   local engage_range_min = melee_range_ideal + 3
-   local engage_range_max = engage_range_min + 3
-
-   ai:execute('stonehearth:chase_entity', { target = target, stop_distance = engage_range_min })
-
-   local distance = radiant.entities.distance_between(entity, target)
-
-   if distance < engage_range_max then
-      local context = EngageContext(entity)
-      stonehearth.combat:engage(target, context)
-
-      ai:execute('stonehearth:chase_entity', { target = target, stop_distance = melee_range_ideal })
-
-      if distance < melee_range_max then
-         ai:execute('stonehearth:combat:attack_melee_adjacent', { target = target })
-      end
-   end
-end
-
-return AttackMelee
+local ai = stonehearth.ai
+return ai:create_compound_action(AttackMelee)
+   :execute('stonehearth:combat:get_melee_range', {
+      target = ai.ARGS.target,
+   })
+   :execute('stonehearth:combat:create_engage_callback', {
+      target = ai.ARGS.target,
+   })
+   :execute('stonehearth:chase_entity', {
+      target = ai.ARGS.target,
+      stop_distance = ai.BACK(2).melee_range_ideal,
+      grid_location_changed_cb = ai.PREV.callback,
+   })
+   :execute('stonehearth:combat:attack_melee_adjacent', {
+      target = ai.ARGS.target,
+   })
