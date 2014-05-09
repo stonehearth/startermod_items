@@ -89,10 +89,10 @@ RenderNode RenderNode::CreateSharedCsgMeshNode(H3DNode parent, ResourceCacheKey 
       RN_LOG(7) << "creating new geometry for " << key.GetDescription();
 
       csg::mesh_tools::mesh m;
-      for (int i = 1; i <= MAX_LOD_LEVELS; i++) {
+      for (int i = 0; i < MAX_LOD_LEVELS; i++) {
          create_mesh_fn(m, i);
-         geo.vertexIndices[i] = m.vertices.size();
-         geo.indexIndicies[i] = m.indices.size();
+         geo.vertexIndices[i + 1] = m.vertices.size();
+         geo.indexIndicies[i + 1] = m.indices.size();
       }
       geo.levelCount = MAX_LOD_LEVELS;
       ConvertVoxelDataToGeometry((VoxelGeometryVertex *)m.vertices.data(), (uint *)m.indices.data(), geo);
