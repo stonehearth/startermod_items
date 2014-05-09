@@ -1,4 +1,4 @@
 <Material parent="materials/base.material.xml">
    <Shader source="shaders/forward.shader" />
-   <Uniform name="gridlineColor" a="0.2" b="0.2" c="0.2" d="0.5" />
+   <Uniform name="gridlineColor" a="0.02" b="0.02" c="0.02" d="0.5" />
 </Material>
