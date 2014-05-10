@@ -46,14 +46,29 @@ void h3dUnloadResourceNop(H3DRes)
 }
 
 /*
- * -- h3dRemoveResourceVoid
+ * -- h3dRemoveResourceChecked
  *
- * Remove the 'int' return type from h3dRemoveResource so we can use it as a template
- * parameter in the SharedGeometry type.
+ * Check for 0 before calling into horde, since it gets really mad if we don't
+ * (spewing the log).
  */
-void h3dRemoveResourceVoid(H3DRes res)
+void h3dRemoveResourceChecked(H3DRes res)
 {
-   h3dRemoveResource(res);
+   if (res != 0) {
+      h3dRemoveResource(res);
+   }
+}
+
+/*
+ * -- h3dRemoveNodeChecked
+ *
+ * Check for 0 before calling into horde, since it gets really mad if we don't
+ * (spewing the log).
+ */
+void h3dRemoveNodeChecked(H3DRes node)
+{
+   if (node != 0) {
+      h3dRemoveNode(node);
+   }
 }
 
 Pipeline::Pipeline() :
@@ -164,7 +179,7 @@ void Pipeline::AddDesignationBorder(csg::mesh_tools::mesh& m, csg::EdgeMap2& edg
    }
 }
 
-RenderNode
+RenderNodePtr
 Pipeline::CreateDesignationNode(H3DNode parent,
                                 csg::Region2 const& plane,
                                 csg::Color4 const& outline_color,
@@ -181,30 +196,29 @@ Pipeline::CreateDesignationNode(H3DNode parent,
    AddDesignationBorder(outline_mesh, edgemap);
    AddDesignationStripes(stripes_mesh, plane);
 
-   H3DNode group = h3dAddGroupNode(parent, "designation group node");
-   RenderNode stripes = RenderNode::CreateCsgMeshNode(group, stripes_mesh)
-      .SetMaterial("materials/designation/stripes.material.xml");
+   RenderNodePtr group = RenderNode::CreateGroupNode(parent, "designation group node");
+   RenderNodePtr stripes = RenderNode::CreateCsgMeshNode(group->GetNode(), stripes_mesh)
+      ->SetMaterial("materials/designation/stripes.material.xml");
 
-   h3dSetNodeParamI(stripes.GetNode(), H3DModel::UseCoarseCollisionBoxI, 1);
-   h3dSetNodeParamI(stripes.GetNode(), H3DModel::PolygonOffsetEnabledI, 1);
-   h3dSetNodeParamF(stripes.GetNode(), H3DModel::PolygonOffsetF, 0, -1.0);
-   h3dSetNodeParamF(stripes.GetNode(), H3DModel::PolygonOffsetF, 1, -.01f);
+   h3dSetNodeParamI(stripes->GetNode(), H3DModel::UseCoarseCollisionBoxI, 1);
+   h3dSetNodeParamI(stripes->GetNode(), H3DModel::PolygonOffsetEnabledI, 1);
+   h3dSetNodeParamF(stripes->GetNode(), H3DModel::PolygonOffsetF, 0, -1.0);
+   h3dSetNodeParamF(stripes->GetNode(), H3DModel::PolygonOffsetF, 1, -.01f);
 
-   RenderNode outline = RenderNode::CreateCsgMeshNode(group, outline_mesh)
-      .SetMaterial("materials/designation/outline.material.xml");
+   RenderNodePtr outline = RenderNode::CreateCsgMeshNode(group->GetNode(), outline_mesh)
+      ->SetMaterial("materials/designation/outline.material.xml");
 
-   h3dSetNodeParamI(outline.GetNode(), H3DModel::UseCoarseCollisionBoxI, 1);
-   h3dSetNodeParamI(outline.GetNode(), H3DModel::PolygonOffsetEnabledI, 1);
-   h3dSetNodeParamF(outline.GetNode(), H3DModel::PolygonOffsetF, 0, -1.0);
-   h3dSetNodeParamF(outline.GetNode(), H3DModel::PolygonOffsetF, 1, -.01f);
+   h3dSetNodeParamI(outline->GetNode(), H3DModel::UseCoarseCollisionBoxI, 1);
+   h3dSetNodeParamI(outline->GetNode(), H3DModel::PolygonOffsetEnabledI, 1);
+   h3dSetNodeParamF(outline->GetNode(), H3DModel::PolygonOffsetF, 0, -1.0);
+   h3dSetNodeParamF(outline->GetNode(), H3DModel::PolygonOffsetF, 1, -.01f);  
 
-   RenderNode result(group);
-   result.AddChild(stripes);
-   result.AddChild(outline);
-   return result;
+   group->AddChild(stripes);
+   group->AddChild(outline);
+   return group;
 }
 
-RenderNode
+RenderNodePtr
 Pipeline::CreateStockpileNode(H3DNode parent,
                                 csg::Region2 const& plane,
                                 csg::Color4 const& interior_color,
@@ -213,7 +227,7 @@ Pipeline::CreateStockpileNode(H3DNode parent,
    return CreateXZBoxNode(parent, plane, interior_color, border_color, 1.0);
 }
 
-RenderNode
+RenderNodePtr
 Pipeline::CreateSelectionNode(H3DNode parent,
                               csg::Region2 const& plane,
                               csg::Color4 const& interior_color,
@@ -223,7 +237,7 @@ Pipeline::CreateSelectionNode(H3DNode parent,
 }
 
 
-RenderNode
+RenderNodePtr
 Pipeline::CreateXZBoxNode(H3DNode parent,
                           csg::Region2 const& plane,
                           csg::Color4 const& interior_color,
@@ -239,19 +253,18 @@ Pipeline::CreateXZBoxNode(H3DNode parent,
 
    CreateXZBoxNodeGeometry(mesh, plane, interior_color, border_color, border_size);
 
-   H3DNode group = h3dAddGroupNode(parent, "designation group node");
+   RenderNodePtr group = RenderNode::CreateGroupNode(parent, "designation group node");
 
-   RenderNode interior = RenderNode::CreateCsgMeshNode(group, mesh)
-      .SetMaterial("materials/transparent.material.xml");
+   RenderNodePtr interior = RenderNode::CreateCsgMeshNode(group->GetNode(), mesh)
+      ->SetMaterial("materials/transparent.material.xml");
 
-   h3dSetNodeParamI(interior.GetNode(), H3DModel::UseCoarseCollisionBoxI, 1);
-   h3dSetNodeParamI(interior.GetNode(), H3DModel::PolygonOffsetEnabledI, 1);
-   h3dSetNodeParamF(interior.GetNode(), H3DModel::PolygonOffsetF, 0, -1.0);
-   h3dSetNodeParamF(interior.GetNode(), H3DModel::PolygonOffsetF, 1, -.01f);
+   h3dSetNodeParamI(interior->GetNode(), H3DModel::UseCoarseCollisionBoxI, 1);
+   h3dSetNodeParamI(interior->GetNode(), H3DModel::PolygonOffsetEnabledI, 1);
+   h3dSetNodeParamF(interior->GetNode(), H3DModel::PolygonOffsetF, 0, -1.0);
+   h3dSetNodeParamF(interior->GetNode(), H3DModel::PolygonOffsetF, 1, -.01f);
 
-   RenderNode result(group);
-   result.AddChild(interior);
-   return result;
+   group->AddChild(interior);
+   return group;
 }
 
 void Pipeline::CreateXZBoxNodeGeometry(csg::mesh_tools::mesh& mesh, 

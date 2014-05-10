@@ -2415,6 +2415,7 @@ void Renderer::drawMeshes( std::string const& shaderContext, std::string const& 
 	GeometryResource *curGeoRes = 0x0;
 	MaterialResource *curMatRes = 0x0;
 
+         Modules::config().setGlobalShaderFlag("DRAW_WITH_INSTANCING", false);
 	// Loop over mesh queue
 	for( const auto& entry : Modules::sceneMan().getRenderableQueue(SceneNodeTypes::Mesh) )
 	{

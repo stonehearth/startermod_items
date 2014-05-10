@@ -1,0 +1,3 @@
+<Material parent="materials/base.material.xml">
+   <Shader source="shaders/forward_obj.shader" />
+</Material>

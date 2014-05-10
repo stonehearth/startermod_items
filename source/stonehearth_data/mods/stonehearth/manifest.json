@@ -49,6 +49,7 @@
       "wooden_column" : "file(entities/build/wooden_column)",
       "wooden_peaked_roof" : "file(entities/build/wooden_peaked_roof)",
       "scaffolding" : "file(entities/build/scaffolding)",
+      "models:arrow" : "file(data/models/arrow.obj)",
       "entities:building" : "file(entities/build/building)",
       "entities:fabricator" : "file(entities/build/fabricator)",
 

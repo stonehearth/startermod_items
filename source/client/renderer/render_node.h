@@ -34,52 +34,62 @@ struct GeometryInfo {
  * and exposing SetMaterial() and SetOverrideMaterial() methods
  */
 
-class RenderNode {
+
+class RenderNode : public  std::enable_shared_from_this<RenderNode> {
 public:
-   RenderNode();
-   RenderNode(H3DNode node);
-   
+  
    typedef std::function<void(csg::mesh_tools::mesh &, int lodLevel)> CreateMeshLodLevelFn;
 
-   static RenderNode CreateMeshNode(H3DNode parent, GeometryInfo const& geo);
-   static RenderNode CreateVoxelNode(H3DNode parent, GeometryInfo const& geo);
+   static RenderNodePtr CreateGroupNode(H3DNode parent, std::string const& name);
+   static RenderNodePtr CreateMeshNode(H3DNode parent, GeometryInfo const& geo);
+   static RenderNodePtr CreateVoxelNode(H3DNode parent, GeometryInfo const& geo);
 
-   static RenderNode CreateObjFileNode(H3DNode parent, std::string const& uri);
-   static RenderNode CreateCsgMeshNode(H3DNode parent, csg::mesh_tools::mesh const& m);
-   static RenderNode CreateSharedCsgMeshNode(H3DNode parent, ResourceCacheKey const& key, CreateMeshLodLevelFn cb);
+   static RenderNodePtr CreateObjNode(H3DNode parent, std::string const& uri);
+   static RenderNodePtr CreateCsgMeshNode(H3DNode parent, csg::mesh_tools::mesh const& m);
+   static RenderNodePtr CreateSharedCsgMeshNode(H3DNode parent, ResourceCacheKey const& key, CreateMeshLodLevelFn cb);
 
    ~RenderNode();
 
    H3DNode GetNode() const { return _node.get(); }
 
-   RenderNode& SetUserFlags(int flags);
-   RenderNode& SetGeometry(SharedGeometry geo);
-   RenderNode& SetMaterial(std::string const& material);
-   RenderNode& SetMaterial(SharedMaterial mat);
-   RenderNode& SetOverrideMaterial(SharedMaterial mat);
-   RenderNode& SetTransform(csg::Point3f const& pos, csg::Point3f const& rot, csg::Point3f const& scale);
+   RenderNodePtr SetUserFlags(int flags);
+   RenderNodePtr SetGeometry(SharedGeometry geo);
+   RenderNodePtr SetMaterial(std::string const& material);
+   RenderNodePtr SetMaterial(SharedMaterial mat);
+   RenderNodePtr SetOverrideMaterial(SharedMaterial mat);
+   RenderNodePtr SetPosition(csg::Point3f const& pos);
+   RenderNodePtr SetRotation(csg::Point3f const& rot);
+   RenderNodePtr SetScale(csg::Point3f const& scale);
+   RenderNodePtr SetTransform(csg::Point3f const& pos, csg::Point3f const& rot, csg::Point3f const& scale);
 
-   RenderNode& AddChild(const RenderNode& r);
+   RenderNodePtr AddChild(RenderNodePtr r);
 
    void Destroy();
 
 private:
-   static void ConvertVoxelDataToGeometry(VoxelGeometryVertex *vertices, uint *indices, GeometryInfo& geo);
-   static void ConvertObjFileToGeometry(std::istream& stream, GeometryInfo& geo);
+   RenderNode();
 
+public: // just because we need std::make_shared<>  UG!
+   RenderNode(H3DNode node);
    RenderNode(H3DNode node, H3DNode mesh, SharedGeometry geo, SharedMaterial mat);
+
    void ApplyMaterial();
+   void DestroyHordeNode();
+   RenderNodePtr GetUnparentedRenderNode();
 
 private:
-   std::vector<RenderNode> _children;
-   int            _id;
+   static void ConvertVoxelDataToGeometry(VoxelGeometryVertex *vertices, uint *indices, GeometryInfo& geo);
+   static void ConvertObjFileToGeometry(std::istream& stream, GeometryInfo& geo);
+   static RenderNodePtr _unparentedRenderNode;
+
+private:
+   std::unordered_map<H3DNode, RenderNodePtr> _children;
    SharedNode     _node;
-   SharedNode     _meshNode;
+   H3DNode        _meshNode; // The lifetime of the mesh is controlled by the _node, therefore it does not need to be auto-deleted
    SharedGeometry _geometry;
    SharedMaterial _material;
    SharedMaterial _overrideMaterial;
 };
-
 
 END_RADIANT_CLIENT_NAMESPACE
 

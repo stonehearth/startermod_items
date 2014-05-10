@@ -230,10 +230,10 @@ void RenderTerrain::UpdateRenderRegion(RenderTilePtr render_tile)
       mesh = csg::mesh_tools().SetTesselator(tess_map)
                               .ConvertRegionToMesh(tesselatedRegion);
    
-      RenderNode node = RenderNode::CreateCsgMeshNode(terrain_root_node_.get(), mesh)
-                           .SetMaterial("materials/terrain.material.xml")
-                           .SetUserFlags(UserFlags::Terrain)
-                           .SetTransform(csg::ToFloat(render_tile->location), csg::Point3f::zero, csg::Point3f::one);
+      RenderNodePtr node = RenderNode::CreateCsgMeshNode(terrain_root_node_.get(), mesh)
+                              ->SetMaterial("materials/terrain.material.xml")
+                              ->SetUserFlags(UserFlags::Terrain)
+                              ->SetTransform(csg::ToFloat(render_tile->location), csg::Point3f::zero, csg::Point3f::one);
 
       render_tile->SetNode(node);
    }

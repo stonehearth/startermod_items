@@ -1,23 +1,10 @@
+local voxel_brush_util = require 'services.server.build.voxel_brush_util'
 local Point3f = _radiant.csg.Point3f
 local Region3 = _radiant.csg.Region3
 
 local ScaffoldingRenderer = class()
 local log = radiant.log.create_logger('scaffolding.renderer')
 
--- A lookup table to convert a normal in the xz-plane to a rotation
--- about the y-axis.  Usage: ROTATION_TABLE[normal.x][normal.z]
-local ROTATION_TABLE = {
-   [ 0] = {
-      [-1] = 0,
-      [ 1] = 180,
-   },
-   [ 1] = {
-      [ 0] = 270
-   },
-   [-1] = {
-      [ 0] = 90
-   }   
-}
 function ScaffoldingRenderer:__init(render_entity, ed)
    -- Pull some render parameters out of the entity data
    self._lattice = ed.lattice
@@ -96,8 +83,7 @@ function ScaffoldingRenderer:_update_shape()
       local construction_data = datastore:get_data()
       local normal = construction_data.normal
       if normal then
-         self._rotation = ROTATION_TABLE[normal.x][normal.z]
-         self._rotation = (self._rotation  + 180) % 360 --need to flip 180 around y axis
+         self._rotation = voxel_brush_util.normal_to_rotation(normal)
          self._tangent = normal.x == 0 and 'x' or 'z'
       end
    end

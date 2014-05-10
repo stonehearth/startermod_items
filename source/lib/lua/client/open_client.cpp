@@ -91,35 +91,34 @@ om::EntityRef Client_GetSelectedEntity()
    return Client::GetInstance().GetSelectedEntity();
 }
 
-RenderNode Client_CreateVoxelNode(lua_State* L, 
-                                  H3DNode parent,
-                                  csg::Region3 const& model,
-                                  std::string const& material_path,
-                                  csg::Point3f const& origin)
+RenderNodePtr Client_CreateVoxelNode(lua_State* L, 
+                                     H3DNode parent,
+                                     csg::Region3 const& model,
+                                     std::string const& material_path,
+                                     csg::Point3f const& origin)
 {
    csg::mesh_tools::mesh mesh;
    csg::RegionToMesh(model, mesh, -origin, false);
 
    return RenderNode::CreateCsgMeshNode(parent, mesh)
-      .SetMaterial(material_path);
+               ->SetMaterial(material_path);
 }
 
 
-RenderNode Client_CreateObjNode(lua_State* L, 
-                                RenderNode const& parent,
-                                std::string const& objfile)
-{
-   NOT_YET_IMPLEMENTED();
-   return RenderNode();
+RenderNodePtr Client_CreateObjRenderNode(lua_State* L, 
+                                         RenderNodePtr const& parent,
+                                         std::string const& objfile)
+   {
+   return RenderNode::CreateObjNode(parent->GetNode(), objfile);
 }
 
-RenderNode Client_CreateQubicleMatrixNode(lua_State* L, 
+RenderNodePtr Client_CreateQubicleMatrixNode(lua_State* L, 
                                           H3DNode parent,
                                           std::string const& qubicle_file,
                                           std::string const& qubicle_matrix,
                                           csg::Point3f const& origin)
 {
-   RenderNode node;
+   RenderNodePtr node;
    Pipeline& pipeline = Pipeline::GetInstance();
 
    voxel::QubicleFile* qubicle = pipeline.LoadQubicleFile(qubicle_file);
@@ -144,7 +143,7 @@ RenderNode Client_CreateQubicleMatrixNode(lua_State* L,
    return node;
 }
 
-RenderNode Client_CreateDesignationNode(lua_State* L, 
+RenderNodePtr Client_CreateDesignationNode(lua_State* L, 
                                      H3DNode parent,
                                      csg::Region2 const& model,
                                      csg::Color4 const& outline,
@@ -153,7 +152,7 @@ RenderNode Client_CreateDesignationNode(lua_State* L,
    return Pipeline::GetInstance().CreateDesignationNode(parent, model, outline, stripes);
 }
 
-RenderNode Client_CreateSelectionNode(lua_State* L, 
+RenderNodePtr Client_CreateSelectionNode(lua_State* L, 
                                   H3DNode parent,
                                   csg::Region2 const& model,
                                   csg::Color4 const& interior_color,
@@ -162,7 +161,7 @@ RenderNode Client_CreateSelectionNode(lua_State* L,
    return Pipeline::GetInstance().CreateSelectionNode(parent, model, interior_color, border_color);
 }
 
-RenderNode Client_CreateStockpileNode(lua_State* L, 
+RenderNodePtr Client_CreateStockpileNode(lua_State* L, 
                                    H3DNode parent,
                                    csg::Region2 const& model,
                                    csg::Color4 const& interior_color,
@@ -485,7 +484,7 @@ void lua::client::open(lua_State* L)
             def("trace_render_frame",              &Client_TraceRenderFrame),
             def("set_cursor",                      &Client_SetCursor),
             def("create_voxel_node",               &Client_CreateVoxelNode),
-            def("create_obj_node",                 &Client_CreateObjNode),
+            def("create_obj_render_node",          &Client_CreateObjRenderNode),
             def("create_qubicle_matrix_node",      &Client_CreateQubicleMatrixNode),
             def("create_designation_node",         &Client_CreateDesignationNode),
             def("create_selection_node",           &Client_CreateSelectionNode),

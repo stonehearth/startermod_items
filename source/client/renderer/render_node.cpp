@@ -1,4 +1,5 @@
 #include "pch.h"
+#include <unordered_set>
 #include "resources/res_manager.h"
 #include "radiant_macros.h"
 #include "radiant_stdutil.h"
@@ -20,24 +21,30 @@ public:
 #define RN_LOG(level)   LOG(renderer.render_node, level)
 
 static int nextId = 1;
+RenderNodePtr RenderNode::_unparentedRenderNode;
+std::unordered_set<H3DNode> ownedNodes;
 
-RenderNode RenderNode::CreateMeshNode(H3DNode parent, GeometryInfo const& geo)
+RenderNodePtr RenderNode::CreateGroupNode(H3DNode parent, std::string const& name)
+{
+   return std::make_shared<RenderNode>(h3dAddGroupNode(parent, name.c_str()));
+}
+
+RenderNodePtr RenderNode::CreateMeshNode(H3DNode parent, GeometryInfo const& geo)
 {
    std::string modelName = BUILD_STRING("model" << nextId++);
    std::string meshName = BUILD_STRING("mesh" << nextId++);
 
-   SharedMaterial mat = Pipeline::GetInstance().GetSharedMaterial("materials/skysphere.material.xml");
+   SharedMaterial mat = Pipeline::GetInstance().GetSharedMaterial("materials/obj.material.xml");
    H3DNode node = h3dAddModelNode(parent, modelName.c_str(), geo.geo.get());
 
-   int indexCount = geo.indexIndicies[geo.levelCount - 1];
-   int vertexCount = geo.vertexIndices[geo.levelCount - 1];
+   int indexCount = geo.indexIndicies[geo.levelCount];
+   int vertexCount = geo.vertexIndices[geo.levelCount];
    H3DNode meshNode = h3dAddMeshNode(node, meshName.c_str(), mat.get(), 0, indexCount, 0, vertexCount - 1);
 
-   return RenderNode(node, meshNode, geo.geo, mat);
+   return std::make_shared<RenderNode>(node, meshNode, geo.geo, mat);
 }
 
-
-RenderNode RenderNode::CreateVoxelNode(H3DNode parent, GeometryInfo const& geo)
+RenderNodePtr RenderNode::CreateVoxelNode(H3DNode parent, GeometryInfo const& geo)
 {
    std::string modelName = BUILD_STRING("model" << nextId++);
    std::string meshName = BUILD_STRING("mesh" << nextId++);
@@ -46,10 +53,10 @@ RenderNode RenderNode::CreateVoxelNode(H3DNode parent, GeometryInfo const& geo)
    H3DNode node = h3dAddVoxelModelNode(parent, modelName.c_str(), geo.geo.get());
    H3DNode meshNode = h3dAddVoxelMeshNode(node, meshName.c_str(), mat.get());
 
-   return RenderNode(node, meshNode, geo.geo, mat);
+   return std::make_shared<RenderNode>(node, meshNode, geo.geo, mat);
 }
 
-RenderNode RenderNode::CreateObjFileNode(H3DNode parent, std::string const& uri)
+RenderNodePtr RenderNode::CreateObjNode(H3DNode parent, std::string const& uri)
 {
    res::ResourceManager2 &r = res::ResourceManager2::GetInstance();
    std::string const& path = r.ConvertToCanonicalPath(uri, ".obj");
@@ -61,7 +68,7 @@ RenderNode RenderNode::CreateObjFileNode(H3DNode parent, std::string const& uri)
    if (!Pipeline::GetInstance().GetSharedGeometry(key, geo)) {
       std::shared_ptr<std::istream> is = r.OpenResource(path);
       if (!is) {
-         return RenderNode(); // xxx: return invalid object node (a companion cube?)
+         return nullptr;
       }
       ConvertObjFileToGeometry(*is, geo);
       Pipeline::GetInstance().SetSharedGeometry(key, geo);
@@ -69,7 +76,7 @@ RenderNode RenderNode::CreateObjFileNode(H3DNode parent, std::string const& uri)
    return CreateMeshNode(parent, geo);
 }
 
-RenderNode RenderNode::CreateCsgMeshNode(H3DNode parent, csg::mesh_tools::mesh const& m)
+RenderNodePtr RenderNode::CreateCsgMeshNode(H3DNode parent, csg::mesh_tools::mesh const& m)
 {
    GeometryInfo geo;
 
@@ -81,7 +88,7 @@ RenderNode RenderNode::CreateCsgMeshNode(H3DNode parent, csg::mesh_tools::mesh c
    return CreateVoxelNode(parent, geo);
 }
 
-RenderNode RenderNode::CreateSharedCsgMeshNode(H3DNode parent, ResourceCacheKey const& key, CreateMeshLodLevelFn create_mesh_fn)
+RenderNodePtr RenderNode::CreateSharedCsgMeshNode(H3DNode parent, ResourceCacheKey const& key, CreateMeshLodLevelFn create_mesh_fn)
 {   
    GeometryInfo geo;
    if (!Pipeline::GetInstance().GetSharedGeometry(key, geo)) {
@@ -101,83 +108,143 @@ RenderNode RenderNode::CreateSharedCsgMeshNode(H3DNode parent, ResourceCacheKey 
    return CreateVoxelNode(parent, geo);
 }
 
-RenderNode::RenderNode() :
-   _id(nextId++)
+RenderNode::RenderNode()
 {
 }
 
 RenderNode::RenderNode(H3DNode node) :
-   _id(nextId++),
    _node(node)
 {
+   ownedNodes.insert(node);
 }
 
 RenderNode::RenderNode(H3DNode node, H3DNode mesh, SharedGeometry geo, SharedMaterial mat) :
-   _id(nextId++),
    _node(node),
    _meshNode(mesh),
    _geometry(geo),
    _material(mat)
 {
-
+   ownedNodes.insert(node);
 }
 
 RenderNode::~RenderNode()
 {
+   DestroyHordeNode();
 }
 
-RenderNode& RenderNode::SetUserFlags(int flags)
+RenderNodePtr RenderNode::SetUserFlags(int flags)
 {
    // why are flags on the mesh and not the model?
-   h3dSetNodeParamI(_meshNode.get(), H3DNodeParams::UserFlags, flags);
-   return *this;
+   h3dSetNodeParamI(_meshNode, H3DNodeParams::UserFlags, flags);
+   return shared_from_this();
 }
 
-RenderNode& RenderNode::SetGeometry(SharedGeometry geo)
+RenderNodePtr RenderNode::SetGeometry(SharedGeometry geo)
 {
    _geometry = geo;
-   return *this;
+   return shared_from_this();
 }
 
-RenderNode& RenderNode::SetMaterial(std::string const& material)
+RenderNodePtr RenderNode::SetMaterial(std::string const& material)
 {
    SharedMaterial mat = Pipeline::GetInstance().GetSharedMaterial(material);
    return SetMaterial(mat);
 }
 
-RenderNode& RenderNode::SetMaterial(SharedMaterial material)
+RenderNodePtr RenderNode::SetMaterial(SharedMaterial material)
 {
    _material = material;
    ApplyMaterial();
-   return *this;
+   return shared_from_this();
 }
 
-RenderNode& RenderNode::SetTransform(csg::Point3f const& pos, csg::Point3f const& rot, csg::Point3f const& scale)
+RenderNodePtr RenderNode::SetPosition(csg::Point3f const& pos)
+{
+   csg::Point3f _, rot, scale;
+   h3dGetNodeTransform(_node.get(), &_.x, &_.y, &_.z, &rot.x, &rot.y, &rot.z, &scale.x, &scale.y, &scale.z);
+   SetTransform(pos, rot, scale);
+   return shared_from_this();
+}
+
+RenderNodePtr RenderNode::SetRotation(csg::Point3f const& rot)
+{
+   csg::Point3f pos, _, scale;
+   h3dGetNodeTransform(_node.get(), &pos.x, &pos.y, &pos.z, &_.x, &_.y, &_.z, &scale.x, &scale.y, &scale.z);
+   SetTransform(pos, rot, scale);
+   return shared_from_this();
+}
+
+RenderNodePtr RenderNode::SetScale(csg::Point3f const& scale)
+{
+   csg::Point3f pos, rot, _;
+   h3dGetNodeTransform(_node.get(), &pos.x, &pos.y, &pos.z, &rot.x, &rot.y, &rot.z, &_.x, &_.y, &_.z);
+   SetTransform(pos, rot, scale);
+   return shared_from_this();
+}
+
+RenderNodePtr RenderNode::SetTransform(csg::Point3f const& pos, csg::Point3f const& rot, csg::Point3f const& scale)
 {
    h3dSetNodeTransform(_node.get(), pos.x, pos.y, pos.z, rot.x, rot.y, rot.z, scale.x, scale.y, scale.z);
-   return *this;
+   return shared_from_this();
 }
 
-RenderNode& RenderNode::AddChild(const RenderNode& r)
+RenderNodePtr RenderNode::AddChild(RenderNodePtr r)
 {
-   _children.push_back(r);
-   return *this;
+   _children[r->GetNode()] = r;
+   return shared_from_this();
 }
 
 void RenderNode::Destroy()
 {
-   _children.clear();
-   _node.reset();
-   _meshNode.reset();
+   DestroyHordeNode();
+
    _geometry.reset();
    _material.reset();
 }
 
-RenderNode& RenderNode::SetOverrideMaterial(SharedMaterial overrideMaterial)
+RenderNodePtr RenderNode::GetUnparentedRenderNode()
+{
+   if (!_unparentedRenderNode) {
+      _unparentedRenderNode = std::make_shared<RenderNode>(h3dAddGroupNode(1, "unparented render node"))
+                                 ->SetPosition(csg::Point3f(-1000000, -0100000, -1000000));
+   }
+   return _unparentedRenderNode;
+}
+
+void RenderNode::DestroyHordeNode()
+{
+   H3DNode node = _node.get();
+   if (node) {
+      ASSERT(_node.use_count() == 1);
+
+      // the node's about to go away.  destroying the node will destroy all it's
+      // children!  that's not what we want.  reparent all our children under some
+      // "unowned" node 
+      int i = 0;
+      H3DNode node = _node.get();
+      while (true) {
+         H3DNode child = h3dGetNodeChild(node, i++);
+         if (child == 0) {
+            break;
+         }
+         // If this node is owned by some render node somewhere out there, move
+         // it over to then unparented node
+         if (ownedNodes.find(child) != ownedNodes.end()) {
+            RenderNodePtr unparented = GetUnparentedRenderNode();
+            h3dSetNodeParent(child, unparented->GetNode());
+         }
+      }
+      _children.clear();
+      _node.reset();
+      ownedNodes.erase(node);
+   }
+}
+
+RenderNodePtr RenderNode::SetOverrideMaterial(SharedMaterial overrideMaterial)
 {
    _overrideMaterial = overrideMaterial;
    ApplyMaterial();
-   return *this;
+   return shared_from_this();
 }
 
 void RenderNode::ApplyMaterial()
@@ -187,7 +254,7 @@ void RenderNode::ApplyMaterial()
       if (_overrideMaterial.get()) {
          mat = _overrideMaterial.get();
       }
-      h3dSetNodeParamI(_meshNode.get(), H3DVoxelMeshNodeParams::MatResI, mat);
+      h3dSetNodeParamI(_meshNode, H3DVoxelMeshNodeParams::MatResI, mat);
    }
 }
 
@@ -220,6 +287,8 @@ void RenderNode::ConvertObjFileToGeometry(std::istream& stream, GeometryInfo &ge
    };
 
    auto addIndex = [&](int vi, int ni) {
+      --vi; --ni;    // covert 1 based indices to 0 based.
+
       std::pair<int, int> key(vi, ni);
       auto i = vertex_map.find(key);
       if (i != vertex_map.end()) {
@@ -258,20 +327,32 @@ void RenderNode::ConvertObjFileToGeometry(std::istream& stream, GeometryInfo &ge
                }
             }
          } else if (t0 == 'f') {
-            int v[3], n[3]; 
-            if (sscanf(line.c_str(), "%*s v%d//vn%d v%d//vn%d v%d//vn%d", &v[0], &n[0], &v[1], &n[1], &v[2], &n[2]) == 6) {
+            int v[4], n[4]; 
+            // textured triangle.  ignore the texture.
+            if (sscanf(line.c_str(), "%*s %d/%*d/%d %d/%*d/%d %d/%*d/%d", &v[0], &n[0], &v[1], &n[1], &v[2], &n[2]) == 6) {
                addIndex(v[0], n[0]);
                addIndex(v[1], n[1]);
                addIndex(v[2], n[2]);
+            }
+            // textured quad.  ignore the texture.  convert to two triangles
+            int c;
+            if ((c = sscanf(line.c_str(), "%*s %d/%*d/%d %d/%*d/%d %d/%*d/%d %d/%*d/%d", &v[0], &n[0], &v[1], &n[1], &v[2], &n[2], &v[3], &n[3])) == 8) {
+               addIndex(v[0], n[0]);
+               addIndex(v[1], n[1]);
+               addIndex(v[2], n[2]);
+
+               addIndex(v[0], n[0]);
+               addIndex(v[2], n[2]);
+               addIndex(v[3], n[3]);
             }
          }
       }
    }
    
    std::string geoName = BUILD_STRING("geo" << nextId++);
-   geo.vertexIndices[1] = vertices.size();
+   geo.vertexIndices[1] = vertices.size() / 3;
    geo.indexIndicies[1] = indices.size();
    geo.levelCount = 1;
-   geo.geo = h3dutCreateGeometryRes(geoName.c_str(), vertices.size(), indices.size(), vertices.data(),
+   geo.geo = h3dutCreateGeometryRes(geoName.c_str(), vertices.size() / 3, indices.size(), vertices.data(),
                                     indices.data(), normalData.data(), nullptr, nullptr, nullptr, nullptr);
 }
