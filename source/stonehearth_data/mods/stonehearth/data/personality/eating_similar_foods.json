@@ -1,0 +1,133 @@
+{
+   "activities" : {
+      "flavor_fatigue" : {
+         "id" : "flavor_fatigue",
+         "trigger_policy" : [
+            {
+               "trigger_id" : "flavor_fatigue",
+               "probability" : 100
+            }
+         ],
+         "text" : "On Eating the Same Thing Repeatedly:",
+         "type" : "random",
+         "logs_by_personality" : {
+            "generic" : {
+               "logs" : [
+               "Another __recent_food__? Joy.",
+               "If I eat one more __recent_food__ I might throw up.",
+               "Wish I had something else to eat other than this __recent_food__."
+               ]
+            },
+            "beleaguered_leader" : {
+               "logs" : [
+               "Another __recent_food__? Joy.",
+               "Better chug this __recent_food__ down; got to set a good example.",
+               "__recent_food__ definitely tastes better than starving, but...",
+               "__recent_food__ again? I can feel the revolt coming."
+               ]
+            },
+            "hopeless_optimist" : {
+               "logs" : [
+               "Maybe if I eat enough of this food, I'll turn into it!",
+               "__recent_food__ again? My jaws hurt.",
+               "It's okay, tongue! Just pretend you can't taste the __recent_food__." 
+               ]
+            },
+            "lovable_rogue" : {
+               "logs" : [
+               "__recent_food__. Great.",
+               "__recent_food__? I miss steak.",
+               "The market value for __recent_food__ is essentially zero right now."
+               ]
+            },
+            "psychopathic_misanthrope" : {
+               "logs" : [
+               "There's nothing to eat but __recent_food__? 10 days till I kill someone for their meat.",
+               "I've eaten so much of this food I can taste it in my sleep.",
+               "If I have to eat one more __recent_food__ I swear I will start to foam at the mouth."
+               ]
+            },
+            "insufferable_academic" : {
+               "logs" : [
+               "__recent_food__ again? If only people could be nourished by knowledge alone.",
+               "A surprising amount of digestion does not seem to happen on a one-food diet."
+               ]
+            },
+            "diligent_sweetheart" : {
+               "logs" : [
+               "More __recent_food__? Maybe we can dry some of it to eat later?", 
+               "I don't mean to complain, but all I've eaten recently is food like this __recent_food__. It's starting to hurt my mouth.",
+               "__recent_food__! Must... keep... chewing....!"
+               ]
+            }
+         }
+      }, 
+      "super_nutritious_food" : {
+         "id" : "super_nutritious_food",
+         "trigger_policy" : [
+            {
+               "trigger_id" : "super_nutritious_food",
+               "probability" : 100
+            }
+         ],
+         "text" : "On Eating Really Healthy:",
+         "type" : "random",
+         "logs_by_personality" : {
+            "generic" : {
+               "logs" : [
+               "Wow! That __recent_food__ made me feel super healthy!", 
+               "That __recent_food__ was surprisingly satisfying!", 
+               "__recent_food__? Super filling!", 
+               "This __recent_food__ is going to fuel today's great works!"
+               ]
+            },
+            "beleaguered_leader" : {
+               "logs" : [
+               "Wow. Who'd have guessed that __recent_food__ was a superfood?",
+               "That was a surprisngly satisfying __recent_food__.",
+               "That __recent_food__ was so good I should really prioritize eating more of it.",
+               "Arr! Now I feel like a superhero!"
+               ]
+            },
+            "hopeless_optimist" : {
+               "logs" : [
+               "Wow! I feel great!", 
+               "We need to make more food like this __recent_food__ so everyone can eat some!",
+               "Grow grow grow, grow more of this __recent_food__."
+               ]
+            },
+            "lovable_rogue" : {
+               "logs" : [
+               "Wow, who knew __recent_food__ was so incredibly slimming?", 
+               "This __recent_food__ is the best thing I've eaten in a long time.",
+               "I bet there's a market for food this good. Unless I should keep it all to myself?",
+               "This was an amazing __recent_food__. Praise __teacher__ and the Church of Plenty!"
+               ]
+            }
+         }
+      },
+      "different_food" : {
+         "id" : "different_food",
+         "trigger_policy" : [
+            {
+               "trigger_id" : "different_food",
+               "probability" : 100
+            }
+         ],
+         "text" : "On Eating Something Different:",
+         "type" : "random",
+         "logs_by_personality" : {
+            "generic" : {
+               "logs" : [
+               "Mmm, I love diversity in my diet.",
+               "Eating __recent_food__ was a nice change of pace.",
+               "Having different things at mealtimes really synergizes the flavors!",
+               "__recent_food__ tastes better when I haven't had it for a while.",
+               "Praise __teacher__! Diversity in food makes me happy."
+               ]
+            }
+         }
+      }
+   }
+}
+            
