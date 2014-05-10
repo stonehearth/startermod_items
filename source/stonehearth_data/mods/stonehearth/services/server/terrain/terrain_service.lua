@@ -2,6 +2,7 @@ local MathFns = require 'services.server.world_generation.math.math_fns'
 local Timer = require 'services.server.world_generation.timer'
 
 local Point2 = _radiant.csg.Point2
+local Point2f = _radiant.csg.Point2f
 local Rect2 = _radiant.csg.Rect2
 local Region2 = _radiant.csg.Region2
 local _terrain = radiant._root_entity:add_component('terrain')
@@ -31,7 +32,7 @@ end
 
 function TerrainService:_on_poll()
    self:_update_regions()
-   --self:_update_convex_hull()
+   self:_update_convex_hull()
 end
 
 -- Jarvis 'Gift-Wrapping' Algorithm
@@ -78,7 +79,24 @@ function TerrainService:_update_convex_hull()
       end
       i = i + 1
       new_hull_point = endpoint
-   until endpoint ~= new_hull[1]
+   until endpoint == new_hull[1]
+
+   self._sv._convex_hull = new_hull
+end
+
+-- Uses determinants (aka the area of the triangle).  Given a consistent winding order,
+-- the sign of the area determins whether test_point is to the left or right of the
+-- given line.
+function TerrainService:_is_left_of(start_point, end_point, test_point)
+   local ae = start_point.x * end_point.z
+   local bf = end_point.x * test_point.z
+   local cd = test_point.x * start_point.z
+
+   local ce = test_point.x * end_point.z
+   local bd = end_point.x * start_point.z
+   local af = start_point.x * test_point.z
+
+   return ((ae + bf + cd) - (ce + bd + af)) > 0
 end
 
 function TerrainService:_update_regions()
