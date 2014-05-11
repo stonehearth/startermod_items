@@ -167,6 +167,24 @@ function CombatService:set_timer(duration, fn)
    return stonehearth.calendar:set_timer(game_seconds, fn)
 end
 
+function CombatService:set_panicking(entity, is_panicking)
+   if entity == nil or not entity:is_valid() then
+      return
+   end
+
+   local combat_state = self._combat_state_table[entity:get_id()]
+   combat_state:set_panicking(is_panicking)
+end
+
+function CombatService:is_panicking(entity)
+   if entity == nil or not entity:is_valid() then
+      return false
+   end
+
+   local combat_state = self._combat_state_table[entity:get_id()]
+   return combat_state:is_panicking()
+end
+
 function CombatService:get_combat_state(entity)
    if entity == nil or not entity:is_valid() then
       return nil

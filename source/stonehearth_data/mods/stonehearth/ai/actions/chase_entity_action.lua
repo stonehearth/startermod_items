@@ -17,6 +17,10 @@ ChaseEntity.args = {
       type = 'number',
       default = 1,
    },
+   move_effect = {
+      type = 'string',
+      default = 'run',
+   },
    grid_location_changed_cb = {  -- triggered as the chasing entity changes grid locations
       type = 'function',
       default = stonehearth.ai.NIL,
@@ -207,7 +211,7 @@ function ChaseEntity:run(ai, entity, args)
       return
    end
 
-   self:_start_run_effect(entity)
+   self:_start_run_effect(entity, args.move_effect)
    self._moving = true
 
    while not finished do
@@ -221,6 +225,7 @@ function ChaseEntity:run(ai, entity, args)
          stop_distance = args.stop_distance
       end
 
+      -- we want to ai:execute('stonehearth:follow_path'), but need the ability to terminate the move early
       self._mover = _radiant.sim.create_follow_path(entity, speed, self._path, stop_distance,
          function ()
             if is_partial_path then
@@ -259,12 +264,12 @@ function ChaseEntity:_trace_entity_location(callback)
       :push_object_state()
 end
 
-function ChaseEntity:_start_run_effect(entity)
+function ChaseEntity:_start_run_effect(entity, move_effect)
    if not self._run_effect then
       -- make sure the event doesn't clean up after itself when the effect finishes.
       -- otherwise, people will only play through the animation once.
-      self._run_effect = radiant.effects.run_effect(entity, 'run')
-                           :set_cleanup_on_finish(false)
+      self._run_effect = radiant.effects.run_effect(entity, move_effect)
+         :set_cleanup_on_finish(false)
    end
 end
 

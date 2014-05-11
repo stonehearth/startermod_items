@@ -2,7 +2,7 @@ local Entity = _radiant.om.Entity
 
 local AttackMelee = class()
 
-AttackMelee.name = 'melee attack'
+AttackMelee.name = 'attack melee'
 AttackMelee.does = 'stonehearth:combat:attack'
 AttackMelee.args = {
    target = Entity

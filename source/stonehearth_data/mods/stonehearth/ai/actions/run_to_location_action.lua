@@ -11,7 +11,11 @@ RunToLocation.args = {
    stop_when_adjacent = {
       type = 'boolean',   -- whether to stop adjacent to destination
       default = false,
-   }
+   },
+   move_effect = {
+      type = 'string',
+      default = 'run',
+   },
 }
 RunToLocation.version = 2
 RunToLocation.priority = 1
@@ -23,5 +27,6 @@ return ai:create_compound_action(RunToLocation)
             use_default_adjacent_region = ai.ARGS.stop_when_adjacent,
          })
          :execute('stonehearth:goto_entity', {
-            entity = ai.PREV.entity
+            entity = ai.PREV.entity,
+            move_effect = ai.ARGS.move_effect,
          })
