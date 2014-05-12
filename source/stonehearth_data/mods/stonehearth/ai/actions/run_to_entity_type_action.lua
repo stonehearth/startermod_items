@@ -10,6 +10,10 @@ RunToEntityType.args = {
       type = 'string',
       default = '',
    },
+   move_effect = {
+      type = 'string',
+      default = 'run',
+   },
 }
 RunToEntityType.think_output = {
    destination_entity = Entity
@@ -24,5 +28,8 @@ return ai:create_compound_action(RunToEntityType)
             description = ai.ARGS.description,
             reconsider_event_name = ai.ARGS.reconsider_event_name,
          })
-         :execute('stonehearth:follow_path', { path = ai.PREV.path })
+         :execute('stonehearth:follow_path', {
+            path = ai.PREV.path,
+            move_effect = ai.ARGS.move_effect,
+         })
          :set_think_output({ destination_entity = ai.PREV.path:get_destination()})

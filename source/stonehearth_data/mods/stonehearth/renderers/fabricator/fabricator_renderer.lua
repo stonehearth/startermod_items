@@ -1,5 +1,6 @@
 local voxel_brush_util = require 'services.server.build.voxel_brush_util'
 local Point3 = _radiant.csg.Point3
+local Point3f = _radiant.csg.Point3f
 local FabricatorRenderer = class()
 
 -- keeps track of the currently selected building, globally.  used to
@@ -82,6 +83,10 @@ function FabricatorRenderer:destroy()
       self._dst_trace:destroy()
       self._dst_trace = nil
    end
+   if self._blueprint_dst_trace then
+      self._blueprint_dst_trace:destroy()
+      self._blueprint_dst_trace = nil
+   end
    if self._render_node then
       self._render_node:destroy()
       self._render_node = nil
@@ -134,7 +139,7 @@ function FabricatorRenderer:_update_render_state()
       end
       material = self._render_entity:get_material_path(material)
       self._render_node:set_material(material)
-   end
+  end
 end
 
 function FabricatorRenderer:_recreate_render_node()
@@ -159,17 +164,68 @@ function FabricatorRenderer:_recreate_render_node()
             self._blueprint_contruction_progress = construction_progress
          end
       end
+      if not self._blueprint_dst_trace then
+         local dst = blueprint:get_component('destination')
+         if dst then
+            assert(not self._blueprint_dst_trace)
+            self._blueprint_dst_trace = dst:trace_region('render fab')
+                        :on_changed(function(r)
+                              self:_on_blueprint_collision_shape_changed(r)
+                           end)
+                        :push_object_state()
+         end
+      end
       if self._blueprint_contruction_data and self._blueprint_contruction_progress then
          local cp = self._blueprint_contruction_progress:get_data()
          if not cp.teardown then
             local cd = self._blueprint_contruction_data:get_data()
             if cd.brush then
                local region = self._destination:get_region()
+               radiant.log.write('', 0, 'creating render node...')
                self._render_node = voxel_brush_util.create_construction_data_node(self._parent_node, self._entity, region, cd, 'blueprint')
+
+               -- columns are `connected_to` walls.  don't draw arrows for columns!
+               if not cd.connected_to and cd.normal and self._blueprint_collision_bounds then
+                  if self._arrow_render_object then
+                     self._arrow_render_object:destroy()
+                     self._arrow_render_object = nil
+                  end
+                  self._arrow_render_object = _radiant.client.create_obj_render_node(self._render_node, 'stonehearth:models:arrow')
+                  
+                  local t, n, width
+                  -- the arrow should span the entire base of the blueprint
+                  if cd.normal.x == 0 then
+                     t, n = 'x', 'z'
+                  else
+                     t, n = 'z', 'x'
+                  end
+                  
+                  width = self._blueprint_collision_bounds.max[t] - self._blueprint_collision_bounds.min[t]
+                  local pos = (self._blueprint_collision_bounds.min + cd.normal):to_float()
+                  pos[t] = pos[t] + (width / 2) - 0.5
+
+                  -- padding when possible
+                  width = math.max(width - 2, 1)
+                  
+                  local rotation = voxel_brush_util.normal_to_rotation(cd.normal)
+                  
+                  self._arrow_render_object:set_position(pos)
+                                           :set_rotation(Point3f(0, rotation, 0))
+                                           :set_scale(Point3f(width, 0.1, 1)) -- scale is applied after rotation, so always scale in x
+                                           :set_material('materials/building_widget_arrow.material.xml')
+               end
                self:_update_render_state()
             end
          end
       end
+   end
+end
+
+function FabricatorRenderer:_on_blueprint_collision_shape_changed(region)
+   if region then
+      self._blueprint_collision_bounds = region:get_bounds()
+   else
+      self._blueprint_collision_bounds = nil
    end
 end
 

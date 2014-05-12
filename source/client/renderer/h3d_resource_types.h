@@ -17,7 +17,8 @@
  */
 
 extern void h3dUnloadResourceNop(H3DRes);
-extern void h3dRemoveResourceVoid(H3DRes);
+extern void h3dRemoveNodeChecked(H3DNode);
+extern void h3dRemoveResourceChecked(H3DRes);
 
 BEGIN_RADIANT_CLIENT_NAMESPACE
 
@@ -25,9 +26,9 @@ typedef core::UniqueResource<H3DRes,  h3dUnloadResource> H3DResUnique;
 typedef core::UniqueResource<H3DNode, h3dRemoveNode> H3DNodeUnique;
 typedef core::UniqueResource<H3DNode, h3dRadiantStopCubemitterNode> H3DCubemitterNodeUnique;
 
-typedef core::SharedResource<H3DRes,  h3dRemoveResourceVoid > SharedGeometry;
+typedef core::SharedResource<H3DRes,  h3dRemoveResourceChecked > SharedGeometry;
 typedef core::SharedResource<H3DRes,  h3dUnloadResourceNop > SharedMaterial;
-typedef core::SharedResource<H3DNode, h3dRemoveNode> SharedNode;
+typedef core::SharedResource<H3DNode, h3dRemoveNodeChecked > SharedNode;
 
 END_RADIANT_CLIENT_NAMESPACE
 

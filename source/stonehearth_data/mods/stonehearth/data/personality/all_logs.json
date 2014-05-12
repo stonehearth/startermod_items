@@ -1,0 +1,14 @@
+{
+   "general" : [
+      "stonehearth:personal_logs:chopping_wood",
+      "stonehearth:personal_logs:eating_berries",
+      "stonehearth:personal_logs:embarking",
+      "stonehearth:personal_logs:promote_carpenter",
+      "stonehearth:personal_logs:dreams", 
+      "stonehearth:personal_logs:gathering_supplies", 
+      "stonehearth:personal_logs:starving", 
+      "stonehearth:personal_logs:no_food_all_day",
+      "stonehearth:personal_logs:eat_once_daily", 
+      "stonehearth:personal_logs:flavor_fatigue" 
+   ]
+}

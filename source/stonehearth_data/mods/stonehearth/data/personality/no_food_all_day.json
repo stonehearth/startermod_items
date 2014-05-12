@@ -1,0 +1,69 @@
+{
+   "activities" : {
+      "foodless" : {
+         "id" : "foodless",
+         "trigger_policy" : [
+            {
+               "trigger_id" : "foodless",
+               "probability" : 100
+            }
+         ],
+         "text" : "On Having No Food:",
+         "type" : "random",
+         "logs_by_personality" : {
+            "generic" : {
+               "logs" : [
+               "A whole day without food? ::sigh::", 
+               "I wish I had something to eat.",
+               "Going a who day without food makes me so, so sad."
+               ]
+            },
+            "beleaguered_leader" : {
+               "logs" : [
+               "It's just 24 hours without food. Don't panic.", 
+               "Hunger is good for discipline.", 
+               "I'm going to dream about food tonight.",
+               "A whole day without food? Musn't complain; got to set a good example."
+               ]
+            },
+            "hopeless_optimist" : {
+               "logs" : [
+               "Wow, I went a whole 24 hours without food!",
+               "No food by midnight? Maybe I can drink moonlight.",
+               "So hungry... maybe tomorrow we'll find more berries."
+               ]
+            },
+            "lovable_rogue" : {
+               "logs" : [
+               "24 hours without food? I'm sure I could find an opportunity here, if I weren't so hungry.",
+               "Nobody's eaten in a while. I could make a killing if I just had one of mom's apple pies.",
+               "Going without food for a whole day is surprisingly hard."
+               ]
+            },
+            "psychopathic_misanthrope" : {
+               "logs" : [
+               "A whole day without food? My stomach is going to start eating itself.",
+               "Went a whole day without eating a single thing. Tomorrow, my 'friends' had better watch out.",
+               "I may not have eaten all day today, but I'm still a badass.",
+               "No food in camp today, huh? Maybe I can find something in the forest to kill tomorrow."
+               ]
+            },
+            "insufferable_academic" : {
+               "logs" : [
+               "Fasting for a day merely offers an opportunity to observe the wailings of my monkey mind.", 
+               "A day without food is an excellent way to sharpen the mind.",
+               "According to my research, people need to consume at least twenty four units of energy each day to mantain proper function."
+               ]
+            },
+            "diligent_sweetheart" : {
+               "logs" : [
+               "It's okay, I don't need to eat every day.",
+               "A day without food? At home we used to go a whole week for the festival of __teacher__!", 
+               "By the precepts of the Church of Plenty, we should eat at least once a day."
+               ]
+            }
+         }
+      }
+   }
+}
+            

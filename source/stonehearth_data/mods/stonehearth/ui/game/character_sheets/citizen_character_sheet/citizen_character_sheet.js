@@ -10,7 +10,8 @@ App.StonehearthCitizenCharacterSheetView = App.View.extend({
          }
       },
       "stonehearth:attributes" : {},
-      'stonehearth:personality' : {}
+      'stonehearth:personality' : {},
+      'stonehearth:score' : {}
    },
 
    _setFirstJournalEntry: function() {

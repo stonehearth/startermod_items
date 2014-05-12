@@ -1,7 +1,23 @@
-local voxel_brush_util = _radiant.csg.Point3
+local voxel_brush_util = {}
 local Point3 = _radiant.csg.Point3
 local Point3f = _radiant.csg.Point3f
 local Region2 = _radiant.csg.Region2
+
+
+-- A lookup table to convert a normal in the xz-plane to a rotation
+-- about the y-axis.  Usage: ROTATION_TABLE[normal.x][normal.z]
+local ROTATION_TABLE = {
+   [ 0] = {
+      [-1] = 180,
+      [ 1] = 0,
+   },
+   [ 1] = {
+      [ 0] = 90
+   },
+   [-1] = {
+      [ 0] = 270
+   }   
+}
 
 -- paint_mode is optional.  if not specified, we'll use the paint mode
 -- inside the construction_data
@@ -71,6 +87,10 @@ function voxel_brush_util.create_construction_data_node(parent_node, entity, reg
       end
    end
    return unique_renderable
+end
+
+function voxel_brush_util.normal_to_rotation(normal)
+   return ROTATION_TABLE[normal.x][normal.z]
 end
 
 return voxel_brush_util

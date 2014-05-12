@@ -265,6 +265,16 @@ function entities.get_world_grid_location(entity)
    end
 end
 
+function entities.get_equipped_item(entity, slot)
+   local equipment_component = entity:get_component('stonehearth:equipment')
+   if equipment_component == nil then
+      return nil
+   end
+
+   local item = equipment_component:get_item_in_slot(slot)
+   return item
+end
+
 function entities.get_entity_data(entity, key)
    if entity then
       --xxx: what is this : business? (Tony asked me to put this comment here)
@@ -324,7 +334,12 @@ end
 ]]
 function entities.is_carrying(entity)
    radiant.check.is_entity(entity)
-   return entities.get_carrying(entity) ~= nil
+
+   local carry_block = entity:get_component('stonehearth:carry_block')
+   if not carry_block then
+      return false
+   end
+   return carry_block:is_carrying()
 end
 
 -- id here can be an int (e.g. 999) or uri (e.g. '/o/stores/server/objects/999')
@@ -423,12 +438,13 @@ function entities.pickup_item(entity, item)
    local carry_block = entity:get_component('stonehearth:carry_block')
    assert(carry_block)
 
-   if carry_block:get_carrying() then
+   local current_item = carry_block:get_carrying()
+   if current_item ~= nil and current_item:is_valid() then
       -- cannot pickup an item while carrying another!
       return false
    end
-   carry_block:set_carrying(item)
 
+   carry_block:set_carrying(item)
    return true
 end
 
@@ -561,7 +577,6 @@ function entities.remove_carrying(entity)
       end
    end
 end
-
 
 --[[
    Checks if an entity is next to a location, updated

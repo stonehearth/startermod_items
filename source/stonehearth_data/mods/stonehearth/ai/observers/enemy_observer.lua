@@ -2,9 +2,6 @@ local log = radiant.log.create_logger('combat')
 
 local EnemyObserver = class()
 
-function EnemyObserver:__init(entity)
-end
-
 function EnemyObserver:initialize(entity, json)
    self._entity = entity
 

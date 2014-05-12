@@ -5,10 +5,10 @@
          "trigger_policy" : [
             {
                "trigger_id" : "eating_berries",
-               "probability" : 20
+               "probability" : 100
             }
          ],
-         "text" : "On Berries:",
+         "text" : "On Eating Berries:",
          "type" : "random",
          "logs_by_personality" : {
             "beleaguered_leader" : {
@@ -18,8 +18,7 @@
                "Berries! They taste better than starving.",
                "Have you eaten your berries today? I know I've eaten mine!",
                "I wonder what's for dinner? I know--BERRIES!",
-               "Everyone's been pretty good about eating so many berries. I try to set a good example.",
-               "200 days till the revolt. Except that the alternative is to starve to death. Never mind!"
+               "Everyone's been pretty good about eating so many berries. I try to set a good example."
                ]
             },
             "hopeless_optimist" : {
@@ -32,33 +31,27 @@
             },
             "lovable_rogue" : {
                "logs" : [
-               "Fruit. Great.",
-               "I miss steak.",
                "In theory, you can ferment fruit, right? By *__teacher__* I miss fermented drinks.",
                "I should really stop trying to sneak these berries into my pockets. If I keep it up somebody might notice the large purple stains in my pants."
                ]
             },
             "psychopathic_misanthrope" : {
                "logs" : [
-               "There's nothing to eat but berries? 10 days till I kill someone for their meat.",
                "Huh. These berries are actually kind of growing on me. They've got that fresh, non-manured taste.",
-               "I'm not sure. They make me feel kind of... light inside. I don't like where this is going.",
+               "I'm not sure. These berries me feel kind of... light inside. I don't like where this is going.",
                "Now I know why hippies are vegetarian. Screw this."
                ]
             },
             "insufferable_academic" : {
                "logs" : [
-               "Dark colored berries are full of antioxidants. Which are good for you.",
-               "If only people could be nourished by knowledge alone.",
-               "A surprising amount of digestion does not seem to happen on a one-food diet."
+               "Dark colored berries are full of antioxidants. Which are good for you."
                ]
             },
             "diligent_sweetheart" : {
                "logs" : [
                "Mmm, berries! You never got fresh fruit in the city.",
                "If we could just build an iron stove, I could make a pie. Well, if I also had butter. And flour. And sugar.",
-               "My figure is looking great!",
-               "Maybe we can dry some of these berries for eating later. Winter is coming! Don't panic."
+               "My figure is looking great!"
                ]
             }
          }

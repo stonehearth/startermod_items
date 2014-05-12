@@ -41,11 +41,31 @@ function CombatIdleShuffle:run(ai, entity, args)
 
    ai:execute('stonehearth:go_toward_location', { destination = self._destination })
 
-   local melee_range = stonehearth.combat:get_melee_range(entity, 'medium_1h_weapon', enemy)
-   ai:execute('stonehearth:bump_against_entity', { entity = enemy, distance = melee_range })
+   local weapon = stonehearth.combat:get_melee_weapon(entity)
+   if weapon ~= nil and weapon:is_valid() then
+      local weapon_data = radiant.entities.get_entity_data(weapon, 'stonehearth:combat:weapon_data')
+      assert(weapon_data)
+   
+      local melee_range_ideal = stonehearth.combat:get_melee_range(entity, weapon_data, enemy)
+      ai:execute('stonehearth:bump_against_entity', { entity = enemy, distance = melee_range_ideal })
+   end
 
    ai:execute('stonehearth:turn_to_face_entity', { entity = enemy })
    ai:execute('stonehearth:run_effect', { effect = 'combat_1h_idle' })
+end
+
+local function rotate_about_y_axis(point, degrees)
+   local radians = degrees / 180 * math.pi
+   local q = Quaternion(Point3f(0, 1, 0), radians)
+   return q:rotate(point)
+end
+
+local function random_xz_unit_vector()
+   local unit_x = Point3f(1, 0, 0)
+   local unit_y = Point3f(0, 1, 0)
+   local angle = rng:get_real(0, 2 * math.pi)
+   local vector = Quaternion(unit_y, angle):rotate(unit_x)
+   return vector
 end
 
 function CombatIdleShuffle:_choose_destination(entity, enemy)
@@ -59,7 +79,12 @@ function CombatIdleShuffle:_choose_destination(entity, enemy)
 
    local enemy_direction = enemy_location - entity_location
    enemy_direction.y = 0
-   enemy_direction:normalize()
+
+   if enemy_direction:distance_squared() ~= 0 then
+      enemy_direction:normalize()
+   else
+      enemy_direction = random_xz_unit_vector()
+   end
 
    while num_angles > 0 do
       roll = rng:get_int(1, num_angles)
@@ -81,14 +106,8 @@ function CombatIdleShuffle:_choose_destination(entity, enemy)
    return nil
 end
 
-local function _rotate_facing(point, degrees)
-   local radians = degrees / 180 * math.pi
-   local q = Quaternion(Point3f(0, 1, 0), radians)
-   return q:rotate(point)
-end
-
 function CombatIdleShuffle:_calculate_location(start_location, enemy_direction, angle, distance)
-   local vector = _rotate_facing(enemy_direction, angle)
+   local vector = rotate_about_y_axis(enemy_direction, angle)
    vector:scale(distance)
 
    local new_location = start_location + vector
