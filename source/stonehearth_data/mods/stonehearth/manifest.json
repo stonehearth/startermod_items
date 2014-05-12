@@ -22,6 +22,7 @@
       "cursors:harvest" : "file(data/cursors/harvest.cur)",
       "cursors:create_stockpile" : "file(data/cursors/create_stockpile.cur)",
       "cursors:create_walls" : "file(data/cursors/create_walls.cur)",
+      "cursors:create_floor" : "file(data/cursors/create_walls.cur)",
       "cursors:default" : "file(data/cursors/default.cur)",
       "cursors:hover" : "file(data/cursors/hover.cur)",
       "cursors:over_selection" : "file(data/cursors/over_selection.cur)",
@@ -45,6 +46,7 @@
       "default_object" : "file(entities/generic/default_object)",
 
       "under_construction_proxy" : "file(entities/build/under_construction_proxy)",
+      "entities:wooden_floor" : "file(entities/build/wooden_floor)",
       "wooden_wall" : "file(entities/build/wooden_wall)",
       "wooden_column" : "file(entities/build/wooden_column)",
       "wooden_peaked_roof" : "file(entities/build/wooden_peaked_roof)",

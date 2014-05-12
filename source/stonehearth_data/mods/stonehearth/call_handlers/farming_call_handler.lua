@@ -11,7 +11,7 @@ local FarmingCallHandler = class()
 -- runs on the client!!
 function FarmingCallHandler:choose_new_field_location(session, response)
    stonehearth.selection.select_xz_region()
-      :use_designation(Color4(122, 40, 0, 255))
+      :use_designation_marquee(Color4(122, 40, 0, 255))
       :set_cursor('stonehearth:cursors:create_stockpile')
       :done(function(selector, box)
             local size = {
@@ -28,7 +28,7 @@ function FarmingCallHandler:choose_new_field_location(session, response)
          end)
       :fail(function(selector)
             selector:destroy()
-            response:reject()
+            response:reject('no region')
          end)
       :go()
 end

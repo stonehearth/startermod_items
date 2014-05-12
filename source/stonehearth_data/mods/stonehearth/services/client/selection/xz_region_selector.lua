@@ -11,8 +11,8 @@ local TERRAIN_NODES = 1
 function XZRegionSelector:__init()
    self._mode = 'selection'
    self._selection_flags = TERRAIN_NODES
-   self._line_color = DEFAULT_BOX_COLOR 
-   self._box_color = DEFAULT_BOX_COLOR
+
+   self:use_outline_marquee(DEFAULT_BOX_COLOR, DEFAULT_BOX_COLOR)
 end
 
 function XZRegionSelector:done(cb)
@@ -40,19 +40,25 @@ function XZRegionSelector:set_cursor(cursor)
    return self
 end
 
-function XZRegionSelector:use_designation(color)
-   self._mode = 'designation'
+function XZRegionSelector:use_designation_marquee(color)
+   self._create_node_fn = _radiant.client.create_designation_node
    self._box_color = color
    self._line_color = color
    return self
 end
 
-function XZRegionSelector:use_selector(box_color, line_color)
-   self._mode = 'selection'
+function XZRegionSelector:use_outline_marquee(box_color, line_color)
+   self._create_node_fn = _radiant.client.create_selection_node
    self._box_color = box_color
    self._line_color = line_color
    return self
 end
+
+function XZRegionSelector:use_manual_marquee(marquee_fn)
+   self._create_marquee_fn = marquee_fn
+   return self
+end
+
 
 function XZRegionSelector:destroy()
    if self._render_node then
@@ -71,8 +77,6 @@ end
 
 function XZRegionSelector:go()
    local box_color = self._box_color or DEFAULT_BOX_COLOR
-   local create_node_fn = self._mode == 'designation' and _radiant.client.create_designation_node or
-                                                          _radiant.client.create_selection_node
 
    -- install a new mouse cursor if requested by the client.  this cursor
    -- will stick around until :destroy() is called on the selector!
@@ -82,16 +86,20 @@ function XZRegionSelector:go()
 
    self._xz_selector = _radiant.client.select_xz_region(self._selection_flags)
       :progress(function (box)
-            -- recreate the render node for the designation
-            local region = Region2(Rect2(Point2(0, 0), 
-                                         Point2(box.max.x - box.min.x, box.max.z - box.min.z)))
             if self._render_node then
                self._render_node:destroy()
                self._render_node = nil
             end
 
-            self._render_node = create_node_fn(1, region, self._box_color, self._line_color)
-                                    :set_position(box.min:to_float())
+            if self._create_marquee_fn then
+               self._render_node = self._create_marquee_fn(self, box)
+            elseif self._create_node_fn then
+               -- recreate the render node for the designation
+               local region = Region2(Rect2(Point2(0, 0), 
+                                            Point2(box.max.x - box.min.x, box.max.z - box.min.z)))
+               self._render_node = self._create_node_fn(1, region, self._box_color, self._line_color)
+                                             :set_position(box.min:to_float())
+            end
             if self._progress_cb then
                self._progress_cb(self, box)
             end
