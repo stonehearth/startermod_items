@@ -44,6 +44,7 @@
 #include "lib/lua/om/open.h"
 #include "lib/lua/dm/open.h"
 #include "lib/lua/voxel/open.h"
+#include "lib/lua/physics/open.h"
 #include "lib/lua/analytics/open.h"
 #include "lib/lua/audio/open.h"
 #include "lib/analytics/design_event.h"
@@ -695,6 +696,7 @@ void Client::InitializeGameObjects()
    lua::om::open(L);
    lua::dm::open(L);
    lua::client::open(L);
+   lua::phys::open(L, *octtree_);
    lua::res::open(L);
    lua::voxel::open(L);
    lua::rpc::open(L, core_reactor_);

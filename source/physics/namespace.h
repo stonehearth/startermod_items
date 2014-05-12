@@ -25,9 +25,11 @@ class TerrainTracker;
 class TerrainTileTracker;
 class RegionCollisionShapeTracker;
 class VerticalPathingRegionTracker;
+class DestinationRegionTracker;
 class MobTracker;
 class SensorTracker;
 class SensorTileTracker;
+class RegionTracker;
 
 DECLARE_SHARED_POINTER_TYPES(CollisionTracker)
 DECLARE_SHARED_POINTER_TYPES(TerrainTracker)
@@ -61,6 +63,7 @@ enum TrackerType {
    NUM_BIT_VECTOR_TRACKERS,
 
    MOB,
+   DESTINATION,
    MAX_TRACKER_TYPES,
 };
 

@@ -37,12 +37,12 @@ end
 
 -- returns whether an entity can stand on the Point3 location
 function Terrain.can_stand_on(entity, location)
-   return _radiant.sim.nav_grid.can_stand_on(entity, location)
+   return _physics:can_stand_on(entity, location)
 end
 
 -- returns all entities whose locations of collision shapes intersect the cube
 function Terrain.get_entities_in_cube(cube)
-   return _radiant.sim.nav_grid.get_entities_in_cube(cube)
+   return _physics:get_entities_in_cube(cube)
 end
 
 function Terrain.trace_world_entities(reason, added_cb, removed_cb)

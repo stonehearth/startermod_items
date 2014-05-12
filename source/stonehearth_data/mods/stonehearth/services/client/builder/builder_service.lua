@@ -3,6 +3,48 @@ local Builder = class()
 function Builder:initialize()
 end
 
+function Builder:is_blueprint(entity)
+   return entity and entity:is_valid() and entity:get_component('stonehearth:construction_progress')
+end
+
+function Builder:get_construction_data_for(entity)
+   -- if we're blueprint, just grab the construction progress component right now
+   local cp = entity:get_component('stonehearth:construction_data')
+   if cp then
+      return cp:get_data()
+   end
+   -- are we a fabricator?  if so, grab the cp for the blueprint
+   local fab = entity:get_component('stonehearth:fabricator')
+   if fab then
+      return self:get_progress_component_for(fab:get_data().blueprint)
+   end
+   -- no luck. =(
+   return nil
+end
+
+function Builder:get_construction_type(entity)
+   local blueprint = self:get_blueprint_for(entity)
+end
+
+function Builder:merge_buildings(buildings)
+   local i = 2
+   local merge_into = buildings[1]  
+   
+   local function merge_next()
+      if buildings[i] then
+         _radiant.call('stonehearth:merge_buildings', merge_into, buildings[i])
+            :done(function(e)
+                  i = i + 1
+                  merge_next()
+                  local id, blueprint = next(e.blueprints)
+                  if blueprint and blueprint:is_valid() then
+                     stonehearth.selection:select_entity(blueprint)
+                  end
+               end)
+      end
+   end
+end
+
 function Builder:create_building(building)
    local changed = {}
 
@@ -122,7 +164,6 @@ function Builder:_package_proxy(proxy)
          table.insert(package.loan_scaffolding_to, id)
       end
    end
-
 
    return package
 end
