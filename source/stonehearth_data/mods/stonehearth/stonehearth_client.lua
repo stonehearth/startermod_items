@@ -11,6 +11,7 @@ local service_creation_order = {
    'renderer',
    'sky_renderer',
    'unit_control',
+   'builder',
    'selection',
    'hilight'
 }

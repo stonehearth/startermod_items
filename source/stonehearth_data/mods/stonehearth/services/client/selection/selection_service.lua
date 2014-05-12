@@ -1,5 +1,5 @@
 local log = radiant.log.create_logger('selection_service')
-
+local XZRegionSelector = require 'services.client.selection.xz_region_selector'
 local SelectionService = class()
 
 function SelectionService:initialize()
@@ -51,6 +51,10 @@ function SelectionService:select_entity(arg1)
    radiant.events.trigger(radiant, 'stonehearth:selection_changed')
 end
 
+function SelectionService:select_xz_region()
+   return XZRegionSelector()
+end
+
 function SelectionService:_do_selection(results)
    if results:is_valid() then
       local i = 0
@@ -78,5 +82,6 @@ function SelectionService:_on_mouse_input(e)
 
    return false
 end
+
 
 return SelectionService

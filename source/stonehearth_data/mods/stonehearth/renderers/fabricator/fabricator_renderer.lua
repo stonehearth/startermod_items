@@ -137,6 +137,7 @@ function FabricatorRenderer:_update_render_state()
       else
          material = 'normal'
       end
+      radiant.log.write('sup', 0, self._entity:get_uri())
       material = self._render_entity:get_material_path(material)
       self._render_node:set_material(material)
   end
@@ -178,44 +179,42 @@ function FabricatorRenderer:_recreate_render_node()
       if self._blueprint_contruction_data and self._blueprint_contruction_progress then
          local cp = self._blueprint_contruction_progress:get_data()
          if not cp.teardown then
+            local region = self._destination:get_region()
+            radiant.log.write('', 0, 'creating render node...')
             local cd = self._blueprint_contruction_data:get_data()
-            if cd.brush then
-               local region = self._destination:get_region()
-               radiant.log.write('', 0, 'creating render node...')
-               self._render_node = voxel_brush_util.create_construction_data_node(self._parent_node, self._entity, region, cd, 'blueprint')
-
-               -- columns are `connected_to` walls.  don't draw arrows for columns!
-               if not cd.connected_to and cd.normal and self._blueprint_collision_bounds then
-                  if self._arrow_render_object then
-                     self._arrow_render_object:destroy()
-                     self._arrow_render_object = nil
-                  end
-                  self._arrow_render_object = _radiant.client.create_obj_render_node(self._render_node, 'stonehearth:models:arrow')
-                  
-                  local t, n, width
-                  -- the arrow should span the entire base of the blueprint
-                  if cd.normal.x == 0 then
-                     t, n = 'x', 'z'
-                  else
-                     t, n = 'z', 'x'
-                  end
-                  
-                  width = self._blueprint_collision_bounds.max[t] - self._blueprint_collision_bounds.min[t]
-                  local pos = (self._blueprint_collision_bounds.min + cd.normal):to_float()
-                  pos[t] = pos[t] + (width / 2) - 0.5
-
-                  -- padding when possible
-                  width = math.max(width - 2, 1)
-                  
-                  local rotation = voxel_brush_util.normal_to_rotation(cd.normal)
-                  
-                  self._arrow_render_object:set_position(pos)
-                                           :set_rotation(Point3f(0, rotation, 0))
-                                           :set_scale(Point3f(width, 0.1, 1)) -- scale is applied after rotation, so always scale in x
-                                           :set_material('materials/building_widget_arrow.material.xml')
+            self._render_node = voxel_brush_util.create_construction_data_node(self._parent_node, self._entity, region, cd, 'blueprint')
+            
+            -- columns are `connected_to` walls.  don't draw arrows for columns!
+            if not cd.connected_to and cd.normal and self._blueprint_collision_bounds then
+               if self._arrow_render_object then
+                  self._arrow_render_object:destroy()
+                  self._arrow_render_object = nil
                end
-               self:_update_render_state()
+               self._arrow_render_object = _radiant.client.create_obj_render_node(self._render_node, 'stonehearth:models:arrow')
+               
+               local t, n, width
+               -- the arrow should span the entire base of the blueprint
+               if cd.normal.x == 0 then
+                  t, n = 'x', 'z'
+               else
+                  t, n = 'z', 'x'
+               end
+               
+               width = self._blueprint_collision_bounds.max[t] - self._blueprint_collision_bounds.min[t]
+               local pos = (self._blueprint_collision_bounds.min + cd.normal):to_float()
+               pos[t] = pos[t] + (width / 2) - 0.5
+
+               -- padding when possible
+               width = math.max(width - 2, 1)
+               
+               local rotation = voxel_brush_util.normal_to_rotation(cd.normal)
+               
+               self._arrow_render_object:set_position(pos)
+                                        :set_rotation(Point3f(0, rotation, 0))
+                                        :set_scale(Point3f(width, 0.1, 1)) -- scale is applied after rotation, so always scale in x
+                                        :set_material('materials/building_widget_arrow.material.xml')
             end
+            self:_update_render_state()
          end
       end
    end
