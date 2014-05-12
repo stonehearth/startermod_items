@@ -10,69 +10,27 @@ local FarmingCallHandler = class()
 
 -- runs on the client!!
 function FarmingCallHandler:choose_new_field_location(session, response)
-
-   self._region = _radiant.client.alloc_region2()
-   
-   -- create a new "cursor entity".  this is the entity that will move around the
-   -- screen to preview where the workbench will go.  these entities are called
-   -- "authoring entities", because they exist only on the client side to help
-   -- in the authoring of new content.
-   local cursor_entity = radiant.entities.create_entity()
-   local mob = cursor_entity:add_component('mob')
-   
-   -- add a render object so the cursor entity gets rendered.
-   local cursor_render_entity = _radiant.client.create_render_entity(1, cursor_entity)
-   local parent_node = cursor_render_entity:get_node()
-   local unique_renderable
-
-   -- change the actual game cursor
-   local xz_selector
-   local stockpile_cursor = _radiant.client.set_cursor('stonehearth:cursors:create_stockpile')
-
-   local cleanup = function()
-      if unique_renderable then
-         unique_renderable:destroy()
-         unique_renderable = nil
-      end
-      xz_selector:destroy()
-      stockpile_cursor:destroy()
-      _radiant.client.destroy_authoring_entity(cursor_entity:get_id())
-   end
-
-
-   xz_selector = _radiant.client.select_xz_region()
-      :progress(function (box)
-            self._region:modify(function(cursor)
-               cursor:clear()
-               cursor:add_cube(Rect2(Point2(0, 0), 
-                                     Point2(box.max.x - box.min.x, box.max.z - box.min.z)))
-            end)
-            mob:set_location_grid_aligned(box.min)
-            if unique_renderable then
-               unique_renderable:destroy()
-               unique_renderable = nil
-            end
-            unique_renderable = _radiant.client.create_designation_node(parent_node, self._region:get(), Color4(122, 40, 0, 255), Color4(122, 40, 0, 255));
-         end)
-      :done(function (box)
+   stonehearth.selection.select_xz_region()
+      :use_designation(Color4(122, 40, 0, 255))
+      :set_cursor('stonehearth:cursors:create_stockpile')
+      :done(function(selector, box)
             local size = {
-               box.max.x - box.min.x,
-               box.max.z - box.min.z,
+               x = box.max.x - box.min.x,
+               y = box.max.z - box.min.z,
             }
             _radiant.call('stonehearth:create_new_field', box.min, size)
                      :done(function(r)
-                           response:resolve({
-                                 field = r.field
-                              })
+                           response:resolve({ field = r.field })
                         end)
                      :always(function()
-                           cleanup()
-                        end)
+                           selector:destroy()
+                        end)         
          end)
-      :fail(function()
-            cleanup()
-            response:resolve(false)
+      :fail(function(selector)
+            selector:destroy()
+            response:reject()
          end)
+      :go()
 end
 
 -- runs on the server!

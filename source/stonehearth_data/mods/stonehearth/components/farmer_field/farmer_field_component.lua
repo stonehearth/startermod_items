@@ -114,7 +114,7 @@ end
 --TODO: Depending on how we eventually designate whether fields can overlap (no?)
 --consider moving this into a central service
 function FarmerFieldComponent:create_dirt_plots(town, location, size)
-   self._sv.size = Point2( size[1], size[2] )
+   self._sv.size = Point2(size.x, size.y)
    self._sv.location = location
 
    for x=1, self._sv.size.x do
