@@ -78,7 +78,7 @@ function AttackMeleeAdjacent:run(ai, entity, args)
          else
             -- TODO: get damage modifiers from action and attributes
             local base_damage = weapon_data.base_damage
-            local battery_context = BatteryContext(base_damage)
+            local battery_context = BatteryContext(entity, base_damage)
             stonehearth.combat:battery(target, battery_context)
          end
       end

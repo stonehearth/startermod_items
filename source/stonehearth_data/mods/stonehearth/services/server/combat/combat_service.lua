@@ -66,7 +66,7 @@ function CombatService:battery(target, context)
 
    if max_health ~= nil then
       if damage >= max_health * self._hit_stun_damage_threshold then
-         self:hit_stun(target, BatteryContext())
+         self:hit_stun(target, context)
       end
    end
 
@@ -74,6 +74,8 @@ function CombatService:battery(target, context)
    if health ~= nil then
       attributes_component:set_attribute('health', health)
    end
+
+   radiant.events.trigger_async(target, 'stonehearth:combat:battery', context)
 end
 
 -- Notify target that it is now stunned an any action in progress will be cancelled.
