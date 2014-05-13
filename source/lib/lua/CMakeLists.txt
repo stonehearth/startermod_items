@@ -18,6 +18,7 @@ add_library(lua
             audio/open_audio.cpp
             res/open_res.cpp
             sim/open_sim.cpp
+            physics/open_physics.cpp
             client/open_client.cpp
             rpc/open_rpc.cpp
             om/open_om.cpp

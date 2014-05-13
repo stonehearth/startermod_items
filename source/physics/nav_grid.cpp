@@ -11,6 +11,7 @@
 #include "om/components/component.h"
 #include "om/components/mob.ridl.h"
 #include "om/components/terrain.ridl.h"
+#include "om/components/destination.ridl.h"
 #include "om/components/vertical_pathing_region.ridl.h"
 #include "om/components/region_collision_shape.ridl.h"
 #include "mob_tracker.h"
@@ -18,6 +19,7 @@
 #include "terrain_tile_tracker.h"
 #include "region_collision_shape_tracker.h"
 #include "vertical_pathing_region_tracker.h"
+#include "destination_region_tracker.h"
 #include "protocols/radiant.pb.h"
 
 using namespace radiant;
@@ -50,35 +52,42 @@ NavGrid::NavGrid(int trace_category) :
 void NavGrid::TrackComponent(om::ComponentPtr component)
 {
    dm::ObjectId id = component->GetObjectId();
-   dm::ObjectId entityId = component->GetEntity().GetObjectId();
+   om::EntityPtr entity = component->GetEntityPtr();
+   dm::ObjectId entityId = entity->GetObjectId();
    CollisionTrackerPtr tracker;
    switch (component->GetObjectType()) {
       case om::MobObjectType: {
          auto mob = std::static_pointer_cast<om::Mob>(component);
          if (mob->GetMobCollisionType() != om::Mob::NONE) {
-            NG_LOG(7) << "creating MobTracker for " << *component->GetEntityPtr();
-            tracker = std::make_shared<MobTracker>(*this, mob->GetEntityPtr(), mob);
+            NG_LOG(7) << "creating MobTracker for " << *entity;
+            tracker = std::make_shared<MobTracker>(*this, entity, mob);
          } else {
-            NG_LOG(7) << "mob for " << *component->GetEntityPtr() << " has collision type NONE.  ignoring.";
+            NG_LOG(7) << "mob for " << *entity << " has collision type NONE.  ignoring.";
          }
          break;
       }
       case om::TerrainObjectType: {
-         NG_LOG(7) << "creating TerrainTracker for " << *component->GetEntityPtr();
+         NG_LOG(7) << "creating TerrainTracker for " << *entity;
          auto terrain = std::static_pointer_cast<om::Terrain>(component);
-         tracker = std::make_shared<TerrainTracker>(*this, terrain->GetEntityPtr(), terrain);
+         tracker = std::make_shared<TerrainTracker>(*this, entity, terrain);
          break;
       }
       case om::RegionCollisionShapeObjectType: {
-         NG_LOG(7) << "creating RegionCollisionShapeTracker for " << *component->GetEntityPtr();
+         NG_LOG(7) << "creating RegionCollisionShapeTracker for " << *entity;
          auto rcs = std::static_pointer_cast<om::RegionCollisionShape>(component);
-         tracker = std::make_shared<RegionCollisionShapeTracker>(*this, rcs->GetEntityPtr(), rcs);
+         tracker = std::make_shared<RegionCollisionShapeTracker>(*this, entity, rcs);
+         break;
+      }
+      case om::DestinationObjectType: {
+         NG_LOG(7) << "creating DestinationTracker for " << *entity;
+         auto dst = std::static_pointer_cast<om::Destination>(component);
+         tracker = std::make_shared<DestinationRegionTracker>(*this, entity, dst);
          break;
       }
       case om::VerticalPathingRegionObjectType: {
-         NG_LOG(7) << "creating VerticalPathingRegion for " << *component->GetEntityPtr();
+         NG_LOG(7) << "creating VerticalPathingRegion for " << *entity;
          auto rcs = std::static_pointer_cast<om::VerticalPathingRegion>(component);
-         tracker = std::make_shared<VerticalPathingRegionTracker>(*this, rcs->GetEntityPtr(), rcs);
+         tracker = std::make_shared<VerticalPathingRegionTracker>(*this, entity, rcs);
          break;
       }
    }

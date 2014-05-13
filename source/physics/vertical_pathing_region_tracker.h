@@ -4,6 +4,7 @@
 #include "collision_tracker.h"
 #include "om/om.h"
 #include "csg/point.h"
+#include "region_tracker.h"
 
 BEGIN_RADIANT_PHYSICS_NAMESPACE
    
@@ -13,28 +14,23 @@ BEGIN_RADIANT_PHYSICS_NAMESPACE
  * A CollisionTracker for VerticalPathingRegion components of Entities.  See collision_tracker.h
  * for more details.
  */
-class VerticalPathingRegionTracker : public CollisionTracker
+class VerticalPathingRegionTracker : public RegionTracker
 {
 public:
    VerticalPathingRegionTracker(NavGrid& ng, om::EntityPtr entity, om::VerticalPathingRegionPtr rcs);
-   ~VerticalPathingRegionTracker();
+   virtual ~VerticalPathingRegionTracker() { }
 
    void Initialize() override;
    TrackerType GetType() const override;
-   csg::Region3 GetOverlappingRegion(csg::Cube3 const& bounds) const override;
-   bool Intersects(csg::Cube3 const& worldBounds) const override;
 
-private:
-   om::Region3BoxedPtr GetRegion() const;
-   void MarkChanged();
+protected:
+   om::Region3BoxedPtr GetRegion() const override;
 
 private:
    NO_COPY_CONSTRUCTOR(VerticalPathingRegionTracker)
 
 private:
    om::VerticalPathingRegionRef  vpr_;
-   om::DeepRegionGuardPtr        trace_;
-   csg::Cube3                    last_bounds_;
 };
 
 END_RADIANT_PHYSICS_NAMESPACE

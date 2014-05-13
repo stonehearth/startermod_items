@@ -15,25 +15,10 @@ using namespace radiant::phys;
  * Construct a new VerticalPathingRegionTracker.
  */
 VerticalPathingRegionTracker::VerticalPathingRegionTracker(NavGrid& ng, om::EntityPtr entity, om::VerticalPathingRegionPtr vpr) :
-   CollisionTracker(ng, entity),
-   vpr_(vpr),
-   last_bounds_(csg::Cube3::zero)
+   RegionTracker(ng, entity),
+   vpr_(vpr)
 {
 }
-
-
-/* 
- * -- VerticalPathingRegionTracker::~VerticalPathingRegionTracker
- *
- * Destroy the VerticalPathingRegionTracker.  Ask the NavGrid to mark the tiles which used
- * to contain us as dirty.  They'll notice their weak_ptr's have expired and remove our
- * bits from the vectors.
- */
-VerticalPathingRegionTracker::~VerticalPathingRegionTracker()
-{
-   GetNavGrid().OnTrackerDestroyed(last_bounds_, GetEntityId());
-}
-
 
 /* 
  * -- VerticalPathingRegionTracker::Initialize
@@ -42,48 +27,12 @@ VerticalPathingRegionTracker::~VerticalPathingRegionTracker()
  */
 void VerticalPathingRegionTracker::Initialize()
 {
-   CollisionTracker::Initialize();
+   RegionTracker::Initialize();
 
    om::VerticalPathingRegionPtr vpr = vpr_.lock();
    if (vpr) {
-      trace_ = vpr->TraceRegion("nav grid", GetNavGrid().GetTraceCategory())
-         ->OnModified([this]() {
-            MarkChanged();
-         })
-         ->PushObjectState();
+      SetRegionTrace(vpr->TraceRegion("nav grid", GetNavGrid().GetTraceCategory()));
    }
-}
-
-/*
- * VerticalPathingRegionTracker::MarkChanged
- *
- * Notify the NavGrid that our shape has changed.  We pass in the current bounds and bounds
- * of the previous shape so the NavGrid can register/un-register us with each tile.
- */
-void VerticalPathingRegionTracker::MarkChanged()
-{
-   om::Region3BoxedPtr region = GetRegion();
-   if (region) {
-      csg::Cube3 bounds = region->Get().GetBounds();
-      bounds.Translate(GetEntityPosition());
-      GetNavGrid().AddCollisionTracker(last_bounds_, bounds, shared_from_this());
-      last_bounds_ = bounds;
-   }
-}
-
-/*
- * VerticalPathingRegionTracker::GetOverlappingRegion
- *
- * Return the part of our region which overlaps the specified bounds.  Bounds are in
- * world space coordinates, so be sure to transform the region before clipping!
- */
-csg::Region3 VerticalPathingRegionTracker::GetOverlappingRegion(csg::Cube3 const& bounds) const
-{
-   om::Region3BoxedPtr region = GetRegion();
-   if (region) {
-      return region->Get().Translated(GetEntityPosition()) & bounds;
-   }
-   return csg::Region3::empty;
 }
 
 /*
@@ -103,14 +52,4 @@ om::Region3BoxedPtr VerticalPathingRegionTracker::GetRegion() const
 TrackerType VerticalPathingRegionTracker::GetType() const
 {
    return LADDER;
-}
-
-bool VerticalPathingRegionTracker::Intersects(csg::Cube3 const& worldBounds) const
-{
-   om::Region3BoxedPtr region = GetRegion();
-   if (region) {
-      csg::Point3 origin = GetEntityPosition();
-      return region->Get().Intersects(worldBounds.Translated(-origin));
-   }
-   return false;
 }
