@@ -3,32 +3,24 @@ App.StonehearthTownView = App.View.extend({
 	templateName: 'town',
    classNames: ['flex', 'fullScreen'],
 
-   components: {
-      "citizens" : {
-         "*" : {
-            "stonehearth:profession" : {
-               "profession_uri" : {}
-            },
-            "unit_info": {},
-         }
-      }
-   },
-
    init: function() {
       var self = this;
       this._super();
-
-      //this.set('context.inventory', stonehearth.inventory);
    },
 
    didInsertElement: function() {
       var self = this;
       this._super();
 
+      this._progressbar = this.$("#netWorthBar")
+      this._progressbar.progressbar({
+         value: 55
+      });
+
+      this.$('.scoreBar').progressbar({
+         value: 50
+      });
    },
 
-   preShow: function() {
-      //this.$('#citizenManagerJobs').hide();
-   },
 });
 
