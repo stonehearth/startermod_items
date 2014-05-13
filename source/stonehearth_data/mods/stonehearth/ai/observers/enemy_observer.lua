@@ -5,30 +5,26 @@ local EnemyObserver = class()
 function EnemyObserver:initialize(entity, json)
    self._entity = entity
 
-   -- TOOD: support save
-   -- wait one gameloop before looking for targets
-   radiant.events.listen(radiant, 'stonehearth:gameloop', self, self._on_start)
-end
-
-function EnemyObserver:destroy()
-   -- TODO: confirm trace and sensor are destroyed when entity is destroyed
-   if self._trace then
-      self._trace:destroy()
-      self._trace = nil
-   end
-end
-
-function EnemyObserver:_on_start()
    local enable_combat = radiant.util.get_config('enable_combat', false)
-
-   if enable_combat then
-      self:_init_sight_sensor()
+   if not enable_combat then
+      return
    end
 
-   return radiant.events.UNLISTEN
+   self:_add_sensor_trace()
+   self:_listen_for_battery()
 end
 
-function EnemyObserver:_init_sight_sensor()
+function EnemyObserver:_listen_for_battery()
+   radiant.events.listen(self._entity, 'stonehearth:combat:battery', self, self._on_battery)
+end
+
+function EnemyObserver:_on_battery(context)
+   local target_table = stonehearth.combat:get_target_table(self._entity, 'aggro')
+   target_table:modify_score(context.attacker, context.damage)
+end
+
+function EnemyObserver:_add_sensor_trace()
+   -- could configure sensor in json, but we want the radius to be the same as the sight radius
    local sight_radius = radiant.util.get_config('sight_radius', 64)
    local sensor_list = self._entity:add_component('sensor_list')
    local sensor = sensor_list:get_sensor('enemy_observer')
@@ -62,6 +58,23 @@ function EnemyObserver:_on_removed_from_sensor(target_id)
    local target_table = stonehearth.combat:get_target_table(self._entity, 'aggro')
 
    target_table:remove(target)
+end
+
+function EnemyObserver:destroy()
+   self:_destroy_trace()
+   self:_unregister_events()
+end
+
+function EnemyObserver:_destroy_trace()
+   -- TODO: confirm trace and sensor are destroyed when entity is destroyed
+   if self._trace then
+      self._trace:destroy()
+      self._trace = nil
+   end
+end
+
+function EnemyObserver:_unregister_events()
+   radiant.events.unlisten(self._entity, 'stonehearth:combat:battery', self, self._on_battery)
 end
 
 return EnemyObserver

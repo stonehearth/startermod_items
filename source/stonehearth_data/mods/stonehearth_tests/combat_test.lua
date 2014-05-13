@@ -18,16 +18,16 @@ function CombatTest:__init()
 
    local citizens = {
       self:place_citizen(-15, -15, 'footman', 'stonehearth:wooden_sword'),
-      self:place_citizen(-10, -15, 'footman', 'stonehearth:wooden_sword'),
-      self:place_citizen(-15, -10, 'footman', 'stonehearth:wooden_sword'),
-      self:place_citizen(-10,  10, 'footman', 'stonehearth:wooden_sword'),
+      self:place_citizen( -7, -15, 'footman', 'stonehearth:wooden_sword'),
+      self:place_citizen(  1, -15, 'footman', 'stonehearth:wooden_sword'),
+      self:place_citizen(  9, -15, 'footman', 'stonehearth:wooden_sword'),
    }
 
    local enemies = {
-      self:place_enemy(15, 15),
-      self:place_enemy(10, 15),
-      self:place_enemy(15, 10),
-      self:place_enemy(10, 10),
+      self:place_enemy( -9, 15),
+      self:place_enemy( -1, 15),
+      self:place_enemy(  7, 15),
+      self:place_enemy( 15, 15),
    }
 
    self:equip_all(enemies)

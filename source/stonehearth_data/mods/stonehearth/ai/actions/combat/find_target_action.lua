@@ -69,7 +69,7 @@ end
 
 function FindTarget:_get_target()
    local target_table = stonehearth.combat:get_target_table(self._entity, 'aggro')
-   local target = target_table:get_top()
+   local target, score = target_table:get_top()
 
    -- if target table has no opinion, double check the assault events
    if target == nil or not target:is_valid() then
@@ -82,7 +82,30 @@ function FindTarget:_get_target()
       end
    end
 
+   -- if the highest score is 0 (no history on any of the targets), the pick the closest
+   if score == 0 then
+      local targets = target_table:get_targets()
+      target = self:_get_closest_target(targets)
+   end
+
    return target
+end
+
+function FindTarget:_get_closest_target(targets)
+   local target, target_distance, closest_distance
+   local closest = nil
+
+   for target_id in pairs(targets) do
+      target = radiant.entities.get_entity(target_id)
+      if target ~= nil and target:is_valid() then
+         target_distance = radiant.entities.distance_between(self._entity, target)
+         if closest == nil or target_distance < closest_distance then
+            closest = target
+            closest_distance = target_distance
+         end
+      end
+   end
+   return closest
 end
 
 function FindTarget:_find_target()
