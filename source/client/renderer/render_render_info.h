@@ -43,10 +43,10 @@ private:
 
    struct NodeMapEntry {
       NodeMapEntry() : node(0) { }
-      NodeMapEntry(MatrixVector const& v, RenderNode n) : matrices(v), node(n) { }
+      NodeMapEntry(MatrixVector const& v, RenderNodePtr n) : matrices(v), node(n) { }
 
       MatrixVector         matrices;
-      RenderNode           node;
+      RenderNodePtr        node;
    };
 
    typedef std::unordered_map<std::string, NodeMapEntry> NodeMap;

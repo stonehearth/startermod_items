@@ -5,6 +5,10 @@ RunTowardLocation.name = 'run toward location'
 RunTowardLocation.does = 'stonehearth:go_toward_location'
 RunTowardLocation.args = {
    destination = Point3,
+   move_effect = {
+      type = 'string',
+      default = 'run',
+   },
 }
 RunTowardLocation.version = 2
 RunTowardLocation.priority = 1
@@ -18,4 +22,5 @@ return ai:create_compound_action(RunTowardLocation)
          })
          :execute('stonehearth:follow_path', {
             path = ai.PREV.path,
+            move_effect = ai.ARGS.move_effect,
          })

@@ -128,7 +128,6 @@ end
 
 function FabricatorComponent:_add_scaffolding(blueprint, project, normal)
    -- create a scaffolding blueprint and point it to the project
-   local uri = 'stonehearth:scaffolding'
    local transform = project:add_component('mob'):get_transform()
    
    -- ask the build service to set all this up!!

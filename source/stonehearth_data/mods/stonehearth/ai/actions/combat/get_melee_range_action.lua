@@ -21,7 +21,6 @@ function GetMeleeRange:start_thinking(ai, entity, args)
    local weapon = stonehearth.combat:get_melee_weapon(entity)
    if weapon == nil or not weapon:is_valid() then
       log:warning('%s has no weapon', entity)
-      ai:abort('No weapon')
       return
    end
    local weapon_data = radiant.entities.get_entity_data(weapon, 'stonehearth:combat:weapon_data')

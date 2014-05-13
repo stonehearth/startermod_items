@@ -4,7 +4,7 @@ local log = radiant.log.create_logger('combat')
 
 local DefendMelee = class()
 
-DefendMelee.name = 'melee defense'
+DefendMelee.name = 'defend melee'
 DefendMelee.does = 'stonehearth:combat:defend'
 DefendMelee.args = {}
 DefendMelee.version = 2

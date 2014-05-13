@@ -42,7 +42,7 @@
             "stonehearth:actions:restock_stockpile",
             "stonehearth:actions:memorialize_death",
             "stonehearth:actions:combat",
-            "stonehearth:actions:combat:attack",
+            "stonehearth:actions:combat:attack_dispatcher",
             "stonehearth:actions:combat:attack:melee",
             "stonehearth:actions:combat:attack:melee_adjacent",
             "stonehearth:actions:combat:defend_dispatcher",
@@ -50,6 +50,10 @@
             "stonehearth:actions:combat:idle_dispatcher",
             "stonehearth:actions:combat:idle:ready",
             "stonehearth:actions:combat:idle:shuffle",
+            "stonehearth:actions:combat:panic_dispatcher",
+            "stonehearth:actions:combat:panic_watcher",
+            "stonehearth:actions:combat:flee",
+            "stonehearth:actions:combat:stop_panicking",
             "stonehearth:actions:combat:hit_stun",
             "stonehearth:actions:combat:find_target",
             "stonehearth:actions:combat:create_engage_callback",
@@ -62,6 +66,7 @@
             "stonehearth:actions:free_time:dispatcher" 
          ],
           "observers": [
+            "stonehearth:observers:combat_panic",
             "stonehearth:observers:sleepiness",
             "stonehearth:observers:calorie",
             "stonehearth:observers:free_time", 

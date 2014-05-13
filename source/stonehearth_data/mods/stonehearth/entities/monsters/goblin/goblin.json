@@ -31,7 +31,7 @@
             "stonehearth:actions:wait_for_attribute_above",
             "stonehearth:actions:wait_for_attribute_below",
             "stonehearth:actions:combat",
-            "stonehearth:actions:combat:attack",
+            "stonehearth:actions:combat:attack_dispatcher",
             "stonehearth:actions:combat:attack:melee",
             "stonehearth:actions:combat:attack:melee_adjacent",
             "stonehearth:actions:combat:defend_dispatcher",
@@ -59,6 +59,10 @@
       },
       "stonehearth:attributes": {
          "health": {
+            "type" : "basic", 
+            "value" :  100
+         },
+         "max_health": {
             "type" : "basic", 
             "value" :  100
          },

@@ -120,7 +120,7 @@ void RenderRenderInfo::ReApplyMaterial()
    H3DRes material = h3dAddResource(H3DResTypes::Material, material_path_.c_str(), 0);
    if (material != 0) {
       for (auto& entry : nodes_) {
-         entry.second.node.SetOverrideMaterial(override_material_);
+         entry.second.node->SetOverrideMaterial(override_material_);
       }
    }
 }
@@ -233,12 +233,13 @@ void RenderRenderInfo::AddModelNode(om::RenderInfoPtr render_info, std::string c
       csg::RegionToMesh(all_models, mesh, -origin, true);
    };
 
-   RenderNode node = pipeline.AddSharedMeshNode(parent, key, material_path_, generate_matrix);
+   RenderNodePtr node = RenderNode::CreateSharedCsgMeshNode(parent, key, generate_matrix)
+                           ->SetMaterial(material_path_);
 
-   h3dSetNodeParamI(node.GetNode(), H3DModel::PolygonOffsetEnabledI, 1);
-   h3dSetNodeParamF(node.GetNode(), H3DModel::PolygonOffsetF, 0, polygon_offset * 0.04f);
-   h3dSetNodeParamF(node.GetNode(), H3DModel::PolygonOffsetF, 1, polygon_offset * 10.0f);
-   h3dSetNodeTransform(node.GetNode(), 0, 0, 0, 0, 0, 0, scale, scale, scale);
+   h3dSetNodeParamI(node->GetNode(), H3DModel::PolygonOffsetEnabledI, 1);
+   h3dSetNodeParamF(node->GetNode(), H3DModel::PolygonOffsetF, 0, polygon_offset * 0.04f);
+   h3dSetNodeParamF(node->GetNode(), H3DModel::PolygonOffsetF, 1, polygon_offset * 10.0f);
+   h3dSetNodeTransform(node->GetNode(), 0, 0, 0, 0, 0, 0, scale, scale, scale);
    nodes_[bone] = NodeMapEntry(matrices, node);
 }
 
@@ -299,7 +300,7 @@ void RenderRenderInfo::Update()
             skeleton.SetScale(scale);
 
             for (auto const& entry : nodes_) {
-               H3DNode node = entry.second.node.GetNode();
+               H3DNode node = entry.second.node->GetNode();
                float tx, ty, tz, rx, ry, rz, sx, sy, sz;
 
                h3dGetNodeTransform(node, &tx, &ty, &tz, &rx, &ry, &rz, &sx, &sy, &sz);

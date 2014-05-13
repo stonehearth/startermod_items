@@ -310,7 +310,10 @@ std::string const RenderEntity::GetMaterialPathFromKind(std::string const& matKi
          matPath = n.get("entity_data.stonehearth:render_materials." + matKind,
             "materials/voxel.material.xml");
       };
-      res::ResourceManager2::GetInstance().LookupJson(entity->GetUri(), lookupCallback);
+      try {
+         res::ResourceManager2::GetInstance().LookupJson(entity->GetUri(), lookupCallback);
+      } catch (std::exception const&) {
+      }
    }
    return matPath;
 }

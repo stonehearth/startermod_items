@@ -17,7 +17,7 @@ var StonehearthClient;
       
          $(document).mousemove( function(e) {
             self.mouseX = e.pageX; 
-         self.mouseY = e.pageY;
+            self.mouseY = e.pageY;
          });
 
          radiant.call('stonehearth:get_town_name')
@@ -144,6 +144,23 @@ var StonehearthClient;
 
          return this._callTool(function() {
             return radiant.call_obj(self._build_editor, 'place_new_wall')
+               .always(function(response) {
+                  radiant.call('radiant:play_sound', 'stonehearth:sounds:place_structure' );
+                  $(top).trigger('radiant_hide_tip');
+               });
+         });
+      },
+
+      buildFloor: function() {
+         var self = this;
+
+         $(top).trigger('radiant_show_tip', { 
+            title : 'Build Floor Tooltip',
+            description : 'Build Floor Tooltip'
+         });
+
+         return this._callTool(function() {
+            return radiant.call_obj(self._build_editor, 'place_new_floor')
                .always(function(response) {
                   radiant.call('radiant:play_sound', 'stonehearth:sounds:place_structure' );
                   $(top).trigger('radiant_hide_tip');

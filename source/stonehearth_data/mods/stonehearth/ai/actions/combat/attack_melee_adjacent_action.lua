@@ -19,6 +19,15 @@ function AttackMeleeAdjacent:__init(entity)
    self._attack_types = stonehearth.combat:get_action_types(entity, 'stonehearth:combat:melee_attacks')
 end
 
+function AttackMeleeAdjacent:start_thinking(ai, entity, args)
+   local weapon = stonehearth.combat:get_melee_weapon(entity)
+   if weapon == nil or not weapon:is_valid() then
+      log:warning('%s has no weapon', entity)
+      return
+   end
+   ai:set_think_output()
+end
+
 -- TODO: don't allow melee if vertical distance > 1
 function AttackMeleeAdjacent:run(ai, entity, args)
    local target = args.target
@@ -61,7 +70,10 @@ function AttackMeleeAdjacent:run(ai, entity, args)
 
    self._timer = stonehearth.combat:set_timer(time_to_impact,
       function ()
-         if self._context.target_defending then
+         local range = radiant.entities.distance_between(entity, target)
+         local out_of_range = range > melee_range_max
+
+         if out_of_range or self._context.target_defending then
             self._hit_effect:stop()
          else
             -- TODO: get damage modifiers from action and attributes

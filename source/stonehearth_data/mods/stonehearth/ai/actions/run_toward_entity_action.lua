@@ -9,7 +9,11 @@ RunTowardEntity.args = {
    stop_distance = {
       type = 'number',
       default = 0
-   }
+   },
+   move_effect = {
+      type = 'string',
+      default = 'run',
+   },
 }
 RunTowardEntity.think_output = {
    point_of_interest = Point3
@@ -26,7 +30,8 @@ return ai:create_compound_action(RunTowardEntity)
          })
          :execute('stonehearth:follow_path', {
             path = ai.PREV.path,
-            stop_distance = ai.ARGS.stop_distance
+            stop_distance = ai.ARGS.stop_distance,
+            move_effect = ai.ARGS.move_effect,
          })
          :set_think_output({
             point_of_interest = ai.BACK(2).path:get_destination_point_of_interest()

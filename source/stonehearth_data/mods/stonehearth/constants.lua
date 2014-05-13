@@ -55,6 +55,7 @@ local constants = {
       combat = {
          IDLE = 1,
          ACTIVE = 10,
+         PANIC = 20,
       },
 
       -- Priorites of commands issued by the player to a unit
@@ -66,7 +67,7 @@ local constants = {
 
       compelled_behavior = {
          STRUGGLE = 4,
-         HIT_STUN = 100
+         HIT_STUN = 100,
       }
    },
    

@@ -116,11 +116,14 @@ function ConstructionDataRenderer:_recreate_render_node()
    end
    
    if self._construction_data and self._collision_shape then   
-      local render_region = self:_get_render_region()
-      if render_region then
-         self._render_node = voxel_brush_util.create_construction_data_node(self._parent_node, self._entity, render_region, self._construction_data:get_data())
+      local construction_data = self._construction_data:get_data()
+      if not construction_data.use_custom_renderer then
+         local render_region = self:_get_render_region()
+         if render_region then
+            self._render_node = voxel_brush_util.create_construction_data_node(self._parent_node, self._entity, render_region, construction_data)
+         end
+         self:_update_camera()
       end
-      self:_update_camera()
    end
 end
 

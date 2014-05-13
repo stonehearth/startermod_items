@@ -40,10 +40,12 @@ class NavGrid {
 
    private: // methods for internal helper classes
       friend CollisionTracker;
+      friend RegionTracker;
       friend TerrainTracker;
       friend TerrainTileTracker;
       friend RegionCollisionShapeTracker;
       friend VerticalPathingRegionTracker;
+      friend DestinationRegionTracker;
       friend MobTracker;
       friend SensorTracker;
       friend SensorTileTracker;

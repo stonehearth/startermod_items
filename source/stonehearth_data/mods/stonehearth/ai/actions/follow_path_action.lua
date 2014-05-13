@@ -7,8 +7,12 @@ FollowPathAction.args = {
    path = Path,          -- the path to follow
    stop_distance = {
       type = 'number',
-      default = 0
-   }
+      default = 0,
+   },
+   move_effect = {
+      type = 'string',
+      default = 'run',
+   },
 }
 FollowPathAction.version = 2
 FollowPathAction.priority = 1
@@ -41,8 +45,8 @@ function FollowPathAction:run(ai, entity, args)
 
    -- make sure the event doesn't clean up after itself when the effect finishes.  otherwise,
    -- people will only play through the animation once.
-   self._effect = radiant.effects.run_effect(entity, 'run')
-                                    :set_cleanup_on_finish(false)
+   self._effect = radiant.effects.run_effect(entity, args.move_effect)
+      :set_cleanup_on_finish(false)
 
    local arrived_fn = function()
       ai:resume('mover finished')

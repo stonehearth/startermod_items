@@ -53,12 +53,12 @@ private:
 
       RenderTile() { }
 
-      void SetNode(RenderNode n) {
+      void SetNode(RenderNodePtr n) {
          _node = n;
       }
 
    private:
-      RenderNode _node;
+      RenderNodePtr _node;
    };
    DECLARE_SHARED_POINTER_TYPES(RenderTile)
 
