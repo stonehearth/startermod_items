@@ -15,16 +15,14 @@ function DmService:initialize()
    self._sv = self.__saved_variables:get_data()
    if self._sv._initialized then
       radiant.events.listen_once(radiant, 'radiant:game_loaded', function (e)
-         --if e.entity:get_uri() == 'stonehearth:camp_standard' then
-            -- Once the camp-standard has been placed, we begin the thinking process!
-            radiant.events.listen(radiant, 'stonehearth:very_slow_poll', self, self._on_think)
-         --end
+         radiant.events.listen(radiant, 'stonehearth:very_slow_poll', self, self._on_think)
       end)
    else 
       radiant.events.listen(radiant, 'radiant:entity:post_create', function (e)
          if e.entity:get_uri() == 'stonehearth:camp_standard' then
             -- Once the camp-standard has been placed, we begin the thinking process!
             self._sv._initialized = true
+            self.__saved_variables:mark_changed()
             radiant.events.listen(radiant, 'stonehearth:very_slow_poll', self, self._on_think)
             return radiant.events.UNLISTEN
          end

@@ -7,6 +7,19 @@ local log = radiant.log.create_logger('spawn_svc')
 function SpawnRegionFinderService:initialize()
 end
 
+-- Do simple linear search to find a point we can stand on, but only within +/- 2 units
+-- of the input point.  This is intended to be used with the direct pathfinder.
+function SpawnRegionFinderService:_find_near_standable_point(entity, point)
+   for i = -2,2,1 do
+      local test_point = Point3(point.x, point.y + i, point.z)
+      if radiant.terrain.can_stand_on(entity, test_point) then
+         return test_point
+      end
+   end
+
+   return nil
+end
+
 -- Find a point 'distance' units outside the perimeter of the explored area of the civilization 
 -- to spawn an entity.
 function SpawnRegionFinderService:find_point_outside_civ_perimeter_for_entity(entity, distance)
@@ -34,7 +47,8 @@ function SpawnRegionFinderService:find_point_outside_civ_perimeter_for_entity(en
       local scaled_spawn_dir = Point3(spawn_dir.x, spawn_dir.y, spawn_dir.z)
       local candidate_point = rand_perimeter_point + scaled_spawn_dir
 
-      if radiant.terrain.can_stand_on(entity, candidate_point) then
+      candidate_point = self:_find_near_standable_point(entity, candidate_point)
+      if candidate_point then
          local direct_path_finder = _radiant.sim.create_direct_path_finder(entity)
                                        :set_start_location(candidate_point)
                                        :set_end_location(rand_perimeter_point)
