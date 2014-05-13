@@ -55,6 +55,58 @@
                ]
             }
          }
+      }, 
+      "sleep_in_bed" : {
+         "id" : "sleep_in_bed",
+         "trigger_policy" : [
+            {
+               "trigger_id" : "sleep_in_bed",
+               "probability" : 100
+            }
+         ],
+         "text" : "On Beds:",
+         "type" : "random",
+         "default_namespace" : "stonehearth:settler_journals:dreams",
+         "logs_by_personality" : {
+            "generic" : {
+               "logs" : [
+               "It feels good to have my own bed.",
+               "Sleeping in a bed is a ton cooler than sleeping on the floor!",
+               "Beds are the best invention since regulation log sizes.", 
+               "I'm never going to get tired of sleeping in a bed.", 
+               "Yes! This bed is mine! M-I-N-E!",
+               "Being in my bed makes me feel so sheltered and cozy.",
+               "Home is where your bed is."
+               ]
+            }
+         }
+      },
+      "sleep_on_ground" : {
+         "id" : "sleep_on_ground",
+         "trigger_policy" : [
+            {
+               "trigger_id" : "sleep_on_ground",
+               "probability" : 100
+            }
+         ],
+         "text" : "On the Cold, Hard Earth:",
+         "type" : "random",
+         "default_namespace" : "stonehearth:settler_journals:dreams",
+         "logs_by_personality" : {
+            "generic" : {
+               "logs" : [
+               "Sleeping on the ground makes me super sore.",
+               "I think there was a rock in my shoulder all night.",
+               "Rattlesnakes! What if I wake up covered in rattlesnakes?!", 
+               "I wish I could sleep in a real bed.",
+               "Any kind of bed would be better than sleeping on the ground", 
+               "Though __teacher__ slept on the ground during their pilgrimate, I wish I didn't have to.",
+               "I really, really wish I had a bed to call my own.", 
+               "I was too exhausted to find a proper bed, and now I'm really paying for it. Ow.",
+               "Slept on the ground again. Neck super sore. Everything looks slanted."
+               ]
+            }
+         }
       }
    }, 
    "substitution_table" : [

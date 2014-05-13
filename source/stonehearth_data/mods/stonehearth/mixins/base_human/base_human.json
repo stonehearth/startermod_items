@@ -65,7 +65,8 @@
             "stonehearth:observers:sleepiness",
             "stonehearth:observers:calorie",
             "stonehearth:observers:free_time", 
-            "stonehearth:observers:nutrition_score"
+            "stonehearth:observers:nutrition_score", 
+            "stonehearth:observers:shelter_score"
          ]
       },
       "unit_info" : {
