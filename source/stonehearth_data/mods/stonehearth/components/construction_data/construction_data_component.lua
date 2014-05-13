@@ -30,6 +30,10 @@ function ConstructionDataComponent:get_material()
    return self._data.material
 end
 
+function ConstructionDataComponent:get_type()
+   return self._data.type
+end
+
 function ConstructionDataComponent:needs_scaffolding()
    return self._data.needs_scaffolding
 end

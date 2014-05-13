@@ -788,6 +788,10 @@
          "controller" : "file(call_handlers/build_call_handler.lua)",
          "endpoint" : "server"
       },
+      "add_floor": {
+         "controller" : "file(call_handlers/build_call_handler.lua)",
+         "endpoint" : "server"
+      },
       "set_stockpile_filter": {
          "controller" : "file(call_handlers/stockpile_call_handler.lua)",
          "endpoint" : "server"

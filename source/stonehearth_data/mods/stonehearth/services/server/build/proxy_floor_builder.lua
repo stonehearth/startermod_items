@@ -23,8 +23,7 @@ function ProxyFloorBuilder:go(response)
             return _radiant.client.create_voxel_node(1, Region3(box), 'materials/blueprint_gridlines.xml', Point3f(0.5, 0, 0.5))
          end)
       :done(function(selector, box)
-            self:_add_floor_segment(box, response)
-            selector:destroy()
+            self:_add_floor(selector, box, response)
          end)
       :fail(function(selector)
             selector:destroy()
@@ -35,42 +34,20 @@ function ProxyFloorBuilder:go(response)
    return self
 end
 
-function ProxyFloorBuilder:create_building()
-   local building = ProxyContainer(nil, 'stonehearth:entities:building')
-   building:set_building(self._root_proxy)   
-   return building
-end
-
-function ProxyFloorBuilder:create_floor(building)
-   return ProxyFloor(building, 'stonehearth:entities:wooden_floor')
-               :set_building(building)
-end
-
-function ProxyFloorBuilder:_add_floor_segment(box, response)   
-   local merge_with = {}
-   local contents = _physics:get_entities_in_cube(box)
-   for id, entity in pairs(contents) do
-      local cd = stonehearth.builder:get_construction_data_for(entity)
-      if cd and cd.type == "floor" then
-         local building = stonehearth.builder:get_building_for(entity)
-         table.insert(merge_with, building)
-      end
-   end
-   if #merge_with > 0 then
-      local building = stonehearth.builder:merge_buildings(merge_with)
-      local floor = self:create_floor(nil)
-   else
-      local building = self:create_building()
-      local floor = self:create_floor(building)
-      building:move_to(box.min)
-      floor:get_region():modify(function(cursor)
-            cursor:copy_region(Region3(Cube3(Point3(0, 0, 0),
-                                             box.max - box.min)))
+function ProxyFloorBuilder:_add_floor(selector, box, response)   
+   _radiant.call('stonehearth:add_floor', 'stonehearth:entities:wooden_floor', box)
+      :done(function(r)
+            if r.new_selection then
+               stonehearth.selection:select_entity(r.new_selection)
+            end
+            response:resolve(r)
          end)
-
-      stonehearth.builder:create_building(building)
-      building:destroy()
-   end
+      :fail(function(r)
+            response:reject(r)
+         end)
+      :always(function()
+            selector:destroy()
+         end)
 end
 
 function ProxyFloorBuilder:destroy()
