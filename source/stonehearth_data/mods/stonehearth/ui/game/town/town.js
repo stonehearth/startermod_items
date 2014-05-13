@@ -23,29 +23,32 @@ App.StonehearthTownView = App.View.extend({
    didInsertElement: function() {
       var self = this;
       this._super();
-
-      //TODO: Set this from something
-      this.$('#netWorthBar').progressbar({value:50})
-      
-      this.$('#overallScore').progressbar({
-         value: this.scores.happiness
-      });
-      this.$('#foodScore').progressbar({
-         value: this.scores.nutrition
-      });
-       this.$('#shelterScore').progressbar({
-         value: this.scores.shelter
-      });
-      
-      
-      
+      this._updateScores();
    },
 
+   _updateScores: function() {
+      this.$('#netWorthBar').progressbar({
+         value: 86
+      });
+
+      this._updateMeter(this.$('#overallScore'), this.scores.happiness, this.scores.happiness / 10);
+      this._updateMeter(this.$('#foodScore'), this.scores.nutrition, this.scores.nutrition / 10);
+      this._updateMeter(this.$('#shelterScore'), this.scores.shelter, this.scores.shelter / 10);
+   },
+
+   _updateMeter: function(element, value, text) {
+      element.progressbar({
+         value: value
+      });
+
+      element.find('.ui-progressbar-value').html(text);
+   },
 
    _set_happiness: function() {
       this.scores.happiness = this.get('context.score_data.happiness.happiness');
       this.scores.nutrition = this.get('context.score_data.happiness.nutrition');
       this.scores.shelter = this.get('context.score_data.happiness.shelter');
+      this._updateScores();
    }.observes('context.score_data.happiness')
 
 });
