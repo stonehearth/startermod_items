@@ -11,6 +11,7 @@ function PopulationFaction:__init(session, saved_variables)
       self._sv.kingdom = session.kingdom
       self._sv.player_id = session.player_id
       self._sv.citizens = {}
+      self._sv.citizen_scores = {}
    end
    self._data = radiant.resources.load_json(self._sv.kingdom)
 end
@@ -85,16 +86,64 @@ function PopulationFaction:create_new_citizen()
    self:_set_citizen_initial_state(citizen, gender)
 
    self._sv.citizens[citizen:get_id()] = citizen
-
+   self:_calculate_citizen_scores()
    self.__saved_variables:mark_changed()
 
    radiant.events.listen(citizen, 'radiant:entity:pre_destroy', self, self._on_entity_destroyed)
+   radiant.events.listen(citizen, 'stonehearth:score_changed', self, self._on_score_changed)
 
    return citizen
 end
 
+function PopulationFaction:_on_score_changed(e)
+   self:_calculate_citizen_scores()
+end
+
+--- Iterate through all the current citizens and each of their scores. 
+--  Every time a score is encountered, update the aggregate local database of
+--  scores. When all the citizens and all the scores have been accounted for, 
+--  calculate the final scores and score in _sv. If only some people have a score
+--  then the score will only be totaled with respect to that number of people.
+--  O(n^2) note: yes, this is kind of expensive, algorithmically. However, it is a lot
+--  simpler than noting which score has changed and updating only it and all its DEPENDENT
+--  scores, given the nested nature of the dependencies. And we expect about 6 scores per person
+--  and less than a hundred people. If this does prove to be too expensive, we can revisit.  
+function PopulationFaction:_calculate_citizen_scores()
+   local aggregate_scores = {}
+   --Iterate through each citizen
+   for id, citizen in pairs(self._sv.citizens) do
+      if citizen then
+         local score_component = citizen:get_component('stonehearth:score')
+         if score_component then
+            --Iterate through each of their scores and calculate the running total for that score
+            for name, score_data in pairs(score_component:get_all_scores()) do
+               local agg_score_data = aggregate_scores[name]
+               if not agg_score_data then
+                  agg_score_data = {}
+                  agg_score_data.score = score_data.score
+                  agg_score_data.num_people = 1
+                  aggregate_scores[name] = agg_score_data
+               else 
+                  agg_score_data.score = agg_score_data.score + score_data.score
+                  agg_score_data.num_people = agg_score_data.num_people + 1
+               end
+            end
+         end
+      end
+   end
+   --Calculate final scores for each score available
+   for name, score_data in pairs(aggregate_scores) do
+      self._sv.citizen_scores[name] = score_data.score/score_data.num_people
+   end
+
+   self.__saved_variables:mark_changed()
+end
+
 function PopulationFaction:_on_entity_destroyed(args)
    self._sv.citizens[args.entity_id] = nil
+   radiant.events.unlisten(citizen, 'stonehearth:score_changed', self, self._on_score_changed)
+
+   self:_calculate_citizen_scores()
    return radiant.events.UNLISTEN
 end
 

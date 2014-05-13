@@ -133,8 +133,12 @@ function ScoreComponent:change_score(key, modifier, journal_data)
          modifier = modifier, 
          new_score = score_data.score
       })
-
+   
    self.__saved_variables:mark_changed()
+end
+
+function ScoreComponent:get_all_scores()
+   return self._sv.scores
 end
 
 --- Given a key, get the score associated with it and return it
