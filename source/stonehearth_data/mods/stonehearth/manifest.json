@@ -391,6 +391,7 @@
       "observers:calorie" : "file(ai/observers/calorie_observer.lua)",
       "observers:free_time" : "file(ai/observers/free_time_observer.lua)",
       "observers:nutrition_score" : "file(ai/observers/nutrition_score_observer.lua)",
+      "observers:shelter_score" : "file(ai/observers/shelter_score_observer.lua)",
 
       "class_info" : "file(entities/class_info)",
       "personality_types" : "file(data/personality/personality_types.json)",
@@ -657,6 +658,10 @@
       },
       "get_population": {
          "controller" : "file(call_handlers/population_call_handler.lua)",
+         "endpoint" : "server"
+      },
+      "get_score": {
+         "controller" : "file(call_handlers/score_call_handler.lua)",
          "endpoint" : "server"
       },
       "choose_workbench_location" : {

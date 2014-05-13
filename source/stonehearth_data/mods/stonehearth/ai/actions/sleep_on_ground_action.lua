@@ -11,12 +11,6 @@ function SleepOnGroundAction:run(ai, entity)
    ai:execute('stonehearth:run_effect', { effect = 'yawn' })
    ai:execute('stonehearth:run_effect', { effect = 'sit_on_ground' })
 
-   --When sleeping, we have a small chance of dreaming
-   --TODO: different dreams for sleeping on the ground?
-   radiant.events.trigger_async(stonehearth.personality, 'stonehearth:journal_event', 
-                               {entity = entity, description = 'dreams'})
-
-
    -- goto sleep
    radiant.entities.think(entity, '/stonehearth/data/effects/thoughts/sleepy')
    radiant.entities.add_buff(entity, 'stonehearth:buffs:sleeping');
@@ -24,6 +18,8 @@ function SleepOnGroundAction:run(ai, entity)
    ai:execute('stonehearth:run_effect_timed', { effect = 'sleep', duration = '2h'})
    radiant.entities.set_attribute(entity, 'sleepiness', stonehearth.constants.sleep.MIN_SLEEPINESS)
    radiant.entities.add_buff(entity, 'stonehearth:buffs:groggy')
+
+   radiant.events.trigger_async(entity, 'stonehearth:sleep_on_ground')
 end
 
 function SleepOnGroundAction:stop(ai, entity)
