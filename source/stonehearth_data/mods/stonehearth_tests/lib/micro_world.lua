@@ -25,6 +25,11 @@ function MicroWorld:create_world()
    stonehearth.town:add_town(session)
    stonehearth.inventory:add_inventory(session)
    stonehearth.population:add_population(session)
+   -- xxx, oh lawd. These gets are required to intialize the terrain visible and explored regions.
+   -- refactoring is required.
+   stonehearth.terrain:get_visible_region(session.faction) 
+   stonehearth.terrain:get_explored_region(session.faction)
+   
 
    local region3 = _radiant.sim.alloc_region()
    region3:modify(function(r3)

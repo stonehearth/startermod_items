@@ -42,5 +42,35 @@ function InventoryCallHandler:get_inventory(session, response, location, size)
    return { inventory = inventory }
 end
 
+function InventoryCallHandler:get_entities_in_explored_region(session, response)
+   local entities = stonehearth.terrain:get_entities_in_explored_region(session.faction)
+   response:resolve({ entities = entities })
+end
+
+function InventoryCallHandler:get_talismans_in_explored_region(session, response)
+   local talisman_filter_fn = function(entity)
+      if entity:get_component('stonehearth:promotion_talisman') then
+         return true
+      else 
+         return false
+      end
+   end
+
+   local entities = stonehearth.terrain:get_entities_in_explored_region(session.faction, talisman_filter_fn)
+
+   -- build a map of uris
+   local available_professions = {}
+
+   for id, entity in pairs(entities) do
+      local talisman_component = entity:get_component('stonehearth:promotion_talisman')
+      local profession = talisman_component:get_profession()
+      available_professions[id] = profession
+   end
+
+   return({ 
+      entities = entities,
+      available_professions = available_professions
+   })
+end
 
 return InventoryCallHandler
