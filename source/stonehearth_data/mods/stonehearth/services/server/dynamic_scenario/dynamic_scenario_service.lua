@@ -5,23 +5,24 @@ local rng = _radiant.csg.get_default_rng()
 local DynamicScenarioService = class()
 
 function DynamicScenarioService:initialize()
-
-   --[[self.__saved_variables:read_data(function(sv)
-         self._rng = sv._rng
-         self._revealed_region = sv._revealed_region
-         self._dormant_scenarios = sv._dormant_scenarios
-         self._feature_size = sv._feature_size
-      end);]]
+   self._sv = self.__saved_variables:get_data()
+   if not self._sv.running_scenarios then
+      self._sv.running_scenarios = {}
+   else
+      radiant.events.listen_once(radiant, 'radiant:game_loaded', function(e)
+            for idx, sv in pairs(self._sv.running_scenarios) do
+               local scenario_data = sv:get_data()
+               local properties = {
+                  script = scenario_data._scenario_script_path
+               }
+               self._sv.running_scenarios[idx] = self:_init_scenario(properties, sv)
+            end
+            self.__saved_variables:mark_changed()
+         end)
+   end
 
    self._dm = stonehearth.dm
-   self._running_scenarios = {}
-   
-   --[[if self._rng then
-      radiant.events.listen(radiant, 'radiant:game_loaded', function()
-            self:_register_events()
-            return radiant.events.UNLISTEN
-         end)
-   end]]
+   self:_parse_scenario_index()
 end
 
 
@@ -45,29 +46,31 @@ function DynamicScenarioService:spawn_scenario(scenario_kind, scenario_difficult
 
    local scenario_idx = rng:get_int(1, #valid_scenarios)
 
-   local new_scenario = self:_start_scenario(valid_scenarios[scenario_idx])
-   table.insert(self._running_scenarios, new_scenario)
+   local new_scenario = self:_init_scenario(valid_scenarios[scenario_idx], nil)
+   new_scenario:start()
+   table.insert(self._sv.running_scenarios, new_scenario)
+   self.__saved_variables:mark_changed()
 end
 
 
 function DynamicScenarioService:num_running_scenarios()
    local num_running = 0
 
-   for i = #self._running_scenarios, 1, -1 do
-      local scenario = self._running_scenarios[i]
+   for i = #self._sv.running_scenarios, 1, -1 do
+      local scenario = self._sv.running_scenarios[i]
       if scenario:is_running() then
          num_running = num_running + 1
       else 
-         table.remove(self._running_scenarios, i)
+         table.remove(self._sv.running_scenarios, i)
       end
    end
+   self.__saved_variables:mark_changed()
 
    return num_running
 end
 
 
 function DynamicScenarioService:create_new_game()
-   self:_parse_scenario_index()
 end
 
 
@@ -88,10 +91,10 @@ function DynamicScenarioService:_parse_scenario_index()
 end
 
 
-function DynamicScenarioService:_start_scenario(properties)
+function DynamicScenarioService:_init_scenario(properties, opt_datastore)
    local scenario_script = radiant.mods.load_script(properties.script)
-   local dyn_scenario = DynamicScenario(scenario_script)
-   dyn_scenario:start()
+   local datastore = opt_datastore and opt_datastore or radiant.create_datastore()
+   local dyn_scenario = DynamicScenario(scenario_script, properties.script, datastore)
 
    return dyn_scenario
 end

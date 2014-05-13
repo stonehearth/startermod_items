@@ -241,6 +241,10 @@ function TerrainService:get_explored_region(faction)
    return self:_get_region(self._sv._explored_regions, faction)
 end
 
+function TerrainService:get_player_perimeter(faction)
+   return self._sv._convex_hull
+end
+
 function TerrainService:_get_region(map, faction)
    local boxed_region = map[faction]
 
