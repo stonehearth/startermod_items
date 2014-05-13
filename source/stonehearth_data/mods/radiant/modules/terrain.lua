@@ -41,8 +41,16 @@ function Terrain.can_stand_on(entity, location)
 end
 
 -- returns all entities whose locations of collision shapes intersect the cube
-function Terrain.get_entities_in_cube(cube)
-   return _physics:get_entities_in_cube(cube)
+function Terrain.get_entities_in_cube(cube, filter_fn)
+   local entities = _physics:get_entities_in_cube(cube)
+   if filter_fn then
+      for id, entity in pairs(entities) do         
+         if not filter_fn(entity) then
+            entities[id] = nil
+         end
+      end
+   end
+   return entities
 end
 
 function Terrain.trace_world_entities(reason, added_cb, removed_cb)

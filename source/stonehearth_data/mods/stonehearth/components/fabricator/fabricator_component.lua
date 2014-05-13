@@ -95,7 +95,7 @@ function FabricatorComponent:start_project(name, blueprint)
    self._sv.name = name and name or '-- unnamed --'
    self._log:debug('starting project %s', self._sv.name)
    
-   self._fabricator = Fabricator(string.format("(%s Fabricator)", tostring(self._sv.blueprint)),
+   self._fabricator = Fabricator(string.format("(%s Fabricator)", tostring(blueprint)),
                                  self._entity,
                                  blueprint)
    
