@@ -191,10 +191,6 @@ var StonehearthClient;
          if (!this._townMenu) {
             this._townMenu = App.gameView.addView(App.StonehearthTownView);
          } else {
-            if (this._townMenu && !this._townMenu.$().is(":visible")) {
-               this._townMenu.preShow();
-            }
-            
             this._townMenu.$().toggle();
          }         
       },
