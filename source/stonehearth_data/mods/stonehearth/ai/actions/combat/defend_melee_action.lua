@@ -4,7 +4,7 @@ local log = radiant.log.create_logger('combat')
 
 local DefendMelee = class()
 
-DefendMelee.name = 'melee defense'
+DefendMelee.name = 'defend melee'
 DefendMelee.does = 'stonehearth:combat:defend'
 DefendMelee.args = {}
 DefendMelee.version = 2
@@ -12,10 +12,7 @@ DefendMelee.priority = 1
 DefendMelee.weight = 1
 
 function DefendMelee:__init(entity)
-   self._weapon_table = stonehearth.combat:get_weapon_table('medium_1h_weapon')
-   
-   self._defense_types = stonehearth.combat:get_action_types(self._weapon_table, 'defense_types')
-   self._num_defense_types = #self._defense_types
+   self._defense_types = stonehearth.combat:get_action_types(entity, 'stonehearth:combat:melee_defenses')
 end
 
 function DefendMelee:start_thinking(ai, entity, args)
@@ -83,7 +80,7 @@ end
 
 function DefendMelee:_set_think_output()
    if not self._think_output_set then
-      self._ai:set_think_output() -- CHECKCHECK
+      self._ai:set_think_output()
       self._think_output_set = true
    end
 end
@@ -106,7 +103,7 @@ function DefendMelee:run(ai, entity, args)
 
    ai:execute('stonehearth:run_effect', {
       effect = self._defend_info.name,
-      delay = defend_delay,
+      delay = defend_delay
    })
 end
 

@@ -204,31 +204,6 @@ BfsPathFinderPtr BfsPathFinder_SetFilterFn(BfsPathFinderPtr pf, luabind::object 
    return pf;
 }
 
-bool NavGrid_CanStandOn(lua_State *L, om::EntityRef entityRef, csg::Point3 const& location)
-{
-   phys::OctTree const& octTree = GetSim(L).GetOctTree();
-   om::EntityPtr entity = entityRef.lock();
-
-   if (!entity) {
-      return false;
-   }
-
-   bool standable = octTree.CanStandOn(entity, location);
-   return standable;
-}
-
-luabind::object NavGrid_GetEntitiesInCube(lua_State *L, csg::Cube3 const& cube)
-{
-   phys::NavGrid& navGrid = GetSim(L).GetOctTree().GetNavGrid();
-
-   luabind::object result = luabind::newtable(L);
-   navGrid.ForEachEntityInBounds(cube, [L, &result](om::EntityPtr entity) {
-      ASSERT(entity);
-      result[entity->GetObjectId()] = luabind::object(L, om::EntityRef(entity));
-   });
-   return result;
-}
-
 DEFINE_INVALID_JSON_CONVERSION(Path);
 DEFINE_INVALID_JSON_CONVERSION(PathFinder);
 DEFINE_INVALID_JSON_CONVERSION(BfsPathFinder);
@@ -310,11 +285,6 @@ void lua::sim::open(lua_State* L, Simulation* sim)
             lua::RegisterTypePtr_NoTypeInfo<BumpLocation>("BumpLocation")
             ,
             lua::RegisterTypePtr_NoTypeInfo<LuaJob>("LuaJob")
-            ,
-            namespace_("nav_grid") [
-               def("can_stand_on",         &NavGrid_CanStandOn),
-               def("get_entities_in_cube", &NavGrid_GetEntitiesInCube)
-            ]
          ]
       ]
    ];

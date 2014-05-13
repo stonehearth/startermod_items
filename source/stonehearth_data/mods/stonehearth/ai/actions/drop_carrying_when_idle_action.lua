@@ -32,7 +32,6 @@ end
 local ai = stonehearth.ai
 return ai:create_compound_action(DropCarryingWhenIdle)
 		:when(function(ai) 
-			radiant.log.write('debuggin', 0, 'ai.CURRENT.carrying is %s', tostring(ai.CURRENT.carrying))
 			return ai.CURRENT.carrying ~= nil end)
         :execute('stonehearth:wander_within_leash', { radius = 3 })
         :execute('stonehearth:drop_carrying_now', {})

@@ -5,12 +5,19 @@
          "trigger_policy" : [
             {
                "trigger_id" : "starving",
-               "probability" : 80
+               "probability" : 100
             }
          ],
-         "text" : "On Hunger:",
+         "text" : "On Starvation:",
          "type" : "random",
          "logs_by_personality" : {
+            "generic" : {
+               "logs" : [
+               "I'm so hungry it hurts.", 
+               "If I could just get some food, maybe my stomach would feel better.",
+               "I don't know how much longer I can go without food."
+               ]
+            },
             "beleaguered_leader" : {
                "logs" : [
                "I don't know how long we can last without food.", 

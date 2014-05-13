@@ -74,6 +74,9 @@ App.StonehearthBuildingDesignerView = App.View.extend({
       var self = this;
       this._super();
 
+      this.$('.floorTool').click(function() {
+         App.stonehearthClient.buildFloor();
+      });
       this.$('#startBuilding').click(function() {
          var building_entity = self.get('context.building');
          if (building_entity) {

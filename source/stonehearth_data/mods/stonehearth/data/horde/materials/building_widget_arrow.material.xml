@@ -1,0 +1,4 @@
+<Material>
+   <Shader source="shaders/building_widget_obj.shader" />
+   <Uniform name="widgetColor" a="1.0" b="1.0" c="0.0" d="0.3"/>
+</Material>

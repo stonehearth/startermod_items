@@ -13,6 +13,14 @@ BumpAgainstEntity.args = {
 BumpAgainstEntity.version = 2
 BumpAgainstEntity.priority = 1
 
+local function random_xz_unit_vector()
+   local unit_x = Point3f(1, 0, 0)
+   local unit_y = Point3f(0, 1, 0)
+   local angle = rng:get_real(0, 2 * math.pi)
+   local vector = Quaternion(unit_y, angle):rotate(unit_x)
+   return vector
+end
+
 function BumpAgainstEntity:run(ai, entity, args)
    local distance = args.distance
    local bumper = args.entity
@@ -36,11 +44,7 @@ function BumpAgainstEntity:run(ai, entity, args)
    if vector:distance_squared() ~= 0 then
       vector:normalize()
    else
-      -- pick a random direction (rotate the unit_x vector around the y-axis by a random angle)
-      local unit_x = Point3f(1, 0, 0)
-      local unit_y = Point3f(0, 1, 0)
-      local angle = rng:get_real(0, 2 * math.pi)
-      vector = Quaternion(unit_y, angle):rotate(unit_x)
+      vector = random_xz_unit_vector()
    end
 
    vector:scale(bump_distance)

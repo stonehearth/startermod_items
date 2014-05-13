@@ -87,9 +87,9 @@
             "teacher" : {
                "type" : "parametrized_value",
                "entries" : {
-                  "ascendency" : "Cid",
-                  "rayyas_children" : "Rayya",
-                  "northern_alliance" : "Valin"
+                  "stonehearth:kingdoms:ascendancy" : "Cid",
+                  "stonehearth:kingdoms:rayyas_children" : "Rayya",
+                  "stonehearth:kingdoms:northern_alliance" : "Valin"
                }
             },
             "animals" : {

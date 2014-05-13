@@ -1,20 +1,13 @@
 {
    "type" : "effect",
    "tracks": {
-      "grab_weapon" : {
-         "type": "attach_item_effect",
-         "start_time": 0,
-         "end_time": 0,
-         "item": "stonehearth:wooden_sword",
-         "bone": "mainHand"
-      },     
       "animation": {
          "type": "animation_effect",
          "start_time": 0,
          "animation": "combat_1h_forehand.json",
          "loop": false
       },
-       "sound": {
+      "sound": {
          "type": "sound_effect",
          "duration": 1000,
          "start_delay": 400,

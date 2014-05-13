@@ -13,7 +13,6 @@ function TownService:initialize()
          self._sv.towns[player_id] = Town(nil, ss)
       end
    end
-
    radiant.log.write('town', 0, 'initialize not implemented for town service!')
 end
 

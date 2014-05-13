@@ -38,6 +38,35 @@ end
 function PersonalityService:initialize()
 end
 
+--- Call this function with a bag of journal data to register a journal entry 
+function PersonalityService:log_journal_entry(journal_data, score_metadata)
+   local person = journal_data.entity
+   local description = journal_data.description
+   local namespace = journal_data.namespace
+   if person and description then 
+      if journal_data.substitutions then
+         self:_make_substitutions(person, journal_data.substitutions)
+      end
+      local personality_component = person:get_component('stonehearth:personality')
+      local trigger_data = self._trigger_to_activity[description]
+      if personality_component and trigger_data then
+         local probability = trigger_data.probability
+         local activity_name = trigger_data.activity_id
+         personality_component:register_notable_event(activity_name, probability, namespace, score_metadata)
+      end
+   end
+end
+
+--- Internal function to make substitutions into an entity's variables before the journal triggers
+-- @param substitutions - a dictionary of names and values to register to a person
+function PersonalityService:_make_substitutions(person, substitutions)
+   local personality_component = person:get_component('stonehearth:personality')
+   for key, value in pairs(substitutions) do
+      personality_component:add_substitution(key, value)
+   end
+end
+
+--TODO: phase out the even in favor of the function
 --- When a notable event happens, produce a log entry for the relevant entity if appropriate
 --  In order to make this happen, an activity needs to have a trigger event id that matches
 --  the description in the event. If this maps to an activity, then grab the activity and
@@ -57,16 +86,13 @@ function PersonalityService:_on_journal(e)
    end
 end
 
---- Loads relevant log files
---  TODO: change this to read them out of the manifests; look at radiant.call in app.js
+--- Loads relevant log files out of a json index 
+--  TODO: consider what it would mean to subidivde logs by kingdom. 
 function PersonalityService:_load_log_files()
-   self:_load_activity('stonehearth:personal_logs:chopping_wood')
-   self:_load_activity('stonehearth:personal_logs:eating_berries')
-   self:_load_activity('stonehearth:personal_logs:embarking')
-   self:_load_activity('stonehearth:personal_logs:promote_carpenter')
-   self:_load_activity('stonehearth:personal_logs:dreams')
-   self:_load_activity('stonehearth:personal_logs:gathering_supplies')
-   self:_load_activity('stonehearth:personal_logs:starving')
+   local all_logs = radiant.resources.load_json('stonehearth:personal_log_index')
+   for i, log_uri in ipairs(all_logs.general) do
+      self:_load_activity(log_uri)
+   end
 end
 
 --- Returns a personality type. Will only return repeats if all

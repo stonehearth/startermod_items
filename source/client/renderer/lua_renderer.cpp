@@ -147,6 +147,8 @@ void h3dSetGlobalUniformFloat(const char* name, float value)
 }
 
 DEFINE_INVALID_JSON_CONVERSION(RaycastResult);
+DEFINE_INVALID_JSON_CONVERSION(RenderNode);
+IMPLEMENT_TRIVIAL_TOSTRING(RenderNode);
 
 void LuaRenderer::RegisterType(lua_State* L)
 {
@@ -243,10 +245,14 @@ void LuaRenderer::RegisterType(lua_State* L)
       ],
       class_<H3DNodeUnique>("H3DNodeUnique")
          .def("destroy",                     H3DNodeUnique_Destroy),
-      class_<RenderNode>("RenderNode")
+      lua::RegisterTypePtr_NoTypeInfo<RenderNode>("RenderNode")
          .def("get_node",                    &RenderNode::GetNode)
+         .def("set_transform",               &RenderNode::SetTransform)
+         .def("set_position",                &RenderNode::SetPosition)
+         .def("set_rotation",                &RenderNode::SetRotation)
+         .def("set_scale",                   &RenderNode::SetScale)
+         .def("set_material",                static_cast<RenderNodePtr (RenderNode::*)(std::string const&)>(&RenderNode::SetMaterial))
          .def("destroy",                     &RenderNode::Destroy)
-         .def("set_material",                static_cast<RenderNode& (RenderNode::*)(std::string const&)>(&RenderNode::SetMaterial))
       ,
       def("h3dGetNodeParamStr",              &h3dGetNodeParamStr),
       def("h3dRemoveNode",                   &h3dRemoveNode),

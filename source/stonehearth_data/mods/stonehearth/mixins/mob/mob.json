@@ -7,7 +7,8 @@
       "stonehearth:ai" : {
          "actions" : [
             "stonehearth:actions:death",
-            "stonehearth:actions:die",
+            "stonehearth:actions:die_generic",
+            "stonehearth:actions:destroy_entity",
             "stonehearth:actions:drop_carrying_action",
             "stonehearth:actions:drop_carrying_now",
             "stonehearth:actions:drop_carrying_adjacent",

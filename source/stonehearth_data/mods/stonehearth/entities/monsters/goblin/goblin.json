@@ -31,7 +31,7 @@
             "stonehearth:actions:wait_for_attribute_above",
             "stonehearth:actions:wait_for_attribute_below",
             "stonehearth:actions:combat",
-            "stonehearth:actions:combat:attack",
+            "stonehearth:actions:combat:attack_dispatcher",
             "stonehearth:actions:combat:attack:melee",
             "stonehearth:actions:combat:attack:melee_adjacent",
             "stonehearth:actions:combat:defend_dispatcher",
@@ -46,7 +46,16 @@
             "stonehearth:actions:worker_task_dispatcher",
             "stonehearth:actions:place_item",
             "stonehearth:actions:place_item_type",
-            "stonehearth:actions:stockpile_arson"       
+            "stonehearth:actions:stockpile_arson",
+
+            "stonehearth:actions:combat:find_target",
+            "stonehearth:actions:combat:create_engage_callback",
+            "stonehearth:actions:combat:get_melee_range",
+            "stonehearth:actions:combat:set_global_attack_cooldown",
+            "stonehearth:actions:combat:wait_for_global_attack_cooldown",
+            "stonehearth:actions:chase_entity",
+            "stonehearth:actions:set_posture",
+            "stonehearth:actions:unset_posture"
          ],
          "observers": [
          ]
@@ -59,7 +68,11 @@
       "stonehearth:attributes": {
          "health": {
             "type" : "basic", 
-            "value" :  100
+            "value" :  50
+         },
+         "max_health": {
+            "type" : "basic", 
+            "value" :  50
          },
          "speed": {
             "type" : "basic",
@@ -71,6 +84,51 @@
          }
       },
       "stonehearth:carry_block": {
-      }
+      },
+      "stonehearth:posture": [
+         "combat"
+      ]
+   },
+   "entity_data" : {
+      "stonehearth:combat:melee_attacks" : [
+         {
+            "name" : "combat_1h_backhand",
+            "active_frame" : 17,
+            "cooldown" : 0,
+            "priority" : 0
+         },
+         {
+            "name" : "combat_1h_forehand",
+            "active_frame" : 16,
+            "cooldown" : 0,
+            "priority" : 0
+         },
+         {
+            "name" : "combat_1h_forehand_spin",
+            "active_frame" : 21,
+            "cooldown" : 8000,
+            "priority" : 1
+         },
+         {
+            "name" : "combat_power_spike",
+            "active_frame" : 94,
+            "cooldown" : 20000,
+            "priority" : 1
+         }      
+      ],
+      "stonehearth:combat:melee_defenses" : [
+         {
+            "name" : "combat_1h_parry",
+            "active_frame" : 4,
+            "cooldown" : 0,
+            "priority" : 0
+         },
+         {
+            "name" : "combat_1h_dodge",
+            "active_frame" : 8,
+            "cooldown" : 8000,
+            "priority" : 1
+         }
+      ]
    }
 }

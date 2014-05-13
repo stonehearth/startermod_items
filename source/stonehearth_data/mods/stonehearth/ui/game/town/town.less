@@ -2,8 +2,149 @@
    margin: auto auto auto auto;
 
    .window {
-      width: 1200px;
-      height: 800px;
+      width: 750px;
+      height: 600px;
+      //height: 850px;
    }
+
+   #info {
+      position: relative;
+      padding-top: 10px;
+      padding-left: 20px;
+      padding-right: 20px;
+
+      #icon {
+         width: 85px;
+         height: 90px;
+         background: url(images/tmp_town_icon.png);
+      }
+
+      #townTitle {
+         position: absolute;
+         left: 110px;
+         top: 20px;
+
+         #descriptor {
+            font-size: 18px;
+         }
+
+         #name {
+            padding-top: 4px;
+            font-size: 34px;
+         }
+      }
+
+      #citizenCount {
+         position: absolute;
+         top: 20px;
+         right: 30px;
+         width: 210px;
+
+         .counter {
+            float: left;
+            width: 70px;
+            height: 70px;
+            display: flex;
+
+            div {
+               font-family: @controlFontFamily;
+               font-size: 24px;
+               margin: auto;
+            }
+         }
+
+         #workers {
+            background: url(images/worker_count_bg.png);
+         }
+
+         #crafters {
+            background: url(images/crafter_count_bg.png);
+         }
+
+         #soldiers {
+            background: url(images/soldier_count_bg.png);
+         }
+      }
+   }
+
+   #netWorthSection {
+      position: relative;
+      margin-top: 35px;
+      height: 125px;
+
+      .ui-progressbar {
+         position: absolute;
+         width: 665px;
+         height: 52px;
+         border-width: 11px 11px 20px 11px;
+         border-image: url(images/net_worth_frame.png) 11 11 20 11 repeat;
+         text-align: center;
+      } 
+
+      .ui-progressbar-value {
+         height: 35px;
+         background-color: #38b400;
+         border-width: 9px;
+         border-image: url(images/net_worth_value.png) 9 repeat;
+      }
+
+      #netWorthNumeric {
+         position: absolute;
+         top: 43px;
+         left: 11px;
+         width: 665px;
+         height: 52px;
+         font-family: @controlFontFamily;
+         font-size: 30px;
+         color: #d2ff00;
+         display: flex;
+
+         #value {
+            margin: auto;
+         }
+      }
+   }
+
+   .bigSection {
+      margin-bottom: 10px;
+   }
+
+   .scoreBar {
+      width: 675px;
+      height: 52px;
+      background-image: url(images/rating_bg.png);
+      background-position: right center;
+      background-repeat: no-repeat;
+      background-size: 52px 52px;
+      background-color: #1d1d1e;
+      border: 4px solid #000;
+
+      .ui-progressbar-value {
+         background-color: #ffc000;
+         border-width: 9px 0px 9px 0px;
+         border-image: url(images/rating_border.png) 9 9 9 9 repeat;
+         height: 33px;
+      }
+
+      .numericValue {
+         position: absolute;
+         right: 10px;
+      }
+   }
+
+      .smallSection {
+         float: left;
+         margin-right: 30px;
+
+         .scoreBar {
+            width: 316px;
+            height: 42px;
+            background-size: 42px 42px;
+            
+            .ui-progressbar-value {
+               height: 24px;
+            }
+         }
+      }   
 
 }

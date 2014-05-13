@@ -1,8 +1,57 @@
 <script type="text/x-handlebars" data-template-name="town">
 <div id="town" class="gui">
    <div class="window">
-      <div class="title">Town</div>
-      this is the town view
+      <div class="title">Town Overview</div>
+      <div id="info">
+         <div id="icon"></div>
+         <div id="townTitle">
+            <div id="descriptor">The Prosoperous Kingdom of</div>
+            <div id="name">Rabbit</div>
+         </div>
+
+         <div id="citizenCount">
+            <div id="workers" class="counter">
+               <div>10</div>
+            </div>
+            <div id="crafters" class="counter">
+               <div>10</div>
+            </div>
+            <div id="soldiers" class="counter">
+               <div>10</div>
+            </div>
+         </div>
+
+         <div class="bigSection" id="netWorthSection">
+            <h1>Net Worth</h1>
+            <div id="netWorthBarFrame"></div>
+            <div id="netWorthBar">
+            </div>
+            <div id="netWorthNumeric">
+               <div id="value">
+                  1337
+               </div>
+            </div>
+            
+         </div>
+
+         <div id="happiness">
+            <div class="bigSection">
+               <h1>Overall Happiness</h1>
+               <div class="scoreBar" id="#overallScore">
+               </div>
+            </div>
+
+            <div class="smallSection">
+               <h2>Food</h2>
+               <div class="scoreBar" id="#foodScore"></div>
+            </div>
+
+            <div class="smallSection">
+               <h2>Shelter</h2>
+               <div class="scoreBar" id="#shelterScore"></div>
+            </div>         
+         </div>
+      </div>
    </div>
 </div>
 </script>

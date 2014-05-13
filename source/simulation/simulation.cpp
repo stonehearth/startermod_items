@@ -34,6 +34,7 @@
 #include "lib/lua/om/open.h"
 #include "lib/lua/dm/open.h"
 #include "lib/lua/voxel/open.h"
+#include "lib/lua/physics/open.h"
 #include "lib/lua/analytics/open.h"
 #include "om/lua/lua_om.h"
 #include "om/error_browser/error_browser.h"
@@ -247,6 +248,7 @@ void Simulation::InitializeGameObjects()
    lua::om::open(L);
    lua::dm::open(L);
    lua::sim::open(L, this);
+   lua::phys::open(L, *octtree_);
    lua::res::open(L);
    lua::voxel::open(L);
    lua::rpc::open(L, core_reactor_);

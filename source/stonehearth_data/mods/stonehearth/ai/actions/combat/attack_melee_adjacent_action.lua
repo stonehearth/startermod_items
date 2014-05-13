@@ -9,17 +9,23 @@ local AttackMeleeAdjacent = class()
 AttackMeleeAdjacent.name = 'attack melee adjacent'
 AttackMeleeAdjacent.does = 'stonehearth:combat:attack_melee_adjacent'
 AttackMeleeAdjacent.args = {
-   target = Entity
+   target = Entity,
 }
 AttackMeleeAdjacent.version = 2
 AttackMeleeAdjacent.priority = 1
 AttackMeleeAdjacent.weight = 1
 
-function AttackMeleeAdjacent:__init()
-   self._weapon_table = stonehearth.combat:get_weapon_table('medium_1h_weapon')
-   
-   self._attack_types = stonehearth.combat:get_action_types(self._weapon_table, 'attack_types')
-   self._num_attack_types = #self._attack_types
+function AttackMeleeAdjacent:__init(entity)
+   self._attack_types = stonehearth.combat:get_action_types(entity, 'stonehearth:combat:melee_attacks')
+end
+
+function AttackMeleeAdjacent:start_thinking(ai, entity, args)
+   local weapon = stonehearth.combat:get_melee_weapon(entity)
+   if weapon == nil or not weapon:is_valid() then
+      log:warning('%s has no weapon', entity)
+      return
+   end
+   ai:set_think_output()
 end
 
 -- TODO: don't allow melee if vertical distance > 1
@@ -27,7 +33,20 @@ function AttackMeleeAdjacent:run(ai, entity, args)
    local target = args.target
 
    if not target:is_valid() then
-      ai:abort('enemy has been destroyed')
+      log:info('Target has been destroyed')
+      ai:abort('Target has been destroyed')
+      return
+   end
+
+   local weapon = stonehearth.combat:get_melee_weapon(entity)
+   local weapon_data = radiant.entities.get_entity_data(weapon, 'stonehearth:combat:weapon_data')
+   assert(weapon_data)
+   
+   local melee_range_ideal, melee_range_max = stonehearth.combat:get_melee_range(entity, weapon_data, target)
+   local distance = radiant.entities.distance_between(entity, target)
+   if distance > melee_range_max then
+      log:warning('%s unable to get within maximum melee range (%f) of %s', entity, melee_range_max, target)
+      ai:abort('Target out of melee range')
       return
    end
 
@@ -37,8 +56,7 @@ function AttackMeleeAdjacent:run(ai, entity, args)
 
    radiant.entities.turn_to_face(entity, target)
 
-   local melee_range = stonehearth.combat:get_melee_range(entity, 'medium_1h_weapon', target)
-   ai:execute('stonehearth:bump_against_entity', { entity = target, distance = melee_range })
+   ai:execute('stonehearth:bump_against_entity', { entity = target, distance = melee_range_ideal })
 
    stonehearth.combat:start_cooldown(entity, attack_info)
 
@@ -52,11 +70,15 @@ function AttackMeleeAdjacent:run(ai, entity, args)
 
    self._timer = stonehearth.combat:set_timer(time_to_impact,
       function ()
-         if self._context.target_defending then
+         local range = radiant.entities.distance_between(entity, target)
+         local out_of_range = range > melee_range_max
+
+         if out_of_range or self._context.target_defending then
             self._hit_effect:stop()
          else
-            -- TODO: get damage from equipped weapon modified by attack action
-            local battery_context = BatteryContext(10)
+            -- TODO: get damage modifiers from action and attributes
+            local base_damage = weapon_data.base_damage
+            local battery_context = BatteryContext(entity, base_damage)
             stonehearth.combat:battery(target, battery_context)
          end
       end
@@ -66,8 +88,11 @@ function AttackMeleeAdjacent:run(ai, entity, args)
 end
 
 function AttackMeleeAdjacent:stop(ai, entity, args)
-   if radiant.gamestate.now() < self._context.impact_time then
-      self._hit_effect:stop()
+   if self._hit_effect ~= nil then
+      if radiant.gamestate.now() < self._context.impact_time then
+         self._hit_effect:stop()
+      end
+      self._hit_effect = nil
    end
 
    if self._timer ~= nil then

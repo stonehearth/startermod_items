@@ -7,8 +7,12 @@ FollowPathAction.args = {
    path = Path,          -- the path to follow
    stop_distance = {
       type = 'number',
-      default = 0
-   }
+      default = 0,
+   },
+   move_effect = {
+      type = 'string',
+      default = 'run',
+   },
 }
 FollowPathAction.version = 2
 FollowPathAction.priority = 1
@@ -22,7 +26,12 @@ end
 function FollowPathAction:run(ai, entity, args)
    local path = args.path
    local log = ai:get_log()
-   self._ai = ai   
+   self._ai = ai
+   self._entity = entity
+
+   -- make sure we record the starting posture. if the posture changed recently, the async trigger
+   -- may not have fired yet and we want to know if it has really changed or not.
+   self._starting_posture = radiant.entities.get_posture(entity)
    
    log:detail('following path: %s', path)
    if path:is_empty() then
@@ -36,8 +45,8 @@ function FollowPathAction:run(ai, entity, args)
 
    -- make sure the event doesn't clean up after itself when the effect finishes.  otherwise,
    -- people will only play through the animation once.
-   self._effect = radiant.effects.run_effect(entity, 'run')
-                                    :set_cleanup_on_finish(false)
+   self._effect = radiant.effects.run_effect(entity, args.move_effect)
+      :set_cleanup_on_finish(false)
 
    local arrived_fn = function()
       ai:resume('mover finished')
@@ -52,7 +61,12 @@ function FollowPathAction:run(ai, entity, args)
 end
 
 function FollowPathAction:_on_posture_change()
-   self._ai:abort('posture changed while following path')
+   local new_posture = radiant.entities.get_posture(self._entity)
+
+   if new_posture ~= self._starting_posture then
+      self._ai:abort('posture changed (from %s to %s) while following path',
+         tostring(self._starting_posture), tostring(new_posture))
+   end
 end
 
 function FollowPathAction:stop(ai, entity)
@@ -67,6 +81,10 @@ function FollowPathAction:stop(ai, entity)
       self._effect:stop()
       self._effect = nil
    end
+
+   self._ai = nil
+   self._entity = nil
+   self._starting_posture = nil
 end
 
 return FollowPathAction

@@ -1,0 +1,47 @@
+{
+   "activities" : {
+      "eat_once_daily" : {
+         "trigger_policy" : [
+            {
+               "trigger_id" : "eat_once_daily",
+               "probability" : 100
+            }
+         ],
+         "text" : "On Eating:",
+         "type" : "random",
+         "default_namespace" : "stonehearth:settler_journals:eat_once_daily",
+         "logs_by_personality" : {
+            "generic" : {
+               "logs" : [
+               "__Teacher__, thank you for this __recent_food__.",
+               "Dear Diary. Today I'm eating: __recent_food__. __eat_reactions__", 
+               "Food! The __recent_food__ tastes surprisingly good today.", 
+               "Never really valued food like this __recent_food__ till we moved out here.", 
+               "Being fed is much, much, much cooler than being hungry.", 
+               "Oh boy! A __recent food__. Tastes good in the tummy"
+               ]
+            }
+         }
+      }
+   }, 
+   "substitution_table" : [
+      {
+         "namespace" : "stonehearth:settler_journals:eat_once_daily",
+         "keys" : {
+            "eat_reactions" : {
+               "type" : "random_array", 
+               "entries" : [
+                  "Mmm!", 
+                  "Food is good.",
+                  "Wooo!",
+                  "Happiness.",
+                  "Joy.", 
+                  "Oh boy!", 
+                  "Delicious",
+                  "Better than starving!"
+               ]
+            }
+         }
+      }
+   ]
+}

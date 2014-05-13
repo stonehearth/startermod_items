@@ -62,7 +62,7 @@ using namespace radiant;
    OBJECT_TYPE(om::SensorListRef,            om::SensorList::DmType,                RegisterGameObjectType) \
    OBJECT_TYPE(om::TargetTablesRef,          om::TargetTables::DmType,              RegisterGameObjectType) \
    OBJECT_TYPE(om::DestinationRef,           om::Destination::DmType,               RegisterGameObjectType) \
-   OBJECT_TYPE(om::CarryBlockRef,            om::CarryBlock::DmType,                RegisterGameObjectType) \
+   OBJECT_TYPE(om::AttachedItemsRef,           om::AttachedItems::DmType,               RegisterGameObjectType) \
    OBJECT_TYPE(om::UnitInfoRef,              om::UnitInfo::DmType,                  RegisterGameObjectType) \
    OBJECT_TYPE(om::ItemRef,                  om::Item::DmType,                      RegisterGameObjectType) \
    OBJECT_TYPE(om::ModListRef,               om::ModList::DmType,                   RegisterGameObjectType) \

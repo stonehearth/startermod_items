@@ -1,7 +1,25 @@
-local voxel_brush_util = _radiant.csg.Point3
+local voxel_brush_util = {}
 local Point3 = _radiant.csg.Point3
 local Point3f = _radiant.csg.Point3f
 local Region2 = _radiant.csg.Region2
+
+
+local MODEL_OFFSET = Point3f(0.5, 0, 0.5)
+
+-- A lookup table to convert a normal in the xz-plane to a rotation
+-- about the y-axis.  Usage: ROTATION_TABLE[normal.x][normal.z]
+local ROTATION_TABLE = {
+   [ 0] = {
+      [-1] = 180,
+      [ 1] = 0,
+   },
+   [ 1] = {
+      [ 0] = 90
+   },
+   [-1] = {
+      [ 0] = 270
+   }   
+}
 
 -- paint_mode is optional.  if not specified, we'll use the paint mode
 -- inside the construction_data
@@ -56,21 +74,29 @@ end
 -- paint_mode is optional.  if not specified, we'll use the paint mode
 -- inside the construction_data
 function voxel_brush_util.create_construction_data_node(parent_node, entity, region, construction_data, paint_mode)
-   local unique_renderable
-   if region and construction_data.brush then
+   local render_node
+   if region then
+      local model
       local stencil = region:get()
       if stencil then
          local render_info = entity:get_component('render_info')
          local material = render_info and render_info:get_material() or 'materials/voxel.material.xml'
-
-         paint_mode = paint_mode and paint_mode or construction_data.paint_mode
-         local brush = voxel_brush_util.create_brush(construction_data, paint_mode) 
-         local model = brush:paint_through_stencil(stencil)
-
-         unique_renderable = _radiant.client.create_voxel_node(parent_node, model, material, Point3f(0.5, 0, 0.5))
+         
+         if construction_data.brush then
+            paint_mode = paint_mode and paint_mode or construction_data.paint_mode
+            local brush = voxel_brush_util.create_brush(construction_data, paint_mode) 
+            model = brush:paint_through_stencil(stencil)
+         else
+            model = stencil
+         end
+         render_node = _radiant.client.create_voxel_node(parent_node, model, material, MODEL_OFFSET)
       end
    end
-   return unique_renderable
+   return render_node
+end
+
+function voxel_brush_util.normal_to_rotation(normal)
+   return ROTATION_TABLE[normal.x][normal.z]
 end
 
 return voxel_brush_util

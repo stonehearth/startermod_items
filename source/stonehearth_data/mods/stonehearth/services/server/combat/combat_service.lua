@@ -8,34 +8,149 @@ CombatService = class()
 local MS_PER_FRAME = 1000/30
 
 function CombatService:__init()
-   self._hit_stun_damage_threshold = radiant.util.get_config('hit_stun_damage_threshold', 0.10)
-   self._combat_state_table = {}
-   self._target_tables = {}
+end
+
+-- TODO: move target tables and combat state into components
+function CombatService:initialize()
+   -- always stun for now
+   --self._hit_stun_damage_threshold = radiant.util.get_config('hit_stun_damage_threshold', 0.10)
+   self._hit_stun_damage_threshold = 0
+
+   self._sv = self.__saved_variables:get_data()
+   if not self._sv._combat_state_table then
+      self._sv._combat_state_table = {}
+      self._sv._target_tables = {}
+   end
+
+   self._combat_state_table = self._sv._combat_state_table
+   self._target_tables = self._sv._target_tables
 
    -- TODO: change this to minute (or ten second) poll
    radiant.events.listen(radiant, 'stonehearth:very_slow_poll', self, self._remove_expired_objects)
 end
 
-function CombatService:initialize()
-   -- TODO: implement save
-   log:write(0, 'initialize not implemented for combat service!')
+-- Notify target that it is about to be attacked.
+-- If target is not otherwise engaged in another combat action, target should stop
+-- and defend itself, which allows attacker to close to the proper distance.
+function CombatService:engage(target, context)
+   if target == nil or not target:is_valid() then
+      return nil
+   end
+
+   radiant.events.trigger_async(target, 'stonehearth:combat:engage', context)
 end
 
-function CombatService:get_weapon_table(weapon_class)
-   local file_name = string.format('/stonehearth/entities/weapons/%s.json', weapon_class)
-   local weapon_table = radiant.resources.load_json(file_name)
-   return weapon_table
+-- Ntify target that an attack has begun and will impact soon.
+-- Target has opportunity to defend itself if it can react before the impact time.
+function CombatService:assault(target, context)
+   if target == nil or not target:is_valid() then
+      return nil
+   end
+
+   local combat_state = self:get_combat_state(target)
+   combat_state:add_assault_event(context)
+
+   radiant.events.trigger_async(target, 'stonehearth:combat:assault', context)
 end
 
-function CombatService:get_action_types(weapon_table, action_type)
-   local action_types = weapon_table[action_type]
+-- Notify target that it has been hit by an attack.
+function CombatService:battery(target, context)
+   if target == nil or not target:is_valid() then
+      return nil
+   end
 
-   table.sort(action_types,
-      function (a, b)
-         return a.priority > b.priority
+   local attributes_component = target:add_component('stonehearth:attributes')
+   local max_health = attributes_component:get_attribute('max_health')
+   local health = attributes_component:get_attribute('health')
+   local damage = context.damage
+
+   if max_health ~= nil then
+      if damage >= max_health * self._hit_stun_damage_threshold then
+         self:hit_stun(target, context)
       end
-   )
-   return action_types
+   end
+
+   health = health - damage
+   if health ~= nil then
+      attributes_component:set_attribute('health', health)
+   end
+
+   radiant.events.trigger_async(target, 'stonehearth:combat:battery', context)
+end
+
+-- Notify target that it is now stunned an any action in progress will be cancelled.
+function CombatService:hit_stun(target, context)
+   if target == nil or not target:is_valid() then
+      return nil
+   end
+
+   radiant.events.trigger_async(target, 'stonehearth:combat:hit_stun', context)
+end
+
+function CombatService:get_assault_events(target)
+   if target == nil or not target:is_valid() then
+      return nil
+   end
+
+   local combat_state = self:get_combat_state(target)
+   return combat_state:get_assault_events()
+end
+
+function CombatService:start_cooldown(entity, action_info)
+   if entity == nil or not entity:is_valid() then
+      return
+   end
+
+   local combat_state = self._combat_state_table[entity:get_id()]
+   combat_state:start_cooldown(action_info.name, action_info.cooldown)
+end
+
+function CombatService:in_cooldown(entity, action_name)
+   if entity == nil or not entity:is_valid() then
+      return false
+   end
+
+   local combat_state = self._combat_state_table[entity:get_id()]
+   return combat_state:in_cooldown(action_name)
+end
+
+function CombatService:get_cooldown_end_time(entity, action_name)
+   if entity == nil or not entity:is_valid() then
+      return nil
+   end
+
+   local combat_state = self._combat_state_table[entity:get_id()]
+   return combat_state:get_cooldown_end_time(action_name)
+end
+
+function CombatService:get_melee_weapon(entity)
+   -- currently stored in a named slot on the equipment component. this might change.
+   return radiant.entities.get_equipped_item(entity, 'melee_weapon')
+end
+
+function CombatService:get_melee_range(attacker, weapon_data, target)
+   local attacker_radius = self:get_entity_radius(attacker)
+   local target_radius = self:get_entity_radius(target)
+   local weapon_reach = weapon_data.reach
+   local melee_range_ideal = attacker_radius + weapon_reach + target_radius
+   local melee_range_max = melee_range_ideal + 2
+   return melee_range_ideal, melee_range_max
+end
+
+function CombatService:get_engage_range(attacker, weapon_data, target)
+   local melee_range_ideal = self:get_melee_range(attacker, weapon_data, target)
+   local engage_range_ideal = melee_range_ideal + 3
+   local engage_range_max = engage_range_ideal + 3
+   return engage_range_ideal, engage_range_max
+end
+
+function CombatService:get_entity_radius(entity)
+   if entity == nil or not entity:is_valid() then
+      return 1
+   end
+
+   -- TODO: get a real value
+   return 1
 end
 
 function CombatService:get_time_to_impact(action_info)
@@ -54,25 +169,22 @@ function CombatService:set_timer(duration, fn)
    return stonehearth.calendar:set_timer(game_seconds, fn)
 end
 
-function CombatService:get_melee_range(attacker, weapon_class, target)
-   local attacker_radius = self:get_entity_radius(attacker)
-   local target_radius = self:get_entity_radius(target)
-   local weapon_length = self:get_weapon_length(weapon_class)
-   return attacker_radius + weapon_length + target_radius
-end
-
-function CombatService:get_entity_radius(entity)
+function CombatService:set_panicking(entity, is_panicking)
    if entity == nil or not entity:is_valid() then
-      return 1
+      return
    end
 
-   -- TODO: get a real value
-   return 1
+   local combat_state = self._combat_state_table[entity:get_id()]
+   combat_state:set_panicking(is_panicking)
 end
 
-function CombatService:get_weapon_length(weapon_class)
-   -- TODO: get a real value
-   return 1
+function CombatService:is_panicking(entity)
+   if entity == nil or not entity:is_valid() then
+      return false
+   end
+
+   local combat_state = self._combat_state_table[entity:get_id()]
+   return combat_state:is_panicking()
 end
 
 function CombatService:get_combat_state(entity)
@@ -114,91 +226,6 @@ function CombatService:get_target_table(entity, table_name)
    return target_table
 end
 
-function CombatService:start_cooldown(entity, action_info)
-   if entity == nil or not entity:is_valid() then
-      return
-   end
-
-   local combat_state = self._combat_state_table[entity:get_id()]
-   combat_state:start_cooldown(action_info.name, action_info.cooldown)
-end
-
-function CombatService:in_cooldown(entity, action_name)
-   if entity == nil or not entity:is_valid() then
-      return false
-   end
-
-   local combat_state = self._combat_state_table[entity:get_id()]
-   return combat_state:in_cooldown(action_name)
-end
-
-function CombatService:get_cooldown_end_time(entity, action_name)
-   if entity == nil or not entity:is_valid() then
-      return nil
-   end
-
-   local combat_state = self._combat_state_table[entity:get_id()]
-   return combat_state:get_cooldown_end_time(action_name)
-end
-
-function CombatService:engage(target, context)
-   if target == nil or not target:is_valid() then
-      return nil
-   end
-
-   radiant.events.trigger_async(target, 'stonehearth:combat:engage', context)
-end
-
-function CombatService:assault(target, context)
-   if target == nil or not target:is_valid() then
-      return nil
-   end
-
-   local combat_state = self:get_combat_state(target)
-   combat_state:add_assault_event(context)
-
-   radiant.events.trigger_async(target, 'stonehearth:combat:assault', context)
-end
-
-function CombatService:battery(target, context)
-   if target == nil or not target:is_valid() then
-      return nil
-   end
-
-   local attributes_component = target:add_component('stonehearth:attributes')
-   local max_health = attributes_component:get_attribute('max_health')
-   local health = attributes_component:get_attribute('health')
-   local damage = context.damage
-
-   if max_health ~= nil then
-      if damage >= max_health * self._hit_stun_damage_threshold then
-         self:hit_stun(target, BatteryContext())
-      end
-   end
-
-   health = health - damage
-   if health ~= nil then
-      attributes_component:set_attribute('health', health)
-   end
-end
-
-function CombatService:hit_stun(target, context)
-   if target == nil or not target:is_valid() then
-      return nil
-   end
-
-   radiant.events.trigger_async(target, 'stonehearth:combat:hit_stun', context)
-end
-
-function CombatService:get_assault_events(target)
-   if target == nil or not target:is_valid() then
-      return nil
-   end
-
-   local combat_state = self:get_combat_state(target)
-   return combat_state:get_assault_events()
-end
-
 function CombatService:_remove_expired_objects()
    self:_clean_combat_state_table()
    self:_clean_target_tables()
@@ -236,6 +263,18 @@ function CombatService:_clean_target_tables()
          end
       end
    end
+end
+
+function CombatService:get_action_types(entity, action_type)
+   local action_types = radiant.entities.get_entity_data(entity, action_type)
+
+   -- TODO: just sort once...
+   table.sort(action_types,
+      function (a, b)
+         return a.priority > b.priority
+      end
+   )
+   return action_types
 end
 
 -- placeholder logic for now

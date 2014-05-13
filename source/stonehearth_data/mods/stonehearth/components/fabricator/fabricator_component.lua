@@ -95,7 +95,7 @@ function FabricatorComponent:start_project(name, blueprint)
    self._sv.name = name and name or '-- unnamed --'
    self._log:debug('starting project %s', self._sv.name)
    
-   self._fabricator = Fabricator(string.format("(%s Fabricator)", tostring(self._sv.blueprint)),
+   self._fabricator = Fabricator(string.format("(%s Fabricator)", tostring(blueprint)),
                                  self._entity,
                                  blueprint)
    
@@ -128,7 +128,6 @@ end
 
 function FabricatorComponent:_add_scaffolding(blueprint, project, normal)
    -- create a scaffolding blueprint and point it to the project
-   local uri = 'stonehearth:scaffolding'
    local transform = project:add_component('mob'):get_transform()
    
    -- ask the build service to set all this up!!

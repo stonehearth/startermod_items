@@ -1,7 +1,7 @@
 <script type="text/x-handlebars" data-template-name="buildingDesigner">
    <div id="buildingDesigner" class="gui">
       <div id="toolbar">
-         <div class="tool floorTool"></div>
+         <div hotkey="f" class="tool floorTool"></div>
          <div class="tool wallTool"></div>
          <div class="break"></div>
 
@@ -15,24 +15,21 @@
       </div>
 
       <div id="palettes">
-         <div id="materials" class="window">
-            <div class="title">{{ blueprint.unit_info.name }}</div>
+         <div id="selectedPartControls" class="window">
+            <div class="flatTitle">{{ blueprint.unit_info.name }}</div>
             <div class="description">{{ blueprint.unit_info.description }}</div>
          </div>
 
-         <div id="hint" class="window">
-            hint
-         </div>
-
          <div id="buildingControls" class="window">
-            <div class="title">{{ building.unit_info.name }}</div>
-            <br><br><br>
+            <div class="flatTitle">{{ building.unit_info.name }}</div>
+
             <button class="warn" id="removeBuilding">{{i18n stonehearth:remove}}</button>
+
             <button {{bind-attr class=building.active:pause:start}} id="startBuilding">
                {{#if building.active }}
-               Pause Building
+                  Pause Building
                {{else}}
-               Start Building
+                  Start Building
                {{/if}}
             </button>
          </div>      

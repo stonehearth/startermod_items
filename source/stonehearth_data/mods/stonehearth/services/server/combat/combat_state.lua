@@ -5,6 +5,7 @@ CombatState = class()
 function CombatState:__init()
    self._cooldowns = {}
    self._assault_events = {}
+   self._is_panicking = false
 end
 
 -- duration is in milliseconds at game speed 1
@@ -45,6 +46,14 @@ function CombatState:get_assault_events()
    self:remove_expired_assault_events()
 
    return self._assault_events
+end
+
+function CombatState:set_panicking(is_panicking)
+   self._is_panicking = is_panicking
+end
+
+function CombatState:is_panicking()
+   return self._is_panicking
 end
 
 function CombatState:remove_expired_cooldowns()

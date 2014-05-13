@@ -10,51 +10,20 @@ local ResourceCallHandler = class()
 
 
 function ResourceCallHandler:box_harvest_resources(session, response)
-   self._region = _radiant.client.alloc_region2()
-   
-   local cursor_entity = radiant.entities.create_entity()
-   local mob = cursor_entity:add_component('mob')
-   local cursor_render_entity = _radiant.client.create_render_entity(1, cursor_entity)
-   
-   local parent_node = cursor_render_entity:get_node()
-   local unique_renderable
-
-   local xz_selector
-   local cursor = _radiant.client.set_cursor('stonehearth:cursors:harvest')
-
-   local cleanup = function()
-      if unique_renderable then
-         unique_renderable:destroy()
-         unique_renderable = nil
-      end
-      xz_selector:destroy()
-      cursor:destroy()
-      _radiant.client.destroy_authoring_entity(cursor_entity:get_id())
-   end
-
-   xz_selector = _radiant.client.select_xz_region(1)
-      :progress(function (box)
-            self._region:modify(function(cursor)
-               cursor:clear()
-               cursor:add_cube(Rect2(Point2(0, 0), 
-                                     Point2(box.max.x - box.min.x, box.max.z - box.min.z)))
-            end)
-            mob:set_location_grid_aligned(box.min)
-            if unique_renderable then
-               unique_renderable:destroy()
-               unique_renderable = nil
-            end
-            unique_renderable = _radiant.client.create_selection_node(parent_node, self._region:get(), Color4(0, 255, 0, 32), Color4(0, 255, 0, 255));
-         end)
-      :done(function (box)
+   stonehearth.selection.select_xz_region()
+      :use_outline_marquee(Color4(0, 255, 0, 32), Color4(0, 255, 0, 255))
+      :set_cursor('stonehearth:cursors:harvest')
+      :done(function(selector, box)
             _radiant.call('stonehearth:server_box_harvest_resources', box)
+            response:resolve(true)
          end)
-      :always(function()
-            cleanup()
-         end)   
-      :fail(function()
-            response:resolve(false)
-         end)   
+      :fail(function(selector)            
+            response:reject('no region')
+         end)
+      :always(function(selector)
+            selector:destroy()
+         end)
+      :go()
 end
 
 
