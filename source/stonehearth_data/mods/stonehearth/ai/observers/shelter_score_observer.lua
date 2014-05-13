@@ -19,8 +19,8 @@ function ShelterScoreObserver:initialize(entity, json)
 end
 
 function ShelterScoreObserver:destroy()
-   radiant.events.unlisten(entity, 'stonehearth:sleep_in_bed', self, self._on_sleep_in_bed)
-   radiant.events.unlisten(entity, 'stonehearth:sleep_on_ground', self, self._on_sleep_on_ground)
+   radiant.events.unlisten(self._entity, 'stonehearth:sleep_in_bed', self, self._on_sleep_in_bed)
+   radiant.events.unlisten(self._entity, 'stonehearth:sleep_on_ground', self, self._on_sleep_on_ground)
 end
 
 function ShelterScoreObserver:_on_sleep_in_bed(e)
