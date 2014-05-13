@@ -332,15 +332,67 @@ function BuildService:_merge_overlapping_floor(existing_floor, floor_uri, box)
    if not next_floor then
       -- exactly 1 overlapping floor.  just modify the region of that floor.
       -- pretty easy
-      local  region = floor:get_component('destination'):get_region()
-      local origin = radiant.entities.get_world_grid_location(floor)
-      region:modify(function(cursor)
-            cursor:add_cube(box:translated(-origin))
-         end)
-      return floor
+      return self:_merge_overlapping_floor_trivial(floor, floor_uri, box)
    end
+
+   -- gah!  this is going to be tricky.  first, get all the buildings that
+   -- own all these pieces of floor and merge them together.  choose the floor
+   -- that was created earliest to merge into
+   floor = nil
+   for id, f in pairs(existing_floor) do
+      if not floor or id < floor:get_id() then
+         floor = f
+      end
+   end
+
+   -- now do the merge...
+   local buildings_to_merge = {}
+   local floor_building = self:_get_building_for(floor)
+   for _, old_floor in pairs(existing_floor) do
+      local building = self:_get_building_for(old_floor)
+      if building ~= floor_building then
+         buildings_to_merge[building:get_id()] = building
+      end
+   end
+   self:_merge_buildings_into(floor_building, buildings_to_merge)
+
+   -- now we know all the floors are of the same building.  merge all the floors
+   -- into the single floor we picked out earlier.
+   local floor_rgn = floor:get_component('destination'):get_region()
+   local floor_location = radiant.entities.get_location_aligned(floor)
+   floor_rgn:modify(function(cursor)
+         for _, old_floor in pairs(existing_floor) do
+            if old_floor ~= floor then
+               local floor_offset = radiant.entities.get_location_aligned(old_floor) - floor_location                                    
+               local old_floor_region = old_floor:get_component('destination'):get_region()
+               for cube in old_floor_region:get():each_cube() do
+                  cursor:add_unique_cube(cube:translated(floor_offset))
+               end
+               radiant.entities.destroy_entity(old_floor)
+            end
+         end
+      end)
+
+   -- sweet!  now we can do the trivial merge
+   return self:_merge_overlapping_floor_trivial(floor, floor_uri, box)
 end
 
+-- add `box` to the `floor` region.  the caller must ensure that the
+-- box *only* overlaps with this segement of floor.  see :add_floor()
+-- for more details.
+--
+--    @param floor - the floor to extend
+--    @param floor_uri - the uri to type of floor we'd like to add
+--    @param box - the area of the new floor segment
+--
+function BuildService:_merge_overlapping_floor_trivial(floor, floor_uri, box)
+   local region = floor:get_component('destination'):get_region()
+   local origin = radiant.entities.get_world_grid_location(floor)
+   region:modify(function(cursor)
+         cursor:add_cube(box:translated(-origin))
+      end)
+   return floor
+end
 
 -- create a new floor of size `box` to `building`.  it is up to the caller
 -- to ensure the new floor doesn't overlap with any other floor in the
@@ -364,5 +416,52 @@ function BuildService:_add_new_floor_to_building(building, floor_uri, box)
    return floor
 end
 
+-- return the building the `blueprint` is contained in
+--
+--    @param blueprint - the blueprint whose building you're interested in
+--
+function BuildService:_get_building_for(blueprint)
+   local cp = blueprint:get_component('stonehearth:construction_progress')
+   return cp and cp:get_building_entity()
+end
+
+-- merge a set of buildings together into the `merge_into` building, destroying
+-- the now empty husks left in `buildings_to_merge`.
+--
+--    @param merge_into - a building entith which will contain all the
+--                        children of all the buildings in `buildings_to_merge`
+--    @param buildings_to_merge - a table of buildings which should be merged
+--                                into `merge_into`, then destroyed.
+--
+function BuildService:_merge_buildings_into(merge_into, buildings_to_merge)
+   for _, building in pairs(buildings_to_merge) do
+      self:_merge_building_into(merge_into, building)
+   end
+end
+
+-- merge all the children of `building` into `merge_into` and destroy
+-- `building`
+--
+--    @param merge_into - a building entith which will contain all the
+--                        children of all the buildings in `building`
+--    @param building - the building which should be merged into `merge_into`,
+--                      then destroyed.
+--
+function BuildService:_merge_building_into(merge_into, building)
+   local building_offset = radiant.entities.get_world_grid_location(building) - 
+                           radiant.entities.get_world_grid_location(merge_into)
+
+   local container = merge_into:get_component('entity_container')
+   for id, child in building:get_component('entity_container'):each_child() do
+      local mob = child:get_component('mob')
+      local child_offset = mob:get_grid_location()
+
+      container:add_child(child)
+      mob:set_location_grid_aligned(child_offset + building_offset)      
+   end
+   radiant.entities.destroy_entity(building)
+end
+
 return BuildService
+
 

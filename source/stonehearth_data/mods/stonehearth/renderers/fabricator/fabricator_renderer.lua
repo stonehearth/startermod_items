@@ -28,8 +28,8 @@ local function update_selected_building()
       radiant.events.trigger(selected_building, 'stonehearth:building_selected_changed')
    end
 
-   if last_selected_building then
-      if not selected_building or selected_building:get_id() ~= last_selected_building:get_id() then
+   if last_selected_building and last_selected_building:is_valid() then
+      if not selected_building or selected_building ~= last_selected_building then
          radiant.events.trigger(last_selected_building, 'stonehearth:building_selected_changed')
       end
    end
