@@ -63,6 +63,7 @@
             "stonehearth:actions:chase_entity",
             "stonehearth:actions:set_posture",
             "stonehearth:actions:unset_posture",
+            "stonehearth:actions:die_citizen",
             "stonehearth:actions:free_time:dispatcher" 
          ],
           "observers": [
