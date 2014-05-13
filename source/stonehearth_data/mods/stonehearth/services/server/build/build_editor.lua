@@ -2,7 +2,7 @@ local BuildEditor = class()
 -- xxx: move all the proxy stuff to the client! - tony
 local ProxyWall = require 'services.server.build.proxy_wall'
 local ProxyWallBuilder = require 'services.server.build.proxy_wall_builder'
---local ProxyFloorBuilder = require 'services.server.build.proxy_floor_builder'
+local ProxyFloorBuilder = require 'services.server.build.proxy_floor_builder'
 local ProxyRoomBuilder = require 'services.server.build.proxy_room_builder'
 local Point3 = _radiant.csg.Point3
 
