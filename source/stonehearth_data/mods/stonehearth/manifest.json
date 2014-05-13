@@ -660,6 +660,10 @@
          "controller" : "file(call_handlers/population_call_handler.lua)",
          "endpoint" : "server"
       },
+      "get_score": {
+         "controller" : "file(call_handlers/score_call_handler.lua)",
+         "endpoint" : "server"
+      },
       "choose_workbench_location" : {
          "controller" : "file(call_handlers/workshop_call_handler.lua)",
          "endpoint" : "client"

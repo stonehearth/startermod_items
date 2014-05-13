@@ -134,6 +134,12 @@ function ScoreComponent:change_score(key, modifier, journal_data)
          new_score = score_data.score
       })
    
+   --Tell the score service that the score has changed
+   local player_id = radiant.entities.get_player_id(self._entity)
+   if player_id then
+      stonehearth.score:update_town_happiness_score(player_id)
+   end
+
    self.__saved_variables:mark_changed()
 end
 

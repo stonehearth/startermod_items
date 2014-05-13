@@ -2,17 +2,6 @@
 App.StonehearthCitizensView = App.View.extend({
 	templateName: 'citizens',
 
-   components: {
-      "citizens" : {
-         "*" : {
-            "stonehearth:profession" : {
-               "profession_uri" : {}
-            },
-            "unit_info": {},
-         }
-      }
-   },
-
    init: function() {
       var self = this;
       this._super();
