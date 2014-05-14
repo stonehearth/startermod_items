@@ -6,24 +6,25 @@
          <tbody>
          {{#each citizensArray}}
             <tr class="row" {{bind-attr profession=this.stonehearth:profession.profession_uri.alias id=this.__id}}>
-               <td>{{this.unit_info.name}}</td>
-               <td>{{this.stonehearth:profession.profession_uri.name}}</td>
-               <td>{{this.stonehearth:ai.status_text}}</td>
                <td>
-                  {{#if this.stonehearth:profession.profession_uri.workshop}}
-                     {{#if this.stonehearth:crafter.workshop}}
-                        <a {{action showWorkshop this target="view"}} >{{i18n stonehearth:crafters_show_workshop}}</a>
-                     {{else}}
-                        <a {{action placeWorkshop this target="view"}} >{{i18n stonehearth:crafters_place_workshop}}</a>
-                     {{/if}}
-                  {{/if}}
-               </td>               
+                  <div class="name">{{this.unit_info.name}}</div>
+                  <div class="profession">{{this.stonehearth:profession.profession_uri.name}}</div>
+                  <div class="toolbar">
+                     {{#each command in stonehearth:commands.commands}}
+                        <a {{bind-attr id=command.name}} href="#" {{action doCommand command target="view"}} class='uisounds'>
+                           <button {{bind-attr class=":commandButton enabled:buttonEnabled:buttonDisabled" }}>
+                              {{command.tooltip}}
+                           </button>
+                        </a>
+                     {{/each}}
+
+                  </div>
+               </td>
+               <td>{{this.stonehearth:ai.status_text}}</td>
             </tr>
          {{/each}}
          </tbody>
       </table>
-
-      <button id="promoteButton" class="disabled">{{i18n stonehearth:citizens_promote}}</button>
    </div>
 
 </div>

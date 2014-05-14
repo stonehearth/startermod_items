@@ -8,7 +8,9 @@ $(document).ready(function(){
       // grab the properties from the talisman and pass them along to the promotion wizard
       r.traceUri(e.entity, components)
          .progress(function(eobj) {
-               var talisman = eobj;
+               // eobj could be either a talisman or the person to promote
+               var talisman = eobj['stonehearth:promotion_talisman'] ? eobj : null;
+
                App.gameView.addView(App.StonehearthPromotionWizard, { 
                   talisman: talisman,
                });
@@ -100,10 +102,12 @@ App.StonehearthPromotionWizard = App.View.extend({
          });
 
       this.$('.jobButton').click(function() {
-         var professionInfo = self.getProfessionInfo($(this).attr('id'));
-         self.set('profession', professionInfo);
-         self.set('talismanUri', $(this).attr('talisman_uri'));
-         self.$('#finishPage').show();
+         if(! $(this).hasClass('locked')) {
+            var professionInfo = self.getProfessionInfo($(this).attr('id'));
+            self.set('profession', professionInfo);
+            self.set('talismanUri', $(this).attr('talisman_uri'));
+            self.$('#finishPage').show();
+         }
       })
 
       this.$('#closeButton').click(function() {
@@ -132,6 +136,7 @@ App.StonehearthPromotionWizard = App.View.extend({
 
    initWizardState: function() {
       var self = this;
+      
       // if the talisman is specified
       var talisman = this.get('talisman');
       if (talisman) {

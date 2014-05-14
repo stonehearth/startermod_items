@@ -1,4 +1,3 @@
-// The view that shows a list of citizens and lets you promote one
 App.StonehearthCitizensView = App.View.extend({
 	templateName: 'citizens',
 
@@ -15,27 +14,12 @@ App.StonehearthCitizensView = App.View.extend({
       var self = this;
       this._super();
 
-      // select a row
-      this.$().on('click', '.row', function() {
-         self.$('.selected').removeClass('selected');
-         $(this).addClass('selected');
-
-         if ($(this).attr('profession') == 'stonehearth:professions:worker') {
-            self.$('#promoteButton').removeClass('disabled');   
-         } else {
-         self.$('#promoteButton').addClass('disabled');   
-         }
-      });
-
-      this.$('#promoteButton').click(function() {
-         if ($(this).hasClass('disabled')) {
-            return;
-         }
-         
-         var selectedCitizen = self.getSelectedCitizen();
-         self.promotionWizard = App.gameView.addView(App.StonehearthPromotionWizard, { 
-               citizen : selectedCitizen
-            });
+      // remember the citizen for the row that the mouse is over
+      this.$().on('mouseenter', '.row', function() {
+         var row = $(this);
+         var pop = self.get('context');
+         var id = row.attr('id');
+         self._activeRowCitizen = pop.citizens[id]; 
       });
    },
 
@@ -44,27 +28,9 @@ App.StonehearthCitizensView = App.View.extend({
    },
 
    actions: {
-      showWorkshop: function(crafter) {
-         var workshop = crafter['stonehearth:crafter']['workshop']['workshop_entity'];
-         $(top).trigger("radiant_show_workshop_from_crafter", {
-            event_data: {
-               workshop: workshop
-            }
-         });
-      },
-      placeWorkshop: function(crafter) {
-         $(top).trigger('build_workshop', {
-            event_data : {
-               crafter: crafter.__self   
-            }
-         })
+      doCommand: function(command) {
+         App.stonehearthClient.doCommand(this._activeRowCitizen.__self, command);
       }
-   },
-
-   getSelectedCitizen: function() {
-      var citizenMap = this.get('context.citizens');
-      var id = this.$('.selected').attr('id');
-      return citizenMap[id];
    },
 
    _foo2: function() {

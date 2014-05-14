@@ -155,38 +155,7 @@ App.StonehearthCommandButtonView = App.View.extend({
 
    actions: {
       doCommand: function(command) {
-         if (!command.enabled) {
-            return;
-         }
-         var target_name = this.get('parentView.context.uri').replace(':','_');
-         var event_name = '';
-
-         if (command.action == 'fire_event') {
-            // xxx: error checking would be nice!!
-            var e = {
-               entity : this.get("parentView.uri"),
-               event_data : command.event_data
-            };
-            $(top).trigger(command.event_name, e);
-            
-            event_name = command.event_name.toString().replace(':','_')
-
-         } else if (command.action == 'call') {
-            if (command.object) {
-               radiant.call_objv(command.object, command['function'], command.args)            
-            } else {
-               radiant.callv(command['function'], command.args)
-            }
-            
-            event_name = command['function'].toString().replace(':','_')
-            
-         } else {
-            throw "unknown command.action " + command.action
-         }
-
-         //Send analytics
-         radiant.call('radiant:send_design_event', 
-                      'ui:' + event_name + ':' + target_name );
+         App.stonehearthClient.doCommand(this.get("parentView.uri"), command);
       }
    }
 });

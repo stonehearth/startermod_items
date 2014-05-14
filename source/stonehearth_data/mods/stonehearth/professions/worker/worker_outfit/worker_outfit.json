@@ -37,7 +37,10 @@
                "stonehearth:actions:teardown_structure",
                "stonehearth:actions:teardown_structure_adjacent"
             ]
-         }
+         },
+         "injected_commands" : [
+            "file(/data/commands/promote_to_profession)"
+         ]         
       }
    }
 }

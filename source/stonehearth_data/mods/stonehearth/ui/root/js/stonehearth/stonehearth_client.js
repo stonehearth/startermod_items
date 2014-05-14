@@ -38,6 +38,36 @@ var StonehearthClient;
          return this.gameState.settlementName;
       },
 
+      doCommand: function(entity, command) {
+         if (!command.enabled) {
+            return;
+         }
+         var event_name = '';
+
+         if (command.action == 'fire_event') {
+            // xxx: error checking would be nice!!
+            var e = {
+               entity : entity,
+               event_data : command.event_data
+            };
+            $(top).trigger(command.event_name, e);
+            
+            event_name = command.event_name.toString().replace(':','_')
+
+         } else if (command.action == 'call') {
+            if (command.object) {
+               radiant.call_objv(command.object, command['function'], command.args)            
+            } else {
+               radiant.callv(command['function'], command.args)
+            }
+            
+            event_name = command['function'].toString().replace(':','_')
+            
+         } else {
+            throw "unknown command.action " + command.action
+         }
+      },
+
       getActiveTool: function() {
          return this._activeTool;
       },
