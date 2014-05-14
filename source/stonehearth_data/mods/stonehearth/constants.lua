@@ -131,6 +131,11 @@ local constants = {
          EAT_NUTRITIOUS_FOOD = 10,       --applied if the food is really satisfying
          NUTRITION_THRESHHOLD = 30,      --satisfaction has to be this or greater to get bonus
          MALNOURISHMENT_PENALTY = -10    --if malnourished, extra penalty once per day
+      }, 
+      shelter = {
+         SLEEP_ON_GROUND = -10,  -- sleeping on the ground penalty
+         SLEEP_IN_BED = 10,      -- sleeping in bed bonus
+         BED_SCORE_CAP = 50,     -- up to a score of 50
       }
    },
 }

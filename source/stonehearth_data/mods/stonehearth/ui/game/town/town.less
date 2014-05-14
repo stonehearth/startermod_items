@@ -97,6 +97,7 @@
          font-family: @controlFontFamily;
          font-size: 30px;
          color: #d2ff00;
+         text-shadow: -2px -2px 0px #000, 0px -2px 0px #000, 2px -2px 0px #000, -2px 0px 0px #000, 2px 0px 0px #000, -2px 2px 0px #000, 0px 2px 0px #000, 2px 2px 0px #000, 6px 6px rgba(0,0,0,0.4);
          display: flex;
 
          #value {
@@ -120,10 +121,16 @@
       border: 4px solid #000;
 
       .ui-progressbar-value {
+         font-family: @controlFontFamily;
+         color: #fff;
+         font-size: 30px;
+         padding-right: 10px;
+         text-align: right;
+         text-shadow: -2px -2px 0px #000, 0px -2px 0px #000, 2px -2px 0px #000, -2px 0px 0px #000, 2px 0px 0px #000, -2px 2px 0px #000, 0px 2px 0px #000, 2px 2px 0px #000, 6px 6px rgba(0,0,0,0.4);
          background-color: #ffc000;
          border-width: 9px 0px 9px 0px;
          border-image: url(images/rating_border.png) 9 9 9 9 repeat;
-         height: 33px;
+         height: 32px;
       }
 
       .numericValue {
@@ -132,19 +139,21 @@
       }
    }
 
-      .smallSection {
-         float: left;
-         margin-right: 30px;
+   .smallSection {
+      float: left;
+      margin-right: 30px;
 
-         .scoreBar {
-            width: 316px;
-            height: 42px;
-            background-size: 42px 42px;
-            
-            .ui-progressbar-value {
-               height: 24px;
-            }
+      .scoreBar {
+         width: 316px;
+         height: 42px;
+         background-size: 42px 42px;
+         
+         .ui-progressbar-value {
+            font-size: 20px;
+            height: 24px;
+            text-shadow: -2px -2px 0px #000, 0px -2px 0px #000, 2px -2px 0px #000, -2px 0px 0px #000, 2px 0px 0px #000, -2px 2px 0px #000, 0px 2px 0px #000, 2px 2px 0px #000, 4px 4px rgba(0,0,0,0.4);
          }
-      }   
-
+      }
+   }
+   
 }

@@ -11,6 +11,7 @@ function PopulationFaction:__init(session, saved_variables)
       self._sv.kingdom = session.kingdom
       self._sv.player_id = session.player_id
       self._sv.citizens = {}
+      self._sv.citizen_scores = {}
    end
    self._data = radiant.resources.load_json(self._sv.kingdom)
 end
@@ -85,6 +86,7 @@ function PopulationFaction:create_new_citizen()
    self:_set_citizen_initial_state(citizen, gender)
 
    self._sv.citizens[citizen:get_id()] = citizen
+   stonehearth.score:update_town_happiness_score(self._sv.player_id)
 
    self.__saved_variables:mark_changed()
 
@@ -95,6 +97,7 @@ end
 
 function PopulationFaction:_on_entity_destroyed(args)
    self._sv.citizens[args.entity_id] = nil
+   stonehearth.score:update_town_happiness_score(self._sv.player_id)
    return radiant.events.UNLISTEN
 end
 

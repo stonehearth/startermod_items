@@ -23,7 +23,8 @@ local service_creation_order = {
    'terrain',
    'threads',
    'town',       
-   'farming'  
+   'farming', 
+   'score'
 }
 
 local function create_service(name)
