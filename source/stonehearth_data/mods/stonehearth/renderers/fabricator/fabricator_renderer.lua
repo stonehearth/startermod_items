@@ -137,7 +137,6 @@ function FabricatorRenderer:_update_render_state()
       else
          material = 'normal'
       end
-      radiant.log.write('sup', 0, self._entity:get_uri())
       material = self._render_entity:get_material_path(material)
       self._render_node:set_material(material)
   end

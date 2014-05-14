@@ -1,3 +1,12 @@
+local constants = require('constants').construction
+local voxel_brush_util = require 'services.server.build.voxel_brush_util'
+local Rect2 = _radiant.csg.Rect2
+local Cube3 = _radiant.csg.Cube3
+local Point2 = _radiant.csg.Point2
+local Point3 = _radiant.csg.Point3
+local Region2 = _radiant.csg.Region2
+local Region3 = _radiant.csg.Region3
+
 local BuildService = class()
 
 function BuildService:__init(datastore)
@@ -216,8 +225,7 @@ function BuildService:add_floor(session, response, floor_uri, box)
 
    -- look for floor that we can merge into.
    local existing_floor = radiant.terrain.get_entities_in_cube(box, function(entity)
-         local cd = entity:get_component('stonehearth:construction_data')
-         return cd and cd:get_type() == "floor"
+         return self:_is_blueprint(entity) and self:_get_structure_type() == 'floor'
       end)
 
    if not next(existing_floor) then
@@ -260,22 +268,32 @@ end
 --
 --    @param building - The building entity which will contain the blueprint
 --    @param blueprint - The blueprint to be added to the building
---    @param location - (optional) a Point3 representing the offset in the building
+--    @param world_location - (optional) a Point3 representing the offset in the building
 --                      where the blueprint is located
 --
-function BuildService:_add_to_building(building, blueprint, location)
-
+function BuildService:_add_to_building(building, blueprint, world_location)
    -- make the owner of the blueprint the same as the owner as of the building
    blueprint:add_component('unit_info')
             :set_player_id(radiant.entities.get_player_id(building))
             :set_faction(radiant.entities.get_faction(building))
 
+   -- if the blueprint doesn't have a destination region, go ahead and add one
+   local dst = blueprint:add_component('destination')
+   if not dst:get_region() then
+      dst:set_region(_radiant.sim.alloc_region())
+   end
 
    -- add the blueprint to the building's entity container and wire up the
    -- building entity pointer in the construction_progress component.
    local cp = blueprint:add_component('stonehearth:construction_progress')
    cp:set_building_entity(building)
-   radiant.entities.add_child(building, blueprint, location)
+
+   if world_location then
+      local origin = radiant.entities.get_world_grid_location(building)
+      radiant.entities.add_child(building, blueprint, world_location - origin)
+   else
+      radiant.entities.add_child(building, blueprint)
+   end
 
    -- if the blueprint does not yet have a fabricator, go ahead and create one
    -- now.
@@ -425,6 +443,15 @@ function BuildService:_get_building_for(blueprint)
    return cp and cp:get_building_entity()
 end
 
+function BuildService:_is_blueprint(entity)
+   return entity:get_component('stonehearth:construction_progress') ~= nil
+end
+
+function BuildService:_get_structure_type(entity)
+   local cd = entity:get_component('stonehearth:construction_data')
+   return cd and cd:get_type() or ''
+end
+
 -- merge a set of buildings together into the `merge_into` building, destroying
 -- the now empty husks left in `buildings_to_merge`.
 --
@@ -460,6 +487,172 @@ function BuildService:_merge_building_into(merge_into, building)
       mob:set_location_grid_aligned(child_offset + building_offset)      
    end
    radiant.entities.destroy_entity(building)
+end
+
+function BuildService:grow_walls(session, response, building, columns_uri, walls_uri)
+   -- accumulate all the floor tiles in the building into a single, opaque region
+   local floor_region = Region2()
+   local ec = building:get_component('entity_container')
+   for _, entity in ec:each_child() do
+      if self:_is_blueprint(entity) and self:_get_structure_type(entity) == 'floor' then
+         local rgn = entity:get_component('destination'):get_region():get()
+         for cube in rgn:each_cube() do
+            local rect = Rect2(Point2(cube.min.x, cube.min.z),
+                               Point2(cube.max.x, cube.max.z))
+            floor_region:add_unique_cube(rect)
+         end
+      end
+   end
+   local y = radiant.entities.get_world_grid_location(building).y
+   local edges = floor_region:get_edge_list()
+   for edge in edges:each_edge() do
+      radiant.log.write('before hmm', 0, 'min: %s max:%s normal:%s', edge.min, edge.max, edge.normal)
+      local min = Point3(edge.min.x, y, edge.min.y)
+      local max = Point3(edge.max.x, y, edge.max.y)
+      radiant.log.write('hmm', 0, 'min: %s max:%s', min, max)
+      local normal = Point3(edge.normal.x, 0, edge.normal.y)
+      self:_add_wall_span(building, min, max, normal, columns_uri, walls_uri)
+   end
+end
+
+function BuildService:_get_blueprint_at_point(point)
+   local entities = radiant.terrain.get_entities_at_point(point, function(entity)
+         return self:_is_blueprint(entity)
+      end)
+   local id, blueprint = next(entities)
+   if blueprint then
+      local _, overlapped = next(entities, id)
+      assert(not overlapped)
+   end
+   return blueprint
+end
+
+function BuildService:_get_or_create_blueprint_at_point(building, point, blueprint_uri)
+   local blueprint = self:_get_blueprint_at_point(point)
+   if blueprint then
+      assert(self:_get_building_for(blueprint) == building)
+   else
+      blueprint = radiant.entities.create_entity(blueprint_uri)
+      self:_add_to_building(building, blueprint, point)
+   end
+   return blueprint
+end
+
+function BuildService:_add_wall_span(building, min, max, normal, columns_uri, wall_uri)
+   local col_a = self:_get_or_create_blueprint_at_point(building, min, columns_uri)
+   local col_b = self:_get_or_create_blueprint_at_point(building, max, columns_uri)
+   self:_create_wall(building, col_a, col_b, normal, wall_uri)
+end
+
+function BuildService:_create_wall(building, column_a, column_b, normal, wall_uri)
+   local pos_a = radiant.entities.get_location_aligned(column_a)
+   local pos_b = radiant.entities.get_location_aligned(column_b)
+   --[[
+   local t, n
+   if pos_a.x == pos_b.x then
+      t, n = 'z', 'x'
+   else
+      t, n = 'x', 'z'
+   end   
+   assert(pos_a[n] == pos_b[n], 'points are not co-linear')
+   assert(pos_a[t] <  pos_b[t], 'points are not sorted')
+
+   local start_point = pos_a   
+   local end_point = pos_b + Point3(0, constants.STOREY_HEIGHT, 0)
+   if normal.x < 0 or normal.z < 0 then
+      start_point = start_point + normal
+   else
+      end_point = end_point + normal
+   end
+
+   local wall = radiant.entities.create_entity(wall_uri)
+
+   local cd = wall:get_component('stonehearth:construction_data')
+   cd:set_normal(normal)
+
+   local bounds = Cube3(start_point, end_point)
+   local brush = voxel_brush_util.create_brush(cd:get_data())
+   local collsion_shape = brush:paint_through_stencil(bounds:translated(-start_point))
+   
+   wall:get_component('destination'):get_region():modify(function(c)
+         c:copy_region(collsion_shape)
+      end)
+
+   self:_add_to_building(building, wall, start_point)
+   ]]
+
+   local t, n
+   if pos_a.x == pos_b.x then
+      t, n = 'z', 'x'
+   else
+      t, n = 'x', 'z'
+   end   
+   assert(pos_a[n] == pos_b[n], 'points are not co-linear')
+   assert(pos_a[t] <  pos_b[t], 'points are not sorted')
+
+   -- we draw the wall from start-to-end.  if the normal points in the positive
+   -- direction, the start point should be less than the end point
+   local tangent = Point3(0, 0, 0)
+   local computed_normal = Point3(0, 0, 0)
+   if normal.x < 0 or normal.z < 0 then
+      pos_a, pos_b = pos_b, pos_a
+   end
+      
+   local span, rotation
+   if pos_a[t] < pos_b[t] then
+      tangent[t] = 1
+      span = pos_b[t] - pos_a[t]
+   else
+      tangent[t] = -1
+      span = pos_a[t] - pos_b[t]
+   end
+   computed_normal[n] = t == 'x' and -tangent[t] or tangent[t]
+   --assert(normal == computed_normal)
+
+   --[[
+   -- omfg... righthandedness is screwing with my brain.
+   local rotations = {
+      [-1] = { [-1] = 270, [1] = 180 },
+      [ 1] = { [-1] = 0,   [1] = 90 },
+   }
+   self._rotation = rotations[tangent[t] ][normal[n] ]
+   ]]
+   
+   local wall = radiant.entities.create_entity(wall_uri)
+
+   local cd = wall:get_component('stonehearth:construction_data')
+   cd:set_normal(normal)
+   self:_add_to_building(building, wall, pos_a + tangent)
+
+   --self:set_normal(normal)
+   --self:get_entity():add_component('mob'):set_location_grid_aligned(pos_a + tangent)
+   
+   local start_pt = Point3(0, 0, 0)
+   local end_pt = Point3(1, constants.STOREY_HEIGHT, 1) -- that "1" should be the depth of the wall.
+   if tangent[t] < 0 then
+      start_pt[t] = -(span - 2)
+   else
+      end_pt[t] = span - 1
+   end
+   assert(start_pt.x < end_pt.x)
+   assert(start_pt.y < end_pt.y)
+   assert(start_pt.z < end_pt.z)
+
+   -- paint once to get the depth of the wall
+   local brush = voxel_brush_util.create_brush(cd:get_data())
+   local model = brush:paint_once()
+   local bounds = model:get_bounds()
+   end_pt[n] = bounds.max[n]
+   start_pt[n] = bounds.min[n]
+   
+   -- paint again to actually draw the wallprox
+   bounds = Cube3(start_pt, end_pt)
+   local collsion_shape = brush:paint_through_stencil(Region3(bounds))
+   wall:get_component('destination'):get_region():modify(function(cursor)
+      cursor:copy_region(collsion_shape)
+   end)
+
+   return wall
 end
 
 return BuildService

@@ -14,6 +14,13 @@ struct EdgeInfo
    Point<S, C>    normal;
 };
 
+template <typename S, int C>
+struct EdgeInfoVector
+{
+   std::vector<EdgeInfo<S, C>> const& GetEdges() { return edges; }
+   std::vector<EdgeInfo<S, C>> edges;
+};
+
 template <typename S, int C> class EdgePoint;
 
 template <typename S, int C>
@@ -141,8 +148,9 @@ public:
       }
    }
 
-private:
+   std::vector<Edge<S, C>> const& GetEdges() const { return edges; }
 
+private:
    EdgePoint<S, C>* AddPoint(Point<S, C> const& p, Point<S, C> const& normal) {
       for (auto& point : points) {
          if (point->location == p) {
