@@ -37,6 +37,7 @@ scope LuaEdgeList::RegisterLuaTypes(lua_State* L)
       Register<float, 3>(L, "Edge3f", "EdgeList3f"),
       Register<float, 2>(L, "Edge2f", "EdgeList2f"),
       Register<int, 3>(L, "Edge3", "EdgeList3"),
-      Register<int, 2>(L, "Edge2", "EdgeList2")
+      Register<int, 2>(L, "Edge2", "EdgeList2"),
+      def("convert_heightmap_to_region2", &csg::HeightmapToRegion2)
    ;
 }
