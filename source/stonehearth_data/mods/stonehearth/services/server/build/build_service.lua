@@ -622,7 +622,9 @@ end
 function BuildService:_add_wall_span(building, min, max, normal, columns_uri, wall_uri)
    local col_a = self:_fetch_column_at_point(building, min, columns_uri)
    local col_b = self:_fetch_column_at_point(building, max, columns_uri)
-   self:_create_wall(building, col_a, col_b, normal, wall_uri)
+   if col_a and col_b then
+      self:_create_wall(building, col_a, col_b, normal, wall_uri)
+   end
 end
 
 -- creates a wall inside `building` connecting `column_a` and `column_b`
@@ -701,22 +703,36 @@ function BuildService:_create_wall(building, column_a, column_b, normal, wall_ur
    local wall = radiant.entities.create_entity(wall_uri)
    local cd = wall:get_component('stonehearth:construction_data')
    cd:set_normal(normal)
-   self:_add_to_building(building, wall, pos_a + tangent)
 
    -- paint once to get the depth of the wall
    local brush = voxel_brush_util.create_brush(cd:get_data())
-   local model = brush:paint_once()
-   local bounds = model:get_bounds()
-   end_pt[n] = bounds.max[n]
-   start_pt[n] = bounds.min[n]
-   
-   -- paint again to actually draw the wallprox
-   bounds = Cube3(start_pt, end_pt)
-   local collsion_shape = brush:paint_through_stencil(Region3(bounds))
-   wall:get_component('destination'):get_region():modify(function(cursor)
+   local brush_bounds = brush:paint_once():get_bounds()   
+   end_pt[n] = brush_bounds.max[n]
+   start_pt[n] = brush_bounds.min[n]
+
+   -- if there are no structure at all overlapping the region we can create the
+   -- wall and add it to the building.  otherwise, don't.
+   local offset = pos_a + tangent
+   local origin = offset + radiant.entities.get_world_grid_location(building)
+   local world_bounds = Cube3(start_pt, end_pt):translated(origin)
+   local overlapping = radiant.terrain.get_entities_in_cube(world_bounds, function(entity)
+         return self:_is_blueprint(entity)
+      end)
+   if next(overlapping) ~= nil then
+      radiant.entities.destroy_entity(wall)
+      return
+   end
+
+   -- paint again through a stencil covering the entire span of the
+   -- wall to compute the wall shape
+   local rgn = _radiant.sim.alloc_region()
+   rgn:modify(function(cursor)
+      local collsion_shape = brush:paint_through_stencil(Region3(Cube3(start_pt, end_pt)))
       cursor:copy_region(collsion_shape)
    end)
-
+   wall:add_component('destination'):set_region(rgn)
+   self:_add_to_building(building, wall, offset)
+   
    return wall
 end
 
