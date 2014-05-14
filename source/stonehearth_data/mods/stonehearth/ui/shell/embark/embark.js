@@ -9,6 +9,7 @@ App.StonehearthEmbarkView = App.View.extend({
       var self = this;
 
       self._newGame(function(e) {
+         radiant.call('radiant:play_sound', 'stonehearth:sounds:ui:start_menu:paper_menu' );
          $('#map').stonehearthMap({
             mapGrid: e.map,
 
@@ -42,6 +43,7 @@ App.StonehearthEmbarkView = App.View.extend({
          self._clearSelection();
 
          self._newGame(function(e) {
+            radiant.call('radiant:play_sound', 'stonehearth:sounds:ui:start_menu:paper_menu' );
             self.my('#map').stonehearthMap('setMap', e.map);
          });
       });
