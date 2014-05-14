@@ -10,16 +10,12 @@ function EnemyObserver:initialize(entity, json)
       return
    end
 
-   self:_add_sensor_trace()
-   self:_listen_for_battery()
-end
-
-function EnemyObserver:_listen_for_battery()
    radiant.events.listen(self._entity, 'stonehearth:combat:battery', self, self._on_battery)
+   self:_add_sensor_trace()
 end
 
 function EnemyObserver:_on_battery(context)
-   local target_table = stonehearth.combat:get_target_table(self._entity, 'aggro')
+   local target_table = radiant.entities.get_target_table(self._entity, 'aggro')
    target_table:modify_score(context.attacker, context.damage)
 end
 
@@ -51,7 +47,7 @@ function EnemyObserver:_on_added_to_sensor(target_id)
       -- That which cannot be killed should probably not be attacked.
       local attribs = target:get_component('stonehearth:attributes')
       if attribs and attribs:get_attribute('health') then
-         target_table = stonehearth.combat:get_target_table(self._entity, 'aggro')
+         target_table = radiant.entities.get_target_table(self._entity, 'aggro')
          target_table:add(target)
       end
    end
@@ -59,14 +55,14 @@ end
 
 function EnemyObserver:_on_removed_from_sensor(target_id)
    local target = radiant.entities.get_entity(target_id)
-   local target_table = stonehearth.combat:get_target_table(self._entity, 'aggro')
+   local target_table = radiant.entities.get_target_table(self._entity, 'aggro')
 
    target_table:remove(target)
 end
 
 function EnemyObserver:destroy()
    self:_destroy_trace()
-   self:_unregister_events()
+   radiant.events.unlisten(self._entity, 'stonehearth:combat:battery', self, self._on_battery)
 end
 
 function EnemyObserver:_destroy_trace()
@@ -75,10 +71,6 @@ function EnemyObserver:_destroy_trace()
       self._trace:destroy()
       self._trace = nil
    end
-end
-
-function EnemyObserver:_unregister_events()
-   radiant.events.unlisten(self._entity, 'stonehearth:combat:battery', self, self._on_battery)
 end
 
 return EnemyObserver

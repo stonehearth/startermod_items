@@ -59,8 +59,24 @@ function Fabricator:__init(name, entity, blueprint, project)
    else
       self._dependencies_finished = true
    end   
-   radiant.events.listen_once(self._blueprint, 'radiant:entity:pre_destroy', self, self._on_blueprint_destroyed)
    self:_trace_blueprint_and_project()
+end
+
+function Fabricator:destroy()
+   self._log:debug('destroying fabricator')
+
+   radiant.events.unlisten(self._blueprint, 'stonehearth:construction:dependencies_finished_changed', self, self._on_dependencies_finished_changed)
+
+   for _, trace in ipairs(self._traces) do
+      trace:destroy()
+   end
+   self._traces = {}
+   self:_stop_project()
+
+   if self._project then
+      radiant.entities.destroy_entity(self._project)
+      self._project = nil
+   end
 end
 
 function Fabricator:set_active(active)
@@ -124,17 +140,6 @@ function Fabricator:_create_new_project()
       self._project_ladder = self._project:add_component('vertical_pathing_region')
       self._project_ladder:set_region(_radiant.sim.alloc_region())
    end   
-end
-
-function Fabricator:destroy()
-   self._log:debug('destroying fabricator')
-
-   radiant.events.unlisten(self._blueprint, 'radiant:entity:pre_destroy', self, self._on_blueprint_destroyed)
-   for _, trace in ipairs(self._traces) do
-      trace:destroy()
-   end
-   self._traces = {}
-   self:_stop_project()
 end
 
 function Fabricator:_on_dependencies_finished_changed()
@@ -498,7 +503,6 @@ function Fabricator:_trace_blueprint_and_project()
    local update_fabricator_region = function()
       self:_update_fabricator_region()
    end
-
    
    local dtrace = self._blueprint:trace_object('destination')
                                        :on_destroyed(update_fabricator_region)
@@ -514,10 +518,6 @@ function Fabricator:_trace_blueprint_and_project()
    table.insert(self._traces, ptrace)
    
    update_fabricator_region()
-end
-
-function Fabricator:_on_blueprint_destroyed()
-   -- hm...
 end
 
 return Fabricator

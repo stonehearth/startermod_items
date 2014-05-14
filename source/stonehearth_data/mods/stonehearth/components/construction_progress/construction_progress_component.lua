@@ -186,7 +186,7 @@ end
 -- tree up to the construction blueprint which is actually interesting to the
 -- user.
 function ConstructionProgress:get_building_entity()
-   return self._sv.building
+   return self._sv.building_entity
 end
 
 -- sets the entity representing the buliding for which this wall, column,

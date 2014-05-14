@@ -77,6 +77,9 @@ App.StonehearthBuildingDesignerView = App.View.extend({
       this.$('.floorTool').click(function() {
          App.stonehearthClient.buildFloor();
       });
+      this.$('.fillWallTool').click(function() {
+         App.stonehearthClient.growWalls();
+      });
       this.$('#startBuilding').click(function() {
          var building_entity = self.get('context.building');
          if (building_entity) {
@@ -95,9 +98,10 @@ App.StonehearthBuildingDesignerView = App.View.extend({
    },
 
    _onEntitySelected: function(e) {
-      var entity = e.selected_entity
+      var self = this
       
-      if (!entity) {
+      self._selectedEntity = e.selected_entity      
+      if (!self._selectedEntity) {
          return;
       }
 
@@ -107,7 +111,7 @@ App.StonehearthBuildingDesignerView = App.View.extend({
       }
 
       // trace the properties so we can tell if we need to popup the properties window for the object
-      self.selectedEntityTrace = radiant.trace(entity)
+      self.selectedEntityTrace = radiant.trace(this._selectedEntity)
          .progress(function(result) {
             self._examineEntity(result);
          })

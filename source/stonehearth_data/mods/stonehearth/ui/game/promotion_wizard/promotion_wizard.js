@@ -29,7 +29,7 @@ App.StonehearthPromotionWizard = App.View.extend({
       var self = this;
       this._super();
 
-      // XXX, this should work! Don't know why I have to manually set the trace below
+      // XXX, Don't know why I have to manually set the trace below
       //this.set('uri', 'stonehearth:professions:index');
 
       var r  = new RadiantTrace()
@@ -44,7 +44,7 @@ App.StonehearthPromotionWizard = App.View.extend({
 
          $.each(pop.citizens, function(k, citizen) {
             var uri = citizen['__self']
-            if (uri == data.selected_entity) {
+            if (uri && uri == data.selected_entity) {
                var profession = citizen['stonehearth:profession']['profession_uri']['alias'];
 
                if (profession = 'stonehearth:professions:worker') {
@@ -66,9 +66,7 @@ App.StonehearthPromotionWizard = App.View.extend({
       var self = this;
       this._super();
 
-      var parentView = self.get('parentView');
-      parentView.jobsView = this;
-
+      // reset the help text when hovering outside of the job selection panel
       this.$('#jobs').hover( 
          function() {
 
@@ -78,11 +76,23 @@ App.StonehearthPromotionWizard = App.View.extend({
             self.$('#info #description').html(i18n.t('stonehearth:citizens_choose_job_description'));
          });
 
+      // set the help text to the job description when hovering over each job button
       this.$('.jobButton').hover(
          function() {
             var professionInfo = self.getProfessionInfo($(this).attr('id'));
+            var requirements = $('<p>');
+
+            requirements.html('Requires: ' + professionInfo.talisman_uri + '</p>');
+
+            if ($(this).hasClass('locked')) {
+               requirements.addClass('locked');
+            }
+
+            var description = requirements.html() + professionInfo.description;
+
             self.$('#info #name').html(professionInfo.name);
-            self.$('#info #description').html(professionInfo.description);
+            self.$('#info #description').html(description);
+
          },
          function() {
             self.$('#info #name').html('');
@@ -101,7 +111,12 @@ App.StonehearthPromotionWizard = App.View.extend({
       });
 
       this.$('#finishPage #backButton').click(function() {
-        self.$('#finishPage').hide(); 
+         if (self.$('#jobsPage').is(':visible')) {
+            self.$('#finishPage').hide(); 
+         } else {
+            self.destroy();
+         }
+        
       })
 
       this.$('#chooseButton').click(function() {
@@ -116,20 +131,25 @@ App.StonehearthPromotionWizard = App.View.extend({
    },
 
    initWizardState: function() {
+      var self = this;
       // if the talisman is specified
       var talisman = this.get('talisman');
       if (talisman) {
          this.set('profession', talisman.profession);
          self.$('#jobsPage').hide();
          self.$('#finishPage').show();
+         self.$('#finishPage #backButton').html( i18n.t('stonehearth:cancel'));
+      } else {
+         radiant.call('stonehearth:get_talismans_in_explored_region')
+            .done(function(e) {
+               self.unlockJobs(e.available_professions);
+            });         
       }
 
       // if the citizen is specified
       if (this.get('citizen')) {
          this.showApproveStamper();
       }
-
-      this.unlockJobs();
    },
 
    chooseCitizen: function() {
@@ -199,33 +219,29 @@ App.StonehearthPromotionWizard = App.View.extend({
    },
 
    // iterate over the stored items and unlock jobs where the player has the required talisman
-   unlockJobs: function() {
+   unlockJobs: function(professions) {
       var self = this;
-      var talismans = this._getTalismans();
+      var professions = this._getAvailableProfessions(professions);
 
       //xxx, todo, keep the last 2 versions of the talismans, so we can compare them and highlight
       //which buttons are new since the last opening of the window
       this.$('.jobButton').addClass('locked');
       this.$('.jobButton').each(function() {
          var alias = $(this).attr('id');
-         if (talismans[alias]) {
+         if (professions[alias]) {
             $(this).removeClass('locked');   
          }
       })
    },
 
-   _getTalismans: function() {
-      var talismans = {};
-      var inventory = App.inventory.getData().items;
+   _getAvailableProfessions: function(professions) {
+      var availableProfessions = {};
 
-      $.each(inventory, function(key, item) {
-         var talisman = item['stonehearth:promotion_talisman']
-         if (talisman) {
-            talismans[talisman.profession] = true;
-         }
+      $.each(professions, function(key, profession) {
+         availableProfessions[profession] = true;
       });
 
-      return talismans;
+      return availableProfessions;
    },
 
    getProfessionInfo: function(id) {

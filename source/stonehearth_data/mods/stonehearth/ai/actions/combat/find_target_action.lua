@@ -68,7 +68,7 @@ function FindTarget:_on_engage(args)
 end
 
 function FindTarget:_get_target()
-   local target_table = stonehearth.combat:get_target_table(self._entity, 'aggro')
+   local target_table = radiant.entities.get_target_table(self._entity, 'aggro')
    local target, score = target_table:get_top()
 
    -- if target table has no opinion, double check the assault events

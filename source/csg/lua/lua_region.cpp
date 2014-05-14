@@ -2,6 +2,8 @@
 #include "lib/lua/register.h"
 #include "lib/lua/script_host.h"
 #include "lua_region.h"
+#include "csg/edge_tools.h"
+#include "csg/region_tools.h"
 #include "csg/region.h"
 #include "csg/util.h"
 
@@ -27,6 +29,21 @@ template <typename T>
 std::shared_ptr<T> Duplicate(T const& region)
 {
    return std::make_shared<T>(region);
+}
+
+template <typename S, int C>
+EdgeInfoVector<S, C> RegionGetEdgeList(const Region<S, C>& region)
+{
+   EdgeInfoVector<S, C> eiv;
+   EdgeMap<S, C> map = RegionTools<S, C>().GetEdgeMap(region);
+   for (auto const& e : map.GetEdges()) {
+      EdgeInfo<S, C> edge;
+      edge.min = e.min->location;
+      edge.max = e.max->location;
+      edge.normal = e.normal;
+      eiv.edges.push_back(edge);
+   }
+   return eiv;
 }
 
 template <typename T>
@@ -103,8 +120,11 @@ scope LuaRegion::RegisterLuaTypes(lua_State* L)
       def("intersect_region3", IntersectRegion<Region3>),
       Register<Region3>(L,  "Region3")
          .def("get_adjacent",             &GetAdjacent)
-         .def("project_onto_xz_plane",    &ProjectOntoXZPlane),
-      Register<Region3f>(L, "Region3f"),
-      Register<Region2>(L,  "Region2"),
+         .def("project_onto_xz_plane",    &ProjectOntoXZPlane)
+         .def("get_edge_list",                &RegionGetEdgeList<int, 3>),
+      Register<Region3f>(L, "Region3f")
+         .def("get_edge_list",                &RegionGetEdgeList<float, 3>),
+      Register<Region2>(L,  "Region2")
+         .def("get_edge_list",                &RegionGetEdgeList<int, 2>),
       Register<Region1>(L,  "Region1");
 }

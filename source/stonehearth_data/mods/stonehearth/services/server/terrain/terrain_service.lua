@@ -5,8 +5,12 @@ local Point2 = _radiant.csg.Point2
 local Point2f = _radiant.csg.Point2f
 local Rect2 = _radiant.csg.Rect2
 local Region2 = _radiant.csg.Region2
+local Point3 = _radiant.csg.Point3
+local Cube3 = _radiant.csg.Cube3
 local _terrain = radiant._root_entity:add_component('terrain')
 local log = radiant.log.create_logger('visibility')
+
+local INFINITE = 1000000
 
 TerrainService = class()
 
@@ -179,6 +183,26 @@ function TerrainService:_get_visible_region(faction)
    return bounded_visible_region
 end
 
+function TerrainService:get_entities_in_explored_region(faction, filter_fn)
+   local explored_region_boxed = self:get_explored_region(faction)
+   local explored_region = explored_region_boxed:get()
+
+   local entities_in_region = {}
+   for rect in explored_region:each_cube() do
+      local min = Point3(rect.min.x, -INFINITE, rect.min.y)
+      local cube = Cube3(Point3(rect.min.x, -INFINITE, rect.min.y),
+                         Point3(rect.max.x,  INFINITE, rect.max.y))
+      local entities = radiant.terrain.get_entities_in_cube(cube)
+      for id, entity in pairs(entities) do 
+         if id ~= 1 and (not filter_fn or filter_fn(entity)) then
+            entities_in_region[id] = entity
+         end
+      end
+   end 
+
+   return entities_in_region
+end
+
 function TerrainService:_get_entity_visible_region(entity)
    local step_size = self._visbility_step_size
    local quantize = function (value) 
@@ -255,6 +279,8 @@ function TerrainService:_get_region(map, faction)
 
    return boxed_region
 end
+
+
 
 return TerrainService
 

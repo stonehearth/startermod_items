@@ -26,6 +26,11 @@ function ConstructionDataComponent:initialize(entity, json)
    end
 end
 
+-- xxx: don't troll around in here!
+function ConstructionDataComponent:get_data()
+   return self._sv
+end
+
 function ConstructionDataComponent:get_material()
    return self._data.material
 end

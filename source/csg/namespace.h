@@ -64,11 +64,27 @@ typedef PlaneInfo<float, 2>    PlaneInfo2f;
 typedef PlaneInfo<float, 3>    PlaneInfo3f;
 
 template <typename S, int C> class EdgeMap;
+template <typename S, int C> class EdgePoint;
+template <typename S, int C> class Edge;
 
-typedef EdgeMap<int, 2> EdgeMap2;
-typedef EdgeMap<int, 3> EdgeMap3;
-typedef EdgeMap<float, 2> EdgeMap2f;
+typedef Edge<float, 3> Edge3f;
+typedef EdgePoint<float, 3> EdgePoint3f;
 typedef EdgeMap<float, 3> EdgeMap3f;
+typedef Edge<int, 3> Edge3;
+typedef EdgePoint<int, 3> EdgePoint3;
+typedef EdgeMap<int, 3> EdgeMap3;
+typedef Edge<float, 2> Edge2f;
+typedef EdgePoint<float, 2> EdgePoint2f;
+typedef EdgeMap<float, 2> EdgeMap2f;
+typedef Edge<int, 2> Edge2;
+typedef EdgePoint<int, 2> EdgePoint2;
+typedef EdgeMap<int, 2> EdgeMap2;
+typedef Edge<float, 1> Edge1f;
+typedef EdgePoint<float, 1> EdgePoint1f;
+typedef EdgeMap<float, 1> EdgeMap1f;
+typedef Edge<int, 1> Edge1;
+typedef EdgePoint<int, 1> EdgePoint1;
+typedef EdgeMap<int, 1> EdgeMap1;
 
 template <typename S, int C> struct EdgeInfo;
 
@@ -76,6 +92,13 @@ typedef EdgeInfo<int, 2> EdgeInfo2;
 typedef EdgeInfo<int, 3> EdgeInfo3;
 typedef EdgeInfo<float, 2> EdgeInfo2f;
 typedef EdgeInfo<float, 3> EdgeInfo3f;
+
+template <typename S, int C> struct EdgeInfoVector;
+
+typedef EdgeInfoVector<int, 2> EdgeInfoVector2;
+typedef EdgeInfoVector<int, 3> EdgeInfoVector3;
+typedef EdgeInfoVector<float, 2> EdgeInfoVector2f;
+typedef EdgeInfoVector<float, 3> EdgeInfoVector3f;
 
 
 END_RADIANT_CSG_NAMESPACE

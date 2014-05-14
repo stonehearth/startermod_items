@@ -2,17 +2,6 @@
 App.StonehearthCitizensView = App.View.extend({
 	templateName: 'citizens',
 
-   components: {
-      "citizens" : {
-         "*" : {
-            "stonehearth:profession" : {
-               "profession_uri" : {}
-            },
-            "unit_info": {},
-         }
-      }
-   },
-
    init: function() {
       var self = this;
       this._super();
@@ -39,6 +28,10 @@ App.StonehearthCitizensView = App.View.extend({
       });
 
       this.$('#promoteButton').click(function() {
+         if ($(this).hasClass('disabled')) {
+            return;
+         }
+         
          var selectedCitizen = self.getSelectedCitizen();
          self.promotionWizard = App.gameView.addView(App.StonehearthPromotionWizard, { 
                citizen : selectedCitizen
@@ -47,7 +40,25 @@ App.StonehearthCitizensView = App.View.extend({
    },
 
    preShow: function() {
+      this._buildCitizensArray();
+   },
 
+   actions: {
+      showWorkshop: function(crafter) {
+         var workshop = crafter['stonehearth:crafter']['workshop']['workshop_entity'];
+         $(top).trigger("radiant_show_workshop_from_crafter", {
+            event_data: {
+               workshop: workshop
+            }
+         });
+      },
+      placeWorkshop: function(crafter) {
+         $(top).trigger('build_workshop', {
+            event_data : {
+               crafter: crafter.__self   
+            }
+         })
+      }
    },
 
    getSelectedCitizen: function() {
@@ -56,6 +67,18 @@ App.StonehearthCitizensView = App.View.extend({
       return citizenMap[id];
    },
 
+   _foo2: function() {
+      console.log('yo');
+   }.observes('context.citizensArray.@each'),
+
+   _foo: function() {
+      console.log('yo');
+   }.observes('context.citizensArray.@each.stonehearth:crafter'),
+
+   _foo3: function() {
+      console.log('yo');
+   }.observes('context.citizensArray.@each.stonehearth:crafter.workshop'),
+
    _buildCitizensArray: function() {
       var vals = [];
       var citizenMap = this.get('context.citizens');
@@ -63,7 +86,8 @@ App.StonehearthCitizensView = App.View.extend({
       if (citizenMap) {
          $.each(citizenMap, function(k ,v) {
             if(k != "__self" && citizenMap.hasOwnProperty(k)) {
-               v['__id'] = k;
+               v.set('__id', k);
+
                vals.push(v);
             }
          });
