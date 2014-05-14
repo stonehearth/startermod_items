@@ -31,6 +31,7 @@ local STOPPING = 'stopping'
 local STOPPED = 'stopped'
 local DEAD = 'dead'
 
+local INFINITE = 1000000000
 local ABORT_FRAME = ':aborted_frame:'
 local UNWIND_NEXT_FRAME = ':unwind_next_frame:'
 local UNWIND_NEXT_FRAME_2 = ':unwind_next_frame_2:'
@@ -288,9 +289,15 @@ function ExecutionFrame:_restart_thinking(entity_state, debug_reason)
       end
    end
 
-   local current_state = self._state
+   local entity_location
+   if self._log:is_enabled(radiant.log.DETAIL) then
+      entity_location = radiant.entities.get_world_grid_location(self._entity)
+   end
+
+   local current_state = self._state  
    for unit, entity_state in pairs(rethinking_units) do
-      self._log:detail('calling start_thinking on unit "%s" (u:%d state:%s).', unit:get_name(), unit:get_id(), unit:get_state())
+      self._log:detail('calling start_thinking on unit "%s" (u:%d state:%s ai.CURRENT.location:%s actual_location:%s).',
+                        unit:get_name(), unit:get_id(), unit:get_state(), entity_state.location, entity_location)
       assert(unit:in_state('stopped', 'thinking', 'ready'))
       unit:_start_thinking(self._args, entity_state)
 
@@ -298,6 +305,8 @@ function ExecutionFrame:_restart_thinking(entity_state, debug_reason)
       -- verify that this is so
       assert(self._state == current_state)
    end
+
+   self._log:spam('choosing best execution unit of candidates...')
 
    -- if anything became ready during the think, use it immediately.
    local unit = self:_get_best_execution_unit()
@@ -505,9 +514,13 @@ function ExecutionFrame:_stop_thinking_from_started()
    assert(self._active_unit)
    
    for _, unit in pairs(self._execution_units) do
-      if unit ~= self._active_unit and not self:_is_strictly_better_than_active(unit) then
+      if unit == self._active_unit then
+         -- nothing to do!
+      elseif not self:_is_strictly_better_than_active(unit) then
+         self._log:debug('%s is running, so calling stop_thinking on %s.', self._active_unit:get_name(), unit:get_name())
          unit:_stop_thinking() -- this guy has no prayer...  just stop
       else
+         self._log:debug('letting %s continue thinking while %s is running.', unit:get_name(), self._active_unit:get_name())
          -- let better ones keep processing.  they may prempt in the future
       end
    end
@@ -658,6 +671,7 @@ function ExecutionFrame:_set_active_unit(unit, think_output)
    self._log:detail('replacing active unit "%s" with "%s"', aname, uname)
    
    self._active_unit = unit
+   self._active_unit_cost = unit and unit:get_cost() or 0
    self._active_unit_think_output = think_output
 
    if self._current_entity_state then
@@ -908,7 +922,12 @@ end
 
 function ExecutionFrame:_add_action_from_running(key, entry)
    local unit = self:_add_execution_unit(key, entry)
-   unit:_start_thinking(self._args, self:_create_entity_state())
+   if self:_is_strictly_better_than_active(unit) then   
+      self._log:detail('new action %s is better than active %s.  calling start_thinking', unit:get_name(), self._active_unit:get_name())
+      unit:_start_thinking(self._args, self:_create_entity_state())
+   else
+      self._log:detail('new action %s is not better than active %s.', unit:get_name(), self._active_unit:get_name())
+   end
 end
 
 function ExecutionFrame:_add_action_from_stopped(key, entry)
@@ -1116,23 +1135,31 @@ function ExecutionFrame:_is_strictly_better_than_active(unit)
 end
 
 function ExecutionFrame:_get_best_execution_unit()
-   local best_priority = 0
+   local best_priority, best_cost = 0, INFINITE
    local active_units = nil
    
    self._log:spam('%s looking for best execution unit for "%s"', self._entity, self._activity_name)
    for _, unit in pairs(self._execution_units) do
       local name = unit:get_name()
+      local cost = unit:get_cost()
       local priority = unit:get_priority()
       local is_runnable = unit:is_runnable()
-      self._log:spam('  unit %s has priority %d (weight: %d  runnable: %s  state:%s)',
-                     name, priority, unit:get_weight(), tostring(is_runnable), unit:get_state())
+
+      self._log:spam('  unit %s -> (priority:%d cost:%.3f weight:%d runnable:%s state:%s)',
+                     name, priority, cost, unit:get_weight(), tostring(is_runnable), unit:get_state())
+
       if is_runnable then
-         if priority >= best_priority then
-            if priority > best_priority then
-               -- new best_priority found, wipe out the old list of candidate actions
-               active_units = {}
-            end
-            best_priority = priority
+         local replace_existing = priority > best_priority or (priority == best_priority and cost < best_cost)
+         local add_candidate = replace_existing or (priority == best_priority and cost == best_cost)
+
+         if replace_existing then
+            self._log:spam('    way better!  wiping out old candidates.')
+            -- a new bar has been set, wipe out the old list of candidate actions
+            active_units = {}
+            best_priority, best_cost = priority, cost
+         end
+         if add_candidate then
+            self._log:spam('    adding to candidates.')
             for i = 1, unit:get_weight() do
                table.insert(active_units, unit)
             end
@@ -1146,8 +1173,11 @@ function ExecutionFrame:_get_best_execution_unit()
    end
    
    -- choose a random unit amoung all the units with the highest priority (they all tie)
-   local active_unit = active_units[math.random(#active_units)]
-   self._log:spam('%s  best unit for "%s" is "%s" (priority: %d)', self._entity, self._activity_name, active_unit:get_name(), best_priority)
+   local total_candidates = #active_units
+   local active_unit = active_units[math.random(total_candidates)]
+   self._log:spam('%s  best unit for "%s" is "%s" (priority:%d  cost:%.3f  total_candidates:%d)',
+                   self._entity, self._activity_name, active_unit:get_name(), best_priority, best_cost, total_candidates)
+
    self._aitrace:spam('@beu@%d', active_unit._id)
 
    return active_unit
@@ -1324,6 +1354,10 @@ function ExecutionFrame:_spam_entity_state(state, format, ...)
          self._log:spam('  CURRENT.%s = %s', key, tostring(value))
       end   
    end
+end
+
+function ExecutionFrame:get_cost()
+   return self._active_unit and self._active_unit_cost or 0
 end
 
 return ExecutionFrame

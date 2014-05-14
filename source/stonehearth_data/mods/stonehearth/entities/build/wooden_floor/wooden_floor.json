@@ -1,0 +1,17 @@
+{
+   "type": "entity", 
+   "components": {
+      "unit_info": {
+         "icon": "...", 
+         "name": "Wooden Floor", 
+         "description": "Keeps feet clean"
+      },
+      "stonehearth:construction_data" : {
+         "type" : "floor",
+         "needs_scaffolding" : false,
+         "allow_crouching_construction" : true,         
+         "max_workers": 4, 
+         "material": "wood resource"
+      }
+   }
+}

@@ -45,6 +45,7 @@ function RunTaskAction:_start_stop_thinking()
             --    self._ai:set_think_output(think_output) -- this one's wrong...
             --
             self._log:debug('execution frame was ready immediately!  calling set_think_output.')
+            self._ai:set_cost(self._execution_frame:get_cost())
             self._ai:set_think_output()
          else
             self._log:debug('execution frame was not ready immediately!  registering on_ready handler.')
@@ -54,6 +55,7 @@ function RunTaskAction:_start_stop_thinking()
                   self._ai:clear_think_output()
                else
                   self._log:debug('received ready notification from injected action. (should_think: %s', tostring(self._should_think))
+                  self._ai:set_cost(self._execution_frame:get_cost())
                   self._ai:set_think_output()
                end
             end)
