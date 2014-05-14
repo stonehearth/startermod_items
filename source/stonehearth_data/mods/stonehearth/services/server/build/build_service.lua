@@ -664,7 +664,7 @@ function BuildService:_create_wall(building, column_a, column_b, normal, wall_ur
    if flip then
       pos_a, pos_b = pos_b, pos_a
    end
-      
+
    -- compoute the width of the wall and a tangent vector which will march
    -- us from pos_a to pos_b.
    local tangent = Point3(0, 0, 0)
@@ -679,6 +679,10 @@ function BuildService:_create_wall(building, column_a, column_b, normal, wall_ur
       start_pt[t] = -(pos_a[t] - pos_b[t] - 2)
    end
 
+   -- if the tangent coordinate is 0, then there's no wall to create!
+   if start_pt[t] == end_pt[t] then
+      return
+   end
    assert(start_pt.x < end_pt.x)
    assert(start_pt.y < end_pt.y)
    assert(start_pt.z < end_pt.z)
