@@ -50,6 +50,9 @@ function CompoundAction:__init(entity, injecting_entity, action_ctor, activities
          set_status_text = function(_, ...)
             self._ai:set_status_text(...)
          end,
+         set_cost = function(_, cost)
+            self._action_cost = cost
+         end,
          set_think_output = function(_, think_output)
             self:_spam_current_state('compound action became ready!')
             think_output = think_output or self._args
@@ -95,6 +98,7 @@ function CompoundAction:start_thinking(ai, entity, args)
    self._ai = ai
    self._args = args
    self._log = ai:get_log()
+   self._action_cost = 0
 
    if not self._execution_frames then
       self:_create_execution_frames()
@@ -157,7 +161,7 @@ function CompoundAction:_start_thinking()
          current_frame = current_frame + 1
       else
          self:_spam_current_state('registering on_ready handler (%d of %d - %s)', current_frame, #self._activities, activity.name)
-         frame:on_ready(function(frame, think_output)
+         frame:on_ready(function(frame, think_output)            
             self._log:detail('on_ready callback fired.')
             assert(self._thinking, 'received ready callback while not thinking.')
 
@@ -169,6 +173,7 @@ function CompoundAction:_start_thinking()
             else
                self:_spam_current_state('frame became ready! (%d of %d - %s)', current_frame, #self._activities, activity.name)
             end
+
             table.insert(self._previous_think_output, think_output)
             self:_start_thinking()
             -- xxx: listen for when frames become unready, right?      
@@ -183,12 +188,19 @@ function CompoundAction:_set_think_output()
    assert(self._thinking)
    
    self._log:detail('all frames ready!  calling set_think_output.')
+
+   local cost = self._action_cost
+   for _, frame in ipairs(self._execution_frames) do
+      cost = cost + frame:get_cost()
+   end
+
+   self._ai:set_cost(cost)
    if self._think_output_placeholders then
       local replaced = self:_replace_placeholders(self._think_output_placeholders)
       self._ai:set_think_output(replaced)
    else
       self._ai:set_think_output()
-   end   
+   end
 end
 
 function CompoundAction:stop_thinking(ai, entity, ...)

@@ -37,12 +37,13 @@ function ExecutionUnitV2:__init(frame, thread, debug_route, entity, injecting_en
    chain_function('set_think_output')
    chain_function('clear_think_output')
    chain_function('spawn')
-   chain_function('execute')   
+   chain_function('execute')
    chain_function('suspend')
    chain_function('resume')
    chain_function('abort')
-   chain_function('get_log')   
-   chain_function('set_status_text')   
+   chain_function('get_log')
+   chain_function('set_status_text')
+   chain_function('set_cost')
   
    local actions = {
       'start_thinking',
@@ -96,6 +97,10 @@ end
 -- ExecutionFrame facing functions...
 function ExecutionUnitV2:get_name()
    return self._debug_name
+end
+
+function ExecutionUnitV2:get_cost()
+   return self._cost
 end
 
 function ExecutionUnitV2:get_id()
@@ -514,6 +519,7 @@ function ExecutionUnitV2:_do_start_thinking(entity_state)
    self._log:debug('_do_start_thinking (state:%s)', tostring(self._state))
    assert(not self._thinking)
    
+   self._cost = 0
    self._thinking = true
    self._current_entity_state = entity_state
    self._ai_interface.CURRENT = entity_state
@@ -545,6 +551,10 @@ end
 -- the interface facing actions (i.e. the 'ai' interface)
 function ExecutionUnitV2:__get_log()
    return self._log
+end
+
+function ExecutionUnitV2:__set_cost(cost)
+   self._cost = cost
 end
 
 function ExecutionUnitV2:__set_status_text(format, ...)
