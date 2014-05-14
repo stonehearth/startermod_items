@@ -872,7 +872,9 @@
       "farmer_field" : "file(components/farmer_field/farmer_field_component.lua)",
       "growing" : "file(components/growing/growing_component.lua)", 
       "crop" : "file(components/crop/crop_component.lua)", 
-      "dirt_plot" : "file(components/farmer_field/dirt_plot_component.lua)"
+      "dirt_plot" : "file(components/farmer_field/dirt_plot_component.lua)",
+      "target_tables" : "file(components/target_tables/target_tables_component.lua)",
+      "combat_state" : "file(components/combat_state/combat_state_component.lua)"
    },
    "component_renderers" : {
       "stockpile" : "file(renderers/stockpile/stockpile_renderer.lua)",

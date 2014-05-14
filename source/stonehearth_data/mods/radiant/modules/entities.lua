@@ -299,21 +299,6 @@ function entities.add_outfit(entity, outfit_uri)
    rig_component:add_rig(outfit_uri)
 end
 
-function entities.create_target_table(entity, group)
-   radiant.check.is_entity(entity)
-   radiant.check.is_string(group)
-
-   local target_tables = entity:add_component('target_tables')
-   return target_tables:add_table(group)
-end
-
-function entities.destroy_target_table(entity, table)
-   radiant.check.is_entity(entity)
-
-   local target_tables = entity:add_component('target_tables')
-   return target_tables:remove_table(table)
-end
-
 --[[
    Gets carried item
    returns: entity that is being carried, nil otherwise
@@ -616,15 +601,13 @@ function entities.is_adjacent_to_xz(entity, location)
    return point_a:is_adjacent_to(point_b)
 end
 
-function entities.get_target_table_top(entity, table_name)
-   local target_tables = entity:get_component('target_tables')
-   local top_entry = target_tables:get_table(table_name):get_top()
-
-   if top_entry then
-      return top_entry.target
+function entities.get_target_table(entity, table_name)
+   if not entity or not entity:is_valid() then
+      return nil
    end
 
-   return nil
+   local target_tables_component = entity:add_component('stonehearth:target_tables')
+   return target_tables_component:get_target_table(table_name)
 end
 
 function entities.compare_attribute(entity_a, entity_b, attribute)

@@ -1,14 +1,18 @@
-local log = radiant.log.create_logger('combat')
-
 TargetTable = class()
 
 -- TODO: decay scores over time and remove if below 0
-function TargetTable:__init()
-   self._targets = {}
+function TargetTable:initialize()
    self._starting_score = 0
-   self._top = nil
-   self._top_score = nil
-   self._top_is_dirty = false
+
+   self._sv = self.__saved_variables:get_data()
+
+   if not self._sv.initialized then
+      self._sv.targets = {}
+      self._sv.top = nil
+      self._sv.top_score = nil
+      self._sv.top_is_dirty = false
+      self._sv.initialized = true
+   end
 end
 
 function TargetTable:get_top()
@@ -16,11 +20,11 @@ function TargetTable:get_top()
       self:_calculate_top()
    end
 
-   return self._top, self._top_score
+   return self._sv.top, self._sv.top_score
 end
 
 function TargetTable:get_targets()
-   return self._targets
+   return self._sv.targets
 end
 
 function TargetTable:add(target)
@@ -30,9 +34,10 @@ end
 function TargetTable:remove(target)
    if target ~= nil and target:is_valid() then
       local target_id = target:get_id()
-      self._targets[target_id] = nil
+      self._sv.targets[target_id] = nil
+      self.__saved_variables:mark_changed()
 
-      if target == self._top then
+      if target == self._sv.top then
          self:_mark_top_dirty()
       end
    end
@@ -42,7 +47,8 @@ end
 function TargetTable:set_score(target, score)
    if target ~= nil and target:is_valid() then
       local target_id = target:get_id()
-      self._targets[target_id] = score
+      self._sv.targets[target_id] = score
+      self.__saved_variables:mark_changed()
       self:_check_update_top(target, score)
    end
 end
@@ -52,7 +58,7 @@ function TargetTable:get_score(target)
 
    if target ~= nil and target:is_valid() then
       local target_id = target:get_id()
-      score = self._targets[target_id]
+      score = self._sv.targets[target_id]
    end
 
    return score
@@ -65,9 +71,10 @@ function TargetTable:modify_score(target, delta)
 
    if target ~= nil and target:is_valid() then
       local target_id = target:get_id()
-      score = self._targets[target_id] or self._starting_score
+      score = self._sv.targets[target_id] or self._starting_score
       score = score + delta
-      self._targets[target_id] = score
+      self._sv.targets[target_id] = score
+      self.__saved_variables:mark_changed()
       self:_check_update_top(target, score)
    end
 
@@ -75,8 +82,18 @@ function TargetTable:modify_score(target, delta)
 end
 
 function TargetTable:remove_invalid_targets()
-   for target_id in pairs(self._targets) do
-      self:_get_valid_target_or_prune(target_id)
+   local target
+   local changed = false
+
+   for target_id in pairs(self._sv.targets) do
+      target = self:_get_valid_target_or_prune(target_id)
+      if target then
+         changed = true
+      end
+   end
+
+   if changed then
+      self.__saved_variables:mark_changed()
    end
 end
 
@@ -84,14 +101,14 @@ function TargetTable:_calculate_top()
    local top_entity, top_id, top_score
 
    while true do
-      if next(self._targets) == nil then
+      if next(self._sv.targets) == nil then
          self:_set_top(nil, nil)
          return
       end
 
       top_id = nil
 
-      for id, score in pairs(self._targets) do
+      for id, score in pairs(self._sv.targets) do
          if top_id == nil or score > top_score then
             top_id, top_score = id, score
          end
@@ -106,41 +123,43 @@ function TargetTable:_calculate_top()
 end
 
 function TargetTable:_set_top(target, score)
-   self._top = target
-   self._top_score = score
-   self._top_is_dirty = false
+   self._sv.top = target
+   self._sv.top_score = score
+   self._sv.top_is_dirty = false
+   self.__saved_variables:mark_changed()
 end
 
 function TargetTable:_check_update_top(target, score)
-   if self._top_is_dirty then
+   if self._sv.top_is_dirty then
       return
    end
-   if self._top == nil or score > self._top_score then
+   if self._sv.top == nil or score > self._sv.top_score then
       self:_set_top(target, score)
    end
 end
 
 function TargetTable:_mark_top_dirty()
-   self._top_is_dirty = true
+   self._sv.top_is_dirty = true
+   self.__saved_variables:mark_changed()
 end
 
 function TargetTable:_top_is_valid()
-   if self._top_is_dirty then
+   if self._sv.top_is_dirty then
       return false
    end
 
-   if self._top == nil then
+   if self._sv.top == nil then
       return true
    end
 
-   return self._top:is_valid()
+   return self._sv.top:is_valid()
 end
 
 function TargetTable:_get_valid_target_or_prune(target_id)
    local target = radiant.entities.get_entity(target_id)
 
    if target == nil or not target:is_valid() then
-      self._targets[target_id] = nil
+      self._sv.targets[target_id] = nil
       return nil
    end
 
