@@ -32,18 +32,9 @@ std::shared_ptr<T> Duplicate(T const& region)
 }
 
 template <typename S, int C>
-EdgeInfoVector<S, C> RegionGetEdgeList(const Region<S, C>& region)
+EdgeMap<S, C> RegionGetEdgeList(const Region<S, C>& region)
 {
-   EdgeInfoVector<S, C> eiv;
-   EdgeMap<S, C> map = RegionTools<S, C>().GetEdgeMap(region);
-   for (auto const& e : map.GetEdges()) {
-      EdgeInfo<S, C> edge;
-      edge.min = e.min->location;
-      edge.max = e.max->location;
-      edge.normal = e.normal;
-      eiv.edges.push_back(edge);
-   }
-   return eiv;
+   return std::move(RegionTools<S, C>().GetEdgeMap(region));
 }
 
 template <typename T>

@@ -93,14 +93,6 @@ typedef EdgeInfo<int, 3> EdgeInfo3;
 typedef EdgeInfo<float, 2> EdgeInfo2f;
 typedef EdgeInfo<float, 3> EdgeInfo3f;
 
-template <typename S, int C> struct EdgeInfoVector;
-
-typedef EdgeInfoVector<int, 2> EdgeInfoVector2;
-typedef EdgeInfoVector<int, 3> EdgeInfoVector3;
-typedef EdgeInfoVector<float, 2> EdgeInfoVector2f;
-typedef EdgeInfoVector<float, 3> EdgeInfoVector3f;
-
-
 END_RADIANT_CSG_NAMESPACE
 
 #endif //  _RADIANT_CSG_NAMESPACE_H

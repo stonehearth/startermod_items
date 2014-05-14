@@ -14,13 +14,6 @@ struct EdgeInfo
    Point<S, C>    normal;
 };
 
-template <typename S, int C>
-struct EdgeInfoVector
-{
-   std::vector<EdgeInfo<S, C>> const& GetEdges() { return edges; }
-   std::vector<EdgeInfo<S, C>> edges;
-};
-
 template <typename S, int C> class EdgePoint;
 
 template <typename S, int C>
@@ -97,6 +90,23 @@ public:
       edges(std::move(other.edges)),
       points(std::move(other.points))
    {
+   }
+
+   // Copy constructor.  The copy constructor is slow and gross.  It exists only
+   // to facilitate pusing EdgeMaps into lua.
+   EdgeMap(EdgeMap &other)
+   {
+      std::unordered_map<EdgePoint<S, C> const*, EdgePoint<S, C> const*> pointmap;
+
+      for (EdgePoint<S, C>* ep : other.points) {
+         EdgePoint<S, C>* p = new EdgePoint<S, C>(*ep);
+         points.push_back(p);
+         pointmap[ep] = p;
+      }
+
+      for (Edge<S, C> const& edge : other.edges) {
+         edges.push_back(Edge<S, C>(pointmap[edge.min], pointmap[edge.max], edge.normal));
+      }
    }
 
    EdgeMap& AddEdge(Point<S, C> const& min, Point<S, C> const& max, Point<S, C> const& normal) {

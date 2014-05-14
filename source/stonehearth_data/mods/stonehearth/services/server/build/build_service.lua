@@ -211,6 +211,9 @@ end
 --
 -- THERE BE DRAGONS HERE THERE BE DRAGONS HERE THERE BE DRAGONS HERE THERE BE DRAGONS HERE
 
+
+
+
 -- Add a new floor segment to the world.  This will try to merge with existing buildings
 -- if the floor overlaps some pre-existing floor or will create a new building to hold
 -- the floor
@@ -225,7 +228,7 @@ function BuildService:add_floor(session, response, floor_uri, box)
 
    -- look for floor that we can merge into.
    local existing_floor = radiant.terrain.get_entities_in_cube(box, function(entity)
-         return self:_is_blueprint(entity) and self:_get_structure_type() == 'floor'
+         return self:_is_blueprint(entity) and self:_get_structure_type(entity) == 'floor'
       end)
 
    if not next(existing_floor) then
@@ -268,10 +271,10 @@ end
 --
 --    @param building - The building entity which will contain the blueprint
 --    @param blueprint - The blueprint to be added to the building
---    @param world_location - (optional) a Point3 representing the offset in the building
+--    @param offset - (optional) a Point3 representing the offset in the building
 --                      where the blueprint is located
 --
-function BuildService:_add_to_building(building, blueprint, world_location)
+function BuildService:_add_to_building(building, blueprint, offset)
    -- make the owner of the blueprint the same as the owner as of the building
    blueprint:add_component('unit_info')
             :set_player_id(radiant.entities.get_player_id(building))
@@ -288,12 +291,7 @@ function BuildService:_add_to_building(building, blueprint, world_location)
    local cp = blueprint:add_component('stonehearth:construction_progress')
    cp:set_building_entity(building)
 
-   if world_location then
-      local origin = radiant.entities.get_world_grid_location(building)
-      radiant.entities.add_child(building, blueprint, world_location - origin)
-   else
-      radiant.entities.add_child(building, blueprint)
-   end
+   radiant.entities.add_child(building, blueprint, offset)
 
    -- if the blueprint does not yet have a fabricator, go ahead and create one
    -- now.
@@ -443,13 +441,24 @@ function BuildService:_get_building_for(blueprint)
    return cp and cp:get_building_entity()
 end
 
+-- return whether or not the specified `entity` is a blueprint.  only blueprints
+-- have stonehearth:construction_progress components.
+--
+--    @param entity - the entity to be tested for blueprintedness
+--
 function BuildService:_is_blueprint(entity)
    return entity:get_component('stonehearth:construction_progress') ~= nil
 end
 
+-- return the type of the specified structure (be it a blueprint or a project)
+-- or nil of the entity is not a structure.  structures have 
+-- 'stonehearth:construction_data' components
+--
+--    @param entity - the entity to be tested for blueprintedness
+--
 function BuildService:_get_structure_type(entity)
    local cd = entity:get_component('stonehearth:construction_data')
-   return cd and cd:get_type() or ''
+   return cd and cd:get_type() or nil
 end
 
 -- merge a set of buildings together into the `merge_into` building, destroying
@@ -489,6 +498,15 @@ function BuildService:_merge_building_into(merge_into, building)
    radiant.entities.destroy_entity(building)
 end
 
+-- add walls around all the floor segments for the specified `building` which
+-- do not already have walls around them.
+--
+--    @param session - the session for the player initiating the request
+--    @param response - a response object which we'll write the result into
+--    @param building - the building whose floor we need to put walls around
+--    @param columns_uri - the type of columns to generate
+--    @param walls_uri - the type of walls to generate
+--
 function BuildService:grow_walls(session, response, building, columns_uri, walls_uri)
    -- accumulate all the floor tiles in the building into a single, opaque region
    local floor_region = Region2()
@@ -503,51 +521,129 @@ function BuildService:grow_walls(session, response, building, columns_uri, walls
          end
       end
    end
-   local y = radiant.entities.get_world_grid_location(building).y
+   local origin = radiant.entities.get_world_grid_location(building)
    local edges = floor_region:get_edge_list()
+
+   -- convert a 2d edge point to the proper 3d coorinate.  we want to put columns
+   -- 1-unit removed from where the floor is for each edge, so we add in the
+   -- accumualted normal for both the min and the max, with one small wrinkle:
+   -- the edges returned by :each_edge() live in the coordinate space of the
+   -- grid tile *lines* not the grid tile.  a consequence of this is that points
+   -- whose normals point in the positive direction end up getting pushed out
+   -- one unit too far.  try drawing a 2x2 cube and looking at each edge point +
+   -- accumulated normal in grid-tile space (as opposed to grid-line space) to
+   -- prove this to yourself if you don't believe me.
+   local function edge_point_to_point(edge_point)
+      local point = Point3(edge_point.location.x, 0, edge_point.location.y)
+      if edge_point.accumulated_normals.x <= 0 then
+         point.x = point.x + edge_point.accumulated_normals.x
+      end
+      if edge_point.accumulated_normals.y <= 0 then
+         point.z = point.z + edge_point.accumulated_normals.y
+      end
+      return point
+   end
+
+   -- convert each 2d edge to 3d min and max coordinates and add a wall span
+   -- for each one.
    for edge in edges:each_edge() do
-      radiant.log.write('before hmm', 0, 'min: %s max:%s normal:%s', edge.min, edge.max, edge.normal)
-      local min = Point3(edge.min.x, y, edge.min.y)
-      local max = Point3(edge.max.x, y, edge.max.y)
-      radiant.log.write('hmm', 0, 'min: %s max:%s', min, max)
+      local min = edge_point_to_point(edge.min) + origin
+      local max = edge_point_to_point(edge.max) + origin
       local normal = Point3(edge.normal.x, 0, edge.normal.y)
+
       self:_add_wall_span(building, min, max, normal, columns_uri, walls_uri)
    end
 end
 
+-- returns the blueprint at the specified world `point`
+--    @param point - the world space coordinate of where you're looking
+--
 function BuildService:_get_blueprint_at_point(point)
    local entities = radiant.terrain.get_entities_at_point(point, function(entity)
          return self:_is_blueprint(entity)
       end)
+
    local id, blueprint = next(entities)
    if blueprint then
       local _, overlapped = next(entities, id)
       assert(not overlapped)
    end
+   
    return blueprint
 end
 
-function BuildService:_get_or_create_blueprint_at_point(building, point, blueprint_uri)
+-- returns the blueprint at the specified world `point`, or creates one if there isn't
+-- one there.  generally speaking, you should not be using this function.  use one of
+-- the helpers (e.g. :_fetch_column_at_point)
+--    @param building - the building the structure  should be in (or created in)
+--    @param point - the world space coordinate of where you're looking
+--    @param blueprint_uri - the type of structure to create if there's nothing at `point`
+--    @param init_fn - a callback used to initiaize the new structure if it needs to be
+--                     created
+--
+function BuildService:_fetch_blueprint_at_point(building, point, blueprint_uri, init_fn)
    local blueprint = self:_get_blueprint_at_point(point)
    if blueprint then
       assert(self:_get_building_for(blueprint) == building)
    else
+      local origin = radiant.entities.get_world_grid_location(building)
       blueprint = radiant.entities.create_entity(blueprint_uri)
-      self:_add_to_building(building, blueprint, point)
+      init_fn(blueprint)
+      self:_add_to_building(building, blueprint, point - origin)
    end
    return blueprint
 end
 
-function BuildService:_add_wall_span(building, min, max, normal, columns_uri, wall_uri)
-   local col_a = self:_get_or_create_blueprint_at_point(building, min, columns_uri)
-   local col_b = self:_get_or_create_blueprint_at_point(building, max, columns_uri)
-   self:_create_wall(building, col_a, col_b, normal, wall_uri)
+-- returns the column at the specified world `point`, or creates one if there is no
+-- column there.
+--    @param building - the building the column should be in (or created in)
+--    @param point - the world space coordinate of where you're looking
+--    @param column_uri - the type of column to create if there's nothing at `point`
+--
+function BuildService:_fetch_column_at_point(building, point, column_uri)
+   return self:_fetch_blueprint_at_point(building, point, column_uri, function(blueprint)
+         local rgn = _radiant.sim.alloc_region()
+         rgn:modify(function(cursor)
+               cursor:add_unique_cube(Cube3(Point3(0, 0, 0), Point3(1, constants.STOREY_HEIGHT, 1)))
+            end)
+         blueprint:add_component('destination'):set_region(rgn)
+      end)
 end
 
+-- adds a span of walls between `min` and `max`, creating columns and
+-- wall segments as required `min` must be less than `max` and the
+-- requests span must be grid aligned (no diagonals!)
+--    @param building - the building to put all the new objects in
+--    @param min - the start of the wall span. 
+--    @param max - the end of the wall span.
+--    @param columns_uri - the type of columns to generate
+--    @param walls_uri - the type of walls to generate
+--
+function BuildService:_add_wall_span(building, min, max, normal, columns_uri, wall_uri)
+   local col_a = self:_fetch_column_at_point(building, min, columns_uri)
+   local col_b = self:_fetch_column_at_point(building, max, columns_uri)
+   if col_a and col_b then
+      self:_create_wall(building, col_a, col_b, normal, wall_uri)
+   end
+end
+
+-- creates a wall inside `building` connecting `column_a` and `column_b`
+-- pointing in the direction of `normal`.  this automatically orients the
+-- wall in the correct direction, meaning the actual wall position will either
+-- be near `column_a` or `column_b`, depending (see implementation for details)
+--    @param building - the building to add the wall to
+--    @param column_a - one of the columns to attach the wall to
+--    @param column_b - the other column to attach the wall to
+--    @param normal - a Point3 pointing "outside" of the wall
+--    @param wall_uri - the type of wall to build
+--
 function BuildService:_create_wall(building, column_a, column_b, normal, wall_uri)
    local pos_a = radiant.entities.get_location_aligned(column_a)
    local pos_b = radiant.entities.get_location_aligned(column_b)
-   --[[
+   local origin = radiant.entities.get_world_grid_location(building)   
+
+   -- figure out the tangent and normal coordinate indicies based on the direction
+   -- of the normal
    local t, n
    if pos_a.x == pos_b.x then
       t, n = 'z', 'x'
@@ -557,59 +653,45 @@ function BuildService:_create_wall(building, column_a, column_b, normal, wall_ur
    assert(pos_a[n] == pos_b[n], 'points are not co-linear')
    assert(pos_a[t] <  pos_b[t], 'points are not sorted')
 
-   local start_point = pos_a   
-   local end_point = pos_b + Point3(0, constants.STOREY_HEIGHT, 0)
-   if normal.x < 0 or normal.z < 0 then
-      start_point = start_point + normal
-   else
-      end_point = end_point + normal
+   -- the origin of the wall will be at the start or the end, depending on the
+   -- normal.  to make the tiling of the voxels of the wall look good, ensure
+   -- that the 0,0 voxel is never adjoining a shared column of *both* walls
+   -- connected to that column.  otherwise, you get this weird mirror effect.
+   local flip
+   if normal.x ~= 0 then
+      flip = normal.x < 0
+   elseif normal.z ~= 0 then
+      flip = normal.z > 0
    end
-
-   local wall = radiant.entities.create_entity(wall_uri)
-
-   local cd = wall:get_component('stonehearth:construction_data')
-   cd:set_normal(normal)
-
-   local bounds = Cube3(start_point, end_point)
-   local brush = voxel_brush_util.create_brush(cd:get_data())
-   local collsion_shape = brush:paint_through_stencil(bounds:translated(-start_point))
-   
-   wall:get_component('destination'):get_region():modify(function(c)
-         c:copy_region(collsion_shape)
-      end)
-
-   self:_add_to_building(building, wall, start_point)
-   ]]
-
-   local t, n
-   if pos_a.x == pos_b.x then
-      t, n = 'z', 'x'
-   else
-      t, n = 'x', 'z'
-   end   
-   assert(pos_a[n] == pos_b[n], 'points are not co-linear')
-   assert(pos_a[t] <  pos_b[t], 'points are not sorted')
-
-   -- we draw the wall from start-to-end.  if the normal points in the positive
-   -- direction, the start point should be less than the end point
-   local tangent = Point3(0, 0, 0)
-   local computed_normal = Point3(0, 0, 0)
-   if normal.x < 0 or normal.z < 0 then
+   if flip then
       pos_a, pos_b = pos_b, pos_a
    end
-      
-   local span, rotation
+
+   -- compoute the width of the wall and a tangent vector which will march
+   -- us from pos_a to pos_b.
+   local tangent = Point3(0, 0, 0)
+   local start_pt = Point3(0, 0, 0)
+   local end_pt = Point3(1, constants.STOREY_HEIGHT, 1)
+
    if pos_a[t] < pos_b[t] then
       tangent[t] = 1
-      span = pos_b[t] - pos_a[t]
+      end_pt[t] = pos_b[t] - pos_a[t] - 1
    else
       tangent[t] = -1
-      span = pos_a[t] - pos_b[t]
+      start_pt[t] = -(pos_a[t] - pos_b[t] - 2)
    end
-   computed_normal[n] = t == 'x' and -tangent[t] or tangent[t]
-   --assert(normal == computed_normal)
+
+   -- if the tangent coordinate is 0, then there's no wall to create!
+   if start_pt[t] == end_pt[t] then
+      return
+   end
+   assert(start_pt.x < end_pt.x)
+   assert(start_pt.y < end_pt.y)
+   assert(start_pt.z < end_pt.z)
 
    --[[
+   -- DO NOT DELETE THIS CODE!  I will use it soon.
+
    -- omfg... righthandedness is screwing with my brain.
    local rotations = {
       [-1] = { [-1] = 270, [1] = 180 },
@@ -619,39 +701,38 @@ function BuildService:_create_wall(building, column_a, column_b, normal, wall_ur
    ]]
    
    local wall = radiant.entities.create_entity(wall_uri)
-
    local cd = wall:get_component('stonehearth:construction_data')
    cd:set_normal(normal)
-   self:_add_to_building(building, wall, pos_a + tangent)
-
-   --self:set_normal(normal)
-   --self:get_entity():add_component('mob'):set_location_grid_aligned(pos_a + tangent)
-   
-   local start_pt = Point3(0, 0, 0)
-   local end_pt = Point3(1, constants.STOREY_HEIGHT, 1) -- that "1" should be the depth of the wall.
-   if tangent[t] < 0 then
-      start_pt[t] = -(span - 2)
-   else
-      end_pt[t] = span - 1
-   end
-   assert(start_pt.x < end_pt.x)
-   assert(start_pt.y < end_pt.y)
-   assert(start_pt.z < end_pt.z)
 
    -- paint once to get the depth of the wall
    local brush = voxel_brush_util.create_brush(cd:get_data())
-   local model = brush:paint_once()
-   local bounds = model:get_bounds()
-   end_pt[n] = bounds.max[n]
-   start_pt[n] = bounds.min[n]
-   
-   -- paint again to actually draw the wallprox
-   bounds = Cube3(start_pt, end_pt)
-   local collsion_shape = brush:paint_through_stencil(Region3(bounds))
-   wall:get_component('destination'):get_region():modify(function(cursor)
+   local brush_bounds = brush:paint_once():get_bounds()   
+   end_pt[n] = brush_bounds.max[n]
+   start_pt[n] = brush_bounds.min[n]
+
+   -- if there are no structure at all overlapping the region we can create the
+   -- wall and add it to the building.  otherwise, don't.
+   local offset = pos_a + tangent
+   local origin = offset + radiant.entities.get_world_grid_location(building)
+   local world_bounds = Cube3(start_pt, end_pt):translated(origin)
+   local overlapping = radiant.terrain.get_entities_in_cube(world_bounds, function(entity)
+         return self:_is_blueprint(entity)
+      end)
+   if next(overlapping) ~= nil then
+      radiant.entities.destroy_entity(wall)
+      return
+   end
+
+   -- paint again through a stencil covering the entire span of the
+   -- wall to compute the wall shape
+   local rgn = _radiant.sim.alloc_region()
+   rgn:modify(function(cursor)
+      local collsion_shape = brush:paint_through_stencil(Region3(Cube3(start_pt, end_pt)))
       cursor:copy_region(collsion_shape)
    end)
-
+   wall:add_component('destination'):set_region(rgn)
+   self:_add_to_building(building, wall, offset)
+   
    return wall
 end
 

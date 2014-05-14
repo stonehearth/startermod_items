@@ -29,6 +29,7 @@ App.StonehearthPromotionWizard = App.View.extend({
 
    init: function() {
       var self = this;
+      radiant.call('radiant:play_sound', 'stonehearth:sounds:ui:start_menu:page_up' );
       this._super();
 
       // XXX, Don't know why I have to manually set the trace below
@@ -61,6 +62,7 @@ App.StonehearthPromotionWizard = App.View.extend({
 
    destroy: function() {
       $(top).off("radiant_selection_changed.promote_view");
+      radiant.call('radiant:play_sound', 'stonehearth:sounds:ui:start_menu:page_down' );
       this._super();
    },   
 
