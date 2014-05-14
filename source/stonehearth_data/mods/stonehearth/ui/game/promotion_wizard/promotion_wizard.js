@@ -44,7 +44,7 @@ App.StonehearthPromotionWizard = App.View.extend({
 
          $.each(pop.citizens, function(k, citizen) {
             var uri = citizen['__self']
-            if (uri == data.selected_entity) {
+            if (uri && uri == data.selected_entity) {
                var profession = citizen['stonehearth:profession']['profession_uri']['alias'];
 
                if (profession = 'stonehearth:professions:worker') {
@@ -65,11 +65,6 @@ App.StonehearthPromotionWizard = App.View.extend({
    didInsertElement: function() {
       var self = this;
       this._super();
-
-      radiant.call('stonehearth:get_talismans_in_explored_region')
-         .done(function(e) {
-            self.unlockJobs(e.available_professions);
-         });
 
       // reset the help text when hovering outside of the job selection panel
       this.$('#jobs').hover( 
@@ -116,7 +111,12 @@ App.StonehearthPromotionWizard = App.View.extend({
       });
 
       this.$('#finishPage #backButton').click(function() {
-        self.$('#finishPage').hide(); 
+         if (self.$('#jobsPage').is(':visible')) {
+            self.$('#finishPage').hide(); 
+         } else {
+            self.destroy();
+         }
+        
       })
 
       this.$('#chooseButton').click(function() {
@@ -131,12 +131,19 @@ App.StonehearthPromotionWizard = App.View.extend({
    },
 
    initWizardState: function() {
+      var self = this;
       // if the talisman is specified
       var talisman = this.get('talisman');
       if (talisman) {
          this.set('profession', talisman.profession);
          self.$('#jobsPage').hide();
          self.$('#finishPage').show();
+         self.$('#finishPage #backButton').html( i18n.t('stonehearth:cancel'));
+      } else {
+         radiant.call('stonehearth:get_talismans_in_explored_region')
+            .done(function(e) {
+               self.unlockJobs(e.available_professions);
+            });         
       }
 
       // if the citizen is specified
