@@ -44,8 +44,11 @@ function EnemyObserver:_on_added_to_sensor(target_id)
    local target_table
 
    if radiant.entities.is_hostile(self._entity, target) then
-      target_table = radiant.entities.get_target_table(self._entity, 'aggro')
-      target_table:add(target)
+      -- hack to ignore critters
+      if radiant.entities.get_faction(target) ~= 'critter' then
+         target_table = radiant.entities.get_target_table(self._entity, 'aggro')
+         target_table:add(target)
+      end
    end
 end
 

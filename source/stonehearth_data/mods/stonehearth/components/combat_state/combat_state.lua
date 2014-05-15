@@ -5,9 +5,11 @@ CombatState = class()
 function CombatState:initialize()
    self._sv = self.__saved_variables:get_data()
 
+   -- attacks in progress are not saved, so neither are their assault events
+   self._assault_events = {}
+
    if not self._sv.initialized then
       self._sv.cooldowns = {}
-      self._sv.assault_events = {}
       self._sv.is_panicking = false
       self._sv.initialized = true
    end
@@ -44,7 +46,7 @@ function CombatState:get_cooldown_end_time(name)
 end
 
 function CombatState:add_assault_event(context)
-   table.insert(self._sv.assault_events, context)
+   table.insert(self._assault_events, context)
    self.__saved_variables:mark_changed()
 end
 
@@ -52,7 +54,7 @@ function CombatState:get_assault_events()
    -- clean up before returning the list
    self:remove_expired_assault_events()
 
-   return self._sv.assault_events
+   return self._assault_events
 end
 
 function CombatState:set_panicking(is_panicking)
@@ -84,7 +86,7 @@ end
 
 function CombatState:remove_expired_assault_events()
    local now = radiant.gamestate.now()
-   local events = self._sv.assault_events
+   local events = self._assault_events
    local changed = false
 
    -- remove in reverse so we don't have to worry about iteration order
