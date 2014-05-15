@@ -66,11 +66,8 @@ function StockpileComponent:initialize(entity, json)
       self:_create_worker_tasks()   
 
       --Don't start listening on created items until after we load
-      radiant.events.listen(radiant, 'radiant:game_loaded', function(e)
-         radiant.events.listen(entity, 'radiant:entity:post_create', function(e)
-            self:_finish_initialization()
-            return radiant.events.UNLISTEN
-         end)
+      radiant.events.listen_once(radiant, 'radiant:game_loaded', function(e)
+         self:_finish_initialization()
       end)   
    end
    
