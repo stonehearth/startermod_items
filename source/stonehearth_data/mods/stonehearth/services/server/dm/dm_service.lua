@@ -5,7 +5,7 @@ local log = radiant.log.create_logger('dm_service')
 local DmService = class()
 
 function DmService:initialize()
-   self._enable_scenarios = radiant.util.get_config('enable_dynamic_scenarios', false)
+   self._enable_scenarios = radiant.util.get_config('enable_dynamic_scenarios', true)
 
    self._starting_location_exclusion_radius = radiant.util.get_config('scenario.starting_location_exclusion_radius', 64)
    self._difficulty_increment_distance = radiant.util.get_config('scenario.difficulty_increment_distance', 256)

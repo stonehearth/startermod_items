@@ -27,6 +27,10 @@ function SpawnRegionFinderService:find_point_outside_civ_perimeter_for_entity(en
    -- Consult the convex hull of points that the civs have travelled.
    local player_perimeter = stonehearth.terrain:get_player_perimeter('civ')
 
+   if #player_perimeter < 1 then
+      return nil
+   end
+
    -- Compute the center of the hull.
    local center = Point3(0, 0, 0)
    for _, p in pairs(player_perimeter) do
@@ -35,7 +39,7 @@ function SpawnRegionFinderService:find_point_outside_civ_perimeter_for_entity(en
 
    center = Point3(center.x / #player_perimeter, center.y / #player_perimeter, center.z / #player_perimeter)
 
-   local remaining_tries = 3
+   local remaining_tries = 10
 
    while remaining_tries > 0 do
       local rand_perimeter_point = player_perimeter[rng:get_int(1, #player_perimeter)]

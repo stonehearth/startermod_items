@@ -47,7 +47,9 @@ function Spawner:start()
 
    self._sv._triggered = true
    self.__saved_variables:mark_changed()
-   self:_schedule_next_spawn(1000000)--rng:get_int(3600 * 10, 3600 * 15))
+
+   -- 5-10 hours of real-world time seems like a not-unreasonable start....
+   self:_schedule_next_spawn(rng:get_int(3600 * 5, 3600 * 10))
 end
 
 function Spawner:_attach_listeners()
@@ -81,7 +83,7 @@ function Spawner:_on_spawn_jerk()
       -- Couldn't find a spawn point, so reschedule to try again later.
       radiant.entities.destroy_entity(self._sv._goblin)
       self._sv._goblin = nil
-      self:_schedule_next_spawn(rng:get_int(3600 * 5, 3600 * 7))
+      self:_schedule_next_spawn(rng:get_int(3600 * 1, 3600 * 2))
       return
    end
 
