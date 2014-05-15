@@ -43,7 +43,7 @@
             "stonehearth:actions:chase_entity",
             "stonehearth:actions:restock_stockpile",
             "stonehearth:actions:reserve_stockpile_space",
-            "stonehearth:actions:worker_task_dispatcher",
+            "stonehearth:actions:work_task_dispatcher",
             "stonehearth:actions:place_item",
             "stonehearth:actions:place_item_type",
             "stonehearth:actions:stockpile_arson",
