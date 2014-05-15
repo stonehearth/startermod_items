@@ -801,6 +801,10 @@
          "controller" : "file(call_handlers/build_call_handler.lua)",
          "endpoint" : "server"
       },
+      "grow_roof": {
+         "controller" : "file(call_handlers/build_call_handler.lua)",
+         "endpoint" : "server"
+      },
       "set_stockpile_filter": {
          "controller" : "file(call_handlers/stockpile_call_handler.lua)",
          "endpoint" : "server"
@@ -874,7 +878,12 @@
       "crop" : "file(components/crop/crop_component.lua)", 
       "dirt_plot" : "file(components/farmer_field/dirt_plot_component.lua)",
       "target_tables" : "file(components/target_tables/target_tables_component.lua)",
-      "combat_state" : "file(components/combat_state/combat_state_component.lua)"
+      "combat_state" : "file(components/combat_state/combat_state_component.lua)",
+      "building" : "file(components/building/building_component.lua)",
+      "floor" : "file(components/floor/floor_component.lua)",
+      "column" : "file(components/column/column_component.lua)",
+      "wall" : "file(components/wall/wall_component.lua)",
+      "roof" : "file(components/roof/roof_component.lua)"
    },
    "component_renderers" : {
       "stockpile" : "file(renderers/stockpile/stockpile_renderer.lua)",
