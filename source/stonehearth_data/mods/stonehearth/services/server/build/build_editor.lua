@@ -65,6 +65,35 @@ function BuildEditor:grow_walls(session, response)
       end)   
 end
 
+function BuildEditor:grow_roof(session, response)
+   local capture = stonehearth.input:capture_input()
+   capture:on_mouse_event(function(e)
+         if e:up(1) then
+            local s = _radiant.client.query_scene(e.x, e.y)
+            if s then
+               local entity = radiant.get_object(s:objectid_of(0))
+               if entity and entity:is_valid() then
+                  local building = get_building_for(entity)
+                  if building then
+                     _radiant.call('stonehearth:grow_roof', building, 'stonehearth:wooden_peaked_roof')
+                        :done(function(r)
+                              response:resolve(r)
+                           end)
+                        :fail(function(r)
+                              response:reject(r)
+                           end)
+                     capture:destroy()
+                     return
+                  end
+               end
+            end
+            response:reject({ error = 'unknown error' })
+            capture:destroy()
+         end
+         return true
+      end)   
+end
+
 function BuildEditor:create_room(session, response)
    ProxyRoomBuilder():go()  
    return true

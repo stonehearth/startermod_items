@@ -1,3 +1,5 @@
+local voxel_brush_util = require 'services.server.build.voxel_brush_util'
+
 local ConstructionDataComponent = class()
 local Point2 = _radiant.csg.Point2
 local Region3 = _radiant.csg.Region3
@@ -26,11 +28,6 @@ function ConstructionDataComponent:initialize(entity, json)
    end
 end
 
--- xxx: don't troll around in here!
-function ConstructionDataComponent:get_data()
-   return self._sv
-end
-
 function ConstructionDataComponent:get_material()
    return self._data.material
 end
@@ -51,6 +48,12 @@ end
 function ConstructionDataComponent:set_normal(normal)
    assert(radiant.util.is_a(normal, Point3))
    self._sv.normal = normal
+   self.__saved_variables:mark_changed()
+   return self
+end
+
+function ConstructionDataComponent:set_nine_grid_region2(region2)
+   self._sv.nine_grid_region = region2
    self.__saved_variables:mark_changed()
    return self
 end
@@ -103,6 +106,10 @@ end
 -- return the map of entities that we're loaning our scaffolding to
 function ConstructionDataComponent:get_loaning_scaffolding_to()
    return self._sv._loaning_scaffolding_to
+end
+
+function ConstructionDataComponent:create_voxel_brush()
+   return voxel_brush_util.create_brush(self._sv)
 end
 
 return ConstructionDataComponent

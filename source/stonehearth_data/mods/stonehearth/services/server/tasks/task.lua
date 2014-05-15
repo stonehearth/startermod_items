@@ -70,6 +70,7 @@ end
 
 function Task:notify_completed(cb)
    table.insert(self._notify_completed_cbs, cb)
+   return self
 end
 
 function Task:get_name()
