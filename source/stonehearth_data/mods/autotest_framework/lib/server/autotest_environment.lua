@@ -43,7 +43,7 @@ end
 
 function env.create_enemy_kingdom()
    local session = {
-      player_id = 'game_master',
+      player_id = 'enemy',
       faction = 'raider',
       kingdom = 'stonehearth:kingdoms:golden_conquering_arm'
    }
