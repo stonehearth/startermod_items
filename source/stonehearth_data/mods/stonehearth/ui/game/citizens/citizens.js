@@ -5,6 +5,8 @@ App.StonehearthCitizensView = App.View.extend({
       var self = this;
       this._super();
 
+      this.set('title', 'Citizens');
+
       var pop = App.population.getData();
       this.set('context', pop);
       this._buildCitizensArray();
@@ -46,12 +48,13 @@ App.StonehearthCitizensView = App.View.extend({
    }.observes('context.citizensArray.@each.stonehearth:crafter.workshop'),
 
    _buildCitizensArray: function() {
+      var self = this;
       var vals = [];
       var citizenMap = this.get('context.citizens');
      
       if (citizenMap) {
          $.each(citizenMap, function(k ,v) {
-            if(k != "__self" && citizenMap.hasOwnProperty(k)) {
+            if(k != "__self" && citizenMap.hasOwnProperty(k) && self._citizenFilterFn(v)) {
                v.set('__id', k);
 
                vals.push(v);
@@ -61,5 +64,9 @@ App.StonehearthCitizensView = App.View.extend({
 
       this.set('context.citizensArray', vals);
     }.observes('context.citizens.[]'),
+
+    _citizenFilterFn: function (citizen) {
+      return true;
+    },
 
 });

@@ -2,17 +2,20 @@ $(document).ready(function(){
    $(top).on("radiant_promote_to_profession", function (_, e) {
       var r  = new RadiantTrace()
       var components = { 
+            'unit_info' : {},
             'stonehearth:promotion_talisman' : {} 
          };
 
       // grab the properties from the talisman and pass them along to the promotion wizard
       r.traceUri(e.entity, components)
          .progress(function(eobj) {
-               // eobj could be either a talisman or the person to promote
+               // eobj could be either a talisman or the person to promote              
                var talisman = eobj['stonehearth:promotion_talisman'] ? eobj : null;
+               var citizen = !eobj['stonehearth:promotion_talisman'] ? eobj : null;
 
                App.gameView.addView(App.StonehearthPromotionWizard, { 
                   talisman: talisman,
+                  citizen: citizen
                });
                r.destroy();
             });

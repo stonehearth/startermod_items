@@ -44,6 +44,12 @@ var StonehearthPopulation;
       getData: function() {
          return this._population;
       },
+
+      getCitizen: function(uri) {
+         var parts = uri.split('/');
+         var id = parts[parts.length - 1]
+         return (self._population[id]);
+      }
    });
 })();
 
