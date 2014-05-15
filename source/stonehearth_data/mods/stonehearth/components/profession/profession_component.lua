@@ -23,6 +23,10 @@ function ProfessionComponent:get_profession_id()
    return self._sv.profession_id
 end
 
+function ProfessionComponent:get_profession_uri()
+   return self._sv.profession_uri
+end
+
 function ProfessionComponent:promote_to(profession_uri, talisman_uri)
    local json = radiant.resources.load_json(profession_uri, true)
    if json then
