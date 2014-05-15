@@ -80,6 +80,9 @@ App.StonehearthBuildingDesignerView = App.View.extend({
       this.$('.fillWallTool').click(function() {
          App.stonehearthClient.growWalls();
       });
+      this.$('.roofTool').click(function() {
+         App.stonehearthClient.growRoof();
+      });
       this.$('#startBuilding').click(function() {
          var building_entity = self.get('context.building');
          if (building_entity) {

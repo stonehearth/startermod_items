@@ -43,4 +43,8 @@ function BuildCallHandler:grow_walls(session, request, building, columns_uri, wa
    stonehearth.build:grow_walls(session, request, building, columns_uri, walls_uri)
 end
 
+function BuildCallHandler:grow_roof(session, request, building, roof_uri)
+   stonehearth.build:grow_roof(session, request, building, roof_uri)
+end
+
 return BuildCallHandler

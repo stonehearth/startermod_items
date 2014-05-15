@@ -7,6 +7,7 @@
          "description": "Keeps the rain out"
       },
       "stonehearth:construction_data" : {
+         "type": "roof",
          "brush": "file(wooden_peaked_roof_9g.qb)",
          "use_nine_grid" : true,
          "allow_crouching_construction" : true,

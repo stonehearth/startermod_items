@@ -7,6 +7,7 @@
          "description": ""
       },
       "stonehearth:construction_data" : {
+         "type": "wall",
          "brush": "file(wooden_wall.qb)",
          "needs_scaffolding" : true,
          "max_workers": 1, 

@@ -43,21 +43,44 @@ function EnemyObserver:_on_added_to_sensor(target_id)
    local target = radiant.entities.get_entity(target_id)
    local target_table
 
-   if radiant.entities.is_hostile(self._entity, target) then
-      -- That which cannot be killed should probably not be attacked.
-      local attribs = target:get_component('stonehearth:attributes')
-      if attribs and attribs:get_attribute('health') then
-         target_table = radiant.entities.get_target_table(self._entity, 'aggro')
-         target_table:add(target)
-      end
+   if not target or not target:is_valid() then
+      return
+   end
+
+   if self:_is_hostile(target) and self:_is_killable(target) then
+      target_table = radiant.entities.get_target_table(self._entity, 'aggro')
+      target_table:add(target)
    end
 end
 
 function EnemyObserver:_on_removed_from_sensor(target_id)
    local target = radiant.entities.get_entity(target_id)
+
+   if not target or not target:is_valid() then
+      return
+   end
+
    local target_table = radiant.entities.get_target_table(self._entity, 'aggro')
 
    target_table:remove(target)
+end
+
+function EnemyObserver:_is_hostile(target)
+   -- fix the critter hack when we have a mapping table for hostilities
+   local is_hostile = radiant.entities.is_hostile(self._entity, target) and
+                      radiant.entities.get_faction(target) ~= 'critter'
+   return is_hostile
+end
+
+function EnemyObserver:_is_killable(target)
+   local attributes_component = target:get_component('stonehearth:attributes')
+   if not attributes_component then 
+      return false
+   end
+
+   local health = attributes_component:get_attribute('health')
+   local is_killable = health and health > 0
+   return is_killable
 end
 
 function EnemyObserver:destroy()

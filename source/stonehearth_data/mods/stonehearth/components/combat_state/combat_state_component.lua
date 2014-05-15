@@ -5,8 +5,7 @@ local CombatStateComponent = class()
 function CombatStateComponent:initialize(entity, json)
    self._sv = self.__saved_variables:get_data()
 
-   if true then
-   --if not self._sv.initialized then
+   if not self._sv.initialized then
       self._sv.combat_state = self:_create_combat_state()
       self._sv.initialized = true
    else
