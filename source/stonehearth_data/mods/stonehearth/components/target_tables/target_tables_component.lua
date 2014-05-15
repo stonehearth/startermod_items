@@ -5,8 +5,7 @@ local TargetTables = class()
 function TargetTables:initialize(entity, json)
    self._sv = self.__saved_variables:get_data()
 
-   if true then
-   --if not self._sv.initialized then
+   if not self._sv.initialized then
       self._sv.target_tables = {}
       self._sv.initialized = true
    else

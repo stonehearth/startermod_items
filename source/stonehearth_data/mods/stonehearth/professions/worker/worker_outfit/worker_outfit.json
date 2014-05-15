@@ -26,7 +26,6 @@
          "render_type" : "merge_with_model",
          "injected_ai" : {
             "actions" : [
-               "stonehearth:actions:worker_task_dispatcher",
                "stonehearth:actions:place_item",
                "stonehearth:actions:place_item_type",
                "stonehearth:actions:light_firepit",               
