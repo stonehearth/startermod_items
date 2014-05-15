@@ -7,9 +7,14 @@ function BuffsComponent:initialize(entity, json)
    self._entity = entity
    self._sv = self.__saved_variables:get_data()
 
-   self._sv.buffs = self._sv.buffs or {}
-   for uri, sv in pairs(self._sv.buffs) do
-      self._sv.buffs[uri] = Buff(self._entity, sv)
+   if self._sv.buffs then
+      radiant.events.listen_once(radiant, 'radiant:game_loaded', function(e)
+            for uri, sv in pairs(self._sv.buffs) do
+               self._sv.buffs[uri] = Buff(self._entity, sv)
+            end
+         end)
+   else
+      self._sv.buffs = {}
    end
 end
 

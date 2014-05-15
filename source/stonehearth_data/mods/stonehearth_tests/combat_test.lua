@@ -24,36 +24,16 @@ function CombatTest:__init()
    }
 
    local enemies = {
-      self:place_enemy( -9, 15),
-      self:place_enemy( -1, 15),
-      self:place_enemy(  7, 15),
-      self:place_enemy( 15, 15),
+      self:place_enemy( -9, 15, 'stonehearth:wooden_sword'),
+      self:place_enemy( -1, 15, 'stonehearth:wooden_sword'),
+      self:place_enemy(  7, 15, 'stonehearth:wooden_sword'),
    }
-
-   self:equip_all(enemies)
 
    -- self:at(3000,
    --    function ()
    --       self:kill(citizens[1])
    --    end
    -- )
-end
-
-function CombatTest:equip_all(entities)
-   for _, entity in pairs(entities) do
-      self:equip_weapon(entity, 'stonehearth:wooden_sword')
-   end
-end
-
-function CombatTest:equip_weapon(entity, weapon_uri)
-   local weapon = radiant.entities.create_entity(weapon_uri)
-   local equipment = entity:add_component('stonehearth:equipment')
-   equipment:equip_item(weapon, 'melee_weapon')
-
-   -- HACK: remove the talisman glow effect from the weapon
-   -- might want to remove other talisman related commands as well
-   -- TODO: make the effects and commands specific to the model variant
-   weapon:remove_component('effect_list')
 end
 
 function CombatTest:create_enemy_kingdom()
@@ -67,10 +47,22 @@ function CombatTest:create_enemy_kingdom()
    self._enemy_population = stonehearth.population:add_population(session)
 end
 
-function CombatTest:place_enemy(x, z)
+function CombatTest:place_enemy(x, z, weapon)
    local enemy = self._enemy_population:create_new_citizen()
+   self:equip_weapon(enemy, weapon)
    radiant.terrain.place_entity(enemy, Point3(x, 1, z))
    return enemy
+end
+
+function CombatTest:equip_weapon(entity, weapon_uri)
+   local weapon = radiant.entities.create_entity(weapon_uri)
+   local equipment = entity:add_component('stonehearth:equipment')
+   equipment:equip_item(weapon, 'melee_weapon')
+
+   -- HACK: remove the talisman glow effect from the weapon
+   -- might want to remove other talisman related commands as well
+   -- TODO: make the effects and commands specific to the model variant
+   weapon:remove_component('effect_list')
 end
 
 function CombatTest:kill(entity)

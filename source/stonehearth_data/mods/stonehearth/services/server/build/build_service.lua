@@ -1,3 +1,11 @@
+local constants = require('constants').construction
+local Rect2 = _radiant.csg.Rect2
+local Cube3 = _radiant.csg.Cube3
+local Point2 = _radiant.csg.Point2
+local Point3 = _radiant.csg.Point3
+local Region2 = _radiant.csg.Region2
+local Region3 = _radiant.csg.Region3
+
 local BuildService = class()
 
 function BuildService:__init(datastore)
@@ -202,6 +210,9 @@ end
 --
 -- THERE BE DRAGONS HERE THERE BE DRAGONS HERE THERE BE DRAGONS HERE THERE BE DRAGONS HERE
 
+
+
+
 -- Add a new floor segment to the world.  This will try to merge with existing buildings
 -- if the floor overlaps some pre-existing floor or will create a new building to hold
 -- the floor
@@ -216,8 +227,7 @@ function BuildService:add_floor(session, response, floor_uri, box)
 
    -- look for floor that we can merge into.
    local existing_floor = radiant.terrain.get_entities_in_cube(box, function(entity)
-         local cd = entity:get_component('stonehearth:construction_data')
-         return cd and cd:get_type() == "floor"
+         return self:is_blueprint(entity) and self:_get_structure_type(entity) == 'floor'
       end)
 
    if not next(existing_floor) then
@@ -260,30 +270,36 @@ end
 --
 --    @param building - The building entity which will contain the blueprint
 --    @param blueprint - The blueprint to be added to the building
---    @param location - (optional) a Point3 representing the offset in the building
+--    @param offset - a Point3 representing the offset in the building
 --                      where the blueprint is located
 --
-function BuildService:_add_to_building(building, blueprint, location)
+function BuildService:_create_blueprint(building, blueprint_uri, offset, init_fn)
+   local blueprint = radiant.entities.create_entity(blueprint_uri)
 
    -- make the owner of the blueprint the same as the owner as of the building
    blueprint:add_component('unit_info')
             :set_player_id(radiant.entities.get_player_id(building))
             :set_faction(radiant.entities.get_faction(building))
 
+   blueprint:add_component('destination')
+               :set_region(_radiant.sim.alloc_region())
 
    -- add the blueprint to the building's entity container and wire up the
    -- building entity pointer in the construction_progress component.
    local cp = blueprint:add_component('stonehearth:construction_progress')
    cp:set_building_entity(building)
-   radiant.entities.add_child(building, blueprint, location)
+
+   radiant.entities.add_child(building, blueprint, offset)
+
+   -- initialize...
+   init_fn(blueprint)
 
    -- if the blueprint does not yet have a fabricator, go ahead and create one
    -- now.
-   local fabricator = cp:get_fabricator_entity()
-   if not fabricator then
-      fabricator = self:_add_fabricator(blueprint)
-   end
-   return fabricator
+   assert(not cp:get_fabricator_entity())
+   local fabricator = self:_add_fabricator(blueprint)
+
+   return blueprint, fabricator
 end
 
 -- creates a new building for the owner of `sesssion` located at `origin` in
@@ -332,15 +348,54 @@ function BuildService:_merge_overlapping_floor(existing_floor, floor_uri, box)
    if not next_floor then
       -- exactly 1 overlapping floor.  just modify the region of that floor.
       -- pretty easy
-      local  region = floor:get_component('destination'):get_region()
-      local origin = radiant.entities.get_world_grid_location(floor)
-      region:modify(function(cursor)
-            cursor:add_cube(box:translated(-origin))
-         end)
-      return floor
+      return self:_merge_overlapping_floor_trivial(floor, floor_uri, box)
    end
+
+   -- gah!  this is going to be tricky.  first, get all the buildings that
+   -- own all these pieces of floor and merge them together.  choose the floor
+   -- that was created earliest to merge into
+   floor = nil
+   for id, f in pairs(existing_floor) do
+      if not floor or id < floor:get_id() then
+         floor = f
+      end
+   end
+
+   -- now do the merge...
+   local buildings_to_merge = {}
+   local floor_building = self:_get_building_for(floor)
+   for _, old_floor in pairs(existing_floor) do
+      local building = self:_get_building_for(old_floor)
+      if building ~= floor_building then
+         buildings_to_merge[building:get_id()] = building
+      end
+   end
+   self:_merge_buildings_into(floor_building, buildings_to_merge)
+
+   -- now we know all the floors are of the same building.  merge all the floors
+   -- into the single floor we picked out earlier. 
+   for _, old_floor in pairs(existing_floor) do
+      if old_floor ~= floor then
+         floor:get_component('stonehearth:floor'):merge_with(old_floor)
+      end
+   end
+
+   -- sweet!  now we can do the trivial merge
+   return self:_merge_overlapping_floor_trivial(floor, floor_uri, box)
 end
 
+-- add `box` to the `floor` region.  the caller must ensure that the
+-- box *only* overlaps with this segement of floor.  see :add_floor()
+-- for more details.
+--
+--    @param floor - the floor to extend
+--    @param floor_uri - the uri to type of floor we'd like to add
+--    @param box - the area of the new floor segment
+--
+function BuildService:_merge_overlapping_floor_trivial(floor, floor_uri, box)
+   floor:add_component('stonehearth:floor')
+            :add_box_to_floor(box)
+end
 
 -- create a new floor of size `box` to `building`.  it is up to the caller
 -- to ensure the new floor doesn't overlap with any other floor in the
@@ -351,18 +406,247 @@ end
 --    @param box - the area of the new floor segment
 --
 function BuildService:_add_new_floor_to_building(building, floor_uri, box)
-   local floor = radiant.entities.create_entity(floor_uri)
+   return self:_create_blueprint(building, floor_uri, Point3.zero, function(floor)
+         self:_merge_overlapping_floor_trivial(floor, floor_uri, box)
+      end)
+end
+
+-- return the building the `blueprint` is contained in
+--
+--    @param blueprint - the blueprint whose building you're interested in
+--
+function BuildService:_get_building_for(blueprint)
+   local cp = blueprint:get_component('stonehearth:construction_progress')
+   return cp and cp:get_building_entity()
+end
+
+-- return whether or not the specified `entity` is a blueprint.  only blueprints
+-- have stonehearth:construction_progress components.
+--
+--    @param entity - the entity to be tested for blueprintedness
+--
+function BuildService:is_blueprint(entity)
+   return entity:get_component('stonehearth:construction_progress') ~= nil
+end
+
+-- return the type of the specified structure (be it a blueprint or a project)
+-- or nil of the entity is not a structure.  structures have 
+-- 'stonehearth:construction_data' components
+--
+--    @param entity - the entity to be tested for blueprintedness
+--
+function BuildService:_get_structure_type(entity)
+   local cd = entity:get_component('stonehearth:construction_data')
+   return cd and cd:get_type() or nil
+end
+
+-- merge a set of buildings together into the `merge_into` building, destroying
+-- the now empty husks left in `buildings_to_merge`.
+--
+--    @param merge_into - a building entith which will contain all the
+--                        children of all the buildings in `buildings_to_merge`
+--    @param buildings_to_merge - a table of buildings which should be merged
+--                                into `merge_into`, then destroyed.
+--
+function BuildService:_merge_buildings_into(merge_into, buildings_to_merge)
+   for _, building in pairs(buildings_to_merge) do
+      self:_merge_building_into(merge_into, building)
+   end
+end
+
+-- merge all the children of `building` into `merge_into` and destroy
+-- `building`
+--
+--    @param merge_into - a building entith which will contain all the
+--                        children of all the buildings in `building`
+--    @param building - the building which should be merged into `merge_into`,
+--                      then destroyed.
+--
+function BuildService:_merge_building_into(merge_into, building)
+   local building_offset = radiant.entities.get_world_grid_location(building) - 
+                           radiant.entities.get_world_grid_location(merge_into)
+
+   local container = merge_into:get_component('entity_container')
+   for id, child in building:get_component('entity_container'):each_child() do
+      local mob = child:get_component('mob')
+      local child_offset = mob:get_grid_location()
+
+      container:add_child(child)
+      mob:set_location_grid_aligned(child_offset + building_offset)      
+   end
+   radiant.entities.destroy_entity(building)
+end
+
+-- add walls around all the floor segments for the specified `building` which
+-- do not already have walls around them.
+--
+--    @param session - the session for the player initiating the request
+--    @param response - a response object which we'll write the result into
+--    @param building - the building whose floor we need to put walls around
+--    @param columns_uri - the type of columns to generate
+--    @param walls_uri - the type of walls to generate
+--
+function BuildService:grow_walls(session, response, building, columns_uri, walls_uri)
+   -- accumulate all the floor tiles in the building into a single, opaque region
+   local floor_region = building:add_component('stonehearth:building')
+                                    :calculate_floor_region()
+
+   -- convert a 2d edge point to the proper 3d coorinate.  we want to put columns
+   -- 1-unit removed from where the floor is for each edge, so we add in the
+   -- accumualted normal for both the min and the max, with one small wrinkle:
+   -- the edges returned by :each_edge() live in the coordinate space of the
+   -- grid tile *lines* not the grid tile.  a consequence of this is that points
+   -- whose normals point in the positive direction end up getting pushed out
+   -- one unit too far.  try drawing a 2x2 cube and looking at each edge point +
+   -- accumulated normal in grid-tile space (as opposed to grid-line space) to
+   -- prove this to yourself if you don't believe me.
+   local function edge_point_to_point(edge_point)
+      local point = Point3(edge_point.location.x, 0, edge_point.location.y)
+      if edge_point.accumulated_normals.x <= 0 then
+         point.x = point.x + edge_point.accumulated_normals.x
+      end
+      if edge_point.accumulated_normals.y <= 0 then
+         point.z = point.z + edge_point.accumulated_normals.y
+      end
+      return point
+   end
 
    local origin = radiant.entities.get_world_grid_location(building)
-   local region = _radiant.sim.alloc_region()
-   region:modify(function(c)
-         c:add_unique_cube(box:translated(-origin))
-      end)
-   floor:add_component('destination'):set_region(region)
 
-   self:_add_to_building(building, floor)
-   return floor
+   -- convert each 2d edge to 3d min and max coordinates and add a wall span
+   -- for each one.
+   local edges = floor_region:get_edge_list()
+   for edge in edges:each_edge() do
+      local min = edge_point_to_point(edge.min) + origin
+      local max = edge_point_to_point(edge.max) + origin
+      local normal = Point3(edge.normal.x, 0, edge.normal.y)
+
+      self:_add_wall_span(building, min, max, normal, columns_uri, walls_uri)
+   end
+end
+
+
+-- Pops a roof on a building with no roof. 
+--
+--    @param session - the session for the player initiating the request
+--    @param response - a response object which we'll write the result into
+--    @param building - the building to pop the roof onto
+--    @param roof_uri - what kind of roof to make
+
+function BuildService:grow_roof(session, response, building, roof_uri)
+   -- compute the xz cross-section of the roof by growing the floor
+   -- region by 2 voxels in every direction
+   local rgn = building:get_component('stonehearth:building')
+                           :calculate_floor_region()
+                           :inflated(Point2(2, 2))
+
+   -- now make the roof!
+   local origin = Point3(0, constants.STOREY_HEIGHT, 0)
+   local roof = self:_create_blueprint(building, roof_uri, origin, function(roof)
+         roof:add_component('stonehearth:roof')
+                :cover_region2(rgn)
+                :layout()
+      end)
+
+   -- make sure all the walls under the roof reach all the way up
+   -- to the top
+   local ec = building:get_component('entity_container')
+   for id, structure in ec:each_child() do
+      if self:is_blueprint(structure) then
+         local wall = structure:get_component('stonehearth:wall')
+         if wall then
+            wall:connect_to_roof(roof)
+                :layout()
+         end
+         -- do something cool here...
+         -- self:_compute_wall_region(structure)
+      end
+   end
+end
+
+-- returns the blueprint at the specified world `point`
+--    @param point - the world space coordinate of where you're looking
+--
+function BuildService:_get_blueprint_at_point(point)
+   local entities = radiant.terrain.get_entities_at_point(point, function(entity)
+         return self:is_blueprint(entity)
+      end)
+
+   local id, blueprint = next(entities)
+   if blueprint then
+      local _, overlapped = next(entities, id)
+      assert(not overlapped)
+   end
+   
+   return blueprint
+end
+
+-- returns the blueprint at the specified world `point`, or creates one if there isn't
+-- one there.  generally speaking, you should not be using this function.  use one of
+-- the helpers (e.g. :_fetch_column_at_point)
+--    @param building - the building the structure  should be in (or created in)
+--    @param point - the world space coordinate of where you're looking
+--    @param blueprint_uri - the type of structure to create if there's nothing at `point`
+--    @param init_fn - a callback used to initiaize the new structure if it needs to be
+--                     created
+--
+function BuildService:_fetch_blueprint_at_point(building, point, blueprint_uri, init_fn)
+   local blueprint = self:_get_blueprint_at_point(point)
+   if blueprint then
+      assert(self:_get_building_for(blueprint) == building)
+   else
+      local origin = radiant.entities.get_world_grid_location(building)
+      blueprint = self:_create_blueprint(building, blueprint_uri, point - origin, init_fn)
+   end
+   return blueprint
+end
+
+-- returns the column at the specified world `point`, or creates one if there is no
+-- column there.
+--    @param building - the building the column should be in (or created in)
+--    @param point - the world space coordinate of where you're looking
+--    @param column_uri - the type of column to create if there's nothing at `point`
+--
+function BuildService:_fetch_column_at_point(building, point, column_uri)
+   return self:_fetch_blueprint_at_point(building, point, column_uri, function(column)
+         column:add_component('stonehearth:column')
+                  :layout()
+      end)
+end
+
+-- adds a span of walls between `min` and `max`, creating columns and
+-- wall segments as required `min` must be less than `max` and the
+-- requests span must be grid aligned (no diagonals!)
+--    @param building - the building to put all the new objects in
+--    @param min - the start of the wall span. 
+--    @param max - the end of the wall span.
+--    @param columns_uri - the type of columns to generate
+--    @param walls_uri - the type of walls to generate
+--
+function BuildService:_add_wall_span(building, min, max, normal, columns_uri, wall_uri)
+   local col_a = self:_fetch_column_at_point(building, min, columns_uri)
+   local col_b = self:_fetch_column_at_point(building, max, columns_uri)
+   if col_a and col_b then
+      self:_create_wall(building, col_a, col_b, normal, wall_uri)
+   end
+end
+
+-- creates a wall inside `building` connecting `column_a` and `column_b`
+-- pointing in the direction of `normal`.  
+--    @param building - the building to add the wall to
+--    @param column_a - one of the columns to attach the wall to
+--    @param column_b - the other column to attach the wall to
+--    @param normal - a Point3 pointing "outside" of the wall
+--    @param wall_uri - the type of wall to build
+--
+function BuildService:_create_wall(building, column_a, column_b, normal, wall_uri)
+   return self:_create_blueprint(building, wall_uri, Point3.zero, function(wall)
+         wall:add_component('stonehearth:wall')
+                  :connect_to(column_a, column_b, normal)
+                  :layout()
+      end)
 end
 
 return BuildService
+
 

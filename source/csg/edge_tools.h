@@ -92,6 +92,23 @@ public:
    {
    }
 
+   // Copy constructor.  The copy constructor is slow and gross.  It exists only
+   // to facilitate pusing EdgeMaps into lua.
+   EdgeMap(EdgeMap &other)
+   {
+      std::unordered_map<EdgePoint<S, C> const*, EdgePoint<S, C> const*> pointmap;
+
+      for (EdgePoint<S, C>* ep : other.points) {
+         EdgePoint<S, C>* p = new EdgePoint<S, C>(*ep);
+         points.push_back(p);
+         pointmap[ep] = p;
+      }
+
+      for (Edge<S, C> const& edge : other.edges) {
+         edges.push_back(Edge<S, C>(pointmap[edge.min], pointmap[edge.max], edge.normal));
+      }
+   }
+
    EdgeMap& AddEdge(Point<S, C> const& min, Point<S, C> const& max, Point<S, C> const& normal) {
       DEBUG_ONLY(
          for (Edge<S, C> const& e : edges) {
@@ -141,8 +158,9 @@ public:
       }
    }
 
-private:
+   std::vector<Edge<S, C>> const& GetEdges() const { return edges; }
 
+private:
    EdgePoint<S, C>* AddPoint(Point<S, C> const& p, Point<S, C> const& normal) {
       for (auto& point : points) {
          if (point->location == p) {

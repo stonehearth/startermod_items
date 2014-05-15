@@ -1,5 +1,9 @@
 #!/bin/sh
 
-/c/python27/python ./radsub.py
+branch_name=`git rev-parse --abbrev-ref HEAD`
+
+if [[ "$branch_name" == "develop" || "$branch_name" == "release" ]]; then
+  /c/python27/python ./radsub.py
+fi
 
 exit $!

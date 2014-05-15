@@ -1,7 +1,8 @@
 {
   "alias": "stonehearth:professions:worker",
   "name": "Worker",
-  "icon" : "file(images/jobButton.png)",
+  "buttonIcon" : "file(images/jobButton.png)",
+  "bannerIcon" : "file(images/banner.png)",
   "script": "file(worker.lua)",
   "outfit": "file(worker_outfit)"
 }

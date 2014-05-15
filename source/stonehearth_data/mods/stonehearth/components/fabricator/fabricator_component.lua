@@ -24,6 +24,7 @@ function FabricatorComponent:initialize(entity, json)
       self._sv.teardown = false
       self.__saved_variables:mark_changed()
    end
+
    radiant.events.listen_once(radiant, 'radiant:game_loaded', function()
          if self._sv.blueprint and self._sv.project then
             self._fabricator = Fabricator(string.format("(%s Fabricator)", tostring(self._sv.blueprint)),
@@ -32,6 +33,7 @@ function FabricatorComponent:initialize(entity, json)
                                           self._sv.project)
             self._fabricator:set_teardown(self._sv.teardown)
             self._fabricator:set_active(self._sv.active)
+            radiant.events.listen_once(self._sv.blueprint, 'radiant:entity:pre_destroy', self, self._on_blueprint_destroyed)
          end
       end)
 end
@@ -39,10 +41,13 @@ end
 function FabricatorComponent:destroy()
    self._log:debug('destroying fabricator component')
    
+   -- destroy the fabricator.  this will also destroy the project.
    if self._fabricator then
       self._fabricator:destroy()
       self._fabricator = nil
    end
+
+   -- destroy all the scaffolding stuff we created.
    if self._sv.scaffolding_blueprint then
       radiant.entities.destroy_entity(self._sv.scaffolding_blueprint)
       self._sv.scaffolding_blueprint = nil
@@ -115,6 +120,8 @@ function FabricatorComponent:start_project(name, blueprint)
    self._sv.blueprint = blueprint
    self.__saved_variables:mark_changed()
    
+   radiant.events.listen_once(self._sv.blueprint, 'radiant:entity:pre_destroy', self, self._on_blueprint_destroyed)
+
    return self
 end
 
@@ -161,6 +168,15 @@ function FabricatorComponent:_add_scaffolding(blueprint, project, normal)
    self._sv.scaffolding_blueprint = scaffolding
    self._sv.scaffolding_fabricator = fabricator
    self.__saved_variables:mark_changed()
+end
+
+-- called just before the blueprint for this fabricator is destroyed.  we need only
+-- destroy the entity for this fabricator.  the rest happens directly as a side-effect
+-- of doing so (see :destroy())
+function FabricatorComponent:_on_blueprint_destroyed()
+   if self._entity then
+      radiant.entities.destroy_entity(self._entity)
+   end
 end
 
 return FabricatorComponent

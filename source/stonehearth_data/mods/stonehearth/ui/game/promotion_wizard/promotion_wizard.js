@@ -2,15 +2,20 @@ $(document).ready(function(){
    $(top).on("radiant_promote_to_profession", function (_, e) {
       var r  = new RadiantTrace()
       var components = { 
+            'unit_info' : {},
             'stonehearth:promotion_talisman' : {} 
          };
 
       // grab the properties from the talisman and pass them along to the promotion wizard
       r.traceUri(e.entity, components)
          .progress(function(eobj) {
-               var talisman = eobj;
+               // eobj could be either a talisman or the person to promote              
+               var talisman = eobj['stonehearth:promotion_talisman'] ? eobj : null;
+               var citizen = !eobj['stonehearth:promotion_talisman'] ? eobj : null;
+
                App.gameView.addView(App.StonehearthPromotionWizard, { 
                   talisman: talisman,
+                  citizen: citizen
                });
                r.destroy();
             });
@@ -27,6 +32,7 @@ App.StonehearthPromotionWizard = App.View.extend({
 
    init: function() {
       var self = this;
+      radiant.call('radiant:play_sound', 'stonehearth:sounds:ui:start_menu:page_up' );
       this._super();
 
       // XXX, Don't know why I have to manually set the trace below
@@ -44,7 +50,7 @@ App.StonehearthPromotionWizard = App.View.extend({
 
          $.each(pop.citizens, function(k, citizen) {
             var uri = citizen['__self']
-            if (uri == data.selected_entity) {
+            if (uri && uri == data.selected_entity) {
                var profession = citizen['stonehearth:profession']['profession_uri']['alias'];
 
                if (profession = 'stonehearth:professions:worker') {
@@ -59,17 +65,13 @@ App.StonehearthPromotionWizard = App.View.extend({
 
    destroy: function() {
       $(top).off("radiant_selection_changed.promote_view");
+      radiant.call('radiant:play_sound', 'stonehearth:sounds:ui:start_menu:page_down' );
       this._super();
    },   
 
    didInsertElement: function() {
       var self = this;
       this._super();
-
-      radiant.call('stonehearth:get_talismans_in_explored_region')
-         .done(function(e) {
-            self.unlockJobs(e.available_professions);
-         });
 
       // reset the help text when hovering outside of the job selection panel
       this.$('#jobs').hover( 
@@ -105,10 +107,12 @@ App.StonehearthPromotionWizard = App.View.extend({
          });
 
       this.$('.jobButton').click(function() {
-         var professionInfo = self.getProfessionInfo($(this).attr('id'));
-         self.set('profession', professionInfo);
-         self.set('talismanUri', $(this).attr('talisman_uri'));
-         self.$('#finishPage').show();
+         if(! $(this).hasClass('locked')) {
+            var professionInfo = self.getProfessionInfo($(this).attr('id'));
+            self.set('profession', professionInfo);
+            self.set('talismanUri', $(this).attr('talisman_uri'));
+            self.$('#finishPage').show();
+         }
       })
 
       this.$('#closeButton').click(function() {
@@ -116,7 +120,12 @@ App.StonehearthPromotionWizard = App.View.extend({
       });
 
       this.$('#finishPage #backButton').click(function() {
-        self.$('#finishPage').hide(); 
+         if (self.$('#jobsPage').is(':visible')) {
+            self.$('#finishPage').hide(); 
+         } else {
+            self.destroy();
+         }
+        
       })
 
       this.$('#chooseButton').click(function() {
@@ -131,12 +140,20 @@ App.StonehearthPromotionWizard = App.View.extend({
    },
 
    initWizardState: function() {
+      var self = this;
+      
       // if the talisman is specified
       var talisman = this.get('talisman');
       if (talisman) {
          this.set('profession', talisman.profession);
          self.$('#jobsPage').hide();
          self.$('#finishPage').show();
+         self.$('#finishPage #backButton').html( i18n.t('stonehearth:cancel'));
+      } else {
+         radiant.call('stonehearth:get_talismans_in_explored_region')
+            .done(function(e) {
+               self.unlockJobs(e.available_professions);
+            });         
       }
 
       // if the citizen is specified

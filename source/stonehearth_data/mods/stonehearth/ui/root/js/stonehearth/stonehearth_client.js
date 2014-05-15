@@ -38,6 +38,36 @@ var StonehearthClient;
          return this.gameState.settlementName;
       },
 
+      doCommand: function(entity, command) {
+         if (!command.enabled) {
+            return;
+         }
+         var event_name = '';
+
+         if (command.action == 'fire_event') {
+            // xxx: error checking would be nice!!
+            var e = {
+               entity : entity,
+               event_data : command.event_data
+            };
+            $(top).trigger(command.event_name, e);
+            
+            event_name = command.event_name.toString().replace(':','_')
+
+         } else if (command.action == 'call') {
+            if (command.object) {
+               radiant.call_objv(command.object, command['function'], command.args)            
+            } else {
+               radiant.callv(command['function'], command.args)
+            }
+            
+            event_name = command['function'].toString().replace(':','_')
+            
+         } else {
+            throw "unknown command.action " + command.action
+         }
+      },
+
       getActiveTool: function() {
          return this._activeTool;
       },
@@ -168,6 +198,40 @@ var StonehearthClient;
          });
       },
 
+      growRoof: function() {
+         var self = this;
+
+         $(top).trigger('radiant_show_tip', { 
+            title : 'Grow Roof Tooltip',
+            description : 'Grow Roof Tooltip'
+         });
+
+         return this._callTool(function() {
+            return radiant.call_obj(self._build_editor, 'grow_roof')
+               .always(function(response) {
+                  radiant.call('radiant:play_sound', 'stonehearth:sounds:place_structure' );
+                  $(top).trigger('radiant_hide_tip');
+               });
+         });
+      },
+
+      growWalls: function() {
+         var self = this;
+
+         $(top).trigger('radiant_show_tip', { 
+            title : 'Fill Wall Tooltip',
+            description : 'Fill Wall Tooltip'
+         });
+
+         return this._callTool(function() {
+            return radiant.call_obj(self._build_editor, 'grow_walls')
+               .always(function(response) {
+                  radiant.call('radiant:play_sound', 'stonehearth:sounds:place_structure' );
+                  $(top).trigger('radiant_hide_tip');
+               });
+         });
+      },
+
       buildRoom: function() {
          var self = this;
          return this._callTool(function() {
@@ -214,10 +278,6 @@ var StonehearthClient;
          if (!this._citizenManager) {
             this._citizenManager = App.gameView.addView(App.StonehearthCitizensView);
          } else {
-            if (!this._citizenManager.$().is(":visible")) {
-               this._citizenManager.preShow();
-            }
-            
             this._citizenManager.$().toggle();
          }
       },
@@ -237,10 +297,6 @@ var StonehearthClient;
          if (!this._crafterManager) {
             this._crafterManager = App.gameView.addView(App.StonehearthCraftersView);
          } else {
-            if (!this._crafterManager.$().is(":visible")) {
-               this._crafterManager.preShow();
-            }
-
             this._crafterManager.$().toggle();
          }
       },

@@ -15,31 +15,63 @@
 
       td:nth-child(1) {
          white-space: nowrap;
+         width: 310px;
+         padding-left: 40px;
+
+         .name {
+            font-size: 16px;
+         }
       }
 
       td:nth-child(2) {
-
+         
       }
 
-      td:nth-child(3) {
-         
-         font-size: 12px;
+
+      tr:nth-child(even) {
+         background-color: #403b35;
       }
 
       td {
+         position: relative;
          padding: 8px;
          vertical-align: top;
       }
-   }
 
-   #promoteButton {
-      position: absolute;
-      left: 10px;
-      right: 10px;
-      bottom: 10px;
-   }
+      tr.row {
+         &:hover {
+            height: 70px;
 
-   #promoteWindow {
-      display: none;
+            .toolbar {
+               display: block;
+            }
+         }
+      }
+
+      .banner {
+         position: absolute;
+         top: 0px;
+         left: 0px;
+      }
+
+      .toolbar {
+         position: relative;
+         top: 4px;
+         left: -36px;
+         display: none;
+         width: 10px;
+         padding-top: 4px;
+
+         button {
+            .control;
+            .outlined(#c6ab6e);
+            color: #000;
+            background: #9c8451;
+            border-width: 5px 5px 9px 5px;
+            border-image: url(images/toolbar_button.png) 5 5 9 5 repeat;
+            font-size: 15px;
+            padding: 8px;
+         }
+      }
    }
 }

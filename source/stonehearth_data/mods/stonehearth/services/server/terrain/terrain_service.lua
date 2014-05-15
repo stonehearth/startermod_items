@@ -2,9 +2,11 @@ local MathFns = require 'services.server.world_generation.math.math_fns'
 local Timer = require 'services.server.world_generation.timer'
 
 local Point2 = _radiant.csg.Point2
+local Point2f = _radiant.csg.Point2f
 local Rect2 = _radiant.csg.Rect2
 local Region2 = _radiant.csg.Region2
 local Point3 = _radiant.csg.Point3
+local Point3f = _radiant.csg.Point3
 local Cube3 = _radiant.csg.Cube3
 local _terrain = radiant._root_entity:add_component('terrain')
 local log = radiant.log.create_logger('visibility')
@@ -18,6 +20,7 @@ function TerrainService:initialize()
    if not self._sv._visible_regions then
       self._sv._visible_regions = {}
       self._sv._explored_regions = {}
+      self._sv._convex_hull = {}
    end
 
    self._sight_radius = radiant.util.get_config('sight_radius', 64)
@@ -34,6 +37,87 @@ end
 
 function TerrainService:_on_poll()
    self:_update_regions()
+   self:_update_convex_hull()
+end
+
+-- Jarvis 'Gift-Wrapping' Algorithm
+function TerrainService:_update_convex_hull()
+   -- Get the new points from the citizens.
+   local new_points = {}
+   local friendly_pops = stonehearth.population:get_friendly_populations('civ')
+   for player_id, pop in pairs(friendly_pops) do
+      local citizens = pop:get_citizens()
+      for _, entity in pairs(citizens) do
+         table.insert(new_points, entity:get_component('mob'):get_world_grid_location())
+      end
+   end
+
+   if #new_points < 1 then
+      return
+   end
+
+   -- Look for a new left-most point from the new points
+   local new_hull_point = #self._sv._convex_hull > 0 and self._sv._convex_hull[1] or new_points[1]
+
+   -- If we find that point, remove it from the set of new points.
+   for _, v in pairs(new_points) do
+      if v.x < new_hull_point.x then
+         new_hull_point = v
+      end
+   end
+
+   for i, v in pairs(self._sv._convex_hull) do
+      table.insert(new_points, v)
+   end
+
+   -- Finally, build the hull
+   local point_used_map = {}
+   local new_hull = {}
+   repeat
+      table.insert(new_hull, new_hull_point)
+      local endpoint = new_points[1]
+      local used_idx = 1
+      for j, v in pairs(new_points) do
+         if not point_used_map[j] then
+            if (endpoint == new_hull_point) or self:_is_left_of(new_hull_point, endpoint, v) or self:_closer_colinear(new_hull_point, endpoint, v) then
+               endpoint = v
+               used_idx = j
+            end
+         end
+      end
+      point_used_map[used_idx] = true
+      new_hull_point = endpoint
+   until endpoint == new_hull[1]
+
+   self._sv._convex_hull = new_hull
+end
+
+function TerrainService:_closer_colinear(start_point, end_point, test_point)
+   local line_dir_i = end_point - start_point
+   local test_dir_i = test_point - end_point
+
+   local line_dir = Point3f(line_dir_i.x, line_dir_i.y, line_dir_i.z)
+   line_dir:normalize()
+
+   local test_dir = Point3f(test_dir_i.x, test_dir_i.y, test_dir_i.z)
+   test_dir:normalize()
+
+   return line_dir:dot(test_dir) > 0.99
+end
+
+-- Uses determinants (aka the area of the triangle).  Given a consistent winding order,
+-- the sign of the area determins whether test_point is to the left or right of the
+-- given line.
+function TerrainService:_is_left_of(start_point, end_point, test_point)
+   local ae = start_point.x * end_point.z
+   local bf = end_point.x * test_point.z
+   local cd = test_point.x * start_point.z
+
+   local ce = test_point.x * end_point.z
+   local bd = end_point.x * start_point.z
+   local af = start_point.x * test_point.z
+
+   return ((ae + bf + cd) - (ce + bd + af)) > 0
 end
 
 function TerrainService:_update_regions()
@@ -196,6 +280,10 @@ end
 
 function TerrainService:get_explored_region(faction)
    return self:_get_region(self._sv._explored_regions, faction)
+end
+
+function TerrainService:get_player_perimeter(faction)
+   return self._sv._convex_hull
 end
 
 function TerrainService:_get_region(map, faction)

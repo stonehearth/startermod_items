@@ -1,3 +1,4 @@
+local Cube3 = _radiant.csg.Cube3
 local Point3 = _radiant.csg.Point3
 
 local Terrain = {}
@@ -51,6 +52,11 @@ function Terrain.get_entities_in_cube(cube, filter_fn)
       end
    end
    return entities
+end
+
+function Terrain.get_entities_at_point(point, filter_fn)
+   local cube = Cube3(point, point + Point3(1, 1, 1))
+   return Terrain.get_entities_in_cube(cube, filter_fn)
 end
 
 function Terrain.trace_world_entities(reason, added_cb, removed_cb)

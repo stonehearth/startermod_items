@@ -46,6 +46,15 @@ App.StonehearthTownView = App.View.extend({
       if (!this.showing) {
          this.$().hide();
       } else {
+         this._updateScores();
+      }
+   },
+
+/*
+<<<<<<< HEAD
+      if (!this.showing) {
+         this.$().hide();
+      } else {
 
       //TODO: Set this from something
       this.$('#netWorthBar').progressbar({
@@ -64,10 +73,30 @@ App.StonehearthTownView = App.View.extend({
     }
    },
 
+=======*/
+   _updateScores: function() {
+      this.$('#netWorthBar').progressbar({
+          value: this.scores.net_worth_percent
+      });
+
+      this._updateMeter(this.$('#overallScore'), this.scores.happiness, this.scores.happiness / 10);
+      this._updateMeter(this.$('#foodScore'), this.scores.nutrition, this.scores.nutrition / 10);
+      this._updateMeter(this.$('#shelterScore'), this.scores.shelter, this.scores.shelter / 10);
+   },
+
+   _updateMeter: function(element, value, text) {
+      element.progressbar({
+         value: value
+      });
+
+      element.find('.ui-progressbar-value').html(text.toFixed(1));
+   },
+
    _set_happiness: function() {
       this.scores.happiness = this.get('context.score_data.happiness.happiness');
       this.scores.nutrition = this.get('context.score_data.happiness.nutrition');
       this.scores.shelter = this.get('context.score_data.happiness.shelter');
+      this._updateScores();
    }.observes('context.score_data.happiness'),
 
    _set_worth: function() {

@@ -246,7 +246,7 @@ bool TextureResource::loadDDS( const char *data, int size )
 	_texObject = 0;
 	_sRGB = (_flags & ResourceFlags::TexSRGB) != 0;
 	int mipCount = ddsHeader.dwFlags & DDSD_MIPMAPCOUNT ? ddsHeader.dwMipMapCount : 1;
-	_hasMipMaps = mipCount > 1 ? true : false;
+	_hasMipMaps = mipCount > 1 ? true : !(_flags & ResourceFlags::NoTexMipmaps);
 
 	// Get texture type
 	if( ddsHeader.caps.dwCaps2 == 0 )
@@ -344,7 +344,7 @@ bool TextureResource::loadDDS( const char *data, int size )
 
 	// Create texture
 	_texObject = gRDI->createTexture( _texType, _width, _height, _depth, _texFormat,
-	                                  mipCount > 1, false, false, _sRGB );
+	                                  _hasMipMaps, _hasMipMaps, false, _sRGB );
 	
 	// Upload texture subresources
 	int numSlices = _texType == TextureTypes::TexCube ? 6 : 1;

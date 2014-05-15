@@ -18,8 +18,23 @@ FollowPathAction.version = 2
 FollowPathAction.priority = 1
 
 function FollowPathAction:start_thinking(ai, entity, args)
+   -- paths are usually missing the point that the entity is standing on to prevent people
+   -- from always walking to the center of their current tile before following the path.
+   -- this complicates the distance calculation somewhat.  we need to add in the distance
+   -- from where the entity is standing (contained in ai.CURRENT.location) to the first
+   -- point in the path to get the true distance
+   local start_location = ai.CURRENT.location
+   local distance_to_path_start = start_location:distance_to(args.path:get_start_point())
+   local path_length = args.path:get_distance()
+   local cost = distance_to_path_start + path_length
+   ai:get_log():spam('cost of traversing path is distance from ai.CURRENT to start (%s -> %s = %.3f) and path distance (%.3f) = %.3f',
+                      ai.CURRENT.location, args.path:get_start_point(), distance_to_path_start, path_length, cost)
+   
+   --  now update the entity position, set the cost, and notify the ai that we're ready to go!
    ai.CURRENT.location = args.path:get_finish_point()
    ai:get_log():debug('setting CURRENT.location %s (path = %s) %s', tostring(ai.CURRENT.location), tostring(args.path), tostring(ai.CURRENT))
+   
+   ai:set_cost(cost)
    ai:set_think_output()
 end
 

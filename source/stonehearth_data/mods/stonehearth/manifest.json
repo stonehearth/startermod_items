@@ -341,7 +341,7 @@
       "actions:harvest_plant" : "file(ai/actions/harvest_plant.lua)",
       "actions:harvest_plant_adjacent" : "file(ai/actions/harvest_plant_adjacent.lua)",
       "actions:shear_sheep_action" : "file(ai/actions/shear_sheep_action.lua)",
-      "actions:worker_task_dispatcher" : "file(ai/actions/worker_task_dispatcher.lua)",
+      "actions:work_task_dispatcher" : "file(ai/actions/work_task_dispatcher.lua)",
       "actions:restock_stockpile" : "file(ai/actions/restock_stockpile_action.lua)",
       "actions:reserve_stockpile_space" : "file(ai/actions/reserve_stockpile_space.lua)",
       "actions:light_firepit" : "file(ai/actions/light_firepit.lua)",
@@ -381,12 +381,16 @@
       "actions:combat:wait_for_global_attack_cooldown" : "file(ai/actions/combat/wait_for_global_attack_cooldown_action.lua)",
       "actions:chase_entity" : "file(ai/actions/chase_entity_action.lua)",
       "actions:run_away_from_entity" : "file(ai/actions/run_away_from_entity_action.lua)",
+      "actions:patrol" : "file(ai/actions/patrol_action.lua)",
+      "actions:walk_around_entity" : "file(ai/actions/walk_around_entity_action.lua)",
 
+      "actions:stockpile_arson" : "file(ai/actions/stockpile_arson_action.lua)",
       "actions:set_posture" : "file(ai/actions/set_posture_action.lua)",
       "actions:unset_posture" : "file(ai/actions/unset_posture_action.lua)",
 
       "observers:enemy_observer" : "file(ai/observers/enemy_observer.lua)",
       "observers:combat_panic" : "file(ai/observers/combat_panic_observer.lua)",
+      "observers:town_defense_observer" : "file(ai/observers/town_defense_observer.lua)",
       "observers:sleepiness" : "file(ai/observers/sleepiness_observer.lua)",
       "observers:calorie" : "file(ai/observers/calorie_observer.lua)",
       "observers:free_time" : "file(ai/observers/free_time_observer.lua)",
@@ -797,6 +801,14 @@
          "controller" : "file(call_handlers/build_call_handler.lua)",
          "endpoint" : "server"
       },
+      "grow_walls": {
+         "controller" : "file(call_handlers/build_call_handler.lua)",
+         "endpoint" : "server"
+      },
+      "grow_roof": {
+         "controller" : "file(call_handlers/build_call_handler.lua)",
+         "endpoint" : "server"
+      },
       "set_stockpile_filter": {
          "controller" : "file(call_handlers/stockpile_call_handler.lua)",
          "endpoint" : "server"
@@ -868,7 +880,14 @@
       "farmer_field" : "file(components/farmer_field/farmer_field_component.lua)",
       "growing" : "file(components/growing/growing_component.lua)", 
       "crop" : "file(components/crop/crop_component.lua)", 
-      "dirt_plot" : "file(components/farmer_field/dirt_plot_component.lua)"
+      "dirt_plot" : "file(components/farmer_field/dirt_plot_component.lua)",
+      "target_tables" : "file(components/target_tables/target_tables_component.lua)",
+      "combat_state" : "file(components/combat_state/combat_state_component.lua)",
+      "building" : "file(components/building/building_component.lua)",
+      "floor" : "file(components/floor/floor_component.lua)",
+      "column" : "file(components/column/column_component.lua)",
+      "wall" : "file(components/wall/wall_component.lua)",
+      "roof" : "file(components/roof/roof_component.lua)"
    },
    "component_renderers" : {
       "stockpile" : "file(renderers/stockpile/stockpile_renderer.lua)",

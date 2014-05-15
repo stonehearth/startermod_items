@@ -2,7 +2,7 @@
 App.StonehearthEscMenuView = App.View.extend({
    templateName: 'escMenu',
    classNames: ['flex'],
-modal: true,
+   modal: true,
 
    init: function() {
       this._super();
@@ -30,7 +30,7 @@ modal: true,
          this.destroy();
       },
 
-      qyuitToMainMenu: function() {
+      quitToMainMenu: function() {
 
       },
 

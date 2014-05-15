@@ -848,6 +848,7 @@ void Renderer::Shutdown()
       e.clear();
    }
 
+   RenderNode::ClearRenderNode();
    debugShapes_ = 0;
    fowExploredNode_ = 0;
    delete camera_;      camera_ = nullptr;

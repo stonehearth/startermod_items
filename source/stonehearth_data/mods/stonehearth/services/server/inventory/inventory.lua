@@ -35,10 +35,15 @@ function Inventory:create_stockpile(location, size)
    return entity
 end
 
+function Inventory:get_all_storage()
+   return self._data.storage
+end
+
 function Inventory:add_storage(storage_entity)
    assert(not self._data.storage[storage_entity:get_id()])
    self._data.storage[storage_entity:get_id()] = storage_entity
    self.__saved_variables:mark_changed()
+   radiant.events.trigger(self, 'stonehearth:storage_added', { storage = storage_entity })
    radiant.events.listen(storage_entity, "stonehearth:item_added",   self, self._on_item_added)
    radiant.events.listen(storage_entity, "stonehearth:item_removed", self, self._on_item_removed)
 end
@@ -49,6 +54,9 @@ function Inventory:remove_storage(storage_entity)
       self._data.storage[id] = nil
       self.__saved_variables:mark_changed()
    end
+   radiant.events.trigger(self, 'stonehearth:storage_removed', { storage = storage_entity })
+   radiant.events.unlisten(storage_entity, "stonehearth:item_added",   self, self._on_item_added)
+   radiant.events.unlisten(storage_entity, "stonehearth:item_removed", self, self._on_item_removed)
    --xxx remove the items?
 end
 

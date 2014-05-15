@@ -222,7 +222,7 @@ function AIComponent:_add_observer_script(uri)
 end
 
 function AIComponent:remove_observer(key)
-   self._sv._observers = nil
+   self._sv._observers = {}
    self.__saved_variables:mark_changed()
 
    local observer = self._observer_instances[key]

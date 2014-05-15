@@ -4,6 +4,7 @@
    "components" : {
       "stonehearth:ai" : {
          "actions" : [
+            "stonehearth:actions:work_task_dispatcher",
             "stonehearth:actions:collect_ingredient",
             "stonehearth:actions:reserve_stockpile_space",
             "stonehearth:actions:idle:sway",
