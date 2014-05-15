@@ -37,6 +37,19 @@ function env.create_world()
       end)
 
    env.town = stonehearth.town:get_town(env.session.player_id)
+
+   env.create_enemy_kingdom()
+end
+
+function env.create_enemy_kingdom()
+   local session = {
+      player_id = 'enemy',
+      faction = 'raider',
+      kingdom = 'stonehearth:kingdoms:golden_conquering_arm'
+   }
+
+   stonehearth.inventory:add_inventory(session)
+   stonehearth.population:add_population(session)
 end
 
 function env.clear()
@@ -71,8 +84,11 @@ local function apply_options_to_entity(entity, options)
          -- there if they didn't put it there to begin with
          profession = 'stonehearth:professions:' .. profession
       end
-      entity:add_component('stonehearth:profession'):promote_to(profession)
-   end   
+      entity:add_component('stonehearth:profession'):promote_to(profession, options.talisman)
+   end
+   if options.weapon then
+      env.equip_weapon(entity, options.weapon)
+   end
 end
 
 function env.create_entity(x, z, uri, options)
@@ -117,6 +133,17 @@ function env.create_stockpile(x, z, options)
    local inventory = stonehearth.inventory:get_inventory(env.session.player_id)
 
    return inventory:create_stockpile(location, size)
+end
+
+function env.equip_weapon(entity, weapon_uri)
+   local weapon = radiant.entities.create_entity(weapon_uri)
+   local equipment = entity:add_component('stonehearth:equipment')
+   equipment:equip_item(weapon, 'melee_weapon')
+
+   -- HACK: remove the talisman glow effect from the weapon
+   -- might want to remove other talisman related commands as well
+   -- TODO: make the effects and commands specific to the model variant
+   weapon:remove_component('effect_list')
 end
 
 return env
