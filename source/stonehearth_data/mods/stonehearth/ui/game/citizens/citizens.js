@@ -6,9 +6,10 @@ App.StonehearthCitizensView = App.View.extend({
       var self = this;
       this._super();
 
-      var pop = App.population.getData();
-      this.set('context', pop);
-      this._buildCitizensArray();
+      App.population.getTrace()
+         .progress(function(pop) {
+            self.set('context.model', pop)
+         })
    },
 
    didInsertElement: function() {
@@ -39,10 +40,6 @@ App.StonehearthCitizensView = App.View.extend({
       });
    },
 
-   preShow: function() {
-      this._buildCitizensArray();
-   },
-
    actions: {
       showWorkshop: function(crafter) {
          var workshop = crafter['stonehearth:crafter']['workshop']['workshop_entity'];
@@ -62,27 +59,27 @@ App.StonehearthCitizensView = App.View.extend({
    },
 
    getSelectedCitizen: function() {
-      var citizenMap = this.get('context.citizens');
+      var citizenMap = this.get('context.model.citizens');
       var id = this.$('.selected').attr('id');
       return citizenMap[id];
    },
 
    _foo2: function() {
       console.log('yo');
-   }.observes('context.citizensArray.@each'),
+   }.observes('context.model.citizensArray.@each'),
 
    _foo: function() {
       console.log('yo');
-   }.observes('context.citizensArray.@each.stonehearth:crafter'),
+   }.observes('context.model.citizensArray.@each.stonehearth:crafter'),
 
    _foo3: function() {
       console.log('yo');
-   }.observes('context.citizensArray.@each.stonehearth:crafter.workshop'),
+   }.observes('context.model.citizensArray.@each.stonehearth:crafter.workshop'),
 
    _buildCitizensArray: function() {
       var vals = [];
-      var citizenMap = this.get('context.citizens');
-     
+      var citizenMap = this.get('context.model.citizens');
+
       if (citizenMap) {
          $.each(citizenMap, function(k ,v) {
             if(k != "__self" && citizenMap.hasOwnProperty(k)) {
@@ -93,7 +90,6 @@ App.StonehearthCitizensView = App.View.extend({
          });
       }
 
-      this.set('context.citizensArray', vals);
-    }.observes('context.citizens.[]'),
-
+      this.set('context.model.citizensArray', vals);
+    }.observes('context.model.citizens.[]').on('init'),
 });

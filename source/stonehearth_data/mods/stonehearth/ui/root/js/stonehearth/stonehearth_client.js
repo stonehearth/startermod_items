@@ -244,10 +244,6 @@ var StonehearthClient;
          if (!this._citizenManager) {
             this._citizenManager = App.gameView.addView(App.StonehearthCitizensView);
          } else {
-            if (!this._citizenManager.$().is(":visible")) {
-               this._citizenManager.preShow();
-            }
-            
             this._citizenManager.$().toggle();
          }
       },
@@ -267,10 +263,6 @@ var StonehearthClient;
          if (!this._crafterManager) {
             this._crafterManager = App.gameView.addView(App.StonehearthCraftersView);
          } else {
-            if (!this._crafterManager.$().is(":visible")) {
-               this._crafterManager.preShow();
-            }
-
             this._crafterManager.$().toggle();
          }
       },
