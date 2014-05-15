@@ -23,7 +23,7 @@ function EnemyObserver:_add_sensor_trace()
    -- could configure sensor in json, but we want the radius to be the same as the sight radius
    local sight_radius = radiant.util.get_config('sight_radius', 64)
    local sensor_list = self._entity:add_component('sensor_list')
-   local sensor = sensor_list:get_sensor('enemy_observer')
+   self._sensor = sensor_list:get_sensor('enemy_observer')
 
    if self._sensor == nil then
       self._sensor = sensor_list:add_sensor('enemy_observer', sight_radius)

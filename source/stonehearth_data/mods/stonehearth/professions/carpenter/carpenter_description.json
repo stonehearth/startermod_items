@@ -1,4 +1,5 @@
 {
+   "profession_id": "carpenter",
    "alias": "stonehearth:professions:carpenter",
    "name": "Carpenter",      
    "description": "The carpenter crafts tools and furniture from wood. The tools he makes unlocks several other jobs.",

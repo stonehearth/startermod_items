@@ -9,9 +9,9 @@ function combat_tests.battle_royale(autotest)
    }
 
    local enemies = {
-      autotest.env:create_person( -9, 15, { player_id = 'game_master', weapon = 'stonehearth:wooden_sword' }),
-      autotest.env:create_person( -1, 15, { player_id = 'game_master', weapon = 'stonehearth:wooden_sword' }),
-      autotest.env:create_person(  7, 15, { player_id = 'game_master', weapon = 'stonehearth:wooden_sword' }),
+      autotest.env:create_person( -9, 15, { player_id = 'enemy', weapon = 'stonehearth:wooden_sword' }),
+      autotest.env:create_person( -1, 15, { player_id = 'enemy', weapon = 'stonehearth:wooden_sword' }),
+      autotest.env:create_person(  7, 15, { player_id = 'enemy', weapon = 'stonehearth:wooden_sword' }),
    }
 
    local function any_valid_entities(entities)

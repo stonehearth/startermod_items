@@ -1,6 +1,7 @@
 {
+   "profession_id": "footman",
+   "name": "Footman",      
    "alias": "stonehearth:professions:footman",
-   "name": "Footman",
    "description": "A melee fighter",
    "icon" : "file(images/jobButton.png)",
    "script": "file(footman.lua)",

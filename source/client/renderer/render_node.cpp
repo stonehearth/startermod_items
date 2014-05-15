@@ -194,6 +194,11 @@ RenderNodePtr RenderNode::AddChild(RenderNodePtr r)
    return shared_from_this();
 }
 
+void RenderNode::ClearRenderNode()
+{
+   _unparentedRenderNode.reset();
+}
+
 void RenderNode::Destroy()
 {
    DestroyHordeNode();

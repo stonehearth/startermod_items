@@ -1,4 +1,5 @@
 {
+  "profession_id": "farmer",
   "alias": "stonehearth:professions:farmer",
   "name": "Farmer",
   "icon" : "file(images/jobButton.png)",

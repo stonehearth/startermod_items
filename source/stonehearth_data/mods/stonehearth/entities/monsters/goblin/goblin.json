@@ -40,6 +40,14 @@
             "stonehearth:actions:combat:idle:ready",
             "stonehearth:actions:combat:idle:shuffle",
             "stonehearth:actions:combat:hit_stun",
+            "stonehearth:actions:chase_entity",
+            "stonehearth:actions:restock_stockpile",
+            "stonehearth:actions:reserve_stockpile_space",
+            "stonehearth:actions:work_task_dispatcher",
+            "stonehearth:actions:place_item",
+            "stonehearth:actions:place_item_type",
+            "stonehearth:actions:stockpile_arson",
+
             "stonehearth:actions:combat:find_target",
             "stonehearth:actions:combat:create_engage_callback",
             "stonehearth:actions:combat:get_melee_range",
@@ -50,11 +58,11 @@
             "stonehearth:actions:unset_posture"
          ],
          "observers": [
-            "stonehearth:observers:enemy_observer"
          ]
       },
       "unit_info" : {
          "name": "A Goblin",
+         "faction": "goblin",
          "description": "Attracted to shiny things"
       },
       "stonehearth:attributes": {
@@ -74,6 +82,8 @@
             "type" : "basic", 
             "value" :  100
          }
+      },
+      "stonehearth:carry_block": {
       },
       "stonehearth:posture": [
          "combat"

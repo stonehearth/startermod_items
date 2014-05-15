@@ -10,7 +10,7 @@ RestockStockpile.version = 2
 RestockStockpile.priority = 1
 
 function RestockStockpile:start(ai, entity, args)
-   ai:set_status_text('restoocking ' .. radiant.entities.get_name(args.stockpile:get_entity()))
+   ai:set_status_text('restocking ' .. radiant.entities.get_name(args.stockpile:get_entity()))
 end
 
 local ai = stonehearth.ai

@@ -384,6 +384,7 @@
       "actions:patrol" : "file(ai/actions/patrol_action.lua)",
       "actions:walk_around_entity" : "file(ai/actions/walk_around_entity_action.lua)",
 
+      "actions:stockpile_arson" : "file(ai/actions/stockpile_arson_action.lua)",
       "actions:set_posture" : "file(ai/actions/set_posture_action.lua)",
       "actions:unset_posture" : "file(ai/actions/unset_posture_action.lua)",
 
