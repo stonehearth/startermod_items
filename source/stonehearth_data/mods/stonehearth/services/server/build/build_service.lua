@@ -547,16 +547,21 @@ function BuildService:grow_roof(session, response, building, roof_uri)
                 :cover_region2(rgn)
                 :layout()
       end)
-   
-   --[[
+
+   -- make sure all the walls under the roof reach all the way up
+   -- to the top
    local ec = building:get_component('entity_container')
    for id, structure in ec:each_child() do
-      if self:is_blueprint(structure) and self:_get_structure_type(structure) == 'wall' then
+      if self:is_blueprint(structure) then
+         local wall = structure:get_component('stonehearth:wall')
+         if wall then
+            wall:connect_to_roof(roof)
+                :layout()
+         end
          -- do something cool here...
          -- self:_compute_wall_region(structure)
       end
    end
-   ]]
 end
 
 -- returns the blueprint at the specified world `point`
