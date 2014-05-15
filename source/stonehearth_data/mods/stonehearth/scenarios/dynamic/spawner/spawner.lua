@@ -125,7 +125,6 @@ function Spawner:_item_added(e)
          :once()
          :start()
       self.__saved_variables:mark_changed()
-      return radiant.events.UNLISTEN
    end
 end
 
