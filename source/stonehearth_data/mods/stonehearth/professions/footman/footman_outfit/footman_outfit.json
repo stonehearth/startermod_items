@@ -23,8 +23,13 @@
       "stonehearth:equipment_piece" : {
          "render_type" : "merge_with_model",
          "injected_ai" : {
-            "observers": [
-               "stonehearth:observers:enemy_observer"
+            "actions" : [
+               "stonehearth:actions:patrol",
+               "stonehearth:actions:walk_around_entity"
+            ],
+            "observers" : [
+               "stonehearth:observers:enemy_observer",
+               "stonehearth:observers:town_defense_observer"
             ]            
          },
          "injected_commands" : [
