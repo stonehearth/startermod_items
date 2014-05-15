@@ -7,6 +7,9 @@ var StonehearthPopulation;
          "citizens" : {
             "*" : {
                "unit_info": {},           
+               "stonehearth:commands": {
+                  commands: []
+               },
                "stonehearth:ai" : {},
                "stonehearth:profession" : {
                   "profession_uri" : {}
@@ -38,6 +41,12 @@ var StonehearthPopulation;
       getTrace: function() {
          return this._populationTrace;
       },
+
+      getCitizen: function(uri) {
+         var parts = uri.split('/');
+         var id = parts[parts.length - 1]
+         return (self._population[id]);
+      }
    });
 })();
 
