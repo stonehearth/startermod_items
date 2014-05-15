@@ -525,6 +525,40 @@ function BuildService:grow_walls(session, response, building, columns_uri, walls
    end
 end
 
+
+-- Pops a roof on a building with no roof. 
+--
+--    @param session - the session for the player initiating the request
+--    @param response - a response object which we'll write the result into
+--    @param building - the building to pop the roof onto
+--    @param roof_uri - what kind of roof to make
+
+function BuildService:grow_roof(session, response, building, roof_uri)
+   -- compute the xz cross-section of the roof by growing the floor
+   -- region by 2 voxels in every direction
+   local rgn = building:get_component('stonehearth:building')
+                           :calculate_floor_region()
+                           :inflated(Point2(2, 2))
+
+   -- now make the roof!
+   local origin = Point3(0, constants.STOREY_HEIGHT, 0)
+   local roof = self:_create_blueprint(building, roof_uri, origin, function(roof)
+         roof:add_component('stonehearth:roof')
+                :cover_region2(rgn)
+                :layout()
+      end)
+   
+   --[[
+   local ec = building:get_component('entity_container')
+   for id, structure in ec:each_child() do
+      if self:is_blueprint(structure) and self:_get_structure_type(structure) == 'wall' then
+         -- do something cool here...
+         -- self:_compute_wall_region(structure)
+      end
+   end
+   ]]
+end
+
 -- returns the blueprint at the specified world `point`
 --    @param point - the world space coordinate of where you're looking
 --
@@ -606,37 +640,6 @@ function BuildService:_create_wall(building, column_a, column_b, normal, wall_ur
                   :connect_to(column_a, column_b, normal)
                   :layout()
       end)
-end
-
--- Pops a roof on a building with no roof. 
---
---    @param session - the session for the player initiating the request
---    @param response - a response object which we'll write the result into
---    @param building - the building to pop the roof onto
---    @param roof_uri - what kind of roof to make
-
-function BuildService:grow_roof(session, response, building, roof_uri)
-   -- compute the xz cross-section of the roof by growing the floor
-   -- region by 2 voxels in every direction
-   local rgn = building:get_component('stonehearth:building')
-                           :calculate_floor_region()
-                           :inflated(Point2(2, 2))
-
-   -- now make the roof!
-   local origin = Point3(0, constants.STOREY_HEIGHT, 0)
-   return self:_create_blueprint(building, roof_uri, origin, function(roof)
-         roof:add_component('stonehearth:roof')
-                :cover_region2(rgn)
-                :layout()
-      end)
-
-   local ec = building:get_component('entity_container')
-   for id, structure in ec:each_child() do
-      if self:is_blueprint(structure) and self:_get_structure_type(structure) == 'wall' then
-         -- do something cool here...
-         -- self:_compute_wall_region(structure)
-      end
-   end
 end
 
 return BuildService
