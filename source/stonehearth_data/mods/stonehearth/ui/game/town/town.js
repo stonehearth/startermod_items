@@ -1,6 +1,6 @@
 // The view that shows a list of citizens and lets you promote one
 App.StonehearthTownView = App.View.extend({
-	templateName: 'town',
+   templateName: 'town',
    classNames: ['flex', 'fullScreen'],
    //modal: true,
 
@@ -15,39 +15,24 @@ App.StonehearthTownView = App.View.extend({
    init: function() {
       var self = this;
       this._super();
-      this.showing = true;
-      this._set_uri_from_call();
-   },
 
-   hide_self: function() {
-      this.showing = false;
-      //if we're hidden, stop getting updates
-      this.set('uri', '');
-   },
-
-   show_self: function() {
-      this.showing = true;
-      this._set_uri_from_call();
-   },
-
-   _set_uri_from_call: function () {
-      var self = this;
       radiant.call('stonehearth:get_score')
          .done(function(response){
             var uri = response.score;
-            self.set('uri', uri);
+            
+            var r  = new RadiantTrace()
+            var trace = r.traceUri(uri, {});
+            trace.progress(function(eobj) {
+                  self.set('context.score_data', eobj.score_data);
+               });
          });
    },
+
 
    didInsertElement: function() {
       var self = this;
       this._super();
-
-      if (!this.showing) {
-         this.$().hide();
-      } else {
-         this._updateScores();
-      }
+      this._updateScores();
    },
 
    _updateScores: function() {
