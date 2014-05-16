@@ -3,6 +3,7 @@
   "alias": "stonehearth:professions:farmer",
   "name": "Farmer",
   "buttonIcon" : "file(images/jobButton.png)",
+  "bannerIcon" : "file(images/banner.png)",   
   "talisman_uri" : "stonehearth:farmer:hoe",
   "script": "file(farmer.lua)",
   "outfit": "file(farmer_outfit)",
