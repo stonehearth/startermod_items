@@ -18,7 +18,7 @@ App.StonehearthCitizensView = App.View.extend({
       // remember the citizen for the row that the mouse is over
       this.$().on('mouseenter', '.row', function() {
          var row = $(this);
-         var pop = self.get('context');
+         var pop = self.get('context.model');
          var id = row.attr('id');
          self._activeRowCitizen = pop.citizens[id]; 
       });
