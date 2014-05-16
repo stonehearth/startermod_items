@@ -2,12 +2,14 @@
    Keep track of the scores relevant to different players
 
    There are a couple kinds of scores. 
+   
    1. Scores aggregated from citizens 
       If citizens have fed/happiness/etc scores (incremented by observers and collected on a per-citizen 
       basis by a score_component) we count them all up and present a town-level summary
       for a given player. To add an aggregate scoare, specify it a .json file that belongs to the citizen 
       (for example, see base_human.json) and then manipulate it via observer. 
       Whenever the citizen-related score changes, someone will call the update_citizen_scores function
+   
    2. Cumulative scores for the whole town. (For example, net worth for the inventory for the whole town, etc.)
       Every 10 minutes of in-game time, we calculate the cumulative scores. 
       To add a cumulative score, call 'add_aggregate_eval_fn' with a score category, score name and an eval function
