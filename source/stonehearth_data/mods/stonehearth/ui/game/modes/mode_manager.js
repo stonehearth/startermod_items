@@ -50,6 +50,7 @@ $(document).ready(function() {
       setGameMode: function (mode) {
          if (mode != this._currentMode) {
 
+            /*
             if (mode == this.modes.ZONES ||
                 mode == this.modes.BUILD) {
                //pause
@@ -58,6 +59,7 @@ $(document).ready(function() {
                //unpause
                radiant.call('stonehearth:dm_resume_game');
             }
+            */
 
             // hide the old mode view
             if (this._currentView) {

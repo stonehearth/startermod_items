@@ -255,11 +255,7 @@ var StonehearthClient;
          if (!this._townMenu) {
             this._townMenu = App.gameView.addView(App.StonehearthTownView);
          } else {
-            if (this._townMenu.showing) {
-               this._townMenu.hide_self();
-            } else {
-               this._townMenu.show_self();
-            }
+            this._townMenu.$().toggle();
          }         
       },
 
@@ -271,7 +267,7 @@ var StonehearthClient;
          }
 
          if (this._townMenu) {
-            this._townMenu.hide_self();
+            this._townMenu.$().hide();
          }
 
          // toggle the citizenManager
@@ -290,7 +286,7 @@ var StonehearthClient;
          }
 
          if (this._townMenu) {
-            this._townMenu.hide_self();
+            this._townMenu.$().hide();
          }         
          
          // toggle the citizenManager

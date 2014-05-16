@@ -10,7 +10,6 @@
 #include "dm/boxed.h"
 #include "dm/map.h"
 #include "dm/store.h"
-#include "lib/lua/bind.h"
 
 BEGIN_RADIANT_OM_NAMESPACE
 
@@ -21,8 +20,8 @@ public:
 
    void Destroy();
 
-   typedef dm::Map<std::string, ComponentPtr>      ComponentMap;
-   typedef dm::Map<std::string, luabind::object>   LuaComponentMap;
+   typedef dm::Map<std::string, ComponentPtr>   ComponentMap;
+   typedef dm::Map<std::string, DataStorePtr>   LuaComponentMap;
 
    const ComponentMap& GetComponents() const { return components_; }
    const LuaComponentMap& GetLuaComponents() const { return lua_components_; }
@@ -41,8 +40,8 @@ public:
    ComponentPtr AddComponent(std::string const& name);
    ComponentPtr GetComponent(std::string const& name) const;
 
-   luabind::object GetLuaComponent(std::string const& name) const;
-   void AddLuaComponent(std::string const& name, luabind::object obj);
+   DataStorePtr GetLuaComponent(std::string const& name) const;
+   void AddLuaComponent(std::string const& name, DataStorePtr obj);
 
    template <class T> std::weak_ptr<T> AddComponentRef() { return AddComponent<T>(); }
    template <class T> std::weak_ptr<T> GetComponentRef() const { return GetComponent<T>(); }
@@ -66,7 +65,6 @@ private:
 
    template <> void CacheComponent(std::shared_ptr<Mob> component) { cached_mob_component_ = component; }
    template <> std::shared_ptr<Mob> GetCachedComponent() const { return cached_mob_component_.lock(); }
-   void DestroyLuaComponent(std::string const& name, luabind::object obj);
 
 private:
    void InitializeRecordFields() override;

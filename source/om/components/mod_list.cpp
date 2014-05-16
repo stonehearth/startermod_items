@@ -1,4 +1,5 @@
 #include "pch.h"
+#include "lib/lua/bind.h"
 #include "mod_list.ridl.h"
 
 using namespace ::radiant;

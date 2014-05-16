@@ -54,6 +54,16 @@ function Terrain.get_entities_in_cube(cube, filter_fn)
    return entities
 end
 
+function Terrain.get_entities_in_region(region, filter_fn)
+   local entities = {}
+   for cube in region:each_cube() do
+      for id, entity in pairs(Terrain.get_entities_in_cube(cube,filter_fn)) do
+         entities[id] = entity
+      end
+   end
+   return entities
+end
+
 function Terrain.get_entities_at_point(point, filter_fn)
    local cube = Cube3(point, point + Point3(1, 1, 1))
    return Terrain.get_entities_in_cube(cube, filter_fn)

@@ -24,6 +24,8 @@ public:
    static luabind::object GetComponentData(lua_State* L, om::EntityRef e, std::string const& name);
    static luabind::object SetComponentData(lua_State* L, om::EntityRef e, std::string const& name, luabind::object data);
    static void RestoreLuaComponents(lua::ScriptHost* scriptHost, EntityPtr entity);
+   static std::string GetLuaComponentUri(dm::Store const& store, std::string const& name);
+   static luabind::object ConstructLuaComponent(lua::ScriptHost* scriptHost, om::EntityPtr entity, std::string const& uri, luabind::object json, om::DataStorePtr datastore);
 
 private:
    static void InitEntityByUri(om::EntityPtr entity, std::string const& uri, lua_State* L);

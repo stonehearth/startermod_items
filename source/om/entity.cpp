@@ -1,6 +1,8 @@
 #include "pch.h"
 #include "entity.h"
 #include "om/all_components.h"
+#include "lib/lua/bind.h"
+#include "om/components/data_store.ridl.h"
 
 using namespace ::radiant;
 using namespace ::radiant::om;
@@ -37,25 +39,8 @@ std::ostream& ::radiant::om::operator<<(std::ostream& os, Entity const& o)
 
 void Entity::Destroy()
 {
-   for (const auto& entry : lua_components_.GetContents()) {
-      DestroyLuaComponent(entry.first, entry.second);
-   }
-}
-
-void Entity::DestroyLuaComponent(std::string const& name, luabind::object obj)
-{
-   lua_State* L = lua::ScriptHost::GetCallbackThread(obj.interpreter());
-   try {
-      luabind::object destroy = obj["destroy"];
-      if (destroy) {
-         E_LOG(3) << "destroying component " << name;
-         luabind::object cb(L, destroy);
-         cb(obj);
-      } else {
-         E_LOG(log::DEBUG) << "component " << name << " does not implement destroy";
-      }
-   } catch (std::exception const& e) {
-      E_LOG(1) << "error destroying component '" << name << "':" << e.what();
+   for (auto& entry : lua_components_.GetContents()) {
+      entry.second->GetController().DestroyLuaObject();
    }
 }
 
@@ -84,10 +69,8 @@ void Entity::SerializeToJson(json::Node& node) const
    for (auto const& entry : GetComponents()) {
       node.set(entry.first, entry.second->GetStoreAddress());
    }
-
-   lua::ScriptHost *scriptHost = lua::ScriptHost::GetScriptHost(GetStore().GetInterpreter());
    for (auto const& entry : GetLuaComponents()) {
-      node.set(entry.first, scriptHost->LuaToJson(entry.second));
+      node.set(entry.first, entry.second->GetStoreAddress());
    }
 }
 
@@ -130,22 +113,22 @@ ComponentPtr Entity::GetComponent(std::string const& name) const
    return components_.Get(name, nullptr);
 }
 
-void Entity::AddLuaComponent(std::string const& name, luabind::object component)
+void Entity::AddLuaComponent(std::string const& name, DataStorePtr obj)
 {
    // client side lua will use set_lua_component_data to construct temporary objects...
    // ASSERT(!lua_components_.Contains(name));
 
    // xxx: need to fire a trace here...
-   lua_components_.Add(name, component);
+   lua_components_.Add(name, obj);
 }
 
-luabind::object Entity::GetLuaComponent(std::string const& name) const
+DataStorePtr Entity::GetLuaComponent(std::string const& name) const
 {
    auto i = lua_components_.find(name);
    if (i != lua_components_.end()) {
       return i->second;
    }
-   return luabind::object();
+   return nullptr;
 }
 
 template <class T> std::shared_ptr<T> Entity::GetComponent() const
@@ -163,7 +146,7 @@ void Entity::RemoveComponent(std::string const& name)
 
    auto i = lua_components_.find(name);
    if (i != lua_components_.end()) {
-      DestroyLuaComponent(i->first, i->second);
+      i->second->GetController().DestroyLuaObject();
       lua_components_.Remove(i);
    }
 }
