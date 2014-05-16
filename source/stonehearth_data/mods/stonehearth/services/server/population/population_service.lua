@@ -51,12 +51,12 @@ function PopulationService:get_friendly_populations(faction)
    return result
 end
 
-
+--Keep track of the awesomeness of the job levels of the town (for use with scenario service?)
 function PopulationService:_register_score_functions()
    --If the entity is a farm, register the score
-   stonehearth.score:add_net_worth_eval_function('citizens', function(entity, net_worth_score)
+   stonehearth.score:add_aggregate_eval_function('people_power', 'citizens', function(entity, agg_score_bag)
       if entity:get_component('stonehearth:profession') then
-         net_worth_score.citizens = net_worth_score.citizens + self:_get_score_for_citizen(entity)
+         agg_score_bag.citizens = agg_score_bag.citizens + self:_get_score_for_citizen(entity)
       end
    end)
 end

@@ -530,6 +530,7 @@
       "ambient:summer_night" : "file(data/ambient/sh_amb_summer_night.ogg)",
       
       "scenarios:scenario_index" : "file(scenarios/index.json)",
+      "score_category_data" : "file(data/score/score_category_data.json)",
 
       "professions:index" : "file(professions/index.json)",
       "professions:worker" : "file(professions/worker/worker_description.json)",

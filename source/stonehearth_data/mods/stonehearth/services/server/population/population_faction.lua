@@ -86,7 +86,7 @@ function PopulationFaction:create_new_citizen()
    self:_set_citizen_initial_state(citizen, gender)
 
    self._sv.citizens[citizen:get_id()] = citizen
-   stonehearth.score:update_town_happiness_score(self._sv.player_id)
+   stonehearth.score:update_aggregate_score(self._sv.player_id)
 
    self.__saved_variables:mark_changed()
 
@@ -97,7 +97,7 @@ end
 
 function PopulationFaction:_on_entity_destroyed(args)
    self._sv.citizens[args.entity_id] = nil
-   stonehearth.score:update_town_happiness_score(self._sv.player_id)
+   stonehearth.score:update_aggregate_score(self._sv.player_id)
    return radiant.events.UNLISTEN
 end
 

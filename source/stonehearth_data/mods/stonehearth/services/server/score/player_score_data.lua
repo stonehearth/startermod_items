@@ -1,3 +1,7 @@
+--[[
+   Keep a datastore for each player with score data
+]]
+
 local PlayerScoreData = class()
 
 function PlayerScoreData:initialize()
@@ -9,13 +13,8 @@ function PlayerScoreData:initialize()
    end
 end
 
-function PlayerScoreData:set_net_worth(net_worth_data)
-   self._sv.score_data.net_worth = net_worth_data
-   self.__saved_variables:mark_changed()
-end
-
-function PlayerScoreData:set_happiness(happiness_data)
-   self._sv.score_data.happiness = happiness_data
+function PlayerScoreData:set_score_type(type, score_data)
+   self._sv.score_data[type] = score_data
    self.__saved_variables:mark_changed()
 end
 
