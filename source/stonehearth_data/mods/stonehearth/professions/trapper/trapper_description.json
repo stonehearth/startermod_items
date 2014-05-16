@@ -7,5 +7,5 @@
   "talisman_uri" : "stonehearth:trapper:knife",
   "script": "file(/professions/trapper/trapper.lua)",
   "outfit": "file(trapper_outfit)", 
-  "score_value" : 10,
+  "score_value" : 10
 }
