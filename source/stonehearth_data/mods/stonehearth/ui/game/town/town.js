@@ -50,30 +50,6 @@ App.StonehearthTownView = App.View.extend({
       }
    },
 
-/*
-<<<<<<< HEAD
-      if (!this.showing) {
-         this.$().hide();
-      } else {
-
-      //TODO: Set this from something
-      this.$('#netWorthBar').progressbar({
-         value: this.scores.net_worth_percent
-      });
-
-      this.$('#overallScore').progressbar({
-         value: this.scores.happiness
-      });
-      this.$('#foodScore').progressbar({
-         value: this.scores.nutrition
-      });
-       this.$('#shelterScore').progressbar({
-         value: this.scores.shelter
-      });
-    }
-   },
-
-=======*/
    _updateScores: function() {
       this.$('#netWorthBar').progressbar({
           value: this.scores.net_worth_percent
