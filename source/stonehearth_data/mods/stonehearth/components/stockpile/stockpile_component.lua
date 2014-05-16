@@ -46,6 +46,7 @@ function StockpileComponent:initialize(entity, json)
    self._sv = self.__saved_variables:get_data()
    if not self._sv.stocked_items then
       -- creating...
+      self._sv.should_steal = false
       self._sv.is_outbox = false
       self._sv.stocked_items = {}
       self._sv.item_locations = {}
@@ -65,11 +66,8 @@ function StockpileComponent:initialize(entity, json)
       self:_create_worker_tasks()   
 
       --Don't start listening on created items until after we load
-      radiant.events.listen(radiant, 'radiant:game_loaded', function(e)
-         radiant.events.listen(entity, 'radiant:entity:post_create', function(e)
-            self:_finish_initialization()
-            return radiant.events.UNLISTEN
-         end)
+      radiant.events.listen_once(radiant, 'radiant:game_loaded', function(e)
+         self:_finish_initialization()
       end)   
    end
    
@@ -131,7 +129,6 @@ end
 
 -- xxx: the 'fire one when i'm constructed' pattern again...
 function StockpileComponent:_finish_initialization()
-   local root = radiant.entities.get_root_entity()
    local ec = radiant.entities.get_root_entity():get_component('entity_container')
 
    self._ec_trace = ec:trace_children('tracking stockpile')
@@ -168,6 +165,14 @@ end
 
 function StockpileComponent:is_outbox(value)
    return self._sv.is_outbox
+end
+
+function StockpileComponent:set_should_steal(value)
+   self._sv.should_steal = value
+end
+
+function StockpileComponent:should_steal(value)
+   return self._sv.should_steal
 end
 
 function StockpileComponent:_get_bounds()
@@ -459,9 +464,17 @@ function StockpileComponent:get_item_filter_fn()
          return false
       end
       local stockpile = get_stockpile_containing_entity(entity)
-      if stockpile and not stockpile:is_outbox() then
-         log:spam('%s contained in stockpile.  not picking up', entity)
-         return false
+      if stockpile then
+         if radiant.entities.is_hostile(self:get_entity(), stockpile:get_entity()) then
+            -- If a stockpile is holding the item, and we don't like those guys, then consider
+            -- the item only if this stockpile can be laden with teefed goods.
+            log:spam('%s contained in enemy stockpile.  picking up: %s', entity, tostring(self:should_steal()))
+            return self:should_steal()
+         end
+         if not stockpile:is_outbox() then
+            log:spam('%s contained in stockpile.  not picking up', entity)
+            return false
+         end
       end
       log:spam('ok to pickup %s (mob:%d)!', entity, entity:get_component('mob'):get_id())
       return true

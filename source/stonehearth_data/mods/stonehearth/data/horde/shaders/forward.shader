@@ -6,7 +6,7 @@ float4 gridlineColor = { 0.0, 0.0, 0.0, 0.0 };
 sampler3D gridMap = sampler_state
 {
    Texture = "textures/common/gridMap.dds";
-   Filter = Bilinear;
+   Filter = Trilinear;
 };
 
 sampler2D cloudMap = sampler_state
@@ -300,6 +300,7 @@ varying vec3 tsbNormal;
 varying vec4 projFowPos;
 varying vec3 gridLineCoords;
 
+
 void main( void )
 {
   // Shadows.
@@ -333,10 +334,8 @@ void main( void )
   // nodes.  gridlineColor is the per-material color of the gridline to use.  Only draw
   // them if both are > 0.0.
   if (gridlineAlpha * gridlineColor.a > 0.0) {
-    vec4 gridline = texture3D(gridMap, gridLineCoords + vec3(0.5, 0.0, 0.5));
-    gridline = vec4(1.0, 1.0, 1.0, 1.0) - gridline;
-    gridline *= gridlineAlpha;
-    lightColor = lightColor * (1.0 - gridline.a) + gridline.rgb * gridlineColor.rgb;
+    float gridline = 1.0 - texture3D(gridMap, gridLineCoords + vec3(0.5, 0.0, 0.5)).a;
+    lightColor = lightColor * (1.0 - gridline) + (gridline * gridlineColor.rgb);
   }
 
   gl_FragColor = vec4(lightColor, 1.0);

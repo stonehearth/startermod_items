@@ -11,6 +11,7 @@ function PopulationService:initialize()
    else
       self._sv.populations = {}
    end
+   self:_register_score_functions()
 end
 
 
@@ -49,5 +50,30 @@ function PopulationService:get_friendly_populations(faction)
    end
    return result
 end
+
+
+function PopulationService:_register_score_functions()
+   --If the entity is a farm, register the score
+   stonehearth.score:add_net_worth_eval_function('citizens', function(entity, net_worth_score)
+      if entity:get_component('stonehearth:profession') then
+         net_worth_score.citizens = net_worth_score.citizens + self:_get_score_for_citizen(entity)
+      end
+   end)
+end
+
+function PopulationService:_get_score_for_citizen(entity)
+   local alias = entity:get_component('stonehearth:profession'):get_profession_uri()
+
+   --If such a data exists, then this entity is a person with a job. Count them!
+   local data = radiant.resources.load_json(alias)
+   --TODO: add score_value to the data
+   if data and data.score_value then
+      --TODO: add or multiply?
+      return stonehearth.constants.score.DEFAULT_CIV_WORTH + data.score_value
+   else
+      return stonehearth.constants.score.DEFAULT_CIV_WORTH
+   end
+end
+
 
 return PopulationService

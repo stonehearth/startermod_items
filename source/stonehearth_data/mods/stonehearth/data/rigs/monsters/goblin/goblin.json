@@ -38,6 +38,7 @@
     },
    "effects_root" : "file(effects)",
    "animation_root" : "file(animations)",
+   "postures" : "file(postures.json)",
    "collision_shape" : {
       "type" : "cylinder_collision_shape",
       "radius" : 5,

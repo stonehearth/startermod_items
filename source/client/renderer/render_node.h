@@ -48,6 +48,8 @@ public:
    static RenderNodePtr CreateCsgMeshNode(H3DNode parent, csg::mesh_tools::mesh const& m);
    static RenderNodePtr CreateSharedCsgMeshNode(H3DNode parent, ResourceCacheKey const& key, CreateMeshLodLevelFn cb);
 
+   static void ClearRenderNode();
+
    ~RenderNode();
 
    H3DNode GetNode() const { return _node.get(); }

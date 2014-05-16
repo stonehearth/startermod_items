@@ -1,0 +1,20 @@
+{
+   "type" : "effect",
+   "tracks": {
+      "animation": {
+            "type": "animation_effect",
+            "start_time": 0,
+            "animation": "patrol_walk.json",
+            "loop": true
+      },
+      "sound": {
+         "type": "sound_effect",
+         "loop" : true,
+         "start_delay":  0,
+         "min_distance": 30,
+         "max_distance": 60,
+         "volume": 20,
+         "track" : "stonehearth:sounds:footsteps_patrol_walk_sound"
+      }      
+   }
+}

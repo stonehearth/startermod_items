@@ -38,6 +38,36 @@ var StonehearthClient;
          return this.gameState.settlementName;
       },
 
+      doCommand: function(entity, command) {
+         if (!command.enabled) {
+            return;
+         }
+         var event_name = '';
+
+         if (command.action == 'fire_event') {
+            // xxx: error checking would be nice!!
+            var e = {
+               entity : entity,
+               event_data : command.event_data
+            };
+            $(top).trigger(command.event_name, e);
+            
+            event_name = command.event_name.toString().replace(':','_')
+
+         } else if (command.action == 'call') {
+            if (command.object) {
+               radiant.call_objv(command.object, command['function'], command.args)            
+            } else {
+               radiant.callv(command['function'], command.args)
+            }
+            
+            event_name = command['function'].toString().replace(':','_')
+            
+         } else {
+            throw "unknown command.action " + command.action
+         }
+      },
+
       getActiveTool: function() {
          return this._activeTool;
       },
@@ -237,17 +267,13 @@ var StonehearthClient;
          }
 
          if (this._townMenu) {
-            this._townMenu.$().hide();  
+            this._townMenu.$().hide();
          }
 
          // toggle the citizenManager
          if (!this._citizenManager) {
             this._citizenManager = App.gameView.addView(App.StonehearthCitizensView);
          } else {
-            if (!this._citizenManager.$().is(":visible")) {
-               this._citizenManager.preShow();
-            }
-            
             this._citizenManager.$().toggle();
          }
       },
@@ -260,17 +286,13 @@ var StonehearthClient;
          }
 
          if (this._townMenu) {
-            this._townMenu.$().hide();  
+            this._townMenu.$().hide();
          }         
          
          // toggle the citizenManager
          if (!this._crafterManager) {
             this._crafterManager = App.gameView.addView(App.StonehearthCraftersView);
          } else {
-            if (!this._crafterManager.$().is(":visible")) {
-               this._crafterManager.preShow();
-            }
-
             this._crafterManager.$().toggle();
          }
       },

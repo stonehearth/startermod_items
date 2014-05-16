@@ -54,5 +54,10 @@ function client_entities.get_location_aligned(entity)
    end
 end
 
+function client_entities.get_player_id(entity)
+   local unit_info = entity:get_component('unit_info')
+   return unit_info and unit_info:get_player_id() or nil
+end
+
 client_entities.__init()
 return client_entities

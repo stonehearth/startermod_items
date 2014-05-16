@@ -5,11 +5,6 @@ local EnemyObserver = class()
 function EnemyObserver:initialize(entity, json)
    self._entity = entity
 
-   local enable_combat = radiant.util.get_config('enable_combat', false)
-   if not enable_combat then
-      return
-   end
-
    radiant.events.listen(self._entity, 'stonehearth:combat:battery', self, self._on_battery)
    self:_add_sensor_trace()
 end
@@ -23,7 +18,7 @@ function EnemyObserver:_add_sensor_trace()
    -- could configure sensor in json, but we want the radius to be the same as the sight radius
    local sight_radius = radiant.util.get_config('sight_radius', 64)
    local sensor_list = self._entity:add_component('sensor_list')
-   local sensor = sensor_list:get_sensor('enemy_observer')
+   self._sensor = sensor_list:get_sensor('enemy_observer')
 
    if self._sensor == nil then
       self._sensor = sensor_list:add_sensor('enemy_observer', sight_radius)

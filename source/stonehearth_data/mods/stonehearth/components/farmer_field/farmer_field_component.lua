@@ -48,6 +48,14 @@ function FarmerFieldComponent:initialize(entity, json)
    --TODO: listen on changes to faction, like stockpile?
 end
 
+function FarmerFieldComponent:get_size()
+   return self._sv.size
+end
+
+function FarmerFieldComponent:get_contents()
+   return self._sv.contents
+end
+
 --- Recreate the currently running tasks from the existing state
 --  TODO: how to hang onto the user-generated tasks if the farm isn't present?
 function FarmerFieldComponent:_re_init_field()

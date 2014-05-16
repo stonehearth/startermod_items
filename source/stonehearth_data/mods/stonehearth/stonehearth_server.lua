@@ -8,13 +8,17 @@ local service_creation_order = {
    'events',
    'calendar',
    'game_speed',
+   'score',
    'combat',
    'substitution',
    'personality',
    'inventory',
    'population',
+   'spawn_region_finder',
    'dm',
    'static_scenario',
+   'dynamic_scenario',
+   'object_tracker',
    'world_generation',
    'build',
    'game_master',
@@ -23,8 +27,7 @@ local service_creation_order = {
    'terrain',
    'threads',
    'town',       
-   'farming', 
-   'score'
+   'farming'
 }
 
 local function create_service(name)

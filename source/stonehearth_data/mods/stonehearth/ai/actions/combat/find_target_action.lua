@@ -12,7 +12,7 @@ FindTarget.version = 2
 FindTarget.priority = 1
 
 function FindTarget:__init()
-   self._enable_combat = radiant.util.get_config('enable_combat', false)
+   self._enable_combat = radiant.util.get_config('enable_combat', true)
 end
 
 function FindTarget:start_thinking(ai, entity, args)

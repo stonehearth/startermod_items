@@ -2,7 +2,7 @@
    "type" : "command",
 
    "name": "promote_to_profession",
-   "tooltip": "Promote!",
+   "tooltip": "Promote to Job",
    "description" : "Assign a citizen to become this profession.",
    "icon": "file(promote_to_profession.png)",
 

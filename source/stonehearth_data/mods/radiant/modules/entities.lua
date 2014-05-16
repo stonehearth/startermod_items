@@ -629,6 +629,10 @@ function entities.is_hostile(entity_a, entity_b)
    local faction_a = radiant.entities.get_faction(entity_a)
    local faction_b = radiant.entities.get_faction(entity_b)
 
+   if faction_a == 'critter' or faction_b == 'critter' then
+      return false
+   end
+
    return faction_a and faction_b and
           faction_a ~= '' and faction_b ~= '' and
           faction_a ~= faction_b

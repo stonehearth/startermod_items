@@ -16,6 +16,8 @@ function FarmingService:initialize()
       -- his towns
       player_crops = {}
    }
+   self:_register_score_functions()
+
    self.__saved_variables = radiant.create_datastore(self._data)
    self.__saved_variables:mark_changed()
 
@@ -174,6 +176,45 @@ end
 
 function FarmingService:harvest_crop(session, crop)
    
+end
+
+function FarmingService:_register_score_functions()
+   --If the entity is a farm, register the score
+   stonehearth.score:add_net_worth_eval_function('agriculture', function(entity, net_worth_score)
+      if entity:get_component('stonehearth:farmer_field') then
+         net_worth_score.agriculture = net_worth_score.agriculture + self:_get_score_for_farm(entity)
+      end
+   end)
+end
+
+function FarmingService:_get_score_for_farm(entity)
+   local field_component = entity:get_component('stonehearth:farmer_field')
+   local field_size = field_component:get_size()
+   local field_contents = field_component:get_contents()
+   local aggregate_score = 0
+
+   for x=1, field_size.x do
+      for y=1, field_size.y do
+         local field_spacer = field_contents[x][y].plot
+         if field_spacer then
+            local dirt_plot_component = field_spacer:get_component('stonehearth:dirt_plot')
+            if dirt_plot_component then
+               --add a score based on the quality of the dirt
+               local fertility, moisture = dirt_plot_component:get_fertility_moisture()
+               aggregate_score = aggregate_score + fertility/10
+
+               --add a score for the plant if there's a plant in the dirt
+               local crop = dirt_plot_component:get_contents()
+               if crop then
+                  --TODO: change this value based on a score in the crop's json
+                  aggregate_score = aggregate_score + 1
+               end
+            end
+
+         end
+      end
+   end
+   return aggregate_score
 end
 
 return FarmingService
