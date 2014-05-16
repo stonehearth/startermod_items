@@ -7,5 +7,6 @@
   "talisman_uri" : "stonehearth:farmer:hoe",
   "script": "file(farmer.lua)",
   "outfit": "file(farmer_outfit)",
-  "description": "Farmer"
+  "description": "Farmer", 
+  "score_value" : 10
 }

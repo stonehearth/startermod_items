@@ -8,6 +8,7 @@ local service_creation_order = {
    'events',
    'calendar',
    'game_speed',
+   'score',
    'combat',
    'substitution',
    'personality',
@@ -26,8 +27,7 @@ local service_creation_order = {
    'terrain',
    'threads',
    'town',       
-   'farming', 
-   'score'
+   'farming'
 }
 
 local function create_service(name)

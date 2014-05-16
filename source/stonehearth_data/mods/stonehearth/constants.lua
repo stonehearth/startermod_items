@@ -120,6 +120,28 @@ local constants = {
       DEFAULT_MIN = 0,
       DEFAULT_MAX = 100,
       DEFAULT_VALUE = 50,
+      NET_WORTH_INTERVAL = '10m',
+      DEFAULT_CIV_WORTH = 10, 
+
+      net_worth_categories = {  --TODO: edit these!!! Just first cuts
+         'camp', 
+         'settlement', 
+         'hamlet', 
+         'village', 
+         'town', 
+         'city', 
+         'metropolis'
+      },
+
+      category_threshholds = {
+         camp = 50, 
+         settlement = 100, 
+         hamlet = 300, 
+         village = 800, 
+         town = 1000, 
+         city = 4000, 
+         metropolis = 6000
+      },
 
       nutrition = {
          EAT_ONCE_TODAY = 10,
