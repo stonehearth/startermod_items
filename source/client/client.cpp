@@ -62,6 +62,7 @@
 #include "dm/store_trace.h"
 #include "core/system.h"
 #include "client/renderer/raycast_result.h"
+#include "om/stonehearth.h"
 
 //  #include "GFx/AS3/AS3_Global.h"
 #include "client.h"
@@ -619,6 +620,69 @@ void Client::InitializeDataObjects()
 
    om::RegisterObjectTypes(*store_);
    om::RegisterObjectTypes(*authoringStore_);
+
+   // Keep track of when entities are allocated so we can wire up client side
+   // lua components
+   game_store_alloc_trace_ = store_->TraceStore("wire lua components")->OnAlloced([=](dm::ObjectPtr obj) {
+      if (obj->GetObjectType() == om::EntityObjectType) {
+         entities_to_trace_.push_back(std::static_pointer_cast<om::Entity>(obj));
+      }
+   });
+
+}
+
+/* 
+ * -- Client::TraceLuaComponents
+ *
+ * Put a trace on an Entity's lua components so we can create the client side
+ * component whenever the entity is de-serialized over here.
+ */
+
+void Client::TraceLuaComponents(om::EntityPtr entity)
+{
+   om::EntityRef e = entity;
+   dm::ObjectId entityId = entity->GetObjectId();
+   dm::TracePtr trace = entity->TraceLuaComponents("render", dm::RENDER_TRACES)
+      ->OnAdded([this, e, entityId](std::string const& name, om::DataStorePtr obj) {
+         // `obj` is the DataStore for the lua component.  Ask the Stonehearth module to initialize
+         // the controller, and hold into it so we can destroy it when the component goes away
+         om::EntityPtr entity = e.lock();
+         if (entity) {
+            lua_State* L = scriptHost_->GetInterpreter();
+            std::string uri = om::Stonehearth::GetLuaComponentUri(entity->GetStore(), name);
+            if (!uri.empty()) {
+               om::Stonehearth::ConstructLuaComponent(scriptHost_.get(), entity, uri, luabind::newtable(L), obj);
+               client_components_[entityId][name] = obj->GetController();
+            }
+         }
+      })
+      ->OnRemoved([this, entityId](std::string const& name) {
+         // Destroy the controller for the lua object and remove it from the map
+         auto i = client_components_.find(entityId);
+         if (i != client_components_.end()) {
+            auto& components = i->second;
+            auto j = components.find(name);
+            if (j != components.end()) {
+               j->second.DestroyLuaObject();
+               components.erase(j);
+            }
+         }
+      })
+      ->OnDestroyed([this, entityId]() {
+         // When the entity is destroyed, destroy all of its components.  We cannot rely
+         // on a dtor trace on the DataObject, as references to it might be held client
+         // side.
+         auto i = client_components_.find(entityId);
+         if (i != client_components_.end()) {
+            for (auto const& entry: i->second) {
+               entry.second.DestroyLuaObject();
+            }
+            client_components_.erase(i);
+         }
+      })
+      ->PushObjectState();
+
+   lua_component_traces_.push_back(trace);
 }
 
 void Client::InitializeDataObjectTraces()
@@ -648,6 +712,11 @@ void Client::ShutdownDataObjectTraces()
    authoring_render_tracer_.reset();
    game_object_model_traces_.reset();
    authoring_object_model_traces_.reset();
+
+   game_store_alloc_trace_.reset();
+   lua_component_traces_.clear();
+   client_components_.clear();
+   entities_to_trace_.clear();
 
    receiver_->Shutdown();
 }
@@ -903,6 +972,9 @@ void Client::EndUpdate(const proto::EndUpdate& msg)
 {
    initialUpdate_ = false;
 
+   // Constr
+   ConstructLuaComponents();
+
    if (traceObjectRouter_) {
       traceObjectRouter_->CheckDeferredTraces();
    }
@@ -915,6 +987,7 @@ void Client::EndUpdate(const proto::EndUpdate& msg)
          octtree_->SetRootEntity(rootEntity);
       }
    }
+
 
    // Only fire the remote store traces at sequence boundaries.  The
    // data isn't guaranteed to be in a consistent state between
@@ -1542,7 +1615,7 @@ void Client::LoadClientState(boost::filesystem::path const& savedir)
    InitializeDataObjectTraces();
 
    radiant_ = scriptHost_->Require("radiant.client");
-   scriptHost_->LoadGame(localModList_, authoredEntities_);
+   scriptHost_->LoadGame(localModList_, authoredEntities_);  
    initialUpdate_ = true;
 
    CLIENT_LOG(0) << "done loadin...";
@@ -1592,4 +1665,21 @@ void Client::ReportLoadProgress()
          lastLoadProgress_ = percent;
       }
    }
+}
+
+/* 
+ * -- Client::ConstructLuaComponents
+ * 
+ * Iterate through all the entities we created this frame and construct their
+ * client-side lua components.
+ */
+void Client::ConstructLuaComponents()
+{
+   for (om::EntityRef e : entities_to_trace_) {
+      om::EntityPtr entity = e.lock();
+      if (entity) {
+         TraceLuaComponents(entity);
+      }
+   }
+   entities_to_trace_.clear();
 }

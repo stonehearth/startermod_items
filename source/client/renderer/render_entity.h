@@ -64,7 +64,7 @@ class RenderEntity : public std::enable_shared_from_this<RenderEntity>
       void UpdateNodeFlags();
       void UpdateInvariantRenderers();
       void AddComponent(std::string const& key, std::shared_ptr<dm::Object> value);
-      void AddLuaComponent(std::string const& key, luabind::object obj);
+      void AddLuaComponent(std::string const& key, om::DataStorePtr obj);
       void RemoveComponent(std::string const& key);
       void ForAllSceneNodes(H3DNode node, std::function<void(H3DNode node)> fn);
 

@@ -3,9 +3,10 @@ local Color4 = _radiant.csg.Color4
 
 local NoConstructionZoneRenderer = class()
 
-function NoConstructionZoneRenderer:__init(render_entity, ncz)
-   self:_destroy_node()
+function NoConstructionZoneRenderer:initialize(render_entity, datastore)
+   self._datastore = datastore
    
+   local ncz = self._datastore:get_data()
    if ncz.region2 then
       local parent = render_entity:get_node()
       local cursor = ncz.region2:get()

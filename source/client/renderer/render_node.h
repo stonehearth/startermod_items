@@ -75,7 +75,7 @@ public: // just because we need std::make_shared<>  UG!
 
    void ApplyMaterial();
    void DestroyHordeNode();
-   RenderNodePtr GetUnparentedRenderNode();
+   static RenderNodePtr GetUnparentedRenderNode();
 
 private:
    static void ConvertVoxelDataToGeometry(VoxelGeometryVertex *vertices, uint *indices, GeometryInfo& geo);

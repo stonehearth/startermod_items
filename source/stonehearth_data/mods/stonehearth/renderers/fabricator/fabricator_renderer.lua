@@ -37,20 +37,19 @@ end
 
 radiant.events.listen(radiant, 'stonehearth:selection_changed', update_selected_building)
 
-function FabricatorRenderer:__init(render_entity, datastore)
+function FabricatorRenderer:initialize(render_entity, datastore)
+   self._datastore = datastore
    self._ui_view_mode = stonehearth.renderer:get_ui_mode()
 
    self._entity = render_entity:get_entity()
    self._parent_node = render_entity:get_node()
    self._render_entity = render_entity
 
-   self._data = datastore:get_data()
-
    radiant.events.listen(radiant, 'stonehearth:ui_mode_changed', self, self._update_ui_mode)
    radiant.events.listen(self._entity, 'stonehearth:selection_changed', self, self._update_render_state)
    radiant.events.listen(self._entity, 'stonehearth:hilighted_changed', self, self._update_render_state)
    
-   self._fab_trace = datastore:trace_data('rendering a fabrication')
+   self._fab_trace = self._datastore:trace_data('rendering a fabrication')
                         :on_changed(function()
                            self:_recreate_render_node()
                         end)
@@ -143,6 +142,8 @@ function FabricatorRenderer:_update_render_state()
 end
 
 function FabricatorRenderer:_recreate_render_node()
+   self._sv = self._datastore:get_data()
+
    self:_update_building()
 
    if self._render_node then
@@ -151,7 +152,7 @@ function FabricatorRenderer:_recreate_render_node()
    end
 
    if self._ui_view_mode == 'hud' then
-      local blueprint = self._data.blueprint
+      local blueprint = self._sv.blueprint
       if not self._blueprint_contruction_data then
          local construction_data = blueprint:get_component('stonehearth:construction_data')
          if construction_data then
@@ -176,15 +177,15 @@ function FabricatorRenderer:_recreate_render_node()
          end
       end
       if self._blueprint_contruction_data and self._blueprint_contruction_progress then
+         local cd = self._blueprint_contruction_data
          local cp = self._blueprint_contruction_progress:get_data()
          if not cp.teardown then
             local region = self._destination:get_region()
-            radiant.log.write('', 0, 'creating render node...')
-            local cd = self._blueprint_contruction_data:get_data()
             self._render_node = voxel_brush_util.create_construction_data_node(self._parent_node, self._entity, region, cd, 'blueprint')
             
             -- columns are `connected_to` walls.  don't draw arrows for columns!
-            if not cd.connected_to and cd.normal and self._blueprint_collision_bounds then
+            local normal = cd:get_normal()
+            if not cd:get_connected_to() and normal and self._blueprint_collision_bounds then
                if self._arrow_render_object then
                   self._arrow_render_object:destroy()
                   self._arrow_render_object = nil
@@ -193,20 +194,20 @@ function FabricatorRenderer:_recreate_render_node()
                
                local t, n, width
                -- the arrow should span the entire base of the blueprint
-               if cd.normal.x == 0 then
+               if normal.x == 0 then
                   t, n = 'x', 'z'
                else
                   t, n = 'z', 'x'
                end
                
                width = self._blueprint_collision_bounds.max[t] - self._blueprint_collision_bounds.min[t]
-               local pos = (self._blueprint_collision_bounds.min + cd.normal):to_float()
+               local pos = (self._blueprint_collision_bounds.min + normal):to_float()
                pos[t] = pos[t] + (width / 2) - 0.5
 
                -- padding when possible
                width = math.max(width - 2, 1)
                
-               local rotation = voxel_brush_util.normal_to_rotation(cd.normal)
+               local rotation = voxel_brush_util.normal_to_rotation(normal)
                
                self._arrow_render_object:set_position(pos)
                                         :set_rotation(Point3f(0, rotation, 0))

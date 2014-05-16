@@ -14,6 +14,7 @@ public:
    std::string const& GetLuaSource() const;
    luabind::object GetLuaObject() const;
    void SetLuaObject(luabind::object obj) const;
+   void DestroyLuaObject() const;
 
    void SaveValue(Protocol::LuaControllerObject *msg) const;
    void LoadValue(const Protocol::LuaControllerObject &msg);
