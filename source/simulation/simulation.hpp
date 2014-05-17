@@ -8,7 +8,7 @@ template <class Object> Object* Simulation::CreateNewObject()
 
 template <class Object> Object* Simulation::CreateNewObjectFromPrototype(string prototypeName)
 {
-   typename Object::Prototype *prototype = rootObject_->GetPrototypeObject<typename Object::Prototype>(prototypeName);
+   typename Object::Prototype *prototype = rootEntity_->GetPrototypeObject<typename Object::Prototype>(prototypeName);
    if (!prototype) {
       const JSONNode json = GetPrototypeTemplate(prototypeName);
       prototype = new typename Object::Prototype(json, this);

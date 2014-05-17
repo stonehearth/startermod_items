@@ -25,6 +25,17 @@ local function get_fbp_for(entity)
    end
 end
 
+local function get_fbp_for_structure(entity, structure_component_name)
+   local fabricator, blueprint, project = get_fbp_for(entity)
+   if blueprint then
+      local structure_component = blueprint:get_component(structure_component_name)
+      if structure_component then
+         return fabricator, blueprint, project, structure_component
+      end
+   end
+end
+
+
 local function get_building_for(entity)
    if entity and entity:is_valid() then
       local _, blueprint, _ = get_fbp_for(entity)      
@@ -87,7 +98,7 @@ function StructureEditor:__init(fabricator, blueprint, project)
    
 
    radiant.entities.add_child(self._proxy_building, self._proxy_blueprint, blueprint:get_component('mob'):get_grid_location())
-   radiant.entities.add_child(self._proxy_building, self._proxy_fabricator, fabricator:get_component('mob'):get_grid_location())
+   radiant.entities.add_child(self._proxy_building, self._proxy_fabricator, fabricator:get_component('mob'):get_grid_location() + Point3(0, 1, 0))
 
    self._render_entity = _radiant.client.create_render_entity(1, self._proxy_building)
 
@@ -104,6 +115,50 @@ function StructureEditor:destroy()
 
    _radiant.client.get_render_entity(self._fabricator):set_visible(true)
    _radiant.client.get_render_entity(self._project):set_visible(true)
+end
+
+function StructureEditor:get_blueprint()
+   return self._blueprint
+end
+
+function StructureEditor:get_proxy_fabricator()
+   return self._proxy_fabricator
+end
+
+local WallEditor = class(StructureEditor)
+
+function WallEditor:__init(fabricator, blueprint, project)
+   self[WallEditor]:__init(fabricator, blueprint, project)
+end
+
+function BuildEditor:add_door(session, response)
+   local wall_editor
+   local capture = stonehearth.input:capture_input()
+
+   capture:on_mouse_event(function(e)
+         local s = _radiant.client.query_scene(e.x, e.y)
+         if s and s:get_result_count() > 0 then
+            local entity = radiant.get_object(s:objectid_of(0))
+            if entity and entity:is_valid() then
+               local fabricator, blueprint, project = get_fbp_for_structure(entity, 'stonehearth:wall')
+               if not blueprint or wall_editor and wall_editor:get_blueprint() ~= blueprint then
+                  if wall_editor then
+                     fabricator, blueprint, project = get_fbp_for_structure(entity, 'stonehearth:wall')
+                     wall_editor:destroy()
+                     wall_editor = nil
+                  end
+               end
+               if blueprint then
+                  wall_editor = StructureEditor(fabricator, blueprint, project)
+               end
+            end
+         end
+         if e:up(1) then
+            response:reject({ error = 'unknown error' })
+            capture:destroy()
+         end
+         return true
+      end)   
 end
 
 function BuildEditor:__init()
@@ -174,34 +229,6 @@ function BuildEditor:grow_roof(session, response)
                   end
                end
             end
-            response:reject({ error = 'unknown error' })
-            capture:destroy()
-         end
-         return true
-      end)   
-end
-
-function BuildEditor:add_door(session, response)
-   local wall_editor
-   local capture = stonehearth.input:capture_input()
-   capture:on_mouse_event(function(e)
-         local s = _radiant.client.query_scene(e.x, e.y)
-         if s and s:num_results() > 0 then
-            local entity = radiant.get_object(s:objectid_of(0))
-            if entity and entity:is_valid() then
-               local fabricator, blueprint, project = get_fbp_for(entity)
-               if blueprint then
-                  local wall_data = blueprint:get_component('stonehearth:wall')
-                  if wall_data then
-                     if wall_editor then
-                        wall_editor:destroy()
-                     end
-                     wall_editor = StructureEditor(fabricator, blueprint, project)
-                  end
-               end
-            end
-         end
-         if e:up(1) then
             response:reject({ error = 'unknown error' })
             capture:destroy()
          end

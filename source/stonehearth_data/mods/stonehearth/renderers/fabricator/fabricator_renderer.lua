@@ -10,7 +10,7 @@ local all_buildings_map = {}
 
 local function update_selected_building()
    local last_selected_building = selected_building
-   local selected_entity = stonehearth.selection:get_selected_entity()
+   local selected_entity = stonehearth.selection:get_selected()
 
    if selected_entity then
       -- either the selected building is a building, itself, or something
@@ -122,9 +122,8 @@ function FabricatorRenderer:_update_render_state()
       self:_update_building()
 
       local material
-      local entity_id = self._entity:get_id()
-      local selected = stonehearth.selection:get_selected_id() == self._entity:get_id()
-      local hovered = stonehearth.hilight:get_hilighted_id() == entity_id
+      local selected = stonehearth.selection:get_selected() == self._entity
+      local hovered = stonehearth.hilight:get_hilighted() == self._entity
       local building_selected = self._building and self._building == selected_building
 
       if selected then         

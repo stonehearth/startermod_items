@@ -27,10 +27,9 @@ function CastAoeCallHandler:_on_mouse_event(e, response, entity, spell)
    local radius = 8
    local s = _radiant.client.query_scene(e.x, e.y)
 
-   local pt = offscreen_pos
-
-   if s:is_valid() and s:is_valid_brick(0) then
-      pt = s:brick_of(0)
+   local pt, is_valid = Point3(0, -100000, 0), false
+   if s:get_result_count() > 0 then
+      pt = s:get_result(0).brick
    end
    pt.y = pt.y + 1
 

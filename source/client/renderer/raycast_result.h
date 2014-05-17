@@ -3,6 +3,7 @@
 
 #include "namespace.h"
 #include "dm/dm.h"
+#include "om/namespace.h"
 #include "csg/csg.h"
 #include "csg/ray.h"
 
@@ -11,29 +12,27 @@ BEGIN_RADIANT_CLIENT_NAMESPACE
 class RaycastResult
 {
    public:
-      RaycastResult();
-      ~RaycastResult();
+      class Result {
+      public:
+         csg::Point3f         intersection;
+         csg::Point3f         normal;
+         csg::Point3          brick;
+         om::EntityRef        entity;
+      };
 
-      int numResults() const;
-      bool isValid() const;
-      
-      const csg::Point3f intersectionOf(uint i) const;
-      const csg::Point3f normalOf(uint i) const;
-      dm::ObjectId objectIdOf(uint i) const;
-      const csg::Point3 brickOf(uint i) const; 
-      bool isValidBrick(uint i) const;
+   public:
+      RaycastResult(csg::Ray3 const& ray);
 
-      const csg::Ray3 ray() const;
+      int GetNumResults() const;
+      Result GetResult(uint i) const;
+      std::vector<Result> const& GetResults() const;
+      csg::Ray3 const& GetRay() const;
 
-      void addIntersection(const csg::Point3f& point, const csg::Point3f& normal, dm::ObjectId objId);
-      void setRay(const csg::Ray3& ray);
+      void AddResult(csg::Point3f const &intersection, csg::Point3f const& normal, csg::Point3 const& brick, om::EntityRef entity);
 
    private:
-      std::vector<csg::Point3f> _intersections;
-      std::vector<csg::Point3f> _normals;
-      std::vector<dm::ObjectId> _objIds;
-      std::vector<csg::Point3>  _bricks;
-      csg::Ray3                 _ray;
+      std::vector<Result>  _results;
+      csg::Ray3            _ray;
 };
 
 END_RADIANT_CLIENT_NAMESPACE

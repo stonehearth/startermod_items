@@ -30,7 +30,7 @@ void RegionCollisionShapeTracker::Initialize()
    CollisionTracker::Initialize();
 
    om::RegionCollisionShapePtr rcs = rcs_.lock();
-   if (rcs) {
+   if (rcs) { 
       SetRegionTrace(rcs->TraceRegion("nav grid", GetNavGrid().GetTraceCategory()));
    }
 }

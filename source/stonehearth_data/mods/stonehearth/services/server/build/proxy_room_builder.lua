@@ -92,8 +92,8 @@ end
 
 function ProxyRoomBuilder:_on_mouse_event(e)
    local query = _radiant.client.query_scene(e.x, e.y)
-   if query:is_valid() then
-      local location = query:intersection_of(0)
+   if query:get_result_count() > 0 then
+      local location = query:get_result(0).intersection
       self:move_to(location:to_int())
       if e:up(1) then
          self:publish()

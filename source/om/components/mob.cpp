@@ -38,19 +38,11 @@ void Mob::MoveToGridAligned(const csg::Point3& location)
 
 void Mob::SetRotation(csg::Quaternion const& orientation)
 {
-#if 1
-   //Like TurnToAngle, have to rotate 180 degrees
-   csg::Quaternion orientation_rotated = orientation * csg::Quaternion(0, 0, 1, 0);
-   transform_.Modify([&](csg::Transform& t) {
-      t.orientation = orientation_rotated;
-   });
-#else
    // This seems to be the proper implemenation, but doesn't work at all.  Why?
-   NOT_TESTED();
+   // NOT_TESTED();
    transform_.Modify([&](csg::Transform& t) {
       t.orientation = orientation;
    });
-#endif
 }
 
 float Mob::GetFacing() const
