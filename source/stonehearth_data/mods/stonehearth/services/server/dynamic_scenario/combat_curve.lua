@@ -18,6 +18,10 @@ function CombatCurve:__init(min_threshold, max_threshold, decay_constant, cooldo
   radiant.events.listen(radiant, 'stonehearth:combat_stuff', self, self._on_combat_event)
 end
 
+function CombatCurve:get_scenario_type()
+  return 'COMBAT'
+end
+
 function CombatCurve:get_current_value()
   return self._current_value
 end
@@ -38,7 +42,7 @@ function CombatCurve:_decay(value)
   return value * self._decay_constant
 end
 
-function CombatCurve:update()
+function CombatCurve:update(now)
   -- Accumulate current tick's value with our decayed current value.
   -- This implies that 'compute_value' should always give you the tick's value--a delta,
   -- in other words.  
@@ -68,7 +72,7 @@ end
 -- COMBAT SPECIFIC FUNCTIONS *******************************************************************
 -- *********************************************************************************************
 function CombatCurve:_on_combat_event(e)
-  self._combat_value = self._combat_value + f(e)
+  self._combat_value = self._combat_value -- + f(e)
 end
 
 -- API function

@@ -25,6 +25,37 @@ function DynamicScenarioService:initialize()
    self:_parse_scenario_index()
 end
 
+-- At this point, the DM wants to spawn a scenario of kind 'scenario_type'.  Look
+-- through our list of scenarios for that type, and see if we find one that we
+-- can spawn.
+function DynamicScenarioService:try_spawn_scenario(scenario_type)
+   local valid_scenarios = {}
+   for _, scenario in pairs(self._scenarios[scenario_type]) do
+      local valid_scenario = true
+      for _, implementing_type in pairs(scenario.scenario_types) do
+         if not self._scenario_spawners[implementing_type]:applicable_scenario(scenario) or 
+            not scenario.can_spawn() then
+            valid_scenario = false
+            break
+         end
+      end
+      if valid_scenario then
+         table.insert(valid_scenarios, valid_scenario)
+      end
+   end
+
+   if #valid_scenarios < 1 then
+      return
+   end
+
+   local scenario_idx = rng:get_int(1, #valid_scenarios)
+
+   local new_scenario = self:_init_scenario(valid_scenarios[scenario_idx], nil)
+   new_scenario:start()
+   table.insert(self._sv.running_scenarios, new_scenario)
+   self.__saved_variables:mark_changed()
+end
+
 
 function DynamicScenarioService:spawn_scenario(scenario_kind, scenario_difficulty_min, scenario_difficulty_max)
    local scenarios = self._scenarios[scenario_kind]
