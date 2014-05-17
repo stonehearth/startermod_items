@@ -1,0 +1,6 @@
+{
+   "name" : "Goblin Thief",
+   "category" : "combat",
+   "difficulty" : 1,
+   "script" : "file(goblin_thief.lua)"
+}

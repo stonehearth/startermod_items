@@ -1,4 +1,4 @@
-local Spawner = class()
+local GoblinThief = class()
 local rng = _radiant.csg.get_default_rng()
 
 --[[ 
@@ -8,7 +8,7 @@ To wit: spawn a little thief, somewhere just outside the explored area.  And the
 and forth stealing wood (probably should just be from the stockpile, but for now, anywhere.)
 
 ]]
-function Spawner:__init(saved_variables)
+function GoblinThief:__init(saved_variables)
    self.__saved_variables = saved_variables
    self._sv = self.__saved_variables:get_data()
 
@@ -26,7 +26,7 @@ function Spawner:__init(saved_variables)
    end
 end
 
-function Spawner:start()
+function GoblinThief:start()
    -- Begin hack #1: We want some reasonable place to put faction initialization; in some random scenario
    -- is likely not the correct place.
    local session = {
@@ -52,12 +52,12 @@ function Spawner:start()
    self:_schedule_next_spawn(rng:get_int(3600 * 5, 3600 * 10))
 end
 
-function Spawner:_attach_listeners()
+function GoblinThief:_attach_listeners()
    radiant.events.listen(self._sv._stockpile, 'stonehearth:item_added', self, self._item_added)
    radiant.events.listen(self._sv._goblin, 'radiant:entity:pre_destroy', self, self._goblin_killed)
 end
 
-function Spawner:_add_restock_task()
+function GoblinThief:_add_restock_task()
    local s_comp = self._sv._stockpile:get_component('stonehearth:stockpile')
    self._sv._goblin:get_component('stonehearth:ai')
       :get_task_group('stonehearth:work')
@@ -69,13 +69,13 @@ function Spawner:_add_restock_task()
    self.__saved_variables:mark_changed()
 end
 
-function Spawner:_schedule_next_spawn(t)
+function GoblinThief:_schedule_next_spawn(t)
    stonehearth.calendar:set_timer(t, function()
          self:_on_spawn_jerk()
       end)
 end
 
-function Spawner:_on_spawn_jerk()
+function GoblinThief:_on_spawn_jerk()
    self._sv._goblin = self._population:create_new_citizen()
    local spawn_point = stonehearth.spawn_region_finder:find_point_outside_civ_perimeter_for_entity(self._sv._goblin, 80)
 
@@ -99,7 +99,7 @@ function Spawner:_on_spawn_jerk()
    self.__saved_variables:mark_changed()
 end
 
-function Spawner:_goblin_killed(e)
+function GoblinThief:_goblin_killed(e)
    radiant.events.unlisten(self._sv._stockpile, 'stonehearth:item_added', self, self._item_added)
    radiant.events.unlisten(self._sv._goblin, 'radiant:entity:pre_destroy', self, self._goblin_killed)
 
@@ -112,7 +112,7 @@ function Spawner:_goblin_killed(e)
    radiant.events.trigger(self, 'stonehearth:dynamic_scenario:finished')
 end
 
-function Spawner:_item_added(e)
+function GoblinThief:_item_added(e)
    local s_comp = self._sv._stockpile:get_component('stonehearth:stockpile')
    if self._sv._stockpile:is_valid() and s_comp:is_full() and self._sv._goblin:is_valid() then
       self._sv._goblin:get_component('stonehearth:ai')
@@ -128,4 +128,4 @@ function Spawner:_item_added(e)
    end
 end
 
-return Spawner
+return GoblinThief
