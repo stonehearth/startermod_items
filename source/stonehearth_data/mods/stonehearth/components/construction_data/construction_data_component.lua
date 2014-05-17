@@ -27,6 +27,25 @@ function ConstructionDataComponent:initialize(entity, json)
    end
 end
 
+function ConstructionDataComponent:begin_editing(other_cd)
+   self._sv.normal = other_cd._sv.normal and Point3(other_cd._sv.normal) or nil
+   self._sv.nine_grid_region = other_cd._sv.nine_grid_region and Region2(other_cd._sv.nine_grid_region) or nil
+   self._sv.type = other_cd._sv.type
+   self._sv.material = other_cd._sv.material
+   self._sv.use_custom_renderer = other_cd._sv.use_custom_renderer
+   self._sv.needs_scaffolding = other_cd._sv.needs_scaffolding
+   self._sv.max_workers = other_cd._sv.max_workers
+   self._sv.allow_diagonal_adjacency = other_cd._sv.allow_diagonal_adjacency
+   self._sv.project_adjacent_to_base = other_cd._sv.project_adjacent_to_base
+   self._sv.allow_crouching_construction = other_cd._sv.allow_crouching_construction
+   self._sv.paint_mode = other_cd._sv.paint_mode
+   self._sv.brush = other_cd._sv.brush
+
+
+   self._sv.fabricator_entity = nil -- other_cd._sv.fabricator_entity
+   self._sv.building_entity = nil -- other_cd._sv.building_entity
+end
+
 function ConstructionDataComponent:get_use_custom_renderer()
    return self._sv.use_custom_renderer
 end
@@ -74,6 +93,10 @@ function ConstructionDataComponent:get_max_workers()
       return self._sv.max_workers
    end
    return 4 -- completely arbitrary!  add a config option?
+end
+
+function ConstructionDataComponent:get_fabricator_entity()
+   return self._sv.fabricator_entity
 end
 
 function ConstructionDataComponent:set_fabricator_entity(fentity)
