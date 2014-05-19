@@ -55,28 +55,11 @@ float Mob::GetFacing() const
    // this method currently only makes sense for rotations about the y axis
    ASSERT(axis == csg::Point3f::zero || std::abs(std::abs(axis.y) - 1.0f) < csg::k_epsilon);
 
-   degrees = radians / csg::k_pi * 180.0f;
-
-   // xxx - resources are currently loaded looking down the positive z
-   // axis.  we really want to look down the negative z axix, so just
-   // rotate by an additional 180 degrees.
-   degrees += 180;
-   if (degrees >= 360) {
-      degrees -= 360;
-   }
-
-   return degrees;
+   return radians / csg::k_pi * 180.0f;
 }
 
 void Mob::TurnTo(float angle)
 {
-   // xxx - resources are currently loaded looking down the positive z
-   // axis.  we really want to look down the negative z axix, so just
-   // rotate by an additional 180 degrees.
-   angle += 180;
-   if (angle >= 360) {
-      angle -= 360;
-   }
    csg::Quaternion q(csg::Point3f::unitY, angle / 180.0f * csg::k_pi);
    transform_.Modify([&](csg::Transform& t) {
       t.orientation = q;
@@ -87,15 +70,11 @@ void Mob::TurnToFacePoint(const csg::Point3& location)
 {
    csg::Point3f position = GetWorldLocation();
    csg::Point3f v = csg::ToFloat(location) - position;
+   csg::Point3f forward(0, 0, 1);
 
-   float angle = (float)(atan2(v.z, -v.x) - atan2(-1, 0));
-
-   // xxx - resources are currently loaded looking down the positive z
-   // axis.  we really want to look down the negative z axix, so just
-   // rotate by an additional 180 degrees.
-   angle += csg::k_pi;
-   if (angle >= 2 * csg::k_pi) {
-      angle -= 2 * csg::k_pi;
+   float angle = (float)(atan2(-v.z, v.x) - atan2(-forward.z, forward.x));
+   if (angle < 0)  {
+      angle += 2 * csg::k_pi;
    }
 
    M_LOG(5) << "turning entity " << GetEntity().GetObjectId() << " to face " << location;

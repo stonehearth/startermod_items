@@ -83,7 +83,12 @@ int FollowPath::CalculateStopIndex(csg::Point3f const& startLocation, std::vecto
 
 static float angle(const csg::Point3f &v)
 {
-   return (float)(atan2(v.z, -v.x) - atan2(-1, 0));
+   csg::Point3f forward(0, 0, 1);
+   float angle = (float)(atan2(-v.z, v.x) - atan2(-forward.z, forward.x));
+   if (angle < 0)  {
+      angle += 2 * csg::k_pi;
+   }
+   return angle;
 }
 
 bool FollowPath::Work(const platform::timer &timer)
@@ -113,7 +118,6 @@ bool FollowPath::Work(const platform::timer &timer)
          mob->MoveTo(current + (direction * (moveDistance / goalDistance)));
          moveDistance = 0;
       }
-
       mob->TurnTo(angle(direction) * 180 / csg::k_pi);
    }
 
