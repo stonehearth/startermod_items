@@ -78,10 +78,9 @@ function ScaffoldingRenderer:_update_shape()
    -- the scaffolding normal contained in the stonehearth:construction_data component.
    self._tangent = 'x'
    self._rotation = 0
-   local datastore = self._entity:get_component('stonehearth:construction_data')
-   if datastore then
-      local construction_data = datastore:get_data()
-      local normal = construction_data.normal
+   local cd = self._entity:get_component('stonehearth:construction_data')
+   if cd then
+      local normal = cd:get_normal()
       if normal then
          self._rotation = voxel_brush_util.normal_to_rotation(normal)
          self._tangent = normal.x == 0 and 'x' or 'z'

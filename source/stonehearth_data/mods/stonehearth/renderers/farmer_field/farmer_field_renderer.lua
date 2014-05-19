@@ -6,18 +6,18 @@ local Point2 = _radiant.csg.Point2
 
 local FarmerFieldRenderer = class()
 
-function FarmerFieldRenderer:__init(render_entity, datastore)
+function FarmerFieldRenderer:initialize(render_entity, datastore)
+   self._datastore = datastore
    self._color = Color4(122, 40, 0, 76)
    self._items = {}
 
    radiant.events.listen(radiant, 'stonehearth:ui_mode_changed', self, self._ui_mode_changed)
    self._parent_node = render_entity:get_node()
    self._size = { 0, 0 }   
-   self._datastore = datastore
    self._region = _radiant.client.alloc_region2()
    self._ui_view_mode = stonehearth.renderer:get_ui_mode()
 
-   self._datastore_trace = datastore:trace_data('rendering farmer field designation')
+   self._datastore_trace = self._datastore:trace_data('rendering farmer field designation')
    self._datastore_trace:on_changed(function()
          self:_update()
       end)

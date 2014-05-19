@@ -9,7 +9,7 @@ using namespace ::radiant::client;
 
 #define LC_LOG(level)      LOG(renderer.lua_component, level)
 
-RenderLuaComponent::RenderLuaComponent(RenderEntity& entity, std::string const& name, luabind::object datastore) :
+RenderLuaComponent::RenderLuaComponent(RenderEntity& entity, std::string const& name, om::DataStorePtr datastore) :
    entity_(entity)
 {
    size_t offset = name.find(':');
@@ -32,7 +32,15 @@ RenderLuaComponent::RenderLuaComponent(RenderEntity& entity, std::string const& 
             ctor = luabind::object(L, ctor);
 
             std::weak_ptr<RenderEntity> re = entity.shared_from_this();
-            component_renderer_ = ctor(re, datastore);
+            component_renderer_ = ctor();
+            luabind::object fn = component_renderer_["initialize"];
+            if (fn) {
+               luabind::object controller = datastore->GetController().GetLuaObject();
+               if (!controller) {
+                  controller = luabind::object(L, datastore);
+               }
+               fn(component_renderer_, re, controller);
+            }
          } catch (std::exception const& e) {
             script->ReportCStackThreadException(L, e);
          }

@@ -180,9 +180,9 @@ end
 
 function FarmingService:_register_score_functions()
    --If the entity is a farm, register the score
-   stonehearth.score:add_net_worth_eval_function('agriculture', function(entity, net_worth_score)
+   stonehearth.score:add_aggregate_eval_function('net_worth', 'agriculture', function(entity, agg_score_bag)
       if entity:get_component('stonehearth:farmer_field') then
-         net_worth_score.agriculture = net_worth_score.agriculture + self:_get_score_for_farm(entity)
+         agg_score_bag.agriculture = agg_score_bag.agriculture + self:_get_score_for_farm(entity)
       end
    end)
 end

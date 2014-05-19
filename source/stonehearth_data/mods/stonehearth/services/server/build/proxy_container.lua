@@ -92,7 +92,7 @@ end
 function ProxyContainer:_add_nobuild_zone(entity, origin, cursor)
    local datastore = entity:get_component('stonehearth:construction_data')
    if datastore then
-      local fabinfo = datastore:get_data()
+      local fabinfo = datastore.__saved_variables:get_data()
       local offset = entity:get_component('mob'):get_world_grid_location() - origin
       local region = entity:get_component('destination'):get_region():get()
 

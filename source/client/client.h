@@ -18,6 +18,7 @@
 #include "core/singleton.h"
 #include "chromium/chromium.h"
 #include "lib/lua/lua.h"
+#include "lib/lua/controller_object.h"
 #include "lib/json/node.h"
 #include "lib/rpc/forward_defines.h"
 #include "core/input.h"
@@ -163,6 +164,8 @@ class Client : public core::Singleton<Client> {
       void CreateGame();
       void CreateErrorBrowser();
       void ReportLoadProgress();
+      void TraceLuaComponents(om::EntityPtr entity);
+      void ConstructLuaComponents();
 
 private:
       /*
@@ -244,7 +247,8 @@ private:
       dm::TracerSyncPtr           authoring_object_model_traces_;
       dm::TracerBufferedPtr       authoring_render_tracer_;
       dm::ReceiverPtr             receiver_;
-      dm::TracePtr                authoring_store_alloc_trace_;
+      dm::StoreTracePtr           authoring_store_alloc_trace_;
+      dm::StoreTracePtr           game_store_alloc_trace_;
       dm::TracePtr                selected_trace_;
       dm::TracePtr                root_object_trace_;
       std::shared_ptr<rpc::TraceObjectRouter> trace_object_router_;
@@ -258,6 +262,9 @@ private:
       int                         networkUpdatesCount_;
       int                         networkUpdatesExpected_;
       bool                        debug_track_object_lifetime_;
+      std::vector<om::EntityRef>  entities_to_trace_;
+      std::unordered_map<dm::ObjectId, std::unordered_map<std::string, lua::ControllerObject>> client_components_;
+      std::vector<dm::TracePtr>   lua_component_traces_;
 };
 
 END_RADIANT_CLIENT_NAMESPACE

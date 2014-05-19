@@ -57,25 +57,25 @@ end
 --Score functions related to inventory (goods you've built, stocked and crafted)
 function InventoryService:_register_score_functions()
    --eval function for buildings
-   stonehearth.score:add_net_worth_eval_function('buildings', function(entity, net_worth_score)
+   stonehearth.score:add_aggregate_eval_function('net_worth', 'buildings', function(entity, agg_score_bag)
       if entity:get_component('stonehearth:construction_data') then
-         net_worth_score.buildings = net_worth_score.buildings + self:_get_score_for_building(entity)
+         agg_score_bag.buildings = agg_score_bag.buildings + self:_get_score_for_building(entity)
       end
    end)
 
    --eval function for placed items
-   stonehearth.score:add_net_worth_eval_function('placed_item', function(entity, net_worth_score)
+   stonehearth.score:add_aggregate_eval_function('net_worth', 'placed_item', function(entity, agg_score_bag)
       if entity:get_component('stonehearth:placed_item') then
          -- TODO: add higher scores to some things, otherwise they all count as 1
-         net_worth_score.placed_item = net_worth_score.placed_item + 1
+         agg_score_bag.placed_item = agg_score_bag.placed_item + 1
       end
    end)
 
    --eval function for stockpiles
-   stonehearth.score:add_net_worth_eval_function('stocked_resources', function(entity, net_worth_score)
+   stonehearth.score:add_aggregate_eval_function('net_worth', 'stocked_resources', function(entity, agg_score_bag)
       if entity:get_component('stonehearth:stockpile') then
          -- TODO: add higher scores to some things, otherwise they all count as 1
-         net_worth_score.stocked_resources = net_worth_score.stocked_resources + self:_get_score_for_stockpile(entity)
+         agg_score_bag.stocked_resources = agg_score_bag.stocked_resources + self:_get_score_for_stockpile(entity)
       end
    end)
 end

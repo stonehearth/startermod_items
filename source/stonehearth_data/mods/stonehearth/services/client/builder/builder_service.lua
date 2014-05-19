@@ -112,11 +112,11 @@ function Builder:_package_proxy(proxy)
    
    -- Package up the stonehearth:construction_data component.  This is almost
    -- trivial, but not quite.
-   local datastore = entity:get_component('stonehearth:construction_data')
-   if datastore then
+   local cd = entity:get_component('stonehearth:construction_data')
+   if cd then
       -- remove the paint_mode.  we just set it here so the blueprint
       -- would be rendered differently
-      local data = datastore:get_data()
+      local data = cd.__saved_variables:get_data()
       data.paint_mode = nil
       package.components['stonehearth:construction_data'] = data
    end

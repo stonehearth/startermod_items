@@ -79,8 +79,9 @@ void RenderEntity::FinishConstruction()
                                           RemoveComponent(name);
                                        })
                                        ->PushObjectState();
+
       lua_components_trace_ = entity->TraceLuaComponents("render", dm::RENDER_TRACES)
-                                       ->OnAdded([this](std::string const& name, luabind::object obj) {
+                                       ->OnAdded([this](std::string const& name, om::DataStorePtr obj) {
                                           AddLuaComponent(name, obj);
                                        })
                                        ->OnRemoved([this](std::string const& name) {
@@ -261,7 +262,7 @@ void RenderEntity::AddComponent(std::string const& name, std::shared_ptr<dm::Obj
    }
 }
 
-void RenderEntity::AddLuaComponent(std::string const& name, luabind::object obj)
+void RenderEntity::AddLuaComponent(std::string const& name, om::DataStorePtr obj)
 {
    auto i = components_.find(name);
    if (i != components_.end()) {

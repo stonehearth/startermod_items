@@ -25,6 +25,22 @@ luabind::object ControllerObject::GetLuaObject() const
    return lua_object_;
 }
 
+void ControllerObject::DestroyLuaObject() const
+{
+   if (lua_object_) {
+      lua_State* L = lua::ScriptHost::GetCallbackThread(lua_object_.interpreter());
+      try {
+         luabind::object destroy = lua_object_["destroy"];
+         if (destroy) {
+            luabind::object cb(L, destroy);
+            cb(lua_object_);
+         }
+      } catch (std::exception const& e) {
+         lua::ScriptHost::ReportCStackException(L, e);
+      }
+   }
+}
+
 void ControllerObject::SetLuaObject(luabind::object obj) const {
    lua_object_ = obj;
 }

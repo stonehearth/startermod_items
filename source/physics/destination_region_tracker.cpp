@@ -8,7 +8,6 @@
 using namespace radiant;
 using namespace radiant::phys;
 
-   
 /* 
  * -- DestinationRegionTracker::DestinationRegionTracker
  *

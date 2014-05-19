@@ -18,6 +18,13 @@ function Wall:initialize(entity, json)
    end
 end
 
+function Wall:begin_editing(other_wall)
+   self._sv.start_pt = Point3(other_wall._sv.start_pt)
+   self._sv.end_pt = Point3(other_wall._sv.end_pt)
+   self.__saved_variables:mark_changed()
+   return self
+end
+
 -- make the destination region match the shape of the column.  layout
 -- should be called sometime after doing something which could change
 -- the wall shape, but before anyone else depends on that shape.  to
@@ -25,7 +32,7 @@ end
 -- is useful (e.g. connect_to(), attach_to_roof())
 -- 
 function Wall:layout()
-   local building = self._entity:get_component('mob'):get_parent()
+   local building = self._entity:add_component('mob'):get_parent()
 
    local start_pt, end_pt = self._sv.start_pt, self._sv.end_pt
 

@@ -37,7 +37,7 @@ function Floor:merge_with(old_floor)
    assert(old_floor:get_component('stonehearth:floor'))
    assert(old_floor:add_component('mob'):get_parent() == self._entity:add_component('mob'):get_parent())
 
-   local floor_location = radiant.entities.get_location_aligned(floor)
+   local floor_location = radiant.entities.get_location_aligned(self._entity)
    local floor_offset = radiant.entities.get_location_aligned(old_floor) - floor_location
    local old_floor_region = old_floor:get_component('destination'):get_region()
 
