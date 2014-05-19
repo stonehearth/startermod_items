@@ -165,6 +165,7 @@ var StonehearthClient;
       },
 
       buildWall: function() {
+         radiant.call('radiant:play_sound', 'stonehearth:sounds:ui:start_menu:popup' );
          var self = this;
 
          $(top).trigger('radiant_show_tip', { 
@@ -182,6 +183,7 @@ var StonehearthClient;
       },
 
       buildFloor: function() {
+         radiant.call('radiant:play_sound', 'stonehearth:sounds:ui:start_menu:popup' );
          var self = this;
 
          $(top).trigger('radiant_show_tip', { 
@@ -250,6 +252,7 @@ var StonehearthClient;
       },
 
       buildRoom: function() {
+         radiant.call('radiant:play_sound', 'stonehearth:sounds:ui:start_menu:popup' );
          var self = this;
          return this._callTool(function() {
             return radiant.call_obj(self._build_editor, 'create_room');
