@@ -1,6 +1,6 @@
 local log = radiant.log.create_logger('selection_service')
 local XZRegionSelector = require 'services.client.selection.xz_region_selector'
-local PlaceLocationSelector = require 'services.client.selection.place_location_selector'
+local LocationSelector = require 'services.client.selection.location_selector'
 local SelectionService = class()
 
 function SelectionService:initialize()
@@ -40,8 +40,8 @@ function SelectionService:select_xz_region()
    return XZRegionSelector()
 end
 
-function SelectionService:select_place_location()
-   return PlaceLocationSelector()
+function SelectionService:select_location()
+   return LocationSelector()
 end
 
 function SelectionService:_on_mouse_input(e)

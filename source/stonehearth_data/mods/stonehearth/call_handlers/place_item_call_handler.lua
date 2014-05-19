@@ -21,7 +21,7 @@ function PlaceItemCallHandler:choose_place_item_location(session, response, targ
       target_entity_data = target_entity:get_id()
    end
    
-   stonehearth.selection.select_place_location()
+   stonehearth.selection.select_location()
       :use_ghost_entity_cursor(entity_uri)
       :done(function(selector, location, rotation)
             _radiant.call(next_call, target_entity_data, entity_uri, location, rotation)
@@ -37,7 +37,7 @@ function PlaceItemCallHandler:choose_place_item_location(session, response, targ
          end)
       :fail(function(selector)
             selector:destroy()
-            response:reject('no region')
+            response:reject('no location')
          end)
       :go()
 end
