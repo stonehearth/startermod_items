@@ -23,7 +23,7 @@ RenderTerrain::RenderTerrain(const RenderEntity& entity, om::TerrainPtr terrain)
    terrain_(terrain)
 {  
    terrain_root_node_ = H3DNodeUnique(h3dAddGroupNode(entity_.GetNode(), "terrain root node"));
-   selected_guard_ = Renderer::GetInstance().TraceSelected(terrain_root_node_.get(), entity_.GetObjectId());
+   selected_guard_ = Renderer::GetInstance().SetSelectionForNode(terrain_root_node_.get(), entity_.GetEntity());
 
    if (tess_map.empty()) {
       grass_ring_info_.rings.emplace_back(LayerDetailRingInfo::Ring(4, GrassDetailBase));

@@ -3,6 +3,7 @@
 #include "om/region.h"
 #include "om/json.h"
 #include "om/components/mob.ridl.h"
+#include "om/components/region_collision_shape.ridl.h"
 #include "om/components/model_layer.ridl.h"
 #include "om/components/target_table_entry.ridl.h"
 #include "csg/color.h"
@@ -23,6 +24,7 @@
    BOXED(om::EntityPtr) \
    BOXED(om::MobRef) \
    BOXED(om::Mob::MobCollisionTypes) \
+   BOXED(om::RegionCollisionShape::RegionCollisionTypes) \
    BOXED(om::ModelLayer::Layer) \
    BOXED(om::TargetTableEntryPtr) \
    CREATE_BOXED(om::JsonBoxed) \

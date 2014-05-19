@@ -128,20 +128,22 @@ void XZRegionSelector::SelectP1(const MouseInput &me)
 
 bool XZRegionSelector::GetHoverBrick(int x, int y, csg::Point3 &pt)
 {
-   RaycastResult castResult;
-
-   Renderer::GetInstance().QuerySceneRay(x, y, _userFlags, castResult);
-   if (castResult.numResults() == 0) {
+   RaycastResult castResult = Renderer::GetInstance().QuerySceneRay(x, y, _userFlags);
+   if (castResult.GetNumResults() == 0) {
       return false;
    }
 
    // Compare the very first intersection with the terrain.
-   if (castResult.objectIdOf(0) != _terrain->GetEntity().GetObjectId()) {
+   RaycastResult::Result r = castResult.GetResult(0);
+   om::EntityPtr entity = r.entity.lock();
+   if (!entity || entity->GetObjectId() != _terrain->GetEntity().GetObjectId()) {
       return false;
    }
+   csg::Point3f fbrick(0, 0, 0);
+   LOG_(0) << "i:" << r.intersection << " n:" << r.normal << " b:" << fbrick << ", " << r.brick;
 
    // add in the normal to get the adjacent brick
-   pt = csg::ToInt(csg::ToFloat(castResult.brickOf(0)) + castResult.normalOf(0));
+   pt = r.brick + csg::ToInt(r.normal);
 
    return true;
 }

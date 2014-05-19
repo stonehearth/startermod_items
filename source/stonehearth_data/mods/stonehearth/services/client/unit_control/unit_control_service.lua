@@ -32,14 +32,14 @@ function UnitControlService:_on_mouse_input(e)
 end
 
 function UnitControlService:_move_unit(e)
-   local selected_entity = _radiant.client.get_selected_entity()
+   local selected_entity = stonehearth.selection:get_selected()
    if selected_entity then
       local move_location
       local ray = _radiant.renderer.scene.cast_screen_ray(e.x, e.y)
       local screen_ray = _radiant.renderer.scene.get_screen_ray(e.x, e.y)
 
-      if ray:is_valid() then
-         move_location = ray:intersection_of(0)
+      if ray:get_result_count() > 0 then
+         move_location = ray:get_result(0).intersection
       else 
          move_location = screen_ray.origin
       end

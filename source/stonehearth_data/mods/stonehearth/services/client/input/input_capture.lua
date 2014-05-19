@@ -23,7 +23,7 @@ function InputCapture:_is_destroyed()
 end
 
 -- dispatch the event to one of our registered handlers
-function InputCapture:_dispatch(e)
+function InputCapture:_dispatch(e)  
   if e.type == _radiant.client.Input.MOUSE then
     if self._mouse_cb then
       return self._mouse_cb(e.mouse)

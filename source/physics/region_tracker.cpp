@@ -59,7 +59,7 @@ void RegionTracker::MarkChanged()
    if (region) {
       csg::Cube3 bounds = region->Get().GetBounds();
       bounds.Translate(GetEntityPosition());
-      GetNavGrid().AddCollisionTracker(last_bounds_, bounds, shared_from_this());
+      GetNavGrid().OnTrackerBoundsChanged(last_bounds_, bounds, shared_from_this());
       last_bounds_ = bounds;
    }
 }

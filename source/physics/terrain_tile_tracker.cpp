@@ -39,7 +39,7 @@ void TerrainTileTracker::MarkChanged()
 
       // xxx: we could just always pass in the bounding box of the terrain tile, but that's difficult
       // to complicate until the tile terrain branch gets pushed... (sigh)
-      GetNavGrid().AddCollisionTracker(last_bounds_, bounds, shared_from_this());
+      GetNavGrid().OnTrackerBoundsChanged(last_bounds_, bounds, shared_from_this());
       last_bounds_ = bounds;
    }
 }

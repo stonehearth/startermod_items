@@ -60,7 +60,7 @@ RenderEntity::RenderEntity(H3DNode parent, om::EntityPtr entity) :
    skeleton_.SetSceneNode(node_.get());
 
    // xxx: convert to something more dm::Trace like...
-   renderer_guard_ += Renderer::GetInstance().TraceSelected(node_.get(), entity_id_);
+   selection_guard_ = Renderer::GetInstance().SetSelectionForNode(node_.get(), entity);
 
    query_flags_ = 0;
 }

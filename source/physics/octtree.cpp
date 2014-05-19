@@ -151,7 +151,7 @@ void OctTree::GetActorsIn(const csg::Cube3f &bounds, QueryCallback cb)
 
 void OctTree::TraceRay(const csg::Ray3 &ray, RayQueryCallback cb)
 {
-   //ASSERT(rootObject_);
+   //ASSERT(rootEntity_);
 
    auto filter = [ray, cb](om::EntityPtr entity) -> bool {
       float t;
@@ -425,8 +425,8 @@ void OctTree::OnObjectCreated(om::EntityPtr entity)
 
 void OctTree::OnObjectDestroyed(dm::ObjectId id)
 {
-   if (rootObject_ && id == rootObject_->GetObjectId()) {
-      rootObject_ = nullptr;
+   if (rootEntity_ && id == rootEntity_->GetObjectId()) {
+      rootEntity_ = nullptr;
    }
 }
 #endif

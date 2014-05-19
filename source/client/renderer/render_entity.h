@@ -82,7 +82,7 @@ protected:
       ComponentMap      components_;
       LuaComponentMap   lua_invariants_;
       bool              initialized_;
-      core::Guard       renderer_guard_;
+      core::Guard       selection_guard_;
       dm::TracePtr      components_trace_;
       dm::TracePtr      lua_components_trace_;
       uint32            query_flags_;

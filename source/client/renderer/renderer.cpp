@@ -1051,65 +1051,82 @@ void Renderer::GetCameraToViewportRay(int viewportX, int viewportY, csg::Ray3* r
    }
 }
 
-void Renderer::CastRay(const csg::Point3f& origin, const csg::Point3f& direction, int userFlags, Renderer::_RayCastResults* results)
+void Renderer::CastRay(const csg::Point3f& origin, const csg::Point3f& direction, int userFlags, RayCastHitCb cb)
 {
-   results->num_results = 0;
-   results->ray = csg::Ray3(origin, direction);
-
    if (!rootRenderObject_) {
       return;
    }
 
-   results->num_results = h3dCastRay(rootRenderObject_->GetNode(),
-      origin.x, origin.y, origin.z,
-      direction.x, direction.y, direction.z, 10, userFlags);
+   int num_results = h3dCastRay(rootRenderObject_->GetNode(),
+                                origin.x, origin.y, origin.z,
+                                direction.x, direction.y, direction.z, 10, userFlags);
    
-   if (results->num_results == 0) {
-      return;
-   }
-
    // Pull out the intersection node and intersection point
-   for (int i = 0; i < results->num_results; i++) {
-      Renderer::_RayCastResult& result = results->results[i];
-      if (!h3dGetCastRayResult( i, &(result.node), 0, &(result.point.x), &(result.normal.x) )) {
-         return;
+   for (int i = 0; i < num_results; i++) {
+      H3DNode node;
+      csg::Point3f intersection, normal;
+      if (h3dGetCastRayResult(i, &node, 0, &intersection.x, &normal.x)) {
+         normal.Normalize();
+         cb(intersection, normal, node);
       }
-      result.normal.Normalize();
    }
 }
 
-void Renderer::QuerySceneRay(const csg::Point3f& origin, const csg::Point3f& direction, int userFlags, RaycastResult &result)
+RaycastResult Renderer::QuerySceneRay(const csg::Point3f& origin, const csg::Point3f& direction, int userFlags)
 {
-   Renderer::_RayCastResults r;
-   CastRay(origin, direction, userFlags, &r);
+   RaycastResult result(csg::Ray3(origin, direction));
 
-   result.setRay(r.ray);
-   if (r.num_results == 0) {
-      return;
-   }
+   CastRay(origin, direction, userFlags, [this, &result](csg::Point3f const& intersection, csg::Point3f const& normal, H3DNode node) {
 
-   for (int i = 0; i < r.num_results; i++) {
-      H3DNode node = r.results[i].node;
-      dm::ObjectId id = -1;
-
-      while (node) {
-         auto n = selectionLookup_.find(node);
-         if (n != selectionLookup_.end()) {
-            id = n->second;
+      // find the entity for the node that the ray hit.  walk up the hierarchy of nodes
+      // until we find one that has an Entity associated with it.
+      om::EntityRef entity;
+      H3DNode n = node;
+      while (n) {
+         auto i = selectionLookup_.find(n);
+         if (i != selectionLookup_.end()) {
+            entity = i->second;
             break;
          }
-         node = h3dGetNodeParent(node);
+         n = h3dGetNodeParent(n);
       }
-  
-      result.addIntersection(r.results[i].point, r.results[i].normal, id);
-   }
+
+      // Figure out the world voxel coordination of the intersection
+      csg::Point3 brick;
+      brick.x = csg::ToClosestInt(intersection.x);
+      brick.z = csg::ToClosestInt(intersection.z);
+      brick.y = csg::ToInt(intersection.y - (normal.y * 0.99f));
+#if 0
+      csg::Point3 brick;
+      csg::Matrix4 nodeTransform = GetNodeTransform(node);
+      nodeTransform.affine_inverse();
+      csg::Point3f brickNormal = nodeTransform.rotate(normal);
+      csg::Point3f brickIntersection = nodeTransform.transform(intersection);
+      for (int i = 0; i < 3; i++) {
+         // The brick origin is at the center of mass.  Adding 0.5f to the
+         // coordinate and flooring it should return a brick coordinate.
+         brick[i] = (int)std::floor(brickIntersection[i] + 0.5f);
+
+         // We want to choose the brick that the mouse is currently over.  The
+         // intersection point is actually a point on the surface.  So to get the
+         // brick, we need to move in the opposite direction of the normal
+         if (fabs(brickNormal[i]) > csg::k_epsilon) {
+            brick[i] += brickNormal[i] > 0 ? -1 : 1;
+         }
+      }
+#endif
+
+      result.AddResult(intersection, normal, brick, entity);
+   });
+
+   return result;
 }
 
-void Renderer::QuerySceneRay(int viewportX, int viewportY, int userFlags, RaycastResult &result)
+RaycastResult Renderer::QuerySceneRay(int viewportX, int viewportY, int userFlags)
 {
    csg::Ray3 ray;
    GetCameraToViewportRay(viewportX, viewportY, &ray);
-   QuerySceneRay(ray.origin, ray.direction, userFlags, result);
+   return QuerySceneRay(ray.origin, ray.direction, userFlags);
 }
 
 csg::Matrix4 Renderer::GetNodeTransform(H3DNode node) const
@@ -1206,16 +1223,6 @@ void* Renderer::GetNextUiBuffer()
 void* Renderer::GetLastUiBuffer()
 {
    return uiBuffer_.getLastUiBuffer();
-}
-
-csg::Matrix4 Renderer::GetTransformForObject(dm::ObjectId objId)
-{
-   const auto entity = Client::GetInstance().GetEntity(objId).get();
-   if (!entity) {
-      throw std::logic_error(BUILD_STRING("invalid entity id " << objId << "in Renderer::GetTransformForObject"));
-   }
-   H3DNode n = GetRenderObject(entity->GetStoreId(), entity->GetObjectId())->GetNode();
-   return GetNodeTransform(n);
 }
 
 std::shared_ptr<RenderEntity> Renderer::CreateRenderObject(H3DNode parent, om::EntityPtr entity)
@@ -1404,10 +1411,12 @@ void Renderer::OnFocusChanged(int wasFocused) {
    DispatchInputEvent();
 }
 
-core::Guard Renderer::TraceSelected(H3DNode node, dm::ObjectId objectId)
+core::Guard Renderer::SetSelectionForNode(H3DNode node, om::EntityRef entity)
 {
-   selectionLookup_[node] = objectId;
-   return core::Guard([=]() { selectionLookup_.erase(node); });
+   selectionLookup_[node] = entity;
+   return core::Guard([=]() {
+      selectionLookup_.erase(node);
+   });
 }
 
 H3DRes Renderer::GetPipeline(std::string const& name)

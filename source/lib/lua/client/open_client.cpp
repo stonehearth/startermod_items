@@ -26,21 +26,6 @@ using namespace ::radiant;
 using namespace ::radiant::client;
 using namespace luabind;
 
-om::EntityRef Client_GetEntity(object id)
-{
-   if (type(id) == LUA_TNUMBER) {
-      return Client::GetInstance().GetEntity(object_cast<int>(id));
-   }
-   if (type(id) == LUA_TSTRING) {
-      dm::Store& store = Client::GetInstance().GetStore();
-      dm::ObjectPtr obj = store.FetchObject<dm::Object>(object_cast<std::string>(id));
-      if (obj->GetObjectType() == om::EntityObjectType) {
-         return std::static_pointer_cast<om::Entity>(obj);
-      }
-   }
-   return om::EntityRef();
-}
-
 luabind::object Client_GetObject(lua_State* L, object id)
 {
    Client &client = Client::GetInstance();
@@ -66,29 +51,24 @@ luabind::object Client_GetObject(lua_State* L, object id)
    return lua_obj;
 }
 
-void Client_SelectEntity(lua_State* L, om::EntityRef e)
+void Client_SelectEntity(lua_State* L, luabind::object o)
 {
-   Client::GetInstance().SelectEntity(e.lock());
-}
-
-void Client_SelectEntityById(lua_State* L, dm::ObjectId objId)
-{
-   om::EntityPtr e = nullptr;
-
-   if (objId != 0) {
-      e = Client::GetInstance().GetEntity(objId);
+   om::EntityPtr entity;
+   boost::optional<om::EntityRef> e = object_cast_nothrow<om::EntityRef>(o);
+   if (e.is_initialized()) {
+      entity = e.get().lock();
    }
-   Client::GetInstance().SelectEntity(e);
+   Client::GetInstance().SelectEntity(entity);
 }
 
-void Client_HilightEntityById(lua_State* L, dm::ObjectId objId)
+void Client_HilightEntity(lua_State* L, luabind::object o)
 {
-   Client::GetInstance().HilightEntity(objId);
-}
-
-om::EntityRef Client_GetSelectedEntity()
-{
-   return Client::GetInstance().GetSelectedEntity();
+   om::EntityPtr entity;
+   boost::optional<om::EntityRef> e = object_cast_nothrow<om::EntityRef>(o);
+   if (e.is_initialized()) {
+      entity = e.get().lock();
+   }
+   Client::GetInstance().HilightEntity(entity);
 }
 
 RenderNodePtr Client_CreateVoxelNode(lua_State* L, 
@@ -238,9 +218,7 @@ std::weak_ptr<RenderEntity> Client_CreateRenderEntity(H3DNode parent, luabind::o
 static RaycastResult
 Client_QueryScene(lua_State* L, int x, int y)
 {
-   RaycastResult result;
-   Renderer::GetInstance().QuerySceneRay(x, y, 0, result);
-   return result;
+   return Renderer::GetInstance().QuerySceneRay(x, y, 0);
 }
 
 rpc::LuaDeferredPtr Client_SelectXZRegionWithFlags(lua_State* L, int userFlagMask)
@@ -469,9 +447,7 @@ void lua::client::open(lua_State* L)
          namespace_("client") [
             def("get_object",                      &Client_GetObject),
             def("select_entity",                   &Client_SelectEntity),
-            def("select_entity_by_id",             &Client_SelectEntityById),
-            def("hilight_entity_by_id",            &Client_HilightEntityById),
-            def("get_selected_entity",             &Client_GetSelectedEntity),
+            def("hilight_entity",                  &Client_HilightEntity),
             def("create_empty_authoring_entity",   &Client_CreateEmptyAuthoringEntity),
             def("create_authoring_entity",         &Client_CreateAuthoringEntity),
             def("destroy_authoring_entity",        &Client_DestroyAuthoringEntity),

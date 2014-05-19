@@ -25,20 +25,24 @@ end
 function MoveUnitCallHandler:_on_mouse_event(e, response)
    assert(self._input_capture, "got mouse event after releasing capture")
 
-   local s = _radiant.client.query_scene(e.x, e.y)
-
    -- s.location contains the address of the terrain block that the mouse
    -- is currently pointing to.  if there isn't one, move the workshop
    -- way off the screen so it won't get rendered.
-   local pt = s:is_valid() and s:is_valid_brick(0) and s:brick_of(0) or Point3(0, -100000, 0)
+   local pt, is_valid = Point3(0, -100000, 0), false
+   if s:get_result_count() > 0 then
+      pt = s:get_result(0).brick
+   end
 
+   -- we want the workbench to be on top of that block, so add 1 to y, then
+   -- move the cursor workshop to that location
    pt.y = pt.y + 1
    self._cursor_entity:add_component('mob'):set_location_grid_aligned(pt)
+
 
    -- if the mouse button just transitioned to up and we're actually pointing
    -- to a box on the terrain, send a message to the server to create the
    -- entity.  this is done by posting to the correct route.
-   if e:up(1) and s:is_valid() then     
+   if e:up(1) and is_valid then     
       _radiant.call('stonehearth:server_move_unit', self._entity:get_id(), pt)
                :always(function ()
                      -- whether the request succeeds or fails, go ahead and destroy

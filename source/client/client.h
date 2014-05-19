@@ -47,14 +47,13 @@ class Client : public core::Singleton<Client> {
       lua::ScriptHost* GetScriptHost() const { return scriptHost_.get(); }
       void BrowserRequestHandler(std::string const& uri, json::Node const& query, std::string const& postdata, rpc::HttpDeferredPtr response);
             
-      om::EntityPtr GetEntity(dm::ObjectId id);
+      //om::EntityPtr GetEntity(dm::ObjectId id);
       om::TerrainPtr GetTerrain();
 
       om::EntityRef GetSelectedEntity();
 
-      void SelectEntity(om::EntityPtr obj);
-      void SelectEntity(dm::ObjectId id);
-      void HilightEntity(dm::ObjectId objId);
+      void SelectEntity(om::EntityPtr entity);
+      void HilightEntity(om::EntityPtr entity);
 
       om::EntityPtr CreateEmptyAuthoringEntity();
       om::EntityPtr CreateAuthoringEntity(std::string const& uri);
@@ -113,7 +112,6 @@ class Client : public core::Singleton<Client> {
       bool CallInputHandlers(Input const& input);
       void InitiateFlushAndLoad();
 
-      void UpdateSelection(const MouseInput &mouse);
       void CenterMap(const MouseInput &mouse);
 
       void InstallCurrentCursor();
@@ -184,9 +182,9 @@ private:
 
       // remote object storage and tracking...
       std::unique_ptr<dm::Store>       store_;
-      om::EntityRef                    rootObject_;
-      om::EntityRef                    selectedObject_;
-      om::EntityRef                    hilightedObject_;
+      om::EntityRef                    rootEntity_;
+      om::EntityRef                    selectedEntity_;
+      om::EntityRef                    hilightedEntity_;
 
       // local authoring object storage and tracking...
       std::unique_ptr<dm::Store>       authoringStore_;

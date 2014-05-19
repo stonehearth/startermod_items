@@ -24,7 +24,7 @@ function FoodTest:__init()
    self:place_item('stonehearth:berry_basket', 0, 0)
    self:place_item('stonehearth:corn_basket', 1, 1)
    
-   self:at(10,  function()
+   self:at(10000,  function()
          worker:get_component('stonehearth:attributes'):set_attribute('calories', stonehearth.constants.food.MALNOURISHED)
          --self:place_stockpile_cmd(player_id, 8, 8, 4, 4)
       end)

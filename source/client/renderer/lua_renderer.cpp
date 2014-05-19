@@ -3,6 +3,7 @@
 #include "pipeline.h"
 #include "client/client.h"
 #include "lua_renderer.h"
+#include "csg/point.h"
 #include "h3d_resource_types.h"
 #include "lib/json/core_json.h"
 #include "lib/lua/register.h"
@@ -94,16 +95,12 @@ static csg::Ray3 Scene_GetScreenRay(double windowX, double windowY)
 
 static RaycastResult Scene_CastRay(const csg::Point3f& origin, const csg::Point3f& direction) 
 {
-   RaycastResult r;
-   Renderer::GetInstance().QuerySceneRay(origin, direction, 0, r);
-   return r;
+   return Renderer::GetInstance().QuerySceneRay(origin, direction, 0);
 }
 
 static RaycastResult Scene_CastScreenRay(double windowX, double windowY) 
 {
-   RaycastResult r;
-   Renderer::GetInstance().QuerySceneRay((int)windowX, (int)windowY, 0, r);
-   return r;
+   return Renderer::GetInstance().QuerySceneRay((int)windowX, (int)windowY, 0);
 }
 
 static int Screen_GetWidth() {
@@ -135,9 +132,16 @@ static void Renderer_EnablePerfLogging(bool enable)
    h3dSetOption(H3DOptions::EnableStatsLogging, enable ? 1.0f : 0.0f);
 }
 
-std::ostream& operator<<(std::ostream& os, const RaycastResult& in)
+std::ostream& operator<<(std::ostream& os, RaycastResult const& r)
 {
-   os << in.numResults();
+   os << "[RaycastResult of " << r.GetNumResults() << " results]";
+   return os;
+}
+
+std::ostream& operator<<(std::ostream& os, RaycastResult::Result const& r)
+{
+   os << "[intersection:" << r.intersection << " normal:" << r.normal
+      << " brick: " << r.brick << " entity:" << *r.entity.lock() << "]";
    return os;
 }
 
@@ -168,15 +172,18 @@ void LuaRenderer::RegisterType(lua_State* L)
                def("world_to_screen", &Camera_WorldToScreen)
             ],
             namespace_("scene") [
+               lua::RegisterType_NoTypeInfo<RaycastResult::Result>("RaycastResultEntry")
+                  .def_readwrite("intersection", &RaycastResult::Result::intersection)
+                  .def_readwrite("normal", &RaycastResult::Result::normal)
+                  .def_readwrite("brick", &RaycastResult::Result::brick)
+                  .def_readwrite("entity", &RaycastResult::Result::entity)
+               ,
                lua::RegisterType_NoTypeInfo<RaycastResult>("RaycastResult")
-                  .def("is_valid",          &RaycastResult::isValid)
-                  .def("num_results",       &RaycastResult::numResults)
-                  .def("intersection_of",   &RaycastResult::intersectionOf)
-                  .def("normal_of",         &RaycastResult::normalOf)
-                  .def("objectid_of",       &RaycastResult::objectIdOf)
-                  .def("brick_of",          &RaycastResult::brickOf)
-                  .def("is_valid_brick",    &RaycastResult::isValidBrick)
-                  .def("get_ray",           &RaycastResult::ray),
+                  .def("get_result_count",       &RaycastResult::GetNumResults)
+                  .def("each_result",       &RaycastResult::GetResults, return_stl_iterator)
+                  .def("get_ray",           &RaycastResult::GetRay)
+                  .def("get_result",        &RaycastResult::GetResult)
+               ,
                def("cast_screen_ray",    &Scene_CastScreenRay),
                def("cast_ray",           &Scene_CastRay),
                def("get_screen_ray",     &Scene_GetScreenRay)

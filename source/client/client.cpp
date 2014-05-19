@@ -776,8 +776,8 @@ void Client::InitializeGameObjects()
 void Client::ShutdownGameObjects()
 {
    Renderer::GetInstance().Shutdown();
-   rootObject_.reset();
-   hilightedObject_.reset();
+   rootEntity_.reset();
+   hilightedEntity_.reset();
    authoredEntities_.clear();
    
    game_clock_.reset();
@@ -929,7 +929,7 @@ void Client::mainloop()
 
 om::TerrainPtr Client::GetTerrain()
 {
-   om::EntityPtr rootObject = rootObject_.lock();   
+   om::EntityPtr rootObject = rootEntity_.lock();   
    return rootObject ? rootObject->GetComponent<om::Terrain>() : nullptr;
 }
 
@@ -979,10 +979,10 @@ void Client::EndUpdate(const proto::EndUpdate& msg)
       traceObjectRouter_->CheckDeferredTraces();
    }
 
-   if (!rootObject_.lock()) {
+   if (!rootEntity_.lock()) {
       auto rootEntity = GetStore().FetchObject<om::Entity>(1);
       if (rootEntity) {
-         rootObject_ = rootEntity;
+         rootEntity_ = rootEntity;
          Renderer::GetInstance().SetRootEntity(rootEntity);
          octtree_->SetRootEntity(rootEntity);
       }
@@ -1030,10 +1030,9 @@ void Client::UpdateObject(const proto::UpdateObject& update)
 void Client::RemoveObjects(const proto::RemoveObjects& update)
 {
    for (int id : update.objects()) {
-      om::EntityPtr entity = GetEntity(id);
-
-      if (entity) {
-         auto render_entity = Renderer::GetInstance().GetRenderObject(entity);
+      dm::ObjectPtr obj = store_->FetchObject<dm::Object>(id);
+      if (obj && obj->GetObjectType() == om::EntityObjectType) {
+         auto render_entity = Renderer::GetInstance().GetRenderObject(std::static_pointer_cast<om::Entity>(obj));
          if (render_entity) {
             render_entity->Destroy();
          }
@@ -1164,45 +1163,14 @@ bool Client::CallInputHandlers(Input const& input)
    return false;
 }
 
-void Client::UpdateSelection(const MouseInput &mouse)
-{
-   perfmon::TimelineCounterGuard tcg("update selection") ;
-
-   RaycastResult r;
-   Renderer::GetInstance().QuerySceneRay(mouse.x, mouse.y, 0, r);
-
-   if (r.numResults() > 0) {
-      auto entity = GetEntity(r.objectIdOf(0));
-      if (entity->GetComponent<om::Terrain>()) {
-         CLIENT_LOG(3) << "clearing selection (clicked on terrain)";
-         SelectEntity(nullptr);
-      } else {
-         CLIENT_LOG(3) << "selecting " << entity->GetObjectId();
-         SelectEntity(entity);
-      }
-   } else {
-      CLIENT_LOG(3) << "no entities!";
-      SelectEntity(nullptr);
-   }
-}
-
-
-void Client::SelectEntity(dm::ObjectId id)
-{
-   om::EntityPtr entity = GetEntity(id);
-   if (entity) {
-      SelectEntity(entity);
-   }
-}
-
 void Client::SelectEntity(om::EntityPtr entity)
 {
    CLIENT_LOG(3) << "selecting " << entity;
 
-   om::EntityPtr selectedObject = selectedObject_.lock();
+   om::EntityPtr selectedEntity = selectedEntity_.lock();
    RenderEntityPtr renderEntity;
 
-   if (selectedObject != entity) {
+   if (selectedEntity != entity) {
       JSONNode selectionChanged(JSON_NODE);
 
       if (entity && entity->GetStore().GetStoreId() != GetStore().GetStoreId()) {
@@ -1210,14 +1178,14 @@ void Client::SelectEntity(om::EntityPtr entity)
          return;
       }
 
-      if (selectedObject) {
-         renderEntity = Renderer::GetInstance().GetRenderObject(selectedObject);
+      if (selectedEntity) {
+         renderEntity = Renderer::GetInstance().GetRenderObject(selectedEntity);
          if (renderEntity) {
             renderEntity->SetSelected(false);
          }
       }
 
-      selectedObject_ = entity;
+      selectedEntity_ = entity;
       if (entity) {
          CLIENT_LOG(3) << "selected entity " << *entity;
          selected_trace_ = entity->TraceChanges("selection", dm::RENDER_TRACES)
@@ -1241,15 +1209,17 @@ void Client::SelectEntity(om::EntityPtr entity)
    }
 }
 
+#if 0
 om::EntityPtr Client::GetEntity(dm::ObjectId id)
 {
    dm::ObjectPtr obj = store_->FetchObject<dm::Object>(id);
    return (obj && obj->GetObjectType() == om::Entity::DmType) ? std::static_pointer_cast<om::Entity>(obj) : nullptr;
 }
+#endif
 
 om::EntityRef Client::GetSelectedEntity()
 {
-   return selectedObject_;
+   return selectedEntity_;
 }
 
 void Client::InstallCurrentCursor()
@@ -1261,7 +1231,7 @@ void Client::InstallCurrentCursor()
       } else {
          if (!cursor_stack_.empty()) {
             cursor = cursor_stack_.back().second.get();
-         } else if (!hilightedObject_.expired()) {
+         } else if (!hilightedEntity_.expired()) {
             cursor = hover_cursor_.get();
          } else {
             cursor = default_cursor_.get();
@@ -1278,43 +1248,40 @@ void Client::InstallCurrentCursor()
    }
 }
 
-void Client::HilightEntity(dm::ObjectId objId)
+void Client::HilightEntity(om::EntityPtr hilight)
 {
    auto &renderer = Renderer::GetInstance();
-   om::EntityPtr selectedObject = selectedObject_.lock();
-   om::EntityPtr hilightedObject = hilightedObject_.lock();
+   om::EntityPtr selectedEntity = selectedEntity_.lock();
+   om::EntityPtr hilightedEntity = hilightedEntity_.lock();
 
-   if (hilightedObject && hilightedObject != selectedObject) {
-      auto renderObject = renderer.GetRenderObject(hilightedObject);
+   if (hilightedEntity && hilightedEntity != selectedEntity) {
+      auto renderObject = renderer.GetRenderObject(hilightedEntity);
       if (renderObject) {
          renderObject->SetSelected(false);
       }
    }
-   hilightedObject_.reset();
+   hilightedEntity_.reset();
 
-   if (objId != 0) {
-      hilightedObject = GetEntity(objId);
-      if (hilightedObject && hilightedObject != rootObject_.lock()) {
-         RenderEntityPtr renderObject = renderer.GetRenderObject(hilightedObject);
-         if (renderObject) {
-            renderObject->SetSelected(true);
-         }
-         hilightedObject_ = hilightedObject;
+   if (hilight && hilight != rootEntity_.lock()) {
+      RenderEntityPtr renderObject = renderer.GetRenderObject(hilight);
+      if (renderObject) {
+         renderObject->SetSelected(true);
       }
+      hilightedEntity_ = hilight;
    }
 }
 
 void Client::UpdateDebugCursor()
 {
-   if (enable_debug_cursor_) {
-      RaycastResult r;
+   if (enable_debug_cursor_) {   
       auto &renderer = Renderer::GetInstance();
       csg::Point2 pt = renderer.GetMousePosition();
 
-      renderer.QuerySceneRay(pt.x, pt.y, 0, r);
-      if (r.isValidBrick(0)) {
+      RaycastResult cast = renderer.QuerySceneRay(pt.x, pt.y, 0);
+      if (cast.GetNumResults() > 0) {
+         RaycastResult::Result r = cast.GetResult(0);
          json::Node args;
-         csg::Point3 pt = r.brickOf(0) + csg::ToInt(r.normalOf(0));
+         csg::Point3 pt = r.brick + csg::ToInt(r.normal);
          args.set("enabled", true);
          args.set("cursor", pt);
          core_reactor_->Call(rpc::Function("radiant:debug_navgrid", args));
