@@ -87,6 +87,7 @@ App.StonehearthBuildingDesignerView = App.View.extend({
          App.stonehearthClient.addDoor();
       });
       this.$('#startBuilding').click(function() {
+         radiant.call('radiant:play_sound', 'stonehearth:sounds:ui:start_menu:submenu_select' );
          var building_entity = self.get('context.building');
          if (building_entity) {
             var value = !self.get('context.building.active')
@@ -95,6 +96,7 @@ App.StonehearthBuildingDesignerView = App.View.extend({
          }
       });
       this.$('#removeBuilding').click(function() {
+         radiant.call('radiant:play_sound', 'stonehearth:sounds:ui:carpenter_menu:trash' );
          var building_entity = self.get('context.building');
          if (building_entity) {
             //stonehearth.server.build.remove_building(building_entity.__self, value);
