@@ -194,14 +194,22 @@ function events._update()
       events.trigger(trigger.object, trigger.event, unpack(trigger.args))
    end
 
+   -- Fires every update.
    events.trigger(radiant, 'stonehearth:gameloop', now)
-   -- pump the polls
+
+   -- Fires five times a second.   
    if now.now % 200 == 0 then
       events.trigger(radiant, 'stonehearth:slow_poll', now)
    end
-   --Fires once a second
+
+   --Fires once a second.
    if now.now % 1000 == 0 then
       events.trigger(radiant, 'stonehearth:very_slow_poll', now)
+   end
+
+   --Fires once a minute.
+   if now.now % (1000 * 60) == 0 then
+      events.trigger(radiant, 'stonehearth:minute_poll', now)
    end
 end
 
