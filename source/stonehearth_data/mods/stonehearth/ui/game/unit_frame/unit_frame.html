@@ -13,9 +13,9 @@
       <div id="commandButtons">
          {{#each stonehearth:commands.commands itemViewClass="App.StonehearthCommandButtonView"}}
             <a {{bind-attr id=this.name}} href="#" {{action doCommand this target="view"}} class='uisounds'>
-               <div {{bind-attr hotkey=view.oneBasedIndex class=":commandButton enabled:buttonEnabled:buttonDisabled" title=tooltip description=description}}>
+               <div {{bind-attr class=":commandButton enabled:buttonEnabled:buttonDisabled" title=tooltip description=description}}>
                   <img {{bind-attr src="icon"}}>
-                  <div id="hotkey">{{view.oneBasedIndex}}</div>
+                  <!-- <div id="hotkey">{{view.oneBasedIndex}}</div> -->
                </div>
             </a>
          {{/each}}
