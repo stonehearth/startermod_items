@@ -17,9 +17,7 @@
 #include "mob_tracker.h"
 #include "terrain_tracker.h"
 #include "terrain_tile_tracker.h"
-#include "region_collision_shape_tracker.h"
-#include "vertical_pathing_region_tracker.h"
-#include "destination_region_tracker.h"
+#include "derived_region_tracker.h"
 #include "protocols/radiant.pb.h"
 
 using namespace radiant;
@@ -51,10 +49,10 @@ NavGrid::NavGrid(int trace_category) :
  */
 void NavGrid::TrackComponent(om::ComponentPtr component)
 {
-   dm::ObjectId id = component->GetObjectId();
+   dm::ObjectId componentId = component->GetObjectId();
    om::EntityPtr entity = component->GetEntityPtr();
-   dm::ObjectId entityId = entity->GetObjectId();
    CollisionTrackerPtr tracker;
+
    switch (component->GetObjectType()) {
       case om::MobObjectType: {
          auto mob = std::static_pointer_cast<om::Mob>(component);
@@ -73,44 +71,136 @@ void NavGrid::TrackComponent(om::ComponentPtr component)
          break;
       }
       case om::RegionCollisionShapeObjectType: {
-         NG_LOG(7) << "creating RegionCollisionShapeTracker for " << *entity;
          auto rcs = std::static_pointer_cast<om::RegionCollisionShape>(component);
-         tracker = std::make_shared<RegionCollisionShapeTracker>(*this, entity, rcs);
+         tracker = CreateRegionCollisonShapeTracker(rcs);
+         CreateCollisionTypeTrace(rcs);
          break;
       }
       case om::DestinationObjectType: {
-         NG_LOG(7) << "creating DestinationTracker for " << *entity;
+         NG_LOG(7) << "creating DestinationRegionTracker for " << *entity;
          auto dst = std::static_pointer_cast<om::Destination>(component);
          tracker = std::make_shared<DestinationRegionTracker>(*this, entity, dst);
          break;
       }
       case om::VerticalPathingRegionObjectType: {
-         NG_LOG(7) << "creating VerticalPathingRegion for " << *entity;
-         auto rcs = std::static_pointer_cast<om::VerticalPathingRegion>(component);
-         tracker = std::make_shared<VerticalPathingRegionTracker>(*this, entity, rcs);
+         NG_LOG(7) << "creating VerticalPathingRegionTracker for " << *entity;
+         auto vpr = std::static_pointer_cast<om::VerticalPathingRegion>(component);
+         tracker = std::make_shared<VerticalPathingRegionTracker>(*this, entity, vpr);
          break;
       }
    }
 
    if (tracker) {
-      collision_trackers_[entityId][id] = tracker;
-      tracker->Initialize();
-      collision_tracker_dtors_[id] = component->TraceChanges("nav grid destruction", GetTraceCategory())
-                                          ->OnDestroyed([this, id, entityId]() {
-                                             NG_LOG(3) << "tracker " << id << " destroyed.  updating grid.";
-                                             CollisionTrackerPtr keepAlive = collision_trackers_[entityId][id];
-                                             collision_trackers_[entityId].erase(id);
-                                             collision_tracker_dtors_.erase(id);
-                                          });
+      AddComponentTracker(tracker, component);
    }
+}
 
+/*
+ * -- NavGrid::AddComponentTracker
+ *
+ * Add a tracker for a region managed by a component.
+ */
+void NavGrid::AddComponentTracker(CollisionTrackerPtr tracker, om::ComponentPtr component)
+{
+   if (tracker) {
+      dm::ObjectId componentId = component->GetObjectId();
+      dm::ObjectType componentType = component->GetObjectType();
+      om::EntityPtr entity = component->GetEntityPtr();
+      dm::ObjectId entityId = entity->GetObjectId();
+
+      collision_trackers_[entityId][componentId] = tracker;
+      tracker->Initialize();
+      collision_tracker_dtors_[componentId] = component->TraceChanges("nav grid destruction", GetTraceCategory())
+                                                       ->OnDestroyed([this, entityId, componentId, componentType]() {
+                                                          RemoveComponentTracker(entityId, componentId);
+                                                       });
+   }
+}
+
+/*
+ * -- NavGrid::RemoveComponentTracker
+ *
+ * Remove a tracker for a region managed by a component. Note that the destructor for the
+ * tracker should call NavGrid::OnTrackerDestroyed to set the dirty bits on the grid tiles.
+ */
+void NavGrid::RemoveComponentTracker(dm::ObjectId entityId, dm::ObjectId componentId)
+{
+   NG_LOG(3) << "tracker " << componentId << " destroyed.  updating grid.";
+   CollisionTrackerPtr keepAlive = collision_trackers_[entityId][componentId];
+   collision_trackers_[entityId].erase(componentId);
+   collision_tracker_dtors_.erase(componentId);
+}
+
+/*
+ * -- NavGrid::CreateRegionCollisonShapeTracker
+ *
+ * Create a tracker for the RegionCollisionShape based on the RegionCollisionType.
+ */
+CollisionTrackerPtr NavGrid::CreateRegionCollisonShapeTracker(std::shared_ptr<om::RegionCollisionShape> regionCollisionShapePtr)
+{
+   om::EntityPtr entity = regionCollisionShapePtr->GetEntityPtr();
+   auto regionCollisionType = regionCollisionShapePtr->GetRegionCollisionType();
+
+   switch (regionCollisionType) {
+      case om::RegionCollisionShape::RegionCollisionTypes::SOLID:
+         NG_LOG(7) << "creating RegionCollisionShapeTracker for " << *entity;
+         return std::make_shared<RegionCollisionShapeTracker>(*this, entity, regionCollisionShapePtr);
+         break;
+      default:
+         ASSERT(regionCollisionType == om::RegionCollisionShape::RegionCollisionTypes::NONE);
+         NG_LOG(7) << "creating RegionNonCollisionShapeTracker for " << *entity;
+         return std::make_shared<RegionNonCollisionShapeTracker>(*this, entity, regionCollisionShapePtr);
+   }
+}
+
+/*
+ * -- NavGrid::CreateCollisionTypeTrace
+ *
+ * Create and add the trace for the RegionCollisionType.
+ */
+void NavGrid::CreateCollisionTypeTrace(std::shared_ptr<om::RegionCollisionShape> regionCollisionShapePtr)
+{
+   dm::ObjectId componentId = regionCollisionShapePtr->GetObjectId();
+   NG_LOG(7) << "creating trace for RegionCollisionType on component " << componentId;
+   auto trace = regionCollisionShapePtr->TraceRegionCollisionType("nav grid", GetTraceCategory());
+   std::weak_ptr<om::RegionCollisionShape> regionCollisionShapeRef = regionCollisionShapePtr;
+
+   trace->OnModified([this, regionCollisionShapeRef]() {
+      OnCollisionTypeChanged(regionCollisionShapeRef);
+   });
+   trace->OnDestroyed([this, componentId]() {
+      NG_LOG(7) << "removing trace for RegionCollisionType on component " << componentId;
+      collision_type_traces_.erase(componentId);
+   });
+   collision_type_traces_[componentId] = trace;
+}
+
+/*
+ * -- NavGrid::OnCollisionTypeChanged
+ *
+ * Called when the RegionCollisionType changes.
+ */
+void NavGrid::OnCollisionTypeChanged(std::weak_ptr<om::RegionCollisionShape> regionCollisionShapeRef)
+{
+   std::shared_ptr<om::RegionCollisionShape> regionCollisionShapePtr = regionCollisionShapeRef.lock();
+
+   if (regionCollisionShapePtr) {
+      dm::ObjectId componentId = regionCollisionShapePtr->GetObjectId();
+      om::EntityPtr entity = regionCollisionShapePtr->GetEntityPtr();
+      dm::ObjectId entityId = entity->GetObjectId();
+
+      NG_LOG(7) << "RegionCollisionType changed on " << *entity;
+      RemoveComponentTracker(entityId, componentId);
+      CollisionTrackerPtr tracker = CreateRegionCollisonShapeTracker(regionCollisionShapePtr);
+      AddComponentTracker(tracker, regionCollisionShapePtr);
+   }
 }
 
 /*
  * -- NavGrid::AddTerrainTileTracker
  *
- * Helper function for the TerrainCollisionTracker.  This will be called once for every terrain
- * tile.
+ * Terrain tile trackers are added differently than the other trackers.
+ * This will be called once for every terrain tile.
  */
 void NavGrid::AddTerrainTileTracker(om::EntityRef e, csg::Point3 const& offset, om::Region3BoxedPtr tile)
 {
@@ -118,7 +208,7 @@ void NavGrid::AddTerrainTileTracker(om::EntityRef e, csg::Point3 const& offset, 
    om::EntityPtr entity = e.lock();
    if (entity) {
       CollisionTrackerPtr tracker = std::make_shared<TerrainTileTracker>(*this, entity, offset, tile);
-      terrain_tile_collsion_trackers_[offset] = tracker;
+      terrain_tile_collision_trackers_[offset] = tracker;
       tracker->Initialize();
    }
 }
@@ -228,14 +318,14 @@ int NavGrid::GetTraceCategory()
 }
 
 /*
- * -- NavGrid::AddCollisionTracker
+ * -- NavGrid::OnTrackerBoundsChanged
  *
  * Helper function for CollisionTrackers used to notify the NavGrid that their collision
  * shape has changed.  This removes trackers from tiles which no longer need to know
  * about them and adds them to trackers which do.  This happens when regions are created,
  * moved around in the world, or when they grow or shrink.
  */
-void NavGrid::AddCollisionTracker(csg::Cube3 const& last_bounds, csg::Cube3 const& bounds, CollisionTrackerPtr tracker)
+void NavGrid::OnTrackerBoundsChanged(csg::Cube3 const& last_bounds, csg::Cube3 const& bounds, CollisionTrackerPtr tracker)
 {
    NG_LOG(3) << "collision tracker bounds " << bounds << " changed (last_bounds: " << last_bounds << ")";
    csg::Cube3 current_chunks = csg::GetChunkIndex(bounds, TILE_SIZE);

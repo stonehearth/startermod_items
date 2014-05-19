@@ -61,7 +61,7 @@ void MobTracker::MarkChanged()
       bounds_ = ComputeWorldBounds();
       if (bounds_ != last_bounds_) {
          NG_LOG(9) << "MobTracker for " << *entity << " changed (bounds:" << bounds_ << " last bounds:" << last_bounds_ << ")";
-         GetNavGrid().AddCollisionTracker(last_bounds_, bounds_, shared_from_this());
+         GetNavGrid().OnTrackerBoundsChanged(last_bounds_, bounds_, shared_from_this());
          last_bounds_ = bounds_;
       } else {
          NG_LOG(9) << "skipping MobTracker bookkeeping for " << *entity << " (bounds:" << bounds_ << " == last bounds:" << last_bounds_ << ")";

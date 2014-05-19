@@ -9,8 +9,16 @@
 #include "dm/dm.h"
 #include "csg/namespace.h"
 #include "nav_grid_tile.h"
+#include "derived_region_tracker.h"
+#include "om/components/region_collision_shape.ridl.h"
 
 BEGIN_RADIANT_PHYSICS_NAMESPACE
+
+// trackers used by the NavGrid
+typedef DerivedRegionTracker<om::RegionCollisionShape, TrackerType::COLLISION> RegionCollisionShapeTracker;
+typedef DerivedRegionTracker<om::RegionCollisionShape, TrackerType::NON_COLLISION> RegionNonCollisionShapeTracker;
+typedef DerivedRegionTracker<om::Destination, TrackerType::DESTINATION> DestinationRegionTracker;
+typedef DerivedRegionTracker<om::VerticalPathingRegion, TrackerType::LADDER> VerticalPathingRegionTracker;
 
 /*
  * -- NavGrid 
@@ -44,6 +52,7 @@ class NavGrid {
       friend TerrainTracker;
       friend TerrainTileTracker;
       friend RegionCollisionShapeTracker;
+      friend RegionNonCollisionShapeTracker;
       friend VerticalPathingRegionTracker;
       friend DestinationRegionTracker;
       friend MobTracker;
@@ -52,7 +61,7 @@ class NavGrid {
 
       int GetTraceCategory();
       void AddTerrainTileTracker(om::EntityRef entity, csg::Point3 const& offset, om::Region3BoxedPtr tile);
-      void AddCollisionTracker(csg::Cube3 const& last_bounds, csg::Cube3 const& bounds, CollisionTrackerPtr tracker);
+      void OnTrackerBoundsChanged(csg::Cube3 const& last_bounds, csg::Cube3 const& bounds, CollisionTrackerPtr tracker);
       void OnTrackerDestroyed(csg::Cube3 const& bounds, dm::ObjectId entityId);
 
    private: // methods exposed only to the OctTree
@@ -72,8 +81,14 @@ class NavGrid {
       typedef boost::container::flat_map<dm::ObjectId, CollisionTrackerPtr> CollisionTrackerFlatMap;
       typedef std::unordered_map<dm::ObjectId, CollisionTrackerFlatMap> CollisionTrackerMap;
       typedef std::unordered_map<dm::ObjectId, dm::TracePtr> CollisionTrackerDtorMap;
+      typedef std::unordered_map<dm::ObjectId, dm::TracePtr> CollisonTypeTraceMap;
       typedef std::unordered_map<csg::Point3, CollisionTrackerPtr, csg::Point3::Hash> TerrainTileCollisionTrackerMap;
 
+      void AddComponentTracker(CollisionTrackerPtr tracker, om::ComponentPtr component);
+      void RemoveComponentTracker(dm::ObjectId entityId, dm::ObjectId componentId);
+      CollisionTrackerPtr CreateRegionCollisonShapeTracker(std::shared_ptr<om::RegionCollisionShape> regionCollisionShapePtr);
+      void CreateCollisionTypeTrace(std::shared_ptr<om::RegionCollisionShape> regionCollisionShapePtr);
+      void OnCollisionTypeChanged(std::weak_ptr<om::RegionCollisionShape> regionCollisionShapeRef);
       void EvictNextUnvisitedTile(csg::Point3 const& pt);
 
    private: // instance variables
@@ -83,7 +98,8 @@ class NavGrid {
       NavGridTileMap                   tiles_;
       CollisionTrackerMap              collision_trackers_;
       CollisionTrackerDtorMap          collision_tracker_dtors_;
-      TerrainTileCollisionTrackerMap   terrain_tile_collsion_trackers_;
+      CollisonTypeTraceMap             collision_type_traces_;
+      TerrainTileCollisionTrackerMap   terrain_tile_collision_trackers_;
       csg::Cube3                       bounds_;
       uint                             max_resident_;
 };
