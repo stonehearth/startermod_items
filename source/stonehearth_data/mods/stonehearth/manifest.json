@@ -531,6 +531,7 @@
       
       "scenarios:scenario_index" : "file(scenarios/index.json)",
       "score_category_data" : "file(data/score/score_category_data.json)",
+      "score_entity_data" : "file(data/score/score_entity_data.json)",
 
       "professions:index" : "file(professions/index.json)",
       "professions:worker" : "file(professions/worker/worker_description.json)",

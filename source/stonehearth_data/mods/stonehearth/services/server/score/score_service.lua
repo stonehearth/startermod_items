@@ -52,6 +52,10 @@ function ScoreService:initialize()
    --Init the score data
    self._aggregate_score_data = {}
    self:_setup_score_category_data()
+
+   --By default, scores for entities in a category are 1. For increased scores
+   --check against the score_entity_data table. 
+   self._score_entity_table = radiant.resources.load_json('stonehearth:score_entity_data')
 end
 
 --- Services should call this to add their eval functions for net worth
@@ -63,8 +67,20 @@ function ScoreService:add_aggregate_eval_function(score_category, score_name, ev
    self._aggregate_score_data[score_name] = {
       eval_fn = eval_fn, 
       score_category = score_category
-   } 
+   }
 end
+
+--- Given the URI of an entity, get the score for it. 
+--  If we don't have a score for that entity, use the default score, which is 
+--  defined in the file (usually, 1)
+function ScoreService:get_score_for_entity_type(entity_uri)
+   local score_for_item = self._score_entity_table[entity_uri]
+   if not score_for_item then
+      score_for_item =  self._score_entity_table['default']
+   end
+   return score_for_item
+end
+
 
 --- Save and load the net worth timer accurately.
 function ScoreService:_create_worth_timer()

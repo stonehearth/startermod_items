@@ -1,3 +1,5 @@
+local Point3  = _radiant.csg.Point3
+
 local score_tests = {}
 
 -- Tests score fluctuations for eating
@@ -49,6 +51,43 @@ function score_tests.no_food_at_midnight(autotest)
 
    autotest:sleep(20000)
    autotest:fail('midnight tick did not update correctly')
+end
+
+--- Tests the overall town score, given a few items placed in the world
+--  Put down a normal chair, an arch-backed chair, 1 wood inside a stockpile.
+--  Put down a 1x1 farm
+--  Total score for the town should be 5
+function score_tests.town_score_test(autotest)
+   local worker = autotest.env:create_person(2, 2, {
+            profession = 'farmer'
+         })
+   local player_id = radiant.entities.get_player_id(worker)
+   local chair = autotest.env:create_entity(0, 0, 'stonehearth:simple_wooden_chair', {
+      player_id = player_id
+      })
+   local fancy_chair = autotest.env:create_entity(0, 1, 'stonehearth:arch_backed_chair', {
+      player_id = player_id
+      })
+   local stockpile = autotest.env:create_stockpile(-2, -2)
+   local log = autotest.env:create_entity(-2, -2, 'stonehearth:oak_log')
+   local session = {player_id = player_id, faction = 'civ'}
+   stonehearth.terrain:get_visible_region(session.faction) 
+   stonehearth.terrain:get_explored_region(session.faction)
+
+   stonehearth.farming:create_new_field(session, Point3(-5, 1, -5), {x = 1, y = 1})
+
+   --TODO: add a test for some improvements to building
+
+   stonehearth.calendar:set_timer('20m', function()
+      local player_score = stonehearth.score:get_scores_for_player(player_id):get_score_data()
+         if player_score.net_worth.total_score >= 5 then
+            autotest:success()
+         else 
+            autotest:fail('score did not calculate correctly')
+         end
+      end)
+   autotest:sleep(20000)
+   autotest:fail('score did not calculate correctly')
 end
 
 return score_tests
