@@ -1,7 +1,7 @@
 {
    "profession_id": "weaver",
    "name": "Weaver",      
-   "icon" : "file(images/jobButton.png)",
+   "buttonIcon" : "file(images/jobButton.png)",
    "script": "file(/professions/weaver/weaver.lua)",
    "outfit": "file(weaver_outfit)",
    "description": "Makes thread and cloth.",

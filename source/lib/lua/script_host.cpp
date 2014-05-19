@@ -157,7 +157,14 @@ JSONNode ScriptHost::LuaToJson(luabind::object current_obj)
       } else if (t == LUA_TBOOLEAN) {
          return JSONNode("", object_cast<bool>(obj));
       } else if (t == LUA_TNIL) {
-         return JSONNode("", nullptr);
+         // XXXX: THIS SHOULD BE NULL!!
+         // XXXX: THIS SHOULD BE NULL!!
+         // XXXX: THIS SHOULD BE NULL!!
+         // XXXX: THIS SHOULD BE NULL!!
+         // XXXX: THIS SHOULD BE NULL!!
+         // XXXX: THIS SHOULD BE NULL!!
+         // XXXX: THIS SHOULD BE NULL!!
+         return JSONNode("", false);
       } else if (t == LUA_TFUNCTION) {
          return JSONNode("", "function");
       }

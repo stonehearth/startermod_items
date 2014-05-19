@@ -3,7 +3,9 @@
    "name": "Footman",      
    "alias": "stonehearth:professions:footman",
    "description": "A melee fighter",
-   "icon" : "file(images/jobButton.png)",
+   "buttonIcon" : "file(images/jobButton.png)",
+   "bannerIcon" : "file(images/banner.png)",   
+   "talisman_uri" : "stonehearth:wooden_sword",
    "script": "file(footman.lua)",
    "outfit": "file(footman_outfit)"
 }

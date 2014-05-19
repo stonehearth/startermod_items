@@ -1,13 +1,16 @@
 <script type="text/x-handlebars" data-template-name="citizens">
 <div id="citizens" class="gui populationManager">
    <div class="window">
-      <div class="title">Citizens</div>
+      <div class="title">{{ view.title }}</div>
       <table class="list">
          <tbody>
-         {{#each citizensArray}}
+         {{#each model.citizensArray}}
             <tr class="row" {{bind-attr profession=this.stonehearth:profession.profession_uri.alias id=this.__id}}>
                <td>
-                  <div class="name">{{this.unit_info.name}}</div>
+                  <div class="name">
+                     <img class="banner" {{bind-attr src=this.stonehearth:profession.profession_uri.bannerIcon}}/>
+                     {{this.unit_info.name}}
+                  </div>
                   <div class="profession">{{this.stonehearth:profession.profession_uri.name}}</div>
                   <div class="toolbar">
                      {{#each command in stonehearth:commands.commands}}

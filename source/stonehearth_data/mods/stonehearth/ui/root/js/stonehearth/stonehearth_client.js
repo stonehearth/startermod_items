@@ -165,6 +165,7 @@ var StonehearthClient;
       },
 
       buildWall: function() {
+         radiant.call('radiant:play_sound', 'stonehearth:sounds:ui:start_menu:popup' );
          var self = this;
 
          $(top).trigger('radiant_show_tip', { 
@@ -182,6 +183,7 @@ var StonehearthClient;
       },
 
       buildFloor: function() {
+         radiant.call('radiant:play_sound', 'stonehearth:sounds:ui:start_menu:popup' );
          var self = this;
 
          $(top).trigger('radiant_show_tip', { 
@@ -232,7 +234,25 @@ var StonehearthClient;
          });
       },
 
+      addDoor: function() {
+         var self = this;
+
+         $(top).trigger('radiant_show_tip', { 
+            title : 'Add Door Tooltip',
+            description : 'Add Door Tooltip'
+         });
+
+         return this._callTool(function() {
+            return radiant.call_obj(self._build_editor, 'add_door')
+               .always(function(response) {
+                  radiant.call('radiant:play_sound', 'stonehearth:sounds:place_structure' );
+                  $(top).trigger('radiant_hide_tip');
+               });
+         });
+      },
+
       buildRoom: function() {
+         radiant.call('radiant:play_sound', 'stonehearth:sounds:ui:start_menu:popup' );
          var self = this;
          return this._callTool(function() {
             return radiant.call_obj(self._build_editor, 'create_room');
@@ -267,17 +287,13 @@ var StonehearthClient;
          }
 
          if (this._townMenu) {
-            this._townMenu.$().hide();  
+            this._townMenu.$().hide();
          }
 
          // toggle the citizenManager
          if (!this._citizenManager) {
             this._citizenManager = App.gameView.addView(App.StonehearthCitizensView);
          } else {
-            if (!this._citizenManager.$().is(":visible")) {
-               this._citizenManager.preShow();
-            }
-            
             this._citizenManager.$().toggle();
          }
       },
@@ -290,17 +306,13 @@ var StonehearthClient;
          }
 
          if (this._townMenu) {
-            this._townMenu.$().hide();  
+            this._townMenu.$().hide();
          }         
          
          // toggle the citizenManager
          if (!this._crafterManager) {
             this._crafterManager = App.gameView.addView(App.StonehearthCraftersView);
          } else {
-            if (!this._crafterManager.$().is(":visible")) {
-               this._crafterManager.preShow();
-            }
-
             this._crafterManager.$().toggle();
          }
       },

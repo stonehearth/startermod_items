@@ -2,9 +2,11 @@
   "profession_id": "farmer",
   "alias": "stonehearth:professions:farmer",
   "name": "Farmer",
-  "icon" : "file(images/jobButton.png)",
+  "buttonIcon" : "file(images/jobButton.png)",
+  "bannerIcon" : "file(images/banner.png)",   
   "talisman_uri" : "stonehearth:farmer:hoe",
   "script": "file(farmer.lua)",
   "outfit": "file(farmer_outfit)",
-  "description": "Farmer"
+  "description": "Farmer", 
+  "score_value" : 10
 }

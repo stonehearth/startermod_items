@@ -34,16 +34,19 @@ var StonehearthPopulation;
       _createTrace: function() {
          var self = this;
 
-         var r  = new RadiantTrace()
-         var trace = r.traceUri(this._populationUri, this.components);
-         trace.progress(function(eobj) {
-               self._population = eobj
-            });
+         this._radiantTrace = new RadiantTrace();
+         this._populationTrace = this._radiantTrace.traceUri(this._populationUri, this.components);
       },
 
-      getData: function() {
-         return this._population;
+      getTrace: function() {
+         return this._populationTrace;
       },
+
+      getCitizen: function(uri) {
+         var parts = uri.split('/');
+         var id = parts[parts.length - 1]
+         return (self._population[id]);
+      }
    });
 })();
 

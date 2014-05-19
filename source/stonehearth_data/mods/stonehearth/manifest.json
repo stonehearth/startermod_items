@@ -530,6 +530,8 @@
       "ambient:summer_night" : "file(data/ambient/sh_amb_summer_night.ogg)",
       
       "scenarios:scenario_index" : "file(scenarios/index.json)",
+      "score_category_data" : "file(data/score/score_category_data.json)",
+      "score_entity_data" : "file(data/score/score_entity_data.json)",
 
       "professions:index" : "file(professions/index.json)",
       "professions:worker" : "file(professions/worker/worker_description.json)",
@@ -889,6 +891,12 @@
       "wall" : "file(components/wall/wall_component.lua)",
       "roof" : "file(components/roof/roof_component.lua)"
    },
+   "client_components" : {
+      "wall" : "file(components/wall/wall_component.lua)",
+      "fabricator" : "file(components/fabricator/fabricator_client_component.lua)",
+      "construction_data" : "file(components/construction_data/construction_data_component.lua)",
+      "construction_progress" : "file(components/construction_progress/construction_progress_client_component.lua)"
+   },
    "component_renderers" : {
       "stockpile" : "file(renderers/stockpile/stockpile_renderer.lua)",
       "ghost_item" : "file(renderers/ghost_item/ghost_item_renderer.lua)",
@@ -937,6 +945,7 @@
          "file(ui/game/unit_frame/unit_frame.html)",
          "file(ui/game/resource_scoreboard/resource_scoreboard.html)",
          "file(ui/game/start_menu/start_menu.html)",
+         "file(ui/game/score/score.html)",
          "file(ui/game/town/town.html)",
          "file(ui/game/citizens/citizens.html)",
          "file(ui/game/crafters/crafters.html)",
@@ -987,6 +996,7 @@
          "file(ui/game/resource_scoreboard/resource_scoreboard.js)",
          "file(ui/game/start_menu/start_menu.js)",
          "file(ui/game/start_menu/stonehearth_menu.js)",
+         "file(ui/game/score/score.js)",
          "file(ui/game/town/town.js)",
          "file(ui/game/citizens/citizens.js)",
          "file(ui/game/crafters/crafters.js)",
@@ -1034,6 +1044,7 @@
          "file(ui/game/resource_scoreboard/resource_scoreboard.less)",
          "file(ui/game/start_menu/start_menu.less)",
          "file(ui/game/start_menu/stonehearth_menu.less)",
+         "file(ui/game/score/score.less)",
          "file(ui/game/town/town.less)",
          "file(ui/game/citizens/citizens.less)",
          "file(ui/game/crafters/crafters.less)",

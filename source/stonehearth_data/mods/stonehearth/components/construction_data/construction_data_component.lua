@@ -10,12 +10,11 @@ local log = radiant.log.create_logger('build')
 
 function ConstructionDataComponent:initialize(entity, json)
    self._entity = entity
-   self._data = json -- xxx: copy variables out pls
    self._sv = self.__saved_variables:get_data()
 
-   if not self._sv._initialized then
+   if not self._sv.initialized then
       self._sv = json
-      self._sv._initialized = true
+      self._sv.initialized = true
       self._sv._loaning_scaffolding_to = {}
       self.__saved_variables:set_data(self._sv)
 
@@ -28,16 +27,43 @@ function ConstructionDataComponent:initialize(entity, json)
    end
 end
 
+function ConstructionDataComponent:begin_editing(other_cd)
+   self._sv.normal = other_cd._sv.normal and Point3(other_cd._sv.normal) or nil
+   self._sv.nine_grid_region = other_cd._sv.nine_grid_region and Region2(other_cd._sv.nine_grid_region) or nil
+   self._sv.type = other_cd._sv.type
+   self._sv.material = other_cd._sv.material
+   self._sv.use_custom_renderer = other_cd._sv.use_custom_renderer
+   self._sv.needs_scaffolding = other_cd._sv.needs_scaffolding
+   self._sv.max_workers = other_cd._sv.max_workers
+   self._sv.allow_diagonal_adjacency = other_cd._sv.allow_diagonal_adjacency
+   self._sv.project_adjacent_to_base = other_cd._sv.project_adjacent_to_base
+   self._sv.allow_crouching_construction = other_cd._sv.allow_crouching_construction
+   self._sv.paint_mode = other_cd._sv.paint_mode
+   self._sv.brush = other_cd._sv.brush
+
+
+   self._sv.fabricator_entity = nil -- other_cd._sv.fabricator_entity
+   self._sv.building_entity = nil -- other_cd._sv.building_entity
+end
+
+function ConstructionDataComponent:get_use_custom_renderer()
+   return self._sv.use_custom_renderer
+end
+
+function ConstructionDataComponent:get_connected_to()
+   return self._sv.connected_to
+end
+
 function ConstructionDataComponent:get_material()
-   return self._data.material
+   return self._sv.material
 end
 
 function ConstructionDataComponent:get_type()
-   return self._data.type
+   return self._sv.type
 end
 
 function ConstructionDataComponent:needs_scaffolding()
-   return self._data.needs_scaffolding
+   return self._sv.needs_scaffolding
 end
 
 function ConstructionDataComponent:get_savestate()
@@ -63,10 +89,14 @@ function ConstructionDataComponent:get_normal()
 end
 
 function ConstructionDataComponent:get_max_workers()
-   if self._data.max_workers then
-      return self._data.max_workers
+   if self._sv.max_workers then
+      return self._sv.max_workers
    end
    return 4 -- completely arbitrary!  add a config option?
+end
+
+function ConstructionDataComponent:get_fabricator_entity()
+   return self._sv.fabricator_entity
 end
 
 function ConstructionDataComponent:set_fabricator_entity(fentity)
@@ -79,18 +109,22 @@ function ConstructionDataComponent:set_building_entity(entity)
    self.__saved_variables:mark_changed()
 end
 
+function ConstructionDataComponent:get_building_entity(entity)
+   return self._sv.building_entity
+end
+
 function ConstructionDataComponent:get_allow_diagonal_adjacency()
    -- coearse to bool 
-   return self._data.allow_diagonal_adjacency and true or false
+   return self._sv.allow_diagonal_adjacency and true or false
 end
 
 function ConstructionDataComponent:get_project_adjacent_to_base()
    -- coearse to bool 
-   return self._data.project_adjacent_to_base and true or false
+   return self._sv.project_adjacent_to_base and true or false
 end
 
 function ConstructionDataComponent:get_allow_crouching_construction()
-   return self._data.allow_crouching_construction and true or false
+   return self._sv.allow_crouching_construction and true or false
 end
 
 -- used to loan our scaffolding to the borrower.  this means we won't
@@ -108,8 +142,13 @@ function ConstructionDataComponent:get_loaning_scaffolding_to()
    return self._sv._loaning_scaffolding_to
 end
 
-function ConstructionDataComponent:create_voxel_brush()
-   return voxel_brush_util.create_brush(self._sv)
+function ConstructionDataComponent:create_voxel_brush(paint_mode)
+   if self._sv.brush then
+      if not paint_mode then
+         paint_mode = self._sv.paint_mode
+      end
+      return voxel_brush_util.create_brush(self._sv, paint_mode)
+   end
 end
 
 return ConstructionDataComponent

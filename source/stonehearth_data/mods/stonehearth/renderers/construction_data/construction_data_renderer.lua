@@ -5,11 +5,11 @@ local ConstructionDataRenderer = class()
 
 local INFINITE = 1000000
 
-function ConstructionDataRenderer:__init(render_entity, datastore)
+function ConstructionDataRenderer:initialize(render_entity, construction_data)
+   self._construction_data = construction_data
    self._parent_node = render_entity:get_node()
    self._entity = render_entity:get_entity()
-   self._render_entity = render_entity 
-   self._construction_data = datastore
+   self._render_entity = render_entity
    
    self._component_trace = self._entity:trace_components('render construction component')
                               :on_added(function(key, value)
@@ -81,7 +81,7 @@ function ConstructionDataRenderer:_compute_rpg_region(region)
       self._rpg_region = _radiant.client.alloc_region()
    end
    if self._rpg_region_dirty then
-      local building = self._construction_data:get_data().building_entity
+      local building = self._construction_data:get_building_entity()
       if building then
          local building_origin = radiant.entities.get_world_grid_location(building)
          local local_origin = radiant.entities.get_world_grid_location(self._entity)
@@ -116,11 +116,10 @@ function ConstructionDataRenderer:_recreate_render_node()
    end
    
    if self._construction_data and self._collision_shape then   
-      local construction_data = self._construction_data:get_data()
-      if not construction_data.use_custom_renderer then
+      if not self._construction_data:get_use_custom_renderer() then
          local render_region = self:_get_render_region()
          if render_region then
-            self._render_node = voxel_brush_util.create_construction_data_node(self._parent_node, self._entity, render_region, construction_data)
+            self._render_node = voxel_brush_util.create_construction_data_node(self._parent_node, self._entity, render_region, self._construction_data)
          end
          self:_update_camera()
       end
@@ -136,11 +135,11 @@ local function sign(n)
 end
 
 function ConstructionDataRenderer:_update_camera()
-   local cd = self._construction_data:get_data()
-   if self._render_entity and cd then
+   if self._render_entity and self._construction_data then
       local visible = true   
+      local normal = self._construction_data:get_normal()
       if self._mode == 'xray' then
-         if cd.normal then
+         if normal then
             -- move the camera relative to the mob
             local x0 = stonehearth.camera:get_position() - self._entity:get_component('mob'):get_world_location()
 
@@ -150,7 +149,7 @@ function ConstructionDataRenderer:_update_camera()
             --    D = n dot x0 + p
             --
             -- p is zero, since we translated x0 into object space.
-            visible = dot_product(cd.normal, x0) < 0
+            visible = dot_product(normal, x0) < 0
          end
       end
       self._render_entity:set_visible(visible)

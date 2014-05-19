@@ -129,87 +129,25 @@ function NewGameCallHandler:embark_client(session, response)
 end
 
 function NewGameCallHandler:choose_camp_location(session, response)
-   self._cursor_entity = radiant.entities.create_entity('stonehearth:camp_standard')
-   local re = _radiant.client.create_render_entity(1, self._cursor_entity)
-   -- xxx todo, manipulate re to change the way the cursor gets
-   -- rendered (e.g. transparent)...
-
-   -- capture the mouse.  Call our _on_mouse_event each time, passing in
-   -- the entity that we're supposed to create whenever the user clicks.
-   self._input_capture = stonehearth.input:capture_input()
-                           :on_mouse_event(function(e)
-                                 return self:_on_mouse_event(e, response)
-                              end)
-                           :on_keyboard_event(function(e)
-                                 return self:_on_keyboard_event(e, response)
-                              end)
-end
-
--- called each time the mouse moves on the client.
-function NewGameCallHandler:_on_mouse_event(e, response)
-   assert(self._input_capture, "got mouse event after releasing capture")
-
-   -- query the scene to figure out what's under the mouse cursor
-   local s = _radiant.client.query_scene(e.x, e.y)
-
-   -- s.location contains the address of the terrain block that the mouse
-   -- is currently pointing to.  if there isn't one, move the workshop
-   -- way off the screen so it won't get rendered.
-   local pt = s:is_valid() and s:brick_of(0) or Point3(0, -100000, 0)
-
-   pt.y = pt.y + 1
-   self._cursor_entity:add_component('mob'):set_location_grid_aligned(pt)
-
-   -- if the mouse button just transitioned to up and we're actually pointing
-   -- to a box on the terrain, send a message to the server to create the
-   -- entity.  this is done by posting to the correct route.
-   if e:up(1) and s:is_valid() then
-      -- destroy our capture object to release the mouse back to the client.  don't
-      -- destroy the authoring object yet!  doing so now will result in a brief period
-      -- of time where the server side object has not yet been created, yet the client
-      -- authoring object has been destroyed.  that leads to flicker, which is ugly.
-      self:_destroy_capture()
-
-      -- pass "" for the function name so the deafult (handle_request) is
-      -- called.  this will return a Deferred object which we can use to track
-      -- the call's progress
-      local default_camp_name = 'Defaultville'
-      _radiant.call('stonehearth:create_camp', pt)
-         :done( function(o)
-               --Review Q: TODO: is this the right way to get data into the response:resolve?
-               default_camp_name = o.random_town_name
-            end)
-         :always(
-            function ()
-               -- whether the request succeeds or fails, go ahead and destroy
-               -- the authoring entity.  do it after the request returns to avoid
-               -- the ugly flickering that would occur had we destroyed it when
-               -- we uninstalled the mouse cursor
-               _radiant.client.destroy_authoring_entity(self._cursor_entity:get_id())
-               response:resolve({result = true,  townName = default_camp_name})
-            end
-         )
-   end
-
-   -- return true to prevent the mouse event from propogating to the UI
-   return true
-end
-
-function NewGameCallHandler:_on_keyboard_event(e, response)
-   if e.key == _radiant.client.KeyboardInput.KEY_ESC and e.down then
-      self:_destroy_capture()
-       _radiant.client.destroy_authoring_entity(self._cursor_entity:get_id())
-       response:resolve({ result = false })
-   end
-   return true
-end
-
---- Destroy our capture object to release the mouse back to the client.
-function NewGameCallHandler:_destroy_capture()
-   if self._input_capture then
-      self._input_capture:destroy()
-      self._input_capture = nil
-   end
+   stonehearth.selection.select_location()
+      :use_ghost_entity_cursor('stonehearth:camp_standard')
+      :done(function(selector, location, rotation)
+         _radiant.call('stonehearth:create_camp', location)
+            :done( function(o)
+                  response:resolve({result = true, townName = o.random_town_name })
+               end)
+            :fail(function(result)
+                  response:reject(result)
+               end)
+            :always(function ()
+                  selector:destroy()
+               end)
+         end)
+      :fail(function(selector)
+            selector:destroy()
+            response:reject('no location')
+         end)
+      :go()
 end
 
 function NewGameCallHandler:create_camp(session, response, pt)

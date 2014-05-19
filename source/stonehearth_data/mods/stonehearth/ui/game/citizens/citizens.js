@@ -4,10 +4,11 @@ App.StonehearthCitizensView = App.View.extend({
    init: function() {
       var self = this;
       this._super();
-
-      var pop = App.population.getData();
-      this.set('context', pop);
-      this._buildCitizensArray();
+      this.set('title', 'Citizens');
+      App.population.getTrace()
+         .progress(function(pop) {
+            self.set('context.model', pop)
+         })
    },
 
    didInsertElement: function() {
@@ -17,14 +18,10 @@ App.StonehearthCitizensView = App.View.extend({
       // remember the citizen for the row that the mouse is over
       this.$().on('mouseenter', '.row', function() {
          var row = $(this);
-         var pop = self.get('context');
+         var pop = self.get('context.model');
          var id = row.attr('id');
          self._activeRowCitizen = pop.citizens[id]; 
       });
-   },
-
-   preShow: function() {
-      this._buildCitizensArray();
    },
 
    actions: {
@@ -33,25 +30,20 @@ App.StonehearthCitizensView = App.View.extend({
       }
    },
 
-   _foo2: function() {
-      console.log('yo');
-   }.observes('context.citizensArray.@each'),
-
-   _foo: function() {
-      console.log('yo');
-   }.observes('context.citizensArray.@each.stonehearth:crafter'),
-
-   _foo3: function() {
-      console.log('yo');
-   }.observes('context.citizensArray.@each.stonehearth:crafter.workshop'),
+   getSelectedCitizen: function() {
+      var citizenMap = this.get('context.model.citizens');
+      var id = this.$('.selected').attr('id');
+      return citizenMap[id];
+   },
 
    _buildCitizensArray: function() {
+      var self = this;
       var vals = [];
-      var citizenMap = this.get('context.citizens');
-     
+      var citizenMap = this.get('context.model.citizens');
+
       if (citizenMap) {
          $.each(citizenMap, function(k ,v) {
-            if(k != "__self" && citizenMap.hasOwnProperty(k)) {
+            if(k != "__self" && citizenMap.hasOwnProperty(k) && self._citizenFilterFn(v)) {
                v.set('__id', k);
 
                vals.push(v);
@@ -59,7 +51,11 @@ App.StonehearthCitizensView = App.View.extend({
          });
       }
 
-      this.set('context.citizensArray', vals);
-    }.observes('context.citizens.[]'),
+      this.set('context.model.citizensArray', vals);
+    }.observes('context.model.citizens.[]').on('init'),
+
+    _citizenFilterFn: function (citizen) {
+      return true;
+    },
 
 });

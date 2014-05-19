@@ -3,10 +3,12 @@
    "alias": "stonehearth:professions:carpenter",
    "name": "Carpenter",      
    "description": "The carpenter crafts tools and furniture from wood. The tools he makes unlocks several other jobs.",
-   "icon" : "file(images/jobButton.png)",
+   "buttonIcon" : "file(images/jobButton.png)",
+   "bannerIcon" : "file(images/banner.png)",
    "script": "file(carpenter.lua)",
    "outfit": "file(carpenter_outfit)",
    "talisman_uri" : "stonehearth:carpenter:saw",
+   "score_value": 10, 
    "crafter" : {
       "work_effect": "saw",
       "recipe_list": "/stonehearth/professions/carpenter/recipes"

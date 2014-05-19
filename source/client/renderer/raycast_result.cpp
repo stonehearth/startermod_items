@@ -13,88 +13,45 @@ using namespace ::radiant::client;
 
 #define R_LOG(level)      LOG(renderer.renderer, level)
 
-RaycastResult::RaycastResult()
+RaycastResult::RaycastResult(csg::Ray3 const& ray) :
+   _ray(ray)
 {
 }
 
-bool RaycastResult::isValid() const
+int RaycastResult::GetNumResults() const
 {
-   return numResults() > 0;
+   return _results.size();
 }
 
-int RaycastResult::numResults() const
+RaycastResult::Result RaycastResult::GetResult(uint i) const
 {
-   return _intersections.size();
-}
-
-const csg::Point3f RaycastResult::intersectionOf(uint i) const
-{
-   if (i >= _intersections.size()) {
-      throw std::logic_error(BUILD_STRING("invalid index " << i << "in RaycastResult::intersectionOf"));
+   if (i >= _results.size()) {
+      throw std::logic_error(BUILD_STRING("requesting raycast result out-of-bounds " << i));
    }
-   return _intersections[i];
+   return _results[i];
 }
 
-void RaycastResult::addIntersection(const csg::Point3f& p, const csg::Point3f& normal, dm::ObjectId objId)
+std::vector<RaycastResult::Result> const& RaycastResult::GetResults() const
 {
-   _intersections.push_back(p);
-   _normals.push_back(normal);
-   _objIds.push_back(objId);
+   return _results;
 }
 
-const csg::Point3f RaycastResult::normalOf(uint i) const
-{
-   if (i >= _normals.size()) {
-      throw std::logic_error(BUILD_STRING("invalid index " << i << "in RaycastResult::normalOf"));
-   }
-   return _normals[i];
-}
-
-dm::ObjectId RaycastResult::objectIdOf(uint i) const
-{
-   if (i >= _objIds.size()) {
-      throw std::logic_error(BUILD_STRING("invalid index " << i << "in RaycastResult::objectIdOf"));
-   }
-   return _objIds[i];
-}
-
-const csg::Ray3 RaycastResult::ray() const
+csg::Ray3 const& RaycastResult::GetRay() const
 {
    return _ray;
 }
 
-void RaycastResult::setRay(const csg::Ray3& ray)
+void RaycastResult::AddResult(csg::Point3f const &intersection, csg::Point3f const& normal, csg::Point3 const& brick, om::EntityRef entity)
 {
-   _ray = ray;
+   Result r;
+   r.intersection = intersection;
+   r.normal = normal;
+   r.brick = brick;
+   r.entity = entity;
+   _results.emplace_back(r);
 }
 
-const csg::Point3 RaycastResult::brickOf(uint i) const
-{
-   if (i >= _objIds.size() || i >= _normals.size() || i >= _intersections.size()) {
-      throw std::logic_error(BUILD_STRING("invalid index " << i << "in RaycastResult::brickOf"));
-   }
-   csg::Matrix4 nodeTransform = Renderer::GetInstance().GetTransformForObject(_objIds[i]);
-   nodeTransform.affine_inverse();
-   csg::Point3f normal = nodeTransform.rotate(_normals[i]);
-   csg::Point3f intersection = nodeTransform.transform(_intersections[i]);
-
-   csg::Point3 brick;
-   // Calculate brick location!
-   for (int j = 0; j < 3; j++) {
-      // The brick origin is at the center of mass.  Adding 0.5f to the
-      // coordinate and flooring it should return a brick coordinate.
-      brick[j] = (int)std::floor(intersection[j] + 0.5f);
-
-      // We want to choose the brick that the mouse is currently over.  The
-      // intersection point is actually a point on the surface.  So to get the
-      // brick, we need to move in the opposite direction of the normal
-      if (fabs(normal[j]) > csg::k_epsilon) {
-         brick[j] += normal[j] > 0 ? -1 : 1;
-      }
-   }
-   return brick;
-}
-
+#if 0
 bool RaycastResult::isValidBrick(uint i) const
 {
    if (i >= _objIds.size()) {
@@ -106,9 +63,4 @@ bool RaycastResult::isValidBrick(uint i) const
    }
    return terrain->GetComponent<om::Terrain>() != nullptr;
 }
-
-RaycastResult::~RaycastResult()
-{
-
-}
-
+#endif

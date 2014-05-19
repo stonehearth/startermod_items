@@ -62,6 +62,7 @@
 #include "dm/store_trace.h"
 #include "core/system.h"
 #include "client/renderer/raycast_result.h"
+#include "om/stonehearth.h"
 
 //  #include "GFx/AS3/AS3_Global.h"
 #include "client.h"
@@ -619,6 +620,69 @@ void Client::InitializeDataObjects()
 
    om::RegisterObjectTypes(*store_);
    om::RegisterObjectTypes(*authoringStore_);
+
+   // Keep track of when entities are allocated so we can wire up client side
+   // lua components
+   game_store_alloc_trace_ = store_->TraceStore("wire lua components")->OnAlloced([=](dm::ObjectPtr obj) {
+      if (obj->GetObjectType() == om::EntityObjectType) {
+         entities_to_trace_.push_back(std::static_pointer_cast<om::Entity>(obj));
+      }
+   });
+
+}
+
+/* 
+ * -- Client::TraceLuaComponents
+ *
+ * Put a trace on an Entity's lua components so we can create the client side
+ * component whenever the entity is de-serialized over here.
+ */
+
+void Client::TraceLuaComponents(om::EntityPtr entity)
+{
+   om::EntityRef e = entity;
+   dm::ObjectId entityId = entity->GetObjectId();
+   dm::TracePtr trace = entity->TraceLuaComponents("render", dm::RENDER_TRACES)
+      ->OnAdded([this, e, entityId](std::string const& name, om::DataStorePtr obj) {
+         // `obj` is the DataStore for the lua component.  Ask the Stonehearth module to initialize
+         // the controller, and hold into it so we can destroy it when the component goes away
+         om::EntityPtr entity = e.lock();
+         if (entity) {
+            lua_State* L = scriptHost_->GetInterpreter();
+            std::string uri = om::Stonehearth::GetLuaComponentUri(entity->GetStore(), name);
+            if (!uri.empty()) {
+               om::Stonehearth::ConstructLuaComponent(scriptHost_.get(), entity, uri, luabind::newtable(L), obj);
+               client_components_[entityId][name] = obj->GetController();
+            }
+         }
+      })
+      ->OnRemoved([this, entityId](std::string const& name) {
+         // Destroy the controller for the lua object and remove it from the map
+         auto i = client_components_.find(entityId);
+         if (i != client_components_.end()) {
+            auto& components = i->second;
+            auto j = components.find(name);
+            if (j != components.end()) {
+               j->second.DestroyLuaObject();
+               components.erase(j);
+            }
+         }
+      })
+      ->OnDestroyed([this, entityId]() {
+         // When the entity is destroyed, destroy all of its components.  We cannot rely
+         // on a dtor trace on the DataObject, as references to it might be held client
+         // side.
+         auto i = client_components_.find(entityId);
+         if (i != client_components_.end()) {
+            for (auto const& entry: i->second) {
+               entry.second.DestroyLuaObject();
+            }
+            client_components_.erase(i);
+         }
+      })
+      ->PushObjectState();
+
+   lua_component_traces_.push_back(trace);
 }
 
 void Client::InitializeDataObjectTraces()
@@ -648,6 +712,11 @@ void Client::ShutdownDataObjectTraces()
    authoring_render_tracer_.reset();
    game_object_model_traces_.reset();
    authoring_object_model_traces_.reset();
+
+   game_store_alloc_trace_.reset();
+   lua_component_traces_.clear();
+   client_components_.clear();
+   entities_to_trace_.clear();
 
    receiver_->Shutdown();
 }
@@ -707,8 +776,8 @@ void Client::InitializeGameObjects()
 void Client::ShutdownGameObjects()
 {
    Renderer::GetInstance().Shutdown();
-   rootObject_.reset();
-   hilightedObject_.reset();
+   rootEntity_.reset();
+   hilightedEntity_.reset();
    authoredEntities_.clear();
    
    game_clock_.reset();
@@ -860,7 +929,7 @@ void Client::mainloop()
 
 om::TerrainPtr Client::GetTerrain()
 {
-   om::EntityPtr rootObject = rootObject_.lock();   
+   om::EntityPtr rootObject = rootEntity_.lock();   
    return rootObject ? rootObject->GetComponent<om::Terrain>() : nullptr;
 }
 
@@ -903,18 +972,22 @@ void Client::EndUpdate(const proto::EndUpdate& msg)
 {
    initialUpdate_ = false;
 
+   // Constr
+   ConstructLuaComponents();
+
    if (traceObjectRouter_) {
       traceObjectRouter_->CheckDeferredTraces();
    }
 
-   if (!rootObject_.lock()) {
+   if (!rootEntity_.lock()) {
       auto rootEntity = GetStore().FetchObject<om::Entity>(1);
       if (rootEntity) {
-         rootObject_ = rootEntity;
+         rootEntity_ = rootEntity;
          Renderer::GetInstance().SetRootEntity(rootEntity);
          octtree_->SetRootEntity(rootEntity);
       }
    }
+
 
    // Only fire the remote store traces at sequence boundaries.  The
    // data isn't guaranteed to be in a consistent state between
@@ -957,10 +1030,9 @@ void Client::UpdateObject(const proto::UpdateObject& update)
 void Client::RemoveObjects(const proto::RemoveObjects& update)
 {
    for (int id : update.objects()) {
-      om::EntityPtr entity = GetEntity(id);
-
-      if (entity) {
-         auto render_entity = Renderer::GetInstance().GetRenderObject(entity);
+      dm::ObjectPtr obj = store_->FetchObject<dm::Object>(id);
+      if (obj && obj->GetObjectType() == om::EntityObjectType) {
+         auto render_entity = Renderer::GetInstance().GetRenderObject(std::static_pointer_cast<om::Entity>(obj));
          if (render_entity) {
             render_entity->Destroy();
          }
@@ -1091,45 +1163,14 @@ bool Client::CallInputHandlers(Input const& input)
    return false;
 }
 
-void Client::UpdateSelection(const MouseInput &mouse)
-{
-   perfmon::TimelineCounterGuard tcg("update selection") ;
-
-   RaycastResult r;
-   Renderer::GetInstance().QuerySceneRay(mouse.x, mouse.y, 0, r);
-
-   if (r.numResults() > 0) {
-      auto entity = GetEntity(r.objectIdOf(0));
-      if (entity->GetComponent<om::Terrain>()) {
-         CLIENT_LOG(3) << "clearing selection (clicked on terrain)";
-         SelectEntity(nullptr);
-      } else {
-         CLIENT_LOG(3) << "selecting " << entity->GetObjectId();
-         SelectEntity(entity);
-      }
-   } else {
-      CLIENT_LOG(3) << "no entities!";
-      SelectEntity(nullptr);
-   }
-}
-
-
-void Client::SelectEntity(dm::ObjectId id)
-{
-   om::EntityPtr entity = GetEntity(id);
-   if (entity) {
-      SelectEntity(entity);
-   }
-}
-
 void Client::SelectEntity(om::EntityPtr entity)
 {
    CLIENT_LOG(3) << "selecting " << entity;
 
-   om::EntityPtr selectedObject = selectedObject_.lock();
+   om::EntityPtr selectedEntity = selectedEntity_.lock();
    RenderEntityPtr renderEntity;
 
-   if (selectedObject != entity) {
+   if (selectedEntity != entity) {
       JSONNode selectionChanged(JSON_NODE);
 
       if (entity && entity->GetStore().GetStoreId() != GetStore().GetStoreId()) {
@@ -1137,14 +1178,14 @@ void Client::SelectEntity(om::EntityPtr entity)
          return;
       }
 
-      if (selectedObject) {
-         renderEntity = Renderer::GetInstance().GetRenderObject(selectedObject);
+      if (selectedEntity) {
+         renderEntity = Renderer::GetInstance().GetRenderObject(selectedEntity);
          if (renderEntity) {
             renderEntity->SetSelected(false);
          }
       }
 
-      selectedObject_ = entity;
+      selectedEntity_ = entity;
       if (entity) {
          CLIENT_LOG(3) << "selected entity " << *entity;
          selected_trace_ = entity->TraceChanges("selection", dm::RENDER_TRACES)
@@ -1168,15 +1209,17 @@ void Client::SelectEntity(om::EntityPtr entity)
    }
 }
 
+#if 0
 om::EntityPtr Client::GetEntity(dm::ObjectId id)
 {
    dm::ObjectPtr obj = store_->FetchObject<dm::Object>(id);
    return (obj && obj->GetObjectType() == om::Entity::DmType) ? std::static_pointer_cast<om::Entity>(obj) : nullptr;
 }
+#endif
 
 om::EntityRef Client::GetSelectedEntity()
 {
-   return selectedObject_;
+   return selectedEntity_;
 }
 
 void Client::InstallCurrentCursor()
@@ -1188,7 +1231,7 @@ void Client::InstallCurrentCursor()
       } else {
          if (!cursor_stack_.empty()) {
             cursor = cursor_stack_.back().second.get();
-         } else if (!hilightedObject_.expired()) {
+         } else if (!hilightedEntity_.expired()) {
             cursor = hover_cursor_.get();
          } else {
             cursor = default_cursor_.get();
@@ -1205,43 +1248,40 @@ void Client::InstallCurrentCursor()
    }
 }
 
-void Client::HilightEntity(dm::ObjectId objId)
+void Client::HilightEntity(om::EntityPtr hilight)
 {
    auto &renderer = Renderer::GetInstance();
-   om::EntityPtr selectedObject = selectedObject_.lock();
-   om::EntityPtr hilightedObject = hilightedObject_.lock();
+   om::EntityPtr selectedEntity = selectedEntity_.lock();
+   om::EntityPtr hilightedEntity = hilightedEntity_.lock();
 
-   if (hilightedObject && hilightedObject != selectedObject) {
-      auto renderObject = renderer.GetRenderObject(hilightedObject);
+   if (hilightedEntity && hilightedEntity != selectedEntity) {
+      auto renderObject = renderer.GetRenderObject(hilightedEntity);
       if (renderObject) {
          renderObject->SetSelected(false);
       }
    }
-   hilightedObject_.reset();
+   hilightedEntity_.reset();
 
-   if (objId != 0) {
-      hilightedObject = GetEntity(objId);
-      if (hilightedObject && hilightedObject != rootObject_.lock()) {
-         RenderEntityPtr renderObject = renderer.GetRenderObject(hilightedObject);
-         if (renderObject) {
-            renderObject->SetSelected(true);
-         }
-         hilightedObject_ = hilightedObject;
+   if (hilight && hilight != rootEntity_.lock()) {
+      RenderEntityPtr renderObject = renderer.GetRenderObject(hilight);
+      if (renderObject) {
+         renderObject->SetSelected(true);
       }
+      hilightedEntity_ = hilight;
    }
 }
 
 void Client::UpdateDebugCursor()
 {
-   if (enable_debug_cursor_) {
-      RaycastResult r;
+   if (enable_debug_cursor_) {   
       auto &renderer = Renderer::GetInstance();
       csg::Point2 pt = renderer.GetMousePosition();
 
-      renderer.QuerySceneRay(pt.x, pt.y, 0, r);
-      if (r.isValidBrick(0)) {
+      RaycastResult cast = renderer.QuerySceneRay(pt.x, pt.y, 0);
+      if (cast.GetNumResults() > 0) {
+         RaycastResult::Result r = cast.GetResult(0);
          json::Node args;
-         csg::Point3 pt = r.brickOf(0) + csg::ToInt(r.normalOf(0));
+         csg::Point3 pt = r.brick + csg::ToInt(r.normal);
          args.set("enabled", true);
          args.set("cursor", pt);
          core_reactor_->Call(rpc::Function("radiant:debug_navgrid", args));
@@ -1542,7 +1582,7 @@ void Client::LoadClientState(boost::filesystem::path const& savedir)
    InitializeDataObjectTraces();
 
    radiant_ = scriptHost_->Require("radiant.client");
-   scriptHost_->LoadGame(localModList_, authoredEntities_);
+   scriptHost_->LoadGame(localModList_, authoredEntities_);  
    initialUpdate_ = true;
 
    CLIENT_LOG(0) << "done loadin...";
@@ -1592,4 +1632,21 @@ void Client::ReportLoadProgress()
          lastLoadProgress_ = percent;
       }
    }
+}
+
+/* 
+ * -- Client::ConstructLuaComponents
+ * 
+ * Iterate through all the entities we created this frame and construct their
+ * client-side lua components.
+ */
+void Client::ConstructLuaComponents()
+{
+   for (om::EntityRef e : entities_to_trace_) {
+      om::EntityPtr entity = e.lock();
+      if (entity) {
+         TraceLuaComponents(entity);
+      }
+   }
+   entities_to_trace_.clear();
 }

@@ -23,10 +23,11 @@ function Proxy:__init(derived, parent_proxy, uri_or_entity)
 
    self._construction_data = self._entity:get_component('stonehearth:construction_data')
    if self._construction_data then
-      self._construction_data:modify_data(function(data)
+      self._construction_data.__saved_variables:modify_data(function(data)
             data.paint_mode = "blueprint"
          end)
    end
+   
    -- proxies get rendered in blueprint
    self._entity:add_component('render_info')
                      :set_material('materials/blueprint_gridlines.xml')
@@ -141,17 +142,20 @@ function Proxy:get_loaning_scaffolding_to(borrower)
 end
 
 function Proxy:get_construction_data()
-   return self._construction_data
+   return self._construction_data.__saved_variables
 end
 
 function Proxy:add_construction_data()
    if not self._construction_data then
       local data = {
          paint_mode = 'blueprint'
-      }
-      self._construction_data = self._entity:add_component_data('stonehearth:construction_data', data)
+      }      
+      self._construction_data = self._entity:add_component('stonehearth:construction_data')
+      self._construction_data.__saved_variables:modify_data(function(data)
+            data.paint_mode = "blueprint"
+         end)     
    end
-   return self._construction_data
+   return self._construction_data.__saved_variables
 end
 
 

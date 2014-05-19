@@ -5,11 +5,6 @@ local EnemyObserver = class()
 function EnemyObserver:initialize(entity, json)
    self._entity = entity
 
-   local enable_combat = radiant.util.get_config('enable_combat', false)
-   if not enable_combat then
-      return
-   end
-
    radiant.events.listen(self._entity, 'stonehearth:combat:battery', self, self._on_battery)
    self:_add_sensor_trace()
 end

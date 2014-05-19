@@ -93,22 +93,6 @@ class Renderer
       Renderer();
       ~Renderer();
 
-   private:
-      // Intermediate results from a raycast.
-      struct _RayCastResult
-      {
-         csg::Point3f point;
-         csg::Point3f normal;
-         H3DNode node;
-      };
-
-      struct _RayCastResults {
-         int num_results;
-         csg::Ray3 ray;
-         _RayCastResult results[10];
-      };
-
-
    public:
       static Renderer& GetInstance();
 
@@ -141,7 +125,6 @@ class Renderer
       void GetViewportMouseCoords(double& x, double& y);
       csg::Point2 GetMousePosition() const;
       csg::Matrix4 GetNodeTransform(H3DNode node) const;
-      csg::Matrix4 GetTransformForObject(dm::ObjectId id);
 
       bool IsRunning() const;
       HWND GetWindowHandle() const;
@@ -154,11 +137,11 @@ class Renderer
       void RemoveRenderObject(int storeId, dm::ObjectId id);
 
       typedef std::function<void(om::Selection& sel, const csg::Ray3& ray, const csg::Point3f& intersection, const csg::Point3f& normal)> UpdateSelectionFn;
-      core::Guard TraceSelected(H3DNode node, dm::ObjectId objectId);//UpdateSelectionFn fn);
+      core::Guard SetSelectionForNode(H3DNode node, om::EntityRef e);
 
       void GetCameraToViewportRay(int viewportX, int viewportY, csg::Ray3* ray);
-      void QuerySceneRay(int viewportX, int viewportY, int userFlags, RaycastResult &result);
-      void QuerySceneRay(const csg::Point3f& origin, const csg::Point3f& direction, int userFlags, RaycastResult &result);
+      RaycastResult QuerySceneRay(int viewportX, int viewportY, int userFlags);
+      RaycastResult QuerySceneRay(const csg::Point3f& origin, const csg::Point3f& direction, int userFlags);
 
       typedef std::function<void (const Input&)> InputEventCb;
       void SetInputHandler(InputEventCb fn) { input_cb_ = fn; }
@@ -198,7 +181,8 @@ class Renderer
 
    private:
       NO_COPY_CONSTRUCTOR(Renderer);
-      RendererConfig config_;
+
+      typedef std::function<void(csg::Point3f const& pt, csg::Point3f const& normal, H3DNode node)> RayCastHitCb;
 
    private:
       void RenderFogOfWarRT();
@@ -220,7 +204,7 @@ class Renderer
       MouseInput WindowToBrowser(const MouseInput& mouse);
       void CallMouseInputCallbacks();
       void UpdateFoW(H3DNode node, const csg::Region2& region);
-      void CastRay(const csg::Point3f& origin, const csg::Point3f& direction, int userFlags, _RayCastResults* result);
+      void CastRay(const csg::Point3f& origin, const csg::Point3f& direction, int userFlags, RayCastHitCb cb);
 
       void ResizeViewport();
       void ResizePipelines();
@@ -235,7 +219,9 @@ class Renderer
          std::shared_ptr<RenderEntity>    render_entity;
          dm::TracePtr                     lifetime_trace;
       };
-      typedef std::unordered_map<H3DNode, dm::ObjectId>        SelectionLookup;
+      RendererConfig config_;
+
+      typedef std::unordered_map<H3DNode, om::EntityRef>       SelectionLookup;
       typedef std::unordered_map<dm::ObjectId, RenderMapEntry> RenderEntityMap;
       typedef std::unordered_map<std::string, H3DRes>          H3DResourceMap;
 
