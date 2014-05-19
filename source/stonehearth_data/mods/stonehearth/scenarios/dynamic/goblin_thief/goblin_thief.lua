@@ -1,6 +1,11 @@
 local GoblinThief = class()
 local rng = _radiant.csg.get_default_rng()
 
+
+function GoblinThief.can_spawn()
+   return true
+end
+
 --[[ 
 Goblin Thief (aka Goblin Jerk) narrative:
 When the camp standard is placed, we want to start gently (and then not-so-gently) harassing the player.

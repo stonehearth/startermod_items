@@ -11,14 +11,15 @@ function DmService:initialize()
 
    self._starting_location_exclusion_radius = radiant.util.get_config('scenario.starting_location_exclusion_radius', 64)
    self._difficulty_increment_distance = radiant.util.get_config('scenario.difficulty_increment_distance', 256)
-   self._combat_curve = CombatCurve(5, 50, 0.95, 1000)
+   self._pace_keepers = {}
+   self._pace_keepers['combat'] = CombatCurve(5, 50, 0.95, 1000)
 
    assert(self._starting_location_exclusion_radius < self._difficulty_increment_distance)
 
    self._sv = self.__saved_variables:get_data()
    if self._sv._initialized then
       radiant.events.listen_once(radiant, 'radiant:game_loaded', function (e)
-         radiant.events.listen(radiant, 'stonehearth:very_slow_poll', self, self._on_think)
+         radiant.events.listen(radiant, 'stonehearth:minute_poll', self, self._on_think)
       end)
    else 
       radiant.events.listen(radiant, 'radiant:entity:post_create', function (e)
@@ -26,7 +27,7 @@ function DmService:initialize()
             -- Once the camp-standard has been placed, we begin the thinking process!
             self._sv._initialized = true
             self.__saved_variables:mark_changed()
-            radiant.events.listen(radiant, 'stonehearth:very_slow_poll', self, self._on_think)
+            radiant.events.listen(radiant, 'stonehearth:minute_poll', self, self._on_think)
             return radiant.events.UNLISTEN
          end
       end)
@@ -34,28 +35,24 @@ function DmService:initialize()
 end
 
 function DmService:_on_think()
-   -- TODO: a complex algorithm.
-
    if not self._enable_scenarios then
       return
    end
 
-   self._combat_curve:update(stonehearth.calendar:get_elapsed_time())
+   local current_time = stonehearth.calendar:get_elapsed_time()
 
-   if self._combat_curve:willing_to_spawn() then
-      stonehearth.dynamic_scenario:try_spawn_scenario(self._combat_curve:get_scenario_types())
+   for _, keeper in pairs(self._pace_keepers) do
+      keeper:update(current_time)
    end
 
-   --[[local scenario_kind = 'combat'
-
-   -- Some hackiness until proper military strength comes in.
-   local civ_military = stonehearth.score:get_scores_for_player('player_1'):get_score_data()['happiness']['military']
-   local scenario_min_difficulty = civ_military - 5
-   local scenario_max_difficulty = civ_military + 5
-
-   if stonehearth.dynamic_scenario:num_running_scenarios() < 1 then
-      stonehearth.dynamic_scenario:spawn_scenario(scenario_kind, scenario_min_difficulty, scenario_max_difficulty)
-   end]]
+   for pace_kind, keeper in pairs(self._pace_keepers) do
+      -- TODO: keep track of scenarios being spawned this update, so that we don't
+      -- spawn more than one of the same kind (hell, might just want to limit the
+      -- spawning to one per tick?)
+      if keeper:willing_to_spawn() then
+         stonehearth.dynamic_scenario:try_spawn_scenario(pace_kind, self._pace_keepers)
+      end
+   end
 end
 
 function DmService:derive_difficulty_map(habitat_map, tile_offset_x, tile_offset_y, feature_size, starting_location)

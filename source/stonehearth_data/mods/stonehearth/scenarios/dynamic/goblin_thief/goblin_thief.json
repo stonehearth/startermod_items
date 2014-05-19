@@ -1,6 +1,10 @@
 {
-   "name" : "Goblin Thief",
-   "category" : "combat",
-   "difficulty" : 1,
-   "script" : "file(goblin_thief.lua)"
+    "name" : "Goblin Thief",
+    "scenario_types" : {
+      "combat" : {
+        "min_strength" : 0,
+        "max_strength" : 1
+      }
+    },
+    "script" : "file(goblin_thief.lua)"
 }

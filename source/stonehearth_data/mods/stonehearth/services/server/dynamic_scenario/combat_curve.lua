@@ -82,3 +82,19 @@ function CombatCurve:compute_value()
   return new_combat_value
 end
 
+-- API function
+function CombatCurve:can_spawn_scenario(scenario)
+  local props = scenario.scenario_types.combat
+
+  local combat_strength = 17
+  local min_strength = props.min_strength and props.min_strength or 0
+  local max_strength = props.max_strength and props.max_strength or 999999
+
+  -- Check strength of the player's army.
+  if combat_strength < min_strength or combat_strength >= max_strength then
+    return false
+  end
+
+  -- Finally, check if the scenario itself has specific run-time spawn requirements.
+  return scenario.can_spawn()
+end
