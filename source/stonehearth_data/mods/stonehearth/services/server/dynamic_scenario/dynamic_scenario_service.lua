@@ -12,6 +12,7 @@ function DynamicScenarioService:initialize()
       radiant.events.listen_once(radiant, 'radiant:game_loaded', function(e)
             for idx, sv in pairs(self._sv.running_scenarios) do
                local scenario_data = sv:get_data()
+               -- TODO THIS IS WRONG FIX THIS THIS IS WRONG FIX THIS
                local properties = {
                   script = scenario_data._scenario_script_path
                }
@@ -40,7 +41,7 @@ function DynamicScenarioService:try_spawn_scenario(scenario_type, pace_keepers)
       -- also effect the 'wealth' pacer, which isn't ready to run yet.  Or, all
       -- pacing is satisfied, but the scenario we're looking at is also waiting
       -- for the combat strength of the player to reach a certain level.
-      for _, implementing_type in pairs(scenario.scenario_types) do
+      for implementing_type,_ in pairs(scenario.properties.scenario_types) do
          local pace_keeper = pace_keepers[implementing_type]
          if not pace_keeper:willing_to_spawn() or 
             not pace_keeper:can_spawn_scenario(scenario) then
@@ -49,7 +50,7 @@ function DynamicScenarioService:try_spawn_scenario(scenario_type, pace_keepers)
          end
       end
       if valid_scenario then
-         table.insert(valid_scenarios, valid_scenario)
+         table.insert(valid_scenarios, scenario)
       end
    end
 
@@ -95,20 +96,23 @@ function DynamicScenarioService:_parse_scenario_index()
 
    for _, file in pairs(scenario_index.dynamic.scenarios) do
       properties = radiant.resources.load_json(file)
-      for _, scen_types in pairs(properties.scenario_types) do
-         if self._scenarios[scen_types] == nil then
-            self._scenarios[scen_types] = {}
+      for scenario_type,_ in pairs(properties.scenario_types) do
+         if self._scenarios[scenario_type] == nil then
+            self._scenarios[scenario_type] = {}
          end
-         table.insert(self._scenarios[scen_types], properties)
+         local scenario_data = {
+            scenario = radiant.mods.load_script(properties.script),
+            properties = properties
+         }
+         table.insert(self._scenarios[scenario_type], scenario_data)
       end
    end
 end
 
 
-function DynamicScenarioService:_init_scenario(properties, opt_datastore)
-   local scenario_script = radiant.mods.load_script(properties.script)
+function DynamicScenarioService:_init_scenario(scenario, opt_datastore)
    local datastore = opt_datastore and opt_datastore or radiant.create_datastore()
-   local dyn_scenario = DynamicScenario(scenario_script, properties.script, datastore)
+   local dyn_scenario = DynamicScenario(scenario.scenario, scenario.properties.script, datastore)
 
    return dyn_scenario
 end

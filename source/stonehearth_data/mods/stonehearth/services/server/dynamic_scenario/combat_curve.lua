@@ -15,7 +15,7 @@ function CombatCurve:__init(min_threshold, max_threshold, decay_constant, cooldo
   self._cooldown_time = cooldown_time
 
   self._combat_value = 0
-  radiant.events.listen(radiant, 'stonehearth:combat_stuff', self, self._on_combat_event)
+  radiant.events.listen(radiant, 'stonehearth:combat:combat_action', self, self._on_combat_action)
 end
 
 function CombatCurve:get_scenario_type()
@@ -71,8 +71,10 @@ end
 -- *********************************************************************************************
 -- COMBAT SPECIFIC FUNCTIONS *******************************************************************
 -- *********************************************************************************************
-function CombatCurve:_on_combat_event(e)
-  self._combat_value = self._combat_value -- + f(e)
+function CombatCurve:_on_combat_action(e)
+  -- For now, just add damage done, regardless of who is doing it.  Very shortly, we'll probably
+  -- want to weight damage done to the player as more important.
+  self._combat_value = self._combat_value + e.damage
 end
 
 -- API function
@@ -84,17 +86,19 @@ end
 
 -- API function
 function CombatCurve:can_spawn_scenario(scenario)
-  local props = scenario.scenario_types.combat
+  local props = scenario.properties.scenario_types.combat
 
-  local combat_strength = 17
+  local military_strength = stonehearth.score:get_scores_for_player('player_1'):get_score_data().military_strength.total_score
   local min_strength = props.min_strength and props.min_strength or 0
   local max_strength = props.max_strength and props.max_strength or 999999
 
   -- Check strength of the player's army.
-  if combat_strength < min_strength or combat_strength >= max_strength then
+  if military_strength < min_strength or military_strength >= max_strength then
     return false
   end
 
   -- Finally, check if the scenario itself has specific run-time spawn requirements.
-  return scenario.can_spawn()
+  return scenario.scenario.can_spawn()
 end
+
+return CombatCurve
