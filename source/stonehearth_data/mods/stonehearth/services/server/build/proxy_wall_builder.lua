@@ -1,106 +1,122 @@
 local constants = require('constants').construction
-local ProxyColumn = require 'services.server.build.proxy_column'
-local ProxyWall = require 'services.server.build.proxy_wall'
-local ProxyBuilder = require 'services.server.build.proxy_builder'
-local ProxyWallBuilder = class(ProxyBuilder)
+local StructureEditor = require 'services.server.build.structure_editor'
+local ProxyWallBuilder = class(StructureEditor)
 
 local Point3 = _radiant.csg.Point3
 local Cube3 = _radiant.csg.Cube3
 local Region3 = _radiant.csg.Region3
 
--- this is the component which manages the fabricator entity.
-function ProxyWallBuilder:__init()
-   self[ProxyBuilder]:__init(self, self._on_mouse_event, self._on_keyboard_event)
-end
-
-function ProxyWallBuilder:go(response)
-   self:_start()
-   self:add_column()
+function ProxyWallBuilder:go(column_uri, wall_uri, response)
+   self._column_uri = column_uri
+   self._wall_uri = wall_uri
    self._response = response
+
+   self._queued_points = {}
+   
+   local last_location
+   local last_column_editor
+   local current_column_editor = StructureEditor()
+   current_column_editor:create_blueprint(column_uri, 'stonehearth:column')
+
+   self._selector = stonehearth.selection.select_location()
+      :allow_shift_queuing(true)
+      :set_min_locations_count(2)
+      :progress(function(selector, location, rotation)
+            if last_location then
+               location = self:_fit_point_to_constraints(last_location, location, current_column_editor:get_proxy_blueprint())
+            end
+            current_column_editor:move_to(location)
+         end)
+      :done(function(selector, location, rotation, finished)
+               if last_column_editor then
+                  self:_queue_wall(last_column_editor, current_column_editor)
+               end
+
+               self._finished_queuing = finished
+               if not finished then
+                  last_column_editor = current_column_editor
+                  last_location = radiant.entities.get_world_grid_location(last_column_editor:get_proxy_blueprint())
+                  current_column_editor = StructureEditor()
+                  current_column_editor:create_blueprint(column_uri, 'stonehearth:column')
+               end
+         end)
+      :fail(function(selector)
+            assert(false)
+         end)
+      :go()
    
    return self
 end
 
-function ProxyWallBuilder:_get_last_segment()
-   return self:get_column(-2), self:get_column(-1)
+function ProxyWallBuilder:_queue_wall(c0, c1)
+   table.insert(self._queued_points, {
+      p0 = radiant.entities.get_world_grid_location(c0:get_proxy_blueprint()),
+      p1 = radiant.entities.get_world_grid_location(c1:get_proxy_blueprint()),
+      editor = c0,
+   })
+   self:_pump_queue()
 end
 
-function ProxyWallBuilder:_fit_point_to_constraints(absolute_pt)
-   local column_a, column_b = self:_get_last_segment()
-   if not column_a then
-      return absolute_pt
+function ProxyWallBuilder:_pump_queue()
+   if self._waiting_for_response then
+      return
+   end   
+   local entry = table.remove(self._queued_points)
+   if not entry then
+      if self._finished_queuing then
+         self._selector:destroy()
+         self._response:resolve({ success = true })
+      end
+      return
    end
-   -- constrain the 2nd column to be no more than the max wall
-   -- distance away from the first
-   local pt_a = column_a:get_location_absolute()
-   local pt_b = absolute_pt
+   local p0, p1 = entry.p0, entry.p1
+   local n = p0.x == p1.x and 'x' or 'z'
+   local t = n == 'x' and 'z' or 'x'
+   local normal = Point3(0, 0, 0)
+   if p0[t] < p1[t] then
+      normal[n] = 1
+   else
+      p0, p1 = p1, p0
+      normal[n] = -1
+   end
 
+   self._waiting_for_response = true
+   _radiant.call('stonehearth:add_wall', self._column_uri, self._wall_uri, p0, p1, normal)
+            :fail(function(result)
+                  assert(false)
+               end)
+            :always(function ()
+                  entry.editor:destroy()
+                  self._waiting_for_response = false
+                  self:_pump_queue()
+               end)
+end
+
+function ProxyWallBuilder:_fit_point_to_constraints(p0, p1, column1)  
    local t, n, dt, d
-   if math.abs(pt_a.x - pt_b.x) >  math.abs(pt_a.z - pt_b.z) then
+   if math.abs(p0.x - p1.x) >  math.abs(p0.z - p1.z) then
       t = 'x'
       n = 'z'
    else
       t = 'z'
       n = 'x'
    end
-   if pt_a[t] > pt_b[t] then
+   if p0[t] > p1[t] then
       dt = 1
-      d  = math.max(pt_b[t] - pt_a[t], -constants.MAX_WALL_SPAN)
+      d  = math.max(p1[t] - p0[t], -constants.MAX_WALL_SPAN)
    else
       dt = -1
-      d  = math.min(pt_b[t] - pt_a[t], constants.MAX_WALL_SPAN)
+      d  = math.min(p1[t] - p0[t], constants.MAX_WALL_SPAN)
    end
-   pt_b[t] = pt_a[t] + d
-   pt_b[n] = pt_a[n]
-   pt_b.y = pt_a.y
+   p1[t] = p0[t] + d
+   p1[n] = p0[n]
+   p1.y = p0.y
    
-   local region = column_b:get_region():get()
-   while not _radiant.client.is_valid_standing_region(region:translated(pt_b)) and pt_b[t] ~= pt_a[t] do
-      pt_b[t] = pt_b[t] - dt
+   local region = column1:get_component('destination'):get_region():get()
+   while not _radiant.client.is_valid_standing_region(region:translated(p1)) and p1[t] ~= p0[t] do
+      p1[t] = p1[t] - dt
    end
-   return pt_b
-end
-
-function ProxyWallBuilder:_add_new_segment()
-   local column_a, column_b = self:_get_last_segment()
-   if column_a and column_b then
-      local wall = self:add_wall()
-      wall:connect_to(column_a, column_b)
-      return wall
-   end
-end
-
-function ProxyWallBuilder:_on_mouse_event(e)
-   local query = _radiant.client.query_scene(e.x, e.y)
-   if query:get_result_count() > 0 then
-      local r = query:get_result(0)
-      local world_location = self:_fit_point_to_constraints(r.brick + r.normal:to_int())
-      if self:get_column_count() == 1 then
-         -- if this is the very first column, move the room around.
-         self:move_to(world_location)
-      else 
-         -- otherwise, move the column
-         self:get_column(-1):move_to_absolute(world_location)
-      end
-      if e:up(1) then
-         self:_add_new_segment()      
-         if self:shift_down() or self:get_column_count() < 2 then
-            self:add_column():move_to_absolute(world_location)
-         else
-            self:publish()
-            self._response:resolve({ result = true })
-         end
-         return true
-      end
-   end
-   return true
-end
-
-function ProxyWallBuilder:_on_keyboard_event(e)
-   if e.key == _radiant.client.KeyboardInput.KEY_ESC and e.down then
-      self:cancel()
-   end
-   return false
+   return p1
 end
 
 return ProxyWallBuilder

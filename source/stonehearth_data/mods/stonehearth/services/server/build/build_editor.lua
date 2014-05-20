@@ -8,6 +8,8 @@ local ProxyFloorBuilder = require 'services.server.build.proxy_floor_builder'
 local ProxyRoomBuilder = require 'services.server.build.proxy_room_builder'
 local Point3 = _radiant.csg.Point3
 
+local log = radiant.log.create_logger('build_editor')
+
 function BuildEditor:add_door(session, response)
    local wall_editor
    local capture = stonehearth.input:capture_input()
@@ -24,11 +26,12 @@ function BuildEditor:add_door(session, response)
                   wall_editor = nil
                end
                if not wall_editor then
-                  local fabricator, blueprint, project = get_fbp_for_structure(entity, 'stonehearth:wall')
+                  local fabricator, blueprint, project = StructureEditor.get_fbp_for_structure(entity, 'stonehearth:wall')
                   log:detail('got blueprint %s', tostring(blueprint))
                   if blueprint then
                      log:detail('creating wall editor for blueprint: %s', blueprint)
-                     wall_editor = WallEditor(fabricator, blueprint, project)
+                     wall_editor = WallEditor()
+                                       :begin_editing(fabricator, blueprint, project)
                                        :set_portal_uri('stonehearth:wooden_door')
                   end
                end
@@ -57,7 +60,8 @@ function BuildEditor:get_model()
 end
 
 function BuildEditor:place_new_wall(session, response)
-   ProxyWallBuilder():go(response)
+   ProxyWallBuilder()
+         :go('stonehearth:wooden_column', 'stonehearth:wooden_wall', response)
 end
 
 function BuildEditor:place_new_floor(session, response)

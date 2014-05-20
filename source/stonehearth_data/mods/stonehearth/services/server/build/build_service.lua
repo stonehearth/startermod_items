@@ -477,6 +477,27 @@ function BuildService:_merge_building_into(merge_into, building)
    radiant.entities.destroy_entity(building)
 end
 
+function BuildService:add_wall(session, response, columns_uri, walls_uri, p0, p1, normal)
+   -- look for floor that we can merge into.
+   local c0 = self:_get_blueprint_at_point(p0)
+   local c1 = self:_get_blueprint_at_point(p1)
+   local either_column = c0 or c1
+   local building
+   if c0 and c1 then
+      local b0 = self:_get_building_for(c0)
+      local b1 = self:_get_building_for(c1)
+      assert(b0 == b1) -- merge required
+      building = b0
+   elseif either_column then
+      building = self:_get_building_for(either_column)
+   else
+      building = self:_create_new_building(session, p0)
+   end
+   assert(building)
+   self:_add_wall_span(building, p0, p1, normal, columns_uri, walls_uri)
+   response:resolve({ success = true })
+end
+
 -- add walls around all the floor segments for the specified `building` which
 -- do not already have walls around them.
 --

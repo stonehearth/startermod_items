@@ -5,18 +5,21 @@ local WallEditor = class(StructureEditor)
 
 local log = radiant.log.create_logger('build_editor')
 
-function WallEditor:__init(fabricator, blueprint, project)
-   self[StructureEditor]:__init(fabricator, blueprint, project, 'stonehearth:wall')
-   self._wall = self:get_proxy_blueprint():get_component('stonehearth:wall')
-end
-
-function WallEditor:destroy()  
+function WallEditor:destroy()
    if self._portal then
       log:detail('destroying portal %s', tostring(self._portal))
       radiant.entities.destroy_entity(self._portal)
       self._portal = nil
    end
+
    self[StructureEditor]:destroy()
+end
+
+function WallEditor:begin_editing(fabricator, blueprint, project, structure_type)
+   self[StructureEditor]:begin_editing(fabricator, blueprint, project, 'stonehearth:wall')
+   
+   self._wall = self:get_proxy_blueprint():get_component('stonehearth:wall')
+   return self
 end
 
 function WallEditor:set_portal_uri(uri)

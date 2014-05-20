@@ -815,6 +815,10 @@
          "controller" : "file(call_handlers/build_call_handler.lua)",
          "endpoint" : "server"
       },
+      "add_wall": {
+         "controller" : "file(call_handlers/build_call_handler.lua)",
+         "endpoint" : "server"
+      },
       "set_stockpile_filter": {
          "controller" : "file(call_handlers/stockpile_call_handler.lua)",
          "endpoint" : "server"
@@ -897,6 +901,7 @@
    },
    "client_components" : {
       "wall" : "file(components/wall/wall_component.lua)",
+      "column" : "file(components/column/column_component.lua)",
       "portal" : "file(components/portal/portal_component.lua)",
       "fabricator" : "file(components/fabricator/fabricator_client_component.lua)",
       "construction_data" : "file(components/construction_data/construction_data_component.lua)",

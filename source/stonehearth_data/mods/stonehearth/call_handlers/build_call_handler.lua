@@ -39,6 +39,10 @@ function BuildCallHandler:add_floor(session, request, floor_uri, box)
    stonehearth.build:add_floor(session, request, floor_uri, ToCube3(box))
 end
 
+function BuildCallHandler:add_wall(session, request, columns_uri, walls_uri, p0, p1, normal)
+   stonehearth.build:add_wall(session, request, columns_uri, walls_uri, ToPoint3(p0), ToPoint3(p1), ToPoint3(normal))
+end
+
 function BuildCallHandler:grow_walls(session, request, building, columns_uri, walls_uri)
    stonehearth.build:grow_walls(session, request, building, columns_uri, walls_uri)
 end

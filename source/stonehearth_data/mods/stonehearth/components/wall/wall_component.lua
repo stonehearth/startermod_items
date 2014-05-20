@@ -72,6 +72,7 @@ function Wall:add_portal(portal, location)
    local rotation = self._sv.fixture_rotation
    radiant.entities.add_child(self._entity, portal, location)
    portal:get_component('mob'):turn_to(rotation)
+   return self
 end
 
 

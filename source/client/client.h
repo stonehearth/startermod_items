@@ -79,6 +79,7 @@ class Client : public core::Singleton<Client> {
       typedef std::function<void(float)> TraceRenderFrameHandlerCb;
 
       XZRegionSelectorPtr Client::CreateXZRegionSelector(int userFlags);
+      csg::Point2 GetMousePosition() const;
 
    private:
       NO_COPY_CONSTRUCTOR(Client);
@@ -230,8 +231,7 @@ private:
       rpc::LuaObjectRouterPtr     luaObjectRouter_;
       rpc::TraceObjectRouterPtr   traceObjectRouter_;
       rpc::TraceObjectRouterPtr   traceAuthoredObjectRouter_;
-      int                         mouse_x_;
-      int                         mouse_y_;
+      csg::Point2                 mouse_position_;
       core::Guard                 browserResizeGuard_;
       bool                        perf_hud_shown_;
       bool                        connected_;

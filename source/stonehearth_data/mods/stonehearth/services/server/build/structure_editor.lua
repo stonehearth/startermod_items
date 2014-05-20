@@ -41,76 +41,114 @@ function StructureEditor.get_building_for(entity)
    end
 end
 
-function StructureEditor:__init(fabricator, blueprint, project, structure_type)
+function StructureEditor:__init()
+   self._building_container = radiant.entities.create_entity('stonehearth:entities:building')
+   self._render_entity = _radiant.client.create_render_entity(1, self._building_container)
+end
+
+function StructureEditor:destroy()
+   -- hide the fabricator and structure...
+   self:_release_current_proxies()
+   radiant.entities.destroy_entity(self._building_container)
+end
+
+function StructureEditor:_release_current_proxies()
+   self:_show_editing_objects(true)
+   self._fabricator = nil
+   self._blueprint = nil
+   self._project = nil
+
+   if self._proxy_fabricator then
+      radiant.entities.destroy_entity(self._proxy_fabricator)
+      self._proxy_fabricator = nil
+   end
+   if self._proxy_blueprint then
+      radiant.entities.destroy_entity(self._proxy_blueprint)
+      self._proxy_blueprint = nil
+   end
+end
+
+function StructureEditor:begin_editing(fabricator, blueprint, project, structure_type)
+   self:_release_current_proxies()
+
    self._fabricator = fabricator
    self._blueprint = blueprint
    self._project = project
 
-   local building = get_building_for(blueprint)
+   local building = StructureEditor.get_building_for(blueprint)
    local location = radiant.entities.get_world_grid_location(building)
-   self._proxy_building = radiant.entities.create_entity(building:get_uri())
-   self._proxy_building:set_debug_text('proxy building')
-   self._proxy_building:add_component('mob')
-                           :set_location_grid_aligned(location)
-   blueprint:add_component('unit_info')
-            :set_player_id(radiant.entities.get_player_id(building))
-            :set_faction(radiant.entities.get_faction(building))
 
-   local rgn = _radiant.client.alloc_region()
-   rgn:modify(function(cursor)
-         local source_rgn = blueprint:get_component('destination'):get_region()
-         cursor:copy_region(source_rgn:get())
-      end)
-   self._proxy_blueprint = radiant.entities.create_entity(blueprint:get_uri())
-   self._proxy_blueprint:set_debug_text('proxy blueprint')
+   radiant.entities.move_to(self._building_container, location)
+
+   self:_initialize_proxies(blueprint:get_uri(), structure_type)
+
+   local location = blueprint:get_component('mob'):get_grid_location()
+   self:move_to(location)
+end
+
+function StructureEditor:create_blueprint(blueprint_uri, structure_type)
+   self:_initialize_proxies(blueprint_uri, structure_type)
+end
+
+function StructureEditor:move_to(location)
+   radiant.entities.move_to(self._proxy_blueprint, location)
+   radiant.entities.move_to(self._proxy_fabricator, location)
+end
+
+function StructureEditor:_initialize_proxies(blueprint_uri, structure_type)
+   self._proxy_blueprint = radiant.entities.create_entity(blueprint_uri)
+   self._proxy_fabricator = radiant.entities.create_entity('stonehearth:entities:fabricator')
+
+   radiant.entities.add_child(self._building_container, self._proxy_blueprint)
+   radiant.entities.add_child(self._building_container, self._proxy_fabricator)
+
    self._proxy_blueprint:add_component('destination')
-                           :set_region(rgn)
-
-   local structure = blueprint:get_component(structure_type)
-   assert(structure)
-   local proxy_structure = self._proxy_blueprint:add_component(structure_type)
-                                                   :begin_editing(structure)
-                                                   :layout()
-   local editing_reserved_region = proxy_structure:get_editing_reserved_region()
-   
-   self._proxy_blueprint:add_component('stonehearth:construction_data')
-                           :begin_editing(blueprint:get_component('stonehearth:construction_data'))
-
-   self._proxy_fabricator = radiant.entities.create_entity(fabricator:get_uri())
-   self._proxy_fabricator :set_debug_text('proxy fabricator')
-
-   rgn = _radiant.client.alloc_region()
-   rgn:modify(function(cursor)
-         local source_rgn = fabricator:get_component('destination'):get_region()
-         cursor:copy_region(source_rgn:get())
-      end)
+                           :set_region(_radiant.client.alloc_region())
    self._proxy_fabricator:add_component('destination')
-                           :set_region(rgn)
+                           :set_region(_radiant.client.alloc_region())
+
+   local existing_structure, existing_construction_data
+   if self._blueprint then
+      existing_structure = self._blueprint:get_component(structure_type)
+      existing_construction_data = self._blueprint:get_component('stonehearth:construction_data')
+      assert(existing_structure)
+   end
+   self._proxy_blueprint:add_component('stonehearth:construction_data')
+                           :begin_editing(existing_construction_data)
+
+   self._structure = self._proxy_blueprint:add_component(structure_type)
+                                                :begin_editing(existing_structure)
+                                                :layout()
    
+   local editing_reserved_region = self._structure:get_editing_reserved_region()
    self._proxy_fabricator:add_component('stonehearth:fabricator')
-      :begin_editing(self._proxy_blueprint, project, editing_reserved_region)
+         :begin_editing(self._proxy_blueprint, self._project, editing_reserved_region)
 
    self._proxy_blueprint:add_component('stonehearth:construction_progress')
-                           :begin_editing(self._proxy_building, self._proxy_fabricator)
+                           :begin_editing(self._building_container, self._proxy_fabricator)
 
-   radiant.entities.add_child(self._proxy_building, self._proxy_blueprint, blueprint:get_component('mob'):get_grid_location())
-   radiant.entities.add_child(self._proxy_building, self._proxy_fabricator, fabricator:get_component('mob'):get_grid_location() + Point3(0, 0, 0))
-
-   self._render_entity = _radiant.client.create_render_entity(1, self._proxy_building)
 
    -- hide the fabricator and structure...
-   _radiant.client.get_render_entity(self._fabricator):set_visible(false)
-   _radiant.client.get_render_entity(self._project):set_visible(false)
+   self:_show_editing_objects(false)
+end
+
+function StructureEditor:_show_editing_objects(visible)
+   if self._fabricator then
+      _radiant.client.get_render_entity(self._fabricator)
+                        :set_visible(visible)
+   end
+   if self._blueprint then
+      _radiant.client.get_render_entity(self._project)
+                        :set_visible(visible)
+   end   
 end
 
 function StructureEditor:destroy()
    -- hide the fabricator and structure...
    radiant.entities.destroy_entity(self._proxy_fabricator)
    radiant.entities.destroy_entity(self._proxy_blueprint)
-   radiant.entities.destroy_entity(self._proxy_building)
-
-   _radiant.client.get_render_entity(self._fabricator):set_visible(true)
-   _radiant.client.get_render_entity(self._project):set_visible(true)
+   radiant.entities.destroy_entity(self._building_container)
+   self:_show_editing_objects(true)
 end
 
 function StructureEditor:get_blueprint()

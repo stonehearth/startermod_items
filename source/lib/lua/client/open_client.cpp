@@ -433,6 +433,11 @@ static bool Client_IsMouseButtonDown(int button)
    return glfwGetMouseButton(glfwGetCurrentContext(), button) == GLFW_PRESS;
 }
 
+static csg::Point2 Client_GetMousePosition()
+{
+   return Client::GetInstance().GetMousePosition();
+}
+
 DEFINE_INVALID_JSON_CONVERSION(CaptureInputPromise);
 DEFINE_INVALID_JSON_CONVERSION(TraceRenderFramePromise);
 DEFINE_INVALID_JSON_CONVERSION(SetCursorPromise);
@@ -471,6 +476,7 @@ void lua::client::open(lua_State* L)
             def("is_valid_standing_region",        &Client_IsValidStandingRegion),
             def("is_key_down",                     &Client_IsKeyDown),
             def("is_mouse_button_down",            &Client_IsMouseButtonDown),
+            def("get_mouse_position",              &Client_GetMousePosition),
             
             lua::RegisterTypePtr_NoTypeInfo<CaptureInputPromise>("CaptureInputPromise")
                .def("on_input",          &CaptureInputPromise::OnInput)
