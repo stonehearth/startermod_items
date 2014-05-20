@@ -72,6 +72,9 @@ local function apply_options_to_entity(entity, options)
    if options.faction then
       radiant.entities.set_faction(entity, options.faction)
    end
+   if options.player_id then
+      radiant.entities.set_player_id(entity, options.player_id)
+   end
    if options.attributes then
       for name, value in pairs(options.attributes) do
          entity:get_component('stonehearth:attributes'):set_attribute(name, value)

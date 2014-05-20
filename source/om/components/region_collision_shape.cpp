@@ -11,6 +11,12 @@ std::ostream& operator<<(std::ostream& os, RegionCollisionShape const& o)
    return (os << "[RegionCollisionShape]");
 }
 
+void RegionCollisionShape::ConstructObject()
+{
+   Component::ConstructObject();
+   region_collision_type_ = RegionCollisionTypes::SOLID;
+}
+
 static std::unordered_map<RegionCollisionShape::RegionCollisionTypes, std::string> regionCollisonTypesToString;
 static std::unordered_map<std::string, RegionCollisionShape::RegionCollisionTypes> regionCollisonTypesToEnum;
 static void InitRegionCollisionTypesMap()

@@ -23,6 +23,7 @@
             "file(end_to_end/sleep_autotests.lua)",
             "file(end_to_end/food_autotests.lua)",
             "file(end_to_end/placement_autotests.lua)",
+            "file(end_to_end/score_autotests.lua)",
             "file(end_to_end/sensor_autotests.lua)"
          ]
       },

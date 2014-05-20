@@ -8,10 +8,12 @@
          "character_sheet_info" : "file(field_character_sheet_info.json)"
       },
       "stonehearth:farmer_field" : {
-      },
-      "mob" : {
-        "interpolate_movement" : false,
-        "mob_collision_type" : "tiny"
-     }
+      }
+   },
+   "entity_data" : {
+      "stonehearth:town_defense" : {
+         "auto_patrol" : true,
+         "patrol_pattern" : "perimeter"
+      }
    }
 }

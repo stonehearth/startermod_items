@@ -11,6 +11,8 @@ class RegionCollisionShape(Component):
    region_collision_type = dm.Boxed(region_collision_types)
    region = dm.Boxed(Region3BoxedPtr(), trace='deep_region')
 
+   _generate_construct_object = True
+
    _includes = [
       "om/region.h",
       "dm/dm_save_impl.h",
