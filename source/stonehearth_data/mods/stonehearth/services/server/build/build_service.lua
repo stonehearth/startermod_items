@@ -647,6 +647,22 @@ function BuildService:_create_wall(building, column_a, column_b, normal, wall_ur
       end)
 end
 
+function BuildService:add_portal(session, response, wall_entity, portal_uri, location)
+   local wall = wall_entity:get_component('stonehearth:wall')
+   if wall then
+      local portal = radiant.entities.create_entity(portal_uri)
+      portal:add_component('render_info')
+                  :set_material('materials/blueprint_gridlines.xml')
+
+      wall:add_portal(portal, location)
+          :layout()
+
+      response:resolve({
+         new_selection = portal
+      })
+   end
+end
+
 return BuildService
 
 

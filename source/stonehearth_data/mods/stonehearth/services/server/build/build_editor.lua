@@ -170,6 +170,7 @@ function WallEditor:destroy()
 end
 
 function WallEditor:set_portal_uri(uri)
+   self._portal_uri = uri
    self._portal = radiant.entities.create_entity(uri)
    self._portal:add_component('render_info')
                   :set_material('materials/ghost_item.xml')
@@ -193,6 +194,20 @@ function WallEditor:on_mouse_event(e, selection)
       radiant.entities.move_to(self._portal, location)
       self._wall:layout()
    end      
+end
+
+function WallEditor:submit(response)   
+   local location = self._portal:get_component('mob'):get_grid_location()
+   _radiant.call('stonehearth:add_portal', self:get_blueprint(), self._portal_uri, location)
+      :done(function(r)
+            response:resolve(r)
+         end)
+      :fail(function(r)
+            response:reject(r)
+         end)
+      :always(function()
+            self:destroy()
+         end)
 end
 
 function BuildEditor:add_door(session, response)
@@ -225,10 +240,8 @@ function BuildEditor:add_door(session, response)
             end
          end
          if e:up(1) then
-            response:reject({ error = 'unknown error' })
             if wall_editor then
-               wall_editor:destroy()
-               wall_editor = nil
+               wall_editor:submit(response)
             end
             capture:destroy()
          end

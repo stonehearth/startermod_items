@@ -47,4 +47,8 @@ function BuildCallHandler:grow_roof(session, request, building, roof_uri)
    stonehearth.build:grow_roof(session, request, building, roof_uri)
 end
 
+function BuildCallHandler:add_portal(session, request, wall, portal_uri, location)
+   stonehearth.build:add_portal(session, request, wall, portal_uri, location)
+end
+
 return BuildCallHandler
