@@ -1,7 +1,7 @@
 App.StonehearthBuildingDesignerView = App.View.extend({
 	templateName: 'buildingDesigner',
    i18nNamespace: 'stonehearth',
-   classNames: ['fullScreen'],
+   classNames: ['fullScreen', 'flex', "gui"],
 
 
    components: {
@@ -74,6 +74,21 @@ App.StonehearthBuildingDesignerView = App.View.extend({
       var self = this;
       this._super();
 
+      this.$('.tabButton').click(function() {
+         var tab = $(this).attr('tab');
+
+         self.$('#selectedBuildingWindow .tabPage').hide();
+         self.$('#selectedBuildingWindow #' + tab).show();
+      });
+
+      this.$('.floorTool').click(function() {
+         App.stonehearthClient.buildFloor();
+      });
+
+      // xxx, is this the right way to do this? start the building process by clicking the floor button
+      //this.$('.floorTool').click();
+
+      /* old and busted shit
       this.$('.floorTool').click(function() {
          App.stonehearthClient.buildFloor();
       });
@@ -101,6 +116,7 @@ App.StonehearthBuildingDesignerView = App.View.extend({
             radiant.call('stonehearth:set_building_teardown', building_entity.__self, true)
          }
       });
+      */
    },
 
    _onEntitySelected: function(e) {
