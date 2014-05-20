@@ -12,7 +12,27 @@ function DmService:initialize()
    self._starting_location_exclusion_radius = radiant.util.get_config('scenario.starting_location_exclusion_radius', 64)
    self._difficulty_increment_distance = radiant.util.get_config('scenario.difficulty_increment_distance', 256)
    self._pace_keepers = {}
-   self._pace_keepers['combat'] = CombatCurve(5, 50, 0.95, 1000)
+   self._pace_keepers['combat'] = CombatCurve(
+      function()
+         local military_score = stonehearth.score:get_scores_for_player('player_1'):get_score_data().military_strength
+         local military_strength = military_score and military_score.total_score or 0
+
+         -- TODO: this is where combat difficulty will get factored in to the code.
+         return military_strength * 0.5
+      end, 
+      function()
+         local military_score = stonehearth.score:get_scores_for_player('player_1'):get_score_data().military_strength
+         local military_strength = military_score and military_score.total_score or 0
+
+         -- TODO: this is where combat difficulty will get factored in to the code.
+         return (military_strength + 1) * 1.5
+      end,
+      function()
+         return 0.95
+      end,
+      function()
+         return 1000
+      end)
 
    assert(self._starting_location_exclusion_radius < self._difficulty_increment_distance)
 

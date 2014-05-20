@@ -1,4 +1,4 @@
-local log = radiant.log.create_logger('dm_service')
+local log = radiant.log.create_logger('combat_pace')
 
 local CombatCurve = class()
 
@@ -6,13 +6,13 @@ CombatCurve.RELAXED = 0
 CombatCurve.PEAKED = 1
 CombatCurve.COOL_DOWN = 2
 
-function CombatCurve:__init(min_threshold, max_threshold, decay_constant, cooldown_time)
+function CombatCurve:__init(min_threshold_fn, max_threshold_fn, decay_constant_fn, cooldown_time_fn)
   self._current_value = 0
   self._current_state = CombatCurve.RELAXED
-  self._decay_constant = decay_constant
-  self._min_threshold = min_threshold
-  self._max_threshold = max_threshold
-  self._cooldown_time = cooldown_time
+  self._decay_constant_fn = decay_constant_fn
+  self._min_threshold_fn = min_threshold_fn
+  self._max_threshold_fn = max_threshold_fn
+  self._cooldown_time_fn = cooldown_time_fn
 
   self._combat_value = 0
   radiant.events.listen(radiant, 'stonehearth:combat:combat_action', self, self._on_combat_action)
@@ -27,11 +27,11 @@ function CombatCurve:get_current_value()
 end
 
 function CombatCurve:get_max()
-  return self._max_threshold
+  return self._max_threshold_fn()
 end
 
 function CombatCurve:get_min()
-  return self._min_threshold
+  return self._min_threshold_fn()
 end
 
 function CombatCurve:get_state()
@@ -39,7 +39,7 @@ function CombatCurve:get_state()
 end
 
 function CombatCurve:_decay(value)
-  return value * self._decay_constant
+  return value * self._decay_constant_fn()
 end
 
 function CombatCurve:update(now)
@@ -49,16 +49,19 @@ function CombatCurve:update(now)
   self._current_value = self:_decay(self._current_value) + self:compute_value()
 
   if self._current_state == CombatCurve.RELAXED then
-    if self._current_value > self._max_threshold then
+    if self._current_value > self:get_max() then
+      log:spam('Combat pace entering peak.')
       self._current_state = CombatCurve.PEAKED
     end
   elseif self._current_state == CombatCurve.PEAKED then
-    if self._current_value < self._min_threshold then
+    if self._current_value < self:get_min() then
+      log:spam('Combat pace entering cool-down.')
       self._current_state = CombatCurve.COOL_DOWN
       self._cooldown_start = now
     end
   elseif self._current_state == CombatCurve.COOL_DOWN then
-    if now - self._cooldown_start > self._cooldown_time then
+    if now - self._cooldown_start > self._cooldown_time_fn() then
+      log:spam('Combat pace entering relaxed.')
       self._current_state = CombatCurve.RELAXED
     end
   end
@@ -79,7 +82,27 @@ end
 
 -- API function
 function CombatCurve:compute_value()
-  local new_combat_value = self._combat_value
+  -- The value of combat pacing is equal to the amount of damage currently inflicted, plus
+  -- the value of all of the enemy combat troops.  The idea is that if there are lots of enemy 
+  -- troops, but no violence has been done yet, we still want to penalize spawning new combat 
+  -- scenarios if there are lots of baddies present that will probably do violence.
+  local gm_scores = stonehearth.score:get_scores_for_player('game_master')
+  local military_strength = 0
+  local enemy_pop_size = 0
+
+  if gm_scores then
+    local military_score = gm_scores:get_score_data().military_strength
+    military_strength = military_score and military_score.total_score or 0
+  end
+
+  local gm_population = stonehearth.population:get_all_populations()['game_master']
+  if gm_population then
+    for _ in pairs(gm_population:get_citizens()) do enemy_pop_size = enemy_pop_size + 1 end
+  end
+
+  local new_combat_value = self._combat_value + military_strength + enemy_pop_size
+
+  log:spam('Combat pace value is %d', new_combat_value)
   self._combat_value = 0
   return new_combat_value
 end
