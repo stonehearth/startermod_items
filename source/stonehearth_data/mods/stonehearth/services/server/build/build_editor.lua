@@ -178,11 +178,21 @@ function WallEditor:set_portal_uri(uri)
    return self
 end
 
-function WallEditor:on_mouse_event(e, result)
-   local location = result.brick - self:get_world_origin();
-   location.y = 0
-   radiant.entities.move_to(self._portal, location)
-   self._wall:layout()   
+function WallEditor:on_mouse_event(e, selection)
+   local location
+   local proxy_fabricator = self:get_proxy_fabricator()
+   for result in selection:each_result() do
+      if result.entity == proxy_fabricator then
+         location = result.brick
+      end
+   end
+   if location then
+      location = location - self:get_world_origin()      
+      location.y = 0
+      location[self._wall:get_normal_coord()] = 0
+      radiant.entities.move_to(self._portal, location)
+      self._wall:layout()
+   end      
 end
 
 function BuildEditor:add_door(session, response)
@@ -210,7 +220,7 @@ function BuildEditor:add_door(session, response)
                   end
                end
                if wall_editor then
-                  wall_editor:on_mouse_event(e, s:get_result(0))
+                  wall_editor:on_mouse_event(e, s)
                end
             end
          end
