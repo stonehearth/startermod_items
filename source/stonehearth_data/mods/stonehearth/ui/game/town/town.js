@@ -7,14 +7,16 @@ App.StonehearthTownView = App.View.extend({
    scores: {
       'net_worth_percent' : 10,
       'net_worth_total': 0,
-      'happiness' : 10, 
-      'nutrition' : 10, 
-      'shelter' : 10
+      'net_worth_level' : 'camp',
+      'happiness' : 50, 
+      'nutrition' :50, 
+      'shelter' : 50
    }, 
 
    init: function() {
       var self = this;
       this._super();
+      self.set('context.town_name', App.stonehearthClient.settlementName())
 
       radiant.call('stonehearth:get_score')
          .done(function(response){
@@ -35,6 +37,17 @@ App.StonehearthTownView = App.View.extend({
       this._updateScores();
    },
 
+   _update_town_label: function() {
+      var happiness_score_floor = Math.floor(this.scores.happiness/10);
+      var settlement_size = i18n.t('stonehearth:' + this.scores.net_worth_level);
+      if (settlement_size != 'stonehearth:undefined') {
+         $('#descriptor').html(i18n.t('stonehearth:town_description', {
+               "descriptor": i18n.t('stonehearth:' + happiness_score_floor + '_score'), 
+               "noun": settlement_size
+            }));
+      }
+   },
+
    _updateScores: function() {
       this.$('#netWorthBar').progressbar({
           value: this.scores.net_worth_percent
@@ -43,6 +56,8 @@ App.StonehearthTownView = App.View.extend({
       this._updateMeter(this.$('#overallScore'), this.scores.happiness, this.scores.happiness / 10);
       this._updateMeter(this.$('#foodScore'), this.scores.nutrition, this.scores.nutrition / 10);
       this._updateMeter(this.$('#shelterScore'), this.scores.shelter, this.scores.shelter / 10);
+
+      this._update_town_label();
    },
 
    _updateMeter: function(element, value, text) {
@@ -63,6 +78,8 @@ App.StonehearthTownView = App.View.extend({
    _set_worth: function() {
       this.scores.net_worth_percent = this.get('context.score_data.net_worth.percentage');
       this.scores.net_worth_total = this.get('context.score_data.net_worth.total_score');
+      this.scores.net_worth_level = this.get('context.score_data.net_worth.level');
+      this._updateScores();
    }.observes('context.score_data.net_worth')
 
 });

@@ -259,7 +259,28 @@
    "pause_title" : "Pause Game",
    "pause_description" : "Pause the game if its running.",
    "play_title" : "Play Game",
-   "play_description" : "Make the game run at normal speed."
+   "play_description" : "Make the game run at normal speed.", 
 
+   "town_description" : "The __descriptor__ __noun__ of", 
+   "camp" : "Camp", 
+   "settlement" : "Settlement", 
+   "hamlet" : "Hamlet",
+   "village" : "Village",
+   "town" : "Town",
+   "county" : "County",
+   "kingdom" : "Kingdom",
+   "empire": "Empire", 
+
+   "0_score" : "Despairing",
+   "1_score" : "Miserable",
+   "2_score" : "Dejected",
+   "3_score" : "Gloomy", 
+   "4_score" : "Fair",
+   "5_score" : "Good",
+   "6_score" : "Contented", 
+   "7_score" : "Merry",
+   "8_score" : "Joyous",
+   "9_score" : "Buoyant",
+   "10_score" : "Incandescent"
 }
 
