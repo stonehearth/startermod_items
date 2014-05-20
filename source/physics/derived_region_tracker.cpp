@@ -16,8 +16,8 @@ using namespace radiant::phys;
  * Track the shape of the region of an entity for the NavGrid.
  */
 template <class T, TrackerType OT>
-DerivedRegionTracker<T, OT>::DerivedRegionTracker(NavGrid& ng, om::EntityPtr entity, std::shared_ptr<T> regionProviderPtr) :
-   RegionTracker(ng, entity),
+DerivedRegionTracker<T, OT>::DerivedRegionTracker(NavGrid& navGrid, om::EntityPtr entity, std::shared_ptr<T> regionProviderPtr) :
+   RegionTracker(navGrid, entity),
    regionProviderRef_(regionProviderPtr)
 {
 }

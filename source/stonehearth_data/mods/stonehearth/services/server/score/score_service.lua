@@ -201,7 +201,7 @@ function ScoreService:_calc_score_from_entities(player_id, all_agg_scores)
    end
    stonehearth.terrain:get_entities_in_explored_region(faction, function(entity)
       --iterate through the functions and call each with the entity. 
-      if not self:_belongs_to_player(entity, player_id) then 
+      if not radiant.entities.is_owned_by_player(entity, player_id) then 
          return false
       else
          for score_name, score_data in pairs(self._aggregate_score_data) do
@@ -224,12 +224,6 @@ function ScoreService:_calc_score_from_entities(player_id, all_agg_scores)
       end
    end)
 end
-
---- Returns true if the entity is owned by this player, false otherwise
-function ScoreService:_belongs_to_player(entity, player_id)
-   return radiant.entities.get_player_id(entity) == player_id 
-end
-
 
 --- Call whenever the aggregate happiness for a player should be updated
 function ScoreService:update_aggregate_score(player_id)

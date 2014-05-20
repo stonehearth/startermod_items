@@ -139,6 +139,10 @@ function entities.get_player_id(entity)
    return unit_info and unit_info:get_player_id() or nil
 end
 
+function entities.is_owned_by_player(entity, player_id)
+   return entities.get_player_id(entity) == player_id
+end
+
 function entities.get_kingdom(entity)
    local unit_info = entity:get_component('unit_info')
    return unit_info and unit_info:get_kingdom() or nil

@@ -14,5 +14,11 @@
             "file(/data/commands/destroy_entity)"
          ]
       }
+   },
+   "entity_data" : {
+      "stonehearth:town_defense" : {
+         "auto_patrol" : true,
+         "patrol_pattern" : "perimeter"
+      }
    }
 }

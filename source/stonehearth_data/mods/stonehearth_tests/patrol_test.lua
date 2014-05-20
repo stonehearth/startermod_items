@@ -1,5 +1,6 @@
 local MicroWorld = require 'lib.micro_world'
 local Point3 = _radiant.csg.Point3
+local Point2 = _radiant.csg.Point2
 
 local PatrolTest = class(MicroWorld)
 
@@ -8,7 +9,9 @@ function PatrolTest:__init()
    self:create_world()
    self:create_enemy_kingdom()
 
-   local citizens = {
+   self:place_citizen(0, 0, 'farmer')
+
+   local footmen = {
       self:place_citizen(15, 15, 'footman', 'stonehearth:wooden_sword'),
       --self:place_citizen(13, 13, 'footman', 'stonehearth:wooden_sword'),
    }
@@ -18,9 +21,15 @@ function PatrolTest:__init()
    -- }
    -- self:equip_all(enemies)
 
-   local player_id = citizens[1]:add_component('unit_info'):get_player_id()
+   local player_id = footmen[1]:add_component('unit_info'):get_player_id()
    self:place_stockpile_cmd(player_id, -10, -10, 5, 5)
    self:place_stockpile_cmd(player_id, 5, 5, 5, 5)
+
+   stonehearth.farming:create_new_field(
+      { player_id = player_id, faction = radiant.entities.get_faction(footmen[1]) },
+      Point3(-10, 1, 0),
+      Point2(10, 10)
+   )
 end
 
 function PatrolTest:equip_all(entities)
