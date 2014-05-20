@@ -12,7 +12,7 @@
    
    #header {
       position: absolute;
-      top: 340px;
+      top: 130px;
       left: 70px;
       font-family: @headerFontFamily;
       color: #473c28;
@@ -31,6 +31,16 @@
       #description {
          font-size: 26px;
       }
+   }
+
+   #infoTable {
+      position: absolute;
+      top: 240px;
+      left: 70px;
+      right: 370px;
+      font-size: 15px;
+
+
    }
 
    #glass {
@@ -89,8 +99,8 @@
       width: 100%;
       border-collapse:collapse;
 
-      td {
-         vertical-align: top;
+      td 
+{         vertical-align: top;
          padding: 4px;
       }
 
@@ -111,7 +121,23 @@
    #persona {
       font-size: 15px;
 
+      .scoreIndicator {
+         float: left;
+         width: 46px;
+         height: 51px;
+         margin-right: 10px;
+      }
+
+      .goodEntry {
+         background-image: url('./images/score_up.png');
+      }
+
+      .badEntry {
+         background-image: url('./images/score_down.png');
+      }
+
       #latestJournal {
+         float: left;
          font-size: 11px;
       }
    }

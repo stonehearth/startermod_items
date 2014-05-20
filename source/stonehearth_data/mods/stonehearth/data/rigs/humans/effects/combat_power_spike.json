@@ -16,20 +16,6 @@
          "volume": 55,
          "track" : "stonehearth:sounds:woodsword_powerspike_01"
       },
-      "cubemitter": {
-         "type": "cubemitter",
-         "cubemitter": "particles/combat/chi_gather.cubemitter.json",
-         "start_time" : 0,
-         "end_time" : 1200,
-         "transforms": {
-            "x":0,
-            "y":0,
-            "z":0,
-            "rx":90,
-            "ry":0,
-            "rz":0
-         }
-      },
       "jump": {
          "type": "cubemitter",
          "start_time" : 2500,

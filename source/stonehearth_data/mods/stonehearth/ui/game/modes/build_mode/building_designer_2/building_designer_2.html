@@ -1,0 +1,66 @@
+<script type="text/x-handlebars" data-template-name="buildingDesigner2">
+   <div id="selectedBuildingWindow" class="window flat">
+      <div class="title">{{ blueprint.unit_info.name }}Building name goes here</div>
+
+      <div id="toolbar">
+         <div hotkey="f" class="tabButton floorTool" tab="floorToolTab"><div class="label">{{i18n stonehearth:building_designer_floor_tool}}</div></div>
+         <div hotkey="g" class="tabButton fillWallTool" tab="fillWallToolTab"><div class="label">{{i18n stonehearth:building_designer_fill_wall_tool}}</div></div>
+         <div hotkey="r" class="tabButton roofTool" tab="roofToolTab"><div class="label">{{i18n stonehearth:building_designer_roof_tool}}</div></div>
+         <div hotkey="n" class="tabButton doorTool" tab="doorToolTab"><div class="label">{{i18n stonehearth:building_designer_door_tool}}</div></div>
+      </div>
+
+      <div class="tabPage" id="floorToolTab">
+         <h2>Draw Floorplan</h2>
+      </div>
+
+      <div class="tabPage" id="fillWallToolTab">
+         <h2>Erect Walls</h2>
+      </div>
+
+      <div class="tabPage" id="roofToolTab">
+         <h2>Raise Roof</h2>
+      </div>
+
+      <div class="tabPage" id="doorToolTab">
+         <h2>Add Doors, Windows, and Doodads</h2>
+      </div>
+
+   </div>
+
+   <div id="buildingDesigner_old" class="gui">
+      <div id="toolbar">
+         <div hotkey="f" class="tool floorTool"></div>
+         <div class="tool wallTool"></div>
+         <div class="break"></div>
+
+         <div hotkey="g" class="tool fillWallTool"></div>
+         <div class="tool fillFloorTool"></div>
+         <div hotkey="r" class="tool roofTool"></div>
+         <div class="break"></div>
+
+         <div hotkey="n" class="tool doorTool"></div>
+         <div class="tool windowTool"></div>
+      </div>
+
+      <div id="palettes">
+         <div id="selectedPartControls" class="window">
+            <div class="flatTitle">{{ blueprint.unit_info.name }}</div>
+            <div class="description">{{ blueprint.unit_info.description }}</div>
+         </div>
+
+         <div id="buildingControls" class="window">
+            <div class="flatTitle">{{ building.unit_info.name }}</div>
+
+            <button class="warn" id="removeBuilding">{{i18n stonehearth:remove}}</button>
+
+            <button {{bind-attr class=building.active:pause:start}} id="startBuilding">
+               {{#if building.active }}
+                  Pause Building
+               {{else}}
+                  Start Building
+               {{/if}}
+            </button>
+         </div>      
+      </div>
+   </div>
+</script>
