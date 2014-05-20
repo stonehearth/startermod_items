@@ -256,11 +256,6 @@
    "building_vision" : "Change vision mode",
    "building_vision_description" : "Change the visibility of building walls, allowing you to see inside them.",
 
-   "building_designer_floor_tool" : "floor",
-   "building_designer_fill_wall_tool" : "walls",
-   "building_designer_roof_tool" : "roof",
-   "building_designer_door_tool" : "doodads",
-
    "pause_title" : "Pause Game",
    "pause_description" : "Pause the game if its running.",
    "play_title" : "Play Game",
