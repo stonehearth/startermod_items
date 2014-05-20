@@ -8,6 +8,7 @@ function DynamicScenarioService:initialize()
    self._sv = self.__saved_variables:get_data()
    if not self._sv.running_scenarios then
       self._sv.running_scenarios = {}
+      self._sv.last_spawn_times = {}
    else
       radiant.events.listen_once(radiant, 'radiant:game_loaded', function(e)
             for idx, sv in pairs(self._sv.running_scenarios) do
@@ -31,6 +32,12 @@ end
 -- through our list of scenarios for that type, and see if we find one that we
 -- can spawn.
 function DynamicScenarioService:try_spawn_scenario(scenario_type, pace_keepers)
+   -- Don't spawn too many of the same kinds of scenario too often!
+   if self._sv.last_spawn_times[scenario_type] and
+      stonehearth.calendar:get_elapsed_time() - self._sv.last_spawn_times[scenario_type] < 3600 then
+      return
+   end
+
    local valid_scenarios = {}
    for _, scenario in pairs(self._scenarios[scenario_type]) do
       local valid_scenario = true

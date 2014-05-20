@@ -194,7 +194,11 @@ function events._update()
       events.trigger(trigger.object, trigger.event, unpack(trigger.args))
    end
 
-   -- Fires every update.
+   -- The following update intervals are correct _when the game is running
+   -- at game-speed 1.0_!  This means increasing the gamespeed increases the
+   -- rate at which the events are fired.
+
+   -- Fires every update--by default, every 50 ms.
    events.trigger(radiant, 'stonehearth:gameloop', now)
 
    -- Fires five times a second.   
