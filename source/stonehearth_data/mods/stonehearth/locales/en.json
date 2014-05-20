@@ -271,6 +271,11 @@
    "kingdom" : "Kingdom",
    "empire": "Empire", 
 
+   "building_designer_floor_tool" : "floor",
+   "building_designer_fill_wall_tool" : "walls",
+   "building_designer_roof_tool" : "roof",
+   "building_designer_door_tool" : "doodads",
+
    "0_score" : "Despairing",
    "1_score" : "Miserable",
    "2_score" : "Dejected",
