@@ -25,6 +25,7 @@ radiant.events = require 'modules.events'
 radiant.mods = require 'modules.mods'
 radiant.gamestate = require 'modules.gamestate'
 radiant.entities = require 'modules.client_entities'
+radiant.terrain = require 'modules.terrain'
 
 require 'modules.timer'
 

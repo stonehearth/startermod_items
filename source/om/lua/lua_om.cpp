@@ -3,6 +3,7 @@
 #include "lua_entity.h"
 #include "lua_region.h"
 #include "lua_data_store.h"
+#include "lib/lua/dm/boxed_trace_wrapper.h"
 #include "lib/lua/script_host.h"
 #include "lib/lua/register.h"
 #include "lib/json/core_json.h"
@@ -34,6 +35,16 @@ static void ModifyBoxed(Boxed& boxed, luabind::object cb)
          LUA_LOG(1) << "error modifying boxed object: " << e.what();
       }
    });
+}
+
+static std::shared_ptr<lua::BoxedTraceWrapper<dm::BoxedTrace<Region3Boxed>>>
+TraceRegion3BoxedPtr(Region3BoxedPtr region, const char* reason)
+{
+   if (region) {
+      auto trace = region->TraceChanges(reason, dm::LUA_ASYNC_TRACES);
+      return std::make_shared<lua::BoxedTraceWrapper<dm::BoxedTrace<Region3Boxed>>>(trace);
+   }
+   return nullptr;
 }
 
 #define OM_OBJECT(Cls, cls) scope Register ## Cls(lua_State* L);
@@ -75,6 +86,7 @@ void radiant::om::RegisterLuaTypes(lua_State* L)
             lua::RegisterStrongGameObject<Region3Boxed>(L, "Region3Boxed")
                .def("get",       &Region3Boxed::Get)
                .def("modify",    &ModifyBoxed<Region3Boxed>)
+               .def("trace",     &TraceRegion3BoxedPtr)
             ,
             luabind::class_<LuaDeepRegionGuard, std::shared_ptr<LuaDeepRegionGuard>>("LuaDeepRegionGuard")
                .def("on_changed",         &LuaDeepRegionGuard::OnChanged)

@@ -54,6 +54,9 @@ public:
 
    H3DNode GetNode() const { return _node.get(); }
 
+   RenderNodePtr SetName(const char* name);
+   RenderNodePtr SetVisible(bool visible);
+   RenderNodePtr SetCanQuery(bool canQuery);
    RenderNodePtr SetUserFlags(int flags);
    RenderNodePtr SetGeometry(SharedGeometry geo);
    RenderNodePtr SetMaterial(std::string const& material);

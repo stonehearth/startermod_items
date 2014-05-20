@@ -28,7 +28,10 @@ function CreateProxyEntity:start_thinking(ai, entity, args)
 
    self._proxy_entity = radiant.entities.create_proxy_entity(args.use_default_adjacent_region)
 
-   radiant.terrain.place_entity(self._proxy_entity, args.location)
+   -- do not use radiant.terrain.place_entity, here.  that will put the entity on the terrain,
+   -- which may not be the *exact* location passed in, which may screw some people up
+   -- downstream
+   radiant.entities.add_child(radiant._root_entity, self._proxy_entity, args.location)
 
    ai:set_think_output({ entity = self._proxy_entity })
 end

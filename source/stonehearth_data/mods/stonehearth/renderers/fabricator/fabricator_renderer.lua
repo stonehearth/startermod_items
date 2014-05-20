@@ -3,6 +3,8 @@ local Point3 = _radiant.csg.Point3
 local Point3f = _radiant.csg.Point3f
 local FabricatorRenderer = class()
 
+local MODEL_OFFSET = Point3f(0.5, 0, 0.5)
+
 -- keeps track of the currently selected building, globally.  used to
 -- implement drawing the selected building in a different style
 local selected_building
@@ -39,7 +41,6 @@ radiant.events.listen(radiant, 'stonehearth:selection_changed', update_selected_
 
 function FabricatorRenderer:initialize(render_entity, fabricator)
    self._datastore = fabricator.__saved_variables
-   self._ui_view_mode = stonehearth.renderer:get_ui_mode()
 
    self._entity = render_entity:get_entity()
    self._parent_node = render_entity:get_node()
@@ -56,14 +57,23 @@ function FabricatorRenderer:initialize(render_entity, fabricator)
 
    -- xxx: don't we need to install a component trace to see if the destination changes?
    self._destination = self._entity:get_component('destination')
+   assert(self._destination)
    if self._destination then
       self._dst_trace = self._destination:trace_region('drawing fabricator')
                                                 :on_changed(function ()
                                                    self:_recreate_render_node()
                                                 end)
+                                                :push_object_state()
+   end
+   self._editing_region = fabricator:get_editing_region()
+   if self._editing_region then
+      self._editing_region_trace = self._editing_region:trace('render')
+         :on_changed(function()
+               self:_recreate_editing_region_node()
+            end)
+         :push_object_state()
    end
    self:_update_ui_mode()
-   self:_recreate_render_node()
 end
 
 function FabricatorRenderer:destroy()
@@ -74,6 +84,10 @@ function FabricatorRenderer:destroy()
       radiant.events.unlisten(self._building, 'stonehearth:building_selected_changed', self, self._update_render_state)
    end
    
+   if self._editing_region_trace then
+      self._editing_region_trace:destroy()
+      self._editing_region_trace = nil
+   end   
    if self._fab_trace then
       self._fab_trace:destroy()
       self._fab_trace = nil
@@ -174,7 +188,8 @@ function FabricatorRenderer:_recreate_render_node()
          if not self._blueprint_contruction_progress:get_teardown() then
             local region = self._destination:get_region()
             self._render_node = voxel_brush_util.create_construction_data_node(self._parent_node, self._entity, region, cd, 'blueprint')
-            
+            self._render_node:set_name(string.format('fab for %s', tostring(self._entity)))
+               
             -- columns are `connected_to` walls.  don't draw arrows for columns!
             local normal = cd:get_normal()
             if not cd:get_connected_to() and normal and self._blueprint_collision_bounds then
@@ -218,6 +233,16 @@ function FabricatorRenderer:_on_blueprint_collision_shape_changed(region)
    else
       self._blueprint_collision_bounds = nil
    end
+end
+
+function FabricatorRenderer:_recreate_editing_region_node()
+   if self._editing_region_node then
+      self._editing_region_node:destroy()
+      self._editing_region_node = nil
+   end
+   self._editing_region_node = _radiant.client.create_voxel_node(self._parent_node, self._editing_region:get(), '', MODEL_OFFSET)
+                                 :set_visible(false)
+                                 :set_can_query(true)
 end
 
 return FabricatorRenderer

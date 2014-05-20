@@ -48,7 +48,7 @@ void Mob::SetRotation(csg::Quaternion const& orientation)
 float Mob::GetFacing() const
 {
    csg::Point3f axis;
-   float degrees, radians;
+   float radians;
 
    (*transform_).orientation.get_axis_angle(axis, radians);
 

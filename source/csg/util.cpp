@@ -30,6 +30,31 @@ std::ostream& csg::operator<<(std::ostream& os, EdgeList const& f)
    return os << "[EdgeList of " << f.points.size() << " points]";
 }
 
+int csg::ToInt(int i)
+{
+   return i;
+}
+
+int csg::ToInt(float s)
+{
+   if (s > 0) {
+      static_cast<int>(s + csg::k_epsilon);
+   }
+   return static_cast<int>(s - csg::k_epsilon);
+}
+
+int csg::ToClosestInt(int i)
+{
+   return i;
+}
+
+int csg::ToClosestInt(float s) {
+   if (s > 0) {
+      return ToInt(s + 0.5f);
+   }
+   return ToInt(s - 0.5f);
+}
+
 int csg::GetChunkIndex(int value, int width)
 {
    return (int) std::floor((float)value / width);
