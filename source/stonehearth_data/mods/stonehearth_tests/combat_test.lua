@@ -9,12 +9,12 @@ function CombatTest:__init()
    self:create_world()
    self:create_enemy_kingdom()
 
-   -- for i = -10, 10 do
-   --    self:place_item('stonehearth:small_boulder', i, 0)
-   --    if math.abs(i) <= 5 and i ~= 0 then
-   --       self:place_item('stonehearth:small_boulder', 0, i)
-   --    end
-   -- end
+   for i = -10, 10 do
+      self:place_item('stonehearth:small_boulder', i, 0)
+      if math.abs(i) <= 5 and i ~= 0 then
+         self:place_item('stonehearth:small_boulder', 0, i)
+      end
+   end
 
    local citizens = {
       self:place_citizen(-15, -15, 'footman', 'stonehearth:wooden_sword'),
@@ -27,6 +27,7 @@ function CombatTest:__init()
       self:place_enemy( -9, 15, 'stonehearth:wooden_sword'),
       self:place_enemy( -1, 15, 'stonehearth:wooden_sword'),
       self:place_enemy(  7, 15, 'stonehearth:wooden_sword'),
+      self:place_enemy( 15, 15, 'stonehearth:wooden_sword'),
    }
 
    -- self:at(3000,

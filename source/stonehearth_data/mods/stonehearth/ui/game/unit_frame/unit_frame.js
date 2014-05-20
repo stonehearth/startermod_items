@@ -106,8 +106,7 @@ App.StonehearthUnitFrameView = App.View.extend({
       this.$('#unitFrame > #commandButtons').find('[title]').each(function() {
         $(this).tooltipster({
             content: $('<div class=title>' + $(this).attr('title') + '</div>' + 
-                       '<div class=description>' + $(this).attr('description') + '</div>' + 
-                       '<div class=hotkey>' + $.t('hotkey') + ' <span class=key>' + $(this).attr('hotkey') + '</span></div>')
+                       '<div class=description>' + $(this).attr('description') + '</div>')
          });
       });
 

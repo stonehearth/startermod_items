@@ -23,9 +23,6 @@ class NavGridTileData;
 class CollisionTracker;
 class TerrainTracker;
 class TerrainTileTracker;
-class RegionCollisionShapeTracker;
-class VerticalPathingRegionTracker;
-class DestinationRegionTracker;
 class MobTracker;
 class SensorTracker;
 class SensorTileTracker;
@@ -34,7 +31,6 @@ class RegionTracker;
 DECLARE_SHARED_POINTER_TYPES(CollisionTracker)
 DECLARE_SHARED_POINTER_TYPES(TerrainTracker)
 DECLARE_SHARED_POINTER_TYPES(TerrainTileTracker)
-DECLARE_SHARED_POINTER_TYPES(VerticalPathingRegionTracker)
 DECLARE_SHARED_POINTER_TYPES(MobTracker)
 DECLARE_SHARED_POINTER_TYPES(SensorTracker)
 DECLARE_SHARED_POINTER_TYPES(SensorTileTracker)
@@ -64,9 +60,9 @@ enum TrackerType {
 
    MOB,
    DESTINATION,
+   NON_COLLISION,
    MAX_TRACKER_TYPES,
 };
-
 
 END_RADIANT_PHYSICS_NAMESPACE
 

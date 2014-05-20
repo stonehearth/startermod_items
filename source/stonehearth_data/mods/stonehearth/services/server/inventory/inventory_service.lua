@@ -66,8 +66,8 @@ function InventoryService:_register_score_functions()
    --eval function for placed items
    stonehearth.score:add_aggregate_eval_function('net_worth', 'placed_item', function(entity, agg_score_bag)
       if entity:get_component('stonehearth:placed_item') then
-         -- TODO: add higher scores to some things, otherwise they all count as 1
-         agg_score_bag.placed_item = agg_score_bag.placed_item + 1
+         local item_value = stonehearth.score:get_score_for_entity_type(entity:get_uri())
+         agg_score_bag.placed_item = agg_score_bag.placed_item + item_value
       end
    end)
 
@@ -80,20 +80,23 @@ function InventoryService:_register_score_functions()
    end)
 end
 
+--- The score for a building is its area * the multiplier for that kind of wall/region
 function InventoryService:_get_score_for_building(entity)
    local region = entity:get_component('destination'):get_region()
    local area = region:get():get_area()
-   --TODO: BASED ON THE TYPE OF THE ENTITY, CHANGE THE WORTH OF THE REGION by multiplying it by a score value
-   return area
+   local item_multiplier = stonehearth.score:get_score_for_entity_type(entity:get_uri())
+   return area * item_multiplier
 end
 
+--- Returns the score for all the items in the stockpile. 
+--  The score for an item is usually the default (1) but is otherwise defined in score_entity_data.json
 function InventoryService:_get_score_for_stockpile(entity)
    local stockpile_component = entity:get_component('stonehearth:stockpile')
    local items = stockpile_component:get_items()
    local total_score = 0
    for id, item in pairs(items) do
-      --TODO: annotate some items with different scores
-      total_score = total_score + 1
+      local item_value = stonehearth.score:get_score_for_entity_type(item:get_uri())
+      total_score = total_score + item_value
    end
    return total_score
 end

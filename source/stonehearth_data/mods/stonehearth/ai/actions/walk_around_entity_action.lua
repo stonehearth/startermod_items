@@ -49,17 +49,19 @@ function WalkAroundEntity:_index_of_closest_point(entity, points)
 end
 
 function WalkAroundEntity:_get_patrol_points(args)
-   local stockpile_component = args.target:get_component('stonehearth:stockpile')
+   local location = radiant.entities.get_world_grid_location(args.target)
+   local collision_component = args.target:get_component('region_collision_shape')
 
-   if stockpile_component ~= nil then
-      local bounds = stockpile_component:get_bounds()
+   if collision_component ~= nil then
+      local entity_region = collision_component:get_region():get()
+      local bounds = entity_region:get_bounds():translated(location)
       local inscribed_bounds = self:_get_inscribed_bounds(bounds)
       local expanded_bounds = self:_expand_cube_xz(inscribed_bounds, args.distance)
       local clockwise = rng:get_int(0, 1) == 1
       local patrol_points = self:_get_projected_vertices(expanded_bounds, clockwise)
       return patrol_points
    else
-      return { radiant.entities.get_world_grid_location(entity) }
+      return { location }
    end
 end
 

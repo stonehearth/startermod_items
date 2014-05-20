@@ -15,10 +15,10 @@ return ai:create_compound_action(Patrol)
          :execute('stonehearth:set_posture', { posture = 'combat' })
          :execute('stonehearth:goto_entity', {
             entity = ai.ARGS.waypoint,
-            stop_distance = 6,
+            stop_distance = 4,
          })
          :execute('stonehearth:walk_around_entity', {
             target = ai.ARGS.waypoint,
-            distance = 3,
+            distance = 2,
          })
          :execute('stonehearth:unset_posture', { posture = 'combat' })

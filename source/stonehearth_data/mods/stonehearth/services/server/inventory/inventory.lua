@@ -1,3 +1,6 @@
+local Cube3 = _radiant.csg.Cube3
+local Point3 = _radiant.csg.Point3
+
 local Inventory = class()
 
 function Inventory:__init()
@@ -24,6 +27,8 @@ function Inventory:create_stockpile(location, size)
    local entity = radiant.entities.create_entity('stonehearth:stockpile')   
    radiant.terrain.place_entity(entity, location)
    entity:get_component('stonehearth:stockpile'):set_size(size.x, size.y)
+
+   self:_add_collision_region(entity, size)
 
    --xxx localize
    entity:get_component('unit_info'):set_display_name('Stockpile No.' .. self._data.next_stockpile_no)
@@ -58,6 +63,26 @@ function Inventory:remove_storage(storage_entity)
    radiant.events.unlisten(storage_entity, "stonehearth:item_added",   self, self._on_item_added)
    radiant.events.unlisten(storage_entity, "stonehearth:item_removed", self, self._on_item_removed)
    --xxx remove the items?
+end
+
+function Inventory:_add_collision_region(entity, size)
+   local collision_component = entity:add_component('region_collision_shape')
+   local collision_region_boxed = _radiant.sim.alloc_region()
+
+   collision_region_boxed:modify(
+      function (region3)
+         region3:add_unique_cube(
+            Cube3(
+               -- recall that region_collision_shape is in local coordiantes
+               Point3(0, 0, 0),
+               Point3(size.x, 1, size.y)
+            )
+         )
+      end
+   )
+
+   collision_component:set_region(collision_region_boxed)
+   collision_component:set_region_collision_type(_radiant.om.RegionCollisionShape.N_O_N_E)
 end
 
 function Inventory:_on_item_added(e)

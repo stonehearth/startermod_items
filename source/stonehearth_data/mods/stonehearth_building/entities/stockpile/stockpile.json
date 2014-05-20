@@ -1,7 +1,0 @@
-{
-   "type": "entity",
-   "unit_info" : {
-      "name" : "Stockpile",
-      "description" : "For storing things"
-   }
-}
