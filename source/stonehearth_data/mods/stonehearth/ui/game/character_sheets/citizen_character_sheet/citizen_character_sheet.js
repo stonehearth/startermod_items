@@ -19,8 +19,18 @@ App.StonehearthCitizenCharacterSheetView = App.View.extend({
 
       if (log && log.length > 0) {
          this.set('context.firstJournalEntry', log[0]);
-         this.set('context.firstJournalEntryText', log[0].entries[log[0].entries.length-1].text);
-         this.set('context.firstJournalEntryTitle', log[0].entries[log[0].entries.length-1].title);
+
+         var targetLog = log[0].entries[log[0].entries.length-1]
+         this.set('context.firstJournalEntryText', targetLog.text);
+         this.set('context.firstJournalEntryTitle', targetLog.title);
+
+         if (targetLog.scoreData != null) {
+            this.set('context.firstJournalEntryScore', true);
+            this.set('context.firstJournalEntryScoreIsUp', targetLog.scoreData.score_mod > 0);
+         } else {
+            this.set('context.firstJournalEntryScore', false);
+         }
+
       } else {
          this.set('context.firstJournalEntry', { title: "no entries" });
          this.set('context.firstJournalEntryTitle', 'no entries');

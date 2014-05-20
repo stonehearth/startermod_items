@@ -69,11 +69,6 @@ function CalorieObserver:_adjust_health_and_status()
       --Send general malnourishment notice
       radiant.events.trigger_async(self._entity, 'stonehearth:malnourishment_event')
 
-      --TODO: convert this to use the general one
-      --Set the journal entry
-      radiant.events.trigger_async(stonehearth.personality, 'stonehearth:journal_event', 
-                             {entity = self._entity, description = 'starving'})
-
       if not self._is_malnourished then
          self._is_malnourished = true
          radiant.entities.add_buff(self._entity, 'stonehearth:buffs:starving')
@@ -90,7 +85,6 @@ function CalorieObserver:_adjust_health_and_status()
       
       if self._is_malnourished then
          self._is_malnourished = false
-         --TODO: discover why despair isn't being removed
          radiant.entities.remove_buff(self._entity, 'stonehearth:buffs:starving')
       end
 
