@@ -66,62 +66,24 @@ function BuildEditor:place_new_floor(session, response)
    FloorEditor():go(response)
 end
 
-function BuildEditor:grow_walls(session, response)
-   local capture = stonehearth.input:capture_input()
-   capture:on_mouse_event(function(e)
-         if e:up(1) then
-            local s = _radiant.client.query_scene(e.x, e.y)
-            if s and s:get_result_count() > 0 then
-               local entity = s:get_result(0).entity
-               if entity and entity:is_valid() then
-                  local building = StructureEditor.get_building_for(entity)
-                  if building then
-                     _radiant.call('stonehearth:grow_walls', building, 'stonehearth:wooden_column', 'stonehearth:wooden_wall')
-                        :done(function(r)
-                              response:resolve(r)
-                           end)
-                        :fail(function(r)
-                              response:reject(r)
-                           end)
-                     capture:destroy()
-                     return
-                  end
-               end
-            end
-            response:reject({ error = 'unknown error' })
-            capture:destroy()
-         end
-         return true
-      end)   
+function BuildEditor:grow_walls(session, response, building)
+   _radiant.call('stonehearth:grow_walls', building, 'stonehearth:wooden_column', 'stonehearth:wooden_wall')
+      :done(function(r)
+            response:resolve(r)
+         end)
+      :fail(function(r)
+            response:reject(r)
+         end)
 end
 
-function BuildEditor:grow_roof(session, response)
-   local capture = stonehearth.input:capture_input()
-   capture:on_mouse_event(function(e)
-         if e:up(1) then
-            local s = _radiant.client.query_scene(e.x, e.y)
-            if s and s:get_result_count() > 0 then            
-               local entity = s:get_result(0).entity
-               if entity and entity:is_valid() then
-                  local building = StructureEditor.get_building_for(entity)
-                  if building then
-                     _radiant.call('stonehearth:grow_roof', building, 'stonehearth:wooden_peaked_roof')
-                        :done(function(r)
-                              response:resolve(r)
-                           end)
-                        :fail(function(r)
-                              response:reject(r)
-                           end)
-                     capture:destroy()
-                     return
-                  end
-               end
-            end
-            response:reject({ error = 'unknown error' })
-            capture:destroy()
-         end
-         return true
-      end)   
+function BuildEditor:grow_roof(session, response, building)
+   _radiant.call('stonehearth:grow_roof', building, 'stonehearth:wooden_peaked_roof')
+      :done(function(r)
+            response:resolve(r)
+         end)
+      :fail(function(r)
+            response:reject(r)
+         end)
 end
 
 function BuildEditor:create_room(session, response)

@@ -64,11 +64,11 @@ function BuildService:add_floor(session, response, floor_uri, box)
    local floor
 
    -- look for floor that we can merge into.
-   local existing_floor = radiant.terrain.get_entities_in_cube(box, function(entity)
+   local all_overlapping_floor = radiant.terrain.get_entities_in_cube(box, function(entity)
          return self:is_blueprint(entity) and self:_get_structure_type(entity) == 'floor'
       end)
 
-   if not next(existing_floor) then
+   if not next(all_overlapping_floor) then
       -- there was no existing floor at all. create a new building and add a floor
       -- segment to it. 
       local building = self:_create_new_building(session, box.min)
@@ -76,7 +76,7 @@ function BuildService:add_floor(session, response, floor_uri, box)
    else
       -- we overlapped some pre-existing floor.  merge this box into that floor,
       -- potentially merging multiple buildings together!
-      floor = self:_merge_overlapping_floor(existing_floor, floor_uri, box)
+      floor = self:_merge_overlapping_floor(all_overlapping_floor, floor_uri, box)
    end
    
    -- if we managed to create some floor, return the fabricator to the client as the
@@ -207,7 +207,8 @@ function BuildService:_merge_overlapping_floor(existing_floor, floor_uri, box)
    if not next_floor then
       -- exactly 1 overlapping floor.  just modify the region of that floor.
       -- pretty easy
-      return self:_merge_overlapping_floor_trivial(floor, floor_uri, box)
+      self:_merge_overlapping_floor_trivial(floor, floor_uri, box)
+      return floor
    end
 
    -- gah!  this is going to be tricky.  first, get all the buildings that
@@ -240,7 +241,8 @@ function BuildService:_merge_overlapping_floor(existing_floor, floor_uri, box)
    end
 
    -- sweet!  now we can do the trivial merge
-   return self:_merge_overlapping_floor_trivial(floor, floor_uri, box)
+    self:_merge_overlapping_floor_trivial(floor, floor_uri, box)
+    return floor
 end
 
 -- add `box` to the `floor` region.  the caller must ensure that the
