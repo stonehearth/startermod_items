@@ -37,6 +37,7 @@ public:
    Point GetClosestPoint2(Point const& src, S *dSquared) const;
    Point GetClosestPoint(Point const& src) const { return GetClosestPoint2(src, nullptr); }
    Cube GetBounds() const;
+   Point GetCentroid() const;
    int GetRectCount() const { return cubes_.size(); }
    Cube GetRect(int i) const { return cubes_[i]; }
 
@@ -100,6 +101,9 @@ public:
 private:
    CubeVector     cubes_;
 };
+
+template <typename S, int C>
+Point<float, C> GetCentroid(Region<S, C> const& region);
 
 template <typename S, int C>
 std::ostream& operator<<(std::ostream& os, Region<S, C> const& o)

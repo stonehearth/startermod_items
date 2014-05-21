@@ -339,6 +339,13 @@ bool Cube<S, C>::CombineWith(Cube const& cube)
    return false;
 }
 
+template <typename S, int C>
+Point<float, C> csg::GetCentroid(Cube<S, C> const& cube)
+{
+   Point<float, C> centroid = ToFloat(cube.min + cube.max).Scaled(0.5);
+   return centroid;
+}
+
 #define MAKE_CUBE(Cls) \
    template Cls::Cube(); \
    template Cls::Cube(const Cls::Point&, int); \
@@ -376,3 +383,6 @@ MAKE_CUBE(Line1f)
 
 DEFINE_CUBE_CONVERSIONS(2)
 DEFINE_CUBE_CONVERSIONS(3)
+
+// define centroid methods
+template Point3f csg::GetCentroid(Cube3 const& cube);
