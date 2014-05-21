@@ -53,12 +53,16 @@ App.StonehearthBuildingDesignerView2 = App.View.extend({
       if (blueprint_entity && !building_entity) {
          building_entity = blueprint_entity['stonehearth:construction_progress']['building_entity'];         
       }
-      self.set('context.building', building_entity);
+      self.set('context.building', building_entity);      
       if (building_entity) {
          self.set('context.building.active', building_entity['stonehearth:construction_progress'].active);
       }
       self.set('context.blueprint', blueprint_entity);
+      self._updateControls();
    }.observes('context'),
+
+   _updateControls: function() {   
+   },
 
    _activeUpdated: function() {
       var building = this.get('context.building');
@@ -86,10 +90,10 @@ App.StonehearthBuildingDesignerView2 = App.View.extend({
       });
 
       this.$('.fillWallTool').click(function() {
-         App.stonehearthClient.growWalls();
+         App.stonehearthClient.growWalls(self.get('context.building'));
       });
       this.$('.roofTool').click(function() {
-         App.stonehearthClient.growRoof();
+         App.stonehearthClient.growRoof(self.get('context.building'));
       });
       this.$('.doorTool').click(function() {
          App.stonehearthClient.addDoor();
