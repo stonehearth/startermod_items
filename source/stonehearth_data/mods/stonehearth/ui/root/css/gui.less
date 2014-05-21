@@ -15,11 +15,22 @@
 
    .title {
       .controlFont;
+      position: relative;
       margin: -10px -10px 0px -10px;
       padding: 10px;
       background-color: #6c6045;
       border-width: 9px 9px 13px 9px;
       border-image: url(images/gui/title.png) 9 9 13 9 repeat;
+
+      .closeButton {
+         .control;
+         position: absolute;
+         right: 5px;
+         top: 5px;
+         width: 33px;
+         height: 33px;
+         background: url(images/gui/close_button.png);
+      }
    }
 
    .flatTitle {

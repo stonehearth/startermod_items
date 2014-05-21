@@ -1,5 +1,6 @@
 App.StonehearthCitizensView = App.View.extend({
 	templateName: 'citizens',
+   closeOnEsc: true,
 
    init: function() {
       var self = this;
@@ -21,6 +22,10 @@ App.StonehearthCitizensView = App.View.extend({
          var pop = self.get('context.model');
          var id = row.attr('id');
          self._activeRowCitizen = pop.citizens[id]; 
+      });
+
+      this.$('.title .closeButton').click(function() {
+         self.destroy();
       });
    },
 
