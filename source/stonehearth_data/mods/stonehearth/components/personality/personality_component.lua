@@ -105,6 +105,7 @@ function Personality:_add_log_entry(entry_title, entry_text, score_metadata)
    local entry = {}
    entry.text = entry_text
    entry.title = entry_title
+   entry.scoreData = score_metadata
    table.insert(self._sv.log[1].entries, entry)
 
    --If there is score metadata and if it the modifier is negative, show as warning

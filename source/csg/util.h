@@ -62,10 +62,10 @@ Region3 Reface(Region3 const& rgn, Point3 const& forward);
 bool Cube3Intersects(const Cube3& rgn, const Ray3& ray, float& distance);
 bool Cube3Intersects(const Cube3f& rgn, const Ray3& ray, float& distance);
 
-static inline int ToInt(int i) { return i; }
-static inline int ToInt(float s) { return static_cast<int>(s); }
-static inline int ToClosestInt(int i) { return i; }
-static inline int ToClosestInt(float s) { return static_cast<int>(trunc(s + (s > 0 ? 0.5 : -0.5))); }
+int ToInt(int i);
+int ToInt(float s);
+int ToClosestInt(int i);
+int ToClosestInt(float s);
 
 template <int C> Point<float, C> const& ToFloat(Point<float, C> const& pt);
 template <int C> Cube<float, C> const& ToFloat(Cube<float, C> const& cube);

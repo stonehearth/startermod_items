@@ -15,10 +15,8 @@ function Town:__init(session, saved_variables)
       self._sv.faction = session.faction
       self._sv.kingdom = session.kingdom
       self._sv.player_id = session.player_id
-      self._sv.town_entity = radiant.entities.create_entity()
       self._sv._saved_calls = {}
       self._sv._next_saved_call_id = 1
-      radiant.entities.add_child(radiant._root_entity, self._sv.town_entity, Point3(0, 0, 0))
    end
 
    self._log = radiant.log.create_logger('town', self._sv.player_id)

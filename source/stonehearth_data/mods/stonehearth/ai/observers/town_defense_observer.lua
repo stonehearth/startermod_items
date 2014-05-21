@@ -8,6 +8,7 @@ local Waypoint = class()
 
 function Waypoint:__init(entity)
    self.entity = entity
+   self.entity_id = entity:get_id()
    self.location = self:_get_centroid(entity)
    self.distance = 0
    self.visited = false
@@ -29,22 +30,47 @@ end
 
 function TownDefenseObserver:initialize(entity, json)
    self._entity = entity
+   self._player_id = radiant.entities.get_player_id(entity)
    self._waypoints = {}
    self._last_waypoint = nil
 
-   local player_id = entity:add_component('unit_info'):get_player_id()
-   local inventory = stonehearth.inventory:get_inventory(player_id)
-   local all_storage = inventory:get_all_storage()
+   self._world_entites_trace = radiant.terrain.trace_world_entities('town defense service', 
+      function (id, entity)
+         self:_on_entity_added(entity)
+      end,
+      function (id)
+         self:_on_entity_removed(id)
+      end
+   )
 
-   for id, storage in pairs(all_storage) do
-      table.insert(self._waypoints, Waypoint(storage))
-   end
+   self._entity_destroyed_traces = {}
+   self._player_id_traces = {}
 
-   radiant.events.listen(inventory, 'stonehearth:storage_added', self, self._on_storage_added)
-   radiant.events.listen(inventory, 'stonehearth:storage_removed', self, self._on_storage_removed)
    radiant.events.listen(radiant, 'stonehearth:very_slow_poll', self, self._on_poll)
 
    self:_check_issue_task()
+end
+
+function TownDefenseObserver:_is_patrollable(entity)
+   if entity == nil or not entity:is_valid() then
+      return false
+   end
+
+   local entity_data = radiant.entities.get_entity_data(entity, 'stonehearth:town_defense')
+   return entity_data and entity_data.auto_patrol == true
+end
+
+function TownDefenseObserver:_add_waypoint(entity)
+   table.insert(self._waypoints, Waypoint(entity))
+end
+
+function TownDefenseObserver:_remove_waypoint(entity_id)
+   for index, waypoint in pairs(self._waypoints) do
+      if waypoint.entity_id == entity_id then
+         table.remove(self._waypoints, index)
+         return
+      end
+   end
 end
 
 function TownDefenseObserver:_on_poll()
@@ -63,30 +89,40 @@ function TownDefenseObserver:_check_issue_task()
    end
 end
 
-function TownDefenseObserver:_on_storage_added(args)
-   local storage = args.storage
+function TownDefenseObserver:_on_entity_added(entity)
+   if self:_is_patrollable(entity) then
+      if radiant.entities.is_owned_by_player(entity, self._player_id) then
+         self:_add_waypoint(entity)
+      end
 
-   if storage ~= nil and storage:is_valid() then
-      table.insert(self._waypoints, Waypoint(storage))
+      local entity_id = entity:get_id()
+      local player_id_trace = entity:add_component('unit_info'):trace_player_id('town defense')
+         :on_changed(
+            function ()
+               self:_on_player_id_changed(entity)
+            end
+         )
+      self._player_id_traces[entity_id] = player_id_trace
    end
 end
 
-function TownDefenseObserver:_on_storage_removed(args)
-   local storage = args.storage
-
-   -- if storage is already invalid, the entry will get cleaned up in sort_waypoints
-   for index, waypoint in pairs(self._waypoints) do
-      if waypoint.entity == storage then
-         table.remove(self._waypoints, index)
-         return
-      end
+function TownDefenseObserver:_on_player_id_changed(entity)
+   if radiant.entities.is_owned_by_player(entity, self._player_id) then
+      self:_add_waypoint(entity)
+   else
+      self:_remove_waypoint(entity:get_id())
    end
+end
+
+function TownDefenseObserver:_on_entity_removed(entity_id)
+   self:_remove_waypoint(entity_id)
+   self._player_id_traces[entity_id] = nil
 end
 
 function TownDefenseObserver:destroy()
-   radiant.events.unlisten(stonehearth.inventory, 'stonehearth:storage_added', self, self._on_storage_added)
-   radiant.events.unlisten(stonehearth.inventory, 'stonehearth:storage_removed', self, self._on_storage_removed)
    radiant.events.unlisten(radiant, 'stonehearth:very_slow_poll', self, self._on_poll)
+   self._player_id_traces = {}
+   self._world_entites_trace = nil
 end
 
 function TownDefenseObserver:_create_patrol_task(waypoint)

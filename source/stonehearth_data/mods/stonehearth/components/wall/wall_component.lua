@@ -7,6 +7,10 @@ local Cube3 = _radiant.csg.Cube3
 local Point3 = _radiant.csg.Point3
 local INFINITE = 10000000
 
+local function is_blueprint(entity)
+   return entity:get_component('stonehearth:construction_progress') ~= nil
+end
+
 -- called to initialize the component on creation and loading.
 --
 function Wall:initialize(entity, json)
@@ -22,8 +26,44 @@ function Wall:begin_editing(other_wall)
    self._sv.start_pt = Point3(other_wall._sv.start_pt)
    self._sv.end_pt = Point3(other_wall._sv.end_pt)
    self.__saved_variables:mark_changed()
+
+   self._editing_region = _radiant.client.alloc_region()
    return self
 end
+
+function Wall:get_editing_reserved_region()
+   return self._editing_region
+end
+
+function Wall:_get_tn()
+   local start_pt, end_pt = self._sv.start_pt, self._sv.end_pt
+   local t = (math.abs(start_pt.x - end_pt.x) == 1) and 'z' or 'x'
+   local n = t == 'x' and 'z' or 'x'
+   return t, n
+end
+
+function Wall:_region2_to_region3(region2, origin)
+   local t, n = self:_get_tn()
+   local start_pt, end_pt = self._sv.start_pt, self._sv.end_pt
+
+   local region3 = Region3()
+   for r2 in region2:each_cube() do
+      local min = Point3(0, r2.min.y + origin.y, 0)
+      local max = Point3(0, r2.max.y + origin.y, 0)
+      min[t] = r2.min.x + origin[t]
+      max[t] = r2.max.x + origin[t]
+      min[n] = start_pt[n]
+      max[n] = end_pt[n]
+      region3:add_unique_cube(Cube3(min, max))
+   end
+   return region3
+end
+
+
+function Wall:add_portal(portal, location)
+   radiant.entities.add_child(self._entity, portal, location)
+end
+
 
 -- make the destination region match the shape of the column.  layout
 -- should be called sometime after doing something which could change
@@ -59,10 +99,15 @@ function Wall:layout()
    
    -- if there are no structure at all overlapping the region we can create the
    -- wall and add it to the building.  otherwise, don't.
+   
+   --[[
    local origin = radiant.entities.get_world_grid_location(self._entity)
    local world_bounds = Cube3(start_pt, end_pt):translated(origin)
    local overlapping = radiant.terrain.get_entities_in_cube(world_bounds, function(entity)
-         return stonehearth.build:is_blueprint(entity)
+         -- xxx: would like to use stonehearth.build.is_blueprint, but needs to run on the
+         -- client!  should we have a generic "util" thing which is agnostic?  or a client-side
+         -- build service (replacing `builder`...) and shared code?
+         return is_blueprint(entity)
       end)
       
    overlapping[self._entity:get_id()]  = nil
@@ -70,17 +115,37 @@ function Wall:layout()
       --radiant.entities.destroy_entity(wall)
       return
    end
+   ]]
 
    -- paint again through a stencil covering the entire span of the
    -- wall to compute the wall shape
    local stencil = self:_compute_wall_shape()
-   local collsion_shape = self._entity:get_component('stonehearth:construction_data')
+   local collision_shape = self._entity:get_component('stonehearth:construction_data')
                                         :create_voxel_brush()
                                         :paint_through_stencil(stencil)
+
+   if self._editing_region then
+      self._editing_region:modify(function(cursor)
+            cursor:copy_region(collision_shape)
+         end)
+   end
+   -- stencil out the portals
+   local ec = self._entity:get_component('entity_container')
+   if ec then
+      for _, child in ec:each_child() do
+         local portal = child:get_component('stonehearth:portal')
+         if portal then
+            local location = child:get_component('mob'):get_grid_location()
+            local region3 = self:_region2_to_region3(portal:get_portal_region(), location)
+            collision_shape:subtract_region(region3)
+         end
+      end      
+   end
+
    self._entity:add_component('destination')
                   :get_region()
                   :modify(function(cursor)
-                        cursor:copy_region(collsion_shape)
+                        cursor:copy_region(collision_shape)
                      end)
                      
    return self

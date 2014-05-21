@@ -7,6 +7,7 @@ local ProxyFloorBuilder = require 'services.server.build.proxy_floor_builder'
 local ProxyRoomBuilder = require 'services.server.build.proxy_room_builder'
 local Point3 = _radiant.csg.Point3
 
+local log = radiant.log.create_logger('build_editor')
 
 local function get_fbp_for(entity)
    if entity and entity:is_valid() then
@@ -46,11 +47,7 @@ local function get_building_for(entity)
    end
 end
 
-
-local STRUCTURE_COMPONENTS = {
-   'stonehearth:wall'
-}
-function StructureEditor:__init(fabricator, blueprint, project)
+function StructureEditor:__init(fabricator, blueprint, project, structure_uri)
    self._fabricator = fabricator
    self._blueprint = blueprint
    self._project = project
@@ -58,6 +55,7 @@ function StructureEditor:__init(fabricator, blueprint, project)
    local building = get_building_for(blueprint)
    local location = radiant.entities.get_world_grid_location(building)
    self._proxy_building = radiant.entities.create_entity(building:get_uri())
+   self._proxy_building:set_debug_text('proxy building')
    self._proxy_building:add_component('mob')
                            :set_location_grid_aligned(location)
    blueprint:add_component('unit_info')
@@ -70,24 +68,23 @@ function StructureEditor:__init(fabricator, blueprint, project)
          cursor:copy_region(source_rgn:get())
       end)
    self._proxy_blueprint = radiant.entities.create_entity(blueprint:get_uri())
+   self._proxy_blueprint:set_debug_text('proxy blueprint')
    self._proxy_blueprint:add_component('destination')
                            :set_region(rgn)
 
-   for _, name in ipairs(STRUCTURE_COMPONENTS) do
-      local structure = blueprint:get_component(name)
-      if structure then
-         self._proxy_blueprint:add_component(name)
-                                    :begin_editing(structure)
-      end
-   end   
+   local structure = blueprint:get_component(structure_uri)
+   assert(structure)
+   local proxy_structure = self._proxy_blueprint:add_component(structure_uri)
+                                                   :begin_editing(structure)
+                                                   :layout()
+   local editing_reserved_region = proxy_structure:get_editing_reserved_region()
+   
    self._proxy_blueprint:add_component('stonehearth:construction_data')
                            :begin_editing(blueprint:get_component('stonehearth:construction_data'))
-   self._proxy_blueprint:add_component('stonehearth:construction_progress')
-                           :begin_editing(self._proxy_building, self._proxy_fabricator)
 
    self._proxy_fabricator = radiant.entities.create_entity(fabricator:get_uri())
-   self._proxy_fabricator:add_component('stonehearth:fabricator')
-      :begin_editing(self._proxy_blueprint, project)
+   self._proxy_fabricator :set_debug_text('proxy fabricator')
+
    rgn = _radiant.client.alloc_region()
    rgn:modify(function(cursor)
          local source_rgn = fabricator:get_component('destination'):get_region()
@@ -96,9 +93,14 @@ function StructureEditor:__init(fabricator, blueprint, project)
    self._proxy_fabricator:add_component('destination')
                            :set_region(rgn)
    
+   self._proxy_fabricator:add_component('stonehearth:fabricator')
+      :begin_editing(self._proxy_blueprint, project, editing_reserved_region)
+
+   self._proxy_blueprint:add_component('stonehearth:construction_progress')
+                           :begin_editing(self._proxy_building, self._proxy_fabricator)
 
    radiant.entities.add_child(self._proxy_building, self._proxy_blueprint, blueprint:get_component('mob'):get_grid_location())
-   radiant.entities.add_child(self._proxy_building, self._proxy_fabricator, fabricator:get_component('mob'):get_grid_location() + Point3(0, 1, 0))
+   radiant.entities.add_child(self._proxy_building, self._proxy_fabricator, fabricator:get_component('mob'):get_grid_location() + Point3(0, 0, 0))
 
    self._render_entity = _radiant.client.create_render_entity(1, self._proxy_building)
 
@@ -121,14 +123,66 @@ function StructureEditor:get_blueprint()
    return self._blueprint
 end
 
+function StructureEditor:get_proxy_blueprint()
+   return self._proxy_blueprint
+end
+
 function StructureEditor:get_proxy_fabricator()
    return self._proxy_fabricator
+end
+
+function StructureEditor:get_world_origin()
+   return radiant.entities.get_world_grid_location(self._proxy_fabricator)
+end
+
+function StructureEditor:should_keep_focus(entity)
+   if entity == self._proxy_blueprint or 
+      entity == self._proxy_fabricator or 
+      entity == self._project then
+      return true
+   end
+-- keep going up until we find one!
+   local mob = entity:get_component('mob')
+   if mob then
+      local parent = mob:get_parent()
+      if parent then
+         log:detail('checking parent... %s', parent)
+         return self:should_keep_focus(parent)
+      end
+   end
+   return false
 end
 
 local WallEditor = class(StructureEditor)
 
 function WallEditor:__init(fabricator, blueprint, project)
-   self[WallEditor]:__init(fabricator, blueprint, project)
+   self[StructureEditor]:__init(fabricator, blueprint, project, 'stonehearth:wall')
+   self._wall = self:get_proxy_blueprint():get_component('stonehearth:wall')
+end
+
+function WallEditor:destroy()  
+   if self._portal then
+      log:detail('destroying portal %s', tostring(self._portal))
+      radiant.entities.destroy_entity(self._portal)
+      self._portal = nil
+   end
+   self[StructureEditor]:destroy()
+end
+
+function WallEditor:set_portal_uri(uri)
+   self._portal = radiant.entities.create_entity(uri)
+   self._portal:add_component('render_info')
+                  :set_material('materials/ghost_item.xml')
+
+   self._wall:add_portal(self._portal)
+   return self
+end
+
+function WallEditor:on_mouse_event(e, result)
+   local location = result.brick - self:get_world_origin();
+   location.y = 0
+   radiant.entities.move_to(self._portal, location)
+   self._wall:layout()   
 end
 
 function BuildEditor:add_door(session, response)
@@ -137,28 +191,39 @@ function BuildEditor:add_door(session, response)
 
    capture:on_mouse_event(function(e)
          local s = _radiant.client.query_scene(e.x, e.y)
-         if s and s:get_result_count() > 0 then
-            local entity = radiant.get_object(s:objectid_of(0))
+         if s and s:get_result_count() > 0 then            
+            local entity = s:get_result(0).entity
             if entity and entity:is_valid() then
-               local fabricator, blueprint, project = get_fbp_for_structure(entity, 'stonehearth:wall')
-               if not blueprint or wall_editor and wall_editor:get_blueprint() ~= blueprint then
-                  if wall_editor then
-                     fabricator, blueprint, project = get_fbp_for_structure(entity, 'stonehearth:wall')
-                     wall_editor:destroy()
-                     wall_editor = nil
+               log:detail('hit entity %s', entity)
+               if wall_editor and not wall_editor:should_keep_focus(entity) then
+                  log:detail('destroying wall editor')
+                  wall_editor:destroy()
+                  wall_editor = nil
+               end
+               if not wall_editor then
+                  local fabricator, blueprint, project = get_fbp_for_structure(entity, 'stonehearth:wall')
+                  log:detail('got blueprint %s', tostring(blueprint))
+                  if blueprint then
+                     log:detail('creating wall editor for blueprint: %s', blueprint)
+                     wall_editor = WallEditor(fabricator, blueprint, project)
+                                       :set_portal_uri('stonehearth:wooden_door')
                   end
                end
-               if blueprint then
-                  wall_editor = StructureEditor(fabricator, blueprint, project)
+               if wall_editor then
+                  wall_editor:on_mouse_event(e, s:get_result(0))
                end
             end
          end
          if e:up(1) then
             response:reject({ error = 'unknown error' })
+            if wall_editor then
+               wall_editor:destroy()
+               wall_editor = nil
+            end
             capture:destroy()
          end
          return true
-      end)   
+      end) 
 end
 
 function BuildEditor:__init()
@@ -183,8 +248,8 @@ function BuildEditor:grow_walls(session, response)
    capture:on_mouse_event(function(e)
          if e:up(1) then
             local s = _radiant.client.query_scene(e.x, e.y)
-            if s then
-               local entity = radiant.get_object(s:objectid_of(0))
+            if s and s:get_result_count() > 0 then
+               local entity = s:get_result(0).entity
                if entity and entity:is_valid() then
                   local building = get_building_for(entity)
                   if building then

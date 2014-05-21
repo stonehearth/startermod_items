@@ -74,7 +74,7 @@ function firepit_autotests.move_lit_fire(autotest)
       end
       if e.lit then
          autotest.ui:push_unitframe_command_button(firepit, 'move_item')
-         autotest.ui:click_terrain(5, 5)
+         autotest.ui:click_terrain(10, 10)
       end
       return radiant.events.UNLISTEN
    end)
@@ -88,7 +88,7 @@ function firepit_autotests.move_lit_fire(autotest)
                -- removed.  The trace fires when being removed, AND the location is set to 0,0,0,
                -- which we want to ignore.
                if firepit:get_component('mob'):get_parent() ~= nil then
-                  if location.x == 5 and location.z == 5 then
+                  if location.x == 10 and location.z == 10 then
                      firepit_moved = true
                      
                      --Make sure it's still nighttime

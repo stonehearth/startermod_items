@@ -139,6 +139,28 @@ RenderNodePtr RenderNode::SetUserFlags(int flags)
    return shared_from_this();
 }
 
+RenderNodePtr RenderNode::SetName(const char *name)
+{
+   h3dSetNodeParamStr(_node.get(), H3DNodeParams::NameStr, name);
+   if (_meshNode) {
+      h3dSetNodeParamStr(_meshNode, H3DNodeParams::NameStr, BUILD_STRING(name << " mesh").c_str());
+   }
+   return shared_from_this();
+}
+
+RenderNodePtr RenderNode::SetVisible(bool visible)
+{
+   h3dTwiddleNodeFlags(_node.get(), H3DNodeFlags::NoDraw, !visible, true);
+   SetCanQuery(visible);
+   return shared_from_this();
+}
+
+RenderNodePtr RenderNode::SetCanQuery(bool canQuery)
+{
+   h3dTwiddleNodeFlags(_node.get(), H3DNodeFlags::NoRayQuery, !canQuery, true);
+   return shared_from_this();
+}
+
 RenderNodePtr RenderNode::SetGeometry(SharedGeometry geo)
 {
    _geometry = geo;

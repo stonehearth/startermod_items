@@ -1,0 +1,149 @@
+#selectedBuildingWindow {
+   position: absolute;
+   left: 10px;
+   top: 200px;
+   
+   width: 420px;
+   height: 420px;
+
+   #toolbar {
+      margin-bottom: 10px;
+      .tabButton {
+         .control;
+         position: relative;
+         width: 54px;
+         height: 60px;
+         display: inline-block;
+         text-align: center;
+         color: #87764f;
+         margin-right: 8px;
+         margin-top: 12px;
+
+         &:hover {
+            color: #ffc000;
+         }
+
+         .label {
+            position: absolute;
+            bottom: -5px;
+            font-size: 13px;
+            text-align: center;
+            width: 54px;
+         }
+      }
+
+      .floorTool {
+         background-image: url(images/build_floor.png);
+      }
+
+      .fillWallTool {
+         background-image: url(images/build_walls.png);
+      }
+
+      .roofTool {
+         background-image: url(images/build_roof.png);
+      }
+
+      .doorTool {
+         background-image: url(images/build_portal.png);
+      }
+   }
+
+   .tabPage {       
+      position: absolute;
+      top: 137px;
+      left: 8px;
+      width: 400px;
+      height: 300px;
+      padding: 8px;
+
+      border: 2px solid #000;
+      background-color: #443f33;
+
+      h2 {
+         margin-top: 0px;
+      }
+   }
+}
+
+#buildingDesigner_old {
+   display: none;
+
+   #toolbar {
+      position: absolute;
+      top: 0px;
+      bottom: 0px;
+      left: 0px;
+      width: 80px;
+      background: #312f2f;
+      text-align: center;
+      padding: 0px;
+
+      .tool {
+         width: 70px;
+         height: 70px;
+         margin-left: 5px;
+      }
+
+      .floorTool {
+         background-image: url(images/floor_tool.png);
+      }
+
+      .wallTool {
+         background-image: url(images/wall_tool.png);
+      }
+
+      .fillWallTool {
+         background-image: url(images/fill_wall_tool.png);
+      }
+
+      .fillFloorTool {
+         background-image: url(images/fill_floor_tool.png);
+      }
+
+      .roofTool {
+         background-image: url(images/roof_tool.png);
+      }
+
+      .doorTool {
+         background-image: url(images/door_tool.png);
+      }
+
+      .windowTool {
+         background-image: url(images/window_tool.png);
+      }
+
+      .break {
+         width: 80px;
+         height: 3px;
+         margin-top: 10px;
+         margin-bottom: 10px;
+         background: black;
+      }
+
+   }
+
+   #palettes {
+      position: absolute;
+      bottom: 10px;
+      left: 90px;
+
+      .window {
+         margin-top: 10px;
+         width: 420px;
+      }
+   }
+
+   #buildingControls {
+      button.start {
+         background-image: none;
+         width: auto;
+         float: right;
+      }
+      button.pause {
+         background-image: none;
+         width: auto;
+         float: right;
+      }
+   }
+}

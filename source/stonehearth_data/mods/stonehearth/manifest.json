@@ -893,6 +893,7 @@
    },
    "client_components" : {
       "wall" : "file(components/wall/wall_component.lua)",
+      "portal" : "file(components/portal/portal_component.lua)",
       "fabricator" : "file(components/fabricator/fabricator_client_component.lua)",
       "construction_data" : "file(components/construction_data/construction_data_component.lua)",
       "construction_progress" : "file(components/construction_progress/construction_progress_client_component.lua)"
@@ -928,6 +929,7 @@
          "file(ui/game/modes/zones_mode/farm/farm.html)",
          "file(ui/game/modes/build_mode/build_mode.html)",
          "file(ui/game/modes/build_mode/building_designer/building_designer.html)",
+         "file(ui/game/modes/build_mode/building_designer_2/building_designer_2.html)",
          "file(ui/game/esc_menu/esc_menu.html)",
          "file(ui/game/save_view/save_view.html)",
          "file(ui/game/task_manager/task_manager.html)",   
@@ -976,6 +978,7 @@
          "file(ui/game/modes/zones_mode/farm/farm.js)",
          "file(ui/game/modes/build_mode/build_mode.js)",
          "file(ui/game/modes/build_mode/building_designer/building_designer.js)",
+         "file(ui/game/modes/build_mode/building_designer_2/building_designer_2.js)",
          "file(ui/game/modes/mode_manager.js)",
          "file(ui/game/esc_menu/esc_menu.js)",
          "file(ui/game/save_view/save_view.js)",
@@ -1026,6 +1029,7 @@
          "file(ui/game/modes/zones_mode/farm/farm.less)",
          "file(ui/game/modes/build_mode/build_mode.less)",
          "file(ui/game/modes/build_mode/building_designer/building_designer.less)",
+         "file(ui/game/modes/build_mode/building_designer_2/building_designer_2.less)",
          "file(ui/game/esc_menu/esc_menu.less)",
          "file(ui/game/save_view/save_view.less)",
          "file(ui/game/task_manager/task_manager.less)",   

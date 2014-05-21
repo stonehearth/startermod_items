@@ -68,6 +68,31 @@ function LocationSelector:destroy()
    end 
 end
 
+-- given the x, y coordinate on screen, return the brick that is a
+-- candidate for selection.  trace a ray through that point in the screen,
+-- ignoring nodes between ourselves and the desired brick (e.g. the cursor
+-- is almost certainly going to get in the way!)
+--
+function LocationSelector:_get_selected_brick(x, y)
+   -- the ray didn't hit anything.  move the cursor offscreen
+   local pt = OFFSCREEN
+
+   -- query the scene to figure out what's under the mouse cursor
+   local s = _radiant.client.query_scene(x, y)
+
+   for result in s:each_result() do
+      -- at some point in the near future, we will want to be able to
+      -- place items atop floors, structures, etc.  until that happy
+      -- day, only allow people to put things on the terrain
+      if result.entity == radiant._root_entity then
+         -- select the point 1 unit above the brick the ray hit.
+         return result.brick + Point3(0, 1, 0)
+      end
+   end
+   
+   return pt
+end
+
 -- handle mouse events from the input service.  basically moves the cursor
 -- around and potentially calls the promise handlers to notify the client
 -- of interesting events
@@ -75,17 +100,7 @@ end
 function LocationSelector:_on_mouse_event(e)
    assert(self._input_capture, "got mouse event after releasing capture")
 
-   -- query the scene to figure out what's under the mouse cursor
-   local s = _radiant.client.query_scene(e.x, e.y)
-   local pt
-   if s:get_result_count() == 0 then
-      -- the ray didn't hit anything.  m ove the cursor offscreen
-      pt = OFFSCREEN
-   else
-      -- select the point 1 unit above the brick the ray hit.
-      pt = s:get_result(0).brick + Point3(0, 1, 0)
-   end
-
+   local pt = self:_get_selected_brick(e.x, e.y)
    if self._cursor_entity then
       -- move the  cursor, if one was specified.   
       radiant.entities.move_to(self._cursor_entity, pt)

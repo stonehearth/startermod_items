@@ -1057,8 +1057,9 @@ void Renderer::CastRay(const csg::Point3f& origin, const csg::Point3f& direction
       return;
    }
 
-   int num_results = h3dCastRay(rootRenderObject_->GetNode(),
-                                origin.x, origin.y, origin.z,
+   // Cast the ray from the root node to make sure we hit everything, including client-side created
+   // entities which are not children of the game root entity.
+   int num_results = h3dCastRay(1, origin.x, origin.y, origin.z,
                                 direction.x, direction.y, direction.z, 10, userFlags);
    
    // Pull out the intersection node and intersection point
@@ -1096,26 +1097,6 @@ RaycastResult Renderer::QuerySceneRay(const csg::Point3f& origin, const csg::Poi
       brick.x = csg::ToClosestInt(intersection.x);
       brick.z = csg::ToClosestInt(intersection.z);
       brick.y = csg::ToInt(intersection.y - (normal.y * 0.99f));
-#if 0
-      csg::Point3 brick;
-      csg::Matrix4 nodeTransform = GetNodeTransform(node);
-      nodeTransform.affine_inverse();
-      csg::Point3f brickNormal = nodeTransform.rotate(normal);
-      csg::Point3f brickIntersection = nodeTransform.transform(intersection);
-      for (int i = 0; i < 3; i++) {
-         // The brick origin is at the center of mass.  Adding 0.5f to the
-         // coordinate and flooring it should return a brick coordinate.
-         brick[i] = (int)std::floor(brickIntersection[i] + 0.5f);
-
-         // We want to choose the brick that the mouse is currently over.  The
-         // intersection point is actually a point on the surface.  So to get the
-         // brick, we need to move in the opposite direction of the normal
-         if (fabs(brickNormal[i]) > csg::k_epsilon) {
-            brick[i] += brickNormal[i] > 0 ? -1 : 1;
-         }
-      }
-#endif
-
       result.AddResult(intersection, normal, brick, entity);
    });
 

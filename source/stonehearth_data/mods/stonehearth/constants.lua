@@ -123,14 +123,15 @@ local constants = {
       NET_WORTH_INTERVAL = '10m',
       DEFAULT_CIV_WORTH = 10, 
 
-      net_worth_categories = {  --TODO: edit these!!! Just first cuts
-         'camp', 
+      net_worth_categories = {  --TODO: edit these values! Just first cuts
+         'camp',                --also, if you change these, update en.json too :)
          'settlement', 
          'hamlet', 
          'village', 
          'town', 
-         'city', 
-         'metropolis'
+         'county', 
+         'kingdom', 
+         'empire'
       },
 
       category_threshholds = {

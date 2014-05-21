@@ -33,6 +33,9 @@ std::ostream& ::radiant::om::operator<<(std::ostream& os, Entity const& o)
    if (!debug_text.empty()) {
       os << " " << debug_text;
    }
+   if (o.GetStore().GetName() != "game") {
+      os << " (" << o.GetStore().GetName() << ")";
+   }
    os << ")";
    return os;
 }

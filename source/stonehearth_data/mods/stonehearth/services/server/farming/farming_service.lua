@@ -1,3 +1,6 @@
+local Cube3 = _radiant.csg.Cube3
+local Point3 = _radiant.csg.Point3
+
 FarmingService = class()
 
 function FarmingService:__init()
@@ -29,6 +32,8 @@ end
 function FarmingService:create_new_field(session, location, size)
    local entity = radiant.entities.create_entity('stonehearth:farmer:field')   
    radiant.terrain.place_entity(entity, location)
+
+   self:_add_region_components(entity, size)
    
    local town = stonehearth.town:get_town(session.player_id)
 
@@ -102,6 +107,29 @@ function FarmingService:add_crop_type(session, new_crop_type, quantity)
          }
    table.insert(crop_list, crop_data)
    return crop_list
+end
+
+function FarmingService:_add_region_components(entity, size)
+   local destination_component = entity:add_component('destination')
+   local collision_component = entity:add_component('region_collision_shape')
+   local boxed_bounds = _radiant.sim.alloc_region()
+
+   boxed_bounds:modify(
+      function (region3)
+         region3:add_unique_cube(
+            Cube3(
+               -- recall that regions in components are is in local coordiantes
+               Point3(0, 0, 0),
+               Point3(size.x, 1, size.y)
+            )
+         )
+      end
+   )
+
+   destination_component:set_region(boxed_bounds)
+                        :set_auto_update_adjacent(true)
+   collision_component:set_region(boxed_bounds)
+                      :set_region_collision_type(_radiant.om.RegionCollisionShape.N_O_N_E)
 end
 
 function FarmingService:_get_crop_list(session)
