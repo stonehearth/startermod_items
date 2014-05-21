@@ -4,7 +4,7 @@
       "stonehearth:render_materials" : {
          "normal" : "materials/blueprint.material.xml",
          "selected" : "materials/blueprint.material.xml",
-         "hovered" : "materials/blueprint.material.xml",
+         "hover" : "materials/blueprint.material.xml",
          "building_selected" : "materials/blueprint.material.xml",
          "building_selected_hover" : "materials/blueprint.material.xml"
       }
