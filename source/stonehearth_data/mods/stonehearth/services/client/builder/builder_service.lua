@@ -99,7 +99,7 @@ function Builder:_package_proxy(proxy)
    if mob then
       local parent = mob:get_parent()
       if not parent then
-         package.add_to_build_plan = true
+         package.add_to_build_plan = false
       end
    end
    

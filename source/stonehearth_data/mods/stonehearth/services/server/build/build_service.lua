@@ -88,6 +88,7 @@ function BuildService:build_structures(session, proxies)
       
       -- If this proxy needs to be added to the terrain, go ahead and do that now.
       -- This will also create fabricators for all the descendants of this entity
+      --[[
       if proxy.add_to_build_plan then
          blueprint:add_component('unit_info')
                   :set_display_name(string.format('!! Building %d', radiant.get_realtime()))
@@ -96,6 +97,7 @@ function BuildService:build_structures(session, proxies)
 
          result.blueprints[blueprint:get_id()] = blueprint
       end
+      ]]
    end
 
    for _, proxy in ipairs(proxies) do
@@ -286,8 +288,14 @@ function BuildService:_create_blueprint(building, blueprint_uri, offset, init_fn
 
    -- add the blueprint to the building's entity container and wire up the
    -- building entity pointer in the construction_progress component.
-   local cp = blueprint:add_component('stonehearth:construction_progress')
-   cp:set_building_entity(building)
+   blueprint:add_component('stonehearth:construction_progress')
+               :set_building_entity(building)
+
+   -- make sure the building depends on the child we're adding to it.  this
+   -- will guarantee the building won't be flagged as finished until all the
+   -- children are finished
+   building:add_component('stonehearth:construction_progress')
+               :add_dependency(blueprint)
 
    radiant.entities.add_child(building, blueprint, offset)
 
@@ -296,7 +304,6 @@ function BuildService:_create_blueprint(building, blueprint_uri, offset, init_fn
 
    -- if the blueprint does not yet have a fabricator, go ahead and create one
    -- now.
-   assert(not cp:get_fabricator_entity())
    local fabricator = self:_add_fabricator(blueprint)
 
    return blueprint, fabricator
@@ -494,8 +501,15 @@ function BuildService:add_wall(session, response, columns_uri, walls_uri, p0, p1
       building = self:_create_new_building(session, p0)
    end
    assert(building)
-   self:_add_wall_span(building, p0, p1, normal, columns_uri, walls_uri)
-   response:resolve({ success = true })
+   local wall = self:_add_wall_span(building, p0, p1, normal, columns_uri, walls_uri)
+   if wall then
+      local wall_fab = wall:get_component('stonehearth:construction_progress'):get_fabricator_entity()      
+      response:resolve({
+         new_selection = wall_fab
+      })
+   else
+      response:reject({ error = 'could not create wall' })      
+   end
 end
 
 -- add walls around all the floor segments for the specified `building` which
@@ -648,7 +662,7 @@ function BuildService:_add_wall_span(building, min, max, normal, columns_uri, wa
    local col_a = self:_fetch_column_at_point(building, min, columns_uri)
    local col_b = self:_fetch_column_at_point(building, max, columns_uri)
    if col_a and col_b then
-      self:_create_wall(building, col_a, col_b, normal, wall_uri)
+      return self:_create_wall(building, col_a, col_b, normal, wall_uri)
    end
 end
 
@@ -661,10 +675,14 @@ end
 --    @param wall_uri - the type of wall to build
 --
 function BuildService:_create_wall(building, column_a, column_b, normal, wall_uri)
-   return self:_create_blueprint(building, wall_uri, Point3.zero, function(wall)
+   return self:_create_blueprint(building, wall_uri, Point3.zero, function(wall)      
          wall:add_component('stonehearth:wall')
                   :connect_to(column_a, column_b, normal)
                   :layout()
+
+         wall:add_component('stonehearth:construction_progress')
+                     :add_dependency(column_a)
+                     :add_dependency(column_b)
       end)
 end
 

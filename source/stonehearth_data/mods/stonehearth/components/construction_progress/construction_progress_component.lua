@@ -56,6 +56,7 @@ function ConstructionProgress:add_dependency(blueprint)
 
    self:_listen_for_changes(blueprint)
    self:check_dependencies()
+   return self
 end
 
 function ConstructionProgress:_add_inverse_dependency(blueprint)
@@ -67,6 +68,7 @@ function ConstructionProgress:_add_inverse_dependency(blueprint)
 
    self:_listen_for_changes(blueprint)
    self:check_dependencies()
+   return self
 end
 
 function ConstructionProgress:check_dependencies()

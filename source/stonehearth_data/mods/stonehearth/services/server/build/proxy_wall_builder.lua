@@ -82,6 +82,11 @@ function ProxyWallBuilder:_pump_queue()
 
    self._waiting_for_response = true
    _radiant.call('stonehearth:add_wall', self._column_uri, self._wall_uri, p0, p1, normal)
+            :done(function(result)
+                  if result.new_selection then
+                     stonehearth.selection:select_entity(result.new_selection)
+                  end
+               end)            
             :fail(function(result)
                   assert(false)
                end)
