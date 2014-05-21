@@ -111,7 +111,7 @@ function BuildService:_add_fabricator(blueprint)
    if blueprint:get_component('stonehearth:construction_data') then
       local name = tostring(blueprint)
       fabricator:add_component('stonehearth:fabricator')
-                     :start_project(name, blueprint)
+                     : start_project(name, blueprint)
       blueprint:add_component('stonehearth:construction_progress')   
                      :set_fabricator_entity(fabricator)
    end   
@@ -288,6 +288,18 @@ function BuildService:is_blueprint(entity)
    return entity:get_component('stonehearth:construction_progress') ~= nil
 end
 
+-- return the building the specified buildprint is attached to, assuming it
+-- is a blueprint to begin with!
+--
+--     @param entity - the blueprint whose building you're looking for
+--
+function BuildService:get_building_for_blueprint(entity)
+   local cp = entity:get_component('stonehearth:construction_progress')
+   if cp then
+      return cp:get_building_entity()
+   end
+end
+
 -- return the type of the specified structure (be it a blueprint or a project)
 -- or nil of the entity is not a structure.  structures have 
 -- 'stonehearth:construction_data' components
@@ -423,31 +435,49 @@ end
 function BuildService:grow_roof(session, response, building, roof_uri)
    -- compute the xz cross-section of the roof by growing the floor
    -- region by 2 voxels in every direction
-   local rgn = building:get_component('stonehearth:building')
-                           :calculate_floor_region()
-                           :inflated(Point2(2, 2))
+   local region2 = building:get_component('stonehearth:building')
+                              :calculate_floor_region()
+                              :inflated(Point2(2, 2))
 
    -- now make the roof!
-   local origin = Point3(0, constants.STOREY_HEIGHT, 0)
-   local roof = self:_create_blueprint(building, roof_uri, origin, function(roof)
-         -- cd:loan_scaffolding_to(borrower) <- borrow scaffolding from walls!
+   local height = constants.STOREY_HEIGHT
+   local roof_location = Point3(0, height - 1, 0)
+   local roof = self:_create_blueprint(building, roof_uri, roof_location, function(roof)
          roof:add_component('stonehearth:roof')
-                :cover_region2(rgn)
+                :cover_region2(region2)
                 :layout()
       end)
 
-   -- make sure all the walls under the roof reach all the way up
-   -- to the top
-   local ec = building:get_component('entity_container')
-   for id, structure in ec:each_child() do
-      if self:is_blueprint(structure) then
-         local wall = structure:get_component('stonehearth:wall')
-         if wall then
-            wall:connect_to_roof(roof)
-                :layout()
+   -- convert the 2d roof region to a 3d region so we can query for all the structures
+   -- underneath the roof
+   local under_roof_region = Region3()
+   local origin = radiant.entities.get_world_grid_location(building)
+   for rect in region2:each_cube() do
+      local cube = Cube3(Point3(roof_location.x + rect.min.x, 0,      roof_location.z + rect.min.y),
+                         Point3(roof_location.x + rect.max.x, height, roof_location.z + rect.max.y))
+      under_roof_region:add_unique_cube(cube:translated(origin))
+   end
+
+   -- connect everything directly under the roof to it, and make sure it reaches
+   -- all the way up to the top.
+   for _, structure in pairs(radiant.terrain.get_entities_in_region(under_roof_region)) do
+      if building == self:get_building_for_blueprint(structure) then
+         for _, component_name in ipairs({'stonehearth:wall', 'stonehearth:column'}) do
+            local component = structure:get_component(component_name)
+            if component then
+               -- connect the structure to the roof and re-compute its shape
+               component:connect_to_roof(roof)
+                        :layout()
+
+               -- don't build the roof until we've built all the supporting structures
+               roof:add_component('stonehearth:construction_progress')
+                      :add_dependency(structure)
+            end
          end
-         -- do something cool here...
-         -- self:_compute_wall_region(structure)
+         -- if this thing has scaffolding, let it know that the roof will need it
+         -- too
+         structure:get_component('stonehearth:construction_data')
+                  :loan_scaffolding_to(roof)
       end
    end
 end
@@ -539,6 +569,12 @@ function BuildService:_create_wall(building, column_a, column_b, normal, wall_ur
       end)
 end
 
+
+-- creates a portal inside `wall_entity` at `location`  
+--    @param wall_entity - the wall you'd like to contain the portal
+--    @param portal_uri - the type of portal to create
+--    @param location - where to put the portal, in wall-local coordinates
+--
 function BuildService:add_portal(session, response, wall_entity, portal_uri, location)
    local wall = wall_entity:get_component('stonehearth:wall')
    if wall then
