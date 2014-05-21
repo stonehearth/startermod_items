@@ -9,7 +9,7 @@
          <div hotkey="n" class="tabButton doorTool" tab="doorToolTab"><div class="label">{{i18n stonehearth:building_designer_door_tool}}</div></div>
       </div>
 
-      <div class="tabPage" id="floorToolTab">
+      <div class="tabPage" id="floorToolTab" style="display: block">
          <h2>Draw Floorplan</h2>
       </div>
 
@@ -25,42 +25,15 @@
          <h2>Add Doors, Windows, and Doodads</h2>
       </div>
 
-   </div>
+      <button class="warn" id="removeBuilding">{{i18n stonehearth:remove}}</button>
 
-   <div id="buildingDesigner_old" class="gui">
-      <div id="toolbar">
-         <div hotkey="f" class="tool floorTool"></div>
-         <div class="tool wallTool"></div>
-         <div class="break"></div>
+      <button {{bind-attr class=building.active:pause:start}} id="startBuilding">
+         {{#if building.active }}
+            Pause Building
+         {{else}}
+            Start Building
+         {{/if}}
+      </button>
 
-         <div hotkey="g" class="tool fillWallTool"></div>
-         <div class="tool fillFloorTool"></div>
-         <div hotkey="r" class="tool roofTool"></div>
-         <div class="break"></div>
-
-         <div hotkey="n" class="tool doorTool"></div>
-         <div class="tool windowTool"></div>
-      </div>
-
-      <div id="palettes">
-         <div id="selectedPartControls" class="window">
-            <div class="flatTitle">{{ blueprint.unit_info.name }}</div>
-            <div class="description">{{ blueprint.unit_info.description }}</div>
-         </div>
-
-         <div id="buildingControls" class="window">
-            <div class="flatTitle">{{ building.unit_info.name }}</div>
-
-            <button class="warn" id="removeBuilding">{{i18n stonehearth:remove}}</button>
-
-            <button {{bind-attr class=building.active:pause:start}} id="startBuilding">
-               {{#if building.active }}
-                  Pause Building
-               {{else}}
-                  Start Building
-               {{/if}}
-            </button>
-         </div>      
-      </div>
    </div>
 </script>

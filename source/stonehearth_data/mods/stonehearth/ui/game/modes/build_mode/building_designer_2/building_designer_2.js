@@ -85,13 +85,6 @@ App.StonehearthBuildingDesignerView2 = App.View.extend({
          App.stonehearthClient.buildFloor();
       });
 
-      // xxx, is this the right way to do this? start the building process by clicking the floor button
-      //this.$('.floorTool').click();
-
-      /* old and busted shit
-      this.$('.floorTool').click(function() {
-         App.stonehearthClient.buildFloor();
-      });
       this.$('.fillWallTool').click(function() {
          App.stonehearthClient.growWalls();
       });
@@ -101,6 +94,7 @@ App.StonehearthBuildingDesignerView2 = App.View.extend({
       this.$('.doorTool').click(function() {
          App.stonehearthClient.addDoor();
       });
+
       this.$('#startBuilding').click(function() {
          radiant.call('radiant:play_sound', 'stonehearth:sounds:ui:start_menu:submenu_select' );
          var building_entity = self.get('context.building');
@@ -118,7 +112,6 @@ App.StonehearthBuildingDesignerView2 = App.View.extend({
             radiant.call('stonehearth:set_building_teardown', building_entity.__self, true)
          }
       });
-      */
    },
 
    _onEntitySelected: function(e) {
