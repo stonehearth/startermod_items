@@ -46,9 +46,15 @@ RenderRenderInfo::RenderRenderInfo(RenderEntity& entity, om::RenderInfoPtr rende
    auto set_model_dirty_bit = [=]() {
       SetDirtyBits(MODEL_DIRTY);
    };
+   auto set_visible_dirty_bit = [=]() {
+      SetDirtyBits(VISIBLE_DIRTY);
+   };
 
    scale_trace_ = render_info->TraceScale("render", dm::RENDER_TRACES)
                                  ->OnModified(set_scale_dirty_bit);
+
+   visible_trace_ = render_info->TraceScale("render", dm::RENDER_TRACES)
+                                 ->OnModified(set_visible_dirty_bit);
 
    // if the variant we want to render changes...
    model_variant_trace_ = render_info->TraceModelVariant("render", dm::RENDER_TRACES)->OnModified(set_model_dirty_bit);
@@ -309,6 +315,9 @@ void RenderRenderInfo::Update()
                tz *= (scale / sz);
                h3dSetNodeTransform(node, tx, ty, tz, rx, ry, rz, scale, scale, scale);
             }
+         }
+         if (dirty_ & VISIBLE_DIRTY) {
+            entity_.SetVisible(render_info->GetVisible());
          }
       }
       dirty_ = 0;

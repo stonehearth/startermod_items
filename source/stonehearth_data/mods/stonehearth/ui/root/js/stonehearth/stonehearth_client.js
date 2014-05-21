@@ -202,36 +202,18 @@ var StonehearthClient;
 
       growRoof: function() {
          var self = this;
-
-         $(top).trigger('radiant_show_tip', { 
-            title : 'Grow Roof Tooltip',
-            description : 'Grow Roof Tooltip'
-         });
-
-         return this._callTool(function() {
-            return radiant.call_obj(self._build_editor, 'grow_roof')
-               .always(function(response) {
-                  radiant.call('radiant:play_sound', 'stonehearth:sounds:place_structure' );
-                  $(top).trigger('radiant_hide_tip');
-               });
-         });
+         if (building && building.__self) {
+            radiant.call('radiant:play_sound', 'stonehearth:sounds:place_structure' );
+            return radiant.call_obj(self._build_editor, 'grow_roof', building.__self)
+         }
       },
 
-      growWalls: function() {
+      growWalls: function(building) {
          var self = this;
-
-         $(top).trigger('radiant_show_tip', { 
-            title : 'Fill Wall Tooltip',
-            description : 'Fill Wall Tooltip'
-         });
-
-         return this._callTool(function() {
-            return radiant.call_obj(self._build_editor, 'grow_walls')
-               .always(function(response) {
-                  radiant.call('radiant:play_sound', 'stonehearth:sounds:place_structure' );
-                  $(top).trigger('radiant_hide_tip');
-               });
-         });
+         if (building && building.__self) {
+            radiant.call('radiant:play_sound', 'stonehearth:sounds:place_structure' );
+            return radiant.call_obj(self._build_editor, 'grow_walls', building.__self)
+         }
       },
 
       addDoor: function() {
@@ -264,18 +246,18 @@ var StonehearthClient;
       showTownMenu: function(show) {
          // hide the other population managers....oh lord this is ugly code
          if (this._citizenManager) {
-            this._citizenManager.$().hide();
+            this._citizenManager.destroy();
          }
 
          if (this._crafterManager) {
-            this._crafterManager.$().hide();
+            this._crafterManager.destroy();
          }
 
          // toggle the town menu
-         if (!this._townMenu) {
+         if (!this._townMenu || this._townMenu.isDestroyed) {
             this._townMenu = App.gameView.addView(App.StonehearthTownView);
          } else {
-            this._townMenu.$().toggle();
+            this._townMenu.destroy();
          }         
       },
 
@@ -283,18 +265,18 @@ var StonehearthClient;
       showCitizenManager: function(show) {
          // hide the other population managers....oh lord this is ugly code
          if (this._crafterManager) {
-            this._crafterManager.$().hide();
+            this._crafterManager.destroy();
          }
 
          if (this._townMenu) {
-            this._townMenu.$().hide();
+            this._townMenu.destroy();
          }
 
          // toggle the citizenManager
-         if (!this._citizenManager) {
+         if (!this._citizenManager || this._citizenManager.isDestroyed) {
             this._citizenManager = App.gameView.addView(App.StonehearthCitizensView);
          } else {
-            this._citizenManager.$().toggle();
+            this._citizenManager.destroy();
          }
       },
 
@@ -302,18 +284,18 @@ var StonehearthClient;
       showCrafterManager: function(show) {
          // hide the other population managers....oh lord this is ugly code
          if (this._citizenManager) {
-            this._citizenManager.$().hide();
+            this._citizenManager.destroy();
          }
 
          if (this._townMenu) {
-            this._townMenu.$().hide();
+            this._townMenu.destroy();
          }         
          
          // toggle the citizenManager
-         if (!this._crafterManager) {
+         if (!this._crafterManager || this._crafterManager.isDestroyed) {
             this._crafterManager = App.gameView.addView(App.StonehearthCraftersView);
          } else {
-            this._crafterManager.$().toggle();
+            this._crafterManager.destroy();
          }
       },
 

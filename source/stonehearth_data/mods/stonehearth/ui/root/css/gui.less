@@ -15,11 +15,22 @@
 
    .title {
       .controlFont;
+      position: relative;
       margin: -10px -10px 0px -10px;
       padding: 10px;
       background-color: #6c6045;
       border-width: 9px 9px 13px 9px;
       border-image: url(images/gui/title.png) 9 9 13 9 repeat;
+
+      .closeButton {
+         .control;
+         position: absolute;
+         right: 5px;
+         top: 5px;
+         width: 33px;
+         height: 33px;
+         background: url(images/gui/close_button.png);
+      }
    }
 
    .flatTitle {
@@ -130,6 +141,27 @@
       &:hover {
 
       }
+   }
+
+   .tab {
+      .control;
+      display: inline-block;
+      background-color: #103669;
+      background-clip: padding-box;
+      border-width: 8px 8px 17px 8px;
+      border-image: url(images/gui/tab.png) 9 9 17 9 repeat;
+      padding: 8px 8px 0px 8px;
+      color: #ad8816;
+
+      &:hover:not(.disabled) {
+         -webkit-filter: brightness(1.4);
+      }
+   }
+
+   .tab.active {
+      color: #ffc000;
+      background-color: #18509c;
+      border-image: url(images/gui/tab_active.png) 9 9 17 9 repeat;
    }
 
 // flat windows

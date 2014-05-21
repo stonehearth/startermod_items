@@ -50,7 +50,6 @@ Renderer& Renderer::GetInstance()
 
 Renderer::Renderer() :
    initialized_(false),
-   viewMode_(Standard),
    scriptHost_(nullptr),
    camera_(nullptr),
    uiWidth_(0),
@@ -1414,40 +1413,6 @@ H3DRes Renderer::GetPipeline(std::string const& name)
       p = i->second;
    }
    return p;
-}
-
-bool Renderer::ShouldHideRenderGrid(const csg::Point3& normal)
-{
-   if (viewMode_ == RPG) {
-#if 0
-      csg::Point3 normal(norm2d, 0);
-      csg::Point3f toCamera = cameraPos_ - cameraTarget_;
-
-      // If the normal to the render object lies in the XZ plane, we may
-      // want to hide it so that objects between the camera and where we
-      // think the user is looking are obscured.
-      
-      math2d::CoordinateSystem cs = norm2d.GetCoordinateSystem();
-
-      if (cs == math2d::XZ_PLANE) {
-         for (int i = 0; i < 3; i++) {
-            if (normal[i]) {
-               bool pos0 = normal[i] > 0;
-               bool pos1 = toCamera[i] > 0;
-               if (pos0 == pos1) {
-                  return true;
-               }
-            }
-         }
-      }
-#endif
-   }
-   return false;
-}
-
-void Renderer::SetViewMode(ViewMode mode)
-{
-   viewMode_ = mode;
 }
 
 void Renderer::LoadResources()

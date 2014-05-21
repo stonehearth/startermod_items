@@ -873,6 +873,7 @@
       "score" : "file(components/score/score_component.lua)",
       "buffs" : "file(components/buffs/buffs_component.lua)",
       "fabricator" : "file(components/fabricator/fabricator_component.lua)",
+      "fixture_fabricator" : "file(components/fixture_fabricator/fixture_fabricator_component.lua)",
       "scaffolding_fabricator" : "file(components/scaffolding_fabricator/scaffolding_fabricator_component.lua)",
       "portal" : "file(components/portal/portal_component.lua)",
       "no_construction_zone" : "file(components/no_construction_zone/no_construction_zone_component.lua)",
@@ -907,6 +908,7 @@
       "stockpile" : "file(renderers/stockpile/stockpile_renderer.lua)",
       "ghost_item" : "file(renderers/ghost_item/ghost_item_renderer.lua)",
       "fabricator" : "file(renderers/fabricator/fabricator_renderer.lua)",
+      "fixture_fabricator" : "file(renderers/fixture_fabricator/fixture_fabricator_renderer.lua)",
       "farmer_field" : "file(renderers/farmer_field/farmer_field_renderer.lua)",
       "no_construction_zone" : "file(renderers/no_construction_zone/no_construction_zone_renderer.lua)",
       "construction_data" : "file(renderers/construction_data/construction_data_renderer.lua)"

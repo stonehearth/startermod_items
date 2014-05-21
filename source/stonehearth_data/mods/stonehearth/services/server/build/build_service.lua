@@ -64,11 +64,11 @@ function BuildService:add_floor(session, response, floor_uri, box)
    local floor
 
    -- look for floor that we can merge into.
-   local existing_floor = radiant.terrain.get_entities_in_cube(box, function(entity)
+   local all_overlapping_floor = radiant.terrain.get_entities_in_cube(box, function(entity)
          return self:is_blueprint(entity) and self:_get_structure_type(entity) == 'floor'
       end)
 
-   if not next(existing_floor) then
+   if not next(all_overlapping_floor) then
       -- there was no existing floor at all. create a new building and add a floor
       -- segment to it. 
       local building = self:_create_new_building(session, box.min)
@@ -76,7 +76,7 @@ function BuildService:add_floor(session, response, floor_uri, box)
    else
       -- we overlapped some pre-existing floor.  merge this box into that floor,
       -- potentially merging multiple buildings together!
-      floor = self:_merge_overlapping_floor(existing_floor, floor_uri, box)
+      floor = self:_merge_overlapping_floor(all_overlapping_floor, floor_uri, box)
    end
    
    -- if we managed to create some floor, return the fabricator to the client as the
@@ -207,7 +207,8 @@ function BuildService:_merge_overlapping_floor(existing_floor, floor_uri, box)
    if not next_floor then
       -- exactly 1 overlapping floor.  just modify the region of that floor.
       -- pretty easy
-      return self:_merge_overlapping_floor_trivial(floor, floor_uri, box)
+      self:_merge_overlapping_floor_trivial(floor, floor_uri, box)
+      return floor
    end
 
    -- gah!  this is going to be tricky.  first, get all the buildings that
@@ -240,7 +241,8 @@ function BuildService:_merge_overlapping_floor(existing_floor, floor_uri, box)
    end
 
    -- sweet!  now we can do the trivial merge
-   return self:_merge_overlapping_floor_trivial(floor, floor_uri, box)
+    self:_merge_overlapping_floor_trivial(floor, floor_uri, box)
+    return floor
 end
 
 -- add `box` to the `floor` region.  the caller must ensure that the
@@ -286,6 +288,18 @@ end
 --
 function BuildService:is_blueprint(entity)
    return entity:get_component('stonehearth:construction_progress') ~= nil
+end
+
+-- return the building the specified buildprint is attached to, assuming it
+-- is a blueprint to begin with!
+--
+--     @param entity - the blueprint whose building you're looking for
+--
+function BuildService:get_building_for_blueprint(entity)
+   local cp = entity:get_component('stonehearth:construction_progress')
+   if cp then
+      return cp:get_building_entity()
+   end
 end
 
 -- return the type of the specified structure (be it a blueprint or a project)
@@ -423,31 +437,49 @@ end
 function BuildService:grow_roof(session, response, building, roof_uri)
    -- compute the xz cross-section of the roof by growing the floor
    -- region by 2 voxels in every direction
-   local rgn = building:get_component('stonehearth:building')
-                           :calculate_floor_region()
-                           :inflated(Point2(2, 2))
+   local region2 = building:get_component('stonehearth:building')
+                              :calculate_floor_region()
+                              :inflated(Point2(2, 2))
 
    -- now make the roof!
-   local origin = Point3(0, constants.STOREY_HEIGHT, 0)
-   local roof = self:_create_blueprint(building, roof_uri, origin, function(roof)
-         -- cd:loan_scaffolding_to(borrower) <- borrow scaffolding from walls!
+   local height = constants.STOREY_HEIGHT
+   local roof_location = Point3(0, height - 1, 0)
+   local roof = self:_create_blueprint(building, roof_uri, roof_location, function(roof)
          roof:add_component('stonehearth:roof')
-                :cover_region2(rgn)
+                :cover_region2(region2)
                 :layout()
       end)
 
-   -- make sure all the walls under the roof reach all the way up
-   -- to the top
-   local ec = building:get_component('entity_container')
-   for id, structure in ec:each_child() do
-      if self:is_blueprint(structure) then
-         local wall = structure:get_component('stonehearth:wall')
-         if wall then
-            wall:connect_to_roof(roof)
-                :layout()
+   -- convert the 2d roof region to a 3d region so we can query for all the structures
+   -- underneath the roof
+   local under_roof_region = Region3()
+   local origin = radiant.entities.get_world_grid_location(building)
+   for rect in region2:each_cube() do
+      local cube = Cube3(Point3(roof_location.x + rect.min.x, 0,      roof_location.z + rect.min.y),
+                         Point3(roof_location.x + rect.max.x, height, roof_location.z + rect.max.y))
+      under_roof_region:add_unique_cube(cube:translated(origin))
+   end
+
+   -- connect everything directly under the roof to it, and make sure it reaches
+   -- all the way up to the top.
+   for _, structure in pairs(radiant.terrain.get_entities_in_region(under_roof_region)) do
+      if building == self:get_building_for_blueprint(structure) then
+         for _, component_name in ipairs({'stonehearth:wall', 'stonehearth:column'}) do
+            local component = structure:get_component(component_name)
+            if component then
+               -- connect the structure to the roof and re-compute its shape
+               component:connect_to_roof(roof)
+                        :layout()
+
+               -- don't build the roof until we've built all the supporting structures
+               roof:add_component('stonehearth:construction_progress')
+                      :add_dependency(structure)
+            end
          end
-         -- do something cool here...
-         -- self:_compute_wall_region(structure)
+         -- if this thing has scaffolding, let it know that the roof will need it
+         -- too
+         structure:get_component('stonehearth:construction_data')
+                  :loan_scaffolding_to(roof)
       end
    end
 end
@@ -539,13 +571,25 @@ function BuildService:_create_wall(building, column_a, column_b, normal, wall_ur
       end)
 end
 
+
+-- creates a portal inside `wall_entity` at `location`  
+--    @param wall_entity - the wall you'd like to contain the portal
+--    @param portal_uri - the type of portal to create
+--    @param location - where to put the portal, in wall-local coordinates
+--
 function BuildService:add_portal(session, response, wall_entity, portal_uri, location)
    local wall = wall_entity:get_component('stonehearth:wall')
    if wall then
       local portal = radiant.entities.create_entity(portal_uri)
-      portal:add_component('render_info')
-                  :set_material('materials/blueprint_gridlines.xml')
 
+      -- `portal` is actually a blueprint of the fixture, not the actual fixture
+      -- itself.  change the material we use to render it and hook up a fixture_fabricator
+      -- to help build it.
+      portal:add_component('stonehearth:fixture_fabricator')
+      portal:add_component('render_info')
+                  :set_material('materials/blueprint.material.xml')
+
+      -- add the new portal to the wall and reconstruct the shape.
       wall:add_portal(portal, location)
           :layout()
 

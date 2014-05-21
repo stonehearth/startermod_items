@@ -1,6 +1,7 @@
 
 App.StonehearthStockpileView = App.View.extend({
    templateName: 'stonehearthStockpile',
+   closeOnEsc: true,
 
    components: {
       "unit_info": {},
@@ -57,8 +58,9 @@ App.StonehearthStockpileView = App.View.extend({
 
       this.items.find('img').tooltipster();
 
-      //this.$('#stockpileWindow').click(function() { return false; });
-      //this.$().click(function() { self.destroy(); });
+      this.$('.title .closeButton').click(function() {
+         self.destroy();
+      });
 
       self._refreshGrids();
    },
