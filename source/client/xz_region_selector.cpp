@@ -139,8 +139,6 @@ bool XZRegionSelector::GetHoverBrick(int x, int y, csg::Point3 &pt)
    if (!entity || entity->GetObjectId() != _terrain->GetEntity().GetObjectId()) {
       return false;
    }
-   csg::Point3f fbrick(0, 0, 0);
-   LOG_(0) << "i:" << r.intersection << " n:" << r.normal << " b:" << fbrick << ", " << r.brick;
 
    // add in the normal to get the adjacent brick
    pt = r.brick + csg::ToInt(r.normal);
