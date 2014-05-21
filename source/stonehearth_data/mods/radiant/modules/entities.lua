@@ -173,6 +173,14 @@ function entities.set_player_id(entity, player_id)
    return entity:add_component('unit_info'):set_player_id(player_id)
 end
 
+function entities.get_world_location(entity)
+   local mob = entity:get_component('mob')
+   if not mob then
+      error(tostring(entity) .. ' has no mob component')
+   end
+   return mob:get_world_location()
+end
+
 function entities.get_world_grid_location(entity)
    local mob = entity:get_component('mob')
    if not mob then

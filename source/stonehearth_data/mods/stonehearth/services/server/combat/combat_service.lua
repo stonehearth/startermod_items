@@ -9,7 +9,6 @@ local MS_PER_FRAME = 1000/30
 function CombatService:__init()
 end
 
--- TODO: move target tables and combat state into components
 function CombatService:initialize()
    -- always stun for now
    --self._hit_stun_damage_threshold = radiant.util.get_config('hit_stun_damage_threshold', 0.10)
@@ -46,7 +45,7 @@ function CombatService:engage(target, context)
    radiant.events.trigger_async(target, 'stonehearth:combat:engage', context)
 end
 
--- Ntify target that an attack has begun and will impact soon.
+-- Notify target that an attack has begun and will impact soon.
 -- Target has opportunity to defend itself if it can react before the impact time.
 function CombatService:assault(target, context)
    if target == nil or not target:is_valid() then

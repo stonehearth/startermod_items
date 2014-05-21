@@ -25,11 +25,12 @@
          "injected_ai" : {
             "actions" : [
                "stonehearth:actions:patrol",
-               "stonehearth:actions:walk_around_entity"
+               "stonehearth:actions:patrol:idle",
+               "stonehearth:actions:get_patrol_point",
+               "stonehearth:actions:mark_patrol_complete"
             ],
             "observers" : [
-               "stonehearth:observers:enemy_observer",
-               "stonehearth:observers:town_defense_observer"
+               "stonehearth:observers:enemy_observer"
             ]            
          },
          "injected_commands" : [
