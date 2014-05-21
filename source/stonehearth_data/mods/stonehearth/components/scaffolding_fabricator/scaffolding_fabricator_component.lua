@@ -24,6 +24,7 @@ end
 
 function ScaffoldingFabricator:destroy()
    radiant.events.unlisten(self._sv.blueprint, 'stonehearth:construction:teardown_changed', self, self._update_scaffolding_size)
+   radiant.events.unlisten(self._sv.blueprint, 'stonehearth:construction:finished_changed', self, self._update_scaffolding_size)   
    if self._project_trace then
       self._project_trace:destroy()
       self._project_trace = nil
@@ -64,12 +65,13 @@ function ScaffoldingFabricator:_start()
    self._blueprint_cd = self._sv.blueprint:get_component('stonehearth:construction_data')
    self._blueprint_cp = self._sv.blueprint:get_component('stonehearth:construction_progress')
    radiant.events.listen(self._sv.blueprint, 'stonehearth:construction:teardown_changed', self, self._update_scaffolding_size)
+   radiant.events.listen(self._sv.blueprint, 'stonehearth:construction:finished_changed', self, self._update_scaffolding_size)
    
    self._project_trace = self._project_dst:trace_region('generating scaffolding')
-   self._project_trace:on_changed(function()
-      self:_update_scaffolding_size()
-   end)
-   self:_update_scaffolding_size()
+                                             :on_changed(function()
+                                                   self:_update_scaffolding_size()
+                                                end)
+                                             :push_object_state()
 end
 
 -- returns whether or not all the blueprints that are borrowing our scafflding

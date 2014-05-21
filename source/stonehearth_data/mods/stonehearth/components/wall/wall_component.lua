@@ -6,6 +6,10 @@ local Region3 = _radiant.csg.Region3
 local Cube3 = _radiant.csg.Cube3
 local Point3 = _radiant.csg.Point3
 local INFINITE = 10000000
+local FIXTURE_ROTATIONS = {
+   x = { [-1] =  0, [1] = 180 },
+   z = { [-1] = 90, [1] = 270 },
+}
 
 local function is_blueprint(entity)
    return entity:get_component('stonehearth:construction_progress') ~= nil
@@ -25,6 +29,9 @@ end
 function Wall:begin_editing(other_wall)
    self._sv.start_pt = Point3(other_wall._sv.start_pt)
    self._sv.end_pt = Point3(other_wall._sv.end_pt)
+   self._sv.fixture_rotation = other_wall._sv.fixture_rotation
+   self._sv.tangent_coord = other_wall._sv.tangent_coord
+   self._sv.normal_coord = other_wall._sv.normal_coord
    self.__saved_variables:mark_changed()
 
    self._editing_region = _radiant.client.alloc_region()
@@ -35,15 +42,16 @@ function Wall:get_editing_reserved_region()
    return self._editing_region
 end
 
-function Wall:_get_tn()
-   local start_pt, end_pt = self._sv.start_pt, self._sv.end_pt
-   local t = (math.abs(start_pt.x - end_pt.x) == 1) and 'z' or 'x'
-   local n = t == 'x' and 'z' or 'x'
-   return t, n
+function Wall:get_tangent_coord()
+   return self._sv.tangent_coord
+end
+
+function Wall:get_normal_coord()
+   return self._sv.normal_coord
 end
 
 function Wall:_region2_to_region3(region2, origin)
-   local t, n = self:_get_tn()
+   local t, n = self._sv.tangent_coord, self._sv.normal_coord
    local start_pt, end_pt = self._sv.start_pt, self._sv.end_pt
 
    local region3 = Region3()
@@ -61,7 +69,10 @@ end
 
 
 function Wall:add_portal(portal, location)
+   local rotation = self._sv.fixture_rotation
    radiant.entities.add_child(self._entity, portal, location)
+   portal:get_component('mob'):turn_to(rotation)
+   return self
 end
 
 
@@ -85,17 +96,6 @@ function Wall:layout()
    assert(start_pt.x < end_pt.x)
    assert(start_pt.y < end_pt.y)
    assert(start_pt.z < end_pt.z)
-
-   --[[
-   -- DO NOT DELETE THIS CODE!  I will use it soon.
-
-   -- omfg... righthandedness is screwing with my brain.
-   local rotations = {
-      [-1] = { [-1] = 270, [1] = 180 },
-      [ 1] = { [-1] = 0,   [1] = 90 },
-   }
-   self._rotation = rotations[tangent[t] ][normal[n] ]
-   ]]
    
    -- if there are no structure at all overlapping the region we can create the
    -- wall and add it to the building.  otherwise, don't.
@@ -215,6 +215,9 @@ function Wall:connect_to(column_a, column_b, normal)
                                        :get_bounds()
    self._sv.end_pt[n] = brush_bounds.max[n]
    self._sv.start_pt[n] = brush_bounds.min[n]
+   self._sv.tangent_coord = t
+   self._sv.normal_coord = n
+   self._sv.fixture_rotation = FIXTURE_ROTATIONS[t][normal[n]]
 
    radiant.entities.move_to(self._entity, pos_a + tangent)
 

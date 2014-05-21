@@ -8,6 +8,18 @@ function construction_tests.simple_build(autotest)
    local construction_complete = false
 
    radiant.events.listen(radiant, 'radiant:entity:post_create', function(e)
+         if e.entity:get_uri() == 'stonehearth:entities:building' then
+            local blueprint = e.entity
+            radiant.events.listen(blueprint, 'stonehearth:construction:finished_changed', function ()
+                  local finished = blueprint:get_component('stonehearth:construction_progress'):get_finished()
+                  if finished then
+                     construction_complete = true
+                     -- unlisten from notifications about the blueprint.  The listen code above
+                     -- will now wait for the scaffolding to be torn down.
+                     return radiant.events.UNLISTEN
+                  end
+            end)
+         end
          if e.entity:get_uri() == 'stonehearth:scaffolding' then
             local scaffolding = e.entity
             radiant.events.listen(scaffolding, 'stonehearth:construction:finished_changed', function ()
@@ -22,19 +34,6 @@ function construction_tests.simple_build(autotest)
             end)
             return radiant.events.UNLISTEN
          end
-   end)
-
-   radiant.events.listen(autotest.env:get_town(), 'stonehearth:blueprint_added', function (e)
-         local blueprint = e.blueprint
-         radiant.events.listen(blueprint, 'stonehearth:construction:finished_changed', function ()
-               local finished = blueprint:get_component('stonehearth:construction_progress'):get_finished()
-               if finished then
-                  construction_complete = true
-                  -- unlisten from notifications about the blueprint.  The listen code above
-                  -- will now wait for the scaffolding to be torn down.
-                  return radiant.events.UNLISTEN
-               end
-         end)
    end)
 
    autotest.ui:click_dom_element('#startMenu #build_menu')

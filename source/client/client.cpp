@@ -96,8 +96,7 @@ Client::Client() :
    uiCursor_(NULL),
    currentCursor_(NULL),
    next_input_id_(1),
-   mouse_x_(0),
-   mouse_y_(0),
+   mouse_position_(csg::Point2::zero),
    perf_hud_shown_(false),
    connected_(false),
    game_clock_(nullptr),
@@ -1090,8 +1089,8 @@ void Client::OnInput(Input const& input) {
 
 void Client::OnMouseInput(Input const& input)
 {
-   mouse_x_ = input.mouse.x;
-   mouse_y_ = input.mouse.y;
+   mouse_position_.x = input.mouse.x;
+   mouse_position_.y = input.mouse.y;
 
    browser_->OnInput(input);
 
@@ -1226,7 +1225,7 @@ void Client::InstallCurrentCursor()
 {
    if (browser_) {
       HCURSOR cursor;
-      if (browser_->HasMouseFocus(mouse_x_, mouse_y_)) {
+      if (browser_->HasMouseFocus(mouse_position_.x, mouse_position_.y)) {
          cursor = uiCursor_;
       } else {
          if (!cursor_stack_.empty()) {
@@ -1649,4 +1648,9 @@ void Client::ConstructLuaComponents()
       }
    }
    entities_to_trace_.clear();
+}
+
+csg::Point2 Client::GetMousePosition() const
+{
+   return mouse_position_;
 }

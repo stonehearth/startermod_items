@@ -1,3 +1,4 @@
+local Region3 = _radiant.csg.Region3
 local FabricatorClientComponent = class()
 
 -- this is the component which manages the fabricator entity.
@@ -44,16 +45,17 @@ function FabricatorClientComponent:begin_editing(blueprint, project, editing_reg
       return entity:get_component('destination'):trace_region('editing fab')
          :on_changed(function()
             local br = blueprint:get_component('destination'):get_region():get()
-            local pr = project:get_component('destination'):get_region():get()
+            local pr = project and project:get_component('destination'):get_region():get() or Region3()
             self._entity:get_component('destination'):get_region():modify(function(cursor)
                   cursor:copy_region(br - pr)
                end)
          end)
    end     
+   if project then
+      self._project_trace = trace_region(project)
+   end
    self._blueprint_trace = trace_region(blueprint)
-   self._project_trace = trace_region(project)
-   
-   self._project_trace:push_object_state()
+   self._blueprint_trace:push_object_state()
 end
 
 return FabricatorClientComponent

@@ -46,18 +46,18 @@ App.StonehearthPromotionWizard = App.View.extend({
 
       $(top).on("radiant_selection_changed.promote_view", function (_, data) {
          var selected = data.selected_entity;
-         var pop = App.population.getData();
+         App.population.getTrace().done(function(pop) {
+            $.each(pop.citizens, function(k, citizen) {
+               var uri = citizen['__self']
+               if (uri && uri == data.selected_entity) {
+                  var profession = citizen['stonehearth:profession']['profession_uri']['alias'];
 
-         $.each(pop.citizens, function(k, citizen) {
-            var uri = citizen['__self']
-            if (uri && uri == data.selected_entity) {
-               var profession = citizen['stonehearth:profession']['profession_uri']['alias'];
-
-               if (profession = 'stonehearth:professions:worker') {
-                  self.set('citizen', citizen);
-                  self.showApproveStamper();                  
+                  if (profession = 'stonehearth:professions:worker') {
+                     self.set('citizen', citizen);
+                     self.showApproveStamper();                  
+                  }
                }
-            }
+            });            
          });
       });
 

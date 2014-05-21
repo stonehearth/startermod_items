@@ -20,10 +20,6 @@ function BuildCallHandler:get_build_editor(session, request)
    return { build_editor = build_editor:get_model() }
 end
 
-function BuildCallHandler:build_structures(session, request, changes)
-   return stonehearth.build:build_structures(session, changes)
-end
-
 -- set whether or not the specified building should be worked on.
 function BuildCallHandler:set_building_active(session, request, building, enabled)
    stonehearth.build:set_active(building, enabled)
@@ -39,12 +35,20 @@ function BuildCallHandler:add_floor(session, request, floor_uri, box)
    stonehearth.build:add_floor(session, request, floor_uri, ToCube3(box))
 end
 
+function BuildCallHandler:add_wall(session, request, columns_uri, walls_uri, p0, p1, normal)
+   stonehearth.build:add_wall(session, request, columns_uri, walls_uri, ToPoint3(p0), ToPoint3(p1), ToPoint3(normal))
+end
+
 function BuildCallHandler:grow_walls(session, request, building, columns_uri, walls_uri)
    stonehearth.build:grow_walls(session, request, building, columns_uri, walls_uri)
 end
 
 function BuildCallHandler:grow_roof(session, request, building, roof_uri)
    stonehearth.build:grow_roof(session, request, building, roof_uri)
+end
+
+function BuildCallHandler:add_portal(session, request, wall, portal_uri, location)
+   stonehearth.build:add_portal(session, request, wall, portal_uri, location)
 end
 
 return BuildCallHandler

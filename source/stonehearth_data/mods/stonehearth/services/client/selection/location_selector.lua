@@ -24,6 +24,16 @@ function LocationSelector:always(cb)
    return self
 end
 
+function LocationSelector:allow_shift_queuing(enabled)
+   self._allow_shift_queuing = enabled
+   return self
+end
+
+function LocationSelector:set_min_locations_count(count)
+   self._locations_remaining_count = count
+   return self
+end
+
 -- sets the uri of the entity to use for the ghost cursor.  this entity's lifetime
 -- will be controlled by the selection service.  it will also automatically be
 -- rendered in ghostly form.  if you want more control over how the cursor entity
@@ -93,19 +103,24 @@ function LocationSelector:_get_selected_brick(x, y)
    return pt
 end
 
+function LocationSelector:_shift_down()
+  return _radiant.client.is_key_down(_radiant.client.KeyboardInput.KEY_LEFT_SHIFT) or
+         _radiant.client.is_key_down(_radiant.client.KeyboardInput.KEY_RIGHT_SHIFT)
+end
+
 -- handle mouse events from the input service.  basically moves the cursor
 -- around and potentially calls the promise handlers to notify the client
 -- of interesting events
 --
-function LocationSelector:_on_mouse_event(e)
+function LocationSelector:_on_mouse_event(mouse_pos, event)
    assert(self._input_capture, "got mouse event after releasing capture")
 
-   local pt = self:_get_selected_brick(e.x, e.y)
+   local pt = self:_get_selected_brick(mouse_pos.x, mouse_pos.y)
    if self._cursor_entity then
       -- move the  cursor, if one was specified.   
       radiant.entities.move_to(self._cursor_entity, pt)
       -- if the user right-clicked, rotate the cursor
-      if e:up(2) then
+      if event and event:up(2) then
          self._rotation = (self._rotation + 90) % 360
          self._cursor_entity:add_component('mob'):turn_to(self._rotation)
       end
@@ -121,15 +136,23 @@ function LocationSelector:_on_mouse_event(e)
       return
    end
 
-   if e:up(1) then
-      self._input_capture:destroy()
-      self._input_capture = nil
+   if event and event:up(1) then
+      local finished = not self._allow_shift_queuing or not self:_shift_down()
+      if self._locations_remaining_count then
+         self._locations_remaining_count = self._locations_remaining_count - 1
+         finished = finished and self._locations_remaining_count <= 0
+      end
 
       if self._done_cb then
-         self._done_cb(self, pt, self._rotation)
+         self._done_cb(self, pt, self._rotation, finished)
       end
-      if self._always_cb then
-         self._always_cb(self)
+      if finished then
+         self._input_capture:destroy()
+         self._input_capture = nil
+
+         if self._always_cb then
+            self._always_cb(self)
+         end
       end
    end
 end
@@ -159,15 +182,23 @@ function LocationSelector:go()
 
    -- capture the mouse.  Call our _on_mouse_event each time, passing in
    -- the entity that we're supposed to create whenever the user clicks.
+   -- capture the mouse.  Call our _on_mouse_event each time, passing in
+   -- the entity that we're supposed to create whenever the user clicks.
    self._input_capture = stonehearth.input:capture_input()
                            :on_mouse_event(function(e)
-                                 self:_on_mouse_event(e)
+                                 self:_on_mouse_event(e, e)
                                  return true
                               end)
                            :on_keyboard_event(function(e)
                                  self:_on_keyboard_event(e)
                                  return true
                               end)
+
+   -- fake an initial event to move the cursor under the mouse
+   if self._progress_cb then
+      self:_on_mouse_event(_radiant.client.get_mouse_position())
+   end
+   return self
 end
 
 return LocationSelector
