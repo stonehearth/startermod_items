@@ -2,7 +2,7 @@
 App.StonehearthTownView = App.View.extend({
    templateName: 'town',
    classNames: ['flex', 'fullScreen'],
-   //modal: true,
+   closeOnEsc: true,
 
    scores: {
       'net_worth_percent' : 10,
@@ -22,19 +22,28 @@ App.StonehearthTownView = App.View.extend({
          .done(function(response){
             var uri = response.score;
             
-            var r  = new RadiantTrace()
-            var trace = r.traceUri(uri, {});
-            trace.progress(function(eobj) {
+            self.radiantTrace  = new RadiantTrace()
+            self.trace = self.radiantTrace.traceUri(uri, {});
+            self.trace.progress(function(eobj) {
                   self.set('context.score_data', eobj.score_data);
                });
          });
    },
 
+   destroy: function() {
+      this.radiantTrace.destroy();
+      this._super();
+   },
 
    didInsertElement: function() {
       var self = this;
       this._super();
       this._updateScores();
+
+      // close button handler
+      this.$('.title .closeButton').click(function() {
+         self.destroy();
+      });
    },
 
    _update_town_label: function() {
