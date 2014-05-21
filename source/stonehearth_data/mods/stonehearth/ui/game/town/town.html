@@ -2,56 +2,65 @@
 <div id="town" class="gui">
    <div class="window">
       <div class="title">Town Overview <div class="closeButton"></div></div>
-      <div id="info">
-         <div id="icon"></div>
-         <div id="townTitle">
-            <div id="descriptor"></div>
-            <div id="name">{{town_name}}</div>
-         </div>
+   <div id="overviewTab" class="tabPage">
+         <div id="info">
+            <div id="icon"></div>
+            <div id="townTitle">
+               <div id="descriptor"></div>
+               <div id="name">{{town_name}}</div>
+            </div>
 
-         <div id="citizenCount">
-            <div id="workers" class="counter">
-               <div>10</div>
-            </div>
-            <div id="crafters" class="counter">
-               <div>10</div>
-            </div>
-            <div id="soldiers" class="counter">
-               <div>10</div>
-            </div>
-         </div>
-
-         <div class="bigSection" id="netWorthSection">
-            <h1>Net Worth</h1>
-            <div id="netWorthBarFrame"></div>
-            <div id="netWorthBar"></div>
-            
-            <div id="netWorthNumeric">
-               <div id="value">
-                  {{score_data.net_worth.total_score}}
+            <div id="citizenCount">
+               <div id="workers" class="counter">
+                  <div>10</div>
+               </div>
+               <div id="crafters" class="counter">
+                  <div>10</div>
+               </div>
+               <div id="soldiers" class="counter">
+                  <div>10</div>
                </div>
             </div>
-            
-         </div>
 
-         <div id="happiness">
-            <div class="bigSection">
-               <h1>Overall Happiness</h1>
-
-               <div class="scoreBar" id="overallScore"></div>
+            <div class="bigSection" id="netWorthSection">
+               <h1>Net Worth</h1>
+               <div id="netWorthBarFrame"></div>
+               <div id="netWorthBar"></div>
+               
+               <div id="netWorthNumeric">
+                  <div id="value">
+                     {{score_data.net_worth.total_score}}
+                  </div>
+               </div>
+               
             </div>
 
-            <div class="smallSection">
-               <h2>Food</h2>
-               <div class="scoreBar" id="foodScore"></div>
-            </div>
+            <div id="happiness">
+               <div class="bigSection">
+                  <h1>Overall Happiness</h1>
 
-            <div class="smallSection">
-               <h2>Shelter</h2>
-               <div class="scoreBar" id="shelterScore"></div>
-            </div>         
+                  <div class="scoreBar" id="overallScore"></div>
+               </div>
+
+               <div class="smallSection">
+                  <h2>Food</h2>
+                  <div class="scoreBar" id="foodScore"></div>
+               </div>
+
+               <div class="smallSection">
+                  <h2>Shelter</h2>
+                  <div class="scoreBar" id="shelterScore"></div>
+               </div>         
+            </div>
          </div>
       </div>
+      <div id="journalsTab" class="tabPage">
+         This is the journals tab.
+      </div>
+   </div>
+   <div class="tabs">
+      <div class="tab active" tabPage="overviewTab">Town Overview</div>
+      <div class="tab" tabPage="journalsTab">Journals</div>
    </div>
 </div>
 </script>
