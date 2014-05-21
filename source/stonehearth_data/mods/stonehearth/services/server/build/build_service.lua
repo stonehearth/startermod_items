@@ -585,7 +585,7 @@ function BuildService:add_portal(session, response, wall_entity, portal_uri, loc
       -- to help build it.
       portal:add_component('stonehearth:fixture_fabricator')
       portal:add_component('render_info')
-                  :set_material('materials/blueprint_gridlines.xml')
+                  :set_material('materials/blueprint.material.xml')
 
       -- add the new portal to the wall and reconstruct the shape.
       wall:add_portal(portal, location)

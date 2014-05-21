@@ -39,7 +39,6 @@ function ConstructionDataComponent:begin_editing(other_cd)
       self._sv.allow_diagonal_adjacency = other_cd._sv.allow_diagonal_adjacency
       self._sv.project_adjacent_to_base = other_cd._sv.project_adjacent_to_base
       self._sv.allow_crouching_construction = other_cd._sv.allow_crouching_construction
-      self._sv.paint_mode = other_cd._sv.paint_mode
       self._sv.brush = other_cd._sv.brush
    end
    self._sv.fabricator_entity = nil
@@ -142,12 +141,9 @@ function ConstructionDataComponent:get_loaning_scaffolding_to()
    return self._sv._loaning_scaffolding_to
 end
 
-function ConstructionDataComponent:create_voxel_brush(paint_mode)
+function ConstructionDataComponent:create_voxel_brush()
    if self._sv.brush then
-      if not paint_mode then
-         paint_mode = self._sv.paint_mode
-      end
-      return voxel_brush_util.create_brush(self._sv, paint_mode)
+      return voxel_brush_util.create_brush(self._sv)
    end
 end
 

@@ -187,7 +187,7 @@ function FabricatorRenderer:_recreate_render_node()
          local cd = self._blueprint_contruction_data
          if not self._blueprint_contruction_progress:get_teardown() then
             local region = self._destination:get_region()
-            self._render_node = voxel_brush_util.create_construction_data_node(self._parent_node, self._entity, region, cd, 'blueprint')
+            self._render_node = voxel_brush_util.create_construction_data_node(self._parent_node, self._entity, region, cd)
             self._render_node:set_name(string.format('fab for %s', tostring(self._entity)))
                
             -- columns are `connected_to` walls.  don't draw arrows for columns!

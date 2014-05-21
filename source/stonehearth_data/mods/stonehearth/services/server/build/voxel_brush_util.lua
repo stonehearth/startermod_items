@@ -21,9 +21,7 @@ local ROTATION_TABLE = {
    }   
 }
 
--- paint_mode is optional.  if not specified, we'll use the paint mode
--- inside the construction_data
-function voxel_brush_util.create_brush(construction_data, paint_mode)
+function voxel_brush_util.create_brush(construction_data)
    assert(construction_data)
 
    local brush   
@@ -59,21 +57,12 @@ function voxel_brush_util.create_brush(construction_data, paint_mode)
                             construction_data.normal.z)
       brush:set_normal(normal)
    end
-
-   if not paint_mode then
-      paint_mode = construction_data.paint_mode
-   end
-   if paint_mode == 'blueprint' then
-      brush:set_paint_mode(_radiant.voxel.QubicleBrush.Opaque)
-   end
    brush:set_clip_whitespace(true)
 
    return brush
 end
 
--- paint_mode is optional.  if not specified, we'll use the paint mode
--- inside the construction_data
-function voxel_brush_util.create_construction_data_node(parent_node, entity, region, construction_data, paint_mode)
+function voxel_brush_util.create_construction_data_node(parent_node, entity, region, construction_data)
    local render_node
    if region then
       local model
@@ -81,7 +70,7 @@ function voxel_brush_util.create_construction_data_node(parent_node, entity, reg
       if stencil then
          local render_info = entity:get_component('render_info')
          local material = render_info and render_info:get_material() or 'materials/voxel.material.xml'
-         local brush = construction_data:create_voxel_brush(paint_mode)
+         local brush = construction_data:create_voxel_brush()
          if brush then
             model = brush:paint_through_stencil(stencil)
          else
