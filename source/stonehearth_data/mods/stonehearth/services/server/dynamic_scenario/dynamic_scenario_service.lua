@@ -13,7 +13,6 @@ function DynamicScenarioService:initialize()
       radiant.events.listen_once(radiant, 'radiant:game_loaded', function(e)
             for idx, sv in pairs(self._sv.running_scenarios) do
                local scenario_data = sv:get_data()
-               -- TODO THIS IS WRONG FIX THIS THIS IS WRONG FIX THIS
                local scenario = {
                   scenario = radiant.mods.load_script(scenario_data._scenario_script_path),
                   properties = {
@@ -59,7 +58,8 @@ function DynamicScenarioService:try_spawn_scenario(scenario_type, pace_keepers)
             break
          end
       end
-      if valid_scenario then
+      local rarity = self:_rarity_to_value(scenario.properties.rarity)
+      if valid_scenario and rng:get_int(1, rarity) == 1 then
          table.insert(valid_scenarios, scenario)
       end
    end
@@ -70,10 +70,24 @@ function DynamicScenarioService:try_spawn_scenario(scenario_type, pace_keepers)
 
    local scenario_idx = rng:get_int(1, #valid_scenarios)
 
+   log:spam('Spawning new %s scenario %s', scenario_type, valid_scenarios[scenario_idx].properties.name)
    local new_scenario = self:_init_scenario(valid_scenarios[scenario_idx], nil)
    new_scenario:start()
    table.insert(self._sv.running_scenarios, new_scenario)
    self.__saved_variables:mark_changed()
+end
+
+
+function DynamicScenarioService:_rarity_to_value(rarity)
+   if rarity == 'common' then
+      return 2 -- 50% chance of not being culled.
+   elseif rarity == 'uncommon' then
+      return 5 -- 20% chance of not being culled.
+   elseif rarity == 'rare' then
+      return 20 -- 5% chance of not being culled.
+   end
+   assert(false)
+   return 1
 end
 
 

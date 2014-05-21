@@ -53,8 +53,8 @@ function GoblinThief:start()
    self._sv._triggered = true
    self.__saved_variables:mark_changed()
 
-   -- 5-10 hours of real-world time seems like a not-unreasonable start....
-   self:_schedule_next_spawn(rng:get_int(3600 * 5, 3600 * 10))
+   -- 2-3 hours of real-world time seems like a not-unreasonable start....
+   self:_schedule_next_spawn(rng:get_int(3600 * 3, 3600 * 4))
 end
 
 function GoblinThief:_attach_listeners()
