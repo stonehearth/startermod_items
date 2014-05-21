@@ -14,10 +14,13 @@ function DynamicScenarioService:initialize()
             for idx, sv in pairs(self._sv.running_scenarios) do
                local scenario_data = sv:get_data()
                -- TODO THIS IS WRONG FIX THIS THIS IS WRONG FIX THIS
-               local properties = {
-                  script = scenario_data._scenario_script_path
+               local scenario = {
+                  scenario = radiant.mods.load_script(scenario_data._scenario_script_path),
+                  properties = {
+                     script = scenario_data._scenario_script_path
+                  }
                }
-               self._sv.running_scenarios[idx] = self:_init_scenario(properties, sv)
+               self._sv.running_scenarios[idx] = self:_init_scenario(scenario, sv)
             end
             self.__saved_variables:mark_changed()
          end)
