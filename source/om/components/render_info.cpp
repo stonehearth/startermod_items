@@ -15,6 +15,7 @@ void RenderInfo::ConstructObject()
 {
    Component::ConstructObject();
    scale_ = 0.1f;
+   visible_ = true;
 }
 
 void RenderInfo::LoadFromJson(json::Node const& obj)
