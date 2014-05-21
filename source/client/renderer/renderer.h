@@ -158,10 +158,7 @@ class Renderer
 
       Camera* GetCamera() { return camera_; }
 
-      ViewMode GetViewMode() const { return viewMode_; }
-      void SetViewMode(ViewMode mode);
       H3DRes GetPipeline(std::string const& name);
-      bool ShouldHideRenderGrid(const csg::Point3& normal);
 
       void FlushMaterials();
 
@@ -260,7 +257,6 @@ class Renderer
       bool              initialized_;
       bool              iconified_;
 
-      ViewMode          viewMode_;
       json::Node        terrainConfig_;
       lua::ScriptHost*  scriptHost_;
 

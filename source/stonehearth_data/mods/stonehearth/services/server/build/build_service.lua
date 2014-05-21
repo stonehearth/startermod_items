@@ -111,7 +111,7 @@ function BuildService:_add_fabricator(blueprint)
    if blueprint:get_component('stonehearth:construction_data') then
       local name = tostring(blueprint)
       fabricator:add_component('stonehearth:fabricator')
-                     : start_project(name, blueprint)
+                     :start_project(name, blueprint)
       blueprint:add_component('stonehearth:construction_progress')   
                      :set_fabricator_entity(fabricator)
    end   
@@ -579,9 +579,15 @@ function BuildService:add_portal(session, response, wall_entity, portal_uri, loc
    local wall = wall_entity:get_component('stonehearth:wall')
    if wall then
       local portal = radiant.entities.create_entity(portal_uri)
+
+      -- `portal` is actually a blueprint of the fixture, not the actual fixture
+      -- itself.  change the material we use to render it and hook up a fixture_fabricator
+      -- to help build it.
+      portal:add_component('stonehearth:fixture_fabricator')
       portal:add_component('render_info')
                   :set_material('materials/blueprint_gridlines.xml')
 
+      -- add the new portal to the wall and reconstruct the shape.
       wall:add_portal(portal, location)
           :layout()
 
