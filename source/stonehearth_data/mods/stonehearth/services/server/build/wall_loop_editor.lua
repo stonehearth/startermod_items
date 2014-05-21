@@ -1,12 +1,12 @@
 local constants = require('constants').construction
 local StructureEditor = require 'services.server.build.structure_editor'
-local ProxyWallBuilder = class(StructureEditor)
+local WallLoopEditor = class(StructureEditor)
 
 local Point3 = _radiant.csg.Point3
 local Cube3 = _radiant.csg.Cube3
 local Region3 = _radiant.csg.Region3
 
-function ProxyWallBuilder:go(column_uri, wall_uri, response)
+function WallLoopEditor:go(column_uri, wall_uri, response)
    self._column_uri = column_uri
    self._wall_uri = wall_uri
    self._response = response
@@ -48,7 +48,7 @@ function ProxyWallBuilder:go(column_uri, wall_uri, response)
    return self
 end
 
-function ProxyWallBuilder:_queue_wall(c0, c1)
+function WallLoopEditor:_queue_wall(c0, c1)
    table.insert(self._queued_points, {
       p0 = radiant.entities.get_world_grid_location(c0:get_proxy_blueprint()),
       p1 = radiant.entities.get_world_grid_location(c1:get_proxy_blueprint()),
@@ -57,7 +57,7 @@ function ProxyWallBuilder:_queue_wall(c0, c1)
    self:_pump_queue()
 end
 
-function ProxyWallBuilder:_pump_queue()
+function WallLoopEditor:_pump_queue()
    if self._waiting_for_response then
       return
    end   
@@ -97,7 +97,7 @@ function ProxyWallBuilder:_pump_queue()
                end)
 end
 
-function ProxyWallBuilder:_fit_point_to_constraints(p0, p1, column1)  
+function WallLoopEditor:_fit_point_to_constraints(p0, p1, column1)  
    local t, n, dt, d
    if math.abs(p0.x - p1.x) >  math.abs(p0.z - p1.z) then
       t = 'x'
@@ -124,4 +124,4 @@ function ProxyWallBuilder:_fit_point_to_constraints(p0, p1, column1)
    return p1
 end
 
-return ProxyWallBuilder
+return WallLoopEditor

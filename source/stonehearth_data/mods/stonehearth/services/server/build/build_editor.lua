@@ -1,11 +1,9 @@
 local BuildEditor = class()
 -- xxx: move all the proxy stuff to the client! - tony
 local StructureEditor = require 'services.server.build.structure_editor'
-local WallEditor = require 'services.server.build.wall_editor'
-local ProxyWall = require 'services.server.build.proxy_wall'
-local ProxyWallBuilder = require 'services.server.build.proxy_wall_builder'
-local ProxyFloorBuilder = require 'services.server.build.proxy_floor_builder'
-local ProxyRoomBuilder = require 'services.server.build.proxy_room_builder'
+local FloorEditor = require 'services.server.build.floor_editor'
+local PortalEditor = require 'services.server.build.portal_editor'
+local WallLoopEditor = require 'services.server.build.wall_loop_editor'
 local Point3 = _radiant.csg.Point3
 
 local log = radiant.log.create_logger('build_editor')
@@ -30,7 +28,7 @@ function BuildEditor:add_door(session, response)
                   log:detail('got blueprint %s', tostring(blueprint))
                   if blueprint then
                      log:detail('creating wall editor for blueprint: %s', blueprint)
-                     wall_editor = WallEditor()
+                     wall_editor = PortalEditor()
                                        :begin_editing(fabricator, blueprint, project)
                                        :set_portal_uri('stonehearth:wooden_door')
                   end
@@ -60,12 +58,12 @@ function BuildEditor:get_model()
 end
 
 function BuildEditor:place_new_wall(session, response)
-   ProxyWallBuilder()
+   WallLoopEditor()
          :go('stonehearth:wooden_column', 'stonehearth:wooden_wall', response)
 end
 
 function BuildEditor:place_new_floor(session, response)
-   ProxyFloorBuilder():go(response)
+   FloorEditor():go(response)
 end
 
 function BuildEditor:grow_walls(session, response)
@@ -127,8 +125,7 @@ function BuildEditor:grow_roof(session, response)
 end
 
 function BuildEditor:create_room(session, response)
-   ProxyRoomBuilder():go()  
-   return true
+   response:fail({ error = 'remove me!'})
 end
 
 return BuildEditor
