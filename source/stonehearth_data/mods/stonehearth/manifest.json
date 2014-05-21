@@ -787,10 +787,6 @@
          "controller" : "file(call_handlers/build_call_handler.lua)",
          "endpoint" : "client"
       },
-      "build_structures": {
-         "controller" : "file(call_handlers/build_call_handler.lua)",
-         "endpoint" : "server"
-      },
       "set_building_active": {
          "controller" : "file(call_handlers/build_call_handler.lua)",
          "endpoint" : "server"
