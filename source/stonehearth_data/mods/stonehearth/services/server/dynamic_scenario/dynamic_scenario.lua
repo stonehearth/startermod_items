@@ -10,7 +10,7 @@ function DynamicScenario:__init(scenario_class, scenario_script_path, datastore)
     self._sv._scenario_script_path = scenario_script_path
     self.__saved_variables:mark_changed()
   end
-  self._sv._scenario = scenario_class(self._sv._scenario_datastore)
+  self._scenario = scenario_class(self._sv._scenario_datastore)
 
 end
 
@@ -21,9 +21,9 @@ end
 function DynamicScenario:start()
   assert(not self._running)
   self._sv._running = true
-  radiant.events.listen_once(self._sv._scenario, 'stonehearth:dynamic_scenario:finished', self, self._on_finished)
+  radiant.events.listen_once(self._scenario, 'stonehearth:dynamic_scenario:finished', self, self._on_finished)
 
-  self._sv._scenario:start()
+  self._scenario:start()
   self.__saved_variables:mark_changed()
 end
 

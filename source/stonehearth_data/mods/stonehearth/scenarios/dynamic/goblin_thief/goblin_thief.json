@@ -1,0 +1,11 @@
+{
+    "name" : "Goblin Thief",
+    "scenario_types" : {
+      "combat" : {
+        "min_strength" : 0,
+        "max_strength" : 11
+      }
+    },
+    "rarity" : "common",
+    "script" : "file(goblin_thief.lua)"
+}

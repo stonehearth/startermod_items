@@ -29,7 +29,7 @@
    },
    "dynamic" : {
       "scenarios" : [
-         "file(dynamic/spawner)"
+         "file(dynamic/goblin_thief)"
       ]
    }
 }

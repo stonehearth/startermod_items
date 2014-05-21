@@ -1,6 +1,0 @@
-{
-   "name" : "spawner",
-   "category" : "combat",
-   "difficulty" : 1,
-   "script" : "file(spawner.lua)"
-}
