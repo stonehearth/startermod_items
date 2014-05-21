@@ -33,6 +33,8 @@ function TownDefenseObserver:initialize(entity, json)
    self._player_id = radiant.entities.get_player_id(entity)
    self._waypoints = {}
    self._last_waypoint = nil
+   self._entity_destroyed_traces = {}
+   self._player_id_traces = {}
 
    self._world_entites_trace = radiant.terrain.trace_world_entities('town defense service', 
       function (id, entity)
@@ -40,11 +42,7 @@ function TownDefenseObserver:initialize(entity, json)
       end,
       function (id)
          self:_on_entity_removed(id)
-      end
-   )
-
-   self._entity_destroyed_traces = {}
-   self._player_id_traces = {}
+      end)
 
    radiant.events.listen(radiant, 'stonehearth:very_slow_poll', self, self._on_poll)
 
