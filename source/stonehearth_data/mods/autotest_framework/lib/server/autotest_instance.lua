@@ -85,15 +85,7 @@ end
 
 function AutotestInstance:sleep(ms)
    self:_check_running('sleep')
-   local wakeup = radiant.get_realtime() + (ms / 1000.0)
-   repeat
-      radiant.set_realtime_timer(ms, function()
-            if not self._thread:is_finished() then
-               self._thread:resume()
-            end
-         end)
-      self._thread:suspend()
-   until self._thread:is_finished() or radiant.get_realtime() >= wakeup
+   self._thread:sleep_realtime(ms)
 end
 
 function AutotestInstance:terminate()

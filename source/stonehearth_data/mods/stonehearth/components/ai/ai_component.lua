@@ -282,7 +282,7 @@ function AIComponent:_start()
          -- because some unit keeps aborting).
          while radiant.gamestate.now() - start_tick == 0 do
             log:info('yielding thread because we thought without yielding.')
-            self._thread:yield()
+            self._thread:sleep_realtime(0)
          end
 
          if self._execution_frame:get_state() == 'dead' then
