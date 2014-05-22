@@ -49,6 +49,7 @@
    \
    BEGIN_GROUP(horde) \
       ADD_CATEGORY(renderer) \
+      ADD_CATEGORY(material) \
       ADD_CATEGORY(scene) \
    END_GROUP(horde) \
    \

@@ -143,6 +143,27 @@
       }
    }
 
+   .tab {
+      .control;
+      display: inline-block;
+      background-color: #103669;
+      background-clip: padding-box;
+      border-width: 8px 8px 17px 8px;
+      border-image: url(images/gui/tab.png) 9 9 17 9 repeat;
+      padding: 8px 8px 0px 8px;
+      color: #ad8816;
+
+      &:hover:not(.disabled) {
+         -webkit-filter: brightness(1.4);
+      }
+   }
+
+   .tab.active {
+      color: #ffc000;
+      background-color: #18509c;
+      border-image: url(images/gui/tab_active.png) 9 9 17 9 repeat;
+   }
+
 // flat windows
    .window.flat {
       background-color: #252424;

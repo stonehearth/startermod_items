@@ -41,7 +41,7 @@ App.StonehearthBuildModeView = App.View.extend({
       if (this._buildDesignerView) {
          this._buildDesignerView.set('uri', uri);
       } else {      
-         this._buildDesignerView = App.gameView.addView(App.StonehearthBuildingDesignerView, {
+         this._buildDesignerView = App.gameView.addView(App.StonehearthBuildingDesignerView2, {
                uri: uri
             });
       }

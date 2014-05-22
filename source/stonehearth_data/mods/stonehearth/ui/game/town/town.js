@@ -44,6 +44,16 @@ App.StonehearthTownView = App.View.extend({
       this.$('.title .closeButton').click(function() {
          self.destroy();
       });
+
+      this.$('.tab').click(function() {
+         var tabPage = $(this).attr('tabPage');
+
+         self.$('.tabPage').hide();
+         self.$('.tab').removeClass('active');
+         $(this).addClass('active');
+
+         self.$('#' + tabPage).show();
+      });
    },
 
    _update_town_label: function() {

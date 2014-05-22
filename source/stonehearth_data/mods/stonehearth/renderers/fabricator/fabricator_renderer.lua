@@ -187,10 +187,12 @@ function FabricatorRenderer:_recreate_render_node()
          local cd = self._blueprint_contruction_data
          if not self._blueprint_contruction_progress:get_teardown() then
             local region = self._destination:get_region()
-            self._render_node = voxel_brush_util.create_construction_data_node(self._parent_node, self._entity, region, cd, 'blueprint')
+            self._render_node = voxel_brush_util.create_construction_data_node(self._parent_node, self._entity, region, cd)
             self._render_node:set_name(string.format('fab for %s', tostring(self._entity)))
+            self:_update_render_state()
                
             -- columns are `connected_to` walls.  don't draw arrows for columns!
+            --[[
             local normal = cd:get_normal()
             if not cd:get_connected_to() and normal and self._blueprint_collision_bounds then
                if self._arrow_render_object then
@@ -221,7 +223,7 @@ function FabricatorRenderer:_recreate_render_node()
                                         :set_scale(Point3f(width, 0.1, 1)) -- scale is applied after rotation, so always scale in x
                                         :set_material('materials/building_widget_arrow.material.xml')
             end
-            self:_update_render_state()
+            ]]
          end
       end
    end

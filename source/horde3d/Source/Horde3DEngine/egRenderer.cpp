@@ -33,7 +33,8 @@
 #endif
 #include "utDebug.h"
 
-#define R_LOG(level)    LOG(horde.renderer, level)
+#define R_LOG(level)       LOG(horde.renderer, level)
+#define MAT_LOG(level)     LOG(horde.material, level)
 
 namespace Horde3D {
 
@@ -870,31 +871,45 @@ bool Renderer::isShaderContextSwitch(std::string const& newContext, const Materi
 
 
 bool Renderer::setMaterialRec( MaterialResource *materialRes, std::string const& shaderContext,
-                               ShaderResource *shaderRes )
+                              ShaderResource *shaderRes )
 {
    radiant::perfmon::TimelineCounterGuard smr("setMaterialRec");
-	if( materialRes == 0x0 ) return false;
-	
-	bool firstRec = (shaderRes == 0x0);
-	bool result = true;
-	
-	// Set shader in first recursion step
-	if( firstRec )
-	{	
-		shaderRes = materialRes->_shaderRes;
-		if( shaderRes == 0x0 ) return false;	
-	
-		// Find context
-		ShaderContext *context = shaderRes->findContext( shaderContext );
-		if( context == 0x0 ) return false;
-		
-		// Set shader combination
-      ShaderCombination *sc = findShaderCombination(shaderRes, context);
-		if( sc != _curShader ) setShaderComb( sc );
-		if( _curShader == 0x0 || gRDI->_curShaderId == 0 ) return false;
+   if( materialRes == 0x0 ) {
+      MAT_LOG(7) << "ignoring null MaterialResource in setMaterialRec";
+      return false;
+   }
 
-		// Setup standard shader uniforms
-		commitGeneralUniforms();
+   bool firstRec = (shaderRes == 0x0);
+   bool result = true;
+
+   // Set shader in first recursion step
+   if( firstRec ) {	
+      shaderRes = materialRes->_shaderRes;
+      if ( shaderRes == 0x0 ) {
+         MAT_LOG(7) << materialRes->getName() << " has no shader in setMaterialRec.";
+         return false;
+      }
+
+
+      // Find context
+      ShaderContext *context = shaderRes->findContext( shaderContext );
+      if ( context == 0x0 ) {
+         MAT_LOG(7) << "could not find context \"" << shaderContext << "\" for material " << materialRes->getName() << " in setMaterialRec.";
+         return false;
+      }
+
+      // Set shader combination
+      ShaderCombination *sc = findShaderCombination(shaderRes, context);
+      if ( sc != _curShader ) {
+         setShaderComb( sc );
+      }
+      if  (_curShader == 0x0 || gRDI->_curShaderId == 0) {
+         MAT_LOG(7) << "failed to install shader combiner for " << materialRes->getName() << " in setMaterialRec (context: " << shaderContext << ").";
+         return false;
+      }
+
+      // Setup standard shader uniforms
+      commitGeneralUniforms();
 
       // Configure color write mask.
       glColorMask(context->writeMask & 1 ? GL_TRUE : GL_FALSE, 
@@ -902,28 +917,28 @@ bool Renderer::setMaterialRec( MaterialResource *materialRes, std::string const&
          context->writeMask & 4 ? GL_TRUE : GL_FALSE, 
          context->writeMask & 8 ? GL_TRUE : GL_FALSE);
 
-		// Configure depth mask
-		if( context->writeDepth ) glDepthMask( GL_TRUE );
-		else glDepthMask( GL_FALSE );
+      // Configure depth mask
+      if( context->writeDepth ) glDepthMask( GL_TRUE );
+      else glDepthMask( GL_FALSE );
 
-		// Configure cull mode
-		if( !Modules::config().wireframeMode )
-		{
-			switch( context->cullMode )
-			{
-			case CullModes::Back:
-				glEnable( GL_CULL_FACE );
-				glCullFace( GL_BACK );
-				break;
-			case CullModes::Front:
-				glEnable( GL_CULL_FACE );
-				glCullFace( GL_FRONT );
-				break;
-			case CullModes::None:
-				glDisable( GL_CULL_FACE );
-				break;
-			}
-		}
+      // Configure cull mode
+      if( !Modules::config().wireframeMode )
+      {
+         switch( context->cullMode )
+         {
+         case CullModes::Back:
+            glEnable( GL_CULL_FACE );
+            glCullFace( GL_BACK );
+            break;
+         case CullModes::Front:
+            glEnable( GL_CULL_FACE );
+            glCullFace( GL_FRONT );
+            break;
+         case CullModes::None:
+            glDisable( GL_CULL_FACE );
+            break;
+         }
+      }
 
       switch( context->stencilOpModes) 
       {
@@ -954,264 +969,274 @@ bool Renderer::setMaterialRec( MaterialResource *materialRes, std::string const&
       }
 
       switch( context->stencilFunc )
-		{
-		case TestModes::LessEqual:
+      {
+      case TestModes::LessEqual:
          glEnable(GL_STENCIL_TEST);
          glStencilFunc( GL_LEQUAL, context->stencilRef, 0xffffffff );
-			break;
-		case TestModes::Equal:
+         break;
+      case TestModes::Equal:
          glEnable(GL_STENCIL_TEST);
          glStencilFunc( GL_EQUAL, context->stencilRef, 0xffffffff );
-			break;
-		case TestModes::Always:
+         break;
+      case TestModes::Always:
          if (context->stencilOpModes == StencilOpModes::Off) {
             glDisable(GL_STENCIL_TEST);
          } else {
             glEnable(GL_STENCIL_TEST);
          }
          glStencilFunc( GL_ALWAYS, context->stencilRef, 0xffffffff );
-			break;
-		case TestModes::Less:
+         break;
+      case TestModes::Less:
          glEnable(GL_STENCIL_TEST);
          glStencilFunc( GL_LESS, context->stencilRef, 0xffffffff );
-			break;
-		case TestModes::Greater:
+         break;
+      case TestModes::Greater:
          glEnable(GL_STENCIL_TEST);
          glStencilFunc( GL_GREATER, context->stencilRef, 0xffffffff );
-			break;
-		case TestModes::GreaterEqual:
+         break;
+      case TestModes::GreaterEqual:
          glEnable(GL_STENCIL_TEST);
          glStencilFunc( GL_GEQUAL, context->stencilRef, 0xffffffff );
-			break;
+         break;
       case TestModes::NotEqual:
          glEnable(GL_STENCIL_TEST);
          glStencilFunc( GL_NOTEQUAL, context->stencilRef, 0xffffffff );
-			break;
-		}
-		
-		// Configure blending
-		switch( context->blendMode )
-		{
-		case BlendModes::Replace:
-			glDisable( GL_BLEND );
-			break;
-		case BlendModes::Blend:
-			glEnable( GL_BLEND );
-			glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );
-			break;
-		case BlendModes::Add:
-			glEnable( GL_BLEND );
-			glBlendFunc( GL_ONE, GL_ONE );
-			break;
-		case BlendModes::AddBlended:
-			glEnable( GL_BLEND );
-			glBlendFunc( GL_SRC_ALPHA, GL_ONE );
-			break;
+         break;
+      }
+
+      // Configure blending
+      switch( context->blendMode )
+      {
+      case BlendModes::Replace:
+         glDisable( GL_BLEND );
+         break;
+      case BlendModes::Blend:
+         glEnable( GL_BLEND );
+         glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );
+         break;
+      case BlendModes::Add:
+         glEnable( GL_BLEND );
+         glBlendFunc( GL_ONE, GL_ONE );
+         break;
+      case BlendModes::AddBlended:
+         glEnable( GL_BLEND );
+         glBlendFunc( GL_SRC_ALPHA, GL_ONE );
+         break;
       case BlendModes::Whateva:
          glEnable( GL_BLEND );
          glBlendFunc( GL_DST_ALPHA, GL_ONE );
          break;
-		case BlendModes::Mult:
-			glEnable( GL_BLEND );
-			glBlendFunc( GL_DST_COLOR, GL_ZERO );
-			break;
-		}
+      case BlendModes::Mult:
+         glEnable( GL_BLEND );
+         glBlendFunc( GL_DST_COLOR, GL_ZERO );
+         break;
+      }
 
-		// Configure depth test
-		if( context->depthTest )
-		{
-			glEnable( GL_DEPTH_TEST );
-			
-			switch( context->depthFunc )
-			{
-			case TestModes::LessEqual:
-				glDepthFunc( GL_LEQUAL );
-				break;
-			case TestModes::Equal:
-				glDepthFunc( GL_EQUAL );
-				break;
-			case TestModes::Always:
-				glDepthFunc( GL_ALWAYS );
-				break;
-			case TestModes::Less:
-				glDepthFunc( GL_LESS );
-				break;
-			case TestModes::Greater:
-				glDepthFunc( GL_GREATER );
-				break;
-			case TestModes::GreaterEqual:
-				glDepthFunc( GL_GEQUAL );
-				break;
-			}
-		}
-		else
-		{
-			glDisable( GL_DEPTH_TEST );
-		}
+      // Configure depth test
+      if( context->depthTest )
+      {
+         glEnable( GL_DEPTH_TEST );
 
-		// Configure alpha-to-coverage
-		if( context->alphaToCoverage && Modules::config().sampleCount > 0 )
-			glEnable( GL_SAMPLE_ALPHA_TO_COVERAGE );
-		else
-			glDisable( GL_SAMPLE_ALPHA_TO_COVERAGE );
-	}
+         switch( context->depthFunc )
+         {
+         case TestModes::LessEqual:
+            glDepthFunc( GL_LEQUAL );
+            break;
+         case TestModes::Equal:
+            glDepthFunc( GL_EQUAL );
+            break;
+         case TestModes::Always:
+            glDepthFunc( GL_ALWAYS );
+            break;
+         case TestModes::Less:
+            glDepthFunc( GL_LESS );
+            break;
+         case TestModes::Greater:
+            glDepthFunc( GL_GREATER );
+            break;
+         case TestModes::GreaterEqual:
+            glDepthFunc( GL_GEQUAL );
+            break;
+         }
+      }
+      else
+      {
+         glDisable( GL_DEPTH_TEST );
+      }
 
-	// Setup texture samplers
-	for( size_t i = 0, si = shaderRes->_samplers.size(); i < si; ++i )
-	{
-		if( _curShader->customSamplers[i] < 0 ) continue;
-		
-		ShaderSampler &sampler = shaderRes->_samplers[i];
-		TextureResource *texRes = 0x0;
+      // Configure alpha-to-coverage
+      if( context->alphaToCoverage && Modules::config().sampleCount > 0 )
+         glEnable( GL_SAMPLE_ALPHA_TO_COVERAGE );
+      else
+         glDisable( GL_SAMPLE_ALPHA_TO_COVERAGE );
+   }
 
-		// Use default texture
-		if( firstRec) texRes = sampler.defTex;
-		
-		// Find sampler in material
-		for( size_t j = 0, sj = materialRes->_samplers.size(); j < sj; ++j )
-		{
-			if( materialRes->_samplers[j].name == sampler.id )
-			{
-				if( materialRes->_samplers[j].texRes->isLoaded() )
-					texRes = materialRes->_samplers[j].texRes;
-				break;
-			}
-		}
+   // Setup texture samplers
+   for( size_t i = 0, si = shaderRes->_samplers.size(); i < si; ++i )
+   {
+      if( _curShader->customSamplers[i] < 0 ) continue;
 
-		uint32 sampState = shaderRes->_samplers[i].sampState;
-		if( (sampState & SS_FILTER_TRILINEAR) && !Modules::config().trilinearFiltering )
-			sampState = (sampState & ~SS_FILTER_TRILINEAR) | SS_FILTER_BILINEAR;
-		if( (sampState & SS_ANISO_MASK) > _maxAnisoMask )
-			sampState = (sampState & ~SS_ANISO_MASK) | _maxAnisoMask;
+      ShaderSampler &sampler = shaderRes->_samplers[i];
+      TextureResource *texRes = 0x0;
 
-		// Bind texture
-		if( texRes != 0x0 )
-		{
-			if( texRes->getTexType() != sampler.type ) break;  // Wrong type
-			
-			if( texRes->getTexType() == TextureTypes::Tex2D )
-			{
-				if( texRes->getRBObject() == 0 )
-				{
-					gRDI->setTexture( shaderRes->_samplers[i].texUnit, texRes->getTexObject(), sampState );
-				}
-				else if( texRes->getRBObject() != gRDI->_curRendBuf )
-				{
-					gRDI->setTexture( shaderRes->_samplers[i].texUnit,
-					                  gRDI->getRenderBufferTex( texRes->getRBObject(), 0 ), sampState );
-				}
-				else  // Trying to bind active render buffer as texture
-				{
-					gRDI->setTexture( shaderRes->_samplers[i].texUnit, TextureResource::defTex2DObject, 0 );
-				}
-			}
-			else
-			{
-				gRDI->setTexture( shaderRes->_samplers[i].texUnit, texRes->getTexObject(), sampState );
-			}
-		}
+      // Use default texture
+      if( firstRec) texRes = sampler.defTex;
 
-		// Find sampler in pipeline
-		if( firstRec )
-		{
-			for( size_t j = 0, sj = _pipeSamplerBindings.size(); j < sj; ++j )
-			{
-				if( strcmp( _pipeSamplerBindings[j].sampler, sampler.id.c_str() ) == 0 )
-				{
-					gRDI->setTexture( shaderRes->_samplers[i].texUnit, gRDI->getRenderBufferTex(
-						_pipeSamplerBindings[j].rbObj, _pipeSamplerBindings[j].bufIndex ), sampState );
+      // Find sampler in material
+      for( size_t j = 0, sj = materialRes->_samplers.size(); j < sj; ++j )
+      {
+         if( materialRes->_samplers[j].name == sampler.id )
+         {
+            if( materialRes->_samplers[j].texRes->isLoaded() )
+               texRes = materialRes->_samplers[j].texRes;
+            break;
+         }
+      }
 
-					break;
-				}
-			}
-		}
-	}
+      uint32 sampState = shaderRes->_samplers[i].sampState;
+      if( (sampState & SS_FILTER_TRILINEAR) && !Modules::config().trilinearFiltering )
+         sampState = (sampState & ~SS_FILTER_TRILINEAR) | SS_FILTER_BILINEAR;
+      if( (sampState & SS_ANISO_MASK) > _maxAnisoMask )
+         sampState = (sampState & ~SS_ANISO_MASK) | _maxAnisoMask;
 
-	// Set custom uniforms
-	for( size_t i = 0, si = shaderRes->_uniforms.size(); i < si; ++i )
-	{
-		if( _curShader->customUniforms[i] < 0 ) continue;
-		
-		float *unifData = 0x0;
+      // Bind texture
+      if( texRes != 0x0 )
+      {
+         if( texRes->getTexType() != sampler.type ) break;  // Wrong type
 
-		// Find uniform in material
-		for( size_t j = 0, sj = materialRes->_uniforms.size(); j < sj; ++j )
-		{
-			MatUniform &matUniform = materialRes->_uniforms[j];
-			
-			if( matUniform.name == shaderRes->_uniforms[i].id )
-			{
+         if( texRes->getTexType() == TextureTypes::Tex2D )
+         {
+            if( texRes->getRBObject() == 0 )
+            {
+               gRDI->setTexture( shaderRes->_samplers[i].texUnit, texRes->getTexObject(), sampState );
+            }
+            else if( texRes->getRBObject() != gRDI->_curRendBuf )
+            {
+               gRDI->setTexture( shaderRes->_samplers[i].texUnit,
+                  gRDI->getRenderBufferTex( texRes->getRBObject(), 0 ), sampState );
+            }
+            else  // Trying to bind active render buffer as texture
+            {
+               gRDI->setTexture( shaderRes->_samplers[i].texUnit, TextureResource::defTex2DObject, 0 );
+            }
+         }
+         else
+         {
+            gRDI->setTexture( shaderRes->_samplers[i].texUnit, texRes->getTexObject(), sampState );
+         }
+      }
+
+      // Find sampler in pipeline
+      if( firstRec )
+      {
+         for( size_t j = 0, sj = _pipeSamplerBindings.size(); j < sj; ++j )
+         {
+            if( strcmp( _pipeSamplerBindings[j].sampler, sampler.id.c_str() ) == 0 )
+            {
+               gRDI->setTexture( shaderRes->_samplers[i].texUnit, gRDI->getRenderBufferTex(
+                  _pipeSamplerBindings[j].rbObj, _pipeSamplerBindings[j].bufIndex ), sampState );
+
+               break;
+            }
+         }
+      }
+   }
+
+   // Set custom uniforms
+   for( size_t i = 0, si = shaderRes->_uniforms.size(); i < si; ++i )
+   {
+      if( _curShader->customUniforms[i] < 0 ) continue;
+
+      float *unifData = 0x0;
+
+      // Find uniform in material
+      for( size_t j = 0, sj = materialRes->_uniforms.size(); j < sj; ++j )
+      {
+         MatUniform &matUniform = materialRes->_uniforms[j];
+
+         if( matUniform.name == shaderRes->_uniforms[i].id )
+         {
             if (shaderRes->_uniforms[i].arraySize > 1) {
                unifData = matUniform.arrayValues.data();
             } else {
-   				unifData = matUniform.values;
+               unifData = matUniform.values;
             }
-				break;
-			}
-		}
+            break;
+         }
+      }
 
-		// Use default values if not found
-		if( unifData == 0x0 && firstRec )
-			unifData = shaderRes->_uniforms[i].defValues;
+      // Use default values if not found
+      if( unifData == 0x0 && firstRec )
+         unifData = shaderRes->_uniforms[i].defValues;
 
-		if( unifData )
-		{
-			switch( shaderRes->_uniforms[i].size )
-			{
-			case 1:
-				gRDI->setShaderConst( _curShader->customUniforms[i], CONST_FLOAT, unifData, shaderRes->_uniforms[i].arraySize );
-				break;
-			case 4:
+      if( unifData )
+      {
+         switch( shaderRes->_uniforms[i].size )
+         {
+         case 1:
+            gRDI->setShaderConst( _curShader->customUniforms[i], CONST_FLOAT, unifData, shaderRes->_uniforms[i].arraySize );
+            break;
+         case 4:
             gRDI->setShaderConst( _curShader->customUniforms[i], CONST_FLOAT4, unifData, shaderRes->_uniforms[i].arraySize );
-				break;
-			}
-		}
-	}
+            break;
+         }
+      }
+   }
 
-	if( firstRec )
-	{
-		// Handle link of stage
-		if( _curStageMatLink != 0x0 && _curStageMatLink != materialRes )
-			result &= setMaterialRec( _curStageMatLink, shaderContext, shaderRes );
-	}
+   if( firstRec )
+   {
+      // Handle link of stage
+      if( _curStageMatLink != 0x0 && _curStageMatLink != materialRes ) {
+         if (!setMaterialRec( _curStageMatLink, shaderContext, shaderRes )) {
+            MAT_LOG(7) << "failed to install material link " << _curStageMatLink->getName() << " in setMaterialRec.";
+            result = false;
+         }
+      }
+   }
 
-	// Handle link of material resource
-	if( materialRes->_matLink != 0x0 )
-		result &= setMaterialRec( materialRes->_matLink, shaderContext, shaderRes );
+   // Handle link of material resource
+   if( materialRes->_matLink != 0x0 ) {
+      if (!setMaterialRec( materialRes->_matLink, shaderContext, shaderRes )) {
+         MAT_LOG(7) << "failed to install material link " << _curStageMatLink->getName() << " in setMaterialRec.";
+         result = false;
+      }
+   }   
 
-	return result;
+   return result;
 }
 
 
 bool Renderer::setMaterial( MaterialResource *materialRes, std::string const& shaderContext )
 {
-	if( materialRes == 0x0 )
-	{	
-		setShaderComb( 0x0 );
-		glDisable( GL_BLEND );
-		glDisable( GL_SAMPLE_ALPHA_TO_COVERAGE );
-		glEnable( GL_DEPTH_TEST );
-		glDepthFunc( GL_LEQUAL );
-		glDepthMask( GL_TRUE );
-		return false;
-	}
+   if( materialRes == 0x0 ) {	
+      setShaderComb( 0x0 );
+      glDisable( GL_BLEND );
+      glDisable( GL_SAMPLE_ALPHA_TO_COVERAGE );
+      glEnable( GL_DEPTH_TEST );
+      glDepthFunc( GL_LEQUAL );
+      glDepthMask( GL_TRUE );
+      return false;
+   }
 
    // First, see if the model's material has what we're looking for.
-	if (setMaterialRec(materialRes, shaderContext, 0x0)) {
+   MAT_LOG(5) << "installing material " << materialRes->getName() << " in setMaterial.";
+   if (setMaterialRec(materialRes, shaderContext, 0x0)) {
       return true;
    }
 
    // Next, try everything in the model material's chain.
    MaterialResource* mr = materialRes->_parentMaterial;
    while (mr != 0x0) {
+      MAT_LOG(5) << "failed.  installing material parent " << mr->getName() << " in setMaterial.";
       if (setMaterialRec(mr, shaderContext, 0x0)) {
          return true;
       }
       mr = mr->_parentMaterial;
    }
 
-	_curShader = 0x0;
-	return false;
+   MAT_LOG(5) << "nothing worked!  failed to install material";
+   _curShader = 0x0;
+   return false;
 }
 
 
@@ -2608,142 +2633,142 @@ void Renderer::drawVoxelMeshes(std::string const& shaderContext, std::string con
                                int occSet, int lodLevel)
 {
    radiant::perfmon::TimelineCounterGuard dvm("drawVoxelMeshes");
-	if( frust1 == 0x0 ) return;
-	
-	VoxelGeometryResource *curVoxelGeoRes = 0x0;
-	MaterialResource *curMatRes = 0x0;
+   if( frust1 == 0x0 ) return;
 
-	// Loop over mesh queue
-	for( const auto& entry : Modules::sceneMan().getRenderableQueue(SceneNodeTypes::VoxelMesh) )
-	{
-		VoxelMeshNode *meshNode = (VoxelMeshNode *)entry.node;
-		VoxelModelNode *modelNode = meshNode->getParentModel();
-		
-		// Check that mesh is valid
-		if( modelNode->getVoxelGeometryResource() == 0x0 )
-			continue;
-		if( meshNode->getBatchStart(lodLevel) + meshNode->getBatchCount(lodLevel) > modelNode->getVoxelGeometryResource()->_indexCount )
-			continue;
-		
-		uint32 queryObj = 0;
+   VoxelGeometryResource *curVoxelGeoRes = 0x0;
+   MaterialResource *curMatRes = 0x0;
 
-		// Occlusion culling
-		if( occSet >= 0 )
-		{
-			if( occSet > (int)meshNode->_occQueries.size() - 1 )
-			{
-				meshNode->_occQueries.resize( occSet + 1, 0 );
-				meshNode->_lastVisited.resize( occSet + 1, 0 );
-			}
-			if( meshNode->_occQueries[occSet] == 0 )
-			{
-				queryObj = gRDI->createOcclusionQuery();
-				meshNode->_occQueries[occSet] = queryObj;
-				meshNode->_lastVisited[occSet] = 0;
-			}
-			else
-			{
-				if( meshNode->_lastVisited[occSet] != Modules::renderer().getFrameID() )
-				{
-					meshNode->_lastVisited[occSet] = Modules::renderer().getFrameID();
-				
-					// Check query result (viewer must be outside of bounding box)
-					if( nearestDistToAABB( frust1->getOrigin(), meshNode->getBBox().min(),
-					                       meshNode->getBBox().max() ) > 0 &&
-						gRDI->getQueryResult( meshNode->_occQueries[occSet] ) < 1 )
-					{
-						Modules::renderer().pushOccProxy( 0, meshNode->getBBox().min(), meshNode->getBBox().max(),
-						                                  meshNode->_occQueries[occSet] );
-						continue;
-					}
-					else
-						queryObj = meshNode->_occQueries[occSet];
-				}
-			}
-		}
-		
-		// Bind geometry
-		if( curVoxelGeoRes != modelNode->getVoxelGeometryResource() )
-		{
-			curVoxelGeoRes = modelNode->getVoxelGeometryResource();
-			ASSERT( curVoxelGeoRes != 0x0 );
-		
-			// Indices
-			gRDI->setIndexBuffer( curVoxelGeoRes->getIndexBuf(),
-			                      curVoxelGeoRes->_16BitIndices ? IDXFMT_16 : IDXFMT_32 );
+   // Loop over mesh queue
+   for( const auto& entry : Modules::sceneMan().getRenderableQueue(SceneNodeTypes::VoxelMesh) )
+   {
+      VoxelMeshNode *meshNode = (VoxelMeshNode *)entry.node;
+      VoxelModelNode *modelNode = meshNode->getParentModel();
 
-			// Vertices
-         gRDI->setVertexBuffer( 0, curVoxelGeoRes->getVertexBuf(), 0, sizeof( VoxelVertexData ) );
-		}
+      // Check that mesh is valid
+      if( modelNode->getVoxelGeometryResource() == 0x0 )
+         continue;
+      if( meshNode->getBatchStart(lodLevel) + meshNode->getBatchCount(lodLevel) > modelNode->getVoxelGeometryResource()->_indexCount )
+         continue;
 
-		gRDI->setVertexLayout( Modules::renderer()._vlVoxelModel );
-		
-		ShaderCombination *prevShader = Modules::renderer().getCurShader();
-		
-		if( !debugView )
-		{
-         if (Modules::renderer()._materialOverride != 0x0) {
-				if( !Modules::renderer().setMaterial( Modules::renderer()._materialOverride, shaderContext ) )
-				{	
-               return;
-				}
-				curMatRes = Modules::renderer()._materialOverride;
-         } else {
-			   if( !meshNode->getMaterialRes()->isOfClass( theClass ) ) continue;
-			
-			   // Set material
-			   if( curMatRes != meshNode->getMaterialRes() )
-			   {
-				   if( !Modules::renderer().setMaterial( meshNode->getMaterialRes(), shaderContext ) )
-				   {	
-					   curMatRes = 0x0;
-					   continue;
-				   }
-				   curMatRes = meshNode->getMaterialRes();
-			   }
+      uint32 queryObj = 0;
+
+      // Occlusion culling
+      if( occSet >= 0 )
+      {
+         if( occSet > (int)meshNode->_occQueries.size() - 1 )
+         {
+            meshNode->_occQueries.resize( occSet + 1, 0 );
+            meshNode->_lastVisited.resize( occSet + 1, 0 );
          }
-		}
-		else
-		{
-			Modules::renderer().setShaderComb( &Modules::renderer()._defColorShader );
-			Modules::renderer().commitGeneralUniforms();
-			
-			uint32 curLod = lodLevel;
-			Vec4f color;
-			if( curLod == 0 ) color = Vec4f( 0.5f, 0.75f, 1, 1 );
-			else if( curLod == 1 ) color = Vec4f( 0.25f, 0.75, 0.75f, 1 );
-			else if( curLod == 2 ) color = Vec4f( 0.25f, 0.75, 0.5f, 1 );
-			else if( curLod == 3 ) color = Vec4f( 0.5f, 0.5f, 0.25f, 1 );
-			else color = Vec4f( 0.75f, 0.5, 0.25f, 1 );
+         if( meshNode->_occQueries[occSet] == 0 )
+         {
+            queryObj = gRDI->createOcclusionQuery();
+            meshNode->_occQueries[occSet] = queryObj;
+            meshNode->_lastVisited[occSet] = 0;
+         }
+         else
+         {
+            if( meshNode->_lastVisited[occSet] != Modules::renderer().getFrameID() )
+            {
+               meshNode->_lastVisited[occSet] = Modules::renderer().getFrameID();
 
-			gRDI->setShaderConst( Modules::renderer()._defColShader_color, CONST_FLOAT4, &color.x );
-		}
+               // Check query result (viewer must be outside of bounding box)
+               if( nearestDistToAABB( frust1->getOrigin(), meshNode->getBBox().min(),
+                  meshNode->getBBox().max() ) > 0 &&
+                  gRDI->getQueryResult( meshNode->_occQueries[occSet] ) < 1 )
+               {
+                  Modules::renderer().pushOccProxy( 0, meshNode->getBBox().min(), meshNode->getBBox().max(),
+                     meshNode->_occQueries[occSet] );
+                  continue;
+               }
+               else
+                  queryObj = meshNode->_occQueries[occSet];
+            }
+         }
+      }
 
-		ShaderCombination *curShader = Modules::renderer().getCurShader();
-		
+      // Bind geometry
+      if( curVoxelGeoRes != modelNode->getVoxelGeometryResource() )
+      {
+         curVoxelGeoRes = modelNode->getVoxelGeometryResource();
+         ASSERT( curVoxelGeoRes != 0x0 );
+
+         // Indices
+         gRDI->setIndexBuffer( curVoxelGeoRes->getIndexBuf(),
+            curVoxelGeoRes->_16BitIndices ? IDXFMT_16 : IDXFMT_32 );
+
+         // Vertices
+         gRDI->setVertexBuffer( 0, curVoxelGeoRes->getVertexBuf(), 0, sizeof( VoxelVertexData ) );
+      }
+
+      gRDI->setVertexLayout( Modules::renderer()._vlVoxelModel );
+
+      ShaderCombination *prevShader = Modules::renderer().getCurShader();
+
+      if( !debugView )
+      {
+         if (Modules::renderer()._materialOverride != 0x0) {
+            if( !Modules::renderer().setMaterial( Modules::renderer()._materialOverride, shaderContext ) )
+            {	
+               return;
+            }
+            curMatRes = Modules::renderer()._materialOverride;
+         } else {
+            if( !meshNode->getMaterialRes()->isOfClass( theClass ) ) continue;
+
+            // Set material
+            if( curMatRes != meshNode->getMaterialRes() )
+            {
+               if( !Modules::renderer().setMaterial( meshNode->getMaterialRes(), shaderContext ) )
+               {	
+                  curMatRes = 0x0;
+                  continue;
+               }
+               curMatRes = meshNode->getMaterialRes();
+            }
+         }
+      }
+      else
+      {
+         Modules::renderer().setShaderComb( &Modules::renderer()._defColorShader );
+         Modules::renderer().commitGeneralUniforms();
+
+         uint32 curLod = lodLevel;
+         Vec4f color;
+         if( curLod == 0 ) color = Vec4f( 0.5f, 0.75f, 1, 1 );
+         else if( curLod == 1 ) color = Vec4f( 0.25f, 0.75, 0.75f, 1 );
+         else if( curLod == 2 ) color = Vec4f( 0.25f, 0.75, 0.5f, 1 );
+         else if( curLod == 3 ) color = Vec4f( 0.5f, 0.5f, 0.25f, 1 );
+         else color = Vec4f( 0.75f, 0.5, 0.25f, 1 );
+
+         gRDI->setShaderConst( Modules::renderer()._defColShader_color, CONST_FLOAT4, &color.x );
+      }
+
+      ShaderCombination *curShader = Modules::renderer().getCurShader();
+
       // World transformation
-		if( curShader->uni_worldMat >= 0 )
-		{
-			gRDI->setShaderConst( curShader->uni_worldMat, CONST_FLOAT44, &meshNode->_absTrans.x[0] );
-		}
-		if( curShader->uni_worldNormalMat >= 0 )
-		{
-			// TODO: Optimize this
-			Matrix4f normalMat4 = meshNode->_absTrans.inverted().transposed();
-			float normalMat[9] = { normalMat4.x[0], normalMat4.x[1], normalMat4.x[2],
-			                       normalMat4.x[4], normalMat4.x[5], normalMat4.x[6],
-			                       normalMat4.x[8], normalMat4.x[9], normalMat4.x[10] };
-			gRDI->setShaderConst( curShader->uni_worldNormalMat, CONST_FLOAT33, normalMat );
-		}
-		if( curShader->uni_nodeId >= 0 )
-		{
-			float id = (float)meshNode->getHandle();
-			gRDI->setShaderConst( curShader->uni_nodeId, CONST_FLOAT, &id );
-		}
+      if( curShader->uni_worldMat >= 0 )
+      {
+         gRDI->setShaderConst( curShader->uni_worldMat, CONST_FLOAT44, &meshNode->_absTrans.x[0] );
+      }
+      if( curShader->uni_worldNormalMat >= 0 )
+      {
+         // TODO: Optimize this
+         Matrix4f normalMat4 = meshNode->_absTrans.inverted().transposed();
+         float normalMat[9] = { normalMat4.x[0], normalMat4.x[1], normalMat4.x[2],
+            normalMat4.x[4], normalMat4.x[5], normalMat4.x[6],
+            normalMat4.x[8], normalMat4.x[9], normalMat4.x[10] };
+         gRDI->setShaderConst( curShader->uni_worldNormalMat, CONST_FLOAT33, normalMat );
+      }
+      if( curShader->uni_nodeId >= 0 )
+      {
+         float id = (float)meshNode->getHandle();
+         gRDI->setShaderConst( curShader->uni_nodeId, CONST_FLOAT, &id );
+      }
 
-		if( queryObj )
-			gRDI->beginQuery( queryObj );
-		
+      if( queryObj )
+         gRDI->beginQuery( queryObj );
+
       float lodOffsetX = Modules::renderer()._lod_polygon_offset_x;
       float lodOffsetY = Modules::renderer()._lod_polygon_offset_y;
       // Shadow offsets will always win against the custom model offsets (which we don't care about
@@ -2762,21 +2787,21 @@ void Renderer::drawVoxelMeshes(std::string const& shaderContext, std::string con
          glDisable(GL_POLYGON_OFFSET_FILL);
       }
 
-		// Render
-		gRDI->drawIndexed( PRIM_TRILIST, meshNode->getBatchStart(lodLevel), meshNode->getBatchCount(lodLevel),
-		                   meshNode->getVertRStart(lodLevel), meshNode->getVertREnd(lodLevel) - meshNode->getVertRStart(lodLevel) + 1 );
-		Modules::stats().incStat( EngineStats::BatchCount, 1 );
-		Modules::stats().incStat( EngineStats::TriCount, meshNode->getBatchCount(lodLevel) / 3.0f );
+      // Render
+      gRDI->drawIndexed( PRIM_TRILIST, meshNode->getBatchStart(lodLevel), meshNode->getBatchCount(lodLevel),
+         meshNode->getVertRStart(lodLevel), meshNode->getVertREnd(lodLevel) - meshNode->getVertRStart(lodLevel) + 1 );
+      Modules::stats().incStat( EngineStats::BatchCount, 1 );
+      Modules::stats().incStat( EngineStats::TriCount, meshNode->getBatchCount(lodLevel) / 3.0f );
 
-		if( queryObj )
-			gRDI->endQuery( queryObj );
-	}
+      if( queryObj )
+         gRDI->endQuery( queryObj );
+   }
 
-	// Draw occlusion proxies
-	if( occSet >= 0 )
-		Modules::renderer().drawOccProxies( 0 );
+   // Draw occlusion proxies
+   if( occSet >= 0 )
+      Modules::renderer().drawOccProxies( 0 );
 
-	gRDI->setVertexLayout( 0 );
+   gRDI->setVertexLayout( 0 );
    glDisable(GL_POLYGON_OFFSET_FILL);
 }
 
