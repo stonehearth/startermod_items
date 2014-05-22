@@ -53,7 +53,6 @@
             "stonehearth:actions:combat:idle:shuffle",
             "stonehearth:actions:combat:panic_dispatcher",
             "stonehearth:actions:combat:panic_watcher",
-            "stonehearth:actions:combat:flee",
             "stonehearth:actions:combat:stop_panicking",
             "stonehearth:actions:combat:hit_stun",
             "stonehearth:actions:combat:find_target",
