@@ -13,12 +13,14 @@ GetPatrolPoint.priority = 1
 function GetPatrolPoint:start_thinking(ai, entity, args)
    self._entity = entity
    self._ai = ai
+   self._think_output_set = false
 
    self:_check_for_patrol_point()
 
-   self._listening = true
-   -- CHECKCHECK - trigger this
-   radiant.events.listen(stonehearth.town_defense, 'stonehearth:patrol_point_available', self, self._check_for_patrol_point)
+   if not self._think_output_set then
+      self._listening = true
+      radiant.events.listen(stonehearth.town_defense, 'stonehearth:patrol_point_available', self, self._check_for_patrol_point)
+   end
 end
 
 function GetPatrolPoint:stop_thinking(ai, entity, args)
@@ -33,8 +35,10 @@ end
 
 function GetPatrolPoint:_check_for_patrol_point()
    local destination = stonehearth.town_defense:get_patrol_point(self._entity)
+
    if destination then
       self._ai:set_think_output({ destination = destination })
+      self._think_output_set = true
       self._listening = false
       return radiant.events.UNLISTEN
    end

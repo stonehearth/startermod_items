@@ -1,6 +1,5 @@
-local Cube3 = _radiant.csg.Cube3
-local Point3 = _radiant.csg.Point3
-local rng = _radiant.csg.get_default_rng()
+local PatrollableObject = require 'services.server.town_defense.patrollable_object'
+local PatrolRoute = require 'services.server.town_defense.patrol_route'
 local log = radiant.log.create_logger('town_defense')
 
 TownDefense = class()
@@ -8,53 +7,6 @@ TownDefense = class()
 -- Conventions adopted in this class:
 --   entity: a unit (like a footman)
 --   object: everything else, typically something that can be patrolled
-
--- helper classes
-PatrolObject = class()
-PatrolAssignment = class()
-
-function PatrolObject:__init(object)
-   self.object = object
-   self.last_patrol_time = radiant.gamestate.now()
-end
-
-function PatrolObject:get_centroid()
-   local location = radiant.entities.get_world_location(self.object)
-   local collision_component = self.object:get_component('region_collision_shape')
-   local centroid
-
-   if collision_component ~= nil then
-      local object_region = collision_component:get_region():get()
-      centroid = _radiant.csg.get_region_centroid(object_region) + location
-      centroid.y = location.y   -- project to the height plane of the origin
-   else
-      centroid = location
-   end
-
-   return centroid
-end
-
-function PatrolObject:mark_visited()
-   self.last_patrol_time = radiant.gamestate.now()
-end
-
-function PatrolAssignment:__init(points, patrol_object)
-   self.patrol_object = patrol_object
-   self.points = points
-   self.current_index = 1
-end
-
-function PatrolAssignment:get_current_point()
-   return self.points[self.current_index]
-end
-
-function PatrolAssignment:on_last_point()
-   return self.current_index >= #self.points
-end
-
-function PatrolAssignment:advance_to_next_point()
-   self.current_index = self.current_index + 1
-end
 
 function TownDefense:initialize()
    -- push_object_state is called for us by trace_world_entities
@@ -68,9 +20,17 @@ function TownDefense:initialize()
       end
    )
 
-   self._player_id_traces = {}
-   self._patrol_objects = {}
+   -- holds all the patrollable objects in the world organized by player_id
+   self._patrollable_objects = {}
+
+   -- map of entities to their current patrol routes
    self._patrol_assignments = {}
+
+   -- traces for change of ownership of a patrollable object
+   self._player_id_traces = {}
+
+   -- maps patrollable objects to their owning player. used to provide O(1) destroy.
+   self._object_to_player_map = {}
 end
 
 function TownDefense:destroy()
@@ -78,43 +38,77 @@ end
 
 function TownDefense:get_patrol_point(entity)
    local entity_id = entity:get_id()
-   local patrol_assignment = self._patrol_assignments[entity_id]
+   local patrol_route = self._patrol_assignments[entity_id]
 
-   if patrol_assignment and not patrol_assignment:on_last_point() then
-      patrol_assignment:advance_to_next_point()
-      return patrol_assignment:get_current_point()
+   -- do we have anything left to do on our current assignment?
+   if patrol_route and not patrol_route:on_last_point() then
+      -- if so, return the next waypoint
+      patrol_route:advance_to_next_point()
+      return patrol_route:get_current_point()
    end
 
-   local patrol_object = self:_get_object_to_patrol(entity)
+   -- otherwise, create a new patrol route
+   patrol_route = self:_get_patrol_route(entity)
 
-   if patrol_object then
-      local waypoints = self:_create_patrol_route(entity, patrol_object.object)
-      local patrol_assignment = PatrolAssignment(waypoints, patrol_object)
-      local acquired_lease = self:_acquire_lease('stonehearth:patrol_lease', patrol_object.object, entity)
-
-      if acquired_lease then
-         self._patrol_assignments[entity_id] = patrol_assignment
-         return patrol_assignment:get_current_point()
-      end
+   if patrol_route then
+      self._patrol_assignments[entity_id] = patrol_route
+      return patrol_route:get_current_point()
+   else
+      return nil
    end
-
-   self._patrol_assignments[entity_id] = nil
-   return nil
 end
 
--- CHECKCHECK - automatically release leases after a certian time
+-- CHECKCHECK - automatically release leases after a certain time
 function TownDefense:mark_patrol_complete(entity)
    local entity_id = entity:get_id()
-   local patrol_assignment = self._patrol_assignments[entity_id]
-   if patrol_assignment then
-      local patrol_object = patrol_assignment.patrol_object
-      patrol_object:mark_visited()
-      self:_release_lease('stonehearth:patrol_lease', patrol_object.object)
+   local patrol_route = self._patrol_assignments[entity_id]
+
+   if patrol_route then
+      local patrollable_object = patrol_route.patrollable_object
+      patrollable_object:mark_visited()
+      self:_release_lease(patrollable_object.object)
+      self:_trigger_patrol_point_available()
    else
       log:error('patrol assignment not found for %s', entity)
    end
 end
 
+function TownDefense:_get_patrol_route(entity)
+   local patrol_route = nil
+
+   while true do
+      local patrollable_object = self:_get_object_to_patrol(entity)
+
+      if not patrollable_object then
+         -- nothing available, so just exit
+         patrol_route = nil
+         break
+      end
+
+      local waypoints = self:_create_patrol_route(entity, patrollable_object)
+
+      if waypoints then
+         patrol_route = PatrolRoute(waypoints, patrollable_object)
+         local acquired_lease = self:_acquire_lease(patrollable_object.object, entity)
+
+         if acquired_lease then
+            break
+         end
+
+         -- lease should have already been checked in _get_object_to_patrol, we should never get here
+         log:error('patrol_lease could not be acquired')
+      else
+         -- no patrol points are valid for this object
+         -- mark it as visited and find the next best object
+         patrollable_object:mark_visited()
+         log:warning('could not create patrol route around %s', patrollable_object.object)
+      end
+   end
+
+   return patrol_route
+end
+
+-- returns the patrollable object that is the best fit for this entity
 function TownDefense:_get_object_to_patrol(entity)
    local location = radiant.entities.get_world_location(entity)
    local unleased_objects = self:_get_unleased_objects(entity)
@@ -124,30 +118,55 @@ function TownDefense:_get_object_to_patrol(entity)
       return nil
    end
 
-   for object_id, patrol_object in pairs(unleased_objects) do
-      local distance = location:distance_to(patrol_object:get_centroid())
-      if distance < 1 then
-         distance = 1
-      end
-      local time = radiant.gamestate.now() - patrol_object.last_patrol_time
-      local score = time / distance
-      local sort_info = { score = score, patrol_object = patrol_object }
+   -- score each object based on the benefit/cost ratio of patrolling it
+   for object_id, patrollable_object in pairs(unleased_objects) do
+      local score = self:_calculate_patrol_score(location, patrollable_object)
+      local sort_info = { score = score, patrollable_object = patrollable_object }
       table.insert(ordered_objects, sort_info)
    end
 
+   -- order the objects by highest score
    table.sort(ordered_objects,
       function (a, b)
          return a.score > b.score
       end
    )
 
-   local patrol_object = ordered_objects[1].patrol_object
-   return patrol_object
+   -- return the object with the highest score
+   local patrollable_object = ordered_objects[1].patrollable_object
+   return patrollable_object
 end
 
-function TownDefense:_create_patrol_route(entity, object)
+-- estimate the benefit/cost ratio of patrolling an object
+-- cost is the distance to travel to the object
+-- benefit is the amount of time since we last patrolled it
+function TownDefense:_calculate_patrol_score(start_location, patrollable_object)
+   local distance = start_location:distance_to(patrollable_object:get_centroid())
+   -- add the minimum cost to patrol the perimeter of a 1x1 object at distance 2
+   -- this keeps really close objects from getting an overinflated score because there is
+   -- a nonzero cost to patrolling them 
+   distance = distance + 14
+
+   local time = radiant.gamestate.now() - patrollable_object.last_patrol_time
+   -- if time is zero, then let distance be the tiebreaker
+   if time < 1 then
+      time = 1
+   end
+   
+   local score = time / distance
+   return score
+end
+
+function TownDefense:_create_patrol_route(entity, patrollable_object)
    local patrol_margin = 2
-   local waypoints = self:_get_waypoints_around_object(object, patrol_margin)
+   local waypoints = patrollable_object:get_waypoints(patrol_margin)
+
+   self:_prune_non_standable_points(entity, waypoints)
+
+   if not next(waypoints) then
+      return nil
+   end
+
    local index = self:_index_of_closest_point(entity, waypoints)
 
    -- rotate the route so that it starts with the closest point
@@ -165,6 +184,11 @@ function TownDefense:_on_object_added(object)
       -- trace all objects that are patrollable in case their ownership changes
       self:_add_player_id_trace(object)
    end
+end
+
+function TownDefense:_on_object_removed(object_id)
+   self:_remove_from_patrol_list(object_id)
+   self:_remove_player_id_trace(object_id)
 end
 
 function TownDefense:_add_player_id_trace(object)
@@ -189,11 +213,6 @@ function TownDefense:_on_player_id_changed(object)
    self:_add_to_patrol_list(object)
 end
 
-function TownDefense:_on_object_removed(object_id)
-   self:_remove_from_patrol_list(object_id)
-   self:_remove_player_id_trace(object_id)
-end
-
 function TownDefense:_is_patrollable(object)
    if object == nil or not object:is_valid() then
       return false
@@ -208,42 +227,57 @@ function TownDefense:_add_to_patrol_list(object)
    local player_id = radiant.entities.get_player_id(object)
 
    if player_id then
-      local player_patrol_objects = self:_get_patrol_objects(player_id)
-      if not player_patrol_objects[object_id] then
-         player_patrol_objects[object_id] = PatrolObject(object)
+      local player_patrollable_objects = self:_get_patrollable_objects(player_id)
+
+      if not player_patrollable_objects[object_id] then
+         player_patrollable_objects[object_id] = PatrollableObject(object)
+         self._object_to_player_map[object_id] = player_id
+         self:_trigger_patrol_point_available()
       end
    end
 end
 
 function TownDefense:_remove_from_patrol_list(object_id)
-   -- CHECKCHECK - eww, do this better
-   for player_id, player_patrol_objects in pairs(self._patrol_objects) do
-      if player_patrol_objects[object_id] then
-         -- CHECKCHECK - recalculate existing routes
-         player_patrol_objects[object_id] = nil
-         return
+   local player_id = self._object_to_player_map[object_id]
+   self._object_to_player_map[object_id] = nil
+
+   if player_id then
+      local player_patrollable_objects = self:_get_patrollable_objects(player_id)
+
+      if player_patrollable_objects[object_id] then
+         self:_remove_invalid_patrol_routes(object_id)
+         player_patrollable_objects[object_id] = nil
       end
    end
 end
 
-function TownDefense:_get_patrol_objects(player_id)
-   local player_patrol_objects = self._patrol_objects[player_id]
-   if not player_patrol_objects then
-      player_patrol_objects = {}
-      self._patrol_objects[player_id] = player_patrol_objects
+function TownDefense:_remove_invalid_patrol_routes(object_id)
+   for entity_id, patrol_route in pairs(self._patrol_assignments) do
+      if patrol_route.patrollable_object.object_id == object_id then
+         self._patrol_assignments[entity_id] = nil
+      end
    end
-   return player_patrol_objects
+end
+
+function TownDefense:_get_patrollable_objects(player_id)
+   local player_patrollable_objects = self._patrollable_objects[player_id]
+
+   if not player_patrollable_objects then
+      player_patrollable_objects = {}
+      self._patrollable_objects[player_id] = player_patrollable_objects
+   end
+
+   return player_patrollable_objects
 end
 
 function TownDefense:_get_unleased_objects(entity)
    local player_id = radiant.entities.get_player_id(entity)
-   local player_patrol_objects = self:_get_patrol_objects(player_id)
+   local player_patrollable_objects = self:_get_patrollable_objects(player_id)
    local unleased_objects = {}
 
-   for object_id, patrol_object in pairs(player_patrol_objects) do
-      local lease_component = patrol_object.object:add_component('stonehearth:lease')
-      if lease_component:can_acquire('stonehearth:patrol_lease', entity) then
-         unleased_objects[object_id] = patrol_object
+   for object_id, patrollable_object in pairs(player_patrollable_objects) do
+      if self:_can_acquire_lease(entity) then
+         unleased_objects[object_id] = patrollable_object
       end
    end
 
@@ -254,6 +288,15 @@ function TownDefense:_rotate_array(array, times)
    for i = 1, times do
       local value = table.remove(array, 1)
       table.insert(array, value)
+   end
+end
+
+function TownDefense:_prune_non_standable_points(entity, points)
+   -- remove in reverse so we don't have to worry about iteration order
+   for i = #points, 1, -1 do
+      if not radiant.terrain.can_stand_on(entity, points[i]) then
+         table.remove(points, i)
+      end
    end
 end
 
@@ -271,73 +314,25 @@ function TownDefense:_index_of_closest_point(entity, points)
    return closest_index
 end
 
-function TownDefense:_get_waypoints_around_object(object, distance)
-   local location = radiant.entities.get_world_grid_location(object)
-   local collision_component = object:get_component('region_collision_shape')
-
-   if collision_component ~= nil then
-      local object_region = collision_component:get_region():get()
-      local bounds = object_region:get_bounds():translated(location)
-      local inscribed_bounds = self:_get_inscribed_bounds(bounds)
-      local expanded_bounds = self:_expand_cube_xz(inscribed_bounds, distance)
-      local clockwise = rng:get_int(0, 1) == 1
-      local patrol_points = self:_get_projected_vertices(expanded_bounds, clockwise)
-      return patrol_points
-   else
-      return { location }
-   end
+function TownDefense:_trigger_patrol_point_available()
+   radiant.events.trigger_async(stonehearth.town_defense, 'stonehearth:patrol_point_available')
 end
 
--- terrain aligned objects have their position shifted by (-0.5, 0, -0.5)
--- this returns the grid aligned points enclosed by the bounds when the object is placed on the terrain
-function TownDefense:_get_inscribed_bounds(bounds)
-   local min = bounds.min
-   local max = bounds.max
-   return Cube3(
-      min,
-      Point3(max.x-1, max.y, max.z-1)
-   )
-end
-
--- make cube larger in the x and z dimensions
-function TownDefense:_expand_cube_xz(cube, distance)
-   local min = cube.min
-   local max = cube.max
-   return Cube3(
-      Point3(min.x - distance, min.y, min.z - distance),
-      Point3(max.x + distance, max.y, max.z + distance)
-   )
-end
-
-function TownDefense:_get_projected_vertices(cube, clockwise)
-   local min = cube.min
-   local max = cube.max
-   local y = min.y
-   local verticies = {
-      -- in counterclockwise order
-      Point3(min.x, y, min.z),
-      Point3(min.x, y, max.z),
-      Point3(max.x, y, max.z),
-      Point3(max.x, y, min.z)
-   }
-
-   if clockwise then
-      -- make clockwise
-      verticies[2], verticies[4] = verticies[4], verticies[2]
-   end
-   
-   return verticies
-end
-
-function TownDefense:_acquire_lease(lease_name, leased_object, lease_holder)
+function TownDefense:_can_acquire_lease(leased_object, lease_holder)
    local lease_component = leased_object:add_component('stonehearth:lease')
-   local acquired = lease_component:acquire(lease_name, lease_holder, { persistent = true })
+   local can_acquire = lease_component:can_acquire('stonehearth:patrol_lease', lease_holder)
+   return can_acquire
+end
+
+function TownDefense:_acquire_lease(leased_object, lease_holder)
+   local lease_component = leased_object:add_component('stonehearth:lease')
+   local acquired = lease_component:acquire('stonehearth:patrol_lease', lease_holder, { persistent = true })
    return acquired
 end
 
-function TownDefense:_release_lease(lease_name, leased_object)
+function TownDefense:_release_lease(leased_object)
    local lease_component = leased_object:add_component('stonehearth:lease')
-   local result = lease_component:release(lease_name, leased_object)
+   local result = lease_component:release('stonehearth:patrol_lease', leased_object)
    return result
 end
 

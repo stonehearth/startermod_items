@@ -28,7 +28,7 @@ function PatrolTest:__init()
    stonehearth.farming:create_new_field(
       { player_id = player_id, faction = radiant.entities.get_faction(footmen[1]) },
       Point3(-10, 1, 0),
-      Point2(10, 10)
+      Point2(5, 5)
    )
 end
 
