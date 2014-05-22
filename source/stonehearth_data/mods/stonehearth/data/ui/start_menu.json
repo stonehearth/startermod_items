@@ -79,7 +79,7 @@
       "name" : "Town Info",
       "description" : "General information about your town, how your citizens are feeling, and the wealth you've accumulated!",
       "class" : "dock",
-      "icon" : "/stonehearth/ui/game/start_menu/images/town.png",
+      "icon" : "/stonehearth/ui/game/start_menu/images/town_banner.png",
       "hotkey" : "t",
       "game_mode" : "normal",
       "clickSound": "stonehearth:sounds:ui:start_menu:trigger_click"

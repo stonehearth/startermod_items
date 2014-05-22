@@ -32,7 +32,7 @@ App.StonehearthTaskManagerView = App.View.extend({
       }
 
       var self = this;
-      var totalWidth = 300;
+      var totalWidth = 100;
       var scale = totalWidth / data.total_time;
       var sum = 0;
 
