@@ -10,28 +10,31 @@
          {{/each}}
 
       </div>
-      <div id="commandButtons">
-         {{#each stonehearth:commands.commands itemViewClass="App.StonehearthCommandButtonView"}}
-            <a {{bind-attr id=this.name}} href="#" {{action doCommand this target="view"}} class='uisounds'>
-               <div {{bind-attr class=":commandButton enabled:buttonEnabled:buttonDisabled" title=tooltip description=description}}>
-                  <img {{bind-attr src="icon"}}>
-                  <!-- <div id="hotkey">{{view.oneBasedIndex}}</div> -->
-               </div>
-            </a>
-         {{/each}}
-         <div id="inventory">
-            {{#if inventoryFull}}
-               <div id="full">{{i18n stonehearth:inventory_full}}</div>
-            {{else}}
-               <div>{{stonehearth:inventory.items.length}} / {{stonehearth:inventory.capacity}}</div>
-            {{/if}}
-         </div>
-      </div>
+
       <div id="info">
          <div class="inner">
             <div class="name">{{unit_info.name}}</div>
             <div class="description">{{unit_info.description}}</div>
          </div>
+
+         <div id="commandButtons">
+            {{#each stonehearth:commands.commands itemViewClass="App.StonehearthCommandButtonView"}}
+               <a {{bind-attr id=this.name}} href="#" {{action doCommand this target="view"}} class='uisounds'>
+                  <div {{bind-attr class=":commandButton enabled:buttonEnabled:buttonDisabled" title=tooltip description=description}}>
+                     <img {{bind-attr src="icon"}}>
+                     <!-- <div id="hotkey">{{view.oneBasedIndex}}</div> -->
+                  </div>
+               </a>
+            {{/each}}
+            <div id="inventory">
+               {{#if inventoryFull}}
+                  <div id="full">{{i18n stonehearth:inventory_full}}</div>
+               {{else}}
+                  <div>{{stonehearth:inventory.items.length}} / {{stonehearth:inventory.capacity}}</div>
+               {{/if}}
+            </div>
+         </div>
+
       </div>
 
       <a href="#" {{action showCharacterSheet target="view"}}>
