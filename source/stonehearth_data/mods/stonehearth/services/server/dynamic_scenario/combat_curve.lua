@@ -99,7 +99,7 @@ function CombatCurve:compute_value()
   local military_strength = 0
   local enemy_pop_size = 0
 
-  if gm_scores then
+  if gm_scores and gm_scores:get_score_data().military_strength then
     local military_score = gm_scores:get_score_data().military_strength
     military_strength = military_score and military_score.total_score or 0
   end
@@ -121,7 +121,8 @@ end
 function CombatCurve:can_spawn_scenario(scenario)
   local props = scenario.properties.scenario_types.combat
 
-  local military_strength = stonehearth.score:get_scores_for_player('player_1'):get_score_data().military_strength.total_score
+  local military_score = stonehearth.score:get_scores_for_player('player_1'):get_score_data().military_strength
+  local military_strength = military_score ~= nil and military_score.total_score or 0
   local min_strength = props.min_strength and props.min_strength or 0
   local max_strength = props.max_strength and props.max_strength or 999999
 
