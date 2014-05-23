@@ -12,7 +12,7 @@
       "model_variants": {
          "default": {
             "models": [
-               "file(wooden_door_frame.qb)"
+               "file(wooden_door.qb)"
             ]
          }
       },
@@ -29,6 +29,24 @@
                }
             }
          ]
+      },
+      "render_info" : {
+         "animation_table" : "file(/data/rigs/door/door.json)"
+      },
+
+      "effect_list" : {
+         "default" : "file(/data/rigs/door/effects/closed.json)"
+      },
+      "sensor_list": {
+         "sensors": {
+            "door_sensor": {
+               "type": "sensor",
+               "radius": 4
+            }
+         }
+      },
+      "stonehearth:door" : {
+         "sensor" : "door_sensor"
       }
    }
 }
