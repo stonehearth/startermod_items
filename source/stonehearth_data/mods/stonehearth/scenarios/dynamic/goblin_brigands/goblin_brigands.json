@@ -1,0 +1,11 @@
+{
+    "name" : "Goblin Brigands",
+    "scenario_types" : {
+      "combat" : {
+        "min_strength" : 0,
+        "max_strength" : 100
+      }
+    },
+    "rarity" : "always",
+    "script" : "file(goblin_brigands.lua)"
+}
