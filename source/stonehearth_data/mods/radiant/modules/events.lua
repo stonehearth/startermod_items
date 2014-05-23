@@ -26,11 +26,11 @@ function events._convert_object_to_key(object)
 end
 
 function events.listen_once(object, event, obj, method)
-   return events.listen(object, event, function()
+   return events.listen(object, event, function(...)
          if method then
-            method(obj)
+            method(obj, ...)
          else
-            obj()
+            obj(...)
          end
          return radiant.events.UNLISTEN
       end)
