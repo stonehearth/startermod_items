@@ -13,7 +13,7 @@ local singleton = {}
 --   @param location - where to place it.  the entity will be placed at the
 --                     most appropriate y coordinate based on location.
 --
-function Terrain.place_entity(entity, location)
+function Terrain.place_entity(entity, location)   
    if type(location) == "table" then
       location = Point3(location.x, location.y, location.z)
    end
@@ -42,7 +42,7 @@ end
 
 function Terrain.get_standable_point(entity, pt)
    local start_point = Terrain.get_point_on_terrain(pt)
-   return _physics:get_standable_point(entity, location)
+   return _physics:get_standable_point(entity, start_point)
 end
 
 -- returns the height (y coordinate) of the highest terrain voxel at (x, z)
