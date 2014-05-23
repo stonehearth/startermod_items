@@ -155,8 +155,8 @@ bool XZRegionSelector::IsValidLocation(int x, int y, int z)
    }
 
    // Otherwise, consult the octree for standability.
-   auto const& octtree = Client::GetInstance().GetOctTree();
-   return octtree.CanStandOn(nullptr, csg::Point3(x, y, z));
+   phys::OctTree& octtree = Client::GetInstance().GetOctTree();
+   return octtree.GetNavGrid().IsStandable(csg::Point3(x, y, z));
 }
 
 void XZRegionSelector::ValidateP1(int newx, int newz)

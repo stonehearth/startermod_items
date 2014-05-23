@@ -8,15 +8,22 @@ using namespace ::radiant;
 using namespace ::radiant::phys;
 using namespace luabind;
 
-bool Physics_CanStandOn(lua_State *L, OctTree &octTree, om::EntityRef entityRef, csg::Point3 const& location)
+bool Physics_IsStandable(lua_State *L, OctTree &octTree, om::EntityRef entityRef, csg::Point3 const& location)
 {
    om::EntityPtr entity = entityRef.lock();
    if (!entity) {
       return false;
    }
+   return octTree.GetNavGrid().IsStandable(entity, location);
+}
 
-   bool standable = octTree.CanStandOn(entity, location);
-   return standable;
+csg::Point3 Physics_GetStandablePoint(lua_State *L, OctTree &octTree, om::EntityRef entityRef, csg::Point3 const& location)
+{
+   om::EntityPtr entity = entityRef.lock();
+   if (!entity) {
+      throw std::logic_error("invalid entity reference in get_standable_point");
+   }
+   return octTree.GetNavGrid().GetStandablePoint(entity, location);
 }
 
 luabind::object Physics_GetEntitiesInCube(lua_State *L, OctTree &octTree, csg::Cube3 const& cube)
@@ -27,6 +34,7 @@ luabind::object Physics_GetEntitiesInCube(lua_State *L, OctTree &octTree, csg::C
    navGrid.ForEachEntityInBounds(cube, [L, &result](om::EntityPtr entity) {
       ASSERT(entity);
       result[entity->GetObjectId()] = luabind::object(L, om::EntityRef(entity));
+      return false; // keep iterating...
    });
    return result;
 }
@@ -41,7 +49,8 @@ void lua::phys::open(lua_State* L, OctTree& octtree)
       namespace_("_radiant") [
          namespace_("physics") [
             luabind::class_<OctTree>("Physics")
-               .def("can_stand_on",         &Physics_CanStandOn)
+               .def("is_standable",         &Physics_IsStandable)
+               .def("get_standable_point",  &Physics_GetStandablePoint)
                .def("get_entities_in_cube", &Physics_GetEntitiesInCube)
          ]
       ]

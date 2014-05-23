@@ -16,9 +16,9 @@ MovementHelper::MovementHelper(int logLevel) :
 {
 }
 
-bool MovementHelper::GetClosestPointAdjacentToEntity(Simulation& sim, csg::Point3 const& from, om::EntityPtr const& entity, csg::Point3& closestPoint)
+bool MovementHelper::GetClosestPointAdjacentToEntity(Simulation& sim, csg::Point3 const& from, om::EntityPtr const& srcEntity, om::EntityPtr const& dstEntity, csg::Point3& closestPoint)
 {
-   csg::Region3 const region = MovementHelper::GetRegionAdjacentToEntity(sim, entity);
+   csg::Region3 const region = MovementHelper::GetRegionAdjacentToEntity(sim, srcEntity, dstEntity);
 
    if (region.IsEmpty()) {
       MH_LOG(5) << "region is empty in GetClosestPointAdjacentToEntity.  returning false";
@@ -30,35 +30,35 @@ bool MovementHelper::GetClosestPointAdjacentToEntity(Simulation& sim, csg::Point
    return true;
 }
 
-csg::Region3 MovementHelper::GetRegionAdjacentToEntity(Simulation& sim, om::EntityPtr const& entity)
+csg::Region3 MovementHelper::GetRegionAdjacentToEntity(Simulation& sim, om::EntityPtr const& srcEntity, om::EntityPtr const& dstEntity)
 {
-   phys::OctTree const& octTree = sim.GetOctTree();
+   phys::OctTree& octTree = sim.GetOctTree();
    csg::Region3 region;
 
-   if (!entity) {
+   if (!dstEntity || !srcEntity) {
       MH_LOG(5) << "invalid entity ptr.  returning empty region";
       return region;
    }
 
-   om::MobPtr const mob = entity->GetComponent<om::Mob>();
+   om::MobPtr const mob = dstEntity->GetComponent<om::Mob>();
    if (!mob) {
-      MH_LOG(5) << *entity <<  " has no mob component.  returning empty region";
+      MH_LOG(5) << *dstEntity <<  " has no mob component.  returning empty region";
       return region;
    }
 
    csg::Point3 const origin = mob->GetWorldGridLocation();
 
    om::Region3BoxedPtr adjacent;
-   om::DestinationPtr const destination = entity->GetComponent<om::Destination>();
+   om::DestinationPtr const destination = dstEntity->GetComponent<om::Destination>();
    if (destination) {
       adjacent = destination->GetAdjacent();
    }
    if (adjacent) {
       region = adjacent->Get();
       region.Translate(origin);
-      octTree.RemoveNonStandableRegion(entity, region);
+      octTree.GetNavGrid().RemoveNonStandableRegion(srcEntity, origin, region);
    } else {
-      MH_LOG(7) << *entity << " has no destination.  iterating through points adjacent to item";
+      MH_LOG(7) << *dstEntity << " has no destination.  iterating through points adjacent to item";
       static csg::Point3 defaultAdjacentPoints[] = {
          csg::Point3(-1, 0,  0),
          csg::Point3( 1, 0,  0),
@@ -67,13 +67,13 @@ csg::Region3 MovementHelper::GetRegionAdjacentToEntity(Simulation& sim, om::Enti
       };
       for (csg::Point3 const& point : defaultAdjacentPoints) {
          csg::Point3 location = origin + point;
-         if (octTree.CanStandOn(entity, location)) {
+         if (octTree.GetNavGrid().IsStandable(srcEntity, location)) {
             region.AddUnique(csg::Cube3(location));
          }
       }
    }
 
-   MH_LOG(7) << "returning adjacent region of size " << region.GetArea() << " for " << *entity;
+   MH_LOG(7) << "returning adjacent region of size " << region.GetArea() << " for " << *dstEntity;
    return region;
 }
 

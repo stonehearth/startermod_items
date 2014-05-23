@@ -214,100 +214,33 @@ void NavGrid::AddTerrainTileTracker(om::EntityRef e, csg::Point3 const& offset, 
 }
 
 /*
- * -- NavGrid::IsValidStandingRegion
- *
- * Return whether the collision shape specified is entirely supported by some other
- * collision shape  (i.e. whether it can be placed there and not fall over).  Is
- * useful (for example) for placing complicated objects like trees on terrain in
- * such a way that they're not partially hanging off the edge of a cliff and not
- * overlapping other trees.
- */
-bool NavGrid::IsValidStandingRegion(csg::Region3 const& collision_shape)
-{
-   for (csg::Cube3 const& cube : collision_shape) {
-      if (!CanStandOn(cube)) {
-         return false;
-      }
-   }
-   return true;
-}
-
-/*
  * -- NavGrid::RemoveNonStandableRegion
  *
  * Given an entity and a region, remove the parts of the region that the
  * entity cannot stand on.  This is useful to the valid places an entity
  * can stand given a potentially valid set of spots.
  *
- * xxx: we need a "non-walkable" region to clip against.  until that exists,
- * do the slow thing...
  */
-void NavGrid::RemoveNonStandableRegion(om::EntityPtr entity, csg::Region3& region)
+void NavGrid::RemoveNonStandableRegion(om::EntityPtr entity, csg::Point3 const& location, csg::Region3& region)
 {
-   csg::Region3 r2;
-   for (csg::Cube3 const& cube : region) {
-      for (csg::Point3 const& pt : cube) {
-         if (CanStandOn(entity, pt)) {
-            r2.AddUnique(pt);
+   csg::Region3 nonStandable;
+
+   // Iterate through every point in the entity, accumulating a region of `nonStandabale` points.
+   ForEachPointInEntityRegion(entity->GetObjectId(), location, [&nonStandable, &region, this] (csg::Point3 const& pt) mutable {
+      // An attempt is made to make the both fast and correct.  There's no need to consider a point at all if it
+      // does not intersect tith `region`.
+      if (region.Contains(pt)) {
+         if (!IsStandable(pt)) {
+            nonStandable.Add(pt);
          }
       }
-   }
-   region = r2;
+      return false;     // keep iterating...
+   });
+   region -= nonStandable;
 }
 
 /*
- * -- NavGrid::CanStandOn
- *
- * Returns the entity can possibly stand on the specified point.
- */
-bool NavGrid::CanStandOn(om::EntityPtr entity, csg::Point3 const& pt)
-{
-   csg::Point3 index, offset;
-   csg::GetChunkIndex(pt, TILE_SIZE, index, offset);
-   
-   if (!bounds_.Contains(pt)) {
-      return false;
-   }
-
-   NavGridTile& tile = GridTileResident(index);
-   tile.FlushDirty(*this, index);
-
-   ASSERT(tile.IsDataResident());
-   return tile.CanStandOn(offset);
-}
-
-/*
- * -- NavGrid::CanStandOn
- *
- * Returns the entity can possibly stand on the specified point.  This function
- * is private!  Never make it public please, as we want to be able to make
- * a decision based on the entity asking the question (e.g. critters will
- * be able to run through gated fences and titans will step over/through them,
- * but people won't.)
- *
- * xxx: this is horribly, horribly expensive!  we should do this
- * with region clipping or somethign...
- */
-bool NavGrid::CanStandOn(csg::Cube3 const& cube)
-{
-   csg::Point3 const& min = cube.GetMin();
-   csg::Point3 const& max = cube.GetMax();
-   csg::Point3 i;
-
-   i.y = min.y;
-   for (i.x = min.x; i.x < max.x; i.x++) {
-      for(i.z = min.z; i.z < max.z; i.z++) {
-         // xxx:  remove this function and pass a collision shape
-         if (!CanStandOn(nullptr, i)) {
-            return false;
-         }
-      }
-   }
-   return true;
-}
-
-/*
- * -- NavGrid::CanStandOn
+ * -- NavGrid::GetTraceCategory
  *
  * Returns the trace category to use in TraceChanges, TraceDestroyed,
  * etc.
@@ -375,8 +308,7 @@ void NavGrid::OnTrackerDestroyed(csg::Cube3 const& bounds, dm::ObjectId entityId
  * -- NavGrid::GridTile
  *
  * Returns the tile for the world-coordinate point pt, creating it if it does
- * not yet exist, and make all the tile data resident (though not necessarily
- * up-to-date!).  (see NavGridTileData::CanStandOn)
+ * not yet exist, and make all the tile data resident.
  */
 NavGridTile& NavGrid::GridTileResident(csg::Point3 const& pt)
 {
@@ -403,32 +335,33 @@ NavGridTile& NavGrid::GridTileNonResident(csg::Point3 const& pt)
  * not yet exist.  If you don't want to create the tile if the point is invalid,
  * use .find on tiles_ directly.
  */
-NavGridTile& NavGrid::GridTile(csg::Point3 const& pt, bool make_resident)
+NavGridTile& NavGrid::GridTile(csg::Point3 const& index, bool make_resident)
 {
-   NavGridTileMap::iterator i = tiles_.find(pt);
+   NavGridTileMap::iterator i = tiles_.find(index);
    if (i == tiles_.end()) {
-      NG_LOG(5) << "constructing new grid tile at " << pt;
-      i = tiles_.emplace(std::make_pair(pt, NavGridTile())).first;
+      NG_LOG(5) << "constructing new grid tile at " << index;
+      i = tiles_.emplace(std::make_pair(index, NavGridTile())).first;
    }
    NavGridTile& tile = i->second;
 
    if (make_resident) {
       if (tile.IsDataResident()) {
          for (auto &entry : resident_tiles_) {
-            if (entry.first == pt) {
+            if (entry.first == index) {
                entry.second = true;
                break;
             }
          }
       } else {
-         NG_LOG(3) << "making nav grid tile " << pt << " resident";
+         NG_LOG(3) << "making nav grid tile " << index << " resident";
          tile.SetDataResident(true);
          if (resident_tiles_.size() >= max_resident_) {
-            EvictNextUnvisitedTile(pt);
+            EvictNextUnvisitedTile(index);
          } else {
-            resident_tiles_.push_back(std::make_pair(pt, true));
+            resident_tiles_.push_back(std::make_pair(index, true));
          }
       }
+      tile.FlushDirty(*this, index);
    }
 
    return tile;
@@ -442,10 +375,18 @@ NavGridTile& NavGrid::GridTile(csg::Point3 const& pt, bool make_resident)
 void NavGrid::ShowDebugShapes(csg::Point3 const& pt, protocol::shapelist* msg)
 {
    csg::Point3 index = csg::GetChunkIndex(pt, TILE_SIZE);
-   NavGridTile& tile = GridTileResident(index);
-   tile.FlushDirty(*this, index);
-   tile.ShowDebugShapes(msg, index);
 
+   // Render all the standable locations in the block pointed to by `pt`
+   csg::Color4 standable_color(0, 0, 255, 64);
+   for (csg::Point3 i : csg::Cube3::one.Scaled(TILE_SIZE).Translated(index * TILE_SIZE)) {
+      if (IsStandable(i)) {
+         protocol::coord* coord = msg->add_coords();
+         i.SaveValue(coord);
+         standable_color.SaveValue(coord->mutable_color());
+      }
+   }
+
+   // Draw a box around all the resident tiles.
    csg::Color4 border_color(0, 0, 128, 64);
    csg::Color4 mob_color(128, 0, 128, 64);
    for (auto const& entry : resident_tiles_) {
@@ -455,6 +396,8 @@ void NavGrid::ShowDebugShapes(csg::Point3 const& pt, protocol::shapelist* msg)
       (offset + csg::Point3f(TILE_SIZE, TILE_SIZE, TILE_SIZE)).SaveValue(box->mutable_maximum());
       border_color.SaveValue(box->mutable_color());
    }
+
+   // Draw a purple box around all the mobs
    auto i = collision_trackers_.begin(), end = collision_trackers_.end();
    for (; i != end; i++) {
       for (auto const& entry : i->second) {
@@ -510,17 +453,23 @@ void NavGrid::EvictNextUnvisitedTile(csg::Point3 const& pt)
  *
  * Call the `cb` at least once (but perhaps more!) for all entities which overlap the tile
  * at the specified index.  See NavGridTile::ForEachTracker for a more complete explanation.
+ *
+ * Stops iteration whenever a cb returns 'true'.  Itself returns 'true' if the iteration
+ * was stopped early.
+ *
  */ 
-void NavGrid::ForEachEntityAtIndex(csg::Point3 const& index, ForEachEntityCb cb)
+bool NavGrid::ForEachEntityAtIndex(csg::Point3 const& index, ForEachEntityCb cb)
 {
+   bool stopped = false;
    if (bounds_.Contains(index.Scaled(TILE_SIZE))) {
-      GridTileNonResident(index).ForEachTracker([cb](CollisionTrackerPtr tracker) {
+      stopped = GridTileNonResident(index).ForEachTracker([cb](CollisionTrackerPtr tracker) {
          ASSERT(tracker);
          ASSERT(tracker->GetEntity());
-         cb(tracker->GetEntity());
-         return true;
+         bool stop = cb(tracker->GetEntity());
+         return stop;
       });
    }
+   return stopped;
 }
 
 /*
@@ -528,34 +477,442 @@ void NavGrid::ForEachEntityAtIndex(csg::Point3 const& index, ForEachEntityCb cb)
  *
  * Get entities with shapes that intersect the specified world space cube.  As with 
  * ForEachEntityAtIndex, entities may be returned more than once!
+ *
+ * Stops iteration whenever a cb returns 'true'.  Itself returns 'true' if the iteration
+ * was stopped early.
+ *
  */
-void NavGrid::ForEachEntityInBounds(csg::Cube3 const& worldBounds, ForEachEntityCb cb)
+bool NavGrid::ForEachEntityInBounds(csg::Cube3 const& worldBounds, ForEachEntityCb cb)
 {
+   bool stopped;
+   stopped = ForEachTileInBounds(worldBounds, [&worldBounds, cb](csg::Point3 const& index, NavGridTile &tile) {
+      return tile.ForEachTracker([&worldBounds, cb](CollisionTrackerPtr tracker) {
+         bool stop = false;
+         if (tracker->Intersects(worldBounds)) {
+            stop = cb(tracker->GetEntity());
+         }
+         return stop;
+      });
+   });
+   return stopped;
+}
+
+
+/*
+ * -- NavGrid::ForEachEntityInRegion
+ *
+ * Iterate over every Entity in the region.  Guarantees to visit an entity no more
+ * than once.
+ *
+ * Stops iteration whenever a cb returns 'true'.  Itself returns 'true' if the iteration
+ * was stopped early.
+ *
+ */
+bool NavGrid::ForEachEntityInRegion(csg::Region3 const& region, ForEachEntityCb cb)
+{
+   bool stopped;
+   std::set<dm::ObjectId> visited;
+
+   stopped = ForEachTrackerInRegion(region, [&visited, cb](CollisionTrackerPtr tracker) -> bool {
+      bool stop = false;
+      om::EntityPtr entity = tracker->GetEntity();
+      if (entity) {
+         if (visited.insert(entity->GetObjectId()).second) {
+            stop = cb(entity);
+         }
+      }
+      return stop;
+   });
+   return stopped;
+}
+
+
+/*
+ * -- NavGrid::ForEachTileInBounds
+ *
+ * Iterate over every tile which intersects the specified `worldBounds`.  This tile is
+ * not resident, so you may get an error if you try to check the nav grid tile data in
+ * any way.  The index is passed along with the tile to the callback so you can call
+ * ::GetTileResident(index) if you'd rather have a resident tile.
+ *
+ * Stops iteration whenever a cb returns 'true'.  Itself returns 'true' if the iteration
+ * was stopped early.
+ *
+ */
+bool NavGrid::ForEachTileInBounds(csg::Cube3 const& worldBounds, ForEachTileCb cb)
+{
+   bool stopped = false;
    csg::Cube3 clippedWorldBounds = worldBounds.Intersection(bounds_);
    csg::Cube3 indexBounds = csg::GetChunkIndex(clippedWorldBounds, TILE_SIZE);
 
-   for (csg::Point3 const& index : indexBounds) {
-      ASSERT(bounds_.Contains(index.Scaled(TILE_SIZE)));
-
-      GridTileNonResident(index).ForEachTracker([&worldBounds, cb](CollisionTrackerPtr tracker) {
-         if (tracker->Intersects(worldBounds)) {
-            cb(tracker->GetEntity());
-         }
-         return true;
-      });
+   auto i = indexBounds.begin(), end = indexBounds.end();
+   while (!stopped && i != end) {
+      csg::Point3 index = *i;
+      stopped = cb(index, GridTileNonResident(index));
+      ++i;
    }
+   return stopped;
 }
 
-bool NavGrid::IntersectsWorldBounds(dm::ObjectId entityId, csg::Cube3 const& worldBounds)
+
+/*
+ * -- NavGrid::ForEachTileInRegion
+ *
+ * Iterate over every tile which intersects the specified `region`, in world coordinates.
+ * This tile is not resident, so you may get an error if you try to check the nav grid tile
+ * data in any way.  The index is passed along with the tile to the callback so you can call
+ * ::GetTileResident(index) if you'd rather have a resident tile.
+ *
+ * Stops iteration whenever a cb returns 'true'.  Itself returns 'true' if the iteration
+ * was stopped early.
+ *
+ */
+
+bool NavGrid::ForEachTileInRegion(csg::Region3 const& region, ForEachTileCb cb)
 {
-   auto i = collision_trackers_.find(entityId);
-   if (i != collision_trackers_.end()) {
+   bool stopped = false;
+   std::set<csg::Point3> visited;
+
+   auto i = region.begin(), end = region.end();
+   while (!stopped && i != end) {
+      csg::Cube3 const& cube = *i++;
+      bool stopped = ForEachTileInBounds(cube, [&region, &visited, cb](csg::Point3 const& index, NavGridTile &tile) {
+         bool stop = false;
+         if (visited.insert(index).second) {
+            stop = cb(index, tile);
+         }
+         return stop;
+      });
+   }
+   return stopped;
+}
+
+
+/*
+ * -- NavGrid::ForEachTrackerInRegion
+ *
+ * Iterate over every tracker which intersects the specified `region`, in world coordinates.
+ * Each tracker is guaranteed to be passed to `cb` only once, regardless of how many tiles
+ * it's registered in.
+ *
+ * Stops iteration whenever a cb returns 'true'.  Itself returns 'true' if the iteration
+ * was stopped early.
+ *
+ */
+
+bool NavGrid::ForEachTrackerInRegion(csg::Region3 const& region, ForEachTrackerCb cb)
+{
+   bool stopped;
+   std::set<CollisionTracker*> visited;
+   csg::Cube3 regionBounds = region.GetBounds();
+
+   stopped = ForEachTileInRegion(region, [&region, &regionBounds, &visited, cb](csg::Point3 const& index, NavGridTile& tile) {
+      return tile.ForEachTracker([&region, &regionBounds, &visited, cb](CollisionTrackerPtr tracker) {
+         bool stop = false;
+         if (visited.insert(tracker.get()).second) {
+            if (tracker->Intersects(region, regionBounds)) {
+               stop = cb(tracker);
+            }
+         }
+         return stop;
+      });
+   });
+   return stopped;
+}
+
+
+/*
+ * -- NavGrid::ForEachTrackerForEntity
+ *
+ * Iterate over every tracker for an Entity with the specified `entityId`.
+ *
+ * Stops iteration whenever a cb returns 'true'.  Itself returns 'true' if the iteration
+ * was stopped early.
+ *
+ */
+
+bool NavGrid::ForEachTrackerForEntity(dm::ObjectId entityId, ForEachTrackerCb cb)
+{
+   bool stopped = false;
+   auto i = collision_trackers_.find(entityId), end = collision_trackers_.end();
+
+   if (!stopped && i != end) {
       for (auto const& entry : i->second) {
          CollisionTrackerPtr tracker = entry.second;
-         if (tracker->Intersects(worldBounds)) {
-            return true;
-         }
+         stopped = cb(tracker);
       }
    }
-   return false;
+   return stopped;
+}
+
+
+/*
+ * -- NavGrid::ForEachPointInEntityRegion
+ *
+ * Iterate over every point of an Entity, which is defined to be the sum of all regions
+ * of all the trackers for an Entity.  Points *may* be passed multiple times if trackers
+ * overlap!!
+ *
+ * Stops iteration whenever a cb returns 'true'.  Itself returns 'true' if the iteration
+ * was stopped early.
+ *
+ */
+
+bool NavGrid::ForEachPointInEntityRegion(dm::ObjectId entityId, csg::Point3 const& offset, ForEachPointCb cb)
+{
+   bool stopped;
+   stopped = ForEachTrackerForEntity(entityId, [&offset, cb] (CollisionTrackerPtr tracker) mutable {
+      for (csg::Cube3 const& cube : tracker->GetLocalRegion()) {
+         for (csg::Point3 pt : cube.Translated(offset)) {
+            bool stop = cb(pt);
+            return stop;
+         }
+      }
+      return false;     // keep iterating...
+   });
+   return stopped;      // if we had to stop iteration, we must be blocked!
+}
+
+
+/*
+ * -- NavGrid::IsEntityInCube
+ *
+ * Returns whether or any tracker for `entity` overlaps `worldBounds`
+ *
+ */
+
+bool NavGrid::IsEntityInCube(om::EntityPtr entity, csg::Cube3 const& worldBounds)
+{
+   bool stopped;
+   stopped = ForEachTrackerForEntity(entity->GetObjectId(), [worldBounds](CollisionTrackerPtr tracker) {
+      bool stop = tracker->Intersects(worldBounds);
+      return stop;
+   });
+   return stopped;   // if we had to stop early, we must have found an overlap!
+}
+
+
+/*
+ * -- NavGrid::IsBlocked
+ *
+ * Returns whether or not the space occupied by `entity` is blocked if placed at
+ * the world coordinate specified by `location`.  This completely ignores the
+ * current position of the entity so it can be used for speculative queries (e.g.
+ * if i *were* to move the entity here, would it be blocked?)
+ *
+ */
+
+bool NavGrid::IsBlocked(om::EntityPtr entity, csg::Point3 const& location)
+{
+   bool stopped;
+   stopped = ForEachPointInEntityRegion(entity->GetObjectId(), location, [&location, this] (csg::Point3 const& pt) mutable {
+      bool stop = IsBlocked(pt);
+      return stop;
+   });
+   return stopped;      // if we had to stop iteration, we must be blocked!
+}
+
+
+/*
+ * -- NavGrid::IsBlocked
+ *
+ * Returns whether or not the coordinate at `worldPoint` is blocked.
+ *
+ */
+
+bool NavGrid::IsBlocked(csg::Point3 const& worldPoint)
+{
+   // Choose to do this with the resident tile data with the expectation that
+   // anyone using the point API is actually iterating (so this is cheaper and faster
+   // than the collision tracker method)
+   csg::Point3 index, offset;
+   csg::GetChunkIndex(worldPoint, TILE_SIZE, index, offset);
+   return GridTileResident(index).IsBlocked(offset);
+}
+
+
+/*
+ * -- NavGrid::IsBlocked
+ *
+ * Returns whether or not any point in the specified `region` is blocked.  `region`
+ * should be in the world coodinate system.
+ *
+ */
+bool NavGrid::IsBlocked(csg::Region3 const& region) {
+   bool blocked = ForEachTrackerInRegion(region, [](CollisionTrackerPtr tracker) {
+      return tracker->GetType() == TrackerType::COLLISION; // we found one that's blocked!  stop!!
+   });
+   return blocked;   // we're blocked if we had to stop the iteration
+}
+
+
+/*
+ * -- NavGrid::IsSupport
+ *
+ * Returns whether or not the coordinate at `worldPoint` is support.  A support
+ * point is one that can be stood on by something else (e.g. a piece of ground or
+ * the rung of a ladder).
+ *
+ */
+bool NavGrid::IsSupport(csg::Point3 const& worldPoint)
+{
+   // Choose to do this with the resident tile data with the expectation that
+   // anyone using the point API is actually iterating (so this is cheaper and faster
+   // than the collision tracker method)
+   csg::Point3 index, offset;
+   csg::GetChunkIndex(worldPoint, TILE_SIZE, index, offset);
+   return GridTileResident(index).IsSupport(offset);
+}
+
+
+/*
+ * -- NavGrid::IsSupport
+ *
+ * Returns whether or not any point in the specified `region` is support.  `region`
+ * should be in the world coodinate system.  A support point is one that can be stood
+ * on by something else (e.g. a piece of ground or the rung of a ladder).
+ *
+ */
+bool NavGrid::IsSupport(csg::Region3 const& r)
+{
+   bool stopped = ForEachTileInRegion(r, [&r, this](csg::Point3 const& index, NavGridTile& tile) {
+      // Clip the region to the tile bounds
+      csg::Cube3 bounds = csg::Cube3::one.Scaled(TILE_SIZE).Translated(index * TILE_SIZE);
+      csg::Region3 clipped = r & bounds;
+      clipped.Translate(index * -TILE_SIZE);
+      bool stop = !GridTileResident(index).IsSupport(clipped);
+      return stop;
+   });
+   return !stopped;
+}
+
+/*
+ * -- NavGrid::IsStandable
+ *
+ * Returns whether or not the coordinate at `worldPoint` is standable.  A point is
+ * standable if it is not blocked and the point immediately below it is a
+ * support point (i.e. something can stand there!)
+ *
+ */
+bool NavGrid::IsStandable(csg::Point3 const& worldPoint)
+{
+   return !IsBlocked(worldPoint) && IsSupport(worldPoint - csg::Point3::unitY);
+}
+
+/*
+ * -- NavGrid::IsStandable
+ *
+ * Returns whether or not the region `r` is a valid place to stand.  `r` should be
+ * in world coordinates.  A Region3 is standable if the entire space occupied by
+ * the region is not blocked and every point under the bottom-most slice of the
+ * region is standable.
+ *
+ */
+bool NavGrid::IsStandable(csg::Region3 const& r) {
+   if (IsBlocked(r)) {
+      return false;
+   }
+
+   csg::Cube3 rb = r.GetBounds();
+   csg::Region3 footprint;
+
+   int bottom = rb.min.y;
+   for (csg::Cube3 const& cube : r) {
+      // Only consider cubes that are on the bottom row of the region.
+      if (cube.min.y == bottom) {
+         csg::Cube3 slice(csg::Point3(cube.min.x, bottom - 1, cube.min.z),
+                          csg::Point3(cube.max.x, bottom    , cube.max.z));
+         footprint.AddUnique(slice);
+      }
+   }
+   return IsSupport(footprint);
+}
+
+
+/*
+ * -- NavGrid::IsBlocked
+ *
+ * Returns whether or not the space occupied by `entity` would be standable if placed at
+ * the world coordinate specified by `location`.  This completely ignores the
+ * current position of the entity so it can be used for speculative queries (e.g.
+ * can the entity stand here?)
+ *
+ */
+
+bool NavGrid::IsStandable(om::EntityPtr entity, csg::Point3 const& location)
+{
+   bool stopped;
+   stopped = ForEachPointInEntityRegion(entity->GetObjectId(), location, [this] (csg::Point3 const& pt) mutable {
+      bool stop = !IsStandable(pt);
+      return stop;
+   });
+   return !stopped;      // if we had to stop iteration, we must not be standable!!
+}
+
+
+/*
+ * -- NavGrid::GetStandablePoint
+ *
+ * Given an `entity` and a starting `pt` in the world coodrinate system, return
+ * the closest point that `entity` can stand on with the same y-coordinate at
+ * `pt`.  If the starting point is blocked, GetStandablePoint will search up
+ * for the standable point, otherwise it will search down.  This has the effect
+ * of making things "fall" to the ground when they're in mid-air and "float"
+ * to the surface if accidently placed overlapping some collision shape (e.g.
+ * 3 feet under ground!)
+ *
+ */
+
+csg::Point3 NavGrid::GetStandablePoint(om::EntityPtr entity, csg::Point3 const& pt)
+{
+   csg::Point3 location = pt;
+   int direction = IsBlocked(location) ? 1 : -1;
+   while (bounds_.Contains(location)) {
+      if (IsStandable(entity, location)) {
+         break;
+      }
+      location.y += direction;
+   }
+   return location;
+}
+
+
+/*
+ * -- NavGrid::GetEntityCollisionShape
+ *
+ * Return the collision shape of an Entity as defined by the sum of all the
+ * regions of the opaque trackers.  This is a bizarre thing to want to get.
+ * Whatever you want to do with this, there is almost certainly another,
+ * faster way of getting it done than constructing this region.   For
+ * example, when ForEachPointInEntityRegion will let you do roughly the
+ * same sorts of things you can do with GetEntityCollisionShape, but allows
+ * you to implement a very early exit path by returning true from your
+ * iterator, and avoids the expensive creation of this this region.
+ *
+ */
+
+csg::Region3 NavGrid::GetEntityCollisionShape(dm::ObjectId entityId)
+{
+   // explicity return an empty region if asked for the root object,
+   // because returning the entire terrain as one region is CERTAINLY
+   // a horrible, horrible idea (but will exhibit very littly negative
+   // consequences in our little test environments)
+   if (entityId == 1) {
+      NG_LOG(0) << "GetEntityCollisionShape may not be called on the root entity.";
+      return csg::Region3();
+   }
+
+   csg::Region3 shape;
+   ForEachTrackerForEntity(entityId, [&shape](CollisionTrackerPtr tracker) {
+      TrackerType type = tracker->GetType();
+      switch (type) {
+      case TrackerType::COLLISION:
+      case TrackerType::LADDER:
+      case TrackerType::MOB:
+         shape.Add(tracker->GetLocalRegion());
+         break;
+      }
+      return false;     // keep iterating...
+   });
+   return shape;
 }

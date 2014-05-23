@@ -59,6 +59,7 @@ TrackerType DerivedRegionTracker<T, OT>::GetType() const
    return OT;
 }
 
+
 // define instantiations of this template
 template RegionCollisionShapeTracker;
 template RegionNonCollisionShapeTracker;

@@ -27,25 +27,18 @@ public:
 
    void FlushDirty(NavGrid& ng, TrackerMap& trackers, csg::Cube3 const& world_bounds);
    void UpdateBaseVectors(TrackerMap& trackers, csg::Cube3 const& world_bounds);
-   bool IsEmpty(csg::Cube3 const& bounds);
-   bool CanStandOn(csg::Point3 const& pt);
    void MarkDirty();
-
-public:
-   void ShowDebugShapes(protocol::shapelist* msg, csg::Cube3 const& world_bounds);
+   bool IsMarked(TrackerType type, csg::Point3 const& offest);
 
 private:
-   bool IsMarked(TrackerType type, csg::Point3 const& offest);
    bool IsMarked(TrackerType type, int bit_index);
    int Offset(csg::Point3 const& pt);
    void UpdateCollisionTracker(CollisionTracker const& tracker, csg::Cube3 const& world_bounds);
-   void UpdateDerivedVectors(NavGrid& ng, csg::Cube3 const& world_bounds);
    void UpdateCanStand(NavGrid& ng, csg::Cube3 const& world_bounds);
 
 private:
    enum DirtyBits {
       BASE_VECTORS =    (1 << 0),
-      DERIVED_VECTORS = (1 << 1),
       ALL_DIRTY_BITS =  (-1)
    };
 
@@ -54,7 +47,6 @@ private:
 private:
    int      dirty_;
    BitSet   marked_[NUM_BIT_VECTOR_TRACKERS];
-   BitSet   can_stand_;
 };
 
 END_RADIANT_PHYSICS_NAMESPACE

@@ -47,17 +47,17 @@ local function check_sensor(autotest, sensor_entity, expected)
    end
    for id, entity in sensor:each_contents() do
       if not expected_map[id] then
-         local delta_pos = radiant.entities.get_world_grid_location(entity) -
-                           radiant.entities.get_world_grid_location(sensor_entity)
-         autotest:log('unexpected entity %s found in sensor (delta pos: %s)', entity, delta_pos)
+         local item_pos = radiant.entities.get_world_grid_location(entity)
+         local sensor_pos = radiant.entities.get_world_grid_location(sensor_entity)                          
+         autotest:log('unexpected entity %s found in sensor (item pos: %s  sensor pos: %s  delta pos: %s)', entity, item_pos, sensor_pos, item_pos - sensor_pos)
          success = false
       end
       expected_map[id] = nil
    end
    for id, entity in pairs(expected_map) do
-      local delta_pos = radiant.entities.get_world_grid_location(entity) -
-                        radiant.entities.get_world_grid_location(sensor_entity)
-      autotest:log('could not find expected entity %s in sensor (delta pos: %s)', entity, delta_pos)
+      local item_pos = radiant.entities.get_world_grid_location(entity)
+      local sensor_pos = radiant.entities.get_world_grid_location(sensor_entity)                          
+      autotest:log('could not find expected entity %s in sensor (item pos: %s  sensor pos: %s  delta pos: %s)', entity, item_pos, sensor_pos, item_pos - sensor_pos)
       success = false
    end
    if not success then
@@ -175,7 +175,9 @@ function sensor_tests.moving_sensor(autotest)
 
    local sensor_entity = create_default_sensor(autotest)
    for dz = -radius, radius do 
-      radiant.entities.move_to(sensor_entity, Point3(SENSOR_POS.x, 1, SENSOR_POS.z + dz))
+      local location = Point3(SENSOR_POS.x, 1, SENSOR_POS.z + dz)
+      autotest:log('moving sensor to %s', location)
+      radiant.entities.move_to(sensor_entity, location)
       check_moving_sensor(sensor_entity)
    end
    autotest:success()

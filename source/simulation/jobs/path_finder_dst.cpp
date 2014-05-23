@@ -15,15 +15,17 @@ using namespace ::radiant::simulation;
 
 #define PF_LOG(level)   LOG_CATEGORY(simulation.pathfinder.astar, level, name_ << "(dst " << std::setw(5) << id_ << ")")
 
-PathFinderDst::PathFinderDst(Simulation& sim, om::EntityRef e, std::string const& name, ChangedCb changed_cb) :
+PathFinderDst::PathFinderDst(Simulation& sim, om::EntityRef src, om::EntityRef dst, std::string const& name, ChangedCb changed_cb) :
    sim_(sim),
-   entity_(e),
+   dstEntity_(dst),
+   srcEntity_(src),
    name_(name),
    changed_cb_(changed_cb),
    moving_(false)
 {
-   ASSERT(!e.expired());
-   om::EntityPtr entity  = entity_.lock();
+   ASSERT(!srcEntity_.expired());
+   ASSERT(!dstEntity_.expired());
+   om::EntityPtr entity  = dstEntity_.lock();
    if (entity) {
       id_ = entity->GetObjectId();
       PF_LOG(3) << "adding path finder dst for " << *entity;
@@ -38,12 +40,12 @@ PathFinderDst::~PathFinderDst()
 
 void PathFinderDst::CreateTraces()
 {
-   auto entity = entity_.lock();
-   if (entity) {
+   auto dstEntity = dstEntity_.lock();
+   if (dstEntity) {
       PF_LOG(7) << "creating traces";
 
       auto destination_may_have_changed = [this](const char* reason) {
-         auto ep = entity_.lock();
+         auto ep = dstEntity_.lock();
          if (ep) {
             ClipAdjacentToTerrain();
             changed_cb_(reason);
@@ -51,7 +53,7 @@ void PathFinderDst::CreateTraces()
       };
 
       auto& o = sim_.GetOctTree();
-      auto mob = entity->GetComponent<om::Mob>();
+      auto mob = dstEntity->GetComponent<om::Mob>();
       if (mob) {
          moving_ = mob->GetMoving();
 
@@ -72,7 +74,7 @@ void PathFinderDst::CreateTraces()
                                     }
                                  });
       }
-      auto dst = entity->GetComponent<om::Destination>();
+      auto dst = dstEntity->GetComponent<om::Destination>();
       if (dst) {
          region_guard_ = dst->TraceAdjacent("pf dst", dm::PATHFINDER_TRACES)
                                  ->OnChanged([this, destination_may_have_changed](csg::Region3 const&) {
@@ -88,9 +90,10 @@ void PathFinderDst::ClipAdjacentToTerrain()
 {
    world_space_adjacent_region_.Clear();
 
-   om::EntityPtr entity = entity_.lock();
-   if (entity) {
-      world_space_adjacent_region_ = MovementHelper().GetRegionAdjacentToEntity(sim_, entity);
+   om::EntityPtr dstEntity = dstEntity_.lock();
+   om::EntityPtr srcEntity = srcEntity_.lock();
+   if (dstEntity && srcEntity) {
+      world_space_adjacent_region_ = MovementHelper().GetRegionAdjacentToEntity(sim_, srcEntity, dstEntity);
    }
 }
 
@@ -139,6 +142,6 @@ dm::ObjectId PathFinderDst::GetEntityId() const
 
 om::EntityPtr PathFinderDst::GetEntity() const
 {
-   return entity_.lock();
+   return dstEntity_.lock();
 }
 
