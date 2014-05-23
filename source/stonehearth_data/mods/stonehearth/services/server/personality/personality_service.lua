@@ -9,13 +9,15 @@
    which is mapped to an activity structure. This service and the entity's personality_component
    then figure out together whether a log should be added to that entity's history.
 
-   TODO: Load all the log files from the manifests, not from a function here. 
+   The class also keeps track of all journal entries, sorted by player_id
+
    TODO: a stub implementation for "sequential" (ie, storytelling, non-random) log entries is
    implemented here, but it doesn't yet work if multiple people have the same personality.
    Improve by indexing these entries by entity_id
 ]]
 
 local rng = _radiant.csg.get_default_rng()
+local PlayerJournalData = require 'services.server.personality.player_journal_data'
 
 PersonalityService = class()
 
@@ -36,6 +38,19 @@ function PersonalityService:__init()
 end
 
 function PersonalityService:initialize()
+   self._sv = self.__saved_variables:get_data()
+   if not self._sv._initialized then
+      self._sv._initialized = true
+      --Store all triggered journal entries. Sorted by player_id
+      self._sv.player_journals = {}
+   else
+      for player_id, saved_state in pairs(self._sv.player_journals) do
+         local journal_data = PlayerJournalData()
+         journal_data.__saved_variables = saved_state
+         journal_data:initialize()
+         self._sv.player_journals[player_id] = journal_data
+      end
+   end
 end
 
 --- Call this function with a bag of journal data to register a journal entry 
@@ -52,9 +67,27 @@ function PersonalityService:log_journal_entry(journal_data, score_metadata)
       if personality_component and trigger_data then
          local probability = trigger_data.probability
          local activity_name = trigger_data.activity_id
-         personality_component:register_notable_event(activity_name, probability, namespace, score_metadata)
+         local entry_data = personality_component:register_notable_event(activity_name, probability, namespace, score_metadata)
+         if entry_data then
+            self:_add_log_to_record(radiant.entities.get_player_id(person), entry_data)
+         end
       end
    end
+end
+
+--- Take the data from the journal and log it
+function PersonalityService:_add_log_to_record(player_id, entry_data)
+   if not self._sv.player_journals[player_id] then
+      self._sv.player_journals[player_id] = PlayerJournalData()
+      self._sv.player_journals[player_id].__saved_variables = radiant.create_datastore()
+      self._sv.player_journals[player_id]:initialize()
+   end
+   self._sv.player_journals[player_id]:add_entry(entry_data)
+end
+
+--- Call this function to get all the journal entries relevant to a given player_id
+function PersonalityService:get_journals_for_player(player_id)
+   return self._sv.player_journals[player_id]
 end
 
 --- Internal function to make substitutions into an entity's variables before the journal triggers

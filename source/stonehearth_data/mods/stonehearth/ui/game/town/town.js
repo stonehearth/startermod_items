@@ -11,10 +11,16 @@ App.StonehearthTownView = App.View.extend({
       'happiness' : 50, 
       'nutrition' :50, 
       'shelter' : 50
-   }, 
+   },
+
+   journalData: {
+      'currJournalIndex' : null, 
+      'data' : null
+   },
 
    init: function() {
       var self = this;
+      this.initialized = false;
       this._super();
       self.set('context.town_name', App.stonehearthClient.settlementName())
 
@@ -28,10 +34,36 @@ App.StonehearthTownView = App.View.extend({
                   self.set('context.score_data', eobj.score_data);
                });
          });
+
+         
+      this.currJournalIndex = null;
+      this.set('context.currJournalDayData', {});
+      this.set('context.currJournalDayData.score_up', []);
+      this.set('context.currJournalDayData.score_down', []);
+      this.set('context.currJournalDayData.date', 'Today');
+
+      radiant.call('stonehearth:get_journals')
+         .done(function(response){
+            var uri = response.journals;
+            
+            self.radiantTraceJournals  = new RadiantTrace()
+            self.traceJournals = self.radiantTraceJournals.traceUri(uri, {});
+            self.traceJournals.progress(function(eobj) {
+                  //self.set('context.journalData', eobj.journalData);
+                  self.journalData.data = eobj;
+
+                  if (self.currJournalIndex == null && eobj.journals_by_date.length > 0 || self.currJournalIndex == 0) {
+                     self._changeJournalIndex(0)
+                  } 
+
+               });
+         });
+
    },
 
    destroy: function() {
       this.radiantTrace.destroy();
+      this.radiantTraceJournals.destroy();
       this._super();
    },
 
@@ -44,6 +76,12 @@ App.StonehearthTownView = App.View.extend({
       this.$('.title .closeButton').click(function() {
          self.destroy();
       });
+
+      if (!this.initialized) {
+         $('.tabPage').hide();
+         $('#overviewTab').show();
+         this.initialized = true;
+      }
 
       this.$('.tab').click(function() {
          var tabPage = $(this).attr('tabPage');
@@ -99,7 +137,35 @@ App.StonehearthTownView = App.View.extend({
       this.scores.net_worth_total = this.get('context.score_data.net_worth.total_score');
       this.scores.net_worth_level = this.get('context.score_data.net_worth.level');
       this._updateScores();
-   }.observes('context.score_data.net_worth')
+   }.observes('context.score_data.net_worth'),
+
+
+   _changeJournalIndex: function(nextIndex) {
+      this.currJournalIndex = nextIndex;
+      this.set('context.currJournalDayData', this.journalData.data.journals_by_date[nextIndex]);
+
+      //If the arrays come over empty, for some reason ember thinks they are objects and freaks out
+      if (this.journalData.data.journals_by_date[nextIndex].score_up.length == undefined) {
+          this.set('context.currJournalDayData.score_up', []);
+      }
+      if (this.journalData.data.journals_by_date[nextIndex].score_down.length == undefined) {
+          this.set('context.currJournalDayData.score_down', []);
+      }
+
+   },
+
+   actions: {
+      back: function() {
+         if (this.currJournalIndex + 1 < this.journalData.data.journals_by_date.length) {
+            this._changeJournalIndex(this.currJournalIndex + 1);
+         }
+      },
+      forward: function() {
+         if (this.currJournalIndex != 0) {
+            this._changeJournalIndex(this.currJournalIndex - 1);
+         }
+      }
+   }
 
 });
 
