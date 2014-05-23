@@ -40,13 +40,21 @@ function EscortSquad:add_escort(escort_type, weapon_uri)
 end
 
 
-function EscortSquad:place_squad(spawn_point)
-  radiant.terrain.place_entity(self._sv._escorted, spawn_point)
+function EscortSquad:get_all_entities()
+  local results = { self._sv._escorted }
 
-  self:_attach_listeners()
+  for _, escort in pairs(self._sv._escorts) do
+    table.insert(results, escort)
+  end
+
+  return results
+end
+
+
+function EscortSquad:get_squad_start_displacements()
+  local results = { Point3(0, 0, 0) }
 
   -- Simple box pattern for now.  Spiral out from the 'upper left' of the spawn point.
-
   local x = -2
   local z = -2
   local x_dir = 2
@@ -56,8 +64,6 @@ function EscortSquad:place_squad(spawn_point)
   local turn_count = 0
 
   for _, escort in pairs(self._sv._escorts) do
-
-    radiant.terrain.place_entity(escort, spawn_point + Point3(x, 0, z))
 
     if placed_this_turn == turn_size then
       placed_this_turn = 0
@@ -83,8 +89,26 @@ function EscortSquad:place_squad(spawn_point)
     x = x + x_dir
     z = z + z_dir
 
+    table.insert(results, Point3(x, 0, z))
+
     placed_this_turn = placed_this_turn + 1
   end
+  return results
+end
+
+
+function EscortSquad:place_squad(spawn_point)
+  self:_attach_listeners()
+
+  local start_displacements = self:get_squad_start_displacements()
+
+  radiant.terrain.place_entity(self._sv._escorted, spawn_point)
+  local i = 1
+  for _, escort in pairs(self._sv._escorts) do
+    radiant.terrain.place_entity(escort, spawn_point + start_displacements[i])
+    i = i + 1
+  end
+
   self._sv._spawned = true
   self.__saved_variables:mark_changed()
 end

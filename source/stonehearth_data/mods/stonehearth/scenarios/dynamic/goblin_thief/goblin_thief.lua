@@ -53,7 +53,7 @@ function GoblinThief:start()
    self._sv._triggered = true
    self.__saved_variables:mark_changed()
 
-   -- 2-3 hours of real-world time seems like a not-unreasonable start....
+   -- 3-4 hours of real-world time seems like a not-unreasonable start....
    self:_schedule_next_spawn(rng:get_int(3600 * 3, 3600 * 4))
 end
 
@@ -88,7 +88,7 @@ function GoblinThief:_on_spawn_jerk()
       -- Couldn't find a spawn point, so reschedule to try again later.
       radiant.entities.destroy_entity(self._sv._goblin)
       self._sv._goblin = nil
-      self:_schedule_next_spawn(rng:get_int(3600 * 1, 3600 * 2))
+      self:_schedule_next_spawn(rng:get_int(3600 * 0.5, 3600 * 1))
       return
    end
 

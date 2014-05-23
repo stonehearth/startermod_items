@@ -53,8 +53,8 @@ function GoblinBrigands:start()
    self._sv._triggered = true
    self.__saved_variables:mark_changed()
 
-   -- 2-3 hours of real-world time seems like a not-unreasonable start....
-   self:_schedule_spawn(rng:get_int(3600 * 2, 3600 * 3))
+   -- 3-4 hours of real-world time seems like a not-unreasonable start....
+   self:_schedule_spawn(rng:get_int(3600 * 3, 3600 * 4))
 end
 
 function GoblinBrigands:_attach_listeners()
@@ -88,20 +88,21 @@ function GoblinBrigands:_on_spawn()
       self._sv._squad:add_escort('stonehearth:goblin:brigand', 'stonehearth:wooden_sword')
    end
 
-   local spawn_point = Point3(10, 0, 10)--stonehearth.spawn_region_finder:find_point_outside_civ_perimeter_for_entity(self._sv._goblin, 60)
+   local spawn_points = stonehearth.spawn_region_finder:find_standable_points_outside_civ_perimeter(
+      self._sv._squad:get_all_entities(), self._sv._squad:get_squad_start_displacements(), 60)
 
-   if not spawn_point then
+   if not spawn_points then
       -- Couldn't find a spawn point, so reschedule to try again later.
       self:_schedule_spawn(rng:get_int(3600 * 0.5, 3600 * 1))
       return
    end
 
-   self._sv._stockpile = self._inventory:create_stockpile(spawn_point, {x=2, y=2})
+   self._sv._stockpile = self._inventory:create_stockpile(spawn_points[1], {x=2, y=2})
    local s_comp = self._sv._stockpile:get_component('stonehearth:stockpile')
    s_comp:set_filter({'resource wood'})
    s_comp:set_should_steal(true)
 
-   self._sv._squad:place_squad(spawn_point)
+   self._sv._squad:place_squad(spawn_points[1])
 
    self:_attach_listeners()
    self:_add_restock_task(self._sv._thief)

@@ -2,10 +2,10 @@
     "name" : "Goblin Brigands",
     "scenario_types" : {
       "combat" : {
-        "min_strength" : 0,
-        "max_strength" : 100
+        "min_strength" : 11,
+        "max_strength" : 20
       }
     },
-    "rarity" : "always",
+    "rarity" : "common",
     "script" : "file(goblin_brigands.lua)"
 }
