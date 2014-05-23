@@ -11,6 +11,8 @@ function EscortSquad:__init(player_id, saved_variables)
     self._sv._escorts = {}
     self._sv._escorted = nil
     self._sv._spawned = false
+  elseif self._sv._spawned then
+    self:_attach_listeners()
   end
 end
 
@@ -21,9 +23,6 @@ function EscortSquad:set_escorted(escorted_type)
 
   local escorted = stonehearth.population:get_population(self._player_id):create_new_citizen()
   self._sv._escorted = escorted
-  
-
-  radiant.events.listen_once(escorted, 'radiant:entity:pre_destroy', self, self._escorted_destroyed)
 
   self.__saved_variables:mark_changed()
   return escorted
@@ -34,9 +33,7 @@ function EscortSquad:add_escort(escort_type, weapon_uri)
   local escort = stonehearth.population:get_population(self._player_id):create_new_citizen()
   self:_equip_with_weapon(escort, weapon_uri)
 
-  table.insert(self._sv._escorts, escort)
-
-  radiant.events.listen_once(escort, 'radiant:entity:pre_destroy', self, self._escort_destroyed)
+  self._sv._escorts[escort:get_id()] = escort
 
   self.__saved_variables:mark_changed()
   return escort
@@ -46,11 +43,7 @@ end
 function EscortSquad:place_squad(spawn_point)
   radiant.terrain.place_entity(self._sv._escorted, spawn_point)
 
-  radiant.events.listen(self._sv._escorted, 'stonehearth:combat:engage', self, self._on_escorted_attacked)
-
-  for _, escort in pairs(self._sv._escorts) do
-    self:_add_escort_task(escort, self._sv._escorted)
-  end
+  self:_attach_listeners()
 
   -- Simple box pattern for now.  Spiral out from the 'upper left' of the spawn point.
 
@@ -58,14 +51,13 @@ function EscortSquad:place_squad(spawn_point)
   local z = -2
   local x_dir = 2
   local z_dir = 0
-  local num_placed = 0
   local turn_size = 2
   local placed_this_turn = 0
   local turn_count = 0
 
-  while num_placed < #self._sv._escorts do
+  for _, escort in pairs(self._sv._escorts) do
 
-    radiant.terrain.place_entity(self._sv._escorts[num_placed + 1], spawn_point + Point3(x, 0, z))
+    radiant.terrain.place_entity(escort, spawn_point + Point3(x, 0, z))
 
     if placed_this_turn == turn_size then
       placed_this_turn = 0
@@ -91,7 +83,6 @@ function EscortSquad:place_squad(spawn_point)
     x = x + x_dir
     z = z + z_dir
 
-    num_placed = num_placed + 1
     placed_this_turn = placed_this_turn + 1
   end
   self._sv._spawned = true
@@ -101,6 +92,20 @@ end
 
 function EscortSquad:spawned()
   return self._sv._spawned
+end
+
+function EscortSquad:_attach_listeners()
+  for _, escort in pairs(self._sv._escorts) do
+    self:_add_escort_task(escort, self._sv._escorted)
+  end
+
+  radiant.events.listen_once(self._sv._escorted, 'radiant:entity:pre_destroy', self, self._escorted_destroyed)
+  radiant.events.listen(self._sv._escorted, 'stonehearth:combat:engage', self, self._on_escorted_attacked)
+
+  for _, escort in pairs(self._sv._escorts) do
+    radiant.events.listen_once(escort, 'radiant:entity:pre_destroy', self, self._escort_destroyed)
+  end
+
 end
 
 function EscortSquad:_on_escorted_attacked(context)
@@ -113,16 +118,16 @@ end
 
 function EscortSquad:_escorted_destroyed(e)
   radiant.events.unlisten(self._sv._escorted, 'stonehearth:combat:engage', self, self._on_escorted_attacked)
-  self._escorted = nil
+  self._sv._escorted = nil
 
-  self._entity_destroyed()
+  self:_entity_destroyed()
 end
 
 
 function EscortSquad:_escort_destroyed(e)
-  table.remove(self._sv._escorts, e.entity)
+  self._sv._escorts[e.entity_id] = nil
 
-  self._entity_destroyed()
+  self:_entity_destroyed()
 end
 
 

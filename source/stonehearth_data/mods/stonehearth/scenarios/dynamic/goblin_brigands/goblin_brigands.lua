@@ -3,7 +3,6 @@ local EscortSquad = require 'scenarios.dynamic.goblin_brigands.escort_squad'
 local Point3 = _radiant.csg.Point3
 local rng = _radiant.csg.get_default_rng()
 
-
 function GoblinBrigands.can_spawn()
    return true
 end
@@ -16,21 +15,19 @@ function GoblinBrigands:__init(saved_variables)
    self._sv = self.__saved_variables:get_data()
 
    if self._sv._triggered then
-      radiant.events.listen_once(radiant, 'radiant:game_loaded', self, function(self)
-            if self._sv._squad then
-               self._sv._squad = EscortSquad('game_master', self._sv._squad)
-            end
-            if not self._sv._squad or not self._sv._squad:spawned() then
-               -- We were saved in a triggered state, but no goblin has been spawned.
-               -- This means if you keep saving/loading before the goblin spawns, the 
-               -- goblin will never spawn.  Oh well.
-               self:start()
-            else
-               -- Triggered, and with a goblin on the move.
-               self:_attach_listeners()
-               self:_add_restock_task()
-            end
-         end)
+      if self._sv._squad then
+         self._sv._squad = EscortSquad('game_master', self._sv._squad)
+      end
+      if not self._sv._squad or not self._sv._squad:spawned() then
+         -- We were saved in a triggered state, but no goblin has been spawned.
+         -- This means if you keep saving/loading before the goblin spawns, the 
+         -- goblin will never spawn.  Oh well.
+         self:start()
+      else
+         -- Triggered, and with a goblin on the move.
+         self:_attach_listeners()
+         self:_add_restock_task(self._sv._thief)
+      end
    end
 end
 
@@ -57,7 +54,7 @@ function GoblinBrigands:start()
    self.__saved_variables:mark_changed()
 
    -- 2-3 hours of real-world time seems like a not-unreasonable start....
-   self:_schedule_spawn(1)
+   self:_schedule_spawn(rng:get_int(3600 * 2, 3600 * 3))
 end
 
 function GoblinBrigands:_attach_listeners()
@@ -95,7 +92,7 @@ function GoblinBrigands:_on_spawn()
 
    if not spawn_point then
       -- Couldn't find a spawn point, so reschedule to try again later.
-      self:_schedule_spawn(1)--rng:get_int(3600 * 1, 3600 * 2))
+      self:_schedule_spawn(rng:get_int(3600 * 0.5, 3600 * 1))
       return
    end
 
