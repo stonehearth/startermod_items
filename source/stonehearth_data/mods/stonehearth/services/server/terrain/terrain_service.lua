@@ -48,7 +48,9 @@ function TerrainService:_update_convex_hull()
    for player_id, pop in pairs(friendly_pops) do
       local citizens = pop:get_citizens()
       for _, entity in pairs(citizens) do
-         table.insert(new_points, entity:get_component('mob'):get_world_grid_location())
+         if entity:is_valid() and entity:get_component('mob') ~= nil then
+            table.insert(new_points, entity:get_component('mob'):get_world_grid_location())
+         end
       end
    end
 
