@@ -17,8 +17,8 @@ function Terrain.place_entity(entity, location)
    if type(location) == "table" then
       location = Point3(location.x, location.y, location.z)
    end
-   location = Terrain.get_standable_point(entity, location)
-   return Terrain.place_entity_at_exact_location(entity, location)
+   local pt = _physics:get_standable_point(entity, location)
+   return Terrain.place_entity_at_exact_location(entity, pt)
 end
 
 -- place `entity` at the exact spot specified by `location`.  this could
@@ -42,7 +42,7 @@ end
 
 function Terrain.get_standable_point(entity, pt)
    local start_point = Terrain.get_point_on_terrain(pt)
-   return _physics:get_standable_point(entity, start_point)
+   return _physics:get_standable_point(entity, location)
 end
 
 -- returns the height (y coordinate) of the highest terrain voxel at (x, z)
