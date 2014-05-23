@@ -69,6 +69,11 @@ function entities.create_proxy_entity(use_default_adjacent_region)
    return proxy_entity
 end
 
+function entities.get_parent(entity)
+   local mob = entity:get_component('mob')
+   return mob and mob:get_parent() or nil
+end
+
 function entities.add_child(parent, child, location)
    radiant.check.is_entity(parent)
    radiant.check.is_entity(child)

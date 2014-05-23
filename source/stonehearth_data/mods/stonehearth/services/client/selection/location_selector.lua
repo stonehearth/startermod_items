@@ -29,6 +29,11 @@ function LocationSelector:allow_shift_queuing(enabled)
    return self
 end
 
+function LocationSelector:set_filter_fn(fn)
+   self._filter_fn = fn
+   return self
+end
+
 function LocationSelector:set_min_locations_count(count)
    self._locations_remaining_count = count
    return self
@@ -90,11 +95,13 @@ function LocationSelector:_get_selected_brick(x, y)
    for result in s:each_result() do
       -- skip the cursor...
       if result.entity ~= self._cursor_entity then
-         local brick, normal = result.brick, result.normal
-         if normal.x > 0 or normal.z > 0 or normal.y > 0 then
-            return brick + normal:to_int()
+         if not self._filter_fn or self._filter_fn(result) then
+            local brick, normal = result.brick, result.normal
+            if normal.x > 0 or normal.z > 0 or normal.y > 0 then
+               return brick + normal:to_int()
+            end
+            return brick
          end
-         return brick
       end
    end
 end

@@ -27,9 +27,11 @@ function BuildService:set_active(building, enabled)
             _set_active_recursive(child, enabled)
          end
       end
-      local cp = blueprint:get_component('stonehearth:construction_progress')
-      if cp then
-         cp:set_active(enabled)
+      for _, component_name in ipairs({'stonehearth:construction_progress', 'stonehearth:fixture_fabricator'}) do
+         local c = blueprint:get_component(component_name)
+         if c then
+            c:set_active(enabled)
+         end
       end
    end  
    _set_active_recursive(building, enabled)
@@ -109,9 +111,8 @@ function BuildService:_add_fabricator(blueprint)
    fabricator:set_debug_text('(Fabricator for ' .. tostring(blueprint) .. ')')
    
    if blueprint:get_component('stonehearth:construction_data') then
-      local name = tostring(blueprint)
       fabricator:add_component('stonehearth:fabricator')
-                     :start_project(name, blueprint)
+                     :start_project(blueprint)
       blueprint:add_component('stonehearth:construction_progress')   
                      :set_fabricator_entity(fabricator)
    end   
@@ -580,18 +581,24 @@ end
 function BuildService:add_portal(session, response, wall_entity, portal_uri, location)
    local wall = wall_entity:get_component('stonehearth:wall')
    if wall then
+      local building = self:_get_building_for(wall_entity)
       local portal = radiant.entities.create_entity(portal_uri)
 
-      -- `portal` is actually a blueprint of the fixture, not the actual fixture
-      -- itself.  change the material we use to render it and hook up a fixture_fabricator
-      -- to help build it.
-      portal:add_component('stonehearth:fixture_fabricator')
-      portal:add_component('render_info')
-                  :set_material('materials/blueprint.material.xml')
+      portal:add_component('unit_info')
+               :set_player_id(radiant.entities.get_player_id(building))
+               :set_faction(radiant.entities.get_faction(building))
 
       -- add the new portal to the wall and reconstruct the shape.
       wall:add_portal(portal, location)
           :layout()
+
+      -- `portal` is actually a blueprint of the fixture, not the actual fixture
+      -- itself.  change the material we use to render it and hook up a fixture_fabricator
+      -- to help build it.
+      portal:add_component('render_info')
+                  :set_material('materials/blueprint.material.xml')
+      portal:add_component('stonehearth:fixture_fabricator')
+                  :start_project()
 
       response:resolve({
          new_selection = portal

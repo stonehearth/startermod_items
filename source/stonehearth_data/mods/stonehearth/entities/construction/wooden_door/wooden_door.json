@@ -37,7 +37,7 @@
       "effect_list" : {
          "default" : "file(/data/rigs/door/effects/closed.json)"
       },
-      "sensor_list": {
+      "_sensor_list": {
          "sensors": {
             "door_sensor": {
                "type": "sensor",
