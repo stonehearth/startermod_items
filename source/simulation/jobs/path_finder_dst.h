@@ -18,7 +18,7 @@ class PathFinderDst {
 public:
    typedef std::function<void(const char *reason)> ChangedCb;
 
-   PathFinderDst(Simulation& sim, om::EntityRef e, std::string const& name, ChangedCb changed_cb);
+   PathFinderDst(Simulation& sim, om::EntityRef src, om::EntityRef dst, std::string const& name, ChangedCb changed_cb);
    ~PathFinderDst();
 
    om::EntityPtr GetEntity() const;
@@ -39,7 +39,8 @@ public:
    Simulation&                sim_;
    std::string                name_;
    dm::ObjectId               id_;
-   om::EntityRef              entity_;
+   om::EntityRef              srcEntity_;
+   om::EntityRef              dstEntity_;
    ChangedCb                  changed_cb_;
    bool                       moving_;
    om::DeepRegionGuardPtr     region_guard_;

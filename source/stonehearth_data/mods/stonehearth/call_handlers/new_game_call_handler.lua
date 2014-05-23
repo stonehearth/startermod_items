@@ -92,9 +92,10 @@ end
 function NewGameCallHandler:embark_server(session, response)
    local scenario_service = stonehearth.scenario
    local wgs = stonehearth.world_generation
+
    local x = wgs.generation_location.x
    local z = wgs.generation_location.z
-   local y = radiant.terrain.get_height(x, z)
+   local y = radiant.terrain.get_point_on_terrain(Point3(x, 0, z)).y
 
    return {
       x = x,

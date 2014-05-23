@@ -12,7 +12,7 @@ end
 function SpawnRegionFinderService:_find_near_standable_point(entity, point)
    for i = -2,2,1 do
       local test_point = Point3(point.x, point.y + i, point.z)
-      if radiant.terrain.can_stand_on(entity, test_point) then
+      if radiant.terrain.is_standable(entity, test_point) then
          return test_point
       end
    end

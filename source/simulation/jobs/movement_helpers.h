@@ -12,8 +12,8 @@ class MovementHelper
 public:
    MovementHelper(int _logLevel = 0);
 
-   bool GetClosestPointAdjacentToEntity(Simulation& sim, csg::Point3 const& from, om::EntityPtr const& entity, csg::Point3& closestPoint);
-   csg::Region3 GetRegionAdjacentToEntity(Simulation& sim, om::EntityPtr const& entity);
+   bool GetClosestPointAdjacentToEntity(Simulation& sim, csg::Point3 const& from, om::EntityPtr const& srcEntity, om::EntityPtr const& dstEntity, csg::Point3& closestPoint);
+   csg::Region3 GetRegionAdjacentToEntity(Simulation& sim, om::EntityPtr const& srcEntity, om::EntityPtr const& dstEntity);
    csg::Point3 GetPointOfInterest(csg::Point3 const& adjacentPoint, om::EntityPtr const& entity);
    std::vector<csg::Point3> GetPathPoints(Simulation& sim, om::EntityPtr const& entity, bool reversible, csg::Point3 const& start, csg::Point3 const& end);
 

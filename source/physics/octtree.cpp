@@ -206,7 +206,7 @@ template <class T>
 bool OctTree::CanStandOnOneOf(om::EntityPtr const& entity, std::vector<csg::Point<T,3>> const& points, csg::Point<T,3>& standablePoint) const
 {
    for (csg::Point<T,3> const& point : points) {
-      if (navgrid_.CanStandOn(entity, csg::ToClosestInt(point))) {
+      if (navgrid_.IsStandable(entity, csg::ToClosestInt(point))) {
          standablePoint = point;
          return true;
       }
@@ -231,7 +231,7 @@ bool OctTree::ValidMove(om::EntityPtr const& entity, bool const reversible,
 
    // check that destination is standable
    // not checking that source location is standable so that entities can move off of invalid squares (newly invalid, bugged, etc)
-   if (!navgrid_.CanStandOn(entity, toLocation)) {
+   if (!navgrid_.IsStandable(entity, toLocation)) {
       return false;
    }
 
@@ -353,7 +353,7 @@ OctTree::MovementCostVector OctTree::ComputeNeighborMovementCost(om::EntityPtr e
    for (const auto& direction : cardinal_directions) {
       for (int dy = 1; dy >= -2; dy--) {
          csg::Point3 to = from + direction + csg::Point3(0, dy, 0);
-         if (navgrid_.CanStandOn(entity, to)) {
+         if (navgrid_.IsStandable(entity, to)) {
             result.push_back(std::make_pair(to, GetMovementCost(from, to)));
             break;
          }
@@ -363,7 +363,7 @@ OctTree::MovementCostVector OctTree::ComputeNeighborMovementCost(om::EntityPtr e
    for (const auto& direction : diagonal_directions) {
       for (int dy = 1; dy >= -2; dy--) {
          csg::Point3 to = from + direction + csg::Point3(0, dy, 0);
-         if (!navgrid_.CanStandOn(entity, to)) {
+         if (!navgrid_.IsStandable(entity, to)) {
             continue;
          }
          if (!ValidDiagonalMove(entity, from, to)) {
@@ -376,7 +376,7 @@ OctTree::MovementCostVector OctTree::ComputeNeighborMovementCost(om::EntityPtr e
 
    for (const auto& direction : vertical_directions) {
       csg::Point3 to = from + direction;
-      if (navgrid_.CanStandOn(entity, to)) {
+      if (navgrid_.IsStandable(entity, to)) {
          result.push_back(std::make_pair(to, GetMovementCost(from, to)));
       }
    }
@@ -436,15 +436,6 @@ void OctTree::ShowDebugShapes(csg::Point3 const& pt, protocol::shapelist* msg)
    navgrid_.ShowDebugShapes(pt, msg);
 }
 
-bool OctTree::CanStandOn(om::EntityPtr entity, const csg::Point3& at) const
-{
-   return navgrid_.CanStandOn(entity, at);
-}
-
-void OctTree::RemoveNonStandableRegion(om::EntityPtr e, csg::Region3& r) const
-{
-   return navgrid_.RemoveNonStandableRegion(e, r);
-}
 
 void OctTree::EnableSensorTraces(bool enabled)
 {

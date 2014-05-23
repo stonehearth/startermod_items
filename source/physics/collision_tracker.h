@@ -22,8 +22,12 @@ public:
 
    virtual void Initialize();
    virtual TrackerType GetType() const = 0;
+   virtual csg::Region3 const& GetLocalRegion() const = 0;
    virtual csg::Region3 GetOverlappingRegion(csg::Cube3 const& bounds) const = 0;
    virtual bool Intersects(csg::Cube3 const& worldBounds) const = 0;
+
+   bool Intersects(csg::Region3 const& region) const;
+   bool Intersects(csg::Region3 const& region, csg::Cube3 const& regionBounds) const;
 
    csg::Point3 GetEntityPosition() const;
    om::EntityPtr GetEntity() const;

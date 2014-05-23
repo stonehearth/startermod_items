@@ -23,7 +23,7 @@ class Mob(Component):
       HUMANOID    = 2,
    )
    mob_collision_type = dm.Boxed(mob_collision_types)
-
+   get_mob_collision_box = ridl.Method(csg.Cube3()).const
    move_to = ridl.Method(c.void(), ('location', csg.Point3f().const.ref))
    move_to_grid_aligned = ridl.Method(c.void(), ('location', csg.Point3().const.ref))
    turn_to = ridl.Method(c.void(), ('degrees', c.float()))

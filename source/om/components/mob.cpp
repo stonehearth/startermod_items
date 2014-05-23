@@ -200,3 +200,25 @@ void Mob::SetLocationGridAligned(csg::Point3 const& location)
    MoveTo(csg::ToFloat(location));
 }
 
+/*
+ * -- Mob::GetMobCollisionBox
+ *
+ * Return the size of the collision box in the entity's local coordinate system
+ * given its mob collision type value.
+ *
+ */
+csg::Cube3 Mob::GetMobCollisionBox() const
+{
+   switch (*mob_collision_type_) {
+   case Mob::NONE:
+      return csg::Cube3::zero;
+   case Mob::TINY:
+      return csg::Cube3::one;
+      break;
+   case Mob::HUMANOID:
+      return csg::Cube3(csg::Point3::zero, csg::Point3(1, 4, 1));
+   }
+   NOT_REACHED();
+   return csg::Cube3::zero;
+}
+

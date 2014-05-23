@@ -25,6 +25,7 @@ TerrainTracker::TerrainTracker(NavGrid& ng, om::EntityPtr entity, om::TerrainPtr
  *
  * Put a trace on the terrain to create and destroy TerrainTileTrackers when Terrain tiles
  * come and go.
+ *
  */
 void TerrainTracker::Initialize()
 {
@@ -52,9 +53,21 @@ void TerrainTracker::MarkChanged()
 }
 
 /*
+ * -- TerrainTracker::GetLocalRegion
+ *
+ * Regions are tracked by tiles, so just don't do anything
+ *
+ */
+csg::Region3 const& TerrainTracker::GetLocalRegion() const
+{
+   return csg::Region3::empty;
+}
+
+/*
  * -- TerrainTracker::GetOverlappingRegion
  *
  * The Terrain doesn't have a collision shape, so there's nothing to do.
+ *
  */
 csg::Region3 TerrainTracker::GetOverlappingRegion(csg::Cube3 const& bounds) const
 {
@@ -66,8 +79,13 @@ TrackerType TerrainTracker::GetType() const
    return COLLISION;
 }
 
+/*
+ * -- TerrainTracker::GetOverlappingRegion
+ *
+ * Leave it to the terrain tiles...
+ *
+ */
 bool TerrainTracker::Intersects(csg::Cube3 const& worldBounds) const
 {
-   // leave it to the terrain tiles...
    return false;
 }

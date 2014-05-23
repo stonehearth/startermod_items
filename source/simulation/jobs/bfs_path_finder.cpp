@@ -523,6 +523,7 @@ void BfsPathFinder::AddTileToSearch(csg::Point3 const& index)
       } else {
          BFS_LOG(5) << "already visited entity " << *entity << ".  ignoring.";
       }
+      return false;  // keep iterating...
    });
 }
 

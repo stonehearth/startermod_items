@@ -121,6 +121,7 @@ void SensorTracker::TraceNavGridTiles()
          _sensorTileTrackers.erase(cursor);
          navgrid_.ForEachEntityAtIndex(cursor, [this](om::EntityPtr entity) {
             CheckEntity(entity->GetObjectId(), entity);
+            return false;  // keep iterating...
          });
       }
    }
@@ -176,11 +177,13 @@ void SensorTracker::CheckEntity(dm::ObjectId entityId, om::EntityRef e)
 {
    auto sensor = sensor_.lock();
    if (sensor) {
-      bool intersects = navgrid_.IntersectsWorldBounds(entityId, bounds_);
+      bool intersects = false;
+      om::EntityPtr entity = e.lock();
+      if (entity) {
+         intersects = navgrid_.IsEntityInCube(entity, bounds_);
+      }
       if (intersects) {
-         if (!e.expired()) {
-            AddEntity(entityId, e);
-         }
+         AddEntity(entityId, e);
       } else {
          ST_LOG(7) << "removing entity " << entityId << " from sensor";
          auto& contents = sensor->GetContainer();

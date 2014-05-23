@@ -89,10 +89,10 @@ function CombatIdleShuffle:_choose_destination(entity, enemy)
    while num_angles > 0 do
       roll = rng:get_int(1, num_angles)
       angle = angles[roll]
-      destination = self:_calculate_location(entity_location, enemy_direction, angle, distance)
+      destination = self:_calculate_location(entity, entity_location, enemy_direction, angle, distance)
 
       if destination ~= nil then
-         if radiant.terrain.can_stand_on(entity, destination) then
+         if radiant.terrain.is_standable(entity, destination) then
             if not self:_is_occupied(destination) then
                return destination
             end
@@ -106,22 +106,12 @@ function CombatIdleShuffle:_choose_destination(entity, enemy)
    return nil
 end
 
-function CombatIdleShuffle:_calculate_location(start_location, enemy_direction, angle, distance)
+function CombatIdleShuffle:_calculate_location(entity, start_location, enemy_direction, angle, distance)
    local vector = rotate_about_y_axis(enemy_direction, angle)
    vector:scale(distance)
 
    local new_location = start_location + vector
-
-   local x = MathFns.round(new_location.x)
-   local z = MathFns.round(new_location.z)
-   local y = radiant.terrain.get_height(x, z)
-
-   if y == nil then
-      return nil
-   end
-
-   local new_grid_location = Point3(x, y, z)
-   return new_grid_location
+   return radiant.terrain.get_standable_point(entity, new_location:to_int())
 end
 
 function CombatIdleShuffle:_is_occupied(location)
