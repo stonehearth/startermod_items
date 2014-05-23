@@ -62,55 +62,34 @@ csg::Cube3 Terrain::CalculateBounds() const
    return result;
 }
 
-void Terrain::PlaceEntity(EntityRef e, csg::Point3 const& location)
+csg::Point3 Terrain::GetPointOnTerrain(csg::Point3 const& location) const
 {
-   csg::Point3 placed_location;
-   auto entity = e.lock();
-   if (entity) {
-      csg::Cube3 bounds = GetBounds();
-
-      if (bounds.Contains(location)) {
-         placed_location = location;
-      } else {
-         TERRAIN_LOG(5) << "Cannot place entity at " << location << " because it is not in the world. Moving to closest world location.";
-         placed_location = bounds.GetClosestPoint(location);
-      }
-
-      placed_location.y = GetHeight(placed_location.x, placed_location.z);
-
-      if (placed_location.y != INT_MIN) {
-         auto mob = entity->GetComponent<Mob>();
-         if (mob) {
-            mob->MoveToGridAligned(placed_location);
-         }
-      }
+   csg::Cube3 bounds = GetBounds();
+   csg::Point3 pt;
+   if (bounds.Contains(location)) {
+      pt = location;
+   } else {
+      pt = bounds.GetClosestPoint(location);
    }
-}
 
-// returns the maximum height at (x,z)
-// throws exception if (x,z) is not in the world
-// returns INT_MIN if no cube intersects the (x,z) column
-int Terrain::GetHeight(int x, int z) const
-{
    int max_y = INT_MIN;
-   csg::Point3 const location3 = csg::Point3(x, 0, z);
    csg::Point3 tile_offset;
-   Region3BoxedPtr region_ptr = GetTile(location3, tile_offset);
-   csg::Point3 const& region_local_pt = location3 - tile_offset;
+   Region3BoxedPtr region_ptr = GetTile(pt, tile_offset);
+   csg::Point3 const& region_local_pt = pt - tile_offset;
 
    if (!region_ptr) {
-      throw std::invalid_argument(BUILD_STRING("point " << location3 << " is not in world"));
+      throw std::invalid_argument(BUILD_STRING("point " << pt << " is not in world (bounds:" << bounds << ")"));
    }
    csg::Region3 const& region = region_ptr->Get();
 
    // O(n) search - consider optimizing
    for (csg::Cube3 const& cube : region) {
       if (region_local_pt.x >= cube.GetMin().x && region_local_pt.x < cube.GetMax().x &&
-            region_local_pt.z >= cube.GetMin().z && region_local_pt.z < cube.GetMax().z) {
+          region_local_pt.z >= cube.GetMin().z && region_local_pt.z < cube.GetMax().z) {
          max_y = std::max(cube.GetMax().y, max_y);
       }
    }
-   return max_y;
+   return csg::Point3(pt.x, max_y, pt.z);
 }
 
 Region3BoxedPtr Terrain::GetTile(csg::Point3 const& location, csg::Point3& tile_offset) const

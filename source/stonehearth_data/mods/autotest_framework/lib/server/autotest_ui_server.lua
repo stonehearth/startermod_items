@@ -23,14 +23,14 @@ function ui_server.move_camera(position, look_at)
 end
 
 function ui_server.click_terrain(x, z)
-   local y = radiant.terrain.get_height(x, z)
+   local y = radiant.terrain.get_point_on_terrain(Point3(x, 0, z)).y
    _send(commands.CLICK_WORLD_COORD, x, y, z)
    _client:send(commands.WAIT_REALTIME, ui_sleep)
 end
 
 function ui_server.set_next_designation_region(x1, z1, w, h)
    local x2, z2 = x1 + w, z1 + h
-   local y1 = radiant.terrain.get_height(x1, z1)
+   local y1 = radiant.terrain.get_point_on_terrain(Point3(x1, 0, z1)).y  
    local p0 = Point3(x1, y1, z1)
    local p1 = Point3(x2, y1 + 1, z2)
    _send(commands.SET_SELECT_XZ_REGION, p0, p1)

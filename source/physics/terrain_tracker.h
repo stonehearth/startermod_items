@@ -24,6 +24,7 @@ public:
 
    void Initialize() override;
    TrackerType GetType() const override;  
+   csg::Region3 const& GetLocalRegion() const override;
    csg::Region3 GetOverlappingRegion(csg::Cube3 const& bounds) const override;
    bool Intersects(csg::Cube3 const& worldBounds) const override;
 

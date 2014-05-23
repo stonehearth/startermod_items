@@ -40,8 +40,12 @@ public:
 
    void OnTrackerRemoved(dm::ObjectId entityId);
 
-   bool IsEmpty(csg::Cube3 const& bounds);
-   bool CanStandOn(csg::Point3 const& pt);
+   bool IsBlocked(csg::Point3 const& pt);
+   bool IsBlocked(csg::Cube3 const& bounds);
+
+   bool IsSupport(csg::Point3 const& pt);
+   bool IsSupport(csg::Cube3 const& bounds);
+   bool IsSupport(csg::Region3 const& region);
    void FlushDirty(NavGrid& ng, csg::Point3 const& index);
 
    bool IsDataResident() const;
@@ -71,7 +75,6 @@ public:
    core::Guard RegisterChangeCb(ChangeCb cb);
 
 public:
-   void UpdateBaseVectors(csg::Point3 const& index);
    void ShowDebugShapes(protocol::shapelist* msg, csg::Point3 const& index);
 
 private:
@@ -85,8 +88,6 @@ private:
    bool IsMarked(TrackerType type, int bit_index);
    int Offset(csg::Point3 const& pt);
    void UpdateCollisionTracker(TrackerType type, CollisionTracker const& tracker);
-   void UpdateDerivedVectors(csg::Cube3 const& world_bounds);
-   void UpdateCanStand();
    csg::Cube3 GetWorldBounds(csg::Point3 const& index) const;
 
 private:

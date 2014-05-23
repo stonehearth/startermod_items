@@ -109,7 +109,7 @@ void SensorTileTracker::UpdateFlags(int flags)
       om::EntityPtr entity = tracker->GetEntity();
       dm::ObjectId entityId = entity->GetObjectId();
       CheckEntity(NavGridTile::ENTITY_MOVED, entityId, entity);
-      return true;
+      return false;     // keep iterating...
    });
 }
 

@@ -372,7 +372,7 @@ om::DataStorePtr Client_CreateDataStore(lua_State* L)
 
 bool Client_IsValidStandingRegion(lua_State* L, csg::Region3 const& r)
 {
-   return Client::GetInstance().GetOctTree().GetNavGrid().IsValidStandingRegion(r);
+   return Client::GetInstance().GetOctTree().GetNavGrid().IsStandable(r);
 }
 
 CaptureInputPromisePtr Client_CaptureInput(lua_State* L)

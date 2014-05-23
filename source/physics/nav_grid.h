@@ -35,15 +35,34 @@ class NavGrid {
    public: // public methods
       NavGrid(int trace_category);
 
-      typedef std::function<void(om::EntityPtr)> ForEachEntityCb;
+      typedef std::function<bool(om::EntityPtr)> ForEachEntityCb;
 
-      bool CanStandOn(om::EntityPtr entity, csg::Point3 const& pt);
-      void RemoveNonStandableRegion(om::EntityPtr entity, csg::Region3& r);
-      void ForEachEntityAtIndex(csg::Point3 const& index, ForEachEntityCb cb);
-      void ForEachEntityInBounds(csg::Cube3 const& worldBounds, ForEachEntityCb cb);
-      bool IntersectsWorldBounds(dm::ObjectId entityId, csg::Cube3 const& worldBounds);
+      // Blocked Queries.  Blocked means there is some opaque voxel making that location
+      // unreachable (e.g. inside the ground, or a wall, etc.)
+      bool IsBlocked(om::EntityPtr entity, csg::Point3 const& pt);
+      bool IsBlocked(csg::Point3 const& worldPoint);
+      bool IsBlocked(csg::Region3 const& worldRegion);
 
-      bool IsValidStandingRegion(csg::Region3 const& r);
+      // Support Queries.  Supported means all the blocks directly under the bottom
+      // row of the region are capable of supporting weight.
+      bool IsSupport(csg::Point3 const& worldPoint);
+      bool IsSupport(csg::Region3 const& worldRegion);
+
+      // Standable Queries.  Standable means the region below the bottom of the location
+      // is Support and the entire region is not Blocked
+      bool IsStandable(csg::Point3 const& worldPoint);
+      bool IsStandable(csg::Region3 const& worldRegion);
+      bool IsStandable(om::EntityPtr entity, csg::Point3 const& pt);
+      csg::Point3 GetStandablePoint(om::EntityPtr entity, csg::Point3 const& pt);
+
+      // Queries.  
+      bool IsEntityInCube(om::EntityPtr entity, csg::Cube3 const& worldBounds);
+      bool ForEachEntityAtIndex(csg::Point3 const& index, ForEachEntityCb cb);
+      bool ForEachEntityInBounds(csg::Cube3 const& worldBounds, ForEachEntityCb cb);
+      bool ForEachEntityInRegion(csg::Region3 const& worldRegion, ForEachEntityCb cb);
+
+      // Misc
+      void RemoveNonStandableRegion(om::EntityPtr entity, csg::Point3 const& location, csg::Region3& r);
       void ShowDebugShapes(csg::Point3 const& pt, protocol::shapelist* msg);
 
    private: // methods for internal helper classes
@@ -59,10 +78,20 @@ class NavGrid {
       friend SensorTracker;
       friend SensorTileTracker;
 
+      typedef std::function<bool(CollisionTrackerPtr)> ForEachTrackerCb;
+      typedef std::function<bool(csg::Point3 const& index, NavGridTile&)> ForEachTileCb;
+      typedef std::function<bool(csg::Point3 const& index)> ForEachPointCb;
+
       int GetTraceCategory();
       void AddTerrainTileTracker(om::EntityRef entity, csg::Point3 const& offset, om::Region3BoxedPtr tile);
       void OnTrackerBoundsChanged(csg::Cube3 const& last_bounds, csg::Cube3 const& bounds, CollisionTrackerPtr tracker);
       void OnTrackerDestroyed(csg::Cube3 const& bounds, dm::ObjectId entityId);
+      bool ForEachTileInBounds(csg::Cube3 const& bounds, ForEachTileCb);
+      bool ForEachTileInRegion(csg::Region3 const& region, ForEachTileCb cb);
+      bool ForEachTrackerInRegion(csg::Region3 const& worldRegion, ForEachTrackerCb cb);
+      bool ForEachTrackerForEntity(dm::ObjectId entityId, ForEachTrackerCb cb);
+      bool ForEachPointInEntityRegion(dm::ObjectId entityId, csg::Point3 const& offset, ForEachPointCb cb);
+      csg::Region3 GetEntityCollisionShape(dm::ObjectId entityId);
 
    private: // methods exposed only to the OctTree
       friend OctTree;
@@ -73,7 +102,6 @@ class NavGrid {
       NavGridTile& GridTileResident(csg::Point3 const& pt);
       NavGridTile& GridTileNonResident(csg::Point3 const& pt);
       NavGridTile& GridTile(csg::Point3 const& pt, bool make_resident);
-      bool CanStandOn(csg::Cube3 const& cube);
 
    private: // private types
       typedef std::unordered_map<csg::Point3, NavGridTile, csg::Point3::Hash> NavGridTileMap;
