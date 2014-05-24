@@ -18,7 +18,6 @@ function Terrain.place_entity(entity, location)
       location = Point3(location.x, location.y, location.z)
    end
    local pt = _physics:get_standable_point(entity, location)
-   radiant.log.write('ug', 0, '%s %s -> %s', entity, location, pt)
    return Terrain.place_entity_at_exact_location(entity, pt)
 end
 
