@@ -28,44 +28,6 @@ NavGridTileData::~NavGridTileData()
 }
 
 /*
- * -- NavGridTileData::IsEmpty
- *
- * Returns true if every point in the cube is not marked in the COLLISION set.
- * Otherwise, false.
- *
- * The cube must be passed in *tile local* coordinates (so 0 - 15 for all
- * coordinates)
- */
-bool NavGridTileData::IsEmpty(csg::Cube3 const& cube)
-{
-   ASSERT((dirty_ & BASE_VECTORS) == 0);
-
-   for (csg::Point3 const& pt : cube) {
-      if (IsMarked(COLLISION, pt)) {
-         return false;
-      }
-   }
-   return true;
-}
-
-/*
- * -- NavGridTileData::CanStandOn
- *
- * Returns true if the can_stand bit is set.  Otherwise, false.  See
- * UpdateCanStand for more info.
- *
- * The pt must be passed in *tile local* coordinates (so 0 - 15 for all
- * coordinates)
- */
-bool NavGridTileData::CanStandOn(csg::Point3 const& pt)
-{
-   ASSERT((dirty_ & DERIVED_VECTORS) == 0);
-
-   return can_stand_[Offset(pt)];
-}
-
-
-/*
  * -- NavGridTileData::IsMarked
  *
  * Checks to see if the point for the specified tracker is set.
@@ -111,7 +73,6 @@ int NavGridTileData::Offset(csg::Point3 const& pt)
 void NavGridTileData::FlushDirty(NavGrid& ng, TrackerMap& trackers, csg::Cube3 const& world_bounds)
 {
    UpdateBaseVectors(trackers, world_bounds);
-   UpdateDerivedVectors(ng, world_bounds);
    dirty_ = 0;
 }
 
@@ -131,21 +92,6 @@ void NavGridTileData::UpdateBaseVectors(TrackerMap& trackers, csg::Cube3 const& 
       stdutil::ForEachPrune<dm::ObjectId, CollisionTracker>(trackers, [this, &world_bounds](dm::ObjectId const&, CollisionTrackerPtr tracker) {
          UpdateCollisionTracker(*tracker, world_bounds);
       });
-   }
-}
-
-/*
- * -- NavGridTileData::UpdateDerivedVectors
- *
- * Update the derived vectors for the navgrid.  Will verify that the base vectors
- * have been updated for you.
- */
-void NavGridTileData::UpdateDerivedVectors(NavGrid& ng, csg::Cube3 const& world_bounds)
-{
-   ASSERT((dirty_ & BASE_VECTORS) == 0);
-   if (dirty_ & DERIVED_VECTORS) {
-      dirty_ &= ~DERIVED_VECTORS;
-      UpdateCanStand(ng, world_bounds);
    }
 }
 
@@ -176,98 +122,6 @@ void NavGridTileData::UpdateCollisionTracker(CollisionTracker const& tracker, cs
       }
       NG_LOG(5) << "marked " << count << " bits in vector " << type;
    }
-}
-
-/*
- * -- NavGridTileData::ShowDebugShapes
- *
- * Draw some debug shapes.  We draw a frame around the entire tile, then a blue
- * filter over the places where someone can stand.
- */
-void NavGridTileData::ShowDebugShapes(protocol::shapelist* msg, csg::Cube3 const& world_bounds)
-{
-   ASSERT(dirty_ == 0);
-
-   NG_LOG(5) << "sending debug shapes for tile ";
-
-   csg::Color4 blocked_color(0, 0, 255, 64);
-   csg::Color4 border_color(0, 0, 128, 64);
-
-   csg::Cube3 bounds(csg::Point3::zero, csg::Point3(TILE_SIZE, TILE_SIZE, TILE_SIZE));
-   for (csg::Point3 const& i : bounds) {
-      if (can_stand_[Offset(i)]) {
-         csg::Point3 coord_pt = world_bounds.min + i;
-         protocol::coord* coord = msg->add_coords();
-         coord_pt.SaveValue(coord);
-         blocked_color.SaveValue(coord->mutable_color());
-      }
-   }
-}
-
-/*
- * -- NavGridTileData::UpdateCanStand
- *
- * Update the derived _can_stand vector.  We define areas that are valid for standing
- * as ones that are supported by a LADDER or COLLISION bit and have CHARACTER_HEIGHT
- * voxels above then that are "air", where "air" means !COLLISION || LADDER.
- */
-void NavGridTileData::UpdateCanStand(NavGrid& ng, csg::Cube3 const& world_bounds)
-{
-   int i, count = 0;
-   static int CHARACTER_HEIGHT = 4;
-   csg::Point3 index = csg::GetChunkIndex(world_bounds.min, TILE_SIZE);
-
-   csg::Point3 above_pt = index + csg::Point3(0, 1, 0);
-   NavGridTile& above = ng.GridTileResident(above_pt);
-   above.UpdateBaseVectors(above_pt);
-   std::shared_ptr<NavGridTileData> above_data = above.GetTileData();
-
-   csg::Point3 below_pt = index - csg::Point3(0, 1, 0);
-   NavGridTile& below = ng.GridTileResident(below_pt);
-   below.UpdateBaseVectors(below_pt);
-   std::shared_ptr<NavGridTileData> below_data = below.GetTileData();
-
-   csg::Cube3 bounds(csg::Point3::zero, csg::Point3(TILE_SIZE, TILE_SIZE, TILE_SIZE));
-
-   // xxx: this loop could be made CHARACTER_HEIGHT times faster with a little more
-   // elbow grease...
-   can_stand_.reset();
-   for (csg::Point3 pt : bounds) {
-      NG_LOG(9) << "considering can_stand point " << pt;
-
-      // Check the point directly below this one to see if it's in the LADDER or
-      // COLLISION vectors.  That means we can stand there if there's enough room
-      // overhead
-      bool bottom_edge = pt.y == 0;
-      NavGridTileData* tile = !bottom_edge ? this : below_data.get();
-      csg::Point3 query_pt = !bottom_edge ? (pt - csg::Point3(0, 1, 0)) : csg::Point3(pt.x, TILE_SIZE-1, pt.z);
-
-      int base = Offset(query_pt);
-      if (tile->IsMarked(COLLISION, base) || tile->IsMarked(LADDER, base)) {
-         // Compute how much room is overhead by making sure none of the COLLISION bits
-         // are set for CHARACTER_HEIGHT voxels above this one (or the LADDER bit
-         // is set).
-         tile = this;
-         csg::Point3 riser = pt;
-         for (i = 0; i < CHARACTER_HEIGHT; i++) {
-            if (riser.y == TILE_SIZE) {
-               riser.y = 0;
-               tile = above_data.get();
-            }
-            bool empty_enough = !tile->IsMarked(COLLISION, riser) || tile->IsMarked(LADDER, riser);
-            if (!empty_enough) {
-               break;
-            }
-            riser.y++;
-         }
-         if (i == CHARACTER_HEIGHT) {
-            NG_LOG(7) << "adding " << (world_bounds.min + pt) << " to navgrid (offset" << pt << ")";
-            can_stand_[Offset(pt)] = true;
-            count++;
-         }
-      }
-   }
-   NG_LOG(5) << "marked " << count << " bits in can_stand vector.";
 }
 
 

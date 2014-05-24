@@ -67,31 +67,12 @@
 
 <!-- Template for the journal tab -->
 <script type="text/x-handlebars" data-template-name="_journalTab">
+   <div class="book">
+   </div>
+
    <div id="journalDate">{{currJournalDayData.date}}</div>
-
-   <div id="scoreEnhancers">
-      YAAAAYSSS!!!
-      {{#each currJournalDayData.score_up}}
-         <p class="logEntry">
-         <span class="logTitle">{{this.person_name}} {{this.title}}</span>
-         {{this.text}}
-         </p>
-      {{/each}}
-   </div>
-   <div id="scoreDowners">
-      NAAAAAYYYYSS
-      {{#each currJournalDayData.score_down}}
-         <p class="logEntry">
-         <span class="logTitle">{{this.title}}</span>
-         {{this.text}} </br>
-         <span class="signature">-- {{this.person_name}} </span>
-         </p>
-      {{/each}}
-   </div>
-
    <div id="backForwardDiv">
       <a href='#' id="pageBackBtn" {{action back target=view}}>Back</a>
       <a href='#' id="pageForwardBtn" {{action forward target=view}}>Forward</a>
    </div>
-
 </script>

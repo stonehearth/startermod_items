@@ -14,7 +14,7 @@ App.StonehearthTownView = App.View.extend({
    },
 
    journalData: {
-      'currJournalIndex' : null, 
+      'initialized' : false,
       'data' : null
    },
 
@@ -49,13 +49,16 @@ App.StonehearthTownView = App.View.extend({
             self.radiantTraceJournals  = new RadiantTrace()
             self.traceJournals = self.radiantTraceJournals.traceUri(uri, {});
             self.traceJournals.progress(function(eobj) {
-                  //self.set('context.journalData', eobj.journalData);
                   self.journalData.data = eobj;
-
-                  if (self.currJournalIndex == null && eobj.journals_by_date.length > 0 || self.currJournalIndex == 0) {
-                     self._changeJournalIndex(0)
-                  } 
-
+                  if (eobj.journals_by_page.length > 0) {
+                     if (!self.journalData.initialized) {
+                        //TODO: make the journal with the entries available. 
+                        //TODO: What if the game has been going for 3 in game years? Would we make a book of a thousand pages?
+                        //TODO: consider culling to just the last N entries/pages
+                        self.journalData.initialized = true;
+                        self._populatePages();
+                     } 
+                  }
                });
          });
 
@@ -77,12 +80,6 @@ App.StonehearthTownView = App.View.extend({
          self.destroy();
       });
 
-      if (!this.initialized) {
-         $('.tabPage').hide();
-         $('#overviewTab').show();
-         this.initialized = true;
-      }
-
       this.$('.tab').click(function() {
          var tabPage = $(this).attr('tabPage');
 
@@ -91,6 +88,37 @@ App.StonehearthTownView = App.View.extend({
          $(this).addClass('active');
 
          self.$('#' + tabPage).show();
+      });
+   },
+
+   _bookInit: function() {
+      // add turn page effect
+      this.$('.book').turn({
+                     display: 'double',
+                     acceleration: true,
+                     gradients: true,
+                     elevation:50,
+                     page: 2,
+                     turnCorners: "",
+                     when: {
+                        turned: function(e, page) {
+                           console.log('Current view: ', $(this).turn('view'));
+                        }
+                     }
+                  });
+
+
+      this.$('.book').on( 'click', '.odd', function() {
+         $('.book').turn('next');
+      });
+
+      this.$('.book').on( 'click', '.even', function() {
+         var page = $(".book").turn("page");
+
+         // never go to page 1
+         if (page > 2) {
+            $('.book').turn('previous');   
+         }
       });
    },
 
@@ -140,6 +168,7 @@ App.StonehearthTownView = App.View.extend({
    }.observes('context.score_data.net_worth'),
 
 
+   //Journal related stuff
    _changeJournalIndex: function(nextIndex) {
       this.currJournalIndex = nextIndex;
       this.set('context.currJournalDayData', this.journalData.data.journals_by_date[nextIndex]);
@@ -151,8 +180,64 @@ App.StonehearthTownView = App.View.extend({
       if (this.journalData.data.journals_by_date[nextIndex].score_down.length == undefined) {
           this.set('context.currJournalDayData.score_down', []);
       }
-
    },
+
+   
+   //Take the journal data, make a bunch of pages from it
+   //Put those pages under the right parent to make the book
+   //Clean out the old pages before appending the new ones.
+   _populatePages: function() {
+      var journalsByPage = this.journalData.data.journals_by_page;
+      
+      var allPages = '<div><div><div id="bookBeginning">' + App.stonehearthClient.settlementName() +  '<p>Town Log</p></div></div></div>';
+
+      for(var i=0; i < journalsByPage.length; i++) {
+         var entries = journalsByPage[i];
+         var allEntries = this._make_page(entries);
+         var header = '<div><div><h2 class="praiseTitle ">Praises</h2>';
+         if (i%2 == 1) {
+            header = '<div><div><h2 class="gripeTitle">Gripes</h2>';
+         }
+
+         allPages += header + allEntries + '</div></div>';
+      }
+      
+      this.$(".book").empty();
+      this.$(".book").append(allPages);
+
+      this._bookInit();
+   },
+
+   _make_page: function(entries) {
+      var allEntries = "";
+      if (entries.length != undefined && entries.length > 0) {
+         for(var j=0; j<entries.length; j++) {
+            var entry = entries[j];
+            allEntries += '<p class="logEntry">' + 
+                    '<span class="logTitle">' + entry.title + '</span></br>' +
+                    entry.text + '</br>' +
+                    '<span class="signature">-- ' + entry.person_name + '</span>' +
+                    '</p>';
+         }
+      }
+      if (allEntries == "") {
+         allEntries = "Nothing interesting happened today.";
+      }
+      return allEntries;   
+   },
+   
+   /*
+   //TODO: Restore if we want to try to update individual pages as more data comes in
+   //TODO: make sure to account for updating 
+   _update_last_page: function() {
+      var $lastPage = this.$('.entries:last');
+      var lastIndex = this.journalData.data.journals_by_page.length;
+      var entries = this.journalData.data.journals_by_page[lastIndex-1];
+      var allEntries = this._make_page(entries);
+      $lastPage.empty();
+      $lastPage.append(allEntries);
+   },
+   */
 
    actions: {
       back: function() {

@@ -1,11 +1,12 @@
 [[FX]]
 
-float4 blueprintColor = { 1.0, 1.0, 0.0, 0.5 };
+float4 gridlineColor = { 0.0, 0.0, 0.0, 1.0 };
+float blueprintAlpha = 0.25;
 
 sampler3D gridMap = sampler_state
 {
    Texture = "textures/common/gridMap.dds";
-   Filter = Bilinear;
+   Filter = Trilinear;
 };
 
 // Contexts
@@ -33,7 +34,6 @@ context BLUEPRINTS_COLOR_PASS
 
 uniform mat4 viewProjMat;
 uniform mat4 worldMat;
-uniform vec4 blueprintColor;
 
 attribute vec3 vertPos;
 attribute vec3 color;
@@ -43,7 +43,7 @@ varying vec3 outColor;
 
 void main() {
    gridLineCoords = vertPos;
-   outColor = vec3(blueprintColor.x, blueprintColor.y, blueprintColor.z);
+   outColor = color;
    gl_Position = viewProjMat * worldMat * vec4(vertPos, 1.0);
 }
 
@@ -58,13 +58,16 @@ void main() {
 [[FS_BLUEPRINTS_COLOR_PASS]]
 
 uniform sampler3D gridMap;
+uniform vec4 gridlineColor;
+uniform float blueprintAlpha;
 varying vec3 gridLineCoords;
 varying vec3 outColor;
 
 void main() {
    vec4 theColor = vec4(outColor, 1);
-   vec4 gridlineColor = vec4(0.0, .4, .8, .4);
    vec4 gridline = texture3D(gridMap, gridLineCoords + vec3(0.5, 0.0, 0.5));
    gridline = vec4(1.0, 1.0, 1.0, 1.0) - gridline;
-   gl_FragColor = vec4(theColor.rgb, 0.3) * (1.0 - gridline.a) + gridline * gridlineColor;
+   float blendAlpha = gridline.a * gridlineColor.a;
+   gl_FragColor.rgb = theColor.rgb * (1.0 - blendAlpha) + (gridlineColor.rgb * blendAlpha);
+   gl_FragColor.a = blueprintAlpha;
 }

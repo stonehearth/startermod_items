@@ -31,7 +31,8 @@ private:
       ANIMATION_TABLE_DIRTY  = (1 << 0),
       MODEL_DIRTY            = (1 << 1),
       SCALE_DIRTY            = (1 << 2),
-      MATERIAL_DIRTY         = (1 << 3)
+      MATERIAL_DIRTY         = (1 << 3),
+      VISIBLE_DIRTY          = (1 << 4),
    };
 
    typedef std::vector<voxel::QubicleMatrix const*> MatrixVector;
@@ -77,6 +78,7 @@ private:
    core::Guard             renderer_frame_guard_;
    dm::TracePtr            variant_trace_;
    dm::TracePtr            scale_trace_;
+   dm::TracePtr            visible_trace_;
    dm::TracePtr            model_variant_trace_;
    dm::TracePtr            attached_trace_;
    dm::TracePtr            material_trace_;

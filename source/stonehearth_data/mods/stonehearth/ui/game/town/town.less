@@ -188,7 +188,7 @@
    }
 
    #backForwardDiv {
-      margin-top: 500px;
+      position: relative;
       width: 740px;
 
       #pageBackBtn {
@@ -201,4 +201,41 @@
          right: 10px; 
       }   
    }
+ 
+   #journalsTab {
+      display: none;
+
+      .book {
+         h2 {
+            left: 0px;
+            right:0px;
+            height: 44px;
+            padding-left: 15px;
+            padding-top:7px;
+            display: block;
+
+            font-family: @headerFontFamily;
+            font-size: 26px;
+            .outlined(#b1955b);
+            color: #000;
+            margin: 0;
+
+         }
+         .praiseTitle {
+            padding-left: 17px;
+            background: url(images/praises.png); 
+            text-align: left;
+            background-repeat: no-repeat;
+
+         }
+         .gripeTitle {
+            padding-right: 15px;
+            background: url(images/gripes.png);
+            background-repeat: no-repeat;
+            background-position: right top;
+            text-align: right;
+
+         }
+      }
+   }  
 }

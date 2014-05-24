@@ -34,8 +34,10 @@ void TerrainTileTracker::MarkChanged()
 {
    om::Region3BoxedPtr region = region_.lock();
    if (region) {
-      csg::Cube3 bounds = region->Get().GetBounds();
-      bounds.Translate(offset_ + GetEntityPosition());
+      ASSERT(GetEntityPosition() == csg::Point3::zero);
+
+      localRegion_ = region->Get().Translated(offset_);
+      csg::Cube3 bounds = localRegion_.GetBounds();
 
       // xxx: we could just always pass in the bounding box of the terrain tile, but that's difficult
       // to complicate until the tile terrain branch gets pushed... (sigh)
@@ -48,7 +50,8 @@ csg::Region3 TerrainTileTracker::GetOverlappingRegion(csg::Cube3 const& bounds) 
 {
    om::Region3BoxedPtr region = region_.lock();
    if (region) {
-      return region->Get().Translated(GetEntityPosition() + offset_) & bounds;
+      ASSERT(GetEntityPosition() == csg::Point3::zero);
+      return localRegion_ & bounds;
    }
    return csg::Region3::empty;
 }
@@ -58,12 +61,32 @@ TrackerType TerrainTileTracker::GetType() const
    return COLLISION;
 }
 
+
+/*
+ * -- TerrainTileTracker::GetLocalRegion
+ *
+ * Return region tracked by this CollisionTracker in the coordinate system of the
+ * owning entity.
+ *
+ * xxx: This is quite annoying!  GetLocalRegion returns a reference to some region
+ * for performance purposes.  It expects this region to be in the coordinate system
+ * of the Entity.  Unfortunately, our region is in the coordinate system of the 
+ * _tile_.  So we have to copy the region to localRegion_ every time it changes,
+ * and move it over by offset_.  That's expensive.   To fix this, store the
+ * terrain tile region in the coordinate system of the *parent*.
+ *
+ */
+
+csg::Region3 const& TerrainTileTracker::GetLocalRegion() const
+{
+   return localRegion_;
+}
+
 bool TerrainTileTracker::Intersects(csg::Cube3 const& worldBounds) const
 {
    om::Region3BoxedPtr region = region_.lock();
    if (region) {
-      csg::Point3 origin = GetEntityPosition() + offset_;
-      return region->Get().Intersects(worldBounds.Translated(-origin));
+      return localRegion_.Intersects(worldBounds.Translated(-offset_));
    }
    return false;
 }

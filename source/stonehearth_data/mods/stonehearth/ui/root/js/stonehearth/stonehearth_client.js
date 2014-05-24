@@ -202,36 +202,18 @@ var StonehearthClient;
 
       growRoof: function() {
          var self = this;
-
-         $(top).trigger('radiant_show_tip', { 
-            title : 'Grow Roof Tooltip',
-            description : 'Grow Roof Tooltip'
-         });
-
-         return this._callTool(function() {
-            return radiant.call_obj(self._build_editor, 'grow_roof')
-               .always(function(response) {
-                  radiant.call('radiant:play_sound', 'stonehearth:sounds:place_structure' );
-                  $(top).trigger('radiant_hide_tip');
-               });
-         });
+         if (building && building.__self) {
+            radiant.call('radiant:play_sound', 'stonehearth:sounds:place_structure' );
+            return radiant.call_obj(self._build_editor, 'grow_roof', building.__self)
+         }
       },
 
-      growWalls: function() {
+      growWalls: function(building) {
          var self = this;
-
-         $(top).trigger('radiant_show_tip', { 
-            title : 'Fill Wall Tooltip',
-            description : 'Fill Wall Tooltip'
-         });
-
-         return this._callTool(function() {
-            return radiant.call_obj(self._build_editor, 'grow_walls')
-               .always(function(response) {
-                  radiant.call('radiant:play_sound', 'stonehearth:sounds:place_structure' );
-                  $(top).trigger('radiant_hide_tip');
-               });
-         });
+         if (building && building.__self) {
+            radiant.call('radiant:play_sound', 'stonehearth:sounds:place_structure' );
+            return radiant.call_obj(self._build_editor, 'grow_walls', building.__self)
+         }
       },
 
       addDoor: function() {

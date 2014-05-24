@@ -1,0 +1,5 @@
+<Material parent="materials/selectable.material.xml">
+	<Shader source="shaders/blueprint.shader"/>
+   <Uniform name="gridlineColor" a="0.0" b="0.0" c="0.0" d="0.7"/>
+   <Uniform name="blueprintAlpha" a="0.7" />
+</Material>

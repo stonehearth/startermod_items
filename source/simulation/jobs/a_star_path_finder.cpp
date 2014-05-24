@@ -187,12 +187,12 @@ AStarPathFinderPtr AStarPathFinder::Stop()
 
 AStarPathFinderPtr AStarPathFinder::AddDestination(om::EntityRef e)
 {
-   auto entity = e.lock();
-   if (entity) {
+   auto dstEntity = e.lock();
+   if (dstEntity) {
       auto changed_cb = [this](const char* reason) {
          RestartSearch(reason);
       };
-      destinations_[entity->GetObjectId()] = std::unique_ptr<PathFinderDst>(new PathFinderDst(GetSim(), entity, GetName(), changed_cb));
+      destinations_[dstEntity->GetObjectId()] = std::unique_ptr<PathFinderDst>(new PathFinderDst(GetSim(), entity_, dstEntity, GetName(), changed_cb));
       RestartSearch("added destination");
    }
    return shared_from_this();

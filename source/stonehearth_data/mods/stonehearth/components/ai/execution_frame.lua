@@ -444,8 +444,6 @@ function ExecutionFrame:run(args)
          self:wait_until(STARTED)
       end
       assert(self:in_state(STARTED))
-      --self:_stop_thinking()
-      assert(self:in_state(STARTED))
       
       self:_run()
       self:wait_until(FINISHED)

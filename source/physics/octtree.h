@@ -19,10 +19,6 @@ class OctTree {
 
       void EnableSensorTraces(bool enabled);
 
-      // good!
-      bool CanStandOn(om::EntityPtr entity, const csg::Point3& at) const;
-      void RemoveNonStandableRegion(om::EntityPtr e, csg::Region3& r) const;
-
       // unknown...
       NavGrid& GetNavGrid() { return navgrid_; } // sigh
       NavGrid const& GetNavGrid() const { return navgrid_; } // sigh

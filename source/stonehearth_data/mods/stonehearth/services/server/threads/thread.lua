@@ -344,6 +344,24 @@ function Thread:resume(reason)
    end
 end
 
+function Thread:sleep_realtime(ms)
+   local wakeup = radiant.get_realtime() + (ms / 1000.0)
+   local timer
+   repeat
+      if timer then
+         timer:destroy()
+      end
+      timer = radiant.set_realtime_timer(ms, function()
+            if not self:is_finished() then
+               self:resume()
+            end
+         end)
+      self:suspend()
+   until self:is_finished() or radiant.get_realtime() >= wakeup
+   timer:destroy()
+end
+
+
 -- removes the thread from the scheduler and the waiting thread
 -- list.  If the thread is still running (terminate self?  is that
 -- moral?), you still need to _complete_thread_termination later,

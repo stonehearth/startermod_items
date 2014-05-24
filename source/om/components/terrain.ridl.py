@@ -34,8 +34,7 @@ class Terrain(Component):
    add_tile = ridl.Method(c.void(),
                           ('tile_offset', csg.Point3().const.ref),
                           ('region3', Region3BoxedPtr()))
-   place_entity = ridl.Method(c.void(), ('e', EntityRef()), ('location', csg.Point3().const.ref))
-   get_height =  ridl.Method(c.int(), ('x', c.int()), ('z', c.int())).const
+   get_point_on_terrain =  ridl.Method(csg.Point3(), ('pt', csg.Point3().const.ref)).const
 
    _includes = [
       "om/region.h",

@@ -7,7 +7,17 @@ local FollowEntity = class()
 FollowEntity.name = 'follow entity'
 FollowEntity.does = 'stonehearth:follow_entity'
 FollowEntity.args = {
-   target = Entity
+   target = Entity,
+
+   follow_distance = {
+      type = 'number',
+      default = 3
+   },
+
+   settle_distance = {
+      type = 'number',
+      default = 2
+   }
 }
 FollowEntity.version = 2
 FollowEntity.priority = 1
@@ -27,12 +37,12 @@ function FollowEntity:start_thinking(ai, entity, args)
    --again on change.
    local log = ai:get_log()
    local target = args.target
-   local distance = 3
+   local settle_distance = args.settle_distance
 
    local function check_distance()
       local distance = radiant.entities.distance_between(entity, target)
-      if distance > 3 then 
-         local location = self:_pick_nearby_location(target)
+      if distance > args.follow_distance then 
+         local location = self:_pick_nearby_location(target, settle_distance)
          log:debug('starting to follow %s (distance: %.2f)', target, distance)
          ai:set_think_output({ location = location })
          if self._trace then
@@ -67,9 +77,9 @@ end
 
 -- Err, this could pick something down a cliff or across a long fence...
 -- maybe go to the actual target location but stop when within a certain distance
-function FollowEntity:_pick_nearby_location(target)
+function FollowEntity:_pick_nearby_location(target, settle_distance)
    local target_location = radiant.entities.get_world_grid_location(target)
-   local radius = 2
+   local radius = settle_distance
    local dx = rng:get_int(-radius, radius)
    local dz = rng:get_int(-radius, radius)
    local destination = Point3(target_location)

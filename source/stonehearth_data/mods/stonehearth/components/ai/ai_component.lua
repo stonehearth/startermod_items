@@ -273,8 +273,18 @@ function AIComponent:_start()
    self._thread:set_thread_main(function()
       self._execution_frame = self:_create_top_execution_frame()
       while not self._dead do
+         local start_tick = radiant.gamestate.now()
          self._aitrace:spam('@loop')
          self._execution_frame:run({})
+
+         -- Don't go back to running if we thought without ever yielding (i.e. without doing 
+         -- any real work).  This also prevents tight ai loops that never yield (possibly 
+         -- because some unit keeps aborting).
+         while radiant.gamestate.now() - start_tick == 0 do
+            log:info('yielding thread because we thought without yielding.')
+            self._thread:sleep_realtime(0)
+         end
+
          if self._execution_frame:get_state() == 'dead' then
             self._execution_frame = self:_create_top_execution_frame()
          else

@@ -79,6 +79,28 @@ csg::Region3 RegionTracker::GetOverlappingRegion(csg::Cube3 const& bounds) const
    return csg::Region3::empty;
 }
 
+
+/*
+ * -- RegionTracker::GetLocalRegion
+ *
+ * Return region tracked by this CollisionTracker in the coordinate system of the
+ * owning entity.
+ *
+ */
+csg::Region3 const& RegionTracker::GetLocalRegion() const
+{
+   om::Region3BoxedPtr region = GetRegion();
+   if (region) {
+      return region->Get();
+   }
+   return csg::Region3::empty;
+}
+
+/*
+ * -- RegionTracker::Intersects
+ *
+ * Return whether or not the specified `worldBounds` overlaps with this entity.
+ */
 bool RegionTracker::Intersects(csg::Cube3 const& worldBounds) const
 {
    om::Region3BoxedPtr region = GetRegion();
