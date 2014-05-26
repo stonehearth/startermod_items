@@ -23,11 +23,19 @@ function PortalEditor:begin_editing(fabricator, blueprint, project, structure_ty
 end
 
 function PortalEditor:set_portal_uri(uri)
+   local data = radiant.entities.get_entity_data(uri, 'stonehearth:ghost_item')
+   if data then
+      uri = data.uri
+   end
    self._portal_uri = uri
-   self._portal = radiant.entities.create_entity(uri)
-   self._portal:add_component('render_info')
-                  :set_material('materials/ghost_item.xml')
+   return self
+end
 
+function PortalEditor:go()
+   self._portal = radiant.entities.create_entity(self._portal_uri)
+   self._portal:add_component('render_info')
+                     :set_material('materials/ghost_item.xml')
+                     
    self._wall:add_portal(self._portal)
    return self
 end
