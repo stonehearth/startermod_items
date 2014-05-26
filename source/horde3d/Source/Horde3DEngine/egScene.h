@@ -273,7 +273,7 @@ public:
       std::vector<SceneNode*>& lightQueue);
 
 protected:
-	std::map<NodeHandle, SceneNode *>      _nodes;  // Renderable nodes and lights
+	std::unordered_map<NodeHandle, SceneNode *>      _nodes;  // Renderable nodes and lights
 };
 
 
