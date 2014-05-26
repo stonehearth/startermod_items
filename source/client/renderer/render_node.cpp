@@ -21,7 +21,7 @@ public:
 #define RN_LOG(level)   LOG(renderer.render_node, level)
 
 static int nextId = 1;
-RenderNodePtr RenderNode::_unparentedRenderNode;
+H3DNode RenderNode::_unparentedRenderNode;
 std::unordered_set<H3DNode> ownedNodes;
 
 RenderNodePtr RenderNode::CreateGroupNode(H3DNode parent, std::string const& name)
@@ -52,7 +52,9 @@ RenderNodePtr RenderNode::CreateVoxelNode(H3DNode parent, GeometryInfo const& ge
    SharedMaterial mat = Pipeline::GetInstance().GetSharedMaterial("materials/voxel.material.xml");
    H3DNode node = h3dAddVoxelModelNode(parent, modelName.c_str(), geo.geo.get());
    H3DNode meshNode = h3dAddVoxelMeshNode(node, meshName.c_str(), mat.get());
-
+   if (geo.unique) {
+      h3dSetNodeParamI(meshNode, H3DVoxelMeshNodeParams::NoInstancingI, true);
+   }
    return std::make_shared<RenderNode>(node, meshNode, geo.geo, mat);
 }
 
@@ -83,6 +85,7 @@ RenderNodePtr RenderNode::CreateCsgMeshNode(H3DNode parent, csg::mesh_tools::mes
    geo.vertexIndices[1] = m.vertices.size();
    geo.indexIndicies[1] = m.indices.size();
    geo.levelCount = 1;
+   geo.unique = true;
 
    ConvertVoxelDataToGeometry((VoxelGeometryVertex *)m.vertices.data(), (uint *)m.indices.data(), geo);
    return CreateVoxelNode(parent, geo);
@@ -115,6 +118,7 @@ RenderNode::RenderNode()
 RenderNode::RenderNode(H3DNode node) :
    _node(node)
 {
+   RN_LOG(9) << "attaching RenderNode to " << _node;
    ownedNodes.insert(node);
 }
 
@@ -124,6 +128,7 @@ RenderNode::RenderNode(H3DNode node, H3DNode mesh, SharedGeometry geo, SharedMat
    _geometry(geo),
    _material(mat)
 {
+   RN_LOG(9) << "attaching RenderNode to " << _node;
    ownedNodes.insert(node);
 }
 
@@ -141,7 +146,7 @@ RenderNodePtr RenderNode::SetUserFlags(int flags)
 
 RenderNodePtr RenderNode::SetName(const char *name)
 {
-   h3dSetNodeParamStr(_node.get(), H3DNodeParams::NameStr, name);
+   h3dSetNodeParamStr(_node, H3DNodeParams::NameStr, name);
    if (_meshNode) {
       h3dSetNodeParamStr(_meshNode, H3DNodeParams::NameStr, BUILD_STRING(name << " mesh").c_str());
    }
@@ -150,14 +155,14 @@ RenderNodePtr RenderNode::SetName(const char *name)
 
 RenderNodePtr RenderNode::SetVisible(bool visible)
 {
-   h3dTwiddleNodeFlags(_node.get(), H3DNodeFlags::NoDraw, !visible, true);
+   h3dTwiddleNodeFlags(_node, H3DNodeFlags::NoDraw, !visible, true);
    SetCanQuery(visible);
    return shared_from_this();
 }
 
 RenderNodePtr RenderNode::SetCanQuery(bool canQuery)
 {
-   h3dTwiddleNodeFlags(_node.get(), H3DNodeFlags::NoRayQuery, !canQuery, true);
+   h3dTwiddleNodeFlags(_node, H3DNodeFlags::NoRayQuery, !canQuery, true);
    return shared_from_this();
 }
 
@@ -183,7 +188,7 @@ RenderNodePtr RenderNode::SetMaterial(SharedMaterial material)
 RenderNodePtr RenderNode::SetPosition(csg::Point3f const& pos)
 {
    csg::Point3f _, rot, scale;
-   h3dGetNodeTransform(_node.get(), &_.x, &_.y, &_.z, &rot.x, &rot.y, &rot.z, &scale.x, &scale.y, &scale.z);
+   h3dGetNodeTransform(_node, &_.x, &_.y, &_.z, &rot.x, &rot.y, &rot.z, &scale.x, &scale.y, &scale.z);
    SetTransform(pos, rot, scale);
    return shared_from_this();
 }
@@ -191,7 +196,7 @@ RenderNodePtr RenderNode::SetPosition(csg::Point3f const& pos)
 RenderNodePtr RenderNode::SetRotation(csg::Point3f const& rot)
 {
    csg::Point3f pos, _, scale;
-   h3dGetNodeTransform(_node.get(), &pos.x, &pos.y, &pos.z, &_.x, &_.y, &_.z, &scale.x, &scale.y, &scale.z);
+   h3dGetNodeTransform(_node, &pos.x, &pos.y, &pos.z, &_.x, &_.y, &_.z, &scale.x, &scale.y, &scale.z);
    SetTransform(pos, rot, scale);
    return shared_from_this();
 }
@@ -199,14 +204,14 @@ RenderNodePtr RenderNode::SetRotation(csg::Point3f const& rot)
 RenderNodePtr RenderNode::SetScale(csg::Point3f const& scale)
 {
    csg::Point3f pos, rot, _;
-   h3dGetNodeTransform(_node.get(), &pos.x, &pos.y, &pos.z, &rot.x, &rot.y, &rot.z, &_.x, &_.y, &_.z);
+   h3dGetNodeTransform(_node, &pos.x, &pos.y, &pos.z, &rot.x, &rot.y, &rot.z, &_.x, &_.y, &_.z);
    SetTransform(pos, rot, scale);
    return shared_from_this();
 }
 
 RenderNodePtr RenderNode::SetTransform(csg::Point3f const& pos, csg::Point3f const& rot, csg::Point3f const& scale)
 {
-   h3dSetNodeTransform(_node.get(), pos.x, pos.y, pos.z, rot.x, rot.y, rot.z, scale.x, scale.y, scale.z);
+   h3dSetNodeTransform(_node, pos.x, pos.y, pos.z, rot.x, rot.y, rot.z, scale.x, scale.y, scale.z);
    return shared_from_this();
 }
 
@@ -216,54 +221,53 @@ RenderNodePtr RenderNode::AddChild(RenderNodePtr r)
    return shared_from_this();
 }
 
-void RenderNode::ClearRenderNode()
+void RenderNode::Initialize()
 {
-   _unparentedRenderNode.reset();
+   ASSERT(!_unparentedRenderNode);
+   _unparentedRenderNode = h3dAddGroupNode(1, "unparented render nodes");
+   h3dSetNodeTransform(_unparentedRenderNode, -100000, -100000, -100000, 0, 0, 0, 1, 1, 1);
+}
+
+void RenderNode::Shutdown()
+{
+   if (_unparentedRenderNode) {
+      h3dRemoveNode(_unparentedRenderNode);
+      _unparentedRenderNode = 0;
+   }
 }
 
 void RenderNode::Destroy()
 {
+   RN_LOG(7) << "RenderNode got Destroy on " << _node;
    DestroyHordeNode();
 
    _geometry.reset();
    _material.reset();
 }
 
-RenderNodePtr RenderNode::GetUnparentedRenderNode()
-{
-   if (!_unparentedRenderNode) {
-      _unparentedRenderNode = std::make_shared<RenderNode>(h3dAddGroupNode(1, "unparented render node"))
-                                 ->SetPosition(csg::Point3f(-1000000, -0100000, -1000000));
-   }
-   return _unparentedRenderNode;
-}
-
 void RenderNode::DestroyHordeNode()
 {
-   H3DNode node = _node.get();
-   if (node) {
-      ASSERT(_node.use_count() == 1);
-
+   if (_node) {
       // the node's about to go away.  destroying the node will destroy all it's
       // children!  that's not what we want.  reparent all our children under some
       // "unowned" node 
       int i = 0;
-      H3DNode node = _node.get();
       while (true) {
-         H3DNode child = h3dGetNodeChild(node, i++);
+         H3DNode child = h3dGetNodeChild(_node, i++);
          if (child == 0) {
             break;
          }
          // If this node is owned by some render node somewhere out there, move
          // it over to then unparented node
          if (ownedNodes.find(child) != ownedNodes.end()) {
-            RenderNodePtr unparented = GetUnparentedRenderNode();
-            h3dSetNodeParent(child, unparented->GetNode());
+            h3dSetNodeParent(child, _unparentedRenderNode);
          }
       }
       _children.clear();
-      _node.reset();
-      ownedNodes.erase(node);
+      RN_LOG(9) << "releasing RenderNode on " << _node;
+      h3dRemoveNode(_node);
+      ownedNodes.erase(_node);
+      _node = 0;
    }
 }
 

@@ -63,7 +63,7 @@ static void MoveSceneNode(H3DNode node, const csg::Transform& t, float scale)
    
    bool result = h3dSetNodeTransMat(node, m.get_float_ptr());
    if (!result) {
-      EL_LOG_NOPREFIX(5) << "failed to set transform on node.";
+      EL_LOG_NOPREFIX(5) << "failed to set transform on node " << node << ".";
    }
 }
 
@@ -256,14 +256,14 @@ void RenderAnimationEffect::Update(FrameStartInfo const& info, bool& finished)
 {
    EL_LOG(9) << "updating animation effect" << animationName_;
    if (!animation_) {
-      EL_LOG(9) << "marking animation effect " << animationName_ << "finished (no animation)";
+      EL_LOG(9) << "marking animation effect " << animationName_ << " finished (no animation)";
       finished = true;
       return;
    }
    int offset = info.now - startTime_;
    if (duration_) {    
       if (info.now > startTime_ + duration_) {
-         EL_LOG(9) << "marking animation effect " << animationName_ << "finished (duration exceeded)";
+         EL_LOG(9) << "marking animation effect " << animationName_ << " finished (duration exceeded)";
          finished = true;
       }
 
