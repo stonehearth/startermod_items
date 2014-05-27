@@ -25,6 +25,7 @@ add_library(client_renderer STATIC
             render_vertical_pathing_region.cpp
             render_region_collision_shape.cpp
             render_lua_component.cpp
+            render_sensor_list.cpp
             lua_renderer.cpp
             lua_render_entity.cpp
             camera.cpp
