@@ -53,7 +53,7 @@ function CombatCurve:update(now)
   -- This implies that 'compute_value' should always give you the tick's value--a delta,
   -- in other words.  
   self._sv._current_value = self:_decay(self._sv._current_value) + self:compute_value()
-  log:spam('Total combat pace value is %d', self._sv._current_value)
+  log:spam('Total combat pace value is %d, min is %d, max is %d', self._sv._current_value, self:get_min(), self:get_max())
 
   if self._sv._current_state == CombatCurve.RELAXED then
     if self._sv._current_value > self:get_max() then

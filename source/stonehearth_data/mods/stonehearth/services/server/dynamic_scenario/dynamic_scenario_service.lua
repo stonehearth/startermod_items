@@ -30,6 +30,20 @@ function DynamicScenarioService:initialize()
 end
 
 
+function DynamicScenarioService:force_spawn_scenario(scenario_name)
+   for _, scenario_sets in pairs(self._scenarios) do
+      for _, scenario in pairs(scenario_sets) do
+         if scenario.properties.name == scenario_name then
+            local new_scenario = self:_init_scenario(scenario, nil)
+            new_scenario:start()
+            table.insert(self._sv.running_scenarios, new_scenario)
+            return new_scenario
+         end
+      end
+   end
+end
+
+
 -- At this point, the DM wants to spawn a scenario of kind 'scenario_type'.  Look
 -- through our list of scenarios for that type, and see if we find one that we
 -- can spawn.
@@ -87,7 +101,6 @@ function DynamicScenarioService:_rarity_to_value(rarity)
       return 20 -- 5% chance of not being culled.
    end
    assert(false)
-   return 1
 end
 
 

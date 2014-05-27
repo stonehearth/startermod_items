@@ -2,8 +2,8 @@
     "name" : "Goblin Brigands",
     "scenario_types" : {
       "combat" : {
-        "min_strength" : 11,
-        "max_strength" : 20
+        "min_strength" : 9,
+        "max_strength" : 50
       }
     },
     "rarity" : "common",

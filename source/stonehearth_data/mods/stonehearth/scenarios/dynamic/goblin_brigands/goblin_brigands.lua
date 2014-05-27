@@ -53,8 +53,7 @@ function GoblinBrigands:start()
    self._sv._triggered = true
    self.__saved_variables:mark_changed()
 
-   -- 3-4 hours of real-world time seems like a not-unreasonable start....
-   self:_schedule_spawn(rng:get_int(3600 * 3, 3600 * 4))
+   self:_schedule_spawn(rng:get_int(3600 * 2, 3600 * 3))
 end
 
 function GoblinBrigands:_attach_listeners()
@@ -89,7 +88,7 @@ function GoblinBrigands:_on_spawn()
    end
 
    local spawn_points = stonehearth.spawn_region_finder:find_standable_points_outside_civ_perimeter(
-      self._sv._squad:get_all_entities(), self._sv._squad:get_squad_start_displacements(), 60)
+      self._sv._squad:get_all_entities(), self._sv._squad:get_squad_start_displacements(), 80)
 
    if not spawn_points then
       -- Couldn't find a spawn point, so reschedule to try again later.
