@@ -68,7 +68,10 @@ csg::Region3 MovementHelper::GetRegionAdjacentToEntity(Simulation& sim, om::Enti
       for (csg::Point3 const& point : defaultAdjacentPoints) {
          csg::Point3 location = origin + point;
          if (octTree.GetNavGrid().IsStandable(srcEntity, location)) {
+            MH_LOG(9) << location << " is standable by " << *srcEntity << ".  adding point.";
             region.AddUnique(csg::Cube3(location));
+         } else {
+            MH_LOG(9) << location << " is not standable by " << *srcEntity << ".  skipping point.";
          }
       }
    }

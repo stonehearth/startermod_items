@@ -841,11 +841,18 @@ bool NavGrid::IsStandable(csg::Region3 const& r) {
 
 bool NavGrid::IsStandable(om::EntityPtr entity, csg::Point3 const& location)
 {
+   bool emptyRegion = true;
    bool stopped;
-   stopped = ForEachPointInEntityRegion(entity->GetObjectId(), location, [this] (csg::Point3 const& pt) mutable {
+   stopped = ForEachPointInEntityRegion(entity->GetObjectId(), location, [this, &emptyRegion] (csg::Point3 const& pt) mutable {
       bool stop = !IsStandable(pt);
+      emptyRegion = false;
       return stop;
    });
+   // if there were no points at all, at least make sure the *location* itself is standable.
+   if (emptyRegion) {
+      NG_LOG(3) << *entity << " has no points in region in IsStandable.  checking " << location << " directly.";
+      return IsStandable(location);
+   }
    return !stopped;      // if we had to stop iteration, we must not be standable!!
 }
 

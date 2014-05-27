@@ -526,7 +526,8 @@ struct H3DVoxelMeshNodeParams
 		BatchCountI,
 		VertRStartI,
 		VertREndI,
-		LodLevelI
+		LodLevelI,
+      NoInstancingI,
 	};
 };
 

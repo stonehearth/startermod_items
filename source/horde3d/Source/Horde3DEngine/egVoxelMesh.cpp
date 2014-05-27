@@ -34,7 +34,8 @@ using namespace std;
 VoxelMeshNode::VoxelMeshNode( const VoxelMeshNodeTpl &meshTpl ) :
 	SceneNode( meshTpl ),
    _materialRes( meshTpl.matRes ),
-	_parentModel( 0x0 )
+	_parentModel( 0x0 ),
+   _noInstancing(false)
 {
 	_renderable = true;
 
@@ -83,6 +84,8 @@ int VoxelMeshNode::getParamI( int param )
 	case VoxelMeshNodeParams::MatResI:
 		if( _materialRes != 0x0 ) return _materialRes->getHandle();
 		else return 0;
+   case VoxelMeshNodeParams::NoInstancingI:
+      return _noInstancing;
 	}
 
 	return SceneNode::getParamI( param );
@@ -107,12 +110,18 @@ void VoxelMeshNode::setParamI( int param, int value )
 			Modules::setError( "Invalid handle in h3dSetNodeParamI for H3DVoxelMesh::MatResI" );
 		}
 		return;
+   case VoxelMeshNodeParams::NoInstancingI:
+      _noInstancing = (value != 0);
+      return;
 	}
 
 	SceneNode::setParamI( param, value );
 }
 
 const InstanceKey* VoxelMeshNode::getInstanceKey() {
+   if (_noInstancing) {
+      return nullptr;
+   }
    _instanceKey.geoResource = _parentModel->getVoxelGeometryResource();
    _instanceKey.matResource = _materialRes;
    return &_instanceKey;

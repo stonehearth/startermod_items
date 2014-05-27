@@ -1,92 +1,82 @@
 local DoorComponent = class()
 
-function DoorComponent:__init(entity)
-   self._info = {}
-   self._in_sensor = {}
-   self._tracked_entities = {}
-end
-
 function DoorComponent:initialize(entity, json)
-   self._entity = entity   
-   assert(json.sensor)
+   self._entity = entity
+   self._tracked_entities = {}
 
+   self._sv = self.__saved_variables:get_data()
+   if not self._sv.sensor_name then
+      self._sv.sensor_name = json.sensor  
+      self.__saved_variables:mark_changed()
+   end
+   if self._sv.sensor_name then
+      radiant.events.listen_once(self._entity, 'radiant:entity:post_create', function()
+            self:_trace_sensor()
+         end)
+   end
+end
+
+function DoorComponent:destroy()
+   if self._open_effect then
+      self._open_effect:stop()
+      self._open_effect = nil
+   end
+   if self._close_effect then
+      self._close_effect:stop()
+      self._close_effect = nil
+   end
+end
+
+function DoorComponent:_trace_sensor()
    local sensor_list = self._entity:get_component('sensor_list')
-   if sensor_list then
-      self._sensor = sensor_list:get_sensor(json.sensor)
-
-      self.promise = self._sensor:trace_contents('open door')
-                                    :on_added(
-                                       function (id, entity)
-                                          self:on_added_to_sensor(id, entity)
-                                       end
-                                    )
-                                    :on_removed(
-                                       function (id)
-                                          self:on_removed_to_sensor(id)
-                                       end
-                                    ) 
-
+   local sensor = sensor_list:get_sensor(self._sv.sensor_name)
+   if sensor then
+      self._sensor_trace = sensor:trace_contents('door')
+                                       :on_added(function (id, entity)
+                                             self:_on_added_to_sensor(id, entity)
+                                          end)
+                                       :on_removed(function (id)
+                                             self:_on_removed_to_sensor(id)
+                                          end)
+                                       :push_object_state()
    end
-
-   self._effect = radiant.effects.run_effect(self._entity, 'closed')
 end
 
-function DoorComponent:on_added_to_sensor(entity_id, entity)
+function DoorComponent:_on_added_to_sensor(id, entity)
    if self:_valid_entity(entity) then
-      if #self._tracked_entities == 0 then
+      if not next(self._tracked_entities) then
          -- if this is in our faction, open the door
-         self:open_door();
+         self:_open_door();
       end
-
-      self:_track_entity(entity_id)
+      self._tracked_entities[id] = entity
    end
 end
 
-function DoorComponent:on_removed_to_sensor(entity_id)
-    local entity = radiant.entities.get_entity(entity_id)
-    if self:_valid_entity(entity) then
-         self:_untrack_entity(entity_id)
-        if #self._tracked_entities == 0 then
-            self:close_door()
-        end
-    end
-end
-
-function DoorComponent:_track_entity(id)
-   for i, tracked_id in ipairs(self._tracked_entities) do
-      if id == tracked_id then
-         return
-      end
-   end
-
-   table.insert(self._tracked_entities, id)
-end
-
-function DoorComponent:_untrack_entity(id)
-   for i, tracked_id in ipairs(self._tracked_entities) do
-      if id == tracked_id then
-         table.remove(self._tracked_entities, i)
-         return
-      end
+function DoorComponent:_on_removed_to_sensor(id)
+   self._tracked_entities[id] = nil
+   if not next(self._tracked_entities) then
+      self:_close_door()
    end
 end
 
-function DoorComponent:open_door()
-   if self._effect then
-      self._effect:stop()
-      self._effect = nil
+function DoorComponent:_open_door()
+   if self._close_effect then
+      self._close_effect:stop()
+      self._close_effect = nil
    end
-
-   self._effect = radiant.effects.run_effect(self._entity, 'open')
+   if not self._open_effect then
+      self._open_effect = radiant.effects.run_effect(self._entity, 'open')
+   end
 end
 
-function DoorComponent:close_door()
-    if self._effect then
-        self._effect:stop()
-        self._effect = nil
-    end
-
-    self._effect = radiant.effects.run_effect(self._entity, 'close')
+function DoorComponent:_close_door()
+   if self._open_effect then
+      self._open_effect:stop()
+      self._open_effect = nil
+   end
+   if not self._close_effect then
+      self._close_effect = radiant.effects.run_effect(self._entity, 'close')
+   end
 end
 
 function DoorComponent:_valid_entity(entity)

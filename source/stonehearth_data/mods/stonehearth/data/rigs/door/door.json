@@ -1,0 +1,9 @@
+{
+   "skeleton" : {
+      "root": [15,15,0],
+      "frame": [15.5,15,0],
+      "door": [7,15,19]
+    },
+   "animation_root" : "file(animations)",
+   "effects_root" : "file(effects)"
+}

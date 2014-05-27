@@ -31,6 +31,7 @@ function BuildEditor:add_door(session, response)
                      wall_editor = PortalEditor()
                                        :begin_editing(fabricator, blueprint, project)
                                        :set_portal_uri('stonehearth:wooden_door')
+                                       :go()
                   end
                end
                if wall_editor then

@@ -205,50 +205,30 @@ void ResourceManager::registerType( int type, std::string const& typeString, Res
 
 Resource *ResourceManager::findResource( int type, std::string const& name )
 {
-	for( size_t i = 0, s = _resources.size(); i < s; ++i )
-	{
-		if( _resources[i] != 0x0 && _resources[i]->_type == type && _resources[i]->_name == name )
-		{
-			return _resources[i];
-		}
-	}
-	
-	return 0x0;
+   for (auto const& entry : _resources) {
+      Resource* res = entry.second;
+      if (res && res->_type == type && res->_name == name) {
+         return res;
+      }
+   }
+   return nullptr;
 }
 
 
 Resource *ResourceManager::getNextResource( int type, ResHandle start )
 {
-	for( size_t i = start, s = _resources.size(); i < s; ++i )
-	{
-		if( _resources[i] != 0x0 &&
-		    (type == ResourceTypes::Undefined || _resources[i]->_type == type) )
-		{
-			return _resources[i];
-		}
-	}
-	
-	return 0x0;
+   // This is cumbersome to implement with an unordered map implementation for
+   // the resource manager, and no one uses it yet, so let's just get rid of it!
+   NOT_YET_IMPLEMENTED();
+   return nullptr;
 }
 
 
 ResHandle ResourceManager::addResource( Resource &resource )
 {
-	// Try to insert resource in free slot
-	for( uint32 i = 0; i < _resources.size(); ++i )
-	{
-		if( _resources[i] == 0x0 )
-		{
-			resource._handle = i + 1;
-			_resources[i] = &resource;
-			return i + 1;
-		}
-	}
-	
-	// If there is no free slot, add resource to end
-	resource._handle = (ResHandle)_resources.size() + 1;
-	_resources.push_back( &resource );
-	return resource._handle;
+   resource._handle = _nextHandleValue++;
+   _resources[resource._handle] = &resource;
+   return resource._handle;
 }
 
 
@@ -261,17 +241,13 @@ ResHandle ResourceManager::addResource( int type, std::string const& name, int f
 	}
 	
 	// Check if resource is already in list and return index
-	for( uint32 i = 0; i < _resources.size(); ++i )
-	{
-		if( _resources[i] != 0x0 && _resources[i]->_name == name )
-		{
-			if( _resources[i]->_type == type )
-			{
-				if( userCall ) ++_resources[i]->_userRefCount;
-				return i + 1;
-			}
-		}
-	}
+        Resource* res = findResource(type, name);
+        if (res) {
+           if (userCall) {
+              res->_userRefCount++;
+           }
+           return res->_handle;
+        }
 	
 	// Create resource
 	Resource *resource = 0x0;
@@ -291,11 +267,12 @@ ResHandle ResourceManager::addNonExistingResource( Resource &resource, bool user
 {
 	if( resource._name == "" ) return 0;
 
-	// Check that name does not yet exist
-	for( uint32 i = 0; i < _resources.size(); ++i )
-	{
-		if( _resources[i] != 0x0 && _resources[i]->_name == resource._name ) return 0;
-	}
+   for (auto const& entry : _resources) {
+      Resource* res = entry.second;
+      if (res && res->_name == resource._name) {
+         return 0;
+      }
+   }
 
 	if( userCall ) resource._userRefCount += 1;
 	return addResource( resource );
@@ -307,14 +284,13 @@ ResHandle ResourceManager::cloneResource( Resource &sourceRes, std::string const
 	// Check that name does not yet exist
 	if( name != "" )
 	{
-		for( uint32 i = 0; i < _resources.size(); ++i )
-		{
-			if( _resources[i] != 0x0 && _resources[i]->_name == name )
-			{	
-				Modules::log().writeDebugInfo( "Name '%s' used for h3dCloneResource already exists", name.c_str() );
-				return 0;
-			}
-		}
+            for (auto const& entry : _resources) {
+               Resource* res = entry.second;
+               if (res && res->_name == name) {
+	          Modules::log().writeDebugInfo( "Name '%s' used for h3dCloneResource already exists", name.c_str() );
+	          return 0;
+               }
+            }
 	}
 
 	Resource *newRes = sourceRes.clone();
@@ -346,63 +322,69 @@ int ResourceManager::removeResource( Resource &resource, bool userCall )
 
 void ResourceManager::clear()
 {
-	// Release resources and remove dependencies
-	for( uint32 i = 0; i < _resources.size(); ++i )
-	{
-		if( _resources[i] != 0x0 ) _resources[i]->release();
-	}
+   // Release resources and remove dependencies
+   for (auto& entry : _resources) {
+      Resource* res = entry.second;
+      if (res) {
+         res->release();
+      }
+   }
 
-	// Delete resources
-	for( uint32 i = 0; i < _resources.size(); ++i )
-	{
-		if( _resources[i] != 0x0 )
-		{
-			delete _resources[i]; _resources[i] = 0x0;
-		}
-	}
+   // Delete resources
+   for (auto& entry : _resources) {
+      Resource* res = entry.second;
+      if (res) {
+         delete res;
+         entry.second = nullptr;
+      }
+   }
+   _resources.clear();
 }
 
 
 ResHandle ResourceManager::queryUnloadedResource( int index )
 {
-	int j = 0;
+   ASSERT(index == 0); // i hate leaky interfaces...
 
-	for( uint32 i = 0; i < _resources.size(); ++i )
-	{
-		if( _resources[i] != 0x0 && !_resources[i]->_loaded && !_resources[i]->_noQuery )
-		{	
-			if( j == index ) return _resources[i]->_handle;
-			else ++j;
-		}
-	}
-
-	return 0;
+   for (auto& entry : _resources) {
+      Resource* res = entry.second;
+      if (res && !res->_loaded && !res->_noQuery) {
+         return res->_handle;
+      }
+   }
+   return 0;
 }
 
 
 void ResourceManager::releaseUnusedResources()
 {
-	vector< uint32 > killList;
-	
-	// Find unused resources and release dependencies
-	for( uint32 i = 0; i < _resources.size(); ++i )
-	{
-		if( _resources[i] != 0x0 && _resources[i]->_userRefCount == 0 && _resources[i]->_refCount == 0 )
-		{
-			killList.push_back( i );
-			_resources[i]->release();
-		}
-	}
-	
-	// Delete unused resources
-	for( uint32 i = 0; i < killList.size(); ++i )
-	{
-		Modules::log().writeInfo( "Removed resource '%s'", _resources[killList[i]]->_name.c_str() );
-		delete _resources[killList[i]]; _resources[killList[i]] = 0x0;
-	}
+   vector<ResHandle> killList;
 
-	// Releasing a resource can remove dependencies from other resources which can also be released
-	if( !killList.empty() ) releaseUnusedResources();
+   // Find unused resources and release dependencies
+   for (auto& entry : _resources) {
+      Resource* res = entry.second;
+      if (res && res->_userRefCount == 0 && res->_refCount == 0) {
+         killList.push_back(entry.first);
+         res->release();
+      }
+   }
+
+   // Delete unused resources
+   for (ResHandle handle : killList) {
+      auto i = _resources.find(handle);
+      Modules::log().writeInfo( "Removed resource '%s'", i->second->_name.c_str() );
+      delete i->second;
+      _resources.erase(i);
+   }
+
+   // Releasing a resource can remove dependencies from other resources which can also be released
+   if( !killList.empty() ) releaseUnusedResources();
+}
+
+Resource *ResourceManager::resolveResHandle( ResHandle handle )
+{
+   auto i = _resources.find(handle), end = _resources.end();
+   return i != end ? i->second : nullptr;
 }
 
 }  // namespace
