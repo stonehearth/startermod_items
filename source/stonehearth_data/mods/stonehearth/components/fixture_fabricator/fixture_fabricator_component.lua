@@ -33,9 +33,13 @@ end
 -- called to kick off the fabricator.  don't call until all the components are
 -- installed and the fabricator entity is at the correct location in the wall
 --
-function FixtureFabricator:start_project()
+function FixtureFabricator:start_project(fixture_uri)
+   assert(fixture_uri)
+   
    self._parent = radiant.entities.get_parent(self._entity)
    self._parent_cp = self._parent:get_component('stonehearth:construction_progress')
+   self._sv.fixture_uri = fixture_uri
+   self.__saved_variables:mark_changed()
    radiant.events.listen(self._parent, 'stonehearth:construction:finished_changed', self, self._on_parent_finished_changed)
    self:_on_parent_finished_changed()
 end
@@ -56,8 +60,7 @@ function FixtureFabricator:construct(worker, item)
    -- xxx: for now, create a brand new entity.  eventually, we should simply be
    -- replacing the ghost_entity with the full_sized_entity for the proxy.
    local proxy_component = item:get_component('stonehearth:placeable_item_proxy')
-   uri = proxy_component:get_full_sized_entity():get_uri()     
-   project = radiant.entities.create_entity(uri)   
+   project = proxy_component:get_full_sized_entity()
 
    -- take the proxy off the current worker or the terrain, depending on where
    -- it came from.
@@ -72,6 +75,11 @@ function FixtureFabricator:construct(worker, item)
    radiant.entities.add_child(self._parent, project, location)
    project:add_component('mob')
                :set_rotation(self._entity:get_component('mob'):get_rotation())
+
+   -- change ownership so we can interact with it
+   project:add_component('unit_info')
+               :set_player_id(radiant.entities.get_player_id(self._entity))
+               :set_faction(radiant.entities.get_faction(self._entity))
 
    -- all done!  set a flag so we know and remember the project.
    self._sv.project = project
@@ -110,12 +118,12 @@ function FixtureFabricator:_start_teardown_task()
    if not self._teardown_task then
       local town = stonehearth.town:get_town(self._entity)
       self._teardown_task = town:create_worker_task('stonehearth:teardown_fixture', { fabricator = self._entity })
-                                      :set_name('teardown')
-                                      :set_source(self._entity)
-                                      :set_max_workers(1)
-                                      :set_priority(priorities.TEARDOWN_BUILDING)
-                                      :once()
-                                      :start()
+                                       :set_name('teardown')
+                                       :set_source(self._entity)
+                                       :set_max_workers(1)
+                                       :set_priority(priorities.TEARDOWN_BUILDING)
+                                       :once()
+                                       :start()
    end
 end
 
@@ -133,7 +141,10 @@ end
 function FixtureFabricator:_start_fabricate_task() 
    if not self._fabricate_task then
       local town = stonehearth.town:get_town(self._entity)
-      self._fabricate_task = town:create_worker_task('stonehearth:fabricate_fixture', { fabricator = self._entity })
+      self._fabricate_task = town:create_worker_task('stonehearth:fabricate_fixture', {
+                                             fabricator = self._entity,
+                                             fixture_uri = self._sv.fixture_uri 
+                                          })
                                       :set_name('fabricate')
                                       :set_source(self._entity)
                                       :set_max_workers(1)

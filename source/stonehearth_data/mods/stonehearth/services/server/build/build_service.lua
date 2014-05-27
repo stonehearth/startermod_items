@@ -581,32 +581,33 @@ end
 function BuildService:add_portal(session, response, wall_entity, portal_uri, location)
    local wall = wall_entity:get_component('stonehearth:wall')
    if wall then
+      local portal_blueprint_uri
       local data = radiant.entities.get_entity_data(portal_uri, 'stonehearth:ghost_item')
       if data then
-         portal_uri = data.uri
+         portal_blueprint_uri = data.uri
       end
-      
-      local building = self:_get_building_for(wall_entity)
-      local portal = radiant.entities.create_entity(portal_uri)
 
-      portal:add_component('unit_info')
-               :set_player_id(radiant.entities.get_player_id(building))
-               :set_faction(radiant.entities.get_faction(building))
+      local building = self:_get_building_for(wall_entity)
+      local portal_blueprint = radiant.entities.create_entity(portal_blueprint_uri)
+
+      portal_blueprint:add_component('unit_info')
+                        :set_player_id(radiant.entities.get_player_id(building))
+                        :set_faction(radiant.entities.get_faction(building))
 
       -- add the new portal to the wall and reconstruct the shape.
-      wall:add_portal(portal, location)
+      wall:add_portal(portal_blueprint, location)
           :layout()
 
       -- `portal` is actually a blueprint of the fixture, not the actual fixture
       -- itself.  change the material we use to render it and hook up a fixture_fabricator
       -- to help build it.
-      portal:add_component('render_info')
-                  :set_material('materials/blueprint.material.xml')
-      portal:add_component('stonehearth:fixture_fabricator')
-                  :start_project()
+      portal_blueprint:add_component('render_info')
+                        :set_material('materials/blueprint.material.xml')
+      portal_blueprint:add_component('stonehearth:fixture_fabricator')
+                        :start_project(portal_uri)
 
       response:resolve({
-         new_selection = portal
+         new_selection = portal_blueprint
       })
    end
 end
