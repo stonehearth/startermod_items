@@ -215,30 +215,28 @@ std::string CodeResource::assembleCode()
 
 void CodeResource::updateShaders()
 {
-	for( uint32 i = 0; i < Modules::resMan().getResources().size(); ++i )
-	{
-		Resource *res = Modules::resMan().getResources()[i];
+   for (auto const &entry : Modules::resMan().getResources()) {
+      Resource *res = entry.second;
 
-		if( res != 0x0 && res->getType() == ResourceTypes::Shader )
-		{
-			ShaderResource *shaderRes = (ShaderResource *)res;
-			
-			// Mark shaders using this code as uncompiled
-			for( uint32 j = 0; j < shaderRes->getContexts().size(); ++j )
-			{
-				ShaderContext &context = shaderRes->getContexts()[j];
-				
-				if( shaderRes->getCode( context.vertCodeIdx )->hasDependency( this ) ||
-				    shaderRes->getCode( context.fragCodeIdx )->hasDependency( this ) )
-				{
-					context.compiled = false;
-				}
-			}
-			
-			// Recompile shaders
-			shaderRes->compileContexts();
-		}
-	}
+      if (res && res->getType() == ResourceTypes::Shader ) {
+         ShaderResource *shaderRes = (ShaderResource *)res;
+
+         // Mark shaders using this code as uncompiled
+         for( uint32 j = 0; j < shaderRes->getContexts().size(); ++j )
+         {
+            ShaderContext &context = shaderRes->getContexts()[j];
+
+            if( shaderRes->getCode( context.vertCodeIdx )->hasDependency( this ) ||
+               shaderRes->getCode( context.fragCodeIdx )->hasDependency( this ) )
+            {
+               context.compiled = false;
+            }
+         }
+
+         // Recompile shaders
+         shaderRes->compileContexts();
+      }
+   }
 }
 
 

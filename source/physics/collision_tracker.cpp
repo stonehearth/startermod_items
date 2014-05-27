@@ -87,3 +87,40 @@ csg::Point3 CollisionTracker::GetEntityPosition() const
    }
    return position;
 }
+
+/* 
+ * -- CollisionTracker::Intersects
+ *
+ * Returns whether or not the specified region intersects with the region
+ * tracked by this collision tracker.  The `region` should be specified in
+ * world coodrinates.
+ *
+ */
+bool CollisionTracker::Intersects(csg::Region3 const& region) const
+{
+   return Intersects(region, region.GetBounds());
+}
+
+
+/* 
+ * -- CollisionTracker::Intersects
+ *
+ * Returns whether or not the specified region intersects with the region
+ * tracked by this collision tracker.  The `region` should be specified in
+ * world coodrinates, and `regionBounds` must be the exact bounding box around
+ * the region.  This method is provided publicly for performance purposes.
+ * Use it over ::Intersects(csg::Region const&) if you need to call with the
+ * same region on many Trackers.
+ *
+ */
+bool CollisionTracker::Intersects(csg::Region3 const& region, csg::Cube3 const& regionBounds) const
+{
+   if (Intersects(regionBounds)) {
+      for (csg::Cube3 const& cube : region) {
+         if (Intersects(cube)) {
+            return true;
+         }
+      }
+   }
+   return false;
+}

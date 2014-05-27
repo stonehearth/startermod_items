@@ -45,40 +45,31 @@ public:
 
 	uint32 add( const T &obj )
 	{
-		if( !_freeList.empty() )
-		{
-			uint32 index = _freeList.back();
-			_freeList.pop_back();
-			_objects[index] = obj;
-			return index + 1;
-		}
-		else
-		{
-			_objects.push_back( obj );
-			return (uint32)_objects.size();
-		}
+           uint32 handle = _nextHandleValue++;
+           _objects[handle] = obj;
+           return handle;
 	}
 
 	void remove( uint32 handle )
 	{
-		ASSERT( handle > 0 && handle <= _objects.size() );
-		
-		_objects[handle - 1] = T();  // Destruct and replace with default object
-		_freeList.push_back( handle - 1 );
+           auto i = _objects.find(handle), end = _objects.end();
+           ASSERT(i != end);
+           if (i != end) {
+               _objects.erase(i);
+           }
 	}
 
 	T &getRef( uint32 handle )
 	{
-		ASSERT( handle > 0 && handle <= _objects.size() );
-		
-		return _objects[handle - 1];
+           auto i = _objects.find(handle), end = _objects.end();
+           ASSERT(i != end);
+           return i->second;
 	}
 
 	friend class RenderDevice;
 
 private:
-	std::vector< T >       _objects;
-	std::vector< uint32 >  _freeList;
+        std::unordered_map<uint32, T>  _objects;
 };
 
 

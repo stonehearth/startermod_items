@@ -805,6 +805,8 @@ void Renderer::SetRootEntity(om::EntityPtr rootObject)
 
 void Renderer::Initialize()
 {
+   RenderNode::Initialize();
+
    BuildSkySphere();
    BuildStarfield();
 
@@ -836,6 +838,8 @@ void Renderer::Initialize()
 
 void Renderer::Shutdown()
 {
+   RenderNode::Shutdown();
+
    show_debug_shapes_changed_slot_.Clear();
    server_tick_slot_.Clear();
    render_frame_start_slot_.Clear();
@@ -847,7 +851,6 @@ void Renderer::Shutdown()
       e.clear();
    }
 
-   RenderNode::ClearRenderNode();
    debugShapes_ = 0;
    fowExploredNode_ = 0;
    delete camera_;      camera_ = nullptr;

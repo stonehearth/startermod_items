@@ -27,7 +27,7 @@ class Skeleton {
 
    protected:
       H3DNode                                _parent;
-      std::map<std::string, H3DNodeUnique>   _bones;
+      std::map<std::string, H3DNode>         _bones;
       float                                  _scale;
 };
 

@@ -21,6 +21,13 @@ function PlaceableItemProxyComponent:initialize(entity, json)
    end  
 end
 
+-- Implemented in such a way that one can query a proxy without having to
+-- actually create the full sized entity (if it hasn't been created yet).
+function PlaceableItemProxyComponent:get_full_sized_entity_uri()
+   assert(self._placed_entity_uri)
+   return self._placed_entity_uri
+end
+
 function PlaceableItemProxyComponent:get_full_sized_entity()
    if not self._sv.placed_entity and self._placed_entity_uri then
       local placed_entity = radiant.entities.create_entity(self._placed_entity_uri)
@@ -40,6 +47,7 @@ function PlaceableItemProxyComponent:set_full_sized_entity(placed_entity)
    end
 
    self._sv.placed_entity = placed_entity
+   self._placed_entity_uri = placed_entity:get_uri()
    --TODO: clarify: why might we be missing this URI?
    if not self._placed_entity_uri then
       self._placed_entity_uri = placed_entity:get_uri()

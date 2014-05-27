@@ -66,9 +66,13 @@ std::shared_ptr<DirectPathFinder> DirectPathFinder::SetReversiblePath(bool rever
 
 bool DirectPathFinder::GetEndPoints(csg::Point3& start, csg::Point3& end) const
 {
+   om::EntityPtr sourceEntity = entityRef_.lock();
+   if (!sourceEntity) {
+      return false;
+   }
+
    if (useEntityForStartPoint_) {
-      om::EntityPtr entity = entityRef_.lock();
-      start = entity->AddComponent<om::Mob>()->GetWorldGridLocation();
+      start = sourceEntity->AddComponent<om::Mob>()->GetWorldGridLocation();
    } else {
       start = startLocation_;
    }
@@ -82,7 +86,7 @@ bool DirectPathFinder::GetEndPoints(csg::Point3& start, csg::Point3& end) const
       }
 
       // Find the point closest to the start in the destination entity's adjacent region.
-      bool haveEndPoint = MovementHelper(logLevel_).GetClosestPointAdjacentToEntity(sim_, start, destinationEntity, end);
+      bool haveEndPoint = MovementHelper(logLevel_).GetClosestPointAdjacentToEntity(sim_, start, sourceEntity, destinationEntity, end);
 
       if (haveEndPoint) {
          return true;

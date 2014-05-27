@@ -44,8 +44,8 @@ function PickupPlacedItemAdjacent:run(ai, entity, args)
    ai:execute('stonehearth:run_effect', { effect = 'work' })
    
    local location = item:get_component('mob'):get_world_grid_location()   
-   radiant.terrain.place_entity(self._proxy_item, location)
    radiant.terrain.remove_entity(item)
+   radiant.terrain.place_entity(self._proxy_item, location)
    self._proxy_component:set_full_sized_entity(item)
    
    local pickup_item = self._proxy_item

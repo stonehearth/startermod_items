@@ -81,7 +81,7 @@ RenderNodePtr Client_CreateVoxelNode(lua_State* L,
    csg::RegionToMesh(model, mesh, -origin, false);
 
    return RenderNode::CreateCsgMeshNode(parent, mesh)
-               ->SetMaterial(material_path);
+                           ->SetMaterial(material_path);
 }
 
 
@@ -372,7 +372,7 @@ om::DataStorePtr Client_CreateDataStore(lua_State* L)
 
 bool Client_IsValidStandingRegion(lua_State* L, csg::Region3 const& r)
 {
-   return Client::GetInstance().GetOctTree().GetNavGrid().IsValidStandingRegion(r);
+   return Client::GetInstance().GetOctTree().GetNavGrid().IsStandable(r);
 }
 
 CaptureInputPromisePtr Client_CaptureInput(lua_State* L)

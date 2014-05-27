@@ -22,5 +22,6 @@ namespace Horde3D {
 typedef int ResHandle;
 typedef int NodeHandle;
 
+extern uint32 _nextHandleValue;
 }
 #endif // _egPrerequisites_H_

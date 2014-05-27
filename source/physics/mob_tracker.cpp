@@ -11,7 +11,7 @@ using namespace radiant::phys;
 #define NG_LOG(level)              LOG(physics.navgrid, level)
 
 /*
- * MobTracker::MobTracker
+ * -- MobTracker::MobTracker
  *
  * Track the Mob for an Entity.
  */
@@ -20,6 +20,7 @@ MobTracker::MobTracker(NavGrid& ng, om::EntityPtr entity, om::MobPtr mob) :
    last_bounds_(csg::Point3::zero, csg::Point3::zero),
    mob_(mob)
 {
+   localRegion_.AddUnique(mob->GetMobCollisionBox());
 }
 
 
@@ -29,18 +30,19 @@ MobTracker::MobTracker(NavGrid& ng, om::EntityPtr entity, om::MobPtr mob) :
  * Destroy the MobTracker.  Ask the NavGrid to mark the tiles which used
  * to contain us as dirty.  They'll notice their weak_ptr's have expired and remove our
  * bits from the vectors.
+ *
  */
-
 MobTracker::~MobTracker()
 {
    GetNavGrid().OnTrackerDestroyed(last_bounds_, GetEntityId());
 }
 
 /*
- * MobTracker::Initialize
+ * -- MobTracker::Initialize
  *
  * Put a trace on the region for the Mob to notify the NavGrid
  * whenever the collision shape changes.
+ *
  */
 void MobTracker::Initialize()
 {
@@ -49,10 +51,11 @@ void MobTracker::Initialize()
 }
 
 /*
- * MobTracker::MarkChanged
+ * -- MobTracker::MarkChanged
  *
  * Notify the NavGrid that our shape has changed.  We pass in the current bounds and bounds
  * of the previous shape so the NavGrid can register/un-register us with each tile.
+ *
  */
 void MobTracker::MarkChanged()
 {
@@ -70,10 +73,11 @@ void MobTracker::MarkChanged()
 }
 
 /*
- * MobTracker::GetOverlappingRegion
+ * -- MobTracker::GetOverlappingRegion
  *
  * Return the part of our region which overlaps the specified bounds.  Bounds are in
  * world space coordinates!
+ *
  */
 csg::Region3 MobTracker::GetOverlappingRegion(csg::Cube3 const& bounds) const
 {
@@ -81,7 +85,19 @@ csg::Region3 MobTracker::GetOverlappingRegion(csg::Cube3 const& bounds) const
 }
 
 /*
- * MobTracker::GetType
+ * -- MobTracker::GetLocalRegion
+ *
+ * Return region tracked by this CollisionTracker in the coordinate system of the
+ * owning entity.
+ *
+ */
+csg::Region3 const& MobTracker::GetLocalRegion() const
+{
+   return localRegion_;
+}
+
+/*
+ * -- MobTracker::GetType
  *
  * Return the type of the mob tracker
  */
@@ -91,7 +107,7 @@ TrackerType MobTracker::GetType() const
 }
 
 /*
- * MobTracker::GetBounds
+ * -- MobTracker::GetBounds
  *
  * Return the bounds of the mob in this tracker, in world coordinates
  */
@@ -101,7 +117,7 @@ csg::Cube3 const& MobTracker::GetBounds() const
 }
 
 /*
- * MobTracker::Intersects
+ * -- MobTracker::Intersects
  *
  * Return whether or not the specified `worldBounds` overlaps with this entity.
  */
@@ -111,7 +127,7 @@ bool MobTracker::Intersects(csg::Cube3 const& worldBounds) const
 }
 
 /*
- * MobTracker::ComputeWorldBounds
+ * -- MobTracker::ComputeWorldBounds
  *
  * Compute the bounds of the entity based on its location and collision type.
  */
@@ -119,13 +135,7 @@ csg::Cube3 MobTracker::ComputeWorldBounds() const
 {
    om::MobPtr mob = mob_.lock();
    if (!mob) {
-      return csg::Cube3(csg::Point3::zero, csg::Point3::zero);
+      return csg::Cube3::zero;
    }
-
-   csg::Point3 pos = mob->GetWorldGridLocation();
-   csg::Cube3 bounds(pos, pos + csg::Point3(1, 1, 1));
-   if (mob->GetMobCollisionType() == om::Mob::HUMANOID) {
-      bounds.max.y += 3;
-   }
-   return bounds;
+   return mob->GetMobCollisionBox() + mob->GetWorldGridLocation();
 }

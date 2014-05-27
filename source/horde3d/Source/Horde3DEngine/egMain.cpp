@@ -55,6 +55,7 @@ static void __ValidatePlatform__()
 using namespace Horde3D;
 using namespace std;
 
+uint32 Horde3D::_nextHandleValue = 2;  // Skip RootNode...
 
 bool initialized;
 const char *emptyCString = "";

@@ -54,6 +54,34 @@ App.StonehearthTownView = App.View.extend({
 
          self.$('#' + tabPage).show();
       });
+
+      // add turn page effect
+      this.$('.book').turn({
+                     display: 'double',
+                     acceleration: true,
+                     gradients: true,
+                     elevation:50,
+                     page: 2,
+                     when: {
+                        turned: function(e, page) {
+                           console.log('Current view: ', $(this).turn('view'));
+                        }
+                     }
+                  });
+
+
+      $('.book').on( 'click', '.odd', function() {
+         $('.book').turn('next');
+      });
+
+      $('.book').on( 'click', '.even', function() {
+         var page = $(".book").turn("page");
+
+         // never go to page 1
+         if (page > 2) {
+            $('.book').turn('previous');   
+         }
+      });
    },
 
    _update_town_label: function() {

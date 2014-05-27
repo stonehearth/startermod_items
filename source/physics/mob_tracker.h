@@ -21,6 +21,7 @@ public:
 
    void Initialize() override;
    TrackerType GetType() const override;
+   csg::Region3 const& GetLocalRegion() const override;
    csg::Region3 GetOverlappingRegion(csg::Cube3 const& bounds) const override;
    bool Intersects(csg::Cube3 const& worldBounds) const override;
 
@@ -39,6 +40,7 @@ private:
    om::MobRef        mob_;
    csg::Cube3        bounds_;
    csg::Cube3        last_bounds_;
+   csg::Region3      localRegion_;
 };
 
 END_RADIANT_PHYSICS_NAMESPACE

@@ -29,6 +29,11 @@ function LocationSelector:allow_shift_queuing(enabled)
    return self
 end
 
+function LocationSelector:set_filter_fn(fn)
+   self._filter_fn = fn
+   return self
+end
+
 function LocationSelector:set_min_locations_count(count)
    self._locations_remaining_count = count
    return self
@@ -84,23 +89,21 @@ end
 -- is almost certainly going to get in the way!)
 --
 function LocationSelector:_get_selected_brick(x, y)
-   -- the ray didn't hit anything.  move the cursor offscreen
-   local pt = OFFSCREEN
-
    -- query the scene to figure out what's under the mouse cursor
    local s = _radiant.client.query_scene(x, y)
 
    for result in s:each_result() do
-      -- at some point in the near future, we will want to be able to
-      -- place items atop floors, structures, etc.  until that happy
-      -- day, only allow people to put things on the terrain
-      if result.entity == radiant._root_entity then
-         -- select the point 1 unit above the brick the ray hit.
-         return result.brick + Point3(0, 1, 0)
+      -- skip the cursor...
+      if result.entity ~= self._cursor_entity then
+         if not self._filter_fn or self._filter_fn(result) then
+            local brick, normal = result.brick, result.normal
+            if normal.x > 0 or normal.z > 0 or normal.y > 0 then
+               return brick + normal:to_int()
+            end
+            return brick
+         end
       end
    end
-   
-   return pt
 end
 
 function LocationSelector:_shift_down()
@@ -118,7 +121,7 @@ function LocationSelector:_on_mouse_event(mouse_pos, event)
    local pt = self:_get_selected_brick(mouse_pos.x, mouse_pos.y)
    if self._cursor_entity then
       -- move the  cursor, if one was specified.   
-      radiant.entities.move_to(self._cursor_entity, pt)
+      radiant.entities.move_to(self._cursor_entity, pt or OFFSCREEN)
       -- if the user right-clicked, rotate the cursor
       if event and event:up(2) then
          self._rotation = (self._rotation + 90) % 360
@@ -128,11 +131,11 @@ function LocationSelector:_on_mouse_event(mouse_pos, event)
 
    -- if the user installed a progress handler, go ahead and call it now
    if self._progress_cb then
-      self._progress_cb(self, pt, self._rotation)
+      self._progress_cb(self, pt or OFFSCREEN, self._rotation)
    end
 
    -- early exit if the ray missed the entire world   
-   if pt == OFFSCREEN then
+   if not pt then
       return
    end
 

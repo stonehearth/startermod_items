@@ -71,9 +71,10 @@ void RenderMob::Move()
    m[13] = _current.position.y;
    m[14] = _current.position.z;
 
-   bool result = h3dSetNodeTransMat(entity_.GetNode(), m.get_float_ptr());
+   H3DNode node = entity_.GetNode();
+   bool result = h3dSetNodeTransMat(node, m.get_float_ptr());
    if (!result) {
-      M_LOG(1) << "failed to set transform on node.";
+      M_LOG(1) << "failed to set transform on node " << node << ".";
    }
 }
 

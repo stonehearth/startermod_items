@@ -252,7 +252,7 @@ function Town:place_item_in_world(item_proxy, full_sized_uri, location, rotation
    local ghost_entity = radiant.entities.create_entity()
    local ghost_entity_component = ghost_entity:add_component('stonehearth:ghost_item')
    ghost_entity_component:set_full_sized_mod_uri(full_sized_uri)
-   radiant.terrain.place_entity(ghost_entity, location)
+   radiant.terrain.place_entity_at_exact_location(ghost_entity, location)
    radiant.entities.turn_to(ghost_entity, rotation)
 
    local remove_ghost_entity = function(placed_item)
