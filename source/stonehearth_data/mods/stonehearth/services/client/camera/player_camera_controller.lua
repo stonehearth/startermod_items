@@ -20,7 +20,6 @@ function PlayerCameraController:__init(datastore)
       self._sv.position = Vec3(0, 30, 0)
       self._sv.lookat = Vec3(-1, -1, -1)
       self._sv.lookat:normalize()
-      --self._sv.lookat = Vec3(0, 0, -1)
    end
 
    self._continuous_delta = Vec3(0, 0, 0)
@@ -36,9 +35,6 @@ function PlayerCameraController:__init(datastore)
 
    self._min_zoom = 10
    self._max_zoom = 300
-
-   -- xxx, initialize this from a user setting?
-   self._scroll_on_drag = false
 
    self._input_capture = _radiant.client.capture_input()
 
@@ -445,6 +441,9 @@ end
 
 
 function PlayerCameraController:update(frame_time)
+   -- Maybe we should just collect up mouse deltas and apply them here, too?
+   self:_process_keys()
+
    local scaled_continuous_delta = Vec3(self._continuous_delta)
    scaled_continuous_delta:scale(frame_time / 1000.0)
 
