@@ -10,9 +10,9 @@ Patrol.priority = 1
 
 local ai = stonehearth.ai
 return ai:create_compound_action(Patrol)
-         --:execute('stonehearth:set_posture', { posture = 'patrol' })
+         :execute('stonehearth:set_posture', { posture = 'combat' })
          :execute('stonehearth:get_patrol_route')
          :execute('stonehearth:follow_path', { path = ai.PREV.path })
          :execute('stonehearth:mark_patrol_completed', { patrollable_object = ai.BACK(2).patrollable_object })
          :execute('stonehearth:patrol:idle')
-         --:execute('stonehearth:unset_posture', { posture = 'patrol' })
+         :execute('stonehearth:unset_posture', { posture = 'combat' })
