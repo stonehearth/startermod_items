@@ -61,6 +61,7 @@
       <div class="tab active" tabPage="overviewTab">Town Overview</div>
       <div class="tab" tabPage="journalsTab">Journals</div>
    </div>
+
 </div>
 </script>
 
@@ -68,11 +69,13 @@
 <!-- Template for the journal tab -->
 <script type="text/x-handlebars" data-template-name="_journalTab">
    <div class="book">
+      <div id="defaultMessage">No journal entries yet!</div>
    </div>
 
-   <div id="journalDate">{{currJournalDayData.date}}</div>
-   <div id="backForwardDiv">
-      <a href='#' id="pageBackBtn" {{action back target=view}}>Back</a>
-      <a href='#' id="pageForwardBtn" {{action forward target=view}}>Forward</a>
+   <div id=dateControls>
+      <a href='#' id="pageBackBtn" {{action back target=view}}></a>
+      <div id="journalDate">{{i18n journal_today}}</div>
+      <a href='#' id="pageForwardBtn" {{action forward target=view}}></a>
    </div>
+
 </script>
