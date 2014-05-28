@@ -8,7 +8,7 @@ using namespace ::radiant::simulation;
 
 static int next_path_id_ = 1;
 
-#define PF_LOG(level)   LOG_CATEGORY(simulation.pathfinder.astar, level, "path " << id_)
+#define PF_LOG(level)   LOG(simulation.pathfinder.astar, level)
 
 Path::Path(const std::vector<csg::Point3>& points, om::EntityRef source, om::EntityRef destination, csg::Point3 const& poi) :
    points_(points),
@@ -65,4 +65,35 @@ csg::Point3 Path::GetSourceLocation() const
       return source->GetComponent<om::Mob>()->GetWorldGridLocation();
    }
    return csg::Point3(0, 0, 0);
+}
+
+PathPtr radiant::simulation::CombinePaths(std::vector<PathPtr> const& paths)
+{
+   if (paths.empty()) {
+      return nullptr;
+   }
+
+   PathPtr firstPath = paths.front();
+   PathPtr lastPath = paths.back();
+   std::vector<csg::Point3> combinedPoints;
+
+   for (PathPtr const& path : paths) {
+      std::vector<csg::Point3> const& points = path->GetPoints();
+
+      if (!combinedPoints.empty()) {
+         // really want to assert using OctTree::ValidMove(), but we don't have access to the simulation from here
+         float distance = (points.front() - combinedPoints.back()).Length();
+         if (distance >= 2) {
+            PF_LOG(3) << "Combined paths are not adjacent. Distance between paths = " << distance <<
+               ". This is an unusual or impossible move.";
+         }
+      }
+
+      combinedPoints.insert(combinedPoints.end(), path->GetPoints().begin(), path->GetPoints().end());
+   }
+
+   PathPtr combinedPath = std::make_shared<Path>(
+      combinedPoints, firstPath->GetSource(), lastPath->GetDestination(), lastPath->GetDestinationPointOfInterest()
+   );
+   return combinedPath;
 }

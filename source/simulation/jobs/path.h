@@ -38,6 +38,8 @@ class Path {
 typedef std::weak_ptr<Path> PathRef;
 typedef std::shared_ptr<Path> PathPtr;
 
+PathPtr CombinePaths(std::vector<PathPtr> const& paths);
+
 std::ostream& operator<<(std::ostream& os, const Path& in);
 
 END_RADIANT_SIMULATION_NAMESPACE
