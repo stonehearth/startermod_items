@@ -16,7 +16,7 @@ CombatIdleShuffle.args = {
    enemy = Entity
 }
 CombatIdleShuffle.version = 2
-CombatIdleShuffle.priority = 2
+CombatIdleShuffle.priority = 1
 CombatIdleShuffle.weight = 1
 
 function CombatIdleShuffle:start_thinking(ai, entity, args)
