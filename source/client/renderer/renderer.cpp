@@ -63,7 +63,8 @@ Renderer::Renderer() :
    currentPipeline_(""),
    iconified_(false),
    resize_pending_(false),
-   drawWorld_(true)
+   drawWorld_(true),
+   last_render_time_wallclock_(0)
 {
    OneTimeIninitializtion();
 }
@@ -834,6 +835,8 @@ void Renderer::Initialize()
    // the update.
    ResizeViewport();
    CallWindowResizeListeners();
+
+   last_render_time_wallclock_ = platform::get_current_time_in_ms();
 }
 
 void Renderer::Shutdown()
