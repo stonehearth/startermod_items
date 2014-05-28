@@ -3,9 +3,6 @@
       "idle_breathe" : "carry_idle",
       "run" : "carry_walk"
    },
-   "panic" : {
-      "run" : "run_panic"
-   },
    "sitting" : {
       "idle_breathe" : "sitting_idle",
       "idle_sway" : "sitting_idle",
@@ -13,5 +10,11 @@
    },
    "sitting_on_chair" : {
       "eat" : "sitting_on_chair_eat"
+   },
+   "panic" : {
+      "run" : "run_panic"
+   },
+   "patrol" : {
+      "run" : "patrol_walk"
    }
 }
