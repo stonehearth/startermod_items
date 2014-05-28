@@ -384,7 +384,9 @@
       "actions:chase_entity" : "file(ai/actions/chase_entity_action.lua)",
       "actions:run_away_from_entity" : "file(ai/actions/run_away_from_entity_action.lua)",
       "actions:patrol" : "file(ai/actions/patrol_action.lua)",
-      "actions:walk_around_entity" : "file(ai/actions/walk_around_entity_action.lua)",
+      "actions:patrol:idle" : "file(ai/actions/patrol_idle_action.lua)",
+      "actions:get_patrol_route" : "file(ai/actions/get_patrol_route_action.lua)",
+      "actions:mark_patrol_completed" : "file(ai/actions/mark_patrol_completed_action.lua)",
 
       "actions:stockpile_arson" : "file(ai/actions/stockpile_arson_action.lua)",
       "actions:set_posture" : "file(ai/actions/set_posture_action.lua)",
@@ -392,7 +394,6 @@
 
       "observers:enemy_observer" : "file(ai/observers/enemy_observer.lua)",
       "observers:combat_panic" : "file(ai/observers/combat_panic_observer.lua)",
-      "observers:town_defense_observer" : "file(ai/observers/town_defense_observer.lua)",
       "observers:sleepiness" : "file(ai/observers/sleepiness_observer.lua)",
       "observers:calorie" : "file(ai/observers/calorie_observer.lua)",
       "observers:free_time" : "file(ai/observers/free_time_observer.lua)",

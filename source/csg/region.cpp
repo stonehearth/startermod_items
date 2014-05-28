@@ -776,6 +776,23 @@ void Region<S, C>::Validate() const
 #endif
 }
 
+template <typename S, int C>
+Point<float, C> csg::GetCentroid(Region<S, C> const& region)
+{
+   Point<float, C> weightedSum = Point<float, C>::zero;
+   float totalWeight = 0;
+
+   for (Cube<S, C> const& cube : region) {
+      Point<float, C> cubeCentroid = GetCentroid(cube);
+      float cubeArea = (float)cube.GetArea();
+      weightedSum += cubeCentroid.Scaled(cubeArea);
+      totalWeight += cubeArea;
+   }
+
+   Point<float, C> centroid = weightedSum.Scaled(1 / totalWeight);
+   return centroid;
+}
+
 #define MAKE_REGION(Cls) \
    const Cls Cls::empty; \
    template Cls::Region(); \
@@ -827,3 +844,5 @@ MAKE_REGION(Region1f)
 DEFINE_REGION_CONVERSIONS(2)
 DEFINE_REGION_CONVERSIONS(3)
 
+// define centroid methods
+template Point3f csg::GetCentroid(Region3 const& region);

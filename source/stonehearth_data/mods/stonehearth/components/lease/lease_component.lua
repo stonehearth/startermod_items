@@ -11,15 +11,14 @@ function LeaseComponent:initialize(entity, json)
    end
 
    radiant.events.listen(radiant, 'radiant:game_loaded', function()
-         self:_remove_nonpersistant_leases()
+         self:_remove_nonpersistent_leases()
          return radiant.events.UNLISTEN
       end)
-
 end
 
-function LeaseComponent:_remove_nonpersistant_leases(lease_name, entity, options)
+function LeaseComponent:_remove_nonpersistent_leases(lease_name, entity, options)
    for lease_name, info in pairs(self._sv.leases) do
-      if info.persistant then
+      if info.persistent then
          self._sv.leases[lease_name] = nil
       end
    end
@@ -32,7 +31,7 @@ function LeaseComponent:acquire(lease_name, entity, options)
    if self:can_acquire(lease_name, entity) then
       self._sv.leases[lease_name] = {
          owner = entity,
-         persistant = not options or options.persistant,
+         persistent = not options or options.persistent,
       }
       entity:add_component('stonehearth:lease_holder'):_add_lease(lease_name, self._entity)
       self.__saved_variables:mark_changed()
@@ -45,10 +44,8 @@ end
 -- @returns true if the lease is currently empty or if I currently have it, false otherwise
 function LeaseComponent:can_acquire(lease_name, entity)
    local owner = self:get_owner(lease_name)
-   if not owner or (owner:get_id() == entity:get_id()) then
-      return true
-   end
-   return false
+   local can_acquire = not owner or not owner:is_valid() or owner == entity
+   return can_acquire
 end
 
 function LeaseComponent:get_owner(lease_name)
@@ -70,6 +67,5 @@ function LeaseComponent:release(lease_name, entity)
    end
    return false
 end
-
 
 return LeaseComponent

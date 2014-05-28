@@ -169,6 +169,9 @@ private:
 };
 
 template <typename S, int C>
+Point<float, C> GetCentroid(Cube<S, C> const& cube);
+
+template <typename S, int C>
 std::ostream& operator<<(std::ostream& os, Cube<S, C> const& in)
 {
    return in.Format(os);

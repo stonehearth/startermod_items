@@ -52,7 +52,7 @@ end
 function AiService:acquire_ai_lease(target, owner)
    if target and target:is_valid() and owner and owner:is_valid() then
       local o = {
-         persistant = false,
+         persistent = false,
       }
       return target:add_component('stonehearth:lease'):acquire(self.RESERVATION_LEASE_NAME, owner, o)
    end

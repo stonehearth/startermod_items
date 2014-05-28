@@ -14,11 +14,7 @@ return ai:create_compound_action(Flee)
          :execute('stonehearth:run_away_from_entity', {
             threat = ai.ARGS.enemy,
             distance = 32,
-            move_effect = 'run_panic',
          })
          :execute('stonehearth:turn_to_face_entity', {
             entity = ai.ARGS.enemy,
-         })
-         :execute('stonehearth:run_effect', {
-            effect = 'combat_1h_idle',
          })

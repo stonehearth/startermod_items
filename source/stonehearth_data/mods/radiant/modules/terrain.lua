@@ -98,7 +98,6 @@ function Terrain.trace_world_entities(reason, added_cb, removed_cb)
                               end
                            end)
                         :on_removed(removed_cb)
-                        :push_object_state()
 end
 
 return Terrain

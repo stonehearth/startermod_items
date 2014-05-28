@@ -9,11 +9,11 @@ function PatrolTest:__init()
    self:create_world()
    self:create_enemy_kingdom()
 
-   self:place_citizen(0, 0, 'farmer')
-
    local footmen = {
       self:place_citizen(15, 15, 'footman', 'stonehearth:wooden_sword'),
+      self:place_citizen(14, 14, 'footman', 'stonehearth:wooden_sword'),
       --self:place_citizen(13, 13, 'footman', 'stonehearth:wooden_sword'),
+      --self:place_citizen(12, 12, 'footman', 'stonehearth:wooden_sword'),
    }
 
    -- local enemies = {
@@ -22,14 +22,11 @@ function PatrolTest:__init()
    -- self:equip_all(enemies)
 
    local player_id = footmen[1]:add_component('unit_info'):get_player_id()
-   self:place_stockpile_cmd(player_id, -10, -10, 5, 5)
-   self:place_stockpile_cmd(player_id, 5, 5, 5, 5)
-
-   stonehearth.farming:create_new_field(
-      { player_id = player_id, faction = radiant.entities.get_faction(footmen[1]) },
-      Point3(-10, 1, 0),
-      Point2(10, 10)
-   )
+   self:place_stockpile_cmd(player_id, -13, -13, 5, 5)
+   self:place_stockpile_cmd(player_id, -13,   8, 5, 5)
+   self:place_stockpile_cmd(player_id,   8, -13, 5, 5)
+   self:place_stockpile_cmd(player_id,   8,   8, 5, 5)
+   self:place_stockpile_cmd(player_id,  -2,  -2, 5, 5)
 end
 
 function PatrolTest:equip_all(entities)

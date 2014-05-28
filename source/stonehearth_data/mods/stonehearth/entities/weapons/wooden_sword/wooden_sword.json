@@ -19,7 +19,7 @@
          "render_info" : {
             "model_variant" : "equipped",
             "default_bone" : "mainHand",
-            "posture" : "combat"
+            "postures" : [ "combat", "patrol" ]
          }
       },
       "unit_info": {

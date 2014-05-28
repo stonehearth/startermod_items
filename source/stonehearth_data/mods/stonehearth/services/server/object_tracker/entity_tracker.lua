@@ -25,7 +25,8 @@ function EntityTracker:__init(tracker_name, filter_fn, event_array)
       })
 
    self._promise = radiant.terrain.trace_world_entities(tracker_name, added_cb, removed_cb)
-
+                     :push_object_state()
+                     
    --Call our evaluation function each time each of these events fires.
    local object_tracker_service = stonehearth.object_tracker
    for i, event in ipairs(event_array) do

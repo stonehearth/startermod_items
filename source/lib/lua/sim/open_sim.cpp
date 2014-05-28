@@ -204,6 +204,19 @@ BfsPathFinderPtr BfsPathFinder_SetFilterFn(BfsPathFinderPtr pf, luabind::object 
    return pf;
 }
 
+PathPtr Path_CombinePaths(luabind::object const& table)
+{
+   ASSERT(type(table) == LUA_TTABLE);
+   std::vector<PathPtr> paths;
+
+   for (luabind::iterator i(table), end; i != end; i++) {
+      paths.push_back(luabind::object_cast<PathPtr>(*i));
+   }
+   
+   PathPtr combinedPath = CombinePaths(paths);
+   return combinedPath;
+}
+
 DEFINE_INVALID_JSON_CONVERSION(Path);
 DEFINE_INVALID_JSON_CONVERSION(PathFinder);
 DEFINE_INVALID_JSON_CONVERSION(BfsPathFinder);
@@ -285,6 +298,8 @@ void lua::sim::open(lua_State* L, Simulation* sim)
             lua::RegisterTypePtr_NoTypeInfo<BumpLocation>("BumpLocation")
             ,
             lua::RegisterTypePtr_NoTypeInfo<LuaJob>("LuaJob")
+            ,
+            def("combine_paths", &Path_CombinePaths)
          ]
       ]
    ];

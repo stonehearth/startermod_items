@@ -178,6 +178,14 @@ function entities.set_player_id(entity, player_id)
    return entity:add_component('unit_info'):set_player_id(player_id)
 end
 
+function entities.get_world_location(entity)
+   local mob = entity:get_component('mob')
+   if not mob then
+      error(tostring(entity) .. ' has no mob component')
+   end
+   return mob:get_world_location()
+end
+
 function entities.get_world_grid_location(entity)
    local mob = entity:get_component('mob')
    if not mob then
@@ -572,6 +580,44 @@ function entities.remove_carrying(entity)
          return item
       end
    end
+end
+
+function entities.can_acquire_lease(leased_object, lease_name, lease_holder)
+   if not leased_object or not leased_object:is_valid() or
+      not lease_holder or not lease_holder:is_valid() then
+      return false
+   end
+
+   local lease_component = leased_object:get_component('stonehearth:lease')
+   if lease_component then
+      local can_acquire = lease_component:can_acquire(lease_name, lease_holder)
+      return can_acquire
+   else
+      return true
+   end
+end
+
+function entities.acquire_lease(leased_object, lease_name, lease_holder, persistent)
+   if not leased_object or not leased_object:is_valid() or
+      not lease_holder or not lease_holder:is_valid() then
+      return false
+   end
+
+   persistent = persistent or true
+
+   local lease_component = leased_object:add_component('stonehearth:lease')
+   local acquired = lease_component:acquire(lease_name, lease_holder, { persistent = persistent })
+   return acquired
+end
+
+function entities.release_lease(leased_object, lease_name, lease_holder)
+   if not leased_object or not leased_object:is_valid() then
+      return true
+   end
+   
+   local lease_component = leased_object:add_component('stonehearth:lease')
+   local result = lease_component:release(lease_name, lease_holder)
+   return result
 end
 
 --[[

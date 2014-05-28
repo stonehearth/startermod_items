@@ -46,7 +46,7 @@ function FollowPathAction:run(ai, entity, args)
 
    -- make sure we record the starting posture. if the posture changed recently, the async trigger
    -- may not have fired yet and we want to know if it has really changed or not.
-   self._starting_posture = radiant.entities.get_posture(entity)
+   self._posture = radiant.entities.get_posture(entity)
    
    log:detail('following path: %s', path)
    if path:is_empty() then
@@ -57,6 +57,11 @@ function FollowPathAction:run(ai, entity, args)
    radiant.events.listen(entity, 'stonehearth:posture_changed', self, self._on_posture_change)
 
    local speed = radiant.entities.get_world_speed(entity)
+
+   -- find a better way to do this rather than hardcoding it
+   if self._posture == 'patrol' then
+      speed = speed * 0.6
+   end
 
    -- make sure the event doesn't clean up after itself when the effect finishes.  otherwise,
    -- people will only play through the animation once.
@@ -78,9 +83,9 @@ end
 function FollowPathAction:_on_posture_change()
    local new_posture = radiant.entities.get_posture(self._entity)
 
-   if new_posture ~= self._starting_posture then
+   if new_posture ~= self._posture then
       self._ai:abort('posture changed (from %s to %s) while following path',
-         tostring(self._starting_posture), tostring(new_posture))
+         tostring(self._posture), tostring(new_posture))
    end
 end
 
@@ -99,7 +104,7 @@ function FollowPathAction:stop(ai, entity)
 
    self._ai = nil
    self._entity = nil
-   self._starting_posture = nil
+   self._posture = nil
 end
 
 return FollowPathAction

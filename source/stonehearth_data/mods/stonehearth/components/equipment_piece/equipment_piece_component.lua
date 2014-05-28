@@ -61,8 +61,8 @@ function EquipmentPieceComponent:_setup_item_rendering()
          render_info:set_model_variant(model_variant)
       end
 
-      local posture = self._json.render_info.posture
-      if posture then
+      local postures = self._json.render_info.postures
+      if postures then
          radiant.events.listen(self._sv.owner, 'stonehearth:posture_changed', self, self._on_posture_changed)
          self:_on_posture_changed()
       else
@@ -74,11 +74,21 @@ end
 function EquipmentPieceComponent:_on_posture_changed()
    local posture = radiant.entities.get_posture(self._sv.owner)
 
-   if posture == self._json.render_info.posture then
+   -- use a set/map for this if the list gets long
+   if self:_value_is_in_array(posture, self._json.render_info.postures) then
       self:_attach_to_bone()
    else
       self:_remove_from_bone()
    end
+end
+
+function EquipmentPieceComponent:_value_is_in_array(value, array)
+   for _, entry_value in pairs(array) do
+      if entry_value == value then
+         return true
+      end
+   end
+   return false
 end
 
 function EquipmentPieceComponent:_attach_to_bone()
