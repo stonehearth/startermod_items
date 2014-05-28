@@ -4,19 +4,54 @@ local rng = _radiant.csg.get_default_rng()
 
 PatrollableObject = class()
 
-function PatrollableObject:__init(object)
-   self.object = object
-   self.object_id = object:get_id()
-   self.last_patrol_time = radiant.gamestate.now()
+function PatrollableObject:__init()
+end
+
+function PatrollableObject:initialize(object)
+   self._object = object
+
+   self.__saved_variables = radiant.create_datastore()
+   self._sv = self.__saved_variables:get_data()
+
+   self._sv.object_id = object:get_id()
+   self._sv.last_patrol_time = radiant.gamestate.now()
+end
+
+function PatrollableObject:restore(datastore)
+   self.__saved_variables = datastore
+   self._sv = self.__saved_variables:get_data()
+end
+
+function PatrollableObject:get_last_patrol_time()
+   return self._sv.last_patrol_time
 end
 
 function PatrollableObject:mark_visited()
-   self.last_patrol_time = radiant.gamestate.now()
+   self._sv.last_patrol_time = radiant.gamestate.now()
+   self.__saved_variables:mark_changed()
 end
 
+function PatrollableObject:get_id()
+   return self._sv.object_id
+end
+
+-- this API will need to change when we have non-object patrol routes
+function PatrollableObject:get_object()
+   local object = self._object
+
+   if not object then
+      object = radiant.entities.get_entity(self._sv.object_id)
+      self._object = object
+   end
+
+   return object
+end
+
+-- this API will need to change when we have non-object patrol routes
 function PatrollableObject:get_centroid()
-   local location = radiant.entities.get_world_location(self.object)
-   local collision_component = self.object:get_component('region_collision_shape')
+   local object = self:get_object()
+   local location = radiant.entities.get_world_location(object)
+   local collision_component = object:get_component('region_collision_shape')
    local centroid
 
    if collision_component ~= nil then
@@ -31,8 +66,9 @@ function PatrollableObject:get_centroid()
 end
 
 function PatrollableObject:get_waypoints(distance)
-   local location = radiant.entities.get_world_grid_location(self.object)
-   local collision_component = self.object:get_component('region_collision_shape')
+   local object = self:get_object()
+   local location = radiant.entities.get_world_grid_location(object)
+   local collision_component = object:get_component('region_collision_shape')
 
    if collision_component ~= nil then
       local object_region = collision_component:get_region():get()
@@ -46,6 +82,24 @@ function PatrollableObject:get_waypoints(distance)
       -- TODO: decide what waypoints to use in this case
       return { location }
    end
+end
+
+function PatrollableObject:acquire_lease(entity)
+   local object = self:get_object()
+   local acquired = radiant.entities.acquire_lease(object, 'stonehearth:patrol_lease', entity, true)
+   return acquired
+end
+
+function PatrollableObject:can_acquire_lease(entity)
+   local object = self:get_object()
+   local can_acquire = radiant.entities.can_acquire_lease(object, 'stonehearth:patrol_lease', entity)
+   return can_acquire
+end
+
+function PatrollableObject:release_lease(entity)
+   local object = self:get_object()
+   local released = radiant.entities.release_lease(object, 'stonehearth:patrol_lease', entity)
+   return released
 end
 
 -- terrain aligned objects have their position shifted by (-0.5, 0, -0.5)

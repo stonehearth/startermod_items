@@ -26,8 +26,8 @@
             "actions" : [
                "stonehearth:actions:patrol",
                "stonehearth:actions:patrol:idle",
-               "stonehearth:actions:get_patrol_point",
-               "stonehearth:actions:mark_patrol_complete"
+               "stonehearth:actions:get_patrol_route",
+               "stonehearth:actions:mark_patrol_completed"
             ],
             "observers" : [
                "stonehearth:observers:enemy_observer"

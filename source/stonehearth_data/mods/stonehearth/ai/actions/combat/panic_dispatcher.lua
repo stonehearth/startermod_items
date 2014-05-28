@@ -13,5 +13,7 @@ PanicDispatcher.priority = constants.priorities.combat.PANIC
 local ai = stonehearth.ai
 return ai:create_compound_action(PanicDispatcher)
          :execute('stonehearth:combat:panic_watcher')
+         :execute('stonehearth:set_posture', { posture = 'panic' })
          :execute('stonehearth:combat:panic', { enemy = ai.ARGS.enemy })
+         :execute('stonehearth:unset_posture', { posture = 'panic' })
          :execute('stonehearth:combat:stop_panicking')

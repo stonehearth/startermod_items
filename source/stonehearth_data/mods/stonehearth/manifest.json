@@ -385,8 +385,8 @@
       "actions:run_away_from_entity" : "file(ai/actions/run_away_from_entity_action.lua)",
       "actions:patrol" : "file(ai/actions/patrol_action.lua)",
       "actions:patrol:idle" : "file(ai/actions/patrol_idle_action.lua)",
-      "actions:get_patrol_point" : "file(ai/actions/get_patrol_point_action.lua)",
-      "actions:mark_patrol_complete" : "file(ai/actions/mark_patrol_complete_action.lua)",
+      "actions:get_patrol_route" : "file(ai/actions/get_patrol_route_action.lua)",
+      "actions:mark_patrol_completed" : "file(ai/actions/mark_patrol_completed_action.lua)",
 
       "actions:stockpile_arson" : "file(ai/actions/stockpile_arson_action.lua)",
       "actions:set_posture" : "file(ai/actions/set_posture_action.lua)",

@@ -26,6 +26,7 @@ function InventoryTracker:__init()
       self:_on_entity_remove(id)
    end
    self._promise = radiant.terrain.trace_world_entities('inventory tracker', added_cb, removed_cb)
+                     :push_object_state()
 end
 
 --[[

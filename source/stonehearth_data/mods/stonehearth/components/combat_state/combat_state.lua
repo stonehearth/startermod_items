@@ -2,17 +2,22 @@ local log = radiant.log.create_logger('combat')
 
 CombatState = class()
 
-function CombatState:initialize()
-   self._sv = self.__saved_variables:get_data()
-
+function CombatState:__init()
    -- attacks in progress are not saved, so neither are their assault events
    self._assault_events = {}
+end
 
-   if not self._sv.initialized then
-      self._sv.cooldowns = {}
-      self._sv.is_panicking = false
-      self._sv.initialized = true
-   end
+function CombatState:initialize()
+   self.__saved_variables = radiant.create_datastore()
+   self._sv = self.__saved_variables:get_data()
+
+   self._sv.cooldowns = {}
+   self._sv.is_panicking = false
+end
+
+function CombatState:restore(datastore)
+   self.__saved_variables = datastore
+   self._sv = self.__saved_variables:get_data()
 end
 
 -- duration is in milliseconds at game speed 1
