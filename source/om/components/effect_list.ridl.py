@@ -23,6 +23,7 @@ class EffectList(Component):
    _private = \
    """
    void AddRemoveDefault();
+   void ConstructObject() override;
    EffectPtr CreateEffect(std::string const& name, int startTime);
-   int default_in_list_;
+   int default_effect_id_;
    """

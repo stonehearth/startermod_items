@@ -1,24 +1,24 @@
-local GoblinThief = class()
+local GoblinBrigands = class()
+local EscortSquad = require 'scenarios.dynamic.goblin_brigands.escort_squad'
+local Point3 = _radiant.csg.Point3
 local rng = _radiant.csg.get_default_rng()
 
-
-function GoblinThief.can_spawn()
+function GoblinBrigands.can_spawn()
    return true
 end
 
 --[[ 
-Goblin Thief (aka Goblin Jerk) narrative:
-When the camp standard is placed, we want to start gently (and then not-so-gently) harassing the player.
-To wit: spawn a little thief, somewhere just outside the explored area.  And then this little guy goes back
-and forth stealing wood (probably should just be from the stockpile, but for now, anywhere.)
-
+Goblin Brigands
 ]]
-function GoblinThief:__init(saved_variables)
+function GoblinBrigands:__init(saved_variables)
    self.__saved_variables = saved_variables
    self._sv = self.__saved_variables:get_data()
 
    if self._sv._triggered then
-      if not self._sv._goblin then
+      if self._sv._squad then
+         self._sv._squad = EscortSquad('game_master', self._sv._squad)
+      end
+      if not self._sv._squad or not self._sv._squad:spawned() then
          -- We were saved in a triggered state, but no goblin has been spawned.
          -- This means if you keep saving/loading before the goblin spawns, the 
          -- goblin will never spawn.  Oh well.
@@ -26,12 +26,12 @@ function GoblinThief:__init(saved_variables)
       else
          -- Triggered, and with a goblin on the move.
          self:_attach_listeners()
-         self:_add_restock_task()
+         self:_add_restock_task(self._sv._thief)
       end
    end
 end
 
-function GoblinThief:start()
+function GoblinBrigands:start()
    -- Begin hack #1: We want some reasonable place to put faction initialization; in some random scenario
    -- is likely not the correct place.
    local session = {
@@ -53,18 +53,17 @@ function GoblinThief:start()
    self._sv._triggered = true
    self.__saved_variables:mark_changed()
 
-   -- 3-4 hours of real-world time seems like a not-unreasonable start....
-   self:_schedule_next_spawn(rng:get_int(3600 * 3, 3600 * 4))
+   self:_schedule_spawn(rng:get_int(3600 * 2, 3600 * 3))
 end
 
-function GoblinThief:_attach_listeners()
+function GoblinBrigands:_attach_listeners()
    radiant.events.listen(self._sv._stockpile, 'stonehearth:item_added', self, self._item_added)
-   radiant.events.listen(self._sv._goblin, 'radiant:entity:pre_destroy', self, self._goblin_killed)
+   radiant.events.listen_once(self._sv._squad, 'stonehearth:squad:squad_destroyed', self, self._squad_killed)
 end
 
-function GoblinThief:_add_restock_task()
+function GoblinBrigands:_add_restock_task(e)
    local s_comp = self._sv._stockpile:get_component('stonehearth:stockpile')
-   self._sv._goblin:get_component('stonehearth:ai')
+   e:get_component('stonehearth:ai')
       :get_task_group('stonehearth:work')
       :create_task('stonehearth:restock_stockpile', { stockpile = s_comp })
       :set_source(self._sv._stockpile)
@@ -74,53 +73,57 @@ function GoblinThief:_add_restock_task()
    self.__saved_variables:mark_changed()
 end
 
-function GoblinThief:_schedule_next_spawn(t)
+function GoblinBrigands:_schedule_spawn(t)
    stonehearth.calendar:set_timer(t, function()
-         self:_on_spawn_jerk()
+         self:_on_spawn()
       end)
 end
 
-function GoblinThief:_on_spawn_jerk()
-   self._sv._goblin = self._population:create_new_citizen()
-   local spawn_point = stonehearth.spawn_region_finder:find_point_outside_civ_perimeter_for_entity(self._sv._goblin, 80)
+function GoblinBrigands:_on_spawn()
+   if not self._sv._squad then
+      self._sv._squad = EscortSquad('game_master', radiant.create_datastore())
+      self._sv._thief = self._sv._squad:set_escorted('stonehearth:goblin:thief')
+      self._sv._squad:add_escort('stonehearth:goblin:brigand', 'stonehearth:wooden_sword')
+      self._sv._squad:add_escort('stonehearth:goblin:brigand', 'stonehearth:wooden_sword')
+   end
 
-   if not spawn_point then
+   local spawn_points = stonehearth.spawn_region_finder:find_standable_points_outside_civ_perimeter(
+      self._sv._squad:get_all_entities(), self._sv._squad:get_squad_start_displacements(), 80)
+
+   if not spawn_points then
       -- Couldn't find a spawn point, so reschedule to try again later.
-      radiant.entities.destroy_entity(self._sv._goblin)
-      self._sv._goblin = nil
-      self:_schedule_next_spawn(rng:get_int(3600 * 0.5, 3600 * 1))
+      self:_schedule_spawn(rng:get_int(3600 * 0.5, 3600 * 1))
       return
    end
 
-   self._sv._stockpile = self._inventory:create_stockpile(spawn_point, {x=2, y=1})
+   self._sv._stockpile = self._inventory:create_stockpile(spawn_points[1], {x=2, y=2})
    local s_comp = self._sv._stockpile:get_component('stonehearth:stockpile')
    s_comp:set_filter({'resource wood'})
    s_comp:set_should_steal(true)
 
-   radiant.terrain.place_entity(self._sv._goblin, spawn_point)
+   self._sv._squad:place_squad(spawn_points[1])
 
    self:_attach_listeners()
-   self:_add_restock_task()
+   self:_add_restock_task(self._sv._thief)
    self.__saved_variables:mark_changed()
 end
 
-function GoblinThief:_goblin_killed(e)
+function GoblinBrigands:_squad_killed(e)
    radiant.events.unlisten(self._sv._stockpile, 'stonehearth:item_added', self, self._item_added)
-   radiant.events.unlisten(self._sv._goblin, 'radiant:entity:pre_destroy', self, self._goblin_killed)
 
    radiant.entities.destroy_entity(self._sv._stockpile)
    self._sv._stockpile = nil
-   self._sv._goblin = nil
+   self._sv._suqad = nil
    self._sv._triggered = false
    self.__saved_variables:mark_changed()
 
    radiant.events.trigger(self, 'stonehearth:dynamic_scenario:finished')
 end
 
-function GoblinThief:_item_added(e)
+function GoblinBrigands:_item_added(e)
    local s_comp = self._sv._stockpile:get_component('stonehearth:stockpile')
-   if self._sv._stockpile:is_valid() and s_comp:is_full() and self._sv._goblin:is_valid() then
-      self._sv._goblin:get_component('stonehearth:ai')
+   if self._sv._stockpile:is_valid() and s_comp:is_full() and self._sv._thief:is_valid() then
+      self._sv._thief:get_component('stonehearth:ai')
          :get_task_group('stonehearth:work')
          :create_task('stonehearth:stockpile_arson', { 
             stockpile_comp = s_comp, 
@@ -133,4 +136,4 @@ function GoblinThief:_item_added(e)
    end
 end
 
-return GoblinThief
+return GoblinBrigands

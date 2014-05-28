@@ -1,5 +1,3 @@
-local Population = stonehearth.Population
-
 local ScoreCallHandler = class()
 
 function ScoreCallHandler:get_score(session, response)

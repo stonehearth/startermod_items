@@ -14,6 +14,7 @@
 #include "render_lua_component.h"
 #include "render_region_collision_shape.h"
 #include "render_vertical_pathing_region.h"
+#include "render_sensor_list.h"
 #include "resources/res_manager.h"
 #include "resources/animation.h"
 #include "dm/map_trace.h"
@@ -24,6 +25,7 @@
 #include "om/components/effect_list.ridl.h"
 #include "om/components/render_info.ridl.h"
 #include "om/components/attached_items.ridl.h"
+#include "om/components/sensor_list.ridl.h"
 #include "om/selection.h"
 #include "lib/lua/script_host.h"
 
@@ -256,6 +258,11 @@ void RenderEntity::AddComponent(std::string const& name, std::shared_ptr<dm::Obj
          case om::RegionCollisionShapeObjectType: {
             om::RegionCollisionShapePtr obj = std::static_pointer_cast<om::RegionCollisionShape>(value);
             components_[name] = std::make_shared<RenderRegionCollisionShape>(*this, obj);
+            break;
+         }
+         case om::SensorListObjectType: {
+            om::SensorListPtr obj = std::static_pointer_cast<om::SensorList>(value);
+            components_[name] = std::make_shared<RenderSensorList>(*this, obj);
             break;
          }
       }

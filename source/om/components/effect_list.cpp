@@ -11,11 +11,16 @@ std::ostream& operator<<(std::ostream& os, EffectList const& o)
    return (os << "[EffectList]");
 }
 
+void EffectList::ConstructObject()
+{
+   Component::ConstructObject();
+   default_effect_id_ = 0;
+   next_id_ = 1;
+}
+
 void EffectList::LoadFromJson(json::Node const& obj)
 {
    default_ = obj.get<std::string>("default", "");
-   default_in_list_ = 0;
-   next_id_ = 1;
    AddRemoveDefault();
    
    for (json::Node const& entry : obj.get_node("effects")) {
@@ -42,16 +47,16 @@ void EffectList::AddRemoveDefault()
       //If there is no default, then always return
       return;
    }
-   if (default_in_list_ > 0) {
+   if (default_effect_id_ > 0) {
       if (effects_.GetSize() >= 2) {
-         effects_.Remove(default_in_list_);
-         default_in_list_ = 0;
+         effects_.Remove(default_effect_id_);
+         default_effect_id_ = 0;
       }
    } else {
       //The default is not in the list, so add it if there are no other effects
       if (effects_.GetSize() == 0) {
          auto effect = CreateEffect(*default_, 0);
-         default_in_list_ = effect->GetEffectId();
+         default_effect_id_ = effect->GetEffectId();
       }
    }
 }

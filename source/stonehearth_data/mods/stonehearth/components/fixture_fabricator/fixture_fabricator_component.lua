@@ -11,7 +11,7 @@ function FixtureFabricator:initialize(entity, json)
    self._entity = entity
 
    radiant.events.listen_once(radiant, 'radiant:game_loaded', function()
-         self:start_project()
+         self:_start_project()
       end)
 end
 
@@ -35,11 +35,17 @@ end
 --
 function FixtureFabricator:start_project(fixture_uri)
    assert(fixture_uri)
-   
-   self._parent = radiant.entities.get_parent(self._entity)
-   self._parent_cp = self._parent:get_component('stonehearth:construction_progress')
    self._sv.fixture_uri = fixture_uri
    self.__saved_variables:mark_changed()
+   self:_start_project()
+end   
+   
+-- called to kick off the fabricator.  don't call until all the components are
+-- installed and the fabricator entity is at the correct location in the wall
+--
+function FixtureFabricator:_start_project()
+   self._parent = radiant.entities.get_parent(self._entity)
+   self._parent_cp = self._parent:get_component('stonehearth:construction_progress')
    radiant.events.listen(self._parent, 'stonehearth:construction:finished_changed', self, self._on_parent_finished_changed)
    self:_on_parent_finished_changed()
 end

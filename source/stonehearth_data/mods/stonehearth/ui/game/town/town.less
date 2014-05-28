@@ -156,12 +156,132 @@
          }
       }
    }
+   
+   .logTitle {
+      color: #cf5300;   
+   }
+
+   #scoreEnhancers {
+      float: left;
+      top: 20px;
+      left: 20px;
+      width: 350px;
+      overflow-y: auto;
+
+   }
+
+   #scoreDowners {
+      float: right;
+      top: 20px;
+      right: 20px;
+      width: 350px;
+      overflow-y: auto;
+
+
+   }
+
+   .signature {
+      padding-top: 4px;
+      padding-right: 10px;
+      display: block;
+      text-align: right;
+   }
+
+   #backForwardDiv {
+      position: relative;
+      width: 740px;
+
+
+   }
  
    #journalsTab {
       display: none;
 
       .book {
-         
+         #defaultMessage {
+            position: absolute;
+            margin-top: 40px;
+            margin-left: 70px;
+            text-shadow: none;
+            color: #000;
+         }
+
+         #bookBeginning {
+            text-align: center;
+            padding-right: 10px;
+         }
+
+         h2 {
+            left: 0px;
+            right:0px;
+            height: 44px;
+            padding-left: 15px;
+            padding-top:7px;
+            display: block;
+
+            font-family: @headerFontFamily;
+            font-size: 26px;
+            .outlined(#b1955b);
+            color: #000;
+            margin: 0;
+         }
+
+         .praiseTitle {
+            padding-left: 17px;
+            background: url(images/praises.png); 
+            text-align: left;
+            background-repeat: no-repeat;
+
+         }
+         .gripeTitle {
+            padding-right: 15px;
+            background: url(images/gripes.png);
+            background-repeat: no-repeat;
+            background-position: right top;
+            text-align: right;
+
+         }
       }
+
+      #dateControls {
+         position: absolute;
+         margin-top: -30px;
+         margin-left: 50px;
+         height: 34px;
+
+         #pageBackBtn {
+            float: left;
+            width: 35px;
+            height: 31px;
+            background: url(images/date_prev.png); 
+            &:hover:not(.disabled) {
+               -webkit-filter: brightness(1.4);
+            }
+         }
+
+         #journalDate {
+            float: left;
+            width: 207px;
+            height: 34px;
+            padding-top: 7px;
+            background: url(images/date_bg.png); 
+            background-repeat: no-repeat;
+            .controlFont;
+            text-align: center;
+            font-size: 14px;
+
+         }
+
+         #pageForwardBtn {
+            float: left;
+            width: 35px;
+            height: 31px;
+            background: url(images/date_next.png); 
+            &:hover:not(.disabled) {
+               -webkit-filter: brightness(1.4);
+            }
+         }   
+      }
+
    }  
 }

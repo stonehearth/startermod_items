@@ -85,7 +85,7 @@ function Personality:register_notable_event(event_name, percent_chance, namespac
       if roll <= percent_chance then
          local title, log = personality_service:get_activity_log(namespace, event_name, self._sv.personality, self._sv.substitutions)
          if log then
-            self:_add_log_entry(title, log, score_metadata)
+            return self:_add_log_entry(title, log, score_metadata)
          end
       end
       self._sv.todays_events[event_name] = true
@@ -105,7 +105,9 @@ function Personality:_add_log_entry(entry_title, entry_text, score_metadata)
    local entry = {}
    entry.text = entry_text
    entry.title = entry_title
-   entry.scoreData = score_metadata
+   entry.score_metadata = score_metadata
+   entry.person_name = radiant.entities.get_name(self._entity)
+   entry.date = todays_date
    table.insert(self._sv.log[1].entries, entry)
 
    --If there is score metadata and if it the modifier is negative, show as warning
@@ -126,6 +128,8 @@ function Personality:_add_log_entry(entry_title, entry_text, score_metadata)
       entity_commands:enable_command('show_journal', true)
       self._first_entry = false
    end
+
+   return entry
 end
 
 --- Insert the new day's data at the TOP of the log

@@ -18,9 +18,3 @@ class Effect(dm.Record):
    void Init(int effect_id, const std::string& name, int start);
    const Selection& GetParam(const std::string& param) const;
    """
-
-   _private = \
-   """
-   void UpdateDerivedValues();
-   void ComputeAdjacentRegion(csg::Region3 const& r);
-   """

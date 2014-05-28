@@ -286,6 +286,13 @@
    "7_score" : "Merry",
    "8_score" : "Joyous",
    "9_score" : "Buoyant",
-   "10_score" : "Incandescent"
+   "10_score" : "Incandescent", 
+
+   "journal_today" : "Today", 
+   "journal_town_log" : "Town Log",
+   "journal_praises" : "Praises", 
+   "journal_gripes" : "Gripes",
+   "praise_empty" : "Nothing praiseworthy happened today.",
+   "gripe_empty" : "Whoa. I guess nobody has anything to gripe about."
 }
 

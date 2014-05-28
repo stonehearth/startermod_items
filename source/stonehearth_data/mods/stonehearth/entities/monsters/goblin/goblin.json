@@ -48,12 +48,12 @@
             "stonehearth:actions:place_item_type",
             "stonehearth:actions:stockpile_arson",
 
+            "stonehearth:actions:follow_entity",
             "stonehearth:actions:combat:find_target",
             "stonehearth:actions:combat:create_engage_callback",
             "stonehearth:actions:combat:get_melee_range",
             "stonehearth:actions:combat:set_global_attack_cooldown",
             "stonehearth:actions:combat:wait_for_global_attack_cooldown",
-            "stonehearth:actions:chase_entity",
             "stonehearth:actions:set_posture",
             "stonehearth:actions:unset_posture"
          ],
