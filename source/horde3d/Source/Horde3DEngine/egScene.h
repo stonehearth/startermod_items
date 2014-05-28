@@ -180,7 +180,6 @@ protected:
 	SceneNode                   *_parent;  // Parent node
 	int                         _type;
 	NodeHandle                  _handle;
-	uint32                      _sgHandle;  // Spatial graph handle
 	uint32                      _flags;
    uint32                      _userFlags;
 	float                       _sortKey;
@@ -274,8 +273,7 @@ public:
       std::vector<SceneNode*>& lightQueue);
 
 protected:
-	std::vector< SceneNode * >     _nodes;		// Renderable nodes and lights
-	std::vector< uint32 >          _freeList;
+	std::unordered_map<NodeHandle, SceneNode *>      _nodes;  // Renderable nodes and lights
 };
 
 
@@ -348,15 +346,13 @@ public:
 
 	int checkNodeVisibility( SceneNode &node, CameraNode &cam, bool checkOcclusion );
 
-	SceneNode &getRootNode() { return *_nodes[0]; }
-	SceneNode &getDefCamNode() { return *_nodes[1]; }
+	SceneNode &getRootNode() { return *_nodes[RootNode]; }
 	std::vector< SceneNode * > &getLightQueue();
 	RenderableQueue& getRenderableQueue(int itemType);
    InstanceRenderableQueue& getInstanceRenderableQueue(int itemType);
    RenderableQueues& getRenderableQueues();
 	
-	SceneNode *resolveNodeHandle( NodeHandle handle )
-		{ return (handle != 0 && (unsigned)(handle - 1) < _nodes.size()) ? _nodes[handle - 1] : 0x0; }
+	SceneNode *resolveNodeHandle( NodeHandle handle );
 
    void clearQueryCache();
 
@@ -370,8 +366,8 @@ protected:
 	void castRayInternal( SceneNode &node, int userFlags );
 
 protected:
-	std::vector< SceneNode *>      _nodes;  // _nodes[0] is root node
-	std::vector< uint32 >          _freeList;  // List of free slots
+        uint32                         _nextNodeHandle;
+	std::unordered_map<NodeHandle, SceneNode *>      _nodes;  // _nodes[0] is root node
 	std::vector< SceneNode * >     _findResults;
 	std::vector< CastRayResult >   _castRayResults;
 	SpatialGraph                   *_spatialGraph;

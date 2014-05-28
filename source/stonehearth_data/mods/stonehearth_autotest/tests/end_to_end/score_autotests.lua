@@ -80,7 +80,7 @@ function score_tests.town_score_test(autotest)
 
    stonehearth.calendar:set_timer('20m', function()
       local player_score = stonehearth.score:get_scores_for_player(player_id):get_score_data()
-         if player_score.net_worth.total_score >= 5 then
+         if player_score.net_worth >= 5 then
             autotest:success()
          else 
             autotest:fail('score did not calculate correctly')

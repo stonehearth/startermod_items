@@ -1972,6 +1972,9 @@ void Renderer::drawLodGeometry(std::string const& shaderContext, std::string con
       f.buildViewFrustum(_curCamera->getAbsTrans(), _curCamera->getParamF(CameraNodeParams::FOVf, 0), 
          _curCamera->_vpWidth / (float)_curCamera->_vpHeight, fStart, fEnd);
    }
+
+   R_LOG(7) << "updating geometry queue";
+
    Modules::sceneMan().updateQueues("drawing geometry", f, 0x0, order, SceneNodeFlags::NoDraw, 
       filterRequried, false, true );
 	
@@ -1983,6 +1986,8 @@ void Renderer::drawLodGeometry(std::string const& shaderContext, std::string con
 void Renderer::drawGeometry( std::string const& shaderContext, std::string const& theClass,
                              RenderingOrder::List order, int filterRequired, int occSet, float frustStart, float frustEnd, int forceLodLevel )
 {
+   R_LOG(5) << "drawing geometry (shader:" << shaderContext << " class:" << theClass << " lod:" << forceLodLevel << ")";
+
    if (forceLodLevel >= 0) {
       drawLodGeometry(shaderContext, theClass, order, filterRequired, occSet, frustStart, frustEnd, forceLodLevel);
    } else {
@@ -2398,6 +2403,8 @@ void Renderer::drawRenderables( std::string const& shaderContext, std::string co
 {
 	ASSERT( _curCamera != 0x0 );
 	
+   R_LOG(7) << "drawing renderables (shader:" << shaderContext << " class:" << theClass << " lod:" << lodLevel;
+
 	if( Modules::config().wireframeMode && !Modules::config().debugViewMode )
 	{
 		glDisable( GL_CULL_FACE );
@@ -2440,18 +2447,27 @@ void Renderer::drawMeshes( std::string const& shaderContext, std::string const& 
 	GeometryResource *curGeoRes = 0x0;
 	MaterialResource *curMatRes = 0x0;
 
+        R_LOG(9) << "drawing meshes (shader:" << shaderContext << " class:" << theClass << " lod:" << lodLevel << ")";
+
+
          Modules::config().setGlobalShaderFlag("DRAW_WITH_INSTANCING", false);
 	// Loop over mesh queue
 	for( const auto& entry : Modules::sceneMan().getRenderableQueue(SceneNodeTypes::Mesh) )
 	{
 		MeshNode *meshNode = (MeshNode *)entry.node;
 		ModelNode *modelNode = meshNode->getParentModel();
+
+      #define RENDER_LOG() R_LOG(9) << " mesh " << meshNode->_handle << ": " 
 		
 		// Check that mesh is valid
-		if( modelNode->getGeometryResource() == 0x0 )
+		if( modelNode->getGeometryResource() == 0x0 ) {
+                        RENDER_LOG() << "geometry not loaded.  ignoring.";
 			continue;
-		if( meshNode->getBatchStart() + meshNode->getBatchCount() > modelNode->getGeometryResource()->_indexCount )
+      }
+		if( meshNode->getBatchStart() + meshNode->getBatchCount() > modelNode->getGeometryResource()->_indexCount ) {
+         RENDER_LOG() << "geometry not loaded for lod level " << lodLevel << ".  ignoring.";
 			continue;
+      }
 		
       bool modelChanged = true;
 		uint32 queryObj = 0;
@@ -2483,6 +2499,7 @@ void Renderer::drawMeshes( std::string const& shaderContext, std::string const& 
 					{
 						Modules::renderer().pushOccProxy( 0, meshNode->getBBox().min(), meshNode->getBBox().max(),
 						                                  meshNode->_occQueries[occSet] );
+                  RENDER_LOG() << "camera is inside bounding box.  ignoring.";
 						continue;
 					}
 					else
@@ -2492,6 +2509,7 @@ void Renderer::drawMeshes( std::string const& shaderContext, std::string const& 
 		}
 		
 		// Bind geometry
+      RENDER_LOG() << "binding geometry...";
 		if( curGeoRes != modelNode->getGeometryResource() )
 		{
 			curGeoRes = modelNode->getGeometryResource();
@@ -2525,6 +2543,7 @@ void Renderer::drawMeshes( std::string const& shaderContext, std::string const& 
 			{
 				if( !Modules::renderer().setMaterial( meshNode->getMaterialRes(), shaderContext ) )
 				{	
+               RENDER_LOG() << "no material for context " << shaderContext << ".  ignoring.";
 					curMatRes = 0x0;
 					continue;
 				}
@@ -2591,6 +2610,7 @@ void Renderer::drawMeshes( std::string const& shaderContext, std::string const& 
 			gRDI->beginQuery( queryObj );
 		
 		// Render
+      RENDER_LOG() << "rendering...";
 		gRDI->drawIndexed( PRIM_TRILIST, meshNode->getBatchStart(), meshNode->getBatchCount(),
 		                   meshNode->getVertRStart(), meshNode->getVertREnd() - meshNode->getVertRStart() + 1 );
 		Modules::stats().incStat( EngineStats::BatchCount, 1 );
@@ -2598,6 +2618,8 @@ void Renderer::drawMeshes( std::string const& shaderContext, std::string const& 
 
 		if( queryObj )
 			gRDI->endQuery( queryObj );
+
+#undef RENDER_LOG
 	}
 
 	// Draw occlusion proxies
@@ -2638,17 +2660,28 @@ void Renderer::drawVoxelMeshes(std::string const& shaderContext, std::string con
    VoxelGeometryResource *curVoxelGeoRes = 0x0;
    MaterialResource *curMatRes = 0x0;
 
+   R_LOG(9) << "drawing voxel meshes (shader:" << shaderContext << " class:" << theClass << " lod:" << lodLevel << ")";
+
    // Loop over mesh queue
    for( const auto& entry : Modules::sceneMan().getRenderableQueue(SceneNodeTypes::VoxelMesh) )
    {
       VoxelMeshNode *meshNode = (VoxelMeshNode *)entry.node;
       VoxelModelNode *modelNode = meshNode->getParentModel();
 
+#define RENDER_LOG() R_LOG(9) << " mesh " << meshNode->_handle << ": " 
+
+      RENDER_LOG() << "starting";
+
       // Check that mesh is valid
-      if( modelNode->getVoxelGeometryResource() == 0x0 )
+      if( modelNode->getVoxelGeometryResource() == 0x0 ) {
+         RENDER_LOG() << "geometry not loaded.  ignoring.";
          continue;
-      if( meshNode->getBatchStart(lodLevel) + meshNode->getBatchCount(lodLevel) > modelNode->getVoxelGeometryResource()->_indexCount )
+      }
+
+      if( meshNode->getBatchStart(lodLevel) + meshNode->getBatchCount(lodLevel) > modelNode->getVoxelGeometryResource()->_indexCount ) {
+         RENDER_LOG() << "geometry not loaded for lod level " << lodLevel << ".  ignoring.";
          continue;
+      }
 
       uint32 queryObj = 0;
 
@@ -2679,6 +2712,8 @@ void Renderer::drawVoxelMeshes(std::string const& shaderContext, std::string con
                {
                   Modules::renderer().pushOccProxy( 0, meshNode->getBBox().min(), meshNode->getBBox().max(),
                      meshNode->_occQueries[occSet] );
+
+                  RENDER_LOG() << "viewer is insided bounding box.  ignoring.";
                   continue;
                }
                else
@@ -2688,6 +2723,7 @@ void Renderer::drawVoxelMeshes(std::string const& shaderContext, std::string con
       }
 
       // Bind geometry
+      RENDER_LOG() << "binding geometry...";
       if( curVoxelGeoRes != modelNode->getVoxelGeometryResource() )
       {
          curVoxelGeoRes = modelNode->getVoxelGeometryResource();
@@ -2710,17 +2746,22 @@ void Renderer::drawVoxelMeshes(std::string const& shaderContext, std::string con
          if (Modules::renderer()._materialOverride != 0x0) {
             if( !Modules::renderer().setMaterial( Modules::renderer()._materialOverride, shaderContext ) )
             {	
+               RENDER_LOG() << "no override material for context " << shaderContext << ".  RETURNING!";
                return;
             }
             curMatRes = Modules::renderer()._materialOverride;
          } else {
-            if( !meshNode->getMaterialRes()->isOfClass( theClass ) ) continue;
+            if( !meshNode->getMaterialRes()->isOfClass( theClass ) ) {
+               RENDER_LOG() << "does not match material class " << theClass << ".  ignoring.";
+               continue;
+            }
 
             // Set material
             if( curMatRes != meshNode->getMaterialRes() )
             {
                if( !Modules::renderer().setMaterial( meshNode->getMaterialRes(), shaderContext ) )
                {	
+                  RENDER_LOG() << "no material for context " << shaderContext << ".  ignoring.";
                   curMatRes = 0x0;
                   continue;
                }
@@ -2788,6 +2829,7 @@ void Renderer::drawVoxelMeshes(std::string const& shaderContext, std::string con
       }
 
       // Render
+      RENDER_LOG() << "rendering...";
       gRDI->drawIndexed( PRIM_TRILIST, meshNode->getBatchStart(lodLevel), meshNode->getBatchCount(lodLevel),
          meshNode->getVertRStart(lodLevel), meshNode->getVertREnd(lodLevel) - meshNode->getVertRStart(lodLevel) + 1 );
       Modules::stats().incStat( EngineStats::BatchCount, 1 );
@@ -2795,6 +2837,8 @@ void Renderer::drawVoxelMeshes(std::string const& shaderContext, std::string con
 
       if( queryObj )
          gRDI->endQuery( queryObj );
+
+#undef RENDER_LOG
    }
 
    // Draw occlusion proxies
@@ -2816,6 +2860,9 @@ void Renderer::drawVoxelMeshes_Instances(std::string const& shaderContext, std::
 	
 	MaterialResource *curMatRes = 0x0;
 
+   R_LOG(9) << "drawVoxelMeshes_Instances (shader:" << shaderContext << " class:" << theClass << " lod:" << lodLevel << ")";
+   #define RENDER_LOG() R_LOG(9) << " instance (geo:" << curVoxelGeoRes->getHandle() << " " << curVoxelGeoRes->getName() << "): "
+
    // Loop over mesh queue
 	for( const auto& instanceKind : Modules::sceneMan().getInstanceRenderableQueue(SceneNodeTypes::VoxelMesh) )
 	{
@@ -2823,10 +2870,12 @@ void Renderer::drawVoxelMeshes_Instances(std::string const& shaderContext, std::
       const VoxelGeometryResource *curVoxelGeoRes = (VoxelGeometryResource*) instanceKind.first.geoResource;
 		// Check that mesh is valid
 		if(curVoxelGeoRes == 0x0) {
+         R_LOG(9) << "geometry not loaded.  ignoring.";
 			continue;
       }
 
       if (instanceKind.second.size() <= 0) {
+         RENDER_LOG() << "no instances created.  ignoring.";
          continue;
       }
 
@@ -2852,6 +2901,7 @@ void Renderer::drawVoxelMeshes_Instances(std::string const& shaderContext, std::
          if (Modules::renderer()._materialOverride != 0x0) {
 				if( !Modules::renderer().setMaterial(Modules::renderer()._materialOverride, shaderContext ) )
 				{	
+                  RENDER_LOG() << "no material override for context " << shaderContext << ".  RETURNING!";
                return;
 				}
 				curMatRes = Modules::renderer()._materialOverride;
@@ -2863,6 +2913,7 @@ void Renderer::drawVoxelMeshes_Instances(std::string const& shaderContext, std::
 			   //{
                if( !Modules::renderer().setMaterial( instanceKey.matResource, shaderContext ) )
 				   {	
+                  RENDER_LOG() << "no material for context " << shaderContext << ".  ignoring.";
 					   curMatRes = 0x0;
 					   continue;
 				   }
@@ -2894,11 +2945,13 @@ void Renderer::drawVoxelMeshes_Instances(std::string const& shaderContext, std::
          glDisable(GL_POLYGON_OFFSET_FILL);
       }
 
+      RENDER_LOG() << "rendering...";
       if (useInstancing) {
          drawVoxelMesh_Instances_WithInstancing(instanceKind.second, vmn, lodLevel);
       } else {
          drawVoxelMesh_Instances_WithoutInstancing(instanceKind.second, vmn, lodLevel);
       }
+#undef RENDER_LOG
    }
 
 	gRDI->setVertexLayout( 0 );
@@ -2940,10 +2993,11 @@ void Renderer::drawVoxelMesh_Instances_WithoutInstancing(const RenderableQueue& 
    // Set vertex layout
    gRDI->setVertexLayout( Modules::renderer()._vlVoxelModel );
    ShaderCombination* curShader = Modules::renderer().getCurShader();
+
    for (const auto& node : renderableQueue) {
 		VoxelMeshNode *meshNode = (VoxelMeshNode *)node.node;
 		const VoxelModelNode *modelNode = meshNode->getParentModel();
-		
+
       gRDI->setShaderConst( curShader->uni_worldMat, CONST_FLOAT44, &meshNode->_absTrans.x[0] );
       gRDI->drawIndexed(RDIPrimType::PRIM_TRILIST, vmn->getBatchStart(lodLevel), vmn->getBatchCount(lodLevel),
          vmn->getVertRStart(lodLevel), vmn->getVertREnd(lodLevel) - vmn->getVertRStart(lodLevel) + 1);
@@ -2964,14 +3018,22 @@ void Renderer::drawInstanceNode(std::string const& shaderContext, std::string co
    bool useInstancing = gRDI->getCaps().hasInstancing;
    Modules::config().setGlobalShaderFlag("DRAW_WITH_INSTANCING", useInstancing);
 	
+   R_LOG(9) << "drawing instance nodes (useInstancing:" << useInstancing << " lod:" << lodLevel << ")";
+
+   #define RENDER_LOG() R_LOG(9) << " instance " << in->_handle << ": " 
+
    if (useInstancing) {   
+
       gRDI->setVertexLayout( Modules::renderer()._vlInstanceVoxelModel );
 	   MaterialResource *curMatRes = 0x0;
       for( const auto& entry : Modules::sceneMan().getRenderableQueue(SceneNodeTypes::InstanceNode) )
 	   {
 		   InstanceNode* in = (InstanceNode *)entry.node;
 
-		   if( !in->_matRes->isOfClass( theClass ) ) continue;
+		   if( !in->_matRes->isOfClass( theClass ) ) {
+            RENDER_LOG() << "does not match class " << theClass << ".  ignoring.";
+            continue;
+         }
 
          gRDI->setVertexBuffer( 0, in->_geoRes->getVertexBuf(), 0, sizeof( VoxelVertexData ) );
          gRDI->setVertexBuffer( 1, in->_instanceBufObj, 0, 16 * sizeof(float) );
@@ -2979,10 +3041,14 @@ void Renderer::drawInstanceNode(std::string const& shaderContext, std::string co
 
          if( curMatRes != in->_matRes )
 		   {
-            if( !Modules::renderer().setMaterial( in->_matRes, shaderContext ) ) continue;
+            if( !Modules::renderer().setMaterial( in->_matRes, shaderContext ) ) {
+               RENDER_LOG() << "no material for context " << shaderContext << ".  ignoring.";
+               continue;
+            }
 			   curMatRes = in->_matRes;
 		   }
 
+         RENDER_LOG() << "rendering...";
          gRDI->drawInstanced(RDIPrimType::PRIM_TRILIST, 
             in->_geoRes->getElemParamI(VoxelGeometryResData::VoxelGeometryElem, 0, VoxelGeometryResData::VoxelGeoIndexCountI), 
             0, in->_usedInstances);
@@ -2994,18 +3060,25 @@ void Renderer::drawInstanceNode(std::string const& shaderContext, std::string co
 	   {
 		   InstanceNode* in = (InstanceNode *)entry.node;
 
-		   if( !in->_matRes->isOfClass( theClass ) ) continue;
+		   if( !in->_matRes->isOfClass( theClass ) ) {
+            RENDER_LOG() << "does not match class " << theClass << ".  ignoring.";
+            continue;
+         }
 
          gRDI->setVertexBuffer( 0, in->_geoRes->getVertexBuf(), 0, sizeof( VoxelVertexData ) );
          gRDI->setIndexBuffer( in->_geoRes->getIndexBuf(), in->_geoRes->_16BitIndices ? IDXFMT_16 : IDXFMT_32 );
 
          if( curMatRes != in->_matRes )
 		   {
-            if( !Modules::renderer().setMaterial( in->_matRes, shaderContext ) ) continue;
+            if( !Modules::renderer().setMaterial( in->_matRes, shaderContext ) ) {
+               RENDER_LOG() << "no material for context " << shaderContext << ".  ignoring.";
+               continue;
+            }
 			   curMatRes = in->_matRes;
 		   }
          ShaderCombination* curShader = Modules::renderer().getCurShader();
 
+         RENDER_LOG() << "rendering " << in->_usedInstances << " instances...";
          for (int i = 0; i < in->_usedInstances; i++) {
             gRDI->setShaderConst( curShader->uni_worldMat, CONST_FLOAT44, &in->_instanceBuf[i * 16]);
             gRDI->drawIndexed(RDIPrimType::PRIM_TRILIST, 0, 
@@ -3014,6 +3087,7 @@ void Renderer::drawInstanceNode(std::string const& shaderContext, std::string co
          }
 	   }
    }
+#undef RENDER_LOG
 
 	gRDI->setVertexLayout( 0 );
 }
@@ -3224,7 +3298,7 @@ void Renderer::render( CameraNode *camNode, PipelineResource* pRes )
 		_curStageMatLink = stage->matLink;
 
       radiant::perfmon::SwitchToCounter (stage->debug_name.c_str());
-		
+		R_LOG(5) << "running pipeline stage " << stage->id;
 		for( uint32 j = 0; j < stage->commands.size(); ++j )
 		{
 			PipelineCommand &pc = stage->commands[j];

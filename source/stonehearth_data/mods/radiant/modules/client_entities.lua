@@ -30,14 +30,18 @@ function client_entities.get_entity(id)
    return entity
 end
 
-function client_entities.get_entity_data(entity, key)
-   if entity then
-      local uri = entity:get_uri()
-      if uri and #uri > 0 then
-         local json = radiant.resources.load_json(uri)
-         if json.entity_data then
-            return json.entity_data[key]
-         end
+function client_entities.get_entity_data(arg0, key)
+   local uri
+   if type(arg0) == 'string' then
+      uri = arg0
+   else
+      local entity = arg0
+      uri = entity:get_uri()
+   end
+   if uri and #uri > 0 then
+      local json = radiant.resources.load_json(uri)
+      if json.entity_data then
+         return json.entity_data[key]
       end
    end
 end

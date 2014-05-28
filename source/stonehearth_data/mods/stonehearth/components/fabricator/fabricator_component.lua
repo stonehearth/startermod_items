@@ -96,9 +96,8 @@ function FabricatorComponent:release_block(location)
    return self._fabricator:release_block(location)
 end
 
-function FabricatorComponent:start_project(name, blueprint)
-   self._sv.name = name and name or '-- unnamed --'
-   self._log:debug('starting project %s', self._sv.name)
+function FabricatorComponent:start_project(blueprint)
+   self._log:debug('starting project for %s', blueprint)
    
    self._fabricator = Fabricator(string.format("(%s Fabricator)", tostring(blueprint)),
                                  self._entity,
@@ -150,12 +149,11 @@ function FabricatorComponent:_add_scaffolding(blueprint, project, normal)
                   :support_project(project, blueprint, normal)
 
    -- create a fabricator entity to build the scaffolding
-   local name = string.format('[scaffolding for %s]', tostring(blueprint))
    local fabricator = radiant.entities.create_entity()
    fabricator:set_debug_text('(Fabricator for ' .. tostring(scaffolding) .. ')')   
    fabricator:add_component('mob'):set_transform(transform)
    fabricator:add_component('stonehearth:fabricator')
-                              :start_project(name, scaffolding)
+                              :start_project(scaffolding)
                               
    -- add the fabricator and the project to our entity container so they get rendered
    self._entity:add_component('entity_container')

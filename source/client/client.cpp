@@ -857,6 +857,8 @@ void Client::mainloop()
    process_messages();
    ProcessBrowserJobQueue();
 
+   CLIENT_LOG(5) << "entering client main loop";
+
    int game_time;
    float alpha;
    game_clock_->EstimateCurrentGameTime(game_time, alpha);
@@ -897,6 +899,13 @@ void Client::mainloop()
    perfmon::SwitchToCounter("fire traces");
    authoring_render_tracer_->Flush();
 
+   // xxx: GC while waiting for vsync, or GC in another thread while rendering (ooh!)
+   perfmon::SwitchToCounter("lua gc");
+   CLIENT_LOG(7) << "running gc";
+   platform::timer t(10);
+   scriptHost_->GC(t);
+
+   CLIENT_LOG(7) << "rendering one frame";
    Renderer::GetInstance().RenderOneFrame(game_time, alpha);
 
    if (send_queue_ && connected_) {
@@ -904,10 +913,6 @@ void Client::mainloop()
       protocol::SendQueue::Flush(send_queue_);
    }
 
-   // xxx: GC while waiting for vsync, or GC in another thread while rendering (ooh!)
-   perfmon::SwitchToCounter("lua gc");
-   platform::timer t(10);
-   scriptHost_->GC(t);
 
    //Update the audio_manager with the current time
    audio::AudioManager &a = audio::AudioManager::GetInstance();
@@ -924,6 +929,8 @@ void Client::mainloop()
       LoadGame("stress_test_save");
       save_stress_test_timer_.set(10000);
    }
+
+   CLIENT_LOG(5) << "exiting client main loop";
 }
 
 om::TerrainPtr Client::GetTerrain()

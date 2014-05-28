@@ -13,12 +13,12 @@ local singleton = {}
 --   @param location - where to place it.  the entity will be placed at the
 --                     most appropriate y coordinate based on location.
 --
-function Terrain.place_entity(entity, location)
+function Terrain.place_entity(entity, location)   
    if type(location) == "table" then
       location = Point3(location.x, location.y, location.z)
    end
-   location = Terrain.get_standable_point(entity, location)
-   return Terrain.place_entity_at_exact_location(entity, location)
+   local pt = _physics:get_standable_point(entity, location)
+   return Terrain.place_entity_at_exact_location(entity, pt)
 end
 
 -- place `entity` at the exact spot specified by `location`.  this could

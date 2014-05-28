@@ -81,7 +81,7 @@ RenderNodePtr Client_CreateVoxelNode(lua_State* L,
    csg::RegionToMesh(model, mesh, -origin, false);
 
    return RenderNode::CreateCsgMeshNode(parent, mesh)
-               ->SetMaterial(material_path);
+                           ->SetMaterial(material_path);
 }
 
 

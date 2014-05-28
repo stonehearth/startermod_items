@@ -84,6 +84,10 @@ function FabricatorRenderer:destroy()
       radiant.events.unlisten(self._building, 'stonehearth:building_selected_changed', self, self._update_render_state)
    end
    
+   if self._editing_region_node then
+      self._editing_region_node:destroy()
+      self._editing_region_node = nil
+   end   
    if self._editing_region_trace then
       self._editing_region_trace:destroy()
       self._editing_region_trace = nil
@@ -243,8 +247,9 @@ function FabricatorRenderer:_recreate_editing_region_node()
       self._editing_region_node = nil
    end
    self._editing_region_node = _radiant.client.create_voxel_node(self._parent_node, self._editing_region:get(), '', MODEL_OFFSET)
-                                 :set_visible(false)
-                                 :set_can_query(true)
+                                                :set_name(string.format('editing region for %s', tostring(self._entity)))
+                                                :set_visible(false)
+                                                :set_can_query(true)
 end
 
 return FabricatorRenderer

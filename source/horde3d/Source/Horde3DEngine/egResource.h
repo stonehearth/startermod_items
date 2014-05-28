@@ -87,8 +87,8 @@ public:
 
 	int &getType() { return _type; }
 	int getFlags() { return _flags; }
-	std::string const& getName() { return _name; }
-	ResHandle getHandle() { return _handle; }
+	std::string const& getName() const { return _name; }
+	ResHandle getHandle() const { return _handle; }
 	bool isLoaded() { return _loaded; }
 	void addRef() { ++_refCount; }
 	void subRef() { --_refCount; }
@@ -179,16 +179,15 @@ public:
 	ResHandle queryUnloadedResource( int index );
 	void releaseUnusedResources();
 
-	Resource *resolveResHandle( ResHandle handle )
-		{ return (handle != 0 && (unsigned)(handle - 1) < _resources.size()) ? _resources[handle - 1] : 0x0; }
+	Resource *resolveResHandle( ResHandle handle );
 
-	std::vector < Resource * > &getResources() { return _resources; }
+	std::unordered_map<ResHandle, Resource *> const& getResources() { return _resources; }
 
 protected:
 	ResHandle addResource( Resource &res );
 
 protected:
-	std::vector < Resource * >         _resources;
+	std::unordered_map<ResHandle, Resource *>         _resources;
 	std::map< int, ResourceRegEntry >  _registry;  // Registry of resource types
 };
 

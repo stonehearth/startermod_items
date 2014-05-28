@@ -17,9 +17,10 @@ struct GeometryInfo {
    int vertexIndices[MAX_LOD_LEVELS + 1];
    int indexIndicies[MAX_LOD_LEVELS + 1];
    int levelCount;
+   bool unique;
    SharedGeometry geo;
 
-   GeometryInfo() : levelCount(0), geo(0) {
+   GeometryInfo() : levelCount(0), geo(0), unique(false) {
       memset(vertexIndices, 0, sizeof vertexIndices);
       memset(indexIndicies, 0, sizeof indexIndicies);
    }
@@ -36,8 +37,7 @@ struct GeometryInfo {
 
 
 class RenderNode : public  std::enable_shared_from_this<RenderNode> {
-public:
-  
+public:  
    typedef std::function<void(csg::mesh_tools::mesh &, int lodLevel)> CreateMeshLodLevelFn;
 
    static RenderNodePtr CreateGroupNode(H3DNode parent, std::string const& name);
@@ -48,11 +48,12 @@ public:
    static RenderNodePtr CreateCsgMeshNode(H3DNode parent, csg::mesh_tools::mesh const& m);
    static RenderNodePtr CreateSharedCsgMeshNode(H3DNode parent, ResourceCacheKey const& key, CreateMeshLodLevelFn cb);
 
-   static void ClearRenderNode();
+   static void Initialize();
+   static void Shutdown();
 
    ~RenderNode();
 
-   H3DNode GetNode() const { return _node.get(); }
+   H3DNode GetNode() const { return _node; }
 
    RenderNodePtr SetName(const char* name);
    RenderNodePtr SetVisible(bool visible);
@@ -80,16 +81,15 @@ public: // just because we need std::make_shared<>  UG!
 
    void ApplyMaterial();
    void DestroyHordeNode();
-   static RenderNodePtr GetUnparentedRenderNode();
 
 private:
    static void ConvertVoxelDataToGeometry(VoxelGeometryVertex *vertices, uint *indices, GeometryInfo& geo);
    static void ConvertObjFileToGeometry(std::istream& stream, GeometryInfo& geo);
-   static RenderNodePtr _unparentedRenderNode;
+   static H3DNode _unparentedRenderNode;
 
 private:
    std::unordered_map<H3DNode, RenderNodePtr> _children;
-   SharedNode     _node;
+   H3DNode        _node;
    H3DNode        _meshNode; // The lifetime of the mesh is controlled by the _node, therefore it does not need to be auto-deleted
    SharedGeometry _geometry;
    SharedMaterial _material;

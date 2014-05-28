@@ -29,7 +29,8 @@
    },
    "dynamic" : {
       "scenarios" : [
-         "file(dynamic/goblin_thief)"
+         "file(dynamic/goblin_thief)",
+         "file(dynamic/goblin_brigands)"
       ]
    }
 }

@@ -345,7 +345,7 @@ bool NavGridTile::ForEachTrackerInRange(TrackerMap::const_iterator begin, Tracke
       }
       ++begin;
    }
-   return true;
+   return stopped;
 }
 
 /*

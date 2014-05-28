@@ -33,6 +33,8 @@
                "stonehearth:actions:replace_proxy_with_item",
                "stonehearth:actions:fabricate_structure",
                "stonehearth:actions:fabricate_structure_adjacent",
+               "stonehearth:actions:fabricate_fixture",
+               "stonehearth:actions:fabricate_fixture_adjacent",
                "stonehearth:actions:teardown_structure",
                "stonehearth:actions:teardown_structure_adjacent"
             ]

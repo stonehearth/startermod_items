@@ -8,26 +8,32 @@ local FixtureFabricatorRenderer = class()
 --
 function FixtureFabricatorRenderer:initialize(render_entity, fixture_fabricator)
    self._render_entity = render_entity
+   
+   radiant.events.listen(radiant, 'stonehearth:ui_mode_changed', self, self._update_render_state)
 
-   radiant.events.listen(radiant, 'stonehearth:ui_mode_changed', self, self._update_ui_mode)
-   self:_update_ui_mode()
+   self._trace = fixture_fabricator:trace_data('render trace')
+                     :on_changed(function()
+                           self._visible = not fixture_fabricator:get_data().finished
+                           self:_update_render_state()
+                        end)
+                     :push_object_state()
 end
 
 -- Destroy the renderer
 --
 function FixtureFabricatorRenderer:destroy()
-   radiant.events.unlisten(radiant, 'stonehearth:ui_mode_changed', self, self._update_ui_mode)
+   if self._trace then
+      self._trace:destroy()
+      self._trace = nil
+   end
+   radiant.events.unlisten(radiant, 'stonehearth:ui_mode_changed', self, self._update_render_state)
 end
 
 -- Called whenever the UI view mode changes.  Hides the entity if we're not in hud mode.
 --
-function FixtureFabricatorRenderer:_update_ui_mode()
-   local mode = stonehearth.renderer:get_ui_mode()
-   if self._ui_view_mode ~= mode then
-      self._ui_view_mode = mode
-      local visible = self._ui_view_mode == 'hud'
-      self._render_entity:set_visible(visible)
-   end
+function FixtureFabricatorRenderer:_update_render_state()
+   local visible = self._visible and stonehearth.renderer:get_ui_mode() == 'hud'
+   self._render_entity:set_visible(visible)
 end
 
 return FixtureFabricatorRenderer

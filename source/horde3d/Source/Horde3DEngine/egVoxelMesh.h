@@ -36,7 +36,8 @@ struct VoxelMeshNodeParams
 		BatchCountI,
 		VertRStartI,
 		VertREndI,
-		LodLevelI
+		LodLevelI,
+      NoInstancingI,
 	};
 };
 
@@ -88,6 +89,7 @@ protected:
 	VoxelModelNode      *_parentModel;
 	BoundingBox         _localBBox;
 	bool                _ignoreAnim;
+   bool                _noInstancing;
 
 	std::vector< uint32 >  _occQueries;
 	std::vector< uint32 >  _lastVisited;

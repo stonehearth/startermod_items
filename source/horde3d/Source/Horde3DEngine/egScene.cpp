@@ -31,12 +31,27 @@ namespace Horde3D {
 
 using namespace std;
 
+static std::string FlagsToString(int flags)
+{
+   std::ostringstream s;
+   s << "(flags (" << flags << "): ";
+#define ADD_FLAG(f) if (flags & SceneNodeFlags::f) { s << #f << " "; }
+   ADD_FLAG(NoDraw)
+   ADD_FLAG(NoCastShadow)
+   ADD_FLAG(NoRayQuery)
+   ADD_FLAG(Inactive)
+   ADD_FLAG(Selected)
+#define ADD_FLAG
+   s << ")";
+   return s.str();
+};
+
 // *************************************************************************************************
 // Class SceneNode
 // *************************************************************************************************
 
 SceneNode::SceneNode( const SceneNodeTpl &tpl ) :
-	_parent( 0x0 ), _type( tpl.type ), _handle( 0 ), _sgHandle( 0 ), _flags( 0 ), _sortKey( 0 ),
+	_parent( 0x0 ), _type( tpl.type ), _handle( 0 ), _flags( 0 ), _sortKey( 0 ),
 	_dirty( true ), _transformed( true ), _renderable( false ),
 	_name( tpl.name ), _attachment( tpl.attachmentString ), _userFlags(0)
 {
@@ -131,6 +146,7 @@ void SceneNode::getTransMatrices( const float **relMat, const float **absMat ) c
 
 void SceneNode::setFlags( int flags, bool recursive )
 {
+   SCENE_LOG(8) << "setting flags on node " << _handle << " to " << FlagsToString(flags);
    _flags = flags;
 
    if( recursive )
@@ -144,11 +160,13 @@ void SceneNode::setFlags( int flags, bool recursive )
 
 void SceneNode::twiddleFlags( int flags, bool on, bool recursive )
 {
+   int oldFlags = _flags;
    if (on) {
       _flags |= flags;
    } else {
       _flags &= ~flags;
    }
+   SCENE_LOG(8) << "twiddling " << FlagsToString(flags) << " flags on node " << _handle << " (was:" << FlagsToString(oldFlags) << " now:" << FlagsToString(_flags);
 
    if( recursive )
    {
@@ -310,7 +328,7 @@ void SceneNode::update()
 
 	onFinishedUpdate();
 
-   Modules::sceneMan().updateSpatialNode( _sgHandle );
+   Modules::sceneMan().updateSpatialNode(_handle);
 }
 
 
@@ -359,32 +377,22 @@ SpatialGraph::SpatialGraph()
 
 void SpatialGraph::addNode( SceneNode &sceneNode )
 {	
-	if( !sceneNode._renderable && sceneNode._type != SceneNodeTypes::Light ) return;
-	
-	if( !_freeList.empty() )
-	{
-		uint32 slot = _freeList.back();
-		ASSERT( _nodes[slot] == 0x0 );
-		_freeList.pop_back();
-
-		sceneNode._sgHandle = slot + 1;
-		_nodes[slot] = &sceneNode;
-	}
-	else
-	{
-		_nodes.push_back( &sceneNode );
-		sceneNode._sgHandle = (uint32)_nodes.size();
-	}
+   ASSERT(sceneNode._handle);
+   _nodes[sceneNode._handle] = &sceneNode;
+   SCENE_LOG(9) << "adding node " << sceneNode._handle << " to SpatialGraph";
 }
 
 
 void SpatialGraph::removeNode( uint32 sgHandle )
 {
-	if( sgHandle == 0 || _nodes[sgHandle - 1] == 0x0 ) return;
-
-	_nodes[sgHandle - 1]->_sgHandle = 0;
-	_nodes[sgHandle - 1] = 0x0;
-	_freeList.push_back( sgHandle - 1 );
+   if (sgHandle) {
+      auto i = _nodes.find(sgHandle), end = _nodes.end();
+      ASSERT(i != end);
+      if (i != end) {
+         SCENE_LOG(9) << "removing node " << sgHandle << " from SpatialGraph";
+         _nodes.erase(i);
+      }
+   }
 }
 
 
@@ -403,35 +411,45 @@ struct RendQueueItemCompFunc
 
 
 void SpatialGraph::query(const SpatialQuery& query, RenderableQueues& renderableQueues, 
-      InstanceRenderableQueues& instanceQueues, std::vector<SceneNode*>& lightQueue)
+                         InstanceRenderableQueues& instanceQueues, std::vector<SceneNode*>& lightQueue)
 {
    ASSERT(query.useLightQueue || query.useRenderableQueue);
 
-	Modules::sceneMan().updateNodes();
-	
-	// Culling
-	for( size_t i = 0, s = _nodes.size(); i < s; ++i )
-	{
-		SceneNode *node = _nodes[i];
-		if (node == 0x0) {
+#define QUERY_LOG() SCENE_LOG(9) << "  query node (" << node->_handle << " " << node->getName() << ") " 
+
+   Modules::sceneMan().updateNodes();
+
+   SCENE_LOG(9) << "running spatial graph query:";
+   // Culling
+   for (auto const& entry : _nodes) {
+      SceneNode *node = entry.second;
+      if (node == 0x0) {
+         SCENE_LOG(9) << "  node " << entry.first << " is null!  ignoring.";
          continue;
       }
+      QUERY_LOG() "considering...";
+
       if (node->_flags & query.filterIgnore) {
+         QUERY_LOG() << "flags " << FlagsToString(node->_flags) << " intersect query ignore flags " << FlagsToString(query.filterIgnore) << ".  ignorning.";
          continue;
       }
       if ((node->_flags & query.filterRequired) != query.filterRequired) {
+         QUERY_LOG() << "flags " << FlagsToString(node->_flags) << " do not match query required flags " << FlagsToString(query.filterRequired) << ".  ignorning.";
          continue;
       }
       if ((node->_userFlags & query.userFlags) != query.userFlags) {
+         QUERY_LOG() << "flags " << FlagsToString(node->_flags) << " do not match query user flags" << FlagsToString(query.userFlags) << ".  ignorning.";
          continue;
       }
 
       if (query.useRenderableQueue) {
          if (!node->_renderable) {
+            QUERY_LOG() << "not renderable.  igorning";
             continue;
          }
 
          if (query.frustum.cullBox( node->_bBox ) && (query.secondaryFrustum == 0x0 || query.secondaryFrustum->cullBox( node ->_bBox ))) {
+            QUERY_LOG() << "culled by frustum.  igorning";
             continue;
          }
 
@@ -449,39 +467,46 @@ void SpatialGraph::query(const SpatialQuery& query, RenderableQueues& renderable
             sortKey = -nearestDistToAABB( query.frustum.getOrigin(), node->_bBox.min(), node->_bBox.max() );
             break;
          }
-         
+
          if (node->getInstanceKey() != 0x0 && !query.forceNoInstancing) {
             if (instanceQueues.find(node->_type) == instanceQueues.end()) {
                instanceQueues[node->_type] = InstanceRenderableQueue();
             }
             InstanceRenderableQueue& iq = instanceQueues[node->_type];
-            
+
             const InstanceKey& ik = *(node->getInstanceKey());
             if (iq.find(ik) == iq.end()) {
                iq[ik] = RenderableQueue();
                iq[ik].reserve(1000);
             }
             iq[ik].push_back(RendQueueItem(node->_type, sortKey, node));
+            QUERY_LOG() << "added to instance renderable queue (geo:" << ik.geoResource->getHandle() << " " << ik.geoResource->getName() << ").";
          } else {
             if (renderableQueues.find(node->_type) == renderableQueues.end()) {
                renderableQueues[node->_type] = RenderableQueue();
                renderableQueues[node->_type].reserve(1000);
             }
             renderableQueues[node->_type].push_back( RendQueueItem( node->_type, sortKey, node ) );
+            QUERY_LOG() << "added to renderable queue.";
          }
       }
       if (query.useLightQueue && node->_type == SceneNodeTypes::Light) {		 
+         QUERY_LOG() << "added to light queue.";
          lightQueue.push_back( node );
       }
    }
 
-	// Sort
-	if( query.order != RenderingOrder::None ) {
+#undef QUERY_LOG
+
+   // Sort
+   if( query.order != RenderingOrder::None ) {
       for (auto& item : renderableQueues) {
+         SCENE_LOG(9) << "sorting renderable queue " << item.first << " of length " << item.second.size();
          std::sort( item.second.begin(), item.second.end(), RendQueueItemCompFunc() );
       }
 
       for (auto& item : instanceQueues) {
+         SCENE_LOG(9) << "sorting instance queue " << item.first << " of length " << item.second.size();
          for (auto& queue : item.second) {
             std::sort(queue.second.begin(), queue.second.end(), RendQueueItemCompFunc());
          }
@@ -515,18 +540,17 @@ void SceneManager::shutdown()
 {
    delete _spatialGraph; _spatialGraph = nullptr;
 
-   for( uint32 i = 0; i < _nodes.size(); ++i ) {
-      delete _nodes[i]; _nodes[i] = 0x0;
+   for (auto &entry : _nodes) {
+      delete entry.second;
    }
-   _nodes.resize(0);
-   _freeList.clear();
+   _nodes.clear();
 }
 
 void SceneManager::initialize()
 {
    SceneNode *rootNode = GroupNode::factoryFunc( GroupNodeTpl( "RootNode" ) );
    rootNode->_handle = RootNode;
-   _nodes.push_back( rootNode );
+   _nodes[RootNode] = rootNode;
 
    _spatialGraph = new SpatialGraph();  
    _queryCacheCount = 0;
@@ -586,6 +610,15 @@ void SceneManager::updateQueues( const char* reason, const Frustum &frustum1, co
 {
    radiant::perfmon::TimelineCounterGuard uq("updateQueues");
 
+   if (LOG_IS_ENABLED(horde.scene, 7)) {
+      SCENE_LOG(7) << "updating queues for " << reason;
+      SCENE_LOG(7) << "   ignore flags: " << FlagsToString(filterIgnore);
+      SCENE_LOG(7) << "   required flags: " << FlagsToString(filterRequired);
+      SCENE_LOG(7) << "   use light queue: " << std::boolalpha << useLightQueue;
+      SCENE_LOG(7) << "   use renderable queue: " << std::boolalpha << useRenderableQueue;
+      SCENE_LOG(7) << "   force no instancing: " << std::boolalpha << forceNoInstancing;
+      SCENE_LOG(7) << "   user flags: " << std::boolalpha << userFlags;
+   }
    SpatialQuery query;
    query.filterIgnore = filterIgnore;
    query.filterRequired = filterRequired;
@@ -601,6 +634,7 @@ void SceneManager::updateQueues( const char* reason, const Frustum &frustum1, co
  
     if (_currentQuery != -1)
     {
+       SCENE_LOG(5) << "query " << reason << " using cached query " << _currentQuery << " instead of updating queues!";
        // Cache hit!.
        return;
     }
@@ -642,6 +676,7 @@ void SceneManager::updateQueues( const char* reason, const Frustum &frustum1, co
        }
     }
  
+    SCENE_LOG(5) << "computing query cache slot " << _currentQuery;
     _spatialGraph->query(sqr.query, sqr.renderableQueues, sqr.instanceRenderableQueues, sqr.lightQueue);
 }
 
@@ -730,7 +765,9 @@ NodeHandle SceneManager::addNode( SceneNode *node, SceneNode &parent )
 	}
 	
 	node->_parent = &parent;
-	
+	node->_handle = _nextHandleValue++;
+	_nodes[node->_handle] = node;
+
 	// Attach to parent
 	parent._children.push_back( node );
 
@@ -742,24 +779,7 @@ NodeHandle SceneManager::addNode( SceneNode *node, SceneNode &parent )
 
 	// Register node in spatial graph
 	_spatialGraph->addNode( *node );
-	
-	// Insert node in free slot
-	if( !_freeList.empty() )
-	{
-		uint32 slot = _freeList.back();
-		ASSERT( _nodes[slot] == 0x0 );
-		_freeList.pop_back();
-
-		node->_handle = slot + 1;
-		_nodes[slot] = node;
-		return slot + 1;
-	}
-	else
-	{
-		_nodes.push_back( node );
-		node->_handle = (NodeHandle)_nodes.size();
-		return node->_handle;
-	}
+        return node->_handle;
 }
 
 
@@ -786,9 +806,13 @@ void SceneManager::removeNodeRec( SceneNode &node )
 	// Delete node
 	if( handle != RootNode )
 	{
-		_spatialGraph->removeNode( node._sgHandle );
-		delete _nodes[handle - 1]; _nodes[handle - 1] = 0x0;
-		_freeList.push_back( handle - 1 );
+		_spatialGraph->removeNode(node._handle);
+                auto i = _nodes.find(node._handle), end = _nodes.end();
+                ASSERT(i != _nodes.end());
+                if (i != _nodes.end()) {
+                   delete i->second;
+                   _nodes.erase(i);
+                }
 	}
 }
 
@@ -995,6 +1019,8 @@ void SceneManager::clearQueryCache()
 {
    // Do a pass to see if we have too many renderable queues.  TODO(klochek): collect some stats
    // for each queue, so that we can more-intelligently get rid of disused queues.
+   SCENE_LOG(5) << "clearing query cache";
+
    for (int i = 0; i < _queryCacheCount; i++) {
       int totalRQs = 0;
       for (const auto& iqs : _queryCache[i].instanceRenderableQueues) {
@@ -1061,6 +1087,12 @@ int SceneManager::_checkQueryCache(const SpatialQuery& query)
    }
 
    return -1;
+}
+
+SceneNode *SceneManager::resolveNodeHandle(NodeHandle handle)
+{
+   auto i = _nodes.find(handle), end = _nodes.end();
+   return i != end ? i->second : nullptr;
 }
 
 }  // namespace
