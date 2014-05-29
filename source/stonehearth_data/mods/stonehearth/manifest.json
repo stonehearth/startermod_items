@@ -851,6 +851,12 @@
          "endpoint" : "client"
       }
    },
+   
+   "controllers" :  {
+      "craft_order" : "file(components/workshop/craft_order.lua)",
+      "craft_order_list" : "file(components/workshop/craft_order_list.lua)"
+   },
+
    "components" :  {
       "ai" : "file(components/ai/ai_component.lua)",
       "commands" : "file(components/commands/commands_component.lua)",
