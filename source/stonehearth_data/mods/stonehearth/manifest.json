@@ -967,6 +967,7 @@
          "file(ui/game/crafters/crafters.html)",
          "file(ui/game/promotion_wizard/promotion_wizard.html)",
          "file(ui/game/tip_popup/tip_popup.html)",
+         "file(ui/game/bulletin/bulletin_notification/bulletin_notification.html)",
          "file(ui/game/event_log/event_log.html)",
          "file(ui/game/build/build.html)"
       ],
@@ -1019,6 +1020,8 @@
          "file(ui/game/crafters/crafters.js)",
          "file(ui/game/promotion_wizard/promotion_wizard.js)",
          "file(ui/game/tip_popup/tip_popup.js)",
+         "file(ui/game/bulletin/bulletin.js)",
+         "file(ui/game/bulletin/bulletin_notification/bulletin_notification.js)",         
          "file(ui/game/event_log/event_log.js)"
       ],
       "less" : [
@@ -1068,6 +1071,7 @@
          "file(ui/game/crafters/crafters.less)",
          "file(ui/game/promotion_wizard/promotion_wizard.less)",
          "file(ui/game/tip_popup/tip_popup.less)",
+         "file(ui/game/bulletin/bulletin_notification/bulletin_notification.less)",
          "file(ui/game/event_log/event_log.less)",
          "file(ui/game/build/build.less)"
       ]
