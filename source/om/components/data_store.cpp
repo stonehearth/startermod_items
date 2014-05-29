@@ -12,6 +12,15 @@ std::ostream& operator<<(std::ostream& os, DataStore const& o)
    return (os << "[DataStore]");
 }
 
+DataStore::DataStore() :
+   _needsRestoration(true)
+{
+}
+
+DataStore::~DataStore()
+{
+}
+
 luabind::object DataStore::GetData() const
 {
    return (*data_).GetDataObject();
@@ -44,11 +53,12 @@ void DataStore::SerializeToJson(json::Node& node) const
 
 luabind::object DataStore::RestoreController(DataStorePtr self)
 {
+   std::vector<luabind::object> visitedTables;
    std::unordered_map<dm::ObjectId, luabind::object> visited;
-   return RestoreControllerRecursive(self, visited);
+   return RestoreControllerRecursive(self, visitedTables, visited);
 }
 
-luabind::object DataStore::RestoreControllerRecursive(DataStorePtr self, std::unordered_map<dm::ObjectId, luabind::object>& visited)
+luabind::object DataStore::RestoreControllerRecursive(DataStorePtr self, std::vector<luabind::object> visitedTables, std::unordered_map<dm::ObjectId, luabind::object>& visited)
 {
    ASSERT(visited.find(GetObjectId()) == visited.end());
 
@@ -57,42 +67,56 @@ luabind::object DataStore::RestoreControllerRecursive(DataStorePtr self, std::un
    // like structures.
    visited[GetObjectId()] = luabind::object();
 
-   if (!_controllerObject.is_valid()) {
-      lua_State* L = GetData().interpreter();
-      lua::ScriptHost *scriptHost = lua::ScriptHost::GetScriptHost(L);
+   // Make sure we dont...
+   if (_needsRestoration) {
 
-      std::string uri = GetControllerUri();
-      if (!uri.empty()) {
-         try {
-            luabind::object ctor = scriptHost->RequireScript(L, uri);
-            if (ctor) {
-               _controllerObject = ctor();
-               if (_controllerObject) {
-                  _controllerObject["__saved_variables"] = self;
-                  _controllerObject["_sv"] = GetData();
+      _needsRestoration = false;
+
+      if (!_controllerObject.is_valid()) {
+         lua_State* L = GetData().interpreter();
+         lua::ScriptHost *scriptHost = lua::ScriptHost::GetScriptHost(L);
+
+         std::string uri = GetControllerUri();
+         if (!uri.empty()) {
+            try {
+               luabind::object ctor = scriptHost->RequireScript(L, uri);
+               if (ctor) {
+                  _controllerObject = ctor();
+                  if (_controllerObject) {
+                     _controllerObject["__saved_variables"] = self;
+                     _controllerObject["_sv"] = GetData();
+                  }
                }
-               // Now that we have set and constructed the controller
-               // object, we can restore all the contained datastores.  This
-               // way, if an object in our datastore loops back and points to
-               // us, we can return our controller instead of entering an
-               // infinite loop!
-               visited[GetObjectId()] = _controllerObject;
-               RestoreContainedDatastores(GetData(), visited);
+            } catch (std::exception const& e) {
+
+               lua::ScriptHost::ReportCStackException(L, e);
             }
-         } catch (std::exception const& e) {
-            lua::ScriptHost::ReportCStackException(L, e);
          }
+         // Now that we have set and constructed the controller
+         // object, we can restore all the contained datastores.  This
+         // way, if an object in our datastore loops back and points to
+         // us, we can return our controller instead of entering an
+         // infinite loop!
+         visited[GetObjectId()] = _controllerObject;
+         RestoreContainedDatastores(GetData(), visitedTables, visited);
       }
    }
    return _controllerObject;
 }
 
-void DataStore::RestoreContainedDatastores(luabind::object o, std::unordered_map<dm::ObjectId, luabind::object>& visited)
+void DataStore::RestoreContainedDatastores(luabind::object o, std::vector<luabind::object> visitedTables, std::unordered_map<dm::ObjectId, luabind::object>& visited)
 {
    if (luabind::type(o) == LUA_TTABLE) {
+      for (luabind::object v : visitedTables) {
+         if (v == o) {
+            return;
+         }
+      }
+      visitedTables.emplace_back(o);
+
       for (luabind::iterator i(o), end; i != end; i++) {
-         if (luabind::type(*i) == LUA_TTABLE) {
-            RestoreContainedDatastores(*i, visited);
+         if (luabind::type(*i) == LUA_TTABLE) {            
+            RestoreContainedDatastores(*i, visitedTables, visited);
          } else {
             boost::optional<om::DataStorePtr> ds = luabind::object_cast_nothrow<om::DataStorePtr>(*i);
             if (ds) {
@@ -104,7 +128,7 @@ void DataStore::RestoreContainedDatastores(luabind::object o, std::unordered_map
                if (j != visited.end()) {
                   controller = j->second;
                } else {
-                  controller = datastore->RestoreControllerRecursive(datastore, visited);
+                  controller = datastore->RestoreControllerRecursive(datastore, visitedTables, visited);
                }
                if (controller.is_valid()) {
                   if (luabind::type(i.key()) == LUA_TSTRING) {
@@ -180,4 +204,9 @@ luabind::object DataStore::CreateController(DataStorePtr self, std::string type,
    controller_name_ = name;
 
    return RestoreController(self);
+}
+
+void DataStore::OnLoadObject(dm::SerializationType r)
+{
+   _needsRestoration = true;
 }

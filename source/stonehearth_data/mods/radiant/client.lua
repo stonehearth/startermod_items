@@ -17,6 +17,17 @@ function radiant.create_datastore(data)
    return datastore
 end
 
+function radiant.create_controller(...)
+   local args = { ... }
+   local name = table.remove(args, 1)
+   local datastore = radiant.create_datastore()
+   local controller = datastore:create_controller('controllers', name)
+   if controller and controller.initialize then
+      controller:initialize(unpack(args))
+   end
+   return controller
+end
+
 radiant.log = require 'modules.log'
 radiant.util = require 'lib.util'
 radiant.resources = require 'modules.resources'
