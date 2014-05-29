@@ -39,9 +39,8 @@ static std::string FlagsToString(int flags)
    ADD_FLAG(NoDraw)
    ADD_FLAG(NoCastShadow)
    ADD_FLAG(NoRayQuery)
-   ADD_FLAG(Inactive)
    ADD_FLAG(Selected)
-#define ADD_FLAG
+#undef ADD_FLAG
    s << ")";
    return s.str();
 };

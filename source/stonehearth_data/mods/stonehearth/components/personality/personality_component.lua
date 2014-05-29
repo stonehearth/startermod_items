@@ -4,9 +4,6 @@
 ]]
 
 local Personality = class()
-
-local calendar = stonehearth.calendar
-local personality_service = stonehearth.personality
 local rng = _radiant.csg.get_default_rng()
 
 function Personality:__init()
@@ -23,7 +20,7 @@ function Personality:initialize(entity, json)
       self._sv.substitutions = {}
       self._sv.todays_events = {}    --Each notable thing that's happened today
    end
-   radiant.events.listen(calendar, 'stonehearth:midnight', self, self.on_midnight)
+   radiant.events.listen(stonehearth.calendar, 'stonehearth:midnight', self, self.on_midnight)
 end
 
 function Personality:set_personality(personality)
@@ -46,7 +43,7 @@ function Personality:add_substitution_by_parameter(key, parameter, namespace)
    if not namespace then 
       namespace = 'stonehearth'
    end
-   local value = personality_service:get_substitution(namespace, key, parameter)
+   local value = stonehearth.personality:get_substitution(namespace, key, parameter)
    self._sv.substitutions[key] = value
    self.__saved_variables:mark_changed()
 end
@@ -83,7 +80,7 @@ function Personality:register_notable_event(event_name, percent_chance, namespac
    if self._sv.todays_events[event_name] == nil then
       local roll = rng:get_int(1, 100)
       if roll <= percent_chance then
-         local title, log = personality_service:get_activity_log(namespace, event_name, self._sv.personality, self._sv.substitutions)
+         local title, log = stonehearth.personality:get_activity_log(namespace, event_name, self._sv.personality, self._sv.substitutions)
          if log then
             return self:_add_log_entry(title, log, score_metadata)
          end
@@ -96,7 +93,7 @@ end
 --- Insert a brand new entry into the log
 function Personality:_add_log_entry(entry_title, entry_text, score_metadata)
    --Are there any entries yet for this day? If not, add one
-   local todays_date = calendar:format_date()
+   local todays_date = stonehearth.calendar:format_date()
    if #self._sv.log == 0 or self._sv.log[1].date ~= todays_date then
       self:_init_day(todays_date)
    end
