@@ -11,17 +11,17 @@ local min_height = 10
 
 local PlayerCameraController = class()
 
-function PlayerCameraController:__init(datastore)
-   self.__saved_variables = datastore
-   self._sv = self.__saved_variables:get_data()
+function PlayerCameraController:initialize()
+   self._sv.camera_disabled = false
+   self._sv.position = Vec3(0, 30, 0)
+   self._sv.lookat = Vec3(-1, -1, -1)
+   self._sv.lookat:normalize()
 
-   if not self._sv.position then
-      self._sv.camera_disabled = false
-      self._sv.position = Vec3(0, 30, 0)
-      self._sv.lookat = Vec3(-1, -1, -1)
-      self._sv.lookat:normalize()
-   end
+   self:restore()
+end
 
+
+function PlayerCameraController:restore()
    self._continuous_delta = Vec3(0, 0, 0)
    self._impulse_delta = Vec3(0, 0, 0)
 
@@ -55,6 +55,7 @@ function PlayerCameraController:__init(datastore)
       return false
     end)
 end
+
 
 function PlayerCameraController:_get_orbit_target() 
   local r = self:_find_target()

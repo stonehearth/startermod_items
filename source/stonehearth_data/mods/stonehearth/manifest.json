@@ -857,6 +857,11 @@
       "craft_order_list" : "file(components/workshop/craft_order_list.lua)"
    },
 
+   "client_controllers" :  {
+      "player_camera_controller" : "file(services/client/camera/player_camera_controller.lua)",
+      "move_to_camera_controller" : "file(services/client/camera/move_to_camera_controller.lua)"
+   },
+
    "components" :  {
       "ai" : "file(components/ai/ai_component.lua)",
       "commands" : "file(components/commands/commands_component.lua)",

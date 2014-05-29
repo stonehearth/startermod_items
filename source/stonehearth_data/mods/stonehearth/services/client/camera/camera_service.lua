@@ -8,17 +8,19 @@ local CameraService = class()
 
 function CameraService:initialize()
    self._sv = self.__saved_variables:get_data()
-   
+
    if not self._sv.controllers then
       self._sv.controllers = {}
       self._sv.camera_disabled = false
-      self:push_controller(PlayerCameraController, PlayerCameraController(radiant.create_datastore()))
+      self:push_controller('stonehearth:player_camera_controller')
+      self:_attach_frame_listeners()
    else
-      for idx, c in pairs(self._sv.controllers) do
-         self._sv.controllers[idx] = c.ctor(c.controller)
-      end
+      radiant.events.listen_once(radiant, 'radiant:game_loaded', self, self._attach_frame_listeners)
    end
+end
 
+
+function CameraService:_attach_frame_listeners()
    self._frame_trace = _radiant.client.trace_render_frame()
 
    self._frame_trace:on_frame_start('update camera', function(now, alpha, frame_time, frame_time_wallclock)
@@ -28,11 +30,8 @@ function CameraService:initialize()
 end
 
 
-function CameraService:push_controller(controller_ctor, controller)
-   local controller = {
-      ctor = controller_ctor,
-      controller = controller
-   }
+function CameraService:push_controller(controller_id, ...)
+   local controller = radiant.create_controller(controller_id, ...)
 
    table.insert(self._sv.controllers, controller)
 
@@ -46,7 +45,7 @@ end
 
 
 function CameraService:controller_top()
-   return self._sv.controllers[#self._sv.controllers].controller
+   return self._sv.controllers[#self._sv.controllers]
 end
 
 

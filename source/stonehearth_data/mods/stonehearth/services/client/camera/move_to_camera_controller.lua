@@ -4,15 +4,10 @@ local Ray = _radiant.csg.Ray3
 
 local MoveToCameraController = class()
 
-function MoveToCameraController:__init(datastore, end_pos, travel_time)
-   self.__saved_variables = datastore
-   self._sv = self.__saved_variables:get_data()
-
-   if not self._sv.end_pos then
-      self._sv.elapsed_time = 0
-      self._sv.travel_time = travel_time
-      self._sv.end_pos = end_pos
-   end
+function MoveToCameraController:initialize(end_pos, travel_time)
+   self._sv.elapsed_time = 0
+   self._sv.travel_time = travel_time
+   self._sv.end_pos = end_pos
 end
 
 

@@ -17,11 +17,7 @@ function CameraCallHandler:camera_look_at_entity(session, request, entity)
    end
    local cam_pos = entity_pos + -camera:get_forward():scaled(t)
 
-   camera:push_controller(
-      MoveToCameraController, 
-      MoveToCameraController(_radiant.client.create_datastore(), 
-         cam_pos,
-         1000))
+   camera:push_controller('stonehearth:move_to_camera_controller', cam_pos, 1000)
    request:resolve({})
 end
 
