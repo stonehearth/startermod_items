@@ -1,21 +1,21 @@
 local log = radiant.log.create_logger('combat_pace')
 
-local CombatCurve = class()
+local CombatPaceKeeper = class()
 
-function CombatCurve:initialize()
+function CombatPaceKeeper:initialize()
    self._sv._combat_value = 0
    self:restore()
 end
 
-function CombatCurve:restore()
+function CombatPaceKeeper:restore()
    radiant.events.listen(radiant, 'stonehearth:combat:combat_action', self, self._on_combat_action)
 end
 
-function CombatCurve:get_current_value()
+function CombatPaceKeeper:get_current_value()
   return self._sv._current_value
 end
 
-function CombatCurve:get_max()
+function CombatPaceKeeper:get_max()
    local military_score = stonehearth.score:get_scores_for_player('player_1'):get_score_data().military_strength
    local military_strength = military_score and military_score.total_score or 0
 
@@ -23,7 +23,7 @@ function CombatCurve:get_max()
    return (military_strength + 1) * 1.5
 end
 
-function CombatCurve:get_min()
+function CombatPaceKeeper:get_min()
    local military_score = stonehearth.score:get_scores_for_player('player_1'):get_score_data().military_strength
    local military_strength = military_score and military_score.total_score or 0
 
@@ -31,23 +31,22 @@ function CombatCurve:get_min()
    return military_strength * 0.5
 end
 
-function CombatCurve:get_cooldown_time()
+function CombatPaceKeeper:get_cooldown_time()
    return 1000
 end
 
-function CombatCurve:decay(value)
+function CombatPaceKeeper:decay(value)
   return value * 0.5
 end
 
-function CombatCurve:_on_combat_action(e)
+function CombatPaceKeeper:_on_combat_action(e)
   -- For now, just add damage done, regardless of who is doing it.  Very shortly, we'll probably
   -- want to weight damage done to the player as more important.
   self._sv._combat_value = self._sv._combat_value + e.damage
   self.__saved_variables:mark_changed()
 end
 
--- API function
-function CombatCurve:compute_value()
+function CombatPaceKeeper:compute_value()
   -- The value of combat pacing is equal to the amount of damage currently inflicted, plus
   -- the value of all of the enemy combat troops.  The idea is that if there are lots of enemy 
   -- troops, but no violence has been done yet, we still want to penalize spawning new combat 
@@ -74,8 +73,7 @@ function CombatCurve:compute_value()
   return new_combat_value
 end
 
--- API function
-function CombatCurve:can_spawn_scenario(scenario)
+function CombatPaceKeeper:can_spawn_scenario(scenario)
   local props = scenario.properties.scenario_types.combat
 
   local military_score = stonehearth.score:get_scores_for_player('player_1'):get_score_data().military_strength
@@ -92,4 +90,4 @@ function CombatCurve:can_spawn_scenario(scenario)
   return scenario.scenario.can_spawn()
 end
 
-return CombatCurve
+return CombatPaceKeeper
