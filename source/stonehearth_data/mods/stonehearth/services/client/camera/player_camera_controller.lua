@@ -25,6 +25,15 @@ function PlayerCameraController:__init(datastore)
    self._continuous_delta = Vec3(0, 0, 0)
    self._impulse_delta = Vec3(0, 0, 0)
 
+   self._mouse_data = {
+      x = 0,
+      y = 0,
+      dx = 0,
+      dy = 0,
+      wheel = 0,
+      focused = true
+   }
+
    self._mouse_dead_zone_x = 0
    self._mouse_dead_zone_y = 0
 
@@ -149,7 +158,7 @@ end
 
 function PlayerCameraController:_on_input(e) 
     if e.type == _radiant.client.Input.MOUSE then
-      self:_on_mouse_input(e.mouse, e.focused)
+      self:_accumulate_mouse_input(e.mouse)
     elseif e.type == _radiant.client.Input.KEYBOARD then
       self:_on_keyboard_input(e.keyboard)
     end
@@ -165,6 +174,23 @@ function PlayerCameraController:_on_keyboard_input(e)
       self._drag_cursor:destroy()  
     end
   end
+end
+
+function PlayerCameraController:_accumulate_mouse_input(e)
+   self._mouse_data.x = e.x
+   self._mouse_data.y = e.y
+   self._mouse_data.dx = self._mouse_data.dx + e.dx
+   self._mouse_data.dy = self._mouse_data.dy + e.dy
+   self._mouse_data.wheel = self._mouse_data.wheel + e.wheel
+   self._mouse_data.focused = e.focused
+end
+
+function PlayerCameraController:_process_mouse()
+   self:_on_mouse_input(self._mouse_data, self._mouse_data.focused)
+
+   self._mouse_data.dx = 0
+   self._mouse_data.dy = 0
+   self._mouse_data.wheel = 0
 end
 
 function PlayerCameraController:_on_mouse_input(e, focused)
@@ -184,8 +210,6 @@ function PlayerCameraController:_calculate_mouse_dead_zone(e)
      self._mouse_dead_zone_x = 0
      self._mouse_dead_zone_y = 0
    end
-
-   --log:info('dead zone pos: %d,%d', self._mouse_dead_zone_x, self._mouse_dead_zone_y)
 
    if self._mouse_dead_zone_x < input_constants.mouse.dead_zone_size or self._mouse_dead_zone_y < input_constants.mouse.dead_zone_size then
       self._mouse_in_dead_zone = true
@@ -443,6 +467,7 @@ end
 function PlayerCameraController:update(frame_time)
    -- Maybe we should just collect up mouse deltas and apply them here, too?
    self:_process_keys()
+   self:_process_mouse()
 
    local scaled_continuous_delta = Vec3(self._continuous_delta)
    scaled_continuous_delta:scale(frame_time / 1000.0)
