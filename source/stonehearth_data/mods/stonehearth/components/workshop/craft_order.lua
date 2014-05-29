@@ -45,7 +45,7 @@ Create a new CraftOrder
    ingredients:TODO: the ingredients chosen by the user for the object
 ]]
 
-function CraftOrder:create_order(id, recipe, condition, faction)
+function CraftOrder:initialize(id, recipe, condition, faction, order_list)
    assert(self._sv)
    
    self._sv.id = id
@@ -55,6 +55,7 @@ function CraftOrder:create_order(id, recipe, condition, faction)
    self._sv.faction = faction
    self._sv.enabled = true
    self._sv.is_crafting = true
+   self._sv.order_list = order_list
 
    local condition = self._sv.condition
    if condition.type == "make" then
@@ -66,14 +67,9 @@ function CraftOrder:create_order(id, recipe, condition, faction)
    self:_on_changed()
 end
 
-function CraftOrder:initialize(on_change_cb)
-   self._sv = self.__saved_variables:get_data()
-   self._on_change_cb = on_change_cb
-end
-
 function CraftOrder:_on_changed()
    self.__saved_variables:mark_changed()
-   self._on_change_cb()
+   self._sv.order_list:_on_order_list_changed()
 end
 
 --[[
