@@ -36,7 +36,7 @@ function CarryBlock:set_carrying(new_item)
       self:_destroy_carried_item_trace()
    else
       -- only set these if we weren't carrying anything before
-      radiant.entities.set_posture(self._entity, 'carrying')
+      radiant.entities.set_posture(self._entity, 'stonehearth:carrying')
       radiant.entities.add_buff(self._entity, 'stonehearth:buffs:carrying')      
    end
 
@@ -58,7 +58,7 @@ function CarryBlock:_remove_carrying()
       self._attached_items:remove_item('carry')
       self:_destroy_carried_item_trace()
 
-      radiant.entities.unset_posture(self._entity, 'carrying')
+      radiant.entities.unset_posture(self._entity, 'stonehearth:carrying')
       radiant.entities.remove_buff(self._entity, 'stonehearth:buffs:carrying')
 
       radiant.events.trigger_async(self._entity, 'stonehearth:carry_block:carrying_changed')
