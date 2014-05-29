@@ -18,7 +18,7 @@ function SitOnChairAdjacent:run(ai, entity, args)
    local q = chair:get_component('mob'):get_rotation()
    entity:get_component('mob'):set_rotation(q)
 
-   radiant.entities.set_posture(entity, 'sitting_on_chair')
+   radiant.entities.set_posture(entity, 'stonehearth:sitting_on_chair')
 end
 
 function SitOnChairAdjacent:stop(ai, entity, args)
@@ -26,7 +26,7 @@ function SitOnChairAdjacent:stop(ai, entity, args)
       entity:get_component('mob'):move_to(self._current_location)
       self._current_location = nil
    end
-   radiant.entities.unset_posture(entity, 'sitting_on_chair')
+   radiant.entities.unset_posture(entity, 'stonehearth:sitting_on_chair')
 end
 
 return SitOnChairAdjacent

@@ -19,7 +19,7 @@
    "entity_data" : {
       "stonehearth:activity_name" : "eating_berries",
       "stonehearth:food" : {
-         "sitting_on_chair" : {
+         "stonehearth:sitting_on_chair" : {
             "satisfaction" : 12,
             "journal_message" : "Mmmm! Berries are delicious!"
          },

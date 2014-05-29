@@ -59,7 +59,7 @@ function FollowPathAction:run(ai, entity, args)
    local speed = radiant.entities.get_world_speed(entity)
 
    -- find a better way to do this rather than hardcoding it
-   if self._posture == 'patrol' then
+   if self._posture == 'stonehearth:patrol' then
       speed = speed * 0.6
    end
 
