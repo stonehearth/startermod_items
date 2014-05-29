@@ -2,30 +2,13 @@ local log = radiant.log.create_logger('combat_pace')
 
 local CombatCurve = class()
 
-CombatCurve.RELAXED = 1
-CombatCurve.PEAKED = 2
-CombatCurve.COOL_DOWN = 3
-
-function CombatCurve:__init(min_threshold_fn, max_threshold_fn, decay_constant_fn, cooldown_time_fn, datastore)
-  self.__saved_variables = datastore
-  self._sv = datastore:get_data()
-
-  self._decay_constant_fn = decay_constant_fn
-  self._min_threshold_fn = min_threshold_fn
-  self._max_threshold_fn = max_threshold_fn
-  self._cooldown_time_fn = cooldown_time_fn
-
-  if not self._sv._current_state then 
-    self._sv._current_value = 0
-    self._sv._current_state = CombatCurve.RELAXED
-
-    self._sv._combat_value = 0
-  end
-  radiant.events.listen(radiant, 'stonehearth:combat:combat_action', self, self._on_combat_action)
+function CombatCurve:initialize()
+   self._sv._combat_value = 0
+   self:restore()
 end
 
-function CombatCurve:get_scenario_type()
-  return 'COMBAT'
+function CombatCurve:restore()
+   radiant.events.listen(radiant, 'stonehearth:combat:combat_action', self, self._on_combat_action)
 end
 
 function CombatCurve:get_current_value()
@@ -33,55 +16,29 @@ function CombatCurve:get_current_value()
 end
 
 function CombatCurve:get_max()
-  return self._max_threshold_fn()
+   local military_score = stonehearth.score:get_scores_for_player('player_1'):get_score_data().military_strength
+   local military_strength = military_score and military_score.total_score or 0
+
+   -- TODO: this is where combat difficulty will get factored in to the code.
+   return (military_strength + 1) * 1.5
 end
 
 function CombatCurve:get_min()
-  return self._min_threshold_fn()
+   local military_score = stonehearth.score:get_scores_for_player('player_1'):get_score_data().military_strength
+   local military_strength = military_score and military_score.total_score or 0
+
+   -- TODO: this is where combat difficulty will get factored in to the code.
+   return military_strength * 0.5
 end
 
-function CombatCurve:get_state()
-  return self._sv._current_state
+function CombatCurve:get_cooldown_time()
+   return 1000
 end
 
-function CombatCurve:_decay(value)
-  return value * self._decay_constant_fn()
+function CombatCurve:decay(value)
+  return value * 0.5
 end
 
-function CombatCurve:update(now)
-  -- Accumulate current tick's value with our decayed current value.
-  -- This implies that 'compute_value' should always give you the tick's value--a delta,
-  -- in other words.  
-  self._sv._current_value = self:_decay(self._sv._current_value) + self:compute_value()
-  log:spam('Total combat pace value is %d, min is %d, max is %d', self._sv._current_value, self:get_min(), self:get_max())
-
-  if self._sv._current_state == CombatCurve.RELAXED then
-    if self._sv._current_value > self:get_max() then
-      log:spam('Combat pace entering peak.')
-      self._sv._current_state = CombatCurve.PEAKED
-    end
-  elseif self._sv._current_state == CombatCurve.PEAKED then
-    if self._sv._current_value < self:get_min() then
-      log:spam('Combat pace entering cool-down.')
-      self._sv._current_state = CombatCurve.COOL_DOWN
-      self._cooldown_start = now
-    end
-  elseif self._sv._current_state == CombatCurve.COOL_DOWN then
-    if now - self._cooldown_start > self._cooldown_time_fn() then
-      log:spam('Combat pace entering relaxed.')
-      self._sv._current_state = CombatCurve.RELAXED
-    end
-  end
-  self.__saved_variables:mark_changed()
-end
-
-function CombatCurve:willing_to_spawn()
-  return self:get_state() == CombatCurve.RELAXED
-end
-
--- *********************************************************************************************
--- COMBAT SPECIFIC FUNCTIONS *******************************************************************
--- *********************************************************************************************
 function CombatCurve:_on_combat_action(e)
   -- For now, just add damage done, regardless of who is doing it.  Very shortly, we'll probably
   -- want to weight damage done to the player as more important.
