@@ -5,7 +5,6 @@ local log = radiant.log.create_logger('camera')
 local input_constants = require('constants').input
 
 local gutter_size = -1
-local scroll_speed = 150
 local smoothness = 0.0175
 local min_height = 10
 
@@ -110,7 +109,6 @@ function PlayerCameraController:_calculate_orbit(e)
          self:_orbit(orbit_target, deg_y, deg_x, 30.0, 70.0)
       end
    end
-
 end
 
 function PlayerCameraController:_orbit(target, x_deg, y_deg, min_x, max_x)
@@ -159,7 +157,7 @@ end
 
 function PlayerCameraController:_on_input(e) 
     if e.type == _radiant.client.Input.MOUSE then
-      self:_accumulate_mouse_input(e.mouse)
+      self:_accumulate_mouse_input(e.mouse, e.focused)
     elseif e.type == _radiant.client.Input.KEYBOARD then
       self:_on_keyboard_input(e.keyboard)
     end
@@ -177,13 +175,13 @@ function PlayerCameraController:_on_keyboard_input(e)
   end
 end
 
-function PlayerCameraController:_accumulate_mouse_input(e)
+function PlayerCameraController:_accumulate_mouse_input(e, focused)
    self._mouse_data.x = e.x
    self._mouse_data.y = e.y
    self._mouse_data.dx = self._mouse_data.dx + e.dx
    self._mouse_data.dy = self._mouse_data.dy + e.dy
    self._mouse_data.wheel = self._mouse_data.wheel + e.wheel
-   self._mouse_data.focused = e.focused
+   self._mouse_data.focused = focused
 end
 
 function PlayerCameraController:_process_mouse()
@@ -196,7 +194,6 @@ end
 
 function PlayerCameraController:_on_mouse_input(e, focused)
   self:_calculate_mouse_dead_zone(e)
-  self:_calculate_scroll(e, focused)
   self:_calculate_drag(e)
   self:_calculate_orbit(e)
   self:_calculate_zoom(e)
@@ -411,45 +408,6 @@ function PlayerCameraController:_drag(x, y)
 end
 
 
-function PlayerCameraController:_calculate_scroll(e, focused)
-  if not focused then
-    self._continuous_delta = Vec3(0, 0, 0)
-    return
-  end
-
-  local screen_x = _radiant.renderer.screen.get_width()
-  local screen_y = _radiant.renderer.screen.get_height()
-
-  local mouse_x = e.x
-  local mouse_y = e.y
-
-  local left = Vec3(0, 0, 0)
-  local forward = Vec3(0, 0, 0)
-  local x_scale = 0
-  local y_scale = 0
-
-  if mouse_x < gutter_size then
-    x_scale = -scroll_speed
-  elseif mouse_x > screen_x - gutter_size then
-    x_scale = scroll_speed
-  end
-  left = stonehearth.camera:get_left()
-  left:scale(x_scale)
-
-  if mouse_y < gutter_size then
-    y_scale = -scroll_speed
-  elseif mouse_y > screen_y - gutter_size then
-    y_scale = scroll_speed
-  end
-  forward = stonehearth.camera:get_forward()
-  forward.y = 0
-  forward:normalize()
-  forward:scale(y_scale)
-
-  self._continuous_delta = forward + left
-end
-
-
 function PlayerCameraController:enable_camera(enabled)
    self._sv.camera_disabled = not enabled
 end
@@ -466,9 +424,8 @@ end
 
 
 function PlayerCameraController:update(frame_time)
-   -- Maybe we should just collect up mouse deltas and apply them here, too?
-   self:_process_keys()
    self:_process_mouse()
+   self:_process_keys()
 
    local scaled_continuous_delta = Vec3(self._continuous_delta)
    scaled_continuous_delta:scale(frame_time / 1000.0)
