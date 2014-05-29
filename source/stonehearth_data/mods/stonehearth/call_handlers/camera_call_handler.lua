@@ -1,10 +1,27 @@
 local camera = stonehearth.camera
 
+local MoveToCameraController = require 'services.client.camera.move_to_camera_controller'
 local CameraCallHandler = class()
 
 local camera_tracker = nil
 function CameraCallHandler:camera_look_at_entity(session, request, entity)
-   camera:look_at_entity(entity)
+   -- We want to maintain the orientation of the camera, and (for now) the height
+   -- of the camera.
+   local cam_height = camera:get_position().y
+   local entity_pos = entity:get_component('mob'):get_location()
+
+   local t = (cam_height - entity_pos.y) / -camera:get_forward().y
+
+   if t > 70 then
+      t = 70
+   end
+   local cam_pos = entity_pos + -camera:get_forward():scaled(t)
+
+   camera:push_controller(
+      MoveToCameraController, 
+      MoveToCameraController(_radiant.client.create_datastore(), 
+         cam_pos,
+         1000))
    request:resolve({})
 end
 

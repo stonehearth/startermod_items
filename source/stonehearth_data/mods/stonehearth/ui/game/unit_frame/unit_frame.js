@@ -97,6 +97,7 @@ App.StonehearthUnitFrameView = App.View.extend({
 
    //When we hover over a command button, show its tooltip
    didInsertElement: function() {
+      var self = this;
       this.$('#unitFrame > #buffs').find('.item').each(function() {
         $(this).tooltipster({
             content: $('<div class=title>' + $(this).attr('title') + '</div>' + 
@@ -117,6 +118,10 @@ App.StonehearthUnitFrameView = App.View.extend({
         });
 
       
+      this.$('.name').click(function(e) {
+          radiant.call('stonehearth:camera_look_at_entity', self.get('uri'))
+        });
+
       this._updateCommandButtons();      
       this._updateInventory();
    },
