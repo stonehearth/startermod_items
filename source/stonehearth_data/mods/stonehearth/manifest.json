@@ -934,7 +934,7 @@
       "construction_data" : "file(renderers/construction_data/construction_data_renderer.lua)"
    },
    "invariant_renderers" : {
-      "scaffolding_render_data" : "file(renderers/scaffolding/scaffolding_renderer.lua)"
+      "scaffolding_renderer" : "file(renderers/scaffolding/scaffolding_renderer.lua)"
    },
    "ui" :  {
       "homepage" : "http://radiant/stonehearth/ui/root/index.html",

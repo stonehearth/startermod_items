@@ -135,11 +135,11 @@ end
 function StructureEditor:_show_editing_objects(visible)
    if self._fabricator then
       _radiant.client.get_render_entity(self._fabricator)
-                        :set_visible(visible)
+                        :set_visible_override(visible)
    end
    if self._blueprint then
       _radiant.client.get_render_entity(self._project)
-                        :set_visible(visible)
+                        :set_visible_override(visible)
    end   
 end
 

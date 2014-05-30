@@ -33,7 +33,7 @@ end
 --
 function FixtureFabricatorRenderer:_update_render_state()
    local visible = self._visible and stonehearth.renderer:get_ui_mode() == 'hud'
-   self._render_entity:set_visible(visible)
+   self._render_entity:set_visible_override(visible)
 end
 
 return FixtureFabricatorRenderer

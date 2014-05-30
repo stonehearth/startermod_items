@@ -414,88 +414,10 @@ void SpatialGraph::query(const SpatialQuery& query, RenderableQueues& renderable
 {
    ASSERT(query.useLightQueue || query.useRenderableQueue);
 
-#define QUERY_LOG() SCENE_LOG(9) << "  query node (" << node->_handle << " " << node->getName() << ") " 
-
    Modules::sceneMan().updateNodes();
 
    SCENE_LOG(9) << "running spatial graph query:";
-   // Culling
-   for (auto const& entry : _nodes) {
-      SceneNode *node = entry.second;
-      if (node == 0x0) {
-         SCENE_LOG(9) << "  node " << entry.first << " is null!  ignoring.";
-         continue;
-      }
-      QUERY_LOG() "considering...";
-
-      if (node->_flags & query.filterIgnore) {
-         QUERY_LOG() << "flags " << FlagsToString(node->_flags) << " intersect query ignore flags " << FlagsToString(query.filterIgnore) << ".  ignorning.";
-         continue;
-      }
-      if ((node->_flags & query.filterRequired) != query.filterRequired) {
-         QUERY_LOG() << "flags " << FlagsToString(node->_flags) << " do not match query required flags " << FlagsToString(query.filterRequired) << ".  ignorning.";
-         continue;
-      }
-      if ((node->_userFlags & query.userFlags) != query.userFlags) {
-         QUERY_LOG() << "flags " << FlagsToString(node->_flags) << " do not match query user flags" << FlagsToString(query.userFlags) << ".  ignorning.";
-         continue;
-      }
-
-      if (query.useRenderableQueue) {
-         if (!node->_renderable) {
-            QUERY_LOG() << "not renderable.  igorning";
-            continue;
-         }
-
-         if (query.frustum.cullBox( node->_bBox ) && (query.secondaryFrustum == 0x0 || query.secondaryFrustum->cullBox( node ->_bBox ))) {
-            QUERY_LOG() << "culled by frustum.  igorning";
-            continue;
-         }
-
-         float sortKey = 0;
-
-         switch( query.order )
-         {
-         case RenderingOrder::StateChanges:
-            sortKey = node->_sortKey;
-            break;
-         case RenderingOrder::FrontToBack:
-            sortKey = nearestDistToAABB( query.frustum.getOrigin(), node->_bBox.min(), node->_bBox.max() );
-            break;
-         case RenderingOrder::BackToFront:
-            sortKey = -nearestDistToAABB( query.frustum.getOrigin(), node->_bBox.min(), node->_bBox.max() );
-            break;
-         }
-
-         if (node->getInstanceKey() != 0x0 && !query.forceNoInstancing) {
-            if (instanceQueues.find(node->_type) == instanceQueues.end()) {
-               instanceQueues[node->_type] = InstanceRenderableQueue();
-            }
-            InstanceRenderableQueue& iq = instanceQueues[node->_type];
-
-            const InstanceKey& ik = *(node->getInstanceKey());
-            if (iq.find(ik) == iq.end()) {
-               iq[ik] = RenderableQueue();
-               iq[ik].reserve(1000);
-            }
-            iq[ik].push_back(RendQueueItem(node->_type, sortKey, node));
-            QUERY_LOG() << "added to instance renderable queue (geo:" << ik.geoResource->getHandle() << " " << ik.geoResource->getName() << ").";
-         } else {
-            if (renderableQueues.find(node->_type) == renderableQueues.end()) {
-               renderableQueues[node->_type] = RenderableQueue();
-               renderableQueues[node->_type].reserve(1000);
-            }
-            renderableQueues[node->_type].push_back( RendQueueItem( node->_type, sortKey, node ) );
-            QUERY_LOG() << "added to renderable queue.";
-         }
-      }
-      if (query.useLightQueue && node->_type == SceneNodeTypes::Light) {		 
-         QUERY_LOG() << "added to light queue.";
-         lightQueue.push_back( node );
-      }
-   }
-
-#undef QUERY_LOG
+   queryRec(_nodes[RootNode], query, renderableQueues, instanceQueues, lightQueue);
 
    // Sort
    if( query.order != RenderingOrder::None ) {
@@ -511,6 +433,100 @@ void SpatialGraph::query(const SpatialQuery& query, RenderableQueues& renderable
          }
       }
    }
+}
+
+void SpatialGraph::queryRec(SceneNode* node, const SpatialQuery& query, RenderableQueues& renderableQueues, 
+                            InstanceRenderableQueues& instanceQueues, std::vector<SceneNode*>& lightQueue)
+{
+   bool processChildren = queryNode(node, query, renderableQueues, instanceQueues, lightQueue);
+   if (processChildren) {
+      for (SceneNode *child : node->_children) {
+         queryRec(child, query, renderableQueues, instanceQueues, lightQueue);
+      }
+   }
+}
+
+bool SpatialGraph::queryNode(SceneNode* node, const SpatialQuery& query, RenderableQueues& renderableQueues, 
+                             InstanceRenderableQueues& instanceQueues, std::vector<SceneNode*>& lightQueue)
+{
+   if (node == 0x0) {
+      SCENE_LOG(9) << "  node is null!  ignoring.";
+      return false;
+   }
+
+#define QUERY_LOG() SCENE_LOG(9) << "  query node (" << node->getHandle() << " " << node->getName() << ") " 
+
+   int flags = node->_flags;
+   
+   if (flags & query.filterIgnore) {
+      QUERY_LOG() << "flags " << FlagsToString(flags) << " intersect query ignore flags " << FlagsToString(query.filterIgnore) << ".  ignorning.";
+      return false;
+   }
+   if ((flags & query.filterRequired) != query.filterRequired) {
+      QUERY_LOG() << "flags " << FlagsToString(flags) << " do not match query required flags " << FlagsToString(query.filterRequired) << ".  ignorning.";
+      return false;
+   }
+   if ((node->_userFlags & query.userFlags) != query.userFlags) {
+      QUERY_LOG() << "user flags " << FlagsToString(node->_userFlags) << " do not match query user flags" << FlagsToString(query.userFlags) << ".  ignorning.";
+      return false;
+   }
+
+   if (query.useRenderableQueue) {
+
+      if (!node->_renderable) {
+         QUERY_LOG() << "not renderable.  igorning";
+         return true;
+      }
+
+      if (query.frustum.cullBox( node->_bBox ) && (query.secondaryFrustum == 0x0 || query.secondaryFrustum->cullBox( node ->_bBox ))) {
+         QUERY_LOG() << "culled by frustum.  igorning";
+         return false;
+      }
+
+      float sortKey = 0;
+
+      switch( query.order )
+      {
+      case RenderingOrder::StateChanges:
+         sortKey = node->_sortKey;
+         break;
+      case RenderingOrder::FrontToBack:
+         sortKey = nearestDistToAABB( query.frustum.getOrigin(), node->_bBox.min(), node->_bBox.max() );
+         break;
+      case RenderingOrder::BackToFront:
+         sortKey = -nearestDistToAABB( query.frustum.getOrigin(), node->_bBox.min(), node->_bBox.max() );
+         break;
+      }
+
+      if (node->getInstanceKey() != 0x0 && !query.forceNoInstancing) {
+         if (instanceQueues.find(node->_type) == instanceQueues.end()) {
+            instanceQueues[node->_type] = InstanceRenderableQueue();
+         }
+         InstanceRenderableQueue& iq = instanceQueues[node->_type];
+
+         const InstanceKey& ik = *(node->getInstanceKey());
+         if (iq.find(ik) == iq.end()) {
+            iq[ik] = RenderableQueue();
+            iq[ik].reserve(1000);
+         }
+         iq[ik].push_back(RendQueueItem(node->_type, sortKey, node));
+         QUERY_LOG() << "added to instance renderable queue (geo:" << ik.geoResource->getHandle() << " " << ik.geoResource->getName() << ").";
+      } else {
+         if (renderableQueues.find(node->_type) == renderableQueues.end()) {
+            renderableQueues[node->_type] = RenderableQueue();
+            renderableQueues[node->_type].reserve(1000);
+         }
+         renderableQueues[node->_type].push_back( RendQueueItem( node->_type, sortKey, node ) );
+         QUERY_LOG() << "added to renderable queue.";
+      }
+   }
+   if (query.useLightQueue && node->_type == SceneNodeTypes::Light) {		 
+      QUERY_LOG() << "added to light queue.";
+      lightQueue.push_back( node );
+   }
+#undef QUERY_LOG
+
+   return true;
 }
 
 
@@ -554,6 +570,8 @@ void SceneManager::initialize()
    _spatialGraph = new SpatialGraph();  
    _queryCacheCount = 0;
    _currentQuery = -1;
+
+   _spatialGraph->addNode(*rootNode);
 
    for (int i = 0; i < QueryCacheSize; i++) {
       _queryCache[i].lightQueue.reserve(20);

@@ -270,7 +270,11 @@ public:
 	void updateNode( uint32 sgHandle );
 
    void query(const SpatialQuery& query, RenderableQueues& renderableQueues, InstanceRenderableQueues& instanceQueues,
-      std::vector<SceneNode*>& lightQueue);
+              std::vector<SceneNode*>& lightQueue);
+   void queryRec(SceneNode* sceneNode, const SpatialQuery& query, RenderableQueues& renderableQueues, InstanceRenderableQueues& instanceQueues,
+                 std::vector<SceneNode*>& lightQueue);
+   bool queryNode(SceneNode* sceneNode, const SpatialQuery& query, RenderableQueues& renderableQueues, InstanceRenderableQueues& instanceQueues,
+                  std::vector<SceneNode*>& lightQueue);
 
 protected:
 	std::unordered_map<NodeHandle, SceneNode *>      _nodes;  // Renderable nodes and lights

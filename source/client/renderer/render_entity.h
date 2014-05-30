@@ -35,7 +35,7 @@ class RenderEntity : public std::enable_shared_from_this<RenderEntity>
       dm::ObjectId GetObjectId() const;
       om::EntityPtr GetEntity() const { return entity_.lock(); }
       void SetParent(H3DNode node);
-      void SetVisible(bool visible);
+      
       H3DNode GetParent() const; 
       H3DNode GetNode() const;
       std::string const& GetName() const;
@@ -45,14 +45,21 @@ class RenderEntity : public std::enable_shared_from_this<RenderEntity>
 
       Skeleton& GetSkeleton() { return skeleton_; }
 
-      void SetModelVariantOverride(bool enabled, std::string const& variant);
-      void SetMaterialOverride(std::string const& overrideKind);
+
       void AddQueryFlag(int flag);
       void RemoveQueryFlag(int flag);
       bool HasQueryFlag(int flag) const;
 
       void ForAllSceneNodes(std::function<void(H3DNode node)> fn);
-      
+
+      void SetModelVariantOverride(std::string const& variant);
+      void SetMaterialOverride(std::string const& overrideKind);
+      void SetVisibleOverride(bool visible);
+
+      bool GetVisibleOverride() const;
+      std::string const& GetMaterialOverride() const;
+      std::string const& GetModelVariantOverride() const;
+
    private:
       void LoadAspects(om::EntityPtr obj);
       void Move(bool snap);
@@ -67,6 +74,7 @@ class RenderEntity : public std::enable_shared_from_this<RenderEntity>
       void AddLuaComponent(std::string const& key, om::DataStorePtr obj);
       void RemoveComponent(std::string const& key);
       void ForAllSceneNodes(H3DNode node, std::function<void(H3DNode node)> fn);
+      void SetRenderInfoDirtyBits(int bits);
 
    protected:
       static int                          totalObjectCount_;
@@ -86,7 +94,9 @@ protected:
       dm::TracePtr      components_trace_;
       dm::TracePtr      lua_components_trace_;
       uint32            query_flags_;
-      bool              visible_;
+      std::string       model_variant_override_;
+      std::string       material_override_;
+      bool              visible_override_;
 };
 
 typedef std::shared_ptr<RenderEntity>  RenderEntityPtr;
