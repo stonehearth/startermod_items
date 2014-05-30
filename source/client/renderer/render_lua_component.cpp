@@ -35,7 +35,7 @@ RenderLuaComponent::RenderLuaComponent(RenderEntity& entity, std::string const& 
             component_renderer_ = ctor();
             luabind::object fn = component_renderer_["initialize"];
             if (fn) {
-               luabind::object controller = datastore->GetController().GetLuaObject();
+               luabind::object controller = datastore->GetController();
                if (!controller) {
                   controller = luabind::object(L, datastore);
                }

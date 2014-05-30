@@ -53,3 +53,4 @@ function radiant.set_performance_counter(name, value, kind)
    end
    _host:set_performance_counter(category, value, kind)
 end
+

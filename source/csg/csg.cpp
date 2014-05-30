@@ -3,10 +3,10 @@
 
 using namespace ::radiant;
 
-float csg::k_epsilon = 1.0e-3f;
+float csg::k_epsilon = 1.0e-6f;
 float csg::k_pi = 3.1415926535897932384626433832795f;
 
-static const float kEpsilon = 1.0e-3f;
+static const float kEpsilon = 1.0e-6f;
 
 bool csg::IsZero(float value)
 {

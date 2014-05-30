@@ -8,11 +8,10 @@ function PatrollableObject:__init()
 end
 
 function PatrollableObject:initialize(object)
-   self._object = object
-
    self.__saved_variables = radiant.create_datastore()
    self._sv = self.__saved_variables:get_data()
 
+   self._sv.object = object
    self._sv.object_id = object:get_id()
    self._sv.last_patrol_time = radiant.gamestate.now()
 end
@@ -37,14 +36,7 @@ end
 
 -- this API will need to change when we have non-object patrol routes
 function PatrollableObject:get_object()
-   local object = self._object
-
-   if not object then
-      object = radiant.entities.get_entity(self._sv.object_id)
-      self._object = object
-   end
-
-   return object
+   return self._sv.object
 end
 
 -- this API will need to change when we have non-object patrol routes

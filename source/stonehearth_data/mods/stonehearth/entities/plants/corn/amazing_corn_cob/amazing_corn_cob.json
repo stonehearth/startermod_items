@@ -19,7 +19,7 @@
    },
    "entity_data" : {
       "stonehearth:food" : {
-         "sitting_on_chair" : {
+         "stonehearth:sitting_on_chair" : {
             "satisfaction" : 200
          },
          "default" : {

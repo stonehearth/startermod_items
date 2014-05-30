@@ -853,6 +853,19 @@
          "endpoint" : "client"
       }
    },
+   
+   "controllers" :  {
+      "craft_order" : "file(components/workshop/craft_order.lua)",
+      "craft_order_list" : "file(components/workshop/craft_order_list.lua)",
+      "combat_pace_keeper" : "file(services/server/dynamic_scenario/combat_pace_keeper.lua)",
+      "pace_keeper" : "file(services/server/dynamic_scenario/pace_keeper.lua)"
+   },
+
+   "client_controllers" :  {
+      "player_camera_controller" : "file(services/client/camera/player_camera_controller.lua)",
+      "move_to_camera_controller" : "file(services/client/camera/move_to_camera_controller.lua)"
+   },
+
    "components" :  {
       "ai" : "file(components/ai/ai_component.lua)",
       "commands" : "file(components/commands/commands_component.lua)",
@@ -923,7 +936,7 @@
       "construction_data" : "file(renderers/construction_data/construction_data_renderer.lua)"
    },
    "invariant_renderers" : {
-      "scaffolding_render_data" : "file(renderers/scaffolding/scaffolding_renderer.lua)"
+      "scaffolding_renderer" : "file(renderers/scaffolding/scaffolding_renderer.lua)"
    },
    "ui" :  {
       "homepage" : "http://radiant/stonehearth/ui/root/index.html",
@@ -969,6 +982,7 @@
          "file(ui/game/crafters/crafters.html)",
          "file(ui/game/promotion_wizard/promotion_wizard.html)",
          "file(ui/game/tip_popup/tip_popup.html)",
+         "file(ui/game/bulletin/bulletin_notification/bulletin_notification.html)",
          "file(ui/game/event_log/event_log.html)",
          "file(ui/game/build/build.html)"
       ],
@@ -1021,6 +1035,8 @@
          "file(ui/game/crafters/crafters.js)",
          "file(ui/game/promotion_wizard/promotion_wizard.js)",
          "file(ui/game/tip_popup/tip_popup.js)",
+         "file(ui/game/bulletin/bulletin.js)",
+         "file(ui/game/bulletin/bulletin_notification/bulletin_notification.js)",         
          "file(ui/game/event_log/event_log.js)"
       ],
       "less" : [
@@ -1070,6 +1086,7 @@
          "file(ui/game/crafters/crafters.less)",
          "file(ui/game/promotion_wizard/promotion_wizard.less)",
          "file(ui/game/tip_popup/tip_popup.less)",
+         "file(ui/game/bulletin/bulletin_notification/bulletin_notification.less)",
          "file(ui/game/event_log/event_log.less)",
          "file(ui/game/build/build.less)"
       ]

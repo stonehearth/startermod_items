@@ -2,7 +2,6 @@ local priorities = require('constants').priorities.worker_task
 
 local Point3 = _radiant.csg.Point3
 local Cube3 = _radiant.csg.Cube3
-local events = stonehearth.events
 
 local log = radiant.log.create_logger('firepit')
 local FirepitComponent = class()
@@ -197,7 +196,7 @@ function FirepitComponent:_light()
       self:_add_seats()
    end
    self._sv.is_lit = true
-   radiant.events.trigger_async(events, 'stonehearth:fire:lit', { lit = true, player_id = radiant.entities.get_player_id(self._entity), entity = self._entity })
+   radiant.events.trigger_async(stonehearth.events, 'stonehearth:fire:lit', { lit = true, player_id = radiant.entities.get_player_id(self._entity), entity = self._entity })
    self.__saved_variables:mark_changed()
 
 end
@@ -228,7 +227,7 @@ function FirepitComponent:_extinguish()
    end
 
    self._sv.is_lit = false
-   radiant.events.trigger_async(events, 'stonehearth:fire:lit', { lit = false, player_id = radiant.entities.get_player_id(self._entity), entity = self._entity  })
+   radiant.events.trigger_async(stonehearth.events, 'stonehearth:fire:lit', { lit = false, player_id = radiant.entities.get_player_id(self._entity), entity = self._entity  })
 end
 
 return FirepitComponent

@@ -5,7 +5,6 @@
 #include "csg/sphere.h"
 #include "csg/ray.h"
 #include "lib/json/node.h"
-#include "lib/lua/controller_object.h"
 #include "lib/lua/data_object.h"
 #include "om/selection.h"
 #include "protocols/store.pb.h"
@@ -40,7 +39,6 @@ IMPLEMENT_DM_EXTENSION(csg::Transform, Protocol::transform)
 IMPLEMENT_DM_EXTENSION(csg::Quaternion, Protocol::quaternion)
 IMPLEMENT_DM_EXTENSION(csg::Ray3, Protocol::ray3f)
 IMPLEMENT_DM_EXTENSION(om::Selection, Protocol::Selection::extension)
-IMPLEMENT_DM_EXTENSION(lua::ControllerObject, Protocol::LuaControllerObject::extension)
 
 
 template<>

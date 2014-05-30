@@ -847,10 +847,10 @@ void Simulation::Load(boost::filesystem::path const& saveid)
    dm::Store::ObjectMap objects;
    // Re-initialize the game
    std::string filename = (core::Config::GetInstance().GetSaveDirectory() / saveid / "server_state.bin").string();
+
    if (!store_->Load(filename, error, objects)) {
       SIM_LOG(0) << "failed to load: " << error;
    }
-
    root_entity_ = store_->FetchObject<om::Entity>(1);
    ASSERT(root_entity_);
    clock_ = root_entity_->AddComponent<om::Clock>();
@@ -877,8 +877,14 @@ void Simulation::Load(boost::filesystem::path const& saveid)
       client->send_queue->Push(msg);
       client->streamer = std::make_shared<dm::Streamer>(*store_, dm::PLAYER_1_TRACES, client->send_queue.get());
    }
+   std::vector<om::DataStorePtr> datastores;
+   store_->TraceStore("sim")->OnAlloced([&datastores](dm::ObjectPtr obj) mutable {
+      if (obj->GetObjectType() == om::DataStoreObjectType) {
+         datastores.emplace_back(std::static_pointer_cast<om::DataStore>(obj));
+      }
+   })->PushStoreState(); 
 
-   scriptHost_->LoadGame(modList_, entityMap_);
+   scriptHost_->LoadGame(modList_, entityMap_, datastores);
    SIM_LOG(0) << "done loadin...";
 }
 

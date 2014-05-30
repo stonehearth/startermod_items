@@ -38,6 +38,8 @@ function AttackMeleeAdjacent:run(ai, entity, args)
       return
    end
 
+   ai:set_status_text('attacking ' .. radiant.entities.get_name(target))
+
    local weapon = stonehearth.combat:get_melee_weapon(entity)
    local weapon_data = radiant.entities.get_entity_data(weapon, 'stonehearth:combat:weapon_data')
    assert(weapon_data)

@@ -41,7 +41,7 @@
          "sensors": {
             "door_sensor": {
                "type": "sensor",
-               "radius": 4
+               "radius": 2
             }
          }
       },

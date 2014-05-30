@@ -15,20 +15,14 @@ local WorkshopComponent = class()
 function WorkshopComponent:initialize(entity, json)
    self._entity = entity
 
-   self.__saved_variables:set_controller(self)
    self._sv = self.__saved_variables:get_data()
 
-   local orderlist_datastore
    if not self._sv.order_list then
       self._sv.outbox_entity = nil
       self._sv.skin_class = json.skin_class or 'default'
-      orderlist_datastore = radiant.create_datastore()
-   else
-      orderlist_datastore = self._sv.order_list
+      self._sv.order_list = radiant.create_controller('stonehearth:craft_order_list')
    end
-   self._sv.order_list = CraftOrderList()
-   self._sv.order_list.__saved_variables = orderlist_datastore
-   self._sv.order_list:initialize()
+   radiant.log.write('ug', 0, 'order list is %s', tostring(self._sv.order_list))
 
    self._construction_ingredients = json.ingredients
    self._build_sound_effect = json.build_sound_effect

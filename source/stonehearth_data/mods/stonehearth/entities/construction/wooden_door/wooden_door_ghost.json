@@ -1,0 +1,43 @@
+{
+   "type": "entity",
+   "components": {
+      "unit_info": {
+         "name": "Wooden Door",
+         "description": "Privacy at last!",
+         "icon" : "file(wooden_door.png)"
+      },
+      "stonehearth:material" : {
+         "tags" : "wood portal crafted"
+      }            ,
+      "model_variants": {
+         "default": {
+            "models": [
+               "file(wooden_door.qb)"
+            ]
+         }
+      },
+      
+      "render_info" : {
+         "animation_table" : "file(/data/rigs/door/door.json)"
+      },
+
+      "effect_list" : {
+         "default" : "file(/data/rigs/door/effects/closed.json)"
+      },
+
+      "stonehearth:portal" : {
+         "cutter" : [
+            {
+               "min": {
+                  "x" : -1,
+                  "y" : 0
+               },
+               "max" : {
+                  "x" : 2,
+                  "y" : 4
+               }
+            }
+         ]
+      }
+   }
+}

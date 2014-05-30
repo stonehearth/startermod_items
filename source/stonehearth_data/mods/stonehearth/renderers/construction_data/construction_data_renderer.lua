@@ -1,4 +1,5 @@
 local voxel_brush_util = require 'services.server.build.voxel_brush_util'
+local ConstructionRenderTracker = require 'services.client.renderer.construction_render_tracker'
 local Cube3 = _radiant.csg.Cube3
 local Point3 = _radiant.csg.Point3
 local ConstructionDataRenderer = class()
@@ -6,25 +7,39 @@ local ConstructionDataRenderer = class()
 local INFINITE = 1000000
 
 function ConstructionDataRenderer:initialize(render_entity, construction_data)
-   self._construction_data = construction_data
-   self._parent_node = render_entity:get_node()
    self._entity = render_entity:get_entity()
-   self._render_entity = render_entity
+   self._parent_node = render_entity:get_node()
+   self._construction_data = construction_data
    
-   self._component_trace = self._entity:trace_components('render construction component')
-                              :on_added(function(key, value)
-                                    self:_trace_collision_shape()
-                                 end)
-                              :on_removed(function(key)
-                                    self:_trace_collision_shape()
-                                 end)
-   self:_trace_collision_shape()
+   if not self._construction_data:get_use_custom_renderer() then
 
-   radiant.events.listen(radiant, 'stonehearth:building_vision_mode_changed', self, self._on_building_visions_mode_changed)
-   self:_on_building_visions_mode_changed()
+      -- create a new ConstructionRenderTracker to track the hud mode and build
+      -- view mode.  it will drive the shape and visibility of our structure shape
+      -- based on those modes.
+      self._render_tracker = ConstructionRenderTracker(self._entity)
+                                 :set_normal(construction_data:get_normal())
+                                 :set_render_region_changed_cb(function(region, visible)
+                                       self:_update_region(region, visible)
+                                    end)
+                                 :set_visible_changed_cb(function(visible)
+                                       if self._render_node then
+                                          self._render_node:set_visible(visible)
+                                       end
+                                    end)
+
+      self._component_trace = self._entity:trace_components('render construction component')
+                                 :on_added(function(key, value)
+                                       self:_trace_collision_shape()
+                                    end)
+                                 :push_object_state()
+   end
 end
 
 function ConstructionDataRenderer:destroy()
+   if self._render_tracker then
+      self._render_tracker:destroy()
+      self._render_tracker = nil   
+   end
    if self._component_trace then
       self._component_trace:destroy()
       self._component_trace = nil
@@ -39,120 +54,29 @@ function ConstructionDataRenderer:destroy()
    end
 end
 
-function ConstructionDataRenderer:_on_building_visions_mode_changed()
-   self:_set_render_mode(stonehearth.renderer:get_building_vision_mode())
-end
-
 function ConstructionDataRenderer:_trace_collision_shape()
-   local old_collision_shape = self._collision_shape
-   self._collision_shape = self._entity:get_component('region_collision_shape')
-   
-   if self._collision_shape ~= self._old_collision_shape then
+   self._collision_shape = self._entity:get_component('region_collision_shape')   
+   if self._collision_shape then
       if self._collision_shape_trace then
          self._collision_shape_trace:destroy()
          self._collision_shape_trace = nil
       end
       self._collision_shape_trace = self._collision_shape:trace_region('drawing construction')
                                              :on_changed(function ()
-                                                self._rpg_region_dirty = true
-                                                self:_recreate_render_node()
-                                             end)
-      self:_recreate_render_node()
+                                                   self._render_tracker:set_region(self._collision_shape:get_region())
+                                                end)
+                                             :push_object_state()
    end
 end
 
-function ConstructionDataRenderer:_set_render_mode(mode)
-   if self._mode ~= mode then
-      self._mode = mode
-
-      local listen_to_camera = self._mode == 'xray'
-      if listen_to_camera and not self._listening_to_camera then
-         radiant.events.listen(stonehearth.camera, 'stonehearth:camera:update', self, self._update_camera)
-         self:_update_camera()
-      elseif not listen_to_camera and self._listening_to_camera then
-         radiant.events.unlisten(stonehearth.camera, 'stonehearth:camera:update', self, self._update_camera)
-      end
-      self:_recreate_render_node()
-   end
-end
-
-function ConstructionDataRenderer:_compute_rpg_region(region)
-   if not self._rpg_region then
-      self._rpg_region = _radiant.client.alloc_region()
-   end
-   if self._rpg_region_dirty then
-      local building = self._construction_data:get_building_entity()
-      if building then
-         local building_origin = radiant.entities.get_world_grid_location(building)
-         local local_origin = radiant.entities.get_world_grid_location(self._entity)
-         local base = building_origin - local_origin
-         local clipper = Cube3(Point3(-INFINITE, base.y,    -INFINITE),
-                               Point3( INFINITE, base.y + 1, INFINITE))
-         self._rpg_region:modify(function(cursor)
-               cursor:copy_region(region:get():clipped(clipper))
-            end)
-         self._rpg_region_dirty = false
-      end
-   end
-   return self._rpg_region
-end
-
-function ConstructionDataRenderer:_get_render_region()
-   local region = self._collision_shape:get_region()
-   if region then 
-      if region:get():empty() then
-         region = nil
-      elseif self._mode == 'rpg' then
-         region = self:_compute_rpg_region(region);
-      end
-   end
-   return region
-end
-
-function ConstructionDataRenderer:_recreate_render_node()
+function ConstructionDataRenderer:_update_region(region, visible)
    if self._render_node then
       self._render_node:destroy()
       self._render_node = nil
    end
-   
-   if self._construction_data and self._collision_shape then   
-      if not self._construction_data:get_use_custom_renderer() then
-         local render_region = self:_get_render_region()
-         if render_region then
-            self._render_node = voxel_brush_util.create_construction_data_node(self._parent_node, self._entity, render_region, self._construction_data)
-         end
-         self:_update_camera()
-      end
-   end
-end
-
-local function dot_product(p0, p1)
-   return (p0.x * p1.x) + (p0.y * p1.y) + (p0.z * p1.z)
-end
-
-local function sign(n)
-   return n > 0 and 1 or -1   
-end
-
-function ConstructionDataRenderer:_update_camera()
-   if self._render_entity and self._construction_data then
-      local visible = true   
-      local normal = self._construction_data:get_normal()
-      if self._mode == 'xray' then
-         if normal then
-            -- move the camera relative to the mob
-            local x0 = stonehearth.camera:get_position() - self._entity:get_component('mob'):get_world_location()
-
-            -- thank you, mr. wolfram.   http://mathworld.wolfram.com/HessianNormalForm.html
-            -- The point-plane distance from a point x_0 to a plane (6) is given by the simple equation:
-            --
-            --    D = n dot x0 + p
-            --
-            -- p is zero, since we translated x0 into object space.
-            visible = dot_product(normal, x0) < 0
-         end
-      end
-      self._render_entity:set_visible(visible)
+   if region then   
+      self._render_node = voxel_brush_util.create_construction_data_node(self._parent_node, self._entity, region, self._construction_data)
+      self._render_node:set_visible(visible)
    end
 end
 

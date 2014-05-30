@@ -82,6 +82,8 @@ public: // just because we need std::make_shared<>  UG!
    void ApplyMaterial();
    void DestroyHordeNode();
 
+   static H3DNode GetUnparentedNode() { return _unparentedRenderNode; }
+
 private:
    static void ConvertVoxelDataToGeometry(VoxelGeometryVertex *vertices, uint *indices, GeometryInfo& geo);
    static void ConvertObjFileToGeometry(std::istream& stream, GeometryInfo& geo);

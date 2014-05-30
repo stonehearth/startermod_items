@@ -18,7 +18,6 @@
 #include "core/singleton.h"
 #include "chromium/chromium.h"
 #include "lib/lua/lua.h"
-#include "lib/lua/controller_object.h"
 #include "lib/json/node.h"
 #include "lib/rpc/forward_defines.h"
 #include "core/input.h"
@@ -163,8 +162,7 @@ class Client : public core::Singleton<Client> {
       void CreateGame();
       void CreateErrorBrowser();
       void ReportLoadProgress();
-      void TraceLuaComponents(om::EntityPtr entity);
-      void ConstructLuaComponents();
+      void RestoreDatastores();
 
 private:
       /*
@@ -260,8 +258,7 @@ private:
       int                         networkUpdatesCount_;
       int                         networkUpdatesExpected_;
       bool                        debug_track_object_lifetime_;
-      std::vector<om::EntityRef>  entities_to_trace_;
-      std::unordered_map<dm::ObjectId, std::unordered_map<std::string, lua::ControllerObject>> client_components_;
+      std::vector<om::DataStoreRef>  datastores_to_restore_;
       std::vector<dm::TracePtr>   lua_component_traces_;
 };
 

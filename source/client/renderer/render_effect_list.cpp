@@ -301,14 +301,14 @@ HideBoneEffect::HideBoneEffect(RenderEntity& e, om::EffectPtr effect, const JSON
 HideBoneEffect::~HideBoneEffect()
 {
    if (boneNode_ ) {
-      h3dSetNodeFlags(boneNode_, boneNodeFlags_, true);  
+      h3dSetNodeFlags(boneNode_, boneNodeFlags_, false);  
    }
 }
 
 void HideBoneEffect::Update(FrameStartInfo const& info, bool& finished)
 {
    if (boneNode_) {      
-      h3dSetNodeFlags(boneNode_, boneNodeFlags_ | H3DNodeFlags::NoDraw | H3DNodeFlags::NoRayQuery, true);
+      h3dSetNodeFlags(boneNode_, boneNodeFlags_ | H3DNodeFlags::NoDraw | H3DNodeFlags::NoRayQuery, false);
    }
    finished = true;
 }
@@ -589,7 +589,7 @@ RenderAttachItemEffect::~RenderAttachItemEffect()
 {
    if (use_model_variant_override_) {
       use_model_variant_override_ = false;
-      render_item_->SetModelVariantOverride(false, "");
+      render_item_->SetModelVariantOverride("");
    }
 }
 
@@ -605,7 +605,7 @@ void RenderAttachItemEffect::Update(FrameStartInfo const& info, bool& finished)
       H3DNode parent = entity_.GetSkeleton().GetSceneNode(bone_);
       render_item_->SetParent(parent);
       if (use_model_variant_override_) {
-         render_item_->SetModelVariantOverride(true, model_variant_override_);
+         render_item_->SetModelVariantOverride(model_variant_override_);
       }
       finished_ = true;
    }

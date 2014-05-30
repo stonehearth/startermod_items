@@ -17,7 +17,7 @@ public:
 
    void ProcessAlloc(tesseract::protocol::AllocObjects const& update);
    void ProcessUpdate(tesseract::protocol::UpdateObject const& update);
-   void ProcessRemove(tesseract::protocol::RemoveObjects const& update);
+   void ProcessRemove(tesseract::protocol::RemoveObjects const& update, std::function<void(dm::ObjectPtr)> onDestroyCb);
 
    void Shutdown();
 

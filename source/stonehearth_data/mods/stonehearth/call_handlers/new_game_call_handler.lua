@@ -112,9 +112,9 @@ function NewGameCallHandler:embark_client(session, response)
          local camera_service = stonehearth.camera
 
          local target = Point3f(o.x, o.y, o.z)
-         local camera_location = Point3f(o.x, o.y + camera_height, o.z + target_distance)
+         local camera_location = Point3f(target.x, target.y + camera_height, target.z + target_distance)
 
-         camera_service:set_position(camera_location, true)
+         camera_service:set_position(camera_location)
          camera_service:look_at(target)
 
          _radiant.call('stonehearth:get_visibility_regions'):done(
