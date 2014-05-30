@@ -61,8 +61,15 @@ function InventoryService:_register_score_functions()
    --eval function for stockpiles
    stonehearth.score:add_aggregate_eval_function('net_worth', 'stocked_resources', function(entity, agg_score_bag)
       if entity:get_component('stonehearth:stockpile') then
-         -- TODO: add higher scores to some things, otherwise they all count as 1
          agg_score_bag.stocked_resources = agg_score_bag.stocked_resources + self:_get_score_for_stockpile(entity)
+      end
+   end)
+
+   --eval function for food
+   stonehearth.score:add_aggregate_eval_function('resources', 'edibles', function(entity, agg_score_bag)
+      if radiant.entities.is_material(entity, 'food_container') or radiant.entities.is_material(entity, 'food') then
+         local item_value = stonehearth.score:get_score_for_entity_type(entity:get_uri())
+         agg_score_bag.edibles = agg_score_bag.edibles + item_value
       end
    end)
 end

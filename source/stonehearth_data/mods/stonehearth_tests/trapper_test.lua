@@ -27,7 +27,7 @@ function TrapperTest:__init()
    self:place_item('stonehearth:berry_basket', 1, 1)
       
 
-   local kit = self:place_item('stonehearth:trapper:trapper_knife', -5, -5)
+   local kit = self:place_item('stonehearth:trapper:knife', -5, -5)
 
    radiant.effects.run_effect(worker, '/stonehearth/data/effects/gib_effect')
 
