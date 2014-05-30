@@ -19,7 +19,7 @@
       }
    },
    "entity_data" : {
-      "stonehearth:scaffolding_render_data" : {
+      "stonehearth:scaffolding_renderer" : {
          "lattice" : "file(/entities/build/scaffolding/scaffolding.qb)",
          "scale" : 0.1,
          "origin" : {

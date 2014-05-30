@@ -150,15 +150,14 @@ function FabricatorComponent:_add_scaffolding(blueprint, project, normal)
 
    -- create a fabricator entity to build the scaffolding
    local fabricator = radiant.entities.create_entity()
+   self._entity:get_component('mob'):get_parent():get_component('entity_container')
+                                                      :add_child(fabricator)
+
    fabricator:set_debug_text('(Fabricator for ' .. tostring(scaffolding) .. ')')   
    fabricator:add_component('mob'):set_transform(transform)
    fabricator:add_component('stonehearth:fabricator')
                               :start_project(scaffolding)
                               
-   -- add the fabricator and the project to our entity container so they get rendered
-   self._entity:add_component('entity_container')
-                  :add_child(fabricator)
-
    -- wire up the back pointer so we can find the fab entity from the blueprint
    scaffolding:add_component('stonehearth:construction_progress')   
                :set_fabricator_entity(fabricator)

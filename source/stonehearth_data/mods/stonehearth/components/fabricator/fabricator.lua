@@ -126,8 +126,12 @@ function Fabricator:_create_new_project()
    self._project_dst:set_region(rgn)                    
    self._project:add_component('region_collision_shape')
                      :set_region(rgn)
-   self._entity:add_component('entity_container')
-                     :add_child(self._project)
+
+   local mob = self._entity:get_component('mob')
+   local parent = mob:get_parent()
+   assert(parent)
+   parent:add_component('entity_container'):add_child(self._project)
+   self._project:add_component('mob'):set_transform(mob:get_transform())
                         
    -- get fabrication specific info, if available.  copy it into the project, too
    -- so everything gets rendered correctly.

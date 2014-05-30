@@ -46,7 +46,7 @@ RenderEntity::RenderEntity(H3DNode parent, om::EntityPtr entity) :
    entity_(entity),
    entity_id_(entity->GetObjectId()),
    initialized_(false),
-   visible_(true)
+   visible_override_(true)
 {
    ASSERT(parent);
 
@@ -57,7 +57,6 @@ RenderEntity::RenderEntity(H3DNode parent, om::EntityPtr entity) :
 
    totalObjectCount_++;
    node_ = H3DNodeUnique(h3dAddGroupNode(parent, node_name_.c_str()));
-   h3dSetNodeFlags(node_.get(), h3dGetNodeFlags(parent), true);
 
    skeleton_.SetSceneNode(node_.get());
 
@@ -90,6 +89,13 @@ void RenderEntity::FinishConstruction()
                                           RemoveComponent(name);
                                        })
                                        ->PushObjectState();
+   }
+
+   // Make sure we always have a RenderRenderInfo component, since that's where things like material
+   // override and visible override get resolved.  If someone on the server later adds a render_info
+   // component, this copy will get blown away (which is just fine!).
+   if (!components_["render_info"]) {
+      components_["render_info"] = std::make_shared<RenderRenderInfo>(*this, nullptr);
    }
 
    UpdateInvariantRenderers();
@@ -131,15 +137,10 @@ void RenderEntity::Destroy()
 
 void RenderEntity::SetParent(H3DNode parent)
 {
-   H3DNode node = node_.get();
-   if (parent) {
-      h3dSetNodeParent(node, parent);
-      if (visible_) {
-         h3dSetNodeFlags(node, h3dGetNodeFlags(parent), true);
-      }
-   } else {
-      h3dTwiddleNodeFlags(node, H3DNodeFlags::NoDraw | H3DNodeFlags::NoRayQuery, true, true);
+   if (!parent) {
+      parent = RenderNode::GetUnparentedNode();
    }
+   h3dSetNodeParent(node_.get(), parent);
 }
 
 H3DNode RenderEntity::GetParent() const
@@ -298,13 +299,30 @@ dm::ObjectId RenderEntity::GetObjectId() const
    return entity_id_;
 }
 
-// xxx: omg, get rid of this!
-void RenderEntity::SetModelVariantOverride(bool enabled, std::string const& variant)
+void RenderEntity::SetRenderInfoDirtyBits(int bits)
 {
    std::shared_ptr<RenderRenderInfo> ri = std::static_pointer_cast<RenderRenderInfo>(components_["render_info"]);
    if (ri) {
-      ri->SetModelVariantOverride(enabled, variant);
+      ri->SetDirtyBits(bits);
    }
+}
+
+void RenderEntity::SetModelVariantOverride(std::string const& variant)
+{
+   model_variant_override_ = variant;
+   SetRenderInfoDirtyBits(RenderRenderInfo::MODEL_DIRTY);
+}
+
+void RenderEntity::SetMaterialOverride(std::string const& material)
+{
+   material_override_ = material;
+   SetRenderInfoDirtyBits(RenderRenderInfo::MATERIAL_DIRTY);
+}
+
+void RenderEntity::SetVisibleOverride(bool visible)
+{
+   visible_override_ = visible;
+   SetRenderInfoDirtyBits(RenderRenderInfo::VISIBLE_DIRTY);
 }
 
 std::string const RenderEntity::GetMaterialPathFromKind(std::string const& matKind) const
@@ -326,12 +344,6 @@ std::string const RenderEntity::GetMaterialPathFromKind(std::string const& matKi
    return matPath;
 }
 
-void RenderEntity::SetMaterialOverride(std::string const& overrideKind)
-{
-   std::shared_ptr<RenderRenderInfo> ri = std::static_pointer_cast<RenderRenderInfo>(components_.at("render_info"));
-   ri->SetMaterialOverride(overrideKind);
-}
-
 void RenderEntity::AddQueryFlag(int flag)
 {
    query_flags_ |= flag;
@@ -345,19 +357,6 @@ void RenderEntity::RemoveQueryFlag(int flag)
 bool RenderEntity::HasQueryFlag(int flag) const
 {
    return (query_flags_ & flag) != 0;
-}
-
-void RenderEntity::SetVisible(bool visible)
-{
-   H3DNode node = node_.get();
-   visible_ = visible;
-
-   if (visible) {
-      H3DNode parent = GetParent();
-      h3dSetNodeFlags(node, h3dGetNodeFlags(parent), true);
-   } else {
-      h3dTwiddleNodeFlags(node, H3DNodeFlags::NoDraw | H3DNodeFlags::NoRayQuery, true, true);
-   }
 }
 
 void RenderEntity::ForAllSceneNodes(std::function<void(H3DNode node)> fn)
@@ -401,3 +400,19 @@ void RenderEntity::ForAllSceneNodes(H3DNode node, std::function<void(H3DNode nod
       ForAllSceneNodes(child, fn);
    }
 }
+
+std::string const& RenderEntity::GetMaterialOverride() const
+{
+   return material_override_;
+}
+
+std::string const& RenderEntity::GetModelVariantOverride() const
+{
+   return model_variant_override_;
+}
+
+bool RenderEntity::GetVisibleOverride() const
+{
+   return visible_override_;
+}
+

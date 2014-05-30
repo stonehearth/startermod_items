@@ -1,5 +1,7 @@
 local voxel_brush_util = require 'services.server.build.voxel_brush_util'
+local ConstructionRenderTracker = require 'services.client.renderer.construction_render_tracker'
 local Point3f = _radiant.csg.Point3f
+local Point3 = _radiant.csg.Point3
 local Region3 = _radiant.csg.Region3
 
 local ScaffoldingRenderer = class()
@@ -34,12 +36,30 @@ function ScaffoldingRenderer:__init(render_entity, ed)
    -- Call _update_shape whenever the collision shape changes
    self._entity = render_entity:get_entity()
    self._collsion_shape = self._entity:add_component('region_collision_shape')
-   if self._collsion_shape then
+   self._construction_data = self._entity:get_component('stonehearth:construction_data')
+   
+   if self._collsion_shape and self._construction_data then
+      -- create a new ConstructionRenderTracker to track the hud mode and build
+      -- view mode.  it will drive the shape and visibility of our structure shape
+      -- based on those modes.  
+      self._render_tracker = ConstructionRenderTracker(self._entity)
+                                 :set_normal(self._construction_data:get_normal())
+                                 :set_render_region_changed_cb(function(region, visible, view_mode)
+                                       self._draw_region = region
+                                       self:_update_shape(view_mode)
+                                       h3dSetNodeFlags(self._node, visible and 0 or H3DNodeFlags.Inactive, false)
+                                    end)
+                                 :set_visible_changed_cb(function(visible)
+                                       h3dSetNodeFlags(self._node, visible and 0 or H3DNodeFlags.Inactive, false)
+                                    end)
+
+      -- push the collision shape of the scaffolding into the render tracker
+      -- whenever it changes
       self._promise = self._collsion_shape:trace_region('drawing scaffolding')
                                              :on_changed(function ()
-                                                self:_update_shape()
-                                             end)
-      self:_update_shape()
+                                                   self._render_tracker:set_region(self._collsion_shape:get_region())
+                                                end)
+                                             :push_object_state()
    end
 
 end
@@ -49,38 +69,54 @@ function ScaffoldingRenderer:destroy()
       h3dRemoveNode(self._node)
       self._node = nil
    end
+   if self._render_tracker then
+      self._render_tracker:destroy()
+      self._render_tracker = nil   
+   end
    if self._promise then
       self._promise:destroy()
       self._promise = nil
    end
 end
 
-function ScaffoldingRenderer:_update_shape()
+function ScaffoldingRenderer:_update_shape(mode)
    local missing = Region3()
    local extra = Region3()
+   local show_region, hide_region
 
    -- Compute 2 regions: 'missing' contains the points which are missing from the
    -- current render view of the scaffolding (i.e. those that are in our collision
    -- shape, but not yet rendered).  'extra' contains the opposite: stuff we need
    -- to get rid of.
-   local region = self._collsion_shape:get_region():get()
-   if region then
-      missing = region - self._segment_region
-      extra = self._segment_region - region
+   local solid_region = self._collsion_shape:get_region():get()
+   if solid_region then
+      missing = solid_region - self._segment_region
+      extra = self._segment_region - solid_region
       
-      self._segment_region:copy_region(region)
+      self._segment_region:copy_region(solid_region)
+
+      -- in rpg mode, hide all the nodes which do not directly overlap
+      -- the draw region (set by the render_tracker)
+      if mode == 'rpg' then
+         if self._draw_region then
+            show_region = self._draw_region:get():intersected(solid_region)
+            hide_region = solid_region - show_region
+         else
+            hide_region = solid_region
+         end
+      end
    else
       extra:copy_region(self._segment_region)
       self._segment_region:clear()
    end
 
+
    -- Compute the y-rotation for all the nodes.  This is based on the direction of
    -- the scaffolding normal contained in the stonehearth:construction_data component.
    self._tangent = 'x'
    self._rotation = 0
-   local cd = self._entity:get_component('stonehearth:construction_data')
-   if cd then
-      local normal = cd:get_normal()
+   if self._construction_data then
+      local normal = self._construction_data:get_normal()
       if normal then
          self._rotation = voxel_brush_util.normal_to_rotation(normal)
          self._tangent = normal.x == 0 and 'x' or 'z'
@@ -101,6 +137,35 @@ function ScaffoldingRenderer:_update_shape()
       for pt in cube:each_point() do
          self:_remove_segment(pt)
          self:_move_top(pt)
+      end
+   end
+
+   if mode == 'rpg' then
+      -- show all the segments inside the draw region
+      if show_region then
+         for cube in show_region:each_cube() do
+            for pt in cube:each_point() do
+               self:_get_segment_node(pt)
+                        :set_visible(true)
+            end
+         end
+      end
+      -- hide all the segments outside the draw region
+      if hide_region then
+         for cube in hide_region:each_cube() do
+            for pt in cube:each_point() do
+               self:_get_segment_node(pt)
+                        :set_visible(false)
+            end
+         end
+      end
+      -- show or hide the tops, too.
+      for x, t in ipairs(self._tops) do
+         for z, top in ipairs(t) do
+            local pt = Point3(x, top.top_y, z)
+            -- i have *no idea* why this doesn't work. =(
+            top.node:set_visible(show_region and show_region:contains(pt))
+         end
       end
    end
 end
@@ -125,7 +190,7 @@ end
 function ScaffoldingRenderer:_create_node(pt, matrix) 
    local node = _radiant.client.create_qubicle_matrix_node(self._node, self._lattice, matrix, self._origin)
    h3dSetNodeTransform(node:get_node(), pt.x, pt.y, pt.z, 0, self._rotation, 0, self._scale, self._scale, self._scale)
-   h3dSetNodeFlags(node:get_node(), h3dGetNodeFlags(self._entity_node), true);
+   --h3dSetNodeFlags(node:get_node(), h3dGetNodeFlags(self._entity_node), true);
    return node
 end
 
@@ -154,6 +219,20 @@ function ScaffoldingRenderer:_remove_segment(pt)
                segment.node:destroy()
             end
             row[pt.z] = nil
+         end
+      end
+   end
+end
+
+function ScaffoldingRenderer:_get_segment_node(pt)
+   -- Remove a segment from the segments table
+   local matrix = self._segments[pt.y]
+   if matrix then
+      local row = matrix[pt.x]
+      if row then
+         local segment = row[pt.z]
+         if segment then
+            return segment.node
          end
       end
    end

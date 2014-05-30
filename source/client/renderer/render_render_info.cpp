@@ -37,8 +37,7 @@ void RenderRenderInfo::SetDirtyBits(int flags)
 RenderRenderInfo::RenderRenderInfo(RenderEntity& entity, om::RenderInfoPtr render_info) :
    entity_(entity),
    render_info_(render_info),
-   dirty_(-1),
-   use_model_variant_override_(false)
+   dirty_(-1)
 {
    auto set_scale_dirty_bit = [=]() {
       SetDirtyBits(SCALE_DIRTY);
@@ -50,20 +49,22 @@ RenderRenderInfo::RenderRenderInfo(RenderEntity& entity, om::RenderInfoPtr rende
       SetDirtyBits(VISIBLE_DIRTY);
    };
 
-   scale_trace_ = render_info->TraceScale("render", dm::RENDER_TRACES)
-                                 ->OnModified(set_scale_dirty_bit);
+   if (render_info) {
+      scale_trace_ = render_info->TraceScale("render", dm::RENDER_TRACES)
+                                    ->OnModified(set_scale_dirty_bit);
 
-   visible_trace_ = render_info->TraceScale("render", dm::RENDER_TRACES)
-                                 ->OnModified(set_visible_dirty_bit);
+      visible_trace_ = render_info->TraceScale("render", dm::RENDER_TRACES)
+                                    ->OnModified(set_visible_dirty_bit);
 
-   // if the variant we want to render changes...
-   model_variant_trace_ = render_info->TraceModelVariant("render", dm::RENDER_TRACES)->OnModified(set_model_dirty_bit);
+      // if the variant we want to render changes...
+      model_variant_trace_ = render_info->TraceModelVariant("render", dm::RENDER_TRACES)->OnModified(set_model_dirty_bit);
 
-   // if any entry in the attached items thing changes...
-   attached_trace_ = render_info->TraceAttachedEntities("render", dm::RENDER_TRACES)->OnModified(set_model_dirty_bit);
+      // if any entry in the attached items thing changes...
+      attached_trace_ = render_info->TraceAttachedEntities("render", dm::RENDER_TRACES)->OnModified(set_model_dirty_bit);
 
-   // if the material changes...
-   material_trace_ = render_info->TraceMaterial("render", dm::RENDER_TRACES)->OnModified(set_model_dirty_bit);
+      // if the material changes...
+      material_trace_ = render_info->TraceMaterial("render", dm::RENDER_TRACES)->OnModified(set_model_dirty_bit);
+   }
 
    SetDirtyBits(-1);
 }
@@ -113,20 +114,54 @@ void RenderRenderInfo::AccumulateModelVariants(ModelMap& m, om::ModelVariantsPtr
    }
 }
 
-void RenderRenderInfo::CheckMaterial(om::RenderInfoPtr render_info)
+void RenderRenderInfo::CheckVisible(om::RenderInfoPtr render_info)
 {
-   material_path_ = render_info->GetMaterial();
-   if (material_path_.empty()) {
-      material_path_ = "materials/voxel.material.xml";
+   bool visible = entity_.GetVisibleOverride();
+   if (visible && render_info) {
+      visible = render_info->GetVisible();
+   }
+   RI_LOG(9) << "updating visibility of " << *entity_.GetEntity() << " (visible: " << std::boolalpha << visible << ")";
+
+   H3DNode node = entity_.GetNode();
+   if (visible) {
+      h3dTwiddleNodeFlags(node, H3DNodeFlags::NoDraw | H3DNodeFlags::NoRayQuery, false, false);
+   } else {
+      h3dTwiddleNodeFlags(node, H3DNodeFlags::NoDraw | H3DNodeFlags::NoRayQuery, true, false);
    }
 }
 
-void RenderRenderInfo::ReApplyMaterial()
+void RenderRenderInfo::CheckScale(om::RenderInfoPtr render_info)
 {
-   H3DRes material = h3dAddResource(H3DResTypes::Material, material_path_.c_str(), 0);
-   if (material != 0) {
+   float scale = render_info ? render_info->GetScale() : 1.0f;
+   Skeleton& skeleton = entity_.GetSkeleton();
+   skeleton.SetScale(scale);
+
+   for (auto const& entry : nodes_) {
+      H3DNode node = entry.second.node->GetNode();
+      float tx, ty, tz, rx, ry, rz, sx, sy, sz;
+
+      h3dGetNodeTransform(node, &tx, &ty, &tz, &rx, &ry, &rz, &sx, &sy, &sz);
+      tx *= (scale / sx);
+      ty *= (scale / sy);
+      tz *= (scale / sz);
+      h3dSetNodeTransform(node, tx, ty, tz, rx, ry, rz, scale, scale, scale);
+   }
+}
+
+void RenderRenderInfo::CheckMaterial(om::RenderInfoPtr render_info)
+{
+   std::string material = entity_.GetMaterialOverride();
+   if (material.empty() && render_info) {
+      material = render_info->GetMaterial();
+   }
+   if (material.empty()) {
+      material = "materials/voxel.material.xml";
+   }
+
+   H3DRes mat = h3dAddResource(H3DResTypes::Material, material.c_str(), 0);
+   if (mat != 0) {
       for (auto& entry : nodes_) {
-         entry.second.node->SetOverrideMaterial(override_material_);
+         entry.second.node->SetMaterial(mat);
       }
    }
 }
@@ -135,7 +170,7 @@ void RenderRenderInfo::RebuildModels(om::RenderInfoPtr render_info)
 {
    om::EntityPtr entity = entity_.GetEntity();
 
-   if (entity) {
+   if (entity && render_info) {
       ModelMap all_models;
 
       variant_trace_ = nullptr;
@@ -200,6 +235,7 @@ std::string RenderRenderInfo::GetBoneName(std::string const& matrix_name)
 
 void RenderRenderInfo::AddModelNode(om::RenderInfoPtr render_info, std::string const& bone, MatrixVector const& matrices, float polygon_offset)
 {
+   ASSERT(render_info);
    ASSERT(nodes_.find(bone) == nodes_.end());
 
    csg::Point3f origin = csg::Point3f(0.5f, 0.0f, 0.5f);
@@ -239,8 +275,7 @@ void RenderRenderInfo::AddModelNode(om::RenderInfoPtr render_info, std::string c
       csg::RegionToMesh(all_models, mesh, -origin, true);
    };
 
-   RenderNodePtr node = RenderNode::CreateSharedCsgMeshNode(parent, key, generate_matrix)
-                           ->SetMaterial(material_path_);
+   RenderNodePtr node = RenderNode::CreateSharedCsgMeshNode(parent, key, generate_matrix);
 
    h3dSetNodeParamI(node->GetNode(), H3DModel::PolygonOffsetEnabledI, 1);
    h3dSetNodeParamF(node->GetNode(), H3DModel::PolygonOffsetF, 0, polygon_offset * 0.04f);
@@ -251,6 +286,8 @@ void RenderRenderInfo::AddModelNode(om::RenderInfoPtr render_info, std::string c
 
 void RenderRenderInfo::AddMissingNodes(om::RenderInfoPtr render_info, FlatModelMap const& m)
 {
+   ASSERT(render_info);
+
    float offset = 0;
    auto i = m.begin();
    while (i != m.end()) {
@@ -266,18 +303,20 @@ void RenderRenderInfo::AddMissingNodes(om::RenderInfoPtr render_info, FlatModelM
 
 void RenderRenderInfo::RebuildBoneOffsets(om::RenderInfoPtr render_info)
 {
-   bones_offsets_.clear();
-   std::string const& animation_table_name = render_info->GetAnimationTable();
-   if (!animation_table_name.empty()) {
-      res::ResourceManager2::GetInstance().LookupJson(animation_table_name, [&](const json::Node& table) {
-         for (const auto& entry : table.get("skeleton", JSONNode())) {
-            csg::Point3f pt;
-            for (int j = 0; j < 3; j++) {
-               pt[j] = json::Node(entry).get(j, 0.0f);
+   if (render_info) {
+      bones_offsets_.clear();
+      std::string const& animation_table_name = render_info->GetAnimationTable();
+      if (!animation_table_name.empty()) {
+         res::ResourceManager2::GetInstance().LookupJson(animation_table_name, [&](const json::Node& table) {
+            for (const auto& entry : table.get("skeleton", JSONNode())) {
+               csg::Point3f pt;
+               for (int j = 0; j < 3; j++) {
+                  pt[j] = json::Node(entry).get(j, 0.0f);
+               }
+               bones_offsets_[entry.name()] = pt;
             }
-            bones_offsets_[entry.name()] = pt;
-         }
-      });
+         });
+      }
    }
 }
 
@@ -285,70 +324,35 @@ void RenderRenderInfo::Update()
 {
    if (dirty_) {
       auto render_info = render_info_.lock();
-      if (render_info) {
-         RI_LOG(5) << "updating render_info for " << entity_.GetObjectId();
-         if (dirty_ & ANIMATION_TABLE_DIRTY) {
-            RebuildBoneOffsets(render_info);
-            SetDirtyBits(MODEL_DIRTY);
-         }
-         if (dirty_ & MODEL_DIRTY) {
-            CheckMaterial(render_info);
-            RebuildModels(render_info);
-            SetDirtyBits(SCALE_DIRTY);
-         }
-         if (dirty_ & MATERIAL_DIRTY) {
-            CheckMaterial(render_info);
-            ReApplyMaterial();
-         }
-         if (dirty_ & SCALE_DIRTY) {
-            float scale = render_info->GetScale();
-            Skeleton& skeleton = entity_.GetSkeleton();
-            skeleton.SetScale(scale);
-
-            for (auto const& entry : nodes_) {
-               H3DNode node = entry.second.node->GetNode();
-               float tx, ty, tz, rx, ry, rz, sx, sy, sz;
-
-               h3dGetNodeTransform(node, &tx, &ty, &tz, &rx, &ry, &rz, &sx, &sy, &sz);
-               tx *= (scale / sx);
-               ty *= (scale / sy);
-               tz *= (scale / sz);
-               h3dSetNodeTransform(node, tx, ty, tz, rx, ry, rz, scale, scale, scale);
-            }
-         }
-         if (dirty_ & VISIBLE_DIRTY) {
-            entity_.SetVisible(render_info->GetVisible());
-         }
+      RI_LOG(5) << "updating render_info for " << entity_.GetObjectId();
+      if (dirty_ & ANIMATION_TABLE_DIRTY) {
+         RebuildBoneOffsets(render_info);
+         SetDirtyBits(MODEL_DIRTY);
+      }
+      if (dirty_ & MODEL_DIRTY) {
+         RebuildModels(render_info);
+         SetDirtyBits(MATERIAL_DIRTY | SCALE_DIRTY | VISIBLE_DIRTY);
+      }
+      if (dirty_ & MATERIAL_DIRTY) {
+         CheckMaterial(render_info);
+      }
+      if (dirty_ & SCALE_DIRTY) {
+         CheckScale(render_info);
+      }
+      if (dirty_ & VISIBLE_DIRTY) {
+         CheckVisible(render_info);
       }
       dirty_ = 0;
    }
    renderer_frame_guard_.Clear();
 }
 
-void RenderRenderInfo::SetMaterialOverride(std::string const& materialOverride)
-{
-   if (materialOverride.empty()) {
-      override_material_.reset();
-   } else {
-      std::string material = entity_.GetMaterialPathFromKind(materialOverride);
-      if (!material.empty()) {
-         override_material_ = h3dAddResource(H3DResTypes::Material, material.c_str(), 0);
-      }
-   }
-   SetDirtyBits(MATERIAL_DIRTY);
-}
-
-void RenderRenderInfo::SetModelVariantOverride(bool enabled, std::string const& variant)
-{
-   if (use_model_variant_override_ != enabled || (enabled && variant != model_variant_override_)) {
-      SetDirtyBits(MODEL_DIRTY);
-      model_variant_override_ = variant;
-      use_model_variant_override_ = enabled;
-   }
-}
-
 std::string RenderRenderInfo::GetModelVariant(om::RenderInfoPtr render_info) const
 {
    ASSERT(render_info);
-   return use_model_variant_override_ ? model_variant_override_ : render_info->GetModelVariant();
+   std::string variant = entity_.GetModelVariantOverride();
+   if (variant.empty()) {
+      variant = render_info->GetModelVariant();
+   }
+   return variant;
 }

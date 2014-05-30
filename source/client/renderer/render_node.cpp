@@ -155,14 +155,14 @@ RenderNodePtr RenderNode::SetName(const char *name)
 
 RenderNodePtr RenderNode::SetVisible(bool visible)
 {
-   h3dTwiddleNodeFlags(_node, H3DNodeFlags::NoDraw, !visible, true);
+   h3dTwiddleNodeFlags(_node, H3DNodeFlags::NoDraw, !visible, false);
    SetCanQuery(visible);
    return shared_from_this();
 }
 
 RenderNodePtr RenderNode::SetCanQuery(bool canQuery)
 {
-   h3dTwiddleNodeFlags(_node, H3DNodeFlags::NoRayQuery, !canQuery, true);
+   h3dTwiddleNodeFlags(_node, H3DNodeFlags::NoRayQuery, !canQuery, false);
    return shared_from_this();
 }
 

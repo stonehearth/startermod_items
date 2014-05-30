@@ -2,12 +2,11 @@ local Renderer = class()
 
 function Renderer:initialize()
    self._sv = self.__saved_variables:get_data()
+   self._building_vision_mode = 'normal'
    
    if self._sv.visible_region_uri then
       self:_install_regions()
    end
-   self:set_ui_mode('normal')
-   self:set_ui_mode('normal')
 end
 
 function Renderer:get_ui_mode()
