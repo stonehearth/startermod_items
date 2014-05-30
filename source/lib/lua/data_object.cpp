@@ -3,6 +3,7 @@
 #include "data_object.h"
 #include "protocols/store.pb.h"
 #include "lib/marshall/convert.h"
+#include "lib/lua/script_host.h"
 
 using namespace radiant;
 using namespace radiant::lua;

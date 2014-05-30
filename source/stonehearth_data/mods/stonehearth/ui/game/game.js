@@ -32,6 +32,8 @@ App.StonehearthGameUiView = App.ContainerView.extend({
       if (!this._gameServicesInitialized) {
          App.population = new StonehearthPopulation();
          App.inventory = new StonehearthInventory();
+         App.bulletin = new StonehearthBulletin();
+         
          this._traceCalendar();
 
          this._gameServicesInitialized = true;         

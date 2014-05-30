@@ -535,7 +535,7 @@ DLLEXP bool h3dSetNodeParent( NodeHandle node, NodeHandle parent )
 	SceneNode *sn = Modules::sceneMan().resolveNodeHandle( node );
 	APIFUNC_VALIDATE_NODE( sn, "h3dSetNodeParent", false );
 	SceneNode *snp = Modules::sceneMan().resolveNodeHandle( parent );
-	APIFUNC_VALIDATE_NODE( sn, "h3dSetNodeParent", false );
+	APIFUNC_VALIDATE_NODE( snp, "h3dSetNodeParent", false );
 	
 	return Modules::sceneMan().relocateNode( *sn, *snp );
 }

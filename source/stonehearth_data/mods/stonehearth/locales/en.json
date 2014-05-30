@@ -288,6 +288,8 @@
    "9_score" : "Buoyant",
    "10_score" : "Incandescent", 
 
+   "town_overview" : "Town Overview",
+   "journal_notices" : "Notices",
    "journal_today" : "Today", 
    "journal_town_log" : "Town Log",
    "journal_praises" : "Praises", 

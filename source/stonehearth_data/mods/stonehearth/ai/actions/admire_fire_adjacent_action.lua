@@ -26,10 +26,10 @@ function AdmireFireAdjacent:run(ai, entity, args)
       local random_action = rng:get_int(1, 100)
       if random_action < 30 then
          ai:execute('stonehearth:idle:breathe')
-      elseif random_action > 80 and radiant.entities.get_posture(entity) ~= 'sitting' then
-         radiant.entities.set_posture(entity, 'sitting')
+      elseif random_action > 80 and radiant.entities.get_posture(entity) ~= 'stonehearth:sitting' then
+         radiant.entities.set_posture(entity, 'stonehearth:sitting')
          ai:execute('stonehearth:run_effect', { effect = 'sit_on_ground' })
-      elseif radiant.entities.get_posture(entity) ~= 'sitting' then
+      elseif radiant.entities.get_posture(entity) ~= 'stonehearth:sitting' then
          ai:execute('stonehearth:run_effect', { effect = 'idle_warm_hands' })
       end
 
@@ -54,7 +54,7 @@ function AdmireFireAdjacent:_get_firepit_from_seat(seat)
 end
 
 function AdmireFireAdjacent:stop(ai, entity)
-   radiant.entities.unset_posture(entity, 'sitting')
+   radiant.entities.unset_posture(entity, 'stonehearth:sitting')
    if self._seat_trace then
       self._seat_trace:destroy()
       self._seat_trace = nil

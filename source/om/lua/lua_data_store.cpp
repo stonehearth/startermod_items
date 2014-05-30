@@ -87,9 +87,19 @@ DataStorePtr
 DataStore_SetController(DataStorePtr data_store, luabind::object obj)
 {
    if (data_store) {
-      data_store->SetController(lua::ControllerObject("", obj));
+      data_store->SetController(obj);
    }
    return data_store;
+}
+
+luabind::object
+DataStore_CreateController(DataStorePtr data_store, std::string const& type, std::string const& name)
+{
+   luabind::object controller;
+   if (data_store) {
+      controller = data_store->CreateController(data_store, type, name);
+   }
+   return controller;
 }
 
 scope LuaDataStore::RegisterLuaTypes(lua_State* L)
@@ -103,6 +113,7 @@ scope LuaDataStore::RegisterLuaTypes(lua_State* L)
          .def("read_data",      &DataStore_ReadData) // xxx: don't we need dependency(_1, _2) here?
          .def("trace_data",     &DataStore_Trace)
          .def("set_controller", &DataStore_SetController)
+         .def("create_controller", &DataStore_CreateController)
          .def("mark_changed",   &DataStore_MarkChanged)
       ,
       lua::RegisterTypePtr<lua::DataObject>("DataObject")

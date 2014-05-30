@@ -1,17 +1,17 @@
 {
-   "carrying" : {
+   "stonehearth:carrying" : {
       "idle_breathe" : "carry_idle",
       "run" : "carry_walk"
    },
-   "panic" : {
+   "stonehearth:panic" : {
       "run" : "run_panic"
    },
-   "sitting" : {
+   "stonehearth:sitting" : {
       "idle_breathe" : "sitting_idle",
       "idle_sway" : "sitting_idle",
       "idle_look_around" : "sitting_idle"
    },
-   "sitting_on_chair" : {
+   "stonehearth:sitting_on_chair" : {
       "eat" : "sitting_on_chair_eat"
    }
 }

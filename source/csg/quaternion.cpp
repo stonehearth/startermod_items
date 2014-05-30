@@ -218,19 +218,47 @@ Quaternion::set(const Point3f& axis, float angle)
 void
 Quaternion::lookAt(const Point3f& from, const Point3f& target)
 {
+   // This subtraction is backwards from the way it ought to be because of opengl's
+   // right-handedness.  I think.  IT WORKS--DON'T TOUCH!
    Point3f forward = (from - target);
+
    forward.Normalize();
    Point3f up(0, 1, 0);
    Point3f right = up.Cross(forward);
    right.Normalize();
    up = forward.Cross(right);
    up.Normalize();
+   float trace = right.x + up.y + forward.z;
 
-	w = sqrtf(1.0f + right.x + up.y + forward.z) * 0.5f;
-	float w4_recip = 1.0f / (4.0f * w);
-	x = (up.z - forward.y) * w4_recip;
-	y = (forward.x - right.z) * w4_recip;
-	z = (right.y - up.x) * w4_recip;
+   if (trace > 0) {
+      float s = sqrtf(trace + 1.0) * 2.0f;
+      float s_recip = 1.0f / s;
+	   w = 0.25f * s;
+	   x = (up.z - forward.y) * s_recip;
+	   y = (forward.x - right.z) * s_recip;
+	   z = (right.y - up.x) * s_recip;
+   } else if (right.x > up.y && right.x > forward.z) {
+      float s = sqrtf(1.0 + right.x - up.y - forward.z) * 2.0f;
+      float s_recip = 1.0f / s;
+	   w = (up.z - forward.y) * s_recip;
+	   x = 0.25f * s;
+	   y = (up.x + right.y) * s_recip;
+	   z = (forward.x + right.z) * s_recip;
+   } else if (up.y > forward.z) {
+      float s = sqrtf(1.0 + up.y - right.x - forward.z) * 2.0f;
+      float s_recip = 1.0f / s;
+	   w = (forward.x - right.z) * s_recip;
+	   x = (up.x + right.y) * s_recip;
+	   y = 0.25f * s;
+	   z = (forward.y + up.z) * s_recip;
+   } else {
+      float s = sqrtf(1.0 + forward.z - right.x - up.y) * 2.0f;
+      float s_recip = 1.0f / s;
+	   w = (right.y - up.x) * s_recip;
+	   x = (forward.x + right.z) * s_recip;
+	   y = (forward.y + up.z) * s_recip;
+	   z = 0.25f * s;
+   }
 }
 
 void

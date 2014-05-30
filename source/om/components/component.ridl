@@ -11,6 +11,7 @@
 import ridl.ridl as ridl
 import ridl.dm_types as dm
 is_component = C.__bases__[0]().name == 'Component'
+declare_constructor = hasattr(C, '_declare_constructor') and getattr(C, '_declare_constructor')
 %>
 #include "om/components/component.h"
 #include "core/object_counter.h"
@@ -25,7 +26,13 @@ class ${C.__name__} : public ${C.__bases__[0]().name},
                       public core::ObjectCounter<${C.__name__}>
 {
 public:
+%if declare_constructor:
+   DEFINE_OM_OBJECT_TYPE_NO_CONS(${C.__name__}, ${C.__name__ | env.lower});
+   ${C.__name__}();
+   ~${C.__name__}();
+%else:
    DEFINE_OM_OBJECT_TYPE(${C.__name__}, ${C.__name__ | env.lower});
+%endif
 
    void LoadFromJson(json::Node const& obj) override;
    void SerializeToJson(json::Node& node) const override;

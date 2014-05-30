@@ -12,7 +12,6 @@
 #include "csg/region.h"
 #include "lib/json/node.h"
 #include "lib/lua/data_object.h"
-#include "lib/lua/controller_object.h"
 
 
 #define ALL_DM_BOXED_TYPES \
@@ -40,7 +39,6 @@
    BOXED(csg::Cube3f) \
    BOXED(csg::Transform) \
    BOXED(json::Node) \
-   BOXED(lua::ControllerObject) \
    BOXED(lua::DataObject) \
    BOXED(luabind::object)
 

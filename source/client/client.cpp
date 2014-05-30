@@ -623,66 +623,13 @@ void Client::InitializeDataObjects()
    // Keep track of when entities are allocated so we can wire up client side
    // lua components
    game_store_alloc_trace_ = store_->TraceStore("wire lua components")->OnAlloced([=](dm::ObjectPtr obj) {
-      if (obj->GetObjectType() == om::EntityObjectType) {
-         entities_to_trace_.push_back(std::static_pointer_cast<om::Entity>(obj));
+      if (obj->GetObjectType() == om::DataStoreObjectType) {
+         datastores_to_restore_.emplace_back(std::static_pointer_cast<om::DataStore>(obj));
       }
    });
 
 }
 
-/* 
- * -- Client::TraceLuaComponents
- *
- * Put a trace on an Entity's lua components so we can create the client side
- * component whenever the entity is de-serialized over here.
- */
-
-void Client::TraceLuaComponents(om::EntityPtr entity)
-{
-   om::EntityRef e = entity;
-   dm::ObjectId entityId = entity->GetObjectId();
-   dm::TracePtr trace = entity->TraceLuaComponents("render", dm::RENDER_TRACES)
-      ->OnAdded([this, e, entityId](std::string const& name, om::DataStorePtr obj) {
-         // `obj` is the DataStore for the lua component.  Ask the Stonehearth module to initialize
-         // the controller, and hold into it so we can destroy it when the component goes away
-         om::EntityPtr entity = e.lock();
-         if (entity) {
-            lua_State* L = scriptHost_->GetInterpreter();
-            std::string uri = om::Stonehearth::GetLuaComponentUri(entity->GetStore(), name);
-            if (!uri.empty()) {
-               om::Stonehearth::ConstructLuaComponent(scriptHost_.get(), entity, uri, luabind::newtable(L), obj);
-               client_components_[entityId][name] = obj->GetController();
-            }
-         }
-      })
-      ->OnRemoved([this, entityId](std::string const& name) {
-         // Destroy the controller for the lua object and remove it from the map
-         auto i = client_components_.find(entityId);
-         if (i != client_components_.end()) {
-            auto& components = i->second;
-            auto j = components.find(name);
-            if (j != components.end()) {
-               j->second.DestroyLuaObject();
-               components.erase(j);
-            }
-         }
-      })
-      ->OnDestroyed([this, entityId]() {
-         // When the entity is destroyed, destroy all of its components.  We cannot rely
-         // on a dtor trace on the DataObject, as references to it might be held client
-         // side.
-         auto i = client_components_.find(entityId);
-         if (i != client_components_.end()) {
-            for (auto const& entry: i->second) {
-               entry.second.DestroyLuaObject();
-            }
-            client_components_.erase(i);
-         }
-      })
-      ->PushObjectState();
-
-   lua_component_traces_.push_back(trace);
-}
 
 void Client::InitializeDataObjectTraces()
 {
@@ -714,8 +661,7 @@ void Client::ShutdownDataObjectTraces()
 
    game_store_alloc_trace_.reset();
    lua_component_traces_.clear();
-   client_components_.clear();
-   entities_to_trace_.clear();
+   datastores_to_restore_.clear();
 
    receiver_->Shutdown();
 }
@@ -979,7 +925,7 @@ void Client::EndUpdate(const proto::EndUpdate& msg)
    initialUpdate_ = false;
 
    // Constr
-   ConstructLuaComponents();
+   RestoreDatastores();
 
    if (traceObjectRouter_) {
       traceObjectRouter_->CheckDeferredTraces();
@@ -1044,7 +990,13 @@ void Client::RemoveObjects(const proto::RemoveObjects& update)
          }
       }
    }
-   receiver_->ProcessRemove(update);
+   receiver_->ProcessRemove(update, [this](dm::ObjectPtr obj) {
+      if (obj->GetObjectType() == om::EntityObjectType) {
+         std::static_pointer_cast<om::Entity>(obj)->Destroy();
+      } else if (obj->GetObjectType() == om::DataStoreObjectType) {
+         std::static_pointer_cast<om::DataStore>(obj)->DestroyController();
+      }
+   });
    if (initialUpdate_) {
       networkUpdatesCount_++;
       ReportLoadProgress();
@@ -1568,16 +1520,21 @@ void Client::LoadClientState(boost::filesystem::path const& savedir)
    // Re-initialize the game
    dm::Store &store = GetAuthoringStore();
    std::string filename = (savedir / "client_state.bin").string();
+
    if (!store.Load(filename, error, objects)) {
       CLIENT_LOG(0) << "failed to load: " << error;
    }
+
    // xxx: keep the trace around all the time to populate the authoredEntities_
    // array?  sounds good!!!
-   store.TraceStore("get entities")->OnAlloced([=](dm::ObjectPtr obj) {
+   std::vector<om::DataStorePtr> datastores;
+   store.TraceStore("get entities")->OnAlloced([this, &datastores](dm::ObjectPtr obj) mutable {
       dm::ObjectId id = obj->GetObjectId();
       dm::ObjectType type = obj->GetObjectType();
       if (type == om::EntityObjectType) {
          authoredEntities_[id] = std::static_pointer_cast<om::Entity>(obj);
+      } else if (obj->GetObjectType() == om::DataStoreObjectType) {
+         datastores.emplace_back(std::static_pointer_cast<om::DataStore>(obj));
       }
    })->PushStoreState();   
 
@@ -1588,8 +1545,9 @@ void Client::LoadClientState(boost::filesystem::path const& savedir)
    InitializeDataObjectTraces();
 
    radiant_ = scriptHost_->Require("radiant.client");
-   scriptHost_->LoadGame(localModList_, authoredEntities_);  
+   scriptHost_->LoadGame(localModList_, authoredEntities_, datastores);  
    initialUpdate_ = true;
+
 
    CLIENT_LOG(0) << "done loadin...";
 }
@@ -1641,20 +1599,20 @@ void Client::ReportLoadProgress()
 }
 
 /* 
- * -- Client::ConstructLuaComponents
+ * -- Client::RestoreDatastores
  * 
  * Iterate through all the entities we created this frame and construct their
  * client-side lua components.
  */
-void Client::ConstructLuaComponents()
+void Client::RestoreDatastores()
 {
-   for (om::EntityRef e : entities_to_trace_) {
-      om::EntityPtr entity = e.lock();
-      if (entity) {
-         TraceLuaComponents(entity);
+   for (om::DataStoreRef d : datastores_to_restore_) {
+      om::DataStorePtr datastore = d.lock();
+      if (datastore) {
+         datastore->RestoreController(datastore);
       }
    }
-   entities_to_trace_.clear();
+   datastores_to_restore_.clear();
 }
 
 csg::Point2 Client::GetMousePosition() const

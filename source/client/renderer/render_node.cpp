@@ -252,15 +252,17 @@ void RenderNode::DestroyHordeNode()
       // children!  that's not what we want.  reparent all our children under some
       // "unowned" node 
       int i = 0;
-      while (true) {
-         H3DNode child = h3dGetNodeChild(_node, i++);
-         if (child == 0) {
-            break;
-         }
-         // If this node is owned by some render node somewhere out there, move
-         // it over to then unparented node
-         if (ownedNodes.find(child) != ownedNodes.end()) {
-            h3dSetNodeParent(child, _unparentedRenderNode);
+      if (_unparentedRenderNode) {
+         while (true) {
+            H3DNode child = h3dGetNodeChild(_node, i++);
+            if (child == 0) {
+               break;
+            }
+            // If this node is owned by some render node somewhere out there, move
+            // it over to then unparented node
+            if (ownedNodes.find(child) != ownedNodes.end()) {
+               h3dSetNodeParent(child, _unparentedRenderNode);
+            }
          }
       }
       _children.clear();

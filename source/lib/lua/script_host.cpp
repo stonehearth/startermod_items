@@ -259,11 +259,11 @@ ScriptHost::ScriptHost(std::string const& site) :
       namespace_("_radiant") [
          namespace_("lua") [
             lua::RegisterType_NoTypeInfo<ScriptHost>("ScriptHost")
-               .def("log",             &ScriptHost::Log)
-               .def("exit",            &ScriptHost::Exit)
-               .def("get_realtime",    &ScriptHost::GetRealTime)
-               .def("get_log_level",   &ScriptHost::GetLogLevel)
-               .def("get_config",      &ScriptHost::GetConfig)
+               .def("log",              &ScriptHost::Log)
+               .def("exit",             &ScriptHost::Exit)
+               .def("get_realtime",     &ScriptHost::GetRealTime)
+               .def("get_log_level",    &ScriptHost::GetLogLevel)
+               .def("get_config",       &ScriptHost::GetConfig)
                .def("set_performance_counter", &ScriptHost::SetPerformanceCounter)
                .def("report_error",    (void (ScriptHost::*)(std::string const& error, std::string const& traceback))&ScriptHost::ReportLuaStackException)
                .def("require",         (luabind::object (ScriptHost::*)(std::string const& name))&ScriptHost::Require)
@@ -748,9 +748,27 @@ bool ScriptHost::IsNumericTable(luabind::object tbl) const
    return luabind::type(tbl) == LUA_TTABLE && luabind::type(tbl[1]) != LUA_TNIL;
 }
 
-void ScriptHost::LoadGame(om::ModListPtr mods, std::unordered_map<dm::ObjectId, om::EntityPtr>& em)
+void ScriptHost::LoadGame(om::ModListPtr mods, std::unordered_map<dm::ObjectId, om::EntityPtr>& em, std::vector<om::DataStorePtr>& datastores)
 {
    CreateModules(mods);
+
+   for (om::DataStorePtr datastore : datastores) {
+      datastore->RestoreController(datastore);
+   }
+
+   for (om::DataStorePtr datastore : datastores) {
+      try {
+         luabind::object controller = datastore->GetController();
+         if (controller.is_valid()) {
+            object restore_fn = controller["restore"];
+            if (type(restore_fn) == LUA_TFUNCTION) {
+               restore_fn(controller);
+            }
+         }
+      } catch (std::exception const& e) {
+         ReportCStackException(L_, e);
+      }
+   }
 
    for (auto const& entry : em) {
       om::EntityPtr entity = entry.second;
@@ -815,3 +833,4 @@ luabind::object ScriptHost::CreateModule(om::ModListPtr mods, std::string const&
    }
    return module;
 }
+

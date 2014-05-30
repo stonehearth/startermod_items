@@ -2,8 +2,6 @@ local Array2D = require 'services.server.world_generation.array_2D'
 local Point2 = _radiant.csg.Point2
 local log = radiant.log.create_logger('dm_service')
 
-local CombatCurve = require 'services.server.dynamic_scenario.combat_curve'
-
 local DmService = class()
 
 function DmService:initialize()
@@ -17,8 +15,6 @@ function DmService:initialize()
    
    if self._sv._initialized then
       radiant.events.listen_once(radiant, 'radiant:game_loaded', function (e)
-         self:_init_pace_keepers()
-         self.__saved_variables:mark_changed()
          radiant.events.listen(radiant, 'stonehearth:minute_poll', self, self._on_think)
       end)
    else
@@ -36,34 +32,12 @@ function DmService:initialize()
 end
 
 function DmService:_init_pace_keepers()
-   if not self._sv._pace_keepers then
-      self._sv._pace_keepers = {}
-   end
+   self._sv._pace_keepers = {}
 
-   local combat_keeper_ds = self._sv._pace_keepers['combat']
-   combat_keeper_ds = combat_keeper_ds and combat_keeper_ds or radiant.create_datastore()
-   self._sv._pace_keepers['combat'] = CombatCurve(
-      function()
-         local military_score = stonehearth.score:get_scores_for_player('player_1'):get_score_data().military_strength
-         local military_strength = military_score and military_score.total_score or 0
+   local combat_pacekeeper = radiant.create_controller('stonehearth:combat_pace_keeper')
+   self._sv._pace_keepers['combat'] = radiant.create_controller('stonehearth:pace_keeper', combat_pacekeeper)
 
-         -- TODO: this is where combat difficulty will get factored in to the code.
-         return military_strength * 0.5
-      end,
-      function()
-         local military_score = stonehearth.score:get_scores_for_player('player_1'):get_score_data().military_strength
-         local military_strength = military_score and military_score.total_score or 0
-
-         -- TODO: this is where combat difficulty will get factored in to the code.
-         return (military_strength + 1) * 1.5
-      end,
-      function()
-         return 0.5
-      end,
-      function()
-         return 1000
-      end,
-      combat_keeper_ds)
+   self.__saved_variables:mark_changed()
 end
 
 function DmService:_on_think()
