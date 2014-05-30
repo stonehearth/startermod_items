@@ -5,7 +5,7 @@
       "model_variants": {
          "default": {
             "models": [
-               "file(/entities/generic/default_object/default_object.qb)"
+               "file(wooden_window_frame.qb)"
             ]
          }
       },
