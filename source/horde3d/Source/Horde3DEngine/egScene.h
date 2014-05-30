@@ -272,9 +272,9 @@ public:
    void query(const SpatialQuery& query, RenderableQueues& renderableQueues, InstanceRenderableQueues& instanceQueues,
               std::vector<SceneNode*>& lightQueue);
    void queryRec(SceneNode* sceneNode, const SpatialQuery& query, RenderableQueues& renderableQueues, InstanceRenderableQueues& instanceQueues,
-                 std::vector<SceneNode*>& lightQueue);
+                 std::vector<SceneNode*>& lightQueue, bool checkAllNodes);
    bool queryNode(SceneNode* sceneNode, const SpatialQuery& query, RenderableQueues& renderableQueues, InstanceRenderableQueues& instanceQueues,
-                  std::vector<SceneNode*>& lightQueue);
+                  std::vector<SceneNode*>& lightQueue, bool checkAllNodes);
 
 protected:
 	std::unordered_map<NodeHandle, SceneNode *>      _nodes;  // Renderable nodes and lights
