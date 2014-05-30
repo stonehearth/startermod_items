@@ -74,7 +74,9 @@ function FarmerFieldRenderer:_update_item_states(mode, item_map)
       if item:is_valid() then
          local re = _radiant.client.get_render_entity(item)
          if re ~= nil then
-            re:set_material_override(self:_mode_to_material_kind(mode))
+            local kind = self:_mode_to_material_kind(mode)
+            local material = re:get_material_path(kind)           
+            re:set_material_override(material)
             self:_update_query_flag(re, mode)
          end
       end
