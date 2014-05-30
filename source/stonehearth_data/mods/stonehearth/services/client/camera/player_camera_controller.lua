@@ -12,8 +12,8 @@ local PlayerCameraController = class()
 
 function PlayerCameraController:initialize()
    self._sv.camera_disabled = false
-   self._sv.position = Vec3(0, 30, 0)
-   self._sv.lookat = Vec3(-1, -1, -1)
+   self._sv.position = Vec3(0, 120, 190)
+   self._sv.lookat = Vec3(0, -125, -340)
    self._sv.lookat:normalize()
 
    self:restore()
