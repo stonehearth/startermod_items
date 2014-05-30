@@ -48,6 +48,10 @@ end
 -- through our list of scenarios for that type, and see if we find one that we
 -- can spawn.
 function DynamicScenarioService:try_spawn_scenario(scenario_type, pace_keepers)
+   if not self._scenarios[scenario_type] then
+      return
+   end
+
    local valid_scenarios = {}
    for _, scenario in pairs(self._scenarios[scenario_type]) do
       local valid_scenario = true

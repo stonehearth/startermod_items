@@ -1,4 +1,4 @@
-nlocal log = radiant.log.create_logger('combat_pace')
+local log = radiant.log.create_logger('combat_pace')
 
 local PopulationPaceKeeper = class()
 
