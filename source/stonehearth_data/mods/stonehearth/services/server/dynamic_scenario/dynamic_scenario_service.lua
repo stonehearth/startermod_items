@@ -48,12 +48,6 @@ end
 -- through our list of scenarios for that type, and see if we find one that we
 -- can spawn.
 function DynamicScenarioService:try_spawn_scenario(scenario_type, pace_keepers)
-   -- Don't spawn too many of the same kinds of scenario too often!
-   if self._sv.last_spawn_times[scenario_type] and
-      stonehearth.calendar:get_elapsed_time() - self._sv.last_spawn_times[scenario_type] < 3600 then
-      return
-   end
-
    local valid_scenarios = {}
    for _, scenario in pairs(self._scenarios[scenario_type]) do
       local valid_scenario = true
@@ -67,14 +61,19 @@ function DynamicScenarioService:try_spawn_scenario(scenario_type, pace_keepers)
       for implementing_type,_ in pairs(scenario.properties.scenario_types) do
          local pace_keeper = pace_keepers[implementing_type]
          if not pace_keeper:willing_to_spawn() or 
-            not pace_keeper:can_spawn_scenario(scenario) then
+            not pace_keeper:is_valid_scenario(scenario) then
             valid_scenario = false
             break
          end
       end
-      local rarity = self:_rarity_to_value(scenario.properties.rarity)
-      if valid_scenario and rng:get_int(1, rarity) == 1 then
-         table.insert(valid_scenarios, scenario)
+
+      if valid_scenario then
+         local rarity = self:_rarity_to_value(scenario.properties.rarity)
+         if rng:get_int(1, rarity) == 1 then
+            table.insert(valid_scenarios, scenario)
+         else
+            scenario.buildup = scenario.buildup + 1
+         end
       end
    end
 
@@ -82,10 +81,24 @@ function DynamicScenarioService:try_spawn_scenario(scenario_type, pace_keepers)
       return
    end
 
-   local scenario_idx = rng:get_int(1, #valid_scenarios)
+   -- We now have a list of valid scenarios that have also been randomly chosen according
+   -- to their own rarities.  Now, just pick the one that has been used the least.
+   local best_scenario = valid_scenarios[1]
+   for _, scenario in pairs(valid_scenarios) do
+      if best_scenario.buildup < scenario.buildup then
+         best_scenario = scenario
+      end
+   end
+   best_scenario.buildup = 0
 
-   log:spam('Spawning new %s scenario %s', scenario_type, valid_scenarios[scenario_idx].properties.name)
-   local new_scenario = self:_init_scenario(valid_scenarios[scenario_idx], nil)
+   -- For each pace-keeper affected by this scenario, let that scenario know that we've spawned
+   -- a scenario of that type.
+   for implementing_type,_ in pairs(best_scenario.properties.scenario_types) do
+      pace_keepers[implementing_type]:clear_buildup()
+   end
+
+   log:spam('Spawning new %s scenario %s', scenario_type, best_scenario.properties.name)
+   local new_scenario = self:_init_scenario(best_scenario, nil)
    new_scenario:start()
    table.insert(self._sv.running_scenarios, new_scenario)
    self.__saved_variables:mark_changed()
@@ -139,7 +152,8 @@ function DynamicScenarioService:_parse_scenario_index()
          end
          local scenario_data = {
             scenario = radiant.mods.load_script(properties.script),
-            properties = properties
+            properties = properties,
+            buildup = 0
          }
          table.insert(self._scenarios[scenario_type], scenario_data)
       end

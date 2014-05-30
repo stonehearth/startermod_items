@@ -51,13 +51,19 @@ function DmService:_on_think()
       keeper:update(current_time)
    end
 
+   local best_keeper = nil
+   local keeper_kind = nil
    for pace_kind, keeper in pairs(self._sv._pace_keepers) do
-      -- TODO: keep track of scenarios being spawned this update, so that we don't
-      -- spawn more than one of the same kind (hell, might just want to limit the
-      -- spawning to one per tick?)
-      if keeper:willing_to_spawn() then
-         stonehearth.dynamic_scenario:try_spawn_scenario(pace_kind, self._sv._pace_keepers)
+      if keeper:willing_to_spawn() and (not best_keeper or best_keeper:get_buildup_value() < keeper:get_buildup_value()) then
+         best_keeper = keeper
+         keeper_kind = pace_kind
       end
+   end
+
+   -- This way, we only possibly spawn one scenario per think, and it'll always be from the 
+   -- least-used pace-keeper.
+   if best_keeper then
+      stonehearth.dynamic_scenario:try_spawn_scenario(keeper_kind, self._sv._pace_keepers)
    end
 end
 

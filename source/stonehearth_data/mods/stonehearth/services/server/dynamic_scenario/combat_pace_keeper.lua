@@ -3,12 +3,18 @@ local log = radiant.log.create_logger('combat_pace')
 local CombatPaceKeeper = class()
 
 function CombatPaceKeeper:initialize()
-   self._sv._combat_value = 0
+   -- Start with a large initial value so that we give ourselves some time before ever being
+   -- considered for a scenario.
+   self._sv._combat_value = 10
    self:restore()
 end
 
 function CombatPaceKeeper:restore()
    radiant.events.listen(radiant, 'stonehearth:combat:combat_action', self, self._on_combat_action)
+end
+
+function CombatPaceKeeper:get_name()
+   return 'combat'
 end
 
 function CombatPaceKeeper:get_current_value()
@@ -52,20 +58,14 @@ function CombatPaceKeeper:compute_value()
   -- troops, but no violence has been done yet, we still want to penalize spawning new combat 
   -- scenarios if there are lots of baddies present that will probably do violence.
   local gm_scores = stonehearth.score:get_scores_for_player('game_master')
-  local military_strength = 0
   local enemy_pop_size = 0
-
-  if gm_scores and gm_scores:get_score_data().military_strength then
-    local military_score = gm_scores:get_score_data().military_strength
-    military_strength = military_score and military_score.total_score or 0
-  end
 
   local gm_population = stonehearth.population:get_all_populations()['game_master']
   if gm_population then
     for _ in pairs(gm_population:get_citizens()) do enemy_pop_size = enemy_pop_size + 1 end
   end
 
-  local new_combat_value = self._sv._combat_value + military_strength + enemy_pop_size
+  local new_combat_value = self._sv._combat_value + enemy_pop_size
 
   log:spam('Per-tick combat pace value is %d', new_combat_value)
   self._sv._combat_value = 0
