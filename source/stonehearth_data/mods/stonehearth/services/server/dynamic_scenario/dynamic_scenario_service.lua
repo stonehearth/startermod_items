@@ -95,12 +95,15 @@ function DynamicScenarioService:try_spawn_scenario(scenario_type, pace_keepers)
    -- a scenario of that type.
    for implementing_type,_ in pairs(best_scenario.properties.scenario_types) do
       pace_keepers[implementing_type]:clear_buildup()
+      pace_keepers[implementing_type]:spawning_scenario(best_scenario.scenario)
    end
 
    log:spam('Spawning new %s scenario %s', scenario_type, best_scenario.properties.name)
+   
    local new_scenario = self:_init_scenario(best_scenario, nil)
    new_scenario:start()
    table.insert(self._sv.running_scenarios, new_scenario)
+
    self.__saved_variables:mark_changed()
 end
 

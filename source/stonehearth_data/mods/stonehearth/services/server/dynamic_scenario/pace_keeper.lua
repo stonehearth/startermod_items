@@ -72,6 +72,10 @@ function PaceKeeper:is_valid_scenario(scenario)
    return self:controller():can_spawn_scenario(scenario)
 end
 
+function PaceKeeper:spawning_scenario(scenario)
+   self:controller():spawning_scenario(scenario)
+end
+
 function PaceKeeper:clear_buildup()
    self._sv._buildup = 0
    self.__saved_variables:mark_changed()

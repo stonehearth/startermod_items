@@ -45,6 +45,12 @@ function CombatPaceKeeper:decay(value)
   return value * 0.5
 end
 
+
+function CombatPaceKeeper:spawning_scenario(scenario)
+   -- TODO probably want some bookkeeping here.
+end
+
+
 function CombatPaceKeeper:_on_combat_action(e)
   -- For now, just add damage done, regardless of who is doing it.  Very shortly, we'll probably
   -- want to weight damage done to the player as more important.
