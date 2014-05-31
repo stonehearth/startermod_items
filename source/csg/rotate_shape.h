@@ -70,7 +70,7 @@ struct RotateRegion
 };
 
 template <typename S, int C>
-Region<S, C> Rotate(Region<S, C> const &other, int degrees) {
+Region<S, C> Rotated(Region<S, C> const &other, int degrees) {
    if (degrees == 0) {
       return other;
    } else if (degrees == 90) {
