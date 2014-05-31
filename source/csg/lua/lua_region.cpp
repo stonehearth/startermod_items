@@ -6,6 +6,7 @@
 #include "csg/region_tools.h"
 #include "csg/region.h"
 #include "csg/util.h"
+#include "csg/rotate_shape.h"
 
 using namespace ::luabind;
 using namespace ::radiant;
@@ -101,6 +102,7 @@ static luabind::class_<T> Register(struct lua_State* L, const char* name)
          .def("intersected",        &IntersectRegion<T>)
          .def("inflated",           &T::Inflated)
          .def("contains",           &T::Contains)
+         .def("rotate",             (T (*)(T const&, int))&csg::Rotate)
       ;
 }
 
