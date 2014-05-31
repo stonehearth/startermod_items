@@ -1,32 +1,24 @@
 
 $(document).ready(function(){
   
-  App.stonehearth.bulletin = {
-    lastBulletinTimestamp: -1,
-    notificationView: null
-  }
+   App.stonehearth.bulletinBoard = {
+      notificationView: null
+   }
 
-  $(top).on("new_bulletin.bulletin_notification", function (_, bulletinData) {
-    var bulletin = bulletinData.bulletins[bulletinData.bulletins.length - 1];
-    
-    if (App.stonehearth.bulletin.view) {
-       App.stonehearth.bulletin.view.destroy();
-    }
-    
-    App.stonehearth.bulletin.view = App.gameView.addView(App.StonehearthBulletinNotification, { context: bulletin });
-  });  
+   $(top).on("bulletin_board_changed.alert_widget", function (_, bulletinuri) {
+         if (App.stonehearth.bulletinBoard.view) {
+           App.stonehearth.bulletinBoard.view.destroy();
+         }
+
+         App.stonehearth.bulletinBoard.view = App.gameView.addView(App.StonehearthBulletinNotification, { uri: bulletinuri });
+      });
 });
 
 App.StonehearthBulletinNotification = App.View.extend({
 	templateName: 'bulletinNotification',
 
-   init: function() {
-      this._super();
-      var self = this;
-   },
-
    didInsertElement: function() {
       this._super();
       this.$('#bulletinNotification').pulse();
-   }  
+   }
 });
