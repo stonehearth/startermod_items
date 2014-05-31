@@ -36,6 +36,9 @@ function ImmigrationFailure:__init(saved_variables)
 end
 
 function ImmigrationFailure:start()
+   --Get the player ID from the caller!
+   local session = {player_id = 'player_1'}
+
    --TODO: should we delay the caravan's appearance? 
    --Though we'd rather not have it happen immediately, we could also
    --handle that with a curve
@@ -58,21 +61,29 @@ function ImmigrationFailure:start()
       title = title, 
       message = message, 
       reward = reward_uri, 
-      quantity = num_items
+      quantity = num_items, 
+      player_id = session.player_id
    }
 
-   --TODO: send the notice to the bulletin service. Should be parametrized by player
-   --For now, we just call this
-   local session = {player_id = 'player_1'}
-   self:acknowledge(session, notice)
+   --Send the notice to the bulletin service. Should be parametrized by player
+   self._immigration_bulletin = stonehearth.bulletin_board:post_bulletin(session.player_id)
+            :set_title(title)
+            :set_description(message)
+            :set_callback('gift', notice, '_on_accepted')
+
+   --Add a notice:
+   stonehearth.events:add_entry(title .. ': ' .. message)
+
+   --Should we only drop the stuff if the user clicks on the bulletin? 
+   --For now, just call directly: 
+   self:acknowledge(notice)
 end
 
 --- Once the user has acknowledged the bulletin, add the target reward beside the banner
 --  TODO: go to the gift location?
---  @param session - make sure we send it to the correct player's banner!
 --  @param notice_data - this is the exact same blob of data passed into the client. 
-function ImmigrationFailure:acknowledge(session, notice_data) 
-   local town = stonehearth.town:get_town(session.player_id)
+function ImmigrationFailure:acknowledge(notice_data) 
+   local town = stonehearth.town:get_town(notice_data.player_id)
    local banner_entity = town:get_banner()
 
    --TODO: eventually, the trader will drop this when standing near the banner, but for now...
@@ -82,6 +93,15 @@ function ImmigrationFailure:acknowledge(session, notice_data)
    radiant.terrain.place_entity(gift, target_location)
 
    --TODO: attach a brief particle effect to the new stuff
+
+   --TODO: Either make a timeout to hide the bulletin, or auto-hide once the user clicks.
+end
+
+--- Only actually spawn the thing after the user clicks OK?
+--  TODO: not actually used yet
+function ImmigrationFailure:_on_accepted(notice)
+   --TODO: rig this up with the UI
+   self:acknowledge(notice)
 end
 
 return ImmigrationFailure
