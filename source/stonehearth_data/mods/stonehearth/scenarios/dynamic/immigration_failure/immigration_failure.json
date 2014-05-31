@@ -13,9 +13,10 @@
    "messages" : [
       "I was thinking about joining your settlement, but it looks like you're even worse off than I am!", 
       "Goodness, you people look starved.", 
-      "Buck up!", 
+      "Buck up! You look like you'd really benefit from something tasty.", 
       "You guys really look like you could use some help. Here!"
    ],
+   "outcome_statement" : "The traveller has left you a ",
    "rewards" : {
       "stonehearth:berry_basket" : {
          "min" : 1, 

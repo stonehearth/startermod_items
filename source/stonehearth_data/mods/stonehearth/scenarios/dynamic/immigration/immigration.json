@@ -1,0 +1,36 @@
+{
+   "name" : "Immigration",
+   "scenario_types" : {
+      "combat" : {
+        "min_strength" : 0,
+        "max_strength" : 1000
+      }
+   },
+   "rarity" : "common",
+   "script" : "file(immigration.lua)", 
+   "happiness_threshold" : 4,
+   "food_threshold" : 10,
+   "score_threshold" : 100,
+   "title" : "A Wholesome Traveller Approaches!",
+   "messages" : [
+      "I've heard a lot about your town!", 
+      "I'd like to join your town.", 
+      "You guys really look like you could use a hand!", 
+      "Wow! What a town! Let me help out!"
+   ],
+   "outcome_statement" : "__profession__ __name__ has joined __town_name__!", 
+   "professions" : {
+      "stonehearth:professions:worker" : {
+         "shares" : 10, 
+         "rating" : 1
+      }, 
+      "stonehearth:professions:carpenter" : {
+         "shares" : 1, 
+         "rating" : 3
+      },  
+      "stonehearth:professions:farmer" : {
+         "shares" : 2, 
+         "rating" : 2
+      }
+   }
+}

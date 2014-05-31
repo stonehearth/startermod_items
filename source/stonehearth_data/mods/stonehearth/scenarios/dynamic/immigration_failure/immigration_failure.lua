@@ -36,7 +36,9 @@ function ImmigrationFailure:__init(saved_variables)
 end
 
 function ImmigrationFailure:start()
-   --TODO: should we delay the caravan's appearance? Why not have it happen immediately?
+   --TODO: should we delay the caravan's appearance? 
+   --Though we'd rather not have it happen immediately, we could also
+   --handle that with a curve
    local target_reward_index = rng:get_int(1, #self._reward_table)
    local reward_uri = self._reward_table[target_reward_index]
    local reward_data = self._immigration_data.rewards[reward_uri]
@@ -45,6 +47,12 @@ function ImmigrationFailure:start()
    local title = self._immigration_data.title
    local message_index = rng:get_int(1, #self._immigration_data.messages)
    local message = self._immigration_data.messages[message_index]
+
+   --Enhance message with object name
+   local reward_data = radiant.resources.load_json('stonehearth:berry_basket')
+   local reward_name = reward_data.components.unit_info.name
+   local statement = self._immigration_data.outcome_statement .. reward_name
+   message = message .. statement
 
    local notice = {
       title = title, 
@@ -68,7 +76,7 @@ function ImmigrationFailure:acknowledge(session, notice_data)
    local banner_entity = town:get_banner()
 
    --TODO: eventually, the trader will drop this when standing near the banner, but for now...
-   local target_location = radiant.entities.pick_nearby_location(banner_entity, 1)
+   local target_location = radiant.entities.pick_nearby_location(banner_entity, 3)
 
    local gift = radiant.entities.create_entity(notice_data.reward)   
    radiant.terrain.place_entity(gift, target_location)
