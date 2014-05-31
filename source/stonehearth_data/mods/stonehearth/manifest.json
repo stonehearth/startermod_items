@@ -852,10 +852,23 @@
       "get_ui_mode": {
          "controller" : "file(call_handlers/ui_mode_call_handler.lua)",
          "endpoint" : "client"
+      },
+      "get_bulletin_board_datastore": {
+         "controller" : "file(call_handlers/bulletin_board_call_handler.lua)",
+         "endpoint" : "server"
+      },
+      "remove_bulletin": {
+         "controller" : "file(call_handlers/bulletin_board_call_handler.lua)",
+         "endpoint" : "server"
+      },
+      "trigger_bulletin_event": {
+         "controller" : "file(call_handlers/bulletin_board_call_handler.lua)",
+         "endpoint" : "server"
       }
    },
    
    "controllers" :  {
+      "bulletin" : "file(services/server/bulletin_board/bulletin.lua)",
       "craft_order" : "file(components/workshop/craft_order.lua)",
       "craft_order_list" : "file(components/workshop/craft_order_list.lua)",
       "combat_pace_keeper" : "file(services/server/dynamic_scenario/combat_pace_keeper.lua)",
@@ -1036,7 +1049,7 @@
          "file(ui/game/crafters/crafters.js)",
          "file(ui/game/promotion_wizard/promotion_wizard.js)",
          "file(ui/game/tip_popup/tip_popup.js)",
-         "file(ui/game/bulletin/bulletin.js)",
+         "file(ui/game/bulletin/bulletin_board.js)",
          "file(ui/game/bulletin/bulletin_notification/bulletin_notification.js)",         
          "file(ui/game/event_log/event_log.js)"
       ],

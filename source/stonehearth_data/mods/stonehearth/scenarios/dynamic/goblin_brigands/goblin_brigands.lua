@@ -53,7 +53,7 @@ function GoblinBrigands:start()
    self._sv._triggered = true
    self.__saved_variables:mark_changed()
 
-   self:_schedule_spawn(rng:get_int(3600 * 2, 3600 * 3))
+   self:_schedule_spawn(1)
 end
 
 function GoblinBrigands:_attach_listeners()
