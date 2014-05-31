@@ -56,7 +56,7 @@ function PopulationPaceKeeper:compute_value()
 end
 
 function PopulationPaceKeeper:can_spawn_scenario(scenario)
-   return scenario.scenario.can_spawn()
+   return true
 end
 
 return PopulationPaceKeeper

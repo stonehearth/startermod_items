@@ -7,5 +7,5 @@
       }
     },
     "rarity" : "common",
-    "script" : "file(goblin_brigands.lua)"
+    "uri" : "stonehearth:goblin_brigands"
 }

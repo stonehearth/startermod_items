@@ -7,5 +7,5 @@
       }
     },
     "rarity" : "common",
-    "script" : "file(goblin_thief.lua)"
+    "uri" : "stonehearth:goblin_thief"
 }
