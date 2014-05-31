@@ -102,7 +102,6 @@ static luabind::class_<T> Register(struct lua_State* L, const char* name)
          .def("intersected",        &IntersectRegion<T>)
          .def("inflated",           &T::Inflated)
          .def("contains",           &T::Contains)
-         .def("rotate",             (T (*)(T const&, int))&csg::Rotate)
       ;
 }
 
@@ -114,7 +113,9 @@ scope LuaRegion::RegisterLuaTypes(lua_State* L)
       Register<Region3>(L,  "Region3")
          .def("get_adjacent",             &GetAdjacent)
          .def("project_onto_xz_plane",    &ProjectOntoXZPlane)
-         .def("get_edge_list",                &RegionGetEdgeList<int, 3>),
+         .def("get_edge_list",            &RegionGetEdgeList<int, 3>)
+         .def("rotated",                  (Region3 (*)(Region3 const&, int))&csg::Rotated)
+      ,
       Register<Region3f>(L, "Region3f")
          .def("get_edge_list",                &RegionGetEdgeList<float, 3>),
       Register<Region2>(L,  "Region2")
