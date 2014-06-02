@@ -872,7 +872,12 @@
       "craft_order" : "file(components/workshop/craft_order.lua)",
       "craft_order_list" : "file(components/workshop/craft_order_list.lua)",
       "combat_pace_keeper" : "file(services/server/dynamic_scenario/combat_pace_keeper.lua)",
-      "pace_keeper" : "file(services/server/dynamic_scenario/pace_keeper.lua)"
+      "population_pace_keeper" : "file(services/server/dynamic_scenario/population_pace_keeper.lua)",
+      "pace_keeper" : "file(services/server/dynamic_scenario/pace_keeper.lua)",
+      "dynamic_scenario" : "file(services/server/dynamic_scenario/dynamic_scenario.lua)",
+
+      "goblin_thief" : "file(scenarios/dynamic/goblin_thief/goblin_thief.lua)",
+      "goblin_brigands" : "file(scenarios/dynamic/goblin_brigands/goblin_brigands.lua)"
    },
 
    "client_controllers" :  {

@@ -35,22 +35,24 @@ function PaceKeeper:update(now)
    self._sv._current_value = math.floor(self:controller():decay(self._sv._current_value) 
       + self:controller():compute_value())
 
-   log:spam('%s pace value is %d', self:controller():get_name(), self._sv._current_value)
+   local name = self:controller():get_name()
+
+   log:spam('%s pace value is %d', name, self._sv._current_value)
 
    if self._sv._current_state == PaceKeeper.RELAXED then
       if self._sv._current_value > self:controller():get_max() then
-         log:spam('Pace entering peak.')
+         log:spam('%s pace entering peak.', name)
          self._sv._current_state = PaceKeeper.PEAKED
       end
    elseif self._sv._current_state == PaceKeeper.PEAKED then
       if self._sv._current_value <= self:controller():get_min() then
-         log:spam('Pace entering cool-down.')
+         log:spam('%s pace entering cool-down.', name)
          self._sv._current_state = PaceKeeper.COOL_DOWN
          self._sv._cooldown_start = now
       end
    elseif self._sv._current_state == PaceKeeper.COOL_DOWN then
       if now - self._sv._cooldown_start > self:controller():get_cooldown_time() then
-         log:spam('Pace entering relaxed.')
+         log:spam('%s pace entering relaxed.', name)
          self._sv._current_state = PaceKeeper.RELAXED
       end
    end
@@ -74,6 +76,11 @@ end
 
 function PaceKeeper:spawning_scenario(scenario)
    self:controller():spawning_scenario(scenario)
+end
+
+function PaceKeeper:penalize_buildup()
+   self._sv._buildup = self._sv._buildup * 0.5
+   self.__saved_variables:mark_changed()   
 end
 
 function PaceKeeper:clear_buildup()

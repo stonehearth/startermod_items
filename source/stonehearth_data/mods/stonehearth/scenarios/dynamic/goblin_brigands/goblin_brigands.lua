@@ -3,7 +3,7 @@ local EscortSquad = require 'scenarios.dynamic.goblin_brigands.escort_squad'
 local Point3 = _radiant.csg.Point3
 local rng = _radiant.csg.get_default_rng()
 
-function GoblinBrigands.can_spawn()
+function GoblinBrigands:can_spawn()
    return true
 end
 
@@ -11,23 +11,25 @@ end
 Goblin Brigands
 ]]
 function GoblinBrigands:__init(saved_variables)
-   self.__saved_variables = saved_variables
-   self._sv = self.__saved_variables:get_data()
+end
 
-   if self._sv._triggered then
-      if self._sv._squad then
-         self._sv._squad = EscortSquad('game_master', self._sv._squad)
-      end
-      if not self._sv._squad or not self._sv._squad:spawned() then
-         -- We were saved in a triggered state, but no goblin has been spawned.
-         -- This means if you keep saving/loading before the goblin spawns, the 
-         -- goblin will never spawn.  Oh well.
-         self:start()
-      else
-         -- Triggered, and with a goblin on the move.
-         self:_attach_listeners()
-         self:_add_restock_task(self._sv._thief)
-      end
+function GoblinBrigands:restore()
+   if self._sv.__scenario:is_running() then
+      radiant.events.listen_once(radiant, 'radiant:game_loaded', function(e)
+            if self._sv._squad then
+               self._sv._squad = EscortSquad('game_master', self._sv._squad)
+            end
+            if not self._sv._squad or not self._sv._squad:spawned() then
+               -- We were saved in a triggered state, but no goblin has been spawned.
+               -- This means if you keep saving/loading before the goblin spawns, the 
+               -- goblin will never spawn.  Oh well.
+               self:start()
+            else
+               -- Triggered, and with a goblin on the move.
+               self:_attach_listeners()
+               self:_add_restock_task(self._sv._thief)
+            end
+         end)
    end
 end
 
@@ -49,9 +51,6 @@ function GoblinBrigands:start()
       self._population = stonehearth.population:get_population(session.player_id)
    end
    -- End hack
-
-   self._sv._triggered = true
-   self.__saved_variables:mark_changed()
 
    self:_schedule_spawn(1)
 end
@@ -114,7 +113,6 @@ function GoblinBrigands:_squad_killed(e)
    radiant.entities.destroy_entity(self._sv._stockpile)
    self._sv._stockpile = nil
    self._sv._suqad = nil
-   self._sv._triggered = false
    self.__saved_variables:mark_changed()
 
    radiant.events.trigger(self, 'stonehearth:dynamic_scenario:finished')

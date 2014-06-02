@@ -2,7 +2,7 @@ local GoblinThief = class()
 local rng = _radiant.csg.get_default_rng()
 
 
-function GoblinThief.can_spawn()
+function GoblinThief:can_spawn()
    return true
 end
 
@@ -11,23 +11,24 @@ Goblin Thief (aka Goblin Jerk) narrative:
 When the camp standard is placed, we want to start gently (and then not-so-gently) harassing the player.
 To wit: spawn a little thief, somewhere just outside the explored area.  And then this little guy goes back
 and forth stealing wood (probably should just be from the stockpile, but for now, anywhere.)
-
 ]]
-function GoblinThief:__init(saved_variables)
-   self.__saved_variables = saved_variables
-   self._sv = self.__saved_variables:get_data()
+function GoblinThief:initialize()
+end
 
-   if self._sv._triggered then
-      if not self._sv._goblin then
-         -- We were saved in a triggered state, but no goblin has been spawned.
-         -- This means if you keep saving/loading before the goblin spawns, the 
-         -- goblin will never spawn.  Oh well.
-         self:start()
-      else
-         -- Triggered, and with a goblin on the move.
-         self:_attach_listeners()
-         self:_add_restock_task()
-      end
+function GoblinThief:restore()
+   if self._sv.__scenario:is_running() then
+      radiant.events.listen_once(radiant, 'radiant:game_loaded', function(e)
+            if not self._sv._goblin then
+               -- We were saved in a triggered state, but no goblin has been spawned.
+               -- This means if you keep saving/loading before the goblin spawns, the 
+               -- goblin will never spawn.  Oh well.
+               self:start()
+            else
+               -- Triggered, and with a goblin on the move.
+               self:_attach_listeners()
+               self:_add_restock_task()
+            end
+         end)
    end
 end
 
@@ -49,9 +50,6 @@ function GoblinThief:start()
       self._population = stonehearth.population:get_population(session.player_id)
    end
    -- End hack
-
-   self._sv._triggered = true
-   self.__saved_variables:mark_changed()
 
    self:_schedule_next_spawn(1)
 end
@@ -110,7 +108,6 @@ function GoblinThief:_goblin_killed(e)
    radiant.entities.destroy_entity(self._sv._stockpile)
    self._sv._stockpile = nil
    self._sv._goblin = nil
-   self._sv._triggered = false
    self.__saved_variables:mark_changed()
 
    radiant.events.trigger(self, 'stonehearth:dynamic_scenario:finished')

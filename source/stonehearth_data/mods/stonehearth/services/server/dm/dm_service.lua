@@ -37,6 +37,9 @@ function DmService:_init_pace_keepers()
    local combat_pacekeeper = radiant.create_controller('stonehearth:combat_pace_keeper')
    self._sv._pace_keepers['combat'] = radiant.create_controller('stonehearth:pace_keeper', combat_pacekeeper)
 
+   local pop_pacekeeper = radiant.create_controller('stonehearth:population_pace_keeper')
+   self._sv._pace_keepers['population'] = radiant.create_controller('stonehearth:pace_keeper', pop_pacekeeper)
+
    self.__saved_variables:mark_changed()
 end
 
@@ -63,7 +66,13 @@ function DmService:_on_think()
    -- This way, we only possibly spawn one scenario per think, and it'll always be from the 
    -- least-used pace-keeper.
    if best_keeper then
-      stonehearth.dynamic_scenario:try_spawn_scenario(keeper_kind, self._sv._pace_keepers)
+      if not stonehearth.dynamic_scenario:try_spawn_scenario(keeper_kind, self._sv._pace_keepers) then
+         -- We tried to spawn a scenario, but didn't.  There could be a number of reasons why:
+         -- nothing compatibile with the difficulty, nothing ready to run, or just luck due to rarity.
+         -- We penalize this keeper to ensure that it doesn't throttle other keepers from spawning
+         -- scenarios.
+         best_keeper:penalize_buildup()
+      end
    end
 end
 
