@@ -7,6 +7,7 @@ local Cube3 = _radiant.csg.Cube3
 local Region3 = _radiant.csg.Region3
 local Entity = _radiant.om.Entity
 local log = radiant.log.create_logger('entities')
+local rng = _radiant.csg.get_default_rng()
 
 function entities.__init()
 end
@@ -192,6 +193,18 @@ function entities.get_world_grid_location(entity)
       error(tostring(entity) .. ' has no mob component')
    end
    return mob:get_world_grid_location()
+end
+
+--- Given an object, find a place near it
+-- TODO: this could pick something down a cliff or across a long fence...
+function entities.pick_nearby_location(entity, radius)
+   local target_location = entities.get_world_grid_location(entity)
+   local dx = rng:get_int(-radius, radius)
+   local dz = rng:get_int(-radius, radius)
+   local destination = Point3(target_location)
+   destination.x = destination.x + dx
+   destination.z = destination.z + dz
+   return destination
 end
 
 function entities.grid_distance_between(object_a, object_b)

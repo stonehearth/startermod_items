@@ -54,6 +54,9 @@ function InventoryTracker:_on_entity_add(id, entity)
          -- question: do we need to know all the entities?  is it enough to just know
          -- a count of the entities?  certainly for the item picker, just a count should
          -- be enough... tony
+         -- Well, you need to know the items so you can do stuff to them
+         -- (like, tell a worker which item to pick up and place).
+         -- For quantities, just use a quantity tracker. --sdee
          table.insert(entities_of_this_type, entity)
       else
          entities_of_this_type = {}

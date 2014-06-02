@@ -88,12 +88,7 @@ function CombatPaceKeeper:can_spawn_scenario(scenario)
   local max_strength = props.max_strength and props.max_strength or 999999
 
   -- Check strength of the player's army.
-  if military_strength < min_strength or military_strength >= max_strength then
-    return false
-  end
-
-  -- Finally, check if the scenario itself has specific run-time spawn requirements.
-  return scenario.scenario.can_spawn()
+  return military_strength >= min_strength and military_strength < max_strength
 end
 
 return CombatPaceKeeper

@@ -9,32 +9,17 @@ function DynamicScenarioService:initialize()
    if not self._sv.running_scenarios then
       self._sv.running_scenarios = {}
       self._sv.last_spawn_times = {}
-   else
-      radiant.events.listen_once(radiant, 'radiant:game_loaded', function(e)
-            for idx, sv in pairs(self._sv.running_scenarios) do
-               local scenario_data = sv:get_data()
-               local scenario = {
-                  scenario = radiant.mods.load_script(scenario_data._scenario_script_path),
-                  properties = {
-                     script = scenario_data._scenario_script_path
-                  }
-               }
-               self._sv.running_scenarios[idx] = self:_init_scenario(scenario, sv)
-            end
-            self.__saved_variables:mark_changed()
-         end)
+      self._sv._scenarios = {}
+      self:_parse_scenario_index()
    end
-
-   self._dm = stonehearth.dm
-   self:_parse_scenario_index()
 end
 
 
 function DynamicScenarioService:force_spawn_scenario(scenario_name)
-   for _, scenario_sets in pairs(self._scenarios) do
+   for _, scenario_sets in pairs(self._sv._scenarios) do
       for _, scenario in pairs(scenario_sets) do
          if scenario.properties.name == scenario_name then
-            local new_scenario = self:_init_scenario(scenario, nil)
+            local new_scenario = self:_create_scenario(scenario)
             new_scenario:start()
             table.insert(self._sv.running_scenarios, new_scenario)
             return new_scenario
@@ -48,8 +33,12 @@ end
 -- through our list of scenarios for that type, and see if we find one that we
 -- can spawn.
 function DynamicScenarioService:try_spawn_scenario(scenario_type, pace_keepers)
+   if not self._sv._scenarios[scenario_type] then
+      return
+   end
+
    local valid_scenarios = {}
-   for _, scenario in pairs(self._scenarios[scenario_type]) do
+   for _, scenario in pairs(self._sv._scenarios[scenario_type]) do
       local valid_scenario = true
 
       -- Check each 'type' that the scenario implements, to ensure that it is
@@ -60,11 +49,15 @@ function DynamicScenarioService:try_spawn_scenario(scenario_type, pace_keepers)
       -- for the combat strength of the player to reach a certain level.
       for implementing_type,_ in pairs(scenario.properties.scenario_types) do
          local pace_keeper = pace_keepers[implementing_type]
+         local temp_scenario = self:_create_scenario(scenario)
+
          if not pace_keeper:willing_to_spawn() or 
-            not pace_keeper:is_valid_scenario(scenario) then
+            not pace_keeper:is_valid_scenario(scenario) or
+            not temp_scenario:can_spawn() then
             valid_scenario = false
             break
          end
+         temp_scenario = nil
       end
 
       if valid_scenario then
@@ -95,12 +88,12 @@ function DynamicScenarioService:try_spawn_scenario(scenario_type, pace_keepers)
    -- a scenario of that type.
    for implementing_type,_ in pairs(best_scenario.properties.scenario_types) do
       pace_keepers[implementing_type]:clear_buildup()
-      pace_keepers[implementing_type]:spawning_scenario(best_scenario.scenario)
+      pace_keepers[implementing_type]:spawning_scenario(best_scenario)
    end
 
    log:spam('Spawning new %s scenario %s', scenario_type, best_scenario.properties.name)
    
-   local new_scenario = self:_init_scenario(best_scenario, nil)
+   local new_scenario = self:_create_scenario(best_scenario)
    new_scenario:start()
    table.insert(self._sv.running_scenarios, new_scenario)
 
@@ -142,31 +135,28 @@ end
 
 
 function DynamicScenarioService:_parse_scenario_index()
-   self._scenarios = {}
-
    local scenario_index = radiant.resources.load_json('stonehearth:scenarios:scenario_index')
-   local properties = nil
 
    for _, file in pairs(scenario_index.dynamic.scenarios) do
-      properties = radiant.resources.load_json(file)
+      local properties = radiant.resources.load_json(file)
       for scenario_type,_ in pairs(properties.scenario_types) do
-         if self._scenarios[scenario_type] == nil then
-            self._scenarios[scenario_type] = {}
+         if self._sv._scenarios[scenario_type] == nil then
+            self._sv._scenarios[scenario_type] = {}
          end
          local scenario_data = {
-            scenario = radiant.mods.load_script(properties.script),
+            uri = properties.uri,
             properties = properties,
             buildup = 0
          }
-         table.insert(self._scenarios[scenario_type], scenario_data)
+         table.insert(self._sv._scenarios[scenario_type], scenario_data)
       end
    end
 end
 
 
-function DynamicScenarioService:_init_scenario(scenario, opt_datastore)
-   local datastore = opt_datastore and opt_datastore or radiant.create_datastore()
-   local dyn_scenario = DynamicScenario(scenario.scenario, scenario.properties.script, datastore)
+function DynamicScenarioService:_create_scenario(scenario)
+   local actual_scenario = radiant.create_controller(scenario.uri)
+   local dyn_scenario = radiant.create_controller('stonehearth:dynamic_scenario', actual_scenario)
 
    return dyn_scenario
 end
