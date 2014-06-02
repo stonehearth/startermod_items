@@ -22,8 +22,8 @@ QubicleMatrix::~QubicleMatrix()
 radiant::uint32 QubicleMatrix::At(int x, int  y, int z) const
 {
    ASSERT(x >= 0 && x < size_.x);
-   ASSERT(y >= 0 && x < size_.y);
-   ASSERT(z >= 0 && x < size_.z);
+   ASSERT(y >= 0 && y < size_.y);
+   ASSERT(z >= 0 && z < size_.z);
 
    // .qb files iterate over pixels in this direction
    //  (z (y (x))
@@ -45,8 +45,8 @@ csg::Color3 QubicleMatrix::GetColor(radiant::uint32 value) const
 void QubicleMatrix::Set(int x, int y, int z, radiant::uint32 value)
 {
    ASSERT(x >= 0 && x < size_.x);
-   ASSERT(y >= 0 && x < size_.y);
-   ASSERT(z >= 0 && x < size_.z);
+   ASSERT(y >= 0 && y < size_.y);
+   ASSERT(z >= 0 && z < size_.z);
 
    x = size_.x - x - 1;  // See ::Get()
 
