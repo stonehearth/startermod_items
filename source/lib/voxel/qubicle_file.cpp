@@ -21,10 +21,17 @@ QubicleMatrix::~QubicleMatrix()
 
 radiant::uint32 QubicleMatrix::At(int x, int  y, int z) const
 {
-   // Left handed .qb files iterate over pixels in
-   // this direction
+   ASSERT(x >= 0 && x < size_.x);
+   ASSERT(y >= 0 && x < size_.y);
+   ASSERT(z >= 0 && x < size_.z);
+
+   // .qb files iterate over pixels in this direction
    //  (z (y (x))
 
+   // Qubicle orders voxels in the file as if we were looking at the model from the
+   // front.  The x coordinate we're looking for is actually on the other side.
+   x = size_.x - x - 1;
+   
    int offset = x + (size_.x * y) + (size_.x * size_.y * z);
    return matrix_[offset];
 }
@@ -37,17 +44,16 @@ csg::Color3 QubicleMatrix::GetColor(radiant::uint32 value) const
 
 void QubicleMatrix::Set(int x, int y, int z, radiant::uint32 value)
 {
+   ASSERT(x >= 0 && x < size_.x);
+   ASSERT(y >= 0 && x < size_.y);
+   ASSERT(z >= 0 && x < size_.z);
+
+   x = size_.x - x - 1;  // See ::Get()
+
    int offset = x + (size_.x * y) + (size_.x * size_.y * z);
    matrix_[offset] = value;
 }
 
-// Qubicle Constructor determines the model origin by taking the center of the bounding box of the matrix.
-// To ensure the origin is correct, make sure the bounding box is centered about the y axis.
-// For bounding boxes with even widths/lengths the y axis will poke out of the center of the model.
-// For bounding boxes with odd widths/lengths, the center voxel should be in the positive x,z quadrant of the y axis.
-// It helps a lot to get a tight bounding box by using the Modify->Optimize Size command.
-// Note that Qubicle Constructor does not preseve the same model center when exporting to left handed coordinate system
-// when the bounding box has an odd length. This is corrected in the code below.
 std::istream& QubicleMatrix::Read(const QbHeader& header, CoordinateSystem coordinate_system, std::istream& in)
 {
    in.read((char *)&size_.x, sizeof(uint32));
@@ -63,12 +69,6 @@ std::istream& QubicleMatrix::Read(const QbHeader& header, CoordinateSystem coord
    int len = size_.x * size_.y * size_.z;
    matrix_.resize(len);
    in.read((char *)matrix_.data(), len * sizeof(uint32));
-
-   if (coordinate_system == CoordinateSystem::LeftHanded) {
-      // Correct for rounding error when Qubicle Constructor translates and inverts the z-axis
-      // for left handed coordinate system during export
-      position_.z += size_.z % 2;
-   }
 
    return in;
 }

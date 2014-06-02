@@ -94,22 +94,26 @@ AnimationPtr ResourceManager2::LoadAnimation(std::string const& canonical_path) 
          buffer = reader.str();
       }
       in.close();
-   }
-   if (buffer.empty()) {
-      JSONNode node = libjson::parse(jsonfile);
-      std::string type = json::Node(node).get<std::string>("type", "");
-      if (type.empty()) {
-         throw InvalidResourceException(canonical_path, "'type' field missing");
+      AnimationPtr animation = std::make_shared<Animation>(buffer);
+      if (animation->IsValid()) {
+         return animation;
       }
-      if (type != "animation") {
-         throw InvalidResourceException(canonical_path, "node type is not 'animation'");
-      }      
-      buffer = Animation::JsonToBinary(node);
-      std::ofstream out(binfile.string(), std::ios::out | std::ios::binary);
-      out << jsonhash << '\0';
-      out.write(&buffer[0], buffer.size());
-      out.close();
    }
+
+   JSONNode node = libjson::parse(jsonfile);
+   std::string type = json::Node(node).get<std::string>("type", "");
+   if (type.empty()) {
+      throw InvalidResourceException(canonical_path, "'type' field missing");
+   }
+   if (type != "animation") {
+      throw InvalidResourceException(canonical_path, "node type is not 'animation'");
+   }      
+   buffer = Animation::JsonToBinary(node);
+   std::ofstream out(binfile.string(), std::ios::out | std::ios::binary);
+   out << jsonhash << '\0';
+   out.write(&buffer[0], buffer.size());
+   out.close();
+
    return std::make_shared<Animation>(buffer);
 }
 

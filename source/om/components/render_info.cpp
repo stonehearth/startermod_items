@@ -24,6 +24,7 @@ void RenderInfo::LoadFromJson(json::Node const& obj)
    material_ = obj.get<std::string>("material", "materials/voxel.material.xml");
    model_variant_ = obj.get<std::string>("model_variant", *model_variant_);
    animation_table_ = obj.get<std::string>("animation_table", *animation_table_);
+   model_origin_ = obj.get<csg::Point3f>("model_origin", csg::Point3f(0.5f, 0.0f, 0.5f));
 }
 
 void RenderInfo::SerializeToJson(json::Node& node) const
