@@ -1,17 +1,15 @@
 {
    "name" : "Immigration",
    "scenario_types" : {
-      "combat" : {
-        "min_strength" : 0,
-        "max_strength" : 1000
+      "population" : {
       }
    },
    "rarity" : "common",
-   "script" : "file(immigration.lua)", 
+   "uri" : "stonehearth:immigration", 
    "happiness_threshold" : 4,
    "food_threshold" : 10,
    "score_threshold" : 100,
-   "title" : "A Wholesome Traveller Approaches!",
+   "title" : "A traveller approaches your town.",
    "messages" : [
       "I've heard a lot about your town!", 
       "I'd like to join your town.", 

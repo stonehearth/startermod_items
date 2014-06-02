@@ -24,8 +24,8 @@ local Point3 = _radiant.csg.Point3
 -- > there's at least 10 food items
 -- > score is at least 100 
 -- (all these are set in immigration.json)
-function Immigration.can_spawn()
-   local immigration_data = radiant.resources.load_json('stonehearth:scenarios:immigration')
+function Immigration:can_spawn()
+   local immigration_data = self._immigration_data
    local score_data = stonehearth.score:get_scores_for_player('player_1'):get_score_data()
 
    local happiness_threshold = immigration_data.happiness_threshold
@@ -58,10 +58,7 @@ function Immigration.can_spawn()
    return true
 end
 
-function Immigration:__init(saved_variables)
-   self.__saved_variables = saved_variables
-   self._sv = self.__saved_variables:get_data()
-
+function Immigration:__init()
    --TODO: Test that the notice sticks around even after a save
 
    self._immigration_data =  radiant.resources.load_json('stonehearth:scenarios:immigration')

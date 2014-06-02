@@ -877,7 +877,10 @@
       "dynamic_scenario" : "file(services/server/dynamic_scenario/dynamic_scenario.lua)",
 
       "goblin_thief" : "file(scenarios/dynamic/goblin_thief/goblin_thief.lua)",
-      "goblin_brigands" : "file(scenarios/dynamic/goblin_brigands/goblin_brigands.lua)"
+      "goblin_brigands" : "file(scenarios/dynamic/goblin_brigands/goblin_brigands.lua)",
+
+      "immigration" : "file(scenarios/dynamic/immigration/immigration.lua)",
+      "immigration_failure" : "file(scenarios/dynamic/immigration_failure/immigration_failure.lua)"
    },
 
    "client_controllers" :  {

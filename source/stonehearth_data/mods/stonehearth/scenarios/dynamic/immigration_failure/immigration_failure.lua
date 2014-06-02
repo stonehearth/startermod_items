@@ -9,8 +9,8 @@ local Point3 = _radiant.csg.Point3
 
 --- Returns true if we're so poor that the traveller feels obliged to help
 --  TODO: account for which player; currently THIS IS HARDCODED!!
-function ImmigrationFailure.can_spawn()
-   local food_threshold = radiant.resources.load_json('stonehearth:scenarios:immigration_failure').edible_threshold
+function ImmigrationFailure:can_spawn()
+   local food_threshold = self._immigration_data.edible_threshold
    local score_data = stonehearth.score:get_scores_for_player('player_1')
    local last_edible_score = 0
    if score_data and score_data.resources and score_data.resources.edibles then
@@ -21,10 +21,7 @@ function ImmigrationFailure.can_spawn()
 end
 
 --TODO: account for player
-function ImmigrationFailure:__init(saved_variables)
-   self.__saved_variables = saved_variables
-   self._sv = self.__saved_variables:get_data()
-
+function ImmigrationFailure:__init()
    --TODO: Test that the notice sticks around even after a save
 
    --Read in the relevant data
