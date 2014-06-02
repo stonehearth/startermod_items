@@ -4,7 +4,11 @@ var StonehearthBulletinBoard;
    StonehearthBulletinBoard = SimpleClass.extend({
 
       components: {
-         "bulletins" : []
+         "bulletins" : {
+            "*" : {
+               "data" : {}
+            }
+         }
       },
 
       init: function() {
@@ -23,19 +27,32 @@ var StonehearthBulletinBoard;
          this._radiantTrace = new RadiantTrace();
          this._bulletinBoardTrace = this._radiantTrace.traceUri(this._bulletinBoardUri, this.components)
             .progress(function(bulletinBoard) {
-               // ok for length to be 0, but it must exist (i.e. it has to be serialized as an array)
-               if (bulletinBoard.bulletins && bulletinBoard.bulletins.length) {
+               if (bulletinBoard.bulletins) {
                   // TODO: replace this with a function that manages the queue of bulletins
                   // Note that the id of the bulletins are monotonically increasing
-                  var num_bulletins = bulletinBoard.bulletins.length;
-                  if (num_bulletins > 0) {
-                     var bulletin = bulletinBoard.bulletins[num_bulletins-1];
-                     $(top).trigger("bulletin_board_changed", bulletin.__self);
+                  var bulletinList = self._mapToList(bulletinBoard.bulletins);
+                  bulletinList.sort(function (a, b) {
+                     return a.creation_time - b.creation_time;
+                  });
 
+                  var num_bulletins = bulletinList.length;
+                  if (num_bulletins > 0) {
+                     var bulletin = bulletinList[num_bulletins-1];
+                     $(top).trigger("bulletin_board_changed", bulletin);
                      //App.stonehearth.bulletinBoard.lastBulletinId = bulletin.id;
                   }
                }
             });
+      },
+
+      _mapToList: function(map) {
+         var list = [];
+         $.each(map, function(key, value) {
+            if (key != "__self" && map.hasOwnProperty(key)) {
+               list.push(value);
+            }
+         });
+         return list;
       },
 
       getTrace: function() {

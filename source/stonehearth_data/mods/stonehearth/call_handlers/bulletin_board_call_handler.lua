@@ -10,9 +10,4 @@ function BulletinBoardCallHandler:remove_bulletin(session, response, bulletin_id
    response:resolve({})
 end
 
-function BulletinBoardCallHandler:trigger_bulletin_event(session, response, bulletin_id, event_name, ...)
-   local result = stonehearth.bulletin_board:trigger_event(bulletin_id, event_name, ...)
-   response:resolve({ result = result })
-end
-
 return BulletinBoardCallHandler

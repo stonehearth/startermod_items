@@ -545,8 +545,10 @@
       "professions:carpenter" : "file(professions/carpenter/carpenter_description.json)",
       "professions:weaver" : "file(professions/weaver/weaver_description.json)",
       "professions:trapper" : "file(professions/trapper/trapper_description.json)",
-      "professions:footman" : "file(professions/footman/footman_description.json)"
+      "professions:footman" : "file(professions/footman/footman_description.json)",
 
+      "bulletins:caravan" : "file(bulletins/caravan.json)",
+      "bulletins:goblin_thief" : "file(bulletins/goblin_thief.json)"
    },
    "functions" : {
       "save_browser_object": {

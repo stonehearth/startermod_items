@@ -1,8 +1,8 @@
 <script type="text/x-handlebars" data-template-name="bulletinNotification">
    <div id="bulletinNotification">
-      <div id="popup" {{bind-attr class=this.type}}>
+      <div id="popup" {{bind-attr class=this.data.type}}>
          <div class="inner">
-            {{this.title}}
+            {{this.data.title}}
          </div>
       </div>
    </div>
