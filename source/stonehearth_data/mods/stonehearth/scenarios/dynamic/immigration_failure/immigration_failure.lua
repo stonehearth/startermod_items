@@ -63,15 +63,15 @@ function ImmigrationFailure:start()
    }
 
    --Send the notice to the bulletin service. Should be parametrized by player
-   self._immigration_bulletin = stonehearth.bulletin_board:post_bulletin(session.player_id)
-            :set_title(title)
-            :set_description(message)
-            :set_callback('gift', notice, '_on_accepted')
+   --self._immigration_bulletin = stonehearth.bulletin_board:post_bulletin(session.player_id)
+   --         :set_title(title)
+   --         :set_description(message)
+   --         :set_callback('gift', notice, '_on_accepted')
 
    --Add a notice:
    stonehearth.events:add_entry(title .. ': ' .. message)
 
-   --Should we only drop the stuff if the user clicks on the bulletin? 
+   --TODO: only do this after the player has accepted the bulletin. 
    --For now, just call directly: 
    self:acknowledge(notice)
 end

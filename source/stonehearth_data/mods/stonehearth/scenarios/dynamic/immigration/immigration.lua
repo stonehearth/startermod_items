@@ -97,7 +97,9 @@ function Immigration:start()
       message = message
    }
 
-   --TODO: make this happen after a call handler? See how it plays?
+   --TODO: send bulletin when Albert has his new API
+
+   --TODO: make this happen after the player agrees to having the dude appear
    self:place_citizen(citizen)
 end
 
