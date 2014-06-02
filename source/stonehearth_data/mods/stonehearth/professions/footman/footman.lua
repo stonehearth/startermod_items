@@ -13,7 +13,7 @@ end
 
 function footman_class.demote(entity)
    -- TODO: unequip the weapon
-   assert('not implemented')
+   assert(false, 'not implemented')
 end
 
 return footman_class

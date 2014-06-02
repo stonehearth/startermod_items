@@ -5,13 +5,13 @@ $(document).ready(function(){
       notificationView: null
    }
 
-   $(top).on("bulletin_board_changed.alert_widget", function (_, bulletinuri) {
-         if (App.stonehearth.bulletinBoard.view) {
-           App.stonehearth.bulletinBoard.view.destroy();
-         }
+   $(top).on("bulletin_board_changed.alert_widget", function (_, bulletin) {
+      if (App.stonehearth.bulletinBoard.view) {
+         App.stonehearth.bulletinBoard.view.destroy();
+      }
 
-         App.stonehearth.bulletinBoard.view = App.gameView.addView(App.StonehearthBulletinNotification, { uri: bulletinuri });
-      });
+      App.stonehearth.bulletinBoard.view = App.gameView.addView(App.StonehearthBulletinNotification, { context: bulletin });
+   });
 });
 
 App.StonehearthBulletinNotification = App.View.extend({

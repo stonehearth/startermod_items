@@ -1,0 +1,8 @@
+{
+   "type" : "alert",
+   "title" : "Goblins are stealing your wood!",
+   "ui_view" : "",
+   "ui_data" : {
+      "description" : "Lorem ipsum dolor sit amet."
+   }
+}

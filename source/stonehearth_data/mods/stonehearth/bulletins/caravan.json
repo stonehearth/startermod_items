@@ -1,0 +1,8 @@
+{
+   "type" : "info",
+   "title" : "Caravan has arrived!",
+   "ui_view" : "",
+   "ui_data" : {
+      "description" : "Lorem ipsum dolor sit amet."
+   }
+}

@@ -6,107 +6,61 @@ function Bulletin:initialize(id)
    assert(self._sv)
 
    self._sv.id = id
-   self._sv.timestamp = radiant.gamestate.now()
-   self._sv.type = 'info'
-   self._sv.callbacks = {}
-
+   self._sv.creation_time = radiant.gamestate.now()
    self.__saved_variables:mark_changed()
 end
 
+-- unique id for the bulletin
 function Bulletin:get_id()
    return self._sv.id
 end
 
-function Bulletin:get_title()
-   return self._sv.title
-end
-
-function Bulletin:set_title(title)
-   self._sv.title = title
+-- static data that describes the bulletin
+-- this is typically the uri of the json file that contains the bulletin data
+function Bulletin:set_data(data)
+   self._sv.data = data
    self.__saved_variables:mark_changed()
    return self
 end
 
-function Bulletin:get_timestamp()
-   return self._sv.timestamp
+function Bulletin:get_data()
+   return self._sv.data
 end
 
-function Bulletin:set_timestamp(timestamp)
-   self._sv.timestamp = timestamp
+-- additional dynamic or non-text data that will be passed to the view
+function Bulletin:set_context(context)
+   self._sv.data = context
    self.__saved_variables:mark_changed()
    return self
 end
 
-function Bulletin:get_type()
-   return self._sv.type
+function Bulletin:get_context()
+   return self._sv.context
 end
 
-function Bulletin:set_type(type)
-   self._sv.type = type
+-- the object instance that created the bulletin that may also process callbacks
+-- this is typically used in javascript view as:
+--    radiant.call_obj(source, 'accepted', args);
+function Bulletin:set_source(source)
+   assert(source.__saved_variables, 'source must be a savable object')
+   self._sv.source = source
    self.__saved_variables:mark_changed()
    return self
 end
 
-function Bulletin:get_entity()
-   return self._sv.entity
+function Bulletin:get_source(source)
+   return self._sv.source
 end
 
-function Bulletin:set_entity(entity)
-   self._sv.entity = entity
+-- not typically called, the creation time is automatically set on construction
+function Bulletin:set_creation_time(creation_time)
+   self._sv.creation_time = creation_time
    self.__saved_variables:mark_changed()
    return self
 end
 
-function Bulletin:get_description()
-   return self._sv.description
-end
-
-function Bulletin:set_description(description)
-   self._sv.description = description
-   self.__saved_variables:mark_changed()
-   return self
-end
-
-function Bulletin:get_ui_view()
-   return self._sv.ui_view
-end
-
--- name of the ui view to invoke
-function Bulletin:set_ui_view(ui_view)
-   self._sv.ui_view = ui_view
-   self.__saved_variables:mark_changed()
-   return self
-end
-
-function Bulletin:get_ui_data()
-   return self._sv.ui_data
-end
-
--- arbitrary data that will be passed to the view
-function Bulletin:set_ui_data(ui_data)
-   self._sv.data = ui_data
-   self.__saved_variables:mark_changed()
-   return self
-end
-
--- when event_name is triggered by the UI, sobj:method_name(...) will get called
-function Bulletin:set_callback(event_name, sobj, method_name)
-   self._sv.callbacks[event_name] = {
-      sobj = sobj, -- TODO: make this an id that we can rehydrate on load
-      method_name = method_name,
-   }
-   self.__saved_variables:mark_changed()
-   return self
-end
-
-function Bulletin:trigger_event(event_name, ...)
-   local context = self._sv.callbacks[event_name]
-   local sobj = context.sobj
-   local method_name = context.method_name
-
-   -- TODO: rehydrate sobj on load
-   local fn = sobj[method_name]
-   return fn(sobj, ...)
+function Bulletin:get_creation_time()
+   return self._sv.creation_time
 end
 
 return Bulletin
