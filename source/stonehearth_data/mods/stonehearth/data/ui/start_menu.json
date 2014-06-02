@@ -82,7 +82,7 @@
       "icon" : "/stonehearth/ui/game/start_menu/images/town_banner.png",
       "hotkey" : "t",
       "game_mode" : "normal",
-      "clickSound": "stonehearth:sounds:ui:start_menu:trigger_click"
+      "clickSound": "stonehearth:sounds:banner_grab"
    },   
    "citizen_manager" : {
       "name" : "Manage Citizen",
