@@ -42,7 +42,7 @@ RenderMob::RenderMob(const RenderEntity& entity, om::MobPtr mob) :
 
 void RenderMob::RenderAxes()
 {
-   float d = 3;
+   float d = 4;
    H3DNode s = h3dRadiantAddDebugShapes(entity_.GetOriginNode(), "mob debug axes");
    h3dRadiantAddDebugLine(s, csg::Point3f::zero, csg::Point3f(d, 0, 0), csg::Color4(255, 0, 0, 255));
    h3dRadiantAddDebugLine(s, csg::Point3f::zero, csg::Point3f(0, d, 0), csg::Color4(0, 255, 0, 255));
@@ -88,7 +88,7 @@ void RenderMob::Move()
 
    bool result = h3dSetNodeTransMat(entity_.GetNode(), m.get_float_ptr());
    if (!result) {
-      M_LOG(1) << "failed to set transform on node " << node << ".";
+      M_LOG(1) << "failed to set transform on node " << entity_.GetNode() << ".";
    }
 }
 

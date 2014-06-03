@@ -19,15 +19,11 @@ struct RotatePoint<S, C, 0>
    }
 };
 
-// Many programming minutes in Wolfram Alpha (mainly struggling with its UI) were
-// spent generating these precomposed matrix multiplications (move over .5, .5,
-// rotate by x, move back .5, .5).  This shames me deeply...
-
 template <typename S>
-struct RotatePoint<S, 3, 90>
+struct RotatePoint<S, 3, 270>
 {
    Point<S, 3> operator()(Point<S, 3> const& p) {
-      return Point<S, 3>(1 - p.z, p.y, p.x);
+      return Point<S, 3>(-p.z, p.y, p.x);
    }
 };
 
@@ -35,15 +31,15 @@ template <typename S>
 struct RotatePoint<S, 3, 180>
 {
    Point<S, 3> operator()(Point<S, 3> const& p) {
-      return Point<S, 3>(1 - p.z, p.y, 1 - p.x);
+      return Point<S, 3>(-p.x, p.y, -p.z);
    }
 };
 
 template <typename S>
-struct RotatePoint<S, 3, 270>
+struct RotatePoint<S, 3, 90>
 {
    Point<S, 3> operator()(Point<S, 3> const& p) {
-      return Point<S, 3>(p.z, p.y, 1 - p.x);
+      return Point<S, 3>(p.z, p.y, -p.x);
    }
 };
 
@@ -63,6 +59,7 @@ struct RotateRegion
    Region<S, C> operator()(Region<S, C> const& region) {
       Region<S, C> result;
       for (Cube<S, C> c : region) {
+         LOG_(0) << "            rotating by " << D << " ->  in:" << c << " out:" << RotateCube<S, C, D>()(c);
          result.AddUnique(RotateCube<S, C, D>()(c));
       }
       return std::move(result);
@@ -82,6 +79,21 @@ Region<S, C> Rotated(Region<S, C> const &other, int degrees) {
    }
    ASSERT(false);
    return Region<S, C>();
+}
+
+template <typename S, int C>
+Cube<S, C> Rotated(Cube<S, C> const &other, int degrees) {
+   if (degrees == 0) {
+      return other;
+   } else if (degrees == 90) {
+      return RotateCube<S, C, 90>()(other);
+   } else if (degrees == 180) {
+      return RotateCube<S, C, 180>()(other);
+   } else if (degrees == 270) {
+      return RotateCube<S, C, 270>()(other);
+   }
+   ASSERT(false);
+   return Cube<S, C>();
 }
 
 END_RADIANT_CSG_NAMESPACE

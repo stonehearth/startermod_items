@@ -1,5 +1,7 @@
 #include "pch.h"
 #include "region.h"
+#include "csg/util.h"
+#include "csg/rotate_shape.h"
 
 using namespace ::radiant;
 using namespace ::radiant::om;
@@ -60,6 +62,61 @@ DeepRegionGuardPtr om::DeepTraceRegion(Region3BoxedPtrBoxed const& boxedRegionPt
 
    return result;
 }
+
+#pragma optimize( "", off )
+
+/*
+ * -- om::ToWorldSpace
+ *
+ * Transform `shape` from the coordinate system of `enity` to the world coordinate
+ * system, including transformation and rotation.
+ *
+ */
+template <typename Shape>
+Shape om::ToWorldSpace(Shape const& shape, om::EntityPtr entity)
+{
+   om::MobPtr mob = entity->GetComponent<om::Mob>();
+   if (!mob) {
+      return shape;
+   }
+
+   csg::Point3f localOrigin = mob->GetLocalOrigin();
+   csg::Point3 position = mob->GetWorldGridLocation();
+   csg::Quaternion const& orientation = mob->GetTransform().orientation;
+
+   csg::Point3f axis;
+   float radAngle;
+   orientation.get_axis_angle(axis, radAngle);
+
+   // Assumes rotation about the Y axis.
+   float degrees = radAngle * 180 / csg::k_pi;
+   int angle = (csg::ToClosestInt(degrees / 90) * 90) % 360;
+
+   if (localOrigin != csg::Point3f::zero) {
+      // Adjust the shape position based on our rotated local origin.  The local origin
+      // is almost always specified as a fractional unit (e.g.  (1.5, 0, 9.5)) to 
+      // position the render shape for the entity aligned to the grid.  Before we do
+      // the offset, take that slop off so the shapes is integer aligned.
+      csg::Point3f localOriginRotated = orientation.rotate(localOrigin);
+      position -= csg::ToClosestInt(localOriginRotated - csg::Point3f(0.5f, 0, 0.5f));
+   }
+   if (angle == 0) {
+      // If there's no rotation at all, we can just translate the shape to
+      // the accumulated position.  Not calling csg::Rotated() here saves
+      // a copy (which is important for regions!).
+      return shape.Translated(position);
+   }
+
+   // Rotate the shape to the correct orientation and move it to the
+   // world position.
+   return csg::Rotated(shape, angle).Translated(position);
+}
+
+template csg::Cube3 om::ToWorldSpace(csg::Cube3 const&, om::EntityPtr);
+template csg::Region3 om::ToWorldSpace(csg::Region3 const&, om::EntityPtr);
+
+#pragma optimize( "", on )
+
 
 #if 0
 Region3BoxedPromise::Region3BoxedPromise(Region3BoxedPtrBoxed const& boxedRegionPtrField, const char* reason)

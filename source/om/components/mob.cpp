@@ -17,7 +17,7 @@ void Mob::ConstructObject()
    Component::ConstructObject();
    transform_ = csg::Transform(csg::Point3f::zero, csg::Quaternion());
    local_origin_ = csg::Point3f::zero;
-   render_offseT_ = csg::Point3f::zero;
+   render_offset_ = csg::Point3f::zero;
    aabb_ = csg::Cube3f::zero;
    interpolate_movement_ = false;
    selectable_ = true;
