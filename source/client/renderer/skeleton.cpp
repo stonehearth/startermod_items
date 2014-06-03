@@ -84,6 +84,7 @@ H3DNode Skeleton::CreateBone(std::string const& bone)
 
    name << "...";
    H3DNode b = h3dAddGroupNode(_parent, name.str().c_str());
+   h3dSetNodeTransform(b, 0, 0, 0, 0, 0, 0, 1.0f, 1.0f, 1.0f);
    _bones[bone] = b;
 
    return b;

@@ -16,6 +16,7 @@ void RenderInfo::ConstructObject()
    Component::ConstructObject();
    scale_ = 0.1f;
    visible_ = true;
+   model_origin_ = csg::Point3f::zero;
 }
 
 void RenderInfo::LoadFromJson(json::Node const& obj)
