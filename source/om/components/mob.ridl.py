@@ -11,7 +11,9 @@ class Mob(Component):
 
 class Mob(Component):
    parent = dm.Boxed(std.weak_ptr(Entity()))
-   transform = dm.Boxed(csg.Transform)
+   transform = dm.Boxed(csg.Transform())
+   local_origin = dm.Boxed(csg.Point3f())
+   render_offset = dm.Boxed(csg.Point3f())
    aabb = dm.Boxed(csg.Cube3f)
    moving = dm.Boxed(c.bool())
    interpolate_movement = dm.Boxed(c.bool())

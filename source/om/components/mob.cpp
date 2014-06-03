@@ -16,6 +16,8 @@ void Mob::ConstructObject()
 {
    Component::ConstructObject();
    transform_ = csg::Transform(csg::Point3f::zero, csg::Quaternion());
+   local_origin_ = csg::Point3f::zero;
+   render_offseT_ = csg::Point3f::zero;
    aabb_ = csg::Cube3f::zero;
    interpolate_movement_ = false;
    selectable_ = true;
@@ -162,6 +164,8 @@ void Mob::LoadFromJson(json::Node const& obj)
 {
    SetInterpolateMovement(obj.get<bool>("interpolate_movement", false));
    transform_ = obj.get<csg::Transform>("transform", csg::Transform(csg::Point3f(0, 0, 0), csg::Quaternion(1, 0, 0, 0)));
+   local_origin_ = obj.get<csg::Point3f>("local_origin", csg::Point3f::zero);
+   render_offset_ = obj.get<csg::Point3f>("render_offset", csg::Point3f::zero);
    
    if (__str_to_type.empty()) {
       __str_to_type["humanoid"] = HUMANOID;
@@ -186,6 +190,8 @@ void Mob::SerializeToJson(json::Node& node) const
    Component::SerializeToJson(node);
 
    node.set("transform", GetTransform());
+   node.set("local_origin", GetLocalOrigin());
+   node.set("render_offset", GetRenderOffset());
    node.set("entity", GetEntityPtr()->GetStoreAddress());
    node.set("moving", GetMoving());
    node.set("interpolate_movement", GetInterpolateMovement());

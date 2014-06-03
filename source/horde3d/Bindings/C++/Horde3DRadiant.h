@@ -12,7 +12,7 @@ DLL H3DNode h3dRadiantAddDebugShapes(H3DNode parent, const char* name);
 DLL bool h3dRadiantDecodeDebugShapes(H3DNode node, const ::radiant::protocol::shapelist &shapes);
 DLL bool h3dRadiantClearDebugShape(H3DNode node);
 DLL bool h3dRadiantAddDebugBox(H3DNode node, const ::radiant::csg::Cube3f& box, const ::radiant::csg::Color4& color);
-DLL bool h3dRadiantAddDebugRegion(H3DNode node, const ::radiant::csg::Region3& rgn, const ::radiant::csg::Color4& color);
+DLL bool h3dRadiantAddDebugRegion(H3DNode node, const ::radiant::csg::Region3& rgn, ::radiant::csg::Point3f const& offset, const ::radiant::csg::Color4& color);
 DLL bool h3dRadiantAddDebugQuadXZ(H3DNode node, const ::radiant::csg::Point3f& p0, const ::radiant::csg::Point3f& p1, const ::radiant::csg::Color4& color);
 DLL bool h3dRadiantAddDebugLine(H3DNode node, const ::radiant::csg::Point3f& p0, const ::radiant::csg::Point3f& p1, const ::radiant::csg::Color4& color);
 DLL bool h3dRadiantCommitDebugShape(H3DNode node);

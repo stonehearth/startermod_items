@@ -22,7 +22,7 @@ void client::CreateRegionDebugShape(H3DNode parent,
 
    trace->OnChanged([s, color](csg::Region3 const& r) {
          h3dRadiantClearDebugShape(s);
-         h3dRadiantAddDebugRegion(s, r, color);
+         h3dRadiantAddDebugRegion(s, r, csg::Point3f::zero, color);
          h3dRadiantCommitDebugShape(s);
       })
       ->PushObjectState();

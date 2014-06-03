@@ -8,6 +8,7 @@
 #include "dm/set_trace.h"
 #include "om/components/model_variants.ridl.h"
 #include "om/components/render_info.ridl.h"
+#include "om/components/mob.ridl.h"
 #include "Horde3DUtils.h"
 #include "resources/res_manager.h"
 #include "lib/perfmon/perfmon.h"
@@ -241,7 +242,7 @@ void RenderRenderInfo::AddModelNode(om::RenderInfoPtr render_info, std::string c
    RI_LOG(7) << "adding model node for bone " << bone;
 
    bool useSkeletonOrigin = !render_info->GetAnimationTable().empty();
-   csg::Point3f origin = render_info->GetModelOrigin();
+   csg::Point3f origin = csg::Point3f::zero;
 
    if (useSkeletonOrigin) {
       auto i = bones_offsets_.find(bone);
@@ -254,9 +255,6 @@ void RenderRenderInfo::AddModelNode(om::RenderInfoPtr render_info, std::string c
          origin = csg::Point3f(origin.x, origin.z, origin.y);
       }
    }
-   float scale = render_info->GetScale();
-
-   H3DNode parent = entity_.GetSkeleton().GetSceneNode(bone);
    
    ResourceCacheKey key;
    key.AddElement("origin", origin);
@@ -300,6 +298,9 @@ void RenderRenderInfo::AddModelNode(om::RenderInfoPtr render_info, std::string c
          csg::RegionToMesh(all_models, mesh, -meshOrigin, true);
       }
    };
+
+   float scale = render_info->GetScale();
+   H3DNode parent = entity_.GetSkeleton().GetSceneNode(bone);
 
    RenderNodePtr node = RenderNode::CreateSharedCsgMeshNode(parent, key, generate_matrix);
 

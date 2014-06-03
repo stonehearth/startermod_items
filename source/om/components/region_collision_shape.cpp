@@ -56,7 +56,9 @@ void RegionCollisionShape::LoadFromJson(json::Node const& obj)
                csg::Point3 size = matrix->GetSize();
                csg::Point3 pos  = matrix->GetPosition();
 
-               int xOffset = pos.x * 2 + size.x - 1 ;
+               // Convert left to right handed without messing up facing by sliding
+               // the model over rather than flipping the coords
+               int xOffset = pos.x * 2 + size.x;
                shape += model.Translated(csg::Point3(-xOffset, 0, 0));
             }
          };

@@ -323,12 +323,12 @@ DLL bool h3dRadiantAddDebugBox(H3DNode node, const csg::Cube3f& box, const csg::
    return true;
 }
 
-DLL bool h3dRadiantAddDebugRegion(H3DNode node, const csg::Region3& rgn, const csg::Color4& color)
+DLL bool h3dRadiantAddDebugRegion(H3DNode node, const csg::Region3& rgn, csg::Point3f const& offset, const csg::Color4& color)
 {
 	SceneNode *sn = Modules::sceneMan().resolveNodeHandle(node);
    APIFUNC_VALIDATE_NODE_TYPE(sn, SNT_DebugShapesNode, "h3dRadiantAddDebugRegion", false);
 
-   static_cast<DebugShapesNode*>(sn)->add_region(rgn, color);
+   static_cast<DebugShapesNode*>(sn)->add_region(rgn, color, offset);
    return true;
 }
 

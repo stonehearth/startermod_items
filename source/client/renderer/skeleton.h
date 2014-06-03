@@ -7,9 +7,11 @@
 
 BEGIN_RADIANT_CLIENT_NAMESPACE
 
+class RenderEntity;
+
 class Skeleton {
    public:
-      Skeleton();
+      Skeleton(RenderEntity& re);
       ~Skeleton();
 
       void SetSceneNode(H3DNode parent);
@@ -20,13 +22,12 @@ class Skeleton {
       void SetScale(float scale) { _scale = scale; }
       float GetScale() const { return _scale; }
       void ApplyScaleToBones();
-      H3DNode GetRootNode() const { return _parent; }
 
    private:
       H3DNode CreateBone(std::string const& bone);
 
    protected:
-      H3DNode                                _parent;
+      RenderEntity&                          _renderEntity;
       std::map<std::string, H3DNode>         _bones;
       float                                  _scale;
 };

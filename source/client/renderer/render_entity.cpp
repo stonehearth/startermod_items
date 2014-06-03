@@ -46,6 +46,7 @@ RenderEntity::RenderEntity(H3DNode parent, om::EntityPtr entity) :
    entity_(entity),
    entity_id_(entity->GetObjectId()),
    initialized_(false),
+   skeleton_(*this),
    visible_override_(true)
 {
    ASSERT(parent);
@@ -54,21 +55,21 @@ RenderEntity::RenderEntity(H3DNode parent, om::EntityPtr entity) :
 
    node_name_ = BUILD_STRING("(" << *entity << " store:" << entity->GetStoreId() 
                                  << " id:" << entity_id_ << ")");
+   std::string offsetNodeName = BUILD_STRING(node_name_ << " offset");
 
    totalObjectCount_++;
-   node_ = H3DNodeUnique(h3dAddGroupNode(parent, node_name_.c_str()));
-
-   skeleton_.SetSceneNode(node_.get());
+   node_ = h3dAddGroupNode(parent, node_name_.c_str());
+   offsetNode_ = h3dAddGroupNode(node_, offsetNodeName.c_str());
 
    // xxx: convert to something more dm::Trace like...
-   selection_guard_ = Renderer::GetInstance().SetSelectionForNode(node_.get(), entity);
+   selection_guard_ = Renderer::GetInstance().SetSelectionForNode(node_, entity);
 
    query_flags_ = 0;
 }
 
 void RenderEntity::FinishConstruction()
 {
-   nodeToRenderEntity[node_.get()] = shared_from_this();
+   nodeToRenderEntity[node_] = shared_from_this();
 
    auto entity = GetEntity();
    if (entity) {
@@ -104,9 +105,11 @@ void RenderEntity::FinishConstruction()
 
 RenderEntity::~RenderEntity()
 {
-   nodeToRenderEntity.erase(node_.get());
+   nodeToRenderEntity.erase(node_);
 
    Destroy();
+   h3dRemoveNode(node_);
+   h3dRemoveNode(offsetNode_);
    totalObjectCount_--;
 }
 
@@ -140,17 +143,22 @@ void RenderEntity::SetParent(H3DNode parent)
    if (!parent) {
       parent = RenderNode::GetUnparentedNode();
    }
-   h3dSetNodeParent(node_.get(), parent);
+   h3dSetNodeParent(node_, parent);
 }
 
 H3DNode RenderEntity::GetParent() const
 {
-   return h3dGetNodeParent(node_.get());
+   return h3dGetNodeParent(node_);
 }
 
 H3DNode RenderEntity::GetNode() const
 {
-   return node_.get();
+   return offsetNode_;
+}
+
+H3DNode RenderEntity::GetOriginNode() const
+{
+   return node_;
 }
 
 std::string const& RenderEntity::GetName() const
@@ -291,7 +299,7 @@ void RenderEntity::RemoveComponent(std::string const& name)
 
 void RenderEntity::SetSelected(bool selected)
 {
-   h3dTwiddleNodeFlags(node_.get(), H3DNodeFlags::Selected, selected, true);
+   h3dTwiddleNodeFlags(node_, H3DNodeFlags::Selected, selected, true);
 }
 
 dm::ObjectId RenderEntity::GetObjectId() const
@@ -361,7 +369,7 @@ bool RenderEntity::HasQueryFlag(int flag) const
 
 void RenderEntity::ForAllSceneNodes(std::function<void(H3DNode node)> fn)
 {
-   ForAllSceneNodes(node_.get(), fn);
+   ForAllSceneNodes(node_, fn);
 }
 
 

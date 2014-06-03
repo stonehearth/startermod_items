@@ -1,12 +1,12 @@
 {
    "components": {
       "unit_info": {
-         "name": "2x2 model pos:(0, 0)", 
-         "portrait": "file(2x2.png)"
+         "name": "3x3 model pos:(0, 0)", 
+         "portrait": "file(3x3.png)"
       }, 
       "mob" : {
-         "local_origin" : { "x": 0, "y": 0, "z": 0 },
-         "render_offset" : { "x": -0.5, "y": 0, "z": -0.5 }
+         "local_origin" : { "x": -1.5, "y": 0, "z": 1.5 },
+         "render_offset" : { "x": 0, "y": 0, "z": 0 }
       },
       "render_info" : {
          "scale" : 1
@@ -17,7 +17,7 @@
                {
                   "type": "one_of",
                   "items": [
-                     "file(2x2_0_0.qb)"
+                     "file(3x3_0_0.qb)"
                   ]
                }
             ]
@@ -25,7 +25,7 @@
       }, 
       "region_collision_shape" : {
          "region_from_model": {
-            "model" : "file(2x2_0_0.qb)"
+            "model" : "file(3x3_0_0.qb)"
          }
       }
    }

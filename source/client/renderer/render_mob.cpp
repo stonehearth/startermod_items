@@ -42,8 +42,8 @@ RenderMob::RenderMob(const RenderEntity& entity, om::MobPtr mob) :
 
 void RenderMob::RenderAxes()
 {
-   float d = 20;
-   H3DNode s = h3dRadiantAddDebugShapes(entity_.GetNode(), "mob debug axes");
+   float d = 3;
+   H3DNode s = h3dRadiantAddDebugShapes(entity_.GetOriginNode(), "mob debug axes");
    h3dRadiantAddDebugLine(s, csg::Point3f::zero, csg::Point3f(d, 0, 0), csg::Color4(255, 0, 0, 255));
    h3dRadiantAddDebugLine(s, csg::Point3f::zero, csg::Point3f(0, d, 0), csg::Color4(0, 255, 0, 255));
    h3dRadiantAddDebugLine(s, csg::Point3f::zero, csg::Point3f(0, 0, d), csg::Color4(0, 0, 255, 255));
@@ -65,14 +65,28 @@ void RenderMob::Move()
    _current.orientation.Normalize();
    ASSERT(_current.orientation.is_unit());
 
-   csg::Matrix4 m(_current.orientation);
-   
-   m[12] = _current.position.x;
-   m[13] = _current.position.y;
-   m[14] = _current.position.z;
+   // Move the local origin of the render entity to the exact position of the mob.
+   h3dSetNodeTransform(entity_.GetOriginNode(), _current.position.x, _current.position.y, _current.position.z, 0, 0, 0, 1, 1, 1);
 
-   H3DNode node = entity_.GetNode();
-   bool result = h3dSetNodeTransMat(node, m.get_float_ptr());
+   // Offset the node for the entity (which contains all the renderables) by the local
+   // origin, the render offset, and the current rotation.
+   csg::Matrix4 m;   
+   om::MobPtr mob = mob_.lock();
+   if (mob) {
+      csg::Point3f const& renderOffset = mob->GetRenderOffset();
+      csg::Point3f localOrigin = mob->GetLocalOrigin();
+      csg::Matrix4 localOriginInvMat, localOriginMat, renderOffsetMat;
+
+      renderOffsetMat.set_translation(renderOffset);
+      localOriginMat.set_translation(localOrigin);          // local origin
+      localOriginInvMat.set_translation(-localOrigin);      // Inverse of the local origin
+      csg::Matrix4 rotation(_current.orientation);
+
+      // m = localOriginInvMat * rotation * localOriginMat;
+      m = renderOffsetMat * rotation * localOriginInvMat;
+   }
+
+   bool result = h3dSetNodeTransMat(entity_.GetNode(), m.get_float_ptr());
    if (!result) {
       M_LOG(1) << "failed to set transform on node " << node << ".";
    }
