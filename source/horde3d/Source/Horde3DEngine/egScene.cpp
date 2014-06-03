@@ -417,10 +417,7 @@ void SpatialGraph::query(const SpatialQuery& query, RenderableQueues& renderable
    Modules::sceneMan().updateNodes();
 
    SCENE_LOG(9) << "running spatial graph query:";
-   // Make sure we check all child nodes for the 'selected' bit, even if the parent does not have it.
-   // This really sucks, and is fragile, but there is no good way of doing this with Horde :(
-   bool checkAllNodes = (query.filterIgnore & SceneNodeFlags::Selected) || (query.filterRequired & SceneNodeFlags::Selected) || query.userFlags != 0;
-   queryRec(_nodes[RootNode], query, renderableQueues, instanceQueues, lightQueue, checkAllNodes);
+   queryRec(_nodes[RootNode], query, renderableQueues, instanceQueues, lightQueue);
 
    // Sort
    if( query.order != RenderingOrder::None ) {
@@ -439,18 +436,18 @@ void SpatialGraph::query(const SpatialQuery& query, RenderableQueues& renderable
 }
 
 void SpatialGraph::queryRec(SceneNode* node, const SpatialQuery& query, RenderableQueues& renderableQueues, 
-                            InstanceRenderableQueues& instanceQueues, std::vector<SceneNode*>& lightQueue, bool checkAllNodes)
+                            InstanceRenderableQueues& instanceQueues, std::vector<SceneNode*>& lightQueue)
 {
-   bool processChildren = queryNode(node, query, renderableQueues, instanceQueues, lightQueue, checkAllNodes);
+   bool processChildren = queryNode(node, query, renderableQueues, instanceQueues, lightQueue);
    if (processChildren) {
       for (SceneNode *child : node->_children) {
-         queryRec(child, query, renderableQueues, instanceQueues, lightQueue, checkAllNodes);
+         queryRec(child, query, renderableQueues, instanceQueues, lightQueue);
       }
    }
 }
 
 bool SpatialGraph::queryNode(SceneNode* node, const SpatialQuery& query, RenderableQueues& renderableQueues, 
-                             InstanceRenderableQueues& instanceQueues, std::vector<SceneNode*>& lightQueue, bool checkAllNodes)
+                             InstanceRenderableQueues& instanceQueues, std::vector<SceneNode*>& lightQueue)
 {
    if (node == 0x0) {
       SCENE_LOG(9) << "  node is null!  ignoring.";
@@ -463,15 +460,15 @@ bool SpatialGraph::queryNode(SceneNode* node, const SpatialQuery& query, Rendera
    
    if (flags & query.filterIgnore) {
       QUERY_LOG() << "flags " << FlagsToString(flags) << " intersect query ignore flags " << FlagsToString(query.filterIgnore) << ".  ignorning.";
-      return checkAllNodes;
+      return false;
    }
    if ((flags & query.filterRequired) != query.filterRequired) {
       QUERY_LOG() << "flags " << FlagsToString(flags) << " do not match query required flags " << FlagsToString(query.filterRequired) << ".  ignorning.";
-      return checkAllNodes;
+      return false;
    }
    if ((node->_userFlags & query.userFlags) != query.userFlags) {
       QUERY_LOG() << "user flags " << FlagsToString(node->_userFlags) << " do not match query user flags" << FlagsToString(query.userFlags) << ".  ignorning.";
-      return checkAllNodes;
+      return false;
    }
 
    if (query.useRenderableQueue) {
