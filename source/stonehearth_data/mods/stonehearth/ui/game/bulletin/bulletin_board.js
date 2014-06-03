@@ -15,7 +15,6 @@ var StonehearthBulletinBoard;
          var self = this;
 
          self._lastViewedBulletinId = -1;
-         self._bulletins = [];
 
          radiant.call('stonehearth:get_bulletin_board_datastore')
             .done(function(response) {
@@ -38,7 +37,8 @@ var StonehearthBulletinBoard;
                      return a.id - b.id;
                   });
 
-                  self._bulletins = bulletinList;
+                  self._bulletinBoard = bulletinBoard;
+                  bulletinBoard.set('sortedBulletins', bulletinList);
                   self._tryShowNextBulletin();
                }
             });
@@ -61,7 +61,7 @@ var StonehearthBulletinBoard;
             return;
          }
 
-         var bulletins = self._bulletins;
+         var bulletins = self._bulletinBoard.get('sortedBulletins');
          var numBulletins = bulletins.length;
 
          for (var i = 0; i < numBulletins; i++) {
@@ -80,10 +80,33 @@ var StonehearthBulletinBoard;
          self._lastViewedBulletinId = bulletin.id;
       },
 
+      showListView: function() {
+         // toggle the view
+         if (!this._bulletinListView || this._bulletinListView.isDestroyed) {
+            this._bulletinListView = App.gameView.addView(App.StonehearthBulletinList, { context: this._bulletinBoard });
+         } else {
+            this._bulletinListView.destroy();
+         }
+      },
+
       showDialogView: function(bulletin) {
          var self = this;
          var detailViewName = bulletin.config.ui_view;
          self._bulletinDialogView = App.gameView.addView(App[detailViewName], { context: bulletin })
+      },
+
+      showDialogViewForId: function(bulletinId) {
+         var self = this;
+         var bulletins = self._bulletinBoard.get('sortedBulletins');
+         var numBulletins = bulletins.length;
+
+         for (var i = 0; i < numBulletins; i++) {
+            var bulletin = bulletins[i]; 
+            if (bulletin.id == bulletinId) {
+               self.showDialogView(bulletin);
+               return;
+            }
+         }
       },
 
       onNotificationViewDestroyed: function () {
