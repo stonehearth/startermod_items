@@ -54,7 +54,7 @@ function ImmigrationFailure:start()
    local statement = self._immigration_data.outcome_statement .. reward_name
    message = message .. statement
 
-   local notice = {
+   self._notice = {
       title = title, 
       message = message, 
       reward = reward_uri, 
@@ -63,23 +63,27 @@ function ImmigrationFailure:start()
    }
 
    --Send the notice to the bulletin service. Should be parametrized by player
-   --self._immigration_bulletin = stonehearth.bulletin_board:post_bulletin(session.player_id)
-   --         :set_title(title)
-   --         :set_description(message)
-   --         :set_callback('gift', notice, '_on_accepted')
+   self._immigration_bulletin = stonehearth.bulletin_board:post_bulletin(session.player_id)
+           :set_config('stonehearth:bulletins:caravan')
+           :set_callback_instance(self)
+           :set_data({
+               title = title,
+               message = message,
+           })
 
    --Add a notice:
    stonehearth.events:add_entry(title .. ': ' .. message)
 
    --TODO: only do this after the player has accepted the bulletin. 
    --For now, just call directly: 
-   self:acknowledge(notice)
+   --self:acknowledge(notice)
 end
 
 --- Once the user has acknowledged the bulletin, add the target reward beside the banner
 --  TODO: go to the gift location?
 --  @param notice_data - this is the exact same blob of data passed into the client. 
-function ImmigrationFailure:acknowledge(notice_data) 
+function ImmigrationFailure:acknowledge()
+   local notice_data = self._notice
    local town = stonehearth.town:get_town(notice_data.player_id)
    local banner_entity = town:get_banner()
 
@@ -96,9 +100,9 @@ end
 
 --- Only actually spawn the thing after the user clicks OK?
 --  TODO: not actually used yet
-function ImmigrationFailure:_on_accepted(notice)
+function ImmigrationFailure:_on_accepted()
    --TODO: rig this up with the UI
-   self:acknowledge(notice)
+   self:acknowledge(self._notice)
 end
 
 return ImmigrationFailure

@@ -6,7 +6,7 @@ var StonehearthBulletinBoard;
       components: {
          "bulletins" : {
             "*" : {
-               "data" : {}
+               "config" : {}
             }
          }
       },
@@ -24,8 +24,8 @@ var StonehearthBulletinBoard;
       _createTrace: function() {
          var self = this;
 
-         this._radiantTrace = new RadiantTrace();
-         this._bulletinBoardTrace = this._radiantTrace.traceUri(this._bulletinBoardUri, this.components)
+         self._radiantTrace = new RadiantTrace();
+         self._bulletinBoardTrace = self._radiantTrace.traceUri(self._bulletinBoardUri, self.components)
             .progress(function(bulletinBoard) {
                if (bulletinBoard.bulletins) {
                   // TODO: replace this with a function that manages the queue of bulletins

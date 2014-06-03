@@ -18,7 +18,25 @@ App.StonehearthBulletinNotification = App.View.extend({
 	templateName: 'bulletinNotification',
 
    didInsertElement: function() {
+      // TODO: read these contsants from config
+      var bulletinNotificationDuration = 5000;
+      var bulletinNotificationFadeTime = 3000;
+      var self = this;
       this._super();
-      this.$('#bulletinNotification').pulse();
+
+      self.$('#bulletinNotification').pulse();
+
+      setTimeout(function() {
+         self.$('#bulletinNotification').fadeOut(bulletinNotificationFadeTime, 'swing', function() {
+            self.destroy();
+         });
+      }, bulletinNotificationDuration);
+
+      self.$('#popup').click(function() {
+         var context = self.get('context');
+         var detailViewName = context.config.ui_view;
+         self._detailView = App.gameView.addView(App[detailViewName], { context: context })
+         self.destroy();
+      });
    }
 });
