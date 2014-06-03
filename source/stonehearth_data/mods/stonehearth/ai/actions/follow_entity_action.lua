@@ -42,7 +42,9 @@ function FollowEntity:start_thinking(ai, entity, args)
    local function check_distance()
       local distance = radiant.entities.distance_between(entity, target)
       if distance > args.follow_distance then 
-         local location = self:_pick_nearby_location(target, settle_distance)
+         -- Note: this could pick a location off a cliff. Instead, maybe have the
+         -- person run towards and stop an arbirtray distance from the target?
+         local location = radiant.entities.pick_nearby_location(target, settle_distance)
          log:debug('starting to follow %s (distance: %.2f)', target, distance)
          ai:set_think_output({ location = location })
          if self._trace then
@@ -73,19 +75,6 @@ function FollowEntity:stop_thinking(ai, entity)
       self._trace:destroy()
       self._trace = nil
    end
-end
-
--- Err, this could pick something down a cliff or across a long fence...
--- maybe go to the actual target location but stop when within a certain distance
-function FollowEntity:_pick_nearby_location(target, settle_distance)
-   local target_location = radiant.entities.get_world_grid_location(target)
-   local radius = settle_distance
-   local dx = rng:get_int(-radius, radius)
-   local dz = rng:get_int(-radius, radius)
-   local destination = Point3(target_location)
-   destination.x = destination.x + dx
-   destination.z = destination.z + dz
-   return destination
 end
 
 local ai = stonehearth.ai

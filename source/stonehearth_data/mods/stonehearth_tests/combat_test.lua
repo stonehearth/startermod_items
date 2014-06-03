@@ -17,10 +17,10 @@ function CombatTest:__init()
    end
 
    local citizens = {
-      self:place_citizen(-15, -15, 'footman', 'stonehearth:wooden_sword'),
-      self:place_citizen( -7, -15, 'footman', 'stonehearth:wooden_sword'),
-      self:place_citizen(  1, -15, 'footman', 'stonehearth:wooden_sword'),
-      self:place_citizen(  9, -15, 'footman', 'stonehearth:wooden_sword'),
+      self:place_citizen(-15, -15, 'stonehearth:professions:footman', 'stonehearth:wooden_sword'),
+      self:place_citizen( -7, -15, 'stonehearth:professions:footman', 'stonehearth:wooden_sword'),
+      self:place_citizen(  1, -15, 'stonehearth:professions:footman', 'stonehearth:wooden_sword'),
+      self:place_citizen(  9, -15, 'stonehearth:professions:footman', 'stonehearth:wooden_sword'),
    }
 
    local enemies = {

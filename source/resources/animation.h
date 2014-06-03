@@ -18,9 +18,12 @@ public:
    typedef std::function<void(std::string&, const csg::Transform &)> AnimationFn;
    void MoveNodes(int32 timeOffset, AnimationFn fn);
    bool HasBone(std::string bone);
+   bool IsValid() const;
 
 protected:
    struct BinaryHeader {
+      uint32         size;
+      uint32         version;
       uint32         numBones;
       uint32         numFrames;
       uint32         framesPerSecond;

@@ -533,6 +533,9 @@
       "ambient:summer_night" : "file(data/ambient/sh_amb_summer_night.ogg)",
       
       "scenarios:scenario_index" : "file(scenarios/index.json)",
+      "scenarios:simple_caravan" : "file(scenarios/dynamic/simple_caravan/simple_caravan.json)",
+      "scenarios:immigration_failure" : "file(scenarios/dynamic/immigration_failure/immigration_failure.json)",
+      "scenarios:immigration" : "file(scenarios/dynamic/immigration/immigration.json)",
       "score_category_data" : "file(data/score/score_category_data.json)",
       "score_entity_data" : "file(data/score/score_entity_data.json)",
 
@@ -876,7 +879,10 @@
       "dynamic_scenario" : "file(services/server/dynamic_scenario/dynamic_scenario.lua)",
 
       "goblin_thief" : "file(scenarios/dynamic/goblin_thief/goblin_thief.lua)",
-      "goblin_brigands" : "file(scenarios/dynamic/goblin_brigands/goblin_brigands.lua)"
+      "goblin_brigands" : "file(scenarios/dynamic/goblin_brigands/goblin_brigands.lua)",
+
+      "immigration" : "file(scenarios/dynamic/immigration/immigration.lua)",
+      "immigration_failure" : "file(scenarios/dynamic/immigration_failure/immigration_failure.lua)"
    },
 
    "client_controllers" :  {
@@ -1001,6 +1007,8 @@
          "file(ui/game/promotion_wizard/promotion_wizard.html)",
          "file(ui/game/tip_popup/tip_popup.html)",
          "file(ui/game/bulletin/bulletin_notification/bulletin_notification.html)",
+         "file(ui/game/bulletin/bulletin_dialog/bulletin_dialog.html)",
+         "file(ui/game/bulletin/bulletin_list/bulletin_list.html)",
          "file(ui/game/event_log/event_log.html)",
          "file(ui/game/build/build.html)"
       ],
@@ -1055,6 +1063,8 @@
          "file(ui/game/tip_popup/tip_popup.js)",
          "file(ui/game/bulletin/bulletin_board.js)",
          "file(ui/game/bulletin/bulletin_notification/bulletin_notification.js)",         
+         "file(ui/game/bulletin/bulletin_dialog/bulletin_dialog.js)",
+         "file(ui/game/bulletin/bulletin_list/bulletin_list.js)",
          "file(ui/game/event_log/event_log.js)"
       ],
       "less" : [
@@ -1105,6 +1115,8 @@
          "file(ui/game/promotion_wizard/promotion_wizard.less)",
          "file(ui/game/tip_popup/tip_popup.less)",
          "file(ui/game/bulletin/bulletin_notification/bulletin_notification.less)",
+         "file(ui/game/bulletin/bulletin_dialog/bulletin_dialog.less)",
+         "file(ui/game/bulletin/bulletin_list/bulletin_list.less)",
          "file(ui/game/event_log/event_log.less)",
          "file(ui/game/build/build.less)"
       ]
