@@ -3,15 +3,15 @@ App.StonehearthBulletinNotification = App.View.extend({
 
    didInsertElement: function() {
       // TODO: read these contsants from config
-      var bulletinNotificationDuration = 5000;
-      var bulletinNotificationFadeTime = 3000;
+      var bulletinNotificationDuration = 4000;
+      var bulletinNotificationFadeTime = 500;
       var self = this;
       this._super();
 
       self.$('#bulletinNotification').pulse();
 
       setTimeout(function() {
-         self.$('#bulletinNotification').fadeOut(bulletinNotificationFadeTime, 'swing', function() {
+         self.$('#bulletinNotification').fadeOut(bulletinNotificationFadeTime, function() {
             self.destroy();
          });
       }, bulletinNotificationDuration);
