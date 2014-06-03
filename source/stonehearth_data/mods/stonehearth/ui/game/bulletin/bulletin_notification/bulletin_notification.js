@@ -1,19 +1,3 @@
-
-$(document).ready(function(){
-  
-   App.stonehearth.bulletinBoard = {
-      notificationView: null
-   }
-
-   $(top).on("bulletin_board_changed.alert_widget", function (_, bulletin) {
-      if (App.stonehearth.bulletinBoard.view) {
-         App.stonehearth.bulletinBoard.view.destroy();
-      }
-
-      App.stonehearth.bulletinBoard.view = App.gameView.addView(App.StonehearthBulletinNotification, { context: bulletin });
-   });
-});
-
 App.StonehearthBulletinNotification = App.View.extend({
 	templateName: 'bulletinNotification',
 
@@ -33,10 +17,14 @@ App.StonehearthBulletinNotification = App.View.extend({
       }, bulletinNotificationDuration);
 
       self.$('#popup').click(function() {
-         var context = self.get('context');
-         var detailViewName = context.config.ui_view;
-         self._detailView = App.gameView.addView(App[detailViewName], { context: context })
+         var bulletin = self.get('context');
+         App.bulletinBoard.showDialogView(bulletin);
          self.destroy();
       });
+   },
+
+   willDestroyElement: function() {
+      App.bulletinBoard.onNotificationViewDestroyed();
+      this._super();
    }
 });

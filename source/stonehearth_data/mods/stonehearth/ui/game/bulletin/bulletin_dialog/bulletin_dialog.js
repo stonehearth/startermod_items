@@ -29,4 +29,9 @@ App.StonehearthBulletinDialog = App.View.extend({
          self.destroy();
       });
    },
+
+   willDestroyElement: function() {
+      App.bulletinBoard.onDialogViewDestroyed();
+      this._super();
+   }
 });
