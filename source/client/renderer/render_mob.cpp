@@ -42,7 +42,7 @@ RenderMob::RenderMob(const RenderEntity& entity, om::MobPtr mob) :
 
 void RenderMob::RenderAxes()
 {
-   float d = 1.5;
+   float d = 20;
    H3DNode s = h3dRadiantAddDebugShapes(entity_.GetNode(), "mob debug axes");
    h3dRadiantAddDebugLine(s, csg::Point3f::zero, csg::Point3f(d, 0, 0), csg::Color4(255, 0, 0, 255));
    h3dRadiantAddDebugLine(s, csg::Point3f::zero, csg::Point3f(0, d, 0), csg::Color4(0, 255, 0, 255));

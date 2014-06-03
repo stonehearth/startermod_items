@@ -9,6 +9,7 @@
 #include "animation.h"
 #include "exceptions.h"
 #include "manifest.h"
+#include "lib/voxel/forward_defines.h"
 
 BEGIN_RADIANT_RES_NAMESPACE
 
@@ -33,6 +34,7 @@ public:
 
    std::string GetAliasUri(std::string const& mod_name, std::string const& alias_name) const;
    std::shared_ptr<std::istream> OpenResource(std::string const& stream) const;
+   voxel::QubicleFile const* OpenQubicleFile(std::string const& name);
 
 private:
    enum MixinMode {
@@ -40,6 +42,9 @@ private:
       MIX_OVER,
    };
 
+   typedef std::unordered_map<std::string, voxel::QubicleFilePtr> QubicleMap;
+
+private:
    JSONNode const& LookupJsonInternal(std::string const& path) const;
    Manifest LookupManifestInternal(std::string const& modname) const;
    ResourceManager2();
@@ -70,6 +75,7 @@ private:
    std::vector<std::string>                        module_names_;
    std::unordered_map<std::string, std::vector<std::string>> mixintos_;
    std::unordered_map<std::string, std::string>    overrides_;
+   QubicleMap                                      qubicle_files_;
    mutable std::recursive_mutex                    mutex_;
    mutable std::unordered_map<std::string, AnimationPtr> animations_;
    mutable std::unordered_map<std::string, std::shared_ptr<JSONNode>>     jsons_;

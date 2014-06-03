@@ -8,8 +8,8 @@
                {
                   "type": "one_of",
                   "items": [
-                     "file(small_oak_tree.qb)", 
-                     "file(small_oak_tree_2.qb)", 
+                     "file(small_oak_tree.qb)",
+                     "file(small_oak_tree_2.qb)",
                      "file(small_oak_tree_3.qb)"
                   ]
                }
@@ -28,18 +28,18 @@
       "destination" : {
          "region" : [
             {
-               "min" : { "x" : -3, "y" : 0, "z" : -3 },
-               "max" : { "x" :  3, "y" : 1, "z" :  3 }
+               "min" : { "x" : -2, "y" : 0, "z" : -3 },
+               "max" : { "x" :  4, "y" : 1, "z" :  3 }
             }
          ]
       },      
       "region_collision_shape" : {
-         "region": [
-            {
-               "min" : { "x" : -2, "y" : 0,  "z" : -2 },
-               "max" : { "x" :  2, "y" : 10, "z" :  2 }
-            }
-         ]
+         "region_from_model": {
+            "model" : "file(small_oak_tree.qb)",
+            "matrices" : [
+               "trunk"
+            ]
+         }
       }
    }
 }

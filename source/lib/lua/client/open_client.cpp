@@ -101,9 +101,9 @@ RenderNodePtr Client_CreateQubicleMatrixNode(lua_State* L,
    RenderNodePtr node;
    Pipeline& pipeline = Pipeline::GetInstance();
 
-   voxel::QubicleFile* qubicle = pipeline.LoadQubicleFile(qubicle_file);
+   voxel::QubicleFile const* qubicle = res::ResourceManager2::GetInstance().OpenQubicleFile(qubicle_file);
    if (qubicle) {
-      voxel::QubicleMatrix* matrix = qubicle->GetMatrix(qubicle_matrix);
+      voxel::QubicleMatrix const* matrix = qubicle->GetMatrix(qubicle_matrix);
 
       if (matrix) {
          ResourceCacheKey key;

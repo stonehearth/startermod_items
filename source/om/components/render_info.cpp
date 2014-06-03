@@ -36,6 +36,7 @@ void RenderInfo::SerializeToJson(json::Node& node) const
    node.set("material", GetMaterial());
    node.set("model_variant", GetModelVariant());
    node.set("animation_table", GetAnimationTable());
+   node.set("model_origin", GetModelOrigin());
 }
 
 void RenderInfo::AttachEntity(om::EntityRef e)

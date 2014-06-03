@@ -84,9 +84,9 @@ void RenderRenderInfo::AccumulateModelVariant(ModelMap& m, om::ModelLayerPtr lay
                               });
 
       for (std::string const& model : layer->EachModel()) {
-         voxel::QubicleFile* qubicle;
+         voxel::QubicleFile const* qubicle;
          try {
-            qubicle = Pipeline::GetInstance().LoadQubicleFile(model);
+            qubicle = res::ResourceManager2::GetInstance().OpenQubicleFile(model);
          } catch (res::Exception& e) {
             RI_LOG(1) << "could not load qubicle file: " << e.what();
             return;
@@ -238,18 +238,21 @@ void RenderRenderInfo::AddModelNode(om::RenderInfoPtr render_info, std::string c
    ASSERT(render_info);
    ASSERT(nodes_.find(bone) == nodes_.end());
 
-   bool moveMatrixOrigin = false;
+   RI_LOG(7) << "adding model node for bone " << bone;
+
+   bool useSkeletonOrigin = !render_info->GetAnimationTable().empty();
    csg::Point3f origin = render_info->GetModelOrigin();
 
-   auto i = bones_offsets_.find(bone);
-   if (i != bones_offsets_.end()) {
-      origin = i->second;
+   if (useSkeletonOrigin) {
+      auto i = bones_offsets_.find(bone);
+      if (i != bones_offsets_.end()) {
+         origin = i->second;
 
-      // The file format for animation is right-handed, z-up, with the model looking
-      // down the -y axis.  We need y-up, looking down -z.  Since we don't care about
-      // rotation and we need to preserve x, just flip em around.
-      origin = csg::Point3f(origin.x, origin.z, origin.y);
-      moveMatrixOrigin = true;
+         // The file format for animation is right-handed, z-up, with the model looking
+         // down the -y axis.  We need y-up, looking down -z.  Since we don't care about
+         // rotation and we need to preserve x, just flip em around.
+         origin = csg::Point3f(origin.x, origin.z, origin.y);
+      }
    }
    float scale = render_info->GetScale();
 
@@ -262,13 +265,15 @@ void RenderRenderInfo::AddModelNode(om::RenderInfoPtr render_info, std::string c
       key.AddElement("matrix", matrix);
    }
 
-   auto generate_matrix = [&matrices, origin, moveMatrixOrigin](csg::mesh_tools::mesh &mesh, int lodLevel) {
+   auto generate_matrix = [&matrices, origin, useSkeletonOrigin](csg::mesh_tools::mesh &mesh, int lodLevel) {
       if (!matrices.empty()) {
          csg::Region3 all_models;
+
          // Since we're stacking them up and deriving the position of the generated mesh from the
          // same skeleton, we try to make very sure that they all have the exact same matrix
          // proportions.  If not, complain loudly.
          csg::Point3 size = matrices.front()->GetSize();
+         csg::Point3 pos  = matrices.front()->GetPosition();
 
          for (voxel::QubicleMatrix const* matrix : matrices) {
             csg::Region3 model = voxel::QubicleBrush(matrix, lodLevel)
@@ -278,6 +283,9 @@ void RenderRenderInfo::AddModelNode(om::RenderInfoPtr render_info, std::string c
             if (matrix->GetSize() != size) {
                RI_LOG(0) << "stacked matrix " << matrix->GetName() << " size " << matrix->GetSize() << " does not match first matrix size of " << size;
             }
+            if (matrix->GetPosition() != pos) {
+               RI_LOG(0) << "stacked matrix " << matrix->GetName() << " pos " << matrix->GetPosition() << " does not match first matrix pos of " << pos;
+            }
             all_models += model;   
          }
          // Qubicle orders voxels in the file as if we were looking at the model from the
@@ -286,9 +294,9 @@ void RenderRenderInfo::AddModelNode(om::RenderInfoPtr render_info, std::string c
          // "side" of the model (like how your sides get reversed in a mirror).  Flip it over
          // to the other side before meshing.
          csg::Point3f meshOrigin = origin;
-         if (moveMatrixOrigin) {
-            meshOrigin.x = (float)size.x - origin.x;
-         }
+         meshOrigin.x = (float)pos.x * 2 + size.x - origin.x;
+
+         RI_LOG(7) << "offsetting mesh " << all_models.GetBounds() << " origin:" << origin << " meshOrigin:" << meshOrigin << " matrixSize:" << size << " pos:" << pos;
          csg::RegionToMesh(all_models, mesh, -meshOrigin, true);
       }
    };
