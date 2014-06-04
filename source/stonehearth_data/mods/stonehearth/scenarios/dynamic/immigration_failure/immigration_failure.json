@@ -14,7 +14,7 @@
       "Buck up! You look like you'd really benefit from something tasty.", 
       "You guys really look like you could use some help. Here!"
    ],
-   "outcome_statement" : "The traveller has left you a ",
+   "outcome_statement" : " The traveller would like to leave you a ",
    "rewards" : {
       "stonehearth:berry_basket" : {
          "min" : 1, 

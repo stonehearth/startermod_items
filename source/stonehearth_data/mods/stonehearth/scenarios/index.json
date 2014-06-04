@@ -32,7 +32,8 @@
          "file(dynamic/goblin_thief)",
          "file(dynamic/goblin_brigands)",
          "file(dynamic/immigration_failure)",
-         "file(dynamic/immigration)"
+         "file(dynamic/immigration)", 
+         "file(dynamic/simple_caravan)"
       ]
    }
 }

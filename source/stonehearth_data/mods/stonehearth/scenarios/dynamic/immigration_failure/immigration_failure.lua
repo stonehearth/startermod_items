@@ -11,7 +11,7 @@ local Point3 = _radiant.csg.Point3
 --  TODO: account for which player; currently THIS IS HARDCODED!!
 function ImmigrationFailure:can_spawn()
    local food_threshold = self._immigration_data.edible_threshold
-   local score_data = stonehearth.score:get_scores_for_player('player_1')
+   local score_data = stonehearth.score:get_scores_for_player(self._sv.player_id)
    local last_edible_score = 0
    if score_data and score_data.resources and score_data.resources.edibles then
       last_edible_score = score_data.resources.edibles
@@ -20,10 +20,21 @@ function ImmigrationFailure:can_spawn()
    return is_really_poor
 end
 
---TODO: account for player
-function ImmigrationFailure:__init()
-   --TODO: Test that the notice sticks around even after a save
+function ImmigrationFailure:initialize()
+   --TODO: pass this in from dmservice
+   self._sv.player_id = 'player_1'
 
+   --TODO: test that this works across saving/loading
+   self._sv.notice_data = {}
+   self._sv.immigration_bulletin = nil
+   self:_load_trade_data()
+end
+
+function ImmigrationFailure:restore()
+   self:_load_trade_data()
+end
+
+function ImmigrationFailure:_load_trade_data()
    --Read in the relevant data
    self._immigration_data = radiant.resources.load_json('stonehearth:scenarios:immigration_failure')
    self._reward_table = {}
@@ -32,10 +43,8 @@ function ImmigrationFailure:__init()
    end
 end
 
-function ImmigrationFailure:start()
-   --Get the player ID from the caller!
-   local session = {player_id = 'player_1'}
 
+function ImmigrationFailure:start()
    --TODO: should we delay the caravan's appearance? 
    --Though we'd rather not have it happen immediately, we could also
    --handle that with a curve
@@ -54,12 +63,11 @@ function ImmigrationFailure:start()
    local statement = self._immigration_data.outcome_statement .. reward_name
    message = message .. statement
 
-   self._notice = {
+   self._sv.notice_data = {
       title = title, 
       message = message, 
       reward = reward_uri, 
       quantity = num_items, 
-      player_id = session.player_id
    }
 
    --Send the notice to the bulletin service. Should be parametrized by player
@@ -73,38 +81,34 @@ function ImmigrationFailure:start()
                declined_callback = "_on_declined",
            })
 
-   --Add a notice:
-   stonehearth.events:add_entry(title .. ': ' .. message)
+   --TODO: allow the notice to timeout after a while, after which point we remove it. 
 
-   --TODO: only do this after the player has accepted the bulletin. 
-   --For now, just call directly: 
-   --self:acknowledge(notice)
+   --Add something to the event log:
+   stonehearth.events:add_entry(title .. ': ' .. message)
 end
 
 --- Once the user has acknowledged the bulletin, add the target reward beside the banner
---  TODO: go to the gift location?
---  @param notice_data - this is the exact same blob of data passed into the client. 
 function ImmigrationFailure:acknowledge()
-   local notice_data = self._notice
-   local town = stonehearth.town:get_town(notice_data.player_id)
+   local town = stonehearth.town:get_town(self._sv.player_id)
    local banner_entity = town:get_banner()
 
    --TODO: eventually, the trader will drop this when standing near the banner, but for now...
    local target_location = radiant.entities.pick_nearby_location(banner_entity, 3)
 
-   local gift = radiant.entities.create_entity(notice_data.reward)   
+   local gift = radiant.entities.create_entity(self._sv.notice_data.reward)   
    radiant.terrain.place_entity(gift, target_location)
 
    --TODO: attach a brief particle effect to the new stuff
 
-   --TODO: Either make a timeout to hide the bulletin, or auto-hide once the user clicks.
 end
 
---- Only actually spawn the thing after the user clicks OK?
---  TODO: not actually used yet
+--- Only actually spawn the object after the user clicks OK
 function ImmigrationFailure:_on_accepted()
-   --TODO: rig this up with the UI
-   self:acknowledge(self._notice)
+   self:acknowledge()
+end
+
+function ImmigrationFailure:_on_declined()
+   --Do nothing
 end
 
 return ImmigrationFailure

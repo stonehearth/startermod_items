@@ -3,6 +3,9 @@ local Point3 = _radiant.csg.Point3
 
 local Inventory = class()
 
+--Keeps track of the stuff in a player's stockpiles
+--TODO: slowly move away from events towards direct calls
+
 function Inventory:__init()
 end
 
@@ -49,8 +52,8 @@ function Inventory:add_storage(storage_entity)
    self._data.storage[storage_entity:get_id()] = storage_entity
    self.__saved_variables:mark_changed()
    radiant.events.trigger(self, 'stonehearth:storage_added', { storage = storage_entity })
-   radiant.events.listen(storage_entity, "stonehearth:item_added",   self, self._on_item_added)
-   radiant.events.listen(storage_entity, "stonehearth:item_removed", self, self._on_item_removed)
+   --radiant.events.listen(storage_entity, "stonehearth:item_added",   self, self._on_item_added)
+   --radiant.events.listen(storage_entity, "stonehearth:item_removed", self, self._on_item_removed)
 end
 
 function Inventory:remove_storage(storage_entity)
@@ -60,8 +63,8 @@ function Inventory:remove_storage(storage_entity)
       self.__saved_variables:mark_changed()
    end
    radiant.events.trigger(self, 'stonehearth:storage_removed', { storage = storage_entity })
-   radiant.events.unlisten(storage_entity, "stonehearth:item_added",   self, self._on_item_added)
-   radiant.events.unlisten(storage_entity, "stonehearth:item_removed", self, self._on_item_removed)
+   --radiant.events.unlisten(storage_entity, "stonehearth:item_added",   self, self._on_item_added)
+   --radiant.events.unlisten(storage_entity, "stonehearth:item_removed", self, self._on_item_removed)
    --xxx remove the items?
 end
 
@@ -85,21 +88,39 @@ function Inventory:_add_collision_region(entity, size)
    collision_component:set_region_collision_type(_radiant.om.RegionCollisionShape.N_O_N_E)
 end
 
+--TODO: Phase the event-based system here out
+--[[
 function Inventory:_on_item_added(e)
    local storage_id = e.storage:get_id()
    local item = e.item
-   assert(self._data.storage[storage_id], 'tried to add an item to an untracked storage entity ' .. tostring(e.storage))
+   self:add_item(storage_id, item)
+end
+]]
+
+--- Call whenever a stockpile wants to tell the inventory that we're adding an item
+function Inventory:add_item(storage, item)
+   local storage_id = storage:get_id()
+   assert(self._data.storage[storage_id], 'tried to add an item to an untracked storage entity ' .. tostring(storage))
 
    self._data.items[item:get_id()] = item
    self.__saved_variables:mark_changed()
-   radiant.events.trigger(self, 'stonehearth:item_added', { item = e.item })
+   radiant.events.trigger(self, 'stonehearth:item_added', { item = item })
 end
 
+--[[
+--TODO: phase out the event-based system
 function Inventory:_on_item_removed(e)
    local storage_id = e.storage:get_id()
    local item = e.item
+   self:remove_item(storage_id, item)
+end
+]]
+
+--- Call whenever a stockpile wants to tell the inventory that we're removing an item
+function Inventory:remove_item(storage, item)
+   local storage_id = storage:get_id()
    local id = item:get_id()
-   assert(self._data.storage[storage_id], 'tried to remove an item to an untracked storage entity ' .. tostring(e.storage))
+   assert(self._data.storage[storage_id], 'tried to remove an item to an untracked storage entity ' .. tostring(storage))
 
    if self._data.items[id] then
       self._data.items[id] = nil

@@ -16,7 +16,7 @@
       "You guys really look like you could use a hand!", 
       "Wow! What a town! Let me help out!"
    ],
-   "outcome_statement" : "__profession__ __name__ has joined __town_name__!", 
+   "outcome_statement" : " __profession__ __name__ would like to join __town_name__!", 
    "professions" : {
       "stonehearth:professions:worker" : {
          "shares" : 10, 
