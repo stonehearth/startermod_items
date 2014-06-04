@@ -534,7 +534,7 @@
       
       "scenarios:scenario_index" : "file(scenarios/index.json)",
       "scenarios:simple_caravan" : "file(scenarios/dynamic/simple_caravan/simple_caravan.json)",
-      "scenarios:immigration_failure" : "file(scenarios/dynamic/immigration_failure/immigration_failure.json)",
+      "scenarios:immigration_failure" : "file(scenarios/dynamic/immigration_failure_scenario/immigration_failure_scenario.json)",
       "scenarios:immigration" : "file(scenarios/dynamic/immigration/immigration.json)",
       "score_category_data" : "file(data/score/score_category_data.json)",
       "score_entity_data" : "file(data/score/score_entity_data.json)",
@@ -549,7 +549,6 @@
 
       "bulletins:simple_caravan" : "file(bulletins/caravan.json)",
       "bulletins:goblin_thief" : "file(bulletins/goblin_thief.json)", 
-      "bulletins:immigration_failure" : "file(bulletins/immigration_failure.json)",
       "bulletins:immigration" : "file(bulletins/immigration.json)"
    },
    "functions" : {
@@ -886,7 +885,7 @@
       "goblin_brigands" : "file(scenarios/dynamic/goblin_brigands/goblin_brigands.lua)",
 
       "immigration" : "file(scenarios/dynamic/immigration/immigration.lua)",
-      "immigration_failure" : "file(scenarios/dynamic/immigration_failure/immigration_failure.lua)", 
+      "immigration_failure" : "file(scenarios/dynamic/immigration_failure_scenario/immigration_failure_scenario.lua)", 
       "simple_caravan" : "file(scenarios/dynamic/simple_caravan/simple_caravan.lua)"
    },
 
