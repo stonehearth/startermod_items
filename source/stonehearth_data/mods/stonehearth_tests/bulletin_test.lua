@@ -9,22 +9,52 @@ function BulletinTest:__init()
    self:create_world()
 
    local footman = self:place_citizen(-15, -15, 'stonehearth:professions:footman', 'stonehearth:wooden_sword')
+   local player_id = radiant.entities.get_player_id(footman)
 
-   self._caravan_bulletin = stonehearth.bulletin_board:post_bulletin('player_1')
-      :set_config('stonehearth:bulletins:caravan')
+   self._caravan_bulletin = stonehearth.bulletin_board:post_bulletin(player_id)
+      :set_ui_view('StonehearthGenericBulletinDialog')
       :set_callback_instance(self)
       :set_data({
-         title = 'Caravan has arrived!',
+         title = 'A caravan has arrived!',
          message = 'A caravan of merchants has stopped by and wants to trade resources.',
+         accepted_callback = "_on_accepted",
+         declined_callback = "_on_declined",
       })
 
-
-   stonehearth.bulletin_board:post_bulletin('player_1')
-      :set_config('stonehearth:bulletins:goblin_thief')
+   stonehearth.bulletin_board:post_bulletin(player_id)
+      :set_type('alert')
       :set_data({
          title = 'A goblin is stealing your wood!',
-         message = 'A goblin thief is making off with your wood. Stop him!',
-         show_me_entity = footman,
+         zoom_to_entity = footman,
+      })
+
+   --radiant.events.listen(radiant, 'stonehearth:very_slow_poll', self, self._on_poll)
+end
+
+function BulletinTest:_on_accepted()
+   local foo = 1
+end
+
+function BulletinTest:_on_declined()
+   local foo = 1
+end
+
+function BulletinTest:_on_ok()
+   local foo = 1
+end
+
+local count = 1
+
+function BulletinTest:_on_poll()
+   -- self._caravan_bulletin:set_data({
+   --    title = tostring(count)
+   -- })
+   -- count = count + 1
+
+   stonehearth.bulletin_board:post_bulletin('player_1')
+      :set_ui_view('StonehearthGenericBulletinDialog')
+      :set_data({
+         title = 'The carnival is here!',
       })
 end
 

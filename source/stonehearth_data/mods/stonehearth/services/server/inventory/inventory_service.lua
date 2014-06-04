@@ -1,5 +1,14 @@
 local Inventory = require 'services.server.inventory.inventory'
 
+--[[
+   The inventory service tracks, per player, the things in their stockpiles. 
+   Given a player_id, you can ask for their inventory.
+   You can also create a filtered set of the inventory, via an inventory tracker.
+
+   The default inventory tracker, created by the service for each player,
+   sorts the contents of their inventory by uri. 
+]]
+
 local InventoryService = class()
 
 function InventoryService:__init()
@@ -15,6 +24,7 @@ function InventoryService:initialize()
       end
    else
       self._sv.inventories = {}
+      self._sv.inventory_trackers_by_player = {}
    end
 
    --Register our functions with the score service
@@ -31,6 +41,8 @@ function InventoryService:add_inventory(session)
    local inventory = Inventory()
    inventory:initialize(session)
    self._sv.inventories[session.player_id] = inventory
+   self:_create_basic_inventory_tracker(session.player_id)
+
    self.__saved_variables:mark_changed()
    return inventory
 end
@@ -40,6 +52,124 @@ function InventoryService:get_inventory(player_id)
    assert(self._sv.inventories[player_id])
    return self._sv.inventories[player_id]
 end
+
+--- When an item is added to a player's inventory, tell this function, which will
+--  propagate the change to the correct inventory
+function InventoryService:add_item(player_id, storage, item)
+   local inventory_for_player = self:get_inventory(player_id)
+   inventory_for_player:add_item(storage, item)
+
+   --Tell all the traces for this player about this item
+   for name, trace in pairs(self._sv.inventory_trackers_by_player[player_id]) do
+      trace:add_item(item)
+   end
+end
+
+--- When an item is removed from a player's inventory, tell this function, which will
+--  propgaget the change to the correct inventory
+function InventoryService:remove_item(player_id, storage, item)
+   local inventory_for_player = self:get_inventory(player_id)
+   inventory_for_player:remove_item(storage, item)
+
+   --Tell all the traces for this player about this item
+   for name, trace in pairs(self._sv.inventory_trackers_by_player[player_id]) do
+      trace:remove_item(item)
+   end
+
+end
+
+--- Given the uri of an item and the player_id, get a structure containing items of that type
+--  Uses the basic_inventory_tracker
+--  @param item_type : uri of the item (like stonehearth:oak_log)
+--  @param player_id : id of the player
+--  @returns an object with a count and a map of identity (items).
+--           Iterate through the map to get the data.
+--           If entity is nil, that item in the map is now invalid. If the data is nil, there was
+--           nothing of that type
+function InventoryService:get_items_of_type(item_type, player_id)
+   local trackers_for_player = self._sv.inventory_trackers_by_player[player_id]
+   if trackers_for_player then
+      local basic_inventory_tracker = trackers_for_player['basic_inventory_tracker']
+      return basic_inventory_tracker:get_key(item_type)
+   end
+end
+
+--- Call this function to track a subset of things in this inventory
+--  See the documentation for FilteredTracker for the function specifics
+function InventoryService:add_inventory_tracker(name, player_id, filter_fn, make_key_fn, make_value_fn, remove_value_fn)
+   local new_tracker = radiant.create_controller(
+      'stonehearth:filtered_tracker',
+      name,
+      player_id, 
+      filter_fn, 
+      make_key_fn, 
+      make_value_fn, 
+      remove_value_fn)
+
+   if not self._sv.inventory_trackers_by_player[player_id] then
+      self._sv.inventory_trackers_by_player[player_id] = {}
+   end
+   self._sv.inventory_trackers_by_player[player_id][name] = new_tracker
+   return new_tracker
+end
+
+--- The inventory tracker tracks all objects that go into the inventory (ie, stockpiles)
+function InventoryService:_create_basic_inventory_tracker(player_id)
+   --Since we're only going to add stuff that's going into or out of a stockpile, 
+   --we can just return true assumng the entity is still valid
+   local filter_fn = function(entity)
+      assert(entity:is_valid(), 'entity is not valid. Make sure to call before destroy')
+      return true
+   end
+
+   --All keys will be the URI of the object
+   local make_key_fn = function(entity)
+      return entity:get_uri()
+   end
+
+   --The value is an object with
+   -- a. a map of the entities of this type, by their ID. 
+   -- b. a count of the number of entities of this type
+   local make_value_fn = function(entity, existing_value)
+      if not existing_value then
+         --We're the first object of this type
+         existing_value = {
+            count = 0, 
+            items = {}
+         }
+      end
+      local prev_entry = existing_value.items[entity:get_id()]
+      if not prev_entry then
+         existing_value.count = existing_value.count + 1
+      end   
+      existing_value.items[entity:get_id()] = entity 
+      return existing_value
+   end
+
+   --To remove, just make the item at that ID nil, and decrement the count. 
+   local remove_value_fn = function(entity, existing_value)
+      --If for some reason, there's no existing value for this key, just return
+      if not existing_value then
+         return nil
+      end
+
+      local id = entity:get_id()
+      if existing_value.items[id] then
+         existing_value.count = existing_value.count - 1
+         assert(existing_value.count >= 0)
+      end
+      existing_value.items[id] = nil
+      return existing_value
+   end
+
+   self:add_inventory_tracker('basic_inventory_tracker',
+      player_id,
+      filter_fn,
+      make_key_fn,
+      make_value_fn,
+      remove_value_fn)
+end
+
 
 --Score functions related to inventory (goods you've built, stocked and crafted)
 function InventoryService:_register_score_functions()

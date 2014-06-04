@@ -6,7 +6,7 @@ var StonehearthBulletinBoard;
       components: {
          "bulletins" : {
             "*" : {
-               "config" : {}
+               "config" : {} // unused
             }
          }
       },
@@ -21,6 +21,8 @@ var StonehearthBulletinBoard;
                self._bulletinBoardUri = response.bulletin_board;
                self._createTrace();
             });
+
+         self._orderedBulletins = Ember.A();
       },
 
       _createTrace: function() {
@@ -30,15 +32,15 @@ var StonehearthBulletinBoard;
          self._bulletinBoardTrace = self._radiantTrace.traceUri(self._bulletinBoardUri, self.components)
             .progress(function(bulletinBoard) {
                if (bulletinBoard.bulletins) {
-                  var bulletinList = self._mapToList(bulletinBoard.bulletins);
+                  var list = self._mapToList(bulletinBoard.bulletins);
 
-                  // bulletin ids are monotonically increasing
-                  bulletinList.sort(function (a, b) {
+                  list.sort(function (a, b) {
                      return a.id - b.id;
                   });
 
-                  self._bulletinBoard = bulletinBoard;
-                  bulletinBoard.set('sortedBulletins', bulletinList);
+                  self._orderedBulletins.clear();
+                  self._orderedBulletins.pushObjects(list);
+
                   self._tryShowNextBulletin();
                }
             });
@@ -54,6 +56,43 @@ var StonehearthBulletinBoard;
          return list;
       },
 
+      // unused
+      // used to remove flicker when updating the bulletin list
+      // side effect is that the old elements in the list will not update,
+      //    since the ListView is not (yet) tracking them individually
+      _updateOrderedBulletins: function(updatedList) {
+         var self = this;
+         var orderedBulletins = self._orderedBulletins;
+         var oldLength = orderedBulletins.length;
+         var newLength = updatedList.length;
+         var shortestLength = Math.min(oldLength, newLength);
+         var i, j;
+
+         // find the first index that differs
+         for (i = 0; i < shortestLength; i++) {
+            if (orderedBulletins[i].id != updatedList[i].id) {
+               break;
+            }
+         }
+
+         // delete everything after that index
+         for (j = i; j < oldLength; j++) {
+            orderedBulletins.popObject();
+         }
+
+         // copy the remaining items from the updatedList
+         for (j = i; j < newLength; j++) {
+            orderedBulletins.pushObject(updatedList[j]);
+         }
+
+         for (i = 0; i < newLength; i++) {
+            if (orderedBulletins[i] != updatedList[i]) {
+               console.log('Error: orderedBulletins is not correct!')
+               break;
+            }
+         }
+      },
+
       _tryShowNextBulletin: function() {
          var self = this;
 
@@ -61,7 +100,7 @@ var StonehearthBulletinBoard;
             return;
          }
 
-         var bulletins = self._bulletinBoard.get('sortedBulletins');
+         var bulletins = self._orderedBulletins;
          var numBulletins = bulletins.length;
 
          for (var i = 0; i < numBulletins; i++) {
@@ -73,51 +112,53 @@ var StonehearthBulletinBoard;
          }
       },
 
-      // should we be using an ember controller for these methods?
       showNotificationView: function(bulletin) {
          var self = this;
-         self._bulletinNotificationView = App.gameView.addView(App.StonehearthBulletinNotification, { context: bulletin });
+         self._bulletinNotificationView = App.gameView.addView(App.StonehearthBulletinNotification, { uri: bulletin.__self });
          self._lastViewedBulletinId = bulletin.id;
-      },
-
-      showListView: function() {
-         // toggle the view
-         if (!this._bulletinListView || this._bulletinListView.isDestroyed) {
-            this._bulletinListView = App.gameView.addView(App.StonehearthBulletinList, { context: this._bulletinBoard });
-         } else {
-            this._bulletinListView.destroy();
-         }
       },
 
       showDialogView: function(bulletin) {
          var self = this;
-         var detailViewName = bulletin.config.ui_view;
-         self._bulletinDialogView = App.gameView.addView(App[detailViewName], { context: bulletin })
+         var dialogViewName = bulletin.ui_view;
+         if (dialogViewName) {
+            self._bulletinDialogView = App.gameView.addView(App[dialogViewName], { uri: bulletin.__self });
+         } else {
+            self.onDialogViewDestroyed(bulletin);
+         }
+         // TODO: dismiss bullitinListView if bullitins list will become empty
       },
 
-      showDialogViewForId: function(bulletinId) {
+      toggleListView: function() {
          var self = this;
-         var bulletins = self._bulletinBoard.get('sortedBulletins');
-         var numBulletins = bulletins.length;
 
-         for (var i = 0; i < numBulletins; i++) {
-            var bulletin = bulletins[i]; 
-            if (bulletin.id == bulletinId) {
-               self.showDialogView(bulletin);
-               return;
-            }
+         // toggle the view
+         if (!self._bulletinListView || self._bulletinListView.isDestroyed) {
+            self._bulletinListView = App.gameView.addView(App.StonehearthBulletinList, { context: self._orderedBulletins });
+         } else {
+            self._bulletinListView.destroy();
+            self._bulletinListView = null;
          }
       },
 
-      onNotificationViewDestroyed: function () {
+      zoomToLocation: function(bulletin) {
+         var entity = bulletin.data.zoom_to_entity;
+         
+         if (entity) {
+            radiant.call('stonehearth:camera_look_at_entity', entity);
+         }
+      },
+
+      onNotificationViewDestroyed: function(bulletin) {
          var self = this;
          self._bulletinNotificationView = null;
          self._tryShowNextBulletin();
       },
 
-      onDialogViewDestroyed: function () {
+      onDialogViewDestroyed: function(bulletin) {
          var self = this;
          self._bulletinDialogView = null;
+         radiant.call('stonehearth:remove_bulletin', bulletin.id);
          self._tryShowNextBulletin();
       },
 
@@ -126,4 +167,3 @@ var StonehearthBulletinBoard;
       }
    });
 })();
-

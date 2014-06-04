@@ -1,73 +1,75 @@
 {
    "name" : "Simple Caravan",
    "scenario_types" : {
-      "combat" : {
-        "min_strength" : 0,
-        "max_strength" : 1000
+      "population" : {
       }
    },
    "rarity" : "common",
-   "script" : "file(simple_caravan.lua)", 
-   "trades" : {
-      "stonehearth:oak_log" : {
-         "min" : 2, 
-         "max" : 20
-      }, 
-      "stonehearth:juniper_log": {
-         "min" : 2, 
-         "max" : 20
-      }, 
-      "stonehearth:hunk_of_stone" : {
-         "min" : 3, 
-         "max" : 20
-      },
-      "stonehearth:berry_basket" : {
-         "min" : 1, 
-         "max" : 5
-      },
-      "stonehearth:farmer:hoe" : {
-         "min" : 1, 
-         "max" : 2
-      }, 
-      "stonehearth:trapper:knife" : {
-         "min" : 1, 
-         "max" : 2
-      }, 
-      "stonehearth:wooden_sword" : {
-         "min" : 1, 
-         "max" : 4
-      },
-      "stonehearth:turnip_basket" : {
-         "min" : 2, 
-         "max" : 10
-      },
-      "stonehearth:corn_basket" : {
-         "min": 3, 
-         "max": 10
-      }, 
-      "stonehearth:picket_fence_proxy" : {
-         "min" : 2, 
-         "max" : 20
-      },
-      "stonehearth:picket_fence_gate_proxy" : {
-         "min" : 2, 
-         "max" : 20
-      },
-      "stonehearth:arch_backed_chair_proxy" : {
-         "min" : 1, 
-         "max" : 3
-      },
-      "stonehearth:firepit_proxy" : {
-         "min" : 1, 
-         "max" : 1
-      },
-      "stonehearth:not_much_of_a_bed_proxy" : {
-         "min" : 1, 
-         "max" : 3
-      },
-      "stonehearth:simple_wooden_chair" : {
-         "min" : 1, 
-         "max" : 3
+   "uri" : "stonehearth:simple_caravan", 
+   "scenario_data" : {
+      "title" : "A caravan approaches!",
+      "message" : "Hello __town_name__! I come bearing goods for trade. Would you like to give me __your_quantity__ __your_item__(s) in exchange for __my_quantity__ __my_item__(s)?",
+      "trades" : {
+         "stonehearth:oak_log" : {
+            "min" : 2, 
+            "max" : 20
+         }, 
+         "stonehearth:juniper_log": {
+            "min" : 2, 
+            "max" : 20
+         }, 
+         "stonehearth:hunk_of_stone" : {
+            "min" : 3, 
+            "max" : 20
+         },
+         "stonehearth:berry_basket" : {
+            "min" : 1, 
+            "max" : 5
+         },
+         "stonehearth:farmer:hoe" : {
+            "min" : 1, 
+            "max" : 2
+         }, 
+         "stonehearth:trapper:knife" : {
+            "min" : 1, 
+            "max" : 2
+         }, 
+         "stonehearth:wooden_sword" : {
+            "min" : 1, 
+            "max" : 4
+         },
+         "stonehearth:turnip_basket" : {
+            "min" : 2, 
+            "max" : 10
+         },
+         "stonehearth:corn_basket" : {
+            "min": 3, 
+            "max": 10
+         }, 
+         "stonehearth:picket_fence_proxy" : {
+            "min" : 2, 
+            "max" : 20
+         },
+         "stonehearth:picket_fence_gate_proxy" : {
+            "min" : 2, 
+            "max" : 20
+         },
+         "stonehearth:arch_backed_chair_proxy" : {
+            "min" : 1, 
+            "max" : 3
+         },
+         "stonehearth:firepit_proxy" : {
+            "min" : 1, 
+            "max" : 1
+         },
+         "stonehearth:not_much_of_a_bed_proxy" : {
+            "min" : 1, 
+            "max" : 3
+         },
+         "stonehearth:simple_wooden_chair" : {
+            "min" : 1, 
+            "max" : 3
+         }
       }
-   }
+   } 
 }

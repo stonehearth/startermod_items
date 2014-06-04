@@ -58,9 +58,20 @@ function Immigration:can_spawn()
    return true
 end
 
-function Immigration:__init()
+function Immigration:initialize()
    --TODO: Test that the notice sticks around even after a save
 
+   self._sv.notice = {}
+   --TODO: get this from caller
+   self._sv.player_id = 'player_1'
+   self:_load_trade_data()
+end
+
+function Immigration:restore()
+   self:_load_trade_data()
+end
+
+function Immigration:_load_trade_data()
    self._immigration_data =  radiant.resources.load_json('stonehearth:scenarios:immigration')
    
    --Create a table with all the possible professions.
@@ -82,9 +93,7 @@ function Immigration:start()
 
    --Make the new citizen
    local target_profession = self:_pick_immigrant_profession()
-   --TODO: get this from elsewhere
-   local player_id = 'player_1'
-   local pop = stonehearth.population:get_population(player_id)
+   local pop = stonehearth.population:get_population(self._sv.player_id)
    local citizen = pop:create_new_citizen()
    pop:promote_citizen(citizen, target_profession)
 
@@ -92,15 +101,21 @@ function Immigration:start()
    local message = self:_compose_message(target_profession, citizen)
 
    --Get the data ready to send to the bulletin
-   local notice = {
+   self._sv.notice = {
       title = self._immigration_data.title,
-      message = message
+      message = message, 
+      target_profession = target_profession, 
+      citizen = citizen
    }
 
-   --TODO: send bulletin when Albert has his new API
-
-   --TODO: make this happen after the player agrees to having the dude appear
-   self:place_citizen(citizen)
+   --Send the notice to the bulletin service.
+   self._sv.immigration_bulletin = stonehearth.bulletin_board:post_bulletin(self._sv.player_id)
+           :set_config('stonehearth:bulletins:immigration')
+           :set_callback_instance(self)
+           :set_data({
+               title = self._immigration_data.title,
+               message = message, 
+           })
 end
 
 --- Get a random target profession out of the table
@@ -155,5 +170,16 @@ function Immigration:place_citizen(citizen)
 
    --TODO: attach particle effect
 end
+
+--- Only actually spawn the object after the user clicks OK
+function Immigration:_on_accepted()
+   self:place_citizen(self._sv.notice.citizen)
+end
+
+function Immigration:_on_declined()
+   --Do nothing
+end
+
+
 
 return Immigration

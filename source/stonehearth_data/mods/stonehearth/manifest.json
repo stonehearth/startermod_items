@@ -547,8 +547,10 @@
       "professions:trapper" : "file(professions/trapper/trapper_description.json)",
       "professions:footman" : "file(professions/footman/footman_description.json)",
 
-      "bulletins:caravan" : "file(bulletins/caravan.json)",
-      "bulletins:goblin_thief" : "file(bulletins/goblin_thief.json)"
+      "bulletins:simple_caravan" : "file(bulletins/caravan.json)",
+      "bulletins:goblin_thief" : "file(bulletins/goblin_thief.json)", 
+      "bulletins:immigration_failure" : "file(bulletins/immigration_failure.json)",
+      "bulletins:immigration" : "file(bulletins/immigration.json)"
    },
    "functions" : {
       "save_browser_object": {
@@ -871,6 +873,8 @@
    
    "controllers" :  {
       "bulletin" : "file(services/server/bulletin_board/bulletin.lua)",
+      "filtered_tracker" : "file(services/server/object_tracker/filtered_tracker.lua)",
+
       "craft_order" : "file(components/workshop/craft_order.lua)",
       "craft_order_list" : "file(components/workshop/craft_order_list.lua)",
       "combat_pace_keeper" : "file(services/server/dynamic_scenario/combat_pace_keeper.lua)",
@@ -882,7 +886,8 @@
       "goblin_brigands" : "file(scenarios/dynamic/goblin_brigands/goblin_brigands.lua)",
 
       "immigration" : "file(scenarios/dynamic/immigration/immigration.lua)",
-      "immigration_failure" : "file(scenarios/dynamic/immigration_failure/immigration_failure.lua)"
+      "immigration_failure" : "file(scenarios/dynamic/immigration_failure/immigration_failure.lua)", 
+      "simple_caravan" : "file(scenarios/dynamic/simple_caravan/simple_caravan.lua)"
    },
 
    "client_controllers" :  {
@@ -1007,7 +1012,7 @@
          "file(ui/game/promotion_wizard/promotion_wizard.html)",
          "file(ui/game/tip_popup/tip_popup.html)",
          "file(ui/game/bulletin/bulletin_notification/bulletin_notification.html)",
-         "file(ui/game/bulletin/bulletin_dialog/bulletin_dialog.html)",
+         "file(ui/game/bulletin/bulletin_dialog/generic_bulletin_dialog.html)",
          "file(ui/game/bulletin/bulletin_list/bulletin_list.html)",
          "file(ui/game/event_log/event_log.html)",
          "file(ui/game/build/build.html)"
@@ -1063,7 +1068,8 @@
          "file(ui/game/tip_popup/tip_popup.js)",
          "file(ui/game/bulletin/bulletin_board.js)",
          "file(ui/game/bulletin/bulletin_notification/bulletin_notification.js)",         
-         "file(ui/game/bulletin/bulletin_dialog/bulletin_dialog.js)",
+         "file(ui/game/bulletin/bulletin_dialog/base_bulletin_dialog.js)",
+         "file(ui/game/bulletin/bulletin_dialog/generic_bulletin_dialog.js)",
          "file(ui/game/bulletin/bulletin_list/bulletin_list.js)",
          "file(ui/game/event_log/event_log.js)"
       ],
@@ -1115,7 +1121,7 @@
          "file(ui/game/promotion_wizard/promotion_wizard.less)",
          "file(ui/game/tip_popup/tip_popup.less)",
          "file(ui/game/bulletin/bulletin_notification/bulletin_notification.less)",
-         "file(ui/game/bulletin/bulletin_dialog/bulletin_dialog.less)",
+         "file(ui/game/bulletin/bulletin_dialog/generic_bulletin_dialog.less)",
          "file(ui/game/bulletin/bulletin_list/bulletin_list.less)",
          "file(ui/game/event_log/event_log.less)",
          "file(ui/game/build/build.less)"
