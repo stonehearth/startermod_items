@@ -91,7 +91,6 @@ class NavGrid {
       bool ForEachTrackerInRegion(csg::Region3 const& worldRegion, ForEachTrackerCb cb);
       bool ForEachTrackerForEntity(dm::ObjectId entityId, ForEachTrackerCb cb);
       bool ForEachPointInEntityRegion(dm::ObjectId entityId, csg::Point3 const& offset, ForEachPointCb cb);
-      csg::Region3 GetEntityCollisionShape(dm::ObjectId entityId);
 
    private: // methods exposed only to the OctTree
       friend OctTree;

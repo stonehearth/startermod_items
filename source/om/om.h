@@ -41,7 +41,8 @@ std::string GetObjectName(const dm::Object& obj);
 std::string GetObjectNameLower(dm::ObjectPtr obj);
 std::string GetObjectNameLower(const dm::Object& obj);
 
-template <typename Shape> Shape ToWorldSpace(Shape const& shape, om::EntityPtr entity);
+template <typename Shape> Shape LocalToWorld(Shape const& shape, om::EntityPtr entity);
+template <typename Shape> Shape WorldToLocal(Shape const& shape, om::EntityPtr entity);
 
 void RegisterObjectTypes(dm::Store& store);
 

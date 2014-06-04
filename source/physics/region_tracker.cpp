@@ -58,7 +58,7 @@ void RegionTracker::MarkChanged()
    om::Region3BoxedPtr region = GetRegion();
    if (region) {
       csg::Cube3 bounds = region->Get().GetBounds();
-      bounds = om::ToWorldSpace(bounds, GetEntity());
+      bounds = om::LocalToWorld(bounds, GetEntity());
       GetNavGrid().OnTrackerBoundsChanged(last_bounds_, bounds, shared_from_this());
       last_bounds_ = bounds;
    }
@@ -74,7 +74,7 @@ csg::Region3 RegionTracker::GetOverlappingRegion(csg::Cube3 const& bounds) const
 {
    om::Region3BoxedPtr region = GetRegion();
    if (region) {
-      csg::Region3 r = om::ToWorldSpace(region->Get(), GetEntity());
+      csg::Region3 r = om::LocalToWorld(region->Get(), GetEntity());
       return r & bounds;
    }
    return csg::Region3::empty;
@@ -106,7 +106,7 @@ bool RegionTracker::Intersects(csg::Cube3 const& worldBounds) const
 {
    om::Region3BoxedPtr region = GetRegion();
    if (region) {
-      csg::Region3 r = om::ToWorldSpace(region->Get(), GetEntity());
+      csg::Region3 r = om::LocalToWorld(region->Get(), GetEntity());
       r.Intersects(worldBounds);
    }
    return false;

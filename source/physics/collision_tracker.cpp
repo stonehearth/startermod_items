@@ -71,24 +71,6 @@ dm::ObjectId CollisionTracker::GetEntityId() const
 }
 
 /* 
- * -- CollisionTracker::GetEntityPosition
- *
- * Get the world position of the entity associated with this tracker.
- */
-csg::Point3 CollisionTracker::GetEntityPosition() const
-{
-   csg::Point3 position(csg::Point3::zero);
-   om::EntityPtr entity = entity_.lock();
-   if (entity) {
-      om::MobPtr mob = entity->GetComponent<om::Mob>();
-      if (mob) {
-         position = mob->GetWorldGridLocation();
-      }
-   }
-   return position;
-}
-
-/* 
  * -- CollisionTracker::Intersects
  *
  * Returns whether or not the specified region intersects with the region

@@ -93,7 +93,22 @@ Cube<S, C> Rotated(Cube<S, C> const &other, int degrees) {
       return RotateCube<S, C, 270>()(other);
    }
    ASSERT(false);
-   return Cube<S, C>();
+   return other;
+}
+
+template <typename S, int C>
+Point<S, C> Rotated(Point<S, C> const &other, int degrees) {
+   if (degrees == 0) {
+      return other;
+   } else if (degrees == 90) {
+      return RotatePoint<S, C, 90>()(other);
+   } else if (degrees == 180) {
+      return RotatePoint<S, C, 180>()(other);
+   } else if (degrees == 270) {
+      return RotatePoint<S, C, 270>()(other);
+   }
+   ASSERT(false);
+   return other;
 }
 
 END_RADIANT_CSG_NAMESPACE

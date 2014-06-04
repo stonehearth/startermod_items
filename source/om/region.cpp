@@ -1,6 +1,8 @@
 #include "pch.h"
 #include "region.h"
 #include "csg/util.h"
+#include "csg/matrix4.h"
+#include "csg/transform.h"
 #include "csg/rotate_shape.h"
 
 using namespace ::radiant;
@@ -66,23 +68,24 @@ DeepRegionGuardPtr om::DeepTraceRegion(Region3BoxedPtrBoxed const& boxedRegionPt
 #pragma optimize( "", off )
 
 /*
- * -- om::ToWorldSpace
+ * -- om::LocalToWorld
  *
  * Transform `shape` from the coordinate system of `enity` to the world coordinate
  * system, including transformation and rotation.
  *
  */
 template <typename Shape>
-Shape om::ToWorldSpace(Shape const& shape, om::EntityPtr entity)
+Shape om::LocalToWorld(Shape const& shape, om::EntityPtr entity)
 {
    om::MobPtr mob = entity->GetComponent<om::Mob>();
    if (!mob) {
       return shape;
    }
 
+   csg::Transform t = mob->GetWorldTransform();
    csg::Point3f localOrigin = mob->GetLocalOrigin();
-   csg::Point3 position = mob->GetWorldGridLocation();
-   csg::Quaternion const& orientation = mob->GetTransform().orientation;
+   csg::Point3 position = csg::ToClosestInt(t.position);
+   csg::Quaternion const& orientation = t.orientation;
 
    csg::Point3f axis;
    float radAngle;
@@ -112,8 +115,27 @@ Shape om::ToWorldSpace(Shape const& shape, om::EntityPtr entity)
    return csg::Rotated(shape, angle).Translated(position);
 }
 
-template csg::Cube3 om::ToWorldSpace(csg::Cube3 const&, om::EntityPtr);
-template csg::Region3 om::ToWorldSpace(csg::Region3 const&, om::EntityPtr);
+template <typename Shape>
+Shape om::WorldToLocal(Shape const& shape, om::EntityPtr entity)
+{
+   om::MobPtr mob = entity->GetComponent<om::Mob>();
+   if (!mob) {
+      return shape;
+   }
+
+   csg::Transform t = mob->GetWorldTransform();
+   csg::Matrix4 xform = t.GetMatrix();
+
+   auto fShape = csg::ToFloat(shape);
+   auto result = xform.affine_inverse().transform(fShape);
+   return csg::ToInt(result);
+}
+
+template csg::Cube3 om::LocalToWorld(csg::Cube3 const&, om::EntityPtr);
+template csg::Point3 om::LocalToWorld(csg::Point3 const&, om::EntityPtr);
+template csg::Region3 om::LocalToWorld(csg::Region3 const&, om::EntityPtr);
+
+template csg::Point3 om::WorldToLocal(csg::Point3 const&, om::EntityPtr);
 
 #pragma optimize( "", on )
 
