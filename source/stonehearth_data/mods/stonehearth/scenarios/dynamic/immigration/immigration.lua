@@ -55,7 +55,7 @@ function Immigration:can_spawn()
       return false
    end
 
-"   return true
+   return true
 end
 
 function Immigration:initialize()
