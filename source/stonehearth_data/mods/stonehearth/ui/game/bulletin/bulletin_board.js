@@ -56,6 +56,94 @@ var StonehearthBulletinBoard;
          return list;
       },
 
+      _tryShowNextBulletin: function() {
+         var self = this;
+
+         if (self._bulletinNotificationView || self._bulletinDialogView) {
+            return;
+         }
+
+         var bulletins = self._orderedBulletins;
+         var numBulletins = bulletins.length;
+
+         for (var i = 0; i < numBulletins; i++) {
+            var bulletin = bulletins[i]; 
+            if (bulletin.id > self._lastViewedBulletinId) {
+               self.showNotificationView(bulletin);
+               return;
+            }
+         }
+      },
+
+      showNotificationView: function(bulletin) {
+         var self = this;
+         self._bulletinNotificationView = App.gameView.addView(App.StonehearthBulletinNotification, { uri: bulletin.__self });
+         self._lastViewedBulletinId = bulletin.id;
+      },
+
+      showDialogView: function(bulletin) {
+         var self = this;
+         var dialogViewName = bulletin.ui_view;
+         if (dialogViewName) {
+            self._bulletinDialogView = App.gameView.addView(App[dialogViewName], { uri: bulletin.__self });
+         } else {
+            self.markBulletinHandled(bulletin);
+         }
+      },
+
+      toggleListView: function() {
+         var self = this;
+
+         // toggle the view
+         if (!self._bulletinListView || self._bulletinListView.isDestroyed) {
+            self._bulletinListView = App.gameView.addView(App.StonehearthBulletinList, { context: self._orderedBulletins });
+         } else {
+            self.hideListView();
+         }
+      },
+
+      hideListView: function() {
+         var self = this;
+         if (self._bulletinListView != null && !self._bulletinListView.isDestroyed) {
+            self._bulletinListView.destroy();
+         }
+         self._bulletinListView = null;
+      },
+
+      zoomToLocation: function(bulletin) {
+         var entity = bulletin.data.zoom_to_entity;
+         
+         if (entity) {
+            radiant.call('stonehearth:camera_look_at_entity', entity);
+         }
+      },
+
+      onNotificationViewDestroyed: function(bulletin) {
+         var self = this;
+         self._bulletinNotificationView = null;
+         self._tryShowNextBulletin();
+      },
+
+      onDialogViewDestroyed: function(bulletin) {
+         var self = this;
+         self._bulletinDialogView = null;
+         self._tryShowNextBulletin();
+      },
+
+      markBulletinHandled: function(bulletin) {
+         var self = this;
+         var bulletins = self._orderedBulletins;
+
+         // if this is the last bulletin, auto close the list view
+         if (bulletins.length <= 1) {
+            if (bulletins.length == 0 || bulletins[0].id == bulletin.id) {
+               self.hideListView();
+            }
+         }
+
+         radiant.call('stonehearth:remove_bulletin', bulletin.id);
+      },
+
       // unused
       // used to remove flicker when updating the bulletin list
       // side effect is that the old elements in the list will not update,
@@ -91,75 +179,6 @@ var StonehearthBulletinBoard;
                break;
             }
          }
-      },
-
-      _tryShowNextBulletin: function() {
-         var self = this;
-
-         if (self._bulletinNotificationView || self._bulletinDialogView) {
-            return;
-         }
-
-         var bulletins = self._orderedBulletins;
-         var numBulletins = bulletins.length;
-
-         for (var i = 0; i < numBulletins; i++) {
-            var bulletin = bulletins[i]; 
-            if (bulletin.id > self._lastViewedBulletinId) {
-               self.showNotificationView(bulletin);
-               return;
-            }
-         }
-      },
-
-      showNotificationView: function(bulletin) {
-         var self = this;
-         self._bulletinNotificationView = App.gameView.addView(App.StonehearthBulletinNotification, { uri: bulletin.__self });
-         self._lastViewedBulletinId = bulletin.id;
-      },
-
-      showDialogView: function(bulletin) {
-         var self = this;
-         var dialogViewName = bulletin.ui_view;
-         if (dialogViewName) {
-            self._bulletinDialogView = App.gameView.addView(App[dialogViewName], { uri: bulletin.__self });
-         } else {
-            self.onDialogViewDestroyed(bulletin);
-         }
-         // TODO: dismiss bullitinListView if bullitins list will become empty
-      },
-
-      toggleListView: function() {
-         var self = this;
-
-         // toggle the view
-         if (!self._bulletinListView || self._bulletinListView.isDestroyed) {
-            self._bulletinListView = App.gameView.addView(App.StonehearthBulletinList, { context: self._orderedBulletins });
-         } else {
-            self._bulletinListView.destroy();
-            self._bulletinListView = null;
-         }
-      },
-
-      zoomToLocation: function(bulletin) {
-         var entity = bulletin.data.zoom_to_entity;
-         
-         if (entity) {
-            radiant.call('stonehearth:camera_look_at_entity', entity);
-         }
-      },
-
-      onNotificationViewDestroyed: function(bulletin) {
-         var self = this;
-         self._bulletinNotificationView = null;
-         self._tryShowNextBulletin();
-      },
-
-      onDialogViewDestroyed: function(bulletin) {
-         var self = this;
-         self._bulletinDialogView = null;
-         radiant.call('stonehearth:remove_bulletin', bulletin.id);
-         self._tryShowNextBulletin();
       },
 
       getTrace: function() {
