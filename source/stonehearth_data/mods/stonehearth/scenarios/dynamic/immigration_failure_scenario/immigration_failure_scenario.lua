@@ -36,7 +36,7 @@ function ImmigrationFailure:restore()
    --Start a timer that will expire at that time
    if self._sv.timer_expiration then
       radiant.events.listen(radiant, 'radiant:game_loaded', function(e)
-         local duration = self._sv.timer_expiration - stonehearth.calendar:get_ellapsed_time()
+         local duration = self._sv.timer_expiration - stonehearth.calendar:get_elapsed_time()
          self:_create_timer(duration)
          return radiant.events.UNLISTEN
       end)
