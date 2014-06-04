@@ -547,9 +547,10 @@
       "professions:trapper" : "file(professions/trapper/trapper_description.json)",
       "professions:footman" : "file(professions/footman/footman_description.json)",
 
-      "bulletins:caravan" : "file(bulletins/caravan.json)",
+      "bulletins:simple_caravan" : "file(bulletins/caravan.json)",
       "bulletins:goblin_thief" : "file(bulletins/goblin_thief.json)", 
-      "bulletins:immigration_failure" : "file(bulletins/immigration_failure.json)"
+      "bulletins:immigration_failure" : "file(bulletins/immigration_failure.json)",
+      "bulletins:immigration" : "file(bulletins/immigration.json)"
    },
    "functions" : {
       "save_browser_object": {

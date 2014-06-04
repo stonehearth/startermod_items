@@ -49,7 +49,8 @@ end
 
 function SimpleCaravan:_load_trade_data()
    --Read in the possible trades
-   self._all_trades = radiant.resources.load_json('stonehearth:scenarios:simple_caravan').scenario_data.trades
+   self._trade_data = radiant.resources.load_json('stonehearth:scenarios:simple_caravan').scenario_data
+   self._all_trades = self._trade_data.trades
    self._trade_item_table = {}
    for trade_item, data in pairs(self._all_trades) do
       table.insert(self._trade_item_table, trade_item)
@@ -88,23 +89,53 @@ end
 
 function SimpleCaravan:_on_spawn_caravan()
    -- Get the object that the trader wants
-   local item_wanted, quantity = self:_select_desired_item()
-   if item_wanted and quantity then
+   local town_has, town_quantity = self:_select_desired_item()
+   if town_has and town_quantity then
       --Get the object the trader is willing to trade
-      local item_traded, quantity_traded = self:_select_trade_item(item_wanted)
+      local caravan_has, caravan_quantity = self:_select_trade_item(town_has)
 
       self._sv.trade_data = {
-         item_wanted = item_wanted,
-         quantity_wanted = quantity, 
-         item_traded = item_traded, 
-         quantity_traded = quantity_traded
+         town_has = town_has,
+         town_quantity = town_quantity, 
+         caravan_has = caravan_has, 
+         caravan_quantity = caravan_quantity
       }
+
+      local message_composite = self:_make_message()
+
+      --Send the notice to the bulletin service. Should be parametrized by player
+      self._sv.immigration_bulletin = stonehearth.bulletin_board:post_bulletin(self._sv.player_id)
+           :set_config('stonehearth:bulletins:simple_caravan')
+           :set_callback_instance(self)
+           :set_data({
+               title = self._trade_data.title,
+               message = message_composite,
+           })
+
 
       --TODO: Send the data to the UI
       --Wait for the accept/decline
-      self:accept_trade()
+      --self:accept_trade()
    end
 end
+
+function SimpleCaravan:_make_message()
+   local message_composite = self._trade_data.message
+
+   local caravan_has = radiant.resources.load_json(self._sv.trade_data.caravan_has).components.unit_info.name
+   local town_has = radiant.resources.load_json(self._sv.trade_data.town_has).components.unit_info.name
+   local town_name = stonehearth.town:get_town(self._sv.player_id):get_town_name()
+
+
+   message_composite = string.gsub(message_composite, '__town_name__', town_name)
+   message_composite = string.gsub(message_composite, '__your_quantity__', self._sv.trade_data.town_quantity)
+   message_composite = string.gsub(message_composite, '__your_item__', town_has)
+   message_composite = string.gsub(message_composite, '__my_quantity__', self._sv.trade_data.caravan_quantity)
+   message_composite = string.gsub(message_composite, '__my_item__', caravan_has)
+
+   return message_composite
+end
+
 
 function SimpleCaravan:_select_trade_item(want_item_id)
    local random_trade_index = rng:get_int(1, #self._trade_item_table)
@@ -201,7 +232,7 @@ function SimpleCaravan:_take_items()
 end
 
 --- Call this if the player accepts the trade
-function SimpleCaravan:accept_trade()
+function SimpleCaravan:_accept_trade()
    --TODO: go through the reserved items and nuke them all
    self:_take_items()
 
@@ -209,9 +240,9 @@ function SimpleCaravan:accept_trade()
    local town = stonehearth.town:get_town(self._sv.player_id)
    local banner_entity = town:get_banner()
 
-   for i=1, self._sv.trade_data.quantity_traded do
+   for i=1, self._sv.trade_data.caravan_quantity do
       local target_location = radiant.entities.pick_nearby_location(banner_entity, 3)
-      local item = radiant.entities.create_entity(self._sv.trade_data.item_traded)   
+      local item = radiant.entities.create_entity(self._sv.trade_data.caravan_has)   
       radiant.terrain.place_entity(item, target_location)
 
       --TODO: attach a brief particle effect to the new stuff
@@ -219,8 +250,17 @@ function SimpleCaravan:accept_trade()
 end
 
 --- Call this if the player rejects the trade
-function SimpleCaravan:reject_trade()
+function SimpleCaravan:_reject_trade()
    self:_unreserve_items()
+end
+
+--- Only actually spawn the object after the user clicks OK
+function SimpleCaravan:_on_accepted()
+   self:_accept_trade()
+end
+
+function SimpleCaravan:_on_declined()
+   self:_reject_trade()
 end
 
 
