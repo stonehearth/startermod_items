@@ -279,7 +279,10 @@ function StockpileComponent:_add_item_to_stock(entity)
    self.__saved_variables:mark_changed()
 
    -- add the item to the inventory 
-   stonehearth.inventory:add_item(self._sv.player_id, self._entity, entity)
+   -- sometimes this happens before the player_id is assigned (why?)
+   if self._sv.player_id then
+      stonehearth.inventory:add_item(self._sv.player_id, self._entity, entity)
+   end
    
    --TODO: we should really just have 1 event when something is added to the inventory/stockpile for a player
    --Trigger this anyway so various scenarios, tests, etc, can still use it
