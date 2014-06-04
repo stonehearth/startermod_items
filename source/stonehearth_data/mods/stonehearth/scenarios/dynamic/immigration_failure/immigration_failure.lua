@@ -91,7 +91,6 @@ function ImmigrationFailure:acknowledge(notice_data)
 
    --TODO: attach a brief particle effect to the new stuff
 
-   --TODO: Either make a timeout to hide the bulletin, or auto-hide once the user clicks.
 end
 
 --- Only actually spawn the thing after the user clicks OK?

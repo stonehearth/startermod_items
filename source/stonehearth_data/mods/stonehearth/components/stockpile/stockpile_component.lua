@@ -279,10 +279,15 @@ function StockpileComponent:_add_item_to_stock(entity)
    self.__saved_variables:mark_changed()
 
    -- add the item to the inventory 
+   stonehearth.inventory:add_item(self._sv.player_id, self._entity, entity)
+   
+   --TODO: we should really just have 1 event when something is added to the inventory/stockpile for a player
+   --Trigger this anyway so various scenarios, tests, etc, can still use it
    radiant.events.trigger(self._entity, "stonehearth:item_added", { 
       storage = self._entity,
       item = entity 
    })
+   
 end
 
 function StockpileComponent:_remove_item(id)
@@ -306,10 +311,16 @@ function StockpileComponent:_remove_item_from_stock(id)
 
    --Remove items that have been taken out of the stockpile
    if entity and entity:is_valid() then
+
+      --Tell the inventory to remove this item
+      stonehearth.inventory:remove_item(self._sv.player_id, self._entity, entity)
+      
+      --Trigger for scenarios, autotests, etc
       radiant.events.trigger(self._entity, "stonehearth:item_removed", { 
          storage = self._entity,
          item = entity
       })
+      
       radiant.events.trigger(stonehearth.ai, 'stonehearth:reconsider_stockpile_item', entity)
    end
 end
@@ -358,6 +369,9 @@ function StockpileComponent:_assign_to_player()
       if player_id then
          local inventory = stonehearth.inventory:get_inventory(player_id)
          inventory:add_storage(self._entity)
+
+         -- TODO: do we really still need this part where we register to a specific inventory?
+         -- Could we just call this after we explicitly tell the inventory when we've added/removed something?
          radiant.events.listen(inventory, 'stonehearth:item_added', self, self._on_item_added_to_inventory)
          radiant.events.listen(inventory, 'stonehearth:item_removed', self, self._on_item_removed_from_inventory)
       end      

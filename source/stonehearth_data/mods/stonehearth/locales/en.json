@@ -276,10 +276,10 @@
    "building_designer_roof_tool" : "roof",
    "building_designer_door_tool" : "doodads",
 
-   "0_score" : "Despairing",
+   "0_score" : "Wretched",
    "1_score" : "Miserable",
    "2_score" : "Dejected",
-   "3_score" : "Gloomy", 
+   "3_score" : "Listless", 
    "4_score" : "Fair",
    "5_score" : "Good",
    "6_score" : "Contented", 

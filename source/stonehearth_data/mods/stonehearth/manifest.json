@@ -871,6 +871,8 @@
    
    "controllers" :  {
       "bulletin" : "file(services/server/bulletin_board/bulletin.lua)",
+      "filtered_tracker" : "file(services/server/object_tracker/filtered_tracker.lua)",
+
       "craft_order" : "file(components/workshop/craft_order.lua)",
       "craft_order_list" : "file(components/workshop/craft_order_list.lua)",
       "combat_pace_keeper" : "file(services/server/dynamic_scenario/combat_pace_keeper.lua)",
@@ -882,7 +884,8 @@
       "goblin_brigands" : "file(scenarios/dynamic/goblin_brigands/goblin_brigands.lua)",
 
       "immigration" : "file(scenarios/dynamic/immigration/immigration.lua)",
-      "immigration_failure" : "file(scenarios/dynamic/immigration_failure/immigration_failure.lua)"
+      "immigration_failure" : "file(scenarios/dynamic/immigration_failure/immigration_failure.lua)", 
+      "simple_caravan" : "file(scenarios/dynamic/simple_caravan/simple_caravan.lua)"
    },
 
    "client_controllers" :  {
