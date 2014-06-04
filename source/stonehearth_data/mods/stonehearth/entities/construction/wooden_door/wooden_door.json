@@ -1,5 +1,4 @@
 {
-   "mixins": "stonehearth:mixins:structure",
    "components": {
       "unit_info": {
          "name": "Wooden Door!!",

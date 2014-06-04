@@ -84,7 +84,9 @@ void RenderMob::Move()
 
       // m = localOriginInvMat * rotation * localOriginMat;
       m = renderOffsetMat * rotation * localOriginInvMat;
+      LOG_(9) << "render offset for " << *entity_.GetEntity() << " is " << renderOffset << " computed:" << m.get_translation();
    }
+   LOG_(9) << "transform for " << *entity_.GetEntity() << " is " << _current.position;
 
    bool result = h3dSetNodeTransMat(entity_.GetNode(), m.get_float_ptr());
    if (!result) {

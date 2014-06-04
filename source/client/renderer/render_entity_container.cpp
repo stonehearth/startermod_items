@@ -34,7 +34,13 @@ void RenderEntityContainer::AddChild(dm::ObjectId key, om::EntityRef childRef)
    auto child = childRef.lock();
    if (child) {
       EC_LOG(5) << "adding child entity to container " << child->GetObjectId();
-      children_[key] = Renderer::GetInstance().CreateRenderObject(entity_.GetNode(), child);
+      // Make sure we place ourselves under the origin node of the entity.  That
+      // represents the exact position of the entity in the world.  GetNode()
+      // returns the origin node plus some rendering fix-up offsets to position the
+      // entity correctly (e.g. aligning walls and columns to the grid, even when their
+      // origin is in the center of a grid tile).
+      H3DNode parent = entity_.GetOriginNode();
+      children_[key] = Renderer::GetInstance().CreateRenderObject(parent, child);
    }
 }
 

@@ -1,7 +1,6 @@
 {
    "type": "entity",
    "components": {
-      "mixins": "stonehearth:mixins:structure",
       "unit_info": {
          "name": "Wooden Door",
          "description": "Privacy at last!",

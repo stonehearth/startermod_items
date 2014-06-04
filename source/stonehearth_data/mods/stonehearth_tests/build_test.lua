@@ -7,7 +7,8 @@ local Point3 = _radiant.csg.Point3
 function BuildTest:__init()
    self[MicroWorld]:__init()
    self:create_world()
-   
+
+
    self:place_item_cluster('stonehearth:oak_log', 8, 8, 7, 7)
    self:place_item_cluster('stonehearth:berry_basket', -8, -8, 2, 2)
    self:place_item_cluster('stonehearth:wooden_door_proxy', -8, 8, 2, 2)
