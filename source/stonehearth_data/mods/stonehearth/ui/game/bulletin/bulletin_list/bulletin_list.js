@@ -5,16 +5,6 @@ App.StonehearthBulletinList = App.View.extend({
    init: function() {
       var self = this;
       self._super();
-
-      var bulletins = self.get('context');
-      self._arrayObserver = Ember.Object.create({
-         arrayWillChange: Ember.K,
-         arrayDidChange: function(array, start, removeCount, addCount) {
-            if (array.length == 0) {
-               self.destroy();  
-            }
-         }
-      });
    },
 
    didInsertElement: function() {
