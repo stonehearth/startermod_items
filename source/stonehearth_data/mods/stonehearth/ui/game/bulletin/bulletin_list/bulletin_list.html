@@ -8,7 +8,7 @@
       <div class="title">Notifications<div class="closeButton"></div></div>
       <table class="list">
          <tbody>
-         {{#each sortedBulletins}}
+         {{#each this}}
             <tr class="row" {{bind-attr id=this.id}}>
                <td>
                   <div {{bind-attr class=this.config.type}}>
@@ -20,6 +20,5 @@
          </tbody>
       </table>
    </div>
-
 </div>
 </script>

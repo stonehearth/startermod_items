@@ -295,6 +295,9 @@
    "journal_praises" : "Praises", 
    "journal_gripes" : "Gripes",
    "praise_empty" : "Nothing praiseworthy happened today.",
-   "gripe_empty" : "Whoa. I guess nobody has anything to gripe about."
-}
+   "gripe_empty" : "Whoa. I guess nobody has anything to gripe about.",
 
+   "bulletin_dialog_ok" : "Ok",
+   "bulletin_dialog_accept" : "Accept",
+   "bulletin_dialog_decline" : "Decline"
+}

@@ -64,11 +64,13 @@ function ImmigrationFailure:start()
 
    --Send the notice to the bulletin service. Should be parametrized by player
    self._immigration_bulletin = stonehearth.bulletin_board:post_bulletin(session.player_id)
-           :set_config('stonehearth:bulletins:caravan')
+           :set_ui_view('StonehearthGenericBulletinDialog')
            :set_callback_instance(self)
            :set_data({
                title = title,
                message = message,
+               accepted_callback = "_on_accepted",
+               declined_callback = "_on_declined",
            })
 
    --Add a notice:

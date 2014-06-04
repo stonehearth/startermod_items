@@ -6,7 +6,7 @@ function BulletinBoardCallHandler:get_bulletin_board_datastore(session, response
 end
 
 function BulletinBoardCallHandler:remove_bulletin(session, response, bulletin_id)
-   stonehearth.bulletin_board:remove_bulletin(session.player_id, bulletin_id)
+   stonehearth.bulletin_board:remove_bulletin(bulletin_id)
    response:resolve({})
 end
 
