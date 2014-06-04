@@ -37,6 +37,7 @@
       "mixins:placed_properties" : "file(mixins/placed_properties)",
       "mixins:resources:jerky" : "file(mixins/resources/jerky)",
       "mixins:resources:fur_pelt" : "file(mixins/resources/fur_pelt)",
+      "mixins:structure" : "file(mixins/structure)",
 
       "kingdoms:ascendancy" : "file(services/server/population/data/ascendancy.json)",
       "kingdoms:northern_alliance" : "file(services/server/population/data/northern_alliance.json)",

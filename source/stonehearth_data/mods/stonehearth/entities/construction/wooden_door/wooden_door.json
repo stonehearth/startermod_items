@@ -1,8 +1,8 @@
 {
-   "type": "entity",
+   "mixins": "stonehearth:mixins:structure",
    "components": {
       "unit_info": {
-         "name": "Wooden Door",
+         "name": "Wooden Door!!",
          "description": "Privacy at last!",
          "icon" : "file(wooden_door.png)"
       },

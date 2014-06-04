@@ -393,7 +393,7 @@ function BuildService:grow_walls(session, response, building, columns_uri, walls
    local floor_region = building:add_component('stonehearth:building')
                                     :calculate_floor_region()
 
-   -- convert a 2d edge point to the proper 3d coorinate.  we want to put columns
+   -- convert a 2d edge point to the proper 3d coordinate.  we want to put columns
    -- 1-unit removed from where the floor is for each edge, so we add in the
    -- accumualted normal for both the min and the max, with one small wrinkle:
    -- the edges returned by :each_edge() live in the coordinate space of the

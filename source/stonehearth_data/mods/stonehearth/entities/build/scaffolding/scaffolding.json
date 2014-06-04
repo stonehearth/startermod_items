@@ -1,5 +1,5 @@
 {
-   "type": "entity", 
+   "mixins": "stonehearth:mixins:structure",
    "components": {
       "unit_info": {
          "icon": "...", 
