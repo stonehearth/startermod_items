@@ -27,7 +27,7 @@ App.StonehearthBulletinList = App.View.extend({
          App.bulletinBoard.showDialogView(bulletin);
       });
 
-      this.$('.title .closeButton').click(function() {
+      self.$('.title .closeButton').click(function() {
          self.destroy();
       });
    },
