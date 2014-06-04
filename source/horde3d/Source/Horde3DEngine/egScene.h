@@ -168,6 +168,7 @@ public:
 
 protected:
 	void markChildrenDirty();
+   void updateAccumulatedFlags();
 
 	virtual void onPreUpdate() {}  // Called before absolute transformation is updated
 	virtual void onPostUpdate() {}  // Called after absolute transformation has been updated
@@ -182,6 +183,7 @@ protected:
 	NodeHandle                  _handle;
 	uint32                      _flags;
    uint32                      _userFlags;
+   uint32                      _accumulatedFlags;
 	float                       _sortKey;
 	bool                        _dirty;  // Does the node need to be updated?
 	bool                        _transformed;
@@ -266,15 +268,11 @@ public:
 	SpatialGraph();
 	
 	void addNode( SceneNode &sceneNode );
-	void removeNode( uint32 sgHandle );
+	void removeNode( SceneNode &sceneNode );
 	void updateNode( uint32 sgHandle );
 
    void query(const SpatialQuery& query, RenderableQueues& renderableQueues, InstanceRenderableQueues& instanceQueues,
-              std::vector<SceneNode*>& lightQueue);
-   void queryRec(SceneNode* sceneNode, const SpatialQuery& query, RenderableQueues& renderableQueues, InstanceRenderableQueues& instanceQueues,
-                 std::vector<SceneNode*>& lightQueue, bool checkAllNodes);
-   bool queryNode(SceneNode* sceneNode, const SpatialQuery& query, RenderableQueues& renderableQueues, InstanceRenderableQueues& instanceQueues,
-                  std::vector<SceneNode*>& lightQueue, bool checkAllNodes);
+      std::vector<SceneNode*>& lightQueue);
 
 protected:
 	std::unordered_map<NodeHandle, SceneNode *>      _nodes;  // Renderable nodes and lights

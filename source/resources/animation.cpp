@@ -2,6 +2,10 @@
 #include "animation.h"
 #include "exceptions.h"
 #include "lib/perfmon/perfmon.h"
+#include <boost/algorithm/string/predicate.hpp>
+#include <boost/lexical_cast.hpp>
+
+#define CURRENT_VERSION    (1 << 16 | 0)     // 1.0
 
 static const float FRAME_DURATION_MS = (1000.0f / 30.0f);
 
@@ -20,6 +24,12 @@ Animation::Animation(std::string bin) :
 {
 }
 
+bool Animation::IsValid() const
+{
+   BinaryHeader *header = (BinaryHeader *)_base;
+   return header->size == sizeof(BinaryHeader) && header->version == CURRENT_VERSION;
+}
+
 std::string Animation::JsonToBinary(const JSONNode &node)
 {
    const JSONNode &frames = node["frames"];
@@ -28,6 +38,8 @@ std::string Animation::JsonToBinary(const JSONNode &node)
 
    BinaryHeader *header = (BinaryHeader *)&result[0];
 
+   header->size = sizeof(BinaryHeader);
+   header->version = CURRENT_VERSION;
    header->numFrames = frames.size();
    header->numBones = firstFrame.size();
    header->framesPerSecond = 30;
@@ -42,43 +54,40 @@ std::string Animation::JsonToBinary(const JSONNode &node)
    header = (BinaryHeader *)&result[0];
    header->firstFrameOffset = result.size();
 
+   // The file format for animation is right-handed, z-up, with the model looking
+   // down the -y axis.  This happens to exactly match the format used by 3dsMax.
+   // The engine expects animations to be y-up with models looking down the -z axis.
+   // Since they're both right-handed, we can go from one to the other simply by
+   // rotating by -90 degrees about the x-axis (now he's upright but facing the wrong
+   // way) followed by a 180 degree turn about the y-axis.
+   csg::Quaternion coordSpaceTransform = csg::Quaternion(csg::Point3f::unitY, csg::k_pi) *
+                                         csg::Quaternion(csg::Point3f::unitX, -csg::k_pi / 2);
+
    // copy the frames
    for (auto i = frames.begin(); i != frames.end(); i++) {
       for (auto j = (*i).begin(); j != (*i).end(); j++) {
          const JSONNode &pos = (*j)["pos"];
          const JSONNode &rot = (*j)["rot"];
 
-#if 0
-         float value;
-         for (int i = 0; i < 3; i++) {
-            value = (float)pos[i].as_float() / 10.0f;
-            result.insert(result.end(), (char *)&value, (char *)(&value + 1));
-         }
-         for (int i = 0; i < 4; i++) {
-            value = (float)rot[i].as_float();
-            result.insert(result.end(), (char *)&value, (char *)(&value + 1));
-         }
-#else
-         float quat[4], q[4], trans[3], t[3];
-         for (int i = 0; i < 3; i++) {
-            t[i] = (float)pos[i].as_float();
-         }
-         for (int i = 0; i < 4; i++) {
-            q[i] = (float)rot[i].as_float();
-         }
-         // convert from z-up to y-up
-         trans[0] = t[0];
-         trans[1] = t[2];
-         trans[2] = -t[1];
+         csg::Point3f translation;
+         csg::Quaternion rotation;
+         csg::Point3f axis;
+         float angle;
 
-         // flip -y and z to convert from z-up to y-up
-         quat[0] = q[0];
-         quat[1] = q[1];
-         quat[2] = q[3];
-         quat[3] = -q[2];
+         for (int i = 0; i < 3; i++) {
+            translation[i] = (float)pos[i].as_float();
+         }
+         for (int i = 0; i < 4; i++) {
+            rotation[i] = (float)rot[i].as_float();
+         }
+
+         rotation.get_axis_angle(axis, angle);
+         translation = coordSpaceTransform.rotate(translation);
+         rotation = csg::Quaternion(coordSpaceTransform.rotate(axis), angle);
+
+         float *trans = &translation[0], *quat = &rotation[0];
          result.insert(result.end(), (char *)trans, (char *)(trans + 3));
          result.insert(result.end(), (char *)quat, (char *)(quat + 4));
-#endif
       }
    }
    return std::string(&result[0], result.size());
@@ -86,7 +95,6 @@ std::string Animation::JsonToBinary(const JSONNode &node)
 
 float Animation::GetDuration()
 {
-
    BinaryHeader *header = (BinaryHeader *)_base;
    return (header->numFrames - 1) * FRAME_DURATION_MS;
    //return ((float)header->numFrames) / header->framesPerSecond;
@@ -125,15 +133,15 @@ void Animation::MoveNodes(float offset, AnimationFn fn)
       boneptr += bone.size() + 1;
 
       csg::Transform b0(csg::Point3f(first[0], first[1], first[2]),
-                           csg::Quaternion(first[3], first[4], first[5], first[6]));
+                        csg::Quaternion(first[3], first[4], first[5], first[6]));
       csg::Transform b1(csg::Point3f(next[0], next[1], next[2]),
-                           csg::Quaternion(next[3], next[4], next[5], next[6]));
+                        csg::Quaternion(next[3], next[4], next[5], next[6]));
 
       ANI_LOG(11) << " " << f << " " << bone << " " << "b0: " << b0.position;
       ANI_LOG(11) << " " << n << " " << bone << " " << "b1: " << b1.position;
 
       csg::Transform t = csg::Interpolate(b0, b1, alpha);
-      //t.orientation = csg::Quaternion(csg::Point3f::unit_y, 0);
+
       fn(bone, t);
 
       first += 7;

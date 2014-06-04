@@ -52,7 +52,7 @@ static std::string FlagsToString(int flags)
 SceneNode::SceneNode( const SceneNodeTpl &tpl ) :
 	_parent( 0x0 ), _type( tpl.type ), _handle( 0 ), _flags( 0 ), _sortKey( 0 ),
 	_dirty( true ), _transformed( true ), _renderable( false ),
-	_name( tpl.name ), _attachment( tpl.attachmentString ), _userFlags(0)
+   _name( tpl.name ), _attachment( tpl.attachmentString ), _userFlags(0), _accumulatedFlags(0)
 {
 	_relTrans = Matrix4f::ScaleMat( tpl.scale.x, tpl.scale.y, tpl.scale.z );
 	_relTrans.rotate( degToRad( tpl.rot.x ), degToRad( tpl.rot.y ), degToRad( tpl.rot.z ) );
@@ -143,18 +143,31 @@ void SceneNode::getTransMatrices( const float **relMat, const float **absMat ) c
 }
 
 
+void SceneNode::updateAccumulatedFlags()
+{
+   int parentFlags = _parent ? _parent->_accumulatedFlags : 0;
+   _accumulatedFlags = _flags | parentFlags;
+}
+
+
 void SceneNode::setFlags( int flags, bool recursive )
 {
    SCENE_LOG(8) << "setting flags on node " << _handle << " to " << FlagsToString(flags);
    _flags = flags;
 
-   if( recursive )
+   updateAccumulatedFlags();
+
+   for( size_t i = 0, s = _children.size(); i < s; ++i )
    {
-      for( size_t i = 0, s = _children.size(); i < s; ++i )
+      if( recursive )
       {
          _children[i]->setFlags( flags, true );
       }
+      // Regardless of the 'recursive' bit, ALWAYS update the accumulated flags.
+      _children[i]->updateAccumulatedFlags();
    }
+
+
 }
 
 void SceneNode::twiddleFlags( int flags, bool on, bool recursive )
@@ -167,12 +180,15 @@ void SceneNode::twiddleFlags( int flags, bool on, bool recursive )
    }
    SCENE_LOG(8) << "twiddling " << FlagsToString(flags) << " flags on node " << _handle << " (was:" << FlagsToString(oldFlags) << " now:" << FlagsToString(_flags);
 
-   if( recursive )
+   updateAccumulatedFlags();
+
+   for( size_t i = 0, s = _children.size(); i < s; ++i )
    {
-      for( size_t i = 0, s = _children.size(); i < s; ++i )
+      if( recursive )
       {
          _children[i]->twiddleFlags( flags, on, true );
       }
+      _children[i]->updateAccumulatedFlags();
    }
 }
 
@@ -310,6 +326,7 @@ void SceneNode::update()
 		_absTrans = _relTrans;
    }
 
+   updateAccumulatedFlags();
 	
    if (_absTrans.c[3][0] != 0.0f && !(_absTrans.c[3][0] < 0.0f) && !(_absTrans.c[3][0] > 0.0f)) {
       DebugBreak();
@@ -376,21 +393,22 @@ SpatialGraph::SpatialGraph()
 
 void SpatialGraph::addNode( SceneNode &sceneNode )
 {	
+	if( !sceneNode._renderable && sceneNode._type != SceneNodeTypes::Light ) return;
    ASSERT(sceneNode._handle);
    _nodes[sceneNode._handle] = &sceneNode;
    SCENE_LOG(9) << "adding node " << sceneNode._handle << " to SpatialGraph";
 }
 
 
-void SpatialGraph::removeNode( uint32 sgHandle )
+void SpatialGraph::removeNode( SceneNode &sceneNode )
 {
-   if (sgHandle) {
-      auto i = _nodes.find(sgHandle), end = _nodes.end();
-      ASSERT(i != end);
-      if (i != end) {
-         SCENE_LOG(9) << "removing node " << sgHandle << " from SpatialGraph";
-         _nodes.erase(i);
-      }
+	if( !sceneNode._renderable && sceneNode._type != SceneNodeTypes::Light ) return;
+
+   auto i = _nodes.find(sceneNode._handle), end = _nodes.end();
+   ASSERT(i != end);
+   if (i != end) {
+      SCENE_LOG(9) << "removing node " << sceneNode._handle << " from SpatialGraph";
+      _nodes.erase(i);
    }
 }
 
@@ -414,13 +432,84 @@ void SpatialGraph::query(const SpatialQuery& query, RenderableQueues& renderable
 {
    ASSERT(query.useLightQueue || query.useRenderableQueue);
 
+#define QUERY_LOG() SCENE_LOG(9) << "  query node (" << node->_handle << " " << node->getName() << ") " 
+
    Modules::sceneMan().updateNodes();
 
    SCENE_LOG(9) << "running spatial graph query:";
-   // Make sure we check all child nodes for the 'selected' bit, even if the parent does not have it.
-   // This really sucks, and is fragile, but there is no good way of doing this with Horde :(
-   bool checkAllNodes = (query.filterIgnore & SceneNodeFlags::Selected) || (query.filterRequired & SceneNodeFlags::Selected) || query.userFlags != 0;
-   queryRec(_nodes[RootNode], query, renderableQueues, instanceQueues, lightQueue, checkAllNodes);
+   // Culling
+   for (auto const& entry : _nodes) {
+      SceneNode *node = entry.second;
+      QUERY_LOG() "considering...";
+
+      if (node->_accumulatedFlags & query.filterIgnore) {
+         QUERY_LOG() << "flags " << FlagsToString(node->_accumulatedFlags) << " intersect query ignore flags " << FlagsToString(query.filterIgnore) << ".  ignorning.";
+         continue;
+      }
+      if ((node->_accumulatedFlags & query.filterRequired) != query.filterRequired) {
+         QUERY_LOG() << "flags " << FlagsToString(node->_accumulatedFlags) << " do not match query required flags " << FlagsToString(query.filterRequired) << ".  ignorning.";
+         continue;
+      }
+      if ((node->_userFlags & query.userFlags) != query.userFlags) {
+         QUERY_LOG() << "flags " << FlagsToString(node->_userFlags) << " do not match query user flags" << FlagsToString(query.userFlags) << ".  ignorning.";
+         continue;
+      }
+
+      if (query.useRenderableQueue) {
+         if (!node->_renderable) {
+            QUERY_LOG() << "not renderable.  igorning";
+            continue;
+         }
+
+         if (query.frustum.cullBox( node->_bBox ) && (query.secondaryFrustum == 0x0 || query.secondaryFrustum->cullBox( node ->_bBox ))) {
+            QUERY_LOG() << "culled by frustum.  igorning";
+            continue;
+         }
+
+         float sortKey = 0;
+
+         switch( query.order )
+         {
+         case RenderingOrder::StateChanges:
+            sortKey = node->_sortKey;
+            break;
+         case RenderingOrder::FrontToBack:
+            sortKey = nearestDistToAABB( query.frustum.getOrigin(), node->_bBox.min(), node->_bBox.max() );
+            break;
+         case RenderingOrder::BackToFront:
+            sortKey = -nearestDistToAABB( query.frustum.getOrigin(), node->_bBox.min(), node->_bBox.max() );
+            break;
+         }
+
+         if (node->getInstanceKey() != 0x0 && !query.forceNoInstancing) {
+            if (instanceQueues.find(node->_type) == instanceQueues.end()) {
+               instanceQueues[node->_type] = InstanceRenderableQueue();
+            }
+            InstanceRenderableQueue& iq = instanceQueues[node->_type];
+
+            const InstanceKey& ik = *(node->getInstanceKey());
+            if (iq.find(ik) == iq.end()) {
+               iq[ik] = RenderableQueue();
+               iq[ik].reserve(1000);
+            }
+            iq[ik].emplace_back(RendQueueItem(node->_type, sortKey, node));
+            QUERY_LOG() << "added to instance renderable queue (geo:" << ik.geoResource->getHandle() << " " << ik.geoResource->getName() << ").";
+         } else {
+            if (renderableQueues.find(node->_type) == renderableQueues.end()) {
+               renderableQueues[node->_type] = RenderableQueue();
+               renderableQueues[node->_type].reserve(1000);
+            }
+            renderableQueues[node->_type].emplace_back( RendQueueItem( node->_type, sortKey, node ) );
+            QUERY_LOG() << "added to renderable queue.";
+         }
+      }
+      if (query.useLightQueue && node->_type == SceneNodeTypes::Light) {		 
+         QUERY_LOG() << "added to light queue.";
+         lightQueue.push_back( node );
+      }
+   }
+
+#undef QUERY_LOG
 
    // Sort
    if( query.order != RenderingOrder::None ) {
@@ -436,100 +525,6 @@ void SpatialGraph::query(const SpatialQuery& query, RenderableQueues& renderable
          }
       }
    }
-}
-
-void SpatialGraph::queryRec(SceneNode* node, const SpatialQuery& query, RenderableQueues& renderableQueues, 
-                            InstanceRenderableQueues& instanceQueues, std::vector<SceneNode*>& lightQueue, bool checkAllNodes)
-{
-   bool processChildren = queryNode(node, query, renderableQueues, instanceQueues, lightQueue, checkAllNodes);
-   if (processChildren) {
-      for (SceneNode *child : node->_children) {
-         queryRec(child, query, renderableQueues, instanceQueues, lightQueue, checkAllNodes);
-      }
-   }
-}
-
-bool SpatialGraph::queryNode(SceneNode* node, const SpatialQuery& query, RenderableQueues& renderableQueues, 
-                             InstanceRenderableQueues& instanceQueues, std::vector<SceneNode*>& lightQueue, bool checkAllNodes)
-{
-   if (node == 0x0) {
-      SCENE_LOG(9) << "  node is null!  ignoring.";
-      return false;
-   }
-
-#define QUERY_LOG() SCENE_LOG(9) << "  query node (" << node->getHandle() << " " << node->getName() << ") " 
-
-   int flags = node->_flags;
-   
-   if (flags & query.filterIgnore) {
-      QUERY_LOG() << "flags " << FlagsToString(flags) << " intersect query ignore flags " << FlagsToString(query.filterIgnore) << ".  ignorning.";
-      return checkAllNodes;
-   }
-   if ((flags & query.filterRequired) != query.filterRequired) {
-      QUERY_LOG() << "flags " << FlagsToString(flags) << " do not match query required flags " << FlagsToString(query.filterRequired) << ".  ignorning.";
-      return checkAllNodes;
-   }
-   if ((node->_userFlags & query.userFlags) != query.userFlags) {
-      QUERY_LOG() << "user flags " << FlagsToString(node->_userFlags) << " do not match query user flags" << FlagsToString(query.userFlags) << ".  ignorning.";
-      return checkAllNodes;
-   }
-
-   if (query.useRenderableQueue) {
-
-      if (!node->_renderable) {
-         QUERY_LOG() << "not renderable.  igorning";
-         return true;
-      }
-
-      if (query.frustum.cullBox( node->_bBox ) && (query.secondaryFrustum == 0x0 || query.secondaryFrustum->cullBox( node ->_bBox ))) {
-         QUERY_LOG() << "culled by frustum.  igorning";
-         return false;
-      }
-
-      float sortKey = 0;
-
-      switch( query.order )
-      {
-      case RenderingOrder::StateChanges:
-         sortKey = node->_sortKey;
-         break;
-      case RenderingOrder::FrontToBack:
-         sortKey = nearestDistToAABB( query.frustum.getOrigin(), node->_bBox.min(), node->_bBox.max() );
-         break;
-      case RenderingOrder::BackToFront:
-         sortKey = -nearestDistToAABB( query.frustum.getOrigin(), node->_bBox.min(), node->_bBox.max() );
-         break;
-      }
-
-      if (node->getInstanceKey() != 0x0 && !query.forceNoInstancing) {
-         if (instanceQueues.find(node->_type) == instanceQueues.end()) {
-            instanceQueues[node->_type] = InstanceRenderableQueue();
-         }
-         InstanceRenderableQueue& iq = instanceQueues[node->_type];
-
-         const InstanceKey& ik = *(node->getInstanceKey());
-         if (iq.find(ik) == iq.end()) {
-            iq[ik] = RenderableQueue();
-            iq[ik].reserve(1000);
-         }
-         iq[ik].push_back(RendQueueItem(node->_type, sortKey, node));
-         QUERY_LOG() << "added to instance renderable queue (geo:" << ik.geoResource->getHandle() << " " << ik.geoResource->getName() << ").";
-      } else {
-         if (renderableQueues.find(node->_type) == renderableQueues.end()) {
-            renderableQueues[node->_type] = RenderableQueue();
-            renderableQueues[node->_type].reserve(1000);
-         }
-         renderableQueues[node->_type].push_back( RendQueueItem( node->_type, sortKey, node ) );
-         QUERY_LOG() << "added to renderable queue.";
-      }
-   }
-   if (query.useLightQueue && node->_type == SceneNodeTypes::Light) {		 
-      QUERY_LOG() << "added to light queue.";
-      lightQueue.push_back( node );
-   }
-#undef QUERY_LOG
-
-   return true;
 }
 
 
@@ -573,8 +568,6 @@ void SceneManager::initialize()
    _spatialGraph = new SpatialGraph();  
    _queryCacheCount = 0;
    _currentQuery = -1;
-
-   _spatialGraph->addNode(*rootNode);
 
    for (int i = 0; i < QueryCacheSize; i++) {
       _queryCache[i].lightQueue.reserve(20);
@@ -826,13 +819,13 @@ void SceneManager::removeNodeRec( SceneNode &node )
 	// Delete node
 	if( handle != RootNode )
 	{
-		_spatialGraph->removeNode(node._handle);
-                auto i = _nodes.find(node._handle), end = _nodes.end();
-                ASSERT(i != _nodes.end());
-                if (i != _nodes.end()) {
-                   delete i->second;
-                   _nodes.erase(i);
-                }
+		_spatialGraph->removeNode(node);
+      auto i = _nodes.find(node._handle), end = _nodes.end();
+      ASSERT(i != _nodes.end());
+      if (i != _nodes.end()) {
+         delete i->second;
+         _nodes.erase(i);
+      }
 	}
 }
 
@@ -929,7 +922,7 @@ void SceneManager::_findNodes( SceneNode &startNode, std::string const& name, in
 
 void SceneManager::castRayInternal( SceneNode &node, int userFlags )
 {
-	if( !(node._flags & SceneNodeFlags::NoRayQuery) )
+   if( !(node._accumulatedFlags & SceneNodeFlags::NoRayQuery) )
 	{
 		Vec3f intsPos, intsNorm;
       if( (node._userFlags & userFlags) == userFlags && node.checkIntersection( _rayOrigin, _rayDirection, intsPos, intsNorm ) )
@@ -976,7 +969,7 @@ int SceneManager::castRay( SceneNode &node, const Vec3f &rayOrig, const Vec3f &r
 {
 	_castRayResults.resize( 0 );  // Clear without affecting capacity
 
-	if( node._flags & SceneNodeFlags::NoRayQuery ) return 0;
+   if( node._accumulatedFlags & SceneNodeFlags::NoRayQuery ) return 0;
 
 	_rayOrigin = rayOrig;
 	_rayDirection = rayDir;

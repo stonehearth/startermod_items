@@ -1,0 +1,36 @@
+{
+   "components": {
+      "unit_info": {
+         "name": "2x2 model pos:(0, 0)", 
+         "portrait": "file(2x2.png)"
+      }, 
+      "render_info" : {
+         "scale" : 1,
+         "model_origin" : { "x" : 0.5, "y" : 0, "z" : 0.5 }
+      },
+      "model_variants": {
+         "default": {
+            "models": [
+               {
+                  "type": "one_of",
+                  "items": [
+                     "file(2x2_0_0.qb)"
+                  ]
+               }
+            ]
+         }
+      }, 
+      "region_collision_shape" : {
+         "region": [
+            {
+               "min" : { "x" : 0, "y" : 0, "z" : 0 },
+               "max" : { "x" : 2, "y" : 2, "z" : 2 }
+            },
+            {
+               "min" : { "x" : 0, "y" : 2, "z" : 0 },
+               "max" : { "x" : 1, "y" : 3, "z" : 1 }
+            }
+         ]
+      }
+   }
+}

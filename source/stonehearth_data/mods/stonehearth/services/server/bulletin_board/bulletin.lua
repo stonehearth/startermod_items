@@ -15,8 +15,18 @@ function Bulletin:get_id()
    return self._sv.id
 end
 
--- static data that describes the bulletin
--- this is typically the uri of the json file that contains the bulletin data
+-- configuration information that describes the bulletin
+function Bulletin:set_config(config)
+   self._sv.config = config
+   self.__saved_variables:mark_changed()
+   return self
+end
+
+function Bulletin:get_config()
+   return self._sv.config
+end
+
+-- data used to drive what is shown in the bulletin notification and bulletin dialog
 function Bulletin:set_data(data)
    self._sv.data = data
    self.__saved_variables:mark_changed()
@@ -27,29 +37,18 @@ function Bulletin:get_data()
    return self._sv.data
 end
 
--- additional dynamic or non-text data that will be passed to the view
-function Bulletin:set_context(context)
-   self._sv.data = context
-   self.__saved_variables:mark_changed()
-   return self
-end
-
-function Bulletin:get_context()
-   return self._sv.context
-end
-
 -- the object instance that created the bulletin that may also process callbacks
 -- this is typically used in javascript view as:
---    radiant.call_obj(source, 'accepted', args);
-function Bulletin:set_source(source)
-   assert(source.__saved_variables, 'source must be a savable object')
-   self._sv.source = source
+--    radiant.call_obj(callback_instance, 'accepted', args);
+function Bulletin:set_callback_instance(callback_instance)
+   assert(callback_instance.__saved_variables, 'callback_instance must be a savable object')
+   self._sv.callback_instance = callback_instance
    self.__saved_variables:mark_changed()
    return self
 end
 
-function Bulletin:get_source(source)
-   return self._sv.source
+function Bulletin:get_callback_instance(callback_instance)
+   return self._sv.callback_instance
 end
 
 -- not typically called, the creation time is automatically set on construction

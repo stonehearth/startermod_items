@@ -1,0 +1,18 @@
+<script type="text/x-handlebars" data-template-name="bulletinDialog">
+<div id="bulletinDialog" class="gui bulletinDialog">
+   <div class="window">
+      <div class="title">{{ this.data.title }}<div class="closeButton"></div></div>
+      <div class="message">{{ this.data.message }}</div>
+
+      {{#if this.data.show_me_entity }}
+         <button id="showMeButton" class="">Show me</button>
+      {{/if}}
+      {{#if this.config.accepted_callback }}
+         <button id="acceptButton" class="">Accept</button>
+      {{/if}}
+      {{#if this.config.declined_callback }}
+         <button id="declineButton" class="">Decline</button>
+      {{/if}}
+   </div>
+</div>
+</script>

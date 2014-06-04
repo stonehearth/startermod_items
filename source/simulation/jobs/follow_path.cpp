@@ -83,7 +83,7 @@ int FollowPath::CalculateStopIndex(csg::Point3f const& startLocation, std::vecto
 
 static float angle(const csg::Point3f &v)
 {
-   csg::Point3f forward(0, 0, 1);
+   csg::Point3f forward(0, 0, -1);
    float angle = (float)(atan2(-v.z, v.x) - atan2(-forward.z, forward.x));
    if (angle < 0)  {
       angle += 2 * csg::k_pi;

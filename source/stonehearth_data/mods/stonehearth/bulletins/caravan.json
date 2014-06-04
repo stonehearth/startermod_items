@@ -1,8 +1,6 @@
 {
    "type" : "info",
-   "title" : "Caravan has arrived!",
-   "ui_view" : "",
-   "ui_data" : {
-      "description" : "Lorem ipsum dolor sit amet."
-   }
+   "ui_view" : "StonehearthBulletinDialog",
+   "accepted_callback" : "_on_accepted",
+   "declined_callback" : "_on_declined"
 }

@@ -1,0 +1,25 @@
+<script type="text/x-handlebars" data-template-name="bulletinListWidget">
+   <div id="bulletinListWidget" />
+</script>
+
+<script type="text/x-handlebars" data-template-name="bulletinList">
+<div id="bulletinList" class="gui bulletinDialog">
+   <div class="window">
+      <div class="title">Notifications<div class="closeButton"></div></div>
+      <table class="list">
+         <tbody>
+         {{#each sortedBulletins}}
+            <tr class="row" {{bind-attr id=this.id}}>
+               <td>
+                  <div {{bind-attr class=this.config.type}}>
+                     {{this.data.title}}
+                  </div>
+               </td>
+            </tr>
+         {{/each}}
+         </tbody>
+      </table>
+   </div>
+
+</div>
+</script>

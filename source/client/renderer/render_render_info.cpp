@@ -238,23 +238,21 @@ void RenderRenderInfo::AddModelNode(om::RenderInfoPtr render_info, std::string c
    ASSERT(render_info);
    ASSERT(nodes_.find(bone) == nodes_.end());
 
-   csg::Point3f origin = csg::Point3f(0.5f, 0.0f, 0.5f);
+   bool moveMatrixOrigin = false;
+   csg::Point3f origin = render_info->GetModelOrigin();
+
    auto i = bones_offsets_.find(bone);
    if (i != bones_offsets_.end()) {
       origin = i->second;
 
-      // 3DS Max uses a z-up, right handed origin....
-      // The voxels in the matrix are stored y-up, left-handed...
-      // Convert the max origin to y-up, right handed...
-      csg::Point3f yUpOrigin(origin.x, origin.z, origin.y); 
-
-      // Now convert to y-up, left-handed
-      csg::Point3f yUpLHOrigin(yUpOrigin.x, yUpOrigin.y, -yUpOrigin.z);
-      origin = yUpLHOrigin;
+      // The file format for animation is right-handed, z-up, with the model looking
+      // down the -y axis.  We need y-up, looking down -z.  Since we don't care about
+      // rotation and we need to preserve x, just flip em around.
+      origin = csg::Point3f(origin.x, origin.z, origin.y);
+      moveMatrixOrigin = true;
    }
    float scale = render_info->GetScale();
 
-   auto& pipeline = Pipeline::GetInstance();
    H3DNode parent = entity_.GetSkeleton().GetSceneNode(bone);
    
    ResourceCacheKey key;
@@ -264,15 +262,35 @@ void RenderRenderInfo::AddModelNode(om::RenderInfoPtr render_info, std::string c
       key.AddElement("matrix", matrix);
    }
 
-   auto generate_matrix = [&matrices, &origin, &pipeline](csg::mesh_tools::mesh &mesh, int lodLevel) {
-      csg::Region3 all_models;
-      for (voxel::QubicleMatrix const* matrix : matrices) {
-         csg::Region3 model = voxel::QubicleBrush(matrix, lodLevel)
-            .SetOffsetMode(voxel::QubicleBrush::File)
-            .PaintOnce();
-         all_models += model;
+   auto generate_matrix = [&matrices, origin, moveMatrixOrigin](csg::mesh_tools::mesh &mesh, int lodLevel) {
+      if (!matrices.empty()) {
+         csg::Region3 all_models;
+         // Since we're stacking them up and deriving the position of the generated mesh from the
+         // same skeleton, we try to make very sure that they all have the exact same matrix
+         // proportions.  If not, complain loudly.
+         csg::Point3 size = matrices.front()->GetSize();
+
+         for (voxel::QubicleMatrix const* matrix : matrices) {
+            csg::Region3 model = voxel::QubicleBrush(matrix, lodLevel)
+               .SetOffsetMode(voxel::QubicleBrush::File)
+               .PaintOnce();
+
+            if (matrix->GetSize() != size) {
+               RI_LOG(0) << "stacked matrix " << matrix->GetName() << " size " << matrix->GetSize() << " does not match first matrix size of " << size;
+            }
+            all_models += model;   
+         }
+         // Qubicle orders voxels in the file as if we were looking at the model from the
+         // front.  The matrix loader will reverse them when covering to a region, but this
+         // means the origin contained in the skeleton file is now reading from the wrong
+         // "side" of the model (like how your sides get reversed in a mirror).  Flip it over
+         // to the other side before meshing.
+         csg::Point3f meshOrigin = origin;
+         if (moveMatrixOrigin) {
+            meshOrigin.x = (float)size.x - origin.x;
+         }
+         csg::RegionToMesh(all_models, mesh, -meshOrigin, true);
       }
-      csg::RegionToMesh(all_models, mesh, -origin, true);
    };
 
    RenderNodePtr node = RenderNode::CreateSharedCsgMeshNode(parent, key, generate_matrix);
