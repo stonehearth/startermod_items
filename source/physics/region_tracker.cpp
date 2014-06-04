@@ -108,7 +108,7 @@ bool RegionTracker::Intersects(csg::Cube3 const& worldBounds) const
    om::Region3BoxedPtr region = GetRegion();
    if (region) {
       csg::Region3 r = LocalToWorld(region->Get(), GetEntity());
-      r.Intersects(worldBounds);
+      return r.Intersects(worldBounds);
    }
    return false;
 }

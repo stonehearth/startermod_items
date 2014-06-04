@@ -5,8 +5,6 @@ local rotation_tests = {}
 -- make sure a sensor doesn't detect things out of range.
 function rotation_tests.rotate_2x2(autotest)
    local x, y, h = -8, -8, 3
-   local entity = autotest.env:create_person(0, 0)
-
    local function check_2x2()
       for dx=0,2 do
          for dy=0,2 do
@@ -26,13 +24,12 @@ function rotation_tests.rotate_2x2(autotest)
       _3x3:get_component('mob'):turn_to(i * 90)
       x = x + 6
    end
-   autotest.env:create_entity(4, -4, 'stonehearth:female_2')
-   autotest:sleep(1000000)
+   autotest:sleep(100)
    autotest:success()
 end
 
 function rotation_tests.single_rotation(autotest)
-   local person = autotest.env:create_person(8, 8)
+   local person = autotest.env:create_person(8, 8, { profession = 'farmer' })
    local e = autotest.env:create_entity(0, 0, '/stonehearth_autotest/entities/dst_4_0_0/dst_4_0_0.json')
 
    local rotation
@@ -102,7 +99,7 @@ function rotation_tests.single_rotation(autotest)
    end
 
    --autotest.env:create_entity(0, 0, 'stonehearth:small_boulder')
-   autotest:sleep(1000000)
+   autotest:sleep(100)
    autotest:success()
 end
 
