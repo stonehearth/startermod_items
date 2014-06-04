@@ -13,7 +13,6 @@ void client::CreateRegionDebugShape(H3DNode parent,
                                     om::DeepRegionGuardPtr trace,
                                     csg::Color4 const& color)
 {
-
    static std::atomic<int> count = 1;
    std::string name = "debug region " + stdutil::ToString(count++);
 

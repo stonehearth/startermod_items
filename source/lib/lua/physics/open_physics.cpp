@@ -3,6 +3,7 @@
 #include "om/entity.h"
 #include "physics/octtree.h"
 #include "physics/nav_grid.h"
+#include "physics/physics_util.h"
 
 using namespace ::radiant;
 using namespace ::radiant::phys;
@@ -39,6 +40,26 @@ luabind::object Physics_GetEntitiesInCube(lua_State *L, OctTree &octTree, csg::C
    return result;
 }
 
+template <typename Shape>
+Shape Physics_LocalToWorld(Shape const& s, om::EntityRef e)
+{
+   om::EntityPtr entity = e.lock();
+   if (entity) {
+      return phys::LocalToWorld(s, entity);
+   }
+   return s;
+}
+
+template <typename Shape>
+Shape Physics_WorldToLocal(Shape const& s, om::EntityRef e)
+{
+   om::EntityPtr entity = e.lock();
+   if (entity) {
+      return phys::WorldToLocal(s, entity);
+   }
+   return s;
+}
+
 DEFINE_INVALID_JSON_CONVERSION(OctTree)
 DEFINE_INVALID_LUA_CONVERSION(OctTree)
 IMPLEMENT_TRIVIAL_TOSTRING(OctTree)
@@ -51,7 +72,11 @@ void lua::phys::open(lua_State* L, OctTree& octtree)
             luabind::class_<OctTree>("Physics")
                .def("is_standable",         &Physics_IsStandable)
                .def("get_standable_point",  &Physics_GetStandablePoint)
-               .def("get_entities_in_cube", &Physics_GetEntitiesInCube)
+               .def("get_entities_in_cube", &Physics_GetEntitiesInCube),
+            def("local_to_world",              &Physics_LocalToWorld<csg::Point3>),
+            def("local_to_world",              &Physics_LocalToWorld<csg::Cube3>),
+            def("local_to_world",              &Physics_LocalToWorld<csg::Region3>),
+            def("world_to_local",              &Physics_WorldToLocal<csg::Point3>)
          ]
       ]
    ];

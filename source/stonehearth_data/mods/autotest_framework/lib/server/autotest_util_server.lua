@@ -76,6 +76,12 @@ function AutotestUtil:fail_if_expired(timeout, format, ...)
    end
 end
 
+function AutotestUtil:fail_if(v, ...)
+   if v then
+      self._autotest:fail(...)
+   end
+end
+
 function AutotestUtil:assert(condition, format, ...)
 	if not condition then
 		self._autotest:fail(format, ...)

@@ -773,5 +773,13 @@ function entities.same_entity(e0, e1)
    return e0 and e1 and e0:is_valid() and e1:is_valid() and e0:equals(e1)
 end
 
+function entities.local_to_world(pt, e)
+   return _radiant.physics.local_to_world(pt, e)
+end
+
+function entities.world_to_local(pt, e)
+   return _radiant.physics.world_to_local(pt, e)
+end
+
 entities.__init()
 return entities

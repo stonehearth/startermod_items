@@ -1,0 +1,21 @@
+{
+   "components": {
+      "unit_info": {
+         "name": "Dst @ pos(4, 0, 0)"
+      }, 
+      "destination" : {
+         "region": [
+            {
+               "min": { "x": 4, "y": 0, "z": 0 },
+               "max": { "x": 5, "y": 1, "z": 1 }
+            }
+         ],
+         "adjacent": [
+            {
+               "min": { "x": 5, "y": 0, "z": 0 },
+               "max": { "x": 6, "y": 1, "z": 1 }
+            }
+         ]
+      }
+   }
+}

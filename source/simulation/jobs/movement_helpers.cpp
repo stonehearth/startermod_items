@@ -5,6 +5,7 @@
 #include "om/components/mob.ridl.h"
 #include "om/components/destination.ridl.h"
 #include "simulation/simulation.h"
+#include "physics/physics_util.h"
 
 using namespace ::radiant;
 using namespace ::radiant::simulation;
@@ -53,10 +54,9 @@ csg::Region3 MovementHelper::GetRegionAdjacentToEntity(Simulation& sim, om::Enti
    if (destination) {
       adjacent = destination->GetAdjacent();
    }
-   if (adjacent) {
-      region = adjacent->Get();
-      region.Translate(origin);
-      octTree.GetNavGrid().RemoveNonStandableRegion(srcEntity, origin, region);
+   if (adjacent) {      
+      region = phys::LocalToWorld(adjacent->Get(), dstEntity);
+      octTree.GetNavGrid().RemoveNonStandableRegion(srcEntity, region);
    } else {
       MH_LOG(7) << *dstEntity << " has no destination.  iterating through points adjacent to item";
       static csg::Point3 defaultAdjacentPoints[] = {

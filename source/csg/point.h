@@ -41,7 +41,10 @@ public:
    }
 
    Derived Translated(const Derived& pt) const {
-      Derived result(*this);
+      Derived result;
+      for (int i = 0; i < C; i++) {
+         result[i] = (*this)[i];
+      }
       result.Translate(pt);
       return result;
    }

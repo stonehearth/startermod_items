@@ -62,7 +62,7 @@ class NavGrid {
       bool ForEachEntityInRegion(csg::Region3 const& worldRegion, ForEachEntityCb cb);
 
       // Misc
-      void RemoveNonStandableRegion(om::EntityPtr entity, csg::Point3 const& location, csg::Region3& r);
+      void RemoveNonStandableRegion(om::EntityPtr entity, csg::Region3& r);
       void ShowDebugShapes(csg::Point3 const& pt, protocol::shapelist* msg);
 
    private: // methods for internal helper classes
@@ -91,6 +91,7 @@ class NavGrid {
       bool ForEachTrackerInRegion(csg::Region3 const& worldRegion, ForEachTrackerCb cb);
       bool ForEachTrackerForEntity(dm::ObjectId entityId, ForEachTrackerCb cb);
       bool ForEachPointInEntityRegion(dm::ObjectId entityId, csg::Point3 const& offset, ForEachPointCb cb);
+      csg::Region3 GetEntityCollisionShape(dm::ObjectId entityId);
 
    private: // methods exposed only to the OctTree
       friend OctTree;

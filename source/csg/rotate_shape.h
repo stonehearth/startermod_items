@@ -59,7 +59,6 @@ struct RotateRegion
    Region<S, C> operator()(Region<S, C> const& region) {
       Region<S, C> result;
       for (Cube<S, C> c : region) {
-         LOG_(0) << "            rotating by " << D << " ->  in:" << c << " out:" << RotateCube<S, C, D>()(c);
          result.AddUnique(RotateCube<S, C, D>()(c));
       }
       return std::move(result);

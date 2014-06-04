@@ -1,5 +1,6 @@
 #include "pch.h"
 #include "mob.ridl.h"
+#include "csg/matrix4.h"
 #include "csg/util.h" // xxx: should be in csg/csg.h
 
 using namespace ::radiant;

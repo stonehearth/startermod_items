@@ -220,22 +220,23 @@ void NavGrid::AddTerrainTileTracker(om::EntityRef e, csg::Point3 const& offset, 
  * entity cannot stand on.  This is useful to the valid places an entity
  * can stand given a potentially valid set of spots.
  *
+ * `region` must be specified in world coordinates.  This is intentional:
+ * if you're specifing in something in local coordinates, you probably
+ * haven't considered all cases of when the region might be rotated!
+ *
  */
-void NavGrid::RemoveNonStandableRegion(om::EntityPtr entity, csg::Point3 const& location, csg::Region3& region)
+void NavGrid::RemoveNonStandableRegion(om::EntityPtr entity, csg::Region3& region)
 {
    csg::Region3 nonStandable;
 
-   // Iterate through every point in the entity, accumulating a region of `nonStandabale` points.
-   ForEachPointInEntityRegion(entity->GetObjectId(), location, [&nonStandable, &region, this] (csg::Point3 const& pt) mutable {
-      // An attempt is made to make the both fast and correct.  There's no need to consider a point at all if it
-      // does not intersect tith `region`.
-      if (region.Contains(pt)) {
+   for (csg::Cube3 const& cube : region) {
+      for (csg::Point3 const& pt : cube) {
          if (!IsStandable(pt)) {
-            nonStandable.Add(pt);
+            nonStandable.AddUnique(pt);
          }
       }
-      return false;     // keep iterating...
-   });
+   }
+
    region -= nonStandable;
 }
 

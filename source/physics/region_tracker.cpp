@@ -3,6 +3,7 @@
 #include "nav_grid.h"
 #include "dm/boxed_trace.h"
 #include "region_tracker.h"
+#include "physics_util.h"
 
 using namespace radiant;
 using namespace radiant::phys;
@@ -58,7 +59,7 @@ void RegionTracker::MarkChanged()
    om::Region3BoxedPtr region = GetRegion();
    if (region) {
       csg::Cube3 bounds = region->Get().GetBounds();
-      bounds = om::LocalToWorld(bounds, GetEntity());
+      bounds = LocalToWorld(bounds, GetEntity());
       GetNavGrid().OnTrackerBoundsChanged(last_bounds_, bounds, shared_from_this());
       last_bounds_ = bounds;
    }
@@ -74,7 +75,7 @@ csg::Region3 RegionTracker::GetOverlappingRegion(csg::Cube3 const& bounds) const
 {
    om::Region3BoxedPtr region = GetRegion();
    if (region) {
-      csg::Region3 r = om::LocalToWorld(region->Get(), GetEntity());
+      csg::Region3 r = LocalToWorld(region->Get(), GetEntity());
       return r & bounds;
    }
    return csg::Region3::empty;
@@ -106,7 +107,7 @@ bool RegionTracker::Intersects(csg::Cube3 const& worldBounds) const
 {
    om::Region3BoxedPtr region = GetRegion();
    if (region) {
-      csg::Region3 r = om::LocalToWorld(region->Get(), GetEntity());
+      csg::Region3 r = LocalToWorld(region->Get(), GetEntity());
       r.Intersects(worldBounds);
    }
    return false;
