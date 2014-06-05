@@ -86,6 +86,7 @@ public:
 
    bool Save(std::string const& filename, std::string& error);
    bool Load(std::string const& filename, std::string& error, ObjectMap& objects);
+   void OnLoaded();
 
    GenerationId GetNextGenerationId();
    GenerationId GetCurrentGenerationId();

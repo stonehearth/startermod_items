@@ -537,6 +537,7 @@
       "scenarios:simple_caravan" : "file(scenarios/dynamic/simple_caravan_scenario/simple_caravan_scenario.json)",
       "scenarios:immigration_failure" : "file(scenarios/dynamic/immigration_failure_scenario/immigration_failure_scenario.json)",
       "scenarios:immigration" : "file(scenarios/dynamic/immigration_scenario/immigration_scenario.json)",
+      "scenarios:goblin_thief" : "file(scenarios/dynamic/goblin_thief/goblin_thief.json)",
       "score_category_data" : "file(data/score/score_category_data.json)",
       "score_entity_data" : "file(data/score/score_entity_data.json)",
 
@@ -831,6 +832,10 @@
          "controller" : "file(call_handlers/stockpile_call_handler.lua)",
          "endpoint" : "server"
       },
+      "select_entity": {
+         "controller" : "file(call_handlers/selection_call_handler.lua)",
+         "endpoint" : "client"
+      },
       "camera_look_at_entity": {
          "controller" : "file(call_handlers/camera_call_handler.lua)",
          "endpoint" : "client"
@@ -887,7 +892,10 @@
 
       "immigration" : "file(scenarios/dynamic/immigration_scenario/immigration_scenario.lua)",
       "immigration_failure" : "file(scenarios/dynamic/immigration_failure_scenario/immigration_failure_scenario.lua)", 
-      "simple_caravan" : "file(scenarios/dynamic/simple_caravan_scenario/simple_caravan_scenario.lua)"
+      "simple_caravan" : "file(scenarios/dynamic/simple_caravan_scenario/simple_caravan_scenario.lua)",
+
+      "target_table" : "file(components/target_tables/target_table.lua)",
+      "patrollable_object" : "file(services/server/town_defense/patrollable_object.lua)"
    },
 
    "client_controllers" :  {

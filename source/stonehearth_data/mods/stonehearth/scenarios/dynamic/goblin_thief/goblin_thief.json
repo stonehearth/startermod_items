@@ -1,11 +1,35 @@
 {
-    "name" : "Goblin Thief",
-    "scenario_types" : {
-      "combat" : {
-        "min_strength" : 0,
-        "max_strength" : 11
-      }
-    },
-    "rarity" : "common",
-    "uri" : "stonehearth:goblin_thief"
+   "name" : "Goblin Thief",
+   "scenario_types" : {
+   "combat" : {
+     "min_strength" : 0,
+     "max_strength" : 11
+   }
+   },
+   "rarity" : "common",
+   "uri" : "stonehearth:goblin_thief", 
+   "scenario_data" : {
+      "title" : "A goblin is stealing your stuff!", 
+      "quote" : [
+         "Eeee! Things in camp so pretty!",
+         "This one mine!",
+         "Gabuga kroo! One more for the chieftain!",
+         "At last! And me worried the army pay no benefits.",
+         "Weee!!! Another prize for Empire!",
+         "Me love shiny things.",
+         "New friends bring us nice things!",
+         "They no mind me take this at all!",
+         "This will make epic tale of bravery and danger when I get home!",
+         "Contract says I take whatever I want. Mine now!",
+         "We so bad at finding things, so glad things come to us!",
+         "Nobody mind me take this, yah?",
+         "The Green God say Take!",
+         "To build is virtue, to take divine!",
+         "Me master thief!",
+         "Hee hee hee!"
+         "Me silent like swamp ninja.",
+         "Tattoo in secret place make me invincible!",
+         "Mua ha hah ha ha! Me like opportunity to practice supervillain laughter!"
+      ]
+   }
 }
