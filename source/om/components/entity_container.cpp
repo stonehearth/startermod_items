@@ -33,20 +33,17 @@ void EntityContainer::AddChild(std::weak_ptr<Entity> c)
 {
    auto child = c.lock();
    if (child) {
+      dm::ObjectId childId = child->GetObjectId();
       MobPtr mob = child->AddComponent<Mob>();
       EntityPtr parent = mob->GetParent().lock();
       if (parent) {
          auto container = parent->GetComponent<EntityContainer>();
-         container->RemoveChild(child->GetObjectId());
+         container->RemoveChild(childId);
       }
       mob->SetParent(GetEntityRef());
 
-      dm::ObjectId id = child->GetObjectId();
-      dtor_traces_[id] = child->TraceChanges("entity container lifetime", dm::OBJECT_MODEL_TRACES)
-         ->OnDestroyed([this, id]() {
-            children_.Remove(id);
-         });
-      children_.Add(id, c);
+      AddTrace(c);
+      children_.Add(childId, c);
    }
 }
 
@@ -57,7 +54,7 @@ EntityContainer& EntityContainer::RemoveChild(dm::ObjectId id)
       EntityPtr child = i->second.lock();
 
       children_.Remove(id);
-      dtor_traces_.erase(id);
+      RemoveTrace(id);
 
       if (child) {
          auto mob = child->GetComponent<Mob>();
@@ -67,4 +64,30 @@ EntityContainer& EntityContainer::RemoveChild(dm::ObjectId id)
       }
    }
    return *this;
+}
+
+void EntityContainer::AddTrace(std::weak_ptr<Entity> c)
+{
+   auto child = c.lock();
+   if (child) {
+      dm::ObjectId childId = child->GetObjectId();
+      dtor_traces_[childId] = child->TraceChanges("entity container lifetime", dm::OBJECT_MODEL_TRACES)
+         ->OnDestroyed([this, childId]() {
+            children_.Remove(childId);
+         });
+   }
+}
+
+void EntityContainer::RemoveTrace(dm::ObjectId childId)
+{
+   dtor_traces_.erase(childId);
+}
+
+void EntityContainer::OnLoadObject(dm::SerializationType r)
+{
+   if (r == dm::PERSISTANCE) {
+      for (auto const& entry : children_) {
+         AddTrace(entry.second);
+      }
+   }
 }

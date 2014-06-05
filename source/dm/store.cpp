@@ -278,17 +278,19 @@ bool Store::Load(std::string const& filename, std::string &error, ObjectMap& obj
             LOG_(0) << " load objects finished!" << std::endl;
          }
       }
-      {
-         for (auto const& entry : dynamicObjects_) {
-            ObjectPtr obj = entry.second.lock();
-            if (obj) {
-               obj->OnLoadObject(PERSISTANCE);
-            }
-         }
-      }
    }
    _close(fd);
    return true;
+}
+
+void Store::OnLoaded()
+{
+   for (auto const& entry : dynamicObjects_) {
+      ObjectPtr obj = entry.second.lock();
+      if (obj) {
+         obj->OnLoadObject(PERSISTANCE);
+      }
+   }
 }
 
 void Store::RegisterObject(Object& obj)
