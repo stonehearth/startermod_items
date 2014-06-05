@@ -4,21 +4,12 @@ local rng = _radiant.csg.get_default_rng()
 
 PatrollableObject = class()
 
-function PatrollableObject:__init()
-end
-
 function PatrollableObject:initialize(object)
-   self.__saved_variables = radiant.create_datastore()
-   self._sv = self.__saved_variables:get_data()
+   assert(self._sv)
 
    self._sv.object = object
    self._sv.object_id = object:get_id()
    self._sv.last_patrol_time = radiant.gamestate.now()
-end
-
-function PatrollableObject:restore(datastore)
-   self.__saved_variables = datastore
-   self._sv = self.__saved_variables:get_data()
 end
 
 function PatrollableObject:get_last_patrol_time()

@@ -887,7 +887,9 @@
 
       "immigration" : "file(scenarios/dynamic/immigration_scenario/immigration_scenario.lua)",
       "immigration_failure" : "file(scenarios/dynamic/immigration_failure_scenario/immigration_failure_scenario.lua)", 
-      "simple_caravan" : "file(scenarios/dynamic/simple_caravan_scenario/simple_caravan_scenario.lua)"
+      "simple_caravan" : "file(scenarios/dynamic/simple_caravan_scenario/simple_caravan_scenario.lua)",
+
+      "patrollable_object" : "file(services/server/town_defense/patrollable_object.lua)"
    },
 
    "client_controllers" :  {
