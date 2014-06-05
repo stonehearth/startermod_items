@@ -2,7 +2,7 @@
    "type": "entity", 
    "components": {
       "mob" : {
-         "render_offset" : { "x": -0.5, "y": 0, "z": -0.5 }
+         "align_to_grid" : [ "x", "z" ]
       }
    }
 }

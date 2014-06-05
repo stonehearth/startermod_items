@@ -117,8 +117,10 @@ scope LuaRegion::RegisterLuaTypes(lua_State* L)
          .def("rotated",                  (Region3 (*)(Region3 const&, int))&csg::Rotated)
       ,
       Register<Region3f>(L, "Region3f")
-         .def("get_edge_list",                &RegionGetEdgeList<float, 3>),
+         .def("get_edge_list",            &RegionGetEdgeList<float, 3>)
+      ,
       Register<Region2>(L,  "Region2")
-         .def("get_edge_list",                &RegionGetEdgeList<int, 2>),
+         .def("get_edge_list",            &RegionGetEdgeList<int, 2>)
+      ,
       Register<Region1>(L,  "Region1");
 }

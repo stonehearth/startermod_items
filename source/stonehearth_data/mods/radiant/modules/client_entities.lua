@@ -100,5 +100,13 @@ function client_entities.get_kingdom(entity)
    return unit_info and unit_info:get_kingdom() or nil
 end
 
+function client_entities.local_to_world(pt, e)
+   return _radiant.physics.local_to_world(pt, e)
+end
+
+function client_entities.world_to_local(pt, e)
+   return _radiant.physics.world_to_local(pt, e)
+end
+
 client_entities.__init()
 return client_entities

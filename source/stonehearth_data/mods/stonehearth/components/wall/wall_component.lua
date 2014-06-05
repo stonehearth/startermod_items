@@ -50,21 +50,26 @@ function Wall:get_normal_coord()
    return self._sv.normal_coord
 end
 
-function Wall:_region2_to_region3(region2, origin)
+function Wall:_get_portal_region(portal_entity, portal)
    local t, n = self._sv.tangent_coord, self._sv.normal_coord
    local start_pt, end_pt = self._sv.start_pt, self._sv.end_pt
+   local origin = portal_entity:get_component('mob'):get_grid_location()
 
+   local region2 = portal:get_portal_region()
    local region3 = Region3()
    for r2 in region2:each_cube() do
-      local min = Point3(0, r2.min.y + origin.y, 0)
-      local max = Point3(0, r2.max.y + origin.y, 0)
-      min[t] = r2.min.x + origin[t]
-      max[t] = r2.max.x + origin[t]
+      local min = Point3(0, r2.min.y, 0)
+      local max = Point3(0, r2.max.y, 0)
+
+      min[t] = r2.min.x
+      max[t] = r2.max.x
       min[n] = start_pt[n]
       max[n] = end_pt[n]
-      region3:add_unique_cube(Cube3(min, max))
+
+      local cube = Cube3(min, max)
+      region3:add_unique_cube(cube)
    end
-   return region3
+   return region3:translated(origin)
 end
 
 
@@ -135,8 +140,7 @@ function Wall:layout()
       for _, child in ec:each_child() do
          local portal = child:get_component('stonehearth:portal')
          if portal then
-            local location = child:get_component('mob'):get_grid_location()
-            local region3 = self:_region2_to_region3(portal:get_portal_region(), location)
+            local region3 = self:_get_portal_region(child, portal)
             collision_shape:subtract_region(region3)
          end
       end      

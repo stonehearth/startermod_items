@@ -5,8 +5,7 @@
          "portrait": "file(3x3.png)"
       }, 
       "mob" : {
-         "local_origin" : { "x": -1.5, "y": 0, "z": 1.5 },
-         "render_offset" : { "x": 0, "y": 0, "z": 0 }
+         "local_origin" : { "x": -1.5, "y": 0, "z": 1.5 }
       },
       "render_info" : {
          "scale" : 1

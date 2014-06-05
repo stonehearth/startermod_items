@@ -6,7 +6,7 @@
       }, 
       "mob" : {
          "local_origin" : { "x": 0, "y": 0, "z": 0 },
-         "render_offset" : { "x": -0.5, "y": 0, "z": -0.5 }
+         "align_to_grid" : [ "x", "z" ]
       },
       "render_info" : {
          "scale" : 1

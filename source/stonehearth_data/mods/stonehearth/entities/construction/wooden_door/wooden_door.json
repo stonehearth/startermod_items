@@ -7,7 +7,7 @@
       },
       "stonehearth:material" : {
          "tags" : "wood portal crafted"
-      }            ,
+      },
       "model_variants": {
          "default": {
             "models": [
