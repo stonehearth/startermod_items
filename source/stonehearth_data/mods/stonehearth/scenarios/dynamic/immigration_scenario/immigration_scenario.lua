@@ -69,10 +69,20 @@ end
 
 function Immigration:restore()
    self:_load_trade_data()
+
+   --If we made an expire timer then we're waiting for the player to acknowledge the traveller
+   --Start a timer that will expire at that time
+   if self._sv.timer_expiration then
+      radiant.events.listen(radiant, 'radiant:game_loaded', function(e)
+         local duration = self._sv.timer_expiration - stonehearth.calendar:get_elapsed_time()
+         self:_create_timer(duration)
+         return radiant.events.UNLISTEN
+      end)
+   end
 end
 
 function Immigration:_load_trade_data()
-   self._immigration_data =  radiant.resources.load_json('stonehearth:scenarios:immigration')
+   self._immigration_data =  radiant.resources.load_json('stonehearth:scenarios:immigration').scenario_data
    
    --Create a table with all the possible professions.
    --Each profession is entered into the table n times, where n is the number of "shares"
@@ -85,37 +95,39 @@ function Immigration:_load_trade_data()
    end
 end
 
---TODO: get the player ID from the caller
+-- Make a citizen and propose his approach
 function Immigration:start()
-   --TODO: should we delay the caravan's appearance? 
-   --Though we'd rather not have it happen immediately, we could also
-   --handle that with a curve
 
    --Make the new citizen
    local target_profession = self:_pick_immigrant_profession()
-   local pop = stonehearth.population:get_population(self._sv.player_id)
-   local citizen = pop:create_new_citizen()
-   pop:promote_citizen(citizen, target_profession)
 
    --Compose the message
-   local message = self:_compose_message(target_profession, citizen)
+   local message = self:_compose_message(target_profession)
 
    --Get the data ready to send to the bulletin
    self._sv.notice = {
       title = self._immigration_data.title,
       message = message, 
-      target_profession = target_profession, 
-      citizen = citizen
+      target_profession = target_profession
    }
 
    --Send the notice to the bulletin service.
    self._sv.immigration_bulletin = stonehearth.bulletin_board:post_bulletin(self._sv.player_id)
-           :set_config('stonehearth:bulletins:immigration')
+           :set_ui_view('StonehearthGenericBulletinDialog')
            :set_callback_instance(self)
            :set_data({
                title = self._immigration_data.title,
-               message = message, 
+               message = message,
+               accepted_callback = "_on_accepted",
+               declined_callback = "_on_declined",
            })
+
+   --Make sure it times out if we don't get to it
+   local wait_duration = self._immigration_data.expiration_timeout
+   self:_create_timer(wait_duration)
+
+   --Add something to the event log:
+   stonehearth.events:add_entry(self._immigration_data.title .. ': ' .. message)
 end
 
 --- Get a random target profession out of the table
@@ -143,43 +155,68 @@ function Immigration:_pick_immigrant_profession()
    return best_profession
 end
 
-function Immigration:_compose_message(profession, citizen)
+function Immigration:_compose_message(profession)
    local message_index = rng:get_int(1, #self._immigration_data.messages)
    local message = self._immigration_data.messages[message_index]
    local outcome_statement = self._immigration_data.outcome_statement
-   local citizen_name = radiant.entities.get_name(citizen)
    local profession_name = radiant.resources.load_json(profession).name
-   local town_name = stonehearth.town:get_town(radiant.entities.get_player_id(citizen)):get_town_name()
+   local town_name = stonehearth.town:get_town(self._sv.player_id):get_town_name()
 
 
    outcome_statement = string.gsub(outcome_statement, '__profession__', profession_name)
-   outcome_statement = string.gsub(outcome_statement, '__name__', citizen_name)
    outcome_statement = string.gsub(outcome_statement, '__town_name__', town_name)
    return message .. ' ' .. outcome_statement
 end
 
 function Immigration:place_citizen(citizen)
-   local player_id = radiant.entities.get_player_id(citizen)
-   local town = stonehearth.town:get_town(player_id)
-   local banner_entity = town:get_banner()
+   local spawn_point = stonehearth.spawn_region_finder:find_point_outside_civ_perimeter_for_entity(citizen, 80)
+   if not spawn_point then
+      --Just use a place near the banner
+      local town = stonehearth.town:get_town(self._sv.player_id)
+      local banner_entity = town:get_banner()
+      spawn_point = radiant.entities.pick_nearby_location(banner_entity, 3)
+   end
 
-   --TODO: eventually, the trader will drop this when standing near the banner, but for now...
-   local target_location = radiant.entities.pick_nearby_location(banner_entity, 3)
-
-   radiant.terrain.place_entity(citizen, target_location)
+   radiant.terrain.place_entity(citizen, spawn_point)
 
    --TODO: attach particle effect
 end
 
 --- Only actually spawn the object after the user clicks OK
 function Immigration:_on_accepted()
-   self:place_citizen(self._sv.notice.citizen)
+   local pop = stonehearth.population:get_population(self._sv.player_id)
+   local citizen = pop:create_new_citizen()
+   pop:promote_citizen(citizen, self._sv.notice.target_profession)
+
+   self:place_citizen(citizen)
+   if self._timer then
+      self._timer:destroy()
+   end
+   self:_stop_timer()
 end
 
 function Immigration:_on_declined()
-   --Do nothing
+   if self._timer then
+      self._timer:destroy()
+   end
+   self:_stop_timer()
 end
 
+function Immigration:_create_timer(duration)
+   self._timer = stonehearth.calendar:set_timer(duration, function() 
+      if self._sv.immigration_bulletin then
+         local bulletin_id = self._sv.immigration_bulletin:get_id()
+         stonehearth.bulletin_board:remove_bulletin(bulletin_id)
+         self:_stop_timer()
+      end
+   end)
+   self._sv.timer_expiration = self._timer:get_expire_time()
+end
+
+function Immigration:_stop_timer()
+   self._timer = nil
+   self._sv.timer_expiration = nil
+end
 
 
 return Immigration

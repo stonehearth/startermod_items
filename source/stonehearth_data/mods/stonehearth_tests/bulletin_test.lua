@@ -8,6 +8,8 @@ function BulletinTest:__init()
    self[MicroWorld]:__init()
    self:create_world()
 
+   self.__saved_variables = radiant.create_datastore()
+
    local footman = self:place_citizen(-15, -15, 'stonehearth:professions:footman', 'stonehearth:wooden_sword')
    local player_id = radiant.entities.get_player_id(footman)
 
@@ -31,16 +33,19 @@ function BulletinTest:__init()
    --radiant.events.listen(radiant, 'stonehearth:very_slow_poll', self, self._on_poll)
 end
 
-function BulletinTest:_on_accepted()
-   local foo = 1
+function BulletinTest:_on_accepted(param)
+   -- will not actually be called in this test since we are not a real savable object
+   local foo = param
 end
 
-function BulletinTest:_on_declined()
-   local foo = 1
+function BulletinTest:_on_declined(param)
+   -- will not actually be called in this test since we are not a real savable object
+   local foo = param
 end
 
-function BulletinTest:_on_ok()
-   local foo = 1
+function BulletinTest:_on_ok(param)
+   -- will not actually be called in this test since we are not a real savable object
+   local foo = param
 end
 
 local count = 1

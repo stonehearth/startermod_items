@@ -75,7 +75,6 @@ function InventoryService:remove_item(player_id, storage, item)
    for name, trace in pairs(self._sv.inventory_trackers_by_player[player_id]) do
       trace:remove_item(item)
    end
-
 end
 
 --- Given the uri of an item and the player_id, get a structure containing items of that type
@@ -96,78 +95,30 @@ end
 
 --- Call this function to track a subset of things in this inventory
 --  See the documentation for FilteredTracker for the function specifics
-function InventoryService:add_inventory_tracker(name, player_id, filter_fn, make_key_fn, make_value_fn, remove_value_fn)
+function InventoryService:add_inventory_tracker(name, player_id, fn_controller)
    local new_tracker = radiant.create_controller(
       'stonehearth:filtered_tracker',
       name,
       player_id, 
-      filter_fn, 
-      make_key_fn, 
-      make_value_fn, 
-      remove_value_fn)
+      fn_controller)
 
    if not self._sv.inventory_trackers_by_player[player_id] then
       self._sv.inventory_trackers_by_player[player_id] = {}
    end
    self._sv.inventory_trackers_by_player[player_id][name] = new_tracker
+
+   self.__saved_variables:mark_changed()
+
    return new_tracker
 end
 
 --- The inventory tracker tracks all objects that go into the inventory (ie, stockpiles)
 function InventoryService:_create_basic_inventory_tracker(player_id)
-   --Since we're only going to add stuff that's going into or out of a stockpile, 
-   --we can just return true assumng the entity is still valid
-   local filter_fn = function(entity)
-      assert(entity:is_valid(), 'entity is not valid. Make sure to call before destroy')
-      return true
-   end
-
-   --All keys will be the URI of the object
-   local make_key_fn = function(entity)
-      return entity:get_uri()
-   end
-
-   --The value is an object with
-   -- a. a map of the entities of this type, by their ID. 
-   -- b. a count of the number of entities of this type
-   local make_value_fn = function(entity, existing_value)
-      if not existing_value then
-         --We're the first object of this type
-         existing_value = {
-            count = 0, 
-            items = {}
-         }
-      end
-      local prev_entry = existing_value.items[entity:get_id()]
-      if not prev_entry then
-         existing_value.count = existing_value.count + 1
-      end   
-      existing_value.items[entity:get_id()] = entity 
-      return existing_value
-   end
-
-   --To remove, just make the item at that ID nil, and decrement the count. 
-   local remove_value_fn = function(entity, existing_value)
-      --If for some reason, there's no existing value for this key, just return
-      if not existing_value then
-         return nil
-      end
-
-      local id = entity:get_id()
-      if existing_value.items[id] then
-         existing_value.count = existing_value.count - 1
-         assert(existing_value.count >= 0)
-      end
-      existing_value.items[id] = nil
-      return existing_value
-   end
-
-   self:add_inventory_tracker('basic_inventory_tracker',
+   
+   local fn_controller = radiant.create_controller('stonehearth:basic_inventory_tracker')
+   self:add_inventory_tracker('basic_inventory_tracker', 
       player_id,
-      filter_fn,
-      make_key_fn,
-      make_value_fn,
-      remove_value_fn)
+      fn_controller)
 end
 
 
@@ -195,11 +146,18 @@ function InventoryService:_register_score_functions()
       end
    end)
 
-   --eval function for food
+   --eval function for food (may replace with using filter for type)
    stonehearth.score:add_aggregate_eval_function('resources', 'edibles', function(entity, agg_score_bag)
-      if radiant.entities.is_material(entity, 'food_container') or radiant.entities.is_material(entity, 'food') then
-         local item_value = stonehearth.score:get_score_for_entity_type(entity:get_uri())
-         agg_score_bag.edibles = agg_score_bag.edibles + item_value
+      if entity:get_component('stonehearth:stockpile') then
+         local stockpile_component = entity:get_component('stonehearth:stockpile')
+         local items = stockpile_component:get_items()
+         local total_score = 0
+         for id, item in pairs(items) do
+            if radiant.entities.is_material(item, 'food_container') or radiant.entities.is_material(item, 'food') then
+               local item_value = stonehearth.score:get_score_for_entity_type(entity:get_uri())
+               agg_score_bag.edibles = agg_score_bag.edibles + item_value
+            end
+         end
       end
    end)
 end
