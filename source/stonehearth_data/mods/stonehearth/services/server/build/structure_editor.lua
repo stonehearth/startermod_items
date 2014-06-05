@@ -34,9 +34,11 @@ end
 function StructureEditor.get_building_for(entity)
    if entity and entity:is_valid() then
       local _, blueprint, _ = StructureEditor.get_fbp_for(entity)
-      local cp = blueprint:get_component('stonehearth:construction_progress')
-      if cp then
-         return cp:get_building_entity()
+      if blueprint then
+         local cp = blueprint:get_component('stonehearth:construction_progress')
+         if cp then
+            return cp:get_building_entity()
+         end
       end
    end
 end
