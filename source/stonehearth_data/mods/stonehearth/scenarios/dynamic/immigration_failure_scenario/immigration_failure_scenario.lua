@@ -23,7 +23,6 @@ function ImmigrationFailure:initialize()
    --TODO: pass this in from dmservice
    self._sv.player_id = 'player_1'
 
-   --TODO: test that this works across saving/loading
    self._sv.notice_data = {}
    self._sv.immigration_bulletin = nil
    self:_load_trade_data()

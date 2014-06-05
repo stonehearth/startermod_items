@@ -9,7 +9,7 @@
    "scenario_data" : {
       "edible_threshold" : 10,
       "title" : "A traveller approaches holding a bundle.",
-      "expiration_timeout" : "1h",
+      "expiration_timeout" : "5h",
       "messages" : [
          "I was thinking about joining your settlement, but it looks like you're even worse off than I am!", 
          "Goodness, you people look starved.", 

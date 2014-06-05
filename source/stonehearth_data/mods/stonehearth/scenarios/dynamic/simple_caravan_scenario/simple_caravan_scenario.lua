@@ -17,7 +17,7 @@ function SimpleCaravan:can_spawn()
          num_stockpiles = num_stockpiles + 1
          break
       end
-   end
+   end  
    local should_run = num_stockpiles > 0
    return should_run
 end
@@ -104,28 +104,28 @@ function SimpleCaravan:_on_spawn_caravan()
       local message_composite = self:_make_message()
 
       --Send the notice to the bulletin service. Should be parametrized by player
-      self._sv.immigration_bulletin = stonehearth.bulletin_board:post_bulletin(self._sv.player_id)
-           :set_config('stonehearth:bulletins:simple_caravan')
+      self._sv.caravan_bulletin = stonehearth.bulletin_board:post_bulletin(self._sv.player_id)
+           :set_ui_view('StonehearthGenericBulletinDialog')
            :set_callback_instance(self)
            :set_data({
                title = self._trade_data.title,
                message = message_composite,
+               accepted_callback = "_on_accepted",
+               declined_callback = "_on_declined",
            })
 
-
-      --TODO: Send the data to the UI
-      --Wait for the accept/decline
-      --self:accept_trade()
+      --Make sure it times out if we don't get to it
+      local wait_duration = self._trade_data.expiration_timeout
+      self:_create_timer(wait_duration)
    end
 end
 
 function SimpleCaravan:_make_message()
    local message_composite = self._trade_data.message
 
-   local caravan_has = radiant.resources.load_json(self._sv.trade_data.caravan_has).components.unit_info.name
-   local town_has = radiant.resources.load_json(self._sv.trade_data.town_has).components.unit_info.name
+   local caravan_has = self:_get_user_visible_name(self._sv.trade_data.caravan_has)
+   local town_has = self:_get_user_visible_name(self._sv.trade_data.town_has)
    local town_name = stonehearth.town:get_town(self._sv.player_id):get_town_name()
-
 
    message_composite = string.gsub(message_composite, '__town_name__', town_name)
    message_composite = string.gsub(message_composite, '__your_quantity__', self._sv.trade_data.town_quantity)
@@ -136,6 +136,16 @@ function SimpleCaravan:_make_message()
    return message_composite
 end
 
+--TODO: move this to an i18n service
+function SimpleCaravan:_get_user_visible_name(uri)
+   local item_data = radiant.resources.load_json(uri)
+   if item_data.components.unit_info then
+      return item_data.components.unit_info.name
+   elseif item_data.components['stonehearth:placeable_item_proxy'] then
+      local full_sized_data =  radiant.resources.load_json(item_data.components['stonehearth:placeable_item_proxy'].full_sized_entity)
+      return full_sized_data.components.unit_info.name
+   end
+end
 
 function SimpleCaravan:_select_trade_item(want_item_id)
    local random_trade_index = rng:get_int(1, #self._trade_item_table)
@@ -257,10 +267,34 @@ end
 --- Only actually spawn the object after the user clicks OK
 function SimpleCaravan:_on_accepted()
    self:_accept_trade()
+   if self._timer then
+      self._timer:destroy()
+   end
+   self:_stop_timer()
 end
 
 function SimpleCaravan:_on_declined()
    self:_reject_trade()
+   if self._timer then
+      self._timer:destroy()
+   end
+   self:_stop_timer()
+end
+
+function SimpleCaravan:_create_timer(duration)
+   self._timer = stonehearth.calendar:set_timer(duration, function() 
+      if self._sv.caravan_bulletin then
+         local bulletin_id = self._sv.caravan_bulletin:get_id()
+         stonehearth.bulletin_board:remove_bulletin(bulletin_id)
+         self:_stop_timer()
+      end
+   end)
+   self._sv.timer_expiration = self._timer:get_expire_time()
+end
+
+function SimpleCaravan:_stop_timer()
+   self._timer = nil
+   self._sv.timer_expiration = nil
 end
 
 

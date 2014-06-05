@@ -67,7 +67,7 @@ function EmbarkTest:__init()
 
    --Place a banner
    local town = stonehearth.town:get_town(player_id)
-   local location = Point3(11, 0, 11)
+   local location = Point3(5, 0, 5)
    local banner_entity = radiant.entities.create_entity('stonehearth:camp_standard')
    radiant.terrain.place_entity(banner_entity, location)
    town:set_banner(banner_entity)

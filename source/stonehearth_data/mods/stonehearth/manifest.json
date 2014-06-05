@@ -533,9 +533,9 @@
       "ambient:summer_night" : "file(data/ambient/sh_amb_summer_night.ogg)",
       
       "scenarios:scenario_index" : "file(scenarios/index.json)",
-      "scenarios:simple_caravan" : "file(scenarios/dynamic/simple_caravan/simple_caravan.json)",
+      "scenarios:simple_caravan" : "file(scenarios/dynamic/simple_caravan_scenario/simple_caravan_scenario.json)",
       "scenarios:immigration_failure" : "file(scenarios/dynamic/immigration_failure_scenario/immigration_failure_scenario.json)",
-      "scenarios:immigration" : "file(scenarios/dynamic/immigration/immigration.json)",
+      "scenarios:immigration" : "file(scenarios/dynamic/immigration_scenario/immigration_scenario.json)",
       "score_category_data" : "file(data/score/score_category_data.json)",
       "score_entity_data" : "file(data/score/score_entity_data.json)",
 
@@ -547,9 +547,7 @@
       "professions:trapper" : "file(professions/trapper/trapper_description.json)",
       "professions:footman" : "file(professions/footman/footman_description.json)",
 
-      "bulletins:simple_caravan" : "file(bulletins/caravan.json)",
-      "bulletins:goblin_thief" : "file(bulletins/goblin_thief.json)", 
-      "bulletins:immigration" : "file(bulletins/immigration.json)"
+      "bulletins:goblin_thief" : "file(bulletins/goblin_thief.json)"
    },
    "functions" : {
       "save_browser_object": {
@@ -872,7 +870,9 @@
    
    "controllers" :  {
       "bulletin" : "file(services/server/bulletin_board/bulletin.lua)",
+
       "filtered_tracker" : "file(services/server/object_tracker/filtered_tracker.lua)",
+      "basic_inventory_tracker" : "file(services/server/inventory/basic_inventory_tracker_controller.lua)",
 
       "craft_order" : "file(components/workshop/craft_order.lua)",
       "craft_order_list" : "file(components/workshop/craft_order_list.lua)",
@@ -884,9 +884,9 @@
       "goblin_thief" : "file(scenarios/dynamic/goblin_thief/goblin_thief.lua)",
       "goblin_brigands" : "file(scenarios/dynamic/goblin_brigands/goblin_brigands.lua)",
 
-      "immigration" : "file(scenarios/dynamic/immigration/immigration.lua)",
+      "immigration" : "file(scenarios/dynamic/immigration_scenario/immigration_scenario.lua)",
       "immigration_failure" : "file(scenarios/dynamic/immigration_failure_scenario/immigration_failure_scenario.lua)", 
-      "simple_caravan" : "file(scenarios/dynamic/simple_caravan/simple_caravan.lua)"
+      "simple_caravan" : "file(scenarios/dynamic/simple_caravan_scenario/simple_caravan_scenario.lua)"
    },
 
    "client_controllers" :  {

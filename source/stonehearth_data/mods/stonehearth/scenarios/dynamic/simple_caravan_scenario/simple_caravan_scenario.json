@@ -8,6 +8,7 @@
    "uri" : "stonehearth:simple_caravan", 
    "scenario_data" : {
       "title" : "A caravan approaches!",
+      "expiration_timeout" : "1h",
       "message" : "Hello __town_name__! I come bearing goods for trade. Would you like to give me __your_quantity__ __your_item__(s) in exchange for __my_quantity__ __my_item__(s)?",
       "trades" : {
          "stonehearth:oak_log" : {
