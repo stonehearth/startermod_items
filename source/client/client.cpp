@@ -16,6 +16,7 @@
 #include "om/selection.h"
 #include "om/om_alloc.h"
 #include "csg/lua/lua_csg.h"
+#include "csg/random_number_generator.h"
 #include "om/lua/lua_om.h"
 #include "om/components/data_store.ridl.h"
 #include "platform/utils.h"
@@ -398,7 +399,18 @@ void Client::OneTimeIninitializtion()
          
          //Get track, channel, and other optional data out of the node
          //TODO: get the defaults from audio.cpp instead of 
-         std::string uri = params.get<std::string>("track");
+         std::string uri = "";
+         json::Node n(params.get_node("track"));
+         if (n.type() == JSON_STRING) {
+            uri = n.get_internal_node().as_string();
+         } else if (n.type() == JSON_NODE) {
+            JSONNode items = n.get("items", JSONNode());
+            csg::RandomNumberGenerator &rng = csg::RandomNumberGenerator::DefaultInstance();
+            uint c = rng.GetInt<uint>(0, items.size() - 1);
+            ASSERT(c < items.size());
+            uri = items.at(c).as_string();
+         }
+         
          std::string channel = params.get<std::string>("channel");
 
          bool loop = params.get<bool>("loop", audio::DEF_MUSIC_LOOP);
