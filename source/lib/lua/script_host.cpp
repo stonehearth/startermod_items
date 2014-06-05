@@ -750,11 +750,11 @@ bool ScriptHost::IsNumericTable(luabind::object tbl) const
 
 void ScriptHost::LoadGame(om::ModListPtr mods, std::unordered_map<dm::ObjectId, om::EntityPtr>& em, std::vector<om::DataStorePtr>& datastores)
 {
-   CreateModules(mods);
-
    for (om::DataStorePtr datastore : datastores) {
       datastore->RestoreController(datastore);
    }
+
+   CreateModules(mods);
 
    for (om::DataStorePtr datastore : datastores) {
       try {
