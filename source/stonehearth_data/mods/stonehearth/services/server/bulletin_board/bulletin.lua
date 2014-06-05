@@ -48,10 +48,10 @@ function Bulletin:get_data()
 end
 
 -- the object instance that created the bulletin that may also process callbacks
--- this is typically used in javascript view as:
---    radiant.call_obj(callback_instance, 'accepted', args);
+-- must be a savable object
 function Bulletin:set_callback_instance(callback_instance)
-   assert(callback_instance.__saved_variables, 'callback_instance must be a savable object')
+   assert(self:_is_savable_object(callback_instance))
+
    self._sv.callback_instance = callback_instance
    self.__saved_variables:mark_changed()
    return self
@@ -70,6 +70,13 @@ end
 
 function Bulletin:get_creation_time()
    return self._sv.creation_time
+end
+
+function Bulletin:_is_savable_object(object)
+   return object and 
+          object.__saved_variables and
+          object.__saved_variables.get_type_name and
+          object.__saved_variables:get_type_name() == 'class radiant::om::DataStore'
 end
 
 return Bulletin

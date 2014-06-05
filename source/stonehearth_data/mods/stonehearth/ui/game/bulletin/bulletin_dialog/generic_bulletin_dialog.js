@@ -19,10 +19,13 @@ App.StonehearthGenericBulletinDialog = App.StonehearthBaseBulletinDialog.extend(
       });
    },
 
-   _triggerCallbackAndDestroy: function(instance, callback_key) {
+   _triggerCallbackAndDestroy: function(callback_key) {
       var self = this;
       var bulletin = self.get('context');
-      radiant.call_obj(bulletin.callback_instance, bulletin.data[callback_key]);
+      var instance = bulletin.callback_instance;
+      var method = bulletin.data[callback_key];
+
+      radiant.call_obj(instance, method);
       App.bulletinBoard.markBulletinHandled(bulletin);
       self.destroy();
    }
