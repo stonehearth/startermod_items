@@ -151,11 +151,31 @@ H3DNode RenderEntity::GetParent() const
    return h3dGetNodeParent(node_);
 }
 
+/*
+ * -- RenderEntity::GetNode
+ *
+ * Returns the horde node positions exactly where the entity is rendered.
+ * This is offset om::Mob::render_offset units from the origin node.  If you
+ * want to render something in the visual-coordinate-system (is that thing?)
+ * of the Entity, you want to use this node as a reference.
+ *
+ */
 H3DNode RenderEntity::GetNode() const
 {
    return offsetNode_;
 }
 
+
+/*
+ * -- RenderEntity::GetOriginNode
+ *
+ * Returns the horde node placed exactly where the om::Mob component specifies
+ * the Entity's location is.  This may not be exacly where the entity is
+ * drawn on screen if the om::Mob's render offset value is not Point3f::zero.
+ * If you want to do something with the node (e.g. add your own renderables
+ * under it), this is probably not the node you want.  See :GetNode()
+ *
+ */
 H3DNode RenderEntity::GetOriginNode() const
 {
    return node_;

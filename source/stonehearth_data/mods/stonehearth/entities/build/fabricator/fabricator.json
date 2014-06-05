@@ -1,5 +1,5 @@
 {
-   "mixins": "stonehearth:mixins:structure",   
+   "mixins": "stonehearth:mixins:align_to_grid",
    "entity_data" : {
       "stonehearth:render_materials" : {
          "normal" : "materials/blueprint.material.xml",

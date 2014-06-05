@@ -1,5 +1,5 @@
 {
-   "mixins": "stonehearth:mixins:structure",   
+   "mixins": "stonehearth:mixins:align_to_grid",   
    "components": {
       "unit_info": {
          "icon": "...", 

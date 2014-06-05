@@ -15,7 +15,7 @@ using namespace radiant::phys;
 /*
  * -- phys::LocalToWorld
  *
- * Transform `shape` from the coordinate system of `enity` to the world coordinate
+ * Transform `shape` from the coordinate system of `entity` to the world coordinate
  * system, including transformation and rotation.
  *
  */
@@ -60,6 +60,14 @@ Shape phys::LocalToWorld(Shape const& shape, om::EntityPtr entity)
    return csg::Rotated(shape, angle).Translated(position);
 }
 
+
+/*
+ * -- phys::WorldToLocal
+ *
+ * Transform `shape` from world coordinate system to the coordinate system
+ * of `entity` to the system, including transformation and rotation.
+ *
+ */
 template <typename Shape>
 Shape phys::WorldToLocal(Shape const& shape, om::EntityPtr entity)
 {

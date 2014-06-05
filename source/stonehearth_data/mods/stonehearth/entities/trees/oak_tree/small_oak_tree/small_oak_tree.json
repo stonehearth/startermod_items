@@ -1,10 +1,7 @@
 {
-   "mixins": "stonehearth:mixins:tree", 
+   "mixins": ["stonehearth:mixins:tree", "stonehearth:mixins:align_to_grid"],
    "type": "entity", 
    "components": {
-      "mob" : {
-         "render_offset" : { "x": -0.5, "y": 0, "z": -0.5 }
-      },
       "model_variants": {
          "default": {
             "models": [
