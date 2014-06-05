@@ -7,21 +7,23 @@ App.StonehearthGenericBulletinDialog = App.StonehearthBaseBulletinDialog.extend(
       self._super();
 
       self.$('#okButton').click(function() {
-         var bulletin = self.get('context');
-         radiant.call_obj(bulletin.callback_instance, bulletin.data.ok_callback);
-         self.destroy();
+         self._triggerCallbackAndDestroy('ok_callback');
       });
 
       self.$('#acceptButton').click(function() {
-         var bulletin = self.get('context');
-         radiant.call_obj(bulletin.callback_instance, bulletin.data.accepted_callback);
-         self.destroy();
+         self._triggerCallbackAndDestroy('accepted_callback');
       });
 
       self.$('#declineButton').click(function() {
-         var bulletin = self.get('context');
-         radiant.call_obj(bulletin.callback_instance, bulletin.data.declined_callback);
-         self.destroy();
+         self._triggerCallbackAndDestroy('declined_callback');
       });
+   },
+
+   _triggerCallbackAndDestroy: function(instance, callback_key) {
+      var self = this;
+      var bulletin = self.get('context');
+      radiant.call_obj(bulletin.callback_instance, bulletin.data[callback_key]);
+      App.bulletinBoard.markBulletinHandled(bulletin);
+      self.destroy();
    }
 });
