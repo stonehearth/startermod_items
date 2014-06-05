@@ -13,6 +13,8 @@ To wit: spawn a little thief, somewhere just outside the explored area.  And the
 and forth stealing wood (probably should just be from the stockpile, but for now, anywhere.)
 ]]
 function GoblinThief:initialize()
+   --ID of the player who the goblin is attacking, not the player ID of the DM
+   self._sv.player_id = 'player_1'
 end
 
 function GoblinThief:restore()
@@ -57,6 +59,7 @@ end
 function GoblinThief:_attach_listeners()
    radiant.events.listen(self._sv._stockpile, 'stonehearth:item_added', self, self._item_added)
    radiant.events.listen(self._sv._goblin, 'radiant:entity:pre_destroy', self, self._goblin_killed)
+   radiant.events.listen(self._sv._goblin, 'stonehearth:carry_block:carrying_changed', self, self._theft_event)
 end
 
 function GoblinThief:_add_restock_task()
@@ -104,13 +107,45 @@ end
 function GoblinThief:_goblin_killed(e)
    radiant.events.unlisten(self._sv._stockpile, 'stonehearth:item_added', self, self._item_added)
    radiant.events.unlisten(self._sv._goblin, 'radiant:entity:pre_destroy', self, self._goblin_killed)
+   radiant.events.unlisten(self._sv._goblin, 'stonehearth:carry_block:carrying_changed', self, self._theft_event)
 
    radiant.entities.destroy_entity(self._sv._stockpile)
    self._sv._stockpile = nil
    self._sv._goblin = nil
+
+    if self._sv.notification_bulletin then
+      local bulletin_id = self._sv.notification_bulletin:get_id()
+      stonehearth.bulletin_board:remove_bulletin(bulletin_id)
+      self._sv.notification_bulletin = nil
+   end
+
+   stonehearth.bulletin_board:remove_bulletin(bulletin_id)
+
    self.__saved_variables:mark_changed()
 
    radiant.events.trigger(self, 'stonehearth:dynamic_scenario:finished')
+end
+
+function GoblinThief:_theft_event(e)
+   if not self._sv.bulletin_fired then
+      local message_data = radiant.resources.load_json('stonehearth:scenarios:goblin_thief').scenario_data
+      self._sv.title = message_data.title
+      local message_index = rng:get_int(1, #message_data.quote)
+      self._sv.message = message_data.quote[message_index] .. ' --' .. radiant.entities.get_name(self._sv._goblin)
+      
+      --Send the notice to the bulletin service.
+      self._sv.notification_bulletin = stonehearth.bulletin_board:post_bulletin(self._sv.player_id)
+           --:set_ui_view('StonehearthGenericBulletinDialog')
+           :set_callback_instance(self)
+           :set_data({
+               title = self._sv.title,
+               message = self._sv.message,
+               zoom_to_entity = self._sv._goblin,
+               --ok_callback = "_on_ok",
+           })
+
+      self._sv.bulletin_fired = true
+   end
 end
 
 function GoblinThief:_item_added(e)
@@ -127,6 +162,9 @@ function GoblinThief:_item_added(e)
          :start()
       self.__saved_variables:mark_changed()
    end
+end
+
+function GoblinThief:_on_ok(e)
 end
 
 return GoblinThief
