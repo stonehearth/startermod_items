@@ -832,6 +832,10 @@
          "controller" : "file(call_handlers/stockpile_call_handler.lua)",
          "endpoint" : "server"
       },
+      "select_entity": {
+         "controller" : "file(call_handlers/selection_call_handler.lua)",
+         "endpoint" : "client"
+      },
       "camera_look_at_entity": {
          "controller" : "file(call_handlers/camera_call_handler.lua)",
          "endpoint" : "client"

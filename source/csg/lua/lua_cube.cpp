@@ -4,6 +4,7 @@
 #include "csg/cube.h"
 #include "lib/json/namespace.h"
 #include "csg/util.h"
+#include "csg/rotate_shape.h"
 
 using namespace ::luabind;
 using namespace ::radiant;
@@ -106,6 +107,7 @@ scope LuaCube::RegisterLuaTypes(lua_State* L)
       def("intersect_cube3", IntersectCube<Cube3>),
       def("intersect_cube2", IntersectCube<Rect2>),
       Register<Cube3>(L,  "Cube3")
+         .def("rotated",      &(Cube3 (*)(Cube3 const&, int))&csg::Rotated)
          .def("to_float",     &ToCube3f)
          .def("each_point",   &EachPoint<Cube3>)
          .def("project_onto_xz_plane", &ProjectOntoXZPlane),

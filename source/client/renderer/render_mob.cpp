@@ -73,7 +73,21 @@ void RenderMob::Move()
    csg::Matrix4 m;   
    om::MobPtr mob = mob_.lock();
    if (mob) {
-      csg::Point3f const& renderOffset = mob->GetRenderOffset();
+      csg::Point3f renderOffset(0, 0, 0);
+
+      int alignment = mob->GetAlignToGridFlags();
+      for (int i = 0; i < 3; i++) {
+         if (alignment & (1 << i)) {
+            renderOffset[i] = -0.5f;  
+         }
+      }
+      renderOffset = _current.orientation.rotate(renderOffset);
+      for (int i = 0; i < 3; i++) {
+         if (renderOffset[i] > 0) {
+            renderOffset[i] *= -1;
+         }
+      }
+
       csg::Point3f localOrigin = mob->GetLocalOrigin();
       csg::Matrix4 localOriginInvMat, renderOffsetMat;
 
