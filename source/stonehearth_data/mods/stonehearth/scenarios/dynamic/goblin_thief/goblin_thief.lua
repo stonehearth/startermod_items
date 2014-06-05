@@ -135,16 +135,17 @@ function GoblinThief:_theft_event(e)
       
       --Send the notice to the bulletin service.
       self._sv.notification_bulletin = stonehearth.bulletin_board:post_bulletin(self._sv.player_id)
-           --:set_ui_view('StonehearthGenericBulletinDialog')
            :set_callback_instance(self)
            :set_data({
                title = self._sv.title,
                message = self._sv.message,
                zoom_to_entity = self._sv._goblin,
-               --ok_callback = "_on_ok",
            })
 
       self._sv.bulletin_fired = true
+
+      --Add something to the event log:
+      stonehearth.events:add_entry(self._sv.title .. ': ' .. self._sv.message)
    end
 end
 
