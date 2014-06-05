@@ -1,4 +1,3 @@
-local CombatState = require 'components.combat_state.combat_state'
 local rng = _radiant.csg.get_default_rng()
 local log = radiant.log.create_logger('combat')
 
@@ -204,7 +203,7 @@ function CombatService:get_combat_state(entity)
    end
 
    local combat_state_component = entity:add_component('stonehearth:combat_state')
-   return combat_state_component:get_combat_state()
+   return combat_state_component
 end
 
 function CombatService:get_action_types(entity, action_type)

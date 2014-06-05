@@ -10,9 +10,6 @@ TownDefense = class()
 function TownDefense:__init()
    -- traces for change of ownership of a patrollable object
    self._player_id_traces = {}
-
-   -- maps patrollable objects to their owning player. used to provide O(1) destroy.
-   self._object_to_player_map = {}
 end
 
 function TownDefense:initialize()
@@ -29,21 +26,24 @@ function TownDefense:initialize()
       end
    )
 
-   if true then
-   --if not self._sv.initialized then
+   if not self._sv.initialized then
       -- holds all the patrollable objects in the world organized by player_id
       self._sv.patrollable_objects = {}
+
+      -- maps patrollable objects to their owning player. used to provide O(1) destroy.
+      self._sv.object_to_player_map = {}
+
       self._sv.initialized = true
       self._world_objects_trace:push_object_state()
    else
-      -- this code can fail as some object_ids cannot be converted into objects yet
       for player_id, player_patrollable_objects in pairs(self._sv.patrollable_objects) do
-         for object_id, datastore in pairs(player_patrollable_objects) do
-            local patrollable_object = PatrollableObject()
-            patrollable_object:restore(datastore)
-
-            self:_add_patrollable_object_to_patrol_list(patrollable_object)
+         for object_id, patrollable_object in pairs(player_patrollable_objects) do
+            local object = patrollable_object:get_object()
+            -- restore traces
+            self:_add_player_id_trace(object)
          end
+         -- notify any existing entities of available patrol routes
+         self:_trigger_patrol_route_available(player_id)
       end
    end
 end
@@ -167,15 +167,28 @@ function TownDefense:_is_patrollable(object)
 end
 
 function TownDefense:_add_to_patrol_list(object)
-   local patrollable_object = PatrollableObject()
-   patrollable_object:initialize(object)
+   local patrollable_object = radiant.create_controller('stonehearth:patrollable_object', object)
+   local object_id = object:get_id()
+   local player_id = radiant.entities.get_player_id(object)
 
-   self:_add_patrollable_object_to_patrol_list(patrollable_object)
+   if player_id then
+      local player_patrollable_objects = self:_get_patrollable_objects(player_id)
+
+      player_patrollable_objects[object_id] = patrollable_object
+      self._sv.object_to_player_map[object_id] = player_id
+
+      self:_trigger_patrol_route_available(player_id)
+   end
+
+   -- trace all objects that are patrollable in case their ownership changes
+   self:_add_player_id_trace(object)
+
+   self.__saved_variables:mark_changed()
 end
 
 function TownDefense:_remove_from_patrol_list(object_id)
-   local player_id = self._object_to_player_map[object_id]
-   self._object_to_player_map[object_id] = nil
+   local player_id = self._sv.object_to_player_map[object_id]
+   self._sv.object_to_player_map[object_id] = nil
 
    if player_id then
       local player_patrollable_objects = self:_get_patrollable_objects(player_id)
@@ -187,24 +200,8 @@ function TownDefense:_remove_from_patrol_list(object_id)
    end
 
    self:_remove_player_id_trace(object_id)
-end
 
-function TownDefense:_add_patrollable_object_to_patrol_list(patrollable_object)
-   local object = patrollable_object:get_object()
-   local object_id = object:get_id()
-   local player_id = radiant.entities.get_player_id(object)
-
-   if player_id then
-      local player_patrollable_objects = self:_get_patrollable_objects(player_id)
-
-      player_patrollable_objects[object_id] = patrollable_object
-      self._object_to_player_map[object_id] = player_id
-
-      self:_trigger_patrol_route_available(player_id)
-   end
-
-   -- trace all objects that are patrollable in case their ownership changes
-   self:_add_player_id_trace(object)
+   self.__saved_variables:mark_changed()
 end
 
 function TownDefense:_get_patrollable_objects(player_id)
