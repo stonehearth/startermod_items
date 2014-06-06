@@ -483,6 +483,7 @@ function BuildService:grow_roof(session, response, building, roof_uri)
                   :loan_scaffolding_to(roof)
       end
    end
+   response:resolve({})
 end
 
 -- returns the blueprint at the specified world `point`
