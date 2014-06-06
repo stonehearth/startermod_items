@@ -62,8 +62,7 @@
                 "description" : "Build a small, square house.",
                 "class" : "button",
                 "icon" : "/stonehearth/ui/game/start_menu/images/build_simple_room.png",
-                "sticky" : true,
-                "hotkey" : "r"
+                "sticky" : true
             },
             "build_wall" : {
                 "name" : "Walls",
