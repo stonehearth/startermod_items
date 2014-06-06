@@ -27,17 +27,19 @@ function Wall:initialize(entity, json)
 end
 
 function Wall:begin_editing(entity)
-   local other_wall = entity:get_component('stonehearth:wall')
+   if entity then
+      local other_wall = entity:get_component('stonehearth:wall')
 
-   self._sv.start_pt = Point3(other_wall._sv.start_pt)
-   self._sv.end_pt = Point3(other_wall._sv.end_pt)
-   self._sv.fixture_rotation = other_wall._sv.fixture_rotation
-   self._sv.tangent_coord = other_wall._sv.tangent_coord
-   self._sv.normal_coord = other_wall._sv.normal_coord
-   self.__saved_variables:mark_changed()
+      self._sv.start_pt = Point3(other_wall._sv.start_pt)
+      self._sv.end_pt = Point3(other_wall._sv.end_pt)
+      self._sv.fixture_rotation = other_wall._sv.fixture_rotation
+      self._sv.tangent_coord = other_wall._sv.tangent_coord
+      self._sv.normal_coord = other_wall._sv.normal_coord
+      self.__saved_variables:mark_changed()
 
-   self._editing = true
-   self._editing_region = entity:get_component('destination'):get_region()
+      self._editing = true
+      self._editing_region = entity:get_component('destination'):get_region()
+   end
 
    return self
 end
