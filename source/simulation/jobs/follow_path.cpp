@@ -64,7 +64,7 @@ int FollowPath::CalculateStopIndex(csg::Point3f const& startLocation, std::vecto
       currentPoint = points[i];
       distance += currentPoint.DistanceTo(previousPoint);
       if (distance > stopDistance) {
-         // return the last index where the distance was cloeser than the stopDistance
+         // return the last index where the distance was closer than the stopDistance
          break;
       }
       index = i;
@@ -101,24 +101,25 @@ bool FollowPath::Work(const platform::timer &timer)
    }
 
    float moveDistance = speed_ * GetSim().GetBaseWalkSpeed();
-   const std::vector<csg::Point3> &points = path_->GetPoints();
+   std::vector<csg::Point3> const& points = path_->GetPoints();
    auto mob = entity->GetComponent<om::Mob>();
 
    while (!Arrived(mob) && !Obstructed() && moveDistance > 0)  {
-      const csg::Point3f &current = mob->GetLocation();
-      const csg::Point3f &goal = csg::ToFloat(points[pursuing_]);
-      csg::Point3f direction = csg::Point3f(goal - current);
-      float goalDistance = direction.Length();
+      csg::Point3f const location = mob->GetLocation();
+      csg::Point3f const goal = csg::ToFloat(points[pursuing_]);
+      csg::Point3f const goalVector = goal - location;
+      float const goalDistance = goalVector.Length();
+      csg::Point3f const moveDirection = goalVector / goalDistance;
 
       if (goalDistance < moveDistance) {
-         mob->MoveTo(csg::ToFloat(points[pursuing_]));
+         mob->MoveTo(goal);
          moveDistance -= goalDistance;
          pursuing_++;
       } else {
-         mob->MoveTo(current + (direction * (moveDistance / goalDistance)));
+         mob->MoveTo(location + moveDirection * moveDistance);
          moveDistance = 0;
       }
-      mob->TurnTo(angle(direction) * 180 / csg::k_pi);
+      mob->TurnTo(angle(moveDirection) * 180 / csg::k_pi);
    }
 
    if (Arrived(mob)) {
@@ -139,7 +140,25 @@ bool FollowPath::Work(const platform::timer &timer)
 bool FollowPath::Arrived(om::MobPtr mob)
 {
    ASSERT(path_);
-   return pursuing_ > stopIndex_;
+
+   if (pursuing_ > stopIndex_) {
+      return true;
+   }
+
+   // Don't travel all the way to stopIndex_ if not necessary.
+   // This becomes important if we prune points out of the path so they they are not adjacent.
+   // We'll want to prune so that entities stop zig-zagging to their destination
+   // which looks increasingly odd as the entities get bigger (bosses).
+   if (pursuing_ == stopIndex_) {
+      csg::Point3f const poi = csg::ToFloat(path_->GetDestinationPointOfInterest());
+      csg::Point3f const location = mob->GetLocation();
+      float const distance = location.DistanceTo(poi);
+
+      if (distance <= stopDistance_) {
+         return true;
+      }
+   }
+   return false;
 }
 
 bool FollowPath::Obstructed()
