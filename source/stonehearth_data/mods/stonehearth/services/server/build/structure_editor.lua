@@ -109,17 +109,11 @@ function StructureEditor:_initialize_proxies(blueprint_uri, structure_type)
    self._proxy_fabricator:add_component('destination')
                            :set_region(_radiant.client.alloc_region())
 
-   local existing_structure, existing_construction_data
-   if self._blueprint then
-      existing_structure = self._blueprint:get_component(structure_type)
-      existing_construction_data = self._blueprint:get_component('stonehearth:construction_data')
-      assert(existing_structure)
-   end
    self._proxy_blueprint:add_component('stonehearth:construction_data')
-                           :begin_editing(existing_construction_data)
+                           :begin_editing(self._blueprint)
 
    self._structure = self._proxy_blueprint:add_component(structure_type)
-                                                :begin_editing(existing_structure)
+                                                :begin_editing(self._blueprint)
                                                 :layout()
    
    local editing_reserved_region = self._structure:get_editing_reserved_region()

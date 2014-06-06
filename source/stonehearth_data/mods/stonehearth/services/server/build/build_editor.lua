@@ -8,7 +8,7 @@ local Point3 = _radiant.csg.Point3
 
 local log = radiant.log.create_logger('build_editor')
 
-function BuildEditor:add_door(session, response)
+function BuildEditor:add_doodad(session, response, uri)
    local wall_editor
    local capture = stonehearth.input:capture_input()
 
@@ -30,7 +30,7 @@ function BuildEditor:add_door(session, response)
                      log:detail('creating wall editor for blueprint: %s', blueprint)
                      wall_editor = PortalEditor()
                                        :begin_editing(fabricator, blueprint, project)
-                                       :set_portal_uri('stonehearth:wooden_door')
+                                       :set_portal_uri(uri)
                                        :go()
                   end
                end
@@ -42,11 +42,23 @@ function BuildEditor:add_door(session, response)
          if e:up(1) then
             if wall_editor then
                wall_editor:submit(response)
+               wall_editor = nil
             end
-            capture:destroy()
          end
          return true
       end) 
+      :on_keyboard_event(function(e)
+            if e.key == _radiant.client.KeyboardInput.KEY_ESC and e.down then
+               if wall_editor then
+                  wall_editor:destroy()
+                  wall_editor = nil
+               end
+               capture:destroy()
+               response:resolve('finished')
+               return true
+            end
+         end)
+
 end
 
 function BuildEditor:__init()

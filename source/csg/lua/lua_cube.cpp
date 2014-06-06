@@ -77,6 +77,14 @@ Rect2 ProjectOntoXZPlane(Cube3 const& cube)
 }
 
 template <typename T>
+void LoadCube(lua_State* L, T& region, object obj)
+{
+   // converts the lua object to a json object, then the json
+   // object to a region.  Slow?  Yes, but effective in 1 line of code.
+   region = json::Node(lua::ScriptHost::LuaToJson(L, obj)).as<T>();
+}
+
+template <typename T>
 static luabind::class_<T> Register(struct lua_State* L, const char* name)
 {
    return
@@ -88,6 +96,7 @@ static luabind::class_<T> Register(struct lua_State* L, const char* name)
          .property("min",     &T::GetMin, &T::SetMin)
          .property("max",     &T::GetMax, &T::SetMax)
          .property("tag",     &T::GetTag, &T::SetTag)
+         .def("load",         &LoadCube<T>)
          .def("get_area",     &T::GetArea)
          .def("contains",     &T::Contains)
          .def("width",        &T::GetWidth) 

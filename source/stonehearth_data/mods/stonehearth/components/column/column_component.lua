@@ -37,8 +37,10 @@ end
 
 -- begin editing the column pointed to by `other_column`.  basically just
 -- copy the shape and important variables in the save state
-function Column:begin_editing(other_column)
+function Column:begin_editing(entity)
    local region
+
+   local other_column = entity:get_component('stonehearth:column')
    if other_column then
       self._sv.roof = other_column._sv.roof
       self.__saved_variables:mark_changed()

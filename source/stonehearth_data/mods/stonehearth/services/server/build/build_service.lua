@@ -581,7 +581,7 @@ end
 function BuildService:add_portal(session, response, wall_entity, portal_uri, location)
    local wall = wall_entity:get_component('stonehearth:wall')
    if wall then
-      local portal_blueprint_uri
+      local portal_blueprint_uri = portal_uri
       local data = radiant.entities.get_entity_data(portal_uri, 'stonehearth:ghost_item')
       if data then
          portal_blueprint_uri = data.uri
