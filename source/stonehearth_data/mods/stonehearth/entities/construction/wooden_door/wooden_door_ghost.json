@@ -25,6 +25,26 @@
          "default" : "file(/data/rigs/door/effects/closed.json)"
       },
 
+      "stonehearth:fixture" : {
+         "valign" : "bottom",
+         "cursor" : "stonehearth:cursors:create_door",
+         "margin" : {
+            "left" : 1,
+            "right" : 1,
+            "top" : 1
+         },
+         "bounds" : {
+            "min": {
+               "x" : -1,
+               "y" : 0
+            },
+            "max" : {
+               "x" : 2,
+               "y" : 4
+            }
+         }
+      },
+      
       "stonehearth:portal" : {
          "cutter" : [
             {

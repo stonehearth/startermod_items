@@ -23,6 +23,19 @@
 
       <div class="tabPage" id="doorToolTab">
          <h2>Add Doors, Windows, and Doodads</h2>
+            <div class="brushPalette">
+               {{#each doodads }}
+                  <h3>{{category}}</h3>
+                  <div>
+                     {{#each items}}
+                        <a {{bind-attr name = "this.name"}}href="#" {{action selectDoodadTool this target="view"}} class="brushLink">
+                           <img {{bind-attr src="this.portrait" title="this.name"}} />
+                        </a>
+                     {{/each}}
+                  </div>
+                  <div style="clear: both"></div>
+               {{/each}}
+            </div>
       </div>
 
       <button class="warn" id="removeBuilding">{{i18n stonehearth:remove}}</button>

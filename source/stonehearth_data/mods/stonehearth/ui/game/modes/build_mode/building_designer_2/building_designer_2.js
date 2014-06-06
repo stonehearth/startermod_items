@@ -27,10 +27,32 @@ App.StonehearthBuildingDesignerView2 = App.View.extend({
       }
    },
 
+   actions: {
+      selectDoodadTool: function(doodad) {
+         App.stonehearthClient.addDoodad(doodad);
+      },
+   },
+
+   doodads: [
+      {
+         category: 'Windows',
+         items: [
+            { name: 'Wooden Window', portrait: '/stonehearth/entities/construction/wooden_window_frame/wooden_window_frame.png', uri:'stonehearth:wooden_window_frame' },
+         ]
+      },
+      {
+         category: 'Doors',
+         items: [
+            { name: 'Wooden Door', portrait: '/stonehearth/entities/construction/wooden_door/wooden_door.png', uri: 'stonehearth:wooden_door' },
+         ]
+      }
+   ],
+
    init: function() {
       this._super();
       this.components['stonehearth:fabricator'].blueprint = this.blueprint_components;
       this.components['stonehearth:construction_data'].fabricator_entity['stonehearth:fabricator'].blueprint = this.blueprint_components;
+      this.set('context.doodads', this.doodads);
    },
 
    // `uri` is a string that's valid to pass to radiant.trace()
@@ -58,6 +80,7 @@ App.StonehearthBuildingDesignerView2 = App.View.extend({
          self.set('context.building.active', building_entity['stonehearth:construction_progress'].active);
       }
       self.set('context.blueprint', blueprint_entity);
+      this.set('context.doodads', this.doodads);
       self._updateControls();
    }.observes('context'),
 
@@ -81,8 +104,14 @@ App.StonehearthBuildingDesignerView2 = App.View.extend({
       this.$('.tabButton').click(function() {
          var tab = $(this).attr('tab');
 
-         self.$('#selectedBuildingWindow .tabPage').hide();
-         self.$('#selectedBuildingWindow #' + tab).show();
+         var currentTab = self.$('#selectedBuildingWindow .tabPage');
+         if (currentTab) {
+            currentTab.hide();
+         }
+         var nextTab = self.$('#selectedBuildingWindow #' + tab)
+         if (nextTab) {
+            nextTab.show();
+         }         
       });
 
       this.$('.floorTool').click(function() {
@@ -94,9 +123,6 @@ App.StonehearthBuildingDesignerView2 = App.View.extend({
       });
       this.$('.roofTool').click(function() {
          App.stonehearthClient.growRoof(self.get('context.building'));
-      });
-      this.$('.doorTool').click(function() {
-         App.stonehearthClient.addDoor();
       });
 
       this.$('#startBuilding').click(function() {

@@ -1,3 +1,4 @@
+local ConstructionRenderTracker = require 'services.client.renderer.construction_render_tracker'
 local FixtureFabricatorRenderer = class()
 
 -- the FixtureFabricatorRenderer renders fixtures attached to structure blueprints.
@@ -7,13 +8,28 @@ local FixtureFabricatorRenderer = class()
 -- Initializes a new renderer
 --
 function FixtureFabricatorRenderer:initialize(render_entity, fixture_fabricator)
+   self._ui_mode_visible = false
+   self._fixture_visible = false
    self._render_entity = render_entity
    
-   radiant.events.listen(radiant, 'stonehearth:ui_mode_changed', self, self._update_render_state)
+   self._render_tracker = ConstructionRenderTracker(render_entity:get_entity())
+                           :set_visible_ui_modes('hud')
+                           :set_visible_changed_cb(function(visible)
+                                 self._ui_mode_visible = visible
+                                 self:_update_render_state()
+                              end)
+
+   local entity = self._render_entity:get_entity()
+   local parent = entity:get_component('mob'):get_parent()
+   local cd = parent:get_component('stonehearth:construction_data')
+   if cd then
+      self._render_tracker:set_normal(cd:get_normal())
+   end
+   self._render_tracker:push_object_state()
 
    self._trace = fixture_fabricator:trace_data('render trace')
                      :on_changed(function()
-                           self._visible = not fixture_fabricator:get_data().finished
+                           self._fixture_visible = not fixture_fabricator:get_data().finished
                            self:_update_render_state()
                         end)
                      :push_object_state()
@@ -26,13 +42,16 @@ function FixtureFabricatorRenderer:destroy()
       self._trace:destroy()
       self._trace = nil
    end
-   radiant.events.unlisten(radiant, 'stonehearth:ui_mode_changed', self, self._update_render_state)
+   if self._render_tracker then
+      self._render_tracker:destroy()
+      self._render_tracker = nil
+   end
 end
 
 -- Called whenever the UI view mode changes.  Hides the entity if we're not in hud mode.
 --
 function FixtureFabricatorRenderer:_update_render_state()
-   local visible = self._visible and stonehearth.renderer:get_ui_mode() == 'hud'
+   local visible = self._fixture_visible and self._ui_mode_visible
    self._render_entity:set_visible_override(visible)
 end
 

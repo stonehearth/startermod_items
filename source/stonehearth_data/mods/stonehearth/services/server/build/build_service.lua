@@ -483,6 +483,7 @@ function BuildService:grow_roof(session, response, building, roof_uri)
                   :loan_scaffolding_to(roof)
       end
    end
+   response:resolve({})
 end
 
 -- returns the blueprint at the specified world `point`
@@ -581,7 +582,7 @@ end
 function BuildService:add_portal(session, response, wall_entity, portal_uri, location)
    local wall = wall_entity:get_component('stonehearth:wall')
    if wall then
-      local portal_blueprint_uri
+      local portal_blueprint_uri = portal_uri
       local data = radiant.entities.get_entity_data(portal_uri, 'stonehearth:ghost_item')
       if data then
          portal_blueprint_uri = data.uri

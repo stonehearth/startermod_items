@@ -200,7 +200,7 @@ var StonehearthClient;
          });
       },
 
-      growRoof: function() {
+      growRoof: function(building) {
          var self = this;
          if (building && building.__self) {
             radiant.call('radiant:play_sound', 'stonehearth:sounds:place_structure' );
@@ -216,16 +216,16 @@ var StonehearthClient;
          }
       },
 
-      addDoor: function() {
+      addDoodad: function(doodad) {
          var self = this;
 
          $(top).trigger('radiant_show_tip', { 
-            title : 'Add Door Tooltip',
-            description : 'Add Door Tooltip'
+            title : 'Add ' + doodad.name,
+            description : 'Click to place.  ESC to cancel.'
          });
 
          return this._callTool(function() {
-            return radiant.call_obj(self._build_editor, 'add_door')
+            return radiant.call_obj(self._build_editor, 'add_doodad', doodad.uri)
                .always(function(response) {
                   radiant.call('radiant:play_sound', 'stonehearth:sounds:place_structure' );
                   $(top).trigger('radiant_hide_tip');

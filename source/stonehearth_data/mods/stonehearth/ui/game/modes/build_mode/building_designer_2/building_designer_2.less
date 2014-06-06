@@ -67,86 +67,35 @@
       }
    }
 
-}
+   .brushPalette {
+      position: relative;
+      top: 11px;
+      left: 3px;
 
-#buildingDesigner_old {
-   display: none;
-
-   #toolbar {
-      position: absolute;
-      top: 0px;
-      bottom: 0px;
-      left: 0px;
-      width: 80px;
-      background: #312f2f;
-      text-align: center;
-      padding: 0px;
-
-      .tool {
-         width: 70px;
-         height: 70px;
-         margin-left: 5px;
+      h3 {
+         margin: 10px 0 0 0;
       }
 
-      .floorTool {
-         background-image: url(images/floor_tool.png);
-      }
+      .brushLink {
+         float: left;
+         width: 65px;
+         height: 69px;
+         border: 0px;
+         margin-right: 4px;
+         margin-bottom: 4px;
+         background-position: 0px -930px;
+         display: flex;
 
-      .wallTool {
-         background-image: url(images/wall_tool.png);
-      }
+         &:hover {
+            background-position: -66px -930px;
+         }
 
-      .fillWallTool {
-         background-image: url(images/fill_wall_tool.png);
-      }
-
-      .fillFloorTool {
-         background-image: url(images/fill_floor_tool.png);
-      }
-
-      .roofTool {
-         background-image: url(images/roof_tool.png);
-      }
-
-      .doorTool {
-         background-image: url(images/door_tool.png);
-      }
-
-      .windowTool {
-         background-image: url(images/window_tool.png);
-      }
-
-      .break {
-         width: 80px;
-         height: 3px;
-         margin-top: 10px;
-         margin-bottom: 10px;
-         background: black;
-      }
-
-   }
-
-   #palettes {
-      position: absolute;
-      bottom: 10px;
-      left: 90px;
-
-      .window {
-         margin-top: 10px;
-         width: 420px;
+         img {
+            width: 46px;
+            height: auto;
+            margin: auto;
+         }
       }
    }
 
-   #buildingControls {
-      button.start {
-         background-image: none;
-         width: auto;
-         float: right;
-      }
-      button.pause {
-         background-image: none;
-         width: auto;
-         float: right;
-      }
-   }
 }
