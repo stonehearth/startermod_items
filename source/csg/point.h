@@ -297,7 +297,11 @@ public:
                    x*other.y - y*other.x);
    }
 
-   Point operator/(S amount) const { return Point(x / amount, y / amount, z  / amount); }
+   Point operator/(S amount) const {
+      // floating point divide by zero does not throw exception (it returns 1.#INF000) so check for it explicitly
+      ASSERT(amount != 0);
+      return Point(x / amount, y / amount, z  / amount);
+   }
 
 public:
    template <class T> void SaveValue(T* msg) const {
@@ -329,7 +333,11 @@ public:
    S& Coord(int i) { return (&x)[i]; }
 
    // operators
-   Point operator/(S amount) const { return Point(x / amount, y / amount, z  / amount, w / amount); }
+   Point operator/(S amount) const {
+      // floating point divide by zero does not throw exception (it returns 1.#INF000) so check for it explicitly
+      ASSERT(amount != 0);
+      return Point(x / amount, y / amount, z  / amount, w / amount);
+   }
 
 public:
    template <class T> void SaveValue(T* msg) const {

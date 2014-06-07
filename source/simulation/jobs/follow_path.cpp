@@ -81,9 +81,10 @@ int FollowPath::CalculateStopIndex(csg::Point3f const& startLocation, std::vecto
    return index;
 }
 
-static float angle(const csg::Point3f &v)
+static float angle(csg::Point3f const& v)
 {
-   csg::Point3f forward(0, 0, -1);
+   ASSERT(v.x != 0 || v.z != 0);
+   csg::Point3f const forward(0, 0, -1);
    float angle = (float)(atan2(-v.z, v.x) - atan2(-forward.z, forward.x));
    if (angle < 0)  {
       angle += 2 * csg::k_pi;
@@ -91,7 +92,7 @@ static float angle(const csg::Point3f &v)
    return angle;
 }
 
-bool FollowPath::Work(const platform::timer &timer)
+bool FollowPath::Work(platform::timer const& timer)
 {
    Report("running");
 
@@ -109,17 +110,20 @@ bool FollowPath::Work(const platform::timer &timer)
       csg::Point3f const goal = csg::ToFloat(points[pursuing_]);
       csg::Point3f const goalVector = goal - location;
       float const goalDistance = goalVector.Length();
-      csg::Point3f const moveDirection = goalVector / goalDistance;
 
-      if (goalDistance < moveDistance) {
+      if (goalDistance < moveDistance || goalDistance == 0) {
          mob->MoveTo(goal);
          moveDistance -= goalDistance;
          pursuing_++;
       } else {
-         mob->MoveTo(location + moveDirection * moveDistance);
+         mob->MoveTo(location + goalVector * (moveDistance / goalDistance));
          moveDistance = 0;
       }
-      mob->TurnTo(angle(moveDirection) * 180 / csg::k_pi);
+
+      if (goalVector.x != 0 || goalVector.z != 0) {
+         // angle is undefined when goal and location are at the same x,z coordinates
+         mob->TurnTo(angle(goalVector) * 180 / csg::k_pi);
+      }
    }
 
    if (Arrived(mob)) {
