@@ -24,11 +24,15 @@
          "resource": "stonehearth:juniper_log", 
          "durability": 15
       },
+      "mob" : {
+         "local_origin" : { "x": 0, "y": 0, "z": 0 },
+         "align_to_grid" : [ "x", "z" ]
+      },
       "destination" : {
          "region" : [
             {
-               "min" : { "x" : -2, "y" : 0, "z" : -2 },
-               "max" : { "x" :  2, "y" : 1, "z" :  2 }
+               "min" : { "x" : -1, "y" : 0, "z" : -1 },
+               "max" : { "x" :  1, "y" : 1, "z" :  1 }
             }
          ]
       },      
