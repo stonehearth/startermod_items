@@ -26,15 +26,21 @@ function Wall:initialize(entity, json)
    end
 end
 
-function Wall:begin_editing(other_wall)
-   self._sv.start_pt = Point3(other_wall._sv.start_pt)
-   self._sv.end_pt = Point3(other_wall._sv.end_pt)
-   self._sv.fixture_rotation = other_wall._sv.fixture_rotation
-   self._sv.tangent_coord = other_wall._sv.tangent_coord
-   self._sv.normal_coord = other_wall._sv.normal_coord
-   self.__saved_variables:mark_changed()
+function Wall:begin_editing(entity)
+   if entity then
+      local other_wall = entity:get_component('stonehearth:wall')
 
-   self._editing_region = _radiant.client.alloc_region()
+      self._sv.start_pt = Point3(other_wall._sv.start_pt)
+      self._sv.end_pt = Point3(other_wall._sv.end_pt)
+      self._sv.fixture_rotation = other_wall._sv.fixture_rotation
+      self._sv.tangent_coord = other_wall._sv.tangent_coord
+      self._sv.normal_coord = other_wall._sv.normal_coord
+      self.__saved_variables:mark_changed()
+
+      self._editing = true
+      self._editing_region = entity:get_component('destination'):get_region()
+   end
+
    return self
 end
 
@@ -50,21 +56,64 @@ function Wall:get_normal_coord()
    return self._sv.normal_coord
 end
 
-function Wall:_region2_to_region3(region2, origin)
+function Wall:compute_fixture_placement(fixture_entity, location)
    local t, n = self._sv.tangent_coord, self._sv.normal_coord
    local start_pt, end_pt = self._sv.start_pt, self._sv.end_pt
 
+   -- if there's no fixture component, it cannot be placed on a wall.
+   local fixture = fixture_entity:get_component('stonehearth:fixture')
+   if not fixture then
+      return nil
+   end
+
+   -- fix alignment issues
+   local bounds = fixture:get_bounds()
+   local margin = fixture:get_margin()
+   local valign = fixture:get_valign()
+
+   if valign == "bottom" then
+      location.y = start_pt.y + margin.bottom - bounds.min.y
+   end
+
+   -- make sure the fixture fits within its margin constraints
+   local left_most = start_pt[t] + margin.left - bounds.min.x
+   local right_most = end_pt[t] - margin.right - bounds.max.x 
+   if left_most >= right_most then
+      return nil
+   end
+   local bottom_most = start_pt.y + margin.bottom - bounds.min.y
+   local top_most = end_pt.y - margin.top - bounds.max.y
+   if bottom_most >= top_most  then
+      return nil
+   end
+   
+   location[t] = math.max(math.min(location[t], right_most), left_most)
+   location.y = math.max(math.min(location.y, top_most), bottom_most)
+
+   -- done!
+   return location
+end
+
+function Wall:_get_portal_region(portal_entity, portal)
+   local t, n = self._sv.tangent_coord, self._sv.normal_coord
+   local start_pt, end_pt = self._sv.start_pt, self._sv.end_pt
+   local origin = portal_entity:get_component('mob'):get_grid_location()
+
+   local region2 = portal:get_portal_region()
    local region3 = Region3()
    for r2 in region2:each_cube() do
-      local min = Point3(0, r2.min.y + origin.y, 0)
-      local max = Point3(0, r2.max.y + origin.y, 0)
-      min[t] = r2.min.x + origin[t]
-      max[t] = r2.max.x + origin[t]
+      local min = Point3(0, r2.min.y, 0)
+      local max = Point3(0, r2.max.y, 0)
+
+      min[t] = r2.min.x
+      max[t] = r2.max.x
       min[n] = start_pt[n]
       max[n] = end_pt[n]
-      region3:add_unique_cube(Cube3(min, max))
+
+      local cube = Cube3(min, max)
+      region3:add_unique_cube(cube)
    end
-   return region3
+   return region3:translated(origin)
 end
 
 
@@ -119,6 +168,7 @@ function Wall:layout()
 
    -- paint again through a stencil covering the entire span of the
    -- wall to compute the wall shape
+    --[[
    local stencil = self:_compute_wall_shape()
    local collision_shape = self._entity:get_component('stonehearth:construction_data')
                                         :create_voxel_brush()
@@ -129,14 +179,38 @@ function Wall:layout()
             cursor:copy_region(collision_shape)
          end)
    end
+   ]]
+   local function compute_collision_shape()
+      local stencil = self:_compute_wall_shape()
+      return self._entity:get_component('stonehearth:construction_data')
+                               :create_voxel_brush()
+                               :paint_through_stencil(stencil)
+   end
+
+   local collision_shape
+   if not self._editing then
+      -- server side...
+      collision_shape = compute_collision_shape()
+   else
+      -- client side...
+      if not self._editing_region then
+         self._editing_region = _radiant.client.alloc_region()
+         self._editing_region:modify(function(cursor)
+               cursor:copy_region(compute_collision_shape())
+            end)
+      end
+      collision_shape = Region3()
+      collision_shape:copy_region(self._editing_region:get())
+   end
+   assert(collision_shape)
+
    -- stencil out the portals
    local ec = self._entity:get_component('entity_container')
    if ec then
       for _, child in ec:each_child() do
          local portal = child:get_component('stonehearth:portal')
          if portal then
-            local location = child:get_component('mob'):get_grid_location()
-            local region3 = self:_region2_to_region3(portal:get_portal_region(), location)
+            local region3 = self:_get_portal_region(child, portal)
             collision_shape:subtract_region(region3)
          end
       end      

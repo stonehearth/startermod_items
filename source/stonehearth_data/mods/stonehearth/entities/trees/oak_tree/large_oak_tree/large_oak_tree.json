@@ -25,19 +25,23 @@
          "resource": "stonehearth:oak_log", 
          "durability": 20
       },
+      "mob" : {
+         "local_origin" : { "x": -0.5, "y": 0, "z": 0.5 },
+         "align_to_grid" : [ "x", "z" ]
+      },
       "destination" : {
          "region" : [
             {
-               "min" : { "x" : -4, "y" : 0, "z" : -4 },
-               "max" : { "x" :  5, "y" : 1, "z" :  5 }
+               "min" : { "x" : -4, "y" : 0, "z" : -3 },
+               "max" : { "x" :  3, "y" : 1, "z" :  4 }
             }
          ]
       },      
       "region_collision_shape" : {
          "region": [
             {
-               "min" : { "x" : -3, "y" : 0,  "z" : -3 },
-               "max" : { "x" :  4, "y" : 24, "z" :  4 }
+               "min" : { "x" : -4, "y" : 0,  "z" : -3 },
+               "max" : { "x" :  3, "y" : 24, "z" :  4 }
             }
          ]
       }

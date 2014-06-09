@@ -17,6 +17,7 @@
 #include "core/system.h"
 #include "directory_module.h"
 #include "zip_module.h"
+#include "lib/voxel/qubicle_file.h"
 
 // Crytop stuff (xxx - change the include path so these generic headers aren't in it)
 #include "sha.h"
@@ -621,4 +622,27 @@ std::string ResourceManager2::FindScript(std::string const& script) const
       }
    }
    return modname + "/" + boost::algorithm::join(parts, "/");
+}
+
+voxel::QubicleFile const* ResourceManager2::OpenQubicleFile(std::string const& uri)
+{   
+   std::lock_guard<std::recursive_mutex> lock(mutex_);
+
+   // Keep a cache of the most recently loaded qubicle files so we don't hammer the
+   // filesystem (where "recent" currently means, "ever").  Be sure to store them by
+   // the canonical path so we don't get duplicates (e.g. stonehearth:foo vs.
+   // stonehearth/entities/foo/foo.qb)
+
+   std::string const& path = ConvertToCanonicalPath(uri, nullptr);
+   auto i = qubicle_files_.find(path);
+   if (i != qubicle_files_.end()) {
+      return i->second.get();
+   }
+   voxel::QubicleFilePtr f = std::make_shared<voxel::QubicleFile>(path);
+   std::ifstream input;
+   std::shared_ptr<std::istream> is = OpenResource(uri);
+   (*is) >> *f;
+   qubicle_files_[path] = f;
+
+   return f.get();
 }

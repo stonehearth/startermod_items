@@ -62,7 +62,7 @@ class NavGrid {
       bool ForEachEntityInRegion(csg::Region3 const& worldRegion, ForEachEntityCb cb);
 
       // Misc
-      void RemoveNonStandableRegion(om::EntityPtr entity, csg::Point3 const& location, csg::Region3& r);
+      void RemoveNonStandableRegion(om::EntityPtr entity, csg::Region3& r);
       void ShowDebugShapes(csg::Point3 const& pt, protocol::shapelist* msg);
 
    private: // methods for internal helper classes

@@ -38,6 +38,8 @@ class RenderEntity : public std::enable_shared_from_this<RenderEntity>
       
       H3DNode GetParent() const; 
       H3DNode GetNode() const;
+      H3DNode GetOriginNode() const;
+
       std::string const& GetName() const;
       std::string const GetMaterialPathFromKind(std::string const& matKind) const;
 
@@ -83,7 +85,8 @@ protected:
       typedef std::unordered_map<std::string, std::shared_ptr<RenderComponent>> ComponentMap;
       typedef std::unordered_map<std::string, luabind::object> LuaComponentMap;
       std::string       node_name_;
-      H3DNodeUnique     node_;
+      H3DNode           node_;
+      H3DNode           offsetNode_;
       om::EntityRef     entity_;
       dm::ObjectId      entity_id_;
       Skeleton          skeleton_;

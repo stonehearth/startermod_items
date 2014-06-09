@@ -65,7 +65,7 @@ varying vec3 outColor;
 
 void main() {
    vec4 theColor = vec4(outColor, 1);
-   vec4 gridline = texture3D(gridMap, gridLineCoords + vec3(0.5, 0.0, 0.5));
+   vec4 gridline = texture3D(gridMap, gridLineCoords);
    gridline = vec4(1.0, 1.0, 1.0, 1.0) - gridline;
    float blendAlpha = gridline.a * gridlineColor.a;
    gl_FragColor.rgb = theColor.rgb * (1.0 - blendAlpha) + (gridlineColor.rgb * blendAlpha);

@@ -149,49 +149,43 @@ void SceneNode::updateAccumulatedFlags()
    _accumulatedFlags = _flags | parentFlags;
 }
 
-
 void SceneNode::setFlags( int flags, bool recursive )
 {
-   SCENE_LOG(8) << "setting flags on node " << _handle << " to " << FlagsToString(flags);
-   _flags = flags;
-
-   updateAccumulatedFlags();
-
-   for( size_t i = 0, s = _children.size(); i < s; ++i )
-   {
-      if( recursive )
-      {
-         _children[i]->setFlags( flags, true );
-      }
-      // Regardless of the 'recursive' bit, ALWAYS update the accumulated flags.
-      _children[i]->updateAccumulatedFlags();
+   if (flags == _flags && !recursive) {
+      SCENE_LOG(8) << "ignorning identity, non-recursive set flags on node " << _handle << " to " << FlagsToString(flags);
+      return;
    }
-
-
+   updateFlagsRecursive(flags, SET, recursive);
 }
 
 void SceneNode::twiddleFlags( int flags, bool on, bool recursive )
 {
-   int oldFlags = _flags;
-   if (on) {
-      _flags |= flags;
-   } else {
-      _flags &= ~flags;
-   }
-   SCENE_LOG(8) << "twiddling " << FlagsToString(flags) << " flags on node " << _handle << " (was:" << FlagsToString(oldFlags) << " now:" << FlagsToString(_flags);
-
-   updateAccumulatedFlags();
-
-   for( size_t i = 0, s = _children.size(); i < s; ++i )
-   {
-      if( recursive )
-      {
-         _children[i]->twiddleFlags( flags, on, true );
-      }
-      _children[i]->updateAccumulatedFlags();
-   }
+   updateFlagsRecursive(flags, on ? TWIDDLE_ON : TWIDDLE_OFF, recursive);
 }
 
+void SceneNode::updateFlagsRecursive(int flags, SetFlagsMode mode, bool recursive)
+{
+   int oldFlags = _flags;
+   if (mode == SET) {
+      _flags = flags;
+      SCENE_LOG(8) << "setting flags on node " << _handle << " to " << FlagsToString(flags);
+   } else if (mode == TWIDDLE_ON) {
+      _flags |= flags;
+      SCENE_LOG(8) << "twiddling " << FlagsToString(flags) << " flags on node " << _handle << " (was:" << FlagsToString(oldFlags) << " now:" << FlagsToString(_flags);
+   } else if (mode == TWIDDLE_OFF) {
+      _flags &= ~flags;
+      SCENE_LOG(8) << "twiddling " << FlagsToString(flags) << " flags on node " << _handle << " (was:" << FlagsToString(oldFlags) << " now:" << FlagsToString(_flags);
+   }
+
+   // Update our accmulated flags and iterate through all our children
+   // unconditionally.  `recursive` refers only to the flags.  if it's
+   // off, switch our mode to NOP on the next call so we'll just 
+   // accumulate flags all the way down.
+   updateAccumulatedFlags();
+   for (SceneNode* child : _children) {
+      child->updateFlagsRecursive(flags, recursive ? mode : NOP, recursive);
+   }
+}
 
 int SceneNode::getParamI( int param )
 {
@@ -325,13 +319,16 @@ void SceneNode::update()
 	} else {
 		_absTrans = _relTrans;
    }
-
-   updateAccumulatedFlags();
-	
    if (_absTrans.c[3][0] != 0.0f && !(_absTrans.c[3][0] < 0.0f) && !(_absTrans.c[3][0] > 0.0f)) {
       DebugBreak();
    }
 
+   // :update() is called in-order on all the nodes in the tree, starting at the root.
+   // so by now we're guarantee that all our parent nodes have been updated, including
+   // the accumualted flags.  simply accumulate our parents flags into ours and continue
+   // the descent.
+   updateAccumulatedFlags();
+	
 	onPostUpdate();
 
 	_dirty = false;

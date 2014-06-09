@@ -1,4 +1,3 @@
-
 App.StonehearthStockpileView = App.View.extend({
    templateName: 'stonehearthStockpile',
    closeOnEsc: true,
@@ -7,7 +6,6 @@ App.StonehearthStockpileView = App.View.extend({
       "unit_info": {},
       "stonehearth:stockpile" : {}
    },
-
 
    didInsertElement: function() {
       this._super();
@@ -21,12 +19,12 @@ App.StonehearthStockpileView = App.View.extend({
       this.taxonomyGrid.togglegrid();
 
       this.taxonomyGrid.find('.group').click(function() {
-         self._toggleGroup($(this))
+         self._onGroupClick($(this))
       });
 
       this.items.click(function() {
          radiant.call('radiant:play_sound', 'stonehearth:sounds:ui:action_click' );
-         self._itemClick($(this));
+         self._onItemClick($(this));
       });
 
       this.allButton.click(function() {
@@ -39,11 +37,11 @@ App.StonehearthStockpileView = App.View.extend({
          self._selectNone();
       });
 
-      this.$('#name').keypress(function (e) {
+      this.$('#name').keypress(function(e) {
          if (e.which == 13) {
             radiant.call('stonehearth:set_display_name', self.uri, $(this).val());
             $(this).blur();
-        }
+         }
       });
 
       this.$('button.ok').click(function() {
@@ -58,21 +56,15 @@ App.StonehearthStockpileView = App.View.extend({
 
       this.items.find('img').tooltipster();
 
-      this.$('.title .closeButton').click(function() {
-         self.destroy();
-      });
-
       self._refreshGrids();
    },
 
    _selectAll : function() {
-      //this.taxonomyGrid.find('#all').click();
       this.items.addClass('on');
       this._setStockpileFilter();
    },
 
    _selectNone : function() {
-      //this.taxonomyGrid.find('#none').click();
       this.items.removeClass('on');
       this._setStockpileFilter();
    },
@@ -101,28 +93,25 @@ App.StonehearthStockpileView = App.View.extend({
                   }
                });
             }
-
          });
 
          this._updateGroups();
       } else {
-         this.allButton.attr('checked', 'checked');
-         this.groups.attr('checked', 'checked');
+         this.allButton.prop('checked', true)
+         this.groups.prop('checked', true)
          this.items.addClass('on');
       }
-
    }.observes('context.stonehearth:stockpile.filter'),
 
-   _toggleGroup : function(element) {
-      var foo = element.attr('checked');
+   _onGroupClick : function(element) {
       radiant.call('radiant:play_sound', 'stonehearth:sounds:ui:action_click' );
-      var on = !(element.attr('checked') == 'checked');
+      var checked = element.prop('checked');
 
       element.parent().siblings().each(function(i, sibling) {
          var category = $(sibling);
 
          if (category.hasClass('category')) {
-            if (on) {
+            if (checked) {
                category.addClass('on');
             } else {
                category.removeClass('on');
@@ -133,15 +122,16 @@ App.StonehearthStockpileView = App.View.extend({
       this._setStockpileFilter();
    },
 
-   _itemClick : function(element) {
+   _onItemClick : function(element) {
       this._setStockpileFilter();
    },
 
    _setStockpileFilter : function() {
       var values = [];
       $('#taxonomyGrid').find('.on').each(function(i, element) {
-         if ($(element).attr('filter')) {
-            values.push($(element).attr('filter'));
+         var value = $(element).attr('filter');
+         if (value) {
+            values.push(value);
          }
       });
 
@@ -151,6 +141,9 @@ App.StonehearthStockpileView = App.View.extend({
          });
    },
 
+   // As of jQuery 1.6, we should be using .prop() instead of .attr() to get and set the checked property of checkboxes:
+   // http://api.jquery.com/prop
+   // http://stackoverflow.com/questions/5874652/prop-vs-attr/5876747#5876747
    _updateGroups : function() {
       var self = this;
 
@@ -158,7 +151,7 @@ App.StonehearthStockpileView = App.View.extend({
       var noGroupsOn = true;
 
       this.groups.each(function (i, group) {
-         var allOn = true;
+         var groupOn = true;
          $(group).parent().siblings().each(function(i, sibling) {
             var category = $(sibling);
 
@@ -166,35 +159,16 @@ App.StonehearthStockpileView = App.View.extend({
                if (category.hasClass('on')) {
                   noGroupsOn = false;
                } else {
-                  allOn = false;
+                  groupOn = false;
                   allGroupsOn = false;
                }
             }
          });
 
-         if (allOn) {
-            $(group).attr('checked', 'checked')
-         } else {
-            $(group).removeAttr('checked')
-         }         
-
+         $(group).prop('checked', groupOn);
       });
 
-      if (allGroupsOn) {
-         self.allButton.attr('checked', 'checked')
-         //self.items.removeClass('on');
-         //self.groups.removeClass('on');
-      } else {
-         self.allButton.removeAttr('checked')
-      }
-
-      if (noGroupsOn) {
-         self.noneButton.attr('checked', 'checked')
-         //self.items.removeClass('on');
-         //self.groups.removeClass('on');
-      } else {
-         self.noneButton.removeAttr('checked')
-      }
+      self.allButton.prop('checked', allGroupsOn);
+      self.noneButton.prop('checked', noGroupsOn);
    }
-
 });

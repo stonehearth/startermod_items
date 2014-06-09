@@ -10,19 +10,27 @@ class Mob(Component):
    name = "Mob"
 
 class Mob(Component):
-   parent = dm.Boxed(std.weak_ptr(Entity()))
-   transform = dm.Boxed(csg.Transform)
-   aabb = dm.Boxed(csg.Cube3f)
-   moving = dm.Boxed(c.bool())
-   interpolate_movement = dm.Boxed(c.bool())
-   selectable = dm.Boxed(c.bool())
-
+   axis_alignment_flags = ridl.Enum('Mob', 'AlignToGrid',
+      X  = (1 << 0),
+      Y  = (1 << 1),
+      Z  = (1 << 2),
+   )
    mob_collision_types = ridl.Enum('Mob', 'MobCollisionTypes',
       NONE        = 0,
       TINY        = 1,
       HUMANOID    = 2,
    )
+
+   parent = dm.Boxed(std.weak_ptr(Entity()))
+   transform = dm.Boxed(csg.Transform())
+   local_origin = dm.Boxed(csg.Point3f())
+   align_to_grid_flags = dm.Boxed(c.int())
+   aabb = dm.Boxed(csg.Cube3f)
+   moving = dm.Boxed(c.bool())
+   interpolate_movement = dm.Boxed(c.bool())
+   selectable = dm.Boxed(c.bool())
    mob_collision_type = dm.Boxed(mob_collision_types)
+
    get_mob_collision_box = ridl.Method(csg.Cube3()).const
    move_to = ridl.Method(c.void(), ('location', csg.Point3f().const.ref))
    move_to_grid_aligned = ridl.Method(c.void(), ('location', csg.Point3().const.ref))

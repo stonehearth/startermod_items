@@ -9,7 +9,6 @@
 #include "core/singleton.h"
 #include "h3d_resource_types.h"
 #include "resource_cache_key.h"
-#include "lib/voxel/forward_defines.h"
 #include "render_node.h"
 
 BEGIN_RADIANT_CLIENT_NAMESPACE
@@ -23,8 +22,6 @@ class Pipeline : public core::Singleton<Pipeline> {
    public:
       Pipeline();
       ~Pipeline();
-
-      voxel::QubicleFile* LoadQubicleFile(std::string const& name);
 
       bool GetSharedGeometry(ResourceCacheKey const& key, GeometryInfo& geo);
       void SetSharedGeometry(ResourceCacheKey const& key, GeometryInfo const& geo);
@@ -47,12 +44,10 @@ class Pipeline : public core::Singleton<Pipeline> {
       SharedGeometry CreateMeshGeometryFromObj(std::string const& geoName, std::istream& stream);
 
    private:
-      typedef std::unordered_map<std::string, voxel::QubicleFilePtr> QubicleMap;
       typedef std::unordered_map<ResourceCacheKey, GeometryInfo, ResourceCacheKey::Hash> GeometryMap;
 
    private:
       int             unique_id_;
-      QubicleMap      qubicle_files_; // xxx: shouldn't this be in the resource manager?
       GeometryMap     geometry_cache_;
 };
 

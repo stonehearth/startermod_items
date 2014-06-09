@@ -1,5 +1,6 @@
 #include "pch.h"
 #include "region.h"
+#include "csg/util.h"
 
 using namespace ::radiant;
 using namespace ::radiant::om;
@@ -60,6 +61,7 @@ DeepRegionGuardPtr om::DeepTraceRegion(Region3BoxedPtrBoxed const& boxedRegionPt
 
    return result;
 }
+
 
 #if 0
 Region3BoxedPromise::Region3BoxedPromise(Region3BoxedPtrBoxed const& boxedRegionPtrField, const char* reason)

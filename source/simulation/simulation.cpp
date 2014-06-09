@@ -858,6 +858,7 @@ void Simulation::Load(boost::filesystem::path const& saveid)
    modList_ = root_entity_->AddComponent<om::ModList>();
 
    InitializeDataObjectTraces();
+   store_->OnLoaded();
    GetOctTree().SetRootEntity(root_entity_);
 
    error_browser_ = store_->AllocObject<om::ErrorBrowser>();

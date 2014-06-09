@@ -6,6 +6,7 @@
 #include "all_object_defs.h"
 #include "all_component_defs.h"
 #include "dm/dm.h"
+#include "csg/namespace.h"
 
 BEGIN_RADIANT_OM_NAMESPACE
 
@@ -39,7 +40,6 @@ std::string GetObjectName(dm::ObjectPtr obj);
 std::string GetObjectName(const dm::Object& obj);
 std::string GetObjectNameLower(dm::ObjectPtr obj);
 std::string GetObjectNameLower(const dm::Object& obj);
-
 
 void RegisterObjectTypes(dm::Store& store);
 

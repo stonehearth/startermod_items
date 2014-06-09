@@ -25,6 +25,7 @@
       "end_to_end" : {
          "name" : "end to end tests",
          "scripts" : [
+            "file(end_to_end/rotation_autotests.lua)",
             "file(end_to_end/combat_autotests.lua)",
             "file(end_to_end/luabind_autotests.lua)",
             "file(end_to_end/farming_autotests.lua)",

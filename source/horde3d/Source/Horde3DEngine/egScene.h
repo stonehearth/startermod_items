@@ -167,8 +167,15 @@ public:
 		{ bool b = _transformed; if( reset ) _transformed = false; return b; }
 
 protected:
+   enum SetFlagsMode {
+      SET,
+      TWIDDLE_ON,
+      TWIDDLE_OFF,
+      NOP
+   };
 	void markChildrenDirty();
    void updateAccumulatedFlags();
+   void updateFlagsRecursive(int flags, SetFlagsMode mode, bool recursive);
 
 	virtual void onPreUpdate() {}  // Called before absolute transformation is updated
 	virtual void onPostUpdate() {}  // Called after absolute transformation has been updated

@@ -1,5 +1,6 @@
 #include "pch.h"
 #include "mob.ridl.h"
+#include "csg/matrix4.h"
 #include "csg/util.h" // xxx: should be in csg/csg.h
 
 using namespace ::radiant;
@@ -16,6 +17,8 @@ void Mob::ConstructObject()
 {
    Component::ConstructObject();
    transform_ = csg::Transform(csg::Point3f::zero, csg::Quaternion());
+   local_origin_ = csg::Point3f::zero;
+   align_to_grid_flags_ = 0;
    aabb_ = csg::Cube3f::zero;
    interpolate_movement_ = false;
    selectable_ = true;
@@ -162,7 +165,23 @@ void Mob::LoadFromJson(json::Node const& obj)
 {
    SetInterpolateMovement(obj.get<bool>("interpolate_movement", false));
    transform_ = obj.get<csg::Transform>("transform", csg::Transform(csg::Point3f(0, 0, 0), csg::Quaternion(1, 0, 0, 0)));
-   
+   local_origin_ = obj.get<csg::Point3f>("local_origin", csg::Point3f::zero);
+
+   int align_to_grid_flags = 0;
+   for (json::Node entry : obj.get_node("align_to_grid")) {
+      if (entry.type() == JSON_STRING) {
+         std::string f = entry.as<std::string>();
+         if (f == "x") {
+            align_to_grid_flags |= AlignToGrid::X;
+         } else if (f == "y") {
+            align_to_grid_flags |= AlignToGrid::Y;
+         } else if (f == "z") {
+            align_to_grid_flags |= AlignToGrid::Z;
+         }
+      }
+   }
+   align_to_grid_flags_ = align_to_grid_flags;
+
    if (__str_to_type.empty()) {
       __str_to_type["humanoid"] = HUMANOID;
       __str_to_type["tiny"]  = TINY;
@@ -186,6 +205,8 @@ void Mob::SerializeToJson(json::Node& node) const
    Component::SerializeToJson(node);
 
    node.set("transform", GetTransform());
+   node.set("local_origin", GetLocalOrigin());
+   node.set("axis_alignment_flags", GetAlignToGridFlags());
    node.set("entity", GetEntityPtr()->GetStoreAddress());
    node.set("moving", GetMoving());
    node.set("interpolate_movement", GetInterpolateMovement());

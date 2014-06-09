@@ -41,6 +41,12 @@ function ObjectTrackerService:get_worker_tracker(player_id)
    return self:_find_tracker(tracker_name, factory_fn)
 end
 
+--TODO: return here and use FilteredTrackers for everything
+--EVERYTHING!!!
+--Right now will finish the caravan scenario and then come back and revist this for 
+--score/inventory town view and placeable item UI
+
+--TODO: refactor all trackers to use calls from the inventory service
 function ObjectTrackerService:get_placable_items_tracker(player_id)
    local tracker_name = 'get_placable_items_tracker:' .. player_id
 

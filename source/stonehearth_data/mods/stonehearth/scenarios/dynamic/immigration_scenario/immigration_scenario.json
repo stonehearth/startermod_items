@@ -1,0 +1,37 @@
+{
+   "name" : "Immigration",
+   "scenario_types" : {
+      "population" : {
+      }
+   },
+   "rarity" : "common",
+   "uri" : "stonehearth:immigration", 
+   "scenario_data" : {
+      "expiration_timeout" : "6h",
+      "happiness_threshold" : 4,
+      "food_threshold" : 1,
+      "score_threshold" : 10,
+      "title" : "A traveller approaches your town.",
+      "messages" : [
+         "I've heard a lot about your town!", 
+         "I'd like to join your town.", 
+         "You guys really look like you could use a hand!", 
+         "Wow! What a town! Let me help out!"
+      ],
+      "outcome_statement" : " A __profession__ would like to join __town_name__!", 
+      "professions" : {
+         "stonehearth:professions:worker" : {
+            "shares" : 10, 
+            "rating" : 1
+         }, 
+         "stonehearth:professions:carpenter" : {
+            "shares" : 1, 
+            "rating" : 3
+         },  
+         "stonehearth:professions:farmer" : {
+            "shares" : 2, 
+            "rating" : 2
+         }
+      }
+   }
+}

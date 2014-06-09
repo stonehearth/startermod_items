@@ -8,7 +8,7 @@
             <tr class="row" {{bind-attr profession=this.stonehearth:profession.profession_uri.alias id=this.__id}}>
                <td>
                   <div class="name">
-                     <img class="banner" {{bind-attr src=this.stonehearth:profession.profession_uri.bannerIcon}}/>
+                     <img class="banner button" {{bind-attr src=this.stonehearth:profession.profession_uri.bannerIcon}}/>
                      {{this.unit_info.name}}
                   </div>
                   <div class="profession">{{this.stonehearth:profession.profession_uri.name}}</div>
@@ -23,7 +23,8 @@
 
                   </div>
                </td>
-               <td>{{this.stonehearth:ai.status_text}}</td>
+               <td><a href="#" class="moveCameraButton">{{this.stonehearth:ai.status_text}}</a></td>
+               <!-- <td><img class="moveCameraButton button"/></td> -->
             </tr>
          {{/each}}
          </tbody>

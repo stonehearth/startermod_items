@@ -1,0 +1,23 @@
+<script type="text/x-handlebars" data-template-name="genericBulletinDialog">
+<div id="bulletinDialog" class="gui bulletinDialog">
+   <div class="window">
+      <div class="title">{{i18n stonehearth:bulletin_dialog_title}}<div class="closeButton"></div></div>
+      <div id="scroll" class="parchment">
+         <div id="content">
+            <div id="title">{{ this.data.title }}</div>
+            <div class="message">{{ this.data.message }}</div>
+         </div>
+      </div>
+
+      {{#if this.data.ok_callback }}
+         <button id="okButton" class="">{{i18n stonehearth:ok}}</button>
+      {{/if}}
+      {{#if this.data.accepted_callback }}
+         <button id="acceptButton" class="">{{i18n stonehearth:accept}}</button>
+      {{/if}}
+      {{#if this.data.declined_callback }}
+         <button id="declineButton" class="">{{i18n stonehearth:decline}}</button>
+      {{/if}}
+   </div>
+</div>
+</script>

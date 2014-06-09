@@ -34,8 +34,6 @@ void TerrainTileTracker::MarkChanged()
 {
    om::Region3BoxedPtr region = region_.lock();
    if (region) {
-      ASSERT(GetEntityPosition() == csg::Point3::zero);
-
       localRegion_ = region->Get().Translated(offset_);
       csg::Cube3 bounds = localRegion_.GetBounds();
 
@@ -50,7 +48,6 @@ csg::Region3 TerrainTileTracker::GetOverlappingRegion(csg::Cube3 const& bounds) 
 {
    om::Region3BoxedPtr region = region_.lock();
    if (region) {
-      ASSERT(GetEntityPosition() == csg::Point3::zero);
       return localRegion_ & bounds;
    }
    return csg::Region3::empty;

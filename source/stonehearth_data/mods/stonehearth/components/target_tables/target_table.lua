@@ -2,17 +2,14 @@ TargetTable = class()
 
 -- TODO: decay scores over time and remove if below 0
 function TargetTable:initialize()
+   assert(self._sv)
+
    self._starting_score = 0
 
-   self._sv = self.__saved_variables:get_data()
-
-   if not self._sv.initialized then
-      self._sv.targets = {}
-      self._sv.top = nil
-      self._sv.top_score = nil
-      self._sv.top_is_dirty = false
-      self._sv.initialized = true
-   end
+   self._sv.targets = {}
+   self._sv.top = nil
+   self._sv.top_score = nil
+   self._sv.top_is_dirty = false
 end
 
 function TargetTable:get_top()

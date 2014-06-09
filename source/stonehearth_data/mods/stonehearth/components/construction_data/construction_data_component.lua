@@ -27,8 +27,10 @@ function ConstructionDataComponent:initialize(entity, json)
    end
 end
 
-function ConstructionDataComponent:begin_editing(other_cd)
-   if other_cd then
+function ConstructionDataComponent:begin_editing(entity)
+   if entity then
+      local other_cd = entity:get_component('stonehearth:construction_data')
+
       self._sv.normal = other_cd._sv.normal and Point3(other_cd._sv.normal) or nil
       self._sv.nine_grid_region = other_cd._sv.nine_grid_region and Region2(other_cd._sv.nine_grid_region) or nil
       self._sv.type = other_cd._sv.type

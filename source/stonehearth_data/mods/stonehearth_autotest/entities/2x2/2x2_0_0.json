@@ -4,9 +4,12 @@
          "name": "2x2 model pos:(0, 0)", 
          "portrait": "file(2x2.png)"
       }, 
+      "mob" : {
+         "local_origin" : { "x": 0, "y": 0, "z": 0 },
+         "align_to_grid" : [ "x", "z" ]
+      },
       "render_info" : {
-         "scale" : 1,
-         "model_origin" : { "x" : 0.5, "y" : 0, "z" : 0.5 }
+         "scale" : 1
       },
       "model_variants": {
          "default": {
@@ -21,16 +24,9 @@
          }
       }, 
       "region_collision_shape" : {
-         "region": [
-            {
-               "min" : { "x" : 0, "y" : 0, "z" : 0 },
-               "max" : { "x" : 2, "y" : 2, "z" : 2 }
-            },
-            {
-               "min" : { "x" : 0, "y" : 2, "z" : 0 },
-               "max" : { "x" : 1, "y" : 3, "z" : 1 }
-            }
-         ]
+         "region_from_model": {
+            "model" : "file(2x2_0_0.qb)"
+         }
       }
    }
 }

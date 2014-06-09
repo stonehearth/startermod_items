@@ -11,20 +11,28 @@ App.StonehearthBulletinNotification = App.View.extend({
       self.$('#bulletinNotification').pulse();
 
       setTimeout(function() {
-         self.$('#bulletinNotification').fadeOut(bulletinNotificationFadeTime, function() {
-            self.destroy();
-         });
+         var element = self.$('#bulletinNotification');
+
+         // make sure element still exists
+         if (element) {
+            element.fadeOut(bulletinNotificationFadeTime, function() {
+               self.destroy();
+            });
+         }
       }, bulletinNotificationDuration);
 
       self.$('#popup').click(function() {
          var bulletin = self.get('context');
+         App.bulletinBoard.zoomToLocation(bulletin);
          App.bulletinBoard.showDialogView(bulletin);
          self.destroy();
       });
    },
 
    willDestroyElement: function() {
-      App.bulletinBoard.onNotificationViewDestroyed();
+      var self = this;
+      var bulletin = self.get('context');
+      App.bulletinBoard.onNotificationViewDestroyed(bulletin);
       this._super();
    }
 });

@@ -1,6 +1,7 @@
 #include "pch.h"
 #include "csg/util.h" // xxx: should be csg/namespace.h
 #include "transform.h"
+#include "matrix4.h"
 #include "protocols/store.pb.h"
 
 using namespace radiant;
@@ -33,3 +34,9 @@ void Transform::LoadValue(const protocol::transform &msg)
    orientation.LoadValue(msg.orientation());
 }
 
+Matrix4 Transform::GetMatrix() const
+{
+   Matrix4 xform(orientation);
+   xform.set_translation(position);
+   return xform;
+}

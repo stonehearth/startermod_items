@@ -220,22 +220,23 @@ void NavGrid::AddTerrainTileTracker(om::EntityRef e, csg::Point3 const& offset, 
  * entity cannot stand on.  This is useful to the valid places an entity
  * can stand given a potentially valid set of spots.
  *
+ * `region` must be specified in world coordinates.  This is intentional:
+ * if you're specifing in something in local coordinates, you probably
+ * haven't considered all cases of when the region might be rotated!
+ *
  */
-void NavGrid::RemoveNonStandableRegion(om::EntityPtr entity, csg::Point3 const& location, csg::Region3& region)
+void NavGrid::RemoveNonStandableRegion(om::EntityPtr entity, csg::Region3& region)
 {
    csg::Region3 nonStandable;
 
-   // Iterate through every point in the entity, accumulating a region of `nonStandabale` points.
-   ForEachPointInEntityRegion(entity->GetObjectId(), location, [&nonStandable, &region, this] (csg::Point3 const& pt) mutable {
-      // An attempt is made to make the both fast and correct.  There's no need to consider a point at all if it
-      // does not intersect tith `region`.
-      if (region.Contains(pt)) {
+   for (csg::Cube3 const& cube : region) {
+      for (csg::Point3 const& pt : cube) {
          if (!IsStandable(pt)) {
-            nonStandable.Add(pt);
+            nonStandable.AddUnique(pt);
          }
       }
-      return false;     // keep iterating...
-   });
+   }
+
    region -= nonStandable;
 }
 
@@ -881,45 +882,4 @@ csg::Point3 NavGrid::GetStandablePoint(om::EntityPtr entity, csg::Point3 const& 
       location.y += direction;
    }
    return location;
-}
-
-
-/*
- * -- NavGrid::GetEntityCollisionShape
- *
- * Return the collision shape of an Entity as defined by the sum of all the
- * regions of the opaque trackers.  This is a bizarre thing to want to get.
- * Whatever you want to do with this, there is almost certainly another,
- * faster way of getting it done than constructing this region.   For
- * example, when ForEachPointInEntityRegion will let you do roughly the
- * same sorts of things you can do with GetEntityCollisionShape, but allows
- * you to implement a very early exit path by returning true from your
- * iterator, and avoids the expensive creation of this this region.
- *
- */
-
-csg::Region3 NavGrid::GetEntityCollisionShape(dm::ObjectId entityId)
-{
-   // explicity return an empty region if asked for the root object,
-   // because returning the entire terrain as one region is CERTAINLY
-   // a horrible, horrible idea (but will exhibit very littly negative
-   // consequences in our little test environments)
-   if (entityId == 1) {
-      NG_LOG(0) << "GetEntityCollisionShape may not be called on the root entity.";
-      return csg::Region3();
-   }
-
-   csg::Region3 shape;
-   ForEachTrackerForEntity(entityId, [&shape](CollisionTrackerPtr tracker) {
-      TrackerType type = tracker->GetType();
-      switch (type) {
-      case TrackerType::COLLISION:
-      case TrackerType::LADDER:
-      case TrackerType::MOB:
-         shape.Add(tracker->GetLocalRegion());
-         break;
-      }
-      return false;     // keep iterating...
-   });
-   return shape;
 }

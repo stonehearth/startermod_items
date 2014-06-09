@@ -296,29 +296,6 @@ void Pipeline::CreateXZBoxNodeGeometry(csg::mesh_tools::mesh& mesh,
    mesh.AddRegion(boxRegion, pi);
 }
 
-voxel::QubicleFile* Pipeline::LoadQubicleFile(std::string const& uri)
-{   
-   auto& r = res::ResourceManager2::GetInstance();
-
-   // Keep a cache of the most recently loaded qubicle files so we don't hammer the
-   // filesystem (where "recent" currently means, "ever").  Be sure to store them by
-   // the canonical path so we don't get duplicates (e.g. stonehearth:foo vs.
-   // stonehearth/entities/foo/foo.qb)
-
-   std::string const& path = r.ConvertToCanonicalPath(uri, nullptr);
-   auto i = qubicle_files_.find(path);
-   if (i != qubicle_files_.end()) {
-      return i->second.get();
-   }
-   voxel::QubicleFilePtr f = std::make_shared<voxel::QubicleFile>(path);
-   std::ifstream input;
-   std::shared_ptr<std::istream> is = res::ResourceManager2::GetInstance().OpenResource(uri);
-   (*is) >> *f;
-   qubicle_files_[path] = f;
-
-   return f.get();
-}
-
 SharedMaterial Pipeline::GetSharedMaterial(std::string const& material)
 {
    // xxx: share these one day?

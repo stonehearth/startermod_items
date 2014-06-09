@@ -4,20 +4,20 @@ local Point3f = _radiant.csg.Point3f
 local Region2 = _radiant.csg.Region2
 
 
-local MODEL_OFFSET = Point3f(0.5, 0, 0.5)
+local MODEL_OFFSET = Point3f(0, 0, 0)
 
 -- A lookup table to convert a normal in the xz-plane to a rotation
 -- about the y-axis.  Usage: ROTATION_TABLE[normal.x][normal.z]
 local ROTATION_TABLE = {
    [ 0] = {
-      [-1] = 180,
-      [ 1] = 0,
+      [-1] = 0,
+      [ 1] = 180,
    },
    [ 1] = {
-      [ 0] = 90
-   },
-   [-1] = {
       [ 0] = 270
+   }, 
+   [-1] = {
+      [ 0] = 90
    }   
 }
 

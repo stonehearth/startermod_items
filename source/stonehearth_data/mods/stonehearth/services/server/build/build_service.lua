@@ -27,11 +27,9 @@ function BuildService:set_active(building, enabled)
             _set_active_recursive(child, enabled)
          end
       end
-      for _, component_name in ipairs({'stonehearth:construction_progress', 'stonehearth:fixture_fabricator'}) do
-         local c = blueprint:get_component(component_name)
-         if c then
-            c:set_active(enabled)
-         end
+      local c = blueprint:get_component('stonehearth:construction_progress')
+      if c then
+         c:set_active(enabled)
       end
    end  
    _set_active_recursive(building, enabled)
@@ -393,7 +391,7 @@ function BuildService:grow_walls(session, response, building, columns_uri, walls
    local floor_region = building:add_component('stonehearth:building')
                                     :calculate_floor_region()
 
-   -- convert a 2d edge point to the proper 3d coorinate.  we want to put columns
+   -- convert a 2d edge point to the proper 3d coordinate.  we want to put columns
    -- 1-unit removed from where the floor is for each edge, so we add in the
    -- accumualted normal for both the min and the max, with one small wrinkle:
    -- the edges returned by :each_edge() live in the coordinate space of the
@@ -483,6 +481,7 @@ function BuildService:grow_roof(session, response, building, roof_uri)
                   :loan_scaffolding_to(roof)
       end
    end
+   response:resolve({})
 end
 
 -- returns the blueprint at the specified world `point`
@@ -581,7 +580,7 @@ end
 function BuildService:add_portal(session, response, wall_entity, portal_uri, location)
    local wall = wall_entity:get_component('stonehearth:wall')
    if wall then
-      local portal_blueprint_uri
+      local portal_blueprint_uri = portal_uri
       local data = radiant.entities.get_entity_data(portal_uri, 'stonehearth:ghost_item')
       if data then
          portal_blueprint_uri = data.uri
@@ -603,8 +602,18 @@ function BuildService:add_portal(session, response, wall_entity, portal_uri, loc
       -- to help build it.
       portal_blueprint:add_component('render_info')
                         :set_material('materials/blueprint.material.xml')
+                        
+      portal_blueprint:add_component('stonehearth:construction_progress')
+                        :add_dependency(wall_entity)
+                        :set_fabricator_entity(portal_blueprint, 'stonehearth:fixture_fabricator')
+
       portal_blueprint:add_component('stonehearth:fixture_fabricator')
                         :start_project(portal_uri)
+
+      -- sadly, ordering matters here.  we cannot set the building until both
+      -- the fabricator and blueprint have been fully initialized.
+      portal_blueprint:add_component('stonehearth:construction_progress')
+                        :set_building_entity(building)
 
       response:resolve({
          new_selection = portal_blueprint

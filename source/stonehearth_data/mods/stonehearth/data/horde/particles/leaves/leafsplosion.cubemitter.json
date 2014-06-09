@@ -60,7 +60,7 @@
             "over_lifetime_z": {
                 "kind": "CURVE",
                 "values": [
-                    [0.0, -5.0], [0.5, 2.0], [1.0, -5.0]
+                    [0.0, 5.0], [0.5, -2.0], [1.0, 5.0]
                 ]
             },
             "over_lifetime_y": {
@@ -78,7 +78,7 @@
         },
         "origin": {
             "surface": "RECTANGLE",
-            "values": [6, 6]
+            "values": [8, 8]
         },
         "angle": {
             "kind": "CONSTANT",

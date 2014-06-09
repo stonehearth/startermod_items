@@ -1,5 +1,5 @@
 {
-   "mixins": "stonehearth:mixins:tree", 
+   "mixins": ["stonehearth:mixins:tree", "stonehearth:mixins:align_to_grid"],
    "type": "entity", 
    "components": {
       "model_variants": {
@@ -8,8 +8,8 @@
                {
                   "type": "one_of",
                   "items": [
-                     "file(small_oak_tree.qb)", 
-                     "file(small_oak_tree_2.qb)", 
+                     "file(small_oak_tree.qb)",
+                     "file(small_oak_tree_2.qb)",
                      "file(small_oak_tree_3.qb)"
                   ]
                }
@@ -25,21 +25,25 @@
          "resource": "stonehearth:oak_log", 
          "durability": 4
       },
+      "mob" : {
+         "local_origin" : { "x": 0, "y": 0, "z": 0 },
+         "align_to_grid" : [ "x", "z" ]
+      },
       "destination" : {
          "region" : [
             {
-               "min" : { "x" : -3, "y" : 0, "z" : -3 },
-               "max" : { "x" :  3, "y" : 1, "z" :  3 }
+               "min" : { "x" : -2, "y" : 0, "z" : -2 },
+               "max" : { "x" :  2, "y" : 1, "z" :  2 }
             }
          ]
       },      
       "region_collision_shape" : {
-         "region": [
-            {
-               "min" : { "x" : -2, "y" : 0,  "z" : -2 },
-               "max" : { "x" :  2, "y" : 10, "z" :  2 }
-            }
-         ]
+         "region_from_model": {
+            "model" : "file(small_oak_tree.qb)",
+            "matrices" : [
+               "trunk"
+            ]
+         }
       }
    }
 }

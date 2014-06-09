@@ -18,15 +18,50 @@ App.StonehearthCitizensView = App.View.extend({
 
       // remember the citizen for the row that the mouse is over
       this.$().on('mouseenter', '.row', function() {
-         var row = $(this);
-         var pop = self.get('context.model');
-         var id = row.attr('id');
-         self._activeRowCitizen = pop.citizens[id]; 
+         self._activeRowCitizen = self._rowToCitizen($(this));
       });
 
-      this.$('.title .closeButton').click(function() {
-         self.destroy();
+      // move camera control
+      this.$().on('click', '.moveCameraButton', function(event) {
+         // select the row
+         var row = $(this).closest('.row');
+
+         // focus the camera to the selected citizen
+         var citizen = self._rowToCitizen(row);
+         if (citizen) {
+            radiant.call('stonehearth:camera_look_at_entity', citizen.__self);
+            radiant.call('stonehearth:select_entity', citizen.__self);
+         }
+         event.stopPropagation();
       });
+
+      // show character sheet control
+      this.$().on('click', '.banner', function(event) {
+         // select the row
+         var row = $(this).closest('.row');
+
+         // focus the camera to the selected citizen
+         var citizen = self._rowToCitizen(row);
+         if (citizen) {
+
+            $(top).trigger('show_character_sheet.stonehearth', {
+               entity: citizen.__self
+            });
+         }
+         event.stopPropagation();
+      });
+
+      // show toolbar control
+      this.$().on('click', '.row', function() {        
+         var selected = $(this).hasClass('selected'); // so we can toggle!
+         self.$('.row').removeClass('selected');
+         
+         if (!selected) {
+            $(this).addClass('selected');   
+         }
+
+      });
+
    },
 
    actions: {
@@ -35,10 +70,12 @@ App.StonehearthCitizensView = App.View.extend({
       }
    },
 
-   getSelectedCitizen: function() {
-      var citizenMap = this.get('context.model.citizens');
-      var id = this.$('.selected').attr('id');
-      return citizenMap[id];
+   _rowToCitizen: function(row) {
+      var self = this;
+      var id = row.attr('id');
+      var pop = self.get('context.model');
+      var citizen = pop.citizens[id];
+      return citizen;
    },
 
    _buildCitizensArray: function() {
@@ -62,5 +99,4 @@ App.StonehearthCitizensView = App.View.extend({
     _citizenFilterFn: function (citizen) {
       return true;
     },
-
 });

@@ -29,7 +29,6 @@ public:
    bool Intersects(csg::Region3 const& region) const;
    bool Intersects(csg::Region3 const& region, csg::Cube3 const& regionBounds) const;
 
-   csg::Point3 GetEntityPosition() const;
    om::EntityPtr GetEntity() const;
    dm::ObjectId GetEntityId() const;
 

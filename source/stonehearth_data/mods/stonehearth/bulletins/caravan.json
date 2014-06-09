@@ -1,6 +1,0 @@
-{
-   "type" : "info",
-   "ui_view" : "StonehearthBulletinDialog",
-   "accepted_callback" : "_on_accepted",
-   "declined_callback" : "_on_declined"
-}

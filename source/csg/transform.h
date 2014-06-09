@@ -8,6 +8,8 @@
 
 BEGIN_RADIANT_CSG_NAMESPACE
 
+class Matrix4;
+
 class Transform {
 public:
    Point3f            position;
@@ -18,6 +20,7 @@ public:
    Transform(const Point3f &p, const Quaternion &q) : position(p), orientation(q) { }
 
    void SetZero() { position.SetZero(); orientation.SetIdentity(); }
+   Matrix4 GetMatrix() const;
 
    void SaveValue(protocol::transform *msg) const;
    void LoadValue(const protocol::transform &msg);

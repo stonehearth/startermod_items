@@ -77,11 +77,6 @@ App.StonehearthTownView = App.View.extend({
       this._super();
       this._updateScores();
 
-      // close button handler
-      this.$('.title .closeButton').click(function() {
-         self.destroy();
-      });
-
       this.$('.tab').click(function() {
          var tabPage = $(this).attr('tabPage');
 

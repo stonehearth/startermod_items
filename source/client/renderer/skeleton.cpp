@@ -1,14 +1,13 @@
 #include "pch.h"
 #include "skeleton.h"
 #include "renderer.h"
+#include "render_entity.h"
 
 using namespace ::radiant;
-using radiant::csg::Point3f;
-using radiant::client::Renderer;
-using radiant::client::Skeleton;
+using namespace ::radiant::client;
 
-Skeleton::Skeleton() :
-   _parent(0),
+Skeleton::Skeleton(RenderEntity& re) :
+   _renderEntity(re),
    _scale(1.0f)
 {
 }
@@ -29,8 +28,6 @@ void Skeleton::Clear()
 
 H3DNode Skeleton::AttachEntityToBone(H3DRes res, std::string const& bone, csg::Point3f const& offset)
 {
-   ASSERT(_parent);
-
    H3DNode b = _bones[bone];
    if (!b) {
       b = CreateBone(bone);
@@ -41,14 +38,6 @@ H3DNode Skeleton::AttachEntityToBone(H3DRes res, std::string const& bone, csg::P
    }
    return h3dAddNodes(b, res);
 }
-
-void Skeleton::SetSceneNode(H3DNode parent)
-{
-   ASSERT(parent);
-   ASSERT(!_parent || (_parent == parent));
-   _parent = parent;
-}
-
 
 void Skeleton::ApplyScaleToBones()
 {
@@ -66,8 +55,6 @@ void Skeleton::ApplyScaleToBones()
 
 H3DNode Skeleton::GetSceneNode(std::string const& bone)
 {
-   ASSERT(_parent);
-
    H3DNode node = _bones[bone];
    if (!node) {
       node = CreateBone(bone);
@@ -77,13 +64,14 @@ H3DNode Skeleton::GetSceneNode(std::string const& bone)
 
 H3DNode Skeleton::CreateBone(std::string const& bone)
 {
+   H3DNode parent = _renderEntity.GetNode();
    std::ostringstream name;
-   name << "Skeleton " << _parent << " " + bone + " bone";
+   name << "Skeleton " << parent << " " + bone + " bone";
    //H3DNode scaler = h3dAddGroupNode(_parent, name.str().c_str());
    //h3dSetNodeTransform(scaler, 0, 0, 0, 0, 0, 0, .1f, .1f, .1f);
 
    name << "...";
-   H3DNode b = h3dAddGroupNode(_parent, name.str().c_str());
+   H3DNode b = h3dAddGroupNode(parent, name.str().c_str());
    h3dSetNodeTransform(b, 0, 0, 0, 0, 0, 0, 1.0f, 1.0f, 1.0f);
    _bones[bone] = b;
 

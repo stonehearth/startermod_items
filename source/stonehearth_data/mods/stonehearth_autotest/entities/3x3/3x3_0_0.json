@@ -1,0 +1,31 @@
+{
+   "components": {
+      "unit_info": {
+         "name": "3x3 model pos:(0, 0)", 
+         "portrait": "file(3x3.png)"
+      }, 
+      "mob" : {
+         "local_origin" : { "x": -1.5, "y": 0, "z": 1.5 }
+      },
+      "render_info" : {
+         "scale" : 1
+      },
+      "model_variants": {
+         "default": {
+            "models": [
+               {
+                  "type": "one_of",
+                  "items": [
+                     "file(3x3_0_0.qb)"
+                  ]
+               }
+            ]
+         }
+      }, 
+      "region_collision_shape" : {
+         "region_from_model": {
+            "model" : "file(3x3_0_0.qb)"
+         }
+      }
+   }
+}

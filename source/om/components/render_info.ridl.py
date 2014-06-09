@@ -11,7 +11,6 @@ class RenderInfo(Component):
    animation_table = dm.Boxed(std.string())
    material = dm.Boxed(std.string())
    visible = dm.Boxed(c.bool())
-   model_origin = dm.Boxed(csg.Point3f())
 
    attached_entities = dm.Set(EntityRef(), add=None, remove=None, iterate='define', singular_name='attached_entity')
 

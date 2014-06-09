@@ -46,7 +46,7 @@ public:
 
    std::string const& GetUri() const { return uri_; }
    std::istream& Read(std::istream& in);
-   QubicleMatrix* GetMatrix(std::string const& name);
+   QubicleMatrix const* GetMatrix(std::string const& name) const;
 
    typedef std::unordered_map<std::string, QubicleMatrix> MatrixMap;
 

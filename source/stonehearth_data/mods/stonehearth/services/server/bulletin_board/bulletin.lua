@@ -7,6 +7,7 @@ function Bulletin:initialize(id)
 
    self._sv.id = id
    self._sv.creation_time = radiant.gamestate.now()
+   self._sv.type = 'info'
    self.__saved_variables:mark_changed()
 end
 
@@ -15,15 +16,24 @@ function Bulletin:get_id()
    return self._sv.id
 end
 
--- configuration information that describes the bulletin
-function Bulletin:set_config(config)
-   self._sv.config = config
+function Bulletin:get_type()
+   return self._sv.type
+end
+
+function Bulletin:set_type(type)
+   self._sv.type = type
    self.__saved_variables:mark_changed()
    return self
 end
 
-function Bulletin:get_config()
-   return self._sv.config
+function Bulletin:get_ui_view()
+   return self._sv.ui_view
+end
+
+function Bulletin:set_ui_view(ui_view)
+   self._sv.ui_view = ui_view
+   self.__saved_variables:mark_changed()
+   return self
 end
 
 -- data used to drive what is shown in the bulletin notification and bulletin dialog
@@ -38,10 +48,10 @@ function Bulletin:get_data()
 end
 
 -- the object instance that created the bulletin that may also process callbacks
--- this is typically used in javascript view as:
---    radiant.call_obj(callback_instance, 'accepted', args);
+-- must be a savable object
 function Bulletin:set_callback_instance(callback_instance)
-   assert(callback_instance.__saved_variables, 'callback_instance must be a savable object')
+   assert(self:_is_savable_object(callback_instance))
+
    self._sv.callback_instance = callback_instance
    self.__saved_variables:mark_changed()
    return self
@@ -60,6 +70,13 @@ end
 
 function Bulletin:get_creation_time()
    return self._sv.creation_time
+end
+
+function Bulletin:_is_savable_object(object)
+   return object and 
+          object.__saved_variables and
+          object.__saved_variables.get_type_name and
+          object.__saved_variables:get_type_name() == 'class radiant::om::DataStore'
 end
 
 return Bulletin

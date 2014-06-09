@@ -188,8 +188,9 @@ function ScaffoldingRenderer:_create_segment_node(pt)
 end
 
 function ScaffoldingRenderer:_create_node(pt, matrix) 
+   local offset = self._origin:scaled(.1) + pt:to_float()
    local node = _radiant.client.create_qubicle_matrix_node(self._node, self._lattice, matrix, self._origin)
-   h3dSetNodeTransform(node:get_node(), pt.x, pt.y, pt.z, 0, self._rotation, 0, self._scale, self._scale, self._scale)
+   h3dSetNodeTransform(node:get_node(), offset.x, offset.y, offset.z, 0, self._rotation, 0, self._scale, self._scale, self._scale)
    --h3dSetNodeFlags(node:get_node(), h3dGetNodeFlags(self._entity_node), true);
    return node
 end
@@ -252,7 +253,8 @@ function ScaffoldingRenderer:_move_top(pt)
          self._tops[pt.x][pt.z] = nil
       else
          --Otherwise, just move the top
-         h3dSetNodeTransform(top_data.node:get_node(), pt.x, new_top_y, pt.z, 0, self._rotation, 0, self._scale, self._scale, self._scale)
+         local offset = self._origin:scaled(.1) + pt:to_float()
+         h3dSetNodeTransform(top_data.node:get_node(), offset.x, new_top_y, offset.z, 0, self._rotation, 0, self._scale, self._scale, self._scale)
       end
    end
 end

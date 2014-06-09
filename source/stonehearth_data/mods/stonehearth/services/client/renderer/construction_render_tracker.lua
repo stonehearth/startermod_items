@@ -10,7 +10,9 @@ local INFINITE = 100000000
 --
 function ConstructionRenderTracker:__init(entity)
    self._entity = entity
-
+   self._build_mode_visible = false
+   self._ui_mode_visible = true
+   
    radiant.events.listen(radiant, 'stonehearth:ui_mode_changed', self, self._on_ui_mode_changed)
    radiant.events.listen(radiant, 'stonehearth:building_vision_mode_changed', self, self._on_building_visions_mode_changed)
    self:_on_building_visions_mode_changed()
@@ -41,6 +43,8 @@ function ConstructionRenderTracker:set_visible_ui_modes(...)
    else
       self._visible_modes = nil
    end
+   local mode = stonehearth.renderer:get_ui_mode()   
+   self._ui_mode_visible = self._visible_modes[mode] ~= nil   
    return self
 end
 
@@ -147,10 +151,9 @@ end
 -- new render state for their structure
 --
 function ConstructionRenderTracker:_on_ui_mode_changed()
-   self._ui_mode = stonehearth.renderer:get_ui_mode()
-   if self._visible_modes then
-      self:_update_visible(self._visible_modes[self._ui_mode] ~= nil)
-   end
+   local mode = stonehearth.renderer:get_ui_mode()
+   self._ui_mode_visible = not self._visible_modes or self._visible_modes[mode] ~= nil
+   self:_update_visible()
 end
 
 -- called whenever the building view  mode of the client changes.  notifies the client
@@ -182,14 +185,16 @@ function ConstructionRenderTracker:_on_building_visions_mode_changed()
             radiant.events.unlisten(stonehearth.camera, 'stonehearth:camera:update', self, self._update_camera)
             self._listening_to_camera = false
          end
-         self:_update_visible(true)
+         self._build_mode_visible = true
+         self:_update_visible()
       end
    end
 end
 
 -- updates our visible state and fires the callback if it actually changed.
 --
-function ConstructionRenderTracker:_update_visible(visible)
+function ConstructionRenderTracker:_update_visible()
+   local visible = self._build_mode_visible and self._ui_mode_visible
    if self._visible ~= visible then
       self._visible = visible
       if self._on_visible_changed then
@@ -210,7 +215,7 @@ function ConstructionRenderTracker:_update_camera()
       return n > 0 and 1 or -1   
    end
 
-   local visible = true
+   self._build_mode_visible = true
    local mode = stonehearth.renderer:get_building_vision_mode()
    if mode == 'xray' then
       if self._normal then
@@ -223,10 +228,10 @@ function ConstructionRenderTracker:_update_camera()
          --    D = n dot x0 + p
          --
          -- p is zero, since we translated x0 into object space.
-         visible = dot_product(self._normal, x0) < 0
+         self._build_mode_visible = dot_product(self._normal, x0) < 0
       end
    end
-   self:_update_visible(visible)
+   self:_update_visible()
 end
 
 return ConstructionRenderTracker
