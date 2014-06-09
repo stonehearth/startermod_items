@@ -95,9 +95,9 @@ function ScaffoldingFabricator:_compute_borrowers_required_height()
          if borrower_fabricator then
             -- fixture fabricators do not have destinations.  use the coordinate of the fabricator instead
             local dst = borrower_fabricator:get_component('destination')
-            local bottom = dst and dst:get_region():get():get_bounds().min or borrower_fabricator:get_component('mob'):get_grid_location()
+            local bottom = dst and dst:get_region():get():get_bounds().min or Point3(0, 0, 0)
             local offset = radiant.entities.local_to_world(bottom, borrower) - radiant.entities.get_world_grid_location(self._entity)
-            desired_height = math.max(desired_height and desired_height or 0, offset.y)
+            desired_height = math.max(desired_height and desired_height or 0, offset.y - 1)
          end
       end
    end
