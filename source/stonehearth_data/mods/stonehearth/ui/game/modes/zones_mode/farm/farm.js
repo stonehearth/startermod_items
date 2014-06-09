@@ -60,10 +60,6 @@ App.StonehearthFarmView = App.View.extend({
          radiant.call('radiant:play_sound', 'stonehearth:sounds:ui:start_menu:submenu_select' );
          self.destroy();
       });
-
-      this.$('.title .closeButton').click(function() {
-         self.destroy();
-      });
    },
 
    destroy : function() {

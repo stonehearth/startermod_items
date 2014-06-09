@@ -4,10 +4,6 @@ App.StonehearthBaseBulletinDialog = App.View.extend({
    didInsertElement: function() {
       var self = this;
       self._super();
-
-      self.$('.title .closeButton').click(function() {
-         self.destroy();
-      });
    },
 
    willDestroyElement: function() {

@@ -28,10 +28,6 @@ App.StonehearthCitizensView = App.View.extend({
             radiant.call('stonehearth:select_entity', citizen.__self);
          }
       });
-
-      this.$('.title .closeButton').click(function() {
-         self.destroy();
-      });
    },
 
    actions: {

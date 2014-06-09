@@ -1029,6 +1029,7 @@
          "file(ui/game/build/build.html)"
       ],
       "js" : [
+         "file(ui/common/gui/gui.js)",
          "file(ui/common/modal_overlay/modal_overlay.js)",
          "file(ui/common/confirm/confirm.js)",
          "file(ui/shell/shell.js)",

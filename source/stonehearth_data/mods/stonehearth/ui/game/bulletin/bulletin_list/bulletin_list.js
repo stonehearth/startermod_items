@@ -26,10 +26,6 @@ App.StonehearthBulletinList = App.View.extend({
          App.bulletinBoard.zoomToLocation(bulletin);
          App.bulletinBoard.showDialogView(bulletin);
       });
-
-      self.$('.title .closeButton').click(function() {
-         self.destroy();
-      });
    },
 });
 
