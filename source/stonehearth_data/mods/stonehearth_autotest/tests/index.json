@@ -4,7 +4,8 @@
          "name" : "All Tests",
          "groups" : [
             "blackbox",
-            "end_to_end"
+            "end_to_end",
+            "performance"
          ]
       },
 

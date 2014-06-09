@@ -134,6 +134,8 @@ sh_args = '--game.main_mod=stonehearth_autotest --simulation.game_speed=4 --logg
 
 if '-g' in sys.argv:
    sh_args += ' --mods.stonehearth_autotest.options.group=' + sys.argv[sys.argv.index('-g') + 1]
+else:
+   sh_args += ' --mods.stonehearth_autotest.options.group=all_but_performance'
 
 if '-i' in sys.argv:
   print 'Running in interactive mode'
