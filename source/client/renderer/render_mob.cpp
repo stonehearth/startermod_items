@@ -74,14 +74,14 @@ void RenderMob::Move()
    om::MobPtr mob = mob_.lock();
    if (mob) {
       csg::Point3f renderOffset(0, 0, 0);
-      csg::Point3f localOrigin = mob->GetLocalOrigin();
+      csg::Point3f modelOrigin = mob->GetModelOrigin();
       int alignment = mob->GetAlignToGridFlags();
 
       for (int i = 0; i < 3; i++) {
          float unused;
-         // coordinate is terrain aligned if the localOrigin is in the center of a voxel
-         // i.e. if the localOrigin has a 0.5 fractional value
-         bool isTerrainAligned = std::abs(std::modf(localOrigin.Coord(i), &unused)) == 0.5;
+         // coordinate is terrain aligned if the modelOrigin is in the center of a voxel
+         // i.e. if the modelOrigin has a 0.5 fractional value
+         bool isTerrainAligned = std::abs(std::modf(modelOrigin.Coord(i), &unused)) == 0.5;
          bool terrainAlignRequested = (alignment & (1 << i)) != 0;
 
          // For scaled models, this code only works when the local origin and collision region
@@ -100,14 +100,14 @@ void RenderMob::Move()
          }
       }
 
-      csg::Matrix4 localOriginInvMat, renderOffsetMat;
+      csg::Matrix4 modelOriginInvMat, renderOffsetMat;
 
       renderOffsetMat.set_translation(renderOffset);        // Move over to the render offset
-      localOriginInvMat.set_translation(-localOrigin);      // Inverse of the local origin
+      modelOriginInvMat.set_translation(-modelOrigin);      // Inverse of the local origin
       csg::Matrix4 rotation(_current.orientation);          // Rotate...
 
       // Look ma!  Matrix accumulation!
-      m = renderOffsetMat * rotation * localOriginInvMat;
+      m = renderOffsetMat * rotation * modelOriginInvMat;
       M_LOG(9) << "render offset for " << *entity_.GetEntity() << " is " << renderOffset << " computed:" << m.get_translation();
    }
    M_LOG(9) << "transform for " << *entity_.GetEntity() << " is " << _current.position;

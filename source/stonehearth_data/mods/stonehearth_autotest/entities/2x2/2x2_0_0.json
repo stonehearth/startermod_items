@@ -5,7 +5,7 @@
          "portrait": "file(2x2.png)"
       }, 
       "mob" : {
-         "local_origin" : { "x": 0, "y": 0, "z": 0 },
+         "model_origin" : { "x": 0, "y": 0, "z": 0 },
          "align_to_grid" : [ "x", "z" ]
       },
       "render_info" : {

@@ -23,7 +23,7 @@ class Mob(Component):
 
    parent = dm.Boxed(std.weak_ptr(Entity()))
    transform = dm.Boxed(csg.Transform())
-   local_origin = dm.Boxed(csg.Point3f())
+   model_origin = dm.Boxed(csg.Point3f())
    align_to_grid_flags = dm.Boxed(c.int())
    aabb = dm.Boxed(csg.Cube3f)
    moving = dm.Boxed(c.bool())

@@ -17,7 +17,7 @@ void Mob::ConstructObject()
 {
    Component::ConstructObject();
    transform_ = csg::Transform(csg::Point3f::zero, csg::Quaternion());
-   local_origin_ = csg::Point3f::zero;
+   model_origin_ = csg::Point3f::zero;
    align_to_grid_flags_ = 0;
    aabb_ = csg::Cube3f::zero;
    interpolate_movement_ = false;
@@ -165,7 +165,7 @@ void Mob::LoadFromJson(json::Node const& obj)
 {
    SetInterpolateMovement(obj.get<bool>("interpolate_movement", false));
    transform_ = obj.get<csg::Transform>("transform", csg::Transform(csg::Point3f(0, 0, 0), csg::Quaternion(1, 0, 0, 0)));
-   local_origin_ = obj.get<csg::Point3f>("local_origin", csg::Point3f::zero);
+   model_origin_ = obj.get<csg::Point3f>("model_origin", csg::Point3f::zero);
 
    int align_to_grid_flags = 0;
    for (json::Node entry : obj.get_node("align_to_grid")) {
@@ -205,7 +205,7 @@ void Mob::SerializeToJson(json::Node& node) const
    Component::SerializeToJson(node);
 
    node.set("transform", GetTransform());
-   node.set("local_origin", GetLocalOrigin());
+   node.set("model_origin", GetModelOrigin());
    node.set("axis_alignment_flags", GetAlignToGridFlags());
    node.set("entity", GetEntityPtr()->GetStoreAddress());
    node.set("moving", GetMoving());

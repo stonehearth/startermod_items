@@ -28,7 +28,7 @@ Shape phys::LocalToWorld(Shape const& shape, om::EntityPtr entity)
    }
 
    csg::Transform t = mob->GetWorldTransform();
-   csg::Point3f localOrigin = mob->GetLocalOrigin();
+   csg::Point3f modelOrigin = mob->GetModelOrigin();
    csg::Point3 position = csg::ToClosestInt(t.position);
    csg::Quaternion const& orientation = t.orientation;
 
@@ -40,13 +40,13 @@ Shape phys::LocalToWorld(Shape const& shape, om::EntityPtr entity)
    float degrees = radAngle * 180 / csg::k_pi;
    int angle = (csg::ToClosestInt(degrees / 90) * 90) % 360;
 
-   if (localOrigin != csg::Point3f::zero) {
+   if (modelOrigin != csg::Point3f::zero) {
       // Adjust the shape position based on our rotated local origin.  The local origin
       // is almost always specified as a fractional unit (e.g.  (1.5, 0, 9.5)) to 
       // position the render shape for the entity aligned to the grid.  Before we do
       // the offset, take that slop off so the shapes is integer aligned.
-      csg::Point3f localOriginRotated = orientation.rotate(localOrigin);
-      position -= csg::ToClosestInt(localOriginRotated - csg::Point3f(0.5f, 0, 0.5f));
+      csg::Point3f modelOriginRotated = orientation.rotate(modelOrigin);
+      position -= csg::ToClosestInt(modelOriginRotated - csg::Point3f(0.5f, 0, 0.5f));
    }
    if (angle == 0) {
       // If there's no rotation at all, we can just translate the shape to
