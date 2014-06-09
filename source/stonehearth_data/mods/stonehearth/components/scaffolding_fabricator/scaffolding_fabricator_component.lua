@@ -12,7 +12,6 @@ local COORD_MAX = 1000000 -- 1 million enough?
 -- which appears in the world is created by a fabricator.
 function ScaffoldingFabricator:initialize(entity, json)
    self._entity = entity
-   self._listening_to_borrower = {}
    self._sv = self.__saved_variables:get_data()
 
    radiant.events.listen_once(radiant, 'radiant:game_loaded', function()
@@ -77,45 +76,50 @@ end
 -- returns whether or not all the blueprints that are borrowing our scafflding
 -- have finished.  this whole thing goes away once we implement scaffolding sharing
 -- in the build service!
-function ScaffoldingFabricator:_borrowers_finished()
+function ScaffoldingFabricator:_compute_borrowers_required_height()
+   local desired_height
    local borrowing_us = self._blueprint_cd:get_loaning_scaffolding_to()
-
    for id, borrower in pairs(borrowing_us) do
       local borrower_cp = borrower:get_component('stonehearth:construction_progress')
       local finished = borrower_cp:get_finished()
       if not finished then
          -- this one's not finished.  rats.  listen on an event so that when it is
-         -- finished, we'll go back and check our scaffolding size.  make sure we don't
-         -- listen more than once, though (since that would be extremely wasteful)
-         if not self._listening_to_borrower[id] then
-            self._listening_to_borrower[id] = true
-            radiant.events.listen(borrower, 'stonehearth:construction:finished_changed', function()
-                  self._listening_to_borrower[id] = nil
-                  self:_update_scaffolding_size()
-                  return radiant.events.UNLISTEN
-               end)
+         -- finished, we'll go back and check our scaffolding size.
+         radiant.events.listen_once(borrower, 'stonehearth:construction:finished_changed', function()
+               self:_update_scaffolding_size()
+            end)
+
+         -- make sure we build up at least to the base of whatever it is that's
+         -- borrowing us
+         local borrower_fabricator = borrower_cp:get_fabricator_entity()
+         if borrower_fabricator then
+            -- fixture fabricators do not have destinations.  use the coordinate of the fabricator instead
+            local dst = borrower_fabricator:get_component('destination')
+            local bottom = dst and dst:get_region():get():get_bounds().min or borrower_fabricator:get_component('mob'):get_grid_location()
+            desired_height = math.max(desired_height and desired_height or 0, bottom.y)
          end
-         -- there's no need to listen on anyone else, even if they're not finished.
-         -- one listener is sufficient to start the 'check all borrowers' process all
-         -- over again.
-         return false
       end
    end
-   return true
+   return desired_height
 end
 
 function ScaffoldingFabricator:_update_scaffolding_size()
    local blueprint_teardown = self._blueprint_cp:get_teardown()
    local blueprint_finished = self._blueprint_cp:get_finished()
    if not blueprint_teardown then
-      if blueprint_finished then
-         if self:_borrowers_finished() then
-            -- make our region completely empty.  the fabricator will worry about
-            -- the exact details of how this happens
+      if not blueprint_finished then
+         -- still not done with the blueprint.  cover the whole thing
+         self:_cover_project_region()
+      else
+         local desired_height = self:_compute_borrowers_required_height()
+         if desired_height then
+            -- borrowers still need us up to `desired_height`.  build
+            -- down to there
+            self:_cover_project_region(desired_height)
+         else
+            -- completely done!  erase our region
             self:_clear_destination_region()
          end
-      else
-         self:_cover_project_region()
       end
    else
       self:_cover_project_region()
@@ -133,7 +137,7 @@ function ScaffoldingFabricator:_update_scaffolding_size()
    self:_update_ladder_region()
 end
 
-function ScaffoldingFabricator:_cover_project_region()
+function ScaffoldingFabricator:_cover_project_region(max_height)
    local project_rgn = self._project_dst:get_region():get()
    local blueprint_rgn = self._blueprint_dst:get_region():get()
    
@@ -180,6 +184,13 @@ function ScaffoldingFabricator:_cover_project_region()
                                  Point3(cube.max.x, y, cube.max.z))
             column:translate(self._sv.normal)
             cursor:add_cube(column)
+         end
+
+         -- if a max_height is specified, throw out everything above it
+         if max_height then
+            local clipper = Cube3(Point3(-COORD_MAX, max_height, -COORD_MAX),
+                                  Point3( COORD_MAX, COORD_MAX,  COORD_MAX))
+            cursor:subtract_cube(clipper)
          end
 
          -- finally, don't put scaffolding where the project is slated to go!

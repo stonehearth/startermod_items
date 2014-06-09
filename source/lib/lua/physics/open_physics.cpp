@@ -18,6 +18,11 @@ bool Physics_IsStandable(lua_State *L, OctTree &octTree, om::EntityRef entityRef
    return octTree.GetNavGrid().IsStandable(entity, location);
 }
 
+bool Physics_IsStandablePoint(lua_State *L, OctTree &octTree, csg::Point3 const& location)
+{
+   return octTree.GetNavGrid().IsStandable(location);
+}
+
 csg::Point3 Physics_GetStandablePoint(lua_State *L, OctTree &octTree, om::EntityRef entityRef, csg::Point3 const& location)
 {
    om::EntityPtr entity = entityRef.lock();
@@ -71,6 +76,7 @@ void lua::phys::open(lua_State* L, OctTree& octtree)
          namespace_("physics") [
             luabind::class_<OctTree>("Physics")
                .def("is_standable",         &Physics_IsStandable)
+               .def("is_standable",         &Physics_IsStandablePoint)
                .def("get_standable_point",  &Physics_GetStandablePoint)
                .def("get_entities_in_cube", &Physics_GetEntitiesInCube),
             def("local_to_world",              &Physics_LocalToWorld<csg::Point3>),

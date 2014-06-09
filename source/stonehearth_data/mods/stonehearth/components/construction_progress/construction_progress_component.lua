@@ -116,9 +116,8 @@ function ConstructionProgress:check_dependencies()
          entity = self._entity
       })
 
-      -- if we don't have a construction_data component, forward the message along.
-      local construction_data = self._entity:get_component('stonehearth:construction_data')
-      if not construction_data then
+      -- if we don't have a fabricator, forward the message along.
+      if not self._sv._fabricator_component_name then
          self:set_finished(self._sv.dependencies_finished)
       end
    end
@@ -144,16 +143,13 @@ end
 
 -- set the active states.  workers will only try to build building that are active.
 -- simply forwards the request to the fabricator of the fabricator entity.  we duplicate
--- the active state here as a convienence to clients/
+-- the active state here as a convienence to clients
 function ConstructionProgress:set_active(active)
    if active ~= self._sv.active then
       if self._sv.fabricator_entity then
-         local fc = self._sv.fabricator_entity:get_component('stonehearth:fabricator')
-         if fc then
-            fc:set_active(active)
-         end
          self._sv.active = active
          self.__saved_variables:mark_changed()
+         self:_get_fabricator_component():set_active(active)
       end
    end
 end
@@ -165,12 +161,10 @@ end
 function ConstructionProgress:set_teardown(teardown)
    if teardown ~= self._sv.teardown then
       if self._sv.fabricator_entity then
-         local fc = self._sv.fabricator_entity:get_component('stonehearth:fabricator')
-         if fc then
-            fc:set_teardown(teardown)
-         end
          self._sv.teardown = teardown
          self.__saved_variables:mark_changed()
+         self:_get_fabricator_component():set_active(active):set_teardown(teardown)
+
          radiant.events.trigger_async(self._entity, 'stonehearth:construction:teardown_changed', { 
             entity = self._entity
          })
@@ -200,7 +194,7 @@ function ConstructionProgress:set_building_entity(building_entity)
    self.__saved_variables:mark_changed()
 
    if self._sv.fabricator_entity then
-      local project = self._sv.fabricator_entity:get_component('stonehearth:fabricator'):get_project()
+      local project = self:_get_fabricator_component():get_project()
       if project then
          project:add_component('stonehearth:construction_data')
                 :set_building_entity(building_entity)
@@ -214,19 +208,19 @@ function ConstructionProgress:get_fabricator_entity()
 end
 
 -- sets the fabricator entity which is using our blueprint as a reference
-function ConstructionProgress:set_fabricator_entity(fabricator_entity)
-   assert(fabricator_entity:get_component('stonehearth:fabricator'))
-   
+function ConstructionProgress:set_fabricator_entity(fabricator_entity, component_name)
+   self._sv._fabricator_component_name = component_name or 'stonehearth:fabricator'
    self._sv.fabricator_entity = fabricator_entity
    self.__saved_variables:mark_changed()
 
    if self._sv.building_entity then
-      local project = fabricator_entity:get_component('stonehearth:fabricator'):get_project()
+      local project = self:_get_fabricator_component():get_project()
       if project then
          project:add_component('stonehearth:construction_data')
                 :set_building_entity(self._sv.building_entity)
       end
    end
+   return self
 end
 
 function ConstructionProgress:get_finished()
@@ -235,6 +229,19 @@ end
 
 function ConstructionProgress:get_dependencies_finished()
    return self._sv.dependencies_finished
+end
+
+-- returns the fabricator component for this entity.  the exact name of the component
+-- was specified during the :set_fabricator_entity() call.  for walls, columns, etc,
+-- it's 'stonehearth:fabricator'.  for windows, lanterns, flags, etc. it's 
+-- 'stonehearth:fixture_fabricator'.  both implement the same interface.
+---
+function ConstructionProgress:_get_fabricator_component()
+   assert(self._sv.fabricator_entity)
+   assert(self._sv._fabricator_component_name)
+   local component = self._sv.fabricator_entity:get_component(self._sv._fabricator_component_name)
+   assert(component)
+   return component
 end
 
 return ConstructionProgress
