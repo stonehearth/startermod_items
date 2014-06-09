@@ -56,10 +56,6 @@ App.StonehearthStockpileView = App.View.extend({
 
       this.items.find('img').tooltipster();
 
-      this.$('.title .closeButton').click(function() {
-         self.destroy();
-      });
-
       self._refreshGrids();
    },
 

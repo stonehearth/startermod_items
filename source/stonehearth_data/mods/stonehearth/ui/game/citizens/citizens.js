@@ -21,17 +21,47 @@ App.StonehearthCitizensView = App.View.extend({
          self._activeRowCitizen = self._rowToCitizen($(this));
       });
 
-      this.$().on('click', '.row', function() {
-         var citizen = self._rowToCitizen($(this));
+      // move camera control
+      this.$().on('click', '.moveCameraButton', function(event) {
+         // select the row
+         var row = $(this).closest('.row');
+
+         // focus the camera to the selected citizen
+         var citizen = self._rowToCitizen(row);
          if (citizen) {
             radiant.call('stonehearth:camera_look_at_entity', citizen.__self);
             radiant.call('stonehearth:select_entity', citizen.__self);
          }
+         event.stopPropagation();
       });
 
-      this.$('.title .closeButton').click(function() {
-         self.destroy();
+      // show character sheet control
+      this.$().on('click', '.banner', function(event) {
+         // select the row
+         var row = $(this).closest('.row');
+
+         // focus the camera to the selected citizen
+         var citizen = self._rowToCitizen(row);
+         if (citizen) {
+
+            $(top).trigger('show_character_sheet.stonehearth', {
+               entity: citizen.__self
+            });
+         }
+         event.stopPropagation();
       });
+
+      // show toolbar control
+      this.$().on('click', '.row', function() {        
+         var selected = $(this).hasClass('selected'); // so we can toggle!
+         self.$('.row').removeClass('selected');
+         
+         if (!selected) {
+            $(this).addClass('selected');   
+         }
+
+      });
+
    },
 
    actions: {

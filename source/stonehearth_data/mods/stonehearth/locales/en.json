@@ -1,6 +1,8 @@
 {
    "ok" : "OK",
    "cancel" : "Cancel",
+   "accept" : "Accept",
+   "decline" : "Decline",
    "back" : "Back",
    "next" : "Next",
    "hotkey" : "hot key: ",
@@ -297,7 +299,5 @@
    "praise_empty" : "Nothing praiseworthy happened today.",
    "gripe_empty" : "Whoa. I guess nobody has anything to gripe about.",
 
-   "bulletin_dialog_ok" : "Ok",
-   "bulletin_dialog_accept" : "Accept",
-   "bulletin_dialog_decline" : "Decline"
+   "bulletin_dialog_title" : "New Message"
 }
