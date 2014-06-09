@@ -56,6 +56,7 @@
 
    button {
       .control;
+      .button;
       .outlined(#9da8b0);
       color: #000;
       background: #7e8994;
@@ -65,10 +66,6 @@
       border-image: url(images/gui/button.png) 9 9 13 9 repeat;
       padding: 10px;
       margin: 0px;
-
-      &:hover:not(.disabled) {
-         -webkit-filter: brightness(1.4);
-      }
    }
 
    button.warn {
@@ -145,6 +142,7 @@
 
    .tab {
       .control;
+      .button;
       display: inline-block;
       background-color: #103669;
       background-clip: padding-box;
@@ -152,10 +150,6 @@
       border-image: url(images/gui/tab.png) 9 9 17 9 repeat;
       padding: 8px 8px 0px 8px;
       color: #ad8816;
-
-      &:hover:not(.disabled) {
-         -webkit-filter: brightness(1.4);
-      }
    }
 
    .tab.active {
@@ -175,6 +169,14 @@
       }
    }
 
+}
+
+.button {
+   .handCursor;
+
+   &:hover:not(.disabled) {
+      -webkit-filter: brightness(1.4);
+   }
 }
 
 ::-webkit-scrollbar {

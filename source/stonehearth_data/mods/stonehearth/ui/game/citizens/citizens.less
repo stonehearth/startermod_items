@@ -15,7 +15,7 @@
 
       td:nth-child(1) {
          white-space: nowrap;
-         width: 210px;
+         width: 300px;
          padding-left: 40px;
 
          .name {
@@ -24,7 +24,7 @@
       }
 
       td:nth-child(2) {
-         
+         width: 100%;
       }
 
 
@@ -38,6 +38,7 @@
          vertical-align: top;
       }
 
+      /*
       tr.row {
          &:hover {
             height: 70px;
@@ -47,6 +48,20 @@
             }
          }
       }
+      */
+
+      tr.row {
+         .handCursor;
+         transition: all 0.3s;
+      }
+
+      tr.row.selected {
+         height: 70px;
+
+         .toolbar {
+            display: block;
+         }
+      }
 
       .banner {
          position: absolute;
@@ -54,10 +69,15 @@
          left: 0px;
       }
 
+      .moveCameraButton {
+         .control;
+         content: url(images/move_camera.png);
+      }
+
       .toolbar {
          position: relative;
          top: 4px;
-         left: -36px;
+         left: 0px;
          display: none;
          width: 10px;
          padding-top: 4px;
