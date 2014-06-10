@@ -6,9 +6,9 @@ local PortalEditor = class(StructureEditor)
 local log = radiant.log.create_logger('build_editor')
 
 function PortalEditor:destroy()
-   if self._portal_blueprint then
-      radiant.entities.destroy_entity(self._portal_blueprint)
-      self._portal_blueprint = nil
+   if self._fixture_blueprint then
+      radiant.entities.destroy_entity(self._fixture_blueprint)
+      self._fixture_blueprint = nil
    end
 
    self[StructureEditor]:destroy()
@@ -21,29 +21,29 @@ function PortalEditor:begin_editing(fabricator, blueprint, project, structure_ty
    return self
 end
 
-function PortalEditor:set_portal_uri(portal_uri)
-   local data = radiant.entities.get_entity_data(portal_uri, 'stonehearth:ghost_item')
+function PortalEditor:set_fixture_uri(fixture_uri)
+   local data = radiant.entities.get_entity_data(fixture_uri, 'stonehearth:ghost_item')
 
-   self._portal_uri = portal_uri
-   self._portal_blueprint_uri = data and data.uri or portal_uri
+   self._fixture_uri = fixture_uri
+   self._fixture_blueprint_uri = data and data.uri or fixture_uri
 
    return self
 end
 
 function PortalEditor:go()
-   self._portal_blueprint = radiant.entities.create_entity(self._portal_blueprint_uri)
-   self._portal_blueprint:add_component('render_info')
+   self._fixture_blueprint = radiant.entities.create_entity(self._fixture_blueprint_uri)
+   self._fixture_blueprint:add_component('render_info')
                               :set_material('materials/ghost_item.xml')
-   self._cursor_uri = self._portal_blueprint:get_component('stonehearth:fixture')
+   self._cursor_uri = self._fixture_blueprint:get_component('stonehearth:fixture')
                                                       :get_cursor()
    if not self._cursor_uri then
       self._cursor_uri = 'stonehearth:cursors:arrow'
    end
 
-   self._portal_blueprint_render_entity = _radiant.client.create_render_entity(1, self._portal_blueprint)
-   self._portal_blueprint_render_entity:set_visible_override(false)
+   self._fixture_blueprint_render_entity = _radiant.client.create_render_entity(1, self._fixture_blueprint)
+   self._fixture_blueprint_render_entity:set_visible_override(false)
    
-   self._wall:add_portal(self._portal_blueprint)
+   self._wall:add_portal(self._fixture_blueprint)
    
    return self
 end
@@ -63,18 +63,17 @@ function PortalEditor:on_mouse_event(e, selection)
 end
 
 function PortalEditor:_position_fixture(location)
-   -- convert to local coordinates and clip to the margin
+   -- convert to local coordinates
    location = location - self:get_world_origin()
-   location[self._wall:get_normal_coord()] = 0
    
    local location = self:get_blueprint()
                         :get_component('stonehearth:wall')
-                           :compute_fixture_placement(self._portal_blueprint, location)
+                           :compute_fixture_placement(self._fixture_blueprint, location)
 
-   self._portal_blueprint_render_entity:set_visible_override(location ~= nil)
+   self._fixture_blueprint_render_entity:set_visible_override(location ~= nil)
    if location then
       self:_change_cursor(self._cursor_uri)
-      radiant.entities.move_to(self._portal_blueprint, location)
+      radiant.entities.move_to(self._fixture_blueprint, location)
       self._wall:layout()
    else
       self._change_cursor('stonehearth:cursors:invalid_hover')
@@ -95,8 +94,8 @@ function PortalEditor:_change_cursor(uri)
 end
 
 function PortalEditor:submit(response)   
-   local location = self._portal_blueprint:get_component('mob'):get_grid_location()
-   _radiant.call('stonehearth:add_portal', self:get_blueprint(), self._portal_uri, location)
+   local location = self._fixture_blueprint:get_component('mob'):get_grid_location()
+   _radiant.call('stonehearth:add_portal', self:get_blueprint(), self._fixture_uri, location)
       :done(function(r)
             response:resolve(r)
          end)

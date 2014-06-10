@@ -30,7 +30,7 @@ function BuildEditor:add_doodad(session, response, uri)
                      log:detail('creating wall editor for blueprint: %s', blueprint)
                      wall_editor = PortalEditor()
                                        :begin_editing(fabricator, blueprint, project)
-                                       :set_portal_uri(uri)
+                                       :set_fixture_uri(uri)
                                        :go()
                   end
                end

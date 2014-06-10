@@ -45,6 +45,12 @@ App.StonehearthBuildingDesignerView2 = App.View.extend({
          items: [
             { name: 'Wooden Door', portrait: '/stonehearth/entities/construction/wooden_door/wooden_door.png', uri: 'stonehearth:wooden_door' },
          ]
+      },
+      {
+         category: 'Decorations',
+         items: [
+            { name: 'Lamp', portrait: '/stonehearth/entities/construction/simple_wall_lantern/simple_wall_lantern.png', uri: 'stonehearth:simple_wall_lantern' },
+         ]
       }
    ],
 

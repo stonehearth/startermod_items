@@ -1,0 +1,17 @@
+{
+   "mixins": "file(simple_wall_lantern_ghost.json)",
+
+   "components" : {
+      "effect_list" : {
+         "effects" : [
+            "stonehearth:effects:talisman_glow"
+         ]  
+      }      
+   },
+
+   "entity_data" : {
+      "stonehearth:ghost_item" : {
+         "uri" : "file(simple_wall_lantern_ghost.json)"
+      }
+   }
+}
