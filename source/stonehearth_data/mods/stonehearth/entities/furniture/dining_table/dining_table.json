@@ -9,14 +9,6 @@
             ]
          }
       },
-      "region_collision_shape": {
-         "region": [
-            {
-               "min" : { "x" : -1, "y" : 0, "z" : -1 },
-               "max" : { "x" :  1, "y" : 1, "z" :  1 }
-            }
-         ]
-      },
       "unit_info": {
          "name": "Dining Table",
          "description": "Sitting down to eat is a sign of civilization.",
@@ -24,6 +16,18 @@
       },
       "stonehearth:material" : {
          "tags" : "wood furniture crafted"
-      }      
+      },
+      "mob" : {
+         "model_origin" : { "x": 0, "y": 0, "z": 0 },
+         "region_origin" : { "x": 0.5, "y": 0, "z": 0.5 }
+      },
+      "region_collision_shape": {
+         "region": [
+            {
+               "min" : { "x" : -1, "y" : 0, "z" : -1 },
+               "max" : { "x" :  2, "y" : 1, "z" :  2 }
+            }
+         ]
+      }
    }
 }

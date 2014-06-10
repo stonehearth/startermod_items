@@ -9,6 +9,24 @@
             ]
          }
       },
+      "unit_info": {
+         "name": "Comfy Bed",
+         "description": "I dreamed... of flying sheep.",
+         "icon" : "file(comfy_bed.png)"
+      },
+      "stonehearth:material" : {
+         "tags" : "wood furniture crafted"
+      },
+      "stonehearth:placed_item" : {
+         "proxy_entity" : "stonehearth:comfy_bed_proxy"
+      },
+      "render_info" : {
+         "scale" : 0.22
+      },
+      "mob" : {
+         "model_origin" : { "x": 0, "y": 0, "z": 0 },
+         "region_origin" : { "x": 0.5, "y": 0, "z": 0.5 }
+      },
       "destination": {
          "region": [
             {
@@ -20,24 +38,18 @@
       "region_collision_shape": {
          "region": [
             {
+               "min" : { "x" : -1, "y" : 0, "z" : -2 },
+               "max" : { "x" :  2, "y" : 2, "z" : -1 }
+            },
+            {
                "min" : { "x" : -1, "y" : 0, "z" : -1 },
                "max" : { "x" :  2, "y" : 1, "z" :  2 }
+            },
+            {
+               "min" : { "x" : -1, "y" : 0, "z" : 2 },
+               "max" : { "x" :  2, "y" : 2, "z" : 3 }
             }
          ]
-      },
-      "unit_info": {
-         "name": "Comfy Bed",
-         "description": "I dreamed... of flying sheep.",
-         "icon" : "file(comfy_bed.png)"
-      },
-      "stonehearth:material" : {
-         "tags" : "wood furniture crafted"
-      },
-      "render_info" : {
-         "scale" : 0.22
-      },
-      "stonehearth:placed_item" : {
-         "proxy_entity" : "stonehearth:comfy_bed_proxy"
       }
    },
    "entity_data" : {

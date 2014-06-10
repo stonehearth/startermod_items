@@ -12,6 +12,9 @@
          "name": "Default object",
          "description": "Mysterious",
          "icon" : "file(default_object.png)"
+      },
+      "mob" : {
+         "model_origin" : { "x": -0.05, "y": 0, "z": 0.05 }
       }
    }
 }
