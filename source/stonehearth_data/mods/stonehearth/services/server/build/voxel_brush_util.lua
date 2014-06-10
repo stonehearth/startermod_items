@@ -31,7 +31,7 @@ function voxel_brush_util.create_brush(construction_data)
       -- xxx: i wish we didnt have to do all this fixup nonsense.  fixing
       -- it requires being able to convert json back to value types, which
       -- is somewhat tricky...
-      if (type(construction_data.nine_grid_region) == 'table') then
+      if type(construction_data.nine_grid_region) == 'table' then
          local t = construction_data.nine_grid_region
          construction_data.nine_grid_region = Region2()
          construction_data.nine_grid_region:load(t)
@@ -70,11 +70,17 @@ function voxel_brush_util.create_construction_data_node(parent_node, entity, reg
       if stencil then
          local render_info = entity:get_component('render_info')
          local material = render_info and render_info:get_material() or 'materials/voxel.material.xml'
-         local brush = construction_data:create_voxel_brush()
-         if brush then
-            model = brush:paint_through_stencil(stencil)
+         
+         if construction_data:get_paint_through_blueprint() then
+            local blueprint = construction_data:get_blueprint_entity()
+            model = blueprint:get_component('destination'):get_region():get():intersected(stencil)
          else
-            model = stencil
+            local brush = construction_data:create_voxel_brush()
+            if brush then
+               model = brush:paint_through_stencil(stencil)
+            else
+               model = stencil
+            end
          end
          render_node = _radiant.client.create_voxel_node(parent_node, model, material, MODEL_OFFSET)
       end

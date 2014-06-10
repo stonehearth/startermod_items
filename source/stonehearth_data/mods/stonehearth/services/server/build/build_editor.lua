@@ -75,8 +75,8 @@ function BuildEditor:place_new_wall(session, response)
          :go('stonehearth:wooden_column', 'stonehearth:wooden_wall', response)
 end
 
-function BuildEditor:place_new_floor(session, response)
-   FloorEditor():go(response)
+function BuildEditor:place_new_floor(session, response, brush_shape)
+   FloorEditor():go(response, brush_shape)
 end
 
 function BuildEditor:grow_walls(session, response, building)

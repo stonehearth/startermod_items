@@ -19,11 +19,13 @@ public:
       File,
       Matrix,
    };
+
    QubicleBrush();
    QubicleBrush(std::istream& in);
    QubicleBrush(QubicleMatrix const*);
    QubicleBrush(QubicleMatrix const*, int);
 
+   QubicleBrush& SetOrigin(csg::Point3 const& offset);
    QubicleBrush& SetNormal(csg::Point3 const& normal);
    QubicleBrush& SetOffsetMode(OffsetMode mode);
    QubicleBrush& SetPaintMode(PaintMode mode);
@@ -43,6 +45,7 @@ private:
    OffsetMode            offset_mode_;
    PaintMode             paint_mode_;
    csg::Point3           normal_;
+   csg::Point3           origin_;
    QubicleMatrix const*  qubicle_matrix_;
    QubicleFile           qubicle_file_;
    bool                  clip_whitespace_;

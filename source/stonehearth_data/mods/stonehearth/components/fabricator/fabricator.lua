@@ -179,8 +179,8 @@ function Fabricator:add_block(material_entity, location)
    local pt = location - origin
 
    self._project_dst:get_region():modify(function(cursor)
-      cursor:add_point(pt)
-   end)
+         cursor:add_point(pt)
+      end)
    self:release_block(location)
    
    -- ladders are a special case used for scaffolding.  if there's one on the

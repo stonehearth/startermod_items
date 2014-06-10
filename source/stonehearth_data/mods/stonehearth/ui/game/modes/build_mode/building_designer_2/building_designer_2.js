@@ -31,7 +31,20 @@ App.StonehearthBuildingDesignerView2 = App.View.extend({
       selectDoodadTool: function(doodad) {
          App.stonehearthClient.addDoodad(doodad);
       },
+      selectFloorBrushTool: function(floor) {
+         App.stonehearthClient.buildFloor(floor);
+      },
    },
+
+   floorPatterns : [
+      {
+         category: 'Wooden',
+         items: [
+            { name: 'Diagonal', portrait: 'need_portrait.png', brush:'/stonehearth/entities/build/wooden_floor/wooden_floor_diagonal.qb' },
+            { name: 'Solid',    portrait: 'need_portrait.png', brush:'/stonehearth/entities/build/wooden_floor/wooden_floor_solid.qb' },
+         ]         
+      }
+   ],
 
    doodads: [
       {
@@ -59,6 +72,7 @@ App.StonehearthBuildingDesignerView2 = App.View.extend({
       this.components['stonehearth:fabricator'].blueprint = this.blueprint_components;
       this.components['stonehearth:construction_data'].fabricator_entity['stonehearth:fabricator'].blueprint = this.blueprint_components;
       this.set('context.doodads', this.doodads);
+      this.set('context.floorPatterns', this.floorPatterns);
    },
 
    // `uri` is a string that's valid to pass to radiant.trace()
@@ -87,6 +101,7 @@ App.StonehearthBuildingDesignerView2 = App.View.extend({
       }
       self.set('context.blueprint', blueprint_entity);
       this.set('context.doodads', this.doodads);
+      this.set('context.floorPatterns', this.floorPatterns);
       self._updateControls();
    }.observes('context'),
 
@@ -120,13 +135,10 @@ App.StonehearthBuildingDesignerView2 = App.View.extend({
          }         
       });
 
-      this.$('.floorTool').click(function() {
-         App.stonehearthClient.buildFloor();
-      });
-
       this.$('.fillWallTool').click(function() {
          App.stonehearthClient.growWalls(self.get('context.building'));
       });
+
       this.$('.roofTool').click(function() {
          App.stonehearthClient.growRoof(self.get('context.building'));
       });
@@ -140,6 +152,7 @@ App.StonehearthBuildingDesignerView2 = App.View.extend({
             radiant.call('stonehearth:set_building_active', building_entity.__self, value)
          }
       });
+
       this.$('#removeBuilding').click(function() {
          radiant.call('radiant:play_sound', 'stonehearth:sounds:ui:carpenter_menu:trash' );
          var building_entity = self.get('context.building');
