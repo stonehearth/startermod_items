@@ -277,6 +277,10 @@
    "building_designer_fill_wall_tool" : "walls",
    "building_designer_roof_tool" : "roof",
    "building_designer_door_tool" : "doodads",
+   "building_designer_draw_floorplan" : "Draw Floorplan",
+   "building_designer_draw_floorplan_help" : "Pick a material below and drag out boxes to define your building's floorplan.",
+   "building_designer_erect_walls" : "Erect Walls",
+   "building_designer_erect_walls_help" : "Pick a material below and click the \"Erect Walls\" button to raise walls around your floorplan.",
 
    "0_score" : "Wretched",
    "1_score" : "Miserable",
