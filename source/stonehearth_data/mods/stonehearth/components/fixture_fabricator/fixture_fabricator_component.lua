@@ -12,7 +12,6 @@ function FixtureFabricator:initialize(entity, json)
    radiant.events.listen_once(radiant, 'radiant:game_loaded', function()
          if self._sv.fixture_uri then
             radiant.events.listen(self._entity, 'stonehearth:construction:dependencies_finished_changed', self, self._on_dependencies_finished_changed)
-            self:_start_project()
          end
       end)
 
