@@ -16,13 +16,18 @@ end
 -- adds the `box` in world coordinates to the floor
 --    @param box - the box to add to the floor, in world coordinates
 --
-function Floor:add_box_to_floor(box)
+function Floor:add_box_to_floor(box, brush_shape)
    local building = self._entity:get_component('mob'):get_parent()
    local origin = radiant.entities.get_world_grid_location(building)
+   local brush = _radiant.voxel.create_brush(brush_shape)
+                                    :set_origin(origin)
+
    self._entity:get_component('destination')
                   :get_region()
-                     :modify(function(c)
-                           c:add_cube(box:translated(-origin))
+                     :modify(function(c)                           
+                           local shape = box:translated(-origin)
+                           local floor = brush:paint_through_stencil(Region3(shape))
+                           c:add_region(floor)
                         end)         
 
    return self

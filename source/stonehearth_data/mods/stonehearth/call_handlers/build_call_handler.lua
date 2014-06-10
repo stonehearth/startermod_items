@@ -31,8 +31,8 @@ function BuildCallHandler:set_building_teardown(session, request, building, enab
    return { success = true }
 end
 
-function BuildCallHandler:add_floor(session, request, floor_uri, box)
-   stonehearth.build:add_floor(session, request, floor_uri, ToCube3(box))
+function BuildCallHandler:add_floor(session, request, floor_uri, box, brush_shape)
+   stonehearth.build:add_floor(session, request, floor_uri, ToCube3(box), brush_shape)
 end
 
 function BuildCallHandler:add_wall(session, request, columns_uri, walls_uri, p0, p1, normal)

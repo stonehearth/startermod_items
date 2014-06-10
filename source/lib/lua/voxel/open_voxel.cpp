@@ -42,6 +42,7 @@ void lua::voxel::open(lua_State* L)
                   value("Opaque",   QubicleBrush::Opaque)
                ]
                .def("set_normal",             &QubicleBrush::SetNormal)
+               .def("set_origin",             &QubicleBrush::SetOrigin)
                .def("set_paint_mode",         &QubicleBrush::SetPaintMode)
                .def("set_clip_whitespace",    &QubicleBrush::SetClipWhitespace)
                .def("paint_once",             &QubicleBrush::PaintOnce)

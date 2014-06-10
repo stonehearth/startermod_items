@@ -149,7 +149,7 @@ function ConstructionProgress:set_active(active)
       if self._sv.fabricator_entity then
          self._sv.active = active
          self.__saved_variables:mark_changed()
-         self:_get_fabricator_component():set_active(active)
+         self:get_fabricator_component():set_active(active)
       end
    end
 end
@@ -163,7 +163,7 @@ function ConstructionProgress:set_teardown(teardown)
       if self._sv.fabricator_entity then
          self._sv.teardown = teardown
          self.__saved_variables:mark_changed()
-         self:_get_fabricator_component():set_active(active):set_teardown(teardown)
+         self:get_fabricator_component():set_active(active):set_teardown(teardown)
 
          radiant.events.trigger_async(self._entity, 'stonehearth:construction:teardown_changed', { 
             entity = self._entity
@@ -194,7 +194,7 @@ function ConstructionProgress:set_building_entity(building_entity)
    self.__saved_variables:mark_changed()
 
    if self._sv.fabricator_entity then
-      local project = self:_get_fabricator_component():get_project()
+      local project = self:get_fabricator_component():get_project()
       if project then
          project:add_component('stonehearth:construction_data')
                 :set_building_entity(building_entity)
@@ -214,7 +214,7 @@ function ConstructionProgress:set_fabricator_entity(fabricator_entity, component
    self.__saved_variables:mark_changed()
 
    if self._sv.building_entity then
-      local project = self:_get_fabricator_component():get_project()
+      local project = self:get_fabricator_component():get_project()
       if project then
          project:add_component('stonehearth:construction_data')
                 :set_building_entity(self._sv.building_entity)
@@ -236,7 +236,7 @@ end
 -- it's 'stonehearth:fabricator'.  for windows, lanterns, flags, etc. it's 
 -- 'stonehearth:fixture_fabricator'.  both implement the same interface.
 ---
-function ConstructionProgress:_get_fabricator_component()
+function ConstructionProgress:get_fabricator_component()
    assert(self._sv.fabricator_entity)
    assert(self._sv._fabricator_component_name)
    local component = self._sv.fabricator_entity:get_component(self._sv._fabricator_component_name)
