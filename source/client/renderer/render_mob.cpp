@@ -3,6 +3,7 @@
 #include "render_entity.h"
 #include "om/components/mob.ridl.h"
 #include "lib/perfmon/perfmon.h"
+#include "physics/physics_util.h"
 #include "renderer.h"
 
 using namespace ::radiant;
@@ -78,19 +79,8 @@ void RenderMob::Move()
       int alignment = mob->GetAlignToGridFlags();
 
       for (int i = 0; i < 3; i++) {
-         float unused;
-         // coordinate is terrain aligned if the modelOrigin is in the center of a voxel
-         // i.e. if the modelOrigin has a 0.5 fractional value
-         bool isTerrainAligned = std::abs(std::modf(modelOrigin.Coord(i), &unused)) == 0.5;
-         bool terrainAlignRequested = (alignment & (1 << i)) != 0;
-
-         // For scaled models, this code only works when the local origin and collision region
-         // conform to the rules after scaling into world space. i.e. a 1:10 scale model that uses
-         // an odd sized (e.g. 1x1) collision region needs to be authored with its origin at 5,5
-         // so that the local origin at world scale is 0.5, 0.5 (or -0.5, 0.5). A 1:10 scale model
-         // that uses a 2x2 collision region should be authored with the local origin at 0,0.
-         if (terrainAlignRequested && !isTerrainAligned) {
-            renderOffset[i] = -0.5f;  
+         if (alignment & (1 << i)) {
+            renderOffset[i] = phys::GetTerrainAlignmentOffset(modelOrigin[i]);
          }
       }
       renderOffset = _current.orientation.rotate(renderOffset);

@@ -18,6 +18,7 @@ void Mob::ConstructObject()
    Component::ConstructObject();
    transform_ = csg::Transform(csg::Point3f::zero, csg::Quaternion());
    model_origin_ = csg::Point3f::zero;
+   region_origin_ = csg::Point3f::zero;
    align_to_grid_flags_ = 0;
    aabb_ = csg::Cube3f::zero;
    interpolate_movement_ = false;
@@ -165,7 +166,17 @@ void Mob::LoadFromJson(json::Node const& obj)
 {
    SetInterpolateMovement(obj.get<bool>("interpolate_movement", false));
    transform_ = obj.get<csg::Transform>("transform", csg::Transform(csg::Point3f(0, 0, 0), csg::Quaternion(1, 0, 0, 0)));
+
+   // The model_origin defines the position and center of rotation for an entity.
+   // The location of the entity (via Mob->GetWorldLocation()) is the location of the model origin.
+   // The rotation of the entity is the rotation of the entity around the model_origin.
    model_origin_ = obj.get<csg::Point3f>("model_origin", csg::Point3f::zero);
+
+   // The region_origin defines the position and center of rotation for a region attached to an entity.
+   // For 1:1 scale models, this is almost always the same as the model_origin and need not be specified.
+   // For scaled models, we use this to align the region to the model, because entity regions must be specified
+   // in integer coordinates, and the scaled model usually requires much finer grained positioning.
+   region_origin_ = obj.get<csg::Point3f>("region_origin", model_origin_);
 
    int align_to_grid_flags = 0;
    for (json::Node entry : obj.get_node("align_to_grid")) {
@@ -206,6 +217,7 @@ void Mob::SerializeToJson(json::Node& node) const
 
    node.set("transform", GetTransform());
    node.set("model_origin", GetModelOrigin());
+   node.set("region_origin", GetRegionOrigin());
    node.set("axis_alignment_flags", GetAlignToGridFlags());
    node.set("entity", GetEntityPtr()->GetStoreAddress());
    node.set("moving", GetMoving());

@@ -28,7 +28,7 @@ Shape phys::LocalToWorld(Shape const& shape, om::EntityPtr entity)
    }
 
    csg::Transform t = mob->GetWorldTransform();
-   csg::Point3f modelOrigin = mob->GetModelOrigin();
+   csg::Point3f regionOrigin = mob->GetRegionOrigin();
    csg::Point3 position = csg::ToClosestInt(t.position);
    csg::Quaternion const& orientation = t.orientation;
 
@@ -40,13 +40,13 @@ Shape phys::LocalToWorld(Shape const& shape, om::EntityPtr entity)
    float degrees = radAngle * 180 / csg::k_pi;
    int angle = (csg::ToClosestInt(degrees / 90) * 90) % 360;
 
-   if (modelOrigin != csg::Point3f::zero) {
+   if (regionOrigin != csg::Point3f::zero) {
       // Adjust the shape position based on our rotated local origin.  The local origin
       // is almost always specified as a fractional unit (e.g.  (1.5, 0, 9.5)) to 
       // position the render shape for the entity aligned to the grid.  Before we do
       // the offset, take that slop off so the shapes is integer aligned.
-      csg::Point3f modelOriginRotated = orientation.rotate(modelOrigin);
-      position -= csg::ToClosestInt(modelOriginRotated - csg::Point3f(0.5f, 0, 0.5f));
+      csg::Point3f regionOriginRotated = orientation.rotate(regionOrigin);
+      position -= csg::ToClosestInt(regionOriginRotated - csg::Point3f(0.5f, 0, 0.5f));
    }
    if (angle == 0) {
       // If there's no rotation at all, we can just translate the shape to
@@ -82,6 +82,23 @@ Shape phys::WorldToLocal(Shape const& shape, om::EntityPtr entity)
    auto fShape = csg::ToFloat(shape);
    auto result = xform.affine_inverse().transform(fShape);
    return csg::ToInt(result);
+}
+
+bool phys::IsTerrainAligned(float voxelCenter)
+{
+   float unused;
+   bool aligned = std::abs(std::modf(voxelCenter, &unused)) == 0.5f;
+   return aligned;
+}
+
+// returns the translation needed to align the coordinate to the terrain grid
+float phys::GetTerrainAlignmentOffset(float coordinate)
+{
+   if (!phys::IsTerrainAligned(coordinate)) {
+      return -0.5f;
+   } else {
+      return 0.0f;
+   }
 }
 
 template csg::Cube3 phys::LocalToWorld(csg::Cube3 const&, om::EntityPtr);

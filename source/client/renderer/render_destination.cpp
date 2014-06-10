@@ -27,9 +27,8 @@ RenderDestination::RenderDestination(const RenderEntity& entity, om::Destination
 
 void RenderDestination::RenderDestinationRegion(int i, om::DeepRegionGuardPtr trace, csg::Color4 const& color)
 {
-   H3DNode node = entity_->GetNode();
    region_trace_[i] = trace;
-   CreateRegionDebugShape(node, regionDebugShape_[i], region_trace_[i], color);
+   CreateRegionDebugShape(entity_->GetEntity(), regionDebugShape_[i], region_trace_[i], color);
 }
 
 void RenderDestination::RemoveDestinationRegion(int i)
