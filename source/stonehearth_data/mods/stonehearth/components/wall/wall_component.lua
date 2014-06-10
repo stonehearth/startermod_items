@@ -66,6 +66,15 @@ function Wall:compute_fixture_placement(fixture_entity, location)
       return nil
    end
 
+   -- if there's a portal component, make sure the fixture goes in the
+   -- wall.  otherwise, it must be 1 removed in the normal direction.
+   local portal = fixture_entity:get_component('stonehearth:portal')
+   if portal then
+      location[n] = 0
+   else
+      location[n] = self._sv.normal[n]
+   end
+
    -- fix alignment issues
    local bounds = fixture:get_bounds()
    local margin = fixture:get_margin()
@@ -236,6 +245,7 @@ end
 function Wall:connect_to(column_a, column_b, normal)
    local building = self._entity:get_component('mob'):get_parent()
 
+   self._sv.normal = normal
    self._entity:get_component('stonehearth:construction_data')
                :set_normal(normal)
 

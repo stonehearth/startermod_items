@@ -182,7 +182,7 @@ var StonehearthClient;
          });
       },
 
-      buildFloor: function() {
+      buildFloor: function(floor) {
          radiant.call('radiant:play_sound', 'stonehearth:sounds:ui:start_menu:popup' );
          var self = this;
 
@@ -192,7 +192,7 @@ var StonehearthClient;
          });
 
          return this._callTool(function() {
-            return radiant.call_obj(self._build_editor, 'place_new_floor')
+            return radiant.call_obj(self._build_editor, 'place_new_floor', floor.brush)
                .always(function(response) {
                   radiant.call('radiant:play_sound', 'stonehearth:sounds:place_structure' );
                   $(top).trigger('radiant_hide_tip');

@@ -27,7 +27,8 @@ QubicleBrush::QubicleBrush() :
    offset_mode_(Matrix),
    qubicle_file_(""),
    clip_whitespace_(false),
-   lod_level_(0)
+   lod_level_(0),
+   origin_(csg::Point3::zero)
 {
 }
 
@@ -37,7 +38,8 @@ QubicleBrush::QubicleBrush(std::istream& in) :
    offset_mode_(Matrix),
    qubicle_file_(""),
    clip_whitespace_(false),
-   lod_level_(0)
+   lod_level_(0),
+   origin_(csg::Point3::zero)
 {
    in >> qubicle_file_;
    qubicle_matrix_ = &qubicle_file_.begin()->second;
@@ -50,7 +52,8 @@ QubicleBrush::QubicleBrush(QubicleMatrix const* m) :
    offset_mode_(Matrix),
    qubicle_file_(""),
    clip_whitespace_(false),
-   lod_level_(0)
+   lod_level_(0),
+   origin_(csg::Point3::zero)
 {
 }
 
@@ -61,13 +64,20 @@ QubicleBrush::QubicleBrush(QubicleMatrix const* m, int lod_level) :
    offset_mode_(Matrix),
    qubicle_file_(""),
    clip_whitespace_(false),
-   lod_level_(lod_level)
+   lod_level_(lod_level),
+   origin_(csg::Point3::zero)
 {
 }
 
 QubicleBrush& QubicleBrush::SetNormal(csg::Point3 const& normal)
 {
    normal_ = normal;
+   return *this;
+}
+
+QubicleBrush& QubicleBrush::SetOrigin(csg::Point3 const& origin)
+{
+   origin_ = origin;
    return *this;
 }
 
@@ -240,11 +250,25 @@ QubicleMatrix QubicleBrush::Lod(const QubicleMatrix& m, int lod_level)
 }
 
 csg::Region3 QubicleBrush::IterateThroughStencil(csg::Region3 const& brush,
-                                                 csg::Region3 const& stencil)
+                                                 csg::Region3 const& sourceStencil)
 {
+   csg::Region3 translatedStencil;
+   csg::Region3 const* stencil;
+
+   // If the origin for the tiling has been set to anything other than zero, move the
+   // stencil over by that amount before painting through it.  This incurs a region
+   // copy, so use a pointer to reference the original stencil if no copy need be
+   // made.
+   if (origin_ != csg::Point3::zero) {
+      translatedStencil = sourceStencil.Translated(origin_);
+      stencil = &translatedStencil;
+   } else {
+      stencil = &sourceStencil;
+   }
+
    csg::Region3 model;
    csg::Cube3 brush_bounds = brush.GetBounds();
-   csg::Cube3 stencil_bounds = stencil.GetBounds();
+   csg::Cube3 stencil_bounds = stencil->GetBounds();
    csg::Point3 brush_size = brush_bounds.GetSize();
    csg::Point3 stencil_size = brush_bounds.GetSize();
    csg::Point3 const& brush_min = brush_bounds.GetMin();
@@ -255,21 +279,15 @@ csg::Region3 QubicleBrush::IterateThroughStencil(csg::Region3 const& brush,
    // Figure out the extents of our iterator...
    csg::Point3 min, max;
    for (int i = 0; i < 3; i++) {
-      // how far back do we have to go to get the brush to cover the tile...
-      int dist_to_min_edge = std::min(stencil_min[i] - brush_min[i], 0);
-      min[i] = csg::GetChunkIndex(dist_to_min_edge, brush_size[i]);
-
-      // and how far over?
-      int start_pos = min[i] * brush_size[i];
-      int dist_to_max_edge = std::max(stencil_max[i] - start_pos, 0);
-      max[i] = csg::GetChunkIndex(dist_to_max_edge, brush_size[i]) + 1;
+      min[i] = csg::GetChunkIndex(stencil_min[i], brush_size[i]);
+      max[i] = csg::GetChunkIndex(stencil_max[i], brush_size[i]) + 1;
    }
 
    // Now iterate and draw the brush
    for (csg::Point3 i : csg::Cube3(min, max)) {
       csg::Point3 offset = i * brush_size;
-      csg::Region3 stamped = brush.Translated(offset) & stencil;
-      model.AddUnique(stamped);
+      csg::Region3 stamped = brush.Translated(offset) & (*stencil);
+      model.AddUnique(stamped.Translated(-origin_));
    }
    return model;
 }

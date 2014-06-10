@@ -11,14 +11,17 @@ function FloorEditor:__init()
    self._log = radiant.log.create_logger('builder')
 end
 
-function FloorEditor:go(response)
+function FloorEditor:go(response, brush_shape)
+   local brush = _radiant.voxel.create_brush(brush_shape)
+
    stonehearth.selection.select_xz_region()
       :set_cursor('stonehearth:cursors:create_floor')
       :use_manual_marquee(function(selector, box)
-            return _radiant.client.create_voxel_node(1, Region3(box), 'materials/blueprint.material.xml', Point3f(0.5, 0, 0.5))
+            local model = brush:paint_through_stencil(Region3(box))
+            return _radiant.client.create_voxel_node(1, model, 'materials/blueprint.material.xml', Point3f(0.5, 0, 0.5))
          end)
       :done(function(selector, box)
-            self:_add_floor(selector, box, response)
+            self:_add_floor(response, selector, box, brush_shape)
          end)
       :fail(function(selector)
             selector:destroy()
@@ -29,8 +32,8 @@ function FloorEditor:go(response)
    return self
 end
 
-function FloorEditor:_add_floor(selector, box, response)   
-   _radiant.call('stonehearth:add_floor', 'stonehearth:entities:wooden_floor', box)
+function FloorEditor:_add_floor(response, selector, box, brush_shape)
+   _radiant.call('stonehearth:add_floor', 'stonehearth:entities:wooden_floor', box, brush_shape)
       :done(function(r)
             if r.new_selection then
                stonehearth.selection:select_entity(r.new_selection)
@@ -48,4 +51,4 @@ end
 function FloorEditor:destroy()
 end
 
-return FloorEditor
+return FloorEditor 

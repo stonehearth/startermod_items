@@ -61,7 +61,11 @@ function FixtureFabricator:construct(worker, item)
    -- xxx: for now, create a brand new entity.  eventually, we should simply be
    -- replacing the ghost_entity with the full_sized_entity for the proxy.
    local proxy_component = item:get_component('stonehearth:placeable_item_proxy')
-   project = proxy_component:get_full_sized_entity()
+   if proxy_component then
+      project = proxy_component:get_full_sized_entity()
+   else
+      project = item
+   end
 
    -- take the proxy off the current worker or the terrain, depending on where
    -- it came from.
@@ -71,11 +75,15 @@ function FixtureFabricator:construct(worker, item)
       radiant.terrain.remove_entity(item)
    end
 
-   -- move the project to the same position as the blueprint (us)
+   -- find the project for our parent
    local mob = self._entity:get_component('mob')
-   
+   local parent_blueprint = mob:get_parent()
+   local parent_project = parent_blueprint:get_component('stonehearth:construction_progress')
+                                 :get_fabricator_component()
+                                 :get_project()
+
+   radiant.entities.add_child(parent_project, project)
    project:add_component('mob'):set_transform(mob:get_transform())
-   radiant.entities.add_child(mob:get_parent(), project)
 
    -- change ownership so we can interact with it
    project:add_component('unit_info')

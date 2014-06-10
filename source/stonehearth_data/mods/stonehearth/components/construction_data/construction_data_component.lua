@@ -41,6 +41,7 @@ function ConstructionDataComponent:begin_editing(entity)
       self._sv.allow_diagonal_adjacency = other_cd._sv.allow_diagonal_adjacency
       self._sv.project_adjacent_to_base = other_cd._sv.project_adjacent_to_base
       self._sv.allow_crouching_construction = other_cd._sv.allow_crouching_construction
+      self._sv.paint_through_blueprint = other_cd._sv.paint_through_blueprint
       self._sv.brush = other_cd._sv.brush
    end
    self._sv.fabricator_entity = nil
@@ -49,6 +50,10 @@ end
 
 function ConstructionDataComponent:get_use_custom_renderer()
    return self._sv.use_custom_renderer
+end
+
+function ConstructionDataComponent:get_paint_through_blueprint()
+   return self._sv.paint_through_blueprint
 end
 
 function ConstructionDataComponent:get_connected_to()
@@ -94,6 +99,11 @@ function ConstructionDataComponent:get_max_workers()
       return self._sv.max_workers
    end
    return 4 -- completely arbitrary!  add a config option?
+end
+
+function ConstructionDataComponent:get_blueprint_entity()
+   return self._sv.fabricator_entity:get_component('stonehearth:fabricator')
+                                    :get_blueprint()
 end
 
 function ConstructionDataComponent:get_fabricator_entity()
