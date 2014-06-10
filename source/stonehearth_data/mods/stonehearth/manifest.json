@@ -51,6 +51,7 @@
       "under_construction_proxy" : "file(entities/build/under_construction_proxy)",
       "entities:wooden_floor" : "file(entities/build/wooden_floor)",
       "wooden_wall" : "file(entities/build/wooden_wall)",
+      "plastered_wooden_wall" : "file(entities/build/wooden_wall/plastered_wooden_wall.json)",
       "wooden_column" : "file(entities/build/wooden_column)",
       "wooden_peaked_roof" : "file(entities/build/wooden_peaked_roof)",
       "scaffolding" : "file(entities/build/scaffolding)",

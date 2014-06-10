@@ -1,0 +1,17 @@
+{
+   "mixins": "stonehearth:mixins:align_to_grid",   
+   "components": {
+      "unit_info": {
+         "icon": "...", 
+         "name": "Plastered Wooden Wall", 
+         "description": ""
+      },
+      "stonehearth:construction_data" : {
+         "type": "wall",
+         "brush": "file(plastered_wooden_wall.qb)",
+         "needs_scaffolding" : true,
+         "max_workers": 1, 
+         "material": "wood resource"
+      }
+   }
+}
