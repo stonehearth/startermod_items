@@ -11,6 +11,7 @@ $(document).ready(function(){
 
      unitFrame.view.set('uri', data.selected_entity);
   });  
+});
 
 App.StonehearthUnitFrameView = App.View.extend({
 	templateName: 'unitFrame',
