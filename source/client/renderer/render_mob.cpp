@@ -3,6 +3,7 @@
 #include "render_entity.h"
 #include "om/components/mob.ridl.h"
 #include "lib/perfmon/perfmon.h"
+#include "physics/physics_util.h"
 #include "renderer.h"
 
 using namespace ::radiant;
@@ -74,23 +75,12 @@ void RenderMob::Move()
    om::MobPtr mob = mob_.lock();
    if (mob) {
       csg::Point3f renderOffset(0, 0, 0);
-      csg::Point3f localOrigin = mob->GetLocalOrigin();
+      csg::Point3f modelOrigin = mob->GetModelOrigin();
       int alignment = mob->GetAlignToGridFlags();
 
       for (int i = 0; i < 3; i++) {
-         float unused;
-         // coordinate is terrain aligned if the localOrigin is in the center of a voxel
-         // i.e. if the localOrigin has a 0.5 fractional value
-         bool isTerrainAligned = std::abs(std::modf(localOrigin.Coord(i), &unused)) == 0.5;
-         bool terrainAlignRequested = (alignment & (1 << i)) != 0;
-
-         // For scaled models, this code only works when the local origin and collision region
-         // conform to the rules after scaling into world space. i.e. a 1:10 scale model that uses
-         // an odd sized (e.g. 1x1) collision region needs to be authored with its origin at 5,5
-         // so that the local origin at world scale is 0.5, 0.5 (or -0.5, 0.5). A 1:10 scale model
-         // that uses a 2x2 collision region should be authored with the local origin at 0,0.
-         if (terrainAlignRequested && !isTerrainAligned) {
-            renderOffset[i] = -0.5f;  
+         if (alignment & (1 << i)) {
+            renderOffset[i] = phys::GetTerrainAlignmentOffset(modelOrigin[i]);
          }
       }
       renderOffset = _current.orientation.rotate(renderOffset);
@@ -100,14 +90,14 @@ void RenderMob::Move()
          }
       }
 
-      csg::Matrix4 localOriginInvMat, renderOffsetMat;
+      csg::Matrix4 modelOriginInvMat, renderOffsetMat;
 
       renderOffsetMat.set_translation(renderOffset);        // Move over to the render offset
-      localOriginInvMat.set_translation(-localOrigin);      // Inverse of the local origin
+      modelOriginInvMat.set_translation(-modelOrigin);      // Inverse of the local origin
       csg::Matrix4 rotation(_current.orientation);          // Rotate...
 
       // Look ma!  Matrix accumulation!
-      m = renderOffsetMat * rotation * localOriginInvMat;
+      m = renderOffsetMat * rotation * modelOriginInvMat;
       M_LOG(9) << "render offset for " << *entity_.GetEntity() << " is " << renderOffset << " computed:" << m.get_translation();
    }
    M_LOG(9) << "transform for " << *entity_.GetEntity() << " is " << _current.position;

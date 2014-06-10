@@ -40,7 +40,10 @@
       },
       "render_info" : {
          "scale" : 0.13
-      },     
+      },
+      "mob" : {
+         "model_origin" : { "x": -0.065, "y": 0, "z": 0.065 }
+      },
       "unit_info": {
          "name": "Corn", 
          "description": "Slow-mo, high-stakes gambling.", 

@@ -1,5 +1,5 @@
 App.StonehearthBuildingDesignerView2 = App.View.extend({
-	templateName: 'buildingDesigner2',
+   templateName: 'buildingDesigner2',
    i18nNamespace: 'stonehearth',
    classNames: ['fullScreen', 'flex', "gui"],
 
@@ -34,14 +34,28 @@ App.StonehearthBuildingDesignerView2 = App.View.extend({
       selectFloorBrushTool: function(floor) {
          App.stonehearthClient.buildFloor(floor);
       },
+      selectWallBrushTool: function(wall) {
+         App.stonehearthClient.growWalls(this.get('context.building'), 'stonehearth:wooden_column', wall.uri);
+      },
    },
 
-   floorPatterns : [
+   floorPatterns: [
       {
-         category: 'Wooden',
+         category: 'Wooden Materials',
          items: [
-            { name: 'Diagonal', portrait: 'need_portrait.png', brush:'/stonehearth/entities/build/wooden_floor/wooden_floor_diagonal.qb' },
-            { name: 'Solid',    portrait: 'need_portrait.png', brush:'/stonehearth/entities/build/wooden_floor/wooden_floor_solid.qb' },
+            { name: 'Diagonal', portrait: '/stonehearth/entities/build/wooden_floor/wooden_floor_diagonal.png', brush:'/stonehearth/entities/build/wooden_floor/wooden_floor_diagonal.qb' },
+            { name: 'Solid Light',    portrait: '/stonehearth/entities/build/wooden_floor/wooden_floor_solid_light.png', brush:'/stonehearth/entities/build/wooden_floor/wooden_floor_solid_light.qb' },
+            { name: 'Solid Dark',    portrait: '/stonehearth/entities/build/wooden_floor/wooden_floor_solid_dark.png', brush:'/stonehearth/entities/build/wooden_floor/wooden_floor_solid_dark.qb' },
+         ]         
+      }
+   ],
+
+   wallPatterns: [
+      {
+         category: 'Wooden Materials',
+         items: [
+            { name: 'Wooden Wall', portrait: '/stonehearth/entities/build/wooden_wall/wooden_wall.png', uri: 'stonehearth:wooden_wall' },
+            { name: 'Plastered Wooden Wall',    portrait: '/stonehearth/entities/build/wooden_wall/plastered_wooden_wall.png', uri: 'stonehearth:plastered_wooden_wall' },
          ]         
       }
    ],
@@ -73,6 +87,7 @@ App.StonehearthBuildingDesignerView2 = App.View.extend({
       this.components['stonehearth:construction_data'].fabricator_entity['stonehearth:fabricator'].blueprint = this.blueprint_components;
       this.set('context.doodads', this.doodads);
       this.set('context.floorPatterns', this.floorPatterns);
+      this.set('context.wallPatterns', this.wallPatterns);
    },
 
    // `uri` is a string that's valid to pass to radiant.trace()
@@ -102,6 +117,7 @@ App.StonehearthBuildingDesignerView2 = App.View.extend({
       self.set('context.blueprint', blueprint_entity);
       this.set('context.doodads', this.doodads);
       this.set('context.floorPatterns', this.floorPatterns);
+      this.set('context.wallPatterns', this.wallPatterns);
       self._updateControls();
    }.observes('context'),
 
@@ -133,10 +149,6 @@ App.StonehearthBuildingDesignerView2 = App.View.extend({
          if (nextTab) {
             nextTab.show();
          }         
-      });
-
-      this.$('.fillWallTool').click(function() {
-         App.stonehearthClient.growWalls(self.get('context.building'));
       });
 
       this.$('.roofTool').click(function() {
