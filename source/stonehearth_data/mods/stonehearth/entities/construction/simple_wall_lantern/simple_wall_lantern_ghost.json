@@ -1,0 +1,23 @@
+{
+   "components": {
+      "model_variants": {
+         "default": {
+            "models": [
+               "file(simple_wall_lantern.qb)"
+            ]
+         }
+      },
+      "unit_info": {
+         "name": "Lantern",
+         "description": "Or something",
+         "icon" : "file(simple_wall_lantern.png)"
+      },
+      "stonehearth:fixture" : {
+         "cursor" : "stonehearth:cursors:create_window",
+         "bounds" : {
+            "min" : { "x" : 0, "y" : 0 },
+            "max" : { "x" : 1, "y" : 1 }
+         }
+      }
+   }
+}
