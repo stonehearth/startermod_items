@@ -27,11 +27,9 @@ function BuildService:set_active(building, enabled)
             _set_active_recursive(child, enabled)
          end
       end
-      for _, component_name in ipairs({'stonehearth:construction_progress', 'stonehearth:fixture_fabricator'}) do
-         local c = blueprint:get_component(component_name)
-         if c then
-            c:set_active(enabled)
-         end
+      local c = blueprint:get_component('stonehearth:construction_progress')
+      if c then
+         c:set_active(enabled)
       end
    end  
    _set_active_recursive(building, enabled)
@@ -604,8 +602,18 @@ function BuildService:add_portal(session, response, wall_entity, portal_uri, loc
       -- to help build it.
       portal_blueprint:add_component('render_info')
                         :set_material('materials/blueprint.material.xml')
+                        
+      portal_blueprint:add_component('stonehearth:construction_progress')
+                        :add_dependency(wall_entity)
+                        :set_fabricator_entity(portal_blueprint, 'stonehearth:fixture_fabricator')
+
       portal_blueprint:add_component('stonehearth:fixture_fabricator')
                         :start_project(portal_uri)
+
+      -- sadly, ordering matters here.  we cannot set the building until both
+      -- the fabricator and blueprint have been fully initialized.
+      portal_blueprint:add_component('stonehearth:construction_progress')
+                        :set_building_entity(building)
 
       response:resolve({
          new_selection = portal_blueprint

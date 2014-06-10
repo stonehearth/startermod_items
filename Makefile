@@ -14,7 +14,9 @@ SCRIPTS_ROOT       = $(STONEHEARTH_ROOT)/scripts
 # but that's a lot of work.  This, incidentally, would also get us a
 # version of gmake from 2006 instead of 2000 (!!)
 STAGE_ROOT         = build/stage/stonehearth
+TEST_STAGE_ROOT    = build/test-stage/stonehearth
 ZIP_PACKAGE_ROOT   = build/game-package
+TEST_PACKAGE_ROOT  = build/test-package
 STEAM_PACKAGE_ROOT = build/steam-package
 
 # figure out where to find the data files for the 'make run*' commands
@@ -87,6 +89,10 @@ run-%-test:
 run:
 	cd $(RUN_ROOT) && $(STONEHEARTH_APP) $(FLAGS) &
 
+.PHONY: run-all-tests-remote
+run-all-tests-remote:
+	scripts/test/run_remote_autotest.py
+
 # make a decoda project!
 .PHONY: decoda-project
 decoda-project:
@@ -100,9 +106,9 @@ dependency-graph:
 stage:
 	sh $(SCRIPTS_ROOT)/stage/stage_stonehearth.sh -o $(STAGE_ROOT) -t $(MSBUILD_CONFIGURATION) -c -a
 
-.PHONY: perf-stage
-perf-stage:
-	sh $(SCRIPTS_ROOT)/stage/stage_stonehearth.sh -o $(STAGE_ROOT) -t $(MSBUILD_CONFIGURATION) -c -a -m perf_test
+.PHONY: test-stage
+test-stage:
+	sh $(SCRIPTS_ROOT)/stage/stage_stonehearth.sh -o $(TEST_STAGE_ROOT) -t $(MSBUILD_CONFIGURATION) -c -a -m stonehearth_autotest -m autotest_framework
 
 .PHONY: perf-run
 perf-run:
@@ -110,6 +116,14 @@ perf-run:
 
 .PHONY: perfexp
 perfexp: perf-stage game-package perf-run
+
+.PHONY: test-package
+test-package:
+	echo 'creating test package'
+	-mkdir -p $(TEST_PACKAGE_ROOT)
+	-rm $(TEST_PACKAGE_ROOT)/stonehearth-test.zip
+	cp $(STONEHEARTH_ROOT)/radsub.py $(TEST_STAGE_ROOT)/radsub.py
+	cd $(TEST_STAGE_ROOT)/.. && $(7ZA) a -bd -r -tzip $(STONEHEARTH_ROOT)/$(TEST_PACKAGE_ROOT)/stonehearth-test.zip *
 
 .PHONY: game-package
 game-package:
