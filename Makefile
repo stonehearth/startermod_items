@@ -89,6 +89,10 @@ run-%-test:
 run:
 	cd $(RUN_ROOT) && $(STONEHEARTH_APP) $(FLAGS) &
 
+.PHONY: run-all-tests-remote
+run-all-tests-remote:
+	scripts/test/run_remote_autotest.py
+
 # make a decoda project!
 .PHONY: decoda-project
 decoda-project:
