@@ -27,7 +27,7 @@ STAGE_SELF=
 STAGE_DATA=
 STAGE_BIN=
 CLEAN_OUTPUT=
-OPT_MOD_NAME=
+OPT_MOD_NAMES=()
 
 while getopts "o:t:cabdsm:" OPTION; do
    case $OPTION in
@@ -55,7 +55,7 @@ while getopts "o:t:cabdsm:" OPTION; do
          STAGE_SELF=1
          ;;
       m)
-         OPT_MOD_NAME=$OPTARG
+         OPT_MOD_NAMES+=( "${OPTARG}" )
          ;;
       ?)
          usage
@@ -142,6 +142,7 @@ function stage_data_dir
 
 function compile_lua_and_package_module
 {
+
    # $1 - the name of the mod to stage
    stage_data_dir $1
 
@@ -180,7 +181,9 @@ if [ ! -z $STAGE_DATA ]; then
    compile_lua_and_package_module mods/radiant
    compile_lua_and_package_module mods/stonehearth
 
-   if [ ! -z $OPT_MOD_NAME ]; then
-      compile_lua_and_package_module mods/$OPT_MOD_NAME
+   if (( ${#OPT_MOD_NAMES} > 0 )); then
+      for modname in "${OPT_MOD_NAMES[@]}"; do
+         compile_lua_and_package_module mods/$modname
+      done
    fi
 fi

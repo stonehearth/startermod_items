@@ -4,7 +4,22 @@
          "name" : "All Tests",
          "groups" : [
             "blackbox",
+            "end_to_end",
+            "performance"
+         ]
+      },
+
+      "all_but_performance" : {
+         "name" : "All tests, excluding performance tests",
+         "groups" : [
+            "blackbox",
             "end_to_end"
+         ]
+      },
+
+      "performance" : {
+         "name" : "Performance tests",
+         "scripts" : [
          ]
       },
 
