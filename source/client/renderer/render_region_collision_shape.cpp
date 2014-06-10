@@ -17,7 +17,7 @@ RenderRegionCollisionShape::RenderRegionCollisionShape(const RenderEntity& entit
          auto collision_shape = collision_shape_.lock();
          if (collision_shape) {
             trace_ = collision_shape->TraceRegion("debug rendering", dm::RENDER_TRACES);
-            CreateRegionDebugShape(entity_.GetNode(), shape_, trace_, csg::Color4(32, 32, 32, 128));
+            CreateRegionDebugShape(entity_.GetEntity(), shape_, trace_, csg::Color4(32, 32, 32, 128));
          }
       } else {
          trace_ = nullptr;

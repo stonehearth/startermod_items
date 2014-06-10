@@ -8,7 +8,7 @@
 
 BEGIN_RADIANT_CLIENT_NAMESPACE
 
-void CreateRegionDebugShape(H3DNode parent,
+void CreateRegionDebugShape(om::EntityRef entityRef,
                             H3DNodeUnique& shape,
                             om::DeepRegionGuardPtr trace,
                             csg::Color4 const& color);

@@ -20,6 +20,9 @@
          "name": "Bundle of Wool",
          "description": "Warm and fluffy",
          "icon" : "file(wool_bundle.png)"
+      },
+      "mob" : {
+         "model_origin" : { "x": 0, "y": 0, "z": 0.05 }
       }
    }
 }

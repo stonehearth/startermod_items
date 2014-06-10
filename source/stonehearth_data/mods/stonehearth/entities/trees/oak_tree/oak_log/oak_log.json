@@ -22,6 +22,9 @@
          "icon" : "file(log.png)",
          "portrait": "file(oak_log.png)",
          "character_sheet_info" : "file(../../log_character_sheet_info.json)"
+      },
+      "mob" : {
+         "model_origin" : { "x": -0.05, "y": 0, "z": 0.05 }
       }
    }
 }
