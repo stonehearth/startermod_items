@@ -279,14 +279,8 @@ csg::Region3 QubicleBrush::IterateThroughStencil(csg::Region3 const& brush,
    // Figure out the extents of our iterator...
    csg::Point3 min, max;
    for (int i = 0; i < 3; i++) {
-      // how far back do we have to go to get the brush to cover the tile...
-      int dist_to_min_edge = std::min(stencil_min[i] - brush_min[i], 0);
-      min[i] = csg::GetChunkIndex(dist_to_min_edge, brush_size[i]);
-
-      // and how far over?
-      int start_pos = min[i] * brush_size[i];
-      int dist_to_max_edge = std::max(stencil_max[i] - start_pos, 0);
-      max[i] = csg::GetChunkIndex(dist_to_max_edge, brush_size[i]) + 1;
+      min[i] = csg::GetChunkIndex(stencil_min[i], brush_size[i]);
+      max[i] = csg::GetChunkIndex(stencil_max[i], brush_size[i]) + 1;
    }
 
    // Now iterate and draw the brush
