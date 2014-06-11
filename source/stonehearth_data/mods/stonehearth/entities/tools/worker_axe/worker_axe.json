@@ -12,5 +12,11 @@
          "name": "Axe", 
          "description": "..."
       }
+   },
+   "entity_data" : {
+      "stonehearth:combat:weapon_data" : {
+         "base_damage" : 6,
+         "reach" : 0.75
+      }
    }
 }
