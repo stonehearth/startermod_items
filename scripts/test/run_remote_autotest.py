@@ -170,8 +170,8 @@ slaves = [ (machine['ip_address'], machine['name']) for machine in slave_json['m
 if not '-a' in sys.argv:
    slaves = [slaves[0]]
 
-# Default to everything _but_ performance.
-test_group = 'all_but_performance'
+# Default to everything (does not include performance tests!)
+test_group = 'all'
 if '-g' in sys.argv:
    test_group = sys.argv[sys.argv.index('-g') + 1]
 
