@@ -61,7 +61,7 @@ end
 local function _run_group(index, key)
    local group = index[key]
    if not group then
-      fail('undefined test group "%s"', key)
+      autotest_framework.fail('undefined test group "%s"', key)
    end
    -- first run all the groups
    if group.groups then
@@ -114,7 +114,22 @@ end
 -- to run
 function autotest_framework.run_group(index, name)
    _run_thread(function()
-         _run_group(index.groups, name)
+         -- Find the correct 'world' for the specified group.
+         local found_world_name = nil
+         for world_name, world in pairs(index.worlds) do
+            for group_name, group in pairs(world.groups) do
+               autotest_framework.log:write(0, 'considering %s.%s', world_name, group_name)
+               if group_name == name then
+                  found_world_name = world_name
+                  break
+               end
+            end
+         end
+         if not found_world_name then
+            autotest_framework.fail('undefined test group "%s"', name)
+         end
+         -- Run that group.
+         _run_group(index.worlds[found_world_name].groups, name)
       end)
 end
 
