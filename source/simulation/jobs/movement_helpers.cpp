@@ -80,17 +80,12 @@ csg::Region3 MovementHelper::GetRegionAdjacentToEntity(Simulation& sim, om::Enti
    return region;
 }
 
-csg::Point3 MovementHelper::GetPointOfInterest(csg::Point3 const& adjacentPoint, om::EntityPtr const& entity)
+csg::Point3 MovementHelper::GetPointOfInterest(csg::Point3 const& adjacentPointWorld, om::EntityPtr const& entity)
 {
-   // Translate the point to the local coordinate system
-   csg::Point3 origin(0, 0, 0);
+   csg::Point3 adjacentPointLocal = phys::WorldToLocal(adjacentPointWorld, entity);
+   csg::Point3 poiLocal(0, 0, 0);
+   csg::Point3 poiWorld;
 
-   om::MobPtr mob = entity->GetComponent<om::Mob>();
-   if (mob) {
-      origin = mob->GetWorldGridLocation();
-   }
-
-   csg::Point3 poi(0, 0, 0);
    om::DestinationPtr dst = entity->GetComponent<om::Destination>();
 
    if (dst) {
@@ -116,16 +111,17 @@ csg::Point3 MovementHelper::GetPointOfInterest(csg::Point3 const& adjacentPoint,
             }
          }
       )
-      poi = dst->GetPointOfInterest(adjacentPoint - origin);
+      poiLocal = dst->GetPointOfInterest(adjacentPointLocal);
    }
 
-   poi += origin;
+   poiWorld = phys::LocalToWorld(poiLocal, entity);
 
-   if ((csg::Point2(adjacentPoint.x, adjacentPoint.z) - csg::Point2(poi.x, poi.z)).LengthSquared() != 1) {
-      MH_LOG(5) << "warning: distance from adjacentPoint " << adjacentPoint << " to " << poi << " is not 1.";
+   if ((csg::Point2(adjacentPointWorld.x, adjacentPointWorld.z) - 
+        csg::Point2(poiWorld.x, poiWorld.z)).LengthSquared() != 1) {
+      MH_LOG(5) << "warning: distance from adjacentPoint " << adjacentPointWorld << " to " << poiWorld << " is not 1.";
    }
 
-   return poi;
+   return poiWorld;
 }
 
 template <class T>
