@@ -1,10 +1,8 @@
-local calendar = stonehearth.calendar
-
 local RenewableResourceNodeComponent = class()
 
 function RenewableResourceNodeComponent:initialize(entity, json)
    self._entity = entity
-   self._calendar_constants = calendar:get_constants();
+   self._calendar_constants = stonehearth.calendar:get_constants();
    
    self._original_description = self._entity:get_component('unit_info'):get_description()
    self._wait_text = self._original_description
@@ -49,7 +47,7 @@ function RenewableResourceNodeComponent:spawn_resource(location)
       local render_info = self._entity:add_component('render_info')
       render_info:set_model_variant('depleted')
       self._renewal_countdown = self._renewal_time
-      radiant.events.listen(calendar, 'stonehearth:hourly', self, self.on_hourly)
+      radiant.events.listen(stonehearth.calendar, 'stonehearth:hourly', self, self.on_hourly)
 
       --Change the description
       self._entity:get_component('unit_info'):set_description(self._wait_text)
@@ -109,7 +107,7 @@ end
 
 function RenewableResourceNodeComponent:on_hourly()
    if self._renewal_countdown <= 0 then
-      radiant.events.unlisten(calendar, 'stonehearth:hourly', self, self.on_hourly)
+      radiant.events.unlisten(stonehearth.calendar, 'stonehearth:hourly', self, self.on_hourly)
       self:renew()
    else 
       self._renewal_countdown = self._renewal_countdown - 1
