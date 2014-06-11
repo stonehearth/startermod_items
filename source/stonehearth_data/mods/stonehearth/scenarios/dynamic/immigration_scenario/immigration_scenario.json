@@ -9,7 +9,7 @@
    "scenario_data" : {
       "expiration_timeout" : "6h",
       "happiness_threshold" : 4,
-      "food_threshold" : 1,
+      "food_threshold" : 5,
       "score_threshold" : 10,
       "title" : "A traveller approaches your town.",
       "messages" : [

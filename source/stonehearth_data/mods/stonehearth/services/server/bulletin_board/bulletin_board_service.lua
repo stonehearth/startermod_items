@@ -21,6 +21,13 @@ function BulletinBoardService:post_bulletin(player_id)
    self._sv.next_bulletin_id = self._sv.next_bulletin_id + 1
 
    self:_add_bulletin(player_id, bulletin)
+
+   --For autotest purposes, trigger an event
+   radiant.events.trigger_async(stonehearth.bulletin_board, 'stonehearth:trigger_bulletin_for_test', {
+         bulletin = bulletin, 
+         time = stonehearth.calendar:get_time_and_date()
+      })
+
    return bulletin
 end
 
