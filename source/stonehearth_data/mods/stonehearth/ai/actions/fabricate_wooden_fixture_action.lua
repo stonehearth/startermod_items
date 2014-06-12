@@ -14,7 +14,7 @@ FabricateWoodenFixture.priority = 1
 
 -- Only do this if the fixture is wood
 function FabricateWoodenFixture:start_thinking(ai, entity, args)
-   local fixture_data = radiant.resources.load_json(fixture_uri)
+   local fixture_data = radiant.resources.load_json(args.fixture_uri)
    if fixture_data then
       local material_data = fixture_data.components['stonehearth:material']
       if material_data then

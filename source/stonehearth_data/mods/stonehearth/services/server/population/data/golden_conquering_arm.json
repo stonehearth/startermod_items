@@ -78,5 +78,8 @@
       "suffix" : [
          "yu"
       ]
+   }, 
+   "task_groups" : {
+      "stonehearth:task_group:restock" : "stonehearth:simple_labor"
    }
 }
