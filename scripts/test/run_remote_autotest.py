@@ -53,6 +53,7 @@ class MultipartPostHandler(urllib2.BaseHandler):
             request.add_data(data)
         return request
 
+
     def multipart_encode(vars, files, boundary = None, buffer = None):
         if boundary is None:
             boundary = mimetools.choose_boundary()
@@ -83,14 +84,17 @@ class MultipartPostHandler(urllib2.BaseHandler):
 
 UPDATE_INTERVAL = 1
 
+
+
 class TestThread(Thread):
-   def __init__(self, url, machine_name, test_group, file_name):
+   def __init__(self, url, machine_name, test_group, file_name, settings=''):
       super(TestThread, self).__init__()
       self.url = url
       self.machine_name = machine_name
       self.file_name = file_name
       self.test_group = test_group
       self.response = None
+      self.settings = settings
 
    def run(self):
       # This should probably be factored, but then this script is also specific to
@@ -104,10 +108,7 @@ class TestThread(Thread):
       }
       """ % ("radsub.py -o -g " + self.test_group)
 
-      # TODO Read in optional settings (resolution, log args, etc.) to Stonehearth.
-      settings_json = """
-      {}
-      """
+      settings_json = """%s""" % self.settings
 
       cookies = cookielib.CookieJar()
       opener = urllib2.build_opener(urllib2.HTTPCookieProcessor(cookies),
@@ -118,7 +119,11 @@ class TestThread(Thread):
          "file" : open(self.file_name, "rb")
       }
 
+      print params
+
       self.response = opener.open(self.url, params).read()
+
+
 
 def read_json_file(file_path):
    f = open(file_path, 'r')
@@ -126,12 +131,63 @@ def read_json_file(file_path):
    f.close()
    return result
 
+
+def run_perf_tests(slave_json, test_group, configs_json, file_location, timeout=60 * 60):
+   def alive_count(lst):
+      alive = map(lambda x : 1 if x.isAlive() else 0, lst)
+      return reduce(lambda a,b : a + b, alive)
+
+   raw_results = []
+   for config_name in configs_json:
+      config = configs_json[config_name]
+      used_slaves = [(slave_json['machines'][machine_name]['ip_address'], machine_name) for machine_name in config['machines'] ]
+
+      threads = [ TestThread('http://' + slave[0] + ':8086/run/', slave[1], test_group, file_location, json.dumps(config['settings'])) for slave in used_slaves ]
+      
+      for thread in threads:
+         thread.start()
+
+      while alive_count(threads) > 0 and timeout > 0.0:
+         timeout = timeout - UPDATE_INTERVAL
+         sleep(UPDATE_INTERVAL)
+
+      raw_results.extend([ (x.response, x.machine_name, config['settings']) for x in threads ])
+   return raw_results
+
+
+def write_perf_results_to_json_file(results, output_file):
+   combined_results = []
+
+   # Flatten all of our results!  Our list of results can contain multiple runs from the same machine,
+   # differing only by the settings used.
+   for result in results:
+      if result[0] != None:
+         all_test_data = json.loads(result[0])
+
+         for test_data in all_test_data:
+            script_name = test_data['script_name']
+
+            for test_run in test_data['tests_passed']:
+
+               new_result = { 
+                  'machine_name' : result[1], 
+                  'settings' : result[2], 
+                  'perf_data' : test_run['perf'],
+                  'script_name' : script_name,
+                  'test_name' : test_run['name']
+               }
+               combined_results.append(new_result)
+
+   f = open(output_file, 'w')
+   f.write(json.dumps(combined_results, indent=2, separators=(',', ': ')))
+   f.close()
+
+
 def run_tests(slaves, test_group, file_location, timeout=60 * 60):
    def alive_count(lst):
       alive = map(lambda x : 1 if x.isAlive() else 0, lst)
       return reduce(lambda a,b : a + b, alive)
 
-   # TODO: url hack.
    threads = [ TestThread('http://' + slave[0] + ':8086/run/', slave[1], test_group, file_location) for slave in slaves ]
    
    for thread in threads:
@@ -143,16 +199,18 @@ def run_tests(slaves, test_group, file_location, timeout=60 * 60):
 
    return [ (x.response, x.machine_name) for x in threads ]
 
+
 def write_results_to_json_file(results, output_file):
-   f = open(output_file, 'w')
    combined_results = {}
 
    for result in results:
       if result[0] != None:
          combined_results[result[1]] = json.loads(result[0])
 
+   f = open(output_file, 'w')
    f.write(json.dumps(combined_results, indent=2, separators=(',', ': ')))
    f.close()
+
 
 if os.environ.has_key('RADIANT_ROOT'):
   rad_root = os.environ['RADIANT_ROOT'] + '/'
@@ -164,7 +222,8 @@ test_script_root = sh_root + 'scripts/test/'
 build_root = sh_root + 'build/'
 
 slave_json = read_json_file(test_script_root + './tester_slaves.json')
-slaves = [ (machine['ip_address'], machine['name']) for machine in slave_json['machines'] ]
+machines_json = slave_json['machines']
+slaves = [ (machines_json[machine_name]['ip_address'], machine_name) for machine_name in slave_json['machines'] ]
 
 # If not explicitly stated, just run on one machine.  For now, pick machine 0.
 if not '-a' in sys.argv:
@@ -177,7 +236,15 @@ if '-g' in sys.argv:
 
 
 file_location = build_root + 'test-package/stonehearth-test.zip'
-results = run_tests(slaves, test_group, file_location)
 
-output_file = build_root + 'combined_results.shtest.json'
-write_results_to_json_file(results, output_file)
+if '-p' in sys.argv:
+  # Performance auto-tests.
+  config_json = read_json_file(test_script_root + './perf_configs.json')
+  results = run_perf_tests(slave_json, test_group, config_json, file_location)
+  output_file = build_root + 'combined_results.shperf.json'
+  write_perf_results_to_json_file(results, output_file)
+else:
+  # Normal autotests
+  results = run_tests(slaves, test_group, file_location)
+  output_file = build_root + 'combined_results.shtest.json'
+  write_results_to_json_file(results, output_file)

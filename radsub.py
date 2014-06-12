@@ -22,7 +22,7 @@ def new_script(script_name):
 
 
 def new_test(test_name):
-   return { 'name' : test_name, 'time' : 0.0 }
+   return { 'name' : test_name, 'time' : 0.0, 'perf' : { 'fps' : [], 'tri_count' : [] } }
 
 
 def get_log_time(log_time_string):
@@ -35,6 +35,7 @@ def produce_log_results(log_path):
    test_re = re.compile(" running test (\w+) \((\d+) of (\d+)\)")
    script_re = re.compile(" running script ((?:/(?:\w+))+)")
    failure_re = re.compile(" test \"(\w+)\" failed\.  aborting\.")
+   perf_re = re.compile(" Perf\:(\d+\.\d+)\:(\d+)")
    
    f = open(log_path, 'r')
 
@@ -69,6 +70,12 @@ def produce_log_results(log_path):
          test_start = d
          continue
 
+      r = perf_re.match(actual_log)
+      if r:
+         current_test['perf']['fps'].append(float(r.group(1)))
+         current_test['perf']['tri_count'].append(int(r.group(2)))
+         continue
+
       r = failure_re.match(actual_log)
       if r:
          # Matches a failed test.
@@ -76,6 +83,10 @@ def produce_log_results(log_path):
          close_test(False, current_script, current_test, d - test_start)
          current_script = new_script('')
          current_test = new_test('')
+
+   # TODO: fix the last time!  This involves fixing some ugly logging....
+   if current_test['name'] != '':
+      close_test(True, current_script, current_test, datetime.timedelta(0))
    f.close()
    return results
 

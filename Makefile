@@ -93,6 +93,10 @@ run:
 run-all-tests-remote:
 	scripts/test/run_remote_autotest.py
 
+.PHONY: run-all-perf-tests-remote
+run-all-perf-tests-remote:
+	scripts/test/run_remote_autotest.py -p -g perf_all
+
 # make a decoda project!
 .PHONY: decoda-project
 decoda-project:
