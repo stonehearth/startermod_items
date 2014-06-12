@@ -45,6 +45,16 @@ _server.on[commands.MOVE_CAMERA] = function(position, look_at)
    stonehearth.camera:look_at(Point3f(look_at.x, look_at.y, look_at.z))
 end
 
+_server.on[commands.SET_CAMERA_PATH_TYPE] = function(path_type, path_args)
+   if path_type == 'ORBIT' then
+      stonehearth.camera:push_controller('stonehearth:orbit_camera_controller', 
+         path_args.orbit_point, 
+         path_args.orbit_distance,
+         path_args.orbit_height,
+         path_args.orbit_period)
+   end
+end
+
 local ui_client = {}
 function ui_client._connect_browser_to_client(session, response)
    _browser:set_response(response)

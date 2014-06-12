@@ -910,7 +910,8 @@
 
    "client_controllers" :  {
       "player_camera_controller" : "file(services/client/camera/player_camera_controller.lua)",
-      "move_to_camera_controller" : "file(services/client/camera/move_to_camera_controller.lua)"
+      "move_to_camera_controller" : "file(services/client/camera/move_to_camera_controller.lua)",
+      "orbit_camera_controller" : "file(services/client/camera/orbit_camera_controller.lua)"
    },
 
    "components" :  {

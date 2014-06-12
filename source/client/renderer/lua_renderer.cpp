@@ -132,6 +132,11 @@ static void Renderer_EnablePerfLogging(bool enable)
    h3dSetOption(H3DOptions::EnableStatsLogging, enable ? 1.0f : 0.0f);
 }
 
+static int Renderer_GetTriCount()
+{
+   return (int)h3dGetStat(H3DStats::TriCount, false);
+}
+
 std::ostream& operator<<(std::ostream& os, RaycastResult const& r)
 {
    os << "[RaycastResult of " << r.GetNumResults() << " results]";
@@ -199,6 +204,9 @@ void LuaRenderer::RegisterType(lua_State* L)
             namespace_("visibility") [
                def("set_visible_region",  &Renderer_SetVisibleRegion),
                def("set_explored_region", &Renderer_SetExploredRegion)
+            ],
+            namespace_("perf") [
+               def("get_tri_count", &Renderer_GetTriCount)
             ]
          ]
       ],

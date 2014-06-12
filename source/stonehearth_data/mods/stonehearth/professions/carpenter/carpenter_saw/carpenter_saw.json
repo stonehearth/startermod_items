@@ -41,7 +41,10 @@
       }
    },
    "entity_data" : {
-      "stonehearth:activity_name" : "promote_carpenter"
+      "stonehearth:activity_name" : "promote_carpenter",
+      "stonehearth:combat:weapon_data" : {
+         "base_damage" : 3,
+         "reach" : 0.75
+      }
    }
 }
-

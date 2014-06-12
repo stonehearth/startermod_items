@@ -1,62 +1,67 @@
 {
-   "groups" : {
-      "all" : {
-         "name" : "All Tests",
-         "groups" : [
-            "blackbox",
-            "end_to_end",
-            "performance"
-         ]
-      },
-
-      "all_but_performance" : {
-         "name" : "All tests, excluding performance tests",
-         "groups" : [
-            "blackbox",
-            "end_to_end"
-         ]
-      },
-
+   "worlds" : {
       "performance" : {
-         "name" : "Performance tests",
-         "scripts" : [
-         ]
+         "world_generator" : "file(perf_world.lua)",
+
+         "groups" : {
+            "perf_all" : {
+               "name" : "All performance tests.",
+
+               "scripts" : [
+                  "file(performance/perf_camera_orbit.lua)"
+               ]
+            }
+         }
       },
 
-      "end_to_end" : {
-         "name" : "end to end tests",
-         "scripts" : [
-            "file(end_to_end/rotation_autotests.lua)",
-            "file(end_to_end/combat_autotests.lua)",
-            "file(end_to_end/luabind_autotests.lua)",
-            "file(end_to_end/farming_autotests.lua)",
-            "file(end_to_end/construction_autotests.lua)",
-            "file(end_to_end/stockpile_autotests.lua)",
-            "file(end_to_end/carpenter_autotests.lua)",
-            "file(end_to_end/firepit_autotests.lua)",
-            "file(end_to_end/harvest_autotests.lua)",
-            "file(end_to_end/promote_autotests.lua)",
-            "file(end_to_end/sleep_autotests.lua)",
-            "file(end_to_end/food_autotests.lua)",
-            "file(end_to_end/placement_autotests.lua)",
-            "file(end_to_end/sensor_autotests.lua)",
-            "file(end_to_end/score_autotests.lua)",
-            "file(end_to_end/scenario_autotests.lua)"
-         ]
-      },
+      "tiny" : {
+         "world_generator" : "file(tiny_world.lua)",
 
-      "broken_end_to_end" : {
-         "name" : "broken end to end tests =(.  fix this and move them back into end to end!!",
-         "scripts" : [
-         ]
-      },
+         "groups" : {
+            "all" : {
+               "name" : "All Tests",
+               "groups" : [
+                  "blackbox",
+                  "end_to_end"
+               ]
+            },
+            "end_to_end" : {
+               "name" : "end to end tests",
 
-      "blackbox" : {
-         "name" : "blackbox tests",
-         "scripts" : [
-            "file(blackbox/region_autotests.lua)",
-            "file(blackbox/calendar_autotests.lua)"
-         ]
+               "scripts" : [
+                  "file(end_to_end/rotation_autotests.lua)",
+                  "file(end_to_end/combat_autotests.lua)",
+                  "file(end_to_end/luabind_autotests.lua)",
+                  "file(end_to_end/farming_autotests.lua)",
+                  "file(end_to_end/construction_autotests.lua)",
+                  "file(end_to_end/stockpile_autotests.lua)",
+                  "file(end_to_end/carpenter_autotests.lua)",
+                  "file(end_to_end/firepit_autotests.lua)",
+                  "file(end_to_end/harvest_autotests.lua)",
+                  "file(end_to_end/promote_autotests.lua)",
+                  "file(end_to_end/sleep_autotests.lua)",
+                  "file(end_to_end/food_autotests.lua)",
+                  "file(end_to_end/placement_autotests.lua)",
+                  "file(end_to_end/sensor_autotests.lua)",
+                  "file(end_to_end/score_autotests.lua)",
+                  "file(end_to_end/scenario_autotests.lua)"
+               ]
+            },
+
+            "broken_end_to_end" : {
+               "name" : "broken end to end tests =(.  fix this and move them back into end to end!!",
+               "scripts" : [
+               ]
+            },
+
+            "blackbox" : {
+               "name" : "blackbox tests",
+               "scripts" : [
+                  "file(blackbox/region_autotests.lua)",
+                  "file(blackbox/calendar_autotests.lua)"
+               ]
+            }
+         }
       }
    }
 }
