@@ -90,6 +90,8 @@
       ]
    },
    "entity_data" : {
+      "stonehearth:entity_radius" : 0.75,
+      "stonehearth:entity_reach" : 1.0,
       "stonehearth:combat:melee_attacks" : [
          {
             "name" : "combat_1h_backhand",

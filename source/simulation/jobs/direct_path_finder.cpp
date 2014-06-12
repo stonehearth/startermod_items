@@ -113,23 +113,13 @@ bool DirectPathFinder::GetEndPoints(csg::Point3& start, csg::Point3& end) const
 
 csg::Point3 DirectPathFinder::GetPointOfInterest(csg::Point3 const& end) const
 {
-   csg::Point3 poi;
+   csg::Point3 poi = end;
 
    if (useEntityForEndPoint_) {
       om::EntityPtr destinationEntity = destinationRef_.lock();
-      csg::Point3 const destinationLocation = destinationEntity->AddComponent<om::Mob>()->GetWorldGridLocation();
-      om::DestinationPtr destinationComponent = destinationEntity->GetComponent<om::Destination>();
-
-      if (destinationComponent) {
-         // Pass in local coordinates
-         poi = destinationComponent->GetPointOfInterest(end - destinationLocation);
-         // Transform poi to world coordinates
-         poi += destinationLocation;
-      } else {
-         poi = destinationLocation;
+      if (destinationEntity) {
+         poi = MovementHelper().GetPointOfInterest(end, destinationEntity);
       }
-   } else {
-      poi = end;
    }
 
    return poi;

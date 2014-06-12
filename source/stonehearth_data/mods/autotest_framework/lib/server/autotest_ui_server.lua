@@ -18,6 +18,10 @@ function ui_server.sleep(ms)
    _client:send(commands.WAIT_REALTIME, ms)
 end
 
+function ui_server.set_camera_path_type(path_type, path_args)
+   _client:send(commands.SET_CAMERA_PATH_TYPE, path_type, path_args)
+end
+
 function ui_server.move_camera(position, look_at)
    _client:send(commands.MOVE_CAMERA, position, look_at)
 end

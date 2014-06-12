@@ -12,5 +12,12 @@
          "name": "Mining Pick", 
          "description": "..."
       }
-   }
+   },
+   "entity_data" : {
+      "stonehearth:activity_name" : "promote_footman",
+      "stonehearth:combat:weapon_data" : {
+         "base_damage" : 6,
+         "reach" : 0.75
+      }
+   }   
 }

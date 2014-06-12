@@ -139,10 +139,10 @@ function CombatService:get_melee_weapon(entity)
 end
 
 function CombatService:get_melee_range(attacker, weapon_data, target)
-   local attacker_radius = self:get_entity_radius(attacker)
+   local attacker_reach = self:get_entity_reach(attacker)
    local target_radius = self:get_entity_radius(target)
    local weapon_reach = weapon_data.reach
-   local melee_range_ideal = attacker_radius + weapon_reach + target_radius
+   local melee_range_ideal = attacker_reach + weapon_reach + target_radius
    local melee_range_max = melee_range_ideal + 2
    return melee_range_ideal, melee_range_max
 end
@@ -154,13 +154,24 @@ function CombatService:get_engage_range(attacker, weapon_data, target)
    return engage_range_ideal, engage_range_max
 end
 
-function CombatService:get_entity_radius(entity)
-   if entity == nil or not entity:is_valid() then
-      return 1
+function CombatService:get_entity_reach(entity)
+   local entity_reach = 1.0
+
+   if entity and entity:is_valid() then
+      entity_reach = radiant.entities.get_entity_data(entity, 'stonehearth:entity_reach')
    end
 
-   -- TODO: get a real value
-   return 1
+   return entity_reach
+end
+
+function CombatService:get_entity_radius(entity)
+   local entity_radius = 0.5
+
+   if entity and entity:is_valid() then
+      entity_radius = radiant.entities.get_entity_data(entity, 'stonehearth:entity_radius')
+   end
+
+   return entity_radius
 end
 
 function CombatService:get_time_to_impact(action_info)
