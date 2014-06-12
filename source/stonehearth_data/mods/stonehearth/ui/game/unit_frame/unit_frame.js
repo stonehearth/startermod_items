@@ -6,7 +6,11 @@ $(document).ready(function(){
 
   $(top).on("radiant_selection_changed.unit_frame", function (_, data) {
      if (!unitFrame.view && App.gameView) {
-        unitFrame.view = App.gameView.addView(App.StonehearthUnitFrameView, { uri: data.selected_entity });
+        unitFrame.view = App.gameView.addView(App.StonehearthUnitFrameView);
+     }
+
+     if (unitFrame.view) {
+      unitFrame.view.set('uri', data.selected_entity);
      }
   });  
 });
