@@ -273,6 +273,7 @@
    "kingdom" : "Kingdom",
    "empire": "Empire", 
 
+   "building_designer_material" : "Material",
    "building_designer_floor_tool" : "floor",
    "building_designer_fill_wall_tool" : "walls",
    "building_designer_roof_tool" : "roof",
@@ -281,6 +282,8 @@
    "building_designer_draw_floorplan_help" : "Pick a material below and drag out boxes to define your building's floorplan.",
    "building_designer_erect_walls" : "Erect Walls",
    "building_designer_erect_walls_help" : "Pick a material below and click the \"Erect Walls\" button to raise walls around your floorplan.",
+   "building_designer_doodads" : "Add Doors, Windows, & Doodads",
+   "building_designer_doodads_help" : "Pick an object from the material palette then click on your building to place it.",
 
    "0_score" : "Wretched",
    "1_score" : "Miserable",
