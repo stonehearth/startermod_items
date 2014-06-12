@@ -139,11 +139,9 @@ var StonehearthClient;
          return this._callTool(function() {
             return radiant.call('stonehearth:choose_stockpile_location')
                .done(function(response) {
+                  radiant.call('radiant:play_sound', 'stonehearth:sounds:place_structure' );
                   radiant.call('radiant:client:select_entity', response.stockpile);
                   self.createStockpile({ hideTip : true });
-               })
-               .always(function(response) {
-                  radiant.call('radiant:play_sound', 'stonehearth:sounds:place_structure' );
                })
                .fail(function(response) {
                   $(top).trigger('radiant_hide_tip');
@@ -166,11 +164,9 @@ var StonehearthClient;
          return this._callTool(function(){
             return radiant.call('stonehearth:choose_new_field_location')
             .done(function(response) {
+               radiant.call('radiant:play_sound', 'stonehearth:sounds:place_structure' );
                radiant.call('radiant:client:select_entity', response.field);
                self.createFarm({ hideTip : true});
-            })
-            .always(function(response) {
-               radiant.call('radiant:play_sound', 'stonehearth:sounds:place_structure' );
             })
             .fail(function(response) {
                $(top).trigger('radiant_hide_tip');
@@ -196,18 +192,23 @@ var StonehearthClient;
          });
       },
 
-      buildFloor: function(floor) {
+      buildFloor: function(floor, o) {
          var self = this;
 
-         $(top).trigger('radiant_show_tip', { 
-            title : 'Build Floor Tooltip',
-            description : 'Build Floor Tooltip'
-         });
+         if (!o || !o.hideTip) {
+            $(top).trigger('radiant_show_tip', { 
+               title : 'Build Floor Tooltip',
+               description : 'Build Floor Tooltip'
+            });
+         }
 
          return this._callTool(function() {
             return radiant.call_obj(self._build_editor, 'place_new_floor', floor.brush)
-               .always(function(response) {
+               .done(function(response) {
                   radiant.call('radiant:play_sound', 'stonehearth:sounds:place_structure' );
+                  self.buildFloor(floor, { hideTip : true });
+               })
+               .fail(function(response) {
                   $(top).trigger('radiant_hide_tip');
                });
          });
