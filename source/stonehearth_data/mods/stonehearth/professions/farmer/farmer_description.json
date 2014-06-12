@@ -8,5 +8,8 @@
   "script": "file(farmer.lua)",
   "outfit": "file(farmer_outfit)",
   "description": "Farmer", 
-  "score_value" : 10
+  "score_value" : 10,
+  "task_groups" : [
+      "stonehearth:restock"
+   ]
 }

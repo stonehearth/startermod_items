@@ -25,7 +25,15 @@
          "injected_ai" : {
             "actions" : [
                "stonehearth:actions:work_at_workshop",
-               "stonehearth:actions:move_item_to_outbox"               
+               "stonehearth:actions:move_item_to_outbox",
+
+               "stonehearth:actions:fabricate_wooden_structure",
+               "stonehearth:actions:fabricate_structure_adjacent",
+               "stonehearth:actions:fabricate_wooden_fixture",
+               "stonehearth:actions:fabricate_fixture_adjacent",
+               "stonehearth:actions:teardown_wooden_structure",
+               "stonehearth:actions:teardown_structure_adjacent"
+              
             ]
          },
          "injected_commands" : [

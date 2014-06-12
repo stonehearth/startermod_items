@@ -4,5 +4,9 @@
   "buttonIcon" : "file(images/jobButton.png)",
   "bannerIcon" : "file(images/banner.png)",
   "script": "file(worker.lua)",
-  "outfit": "file(worker_outfit)"
+  "outfit": "file(worker_outfit)",
+  "task_groups" : [
+      "stonehearth:restock", 
+      "stonehearth:build"
+   ]
 }

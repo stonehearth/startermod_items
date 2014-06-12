@@ -147,27 +147,9 @@ end
 function Town:join_task_group(entity, name)
    local task_group = self._task_groups[name]
    assert(task_group, 'task group not yet created')
-   --if not task_group then
-      --TODO: are the args still necessary?
-      --Everyone has work, so use work by default
-      --This means that if the task is given before the tg is 
-   --   task_group = self:_create_town_task_group(name, 'stonehearth:work', {})
-   --end
    task_group:add_worker(entity)
    return self
 end
-
---[[
---- Creates a task group for this town
---  Adds the task group to the town's index
---  Since task groups are created anew on load, log them in the appropriate index
-function Town:_create_town_task_group(name, activity_group, args)
-   local task_group = self:create_task_group(activity_group, args)
-   self._task_groups[name] = task_group
-   self._sv._task_group_names[name] = args
-   return task_group
-end
-]]
 
 --- Creates a task in a given task group
 --  If the tg doesn't exist yet, make one. We'll queue the task
@@ -178,9 +160,6 @@ end
 function Town:create_task_for_group(task_group_name, activity_name, args)
    local task_group = self._task_groups[task_group_name]
    assert(task_group, 'task group not yet created')
-   --if not task_group then
-   --   task_group = self:_create_town_task_group(task_group_name, activity_group, {})
-   --end
    return task_group:create_task(activity_name, args)
 end
 

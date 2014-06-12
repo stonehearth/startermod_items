@@ -433,14 +433,6 @@ function StockpileComponent:_is_in_filter(entity)
 end
 
 function StockpileComponent:_destroy_tasks()
-   if self._task then
-      self._task:destroy()
-      self._task = nil
-   end
-   if self._task_f then
-      self._task_f:destroy()
-      self._task_f = nil
-   end
    if self._restock_task then
       self._restock_task:destroy()
       self._restock_task = nil
@@ -453,30 +445,9 @@ function StockpileComponent:_create_worker_tasks()
       return
    end
 
-   --if self._task ~= nil then
-   --   self._task:destroy()
-   --   self._task = nil
-   --end
-
    self:_destroy_tasks()
 
    local town = stonehearth.town:get_town(self._entity)
-   self._task = town:create_worker_task('stonehearth:restock_stockpile', { stockpile = self })
-                                   :set_source(self._entity)
-                                   :set_name('restock task')
-                                   :set_priority(stonehearth.constants.priorities.worker_task.RESTOCK_STOCKPILE)
-                                   :start()
-
-   --Experiment in allowing farmers to haul things to stockpiles
-   --TODO: allow this behavior to be more pervasive? Let create_task take an array of
-   --possible target work groups?
-   self._task_f = town:create_farmer_task('stonehearth:restock_stockpile', { stockpile = self })
-                                   :set_source(self._entity)
-                                   :set_name('restock task')
-                                   :set_priority(stonehearth.constants.priorities.farmer_task.RESTOCK_STOCKPILE)
-                                   :start()
-
-   --TODO: replace all tasks with just this one
    self._restock_task = town:create_task_for_group('stonehearth:restock', 'stonehearth:restock_stockpile', {stockpile = self})
                            :set_source(self._entity)
                            :set_name('restock task')

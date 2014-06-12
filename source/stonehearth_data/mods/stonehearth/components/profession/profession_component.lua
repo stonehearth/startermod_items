@@ -17,6 +17,7 @@ function ProfessionComponent:initialize(entity, json)
             return radiant.events.UNLISTEN
          end)
    end
+
 end
 
 function ProfessionComponent:get_profession_id()
@@ -28,17 +29,17 @@ function ProfessionComponent:get_profession_uri()
 end
 
 function ProfessionComponent:promote_to(profession_uri, talisman_uri)
-   local json = radiant.resources.load_json(profession_uri, true)
-   if json then
+   self._profession_json = radiant.resources.load_json(profession_uri, true)
+   if self._profession_json then
       self:demote()
       self._sv.profession_uri = profession_uri
-      self:_load_profession_script(json)
-      self:_set_unit_info(json)
-      self:_equip_outfit(json)
-      self:_call_profession_script('promote', json, talisman_uri)
+      self:_load_profession_script(self._profession_json)
+      self:_set_unit_info(self._profession_json)
+      self:_equip_outfit(self._profession_json)
+      self:_call_profession_script('promote', self._profession_json, talisman_uri)
 
-      if json.task_groups then
-         self:_add_to_task_groups(json.task_groups)
+      if self._profession_json.task_groups then
+         self:_add_to_task_groups(self._profession_json.task_groups)
       end
       -- so good!  keep this one, lose the top one.  too much "collusion" between components =)
       radiant.events.trigger(self._entity, 'stonehearth:profession_changed', { entity = self._entity })
@@ -49,6 +50,11 @@ end
 function ProfessionComponent:demote()
    self:_remove_outfit()
    self:_call_profession_script('demote')
+
+   if self._profession_json and self._profession_json.task_groups then
+      self:_remove_from_task_groups(self._profession_json.task_groups)
+   end
+
    self._sv.profession_id = nil
    self.__saved_variables:mark_changed()
 end
@@ -62,7 +68,13 @@ function ProfessionComponent:_add_to_task_groups(task_groups)
    end
 end
 
+-- Remove this person from a set of task groups
+-- @param task_groups - an array of the task groups this person should belong to 
 function ProfessionComponent:_remove_from_task_groups(task_groups)
+   local town = stonehearth.town:get_town(self._entity)
+   for i, task_group_name in ipairs(task_groups) do
+      town:leave_task_group(self._entity, task_group_name)
+   end
 end
 
 function ProfessionComponent:_set_unit_info(json)
