@@ -73,7 +73,12 @@ bool XZRegionSelector::onInputEvent(Input const& evt)
             deferred_->Notify(selectedCube);
          }
       }
-      return true;
+
+      if (evt.mouse.up[1] && !evt.mouse.dragging) { // right mouse up
+         deferred_->Reject("mouse 2 pressed");
+         Deactivate();            
+      }
+
    } else if (evt.type == Input::KEYBOARD) {
       if (evt.keyboard.down && evt.keyboard.key == 256) { // esc
          deferred_->Reject("escape key pressed");
