@@ -108,6 +108,14 @@ function ConstructionRenderTracker:push_object_state()
    end
 end
 
+
+function ConstructionRenderTracker:push_visible_state()
+   if self._on_visible_changed then
+      self._on_visible_changed(self._visible)
+   end
+end
+
+
 -- computes the region to render in rpg mode.  this is just the normal render
 -- region with all but the bottom-most voxels clipped off.  the result is cached
 -- in self._rpg_region, and will only be recompouted when the user gives us

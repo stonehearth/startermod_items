@@ -11,6 +11,17 @@ local Point3 = _radiant.csg.Point3
 --
 function Roof:initialize(entity, json)
    self._entity = entity
+   self._trace = self._entity:get_component('stonehearth:construction_data'):trace_data('layout roof')
+                     :on_changed(function()
+                           self:layout()
+                        end)
+end
+
+function Roof:destroy()
+   if self._trace then
+      self._trace:destroy()
+      self._trace = nil
+   end
 end
 
 -- make the destination region match the shape of the column.  call this

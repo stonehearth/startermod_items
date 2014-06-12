@@ -12,6 +12,8 @@ function ConstructionDataComponent:initialize(entity, json)
    self._entity = entity
    self._sv = self.__saved_variables:get_data()
 
+   self.__saved_variables:set_controller(self)
+
    if not self._sv.initialized then
       self._sv = json
       self._sv.initialized = true
@@ -25,6 +27,10 @@ function ConstructionDataComponent:initialize(entity, json)
          self._sv.normal = Point3(self._sv.normal.x, self._sv.normal.y, self._sv.normal.z)
       end
    end
+end
+
+function ConstructionDataComponent:trace_data(reason)
+   return self.__saved_variables:trace_data(reason)
 end
 
 function ConstructionDataComponent:begin_editing(entity)

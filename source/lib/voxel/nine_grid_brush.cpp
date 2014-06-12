@@ -4,12 +4,18 @@
 using namespace ::radiant;
 using namespace ::radiant::voxel;
 
+#define PACK16(x, y)    ((x << 16) | y)
+#define UNPACK16(n)     std::tie((n >> 16) & 0xffff, n & 0xffff)
+
 NineGridBrush::NineGridBrush(std::istream& in) :
    normal_(0, 0, -1),
-   tile_mode_(NineGridLeftToRight),
    paint_mode_(Color),
    qubicle_file_(""),
-   clip_whitespace_(false)
+   clip_whitespace_(false),
+   y_offset_(0),
+   maxHeight_(INT_MAX),
+   gradiant_(0),
+   slope_(1)
 {
    in >> qubicle_file_;
 }
@@ -26,15 +32,11 @@ NineGridBrush& NineGridBrush::SetPaintMode(PaintMode mode)
    return *this;
 }
 
-NineGridBrush& NineGridBrush::SetTileMode(TileMode mode)
-{
-   tile_mode_ = mode;
-   return *this;
-}
-
 NineGridBrush& NineGridBrush::SetGridShape(csg::Region2 const& shape)
 {
    shape_region2_ = shape;
+   shapeBounds_ = shape.GetBounds();   
+
    return *this;
 }
 
@@ -44,130 +46,276 @@ NineGridBrush& NineGridBrush::SetClipWhitespace(bool clip)
    return *this;
 }
 
+NineGridBrush& NineGridBrush::SetSlope(float slope)
+{
+   slope_ = slope;
+   return *this;
+}
+
+NineGridBrush& NineGridBrush::SetYOffset(int offset)
+{
+   y_offset_ = offset;
+   return *this;
+}
+
+NineGridBrush& NineGridBrush::SetMaxHeight(int height)
+{
+   maxHeight_ =  height;
+   return *this;
+}
+
+NineGridBrush& NineGridBrush::SetGradiantFlags(int flags)
+{
+   gradiant_ = flags;
+   return *this;
+}
+
 csg::Region3 NineGridBrush::PaintOnce()
 {
-   return PaintThroughStencilPtr(nullptr);
+   return PaintThroughStencilOpt(nullptr);
 }
 
 csg::Region3 NineGridBrush::PaintThroughStencil(csg::Region3 const& stencil)
 {
-   return PaintThroughStencilPtr(&stencil);
+   return PaintThroughStencilOpt(&stencil);
 }
 
-csg::Region3 NineGridBrush::PaintThroughStencilPtr(csg::Region3 const* stencil)
-{   
-   csg::Region3 result;
-
+csg::Region3 NineGridBrush::PaintThroughStencilOpt(csg::Region3 const* modelStencil)
+{
    for (int i = 1; i <= 9; i++) {
       nine_grid_[i] = QubicleBrush(qubicle_file_.GetMatrix(BUILD_STRING(i)))
                           .SetPaintMode((QubicleBrush::PaintMode)paint_mode_)
                           .SetOffsetMode(QubicleBrush::Matrix)
                           .SetNormal(normal_)
-                          .SetClipWhitespace(clip_whitespace_);
+                          .SetClipWhitespace(clip_whitespace_)
+                          .PaintOnce();
 
-      csg::Point3 bounds = nine_grid_[i].PaintOnce().GetBounds().GetSize();
+      csg::Point3 bounds = nine_grid_[i].GetBounds().GetSize();
       brush_sizes_[i] = csg::Point2(bounds.x, bounds.z);
    }
-   csg::Point2* bs = brush_sizes_;                 // brush sizes
-   csg::Rect2 sb = shape_region2_.GetBounds();     // shape bounds
 
-   csg::Point2 origin_1(sb.min.x, sb.min.y);
-   csg::Point2 origin_7(sb.min.x, sb.max.y - bs[7].y);
-   csg::Point2 origin_3(sb.max.x - bs[3].x, sb.min.y);
-   csg::Point2 origin_9(sb.max.x - bs[9].x, sb.max.y - bs[9].y);
+   GridMap<short> heightmap(shapeBounds_, -1);
+   GridMap<csg::Point2> gradiant(shapeBounds_, csg::Point2::zero);
 
-   PaintThroughStencilClipped(result, 1, 0, stencil, origin_1, origin_1 + bs[1]);
-   PaintThroughStencilClipped(result, 3, 0, stencil, origin_3, origin_3 + bs[3]);
-   PaintThroughStencilClipped(result, 7, 0, stencil, origin_7, origin_7 + bs[7]);
-   PaintThroughStencilClipped(result, 9, 0, stencil, origin_9, origin_9 + bs[9]);
+   csg::EdgeMap<int, 2> edgeMap = csg::RegionTools<int, 2>().GetEdgeMap(shape_region2_);
+   csg::Region2 ninegrid = ClassifyNineGrid(edgeMap);
+   
+   // Compute the height and gradiant of the roof.
+   ComputeHeightMap(ninegrid, heightmap, gradiant);
 
-   // xxx: works with the current roof, but not quite right...
-   csg::Point2 cs = bs[1];
+   // finally, build the model for the grid
+   csg::Region3 model;
+   for (csg::Rect2 const& rect : ninegrid) {
+      for (csg::Point2 const& src : rect) {
+         int type = rect.GetTag();
+         
+         csg::Region3 brush = nine_grid_[type];
+         csg::Point2 brushSize = brush_sizes_[type];
 
-   auto paint_flat_mode = [&]() {
-      int y = 0;
+         csg::Point2 samplePos = src;
 
-      PaintThroughStencilClipped(result, 2, y, stencil, origin_1 + csg::Point2(cs.x, 0),
-                                                        origin_3 + csg::Point2(0, cs.y));
+         // Revese the points depending on the gradiant...
+         csg::Point2 g = gradiant.get(src, csg::Point2::zero);
+         if (g.y) {
+            samplePos.x = src.x - shapeBounds_.min.x;
+            samplePos.y = src.y - shapeBounds_.min.y;
+         } else {
+            samplePos.x = shapeBounds_.max.y - src.y - 1;
+            samplePos.y = shapeBounds_.max.x - src.x - 1;
+         }
 
-      PaintThroughStencilClipped(result, 8, y, stencil, origin_7 + csg::Point2(cs.x, 0),
-                                                        origin_9 + csg::Point2(0, cs.y));
+         // The sample offset is how far into the nine-grid section we need to
+         // pull a column from.  It's based on the origin on the rect and wraps.
+         csg::Point2 sampleOffset(samplePos.x % brushSize.x,
+                                  samplePos.y % brushSize.y);
 
-      PaintThroughStencilClipped(result, 4, y, stencil, origin_1 + csg::Point2(0, cs.y),
-                                                        origin_7 + csg::Point2(cs.x, 0));
 
-      PaintThroughStencilClipped(result, 6, y, stencil, origin_3 + csg::Point2(0, cs.y),
-                                                        origin_9 + csg::Point2(cs.x, 0));
+         // Make a stencil to pull just the column at sampleOffset out of the
+         // brush and add it to the model
+         csg::Cube3 stencil(csg::Point3(sampleOffset.x, -INT_MAX, sampleOffset.y),
+                            csg::Point3(sampleOffset.x + 1, INT_MAX, sampleOffset.y + 1));
 
-      PaintThroughStencilClipped(result, 5, y, stencil, origin_1 + csg::Point2(cs.x, cs.y),
-                                                        origin_9);
-   };
+         csg::Region3 column = brush & stencil;
 
-   // left to right mode...
-   //  y = 0    7 8 8 8 8 8 8 9
-   //
-   //  y = 1    4 5 5 5 5 5 5 6
-   //
-   //  y = 2    4 5 5 5 5 5 5 6
-   //
-   //  y = 3    4 5 5 5 5 5 5 6
-   //
-   //  y = 2    4 5 5 5 5 5 5 6
-   //
-   //  y = 1    4 5 5 5 5 5 5 6
-   //
-   //  y = 0    1 2 2 2 2 2 2 3
-   auto paint_front_to_back_mode = [&]() {
-      int y = 0;
+         // uncomment to color the region based on gradiant.
+         /*
+         {
+            column = csg::Region3(csg::Cube3(csg::Point3(sampleOffset.x, 0, sampleOffset.y),
+                                             csg::Point3(sampleOffset.x + 1, 1, sampleOffset.y + 1),
+                                             csg::Color3(255 * abs(g.x), 255 * abs(g.y), 0).ToInteger()));
+         }
+         */
 
-      // Draw the bottom and top rows...
-      PaintThroughStencilClipped(result, 2, y, stencil, origin_1 + csg::Point2(cs.x, 0),
-                                                        origin_3 + csg::Point2(0, cs.y));
+         // uncomment to color the region based on type.
+         /*
+         {
+            static csg::Color3 colors[] = {
+               csg::Color3::black,     // n/a
+               csg::Color3::white,     // 1
+               csg::Color3::orange,    // 2
+               csg::Color3::red,       // 3
+               csg::Color3::green,     // 4
+               csg::Color3::grey,      // 5
+               csg::Color3::brown,     // 6
+               csg::Color3::blue,      // 7
+               csg::Color3::pink,      // 8
+               csg::Color3::purple,    // 9
+            };
+            column = csg::Region3(csg::Cube3(csg::Point3(sampleOffset.x, 0, sampleOffset.y),
+                                             csg::Point3(sampleOffset.x + 1, 1, sampleOffset.y + 1),
+                                             colors[type].ToInteger()));
+         }
+         */
 
-      PaintThroughStencilClipped(result, 8, y, stencil, origin_7 + csg::Point2(cs.x, 0),
-                                                        origin_9 + csg::Point2(0, cs.y));
+         // dst offset is where to drop the column.  it's in the coordinate system
+         // of the original Region2, offset by the computed height
+         int height = static_cast<int>(heightmap.get(src, 0) * slope_);
 
-      csg::Point2 offset_4 = origin_1 + csg::Point2(0, cs.y);
-      csg::Point2 offset_6 = origin_3 + csg::Point2(0, cs.y);
+         csg::Point3 dstOffset = csg::Point3(src.x, height, src.y) - 
+                                 csg::Point3(sampleOffset.x, 0, sampleOffset.y);
 
-      auto draw_row = [&](int y, int row) {
-         PaintThroughStencilClipped(result, 4, y, stencil, offset_4 + csg::Point2(0, row),
-                                                     offset_4 + csg::Point2(cs.x, row + 1));
-         PaintThroughStencilClipped(result, 5, y, stencil, offset_4 + csg::Point2(cs.x, row),
-                                                     offset_6 + csg::Point2(0, row + 1));
-         PaintThroughStencilClipped(result, 6, y, stencil, offset_6 + csg::Point2(0, row),
-                                                     offset_6 + csg::Point2(cs.x, row + 1));
-      };
-
-      // Run through the rest...
-      int max_y = sb.GetSize().y - 2; // skip the border on either side..
-      int i, c = max_y / 2;
-
-      for (i = 0; i < c; i++) {
-         draw_row(i + 1, i);
-         draw_row(i + 1, max_y - i - 1);
-      }
-      if (c * 2 != max_y) {
-         draw_row(i + 1, i);
-      }
-   };
-
-   paint_front_to_back_mode();
-
-   return result;
-}
-
-void NineGridBrush::PaintThroughStencilClipped(csg::Region3 &dst, int i, int y, csg::Region3 const* stencil, csg::Point2 const& min, csg::Point2 const& max)
-{
-   csg::Point3 box_min(min.x, y, min.y);
-   csg::Point3 box_max(max.x, y + brush_sizes_[i].y, max.y);
-   csg::Cube3 grid_box = csg::Cube3::Construct(box_min, box_max);
-   if (!grid_box.IsEmpty()) {
-      if (stencil) {
-         csg::Region3 clipped = *stencil & grid_box;
-         dst.AddUnique(nine_grid_[i].PaintThroughStencil(clipped));
-      } else {
-         dst.AddUnique(nine_grid_[i].PaintThroughStencil(grid_box));
+         if (modelStencil) {
+            model.AddUnique(column.Translated(dstOffset) & *modelStencil);
+         } else {
+            model.AddUnique(column.Translated(dstOffset));
+         }
       }
    }
+   return model;
 }
+
+csg::Region2 NineGridBrush::ClassifyNineGrid(csg::EdgeMap<int, 2> const& edgeMap)
+{
+   int type = 0;
+   csg::Point2 delta;
+   csg::Region2 classified;
+
+   for (csg::Rect2 const& r : shape_region2_) {
+      classified.AddUnique(csg::Rect2(r.min, r.max, 5));
+   }
+
+   // Edges...
+   for (csg::Edge<int, 2> const& edge : edgeMap.GetEdges()) {
+      if (edge.normal == csg::Point2(0, -1)) {           // bottom edge
+         type = 2, delta = csg::Point2(0, brush_sizes_[2].y);
+      } else if (edge.normal == csg::Point2(-1, 0)) {    // left edge
+         type = 4, delta = csg::Point2(brush_sizes_[4].x, 0);
+      } else if (edge.normal == csg::Point2(0, 1)) {     // top edge
+         type = 8, delta = csg::Point2(0, -brush_sizes_[8].y);
+      } else if (edge.normal == csg::Point2(1, 0)) {     // right edge
+         type = 6, delta = csg::Point2(-brush_sizes_[6].x, 0);
+      } else {
+         type = 0;
+      }
+      if (type != 0) {
+         csg::Rect2 box = csg::Rect2::Construct(edge.min->location, edge.max->location + delta, type);
+         classified.Add(box);
+      }
+   }
+
+   // Corners...
+   for (csg::EdgePoint<int, 2> const* point : edgeMap.GetPoints()) {
+      csg::Rect2 box;
+      if (point->accumulated_normals == csg::Point2(-1, -1)) {       // bottom left
+         type = 1, delta = brush_sizes_[1];
+      } else if (point->accumulated_normals == csg::Point2(1, -1)) { // bottom right
+         type = 3, delta = csg::Point2(-brush_sizes_[3].x, brush_sizes_[3].y);
+      } else if (point->accumulated_normals == csg::Point2(-1, 1)) { // top left
+         type = 9, delta = csg::Point2(brush_sizes_[9].x, -brush_sizes_[9].y);
+      } else if (point->accumulated_normals == csg::Point2(1, 1)) {  // top right
+         type = 7, delta = -brush_sizes_[7];
+      } else {
+         type = 0;
+      }
+      if (type != 0) {
+         csg::Rect2 box = csg::Rect2::Construct(point->location, point->location + delta, type);
+         classified.Add(box);
+      }
+   }
+
+   classified &= shape_region2_;
+
+   return classified;
+}
+
+void NineGridBrush::ComputeHeightMap(csg::Region2 const& ninegrid, GridMap<short>& heightmap, GridMap<csg::Point2>& gradiant)
+{
+   GridMap<bool> updated(shapeBounds_, false);
+
+   // Initialize the entire height of the roof to zero.
+   for (csg::Rect2 const& rect : ninegrid) {
+      for (csg::Point2 const& src : rect) {
+         heightmap.set(src, 0);
+      }
+   }
+
+   // Create a set of directions that the roof is allowed to grow
+   // in based on the gradiant
+   std::vector<csg::Point2> growDirections;
+
+   if (gradiant_ & POSITIVE_X) {
+      growDirections.push_back(csg::Point2( 1, 0));
+   }
+   if (gradiant_ & NEGATIVE_X) {
+      growDirections.push_back(csg::Point2(-1, 0));
+   }
+   if (gradiant_ & POSITIVE_Z) {
+      growDirections.push_back(csg::Point2( 0, 1));
+   }
+   if (gradiant_ & NEGATIVE_Z) {
+      growDirections.push_back(csg::Point2( 0,-1));
+   }
+   if ((gradiant_ & POSITIVE_X) && (gradiant_ & POSITIVE_Z)) {
+      growDirections.push_back(csg::Point2( 1, 1));
+   }
+   if ((gradiant_ & POSITIVE_X) && (gradiant_ & NEGATIVE_Z)) {
+      growDirections.push_back(csg::Point2( 1,-1));
+   }
+   if ((gradiant_ & NEGATIVE_X) && (gradiant_ & POSITIVE_Z)) {
+      growDirections.push_back(csg::Point2(-1, 1));
+   }
+   if ((gradiant_ & NEGATIVE_X) && (gradiant_ & NEGATIVE_Z)) {
+      growDirections.push_back(csg::Point2(-1,-1));
+   }
+
+   // compute the fringe.
+   std::vector<csg::Point2> fringe;
+   for (csg::Rect2 const& rect : ninegrid) {
+      for (csg::Point2 const& src : rect) {
+         for (auto const& delta : growDirections) {
+            if (heightmap.get(src + delta, -1) == -1) {
+               gradiant.set(src, delta);
+               updated.set(src, true);
+               fringe.push_back(src);
+               break;
+            }
+         }
+      }
+   }
+
+   // keep growing the fringe until we run out of interior room
+   bool more;
+   do {
+      more = false;
+      std::vector<csg::Point2> nextfringe;
+      for (csg::Point2 const& pt : fringe) {
+         ASSERT(updated.get(pt, false));
+
+         for (auto const& delta : growDirections) {
+            csg::Point2 next = pt - delta;
+            if (!updated.get(next, true)) {
+               int height = heightmap.get(pt, 0);
+               height = std::min(height + 1, maxHeight_);
+
+               gradiant.set(next, gradiant.get(pt, csg::Point2::zero));
+               updated.set(next, true);
+               heightmap.set(next, height);
+               nextfringe.push_back(next);
+               more = true;
+            }
+         }
+      }
+      fringe = std::move(nextfringe);
+   } while (more);
+}
+

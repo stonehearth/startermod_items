@@ -27,7 +27,12 @@ function ConstructionDataRenderer:initialize(render_entity, construction_data)
                                        end
                                     end)
 
-      self._component_trace = self._entity:trace_components('render construction component')
+      self._construction_data_trace = construction_data:trace_data('render')
+                                          :on_changed(function()
+                                                self._render_tracker:push_visible_state()
+                                             end)
+
+      self._component_trace = self._entity:trace_components('render')
                                  :on_added(function(key, value)
                                        self:_trace_collision_shape()
                                     end)
@@ -39,6 +44,10 @@ function ConstructionDataRenderer:destroy()
    if self._render_tracker then
       self._render_tracker:destroy()
       self._render_tracker = nil   
+   end
+   if self._construction_data_trace then
+      self._construction_data_trace:destroy()
+      self._construction_data_trace = nil
    end
    if self._component_trace then
       self._component_trace:destroy()
