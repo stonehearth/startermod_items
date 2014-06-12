@@ -27,7 +27,7 @@ function FixtureFabricatorRenderer:initialize(render_entity, fixture_fabricator)
    end
    self._render_tracker:push_object_state()
 
-   self._trace = fixture_fabricator:trace_data('render trace')
+   self._ff_trace = fixture_fabricator:trace_data('render trace')
                      :on_changed(function()
                            self._fixture_visible = not fixture_fabricator:get_data().finished
                            self:_update_render_state()
@@ -38,9 +38,9 @@ end
 -- Destroy the renderer
 --
 function FixtureFabricatorRenderer:destroy()
-   if self._trace then
-      self._trace:destroy()
-      self._trace = nil
+   if self._ff_trace then
+      self._ff_trace:destroy()
+      self._ff_trace = nil
    end
    if self._render_tracker then
       self._render_tracker:destroy()

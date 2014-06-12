@@ -74,7 +74,7 @@ var StonehearthClient;
 
       deactivateAllTools: function() {
          var self = this;
-         return radiant.call('radiant:client:deactivate_all_tools')
+         return radiant.call('stonehearth:deactivate_all_tools')
             .always(function() {
                self._activeTool = null;
             });
@@ -206,6 +206,24 @@ var StonehearthClient;
 
          return this._callTool(function() {
             return radiant.call_obj(self._build_editor, 'place_new_floor', floor.brush)
+               .always(function(response) {
+                  radiant.call('radiant:play_sound', 'stonehearth:sounds:place_structure' );
+                  $(top).trigger('radiant_hide_tip');
+               });
+         });
+      },
+
+      eraseFloor: function(floor) {
+         radiant.call('radiant:play_sound', 'stonehearth:sounds:ui:start_menu:popup' );
+         var self = this;
+
+         $(top).trigger('radiant_show_tip', { 
+            title : 'Erase Floor Tooltip',
+            description : 'Erase Floor Tooltip'
+         });
+
+         return this._callTool(function() {
+            return radiant.call_obj(self._build_editor, 'erase_floor')
                .always(function(response) {
                   radiant.call('radiant:play_sound', 'stonehearth:sounds:place_structure' );
                   $(top).trigger('radiant_hide_tip');

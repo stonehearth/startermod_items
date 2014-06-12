@@ -40,6 +40,9 @@ App.StonehearthBuildingDesignerView2 = App.View.extend({
       selectRoofMaterial: function(wall) {
          //App.stonehearthClient.growWalls(this.get('context.building'), 'stonehearth:wooden_column', wall.uri);
       },
+      selectFloorEraserTool: function() {
+         App.stonehearthClient.eraseFloor();
+      },
    },
 
    floorPatterns: [

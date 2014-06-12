@@ -519,10 +519,6 @@ void Client::OneTimeIninitializtion()
       return d;
    });
 
-   core_reactor_->AddRouteV("radiant:client:deactivate_all_tools", [this](rpc::Function const& f) {
-      DeactivateAllTools();
-   });
-
    core_reactor_->AddRouteV("radiant:client:select_entity", [this](rpc::Function const& f) {
       json::Node params(json::Node(f.args).get_node(0));
       std::string uri = params.as<std::string>("");
@@ -1436,17 +1432,7 @@ void Client::ProcessBrowserJobQueue()
 
 XZRegionSelectorPtr Client::CreateXZRegionSelector(int userFlags)
 {
-   XZRegionSelectorPtr selector = std::make_shared<XZRegionSelector>(GetTerrain(), userFlags);
-   xz_selectors_.push_back(selector);
-   return selector;
-}
-
-void Client::DeactivateAllTools()
-{
-   stdutil::ForEachPrune<XZRegionSelector>(xz_selectors_, [=](XZRegionSelectorPtr s) {
-      s->Deactivate();
-   });
-   xz_selectors_.clear();
+   return std::make_shared<XZRegionSelector>(GetTerrain(), userFlags);
 }
 
 void Client::EnableDisableSaveStressTest()

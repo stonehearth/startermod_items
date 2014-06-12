@@ -11,7 +11,7 @@ local IngredientList = require 'components.workshop.ingredient_list'
 --- Client side object to add a new bench to the world.  this method is invoked
 --  by POSTing to the route for this file in the manifest.
 function WorkshopCallHandler:choose_workbench_location(session, response, workbench_entity)
-   stonehearth.selection.select_location()
+   stonehearth.selection:select_location()
       :use_ghost_entity_cursor(workbench_entity)
       :done(function(selector, location, rotation)
             _radiant.call('stonehearth:create_ghost_workbench', workbench_entity, location, rotation)
@@ -34,7 +34,7 @@ end
 
 --- Client side object to add the workbench's outbox to the world. 
 function WorkshopCallHandler:choose_outbox_location(session, response, workbench_entity, crafter)
-   stonehearth.selection.select_xz_region()
+   stonehearth.selection:select_xz_region()
       :use_designation_marquee(Color4(0, 153, 255, 255))
       :set_cursor('stonehearth:cursors:create_stockpile')
       :done(function(selector, box)

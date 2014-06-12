@@ -4,25 +4,22 @@ local Point3 = _radiant.csg.Point3
 local Point3f = _radiant.csg.Point3f
 local Region3 = _radiant.csg.Region3
 
-local FloorEditor = class()
+local FloorEraser = class()
 
 -- this is the component which manages the fabricator entity.
-function FloorEditor:__init(build_service)
+function FloorEraser:__init(build_service)
    self._build_service = build_service
    self._log = radiant.log.create_logger('builder')
 end
 
-function FloorEditor:go(response, brush_shape)
-   local brush = _radiant.voxel.create_brush(brush_shape)
-
+function FloorEraser:go(response)
    stonehearth.selection:select_xz_region()
       :set_cursor('stonehearth:cursors:create_floor')
       :use_manual_marquee(function(selector, box)
-            local model = brush:paint_through_stencil(Region3(box))
-            return _radiant.client.create_voxel_node(1, model, 'materials/blueprint.material.xml', Point3f(0.5, 0, 0.5))
+            return _radiant.client.create_voxel_node(1, Region3(box), 'materials/blueprint.material.xml', Point3f(0.5, 0, 0.5))
          end)
       :done(function(selector, box)
-            self:_add_floor(response, selector, box, brush_shape)
+            self:_erase_floor(response, selector, box)
          end)
       :fail(function(selector)
             selector:destroy()
@@ -33,8 +30,8 @@ function FloorEditor:go(response, brush_shape)
    return self
 end
 
-function FloorEditor:_add_floor(response, selector, box, brush_shape)
-   _radiant.call_obj(self._build_service, 'add_floor', 'stonehearth:entities:wooden_floor', box, brush_shape)
+function FloorEraser:_erase_floor(response, selector, box)
+   _radiant.call_obj(self._build_service, 'erase_floor', box)
       :done(function(r)
             if r.new_selection then
                stonehearth.selection:select_entity(r.new_selection)
@@ -49,7 +46,7 @@ function FloorEditor:_add_floor(response, selector, box, brush_shape)
          end)
 end
 
-function FloorEditor:destroy()
+function FloorEraser:destroy()
 end
 
-return FloorEditor 
+return FloorEraser 

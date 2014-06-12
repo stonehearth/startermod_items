@@ -6,6 +6,11 @@ local Point3 = _radiant.csg.Point3
 local Cube3 = _radiant.csg.Cube3
 local Region3 = _radiant.csg.Region3
 
+function WallLoopEditor:__init(build_service)
+   self._build_service = build_service
+   self._log = radiant.log.create_logger('builder')
+end
+
 function WallLoopEditor:go(column_uri, wall_uri, response)
    self._column_uri = column_uri
    self._wall_uri = wall_uri
@@ -18,7 +23,7 @@ function WallLoopEditor:go(column_uri, wall_uri, response)
    local current_column_editor = StructureEditor()
    current_column_editor:create_blueprint(column_uri, 'stonehearth:column')
 
-   self._selector = stonehearth.selection.select_location()
+   self._selector = stonehearth.selection:select_location()
       :allow_shift_queuing(true)
       :set_min_locations_count(2)
       :set_filter_fn(function(result)
@@ -84,7 +89,7 @@ function WallLoopEditor:_pump_queue()
    end
 
    self._waiting_for_response = true
-   _radiant.call('stonehearth:add_wall', self._column_uri, self._wall_uri, p0, p1, normal)
+   _radiant.call_obj(self._build_service, 'add_wall', self._column_uri, self._wall_uri, p0, p1, normal)
             :done(function(result)
                   if result.new_selection then
                      stonehearth.selection:select_entity(result.new_selection)

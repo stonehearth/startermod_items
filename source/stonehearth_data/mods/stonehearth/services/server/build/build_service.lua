@@ -6,6 +6,16 @@ local Point3 = _radiant.csg.Point3
 local Region2 = _radiant.csg.Region2
 local Region3 = _radiant.csg.Region3
 
+-- these are quite annoying.  we can get rid of them by implementing and using
+-- LuaToProto <-> ProtoToLua in the RPC layer (see lib/typeinfo/dispatcher.h)
+local function ToPoint3(pt)
+   return Point3(pt.x, pt.y, pt.z)
+end
+local function ToCube3(box)
+   return Cube3(ToPoint3(box.min), ToPoint3(box.max))
+end
+
+
 local BuildService = class()
 
 function BuildService:__init(datastore)
@@ -13,6 +23,8 @@ end
 
 function BuildService:initialize()
    self._sv = self.__saved_variables:get_data()
+   self.__saved_variables:set_controller(self)
+
    if not self._sv.next_building_id then
       self._sv.next_building_id = 1 -- used to number newly created buildings
       self.__saved_variables:mark_changed()
@@ -61,8 +73,9 @@ end
 --    @param box - the area of the new floor segment
 
 function BuildService:add_floor(session, response, floor_uri, box, brush_shape)
-   local floor
+   box = ToCube3(box)
 
+   local floor
    -- look for floor that we can merge into.
    local all_overlapping_floor = radiant.terrain.get_entities_in_cube(box, function(entity)
          return self:is_blueprint(entity) and self:_get_structure_type(entity) == 'floor'
@@ -89,6 +102,10 @@ function BuildService:add_floor(session, response, floor_uri, box, brush_shape)
    else
       response:reject({ error = 'could not create floor' })
    end
+end
+
+function BuildService:erase_floor(session, response, box)
+   response:reject({ error = 'not yet implemented' })
 end
 
 -- adds a new fabricator to blueprint.  this creates a new 'stonehearth:entities:fabricator'
@@ -350,6 +367,8 @@ function BuildService:_merge_building_into(merge_into, building)
 end
 
 function BuildService:add_wall(session, response, columns_uri, walls_uri, p0, p1, normal)
+   p0, p1, normal = ToPoint3(p0), ToPoint3(p1), ToPoint3(normal)
+
    -- look for floor that we can merge into.
    local c0 = self:_get_blueprint_at_point(p0)
    local c1 = self:_get_blueprint_at_point(p1)
