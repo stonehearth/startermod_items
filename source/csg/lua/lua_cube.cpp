@@ -11,10 +11,10 @@ using namespace ::radiant;
 using namespace ::radiant::csg;
 
 template <typename T> 
-class PointIterator
+class LuaPointIterator
 {
 public:
-   PointIterator(T const& cube) :
+   LuaPointIterator(T const& cube) :
       cube_(cube),
       i_(cube_.begin())
    {
@@ -22,7 +22,7 @@ public:
 
    static int NextIteration(lua_State *L)
    {
-      PointIterator* iter = object_cast<PointIterator*>(object(from_stack(L, -2)));
+      LuaPointIterator* iter = object_cast<LuaPointIterator*>(object(from_stack(L, -2)));
       return iter->Next(L);
    }
 
@@ -36,7 +36,7 @@ public:
    }
 
 private:
-   NO_COPY_CONSTRUCTOR(PointIterator)
+   NO_COPY_CONSTRUCTOR(LuaPointIterator)
 
 private:
    const T& cube_;
@@ -46,8 +46,8 @@ private:
 template <typename T>
 static void EachPoint(lua_State *L, T const& cube)
 {
-   lua_pushcfunction(L, PointIterator<T>::NextIteration);  // f
-   object(L, new PointIterator<T>(cube)).push(L);          // s
+   lua_pushcfunction(L, LuaPointIterator<T>::NextIteration);  // f
+   object(L, new LuaPointIterator<T>(cube)).push(L);          // s
    object(L, 1).push(L);                                   // var (ignored)
 }
 
@@ -56,9 +56,9 @@ Cube3f ToCube3f(const Cube3& r) {
 }
 
 
-IMPLEMENT_TRIVIAL_TOSTRING(PointIterator<Cube3>);
-DEFINE_INVALID_LUA_CONVERSION(PointIterator<Cube3>);
-DEFINE_INVALID_JSON_CONVERSION(PointIterator<Cube3>);
+IMPLEMENT_TRIVIAL_TOSTRING(LuaPointIterator<Cube3>);
+DEFINE_INVALID_LUA_CONVERSION(LuaPointIterator<Cube3>);
+DEFINE_INVALID_JSON_CONVERSION(LuaPointIterator<Cube3>);
 
 template <typename T>
 T IntersectCube(T const& lhs, T const& rhs)
@@ -123,6 +123,6 @@ scope LuaCube::RegisterLuaTypes(lua_State* L)
       Register<Cube3f>(L, "Cube3f"),
       Register<Rect2>(L,  "Rect2"),
       Register<Line1>(L,  "Line1"),
-      lua::RegisterType_NoTypeInfo<PointIterator<Cube3>>("Cube3Iterator")
+      lua::RegisterType_NoTypeInfo<LuaPointIterator<Cube3>>("Cube3Iterator")
    ;
 }

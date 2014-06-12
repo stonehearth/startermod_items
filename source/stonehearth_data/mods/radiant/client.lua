@@ -28,6 +28,7 @@ function radiant.create_controller(...)
    return controller
 end
 
+radiant.lib = {}
 radiant.log = require 'modules.log'
 radiant.util = require 'lib.util'
 radiant.resources = require 'modules.resources'
@@ -43,7 +44,6 @@ require 'modules.timer'
 -- xxx: radiant client and server need to share much more stuff!!! -- tony
 function radiant.update()
    radiant.events._update()
-   radiant._fire_timers()
 end
 
 return radiant

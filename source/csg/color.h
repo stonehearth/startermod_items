@@ -150,7 +150,12 @@ public:
    static Color3 blue;
    static Color3 black;
    static Color3 white;
+   static Color3 grey;
+   static Color3 brown;
+   static Color3 purple;
+   static Color3 pink;
 };
+
 std::ostream& operator<<(std::ostream& out, const Color3& source);
 
 struct Histogram {

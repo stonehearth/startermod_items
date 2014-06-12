@@ -33,6 +33,7 @@ function radiant.exit(code)
    _host:exit(code)
 end
 
+radiant.lib = {}
 radiant.log = require 'modules.log'
 radiant.util = require 'lib.util'
 radiant.check = require 'lib.check'
@@ -121,7 +122,6 @@ function radiant.update(profile_this_frame)
 
    radiant.log.spam('radiant', 'starting frame %d', radiant.gamestate.now())
    radiant.events._update()
-   radiant._fire_timers()
    radiant.log.spam('radiant', 'finishing frame %d', radiant.gamestate.now())
 
    if _profile.enabled then
