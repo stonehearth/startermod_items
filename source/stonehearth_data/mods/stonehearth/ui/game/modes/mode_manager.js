@@ -116,7 +116,7 @@ $(document).ready(function() {
          var entity = e.selected_entity
          
          if (!entity) {
-            this.setGameMode(this.modes.NORMAL);
+            //this.setGameMode(this.modes.NORMAL);
             return;
          }
 

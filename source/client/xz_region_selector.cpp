@@ -78,6 +78,10 @@ bool XZRegionSelector::onInputEvent(Input const& evt)
       if (evt.mouse.up[1] && !evt.mouse.dragging) { // right mouse up
          deferred_->Reject("mouse 2 pressed");
          Deactivate();            
+      }
+
+      if (evt.mouse.dragging) {
+         // let right mouse button input through so the camera can rotate
          return false;
       }
 
