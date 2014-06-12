@@ -25,7 +25,7 @@
          "durability": 15
       },
       "mob" : {
-         "local_origin" : { "x": 0, "y": 0, "z": 0 },
+         "model_origin" : { "x": 0, "y": 0, "z": 0 },
          "align_to_grid" : [ "x", "z" ]
       },
       "destination" : {

@@ -79,8 +79,9 @@ function BuildEditor:place_new_floor(session, response, brush_shape)
    FloorEditor():go(response, brush_shape)
 end
 
-function BuildEditor:grow_walls(session, response, building)
-   _radiant.call('stonehearth:grow_walls', building, 'stonehearth:wooden_column', 'stonehearth:wooden_wall')
+function BuildEditor:grow_walls(session, response, building, columns_uri, walls_uri)
+   
+   _radiant.call('stonehearth:grow_walls', building, columns_uri, walls_uri)
       :done(function(r)
             response:resolve(r)
          end)

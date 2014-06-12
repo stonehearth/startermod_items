@@ -29,7 +29,9 @@ function MicroWorld:create_world()
    -- refactoring is required.
    stonehearth.terrain:get_visible_region(session.faction) 
    stonehearth.terrain:get_explored_region(session.faction)
-   
+
+   assert(self._size % 2 == 0)
+   local half_size = self._size / 2
 
    local region3 = _radiant.sim.alloc_region()
    region3:modify(function(r3)
@@ -39,7 +41,7 @@ function MicroWorld:create_world()
 
    local terrain = radiant._root_entity:add_component('terrain')
    terrain:set_tile_size(self._size)
-   terrain:add_tile(Point3(-16, 0, -16), region3)
+   terrain:add_tile(Point3(-half_size, 0, -half_size), region3)
 end
 
 function MicroWorld:at(time, fn)

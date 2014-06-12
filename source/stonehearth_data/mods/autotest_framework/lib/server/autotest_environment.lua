@@ -1,15 +1,12 @@
-local Cube3   = _radiant.csg.Cube3
 local Point3  = _radiant.csg.Point3
 local Point3f = _radiant.csg.Point3f
-local Terrain = _radiant.om.Terrain
 
-local WORLD_SIZE = 64
 local DEFAULT_FACTION = 'civ'
 
 local _all_entities = {}
 
 local env = {}
-function env.create_world()
+function env.create_world(world_generator_script)
    env.session = {
       player_id = 'player_1',
       faction = 'civ',
@@ -19,15 +16,8 @@ function env.create_world()
    stonehearth.inventory:add_inventory(env.session)
    stonehearth.population:add_population(env.session)
 
-   local region3 = _radiant.sim.alloc_region()
-   region3:modify(function(r3)
-      r3:add_cube(Cube3(Point3(0, -16, 0), Point3(WORLD_SIZE, 0, WORLD_SIZE), Terrain.SOIL_STRATA))
-      r3:add_cube(Cube3(Point3(0,   0, 0), Point3(WORLD_SIZE, 1, WORLD_SIZE), Terrain.GRASS))
-   end)
-
-   local terrain = radiant._root_entity:add_component('terrain')
-   terrain:set_tile_size(WORLD_SIZE)
-   terrain:add_tile(Point3(-WORLD_SIZE / 2, 0, -WORLD_SIZE / 2), region3)
+   local create_world = radiant.mods.load_script(world_generator_script)
+   create_world(env)
 
    -- listen for every entity creation event so we can tear them all down between tests
    radiant.events.listen(radiant, 'radiant:entity:post_create', function(e)

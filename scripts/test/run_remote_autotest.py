@@ -145,15 +145,13 @@ def run_tests(slaves, test_group, file_location, timeout=60 * 60):
 
 def write_results_to_json_file(results, output_file):
    f = open(output_file, 'w')
-   combined_result = '{'
+   combined_results = {}
 
    for result in results:
       if result[0] != None:
-         combined_result = combined_result + "\n"
-         combined_result = (combined_result + """   "%s" : %s,""") % (result[1], result[0])
+         combined_results[result[1]] = json.loads(result[0])
 
-   combined_result = combined_result + '\n}\n'
-   f.write(combined_result)
+   f.write(json.dumps(combined_results, indent=2, separators=(',', ': ')))
    f.close()
 
 if os.environ.has_key('RADIANT_ROOT'):
@@ -172,8 +170,8 @@ slaves = [ (machine['ip_address'], machine['name']) for machine in slave_json['m
 if not '-a' in sys.argv:
    slaves = [slaves[0]]
 
-# Default to everything _but_ performance.
-test_group = 'all_but_performance'
+# Default to everything (does not include performance tests!)
+test_group = 'all'
 if '-g' in sys.argv:
    test_group = sys.argv[sys.argv.index('-g') + 1]
 
