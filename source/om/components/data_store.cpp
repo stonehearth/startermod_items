@@ -53,6 +53,21 @@ void DataStore::SerializeToJson(json::Node& node) const
 
 luabind::object DataStore::RestoreController(DataStorePtr self)
 {
+   // Whenever the data object changes, write the root value back into
+   // _sv of the controller.  This won't help anyone who caches _sv values
+   // in their code (e.g. local foo = self._sv.foo), but it at least makes
+   // it so client-side code doesn't have to repeatedly call :get_data()
+   // on the datastore to make sure they have the most up-to-date copy
+
+   _dataObjTrace = data_.TraceChanges("update _sv", dm::OBJECT_MODEL_TRACES)
+                              ->OnModified([this]() {
+                                 luabind::object controller = GetController();
+                                 if (controller.is_valid()) {
+                                    _controllerObject["_sv"] = GetData();
+                                 }
+                              });
+
+   // Now go ahead and create the controller
    std::vector<luabind::object> visitedTables;
    std::unordered_map<dm::ObjectId, luabind::object> visited;
    return RestoreControllerRecursive(self, visitedTables, visited);

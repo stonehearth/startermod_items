@@ -6,6 +6,121 @@
 
 BEGIN_RADIANT_CSG_NAMESPACE
 
+template <typename S, int C> class Cube;
+template <typename S, int C> class Point;
+template <typename S, int C> struct PointIterator;
+
+template <typename S>
+struct PointIterator<S, 3> {
+   typedef Cube<S, 3> Cube;
+   typedef Point<S, 3> Point;
+
+   PointIterator(Cube const& c, Point const& iter) :
+      min(c.GetMin()),
+      max(c.GetMax()),
+      axis_(0)
+   {
+      if (c.GetArea() <= 0) {
+         iter_ = end;
+         return;
+      }
+
+      ASSERT(iter == end || c.Contains(iter));
+      if (!c.Contains(iter)) {
+         iter_ = end;
+         return;
+      }
+      iter_ = iter;
+   }
+
+   const Point operator*() const {
+      return iter_;
+   }
+
+   const void operator++() {
+      if (iter_ != end) {
+         iter_.z++;
+         if (iter_.z == max.z) {
+            iter_.z = min.z;
+            iter_.x++;
+            if (iter_.x == max.x) {
+               iter_.z = min.z;
+               iter_.x = min.x;
+               iter_.y++;
+               if (iter_.y == max.y) {
+                  iter_ = end;
+               }
+            }
+         }
+      }
+   }
+   bool operator!=(const PointIterator& rhs) {
+      return iter_ != rhs.iter_;
+   }
+
+public:
+   static   Point3 end;
+
+private:
+   Point    min;
+   Point    max;
+   Point    iter_;
+   int      axis_;
+};
+
+template <typename S>
+struct PointIterator<S, 2> {
+   typedef Cube<S, 2> Cube;
+   typedef Point<S, 2> Point;
+
+   PointIterator(Cube const& c, Point const& iter) :
+      min(c.GetMin()),
+      max(c.GetMax()),
+      axis_(0)
+   {
+      if (c.GetArea() <= 0) {
+         iter_ = end;
+         return;
+      }
+
+      ASSERT(iter == end || c.Contains(iter));
+      if (!c.Contains(iter)) {
+         iter_ = end;
+         return;
+      }
+      iter_ = iter;
+   }
+
+   const Point operator*() const {
+      return iter_;
+   }
+
+   const void operator++() {
+      if (iter_ != end) {
+         iter_.x++;
+         if (iter_.x == max.x) {
+            iter_.x = min.x;
+            iter_.y++;
+            if (iter_.y == max.y) {
+               iter_ = end;
+            }
+         }
+      }
+   }
+   bool operator!=(const PointIterator& rhs) {
+      return iter_ != rhs.iter_;
+   }
+
+public:
+   static   Point    end;
+
+private:
+   Point    min;
+   Point    max;
+   Point    iter_;
+   int      axis_;
+};
+
 template <typename S, int C>
 class Cube
 {
@@ -13,6 +128,7 @@ public:
    typedef S ScalarType;
    typedef Point<S, C> Point;
    typedef Region<S, C> Region;
+   typedef PointIterator<S, C> PointIterator;
 
 public:
    static Cube<S, C> zero;
@@ -31,60 +147,6 @@ public:
       }
       return Cube(min_value, max_value, tag);
    }
-
-   struct PointIterator {
-      PointIterator(Cube const& c, Point const& iter) :
-         min(c.GetMin()),
-         max(c.GetMax()),
-         axis_(0)
-      {
-         if (c.GetArea() <= 0) {
-            iter_ = end;
-            return;
-         }
-
-         ASSERT(iter == end || c.Contains(iter));
-         if (!c.Contains(iter)) {
-            iter_ = end;
-            return;
-         }
-         iter_ = iter;
-      }
-
-      const Point operator*() const {
-         return iter_;
-      }
-
-      const void operator++() {
-         if (iter_ != end) {
-            iter_.z++;
-            if (iter_.z == max.z) {
-               iter_.z = min.z;
-               iter_.x++;
-               if (iter_.x == max.x) {
-                  iter_.z = min.z;
-                  iter_.x = min.x;
-                  iter_.y++;
-                  if (iter_.y == max.y) {
-                     iter_ = end;
-                  }
-               }
-            }
-         }
-      }
-      bool operator!=(const PointIterator& rhs) {
-         return iter_ != rhs.iter_;
-      }
-
-   public:
-      static   Point3 end;
-
-   private:
-      Point    min;
-      Point    max;
-      Point    iter_;
-      int      axis_;
-   };
 
    PointIterator begin() const { return PointIterator(*this, GetMin()); }
    PointIterator end() const { return PointIterator(*this, PointIterator::end); }

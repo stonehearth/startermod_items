@@ -69,17 +69,6 @@ json::Node const& DataObject::GetJsonNode() const
    return cached_json_;
 }
 
-#if 0
-void DataObject::SetJsonNode(lua_State* L, json::Node const& node)
-{
-   DO_LOG(8) << "set json node";
-   dirty_ = false;
-   cached_json_ = node;
-   data_object_ = ScriptHost::JsonToLua(L, node);
-   DO_LOG(8) << "post set json node";
-}
-#endif
-
 void DataObject::SaveValue(dm::Store const& store, dm::SerializationType r, Protocol::LuaDataObject *msg) const
 {
    lua::ScriptHost* s = lua::ScriptHost::GetScriptHost(store.GetInterpreter());

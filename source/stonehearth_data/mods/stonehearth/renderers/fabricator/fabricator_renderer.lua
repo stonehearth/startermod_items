@@ -25,16 +25,21 @@ function FabricatorRenderer:initialize(render_entity, fabricator)
       -- view mode.  it will drive the shape and visibility of our structure shape
       -- based on those modes.  
       self._render_tracker = ConstructionRenderTracker(self._entity)
-                              :set_normal(self._blueprint_cd:get_normal())
-                              :set_visible_ui_modes('hud')
-                              :set_render_region_changed_cb(function(region, visible)
-                                    self:_update_region(region, visible)
-                                 end)
-                              :set_visible_changed_cb(function(visible)
-                                    if self._render_node then
-                                       self._render_node:set_visible(visible)
-                                    end
-                                 end)
+                                 :set_normal(self._blueprint_cd:get_normal())
+                                 :set_visible_ui_modes('hud')
+                                 :set_render_region_changed_cb(function(region, visible)
+                                       self:_update_region(region, visible)
+                                    end)
+                                 :set_visible_changed_cb(function(visible)
+                                       if self._render_node then
+                                          self._render_node:set_visible(visible)
+                                       end
+                                    end)
+
+      self._construction_data_trace = self._blueprint_cd:trace_data('render')
+                                          :on_changed(function()
+                                                self._render_tracker:push_visible_state()
+                                             end)
 
       -- push the destination region into the render tracker whenever it changes
       self._destination = self._entity:get_component('destination')
@@ -66,6 +71,10 @@ function FabricatorRenderer:destroy()
    if self._render_tracker then
       self._render_tracker:destroy()
       self._render_tracker = nil   
+   end
+   if self._construction_data_trace then
+      self._construction_data_trace:destroy()
+      self._construction_data_trace = nil
    end
    if self._editing_region_node then
       self._editing_region_node:destroy()
