@@ -45,18 +45,7 @@ function Town:_create_task_groups()
    self._scheduler = stonehearth.tasks:create_scheduler(self._sv.player_id)
                                        :set_counter_name(self._sv.player_id)
 
-   self._task_groups = {
-      --workers = self._scheduler:create_task_group('stonehearth:work', {})
-      --                         :set_counter_name('workers'), 
-      --farmers = self._scheduler:create_task_group('stonehearth:farm', {})
-      --                         :set_counter_name('farmers'), 
-   }      
-
-   -- a map from a profession_id to a task group for that profession
-   --self._profession_to_taskgroup = {
-   --   worker = self._task_groups.workers,
-   --   farmer = self._task_groups.farmers,
-   --}
+   self._task_groups = {}
 
    -- Create new task groups
    local task_group_data = radiant.resources.load_json(self._sv.kingdom).task_groups
@@ -122,23 +111,12 @@ function Town:get_town_name()
    return self._sv.town_name
 end
 
--- xxx: this is a stopgap until we can provide a better interface
---function Town:create_worker_task(activity_name, args)
---   return self._task_groups.workers:create_task(activity_name, args)
---end
-
+-- This is for making task groups that the town doesn't track, ie, individual task groups
 function Town:create_task_group(activity_group, args)
    -- xxx: stash it away for when we care to enumerate everything everyone in the town
    -- is doing
    return self._scheduler:create_task_group(activity_group, args)
 end
-
--- xxx: this is a stopgap until we can provide a better interface
--- Yes, since I'm duplicating it for farmers
--- TODO: fix and generalize
---function Town:create_farmer_task(activity_name, args, player_init)
---   return self._task_groups.farmers:create_task(activity_name, args)
---end
 
 --- Add a person to a town task group.
 --  If the task group doesn't exist, make one. 
@@ -401,7 +379,6 @@ function Town:harvest_crop(crop, player_initialized)
 
    local id = crop:get_id()
    if not self._harvest_tasks[id] then
-      --local task_group = self._task_groups.farmers
       local task = self:create_task_for_group('stonehearth:task_group:simple_farming', 'stonehearth:harvest_crop', { crop = crop })
                                    :set_source(crop)
                                    :set_priority(stonehearth.constants.priorities.farming.HARVEST)
