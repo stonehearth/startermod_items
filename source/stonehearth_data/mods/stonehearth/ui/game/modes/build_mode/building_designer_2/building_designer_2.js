@@ -153,6 +153,8 @@ App.StonehearthBuildingDesignerView2 = App.View.extend({
       this._super();
 
       this.$('.tabButton').click(function() {
+         App.stonehearthClient.deactivateAllTools();
+         
          var tab = $(this).attr('tab');
 
          var currentTab = self.$('#selectedBuildingWindow .tabPage');
