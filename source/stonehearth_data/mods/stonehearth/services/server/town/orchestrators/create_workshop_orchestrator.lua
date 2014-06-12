@@ -10,7 +10,7 @@ function CreateWorkshop:run(town, args)
    local json = ghost_workshop:get_component('stonehearth:ghost_item'):get_full_sized_json()
    local workshop_data = json.components['stonehearth:workshop']
 
-   self._task_group = town:create_task_group('stonehearth:top', {})
+   self._task_group = town:create_task_group('stonehearth:crafting', {})
                                                   :add_worker(crafter)
 
    town:run_orchestrator(CollectIngredients, {

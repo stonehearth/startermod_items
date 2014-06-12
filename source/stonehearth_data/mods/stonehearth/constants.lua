@@ -54,6 +54,10 @@ local constants = {
          TEARDOWN_BUILDING  = 6,
       },
 
+      crafting = {
+         DEFAULT = 2,
+      },
+
       -- basic needs
       basic_needs = {
          EAT = 20,
