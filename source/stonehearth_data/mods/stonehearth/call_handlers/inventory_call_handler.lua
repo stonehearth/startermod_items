@@ -7,7 +7,7 @@ local InventoryCallHandler = class()
 
 -- runs on the client!!
 function InventoryCallHandler:choose_stockpile_location(session, response)
-   stonehearth.selection.select_xz_region()
+   stonehearth.selection:select_xz_region()
       :use_designation_marquee(Color4(0, 153, 255, 255))
       :set_cursor('stonehearth:cursors:create_stockpile')
       :done(function(selector, box)

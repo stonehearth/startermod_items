@@ -1,6 +1,12 @@
 <script type="text/x-handlebars" data-template-name="buildingDesigner2">
    <div id="selectedBuildingWindow" class="window flat">
-      <div class="title">{{ building.unit_info.name }}</div>
+      <div class="title">
+      {{#if building.unit_info.name}}
+         {{ building.unit_info.name }}
+      {{else}}         
+         Building Designer
+      {{/if}}
+      </div>
 
       <div id="toolbar">
          <div hotkey="f" class="tabButton floorTool" tab="floorToolTab"><div class="label">{{i18n stonehearth:building_designer_floor_tool}}</div></div>
@@ -12,9 +18,11 @@
       <div class="tabPage" id="floorToolTab" style="display: block">
          <h2>{{i18n stonehearth:building_designer_draw_floorplan}}</h2>
          {{i18n stonehearth:building_designer_draw_floorplan_help}}
-         <div class="brushPalette">
+
+         <h2>{{i18n stonehearth:building_designer_material}}</h2>
+         <div class="brushPalette section">
             {{#each floorPatterns}}
-               <h2>{{category}}</h2>
+               <!--<h2>{{category}}</h2>-->
                <div>
                   {{#each items}}
                      <a {{bind-attr name = "this.name"}}href="#" {{action selectFloorBrushTool this target="view"}} class="brushLink">
@@ -24,18 +32,25 @@
                </div>
                <div style="clear: both"></div>
             {{/each}}
+            <h2>Tools</h2>
+            <div>
+               <a name="erase" href="#" {{action selectFloorEraserTool this target="view"}} class="brushLink">
+                  <img src="floor_eraser.png" title="erase" />
+               </a>
+            </div>
          </div>
       </div>
 
       <div class="tabPage" id="fillWallToolTab">
          <h2>{{i18n stonehearth:building_designer_erect_walls}}</h2>
          {{i18n stonehearth:building_designer_erect_walls_help}}
-         <div class="brushPalette">
+         <h2>{{i18n stonehearth:building_designer_material}}</h2>
+         <div class="brushPalette section">
             {{#each wallPatterns}}
-               <h2>{{category}}</h2>
+               <!-- <h2>{{category}}</h2> -->
                <div>
                   {{#each items}}
-                     <a {{bind-attr name = "this.name"}}href="#" {{action selectWallBrushTool this target="view"}} class="brushLink">
+                     <a {{bind-attr name = "this.name"}}href="#" {{action selectWallMaterial this target="view"}} class="brushLink">
                         <img {{bind-attr src="this.portrait" title="this.name"}} />
                      </a>
                   {{/each}}
@@ -46,18 +61,35 @@
       </div>
 
       <div class="tabPage" id="roofToolTab">
-         <h2>Raise Roof</h2>
+         <h2>{{i18n stonehearth:building_designer_raise_roof}}</h2>
+         {{i18n stonehearth:building_designer_raise_roof_help}}
+         <h2>{{i18n stonehearth:building_designer_material}}</h2>
+         <div class="brushPalette section">
+            {{#each roofPatterns}}
+               <!-- <h2>{{category}}</h2> -->
+               <div>
+                  {{#each items}}
+                     <a {{bind-attr name = "this.name"}}href="#" {{action selectRoofMaterial this target="view"}} class="brushLink">
+                        <img {{bind-attr src="this.portrait" title="this.name"}} />
+                     </a>
+                  {{/each}}
+               </div>
+               <div style="clear: both"></div>
+            {{/each}}
+         </div>
       </div>
 
       <div class="tabPage" id="doorToolTab">
-         <h2>Add Doors, Windows, and Doodads</h2>
-         <div class="brushPalette">
+         <h2>{{i18n stonehearth:building_designer_doodads}}</h2>
+         {{i18n stonehearth:building_designer_doodads_help}}
+         <h2>{{i18n stonehearth:building_designer_material}}</h2>
+         <div class="brushPalette doodadPalette section">
             {{#each doodads}}
                <h2>{{category}}</h2>
                <div>
                   {{#each items}}
                      <a {{bind-attr name = "this.name"}}href="#" {{action selectDoodadTool this target="view"}} class="brushLink">
-                        <img {{bind-attr src="this.portrait" title="this.name"}} />
+                        <img class="small noBorder" {{bind-attr src="this.portrait" title="this.name"}} />
                      </a>
                   {{/each}}
                </div>

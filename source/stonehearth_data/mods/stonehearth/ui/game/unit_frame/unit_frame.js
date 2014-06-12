@@ -5,11 +5,13 @@ $(document).ready(function(){
   }
 
   $(top).on("radiant_selection_changed.unit_frame", function (_, data) {
-     if (!unitFrame.view) {
-        unitFrame.view = App.gameView.addView(App.StonehearthUnitFrameView, { uri: unitFrame.uri });
+     if (!unitFrame.view && App.gameView) {
+        unitFrame.view = App.gameView.addView(App.StonehearthUnitFrameView);
      }
 
-     unitFrame.view.set('uri', data.selected_entity);
+     if (unitFrame.view) {
+      unitFrame.view.set('uri', data.selected_entity);
+     }
   });  
 });
 

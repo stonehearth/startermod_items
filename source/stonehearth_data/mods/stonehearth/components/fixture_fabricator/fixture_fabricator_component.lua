@@ -92,6 +92,7 @@ function FixtureFabricator:construct(worker, item)
 
    -- all done!  set a flag so we know and remember the project.
    self._sv.project = project
+   self._sv.finished = true
    self._entity:get_component('stonehearth:construction_progress'):set_finished(true)
 
    self.__saved_variables:mark_changed()

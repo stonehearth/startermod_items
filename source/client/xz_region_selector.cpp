@@ -17,7 +17,7 @@ XZRegionSelector::XZRegionSelector(om::TerrainPtr terrain, int userFlags) :
 
 XZRegionSelector::~XZRegionSelector()
 {
-   ASSERT(_inputHandlerId == 0);
+   Deactivate();
 }
 
 std::shared_ptr<XZRegionSelector::Deferred> XZRegionSelector::Activate()
@@ -32,9 +32,10 @@ std::shared_ptr<XZRegionSelector::Deferred> XZRegionSelector::Activate()
    csg::Point2 pt = Renderer::GetInstance().GetMousePosition();
    GetHoverBrick(pt.x, pt.y, _p0);
 
-   auto self = shared_from_this();
    _inputHandlerId = Client::GetInstance().AddInputHandler([=](Input const& input) -> bool {
-      return self->onInputEvent(input);
+      // keep ourselves alive for as long as the call lasts...
+      auto self = shared_from_this();
+      return onInputEvent(input);
    });
    
    return deferred_;
@@ -73,7 +74,12 @@ bool XZRegionSelector::onInputEvent(Input const& evt)
             deferred_->Notify(selectedCube);
          }
       }
-      return true;
+
+      if (evt.mouse.up[1] && !evt.mouse.dragging) { // right mouse up
+         deferred_->Reject("mouse 2 pressed");
+         Deactivate();            
+      }
+
    } else if (evt.type == Input::KEYBOARD) {
       if (evt.keyboard.down && evt.keyboard.key == 256) { // esc
          deferred_->Reject("escape key pressed");

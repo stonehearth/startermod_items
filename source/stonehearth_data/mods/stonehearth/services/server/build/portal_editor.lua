@@ -5,6 +5,11 @@ local PortalEditor = class(StructureEditor)
 
 local log = radiant.log.create_logger('build_editor')
 
+function PortalEditor:__init(build_service)
+   self[StructureEditor]:__init()
+   self._build_service = build_service   
+end
+
 function PortalEditor:destroy()
    if self._fixture_blueprint then
       radiant.entities.destroy_entity(self._fixture_blueprint)
@@ -95,7 +100,7 @@ end
 
 function PortalEditor:submit(response)   
    local location = self._fixture_blueprint:get_component('mob'):get_grid_location()
-   _radiant.call('stonehearth:add_portal', self:get_blueprint(), self._fixture_uri, location)
+   _radiant.call_obj(self._build_service, 'add_portal', self:get_blueprint(), self._fixture_uri, location)
       :done(function(r)
             response:resolve(r)
          end)

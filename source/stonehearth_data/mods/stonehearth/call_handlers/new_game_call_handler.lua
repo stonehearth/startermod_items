@@ -130,7 +130,7 @@ function NewGameCallHandler:embark_client(session, response)
 end
 
 function NewGameCallHandler:choose_camp_location(session, response)
-   stonehearth.selection.select_location()
+   stonehearth.selection:select_location()
       :use_ghost_entity_cursor('stonehearth:camp_standard')
       :done(function(selector, location, rotation)
          _radiant.call('stonehearth:create_camp', location)
@@ -186,7 +186,7 @@ function NewGameCallHandler:create_camp(session, response, pt)
 
    radiant.entities.pickup_item(worker1, pop:create_entity('stonehearth:oak_log'))
    radiant.entities.pickup_item(worker2, pop:create_entity('stonehearth:oak_log'))
-   radiant.entities.pickup_item(worker3, pop:create_entity('stonehearth:trapper:knife'))
+   --radiant.entities.pickup_item(worker3, pop:create_entity('stonehearth:trapper:knife'))
    radiant.entities.pickup_item(worker4, pop:create_entity('stonehearth:carpenter:saw'))
 
    -- start the game master service

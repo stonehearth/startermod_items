@@ -1303,6 +1303,12 @@ void Renderer::OnMouseMove(double x, double y)
    memset(input_.mouse.up, 0, sizeof input_.mouse.up);
    memset(input_.mouse.down, 0, sizeof input_.mouse.down);
 
+   if (input_.mouse.drag_start_x > 0 || input_.mouse.drag_start_y > 0) {
+      if (std::abs(input_.mouse.drag_start_x - input_.mouse.x) > 1 || std::abs(input_.mouse.drag_start_y - input_.mouse.y) > 1) {
+         input_.mouse.dragging = true;
+      }
+   } 
+   
    CallMouseInputCallbacks();
 }
 
@@ -1316,6 +1322,16 @@ void Renderer::OnMouseButton(int button, int press)
    input_.mouse.buttons[button] = (press == GLFW_PRESS);
 
    CallMouseInputCallbacks();
+
+   if (press == GLFW_PRESS) {
+      input_.mouse.drag_start_x = input_.mouse.x;
+      input_.mouse.drag_start_y = input_.mouse.y;
+   } else if (press == GLFW_RELEASE) {
+      input_.mouse.drag_start_x = -1;
+      input_.mouse.drag_start_y = -1;
+   }
+
+   input_.mouse.dragging = false;
 }
 
 void Renderer::OnRawInput(UINT msg, WPARAM wParam, LPARAM lParam)

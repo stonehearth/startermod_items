@@ -163,7 +163,7 @@ function ConstructionProgress:set_teardown(teardown)
       if self._sv.fabricator_entity then
          self._sv.teardown = teardown
          self.__saved_variables:mark_changed()
-         self:get_fabricator_component():set_active(active):set_teardown(teardown)
+         self:get_fabricator_component():set_teardown(teardown)
 
          radiant.events.trigger_async(self._entity, 'stonehearth:construction:teardown_changed', { 
             entity = self._entity

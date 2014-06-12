@@ -1,0 +1,26 @@
+{
+   "ultra_quality" : {
+      "settings" : {
+         "renderer" : {
+            "enable_shadows" : true,
+            "msaa_samples" : 16,
+            "shadow_resolution" : 8192,
+            "enable_vsync" : false,
+            "enable_fullscreen" : false,
+            "screen_width" : 1920,
+            "screen_height" : 1080,
+            "draw_distance" : 1000,
+            "enable_gl_logging" : false,
+            "last_window_x" : 0,
+            "last_window_y" : 0,
+            "last_screen_x" : 0,
+            "last_screen_y" : 0,
+            "use_fast_hilite" : false
+         }
+      },
+
+      "machines" : [
+         "radeon7850-corei5@3.4GHz"
+      ]
+   }
+}
