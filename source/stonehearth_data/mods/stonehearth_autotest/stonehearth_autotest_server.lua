@@ -4,8 +4,8 @@ mod = {}
 function world_from_options(index, options)
    if options.script then
       local script_entry = 'file(' + options.script + ')'
-      for _, world in ipairs(index.worlds) do
-         for _, group in ipairs(world.groups) do
+      for world_name, world in pairs(index.worlds) do
+         for _, group in pairs(world.groups) do
             for _, script in ipairs(group.scripts) do
                if script == script_entry then
                   return world
@@ -13,7 +13,7 @@ function world_from_options(index, options)
             end
          end
       end
-      return 'tiny'
+      return 'none'
    end
 
    local group = options.group
@@ -21,15 +21,15 @@ function world_from_options(index, options)
       group = 'all'
    end
 
-   for _, world in ipairs(index.worlds) do
-      for _, group in ipairs(world.groups) do
-         if group == options.group then
-            return world
+   for world_name, world in pairs(index.worlds) do
+      for group_name, group in pairs(world.groups) do
+         if group_name == options.group then
+            return world_name
          end
       end
    end
 
-   return 'tiny'
+   return 'none'
 end
 
 radiant.events.listen(mod, 'radiant:new_game', function(args)

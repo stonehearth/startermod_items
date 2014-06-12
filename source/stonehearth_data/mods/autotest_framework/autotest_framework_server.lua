@@ -118,7 +118,6 @@ function autotest_framework.run_group(index, name)
          local found_world_name = nil
          for world_name, world in pairs(index.worlds) do
             for group_name, group in pairs(world.groups) do
-               autotest_framework.log:write(0, 'considering %s.%s', world_name, group_name)
                if group_name == name then
                   found_world_name = world_name
                   break

@@ -1,7 +1,7 @@
 {
    "worlds" : {
       "performance" : {
-         "world_generator" : "file(performance_world.lua)",
+         "world_generator" : "file(perf_world.lua)",
 
          "groups" : {
             "perf_all" : {
