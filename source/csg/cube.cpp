@@ -24,6 +24,7 @@ Line1f Line1f::zero(Point1f(0), Point1f(0));
 Line1f Line1f::one(Point1f(0), Point1f(1));
 
 Point3 Cube3::PointIterator::end(INT_MAX, INT_MAX, INT_MAX);
+Point2 Rect2::PointIterator::end(INT_MAX, INT_MAX);
 
 template <class C>
 static bool Cube3IntersectsImpl(const C& cube, const csg::Ray3& ray, float& d)
