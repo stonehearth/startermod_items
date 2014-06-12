@@ -153,6 +153,8 @@ if '-i' in sys.argv:
 else:
   sh_args += ' --renderer.minimized=true'
 
+if '-s' in sys.argv:
+   sh_args += sys.argv[sys.argv.index('-s') + 1]
 
 return_code = run_tests()
 

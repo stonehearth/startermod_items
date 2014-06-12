@@ -106,7 +106,7 @@ class TestThread(Thread):
          "ArtifactsName" : "stonehearth/test_output/results.shtest.json",
          "ExecutableArgs" : "%s"
       }
-      """ % ("radsub.py -o -g " + self.test_group)
+      """ % ("radsub.py -o -i -g " + self.test_group)
 
       settings_json = """%s""" % self.settings
 
@@ -118,8 +118,6 @@ class TestThread(Thread):
          "settings" : settings_json,
          "file" : open(self.file_name, "rb")
       }
-
-      print params
 
       self.response = opener.open(self.url, params).read()
 
