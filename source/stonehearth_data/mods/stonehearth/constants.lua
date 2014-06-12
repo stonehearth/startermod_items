@@ -52,6 +52,14 @@ local constants = {
          RESTOCK_STOCKPILE  = 2,
          CONSTRUCT_BUILDING = 5,
          TEARDOWN_BUILDING  = 6,
+         LIGHT_FIRE         = 10,
+
+      },
+
+      farming = {
+         PLANT              = 3,
+         TILL               = 4,
+         HARVEST            = 5,
       },
 
       crafting = {

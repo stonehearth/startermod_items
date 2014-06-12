@@ -13,7 +13,7 @@ function RenewableResourceNodeComponent:initialize(entity, json)
    self._renew_effect_name = json.renew_effect
    self._harvest_command_name = json.harvest_command --name of the cmd that harvests the resource
    self._harvest_overlay_effect = json.harvest_overlay_effect
-   self._harvest_profession = json.harvest_profession
+   self._task_group_name = json.task_group_name
 
    if json.renewal_time then
       local duration = string.sub(json.renewal_time, 1, -2)
@@ -29,8 +29,8 @@ function RenewableResourceNodeComponent:initialize(entity, json)
    end
 end
 
-function RenewableResourceNodeComponent:get_harvest_profession()
-   return self._harvest_profession
+function RenewableResourceNodeComponent:get_task_group_name()
+   return self._task_group_name
 end
 
 function RenewableResourceNodeComponent:get_harvest_overlay_effect()

@@ -9,10 +9,15 @@ function ProfessionComponent:initialize(entity, json)
    self._sv = self.__saved_variables:get_data()
    if self._sv.profession_uri then
       radiant.events.listen(entity, 'radiant:entity:post_create', function(e)
-            local json = radiant.resources.load_json(self._sv.profession_uri, true)
-            if json then
-               self:_load_profession_script(json)
-               self:_call_profession_script('restore', json)
+            self._profession_json = radiant.resources.load_json(self._sv.profession_uri, true)
+            if self._profession_json then
+               self:_load_profession_script(self._profession_json)
+               self:_call_profession_script('restore', self._profession_json)
+
+               --Add self back to the right task groups
+               if self._profession_json.task_groups then
+                  self:_add_to_task_groups(self._profession_json.task_groups)
+               end
             end
             return radiant.events.UNLISTEN
          end)

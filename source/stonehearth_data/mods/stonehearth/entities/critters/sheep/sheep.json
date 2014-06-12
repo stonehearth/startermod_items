@@ -20,7 +20,7 @@
          }
       },
       "stonehearth:renewable_resource_node": {
-         "harvest_profession" : "worker",
+         "task_group_name" : "stonehearth:task_group:forage",
          "resource" : "stonehearth:wool_bundle",
          "renewal_time" : "12h",
          "harvest_command" : "shear_sheep",

@@ -10,13 +10,13 @@ function worker_class.promote(entity)
 end
 
 function worker_class.restore(entity)
-   local town = stonehearth.town:get_town(entity)
-   town:join_task_group(entity, 'workers')
+   --local town = stonehearth.town:get_town(entity)
+   --town:join_task_group(entity, 'workers')
 end
 
 function worker_class.demote(entity)
-   local town = stonehearth.town:get_town(entity)
-   town:leave_task_group(entity, 'workers')
+   --local town = stonehearth.town:get_town(entity)
+   --town:leave_task_group(entity, 'workers')
 end
 
 

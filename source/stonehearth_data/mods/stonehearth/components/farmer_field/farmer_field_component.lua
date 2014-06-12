@@ -71,10 +71,10 @@ function FarmerFieldComponent:_re_init_field()
          --Has this spot been tilled yet? If not, retill 
          if not self._sv.contents[x][y].till_task_complete then
             --We still have to till this part of the field
-            self._till_tasks[x][y] = town:create_farmer_task('stonehearth:till_field', { field_spacer = field_spacer, field = self })
+            self._till_tasks[x][y] = town:create_task_for_group('stonehearth:task_group:simple_farming', 'stonehearth:till_field', { field_spacer = field_spacer, field = self })
                                     :set_source(field_spacer)
                                     :set_name('till field task')
-                                    :set_priority(stonehearth.constants.priorities.farmer_task.TILL)
+                                    :set_priority(stonehearth.constants.priorities.farming.TILL)
                                     :once()
                                     :start()
          end
@@ -136,10 +136,10 @@ function FarmerFieldComponent:create_dirt_plots(town, location, size)
 
          -- Tell the farmer scheduler to till this
          self._sv.contents[x][y].till_task_complete = false
-         self._till_tasks[x][y] = town:create_farmer_task('stonehearth:till_field', { field_spacer = field_spacer, field = self })
+         self._till_tasks[x][y] = town:create_task_for_group('stonehearth:task_group:simple_farming','stonehearth:till_field', { field_spacer = field_spacer, field = self })
                                    :set_source(field_spacer)
                                    :set_name('till field task')
-                                   :set_priority(stonehearth.constants.priorities.farmer_task.TILL)
+                                   :set_priority(stonehearth.constants.priorities.farming.TILL)
                                    :once()
                                    :start()
       end

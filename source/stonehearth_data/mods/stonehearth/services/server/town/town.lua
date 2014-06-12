@@ -46,17 +46,17 @@ function Town:_create_task_groups()
                                        :set_counter_name(self._sv.player_id)
 
    self._task_groups = {
-      workers = self._scheduler:create_task_group('stonehearth:work', {})
-                               :set_counter_name('workers'), 
-      farmers = self._scheduler:create_task_group('stonehearth:farm', {})
-                               :set_counter_name('farmers'), 
+      --workers = self._scheduler:create_task_group('stonehearth:work', {})
+      --                         :set_counter_name('workers'), 
+      --farmers = self._scheduler:create_task_group('stonehearth:farm', {})
+      --                         :set_counter_name('farmers'), 
    }      
 
    -- a map from a profession_id to a task group for that profession
-   self._profession_to_taskgroup = {
-      worker = self._task_groups.workers,
-      farmer = self._task_groups.farmers,
-   }
+   --self._profession_to_taskgroup = {
+   --   worker = self._task_groups.workers,
+   --   farmer = self._task_groups.farmers,
+   --}
 
    -- Create new task groups
    local task_group_data = radiant.resources.load_json(self._sv.kingdom).task_groups
@@ -123,9 +123,9 @@ function Town:get_town_name()
 end
 
 -- xxx: this is a stopgap until we can provide a better interface
-function Town:create_worker_task(activity_name, args)
-   return self._task_groups.workers:create_task(activity_name, args)
-end
+--function Town:create_worker_task(activity_name, args)
+--   return self._task_groups.workers:create_task(activity_name, args)
+--end
 
 function Town:create_task_group(activity_group, args)
    -- xxx: stash it away for when we care to enumerate everything everyone in the town
@@ -136,9 +136,9 @@ end
 -- xxx: this is a stopgap until we can provide a better interface
 -- Yes, since I'm duplicating it for farmers
 -- TODO: fix and generalize
-function Town:create_farmer_task(activity_name, args, player_init)
-   return self._task_groups.farmers:create_task(activity_name, args)
-end
+--function Town:create_farmer_task(activity_name, args, player_init)
+--   return self._task_groups.farmers:create_task(activity_name, args)
+--end
 
 --- Add a person to a town task group.
 --  If the task group doesn't exist, make one. 
@@ -292,7 +292,7 @@ function Town:place_item_in_world(item_proxy, full_sized_uri, location, rotation
       radiant.entities.destroy_entity(ghost_entity)
    end
 
-   local task = self:create_worker_task('stonehearth:place_item', {
+   local task = self:create_task_for_group('stonehearth:task_group:placement', 'stonehearth:place_item', {
          item = item_proxy,
          location = location,
          rotation = rotation,
@@ -323,7 +323,7 @@ function Town:place_item_type_in_world(entity_uri, full_item_uri, location, rota
       return item:get_uri() == entity_uri
    end
 
-   local task = self:create_worker_task('stonehearth:place_item_type', {
+   local task = self:create_task_for_group('stonehearth:task_group:placement', 'stonehearth:place_item_type', {
          filter_fn = filter_fn,
          location = location,
          rotation = rotation,
@@ -347,19 +347,16 @@ function Town:harvest_resource_node(node)
    if not self._harvest_tasks[id] then
       local node_component = node:get_component('stonehearth:resource_node')
       if node_component then
-         local harvest_profession = node_component:get_harvest_profession()
-         local task_group = self._profession_to_taskgroup[harvest_profession]
-         if task_group then
-            local effect_name = node_component:get_harvest_overlay_effect()
-            local task = task_group:create_task('stonehearth:harvest_resource_node', { node = node })
-                                         :set_source(node)
-                                         :add_entity_effect(node, effect_name)
-                                         :set_priority(stonehearth.constants.priorities.farmer_task.HARVEST)
-                                         :once()
-                                         :start()
-            self._harvest_tasks[id] = task
-            self:_remember_user_initiated_task(task, 'harvest_resource_node', node)
-         end
+         local task_group_name = node_component:get_task_group_name()
+         local effect_name = node_component:get_harvest_overlay_effect()
+         local task = self:create_task_for_group(task_group_name, 'stonehearth:harvest_resource_node', { node = node })
+                                      :set_source(node)
+                                      :add_entity_effect(node, effect_name)
+                                      :set_priority(stonehearth.constants.priorities.farmer_task.HARVEST)
+                                      :once()
+                                      :start()
+         self._harvest_tasks[id] = task
+         self:_remember_user_initiated_task(task, 'harvest_resource_node', node)
       end
    end
    return true
@@ -374,27 +371,24 @@ function Town:harvest_renewable_resource_node(plant)
    if not self._harvest_tasks[id] then
       local node_component = plant:get_component('stonehearth:renewable_resource_node')
       if node_component then
-      local harvest_profession = node_component:get_harvest_profession()
-         local task_group = self._profession_to_taskgroup[harvest_profession]
-         if task_group then
-            local effect_name = node_component:get_harvest_overlay_effect()
-            local task = task_group:create_task('stonehearth:harvest_plant', { plant = plant })
-                                   :set_source(plant)
-                                   :add_entity_effect(plant, effect_name)
-                                   :set_priority(stonehearth.constants.priorities.farmer_task.HARVEST)
-                                   :once()
-                                   :start()
-            self._harvest_tasks[id] = task
-            self:_remember_user_initiated_task(task, 'harvest_renewable_resource_node', plant)
-         end
+         local task_group_name = node_component:get_task_group_name()
+         local effect_name = node_component:get_harvest_overlay_effect()
+         local task = self:create_task_for_group(task_group_name, 'stonehearth:harvest_plant', { plant = plant })
+                                :set_source(plant)
+                                :add_entity_effect(plant, effect_name)
+                                :set_priority(stonehearth.constants.priorities.farmer_task.HARVEST)
+                                :once()
+                                :start()
+         self._harvest_tasks[id] = task
+         self:_remember_user_initiated_task(task, 'harvest_renewable_resource_node', plant)
 
          radiant.events.listen(plant, 'stonehearth:is_harvestable', function(e) 
-               local plant = e.entity
-               if not plant or not plant:is_valid() then
-                  return radiant.events.UNLISTEN
-               end
-               self._harvest_tasks[plant:get_id()] = nil
-            end)
+            local plant = e.entity
+            if not plant or not plant:is_valid() then
+               return radiant.events.UNLISTEN
+            end
+            self._harvest_tasks[plant:get_id()] = nil
+         end)
       end
    end
    return true
@@ -407,10 +401,10 @@ function Town:harvest_crop(crop, player_initialized)
 
    local id = crop:get_id()
    if not self._harvest_tasks[id] then
-      local task_group = self._task_groups.farmers
-      local task = self:create_farmer_task('stonehearth:harvest_crop', { crop = crop })
+      --local task_group = self._task_groups.farmers
+      local task = self:create_task_for_group('stonehearth:task_group:simple_farming', 'stonehearth:harvest_crop', { crop = crop })
                                    :set_source(crop)
-                                   :set_priority(stonehearth.constants.priorities.farmer_task.HARVEST)
+                                   :set_priority(stonehearth.constants.priorities.farming.HARVEST)
                                    :once()
       self._harvest_tasks[id] = task
 
@@ -453,12 +447,12 @@ function Town:plant_crop(player_id, soil_plots, crop_type, player_speficied, aut
 
       --TODO: store these tasks, so they can be cancelled
       local overlay_effect = stonehearth.farming:get_overlay_for_crop(crop_type)
-      local task = self:create_farmer_task('stonehearth:plant_crop', {target_plot = plot, 
+      local task = self:create_task_for_group('stonehearth:task_group:simple_farming', 'stonehearth:plant_crop', {target_plot = plot, 
                                                          dirt_plot_component = dirt_plot_component,
                                                          crop_type = crop_type})
                               :set_source(plot)
                               :set_name('plant_crop')
-                              :set_priority(stonehearth.constants.priorities.farmer_task.PLANT)
+                              :set_priority(stonehearth.constants.priorities.farming.PLANT)
                               :once()
                               
       --TODO: track plant tasks so the most *recent* one is always executed

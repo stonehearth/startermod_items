@@ -1,6 +1,10 @@
 {
    "task_groups" : {
       "stonehearth:task_group:restock" : "stonehearth:simple_labor", 
-      "stonehearth:task_group:build" : "stonehearth:simple_labor"
+      "stonehearth:task_group:build" : "stonehearth:simple_labor",
+      "stonehearth:task_group:placement" : "stonehearth:simple_labor",
+      "stonehearth:task_group:light_fires" : "stonehearth:simple_labor",
+      "stonehearth:task_group:simple_farming" : "stonehearth:farm",
+      "stonehearth:task_group:forage" : "stonehearth:simple_labor"
    }
 }

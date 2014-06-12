@@ -1,4 +1,4 @@
-local priorities = require('constants').priorities.worker_task
+local priorities = require('constants').priorities.basic_labor
 
 local FixtureFabricator = class()
 
@@ -138,7 +138,7 @@ end
 function FixtureFabricator:_start_teardown_task()
    if not self._teardown_task then
       local town = stonehearth.town:get_town(self._entity)
-      self._teardown_task = town:create_worker_task('stonehearth:teardown_fixture', { fabricator = self._entity })
+      self._teardown_task = town:create_task_for_group('stonehearth:task_group:build', 'stonehearth:teardown_fixture', { fabricator = self._entity })
                                        :set_name('teardown')
                                        :set_source(self._entity)
                                        :set_max_workers(1)
@@ -162,7 +162,7 @@ end
 function FixtureFabricator:_start_fabricate_task() 
    if not self._fabricate_task then
       local town = stonehearth.town:get_town(self._entity)
-      self._fabricate_task = town:create_worker_task('stonehearth:fabricate_fixture', {
+      self._fabricate_task = town:create_task_for_group('stonehearth:task_group:build', 'stonehearth:fabricate_fixture', {
                                              fabricator = self._entity,
                                              fixture_uri = self._sv.fixture_uri 
                                           })

@@ -4,7 +4,7 @@ function ResourceNodeComponent:initialize(entity, json)
    self._entity = entity
    self._durability = json.durability or 1
    self._harvester_effect = json.harvester_effect
-   self._harvest_profession = json.harvest_profession
+   self._task_group_name = json.task_group_name
    self._description = json.description
    self._harvest_overlay_effect = json.harvest_overlay_effect
 
@@ -29,8 +29,8 @@ function ResourceNodeComponent:get_harvester_effect()
    return self._harvester_effect
 end
 
-function ResourceNodeComponent:get_harvest_profession()
-   return self._harvest_profession
+function ResourceNodeComponent:get_task_group_name()
+   return self._task_group_name
 end
 
 function ResourceNodeComponent:get_description()

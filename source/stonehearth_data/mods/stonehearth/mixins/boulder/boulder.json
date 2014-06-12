@@ -8,7 +8,7 @@
          "scale" : 1
       },
       "stonehearth:resource_node": {
-         "harvest_profession" : "worker",
+         "task_group_name" : "stonehearth:task_group_forage",
          "resource": "stonehearth:hunk_of_stone", 
          "harvest_overlay_effect" : "/stonehearth/data/effects/mine_overlay_effect",
          "harvester_effect" : "mine",
