@@ -12,6 +12,10 @@ Color3 Color3::green(34, 139, 34);
 Color3 Color3::blue(0, 0, 205);
 Color3 Color3::black(0, 0, 0);
 Color3 Color3::white(255, 255, 255);
+Color3 Color3::grey(128, 128, 128);
+Color3 Color3::brown(139, 69, 19);
+Color3 Color3::purple(138, 43, 226);
+Color3 Color3::pink(255, 192, 203);
 
 static const csg::Color3 __histogram[] = {
    Color3::red,
