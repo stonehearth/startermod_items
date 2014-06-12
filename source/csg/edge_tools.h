@@ -159,6 +159,7 @@ public:
    }
 
    std::vector<Edge<S, C>> const& GetEdges() const { return edges; }
+   std::vector<EdgePoint<S, C>*> const& GetPoints() const { return points; }
 
 private:
    EdgePoint<S, C>* AddPoint(Point<S, C> const& p, Point<S, C> const& normal) {
