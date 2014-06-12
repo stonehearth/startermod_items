@@ -137,7 +137,6 @@ class Client : public core::Singleton<Client> {
       void BrowserCallRequestHandler(json::Node const& query, std::string const& postdata, rpc::HttpDeferredPtr response);
       void CallHttpReactor(std::string const& parts, const json::Node& query, std::string const& postdata, rpc::HttpDeferredPtr response);
       void InitDataModel();
-      void DeactivateAllTools();
       void RequestReload();
       void EnableDisableSaveStressTest();
       void EnableDisableLifetimeTracking();
@@ -248,7 +247,6 @@ private:
       dm::TracePtr                selected_trace_;
       dm::TracePtr                root_object_trace_;
       std::shared_ptr<rpc::TraceObjectRouter> trace_object_router_;
-      std::vector<XZRegionSelectorRef> xz_selectors_;
       FW::FileWatcher             fileWatcher_;
       bool                        flushAndLoad_;
       platform::timer             flushAndLoadTimer_;

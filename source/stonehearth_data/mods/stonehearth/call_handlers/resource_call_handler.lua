@@ -10,7 +10,7 @@ local ResourceCallHandler = class()
 
 
 function ResourceCallHandler:box_harvest_resources(session, response)
-   stonehearth.selection.select_xz_region()
+   stonehearth.selection:select_xz_region()
       :use_outline_marquee(Color4(0, 255, 0, 32), Color4(0, 255, 0, 255))
       :set_cursor('stonehearth:cursors:harvest')
       :done(function(selector, box)

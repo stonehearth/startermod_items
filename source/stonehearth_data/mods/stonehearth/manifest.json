@@ -814,23 +814,7 @@
          "controller" : "file(call_handlers/build_call_handler.lua)",
          "endpoint" : "server"
       },
-      "add_floor": {
-         "controller" : "file(call_handlers/build_call_handler.lua)",
-         "endpoint" : "server"
-      },
-      "grow_walls": {
-         "controller" : "file(call_handlers/build_call_handler.lua)",
-         "endpoint" : "server"
-      },
-      "grow_roof": {
-         "controller" : "file(call_handlers/build_call_handler.lua)",
-         "endpoint" : "server"
-      },
-      "add_portal": {
-         "controller" : "file(call_handlers/build_call_handler.lua)",
-         "endpoint" : "server"
-      },
-      "add_wall": {
+      "get_service" : {
          "controller" : "file(call_handlers/build_call_handler.lua)",
          "endpoint" : "server"
       },
@@ -839,6 +823,10 @@
          "endpoint" : "server"
       },
       "select_entity": {
+         "controller" : "file(call_handlers/selection_call_handler.lua)",
+         "endpoint" : "client"
+      },
+      "deactivate_all_tools": {
          "controller" : "file(call_handlers/selection_call_handler.lua)",
          "endpoint" : "client"
       },
@@ -877,7 +865,7 @@
       "trigger_bulletin_event": {
          "controller" : "file(call_handlers/bulletin_board_call_handler.lua)",
          "endpoint" : "server"
-      }
+      }      
    },
    
    "controllers" :  {

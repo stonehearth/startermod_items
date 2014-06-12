@@ -31,24 +31,14 @@ function BuildCallHandler:set_building_teardown(session, request, building, enab
    return { success = true }
 end
 
-function BuildCallHandler:add_floor(session, request, floor_uri, box, brush_shape)
-   stonehearth.build:add_floor(session, request, floor_uri, ToCube3(box), brush_shape)
-end
-
-function BuildCallHandler:add_wall(session, request, columns_uri, walls_uri, p0, p1, normal)
-   stonehearth.build:add_wall(session, request, columns_uri, walls_uri, ToPoint3(p0), ToPoint3(p1), ToPoint3(normal))
-end
-
-function BuildCallHandler:grow_walls(session, request, building, columns_uri, walls_uri)
-   stonehearth.build:grow_walls(session, request, building, columns_uri, walls_uri)
-end
-
-function BuildCallHandler:grow_roof(session, request, building, roof_uri)
-   stonehearth.build:grow_roof(session, request, building, roof_uri)
-end
-
-function BuildCallHandler:add_portal(session, request, wall, portal_uri, location)
-   stonehearth.build:add_portal(session, request, wall, portal_uri, location)
+function BuildCallHandler:get_service(session, request, name)
+   if stonehearth[name] then
+      -- we'd like to just send the store address rather than the actual
+      -- store, but there's no way for the client to receive a store
+      -- address and *not* automatically convert it back!
+      return stonehearth[name].__saved_variables
+   end
+   request:fail('no such service')
 end
 
 return BuildCallHandler

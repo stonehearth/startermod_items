@@ -50,7 +50,7 @@ function voxel_brush_util.create_brush(construction_data)
       if construction_data.nine_grid_y_offset then
          brush:set_y_offset(construction_data.nine_grid_y_offset)
       end
-      if construction_data.nine_grid_gradiant then
+      if construction_data3.nine_grid_gradiant then
          local flags = 0
          for _, f in ipairs(construction_data.nine_grid_gradiant) do
             if f == "front" then

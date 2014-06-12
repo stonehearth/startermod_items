@@ -34,6 +34,9 @@ App.StonehearthBuildingDesignerView2 = App.View.extend({
       selectFloorBrushTool: function(floor) {
          App.stonehearthClient.buildFloor(floor);
       },
+      selectFloorEraserTool: function() {
+         App.stonehearthClient.eraseFloor();
+      },
       selectWallBrushTool: function(wall) {
          App.stonehearthClient.growWalls(this.get('context.building'), 'stonehearth:wooden_column', wall.uri);
       },
