@@ -37,6 +37,9 @@ function ProfessionComponent:promote_to(profession_uri, talisman_uri)
       self:_equip_outfit(json)
       self:_call_profession_script('promote', json, talisman_uri)
 
+      if json.task_groups then
+         self:_add_to_task_groups(json.task_groups)
+      end
       -- so good!  keep this one, lose the top one.  too much "collusion" between components =)
       radiant.events.trigger(self._entity, 'stonehearth:profession_changed', { entity = self._entity })
       self.__saved_variables:mark_changed()
@@ -48,6 +51,18 @@ function ProfessionComponent:demote()
    self:_call_profession_script('demote')
    self._sv.profession_id = nil
    self.__saved_variables:mark_changed()
+end
+
+--- Adds this person to a set of task groups
+--  @param task_groups - an array of the task groups this person should belong to
+function ProfessionComponent:_add_to_task_groups(task_groups)
+   local town = stonehearth.town:get_town(self._entity)
+   for i, task_group_name in ipairs(task_groups) do
+      town:join_task_group(self._entity, task_group_name)
+   end
+end
+
+function ProfessionComponent:_remove_from_task_groups(task_groups)
 end
 
 function ProfessionComponent:_set_unit_info(json)

@@ -40,6 +40,7 @@
       "mixins:resources:jerky" : "file(mixins/resources/jerky)",
       "mixins:resources:fur_pelt" : "file(mixins/resources/fur_pelt)",
       "mixins:align_to_grid" : "file(mixins/align_to_grid)",
+      "mixins:player_task_groups" : "file(services/server/population/data/player_task_groups.json)",
 
       "kingdoms:ascendancy" : "file(services/server/population/data/ascendancy.json)",
       "kingdoms:northern_alliance" : "file(services/server/population/data/northern_alliance.json)",

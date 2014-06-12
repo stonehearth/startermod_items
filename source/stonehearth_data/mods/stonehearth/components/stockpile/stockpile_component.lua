@@ -441,6 +441,10 @@ function StockpileComponent:_destroy_tasks()
       self._task_f:destroy()
       self._task_f = nil
    end
+   if self._restock_task then
+      self._restock_task:destroy()
+      self._restock_task = nil
+   end
 end
 
 --- Workers and farmers restock stockpiles.
@@ -471,6 +475,13 @@ function StockpileComponent:_create_worker_tasks()
                                    :set_name('restock task')
                                    :set_priority(stonehearth.constants.priorities.farmer_task.RESTOCK_STOCKPILE)
                                    :start()
+
+   --TODO: replace all tasks with just this one
+   self._restock_task = town:create_task_for_group('stonehearth:restock', 'stonehearth:restock_stockpile', {stockpile = self})
+                           :set_source(self._entity)
+                           :set_name('restock task')
+                           :set_priority(stonehearth.constants.priorities.worker_task.RESTOCK_STOCKPILE)
+                           :start()
 end
 
 function StockpileComponent:get_item_filter_fn()

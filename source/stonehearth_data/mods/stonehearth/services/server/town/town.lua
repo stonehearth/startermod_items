@@ -20,6 +20,14 @@ function Town:__init(session, saved_variables)
    end
 
    self._log = radiant.log.create_logger('town', self._sv.player_id)
+
+   --Maybe we won't need this after all
+   if not self._sv._task_group_names then
+      self._sv._task_group_names = {}
+   end
+
+   --TODO: since we're dynamically generating task groups, change this to create
+   --them based on the task groups stored in task_group_names
    self:_create_task_groups()
 
    self._unit_controllers = {}
@@ -49,6 +57,15 @@ function Town:_create_task_groups()
       worker = self._task_groups.workers,
       farmer = self._task_groups.farmers,
    }
+
+   -- Create new task groups
+   local task_group_data = radiant.resources.load_json(self._sv.kingdom).task_groups
+   if task_group_data then
+      for task_group_name, activity_dispatcher in pairs(task_group_data) do
+         self._task_groups[task_group_name] = self._scheduler:create_task_group(activity_dispatcher, {})
+                                                            :set_counter_name(task_group_name)
+      end
+   end
 end
 
 function Town:_remember_user_initiated_task(task, fn_name, ...)
@@ -110,10 +127,10 @@ function Town:create_worker_task(activity_name, args)
    return self._task_groups.workers:create_task(activity_name, args)
 end
 
-function Town:create_task_group(name, args)
+function Town:create_task_group(activity_group, args)
    -- xxx: stash it away for when we care to enumerate everything everyone in the town
    -- is doing
-   return self._scheduler:create_task_group(name, args)
+   return self._scheduler:create_task_group(activity_group, args)
 end
 
 -- xxx: this is a stopgap until we can provide a better interface
@@ -123,11 +140,48 @@ function Town:create_farmer_task(activity_name, args, player_init)
    return self._task_groups.farmers:create_task(activity_name, args)
 end
 
+--- Add a person to a town task group.
+--  If the task group doesn't exist, make one. 
+--  @param entity: the person to add
+--  @param name: the name of the task group in question 
 function Town:join_task_group(entity, name)
    local task_group = self._task_groups[name]
-   assert(task_group, string.format('unknown task group "%s"', name))
+   assert(task_group, 'task group not yet created')
+   --if not task_group then
+      --TODO: are the args still necessary?
+      --Everyone has work, so use work by default
+      --This means that if the task is given before the tg is 
+   --   task_group = self:_create_town_task_group(name, 'stonehearth:work', {})
+   --end
    task_group:add_worker(entity)
    return self
+end
+
+--[[
+--- Creates a task group for this town
+--  Adds the task group to the town's index
+--  Since task groups are created anew on load, log them in the appropriate index
+function Town:_create_town_task_group(name, activity_group, args)
+   local task_group = self:create_task_group(activity_group, args)
+   self._task_groups[name] = task_group
+   self._sv._task_group_names[name] = args
+   return task_group
+end
+]]
+
+--- Creates a task in a given task group
+--  If the tg doesn't exist yet, make one. We'll queue the task
+--  even if there are no people to receive it yet. 
+--  @param task_group_name - name of the tg
+--  @param activity_name - name of the activity
+--  @param args - args to pass into the activity 
+function Town:create_task_for_group(task_group_name, activity_name, args)
+   local task_group = self._task_groups[task_group_name]
+   assert(task_group, 'task group not yet created')
+   --if not task_group then
+   --   task_group = self:_create_town_task_group(task_group_name, activity_group, {})
+   --end
+   return task_group:create_task(activity_name, args)
 end
 
 function Town:leave_task_group(entity, name)

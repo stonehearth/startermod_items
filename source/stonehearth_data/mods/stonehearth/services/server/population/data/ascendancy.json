@@ -1,4 +1,5 @@
 {
+   "mixins" : "stonehearth:mixins:player_task_groups",
    "kingdom_name" : "Ascendancy",
    "kingdom_id" : "ascendency",
    "male_entities" : [
@@ -62,12 +63,29 @@
    ],
    "given_names" : {
       "male" : [
+         "Alton",
+         "Edwyne",
+         "Fostan",
+         "Geoff",
+         "Stefan",
+         "Heath",
+         "Jeren",
+         "Kaven",
+         "Lorn", 
+         "Mard",
+         "Navin",
+         "Ollen",
+         "Payten",
+         "Roake",
+         "Selvan",
+         "Treston",
          "Campton",
          "Brom",
          "Illowyn",
          "Sean",
          "Gareth",
          "Nol",
+         "Zedd",
          "Pantor",
          "Daff",
          "Willad",
@@ -78,6 +96,24 @@
          "Dara",
          "Alaina",
          "Abi",
+         "Beth",
+         "Caye",
+         "Devona",
+         "Eyla",
+         "Fiona",
+         "Gemm",
+         "Helen",
+         "Idria",
+         "Jo",
+         "Kate",
+         "Lorna",
+         "Mellia",
+         "Norsa",
+         "Orsa",
+         "Penn",
+         "Raine",
+         "Sera",
+         "Thess",
          "Scarlett",
          "Elena",
          "Leah",
@@ -152,5 +188,6 @@
          "shire", 
          "ville"
       ]
-   }
+   },
+   "task_groups" : {}
 }

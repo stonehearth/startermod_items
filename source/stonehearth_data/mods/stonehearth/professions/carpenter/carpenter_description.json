@@ -9,6 +9,9 @@
    "outfit": "file(carpenter_outfit)",
    "talisman_uri" : "stonehearth:carpenter:saw",
    "score_value": 10, 
+   "task_groups" : [
+      "stonehearth:restock"
+   ],
    "crafter" : {
       "work_effect": "saw",
       "recipe_list": "/stonehearth/professions/carpenter/recipes"

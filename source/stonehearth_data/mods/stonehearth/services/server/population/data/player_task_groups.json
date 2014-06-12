@@ -1,0 +1,5 @@
+{
+   "task_groups" : {
+      "stonehearth:restock" : "stonehearth:work"
+   }
+}
