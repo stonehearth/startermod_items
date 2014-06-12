@@ -18,9 +18,11 @@
       <div class="tabPage" id="floorToolTab" style="display: block">
          <h2>{{i18n stonehearth:building_designer_draw_floorplan}}</h2>
          {{i18n stonehearth:building_designer_draw_floorplan_help}}
-         <div class="brushPalette">
+
+         <h2>{{i18n stonehearth:building_designer_material}}</h2>
+         <div class="brushPalette section">
             {{#each floorPatterns}}
-               <h2>{{category}}</h2>
+               <!--<h2>{{category}}</h2>-->
                <div>
                   {{#each items}}
                      <a {{bind-attr name = "this.name"}}href="#" {{action selectFloorBrushTool this target="view"}} class="brushLink">
@@ -36,9 +38,10 @@
       <div class="tabPage" id="fillWallToolTab">
          <h2>{{i18n stonehearth:building_designer_erect_walls}}</h2>
          {{i18n stonehearth:building_designer_erect_walls_help}}
-         <div class="brushPalette">
+         <h2>{{i18n stonehearth:building_designer_material}}</h2>
+         <div class="brushPalette section">
             {{#each wallPatterns}}
-               <h2>{{category}}</h2>
+               <!-- <h2>{{category}}</h2> -->
                <div>
                   {{#each items}}
                      <a {{bind-attr name = "this.name"}}href="#" {{action selectWallBrushTool this target="view"}} class="brushLink">
@@ -56,8 +59,10 @@
       </div>
 
       <div class="tabPage" id="doorToolTab">
-         <h2>Add Doors, Windows, and Doodads</h2>
-         <div class="brushPalette">
+         <h2>{{i18n stonehearth:building_designer_doodads}}</h2>
+         {{i18n stonehearth:building_designer_doodads_help}}
+         <h2>{{i18n stonehearth:building_designer_material}}</h2>
+         <div class="brushPalette doodadPalette section">
             {{#each doodads}}
                <h2>{{category}}</h2>
                <div>
