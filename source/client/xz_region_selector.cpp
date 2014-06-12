@@ -78,7 +78,10 @@ bool XZRegionSelector::onInputEvent(Input const& evt)
       if (evt.mouse.up[1] && !evt.mouse.dragging) { // right mouse up
          deferred_->Reject("mouse 2 pressed");
          Deactivate();            
+         return false;
       }
+
+      return true;
 
    } else if (evt.type == Input::KEYBOARD) {
       if (evt.keyboard.down && evt.keyboard.key == 256) { // esc
