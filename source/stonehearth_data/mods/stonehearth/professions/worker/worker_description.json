@@ -6,7 +6,7 @@
   "script": "file(worker.lua)",
   "outfit": "file(worker_outfit)",
   "task_groups" : [
-      "stonehearth:restock", 
-      "stonehearth:build"
+      "stonehearth:task_group:restock", 
+      "stonehearth:task_group:build"
    ]
 }

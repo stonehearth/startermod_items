@@ -10,6 +10,6 @@
   "description": "Farmer", 
   "score_value" : 10,
   "task_groups" : [
-      "stonehearth:restock"
+      "stonehearth:task_group:restock"
    ]
 }

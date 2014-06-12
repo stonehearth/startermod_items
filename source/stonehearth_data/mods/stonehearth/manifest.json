@@ -350,6 +350,7 @@
       "actions:harvest_plant_adjacent" : "file(ai/actions/harvest_plant_adjacent.lua)",
       "actions:shear_sheep_action" : "file(ai/actions/shear_sheep_action.lua)",
       "actions:work_task_dispatcher" : "file(ai/actions/work_task_dispatcher.lua)",
+      "actions:simple_labor_task_dispatcher" : "file(ai/actions/simple_labor_task_dispatcher.lua)",
       "actions:restock_stockpile" : "file(ai/actions/restock_stockpile_action.lua)",
       "actions:reserve_stockpile_space" : "file(ai/actions/reserve_stockpile_space.lua)",
       "actions:light_firepit" : "file(ai/actions/light_firepit.lua)",
@@ -372,6 +373,7 @@
       "actions:farmer_task_dispatcher" : "file(ai/actions/farmer_task_dispatcher.lua)",
       "actions:till_field" : "file(ai/actions/till_field_action.lua)",
       "actions:plant_crop" : "file(ai/actions/plant_crop.lua)",
+      "actions:crafting_task_dispatcher" : "file(ai/actions/crafting_task_dispatcher.lua)",
 
       "actions:combat" : "file(ai/actions/combat/combat_action.lua)",
       "actions:combat:attack_dispatcher" : "file(ai/actions/combat/attack_dispatcher.lua)",

@@ -27,19 +27,31 @@ local constants = {
          HARVEST            = 5,
       },
 
-      -- Priorities for basic needs
+      -- Priorities for the top level of action categories
       top = {
          IDLE = 1,
          FREE_TIME = 2,
-         --ADMIRE_FIRE = 2,
-         WORK = 10,
+         WORK = 10,                  --Root of all "occupation" related tasks
          AMBIENT_PET_BEHAVIOR = 10,
-         CRAFT = 10,
+         CRAFT = 15,
          BASIC_NEEDS = 20,
          COMBAT = 100,
          UNIT_CONTROL = 1000,
          COMPELLED_BEHAVIOR = 9999999,
          DIE = 10000000,
+      },
+
+      work = {    --Categories of work. Represented as dispatchers.
+         SIMPLE_LABOR   = 1,    --basic tasks traditionally the domain of workers
+         FARMING        = 2,
+         CRAFTING       = 3,
+      },
+
+      basic_labor = {
+         DEFAULT            = 2,
+         RESTOCK_STOCKPILE  = 2,
+         CONSTRUCT_BUILDING = 5,
+         TEARDOWN_BUILDING  = 6,
       },
 
       -- basic needs

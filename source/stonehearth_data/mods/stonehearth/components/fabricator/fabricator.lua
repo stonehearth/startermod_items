@@ -1,4 +1,4 @@
-local priorities = require('constants').priorities.worker_task
+local priorities = require('constants').priorities.basic_labor
 local Point2 = _radiant.csg.Point2
 local Point3 = _radiant.csg.Point3
 local Region3 = _radiant.csg.Region3
@@ -278,7 +278,7 @@ function Fabricator:_start_teardown_task()
    if not self._teardown_task then
       self._log:debug('starting teardown task')
       local town = stonehearth.town:get_town(self._project)
-      self._teardown_task = town:create_task_for_group('stonehearth:build', 'stonehearth:teardown_structure', { fabricator = self })
+      self._teardown_task = town:create_task_for_group('stonehearth:task_group:build', 'stonehearth:teardown_structure', { fabricator = self })
                                       :set_name('teardown')
                                       :set_source(self._entity)
                                       :set_max_workers(self:get_max_workers())
@@ -299,7 +299,7 @@ function Fabricator:_start_fabricate_task()
    if not self._fabricate_task then
       self._log:debug('starting fabricate task')
       local town = stonehearth.town:get_town(self._blueprint)
-      self._fabricate_task = town:create_task_for_group('stonehearth:build', 'stonehearth:fabricate_structure', { fabricator = self })
+      self._fabricate_task = town:create_task_for_group('stonehearth:task_group:build', 'stonehearth:fabricate_structure', { fabricator = self })
                                       :set_name('fabricate')
                                       :set_source(self._entity)
                                       :set_max_workers(self:get_max_workers())

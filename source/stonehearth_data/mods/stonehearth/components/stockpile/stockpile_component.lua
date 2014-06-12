@@ -448,10 +448,10 @@ function StockpileComponent:_create_worker_tasks()
    self:_destroy_tasks()
 
    local town = stonehearth.town:get_town(self._entity)
-   self._restock_task = town:create_task_for_group('stonehearth:restock', 'stonehearth:restock_stockpile', {stockpile = self})
+   self._restock_task = town:create_task_for_group('stonehearth:task_group:restock', 'stonehearth:restock_stockpile', {stockpile = self})
                            :set_source(self._entity)
                            :set_name('restock task')
-                           :set_priority(stonehearth.constants.priorities.worker_task.RESTOCK_STOCKPILE)
+                           :set_priority(stonehearth.constants.priorities.basic_labor.RESTOCK_STOCKPILE)
                            :start()
 end
 

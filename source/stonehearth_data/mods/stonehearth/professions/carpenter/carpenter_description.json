@@ -10,8 +10,8 @@
    "talisman_uri" : "stonehearth:carpenter:saw",
    "score_value": 10, 
    "task_groups" : [
-      "stonehearth:restock", 
-      "stonehearth:build"
+      "stonehearth:task_group:restock", 
+      "stonehearth:task_group:build"
    ],
    "crafter" : {
       "work_effect": "saw",
