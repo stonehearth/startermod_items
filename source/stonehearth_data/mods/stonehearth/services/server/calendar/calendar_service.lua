@@ -15,7 +15,7 @@ local TIME_INTERVALS = {}
 local TIME_DURATIONS = {}
 
 function CalendarService:__init()
-   self._timers = {}
+   self._time_tracker = radiant.lib.TimeTracker()
    self._constants = radiant.resources.load_json('/stonehearth/data/calendar/calendar_constants.json')
    
    
@@ -96,18 +96,7 @@ function CalendarService:_create_timer(duration, fn, repeating)
    end
    assert(timeout_s > 0, string.format('invalid duration passed to calendar set timer, "%s"', tostring(duration)))
 
-   local timer = CalendarTimer(self:get_elapsed_time(), timeout_s, fn, repeating)
-
-   -- if we're currently firing timers, the _next_timers variable will contain the timers
-   -- we'll check next gameloop. stick the timer in there instead of the timers array.  this
-   -- prevents us from modifying the _timers array during iteration, which could make us
-   -- accidently skip timers.
-   if self._next_timers then
-      table.insert(self._next_timers, timer)
-   else
-      table.insert(self._timers, timer)
-   end
-   return timer
+   return self._time_tracker:set_timer(timeout_s, fn, repeating)
 end
 
 function CalendarService:get_constants()
@@ -145,26 +134,10 @@ function CalendarService:_on_event_loop(e)
    -- the date, formatting into a string
    self._sv.date.date = self:format_date()
 
-   self:_update_timers()
+   self._time_tracker:set_elapsed_time(self:get_elapsed_time())
    self.__saved_variables:mark_changed()
 end
 
-function CalendarService:_update_timers()
-   self._next_timers = {}
-   local elapsed = self:get_elapsed_time()
-   for i, timer in ipairs(self._timers) do
-      if timer:is_active() then
-         if timer:get_expire_time() <= elapsed then
-            timer:fire()
-         end
-         if timer:is_active() then
-            table.insert(self._next_timers, timer)
-         end
-      end
-   end
-   self._timers = self._next_timers
-   self._next_timers = nil
-end
 --[[
    If the hour is greater than the set time of day, then fire the
    relevant event.

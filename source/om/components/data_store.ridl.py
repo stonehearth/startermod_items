@@ -33,6 +33,7 @@ class DataStore(dm.Record):
    std::string GetControllerUri();
    luabind::object _controllerObject;
    bool _needsRestoration;
+   dm::TracePtr _dataObjTrace;
    """
 
    _includes = [

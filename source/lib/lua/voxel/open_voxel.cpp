@@ -53,11 +53,20 @@ void lua::voxel::open(lua_State* L)
                   value("Color",    NineGridBrush::Color),
                   value("Opaque",   NineGridBrush::Opaque)
                ]
+               .enum_("gradiant") [
+                  value("Left",     NineGridBrush::NEGATIVE_X),
+                  value("Right",    NineGridBrush::POSITIVE_X),
+                  value("Back",     NineGridBrush::POSITIVE_Z),
+                  value("Front",    NineGridBrush::NEGATIVE_Z)
+               ]
                .def("set_normal",             &NineGridBrush::SetNormal)
+               .def("set_y_offset",           &NineGridBrush::SetYOffset)
                .def("set_paint_mode",         &NineGridBrush::SetPaintMode)
-               .def("set_tile_mode",          &NineGridBrush::SetTileMode)
                .def("set_grid_shape",         &NineGridBrush::SetGridShape)
                .def("set_clip_whitespace",    &NineGridBrush::SetClipWhitespace)
+               .def("set_slope",              &NineGridBrush::SetSlope)
+               .def("set_max_height",         &NineGridBrush::SetMaxHeight)
+               .def("set_gradiant_flags",     &NineGridBrush::SetGradiantFlags)
                .def("paint_once",             &NineGridBrush::PaintOnce)
                .def("paint_through_stencil",  &NineGridBrush::PaintThroughStencil)
          ]
