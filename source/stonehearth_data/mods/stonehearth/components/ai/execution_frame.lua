@@ -45,7 +45,7 @@ function ExecutionFrame:__init(thread, entity, action_index, activity_name, debu
    self._action_index = action_index
    self._thread = thread
    self._execution_units = {}
-   self._execution_unit_keys = {}
+   self._execution_filters = {}
    self._saved_think_output = {}
 
    local prefix = string.format('%s (%s)', self._debug_route, self._activity_name)
@@ -281,6 +281,13 @@ function ExecutionFrame:_restart_thinking(entity_state, debug_reason)
       self:_capture_entity_state()
    end
 
+   -- if any of our filters don't want to run this sub-tree, just bail.
+   for _, unit in pairs(self._execution_filters) do
+      if not unit:_should_start_thinking(self._args, entity_state) then
+         return false
+      end
+   end
+   
    -- see which units we can restart and clone the state for them
    local rethinking_units = {}
    for _, unit in pairs(self._execution_units) do
@@ -801,7 +808,6 @@ function ExecutionFrame:_destroy_from_starting()
       unit:_destroy()
    end
    self._execution_units = {}
-   self._execution_unit_keys = {}
    self:_set_state(DEAD)
    self:_do_destroy()
 end
@@ -813,7 +819,6 @@ function ExecutionFrame:_destroy_from_stopped()
       unit:_destroy()
    end
    self._execution_units = {}
-   self._execution_unit_keys = {}
    self:_set_state(DEAD)
    self:_do_destroy()
 end
@@ -826,7 +831,6 @@ function ExecutionFrame:_destroy_from_running()
       unit:_destroy()
    end
    self._execution_units = {}
-   self._execution_unit_keys = {}
    self:_set_state(DEAD)
    self:_do_destroy()
 end
@@ -995,7 +999,6 @@ function ExecutionFrame:_remove_execution_unit(unit)
          self._log:debug('removing execution unit "%s"', unit:get_name())
          unit:_destroy()
          self._execution_units[key] = nil
-         self._execution_unit_keys[unit] = nil
          return
       end
    end
@@ -1049,6 +1052,7 @@ function ExecutionFrame:_add_execution_unit(key, entry)
    else
       action = action_ctor(self._entity, self._injecting_entity)
    end
+
    local unit = ExecutionUnitV2(self,
                                 self._thread,
                                 self._debug_route,
@@ -1057,9 +1061,13 @@ function ExecutionFrame:_add_execution_unit(key, entry)
                                 action,
                                 self._action_index,
                                 self._trace_route)
-   assert(not self._execution_units[key])
-   self._execution_units[key] = unit
-   self._execution_unit_keys[unit] = key
+   if action.type == 'filter' then
+      assert(not self._execution_filters[key])
+      self._execution_filters[key] = unit
+   else
+      assert(not self._execution_units[key])
+      self._execution_units[key] = unit
+   end
    return unit
 end
 

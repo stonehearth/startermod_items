@@ -21,13 +21,6 @@ function Town:__init(session, saved_variables)
 
    self._log = radiant.log.create_logger('town', self._sv.player_id)
 
-   --Maybe we won't need this after all
-   if not self._sv._task_group_names then
-      self._sv._task_group_names = {}
-   end
-
-   --TODO: since we're dynamically generating task groups, change this to create
-   --them based on the task groups stored in task_group_names
    self:_create_task_groups()
 
    self._unit_controllers = {}

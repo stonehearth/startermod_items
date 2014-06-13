@@ -9,6 +9,9 @@ local STOPPING = 'stopping'
 local FINISHED = 'finished'
 local STOPPED = 'stopped'
 local DEAD = 'dead'
+
+local CALL_NOT_IMPLEMENTED = {}
+
 local placeholders = require 'services.server.ai.placeholders'
 
 function ExecutionUnitV2:__init(frame, thread, debug_route, entity, injecting_entity, action, action_index, trace_route)
@@ -46,7 +49,11 @@ function ExecutionUnitV2:__init(frame, thread, debug_route, entity, injecting_en
    chain_function('set_cost')
   
    local actions = {
-      'start_thinking',
+      -- for filters only   
+      'should_start_thinking',
+
+      -- for actions only
+      'start_thinking',             
       'stop_thinking',
       'start',
       'stop',
@@ -55,16 +62,18 @@ function ExecutionUnitV2:__init(frame, thread, debug_route, entity, injecting_en
    }
    for _, method in ipairs(actions) do
       ExecutionUnitV2['_call_' .. method] = function (self)
+         local result
          local call_action_fn = self._action[method]
          if call_action_fn then
             self._calling_method = method
             self._log:detail('calling action %s', method)
-            call_action_fn(self._action, self._ai_interface, self._entity, self._args)
+            result = call_action_fn(self._action, self._ai_interface, self._entity, self._args)
             self._calling_method = nil
          else
             self._log:detail('action does not implement %s.', method)
+            result = CALL_NOT_IMPLEMENTED
          end
-         return call_action_fn ~= nil
+         return result
       end
    end
 
@@ -156,6 +165,21 @@ function ExecutionUnitV2:_unknown_transition(msg)
    local err = string.format('bad unit transition "%s" from  "%s"', msg, self._state)
    self._log:info(err)
    error(err)
+end
+
+-- called only for filters...
+function ExecutionUnitV2:_should_start_thinking(args, entity_state)
+   assert(self._state == 'stopped')
+
+   if not self:_verify_arguments('start_thinking', args, self._action.args) then
+      return false
+   end
+
+   self._args = args
+   self._current_entity_state = entity_state
+   self._ai_interface.CURRENT = entity_state
+
+   return self:_call_should_start_thinking()
 end
 
 function ExecutionUnitV2:_start_thinking(args, entity_state)
@@ -524,7 +548,7 @@ function ExecutionUnitV2:_do_start_thinking(entity_state)
    self._current_entity_state = entity_state
    self._ai_interface.CURRENT = entity_state
 
-   if not self:_call_start_thinking() then
+   if self:_call_start_thinking() == CALL_NOT_IMPLEMENTED then
       self:_set_think_output(nil)
    end
 end
