@@ -26,7 +26,7 @@ function Wall:initialize(entity, json)
    end
 end
 
-function Wall:begin_editing(entity)
+function Wall:clone_from(entity)
    if entity then
       local other_wall = entity:get_component('stonehearth:wall')
 
@@ -35,11 +35,18 @@ function Wall:begin_editing(entity)
       self._sv.fixture_rotation = other_wall._sv.fixture_rotation
       self._sv.tangent_coord = other_wall._sv.tangent_coord
       self._sv.normal_coord = other_wall._sv.normal_coord
+      self._sv.normal = other_wall._sv.normal
       self.__saved_variables:mark_changed()
 
-      self._editing = true
-      self._editing_region = entity:get_component('destination'):get_region()
+      self._entity:get_component('stonehearth:construction_data')
+            :set_normal(self._sv.normal)
    end
+   return self
+end
+
+function Wall:begin_editing(entity)
+   self._editing = true
+   self._editing_region = entity:get_component('destination'):get_region()
 
    return self
 end

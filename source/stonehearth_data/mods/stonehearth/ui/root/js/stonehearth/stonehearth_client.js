@@ -15,6 +15,15 @@ var StonehearthClient;
                console.dir(e)
             })
       
+         radiant.call('stonehearth:get_service', 'build')
+            .done(function(e) {
+               self._build_service = e.result;
+            })
+            .fail(function(e) {
+               console.log('error getting build service')
+               console.dir(e)
+            })
+      
          $(document).mousemove( function(e) {
             self.mouseX = e.pageX; 
             self.mouseY = e.pageY;
@@ -245,6 +254,14 @@ var StonehearthClient;
          if (building && building.__self) {
             radiant.call('radiant:play_sound', 'stonehearth:sounds:place_structure' );
             return radiant.call_obj(self._build_editor, 'grow_walls', building.__self, column, wall)
+         }
+      },
+
+      replaceStructure: function(old_structure, new_structure_uri) {
+         var self = this;
+         if (old_structure) {
+            radiant.call('radiant:play_sound', 'stonehearth:sounds:place_structure' );
+            return radiant.call_obj(self._build_service, 'substitute_blueprint', old_structure, new_structure_uri)
          }
       },
 
