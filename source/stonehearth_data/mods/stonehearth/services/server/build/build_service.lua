@@ -6,6 +6,13 @@ local Point3 = _radiant.csg.Point3
 local Region2 = _radiant.csg.Region2
 local Region3 = _radiant.csg.Region3
 
+local STRUCTURE_COMPONENTS = {
+   'stonehearth:wall',
+   'stonehearth:floor',
+   'stonehearth:column',
+   'stonehearth:roof',
+}
+
 -- these are quite annoying.  we can get rid of them by implementing and using
 -- LuaToProto <-> ProtoToLua in the RPC layer (see lib/typeinfo/dispatcher.h)
 local function ToPoint3(pt)
@@ -640,6 +647,55 @@ function BuildService:add_portal(session, response, wall_entity, portal_uri, loc
          new_selection = portal_blueprint
       })
    end
+end
+
+
+-- replace the `old` object with a brand new one created from `new_uri`, keeping
+-- the structure of the building in-tact
+--
+--    @param session - the session for the player initiating the request
+--    @param response - a response object which we'll write the result into
+--    @param old - the old blueprint to destroy
+--    @param new_uri - the uri of the new guy to take `old`'s place
+--
+function BuildService:substitute_blueprint(session, response, old, new_uri)
+   local building = self:_get_building_for(old)
+
+   local replaced = self:_create_blueprint(building, new_uri, Point3.zero, function(new)
+         -- place the new entity in the same position as the old one
+         local mob = old:get_component('mob')
+         new:add_component('mob')
+               :set_transform(mob:get_transform())
+
+         -- move all the children of `old` into `new`
+         local old_ec = old:get_component('entity_container')
+         if old_ec then
+            local new_ec = new:add_component('entity_container')
+            for _, child in old_ec:each_child() do
+               new_ec:add_child(child)
+            end
+         end
+
+         -- clone all the components that pertain to structure.
+         new:add_component('stonehearth:construction_progress')
+                  :clone_from(old)
+
+         for _, name in ipairs(STRUCTURE_COMPONENTS) do
+            local old_structure = old:get_component(name)
+            if old_structure then
+               new:add_component(name)
+                           :clone_from(old)
+                           :layout()
+            end
+         end
+      end)
+
+   -- nuke the old entity      
+   radiant.entities.destroy_entity(old)
+   
+   response:resolve({
+      new_selection = replaced
+   })
 end
 
 return BuildService

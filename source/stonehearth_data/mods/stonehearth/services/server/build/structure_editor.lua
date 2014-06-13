@@ -113,6 +113,7 @@ function StructureEditor:_initialize_proxies(blueprint_uri, structure_type)
                            :begin_editing(self._blueprint)
 
    self._structure = self._proxy_blueprint:add_component(structure_type)
+                                                :clone_from(self._blueprint)
                                                 :begin_editing(self._blueprint)
                                                 :layout()
    

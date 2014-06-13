@@ -14,7 +14,7 @@ function ConstructionProgress:initialize(entity, json)
    self._sv = self.__saved_variables:get_data()
    if not self._sv.dependencies then
       self._sv.dependencies = {}
-      self._sv.inverse_dependences = {}
+      self._sv.inverse_dependencies = {}
       self._sv.finished = false
       self._sv.active = false
       self._sv.teardown = false
@@ -25,23 +25,47 @@ function ConstructionProgress:initialize(entity, json)
          for id, blueprint in pairs(self._sv.dependencies) do
             self:_listen_for_changes(blueprint)
          end
-         for id, blueprint in pairs(self._sv.inverse_dependences) do            
+         for id, blueprint in pairs(self._sv.inverse_dependencies) do            
             self:_listen_for_changes(blueprint)
          end
          self:check_dependencies()
       end)
 end
 
+function ConstructionProgress:clone_from(other)
+   if other then
+      local other_cp = other:get_component('stonehearth:construction_progress')
+
+      -- rewire dependencies
+      self._sv.dependencies = {}
+      self._sv.inverse_dependencies = {}
+      self._sv.finished = other_cp.finished
+      self._sv.active = other_cp.active
+      self._sv.teardown = other_cp.teardown
+      self._sv.dependencies_finished = other_cp.dependencies_finished
+
+      for id, blueprint in pairs(other_cp._sv.inverse_dependencies) do
+         blueprint:add_component('stonehearth:construction_progress')
+                        :add_dependency(self._entity)
+                        :remove_dependency(other)
+      end
+      for id, blueprint in pairs(other_cp._sv.dependencies) do
+         self:add_dependency(blueprint)
+      end
+   end
+   return self
+end
+
 function ConstructionProgress:_listen_for_changes(blueprint)
-   radiant.events.listen(blueprint, 'stonehearth:construction:teardown_changed', function()
-         self:check_dependencies()
-      end)
-   radiant.events.listen(blueprint, 'stonehearth:construction:finished_changed', function()
-         self:check_dependencies()
-      end)
-   radiant.events.listen_once(blueprint, 'radiant:entity:pre_destroy', function()
-         self:check_dependencies()
-      end)
+   radiant.events.listen(blueprint, 'radiant:entity:pre_destroy', self, self.check_dependencies)
+   radiant.events.listen(blueprint, 'stonehearth:construction:teardown_changed', self, self.check_dependencies)
+   radiant.events.listen(blueprint, 'stonehearth:construction:finished_changed', self, self.check_dependencies)
+end
+
+function ConstructionProgress:_unlisten_for_changes(blueprint)
+   radiant.events.unlisten(blueprint, 'radiant:entity:pre_destroy', self, self.check_dependencies)
+   radiant.events.unlisten(blueprint, 'stonehearth:construction:teardown_changed', self, self.check_dependencies)
+   radiant.events.unlisten(blueprint, 'stonehearth:construction:finished_changed', self, self.check_dependencies)
 end
 
 --- Tracks projects which must be completed before this one can start.
@@ -66,10 +90,38 @@ function ConstructionProgress:_add_inverse_dependency(blueprint)
    assert(self._entity ~= blueprint)
    
    local id = blueprint:get_id()
-   self._sv.inverse_dependences[id] = blueprint
+   self._sv.inverse_dependencies[id] = blueprint
    self.__saved_variables:mark_changed()
 
    self:_listen_for_changes(blueprint)
+   self:check_dependencies()
+   return self
+end
+
+--- Tracks projects which must be completed before this one can start.
+function ConstructionProgress:remove_dependency(blueprint)
+   assert(self._entity ~= blueprint)
+
+   local id = blueprint:get_id()
+   self._sv.dependencies[id] = nil
+   self.__saved_variables:mark_changed()
+
+   blueprint:add_component('stonehearth:construction_progress')
+            :_remove_inverse_dependency(self._entity)
+
+   self:_unlisten_for_changes(blueprint)
+   self:check_dependencies()
+   return self
+end
+
+function ConstructionProgress:_remove_inverse_dependency(blueprint)
+   assert(self._entity ~= blueprint)
+   
+   local id = blueprint:get_id()
+   self._sv.inverse_dependencies[id] = nil
+   self.__saved_variables:mark_changed()
+
+   self:_unlisten_for_changes(blueprint)
    self:check_dependencies()
    return self
 end
@@ -87,7 +139,7 @@ function ConstructionProgress:check_dependencies()
    -- town first. 
    if teardown then
       self._log:debug('checking inverse dependencies...(current: %s  teardown: %s)', tostring(last_dependencies_finished), tostring(teardown))
-      dependencies = self._sv.inverse_dependences
+      dependencies = self._sv.inverse_dependencies
    else 
       self._log:debug('checking dependencies...(current: %s  teardown: %s)', tostring(last_dependencies_finished), tostring(teardown))
       dependencies = self._sv.dependencies
