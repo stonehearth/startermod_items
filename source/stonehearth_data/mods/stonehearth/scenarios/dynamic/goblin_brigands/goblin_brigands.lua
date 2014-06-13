@@ -13,6 +13,11 @@ Goblin Brigands
 function GoblinBrigands:__init(saved_variables)
 end
 
+function GoblinBrigands:initialize()
+   --ID of the player who the goblin is attacking, not the player ID of the DM
+   self._sv.player_id = 'player_1'
+end
+
 function GoblinBrigands:restore()
    if self._sv.__scenario:is_running() then
       radiant.events.listen_once(radiant, 'radiant:game_loaded', function(e)
@@ -58,6 +63,8 @@ end
 function GoblinBrigands:_attach_listeners()
    radiant.events.listen(self._sv._stockpile, 'stonehearth:item_added', self, self._item_added)
    radiant.events.listen_once(self._sv._squad, 'stonehearth:squad:squad_destroyed', self, self._squad_killed)
+   radiant.events.listen(self._sv._thief, 'radiant:entity:pre_destroy', self, self._thief_killed)
+   radiant.events.listen(self._sv._thief, 'stonehearth:carry_block:carrying_changed', self, self._theft_event)
 end
 
 function GoblinBrigands:_add_restock_task(e)
@@ -78,12 +85,25 @@ function GoblinBrigands:_schedule_spawn(t)
       end)
 end
 
+--Determine the # of brigands based on the wealth of the town
 function GoblinBrigands:_on_spawn()
    if not self._sv._squad then
       self._sv._squad = EscortSquad('game_master', radiant.create_datastore())
       self._sv._thief = self._sv._squad:set_escorted('stonehearth:goblin:thief')
-      self._sv._squad:add_escort('stonehearth:goblin:brigand', 'stonehearth:wooden_sword')
-      self._sv._squad:add_escort('stonehearth:goblin:brigand', 'stonehearth:wooden_sword')
+
+      --Pick how many escorts
+      local score_data = stonehearth.score:get_scores_for_player(self._sv.player_id):get_score_data()
+      local num_escorts = 1
+      if score_data.net_worth and score_data.net_worth.total_score then
+         local proposed_escorts = score_data.net_worth.total_score / 1000
+         if proposed_escorts > num_escorts then
+            num_escorts = proposed_escorts
+         end
+      end
+
+      for i = 1, num_escorts do 
+         self._sv._squad:add_escort('stonehearth:goblin:brigand', 'stonehearth:wooden_sword')
+      end
    end
 
    local spawn_points = stonehearth.spawn_region_finder:find_standable_points_outside_civ_perimeter(
@@ -117,6 +137,43 @@ function GoblinBrigands:_squad_killed(e)
 
    radiant.events.trigger(self, 'stonehearth:dynamic_scenario:finished')
 end
+
+function GoblinBrigands:_thief_killed(e)
+   radiant.events.unlisten(self._sv._thief, 'stonehearth:carry_block:carrying_changed', self, self._theft_event)
+   radiant.events.unlisten(self._sv._thief, 'radiant:entity:pre_destroy', self, self._thief_killed)
+
+   if self._sv.notification_bulletin then
+      local bulletin_id = self._sv.notification_bulletin:get_id()
+      stonehearth.bulletin_board:remove_bulletin(bulletin_id)
+      self._sv.notification_bulletin = nil
+   end
+
+   self.__saved_variables:mark_changed()
+end
+
+function GoblinBrigands:_theft_event(e)
+   if not self._sv.bulletin_fired then
+      local message_data = radiant.resources.load_json('stonehearth:scenarios:goblin_brigands').scenario_data
+      self._sv.title = message_data.title
+      local message_index = rng:get_int(1, #message_data.quote)
+      self._sv.message = message_data.quote[message_index] .. ' --' .. radiant.entities.get_name(self._sv._thief)
+      
+      --Send the notice to the bulletin service.
+      self._sv.notification_bulletin = stonehearth.bulletin_board:post_bulletin(self._sv.player_id)
+           :set_callback_instance(self)
+           :set_data({
+               title = self._sv.title,
+               message = self._sv.message,
+               zoom_to_entity = self._sv._thief,
+           })
+
+      self._sv.bulletin_fired = true
+
+      --Add something to the event log:
+      stonehearth.events:add_entry(self._sv.title .. ': ' .. self._sv.message)
+   end
+end
+
 
 function GoblinBrigands:_item_added(e)
    local s_comp = self._sv._stockpile:get_component('stonehearth:stockpile')

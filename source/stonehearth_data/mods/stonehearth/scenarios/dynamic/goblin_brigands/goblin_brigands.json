@@ -1,11 +1,31 @@
 {
-    "name" : "Goblin Brigands",
-    "scenario_types" : {
+   "name" : "Goblin Brigands",
+   "scenario_types" : {
       "combat" : {
-        "min_strength" : 9,
-        "max_strength" : 50
+         "min_strength" : 9,
+         "max_strength" : 50
       }
-    },
-    "rarity" : "common",
-    "uri" : "stonehearth:goblin_brigands"
+   },
+   "rarity" : "common",
+   "uri" : "stonehearth:goblin_brigands",
+   "scenario_data" : {
+      "title" : "Armed goblins are taking your stuff!", 
+      "quote" : [
+         "I hear these travellers dangerous. Bring friend!",
+         "All your things are belong to us!",
+         "When in doubt, take things!",
+         "I now so popular!",
+         "My bros bring the hurt."
+         "Want wood!",
+         "Take shiny thing: best part of life",
+         "Haven't lived till felt the thrill of larceny!",
+         "We come together to take other people's things.",
+         "Taking stuff from others so much better than having own stuff taken.",
+         "Sneaky people now popular people.",
+         "Time to write Ma, finally making it in the world!",
+         "Me feel so powerful.",
+         "Rage of newcomers make me so happy!",
+         "Me take stuff to prove goblins have free will."
+      ]
+   }
 }
