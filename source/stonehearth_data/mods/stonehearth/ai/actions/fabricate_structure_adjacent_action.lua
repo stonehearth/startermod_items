@@ -22,13 +22,15 @@ end
 function FabricateStructureAdjacent:run(ai, entity, args)
    self._fabricator = args.fabricator
    self._current_block = args.block
-
+    
    local carrying = radiant.entities.get_carrying(entity)
    local standing = radiant.entities.get_world_grid_location(entity)
    repeat
       radiant.entities.turn_to_face(entity, self._current_block)
       ai:execute('stonehearth:run_effect', { effect = 'work' })
-      self._fabricator:add_block(carrying, self._current_block)
+      if not self._fabricator:add_block(carrying, self._current_block) then
+         ai:abort('failed to add block to fabricator')
+      end
 
       carrying = radiant.entities.consume_carrying(entity)
       self._current_block = self._fabricator:find_another_block(carrying, standing)

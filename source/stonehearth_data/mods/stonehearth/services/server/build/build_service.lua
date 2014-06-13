@@ -51,8 +51,10 @@ function BuildService:set_teardown(blueprint, enabled)
    local function _set_teardown_recursive(blueprint)
       local ec = blueprint:get_component('entity_container')  
       if ec then
-         for id, child in ec:each_child() do
-            _set_teardown_recursive(child, enabled)
+         for id, child in ec:each_child() do         
+            if child and child:is_valid() then
+               _set_teardown_recursive(child, enabled)
+            end
          end
       end
       local cp = blueprint:get_component('stonehearth:construction_progress')

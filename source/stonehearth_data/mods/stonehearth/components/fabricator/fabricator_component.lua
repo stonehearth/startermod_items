@@ -80,22 +80,6 @@ function FabricatorComponent:set_teardown(enabled)
    self.__saved_variables:mark_changed()
 end
 
-function FabricatorComponent:add_block(material, location)
-   return self._fabricator:add_block(material, location)
-end
-
-function FabricatorComponent:find_another_block(material, location)
-   return self._fabricator:find_another_block(material, location)
-end
-
-function FabricatorComponent:remove_block(location)
-   return self._fabricator:remove_block(location)
-end
-
-function FabricatorComponent:release_block(location)
-   return self._fabricator:release_block(location)
-end
-
 function FabricatorComponent:start_project(blueprint)
    self._log:debug('starting project for %s', blueprint)
    
