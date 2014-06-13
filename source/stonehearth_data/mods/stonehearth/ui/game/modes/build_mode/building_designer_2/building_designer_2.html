@@ -32,6 +32,12 @@
                </div>
                <div style="clear: both"></div>
             {{/each}}
+            <h2>Tools</h2>
+            <div>
+               <a name="erase" href="#" {{action selectFloorEraserTool this target="view"}} class="brushLink">
+                  <img src="floor_eraser.png" title="erase" />
+               </a>
+            </div>
          </div>
       </div>
 
@@ -44,7 +50,7 @@
                <!-- <h2>{{category}}</h2> -->
                <div>
                   {{#each items}}
-                     <a {{bind-attr name = "this.name"}}href="#" {{action selectWallBrushTool this target="view"}} class="brushLink">
+                     <a {{bind-attr name = "this.name"}}href="#" {{action selectWallMaterial this target="view"}} class="brushLink">
                         <img {{bind-attr src="this.portrait" title="this.name"}} />
                      </a>
                   {{/each}}
@@ -55,7 +61,22 @@
       </div>
 
       <div class="tabPage" id="roofToolTab">
-         <h2>Raise Roof</h2>
+         <h2>{{i18n stonehearth:building_designer_raise_roof}}</h2>
+         {{i18n stonehearth:building_designer_raise_roof_help}}
+         <h2>{{i18n stonehearth:building_designer_material}}</h2>
+         <div class="brushPalette section">
+            {{#each roofPatterns}}
+               <!-- <h2>{{category}}</h2> -->
+               <div>
+                  {{#each items}}
+                     <a {{bind-attr name = "this.name"}}href="#" {{action selectRoofMaterial this target="view"}} class="brushLink">
+                        <img {{bind-attr src="this.portrait" title="this.name"}} />
+                     </a>
+                  {{/each}}
+               </div>
+               <div style="clear: both"></div>
+            {{/each}}
+         </div>
       </div>
 
       <div class="tabPage" id="doorToolTab">

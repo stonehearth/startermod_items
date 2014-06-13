@@ -281,7 +281,9 @@
    "building_designer_draw_floorplan" : "Draw Floorplan",
    "building_designer_draw_floorplan_help" : "Pick a material below and drag out boxes to define your building's floorplan.",
    "building_designer_erect_walls" : "Erect Walls",
-   "building_designer_erect_walls_help" : "Pick a material below and click the \"Erect Walls\" button to raise walls around your floorplan.",
+   "building_designer_erect_walls_help" : "Pick a material below to raise walls around your floorplan.",
+   "building_designer_raise_roof" : "Raise Roof",
+   "building_designer_raise_roof_help" : "Pick a material and customization options for your roof.",
    "building_designer_doodads" : "Add Doors, Windows, & Doodads",
    "building_designer_doodads_help" : "Pick an object from the material palette then click on your building to place it.",
 

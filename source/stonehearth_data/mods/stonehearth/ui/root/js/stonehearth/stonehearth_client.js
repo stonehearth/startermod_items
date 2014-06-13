@@ -74,7 +74,7 @@ var StonehearthClient;
 
       deactivateAllTools: function() {
          var self = this;
-         return radiant.call('radiant:client:deactivate_all_tools')
+         return radiant.call('stonehearth:deactivate_all_tools')
             .always(function() {
                self._activeTool = null;
             });
@@ -104,37 +104,46 @@ var StonehearthClient;
          return deferred;
       },
 
-      boxHarvestResources: function() {
-         $(top).trigger('radiant_show_tip', { 
-            title : 'Click and drag to harvest resources',
-            description : 'Drag out a box to choose which resources to harvest'
-         });
+      boxHarvestResources: function(o) {
+         var self = this;
+
+         if (!o || !o.hideTip) {
+            $(top).trigger('radiant_show_tip', { 
+               title : 'Click and drag to harvest resources',
+               description : 'Drag out a box to choose which resources to harvest<p>Right click to exit.'
+            });            
+         }
 
          return this._callTool(function() {
             return radiant.call('stonehearth:box_harvest_resources')
-               .always(function(response) {
+               .done(function(response) {
+                  self.boxHarvestResources({ hideTip : true });
+               })
+               .fail(function(response) {
                   radiant.call('radiant:play_sound', 'stonehearth:sounds:ui:start_menu:popup' );
                   $(top).trigger('radiant_hide_tip');
                });
          });
       },
 
-      createStockpile: function() {
-         radiant.call('radiant:play_sound', 'stonehearth:sounds:ui:start_menu:popup' );
-         
+      createStockpile: function(o) {
+         var self = this;
          // xxx, localize
-         $(top).trigger('radiant_show_tip', { 
-            title : 'Click and drag to create your stockpile',
-            description : 'Your citizens place resources and crafted goods in stockpiles for safe keeping!'
-         });
+         if (!o || !o.hideTip) {
+            $(top).trigger('radiant_show_tip', { 
+               title : 'Click and drag to create your stockpile',
+               description : 'Your citizens place resources and crafted goods in stockpiles for safe keeping!'
+            });
+         }
 
          return this._callTool(function() {
             return radiant.call('stonehearth:choose_stockpile_location')
                .done(function(response) {
-                  radiant.call('radiant:client:select_entity', response.stockpile);
-               })
-               .always(function(response) {
                   radiant.call('radiant:play_sound', 'stonehearth:sounds:place_structure' );
+                  radiant.call('radiant:client:select_entity', response.stockpile);
+                  self.createStockpile({ hideTip : true });
+               })
+               .fail(function(response) {
                   $(top).trigger('radiant_hide_tip');
                   console.log('stockpile created!');
                });
@@ -142,22 +151,24 @@ var StonehearthClient;
       },
 
       //TODO: make this available ONLY after a farmer has been created
-      createFarm: function() {
-         radiant.call('radiant:play_sound', 'stonehearth:sounds:ui:start_menu:popup' );
-      
+      createFarm: function(o) {
+         var self = this;
          // xxx, localize
-         $(top).trigger('radiant_show_tip', { 
-            title : 'Click and drag to designate a new field.',
-            description : 'Farmers will break ground and plant crops here'
-         });
+         if (!o || !o.hideTip) {
+            $(top).trigger('radiant_show_tip', { 
+               title : 'Click and drag to designate a new field.',
+               description : 'Farmers will break ground and plant crops here'
+            });
+         }
 
          return this._callTool(function(){
             return radiant.call('stonehearth:choose_new_field_location')
             .done(function(response) {
-               radiant.call('radiant:client:select_entity', response.field);
-            })
-            .always(function(response) {
                radiant.call('radiant:play_sound', 'stonehearth:sounds:place_structure' );
+               radiant.call('radiant:client:select_entity', response.field);
+               self.createFarm({ hideTip : true});
+            })
+            .fail(function(response) {
                $(top).trigger('radiant_hide_tip');
                console.log('new field created!');
             });
@@ -165,7 +176,6 @@ var StonehearthClient;
       },
 
       buildWall: function() {
-         radiant.call('radiant:play_sound', 'stonehearth:sounds:ui:start_menu:popup' );
          var self = this;
 
          $(top).trigger('radiant_show_tip', { 
@@ -182,17 +192,39 @@ var StonehearthClient;
          });
       },
 
-      buildFloor: function(floor) {
+      buildFloor: function(floor, o) {
+         var self = this;
+
+         if (!o || !o.hideTip) {
+            $(top).trigger('radiant_show_tip', { 
+               title : 'Build Floor Tooltip',
+               description : 'Build Floor Tooltip'
+            });
+         }
+
+         return this._callTool(function() {
+            return radiant.call_obj(self._build_editor, 'place_new_floor', floor.brush)
+               .done(function(response) {
+                  radiant.call('radiant:play_sound', 'stonehearth:sounds:place_structure' );
+                  self.buildFloor(floor, { hideTip : true });
+               })
+               .fail(function(response) {
+                  $(top).trigger('radiant_hide_tip');
+               });
+         });
+      },
+
+      eraseFloor: function(floor) {
          radiant.call('radiant:play_sound', 'stonehearth:sounds:ui:start_menu:popup' );
          var self = this;
 
          $(top).trigger('radiant_show_tip', { 
-            title : 'Build Floor Tooltip',
-            description : 'Build Floor Tooltip'
+            title : 'Erase Floor Tooltip',
+            description : 'Erase Floor Tooltip'
          });
 
          return this._callTool(function() {
-            return radiant.call_obj(self._build_editor, 'place_new_floor', floor.brush)
+            return radiant.call_obj(self._build_editor, 'erase_floor')
                .always(function(response) {
                   radiant.call('radiant:play_sound', 'stonehearth:sounds:place_structure' );
                   $(top).trigger('radiant_hide_tip');

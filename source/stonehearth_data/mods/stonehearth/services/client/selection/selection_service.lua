@@ -4,6 +4,7 @@ local LocationSelector = require 'services.client.selection.location_selector'
 local SelectionService = class()
 
 function SelectionService:initialize()
+   self._all_tools = {}
    self._input_capture = stonehearth.input:capture_input()
                               :on_mouse_event(function(e)
                                    return self:_on_mouse_input(e)
@@ -42,6 +43,16 @@ end
 
 function SelectionService:select_location()
    return LocationSelector()
+end
+
+function SelectionService:register_tool(tool, enabled)
+   self._all_tools[tool] = enabled and true or nil
+end
+
+function SelectionService:deactivate_all_tools()
+   for tool, _ in pairs(self._all_tools) do
+      tool:deactivate_tool()
+   end
 end
 
 function SelectionService:_on_mouse_input(e)

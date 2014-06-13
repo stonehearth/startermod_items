@@ -34,8 +34,14 @@ App.StonehearthBuildingDesignerView2 = App.View.extend({
       selectFloorBrushTool: function(floor) {
          App.stonehearthClient.buildFloor(floor);
       },
-      selectWallBrushTool: function(wall) {
+      selectWallMaterial: function(wall) {
          App.stonehearthClient.growWalls(this.get('context.building'), 'stonehearth:wooden_column', wall.uri);
+      },
+      selectRoofMaterial: function(wall) {
+         //App.stonehearthClient.growWalls(this.get('context.building'), 'stonehearth:wooden_column', wall.uri);
+      },
+      selectFloorEraserTool: function() {
+         App.stonehearthClient.eraseFloor();
       },
    },
 
@@ -56,6 +62,14 @@ App.StonehearthBuildingDesignerView2 = App.View.extend({
          items: [
             { name: 'Wooden Wall', portrait: '/stonehearth/entities/build/wooden_wall/wooden_wall.png', uri: 'stonehearth:wooden_wall' },
             { name: 'Plastered Wooden Wall',    portrait: '/stonehearth/entities/build/wooden_wall/plastered_wooden_wall.png', uri: 'stonehearth:plastered_wooden_wall' },
+         ]         
+      }
+   ],
+
+   roofPatterns: [
+      {
+         category: 'Wooden Materials',
+         items: [
          ]         
       }
    ],
@@ -139,6 +153,8 @@ App.StonehearthBuildingDesignerView2 = App.View.extend({
       this._super();
 
       this.$('.tabButton').click(function() {
+         App.stonehearthClient.deactivateAllTools();
+         
          var tab = $(this).attr('tab');
 
          var currentTab = self.$('#selectedBuildingWindow .tabPage');

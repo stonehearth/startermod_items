@@ -67,12 +67,25 @@ function LocationSelector:set_cursor_entity(cursor_entity)
    return self
 end
 
+function LocationSelector:deactivate_tool()
+   self:destroy()
+   
+   if self._fail_cb then
+      self._fail_cb(self)
+   end
+   if self._always_cb then
+      self._always_cb(self)
+   end
+end
+
 -- destroy the location selector.  needs to be called when the user is
 -- "done" with the selection, usually in an :always() promise callback,
 -- though the user may choose to keep it around till later if they'd like
 -- the cursor entity to stick around (e.g. in a multi-step wizard)
 --
 function LocationSelector:destroy()
+   stonehearth.selection:register_tool(self, false)
+
    if self._input_capture then
       self._input_capture:destroy()
       self._input_capture = nil
@@ -182,6 +195,7 @@ end
 --
 function LocationSelector:go()
    self._rotation = 0
+   stonehearth.selection:register_tool(self, true)
 
    -- capture the mouse.  Call our _on_mouse_event each time, passing in
    -- the entity that we're supposed to create whenever the user clicks.

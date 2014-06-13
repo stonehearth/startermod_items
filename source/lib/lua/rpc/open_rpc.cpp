@@ -28,6 +28,9 @@ LuaDeferredPtr LuaDeferred_Done(lua_State* L, LuaDeferredPtr deferred, object cb
 
 LuaDeferredPtr LuaDeferred_Destroy(lua_State* L, LuaDeferredPtr deferred)
 {
+   if (deferred) {
+      deferred->Destroy();
+   }
    return deferred;
 }
 

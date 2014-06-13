@@ -5,4 +5,9 @@ function SelectionCallHandler:select_entity(session, response, entity)
    response:resolve({})
 end
 
+function SelectionCallHandler:deactivate_all_tools(session, response)
+   stonehearth.selection:deactivate_all_tools()
+   response:resolve({})
+end
+
 return SelectionCallHandler

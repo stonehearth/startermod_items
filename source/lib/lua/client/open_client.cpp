@@ -226,7 +226,7 @@ rpc::LuaDeferredPtr Client_SelectXZRegionWithFlags(lua_State* L, int userFlagMas
    XZRegionSelectorPtr selector = Client::GetInstance().CreateXZRegionSelector(userFlagMask);
    auto d = selector->Activate();
 
-   rpc::LuaDeferredPtr result = std::make_shared<rpc::LuaDeferred>("select xz region");
+   rpc::LuaDeferredPtr result = std::make_shared<rpc::LuaDeferredObject<XZRegionSelector>>(selector, "select xz region");
    d->Progress([L, result](csg::Cube3 const& c) {
       result->Notify(luabind::object(L, c));
    });

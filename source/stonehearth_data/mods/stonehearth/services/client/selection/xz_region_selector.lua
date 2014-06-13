@@ -59,8 +59,13 @@ function XZRegionSelector:use_manual_marquee(marquee_fn)
    return self
 end
 
+function XZRegionSelector:deactivate_tool()
+   self:destroy()  
+end
 
 function XZRegionSelector:destroy()
+   stonehearth.selection:register_tool(self, false)
+
    if self._render_node then
       self._render_node:destroy()
       self._render_node = nil
@@ -69,7 +74,7 @@ function XZRegionSelector:destroy()
       self._cursor_obj:destroy()
       self._cursor_obj = nil
    end
-   if self._xz_selector then      
+   if self._xz_selector then
       self._xz_selector:destroy()
       self._xz_selector = nil
    end
@@ -83,6 +88,8 @@ function XZRegionSelector:go()
    if self._cursor then
       self._cursor_obj = _radiant.client.set_cursor(self._cursor)
    end
+
+   stonehearth.selection:register_tool(self, true)
 
    self._xz_selector = _radiant.client.select_xz_region(self._selection_flags)
       :progress(function (box)
