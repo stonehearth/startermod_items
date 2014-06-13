@@ -87,7 +87,7 @@ UPDATE_INTERVAL = 1
 
 
 class TestThread(Thread):
-   def __init__(self, url, machine_name, test_group, file_name, settings=''):
+   def __init__(self, url, machine_name, test_group, file_name, settings='{}'):
       super(TestThread, self).__init__()
       self.url = url
       self.machine_name = machine_name
