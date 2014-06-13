@@ -3,12 +3,14 @@ mod = {}
 
 function world_from_options(index, options)
    if options.script then
-      local script_entry = 'file(' + options.script + ')'
+      local script_entry = '/' .. options.script
       for world_name, world in pairs(index.worlds) do
          for _, group in pairs(world.groups) do
-            for _, script in ipairs(group.scripts) do
-               if script == script_entry then
-                  return world
+            if group.scripts ~= nil then
+               for _, script in ipairs(group.scripts) do
+                  if script == script_entry then
+                     return world_name
+                  end
                end
             end
          end
