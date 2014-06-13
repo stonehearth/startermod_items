@@ -58,15 +58,15 @@ local function _run_script(script, function_name)
    end
 end
 
-local function _run_group(index, key)
-   local group = index[key]
-   if not group then
-      autotest_framework.fail('undefined test group "%s"', key)
-   end
+local function _run_group(all_groups, group)
    -- first run all the groups
    if group.groups then
       for i, gname in ipairs(group.groups) do
-         _run_group(index, gname)
+         local subgroup = all_groups.groups[gname]
+         if not subgroup then
+            autotest_framework.fail('unknown group name "%s"', gname)
+         end
+         _run_group(all_groups, subgroup)
       end
    end
 
@@ -108,39 +108,32 @@ function autotest_framework.fail(format, ...)
    end
 end
 
--- runs a set of autotest scripts
--- Runs through all the scripts in the test_scripts table.
--- @param test_scripts A numeric table containing a list of test scripts
--- to run
-function autotest_framework.run_group(index, name)
+-- run a grouop of test scripts.  it's up to the client to ensure  that the world has been setup correctly
+-- `group` must be a table containing the following keys:
+--
+--     'groups' : an optional list of group names.  these will be used to index into the `all_groups`
+--                table to find the group objects to execute recursively.
+--
+--     'scripts' : a list of .lua files containing the tests to execute (see run_script)
+--
+--    @param all_groups - an table containing key/value pairs for the recursive subgroups.
+--    @param group - a table containing the group to run
+--
+function autotest_framework.run_group(all_groups, group)
    _run_thread(function()
-         -- Find the correct 'world' for the specified group.
-         local found_world_name = nil
-         for world_name, world in pairs(index.worlds) do
-            for group_name, group in pairs(world.groups) do
-               if group_name == name then
-                  found_world_name = world_name
-                  break
-               end
-            end
-         end
-         if not found_world_name then
-            autotest_framework.fail('undefined test group "%s"', name)
-         end
-         -- Run that group.
-         _run_group(index.worlds[found_world_name].groups, name)
+         _run_group(all_groups, group)
       end)
 end
 
-function autotest_framework.run_script(script)
+-- run a specific test script.  it's up to the client to ensure  that the world has been setup correctly
+--
+--    @param script - the .lua script file with the tests
+--    @param function_name - the name of the specific function to run.   if omitted, all functions
+--                            in `script` will be executed.
+--
+function autotest_framework.run_script(script, function_name)
    _run_thread(function()
-         _run_script(script)
-      end)
-end
-
-function autotest_framework.run_test(script, name)
-   _run_thread(function()
-         _run_script(script, name)
+         _run_script(script, function_name)
       end)
 end
 

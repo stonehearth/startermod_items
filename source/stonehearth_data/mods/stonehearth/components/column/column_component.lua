@@ -37,18 +37,18 @@ end
 
 -- begin editing the column pointed to by `other_column`.  basically just
 -- copy the shape and important variables in the save state
-function Column:begin_editing(entity)
-   local region
-
+function Column:clone_from(entity)
    if entity then
       local other_column = entity:get_component('stonehearth:column')
       self._sv.roof = other_column._sv.roof
       self.__saved_variables:mark_changed()
-      region = other_column:get_component('destination'):get_region():get()
-   else
-      region = self:_compute_column_shape()
    end
+   return self
+end
 
+-- begin editing the column pointed to by `other_column`.  basically just
+-- copy the shape and important variables in the save state
+function Column:begin_editing(entity)
    self._editing_region = _radiant.client.alloc_region()
    self._editing_region:modify(function(cursor)
          cursor:copy_region(self:_compute_column_shape())
