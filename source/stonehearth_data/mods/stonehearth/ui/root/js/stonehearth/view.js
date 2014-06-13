@@ -74,7 +74,9 @@
       if (this._rootTrace) {
          this._rootTrace.progress(function(eobj) {
                console.log("setting view context for " + self.elementId + " to...", eobj);
-               self.set('context', eobj)
+
+               var modelProperty = self.uriProperty ? self.uriProperty : 'context';
+               self.set(modelProperty, eobj)
             });
       } else {
          self.set('context', {});
