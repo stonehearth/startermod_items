@@ -47,7 +47,7 @@ local constants = {
          CRAFTING       = 3,
       },
 
-      basic_labor = {
+      simple_labor = {
          DEFAULT            = 2,
          RESTOCK_STOCKPILE  = 2,
          CONSTRUCT_BUILDING = 5,

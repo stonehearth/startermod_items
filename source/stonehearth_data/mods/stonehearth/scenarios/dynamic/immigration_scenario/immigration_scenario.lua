@@ -8,12 +8,12 @@ local Point3 = _radiant.csg.Point3
    The profession of the person who joins may change as your town's happiness score increases.
 
    Details: the professions available are defined in immigration.json. Each profession has
-   a value (1 is low, N is high) and a # of shares. The professions are entered into a table.
+   a rating (1 is low, N is high) and a # of shares. The professions are entered into a table.
    Professions with high share values appear in the table multiple times. 
 
    When the scenario runs, we check the town's happines score. The score determines the number
    of "random drawings" we do out of the profession table, so happy towns will have lots of drawings.
-   The profession with the highest value is selected to join the town. 
+   The profession with the highest rating is selected to join the town. 
 
    This way, the list of professions is extensible, but your changes of getting a rare specialist
    go up as your town's happiness increases.

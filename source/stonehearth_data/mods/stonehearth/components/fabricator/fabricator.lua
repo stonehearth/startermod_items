@@ -1,4 +1,4 @@
-local priorities = require('constants').priorities.basic_labor
+local priorities = require('constants').priorities.simple_labor
 local Point2 = _radiant.csg.Point2
 local Point3 = _radiant.csg.Point3
 local Region3 = _radiant.csg.Region3

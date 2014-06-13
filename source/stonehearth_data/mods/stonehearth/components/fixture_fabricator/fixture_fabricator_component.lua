@@ -1,4 +1,4 @@
-local priorities = require('constants').priorities.basic_labor
+local priorities = require('constants').priorities.simple_labor
 
 local FixtureFabricator = class()
 
