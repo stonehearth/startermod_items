@@ -159,10 +159,6 @@ function Fabricator:get_material()
    return self._resource_material
 end
 
-function Fabricator:get_entity()
-   return self._entity
-end
-
 function Fabricator:get_project()
    return self._project
 end
@@ -171,10 +167,17 @@ function Fabricator:get_blueprint()
    return self._blueprint
 end
 
+function Fabricator:get_entity()  
+   return self._entity
+end
 
 function Fabricator:add_block(material_entity, location)  
+   if not self._entity:is_valid() then
+      return false
+   end
+   
    -- location is in world coordinates.  transform it to the local coordinate space
-   -- before building
+   -- before building  
    local origin = radiant.entities.get_world_grid_location(self._entity)
    local pt = location - origin
 
@@ -194,6 +197,7 @@ function Fabricator:add_block(material_entity, location)
          end)
       end   
    end
+   return true
 end
 
 function Fabricator:find_another_block(carrying, location)
@@ -334,6 +338,10 @@ function Fabricator:reserve_block(location)
 end
 
 function Fabricator:release_block(location)
+   if not self._entity:is_valid() then
+      return
+   end
+
    local pt = location - radiant.entities.get_world_grid_location(self._entity)
    self._log:debug('removing point %s from reserve region', tostring(pt))
    self._fabricator_dst:get_reserved():modify(function(cursor)
@@ -493,6 +501,11 @@ function Fabricator:_update_fabricator_region()
    if self._blueprint and self._blueprint:is_valid() then
       self._blueprint:add_component('stonehearth:construction_progress')
                      :set_finished(finished)
+      -- finishing in teardown mode might cause us to immediately be destroyed.
+      -- if so, there's no point in continuing.
+      if not self._entity:is_valid() then
+         return
+      end
    end
    
    self._log:debug('new destination region is %s', dst:get_region():get())

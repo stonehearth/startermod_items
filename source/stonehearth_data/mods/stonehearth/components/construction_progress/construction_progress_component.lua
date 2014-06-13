@@ -39,6 +39,9 @@ function ConstructionProgress:_listen_for_changes(blueprint)
    radiant.events.listen(blueprint, 'stonehearth:construction:finished_changed', function()
          self:check_dependencies()
       end)
+   radiant.events.listen_once(blueprint, 'radiant:entity:pre_destroy', function()
+         self:check_dependencies()
+      end)
 end
 
 --- Tracks projects which must be completed before this one can start.
@@ -91,19 +94,23 @@ function ConstructionProgress:check_dependencies()
    end
 
    for id, blueprint in pairs(dependencies) do
-      local progress = blueprint:get_component('stonehearth:construction_progress')
-      local dep_teardown = progress:get_teardown()
-      if dep_teardown  == teardown then
-         if not progress:get_finished() then
-            -- The project is actually not finished.  Definitely bail!
-            self._log:debug('  blueprint %s not finished (teardown: %s).', blueprint, tostring(teardown))
-            self._sv.dependencies_finished = false
-            break
-         else
-            self._log:debug('  blueprint %s is finished (teardown: %s).', blueprint, tostring(teardown))
-         end
+      if not blueprint:is_valid() then
+         dependencies[id] = nil
       else
-         self._log:debug('  blueprint %s doesnt match our teardown (teardown: %s, dep_teardown: %s).', blueprint, tostring(teardown), tostring(dep_teardown))
+         local progress = blueprint:get_component('stonehearth:construction_progress')
+         local dep_teardown = progress:get_teardown()
+         if dep_teardown  == teardown then
+            if not progress:get_finished() then
+               -- The project is actually not finished.  Definitely bail!
+               self._log:debug('  blueprint %s not finished (teardown: %s).', blueprint, tostring(teardown))
+               self._sv.dependencies_finished = false
+               break
+            else
+               self._log:debug('  blueprint %s is finished (teardown: %s).', blueprint, tostring(teardown))
+            end
+         else
+            self._log:debug('  blueprint %s doesnt match our teardown (teardown: %s, dep_teardown: %s).', blueprint, tostring(teardown), tostring(dep_teardown))
+         end
       end
    end
    
@@ -121,6 +128,7 @@ function ConstructionProgress:check_dependencies()
          self:set_finished(self._sv.dependencies_finished)
       end
    end
+
    return self._sv.dependencies_finished
 end
 
@@ -137,6 +145,9 @@ function ConstructionProgress:set_finished(finished)
       radiant.events.trigger_async(self._entity, 'stonehearth:construction:finished_changed', { 
          entity = self._entity
       })
+      if finished and self._sv.teardown and self._sv._fabricator_component_name then
+         radiant.entities.destroy_entity(self._entity)
+      end
    end
    return self
 end
@@ -159,16 +170,23 @@ function ConstructionProgress:get_active()
 end
 
 function ConstructionProgress:set_teardown(teardown)
+   assert(self._entity:is_valid())
+   
    if teardown ~= self._sv.teardown then
-      if self._sv.fabricator_entity then
-         self._sv.teardown = teardown
-         self.__saved_variables:mark_changed()
-         self:get_fabricator_component():set_teardown(teardown)
+      self._sv.teardown = teardown
+      self.__saved_variables:mark_changed()
 
-         radiant.events.trigger_async(self._entity, 'stonehearth:construction:teardown_changed', { 
-            entity = self._entity
-         })
-         self:check_dependencies()
+      radiant.events.trigger_async(self._entity, 'stonehearth:construction:teardown_changed', { 
+         entity = self._entity
+      })
+      
+      if self._sv.fabricator_entity then
+         self:get_fabricator_component():set_teardown(teardown)
+         -- tearing down the fabricator might destroy the blueprint!  make sure
+         -- that didn't happen before checking out dependencies
+         if self._entity:is_valid() then
+            self:check_dependencies()
+         end
       end
    end
 end
