@@ -47,9 +47,7 @@ function PortalEditor:go()
 
    self._fixture_blueprint_render_entity = _radiant.client.create_render_entity(1, self._fixture_blueprint)
    self._fixture_blueprint_render_entity:set_visible_override(false)
-   
-   self._wall:add_portal(self._fixture_blueprint)
-   
+      
    return self
 end
 
@@ -71,18 +69,19 @@ function PortalEditor:_position_fixture(location)
    -- convert to local coordinates
    location = location - self:get_world_origin()
    
-   local location = self:get_blueprint()
-                        :get_component('stonehearth:wall')
-                           :compute_fixture_placement(self._fixture_blueprint, location)
+   local location = self:get_proxy_blueprint()
+                           :get_component('stonehearth:wall')
+                              :compute_fixture_placement(self._fixture_blueprint, location)
 
    self._fixture_blueprint_render_entity:set_visible_override(location ~= nil)
    if location then
       self:_change_cursor(self._cursor_uri)
-      radiant.entities.move_to(self._fixture_blueprint, location)
-      self._wall:layout()
+      self._wall:add_portal(self._fixture_blueprint, location)
    else
       self._change_cursor('stonehearth:cursors:invalid_hover')
+      self._wall:remove_portal(self._fixture_blueprint)
    end
+   self._wall:layout()
 end
 
 function PortalEditor:_change_cursor(uri)

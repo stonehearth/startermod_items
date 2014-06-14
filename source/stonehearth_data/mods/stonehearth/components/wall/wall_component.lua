@@ -10,6 +10,16 @@ local FIXTURE_ROTATIONS = {
    x = { [-1] =  0, [1] = 180 },
    z = { [-1] = 90, [1] = 270 },
 }
+local TWEAK_OFFSETS = {
+   Point3( 0,  1, 0),
+   Point3( 0, -1, 0),
+   Point3( 1,  0, 0),
+   Point3(-1,  0, 0),
+   Point3( 1,  1, 0),
+   Point3( 1, -1, 0),
+   Point3(-1,  1, 0),
+   Point3(-1, -1, 0),
+}
 
 local function is_blueprint(entity)
    return entity:get_component('stonehearth:construction_progress') ~= nil
@@ -18,6 +28,8 @@ end
 -- called to initialize the component on creation and loading.
 --
 function Wall:initialize(entity, json)
+   assert(entity and entity:is_valid())
+   
    self._entity = entity
    self._sv = self.__saved_variables:get_data()
    if not self._sv.initialized then
@@ -83,8 +95,6 @@ function Wall:compute_fixture_placement(fixture_entity, location)
    end
 
    -- fix alignment issues
-   local bounds = fixture:get_bounds()
-   local margin = fixture:get_margin()
    local valign = fixture:get_valign()
 
    if valign == "bottom" then
@@ -92,22 +102,36 @@ function Wall:compute_fixture_placement(fixture_entity, location)
    end
 
    -- make sure the fixture fits within its margin constraints
-   local left_most = start_pt[t] + margin.left - bounds.min.x
-   local right_most = end_pt[t] - margin.right - bounds.max.x 
-   if left_most >= right_most then
-      return nil
+   local box = Cube3()
+   local bounds = fixture:get_bounds()
+   local margin = fixture:get_margin()
+
+   box.max.y = location.y + bounds.max.y + margin.top
+   box.min.y = location.y + bounds.min.y - margin.bottom   
+   box.min[t] = location[t] + bounds.min[t] - margin.left
+   box.max[t] = location[t] + bounds.max[t] + margin.right
+   box.min[n] = start_pt[n]
+   box.max[n] = end_pt[n]
+   box = Region3(box)
+   
+   local shape = self._editing_region:get()
+   local overhang = box - shape
+   
+   if overhang:empty() then
+      return location
    end
-   local bottom_most = start_pt.y + margin.bottom - bounds.min.y
-   local top_most = end_pt.y - margin.top - bounds.max.y
-   if bottom_most >= top_most  then
-      return nil
+
+   -- try to nudge it over.  if that doesn't work, bail.
+   for i=1,2 do
+      for _, offset in ipairs(TWEAK_OFFSETS) do
+         if (box:translated(offset:scaled(i)) - shape):empty() then
+            return location:translated(offset:scaled(i))
+         end
+      end
    end
    
-   location[t] = math.max(math.min(location[t], right_most), left_most)
-   location.y = math.max(math.min(location.y, top_most), bottom_most)
-
-   -- done!
-   return location
+   -- no luck!
+   return nil
 end
 
 function Wall:_get_portal_region(portal_entity, portal)
@@ -137,6 +161,11 @@ function Wall:add_portal(portal, location)
    local rotation = self._sv.fixture_rotation
    radiant.entities.add_child(self._entity, portal, location)
    portal:get_component('mob'):turn_to(rotation)
+   return self
+end
+
+function Wall:remove_portal(portal)
+   radiant.entities.remove_child(self._entity, portal)
    return self
 end
 
