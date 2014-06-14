@@ -10,15 +10,37 @@ local FIXTURE_ROTATIONS = {
    x = { [-1] =  0, [1] = 180 },
    z = { [-1] = 90, [1] = 270 },
 }
+
+-- enumerate the range (-2, -2) - (2, 2) in the order which is most
+-- likely the least visually disturbing to the user
 local TWEAK_OFFSETS = {
-   Point3( 0,  1, 0),
-   Point3( 0, -1, 0),
-   Point3( 1,  0, 0),
-   Point3(-1,  0, 0),
-   Point3( 1,  1, 0),
-   Point3( 1, -1, 0),
-   Point3(-1,  1, 0),
-   Point3(-1, -1, 0),
+   Point2( 1,  0),
+   Point2(-1,  0),
+   Point2( 0, -1),
+   Point2( 0,  1),
+
+   Point2( 1, -1),
+   Point2(-1, -1),
+   Point2( 1,  1),
+   Point2(-1,  1),
+
+   Point2( 2,  0),
+   Point2(-2,  0),
+   Point2( 2, -1),
+   Point2(-2, -1),
+   Point2( 2,  1),
+   Point2(-2,  1),
+
+   Point2( 0, -2),
+   Point2( 0,  2),
+   Point2( 1, -2),
+   Point2( 1,  2),
+   Point2(-1, -2),
+   Point2(-1,  2),
+   Point2( 2, -2),
+   Point2( 2,  2),
+   Point2(-2, -2),
+   Point2(-2,  2),
 }
 
 local function is_blueprint(entity)
@@ -96,6 +118,8 @@ function Wall:compute_fixture_placement(fixture_entity, location)
 
    -- fix alignment issues
    local valign = fixture:get_valign()
+   local bounds = fixture:get_bounds()
+   local margin = fixture:get_margin()
 
    if valign == "bottom" then
       location.y = start_pt.y + margin.bottom - bounds.min.y
@@ -103,13 +127,10 @@ function Wall:compute_fixture_placement(fixture_entity, location)
 
    -- make sure the fixture fits within its margin constraints
    local box = Cube3()
-   local bounds = fixture:get_bounds()
-   local margin = fixture:get_margin()
-
    box.max.y = location.y + bounds.max.y + margin.top
    box.min.y = location.y + bounds.min.y - margin.bottom   
-   box.min[t] = location[t] + bounds.min[t] - margin.left
-   box.max[t] = location[t] + bounds.max[t] + margin.right
+   box.min[t] = location[t] + bounds.min.x - margin.left
+   box.max[t] = location[t] + bounds.max.x + margin.right
    box.min[n] = start_pt[n]
    box.max[n] = end_pt[n]
    box = Region3(box)
@@ -122,11 +143,11 @@ function Wall:compute_fixture_placement(fixture_entity, location)
    end
 
    -- try to nudge it over.  if that doesn't work, bail.
-   for i=1,2 do
-      for _, offset in ipairs(TWEAK_OFFSETS) do
-         if (box:translated(offset:scaled(i)) - shape):empty() then
-            return location:translated(offset:scaled(i))
-         end
+   for _, tweak in ipairs(TWEAK_OFFSETS) do
+      local offset = Point3(0, tweak.y, 0)
+      offset[t] = tweak.x
+      if (box:translated(offset) - shape):empty() then
+         return location:translated(offset)
       end
    end
    
