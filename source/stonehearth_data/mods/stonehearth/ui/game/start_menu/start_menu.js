@@ -26,9 +26,6 @@ App.StonehearthStartMenuView = App.View.extend({
       design_building: function () {
          $(top).trigger('stonehearth_design_building');
       },
-      build_wall: function () {
-         App.stonehearthClient.buildWall();
-      },
       build_simple_room: function () {
          App.stonehearthClient.buildRoom();
       },

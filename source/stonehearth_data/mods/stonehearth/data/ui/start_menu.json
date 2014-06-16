@@ -56,21 +56,6 @@
                 "icon" : "/stonehearth/ui/game/start_menu/images/design_building.png",
                 "sticky" : true,
                 "hotkey" : "c"
-            },
-            "build_simple_room" : {
-                "name" : "Simple Room",
-                "description" : "Build a small, square house.",
-                "class" : "button",
-                "icon" : "/stonehearth/ui/game/start_menu/images/build_simple_room.png",
-                "sticky" : true
-            },
-            "build_wall" : {
-                "name" : "Walls",
-                "description" : "Build walls to protect your settlement.",
-                "class" : "button",
-                "icon" : "/stonehearth/ui/game/start_menu/images/build_wall.png",
-                "sticky" : true,
-                "hotkey" : "l"
             }
       }
    },

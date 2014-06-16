@@ -15,9 +15,9 @@ local TIME_INTERVALS = {}
 local TIME_DURATIONS = {}
 
 function CalendarService:__init()
-   self._time_tracker = radiant.lib.TimeTracker()
    self._constants = radiant.resources.load_json('/stonehearth/data/calendar/calendar_constants.json')
    
+   self._time_tracker = radiant.lib.TimeTracker(self:get_elapsed_time())
    
    -- build the TIME_UNIT_DURATION_S table containing how many seconds each unit of time is   
    TIME_INTERVALS.second = self._constants.seconds_per_minute

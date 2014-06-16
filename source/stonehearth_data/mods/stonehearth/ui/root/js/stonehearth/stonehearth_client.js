@@ -184,7 +184,7 @@ var StonehearthClient;
          });
       },
 
-      buildWall: function() {
+      buildWall: function(wallBrush, o) {
          var self = this;
 
          $(top).trigger('radiant_show_tip', { 
@@ -201,7 +201,7 @@ var StonehearthClient;
          });
       },
 
-      buildFloor: function(floor, o) {
+      buildFloor: function(floorBrush, o) {
          var self = this;
 
          if (!o || !o.hideTip) {
@@ -212,10 +212,10 @@ var StonehearthClient;
          }
 
          return this._callTool(function() {
-            return radiant.call_obj(self._build_editor, 'place_new_floor', floor.brush)
+            return radiant.call_obj(self._build_editor, 'place_new_floor', floorBrush)
                .done(function(response) {
                   radiant.call('radiant:play_sound', 'stonehearth:sounds:place_structure' );
-                  self.buildFloor(floor, { hideTip : true });
+                  self.buildFloor(floorBrush, { hideTip : true });
                })
                .fail(function(response) {
                   $(top).trigger('radiant_hide_tip');
@@ -265,16 +265,16 @@ var StonehearthClient;
          }
       },
 
-      addDoodad: function(doodad) {
+      addDoodad: function(doodadUri, o) {
          var self = this;
 
          $(top).trigger('radiant_show_tip', { 
-            title : 'Add ' + doodad.name,
+            title : 'Place Object',
             description : 'Click to place.  ESC to cancel.'
          });
 
          return this._callTool(function() {
-            return radiant.call_obj(self._build_editor, 'add_doodad', doodad.uri)
+            return radiant.call_obj(self._build_editor, 'add_doodad', doodadUri)
                .always(function(response) {
                   radiant.call('radiant:play_sound', 'stonehearth:sounds:place_structure' );
                   $(top).trigger('radiant_hide_tip');

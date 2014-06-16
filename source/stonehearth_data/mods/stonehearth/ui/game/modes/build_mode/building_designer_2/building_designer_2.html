@@ -1,18 +1,13 @@
-<script type="text/x-handlebars" data-template-name="buildingDesigner2">
-   <div id="selectedBuildingWindow" class="window flat">
-      <div class="title">
-      {{#if building.unit_info.name}}
-         {{ building.unit_info.name }}
-      {{else}}         
-         Building Designer
-      {{/if}}
-      </div>
+<script type="text/x-handlebars" data-template-name="buildingDesignerTools">
+   <div id="buildingDesignerTools" class="window flat">
+      <div class="title">Tools</div>
 
       <div id="toolbar">
          <div hotkey="f" class="tabButton floorTool" tab="floorToolTab"><div class="label">{{i18n stonehearth:building_designer_floor_tool}}</div></div>
          <div hotkey="g" class="tabButton fillWallTool" tab="fillWallToolTab"><div class="label">{{i18n stonehearth:building_designer_fill_wall_tool}}</div></div>
          <div hotkey="r" class="tabButton roofTool" tab="roofToolTab"><div class="label">{{i18n stonehearth:building_designer_roof_tool}}</div></div>
          <div hotkey="n" class="tabButton doorTool" tab="doorToolTab"><div class="label">{{i18n stonehearth:building_designer_door_tool}}</div></div>
+         <div hotkey="x" class="tabButton editTool" tab="editToolTab"><div class="label">{{i18n stonehearth:building_designer_edit_tool}}</div></div>
       </div>
 
       <div class="tabPage" id="floorToolTab" style="display: block">
@@ -21,13 +16,11 @@
 
          <h2>{{i18n stonehearth:building_designer_material}}</h2>
          <div class="brushPalette section">
-            {{#each floorPatterns}}
+            {{#each view.floorPatterns}}
                <!--<h2>{{category}}</h2>-->
                <div>
                   {{#each items}}
-                     <a {{bind-attr name = "this.name"}}href="#" {{action selectFloorBrushTool this target="view"}} class="brushLink">
-                        <img {{bind-attr src="this.portrait" title="this.name"}} />
-                     </a>
+                     <img {{bind-attr brush="this.brush" src="this.portrait" title="this.name"}} class="floorTool" />
                   {{/each}}
                </div>
                <div style="clear: both"></div>
@@ -46,18 +39,21 @@
          {{i18n stonehearth:building_designer_erect_walls_help}}
          <h2>{{i18n stonehearth:building_designer_material}}</h2>
          <div class="brushPalette section">
-            {{#each wallPatterns}}
+            {{#each view.wallPatterns}}
                <!-- <h2>{{category}}</h2> -->
                <div>
                   {{#each items}}
-                     <a {{bind-attr name = "this.name"}}href="#" {{action selectWallMaterial this target="view"}} class="brushLink">
-                        <img {{bind-attr src="this.portrait" title="this.name"}} />
-                     </a>
+                     <img {{bind-attr brush="this.brush" src="this.portrait" title="this.name"}} class="wallTool" />
                   {{/each}}
                </div>
                <div style="clear: both"></div>
             {{/each}}
          </div>
+         <br><br>
+         <button {{bind-attr class=view.building:enabled:disabled}} id="growWalls">
+            Grow Walls Around Floor
+         </button>
+
       </div>
 
       <div class="tabPage" id="roofToolTab">
@@ -65,9 +61,10 @@
          {{i18n stonehearth:building_designer_raise_roof_help}}
          <h2>{{i18n stonehearth:building_designer_material}}</h2>
          <div class="brushPalette section">
-            {{#each roofPatterns}}
+            {{#each view.roofPatterns}}
                <!-- <h2>{{category}}</h2> -->
                <div>
+                  todo...materials go here...
                   {{#each items}}
                      <a {{bind-attr name = "this.name"}}href="#" {{action selectRoofMaterial this target="view"}} class="brushLink">
                         <img {{bind-attr src="this.portrait" title="this.name"}} />
@@ -77,6 +74,10 @@
                <div style="clear: both"></div>
             {{/each}}
          </div>
+         <br><br>
+         <button {{bind-attr class=view.building:enabled:disabled}} id="growRoof">
+            Grow Roof Above Walls
+         </button>
       </div>
 
       <div class="tabPage" id="doorToolTab">
@@ -84,19 +85,29 @@
          {{i18n stonehearth:building_designer_doodads_help}}
          <h2>{{i18n stonehearth:building_designer_material}}</h2>
          <div class="brushPalette doodadPalette section">
-            {{#each doodads}}
+            {{#each view.doodads}}
                <h2>{{category}}</h2>
                <div>
                   {{#each items}}
-                     <a {{bind-attr name = "this.name"}}href="#" {{action selectDoodadTool this target="view"}} class="brushLink">
-                        <img class="small noBorder" {{bind-attr src="this.portrait" title="this.name"}} />
-                     </a>
+                     <img {{bind-attr uri="this.uri" src="this.portrait" title="this.name"}} class="small noBorder doodadTool"/>
                   {{/each}}
                </div>
                <div style="clear: both"></div>
             {{/each}}
          </div>
       </div>
+
+      <div class="tabPage" id="editToolTab">
+         <h2>{{i18n stonehearth:building_designer_edit}}</h2>
+         Edit tools go here
+         <div class="section">
+            info about selected building part (when one is selected) goes here
+         </div>
+      </div>
+   </div>
+
+   <div id="selectedBuildingWindow" class="window flat">
+      <div class="title">{{ view.building.unit_info.name }}</div>
 
       <button class="warn" id="removeBuilding">{{i18n stonehearth:remove}}</button>
 
@@ -107,6 +118,6 @@
             Start Building
          {{/if}}
       </button>
-
    </div>
+
 </script>
