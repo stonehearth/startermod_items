@@ -39,9 +39,10 @@ end
 
 -- TimeTracker
 
-function TimeTracker:__init()
+function TimeTracker:__init(start_time)
+   assert(start_time)
    self._timers = {}
-   self._now = 0
+   self._now = start_time
 end
 
 function TimeTracker:set_elapsed_time(now)
