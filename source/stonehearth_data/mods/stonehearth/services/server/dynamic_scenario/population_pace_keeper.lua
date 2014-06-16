@@ -3,7 +3,7 @@ local log = radiant.log.create_logger('combat_pace')
 local PopulationPaceKeeper = class()
 
 function PopulationPaceKeeper:initialize()
-   self._sv._pop_value = 0
+   self._sv._pop_value = 101
 end
 
 
@@ -29,9 +29,13 @@ function PopulationPaceKeeper:get_name()
    return 'population'
 end
 
-
+-- Return the number of seconds that should pass before
+-- we consider running again
+-- Run every 20 hours
+-- TODO: something about the way the pop server calculates cooldown causes
+-- a slip: each round takes a little longer to eval than the last. Try to compensate.
 function PopulationPaceKeeper:get_cooldown_time()
-   return (24 * 60 * 60) / 9  -- 9 ticks per second
+   return (20 * 60 * 60) 
 end
 
 

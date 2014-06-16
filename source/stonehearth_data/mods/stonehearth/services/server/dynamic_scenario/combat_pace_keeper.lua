@@ -5,7 +5,7 @@ local CombatPaceKeeper = class()
 function CombatPaceKeeper:initialize()
    -- Start with a large initial value so that we give ourselves some time before ever being
    -- considered for a scenario.
-   self._sv._combat_value = 10
+   self._sv._combat_value = 30000
    self:restore()
 end
 
@@ -15,10 +15,6 @@ end
 
 function CombatPaceKeeper:get_name()
    return 'combat'
-end
-
-function CombatPaceKeeper:get_current_value()
-  return self._sv._current_value
 end
 
 function CombatPaceKeeper:get_max()
