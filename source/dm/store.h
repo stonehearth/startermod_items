@@ -2,7 +2,8 @@
 #define _RADIANT_DM_STORE_H
 
 #include <unordered_map>
-#include "dm.h "
+#include <google/protobuf/io/coded_stream.h>
+#include "dm.h"
 
 struct lua_State;
 
@@ -91,6 +92,14 @@ public:
    GenerationId GetNextGenerationId();
    GenerationId GetCurrentGenerationId();
    ObjectId GetNextObjectId();
+   void SaveStoreHeader(google::protobuf::io::CodedOutputStream& cos);
+   void SaveAllocedObjectsList(google::protobuf::io::CodedOutputStream& cos);
+   void SaveObjects(google::protobuf::io::CodedOutputStream& cos);
+   void SaveGame(google::protobuf::io::CodedOutputStream& cos);
+   bool LoadStoreHeader(google::protobuf::io::CodedInputStream& cis, std::string& error);
+   bool LoadAllocedObjectsList(google::protobuf::io::CodedInputStream& cis, std::string& error, ObjectMap& objects);
+   bool LoadObjects(google::protobuf::io::CodedInputStream& cis, std::string& error);
+   bool LoadGame(google::protobuf::io::CodedInputStream& cis, std::string& error, ObjectMap& objects);
 
 private:
    typedef std::vector<TraceRef> TraceList;

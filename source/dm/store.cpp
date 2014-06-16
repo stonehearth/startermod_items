@@ -76,29 +76,71 @@ void Store::RegisterAllocator(ObjectType t, ObjectAllocFn allocator)
    allocators_[t] = allocator;
 }
 
+void Store::SaveStoreHeader(google::protobuf::io::CodedOutputStream& cos)
+{
+   Protocol::Store msg;
+
+   msg.set_store_id(storeId_);
+   msg.set_next_object_id(nextObjectId_);
+   msg.set_next_generation(nextGenerationId_);
+
+   cos.WriteLittleEndian32(msg.ByteSize());
+   msg.SerializeToCodedStream(&cos);
+}
+
+void Store::SaveAllocedObjectsList(google::protobuf::io::CodedOutputStream& cos)
+{
+   tesseract::protocol::Update update;
+
+   update.set_type(tesseract::protocol::Update::AllocObjects);
+   auto allocated_msg = update.MutableExtension(tesseract::protocol::AllocObjects::extension);
+   for (const auto& entry : dynamicObjects_) {
+      dm::ObjectPtr obj = entry.second.lock();
+      if (obj) {
+         auto msg = allocated_msg->add_objects();
+         msg->set_object_id(entry.first);
+         msg->set_object_type(obj->GetObjectType());
+      }
+   }
+   uint32 size = update.ByteSize();
+   STORE_LOG(8) << "writing alloced objects size:" << size;
+
+   cos.WriteLittleEndian32(size);
+   update.SerializeToCodedStream(&cos);
+}
+
+void Store::SaveObjects(google::protobuf::io::CodedOutputStream& cos)
+{
+   // sort so we save objects in the order they were created
+   Protocol::Object msg;
+   std::set<ObjectId> keys;
+   for (auto const& entry : objects_) {
+      keys.insert(entry.first);
+   };
+
+   cos.WriteLittleEndian32(keys.size());
+   for (ObjectId id : keys) {
+      Object* obj = objects_[id];
+
+      msg.Clear();
+      obj->SaveObject(PERSISTANCE, &msg);
+
+      uint32 size = msg.ByteSize();
+      STORE_LOG(8) << "writing object " << id << " size " << size;
+      cos.WriteLittleEndian32(size);
+      msg.SerializeToCodedStream(&cos);
+   }
+}
+
+void Store::SaveGame(google::protobuf::io::CodedOutputStream& cos)
+{
+   SaveStoreHeader(cos);
+   SaveAllocedObjectsList(cos);
+   SaveObjects(cos);
+}
+
 bool Store::Save(std::string const& filename, std::string &error)
 {
-   uint size;
-
-#if 0
-   {
-      std::ofstream textfile("save.txt");
-
-      Protocol::Object msg;
-      std::set<ObjectId> keys;
-      for (auto const& entry : objects_) {
-         keys.insert(entry.first);
-      };
-
-      for (ObjectId id : keys) {
-         Object* obj = objects_[id];
-         msg.Clear();
-         obj->SaveObject(PERSISTANCE, &msg);
-         textfile << protocol::describe(msg) << "\n\n";
-      }      
-   }
-#endif
-
    // The C++ Google Protobuf docs claim FileOutputStream avoids an extra copy of the data
    // introduced by OstreamOutputStream, so lets' use that.
    int fd = _open(filename.c_str(), O_WRONLY | O_BINARY | O_TRUNC | O_CREAT, S_IREAD | S_IWRITE);
@@ -108,65 +150,111 @@ bool Store::Save(std::string const& filename, std::string &error)
    }
 
    saving_ = true;
-   {
-      google::protobuf::io::FileOutputStream fos(fd);
-      {
-         google::protobuf::io::CodedOutputStream cos(&fos);
 
-         {
-            Protocol::Store msg;
-            msg.set_store_id(storeId_);
-            msg.set_next_object_id(nextObjectId_);
-            msg.set_next_generation(nextGenerationId_);
-         
-            cos.WriteLittleEndian32(msg.ByteSize());
-            msg.SerializeToCodedStream(&cos);
-         }
+   google::protobuf::io::FileOutputStream fos(fd);
+   google::protobuf::io::CodedOutputStream cos(&fos);
+   SaveGame(cos);
 
-         {
-            tesseract::protocol::Update update;
-            update.set_type(tesseract::protocol::Update::AllocObjects);
-            auto allocated_msg = update.MutableExtension(tesseract::protocol::AllocObjects::extension);
-            for (const auto& entry : dynamicObjects_) {
-               dm::ObjectPtr obj = entry.second.lock();
-               if (obj) {
-                  auto msg = allocated_msg->add_objects();
-                  msg->set_object_id(entry.first);
-                  msg->set_object_type(obj->GetObjectType());
-               }
-            }
-            size = update.ByteSize();
-            STORE_LOG(8) << "writing alloced objects size:" << size;
-            cos.WriteLittleEndian32(size);
-            update.SerializeToCodedStream(&cos);
-         }
-
-         {
-            // sort so we save objects in the order they were created
-            Protocol::Object msg;
-            std::set<ObjectId> keys;
-            for (auto const& entry : objects_) {
-               keys.insert(entry.first);
-            };
-
-            cos.WriteLittleEndian32(keys.size());
-            for (ObjectId id : keys) {
-               Object* obj = objects_[id];
-
-               msg.Clear();
-               obj->SaveObject(PERSISTANCE, &msg);
-
-               size = msg.ByteSize();
-               STORE_LOG(8) << "writing object " << id << " size " << size;
-               cos.WriteLittleEndian32(size);
-               msg.SerializeToCodedStream(&cos);
-            }
-         }
-      }
-   }
    saving_ = false;
    _close(fd);
    return true;
+}
+
+bool Store::LoadStoreHeader(google::protobuf::io::CodedInputStream& cis, std::string& error)
+{
+   Protocol::Store msg;
+   google::protobuf::uint32 size, limit;
+
+   if (!cis.ReadLittleEndian32(&size)) {
+      return false;
+   }
+   STORE_LOG(8) << "read alloced objects size:" << size;
+   limit = cis.PushLimit(size);
+   if (!msg.ParseFromCodedStream(&cis)) {
+      return false;
+   }
+   cis.PopLimit(limit);
+
+   nextObjectId_ = msg.next_object_id();
+   nextGenerationId_ = msg.next_generation();
+
+   return true;
+}
+
+bool Store::LoadAllocedObjectsList(google::protobuf::io::CodedInputStream& cis, std::string& error, ObjectMap& objects)
+{
+   google::protobuf::uint32 size, limit;
+   tesseract::protocol::Update update;
+
+   if (!cis.ReadLittleEndian32(&size)) {
+      return false;
+   }
+   limit = cis.PushLimit(size);
+   if (!update.ParseFromCodedStream(&cis)) {
+      return false;
+   }
+   cis.PopLimit(limit);
+   radiant::tesseract::protocol::AllocObjects const& alloc_msg = update.GetExtension(::radiant::tesseract::protocol::AllocObjects::extension);
+   for (const tesseract::protocol::AllocObjects::Entry& entry : alloc_msg.objects()) {
+      ObjectId id = entry.object_id();
+      ASSERT(!FetchStaticObject(id));
+
+      ObjectPtr obj = AllocObject(entry.object_type(), id);
+      objects[id] = obj;
+   }
+   return true;
+}
+
+bool Store::LoadObjects(google::protobuf::io::CodedInputStream& cis, std::string& error)
+{
+   Protocol::Object msg;
+   google::protobuf::uint32 size, limit, total_objects, i;
+
+   if (!cis.ReadLittleEndian32(&total_objects)) {
+      error = "could not total number of objects";
+      return false;
+   }
+            
+   int last_reported_percent = 0;
+   for (i = 0; i < total_objects; i++) {
+      if (!cis.ReadLittleEndian32(&size)) {
+         error = BUILD_STRING("could not read object " << i << " or " << total_objects);
+         return false;
+      }
+      int percent = i * 100 / total_objects;
+      if (percent - last_reported_percent > 10) {
+         last_reported_percent = percent;
+         LOG_(0) << " load progress " << percent << "%...";
+      }
+
+      msg.Clear();
+      limit = cis.PushLimit(size);
+      if (!msg.ParseFromCodedStream(&cis)) {
+         STORE_LOG(8) << "failed to parse msg size " << size << ".  aborting.";
+         return false;
+      }
+      cis.PopLimit(limit);
+
+      ObjectId id = msg.object_id();
+      Object* obj = FetchStaticObject(id);
+
+      STORE_LOG(8) << "read object " << id << " size " << size;
+
+      ASSERT(obj);
+      ASSERT(msg.object_type() == obj->GetObjectType());
+
+      obj->SetObjectMetadata(id, *this);
+      obj->LoadObject(PERSISTANCE, msg);
+   }
+   LOG_(0) << " load objects finished!" << std::endl;
+   return true;
+}
+
+bool Store::LoadGame(google::protobuf::io::CodedInputStream& cis, std::string& error, ObjectMap& objects)
+{
+   return LoadStoreHeader(cis, error) &&
+          LoadAllocedObjectsList(cis, error, objects) &&
+          LoadObjects(cis, error);
 }
 
 bool Store::Load(std::string const& filename, std::string &error, ObjectMap& objects)
@@ -190,97 +278,12 @@ bool Store::Load(std::string const& filename, std::string &error, ObjectMap& obj
 
    ASSERT(dynamicObjects_.size() == 0);
 
-   {
-      google::protobuf::io::FileInputStream fis(fd);
-      {
-         google::protobuf::io::CodedInputStream cis(&fis);
+   google::protobuf::io::FileInputStream fis(fd);
+   google::protobuf::io::CodedInputStream cis(&fis);
+   bool result = LoadGame(cis, error, objects);
 
-         {
-            Protocol::Store msg;
-            google::protobuf::uint32 size, limit;
-
-            if (!cis.ReadLittleEndian32(&size)) {
-               return false;
-            }
-            STORE_LOG(8) << "read alloced objects size:" << size;
-            limit = cis.PushLimit(size);
-            if (!msg.ParseFromCodedStream(&cis)) {
-               return false;
-            }
-            cis.PopLimit(limit);
-
-            nextObjectId_ = msg.next_object_id();
-            nextGenerationId_ = msg.next_generation();
-         }
-
-         {
-            google::protobuf::uint32 size, limit;
-            tesseract::protocol::Update update;
-
-            if (!cis.ReadLittleEndian32(&size)) {
-               return false;
-            }
-            limit = cis.PushLimit(size);
-            if (!update.ParseFromCodedStream(&cis)) {
-               return false;
-            }
-            cis.PopLimit(limit);
-            radiant::tesseract::protocol::AllocObjects const& alloc_msg = update.GetExtension(::radiant::tesseract::protocol::AllocObjects::extension);
-            for (const tesseract::protocol::AllocObjects::Entry& entry : alloc_msg.objects()) {
-               ObjectId id = entry.object_id();
-               ASSERT(!FetchStaticObject(id));
-
-               ObjectPtr obj = AllocObject(entry.object_type(), id);
-               objects[id] = obj;
-            }
-         }
-
-         {
-            Protocol::Object msg;
-            google::protobuf::uint32 size, limit, total_objects, i;
-
-            if (!cis.ReadLittleEndian32(&total_objects)) {
-               error = "could not total number of objects";
-               return false;
-            }
-            
-            int last_reported_percent = 0;
-            for (i = 0; i < total_objects; i++) {
-               if (!cis.ReadLittleEndian32(&size)) {
-                  error = BUILD_STRING("could not read object " << i << " or " << total_objects);
-                  return false;
-               }
-               int percent = i * 100 / total_objects;
-               if (percent - last_reported_percent > 10) {
-                  last_reported_percent = percent;
-                  LOG_(0) << " load progress " << percent << "%...";
-               }
-
-               msg.Clear();
-               limit = cis.PushLimit(size);
-               if (!msg.ParseFromCodedStream(&cis)) {
-                  STORE_LOG(8) << "failed to parse msg size " << size << ".  aborting.";
-                  return false;
-               }
-               cis.PopLimit(limit);
-
-               ObjectId id = msg.object_id();
-               Object* obj = FetchStaticObject(id);
-
-               STORE_LOG(8) << "read object " << id << " size " << size;
-
-               ASSERT(obj);
-               ASSERT(msg.object_type() == obj->GetObjectType());
-
-               obj->SetObjectMetadata(id, *this);
-               obj->LoadObject(PERSISTANCE, msg);
-            }
-            LOG_(0) << " load objects finished!" << std::endl;
-         }
-      }
-   }
    _close(fd);
-   return true;
+   return result;
 }
 
 void Store::OnLoaded()
