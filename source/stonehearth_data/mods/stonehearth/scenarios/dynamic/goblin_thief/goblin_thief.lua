@@ -119,8 +119,6 @@ function GoblinThief:_goblin_killed(e)
       self._sv.notification_bulletin = nil
    end
 
-   stonehearth.bulletin_board:remove_bulletin(bulletin_id)
-
    self.__saved_variables:mark_changed()
 
    radiant.events.trigger(self, 'stonehearth:dynamic_scenario:finished')

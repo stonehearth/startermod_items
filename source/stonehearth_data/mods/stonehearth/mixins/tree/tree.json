@@ -8,7 +8,7 @@
          "scale" : 1
       },
       "stonehearth:resource_node": {
-         "task_group_name" : "stonehearth:task_group:forage",
+         "task_group_name" : "stonehearth:task_group:harvest",
          "harvest_overlay_effect" : "/stonehearth/data/effects/chop_overlay_effect",
          "harvester_effect" : "chop",
          "description" : "chop_tree"

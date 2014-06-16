@@ -8,12 +8,12 @@ local Point3 = _radiant.csg.Point3
    The profession of the person who joins may change as your town's happiness score increases.
 
    Details: the professions available are defined in immigration.json. Each profession has
-   a value (1 is low, N is high) and a # of shares. The professions are entered into a table.
+   a rating (1 is low, N is high) and a # of shares. The professions are entered into a table.
    Professions with high share values appear in the table multiple times. 
 
    When the scenario runs, we check the town's happines score. The score determines the number
    of "random drawings" we do out of the profession table, so happy towns will have lots of drawings.
-   The profession with the highest value is selected to join the town. 
+   The profession with the highest rating is selected to join the town. 
 
    This way, the list of professions is extensible, but your changes of getting a rare specialist
    go up as your town's happiness increases.
@@ -188,11 +188,23 @@ function Immigration:_on_accepted()
    local citizen = pop:create_new_citizen()
    pop:promote_citizen(citizen, self._sv.notice.target_profession)
 
+   --If they have equipment, put it on them
+   if self._immigration_data.professions[self._sv.notice.target_profession].equipment then
+      local equipment_uri = self._immigration_data.professions[self._sv.notice.target_profession].equipment
+      local equipment_entity = radiant.entities.create_entity(equipment_uri)
+      local equipment_component = citizen:add_component('stonehearth:equipment')
+      equipment_component:equip_item(equipment_entity, 'immigrant_equipment')
+
+      --Hack: remove glow?
+       equipment_entity:remove_component('effect_list')
+   end
+
    self:place_citizen(citizen)
    if self._timer then
       self._timer:destroy()
    end
    self:_stop_timer()
+   radiant.events.trigger(self, 'stonehearth:dynamic_scenario:finished')
 end
 
 function Immigration:_on_declined()
@@ -200,6 +212,7 @@ function Immigration:_on_declined()
       self._timer:destroy()
    end
    self:_stop_timer()
+   radiant.events.trigger(self, 'stonehearth:dynamic_scenario:finished')
 end
 
 function Immigration:_create_timer(duration)

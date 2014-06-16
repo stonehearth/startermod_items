@@ -253,6 +253,7 @@ function SimpleCaravan:_accept_trade()
    for i=1, self._sv.trade_data.caravan_quantity do
       local target_location = radiant.entities.pick_nearby_location(banner_entity, 3)
       local item = radiant.entities.create_entity(self._sv.trade_data.caravan_has)   
+      radiant.entities.set_player_id(item, self._sv.player_id)
       radiant.terrain.place_entity(item, target_location)
 
       --TODO: attach a brief particle effect to the new stuff
@@ -271,6 +272,7 @@ function SimpleCaravan:_on_accepted()
       self._timer:destroy()
    end
    self:_stop_timer()
+   radiant.events.trigger(self, 'stonehearth:dynamic_scenario:finished')
 end
 
 function SimpleCaravan:_on_declined()
@@ -279,6 +281,7 @@ function SimpleCaravan:_on_declined()
       self._timer:destroy()
    end
    self:_stop_timer()
+   radiant.events.trigger(self, 'stonehearth:dynamic_scenario:finished')
 end
 
 function SimpleCaravan:_create_timer(duration)

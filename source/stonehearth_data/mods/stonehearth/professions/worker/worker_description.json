@@ -9,7 +9,7 @@
       "stonehearth:task_group:restock", 
       "stonehearth:task_group:build", 
       "stonehearth:task_group:placement", 
-      "stonehearth:task_group:light_fires", 
-      "stonehearth:task_group:forage"
+      "stonehearth:task_group:maintenance", 
+      "stonehearth:task_group:harvest"
    ]
 }

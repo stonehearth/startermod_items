@@ -85,6 +85,17 @@ function client_entities.add_child(parent, child, location)
    end
 end
 
+function client_entities.remove_child(parent, child)
+   radiant.check.is_entity(parent)
+   radiant.check.is_entity(child)
+
+   local component = parent:get_component('entity_container')
+   if component then
+      component:remove_child(child:get_id())
+      client_entities.move_to(child, Point3(0, 0, 0))
+   end
+end
+
 function client_entities.get_faction(entity)
    local unit_info = entity:get_component('unit_info')
    return unit_info and unit_info:get_faction() or nil

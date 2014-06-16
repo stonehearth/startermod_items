@@ -71,8 +71,10 @@ static luabind::class_<T> RegisterCommon(struct lua_State* L, const char* name)
          .def("is_adjacent_to",     &Point_IsAdjacentTo<T>)
          .def("scale",              &T::Scale)
          .def("normalize",          &T::Normalize)
+         .def("translate",          &T::Translate)
          .def("dot",                &T::Dot)
          .def("scaled",             &T::Scaled)
+         .def("translated",         &T::Translated)
          ;
 
 }

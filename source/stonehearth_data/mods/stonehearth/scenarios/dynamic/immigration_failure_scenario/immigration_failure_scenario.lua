@@ -131,11 +131,14 @@ function ImmigrationFailure:_on_accepted()
    self:acknowledge()
    self._timer:destroy()
    self:_stop_timer()
+   radiant.events.trigger(self, 'stonehearth:dynamic_scenario:finished')
+
 end
 
 function ImmigrationFailure:_on_declined()
    self._timer:destroy()
    self:_stop_timer()
+   radiant.events.trigger(self, 'stonehearth:dynamic_scenario:finished')
 end
 
 function ImmigrationFailure:_stop_timer()

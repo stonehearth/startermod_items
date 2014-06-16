@@ -93,9 +93,10 @@ function entities.remove_child(parent, child)
    radiant.check.is_entity(child)
 
    local component = parent:get_component('entity_container')
-
-   component:remove_child(child:get_id())
-   entities.move_to(child, Point3(0, 0, 0))
+   if component then
+      component:remove_child(child:get_id())
+      entities.move_to(child, Point3(0, 0, 0))
+   end
 end
 
 --TODO: we used to be able to query an ec for a child by ID

@@ -551,6 +551,7 @@
       "scenarios:immigration_failure" : "file(scenarios/dynamic/immigration_failure_scenario/immigration_failure_scenario.json)",
       "scenarios:immigration" : "file(scenarios/dynamic/immigration_scenario/immigration_scenario.json)",
       "scenarios:goblin_thief" : "file(scenarios/dynamic/goblin_thief/goblin_thief.json)",
+      "scenarios:goblin_brigands" : "file(scenarios/dynamic/goblin_brigands/goblin_brigands.json)",
       "score_category_data" : "file(data/score/score_category_data.json)",
       "score_entity_data" : "file(data/score/score_entity_data.json)",
 

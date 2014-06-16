@@ -9,6 +9,7 @@ function PatrolHelpers.order_waypoints(entity, start_location, waypoints)
    local index = PatrolHelpers._index_of_closest_point(start_location, waypoints)
 
    -- rotate the route so that it starts with the closest point
+   --TODO: have seen index return nil (why?)
    PatrolHelpers._rotate_array(waypoints, index-1)
 
    -- close the loop at the starting location
