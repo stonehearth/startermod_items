@@ -99,7 +99,10 @@ def flatten_json_to_args(json):
                path = key
             all_args = all_args + flatten_recursive(value, path)
          else:
-            all_args = all_args + ' --' + current_path + '.' + key + '=' + str(value)
+            str_value = str(value)
+            if type(value) == bool:
+               str_value = str_value.lower()
+            all_args = all_args + ' --' + current_path + '.' + key + '=' + str_value
       return all_args
    return flatten_recursive(json, '')
 
@@ -158,11 +161,13 @@ def read_json_file(file_path):
    return result
 
 
-def run_perf_tests(slave_json, test_group, test_script, test_func, configs_json, file_location, timeout=60 * 60):
+def run_perf_tests(slave_json, test_group, test_script, test_func, configs_json, config_script, file_location, timeout=60 * 60):
    def alive_count(lst):
       alive = map(lambda x : 1 if x.isAlive() else 0, lst)
       return reduce(lambda a,b : a + b, alive)
 
+   if config_script:
+      configs_json = {config_script : configs_json[config_script]}
    raw_results = []
    for config_name in configs_json:
       config = configs_json[config_name]
@@ -270,9 +275,12 @@ if '-f' in sys.argv:
 file_location = build_root + 'test-package/stonehearth-test.zip'
 
 if '-p' in sys.argv:
+   config_script = None
+   if '-c' in sys.argv:
+      config_script = sys.argv[sys.argv.index('-c') + 1]
    # Performance auto-tests.
    config_json = read_json_file(test_script_root + './perf_configs.json')
-   results = run_perf_tests(slave_json, test_group, test_script, test_func, config_json, file_location)
+   results = run_perf_tests(slave_json, test_group, test_script, test_func, config_json, config_script, file_location)
    output_file = build_root + 'combined_results.shperf.json'
    write_perf_results_to_json_file(results, output_file)
 else:
