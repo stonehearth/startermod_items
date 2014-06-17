@@ -276,7 +276,7 @@ function AIComponent:_start()
          local start_tick = radiant.gamestate.now()
          self._aitrace:spam('@loop')
          self._execution_frame:run({})
-
+         radiant.events.trigger(self._entity, 'stonehearth:ai:halt')
          -- Don't go back to running if we thought without ever yielding (i.e. without doing 
          -- any real work).  This also prevents tight ai loops that never yield (possibly 
          -- because some unit keeps aborting).

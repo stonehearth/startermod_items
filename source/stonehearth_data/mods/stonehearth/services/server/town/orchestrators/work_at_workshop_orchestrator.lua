@@ -34,6 +34,7 @@ function WorkAtWorkshop:run(town, args)
       end
 
       self._town:run_orchestrator(ClearWorkshop, {
+         crafter = self._crafter,
          task_group = self._task_group,
          workshop = self._workshop
       })

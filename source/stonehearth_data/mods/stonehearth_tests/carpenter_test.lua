@@ -37,6 +37,9 @@ function CarpenterTest:__init()
    self:place_item('stonehearth:firepit_proxy', 7, 3, player_id)
    self:place_item('stonehearth:firepit', 9, 3, player_id)
 
+   self:place_item('stonehearth:berry_basket', 10, 10)
+   self:place_item('stonehearth:corn_basket', 11, 11)
+
    -- put some items in the world
    self:place_item_cluster('stonehearth:oak_log', -10, 0, 10, 10)
    self:place_item_cluster('stonehearth:cloth_bolt', 10, 3, 3, 3)
