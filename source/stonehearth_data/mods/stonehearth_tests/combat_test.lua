@@ -35,6 +35,23 @@ function CombatTest:__init()
    --       self:kill(citizens[1])
    --    end
    -- )
+
+   --Test goblins attacking others (death notifications, etc)
+   --[[
+   --add a banner
+   local player_id = citizens[1]:get_component('unit_info'):get_player_id()
+   local town = stonehearth.town:get_town(player_id)
+   local location = Point3(7, 0, 7)
+   local banner_entity = radiant.entities.create_entity('stonehearth:camp_standard')
+   radiant.terrain.place_entity(banner_entity, location)
+   town:set_banner(banner_entity)
+
+   -- Introduce a new person
+   self:at(20000,  function()
+         stonehearth.dynamic_scenario:force_spawn_scenario('Immigration')
+      end)
+   ]]
+
 end
 
 function CombatTest:create_enemy_kingdom()

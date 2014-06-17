@@ -174,12 +174,34 @@ function Immigration:place_citizen(citizen)
       --Just use a place near the banner
       local town = stonehearth.town:get_town(self._sv.player_id)
       local banner_entity = town:get_banner()
-      spawn_point = radiant.entities.pick_nearby_location(banner_entity, 3)
+      spawn_point = radiant.entities.pick_nearby_location(banner_entity, 30)
    end
 
    radiant.terrain.place_entity(citizen, spawn_point)
 
+   --Give the entity the task to run to the banner
+   self._approach_task = citizen:get_component('stonehearth:ai')
+                           :get_task_group('stonehearth:unit_control')
+                                          :create_task('stonehearth:goto_town_banner', {})
+                                          :set_priority(stonehearth.constants.priorities.unit_control.DEFAULT)
+                                          :once()
+                                          :start()
+
+
+   self:_inform_player(citizen)
+
    --TODO: attach particle effect
+end
+
+function Immigration:_inform_player(citizen)
+   --Send another bulletin with the dude's name, etc
+   local town_name = stonehearth.town:get_town(self._sv.player_id):get_town_name()
+   local citizen_name = radiant.entities.get_name(citizen)
+   local title = self._immigration_data.success_title
+   title = string.gsub(title, '__name__', citizen_name)
+   title = string.gsub(title, '__town_name__', town_name)
+   local pop = stonehearth.population:get_population(self._sv.player_id)
+   pop:show_notification_for_citizen(citizen, title)
 end
 
 --- Only actually spawn the object after the user clicks OK

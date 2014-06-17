@@ -161,6 +161,7 @@ function GoblinBrigands:_theft_event(e)
       --Send the notice to the bulletin service.
       self._sv.notification_bulletin = stonehearth.bulletin_board:post_bulletin(self._sv.player_id)
            :set_callback_instance(self)
+           :set_type('alert')
            :set_data({
                title = self._sv.title,
                message = self._sv.message,

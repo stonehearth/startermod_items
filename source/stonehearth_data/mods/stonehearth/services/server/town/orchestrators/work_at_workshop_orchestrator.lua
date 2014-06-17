@@ -34,6 +34,7 @@ function WorkAtWorkshop:run(town, args)
       end
 
       self._town:run_orchestrator(ClearWorkshop, {
+         crafter = self._crafter,
          task_group = self._task_group,
          workshop = self._workshop
       })
@@ -74,6 +75,8 @@ function WorkAtWorkshop:_process_order(order)
    if not task:wait() then
       return false
    end
+
+   --TODO: what happens when a wildfire destroys the bench? See the clear_workshop orchestrator
    
    self:_destroy_items_on_bench()
    self:_add_outputs_to_bench(recipe)

@@ -9,6 +9,7 @@ MemorializeDeathAction.priority = 1
 
 function MemorializeDeathAction:start_thinking(ai, entity, args)
    self._name = radiant.entities.get_display_name(entity)
+   self._player_id = radiant.entities.get_player_id(entity)
    self._location = ai.CURRENT.location
    ai:set_think_output()
 end
@@ -27,6 +28,17 @@ function MemorializeDeathAction:run(ai, entity, args)
    radiant.effects.run_effect(tombstone, '/stonehearth/data/effects/death')
 
    stonehearth.events:add_entry(event_text, 'warning')
+
+   --Send the notice to the bulletin service.
+   self.notification_bulletin = stonehearth.bulletin_board:post_bulletin(self._player_id)
+        :set_callback_instance(stonehearth.town:get_town(self._player_id))
+        :set_type('alert')
+        :set_data({
+            title = event_text,
+            message = '',
+            zoom_to_entity = tombstone,
+        })
+
 end
 
 return MemorializeDeathAction

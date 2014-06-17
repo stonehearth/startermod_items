@@ -64,7 +64,9 @@
             "stonehearth:actions:set_posture",
             "stonehearth:actions:unset_posture",
             "stonehearth:actions:die_citizen",
-            "stonehearth:actions:free_time:dispatcher" 
+            "stonehearth:actions:free_time:dispatcher",
+            "stonehearth:actions:get_town_banner", 
+            "stonehearth:actions:goto_town_banner"
          ],
           "observers": [
             "stonehearth:observers:combat_panic",
