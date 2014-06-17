@@ -12,6 +12,7 @@ function PopulationFaction:__init(session, saved_variables)
       self._sv.player_id = session.player_id
       self._sv.citizens = {}
       self._sv.citizen_scores = {}
+      self._sv.notifications = {}
    end
    self._data = radiant.resources.load_json(self._sv.kingdom)
 end
@@ -95,9 +96,38 @@ function PopulationFaction:create_new_citizen()
    return citizen
 end
 
-function PopulationFaction:_on_entity_destroyed(args)
+--Will show a simple notification that zooms to a citizen when clicked. 
+--will expire if the citizen isn't around anymore
+function PopulationFaction:show_notification_for_citizen(citizen, title)
+   local citizen_id = citizen:get_id()
+   if not self._sv.notifications[citizen_id] then
+      self._sv.notifications[citizen_id] = {}
+   elseif self._sv.notifications[citizen_id][title] then
+      --If a bulletin already exists for this citizen with this title, remove it to replace with the new one
+      local bulletin_id = self._sv.notifications[citizen_id][title]:get_id()
+      stonehearth.bulletin_board:remove_bulletin(bulletin_id)
+   end
+   self._sv.notifications[citizen_id][title] = stonehearth.bulletin_board:post_bulletin(self._sv.player_id)
+            :set_callback_instance(self)
+            :set_data({
+               title = title,
+               message = '',
+               zoom_to_entity = citizen,
+           })
+end
+
+function PopulationFaction:_on_entity_destroyed(args)  
    self._sv.citizens[args.entity_id] = nil
    stonehearth.score:update_aggregate_score(self._sv.player_id)
+
+   --remove associated bulletins
+   if self._sv.notifications[args.entity_id] then
+      for title, bulletin in pairs(self._sv.notifications[args.entity_id]) do
+         local bulletin_id = bulletin:get_id()
+         stonehearth.bulletin_board:remove_bulletin(bulletin_id)
+      end
+   end
+   
    self.__saved_variables:mark_changed()
    return radiant.events.UNLISTEN
 end

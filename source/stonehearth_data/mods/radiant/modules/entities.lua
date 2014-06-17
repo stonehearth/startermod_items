@@ -197,11 +197,18 @@ function entities.get_world_grid_location(entity)
 end
 
 --- Given an object, find a place near it
+--  Make sure it doesn't come in exactly on top of the previous object
 -- TODO: this could pick something down a cliff or across a long fence...
 function entities.pick_nearby_location(entity, radius)
    local target_location = entities.get_world_grid_location(entity)
    local dx = rng:get_int(-radius, radius)
    local dz = rng:get_int(-radius, radius)
+   if dx == 0 then
+      dx = dx + 1
+   end
+   if dz == 0 then
+      dz = dz + 1
+   end
    local destination = Point3(target_location)
    destination.x = destination.x + dx
    destination.z = destination.z + dz

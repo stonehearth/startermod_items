@@ -12,6 +12,7 @@
       "food_threshold" : 5,
       "score_threshold" : 10,
       "title" : "A traveller approaches your town.",
+      "success_title" : "__name__ has joined __town_name__!", 
       "messages" : [
          "I've heard a lot about your town!", 
          "I'd like to join your town.", 

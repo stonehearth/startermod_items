@@ -67,10 +67,16 @@ function EmbarkTest:__init()
 
    --Place a banner
    local town = stonehearth.town:get_town(player_id)
-   local location = Point3(5, 0, 5)
+   local location = Point3(7, 0, 7)
    local banner_entity = radiant.entities.create_entity('stonehearth:camp_standard')
    radiant.terrain.place_entity(banner_entity, location)
    town:set_banner(banner_entity)
+
+   -- Introduce a new person
+   --self:at(10000,  function()
+   --      stonehearth.dynamic_scenario:force_spawn_scenario('Immigration')
+   --   end)
+
 end
 
 return EmbarkTest
