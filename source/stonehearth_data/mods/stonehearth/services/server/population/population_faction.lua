@@ -98,6 +98,7 @@ end
 function PopulationFaction:_on_entity_destroyed(args)
    self._sv.citizens[args.entity_id] = nil
    stonehearth.score:update_aggregate_score(self._sv.player_id)
+   self.__saved_variables:mark_changed()
    return radiant.events.UNLISTEN
 end
 

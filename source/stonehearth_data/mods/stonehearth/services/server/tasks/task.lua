@@ -147,6 +147,8 @@ function Task:pause()
    return self
 end
 
+--TODO: whenever anyone uses this, they have to consider what might happen if the task CANNOT complete
+--See te clear_workshop orchestrator. Can that logic be rolled up into this function somehow?
 function Task:wait()
    self._log:detail('user initiated wait.')
    local thread = stonehearth.threads:get_current_thread()

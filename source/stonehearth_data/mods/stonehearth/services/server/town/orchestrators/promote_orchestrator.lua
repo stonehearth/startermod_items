@@ -33,6 +33,9 @@ function Promote:run(town, args)
                         :once()
                         :start()
                         :wait()
+
+      --TODO: how to handle the case where the talisman has disappeared (and there will never be another?)
+
    else
       -- talisman is an entity
       args.talisman = talisman
@@ -41,7 +44,11 @@ function Promote:run(town, args)
                            :once()
                            :start()
                            :wait()
+
+      --TODO: what happens when a wildfire destroys the bench? See the clear_workshop orchestrator
+      --TODO: also, this crashes in the c++ effect layer before it even gets here. Take another look. 
    end
+
 
    if not result then
       return false

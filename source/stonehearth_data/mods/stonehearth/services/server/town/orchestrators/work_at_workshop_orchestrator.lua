@@ -75,6 +75,8 @@ function WorkAtWorkshop:_process_order(order)
    if not task:wait() then
       return false
    end
+
+   --TODO: what happens when a wildfire destroys the bench? See the clear_workshop orchestrator
    
    self:_destroy_items_on_bench()
    self:_add_outputs_to_bench(recipe)
