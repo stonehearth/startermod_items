@@ -87,18 +87,28 @@ UPDATE_INTERVAL = 1
 
 
 class TestThread(Thread):
-   def __init__(self, url, machine_name, test_group, file_name, settings='{}'):
+   def __init__(self, url, machine_name, test_group, test_script, test_function, file_name, settings='{}'):
       super(TestThread, self).__init__()
       self.url = url
       self.machine_name = machine_name
       self.file_name = file_name
       self.test_group = test_group
+      self.test_script = test_script
+      self.test_function = test_function
       self.response = None
       self.settings = settings
 
    def run(self):
       # This should probably be factored, but then this script is also specific to
       # Stonehearth, so for now, might as well be the One Source of Truth.
+      radsubArgs = "radsub.py -o -i"
+      if self.test_function:
+         radsubArgs += " -f " + self.test_function
+      if self.test_script:
+         radsubArgs += " -sc " + self.test_script
+      if self.test_group:
+         radsubArgs += " -g " + self.test_group
+
       metadata_json = """
       {
          "WorkingDirectory" : "stonehearth",
@@ -106,7 +116,7 @@ class TestThread(Thread):
          "ArtifactsName" : "stonehearth/test_output/results.shtest.json",
          "ExecutableArgs" : "%s"
       }
-      """ % ("radsub.py -o -i -g " + self.test_group)
+      """ % radsubArgs
 
       settings_json = """%s""" % self.settings
 
@@ -130,7 +140,7 @@ def read_json_file(file_path):
    return result
 
 
-def run_perf_tests(slave_json, test_group, configs_json, file_location, timeout=60 * 60):
+def run_perf_tests(slave_json, test_group, test_script, test_func, configs_json, file_location, timeout=60 * 60):
    def alive_count(lst):
       alive = map(lambda x : 1 if x.isAlive() else 0, lst)
       return reduce(lambda a,b : a + b, alive)
@@ -140,7 +150,7 @@ def run_perf_tests(slave_json, test_group, configs_json, file_location, timeout=
       config = configs_json[config_name]
       used_slaves = [(slave_json['machines'][machine_name]['ip_address'], machine_name) for machine_name in config['machines'] ]
 
-      threads = [ TestThread('http://' + slave[0] + ':8086/run/', slave[1], test_group, file_location, json.dumps(config['settings'])) for slave in used_slaves ]
+      threads = [ TestThread('http://' + slave[0] + ':8086/run/', slave[1], test_group, test_script, test_func, file_location, json.dumps(config['settings'])) for slave in used_slaves ]
       
       for thread in threads:
          thread.start()
@@ -167,7 +177,8 @@ def write_perf_results_to_json_file(results, output_file):
 
             for test_run in test_data['tests_passed']:
 
-               new_result = { 
+               new_result = {
+                  'build_number' : 12345,  # for now!
                   'machine_name' : result[1], 
                   'settings' : result[2], 
                   'perf_data' : test_run['perf'],
@@ -186,7 +197,7 @@ def run_tests(slaves, test_group, file_location, timeout=60 * 60):
       alive = map(lambda x : 1 if x.isAlive() else 0, lst)
       return reduce(lambda a,b : a + b, alive)
 
-   threads = [ TestThread('http://' + slave[0] + ':8086/run/', slave[1], test_group, file_location) for slave in slaves ]
+   threads = [ TestThread('http://' + slave[0] + ':8086/run/', slave[1], test_group, None, None, file_location) for slave in slaves ]
    
    for thread in threads:
       thread.start()
@@ -225,24 +236,30 @@ slaves = [ (machines_json[machine_name]['ip_address'], machine_name) for machine
 
 # If not explicitly stated, just run on one machine.  For now, pick machine 0.
 if not '-a' in sys.argv:
-   slaves = [slaves[0]]
+  slaves = [slaves[0]]
 
 # Default to everything (does not include performance tests!)
 test_group = 'all'
+test_script = None
+test_func = None
+
 if '-g' in sys.argv:
    test_group = sys.argv[sys.argv.index('-g') + 1]
-
+if '-sc' in sys.argv:
+   test_script = sys.argv[sys.argv.index('-sc') + 1]
+if '-f' in sys.argv:
+   test_func = sys.argv[sys.argv.index('-f') + 1]
 
 file_location = build_root + 'test-package/stonehearth-test.zip'
 
 if '-p' in sys.argv:
-  # Performance auto-tests.
-  config_json = read_json_file(test_script_root + './perf_configs.json')
-  results = run_perf_tests(slave_json, test_group, config_json, file_location)
-  output_file = build_root + 'combined_results.shperf.json'
-  write_perf_results_to_json_file(results, output_file)
+   # Performance auto-tests.
+   config_json = read_json_file(test_script_root + './perf_configs.json')
+   results = run_perf_tests(slave_json, test_group, test_script, test_func, config_json, file_location)
+   output_file = build_root + 'combined_results.shperf.json'
+   write_perf_results_to_json_file(results, output_file)
 else:
-  # Normal autotests
-  results = run_tests(slaves, test_group, file_location)
-  output_file = build_root + 'combined_results.shtest.json'
-  write_results_to_json_file(results, output_file)
+   # Normal autotests
+   results = run_tests(slaves, test_group, file_location)
+   output_file = build_root + 'combined_results.shtest.json'
+   write_results_to_json_file(results, output_file)
