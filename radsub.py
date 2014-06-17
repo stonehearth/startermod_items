@@ -22,7 +22,7 @@ def new_script(script_name):
 
 
 def new_test(test_name):
-   return { 'name' : test_name, 'time' : 0.0, 'perf' : { 'fps' : [], 'tri_count' : [] } }
+   return { 'name' : test_name, 'time' : 0.0, 'perf' : [] }
 
 
 def get_log_time(log_time_string):
@@ -49,13 +49,13 @@ def produce_log_results(log_path):
       if len(split_line) < 4:
          continue
 
+      current_time = get_log_time(split_line[0])
       actual_log = split_line[3]
       
       r = script_re.match(actual_log)
       if r:
          # Matches a new script starting.
-         d = get_log_time(split_line[0])
-         close_test(True, current_script, current_test, d - test_start)
+         close_test(True, current_script, current_test, current_time - test_start)
          current_test = new_test('')
          current_script = new_script(r.group(1))
          results.append(current_script)
@@ -64,23 +64,21 @@ def produce_log_results(log_path):
       r = test_re.match(actual_log)
       if r:
          # Matches a new test starting
-         d = get_log_time(split_line[0])
-         close_test(True, current_script, current_test, d - test_start)
+         close_test(True, current_script, current_test, current_time - test_start)
          current_test = new_test(r.group(1))
-         test_start = d
+         test_start = current_time
          continue
 
       r = perf_re.match(actual_log)
       if r:
-         current_test['perf']['fps'].append(float(r.group(1)))
-         current_test['perf']['tri_count'].append(int(r.group(2)))
+         dt = int((current_time - test_start).total_seconds() * 1000)
+         current_test['perf'].append([dt, float(r.group(1)), int(r.group(2))])
          continue
 
       r = failure_re.match(actual_log)
       if r:
          # Matches a failed test.
-         d = get_log_time(split_line[0])
-         close_test(False, current_script, current_test, d - test_start)
+         close_test(False, current_script, current_test, current_time - test_start)
          current_script = new_script('')
          current_test = new_test('')
 
@@ -141,9 +139,14 @@ if '-o' in sys.argv:
    sh_build_root = './'
    sh_exe_path = './Stonehearth.exe'
 
-sh_args = '--game.main_mod=stonehearth_autotest --simulation.game_speed=4 --logging.log_level=0'
+sh_args = '--game.main_mod=stonehearth_autotest --simulation.game_speed=4 --logging.log_level=1'
 
-if '-g' in sys.argv:
+if '-f' in sys.argv and '-sc' in sys.argv:
+   sh_args += ' --mods.stonehearth_autotest.options.script=' + sys.argv[sys.argv.index('-sc') + 1]
+   sh_args += ' --mods.stonehearth_autotest.options.function=' + sys.argv[sys.argv.index('-f') + 1]
+elif '-sc' in sys.argv:
+   sh_args += ' --mods.stonehearth_autotest.options.script=' + sys.argv[sys.argv.index('-sc') + 1]
+elif '-g' in sys.argv:
    sh_args += ' --mods.stonehearth_autotest.options.group=' + sys.argv[sys.argv.index('-g') + 1]
 else:
    sh_args += ' --mods.stonehearth_autotest.options.group=all'
