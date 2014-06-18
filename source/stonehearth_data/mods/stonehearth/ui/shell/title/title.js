@@ -129,6 +129,7 @@ App.StonehearthTitleScreenView = App.View.extend({
          var height = 8;
          this.$().hide();
          
+         radiant.call('radiant:play_sound', 'stonehearth:sounds:ui:start_menu:embark' );
          radiant.call('stonehearth:new_game', width, height, seed)
             .done(function(e) {
                var map = e.map;
@@ -156,7 +157,6 @@ App.StonehearthTitleScreenView = App.View.extend({
                               self.destroy();
                            }
                         })
-                        radiant.call('radiant:play_sound', 'stonehearth:sounds:ui:start_menu:embark' );
                   });
 
                App.shellView.addView(App.StonehearthLoadingScreenView);
