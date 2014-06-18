@@ -23,7 +23,7 @@
       "cursors:harvest" : "file(data/cursors/harvest.cur)",
       "cursors:create_stockpile" : "file(data/cursors/create_stockpile.cur)",
       "cursors:create_walls" : "file(data/cursors/create_walls.cur)",
-      "cursors:create_floor" : "file(data/cursors/create_walls.cur)",
+      "cursors:create_floor" : "file(data/cursors/create_floor.cur)",
       "cursors:default" : "file(data/cursors/default.cur)",
       "cursors:hover" : "file(data/cursors/hover.cur)",
       "cursors:invalid_hover" : "file(data/cursors/invalid_hover.cur)",

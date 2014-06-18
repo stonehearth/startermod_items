@@ -194,10 +194,13 @@ var StonehearthClient;
 
          return this._callTool(function() {
             return radiant.call_obj(self._build_editor, 'place_new_wall')
-               .always(function(response) {
+               .done(function(response) {
                   radiant.call('radiant:play_sound', 'stonehearth:sounds:place_structure' );
+                  self.buildWall(wallBrush, { hideTip : true });
+               })
+               .fail(function(response) {
                   $(top).trigger('radiant_hide_tip');
-               });
+               });               
          });
       },
 
