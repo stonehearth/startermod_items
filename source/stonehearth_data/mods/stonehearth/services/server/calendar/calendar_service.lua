@@ -57,6 +57,7 @@ function CalendarService:initialize()
    end
 end
 
+--Returns the # of seconds that have passed
 function CalendarService:get_elapsed_time()
    return radiant.gamestate.now() / self._constants.ticks_per_second
 end

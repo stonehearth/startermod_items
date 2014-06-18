@@ -44,14 +44,14 @@
                <!-- <h2>{{category}}</h2> -->
                <div>
                   {{#each items}}
-                     <img {{bind-attr brush="this.brush" src="this.portrait" title="this.name"}} class="wallTool" />
+                     <img {{bind-attr uri="this.uri" src="this.portrait" title="this.name"}} class="wallTool" />
                   {{/each}}
                </div>
                <div style="clear: both"></div>
             {{/each}}
          </div>
          <br><br>
-         <button {{bind-attr class=view.building:enabled:disabled}} id="growWalls">
+         <button {{bind-attr class=view.building:enabled:disabled}} id="showGrowWallsWizard">
             Grow Walls Around Floor
          </button>
 
@@ -104,6 +104,29 @@
          <div class="section">
             info about selected building part (when one is selected) goes here
          </div>
+      </div>
+
+      <!-- wizard panes -->
+      <div id="growWallsWizard" class="window toolWizard">
+         <div class="title">Grow Walls Around Floor<div id="closeGrowWallsWizard" class="closeDivButton"></div></div>
+         Choose a material for your walls, then click the Grow Walls Around Floor button.
+         <h2>{{i18n stonehearth:building_designer_material}}</h2>
+         <div class="brushPalette section">
+            {{#each view.wallPatterns}}
+               <!-- <h2>{{category}}</h2> -->
+               <div>
+                  {{#each items}}
+                     <img {{bind-attr uri="this.uri" src="this.portrait" title="this.name"}} class="wallTool" />
+                  {{/each}}
+               </div>
+               <div style="clear: both"></div>
+            {{/each}}
+         </div>
+         <br><br>
+         <button {{bind-attr class=view.building:enabled:disabled}} id="growWallsButton">
+            Grow Walls Around Floor
+         </button>
+
       </div>
    </div>
 

@@ -7,7 +7,7 @@
    "rarity" : "common",
    "uri" : "stonehearth:immigration_failure", 
    "scenario_data" : {
-      "edible_threshold" : 10,
+      "edible_threshold" : 5,
       "title" : "A traveller approaches holding a bundle.",
       "expiration_timeout" : "5h",
       "messages" : [

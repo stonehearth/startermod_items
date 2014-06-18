@@ -1,14 +1,14 @@
 {
    "net_worth" : {
       "levels" : {
-         "camp" : 50, 
-         "settlement" : 100, 
-         "hamlet" : 300, 
-         "village" : 800, 
-         "town" : 1000, 
-         "city" : 4000, 
-         "metropolis" : 6000,
-         "capitol" : 10000
+         "camp" : 100, 
+         "settlement" : 1000, 
+         "hamlet" : 2000, 
+         "village" : 3000, 
+         "town" : 4000, 
+         "city" : 5000, 
+         "metropolis" : 10000,
+         "capitol" : 50000
       }
    }
 }

@@ -346,6 +346,7 @@ end
 
 function Thread:sleep_realtime(ms)
    local wakeup = radiant.get_realtime() + (ms / 1000.0)
+   local start_ms = radiant.get_realtime() * 1000
    local timer
    repeat
       if timer then
@@ -357,6 +358,7 @@ function Thread:sleep_realtime(ms)
             end
          end)
       self:suspend()
+      ms = ms - ((radiant.get_realtime() * 1000) - start_ms)
    until self:is_finished() or radiant.get_realtime() >= wakeup
    timer:destroy()
 end

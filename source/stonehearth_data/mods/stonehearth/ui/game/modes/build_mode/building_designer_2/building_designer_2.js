@@ -117,23 +117,41 @@ App.StonehearthBuildingDesignerTools = App.View.extend({
       })
 
       // wall tool
-      this.$('.wallTool').click(function() {
+      this.$('#fillWallToolTab .wallTool').click(function() {
          // select the tool
-         self.$('.wallTool').removeClass('selected');
+         self.$('#fillWallToolTab .wallTool').removeClass('selected');
          $(this).addClass('selected');
          
+
          // activate the tool
-         var brush = $(this).attr('brush');
-         App.stonehearthClient.buildWall(brush);
+         var wallUri = $(this).attr('uri');
+         App.stonehearthClient.buildWall('stonehearth:wooden_column', wallUri);
       })
 
-      // grow walls button
-      this.$('#growWalls').click(function() {
+      // grow walls wizard
+      this.$('#showGrowWallsWizard').click(function() {
+         
+         self.$('#growWallsWizard').show();
+      });
+
+      this.$('#closeGrowWallsWizard').click(function() {
+         self.$('#growWallsWizard').fadeOut();
+      });
+
+      this.$('#growWallsWizard .wallTool').click(function() {
+         // select the tool
+         self.$('#growWallsWizard .wallTool').removeClass('selected');
+         $(this).addClass('selected');         
+      });
+
+
+      this.$('#growWallsButton').click(function() {
          var building = self.get('building');
-         var wallUri = $('.wallTool.selected').attr('uri');
-         // todo, open a wizard
-         App.stonehearthClient.growWalls(building, 'stonehearth:wooden_column', 'stonehearth:wooden_wall');
-      })
+         var wallUri = $('#growWallsWizard .wallTool.selected').attr('uri');
+
+         App.stonehearthClient.growWalls(building, 'stonehearth:wooden_column', wallUri);
+         self.$('#growWallsWizard').hide();
+      });
 
       
       // grow roof button

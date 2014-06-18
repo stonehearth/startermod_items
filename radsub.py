@@ -1,10 +1,11 @@
 #!/usr/bin/env python
+import argparse
 import datetime
+import json
 import os
+import re
 import subprocess
 import sys
-import re
-import json
 
 
 def close_test(passed, script, test, time_delta):
@@ -22,7 +23,7 @@ def new_script(script_name):
 
 
 def new_test(test_name):
-   return { 'name' : test_name, 'time' : 0.0, 'perf' : { 'fps' : [], 'tri_count' : [] } }
+   return { 'name' : test_name, 'time' : 0.0, 'perf' : [] }
 
 
 def get_log_time(log_time_string):
@@ -49,13 +50,13 @@ def produce_log_results(log_path):
       if len(split_line) < 4:
          continue
 
+      current_time = get_log_time(split_line[0])
       actual_log = split_line[3]
       
       r = script_re.match(actual_log)
       if r:
          # Matches a new script starting.
-         d = get_log_time(split_line[0])
-         close_test(True, current_script, current_test, d - test_start)
+         close_test(True, current_script, current_test, current_time - test_start)
          current_test = new_test('')
          current_script = new_script(r.group(1))
          results.append(current_script)
@@ -64,23 +65,21 @@ def produce_log_results(log_path):
       r = test_re.match(actual_log)
       if r:
          # Matches a new test starting
-         d = get_log_time(split_line[0])
-         close_test(True, current_script, current_test, d - test_start)
+         close_test(True, current_script, current_test, current_time - test_start)
          current_test = new_test(r.group(1))
-         test_start = d
+         test_start = current_time
          continue
 
       r = perf_re.match(actual_log)
       if r:
-         current_test['perf']['fps'].append(float(r.group(1)))
-         current_test['perf']['tri_count'].append(int(r.group(2)))
+         dt = int((current_time - test_start).total_seconds() * 1000)
+         current_test['perf'].append([dt, float(r.group(1)), int(r.group(2))])
          continue
 
       r = failure_re.match(actual_log)
       if r:
          # Matches a failed test.
-         d = get_log_time(split_line[0])
-         close_test(False, current_script, current_test, d - test_start)
+         close_test(False, current_script, current_test, current_time - test_start)
          current_script = new_script('')
          current_test = new_test('')
 
@@ -109,13 +108,24 @@ def run_tests():
 
    return_code = 1
 
-   print 'Running Stonehearth autotests with exe at ' + sh_exe_path + '....'
+   print 'Running Stonehearth autotests with exe at ' + sh_exe_path + ' and args: ' + sh_args
 
    return_code = subprocess.call(sh_command, cwd=sh_cwd)
 
    print 'Completed in ' + str((datetime.datetime.now() - t_start).total_seconds()) + ' seconds.'
 
    return return_code
+
+parser = argparse.ArgumentParser(description='Stonehearth Test Runner.')
+parser.add_argument('-d', '--debug', action='store_true', help='runs the tests on the debug version of Stonehearth (local builds only)')
+parser.add_argument('-o', '--official', action='store_true', help='runs the tests assuming the directory structure of an official build')
+parser.add_argument('-f', '--function', help='runs the specified test function (script must be set using --sc!)')
+parser.add_argument('-s', '--script', help='runs the specified test script')
+parser.add_argument('-g', '--group', help='runs the specified test group')
+parser.add_argument('-i', '--interactive', action='store_true', help='run in interactive mode (maximizes the window)')
+parser.add_argument('settings', nargs=argparse.REMAINDER, help='settings to pass to Stonehearth (e.g. --mods.foo.bar=7 --mods.foo.baz=bing)')
+
+args = parser.parse_args(sys.argv[1:])
 
 t_start = datetime.datetime.now()
 
@@ -126,7 +136,7 @@ else:
 
 sh_root = rad_root + 'stonehearth/'
 
-if '-d' in sys.argv:
+if args.debug:
   build_type = 'Debug'
 else:
   build_type = 'RelWithDebInfo'
@@ -135,7 +145,7 @@ sh_build_root = sh_root + 'build/'
 sh_cwd = sh_root + 'source/stonehearth_data/'
 sh_exe_path = sh_build_root + 'source/stonehearth/' + build_type + '/Stonehearth.exe'
 
-if '-o' in sys.argv:
+if args.official:
    # In an official build, look elsewhere for our cwd/exe.
    sh_cwd = './'
    sh_build_root = './'
@@ -143,18 +153,21 @@ if '-o' in sys.argv:
 
 sh_args = '--game.main_mod=stonehearth_autotest --simulation.game_speed=4 --logging.log_level=0'
 
-if '-g' in sys.argv:
-   sh_args += ' --mods.stonehearth_autotest.options.group=' + sys.argv[sys.argv.index('-g') + 1]
+if args.function and args.script:
+   sh_args += ' --mods.stonehearth_autotest.options.script=' + args.script
+   sh_args += ' --mods.stonehearth_autotest.options.function=' + args.function
+elif args.script:
+   sh_args += ' --mods.stonehearth_autotest.options.script=' + args.script
+elif args.group:
+   sh_args += ' --mods.stonehearth_autotest.options.group=' + args.group
 else:
    sh_args += ' --mods.stonehearth_autotest.options.group=all'
 
-if '-i' in sys.argv:
-  print 'Running in interactive mode'
-else:
+if not args.interactive:
   sh_args += ' --renderer.minimized=true'
 
-if '-s' in sys.argv:
-   sh_args += sys.argv[sys.argv.index('-s') + 1]
+if len(args.settings) > 1:
+   sh_args += ' ' + reduce(lambda x,y: x + ' ' + y, args.settings[1:])
 
 return_code = run_tests()
 

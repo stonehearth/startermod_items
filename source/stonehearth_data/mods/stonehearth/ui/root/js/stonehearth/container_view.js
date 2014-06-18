@@ -14,6 +14,10 @@ $(document).ready(function(){
             }
 
             modal.destroy();
+         } else if (App.getGameMode() != 'normal') {
+            // switch to normal mode
+            App.stonehearthClient.deactivateAllTools();
+            App.setGameMode('normal');
          } else {
             App.gameView.addView(App.StonehearthEscMenuView);
          }

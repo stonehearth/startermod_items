@@ -143,6 +143,8 @@ void RenderEntity::SetParent(H3DNode parent)
    if (!parent) {
       parent = RenderNode::GetUnparentedNode();
    }
+   //TODO: what happens when the node_ is destroyed before this happens? 
+   //Currently, crash (see promotion_test.lua). Fix before the Wildfire Mod
    h3dSetNodeParent(node_, parent);
 }
 
