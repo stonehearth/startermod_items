@@ -161,7 +161,7 @@ App.StonehearthBuildingDesignerTools = App.View.extend({
 
       
       // grow roof button
-      this.$('#growRoof').click(function() {
+      this.$('#growRoofTool').click(function() {
          var building = self.get('building');
          // todo, open a wizard
          App.stonehearthClient.growRoof(building);

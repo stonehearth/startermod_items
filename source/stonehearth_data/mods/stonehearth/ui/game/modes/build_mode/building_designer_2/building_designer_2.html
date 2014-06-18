@@ -55,22 +55,22 @@
                <div style="clear: both"></div>
             {{/each}}
          </div>
-         <br><br>
-         <button {{bind-attr class=view.building:enabled:disabled}} id="showGrowWallsWizard">
-            Grow Walls Around Floor
-         </button>
 
       </div>
 
       <div class="tabPage" id="roofToolTab">
          <h2>{{i18n stonehearth:building_designer_raise_roof}}</h2>
          {{i18n stonehearth:building_designer_raise_roof_help}}
+         <h2>Tools</h2>
+         <div class="section toolPalette">
+            <div id="growRoofTool">grow roof</div>
+         </div>
          <h2>{{i18n stonehearth:building_designer_material}}</h2>
          <div class="brushPalette section">
             {{#each view.roofPatterns}}
                <!-- <h2>{{category}}</h2> -->
                <div>
-                  todo...materials go here...
+                  todo...roof options go here...
                   {{#each items}}
                      <a {{bind-attr name = "this.name"}}href="#" {{action selectRoofMaterial this target="view"}} class="brushLink">
                         <img {{bind-attr src="this.portrait" title="this.name"}} />
@@ -80,27 +80,21 @@
                <div style="clear: both"></div>
             {{/each}}
          </div>
-         <br><br>
-         <button {{bind-attr class=view.building:enabled:disabled}} id="growRoof">
-            Grow Roof Above Walls
-         </button>
       </div>
 
       <div class="tabPage" id="doorToolTab">
          <h2>{{i18n stonehearth:building_designer_doodads}}</h2>
          {{i18n stonehearth:building_designer_doodads_help}}
-         <h2>{{i18n stonehearth:building_designer_material}}</h2>
-         <div class="brushPalette doodadPalette section">
-            {{#each view.doodads}}
-               <h2>{{category}}</h2>
+         {{#each view.doodads}}
+            <h2>{{category}}</h2>
+            <div class="brushPalette doodadPalette section">
                <div>
                   {{#each items}}
                      <img {{bind-attr uri="this.uri" src="this.portrait" title="this.name"}} class="small noBorder doodadTool"/>
                   {{/each}}
                </div>
-               <div style="clear: both"></div>
-            {{/each}}
-         </div>
+            </div>
+         {{/each}}
       </div>
 
       <div class="tabPage" id="editToolTab">
