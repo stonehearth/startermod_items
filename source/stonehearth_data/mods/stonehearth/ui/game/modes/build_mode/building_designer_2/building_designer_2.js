@@ -122,13 +122,23 @@ App.StonehearthBuildingDesignerTools = App.View.extend({
          App.stonehearthClient.buildWall(brush);
       })
 
-      // grow walls button
-      this.$('#growWalls').click(function() {
+      // grow walls wizard
+      this.$('#showGrowWallsWizard').click(function() {
+         
+         self.$('#growWallsWizard').show();
+      })
+
+      this.$('#closeGrowWallsWizard').click(function() {
+         self.$('#growWallsWizard').fadeOut();
+      })
+
+      this.$('#growWallsButton').click(function() {
          var building = self.get('building');
          var wallUri = $('.wallTool.selected').attr('uri');
-         // todo, open a wizard
+
          App.stonehearthClient.growWalls(building, 'stonehearth:wooden_column', 'stonehearth:wooden_wall');
-      })
+         self.$('#growWallsWizard').hide();
+      });
 
       
       // grow roof button

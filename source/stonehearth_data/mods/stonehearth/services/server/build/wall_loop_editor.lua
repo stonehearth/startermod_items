@@ -49,7 +49,7 @@ function WallLoopEditor:go(column_uri, wall_uri, response)
                end
          end)
       :fail(function(selector)
-            assert(false)
+            --assert(false)
          end)
       :go()
    
