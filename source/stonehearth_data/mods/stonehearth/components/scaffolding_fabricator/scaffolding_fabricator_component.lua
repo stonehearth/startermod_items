@@ -66,7 +66,7 @@ function ScaffoldingFabricator:_start()
    radiant.events.listen(self._sv.blueprint, 'stonehearth:construction:teardown_changed', self, self._update_scaffolding_size)
    radiant.events.listen(self._sv.blueprint, 'stonehearth:construction:finished_changed', self, self._update_scaffolding_size)
    
-   self._project_trace = self._project_dst:trace_region('generating scaffolding')
+   self._project_trace = self._project_dst:trace_region('generating scaffolding', true)
                                              :on_changed(function()
                                                    self:_update_scaffolding_size()
                                                 end)

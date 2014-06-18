@@ -55,7 +55,7 @@ function ScaffoldingRenderer:__init(render_entity, ed)
 
       -- push the collision shape of the scaffolding into the render tracker
       -- whenever it changes
-      self._promise = self._collsion_shape:trace_region('drawing scaffolding')
+      self._promise = self._collsion_shape:trace_region('drawing scaffolding', true)
                                              :on_changed(function ()
                                                    self._render_tracker:set_region(self._collsion_shape:get_region())
                                                 end)

@@ -50,8 +50,8 @@ function Fabricator:__init(name, entity, blueprint, project)
       self:_update_adjacent()
    end
 
-   table.insert(self._traces, self._fabricator_dst:trace_region('fabricator adjacent'):on_changed(update_adjacent))
-   table.insert(self._traces, self._fabricator_dst:trace_reserved('fabricator adjacent'):on_changed(update_adjacent))
+   table.insert(self._traces, self._fabricator_dst:trace_region('fabricator adjacent', true):on_changed(update_adjacent))
+   table.insert(self._traces, self._fabricator_dst:trace_reserved('fabricator adjacent', true):on_changed(update_adjacent))
    
    if self._blueprint_construction_progress then
       self._dependencies_finished = self._blueprint_construction_progress:check_dependencies()
@@ -524,10 +524,10 @@ function Fabricator:_trace_blueprint_and_project()
    local dtrace = self._blueprint:trace_object('destination')
                                        :on_destroyed(update_fabricator_region)
          
-   local btrace = self._blueprint_dst:trace_region('updating fabricator')
+   local btrace = self._blueprint_dst:trace_region('updating fabricator', true)
                                      :on_changed(update_fabricator_region)
 
-   local ptrace  = self._project_dst:trace_region('updating fabricator')
+   local ptrace  = self._project_dst:trace_region('updating fabricator', true)
                                     :on_changed(update_fabricator_region)                                       
                                        
    table.insert(self._traces, dtrace)

@@ -70,7 +70,7 @@ function ConstructionDataRenderer:_trace_collision_shape()
          self._collision_shape_trace:destroy()
          self._collision_shape_trace = nil
       end
-      self._collision_shape_trace = self._collision_shape:trace_region('drawing construction')
+      self._collision_shape_trace = self._collision_shape:trace_region('drawing construction', true)
                                              :on_changed(function ()
                                                    self._render_tracker:set_region(self._collision_shape:get_region())
                                                 end)
