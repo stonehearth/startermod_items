@@ -32,9 +32,9 @@ function BuildEditor:get_model()
    return self._model
 end
 
-function BuildEditor:place_new_wall(session, response)
+function BuildEditor:place_new_wall(session, response, columns_uri, walls_uri)
    WallLoopEditor(self._build_service)
-         :go('stonehearth:wooden_column', 'stonehearth:wooden_wall', response)
+         :go(columns_uri, walls_uri, response)
 end
 
 function BuildEditor:place_new_floor(session, response, brush_shape)

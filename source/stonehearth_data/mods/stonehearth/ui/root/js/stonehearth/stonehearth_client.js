@@ -184,7 +184,7 @@ var StonehearthClient;
          });
       },
 
-      buildWall: function(wallBrush, o) {
+      buildWall: function(column, wall, o) {
          var self = this;
 
          $(top).trigger('radiant_show_tip', { 
@@ -193,10 +193,10 @@ var StonehearthClient;
          });
 
          return this._callTool(function() {
-            return radiant.call_obj(self._build_editor, 'place_new_wall')
+            return radiant.call_obj(self._build_editor, 'place_new_wall', column, wall)
                .done(function(response) {
                   radiant.call('radiant:play_sound', 'stonehearth:sounds:place_structure' );
-                  self.buildWall(wallBrush, { hideTip : true });
+                  self.buildWall(column, wall, { hideTip : true });
                })
                .fail(function(response) {
                   $(top).trigger('radiant_hide_tip');

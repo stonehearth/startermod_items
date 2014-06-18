@@ -117,9 +117,10 @@ App.StonehearthBuildingDesignerTools = App.View.extend({
          self.$('.wallTool').removeClass('selected');
          $(this).addClass('selected');
          
+
          // activate the tool
-         var brush = $(this).attr('brush');
-         App.stonehearthClient.buildWall(brush);
+         var wallUri = $(this).attr('uri');
+         App.stonehearthClient.buildWall('stonehearth:wooden_column', wallUri);
       })
 
       // grow walls wizard
