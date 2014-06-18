@@ -42,7 +42,7 @@ function FabricatorClientComponent:begin_editing(blueprint, project, editing_reg
       end)
       
    local function trace_region(entity)
-      return entity:get_component('destination'):trace_region('editing fab')
+      return entity:get_component('destination'):trace_region('editing fab', true)
          :on_changed(function()
             local br = blueprint:get_component('destination'):get_region():get()
             local pr = project and project:get_component('destination'):get_region():get() or Region3()

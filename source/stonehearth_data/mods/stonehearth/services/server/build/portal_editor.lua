@@ -99,7 +99,7 @@ end
 
 function PortalEditor:submit(response)   
    local location = self._fixture_blueprint:get_component('mob'):get_grid_location()
-   _radiant.call_obj(self._build_service, 'add_portal', self:get_blueprint(), self._fixture_uri, location)
+   _radiant.call_obj(self._build_service, 'add_portal_command', self:get_blueprint(), self._fixture_uri, location)
       :done(function(r)
             response:resolve(r)
          end)

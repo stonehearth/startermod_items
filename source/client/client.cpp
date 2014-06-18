@@ -1513,7 +1513,7 @@ void Client::LoadClientState(boost::filesystem::path const& savedir)
    Initialize();
 
    std::string error;
-   dm::Store::ObjectMap objects;
+   dm::ObjectMap objects;
 
    // Re-initialize the game
    dm::Store &store = GetAuthoringStore();

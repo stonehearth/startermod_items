@@ -27,6 +27,7 @@ add_library(dm STATIC
             set_trace_sync.cpp
             store.cpp
             store_trace.cpp
+            store_save_state.cpp
             streamer.cpp
             trace.cpp
             tracer.cpp

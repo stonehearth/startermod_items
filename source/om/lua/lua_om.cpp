@@ -13,6 +13,7 @@
 #include "om/all_object_defs.h"
 #include "om/all_component_defs.h"
 #include "lib/lua/dm/boxed_trace_wrapper.h"
+#include "lib/lua/dm/trace_wrapper.h"
 
 using namespace ::luabind;
 using namespace ::radiant;

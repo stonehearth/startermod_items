@@ -6,6 +6,35 @@
 using namespace radiant;
 using namespace radiant::lua;
 
+/*
+ * ValueCast Template.
+ *
+ * Casts a value into the cpp type we'd like it to represented in Lua trace callbacks.  For
+ * now, let's just say all std::shared_ptr<>s should be converted to weak_ptrs.  This fixes
+ * a problem where lua traces on an Entity's component map would keep components alive
+ * longer than the entity itself (until the temporary constructed to deliver the OnAdded
+ * cb got reaped).  We may want to opt-into this based on the dm::Map type later, but this
+ * is a good, intermediate step toward that goal.
+ */
+
+template <typename T>
+struct ValueCast {
+   // By default, just return the value
+   T ToLua(T const& value)
+   {
+      return value;
+   }
+};
+
+template <typename T>
+struct ValueCast<std::shared_ptr<T>> {
+   // Shared pointers turn into weak pointers.
+   std::weak_ptr<T> ToLua(std::shared_ptr<T> value)
+   {
+      return value;
+   }
+};
+
 template <typename T>
 MapTraceWrapper<T>::MapTraceWrapper(std::shared_ptr<T> trace) :
    trace_(trace)
@@ -51,7 +80,7 @@ std::shared_ptr<MapTraceWrapper<T>> MapTraceWrapper<T>::OnAdded(luabind::object 
 
    trace_->OnAdded([changed_cb](typename T::Key const& key, typename T::Value const& value) mutable {
       try {
-         changed_cb(key, value);
+         changed_cb(key, ValueCast<T::Value>().ToLua(value));
       } catch (std::exception const& e) {
          LUA_LOG(1) << "exception delivering lua trace: " << e.what();
       }

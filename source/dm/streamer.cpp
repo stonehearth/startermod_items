@@ -171,7 +171,7 @@ void Streamer::OnModified(TraceBufferedRef t, Object const* obj)
    if (trace) {
       ObjectId id = obj->GetObjectId();
       if (!stdutil::contains(unsaved_objects_, id)) {
-         STREAMER_LOG(5) << "adding object " << id << " to modified object set.";
+         STREAMER_LOG(5) << "adding object " << id << " " << obj->GetObjectClassNameLower() << " to modified object set.";
 
          proto::Update update;
          update.set_type(proto::Update::UpdateObject);

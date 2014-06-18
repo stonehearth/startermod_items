@@ -100,6 +100,11 @@ App.StonehearthBuildingDesignerTools = App.View.extend({
          self.$('#' + tab).show();
       });
 
+      // undo/redoo tool
+      this.$('.undo').click(function() {
+         App.stonehearthClient.undo();
+      });
+
       // floor tool
       this.$('.floorTool').click(function() {
          // select the tool

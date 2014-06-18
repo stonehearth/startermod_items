@@ -48,7 +48,7 @@ function BuildEditor:erase_floor(session, response, brush_shape)
 end
 
 function BuildEditor:grow_walls(session, response, building, columns_uri, walls_uri)   
-   _radiant.call_obj(self._build_service, 'grow_walls', building, columns_uri, walls_uri)
+   _radiant.call_obj(self._build_service, 'grow_walls_command', building, columns_uri, walls_uri)
       :done(function(r)
             response:resolve(r)
          end)
@@ -58,7 +58,7 @@ function BuildEditor:grow_walls(session, response, building, columns_uri, walls_
 end
 
 function BuildEditor:grow_roof(session, response, building)
-   _radiant.call_obj(self._build_service, 'grow_roof', building, 'stonehearth:wooden_peaked_roof')
+   _radiant.call_obj(self._build_service, 'grow_roof_command', building, 'stonehearth:wooden_peaked_roof')
       :done(function(r)
             response:resolve(r)
          end)

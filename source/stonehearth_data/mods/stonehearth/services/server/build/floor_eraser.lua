@@ -31,7 +31,7 @@ function FloorEraser:go(response)
 end
 
 function FloorEraser:_erase_floor(response, selector, box)
-   _radiant.call_obj(self._build_service, 'erase_floor', box)
+   _radiant.call_obj(self._build_service, 'erase_floor_command', box)
       :done(function(r)
             if r.new_selection then
                stonehearth.selection:select_entity(r.new_selection)
