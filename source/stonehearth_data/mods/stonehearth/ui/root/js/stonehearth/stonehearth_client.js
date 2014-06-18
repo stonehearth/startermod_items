@@ -149,7 +149,7 @@ var StonehearthClient;
             return radiant.call('stonehearth:choose_stockpile_location')
                .done(function(response) {
                   radiant.call('radiant:play_sound', 'stonehearth:sounds:place_structure' );
-                  radiant.call('radiant:client:select_entity', response.stockpile);
+                  radiant.call('stonehearth:select_entity', response.stockpile);
                   self.createStockpile({ hideTip : true });
                })
                .fail(function(response) {
@@ -174,7 +174,7 @@ var StonehearthClient;
             return radiant.call('stonehearth:choose_new_field_location')
             .done(function(response) {
                radiant.call('radiant:play_sound', 'stonehearth:sounds:place_structure' );
-               radiant.call('radiant:client:select_entity', response.field);
+               radiant.call('stonehearth:select_entity', response.field);
                self.createFarm({ hideTip : true});
             })
             .fail(function(response) {
