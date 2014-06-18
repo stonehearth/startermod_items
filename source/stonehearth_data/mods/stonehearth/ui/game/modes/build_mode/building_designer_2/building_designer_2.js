@@ -34,10 +34,6 @@ App.StonehearthBuildingDesignerTools = App.View.extend({
       this.set('foobar', 'foobar');
    },
 
-   selectFloorEraserTool: function() {
-      App.stonehearthClient.eraseFloor();
-   },
-
    floorPatterns: [
       {
          category: 'Wooden Materials',
@@ -100,28 +96,43 @@ App.StonehearthBuildingDesignerTools = App.View.extend({
          self.$('#' + tab).show();
       });
 
-      // floor tool
-      this.$('.floorTool').click(function() {
-         // select the tool
-         self.$('.floorTool').removeClass('selected');
+      // floor materials
+      this.$('.floorMaterial').click(function() {
+         self.$('.floorMaterial').removeClass('selected');
          $(this).addClass('selected');
-         
-         // activate the tool
-         var brush = $(this).attr('brush');
+      })
+
+      // draw floor tool
+      this.$('#drawFloorTool').click(function() {
+         var brush = self.$('#floorToolTab .floorMaterial.selected').attr('brush');
          App.stonehearthClient.buildFloor(brush);
-      })
+      });
 
-      // wall tool
-      this.$('#fillWallToolTab .wallTool').click(function() {
+      this.$('#eraseFloorTool').click(function() {
+         App.stonehearthClient.eraseFloor();
+      });
+      
+
+      // wall tool tab
+      this.$('#wallToolTab .wallMaterial').click(function() {
          // select the tool
-         self.$('#fillWallToolTab .wallTool').removeClass('selected');
+         self.$('#wallToolTab .wallMaterial').removeClass('selected');
          $(this).addClass('selected');
-         
-
-         // activate the tool
-         var wallUri = $(this).attr('uri');
-         App.stonehearthClient.buildWall('stonehearth:wooden_column', wallUri);
       })
+
+      // draw wall tool
+      this.$('#drawWallTool').click(function() {
+         var wallUri = self.$('#wallToolTab .wallMaterial.selected').attr('uri');
+         App.stonehearthClient.buildWall('stonehearth:wooden_column', wallUri);
+      });
+
+      // grow walls tool
+      this.$('#growWallsTool').click(function() {
+         
+         var building = self.get('building');
+         var wallUri = self.$('#wallToolTab .wallMaterial.selected').attr('uri');
+         App.stonehearthClient.growWalls(building, 'stonehearth:wooden_column', wallUri);
+      });
 
       // grow walls wizard
       this.$('#showGrowWallsWizard').click(function() {
@@ -133,16 +144,16 @@ App.StonehearthBuildingDesignerTools = App.View.extend({
          self.$('#growWallsWizard').fadeOut();
       });
 
-      this.$('#growWallsWizard .wallTool').click(function() {
+      this.$('#growWallsWizard .wallMaterial').click(function() {
          // select the tool
-         self.$('#growWallsWizard .wallTool').removeClass('selected');
+         self.$('#growWallsWizard .wallMaterial').removeClass('selected');
          $(this).addClass('selected');         
       });
 
 
       this.$('#growWallsButton').click(function() {
          var building = self.get('building');
-         var wallUri = $('#growWallsWizard .wallTool.selected').attr('uri');
+         var wallUri = $('#growWallsWizard .wallMaterial.selected').attr('uri');
 
          App.stonehearthClient.growWalls(building, 'stonehearth:wooden_column', wallUri);
          self.$('#growWallsWizard').hide();
@@ -186,6 +197,10 @@ App.StonehearthBuildingDesignerTools = App.View.extend({
             radiant.call('stonehearth:set_building_teardown', building_entity.__self, true)
          }
       });
+
+      // select default materials
+      $(self.$('#floorToolTab .floorMaterial')[0]).addClass('selected');
+      $(self.$('#wallToolTab .wallMaterial')[0]).addClass('selected');
    },
 
    _updateSelection: function(building) {

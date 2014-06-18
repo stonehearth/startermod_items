@@ -3,16 +3,22 @@
       <div class="title">Tools</div>
 
       <div id="toolbar">
-         <div hotkey="f" class="tabButton floorTool" tab="floorToolTab"><div class="label">{{i18n stonehearth:building_designer_floor_tool}}</div></div>
-         <div hotkey="g" class="tabButton fillWallTool" tab="fillWallToolTab"><div class="label">{{i18n stonehearth:building_designer_fill_wall_tool}}</div></div>
-         <div hotkey="r" class="tabButton roofTool" tab="roofToolTab"><div class="label">{{i18n stonehearth:building_designer_roof_tool}}</div></div>
-         <div hotkey="n" class="tabButton doorTool" tab="doorToolTab"><div class="label">{{i18n stonehearth:building_designer_door_tool}}</div></div>
-         <div hotkey="x" class="tabButton editTool" tab="editToolTab"><div class="label">{{i18n stonehearth:building_designer_edit_tool}}</div></div>
+         <div hotkey="f" class="tabButton floorToolButton" tab="floorToolTab"><div class="label">{{i18n stonehearth:building_designer_floor_tool}}</div></div>
+         <div hotkey="g" class="tabButton wallToolButton" tab="wallToolTab"><div class="label">{{i18n stonehearth:building_designer_fill_wall_tool}}</div></div>
+         <div hotkey="r" class="tabButton roofToolButton" tab="roofToolTab"><div class="label">{{i18n stonehearth:building_designer_roof_tool}}</div></div>
+         <div hotkey="n" class="tabButton doorToolButton" tab="doorToolTab"><div class="label">{{i18n stonehearth:building_designer_door_tool}}</div></div>
+         <div hotkey="x" class="tabButton editToolButton" tab="editToolTab"><div class="label">{{i18n stonehearth:building_designer_edit_tool}}</div></div>
       </div>
 
       <div class="tabPage" id="floorToolTab" style="display: block">
          <h2>{{i18n stonehearth:building_designer_draw_floorplan}}</h2>
          {{i18n stonehearth:building_designer_draw_floorplan_help}}
+
+         <h2>Tools</h2>
+         <div class="section toolPalette">
+            <div id="drawFloorTool">draw floor</div>
+            <div id="eraseFloorTool">erase floor</div>
+         </div>
 
          <h2>{{i18n stonehearth:building_designer_material}}</h2>
          <div class="brushPalette section">
@@ -20,30 +26,30 @@
                <!--<h2>{{category}}</h2>-->
                <div>
                   {{#each items}}
-                     <img {{bind-attr brush="this.brush" src="this.portrait" title="this.name"}} class="floorTool" />
+                     <img {{bind-attr brush="this.brush" src="this.portrait" title="this.name"}} class="floorMaterial" />
                   {{/each}}
                </div>
                <div style="clear: both"></div>
             {{/each}}
-            <h2>Tools</h2>
-            <div>
-               <a name="erase" href="#" {{action selectFloorEraserTool this target="view"}} class="brushLink">
-                  <img src="floor_eraser.png" title="erase" />
-               </a>
-            </div>
          </div>
       </div>
 
-      <div class="tabPage" id="fillWallToolTab">
+      <div class="tabPage" id="wallToolTab">
          <h2>{{i18n stonehearth:building_designer_erect_walls}}</h2>
          {{i18n stonehearth:building_designer_erect_walls_help}}
+         
+         <h2>Tools</h2>
+         <div class="section toolPalette">
+            <div id="drawWallTool">draw wall</div>
+            <div id="growWallsTool">grow walls</div>
+         </div>
          <h2>{{i18n stonehearth:building_designer_material}}</h2>
          <div class="brushPalette section">
             {{#each view.wallPatterns}}
                <!-- <h2>{{category}}</h2> -->
                <div>
                   {{#each items}}
-                     <img {{bind-attr uri="this.uri" src="this.portrait" title="this.name"}} class="wallTool" />
+                     <img {{bind-attr uri="this.uri" src="this.portrait" title="this.name"}} class="wallMaterial" />
                   {{/each}}
                </div>
                <div style="clear: both"></div>
@@ -115,7 +121,7 @@
                <!-- <h2>{{category}}</h2> -->
                <div>
                   {{#each items}}
-                     <img {{bind-attr uri="this.uri" src="this.portrait" title="this.name"}} class="wallTool" />
+                     <img {{bind-attr uri="this.uri" src="this.portrait" title="this.name"}} class="wallMaterial" />
                   {{/each}}
                </div>
                <div style="clear: both"></div>
