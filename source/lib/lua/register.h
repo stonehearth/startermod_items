@@ -119,6 +119,38 @@ std::string WeakGameObjectToJson(std::weak_ptr<T> o)
    return StrongGameObjectToJson(o.lock());
 }
 
+template <class T>
+static std::shared_ptr<lua::TraceWrapper>
+StrongTraceGameObject(std::shared_ptr<T> o, const char* reason, bool sync)
+{
+   if (o)  {
+      auto trace = o->TraceObjectChanges(reason, sync ? dm::LUA_SYNC_TRACES : dm::LUA_ASYNC_TRACES);
+      return std::make_shared<lua::TraceWrapper>(trace);
+   }
+   throw std::invalid_argument("invalid reference in native :trace_changes");
+}
+
+template <class T>
+static std::shared_ptr<lua::TraceWrapper>
+StrongTraceGameObjectAsync(std::shared_ptr<T> o, const char* reason)
+{
+   return StrongTraceGameObject(o, reason, false);
+}
+
+template <class T>
+static std::shared_ptr<lua::TraceWrapper>
+WeakTraceGameObject(std::weak_ptr<T> o, const char* reason, bool sync)
+{
+   return StrongTraceGameObject(o.lock(), reason, sync);
+}
+
+template <class T>
+static std::shared_ptr<lua::TraceWrapper>
+WeakTraceGameObjectAsync(std::weak_ptr<T> o, const char* reason)
+{
+   return StrongTraceGameObject(o.lock(), reason, false);
+}
+
 // Used for putting value based C++ types into Lua (e.g. csg::Point3, csg::Cube3, etc.)
 template <typename T>
 luabind::class_<T> RegisterType_NoTypeInfo(const char* name)
@@ -201,6 +233,8 @@ luabind::class_<T, std::shared_ptr<T>> RegisterStrongGameObject(lua_State* L, co
       .def("get_type_id",    &GetTypeHashCode<T>)
       .def("get_type_name",  &GetTypeName<T>)
       .def("serialize",      &StrongSerializeToJson<T>)
+      .def("trace",          &StrongTraceGameObject<T>)
+      .def("trace",          &StrongTraceGameObjectAsync<T>)
       .scope [
          def("get_type_id",   &GetClassTypeId<T>),
          def("get_type_name", &GetStaticTypeName<T>)
@@ -228,6 +262,8 @@ luabind::class_<T, std::weak_ptr<T>> RegisterWeakGameObject(lua_State* L, const 
       .def("get_type_id",    &GetTypeHashCode<T>)
       .def("get_type_name",  &GetTypeName<T>)
       .def("serialize",      &WeakSerializeToJson<T>)
+      .def("trace",          &WeakTraceGameObject<T>)
+      .def("trace",          &WeakTraceGameObjectAsync<T>)
       .def("equals",         (bool (*)(std::weak_ptr<T>, std::weak_ptr<T>))&operator==)
       .scope [
          def("get_type_id",   &GetClassTypeId<T>),
@@ -258,6 +294,8 @@ luabind::class_<Derived, Base, std::weak_ptr<Derived>> RegisterWeakGameObjectDer
       .def("get_type_id",    &GetTypeHashCode<Derived>)
       .def("get_type_name",  &GetTypeName<Derived>)
       .def("serialize",      &WeakSerializeToJson<Derived>)
+      .def("trace",          &WeakTraceGameObject<Derived>)
+      .def("trace",          &WeakTraceGameObjectAsync<Derived>)
       .scope [
          def("get_type_id",   &GetClassTypeId<Derived>),
          def("get_type_name", &GetStaticTypeName<Derived>)

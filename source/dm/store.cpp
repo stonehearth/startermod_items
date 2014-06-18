@@ -97,6 +97,7 @@ void Store::SaveAllocedObjectsList(google::protobuf::io::CodedOutputStream& cos)
    for (const auto& entry : dynamicObjects_) {
       dm::ObjectPtr obj = entry.second.lock();
       if (obj) {
+         STORE_LOG(9) << "saving object " << entry.first << ".";
          auto msg = allocated_msg->add_objects();
          msg->set_object_id(entry.first);
          msg->set_object_type(obj->GetObjectType());
@@ -111,15 +112,22 @@ void Store::SaveAllocedObjectsList(google::protobuf::io::CodedOutputStream& cos)
 
 void Store::SaveObjects(google::protobuf::io::CodedOutputStream& cos)
 {
-   // sort so we save objects in the order they were created
-   Protocol::Object msg;
-   std::set<ObjectId> keys;
+   std::vector<ObjectId> keys;
    for (auto const& entry : objects_) {
-      keys.insert(entry.first);
+      keys.emplace_back(entry.first);
    };
+   SaveObjects(cos, keys);
+}
 
-   cos.WriteLittleEndian32(keys.size());
-   for (ObjectId id : keys) {
+void Store::SaveObjects(google::protobuf::io::CodedOutputStream& cos, std::vector<ObjectId>& objects)
+{
+   Protocol::Object msg;
+
+   // sort so we save objects in the order they were created
+   std::sort(objects.begin(), objects.end());
+
+   cos.WriteLittleEndian32(objects.size());
+   for (ObjectId id : objects) {
       Object* obj = objects_[id];
 
       msg.Clear();
@@ -132,12 +140,6 @@ void Store::SaveObjects(google::protobuf::io::CodedOutputStream& cos)
    }
 }
 
-void Store::SaveGame(google::protobuf::io::CodedOutputStream& cos)
-{
-   SaveStoreHeader(cos);
-   SaveAllocedObjectsList(cos);
-   SaveObjects(cos);
-}
 
 bool Store::Save(std::string const& filename, std::string &error)
 {
@@ -151,14 +153,37 @@ bool Store::Save(std::string const& filename, std::string &error)
 
    saving_ = true;
 
-   google::protobuf::io::FileOutputStream fos(fd);
-   google::protobuf::io::CodedOutputStream cos(&fos);
-   SaveGame(cos);
+   {
+      google::protobuf::io::FileOutputStream fos(fd);
+      {
+         google::protobuf::io::CodedOutputStream cos(&fos);
+
+         SaveStoreHeader(cos);
+         SaveAllocedObjectsList(cos);
+         SaveObjects(cos);
+      }
+   }
+
 
    saving_ = false;
    _close(fd);
    return true;
 }
+
+std::string Store::SaveObjects(std::vector<ObjectId>& objects, std::string const& error)
+{
+   std::ostringstream stream;
+   {
+      google::protobuf::io::OstreamOutputStream oos(&stream);
+      {
+         google::protobuf::io::CodedOutputStream cos(&oos);
+         SaveObjects(cos, objects);
+      }
+   }
+
+   return stream.str();
+}
+
 
 bool Store::LoadStoreHeader(google::protobuf::io::CodedInputStream& cis, std::string& error)
 {
@@ -168,7 +193,7 @@ bool Store::LoadStoreHeader(google::protobuf::io::CodedInputStream& cis, std::st
    if (!cis.ReadLittleEndian32(&size)) {
       return false;
    }
-   STORE_LOG(8) << "read alloced objects size:" << size;
+   STORE_LOG(8) << "read header size:" << size;
    limit = cis.PushLimit(size);
    if (!msg.ParseFromCodedStream(&cis)) {
       return false;
@@ -199,6 +224,7 @@ bool Store::LoadAllocedObjectsList(google::protobuf::io::CodedInputStream& cis, 
       ObjectId id = entry.object_id();
       ASSERT(!FetchStaticObject(id));
 
+      STORE_LOG(9) << "allocating object " << id << " on load.";
       ObjectPtr obj = AllocObject(entry.object_type(), id);
       objects[id] = obj;
    }
@@ -250,13 +276,6 @@ bool Store::LoadObjects(google::protobuf::io::CodedInputStream& cis, std::string
    return true;
 }
 
-bool Store::LoadGame(google::protobuf::io::CodedInputStream& cis, std::string& error, ObjectMap& objects)
-{
-   return LoadStoreHeader(cis, error) &&
-          LoadAllocedObjectsList(cis, error, objects) &&
-          LoadObjects(cis, error);
-}
-
 bool Store::Load(std::string const& filename, std::string &error, ObjectMap& objects)
 {
    // xxx: should probably just pass the save state into the ctor...
@@ -280,9 +299,22 @@ bool Store::Load(std::string const& filename, std::string &error, ObjectMap& obj
 
    google::protobuf::io::FileInputStream fis(fd);
    google::protobuf::io::CodedInputStream cis(&fis);
-   bool result = LoadGame(cis, error, objects);
+
+   bool result = LoadStoreHeader(cis, error) &&
+                 LoadAllocedObjectsList(cis, error, objects) &&
+                 LoadObjects(cis, error);
 
    _close(fd);
+   return result;
+}
+
+bool Store::LoadObjects(std::string const& input, ObjectMap& objects, std::string& error)
+{
+   google::protobuf::io::ArrayInputStream ais(input.data(), input.size());
+   google::protobuf::io::CodedInputStream cis(&ais);
+
+   bool result = LoadObjects(cis, error);
+
    return result;
 }
 

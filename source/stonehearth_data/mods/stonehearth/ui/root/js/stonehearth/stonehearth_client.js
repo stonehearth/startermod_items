@@ -184,6 +184,10 @@ var StonehearthClient;
          });
       },
 
+      undo: function () {
+         radiant.call_obj(this._build_service, 'undo_command')
+      },
+
       buildWall: function(wallBrush, o) {
          var self = this;
 
@@ -261,7 +265,7 @@ var StonehearthClient;
          var self = this;
          if (old_structure) {
             radiant.call('radiant:play_sound', 'stonehearth:sounds:place_structure' );
-            return radiant.call_obj(self._build_service, 'substitute_blueprint', old_structure, new_structure_uri)
+            return radiant.call_obj(self._build_service, 'substitute_blueprint_command', old_structure, new_structure_uri)
          }
       },
 
