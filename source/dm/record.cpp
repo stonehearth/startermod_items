@@ -41,17 +41,18 @@ void Record::ConstructObject()
  
 void Record::LoadValue(SerializationType r, Protocol::Value const& msg)
 {
-   ASSERT(GetFields().empty());
+   if (GetFields().empty()) {
+      int c = msg.ExtensionSize(Protocol::Record::record_fields);
 
-   int c = msg.ExtensionSize(Protocol::Record::record_fields);
-   for (int i = 0; i < c ; i++) {
-      const Protocol::Record::Entry& entry = msg.GetExtension(Protocol::Record::record_fields, i);
-      std::string const& name = entry.field();
-      fields_.emplace_back(std::make_pair(entry.field(), entry.value()));
+      for (int i = 0; i < c ; i++) {
+         const Protocol::Record::Entry& entry = msg.GetExtension(Protocol::Record::record_fields, i);
+         std::string const& name = entry.field();
+         fields_.emplace_back(std::make_pair(entry.field(), entry.value()));
+      }
+      registerOffset_ = 0;
+      InitializeRecordFields();
+      ASSERT(registerOffset_ == fields_.size());
    }
-   registerOffset_ = 0;
-   InitializeRecordFields();
-   ASSERT(registerOffset_ == fields_.size());
 }
 
 void Record::SaveValue(SerializationType r, Protocol::Value* msg) const

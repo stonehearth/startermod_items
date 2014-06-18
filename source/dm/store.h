@@ -2,7 +2,8 @@
 #define _RADIANT_DM_STORE_H
 
 #include <unordered_map>
-#include "dm.h "
+#include <google/protobuf/io/coded_stream.h>
+#include "dm.h"
 
 struct lua_State;
 
@@ -81,11 +82,10 @@ public:
    }
    Object* FetchStaticObject(ObjectId id) const;
 
-   typedef std::unordered_map<ObjectId, ObjectPtr> ObjectMap;
-   typedef std::unordered_map<ObjectId, ObjectRef> WeakObjectMap;
-
    bool Save(std::string const& filename, std::string& error);
    bool Load(std::string const& filename, std::string& error, ObjectMap& objects);
+   std::string SaveObjects(std::vector<ObjectId>& objects, std::string const& error);
+   bool LoadObjects(std::string const& input, ObjectMap& objects, std::string& error);
    void OnLoaded();
 
    GenerationId GetNextGenerationId();
@@ -99,6 +99,13 @@ private:
    typedef std::vector<StoreTraceRef> StoreTraces;
 
    typedef std::unordered_map<int, TracerPtr> TracerMap;
+   void SaveStoreHeader(google::protobuf::io::CodedOutputStream& cos);
+   void SaveAllocedObjectsList(google::protobuf::io::CodedOutputStream& cos);
+   void SaveObjects(google::protobuf::io::CodedOutputStream& cos);
+   void SaveObjects(google::protobuf::io::CodedOutputStream& cos, std::vector<ObjectId>& objects);
+   bool LoadStoreHeader(google::protobuf::io::CodedInputStream& cis, std::string& error);
+   bool LoadAllocedObjectsList(google::protobuf::io::CodedInputStream& cis, std::string& error, ObjectMap& objects);
+   bool LoadObjects(google::protobuf::io::CodedInputStream& cis, std::string& error);
 
 public:
    // New hotness.  These are the demuxes.  Fan out a single "hi, i'm a map and i've changed!"

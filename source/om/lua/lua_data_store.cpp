@@ -1,6 +1,7 @@
 #include "pch.h"
 #include "lib/json/macros.h"
 #include "lib/lua/register.h"
+#include "lib/lua/dm/trace_wrapper.h"
 #include "lib/lua/dm/boxed_trace_wrapper.h"
 #include "om/components/data_store.ridl.h"
 #include "lua_data_store.h"

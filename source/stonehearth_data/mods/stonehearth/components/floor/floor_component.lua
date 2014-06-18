@@ -28,6 +28,7 @@ function Floor:add_box_to_floor(box, brush_shape)
                            local shape = box:translated(-origin)
                            local floor = brush:paint_through_stencil(Region3(shape))
                            c:add_region(floor)
+                           c:optimize_by_merge()
                         end)         
 
    return self

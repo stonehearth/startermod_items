@@ -7,8 +7,8 @@ import ridl.std_types as std
 
 class Destination(Component):
 
-   region = dm.Boxed(Region3BoxedPtr(), trace='deep_region', trace_category='LUA_SYNC_TRACES')
-   reserved = dm.Boxed(Region3BoxedPtr(), trace='deep_region', trace_category='LUA_SYNC_TRACES')
+   region = dm.Boxed(Region3BoxedPtr(), trace='deep_region')
+   reserved = dm.Boxed(Region3BoxedPtr(), trace='deep_region')
    adjacent = dm.Boxed(Region3BoxedPtr(), set='declare', trace='deep_region')
    auto_update_adjacent = dm.Boxed(c.bool(), set='declare')
    allow_diagonal_adjacency = dm.Boxed(c.bool(), set='declare')

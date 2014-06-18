@@ -96,6 +96,11 @@ App.StonehearthBuildingDesignerTools = App.View.extend({
          self.$('#' + tab).show();
       });
 
+      // undo/redoo tool
+      this.$('#undoTool').click(function() {
+         App.stonehearthClient.undo();
+      });
+
       // floor materials
       this.$('.floorMaterial').click(function() {
          self.$('.floorMaterial').removeClass('selected');

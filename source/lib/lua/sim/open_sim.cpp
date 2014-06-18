@@ -13,6 +13,7 @@
 #include "om/stonehearth.h"
 #include "om/components/data_store.ridl.h"
 #include "om/components/mob.ridl.h"
+#include "dm/store_save_state.h"
 #include "lib/json/core_json.h"
 
 using namespace ::radiant;
@@ -116,6 +117,29 @@ std::shared_ptr<LuaJob> Sim_CreateJob(lua_State *L, std::string const& name, obj
    std::shared_ptr<LuaJob> job = std::make_shared<LuaJob>(sim, name, object(lua::ScriptHost::GetCallbackThread(L), cb));
    sim.AddJob(job);
    return job;
+}
+
+std::shared_ptr<dm::StoreSaveState> Sim_CreateSaveState(lua_State *L)
+{
+   return std::make_shared<dm::StoreSaveState>();
+}
+
+std::shared_ptr<dm::StoreSaveState> Sim_StoreSaveState_Save(lua_State *L, std::shared_ptr<dm::StoreSaveState> s)
+{
+   Simulation &sim = GetSim(L);
+   if (s) {
+      s->Save(sim.GetStore());
+   }
+   return s;   
+}
+
+dm::ObjectMap Sim_StoreSaveState_Load(lua_State *L, std::shared_ptr<dm::StoreSaveState> s)
+{
+   Simulation &sim = GetSim(L);
+   if (s) {
+      return s->Load(sim.GetStore());
+   }
+   return dm::ObjectMap();
 }
 
 AStarPathFinderPtr Sim_CreateAStarPathFinder(lua_State *L, om::EntityRef s, std::string const& name)
@@ -228,6 +252,8 @@ DEFINE_INVALID_JSON_CONVERSION(LuaJob);
 DEFINE_INVALID_JSON_CONVERSION(Simulation);
 DEFINE_INVALID_LUA_CONVERSION(Simulation)
 
+DEFINE_INVALID_JSON_CONVERSION(dm::StoreSaveState);
+
 void lua::sim::open(lua_State* L, Simulation* sim)
 {
    module(L) [
@@ -235,19 +261,20 @@ void lua::sim::open(lua_State* L, Simulation* sim)
          namespace_("sim") [
             lua::RegisterType_NoTypeInfo<Simulation>("Simulation")
             ,
-            def("create_empty_entity",      &Sim_CreateEmptyEntity),
-            def("create_entity",            &Sim_CreateEntity),
-            def("get_object",               &Sim_GetObject),
-            def("destroy_entity",           &Sim_DestroyEntity),
-            def("alloc_region",             &Sim_AllocObject<om::Region3Boxed>),
-            def("alloc_region2",            &Sim_AllocObject<om::Region2Boxed>),
-            def("create_datastore",         &Sim_AllocDataStore),
-            def("create_astar_path_finder", &Sim_CreateAStarPathFinder),
-            def("create_bfs_path_finder",   &Sim_CreateBfsPathFinder),
-            def("create_direct_path_finder",&Sim_CreateDirectPathFinder),
-            def("create_follow_path",       &Sim_CreateFollowPath),
-            def("create_bump_location",     &Sim_CreateBumpLocation),
-            def("create_job",               &Sim_CreateJob)
+            def("create_empty_entity",       &Sim_CreateEmptyEntity),
+            def("create_entity",             &Sim_CreateEntity),
+            def("get_object",                &Sim_GetObject),
+            def("destroy_entity",            &Sim_DestroyEntity),
+            def("alloc_region",              &Sim_AllocObject<om::Region3Boxed>),
+            def("alloc_region2",             &Sim_AllocObject<om::Region2Boxed>),
+            def("create_datastore",          &Sim_AllocDataStore),
+            def("create_astar_path_finder",  &Sim_CreateAStarPathFinder),
+            def("create_bfs_path_finder",    &Sim_CreateBfsPathFinder),
+            def("create_direct_path_finder", &Sim_CreateDirectPathFinder),
+            def("create_follow_path",        &Sim_CreateFollowPath),
+            def("create_bump_location",      &Sim_CreateBumpLocation),
+            def("create_job",                &Sim_CreateJob),
+            def("create_save_state",         &Sim_CreateSaveState)
             ,            
             lua::RegisterTypePtr_NoTypeInfo<Path>("Path")
                .def("is_empty",           &Path::IsEmpty)
@@ -294,6 +321,11 @@ void lua::sim::open(lua_State* L, Simulation* sim)
             lua::RegisterTypePtr_NoTypeInfo<FollowPath>("FollowPath")
                .def("get_name", &FollowPath::GetName)
                .def("stop",     &FollowPath::Stop)
+            ,
+            lua::RegisterTypePtr_NoTypeInfo<dm::StoreSaveState>("FollowPath")
+               .def("add_object",   &dm::StoreSaveState::AddObject)
+               .def("save",         &Sim_StoreSaveState_Save)
+               .def("load",         &Sim_StoreSaveState_Load, return_stl_iterator)
             ,
             lua::RegisterTypePtr_NoTypeInfo<BumpLocation>("BumpLocation")
             ,

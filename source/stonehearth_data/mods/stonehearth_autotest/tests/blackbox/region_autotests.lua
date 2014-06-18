@@ -7,7 +7,7 @@ function region_tests.trace_fire_count(autotest)
 
 	local count, rgn
 
-	local trace = dst:trace_region('testing tracing')
+	local trace = dst:trace_region('testing tracing', true)
 								:on_changed(function()
 										count = count + 1
 									end)
