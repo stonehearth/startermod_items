@@ -269,6 +269,7 @@ class Renderer
       bool              resize_pending_;
       bool              inFullscreen_;
       int               nextWidth_, nextHeight_;
+      int               _maxRenderEntityLoadTime;
       
       std::string       resourcePath_;
       std::string       lastGlfwError_;
