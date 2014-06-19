@@ -2,6 +2,8 @@ local voxel_brush_util = require 'services.server.build.voxel_brush_util'
 local ConstructionRenderTracker = require 'services.client.renderer.construction_render_tracker'
 local Point3 = _radiant.csg.Point3
 local Point3f = _radiant.csg.Point3f
+local TraceCategories = _radiant.dm.TraceCategories
+
 local FabricatorRenderer = class()
 
 local MODEL_OFFSET = Point3f(0.5, 0, 0.5)
@@ -46,7 +48,7 @@ function FabricatorRenderer:initialize(render_entity, fabricator)
       assert(self._destination)
       if self._destination then
          local region = self._destination:get_region()
-         self._dst_trace = self._destination:trace_region('drawing fabricator', true)
+         self._dst_trace = self._destination:trace_region('drawing fabricator', TraceCategories.SYNC_TRACE)
                                                    :on_changed(function ()
                                                       self._render_tracker:set_region(region)
                                                    end)
@@ -58,7 +60,7 @@ function FabricatorRenderer:initialize(render_entity, fabricator)
       -- around and the mouse is temporarily over the hole)
       self._editing_region = fabricator:get_editing_region()
       if self._editing_region then
-         self._editing_region_trace = self._editing_region:trace('render', false)
+         self._editing_region_trace = self._editing_region:trace('render', TraceCategories.SYNC_TRACE)
             :on_changed(function()
                   self:_recreate_editing_region_node()
                end)

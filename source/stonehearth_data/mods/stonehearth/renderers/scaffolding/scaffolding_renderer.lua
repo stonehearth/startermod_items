@@ -3,6 +3,7 @@ local ConstructionRenderTracker = require 'services.client.renderer.construction
 local Point3f = _radiant.csg.Point3f
 local Point3 = _radiant.csg.Point3
 local Region3 = _radiant.csg.Region3
+local TraceCategories = _radiant.dm.TraceCategories
 
 local ScaffoldingRenderer = class()
 local log = radiant.log.create_logger('scaffolding.renderer')
@@ -55,7 +56,7 @@ function ScaffoldingRenderer:__init(render_entity, ed)
 
       -- push the collision shape of the scaffolding into the render tracker
       -- whenever it changes
-      self._promise = self._collsion_shape:trace_region('drawing scaffolding', true)
+      self._promise = self._collsion_shape:trace_region('drawing scaffolding', TraceCategories.SYNC_TRACE)
                                              :on_changed(function ()
                                                    self._render_tracker:set_region(self._collsion_shape:get_region())
                                                 end)

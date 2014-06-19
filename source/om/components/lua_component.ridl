@@ -41,6 +41,7 @@ for name, obj in env.properties(C, [dm.Boxed, dm.Set, dm.Array, dm.Map]):
 #include "lib/lua/dm/set_iterator.h"
 #include "lib/lua/dm/set_trace_wrapper.h"
 #include "lib/lua/dm/trace_wrapper.h"
+#include "dm/trace_categories.h"
 % for filename in trace_includes:
 #include "${filename}"
 % endfor
@@ -270,11 +271,11 @@ ${method.result.name} ${class_upper}_${method_name | env.upper}(${formal_params}
    % if obj.trace:
       % if obj.trace == 'deep_region':
 static LuaDeepRegionGuardPtr
-${class_upper}_Trace${name | env.upper}(${class_formal_parameter}, const char* reason, bool sync)
+${class_upper}_Trace${name | env.upper}(${class_formal_parameter}, const char* reason, dm::TraceCategories category)
 {
    ${class_to_pointer} 
    if (instance)  {
-      DeepRegionGuardPtr trace = instance->Trace${name | env.upper}(reason, sync ? dm::LUA_SYNC_TRACES : dm::LUA_ASYNC_TRACES);
+      DeepRegionGuardPtr trace = instance->Trace${name | env.upper}(reason, category);
       return std::make_shared<LuaDeepRegionGuard>(trace);
    }
    throw std::invalid_argument("invalid reference in native ${class_lower}::trace_${name}");
@@ -283,15 +284,15 @@ static LuaDeepRegionGuardPtr
 ${class_upper}_AsyncTrace${name | env.upper}(${class_formal_parameter}, const char* reason)
 {
    ${class_to_pointer}
-   return ${class_upper}_Trace${name | env.upper}(instance, reason, false);
+   return ${class_upper}_Trace${name | env.upper}(instance, reason, dm::LUA_ASYNC_TRACES);
 }
       % else:
 static std::shared_ptr<lua::${obj.short_name | env.upper}TraceWrapper<${obj.trace_name}>>
-${class_upper}_Trace${name | env.upper}(${class_formal_parameter}, const char* reason, bool sync)
+${class_upper}_Trace${name | env.upper}(${class_formal_parameter}, const char* reason, dm::TraceCategories category)
 {
    ${class_to_pointer}
    if (instance)  {
-      auto trace = instance->Trace${name | env.upper}(reason, sync ? dm::LUA_SYNC_TRACES : dm::LUA_ASYNC_TRACES);
+      auto trace = instance->Trace${name | env.upper}(reason, category);
       return std::make_shared<lua::${obj.short_name | env.upper}TraceWrapper<${obj.trace_name}>>(trace);
    }
    throw std::invalid_argument("invalid reference in native ${class_lower}::trace_${name}");
@@ -300,7 +301,7 @@ static std::shared_ptr<lua::${obj.short_name | env.upper}TraceWrapper<${obj.trac
 ${class_upper}_AsyncTrace${name | env.upper}(${class_formal_parameter}, const char* reason)
 {
    ${class_to_pointer}
-   return ${class_upper}_Trace${name | env.upper}(instance, reason, false);
+   return ${class_upper}_Trace${name | env.upper}(instance, reason, dm::LUA_ASYNC_TRACES);
 }
       % endif
    % endif

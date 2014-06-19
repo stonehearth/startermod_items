@@ -14,15 +14,14 @@ class StoreSaveState
 public:
    StoreSaveState();
 
-   void AddObject(ObjectId);
-   void Save(Store& store);   
-   ObjectMap Load(Store& store);
+   void Save(Store& store, ObjectId id);   
+   void Load(Store& store);
 
 private:
    friend std::ostream& operator<<(std::ostream& os, StoreSaveState const& in);
    NO_COPY_CONSTRUCTOR(StoreSaveState);
-   
-   std::vector<ObjectId>   _toSave;
+
+   ObjectId                _id;
    std::string             _saveState;
 };
 

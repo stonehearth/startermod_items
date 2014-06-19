@@ -47,7 +47,7 @@ T WorldToLocal(const T& coord, const om::Entity& entity)
    return coord - origin;
 }
 
-OctTree::OctTree(int trace_category) :
+OctTree::OctTree(dm::TraceCategories trace_category) :
    trace_category_(trace_category),
    navgrid_(trace_category),
    enable_sensor_traces_(false)

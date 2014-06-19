@@ -47,6 +47,11 @@ csg::Region3 MovementHelper::GetRegionAdjacentToEntity(Simulation& sim, om::Enti
       return region;
    }
 
+   if (!mob->GetBone().empty()) {
+      MH_LOG(5) << *dstEntity <<  " is attached to \"" << mob->GetBone() << "\" bone.  returning empty region";
+      return region;
+   }
+
    csg::Point3 const origin = mob->GetWorldGridLocation();
 
    om::Region3BoxedPtr adjacent;

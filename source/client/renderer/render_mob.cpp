@@ -5,13 +5,14 @@
 #include "lib/perfmon/perfmon.h"
 #include "physics/physics_util.h"
 #include "renderer.h"
+#include "render_node.h"
 
 using namespace ::radiant;
 using namespace ::radiant::client;
 
 #define M_LOG(level)      LOG(renderer.mob, level)
 
-RenderMob::RenderMob(const RenderEntity& entity, om::MobPtr mob) :
+RenderMob::RenderMob(RenderEntity& entity, om::MobPtr mob) :
    entity_(entity),
    mob_(mob)
 {
@@ -26,6 +27,18 @@ RenderMob::RenderMob(const RenderEntity& entity, om::MobPtr mob) :
          RemoveAxes();
       }
    });
+
+   parent_trace_ = mob->TraceParent("render", dm::RENDER_TRACES)
+                                 ->OnChanged([this](om::EntityRef parent) {
+                                    UpdateParent();
+                                 })
+                                 ->PushObjectState();
+
+   bone_trace_ = mob->TraceBone("render", dm::RENDER_TRACES)
+                                 ->OnChanged([this](std::string const&) {
+                                    UpdateParent();
+                                 })
+                                 ->PushObjectState();
 
    interp_trace_ = mob->TraceInterpolateMovement("render", dm::RENDER_TRACES)
                                  ->OnChanged([this](bool interpolate) {
@@ -112,14 +125,14 @@ void RenderMob::UpdateTransform(csg::Transform const& transform)
 {
    auto mob = mob_.lock();
    if (mob) {
-      om::EntityPtr current = parent_.lock();
+      om::EntityPtr current = lastParent_.lock();
       om::EntityPtr parent = mob->GetParent().lock();
 
       if (mob->GetInterpolateMovement()) {
          if (current != parent) {
             M_LOG(7) << "mob: turning off interpolation for " << entity_id_ << " for one frame, since parent changed";
             _initial = _final = _current = mob->GetTransform();
-            parent_ = parent;
+            lastParent_ = parent;
          } else {
             // Otherwise, update _initial and _final such that we smoothly interpolate between
             // the current mob's position and their location on the server.
@@ -151,5 +164,34 @@ void RenderMob::UpdateInterpolate(bool interpolate)
       });
    } else {
       renderer_guard_.Clear();
+   }
+}
+
+void RenderMob::UpdateParent()
+{
+   om::MobPtr mob = mob_.lock();
+   if (mob) {
+      H3DNode unparented = RenderNode::GetUnparentedNode();
+      om::EntityPtr parent = mob->GetParent().lock();
+
+      H3DNode parentNode = unparented;
+      if (parent) {
+         // Get the render entity for our parent.  At startup, we might actually get loaded
+         // before them, so create it under the unparented node if necessary.
+         RenderEntityPtr re = Renderer::GetInstance().GetRenderEntity(parent);
+         if (!re) {
+            re = Renderer::GetInstance().CreateRenderEntity(unparented, parent);
+         }
+
+         // If we're attached to a bone on the parent, use the appropriate horde node from
+         // its skeleton.  Otherwise, attach to the origin.
+         std::string const& bone = mob->GetBone();
+         if (bone.empty()) {
+            parentNode = re->GetOriginNode();
+         } else {
+            parentNode = re->GetSkeleton().GetSceneNode(bone);
+         }
+      }
+      entity_.SetParent(parentNode);
    }
 }

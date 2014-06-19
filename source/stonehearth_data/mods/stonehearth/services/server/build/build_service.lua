@@ -90,9 +90,9 @@ end
 --    @param box - the area of the new floor segment
 
 function BuildService:add_floor_command(session, response, floor_uri, box, brush_shape)
-   self._undo:begin_transaction()   
+   self._undo:begin_transaction('add_floor')
    local floor = self:_add_floor(session, floor_uri, ToCube3(box), brush_shape)
-   self._undo:end_transaction()
+   self._undo:end_transaction('add_floor')
 
    -- if we managed to create some floor, return the fabricator to the client as the
    -- new selected entity.  otherwise, return an error.
@@ -107,9 +107,9 @@ function BuildService:add_floor_command(session, response, floor_uri, box, brush
 end
 
 function BuildService:add_wall_command(session, response, columns_uri, walls_uri, p0, p1, normal)
-   self._undo:begin_transaction()   
+   self._undo:begin_transaction('add_wall')
    local wall = self:_add_wall(session, columns_uri, walls_uri, ToPoint3(p0), ToPoint3(p1), ToPoint3(normal))
-   self._undo:end_transaction()   
+   self._undo:end_transaction('add_wall')
 
    if wall then
       local wall_fab = wall:get_component('stonehearth:construction_progress'):get_fabricator_entity()      
@@ -402,7 +402,7 @@ function BuildService:_merge_building_into(merge_into, building)
       container:add_child(child)
       mob:set_location_grid_aligned(child_offset + building_offset)      
    end
-   radiant.entities.destroy_entity(building)
+   self:unlink_entity(building)
 end
 
 function BuildService:_add_wall(session, columns_uri, walls_uri, p0, p1, normal)
@@ -437,9 +437,9 @@ end
 --    @param walls_uri - the type of walls to generate
 --
 function BuildService:grow_walls_command(session, response, building, columns_uri, walls_uri)
-   self._undo:begin_transaction()   
+   self._undo:begin_transaction('grow_walls')
    self:_grow_walls(building, columns_uri, walls_uri)
-   self._undo:end_transaction()   
+   self._undo:end_transaction('grow_walls')
    response:resolve(true)
 end
 
@@ -491,9 +491,9 @@ end
 --    @param roof_uri - what kind of roof to make
 
 function BuildService:grow_roof_command(session, response, building, roof_uri)
-   self._undo:begin_transaction()   
+   self._undo:begin_transaction('grow_roof')
    local roof = self:_grow_roof(building, roof_uri)
-   self._undo:end_transaction()
+   self._undo:end_transaction('grow_roof')
 
    response:resolve({
       new_selection = roof
@@ -645,9 +645,9 @@ end
 --    @param location - where to put the portal, in wall-local coordinates
 --
 function BuildService:add_portal_command(session, response, wall_entity, portal_uri, location)
-   self._undo:begin_transaction()   
+   self._undo:begin_transaction('add_portal')
    local portal = self:_add_portal(wall_entity, portal_uri, location)
-   self._undo:end_transaction()
+   self._undo:end_transaction('add_portal')
 
    response:resolve({
       new_selection = portal
@@ -706,9 +706,9 @@ end
 --    @param new_uri - the uri of the new guy to take `old`'s place
 --
 function BuildService:substitute_blueprint_command(session, response, old, new_uri)
-   self._undo:begin_transaction()   
+   self._undo:begin_transaction('subsitute_blueprint')
    local replaced = self:_substitute_blueprint(old, new_uri)
-   self._undo:end_transaction()
+   self._undo:end_transaction('subsitute_blueprint')
    response:resolve({
       new_selection = replaced
    })
@@ -746,9 +746,14 @@ function BuildService:_substitute_blueprint(old, new_uri)
          end
       end)
 
-   -- nuke the old entity      
-   radiant.entities.destroy_entity(old)
+   -- nuke the old entity
+   self:unlink_entity(old)
+
    return replaced
+end
+
+function BuildService:unlink_entity(entity)
+   self._undo:unlink_entity(entity)
 end
 
 return BuildService

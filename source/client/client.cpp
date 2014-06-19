@@ -992,7 +992,7 @@ void Client::RemoveObjects(const proto::RemoveObjects& update)
    for (int id : update.objects()) {
       dm::ObjectPtr obj = store_->FetchObject<dm::Object>(id);
       if (obj && obj->GetObjectType() == om::EntityObjectType) {
-         auto render_entity = Renderer::GetInstance().GetRenderObject(std::static_pointer_cast<om::Entity>(obj));
+         auto render_entity = Renderer::GetInstance().GetRenderEntity(std::static_pointer_cast<om::Entity>(obj));
          if (render_entity) {
             render_entity->Destroy();
          }
@@ -1145,7 +1145,7 @@ void Client::SelectEntity(om::EntityPtr entity)
       }
 
       if (selectedEntity) {
-         renderEntity = Renderer::GetInstance().GetRenderObject(selectedEntity);
+         renderEntity = Renderer::GetInstance().GetRenderEntity(selectedEntity);
          if (renderEntity) {
             renderEntity->SetSelected(false);
          }
@@ -1159,7 +1159,7 @@ void Client::SelectEntity(om::EntityPtr entity)
                                  SelectEntity(nullptr);
                               });
 
-         renderEntity = Renderer::GetInstance().GetRenderObject(entity);
+         renderEntity = Renderer::GetInstance().GetRenderEntity(entity);
          if (renderEntity) {
             renderEntity->SetSelected(true);
          }
@@ -1221,7 +1221,7 @@ void Client::HilightEntity(om::EntityPtr hilight)
    om::EntityPtr hilightedEntity = hilightedEntity_.lock();
 
    if (hilightedEntity && hilightedEntity != selectedEntity) {
-      auto renderObject = renderer.GetRenderObject(hilightedEntity);
+      auto renderObject = renderer.GetRenderEntity(hilightedEntity);
       if (renderObject) {
          renderObject->SetSelected(false);
       }
@@ -1229,7 +1229,7 @@ void Client::HilightEntity(om::EntityPtr hilight)
    hilightedEntity_.reset();
 
    if (hilight && hilight != rootEntity_.lock()) {
-      RenderEntityPtr renderObject = renderer.GetRenderObject(hilight);
+      RenderEntityPtr renderObject = renderer.GetRenderEntity(hilight);
       if (renderObject) {
          renderObject->SetSelected(true);
       }
@@ -1410,7 +1410,7 @@ void Client::DestroyAuthoringEntity(dm::ObjectId id)
       CLIENT_LOG(7) << "destroying authoring entity " << *entity;
       entity->Destroy();
       if (entity) {
-         auto render_entity = Renderer::GetInstance().GetRenderObject(entity);
+         auto render_entity = Renderer::GetInstance().GetRenderEntity(entity);
          if (render_entity) {
             render_entity->Destroy();
          }

@@ -185,7 +185,7 @@ std::weak_ptr<RenderEntity> Client_GetRenderEntity(luabind::object arg)
    }
 
    if (entity) {
-      result = Renderer::GetInstance().GetRenderObject(entity);
+      result = Renderer::GetInstance().GetRenderEntity(entity);
    }
    return result;
 }
@@ -194,7 +194,6 @@ std::weak_ptr<RenderEntity> Client_CreateRenderEntity(H3DNode parent, luabind::o
 {
    om::EntityPtr entity;
    std::weak_ptr<RenderEntity> result;
-
    if (luabind::type(arg) == LUA_TSTRING) {
       // arg is a path to an object (e.g. /objects/3).  If this leads to a Entity, we're all good
       std::string path = luabind::object_cast<std::string>(arg);
@@ -209,8 +208,9 @@ std::weak_ptr<RenderEntity> Client_CreateRenderEntity(H3DNode parent, luabind::o
       } catch (luabind::cast_failed&) {
       }
    }
+
    if (entity) {
-      result = Renderer::GetInstance().CreateRenderObject(parent, entity);
+      result = Renderer::GetInstance().CreateRenderEntity(parent, entity);
    }
    return result;
 }

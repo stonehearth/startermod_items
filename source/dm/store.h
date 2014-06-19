@@ -84,8 +84,9 @@ public:
 
    bool Save(std::string const& filename, std::string& error);
    bool Load(std::string const& filename, std::string& error, ObjectMap& objects);
-   std::string SaveObjects(std::vector<ObjectId>& objects, std::string const& error);
-   bool LoadObjects(std::string const& input, ObjectMap& objects, std::string& error);
+
+   std::string SaveObject(dm::ObjectId, std::string& error);
+   bool LoadObject(std::string const& input, std::string& error);
    void OnLoaded();
 
    GenerationId GetNextGenerationId();

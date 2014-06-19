@@ -12,7 +12,7 @@ BEGIN_RADIANT_PHYSICS_NAMESPACE
 
 class OctTree {
    public:
-      OctTree(int trace_category);
+      OctTree(dm::TraceCategories trace_category);
 
       void SetRootEntity(om::EntityPtr);
       void Cleanup();
@@ -66,7 +66,7 @@ class OctTree {
       core::Guard                               guards_;
       mutable NavGrid                           navgrid_;
       bool                                      enable_sensor_traces_;
-      int                                       trace_category_;
+      dm::TraceCategories                       trace_category_;
 };
 
 END_RADIANT_PHYSICS_NAMESPACE

@@ -801,7 +801,7 @@ Renderer::~Renderer()
 
 void Renderer::SetRootEntity(om::EntityPtr rootObject)
 {
-   rootRenderObject_ = CreateRenderObject(H3DRootNode, rootObject);
+   rootRenderObject_ = CreateRenderEntity(H3DRootNode, rootObject);
 }
 
 void Renderer::Initialize()
@@ -922,6 +922,15 @@ bool Renderer::SetExploredRegion(std::string const& explored_region_uri)
 
 void Renderer::RenderOneFrame(int now, float alpha)
 {
+   // Initialize all the new render entities we created this frame.
+   while (!_newRenderEntities.empty()) {
+      std::shared_ptr<RenderEntity> re = _newRenderEntities.back().lock();
+      _newRenderEntities.pop_back();
+      if (re) {
+         re->FinishConstruction();
+      }
+   }
+
    if (iconified_) {
       return;
    }
@@ -1211,7 +1220,34 @@ void* Renderer::GetLastUiBuffer()
    return uiBuffer_.getLastUiBuffer();
 }
 
-std::shared_ptr<RenderEntity> Renderer::CreateRenderObject(H3DNode parent, om::EntityPtr entity)
+
+std::shared_ptr<RenderEntity> Renderer::CreateRenderEntity(H3DNode parent, om::EntityPtr entity)
+{
+   std::shared_ptr<RenderEntity> result = GetRenderEntity(entity);
+   if (result) {
+      result->SetParent(parent);
+      return result;
+   }
+
+   dm::ObjectId id = entity->GetObjectId();
+   int sid = entity->GetStoreId();
+
+   R_LOG(5) << "creating render object " << sid << ", " << id;
+   std::shared_ptr<RenderEntity> re = std::make_shared<RenderEntity>(parent, entity);
+   _newRenderEntities.emplace_back(re);
+
+   RenderMapEntry entry;
+   entry.render_entity = re;
+   entry.lifetime_trace = entity->TraceChanges("render dtor", dm::RENDER_TRACES)
+                                    ->OnDestroyed([this, sid, id]() { 
+                                          R_LOG(5) << "destroying render object in trace callback " << sid << ", " << id;
+                                          entities_[sid].erase(id);
+                                       });
+   entities_[sid][id] = entry;
+   return entry.render_entity;
+}
+
+std::shared_ptr<RenderEntity> Renderer::GetRenderEntity(om::EntityPtr entity)
 {
    dm::ObjectId id = entity->GetObjectId();
    int sid = entity->GetStoreId();
@@ -1221,48 +1257,9 @@ std::shared_ptr<RenderEntity> Renderer::CreateRenderObject(H3DNode parent, om::E
 
    if (i != entities.end()) {
       RenderMapEntry const& entry = i->second;
-      entry.render_entity->SetParent(parent);
       return entry.render_entity;
    }
-
-   R_LOG(5) << "creating render object " << sid << ", " << id;
-   RenderMapEntry entry;
-   entry.render_entity = std::make_shared<RenderEntity>(parent, entity);
-   entry.render_entity->FinishConstruction();
-   entry.lifetime_trace = entity->TraceChanges("render dtor", dm::RENDER_TRACES)
-                                    ->OnDestroyed([this, sid, id]() { 
-                                          R_LOG(5) << "destroying render object in trace callback " << sid << ", " << id;
-                                          entities_[sid].erase(id);
-                                       });
-   entities[id] = entry;
-   return entry.render_entity;
-}
-
-std::shared_ptr<RenderEntity> Renderer::GetRenderObject(om::EntityPtr entity)
-{
-   std::shared_ptr<RenderEntity> result;
-   if (entity) {
-      result = GetRenderObject(entity->GetStoreId(), entity->GetObjectId());
-   }
-   return result;
-}
-
-std::shared_ptr<RenderEntity> Renderer::GetRenderObject(int sid, dm::ObjectId id)
-{
-   auto i = entities_[sid].find(id);
-   if (i != entities_[sid].end()) {
-      return i->second.render_entity;
-   }
    return nullptr;
-}
-
-void Renderer::RemoveRenderObject(int sid, dm::ObjectId id)
-{
-   auto i = entities_[sid].find(id);
-   if (i != entities_[sid].end()) {
-      R_LOG(5) << "destroying render object (sid:" << sid << " id:" << id << ")";
-      entities_[sid].erase(i);
-   }
 }
 
 void Renderer::UpdateCamera()

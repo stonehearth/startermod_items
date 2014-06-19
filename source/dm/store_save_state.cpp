@@ -8,31 +8,25 @@ using namespace ::radiant::dm;
 
 std::ostream& dm::operator<<(std::ostream& os, StoreSaveState const& s)
 {
-   return (os << "[SaveState " << s._saveState.size() << " bytes]");
+   return (os << "[SaveState id:" << s._id << " size:" << s._saveState.size() << " bytes]");
 }
 
-StoreSaveState::StoreSaveState()
+StoreSaveState::StoreSaveState() :
+   _id(0)
 {
 }
 
-void StoreSaveState::AddObject(ObjectId id)
-{
-   stdutil::UniqueInsert(_toSave, id);
-}
-
-void StoreSaveState::Save(Store& store)
+void StoreSaveState::Save(Store& store, ObjectId id)
 {
    std::string error;
-   _saveState = store.SaveObjects(_toSave, error);
+   _id = id;
+   _saveState = store.SaveObject(id, error);
 }
 
-ObjectMap StoreSaveState::Load(Store& store)
+void StoreSaveState::Load(Store& store)
 {
    std::string error;
-   ObjectMap objects;
-
-   if (!store.LoadObjects(_saveState, objects, error)) {
+   if (!store.LoadObject(_saveState, error)) {
       throw std::logic_error(BUILD_STRING("error while loading: " << error));
    }
-   return objects;
 }

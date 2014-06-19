@@ -92,7 +92,6 @@ function client_entities.remove_child(parent, child)
    local component = parent:get_component('entity_container')
    if component then
       component:remove_child(child:get_id())
-      client_entities.move_to(child, Point3(0, 0, 0))
    end
 end
 
