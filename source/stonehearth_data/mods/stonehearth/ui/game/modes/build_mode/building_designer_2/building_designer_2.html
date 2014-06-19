@@ -6,7 +6,7 @@
          <div hotkey="f" class="tabButton floorToolButton" tab="floorToolTab"><div class="label">{{i18n stonehearth:building_designer_floor_tool}}</div></div>
          <div hotkey="g" class="tabButton wallToolButton" tab="wallToolTab"><div class="label">{{i18n stonehearth:building_designer_fill_wall_tool}}</div></div>
          <div hotkey="r" class="tabButton roofToolButton" tab="roofToolTab"><div class="label">{{i18n stonehearth:building_designer_roof_tool}}</div></div>
-         <div hotkey="n" class="tabButton doorToolButton" tab="doorToolTab"><div class="label">{{i18n stonehearth:building_designer_door_tool}}</div></div>
+         <div hotkey="n" class="tabButton doodadToolButton" tab="doodadToolTab"><div class="label">{{i18n stonehearth:building_designer_door_tool}}</div></div>
          <div hotkey="x" class="tabButton editToolButton" tab="editToolTab"><div class="label">{{i18n stonehearth:building_designer_edit_tool}}</div></div>
          <div class="tabButton undo"><div class="label">{{i18n stonehearth:building_designer_undo}}</div></div>
       </div>
@@ -17,8 +17,8 @@
 
          <h2>Tools</h2>
          <div class="section toolPalette">
-            <div id="drawFloorTool">draw floor</div>
-            <div id="eraseFloorTool">erase floor</div>
+         <div id="drawFloorTool" class="toolButton"></div>
+            <div id="eraseFloorTool" class="toolButton"></div>
          </div>
 
          <h2>{{i18n stonehearth:building_designer_material}}</h2>
@@ -41,8 +41,8 @@
          
          <h2>Tools</h2>
          <div class="section toolPalette">
-            <div id="drawWallTool">draw wall</div>
-            <div id="growWallsTool">grow walls</div>
+            <div id="drawWallTool" class="toolButton"></div>
+            <div id="growWallsTool" class="toolButton"></div>
          </div>
          <h2>{{i18n stonehearth:building_designer_material}}</h2>
          <div class="brushPalette section">
@@ -64,7 +64,7 @@
          {{i18n stonehearth:building_designer_raise_roof_help}}
          <h2>Tools</h2>
          <div class="section toolPalette">
-            <div id="growRoofTool">grow roof</div>
+            <div id="growRoofTool" class="toolButton"></div>
          </div>
          <h2>{{i18n stonehearth:building_designer_material}}</h2>
          <div class="brushPalette section">
@@ -83,19 +83,27 @@
          </div>
       </div>
 
-      <div class="tabPage" id="doorToolTab">
+      <div class="tabPage" id="doodadToolTab">
          <h2>{{i18n stonehearth:building_designer_doodads}}</h2>
          {{i18n stonehearth:building_designer_doodads_help}}
-         {{#each view.doodads}}
-            <h2>{{category}}</h2>
-            <div class="brushPalette doodadPalette section">
+         
+         <h2>Tools</h2>
+         <div class="section toolPalette">
+            <div id="drawDoodadTool" class="toolButton"></div>
+            <div id="eraseDoodadTool" class="toolButton"></div>
+         </div>
+
+         <h2>{{i18n stonehearth:building_designer_material}}</h2>
+         <div class="brushPalette section">
+            {{#each view.doodads}}
+               <h2>{{category}}</h2>
                <div>
                   {{#each items}}
-                     <img {{bind-attr uri="this.uri" src="this.portrait" title="this.name"}} class="small noBorder doodadTool"/>
+                     <img {{bind-attr uri="this.uri" src="this.portrait" title="this.name"}} class="small doodadMaterial"/>
                   {{/each}}
                </div>
-            </div>
-         {{/each}}
+            {{/each}}
+         </div>
       </div>
 
       <div class="tabPage" id="editToolTab">

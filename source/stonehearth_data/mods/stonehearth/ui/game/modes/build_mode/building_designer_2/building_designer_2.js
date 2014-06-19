@@ -2,7 +2,7 @@ App.StonehearthBuildingDesignerTools = App.View.extend({
    templateName: 'buildingDesignerTools',
    i18nNamespace: 'stonehearth',
    classNames: ['fullScreen', 'flex', "gui"],
-   uriProperty: 'selection',
+   uriProperty: 'context.selection',
 
    components: {
       'unit_info': {},
@@ -31,7 +31,6 @@ App.StonehearthBuildingDesignerTools = App.View.extend({
       this._super();
       this.components['stonehearth:fabricator'].blueprint = this.blueprint_components;
       this.components['stonehearth:construction_data'].fabricator_entity['stonehearth:fabricator'].blueprint = this.blueprint_components;
-      this.set('foobar', 'foobar');
    },
 
    floorPatterns: [
@@ -172,16 +171,17 @@ App.StonehearthBuildingDesignerTools = App.View.extend({
          App.stonehearthClient.growRoof(building);
       })
 
-      // doodad tool
-      this.$('.doodadTool').click(function() {
-         // select the tool
-         self.$('.doodadTool').removeClass('selected');
+      // doodad material
+      this.$('.doodadMaterial').click(function() {
+         self.$('.doodadMaterial').removeClass('selected');
          $(this).addClass('selected');
-         
-         // activate the tool
-         var uri = $(this).attr('uri');
-         App.stonehearthClient.addDoodad(uri);
       })
+
+      // draw doodad tool
+      this.$('#drawDoodadTool').click(function() {
+         var uri = self.$('#doodadToolTab .doodadMaterial.selected').attr('uri');
+         App.stonehearthClient.addDoodad(uri);
+      });
 
       // building buttons
       this.$('#startBuilding').click(function() {
@@ -206,6 +206,7 @@ App.StonehearthBuildingDesignerTools = App.View.extend({
       // select default materials
       $(self.$('#floorToolTab .floorMaterial')[0]).addClass('selected');
       $(self.$('#wallToolTab .wallMaterial')[0]).addClass('selected');
+      $(self.$('#doodadToolTab .doodadMaterial')[0]).addClass('selected');
    },
 
    _updateSelection: function(building) {
@@ -213,29 +214,31 @@ App.StonehearthBuildingDesignerTools = App.View.extend({
       var building = this.get(this.uriProperty);
       var building_entity, blueprint_entity;
 
-      var fabricator_component = building['stonehearth:fabricator'];
-      var construction_data_component = building['stonehearth:construction_data'];
-      var construnction_progress_component = building['stonehearth:construction_progress'];
+      if (building) {
+         var fabricator_component = building['stonehearth:fabricator'];
+         var construction_data_component = building['stonehearth:construction_data'];
+         var construnction_progress_component = building['stonehearth:construction_progress'];
+         
+         if (fabricator_component) {
+            blueprint_entity = fabricator_component['blueprint'];
+         } else if (construction_data_component) {
+            blueprint_entity = construction_data_component.fabricator_entity['stonehearth:fabricator'].blueprint;
+         } else if (construnction_progress_component) {
+            building_entity = blueprint_entity = building
+         }
+         if (blueprint_entity && !building_entity) {
+            building_entity = blueprint_entity['stonehearth:construction_progress']['building_entity'];         
+         }
+
+         self.set('building', building_entity);
+
+         if (building_entity) {
+            self.set('building.active', building_entity['stonehearth:construction_progress'].active);
+         }        
+      }
       
-      if (fabricator_component) {
-         blueprint_entity = fabricator_component['blueprint'];
-      } else if (construction_data_component) {
-         blueprint_entity = construction_data_component.fabricator_entity['stonehearth:fabricator'].blueprint;
-      } else if (construnction_progress_component) {
-         building_entity = blueprint_entity = building
-      }
-      if (blueprint_entity && !building_entity) {
-         building_entity = blueprint_entity['stonehearth:construction_progress']['building_entity'];         
-      }
-
-      self.set('building', building_entity);
-
-      if (building_entity) {
-         self.set('building.active', building_entity['stonehearth:construction_progress'].active);
-      }
-
       self._updateControls();
-   }.observes('selection'),
+   }.observes('context.selection'),
 
    _updateControls: function() {
 
