@@ -4,7 +4,7 @@ local Point2 = _radiant.csg.Point2
    Stores data about the field in question
 ]]
 
-local farming_service = stonehearth.farming
+--local farming_service = stonehearth.farming
 
 local FarmerFieldComponent = class()
 FarmerFieldComponent.__classname = 'FarmerFieldComponent'
@@ -32,7 +32,7 @@ function FarmerFieldComponent:initialize(entity, json)
       local max_fertility = stonehearth.constants.soil_fertility.MAX
       self._sv.general_fertility = rng:get_int(min_fertility, max_fertility)   --TODO; get from global service
       
-      self._sv.crop_queue = {farming_service:get_crop_details('fallow')}
+      self._sv.crop_queue = {stonehearth.farming:get_crop_details('fallow')}
       --self._sv.crop_queue = {}
       self._sv.curr_crop = 1
       self._sv.auto_harvest = true
@@ -183,7 +183,7 @@ end
 
 --Temporary: replaces queue item with a brand new item
 function FarmerFieldComponent:change_default_crop(session, response, new_crop)
-   self._sv.crop_queue = {farming_service:get_crop_details(new_crop)}
+   self._sv.crop_queue = {stonehearth.farming:get_crop_details(new_crop)}
    self:_re_evaluate_empty()
    self.__saved_variables:mark_changed()
    return true
@@ -238,7 +238,7 @@ function FarmerFieldComponent:_determine_replant(plot_entity)
 
    --If we're supposed to replant, and if we have a plant to replant, do replant
    if do_replant and next_plant then
-      farming_service:plant_crop(radiant.entities.get_player_id(self._entity), {plot_entity}, next_plant, player_override, do_replant, do_auto_harvest, false)
+      stonehearth.farming:plant_crop(radiant.entities.get_player_id(self._entity), {plot_entity}, next_plant, player_override, do_replant, do_auto_harvest, false)
    end
 end
 

@@ -3,11 +3,11 @@
       <div class="title">Tools</div>
 
       <div id="toolbar">
-         <div hotkey="f" class="tabButton floorTool" tab="floorToolTab"><div class="label">{{i18n stonehearth:building_designer_floor_tool}}</div></div>
-         <div hotkey="g" class="tabButton fillWallTool" tab="fillWallToolTab"><div class="label">{{i18n stonehearth:building_designer_fill_wall_tool}}</div></div>
-         <div hotkey="r" class="tabButton roofTool" tab="roofToolTab"><div class="label">{{i18n stonehearth:building_designer_roof_tool}}</div></div>
-         <div hotkey="n" class="tabButton doorTool" tab="doorToolTab"><div class="label">{{i18n stonehearth:building_designer_door_tool}}</div></div>
-         <div hotkey="x" class="tabButton editTool" tab="editToolTab"><div class="label">{{i18n stonehearth:building_designer_edit_tool}}</div></div>
+         <div hotkey="f" class="tabButton floorToolButton" tab="floorToolTab"><div class="label">{{i18n stonehearth:building_designer_floor_tool}}</div></div>
+         <div hotkey="g" class="tabButton wallToolButton" tab="wallToolTab"><div class="label">{{i18n stonehearth:building_designer_fill_wall_tool}}</div></div>
+         <div hotkey="r" class="tabButton roofToolButton" tab="roofToolTab"><div class="label">{{i18n stonehearth:building_designer_roof_tool}}</div></div>
+         <div hotkey="n" class="tabButton doodadToolButton" tab="doodadToolTab"><div class="label">{{i18n stonehearth:building_designer_door_tool}}</div></div>
+         <div hotkey="x" class="tabButton editToolButton" tab="editToolTab"><div class="label">{{i18n stonehearth:building_designer_edit_tool}}</div></div>
          <div class="tabButton undo"><div class="label">{{i18n stonehearth:building_designer_undo}}</div></div>
       </div>
 
@@ -15,57 +15,63 @@
          <h2>{{i18n stonehearth:building_designer_draw_floorplan}}</h2>
          {{i18n stonehearth:building_designer_draw_floorplan_help}}
 
+         <h2>Tools</h2>
+         <div class="section toolPalette">
+         <div id="drawFloorTool" class="toolButton"></div>
+            <div id="eraseFloorTool" class="toolButton"></div>
+         </div>
+
          <h2>{{i18n stonehearth:building_designer_material}}</h2>
          <div class="brushPalette section">
             {{#each view.floorPatterns}}
                <!--<h2>{{category}}</h2>-->
                <div>
                   {{#each items}}
-                     <img {{bind-attr brush="this.brush" src="this.portrait" title="this.name"}} class="floorTool" />
+                     <img {{bind-attr brush="this.brush" src="this.portrait" title="this.name"}} class="floorMaterial" />
                   {{/each}}
                </div>
                <div style="clear: both"></div>
             {{/each}}
-            <h2>Tools</h2>
-            <div>
-               <a name="erase" href="#" {{action selectFloorEraserTool this target="view"}} class="brushLink">
-                  <img src="floor_eraser.png" title="erase" />
-               </a>
-            </div>
          </div>
       </div>
 
-      <div class="tabPage" id="fillWallToolTab">
+      <div class="tabPage" id="wallToolTab">
          <h2>{{i18n stonehearth:building_designer_erect_walls}}</h2>
          {{i18n stonehearth:building_designer_erect_walls_help}}
+         
+         <h2>Tools</h2>
+         <div class="section toolPalette">
+            <div id="drawWallTool" class="toolButton"></div>
+            <div id="growWallsTool" class="toolButton"></div>
+         </div>
          <h2>{{i18n stonehearth:building_designer_material}}</h2>
          <div class="brushPalette section">
             {{#each view.wallPatterns}}
                <!-- <h2>{{category}}</h2> -->
                <div>
                   {{#each items}}
-                     <img {{bind-attr uri="this.uri" src="this.portrait" title="this.name"}} class="wallTool" />
+                     <img {{bind-attr uri="this.uri" src="this.portrait" title="this.name"}} class="wallMaterial" />
                   {{/each}}
                </div>
                <div style="clear: both"></div>
             {{/each}}
          </div>
-         <br><br>
-         <button {{bind-attr class=view.building:enabled:disabled}} id="showGrowWallsWizard">
-            Grow Walls Around Floor
-         </button>
 
       </div>
 
       <div class="tabPage" id="roofToolTab">
          <h2>{{i18n stonehearth:building_designer_raise_roof}}</h2>
          {{i18n stonehearth:building_designer_raise_roof_help}}
+         <h2>Tools</h2>
+         <div class="section toolPalette">
+            <div id="growRoofTool" class="toolButton"></div>
+         </div>
          <h2>{{i18n stonehearth:building_designer_material}}</h2>
          <div class="brushPalette section">
             {{#each view.roofPatterns}}
                <!-- <h2>{{category}}</h2> -->
                <div>
-                  todo...materials go here...
+                  todo...roof options go here...
                   {{#each items}}
                      <a {{bind-attr name = "this.name"}}href="#" {{action selectRoofMaterial this target="view"}} class="brushLink">
                         <img {{bind-attr src="this.portrait" title="this.name"}} />
@@ -75,25 +81,27 @@
                <div style="clear: both"></div>
             {{/each}}
          </div>
-         <br><br>
-         <button {{bind-attr class=view.building:enabled:disabled}} id="growRoof">
-            Grow Roof Above Walls
-         </button>
       </div>
 
-      <div class="tabPage" id="doorToolTab">
+      <div class="tabPage" id="doodadToolTab">
          <h2>{{i18n stonehearth:building_designer_doodads}}</h2>
          {{i18n stonehearth:building_designer_doodads_help}}
+         
+         <h2>Tools</h2>
+         <div class="section toolPalette">
+            <div id="drawDoodadTool" class="toolButton"></div>
+            <div id="eraseDoodadTool" class="toolButton"></div>
+         </div>
+
          <h2>{{i18n stonehearth:building_designer_material}}</h2>
-         <div class="brushPalette doodadPalette section">
+         <div class="brushPalette section">
             {{#each view.doodads}}
                <h2>{{category}}</h2>
                <div>
                   {{#each items}}
-                     <img {{bind-attr uri="this.uri" src="this.portrait" title="this.name"}} class="small noBorder doodadTool"/>
+                     <img {{bind-attr uri="this.uri" src="this.portrait" title="this.name"}} class="small doodadMaterial"/>
                   {{/each}}
                </div>
-               <div style="clear: both"></div>
             {{/each}}
          </div>
       </div>
@@ -116,7 +124,7 @@
                <!-- <h2>{{category}}</h2> -->
                <div>
                   {{#each items}}
-                     <img {{bind-attr uri="this.uri" src="this.portrait" title="this.name"}} class="wallTool" />
+                     <img {{bind-attr uri="this.uri" src="this.portrait" title="this.name"}} class="wallMaterial" />
                   {{/each}}
                </div>
                <div style="clear: both"></div>

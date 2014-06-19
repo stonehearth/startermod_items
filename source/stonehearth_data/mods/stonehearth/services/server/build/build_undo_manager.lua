@@ -4,6 +4,7 @@ local BuildUndoManager = class()
 local log = radiant.log.create_logger('build.undo')
 
 function BuildUndoManager:__init()
+   if true then return end -- oops!
    self._changed_objects = {}
    self._object_traces = {}
    self._entity_traces = {}
@@ -16,6 +17,7 @@ function BuildUndoManager:__init()
 end
 
 function BuildUndoManager:begin_transaction(desc)
+   if true then return end -- oops!
    log:detail('begin_transaction for "%s" (stack size:%d)', desc, #self._undo_stack)
 
    self._in_transaction = true
@@ -28,6 +30,7 @@ function BuildUndoManager:begin_transaction(desc)
 end
 
 function BuildUndoManager:end_transaction(desc)
+   if true then return end -- oops!
    log:detail('end_transaction for "%s"', desc)
 
    self._tracer:flush()
@@ -61,6 +64,7 @@ function BuildUndoManager:end_transaction(desc)
 end
 
 function BuildUndoManager:undo()
+   if true then return end -- oops!
    log:detail('undo (stack size: %d)', self._stack_offset)
 
    self._ignore_traces = true
@@ -139,6 +143,7 @@ function BuildUndoManager:mark_changed(obj)
 end
 
 function BuildUndoManager:trace_building(entity)
+   if true then return end -- oops
    log:detail('tracing new building %s', entity)
 
    assert(self._in_transaction)

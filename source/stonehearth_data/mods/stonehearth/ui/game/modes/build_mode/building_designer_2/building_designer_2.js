@@ -2,7 +2,7 @@ App.StonehearthBuildingDesignerTools = App.View.extend({
    templateName: 'buildingDesignerTools',
    i18nNamespace: 'stonehearth',
    classNames: ['fullScreen', 'flex', "gui"],
-   uriProperty: 'selection',
+   uriProperty: 'context.selection',
 
    components: {
       'unit_info': {},
@@ -31,11 +31,6 @@ App.StonehearthBuildingDesignerTools = App.View.extend({
       this._super();
       this.components['stonehearth:fabricator'].blueprint = this.blueprint_components;
       this.components['stonehearth:construction_data'].fabricator_entity['stonehearth:fabricator'].blueprint = this.blueprint_components;
-      this.set('foobar', 'foobar');
-   },
-
-   selectFloorEraserTool: function() {
-      App.stonehearthClient.eraseFloor();
    },
 
    floorPatterns: [
@@ -101,76 +96,77 @@ App.StonehearthBuildingDesignerTools = App.View.extend({
       });
 
       // undo/redoo tool
-      this.$('.undo').click(function() {
+      this.$('#undoTool').click(function() {
          App.stonehearthClient.undo();
       });
 
-      // floor tool
-      this.$('.floorTool').click(function() {
-         // select the tool
-         self.$('.floorTool').removeClass('selected');
+      // floor materials
+      this.$('.floorMaterial').click(function() {
+         self.$('.floorMaterial').removeClass('selected');
          $(this).addClass('selected');
-         
-         // activate the tool
-         var brush = $(this).attr('brush');
+
+         self._updateTool();
+      })
+
+      // draw floor tool
+      this.$('#drawFloorTool').click(function() {
+         var brush = self.$('#floorToolTab .floorMaterial.selected').attr('brush');
          App.stonehearthClient.buildFloor(brush);
-      })
-
-      // wall tool
-      this.$('#fillWallToolTab .wallTool').click(function() {
-         // select the tool
-         self.$('#fillWallToolTab .wallTool').removeClass('selected');
-         $(this).addClass('selected');
-         
-
-         // activate the tool
-         var wallUri = $(this).attr('uri');
-         App.stonehearthClient.buildWall('stonehearth:wooden_column', wallUri);
-      })
-
-      // grow walls wizard
-      this.$('#showGrowWallsWizard').click(function() {
-         
-         self.$('#growWallsWizard').show();
+         self._activeTool = $(this);
       });
 
-      this.$('#closeGrowWallsWizard').click(function() {
-         self.$('#growWallsWizard').fadeOut();
+      this.$('#eraseFloorTool').click(function() {
+         App.stonehearthClient.eraseFloor();
       });
-
-      this.$('#growWallsWizard .wallTool').click(function() {
-         // select the tool
-         self.$('#growWallsWizard .wallTool').removeClass('selected');
-         $(this).addClass('selected');         
-      });
-
-
-      this.$('#growWallsButton').click(function() {
-         var building = self.get('building');
-         var wallUri = $('#growWallsWizard .wallTool.selected').attr('uri');
-
-         App.stonehearthClient.growWalls(building, 'stonehearth:wooden_column', wallUri);
-         self.$('#growWallsWizard').hide();
-      });
-
       
+
+      // wall tool tab
+      this.$('#wallToolTab .wallMaterial').click(function() {
+         // select the tool
+         self.$('#wallToolTab .wallMaterial').removeClass('selected');
+         $(this).addClass('selected');
+
+         self._updateTool();
+      })
+
+      // draw wall tool
+      this.$('#drawWallTool').click(function() {
+         var wallUri = self.$('#wallToolTab .wallMaterial.selected').attr('uri');
+         App.stonehearthClient.buildWall('stonehearth:wooden_column', wallUri);
+
+         self._activeTool = $(this);
+      });
+
+      // grow walls tool
+      this.$('#growWallsTool').click(function() {
+         
+         var building = self.get('building');
+         var wallUri = self.$('#wallToolTab .wallMaterial.selected').attr('uri');
+         App.stonehearthClient.growWalls(building, 'stonehearth:wooden_column', wallUri);
+      });
+
       // grow roof button
-      this.$('#growRoof').click(function() {
+      this.$('#growRoofTool').click(function() {
          var building = self.get('building');
          // todo, open a wizard
          App.stonehearthClient.growRoof(building);
       })
 
-      // doodad tool
-      this.$('.doodadTool').click(function() {
-         // select the tool
-         self.$('.doodadTool').removeClass('selected');
+      // doodad material
+      this.$('.doodadMaterial').click(function() {
+         self.$('.doodadMaterial').removeClass('selected');
          $(this).addClass('selected');
-         
-         // activate the tool
-         var uri = $(this).attr('uri');
-         App.stonehearthClient.addDoodad(uri);
+
+         self._updateTool();
       })
+
+      // draw doodad tool
+      this.$('#drawDoodadTool').click(function() {
+         var uri = self.$('#doodadToolTab .doodadMaterial.selected').attr('uri');
+         App.stonehearthClient.addDoodad(uri);
+
+         self._activeTool = $(this);
+      });
 
       // building buttons
       this.$('#startBuilding').click(function() {
@@ -191,6 +187,20 @@ App.StonehearthBuildingDesignerTools = App.View.extend({
             radiant.call('stonehearth:set_building_teardown', building_entity.__self, true)
          }
       });
+
+      // select default materials
+      $(self.$('#floorToolTab .floorMaterial')[0]).addClass('selected');
+      $(self.$('#wallToolTab .wallMaterial')[0]).addClass('selected');
+      $(self.$('#doodadToolTab .doodadMaterial')[0]).addClass('selected');
+   },
+
+   _updateTool: function() {
+      var self = this;
+
+      // reactivate the active tool with this new material
+      if (self._activeTool) {
+         self._activeTool.click();
+      }
    },
 
    _updateSelection: function(building) {
@@ -198,29 +208,31 @@ App.StonehearthBuildingDesignerTools = App.View.extend({
       var building = this.get(this.uriProperty);
       var building_entity, blueprint_entity;
 
-      var fabricator_component = building['stonehearth:fabricator'];
-      var construction_data_component = building['stonehearth:construction_data'];
-      var construnction_progress_component = building['stonehearth:construction_progress'];
-      
-      if (fabricator_component) {
-         blueprint_entity = fabricator_component['blueprint'];
-      } else if (construction_data_component) {
-         blueprint_entity = construction_data_component.fabricator_entity['stonehearth:fabricator'].blueprint;
-      } else if (construnction_progress_component) {
-         building_entity = blueprint_entity = building
-      }
-      if (blueprint_entity && !building_entity) {
-         building_entity = blueprint_entity['stonehearth:construction_progress']['building_entity'];         
-      }
+      if (building) {
+         var fabricator_component = building['stonehearth:fabricator'];
+         var construction_data_component = building['stonehearth:construction_data'];
+         var construnction_progress_component = building['stonehearth:construction_progress'];
+         
+         if (fabricator_component) {
+            blueprint_entity = fabricator_component['blueprint'];
+         } else if (construction_data_component) {
+            blueprint_entity = construction_data_component.fabricator_entity['stonehearth:fabricator'].blueprint;
+         } else if (construnction_progress_component) {
+            building_entity = blueprint_entity = building
+         }
+         if (blueprint_entity && !building_entity) {
+            building_entity = blueprint_entity['stonehearth:construction_progress']['building_entity'];         
+         }
 
-      self.set('building', building_entity);
+         self.set('building', building_entity);
 
-      if (building_entity) {
-         self.set('building.active', building_entity['stonehearth:construction_progress'].active);
+         if (building_entity) {
+            self.set('building.active', building_entity['stonehearth:construction_progress'].active);
+         }        
       }
 
       self._updateControls();
-   }.observes('selection'),
+   }.observes('context.selection'),
 
    _updateControls: function() {
 

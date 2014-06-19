@@ -6,9 +6,9 @@
          "hamlet" : 2000, 
          "village" : 3000, 
          "town" : 4000, 
-         "city" : 5000, 
-         "metropolis" : 10000,
-         "capitol" : 50000
+         "county" : 5000, 
+         "kingdom" : 10000,
+         "empire" : 50000
       }
    }
 }

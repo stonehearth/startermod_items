@@ -9,8 +9,8 @@
    "scenario_data" : {
       "expiration_timeout" : "6h",
       "happiness_threshold" : 4,
-      "food_threshold" : 5,
-      "score_threshold" : 10,
+      "food_threshold" : 10,
+      "score_threshold" : 500,
       "title" : "A traveller approaches your town.",
       "success_title" : "__name__ has joined __town_name__!", 
       "messages" : [

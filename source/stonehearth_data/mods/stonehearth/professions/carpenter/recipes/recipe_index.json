@@ -1,0 +1,29 @@
+{
+   "craftable_recipes" : {
+      "tools_weapons_armor" : {
+         "recipes" : {
+            "file(hoe_recipe.json)" : {},
+            "file(wooden_sword_recipe.json)" : {},
+            "file(wooden_buckler_recipe.json)" : {}            
+         }
+      },
+      "construction_building" : {
+         "recipes" : {
+            "file(wooden_door_recipe.json)" : {},
+            "file(wooden_window_frame_recipe.json)" : {},
+            "file(picket_fence_recipe.json)": {},
+            "file(picket_fence_gate_recipe.json)" : {}
+         }
+      },
+      "furnishings" : {
+         "recipes" : {
+            "file(simple_wooden_chair_recipe.json)" : {},
+            "file(arch_backed_chair_recipe.json)" : {},
+            "file(table_for_one_recipe.json)" : {},
+            "file(dining_table_recipe.json)" : {},
+            "file(not_much_of_a_bed_recipe.json)" : {},
+            "file(comfy_bed_recipe.json)" : {}            
+         }
+      }
+   }
+}
