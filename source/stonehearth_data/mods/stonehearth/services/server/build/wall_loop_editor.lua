@@ -49,7 +49,7 @@ function WallLoopEditor:go(column_uri, wall_uri, response)
                end
          end)
       :fail(function(selector)
-            assert(false)
+            --assert(false)
          end)
       :go()
    
@@ -89,7 +89,7 @@ function WallLoopEditor:_pump_queue()
    end
 
    self._waiting_for_response = true
-   _radiant.call_obj(self._build_service, 'add_wall', self._column_uri, self._wall_uri, p0, p1, normal)
+   _radiant.call_obj(self._build_service, 'add_wall_command', self._column_uri, self._wall_uri, p0, p1, normal)
             :done(function(result)
                   if result.new_selection then
                      stonehearth.selection:select_entity(result.new_selection)

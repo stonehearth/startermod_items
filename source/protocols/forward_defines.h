@@ -2,6 +2,12 @@
 #define _RADIANT_PROTOCOL_PROTOCOL_H
 
 namespace radiant {
+   namespace tesseract {
+      namespace protocol {
+         class Update;
+         class AllocObjects;
+      }
+   }
    namespace protocol {
       class point4i;
       class point4f;
@@ -40,6 +46,7 @@ namespace radiant {
 namespace Protocol {
    class Value;
    class Object;
+   class Store;
    class LuaObject;
    class LuaObject_Table;
    class LuaControllerObject;

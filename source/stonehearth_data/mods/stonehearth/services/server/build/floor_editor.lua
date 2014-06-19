@@ -34,7 +34,7 @@ function FloorEditor:go(response, brush_shape)
 end
 
 function FloorEditor:_add_floor(response, selector, box, brush_shape)
-   _radiant.call_obj(self._build_service, 'add_floor', 'stonehearth:entities:wooden_floor', box, brush_shape)
+   _radiant.call_obj(self._build_service, 'add_floor_command', 'stonehearth:entities:wooden_floor', box, brush_shape)
       :done(function(r)
             if r.new_selection then
                stonehearth.selection:select_entity(r.new_selection)

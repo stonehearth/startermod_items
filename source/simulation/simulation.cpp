@@ -844,7 +844,7 @@ void Simulation::Load(boost::filesystem::path const& saveid)
 
    radiant_ = scriptHost_->Require("radiant.server");
    std::string error;
-   dm::Store::ObjectMap objects;
+   dm::ObjectMap objects;
    // Re-initialize the game
    std::string filename = (core::Config::GetInstance().GetSaveDirectory() / saveid / "server_state.bin").string();
 

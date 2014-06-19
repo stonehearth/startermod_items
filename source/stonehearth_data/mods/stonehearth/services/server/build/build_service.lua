@@ -1,4 +1,5 @@
 local constants = require('constants').construction
+local BuildUndoManager = require 'services.server.build.build_undo_manager'
 local Rect2 = _radiant.csg.Rect2
 local Cube3 = _radiant.csg.Cube3
 local Point2 = _radiant.csg.Point2
@@ -29,6 +30,8 @@ function BuildService:__init(datastore)
 end
 
 function BuildService:initialize()
+   self._undo = BuildUndoManager()
+
    self._sv = self.__saved_variables:get_data()
    self.__saved_variables:set_controller(self)
 
@@ -72,6 +75,11 @@ function BuildService:set_teardown(blueprint, enabled)
    _set_teardown_recursive(blueprint, enabled)
 end
 
+function BuildService:undo_command(session, response)
+   self._undo:undo()
+   response:resolve(true)
+end
+
 -- Add a new floor segment to the world.  This will try to merge with existing buildings
 -- if the floor overlaps some pre-existing floor or will create a new building to hold
 -- the floor
@@ -81,9 +89,39 @@ end
 --    @param floor_uri - the uri to type of floor we'd like to add
 --    @param box - the area of the new floor segment
 
-function BuildService:add_floor(session, response, floor_uri, box, brush_shape)
-   box = ToCube3(box)
+function BuildService:add_floor_command(session, response, floor_uri, box, brush_shape)
+   self._undo:begin_transaction()   
+   local floor = self:_add_floor(session, floor_uri, ToCube3(box), brush_shape)
+   self._undo:end_transaction()
 
+   -- if we managed to create some floor, return the fabricator to the client as the
+   -- new selected entity.  otherwise, return an error.
+   if floor then
+      local floor_fab = floor:get_component('stonehearth:construction_progress'):get_fabricator_entity()
+      response:resolve({
+         new_selection = floor_fab
+      })
+   else
+      response:reject({ error = 'could not create floor' })
+   end
+end
+
+function BuildService:add_wall_command(session, response, columns_uri, walls_uri, p0, p1, normal)
+   self._undo:begin_transaction()   
+   local wall = self:_add_wall(session, columns_uri, walls_uri, ToPoint3(p0), ToPoint3(p1), ToPoint3(normal))
+   self._undo:end_transaction()   
+
+   if wall then
+      local wall_fab = wall:get_component('stonehearth:construction_progress'):get_fabricator_entity()      
+      response:resolve({
+         new_selection = wall_fab
+      })
+   else
+      response:reject({ error = 'could not create wall' })      
+   end
+end
+
+function BuildService:_add_floor(session, floor_uri, box, brush_shape)
    local floor
    -- look for floor that we can merge into.
    local all_overlapping_floor = radiant.terrain.get_entities_in_cube(box, function(entity)
@@ -100,20 +138,11 @@ function BuildService:add_floor(session, response, floor_uri, box, brush_shape)
       -- potentially merging multiple buildings together!
       floor = self:_merge_overlapping_floor(all_overlapping_floor, floor_uri, box, brush_shape)
    end
-   
-   -- if we managed to create some floor, return the fabricator to the client as the
-   -- new selected entity.  otherwise, return an error.
-   if floor then
-      local floor_fab = floor:get_component('stonehearth:construction_progress'):get_fabricator_entity()
-      response:resolve({
-         new_selection = floor_fab
-      })
-   else
-      response:reject({ error = 'could not create floor' })
-   end
+   return floor   
 end
 
-function BuildService:erase_floor(session, response, box)
+
+function BuildService:erase_floor_command(session, response, box)
    response:reject({ error = 'not yet implemented' })
 end
 
@@ -195,6 +224,7 @@ end
 --
 function BuildService:_create_new_building(session, location)
    local building = radiant.entities.create_entity('stonehearth:entities:building')
+   self._undo:trace_building(building)
    
    -- give the building a unique name and establish ownership.
    building:add_component('unit_info')
@@ -375,9 +405,7 @@ function BuildService:_merge_building_into(merge_into, building)
    radiant.entities.destroy_entity(building)
 end
 
-function BuildService:add_wall(session, response, columns_uri, walls_uri, p0, p1, normal)
-   p0, p1, normal = ToPoint3(p0), ToPoint3(p1), ToPoint3(normal)
-
+function BuildService:_add_wall(session, columns_uri, walls_uri, p0, p1, normal)
    -- look for floor that we can merge into.
    local c0 = self:_get_blueprint_at_point(p0)
    local c1 = self:_get_blueprint_at_point(p1)
@@ -393,16 +421,10 @@ function BuildService:add_wall(session, response, columns_uri, walls_uri, p0, p1
    else
       building = self:_create_new_building(session, p0)
    end
+
    assert(building)
    local wall = self:_add_wall_span(building, p0, p1, normal, columns_uri, walls_uri)
-   if wall then
-      local wall_fab = wall:get_component('stonehearth:construction_progress'):get_fabricator_entity()      
-      response:resolve({
-         new_selection = wall_fab
-      })
-   else
-      response:reject({ error = 'could not create wall' })      
-   end
+   return wall
 end
 
 -- add walls around all the floor segments for the specified `building` which
@@ -414,7 +436,14 @@ end
 --    @param columns_uri - the type of columns to generate
 --    @param walls_uri - the type of walls to generate
 --
-function BuildService:grow_walls(session, response, building, columns_uri, walls_uri)
+function BuildService:grow_walls_command(session, response, building, columns_uri, walls_uri)
+   self._undo:begin_transaction()   
+   self:_grow_walls(building, columns_uri, walls_uri)
+   self._undo:end_transaction()   
+   response:resolve(true)
+end
+
+function BuildService:_grow_walls(building, columns_uri, walls_uri)
    -- accumulate all the floor tiles in the building into a single, opaque region
    local floor_region = building:add_component('stonehearth:building')
                                     :calculate_floor_region()
@@ -461,7 +490,17 @@ end
 --    @param building - the building to pop the roof onto
 --    @param roof_uri - what kind of roof to make
 
-function BuildService:grow_roof(session, response, building, roof_uri)
+function BuildService:grow_roof_command(session, response, building, roof_uri)
+   self._undo:begin_transaction()   
+   local roof = self:_grow_roof(building, roof_uri)
+   self._undo:end_transaction()
+
+   response:resolve({
+      new_selection = roof
+   })
+end
+
+function BuildService:_grow_roof(building, roof_uri)
    -- compute the xz cross-section of the roof by growing the floor
    -- region by 2 voxels in every direction
    local region2 = building:get_component('stonehearth:building')
@@ -509,7 +548,7 @@ function BuildService:grow_roof(session, response, building, roof_uri)
                   :loan_scaffolding_to(roof)
       end
    end
-   response:resolve({})
+   return roof
 end
 
 -- returns the blueprint at the specified world `point`
@@ -605,7 +644,17 @@ end
 --    @param portal_uri - the type of portal to create
 --    @param location - where to put the portal, in wall-local coordinates
 --
-function BuildService:add_portal(session, response, wall_entity, portal_uri, location)
+function BuildService:add_portal_command(session, response, wall_entity, portal_uri, location)
+   self._undo:begin_transaction()   
+   local portal = self:_add_portal(wall_entity, portal_uri, location)
+   self._undo:end_transaction()
+
+   response:resolve({
+      new_selection = portal
+   })   
+end
+
+function BuildService:_add_portal(wall_entity, portal_uri, location)
    local wall = wall_entity:get_component('stonehearth:wall')
    if wall then
       local portal_blueprint_uri = portal_uri
@@ -643,9 +692,7 @@ function BuildService:add_portal(session, response, wall_entity, portal_uri, loc
       portal_blueprint:add_component('stonehearth:construction_progress')
                         :set_building_entity(building)
 
-      response:resolve({
-         new_selection = portal_blueprint
-      })
+      return portal_blueprint
    end
 end
 
@@ -658,7 +705,16 @@ end
 --    @param old - the old blueprint to destroy
 --    @param new_uri - the uri of the new guy to take `old`'s place
 --
-function BuildService:substitute_blueprint(session, response, old, new_uri)
+function BuildService:substitute_blueprint_command(session, response, old, new_uri)
+   self._undo:begin_transaction()   
+   local replaced = self:_substitute_blueprint(old, new_uri)
+   self._undo:end_transaction()
+   response:resolve({
+      new_selection = replaced
+   })
+end
+
+function BuildService:_substitute_blueprint(old, new_uri)
    local building = self:_get_building_for(old)
 
    local replaced = self:_create_blueprint(building, new_uri, Point3.zero, function(new)
@@ -692,10 +748,7 @@ function BuildService:substitute_blueprint(session, response, old, new_uri)
 
    -- nuke the old entity      
    radiant.entities.destroy_entity(old)
-   
-   response:resolve({
-      new_selection = replaced
-   })
+   return replaced
 end
 
 return BuildService

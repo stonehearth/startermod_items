@@ -134,12 +134,7 @@ function LocationSelector:_on_mouse_event(mouse_pos, event)
    local pt = self:_get_selected_brick(mouse_pos.x, mouse_pos.y)
    if self._cursor_entity then
       -- move the  cursor, if one was specified.   
-      radiant.entities.move_to(self._cursor_entity, pt or OFFSCREEN)
-      -- if the user right-clicked, rotate the cursor
-      if event and event:up(2) then
-         self._rotation = (self._rotation + 90) % 360
-         self._cursor_entity:add_component('mob'):turn_to(self._rotation)
-      end
+      radiant.entities.move_to(self._cursor_entity, pt or OFFSCREEN)      
    end
 
    -- if the user installed a progress handler, go ahead and call it now
@@ -171,12 +166,9 @@ function LocationSelector:_on_mouse_event(mouse_pos, event)
          end
       end
    end
-end
 
--- handles keyboard events from the input service
---
-function LocationSelector:_on_keyboard_event(e)
-   if e.key == _radiant.client.KeyboardInput.KEY_ESC and e.down then
+   -- if the user right clicks, cancel the selection
+   if event and event:up(2) then
       self._input_capture:destroy()
       self._input_capture = nil
 
@@ -186,6 +178,24 @@ function LocationSelector:_on_keyboard_event(e)
       if self._always_cb then
          self._always_cb(self)
       end
+   end
+end
+
+-- handles keyboard events from the input service
+--
+function LocationSelector:_on_keyboard_event(e)
+   local deltaRot = 0
+
+   -- period and comma rotate the cursor
+   if e.key == _radiant.client.KeyboardInput.KEY_COMMA and e.down then
+      deltaRot = 90
+   elseif e.key == _radiant.client.KeyboardInput.KEY_PERIOD and e.down then
+      deltaRot = -90
+   end
+
+   if deltaRot ~= 0 then
+      self._rotation = (self._rotation + deltaRot) % 360
+      self._cursor_entity:add_component('mob'):turn_to(self._rotation)     
    end
 end
 

@@ -43,6 +43,8 @@ class DbgInfo;
 
 class Record;
 class StoreTrace;
+class StoreSaveState;
+
 template <typename T> class RecordTrace;
 template <typename T> class BoxedTrace;
 template <typename T> class SetTrace;
@@ -62,6 +64,9 @@ DECLARE_SHARED_POINTER_TYPES(Receiver)
 
 void LoadObject(Record& record, Protocol::Value const& msg);
 void SaveObject(Record const& store, Protocol::Value* msg);
+
+typedef std::unordered_map<ObjectId, ObjectPtr> ObjectMap;
+typedef std::unordered_map<ObjectId, ObjectRef> WeakObjectMap;
 
 END_RADIANT_DM_NAMESPACE
 

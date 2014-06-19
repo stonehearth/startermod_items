@@ -20,12 +20,28 @@
       margin: 0 -8px;
       padding: 4px;
 
+      /*
       h1, h2, h3, h4 {
          color: #cbb373;
       }
 
       h2 {
          font-size: 14px;
+      }
+      */
+   }
+
+   .metal {
+      .outlined(#9da8b0);
+      color: #000;
+      background: #7e8994;
+      border-width: 9px 9px 13px 9px;
+      border-image: url(images/gui/button.png) 9 9 13 9 repeat;
+      padding: 10px;      
+
+      h1, h2, h3, h4 {
+         .outlined(#9da8b0);
+         color: #000;         
       }
    }
 
@@ -38,7 +54,7 @@
       border-width: 9px 9px 13px 9px;
       border-image: url(images/gui/title.png) 9 9 13 9 repeat;
 
-      .closeButton {
+      .closeButton, .closeDivButton {
          .control;
          position: absolute;
          right: 5px;
