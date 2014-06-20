@@ -293,7 +293,7 @@ void NavGrid::OnTrackerBoundsChanged(csg::Cube3 const& last_bounds, csg::Cube3 c
  * Used to mark all the tiles overlapping bounds as dirty.  Useful for when a collision
  * tracker goes away.
  */
-void NavGrid::OnTrackerDestroyed(csg::Cube3 const& bounds, dm::ObjectId entityId)
+void NavGrid::OnTrackerDestroyed(csg::Cube3 const& bounds, dm::ObjectId entityId, TrackerType type)
 {
    NG_LOG(3) << "mark dirty " << bounds;
    csg::Cube3 chunks = csg::GetChunkIndex(bounds, TILE_SIZE);
@@ -301,7 +301,7 @@ void NavGrid::OnTrackerDestroyed(csg::Cube3 const& bounds, dm::ObjectId entityId
    // Remove trackers from tiles which no longer overlap the current bounds of the tracker,
    // but did overlap their previous bounds.
    for (csg::Point3 const& cursor : chunks) {
-      GridTileNonResident(cursor).OnTrackerRemoved(entityId);
+      GridTileNonResident(cursor).OnTrackerRemoved(entityId, type);
    }
 }
 

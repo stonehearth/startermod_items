@@ -15,7 +15,7 @@ using namespace radiant::phys;
  * Construct a new TerrainTracker
  */
 TerrainTracker::TerrainTracker(NavGrid& ng, om::EntityPtr entity, om::TerrainPtr terrain) :
-   CollisionTracker(ng, entity),
+   CollisionTracker(ng, COLLISION, entity),
    terrain_(terrain)
 {
 }
@@ -72,11 +72,6 @@ csg::Region3 const& TerrainTracker::GetLocalRegion() const
 csg::Region3 TerrainTracker::GetOverlappingRegion(csg::Cube3 const& bounds) const
 {
    return csg::Region3::empty;
-}
-
-TrackerType TerrainTracker::GetType() const
-{
-   return COLLISION;
 }
 
 /*

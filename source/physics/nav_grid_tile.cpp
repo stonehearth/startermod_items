@@ -59,7 +59,7 @@ void NavGridTile::RemoveCollisionTracker(CollisionTrackerPtr tracker)
       for (auto i = range.first; i != range.second; i++) {
          if (i->second.lock() == tracker) {
             trackers_.erase(i);
-            OnTrackerRemoved(entityId);
+            OnTrackerRemoved(entityId, tracker->GetType());
             return;
          }
       }
@@ -84,7 +84,7 @@ void NavGridTile::AddCollisionTracker(CollisionTrackerPtr tracker)
             break;
          }
       }
-      MarkDirty();
+      MarkDirty(tracker->GetType());
       if (i == range.second) {
          trackers_.insert(std::make_pair(id, tracker));
          changed_slot_.Signal(ChangeNotification(ENTITY_ADDED, id, tracker));
@@ -237,9 +237,9 @@ void NavGridTile::SetDataResident(bool value)
  * Mark the tile dirty.
  *
  */
-void NavGridTile::MarkDirty()
+void NavGridTile::MarkDirty(TrackerType t)
 {
-   if (data_) {
+   if (data_ && t < NUM_BIT_VECTOR_TRACKERS) {
       data_->MarkDirty();
    }
 }
@@ -250,9 +250,9 @@ void NavGridTile::MarkDirty()
  * Called whenever any tracker for `entityId` gets removed from the set.
  *
  */
-void NavGridTile::OnTrackerRemoved(dm::ObjectId entityId)
+void NavGridTile::OnTrackerRemoved(dm::ObjectId entityId, TrackerType t)
 {
-   MarkDirty();
+   MarkDirty(t);
    changed_slot_.Signal(ChangeNotification(ENTITY_REMOVED, entityId, nullptr));
 }
 

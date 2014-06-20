@@ -38,7 +38,7 @@ public:
    void RemoveCollisionTracker(CollisionTrackerPtr tracker);
    void AddCollisionTracker(CollisionTrackerPtr tracker);
 
-   void OnTrackerRemoved(dm::ObjectId entityId);
+   void OnTrackerRemoved(dm::ObjectId entityId, TrackerType t);
 
    bool IsBlocked(csg::Point3 const& pt);
    bool IsBlocked(csg::Cube3 const& bounds);
@@ -83,7 +83,7 @@ private:
    std::shared_ptr<NavGridTileData> GetTileData();
 
 private:
-   void MarkDirty();
+   void MarkDirty(TrackerType type);
    bool IsMarked(TrackerType type, csg::Point3 const& offest);
    bool IsMarked(TrackerType type, int bit_index);
    int Offset(csg::Point3 const& pt);

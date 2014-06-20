@@ -16,7 +16,7 @@ using namespace radiant::phys;
  * Track the Mob for an Entity.
  */
 MobTracker::MobTracker(NavGrid& ng, om::EntityPtr entity, om::MobPtr mob) :
-   CollisionTracker(ng, entity),
+   CollisionTracker(ng, MOB, entity),
    last_bounds_(csg::Point3::zero, csg::Point3::zero),
    mob_(mob)
 {
@@ -34,7 +34,7 @@ MobTracker::MobTracker(NavGrid& ng, om::EntityPtr entity, om::MobPtr mob) :
  */
 MobTracker::~MobTracker()
 {
-   GetNavGrid().OnTrackerDestroyed(last_bounds_, GetEntityId());
+   GetNavGrid().OnTrackerDestroyed(last_bounds_, GetEntityId(), GetType());
 }
 
 /*
@@ -94,16 +94,6 @@ csg::Region3 MobTracker::GetOverlappingRegion(csg::Cube3 const& bounds) const
 csg::Region3 const& MobTracker::GetLocalRegion() const
 {
    return localRegion_;
-}
-
-/*
- * -- MobTracker::GetType
- *
- * Return the type of the mob tracker
- */
-TrackerType MobTracker::GetType() const
-{
-   return MOB;
 }
 
 /*

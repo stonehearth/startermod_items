@@ -86,7 +86,7 @@ class NavGrid {
       dm::TraceCategories GetTraceCategory();
       void AddTerrainTileTracker(om::EntityRef entity, csg::Point3 const& offset, om::Region3BoxedPtr tile);
       void OnTrackerBoundsChanged(csg::Cube3 const& last_bounds, csg::Cube3 const& bounds, CollisionTrackerPtr tracker);
-      void OnTrackerDestroyed(csg::Cube3 const& bounds, dm::ObjectId entityId);
+      void OnTrackerDestroyed(csg::Cube3 const& bounds, dm::ObjectId entityId, TrackerType type);
       bool ForEachTileInBounds(csg::Cube3 const& bounds, ForEachTileCb);
       bool ForEachTileInRegion(csg::Region3 const& region, ForEachTileCb cb);
       bool ForEachTrackerInRegion(csg::Region3 const& worldRegion, ForEachTrackerCb cb);

@@ -14,8 +14,8 @@ using namespace radiant::phys;
  *
  * Construct a new RegionTracker.
  */
-RegionTracker::RegionTracker(NavGrid& ng, om::EntityPtr entity) :
-   CollisionTracker(ng, entity),
+RegionTracker::RegionTracker(NavGrid& ng, TrackerType type,  om::EntityPtr entity) :
+   CollisionTracker(ng, type, entity),
    last_bounds_(csg::Cube3::zero)
 {
 }
@@ -30,7 +30,7 @@ RegionTracker::RegionTracker(NavGrid& ng, om::EntityPtr entity) :
  */
 RegionTracker::~RegionTracker()
 {
-   GetNavGrid().OnTrackerDestroyed(last_bounds_, GetEntityId());
+   GetNavGrid().OnTrackerDestroyed(last_bounds_, GetEntityId(), GetType());
 }
 
 

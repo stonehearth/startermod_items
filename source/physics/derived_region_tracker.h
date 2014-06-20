@@ -27,8 +27,7 @@ public:
    virtual ~DerivedRegionTracker() { }
 
    void Initialize() override;
-   TrackerType GetType() const override;
-
+   
 protected:
    om::Region3BoxedPtr GetRegion() const override;
 
