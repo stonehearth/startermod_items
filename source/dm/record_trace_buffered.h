@@ -18,6 +18,7 @@ public:
    RecordTraceBuffered(const char* reason, Record const& r, Tracer&);
 
    void Flush() override;
+   void SignalDestroyed() override { RecordTrace<R>::SignalDestroyed(); }
    bool SaveObjectDelta(SerializationType r, Protocol::Value* value) override;
 
 private:

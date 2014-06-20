@@ -54,8 +54,8 @@ void TracerBuffered::Flush()
    TRACE_LOG(5) << "starting flush...";
 
    bool finished;
-   std::unordered_set<ObjectId> modified;
-   std::vector<ObjectId> destroyed;
+   decltype(modified_objects_) modified;
+   decltype(destroyed_objects_) destroyed;
 
    do {
       modified = std::move(modified_objects_);
@@ -72,29 +72,33 @@ void TracerBuffered::Flush()
    TRACE_LOG(5) << "finished flush";
 }
 
-void TracerBuffered::FlushOnce(std::unordered_set<ObjectId>& last_modified,
+void TracerBuffered::FlushOnce(ModifiedObjectsSet& last_modified,
                                std::vector<ObjectId>& last_destroyed)
 {
    for (ObjectId id : last_modified) {
-      auto i = buffered_traces_.find(id);
-      if (i != buffered_traces_.end()) {
-         stdutil::ForEachPrune<TraceBuffered>(i->second, [](TraceBufferedPtr t) {
+      auto range = traces_.equal_range(id);
+      auto i = range.first;
+      while (i != range.second) {
+         TraceBufferedPtr t = i->second.lock();
+         if (t) {
             t->Flush();
-         });
-         if (i->second.empty()) {
-            buffered_traces_.erase(i);
+            ++i;
+         } else {
+            i = traces_.erase(i);
          }
       }
    }
 
    for (ObjectId id : last_destroyed) {
-      auto i = traces_.find(id);
-      if (i != traces_.end()) {
-         stdutil::ForEachPrune<Trace>(i->second, [](TracePtr t) {
+      auto range = traces_.equal_range(id);
+      auto i = range.first;
+      while (i != range.second) {
+         TraceBufferedPtr t = i->second.lock();
+         if (t) {
             t->SignalDestroyed();
-         });
-         if (i->second.empty()) {
-            traces_.erase(i);
+            ++i;
+         } else {
+            i = traces_.erase(i);
          }
       }
    };

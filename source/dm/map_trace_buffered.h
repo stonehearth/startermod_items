@@ -18,7 +18,8 @@ public:
    MapTraceBuffered(const char* reason, M const& m);
    virtual ~MapTraceBuffered();
 
-   void Flush();
+   void Flush() override;
+   void SignalDestroyed() override { MapTrace<M>::SignalDestroyed(); }
    bool SaveObjectDelta(SerializationType r, Protocol::Value* value) override;
 
 private:

@@ -8,6 +8,7 @@ BEGIN_RADIANT_DM_NAMESPACE
 class TraceBuffered
 {
 public:
+   virtual void SignalDestroyed() = 0;
    virtual void Flush() = 0;
    virtual bool SaveObjectDelta(SerializationType r, Protocol::Value* value) = 0;
 };

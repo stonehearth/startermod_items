@@ -17,7 +17,8 @@ class SetTraceBuffered : public core::ObjectCounter<SetTraceBuffered<S>>,
 public:
    SetTraceBuffered(const char* reason, S const& set);
 
-   void Flush();
+   void Flush() override;
+   void SignalDestroyed() override { SetTrace<S>::SignalDestroyed(); }
    bool SaveObjectDelta(SerializationType r, Protocol::Value* value) override;
 
 private:
