@@ -25,6 +25,7 @@
 #include "client/client.h"
 #include "raycast_result.h"
 #include "platform/utils.h"
+#include "horde3d\Source\Shared\utMath.h"
 
 using namespace ::radiant;
 using namespace ::radiant::client;
@@ -65,7 +66,8 @@ Renderer::Renderer() :
    iconified_(false),
    resize_pending_(false),
    drawWorld_(true),
-   last_render_time_wallclock_(0)
+   last_render_time_wallclock_(0),
+   _loading(false)
 {
    OneTimeIninitializtion();
 }
@@ -842,6 +844,11 @@ void Renderer::Initialize()
    last_render_time_wallclock_ = platform::get_current_time_in_ms();
 }
 
+void Renderer::BuildLoadingScreen()
+{
+   _loadingMaterial = h3dAddResource(H3DResTypes::Material, "materials/loading_screen.material.xml", 0);
+}
+
 void Renderer::Shutdown()
 {
    RenderNode::Shutdown();
@@ -862,7 +869,7 @@ void Renderer::Shutdown()
    delete camera_;      camera_ = nullptr;
    delete fowCamera_;   fowCamera_ = nullptr;
    h3dReset();
-   
+
    ASSERT(RenderEntity::GetTotalObjectCount() == 0);
 }
 
@@ -1008,14 +1015,24 @@ void Renderer::RenderOneFrame(int now, float alpha)
       // Render scene
       perfmon::SwitchToCounter("render h3d");
    
-      if (drawWorld_) {
+      if (drawWorld_ && !_loading) {
          currentPipeline_ = worldPipeline_;
 
          RenderFogOfWarRT();
          h3dSetResParamStr(GetPipeline(currentPipeline_), H3DPipeRes::GlobalRenderTarget, 0, fowRenderTarget_, "FogOfWarRT");
       }
 
+      if (_loading) {
+         float x = 10;
+         float y = 10;
+         float barHeight = 100;
+         float width = 1000;
+	      float ovTitleVerts[] = { x, y, 0, 1, x, y + barHeight, 0, 0,
+	                               x + width, y + barHeight, 1, 0, x + width, y, 1, 1 };
+	      h3dShowOverlays( ovTitleVerts, 4,  1.0f, 1.0f, 1.0f, 1.0f, _loadingMaterial, 0 );
+      }
       h3dRender(camera_->GetNode(), GetPipeline(currentPipeline_));
+
 
       // Finish rendering of frame
       UpdateCamera();
@@ -1208,11 +1225,34 @@ void Renderer::SetDrawWorld(bool drawWorld)
       return;
    }
    drawWorld_ = drawWorld;
+
+   if (_loading) {
+      // Loading will always get set to false below (when loading is complete.)  Let that function
+      // set the appropriate pipeline.
+      return;
+   }
+
    if (drawWorld_) {
       currentPipeline_ = worldPipeline_;
    } else {
       currentPipeline_ = "pipelines/ui_only.pipeline.xml";
    }
+}
+
+void Renderer::SetLoading(bool loading)
+{
+   _loading = loading;
+   if (loading) {
+      currentPipeline_ = "pipelines/loading_screen_only.pipeline.xml";
+      BuildLoadingScreen();
+   } else {
+      currentPipeline_ = worldPipeline_;
+   }
+}
+
+void Renderer::UpdateLoadingProgress(float amountLoaded)
+{
+
 }
 
 void* Renderer::GetNextUiBuffer()

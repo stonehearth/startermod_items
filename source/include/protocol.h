@@ -1,6 +1,7 @@
 #ifndef _RADIANT_PROTOCOL_H
 #define _RADIANT_PROTOCOL_H
 
+#include "platform/utils.h"
 #include <google/protobuf/message.h>
 #include <google/protobuf/message_lite.h>
 #include <google/protobuf/io/zero_copy_stream_impl.h>
@@ -86,7 +87,7 @@ namespace radiant {
          RecvQueue(boost::asio::ip::tcp::socket& s);
 
       public:
-         template <class T> void Process(std::function<bool(T&)> fn)
+         template <class T> void Process(std::function<bool(T&)> fn, platform::timer& process_timeout)
          {
             google::protobuf::io::ArrayInputStream input(readBuf_.data(), readBuf_.size());
             google::protobuf::io::CodedInputStream decoder(&input);
@@ -94,7 +95,7 @@ namespace radiant {
             int remaining = readBuf_.size();
 
             // Read all we can...
-            while (!readBuf_.empty()) {
+            while (!readBuf_.empty() && !process_timeout.expired()) {
                const void* tail;
                if (!decoder.GetDirectBufferPointer(&tail, &remaining)) {
                   remaining = 0;

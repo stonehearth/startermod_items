@@ -5,7 +5,8 @@ function Renderer:initialize()
    self._building_vision_mode = 'normal'
    
    if self._sv.visible_region_uri then
-      self:_install_regions()
+      radiant.events.listen_once(radiant, 'radiant:game_loaded', self, self._install_regions)
+      --self:_install_regions()
    end
 end
 
@@ -51,7 +52,7 @@ function Renderer:_install_regions()
    -- register them with the renderer, until it finally succeeds.
    if not self._installing_regions then
       self._installing_regions = true
-      radiant.events.listen(radiant, 'stonehearth:gameloop', function()
+      self._timer = radiant.set_realtime_interval(500, function()
             self._installing_regions = true
             if not self._visible_region_installed then
                self._visible_region_installed = _radiant.renderer.visibility.set_visible_region(self._sv.visible_region_uri)
@@ -60,10 +61,11 @@ function Renderer:_install_regions()
                self._explored_region_installed = _radiant.renderer.visibility.set_explored_region(self._sv.explored_region_uri)
             end
 
-            -- both registered!  unregister the callback.
+            -- both registered!  time to die....
             if self._visible_region_installed and self._explored_region_installed then
                self._installing_regions = false
-               return radiant.events.UNLISTEN
+               self._timer:destroy()
+               self._timer = nil
             end
          end)
    end

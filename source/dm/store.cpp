@@ -240,7 +240,7 @@ bool Store::LoadAllocedObjectsList(google::protobuf::io::CodedInputStream& cis, 
    return true;
 }
 
-bool Store::LoadObjects(google::protobuf::io::CodedInputStream& cis, std::string& error)
+bool Store::LoadObjects(google::protobuf::io::CodedInputStream& cis, std::string& error, LoadProgressCb const& cb)
 {
    Protocol::Object msg;
    google::protobuf::uint32 size, limit, total_objects, i;
@@ -259,6 +259,9 @@ bool Store::LoadObjects(google::protobuf::io::CodedInputStream& cis, std::string
       int percent = i * 100 / total_objects;
       if (percent - last_reported_percent > 10) {
          last_reported_percent = percent;
+         if (cb) {
+            cb(percent);
+         }
          LOG_(0) << " load progress " << percent << "%...";
       }
 
@@ -285,7 +288,7 @@ bool Store::LoadObjects(google::protobuf::io::CodedInputStream& cis, std::string
    return true;
 }
 
-bool Store::Load(std::string const& filename, std::string &error, ObjectMap& objects)
+bool Store::Load(std::string const& filename, std::string &error, ObjectMap& objects, LoadProgressCb const& cb)
 {
    // xxx: should probably just pass the save state into the ctor...
    ASSERT(traces_.empty());
@@ -311,7 +314,7 @@ bool Store::Load(std::string const& filename, std::string &error, ObjectMap& obj
 
    bool result = LoadStoreHeader(cis, error) &&
                  LoadAllocedObjectsList(cis, error, objects) &&
-                 LoadObjects(cis, error);
+                 LoadObjects(cis, error, cb);
 
    _close(fd);
    return result;

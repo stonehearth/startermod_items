@@ -93,9 +93,21 @@ run:
 run-all-tests-remote:
 	scripts/test/run_remote_autotest.py
 
+ 
 .PHONY: run-all-perf-tests-remote
 run-all-perf-tests-remote:
 	scripts/test/run_remote_autotest.py -p -g perf_all
+	curl -F results=@build/combined_results.shperf.json http://localhost:8087/_result?build_number=12345
+
+# Collect performance data from a local build.  Invokes like:
+# make run-perf-exp SCRIPT=perf_camera_orbit.lua FUNC=orbit CONFIG=ultra_quality DESC=description_goes_here
+.PHONY: run-perf-exp
+run-perf-exp:
+	scripts/test/run_remote_autotest.py -p -s performance/$(SCRIPT) -f $(FUNC) -c $(CONFIG)
+	curl -F results=@build/combined_results.shperf.json http://localhost:8087/_experiment?description=$(DESC)
+
+.PHONY: perf-exp
+perf-exp: test-stage test-package run-perf-exp
 
 # make a decoda project!
 .PHONY: decoda-project
@@ -113,13 +125,6 @@ stage:
 .PHONY: test-stage
 test-stage:
 	sh $(SCRIPTS_ROOT)/stage/stage_stonehearth.sh -o $(TEST_STAGE_ROOT) -t $(MSBUILD_CONFIGURATION) -c -a -m stonehearth_autotest -m autotest_framework
-
-.PHONY: perf-run
-perf-run:
-	curl -F args=$(ARGS) -F settings=@$(TEST_CONFIG) -F file=@$(ZIP_PACKAGE_ROOT)/stonehearth-game.zip -K slaveurls.txt	
-
-.PHONY: perfexp
-perfexp: perf-stage game-package perf-run
 
 .PHONY: test-package
 test-package:

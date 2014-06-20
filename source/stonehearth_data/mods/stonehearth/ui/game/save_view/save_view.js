@@ -153,7 +153,7 @@ App.StonehearthLoadView = App.StonehearthSaveLoadView.extend({
             // so we don't need to worry about removing the loading screen, ever.
             App.gameView.addView(App.StonehearthLoadingScreenView, { hideProgress: true });
             radiant.call("radiant:client:load_game", key)
-               .always(function() {
+               .done(function() {
                   App.gotoGame();
                });
          }

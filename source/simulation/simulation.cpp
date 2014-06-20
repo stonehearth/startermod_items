@@ -68,7 +68,8 @@ Simulation::Simulation() :
    _showDebugNodes(false),
    _singleStepPathFinding(false),
    debug_navgrid_enabled_(false),
-   profile_next_lua_update_(false)
+   profile_next_lua_update_(false),
+   begin_loading_(false)
 {
    OneTimeIninitializtion();
 }
@@ -174,8 +175,8 @@ void Simulation::OneTimeIninitializtion()
    core_reactor_->AddRouteV("radiant:server:save", [this](rpc::Function const& f) {
       Save(json::Node(f.args).get<std::string>("saveid"));
    });
-   core_reactor_->AddRouteV("radiant:server:load", [this](rpc::Function const& f) {
-      Load(json::Node(f.args).get<std::string>("saveid"));
+   core_reactor_->AddRoute("radiant:server:load", [this](rpc::Function const& f) {
+      return BeginLoad(json::Node(f.args).get<std::string>("saveid"));
    });
 
 }
@@ -451,13 +452,15 @@ void Simulation::EncodeServerTick(std::shared_ptr<RemoteClient> c)
 
 void Simulation::EncodeUpdates(std::shared_ptr<RemoteClient> c)
 {
-   c->streamer->Flush();
-   EncodeDebugShapes(c->send_queue);
-
    for (const auto& msg : buffered_updates_) {
       c->send_queue->Push(msg);
    }
    buffered_updates_.clear();
+}
+
+void Simulation::FlushStream(std::shared_ptr<RemoteClient> c)
+{
+   c->streamer->Flush();
 }
 
 om::EntityPtr Simulation::GetRootEntity()
@@ -689,6 +692,11 @@ void Simulation::Mainloop()
    SIM_LOG_GAMELOOP(7) << "starting next gameloop";
    ReadClientMessages();
 
+   if (begin_loading_) {
+      begin_loading_ = false;
+      Load();
+   }
+
    if (!paused_) {
       UpdateGameState();
       ProcessTaskList();
@@ -714,8 +722,10 @@ void Simulation::Mainloop()
    } else {
       SIM_LOG_GAMELOOP(7) << "net log still has " << net_send_timer_.remaining() << " till expired.";
    }
+
    //LuaGC();
    Idle();
+
 }
 
 void Simulation::LuaGC()
@@ -789,6 +799,8 @@ void Simulation::SendUpdates(std::shared_ptr<RemoteClient> c)
 {
    EncodeBeginUpdate(c);
    EncodeServerTick(c);
+   FlushStream(c);
+   EncodeDebugShapes(c->send_queue);
    EncodeUpdates(c);
    EncodeEndUpdate(c);
 }
@@ -801,10 +813,12 @@ void Simulation::ReadClientMessages()
    _io_service->poll();
    _io_service->reset();
 
+   // We'll let the simulation process as many messages as it wants.
+   platform::timer timeout(100000);
    for (auto c : _clients) {
       c->recv_queue->Process<proto::Request>([=](proto::Request const& msg) -> bool {
          return ProcessMessage(c, msg);
-      });
+      }, timeout);
    }
 }
 
@@ -828,7 +842,14 @@ void Simulation::Save(boost::filesystem::path const& saveid)
    SIM_LOG(0) << "saved.";
 }
 
-void Simulation::Load(boost::filesystem::path const& saveid)
+rpc::ReactorDeferredPtr Simulation::BeginLoad(boost::filesystem::path const& saveid) {
+   load_saveid_ = saveid;
+   begin_loading_ = true;
+   load_progress_deferred_ = std::make_shared<rpc::ReactorDeferred>("load progress");
+   return load_progress_deferred_;
+}
+
+void Simulation::Load()
 {
    SIM_LOG(0) << "starting loadin...";
    // delete all the streamers before shutting down so we don't spam them with delete requests,
@@ -846,9 +867,19 @@ void Simulation::Load(boost::filesystem::path const& saveid)
    std::string error;
    dm::ObjectMap objects;
    // Re-initialize the game
-   std::string filename = (core::Config::GetInstance().GetSaveDirectory() / saveid / "server_state.bin").string();
+   std::string filename = (core::Config::GetInstance().GetSaveDirectory() / load_saveid_ / "server_state.bin").string();
 
-   if (!store_->Load(filename, error, objects)) {
+   bool didLoad = store_->Load(filename, error, objects, [this](int progress) {
+      json::Node result;
+      result.set("progress", progress / 2.0);
+      load_progress_deferred_->Notify(result);
+      for (std::shared_ptr<RemoteClient> c : _clients) {
+         EncodeUpdates(c);
+         protocol::SendQueue::Flush(c->send_queue);
+      }
+   });
+   
+   if (!didLoad) {
       SIM_LOG(0) << "failed to load: " << error;
    }
    root_entity_ = store_->FetchObject<om::Entity>(1);
@@ -872,7 +903,7 @@ void Simulation::Load(boost::filesystem::path const& saveid)
    proto::Update msg;
    msg.set_type(proto::Update::LoadGame);
    proto::LoadGame *loadGameMsg = msg.MutableExtension(proto::LoadGame::extension);
-   loadGameMsg->set_game_id(saveid.string());
+   loadGameMsg->set_game_id(load_saveid_.string());
 
    for (std::shared_ptr<RemoteClient> client : _clients) {
       client->send_queue->Push(msg);
@@ -886,6 +917,11 @@ void Simulation::Load(boost::filesystem::path const& saveid)
    })->PushStoreState(); 
 
    scriptHost_->LoadGame(modList_, entityMap_, datastores);
+   load_progress_deferred_->Resolve(json::Node().set("progress", 100));
+   for (std::shared_ptr<RemoteClient> c : _clients) {
+      EncodeUpdates(c);
+      protocol::SendQueue::Flush(c->send_queue);
+   }
    SIM_LOG(0) << "done loadin...";
 }
 
