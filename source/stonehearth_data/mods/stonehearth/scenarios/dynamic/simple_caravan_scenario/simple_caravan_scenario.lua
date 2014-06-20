@@ -1,13 +1,12 @@
 local SimpleCaravan = class()
 local rng = _radiant.csg.get_default_rng()
 
---TOO MANY TODOS!  In order to make this work, we also have to fix the inventory service. 
-
 function SimpleCaravan:can_spawn()
    --TODO: ask Chris how to satisfy all of these conditions
    --TODO: account for only having the caravan come by every N days?
    --TODO: don't send the caravan during the winter?
    --TODO: don't send the caravan when there's been a lot of violence in the area recently
+
    --Only spawn the caravan if there is at least 1 stockpile
    local inventory = stonehearth.inventory:get_inventory(self._sv.player_id)
    local storage = inventory:get_all_storage()
@@ -24,7 +23,7 @@ end
 
 --[[
    Simple Caravan narrative
-   Every <TODO!> a caravan from your kingdom comes by your town.
+   Every day, there's a chance that a caravan from your kingdom comes by your town.
    Based on its observations of your resources, it offers to make a trade.
    TODO: Make more complex caravans based on the different kingdoms; maybe different scenarios
 ]]
@@ -45,6 +44,16 @@ end
 
 function SimpleCaravan:restore()
    self:_load_trade_data()
+
+   --If we made an expire timer then we're waiting for the player to acknowledge the traveller
+   --Start a timer that will expire at that time
+   if self._sv.timer_expiration then
+      radiant.events.listen(radiant, 'radiant:game_loaded', function(e)
+         local duration = self._sv.timer_expiration - stonehearth.calendar:get_elapsed_time()
+         self:_create_timer(duration)
+         return radiant.events.UNLISTEN
+      end)
+   end
 end
 
 function SimpleCaravan:_load_trade_data()

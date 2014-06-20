@@ -66,7 +66,7 @@ function InventoryService:add_item(player_id, storage, item)
 end
 
 --- When an item is removed from a player's inventory, tell this function, which will
---  propgaget the change to the correct inventory
+--  propgate the change to the correct inventory
 function InventoryService:remove_item(player_id, storage, item)
    local inventory_for_player = self:get_inventory(player_id)
    inventory_for_player:remove_item(storage, item)
