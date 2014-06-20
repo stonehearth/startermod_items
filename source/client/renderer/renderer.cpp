@@ -24,6 +24,7 @@
 #include <string>
 #include "client/client.h"
 #include "raycast_result.h"
+#include "platform/utils.h"
 
 using namespace ::radiant;
 using namespace ::radiant::client;
@@ -557,6 +558,8 @@ void Renderer::GetConfigOptions()
 
    config_.minimized.value = config.Get("renderer.minimized", false);
    
+   _maxRenderEntityLoadTime = core::Config::GetInstance().Get<int>("max_render_entity_load_time", 50);
+
    resourcePath_ = config.Get("renderer.resource_path", "stonehearth/data/horde");
 }
 
@@ -923,7 +926,9 @@ bool Renderer::SetExploredRegion(std::string const& explored_region_uri)
 void Renderer::RenderOneFrame(int now, float alpha)
 {
    // Initialize all the new render entities we created this frame.
-   while (!_newRenderEntities.empty()) {
+   platform::timer t(_maxRenderEntityLoadTime);
+
+   while (!_newRenderEntities.empty() && !t.expired()) {
       std::shared_ptr<RenderEntity> re = _newRenderEntities.back().lock();
       _newRenderEntities.pop_back();
       if (re) {
