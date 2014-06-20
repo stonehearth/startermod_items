@@ -149,11 +149,12 @@ App.StonehearthLoadView = App.StonehearthSaveLoadView.extend({
          var key = this.getListView().getSelectedKey();
 
          if (key) {
+            // throw up a loading screen. when the game is loaded the browser is refreshed,
+            // so we don't need to worry about removing the loading screen, ever.
+            App.gameView.addView(App.StonehearthLoadingScreenView, { hideProgress: true });
             radiant.call("radiant:client:load_game", key)
                .always(function() {
-                  // throw up a loading screen. when the game is loaded the browser is refreshed,
-                  // so we don't need to worry about removing the loading screen, ever.
-                  App.gameView.addView(App.StonehearthLoadingScreenView, { hideProgress: true });
+                  App.gotoGame();
                });
          }
       },
