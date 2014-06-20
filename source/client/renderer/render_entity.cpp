@@ -46,7 +46,7 @@ RenderEntity::RenderEntity(H3DNode parent, om::EntityPtr entity) :
    initialized_(false),
    skeleton_(*this),
    visible_override_(true),
-   _manualParent(false)
+   _parentOverride(false)
 {
    ASSERT(parent);
 
@@ -148,7 +148,7 @@ void RenderEntity::SetParent(H3DNode parent)
 }
 
 /*
- * -- RenderEntity::SetManualParentEnabled
+ * -- RenderEntity::SetParentOverride
  *
  * Specifies whether or not the parent for this entity should be determined
  * by the object hierarchy in the object model or manually specified by lua.
@@ -161,14 +161,14 @@ void RenderEntity::SetParent(H3DNode parent)
  * creation of render entities on entities created in the authoring store.
  *
  */
-void RenderEntity::SetManualParentEnabled(bool enabled)
+void RenderEntity::SetParentOverride(bool enabled)
 {
-   _manualParent = enabled;
+   _parentOverride = enabled;
 }
 
-bool RenderEntity::GetManualParentEnabled() const
+bool RenderEntity::GetParentOverride() const
 {
-   return _manualParent;
+   return _parentOverride;
 }
 
 

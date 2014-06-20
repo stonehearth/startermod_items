@@ -28,7 +28,7 @@ RenderMob::RenderMob(RenderEntity& entity, om::MobPtr mob) :
       }
    });
 
-   if (!entity_.GetManualParentEnabled()) {
+   if (!entity_.GetParentOverride()) {
       parent_trace_ = mob->TraceParent("render", dm::RENDER_TRACES)
                                     ->OnChanged([this](om::EntityRef parent) {
                                        UpdateParent();
@@ -171,9 +171,7 @@ void RenderMob::UpdateInterpolate(bool interpolate)
 
 void RenderMob::UpdateParent()
 {
-   if (!entity_.GetManualParentEnabled()) {
-      // Should never get here, as the flag doesn't turn off for RenderEntities that
-      // want it.  Still, future proofing is just as easy as ASSERT()ing.
+   if (entity_.GetParentOverride()) {
       bone_trace_.reset();
       parent_trace_.reset();
       return;

@@ -211,7 +211,7 @@ std::weak_ptr<RenderEntity> Client_CreateRenderEntity(H3DNode parent, luabind::o
 
    if (entity) {
       std::shared_ptr<RenderEntity> re = Renderer::GetInstance().CreateRenderEntity(parent, entity);
-      re->SetManualParentEnabled(true);
+      re->SetParentOverride(true);
       result = re;
    }
    return result;

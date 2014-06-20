@@ -36,8 +36,8 @@ class RenderEntity : public std::enable_shared_from_this<RenderEntity>
       om::EntityPtr GetEntity() const { return entity_.lock(); }
       void SetParent(H3DNode node);
 
-      void SetManualParentEnabled(bool enabled);
-      bool GetManualParentEnabled() const;
+      void SetParentOverride(bool enabled);
+      bool GetParentOverride() const;
       
       H3DNode GetParent() const; 
       H3DNode GetNode() const;
@@ -103,7 +103,7 @@ protected:
       std::string       model_variant_override_;
       std::string       material_override_;
       bool              visible_override_;
-      bool              _manualParent;
+      bool              _parentOverride;
 };
 
 typedef std::shared_ptr<RenderEntity>  RenderEntityPtr;

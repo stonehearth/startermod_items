@@ -65,13 +65,13 @@ EntityContainer& EntityContainer::RemoveChild(dm::ObjectId id)
    EntityPtr child;
    auto i = children_.find(id);
    if (i != children_.end()) {
-      children_.Remove(id);
       child = i->second.lock();
+      children_.Remove(id);
    } else {
       auto i = attached_items_.find(id);
       if (i != attached_items_.end()) {
-         attached_items_.Remove(id);
          child = i->second.lock();
+         attached_items_.Remove(id);
       }
    }
    if (child) {

@@ -15,6 +15,7 @@ class Renderer;
 class RenderMob : public RenderComponent {
 public:
    RenderMob(RenderEntity& entity, om::MobPtr mob);
+   void UpdateParent();
 
 private:
    void RenderAxes();
@@ -22,7 +23,6 @@ private:
    void Move();
    void UpdateTransform(csg::Transform const& transform);
    void UpdateInterpolate(bool interpolate);
-   void UpdateParent();
 
 private:
    RenderEntity&        entity_;

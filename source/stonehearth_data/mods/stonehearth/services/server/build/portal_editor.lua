@@ -46,6 +46,7 @@ function PortalEditor:go()
    end
 
    self._fixture_blueprint_render_entity = _radiant.client.create_render_entity(1, self._fixture_blueprint)
+   self._fixture_blueprint_render_entity:set_parent_override(false)
    self._fixture_blueprint_render_entity:set_visible_override(false)
       
    return self
