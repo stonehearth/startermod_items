@@ -26,7 +26,7 @@ public:
    { \
       ObjectId id = object.GetObjectId(); \
       std::shared_ptr<Cls ## TraceBuffered<C>> trace = std::make_shared<Cls ## TraceBuffered<C>> ctor_sig; \
-      traces_.insert(std::make_pair(id, trace)); \
+      traces_[id].push_back(trace); \
       return trace; \
    }
 
@@ -49,8 +49,8 @@ private:
    void OnObjectModified(ObjectId id);
 
 private:
-   typedef std::unordered_multimap<ObjectId, TraceRef> TraceMap;
-   typedef std::unordered_multimap<ObjectId, TraceBufferedRef> TraceBufferedMap;
+   typedef std::vector<TraceBufferedRef> TraceBufferedList;
+   typedef std::unordered_map<ObjectId, TraceBufferedList> TraceBufferedMap;
 
 private:
    ModifiedObjectsSet            modified_objects_;

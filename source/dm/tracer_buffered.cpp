@@ -76,29 +76,25 @@ void TracerBuffered::FlushOnce(ModifiedObjectsSet& last_modified,
                                std::vector<ObjectId>& last_destroyed)
 {
    for (ObjectId id : last_modified) {
-      auto range = traces_.equal_range(id);
-      auto i = range.first;
-      while (i != range.second) {
-         TraceBufferedPtr t = i->second.lock();
-         if (t) {
+      auto i = traces_.find(id);
+      if (i != traces_.end()) {
+         stdutil::ForEachPrune<TraceBuffered>(i->second, [](TraceBufferedPtr t) {
             t->Flush();
-            ++i;
-         } else {
-            i = traces_.erase(i);
+         });
+         if (i->second.empty()) {
+            traces_.erase(i);
          }
       }
    }
 
    for (ObjectId id : last_destroyed) {
-      auto range = traces_.equal_range(id);
-      auto i = range.first;
-      while (i != range.second) {
-         TraceBufferedPtr t = i->second.lock();
-         if (t) {
+      auto i = traces_.find(id);
+      if (i != traces_.end()) {
+         stdutil::ForEachPrune<TraceBuffered>(i->second, [](TraceBufferedPtr t) {
             t->SignalDestroyed();
-            ++i;
-         } else {
-            i = traces_.erase(i);
+         });
+         if (i->second.empty()) {
+            traces_.erase(i);
          }
       }
    };

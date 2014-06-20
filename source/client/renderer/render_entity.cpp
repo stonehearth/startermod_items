@@ -45,7 +45,8 @@ RenderEntity::RenderEntity(H3DNode parent, om::EntityPtr entity) :
    entity_id_(entity->GetObjectId()),
    initialized_(false),
    skeleton_(*this),
-   visible_override_(true)
+   visible_override_(true),
+   _manualParent(false)
 {
    ASSERT(parent);
 
@@ -145,6 +146,31 @@ void RenderEntity::SetParent(H3DNode parent)
    //Currently, crash (see promotion_test.lua). Fix before the Wildfire Mod
    h3dSetNodeParent(node_, parent);
 }
+
+/*
+ * -- RenderEntity::SetManualParentEnabled
+ *
+ * Specifies whether or not the parent for this entity should be determined
+ * by the object hierarchy in the object model or manually specified by lua.
+ * Ideally, all objects would obey the object hierarchy.  In some cases, however,
+ * we need to explicitly disable it.  Consider the little ghost entities attached
+ * to cursors when moving items.  Those need to be created on the Horde root
+ * node and moved around by some input listener.  We can't put them in the root
+ * node of the object model, since it's read-only on the client side.  In
+ * practice, this should be called in exactly one place, which is the manual
+ * creation of render entities on entities created in the authoring store.
+ *
+ */
+void RenderEntity::SetManualParentEnabled(bool enabled)
+{
+   _manualParent = enabled;
+}
+
+bool RenderEntity::GetManualParentEnabled() const
+{
+   return _manualParent;
+}
+
 
 H3DNode RenderEntity::GetParent() const
 {

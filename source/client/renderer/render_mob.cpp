@@ -28,17 +28,19 @@ RenderMob::RenderMob(RenderEntity& entity, om::MobPtr mob) :
       }
    });
 
-   parent_trace_ = mob->TraceParent("render", dm::RENDER_TRACES)
-                                 ->OnChanged([this](om::EntityRef parent) {
-                                    UpdateParent();
-                                 })
-                                 ->PushObjectState();
+   if (!entity_.GetManualParentEnabled()) {
+      parent_trace_ = mob->TraceParent("render", dm::RENDER_TRACES)
+                                    ->OnChanged([this](om::EntityRef parent) {
+                                       UpdateParent();
+                                    })
+                                    ->PushObjectState();
 
-   bone_trace_ = mob->TraceBone("render", dm::RENDER_TRACES)
-                                 ->OnChanged([this](std::string const&) {
-                                    UpdateParent();
-                                 })
-                                 ->PushObjectState();
+      bone_trace_ = mob->TraceBone("render", dm::RENDER_TRACES)
+                                    ->OnChanged([this](std::string const&) {
+                                       UpdateParent();
+                                    })
+                                    ->PushObjectState();
+   }
 
    interp_trace_ = mob->TraceInterpolateMovement("render", dm::RENDER_TRACES)
                                  ->OnChanged([this](bool interpolate) {
@@ -169,6 +171,14 @@ void RenderMob::UpdateInterpolate(bool interpolate)
 
 void RenderMob::UpdateParent()
 {
+   if (!entity_.GetManualParentEnabled()) {
+      // Should never get here, as the flag doesn't turn off for RenderEntities that
+      // want it.  Still, future proofing is just as easy as ASSERT()ing.
+      bone_trace_.reset();
+      parent_trace_.reset();
+      return;
+   }
+
    om::MobPtr mob = mob_.lock();
    if (mob) {
       H3DNode unparented = RenderNode::GetUnparentedNode();

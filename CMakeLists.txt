@@ -44,7 +44,7 @@ ENDIF()
 
 # Enable Object Counting
 IF(ENABLE_OBJECT_COUNTER)
-   MESSAGE(" ** MemPro support is on **")
+   MESSAGE(" ** Object counter support is on **")
    SET(CMAKE_C_FLAGS "ENABLE_OBJECT_COUNTER" ${CMAKE_C_FLAGS})
    SET(CMAKE_CXX_FLAGS "ENABLE_OBJECT_COUNTER" ${CMAKE_C_FLAGS})
 ENDIF()
