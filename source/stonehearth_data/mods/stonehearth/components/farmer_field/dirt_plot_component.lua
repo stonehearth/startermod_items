@@ -1,5 +1,4 @@
 local Point3 = _radiant.csg.Point3
-local farming_service = stonehearth.farming
 
 local DirtPlotComponent = class()
 
@@ -136,7 +135,7 @@ function DirtPlotComponent:_update_visible_soil_state()
 
       local render_info = self._entity:add_component('render_info')
       render_info:set_model_variant(fertility_category)
-      local dirt_name, dirt_description = farming_service:get_dirt_descriptions(fertility_category)
+      local dirt_name, dirt_description = stonehearth.farming:get_dirt_descriptions(fertility_category)
       radiant.entities.set_name(self._entity, dirt_name)
       radiant.entities.set_description(self._entity, dirt_description)
    end

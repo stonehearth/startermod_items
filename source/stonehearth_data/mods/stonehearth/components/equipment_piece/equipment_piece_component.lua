@@ -92,17 +92,17 @@ function EquipmentPieceComponent:_value_is_in_array(value, array)
 end
 
 function EquipmentPieceComponent:_attach_to_bone()
-   local attached_items = self._sv.owner:add_component('attached_items')
+   local entity_container = self._sv.owner:add_component('entity_container')
    local bone_name = self._json.render_info.default_bone
    log:debug('%s attaching %s to bone %s', self._sv.owner, self._entity, bone_name)
-   attached_items:add_item(bone_name, self._entity)
+   entity_container:add_child_to_bone(self._entity, bone_name)
 end
 
 function EquipmentPieceComponent:_remove_from_bone()
-   local attached_items = self._sv.owner:add_component('attached_items')
+   local entity_container = self._sv.owner:add_component('entity_container')
    local bone_name = self._json.render_info.default_bone
    log:debug('%s detaching item on bone %s', self._sv.owner, self._entity, bone_name)
-   attached_items:remove_item(bone_name)
+   entity_container:remove_child(self._entity:get_id())
 end
 
 function EquipmentPieceComponent:_inject_ai()

@@ -8,6 +8,7 @@
 #include "set_trace_buffered.h"
 #include "boxed_trace_buffered.h"
 #include <unordered_set>
+#include <boost/container/flat_set.hpp>
 
 BEGIN_RADIANT_DM_NAMESPACE
 
@@ -25,8 +26,7 @@ public:
    { \
       ObjectId id = object.GetObjectId(); \
       std::shared_ptr<Cls ## TraceBuffered<C>> trace = std::make_shared<Cls ## TraceBuffered<C>> ctor_sig; \
-      traces_[id].push_back(trace); \
-      buffered_traces_[id].push_back(trace); \
+      traces_.insert(std::make_pair(id, trace)); \
       return trace; \
    }
 
@@ -39,25 +39,24 @@ public:
 
    void Flush();
 
+
+   typedef boost::container::flat_set<ObjectId> ModifiedObjectsSet;
+
 private:
-   void FlushOnce(std::unordered_set<ObjectId>& last_modified,
+   void FlushOnce(ModifiedObjectsSet& last_modified,
                   std::vector<ObjectId>& last_destroyed);
    void OnObjectDestroyed(ObjectId id);
    void OnObjectModified(ObjectId id);
 
 private:
-   typedef std::vector<TraceBufferedRef> TraceBufferedList;
-   typedef std::unordered_map<ObjectId, TraceBufferedList> TraceBufferedMap;
-
-   typedef std::vector<TraceRef> TraceList;
-   typedef std::unordered_map<ObjectId, TraceList> TraceMap;
+   typedef std::unordered_multimap<ObjectId, TraceRef> TraceMap;
+   typedef std::unordered_multimap<ObjectId, TraceBufferedRef> TraceBufferedMap;
 
 private:
-   std::unordered_set<ObjectId>  modified_objects_;
+   ModifiedObjectsSet            modified_objects_;
    std::vector<ObjectId>         destroyed_objects_;
    StoreTracePtr                 store_trace_;
-   TraceMap                      traces_;
-   TraceBufferedMap              buffered_traces_;
+   TraceBufferedMap              traces_;
 };
 
 END_RADIANT_DM_NAMESPACE

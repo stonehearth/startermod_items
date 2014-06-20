@@ -121,10 +121,10 @@ std::string WeakGameObjectToJson(std::weak_ptr<T> o)
 
 template <class T>
 static std::shared_ptr<lua::TraceWrapper>
-StrongTraceGameObject(std::shared_ptr<T> o, const char* reason, bool sync)
+StrongTraceGameObject(std::shared_ptr<T> o, const char* reason, dm::TraceCategories c)
 {
    if (o)  {
-      auto trace = o->TraceObjectChanges(reason, sync ? dm::LUA_SYNC_TRACES : dm::LUA_ASYNC_TRACES);
+      auto trace = o->TraceObjectChanges(reason, c);
       return std::make_shared<lua::TraceWrapper>(trace);
    }
    throw std::invalid_argument("invalid reference in native :trace_changes");
@@ -134,21 +134,21 @@ template <class T>
 static std::shared_ptr<lua::TraceWrapper>
 StrongTraceGameObjectAsync(std::shared_ptr<T> o, const char* reason)
 {
-   return StrongTraceGameObject(o, reason, false);
+   return StrongTraceGameObject(o, reason, dm::LUA_ASYNC_TRACES);
 }
 
 template <class T>
 static std::shared_ptr<lua::TraceWrapper>
-WeakTraceGameObject(std::weak_ptr<T> o, const char* reason, bool sync)
+WeakTraceGameObject(std::weak_ptr<T> o, const char* reason, dm::TraceCategories c)
 {
-   return StrongTraceGameObject(o.lock(), reason, sync);
+   return StrongTraceGameObject(o.lock(), reason, c);
 }
 
 template <class T>
 static std::shared_ptr<lua::TraceWrapper>
 WeakTraceGameObjectAsync(std::weak_ptr<T> o, const char* reason)
 {
-   return StrongTraceGameObject(o.lock(), reason, false);
+   return StrongTraceGameObject(o.lock(), reason, dm::LUA_ASYNC_TRACES);
 }
 
 // Used for putting value based C++ types into Lua (e.g. csg::Point3, csg::Cube3, etc.)

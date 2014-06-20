@@ -10,7 +10,7 @@ function BuildUndoManager:__init()
    self._entity_traces = {}
    self._undo_stack = {}
    self._save_states = {}
-   self._tracer = _radiant.sim.create_tracer()
+   self._tracer = _radiant.sim.create_tracer('undo manager')
    self._tracer_category = self._tracer.category
 
    self._stack_offset = 0
@@ -34,7 +34,7 @@ function BuildUndoManager:end_transaction(desc)
    log:detail('end_transaction for "%s"', desc)
 
    self._tracer:flush()
-   
+
    assert(self._stack_offset == #self._undo_stack)
 
    self._stack_offset = self._stack_offset + 1
@@ -98,7 +98,7 @@ function BuildUndoManager:undo()
       for _, o in pairs(entry.unlinked_entities) do
          -- only really care if it was on the root.  if it was in the
          -- building structure, the load would have taken care of it.
-         radiant.entities.add_child(radiant._root_entity, o.entity)
+         radiant.entities.add_child(o.parent, o.entity)
       end
 
       -- remove all the entities created by the last operation
@@ -152,52 +152,60 @@ end
 
 function BuildUndoManager:_trace_entity(entity)
    local eid = entity:get_id()
-   assert(not self._entity_traces[eid])
 
    if self._entity_traces[eid] then
       log:detail('ignoring trace request for %s (already traced)', entity)
+      return
    end
+   
    local traces = {}
    self._entity_traces[eid] = traces
 
+   local function trace_component(component, name)
+      return component:trace('building undo', self._tracer_category)
+                     :on_changed(function()
+                           log:detail('component %s for entity %s changed', name, entity)
+                           self:mark_changed(component)
+                        end)
+                     :push_object_state()   
+   end
+   
+   local function trace_region(component, name)
+      return component:trace_region('building undo', self._tracer_category)
+                     :on_changed(function(r)
+                           local region = component:get_region()
+                           log:detail('%s region for entity %s changed (component:%d bounds:%s)', name, entity, region:get_id(), r:get_bounds())
+                           self:mark_changed(region)
+                        end)
+                     :push_object_state()
+   end
+   
+   local function trace_entity_container(component)
+      return component:trace_children('building undo', self._tracer_category)
+                     :on_added(function(id, e)
+                           log:detail('child %s added to entity %s', e, entity)
+                           self:_trace_entity(e)
+                        end)
+                     :on_removed(function(id)
+                           log:detail('child %d added to entity %s', id, entity)
+                           self:_untrace_entity(id)
+                        end)
+                     :push_object_state()
+   end
+   
    traces.entity = entity:trace_components('building undo', self._tracer_category)
                               :on_added(function (name)
-                                    local obj = entity:get_component(name)
+                                    local component = entity:get_component(name)
                                     log:detail('tracing component %s for entity %s', name, entity)
 
                                     if not traces[name] then
-                                       traces[name] = obj:trace('building undo', self._tracer_category)
-                                                         :on_changed(function()
-                                                               log:detail('component %s for entity %s changed', name, entity)
-                                                               self:mark_changed(obj)
-                                                            end)
-                                                         :push_object_state()
+                                       traces[name] = trace_component(component, name)
                                        if name == 'entity_container' then
-                                          traces.entity_container_children = 
-                                                      obj:trace_children('building undo', self._tracer_category)
-                                                            :on_added(function(id, e)
-                                                                  log:detail('child %s added to entity %s', e, entity)
-                                                                  self:_trace_entity(e)
-                                                               end)
-                                                            :on_removed(function(id)
-                                                                  log:detail('child %d added to entity %s', id, entity)
-                                                                  self:_untrace_entity(id)
-                                                               end)
-                                                            :push_object_state()
+                                          traces.entity_container_children = trace_entity_container(component)
                                        elseif name == 'destination' then
-                                          traces.destination_region = 
-                                                      obj:trace_region('building undo', self._tracer_category)
-                                                            :on_changed(function(r)
-                                                                  log:detail('destination region for entity %s changed (obj:%d bounds:%s)', entity, obj:get_region():get_id(), r:get_bounds())
-                                                                  self:mark_changed(obj:get_region())
-                                                               end)
+                                          traces.destination_region = trace_region(component, 'destination')
                                        elseif name == 'region_collision_shape' then
-                                          traces.region_collision_shape_region = 
-                                                      obj:trace_region('building undo', self._tracer_category)
-                                                            :on_changed(function(r)
-                                                                  log:detail('region collision shape region for entity %s changed (obj:%d bounds:%s)', entity, obj:get_region():get_id(), r:get_bounds())
-                                                                  self:mark_changed(obj:get_region())
-                                                               end)
+                                          traces.region_collision_shape_region = trace_region(component, 'region collision shape')
                                        end
                                     end
                                  end)

@@ -14,6 +14,7 @@
 #include "om/components/data_store.ridl.h"
 #include "om/components/mob.ridl.h"
 #include "dm/store_save_state.h"
+#include "dm/tracer_buffered.h"
 #include "lib/json/core_json.h"
 
 using namespace ::radiant;
@@ -124,22 +125,44 @@ std::shared_ptr<dm::StoreSaveState> Sim_CreateSaveState(lua_State *L)
    return std::make_shared<dm::StoreSaveState>();
 }
 
-std::shared_ptr<dm::StoreSaveState> Sim_StoreSaveState_Save(lua_State *L, std::shared_ptr<dm::StoreSaveState> s)
+void Sim_LoadObject(lua_State *L, std::shared_ptr<dm::StoreSaveState> s)
 {
    Simulation &sim = GetSim(L);
    if (s) {
-      s->Save(sim.GetStore());
+      s->Load(sim.GetStore());
    }
-   return s;   
 }
 
-dm::ObjectMap Sim_StoreSaveState_Load(lua_State *L, std::shared_ptr<dm::StoreSaveState> s)
+std::shared_ptr<dm::StoreSaveState> Sim_SaveObject(lua_State *L, dm::ObjectId id)
 {
    Simulation &sim = GetSim(L);
-   if (s) {
-      return s->Load(sim.GetStore());
+   std::shared_ptr<dm::StoreSaveState> store = std::make_shared<dm::StoreSaveState>();
+   store->Save(sim.GetStore(), id);
+   return store;
+}
+
+struct TracerBufferedWrapper : public dm::TracerBuffered
+{
+   TracerBufferedWrapper(std::string const& name, dm::Store &store, dm::TraceCategories c) :
+      dm::TracerBuffered(name, store),
+      category(c)
+   {
    }
-   return dm::ObjectMap();
+
+   dm::TraceCategories category;
+};
+
+DECLARE_SHARED_POINTER_TYPES(TracerBufferedWrapper);
+
+TracerBufferedWrapperPtr Sim_CreateTracer(lua_State* L, const char* name)
+{
+   static int c = (int)dm::USER_DEFINED_TRACES;
+   dm::TraceCategories category = (dm::TraceCategories)(c++);
+
+   Simulation &sim = GetSim(L);
+   TracerBufferedWrapperPtr tracer = std::make_shared<TracerBufferedWrapper>(name, sim.GetStore(), category);
+   sim.GetStore().AddTracer(tracer, category);
+   return tracer;
 }
 
 AStarPathFinderPtr Sim_CreateAStarPathFinder(lua_State *L, om::EntityRef s, std::string const& name)
@@ -252,8 +275,6 @@ DEFINE_INVALID_JSON_CONVERSION(LuaJob);
 DEFINE_INVALID_JSON_CONVERSION(Simulation);
 DEFINE_INVALID_LUA_CONVERSION(Simulation)
 
-DEFINE_INVALID_JSON_CONVERSION(dm::StoreSaveState);
-
 void lua::sim::open(lua_State* L, Simulation* sim)
 {
    module(L) [
@@ -274,8 +295,10 @@ void lua::sim::open(lua_State* L, Simulation* sim)
             def("create_follow_path",        &Sim_CreateFollowPath),
             def("create_bump_location",      &Sim_CreateBumpLocation),
             def("create_job",                &Sim_CreateJob),
-            def("create_save_state",         &Sim_CreateSaveState)
-            ,            
+            def("create_save_state",         &Sim_CreateSaveState),
+            def("load_object",               &Sim_LoadObject),
+            def("save_object",               &Sim_SaveObject),
+            def("create_tracer",             &Sim_CreateTracer),
             lua::RegisterTypePtr_NoTypeInfo<Path>("Path")
                .def("is_empty",           &Path::IsEmpty)
                .def("get_distance",       &Path::GetDistance)
@@ -318,14 +341,13 @@ void lua::sim::open(lua_State* L, Simulation* sim)
                .def("set_reversible_path",       &DirectPathFinder::SetReversiblePath)
                .def("get_path",                  &DirectPathFinder::GetPath)
             ,
+            luabind::class_<TracerBufferedWrapper, std::shared_ptr<TracerBufferedWrapper>>("TracerBuffered")
+               .def("flush",              &TracerBufferedWrapper::Flush)
+               .def_readonly("category",  &TracerBufferedWrapper::category)
+            ,
             lua::RegisterTypePtr_NoTypeInfo<FollowPath>("FollowPath")
                .def("get_name", &FollowPath::GetName)
                .def("stop",     &FollowPath::Stop)
-            ,
-            lua::RegisterTypePtr_NoTypeInfo<dm::StoreSaveState>("FollowPath")
-               .def("add_object",   &dm::StoreSaveState::AddObject)
-               .def("save",         &Sim_StoreSaveState_Save)
-               .def("load",         &Sim_StoreSaveState_Load, return_stl_iterator)
             ,
             lua::RegisterTypePtr_NoTypeInfo<BumpLocation>("BumpLocation")
             ,

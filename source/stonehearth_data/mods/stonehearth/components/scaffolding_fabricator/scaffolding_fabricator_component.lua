@@ -3,9 +3,11 @@ local Point2 = _radiant.csg.Point2
 local Region3 = _radiant.csg.Region3
 local Cube3 = _radiant.csg.Cube3
 local Point3 = _radiant.csg.Point3
-local log = radiant.log.create_logger('build')
+local Point3 = _radiant.csg.Point3
+local TraceCategories = _radiant.dm.TraceCategories
 
 local COORD_MAX = 1000000 -- 1 million enough?
+local log = radiant.log.create_logger('build')
 
 -- this is the component which manages the ScaffoldingFabricator entity.
 -- this is the blueprint for the scaffolding.  the actual scaffolding
@@ -66,7 +68,7 @@ function ScaffoldingFabricator:_start()
    radiant.events.listen(self._sv.blueprint, 'stonehearth:construction:teardown_changed', self, self._update_scaffolding_size)
    radiant.events.listen(self._sv.blueprint, 'stonehearth:construction:finished_changed', self, self._update_scaffolding_size)
    
-   self._project_trace = self._project_dst:trace_region('generating scaffolding', true)
+   self._project_trace = self._project_dst:trace_region('generating scaffolding', TraceCategories.SYNC_TRACE)
                                              :on_changed(function()
                                                    self:_update_scaffolding_size()
                                                 end)

@@ -68,6 +68,13 @@ function ConstructionProgress:_unlisten_for_changes(blueprint)
    radiant.events.unlisten(blueprint, 'stonehearth:construction:finished_changed', self, self.check_dependencies)
 end
 
+function ConstructionProgress:unlink()
+   for id, blueprint in pairs(self._sv.inverse_dependencies) do
+      blueprint:add_component('stonehearth:construction_progress')
+                     :remove_dependency(self._entity)
+   end
+end
+
 --- Tracks projects which must be completed before this one can start.
 function ConstructionProgress:add_dependency(blueprint)
    assert(self._entity ~= blueprint)

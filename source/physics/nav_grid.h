@@ -7,6 +7,7 @@
 #include "om/om.h"
 #include "om/region.h"
 #include "dm/dm.h"
+#include "dm/trace_categories.h"
 #include "csg/namespace.h"
 #include "nav_grid_tile.h"
 #include "derived_region_tracker.h"
@@ -33,7 +34,7 @@ typedef DerivedRegionTracker<om::VerticalPathingRegion, TrackerType::LADDER> Ver
 
 class NavGrid {
    public: // public methods
-      NavGrid(int trace_category);
+      NavGrid(dm::TraceCategories trace_category);
 
       typedef std::function<bool(om::EntityPtr)> ForEachEntityCb;
 
@@ -82,7 +83,7 @@ class NavGrid {
       typedef std::function<bool(csg::Point3 const& index, NavGridTile&)> ForEachTileCb;
       typedef std::function<bool(csg::Point3 const& index)> ForEachPointCb;
 
-      int GetTraceCategory();
+      dm::TraceCategories GetTraceCategory();
       void AddTerrainTileTracker(om::EntityRef entity, csg::Point3 const& offset, om::Region3BoxedPtr tile);
       void OnTrackerBoundsChanged(csg::Cube3 const& last_bounds, csg::Cube3 const& bounds, CollisionTrackerPtr tracker);
       void OnTrackerDestroyed(csg::Cube3 const& bounds, dm::ObjectId entityId);
@@ -120,7 +121,7 @@ class NavGrid {
       void EvictNextUnvisitedTile(csg::Point3 const& pt);
 
    private: // instance variables
-      int                              trace_category_;
+      dm::TraceCategories              trace_category_;
       ResidentTileList                 resident_tiles_;
       int                              last_evicted_;
       NavGridTileMap                   tiles_;

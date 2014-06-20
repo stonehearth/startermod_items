@@ -13,7 +13,6 @@
 #include "om/components/sensor_list.ridl.h"
 #include "om/components/target_tables.ridl.h"
 #include "om/components/destination.ridl.h"
-#include "om/components/attached_items.ridl.h"
 #include "om/components/unit_info.ridl.h"
 #include "om/components/item.ridl.h"
 #include "om/components/mod_list.ridl.h"

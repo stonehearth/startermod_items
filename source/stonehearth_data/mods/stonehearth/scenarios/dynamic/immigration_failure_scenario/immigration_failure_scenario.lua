@@ -10,7 +10,7 @@ local Point3 = _radiant.csg.Point3
 --- Returns true if we're so poor that the traveller feels obliged to help
 function ImmigrationFailure:can_spawn()
    local food_threshold = self._immigration_data.edible_threshold
-   local score_data = stonehearth.score:get_scores_for_player(self._sv.player_id)
+   local score_data = stonehearth.score:get_scores_for_player(self._sv.player_id):get_score_data()
    local last_edible_score = 0
    if score_data and score_data.resources and score_data.resources.edibles then
       last_edible_score = score_data.resources.edibles

@@ -570,7 +570,7 @@ RenderAttachItemEffect::RenderAttachItemEffect(RenderEntity& e, om::EffectPtr ef
       }
 
       H3DNode parent = entity_.GetSkeleton().GetSceneNode(bone_);
-      render_item_ = Renderer::GetInstance().CreateRenderObject(parent, item);
+      render_item_ = Renderer::GetInstance().CreateRenderEntity(parent, item);
       render_item_->SetParent(0);
 
       auto i = node.find("render_info");

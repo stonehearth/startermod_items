@@ -38,8 +38,8 @@ function construction_tests.simple_build(autotest)
 
    autotest.ui:click_dom_element('#startMenu #build_menu')
    autotest.ui:click_dom_element('#startMenu div[hotkey="c"]')
-   autotest.ui:click_dom_element('.fillWallTool')
-   autotest.ui:click_dom_element('.wallTool')
+   autotest.ui:click_dom_element('.wallToolButton')
+   autotest.ui:click_dom_element('#drawWallTool')
 
    autotest.ui:click_terrain(2, -2)
    autotest.ui:click_terrain(-4, -2)

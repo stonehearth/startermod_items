@@ -170,14 +170,23 @@ bool Store::Save(std::string const& filename, std::string &error)
    return true;
 }
 
-std::string Store::SaveObjects(std::vector<ObjectId>& objects, std::string const& error)
+std::string Store::SaveObject(ObjectId id, std::string& error)
 {
    std::ostringstream stream;
    {
       google::protobuf::io::OstreamOutputStream oos(&stream);
       {
          google::protobuf::io::CodedOutputStream cos(&oos);
-         SaveObjects(cos, objects);
+         {
+            Protocol::Object msg;
+            Object* obj = objects_[id];
+            if (!obj) {
+               error = BUILD_STRING("no such object id " << id);
+               return false;
+            }
+            obj->SaveObject(PERSISTANCE, &msg);
+            msg.SerializeToCodedStream(&cos);
+         }
       }
    }
 
@@ -308,14 +317,26 @@ bool Store::Load(std::string const& filename, std::string &error, ObjectMap& obj
    return result;
 }
 
-bool Store::LoadObjects(std::string const& input, ObjectMap& objects, std::string& error)
+bool Store::LoadObject(std::string const& input, std::string& error)
 {
    google::protobuf::io::ArrayInputStream ais(input.data(), input.size());
    google::protobuf::io::CodedInputStream cis(&ais);
 
-   bool result = LoadObjects(cis, error);
+   Protocol::Object msg;
+   if (!msg.ParseFromCodedStream(&cis)) {
+      error = "failed to parse save state.";
+      return false;
+   }
+   Object* obj = FetchStaticObject(msg.object_id());
+   if (!obj) {
+      error = BUILD_STRING("no such object " << msg.object_id());
+      return false;
+   }
 
-   return result;
+   ASSERT(msg.object_type() == obj->GetObjectType());
+
+   obj->LoadObject(PERSISTANCE, msg);
+   return true;
 }
 
 void Store::OnLoaded()

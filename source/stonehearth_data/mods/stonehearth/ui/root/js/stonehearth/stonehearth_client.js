@@ -253,7 +253,7 @@ var StonehearthClient;
          if (building && building.__self) {
             return this._callTool(function() {
                radiant.call('radiant:play_sound', 'stonehearth:sounds:place_structure' );
-               radiant.call_obj(self._build_editor, 'grow_roof', building.__self)  
+               return radiant.call_obj(self._build_editor, 'grow_roof', building.__self)  
             });
          }
       },
@@ -263,7 +263,7 @@ var StonehearthClient;
          if (building && building.__self) {
             return this._callTool(function() {
                radiant.call('radiant:play_sound', 'stonehearth:sounds:place_structure' );
-               radiant.call_obj(self._build_editor, 'grow_walls', building.__self, column, wall)
+               return radiant.call_obj(self._build_editor, 'grow_walls', building.__self, column, wall)
             });
          }
       },

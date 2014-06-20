@@ -18,15 +18,12 @@ public:
    ~RenderEntityContainer();
 
 private:
-   void AddChild(dm::ObjectId key, om::EntityRef child);
-   void RemoveChild(dm::ObjectId key);
+   void CreateEntity(om::EntityRef child);
 
 private:
-   typedef std::unordered_map<dm::ObjectId, std::weak_ptr<RenderEntity>> EntityContainerMap;
-
-   const RenderEntity&  entity_;
-   EntityContainerMap   children_;
-   dm::TracePtr         trace_;
+   const RenderEntity&  _entity;
+   dm::TracePtr         _childrenTrace;
+   dm::TracePtr         _attachedItemsTrace;
 };
 
 END_RADIANT_CLIENT_NAMESPACE

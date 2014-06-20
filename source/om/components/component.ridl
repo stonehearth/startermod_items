@@ -16,6 +16,7 @@ declare_constructor = hasattr(C, '_declare_constructor') and getattr(C, '_declar
 #include "om/components/component.h"
 #include "core/object_counter.h"
 #include "om/object_enums.h"
+#include "dm/trace_categories.h"
 % for f in C._includes:
 #include "${f}"
 % endfor
@@ -77,14 +78,14 @@ public:
 % for name, boxed in env.properties(C, dm.Boxed):
    % if boxed.trace == 'define':
    std::shared_ptr<dm::BoxedTrace<${boxed.name}>>
-   Trace${name | env.upper}(const char* reason, int category) const
+   Trace${name | env.upper}(const char* reason, dm::TraceCategories category) const
    {
       return ${name}_.TraceChanges(reason, category);
    }
 
    % elif boxed.trace == 'deep_region':
    DeepRegionGuardPtr
-   Trace${name | env.upper}(const char* reason, int category) const
+   Trace${name | env.upper}(const char* reason, dm::TraceCategories category) const
    {
       return DeepTraceRegion(${name}_, reason, category);
    }

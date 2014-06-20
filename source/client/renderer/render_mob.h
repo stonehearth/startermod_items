@@ -14,7 +14,7 @@ class Renderer;
 
 class RenderMob : public RenderComponent {
 public:
-   RenderMob(const RenderEntity& entity, om::MobPtr mob);
+   RenderMob(RenderEntity& entity, om::MobPtr mob);
 
 private:
    void RenderAxes();
@@ -22,10 +22,11 @@ private:
    void Move();
    void UpdateTransform(csg::Transform const& transform);
    void UpdateInterpolate(bool interpolate);
+   void UpdateParent();
 
 private:
-   const RenderEntity&  entity_;
-   om::EntityRef        parent_;
+   RenderEntity&        entity_;
+   om::EntityRef        lastParent_;
    om::MobRef           mob_;
    core::Guard          show_debug_shape_guard_;
    core::Guard          renderer_guard_;
@@ -35,7 +36,9 @@ private:
    H3DNodeUnique       _axes;
    bool                 first_update_;
    dm::ObjectId         entity_id_;
+   dm::TracePtr         parent_trace_;
    dm::TracePtr         interp_trace_;
+   dm::TracePtr         bone_trace_;
    dm::TracePtr         transform_trace_;
 };
 

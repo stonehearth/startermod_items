@@ -131,11 +131,9 @@ class Renderer
 
       json::Node GetTerrainConfig() const;
 
-      std::shared_ptr<RenderEntity> CreateRenderObject(H3DNode parent, om::EntityPtr obj);
-      std::shared_ptr<RenderEntity> GetRenderObject(om::EntityPtr obj);
-      std::shared_ptr<RenderEntity> GetRenderObject(int storeId, dm::ObjectId id);
-      void RemoveRenderObject(int storeId, dm::ObjectId id);
-
+      std::shared_ptr<RenderEntity> GetRenderEntity(om::EntityPtr obj);
+      std::shared_ptr<RenderEntity> CreateRenderEntity(H3DNode parent, om::EntityPtr obj);
+      
       typedef std::function<void(om::Selection& sel, const csg::Ray3& ray, const csg::Point3f& intersection, const csg::Point3f& normal)> UpdateSelectionFn;
       core::Guard SetSelectionForNode(H3DNode node, om::EntityRef e);
 
@@ -271,12 +269,14 @@ class Renderer
       bool              resize_pending_;
       bool              inFullscreen_;
       int               nextWidth_, nextHeight_;
+      int               _maxRenderEntityLoadTime;
       
       std::string       resourcePath_;
       std::string       lastGlfwError_;
 
       dm::TracePtr      visibilityTrace_;
       dm::TracePtr      exploredTrace_;
+      std::vector<std::weak_ptr<RenderEntity>>  _newRenderEntities;
 };
 
 END_RADIANT_CLIENT_NAMESPACE

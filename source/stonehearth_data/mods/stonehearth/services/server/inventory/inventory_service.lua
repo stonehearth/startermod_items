@@ -162,12 +162,12 @@ function InventoryService:_register_score_functions()
    end)
 end
 
---- The score for a building is its area * the multiplier for that kind of wall/region
+--- The score for a building is its area * the multiplier for that kind of wall/region, divided by 10
 function InventoryService:_get_score_for_building(entity)
    local region = entity:get_component('destination'):get_region()
    local area = region:get():get_area()
    local item_multiplier = stonehearth.score:get_score_for_entity_type(entity:get_uri())
-   return area * item_multiplier
+   return area * item_multiplier / 10
 end
 
 --- Returns the score for all the items in the stockpile. 

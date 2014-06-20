@@ -19,7 +19,6 @@ add_library(client_renderer STATIC
             render_terrain.cpp
             render_effect_list.cpp
             render_destination.cpp
-            render_attached_items.cpp
             render_render_info.cpp
             render_util.cpp
             render_vertical_pathing_region.cpp
