@@ -6,7 +6,6 @@ function Renderer:initialize()
    
    if self._sv.visible_region_uri then
       radiant.events.listen_once(radiant, 'radiant:game_loaded', self, self._install_regions)
-      --self:_install_regions()
    end
 end
 
@@ -52,7 +51,7 @@ function Renderer:_install_regions()
    -- register them with the renderer, until it finally succeeds.
    if not self._installing_regions then
       self._installing_regions = true
-      self._timer = radiant.set_realtime_interval(500, function()
+      self._timer = radiant.set_realtime_interval(100, function()
             self._installing_regions = true
             if not self._visible_region_installed then
                self._visible_region_installed = _radiant.renderer.visibility.set_visible_region(self._sv.visible_region_uri)

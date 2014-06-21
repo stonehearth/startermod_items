@@ -212,7 +212,7 @@ function events._update()
    end
 
    --Fires once a minute.
-   if now.now % (1000 * 15) == 0 then
+   if now.now % (1000 * 60) == 0 then
       events.trigger(radiant, 'stonehearth:minute_poll', now)
    end
 end
