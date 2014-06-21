@@ -153,7 +153,7 @@ class Client : public core::Singleton<Client> {
       void ShutdownDataObjectTraces();
       void ShutdownLuaObjects();
       void SaveGame(std::string const& gameid, json::Node const& gameinfo);
-      void LoadGame(std::string const& gameid);
+      rpc::ReactorDeferredPtr LoadGame(std::string const& gameid);
       void DeleteSaveGame(std::string const& gameid);
       void SaveClientState(boost::filesystem::path const& savedir);
       void SaveClientMetadata(boost::filesystem::path const& savedir, json::Node const& gameinfo);
@@ -258,6 +258,11 @@ private:
       bool                        debug_track_object_lifetime_;
       std::vector<om::DataStoreRef>  datastores_to_restore_;
       std::vector<dm::TracePtr>   lua_component_traces_;
+
+      rpc::ReactorDeferredPtr     load_progress_deferred_;
+      rpc::ReactorDeferredPtr     server_load_deferred_;
+
+      bool                        loading_;
 };
 
 END_RADIANT_CLIENT_NAMESPACE

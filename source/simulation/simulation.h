@@ -104,9 +104,11 @@ private:
    void EncodeEndUpdate(std::shared_ptr<RemoteClient> c);
    void EncodeServerTick(std::shared_ptr<RemoteClient> c);
    void EncodeUpdates(std::shared_ptr<RemoteClient> c);
+   void FlushStream(std::shared_ptr<RemoteClient> c);
 
    void Save(boost::filesystem::path const& savedir);
-   void Load(boost::filesystem::path const& savedir);
+   void Load();
+   rpc::ReactorDeferredPtr BeginLoad(boost::filesystem::path const& savedir);
    void Reset();
 
    void OneTimeIninitializtion();
@@ -168,6 +170,7 @@ private:
    bool                                profile_next_lua_update_;
    rpc::ReactorDeferredPtr             task_manager_deferred_;
    rpc::ReactorDeferredPtr             perf_counter_deferred_;
+   rpc::ReactorDeferredPtr             load_progress_deferred_;
    rpc::LuaModuleRouterPtr             luaModuleRouter_;
    rpc::LuaObjectRouterPtr             luaObjectRouter_;
    rpc::TraceObjectRouterPtr           traceObjectRouter_;
@@ -179,6 +182,8 @@ private:
    om::ModListPtr                      modList_;
    om::ClockPtr                        clock_;
    float                               game_speed_;
+   bool                                begin_loading_;
+   boost::filesystem::path             load_saveid_;
 };
 
 END_RADIANT_SIMULATION_NAMESPACE

@@ -64,6 +64,7 @@
 #include "core/system.h"
 #include "client/renderer/raycast_result.h"
 #include "om/stonehearth.h"
+#include "lib/perfmon/timer.h"
 
 //  #include "GFx/AS3/AS3_Global.h"
 #include "client.h"
@@ -105,7 +106,8 @@ Client::Client() :
    flushAndLoad_(false),
    initialUpdate_(false),
    save_stress_test_(false),
-   debug_track_object_lifetime_(false)
+   debug_track_object_lifetime_(false),
+   loading_(false)
 {
 }
 
@@ -539,9 +541,9 @@ void Client::OneTimeIninitializtion()
       SaveGame(saveid.as<std::string>(), gameinfo);
    });
 
-   core_reactor_->AddRouteV("radiant:client:load_game", [this](rpc::Function const& f) {
+   core_reactor_->AddRoute("radiant:client:load_game", [this](rpc::Function const& f) {
       json::Node saveid(json::Node(f.args).get_node(0));
-      LoadGame(saveid.as<std::string>());
+      return LoadGame(saveid.as<std::string>());
    });
    core_reactor_->AddRouteV("radiant:client:delete_save_game", [this](rpc::Function const& f) {
       json::Node saveid(json::Node(f.args).get_node(0));
@@ -827,21 +829,26 @@ void Client::mainloop()
       GetScriptHost()->ReportCStackThreadException(GetScriptHost()->GetCallbackThread(), e);
    }
 
-   perfmon::SwitchToCounter("update browser frambuffer");
-   browser_->UpdateBrowserFrambufferPtrs(
-      (unsigned int*)Renderer::GetInstance().GetLastUiBuffer(), 
-      (unsigned int*)Renderer::GetInstance().GetNextUiBuffer());
-
+   if (!loading_) {
+      perfmon::SwitchToCounter("update browser frambuffer");
+      browser_->UpdateBrowserFrambufferPtrs(
+         (unsigned int*)Renderer::GetInstance().GetLastUiBuffer(), 
+         (unsigned int*)Renderer::GetInstance().GetNextUiBuffer());
+   }
    perfmon::SwitchToCounter("flush http events");
    http_reactor_->FlushEvents();
+
    if (browser_) {
       perfmon::SwitchToCounter("browser poll");
       browser_->Work();
-      auto cb = [](const csg::Region2 &rgn) {
-         Renderer::GetInstance().UpdateUITexture(rgn);
-      };
-      perfmon::SwitchToCounter("update browser display");
-      browser_->UpdateDisplay(cb);
+
+      if (!loading_) {
+         auto cb = [](const csg::Region2 &rgn) {
+            Renderer::GetInstance().UpdateUITexture(rgn);
+         };
+         perfmon::SwitchToCounter("update browser display");
+         browser_->UpdateDisplay(cb);
+      }
    }
 
    InstallCurrentCursor();
@@ -930,6 +937,15 @@ void Client::BeginUpdate(const proto::BeginUpdate& msg)
 
 void Client::EndUpdate(const proto::EndUpdate& msg)
 {
+   perfmon::TimelineCounterGuard tcg("end update");
+   if (initialUpdate_) {
+      if (load_progress_deferred_) {
+         Renderer::GetInstance().SetLoading(false);
+         loading_ = false;
+         load_progress_deferred_->Resolve(JSONNode("progress", 100.0));
+         load_progress_deferred_.reset();
+      }
+   }
    initialUpdate_ = false;
 
    // Constr
@@ -947,8 +963,6 @@ void Client::EndUpdate(const proto::EndUpdate& msg)
          octtree_->SetRootEntity(rootEntity);
       }
    }
-
-
    // Only fire the remote store traces at sequence boundaries.  The
    // data isn't guaranteed to be in a consistent state between
    // boundaries.
@@ -1035,12 +1049,19 @@ void Client::process_messages()
 
 void Client::ProcessReadQueue()
 {
+   // Allow the client a huge amount of time to process the read queue (since we want to process
+   // all of it in one go.)
+   platform::timer t(50000);
    if (recv_queue_) {
-      recv_queue_->Process<proto::Update>(std::bind(&Client::ProcessMessage, this, std::placeholders::_1));
+      recv_queue_->Process<proto::Update>(std::bind(&Client::ProcessMessage, this, std::placeholders::_1), t);
    }
 }
 
 void Client::OnInput(Input const& input) {
+   // If we're loading, we don't want the user to be able to click anything.
+   if (loading_) {
+      return;
+   }
    try {
       if (input.type == Input::MOUSE) {
          OnMouseInput(input);
@@ -1475,14 +1496,29 @@ void Client::DeleteSaveGame(std::string const& saveid)
    }
 }
 
-void Client::LoadGame(std::string const& saveid)
+rpc::ReactorDeferredPtr Client::LoadGame(std::string const& saveid)
 {
    fs::path savedir = core::Config::GetInstance().GetSaveDirectory() / saveid;
    if (fs::is_directory(savedir)) {
+      loading_ = true;
       json::Node args;
       args.set("saveid", saveid);
-      core_reactor_->Call(rpc::Function("radiant:server:load", args));
+      server_load_deferred_ = core_reactor_->Call(rpc::Function("radiant:server:load", args));
+      
+      load_progress_deferred_ = std::make_shared<rpc::ReactorDeferred>("load progress");
+      server_load_deferred_->Progress([this] (const JSONNode n) {
+         double server_progress = n.at("progress").as_float();
+         load_progress_deferred_->Notify(JSONNode("progress", server_progress / 2.0));
+      });
+      Renderer::GetInstance().SetLoading(true);
+
+      load_progress_deferred_->Progress([this] (const JSONNode n) {
+         double progress = n.as_float();
+         Renderer::GetInstance().UpdateLoadingProgress(progress / 100.0f);
+      });
    }
+
+   return load_progress_deferred_;
 }
 
 void Client::SaveClientMetadata(boost::filesystem::path const& savedir, json::Node const& gameinfo)
@@ -1519,7 +1555,7 @@ void Client::LoadClientState(boost::filesystem::path const& savedir)
    dm::Store &store = GetAuthoringStore();
    std::string filename = (savedir / "client_state.bin").string();
 
-   if (!store.Load(filename, error, objects)) {
+   if (!store.Load(filename, error, objects, nullptr)) {
       CLIENT_LOG(0) << "failed to load: " << error;
    }
 
@@ -1591,6 +1627,10 @@ void Client::ReportLoadProgress()
       int percent = (networkUpdatesCount_ * 100) / networkUpdatesExpected_;
       if (percent - lastLoadProgress_ > 10) {
          LOG_(0) << " client load progress " << percent << "%...";
+
+         if (load_progress_deferred_) {
+            load_progress_deferred_->Notify(JSONNode("progress", 50.0 + (percent / 2.0)));
+         }
          lastLoadProgress_ = percent;
       }
    }

@@ -19,6 +19,7 @@ public:
    typedef std::function<void()> ObjectDestroyCb;
    typedef std::function<void()> TracesFinishedCb;
    typedef std::function<void(ObjectPtr)> ObjectAllocCb;
+   typedef std::function<void(int)> LoadProgressCb;
 
    typedef std::function<ObjectPtr()> ObjectAllocFn;
 
@@ -83,7 +84,7 @@ public:
    Object* FetchStaticObject(ObjectId id) const;
 
    bool Save(std::string const& filename, std::string& error);
-   bool Load(std::string const& filename, std::string& error, ObjectMap& objects);
+   bool Load(std::string const& filename, std::string& error, ObjectMap& objects, LoadProgressCb const& cb);
 
    std::string SaveObject(dm::ObjectId, std::string& error);
    bool LoadObject(std::string const& input, std::string& error);
@@ -106,7 +107,7 @@ private:
    void SaveObjects(google::protobuf::io::CodedOutputStream& cos, std::vector<ObjectId>& objects);
    bool LoadStoreHeader(google::protobuf::io::CodedInputStream& cis, std::string& error);
    bool LoadAllocedObjectsList(google::protobuf::io::CodedInputStream& cis, std::string& error, ObjectMap& objects);
-   bool LoadObjects(google::protobuf::io::CodedInputStream& cis, std::string& error);
+   bool LoadObjects(google::protobuf::io::CodedInputStream& cis, std::string& error, LoadProgressCb const& cb);
 
 public:
    // New hotness.  These are the demuxes.  Fan out a single "hi, i'm a map and i've changed!"

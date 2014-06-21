@@ -25,6 +25,7 @@
 #include "client/client.h"
 #include "raycast_result.h"
 #include "platform/utils.h"
+#include "horde3d\Source\Shared\utMath.h"
 
 using namespace ::radiant;
 using namespace ::radiant::client;
@@ -65,7 +66,9 @@ Renderer::Renderer() :
    iconified_(false),
    resize_pending_(false),
    drawWorld_(true),
-   last_render_time_wallclock_(0)
+   last_render_time_wallclock_(0),
+   _loading(false),
+   _loadingAmount(0)
 {
    OneTimeIninitializtion();
 }
@@ -132,6 +135,8 @@ void Renderer::MakeRendererResources()
    h3dUnmapResStream(veclookup);
 
    fowRenderTarget_ = h3dutCreateRenderTarget(512, 512, H3DFormats::TEX_BGRA8, false, 1, 0, 0);
+
+   BuildLoadingScreen();
 }
 
 void Renderer::InitHorde()
@@ -842,6 +847,24 @@ void Renderer::Initialize()
    last_render_time_wallclock_ = platform::get_current_time_in_ms();
 }
 
+void Renderer::BuildLoadingScreen()
+{
+   _loadingBackgroundMaterial = h3dAddResource(H3DResTypes::Material, "materials/loading_screen.material.xml", 0);
+   // Can't clone until we load!
+   LoadResources();
+   _loadingProgressMaterial = h3dCloneResource(_loadingBackgroundMaterial, "progress_material");
+
+   // That those who built Horde thought *this* was a good idea is...remarkable....
+   int numSamplers = h3dGetResElemCount(_loadingProgressMaterial, H3DMatRes::SamplerElem);
+   for (int i = 0; i < numSamplers; i++) {
+      std::string samplerName(h3dGetResParamStr(_loadingProgressMaterial, H3DMatRes::SamplerElem, i, H3DMatRes::SampNameStr));
+      if (samplerName == "progressMap") {
+         h3dSetResParamI(_loadingProgressMaterial, H3DMatRes::SamplerElem, i, H3DMatRes::SampTexResI, h3dAddResource(H3DResTypes::Texture, "overlays/meter_stretch.png", 0));
+         break;
+      }
+   }
+}
+
 void Renderer::Shutdown()
 {
    RenderNode::Shutdown();
@@ -862,7 +885,7 @@ void Renderer::Shutdown()
    delete camera_;      camera_ = nullptr;
    delete fowCamera_;   fowCamera_ = nullptr;
    h3dReset();
-   
+
    ASSERT(RenderEntity::GetTotalObjectCount() == 0);
 }
 
@@ -1008,13 +1031,16 @@ void Renderer::RenderOneFrame(int now, float alpha)
       // Render scene
       perfmon::SwitchToCounter("render h3d");
    
-      if (drawWorld_) {
+      if (drawWorld_ && !_loading) {
          currentPipeline_ = worldPipeline_;
 
          RenderFogOfWarRT();
          h3dSetResParamStr(GetPipeline(currentPipeline_), H3DPipeRes::GlobalRenderTarget, 0, fowRenderTarget_, "FogOfWarRT");
       }
 
+      if (_loading) {
+         RenderLoadingMeter();
+      }
       h3dRender(camera_->GetNode(), GetPipeline(currentPipeline_));
 
       // Finish rendering of frame
@@ -1208,11 +1234,65 @@ void Renderer::SetDrawWorld(bool drawWorld)
       return;
    }
    drawWorld_ = drawWorld;
+
+   if (_loading) {
+      // Loading will always get set to false below (when loading is complete.)  Let that function
+      // set the appropriate pipeline.
+      return;
+   }
+
    if (drawWorld_) {
       currentPipeline_ = worldPipeline_;
    } else {
       currentPipeline_ = "pipelines/ui_only.pipeline.xml";
    }
+}
+
+void Renderer::SetLoading(bool loading)
+{
+   _loading = loading;
+   if (loading) {
+      _loadingAmount = 0.0;
+      currentPipeline_ = "pipelines/loading_screen_only.pipeline.xml";
+   } else {
+      currentPipeline_ = worldPipeline_;
+   }
+}
+
+void Renderer::UpdateLoadingProgress(float amountLoaded)
+{
+   _loadingAmount = amountLoaded;
+}
+
+void Renderer::RenderLoadingMeter()
+{
+   // So...basically...don't ever mess with these values.  They are all magic, hand-crafted,
+   // *artisnal* constants.
+   // If you look closely, you'll see that the 'x' values don't even make sense--that's
+   // because 'y' is [0,1] and 'x' is [0, Aspect_Ratio].  Awesome!
+   float x = 0.62;
+   float y = 0.6;
+   float barHeight = 0.1;
+   float width = 0.5;
+   float ovTitleVerts[] = { x, y, 0, 0, x, y + barHeight, 0, 1,
+	                           x + width, y + barHeight, 1, 1, x + width, y, 1, 0 };
+   h3dShowOverlays( ovTitleVerts, 4,  1.0f, 1.0f, 1.0f, 1.0f, _loadingBackgroundMaterial, 0 );
+
+
+   x = 0.64;
+   y = 0.613;
+   barHeight = 0.052;
+   width = 0.46;
+   ovTitleVerts[0] = x;
+   ovTitleVerts[1] = y;
+   ovTitleVerts[4] = x;
+   ovTitleVerts[5] = y + barHeight;
+   ovTitleVerts[8] = x + (width * _loadingAmount); 
+   ovTitleVerts[9] = y + barHeight;
+   ovTitleVerts[12] = x + (width * _loadingAmount);
+   ovTitleVerts[13] = y;
+         
+   h3dShowOverlays( ovTitleVerts, 4,  1.0f, 1.0f, 1.0f, 1.0f, _loadingProgressMaterial, 0 );
 }
 
 void* Renderer::GetNextUiBuffer()
