@@ -61,7 +61,14 @@ function QuantityTracker:on_item_added(e)
    end
 end
 
+--The quantity tracker DOES NOT WORK when the item passed in is invalid
+--since the quantity tracker should be replaced with the basic inventory tracker/filtered tracker ANYWAY
+--do not fix this function just yet; instead fix the carpenter etc to use the basic inventory function. 
+--TODO: carpenter is now using the basic inventory tracker; do we still need this?
 function QuantityTracker:on_item_removed(e)
+   if not e.item:is_valid() then
+      return
+   end
    assert(e.item, "Quantity Tracker: The item has been removed but whe don't know what that item is")
    local identifier = self._identifier_fn(e.item)
    local item_data = self._data.tracked_items[identifier]
