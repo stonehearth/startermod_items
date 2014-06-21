@@ -312,11 +312,11 @@ function StockpileComponent:_remove_item_from_stock(id)
    self._sv.stocked_items[id] = nil
    self.__saved_variables:mark_changed()
 
+   --Tell the inventory to remove this item
+   stonehearth.inventory:remove_item(self._sv.player_id, self._entity, entity, id)
+      
    --Remove items that have been taken out of the stockpile
    if entity and entity:is_valid() then
-
-      --Tell the inventory to remove this item
-      stonehearth.inventory:remove_item(self._sv.player_id, self._entity, entity)
       
       --Trigger for scenarios, autotests, etc
       radiant.events.trigger(self._entity, "stonehearth:item_removed", { 

@@ -52,18 +52,17 @@ function BasicInventoryTrackerController:make_value_fn(entity, existing_value)
    return existing_value
 end
 
-function BasicInventoryTrackerController:remove_value_fn(entity, existing_value)
+function BasicInventoryTrackerController:remove_value_fn(entity_id, existing_value)
    --If for some reason, there's no existing value for this key, just return
    if not existing_value then
       return nil
    end
 
-   local id = entity:get_id()
-   if existing_value.items[id] then
+   if existing_value.items[entity_id] then
       existing_value.count = existing_value.count - 1
       assert(existing_value.count >= 0)
    end
-   existing_value.items[id] = nil
+   existing_value.items[entity_id] = nil
    return existing_value
 end
 

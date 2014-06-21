@@ -45,17 +45,17 @@ Create a new CraftOrder
    ingredients:TODO: the ingredients chosen by the user for the object
 ]]
 
-function CraftOrder:initialize(id, recipe, condition, faction, order_list)
+function CraftOrder:initialize(id, recipe, condition, player_id, order_list)
    assert(self._sv)
    
    self._sv.id = id
    self._sv.recipe = recipe
    self._sv.portrait = recipe.portrait
    self._sv.condition = condition
-   self._sv.faction = faction
    self._sv.enabled = true
    self._sv.is_crafting = true
    self._sv.order_list = order_list
+   self._sv.player_id = player_id
 
    local condition = self._sv.condition
    if condition.type == "make" then
@@ -121,13 +121,12 @@ function CraftOrder:should_execute_order()
    if condition.type == "make" then
       return condition.remaining > 0 
    elseif condition.type == "maintain" then
-      local craftable_tracker = stonehearth.object_tracker:get_craftable_tracker(self._sv.faction)
-      local target = self._sv.recipe.produces[1].item
-      local num_targets = craftable_tracker:get_quantity(target)
-      if num_targets == nil then
-         num_targets = 0
+      local we_have = 0
+      local inventory_data_for_item = stonehearth.inventory:get_items_of_type(self._sv.recipe.produces[1].item, self._sv.player_id)
+      if inventory_data_for_item and inventory_data_for_item.count then
+         we_have = inventory_data_for_item.count
       end
-      return num_targets < condition.at_least
+      return we_have < condition.at_least
    end
 end
 

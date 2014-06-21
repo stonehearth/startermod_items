@@ -17,6 +17,7 @@ function FilteredTracker:initialize(name, player_id, fn_controller)
    self._sv.player_id = player_id
    self._sv.fn_controller = fn_controller
    self:_setup_functions()
+   self._sv.ids_to_keys = {}
    self._sv.data = {}
 end
 
@@ -39,29 +40,32 @@ end
 
 --- Call when it's time to add an item
 function FilteredTracker:add_item(entity)
-   self:_alter_data(entity, self._make_value_fn)
+
+   if self:_filter_fn(entity) then
+      local key = self:_make_key_fn(entity)
+      
+      --Store in local id->key table
+      local id = entity:get_id()
+      self._sv.ids_to_keys[id] = key
+
+      --Get existing value from key
+      local existing_value = self._sv.data[key]
+      local value = self._make_value_fn(self, entity, existing_value)
+      self._sv.data[key] = value
+   end
 end
 
 --- Call when it's time to remove an item
-function FilteredTracker:remove_item(entity)
-   self:_alter_data(entity, self._remove_value_fn)
+function FilteredTracker:remove_item(entity_id)
+   local key = self._sv.ids_to_keys[entity_id]
+   local existing_value = self._sv.data[key]
+   local value = self._remove_value_fn(self, entity_id, existing_value)
+   self._sv.data[key] = value
+   self._sv.ids_to_keys[entity_id] = nil
 end
 
 function FilteredTracker:get_key(key)
    return self._sv.data[key]
-end
-
---- Alter the data based on the type of operation
---  If this is an entity that passes the filter, calculate the key
---  Then, based on the existing value for that key, calculate a new/updated entry.
---  This is allows our values to be things like arrays of arrays of the entity
-function FilteredTracker:_alter_data(entity, manipulation_fn)
-   if self:_filter_fn(entity) then
-      local key = self:_make_key_fn(entity)
-      local existing_value = self._sv.data[key]
-      local value = manipulation_fn(self, entity, existing_value)
-      self._sv.data[key] = value
-   end
 end
 
 return FilteredTracker

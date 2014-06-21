@@ -117,15 +117,14 @@ end
 ]]
 
 --- Call whenever a stockpile wants to tell the inventory that we're removing an item
-function Inventory:remove_item(storage, item)
+function Inventory:remove_item(storage, item, item_id)
    local storage_id = storage:get_id()
-   local id = item:get_id()
    assert(self._data.storage[storage_id], 'tried to remove an item to an untracked storage entity ' .. tostring(storage))
 
-   if self._data.items[id] then
-      self._data.items[id] = nil
+   if self._data.items[item_id] then
+      self._data.items[item_id] = nil
       self.__saved_variables:mark_changed()
-      radiant.events.trigger(self, 'stonehearth:item_removed', { item = item })
+      radiant.events.trigger(self, 'stonehearth:item_removed', { item = item, item_id = item_id })
    end
 end
 
