@@ -40,6 +40,11 @@ public:
    }
 
    int Next(lua_State *L) {
+      /*
+       * xxx: This is not safe at all.  It assumes the lua code won't remove anything
+       * from the map during iteration, which is EXTREMELY unlikely.  A proper implementation
+       * would re-generate the iterator from the previous key when the map is changed.
+       */
       if (i_ != map_.end()) {
          luabind::object(L, i_->first).push(L);
          luabind::object(L, i_->second).push(L);

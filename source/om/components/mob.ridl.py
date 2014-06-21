@@ -21,6 +21,7 @@ class Mob(Component):
       HUMANOID    = 2,
    )
 
+   bone = dm.Boxed(std.string())
    parent = dm.Boxed(std.weak_ptr(Entity()))
    transform = dm.Boxed(csg.Transform())
    model_origin = dm.Boxed(csg.Point3f())

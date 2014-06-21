@@ -27,7 +27,7 @@ static const int DEFAULT_WORKING_SET_SIZE = 128;
 
 #define NG_LOG(level)              LOG(physics.navgrid, level)
 
-NavGrid::NavGrid(int trace_category) :
+NavGrid::NavGrid(dm::TraceCategories trace_category) :
    trace_category_(trace_category),
    bounds_(csg::Cube3::zero)
 {
@@ -246,7 +246,7 @@ void NavGrid::RemoveNonStandableRegion(om::EntityPtr entity, csg::Region3& regio
  * Returns the trace category to use in TraceChanges, TraceDestroyed,
  * etc.
  */
-int NavGrid::GetTraceCategory()
+dm::TraceCategories NavGrid::GetTraceCategory()
 {
    return trace_category_;
 }

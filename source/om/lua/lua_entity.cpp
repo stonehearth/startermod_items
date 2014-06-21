@@ -35,11 +35,11 @@ lua::TraceWrapperPtr Entity_TraceObject(std::weak_ptr<Entity> e, const char *rea
 
 
 static std::shared_ptr<lua::MapTraceWrapper<dm::MapTrace<om::Entity::ComponentMap>>>
-Entity_TraceComponents(std::weak_ptr<Entity> o, const char* reason, bool sync)
+Entity_TraceComponents(std::weak_ptr<Entity> o, const char* reason, dm::TraceCategories c)
 {
    auto instance = o.lock(); 
    if (instance)  {
-      auto trace = instance->TraceComponents(reason, sync ? dm::LUA_SYNC_TRACES : dm::LUA_ASYNC_TRACES);
+      auto trace = instance->TraceComponents(reason, c);
       return std::make_shared<lua::MapTraceWrapper<dm::MapTrace<om::Entity::ComponentMap>>>(trace);
    }
    throw std::invalid_argument("invalid reference in native entity::trace_components");
@@ -48,7 +48,7 @@ Entity_TraceComponents(std::weak_ptr<Entity> o, const char* reason, bool sync)
 static std::shared_ptr<lua::MapTraceWrapper<dm::MapTrace<om::Entity::ComponentMap>>>
 Entity_TraceComponentsAsync(std::weak_ptr<Entity> o, const char* reason)
 {
-   return Entity_TraceComponents(o, reason, false);
+   return Entity_TraceComponents(o, reason, dm::LUA_ASYNC_TRACES);
 }
 
 

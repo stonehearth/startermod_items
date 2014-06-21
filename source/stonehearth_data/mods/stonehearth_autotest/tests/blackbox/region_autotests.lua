@@ -1,4 +1,6 @@
 local Point3 = _radiant.csg.Point3
+local TraceCategories = _radiant.dm.TraceCategories
+
 local region_tests = {}
 
 function region_tests.trace_fire_count(autotest)
@@ -7,7 +9,7 @@ function region_tests.trace_fire_count(autotest)
 
 	local count, rgn
 
-	local trace = dst:trace_region('testing tracing', true)
+	local trace = dst:trace_region('testing tracing', TraceCategories.SYNC_TRACE)
 								:on_changed(function()
 										count = count + 1
 									end)

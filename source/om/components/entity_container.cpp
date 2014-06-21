@@ -31,6 +31,16 @@ void EntityContainer::SerializeToJson(json::Node& node) const
 
 void EntityContainer::AddChild(std::weak_ptr<Entity> c)
 {
+   AddChildToContainer(children_, c, "");
+}
+
+void EntityContainer::AddChildToBone(std::weak_ptr<Entity> c, std::string const& bone)
+{
+   AddChildToContainer(attached_items_, c, bone);
+}
+
+void EntityContainer::AddChildToContainer(dm::Map<dm::ObjectId, EntityRef> &children, EntityRef c, std::string const& bone)
+{
    auto child = c.lock();
    if (child) {
       dm::ObjectId childId = child->GetObjectId();
@@ -40,28 +50,37 @@ void EntityContainer::AddChild(std::weak_ptr<Entity> c)
          auto container = parent->GetComponent<EntityContainer>();
          container->RemoveChild(childId);
       }
+      if (mob->GetBone() != bone) {
+         mob->SetBone(bone);
+      }
       mob->SetParent(GetEntityRef());
 
       AddTrace(c);
-      children_.Add(childId, c);
+      children.Add(childId, c);
    }
 }
 
 EntityContainer& EntityContainer::RemoveChild(dm::ObjectId id)
 {
+   EntityPtr child;
    auto i = children_.find(id);
    if (i != children_.end()) {
-      EntityPtr child = i->second.lock();
-
+      child = i->second.lock();
       children_.Remove(id);
-      RemoveTrace(id);
-
-      if (child) {
-         auto mob = child->GetComponent<Mob>();
-         if (mob) {
-            mob->SetParent(EntityRef());
-         }
+   } else {
+      auto i = attached_items_.find(id);
+      if (i != attached_items_.end()) {
+         child = i->second.lock();
+         attached_items_.Remove(id);
       }
+   }
+   if (child) {
+      RemoveTrace(id);
+      auto mob = child->GetComponent<Mob>();
+      if (!mob->GetBone().empty()) {
+         mob->SetBone("");
+      }
+      mob->SetParent(EntityRef());
    }
    return *this;
 }

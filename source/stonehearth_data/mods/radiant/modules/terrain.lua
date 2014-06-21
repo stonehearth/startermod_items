@@ -38,6 +38,7 @@ end
 
 function Terrain.remove_entity(entity)
    radiant.entities.remove_child(radiant._root_entity, entity)
+   radiant.entities.move_to(entity, Point3.zero)
 end
 
 function Terrain.get_standable_point(entity, pt)

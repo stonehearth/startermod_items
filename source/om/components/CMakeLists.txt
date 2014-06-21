@@ -36,7 +36,6 @@ function(PROCESS_RADIANT_IDLS RIDL_TEMPLATE RIDL_EXT GENERATED_SRC)
 endfunction()
 
 SET(RIDL_SOURCES 
-    attached_items.ridl.py
     clock.ridl.py
     data_store.ridl.py
     destination.ridl.py
@@ -84,7 +83,6 @@ add_library(om_components STATIC
             render_info.cpp
             model_layer.cpp
             model_variants.cpp
-            attached_items.cpp
             sensor.cpp
             sensor_list.cpp
             target_tables.cpp

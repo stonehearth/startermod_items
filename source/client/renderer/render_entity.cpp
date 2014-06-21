@@ -10,7 +10,6 @@
 #include "render_destination.h"
 #include "render_effect_list.h"
 #include "render_render_info.h"
-#include "render_attached_items.h"
 #include "render_lua_component.h"
 #include "render_region_collision_shape.h"
 #include "render_vertical_pathing_region.h"
@@ -24,7 +23,6 @@
 #include "om/components/terrain.ridl.h"
 #include "om/components/effect_list.ridl.h"
 #include "om/components/render_info.ridl.h"
-#include "om/components/attached_items.ridl.h"
 #include "om/components/sensor_list.ridl.h"
 #include "om/selection.h"
 #include "lib/lua/script_host.h"
@@ -47,7 +45,8 @@ RenderEntity::RenderEntity(H3DNode parent, om::EntityPtr entity) :
    entity_id_(entity->GetObjectId()),
    initialized_(false),
    skeleton_(*this),
-   visible_override_(true)
+   visible_override_(true),
+   _parentOverride(false)
 {
    ASSERT(parent);
 
@@ -147,6 +146,31 @@ void RenderEntity::SetParent(H3DNode parent)
    //Currently, crash (see promotion_test.lua). Fix before the Wildfire Mod
    h3dSetNodeParent(node_, parent);
 }
+
+/*
+ * -- RenderEntity::SetParentOverride
+ *
+ * Specifies whether or not the parent for this entity should be determined
+ * by the object hierarchy in the object model or manually specified by lua.
+ * Ideally, all objects would obey the object hierarchy.  In some cases, however,
+ * we need to explicitly disable it.  Consider the little ghost entities attached
+ * to cursors when moving items.  Those need to be created on the Horde root
+ * node and moved around by some input listener.  We can't put them in the root
+ * node of the object model, since it's read-only on the client side.  In
+ * practice, this should be called in exactly one place, which is the manual
+ * creation of render entities on entities created in the authoring store.
+ *
+ */
+void RenderEntity::SetParentOverride(bool enabled)
+{
+   _parentOverride = enabled;
+}
+
+bool RenderEntity::GetParentOverride() const
+{
+   return _parentOverride;
+}
+
 
 H3DNode RenderEntity::GetParent() const
 {
@@ -274,11 +298,6 @@ void RenderEntity::AddComponent(std::string const& name, std::shared_ptr<dm::Obj
          case om::EffectListObjectType: {
             om::EffectListPtr el = std::static_pointer_cast<om::EffectList>(value);
             components_[name] = std::make_shared<RenderEffectList>(*this, el);
-            break;
-         }
-         case om::AttachedItemsObjectType: {
-            om::AttachedItemsPtr renderRegion = std::static_pointer_cast<om::AttachedItems>(value);
-            components_[name] = std::make_shared<RenderAttachedItems>(*this, renderRegion);
             break;
          }
          case om::VerticalPathingRegionObjectType: {

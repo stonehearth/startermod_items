@@ -4,7 +4,9 @@
 #include "dm/set_trace.h"
 #include "dm/map_trace.h"
 #include "dm/boxed_trace.h"
+#include "dm/store_save_state.h"
 #include "map_iterator.h"
+#include "dm/tracer_buffered.h"
 #include "set_iterator.h"
 #include "map_trace_wrapper.h"
 #include "set_trace_wrapper.h"
@@ -16,6 +18,7 @@ using namespace luabind;
 using namespace radiant;
 using namespace radiant::dm;
 
+DEFINE_INVALID_JSON_CONVERSION(StoreSaveState);
 
 void RegisterGenericTrace(lua_State* L)
 {
@@ -23,7 +26,7 @@ void RegisterGenericTrace(lua_State* L)
 
    module(L) [
       namespace_("_radiant") [
-         namespace_("om") [
+         namespace_("dm") [
             luabind::class_<Trace, std::shared_ptr<Trace>>(GetTypeName<Trace>())
                .def("on_changed",         &Trace::OnChanged)
                .def("on_destroyed",       &Trace::OnDestroyed)
@@ -41,7 +44,7 @@ void RegisterMap(lua_State* L)
    typedef lua::MapTraceWrapper<MapTrace<T>> Trace;
    module(L) [
       namespace_("_radiant") [
-         namespace_("om") [
+         namespace_("dm") [
             luabind::class_<Trace, std::shared_ptr<Trace>>(GetTypeName<Trace>())
                .def("on_added",           &Trace::OnAdded)
                .def("on_removed",         &Trace::OnRemoved)
@@ -61,7 +64,7 @@ void RegisterBoxed(lua_State* L)
    typedef lua::BoxedTraceWrapper<BoxedTrace<T>> Trace;
    module(L) [
       namespace_("_radiant") [
-         namespace_("om") [
+         namespace_("dm") [
             luabind::class_<Trace, std::shared_ptr<Trace>>(GetTypeName<Trace>())
                .def("on_changed",         &Trace::OnChanged)
                .def("on_destroyed",       &Trace::OnDestroyed)
@@ -79,7 +82,7 @@ void RegisterSet(lua_State* L)
    typedef lua::SetTraceWrapper<SetTrace<T>> Trace;
    module(L) [
       namespace_("_radiant") [
-         namespace_("om") [
+         namespace_("dm") [
             luabind::class_<Trace, std::shared_ptr<Trace>>(GetTypeName<Trace>())
                .def("on_added",           &Trace::OnAdded)
                .def("on_removed",         &Trace::OnRemoved)
@@ -104,6 +107,19 @@ static void OpenDm(lua_State* L)
    ALL_DM_TYPES
 
    RegisterGenericTrace(L);
+   module(L) [
+      namespace_("_radiant") [
+         namespace_("dm") [
+            class_<TraceCategories>("TraceCategories")
+               .enum_("constants") [
+                  value("SYNC_TRACE", dm::LUA_SYNC_TRACES),
+                  value("ASYNC_TRACE", dm::LUA_ASYNC_TRACES)
+               ]
+            ,
+            lua::RegisterTypePtr_NoTypeInfo<StoreSaveState>("SaveState")
+         ]
+      ]
+   ];
 }
 
 void lua::dm::open(lua_State* L)

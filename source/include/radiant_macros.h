@@ -30,7 +30,7 @@
 #endif
 
 #define NOT_YET_IMPLEMENTED()    throw std::logic_error(BUILD_STRING("not yet implemented: " << __FILE__ << ":" << __LINE__))
-#define NOT_REACHED()            ASSERT(false)
+#define NOT_REACHED()            throw std::logic_error(BUILD_STRING("reached unreachable code: " << __FILE__ << ":" << __LINE__))
 #define NOT_TESTED()             LOG_CRITICAL() << "not tested " << __FILE__ << " " << __LINE__
 
 #define DECLARE_SHARED_POINTER_TYPES(Cls) \

@@ -55,7 +55,7 @@ function Floor:merge_with(old_floor)
                            end
                         end)
 
-   radiant.entities.destroy_entity(old_floor)
+   stonehearth.build:unlink_entity(old_floor)
 end
 
 return Floor

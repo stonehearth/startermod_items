@@ -95,7 +95,6 @@ function entities.remove_child(parent, child)
    local component = parent:get_component('entity_container')
    if component then
       component:remove_child(child:get_id())
-      entities.move_to(child, Point3(0, 0, 0))
    end
 end
 
@@ -470,6 +469,8 @@ function entities.pickup_item(entity, item)
    end
 
    carry_block:set_carrying(item)
+   entities.move_to(item, Point3.zero)
+
    return true
 end
 

@@ -17,7 +17,8 @@ class BoxedTraceBuffered : public core::ObjectCounter<BoxedTraceBuffered<BoxedTy
 public:
    BoxedTraceBuffered(const char* reason, BoxedType const& b);
    
-   void Flush();
+   void Flush() override;
+   void SignalDestroyed() override { BoxedTrace<BoxedType>::SignalDestroyed(); }
    bool SaveObjectDelta(SerializationType r, Protocol::Value* value) override;
 
 private:
