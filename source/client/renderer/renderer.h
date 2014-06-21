@@ -185,6 +185,7 @@ class Renderer
 
    private:
       void RenderFogOfWarRT();
+      void RenderLoadingMeter();
       H3DRes BuildSphereGeometry();
       void GetConfigOptions();
       void BuildSkySphere();
@@ -273,7 +274,6 @@ class Renderer
       int               last_render_time_wallclock_;
       bool              resize_pending_;
       bool              inFullscreen_;
-      bool              _loading;
       int               nextWidth_, nextHeight_;
       int               _maxRenderEntityLoadTime;
       
@@ -282,9 +282,12 @@ class Renderer
 
       dm::TracePtr      visibilityTrace_;
       dm::TracePtr      exploredTrace_;
-      std::vector<std::weak_ptr<RenderEntity>>  _newRenderEntities;      
-      H3DNode           _loadingScreen;
-      H3DRes            _loadingMaterial;
+      std::vector<std::weak_ptr<RenderEntity>>  _newRenderEntities;
+
+      bool              _loading;
+      float             _loadingAmount;
+      H3DRes            _loadingBackgroundMaterial;
+      H3DRes            _loadingProgressMaterial;
 };
 
 END_RADIANT_CLIENT_NAMESPACE

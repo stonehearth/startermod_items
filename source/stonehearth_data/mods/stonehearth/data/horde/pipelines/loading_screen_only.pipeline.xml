@@ -6,10 +6,8 @@
          <ClearTarget colBuf0="true" depthBuf="true"/>
       </Stage>
       <Stage id="Overlays">
-         <!--DrawQuad material="materials/loading_screen.material.xml" context="OVERLAY" /-->
-         <!--DrawQuad material="materials/loading_screen.material.xml" context="LOADING_PROGRESS" /-->
-         <!--DrawGeometry context="LOADING_PROGRESS" forceLodLevel="0" /-->
-         <DrawOverlays context="LOADING_OVERLAY"/>
+         <DrawQuad material="materials/loading_screen.material.xml" context="LOADING_OVERLAY" />
+         <DrawOverlays context="PROGRESS_OVERLAY"/>
       </Stage>
    </CommandQueue>
 </Pipeline>

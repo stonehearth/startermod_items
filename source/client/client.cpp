@@ -726,10 +726,6 @@ void Client::InitializeGameObjects()
    lua::rpc::open(L, core_reactor_);
    lua::analytics::open(L);
    lua::audio::open(L);
-
-   if (loading_) {
-      renderer.SetLoading(true);
-   }
 }
 
 void Client::ShutdownGameObjects()
@@ -953,39 +949,24 @@ void Client::EndUpdate(const proto::EndUpdate& msg)
    initialUpdate_ = false;
 
    // Constr
-   {
-      perfmon::TimelineCounterGuard tcg("restore datastores");    
-      RestoreDatastores();
-   }
+   RestoreDatastores();
 
-   {
-      perfmon::TimelineCounterGuard tcg("check deferred traces");    
-      if (traceObjectRouter_) {
-         traceObjectRouter_->CheckDeferredTraces();
-      }
+   if (traceObjectRouter_) {
+      traceObjectRouter_->CheckDeferredTraces();
    }
 
    if (!rootEntity_.lock()) {
       auto rootEntity = GetStore().FetchObject<om::Entity>(1);
       if (rootEntity) {
          rootEntity_ = rootEntity;
-         {
-            perfmon::TimelineCounterGuard tcg("root entity create");    
-            Renderer::GetInstance().SetRootEntity(rootEntity);
-         }
-         {
-            perfmon::TimelineCounterGuard tcg("probably this");    
-            octtree_->SetRootEntity(rootEntity);
-         }
+         Renderer::GetInstance().SetRootEntity(rootEntity);
+         octtree_->SetRootEntity(rootEntity);
       }
    }
    // Only fire the remote store traces at sequence boundaries.  The
    // data isn't guaranteed to be in a consistent state between
    // boundaries.
-   {
-      perfmon::TimelineCounterGuard tcg("flush");    
-      game_render_tracer_->Flush();
-   }
+   game_render_tracer_->Flush();
 }
 
 void Client::SetServerTick(const proto::SetServerTick& msg)
@@ -1068,6 +1049,8 @@ void Client::process_messages()
 
 void Client::ProcessReadQueue()
 {
+   // Allow the client a huge amount of time to process the read queue (since we want to process
+   // all of it in one go.)
    platform::timer t(50000);
    if (recv_queue_) {
       recv_queue_->Process<proto::Update>(std::bind(&Client::ProcessMessage, this, std::placeholders::_1), t);
@@ -1075,6 +1058,7 @@ void Client::ProcessReadQueue()
 }
 
 void Client::OnInput(Input const& input) {
+   // If we're loading, we don't want the user to be able to click anything.
    if (loading_) {
       return;
    }
@@ -1522,11 +1506,16 @@ rpc::ReactorDeferredPtr Client::LoadGame(std::string const& saveid)
       server_load_deferred_ = core_reactor_->Call(rpc::Function("radiant:server:load", args));
       
       load_progress_deferred_ = std::make_shared<rpc::ReactorDeferred>("load progress");
-      server_load_deferred_->Progress([this] (const JSONNode &n) {
+      server_load_deferred_->Progress([this] (const JSONNode n) {
          double server_progress = n.at("progress").as_float();
          load_progress_deferred_->Notify(JSONNode("progress", server_progress / 2.0));
       });
       Renderer::GetInstance().SetLoading(true);
+
+      load_progress_deferred_->Progress([this] (const JSONNode n) {
+         double progress = n.as_float();
+         Renderer::GetInstance().UpdateLoadingProgress(progress / 100.0f);
+      });
    }
 
    return load_progress_deferred_;

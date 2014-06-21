@@ -870,9 +870,14 @@ void Simulation::Load()
    std::string filename = (core::Config::GetInstance().GetSaveDirectory() / load_saveid_ / "server_state.bin").string();
 
    bool didLoad = store_->Load(filename, error, objects, [this](int progress) {
+      // For loading, work needs to be done on the server, and the client.  Assume
+      // the workload is equal, and so consider 100% of the sim's work to be 50%
+      // of the total load.
       json::Node result;
       result.set("progress", progress / 2.0);
       load_progress_deferred_->Notify(result);
+
+      // Push the updates immediately.
       for (std::shared_ptr<RemoteClient> c : _clients) {
          EncodeUpdates(c);
          protocol::SendQueue::Flush(c->send_queue);
@@ -917,6 +922,8 @@ void Simulation::Load()
    })->PushStoreState(); 
 
    scriptHost_->LoadGame(modList_, entityMap_, datastores);
+
+   // Inform the client we're done loading.
    load_progress_deferred_->Resolve(json::Node().set("progress", 100));
    for (std::shared_ptr<RemoteClient> c : _clients) {
       EncodeUpdates(c);

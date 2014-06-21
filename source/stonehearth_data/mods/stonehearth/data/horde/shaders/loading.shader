@@ -25,6 +25,7 @@ context PROGRESS_OVERLAY
    VertexShader = compile GLSL VS_PROGRESS;
    PixelShader = compile GLSL FS_PROGRESS;
    
+   BlendMode = Blend;
    ZWriteEnable = false;
    CullMode = None;
 }
@@ -33,13 +34,12 @@ context PROGRESS_OVERLAY
 
 uniform mat4 projMat;
 attribute vec2 vertPos;
-attribute vec2 texCoord0;
 varying vec2 texCoords;
 
 void main( void )
 {
    texCoords = vec2( vertPos.x, -vertPos.y ); 
-   gl_Position = /*projMat **/ vec4( vertPos.x, vertPos.y, 1, 1 );
+   gl_Position = projMat * vec4( vertPos.x, vertPos.y, 1, 1 );
 }
 
 
@@ -52,21 +52,22 @@ void main( void )
 {
    vec4 albedo = texture2D( loadingMap, texCoords );
    
-   gl_FragColor = vec4(1,1,1,1);//albedo;
+   gl_FragColor = albedo;
 }
 
 
 
 [[VS_PROGRESS]]
+uniform mat4 projMat;
 
-attribute vec4 vertPos;
-//attribute vec2 texCoords0;
+attribute vec2 vertPos;
+attribute vec2 texCoords0;
 
 varying vec2 texCoords;
 
 void main() {
-  texCoords = vec2(vertPos.x/10.0, -vertPos.y/10.0);//texCoords0;
-  gl_Position = vertPos;
+  texCoords = texCoords0;
+  gl_Position = projMat * vec4( vertPos.x, vertPos.y, 1, 1 );
 }
 
 
