@@ -179,6 +179,7 @@ function NewGameCallHandler:create_camp(session, response, pt)
    local worker2 = place_citizen_embark(camp_x+0, camp_z-3)
    local worker3 = place_citizen_embark(camp_x+3, camp_z-3)
    local worker4 = place_citizen_embark(camp_x-3, camp_z+3)
+   local worker6 = place_citizen_embark(camp_x+0, camp_z+3)   
    local worker5 = place_citizen_embark(camp_x+3, camp_z+3)
    local worker6 = place_citizen_embark(camp_x-3, camp_z+0)
 

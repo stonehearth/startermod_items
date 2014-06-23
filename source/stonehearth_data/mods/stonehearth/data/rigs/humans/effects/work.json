@@ -4,6 +4,7 @@
       "animation": {
             "type": "animation_effect",
             "start_time": 0,
+            "speed" : 1.5,
             "animation": "work.json",
             "loop": false
       },
@@ -23,7 +24,7 @@
        "sound": {
          "type": "sound_effect",
          "duration": 1000,
-         "start_delay": 200,
+         "start_delay": 150,
          "min_distance": 50,
          "max_distance": 100,
          "volume": 40,
@@ -38,8 +39,8 @@
       },
       "dust": {
          "type": "cubemitter",
-         "start_time" : 300,
-         "end_time" : 450,
+         "start_time" : 150,
+         "end_time" : 250,
          "cubemitter": "particles/dust_poof/dust_poof.cubemitter.json",
          "transforms": {
             "x":0,
