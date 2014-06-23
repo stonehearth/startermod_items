@@ -201,8 +201,12 @@ void SensorTracker::AddEntity(dm::ObjectId entityId, om::EntityRef e)
 {
    auto sensor = sensor_.lock();
    if (sensor) {
-      ST_LOG(7) << "adding entity " << entityId << " to sensor";
       auto& contents = sensor->GetContainer();
-      contents.Add(entityId, e);
+      auto i = contents.find(entityId);
+
+      if (i == contents.end() || i->first != entityId) {
+         ST_LOG(7) << "adding entity " << entityId << " to sensor";
+         contents.Add(entityId, e);
+      }
    }
 }

@@ -23,6 +23,7 @@ function TerrainService:initialize()
       self._sv._convex_hull = {}
    end
 
+   -- the radius of the sight sensor in the json files should match this value
    self._sight_radius = radiant.util.get_config('sight_radius', 64)
    self._visbility_step_size = radiant.util.get_config('visibility_step_size', 8)
    self._last_optimized_rect_count = 10

@@ -65,6 +65,14 @@
          "faction": "goblin",
          "description": "Attracted to shiny things"
       },
+      "sensor_list": {
+         "sensors": {
+            "sight": {
+               "type": "sensor",
+               "radius": 64
+            }
+         }
+      },
       "stonehearth:attributes": {
          "health": {
             "type" : "basic", 

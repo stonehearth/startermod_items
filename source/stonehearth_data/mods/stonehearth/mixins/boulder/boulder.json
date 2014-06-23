@@ -9,6 +9,7 @@
       },
       "stonehearth:resource_node": {
          "task_group_name" : "stonehearth:task_group:harvest",
+         "harvest_tool" : "stonehearth:worker_axe",
          "resource": "stonehearth:hunk_of_stone", 
          "harvest_overlay_effect" : "/stonehearth/data/effects/mine_overlay_effect",
          "harvester_effect" : "mine",
