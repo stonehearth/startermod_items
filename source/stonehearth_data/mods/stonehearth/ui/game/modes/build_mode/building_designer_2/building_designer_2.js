@@ -37,9 +37,9 @@ App.StonehearthBuildingDesignerTools = App.View.extend({
       {
          category: 'Wooden Materials',
          items: [
-            { id: 'diagonal', name: 'Diagonal', portrait: '/stonehearth/entities/build/wooden_floor/wooden_floor_diagonal.png', brush:'/stonehearth/entities/build/wooden_floor/wooden_floor_diagonal.qb' },
             { id: 'light', name: 'Solid Light',    portrait: '/stonehearth/entities/build/wooden_floor/wooden_floor_solid_light.png', brush:'/stonehearth/entities/build/wooden_floor/wooden_floor_solid_light.qb' },
             { id: 'dark', name: 'Solid Dark',    portrait: '/stonehearth/entities/build/wooden_floor/wooden_floor_solid_dark.png', brush:'/stonehearth/entities/build/wooden_floor/wooden_floor_solid_dark.qb' },
+            { id: 'diagonal', name: 'Diagonal', portrait: '/stonehearth/entities/build/wooden_floor/wooden_floor_diagonal.png', brush:'/stonehearth/entities/build/wooden_floor/wooden_floor_diagonal.qb' },
          ]         
       }
    ],
@@ -64,15 +64,15 @@ App.StonehearthBuildingDesignerTools = App.View.extend({
 
    doodads: [
       {
-         category: 'Windows',
-         items: [
-            { name: 'Wooden Window', portrait: '/stonehearth/entities/construction/wooden_window_frame/wooden_window_frame.png', uri:'stonehearth:wooden_window_frame' },
-         ]
-      },
-      {
          category: 'Doors',
          items: [
             { name: 'Wooden Door', portrait: '/stonehearth/entities/construction/wooden_door/wooden_door.png', uri: 'stonehearth:wooden_door' },
+         ]
+      },
+      {
+         category: 'Windows',
+         items: [
+            { name: 'Wooden Window', portrait: '/stonehearth/entities/construction/wooden_window_frame/wooden_window_frame.png', uri:'stonehearth:wooden_window_frame' },
          ]
       },
       {
@@ -105,7 +105,7 @@ App.StonehearthBuildingDesignerTools = App.View.extend({
          self.$('.floorMaterial').removeClass('selected');
          $(this).addClass('selected');
 
-         self._updateTool();
+         self._updateTool(self.$('#drawFloorTool'));
       })
 
       // draw floor tool
@@ -157,7 +157,7 @@ App.StonehearthBuildingDesignerTools = App.View.extend({
          self.$('.doodadMaterial').removeClass('selected');
          $(this).addClass('selected');
 
-         self._updateTool();
+         self._updateTool(self.$('#drawDoodadTool'));
       })
 
       // draw doodad tool
@@ -194,12 +194,14 @@ App.StonehearthBuildingDesignerTools = App.View.extend({
       $(self.$('#doodadToolTab .doodadMaterial')[0]).addClass('selected');
    },
 
-   _updateTool: function() {
+   _updateTool: function(toolElement) {
       var self = this;
 
       // reactivate the active tool with this new material
       if (self._activeTool) {
          self._activeTool.click();
+      } else if (toolElement) {
+         toolElement.click();
       }
    },
 
