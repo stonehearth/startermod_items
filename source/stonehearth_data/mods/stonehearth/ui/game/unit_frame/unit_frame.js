@@ -111,6 +111,10 @@ App.StonehearthUnitFrameView = App.View.extend({
       this._updateInventory();
    },
 
+   _destroy: function() {
+      this._super();
+   },
+
    _updateCommandButtons: function() {
       if (this.$()) {
         var commands = this.get('context.stonehearth:commands.commands');
@@ -138,6 +142,10 @@ App.StonehearthUnitFrameView = App.View.extend({
 
 App.StonehearthCommandButtonView = App.View.extend({
    classNames: ['inlineBlock'],
+
+   hotkey: function() {
+     return "shift+" + (this.contentIndex + 1);
+   }.property(),
 
    oneBasedIndex: function() {
       return this.contentIndex + 1;

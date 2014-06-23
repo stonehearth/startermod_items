@@ -38,13 +38,13 @@ App.StonehearthEmbarkView = App.View.extend({
          self._clearSelection();
       });
 
-      this.my("#regenerateButton").click(function() {
+      this.$("#regenerateButton").click(function() {
          radiant.call('radiant:play_sound', 'stonehearth:sounds:ui:start_menu:reroll' );
          self._clearSelection();
 
          self._newGame(function(e) {
             radiant.call('radiant:play_sound', 'stonehearth:sounds:ui:start_menu:paper_menu' );
-            self.my('#map').stonehearthMap('setMap', e.map);
+            self.$('#map').stonehearthMap('setMap', e.map);
          });
       });
 
@@ -66,11 +66,11 @@ App.StonehearthEmbarkView = App.View.extend({
       $('#map').stonehearthMap('suspend');
 
       // Must show before setting position. jQueryUI does not support positioning of hidden elements.
-      self.my('#embarkPin').show();
-      self.my('#embarkPin').position({
+      self.$('#embarkPin').show();
+      self.$('#embarkPin').position({
          my: 'left+' + 12 * cellX + ' top+' + 12 * cellY,
          at: 'left top',
-         of: self.my('#map'),
+         of: self.$('#map'),
       })
 
       var tipContent = '<div id="embarkTooltip">';
@@ -78,13 +78,13 @@ App.StonehearthEmbarkView = App.View.extend({
       tipContent += '<button id="clearSelectionButton" class="flat">' + i18n.t('stonehearth:embark_clear_selection') + '</button>';
       tipContent += '</div>'
 
-      self.my('#embarkPin').tooltipster({
+      self.$('#embarkPin').tooltipster({
          autoClose: false,
          interactive: true,
          content:  $(tipContent)
       });
 
-      self.my('#embarkPin').tooltipster('show');
+      self.$('#embarkPin').tooltipster('show');
    },
 
    _newGame: function(fn) {
@@ -124,18 +124,18 @@ App.StonehearthEmbarkView = App.View.extend({
          if (cell.terrain_code != this._prevTerrainCode) {
             var portrait = 'url(/stonehearth/ui/shell/embark/images/' + cell.terrain_code + '.png)'
 
-            self.my('#terrainType').html(terrainType);
-            //self.my('#terrainPortrait').css('content', portrait);   
+            self.$('#terrainType').html(terrainType);
+            //self.$('#terrainPortrait').css('content', portrait);   
             
             this._prevTerrainCode = cell.terrain_code;
          }
          
-         self.my('#vegetation')
+         self.$('#vegetation')
             .removeAttr('class')
             .addClass('level' + cell.vegetation_density)
             .html(vegetationDescription);
 
-         self.my('#wildlife')
+         self.$('#wildlife')
             .removeAttr('class')
             .addClass('level' + cell.wildlife_density)
             .html(wildlifeDescription);
@@ -149,8 +149,8 @@ App.StonehearthEmbarkView = App.View.extend({
       var self = this;
 
       try {
-         self.my('#embarkPin').tooltipster('destroy');
-         self.my('#embarkPin').hide();
+         self.$('#embarkPin').tooltipster('destroy');
+         self.$('#embarkPin').hide();
          radiant.call('radiant:play_sound', 'stonehearth:sounds:ui:carpenter_menu:menu_closed' );
       } catch(e) {
       }

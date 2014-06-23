@@ -50,6 +50,8 @@ App.StonehearthStartMenuView = App.View.extend({
    },
 
    didInsertElement: function() {
+      this._super();
+
       var self = this;
 
       if (!this.$()) {
@@ -62,25 +64,12 @@ App.StonehearthStartMenuView = App.View.extend({
 
       App.stonehearth.startMenu = self.$('#startMenu');
 
-      self.$('design_building').hide();
-
-      /*
-      radiant.call('stonehearth:get_start_menu_data')
-         .done(function (obj) {
-            radiant.trace(obj.datastore)
-            .progress(function(result) {
-                  self._buildMenu(result);
-               })
-               .fail(function(e) {
-                  console.log(e);
-               });
-         });
-      */
-
       $.get('/stonehearth/data/ui/start_menu.json')
          .done(function(json) {
             self._buildMenu(json);
+            self._addHotkeys();
          });
+
 
       radiant.call('stonehearth:get_population')
          .done(function(response){
