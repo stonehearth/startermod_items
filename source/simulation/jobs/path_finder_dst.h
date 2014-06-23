@@ -42,7 +42,6 @@ public:
    om::EntityRef              srcEntity_;
    om::EntityRef              dstEntity_;
    ChangedCb                  changed_cb_;
-   bool                       moving_;
    om::DeepRegionGuardPtr     region_guard_;
    csg::Region3               world_space_adjacent_region_;
    dm::TracePtr               moving_trace_;

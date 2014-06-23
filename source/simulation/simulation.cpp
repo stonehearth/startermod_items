@@ -9,6 +9,7 @@
 #include "jobs/bfs_path_finder.h"
 #include "jobs/a_star_path_finder.h"
 #include "jobs/follow_path.h"
+#include "jobs/apply_free_movement.h"
 #include "jobs/entity_job_scheduler.h"
 #include "resources/res_manager.h"
 #include "dm/store.h"
@@ -215,11 +216,14 @@ void Simulation::InitializeDataObjectTraces()
    store_->AddTracer(object_model_traces_, dm::LUA_SYNC_TRACES);
    store_->AddTracer(object_model_traces_, dm::OBJECT_MODEL_TRACES);
    store_->AddTracer(pathfinder_traces_, dm::PATHFINDER_TRACES);
+
    store_trace_ = store_->TraceStore("sim")->OnAlloced([=](dm::ObjectPtr obj) {
       dm::ObjectId id = obj->GetObjectId();
       dm::ObjectType type = obj->GetObjectType();
       if (type == om::EntityObjectType) {
          entityMap_[id] = std::static_pointer_cast<om::Entity>(obj);
+      } else if (type == om::MobObjectType) {
+         CreateFreeMotionTrace(std::static_pointer_cast<om::Mob>(obj));
       }
    })->PushStoreState();   
 }
@@ -237,6 +241,7 @@ void Simulation::InitializeGameObjects()
 {
    octtree_ = std::unique_ptr<phys::OctTree>(new phys::OctTree(dm::OBJECT_MODEL_TRACES));
    octtree_->EnableSensorTraces(true);
+   freeMotion_ = std::unique_ptr<phys::FreeMotion>(new phys::FreeMotion(octtree_->GetNavGrid()));
 
    scriptHost_.reset(new lua::ScriptHost("server"));
 
@@ -288,6 +293,7 @@ void Simulation::ShutdownGameObjects()
    scriptHost_->SetNotifyErrorCb(nullptr);
    error_browser_.reset();
    octtree_.reset();
+   freeMotion_.reset();
    scriptHost_.reset();
 }
 
@@ -555,6 +561,8 @@ void Simulation::ProcessTaskList()
 {
    MEASURE_TASK_TIME("native tasks")
    SIM_LOG_GAMELOOP(7) << "processing task list";
+
+   freeMotion_->ProcessDirtyTiles(game_loop_timer_);
 
    auto i = tasks_.begin();
    while (i != tasks_.end()) {
@@ -891,4 +899,37 @@ void Simulation::Load(boost::filesystem::path const& saveid)
 
 void Simulation::Reset()
 {
+}
+
+int Simulation::GetGameTickInterval() const
+{
+   return game_tick_interval_;
+}
+
+void Simulation::CreateFreeMotionTrace(om::MobPtr mob)
+{
+   dm::ObjectId id = mob->GetObjectId();
+   om::MobRef m = mob;
+
+   // If the mob ever goes into free-motion, create a task to move it around.
+   // When it leaves free-motion, destroy the task.
+   freeMotionTasks_[id].trace = mob->TraceInFreeMotion("free motion task", dm::OBJECT_MODEL_TRACES)
+      ->OnChanged([this, id, m](bool inFreeMotion) {
+         FreeMotionTaskMapEntry& entry = freeMotionTasks_[id];
+         if (inFreeMotion) {
+            if (!entry.task) {
+               om::MobPtr mob = m.lock();
+               if (mob) {
+                  entry.task = std::make_shared<ApplyFreeMotionTask>(*this, mob->GetEntityPtr());
+                  tasks_.push_back(entry.task);
+               }
+            }
+         } else {
+            entry.task.reset();
+         }
+      })
+      ->OnDestroyed([this, id]() {
+         freeMotionTasks_.erase(id);
+      })
+      ->PushObjectState();
 }

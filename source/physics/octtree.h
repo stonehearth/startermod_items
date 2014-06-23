@@ -26,9 +26,6 @@ class OctTree {
       typedef std::function<bool (om::EntityPtr )>   QueryCallback;
       typedef std::function<void (om::EntityPtr, float)> RayQueryCallback;
 
-      void GetActorsIn(const csg::Cube3f &bounds, QueryCallback cb);      
-      void TraceRay(const csg::Ray3 &ray, RayQueryCallback cb);
-
       // Path finding helpers
       typedef std::vector<std::pair<csg::Point3, float>> MovementCostVector;
 
@@ -44,8 +41,6 @@ class OctTree {
 
    protected:
       bool Intersects(csg::Cube3f bounds, om::RegionCollisionShapePtr rgnCollsionShape) const;   
-      void FilterAllActors(std::function <bool(om::EntityPtr)> filter);
-      om::EntityPtr FindFirstActor(om::EntityPtr root, std::function <bool(om::EntityPtr)> filter);
       bool ValidDiagonalMove(om::EntityPtr const& entity, csg::Point3 const& fromLocation, csg::Point3 const& toLocation) const;
       bool ValidElevationChange(om::EntityPtr const& entity, bool const reversible, csg::Point3 const& fromLocation, csg::Point3 const& toLocation) const;
 

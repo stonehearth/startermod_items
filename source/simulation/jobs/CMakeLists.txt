@@ -1,5 +1,6 @@
 add_library(simulation_jobs STATIC
             pch.cpp
+            apply_free_movement.cpp
             debug_colors.cpp
             job.cpp
             task.cpp

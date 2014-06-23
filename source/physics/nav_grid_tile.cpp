@@ -4,6 +4,7 @@
 #include "csg/region.h"
 #include "collision_tracker.h"
 #include "om/entity.h"
+#include "nav_grid.h"
 #include "nav_grid_tile.h"
 #include "nav_grid_tile_data.h"
 
@@ -18,7 +19,9 @@ using namespace radiant::phys;
  * Construct a new NavGridTile.
  *
  */
-NavGridTile::NavGridTile() :
+NavGridTile::NavGridTile(NavGrid& ng, csg::Point3 const& index) :
+   _ng(ng),
+   _index(index),
    changed_slot_("tile changes")
 {
 }
@@ -32,6 +35,8 @@ NavGridTile::NavGridTile() :
  *
  */
 NavGridTile::NavGridTile(NavGridTile &&other) :
+   _ng(other._ng),
+   _index(other._index),
    changed_slot_("tile changes")
 {
    ASSERT(other.data_ == nullptr);
@@ -239,8 +244,11 @@ void NavGridTile::SetDataResident(bool value)
  */
 void NavGridTile::MarkDirty(TrackerType t)
 {
-   if (data_ && t < NUM_BIT_VECTOR_TRACKERS) {
-      data_->MarkDirty();
+   if (t < NUM_BIT_VECTOR_TRACKERS) {
+      _ng.SignalTileDirty(_index);
+      if (data_) {
+         data_->MarkDirty();
+      }
    }
 }
 

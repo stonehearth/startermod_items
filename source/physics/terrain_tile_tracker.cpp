@@ -78,7 +78,7 @@ bool TerrainTileTracker::Intersects(csg::Cube3 const& worldBounds) const
 {
    om::Region3BoxedPtr region = region_.lock();
    if (region) {
-      return localRegion_.Intersects(worldBounds.Translated(-offset_));
+      return localRegion_.Intersects(worldBounds);
    }
    return false;
 }

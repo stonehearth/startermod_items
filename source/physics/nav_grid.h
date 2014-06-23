@@ -12,6 +12,7 @@
 #include "nav_grid_tile.h"
 #include "derived_region_tracker.h"
 #include "om/components/region_collision_shape.ridl.h"
+#include "core/slot.h"
 
 BEGIN_RADIANT_PHYSICS_NAMESPACE
 
@@ -65,6 +66,8 @@ class NavGrid {
       // Misc
       void RemoveNonStandableRegion(om::EntityPtr entity, csg::Region3& r);
       void ShowDebugShapes(csg::Point3 const& pt, protocol::shapelist* msg);
+      core::Guard NotifyTileDirty(std::function<void(csg::Point3 const&)> cb);
+      csg::Region3 GetEntityWorldCollisionRegion(om::EntityPtr entity, csg::Point3 const& location);
 
    private: // methods for internal helper classes
       friend CollisionTracker;
@@ -99,7 +102,9 @@ class NavGrid {
       void TrackComponent(om::ComponentPtr component);
 
    private: // helper methods
-      friend NavGridTileData;
+      friend NavGridTile;
+      void SignalTileDirty(csg::Point3 const& index);
+
       NavGridTile& GridTileResident(csg::Point3 const& pt);
       NavGridTile& GridTileNonResident(csg::Point3 const& pt);
       NavGridTile& GridTile(csg::Point3 const& pt, bool make_resident);
@@ -131,6 +136,7 @@ class NavGrid {
       TerrainTileCollisionTrackerMap   terrain_tile_collision_trackers_;
       csg::Cube3                       bounds_;
       uint                             max_resident_;
+      core::Slot<csg::Point3>          _dirtyTilesSlot;
 };
 
 END_RADIANT_PHYSICS_NAMESPACE

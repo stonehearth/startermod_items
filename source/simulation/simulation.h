@@ -7,6 +7,7 @@
 #include "om/om.h"
 #include "lib/lua/bind.h"
 #include "physics/octtree.h"
+#include "physics/free_motion.h"
 #include "platform/utils.h"
 #include "dm/store.h"
 #include "core/guard.h"
@@ -68,6 +69,7 @@ public:
    dm::Store& GetStore();
    lua::ScriptHost& GetScript();
    float GetBaseWalkSpeed() const;
+   int GetGameTickInterval() const;
 
    WorkerScheduler* GetWorkerScheduler();
    BuildingScheduler* GetBuildingScehduler(dm::ObjectId id);
@@ -122,10 +124,20 @@ private:
    void ShutdownLuaObjects();
 
    void CreateGame();
+   void CreateFreeMotionTrace(om::MobPtr mob);
+
+private:
+   struct FreeMotionTaskMapEntry {
+      ApplyFreeMotionTaskPtr     task;
+      dm::TracePtr               trace;
+   };
+
+   typedef std::unordered_map<dm::ObjectId, FreeMotionTaskMapEntry> FreeMotionTaskMap;
 
 private:
    std::unique_ptr<dm::Store>                            store_;
    std::unique_ptr<phys::OctTree>                        octtree_;
+   std::unique_ptr<phys::FreeMotion>                     freeMotion_;
    std::unique_ptr<lua::ScriptHost>                      scriptHost_;
 
    // Good stuff down here.
@@ -179,6 +191,7 @@ private:
    om::ModListPtr                      modList_;
    om::ClockPtr                        clock_;
    float                               game_speed_;
+   FreeMotionTaskMap                   freeMotionTasks_;
 };
 
 END_RADIANT_SIMULATION_NAMESPACE

@@ -20,8 +20,7 @@ PathFinderDst::PathFinderDst(Simulation& sim, om::EntityRef src, om::EntityRef d
    dstEntity_(dst),
    srcEntity_(src),
    name_(name),
-   changed_cb_(changed_cb),
-   moving_(false)
+   changed_cb_(changed_cb)
 {
    ASSERT(!srcEntity_.expired());
    ASSERT(!dstEntity_.expired());
@@ -55,23 +54,10 @@ void PathFinderDst::CreateTraces()
       auto& o = sim_.GetOctTree();
       auto mob = dstEntity->GetComponent<om::Mob>();
       if (mob) {
-         moving_ = mob->GetMoving();
-
          transform_trace_ = mob->TraceTransform("pf dst", dm::PATHFINDER_TRACES)
                                  ->OnChanged([=](csg::Transform const&) {
                                     PF_LOG(7) << "mob transform changed";
                                     destination_may_have_changed("mob transform changed");
-                                 });
-
-         moving_trace_ = mob->TraceMoving("pf dst", dm::PATHFINDER_TRACES)
-                                 ->OnChanged([=](bool const& moving) {
-                                    if (moving != moving_) {
-                                       PF_LOG(7) << "mob moving changed";
-                                       moving_ = moving;
-                                       if (moving_) {
-                                          changed_cb_("mob moving changed");
-                                       }
-                                    }
                                  });
       }
       auto dst = dstEntity->GetComponent<om::Destination>();
@@ -114,7 +100,6 @@ csg::Point3 PathFinderDst::GetPointOfInterest(csg::Point3 const& adjacent_pt) co
 void PathFinderDst::DestroyTraces()
 {
    PF_LOG(7) << "destroying traces";
-   moving_trace_ = nullptr;
    transform_trace_ = nullptr;
    region_guard_ = nullptr;
 }
