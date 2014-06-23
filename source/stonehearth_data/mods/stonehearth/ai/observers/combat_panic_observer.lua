@@ -3,6 +3,7 @@ local log = radiant.log.create_logger('combat')
 local CombatPanicObserver = class()
 
 function CombatPanicObserver:initialize(entity, json)
+   -- read this from entity data with default of 0.50
    self._panic_threshold = radiant.util.get_config('panic_threshold', 0.50)
    self._entity = entity
    self._last_health = self:_get_health()
@@ -17,6 +18,10 @@ end
 -- just using health right now, but this could depend on other attributes as well
 -- panic every time health goes down and is below 50% max_health
 function CombatPanicObserver:_on_health_changed()
+   if radiant.entities.get_posture(self._entity) ~= 'stonehearth:combat' then
+      return
+   end
+
    local current_health = self:_get_health()
 
    -- only declining health causes panic

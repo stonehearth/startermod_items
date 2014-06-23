@@ -302,6 +302,11 @@ function entities.get_world_grid_location(entity)
    end
 end
 
+function entities.equip_item(entity, item, slot)
+   local equipment_component = entity:add_component('stonehearth:equipment')
+   equipment_component:equip_item(item, slot)
+end
+
 function entities.get_equipped_item(entity, slot)
    local equipment_component = entity:get_component('stonehearth:equipment')
    if equipment_component == nil then
@@ -708,13 +713,29 @@ function entities.is_hostile(entity_a, entity_b)
    local faction_a = radiant.entities.get_faction(entity_a)
    local faction_b = radiant.entities.get_faction(entity_b)
 
-   if faction_a == 'critter' or faction_b == 'critter' then
+   if entities._are_neutral_factions(faction_a, faction_b) then
       return false
    end
 
-   return faction_a and faction_b and
-          faction_a ~= '' and faction_b ~= '' and
-          faction_a ~= faction_b
+   return faction_a ~= faction_b
+end
+
+-- we'll use a mapping table later to determine alliances / hostilities
+function entities.is_friendly(entity_a, entity_b)
+   local faction_a = radiant.entities.get_faction(entity_a)
+   local faction_b = radiant.entities.get_faction(entity_b)
+
+   if entities._are_neutral_factions(faction_a, faction_b) then
+      return false
+   end
+
+   return faction_a == faction_b
+end
+
+-- we'll use a mapping table later to determine alliances / hostilities
+function entities._are_neutral_factions(faction_a, faction_b)
+   return faction_a == nil or faction_a == '' or faction_a == 'critter' or
+          faction_b == nil or faction_b == '' or faction_b == 'critter'
 end
 
 function entities.on_entity_moved(entity, fn, reason)
