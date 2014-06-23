@@ -62,7 +62,7 @@ App.StonehearthErrorBrowserView = App.View.extend({
 
       this.$().draggable();
 
-      this.my('#entries').on('click', 'a', function(event) {
+      this.$('#entries').on('click', 'a', function(event) {
          var error_uri = $(this).attr('error_uri');
          if (self.currentView) {
             self.currentView.destroy();
@@ -70,7 +70,7 @@ App.StonehearthErrorBrowserView = App.View.extend({
          self.currentView = App.gameView.addView(App.StonehearthErrorDialogView, { uri : error_uri });
       });
 
-      this.my('.close').click(function() {
+      this.$('.close').click(function() {
          self.$().hide();
       });
    }

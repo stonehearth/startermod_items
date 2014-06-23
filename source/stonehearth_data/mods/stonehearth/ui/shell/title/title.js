@@ -96,27 +96,20 @@ App.StonehearthTitleScreenView = App.View.extend({
       newGame: function() {
          radiant.call('radiant:play_sound', 'stonehearth:sounds:ui:start_menu:embark' );
          App.shellView.addView(App.StonehearthEmbarkView);
-         //this.get('parentView').addView(App.StonehearthLoadingScreenView)
          this.$().hide();
       },
 
       continueGame: function() {
          var key = String(this.get('context.lastSave').key);
 
-         radiant.call("radiant:client:load_game", key)
-            .always(function() {
-               App.gameView._addViews(App.gameView.views.complete);
-               App.gotoGame();
-            });         
+         // throw up a loading screen. when the game is loaded the browser is refreshed,
+         // so we don't need to worry about removing the loading screen, ever.
+         radiant.call("radiant:client:load_game", key);
+         // At this point, we just wait to be killed by the client.
       },
 
       loadGame: function() {
-         this.get('parentView').addView(App.StonehearthLoadView,
-            { 
-               onLoad : function() {
-                  App.gotoGame();
-               }
-            });
+         this.get('parentView').addView(App.StonehearthLoadView);
       },
 
       // xxx, holy cow refactor this together with the usual flow

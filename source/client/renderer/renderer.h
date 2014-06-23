@@ -26,6 +26,7 @@
 #include "glfw3.h"
 #include <unordered_set>
 #include "raycast_result.h"
+#include "horde3d\Source\Horde3DEngine\egHudElement.h"
 
 BEGIN_RADIANT_CLIENT_NAMESPACE
 
@@ -169,10 +170,13 @@ class Renderer
       void* GetLastUiBuffer();
 
       void SetDrawWorld(bool drawWorld);
+      void SetLoading(bool loading);
       bool SetVisibleRegion(std::string const& visible_region_uri);
       bool SetExploredRegion(std::string const& explored_region_uri);
 
       std::string GetHordeResourcePath() const { return resourcePath_; }
+
+      void UpdateLoadingProgress(float amountLoaded);
 
    private:
       NO_COPY_CONSTRUCTOR(Renderer);
@@ -181,10 +185,12 @@ class Renderer
 
    private:
       void RenderFogOfWarRT();
+      void RenderLoadingMeter();
       H3DRes BuildSphereGeometry();
       void GetConfigOptions();
       void BuildSkySphere();
       void BuildStarfield();
+      void BuildLoadingScreen();
       void SetStageEnable(H3DRes pipeRes, const char* stageName, bool enabled);
       void OnWindowResized(int newWidth, int newHeight);
       void OnKey(int key, int down);
@@ -277,6 +283,11 @@ class Renderer
       dm::TracePtr      visibilityTrace_;
       dm::TracePtr      exploredTrace_;
       std::vector<std::weak_ptr<RenderEntity>>  _newRenderEntities;
+
+      bool              _loading;
+      float             _loadingAmount;
+      H3DRes            _loadingBackgroundMaterial;
+      H3DRes            _loadingProgressMaterial;
 };
 
 END_RADIANT_CLIENT_NAMESPACE

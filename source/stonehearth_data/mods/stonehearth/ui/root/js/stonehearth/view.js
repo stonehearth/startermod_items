@@ -11,6 +11,7 @@
 
       this._destroyRootTrace();
       this._destroyRadiantTrace();
+      this._unbindHotkeys();
       
       if (this.modalOverlay) {
          this.modalOverlay.destroy();
@@ -39,14 +40,20 @@
       if (position) {
          this.$().children().position(position);
       }
+
+      if (this.$()) {
+         this._addHotkeys();   
+      }
    },
 
-   my: function(selector) {
-      if (!selector) {
-         return this.$();
-      } else {
-         return this.$().find(selector);
-      }
+   _addHotkeys: function() {
+      this.$('[hotkey]').each(function() {
+         var el = $(this);
+         var hotkey = el.attr('hotkey');
+         $(document).bind('keyup', hotkey, function() {
+            el.click();
+         })
+      });
    },
 
    _destroyRadiantTrace: function() {
@@ -63,6 +70,10 @@
          }
          this._rootTrace = null;
       }
+   },
+
+   _unbindHotkeys: function() {
+      // xxx, todo. 
    },
 
    _setRootTrace: function(trace) {

@@ -37,8 +37,8 @@ end
    target_index:  Optional index to add order. 1 is the first location.
                   If no index is selected, the order will be added to the end of the array
 ]]
-function CraftOrderList:add_order(recipe, condition, faction)
-   local order = radiant.create_controller('stonehearth:craft_order', self._sv.next_order_id, recipe, condition, faction, self)
+function CraftOrderList:add_order(recipe, condition, player_id)
+   local order = radiant.create_controller('stonehearth:craft_order', self._sv.next_order_id, recipe, condition, player_id, self)
    self._sv.next_order_id = self._sv.next_order_id + 1
    table.insert(self._sv.orders, order)
    self:_on_order_list_changed()

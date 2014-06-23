@@ -30,12 +30,12 @@
                "name" : "end to end tests",
 
                "scripts" : [
+                  "file(end_to_end/stockpile_autotests.lua)",
                   "file(end_to_end/rotation_autotests.lua)",
                   "file(end_to_end/combat_autotests.lua)",
                   "file(end_to_end/luabind_autotests.lua)",
                   "file(end_to_end/farming_autotests.lua)",
                   "file(end_to_end/construction_autotests.lua)",
-                  "file(end_to_end/stockpile_autotests.lua)",
                   "file(end_to_end/carpenter_autotests.lua)",
                   "file(end_to_end/firepit_autotests.lua)",
                   "file(end_to_end/harvest_autotests.lua)",

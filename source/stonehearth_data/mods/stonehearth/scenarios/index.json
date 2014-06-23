@@ -33,7 +33,8 @@
          "file(dynamic/goblin_brigands)",
          "file(dynamic/immigration_failure_scenario)",
          "file(dynamic/immigration_scenario)", 
-         "file(dynamic/simple_caravan_scenario)"
+         "file(dynamic/simple_caravan_scenario)",
+         "file(dynamic/returning_trader_scenario)"
       ]
    }
 }

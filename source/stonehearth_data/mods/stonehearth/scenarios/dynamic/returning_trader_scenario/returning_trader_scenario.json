@@ -1,0 +1,79 @@
+{
+   "name" : "Returning Trader",
+   "scenario_types" : {
+      "population" : {
+      }
+   },
+   "rarity" : "common",
+   "uri" : "stonehearth:returning_trader", 
+   "scenario_data" : {
+      "expiration_timeout" : "6h",
+      "score_threshold" : 1000,
+      "title" : "A trader approaches your town.",
+      "greeting" : "Hello __town_name__! I'm just passing through, but even I can see you have a somewhat-skilled crafter in your ranks.", 
+      "trade_details" : " If you make me __want_number__ __want_item__(s), I'll be back in __num_days__ days and might be able to get you __reward_number__ __reward_item__(s) in exchange. Sound good?", 
+      "return_title" : "The trader returns!", 
+      "return_greetings_positive" : "I'm back! It looks like you've made me the __want_number__ __want_item__(s) I asked for. Are you still willing to trade them to me? I'll give you __reward_number__ __reward_item__(s) in exchange. Still sounds good?", 
+      "return_greetings_negative" : "I'm back, but it doesn't look like you've got the __want_number__ __want_item__(s) I asked for. That's too bad! Maybe next time!", 
+      "max_days_before_return" : 5, 
+      "wants" : {
+         "stonehearth:farmer:hoe" : {
+            "min" : 3, 
+            "max" : 8
+         }, 
+         "stonehearth:wooden_sword" : {
+            "min" : 3, 
+            "max" : 8
+         }, 
+         "stonehearth:wooden_buckler" : {
+            "min" : 2, 
+            "max" : 4
+         }, 
+         "stonehearth:simple_wooden_chair_proxy" : {
+            "min" : 5, 
+            "max" : 12
+         }, 
+          "stonehearth:picket_fence_proxy" : {
+            "min" : 5, 
+            "max" : 20
+         }, 
+         "stonehearth:picket_fence_gate_proxy" : {
+            "min" : 1, 
+            "max" : 4
+         }, 
+         "stonehearth:table_for_one_proxy" : {
+            "min" : 3, 
+            "max" : 8
+         }, 
+         "stonehearth:not_much_of_a_bed_proxy" : {
+            "min" : 3, 
+            "max" : 10
+         }, 
+         "stonehearth:wooden_door_proxy" : {
+            "min" : 2, 
+            "max" : 10
+         },
+         "stonehearth:wooden_window_frame_proxy" : {
+            "min" : 4, 
+            "max" : 10
+         }
+      },
+      "rewards" : {
+         "stonehearth:simple_wall_lantern_proxy" : {
+            "type" : "object", 
+            "min" : 2, 
+            "max" : 6
+         }, 
+         "stonehearth:cloth_bolt" : {
+            "type" : "object", 
+            "min" : 2, 
+            "max" : 10
+         }, 
+         "stonehearth:comfy_bed_proxy" : {
+            "type" : "object", 
+            "min" : 1, 
+            "max" : 2
+         }
+      }
+   }
+}

@@ -66,14 +66,14 @@ function InventoryService:add_item(player_id, storage, item)
 end
 
 --- When an item is removed from a player's inventory, tell this function, which will
---  propgaget the change to the correct inventory
-function InventoryService:remove_item(player_id, storage, item)
+--  propgate the change to the correct inventory
+function InventoryService:remove_item(player_id, storage, item, item_id)
    local inventory_for_player = self:get_inventory(player_id)
-   inventory_for_player:remove_item(storage, item)
+   inventory_for_player:remove_item(storage, item, item_id)
 
    --Tell all the traces for this player about this item
    for name, trace in pairs(self._sv.inventory_trackers_by_player[player_id]) do
-      trace:remove_item(item)
+      trace:remove_item(item_id)
    end
 end
 

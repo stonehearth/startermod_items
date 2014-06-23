@@ -1,0 +1,13 @@
+<!-- Forward Shading Pipeline -->
+<Pipeline name="LOADING_SCREEN_ONLY">
+   <CommandQueue>
+      <Stage id="Init">
+         <SwitchTarget target="" />
+         <ClearTarget colBuf0="true" depthBuf="true"/>
+      </Stage>
+      <Stage id="Overlays">
+         <DrawQuad material="materials/loading_screen.material.xml" context="LOADING_OVERLAY" />
+         <DrawOverlays context="PROGRESS_OVERLAY"/>
+      </Stage>
+   </CommandQueue>
+</Pipeline>

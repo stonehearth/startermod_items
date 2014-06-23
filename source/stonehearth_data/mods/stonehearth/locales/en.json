@@ -223,7 +223,7 @@
    "item_placement_description": "Click to place this item in the world.<p>Rotate the item with the , and . keys.",
    "item_placement_no_entities": "There is nothing to place!",
    "item_movement_title": "Move",
-   "item_movement_description": "Move this item elsewhere. Right click to rotate.",
+   "item_movement_description": "Click to move this item elsewhere.<p>Rotate the item with the , and . keys.",
 
    "beleaguered_leader" : "Beleaguered Leader",
    "hopeless_optimist" : "Hopeless Optimist",

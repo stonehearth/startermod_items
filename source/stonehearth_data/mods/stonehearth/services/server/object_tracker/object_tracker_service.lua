@@ -84,6 +84,8 @@ function ObjectTrackerService:get_resource_tracker(player_id)
    end)
 end 
 
+--[[
+--Removing, now use the basic inventory tracker
 function ObjectTrackerService:get_craftable_tracker(player_id)
    local tracker_name = 'get_craftable_tracker:' .. player_id
 
@@ -100,5 +102,5 @@ function ObjectTrackerService:get_craftable_tracker(player_id)
       return QuantityTracker(player_id, filter_fn, identifier_fn)
    end)
 end 
-
+]]
 return ObjectTrackerService
