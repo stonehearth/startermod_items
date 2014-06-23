@@ -26,6 +26,14 @@
             ]
          }
       },
+      "stonehearth:equipment_piece" : {
+         "render_type" : "attach_to_bone",
+         "render_info" : {
+            "model_variant" : "default",
+            "default_bone" : "mainHand",
+            "postures" : [ "stonehearth:combat" ]
+         }
+      },
       "stonehearth:commands" : {
          "commands" : [
             "file(/data/commands/promote_to_profession)"
