@@ -62,6 +62,7 @@ stonehearth:
 	@echo Build type is ${BUILD_TYPE}.
 	$(MSBUILD) $(BUILD_ROOT)/Stonehearth.sln -p:configuration=$(MSBUILD_CONFIGURATION) -t:protobuf
 	$(MSBUILD) $(BUILD_ROOT)/Stonehearth.sln -p:configuration=$(MSBUILD_CONFIGURATION) -t:stonehearth
+	sh $(SCRIPTS_ROOT)/stage/stage_stonehearth.sh -o ../../build/source/stonehearth/$(MSBUILD_CONFIGURATION) -t $(MSBUILD_CONFIGURATION) -b
 
 .PHONY: crash_reporter
 crash_reporter:
