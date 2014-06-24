@@ -146,11 +146,19 @@ function ReturningTrader:_make_message(message_composite)
 
    local want_name = self:_get_user_visible_name(self._sv._trade_data.want_uri)
    local reward_name =  self:_get_user_visible_name(self._sv._trade_data.reward_uri)
+   
    message_composite = string.gsub(message_composite, '__want_number__', self._sv._trade_data.want_count)
    message_composite = string.gsub(message_composite, '__want_item__', want_name)
    message_composite = string.gsub(message_composite, '__num_days__', self._sv._trade_data.num_days)
    message_composite = string.gsub(message_composite, '__reward_number__', self._sv._trade_data.reward_count)
    message_composite = string.gsub(message_composite, '__reward_item__', reward_name)
+
+   local hours_remaing = 0
+   if self._timer then
+      hours_remaing = self._timer:get_remaining_time('h')
+      hours_remaing = math.floor(hours_remaing)
+      message_composite = string.gsub(message_composite, '__hour_counter__',  hours_remaing)
+   end
    return message_composite
 end
 
@@ -173,9 +181,11 @@ function ReturningTrader:_create_timer(duration)
       --We're the timer to cancel the some bulletin
       if self._sv._bulletin then
          self:_cancel_bulletin(self._sv._bulletin)
-      else
-      --We're the timer to bring back the caravan. 
-         self:_stop_timer()
+      end
+      if self._sv._waiting_for_return then
+         --We're the timer to bring back the caravan. 
+         --self:_stop_timer()
+         self._sv._waiting_for_return = false
          self:_make_return_trip()
       end
    end)
@@ -193,6 +203,7 @@ function ReturningTrader:_stop_timer(timer)
    self._sv.timer_expiration = nil
 end
 
+--- When the user accepts the trader's challenge
 function ReturningTrader:_on_accepted()
    self._sv._bulletin = nil
    if self._timer then
@@ -201,8 +212,37 @@ function ReturningTrader:_on_accepted()
    self:_stop_timer()
 
    --make a timer to express how long to wait before the caravan returns
-   local wait_time = self._sv._trade_data.num_days
-   self:_create_timer(wait_time .. 'd')
+   self._sv._wait_time = self._sv._trade_data.num_days
+   self:_create_timer(self._sv._wait_time .. 'd')
+
+   --Put up a non-dismissable notification to keep track of the time remaining
+   --Send the notice to the bulletin service
+   local title = self:_make_message(self._trade_data.waiting_title)
+   local message = self:_make_message(self._trade_data.waiting_text)
+   self._sv._bulletin = stonehearth.bulletin_board:post_bulletin(self._sv._player_id)
+      :set_ui_view('StonehearthGenericBulletinDialog')
+      :set_callback_instance(self)
+      :set_close_on_handle(false)
+      :set_data({
+         title = title,
+         message = message
+      })
+   --register a callback every hour so we can
+   self._sv._waiting_for_return = true
+   radiant.events.listen(stonehearth.calendar, 'stonehearth:hourly', self, self._on_hourly)
+end
+
+function ReturningTrader:_on_hourly()
+   if self._sv._waiting_for_return then
+      local title = self:_make_message(self._trade_data.waiting_title)
+      local message = self:_make_message(self._trade_data.waiting_text)
+      self._sv._bulletin:set_data({
+         title = title,
+         message = message
+      })
+   else
+      return radiant.events.UNLISTEN
+   end
 end
 
 function ReturningTrader:_on_declined()

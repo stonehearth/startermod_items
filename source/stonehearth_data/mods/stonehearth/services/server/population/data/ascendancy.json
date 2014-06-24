@@ -101,13 +101,13 @@
          "Devona",
          "Eyla",
          "Fiona",
-         "Gemm",
+         "Gem",
          "Helen",
          "Idria",
          "Jo",
          "Kate",
          "Lorna",
-         "Mellia",
+         "Mell",
          "Norsa",
          "Orsa",
          "Penn",
@@ -122,7 +122,8 @@
          "Raven",
          "Vio",
          "Jess",
-         "Marianne"
+         "Marianne", 
+         "Olive"
       ]
    }, 
    "town_pieces" : {
