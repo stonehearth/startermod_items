@@ -262,6 +262,8 @@
    "pause_description" : "Pause the game if its running.",
    "play_title" : "Play Game",
    "play_description" : "Make the game run at normal speed.", 
+   "ff_title" : "Fast Forward",
+   "ff_description" : "Make the game run at 2x speed.", 
 
    "town_description" : "The __descriptor__ __noun__ of", 
    "camp" : "Camp", 
