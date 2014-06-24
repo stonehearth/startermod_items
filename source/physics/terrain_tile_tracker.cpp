@@ -78,7 +78,10 @@ bool TerrainTileTracker::Intersects(csg::Cube3 const& worldBounds) const
 {
    om::Region3BoxedPtr region = region_.lock();
    if (region) {
-      return localRegion_.Intersects(worldBounds);
+      bool collision = localRegion_.Intersects(worldBounds);
+
+      LOG(physics.navgrid, 8) << "checking collision of tile bounds " << localRegion_.GetBounds() << " against " << worldBounds << "(collide? " << std::boolalpha << collision << ")";
+      return collision;
    }
    return false;
 }

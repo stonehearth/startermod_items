@@ -651,34 +651,6 @@ bool NavGrid::ForEachTrackerForEntity(dm::ObjectId entityId, ForEachTrackerCb cb
 
 
 /*
- * -- NavGrid::ForEachPointInEntityRegion
- *
- * Iterate over every point of an Entity, which is defined to be the sum of all regions
- * of all the trackers for an Entity.  Points *may* be passed multiple times if trackers
- * overlap!!
- *
- * Stops iteration whenever a cb returns 'true'.  Itself returns 'true' if the iteration
- * was stopped early.
- *
- */
-
-bool NavGrid::ForEachPointInEntityRegion(dm::ObjectId entityId, csg::Point3 const& offset, ForEachPointCb cb)
-{
-   bool stopped;
-   stopped = ForEachTrackerForEntity(entityId, [&offset, cb] (CollisionTrackerPtr tracker) mutable {
-      for (csg::Cube3 const& cube : tracker->GetLocalRegion()) {
-         for (csg::Point3 pt : cube.Translated(offset)) {
-            bool stop = cb(pt);
-            return stop;
-         }
-      }
-      return false;     // keep iterating...
-   });
-   return stopped;      // if we had to stop iteration, we must be blocked!
-}
-
-
-/*
  * -- NavGrid::IsEntityInCube
  *
  * Returns whether or any tracker for `entity` overlaps `worldBounds`
@@ -708,15 +680,34 @@ bool NavGrid::IsEntityInCube(om::EntityPtr entity, csg::Cube3 const& worldBounds
 
 bool NavGrid::IsBlocked(om::EntityPtr entity, csg::Point3 const& location)
 {
-   bool stopped;
+   csg::Region3 region = GetEntityWorldCollisionRegion(entity, location);
+   return NavGrid::IsBlocked(entity, region);
+}
 
-   NG_LOG(7) << "checking if " << *entity << " is blocked at " << location;
-   stopped = ForEachPointInEntityRegion(entity->GetObjectId(), location, [&location, this] (csg::Point3 const& pt) mutable {
-      bool stop = IsBlocked(pt);
+
+/*
+ * -- NavGrid::IsBlocked
+ *
+ * Returns whether or not the space occupied by `entity` is blocked if placed at
+ * the world coordinate specified by `location`.  `region` must have been derived
+ * from a call to GetEntityWorldCollisionReginon, though it may be moved around
+ * (eg. translated up and down to find the right spot to unstick an entity)
+ *
+ */
+
+bool NavGrid::IsBlocked(om::EntityPtr entity, csg::Region3 const& region)
+{
+   bool stopped = ForEachTrackerInRegion(region, [this, &entity](CollisionTrackerPtr tracker) -> bool {
+      bool stop = false;
+      
+      // Ignore the trackers for the entity we're asking about.
+      if (entity != tracker->GetEntity()) {
+         if (tracker->GetType() == TrackerType::COLLISION) {
+            stop = true;
+         }
+      }
       return stop;
    });
-   NG_LOG(7) << "finished checking if " << *entity << " is blocked at " << location << "(result: " << std::boolalpha << stopped << ")";
-
    return stopped;      // if we had to stop iteration, we must be blocked!
 }
 
@@ -779,32 +770,6 @@ bool NavGrid::IsSupport(csg::Point3 const& worldPoint)
 
 
 /*
- * -- NavGrid::IsSupport
- *
- * Returns whether or not any point in the specified `region` is support.  `region`
- * should be in the world coodinate system.  A support point is one that can be stood
- * on by something else (e.g. a piece of ground or the rung of a ladder).
- *
- */
-bool NavGrid::IsSupport(csg::Region3 const& r)
-{
-   NG_LOG(7) << "checking ::IsSupport for world region " << r.GetBounds();
-
-   bool stopped = ForEachTileInRegion(r, [&r, this](csg::Point3 const& index, NavGridTile& tile) {
-      // Clip the region to the tile bounds
-      csg::Cube3 bounds = csg::Cube3::one.Scaled(TILE_SIZE).Translated(index * TILE_SIZE);
-      csg::Region3 clipped = r & bounds;
-      clipped.Translate(index * -TILE_SIZE);
-      bool stop = !GridTileResident(index).IsSupport(clipped);
-      return stop;
-   });
-
-   NG_LOG(7) << "checking ::IsSupport for world region " << r.GetBounds() << " (result: " << std::boolalpha << !stopped << ")";
-
-   return !stopped;
-}
-
-/*
  * -- NavGrid::IsStandable
  *
  * Returns whether or not the coordinate at `worldPoint` is standable.  A point is
@@ -821,11 +786,10 @@ bool NavGrid::IsStandable(csg::Point3 const& worldPoint)
  * -- NavGrid::IsStandable
  *
  * Returns whether or not the region `r` is a valid place to stand.  `r` should be
- * in world coordinates.  A Region3 is standable if the entire space occupied by
- * the region is not blocked and every point under the bottom-most slice of the
- * region is standable.
+ * in world coordinates.  
  *
  */
+
 bool NavGrid::IsStandable(csg::Region3 const& r) {
 
    NG_LOG(7) << "::IsStandable checking world region " << r.GetBounds();
@@ -834,9 +798,30 @@ bool NavGrid::IsStandable(csg::Region3 const& r) {
       NG_LOG(7) << "region is blocked.  Definitely not standable!";
       return false;
    }
+   return RegionIsSupported(r);
+}
 
+
+/*
+ * -- NavGrid::IsStandable
+ *
+ * Returns whether or not the region `r` in world space is supported.
+ * Ideall, a Region3 is standable if the entire space occupied by
+ * the region is not blocked and every point under the bottom-most slice of the
+ * region is standable.  Unfortuantely, that runs into weird collision problems
+ * and odd-nesss in non-ideal situations.
+ *
+ * So instead we say a region is supported if ANY of the points under the bottom
+ * stripe of the region are supported.  sigh.
+ *
+ */
+
+bool NavGrid::RegionIsSupported(csg::Region3 const& r)
+{
    csg::Cube3 rb = r.GetBounds();
    csg::Region3 footprint;
+
+   NG_LOG(7) << "checking is region supported for " << r.GetBounds();
 
    int bottom = rb.min.y;
    for (csg::Cube3 const& cube : r) {
@@ -844,15 +829,21 @@ bool NavGrid::IsStandable(csg::Region3 const& r) {
       if (cube.min.y == bottom) {
          csg::Cube3 slice(csg::Point3(cube.min.x, bottom - 1, cube.min.z),
                           csg::Point3(cube.max.x, bottom    , cube.max.z));
+         for (csg::Point3 const& pt : slice) {
+            if (IsSupport(pt)) {
+               NG_LOG(7) << pt << "is not support!  returnin false";
+               return true;
+            }
+         }
          footprint.AddUnique(slice);
       }
    }
-   return IsSupport(footprint);
+   NG_LOG(7) << "is region supported for " << r.GetBounds() << " returning true";
+   return false;
 }
 
-
 /*
- * -- NavGrid::IsBlocked
+ * -- NavGrid::IsStandable
  *
  * Returns whether or not the space occupied by `entity` would be standable if placed at
  * the world coordinate specified by `location`.  This completely ignores the
@@ -863,19 +854,27 @@ bool NavGrid::IsStandable(csg::Region3 const& r) {
 
 bool NavGrid::IsStandable(om::EntityPtr entity, csg::Point3 const& location)
 {
-   bool emptyRegion = true;
-   bool stopped;
-   stopped = ForEachPointInEntityRegion(entity->GetObjectId(), location, [this, &emptyRegion] (csg::Point3 const& pt) mutable {
-      bool stop = !IsStandable(pt);
-      emptyRegion = false;
-      return stop;
-   });
-   // if there were no points at all, at least make sure the *location* itself is standable.
-   if (emptyRegion) {
-      NG_LOG(3) << *entity << " has no points in region in IsStandable.  checking " << location << " directly.";
-      return IsStandable(location);
+   csg::Region3 region = GetEntityWorldCollisionRegion(entity, location);
+   return IsStandable(entity, region);
+}
+
+
+/*
+ * -- NavGrid::IsStandable
+ *
+ * Returns whether or not the space occupied by `entity` would be standable if placed at
+ * the world coordinate specified by `region`.  `region` must have been derived
+ * from a call to GetEntityWorldCollisionReginon, though it may be moved around
+ * (eg. translated up and down to find the right spot to unstick an entity)
+ *
+ */
+
+bool NavGrid::IsStandable(om::EntityPtr entity, csg::Region3 const& region)
+{
+   if (IsBlocked(entity, region)) {
+      return false;
    }
-   return !stopped;      // if we had to stop iteration, we must not be standable!!
+   return RegionIsSupported(region);
 }
 
 
@@ -902,13 +901,13 @@ csg::Point3 NavGrid::GetStandablePoint(om::EntityPtr entity, csg::Point3 const& 
    NG_LOG(7) << "collision region for " << *entity << " at " << pt << " is " << region.GetBounds() << " in ::GetStandablePoint.";
    
    csg::Point3 location = pt;
-   csg::Point3 direction(0, IsBlocked(location) ? 1 : -1, 0);
+   csg::Point3 direction(0, IsBlocked(entity, region) ? 1 : -1, 0);
 
    NG_LOG(7) << "::GetStandablePoint search direction is " << direction;
 
    while (bounds_.Contains(location)) {
       NG_LOG(7) << "::GetStandablePoint checking location " << location;
-      if (IsStandable(region)) {
+      if (IsStandable(entity, region)) {
          NG_LOG(7) << "Found it!  Breaking";
          break;
       }
