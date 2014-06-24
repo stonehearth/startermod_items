@@ -34,7 +34,7 @@ function RenewableResourceNodeComponent:get_task_group_name()
    return self._task_group_name
 end
 
-function ResourceNodeComponent:get_harvest_tool()
+function RenewableResourceNodeComponent:get_harvest_tool()
    return self._harvest_tool
 end
 

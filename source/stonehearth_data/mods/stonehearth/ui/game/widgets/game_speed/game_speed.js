@@ -27,7 +27,7 @@ App.StonehearthGameSpeedWidget = App.View.extend({
       
       //find currently active button, and unselect it
       this._toggle_button_by_speed(this.currSpeed, false);
-
+    
       //find next button, and select it
       this._toggle_button_by_speed(newSpeed, true);
 
@@ -45,12 +45,13 @@ App.StonehearthGameSpeedWidget = App.View.extend({
    _toggle_button_by_speed: function(speed, selected) {
       switch (speed) {
          case this.speeds.PAUSED:
-            this.set('context.isPaused', selected)
+            this.set('context.isPaused', selected);
             break;
          case this.speeds.PLAY:
-             this.set('context.isPlay', selected)
+            this.set('context.isPlay', selected);
             break;
          case this.speeds.FASTFORWARD:
+            this.set('context.isFF', selected);
             break;
          default:
             break;
@@ -65,7 +66,7 @@ App.StonehearthGameSpeedWidget = App.View.extend({
       this.currSpeed = this.speeds.PLAY;
       this.set('context.isPaused', false);
       this.set('context.isPlay', true);
-      //TODO, if we have FF, add it here
+      this.set('context.isFF', false);
 
       radiant.call('stonehearth:get_default_speed')
          .done(function(e){
@@ -90,6 +91,10 @@ App.StonehearthGameSpeedWidget = App.View.extend({
             radiant.call('stonehearth:set_player_game_speed', self.speeds.PLAY);
       });
 
+      this.$('#ffButton').click(function() {
+            radiant.call('stonehearth:set_player_game_speed', self.speeds.FASTFORWARD);
+      });
+
       // tooltip
       this.$('#pauseButton').tooltipster({
          position: 'bottom',
@@ -101,6 +106,12 @@ App.StonehearthGameSpeedWidget = App.View.extend({
          position: 'bottom',
          content: $('<div class=title>' + i18n.t('stonehearth:play_title') + '</div>' + 
                     '<div class=description>' + i18n.t('stonehearth:play_description') + '</div>' /*+ 
+                    '<div class=hotkey>' + $.t('hotkey') + ' <span class=key>' + $(this).attr('hotkey')  + '</span></div>'*/)
+      });
+      this.$('#ffButton').tooltipster({
+         position: 'bottom',
+         content: $('<div class=title>' + i18n.t('stonehearth:ff_title') + '</div>' + 
+                    '<div class=description>' + i18n.t('stonehearth:ff_description') + '</div>' /*+ 
                     '<div class=hotkey>' + $.t('hotkey') + ' <span class=key>' + $(this).attr('hotkey')  + '</span></div>'*/)
       });
 
