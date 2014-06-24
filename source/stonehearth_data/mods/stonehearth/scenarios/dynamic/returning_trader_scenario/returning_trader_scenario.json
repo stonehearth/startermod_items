@@ -8,7 +8,7 @@
    "uri" : "stonehearth:returning_trader", 
    "scenario_data" : {
       "expiration_timeout" : "6h",
-      "score_threshold" : 1,
+      "score_threshold" : 1000,
       "title" : "A trader approaches your town.",
       "greeting" : "Hello __town_name__! I'm just passing through, but even I can see you have a skilled crafter in your ranks.", 
       "trade_details" : " If you make me __want_number__ __want_item__, I'll be back in __num_days__ days and might be able to get you __reward_number__ __reward_item__ in exchange. Sound good?", 
