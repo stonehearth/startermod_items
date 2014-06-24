@@ -22,8 +22,7 @@ using namespace radiant::phys;
 NavGridTile::NavGridTile(NavGrid& ng, csg::Point3 const& index) :
    _ng(ng),
    _index(index),
-   changed_slot_("tile changes"),
-   _interationDepth(0)
+   changed_slot_("tile changes")
 {
 }
 
@@ -61,7 +60,7 @@ void NavGridTile::RemoveCollisionTracker(CollisionTrackerPtr tracker)
       // multimap, so this is O(1) for the find() + O(n) for the number of tracker
       // types, but there are a only and handful of those, so consider the while
       // loop here to be constant time.
-      ASSERT(_interationDepth == 0);
+
       auto range = trackers_.equal_range(entityId);
       for (auto i = range.first; i != range.second; i++) {
          if (i->second.lock() == tracker) {
@@ -83,8 +82,6 @@ void NavGridTile::AddCollisionTracker(CollisionTrackerPtr tracker)
 {
    om::EntityPtr entity = tracker->GetEntity();
    if (entity) {
-      ASSERT(_interationDepth == 0);
-
       dm::ObjectId id = entity->GetObjectId();
       TrackerMap::const_iterator i;
       auto range = trackers_.equal_range(id);
@@ -93,13 +90,13 @@ void NavGridTile::AddCollisionTracker(CollisionTrackerPtr tracker)
             break;
          }
       }
-      MarkDirty(tracker->GetType());
       if (i == range.second) {
          trackers_.insert(std::make_pair(id, tracker));
          changed_slot_.Signal(ChangeNotification(ENTITY_ADDED, id, tracker));
       } else {
          changed_slot_.Signal(ChangeNotification(ENTITY_MOVED, id, tracker));         
       }
+      MarkDirty(tracker->GetType());
    }
 }
 
@@ -207,7 +204,6 @@ bool NavGridTile::IsSupport(csg::Region3 const& region)
 void NavGridTile::FlushDirty(NavGrid& ng, csg::Point3 const& index)
 {
    ASSERT(data_);
-   ASSERT(_interationDepth == 0);
 
    data_->FlushDirty(ng, trackers_, GetWorldBounds(index));
 }
@@ -350,26 +346,29 @@ bool NavGridTile::ForEachTrackerForEntity(dm::ObjectId entityId, ForEachTrackerC
  */ 
 bool NavGridTile::ForEachTrackerInRange(TrackerMap::const_iterator begin, TrackerMap::const_iterator end, ForEachTrackerCb cb)
 {
-   bool stopped = false;
-
-   _interationDepth++;
+   bool stopped = false;   
+   std::vector<CollisionTrackerRef> trackers;
 
    // It's important here not to modify the trackers array at all during iterator.
    // Otherwise, we'll invalidate the `end` iterator and certainly blow up somewhere!
-   while (!stopped && begin != end) {
-      CollisionTrackerPtr tracker = begin->second.lock();
+   while (begin != end) {
+      trackers.push_back(begin->second);
+      begin++;
+   }
+
+   for (CollisionTrackerRef t : trackers) {
+      CollisionTrackerPtr tracker = t.lock();
       if (tracker) {
          om::EntityPtr entity = tracker->GetEntity();
          if (entity) {
             NG_LOG(7) << "calling ForEachTracker callback on " << *entity;
             stopped = cb(tracker);
+            if (stopped) {
+               break;
+            }
          }
       }
-      ++begin;
    }
-
-   _interationDepth--;
-
    return stopped;
 }
 

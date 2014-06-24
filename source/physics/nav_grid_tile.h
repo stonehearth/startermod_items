@@ -107,7 +107,6 @@ private:
    csg::Point3                               _index;
    std::shared_ptr<NavGridTileData>          data_;
    core::Slot<ChangeNotification>            changed_slot_;
-   int                                       _interationDepth;
 };
 
 END_RADIANT_PHYSICS_NAMESPACE
