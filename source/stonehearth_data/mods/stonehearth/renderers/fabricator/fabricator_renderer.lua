@@ -27,6 +27,7 @@ function FabricatorRenderer:initialize(render_entity, fabricator)
       -- view mode.  it will drive the shape and visibility of our structure shape
       -- based on those modes.  
       self._render_tracker = ConstructionRenderTracker(self._entity)
+                                 :set_type(self._blueprint_cd:get_type())
                                  :set_normal(self._blueprint_cd:get_normal())
                                  :set_visible_ui_modes('hud')
                                  :set_render_region_changed_cb(function(region, visible)

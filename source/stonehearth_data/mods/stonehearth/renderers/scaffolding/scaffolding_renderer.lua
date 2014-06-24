@@ -161,10 +161,9 @@ function ScaffoldingRenderer:_update_shape(mode)
          end
       end
       -- show or hide the tops, too.
-      for x, t in ipairs(self._tops) do
-         for z, top in ipairs(t) do
+      for x, t in pairs(self._tops) do
+         for z, top in pairs(t) do
             local pt = Point3(x, top.top_y, z)
-            -- i have *no idea* why this doesn't work. =(
             top.node:set_visible(show_region and show_region:contains(pt))
          end
       end

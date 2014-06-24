@@ -72,6 +72,11 @@ function ConstructionRenderTracker:set_normal(normal)
    return self   
 end
 
+function ConstructionRenderTracker:set_type(type)
+   self._type = type
+   return self   
+end
+
 -- sets the function to call whenever the region for your structure to be rendered
 -- changes.  this may be different that the region you specified in the :set_region()
 -- function.  for example, in rpg mode we only show the very bottoms of structures
@@ -172,6 +177,13 @@ function ConstructionRenderTracker:_on_building_visions_mode_changed()
    if mode ~= self._mode then
       local last_mode = self._mode
       self._mode = mode
+
+      -- roofs are only visible in normal mode.
+      if self._type == 'roof' then
+         self._build_mode_visible = self._mode ~= 'rpg' and self._mode ~= 'xray'
+         self:_update_visible()
+         return
+      end
 
       -- if we're entering or leaving rpg mode, the region has almost certainly changed.
       -- check up on it.
