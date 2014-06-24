@@ -11,8 +11,9 @@ using namespace radiant::phys;
 FreeMotion::FreeMotion(NavGrid &ng) :
    _ng(ng)
 {
-   _guard = _ng.NotifyTileDirty([this](csg::Point3 const& tile) {
-      stdutil::UniqueInsert(_dirtyTiles, tile);
+   _guard = _ng.NotifyTileDirty([this](csg::Point3 const& index) {
+      LOG(physics.free_motion, 4) << "Adding tile " << index << " to dirty set.";
+      stdutil::UniqueInsert(_dirtyTiles, index);
    });
 }
 
@@ -41,6 +42,7 @@ void FreeMotion::ProcessDirtyTiles(platform::timer& t)
  */
 void FreeMotion::ProcessDirtyTile(csg::Point3 const& index)
 {
+   LOG(physics.free_motion, 4) << "Unsticking entities on tile " << index;
    _ng.ForEachEntityAtIndex(index, [this](om::EntityPtr e) {
       UnstickEntity(e);
       return false;     // continue iteration through the whole list
@@ -58,6 +60,8 @@ void FreeMotion::ProcessDirtyTile(csg::Point3 const& index)
 void FreeMotion::UnstickEntity(om::EntityPtr entity)
 {
    om::MobPtr mob = entity->GetComponent<om::Mob>();
+
+   LOG(physics.free_motion, 4) << "Unsticking entity " << *entity;
 
    if (mob && mob->GetMobCollisionType() != om::Mob::NONE && !mob->GetInFreeMotion()) {
       // If the position where the entity is located is not standable,

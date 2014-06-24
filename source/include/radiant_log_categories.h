@@ -20,6 +20,7 @@
    BEGIN_GROUP(physics) \
       ADD_CATEGORY(collision) \
       ADD_CATEGORY(navgrid) \
+      ADD_CATEGORY(free_motion) \
       ADD_CATEGORY(sensor_tracker) \
    END_GROUP(physics) \
    \
