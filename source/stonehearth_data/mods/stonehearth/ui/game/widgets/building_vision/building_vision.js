@@ -2,6 +2,8 @@ App.StonehearthBuildingVisionWidget = App.View.extend({
    templateName: 'stoneheartBuildingVision',
 
    didInsertElement: function() {
+      this._super();
+
       var self = this;
       var palette = this.$('#palette');
       var currentMode = 'normal';
@@ -10,15 +12,6 @@ App.StonehearthBuildingVisionWidget = App.View.extend({
         currentMode = mode;
         radiant.call('stonehearth:set_building_vision_mode', currentMode);
       }
-
-      // input handlers
-      this.$().hover(
-         function() {
-            palette.fadeIn();      
-         },
-         function() {
-            palette.fadeOut();
-         });
 
       this.$('#visionButton').click(function() {
          self.$('#visionButton').removeClass(currentMode);
@@ -33,7 +26,6 @@ App.StonehearthBuildingVisionWidget = App.View.extend({
 
          self.$('#visionButton').addClass(currentMode);
       });
-
 
       this.$('#visionButton').tooltipster({
          content: $('<div class=title>' + i18n.t('stonehearth:building_vision') + '</div>' + 
