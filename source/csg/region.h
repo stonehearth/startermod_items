@@ -58,6 +58,7 @@ public:
    void Subtract(Point const& point);
    void Subtract(Cube const& cube);
    void Subtract(Region const& region);
+   void SetTag(int tag);
 
    Region<S, C> operator-(Cube const& cube) const;
    Region<S, C> operator-(Region const& region) const;

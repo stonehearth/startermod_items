@@ -102,6 +102,7 @@ static luabind::class_<T> Register(struct lua_State* L, const char* name)
          .def("intersected",        &IntersectRegion<T>)
          .def("inflated",           &T::Inflated)
          .def("contains",           &T::Contains)
+         .def("set_tag",            &T::SetTag)
       ;
 }
 
