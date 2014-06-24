@@ -215,8 +215,14 @@ function Fabricator:find_another_block(carrying, location)
       local adjacent = self._fabricator_dst:get_adjacent():get()
       if adjacent:contains(pt) then
          local block = self._fabricator_dst:get_point_of_interest(pt) + origin
-         self:reserve_block(block)
-         return block
+
+         -- make sure the next block we get is on the same level as the current
+         -- block so we don't confuse the scaffolding fabricator.  if we really
+         -- need to go to the next row, the pathfinder will take us there!
+         if block.y == location.y then
+            self:reserve_block(block)
+            return block
+         end
       end
    end
 end
