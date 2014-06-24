@@ -28,7 +28,6 @@ FollowPath::FollowPath(Simulation& sim, om::EntityRef e, float speed, std::share
    om::EntityPtr entity = entity_.lock();
    if (entity) {
       om::MobPtr mob = entity->GetComponent<om::Mob>();
-      mob->SetMoving(false);
       csg::Point3f startLocation = mob->GetWorldLocation();
       stopIndex_ = CalculateStopIndex(startLocation, path_->GetPoints(), path_->GetDestinationPointOfInterest(), stopDistance_);
    }
@@ -178,12 +177,7 @@ bool FollowPath::Obstructed()
 void FollowPath::Stop()
 {
    Report("stopping");
-   auto entity = entity_.lock();
-   if (entity) {
-      auto mob = entity->GetComponent<om::Mob>();
-      mob->SetMoving(false);
-      entity_.reset();
-   }
+   entity_.reset();
 }
 
 void FollowPath::Report(std::string const& msg)

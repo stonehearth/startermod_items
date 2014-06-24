@@ -14,7 +14,8 @@ function AnimationEffect:__init(animation_path, start_time, info)
    -- to loop, simply start the effect and don't destroy it until you'd
    -- like it to stop.  You still need to set the loop flag to ensure
    -- the client loops it, though.
-   self._end_time = self._start_time + self._animation:get_duration()
+   local speed = info.speed or 1
+   self._end_time = self._start_time + self._animation:get_duration() / speed
 end
 
 function AnimationEffect:update(e)

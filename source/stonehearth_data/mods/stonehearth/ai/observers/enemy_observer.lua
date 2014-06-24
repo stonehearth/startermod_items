@@ -5,24 +5,13 @@ local EnemyObserver = class()
 function EnemyObserver:initialize(entity, json)
    self._entity = entity
 
-   radiant.events.listen(self._entity, 'stonehearth:combat:battery', self, self._on_battery)
    self:_add_sensor_trace()
 end
 
-function EnemyObserver:_on_battery(context)
-   local target_table = radiant.entities.get_target_table(self._entity, 'aggro')
-   target_table:modify_score(context.attacker, context.damage)
-end
-
 function EnemyObserver:_add_sensor_trace()
-   -- could configure sensor in json, but we want the radius to be the same as the sight radius
-   local sight_radius = radiant.util.get_config('sight_radius', 64)
    local sensor_list = self._entity:add_component('sensor_list')
-   self._sensor = sensor_list:get_sensor('enemy_observer')
-
-   if self._sensor == nil then
-      self._sensor = sensor_list:add_sensor('enemy_observer', sight_radius)
-   end
+   self._sensor = sensor_list:get_sensor('sight')
+   assert(self._sensor)
 
    self._trace = self._sensor:trace_contents('trace_enemies')
       :on_added(function (target_id)
@@ -34,6 +23,7 @@ function EnemyObserver:_add_sensor_trace()
       :push_object_state()
 end
 
+-- this may be called more than once for an entity, so make sure we can handle duplicates
 function EnemyObserver:_on_added_to_sensor(target_id)
    local target = radiant.entities.get_entity(target_id)
    local target_table
@@ -42,7 +32,7 @@ function EnemyObserver:_on_added_to_sensor(target_id)
       return
    end
 
-   if self:_is_hostile(target) and self:_is_killable(target) then
+   if radiant.entities.is_hostile(self._entity, target) and self:_is_killable(target) then
       target_table = radiant.entities.get_target_table(self._entity, 'aggro')
       target_table:add(target)
    end
@@ -60,13 +50,6 @@ function EnemyObserver:_on_removed_from_sensor(target_id)
    target_table:remove(target)
 end
 
-function EnemyObserver:_is_hostile(target)
-   -- fix the critter hack when we have a mapping table for hostilities
-   local is_hostile = radiant.entities.is_hostile(self._entity, target) and
-                      radiant.entities.get_faction(target) ~= 'critter'
-   return is_hostile
-end
-
 function EnemyObserver:_is_killable(target)
    local attributes_component = target:get_component('stonehearth:attributes')
    if not attributes_component then 
@@ -80,7 +63,6 @@ end
 
 function EnemyObserver:destroy()
    self:_destroy_trace()
-   radiant.events.unlisten(self._entity, 'stonehearth:combat:battery', self, self._on_battery)
 end
 
 function EnemyObserver:_destroy_trace()

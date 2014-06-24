@@ -2,11 +2,14 @@ console.log('loading keyboard handler...');
 
 $(document).ready(function(){
 
+
+   /*
    $(top).bind('keyup', function(e){
       radiant.keyboard.handleKeyEvent(e);
    });
 
    radiant.keyboard.setFocus(null);
+   */
 
 });
 

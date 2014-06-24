@@ -46,8 +46,7 @@
          </div>
          <h2>{{i18n stonehearth:building_designer_material}}</h2>
          <div class="brushPalette section">
-            {{#each view.wallPatterns}}
-               <!-- <h2>{{category}}</h2> -->
+            {{#each view.wallPatterns}}>
                <div>
                   {{#each items}}
                      <img {{bind-attr uri="this.uri" src="this.portrait" title="this.name"}} class="wallMaterial" />

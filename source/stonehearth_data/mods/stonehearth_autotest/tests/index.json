@@ -45,7 +45,8 @@
                   "file(end_to_end/placement_autotests.lua)",
                   "file(end_to_end/sensor_autotests.lua)",
                   "file(end_to_end/score_autotests.lua)",
-                  "file(end_to_end/scenario_autotests.lua)"
+                  "file(end_to_end/scenario_autotests.lua)",
+                  "file(end_to_end/gravity_autotests.lua)"
                ]
             },
 

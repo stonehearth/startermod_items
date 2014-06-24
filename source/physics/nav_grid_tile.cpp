@@ -4,6 +4,7 @@
 #include "csg/region.h"
 #include "collision_tracker.h"
 #include "om/entity.h"
+#include "nav_grid.h"
 #include "nav_grid_tile.h"
 #include "nav_grid_tile_data.h"
 
@@ -18,7 +19,9 @@ using namespace radiant::phys;
  * Construct a new NavGridTile.
  *
  */
-NavGridTile::NavGridTile() :
+NavGridTile::NavGridTile(NavGrid& ng, csg::Point3 const& index) :
+   _ng(ng),
+   _index(index),
    changed_slot_("tile changes")
 {
 }
@@ -32,6 +35,8 @@ NavGridTile::NavGridTile() :
  *
  */
 NavGridTile::NavGridTile(NavGridTile &&other) :
+   _ng(other._ng),
+   _index(other._index),
    changed_slot_("tile changes")
 {
    ASSERT(other.data_ == nullptr);
@@ -59,7 +64,7 @@ void NavGridTile::RemoveCollisionTracker(CollisionTrackerPtr tracker)
       for (auto i = range.first; i != range.second; i++) {
          if (i->second.lock() == tracker) {
             trackers_.erase(i);
-            OnTrackerRemoved(entityId);
+            OnTrackerRemoved(entityId, tracker->GetType());
             return;
          }
       }
@@ -84,7 +89,7 @@ void NavGridTile::AddCollisionTracker(CollisionTrackerPtr tracker)
             break;
          }
       }
-      MarkDirty();
+      MarkDirty(tracker->GetType());
       if (i == range.second) {
          trackers_.insert(std::make_pair(id, tracker));
          changed_slot_.Signal(ChangeNotification(ENTITY_ADDED, id, tracker));
@@ -237,10 +242,13 @@ void NavGridTile::SetDataResident(bool value)
  * Mark the tile dirty.
  *
  */
-void NavGridTile::MarkDirty()
+void NavGridTile::MarkDirty(TrackerType t)
 {
-   if (data_) {
-      data_->MarkDirty();
+   if (t < NUM_BIT_VECTOR_TRACKERS) {
+      _ng.SignalTileDirty(_index);
+      if (data_) {
+         data_->MarkDirty();
+      }
    }
 }
 
@@ -250,9 +258,9 @@ void NavGridTile::MarkDirty()
  * Called whenever any tracker for `entityId` gets removed from the set.
  *
  */
-void NavGridTile::OnTrackerRemoved(dm::ObjectId entityId)
+void NavGridTile::OnTrackerRemoved(dm::ObjectId entityId, TrackerType t)
 {
-   MarkDirty();
+   MarkDirty(t);
    changed_slot_.Signal(ChangeNotification(ENTITY_REMOVED, entityId, nullptr));
 }
 

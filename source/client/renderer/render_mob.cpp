@@ -43,8 +43,13 @@ RenderMob::RenderMob(RenderEntity& entity, om::MobPtr mob) :
    }
 
    interp_trace_ = mob->TraceInterpolateMovement("render", dm::RENDER_TRACES)
-                                 ->OnChanged([this](bool interpolate) {
-                                    UpdateInterpolate(interpolate);
+                                 ->OnChanged([this](bool) {
+                                    UpdateInterpolate();
+                                 });
+
+   _freeMotionTrace = mob->TraceInFreeMotion("render", dm::RENDER_TRACES)
+                                 ->OnChanged([this](bool) {
+                                    UpdateInterpolate();
                                  })
                                  ->PushObjectState();
 
@@ -127,10 +132,10 @@ void RenderMob::UpdateTransform(csg::Transform const& transform)
 {
    auto mob = mob_.lock();
    if (mob) {
-      om::EntityPtr current = lastParent_.lock();
-      om::EntityPtr parent = mob->GetParent().lock();
+      if (InterpolateMovement()) {
+         om::EntityPtr current = lastParent_.lock();
+         om::EntityPtr parent = mob->GetParent().lock();
 
-      if (mob->GetInterpolateMovement()) {
          if (current != parent) {
             M_LOG(7) << "mob: turning off interpolation for " << entity_id_ << " for one frame, since parent changed";
             _initial = _final = _current = mob->GetTransform();
@@ -151,19 +156,21 @@ void RenderMob::UpdateTransform(csg::Transform const& transform)
    }
 }
 
-void RenderMob::UpdateInterpolate(bool interpolate)
+void RenderMob::UpdateInterpolate()
 {
-   if (interpolate) {
-      renderer_guard_ += Renderer::GetInstance().OnServerTick([this](int now) {
-         _initial = _current;
-         M_LOG(7) << "mob: initial for object " << entity_id_ << " to " << _current << " in server tick";
-      });
-      renderer_guard_ += Renderer::GetInstance().OnRenderFrameStart([this](FrameStartInfo const& info) {
-         perfmon::TimelineCounterGuard tcg("move mob");
-         _current = csg::Interpolate(_initial, _final, info.interpolate);
-         M_LOG(7) << "mob: current for object " << entity_id_ << " to " << _current << " (a:" << info.interpolate << " n:" << info.now << " ft:" << info.frame_time << ")";
-         Move();
-      });
+   if (InterpolateMovement()) {
+      if (renderer_guard_.Empty()) {
+         renderer_guard_ += Renderer::GetInstance().OnServerTick([this](int now) {
+            _initial = _current;
+            M_LOG(7) << "mob: initial for object " << entity_id_ << " to " << _current << " in server tick";
+         });
+         renderer_guard_ += Renderer::GetInstance().OnRenderFrameStart([this](FrameStartInfo const& info) {
+            perfmon::TimelineCounterGuard tcg("move mob");
+            _current = csg::Interpolate(_initial, _final, info.interpolate);
+            M_LOG(7) << "mob: current for object " << entity_id_ << " to " << _current << " (a:" << info.interpolate << " n:" << info.now << " ft:" << info.frame_time << ")";
+            Move();
+         });
+      }
    } else {
       renderer_guard_.Clear();
    }
@@ -202,4 +209,14 @@ void RenderMob::UpdateParent()
       }
       entity_.SetParent(parentNode);
    }
+}
+
+bool RenderMob::InterpolateMovement() const
+{
+   om::MobPtr mob = mob_.lock();
+
+   if (mob) {
+      return mob->GetInterpolateMovement() || mob->GetInFreeMotion();
+   }
+   return false;
 }

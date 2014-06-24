@@ -24,13 +24,12 @@ class Mob(Component):
    bone = dm.Boxed(std.string())
    parent = dm.Boxed(std.weak_ptr(Entity()))
    transform = dm.Boxed(csg.Transform())
+   velocity = dm.Boxed(csg.Transform())
    model_origin = dm.Boxed(csg.Point3f())
    region_origin = dm.Boxed(csg.Point3f())
    align_to_grid_flags = dm.Boxed(c.int())
-   aabb = dm.Boxed(csg.Cube3f)
-   moving = dm.Boxed(c.bool())
    interpolate_movement = dm.Boxed(c.bool())
-   selectable = dm.Boxed(c.bool())
+   in_free_motion = dm.Boxed(c.bool())
    mob_collision_type = dm.Boxed(mob_collision_types)
 
    get_mob_collision_box = ridl.Method(csg.Cube3()).const
@@ -40,7 +39,6 @@ class Mob(Component):
    turn_to_face_point = ridl.Method(c.void(), ('location', csg.Point3().const.ref))
    get_facing = ridl.Method(c.float()).const
    set_rotation = ridl.Method(c.void(), ('q', csg.Quaternion().const.ref))
-   get_world_aabb = ridl.Method(csg.Cube3f()).const
    get_rotation = ridl.Method(csg.Quaternion()).const
    get_location = ridl.Method(csg.Point3f()).const
    get_grid_location = ridl.Method(csg.Point3()).const

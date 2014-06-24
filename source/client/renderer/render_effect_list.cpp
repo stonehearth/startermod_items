@@ -230,6 +230,8 @@ RenderAnimationEffect::RenderAnimationEffect(RenderEntity& e, om::EffectPtr effe
       animation_ = res::ResourceManager2::GetInstance().LookupAnimation(animationName_);
 
       if (animation_) {
+         speed_ = std::max(json::Node(node).get<float>("speed", 1.0f), 0.01f);
+
          startTime_ = GetStartTime(node) + now;
          auto i = node.find("loop");
          if (i != node.end() && i->as_bool()) {
@@ -242,6 +244,7 @@ RenderAnimationEffect::RenderAnimationEffect(RenderEntity& e, om::EffectPtr effe
                duration_ = animation_->GetDuration();
             }
          }
+         duration_ /= speed_;
       }
       EL_LOG(5) << "starting animation effect" << animationName_ << "(start_time: " << startTime_ << ")";
    }
@@ -260,7 +263,7 @@ void RenderAnimationEffect::Update(FrameStartInfo const& info, bool& finished)
       finished = true;
       return;
    }
-   int offset = info.now - startTime_;
+   int offset = static_cast<int>((info.now - startTime_) * speed_);
    if (duration_) {    
       if (info.now > startTime_ + duration_) {
          EL_LOG(9) << "marking animation effect " << animationName_ << " finished (duration exceeded)";

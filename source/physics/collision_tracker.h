@@ -17,11 +17,10 @@ BEGIN_RADIANT_PHYSICS_NAMESPACE
  */
 class CollisionTracker : public std::enable_shared_from_this<CollisionTracker> {
 public:
-   CollisionTracker(NavGrid& ng, om::EntityPtr entity);
+   CollisionTracker(NavGrid& ng, TrackerType type, om::EntityPtr entity);
    virtual ~CollisionTracker() { }
 
    virtual void Initialize();
-   virtual TrackerType GetType() const = 0;
    virtual csg::Region3 const& GetLocalRegion() const = 0;
    virtual csg::Region3 GetOverlappingRegion(csg::Cube3 const& bounds) const = 0;
    virtual bool Intersects(csg::Cube3 const& worldBounds) const = 0;
@@ -29,6 +28,7 @@ public:
    bool Intersects(csg::Region3 const& region) const;
    bool Intersects(csg::Region3 const& region, csg::Cube3 const& regionBounds) const;
 
+   TrackerType GetType() const;
    om::EntityPtr GetEntity() const;
    dm::ObjectId GetEntityId() const;
 
@@ -40,6 +40,7 @@ protected:
 
 private:
    NavGrid&       ng_;
+   TrackerType    _type;
    dm::ObjectId   object_id_;
    om::EntityRef  entity_;
    dm::ObjectId   entityId_;

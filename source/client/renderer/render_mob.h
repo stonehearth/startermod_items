@@ -22,7 +22,8 @@ private:
    void RemoveAxes();
    void Move();
    void UpdateTransform(csg::Transform const& transform);
-   void UpdateInterpolate(bool interpolate);
+   void UpdateInterpolate();
+   bool InterpolateMovement() const;
 
 private:
    RenderEntity&        entity_;
@@ -38,6 +39,7 @@ private:
    dm::ObjectId         entity_id_;
    dm::TracePtr         parent_trace_;
    dm::TracePtr         interp_trace_;
+   dm::TracePtr         _freeMotionTrace;
    dm::TracePtr         bone_trace_;
    dm::TracePtr         transform_trace_;
 };

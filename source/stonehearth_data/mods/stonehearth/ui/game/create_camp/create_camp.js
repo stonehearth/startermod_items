@@ -19,17 +19,9 @@ App.StonehearthCreateCampView = App.View.extend({
          var self = this;
          this._hideBanner();
          radiant.call('stonehearth:choose_camp_location')
-         .done(function(o) {
+            .done(function(o) {
                if (o.result) {
                   radiant.call('radiant:play_sound', 'stonehearth:sounds:banner_plant' );
-                     /*
-                     setTimeout( function() {
-                        radiant.call('radiant:play_sound', 'stonehearth:sounds:ui:start_menu:paper_menu' );
-                        //self._gotoStockpileStep();
-                        self._gotoFinishStep();
-                     }, 1000);
-*/
-
                      // prompt the player for their settlement's name
                      App.gameView.addView(App.StonehearthNameCampView, { 
                            position: {
@@ -42,10 +34,11 @@ App.StonehearthCreateCampView = App.View.extend({
                         });
 
                      self.destroy();
-               } else {
-                  self._showBanner();
-                  radiant.call('radiant:play_sound', 'stonehearth:sounds:banner_bounce' );
                }
+            })
+            .fail(function() {
+               self._showBanner();
+               radiant.call('radiant:play_sound', 'stonehearth:sounds:banner_bounce' );
             });
       },
 

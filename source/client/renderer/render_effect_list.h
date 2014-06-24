@@ -38,6 +38,7 @@ public:
 private:
    int            startTime_;
    float          duration_;
+   float          speed_;
    std::string    animationName_;
    res::AnimationPtr  animation_;
 };

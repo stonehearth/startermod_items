@@ -32,10 +32,8 @@ public:
    std::string                name_;
    ChangedCb                  changed_cb_;
    om::EntityRef              entity_;
-   bool                       moving_;
    core::Guard                guards_;
    dm::TracePtr               transform_trace_;
-   dm::TracePtr               moving_trace_;
    phys::TerrainChangeCbId    collision_cb_id_;
    csg::Point3                source_location_;
    csg::Point3                source_override_;

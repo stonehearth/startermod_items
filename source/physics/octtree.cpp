@@ -132,76 +132,6 @@ void OctTree::OnComponentAdded(dm::ObjectId id, om::ComponentPtr component)
    }       
 }
 
-#if 0
-void OctTree::GetActorsIn(const csg::Cube3f &bounds, QueryCallback cb)
-{
-   auto filter = [bounds, cb](om::EntityPtr entity) -> bool {
-      auto a = entity->GetComponent<om::Mob>();
-      auto shape = a->GetWorldAABB();
-      OT_LOG(5) << a->GetType() << " " << a->GetId() << " bounds:" << bounds << " shape:" << shape << " hit:" << bounds.Intersects(shape);
-      if (shape.Intersects(bounds)) {
-         cb(entity);
-         return true;
-      }
-      return false;
-   };
-   FilterAllActors(filter);
-}
-#endif
-
-void OctTree::TraceRay(const csg::Ray3 &ray, RayQueryCallback cb)
-{
-   //ASSERT(rootEntity_);
-
-   auto filter = [ray, cb](om::EntityPtr entity) -> bool {
-      float t;
-      auto mob = entity->GetComponent<om::Mob>();
-      if (mob) {
-         csg::Cube3f box = mob->GetWorldAabb();
-         if (csg::Cube3Intersects(box, ray, t)) {
-            cb(entity, t);
-            return true;
-         }
-      }
-      return false;
-   };
-   FilterAllActors(filter);
-}
-
-void OctTree::FilterAllActors(std::function <bool(om::EntityPtr)> filter)
-{
-   auto i = entities_.begin();
-   while (i != entities_.end()) {
-      om::EntityPtr entity = i->second.entity.lock();
-      if (entity) {
-         filter(entity);
-         i++;
-      } else {
-         i = entities_.erase(i);
-      }
-   }
-}
-
-om::EntityPtr OctTree::FindFirstActor(om::EntityPtr root, std::function <bool(om::EntityPtr)> filter)
-{
-   if (filter(root)) {
-      return root;
-   }
-   om::EntityContainerPtr container = root->GetComponent<om::EntityContainer>();
-   if (container) {
-      for (const auto& child : container->EachChild()) {
-         auto entity = child.second.lock();
-         if (entity) {
-            auto result = FindFirstActor(entity, filter);
-            if (result) {
-               return result;
-            }
-         }
-      }
-   }
-   return NULL;
-}
-
 template <class T>
 bool OctTree::CanStandOnOneOf(om::EntityPtr const& entity, std::vector<csg::Point<T,3>> const& points, csg::Point<T,3>& standablePoint) const
 {
@@ -408,34 +338,10 @@ float OctTree::GetMovementCost(const csg::Point3& start, const csg::Point3& end)
    return cost;
 }
 
-#if 0
-void OctTree::OnObjectCreated(om::EntityPtr entity)
-{
-   allActors_.push_back(entity);
-
-   auto shape = entity->GetComponent<om::GridCollisionShape>();
-   if (shape) {
-      collisionShapes_.push_back(entity);
-   }
-   auto pathJump = entity->GetComponent<om::PathJumpNode>();
-   if (pathJump) {
-      pathJumpNodes_.push_back(pathJump);
-   }
-}
-
-void OctTree::OnObjectDestroyed(dm::ObjectId id)
-{
-   if (rootEntity_ && id == rootEntity_->GetObjectId()) {
-      rootEntity_ = nullptr;
-   }
-}
-#endif
-
 void OctTree::ShowDebugShapes(csg::Point3 const& pt, protocol::shapelist* msg)
 {
    navgrid_.ShowDebugShapes(pt, msg);
 }
-
 
 void OctTree::EnableSensorTraces(bool enabled)
 {

@@ -12,8 +12,9 @@ using namespace radiant::phys;
  *
  * Nothing to see here, move along...
  */
-CollisionTracker::CollisionTracker(NavGrid& ng, om::EntityPtr entity) :
+CollisionTracker::CollisionTracker(NavGrid& ng, TrackerType type, om::EntityPtr entity) :
    ng_(ng),
+   _type(type),
    entity_(entity),
    entityId_(entity->GetObjectId())
 {
@@ -105,4 +106,9 @@ bool CollisionTracker::Intersects(csg::Region3 const& region, csg::Cube3 const& 
       }
    }
    return false;
+}
+
+TrackerType CollisionTracker::GetType() const
+{
+   return _type;
 }

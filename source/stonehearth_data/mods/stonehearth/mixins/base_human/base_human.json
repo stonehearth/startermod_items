@@ -82,6 +82,14 @@
          "description": "Citizen of your town",
          "character_sheet_info" : "file(/entities/humans/citizen_character_sheet_info.json)"
       },
+      "sensor_list": {
+         "sensors": {
+            "sight": {
+               "type": "sensor",
+               "radius": 64
+            }
+         }
+      },
       "stonehearth:commands" : {
          "commands" : [            
          ]

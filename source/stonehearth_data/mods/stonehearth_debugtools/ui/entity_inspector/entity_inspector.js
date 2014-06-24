@@ -79,7 +79,7 @@ App.StonehearthEntityInspectorView = App.View.extend({
 
       this.$().draggable();
 
-      this.my('.close').click(function() {
+      this.$('.close').click(function() {
          self.destroy();
       });
 

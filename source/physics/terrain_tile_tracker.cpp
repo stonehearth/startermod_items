@@ -9,7 +9,7 @@ using namespace radiant;
 using namespace radiant::phys;
 
 TerrainTileTracker::TerrainTileTracker(NavGrid& ng, om::EntityPtr entity, csg::Point3 const& offset, om::Region3BoxedPtr region) :
-   CollisionTracker(ng, entity),
+   CollisionTracker(ng, COLLISION, entity),
    offset_(offset),
    region_(region),
    last_bounds_(csg::Cube3::zero)
@@ -53,11 +53,6 @@ csg::Region3 TerrainTileTracker::GetOverlappingRegion(csg::Cube3 const& bounds) 
    return csg::Region3::empty;
 }
 
-TrackerType TerrainTileTracker::GetType() const
-{
-   return COLLISION;
-}
-
 
 /*
  * -- TerrainTileTracker::GetLocalRegion
@@ -83,7 +78,7 @@ bool TerrainTileTracker::Intersects(csg::Cube3 const& worldBounds) const
 {
    om::Region3BoxedPtr region = region_.lock();
    if (region) {
-      return localRegion_.Intersects(worldBounds.Translated(-offset_));
+      return localRegion_.Intersects(worldBounds);
    }
    return false;
 }

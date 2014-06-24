@@ -7,6 +7,7 @@ function ResourceNodeComponent:initialize(entity, json)
    self._task_group_name = json.task_group_name
    self._description = json.description
    self._harvest_overlay_effect = json.harvest_overlay_effect
+   self._harvest_tool = json.harvest_tool
 
    self._sv = self.__saved_variables:get_data()
    if not self._sv._initialized then
@@ -19,6 +20,10 @@ end
 -- Update the resource spawned by this entity
 function ResourceNodeComponent:set_resource(resource)
    self._sv.resource = resource
+end
+
+function ResourceNodeComponent:get_harvest_tool()
+   return self._harvest_tool
 end
 
 function ResourceNodeComponent:get_harvest_overlay_effect()

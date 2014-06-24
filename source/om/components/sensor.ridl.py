@@ -9,22 +9,18 @@ class Sensor(dm.Record):
    entity = dm.Boxed(EntityRef())
    name = dm.Boxed(std.string())
    cube = dm.Boxed(csg.Cube3())
-   contents = dm.Map(dm.ObjectId(), std.weak_ptr(Entity()), iterate='define')
+   contents = dm.Map(dm.ObjectId(), std.weak_ptr(Entity()), iterate='define', add=None, remove=None)
 
    _lua_weak_ref = True
 
    _includes = [
-      "csg/cube.h"
+      "csg/cube.h",
+      "physics/sensor_tracker.h"
    ]
-
-   _public = \
-   """
-   void UpdateIntersection(std::unordered_map<dm::ObjectId, om::EntityRef> const&);
-   dm::Map<dm::ObjectId, std::weak_ptr<Entity>>& GetContainer();
-   """
 
    _protected = \
    """
+   friend phys::SensorTracker;
    friend SensorList;
 
    void Construct(om::EntityRef entity, std::string name, const csg::Cube3& cube) {
@@ -32,4 +28,9 @@ class Sensor(dm.Record):
       name_ = name;
       cube_ = cube;
    }
+
+   dm::Map<dm::ObjectId, std::weak_ptr<Entity>>& GetContainer();
+
+   void UpdateIntersection(std::unordered_map<dm::ObjectId, om::EntityRef> const&);
+
    """

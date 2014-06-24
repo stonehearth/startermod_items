@@ -16,7 +16,6 @@ using namespace ::radiant::simulation;
 PathFinderSrc::PathFinderSrc(om::EntityRef e, std::string const& name, ChangedCb changed_cb) :
    entity_(e),
    name_(name),
-   moving_(false),
    collision_cb_id_(0),
    changed_cb_(changed_cb),
    use_source_override_(false)
@@ -29,14 +28,6 @@ PathFinderSrc::PathFinderSrc(om::EntityRef e, std::string const& name, ChangedCb
          transform_trace_ = mob->TraceTransform("pf src", dm::PATHFINDER_TRACES)
                                     ->OnChanged([this](csg::Transform const&) {
                                        changed_cb_("src moved");
-                                    });
-
-         moving_trace_ = mob->TraceMoving("pf src", dm::PATHFINDER_TRACES)
-                                    ->OnChanged([this](bool const& moving) {
-                                       moving_ = moving;
-                                       if (moving_) {
-                                          changed_cb_("src moving changed");
-                                      }
                                     });
       }
    }
@@ -51,8 +42,6 @@ void PathFinderSrc::SetSourceOverride(csg::Point3 const& location)
    source_override_ = location;
    use_source_override_ = true;
    transform_trace_ = nullptr;
-   moving_trace_ = nullptr;
-   moving_ = false;
 }
 
 void PathFinderSrc::InitializeOpenSet(std::vector<PathFinderNode>& open)
@@ -77,7 +66,7 @@ void PathFinderSrc::InitializeOpenSet(std::vector<PathFinderNode>& open)
 
 bool PathFinderSrc::IsIdle() const
 {
-   return moving_;
+   return false;
 }
 
 void PathFinderSrc::EncodeDebugShapes(radiant::protocol::shapelist *msg) const

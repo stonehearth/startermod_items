@@ -65,7 +65,7 @@ App.StonehearthCrafterView = App.View.extend({
       hide: function() {
          radiant.call('radiant:play_sound', 'stonehearth:sounds:ui:carpenter_menu:menu_closed' );
          var self = this;
-         self.my("#craftWindow")
+         self.$("#craftWindow")
             .animate({ top: -1900 }, 500, 'easeOutBounce', function() {
                self.destroy()
          });

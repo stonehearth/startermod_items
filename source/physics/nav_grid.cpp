@@ -19,6 +19,7 @@
 #include "terrain_tile_tracker.h"
 #include "derived_region_tracker.h"
 #include "protocols/radiant.pb.h"
+#include "physics_util.h"
 
 using namespace radiant;
 using namespace radiant::phys;
@@ -29,7 +30,8 @@ static const int DEFAULT_WORKING_SET_SIZE = 128;
 
 NavGrid::NavGrid(dm::TraceCategories trace_category) :
    trace_category_(trace_category),
-   bounds_(csg::Cube3::zero)
+   bounds_(csg::Cube3::zero),
+   _dirtyTilesSlot("dirty tiles")
 {
    last_evicted_ = 0;
    max_resident_ = core::Config::GetInstance().Get<int>("nav_grid.working_set_size", DEFAULT_WORKING_SET_SIZE);
@@ -293,7 +295,7 @@ void NavGrid::OnTrackerBoundsChanged(csg::Cube3 const& last_bounds, csg::Cube3 c
  * Used to mark all the tiles overlapping bounds as dirty.  Useful for when a collision
  * tracker goes away.
  */
-void NavGrid::OnTrackerDestroyed(csg::Cube3 const& bounds, dm::ObjectId entityId)
+void NavGrid::OnTrackerDestroyed(csg::Cube3 const& bounds, dm::ObjectId entityId, TrackerType type)
 {
    NG_LOG(3) << "mark dirty " << bounds;
    csg::Cube3 chunks = csg::GetChunkIndex(bounds, TILE_SIZE);
@@ -301,7 +303,7 @@ void NavGrid::OnTrackerDestroyed(csg::Cube3 const& bounds, dm::ObjectId entityId
    // Remove trackers from tiles which no longer overlap the current bounds of the tracker,
    // but did overlap their previous bounds.
    for (csg::Point3 const& cursor : chunks) {
-      GridTileNonResident(cursor).OnTrackerRemoved(entityId);
+      GridTileNonResident(cursor).OnTrackerRemoved(entityId, type);
    }
 }
 
@@ -341,7 +343,7 @@ NavGridTile& NavGrid::GridTile(csg::Point3 const& index, bool make_resident)
    NavGridTileMap::iterator i = tiles_.find(index);
    if (i == tiles_.end()) {
       NG_LOG(5) << "constructing new grid tile at " << index;
-      i = tiles_.emplace(std::make_pair(index, NavGridTile())).first;
+      i = tiles_.emplace(std::make_pair(index, NavGridTile(*this, index))).first;
    }
    NavGridTile& tile = i->second;
 
@@ -577,7 +579,7 @@ bool NavGrid::ForEachTileInRegion(csg::Region3 const& region, ForEachTileCb cb)
    auto i = region.begin(), end = region.end();
    while (!stopped && i != end) {
       csg::Cube3 const& cube = *i++;
-      bool stopped = ForEachTileInBounds(cube, [&region, &visited, cb](csg::Point3 const& index, NavGridTile &tile) {
+      stopped = ForEachTileInBounds(cube, [&region, &visited, cb](csg::Point3 const& index, NavGridTile &tile) {
          bool stop = false;
          if (visited.insert(index).second) {
             stop = cb(index, tile);
@@ -608,7 +610,7 @@ bool NavGrid::ForEachTrackerInRegion(csg::Region3 const& region, ForEachTrackerC
    csg::Cube3 regionBounds = region.GetBounds();
 
    stopped = ForEachTileInRegion(region, [&region, &regionBounds, &visited, cb](csg::Point3 const& index, NavGridTile& tile) {
-      return tile.ForEachTracker([&region, &regionBounds, &visited, cb](CollisionTrackerPtr tracker) {
+      return tile.ForEachTracker([&region, &regionBounds, &visited, index, cb](CollisionTrackerPtr tracker) {
          bool stop = false;
          if (visited.insert(tracker.get()).second) {
             if (tracker->Intersects(region, regionBounds)) {
@@ -618,6 +620,7 @@ bool NavGrid::ForEachTrackerInRegion(csg::Region3 const& region, ForEachTrackerC
          return stop;
       });
    });
+
    return stopped;
 }
 
@@ -706,10 +709,14 @@ bool NavGrid::IsEntityInCube(om::EntityPtr entity, csg::Cube3 const& worldBounds
 bool NavGrid::IsBlocked(om::EntityPtr entity, csg::Point3 const& location)
 {
    bool stopped;
+
+   NG_LOG(7) << "checking if " << *entity << " is blocked at " << location;
    stopped = ForEachPointInEntityRegion(entity->GetObjectId(), location, [&location, this] (csg::Point3 const& pt) mutable {
       bool stop = IsBlocked(pt);
       return stop;
    });
+   NG_LOG(7) << "finished checking if " << *entity << " is blocked at " << location << "(result: " << std::boolalpha << stopped << ")";
+
    return stopped;      // if we had to stop iteration, we must be blocked!
 }
 
@@ -728,7 +735,10 @@ bool NavGrid::IsBlocked(csg::Point3 const& worldPoint)
    // than the collision tracker method)
    csg::Point3 index, offset;
    csg::GetChunkIndex(worldPoint, TILE_SIZE, index, offset);
-   return GridTileResident(index).IsBlocked(offset);
+   bool blocked = GridTileResident(index).IsBlocked(offset);
+
+   NG_LOG(7) << "checking if " << worldPoint << " is blocked (result:" << std::boolalpha << blocked << ")";
+   return blocked;
 }
 
 
@@ -740,9 +750,11 @@ bool NavGrid::IsBlocked(csg::Point3 const& worldPoint)
  *
  */
 bool NavGrid::IsBlocked(csg::Region3 const& region) {
+   NG_LOG(7) << "::IsBlocked checking world region " << region.GetBounds();
    bool blocked = ForEachTrackerInRegion(region, [](CollisionTrackerPtr tracker) {
       return tracker->GetType() == TrackerType::COLLISION; // we found one that's blocked!  stop!!
    });
+   NG_LOG(7) << "::IsBlocked checking world region " << region.GetBounds() << "(result:" << std::boolalpha << blocked << ")";
    return blocked;   // we're blocked if we had to stop the iteration
 }
 
@@ -776,6 +788,8 @@ bool NavGrid::IsSupport(csg::Point3 const& worldPoint)
  */
 bool NavGrid::IsSupport(csg::Region3 const& r)
 {
+   NG_LOG(7) << "checking ::IsSupport for world region " << r.GetBounds();
+
    bool stopped = ForEachTileInRegion(r, [&r, this](csg::Point3 const& index, NavGridTile& tile) {
       // Clip the region to the tile bounds
       csg::Cube3 bounds = csg::Cube3::one.Scaled(TILE_SIZE).Translated(index * TILE_SIZE);
@@ -784,6 +798,9 @@ bool NavGrid::IsSupport(csg::Region3 const& r)
       bool stop = !GridTileResident(index).IsSupport(clipped);
       return stop;
    });
+
+   NG_LOG(7) << "checking ::IsSupport for world region " << r.GetBounds() << " (result: " << std::boolalpha << !stopped << ")";
+
    return !stopped;
 }
 
@@ -810,7 +827,11 @@ bool NavGrid::IsStandable(csg::Point3 const& worldPoint)
  *
  */
 bool NavGrid::IsStandable(csg::Region3 const& r) {
+
+   NG_LOG(7) << "::IsStandable checking world region " << r.GetBounds();
+
    if (IsBlocked(r)) {
+      NG_LOG(7) << "region is blocked.  Definitely not standable!";
       return false;
    }
 
@@ -873,13 +894,101 @@ bool NavGrid::IsStandable(om::EntityPtr entity, csg::Point3 const& location)
 
 csg::Point3 NavGrid::GetStandablePoint(om::EntityPtr entity, csg::Point3 const& pt)
 {
+   csg::Region3 region = GetEntityWorldCollisionRegion(entity, pt);
+   if (region.IsEmpty()) {
+      region.AddUnique(pt);
+   }
+
+   NG_LOG(7) << "collision region for " << *entity << " at " << pt << " is " << region.GetBounds() << " in ::GetStandablePoint.";
+   
    csg::Point3 location = pt;
-   int direction = IsBlocked(location) ? 1 : -1;
+   csg::Point3 direction(0, IsBlocked(location) ? 1 : -1, 0);
+
+   NG_LOG(7) << "::GetStandablePoint search direction is " << direction;
+
    while (bounds_.Contains(location)) {
-      if (IsStandable(entity, location)) {
+      NG_LOG(7) << "::GetStandablePoint checking location " << location;
+      if (IsStandable(region)) {
+         NG_LOG(7) << "Found it!  Breaking";
          break;
       }
-      location.y += direction;
+      NG_LOG(7) << "Still not standable.  Searching...";
+      region.Translate(direction);
+      location += direction;
    }
    return location;
 }
+
+/*
+ * -- NavGrid::NotifyTileDirty
+ *
+ * Request a notification on `cb` whenever a NavGridTile becomes dirty.  This
+ * notification is synchronous.  It's EXTREMELY bad form to do anything interesting
+ * in your callback, since Tiles dirty a lot in many situations.  Well behaving
+ * clients will buffer dirty notifications and process them asynchronously, to
+ * avoid both wasted computation when tiles become dirty repeatedly and to avoid
+ * spiking the CPU.
+ *
+ */
+core::Guard NavGrid::NotifyTileDirty(std::function<void(csg::Point3 const&)> cb)
+{
+   return _dirtyTilesSlot.Register(cb);
+}
+
+/*
+ * -- NavGrid::SignalTileDirty
+ *
+ * Notification from a NavGridTile that it's collision region is dirty.  Simply
+ * passes this information along to any clients of the  NavGrid who are interested.
+ * via the `_dirtyTilesSlot` slot.
+ *
+ */
+void NavGrid::SignalTileDirty(csg::Point3 const& index)
+{
+   _dirtyTilesSlot.Signal(index);
+}
+
+
+/*
+ * -- NavGrid::GetEntityWorldCollisionRegion
+ *
+ * Get a region representing the collision shape of the `entity` at world location
+ * `location`.  This shape is useful ONLY for doing queries about the world (e.g.
+ * can an entity of this shape fit here?). 
+ *
+ */
+csg::Region3 NavGrid::GetEntityWorldCollisionRegion(om::EntityPtr entity, csg::Point3 const& location)
+{
+   csg::Point3 pos(csg::Point3::zero);
+
+   if (entity) {
+      om::MobPtr mob = entity->AddComponent<om::Mob>();
+      pos = csg::ToInt(mob->GetWorldTransform().position);
+      if (mob) {
+         switch (mob->GetMobCollisionType()) {
+         case om::Mob::TINY:
+            return csg::Region3(location);
+            break;
+         case om::Mob::HUMANOID:
+            return csg::Region3(csg::Cube3(location, location + csg::Point3(1, 4, 1)));
+            break;
+         }
+      }
+
+      om::RegionCollisionShapePtr rcs = entity->GetComponent<om::RegionCollisionShape>();
+      if (rcs) {
+         om::Region3BoxedPtr shape = rcs->GetRegion();
+         if (shape) {
+            switch (rcs->GetRegionCollisionType()) {
+            case om::RegionCollisionShape::SOLID:
+               csg::Region3 region = shape->Get();
+               region = LocalToWorld(region, entity);
+               region.Translate(location - pos);
+               return region;
+            }
+         }
+      }
+   }
+   return csg::Region3();
+}
+

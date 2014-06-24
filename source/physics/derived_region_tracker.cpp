@@ -17,7 +17,7 @@ using namespace radiant::phys;
  */
 template <class T, TrackerType OT>
 DerivedRegionTracker<T, OT>::DerivedRegionTracker(NavGrid& navGrid, om::EntityPtr entity, std::shared_ptr<T> regionProviderPtr) :
-   RegionTracker(navGrid, entity),
+   RegionTracker(navGrid, OT, entity),
    regionProviderRef_(regionProviderPtr)
 {
 }
@@ -52,13 +52,6 @@ om::Region3BoxedPtr DerivedRegionTracker<T, OT>::GetRegion() const
    }
    return nullptr;
 }
-
-template <class T, TrackerType OT>
-TrackerType DerivedRegionTracker<T, OT>::GetType() const
-{
-   return OT;
-}
-
 
 // define instantiations of this template
 template RegionCollisionShapeTracker;

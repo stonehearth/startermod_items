@@ -17,13 +17,12 @@ void Mob::ConstructObject()
 {
    Component::ConstructObject();
    transform_ = csg::Transform(csg::Point3f::zero, csg::Quaternion());
+   velocity_ = csg::Transform(csg::Point3f::zero, csg::Quaternion());
    model_origin_ = csg::Point3f::zero;
    region_origin_ = csg::Point3f::zero;
    align_to_grid_flags_ = 0;
-   aabb_ = csg::Cube3f::zero;
    interpolate_movement_ = false;
-   selectable_ = true;
-   moving_ = false;
+   in_free_motion_ = 0;
    mob_collision_type_ = NONE;
 }
 
@@ -88,11 +87,6 @@ void Mob::TurnToFacePoint(const csg::Point3& location)
    transform_.Modify([&](csg::Transform& t) {
       t.orientation = q;
    });
-}
-
-csg::Cube3f Mob::GetWorldAabb() const
-{
-   return *aabb_ + GetWorldLocation();
 }
 
 csg::Point3f Mob::GetLocation() const
@@ -220,7 +214,6 @@ void Mob::SerializeToJson(json::Node& node) const
    node.set("region_origin", GetRegionOrigin());
    node.set("axis_alignment_flags", GetAlignToGridFlags());
    node.set("entity", GetEntityPtr()->GetStoreAddress());
-   node.set("moving", GetMoving());
    node.set("interpolate_movement", GetInterpolateMovement());
    om::EntityPtr parent = GetParent().lock();
    if (parent) {
