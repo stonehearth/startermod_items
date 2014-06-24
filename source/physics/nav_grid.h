@@ -48,8 +48,7 @@ class NavGrid {
       // Support Queries.  Supported means all the blocks directly under the bottom
       // row of the region are capable of supporting weight.
       bool IsSupport(csg::Point3 const& worldPoint);
-      bool IsSupport(csg::Region3 const& worldRegion);
-
+      
       // Standable Queries.  Standable means the region below the bottom of the location
       // is Support and the entire region is not Blocked
       bool IsStandable(csg::Point3 const& worldPoint);
@@ -94,8 +93,10 @@ class NavGrid {
       bool ForEachTileInRegion(csg::Region3 const& region, ForEachTileCb cb);
       bool ForEachTrackerInRegion(csg::Region3 const& worldRegion, ForEachTrackerCb cb);
       bool ForEachTrackerForEntity(dm::ObjectId entityId, ForEachTrackerCb cb);
-      bool ForEachPointInEntityRegion(dm::ObjectId entityId, csg::Point3 const& offset, ForEachPointCb cb);
       csg::Region3 GetEntityCollisionShape(dm::ObjectId entityId);
+      bool IsBlocked(om::EntityPtr entity, csg::Region3 const& region);
+      bool IsStandable(om::EntityPtr entity, csg::Region3 const& region);
+      bool RegionIsSupported(csg::Region3 const& r);
 
    private: // methods exposed only to the OctTree
       friend OctTree;
