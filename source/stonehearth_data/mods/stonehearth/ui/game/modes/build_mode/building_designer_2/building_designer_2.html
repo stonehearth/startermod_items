@@ -8,7 +8,7 @@
          <div hotkey="r" class="tabButton roofToolButton" tab="roofToolTab"><div class="label">{{i18n stonehearth:building_designer_roof_tool}}</div></div>
          <div hotkey="n" class="tabButton doodadToolButton" tab="doodadToolTab"><div class="label">{{i18n stonehearth:building_designer_door_tool}}</div></div>
          <div hotkey="x" class="tabButton editToolButton" tab="editToolTab"><div class="label">{{i18n stonehearth:building_designer_edit_tool}}</div></div>
-         <div class="tabButton undo"><div class="label">{{i18n stonehearth:building_designer_undo}}</div></div>
+         <div class="tabButton" id="undoTool"><div class="label">{{i18n stonehearth:building_designer_undo}}</div></div>
       </div>
 
       <div class="tabPage" id="floorToolTab" style="display: block">
@@ -46,7 +46,7 @@
          </div>
          <h2>{{i18n stonehearth:building_designer_material}}</h2>
          <div class="brushPalette section">
-            {{#each view.wallPatterns}}>
+            {{#each view.wallPatterns}}
                <div>
                   {{#each items}}
                      <img {{bind-attr uri="this.uri" src="this.portrait" title="this.name"}} class="wallMaterial" />
@@ -68,7 +68,6 @@
          <h2>{{i18n stonehearth:building_designer_material}}</h2>
          <div class="brushPalette section">
             {{#each view.roofPatterns}}
-               <!-- <h2>{{category}}</h2> -->
                <div>
                   todo...roof options go here...
                   {{#each items}}
@@ -108,6 +107,7 @@
       <div class="tabPage" id="editToolTab">
          <h2>{{i18n stonehearth:building_designer_edit}}</h2>
          Edit tools go here
+         <br><br>
          <div class="section">
             info about selected building part (when one is selected) goes here
          </div>
@@ -120,7 +120,6 @@
          <h2>{{i18n stonehearth:building_designer_material}}</h2>
          <div class="brushPalette section">
             {{#each view.wallPatterns}}
-               <!-- <h2>{{category}}</h2> -->
                <div>
                   {{#each items}}
                      <img {{bind-attr uri="this.uri" src="this.portrait" title="this.name"}} class="wallMaterial" />

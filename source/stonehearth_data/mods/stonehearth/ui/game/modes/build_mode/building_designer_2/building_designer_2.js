@@ -19,9 +19,11 @@ App.StonehearthBuildingDesignerTools = App.View.extend({
    // building for the selected parts.  it's used to populate the building view
    blueprint_components: {
       'unit_info': {},
+      'stonehearth:construction_data' : {},
       'stonehearth:construction_progress' : {
          'building_entity' : {
             'unit_info' : {},
+            'stonehearth:construction_data' : {},
             'stonehearth:construction_progress': {},
          }
       }
@@ -168,6 +170,9 @@ App.StonehearthBuildingDesignerTools = App.View.extend({
          self._activeTool = $(this);
       });
 
+      // edit button
+      //App.stonehearthClient.replaceStructure(this.get('context.stonehearth:fabricator.blueprint.__self'), wall.uri);
+
       // building buttons
       this.$('#startBuilding').click(function() {
          radiant.call('radiant:play_sound', 'stonehearth:sounds:ui:start_menu:submenu_select' );
@@ -227,6 +232,7 @@ App.StonehearthBuildingDesignerTools = App.View.extend({
          }
 
          self.set('building', building_entity);
+         self.set('blueprint', blueprint_entity);
 
          if (building_entity) {
             self.set('building.active', building_entity['stonehearth:construction_progress'].active);
