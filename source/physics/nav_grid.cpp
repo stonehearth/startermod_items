@@ -297,7 +297,8 @@ void NavGrid::OnTrackerBoundsChanged(csg::Cube3 const& last_bounds, csg::Cube3 c
  */
 void NavGrid::OnTrackerDestroyed(csg::Cube3 const& bounds, dm::ObjectId entityId, TrackerType type)
 {
-   NG_LOG(3) << "mark dirty " << bounds;
+   NG_LOG(3) << "tracker for entity " << entityId << " covering " << bounds << " destroyed";
+
    csg::Cube3 chunks = csg::GetChunkIndex(bounds, TILE_SIZE);
 
    // Remove trackers from tiles which no longer overlap the current bounds of the tracker,
@@ -305,6 +306,9 @@ void NavGrid::OnTrackerDestroyed(csg::Cube3 const& bounds, dm::ObjectId entityId
    for (csg::Point3 const& cursor : chunks) {
       GridTileNonResident(cursor).OnTrackerRemoved(entityId, type);
    }
+
+   // Signal the top tile, too.
+   SignalTileDirty(csg::GetChunkIndex(bounds.max + csg::Point3::unitY, TILE_SIZE));
 }
 
 /*
