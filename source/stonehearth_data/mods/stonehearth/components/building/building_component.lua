@@ -48,7 +48,7 @@ function Building:calculate_floor_region()
       end
    end
 
-   return floor, optimized_region
+   return optimized_region, floor
 end
 
 return Building

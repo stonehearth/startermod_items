@@ -445,7 +445,7 @@ end
 
 function BuildService:_grow_walls(building, columns_uri, walls_uri)
    -- accumulate all the floor tiles in the building into a single, opaque region
-   local floor, floor_region = building:add_component('stonehearth:building')
+   local floor_region, floor = building:add_component('stonehearth:building')
                                     :calculate_floor_region()
 
    -- convert a 2d edge point to the proper 3d coordinate.  we want to put columns
