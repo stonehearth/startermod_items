@@ -8,6 +8,7 @@ function Bulletin:initialize(id)
    self._sv.id = id
    self._sv.creation_time = radiant.gamestate.now()
    self._sv.type = 'info'
+   self._sv.close_on_handle = true
    self.__saved_variables:mark_changed()
 end
 
@@ -39,6 +40,12 @@ end
 -- data used to drive what is shown in the bulletin notification and bulletin dialog
 function Bulletin:set_data(data)
    self._sv.data = data
+   self.__saved_variables:mark_changed()
+   return self
+end
+
+function Bulletin:set_close_on_handle(close_on_handle)
+   self._sv.close_on_handle = close_on_handle
    self.__saved_variables:mark_changed()
    return self
 end

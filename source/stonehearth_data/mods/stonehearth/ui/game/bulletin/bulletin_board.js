@@ -141,7 +141,9 @@ var StonehearthBulletinBoard;
             }
          }
 
-         radiant.call('stonehearth:remove_bulletin', bulletin.id);
+         if (bulletin.close_on_handle) {
+            radiant.call('stonehearth:remove_bulletin', bulletin.id);
+         }
       },
 
       // unused
