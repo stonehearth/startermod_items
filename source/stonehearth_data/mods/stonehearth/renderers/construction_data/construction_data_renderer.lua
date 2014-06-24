@@ -19,6 +19,7 @@ function ConstructionDataRenderer:initialize(render_entity, construction_data)
       -- view mode.  it will drive the shape and visibility of our structure shape
       -- based on those modes.
       self._render_tracker = ConstructionRenderTracker(self._entity)
+                                 :set_type(construction_data:get_type())
                                  :set_normal(construction_data:get_normal())
                                  :set_render_region_changed_cb(function(region, visible)
                                        self:_update_region(region, visible)
