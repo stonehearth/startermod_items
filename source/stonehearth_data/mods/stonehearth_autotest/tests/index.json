@@ -31,6 +31,7 @@
 
                "scripts" : [
                   "file(end_to_end/stockpile_autotests.lua)",
+                  "file(end_to_end/firepit_autotests.lua)",
                   "file(end_to_end/rotation_autotests.lua)",
                   "file(end_to_end/combat_autotests.lua)",
                   "file(end_to_end/luabind_autotests.lua)",
@@ -52,7 +53,6 @@
             "broken_end_to_end" : {
                "name" : "broken end to end tests =(.  fix this and move them back into end to end!!",
                "scripts" : [
-                  "file(end_to_end/firepit_autotests.lua)",
                ]
             },
 
