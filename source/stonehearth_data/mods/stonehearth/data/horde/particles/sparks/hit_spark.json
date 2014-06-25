@@ -55,7 +55,7 @@
     "emission": {
         "rate": {
             "kind": "CONSTANT",
-            "values": [100]
+            "values": [120]
         },
         "origin": {
             "surface": "POINT"
