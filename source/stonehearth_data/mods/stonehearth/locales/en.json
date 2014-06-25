@@ -289,6 +289,8 @@
    "building_designer_raise_roof_help" : "Pick a material and customization options for your roof.",
    "building_designer_doodads" : "Add Doors, Windows, & Doodads",
    "building_designer_doodads_help" : "Pick an object from the material palette then click on your building to place it.",
+   "building_designer_edit" : "Edit",
+   "building_designer_edit_help" : "Select a building part to change it's properties.",
    "building_designer_draw_edit" : "Edit Building Parts",
    "building_designer_undo" : "undo",
 
