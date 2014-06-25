@@ -168,8 +168,8 @@ function NewGameCallHandler:create_camp(session, response, pt)
    local camp_x = pt.x
    local camp_z = pt.z
 
-   local function place_citizen_embark(x, z)
-      local citizen = self:place_citizen(pop, x, z)
+   local function place_citizen_embark(x, z, profession, talisman)
+      local citizen = self:place_citizen(pop, x, z, profession, talisman)
       radiant.events.trigger_async(personality_service, 'stonehearth:journal_event', 
                              {entity = citizen, description = 'person_embarks'})
       return citizen
@@ -196,13 +196,13 @@ function NewGameCallHandler:create_camp(session, response, pt)
    return {random_town_name = random_town_name}
 end
 
-function NewGameCallHandler:place_citizen(pop, x, z, profession)
+function NewGameCallHandler:place_citizen(pop, x, z, profession, talisman)
    --TODO: faction denotes which player is playing. Have user pick?
    local citizen = pop:create_new_citizen()
    if not profession then
       profession = 'stonehearth:professions:worker'
    end
-   pop:promote_citizen(citizen, profession)
+   pop:promote_citizen(citizen, profession, talisman)
 
    radiant.terrain.place_entity(citizen, Point3(x, 1, z))
    return citizen
