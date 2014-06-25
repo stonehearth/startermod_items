@@ -45,11 +45,11 @@ function FabricatorRenderer:initialize(render_entity, fabricator)
                                              end)
 
       -- push the destination region into the render tracker whenever it changes
-      self._destination = self._entity:get_component('destination')
-      assert(self._destination)
-      if self._destination then
-         local region = self._destination:get_region()
-         self._dst_trace = self._destination:trace_region('drawing fabricator', TraceCategories.SYNC_TRACE)
+      local rcs = self._entity:get_component('region_collision_shape')
+      assert(rcs)
+      if rcs then
+         local region = rcs:get_region()
+         self._dst_trace = rcs:trace_region('drawing fabricator', TraceCategories.SYNC_TRACE)
                                                    :on_changed(function ()
                                                       self._render_tracker:set_region(region)
                                                    end)

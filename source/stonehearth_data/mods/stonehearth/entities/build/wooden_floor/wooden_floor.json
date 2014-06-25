@@ -10,7 +10,6 @@
          "type" : "floor",
          "needs_scaffolding" : false,
          "allow_crouching_construction" : true,         
-         "max_workers": 4,
          "paint_through_blueprint" : true,
          "material": "wood resource"
       }

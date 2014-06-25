@@ -85,7 +85,7 @@ function Inventory:_add_collision_region(entity, size)
    )
 
    collision_component:set_region(collision_region_boxed)
-   collision_component:set_region_collision_type(_radiant.om.RegionCollisionShape.N_O_N_E)
+   collision_component:set_region_collision_type(_radiant.om.RegionCollisionShape.NONE)
 end
 
 --TODO: Phase the event-based system here out

@@ -129,7 +129,7 @@ function FarmingService:_add_region_components(entity, size)
    destination_component:set_region(boxed_bounds)
                         :set_auto_update_adjacent(true)
    collision_component:set_region(boxed_bounds)
-                      :set_region_collision_type(_radiant.om.RegionCollisionShape.N_O_N_E)
+                      :set_region_collision_type(_radiant.om.RegionCollisionShape.NONE)
 end
 
 function FarmingService:_get_crop_list(session)

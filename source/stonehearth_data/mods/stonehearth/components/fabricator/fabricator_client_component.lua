@@ -48,7 +48,7 @@ function FabricatorClientComponent:begin_editing(blueprint, project, editing_reg
          :on_changed(function()
             local br = blueprint:get_component('destination'):get_region():get()
             local pr = project and project:get_component('destination'):get_region():get() or Region3()
-            self._entity:get_component('destination'):get_region():modify(function(cursor)
+            self._entity:get_component('region_collision_shape'):get_region():modify(function(cursor)
                   cursor:copy_region(br - pr)
                end)
          end)

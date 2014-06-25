@@ -23,7 +23,7 @@ function Column:connect_to_roof(roof)
    return self
 end
 
--- make the destination region match the shape of the column
+-- make the rcs region match the shape of the column
 --
 function Column:layout()
    local height =  constants.STOREY_HEIGHT
@@ -75,7 +75,7 @@ function Column:_compute_column_shape()
       local roof = self._sv.roof
       local location = radiant.entities.get_location_aligned(self._entity)
       local coord = location - radiant.entities.get_location_aligned(roof)
-      local roof_region = roof:get_component('destination'):get_region():get()
+      local roof_region = roof:get_component('region_collision_shape'):get_region():get()
 
       for cube in roof_region:each_cube() do
          if cube:contains(Point3(coord.x, cube.min.y, coord.z)) then

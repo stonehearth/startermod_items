@@ -9,14 +9,16 @@ class Env:
       last_digit = False
       for ch in obj:
          is_digit = ch.isdigit()
+         is_upper = ch.isupper()
          if result:
-            underscore = ch.isupper()
+            underscore = is_upper and not last_was_upper
             if is_digit != last_was_digit:
                underscore = True
             if underscore:
                result += '_'
          result += ch.upper()
          last_was_digit = is_digit
+         last_was_upper = is_upper
       return result
 
    def lower(self, obj):

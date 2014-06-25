@@ -28,6 +28,7 @@ function Fabricator:__init(name, entity, blueprint, project)
    
    self._entity = entity
    self._fabricator_dst = self._entity:add_component('destination')
+   self._fabricator_rcs = self._entity:add_component('region_collision_shape')
    self._blueprint = blueprint
    self._blueprint_dst = blueprint:get_component('destination')
    self._blueprint_ladder = blueprint:get_component('vertical_pathing_region')   
@@ -47,12 +48,16 @@ function Fabricator:__init(name, entity, blueprint, project)
       self:_create_new_project()
    end
 
-   local update_adjacent = function()
-      self:_update_adjacent()
+   local update_dst_adjacent = function()
+      self:_update_dst_adjacent()
+   end
+   local update_dst_region = function()
+      self:_update_dst_region()
    end
 
-   table.insert(self._traces, self._fabricator_dst:trace_region('fabricator adjacent', TraceCategories.SYNC_TRACE):on_changed(update_adjacent))
-   table.insert(self._traces, self._fabricator_dst:trace_reserved('fabricator adjacent', TraceCategories.SYNC_TRACE):on_changed(update_adjacent))
+   table.insert(self._traces, self._fabricator_rcs:trace_region('fabricator dst region', TraceCategories.SYNC_TRACE):on_changed(update_dst_region))
+   table.insert(self._traces, self._fabricator_dst:trace_region('fabricator dst adjacent', TraceCategories.SYNC_TRACE):on_changed(update_dst_adjacent))
+   table.insert(self._traces, self._fabricator_dst:trace_reserved('fabricator dst adjacent', TraceCategories.SYNC_TRACE):on_changed(update_dst_adjacent))
    
    if self._blueprint_construction_progress then
       self._dependencies_finished = self._blueprint_construction_progress:check_dependencies()
@@ -112,6 +117,10 @@ function Fabricator:_create_new_project()
    self._fabricator_dst:set_region(_radiant.sim.alloc_region())
             :set_reserved(_radiant.sim.alloc_region())
             :set_adjacent(_radiant.sim.alloc_region())
+
+   self._fabricator_rcs:set_region(_radiant.sim.alloc_region())
+                       :set_region_collision_type(_radiant.om.RegionCollisionShape.NONE)
+
        
    -- create a new project.  projects start off completely unbuilt.
    -- projects are stored in as children to the fabricator, so there's
@@ -182,6 +191,20 @@ function Fabricator:add_block(material_entity, location)
    local origin = radiant.entities.get_world_grid_location(self._entity)
    local pt = location - origin
 
+   -- if we've projected the fabricator region to the base of the project,
+   -- the location passed in will be at the base, too.  find the appropriate
+   -- block to add to the project collision shape by starting at the bottom
+   -- and looking up.
+   if self._blueprint_construction_data:get_project_adjacent_to_base() then
+      local project_rgn = self._project_dst:get_region():get()
+      while project_rgn:contains(pt) do
+         pt.y = pt.y + 1
+      end
+      if not self._blueprint_dst:get_region():get():contains(pt) then
+         assert(false, 'could not compute block to build from projected adjacent')
+      end
+   end
+
    self._project_dst:get_region():modify(function(cursor)
          cursor:add_point(pt)
       end)
@@ -238,7 +261,27 @@ function Fabricator:remove_block(location)
       self._log:warning('trying to remove unbuild portion %s of construction project', pt)
       return false
    end
-   
+
+   -- if we've projected the fabricator region to the base of the project,
+   -- the location passed in will be at the base, too.  find the appropriate
+   -- block to remove to the project collision shape by starting at the tip
+   -- top and looking down
+   if self._blueprint_construction_data:get_project_adjacent_to_base() then
+      local project_rgn = self._project_dst:get_region():get()
+      local bounds = project_rgn:get_bounds()
+      local top = bounds.max.y - 1
+      local bottom = bounds.min.y
+      while top >= bottom do
+         pt.y = top
+         if project_rgn:contains(pt) then
+            break
+         end
+      end
+      if not project_rgn:contains(pt) then
+         assert(false, 'could not compute block to teardown from projected adjacent')
+      end
+   end
+
    self._project_dst:get_region():modify(function(cursor)
       cursor:subtract_point(pt)
    end)
@@ -373,36 +416,46 @@ function Fabricator:_stop_project()
    end
 end
 
-function Fabricator:_update_adjacent()
-   local dst_rgn = self._fabricator_dst:get_region():get()
+function Fabricator:_update_dst_region()
+   local rcs_rgn = self._fabricator_rcs:get_region():get()
    local reserved_rgn = self._fabricator_dst:get_reserved():get()
    
    -- build in layers.  stencil out all but the bottom layer of the 
    -- project.  work against the destination region (not rgn - reserved).
    -- otherwise, we'll end up moving to the next row as soon as the last
    -- block in the current row is reserved.
-   local bottom = dst_rgn:get_bounds().min.y
+   local bottom = rcs_rgn:get_bounds().min.y
    local clipper = Region3(Cube3(Point3(-COORD_MAX, bottom + 1, -COORD_MAX),
                                  Point3( COORD_MAX, COORD_MAX,   COORD_MAX)))
-   local bottom_row = dst_rgn - clipper
-   
-   local allow_diagonals = self._blueprint_construction_data:get_allow_diagonal_adjacency()
-   local adjacent = bottom_row:get_adjacent(allow_diagonals, 0, 0)
-
-   -- if there's a normal, stencil off the adjacent blocks pointingin
-   -- in the opposite direction.  this is to stop people from working on walls
-   -- from the inside of the building (lest they be trapped!)
-   local normal = self._blueprint_construction_data:get_normal()
-   if normal then
-      adjacent:subtract_region(bottom_row:translated(-normal))
-   end
+   local dst_region = rcs_rgn - clipper
 
    -- some projects want the worker to stand at the base of the project and
    -- push columns up.  for example, scaffolding always gets built from the
    -- base.  if this is one of those, translate the adjacent region all the
    -- way to the bottom.
    if self._blueprint_construction_data:get_project_adjacent_to_base() then
-      adjacent:translate(Point3(0, -bottom, 0))
+      dst_region:translate(Point3(0, -bottom, 0))
+   end
+
+   -- copy into the destination region
+   self._fabricator_dst:get_region():modify(function (cursor)
+         cursor:copy_region(dst_region)
+      end)
+end
+
+function Fabricator:_update_dst_adjacent()
+   local dst_rgn = self._fabricator_dst:get_region():get()
+   local reserved_rgn = self._fabricator_dst:get_reserved():get()
+   
+   local allow_diagonals = self._blueprint_construction_data:get_allow_diagonal_adjacency()
+   local adjacent = dst_rgn:get_adjacent(allow_diagonals, 0, 0)
+
+   -- if there's a normal, stencil off the adjacent blocks pointing in
+   -- in the opposite direction.  this is to stop people from working on walls
+   -- from the inside of the building (lest they be trapped!)
+   local normal = self._blueprint_construction_data:get_normal()
+   if normal then
+      adjacent:subtract_region(dst_rgn:translated(-normal))
    end
 
    if self._blueprint_construction_data:get_allow_crouching_construction() then
@@ -443,16 +496,13 @@ function Fabricator:_update_fabricator_region()
    local pr = self._project:get_component('destination'):get_region():get()
 
    -- rgn(f) = rgn(b) - rgn(p) ... (see comment above)
-   local dst = self._entity:add_component('destination')
-   self._log:debug("fabricator modifying dst %d", dst:get_id())
-
    local teardown_region = pr - br
    local finished = false
 
    self._should_teardown = not teardown_region:empty()
    if self._should_teardown then
       self._log:debug('tearing down the top row')
-      dst:get_region():modify(function(cursor)
+      self._fabricator_rcs:get_region():modify(function(cursor)
          -- we want to teardown from the top down, so just keep
          -- the topmost row of the teardown region
          local top = teardown_region:get_bounds().max.y - 1
@@ -507,10 +557,11 @@ function Fabricator:_update_fabricator_region()
       end)
    else
       self._log:debug('updating build region')
-      dst:get_region():modify(function(cursor)
+      self._fabricator_rcs:get_region():modify(function(cursor)
          cursor:copy_region(br - pr)
          finished = cursor:empty()
       end)
+
    end
 
    if self._blueprint and self._blueprint:is_valid() then
@@ -523,7 +574,6 @@ function Fabricator:_update_fabricator_region()
       end
    end
    
-   self._log:debug('new destination region is %s', dst:get_region():get())
    if finished then
       self:_stop_project()
    else

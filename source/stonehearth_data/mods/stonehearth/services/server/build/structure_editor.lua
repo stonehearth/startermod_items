@@ -108,6 +108,8 @@ function StructureEditor:_initialize_proxies(blueprint_uri, structure_type)
                            :set_region(_radiant.client.alloc_region())
    self._proxy_fabricator:add_component('destination')
                            :set_region(_radiant.client.alloc_region())
+   self._proxy_fabricator:add_component('region_collision_shape')
+                           :set_region(_radiant.client.alloc_region())
 
    self._proxy_blueprint:add_component('stonehearth:construction_data')
                            :begin_editing(self._blueprint)
