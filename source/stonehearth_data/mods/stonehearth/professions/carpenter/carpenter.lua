@@ -10,6 +10,9 @@ function carpenter_class.promote(entity, json)
             command.event_data.profession_info = '/stonehearth/professions/carpenter/carpenter_description.json'
          end)
    end
+
+   local weapon = radiant.entities.create_entity('stonehearth:carpenter:saw')
+   radiant.entities.equip_item(entity, weapon, 'melee_weapon')
 end
 
 function carpenter_class.demote(entity)

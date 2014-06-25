@@ -26,6 +26,14 @@
             ]
          }
       },
+      "stonehearth:equipment_piece" : {
+         "render_type" : "attach_to_bone",
+         "render_info" : {
+            "model_variant" : "equipped",
+            "default_bone" : "mainHand",
+            "postures" : [ "stonehearth:combat" ]
+         }
+      },
       "stonehearth:commands" : {
          "commands" : [
             "file(/data/commands/promote_to_profession)"
@@ -41,7 +49,19 @@
       }
    },
    "entity_data" : {
-      "stonehearth:activity_name" : "promote_farmer"
+      "stonehearth:activity_name" : "promote_farmer",
+      "stonehearth:combat:weapon_data" : {
+         "base_damage" : 4,
+         "reach" : 1.50
+      },
+      "stonehearth:combat:melee_attacks" : [
+         {
+            "name" : "combat_1h_forehand",
+            "active_frame" : 16,
+            "cooldown" : 0,
+            "priority" : 0
+         }
+      ]
    }
 }
 

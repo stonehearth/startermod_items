@@ -114,6 +114,7 @@
       "effects:talisman_glow" : "file(data/effects/talisman_glow)",
 
       "wool_bundle" : "file(entities/cloth/wool/wool_bundle)",
+      "cotton_ball" : "file(entities/plants/cotton/cotton_ball)",
 
       "hunk_of_stone" : "file(entities/boulders/hunk_of_stone)",
       "small_boulder" : "file(entities/boulders/small_boulder)",
@@ -144,6 +145,7 @@
       "tester_crop" : "file(entities/plants/tester/tester_crop)",
       "tester_serving" : "file(entities/plants/tester/tester_serving)",
       "tester_basket" : "file(entities/plants/tester/tester_basket)",
+      "cotton_crop" : "file(entities/plants/cotton/cotton_crop)", 
 
       "pink_flower" : "file(entities/ground_clutter/pink_flower)",
 
@@ -407,6 +409,7 @@
       "actions:unset_posture" : "file(ai/actions/unset_posture_action.lua)",
 
       "observers:enemy_observer" : "file(ai/observers/enemy_observer.lua)",
+      "observers:ally_defense" : "file(ai/observers/ally_defense_observer.lua)",
       "observers:combat_panic" : "file(ai/observers/combat_panic_observer.lua)",
       "observers:sleepiness" : "file(ai/observers/sleepiness_observer.lua)",
       "observers:calorie" : "file(ai/observers/calorie_observer.lua)",

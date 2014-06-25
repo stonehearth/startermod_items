@@ -1,18 +1,20 @@
-{
-   "craftable_recipes" : [
-      {
-         "category" : "Construction & Furnishings",
-         "recipes" : [
-            "file(berry_hanging_recipe.json)",
-            "file(green_hanging_recipe.json)"
-         ]
+{ 
+   "craftable_recipes" : {
+      "tools_weapons_armor" : {
+         "spool_of_thread" : {
+            "uri" : "file(spool_of_thread_recipe.json)"
+         },
+         "bolt_of_cloth" : {
+            "uri" : "file(bolt_of_cloth_recipe.json)"
+         }
       },
-      {
-         "category" : "Tools & Goods",
-         "recipes" : [
-            "file(spool_of_thread_recipe.json)",
-            "file(bolt_of_cloth_recipe.json)"
-         ]
+      "construction_building" : {
+         "berry_hanging" : {
+            "uri" : "file(berry_hanging_recipe.json)"
+         }, 
+         "green_hanging" : {
+            "uri" : "file(green_hanging_recipe.json)"
+         }
       }
-   ]
+   }
 }

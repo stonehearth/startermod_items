@@ -7,7 +7,7 @@
                "file(worker_hammer.qb)"
             ]
          }
-      }, 
+      },
       "stonehearth:equipment_piece" : {
          "render_type" : "attach_to_bone",
          "render_info" : {
@@ -25,6 +25,14 @@
       "stonehearth:combat:weapon_data" : {
          "base_damage" : 4,
          "reach" : 0.75
-      }
+      },
+      "stonehearth:combat:melee_attacks" : [
+         {
+            "name" : "combat_1h_forehand",
+            "active_frame" : 16,
+            "cooldown" : 0,
+            "priority" : 0
+         }
+      ]
    }
 }

@@ -72,6 +72,15 @@ function EmbarkTest:__init()
    radiant.terrain.place_entity(banner_entity, location)
    town:set_banner(banner_entity)
 
+
+   local session = {
+      player_id = player_id,
+      kingdom = radiant.entities.get_kingdom(worker)
+   }
+
+   stonehearth.farming:add_crop_type(session, 'stonehearth:cotton_crop')
+
+
    -- Introduce a new person
    --self:at(10000,  function()
    --      stonehearth.dynamic_scenario:force_spawn_scenario('Immigration')

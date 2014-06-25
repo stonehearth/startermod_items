@@ -9,6 +9,9 @@
          }, 
          "wooden_buckler" : {
             "uri" : "file(wooden_buckler_recipe.json)"
+         }, 
+         "spindle" : {
+            "uri" : "file(weaver_spindle.json)"
          }
       },
       "construction_building" : {

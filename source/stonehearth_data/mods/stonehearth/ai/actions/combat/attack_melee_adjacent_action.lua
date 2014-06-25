@@ -16,15 +16,22 @@ AttackMeleeAdjacent.priority = 1
 AttackMeleeAdjacent.weight = 1
 
 function AttackMeleeAdjacent:__init(entity)
-   self._attack_types = stonehearth.combat:get_action_types(entity, 'stonehearth:combat:melee_attacks')
+   self._attack_types = stonehearth.combat:get_combat_actions(entity, 'stonehearth:combat:melee_attacks')
 end
 
 function AttackMeleeAdjacent:start_thinking(ai, entity, args)
    local weapon = stonehearth.combat:get_melee_weapon(entity)
+
    if weapon == nil or not weapon:is_valid() then
-      log:warning('%s has no weapon', entity)
+      log:warning('%s has nothing to attack with', entity)
       return
    end
+
+   if next(self._attack_types) == nil then
+      log:warning('%s has no melee attacks', entity)
+      return
+   end
+
    ai:set_think_output()
 end
 
@@ -52,7 +59,14 @@ function AttackMeleeAdjacent:run(ai, entity, args)
       return
    end
 
-   local attack_info = stonehearth.combat:choose_action(entity, self._attack_types)
+   local attack_info = stonehearth.combat:choose_combat_action(entity, self._attack_types)
+
+   if not attack_info then
+      log:warning('%s unable to attack becuase no melee attacks are currently available.', entity)
+      ai:abort('No melee attacks currently available')
+      return
+   end
+
    local time_to_impact = stonehearth.combat:get_time_to_impact(attack_info)
    local impact_time = radiant.gamestate.now() + time_to_impact
 
