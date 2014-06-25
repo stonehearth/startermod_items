@@ -217,25 +217,45 @@ function CombatService:get_combat_state(entity)
    return combat_state_component
 end
 
-function CombatService:get_action_types(entity, action_type)
-   local action_types = radiant.entities.get_entity_data(entity, action_type)
+-- combat actions can come from two sources:
+--   1) something you are (a dragon has a tail attack)
+--   2) something you have (a wand of lightning bolt)
+function CombatService:get_combat_actions(entity, action_type)
+   -- get actions from entity description
+   local actions = radiant.entities.get_entity_data(entity, action_type)
+   actions = actions or {}
+
+   local equipment_component = entity:get_component('stonehearth:equipment')
+
+   -- get actions from all equipment
+   if equipment_component ~= nil then
+      local items = equipment_component:get_all_items()
+      for _, item in pairs(items) do
+         local item_actions = radiant.entities.get_entity_data(item, action_type)
+         if item_actions then
+            for _, action in pairs(item_actions) do
+               table.insert(actions, action)
+            end
+         end
+      end
+   end
 
    -- TODO: just sort once...
-   table.sort(action_types,
+   table.sort(actions,
       function (a, b)
          return a.priority > b.priority
       end
    )
-   return action_types
+   return actions
 end
 
 -- placeholder logic for now
-function CombatService:choose_action(entity, action_types)
+function CombatService:choose_combat_action(entity, actions)
    local combat_state = self:get_combat_state(entity)
    local candidates = {}
    local priority = nil
 
-   for i, action_info in ipairs(action_types) do
+   for i, action_info in ipairs(actions) do
       if not combat_state:in_cooldown(action_info.name) then
          if priority == nil then
             table.insert(candidates, action_info)

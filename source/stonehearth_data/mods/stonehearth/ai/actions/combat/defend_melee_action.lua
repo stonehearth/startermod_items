@@ -12,10 +12,15 @@ DefendMelee.priority = 1
 DefendMelee.weight = 1
 
 function DefendMelee:__init(entity)
-   self._defense_types = stonehearth.combat:get_action_types(entity, 'stonehearth:combat:melee_defenses')
+   self._defense_types = stonehearth.combat:get_combat_actions(entity, 'stonehearth:combat:melee_defenses')
 end
 
 function DefendMelee:start_thinking(ai, entity, args)
+   if next(self._defense_types) == nil then
+      -- no melee defenses
+      return
+   end
+
    self._ai = ai
    self._entity = entity
    self._think_output_set = false
@@ -62,7 +67,13 @@ function DefendMelee:_on_assault(context)
       return
    end
 
-   local defend_info = stonehearth.combat:choose_action(self._entity, self._defense_types)
+   local defend_info = stonehearth.combat:choose_combat_action(self._entity, self._defense_types)
+
+   if not defend_info then
+      -- no defenses currently available
+      return
+   end
+
    local defend_latency = stonehearth.combat:get_time_to_impact(defend_info)
    local earliest_defend_time = radiant.gamestate.now() + defend_latency
 
