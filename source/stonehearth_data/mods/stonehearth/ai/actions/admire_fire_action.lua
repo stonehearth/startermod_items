@@ -7,7 +7,6 @@ AdmireFire.does = 'stonehearth:admire_fire'
 AdmireFire.status_text = 'resting by the fire'
 AdmireFire.version = 2
 AdmireFire.priority = 1
-AdmireFire.preemptable = true
 
 --- Given an item, determine if it's an unoccupied seat by a lit firepit
 -- @param item The item to evaluate

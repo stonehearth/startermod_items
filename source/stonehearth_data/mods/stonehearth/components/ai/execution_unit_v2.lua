@@ -543,7 +543,7 @@ function ExecutionUnitV2:_do_start_thinking(entity_state)
    self._log:debug('_do_start_thinking (state:%s)', tostring(self._state))
    assert(not self._thinking)
    
-   self._cost = 0
+   self._cost = self._action.cost or 0
    self._thinking = true
    self._current_entity_state = entity_state
    self._ai_interface.CURRENT = entity_state

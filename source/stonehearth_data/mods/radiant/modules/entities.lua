@@ -813,5 +813,12 @@ function entities.world_to_local(pt, e)
    return _radiant.physics.world_to_local(pt, e)
 end
 
+-- HACK: used to remove the talisman glow effect from the weapon after promotion
+-- Might want to remove other talisman related commands as well
+-- TODO: make the effects and commands specific to the model variant
+function entities.remove_effects(item)
+   item:remove_component('effect_list')
+end
+
 entities.__init()
 return entities

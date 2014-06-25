@@ -189,12 +189,20 @@ function CompoundAction:_set_think_output()
    
    self._log:detail('all frames ready!  calling set_think_output.')
 
-   local cost = self._action_cost
-   for _, frame in ipairs(self._execution_frames) do
-      cost = cost + frame:get_cost()
+   -- set the cost of the action.  if the compound action has opt-ed out of accumulating
+   -- the cost of it's children by setting Action.fixed_cost to some number, use that.
+   -- otherwise, the cost of a compound action is the sum of the result of the :set_cost()
+   -- plus the costs of all the actions it needs to execute.
+   local cost = self._action.fixed_cost
+   if not cost then
+      cost = self._action_cost
+      for _, frame in ipairs(self._execution_frames) do
+         cost = cost + frame:get_cost()
+      end
    end
-
    self._ai:set_cost(cost)
+
+   -- mo comments, yo...
    if self._think_output_placeholders then
       local replaced = self:_replace_placeholders(self._think_output_placeholders)
       self._ai:set_think_output(replaced)

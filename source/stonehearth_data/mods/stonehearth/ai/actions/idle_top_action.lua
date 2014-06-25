@@ -5,7 +5,6 @@ IdleTop.does = 'stonehearth:top'
 IdleTop.args = {}
 IdleTop.version = 2
 IdleTop.priority = stonehearth.constants.priorities.top.IDLE
-IdleTop.preemptable = true
 
 function IdleTop:run(ai, entity)
    while true do

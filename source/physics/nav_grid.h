@@ -97,6 +97,7 @@ class NavGrid {
       bool IsBlocked(om::EntityPtr entity, csg::Region3 const& region);
       bool IsStandable(om::EntityPtr entity, csg::Region3 const& region);
       bool RegionIsSupported(csg::Region3 const& r);
+      bool IsEntitySolid(om::EntityPtr entity) const;
 
    private: // methods exposed only to the OctTree
       friend OctTree;

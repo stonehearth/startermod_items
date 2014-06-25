@@ -215,6 +215,7 @@ void Mob::SerializeToJson(json::Node& node) const
    node.set("axis_alignment_flags", GetAlignToGridFlags());
    node.set("entity", GetEntityPtr()->GetStoreAddress());
    node.set("interpolate_movement", GetInterpolateMovement());
+   node.set("in_free_motion", GetInFreeMotion());
    om::EntityPtr parent = GetParent().lock();
    if (parent) {
       node.set("parent", parent->GetStoreAddress());

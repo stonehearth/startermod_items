@@ -56,7 +56,7 @@ void Convert::UserdataToProtobuf(luabind::object const& obj, Protocol::Value* ms
       lua::ScriptHost *s = lua::ScriptHost::GetScriptHost(L);
       typeId = luabind::call_function<int>(obj["__get_userdata_type_id"]);
    } catch (std::exception const& e) {
-      LOG_(0) << "wtf? " << e.what();
+      LUA_LOG(0) << "wtf? " << e.what();
    }
    if (!typeId) {
       luabind::class_info ci = luabind::call_function<luabind::class_info>(luabind::globals(L)["class_info"], obj);
