@@ -71,6 +71,21 @@ function EquipmentPieceComponent:_setup_item_rendering()
    end
 end
 
+function EquipmentPieceComponent:_remove_item_rendering()
+   assert(self._sv.owner and self._sv.owner:is_valid())
+   local render_type = self._json.render_type
+
+   if render_type == 'merge_with_model' then
+      self._sv.owner:add_component('render_info'):remove_entity(self._entity:get_uri())
+   elseif render_type == 'attach_to_bone' then
+      local postures = self._json.render_info.postures
+      if postures then
+         radiant.events.unlisten(self._sv.owner, 'stonehearth:posture_changed', self, self._on_posture_changed)
+      end
+      self:_remove_from_bone()
+   end
+end
+
 function EquipmentPieceComponent:_on_posture_changed()
    local posture = radiant.entities.get_posture(self._sv.owner)
 
@@ -143,20 +158,6 @@ function EquipmentPieceComponent:_remove_commands()
 	   end
 		self._sv._injected_commands = {}
 	end
-end
-
-function EquipmentPieceComponent:_remove_item_rendering()
-	assert(self._sv.owner and self._sv.owner:is_valid())
-	local render_type = self._json.render_type
-
-   if render_type == 'merge_with_model' then
-      self._sv.owner:add_component('render_info'):remove_entity(self._entity:get_uri())
-   elseif render_type == 'attach_to_bone' then
-      if self._json.render_info.posture then
-         radiant.events.unlisten(self._sv.owner, 'stonehearth:posture_changed', self, self._on_posture_changed)
-      end
-      self:_remove_from_bone()
-   end
 end
 
 return EquipmentPieceComponent

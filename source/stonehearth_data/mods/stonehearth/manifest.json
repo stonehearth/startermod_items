@@ -407,6 +407,7 @@
       "actions:unset_posture" : "file(ai/actions/unset_posture_action.lua)",
 
       "observers:enemy_observer" : "file(ai/observers/enemy_observer.lua)",
+      "observers:ally_defense" : "file(ai/observers/ally_defense_observer.lua)",
       "observers:combat_panic" : "file(ai/observers/combat_panic_observer.lua)",
       "observers:sleepiness" : "file(ai/observers/sleepiness_observer.lua)",
       "observers:calorie" : "file(ai/observers/calorie_observer.lua)",
