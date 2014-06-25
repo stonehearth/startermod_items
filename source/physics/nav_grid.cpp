@@ -685,7 +685,10 @@ bool NavGrid::IsEntityInCube(om::EntityPtr entity, csg::Cube3 const& worldBounds
 bool NavGrid::IsBlocked(om::EntityPtr entity, csg::Point3 const& location)
 {
    csg::Region3 region = GetEntityWorldCollisionRegion(entity, location);
-   return NavGrid::IsBlocked(entity, region);
+   if (IsEntitySolid(entity)) {
+      return IsBlocked(entity, region);
+   }
+   return IsBlocked(region);
 }
 
 
@@ -859,7 +862,10 @@ bool NavGrid::RegionIsSupported(csg::Region3 const& r)
 bool NavGrid::IsStandable(om::EntityPtr entity, csg::Point3 const& location)
 {
    csg::Region3 region = GetEntityWorldCollisionRegion(entity, location);
-   return IsStandable(entity, region);
+   if (IsEntitySolid(entity)) {
+      return IsStandable(entity, region);
+   }
+   return IsStandable(region);
 }
 
 
@@ -951,6 +957,26 @@ void NavGrid::SignalTileDirty(csg::Point3 const& index)
    _dirtyTilesSlot.Signal(index);
 }
 
+
+/*
+ * -- NavGrid::IsEntitySolid
+ *
+ * Return whether any part of the `entity` is solid for the purposes of collision
+ * detection.  Non-solid entities can compute their placement and movement
+ * information just by looking at the grid, with is much much faster than having
+ * to inspect all the trackers to avoid colliding with itself.
+ *
+ */
+bool NavGrid::IsEntitySolid(om::EntityPtr entity) const
+{
+   if (entity) {
+      om::RegionCollisionShapePtr rcs = entity->GetComponent<om::RegionCollisionShape>();
+      if (rcs && rcs->GetRegionCollisionType() == om::RegionCollisionShape::SOLID) {
+         return true;
+      }
+   }
+   return false;
+}
 
 /*
  * -- NavGrid::GetEntityWorldCollisionRegion
