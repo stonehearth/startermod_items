@@ -4,10 +4,18 @@ function EquipmentComponent:initialize(entity, json)
    self._entity = entity
    self._sv = self.__saved_variables:get_data()
    if not self._sv.equipped_items then
-      self._sv.equipped_items = {
-         n = 0
-      }
+      self._sv.equipped_items = {}
    end
+end
+
+function EquipmentComponent:destroy()
+   -- xxx, revoke injected ais for all equipped items
+   --stonehearth.ai:revoke_injected_ai(self._injected_ai_token)
+end
+
+-- use pairs (not ipairs) to iterate through all the itmes
+function EquipmentComponent:get_all_items()
+   return self._sv.equipped_items
 end
 
 function EquipmentComponent:get_item_in_slot(slot)
@@ -70,11 +78,6 @@ function EquipmentComponent:unequip_item(uri)
          return item
       end
    end
-end
-
-function EquipmentComponent:destroy()
-   -- xxx, revoke injected ais for all equipped items
-   --stonehearth.ai:revoke_injected_ai(self._injected_ai_token)
 end
 
 return EquipmentComponent

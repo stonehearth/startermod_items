@@ -49,6 +49,28 @@
       "stonehearth:combat:weapon_data" : {
          "base_damage" : 10,
          "reach" : 1.5
-      }
+      },
+      "stonehearth:combat:melee_attacks" : [
+         {
+            "name" : "combat_1h_backhand",
+            "active_frame" : 17,
+            "cooldown" : 0,
+            "priority" : 0
+         },
+         {
+            "name" : "combat_1h_forehand",
+            "active_frame" : 16,
+            "cooldown" : 0,
+            "priority" : 0
+         }      
+      ],
+      "stonehearth:combat:melee_defenses" : [
+         {
+            "name" : "combat_1h_parry",
+            "active_frame" : 4,
+            "cooldown" : 6000,
+            "priority" : 0
+         }
+      ]
    }
 }
