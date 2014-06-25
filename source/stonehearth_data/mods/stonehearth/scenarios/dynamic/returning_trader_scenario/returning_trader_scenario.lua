@@ -43,6 +43,8 @@ end
 function ReturningTrader:initialize()
    --TODO: have to get this from the service
    self._sv._player_id = 'player_1'
+   local town = stonehearth.town:get_town( self._sv._player_id)
+   self._sv._kingdom = town:get_kingdom()
 
    --Make a dummy entity to hold the lease on desired items
    --TODO: replace with the actual caravan entity once they move in the world
@@ -84,14 +86,15 @@ end
 function ReturningTrader:start()
    local want_uri, want_count = self:_get_desired_items()
    local days = rng:get_int(1, self._trade_data.max_days_before_return)
-   local reward_uri, reward_count = self:_get_reward_items()
+   local reward_uri, reward_count, reward_type = self:_get_reward_items()
 
    self._sv._trade_data = {
       want_uri = want_uri, 
       want_count = want_count, 
       num_days = days, 
       reward_uri = reward_uri, 
-      reward_count = reward_count
+      reward_count = reward_count, 
+      reward_type = reward_type
    }
 
    local message = self:_make_message(self._trade_data.greeting .. self._trade_data.trade_details)
@@ -127,7 +130,7 @@ function ReturningTrader:_get_desired_items()
    return wanted_item_uri, proposed_number
 end
 
---- Returns the URI of and the number of reward items
+--- Returns data about the reward item
 function ReturningTrader:_get_reward_items()
    local random_reward_index =  rng:get_int(1, #self._reward_table)
    local reward_item_uri = self._reward_table[random_reward_index]
@@ -136,7 +139,18 @@ function ReturningTrader:_get_reward_items()
    if reward_item_data.type == 'object' then
       proposed_number = rng:get_int(reward_item_data.min, reward_item_data.max)
    end
-   return reward_item_uri, proposed_number
+   if reward_item_data.type == 'crop' then
+      --Make sure we only proceed if this settlement doesn't already have this crop
+      --TODO: Remove this check once we implement bags of seeds
+      local session = {
+         player_id = self._sv._player_id,
+         kingdom = self._sv._kingdom
+      } 
+      if stonehearth.farming:has_crop_type(session, reward_item_uri) then
+         return self:_get_reward_items()
+      end
+   end
+   return reward_item_uri, proposed_number, reward_item_data.type
 end
 
 --- Returns a message with all the right text
@@ -146,12 +160,18 @@ function ReturningTrader:_make_message(message_composite)
 
    local want_name = self:_get_user_visible_name(self._sv._trade_data.want_uri)
    local reward_name =  self:_get_user_visible_name(self._sv._trade_data.reward_uri)
-   
+   local crop_name = ""
+   if self._sv._trade_data.reward_type == 'crop' then
+      crop_name = reward_name
+      reward_name = string.gsub(self._trade_data.crop_name, '__reward_name__', reward_name)
+   end
+
    message_composite = string.gsub(message_composite, '__want_number__', self._sv._trade_data.want_count)
    message_composite = string.gsub(message_composite, '__want_item__', want_name)
    message_composite = string.gsub(message_composite, '__num_days__', self._sv._trade_data.num_days)
    message_composite = string.gsub(message_composite, '__reward_number__', self._sv._trade_data.reward_count)
    message_composite = string.gsub(message_composite, '__reward_item__', reward_name)
+   message_composite = string.gsub(message_composite, '__crop_name__', crop_name)
 
    local hours_remaing = 0
    if self._timer then
@@ -172,7 +192,6 @@ function ReturningTrader:_get_user_visible_name(uri)
       local full_sized_data =  radiant.resources.load_json(item_data.components['stonehearth:placeable_item_proxy'].full_sized_entity)
       return full_sized_data.components.unit_info.name
    end
-   --TODO: insert case for crops and craftables
 end
 
 --Creates the timers used in this function.
@@ -213,7 +232,7 @@ function ReturningTrader:_on_accepted()
 
    --make a timer to express how long to wait before the caravan returns
    self._sv._wait_time = self._sv._trade_data.num_days
-   self:_create_timer(self._sv._wait_time .. 'd')
+   self:_create_timer(self._sv._wait_time * 3 .. 'h')
 
    --Put up a non-dismissable notification to keep track of the time remaining
    --Send the notice to the bulletin service
@@ -335,7 +354,25 @@ function ReturningTrader:_on_success_accepted()
       self._timer:destroy()
    end
    self:_stop_timer()
-   radiant.events.trigger(self, 'stonehearth:dynamic_scenario:finished')
+
+   --If the new thing was a crop, make an informational bulletin
+   if self._sv._trade_data.reward_type == 'crop' then
+      local message = self:_make_message(self._trade_data.new_crop_confirmation_message)
+      self._sv._bulletin = stonehearth.bulletin_board:post_bulletin(self._sv._player_id)
+         :set_ui_view('StonehearthGenericBulletinDialog')
+         :set_callback_instance(self)
+         :set_data({
+            title = self._trade_data.new_crop_confirmation_title,
+            message = message,
+            ok_callback = "_on_declined"
+         })
+      --Make a timer for either (so the bulletins both time out)
+      local wait_duration = self._trade_data.expiration_timeout
+      self:_create_timer(wait_duration)
+   else
+      --If it wasn't a crop thing, then just finish
+      radiant.events.trigger(self, 'stonehearth:dynamic_scenario:finished')
+   end
 end
 
 --TODO: instead of doing this, the trader should pick them up and haul them off
@@ -366,6 +403,12 @@ function ReturningTrader:_accept_trade()
 
          --TODO: attach a brief particle effect to the new stuff
       end
+   elseif  self._trade_data.rewards[self._sv._trade_data.reward_uri].type == 'crop' then
+      local session = {
+         player_id = self._sv._player_id,
+         kingdom = self._sv._kingdom
+      }
+      stonehearth.farming:add_crop_type(session, self._sv._trade_data.reward_uri)
    end
 
    --TODO: account for new crops and new recipes

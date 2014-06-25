@@ -89,6 +89,10 @@ function Town:get_player_id()
    return self._sv.player_id
 end
 
+function Town:get_kingdom()
+   return self._sv.kingdom
+end
+
 function Town:destroy()
 end
 

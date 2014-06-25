@@ -97,6 +97,17 @@ function FarmingService:get_all_crop_types(session)
    return self:_get_crop_list(session)
 end
 
+--Returns true if the player/kingdom combination has the crop in question, 
+--false otherwise
+function FarmingService:has_crop_type(session, crop_type_name)
+   for i, crop_data in ipairs(self:_get_crop_list(session)) do
+      if crop_data.crop_type == crop_type_name then
+         return true
+      end
+   end   
+   return false
+end
+
 --- Add a new crop type to a specific player
 function FarmingService:add_crop_type(session, new_crop_type, quantity)
    local crop_list = self:_get_crop_list(session)
