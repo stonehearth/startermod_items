@@ -21,18 +21,8 @@
             <div id="eraseFloorTool" class="toolButton"></div>
          </div>
 
-         <h2>{{i18n stonehearth:building_designer_material}}</h2>
-         <div class="brushPalette section">
-            {{#each view.floorPatterns}}
-               <!--<h2>{{category}}</h2>-->
-               <div>
-                  {{#each items}}
-                     <img {{bind-attr brush="this.brush" src="this.portrait" title="this.name"}} class="floorMaterial" />
-                  {{/each}}
-               </div>
-               <div style="clear: both"></div>
-            {{/each}}
-         </div>
+         <!-- Material palette built dynamically and inserted here -->
+
       </div>
 
       <div class="tabPage" id="wallToolTab">
@@ -44,17 +34,8 @@
             <div id="drawWallTool" class="toolButton"></div>
             <div id="growWallsTool" class="toolButton"></div>
          </div>
-         <h2>{{i18n stonehearth:building_designer_material}}</h2>
-         <div class="brushPalette section">
-            {{#each view.wallPatterns}}
-               <div>
-                  {{#each items}}
-                     <img {{bind-attr uri="this.uri" src="this.portrait" title="this.name"}} class="wallMaterial" />
-                  {{/each}}
-               </div>
-               <div style="clear: both"></div>
-            {{/each}}
-         </div>
+
+         <!-- Material palette built dynamically and inserted here -->
 
       </div>
 
@@ -65,6 +46,7 @@
          <div class="section toolPalette">
             <div id="growRoofTool" class="toolButton"></div>
          </div>
+
          <h2>{{i18n stonehearth:building_designer_material}}</h2>
          <div class="brushPalette section">
             {{#each view.roofPatterns}}
@@ -91,25 +73,16 @@
             <div id="eraseDoodadTool" class="toolButton"></div>
          </div>
 
-         <h2>{{i18n stonehearth:building_designer_material}}</h2>
-         <div class="brushPalette section">
-            {{#each view.doodads}}
-               <h2>{{category}}</h2>
-               <div>
-                  {{#each items}}
-                     <img {{bind-attr uri="this.uri" src="this.portrait" title="this.name"}} class="small doodadMaterial"/>
-                  {{/each}}
-               </div>
-            {{/each}}
-         </div>
+         <!-- Material palette built dynamically and inserted here -->
+         
       </div>
 
       <div class="tabPage" id="editToolTab">
          <h2>{{i18n stonehearth:building_designer_edit}}</h2>
          Edit tools go here
          <br><br>
-         <div class="section">
-            info about selected building part (when one is selected) goes here
+         <div id="editMaterial">
+         
          </div>
       </div>
 

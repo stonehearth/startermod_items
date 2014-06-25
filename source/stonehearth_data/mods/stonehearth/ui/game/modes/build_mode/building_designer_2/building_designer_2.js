@@ -50,8 +50,8 @@ App.StonehearthBuildingDesignerTools = App.View.extend({
       {
          category: 'Wooden Materials',
          items: [
-            { name: 'Plastered Wooden Wall',    portrait: '/stonehearth/entities/build/wooden_wall/plastered_wooden_wall.png', uri: 'stonehearth:plastered_wooden_wall' },
-            { name: 'Wooden Wall', portrait: '/stonehearth/entities/build/wooden_wall/wooden_wall.png', uri: 'stonehearth:wooden_wall' },
+            { name: 'Plastered Wooden Wall',    portrait: '/stonehearth/entities/build/wooden_wall/plastered_wooden_wall.png', brush: 'stonehearth:plastered_wooden_wall' },
+            { name: 'Wooden Wall', portrait: '/stonehearth/entities/build/wooden_wall/wooden_wall.png', brush: 'stonehearth:wooden_wall' },
          ]         
       }
    ],
@@ -68,25 +68,56 @@ App.StonehearthBuildingDesignerTools = App.View.extend({
       {
          category: 'Doors',
          items: [
-            { name: 'Wooden Door', portrait: '/stonehearth/entities/construction/wooden_door/wooden_door.png', uri: 'stonehearth:wooden_door' },
+            { name: 'Wooden Door', portrait: '/stonehearth/entities/construction/wooden_door/wooden_door.png', brush: 'stonehearth:wooden_door' },
          ]
       },
       {
          category: 'Windows',
          items: [
-            { name: 'Wooden Window', portrait: '/stonehearth/entities/construction/wooden_window_frame/wooden_window_frame.png', uri:'stonehearth:wooden_window_frame' },
+            { name: 'Wooden Window', portrait: '/stonehearth/entities/construction/wooden_window_frame/wooden_window_frame.png', brush:'stonehearth:wooden_window_frame' },
          ]
       },
       {
          category: 'Decorations',
          items: [
-            { name: 'Lamp', portrait: '/stonehearth/entities/construction/simple_wall_lantern/simple_wall_lantern.png', uri: 'stonehearth:simple_wall_lantern' },
+            { name: 'Lamp', portrait: '/stonehearth/entities/construction/simple_wall_lantern/simple_wall_lantern.png', brush: 'stonehearth:simple_wall_lantern' },
          ]
       }
    ],
 
+   _buildMaterialPalette: function(materials, materialClassName) {
+      var palette = $('<div>')
+                     .addClass('brushPalette')
+                     .addClass('section');
+
+      // for each category
+      $.each(materials, function(i, category) {
+         // for each material
+         $.each(category.items, function(k, material) {
+            var brush = $('<img>')
+                           .attr('brush', material.brush)
+                           .attr('src', material.portrait)
+                           .attr('title', material.name)
+                           .addClass(materialClassName);
+
+            palette.append(brush);
+         });
+      });
+
+      var el = $('<div>')
+                  .append('<h2>Materials</h2>')
+                  .append(palette);
+
+      return el;
+   },
+
    didInsertElement: function() {
       var self = this;
+
+      // build material palettes
+      this.$('#floorToolTab').append(this._buildMaterialPalette(this.floorPatterns, 'floorMaterial'));
+      this.$('#wallToolTab').append(this._buildMaterialPalette(this.wallPatterns, 'wallMaterial'));
+      this.$('#doodadToolTab').append(this._buildMaterialPalette(this.doodads, 'doodadMaterial'));
 
       // tab buttons
       this.$('.tabButton').click(function() {
@@ -133,7 +164,7 @@ App.StonehearthBuildingDesignerTools = App.View.extend({
 
       // draw wall tool
       this.$('#drawWallTool').click(function() {
-         var wallUri = self.$('#wallToolTab .wallMaterial.selected').attr('uri');
+         var wallUri = self.$('#wallToolTab .wallMaterial.selected').attr('brush');
          App.stonehearthClient.buildWall('stonehearth:wooden_column', wallUri);
 
          self._activeTool = $(this);
@@ -143,7 +174,7 @@ App.StonehearthBuildingDesignerTools = App.View.extend({
       this.$('#growWallsTool').click(function() {
          
          var building = self.get('building');
-         var wallUri = self.$('#wallToolTab .wallMaterial.selected').attr('uri');
+         var wallUri = self.$('#wallToolTab .wallMaterial.selected').attr('brush');
          App.stonehearthClient.growWalls(building, 'stonehearth:wooden_column', wallUri);
       });
 
@@ -164,14 +195,18 @@ App.StonehearthBuildingDesignerTools = App.View.extend({
 
       // draw doodad tool
       this.$('#drawDoodadTool').click(function() {
-         var uri = self.$('#doodadToolTab .doodadMaterial.selected').attr('uri');
+         var uri = self.$('#doodadToolTab .doodadMaterial.selected').attr('brush');
          App.stonehearthClient.addDoodad(uri);
 
          self._activeTool = $(this);
       });
 
-      // edit button
-      //App.stonehearthClient.replaceStructure(this.get('context.stonehearth:fabricator.blueprint.__self'), wall.uri);
+      // edit tab
+      $('#editMaterial').on( 'click', '.wallMaterial', function() {
+         var wallUri = $(this).attr('brush');
+         var blueprint = self.get('blueprint.__self');
+         App.stonehearthClient.replaceStructure(blueprint, wallUri); 
+      });
 
       // building buttons
       this.$('#startBuilding').click(function() {
@@ -249,11 +284,27 @@ App.StonehearthBuildingDesignerTools = App.View.extend({
       }
 
       var building_entity = this.get('building');
+      var blueprint_entity = this.get('blueprint');
 
       if (building_entity) {
          self.$('#selectedBuildingWindow').show();
       } else {
          self.$('#selectedBuildingWindow').hide();
+      }
+
+      if (blueprint_entity) {
+         var type = this.get('blueprint.stonehearth:construction_data.type');
+
+         var container = this.$('#editMaterial');
+         var materialEl;
+
+         if (type == 'wall') {
+            materialEl = this._buildMaterialPalette(this.wallPatterns, 'wallMaterial');
+         }
+
+         container
+            .empty()
+            .append(materialEl);
       }
    }
 });
