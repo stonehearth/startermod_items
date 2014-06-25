@@ -262,7 +262,7 @@ bool Store::LoadObjects(google::protobuf::io::CodedInputStream& cis, std::string
          if (cb) {
             cb(percent);
          }
-         LOG_(0) << " load progress " << percent << "%...";
+         STORE_LOG(1) << " load progress " << percent << "%...";
       }
 
       msg.Clear();
@@ -284,7 +284,7 @@ bool Store::LoadObjects(google::protobuf::io::CodedInputStream& cis, std::string
       obj->SetObjectMetadata(id, *this);
       obj->LoadObject(PERSISTANCE, msg);
    }
-   LOG_(0) << " load objects finished!" << std::endl;
+   STORE_LOG(1) << " load objects finished!" << std::endl;
    return true;
 }
 

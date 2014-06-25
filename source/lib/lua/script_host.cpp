@@ -604,7 +604,7 @@ void ScriptHost::ClearMemoryProfile()
    if (enable_profile_memory_) {
       alloc_backmap.clear();
       alloc_map.clear();
-      LOG_(0) << " cleared lua memory profile data";
+      LUA_LOG(0) << " cleared lua memory profile data";
    }
 }
 
@@ -614,7 +614,7 @@ void ScriptHost::WriteMemoryProfile(std::string const& filename) const
       return;
    }
    if (!profile_memory_) {
-      LOG_(0) << "memory profile is not running.";
+      LUA_LOG(0) << "memory profile is not running.";
       return;
    }
 
@@ -656,7 +656,7 @@ void ScriptHost::WriteMemoryProfile(std::string const& filename) const
    for (auto i = totals.rbegin(); i != totals.rend(); i++) {
       output(i->second.first, i->second.second, i->first);
    }
-   LOG_(0) << " wrote lua memory profile data to lua_memory_profile.txt";
+   LUA_LOG(0) << " wrote lua memory profile data to lua_memory_profile.txt";
 }
 
 void ScriptHost::ProfileMemory(bool value)
@@ -669,7 +669,7 @@ void ScriptHost::ProfileMemory(bool value)
          lua_sethook(L_, LuaTrackLine, LUA_MASKCALL | LUA_MASKRET | LUA_MASKLINE, 1);
       }
       profile_memory_  = value;
-      LOG_(0) << " lua memory profiling turned " << (profile_memory_ ? "on" : "off");
+      LUA_LOG(0) << " lua memory profiling turned " << (profile_memory_ ? "on" : "off");
    }
 }
 

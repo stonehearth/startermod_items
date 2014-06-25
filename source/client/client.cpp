@@ -575,7 +575,7 @@ void Client::EnableDisableLifetimeTracking()
    debug_track_object_lifetime_ = !debug_track_object_lifetime_;
    if (!debug_track_object_lifetime_) {
       // If we're turning off, let's dump everything.
-      LOG_(0) << "-- Object lifetimes -----------------------------------";
+      CLIENT_LOG(1) << "-- Object lifetimes -----------------------------------";
       auto objectmap = core::ObjectCounterBase::GetObjects();
 
       std::map<int, std::pair<core::ObjectCounterBase*, std::type_index>> sortedMap;
@@ -589,7 +589,7 @@ void Client::EnableDisableLifetimeTracking()
             address = (void*)dynamic_cast<radiant::om::DataStore*>(pair.second.first);
             ASSERT(address != nullptr);
          }
-         LOG_(0) << "     Age:" << (platform::get_current_time_in_ms() - pair.first) << " Kind: " << pair.second.second.name() << " Address: " << pair.second.first;
+         CLIENT_LOG(1) << "     Age:" << (platform::get_current_time_in_ms() - pair.first) << " Kind: " << pair.second.second.name() << " Address: " << pair.second.first;
       }
    }
    core::ObjectCounterBase::TrackObjectLifetime(debug_track_object_lifetime_);
@@ -1626,7 +1626,7 @@ void Client::ReportLoadProgress()
    if (networkUpdatesCount_) {
       int percent = (networkUpdatesCount_ * 100) / networkUpdatesExpected_;
       if (percent - lastLoadProgress_ > 10) {
-         LOG_(0) << " client load progress " << percent << "%...";
+         CLIENT_LOG(3) << " client load progress " << percent << "%...";
 
          if (load_progress_deferred_) {
             load_progress_deferred_->Notify(JSONNode("progress", 50.0 + (percent / 2.0)));
