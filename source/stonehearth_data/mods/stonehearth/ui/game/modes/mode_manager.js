@@ -50,6 +50,8 @@ $(document).ready(function() {
       setGameMode: function (mode) {
          if (mode != this._currentMode) {
 
+            App.stonehearthClient.deactivateAllTools();
+            
             /*
             if (mode == this.modes.ZONES ||
                 mode == this.modes.BUILD) {
