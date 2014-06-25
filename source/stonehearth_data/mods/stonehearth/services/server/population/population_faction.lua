@@ -182,8 +182,8 @@ function PopulationFaction:create_entity(uri)
    return entity
 end
 
-function PopulationFaction:promote_citizen(citizen, profession)
-   citizen:add_component('stonehearth:profession'):promote_to(profession)
+function PopulationFaction:promote_citizen(citizen, profession, talisman)
+   citizen:add_component('stonehearth:profession'):promote_to(profession, talisman)
 end
 
 function PopulationFaction:get_home_location()
