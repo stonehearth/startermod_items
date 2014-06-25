@@ -95,6 +95,15 @@ void csg::RegisterLuaTypes(lua_State* L)
       ]
    ];
    object Point3 = globals(L)["_radiant"]["csg"]["Point3"];
+   object Point3f = globals(L)["_radiant"]["csg"]["Point3f"];
+   object Point2 = globals(L)["_radiant"]["csg"]["Point2"];
+   object Point2f = globals(L)["_radiant"]["csg"]["Point2f"];
    Point3["zero"] = csg::Point3::zero;
    Point3["one"] = csg::Point3::one;
+   Point3f["zero"] = csg::Point3f::zero;
+   Point3f["one"] = csg::Point3f::one;
+   Point2["zero"] = csg::Point2::zero;
+   Point2["one"] = csg::Point2::one;
+   Point2f["zero"] = csg::Point2f::zero;
+   Point2f["one"] = csg::Point2f::one;
 }
