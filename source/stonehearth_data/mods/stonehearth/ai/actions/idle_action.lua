@@ -7,7 +7,6 @@ Idle.status_text = 'idle'
 Idle.args = { }
 Idle.version = 2
 Idle.priority = 1
-Idle.preemptable = true
 
 function Idle:run(ai, entity)
    while true do

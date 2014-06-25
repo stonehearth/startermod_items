@@ -13,6 +13,9 @@ function carpenter_class.promote(entity, json)
 
    local weapon = radiant.entities.create_entity('stonehearth:carpenter:saw')
    radiant.entities.equip_item(entity, weapon, 'melee_weapon')
+
+   -- HACK: remove the talisman glow effect from the weapon
+   radiant.entities.remove_effects(weapon)
 end
 
 function carpenter_class.demote(entity)

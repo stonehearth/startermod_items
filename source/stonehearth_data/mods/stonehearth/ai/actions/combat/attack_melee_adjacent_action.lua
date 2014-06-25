@@ -80,11 +80,9 @@ function AttackMeleeAdjacent:run(ai, entity, args)
    stonehearth.combat:assault(target, self._context)
 
    -- can't ai:execute this. it needs to run in parallel with the attack animation
-   --[[
    self._hit_effect = radiant.effects.run_effect(
-      target, '/stonehearth/data/effects/hit_sparks/blood_effect.json', time_to_impact
+      target, '/stonehearth/data/effects/hit_sparks/hit_effect.json', time_to_impact
    )
-   ]]
 
    self._timer = stonehearth.combat:set_timer(time_to_impact,
       function ()
@@ -92,7 +90,7 @@ function AttackMeleeAdjacent:run(ai, entity, args)
          local out_of_range = range > melee_range_max
 
          if out_of_range or self._context.target_defending then
-            --self._hit_effect:stop()
+            self._hit_effect:stop()
          else
             -- TODO: get damage modifiers from action and attributes
             local base_damage = weapon_data.base_damage
