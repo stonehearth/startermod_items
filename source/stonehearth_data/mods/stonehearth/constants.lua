@@ -98,7 +98,7 @@ local constants = {
    -- Constants related to constructing buildings
    construction = {
       STOREY_HEIGHT = 6,
-      MAX_WALL_SPAN = 9,
+      MAX_WALL_SPAN = 16,
    },
 
    input = {

@@ -706,6 +706,14 @@ Region<S, C> Region<S, C>::Inflated(Point const& pt) const
    return std::move(result);
 }
 
+template <class S, int C>
+void Region<S, C>::SetTag(int tag)
+{
+   for (auto &c : cubes_) {
+      c.SetTag(tag);
+   }
+}
+
 #if 0
 Region3 radiant::csg::GetBorderXZ(const Region3 &other)
 {
@@ -799,6 +807,7 @@ Point<float, C> csg::GetCentroid(Region<S, C> const& region)
    template Cls::Region(const Cls::Cube&); \
    template Cls::ScalarType Cls::GetArea() const; \
    template void Cls::Clear(); \
+   template void Cls::SetTag(int tag); \
    template void Cls::Add(const Cls&); \
    template void Cls::Add(const Cls::Cube&); \
    template void Cls::Add(const Cls::Point&); \

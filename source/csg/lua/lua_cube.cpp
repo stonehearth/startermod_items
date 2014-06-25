@@ -57,8 +57,11 @@ Cube3f ToCube3f(const Cube3& r) {
 
 
 IMPLEMENT_TRIVIAL_TOSTRING(LuaPointIterator<Cube3>);
+IMPLEMENT_TRIVIAL_TOSTRING(LuaPointIterator<Rect2>);
 DEFINE_INVALID_LUA_CONVERSION(LuaPointIterator<Cube3>);
+DEFINE_INVALID_LUA_CONVERSION(LuaPointIterator<Rect2>);
 DEFINE_INVALID_JSON_CONVERSION(LuaPointIterator<Cube3>);
+DEFINE_INVALID_JSON_CONVERSION(LuaPointIterator<Rect2>);
 
 template <typename T>
 T IntersectCube(T const& lhs, T const& rhs)
@@ -121,8 +124,10 @@ scope LuaCube::RegisterLuaTypes(lua_State* L)
          .def("each_point",   &EachPoint<Cube3>)
          .def("project_onto_xz_plane", &ProjectOntoXZPlane),
       Register<Cube3f>(L, "Cube3f"),
-      Register<Rect2>(L,  "Rect2"),
+      Register<Rect2>(L,  "Rect2")
+         .def("each_point",   &EachPoint<Rect2>),
       Register<Line1>(L,  "Line1"),
-      lua::RegisterType_NoTypeInfo<LuaPointIterator<Cube3>>("Cube3Iterator")
+      lua::RegisterType_NoTypeInfo<LuaPointIterator<Cube3>>("Cube3Iterator"),
+      lua::RegisterType_NoTypeInfo<LuaPointIterator<Rect2>>("Rect2Iterator")
    ;
 }

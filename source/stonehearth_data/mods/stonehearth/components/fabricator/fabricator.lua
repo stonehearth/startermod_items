@@ -215,8 +215,14 @@ function Fabricator:find_another_block(carrying, location)
       local adjacent = self._fabricator_dst:get_adjacent():get()
       if adjacent:contains(pt) then
          local block = self._fabricator_dst:get_point_of_interest(pt) + origin
-         self:reserve_block(block)
-         return block
+
+         -- make sure the next block we get is on the same level as the current
+         -- block so we don't confuse the scaffolding fabricator.  if we really
+         -- need to go to the next row, the pathfinder will take us there!
+         if block.y == location.y then
+            self:reserve_block(block)
+            return block
+         end
       end
    end
 end
@@ -382,6 +388,14 @@ function Fabricator:_update_adjacent()
    
    local allow_diagonals = self._blueprint_construction_data:get_allow_diagonal_adjacency()
    local adjacent = bottom_row:get_adjacent(allow_diagonals, 0, 0)
+
+   -- if there's a normal, stencil off the adjacent blocks pointingin
+   -- in the opposite direction.  this is to stop people from working on walls
+   -- from the inside of the building (lest they be trapped!)
+   local normal = self._blueprint_construction_data:get_normal()
+   if normal then
+      adjacent:subtract_region(bottom_row:translated(-normal))
+   end
 
    -- some projects want the worker to stand at the base of the project and
    -- push columns up.  for example, scaffolding always gets built from the
