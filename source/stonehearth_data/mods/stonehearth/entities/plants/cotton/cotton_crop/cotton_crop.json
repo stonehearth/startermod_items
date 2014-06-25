@@ -1,0 +1,100 @@
+{
+   "type": "entity", 
+   "components": {
+      "model_variants": {
+         "default": {
+            "models": [
+               "file(cotton_4.qb)"
+            ]
+         },
+         "cotton_1": {
+            "models": [
+               "file(cotton_1.qb)"
+            ]
+         },
+         "cotton_2": {
+            "models": [
+               "file(cotton_2.qb)"
+            ]
+         },
+         "cotton_3": {
+            "models": [
+               "file(cotton_3.qb)"
+            ]
+         },
+         "cotton_4": {
+            "models": [
+               "file(cotton_4.qb)"
+            ]
+         }, 
+         "cotton_5": {
+            "models": [
+               "file(cotton_5.qb)"
+            ]
+         }, 
+         "cotton_9": {
+            "models": [
+               "file(cotton_9.qb)"
+            ]
+         }
+      },
+      "render_info" : {
+         "scale" : 0.13
+      },
+      "mob" : {
+         "model_origin" : { "x": -0.05, "y": -0.3, "z": 0.05 }
+      },
+      "unit_info": {
+         "name": "Cotton", 
+         "description": "Like tiny sheep stuck to stems.", 
+         "icon" : "file(icon.png)",
+         "portrait" : "file(portrait.png)"
+      },
+      "stonehearth:crop" : {
+         "resource_pairings" : {
+            "cotton_5": "stonehearth:cotton_ball",
+            "cotton_9": ""
+         }, 
+         "harvest_threshhold" : "cotton_5", 
+         "plant_overlay_effect" : "/stonehearth/data/effects/plant_crop_overlay_effect/plant_cotton_overlay_effect.json" 
+      }, 
+      "stonehearth:growing" : {
+         "growth_period" : "1h",
+         "growth_stages" : [
+            {
+               "model_name" : "cotton_1",
+               "name": "Cotton Seedling", 
+               "description": "Proto-clothing. Think long-term."
+            },
+            {
+               "model_name" : "cotton_2",
+               "name": "Cotton Sprout", 
+               "description": "Not harvestable yet!"
+            },
+            {
+               "model_name" : "cotton_3",
+               "name": "Stubby Cotton", 
+               "description": "Will be cotton... soon."
+            },
+            {
+               "model_name" : "cotton_4",
+               "name": "Recognizably Cotton", 
+               "description": "Almost optimal for harvest!"
+            },
+            {
+               "model_name" : "cotton_5",
+               "name": "Ripe Cotton", 
+               "description": "Let the backbreaking labor commence!"
+            },
+            {
+               "model_name" : "cotton_8",
+               "name": "Rotten Cotton", 
+               "description": "Opportunity missed."
+            }
+         ]
+      },
+      "stonehearth:material" : {
+         "tags" :  "crop cotton"
+      }
+   }
+}

@@ -1,6 +1,6 @@
 local weaver_class = {}
 
-function weaver_class.promote(entity, workshop_component)
+function weaver_class.promote(entity, json)
    entity:add_component("stonehearth:crafter", json.crafter)
 
    --Make sure that the build workshop command has a reference to this file
