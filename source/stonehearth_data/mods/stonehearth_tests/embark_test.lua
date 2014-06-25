@@ -20,13 +20,13 @@ function EmbarkTest:__init()
    local bush = self:place_item('stonehearth:berry_bush', 5, -4)
 
    local tree = self:place_tree(-12, -12)
-   local tree = self:place_tree(-12, -10)
+   local tree = self:place_tree(12, -10)
    local tree = self:place_tree(-12, -8)
-   local tree = self:place_tree(-12, -6)
+   local tree = self:place_tree(12, -6)
    local tree = self:place_tree(-12, -4)
-   local tree = self:place_tree(-12, -2)
+   local tree = self:place_tree(12, -2)
    local tree = self:place_tree(-12, 0)
-   local tree = self:place_tree(-12, 2)
+   local tree = self:place_tree(12, 2)
 
    local critter1 = self:place_item('stonehearth:red_fox', 2, 2)
 
@@ -78,7 +78,7 @@ function EmbarkTest:__init()
       kingdom = radiant.entities.get_kingdom(worker)
    }
 
-   stonehearth.farming:add_crop_type(session, 'stonehearth:cotton_crop')
+   --stonehearth.farming:add_crop_type(session, 'stonehearth:cotton_crop')
 
 
    -- Introduce a new person
