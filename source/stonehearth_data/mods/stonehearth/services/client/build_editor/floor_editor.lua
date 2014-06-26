@@ -10,7 +10,7 @@ local FloorEditor = class()
 
 -- this is the component which manages the fabricator entity.
 function FloorEditor:__init(build_service)
-   self._build_service = build_service
+self._build_service = build_service
    self._log = radiant.log.create_logger('builder')
 end
 

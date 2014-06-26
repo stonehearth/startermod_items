@@ -23,6 +23,7 @@
       "cursors:harvest" : "file(data/cursors/harvest.cur)",
       "cursors:create_stockpile" : "file(data/cursors/create_stockpile.cur)",
       "cursors:create_walls" : "file(data/cursors/create_walls.cur)",
+      "cursors:grow_walls" : "file(data/cursors/create_walls.cur)",
       "cursors:create_floor" : "file(data/cursors/create_floor.cur)",
       "cursors:default" : "file(data/cursors/default.cur)",
       "cursors:hover" : "file(data/cursors/hover.cur)",
@@ -830,6 +831,10 @@
       "get_service" : {
          "controller" : "file(call_handlers/build_call_handler.lua)",
          "endpoint" : "server"
+      },
+      "get_client_service" : {
+         "controller" : "file(call_handlers/build_call_handler.lua)",
+         "endpoint" : "client"
       },
       "set_stockpile_filter": {
          "controller" : "file(call_handlers/stockpile_call_handler.lua)",
