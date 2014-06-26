@@ -180,9 +180,7 @@ App.StonehearthBuildingDesignerTools = App.View.extend({
 
       // grow roof button
       this.$('#growRoofTool').click(function() {
-         var building = self.get('building');
-         // todo, open a wizard
-         App.stonehearthClient.growRoof(building);
+         App.stonehearthClient.growRoof();
       })
 
       // doodad material

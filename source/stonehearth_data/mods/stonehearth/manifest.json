@@ -19,7 +19,7 @@
       "cursors:camera_move_up" : "file(data/cursors/camera_move_up.cur)",
       "cursors:create_door" : "file(data/cursors/create_door.cur)",
       "cursors:create_window" : "file(data/cursors/create_window.cur)",
-      "cursors:create_roof" : "file(data/cursors/create_roof.cur)",
+      "cursors:grow_roof" : "file(data/cursors/create_roof.cur)",
       "cursors:harvest" : "file(data/cursors/harvest.cur)",
       "cursors:create_stockpile" : "file(data/cursors/create_stockpile.cur)",
       "cursors:create_walls" : "file(data/cursors/create_walls.cur)",

@@ -65,14 +65,25 @@ function BuildEditorService:grow_walls(session, response, columns_uri, walls_uri
       :go()
 end
 
-function BuildEditorService:grow_roof(session, response, building)
-   _radiant.call_obj(self._build_service, 'grow_roof_command', building, 'stonehearth:wooden_peaked_roof')
-      :done(function(r)
-            response:resolve(r)
+function BuildEditorService:grow_roof(session, response)
+   local building
+   stonehearth.selection:select_entity_tool()
+      :set_tool_mode(true)
+      :set_cursor('stonehearth:cursors:grow_roof')
+      :set_filter_fn(function(entity)
+            building = self:get_building_for(entity)
+            return building ~= nil
          end)
-      :fail(function(r)
-            response:reject(r)
+      :done(function(selector, entity)
+            if building then
+               _radiant.call_obj(self._build_service, 'grow_roof_command', building, 'stonehearth:wooden_peaked_roof')
+            end
          end)
+      :always(function(selector)
+            selector:destroy()
+            response:resolve('done')
+         end)
+      :go()   
 end
 
 function BuildEditorService:create_room(session, response)
