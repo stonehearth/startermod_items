@@ -119,13 +119,25 @@ App.StonehearthBuildingDesignerTools = App.View.extend({
       this.$('#wallToolTab').append(this._buildMaterialPalette(this.wallPatterns, 'wallMaterial'));
       this.$('#doodadToolTab').append(this._buildMaterialPalette(this.doodads, 'doodadMaterial'));
 
-      // tab buttons
+      // tab buttons and pages
       this.$('.tabButton').click(function() {
          App.stonehearthClient.deactivateAllTools();
-         
-         var tab = $(this).attr('tab');
+         var tabId = $(this).attr('tab');
+         var tab = self.$('#' + tabId);
+
+         // activate the default tool for each tab
+         tab.find('.defaultTool').click();
+
+         // show the correct tab page
          self.$('.tabPage').hide();
-         self.$('#' + tab).show();
+         tab.show();
+
+      });
+
+      // tools
+      this.$('.toolButton').click(function() {
+         self.$('.toolButton').removeClass('active');
+         $(this).addClass('active');
       });
 
       // undo/redoo tool
@@ -232,6 +244,8 @@ App.StonehearthBuildingDesignerTools = App.View.extend({
       $(self.$('#floorToolTab .floorMaterial')[0]).addClass('selected');
       $(self.$('#wallToolTab .wallMaterial')[0]).addClass('selected');
       $(self.$('#doodadToolTab .doodadMaterial')[0]).addClass('selected');
+
+      self.$('.floorToolButton').click();
    },
 
    _updateTool: function(toolElement) {
