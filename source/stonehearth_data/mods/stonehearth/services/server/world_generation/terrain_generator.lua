@@ -1,7 +1,6 @@
 local TerrainType = require 'services.server.world_generation.terrain_type'
 local TerrainInfo = require 'services.server.world_generation.terrain_info'
 local Array2D = require 'services.server.world_generation.array_2D'
-local MathFns = require 'services.server.world_generation.math.math_fns'
 local NonUniformQuantizer = require 'services.server.world_generation.math.non_uniform_quantizer'
 local FilterFns = require 'services.server.world_generation.filter.filter_fns'
 local Wavelet = require 'services.server.world_generation.filter.wavelet'
@@ -106,7 +105,7 @@ function TerrainGenerator:_quantize_height_map(height_map, is_micro_map)
          -- fancy mode
          local terrain_type = terrain_info:get_terrain_type(value)
          local step_size = terrain_info[terrain_type].step_size
-         local rounded_value = MathFns.round(value)
+         local rounded_value = radiant.math.round(value)
          local diff = quantized_value - rounded_value
 
          if diff == step_size*0.5 then

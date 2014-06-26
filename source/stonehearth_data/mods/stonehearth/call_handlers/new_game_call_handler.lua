@@ -1,4 +1,3 @@
-local MathFns = require 'services.server.world_generation.math.math_fns'
 local BlueprintGenerator = require 'services.server.world_generation.blueprint_generator'
 local personality_service = stonehearth.personality
 
@@ -77,10 +76,10 @@ function NewGameCallHandler:generate_start_location(session, response, feature_c
 
    -- move (i, j) if it is too close to the edge
    if blueprint.width > 2*radius+1 then
-      i = MathFns.bound(i, 1+radius, blueprint.width-radius)
+      i = radiant.math.bound(i, 1+radius, blueprint.width-radius)
    end
    if blueprint.height > 2*radius+1 then
-      j = MathFns.bound(j, 1+radius, blueprint.height-radius)
+      j = radiant.math.bound(j, 1+radius, blueprint.height-radius)
    end
   
    wgs:generate_tiles(i, j, radius)

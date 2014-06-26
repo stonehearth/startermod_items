@@ -1,7 +1,6 @@
 local TerrainType = require 'services.server.world_generation.terrain_type'
 local TerrainInfo = require 'services.server.world_generation.terrain_info'
 local Array2D = require 'services.server.world_generation.array_2D'
-local MathFns = require 'services.server.world_generation.math.math_fns'
 local FilterFns = require 'services.server.world_generation.filter.filter_fns'
 local InverseGaussianRandom = require 'services.server.world_generation.math.inverse_gaussian_random'
 local TerrainDetailer = class()
@@ -119,7 +118,7 @@ function TerrainDetailer:_generate_detail_height(max_delta, base_height)
       -- if rng:get_real(0, 1) <= 0.50 then
          return max_delta
       -- else
-         --return MathFns.round(max_delta*0.5)
+         --return radiant.math.round(max_delta*0.5)
       -- end
    else
       -- place the midpoint 2 standard deviations away

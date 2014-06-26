@@ -1,4 +1,3 @@
-local MathFns = require 'services.server.world_generation.math.math_fns'
 local Timer = require 'services.server.world_generation.timer'
 
 local Point2 = _radiant.csg.Point2
@@ -226,7 +225,7 @@ end
 function TerrainService:_get_entity_visible_region(entity)
    local step_size = self._visbility_step_size
    local quantize = function (value) 
-      return MathFns.quantize(value, step_size)
+      return radiant.math.quantize(value, step_size)
    end
    -- fix y bounds until renderer supports 3d bounds. minimizes cubes for now
    local y_min = quantize(0)

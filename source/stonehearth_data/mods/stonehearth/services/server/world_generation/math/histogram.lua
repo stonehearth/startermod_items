@@ -1,5 +1,3 @@
-local MathFns = require 'services.server.world_generation.math.math_fns'
-
 local Histogram = class()
 
 function Histogram:__init()
@@ -61,7 +59,7 @@ function Histogram:_print_key(logger, key, format_string)
    if format_string == nil then format_string = '%.0f' end
 
    local probability = self:get_probability(key)
-   logger:debug('%s: %s%%', key, string.format(format_string, MathFns.round(probability*100)))
+   logger:debug('%s: %s%%', key, string.format(format_string, radiant.math.round(probability*100)))
 end
 
 return Histogram
