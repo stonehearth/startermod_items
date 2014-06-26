@@ -1,5 +1,5 @@
-local StructureEditor = require 'services.server.build.structure_editor'
-local PortalEditor = require 'services.server.build.portal_editor'
+local StructureEditor = require 'services.client.build_editor.structure_editor'
+local PortalEditor = require 'services.client.build_editor.portal_editor'
 
 local log = radiant.log.create_logger('build_editor')
 
@@ -45,7 +45,7 @@ function DoodadPlacer:go(session, response, uri)
                   wall_editor = nil
                end
                if not wall_editor then
-                  local fabricator, blueprint, project = StructureEditor.get_fbp_for_structure(entity, 'stonehearth:wall')
+                  local fabricator, blueprint, project = stonehearth.build_editor:get_fbp_for_structure(entity, 'stonehearth:wall')
                   log:detail('got blueprint %s', tostring(blueprint))
                   if blueprint then
                      log:detail('creating wall editor for blueprint: %s', blueprint)

@@ -12,7 +12,8 @@ local service_creation_order = {
    'sky_renderer',
    'unit_control',
    'selection',
-   'hilight'
+   'hilight',
+   'build_editor',
 }
 
 local function create_service(name)
