@@ -184,10 +184,8 @@ App.StonehearthBuildingDesignerTools = App.View.extend({
 
       // grow walls tool
       this.$('#growWallsTool').click(function() {
-         
-         var building = self.get('building');
          var wallUri = self.$('#wallToolTab .wallMaterial.selected').attr('brush');
-         App.stonehearthClient.growWalls(building, 'stonehearth:wooden_column', wallUri);
+         App.stonehearthClient.growWalls('stonehearth:wooden_column', wallUri);
       });
 
       // grow roof button
