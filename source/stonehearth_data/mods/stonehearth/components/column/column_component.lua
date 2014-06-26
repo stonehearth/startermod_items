@@ -75,16 +75,22 @@ function Column:_compute_column_shape()
       local roof = self._sv.roof
       local location = radiant.entities.get_location_aligned(self._entity)
       local coord = location - radiant.entities.get_location_aligned(roof)
-      local roof_region = roof:get_component('region_collision_shape'):get_region():get()
-
-      for cube in roof_region:each_cube() do
-         if cube:contains(Point3(coord.x, cube.min.y, coord.z)) then
-            local column_top = cube.min.y - coord.y 
-            if not height or column_top < height then
-               height = column_top
+      
+      local region_collision_shape = roof:get_component('region_collision_shape')
+      --TODO: not sure why this is sometimes nil, but even when it is the building still progresses?
+      if region_collision_shape then
+         local roof_region = region_collision_shape:get_region():get()
+         for cube in roof_region:each_cube() do
+            if cube:contains(Point3(coord.x, cube.min.y, coord.z)) then
+               local column_top = cube.min.y - coord.y 
+               if not height or column_top < height then
+                  height = column_top
+               end
             end
          end
       end
+      
+      --local roof_region = roof:get_component('region_collision_shape'):get_region():get()
    end
    -- if we didn't have a roof, just use the default storey height
    height = height or constants.STOREY_HEIGHT
