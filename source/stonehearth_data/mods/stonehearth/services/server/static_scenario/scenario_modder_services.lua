@@ -1,4 +1,3 @@
-local MathFns = require 'services.server.world_generation.math.math_fns'
 local PerturbationGrid = require 'services.server.world_generation.perturbation_grid'
 local Point3 = _radiant.csg.Point3
 
@@ -74,8 +73,8 @@ end
 function ScenarioModderServices:_bounds_check(x, y)
    local size = self._properties.size
 
-   return MathFns.bound(x, 1, size.width),
-          MathFns.bound(y, 1, size.length)
+   return radiant.math.bound(x, 1, size.width),
+          radiant.math.bound(y, 1, size.length)
 end
 
 function ScenarioModderServices:_set_random_facing(entity)

@@ -1,5 +1,3 @@
-local MathFns = require 'services.server.world_generation.math.math_fns'
-
 local IntegerGaussianRandom = class()
 local log = radiant.log.create_logger('world_generation')
 
@@ -21,7 +19,7 @@ function IntegerGaussianRandom:get_int(min, max, std_dev)
       if rand >= min_float and rand < max_float then break end
    end
 
-   return MathFns.round(rand)
+   return radiant.math.round(rand)
 end
 
 function IntegerGaussianRandom:simulate_probabilities(min, max, std_dev, iterations)

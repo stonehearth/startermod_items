@@ -1,5 +1,3 @@
-local MathFns = require 'services.server.world_generation.math.math_fns'
-
 local NonUniformQuantizer = class()
 
 local Interval = class()
@@ -47,7 +45,7 @@ function NonUniformQuantizer:quantize(value)
 
    local key, interval, lower, upper, lower_delta, upper_delta
 
-   key = MathFns.round(value)
+   key = radiant.math.round(value)
    interval = self._interval_map[key]
    lower = interval.lower
    upper = interval.upper

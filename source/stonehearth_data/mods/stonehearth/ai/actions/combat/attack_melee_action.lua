@@ -24,6 +24,9 @@ return ai:create_compound_action(AttackMelee)
       stop_distance = ai.BACK(2).melee_range_ideal,
       grid_location_changed_cb = ai.PREV.callback,
    })
+   :execute('stonehearth:bump_allies', {
+      distance = 2,
+   })
    :execute('stonehearth:combat:attack_melee_adjacent', {
       target = ai.ARGS.target,
    })

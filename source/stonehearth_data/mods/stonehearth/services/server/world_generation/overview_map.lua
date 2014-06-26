@@ -1,5 +1,4 @@
 local Array2D = require 'services.server.world_generation.array_2D'
-local MathFns = require 'services.server.world_generation.math.math_fns'
 local TerrainType = require 'services.server.world_generation.terrain_type'
 local TerrainInfo = require 'services.server.world_generation.terrain_info'
 local log = radiant.log.create_logger('world_generation')
@@ -160,7 +159,7 @@ function OverviewMap:_get_wildlife_density(i, j, elevation_map)
       end
    end
 
-   score = MathFns.round(sum / (width*height) * (num_quanta-1))
+   score = radiant.math.round(sum / (width*height) * (num_quanta-1))
    return score
 end
 
@@ -184,7 +183,7 @@ function OverviewMap:_get_vegetation_density(i, j, feature_map)
       end
    )
 
-   score = MathFns.round(sum / (width*height) * (num_quanta-1))
+   score = radiant.math.round(sum / (width*height) * (num_quanta-1))
    return score
 end
 
