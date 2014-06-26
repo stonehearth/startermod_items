@@ -46,7 +46,7 @@ function RenewableResourceNodeComponent:spawn_resource(location)
    if self._resource then
       --Create the harvested entity and put it on the ground
       local item = radiant.entities.create_entity(self._resource)
-      local pt = radiant.terrain.find_placement_point(collect_location, 0, 2)
+      local pt = radiant.terrain.find_placement_point(location, 0, 2)
       radiant.terrain.place_entity(item, pt)
 
       --start the countdown to respawn.

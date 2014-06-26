@@ -8,6 +8,7 @@ local Region3 = _radiant.csg.Region3
 
 function WallLoopEditor:__init(build_service)
    self._build_service = build_service
+   self._column_editors = {}
    self._log = radiant.log.create_logger('builder')
 end
 
@@ -20,9 +21,7 @@ function WallLoopEditor:go(column_uri, wall_uri, response)
    
    local last_location
    local last_column_editor
-   local current_column_editor = StructureEditor()
-   current_column_editor:create_blueprint(column_uri, 'stonehearth:column')
-
+   local current_column_editor = self:_create_column_editor(column_uri)
    self._selector = stonehearth.selection:select_location()
       :allow_shift_queuing(true)
       :set_min_locations_count(2)
@@ -36,20 +35,23 @@ function WallLoopEditor:go(column_uri, wall_uri, response)
             current_column_editor:move_to(location)
          end)
       :done(function(selector, location, rotation, finished)
-               if last_column_editor then
-                  self:_queue_wall(last_column_editor, current_column_editor)
-               end
+            if last_column_editor then
+               self:_queue_wall(last_column_editor, current_column_editor)
+            end
 
-               self._finished_queuing = finished
-               if not finished then
-                  last_column_editor = current_column_editor
-                  last_location = radiant.entities.get_world_grid_location(last_column_editor:get_proxy_blueprint())
-                  current_column_editor = StructureEditor()
-                  current_column_editor:create_blueprint(column_uri, 'stonehearth:column')
-               end
+            self._finished_queuing = finished
+            if not finished then
+               last_column_editor = current_column_editor
+               last_location = radiant.entities.get_world_grid_location(last_column_editor:get_proxy_blueprint())
+               current_column_editor = self:_create_column_editor(column_uri)
+               current_column_editor:move_to(last_location)
+            end
          end)
       :fail(function(selector)
-            --assert(false)
+            selector:destroy()
+            for _, column_editor in pairs(self._column_editors) do
+               column_editor:destroy()
+            end
          end)
       :go()
    
@@ -130,6 +132,14 @@ function WallLoopEditor:_fit_point_to_constraints(p0, p1, column1)
       p1[t] = p1[t] - dt
    end
    return p1
+end
+
+function WallLoopEditor:_create_column_editor(column_uri)
+   local column_editor = StructureEditor()
+   column_editor:create_blueprint(column_uri, 'stonehearth:column')   
+   
+   self._column_editors[column_editor:get_proxy_blueprint():get_id()] = column_editor
+   return column_editor
 end
 
 return WallLoopEditor
