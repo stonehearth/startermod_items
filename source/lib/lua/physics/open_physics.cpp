@@ -23,6 +23,11 @@ bool Physics_IsStandablePoint(lua_State *L, OctTree &octTree, csg::Point3 const&
    return octTree.GetNavGrid().IsStandable(location);
 }
 
+bool Physics_IsOccupied(lua_State *L, OctTree &octTree, csg::Point3 const& location)
+{
+   return octTree.GetNavGrid().IsOccupied(location);
+}
+
 csg::Point3 Physics_GetStandablePoint(lua_State *L, OctTree &octTree, om::EntityRef entityRef, csg::Point3 const& location)
 {
    om::EntityPtr entity = entityRef.lock();
@@ -77,6 +82,7 @@ void lua::phys::open(lua_State* L, OctTree& octtree)
             luabind::class_<OctTree>("Physics")
                .def("is_standable",         &Physics_IsStandable)
                .def("is_standable",         &Physics_IsStandablePoint)
+               .def("is_occupied",          &Physics_IsOccupied)
                .def("get_standable_point",  &Physics_GetStandablePoint)
                .def("get_entities_in_cube", &Physics_GetEntitiesInCube),
             def("local_to_world",              &Physics_LocalToWorld<csg::Point3>),

@@ -32,8 +32,8 @@ function ShearSheepAction:run(ai, entity, path)
    local factory = sheep:get_component('stonehearth:renewable_resource_node')
    if factory then
       ai:execute('stonehearth:run_effect','fiddle')
-      local front_point = self._entity:get_component('mob'):get_location_in_front()
-      local spawned_item = factory:spawn_resource(Point3(front_point.x, front_point.y, front_point.z))
+      local location = radiant.entities.get_world_grid_location(entity)
+      local spawned_item = factory:spawn_resource(location)
 
       --Log it in the personality component
       local spawned_item_name = spawned_item:get_component('unit_info'):get_display_name()

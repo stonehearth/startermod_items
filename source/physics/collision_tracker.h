@@ -25,6 +25,7 @@ public:
    virtual csg::Region3 GetOverlappingRegion(csg::Cube3 const& bounds) const = 0;
    virtual bool Intersects(csg::Cube3 const& worldBounds) const = 0;
 
+   bool Intersects(csg::Point3 const& pt) const;
    bool Intersects(csg::Region3 const& region) const;
    bool Intersects(csg::Region3 const& region, csg::Cube3 const& regionBounds) const;
 

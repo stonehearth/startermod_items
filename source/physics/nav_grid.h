@@ -56,6 +56,9 @@ class NavGrid {
       bool IsStandable(om::EntityPtr entity, csg::Point3 const& pt);
       csg::Point3 GetStandablePoint(om::EntityPtr entity, csg::Point3 const& pt);
 
+      // Occupied Queries.  Is any entity of any kind here?
+      bool IsOccupied(csg::Point3 const& worldPoint);
+
       // Queries.  
       bool IsEntityInCube(om::EntityPtr entity, csg::Cube3 const& worldBounds);
       bool ForEachEntityAtIndex(csg::Point3 const& index, ForEachEntityCb cb);

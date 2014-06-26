@@ -101,4 +101,48 @@ function Terrain.trace_world_entities(reason, added_cb, removed_cb)
                         :on_removed(removed_cb)
 end
 
+function Terrain.find_placement_point(starting_location, min_radius, max_radius)
+   -- pick a random start location
+   local x = math.random(-max_radius, max_radius)
+   local z = math.random(-max_radius, max_radius)
+
+   -- move to the next point in the box defined by max_radius
+   local function inc(x, z)
+      x = x + 1
+      if x > max_radius then
+         x, z = -max_radius, z + 1
+      end
+      if z > max_radius then
+         z = -min_radius
+      end
+      return x, z
+   end
+
+   -- make sure x, z is inside the donut described by min_radius and max_radius   
+   local function valid(x, z)
+      if z >= -min_radius and z <= min_radius then
+         return x <= -min_radius or x >= min_radius
+      end
+      return true
+   end
+
+   -- run through all the points in the box.  for the ones that are in the donut,
+   -- see if they're both capable holding an item and not-occupied.  if we loop
+   -- all the way around and still can't find something, just use the starting
+   -- point as the placement point.
+   local pt
+   local found = false
+   for i=1,max_radius * max_radius do
+      x, z = inc(x, z)
+      if valid(x, z) then
+         pt = starting_location + Point3(x, 0, z)
+         if _physics:is_standable(pt) and not _physics:is_occupied(pt) then
+            found = true
+            break
+         end
+      end
+   end
+   return pt, found
+end
+
 return Terrain

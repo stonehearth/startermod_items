@@ -789,6 +789,30 @@ bool NavGrid::IsStandable(csg::Point3 const& worldPoint)
    return !IsBlocked(worldPoint) && IsSupport(worldPoint - csg::Point3::unitY);
 }
 
+
+/*
+ * -- NavGrid::IsOccupied
+ *
+ * Returns whether or not the coordinate at `worldPoint` is occupied.  Returns
+ * true if any entity in the world (of any kind) overlaps the specified point.
+ *
+ */
+bool NavGrid::IsOccupied(csg::Point3 const& worldPoint)
+{
+   bool stopped = false;
+
+   if (bounds_.Contains(worldPoint)) {
+      csg::Point3 index = csg::GetChunkIndex(worldPoint, TILE_SIZE);
+      stopped = GridTileNonResident(index).ForEachTracker([worldPoint](CollisionTrackerPtr tracker) {
+         ASSERT(tracker);
+         ASSERT(tracker->GetEntity());
+         bool stop = tracker->Intersects(worldPoint);
+         return stop;
+      });
+   }
+   return stopped;
+}
+
 /*
  * -- NavGrid::IsStandable
  *

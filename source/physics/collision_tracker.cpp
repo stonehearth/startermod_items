@@ -79,6 +79,19 @@ dm::ObjectId CollisionTracker::GetEntityId() const
  * world coodrinates.
  *
  */
+bool CollisionTracker::Intersects(csg::Point3 const& pt) const
+{
+   return Intersects(csg::Cube3(pt, pt + csg::Point3::one));
+}
+
+/* 
+ * -- CollisionTracker::Intersects
+ *
+ * Returns whether or not the specified region intersects with the region
+ * tracked by this collision tracker.  The `region` should be specified in
+ * world coodrinates.
+ *
+ */
 bool CollisionTracker::Intersects(csg::Region3 const& region) const
 {
    return Intersects(region, region.GetBounds());
