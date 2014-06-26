@@ -44,7 +44,7 @@
          {{i18n stonehearth:building_designer_raise_roof_help}}
          <h2>Tools</h2>
          <div class="section toolPalette">
-            <div id="growRoofTool" class="toolButton"></div>
+            <div id="growRoofTool" class="toolButton defaultTool"></div>
          </div>
 
          <h2>{{i18n stonehearth:building_designer_material}}</h2>
@@ -84,28 +84,6 @@
          <div id="editMaterial">
 
          </div>
-      </div>
-
-      <!-- wizard panes -->
-      <div id="growWallsWizard" class="window toolWizard">
-         <div class="title">Grow Walls Around Floor<div id="closeGrowWallsWizard" class="closeDivButton"></div></div>
-         Choose a material for your walls, then click the Grow Walls Around Floor button.
-         <h2>{{i18n stonehearth:building_designer_material}}</h2>
-         <div class="brushPalette section">
-            {{#each view.wallPatterns}}
-               <div>
-                  {{#each items}}
-                     <img {{bind-attr uri="this.uri" src="this.portrait" title="this.name"}} class="wallMaterial" />
-                  {{/each}}
-               </div>
-               <div style="clear: both"></div>
-            {{/each}}
-         </div>
-         <br><br>
-         <button {{bind-attr class=view.building:enabled:disabled}} id="growWallsButton">
-            Grow Walls Around Floor
-         </button>
-
       </div>
    </div>
 
