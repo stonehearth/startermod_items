@@ -14,6 +14,11 @@ function combat_tests.battle_royale(autotest)
       autotest.env:create_person(  7, 15, { player_id = 'enemy', weapon = 'stonehearth:wooden_sword' }),
    }
 
+   for _, entity in pairs(enemies) do
+      -- make goblins auto attack
+      stonehearth.ai:inject_ai(entity, { observers = { "stonehearth:observers:enemy_observer" }})
+   end
+
    local function any_valid_entities(entities)
       for _, entity in pairs(entities) do
          if entity:is_valid() then

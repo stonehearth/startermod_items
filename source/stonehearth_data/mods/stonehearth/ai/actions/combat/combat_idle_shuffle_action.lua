@@ -3,7 +3,6 @@ local Point2 = _radiant.csg.Point2
 local Point3 = _radiant.csg.Point3
 local Point3f = _radiant.csg.Point3f
 local Cube3 = _radiant.csg.Cube3
-local Quaternion = _radiant.csg.Quaternion
 local rng = _radiant.csg.get_default_rng()
 local log = radiant.log.create_logger('combat')
 
@@ -19,6 +18,7 @@ CombatIdleShuffle.priority = 1
 CombatIdleShuffle.weight = 1
 
 function CombatIdleShuffle:start_thinking(ai, entity, args)
+   self._entity = entity
    local enemy = args.enemy
 
    if enemy == nil or not enemy:is_valid() then
@@ -49,32 +49,26 @@ function CombatIdleShuffle:run(ai, entity, args)
       ai:execute('stonehearth:bump_against_entity', { entity = enemy, distance = melee_range_ideal })
    end
 
+   ai:execute('stonehearth:bump_allies', { distance = 2 })
+
    ai:execute('stonehearth:turn_to_face_entity', { entity = enemy })
    ai:execute('stonehearth:run_effect', { effect = 'combat_1h_idle' })
 end
 
-local function rotate_about_y_axis(point, degrees)
-   local radians = degrees / 180 * math.pi
-   local q = Quaternion(Point3f(0, 1, 0), radians)
-   return q:rotate(point)
-end
-
-local function random_xz_unit_vector()
-   local unit_x = Point3f(1, 0, 0)
-   local unit_y = Point3f(0, 1, 0)
-   local angle = rng:get_real(0, 2 * math.pi)
-   local vector = Quaternion(unit_y, angle):rotate(unit_x)
-   return vector
-end
-
 function CombatIdleShuffle:_choose_destination(entity, enemy)
+   local entity_grid_location = entity:add_component('mob'):get_world_grid_location()
    local entity_location = entity:add_component('mob'):get_world_location()
    local enemy_location = enemy:add_component('mob'):get_world_location()
    local angles = { -90, -45, 45, 90 }
    local num_angles = #angles
    -- wandering at least sqrt(2) guarantees that diagonal movement will change grid location
    local distance = 1.5
+   local radius = 2
    local roll, angle, destination
+   local entities, current_density, destination_density
+
+   entities = self:_get_entities_in_cube(entity_grid_location, radius)
+   current_density = self:_count_other_entities(entities)
 
    local enemy_direction = enemy_location - entity_location
    enemy_direction.y = 0
@@ -82,20 +76,27 @@ function CombatIdleShuffle:_choose_destination(entity, enemy)
    if enemy_direction:distance_squared() ~= 0 then
       enemy_direction:normalize()
    else
-      enemy_direction = random_xz_unit_vector()
+      enemy_direction = radiant.math.random_xz_unit_vector()
    end
 
    while num_angles > 0 do
       roll = rng:get_int(1, num_angles)
       angle = angles[roll]
-      destination = self:_calculate_location(entity, entity_location, enemy_direction, angle, distance)
+      destination = self:_calculate_destination(entity, entity_location, enemy_direction, angle, distance)
 
       if destination ~= nil then
-         if radiant.terrain.is_standable(entity, destination) then
-            if not self:_is_occupied(destination) then
-               return destination
-            end
+         -- don't shuffle to a destination that is more crowded than the current location
+         entities = self:_get_entities_in_cube(destination, radius)
+         destination_density = self:_count_other_entities(entities)
+
+         if destination_density <= current_density and not self:_destination_is_occupied(destination, entities) then
+            return destination
          end
+
+         -- simple version - don't shuffle to an occupied destination
+         -- if not self:_is_occupied(destination) then
+         --    return destination
+         -- end
       end
 
       table.remove(angles, roll)
@@ -105,14 +106,47 @@ function CombatIdleShuffle:_choose_destination(entity, enemy)
    return nil
 end
 
-function CombatIdleShuffle:_calculate_location(entity, start_location, enemy_direction, angle, distance)
-   local vector = rotate_about_y_axis(enemy_direction, angle)
+function CombatIdleShuffle:_calculate_destination(entity, start_location, direction, angle, distance)
+   local vector = radiant.math.rotate_about_y_axis(direction, angle)
    vector:scale(distance)
 
-   local new_location = start_location + vector
-   return radiant.terrain.get_standable_point(entity, new_location:to_int())
+   local proposed_destination = start_location + vector
+   local actual_destination = radiant.terrain.get_standable_point(entity, proposed_destination:to_int())
+   return actual_destination
 end
 
+function CombatIdleShuffle:_get_entities_in_cube(location, radius)
+   -- also include entities on 1 voxel elevation changes
+   local cube = Cube3(location + Point3(-radius, -1, -radius),
+                      location + Point3(radius+1, 1+1, radius+1))
+
+   local entities = radiant.terrain.get_entities_in_cube(cube)
+   return entities
+end
+
+function CombatIdleShuffle:_destination_is_occupied(destination, entities)
+   for _, entity in pairs(entities) do
+      local mob = entity:get_component('mob')
+      if mob and mob:get_world_grid_location() == destination then
+         return true
+      end
+   end
+   return false
+end
+
+function CombatIdleShuffle:_count_other_entities(entities)
+   local count = 0
+
+   for _, entity in pairs(entities) do
+      if entity ~= self._entity then
+         count = count + 1
+      end
+   end
+
+   return count
+end
+
+-- currently unused
 function CombatIdleShuffle:_is_occupied(location)
    local cube = Cube3(location, location + Point3(1, 1, 1))
    local entities = radiant.terrain.get_entities_in_cube(cube)
