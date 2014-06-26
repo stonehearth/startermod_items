@@ -12,11 +12,14 @@
       "title" : "A trader approaches your town.",
       "greeting" : "Hello __town_name__! I'm just passing through, but even I can see you have a skilled crafter in your ranks.", 
       "trade_details" : " If you make me __want_number__ __want_item__, I'll be back in __num_days__ days and might be able to get you __reward_number__ __reward_item__ in exchange. Sound good?", 
+      "crop_name" : "Bag of __reward_name__", 
       "waiting_title" : "The trader will be back in __hour_counter__ hours!",
       "waiting_text" : "The trader will be back in __hour_counter__ hours to give you __reward_number__ __reward_item__ if you have __want_number__ __want_item__ ready for him!",
       "return_title" : "The trader returns!", 
       "return_greetings_positive" : "I'm back! It looks like you've made me the __want_number__ __want_item__ I asked for. Are you still willing to trade them to me? I'll give you __reward_number__ __reward_item__ in exchange. Still sounds good?", 
       "return_greetings_negative" : "I'm back, but it doesn't look like you've got the __want_number__ __want_item__ I asked for. That's too bad! Maybe next time!", 
+      "new_crop_confirmation_title" : "New Crop Acquired!", 
+      "new_crop_confirmation_message" : "Congratulations! You can now plant __crop_item__ in your fields!", 
       "max_days_before_return" : 5, 
       "wants" : {
          "stonehearth:farmer:hoe" : {
@@ -61,6 +64,9 @@
          }
       },
       "rewards" : {
+         "stonehearth:cotton_crop" : {
+            "type" : "crop"
+         },
          "stonehearth:simple_wall_lantern_proxy" : {
             "type" : "object", 
             "min" : 2, 
@@ -74,7 +80,7 @@
          "stonehearth:comfy_bed_proxy" : {
             "type" : "object", 
             "min" : 1, 
-            "max" : 2
+            "max" : 3
          }
       }
    }

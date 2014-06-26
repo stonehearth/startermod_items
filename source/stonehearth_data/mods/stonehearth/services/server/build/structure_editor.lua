@@ -78,10 +78,12 @@ function StructureEditor:begin_editing(fabricator, blueprint, project, structure
    self._project = project
 
    local building = StructureEditor.get_building_for(blueprint)
-   local location = radiant.entities.get_world_grid_location(building)
-
-   radiant.entities.move_to(self._building_container, location)
-
+   --TODO: why is this sometimes nil?   
+   if building then 
+      local location = radiant.entities.get_world_grid_location(building)
+      radiant.entities.move_to(self._building_container, location)
+   end
+   
    self:_initialize_proxies(blueprint:get_uri(), structure_type)
 
    local location = blueprint:get_component('mob'):get_grid_location()
@@ -132,7 +134,7 @@ function StructureEditor:_initialize_proxies(blueprint_uri, structure_type)
 end
 
 function StructureEditor:_show_editing_objects(visible)
-   if self._fabricator then
+   if self._fabricator and self._fabricator:is_valid() then
       _radiant.client.get_render_entity(self._fabricator)
                         :set_visible_override(visible)
    end

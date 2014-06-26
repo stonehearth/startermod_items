@@ -3,7 +3,7 @@ local log = radiant.log.create_logger('combat_pace')
 local PopulationPaceKeeper = class()
 
 function PopulationPaceKeeper:initialize()
-   self._sv._pop_value = 101
+   self._sv._pop_value = 0
 end
 
 
@@ -42,7 +42,7 @@ end
 function PopulationPaceKeeper:decay(value)
    -- We immediately reset ourselves to ground after spawning something, but
    -- the cooldown ensures that we only spawn once a day.
-   return 0.0
+   return 0
 end
 
 function PopulationPaceKeeper:spawning_scenario(scenario)
