@@ -34,7 +34,7 @@ function CombatPaceKeeper:get_min()
 end
 
 function CombatPaceKeeper:get_cooldown_time()
-   return 1000
+   return 5000
 end
 
 function CombatPaceKeeper:decay(value)
