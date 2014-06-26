@@ -1,6 +1,5 @@
 local TerrainType = require 'services.server.world_generation.terrain_type'
 local TerrainInfo = require 'services.server.world_generation.terrain_info'
-local MathFns = require 'services.server.world_generation.math.math_fns'
 local log = radiant.log.create_logger('world_generation')
 
 local Terrain = _radiant.om.Terrain
@@ -39,9 +38,9 @@ function BoulderGenerator:_create_boulder(x, y, elevation)
    boulder_region:add_cube(boulder)
 
    -- take out a small chip from each corner of larger boulders
-   local avg_length = MathFns.round((2*half_width + 2*half_length) * 0.5)
+   local avg_length = radiant.math.round((2*half_width + 2*half_length) * 0.5)
    if avg_length >= 6 then
-      local chip_size = MathFns.round(avg_length * 0.15)
+      local chip_size = radiant.math.round(avg_length * 0.15)
       local chip
 
       for j=-1, 1, 2 do
@@ -74,9 +73,9 @@ function BoulderGenerator:_get_boulder_dimensions(terrain_type)
    aspect_ratio = rng:get_gaussian(1, 0.15)
 
    if rng:get_real(0, 1) <= 0.50 then
-      half_width = MathFns.round(half_width*aspect_ratio)
+      half_width = radiant.math.round(half_width*aspect_ratio)
    else
-      half_length = MathFns.round(half_length*aspect_ratio)
+      half_length = radiant.math.round(half_length*aspect_ratio)
    end
 
    return half_width, half_length, half_height
