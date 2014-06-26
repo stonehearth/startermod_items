@@ -26,6 +26,7 @@
             "stonehearth:actions:run_toward_entity",
             "stonehearth:actions:bump_entity",
             "stonehearth:actions:bump_against_entity",
+            "stonehearth:actions:bump_allies",
             "stonehearth:actions:material_to_filter_fn",            
             "stonehearth:actions:key_to_entity_data_filter_fn",
             "stonehearth:actions:goto_item_made_of",
