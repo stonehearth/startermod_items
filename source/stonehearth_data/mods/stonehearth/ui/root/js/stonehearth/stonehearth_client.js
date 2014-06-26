@@ -256,14 +256,12 @@ var StonehearthClient;
          });
       },
 
-      growWalls: function(building, column, wall) {
+      growWalls: function(column, wall) {
          var self = this;
-         if (building && building.__self) {
-            return this._callTool(function() {
-               radiant.call('radiant:play_sound', 'stonehearth:sounds:place_structure' );
-               return radiant.call_obj(self._build_editor, 'grow_walls', column, wall)
-            });
-         }
+         return this._callTool(function() {
+            radiant.call('radiant:play_sound', 'stonehearth:sounds:place_structure' );
+            return radiant.call_obj(self._build_editor, 'grow_walls', column, wall)
+         });
       },
 
       replaceStructure: function(old_structure, new_structure_uri) {

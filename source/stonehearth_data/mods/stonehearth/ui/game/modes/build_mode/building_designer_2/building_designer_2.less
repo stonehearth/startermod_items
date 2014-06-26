@@ -86,10 +86,16 @@
          display: inline-block;
          width: 60px;
          height: 45px;
-         padding: 0px;
-         background-position: center center;
+         padding: 4px;
+         background-position: center;
          background-repeat: no-repeat;
+         border: 2px solid;
+         border-color:  rgba(0,0,0,0);
       }
+
+      .toolButton.active {
+         border-color: #ffc000;
+      }      
    }
 
    .brushPalette {
@@ -123,31 +129,31 @@
    }
 
    #drawFloorTool {
-      background: url(images/add_floor_tool.png);
+      background-image: url(images/add_floor_tool.png);
    }
 
    #eraseFloorTool {
-      background: url(images/remove_floor_tool.png);
+      background-image: url(images/remove_floor_tool.png);
    }
 
    #drawWallTool {
-      background: url(images/add_wall_tool.png);
+      background-image: url(images/add_wall_tool.png);
    }
 
    #growWallsTool {
-      background: url(images/grow_walls_tool.png);
+      background-image: url(images/grow_walls_tool.png);
    }
 
    #growRoofTool {
-      background: url(images/grow_roof_tool.png);
+      background-image: url(images/grow_roof_tool.png);
    }
 
    #drawDoodadTool {
-      background: url(images/add_doodad_tool.png);
+      background-image: url(images/add_doodad_tool.png);
    }
 
    #removeDoodadTool {
-      background: url(images/remove_doodad_tool.png);
+      background-image: url(images/remove_doodad_tool.png);
    }
 
 }
