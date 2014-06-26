@@ -1,5 +1,3 @@
-local MathFns = require 'services.server.world_generation.math.math_fns'
-
 local Array2D = class()
 
 function Array2D:__init(width, height)
@@ -65,12 +63,12 @@ end
 -- return 0 width/height for non-intersecting block
 function Array2D:bound_block(x, y, width, height)
    -- x1, y1 is inclusve
-   local x1 = MathFns.bound(x, 1, self.width+1)
-   local y1 = MathFns.bound(y, 1, self.height+1)
+   local x1 = radiant.math.bound(x, 1, self.width+1)
+   local y1 = radiant.math.bound(y, 1, self.height+1)
 
    -- x2, y2 is exclusive
-   local x2 = MathFns.bound(x+width, 1, self.width+1)
-   local y2 = MathFns.bound(y+height, 1, self.height+1)
+   local x2 = radiant.math.bound(x+width, 1, self.width+1)
+   local y2 = radiant.math.bound(y+height, 1, self.height+1)
 
    local new_width = x2 - x1
    local new_height = y2 - y1

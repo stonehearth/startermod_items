@@ -1,5 +1,4 @@
 local Array2D = require 'services.server.world_generation.array_2D'
-local MathFns = require 'services.server.world_generation.math.math_fns'
 local FilterFns = require 'services.server.world_generation.filter.filter_fns'
 local TerrainType = require 'services.server.world_generation.terrain_type'
 local TerrainInfo = require 'services.server.world_generation.terrain_info'
@@ -319,8 +318,8 @@ function WorldGenerationService:_place_scenarios(habitat_map, elevation_map, off
 end
 
 function WorldGenerationService:_get_tile_seed(x, y)
-   local tile_hash = MathFns.point_hash(x, y)
-   return (self._seed + tile_hash) % MathFns.MAX_UINT32
+   local tile_hash = radiant.math.point_hash(x, y)
+   return (self._seed + tile_hash) % radiant.math.MAX_UINT32
 end
 
 function WorldGenerationService:_build_tile_order_list(map)

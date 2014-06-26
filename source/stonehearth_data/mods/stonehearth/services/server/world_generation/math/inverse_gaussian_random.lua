@@ -1,5 +1,3 @@
-local MathFns = require 'services.server.world_generation.math.math_fns'
-
 local InverseGaussianRandom = class()
 local log = radiant.log.create_logger('world_generation')
 
@@ -40,7 +38,7 @@ end
 function InverseGaussianRandom:get_int(min, max, std_dev)
    -- extend range by 0.5 on each end so that endpoint distribution is not clipped
    local rand_float = self:get_real(min-0.5, max+0.5, std_dev)
-   local rand_int = MathFns.round(rand_float)
+   local rand_int = radiant.math.round(rand_float)
 
    -- the extremely rare case where rand_float == max
    --    and +0.5 rounding truncates to the next higher integer
