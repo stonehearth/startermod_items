@@ -1,5 +1,5 @@
 local constants = require('constants').construction
-local StructureEditor = require 'services.server.build.structure_editor'
+local StructureEditor = require 'services.client.build_editor.structure_editor'
 local WallLoopEditor = class(StructureEditor)
 
 local Point3 = _radiant.csg.Point3

@@ -1,7 +1,6 @@
 local Cube3 = _radiant.csg.Cube3
 local Point3 = _radiant.csg.Point3
 local BuildCallHandler = class()
-local BuildEditor = require 'services.server.build.build_editor'
 
 -- these are quite annoying.  we can get rid of them by implementing and using
 -- LuaToProto <-> ProtoToLua in the RPC layer (see lib/typeinfo/dispatcher.h)
@@ -10,14 +9,6 @@ local function ToPoint3(pt)
 end
 local function ToCube3(box)
    return Cube3(ToPoint3(box.min), ToPoint3(box.max))
-end
-
-local build_editor
-function BuildCallHandler:get_build_editor(session, request)
-   if not build_editor then
-      build_editor = BuildEditor()
-   end
-   return { build_editor = build_editor:get_model() }
 end
 
 -- set whether or not the specified building should be worked on.
@@ -32,6 +23,16 @@ function BuildCallHandler:set_building_teardown(session, request, building, enab
 end
 
 function BuildCallHandler:get_service(session, request, name)
+   if stonehearth[name] then
+      -- we'd like to just send the store address rather than the actual
+      -- store, but there's no way for the client to receive a store
+      -- address and *not* automatically convert it back!
+      return stonehearth[name].__saved_variables
+   end
+   request:fail('no such service')
+end
+
+function BuildCallHandler:get_client_service(session, request, name)
    if stonehearth[name] then
       -- we'd like to just send the store address rather than the actual
       -- store, but there's no way for the client to receive a store

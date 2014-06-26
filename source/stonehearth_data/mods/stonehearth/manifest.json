@@ -19,14 +19,15 @@
       "cursors:camera_move_up" : "file(data/cursors/camera_move_up.cur)",
       "cursors:create_door" : "file(data/cursors/create_door.cur)",
       "cursors:create_window" : "file(data/cursors/create_window.cur)",
-      "cursors:create_roof" : "file(data/cursors/create_roof.cur)",
+      "cursors:grow_roof" : "file(data/cursors/create_roof.cur)",
       "cursors:harvest" : "file(data/cursors/harvest.cur)",
       "cursors:create_stockpile" : "file(data/cursors/create_stockpile.cur)",
       "cursors:create_walls" : "file(data/cursors/create_walls.cur)",
+      "cursors:grow_walls" : "file(data/cursors/grow_walls.cur)",
       "cursors:create_floor" : "file(data/cursors/create_floor.cur)",
       "cursors:default" : "file(data/cursors/default.cur)",
       "cursors:hover" : "file(data/cursors/hover.cur)",
-      "cursors:invalid_hover" : "file(data/cursors/invalid_hover.cur)",
+      "cursors:invalid_hover" : "file(data/cursors/invalid.cur)",
       "cursors:over_selection" : "file(data/cursors/over_selection.cur)",
 
       "mixins:mob" : "file(mixins/mob)",
@@ -830,6 +831,10 @@
       "get_service" : {
          "controller" : "file(call_handlers/build_call_handler.lua)",
          "endpoint" : "server"
+      },
+      "get_client_service" : {
+         "controller" : "file(call_handlers/build_call_handler.lua)",
+         "endpoint" : "client"
       },
       "set_stockpile_filter": {
          "controller" : "file(call_handlers/stockpile_call_handler.lua)",

@@ -1,6 +1,6 @@
 local Point3 = _radiant.csg.Point3
 
-local StructureEditor = require 'services.server.build.structure_editor'
+local StructureEditor = require 'services.client.build_editor.structure_editor'
 local PortalEditor = class(StructureEditor)
 
 local log = radiant.log.create_logger('build_editor')

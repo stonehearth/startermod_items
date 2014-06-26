@@ -201,7 +201,10 @@ function Fabricator:add_block(material_entity, location)
          pt.y = pt.y + 1
       end
       if not self._blueprint_dst:get_region():get():contains(pt) then
-         assert(false, 'could not compute block to build from projected adjacent')
+         -- we couldn't find a block in this column that is both missing from the
+         -- project and inside the blueprint.  we must already be done!!
+         self._log:info('skipping location %s -> %s.  no longer in blueprint!', location, pt + origin)
+         return
       end
    end
 

@@ -1,4 +1,5 @@
 local log = radiant.log.create_logger('selection_service')
+local EntitySelector = require 'services.client.selection.entity_selector'
 local XZRegionSelector = require 'services.client.selection.xz_region_selector'
 local LocationSelector = require 'services.client.selection.location_selector'
 local SelectionService = class()
@@ -43,6 +44,10 @@ end
 
 function SelectionService:select_location()
    return LocationSelector()
+end
+
+function SelectionService:select_entity_tool()
+   return EntitySelector()
 end
 
 function SelectionService:register_tool(tool, enabled)
