@@ -41,15 +41,23 @@ App.StonehearthCalendarView = App.View.extend({
 
       if (date.hour == this._constants.event_times.sunrise && !this._sunrise_sounds_played) {
          radiant.call('radiant:play_sound', 'stonehearth:sounds:rooster_call' );
+         radiant.call('radiant:play_sound', 'stonehearth:music:daybreak_stinger_01' );
          radiant.call('radiant:play_music', {
                'track': 'stonehearth:ambient:summer_day',
                'channel': 'ambient',
                'fade': 4000, 
                'volume' : 60 });
-            radiant.call('radiant:play_music', {
-               'track': 'stonehearth:music:world_start',
+         radiant.call('radiant:play_music', {
+               'track': {
+                  'type' : 'one_of',
+                  'items' : [
+                     'stonehearth:music:levelmusic_spring_day_01',
+                     'stonehearth:music:levelmusic_spring_day_02',
+                     'stonehearth:music:levelmusic_spring_day_03',
+                     ]
+                  }, 
                'channel': 'bgm',
-               'fade': 4000
+               'fade': 4000  
             });              
 
          this._sunrise_sounds_played = true;
@@ -65,6 +73,7 @@ App.StonehearthCalendarView = App.View.extend({
          this._sunset_start_sounds_played = true;         
       } else if (date.hour == this._constants.event_times.sunset && !this._sunset_sounds_played) {
          radiant.call('radiant:play_sound', 'stonehearth:sounds:owl_call' );
+         radiant.call('radiant:play_sound', 'stonehearth:music:nightfall_stinger_01' );
          radiant.call('radiant:play_music', {
                'track': 'stonehearth:ambient:summer_night',
                'channel': 'ambient',
@@ -72,9 +81,15 @@ App.StonehearthCalendarView = App.View.extend({
                'volume' : 20 });
 
          radiant.call('radiant:play_music', {
-               'track': 'stonehearth:music:level_music_night',
+               'track': {
+                  'type' : 'one_of',
+                  'items' : [
+                     'stonehearth:music:levelmusic_spring_night_01',
+                     'stonehearth:music:levelmusic_spring_night_02',
+                     ]
+                  }, 
                'channel': 'bgm',
-               'fade': 4000
+               'fade': 4000 
             });                 
 
          this._sunset_sounds_played = true;

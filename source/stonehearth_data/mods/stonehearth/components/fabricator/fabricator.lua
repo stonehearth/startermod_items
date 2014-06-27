@@ -5,8 +5,6 @@ local Region3 = _radiant.csg.Region3
 local Cube3 = _radiant.csg.Cube3
 local TraceCategories = _radiant.dm.TraceCategories
 
-local Fabricator = class()
-
 local emptyRegion = Region3()
 local COORD_MAX = 1000000 -- 1 million enough?
 local ADJACENT_POINTS = {
@@ -15,6 +13,8 @@ local ADJACENT_POINTS = {
    Point3( 1, 0, -1),
    Point3( 1, 0,  1),
 }
+
+local Fabricator = class()
 
 -- this is the component which manages the fabricator entity.
 function Fabricator:__init(name, entity, blueprint, project)
@@ -201,7 +201,10 @@ function Fabricator:add_block(material_entity, location)
          pt.y = pt.y + 1
       end
       if not self._blueprint_dst:get_region():get():contains(pt) then
-         assert(false, 'could not compute block to build from projected adjacent')
+         -- we couldn't find a block in this column that is both missing from the
+         -- project and inside the blueprint.  we must already be done!!
+         self._log:info('skipping location %s -> %s.  no longer in blueprint!', location, pt + origin)
+         return
       end
    end
 
@@ -428,6 +431,8 @@ function Fabricator:_update_dst_region()
    local clipper = Region3(Cube3(Point3(-COORD_MAX, bottom + 1, -COORD_MAX),
                                  Point3( COORD_MAX, COORD_MAX,   COORD_MAX)))
    local dst_region = rcs_rgn - clipper
+   dst_region:set_tag(0)
+   dst_region:optimize_by_merge()
 
    -- some projects want the worker to stand at the base of the project and
    -- push columns up.  for example, scaffolding always gets built from the
@@ -437,6 +442,10 @@ function Fabricator:_update_dst_region()
       dst_region:translate(Point3(0, -bottom, 0))
    end
 
+   --self._log:detail('update dst region')
+   --self:_log_region(rcs_rgn, 'region collision shape ->')
+   --self:_log_region(dst_region, 'resulted in destination ->')
+   
    -- copy into the destination region
    self._fabricator_dst:get_region():modify(function (cursor)
          cursor:copy_region(dst_region)
@@ -446,9 +455,11 @@ end
 function Fabricator:_update_dst_adjacent()
    local dst_rgn = self._fabricator_dst:get_region():get()
    local reserved_rgn = self._fabricator_dst:get_reserved():get()
+   local available = dst_rgn - reserved_rgn
    
    local allow_diagonals = self._blueprint_construction_data:get_allow_diagonal_adjacency()
-   local adjacent = dst_rgn:get_adjacent(allow_diagonals, 0, 0)
+   local adjacent = available:get_adjacent(allow_diagonals, 0, 0)
+
 
    -- if there's a normal, stencil off the adjacent blocks pointing in
    -- in the opposite direction.  this is to stop people from working on walls
@@ -478,6 +489,10 @@ function Fabricator:_update_dst_adjacent()
    -- points adjacent to the reserved, not the actual reserved region.
    -- le sigh. -- tony
    adjacent:subtract_region(reserved_rgn)
+   
+   -- self._log:detail('update dst adjacent')
+   -- self:_log_region(dst_rgn, 'destination region ->')
+   -- self:_log_region(adjacent, 'resulted in adjacent->')
    
    -- finally, copy into the adjacent region for our destination
    self._fabricator_dst:get_adjacent():modify(function(cursor)
@@ -600,6 +615,13 @@ function Fabricator:_trace_blueprint_and_project()
    table.insert(self._traces, ptrace)
    
    update_fabricator_region()
+end
+
+function Fabricator:_log_region(r, name)
+   self._log:detail('region %s (bounds:%s)', name, r:get_bounds())
+   for c in r:each_cube() do
+      self._log:detail('  %s', c)
+   end   
 end
 
 return Fabricator
