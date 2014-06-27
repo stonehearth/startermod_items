@@ -747,13 +747,35 @@ bool NavGrid::IsBlocked(csg::Point3 const& worldPoint)
  * should be in the world coodinate system.
  *
  */
-bool NavGrid::IsBlocked(csg::Region3 const& region) {
+bool NavGrid::IsBlocked(csg::Region3 const& region)
+{
    NG_LOG(7) << "::IsBlocked checking world region " << region.GetBounds();
-   bool blocked = ForEachTrackerInRegion(region, [](CollisionTrackerPtr tracker) {
-      return tracker->GetType() == TrackerType::COLLISION; // we found one that's blocked!  stop!!
+   for (csg::Cube3 const& cube : region) {
+      if (IsBlocked(cube)) {
+         return true;
+      }
+   }
+   return false;
+}
+
+
+/*
+ * -- NavGrid::IsBlocked
+ *
+ * Returns whether or not any point in the specified `cube` is blocked.  `cube`
+ * should be in the world coodinate system.
+ *
+ */
+bool NavGrid::IsBlocked(csg::Cube3 const& cube)
+{
+   csg::Cube3 stencil = csg::Cube3::one.Scaled(TILE_SIZE);
+   csg::Cube3 chunks = csg::GetChunkIndex(cube, TILE_SIZE);
+
+   bool stopped = csg::PartitionCubeIntoChunks(cube, TILE_SIZE, [this](csg::Point3 const& index, csg::Cube3 const& c) {
+      bool stop = GridTileResident(index).IsBlocked(c);
+      return stop;
    });
-   NG_LOG(7) << "::IsBlocked checking world region " << region.GetBounds() << "(result:" << std::boolalpha << blocked << ")";
-   return blocked;   // we're blocked if we had to stop the iteration
+   return stopped;      // if we stopped, we're blocked!
 }
 
 

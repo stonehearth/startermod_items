@@ -8,6 +8,7 @@ function OptimizedPathfinder:__init(entity, destination, success_cb, failure_cb)
    self._success_cb = success_cb
    self._failure_cb = failure_cb
    self._start_location = nil
+   self._use_direct_pathfinder = radiant.util.get_config('enable_direct_pathfinder', true)
 end
 
 function OptimizedPathfinder:set_start_location(start_location)
@@ -30,21 +31,23 @@ function OptimizedPathfinder:start()
       self._start_location = radiant.entities.get_world_grid_location(self._entity)
    end
 
-   if log:is_enabled(radiant.log.DEBUG) then
-      local destination_location = radiant.entities.get_world_grid_location(self._destination)
-      log:debug('finding path from CURRENT.location %s to %s (@ %s)',
-                tostring(self._start_location), tostring(self._destination), tostring(destination_location))
-   end
+   if self._use_direct_pathfinder then
+      if log:is_enabled(radiant.log.DEBUG) then
+         local destination_location = radiant.entities.get_world_grid_location(self._destination)
+         log:debug('finding path from CURRENT.location %s to %s (@ %s)',
+                   tostring(self._start_location), tostring(self._destination), tostring(destination_location))
+      end
 
-   local direct_path_finder = _radiant.sim.create_direct_path_finder(self._entity)
-                                 :set_start_location(self._start_location)
-                                 :set_destination_entity(self._destination)
+      local direct_path_finder = _radiant.sim.create_direct_path_finder(self._entity)
+                                    :set_start_location(self._start_location)
+                                    :set_destination_entity(self._destination)
 
-   local path = direct_path_finder:get_path()
+      local path = direct_path_finder:get_path()
 
-   if path then
-      self:_on_success('direct path found', path)
-      return
+      if path then
+         self:_on_success('direct path found', path)
+         return
+      end
    end
 
    log:detail('no direct path found.  starting a* pathfinder.')
