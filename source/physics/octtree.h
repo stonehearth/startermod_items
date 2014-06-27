@@ -46,6 +46,7 @@ class OctTree {
 
    private:
       void TraceEntity(om::EntityPtr entity);
+      void UnTraceEntity(dm::ObjectId id);
       void OnComponentAdded(dm::ObjectId id, om::ComponentPtr component);
     
    protected:

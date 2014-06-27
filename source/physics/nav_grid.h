@@ -71,6 +71,9 @@ class NavGrid {
       core::Guard NotifyTileDirty(std::function<void(csg::Point3 const&)> cb);
       csg::Region3 GetEntityWorldCollisionRegion(om::EntityPtr entity, csg::Point3 const& location);
 
+      // Maintence.  Not for public consumption
+      void RemoveEntity(dm::ObjectId id);
+
    private: // methods for internal helper classes
       friend CollisionTracker;
       friend RegionTracker;

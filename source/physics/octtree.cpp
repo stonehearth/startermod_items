@@ -82,6 +82,15 @@ void OctTree::TraceEntity(om::EntityPtr entity)
    }
 }
 
+void OctTree::UnTraceEntity(dm::ObjectId id)
+{
+   auto i = entities_.find(id);
+   if (i != entities_.end()) {
+      entities_.erase(i);
+   }
+   navgrid_.RemoveEntity(id);
+}
+
 void OctTree::OnComponentAdded(dm::ObjectId id, om::ComponentPtr component)
 {
    auto i = entities_.find(id);
@@ -97,7 +106,10 @@ void OctTree::OnComponentAdded(dm::ObjectId id, om::ComponentPtr component)
             om::EntityContainerPtr entity_container = std::static_pointer_cast<om::EntityContainer>(component);
             entry.children_trace = entity_container->TraceChildren("octtree", trace_category_)
                ->OnAdded([this](dm::ObjectId id, om::EntityRef e) {
-                     TraceEntity(e.lock());
+                  TraceEntity(e.lock());
+               })
+               ->OnRemoved([this](dm::ObjectId id) {
+                  UnTraceEntity(id);
                })
                ->PushObjectState();
             break;

@@ -1045,3 +1045,23 @@ csg::Region3 NavGrid::GetEntityWorldCollisionRegion(om::EntityPtr entity, csg::P
    return csg::Region3();
 }
 
+/*
+ * -- NavGrid::RemoveEntity
+ *
+ * Remove the entity from the NavGrid.  This should only be called by the OctTree
+ * to notify the NavGrid that the entity in question has been removed from the
+ * terrain and should no longer be tracked.
+ *
+ */
+void NavGrid::RemoveEntity(dm::ObjectId id)
+{
+   auto i = collision_trackers_.find(id);
+   if (i != collision_trackers_.end()) {
+      for (auto const& entry : i->second) {
+         ASSERT(stdutil::contains(collision_tracker_dtors_, entry.first));
+         collision_tracker_dtors_.erase(entry.first);
+      }
+      collision_trackers_.erase(i);
+   }
+}
+

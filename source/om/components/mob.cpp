@@ -41,8 +41,6 @@ void Mob::MoveToGridAligned(const csg::Point3& location)
 
 void Mob::SetRotation(csg::Quaternion const& orientation)
 {
-   // This seems to be the proper implemenation, but doesn't work at all.  Why?
-   // NOT_TESTED();
    transform_.Modify([&](csg::Transform& t) {
       t.orientation = orientation;
    });
