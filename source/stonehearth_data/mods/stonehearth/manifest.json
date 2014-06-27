@@ -475,6 +475,8 @@
       "sounds:ui:promotion_menu:scroll_open" : "file(data/sounds/ui/promotion_menu/ui_prom_scroll_open.wav)",
       "sounds:ui:promotion_menu:stamp" : "file(data/sounds/ui/promotion_menu/ui_prom_stamp.wav)",
       "sounds:ui:promotion_menu:sub_menu" : "file(data/sounds/ui/promotion_menu/ui_prom_submenu.wav)",
+      "sounds:ui:scenarios:caravan" : "file(data/sounds/ui/scenarios/sh_ui_caravan.wav)",
+      "sounds:ui:scenarios:alert" : "file(data/sounds/ui/scenarios/sh_ui_alert.wav)",
 
       "sounds:banner_plant" : "file(data/sounds/effects/sh_banner_plant.wav)",
       "sounds:banner_grab" : "file(data/sounds/effects/sh_banner_grab.wav)",
