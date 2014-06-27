@@ -3,7 +3,7 @@
    "scenario_types" : {
    "combat" : {
      "min_strength" : 0,
-     "max_strength" : 11
+     "max_strength" : 25
    }
    },
    "rarity" : "common",

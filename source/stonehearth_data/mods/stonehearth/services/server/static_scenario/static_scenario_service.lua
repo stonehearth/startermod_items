@@ -1,5 +1,4 @@
 local Array2D = require 'services.server.world_generation.array_2D'
-local MathFns = require 'services.server.world_generation.math.math_fns'
 local HabitatType = require 'services.server.world_generation.habitat_type'
 local ActivationType = require 'services.server.static_scenario.activation_type'
 local ScenarioSelector = require 'services.server.static_scenario.scenario_selector'
@@ -152,7 +151,7 @@ function StaticScenarioService:set_starting_location(location)
 
    -- self:reveal_region(region,
    --    function (scenario_properties)
-   --       --return true -- CHECKCHECK
+   --       --return true
    --       return scenario_properties.category ~= 'wildlife'
    --    end
    -- )
