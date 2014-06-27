@@ -62,9 +62,16 @@ App.RootView = Ember.ContainerView.extend({
       this._gameView.initGameServices();
 
       radiant.call('radiant:play_music', {
-            'track': 'stonehearth:music:world_start',
-            'channel' : 'bgm',
-            'fade': 1400
+            'track': {
+                  'type' : 'one_of',
+                  'items' : [
+                     'stonehearth:music:levelmusic_spring_day_01',
+                     'stonehearth:music:levelmusic_spring_day_02',
+                     'stonehearth:music:levelmusic_spring_day_03',
+                     ]
+                  }, 
+               'channel': 'bgm',
+               'fade': 1400  
          });         
          
       radiant.call('radiant:play_music', {
