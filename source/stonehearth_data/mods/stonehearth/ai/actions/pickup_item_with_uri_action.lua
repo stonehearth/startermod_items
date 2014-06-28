@@ -33,7 +33,7 @@ function PickupItemWithUri:start_thinking(ai, entity, args)
          end      
          return false
       end
-      ALL_FILTER_FNS[key] = filter_fn
+      ALL_FILTER_FNS[uri] = filter_fn
    end
 
    ai:set_think_output({

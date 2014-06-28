@@ -26,9 +26,9 @@ function MaterialToFilterFn:start_thinking(ai, entity, args)
       filter_fn = function(item)
          return radiant.entities.is_material(item, args.material)
       end
-      ALL_FILTER_FNS[key] = filter_fn
+      ALL_FILTER_FNS[material] = filter_fn
    end
-   
+
    ai:set_think_output({
          filter_fn = filter_fn,
       })
