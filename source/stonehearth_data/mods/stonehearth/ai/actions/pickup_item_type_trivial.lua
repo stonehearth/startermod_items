@@ -4,7 +4,6 @@ local PickupItemTypeTrivial = class()
 PickupItemTypeTrivial.name = 'pickup item passing filter'
 PickupItemTypeTrivial.does = 'stonehearth:pickup_item_type'
 PickupItemTypeTrivial.args = {
-   filter_key = 'string',
    filter_fn = 'function',
    description = 'string',
 }

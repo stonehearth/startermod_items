@@ -33,7 +33,9 @@ function radiant.exit(code)
    _host:exit(code)
 end
 
-radiant.lib = {}
+radiant.lib = {
+   Destructor = require 'modules.destructor'
+}
 radiant.log = require 'modules.log'
 radiant.util = require 'lib.util'
 radiant.check = require 'lib.check'

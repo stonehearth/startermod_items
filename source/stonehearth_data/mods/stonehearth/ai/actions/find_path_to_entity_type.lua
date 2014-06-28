@@ -5,7 +5,6 @@ local FindPathToEntityType = class()
 FindPathToEntityType.name = 'find path to entity type'
 FindPathToEntityType.does = 'stonehearth:find_path_to_entity_type'
 FindPathToEntityType.args = {
-   filter_key = 'string',              -- the key for the filter function
    filter_fn = 'function',             -- entity to find a path to
    description = 'string',             -- description of the initiating compound task (for debugging)
    range = {
@@ -35,7 +34,6 @@ function FindPathToEntityType:start_thinking(ai, entity, args)
    -- 'stonehearth:pathfinder' component.  this is a massive performance boost.
    self._pathfinder = entity:add_component('stonehearth:pathfinder')
                                  :find_path_to_item_type(ai.CURRENT.location, -- where to search from?
-                                                         args.filter_key,     -- the key for the filter function
                                                          args.filter_fn,      -- the actual filter function
                                                          solved)              -- our solved callback
 end

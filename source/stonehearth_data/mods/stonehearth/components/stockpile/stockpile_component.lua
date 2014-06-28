@@ -10,7 +10,7 @@ local Point3 = _radiant.csg.Point3
 local Region3 = _radiant.csg.Region3
 
 local all_stockpiles = {}
-local all_filters = {}
+local ALL_FILTER_FNS = {}
 
 local function _can_stock_entity(entity, filter)
    if not entity or not entity:is_valid() then
@@ -149,7 +149,7 @@ function StockpileComponent:get_filter()
    -- go in stockpiles rather than creating 1 bfs pathfinder per-stockpile
    -- per worker (!!)
 
-   local filter_fn = all_filters[self._sv._filter_key]
+   local filter_fn = ALL_FILTER_FNS[self._sv._filter_key]
 
    if not filter_fn then
       -- no function for the current filter has been created yet, so let's make
@@ -174,9 +174,9 @@ function StockpileComponent:get_filter()
       end
 
       -- remember the filter function for the future
-      all_filters[self._sv._filter_key] = filter_fn
+      ALL_FILTER_FNS[self._sv._filter_key] = filter_fn
    end
-   return self._sv._filter_key, filter_fn
+   return filter_fn
 end
 
 function StockpileComponent:set_filter(filter)

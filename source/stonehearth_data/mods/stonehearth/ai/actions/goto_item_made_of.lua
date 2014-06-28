@@ -16,7 +16,6 @@ local ai = stonehearth.ai
 return ai:create_compound_action(GotoItemMadeOf)
          :execute('stonehearth:material_to_filter_fn', { material = ai.ARGS.material })
          :execute('stonehearth:goto_entity_type', {
-            filter_key = ai.PREV.filter_key,
             filter_fn = ai.PREV.filter_fn,
             description = ai.ARGS.material,
          })

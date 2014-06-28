@@ -18,7 +18,6 @@ return ai:create_compound_action(PickupItemMadeOf)
             material = ai.ARGS.material
          })
          :execute('stonehearth:pickup_item_type', {
-            filter_key = ai.PREV.filter_key,
             filter_fn = ai.PREV.filter_fn,
             description = ai.ARGS.material,
          })

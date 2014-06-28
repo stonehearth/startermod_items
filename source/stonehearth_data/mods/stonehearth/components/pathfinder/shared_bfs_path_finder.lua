@@ -10,16 +10,15 @@ local SharedBfsPathFinder = class()
 --
 --    @param entity - the source entity
 --    @param start_location - the location where `entity` is starting from
---    @param desc - the description (used just for debugging)
 --    @param filter_fn - the filter to determine which items qualify as destinations
 --    @param on_destroy_cb - the callback to call when the last solved cb has been removed
 --
-function SharedBfsPathFinder:__init(entity, start_location, desc, filter_fn, on_destroy_cb)
+function SharedBfsPathFinder:__init(entity, start_location, filter_fn, on_destroy_cb)
    NEXT_ID = NEXT_ID + 1
    self._entity = entity
    self._start_location = start_location
    self._filter_fn = filter_fn
-   self._description = string.format("(%d) %s", NEXT_ID, desc)
+   self._description = string.format("id:%d", NEXT_ID)
    self._on_destroy_cb = on_destroy_cb
    self._log = radiant.log.create_logger('bfs_path_finder')
                           :set_prefix(self._description)
@@ -125,7 +124,7 @@ function SharedBfsPathFinder:_is_valid_destination(target)
       return false
    end
 
-   if not self._filter_fn(target, self._ai, self._entity) then
+   if not self._filter_fn(target, self._entity) then
       return false
    end
 

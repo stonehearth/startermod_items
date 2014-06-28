@@ -17,7 +17,6 @@ local ai = stonehearth.ai
 return ai:create_compound_action(RestockStockpile)
          :execute('stonehearth:wait_for_stockpile_space', { stockpile = ai.ARGS.stockpile })
          :execute('stonehearth:pickup_item_type', {
-            filter_key = ai.PREV.filter_key,
             filter_fn = ai.PREV.item_filter,
             description = 'items to restock',
          })
