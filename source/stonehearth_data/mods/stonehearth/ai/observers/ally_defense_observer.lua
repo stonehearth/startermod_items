@@ -14,7 +14,7 @@ function AllyDefenseObserver:_add_sensor_trace()
    self._sensor = sensor_list:get_sensor('sight')
    assert(self._sensor)
 
-   self._trace = self._sensor:trace_contents('trace_enemies')
+   self._trace = self._sensor:trace_contents('trace_allies')
       :on_added(function (target_id)
             self:_on_added_to_sensor(target_id)
          end)
