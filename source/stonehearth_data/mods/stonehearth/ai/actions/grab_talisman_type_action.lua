@@ -4,8 +4,8 @@ local GrabTalismanTypeAction = class()
 GrabTalismanTypeAction.name = 'grab talisman type'
 GrabTalismanTypeAction.does = 'stonehearth:grab_promotion_talisman_type'
 GrabTalismanTypeAction.args = {
-   filter_fn = 'function',
-   trigger_fn = 'function'
+   talisman_uri = 'string',
+   trigger_fn = 'function',
 }
 GrabTalismanTypeAction.version = 2
 GrabTalismanTypeAction.priority = 1
@@ -17,7 +17,9 @@ end
 local ai = stonehearth.ai
 return ai:create_compound_action(GrabTalismanTypeAction)
             :execute('stonehearth:drop_carrying_now')
-            :execute('stonehearth:pickup_item_type', { filter_fn = ai.ARGS.filter_fn, description='grab talisman type' })
+            :execute('stonehearth:pickup_item_with_uri', {
+                  item_uri = ai.ARGS.talisman_uri
+               })
             :execute('stonehearth:run_effect', {
                effect = 'promote',
                trigger_fn = ai.ARGS.trigger_fn,

@@ -17,6 +17,7 @@ return ai:create_compound_action(GotoItemWithEntityData)
          :execute('stonehearth:key_to_entity_data_filter_fn', { key = ai.ARGS.key })
          :execute('stonehearth:goto_entity_type', {
             description = ai.ARGS.key,
+            filter_key = ai.PREV.filter_key,
             filter_fn = ai.PREV.filter_fn,
          })
          :set_think_output({ entity = ai.PREV.destination_entity })

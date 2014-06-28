@@ -7,6 +7,7 @@ MaterialToFilterFn.args = {
    material = 'string',      -- the material tags we need
 }
 MaterialToFilterFn.think_output = {
+   filter_key = 'string',
    filter_fn = 'function',   -- a function which checks those tags
 }
 MaterialToFilterFn.version = 2
@@ -16,7 +17,10 @@ function MaterialToFilterFn:start_thinking(ai, entity, args)
    local filter_fn = function(item)  
       return radiant.entities.is_material(item, args.material)
    end
-   ai:set_think_output({ filter_fn = filter_fn })
+   ai:set_think_output({
+         filter_key = string.format('material: %s', args.material),
+         filter_fn = filter_fn,
+      })
 end
 
 return MaterialToFilterFn

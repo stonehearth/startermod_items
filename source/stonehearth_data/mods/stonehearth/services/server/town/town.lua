@@ -299,7 +299,7 @@ function Town:place_item_type_in_world(entity_uri, full_item_uri, location, rota
    end
 
    local task = self:create_task_for_group('stonehearth:task_group:placement', 'stonehearth:place_item_type', {
-         filter_fn = filter_fn,
+         item_uri = uri,
          location = location,
          rotation = rotation,
          finish_fn = remove_ghost_entity

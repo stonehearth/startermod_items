@@ -4,12 +4,9 @@ local PickupItemType = class()
 PickupItemType.name = 'pickup item type'
 PickupItemType.does = 'stonehearth:pickup_item_type'
 PickupItemType.args = {
+   filter_key = 'string',
    filter_fn = 'function',
    description = 'string',
-   reconsider_event_name = {
-      type = 'string',
-      default = '',
-   },
 }
 PickupItemType.think_output = {
    item = Entity,          -- what actually got picked up
@@ -23,9 +20,9 @@ return ai:create_compound_action(PickupItemType)
                return ai.CURRENT.carrying == nil
             end )
          :execute('stonehearth:goto_entity_type', {
+            filter_key = ai.ARGS.filter_key,
             filter_fn = ai.ARGS.filter_fn,
             description = ai.ARGS.description,
-            reconsider_event_name = ai.ARGS.reconsider_event_name,
          })
          :execute('stonehearth:reserve_entity', { entity = ai.PREV.destination_entity })
          :execute('stonehearth:pickup_item_adjacent', { item = ai.PREV.entity })

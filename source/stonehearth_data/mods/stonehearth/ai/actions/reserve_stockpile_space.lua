@@ -9,6 +9,7 @@ ReserveStockpileSpace.args = {
 }
 ReserveStockpileSpace.think_output = {
    stockpile = StockpileComponent,     -- the stockpile that needs stuff
+   filter_key = 'string',              -- the key to use for searchs for the item filter fn
    item_filter = 'function',           -- the filter function for stockpile items
 }
 ReserveStockpileSpace.version = 2
@@ -32,9 +33,11 @@ function ReserveStockpileSpace:_on_space_available(stockpile, space_available)
 
    if space_available and not self._ready then
       self._ready = true
+      local filter_key, filter_fn = self._stockpile:get_filter()
       self._ai:set_think_output({
          stockpile = self._stockpile,
-         item_filter = self._stockpile:get_item_filter_fn()
+         filter_key = filter_key,
+         item_filter = filter_fn
       })
    elseif not space_available and self._ready then
       self._ready = false

@@ -22,12 +22,7 @@ function Promote:run(town, args)
    
    -- talisman can be an entity, or a uri to an entity type
    if type(talisman) == 'string' then
-      -- talisman is a uri
-      local filter_fn = function(item)
-         return item:get_uri() == talisman
-      end
-
-      args.filter_fn = filter_fn
+      args.talisman_uri = talisman
 
       result = town:command_unit(person, 'stonehearth:grab_promotion_talisman_type', args)
                         :once()

@@ -10,7 +10,40 @@ local Point3 = _radiant.csg.Point3
 local Region3 = _radiant.csg.Region3
 
 local all_stockpiles = {}
+local all_filters = {}
 
+local function _can_stock_entity(entity, filter)
+   if not entity or not entity:is_valid() then
+      log:spam('%s is not a valid entity.  cannot be stocked.', tostring(entity))
+      return false
+   end
+
+   if not entity:get_component('item') then
+      log:spam('%s is not an item material.  cannot be stocked.', entity)
+      return false
+   end
+
+   local material = entity:get_component('stonehearth:material')
+   if not material then
+      log:spam('%s has no material.  cannot be stocked.', entity)
+      return false
+   end
+
+   -- no filter means anything
+   if not filter then
+      return true
+   end
+
+   -- must match at least one material in the filter, or this cannot be stocked
+   for i, mat in ipairs(filter) do
+      if not material:is(mat) then
+         return true
+      end
+   end
+
+   log:spam('%s failed filter.  cannot be stocked.', entity)
+   return false
+end
 
 --- Returns the stockpile which contains an item
 -- This implementation is super slow, iterating through every stockpile in
@@ -21,22 +54,24 @@ local all_stockpiles = {}
 
 function get_stockpile_containing_entity(entity)
    local location = radiant.entities.get_world_grid_location(entity)
-   for id, stockpile in pairs(all_stockpiles) do
-      log:spam('checking %s pos:%s inside a stockpile', entity, location)
-      if not stockpile then
-         log:spam('  nil stockpile!  nope!')
-      else
-         local name = tostring(stockpile:get_entity())
-         local bounds = stockpile:get_bounds();
-         if not bounds:contains(location) then
-            log:spam('  %s -> nope! wrong bounds, %s', name, bounds)
-         elseif not stockpile:can_stock_entity(entity) then
-            log:spam('  %s -> nope! cannot stock', name)
+   if location then
+      for id, stockpile in pairs(all_stockpiles) do
+         log:spam('checking %s pos:%s inside a stockpile', entity, location)
+         if not stockpile then
+            log:spam('  nil stockpile!  nope!')
          else
-            log:spam('  %s -> yup!', name)
-            return stockpile
-         end
-      end        
+            local name = tostring(stockpile:get_entity())
+            local bounds = stockpile:get_bounds();
+            if not bounds:contains(location) then
+               log:spam('  %s -> nope! wrong bounds, %s', name, bounds)
+            elseif not stockpile:can_stock_entity(entity) then
+               log:spam('  %s -> nope! cannot stock', name)
+            else
+               log:spam('  %s -> yup!', name)
+               return stockpile
+            end
+         end        
+      end
    end
 end
 
@@ -51,6 +86,7 @@ function StockpileComponent:initialize(entity, json)
       self._sv.stocked_items = {}
       self._sv.item_locations = {}
       self._sv.size  = Point2(0, 0)
+      self._sv._filter_key = 'stockpile nofilter'
       self._destination = entity:add_component('destination')
       self._destination:set_region(_radiant.sim.alloc_region())
                        :set_reserved(_radiant.sim.alloc_region())
@@ -103,8 +139,57 @@ function StockpileComponent:destroy()
    self:_destroy_tasks()
 end
 
+-- returns the filter key and function used to determine whether an item can
+-- be stocked in this stockpile.
+function StockpileComponent:get_filter()
+   -- all stockpiles with the same filter must use the same filter function
+   -- to determine whether or not an item can be stocked.  this function is
+   -- uniquely identified by the filter key.  this allows us to use a
+   -- shared 'stonehearth:pathfinder' bfs pathfinder to find items which should
+   -- go in stockpiles rather than creating 1 bfs pathfinder per-stockpile
+   -- per worker (!!)
+
+   local filter_fn = all_filters[self._sv._filter_key]
+
+   if not filter_fn then
+      -- no function for the current filter has been created yet, so let's make
+      -- one.  capture the current value of the filter in the closure so the
+      -- implementation won't change when someone changes our filter.
+      local captured_filter
+      if self._sv.filter then
+         captured_filter = {}
+         for _, material in ipairs(self._sv.filter) do
+            table.insert(captured_filter, material)
+         end
+      end
+      -- now create the filter function.  again, this function must work for
+      -- *ALL* stockpiles with the same filter key, which is why this is
+      -- implemented in terms of global functions, parameters to the filter
+      -- function, and captured local variables.
+      filter_fn = function(entity)
+         if get_stockpile_containing_entity(entity) then
+            return false
+         end
+         return _can_stock_entity(entity, captured_filter)
+      end
+
+      -- remember the filter function for the future
+      all_filters[self._sv._filter_key] = filter_fn
+   end
+   return self._sv._filter_key, filter_fn
+end
+
 function StockpileComponent:set_filter(filter)
    self._sv.filter = filter
+   if self._sv.filter then
+      self._sv._filter_key = 'stockpile filter:'
+      table.sort(self._sv.filter)
+      for _, material in ipairs(self._sv.filter) do
+         self._sv._filter_key = self._sv._filter_key .. '+' .. material
+      end
+   else
+      self._sv._filter_key = 'stockpile nofilter'
+   end
    self.__saved_variables:mark_changed()
 
    -- for items that no longer match the filter, 
@@ -184,6 +269,9 @@ end
 function StockpileComponent:get_bounds()
    local size = self:get_size()
    local origin = radiant.entities.get_world_grid_location(self._entity)
+   if not origin then
+      return nil
+   end
    local bounds = Cube3(origin, Point3(origin.x + size.x, origin.y + 1, origin.z + size.y))
    return bounds
 end
@@ -198,6 +286,9 @@ end
 function StockpileComponent:bounds_contain(item_entity)
    local location = radiant.entities.get_world_grid_location(item_entity)
    local world_bounds = self:get_bounds()
+   if not world_bounds then
+      return false
+   end
    return world_bounds:contains(location)
 end
 
@@ -324,7 +415,7 @@ function StockpileComponent:_remove_item_from_stock(id)
          item = entity
       })
       
-      radiant.events.trigger(stonehearth.ai, 'stonehearth:reconsider_stockpile_item', entity)
+      radiant.events.trigger(stonehearth.ai, 'stonehearth:pathfinder:reconsider_entity', entity)
    end
 end
 
@@ -395,41 +486,7 @@ end
 -- @return true if the entity can be stocked here, false otherwise.
 
 function StockpileComponent:can_stock_entity(entity)
-   if not entity or not entity:get_component('item') then
-      log:spam('nil or non-item entity %s cannot be stocked', entity)
-      return false
-   end
-   
-   if not self:_is_in_filter(entity) then
-      log:spam('%s not in filter and cannot be stocked', entity)
-      return false
-   end 
-   log:spam('%s ok to stock %s!', self._entity, entity)
-   return true   
-end
-
-function StockpileComponent:_is_in_filter(entity)
-   local material = entity:get_component('stonehearth:material')
-   if not material then
-      return false
-   end
-
-   if not self._sv.filter then 
-      return true
-   end
-   
-   local in_filter = false
-
-   if self._sv.filter then 
-      for i, filter in ipairs(self._sv.filter) do
-         if material:is(filter) then
-            in_filter = true
-            break
-         end
-      end
-   end
-
-   return in_filter
+   return _can_stock_entity(entity, self._sv.filter)
 end
 
 function StockpileComponent:_destroy_tasks()
@@ -453,31 +510,6 @@ function StockpileComponent:_create_worker_tasks()
                            :set_name('restock task')
                            :set_priority(stonehearth.constants.priorities.simple_labor.RESTOCK_STOCKPILE)
                            :start()
-end
-
-function StockpileComponent:get_item_filter_fn()
-   return function(entity)
-      log:spam('%s checking ok to pickup', entity)
-      if not self:can_stock_entity(entity) then
-         log:spam('%s not stockable.  not picking up', entity)
-         return false
-      end
-      local stockpile = get_stockpile_containing_entity(entity)
-      if stockpile then
-         if radiant.entities.is_hostile(self:get_entity(), stockpile:get_entity()) then
-            -- If a stockpile is holding the item, and we don't like those guys, then consider
-            -- the item only if this stockpile can be laden with teefed goods.
-            log:spam('%s contained in enemy stockpile.  picking up: %s', entity, tostring(self:should_steal()))
-            return self:should_steal()
-         end
-         if not stockpile:is_outbox() then
-            log:spam('%s contained in stockpile.  not picking up', entity)
-            return false
-         end
-      end
-      log:spam('ok to pickup %s (mob:%d)!', entity, entity:get_component('mob'):get_id())
-      return true
-   end
 end
 
 return StockpileComponent

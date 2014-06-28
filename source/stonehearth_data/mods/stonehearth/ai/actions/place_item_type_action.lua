@@ -6,7 +6,7 @@ PlaceItemType.name = 'place an item'
 PlaceItemType.does = 'stonehearth:place_item_type'
 PlaceItemType.status_text = 'placing item'
 PlaceItemType.args = {
-   filter_fn = 'function',
+   item_uri = 'string',
    location = Point3,
    rotation = 'number',
    finish_fn = {
@@ -19,7 +19,9 @@ PlaceItemType.priority = 1
 
 local ai = stonehearth.ai
 return ai:create_compound_action(PlaceItemType)
-         :execute('stonehearth:pickup_item_type', { filter_fn = ai.ARGS.filter_fn, description='place item type' })
+         :execute('stonehearth:pickup_item_with_uri', { 
+               uri = ai.ARGS.item_uri
+            })
          :execute('stonehearth:drop_carrying', { location = ai.ARGS.location  })
          :execute('stonehearth:replace_proxy_with_item', { proxy = ai.PREV.item, rotation = ai.ARGS.rotation  })
          :execute('stonehearth:call_function', { fn = ai.ARGS.finish_fn })

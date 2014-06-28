@@ -25,12 +25,17 @@ function PickupItemWithUri:start_thinking(ai, entity, args)
       
       return false
    end
-   ai:set_think_output({ filter_fn = filter, description = uri })
+   ai:set_think_output({
+         filter_key = 'uri: ' .. uri,
+         filter_fn = filter,
+         description = uri
+      })
 end
 
 local ai = stonehearth.ai
 return ai:create_compound_action(PickupItemWithUri)
          :execute('stonehearth:pickup_item_type', {
+            filter_fn = ai.PREV.filter_key,
             filter_fn = ai.PREV.filter_fn,
             description = ai.PREV.description,
          })

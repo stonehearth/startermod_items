@@ -35,6 +35,10 @@ local ai = stonehearth.ai
 return ai:create_compound_action(SleepInNewBed)
          :when(function (ai, entity) return not currently_has_bed(entity) end)
          :execute('stonehearth:drop_carrying_now')
-         :execute('stonehearth:goto_entity_type', { filter_fn = is_available_bed, description='untaken_available_bed' })
+         :execute('stonehearth:goto_entity_type', {
+            filter_key = 'is_available_bed',
+            filter_fn = is_available_bed,
+            description = 'untaken_available_bed'
+         })
          :execute('stonehearth:reserve_entity', { entity = ai.PREV.destination_entity })
          :execute('stonehearth:sleep_in_bed_adjacent', { bed = ai.PREV.entity })

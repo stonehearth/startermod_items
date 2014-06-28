@@ -187,14 +187,6 @@ function entities.get_world_location(entity)
    return mob:get_world_location()
 end
 
-function entities.get_world_grid_location(entity)
-   local mob = entity:get_component('mob')
-   if not mob then
-      error(tostring(entity) .. ' has no mob component')
-   end
-   return mob:get_world_grid_location()
-end
-
 --- Given an object, find a place near it
 --  Make sure it doesn't come in exactly on top of the previous object
 -- TODO: this could pick something down a cliff or across a long fence...
@@ -297,8 +289,9 @@ end
 
 function entities.get_world_grid_location(entity)
    radiant.check.is_entity(entity)
-   if entity and entity:add_component('mob') then
-      return entity:add_component('mob'):get_world_grid_location()
+   local mob = entity:get_component('mob')
+   if mob then
+      return mob:get_world_grid_location()
    end
 end
 
