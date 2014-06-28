@@ -27,6 +27,13 @@ App.StonehearthBulletinNotification = App.View.extend({
          App.bulletinBoard.showDialogView(bulletin);
          self.destroy();
       });
+
+      if (this.get('context.type') == 'alert') {
+         radiant.call('radiant:play_sound', 'stonehearth:sounds:ui:scenarios:alert' );
+      } else {
+         radiant.call('radiant:play_sound', 'stonehearth:sounds:ui:scenarios:caravan' );   
+      }
+      
    },
 
    willDestroyElement: function() {

@@ -475,6 +475,8 @@
       "sounds:ui:promotion_menu:scroll_open" : "file(data/sounds/ui/promotion_menu/ui_prom_scroll_open.wav)",
       "sounds:ui:promotion_menu:stamp" : "file(data/sounds/ui/promotion_menu/ui_prom_stamp.wav)",
       "sounds:ui:promotion_menu:sub_menu" : "file(data/sounds/ui/promotion_menu/ui_prom_submenu.wav)",
+      "sounds:ui:scenarios:caravan" : "file(data/sounds/ui/scenarios/sh_ui_caravan.wav)",
+      "sounds:ui:scenarios:alert" : "file(data/sounds/ui/scenarios/sh_ui_alert.wav)",
 
       "sounds:banner_plant" : "file(data/sounds/effects/sh_banner_plant.wav)",
       "sounds:banner_grab" : "file(data/sounds/effects/sh_banner_grab.wav)",
@@ -543,10 +545,17 @@
       "sounds:dodge_01" : "file(data/sounds/effects/sh_dodge_01.wav)",
       "sounds:dodge_02" : "file(data/sounds/effects/sh_dodge_02.wav)",
       "sounds:dodge_03" : "file(data/sounds/effects/sh_dodge_03.wav)",
+      "sounds:tombstone" : "file(data/sounds/effects/sh_tombstone.wav)",
                
       "music:title_screen"    : "file(data/music/startmenumusic.ogg)",
-      "music:world_start"     : "file(data/music/levelmusic.ogg)",
-      "music:level_music_night"     : "file(data/music/levelmusic_night.ogg)",
+      "music:levelmusic_spring_day_01"     : "file(data/music/levelmusic_spring_day_01.ogg)",
+      "music:levelmusic_spring_day_02"     : "file(data/music/levelmusic_spring_day_02.ogg)",
+      "music:levelmusic_spring_day_03"     : "file(data/music/levelmusic_spring_day_03.ogg)",
+      "music:levelmusic_spring_night_01"     : "file(data/music/levelmusic_spring_night_01.ogg)",
+      "music:levelmusic_spring_night_02"     : "file(data/music/levelmusic_spring_night_02.ogg)",
+      "music:daybreak_stinger_01"     : "file(data/music/daybreak_stinger_01.ogg)",
+      "music:daybreak_stinger_01"     : "file(data/music/daybreak_stinger_02.ogg)",
+      "music:nightfall_stinger_01"     : "file(data/music/nightfall_stinger_01.ogg)",
 
       "ambient:summer_day"   : "file(data/ambient/sh_amb_summer_day.ogg)",
       "ambient:summer_night" : "file(data/ambient/sh_amb_summer_night.ogg)",

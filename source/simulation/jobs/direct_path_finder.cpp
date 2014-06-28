@@ -118,7 +118,7 @@ csg::Point3 DirectPathFinder::GetPointOfInterest(csg::Point3 const& end) const
    if (useEntityForEndPoint_) {
       om::EntityPtr destinationEntity = destinationRef_.lock();
       if (destinationEntity) {
-         poi = MovementHelper().GetPointOfInterest(end, destinationEntity);
+         poi = MovementHelper(logLevel_).GetPointOfInterest(end, destinationEntity);
       }
    }
 
