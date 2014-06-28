@@ -11,7 +11,6 @@ App.StonehearthEntityInspectorIcon = App.View.extend({
          App.debugView.addView(App.StonehearthEntityInspectorView)   
       })
    }
-
 });
 
 App.StonehearthEntityInspectorView = App.View.extend({
@@ -50,13 +49,13 @@ App.StonehearthEntityInspectorView = App.View.extend({
       var frame = self._frames[self._inspect_frame_id];
       if (frame) {
         var offset = row.offset();
-        self.set('context.ai.inspect_frame', frame)
-        this.$().find("#entityInspectorFrameInfo").offset({
-          top: offset.top,
-          left: offset.left + row.width() + 50,
-        })
+         self.set('context.ai.inspect_frame', frame)
+         this.$().find("#entityInspectorFrameInfo").offset({
+            top: offset.top,
+            left: offset.left + row.width() + 50,
+         })
       } else {
-        self.set('context.ai.inspect_frame', null)
+         self.set('context.ai.inspect_frame', null)
       }
    },
 
@@ -64,16 +63,16 @@ App.StonehearthEntityInspectorView = App.View.extend({
       var self = this;
 
       this.$().on('click', '.row', function() {
-        /*
-        self._updateToolTip($(this), '<div class=title>' + 'title' + '</div>' + 
-                       '<div class=description>' + 'description' + '</div>');
-        */
-        var id = $(this).attr('row_id');
-        var cls  = $(this).attr('class');
-        var i = $(this).attr('id');
-        if (id) {
-          self._updateToolTip(id, $(this))
-        }
+         /*
+         self._updateToolTip($(this), '<div class=title>' + 'title' + '</div>' + 
+                        '<div class=description>' + 'description' + '</div>');
+         */
+         var id = $(this).attr('row_id');
+         var cls  = $(this).attr('class');
+         var i = $(this).attr('id');
+         if (id) {
+            self._updateToolTip(id, $(this))
+         }
       })
 
 
@@ -112,11 +111,21 @@ App.StonehearthEntityInspectorView = App.View.extend({
    },
 
    _processDebugInfo: function(node, indent) {
-      var self = this;
       indent = indent ? indent : 0;
+      var self = this;
+
       if (node instanceof Array || node instanceof Object) {
-         node.styleOverride = 'padding-left: ' + (indent * 4) + 'px';
-         $.each(node, function(k, v) { self._processDebugInfo(v, indent+1); });
+         node.styleOverride = 'padding-left: ' + (indent * 14) + 'px';
+
+         if (node.action) {
+            indent++;
+            if (node.state == 'stopped') {
+               node.action.execution_frames = null;
+            }
+         }
+
+         $.each(node, function(k, v) { self._processDebugInfo(v, indent); });
+
          if (node instanceof Object) {
             if (node.id) {
               self._frames[node.id] = node
@@ -134,23 +143,23 @@ App.StonehearthEntityInspectorView = App.View.extend({
       self.set('context.state', 'updating...');
       radiant.call_obj(self._aiComponent, 'get_debug_info')
         .done(function(debugInfo) {
-           self.set('context.state', 'updating..');
-           self._frames = {}
-           self._processDebugInfo(debugInfo)
-           if (self._frames[self._inspect_frame_id]) {
-            debugInfo.inspect_frame = self._frames[self._inspect_frame_id];
-           }
-           self.set('context.ai', debugInfo)
-           if (self._aiComponent) {
-              self.set('context.state', 'updating. ' + new Date().getTime());
-              self._fetchTimer = setTimeout(function() {
-                self.fetchAiComponent()
-              }, 500);
-              self.set('context.state', 'updating');
-           } else {
-              self.set('context.state', 'idle.');
-           }
-        });
+            self.set('context.state', 'updating..');
+            self._frames = {}
+            self._processDebugInfo(debugInfo)
+            if (self._frames[self._inspect_frame_id]) {
+               debugInfo.inspect_frame = self._frames[self._inspect_frame_id];
+            }
+            self.set('context.ai', debugInfo)
+            if (self._aiComponent) {
+               self.set('context.state', 'updating. ' + new Date().getTime());
+               self._fetchTimer = setTimeout(function() {
+                 self.fetchAiComponent()
+               }, 500);
+               self.set('context.state', 'updating');
+            } else {
+               self.set('context.state', 'idle.');
+            }
+         });
    },
 
    actions: {
@@ -158,6 +167,4 @@ App.StonehearthEntityInspectorView = App.View.extend({
         this.destroy();
       }
    }
-
 });
-
