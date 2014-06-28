@@ -18,7 +18,7 @@
 #entityInspector {
    .debug; 
    position: absolute;
-   top: 128px;
+   top: 10px;
    left: 0px;
    //font-size: 18px;
    //line-height: 13px;
@@ -28,9 +28,9 @@
    //font-family: "munro_smallregular";
 
    #content {
-      max-height: 800px;
+      max-height: 900px;
       overflow-y: scroll;
-      padding: 2px;
+      padding: 4px;
    }
 
    input {
@@ -60,35 +60,29 @@
       }
    }
 
-   .executionUnit {
-      padding-left: 16px;
+   .activity {
+      color: #808080;
    }
 
+   .thinking {
+      color: #FF9536;
+   }
+   .ready {
+      color: #D0D000;
+   }
+   .stopped {
+      color: #C02828;
+   }
+   .started {
+      color: #00B028;
+   }
    .running {
       color: #00FF30;
    }
-   .thinking {
-      color: #088074;
-   }
-   .ready {
-      color: #B2D11E;
-   }
-   .started {
-      color: #037D95;
-   }
-   .idle {
-      color: #C0C0C0;
-   }
-   .stopped {
-      color: #E54128;
-   }
    .finished {
-      color: #FF9536;
-   }
-   .delete {
-      color: #FF0000;
+      color: #008020;
    }
    .dead {
-      color: #FF0000;
+      color: #A0A0A0;
    }
 }
