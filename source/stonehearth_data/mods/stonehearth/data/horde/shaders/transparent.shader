@@ -37,6 +37,7 @@ context SELECTED_SCREENSPACE_OUTLINER
 }
 
 [[VS_TRANSLUCENT]]
+#include "shaders/utilityLib/vertCommon.glsl"
 
 uniform mat4 viewProjMat;
 uniform mat4 worldMat;
@@ -48,7 +49,7 @@ varying vec4 outColor;
 
 void main() {
    outColor = color;
-   gl_Position = viewProjMat * worldMat * vec4(vertPos, 1.0);
+   gl_Position = viewProjMat * calcWorldPos(vec4(vertPos, 1.0));
 }
 
 [[FS_TRANSLUCENT]]
