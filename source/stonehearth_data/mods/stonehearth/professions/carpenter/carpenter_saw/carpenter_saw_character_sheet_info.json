@@ -1,5 +1,5 @@
 
 {
-   "long_description" : "Upgrades a worker to a Carpenter.<p>The Carpenter crafts wooden furniture like tables and chairs, but also important tools that unlock new ciizen professions like the Weaver and Mason.",
+   "long_description" : "Promotes a citizen into a Carpenter.<p>The Carpenter crafts wooden furniture like tables and chairs, but also important tools that unlock new ciizen professions like the Weaver and Mason.",
    "flavor_text" : ""
 }

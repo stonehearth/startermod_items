@@ -3,7 +3,7 @@
 
    "work_units"  : 3,
    "recipe_name" : "Wooden Buckler",
-   "description" : "Toughen up your foot soldiers...when you can actually make them in a future alpha!",
+   "description" : "Toughen up your foot soldiers... when you can actually equip them in a future alpha!",
    "flavor"      : "",
    "portrait"    : "/stonehearth/entities/armor/wooden_buckler/wooden_buckler.png",
    "category"    : "armor",
