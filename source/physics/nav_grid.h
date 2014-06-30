@@ -43,6 +43,7 @@ class NavGrid {
       // unreachable (e.g. inside the ground, or a wall, etc.)
       bool IsBlocked(om::EntityPtr entity, csg::Point3 const& pt);
       bool IsBlocked(csg::Point3 const& worldPoint);
+      bool IsBlocked(csg::Cube3 const& worldCube);
       bool IsBlocked(csg::Region3 const& worldRegion);
 
       // Support Queries.  Supported means all the blocks directly under the bottom
@@ -70,6 +71,9 @@ class NavGrid {
       void ShowDebugShapes(csg::Point3 const& pt, protocol::shapelist* msg);
       core::Guard NotifyTileDirty(std::function<void(csg::Point3 const&)> cb);
       csg::Region3 GetEntityWorldCollisionRegion(om::EntityPtr entity, csg::Point3 const& location);
+
+      // Maintence.  Not for public consumption
+      void RemoveEntity(dm::ObjectId id);
 
    private: // methods for internal helper classes
       friend CollisionTracker;

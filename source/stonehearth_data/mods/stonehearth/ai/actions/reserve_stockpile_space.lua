@@ -32,9 +32,10 @@ function ReserveStockpileSpace:_on_space_available(stockpile, space_available)
 
    if space_available and not self._ready then
       self._ready = true
+      local filter_fn = self._stockpile:get_filter()
       self._ai:set_think_output({
          stockpile = self._stockpile,
-         item_filter = self._stockpile:get_item_filter_fn()
+         item_filter = filter_fn
       })
    elseif not space_available and self._ready then
       self._ready = false

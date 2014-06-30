@@ -82,6 +82,13 @@ void OctTree::TraceEntity(om::EntityPtr entity)
    }
 }
 
+void OctTree::UnTraceEntity(dm::ObjectId id)
+{
+   entities_.erase(id);
+   sensor_trackers_.erase(id);
+   navgrid_.RemoveEntity(id);
+}
+
 void OctTree::OnComponentAdded(dm::ObjectId id, om::ComponentPtr component)
 {
    auto i = entities_.find(id);
@@ -90,14 +97,18 @@ void OctTree::OnComponentAdded(dm::ObjectId id, om::ComponentPtr component)
    }
    EntityMapEntry& entry = i->second;
    om::EntityPtr entity = entry.entity.lock();
-   
    if (entity) {
+      dm::ObjectId entityId = entity->GetObjectId();
+
       switch (component->GetObjectType()) {
          case om::EntityContainerObjectType: {
             om::EntityContainerPtr entity_container = std::static_pointer_cast<om::EntityContainer>(component);
             entry.children_trace = entity_container->TraceChildren("octtree", trace_category_)
                ->OnAdded([this](dm::ObjectId id, om::EntityRef e) {
-                     TraceEntity(e.lock());
+                  TraceEntity(e.lock());
+               })
+               ->OnRemoved([this](dm::ObjectId id) {
+                  UnTraceEntity(id);
                })
                ->PushObjectState();
             break;
@@ -107,19 +118,17 @@ void OctTree::OnComponentAdded(dm::ObjectId id, om::ComponentPtr component)
                om::EntityRef e = entity;
                om::SensorListPtr sensor_list = std::static_pointer_cast<om::SensorList>(component);
                entry.sensor_list_trace = sensor_list->TraceSensors("oct tree", trace_category_)
-                  ->OnAdded([this, e](std::string const& name, om::SensorPtr sensor) {
-                     dm::ObjectId id = sensor->GetObjectId();
-
+                  ->OnAdded([this, e, entityId](std::string const& name, om::SensorPtr sensor) {
                      dm::TracePtr dtorTrace = sensor->TraceObjectChanges("octtree dtor", trace_category_);
-                     dtorTrace->OnDestroyed_([this, id] {
-                        sensor_trackers_.erase(id);
+                     dtorTrace->OnDestroyed_([this, entityId] {
+                        sensor_trackers_.erase(entityId);
                      });
 
-                     ASSERT(!stdutil::contains(sensor_trackers_, id));
+                     ASSERT(!stdutil::contains(sensor_trackers_, entityId));
                      SensorTrackerPtr sensorTracker = std::make_shared<SensorTracker>(navgrid_, e.lock(), sensor);
                      sensorTracker->Initialize();
 
-                     sensor_trackers_[id] = std::make_pair(sensorTracker, dtorTrace);
+                     sensor_trackers_[entityId] = std::make_pair(sensorTracker, dtorTrace);
                   })
                   ->OnRemoved([this](std::string const& name) {
                      NOT_YET_IMPLEMENTED();

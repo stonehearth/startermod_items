@@ -6,10 +6,6 @@ PickupItemTypeTrivial.does = 'stonehearth:pickup_item_type'
 PickupItemTypeTrivial.args = {
    filter_fn = 'function',
    description = 'string',
-   reconsider_event_name = {
-      type = 'string',
-      default = '',
-   },
 }
 PickupItemTypeTrivial.think_output = {
    item = Entity

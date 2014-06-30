@@ -31,6 +31,18 @@ local STOPPING = 'stopping'
 local STOPPED = 'stopped'
 local DEAD = 'dead'
 
+local debug_info_state_order = {}
+debug_info_state_order[RUNNING] = 0
+debug_info_state_order[STARTING] = 1
+debug_info_state_order[STARTED] = 1
+debug_info_state_order[READY] = 2
+debug_info_state_order[THINKING] = 3
+debug_info_state_order[STARTING_THINKING] = 3
+debug_info_state_order[FINISHED] = 9
+debug_info_state_order[STOPPING] = 9
+debug_info_state_order[STOPPED] = 9
+debug_info_state_order[DEAD] = 9
+
 local INFINITE = 1000000000
 local ABORT_FRAME = ':aborted_frame:'
 local UNWIND_NEXT_FRAME = ':unwind_next_frame:'
@@ -1201,9 +1213,21 @@ function ExecutionFrame:get_debug_info()
          n = 0,
       }
    }
+
    for _, unit in pairs(self._execution_units) do
       table.insert(info.execution_units, unit:get_debug_info())
    end
+
+   table.sort(info.execution_units,
+      function (a, b)
+         local a_rank = debug_info_state_order[a.state]
+         local b_rank = debug_info_state_order[b.state]
+         if a_rank ~= b_rank then
+            return a_rank < b_rank
+         end
+         return a.action.name < b.action.name
+      end
+   )
    return info
 end
 

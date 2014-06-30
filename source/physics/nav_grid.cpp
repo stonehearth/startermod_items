@@ -747,13 +747,35 @@ bool NavGrid::IsBlocked(csg::Point3 const& worldPoint)
  * should be in the world coodinate system.
  *
  */
-bool NavGrid::IsBlocked(csg::Region3 const& region) {
+bool NavGrid::IsBlocked(csg::Region3 const& region)
+{
    NG_LOG(7) << "::IsBlocked checking world region " << region.GetBounds();
-   bool blocked = ForEachTrackerInRegion(region, [](CollisionTrackerPtr tracker) {
-      return tracker->GetType() == TrackerType::COLLISION; // we found one that's blocked!  stop!!
+   for (csg::Cube3 const& cube : region) {
+      if (IsBlocked(cube)) {
+         return true;
+      }
+   }
+   return false;
+}
+
+
+/*
+ * -- NavGrid::IsBlocked
+ *
+ * Returns whether or not any point in the specified `cube` is blocked.  `cube`
+ * should be in the world coodinate system.
+ *
+ */
+bool NavGrid::IsBlocked(csg::Cube3 const& cube)
+{
+   csg::Cube3 stencil = csg::Cube3::one.Scaled(TILE_SIZE);
+   csg::Cube3 chunks = csg::GetChunkIndex(cube, TILE_SIZE);
+
+   bool stopped = csg::PartitionCubeIntoChunks(cube, TILE_SIZE, [this](csg::Point3 const& index, csg::Cube3 const& c) {
+      bool stop = GridTileResident(index).IsBlocked(c);
+      return stop;
    });
-   NG_LOG(7) << "::IsBlocked checking world region " << region.GetBounds() << "(result:" << std::boolalpha << blocked << ")";
-   return blocked;   // we're blocked if we had to stop the iteration
+   return stopped;      // if we stopped, we're blocked!
 }
 
 
@@ -1043,5 +1065,25 @@ csg::Region3 NavGrid::GetEntityWorldCollisionRegion(om::EntityPtr entity, csg::P
       }
    }
    return csg::Region3();
+}
+
+/*
+ * -- NavGrid::RemoveEntity
+ *
+ * Remove the entity from the NavGrid.  This should only be called by the OctTree
+ * to notify the NavGrid that the entity in question has been removed from the
+ * terrain and should no longer be tracked.
+ *
+ */
+void NavGrid::RemoveEntity(dm::ObjectId id)
+{
+   auto i = collision_trackers_.find(id);
+   if (i != collision_trackers_.end()) {
+      for (auto const& entry : i->second) {
+         ASSERT(stdutil::contains(collision_tracker_dtors_, entry.first));
+         collision_tracker_dtors_.erase(entry.first);
+      }
+      collision_trackers_.erase(i);
+   }
 }
 

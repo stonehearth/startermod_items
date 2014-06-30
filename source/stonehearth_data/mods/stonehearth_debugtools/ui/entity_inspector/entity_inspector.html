@@ -5,12 +5,15 @@
 <script type="text/x-handlebars" data-template-name="entityInspectorFrameInfo">
    <div id="entityInspectorFrameInfo">
       {{#if action}}
-         action name: {{action.name}}<br>
+         activity: {{action.does}}<br>
+         action: {{action.name}}<br>
+         args: {{action.args}}<br>
+         state: {{parsed_state}}
       {{/if}}
       {{#if activity}}
          activity name: {{activity.name}}<br>
+         {{args}}
       {{/if}}
-      {{args}}
    </div>
 </script>
 
@@ -20,20 +23,34 @@
    {{/if}}
    <div id="entityInspector">
       <div class="header">
-         state: {{state}} <!--<div class='close'><a href='#'>close window</a></div>-->
+         AI Inspector
+         <!--<div class='close'><a href='#'>close window</a></div>-->
       </div>
       <div id="content">
          {{#if ai.execution_frame}}
-         {{ render executionFrame ai.execution_frame }}
+            {{ render executionFrame ai.execution_frame }}
          {{/if}}
+      </div>
+      <div id="legend">
+         Key:
+         <span class="thinking">thinking</span>,
+         <span class="ready">ready</span>,
+         <span class="stopped-waiting">stopped (waiting)</span>,
+         <span class="stopped-not_selected">stopped (not selected)</span>,
+         <span class="started">started</span>,
+         <span class="running">running</span>,
+         <span class="finished">finished</span>,
+         <span class="dead">dead</span>
       </div>
    </div> 
 </script>
 
 <script type="text/x-handlebars" data-template-name="executionFrame">
+<!--
    <div class="row" {{bind-attr row_id="id"}}>
-      <span id='state' {{bind-attr class="state"}} {{bind-attr style="styleOverride"}}> {{{state}}} </span>: {{{activity.name}}}
+      <span id='state' {{bind-attr class="parsed_state"}} {{bind-attr style="styleOverride"}}> {{{activity.name}}} </span>
    </div> 
+-->
    {{#each unit in execution_units}}
       {{ render executionUnit unit}}
    {{/each}}
@@ -41,7 +58,8 @@
 
 <script type="text/x-handlebars" data-template-name="executionUnit">
    <div class="row" {{bind-attr row_id="id"}}>
-      <span id='state' {{bind-attr class="state"}} {{bind-attr style="styleOverride"}}> {{{state}}} </span>: {{{action.name}}}
+      <span id="state" {{bind-attr class="parsed_state"}} {{bind-attr style="styleOverride"}}> {{{action.name}}} </span>
+      <span id="activity" class="activity"> - {{{action.does}}} </span>
    </div> 
    {{#each frame in action.execution_frames}}
       {{ render executionFrame frame}}

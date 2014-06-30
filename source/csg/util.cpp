@@ -108,12 +108,13 @@ bool csg::PartitionCubeIntoChunks(Cube3 const& cube, int width, std::function<bo
 
       // sometimes this generates cubes of 0 dimensions. not sure why yet...
       if (c.GetArea() > 0) {
-         if (!cb(cursor, c)) {
-            return false;
+         bool stop = cb(cursor, c);
+         if (stop) {
+            return true;
          }
       }
    }
-   return true;
+   return false;
 }
 
 

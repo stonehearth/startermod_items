@@ -13,7 +13,7 @@
       "stonehearth:construction_data" : {
          "project_adjacent_to_base" : true,
          "allow_diagonal_adjacency" : true,
-         "max_workers" : 1,
+         "max_workers" : 2,
          "use_custom_renderer" : true,
          "material": "wood resource"
       }

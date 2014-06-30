@@ -126,10 +126,10 @@ var StonehearthClient;
          return this._callTool(function() {
             return radiant.call('stonehearth:box_harvest_resources')
                .done(function(response) {
+                  radiant.call('radiant:play_sound', 'stonehearth:sounds:ui:start_menu:popup' );
                   self.boxHarvestResources({ hideTip : true });
                })
                .fail(function(response) {
-                  radiant.call('radiant:play_sound', 'stonehearth:sounds:ui:start_menu:popup' );
                   $(top).trigger('radiant_hide_tip');
                });
          });

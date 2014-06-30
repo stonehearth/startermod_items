@@ -60,7 +60,7 @@ function FollowPathAction:run(ai, entity, args)
 
    -- find a better way to do this rather than hardcoding it
    if self._posture == 'stonehearth:patrol' then
-      speed = speed * 0.6
+      speed = speed * 0.3
    end
 
    -- make sure the event doesn't clean up after itself when the effect finishes.  otherwise,
