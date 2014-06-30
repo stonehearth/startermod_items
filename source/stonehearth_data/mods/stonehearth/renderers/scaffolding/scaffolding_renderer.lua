@@ -106,7 +106,9 @@ function ScaffoldingRenderer:_update_shape(mode)
             hide_region = solid_region
          end
       else
-         show_region = self._draw_region:get()
+         if self._draw_region then
+            show_region = self._draw_region:get()
+         end
       end
    else
       extra:copy_region(self._segment_region)
