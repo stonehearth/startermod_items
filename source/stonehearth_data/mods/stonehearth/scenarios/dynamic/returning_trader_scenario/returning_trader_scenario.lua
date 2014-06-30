@@ -232,7 +232,7 @@ function ReturningTrader:_on_accepted()
 
    --make a timer to express how long to wait before the caravan returns
    self._sv._wait_time = self._sv._trade_data.num_days
-   self:_create_timer(self._sv._wait_time * 3 .. 'h')
+   self:_create_timer(self._sv._wait_time .. 'd')
 
    --Put up a non-dismissable notification to keep track of the time remaining
    --Send the notice to the bulletin service
