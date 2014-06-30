@@ -40,7 +40,6 @@ context SELECTED_SCREENSPACE_OUTLINER
 #include "shaders/utilityLib/vertCommon.glsl"
 
 uniform mat4 viewProjMat;
-uniform mat4 worldMat;
 
 attribute vec3 vertPos;
 attribute vec4 color;
