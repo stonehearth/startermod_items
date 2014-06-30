@@ -105,6 +105,10 @@ function ScaffoldingRenderer:_update_shape(mode)
          else
             hide_region = solid_region
          end
+      else
+         if self._draw_region then
+            show_region = self._draw_region:get()
+         end
       end
    else
       extra:copy_region(self._segment_region)
@@ -141,31 +145,29 @@ function ScaffoldingRenderer:_update_shape(mode)
       end
    end
 
-   if mode == 'rpg' then
-      -- show all the segments inside the draw region
-      if show_region then
-         for cube in show_region:each_cube() do
-            for pt in cube:each_point() do
-               self:_get_segment_node(pt)
-                        :set_visible(true)
-            end
+   -- show all the segments inside the draw region
+   if show_region then
+      for cube in show_region:each_cube() do
+         for pt in cube:each_point() do
+            self:_get_segment_node(pt)
+                     :set_visible(true)
          end
       end
-      -- hide all the segments outside the draw region
-      if hide_region then
-         for cube in hide_region:each_cube() do
-            for pt in cube:each_point() do
-               self:_get_segment_node(pt)
-                        :set_visible(false)
-            end
+   end
+   -- hide all the segments outside the draw region
+   if hide_region then
+      for cube in hide_region:each_cube() do
+         for pt in cube:each_point() do
+            self:_get_segment_node(pt)
+                     :set_visible(false)
          end
       end
-      -- show or hide the tops, too.
-      for x, t in pairs(self._tops) do
-         for z, top in pairs(t) do
-            local pt = Point3(x, top.top_y, z)
-            top.node:set_visible(show_region and show_region:contains(pt))
-         end
+   end
+   -- show or hide the tops, too.
+   for x, t in pairs(self._tops) do
+      for z, top in pairs(t) do
+         local pt = Point3(x, top.top_y, z)
+         top.node:set_visible(show_region and show_region:contains(pt))
       end
    end
 end

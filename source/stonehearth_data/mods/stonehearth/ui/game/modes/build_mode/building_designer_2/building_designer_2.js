@@ -311,7 +311,7 @@ App.StonehearthBuildingDesignerTools = App.View.extend({
 
    _updateControls: function() {
 
-      if(!this.$) {
+      if(!self.$) {
          return;
       }
 
@@ -327,7 +327,7 @@ App.StonehearthBuildingDesignerTools = App.View.extend({
       if (blueprint_entity) {
          var type = this.get('blueprint.stonehearth:construction_data.type');
 
-         var container = this.$('#editMaterial');
+         var container = self.$('#editMaterial');
          var materialEl;
 
 
