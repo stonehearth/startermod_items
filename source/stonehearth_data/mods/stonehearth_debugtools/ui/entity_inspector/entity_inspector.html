@@ -8,7 +8,7 @@
          activity: {{action.does}}<br>
          action: {{action.name}}<br>
          args: {{action.args}}<br>
-         state: {{state}}
+         state: {{parsed_state}}
       {{/if}}
       {{#if activity}}
          activity name: {{activity.name}}<br>
@@ -22,15 +22,8 @@
    {{ render entityInspectorFrameInfo ai.inspect_frame }}
    {{/if}}
    <div id="entityInspector">
-      <div>
-         key:
-         <span class="thinking">thinking</span>,
-         <span class="ready">ready</span>,
-         <span class="stopped">stopped</span>,
-         <span class="started">started</span>,
-         <span class="running">running</span>,
-         <span class="finished">finished</span>,
-         <span class="dead">dead</span>
+      <div class="header">
+         AI Inspector
          <!--<div class='close'><a href='#'>close window</a></div>-->
       </div>
       <div id="content">
@@ -38,13 +31,24 @@
             {{ render executionFrame ai.execution_frame }}
          {{/if}}
       </div>
+      <div id="legend">
+         Key:
+         <span class="thinking">thinking</span>,
+         <span class="ready">ready</span>,
+         <span class="stopped-waiting">stopped (waiting)</span>,
+         <span class="stopped-not_selected">stopped (not selected)</span>,
+         <span class="started">started</span>,
+         <span class="running">running</span>,
+         <span class="finished">finished</span>,
+         <span class="dead">dead</span>
+      </div>
    </div> 
 </script>
 
 <script type="text/x-handlebars" data-template-name="executionFrame">
 <!--
    <div class="row" {{bind-attr row_id="id"}}>
-      <span id='state' {{bind-attr class="state"}} {{bind-attr style="styleOverride"}}> {{{activity.name}}} </span>
+      <span id='state' {{bind-attr class="parsed_state"}} {{bind-attr style="styleOverride"}}> {{{activity.name}}} </span>
    </div> 
 -->
    {{#each unit in execution_units}}
@@ -54,7 +58,7 @@
 
 <script type="text/x-handlebars" data-template-name="executionUnit">
    <div class="row" {{bind-attr row_id="id"}}>
-      <span id="state" {{bind-attr class="state"}} {{bind-attr style="styleOverride"}}> {{{action.name}}} </span>
+      <span id="state" {{bind-attr class="parsed_state"}} {{bind-attr style="styleOverride"}}> {{{action.name}}} </span>
       <span id="activity" class="activity"> - {{{action.does}}} </span>
    </div> 
    {{#each frame in action.execution_frames}}

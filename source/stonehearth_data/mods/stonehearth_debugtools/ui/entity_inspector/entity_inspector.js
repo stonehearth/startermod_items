@@ -8,7 +8,7 @@ App.StonehearthEntityInspectorIcon = App.View.extend({
 
    didInsertElement: function() {
       this.$().click(function() {
-         App.debugView.addView(App.StonehearthEntityInspectorView)   
+         App.debugView.addView(App.StonehearthEntityInspectorView);
       })
    }
 });
@@ -45,17 +45,17 @@ App.StonehearthEntityInspectorView = App.View.extend({
 
    _updateToolTip: function(id, row) {
       var self = this;
-      self._inspect_frame_id = id
+      self._inspect_frame_id = id;
       var frame = self._frames[self._inspect_frame_id];
       if (frame) {
-        var offset = row.offset();
-         self.set('context.ai.inspect_frame', frame)
+         var offset = row.offset();
+         self.set('context.ai.inspect_frame', frame);
          this.$().find("#entityInspectorFrameInfo").offset({
             top: offset.top,
             left: offset.left + row.width() + 50,
          })
       } else {
-         self.set('context.ai.inspect_frame', null)
+         self.set('context.ai.inspect_frame', null);
       }
    },
 
@@ -69,12 +69,10 @@ App.StonehearthEntityInspectorView = App.View.extend({
          */
          var id = $(this).attr('row_id');
          var cls  = $(this).attr('class');
-         var i = $(this).attr('id');
          if (id) {
-            self._updateToolTip(id, $(this))
+            self._updateToolTip(id, $(this));
          }
       })
-
 
       this.$().draggable();
 
@@ -101,9 +99,9 @@ App.StonehearthEntityInspectorView = App.View.extend({
               self.trace.destroy();
               self.trace = null;
             }
-            self.set('context.state', 'updating')
-            self._aiComponent = json['stonehearth:ai']
-            self.fetchAiComponent()
+            self.set('context.state', 'updating');
+            self._aiComponent = json['stonehearth:ai'];
+            self.fetchAiComponent();
          })
          .fail(function(e) {
             console.log(e);
@@ -117,20 +115,65 @@ App.StonehearthEntityInspectorView = App.View.extend({
       if (node instanceof Array || node instanceof Object) {
          node.styleOverride = 'padding-left: ' + (indent * 14) + 'px';
 
+         if (node.activity) {
+            self._addStateMetadata(node.execution_units);
+         }
+
          if (node.action) {
             indent++;
-            if (node.state == 'stopped') {
+            node.parsed_state = self._parseState(node);
+            if (node.parsed_state == 'stopped-not_selected' || node.parsed_state == 'stopped-waiting') {
                node.action.execution_frames = null;
             }
          }
 
-         $.each(node, function(k, v) { self._processDebugInfo(v, indent); });
+         $.each(node, function(k, v) {
+            self._processDebugInfo(v, indent);
+         });
 
          if (node instanceof Object) {
             if (node.id) {
-              self._frames[node.id] = node
+              self._frames[node.id] = node;
             }
          }
+      }
+   },
+
+   _parseState: function(node) {
+      if (node.state == 'stopped') {
+         if (node.state_metadata == 'not_selected') {
+            return 'stopped-not_selected';
+         } else {
+            return 'stopped-waiting';
+         }
+      } else {
+         return node.state;
+      }
+   },
+
+   _addStateMetadata: function(executionUnits) {
+      var hasRunningUnit = false;
+
+      // are any of the actions running?
+      $.each(executionUnits, function(k, executionUnit) {
+         if (executionUnit instanceof Object) {
+            if (executionUnit.state == 'running') {
+               hasRunningUnit = true;
+               return false;
+            }
+         }
+         return true;
+      });
+
+      // if so, indicate that the other stopped actions lost the election
+      if (hasRunningUnit) {
+         $.each(executionUnits, function(k, executionUnit) {
+            if (executionUnit instanceof Object) {
+               if (executionUnit.state == 'stopped') {
+                  executionUnit.state_metadata = 'not_selected';
+               }
+            }
+         });
       }
    },
 
@@ -144,16 +187,16 @@ App.StonehearthEntityInspectorView = App.View.extend({
       radiant.call_obj(self._aiComponent, 'get_debug_info')
         .done(function(debugInfo) {
             self.set('context.state', 'updating..');
-            self._frames = {}
-            self._processDebugInfo(debugInfo)
+            self._frames = {};
+            self._processDebugInfo(debugInfo);
             if (self._frames[self._inspect_frame_id]) {
                debugInfo.inspect_frame = self._frames[self._inspect_frame_id];
             }
-            self.set('context.ai', debugInfo)
+            self.set('context.ai', debugInfo);
             if (self._aiComponent) {
                self.set('context.state', 'updating. ' + new Date().getTime());
                self._fetchTimer = setTimeout(function() {
-                 self.fetchAiComponent()
+                 self.fetchAiComponent();
                }, 500);
                self.set('context.state', 'updating');
             } else {
