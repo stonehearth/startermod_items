@@ -189,9 +189,29 @@ App.StonehearthBuildingDesignerTools = App.View.extend({
       });
 
       // grow roof button
+      var updateRoofToolCursor = function() {
+         var options = {
+               nine_grid_gradiant : [],
+            }
+
+         self.$('.roofDiagramButton.active').each(function() {
+            options.nine_grid_gradiant.push($(this).attr('gradient'));
+         })
+
+         App.stonehearthClient.growRoof(options);         
+      }
       this.$('#growRoofTool').click(function() {
-         App.stonehearthClient.growRoof();
+         updateRoofToolCursor();
       })
+
+      this.$('.roofDiagramButton').click(function() {
+         $(this).toggleClass('active');
+         updateRoofToolCursor(); 
+      })
+
+      // roof tool defaults
+      this.$('.roofDiagramButton.east').addClass('active');
+      this.$('.roofDiagramButton.west').addClass('active');
 
       // doodad material
       this.$('.doodadMaterial').click(function() {
@@ -215,6 +235,8 @@ App.StonehearthBuildingDesignerTools = App.View.extend({
          var blueprint = self.get('blueprint.__self');
          App.stonehearthClient.replaceStructure(blueprint, wallUri); 
       });
+
+      $('#editToolTab #roofEditor')
 
       // building buttons
       this.$('#startBuilding').click(function() {
@@ -308,13 +330,21 @@ App.StonehearthBuildingDesignerTools = App.View.extend({
          var container = this.$('#editMaterial');
          var materialEl;
 
+
+         this.$('#editToolTab #roofEditor').hide();
+
          if (type == 'wall') {
+            
             materialEl = this._buildMaterialPalette(this.wallPatterns, 'wallMaterial');
+         } else if (type == 'roof') {
+            this.$('#editToolTab #roofEditor').show();
          }
 
-         container
-            .empty()
-            .append(materialEl);
+         if (container) {
+            container
+               .empty()
+               .append(materialEl);            
+         }
       }
    }
 });

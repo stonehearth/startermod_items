@@ -61,6 +61,8 @@
                <div style="clear: both"></div>
             {{/each}}
          </div>
+
+         {{render 'roofShape' this}}
       </div>
 
       <div class="tabPage" id="doodadToolTab">
@@ -84,6 +86,7 @@
          <div id="editMaterial">
 
          </div>
+         {{render 'roofShape' this}}
       </div>
    </div>
 
@@ -101,4 +104,19 @@
       </button>
    </div>
 
+</script>
+
+<script type="text/x-handlebars" data-template-name="roofShape">
+   <div id="roofEditor">
+      <h2>{{i18n stonehearth:building_designer_roof_shape}}
+      <div class="brushPalette section ">
+         <div class="roofShape">
+            <div id="roofDiagram" />
+            <div class="roofDiagramButton north" gradient="back"/>
+            <div class="roofDiagramButton south" gradient="front"/>
+            <div class="roofDiagramButton east" gradient="right" />
+            <div class="roofDiagramButton west" gradient="left" />
+         </div>
+      </div>
+   </div>
 </script>

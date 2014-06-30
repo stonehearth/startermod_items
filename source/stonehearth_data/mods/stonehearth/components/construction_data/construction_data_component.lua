@@ -96,6 +96,12 @@ function ConstructionDataComponent:set_nine_grid_region2(region2)
    return self
 end
 
+function ConstructionDataComponent:set_nine_grid_gradiant(gradiant)
+   self._sv.nine_grid_gradiant = gradiant
+   self.__saved_variables:mark_changed()
+   return self
+end
+
 function ConstructionDataComponent:get_normal()
    return self._sv.normal
 end
