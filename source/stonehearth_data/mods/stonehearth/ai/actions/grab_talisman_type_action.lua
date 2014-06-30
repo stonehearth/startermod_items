@@ -18,7 +18,7 @@ local ai = stonehearth.ai
 return ai:create_compound_action(GrabTalismanTypeAction)
             :execute('stonehearth:drop_carrying_now')
             :execute('stonehearth:pickup_item_with_uri', {
-                  item_uri = ai.ARGS.talisman_uri
+                  uri = ai.ARGS.talisman_uri
                })
             :execute('stonehearth:run_effect', {
                effect = 'promote',
