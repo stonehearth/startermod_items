@@ -180,12 +180,16 @@ uniform sampler2D cloudMap;
 uniform sampler2D fowRT;
 uniform float currentTime;
 uniform vec4 lodLevels;
+uniform sampler3D gridMap;
+uniform float gridlineAlpha;
+uniform vec4 gridlineColor;
 
 varying vec4 vsPos;
 varying vec4 pos;
 varying vec3 albedo;
 varying vec3 tsbNormal;
 varying vec4 projFowPos;
+varying vec3 gridLineCoords;
 
 void main( void )
 {
@@ -214,6 +218,14 @@ void main( void )
     lightColor *= clamp((lodLevels.y - -vsPos.z) / lodLevels.w, 0.0, 1.0);
   } else {
     lightColor *= clamp((-vsPos.z - lodLevels.z) / lodLevels.w, 0.0, 1.0);
+  }
+
+  // gridlineAlpha is a single float containing the global opacity of gridlines for all
+  // nodes.  gridlineColor is the per-material color of the gridline to use.  Only draw
+  // them if both are > 0.0.
+  if (gridlineAlpha * gridlineColor.a > 0.0) {
+    float gridline = 1.0 - texture3D(gridMap, gridLineCoords + vec3(0.5, 0.0, 0.5)).a;
+    lightColor = lightColor * (1.0 - gridline) + (gridline * gridlineColor.rgb);
   }
 
   gl_FragColor = vec4(lightColor, 1.0);

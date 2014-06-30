@@ -1,5 +1,5 @@
 
 {
-   "long_description" : "Upgrades a worker to a Farmer.<p>Farmers plant and harvest fields to produce food for the town.",
+   "long_description" : "Promotes a citizen into a Farmer.<p>Farmers plant and harvest fields to produce food for the town.",
    "flavor_text" : "This noble profession produces food without violence."
 }

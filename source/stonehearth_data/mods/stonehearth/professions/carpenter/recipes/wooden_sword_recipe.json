@@ -3,7 +3,7 @@
 
    "work_units"  : 3,
    "recipe_name" : "Wooden Practice Sword",
-   "description" : "Upgrades a settler into a swordsman, but NOT YET! Combat is coming in a future alpha. xoxo, Team Radiant",
+   "description" : "Promotes a citizen into a Footman.",
    "flavor"      : "Just pointy enough to get the job done.",
    "portrait"    : "/stonehearth/entities/weapons/wooden_sword/wooden_sword.png",
    "category"    : "weapons",

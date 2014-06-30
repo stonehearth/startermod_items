@@ -3,7 +3,7 @@
 
    "work_units"  : 5,
    "recipe_name" : "Weaver's Spindle",
-   "description" : "Promotes a citizen into a weaver.",
+   "description" : "Promotes a citizen into a Weaver.",
    "flavor"      : "From fiber, thread, from thread, fabric, from fabric, civilization.",
    "portrait"    : "/stonehearth/professions/weaver/weaver_spindle/weaver_spindle.png",
    "ingredients": [

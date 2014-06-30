@@ -24,7 +24,7 @@
       },
       "unit_info": {
          "name": "Wooden Sword",
-         "description": "Upgrades a citizen into a Footman",
+         "description": "Promotes a citizen into a Footman.",
          "icon" : "file(wooden_sword.png)"
       },
       "stonehearth:material" : {

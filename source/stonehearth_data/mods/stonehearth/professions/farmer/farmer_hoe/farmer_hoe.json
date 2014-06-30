@@ -4,7 +4,7 @@
    "components" : {
       "unit_info" : {
          "name" :  "Farmer's Hoe",
-         "description" : "Upgrades a citizen into a Farmer",
+         "description" : "Promotes a citizen into a Farmer.",
          "portrait": "file(portrait.png)",
          "character_sheet_info" : "file(farmer_hoe_character_sheet_info.json)"
       },
