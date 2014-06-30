@@ -70,6 +70,9 @@ function AllyDefenseObserver:_on_ally_battery(context)
 end
 
 function AllyDefenseObserver:_is_killable(target)
+   if not target or not target:is_valid() then
+      return false
+   end
    local attributes_component = target:get_component('stonehearth:attributes')
    if not attributes_component then 
       return false

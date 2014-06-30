@@ -68,6 +68,9 @@ end
 
 function HitStun:start(ai, entity, args)
    self._running = true
+   -- always perform hit stun in a combat posture so we keep our weapon wielded
+   -- TODO: figure out a better solution when we have a higher level notion of what an entity in combat means
+   radiant.entities.set_posture(entity, 'stonehearth:combat')
 end
 
 function HitStun:run(ai, entity, args)
@@ -78,6 +81,7 @@ end
 function HitStun:stop(ai, entity, args)
    self._running = false
    self:_unregister_events()
+   radiant.entities.unset_posture(entity, 'stonehearth:combat')
 end
 
 return HitStun

@@ -94,7 +94,6 @@
       "stonehearth:carry_block": {
       },
       "stonehearth:posture": [
-         "stonehearth:combat"
       ]
    },
    "entity_data" : {
