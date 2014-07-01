@@ -194,7 +194,7 @@ App.StonehearthBuildingDesignerTools = App.View.extend({
                nine_grid_gradiant : [],
             }
 
-         self.$('.roofDiagramButton.active').each(function() {
+         self.$('#roofToolTab .roofDiagramButton.active').each(function() {
             options.nine_grid_gradiant.push($(this).attr('gradient'));
          })
 
