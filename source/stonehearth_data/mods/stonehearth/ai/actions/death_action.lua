@@ -7,6 +7,7 @@ local DeathAction = class()
 
 DeathAction.name = 'die'
 DeathAction.does = 'stonehearth:top'
+DeathAction.status_text = 'dead'
 DeathAction.args = {}
 DeathAction.version = 2
 DeathAction.priority = stonehearth.constants.priorities.top.DIE
