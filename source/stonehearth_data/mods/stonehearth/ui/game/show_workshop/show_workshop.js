@@ -47,6 +47,8 @@ App.StonehearthCrafterView = App.View.extend({
 
    currentRecipe: null,
 
+   isPaused: false,
+
    //alias because the colon messes up bindAttr
    skinClass: function() {
       this.set('context.skinClass', this.get('context.model.stonehearth:workshop.skin_class'));
@@ -109,7 +111,7 @@ App.StonehearthCrafterView = App.View.extend({
       togglePause: function(){
          var workshop = this.getWorkshop();
 
-         if (this.get('context.model.workshopIsPaused')) {
+         if (this.get('context.model.stonehearth:workshop.is_paused')) {
             radiant.call('radiant:play_sound', 'stonehearth:sounds:ui:carpenter_menu:open' );
          } else {
             radiant.call('radiant:play_sound', 'stonehearth:sounds:ui:carpenter_menu:closed' );
@@ -211,8 +213,16 @@ App.StonehearthCrafterView = App.View.extend({
          });
    },
 
-   _workshopIsPausedAlias: function() {
+   _workshopPausedChange: function() {
       var isPaused = !!(this.get('context.model.stonehearth:workshop.is_paused'));
+
+      // We need to check this because if/when the root object changes, all children are 
+      // marked as changed--even if the values don't differ.
+      if (isPaused == this.isPaused) {
+         return;
+      }
+      this.isPaused = isPaused;
+
       this.set('context.model.workshopIsPaused', isPaused)
 
       var r = isPaused ? 4 : -4;
