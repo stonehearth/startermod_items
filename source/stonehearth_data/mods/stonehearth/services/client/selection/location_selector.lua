@@ -4,6 +4,10 @@ local Point3 = _radiant.csg.Point3
 
 local OFFSCREEN = Point3(0, -100000, 0)
 
+LocationSelector.FILTER_IGNORE = 0
+LocationSelector.FILTER_PASS = 1
+LocationSelector.FILTER_FAIL = 2
+
 function LocationSelector:done(cb)
    self._done_cb = cb
    return self
@@ -21,6 +25,11 @@ end
 
 function LocationSelector:always(cb)
    self._always_cb = cb
+   return self
+end
+
+function LocationSelector:set_require_filter(required)
+   self._filter_required = required
    return self
 end
 
@@ -108,12 +117,15 @@ function LocationSelector:_get_selected_brick(x, y)
    for result in s:each_result() do
       -- skip the cursor...
       if result.entity ~= self._cursor_entity then
-         if not self._filter_fn or self._filter_fn(result) then
+         local filter_result = (not self._filter_fn and LocationSelector.FILTER_PASS) or self._filter_fn(result)
+         if filter_result == LocationSelector.FILTER_PASS then
             local brick, normal = result.brick, result.normal
             if normal.x > 0 or normal.z > 0 or normal.y > 0 then
                return brick + normal:to_int()
             end
             return brick
+         elseif filter_result == LocationSelector.FILTER_FAIL then
+            return nil
          end
       end
    end
@@ -144,7 +156,18 @@ function LocationSelector:_on_mouse_event(mouse_pos, event)
 
    -- early exit if the ray missed the entire world   
    if not pt then
+      -- Show an invalid icon for the cursor, if we aren't already.
+      if not self._cursor_icon then
+         self._cursor_icon = _radiant.client.set_cursor('stonehearth:cursors:invalid_hover')
+      end
       return
+   end
+
+   -- At this point, the location is valid, so clean up any invalid cursor we might
+   -- be showing.
+   if self._cursor_icon then
+      self._cursor_icon:destroy()
+      self._cursor_icon = nil
    end
 
    if event and event:up(1) then
@@ -205,6 +228,7 @@ end
 --
 function LocationSelector:go()
    self._rotation = 0
+   self._cursor_icon = nil
    stonehearth.selection:register_tool(self, true)
 
    -- capture the mouse.  Call our _on_mouse_event each time, passing in
