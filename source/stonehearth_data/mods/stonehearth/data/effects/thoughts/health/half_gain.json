@@ -1,0 +1,14 @@
+{
+   "type" : "effect",
+   "tracks": {
+      "unit_status_effect": {
+         "type": "unit_status_effect",
+         "material": "materials/thoughts/health/half_heart_gain.xml",
+         "width": 1,
+         "height": 1.7,
+         "xOffset": 0,
+         "yOffset": 1.6,
+         "bone": "head"
+     }
+   }
+}

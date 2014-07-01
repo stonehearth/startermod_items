@@ -277,7 +277,9 @@ end
 
 function entities.unthink(entity, uri)
    radiant.check.is_entity(entity)
-   entity:add_component('stonehearth:thought_bubble'):unset_thought(uri)
+   if entity and entity:is_valid() then
+      entity:add_component('stonehearth:thought_bubble'):unset_thought(uri)
+   end
 end
 
 function entities.get_location_aligned(entity)

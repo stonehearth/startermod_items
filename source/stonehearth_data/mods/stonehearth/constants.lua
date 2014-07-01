@@ -135,6 +135,7 @@ local constants = {
    },
 
    think_priorities = {
+      HEALTH = 1000,
       HUNGRY = 100,
       SLEEPY = 50,
    },
