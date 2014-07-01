@@ -12,22 +12,19 @@ function CraftOrderList:initialize()
       n = 0,
    }
    self._sv.next_order_id = 0
+   self._sv.is_paused = false
    for _, order in ipairs(self._sv.orders) do
       radiant.log.write('ug', 0, 'order is %s', tostring(order))
-   end      
-
+   end
    self.__saved_variables:mark_changed()
 end
 
 function CraftOrderList:is_paused()
-   return self._is_paused
+   return self._sv.is_paused
 end
 
 function CraftOrderList:toggle_pause()
-   self._is_paused = not self._is_paused
-   self.__saved_variables:modify_data(function (data)
-         data.is_paused = self._is_paused
-      end)
+   self._sv.is_paused = not self._sv.is_paused
    self:_on_order_list_changed()
 end
 

@@ -43,6 +43,8 @@ App.StonehearthCrafterView = App.View.extend({
    //alias for stonehearth:workshop.crafter.stonehearth:crafter.craftable_recipes
    recipes: null,
 
+   initialized: false,
+
    //alias because the colon messes up bindAttr
    skinClass: function() {
       this.set('context.skinClass', this.get('context.model.stonehearth:workshop.skin_class'));
@@ -126,12 +128,16 @@ App.StonehearthCrafterView = App.View.extend({
       this._super();
    },
 
-   //Fired once, when the model is first set. Calls a function that renders once, after the
-   //template is updated. 
+   // Fires whenever the workshop changes, but the first update is all we really
+   // care about.
    _contentChanged: function() {
       if (this.get('context.model.stonehearth:workshop') == undefined) {
          return;
       }
+      if (this.initialized) {
+         return
+      }
+      this.initialized = true;
       Ember.run.scheduleOnce('afterRender', this, '_build_workshop_helper')
     }.observes('context.model'),
 
