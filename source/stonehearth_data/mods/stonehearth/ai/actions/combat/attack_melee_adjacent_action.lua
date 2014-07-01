@@ -76,7 +76,7 @@ function AttackMeleeAdjacent:run(ai, entity, args)
 
    stonehearth.combat:start_cooldown(entity, attack_info)
 
-   self._context = AssaultContext('melee', entity, impact_time)
+   self._context = AssaultContext('melee', entity, target, impact_time)
    stonehearth.combat:assault(target, self._context)
 
    -- can't ai:execute this. it needs to run in parallel with the attack animation
@@ -94,7 +94,7 @@ function AttackMeleeAdjacent:run(ai, entity, args)
          else
             -- TODO: get damage modifiers from action and attributes
             local base_damage = weapon_data.base_damage
-            local battery_context = BatteryContext(entity, base_damage)
+            local battery_context = BatteryContext(entity, target, base_damage)
             stonehearth.combat:battery(target, battery_context)
          end
       end

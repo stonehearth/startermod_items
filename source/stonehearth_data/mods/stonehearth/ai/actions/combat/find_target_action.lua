@@ -44,7 +44,7 @@ function FindTarget:_register_events()
    if not self._registered then
       -- TODO: replace slow_poll with a listen on target table changed
       -- TODO: have engage add the engager to the target table
-      radiant.events.listen(radiant, 'stonehearth:slow_poll', self, self._find_target)
+      radiant.events.listen(radiant, 'stonehearth:slow_poll', self, self._on_find_target)
       radiant.events.listen(self._entity, 'stonehearth:combat:engage', self, self._on_engage)
       self._registered = true
    end
@@ -52,7 +52,7 @@ end
 
 function FindTarget:_unregister_events()
    if self._registered then
-      radiant.events.unlisten(radiant, 'stonehearth:slow_poll', self, self._find_target)
+      radiant.events.unlisten(radiant, 'stonehearth:slow_poll', self, self._on_find_target)
       radiant.events.unlisten(self._entity, 'stonehearth:combat:engage', self, self._on_engage)
       self._registered = false
    end
@@ -67,23 +67,48 @@ function FindTarget:_on_engage(args)
    end
 end
 
+function FindTarget:_on_find_target()
+   local target = self:_get_target()
+
+   if target ~= nil and target:is_valid() then
+      self._ai:set_think_output({ target = target })
+      self:_unregister_events()
+   end
+end
+
 function FindTarget:_get_target()
+   --return self:_calculate_target_simple()
+   return self:_calculate_target_cost_benefit()
+end
+
+-- calculate a crude cost/benefit ratio so we don't switch targets over long distances unless it really matters
+function FindTarget:_calculate_target_cost_benefit()
    local target_table = radiant.entities.get_target_table(self._entity, 'aggro')
-   local target, score = target_table:get_top()
+   local targets = target_table:get_targets()
+   local best_target = nil
+   local best_score = -1
 
-   -- if target table has no opinion, double check the assault events
-   if target == nil or not target:is_valid() then
-      -- TODO: probably listen on both the assault events and target table
-      local events = stonehearth.combat:get_assault_events(self._entity)
-      local context = events[1] -- pick the assault that was initiated first
-
-      if context ~= nil and context.attacker ~= nil and context.attacker:is_valid() then
-         target = context.attacker
+   for target_id, aggro in pairs(targets) do
+      local target = radiant.entities.get_entity(target_id)
+      if target ~= nil and target:is_valid() then
+         local distance = radiant.entities.distance_between(self._entity, target)
+         local score = aggro / distance
+         if score > best_score then
+            best_target = target
+            best_score = score
+         end
       end
    end
 
-   -- if the highest score is 0 (no history on any of the targets), the pick the closest
-   if score == 0 then
+   return best_target
+end
+
+function FindTarget:_calculate_target_simple()
+   local target_table = radiant.entities.get_target_table(self._entity, 'aggro')
+   local target, score = target_table:get_top()
+
+   -- if the highest score is <= 1 (minimal/no history on any of the targets), the pick the closest
+   if target and score <= 1 then
       local targets = target_table:get_targets()
       target = self:_get_closest_target(targets)
    end
@@ -106,15 +131,6 @@ function FindTarget:_get_closest_target(targets)
       end
    end
    return closest
-end
-
-function FindTarget:_find_target()
-   local target = self:_get_target()
-
-   if target ~= nil and target:is_valid() then
-      self._ai:set_think_output({ target = target })
-      self:_unregister_events()
-   end
 end
 
 return FindTarget

@@ -40,7 +40,7 @@ function CreateEngageCallback:start_thinking(ai, entity, args)
 
       if distance < engage_range_max then
          -- consider sending engage message just once?
-         local context = EngageContext(entity)
+         local context = EngageContext(entity, target)
          stonehearth.combat:engage(target, context)
       end
    end

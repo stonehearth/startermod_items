@@ -16,42 +16,30 @@ function CombatTest:__init()
    --    end
    -- end
 
-   local citizens = {
+   self:at(1000,
+      function ()
+         self:place_units()
+      end
+   )
+end
+
+function CombatTest:place_units()
+   self._citizens = {
       self:place_citizen(-15, -15, 'stonehearth:professions:footman', 'stonehearth:wooden_sword'),
       self:place_citizen( -7, -15, 'stonehearth:professions:footman', 'stonehearth:wooden_sword'),
       self:place_citizen(  1, -15, 'stonehearth:professions:footman', 'stonehearth:wooden_sword'),
       self:place_citizen(  9, -15, 'stonehearth:professions:footman', 'stonehearth:wooden_sword'),
    }
 
-   local enemies = {
+   self._enemies = {
       self:place_enemy( -9, 15, 'stonehearth:wooden_sword'),
       self:place_enemy( -1, 15, 'stonehearth:wooden_sword'),
       self:place_enemy(  7, 15, 'stonehearth:wooden_sword'),
       self:place_enemy( 15, 15, 'stonehearth:wooden_sword'),
    }
 
-   -- self:at(3000,
-   --    function ()
-   --       self:kill(citizens[1])
-   --    end
-   -- )
-
-   --Test goblins attacking others (death notifications, etc)
-   --[[
-   --add a banner
-   local player_id = citizens[1]:get_component('unit_info'):get_player_id()
-   local town = stonehearth.town:get_town(player_id)
-   local location = Point3(7, 0, 7)
-   local banner_entity = radiant.entities.create_entity('stonehearth:camp_standard')
-   radiant.terrain.place_entity(banner_entity, location)
-   town:set_banner(banner_entity)
-
-   -- Introduce a new person
-   self:at(20000,  function()
-         stonehearth.dynamic_scenario:force_spawn_scenario('Immigration')
-      end)
-   ]]
-
+   -- local enemy = self._enemy_population:create_new_citizen()
+   -- radiant.terrain.place_entity(enemy, Point3(-9, 1, 15))
 end
 
 function CombatTest:create_enemy_kingdom()

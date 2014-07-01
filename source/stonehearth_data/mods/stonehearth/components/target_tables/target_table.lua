@@ -1,7 +1,7 @@
 TargetTable = class()
 
 function TargetTable:__init()
-   self._starting_score = 0
+   self._starting_score = 1
 end
 
 -- TODO: decay scores over time and remove if below 0
