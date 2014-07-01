@@ -43,6 +43,12 @@ App.StonehearthCrafterView = App.View.extend({
    //alias for stonehearth:workshop.crafter.stonehearth:crafter.craftable_recipes
    recipes: null,
 
+   initialized: false,
+
+   currentRecipe: null,
+
+   isPaused: false,
+
    //alias because the colon messes up bindAttr
    skinClass: function() {
       this.set('context.skinClass', this.get('context.model.stonehearth:workshop.skin_class'));
@@ -58,7 +64,7 @@ App.StonehearthCrafterView = App.View.extend({
    },
 
    getCurrentRecipe: function() {
-      return this.get('context.model.current');
+      return this.currentRecipe;
    },
 
    actions: {
@@ -72,7 +78,8 @@ App.StonehearthCrafterView = App.View.extend({
       },
 
       select: function(object, remaining, maintainNumber) {
-         this.set('context.model.current', object);
+         this.currentRecipe = object;
+         this.set('context.model.current', this.currentRecipe);
          this._setRadioButtons(remaining, maintainNumber);
          //TODO: make the selected item visually distinct
          this.preview();
@@ -104,7 +111,7 @@ App.StonehearthCrafterView = App.View.extend({
       togglePause: function(){
          var workshop = this.getWorkshop();
 
-         if (this.get('context.model.workshopIsPaused')) {
+         if (this.get('context.model.stonehearth:workshop.is_paused')) {
             radiant.call('radiant:play_sound', 'stonehearth:sounds:ui:carpenter_menu:open' );
          } else {
             radiant.call('radiant:play_sound', 'stonehearth:sounds:ui:carpenter_menu:closed' );
@@ -126,13 +133,24 @@ App.StonehearthCrafterView = App.View.extend({
       this._super();
    },
 
-   //Fired once, when the model is first set. Calls a function that renders once, after the
-   //template is updated. 
+   // Fires whenever the workshop changes, but the first update is all we really
+   // care about.
    _contentChanged: function() {
       if (this.get('context.model.stonehearth:workshop') == undefined) {
          return;
       }
-      Ember.run.scheduleOnce('afterRender', this, '_build_workshop_helper')
+
+      // A new context.model completely clobbers the old one, so don't forget
+      // to set the current recipe.  There has to be a better way of doing this....
+      if (this.currentRecipe) {
+         this.set('context.model.current', this.currentRecipe);
+      }
+
+      if (this.initialized) {
+         return
+      }
+      this.initialized = true;
+      Ember.run.scheduleOnce('afterRender', this, '_build_workshop_helper');
     }.observes('context.model'),
 
    //Called once when the model is loaded
@@ -195,8 +213,16 @@ App.StonehearthCrafterView = App.View.extend({
          });
    },
 
-   _workshopIsPausedAlias: function() {
-      var isPaused = this.get('context.model.stonehearth:workshop.is_paused');
+   _workshopPausedChange: function() {
+      var isPaused = !!(this.get('context.model.stonehearth:workshop.is_paused'));
+
+      // We need to check this because if/when the root object changes, all children are 
+      // marked as changed--even if the values don't differ.
+      if (isPaused == this.isPaused) {
+         return;
+      }
+      this.isPaused = isPaused;
+
       this.set('context.model.workshopIsPaused', isPaused)
 
       var r = isPaused ? 4 : -4;

@@ -58,7 +58,8 @@
             "stonehearth:actions:unset_posture"
          ],
          "observers": [
-            "stonehearth:observers:ally_defense"
+            "stonehearth:observers:ally_defense",
+            "stonehearth:observers:health_score"
          ]
       },
       "unit_info" : {
@@ -75,13 +76,13 @@
          }
       },
       "stonehearth:attributes": {
-         "health": {
+          "max_health": {
             "type" : "basic", 
-            "value" :  50
+            "value" : 50
          },
-         "max_health": {
-            "type" : "basic", 
-            "value" :  50
+         "health": {
+            "type" : "variable", 
+            "equation" :  "max_health"
          },
          "speed": {
             "type" : "basic",
