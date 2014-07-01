@@ -493,9 +493,9 @@ end
 --    @param building - the building to pop the roof onto
 --    @param roof_uri - what kind of roof to make
 
-function BuildService:grow_roof_command(session, response, building, roof_uri)
+function BuildService:grow_roof_command(session, response, building, roof_uri, options)
    self._undo:begin_transaction('grow_roof')
-   local roof = self:_grow_roof(building, roof_uri)
+   local roof = self:_grow_roof(building, roof_uri, options)
    self._undo:end_transaction('grow_roof')
 
    response:resolve({
@@ -503,7 +503,7 @@ function BuildService:grow_roof_command(session, response, building, roof_uri)
    })
 end
 
-function BuildService:_grow_roof(building, roof_uri)
+function BuildService:_grow_roof(building, roof_uri, options)
    -- compute the xz cross-section of the roof by growing the floor
    -- region by 2 voxels in every direction
    local region2 = building:get_component('stonehearth:building')
@@ -513,10 +513,14 @@ function BuildService:_grow_roof(building, roof_uri)
    -- now make the roof!
    local height = constants.STOREY_HEIGHT
    local roof_location = Point3(0, height - 1, 0)
-   local roof = self:_create_blueprint(building, roof_uri, roof_location, function(roof)
-         roof:add_component('stonehearth:roof')
-                :cover_region2(region2)
-                :layout()
+   local roof = self:_create_blueprint(building, roof_uri, roof_location, function(roof_entity)
+         local cd = roof_entity:add_component('stonehearth:construction_data')
+         if options.nine_grid_gradiant then
+            cd:set_nine_grid_gradiant(options.nine_grid_gradiant)
+         end
+         roof_entity:add_component('stonehearth:roof')
+                        :cover_region2(region2)
+                        :layout()
       end)
 
    -- convert the 2d roof region to a 3d region so we can query for all the structures

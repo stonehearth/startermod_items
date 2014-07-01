@@ -156,6 +156,66 @@
       background-image: url(images/remove_doodad_tool.png);
    }
 
+   .roofShape {
+      position: relative;
+      height: 100px;
+
+      #roofDiagram {
+         position: absolute;
+         top: 22px;
+         left: 33px;
+         width: 51px;
+         height: 51px;
+         background: url(images/roof_diagram_nsew.png);
+      }
+
+      .roofDiagramButton {
+         .button;
+         position: absolute;
+         width: 24px;
+         height: 24px;
+      }
+
+      .north {
+         top: 0px;
+         left: 47px;
+         background: url(images/n.png);
+      }
+
+      .north.active {
+         background: url(images/n_active.png);  
+      }
+
+      .south {
+         top: 69px;
+         left: 47px;
+         background: url(images/s.png);
+      }
+
+      .south.active {
+         background: url(images/s_active.png);  
+      }
+
+      .east {
+         top: 35px;
+         left: 82px;
+         background: url(images/e.png);
+      }
+
+      .east.active {
+         background: url(images/e_active.png);  
+      }
+
+      .west {
+         top: 35px;
+         left: 11px;
+         background: url(images/w.png);
+      }
+
+      .west.active {
+         background: url(images/w_active.png);  
+      }               
+   }
 }
 
 #selectedBuildingWindow {

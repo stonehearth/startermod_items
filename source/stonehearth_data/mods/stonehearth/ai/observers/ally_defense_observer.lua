@@ -5,6 +5,7 @@ local AllyDefenseObserver = class()
 function AllyDefenseObserver:initialize(entity, json)
    self._entity = entity
    self._allies_in_range = {}
+   self._ally_aggro_ratio = radiant.util.get_config('ally_aggro_ratio', 0.50)
 
    self:_add_sensor_trace()
 end
@@ -39,7 +40,6 @@ function AllyDefenseObserver:_on_added_to_sensor(id)
 
    -- TODO: eventually, we should listen for alliance change if a unit changes from ally to hostile or the reverse
    if radiant.entities.is_friendly(self._entity, other_entity) then
-      -- TODO: verify that self is added to sensor
       radiant.events.listen(other_entity, 'stonehearth:combat:battery', self, self._on_ally_battery)
    end
 
@@ -64,9 +64,21 @@ function AllyDefenseObserver:_on_ally_battery(context)
    if self:_is_killable(context.attacker) then
       local target_table = radiant.entities.get_target_table(self._entity, 'aggro')
       if target_table then
-         target_table:modify_score(context.attacker, context.damage)
+         local aggro = self:_calculate_aggro(context)
+         target_table:modify_score(context.attacker, aggro)
       end
    end
+end
+
+function AllyDefenseObserver:_calculate_aggro(context)
+   local aggro = context.damage
+
+   if context.target ~= self._entity then
+      -- aggro from allies getting hit is less than self getting hit
+      aggro = aggro * self._ally_aggro_ratio
+   end
+
+   return aggro
 end
 
 function AllyDefenseObserver:_is_killable(target)

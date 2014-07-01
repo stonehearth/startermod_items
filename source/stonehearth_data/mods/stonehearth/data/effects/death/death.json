@@ -18,6 +18,34 @@
          "max_distance": 100,
          "volume": 70,
          "track" : "stonehearth:sounds:death_poof" 
-      }
+      },
+      "dust": {
+         "type": "cubemitter",
+         "start_time" : 0,
+         "end_time" : 500,
+         "cubemitter": "particles/death/death_poof.cubemitter.json",
+         "transforms": {
+            "x":0,
+            "y":0,
+            "z":0,
+            "rx":90,
+            "ry":0,
+            "rz":0
+         }
+      },
+      "fumes": {
+         "type": "cubemitter",
+         "cubemitter": "particles/death/death_fumes.cubemitter.json",
+         "start_time" : 0,
+         "end_time" : 400,
+         "transforms": {
+            "x":0,
+            "y":0,
+            "z":0,
+            "rx":90,
+            "ry":0,
+            "rz":0
+         }
+      }      
    }
 }

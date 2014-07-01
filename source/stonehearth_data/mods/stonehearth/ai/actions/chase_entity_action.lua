@@ -194,12 +194,13 @@ end
 
 function ChaseEntity:start(ai, entity, args)
    self._selected_to_run = true
-   ai:set_status_text('chasing ' .. radiant.entities.get_name(args.target))
 end
 
 function ChaseEntity:run(ai, entity, args)
    local speed = radiant.entities.get_world_speed(entity)
    local finished = false
+
+   ai:set_status_text('chasing ' .. radiant.entities.get_name(args.target))
 
    -- trace entity location before checking early exit, so that we fire the callback at least once
    self:_trace_entity_location(args.grid_location_changed_cb)
