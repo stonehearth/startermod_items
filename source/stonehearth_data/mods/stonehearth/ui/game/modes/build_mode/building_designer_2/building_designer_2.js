@@ -331,13 +331,13 @@ App.StonehearthBuildingDesignerTools = App.View.extend({
          var materialEl;
 
 
-         this.$('#editToolTab #roofEditor').hide();
+         self.$('#editToolTab #roofEditor').hide();
 
          if (type == 'wall') {
             
             materialEl = this._buildMaterialPalette(this.wallPatterns, 'wallMaterial');
          } else if (type == 'roof') {
-            this.$('#editToolTab #roofEditor').show();
+            self.$('#editToolTab #roofEditor').show();
          }
 
          if (container) {
