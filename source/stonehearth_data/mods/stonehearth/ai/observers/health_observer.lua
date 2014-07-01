@@ -7,7 +7,7 @@ local HealthObserver = class()
 function HealthObserver:initialize(entity, json)
    self._entity = entity
    self._attributes_component = entity:add_component('stonehearth:attributes')
-   self._timer_duration = '1m'
+   self._timer_duration = '2m'
 
    --After everything has been initialized, then set the current 
    self._sv = self.__saved_variables:get_data()
