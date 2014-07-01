@@ -58,6 +58,7 @@
             "stonehearth:actions:unset_posture"
          ],
          "observers": [
+            "stonehearth:observers:ally_defense",
             "stonehearth:observers:health_score"
          ]
       },
