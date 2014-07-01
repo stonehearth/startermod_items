@@ -21,6 +21,7 @@ function WorkshopComponent:initialize(entity, json)
       self._sv.outbox_entity = nil
       self._sv.skin_class = json.skin_class or 'default'
       self._sv.order_list = radiant.create_controller('stonehearth:craft_order_list')
+      self._sv.is_paused = false
    end
    radiant.log.write('ug', 0, 'order list is %s', tostring(self._sv.order_list))
 
@@ -82,6 +83,8 @@ end
 ]]
 function WorkshopComponent:toggle_pause(sesion, response)
    self._sv.order_list:toggle_pause()
+   self._sv.is_paused = self._sv.order_list:is_paused()
+   self.__saved_variables:mark_changed()
    return true
 end
 

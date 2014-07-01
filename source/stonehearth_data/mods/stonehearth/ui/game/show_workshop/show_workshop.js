@@ -45,6 +45,8 @@ App.StonehearthCrafterView = App.View.extend({
 
    initialized: false,
 
+   currentRecipe: null,
+
    //alias because the colon messes up bindAttr
    skinClass: function() {
       this.set('context.skinClass', this.get('context.model.stonehearth:workshop.skin_class'));
@@ -60,7 +62,7 @@ App.StonehearthCrafterView = App.View.extend({
    },
 
    getCurrentRecipe: function() {
-      return this.get('context.model.current');
+      return this.currentRecipe;
    },
 
    actions: {
@@ -74,7 +76,8 @@ App.StonehearthCrafterView = App.View.extend({
       },
 
       select: function(object, remaining, maintainNumber) {
-         this.set('context.model.current', object);
+         this.currentRecipe = object;
+         this.set('context.model.current', this.currentRecipe);
          this._setRadioButtons(remaining, maintainNumber);
          //TODO: make the selected item visually distinct
          this.preview();
@@ -134,11 +137,18 @@ App.StonehearthCrafterView = App.View.extend({
       if (this.get('context.model.stonehearth:workshop') == undefined) {
          return;
       }
+
+      // A new context.model completely clobbers the old one, so don't forget
+      // to set the current recipe.  There has to be a better way of doing this....
+      if (this.currentRecipe) {
+         this.set('context.model.current', this.currentRecipe);
+      }
+
       if (this.initialized) {
          return
       }
       this.initialized = true;
-      Ember.run.scheduleOnce('afterRender', this, '_build_workshop_helper')
+      Ember.run.scheduleOnce('afterRender', this, '_build_workshop_helper');
     }.observes('context.model'),
 
    //Called once when the model is loaded
@@ -202,7 +212,7 @@ App.StonehearthCrafterView = App.View.extend({
    },
 
    _workshopIsPausedAlias: function() {
-      var isPaused = this.get('context.model.stonehearth:workshop.is_paused');
+      var isPaused = !!(this.get('context.model.stonehearth:workshop.is_paused'));
       this.set('context.model.workshopIsPaused', isPaused)
 
       var r = isPaused ? 4 : -4;
