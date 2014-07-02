@@ -26,7 +26,6 @@ function WallLoopEditor:go(column_uri, wall_uri, response)
    self._selector = stonehearth.selection:select_location()
       :allow_shift_queuing(true)
       :set_min_locations_count(2)
-      :set_require_filter(true)
       :set_filter_fn(function(result)
             if result.entity == current_column_editor:get_proxy_fabricator() then
                return LocationSelector.FILTER_IGNORE

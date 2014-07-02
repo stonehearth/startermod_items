@@ -28,11 +28,6 @@ function LocationSelector:always(cb)
    return self
 end
 
-function LocationSelector:set_require_filter(required)
-   self._filter_required = required
-   return self
-end
-
 function LocationSelector:allow_shift_queuing(enabled)
    self._allow_shift_queuing = enabled
    return self
