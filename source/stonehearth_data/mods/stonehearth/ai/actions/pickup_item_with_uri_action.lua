@@ -19,10 +19,9 @@ function PickupItemWithUri:start_thinking(ai, entity, args)
    -- materials so we can share the same pathfinders.  returning an
    -- equivalent implementation is not sufficient!  it must be
    -- the same function (see the 'stonehearth:pathfinder' component)
-   
    local filter_fn = ALL_FILTER_FNS[args.key]
+   local uri = args.uri
    if not filter_fn then
-      local uri = args.uri
       filter_fn = function (entity)
          if entity:get_uri() == uri then
             return true
@@ -37,7 +36,7 @@ function PickupItemWithUri:start_thinking(ai, entity, args)
    end
 
    ai:set_think_output({
-         filter_fn = filter,
+         filter_fn = filter_fn,
          description = uri
       })
 end
