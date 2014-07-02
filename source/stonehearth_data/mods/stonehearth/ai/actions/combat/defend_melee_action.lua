@@ -1,4 +1,3 @@
-local Entity = _radiant.om.Entity
 local rng = _radiant.csg.get_default_rng()
 local log = radiant.log.create_logger('combat')
 
@@ -6,7 +5,9 @@ local DefendMelee = class()
 
 DefendMelee.name = 'defend melee'
 DefendMelee.does = 'stonehearth:combat:defend'
-DefendMelee.args = {}
+DefendMelee.args = {
+   assault_events = 'table'   -- an array of assault events (AssaultContexts)
+}
 DefendMelee.version = 2
 DefendMelee.priority = 1
 DefendMelee.weight = 1
@@ -16,62 +17,36 @@ function DefendMelee:__init(entity)
 end
 
 function DefendMelee:start_thinking(ai, entity, args)
+   self._ai = ai
+   self._entity = entity
+
    if next(self._defense_types) == nil then
       -- no melee defenses
       return
    end
 
-   self._ai = ai
-   self._entity = entity
-   self._think_output_set = false
-
-   local assault_events = stonehearth.combat:get_assault_events(entity)
-
-   for _, context in ipairs(assault_events) do
-      self:_on_assault(context)
-      if self._think_output_set then
-         return
+   for _, context in pairs(args.assault_events) do
+      if self:_can_defend(context) then
+         ai:set_think_output()
       end
    end
-
-   self:_register_events()
 end
 
 function DefendMelee:stop_thinking(ai, entity, args)
-   self:_unregister_events()
-
    self._ai = nil
    self._entity = nil
 end
 
-function DefendMelee:_register_events()
-   if not self._registered then
-      radiant.events.listen(self._entity, 'stonehearth:combat:assault', self, self._on_assault)
-      self._registered = true
-   end
-end
-
-function DefendMelee:_unregister_events()
-   if self._registered then
-      radiant.events.unlisten(self._entity, 'stonehearth:combat:assault', self, self._on_assault)
-      self._registered = false
-   end
-end
-
-function DefendMelee:_on_assault(context)
-   if self._think_output_set then
-      return
-   end
-
+function DefendMelee:_can_defend(context)
    if context.attack_method ~= 'melee' then
-      return
+      return false
    end
 
    local defend_info = stonehearth.combat:choose_combat_action(self._entity, self._defense_types)
 
    if not defend_info then
       -- no defenses currently available
-      return
+      return false
    end
 
    local defend_latency = stonehearth.combat:get_time_to_impact(defend_info)
@@ -79,21 +54,14 @@ function DefendMelee:_on_assault(context)
 
    if earliest_defend_time > context.impact_time then
       -- too slow, cannot defend
-      return
+      return false
    end
 
    self._context = context
    self._defend_latency = defend_latency
    self._defend_info = defend_info
 
-   self:_set_think_output()
-end
-
-function DefendMelee:_set_think_output()
-   if not self._think_output_set then
-      self._ai:set_think_output()
-      self._think_output_set = true
-   end
+   return true
 end
 
 function DefendMelee:run(ai, entity, args)

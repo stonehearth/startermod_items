@@ -6,6 +6,8 @@ function farmer_class.promote(entity)
 
    -- HACK: remove the talisman glow effect from the weapon
    radiant.entities.remove_effects(weapon)
+
+   stonehearth.combat:set_stance(entity, 'passive')
 end
 
 function farmer_class.restore(entity)

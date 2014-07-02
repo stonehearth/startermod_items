@@ -6,7 +6,7 @@ StopPanicking.version = 2
 StopPanicking.priority = 1
 
 function StopPanicking:run(ai, entity, args)
-   stonehearth.combat:set_panicking(entity, false)
+   stonehearth.combat:set_panicking_from(entity, nil)
 end
 
 function StopPanicking:stop(ai, entity, args)

@@ -14,12 +14,12 @@ function CombatPanicObserver:destroy()
 end
 
 -- just using health right now, but this could depend on other attributes as well
-function CombatPanicObserver:_on_battery()
+function CombatPanicObserver:_on_battery(context)
    local health = radiant.entities.get_attribute(self._entity, 'health')
    local max_health = radiant.entities.get_attribute(self._entity, 'max_health')
 
    if health / max_health <= self._panic_threshold then
-      stonehearth.combat:set_panicking(self._entity, true)
+      stonehearth.combat:set_panicking_from(self._entity, context.attacker)
    end
 end
 

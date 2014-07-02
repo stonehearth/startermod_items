@@ -35,6 +35,7 @@
             "stonehearth:actions:combat:attack:melee",
             "stonehearth:actions:combat:attack:melee_adjacent",
             "stonehearth:actions:combat:defend_dispatcher",
+            "stonehearth:actions:combat:wait_for_assault",
             "stonehearth:actions:combat:defend:melee",
             "stonehearth:actions:combat:idle_dispatcher",
             "stonehearth:actions:combat:idle:ready",
@@ -47,7 +48,6 @@
             "stonehearth:actions:place_item",
             "stonehearth:actions:place_item_type",
             "stonehearth:actions:stockpile_arson",
-
             "stonehearth:actions:follow_entity",
             "stonehearth:actions:combat:find_target",
             "stonehearth:actions:combat:create_engage_callback",

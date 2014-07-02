@@ -385,6 +385,7 @@
       "actions:combat:attack:melee" : "file(ai/actions/combat/attack_melee_action.lua)",
       "actions:combat:attack:melee_adjacent" : "file(ai/actions/combat/attack_melee_adjacent_action.lua)",
       "actions:combat:defend_dispatcher" : "file(ai/actions/combat/defend_dispatcher.lua)",
+      "actions:combat:wait_for_assault" : "file(ai/actions/combat/wait_for_assault_action.lua)",
       "actions:combat:defend:melee" : "file(ai/actions/combat/defend_melee_action.lua)",
       "actions:combat:idle_dispatcher" : "file(ai/actions/combat/combat_idle_dispatcher.lua)",
       "actions:combat:idle:ready" : "file(ai/actions/combat/combat_idle_ready_action.lua)",
@@ -894,7 +895,15 @@
       "trigger_bulletin_event": {
          "controller" : "file(call_handlers/bulletin_board_call_handler.lua)",
          "endpoint" : "server"
-      }      
+      },
+      "enable_worker_combat": {
+         "controller" : "file(call_handlers/worker_defense_call_handler.lua)",
+         "endpoint" : "server"
+      },
+      "disable_worker_combat": {
+         "controller" : "file(call_handlers/worker_defense_call_handler.lua)",
+         "endpoint" : "server"
+      }
    },
    
    "controllers" :  {
