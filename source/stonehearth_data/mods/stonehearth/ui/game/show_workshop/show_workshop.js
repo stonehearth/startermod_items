@@ -16,7 +16,7 @@ $(document).ready(function(){
 App.StonehearthCrafterView = App.View.extend({
    templateName: 'stonehearthCrafter',
 
-   uriProperty: 'context.model',
+   uriProperty: 'context.show_workshop',
 
    components: {
       "unit_info": {},
@@ -51,8 +51,8 @@ App.StonehearthCrafterView = App.View.extend({
 
    //alias because the colon messes up bindAttr
    skinClass: function() {
-      this.set('context.skinClass', this.get('context.model.stonehearth:workshop.skin_class'));
-   }.observes('context.model.stonehearth:workshop.skin_class'),
+      this.set('context.skinClass', this.get('context.show_workshop.stonehearth:workshop.skin_class'));
+   }.observes('context.show_workshop.stonehearth:workshop.skin_class'),
 
    destroy: function() {
       radiant.keyboard.setFocus(null);
@@ -60,7 +60,7 @@ App.StonehearthCrafterView = App.View.extend({
    },
 
    getWorkshop: function() {
-      return this.get('context.model.stonehearth:workshop').__self;
+      return this.get('context.show_workshop.stonehearth:workshop').__self;
    },
 
    getCurrentRecipe: function() {
@@ -79,7 +79,7 @@ App.StonehearthCrafterView = App.View.extend({
 
       select: function(object, remaining, maintainNumber) {
          this.currentRecipe = object;
-         this.set('context.model.current', this.currentRecipe);
+         this.set('context.show_workshop.current', this.currentRecipe);
          this._setRadioButtons(remaining, maintainNumber);
          //TODO: make the selected item visually distinct
          this.preview();
@@ -111,7 +111,7 @@ App.StonehearthCrafterView = App.View.extend({
       togglePause: function(){
          var workshop = this.getWorkshop();
 
-         if (this.get('context.model.stonehearth:workshop.is_paused')) {
+         if (this.get('context.show_workshop.stonehearth:workshop.is_paused')) {
             radiant.call('radiant:play_sound', 'stonehearth:sounds:ui:carpenter_menu:open' );
          } else {
             radiant.call('radiant:play_sound', 'stonehearth:sounds:ui:carpenter_menu:closed' );
@@ -136,14 +136,14 @@ App.StonehearthCrafterView = App.View.extend({
    // Fires whenever the workshop changes, but the first update is all we really
    // care about.
    _contentChanged: function() {
-      if (this.get('context.model.stonehearth:workshop') == undefined) {
+      if (this.get('context.show_workshop.stonehearth:workshop') == undefined) {
          return;
       }
 
-      // A new context.model completely clobbers the old one, so don't forget
+      // A new context.show_workshop completely clobbers the old one, so don't forget
       // to set the current recipe.  There has to be a better way of doing this....
       if (this.currentRecipe) {
-         this.set('context.model.current', this.currentRecipe);
+         this.set('context.show_workshop.current', this.currentRecipe);
       }
 
       if (this.initialized) {
@@ -151,11 +151,11 @@ App.StonehearthCrafterView = App.View.extend({
       }
       this.initialized = true;
       Ember.run.scheduleOnce('afterRender', this, '_build_workshop_helper');
-    }.observes('context.model'),
+    }.observes('context.show_workshop'),
 
    //Called once when the model is loaded
    _build_workshop_helper: function() {
-      if (this.get('context.model.stonehearth:workshop') == undefined) {
+      if (this.get('context.show_workshop.stonehearth:workshop') == undefined) {
          return;
       }
 
@@ -214,7 +214,7 @@ App.StonehearthCrafterView = App.View.extend({
    },
 
    _workshopPausedChange: function() {
-      var isPaused = !!(this.get('context.model.stonehearth:workshop.is_paused'));
+      var isPaused = !!(this.get('context.show_workshop.stonehearth:workshop.is_paused'));
 
       // We need to check this because if/when the root object changes, all children are 
       // marked as changed--even if the values don't differ.
@@ -223,7 +223,7 @@ App.StonehearthCrafterView = App.View.extend({
       }
       this.isPaused = isPaused;
 
-      this.set('context.model.workshopIsPaused', isPaused)
+      this.set('context.show_workshop.workshopIsPaused', isPaused)
 
       var r = isPaused ? 4 : -4;
 
@@ -254,7 +254,7 @@ App.StonehearthCrafterView = App.View.extend({
          });
       }
 
-   }.observes('context.model.stonehearth:workshop.is_paused'),
+   }.observes('context.show_workshop.stonehearth:workshop.is_paused'),
 
    _buildRecipeList: function() {
       var self = this;
@@ -292,7 +292,7 @@ App.StonehearthCrafterView = App.View.extend({
 
    findAndSelectRecipe: function() {
       var userInput = this.$("#searchInput").val().toLowerCase(),
-          currRecipe = this.get('context.model.current.recipe_name');
+          currRecipe = this.get('context.show_workshop.current.recipe_name');
       if ( !currRecipe || (currRecipe && (currRecipe.toLowerCase() != userInput)) ) {
          //Look to see if we have a recipe named similar to the contents
          var numRecipes = allRecipes.length;
@@ -313,7 +313,7 @@ App.StonehearthCrafterView = App.View.extend({
 
    _buildRecipeArray: function() {
       allRecipes = new Array();
-      var craftableRecipeArr = this.get('context.model.stonehearth:workshop.crafter.stonehearth:crafter.craftable_recipes')
+      var craftableRecipeArr = this.get('context.show_workshop.stonehearth:workshop.crafter.stonehearth:crafter.craftable_recipes')
       var numCategories = craftableRecipeArr.length;
       for (var i = 0; i < numCategories; i++) {
          var recipes = craftableRecipeArr[i].recipes;
@@ -415,10 +415,10 @@ App.StonehearthCrafterView = App.View.extend({
 
    _orderListObserver: function() {
       this._enableDisableTrash();
-   }.observes('context.model.stonehearth:workshop.order_list.orders'),
+   }.observes('context.show_workshop.stonehearth:workshop.order_list.orders'),
 
    _enableDisableTrash: function() {
-      var list = this.get('context.model.stonehearth:workshop.order_list.orders');
+      var list = this.get('context.show_workshop.stonehearth:workshop.order_list.orders');
 
       if (this.$('#garbageButton')) {
          if (list && list.length > 0) {

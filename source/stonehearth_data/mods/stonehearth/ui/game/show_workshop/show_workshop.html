@@ -3,18 +3,18 @@
 
       <div id="shingle">
          <a id="closeButton" {{action hide target="view"}}></a>
-         <div id="title">{{model.unit_info.name}}</div>
+         <div id="title">{{show_workshop.unit_info.name}}</div>
          <div id="subtitle">
             {{i18n stonehearth:show_workshop_description}}
-            {{model.stonehearth:workshop.crafter.unit_info.name}}
+            {{show_workshop.stonehearth:workshop.crafter.unit_info.name}}
          </div>
       </div>
 
-      {{#if model.stonehearth:workshop.order_list.orders}}
+      {{#if show_workshop.stonehearth:workshop.order_list.orders}}
          <a {{action togglePause target="view"}} >
-            <div id="statusSign" {{bind-attr class=model.workshopIsPaused:closed:open}}>
+            <div id="statusSign" {{bind-attr class=show_workshop.workshopIsPaused:closed:open}}>
                <div id="message">
-                  {{#if model.workshopIsPaused}}
+                  {{#if show_workshop.workshopIsPaused}}
                      {{i18n stonehearth:workshop_closed}}
                   {{else}}
                      {{i18n stonehearth:workshop_open}}
@@ -30,7 +30,7 @@
          </div>
 
          <div id="details">
-            {{render 'details' model.current}}
+            {{render 'details' show_workshop.current}}
          </div>
 
          {{partial 'orderOptions'}}
@@ -46,7 +46,7 @@
       <input id="searchInput" placeholder="Type to search"/>
    </div>
    <div id="recipeItems">
-      {{#each model.stonehearth:workshop.crafter.stonehearth:crafter.craftable_recipes}}
+      {{#each show_workshop.stonehearth:workshop.crafter.stonehearth:crafter.craftable_recipes}}
          <h3>{{category}}</h3>
          <div>
             {{#each recipes}}
@@ -120,7 +120,7 @@
    <div id="orderList">
 
       <div id="orders">
-      {{#each model.stonehearth:workshop.order_list.orders}}
+      {{#each show_workshop.stonehearth:workshop.order_list.orders}}
          {{#if is_crafting}}
             <div class="orderListItem inProgressOrder" {{bind-attr data-orderId = "id"}}>
                <label class="craftingLabel">{{../../craftingStatus}}</label>
