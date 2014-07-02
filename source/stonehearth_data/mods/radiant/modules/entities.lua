@@ -206,25 +206,9 @@ function entities.pick_nearby_location(entity, radius)
    return destination
 end
 
-function entities.grid_distance_between(object_a, object_b)
-   local mob
-
-   if radiant.util.is_a(object_a, Entity) then
-      mob = object_a:get_component('mob')
-      assert(mob)
-      object_a = mob:get_world_grid_location()
-   end
-   if radiant.util.is_a(object_b, Entity) then
-      mob = object_b:get_component('mob')
-      assert(mob)
-      object_b = mob:get_world_grid_location()
-   end
-   -- xxx: verify a and b are both Point3s...
-   return object_a:distance_to(object_b)
-end
-
 function entities.distance_between(object_a, object_b)
    local mob
+   assert(object_a and object_b)
 
    if radiant.util.is_a(object_a, Entity) then
       mob = object_a:get_component('mob')
@@ -236,6 +220,10 @@ function entities.distance_between(object_a, object_b)
       assert(mob)
       object_b = mob:get_world_location()
    end
+   -- convert Point3 to Point3f... Point3f ignores :to_float()!
+   object_a = object_a:to_float()
+   object_b = object_b:to_float()
+   
    -- xxx: verify a and b are both Point3fs...
    return object_a:distance_to(object_b)
 end

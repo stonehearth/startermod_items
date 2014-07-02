@@ -100,7 +100,7 @@ end
 
 function ExecutionFrame:_on_position_changed()
    if self._last_captured_location then
-      local distance = radiant.entities.grid_distance_between(self._entity, self._last_captured_location)
+      local distance = radiant.entities.distance_between(self._entity, self._last_captured_location)
       if distance > 3 then
          self._log:detail('entity moved!  going to restart thinking... (state:%s)', self._state)
          -- errata note 1 : this is quite bizarre.  if we're running, we ESPECIALLY want to restart
