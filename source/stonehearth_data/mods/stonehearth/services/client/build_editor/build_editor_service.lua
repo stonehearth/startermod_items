@@ -45,13 +45,21 @@ function BuildEditorService:erase_floor(session, response, brush_shape)
 end
 
 function BuildEditorService:grow_walls(session, response, columns_uri, walls_uri)
+   local has_wall_fn = function(building)
+      for _, child in building:get_component('entity_container'):each_child() do
+        if child:get_component('stonehearth:wall') then
+          return true
+         end
+      end
+      return false
+   end
    local building
    stonehearth.selection:select_entity_tool()
       :set_tool_mode(true)
       :set_cursor('stonehearth:cursors:grow_walls')
       :set_filter_fn(function(entity)
             building = self:get_building_for(entity)
-            return building ~= nil
+            return building ~= nil and not has_wall_fn(building)
          end)
       :done(function(selector, entity)
             if building then
@@ -66,13 +74,22 @@ function BuildEditorService:grow_walls(session, response, columns_uri, walls_uri
 end
 
 function BuildEditorService:grow_roof(session, response, roof_uri, options)
+   local has_roof_fn = function(building)
+      for _, child in building:get_component('entity_container'):each_child() do
+        if child:get_component('stonehearth:roof') then
+          return true
+         end
+      end
+      return false
+   end
+
    local building
    stonehearth.selection:select_entity_tool()
       :set_tool_mode(true)
       :set_cursor('stonehearth:cursors:grow_roof')
       :set_filter_fn(function(entity)
             building = self:get_building_for(entity)
-            return building ~= nil
+            return building ~= nil and not has_roof_fn(building)
          end)
       :done(function(selector, entity)
             if building then
