@@ -34,21 +34,46 @@ function RunAwayFromEntity:start_thinking(ai, entity, args)
    end
 end
 
+-- Run towards your town banner (TODO, actually pathfind towards it)
+-- Run towards friends if they're nearby
+-- Sometimes, lose your head entirely and run in the opposite direction
+-- When all else fails, run in a random direction
 function RunAwayFromEntity:_choose_destination(entity, threat, distance)
    local entity_location = entity:add_component('mob'):get_world_location()
    local threat_location = threat:add_component('mob'):get_world_location()
    local destination
+   local direction
 
-   local opposite_direction = entity_location - threat_location
-   opposite_direction.y = 0
+   --is there a friend nearby? If so, run towards them
+   --TODO: revisit to implement with censor? What if your friend is invisible?
+   local player_id = radiant.entities.get_player_id(entity)
+   local town = stonehearth.town:get_town(player_id)
+   local banner = town:get_banner()
+   local banner_location = banner:add_component('mob'):get_world_location()
 
-   if opposite_direction:distance_squared() ~= 0 then
-      opposite_direction:normalize()
-   else
-      opposite_direction = radiant.math.random_xz_unit_vector()
+
+   --local pop = stonehearth.population:get_population(player_id)
+   --local friend, friend_distance = pop:find_closest_townsperson_to(entity)
+
+   --if friend and friend:is_valid() and friend_distance < distance * 10 then
+   --   local friend_location = friend:add_component('mob'):get_world_location()
+   --   direction = friend_location - entity_location
+   if banner and banner_location then
+      direction = banner_location - entity_location
+   else 
+      direction = entity_location - threat_location
    end
 
-   destination = self:_calculate_location(entity_location, opposite_direction, 0, distance)
+   direction.y = 0
+
+   if direction:distance_squared() ~= 0 then
+      direction:normalize()
+   else
+      direction = radiant.math.random_xz_unit_vector()
+   end
+
+   destination = self:_calculate_location(entity_location, direction, 0, distance)
+   
 
    return destination
 end
