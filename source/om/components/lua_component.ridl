@@ -193,6 +193,17 @@ static ${map.accessor_value.name} ${class_upper}_Get${singular_name | env.upper}
 }
 
    % endif
+   % if map.contains:
+static bool ${class_upper}_Contains${singular_name | env.upper}(${class_formal_parameter}, ${map.key.name} key)
+{
+   ${class_to_pointer}
+   if (instance)  {
+      return instance->Contains${singular_name | env.upper}(key);
+   }
+   throw std::invalid_argument("invalid reference in native ${class_lower}::contains_${singular_name}");
+}
+
+   % endif
    % if map.iterate:
 static void ${class_upper}_Each${singular_name | env.upper}(lua_State *L, ${class_formal_parameter})
 {
@@ -366,6 +377,9 @@ scope Register${class_upper}(lua_State* L)
    % endif
    % if map.get:
          .def("get_${singular_name | env.lower}", ${class_upper}_Get${singular_name | env.upper})
+   % endif
+   % if map.contains:
+         .def("contains_${singular_name | env.lower}", ${class_upper}_Contains${singular_name | env.upper})
    % endif
    % if map.iterate:
          .def("each_${singular_name | env.lower}", ${class_upper}_Each${singular_name | env.upper})
