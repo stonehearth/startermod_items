@@ -29,7 +29,6 @@ end
 function WorkerDefense:destroy()
 end
 
-
 function WorkerDefense:enable_worker_combat(player_id)
    local population = stonehearth.population:get_population(player_id)
    local citizens = population:get_citizens()
