@@ -87,11 +87,13 @@ App.StonehearthFarmView = App.View.extend({
          var self = this;
          palette = App.gameView.addView(App.StonehearthFarmCropPalette, { 
                      click: function(item) {
-                        radiant.call('radiant:play_sound', 'stonehearth:sounds:ui:action_click' );
                         var cropId = $(item).attr('crop');
-                        //TODO: add back when we make the queue
-                        //self.addCropToRotation($(item).attr('crop'));
-                        self.change_default_crop(cropId);
+                        if (cropId) {
+                           radiant.call('radiant:play_sound', 'stonehearth:sounds:ui:action_click' );
+                           //TODO: add back when we make the queue
+                           //self.addCropToRotation($(item).attr('crop'));
+                           self.change_default_crop(cropId);
+                        }
                      },
                      context: {
                         items : self.get('all_crops')
