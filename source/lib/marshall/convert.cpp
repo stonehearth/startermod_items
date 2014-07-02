@@ -54,7 +54,16 @@ void Convert::UserdataToProtobuf(luabind::object const& obj, Protocol::Value* ms
 
    try {
       lua::ScriptHost *s = lua::ScriptHost::GetScriptHost(L);
-      typeId = luabind::call_function<int>(obj["__get_userdata_type_id"]);
+      luabind::object __get_userdata_type_id = obj["__get_userdata_type_id"];
+      if (!__get_userdata_type_id || !__get_userdata_type_id.is_valid()) {
+         int top = lua_gettop(L);
+         obj.push(L);
+         LOG_(0) << "error: lua object " << luabind::get_class_info(luabind::from_stack(L, top+1)).name << " not registered with dynamic type info in UserdataToProtobuf";
+         lua_settop(L, top);
+         msg->set_type_id(0);
+         return;
+      }
+      typeId = luabind::call_function<int>(__get_userdata_type_id);
    } catch (std::exception const& e) {
       LUA_LOG(0) << "wtf? " << e.what();
    }
@@ -74,6 +83,10 @@ void Convert::ProtobufToUserdata(Protocol::Value const& msg, luabind::object& ob
    lua_State* L = store_.GetInterpreter();
    typeinfo::TypeId typeId = msg.type_id();
 
+   if (typeId == 0) {
+      obj = luabind::object();
+      return;
+   }
    if (!typeinfo::Dispatcher(store_, flags_).ProtoToLua(typeId, msg, obj)) {
       luabind::class_info ci = luabind::call_function<luabind::class_info>(luabind::globals(L)["class_info"], obj);
       throw std::logic_error(BUILD_STRING("unknown conversion from object type " << ci.name << " to protobuf"));
