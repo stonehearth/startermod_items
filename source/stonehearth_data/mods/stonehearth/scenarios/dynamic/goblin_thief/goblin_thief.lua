@@ -62,6 +62,7 @@ function GoblinThief:_attach_listeners()
    radiant.events.listen(self._sv._goblin, 'stonehearth:carry_block:carrying_changed', self, self._theft_event)
 end
 
+--The goblin thief heads towards the town, and if he sees stuff, he will grab it
 function GoblinThief:_add_restock_task()
    local s_comp = self._sv._stockpile:get_component('stonehearth:stockpile')
    self._sv._goblin:get_component('stonehearth:ai')
@@ -69,8 +70,20 @@ function GoblinThief:_add_restock_task()
       :create_task('stonehearth:restock_stockpile', { stockpile = s_comp })
       :set_source(self._sv._stockpile)
       :set_name('stockpile thief task')
-      :set_priority(stonehearth.constants.priorities.worker_task.RESTOCK_STOCKPILE)
+      :set_priority(stonehearth.constants.priorities.goblins.HOARD)
       :start()
+
+   local town = stonehearth.town:get_town(self._sv.player_id)
+   local banner = town:get_banner()
+   self._sv._goblin:get_component('stonehearth:ai')
+      :get_task_group('stonehearth:work')
+      :create_task('stonehearth:goto_entity', { entity = banner })
+      :set_source(self._sv._stockpile)
+      :set_name('introduce self task')
+      :set_priority(stonehearth.constants.priorities.goblins.RUN_TOWARDS_SETTLEMENT)
+      :once()
+      :start()
+
    self.__saved_variables:mark_changed()
 end
 
@@ -94,7 +107,8 @@ function GoblinThief:_on_spawn_jerk()
 
    self._sv._stockpile = self._inventory:create_stockpile(spawn_point, {x=2, y=1})
    local s_comp = self._sv._stockpile:get_component('stonehearth:stockpile')
-   s_comp:set_filter({'resource wood'})
+   --TODO: Right now the filter is broken Why???
+   --s_comp:set_filter({'resource wood'})
    s_comp:set_should_steal(true)
 
    radiant.terrain.place_entity(self._sv._goblin, spawn_point)
