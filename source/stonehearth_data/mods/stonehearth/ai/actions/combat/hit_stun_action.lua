@@ -11,6 +11,7 @@ function HitStun:start_thinking(ai, entity, args)
    self._entity = entity
 
    self._think_output_set = false
+   self._posture_set = false
 
    self:_register_events(ai, entity)
 end
@@ -68,9 +69,13 @@ end
 
 function HitStun:start(ai, entity, args)
    self._running = true
-   -- always perform hit stun in a combat posture so we keep our weapon wielded
+
+   -- temporary code to determine if weapon should be wielded during hit stun animation
    -- TODO: figure out a better solution when we have a higher level notion of what an entity in combat means
-   radiant.entities.set_posture(entity, 'stonehearth:combat')
+   if stonehearth.combat:get_stance(entity) ~= 'passive' then
+      radiant.entities.set_posture(entity, 'stonehearth:combat')
+      self._posture_set = true
+   end
 end
 
 function HitStun:run(ai, entity, args)
@@ -81,7 +86,11 @@ end
 function HitStun:stop(ai, entity, args)
    self._running = false
    self:_unregister_events()
-   radiant.entities.unset_posture(entity, 'stonehearth:combat')
+
+   if self._posture_set then
+      radiant.entities.unset_posture(entity, 'stonehearth:combat')
+      self._posture_set = false
+   end
 end
 
 return HitStun

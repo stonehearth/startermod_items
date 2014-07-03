@@ -16,6 +16,8 @@ function carpenter_class.promote(entity, json)
 
    -- HACK: remove the talisman glow effect from the weapon
    radiant.entities.remove_effects(weapon)
+
+   stonehearth.combat:set_stance(entity, 'passive')
 end
 
 function carpenter_class.demote(entity)

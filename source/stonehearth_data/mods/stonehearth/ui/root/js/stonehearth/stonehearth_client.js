@@ -6,6 +6,8 @@ var StonehearthClient;
       init: function() {
          var self = this;
 
+         self.rallyWorkersEnabled = false;
+
          radiant.call('stonehearth:get_client_service', 'build_editor')
             .done(function(e) {
                self._build_editor = e.result;
@@ -359,6 +361,17 @@ var StonehearthClient;
             this._crafterManager = App.gameView.addView(App.StonehearthCraftersView);
          } else {
             this._crafterManager.destroy();
+         }
+      },
+
+      rallyWorkers: function() {
+         // TODO: add sound and visual indicator that this state is on
+         if (self.rallyWorkersEnabled) {
+            radiant.call('stonehearth:disable_worker_combat');
+            self.rallyWorkersEnabled = false;
+         } else {
+            radiant.call('stonehearth:enable_worker_combat');
+            self.rallyWorkersEnabled = true;
          }
       },
 

@@ -18,25 +18,25 @@
       "menuHideSound": "stonehearth:sounds:ui:start_menu:wash_out",
       "menuShowSound": "stonehearth:sounds:ui:start_menu:wash_in",
       "items" : {
-            "create_stockpile" : {
-                "name" : "Stockpile",
-                "description" : "Place a stockpile for storing resources.",
-                "class" : "button",
-                "icon" : "/stonehearth/ui/game/start_menu/images/zone_stockpile.png",
-                "sticky" : true,
-                "hotkey" : "o"
-            },
-            "create_farm" : {
-                "name" : "Farm",
-                "locked_name" : "Farm (Locked)",
-                "description" : "Place a farm on the terrain.",
-                "locked_description" : "Create a farmer to unlock this zone.",
-                "class" : "button",
-                "icon" : "/stonehearth/ui/game/start_menu/images/zone_farm.png",
-                "sticky" : true,
-                "hotkey" : "f",
-                "required_profession" : "stonehearth:professions:farmer"
-            }
+         "create_stockpile" : {
+            "name" : "Stockpile",
+            "description" : "Place a stockpile for storing resources.",
+            "class" : "button",
+            "icon" : "/stonehearth/ui/game/start_menu/images/zone_stockpile.png",
+            "sticky" : true,
+            "hotkey" : "o"
+         },
+         "create_farm" : {
+            "name" : "Farm",
+            "locked_name" : "Farm (Locked)",
+            "description" : "Place a farm on the terrain.",
+            "locked_description" : "Create a farmer to unlock this zone.",
+            "class" : "button",
+            "icon" : "/stonehearth/ui/game/start_menu/images/zone_farm.png",
+            "sticky" : true,
+            "hotkey" : "f",
+            "required_profession" : "stonehearth:professions:farmer"
+         }
       }
    },
    "build_menu" : {
@@ -49,14 +49,14 @@
       "menuHideSound": "stonehearth:sounds:ui:start_menu:wash_out",
       "menuShowSound": "stonehearth:sounds:ui:start_menu:wash_in",
       "items" : {
-            "design_building" : {
-                "name" : "Design Custom Building",
-                "description" : "Design your own custom building with it's own floor-plan and structure.",
-                "class" : "button",
-                "icon" : "/stonehearth/ui/game/start_menu/images/design_building.png",
-                "sticky" : true,
-                "hotkey" : "c"
-            }
+         "design_building" : {
+            "name" : "Design Custom Building",
+            "description" : "Design your own custom building with it's own floor-plan and structure.",
+            "class" : "button",
+            "icon" : "/stonehearth/ui/game/start_menu/images/design_building.png",
+            "sticky" : true,
+            "hotkey" : "c"
+         }
       }
    },
    "town_menu" : {
@@ -95,6 +95,16 @@
       "icon" : "/stonehearth/ui/game/start_menu/images/dock_defend.png",
       "game_mode" : "normal",
       "menuHideSound": "stonehearth:sounds:ui:start_menu:defend_close",
-      "menuShowSound": "stonehearth:sounds:ui:start_menu:defend_open"
+      "menuShowSound": "stonehearth:sounds:ui:start_menu:defend_open",
+      "items" : {
+         "rally_workers" : {
+            "name" : "Rally Workers",
+            "description" : "Rally workers to defend the town!",
+            "class" : "button",
+            "icon" : "/stonehearth/ui/game/start_menu/images/dock_defend.png",
+            "sticky" : false,
+            "hotkey" : "r"
+         }
+      }
    }
 }

@@ -221,6 +221,18 @@ public:
 % endfor
 % for name, map in env.properties(C, dm.Map):
    <% singular_name = hasattr(map, 'singular_name') and map.singular_name or name %>
+   % if map.contains == 'define':
+   bool Contains${singular_name | env.upper}(${map.key.name} key)
+   {
+      return ${name}_.Contains(key);
+   }
+      
+   % elif map.get == 'declare':
+   bool Contains${singular_name | env.upper}(${map.key.name} key);
+   % endif
+% endfor
+% for name, map in env.properties(C, dm.Map):
+   <% singular_name = hasattr(map, 'singular_name') and map.singular_name or name %>
    % if map.trace:
    typedef ${map.name}::Key ${singular_name | env.upper}Key;
    typedef ${map.name}::Value ${singular_name | env.upper}Value;

@@ -43,8 +43,7 @@ Combat.priority = constants.priorities.top.COMBAT
 
 local ai = stonehearth.ai
 return ai:create_compound_action(Combat)
-   :execute('stonehearth:combat:find_target')
    :execute('stonehearth:drop_carrying_now')
    :execute('stonehearth:set_posture', { posture = 'stonehearth:combat' })
-   :execute('stonehearth:combat', { enemy = ai.BACK(3).target })
+   :execute('stonehearth:combat')
    :execute('stonehearth:unset_posture', { posture = 'stonehearth:combat' })

@@ -50,6 +50,7 @@ class Map(object):
       self.add = kwargs.get('add', 'define')
       self.remove = kwargs.get('remove', 'define')
       self.get = kwargs.get('get', 'define')
+      self.contains = kwargs.get('contains', 'define')
       self.num = kwargs.get('num', 'define')
       self.trace = kwargs.get('trace', 'define')
       self.iterate = kwargs.get('iterate', None)

@@ -11,6 +11,7 @@ function weaver_class.promote(entity, json)
          end)
    end
 
+   stonehearth.combat:set_stance(entity, 'passive')
 end
 
 function weaver_class.demote(entity)

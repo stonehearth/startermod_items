@@ -40,6 +40,9 @@ App.StonehearthStartMenuView = App.View.extend({
       },
       placeItem: function () {
          $(top).trigger('radiant_show_placement_menu');
+      },
+      rally_workers: function () {
+         App.stonehearthClient.rallyWorkers();
       }
    },
 

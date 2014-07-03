@@ -11,7 +11,14 @@ function CombatStateComponent:initialize(entity, json)
    if not self._sv.initialized then
       self._sv.cooldowns = {}
       self._sv.is_panicking = false
+      self._sv.stance = 'aggressive'
       self._sv.initialized = true
+
+      if json then
+         if json.stance ~= nil then
+            self._sv.stance = json.stance
+         end
+      end
    end
 
    -- ten second or minute poll is sufficient
@@ -64,13 +71,28 @@ function CombatStateComponent:get_assault_events()
    return self._assault_events
 end
 
-function CombatStateComponent:set_panicking(is_panicking)
-   self._sv.is_panicking = is_panicking
+function CombatStateComponent:get_stance()
+   return self._sv.stance
+end
+
+function CombatStateComponent:set_stance(stance)
+   self._sv.stance = stance
    self.__saved_variables:mark_changed()
 end
 
 function CombatStateComponent:is_panicking()
-   return self._sv.is_panicking
+   return self._sv.panicking_from_id ~= nil
+end
+
+function CombatStateComponent:get_panicking_from()
+   local threat = radiant.entities.get_entity(self._sv.panicking_from_id)
+   return threat
+end
+
+function CombatStateComponent:set_panicking_from(threat)
+   local threat_id = threat and threat:get_id()
+   self._sv.panicking_from_id = threat_id
+   self.__saved_variables:mark_changed()
 end
 
 function CombatStateComponent:_clean_combat_state()
