@@ -41,6 +41,7 @@
             "stonehearth:actions:pickup_item_trivial",
             "stonehearth:actions:pickup_item_adjacent",
             "stonehearth:actions:pickup_placed_item_adjacent",
+            "stonehearth:actions:pickup_placed_item_adjacent_trivial",
             "stonehearth:actions:pickup_item_on_table",
             "stonehearth:actions:pickup_item_on_table_adjacent",
             "stonehearth:actions:pickup_item_type",

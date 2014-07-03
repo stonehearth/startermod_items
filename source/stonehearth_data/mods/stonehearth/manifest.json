@@ -283,6 +283,7 @@
       "actions:pickup_item_trivial" : "file(ai/actions/pickup_item_trivial.lua)",
       "actions:pickup_item_adjacent" : "file(ai/actions/pickup_item_adjacent_action.lua)",
       "actions:pickup_placed_item_adjacent" : "file(ai/actions/pickup_placed_item_adjacent_action.lua)",
+      "actions:pickup_placed_item_adjacent_trivial" : "file(ai/actions/pickup_placed_item_adjacent_trivial.lua)",
       "actions:pickup_item_on_table" : "file(ai/actions/pickup_item_on_table_action.lua)",
       "actions:pickup_item_on_table_adjacent" : "file(ai/actions/pickup_item_on_table_adjacent_action.lua)",
       "actions:pickup_item_type" : "file(ai/actions/pickup_item_type_action.lua)",
