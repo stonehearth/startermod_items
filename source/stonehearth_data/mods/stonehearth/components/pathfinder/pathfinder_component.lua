@@ -9,8 +9,7 @@ local PathFinder = class()
 --
 function PathFinder:initialize(entity, json)
    self._entity = entity
-   self._sv.pathfinders = {}
-   self.__saved_variables:mark_changed()
+   self._pathfinders = {}
 end
 
 -- find a path from `location` to any item which matches the `filter_fn`.  All callers
@@ -29,13 +28,13 @@ end
 --
 function PathFinder:find_path_to_item_type(location, filter_fn, solved_cb)
    local pfkey = string.format('%s : %s', tostring(location), tostring(filter_fn))
-   local pf = self._sv.pathfinders[pfkey]
+   local pf = self._pathfinders[pfkey]
 
    if not pf then
       pf = SharedBfsPathFinder(self._entity, location, filter_fn, function()
-            self._sv.pathfinders[pfkey] = nil
+            self._pathfinders[pfkey] = nil
          end)
-      self._sv.pathfinders[pfkey] = pf
+      self._pathfinders[pfkey] = pf
    end
    self.__saved_variables:mark_changed()
 

@@ -26,18 +26,16 @@ FollowEntity.priority = 1
 Only run this action if I have an object of obsession and if I'm far from them
 ]]
 function FollowEntity:start_thinking(ai, entity, args)
-   --If we don't have an object of obsession, pick one
-   --local obsession_component = entity:add_component('stonehearth:obsession')
-   --local target = obsession_component:get_obsession_target() 
-   --if not target then
-   --   target = self:_pick_target(entity)
-   --end
-
+   
    --If I'm within 3 of my target, trace the target's move so we get called
    --again on change.
    local log = ai:get_log()
    local target = args.target
    local settle_distance = args.settle_distance
+
+   if not target:is_valid() then
+      return
+   end
 
    local function check_distance()
       local distance = radiant.entities.distance_between(entity, target)

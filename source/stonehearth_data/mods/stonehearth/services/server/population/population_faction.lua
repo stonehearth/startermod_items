@@ -208,4 +208,22 @@ function PopulationFaction:generate_random_name(gender)
    return first .. ' ' .. surname
 end
 
+--- Given an entity, iterate through the array of people in this town and find the
+--  person closest to the entity.
+--  Returns the closest person and the entity's distance to that person. 
+function PopulationFaction:find_closest_townsperson_to(entity)
+   local shortest_distance = nil
+   local closest_person = nil
+   for id, citizen in pairs(self._sv.citizens) do
+      if citizen:is_valid() and entity:get_id() ~= id then
+         local distance = radiant.entities.distance_between(entity, citizen)
+         if not shortest_distance or distance < shortest_distance then
+            shortest_distance = distance
+            closest_person = citizen
+         end 
+      end
+   end
+   return closest_person, shortest_distance
+end
+
 return PopulationFaction

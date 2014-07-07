@@ -53,7 +53,6 @@ local constants = {
          CONSTRUCT_BUILDING = 5,
          TEARDOWN_BUILDING  = 6,
          LIGHT_FIRE         = 10,
-
       },
 
       farming = {
@@ -92,7 +91,12 @@ local constants = {
       compelled_behavior = {
          STRUGGLE = 4,
          HIT_STUN = 100,
-      }
+      }, 
+
+      goblins = {
+         HOARD = 5, 
+         RUN_TOWARDS_SETTLEMENT = 4
+      },
    },
    
    -- Constants related to constructing buildings
