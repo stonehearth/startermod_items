@@ -111,6 +111,13 @@ function FarmerFieldComponent:destroy()
          end
       end
    end
+
+   for i, crop in ipairs(self._sv.crops) do
+      crop:destroy()
+      self._sv.crops[i] = nil
+   end
+
+   self._till_task:destroy()
 end
 
 

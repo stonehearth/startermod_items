@@ -65,6 +65,20 @@ function FarmerCrop:restore()
 end
 
 
+function FarmerCrop:destroy()
+   radiant.entities.destroy_entity(self._sv.plantable_region_entity)
+   self._sv.plantable_region_entity = nil
+
+   radiant.entities.destroy_entity(self._sv.harvestable_region_entity)
+   self._sv.harvestable_region_entity = nil
+
+   self._sv.farm_tilled_region = nil
+
+   self.planting_task:destroy()
+   self.planting_task = nil
+end
+
+
 function FarmerCrop:get_field_spacer(location)
    local x_offset = location.x - self._sv.location.x + 1
    local z_offset = location.z - self._sv.location.z + 1
