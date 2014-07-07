@@ -25,7 +25,7 @@
          "injected_ai" : {
             "actions" : [
                "stonehearth:actions:farmer_task_dispatcher",
-               "stonehearth:actions:till_field", 
+               "stonehearth:actions:till_entire_field", 
                "stonehearth:actions:plant_crop",
                "stonehearth:actions:harvest_crop",
                "stonehearth:actions:harvest_crop_adjacent"

@@ -373,7 +373,7 @@
       "actions:teardown_structure" : "file(ai/actions/teardown_structure_action.lua)",
       "actions:teardown_structure_adjacent" : "file(ai/actions/teardown_structure_adjacent_action.lua)",
       "actions:farmer_task_dispatcher" : "file(ai/actions/farmer_task_dispatcher.lua)",
-      "actions:till_field" : "file(ai/actions/till_field_action.lua)",
+      "actions:till_entire_field" : "file(ai/actions/till_entire_field_action.lua)",
       "actions:plant_crop" : "file(ai/actions/plant_crop.lua)",
       "actions:crafting_task_dispatcher" : "file(ai/actions/crafting_task_dispatcher.lua)",
       
@@ -929,7 +929,9 @@
       "returning_trader" : "file(scenarios/dynamic/returning_trader_scenario/returning_trader_scenario.lua)", 
 
       "target_table" : "file(components/target_tables/target_table.lua)",
-      "patrollable_object" : "file(services/server/town_defense/patrollable_object.lua)"
+      "patrollable_object" : "file(services/server/town_defense/patrollable_object.lua)",
+
+      "farmer_crop" : "file(components/farmer_field/farmer_crop.lua)"
    },
 
    "client_controllers" :  {

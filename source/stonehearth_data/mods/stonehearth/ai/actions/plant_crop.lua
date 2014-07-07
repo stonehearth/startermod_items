@@ -1,15 +1,13 @@
 local Entity = _radiant.om.Entity
 local Point3 = _radiant.csg.Point3
-local DirtPlotComponent =  require 'components.farmer_field.dirt_plot_component'
+local FarmerCrop =  require 'components.farmer_field.farmer_crop'
 
 local PlantCrop = class()
 PlantCrop.name = 'plant crop'
 PlantCrop.does = 'stonehearth:plant_crop'
 PlantCrop.status_text = 'planting crop'
 PlantCrop.args = {
-   target_plot = Entity,
-   dirt_plot_component = DirtPlotComponent,
-   crop_type = 'string'
+   target_crop = FarmerCrop,
 }
 PlantCrop.version = 2
 PlantCrop.priority =  1
@@ -22,10 +20,12 @@ end
 
 local ai = stonehearth.ai
 return ai:create_compound_action(PlantCrop)
-         :execute('stonehearth:goto_entity', { entity = ai.ARGS.target_plot})
-         :execute('stonehearth:run_effect', { effect = 'work', facing_entity = ai.ARGS.target_plot  })
+         :execute('stonehearth:goto_entity', { entity = ai.ARGS.target_crop:get_plantable_entity()})
+         :execute('stonehearth:reserve_entity_destination', { entity = ai.ARGS.target_crop:get_plantable_entity(),
+                                                              location = ai.PREV.point_of_interest })
+         :execute('stonehearth:run_effect', { effect = 'work', facing_entity = ai.ARGS.target_crop:get_field_spacer(ai.PREV.location) })
          :execute('stonehearth:call_method', {
-                  obj = ai.ARGS.dirt_plot_component,
-                  method = 'plant_crop',
-                  args = {ai.ARGS.crop_type}
+                  obj = ai.ARGS.target_crop,
+                  method = 'notify_planting_done',
+                  args = {ai.BACK(2).location}
                })

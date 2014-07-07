@@ -30,6 +30,8 @@ function FarmingService:restore(saved_variables)
 end
 
 function FarmingService:create_new_field(session, location, size)
+   -- A little sanitization: what we get from the client isn't exactly a Point3
+   location = Point3(location.x, location.y, location.z)
    local entity = radiant.entities.create_entity('stonehearth:farmer:field')   
    radiant.terrain.place_entity(entity, location)
 
@@ -164,13 +166,9 @@ function FarmingService:_get_crop_list(session)
    return crop_list
 end
 
---- Tell farmers to plan the crop_type in the designated locations
--- @param faction: the group that should be planting the crop
--- @param soil_plots: array of entities on top of which to plant the crop
--- @param crop_type: the name of the thing to plant (ie, stonehearth:corn, etc)
-function FarmingService:plant_crop(player_id, soil_plots, crop_type, player_speficied, auto_plant, auto_harvest, player_initialized)
+function FarmingService:plant_crop(player_id, crop)
    local town = stonehearth.town:get_town(player_id)
-   return town:plant_crop(player_id, soil_plots, crop_type, player_speficied, auto_plant, auto_harvest, player_initialized)
+   return town:plant_crop(crop)
 end
 
 function FarmingService:harvest_crops(session, soil_plots)
@@ -186,10 +184,6 @@ function FarmingService:harvest_crops(session, soil_plots)
       end
    end
    return true
-end
-
-function FarmingService:harvest_crop(session, crop)
-   
 end
 
 function FarmingService:_register_score_functions()
