@@ -40,7 +40,11 @@ end
 -- data used to drive what is shown in the bulletin notification and bulletin dialog
 function Bulletin:set_data(data)
    self._sv.data = data
+
+   --Make the parent list update too?
+   stonehearth.bulletin_board:update(self._sv.id)
    self.__saved_variables:mark_changed()
+
    return self
 end
 

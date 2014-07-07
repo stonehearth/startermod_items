@@ -16,6 +16,13 @@ end
 function BulletinBoardService:destroy()
 end
 
+function BulletinBoardService:update(bulletin_id)
+   local player_id = self._sv.bulletin_to_player_map[bulletin_id]
+   local datastore = self:get_datastore(player_id)
+   local bulletins = datastore:get_data().bulletins
+   datastore:mark_changed()
+end
+
 function BulletinBoardService:post_bulletin(player_id)
    local bulletin = radiant.create_controller('stonehearth:bulletin', self._sv.next_bulletin_id)
    self._sv.next_bulletin_id = self._sv.next_bulletin_id + 1

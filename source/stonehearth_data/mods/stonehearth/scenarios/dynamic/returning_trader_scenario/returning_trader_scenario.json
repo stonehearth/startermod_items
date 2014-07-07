@@ -19,7 +19,7 @@
       "return_greetings_positive" : "I'm back! It looks like you've made me the __want_number__ __want_item__ I asked for. Are you still willing to trade them to me? I'll give you __reward_number__ __reward_item__ in exchange. Still sounds good?", 
       "return_greetings_negative" : "I'm back, but it doesn't look like you've got the __want_number__ __want_item__ I asked for. That's too bad! Maybe next time!", 
       "new_crop_confirmation_title" : "New Crop Acquired!", 
-      "new_crop_confirmation_message" : "Congratulations! You can now plant __crop_item__ in your fields!", 
+      "new_crop_confirmation_message" : "Congratulations! You can now plant __crop_name__ in your fields!", 
       "max_days_before_return" : 5, 
       "wants" : {
          "stonehearth:farmer:hoe" : {
