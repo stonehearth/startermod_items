@@ -23,6 +23,11 @@ function MemorializeDeathAction:run(ai, entity, args)
    local tombstone = radiant.entities.create_entity('stonehearth:tombstone')
    radiant.entities.set_name(tombstone, title)
    radiant.entities.set_description(tombstone, description)
+
+   --Hide the person
+   radiant.terrain.remove_entity(entity)
+
+   --place the tombstone
    radiant.terrain.place_entity(tombstone, self._location)
 
    radiant.effects.run_effect(tombstone, '/stonehearth/data/effects/death')
