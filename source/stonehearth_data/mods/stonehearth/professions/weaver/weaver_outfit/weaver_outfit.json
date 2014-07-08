@@ -24,6 +24,12 @@
          "render_type" : "merge_with_model",
          "injected_ai" : {
             "actions" : [
+               "stonehearth:actions:combat:flee",
+               "stonehearth:actions:town_defense:town_defense_watcher",
+               "stonehearth:actions:town_defense:town_defense_dispatcher",
+               "stonehearth:actions:town_defense:town_defense_idle_dispatcher",
+               "stonehearth:actions:town_defense:town_defense_idle_ready",
+
                "stonehearth:actions:crafting_task_dispatcher",
                "stonehearth:actions:work_at_workshop",
                "stonehearth:actions:move_item_to_outbox",

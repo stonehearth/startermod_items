@@ -10,4 +10,9 @@ function WorkerDefenseCallHandler:disable_worker_combat(session, response)
    response:resolve({})
 end
 
+function WorkerDefenseCallHandler:worker_combat_is_enabled(session, response)
+   local enabled = stonehearth.worker_defense:worker_combat_is_enabled(session.player_id)
+   return { enabled = enabled }
+end
+
 return WorkerDefenseCallHandler

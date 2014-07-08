@@ -24,6 +24,12 @@
          "render_type" : "merge_with_model",
          "injected_ai" : {
             "actions" : [
+               "stonehearth:actions:combat:flee",
+               "stonehearth:actions:town_defense:town_defense_watcher",
+               "stonehearth:actions:town_defense:town_defense_dispatcher",
+               "stonehearth:actions:town_defense:town_defense_idle_dispatcher",
+               "stonehearth:actions:town_defense:town_defense_idle_ready",
+
                "stonehearth:actions:farmer_task_dispatcher",
                "stonehearth:actions:till_entire_field", 
                "stonehearth:actions:plant_crop",

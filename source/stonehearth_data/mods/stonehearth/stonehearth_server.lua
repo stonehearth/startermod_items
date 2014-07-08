@@ -27,7 +27,7 @@ local service_creation_order = {
    'terrain',
    'threads',
    'town',
-   'town_defense',
+   'town_patrol',
    'worker_defense',
    'bulletin_board',
    'farming'

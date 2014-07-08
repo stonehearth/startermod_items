@@ -6,6 +6,8 @@ function footman_class.promote(entity, json, talisman_uri)
 
    -- HACK: remove the talisman glow effect from the weapon
    radiant.entities.remove_effects(weapon)
+
+   stonehearth.combat:set_stance(entity, 'aggressive')
 end
 
 function footman_class.demote(entity)

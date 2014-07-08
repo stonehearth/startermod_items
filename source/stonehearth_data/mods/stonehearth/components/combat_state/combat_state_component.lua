@@ -6,12 +6,13 @@ function CombatStateComponent:__init()
 end
 
 function CombatStateComponent:initialize(entity, json)
+   self._entity = entity
    self._sv = self.__saved_variables:get_data()
 
    if not self._sv.initialized then
       self._sv.cooldowns = {}
       self._sv.is_panicking = false
-      self._sv.stance = 'aggressive'
+      self._sv.stance = 'defensive'
       self._sv.initialized = true
 
       if json then
@@ -71,13 +72,17 @@ function CombatStateComponent:get_assault_events()
    return self._assault_events
 end
 
+-- probably have three stances: 'aggressive', 'defensive', and 'passive'
 function CombatStateComponent:get_stance()
    return self._sv.stance
 end
 
 function CombatStateComponent:set_stance(stance)
-   self._sv.stance = stance
-   self.__saved_variables:mark_changed()
+   if stance ~= self._sv.stance then
+      self._sv.stance = stance
+      self.__saved_variables:mark_changed()
+      radiant.events.trigger(self._entity, 'stonehearth:stance')
+   end
 end
 
 function CombatStateComponent:is_panicking()
@@ -93,6 +98,7 @@ function CombatStateComponent:set_panicking_from(threat)
    local threat_id = threat and threat:get_id()
    self._sv.panicking_from_id = threat_id
    self.__saved_variables:mark_changed()
+   radiant.events.trigger(self._entity, 'stonehearth:panic')
 end
 
 function CombatStateComponent:_clean_combat_state()

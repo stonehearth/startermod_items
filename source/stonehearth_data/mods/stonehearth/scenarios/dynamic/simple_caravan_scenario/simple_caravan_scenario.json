@@ -31,10 +31,6 @@
             "min" : 1, 
             "max" : 2
          }, 
-         "stonehearth:trapper:knife" : {
-            "min" : 1, 
-            "max" : 2
-         }, 
          "stonehearth:wooden_sword" : {
             "min" : 1, 
             "max" : 4

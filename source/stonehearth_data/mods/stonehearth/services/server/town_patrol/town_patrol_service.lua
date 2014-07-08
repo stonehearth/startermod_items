@@ -1,23 +1,23 @@
-local PatrollableObject = require 'services.server.town_defense.patrollable_object'
-local log = radiant.log.create_logger('town_defense')
+local PatrollableObject = require 'services.server.town_patrol.patrollable_object'
+local log = radiant.log.create_logger('town_patrol')
 
-TownDefense = class()
+TownPatrol = class()
 
 -- Conventions adopted in this class:
 --   entity: a unit (like a footman)
 --   object: everything else, typically something that can be patrolled
 
-function TownDefense:__init()
+function TownPatrol:__init()
    -- traces for change of ownership of a patrollable object
    self._player_id_traces = {}
 end
 
-function TownDefense:initialize()
+function TownPatrol:initialize()
    self._sv = self.__saved_variables:get_data()
 
    -- push_object_state is called for us by trace_world_entities
    -- hold on to the trace so we have a refcount for it
-   self._world_objects_trace = radiant.terrain.trace_world_entities('town defense service', 
+   self._world_objects_trace = radiant.terrain.trace_world_entities('town patrol service', 
       function (id, object)
          self:_on_object_added(object)
       end,
@@ -48,23 +48,23 @@ function TownDefense:initialize()
    end
 end
 
-function TownDefense:destroy()
+function TownPatrol:destroy()
 end
 
-function TownDefense:get_patrol_route(entity)
+function TownPatrol:get_patrol_route(entity)
    local patrollable_object = self:_get_object_to_patrol(entity)
    return patrollable_object
 end
 
 -- returns true if all ok
 -- returns false if patrol route is now invalid
-function TownDefense:mark_patrol_started(entity, patrollable_object)
+function TownPatrol:mark_patrol_started(entity, patrollable_object)
    local acquired = patrollable_object:acquire_lease(entity)
    return acquired
 end
 
 -- TODO: automatically release leases after a certain time
-function TownDefense:mark_patrol_completed(entity, patrollable_object)
+function TownPatrol:mark_patrol_completed(entity, patrollable_object)
    patrollable_object:mark_visited()
 
    local released = patrollable_object:release_lease(entity)
@@ -77,7 +77,7 @@ function TownDefense:mark_patrol_completed(entity, patrollable_object)
 end
 
 -- returns the patrollable object that is the best fit for this entity
-function TownDefense:_get_object_to_patrol(entity)
+function TownPatrol:_get_object_to_patrol(entity)
    local location = radiant.entities.get_world_location(entity)
    local unleased_objects = self:_get_unleased_objects(entity)
    local ordered_objects = {}
@@ -108,7 +108,7 @@ end
 -- estimate the benefit/cost ratio of patrolling an object
 -- cost is the distance to travel to the object
 -- benefit is the amount of time since we last patrolled it
-function TownDefense:_calculate_patrol_score(start_location, patrollable_object)
+function TownPatrol:_calculate_patrol_score(start_location, patrollable_object)
    local distance = start_location:distance_to(patrollable_object:get_centroid())
    -- add the minimum cost to patrol the perimeter of a 1x1 object at distance 2
    -- this keeps really close objects from getting an overinflated score because there is
@@ -125,19 +125,19 @@ function TownDefense:_calculate_patrol_score(start_location, patrollable_object)
    return score
 end
 
-function TownDefense:_on_object_added(object)
+function TownPatrol:_on_object_added(object)
    if self:_is_patrollable(object) then
       self:_add_to_patrol_list(object)
    end
 end
 
-function TownDefense:_on_object_removed(object_id)
+function TownPatrol:_on_object_removed(object_id)
    self:_remove_from_patrol_list(object_id)
 end
 
-function TownDefense:_add_player_id_trace(object)
+function TownPatrol:_add_player_id_trace(object)
    local object_id = object:get_id()
-   local player_id_trace = object:add_component('unit_info'):trace_player_id('town defense')
+   local player_id_trace = object:add_component('unit_info'):trace_player_id('town patrol')
       :on_changed(
          function ()
             self:_on_player_id_changed(object)
@@ -148,25 +148,25 @@ function TownDefense:_add_player_id_trace(object)
    self._player_id_traces[object_id] = player_id_trace
 end
 
-function TownDefense:_remove_player_id_trace(object_id)
+function TownPatrol:_remove_player_id_trace(object_id)
    self._player_id_traces[object_id] = nil
 end
 
-function TownDefense:_on_player_id_changed(object)
+function TownPatrol:_on_player_id_changed(object)
    self:_remove_from_patrol_list(object:get_id())
    self:_add_to_patrol_list(object)
 end
 
-function TownDefense:_is_patrollable(object)
+function TownPatrol:_is_patrollable(object)
    if object == nil or not object:is_valid() then
       return false
    end
 
-   local entity_data = radiant.entities.get_entity_data(object, 'stonehearth:town_defense')
+   local entity_data = radiant.entities.get_entity_data(object, 'stonehearth:town_patrol')
    return entity_data and entity_data.auto_patrol == true
 end
 
-function TownDefense:_add_to_patrol_list(object)
+function TownPatrol:_add_to_patrol_list(object)
    local patrollable_object = radiant.create_controller('stonehearth:patrollable_object', object)
    local object_id = object:get_id()
    local player_id = radiant.entities.get_player_id(object)
@@ -186,7 +186,7 @@ function TownDefense:_add_to_patrol_list(object)
    self.__saved_variables:mark_changed()
 end
 
-function TownDefense:_remove_from_patrol_list(object_id)
+function TownPatrol:_remove_from_patrol_list(object_id)
    local player_id = self._sv.object_to_player_map[object_id]
    self._sv.object_to_player_map[object_id] = nil
 
@@ -204,7 +204,7 @@ function TownDefense:_remove_from_patrol_list(object_id)
    self.__saved_variables:mark_changed()
 end
 
-function TownDefense:_get_patrollable_objects(player_id)
+function TownPatrol:_get_patrollable_objects(player_id)
    local player_patrollable_objects = self._sv.patrollable_objects[player_id]
 
    if not player_patrollable_objects then
@@ -215,7 +215,7 @@ function TownDefense:_get_patrollable_objects(player_id)
    return player_patrollable_objects
 end
 
-function TownDefense:_get_unleased_objects(entity)
+function TownPatrol:_get_unleased_objects(entity)
    local player_id = radiant.entities.get_player_id(entity)
    local player_patrollable_objects = self:_get_patrollable_objects(player_id)
    local unleased_objects = {}
@@ -229,8 +229,8 @@ function TownDefense:_get_unleased_objects(entity)
    return unleased_objects
 end
 
-function TownDefense:_trigger_patrol_route_available(player_id)
-   radiant.events.trigger_async(stonehearth.town_defense, 'stonehearth:patrol_route_available', { player_id = player_id })
+function TownPatrol:_trigger_patrol_route_available(player_id)
+   radiant.events.trigger_async(stonehearth.town_patrol, 'stonehearth:patrol_route_available', { player_id = player_id })
 end
 
-return TownDefense
+return TownPatrol

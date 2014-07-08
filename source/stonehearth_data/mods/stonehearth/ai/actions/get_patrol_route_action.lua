@@ -2,7 +2,7 @@ local PatrolHelpers = require 'ai.actions.patrol_helpers'
 local OptimizedPathfinder = require 'ai.actions.optimized_pathfinder'
 local Point3 = _radiant.csg.Point3
 local Path = _radiant.sim.Path
-local log = radiant.log.create_logger('town_defense')
+local log = radiant.log.create_logger('town_patrol')
 
 local GetPatrolPoint = class()
 GetPatrolPoint.name = 'get patrol point'
@@ -25,13 +25,13 @@ function GetPatrolPoint:start_thinking(ai, entity, args)
 
    if not self._patrollable_object then
       self._listening = true
-      radiant.events.listen(stonehearth.town_defense, 'stonehearth:patrol_route_available', self, self._check_for_patrol_route)
+      radiant.events.listen(stonehearth.town_patrol, 'stonehearth:patrol_route_available', self, self._check_for_patrol_route)
    end
 end
 
 function GetPatrolPoint:stop_thinking(ai, entity, args)
    if self._listening then
-      radiant.events.unlisten(stonehearth.town_defense, 'stonehearth:patrol_route_available', self, self._check_for_patrol_route)
+      radiant.events.unlisten(stonehearth.town_patrol, 'stonehearth:patrol_route_available', self, self._check_for_patrol_route)
       self._listening = false
    end
 
@@ -51,7 +51,7 @@ function GetPatrolPoint:stop_thinking(ai, entity, args)
 end
 
 function GetPatrolPoint:start(ai, entity, args)
-   local proceed = stonehearth.town_defense:mark_patrol_started(entity, self._patrollable_object)
+   local proceed = stonehearth.town_patrol:mark_patrol_started(entity, self._patrollable_object)
    if not proceed then
       log:info('patrol route for entity %s is no longer valid', entity)
       -- in case ai:abort doesn't call stop_thinking
@@ -62,7 +62,7 @@ end
 
 function GetPatrolPoint:_check_for_patrol_route()
    local patrol_margin = 2
-   self._patrollable_object = stonehearth.town_defense:get_patrol_route(self._entity)
+   self._patrollable_object = stonehearth.town_patrol:get_patrol_route(self._entity)
 
    if self._patrollable_object then
       local waypoints = self._patrollable_object:get_waypoints(patrol_margin)

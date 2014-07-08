@@ -16,7 +16,7 @@
       }
    },
    "entity_data" : {
-      "stonehearth:town_defense" : {
+      "stonehearth:town_patrol" : {
          "auto_patrol" : true,
          "patrol_pattern" : "perimeter"
       }

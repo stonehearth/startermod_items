@@ -29,14 +29,9 @@ function FindTarget:start_thinking(ai, entity, args)
    -- might be ok for a unit not to have a sight sensor, but assert for now
    assert(self._sight_sensor and self._sight_sensor:is_valid())
 
-   local target = self:_get_target()
-
-   if target ~= nil and target:is_valid() then
-      ai:set_think_output({ target = target })
-      return
+   if not self:_find_target() then
+      self:_register_events()
    end
-
-   self:_register_events()
 end
 
 function FindTarget:stop_thinking(ai, entity, args)
@@ -49,7 +44,7 @@ function FindTarget:_register_events()
    if not self._registered then
       -- TODO: replace slow_poll with a listen on target table changed
       -- TODO: have engage add the engager to the target table
-      radiant.events.listen(radiant, 'stonehearth:slow_poll', self, self._on_find_target)
+      radiant.events.listen(radiant, 'stonehearth:slow_poll', self, self._find_target)
       -- radiant.events.listen(self._entity, 'stonehearth:combat:engage', self, self._on_engage)
       self._registered = true
    end
@@ -57,7 +52,7 @@ end
 
 function FindTarget:_unregister_events()
    if self._registered then
-      radiant.events.unlisten(radiant, 'stonehearth:slow_poll', self, self._on_find_target)
+      radiant.events.unlisten(radiant, 'stonehearth:slow_poll', self, self._find_target)
       -- radiant.events.unlisten(self._entity, 'stonehearth:combat:engage', self, self._on_engage)
       self._registered = false
    end
@@ -72,23 +67,20 @@ end
 --    end
 -- end
 
-function FindTarget:_on_find_target()
-   local target = self:_get_target()
+function FindTarget:_find_target()
+   local stance = stonehearth.combat:get_stance(self._entity)
+   if stance == 'passive' then
+      return false
+   end
+
+   local target = self:_calculate_target_cost_benefit()
 
    if target ~= nil and target:is_valid() then
       self._ai:set_think_output({ target = target })
       self:_unregister_events()
+      return true
    end
-end
-
-function FindTarget:_get_target()
-   local stance = stonehearth.combat:get_stance(self._entity)
-   if stance == 'passive' then
-      return nil
-   end
-
-   --return self:_calculate_target_simple()
-   return self:_calculate_target_cost_benefit()
+   return false
 end
 
 function FindTarget:_can_see_target(target)

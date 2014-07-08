@@ -50,7 +50,6 @@ function CombatIdleShuffle:run(ai, entity, args)
    end
 
    ai:execute('stonehearth:bump_allies', { distance = 2 })
-
    ai:execute('stonehearth:turn_to_face_entity', { entity = enemy })
    ai:execute('stonehearth:run_effect', { effect = 'combat_1h_idle' })
 end

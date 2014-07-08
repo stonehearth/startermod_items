@@ -386,8 +386,8 @@
       "actions:combat:attack:melee" : "file(ai/actions/combat/attack_melee_action.lua)",
       "actions:combat:attack:melee_adjacent" : "file(ai/actions/combat/attack_melee_adjacent_action.lua)",
       "actions:combat:defend_dispatcher" : "file(ai/actions/combat/defend_dispatcher.lua)",
-      "actions:combat:wait_for_assault" : "file(ai/actions/combat/wait_for_assault_action.lua)",
       "actions:combat:defend:melee" : "file(ai/actions/combat/defend_melee_action.lua)",
+      "actions:combat:defend:nop" : "file(ai/actions/combat/defend_nop_action.lua)",
       "actions:combat:idle_dispatcher" : "file(ai/actions/combat/combat_idle_dispatcher.lua)",
       "actions:combat:idle:ready" : "file(ai/actions/combat/combat_idle_ready_action.lua)",
       "actions:combat:idle:shuffle" : "file(ai/actions/combat/combat_idle_shuffle_action.lua)",
@@ -401,12 +401,19 @@
       "actions:combat:get_melee_range" : "file(ai/actions/combat/get_melee_range_action.lua)",
       "actions:combat:set_global_attack_cooldown" : "file(ai/actions/combat/set_global_attack_cooldown_action.lua)",
       "actions:combat:wait_for_global_attack_cooldown" : "file(ai/actions/combat/wait_for_global_attack_cooldown_action.lua)",
+      "actions:combat:wait_for_assault" : "file(ai/actions/combat/wait_for_assault_action.lua)",
       "actions:chase_entity" : "file(ai/actions/chase_entity_action.lua)",
       "actions:run_away_from_entity" : "file(ai/actions/run_away_from_entity_action.lua)",
+
       "actions:patrol" : "file(ai/actions/patrol_action.lua)",
       "actions:patrol:idle" : "file(ai/actions/patrol_idle_action.lua)",
       "actions:get_patrol_route" : "file(ai/actions/get_patrol_route_action.lua)",
       "actions:mark_patrol_completed" : "file(ai/actions/mark_patrol_completed_action.lua)",
+
+      "actions:town_defense:town_defense_dispatcher" : "file(ai/actions/town_defense/town_defense_dispatcher.lua)",
+      "actions:town_defense:town_defense_idle_dispatcher" : "file(ai/actions/town_defense/town_defense_idle_dispatcher.lua)",
+      "actions:town_defense:town_defense_idle_ready" : "file(ai/actions/town_defense/town_defense_idle_ready_action.lua)",
+      "actions:town_defense:town_defense_watcher" : "file(ai/actions/town_defense/town_defense_watcher_action.lua)",
 
       "actions:stockpile_arson" : "file(ai/actions/stockpile_arson_action.lua)",
       "actions:set_posture" : "file(ai/actions/set_posture_action.lua)",
@@ -904,6 +911,10 @@
       "disable_worker_combat": {
          "controller" : "file(call_handlers/worker_defense_call_handler.lua)",
          "endpoint" : "server"
+      },
+      "worker_combat_is_enabled": {
+         "controller" : "file(call_handlers/worker_defense_call_handler.lua)",
+         "endpoint" : "server"
       }
    },
    
@@ -929,7 +940,7 @@
       "returning_trader" : "file(scenarios/dynamic/returning_trader_scenario/returning_trader_scenario.lua)", 
 
       "target_table" : "file(components/target_tables/target_table.lua)",
-      "patrollable_object" : "file(services/server/town_defense/patrollable_object.lua)",
+      "patrollable_object" : "file(services/server/town_patrol/patrollable_object.lua)",
 
       "farmer_crop" : "file(components/farmer_field/farmer_crop.lua)"
    },
