@@ -203,7 +203,7 @@ function FarmerFieldComponent:change_default_crop(session, response, new_crop)
       total_region:add_cube(self:_get_bounds())
       table.insert(self._sv.crops, self:_add_crop(total_region))
    else
-      for crop in self._sv.crops do
+      for _, crop in pairs(self._sv.crops) do
          crop:change_default_crop(self:_get_next_queued_crop())
       end
    end
