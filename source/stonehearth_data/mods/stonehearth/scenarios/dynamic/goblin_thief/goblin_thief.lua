@@ -109,7 +109,6 @@ function GoblinThief:_on_spawn_jerk()
    local s_comp = self._sv._stockpile:get_component('stonehearth:stockpile')
    --TODO: Right now the filter is broken Why???
    --s_comp:set_filter({'resource wood'})
-   s_comp:set_should_steal(true)
 
    radiant.terrain.place_entity(self._sv._goblin, spawn_point)
 

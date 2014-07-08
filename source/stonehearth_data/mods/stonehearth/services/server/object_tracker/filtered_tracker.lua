@@ -60,7 +60,9 @@ function FilteredTracker:remove_item(entity_id)
    local key = self._sv.ids_to_keys[entity_id]
    local existing_value = self._sv.data[key]
    local value = self._remove_value_fn(self, entity_id, existing_value)
-   self._sv.data[key] = value
+   if key then
+      self._sv.data[key] = value
+   end
    self._sv.ids_to_keys[entity_id] = nil
 end
 

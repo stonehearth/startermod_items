@@ -131,7 +131,6 @@ function GoblinBrigands:_on_spawn()
    local s_comp = self._sv._stockpile:get_component('stonehearth:stockpile')
    --TODO: right now the filter is broken. Why???
    --s_comp:set_filter({'resource wood'})
-   s_comp:set_should_steal(true)
 
    self._sv._squad:place_squad(spawn_points[1])
 

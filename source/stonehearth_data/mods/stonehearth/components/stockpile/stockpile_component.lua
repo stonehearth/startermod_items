@@ -81,7 +81,7 @@ function StockpileComponent:initialize(entity, json)
    self._sv = self.__saved_variables:get_data()
    if not self._sv.stocked_items then
       -- creating...
-      self._sv.should_steal = false
+      --self._sv.should_steal = false
       self._sv.is_outbox = false
       self._sv.stocked_items = {}
       self._sv.item_locations = {}
@@ -166,11 +166,19 @@ function StockpileComponent:get_filter()
       -- *ALL* stockpiles with the same filter key, which is why this is
       -- implemented in terms of global functions, parameters to the filter
       -- function, and captured local variables.
-      filter_fn = function(entity)
-         if get_stockpile_containing_entity(entity) then
-            return false
+      filter_fn = function(item, worker)
+         local containing_component = get_stockpile_containing_entity(item)
+         local containing_entity
+         if containing_component then
+            containing_entity = containing_component:get_entity()
          end
-         return _can_stock_entity(entity, captured_filter)
+         if containing_entity then
+            local already_stocked = not radiant.entities.is_hostile(worker, containing_entity)
+            if already_stocked then
+               return false
+            end
+         end        
+         return _can_stock_entity(item, captured_filter)
       end
 
       -- remember the filter function for the future
@@ -250,14 +258,6 @@ end
 
 function StockpileComponent:is_outbox(value)
    return self._sv.is_outbox
-end
-
-function StockpileComponent:set_should_steal(value)
-   self._sv.should_steal = value
-end
-
-function StockpileComponent:should_steal(value)
-   return self._sv.should_steal
 end
 
 function StockpileComponent:_get_bounds()
