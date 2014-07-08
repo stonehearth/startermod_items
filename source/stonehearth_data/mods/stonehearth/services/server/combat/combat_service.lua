@@ -215,6 +215,8 @@ function CombatService:set_panicking_from(entity, threat)
 
    local combat_state = self:get_combat_state(entity)
    combat_state:set_panicking_from(threat)
+
+   radiant.events.trigger_async(entity, 'stonehearth:combat:panic', { threat = threat })
 end
 
 function CombatService:get_panicking_from(entity)

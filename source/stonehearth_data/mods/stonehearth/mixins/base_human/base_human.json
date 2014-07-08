@@ -93,6 +93,9 @@
             }
          }
       },
+      "stonehearth:combat_state" : {
+         "stance" : "defensive"
+      },
       "stonehearth:commands" : {
          "commands" : [            
          ]
