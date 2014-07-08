@@ -8,7 +8,7 @@ MarkPatrolComplete.version = 2
 MarkPatrolComplete.priority = 1
 
 function MarkPatrolComplete:run(ai, entity, args)
-   stonehearth.town_defense:mark_patrol_completed(entity, args.patrollable_object)
+   stonehearth.town_patrol:mark_patrol_completed(entity, args.patrollable_object)
 end
 
 return MarkPatrolComplete

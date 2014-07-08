@@ -929,7 +929,7 @@
       "returning_trader" : "file(scenarios/dynamic/returning_trader_scenario/returning_trader_scenario.lua)", 
 
       "target_table" : "file(components/target_tables/target_table.lua)",
-      "patrollable_object" : "file(services/server/town_defense/patrollable_object.lua)",
+      "patrollable_object" : "file(services/server/town_patrol/patrollable_object.lua)",
 
       "farmer_crop" : "file(components/farmer_field/farmer_crop.lua)"
    },
