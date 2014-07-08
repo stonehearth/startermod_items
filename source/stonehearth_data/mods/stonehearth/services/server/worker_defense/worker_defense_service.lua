@@ -29,16 +29,24 @@ end
 function WorkerDefense:destroy()
 end
 
+function WorkerDefense:worker_combat_is_enabled(player_id)
+   return self._sv.worker_combat_enabled[player_id]
+end
+
 function WorkerDefense:enable_worker_combat(player_id)
    local population = stonehearth.population:get_population(player_id)
    local citizens = population:get_citizens()
    
    for _, citizen in pairs(citizens) do
       if self:_has_eligible_profession(citizen) then
+         -- inject the combat ai
          local ai_handles = self:_inject_worker_combat_ai(citizen)
+
+         -- save the ai handles so we can remove them later
          local injected_ais = self:_get_injected_ais(player_id)
          injected_ais[citizen:get_id()] = ai_handles
 
+         -- TODO: should we make the ai permenant and just toggle the stance?
          local combat_state = citizen:add_component('stonehearth:combat_state')
          combat_state:set_stance('aggressive')
       end

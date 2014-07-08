@@ -410,6 +410,11 @@
       "actions:get_patrol_route" : "file(ai/actions/get_patrol_route_action.lua)",
       "actions:mark_patrol_completed" : "file(ai/actions/mark_patrol_completed_action.lua)",
 
+      "actions:town_defense:town_defense_dispatcher" : "file(ai/actions/town_defense/town_defense_dispatcher.lua)",
+      "actions:town_defense:town_defense_idle_dispatcher" : "file(ai/actions/town_defense/town_defense_idle_dispatcher.lua)",
+      "actions:town_defense:town_defense_idle_ready" : "file(ai/actions/town_defense/town_defense_idle_ready_action.lua)",
+      "actions:town_defense:town_defense_watcher" : "file(ai/actions/town_defense/town_defense_watcher_action.lua)",
+
       "actions:stockpile_arson" : "file(ai/actions/stockpile_arson_action.lua)",
       "actions:set_posture" : "file(ai/actions/set_posture_action.lua)",
       "actions:unset_posture" : "file(ai/actions/unset_posture_action.lua)",
@@ -904,6 +909,10 @@
          "endpoint" : "server"
       },
       "disable_worker_combat": {
+         "controller" : "file(call_handlers/worker_defense_call_handler.lua)",
+         "endpoint" : "server"
+      },
+      "worker_combat_is_enabled": {
          "controller" : "file(call_handlers/worker_defense_call_handler.lua)",
          "endpoint" : "server"
       }

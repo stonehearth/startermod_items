@@ -35,6 +35,7 @@ local constants = {
          AMBIENT_PET_BEHAVIOR = 10,
          CRAFT = 15,
          BASIC_NEEDS = 20,
+         TOWN_DEFENSE = 50,
          COMBAT = 100,
          UNIT_CONTROL = 1000,
          COMPELLED_BEHAVIOR = 9999999,
@@ -79,6 +80,11 @@ local constants = {
          IDLE = 1,
          ACTIVE = 10,
          PANIC = 20,
+      },
+
+      -- for non-combat activities that need to get done during combat (rally, raise drawbridge, man battlestations, etc)
+      town_defense = {
+         IDLE = 1,
       },
 
       -- Priorites of commands issued by the player to a unit
