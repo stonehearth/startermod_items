@@ -2,7 +2,7 @@ local log = radiant.log.create_logger('combat')
 
 local WaitForAssault = class()
 
-WaitForAssault.name = 'wait for assault event'
+WaitForAssault.name = 'wait for assault'
 WaitForAssault.does = 'stonehearth:combat:wait_for_assault'
 WaitForAssault.args = {}
 WaitForAssault.think_output = {

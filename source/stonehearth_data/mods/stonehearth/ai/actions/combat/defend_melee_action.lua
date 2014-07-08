@@ -9,7 +9,7 @@ DefendMelee.args = {
    assault_events = 'table'   -- an array of assault events (AssaultContexts)
 }
 DefendMelee.version = 2
-DefendMelee.priority = 1
+DefendMelee.priority = 2
 DefendMelee.weight = 1
 
 function DefendMelee:__init(entity)
