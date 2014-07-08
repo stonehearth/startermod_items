@@ -313,7 +313,8 @@ struct H3DMatRes
 		SampNameStr,
 		SampTexResI,
 		UnifNameStr,
-		UnifValueF4
+		UnifValueF4,
+      AnimatedTexTime
 	};
 };
 
@@ -2220,6 +2221,8 @@ DLL void h3dAdvanceEmitterTime( H3DNode emitterNode, float timeDelta );
 		true if Emitter will no more emit any particles, otherwise or in case of failure false
 */
 DLL bool h3dHasEmitterFinished( H3DNode emitterNode );
+
+DLL void h3dAdvanceAnimatedTextureTime(float timeDelta);
 
 DLL void h3dSetCurrentRenderTime( float time );
 

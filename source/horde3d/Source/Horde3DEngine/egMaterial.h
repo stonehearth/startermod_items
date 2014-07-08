@@ -38,7 +38,8 @@ struct MaterialResData
 		SampNameStr,
 		SampTexResI,
 		UnifNameStr,
-		UnifValueF4
+		UnifValueF4,
+      AnimatedTexTime
 	};
 };
 
@@ -48,6 +49,10 @@ struct MatSampler
 {
 	std::string       name;
 	PTextureResource  texRes;
+   
+   std::vector<ResHandle> animatedTextures;
+   float             currentAnimationTime;
+   float             animationRate;  // fps
 };
 
 
@@ -96,6 +101,7 @@ public:
 
 private:
 	bool raiseError( std::string const& msg, int line = -1 );
+   void updateSamplerAnimation(int samplerNum, float animTime);
 
 private:
    PMaterialResource           _parentMaterial;

@@ -187,6 +187,7 @@ protected:
 	ResHandle addResource( Resource &res );
 
 protected:
+   std::unordered_map<ResHandle, Resource *>::const_iterator _iterator;
 	std::unordered_map<ResHandle, Resource *>         _resources;
 	std::map< int, ResourceRegEntry >  _registry;  // Registry of resource types
 };

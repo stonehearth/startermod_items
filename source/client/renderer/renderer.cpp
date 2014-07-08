@@ -1056,6 +1056,7 @@ void Renderer::RenderOneFrame(int now, float alpha)
    float delta = (now - last_render_time_) / 1000.0f;
    h3dRadiantAdvanceCubemitterTime(delta);
    h3dRadiantAdvanceAnimatedLightTime(delta);
+   h3dAdvanceAnimatedTextureTime(delta);
 
    // Remove all overlays
    h3dClearOverlays();
