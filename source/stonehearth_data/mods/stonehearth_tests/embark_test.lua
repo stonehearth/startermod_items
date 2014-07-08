@@ -82,7 +82,7 @@ function EmbarkTest:__init()
 
 
    -- Introduce a new person
-   self:at(30000,  function()
+   self:at(10000,  function()
          stonehearth.dynamic_scenario:force_spawn_scenario('Goblin Thief')
       end)
 

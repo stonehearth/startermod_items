@@ -4,6 +4,7 @@ local Point3 = _radiant.csg.Point3
 local Region3 = _radiant.csg.Region3
 
 local PathFinder = class()
+local PATHFINDERS_CRASH_WHEN_GCED = {}
 
 -- called to initialize the component on creation and loading.
 --
@@ -35,6 +36,10 @@ function PathFinder:find_path_to_item_type(location, filter_fn, solved_cb)
             self._pathfinders[pfkey] = nil
          end)
       self._pathfinders[pfkey] = pf
+
+      -- xxx: =(  remove this code as soon as we fix the GC problem with
+      -- pathfinders!
+      table.insert(PATHFINDERS_CRASH_WHEN_GCED, pf)
    end
    self.__saved_variables:mark_changed()
 
