@@ -4,7 +4,7 @@ local Point3 = _radiant.csg.Point3
 local rng = _radiant.csg.get_default_rng()
 
 function GoblinBrigands:can_spawn()
-   return true
+   return false --true
 end
 
 --[[ 
@@ -153,6 +153,8 @@ end
 function GoblinBrigands:_thief_killed(e)
    radiant.events.unlisten(self._sv._thief, 'stonehearth:carry_block:carrying_changed', self, self._theft_event)
    radiant.events.unlisten(self._sv._thief, 'radiant:entity:pre_destroy', self, self._thief_killed)
+
+   radiant.events.trigger_async(stonehearth.linear_combat, 'stonehearth:goblin_killed')
 
    if self._sv.notification_bulletin then
       local bulletin_id = self._sv.notification_bulletin:get_id()

@@ -3,7 +3,7 @@ local rng = _radiant.csg.get_default_rng()
 
 
 function GoblinThief:can_spawn()
-   return true
+   return false --true
 end
 
 --[[ 
@@ -121,6 +121,8 @@ function GoblinThief:_goblin_killed(e)
    radiant.events.unlisten(self._sv._stockpile, 'stonehearth:item_added', self, self._item_added)
    radiant.events.unlisten(self._sv._goblin, 'radiant:entity:pre_destroy', self, self._goblin_killed)
    radiant.events.unlisten(self._sv._goblin, 'stonehearth:carry_block:carrying_changed', self, self._theft_event)
+
+   radiant.events.trigger_async(stonehearth.linear_combat, 'stonehearth:goblin_killed')
 
    radiant.entities.destroy_entity(self._sv._stockpile)
    self._sv._stockpile = nil
