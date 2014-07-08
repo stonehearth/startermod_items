@@ -203,7 +203,7 @@ function FarmingService:_get_score_for_farm(entity)
 
    for x=1, field_size.x do
       for y=1, field_size.y do
-         local field_spacer = field_contents[x][y].plot
+         local field_spacer = field_contents[x][y]
          if field_spacer then
             local dirt_plot_component = field_spacer:get_component('stonehearth:dirt_plot')
             if dirt_plot_component then

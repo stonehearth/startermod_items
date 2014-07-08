@@ -72,13 +72,11 @@ function FarmerFieldRenderer:_update_item_states(mode, item_map)
    end
    for id, item in pairs(item_map) do
       if item:is_valid() then
-         local re = _radiant.client.get_render_entity(item)
-         if re ~= nil then
-            local kind = self:_mode_to_material_kind(mode)
-            local material = re:get_material_path(kind)           
-            re:set_material_override(material)
-            self:_update_query_flag(re, mode)
-         end
+         local re = _radiant.client.create_render_entity(item)
+         local kind = self:_mode_to_material_kind(mode)
+         local material = re:get_material_path(kind)           
+         re:set_material_override(material)
+         self:_update_query_flag(re, mode)
       end
    end
 end
@@ -95,11 +93,12 @@ function FarmerFieldRenderer:_diff_and_update_item_states(updated_items)
    local added_items = {}
    local temp_items = {}
 
-   for id, item in pairs(self._items) do
-      temp_items[id] = item
+   for _, item in pairs(self._items) do
+      temp_items[item:get_id()] = item
    end
 
-   for id, item in pairs(updated_items) do
+   for _, item in pairs(updated_items) do
+      local id = item:get_id()
       if temp_items[id] == nil then
          added_items[id] = item
       end
@@ -120,36 +119,21 @@ end
 
 function FarmerFieldRenderer:_update()
    local data = self._datastore:get_data()
-   if data and data.size then
+   if data then
       local contents = {}
 
-      for x=1, data.size.x do
-         for y=1, data.size.y do
-            local plot = data.contents[x][y].plot
+      for _, row in pairs(data.contents) do
+         for _, plot in pairs(row) do
             table.insert(contents, plot)
-            
-            --- XXX, grab the plant from the plot and add it to the contents.
-            -- this method doesn't work because we're client side and can't query
-            -- lua components from entities
-            --[[
-            local dirt_plot_component = plot:get_component('stonehearth:dirt_plot');
-
-            if dirt_plot_component then
-               local plant = dirt_plot_component:get_contents()
-               if plant then
-                  table.insert(contents, plant)
-               end
-            end
-            ]]
          end
       end
 
       self:_diff_and_update_item_states(contents);
       self._items = contents
 
-      local size = data.size
-      if self._size ~= size then
-         self._size = size
+
+      if self._size ~= data.size then
+         self._size = data.size
          self:_regenerate_node()
       end
    end

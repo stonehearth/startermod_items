@@ -82,7 +82,7 @@ end
 function FarmerCrop:get_field_spacer(location)
    local x_offset = location.x - self._sv.location.x + 1
    local z_offset = location.z - self._sv.location.z + 1
-   return self._sv.field_contents[x_offset][z_offset].plot
+   return self._sv.field_contents[x_offset][z_offset]
 end
 
 
@@ -148,7 +148,7 @@ end
 function FarmerCrop:notify_planting_done(location)
    local x_offset = location.x - self._sv.location.x + 1
    local z_offset = location.z - self._sv.location.z + 1
-   local dirt_plot = self._sv.field_contents[x_offset][z_offset].plot
+   local dirt_plot = self._sv.field_contents[x_offset][z_offset]
    local dirt_plot_comp = dirt_plot:get_component('stonehearth:dirt_plot')
 
    dirt_plot_comp:plant_crop(self._sv.crop_type)

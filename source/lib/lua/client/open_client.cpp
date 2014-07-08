@@ -210,11 +210,23 @@ std::weak_ptr<RenderEntity> Client_CreateRenderEntity(H3DNode parent, luabind::o
    }
 
    if (entity) {
-      std::shared_ptr<RenderEntity> re = Renderer::GetInstance().CreateRenderEntity(parent, entity);
-      re->SetParentOverride(true);
-      result = re;
+      auto existing_re = Renderer::GetInstance().GetRenderEntity(entity);
+
+      if (!existing_re) {
+         std::shared_ptr<RenderEntity> re = Renderer::GetInstance().CreateRenderEntity(parent, entity);
+         re->SetParentOverride(true);
+         result = re;
+      } else {
+         result = existing_re;
+      }
    }
    return result;
+}
+
+
+std::weak_ptr<RenderEntity> Client_CreateRenderEntityUnparented(luabind::object arg)
+{
+   return Client_CreateRenderEntity(RenderNode::GetUnparentedNode(), arg);
 }
 
 static RaycastResult
@@ -459,6 +471,7 @@ void lua::client::open(lua_State* L)
             def("create_authoring_entity",         &Client_CreateAuthoringEntity),
             def("destroy_authoring_entity",        &Client_DestroyAuthoringEntity),
             def("create_render_entity",            &Client_CreateRenderEntity),
+            def("create_render_entity",            &Client_CreateRenderEntityUnparented),
             def("get_render_entity",               &Client_GetRenderEntity),
             def("capture_input",                   &Client_CaptureInput),
             def("query_scene",                     &Client_QueryScene),

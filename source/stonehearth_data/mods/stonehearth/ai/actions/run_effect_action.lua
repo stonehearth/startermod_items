@@ -1,6 +1,7 @@
 local RunEffectAction = class()
 
 local Entity = _radiant.om.Entity
+local Point3 = _radiant.csg.Point3
 
 RunEffectAction.name = 'run effect'
 RunEffectAction.does = 'stonehearth:run_effect'
@@ -26,6 +27,10 @@ RunEffectAction.args = {
       type = Entity,
       default = stonehearth.ai.NIL,
    },
+   facing_point = {
+      type = Point3,
+      default = stonehearth.ai.NIL,
+   }
 }
 RunEffectAction.version = 2
 RunEffectAction.priority = 1
@@ -37,6 +42,8 @@ function RunEffectAction:run(ai, entity, args)
 
    if args.facing_entity then
       radiant.entities.turn_to_face(entity, args.facing_entity)
+   elseif args.facing_point then
+      radiant.entities.turn_to_face(entity, args.facing_point)      
    end
 
    local times = args.times

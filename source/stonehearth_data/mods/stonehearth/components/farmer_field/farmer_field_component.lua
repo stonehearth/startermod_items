@@ -1,15 +1,12 @@
-local Point2 = _radiant.csg.Point2
-
 --[[
    Stores data about the field in question
 ]]
-
---local farming_service = stonehearth.farming
 
 local FarmerFieldComponent = class()
 FarmerFieldComponent.__classname = 'FarmerFieldComponent'
 
 local Cube3 = _radiant.csg.Cube3
+local Point2 = _radiant.csg.Point2
 local Point3 = _radiant.csg.Point3
 local Region3 = _radiant.csg.Region3
 local rng = _radiant.csg.get_default_rng()
@@ -102,7 +99,7 @@ function FarmerFieldComponent:destroy()
    --Unlisten on all the field plot things
    for x=1, self._sv.size.x do
       for y=1, self._sv.size.y do
-         local field_spacer = self._sv.contents[x][y].plot
+         local field_spacer = self._sv.contents[x][y]
          if field_spacer then
             local dirt_plot_component = field_spacer:get_component('stonehearth:dirt_plot')
             if dirt_plot_component then
@@ -139,12 +136,9 @@ function FarmerFieldComponent:create_dirt_plots(town, location, size)
    radiant.terrain.place_entity(self:get_soil_layer(), location)
 
    for x=1, self._sv.size.x do
-      self._sv.contents[x] = {}
+      table.insert(self._sv.contents, {})
       for y=1, self._sv.size.y do
-         --init the dirt plot
-         local field_spacer = self:_init_dirt_plot(location, x, y)
-         self._sv.contents[x][y] = {}
-         self._sv.contents[x][y].plot = field_spacer
+         table.insert(self._sv.contents[x], nil)
       end
    end
 
@@ -162,7 +156,7 @@ end
 function FarmerFieldComponent:get_field_spacer(location)
    local x_offset = location.x - self._sv.location.x + 1
    local z_offset = location.z - self._sv.location.z + 1
-   return self._sv.contents[x_offset][z_offset].plot
+   return self._sv.contents[x_offset][z_offset]
 end
 
 
@@ -173,14 +167,14 @@ function FarmerFieldComponent:_init_dirt_plot(location, x, y)
    local render_info = field_spacer:add_component('render_info')
    render_info:set_model_variant('untilled_ground')
    local dirt_plot_component = field_spacer:get_component('stonehearth:dirt_plot')
-   dirt_plot_component:set_field(self._entity, {x=x, y=y})
+   dirt_plot_component:set_field(self._entity, Point2(x, y))
 
    -- every even column in the farm is a furrow
    if x % 2 == 0 then
       dirt_plot_component:set_furrow(true)
    end
 
-   local grid_location = Point3(location.x + x-1, 0, location.z + y-1)
+   local grid_location = Point3(location.x, 0, location.z)
    radiant.terrain.place_entity(field_spacer, grid_location)
 
    return field_spacer
@@ -243,7 +237,8 @@ end
 
 function FarmerFieldComponent:notify_till_location_finished(location)
    local offset = location - radiant.entities.get_world_grid_location(self._entity)
-   local field_spacer = self._sv.contents[offset.x + 1][offset.z + 1].plot
+   local field_spacer = self:_init_dirt_plot(location, offset.x + 1, offset.y + 1)
+   self._sv.contents[offset.x + 1][offset.z + 1] = field_spacer
    local local_fertility = rng:get_gaussian(self._sv.general_fertility, stonehearth.constants.soil_fertility.VARIATION)
    local dirt_plot_component = field_spacer:get_component('stonehearth:dirt_plot')
 
