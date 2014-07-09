@@ -51,10 +51,6 @@ SET(RIDL_SOURCES
     render_info.ridl.py
     sensor.ridl.py
     sensor_list.ridl.py
-    target_table.ridl.py
-    target_tables.ridl.py
-    target_table_entry.ridl.py
-    target_table_group.ridl.py
     terrain.ridl.py
     unit_info.ridl.py
     vertical_pathing_region.ridl.py
@@ -85,10 +81,6 @@ add_library(om_components STATIC
             model_variants.cpp
             sensor.cpp
             sensor_list.cpp
-            target_tables.cpp
-            target_table.cpp
-            target_table_group.cpp
-            target_table_entry.cpp
             terrain.cpp
             vertical_pathing_region.cpp
             item.cpp

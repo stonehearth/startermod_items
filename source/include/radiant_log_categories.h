@@ -71,7 +71,6 @@
    BEGIN_GROUP(om) \
       ADD_CATEGORY(entity) \
       ADD_CATEGORY(region) \
-      ADD_CATEGORY(target_tables) \
       ADD_CATEGORY(destination) \
       ADD_CATEGORY(mob) \
    END_GROUP(om) \
