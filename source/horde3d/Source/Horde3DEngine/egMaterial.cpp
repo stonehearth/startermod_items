@@ -444,6 +444,7 @@ void MaterialResource::setElemParamF( int elem, int elemIdx, int param, int comp
       switch (param) {
       case MaterialResData::AnimatedTexTime:
          updateSamplerAnimation(elemIdx, value);
+         return;
          break;
       }
       break;
