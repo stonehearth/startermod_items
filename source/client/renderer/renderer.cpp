@@ -1311,7 +1311,7 @@ std::shared_ptr<RenderEntity> Renderer::CreateRenderEntity(H3DNode parent, om::E
 {
    std::shared_ptr<RenderEntity> result = GetRenderEntity(entity);
    if (result) {
-      if (result->GetParent() != parent) {
+      if (parent != RenderNode::GetUnparentedNode()) {
          result->SetParent(parent);
       }
       return result;
