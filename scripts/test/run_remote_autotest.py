@@ -174,7 +174,7 @@ def run_perf_tests(slave_json, test_group, test_script, test_func, configs_json,
       used_slaves = [(slave_json['machines'][machine_name]['ip_address'], machine_name) for machine_name in config['machines'] ]
 
       if len(used_slaves) == 0:
-        return
+        continue
 
       threads = [ TestThread('http://' + slave[0] + ':8086/run/', slave[1], test_group, test_script, test_func, file_location, config['settings']) for slave in used_slaves ]
       
