@@ -173,6 +173,9 @@ def run_perf_tests(slave_json, test_group, test_script, test_func, configs_json,
       config = configs_json[config_name]
       used_slaves = [(slave_json['machines'][machine_name]['ip_address'], machine_name) for machine_name in config['machines'] ]
 
+      if len(used_slaves) == 0:
+        return
+
       threads = [ TestThread('http://' + slave[0] + ':8086/run/', slave[1], test_group, test_script, test_func, file_location, config['settings']) for slave in used_slaves ]
       
       for thread in threads:
@@ -254,11 +257,6 @@ build_root = sh_root + 'build/'
 
 slave_json = read_json_file(test_script_root + './tester_slaves.json')
 machines_json = slave_json['machines']
-slaves = [ (machines_json[machine_name]['ip_address'], machine_name) for machine_name in slave_json['machines'] ]
-
-# If not explicitly stated, just run on one machine.  For now, pick machine 0.
-if not '-a' in sys.argv:
-  slaves = [slaves[0]]
 
 # Default to everything (does not include performance tests!)
 test_group = 'all'
@@ -284,6 +282,11 @@ if '-p' in sys.argv:
    output_file = build_root + 'combined_results.shperf.json'
    write_perf_results_to_json_file(results, output_file)
 else:
+   slaves = [ (machines_json[machine_name]['ip_address'], machine_name) for machine_name in slave_json['machines'] ]
+
+   # If not explicitly stated, just run on one machine.  For now, pick machine 0.
+   if not '-a' in sys.argv:
+      slaves = [slaves[0]]
    # Normal autotests
    results = run_tests(slaves, test_group, file_location)
    output_file = build_root + 'combined_results.shtest.json'
