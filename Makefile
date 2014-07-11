@@ -98,7 +98,7 @@ run-all-tests-remote:
 .PHONY: run-all-perf-tests-remote
 run-all-perf-tests-remote:
 	scripts/test/run_remote_autotest.py -p -g perf_all
-   curl -F results=@build/combined_results.shperf.json http://10.1.10.51:8087/_result?build_number=$(BAMBOO_BUILD_NUMBER)
+	curl -F results=@build/combined_results.shperf.json http://10.1.10.51:8087/_result?build_number=$(BAMBOO_BUILD_NUMBER)
 
 # Collect performance data from a local build.  Invokes like:
 # make run-perf-exp SCRIPT=perf_camera_orbit.lua FUNC=orbit CONFIG=ultra_quality DESC=description_goes_here
