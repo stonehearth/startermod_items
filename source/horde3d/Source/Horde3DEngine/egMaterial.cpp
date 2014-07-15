@@ -43,6 +43,11 @@ Resource *MaterialResource::clone()
 	MaterialResource *res = new MaterialResource( "", _flags );
 
 	*res = *this;
+
+   // When cloning a resource, reset its animation time to zero.
+   for (auto& s : res->_samplers) {
+      s.currentAnimationTime = 0;
+   }
 	
 	return res;
 }

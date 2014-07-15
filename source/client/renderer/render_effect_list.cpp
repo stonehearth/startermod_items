@@ -461,6 +461,7 @@ ActivityOverlayEffect::ActivityOverlayEffect(RenderEntity& e, om::EffectPtr effe
 
 ActivityOverlayEffect::~ActivityOverlayEffect()
 {
+   h3dRemoveResource(_matRes);
 }
 
 bool ActivityOverlayEffect::PositionOverlayNode()
@@ -475,8 +476,12 @@ bool ActivityOverlayEffect::PositionOverlayNode()
 
    h3dSetNodeTransform(_hud->getHandle(), 0, maxY - minY + 4, 0, 0, 0, 0, 1, 1, 1);
 
+   // Because there may be animated textures associated with the material, we clone the resource
+   // so that all related nodes can animate at their own pace.
+   // This is basically a hack until I put in a material_instance/material_template distinction.
    H3DRes mat = h3dAddResource(H3DResTypes::Material, _material.c_str(), 0);
-   _hud->addScreenspaceRect(_overlayWidth, _overlayHeight, (int)(-_overlayWidth / 2.0f), _yOffset, Horde3D::Vec4f(1, 1, 1, 1), mat);
+   _matRes = h3dCloneResource(mat, "");
+   _hud->addScreenspaceRect(_overlayWidth, _overlayHeight, (int)(-_overlayWidth / 2.0f), _yOffset, Horde3D::Vec4f(1, 1, 1, 1), _matRes);
    return true;
 }
 
