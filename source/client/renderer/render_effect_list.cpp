@@ -480,6 +480,8 @@ bool ActivityOverlayEffect::PositionOverlayNode()
    // so that all related nodes can animate at their own pace.
    // This is basically a hack until I put in a material_instance/material_template distinction.
    H3DRes mat = h3dAddResource(H3DResTypes::Material, _material.c_str(), 0);
+   // Can't clone until we load!
+   Renderer::GetInstance().LoadResources();
    _matRes = h3dCloneResource(mat, "");
    _hud->addScreenspaceRect(_overlayWidth, _overlayHeight, (int)(-_overlayWidth / 2.0f), _yOffset, Horde3D::Vec4f(1, 1, 1, 1), _matRes);
    return true;
