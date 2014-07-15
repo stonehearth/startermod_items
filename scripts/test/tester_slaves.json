@@ -2,6 +2,9 @@
    "machines" : {
       "radeon7850-corei5@3.4GHz" : {
          "ip_address" : "10.1.10.60"
+      },
+      "radeon3450-PentiumDual@2.2GHz": {
+         "ip_address" : "10.1.10.67"
       }
    }      
 }

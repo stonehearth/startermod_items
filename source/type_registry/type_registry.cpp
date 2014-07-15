@@ -60,7 +60,6 @@ using namespace radiant;
    OBJECT_TYPE(om::EffectListRef,            om::EffectList::DmType,                RegisterGameObjectType) \
    OBJECT_TYPE(om::RenderInfoRef,            om::RenderInfo::DmType,                RegisterGameObjectType) \
    OBJECT_TYPE(om::SensorListRef,            om::SensorList::DmType,                RegisterGameObjectType) \
-   OBJECT_TYPE(om::TargetTablesRef,          om::TargetTables::DmType,              RegisterGameObjectType) \
    OBJECT_TYPE(om::DestinationRef,           om::Destination::DmType,               RegisterGameObjectType) \
    OBJECT_TYPE(om::UnitInfoRef,              om::UnitInfo::DmType,                  RegisterGameObjectType) \
    OBJECT_TYPE(om::ItemRef,                  om::Item::DmType,                      RegisterGameObjectType) \
@@ -68,9 +67,6 @@ using namespace radiant;
    OBJECT_TYPE(om::EntityRef,                om::Entity::DmType,                    RegisterGameObjectType) \
    OBJECT_TYPE(om::EffectPtr,                om::Effect::DmType,                    RegisterGameObjectType) \
    OBJECT_TYPE(om::SensorRef,                om::Sensor::DmType,                    RegisterGameObjectType) \
-   OBJECT_TYPE(om::TargetTablePtr,           om::TargetTable::DmType,               RegisterGameObjectType) \
-   OBJECT_TYPE(om::TargetTableGroupPtr,      om::TargetTableGroup::DmType,          RegisterGameObjectType) \
-   OBJECT_TYPE(om::TargetTableEntryPtr,      om::TargetTableEntry::DmType,          RegisterGameObjectType) \
    OBJECT_TYPE(om::DataStorePtr,             om::DataStore::DmType,                 RegisterGameObjectType) \
    OBJECT_TYPE(om::ModelLayerPtr,            om::ModelLayer::DmType,                RegisterGameObjectType) \
    OBJECT_TYPE(om::ErrorBrowserPtr,          om::ErrorBrowser::DmType,              RegisterGameObjectType) \

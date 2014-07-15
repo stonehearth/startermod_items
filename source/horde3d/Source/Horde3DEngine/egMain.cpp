@@ -1102,6 +1102,19 @@ DLLEXP void h3dAdvanceEmitterTime( NodeHandle emitterNode, float timeDelta )
 }
 
 
+DLLEXP void h3dAdvanceAnimatedTextureTime(float timeDelta)
+{
+   ResHandle r = 0;
+   while ((r = h3dGetNextResource(ResourceTypes::Material, r)) != 0) {
+      int numSamplers = h3dGetResElemCount(r, MaterialResData::SamplerElem);
+      for (int i = 0; i < numSamplers; i++) {
+         float currTime = h3dGetResParamF(r, MaterialResData::SamplerElem, i, MaterialResData::AnimatedTexTime, 0);
+         h3dSetResParamF(r, MaterialResData::SamplerElem, i, MaterialResData::AnimatedTexTime, 0, currTime + timeDelta);
+      }
+   }
+}
+
+
 DLLEXP bool h3dHasEmitterFinished( NodeHandle emitterNode )
 {
 	SceneNode *sn = Modules::sceneMan().resolveNodeHandle( emitterNode );

@@ -6,8 +6,6 @@ NEXT_ID = 0
 --
 local SharedBfsPathFinder = class()
 
-local PATHFINDERS_CRASH_WHEN_GCED = {}
-
 -- create a shared bfs pathfinder.
 --
 --    @param entity - the source entity
@@ -91,10 +89,6 @@ function SharedBfsPathFinder:_start_pathfinder()
                               return self:_is_valid_destination(target)
                            end)
                         :start()
-
-   -- xxx: =(  remove this code as soon as we fix the GC problem with
-   -- pathfinders!
-   table.insert(PATHFINDERS_CRASH_WHEN_GCED, self._pathfinder)
 end
 
 -- stops the pathfinder.  the pathfinder is stopped during destruction, which happens right

@@ -6,6 +6,9 @@ import os
 import re
 import subprocess
 import sys
+import ctypes
+
+SEM_NOGPFAULTERRORBOX = 0x0002 # From MSDN
 
 
 def close_test(passed, script, test, time_delta):
@@ -110,7 +113,9 @@ def run_tests():
 
    print 'Running Stonehearth autotests with exe at ' + sh_exe_path + ' and args: ' + sh_args
 
-   return_code = subprocess.call(sh_command, cwd=sh_cwd)
+   # Disable that annoying crash diagnosis window.
+   ctypes.windll.kernel32.SetErrorMode(SEM_NOGPFAULTERRORBOX);
+   return_code = subprocess.Popen(sh_command, cwd=sh_cwd).wait()
 
    print 'Completed in ' + str((datetime.datetime.now() - t_start).total_seconds()) + ' seconds.'
 

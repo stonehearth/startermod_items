@@ -141,6 +141,7 @@ bool MaterialResource::load( const char *data, int size )
 
 		MatSampler sampler;
 		sampler.name = node1.getAttribute( "name" );
+      sampler.currentAnimationTime = 0;
 
 		ResHandle texMap;
 		uint32 flags = 0;
@@ -158,10 +159,30 @@ bool MaterialResource::load( const char *data, int size )
 			_stricmp( node1.getAttribute( "sRGB", "0" ), "1" ) == 0 )
 			flags |= ResourceFlags::TexSRGB;
 
-		texMap = Modules::resMan().addResource(
-			ResourceTypes::Texture, node1.getAttribute( "map" ), flags, false );
+      if (_stricmp(node1.getAttribute("numAnimationFrames", "0"), "0") == 0) {
+		   texMap = Modules::resMan().addResource(
+			   ResourceTypes::Texture, node1.getAttribute( "map" ), flags, false );
 
-		sampler.texRes = (TextureResource *)Modules::resMan().resolveResHandle( texMap );
+		   sampler.texRes = (TextureResource *)Modules::resMan().resolveResHandle( texMap );
+      } else {
+         sampler.animationRate = atoi(node1.getAttribute("frameRate", "24"));
+         int numFrames = atoi(node1.getAttribute("numAnimationFrames", "0"));
+         // Animated maps will be of the form "animXYZ.foo", so look for them in that order.
+         std::stringstream ss(node1.getAttribute("map"));
+         std::string baseName;
+         std::string extension;
+         std::getline(ss, baseName, '.');
+         std::getline(ss, extension, '.');
+         char buff[256];
+
+         for (int i = 0; i < numFrames; i++) {
+            sprintf(buff, "%s%d.%s", baseName.c_str(), sampler.animatedTextures.size(), extension.c_str());
+            sampler.animatedTextures.push_back(Modules::resMan().addResource(ResourceTypes::Texture, buff, flags, false));
+         }
+
+         sampler.texRes = (TextureResource *)Modules::resMan().resolveResHandle(sampler.animatedTextures[0]);
+      }
+
 		
 		_samplers.push_back( sampler );
 		
@@ -387,6 +408,13 @@ float MaterialResource::getElemParamF( int elem, int elemIdx, int param, int com
 			}
 		}
 		break;
+   case MaterialResData::SamplerElem:
+      switch(param) {
+      case MaterialResData::AnimatedTexTime:
+         return _samplers[elemIdx].currentAnimationTime;
+         break;
+      }
+      break;
 	}
 	
 	return Resource::getElemParamF( elem, elemIdx, param, compIdx );
@@ -412,11 +440,33 @@ void MaterialResource::setElemParamF( int elem, int elemIdx, int param, int comp
 			}
 		}
 		break;
+   case MaterialResData::SamplerElem:
+      switch (param) {
+      case MaterialResData::AnimatedTexTime:
+         updateSamplerAnimation(elemIdx, value);
+         return;
+         break;
+      }
+      break;
 	}
 	
 	Resource::setElemParamF( elem, elemIdx, param, compIdx, value );
 }
 
+void MaterialResource::updateSamplerAnimation(int samplerNum, float animTime) 
+{
+   if (_samplers[samplerNum].animatedTextures.size() == 0) {
+      return;
+   }
+   float totalLen = _samplers[samplerNum].animatedTextures.size() * (1.0f / _samplers[samplerNum].animationRate);
+   _samplers[samplerNum].currentAnimationTime = animTime;
+   while (_samplers[samplerNum].currentAnimationTime >= totalLen) {
+      _samplers[samplerNum].currentAnimationTime -= totalLen;
+   }
+
+   int curFrame = (int)(_samplers[samplerNum].currentAnimationTime * _samplers[samplerNum].animationRate);
+   setElemParamI(MaterialResData::SamplerElem, samplerNum, MaterialResData::SampTexResI, _samplers[samplerNum].animatedTextures[curFrame]);
+}
 
 const char *MaterialResource::getElemParamStr( int elem, int elemIdx, int param )
 {

@@ -198,12 +198,13 @@ std::shared_ptr<T> PathFinder_SetSolvedCb(lua_State* L, std::shared_ptr<T> pf, l
 {
    if (pf) {
       lua_State* cb_thread = lua::ScriptHost::GetCallbackThread(unsafe_solved_cb.interpreter());  
-      pf->SetSolvedCb([unsafe_solved_cb, cb_thread](PathPtr path) {
+      luabind::object solved_cb = luabind::object(cb_thread, unsafe_solved_cb);
+ 
+      pf->SetSolvedCb([solved_cb] (PathPtr path) mutable {
          try {
-            luabind::object solved_cb = luabind::object(cb_thread, unsafe_solved_cb);
-            solved_cb(luabind::object(cb_thread, path));
+            solved_cb(luabind::object(solved_cb.interpreter(), path));
          } catch (std::exception const& e) {
-            lua::ScriptHost::ReportCStackException(cb_thread, e);
+            lua::ScriptHost::ReportCStackException(solved_cb.interpreter(), e);
          }
       });
    }

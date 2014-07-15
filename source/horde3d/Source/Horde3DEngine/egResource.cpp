@@ -217,10 +217,21 @@ Resource *ResourceManager::findResource( int type, std::string const& name )
 
 Resource *ResourceManager::getNextResource( int type, ResHandle start )
 {
-   // This is cumbersome to implement with an unordered map implementation for
-   // the resource manager, and no one uses it yet, so let's just get rid of it!
-   NOT_YET_IMPLEMENTED();
-   return nullptr;
+   if (start == 0) {
+      _iterator = _resources.begin();
+   }
+
+   while (_iterator != _resources.end() && _iterator->second->getType() != type) {
+      _iterator++;
+   }
+
+   if (_iterator == _resources.end()) {
+      return nullptr;
+   }
+
+   Resource* result = _iterator->second;
+   _iterator++;
+   return result;
 }
 
 

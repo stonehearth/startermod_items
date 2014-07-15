@@ -93,6 +93,7 @@
       },
 
       "machines" : [
+         "radeon3450-PentiumDual@2.2GHz"
       ]
    },
    "bottom_quality" : {
@@ -117,7 +118,7 @@
       },
 
       "machines" : [
+         "radeon3450-PentiumDual@2.2GHz"
       ]
    }
-
 }

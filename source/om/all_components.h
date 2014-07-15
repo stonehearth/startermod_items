@@ -11,7 +11,6 @@
 #include "om/components/effect_list.ridl.h"
 #include "om/components/render_info.ridl.h"
 #include "om/components/sensor_list.ridl.h"
-#include "om/components/target_tables.ridl.h"
 #include "om/components/destination.ridl.h"
 #include "om/components/unit_info.ridl.h"
 #include "om/components/item.ridl.h"
