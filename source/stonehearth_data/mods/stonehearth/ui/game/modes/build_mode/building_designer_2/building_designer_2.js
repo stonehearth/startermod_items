@@ -30,10 +30,31 @@ App.StonehearthBuildingDesignerTools = App.View.extend({
    },
 
    init: function() {
+      var self = this;
+
       this._super();
       this.components['stonehearth:fabricator'].blueprint = this.blueprint_components;
       this.components['stonehearth:construction_data'].fabricator_entity['stonehearth:fabricator'].blueprint = this.blueprint_components;
-   },
+
+      // restore the state of the dialog from the last time it was invoked and 
+      radiant.call('stonehearth:load_browser_object', 'stonehearth:building_designer')
+         .done(function(o) {
+            self._state = o.value || {};
+            if (!self._state.activeTabId) {
+               self._state.activeTabId = 'floorToolButton';
+            }
+            if (!self._state.floorMaterial) {
+               self._state.floorMaterial = 0;
+            }
+            if (!self._state.wallMaterial) {
+               self._state.wallMaterial = 0;
+            }
+            if (!self._state.doodadMaterial) {
+               self._state.doodadMaterial = 0;
+            }
+            self._applyControlState();
+         });
+   },   
 
    floorPatterns: [
       {
@@ -85,12 +106,19 @@ App.StonehearthBuildingDesignerTools = App.View.extend({
       }
    ],
 
+
+   // Save the state of the dialog int the 'stonehearth:building_designer' key.
+   _saveState: function() {
+      radiant.call('stonehearth:save_browser_object', 'stonehearth:building_designer', this._state);
+   },
+
    _buildMaterialPalette: function(materials, materialClassName) {
       var palette = $('<div>')
                      .addClass('brushPalette')
                      .addClass('section');
 
       // for each category
+      var index = 0;
       $.each(materials, function(i, category) {
          // for each material
          $.each(category.items, function(k, material) {
@@ -98,9 +126,11 @@ App.StonehearthBuildingDesignerTools = App.View.extend({
                            .attr('brush', material.brush)
                            .attr('src', material.portrait)
                            .attr('title', material.name)
+                           .attr('index', index)
                            .addClass(materialClassName);
 
             palette.append(brush);
+            index += 1;
          });
       });
 
@@ -126,16 +156,25 @@ App.StonehearthBuildingDesignerTools = App.View.extend({
          var tab = self.$('#' + tabId);
 
          // activate the default tool for each tab
-         tab.find('.defaultTool').click();
+         var activeTool = self._state[tabId + "ActiveTool"];
+         if (!activeTool) {
+            activeTool = '.defaultTool';
+         }
+         tab.find(activeTool).click();
 
          // show the correct tab page
          self.$('.tabPage').hide();
          tab.show();
 
+         self._state.activeTabId = tabId;
+         self._saveState();
       });
 
       // tools
       this.$('.toolButton').click(function() {
+         var tabId = $(this).parents('.tabPage').attr('id');
+         self._state[tabId + "ActiveTool"] = '#' + $(this).attr('id');
+
          self.$('.toolButton').removeClass('active');
          $(this).addClass('active');
       });
@@ -149,6 +188,9 @@ App.StonehearthBuildingDesignerTools = App.View.extend({
       this.$('.floorMaterial').click(function() {
          self.$('.floorMaterial').removeClass('selected');
          $(this).addClass('selected');
+
+         self._state.floorMaterial = $(this).attr('index');
+         self._saveState();
 
          self._updateTool(self.$('#drawFloorTool'));
       })
@@ -170,6 +212,9 @@ App.StonehearthBuildingDesignerTools = App.View.extend({
          // select the tool
          self.$('#wallToolTab .wallMaterial').removeClass('selected');
          $(this).addClass('selected');
+
+         self._state.wallMaterial = $(this).attr('index');
+         self._saveState();
 
          self._updateTool();
       })
@@ -218,6 +263,9 @@ App.StonehearthBuildingDesignerTools = App.View.extend({
          self.$('.doodadMaterial').removeClass('selected');
          $(this).addClass('selected');
 
+         self._state.doodadMaterial = $(this).attr('index');
+         self._saveState();
+
          self._updateTool(self.$('#drawDoodadTool'));
       })
 
@@ -258,12 +306,19 @@ App.StonehearthBuildingDesignerTools = App.View.extend({
          }
       });
 
-      // select default materials
-      $(self.$('#floorToolTab .floorMaterial')[0]).addClass('selected');
-      $(self.$('#wallToolTab .wallMaterial')[0]).addClass('selected');
-      $(self.$('#doodadToolTab .doodadMaterial')[0]).addClass('selected');
+      this._applyControlState();
+   },
 
-      self.$('.floorToolButton').click();
+   _applyControlState: function() {
+      var self = this;
+      if (self._state) {
+         // select default materials
+         $(self.$('#floorToolTab .floorMaterial')[self._state.floorMaterial]).addClass('selected');
+         $(self.$('#wallToolTab .wallMaterial')[self._state.wallMaterial]).addClass('selected');
+         $(self.$('#doodadToolTab .doodadMaterial')[self._state.doodadMaterial]).addClass('selected');
+
+         self.$("[tab='" + self._state.activeTabId + "']").click();
+      }
    },
 
    _updateTool: function(toolElement) {
