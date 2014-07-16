@@ -88,8 +88,8 @@
       "clickSound": "stonehearth:sounds:ui:start_menu:trigger_click"
    },
    "squad_manager" : {
-      "name" : "Manage Squads",
-      "description" : "NOT YET IMPLEMENTED. Manage your military squads.",
+      "name" : "Defend",
+      "description" : "Manage your city's defenses against invaders!",
       "class" : "dock",
       "hotkey" : "6",
       "icon" : "/stonehearth/ui/game/start_menu/images/dock_defend.png",
@@ -102,7 +102,7 @@
             "description" : "Rally workers to defend the town!",
             "class" : "button",
             "icon" : "/stonehearth/ui/game/start_menu/images/dock_defend.png",
-            "sticky" : false,
+            "sticky" : true,
             "hotkey" : "r"
          }
       }
