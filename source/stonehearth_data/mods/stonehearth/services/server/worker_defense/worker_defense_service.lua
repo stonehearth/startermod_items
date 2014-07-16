@@ -49,6 +49,9 @@ function WorkerDefense:enable_worker_combat(player_id)
          -- TODO: should we make the ai permenant and just toggle the stance?
          local combat_state = citizen:add_component('stonehearth:combat_state')
          combat_state:set_stance('aggressive')
+
+         -- pop a ! over the citizen's head
+         radiant.entities.think(citizen, '/stonehearth/data/effects/thoughts/alert',  stonehearth.constants.think_priorities.ALERT)
       end
    end
 
@@ -57,6 +60,8 @@ function WorkerDefense:enable_worker_combat(player_id)
 end
 
 function WorkerDefense:disable_worker_combat(player_id)
+   local population = stonehearth.population:get_population(player_id)
+   local citizens = population:get_citizens()
    local injected_ais = self:_get_injected_ais(player_id)
 
    for id, ai_handles in pairs(injected_ais) do
@@ -71,6 +76,11 @@ function WorkerDefense:disable_worker_combat(player_id)
          combat_state:set_stance('passive')
       end
    end
+
+   for _, citizen in pairs(citizens) do
+      -- remove the ! from above the citizen's head
+      radiant.entities.unthink(citizen, '/stonehearth/data/effects/thoughts/alert',  stonehearth.constants.think_priorities.ALERT)
+   end 
 
    self._sv.worker_combat_enabled[player_id] = false
    self.__saved_variables:mark_changed()

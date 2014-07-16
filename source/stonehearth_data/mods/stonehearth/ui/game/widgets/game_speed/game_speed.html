@@ -6,4 +6,12 @@
          <div id="ffButton"  {{bind-attr class=isFF:selected:unselected}}></div>
       </div>
    </div>
+
+   {{#if isPaused}}
+      <div id="pausedIndicator">
+         <div id="inner">
+            Paused
+         </div>
+      </div>
+   {{/if}}
 </script>
