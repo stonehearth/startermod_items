@@ -316,5 +316,8 @@
    "praise_empty" : "Nothing praiseworthy happened today.",
    "gripe_empty" : "Whoa. I guess nobody has anything to gripe about.",
 
-   "bulletin_dialog_title" : "New Message"
+   "bulletin_dialog_title" : "New Message",
+
+   "red_alert": "Red Alert!",
+   "red_alert_text": "Your workers have stopped their jobs and are vigilently watching for intruduers."
 }

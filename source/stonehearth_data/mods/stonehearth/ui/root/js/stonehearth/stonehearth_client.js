@@ -364,14 +364,19 @@ var StonehearthClient;
          }
       },
 
+      _redAlertWidget: null,
       rallyWorkers: function() {
          // TODO: add sound and visual indicator that this state is on
          if (self.rallyWorkersEnabled) {
             radiant.call('stonehearth:disable_worker_combat');
             self.rallyWorkersEnabled = false;
+            if (self._redAlertWidget) {
+               self._redAlertWidget.destroy();   
+            }
          } else {
             radiant.call('stonehearth:enable_worker_combat');
             self.rallyWorkersEnabled = true;
+            self._redAlertWidget = App.gameView.addView(App.StonehearthRedAlertWidget);
          }
       },
 
