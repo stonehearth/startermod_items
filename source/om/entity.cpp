@@ -42,7 +42,7 @@ std::ostream& ::radiant::om::operator<<(std::ostream& os, Entity const& o)
 
 void Entity::Destroy()
 {
-   for (auto& entry : lua_components_.GetContents()) {
+   for (auto& entry : lua_components_) {
       entry.second->DestroyController();
    }
 }
@@ -150,7 +150,7 @@ void Entity::RemoveComponent(std::string const& name)
    auto i = lua_components_.find(name);
    if (i != lua_components_.end()) {
       i->second->DestroyController();
-      lua_components_.Remove(i);
+      lua_components_.Remove(i->first);
    }
 }
 

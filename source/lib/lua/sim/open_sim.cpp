@@ -15,6 +15,7 @@
 #include "om/components/mob.ridl.h"
 #include "dm/store_save_state.h"
 #include "dm/tracer_buffered.h"
+#include "dm/lua_types.h"
 #include "lib/json/core_json.h"
 
 using namespace ::radiant;
@@ -287,6 +288,7 @@ void lua::sim::open(lua_State* L, Simulation* sim)
             def("create_entity",             &Sim_CreateEntity),
             def("get_object",                &Sim_GetObject),
             def("destroy_entity",            &Sim_DestroyEntity),
+            def("alloc_number_map",          &Sim_AllocObject<dm::NumberMap>),
             def("alloc_region",              &Sim_AllocObject<om::Region3Boxed>),
             def("alloc_region2",             &Sim_AllocObject<om::Region2Boxed>),
             def("create_datastore",          &Sim_AllocDataStore),

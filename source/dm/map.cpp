@@ -94,24 +94,6 @@ bool Map<K, V, H>::IsEmpty() const
    return items_.empty();
 }
 
-template <class K, class V, class H>
-typename Map<K, V, H>::ContainerType const & Map<K, V, H>::GetContents() const
-{
-   MAP_LOG(7) << "returning contents size " << items_.size();
-   return items_;
-}
-
-template <class K, class V, class H>
-typename Map<K, V, H>::ContainerType::const_iterator Map<K, V, H>::Remove(typename ContainerType::const_iterator i)
-{
-   K key = i->first;
-   auto result = items_.erase(i);
-
-   MAP_LOG(7) << "removing " << key;
-   GetStore().OnMapRemoved(*this, key);
-   return result;
-}
-
 template <typename T> bool Equals(T const& lhs, T const& rhs) {
    return lhs == rhs;
 }
@@ -138,7 +120,9 @@ template <class K, class V, class H>
 void Map<K, V, H>::Remove(const K& key) {
    auto i = items_.find(key);
    if (i != items_.end()) {
-      Remove(i);
+      MAP_LOG(7) << "removing " << key;
+      items_.erase(i);
+      GetStore().OnMapRemoved(*this, key);
    }
 }
 
@@ -166,6 +150,24 @@ typename Map<K, V, H>::ContainerType const& Map<K, V, H>::GetContainer() const
 {
    MAP_LOG(7) << "returning container size " << items_.size();
    return items_;
+}
+
+template <class K, class V, class H>
+typename Map<K, V, H>::Iterator Map<K, V, H>::begin() const
+{
+   return Iterator(*this, items_.begin());
+}
+
+template <class K, class V, class H>
+typename Map<K, V, H>::Iterator Map<K, V, H>::end() const
+{
+   return Iterator(*this, items_.end());
+}
+
+template <class K, class V, class H>
+typename Map<K, V, H>::Iterator Map<K, V, H>::find(K const& key) const
+{
+   return Iterator(*this, items_.find(key));
 }
 
 #define CREATE_MAP(M)    template M;

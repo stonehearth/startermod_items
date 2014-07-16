@@ -133,6 +133,7 @@ private:
 private:
    void parseTransforms(const JSONNode& node, float* x, float* y, float* z);
    Horde3D::HudElementNode *_hud;
+   H3DRes            _matRes;
    H3DNodeUnique     overlayNode_;
    int               _overlayWidth;
    int               _overlayHeight;

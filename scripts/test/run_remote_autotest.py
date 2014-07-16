@@ -284,9 +284,11 @@ if '-p' in sys.argv:
 else:
    slaves = [ (machines_json[machine_name]['ip_address'], machine_name) for machine_name in slave_json['machines'] ]
 
-   # If not explicitly stated, just run on one machine.  For now, pick machine 0.
+   # If not explicitly stated, just run on the default autotest machine.
    if not '-a' in sys.argv:
-      slaves = [slaves[0]]
+      machine_name = slave_json['default_autotest']
+      slaves = [(machines_json[machine_name]['ip_address'], machine_name)]      
+
    # Normal autotests
    results = run_tests(slaves, test_group, file_location)
    output_file = build_root + 'combined_results.shtest.json'
