@@ -74,6 +74,17 @@ App.StonehearthGameSpeedWidget = App.View.extend({
          });
    },
 
+   _showPausedIndicator: function() {
+      var paused = this.get('context.isPaused');
+      return;
+
+      if (paused) {
+         this.$('#pausedIndicator').show();
+      } else {
+         this.$('#pausedIndicator').hide();
+      }
+   }.observes('context.isPaused'),
+
    didInsertElement: function() {
       var self = this;
 
@@ -93,6 +104,10 @@ App.StonehearthGameSpeedWidget = App.View.extend({
 
       this.$('#ffButton').click(function() {
             radiant.call('stonehearth:set_player_game_speed', self.speeds.FASTFORWARD);
+      });
+
+      this.$('#pausedIndicator').on( 'click', '#inner', function() {
+         self.$('#playButton').click();
       });
 
       // tooltip
