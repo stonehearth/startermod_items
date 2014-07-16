@@ -30,6 +30,7 @@
                "name" : "end to end tests",
 
                "scripts" : [
+                  "file(blackbox/dm_map_autotests.lua)",
                   "file(end_to_end/stockpile_autotests.lua)",
                   "file(end_to_end/firepit_autotests.lua)",
                   "file(end_to_end/rotation_autotests.lua)",

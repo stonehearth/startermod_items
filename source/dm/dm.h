@@ -19,7 +19,9 @@ enum {
    MapObjectType,
    RecordObjectType,
    ArrayObjectType,
-   BoxedObjectType,   
+   BoxedObjectType,
+   NumberMapObjectType,
+   StringMapObjectType,
 };
 
 typedef int GenerationId;

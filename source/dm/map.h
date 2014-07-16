@@ -2,6 +2,7 @@
 #define _RADIANT_DM_MAP_H_
 
 #include "object.h"
+#include "map_iterator.h"
 #include <unordered_map>
 
 BEGIN_RADIANT_DM_NAMESPACE
@@ -14,7 +15,8 @@ public:
    typedef V Value;
    typedef std::pair<K, V> Entry;
    typedef std::unordered_map<K, V, Hash> ContainerType;
-
+   typedef MapIterator<Map> Iterator;
+   
    Map() : Object() { }
    DEFINE_DM_OBJECT_TYPE(Map, map);
 
@@ -28,13 +30,9 @@ public:
    int GetSize() const;
    bool IsEmpty() const;
 
-   const ContainerType& GetContents() const;
-
-   typename ContainerType::const_iterator begin() const { return items_.begin(); }
-   typename ContainerType::const_iterator end() const { return items_.end(); }
-   typename ContainerType::const_iterator find(const K& key) const { return items_.find(key); }
-
-   typename ContainerType::const_iterator Remove(typename ContainerType::const_iterator i);
+   Iterator begin() const;
+   Iterator end() const;
+   Iterator find(const K& key) const;
 
    void Add(K const& key, V const& value);
    void Remove(const K& key);
@@ -43,7 +41,9 @@ public:
    int Size() const { return items_.size(); }
    void Clear();
 
-public:
+private:
+   friend MapTrace<Map>;
+   friend MapIterator<Map>;
    ContainerType const& GetContainer() const;
 
 private:

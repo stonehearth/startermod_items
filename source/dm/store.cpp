@@ -12,6 +12,7 @@
 #include "record.h"
 #include "object.h"
 #include "protocol.h"
+#include "lua_types.h"
 
 #if defined GetMessage
 #  undef GetMessage
@@ -48,6 +49,10 @@ Store::Store(int which, std::string const& name) :
 
    // ASSERT(stores_[which] == nullptr);
    stores_[which] = this;
+
+   RegisterAllocator(NumberMapObjectType, []() -> NumberMapPtr {
+      return std::make_shared<NumberMap>();
+   });
 }
 
 Store::~Store(void)

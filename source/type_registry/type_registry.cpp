@@ -11,6 +11,7 @@
 #include "csg/color.h"
 #include "csg/random_number_generator.h"
 #include "lib/lua/data_object.h"
+#include "dm/lua_types.h"
 
 using namespace radiant;
 
@@ -75,6 +76,9 @@ using namespace radiant;
    OBJECT_TYPE(om::Selection,                200,                                   RegisterValueTypeLegacy) \
    \
    OBJECT_TYPE(lua::DataObjectPtr,           301,                                   RegisterNotImplementedType) \
+   \
+   OBJECT_TYPE(dm::NumberMapPtr,             402,                                   RegisterNotImplementedType) \
+   \
 
 
 // Evaluate whether or not a particular type is stored in radiant::dm as a dynamic type.
