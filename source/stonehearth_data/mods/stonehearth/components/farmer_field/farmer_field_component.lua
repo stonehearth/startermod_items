@@ -237,7 +237,7 @@ end
 
 function FarmerFieldComponent:notify_till_location_finished(location)
    local offset = location - radiant.entities.get_world_grid_location(self._entity)
-   local field_spacer = self:_init_dirt_plot(location, offset.x + 1, offset.y + 1)
+   local field_spacer = self:_init_dirt_plot(location, offset.x + 1, offset.z + 1)
    self._sv.contents[offset.x + 1][offset.z + 1] = field_spacer
    local local_fertility = rng:get_gaussian(self._sv.general_fertility, stonehearth.constants.soil_fertility.VARIATION)
    local dirt_plot_component = field_spacer:get_component('stonehearth:dirt_plot')

@@ -36,7 +36,7 @@ for name, obj in env.properties(C, [dm.Boxed, dm.Set, dm.Array, dm.Map]):
 #include "lib/lua/register.h"
 #include "lib/lua/script_host.h"
 #include "lib/lua/dm/boxed_trace_wrapper.h"
-#include "lib/lua/dm/map_iterator.h"
+#include "lib/lua/dm/map_iterator_wrapper.h"
 #include "lib/lua/dm/map_trace_wrapper.h"
 #include "lib/lua/dm/set_iterator.h"
 #include "lib/lua/dm/set_trace_wrapper.h"
@@ -209,9 +209,9 @@ static void ${class_upper}_Each${singular_name | env.upper}(lua_State *L, ${clas
 {
    ${class_to_pointer}
    if (instance)  {
-      typedef lua::MapIterator<${map.name}> Iterator;
+      typedef lua::MapIteratorWrapper<${map.name}> Iterator;
       lua_pushcfunction(L, Iterator::NextIteration);                              // f
-      object(L, new Iterator(instance->Each${singular_name | env.upper}())).push(L); // s
+      object(L, new Iterator(instance, instance->Each${singular_name | env.upper}())).push(L); // s
       object(L, 1).push(L);                                                       // var (ignored)
       return;
    }
