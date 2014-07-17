@@ -1,6 +1,7 @@
 local OptimizedPathfinder = require 'ai.actions.optimized_pathfinder'
 local Path = _radiant.sim.Path
 local Entity = _radiant.om.Entity
+local log = radiant.log.create_logger('pathfinder')
 
 local FindPathToEntity = class()
 
@@ -21,7 +22,7 @@ function FindPathToEntity:start_thinking(ai, entity, args)
    end
 
    local on_failure = function (message)
-      ai:abort(message)
+      log:info('cannot find path to entity: %s', message)
    end
 
    self._pathfinder = OptimizedPathfinder(entity, args.destination, on_success, on_failure)

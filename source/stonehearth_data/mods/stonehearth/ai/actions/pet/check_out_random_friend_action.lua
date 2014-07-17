@@ -24,7 +24,8 @@ function CheckOutRandomFriend:start_thinking(ai, entity, args)
       -- would pass friends to run(), but that doesn't happen
       ai:set_think_output() 
    else
-      ai:abort('no friends nearby')
+      local log = ai:get_log()
+      log:info('no friends nearby')
    end
 end
 

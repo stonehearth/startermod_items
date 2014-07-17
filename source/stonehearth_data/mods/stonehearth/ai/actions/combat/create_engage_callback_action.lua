@@ -22,7 +22,6 @@ function CreateEngageCallback:start_thinking(ai, entity, args)
 
    if weapon == nil or not weapon:is_valid() then
       log:warning('%s has no weapon', entity)
-      ai:abort('No weapon')
       return
    end
 

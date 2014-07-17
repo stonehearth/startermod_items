@@ -25,8 +25,7 @@ function WaitForGlobalAttackCooldown:start_thinking(ai, entity, args)
             ai:set_think_output()
          else
             -- this is a bug, or some other effect/spell increased our attack recovery time
-            log:warning('Aborting attack. Global_attack_recovery on %s still not expired.', entity)
-            ai:abort('Global_attack_recovery still not expired')
+            log:error('Aborting attack. Global_attack_recovery on %s still not expired.', entity)
             return
          end
       end

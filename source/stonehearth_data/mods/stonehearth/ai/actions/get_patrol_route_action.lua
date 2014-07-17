@@ -93,7 +93,6 @@ function GetPatrolPoint:_find_path(start_location, waypoints)
 
    local on_failure = function (message)
       log:info(message)
-      self._ai:abort(message)
    end
 
    local on_success = function (path)

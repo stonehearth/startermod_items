@@ -31,7 +31,7 @@ ChaseEntity.priority = 1
 
 function ChaseEntity:start_thinking(ai, entity, args)
    if not args.target:is_valid() then
-      ai:abort('Invalid target')
+      return
    end
 
    self._selected_to_run = false
