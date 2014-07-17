@@ -10,6 +10,9 @@ function FindTargetObserver:initialize(entity, json)
    self._entity = entity
    self._sight_sensor = self:_get_sight_sensor()
    self._target = nil
+   self._last_attacker = nil
+   self._last_attacked_time = 0
+   self._retaliation_window = 5000
    self._task = nil
    self._listening_target_pre_destroy = false
 
@@ -33,6 +36,7 @@ function FindTargetObserver:_subscribe_to_events()
    self._aggro_table = self._entity:add_component('stonehearth:target_tables'):get_target_table('aggro')
    radiant.events.listen(self._aggro_table, 'stonehearth:target_table_changed', self, self._on_target_table_changed)
    radiant.events.listen(self._entity, 'stonehearth:combat:stance_changed', self, self._on_stance_changed)
+   radiant.events.listen(self._entity, 'stonehearth:combat:assault', self, self._on_assault)
    self:_trace_entity_location()
    -- listen for stance change
 end
@@ -40,6 +44,7 @@ end
 function FindTargetObserver:_unsubscribe_from_events()
    radiant.events.unlisten(self._aggro_table, 'stonehearth:target_table_changed', self, self._on_target_table_changed)
    radiant.events.unlisten(self._entity, 'stonehearth:combat:stance_changed', self, self._on_stance_changed)
+   radiant.events.unlisten(self._entity, 'stonehearth:combat:assault', self, self._on_assault)
    self:_destroy_entity_location_trace()
 end
 
@@ -52,6 +57,12 @@ function FindTargetObserver:_on_stance_changed()
 end
 
 function FindTargetObserver:_on_target_pre_destroy()
+   self:_check_for_target()
+end
+
+function FindTargetObserver:_on_assault(context)
+   self._last_attacker = context.attacker
+   self._last_attacked_time = radiant.gamestate.now()
    self:_check_for_target()
 end
 
@@ -160,6 +171,10 @@ function FindTargetObserver:_attack_target(target)
 end
 
 function FindTargetObserver:_find_target()
+   if not self._enable_combat then
+      return
+   end
+
    local stance = stonehearth.combat:get_stance(self._entity)
    local target
 
@@ -170,7 +185,7 @@ function FindTargetObserver:_find_target()
 
    if stance == 'defensive' then
       -- only attack those who attack you
-      target = self:_get_attacker()
+      target = self:_get_retaliation_target()
    else
       assert(stance == 'aggressive')
       -- find the best target to attack
@@ -214,16 +229,13 @@ function FindTargetObserver:_calculate_target_cost_benefit()
    return best_target
 end
 
-function FindTargetObserver:_get_attacker()
-   local assault_events = stonehearth.combat:get_assault_events(self._entity)
-
-   if assault_events then
-      for _, context in pairs(assault_events) do
-         return context.attacker
-      end
+function FindTargetObserver:_get_retaliation_target()
+   local now = radiant.gamestate.now()
+   if now < self._last_attacked_time + self._retaliation_window then
+      return self._last_attacker
+   else
+      return nil
    end
-
-   return nil
 end
 
 return FindTargetObserver
