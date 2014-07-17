@@ -76,7 +76,7 @@ function Column:_compute_column_shape()
       local location = radiant.entities.get_location_aligned(self._entity)
       local coord = location - radiant.entities.get_location_aligned(roof)
       
-      local region_collision_shape = roof:get_component('region_collision_shape')
+      local region_collision_shape = roof:get_component('destination')
       --TODO: not sure why this is sometimes nil, but even when it is the building still progresses?
       if region_collision_shape then
          local roof_region = region_collision_shape:get_region():get()

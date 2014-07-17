@@ -44,13 +44,16 @@ public:
 private:
    friend MapTrace<Map>;
    friend MapIterator<Map>;
+
    ContainerType const& GetContainer() const;
+   typename ContainerType::const_iterator const& GetLastErasedIterator() const;
 
 private:
    NO_COPY_CONSTRUCTOR(Map);
 
 private:
-   ContainerType           items_;
+   ContainerType                 items_;
+   typename ContainerType::const_iterator lastErasedIterator_;
 };
 
 END_RADIANT_DM_NAMESPACE
