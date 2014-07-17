@@ -1,4 +1,3 @@
-local Point3 = _radiant.csg.Point3
 local MemorializeDeathAction = class()
 
 MemorializeDeathAction.name = 'memorialize death'
@@ -19,30 +18,25 @@ function MemorializeDeathAction:run(ai, entity, args)
    local title = string.format('RIP %s', self._name)
    local description = string.format('%s will always be remembered', self._name)
    local event_text = string.format('%s has died.', self._name)
-
    local tombstone = radiant.entities.create_entity('stonehearth:tombstone')
+
    radiant.entities.set_name(tombstone, title)
    radiant.entities.set_description(tombstone, description)
-
-   --Hide the person
-   radiant.terrain.remove_entity(entity)
-
-   --place the tombstone
    radiant.terrain.place_entity(tombstone, self._location)
 
-   radiant.effects.run_effect(tombstone, '/stonehearth/data/effects/death')
+   radiant.effects.run_effect(tombstone, '/stonehearth/data/effects/death/death_jingle.json')
 
    stonehearth.events:add_entry(event_text, 'warning')
 
    --Send the notice to the bulletin service.
    self.notification_bulletin = stonehearth.bulletin_board:post_bulletin(self._player_id)
-        :set_callback_instance(stonehearth.town:get_town(self._player_id))
-        :set_type('alert')
-        :set_data({
+         :set_callback_instance(stonehearth.town:get_town(self._player_id))
+         :set_type('alert')
+         :set_data({
             title = event_text,
             message = '',
             zoom_to_entity = tombstone,
-        })
+         })
 
 end
 

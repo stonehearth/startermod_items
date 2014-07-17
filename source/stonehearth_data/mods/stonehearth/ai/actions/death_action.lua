@@ -14,5 +14,10 @@ DeathAction.priority = stonehearth.constants.priorities.top.DIE
 
 local ai = stonehearth.ai
 return ai:create_compound_action(DeathAction)
-   :execute('stonehearth:wait_for_attribute_below', {attribute = 'health', value = 1})
+   :execute('stonehearth:wait_for_attribute_below', {
+      attribute = 'health',
+      value = 1
+   })
+   :execute('stonehearth:drop_carrying_now')
    :execute('stonehearth:die')
+   :execute('stonehearth:destroy_entity')
