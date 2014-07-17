@@ -159,8 +159,10 @@ function BuildUndoManager:_trace_entity(entity)
    local function trace_component(component, name)
       return component:trace('building undo', self._tracer_category)
                      :on_changed(function()
-                           log:detail('component %s for entity %s changed', name, entity)
-                           self:mark_changed(component)
+                           if entity:is_valid() then
+                              log:detail('component %s for entity %s changed', name, entity)
+                              self:mark_changed(component)
+                           end
                         end)
                      :push_object_state()   
    end
@@ -168,9 +170,11 @@ function BuildUndoManager:_trace_entity(entity)
    local function trace_region(component, name)
       return component:trace_region('building undo', self._tracer_category)
                      :on_changed(function(r)
-                           local region = component:get_region()
-                           log:detail('%s region for entity %s changed (component:%d bounds:%s)', name, entity, region:get_id(), r:get_bounds())
-                           self:mark_changed(region)
+                           if entity:is_valid() then
+                              local region = component:get_region()
+                              log:detail('%s region for entity %s changed (component:%d bounds:%s)', name, entity, region:get_id(), r:get_bounds())
+                              self:mark_changed(region)
+                           end
                         end)
                      :push_object_state()
    end
@@ -190,22 +194,24 @@ function BuildUndoManager:_trace_entity(entity)
    
    traces.entity = entity:trace_components('building undo', self._tracer_category)
                               :on_added(function (name)
-                                    local component = entity:get_component(name)
-                                    log:detail('tracing component %s for entity %s', name, entity)
+                                    if entity:is_valid() then
+                                       local component = entity:get_component(name)
+                                       log:detail('tracing component %s for entity %s', name, entity)
 
-                                    if not traces[name] then
-                                       traces[name] = trace_component(component, name)
-                                       if name == 'entity_container' then
-                                          traces.entity_container_children = trace_entity_container(component)
-                                       elseif name == 'destination' then
-                                          traces.destination_region = trace_region(component, 'destination')
-                                       elseif name == 'region_collision_shape' then
-                                          traces.region_collision_shape_region = trace_region(component, 'region collision shape')
+                                       if not traces[name] then
+                                          traces[name] = trace_component(component, name)
+                                          if name == 'entity_container' then
+                                             traces.entity_container_children = trace_entity_container(component)
+                                          elseif name == 'destination' then
+                                             traces.destination_region = trace_region(component, 'destination')
+                                          elseif name == 'region_collision_shape' then
+                                             traces.region_collision_shape_region = trace_region(component, 'region collision shape')
+                                          end
                                        end
                                     end
                                  end)
                               :on_removed(function (name)
-                                    log:detail('component %s for entity %s removed', entity, entity)
+                                    log:detail('component %s for entity %s removed', name, entity)
                                     if traces[name] then
                                        traces[name]:destroy()
                                        traces[name] = nil

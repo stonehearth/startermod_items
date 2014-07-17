@@ -141,9 +141,25 @@ function BuildService:_add_floor(session, floor_uri, box, brush_shape)
    return floor   
 end
 
+function BuildService:_erase_floor(session, box)
+   local floor
+
+   -- look for floor that we can merge into.
+   local all_overlapping_floor = radiant.terrain.get_entities_in_cube(box, function(entity)
+         return self:is_blueprint(entity) and self:_get_structure_type(entity) == 'floor'
+      end)
+
+   for _, floor in pairs(all_overlapping_floor) do
+      floor:add_component('stonehearth:floor')
+               :remove_box_from_floor(box)
+   end
+end
 
 function BuildService:erase_floor_command(session, response, box)
-   response:reject({ error = 'not yet implemented' })
+   self._undo:begin_transaction('add_wall')
+   self:_erase_floor(session, ToCube3(box))
+   self._undo:end_transaction('add_wall')
+   return true
 end
 
 -- adds a new fabricator to blueprint.  this creates a new 'stonehearth:entities:fabricator'
