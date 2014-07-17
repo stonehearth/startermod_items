@@ -52,6 +52,9 @@ App.StonehearthBuildingDesignerTools = App.View.extend({
             if (!self._state.doodadMaterial) {
                self._state.doodadMaterial = 0;
             }
+            if (!self._state.growRoofGradiant) {
+               self._state.growRoofGradiant = [ 'left', 'right' ];
+            }
             self._applyControlState();
          });
    },   
@@ -140,6 +143,21 @@ App.StonehearthBuildingDesignerTools = App.View.extend({
 
       return el;
    },
+      // grow roof button
+   _getRoofGradiant : function() {
+      var gradiant = [];
+      self.$('#roofToolTab .roofDiagramButton.active').each(function() {
+         gradiant.push($(this).attr('gradient'));
+      })
+      return gradiant;
+   },
+
+   _updateGrowRoofOptions : function() {
+      var options = {
+         nine_grid_gradiant : this._state.growRoofGradiant,
+      }
+      App.stonehearthClient.setGrowRoofOptions(options);
+   },
 
    didInsertElement: function() {
       var self = this;
@@ -174,6 +192,7 @@ App.StonehearthBuildingDesignerTools = App.View.extend({
       this.$('.toolButton').click(function() {
          var tabId = $(this).parents('.tabPage').attr('id');
          self._state[tabId + "ActiveTool"] = '#' + $(this).attr('id');
+         self._saveState();
 
          self.$('.toolButton').removeClass('active');
          $(this).addClass('active');
@@ -233,25 +252,15 @@ App.StonehearthBuildingDesignerTools = App.View.extend({
          App.stonehearthClient.growWalls('stonehearth:wooden_column', wallUri);
       });
 
-      // grow roof button
-      var updateRoofToolCursor = function() {
-         var options = {
-               nine_grid_gradiant : [],
-            }
-
-         self.$('#roofToolTab .roofDiagramButton.active').each(function() {
-            options.nine_grid_gradiant.push($(this).attr('gradient'));
-         })
-
-         App.stonehearthClient.growRoof(options);         
-      }
       this.$('#growRoofTool').click(function() {
-         updateRoofToolCursor();
+         App.stonehearthClient.growRoof();
       })
 
       this.$('.roofDiagramButton').click(function() {
          $(this).toggleClass('active');
-         updateRoofToolCursor(); 
+         self._state.growRoofGradiant = self._getRoofGradiant();
+         self._saveState();
+         self._updateGrowRoofOptions();
       })
 
       // roof tool defaults
@@ -317,6 +326,17 @@ App.StonehearthBuildingDesignerTools = App.View.extend({
          $(self.$('#wallToolTab .wallMaterial')[self._state.wallMaterial]).addClass('selected');
          $(self.$('#doodadToolTab .doodadMaterial')[self._state.doodadMaterial]).addClass('selected');
 
+         // gradiant on the grow roof control
+         self.$('#roofToolTab .roofDiagramButton').each(function() {
+            $(this).removeClass('active');
+         })
+         $.each(self._state.growRoofGradiant, function(_, dir) {
+            self.$('#roofToolTab .roofDiagramButton[gradient="'+dir+'"]').each(function() {
+               $(this).addClass('active');
+            });
+         });
+         self._updateGrowRoofOptions()
+         // most recently selected tab
          self.$("[tab='" + self._state.activeTabId + "']").click();
       }
    },
