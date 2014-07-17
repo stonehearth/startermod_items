@@ -34,6 +34,21 @@ function Floor:add_box_to_floor(box, brush_shape)
    return self
 end
 
+function Floor:remove_box_from_floor(box)
+   local building = self._entity:get_component('mob'):get_parent()
+   local origin = radiant.entities.get_world_grid_location(building)
+
+   self._entity:get_component('destination')
+                  :get_region()
+                     :modify(function(c)                           
+                           local shape = box:translated(-origin)
+                           c:subtract_cube(shape)
+                           c:optimize_by_merge()
+                        end)         
+
+   return self
+end
+
 -- merges the floor region of `old_floor` into this entity and destroys
 -- the `old_floor`
 --    @param old_floor - the floor to merge with.  will be destroyed once
