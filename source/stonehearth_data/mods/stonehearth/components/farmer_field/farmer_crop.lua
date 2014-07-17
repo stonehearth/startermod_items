@@ -8,9 +8,9 @@ local rng = _radiant.csg.get_default_rng()
 local FarmerCrop = class()
 
 
-function FarmerCrop:initialize(player_id, field_contents, location, crop_type, auto_harvest, auto_plant, region, tilled_region)
+function FarmerCrop:initialize(player_id, field, location, crop_type, auto_harvest, auto_plant, region, tilled_region)
    self._sv.player_id = player_id
-   self._sv.field_contents = field_contents
+   self._sv.field = field
    self._sv.crop_type = crop_type
    self._sv.auto_harvest = auto_harvest
    self._sv.auto_plant = auto_plant
@@ -82,7 +82,7 @@ end
 function FarmerCrop:get_field_spacer(location)
    local x_offset = location.x - self._sv.location.x + 1
    local z_offset = location.z - self._sv.location.z + 1
-   return self._sv.field_contents[x_offset][z_offset]
+   return self._sv.field:get_contents()[x_offset][z_offset]
 end
 
 
@@ -148,7 +148,7 @@ end
 function FarmerCrop:notify_planting_done(location)
    local x_offset = location.x - self._sv.location.x + 1
    local z_offset = location.z - self._sv.location.z + 1
-   local dirt_plot = self._sv.field_contents[x_offset][z_offset]
+   local dirt_plot = self._sv.field:get_contents()[x_offset][z_offset]
    local dirt_plot_comp = dirt_plot:get_component('stonehearth:dirt_plot')
 
    dirt_plot_comp:plant_crop(self._sv.crop_type)
