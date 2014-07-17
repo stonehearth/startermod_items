@@ -513,16 +513,20 @@ UnitStatusEffect::UnitStatusEffect(RenderEntity& e, om::EffectPtr effect, const 
    H3DNode n = e.GetSkeleton().GetSceneNode(cjo.get("bone", std::string("head")));
 
    H3DRes mat = h3dAddResource(H3DResTypes::Material, matName.c_str(), 0);
+   // Can't clone until we load!
+   Renderer::GetInstance().LoadResources();
+   _matRes = h3dCloneResource(mat, "");
 
    Horde3D::HudElementNode* hud = h3dAddHudElementNode(n, "");
    h3dSetNodeTransform(hud->getHandle(), 0, 0, 0, 0, 0, 0, 1, 1, 1);
    hud->addWorldspaceRect(statusWidth, statusHeight, 
-      xOffset- (statusWidth / 2.0f), yOffset, Horde3D::Vec4f(1, 1, 1, 1), mat);
+      xOffset- (statusWidth / 2.0f), yOffset, Horde3D::Vec4f(1, 1, 1, 1), _matRes);
    statusNode_ = H3DNodeUnique(hud->getHandle());
 }
 
 UnitStatusEffect::~UnitStatusEffect()
 {
+   h3dRemoveResource(_matRes);
 }
 
 void UnitStatusEffect::Update(FrameStartInfo const& info, bool& finished)
