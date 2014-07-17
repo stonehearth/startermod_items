@@ -247,7 +247,7 @@ function ExecutionFrame:_add_action(...)
    if self._state == 'ready' then
       return self:_add_action_from_ready(...)
    end
-   if self._state == 'running' then
+   if self:in_state('started', 'running') then
       return self:_add_action_from_running(...)
    end
    if self:in_state('stopped', 'switching', 'finished') then

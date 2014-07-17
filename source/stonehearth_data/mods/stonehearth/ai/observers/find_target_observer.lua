@@ -122,20 +122,25 @@ function FindTargetObserver:_check_for_target()
       return
    end
 
+   -- ok for target to be nil. we may be abandoning the target or the target may be dying
    local target = self:_find_target()
 
-   if self._task and not self._task:is_completed() then
+   if self._task then
+      -- self._task should be nil if it is completed
+      assert(not self._task:is_completed())
+
       if target == self._target then
          -- same target, let the existing task run
          return
-      else
-         -- terminate task so we can initiate a new task with the preferred target
-         if target and target:is_valid() and self._target and self._target:is_valid() then
-            log:info('%s switching targets from %s to %s', self._entity, self._target, target)
-         end
-         self._task:destroy()
-         self._task = nil
       end
+
+      -- terminate task so we can initiate a new task with the preferred target
+      if target and target:is_valid() and self._target and self._target:is_valid() then
+         log:info('%s switching targets from %s to %s', self._entity, self._target, target)
+      end
+
+      self._task:destroy()
+      self._task = nil
    end
 
    self:_attack_target(target)
@@ -147,6 +152,8 @@ function FindTargetObserver:_do_not_disturb()
 end
 
 function FindTargetObserver:_attack_target(target)
+   assert(not self._task)
+
    if target ~= self._target then
       self:_unlisten_from_target_pre_destroy()
       stonehearth.combat:set_primary_target(self._entity, target)
