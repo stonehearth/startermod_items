@@ -36,6 +36,7 @@ typedef DerivedRegionTracker<om::VerticalPathingRegion, TrackerType::LADDER> Ver
 class NavGrid {
    public: // public methods
       NavGrid(dm::TraceCategories trace_category);
+      ~NavGrid();
 
       typedef std::function<bool(om::EntityPtr)> ForEachEntityCb;
 

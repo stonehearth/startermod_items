@@ -292,8 +292,8 @@ void Simulation::ShutdownGameObjects()
 
    scriptHost_->SetNotifyErrorCb(nullptr);
    error_browser_.reset();
-   octtree_.reset();
    freeMotion_.reset();
+   octtree_.reset();
    scriptHost_.reset();
 }
 
