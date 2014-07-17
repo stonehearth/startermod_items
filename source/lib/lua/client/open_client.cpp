@@ -150,11 +150,6 @@ RenderNodePtr Client_CreateStockpileNode(lua_State* L,
    return Pipeline::GetInstance().CreateStockpileNode(parent, model, interior_color, border_color);
 }
 
-om::EntityRef Client_CreateEmptyAuthoringEntity()
-{
-   return Client::GetInstance().CreateEmptyAuthoringEntity();
-}
-
 om::EntityRef Client_CreateAuthoringEntity(std::string const& uri)
 {
    return Client::GetInstance().CreateAuthoringEntity(uri);
@@ -467,7 +462,6 @@ void lua::client::open(lua_State* L)
             def("get_object",                      &Client_GetObject),
             def("select_entity",                   &Client_SelectEntity),
             def("hilight_entity",                  &Client_HilightEntity),
-            def("create_empty_authoring_entity",   &Client_CreateEmptyAuthoringEntity),
             def("create_authoring_entity",         &Client_CreateAuthoringEntity),
             def("destroy_authoring_entity",        &Client_DestroyAuthoringEntity),
             def("create_render_entity",            &Client_CreateRenderEntity),

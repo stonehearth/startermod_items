@@ -42,11 +42,6 @@ std::shared_ptr<T> Sim_AllocObject(lua_State* L)
    return GetSim(L).GetStore().AllocObject<T>();
 }
 
-om::EntityRef Sim_CreateEmptyEntity(lua_State* L)
-{
-   return Sim_AllocObject<om::Entity>(L);
-}
-
 om::EntityRef Sim_CreateEntity(lua_State* L, std::string const& uri)
 {
    om::EntityPtr entity = Sim_AllocObject<om::Entity>(L);
@@ -286,7 +281,6 @@ void lua::sim::open(lua_State* L, Simulation* sim)
          namespace_("sim") [
             lua::RegisterType_NoTypeInfo<Simulation>("Simulation")
             ,
-            def("create_empty_entity",       &Sim_CreateEmptyEntity),
             def("create_entity",             &Sim_CreateEntity),
             def("get_object",                &Sim_GetObject),
             def("destroy_entity",            &Sim_DestroyEntity),

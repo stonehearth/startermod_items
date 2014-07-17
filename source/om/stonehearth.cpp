@@ -131,51 +131,52 @@ Stonehearth::InitEntity(EntityPtr entity, std::string const& uri, lua_State* L)
    ASSERT(L);
 
    lua::ScriptHost* scriptHost = lua::ScriptHost::GetScriptHost(L);
-
    entity->SetUri(uri);
-   res::ResourceManager2::GetInstance().LookupJson(uri, [&](const JSONNode& node) {
-      auto i = node.find("components");
-      if (i != node.end() && i->type() == JSON_NODE) {
-         for (auto const& entry : *i) {
-            std::string const& component_name = entry.name();
-            ComponentPtr component = entity->AddComponent(component_name);
-            if (component) {
-               component->LoadFromJson(json::Node(entry));
-            } else {
-               om::DataStorePtr datastore = entity->GetStore().AllocObject<om::DataStore>();
-               datastore->SetData(luabind::newtable(L));
-               object lua_component = datastore->CreateController(datastore, "components", component_name);
-               if (lua_component.is_valid()) {
-                  entity->AddLuaComponent(component_name, datastore);
-                  SetEntityForComponent(L, lua_component, entity, lua::ScriptHost::JsonToLua(L, entry));
-               }
-            }
-         }
-      }
-
-      // Initialize after all components have been added
-      for (auto const& entry : entity->GetComponents()) {
-         entry.second->Initialize();
-      }
-
-      // xxx: refaactor me!!!111!
-      if (L) {
-         json::Node n(node);
-         std::string init_script = n.get<std::string>("init_script", "");
-         if (!init_script.empty()) {
-            try {        
-               object fn = lua::ScriptHost::RequireScript(L, init_script);
-               if (!fn.is_valid() || type(fn) != LUA_TFUNCTION) {
-                  E_LOG(3) << "failed to load init script " << init_script << "... skipping.";
+   if (!uri.empty()) {
+      res::ResourceManager2::GetInstance().LookupJson(uri, [&](const JSONNode& node) {
+         auto i = node.find("components");
+         if (i != node.end() && i->type() == JSON_NODE) {
+            for (auto const& entry : *i) {
+               std::string const& component_name = entry.name();
+               ComponentPtr component = entity->AddComponent(component_name);
+               if (component) {
+                  component->LoadFromJson(json::Node(entry));
                } else {
-                  call_function<void>(fn, EntityRef(entity));
+                  om::DataStorePtr datastore = entity->GetStore().AllocObject<om::DataStore>();
+                  datastore->SetData(luabind::newtable(L));
+                  object lua_component = datastore->CreateController(datastore, "components", component_name);
+                  if (lua_component.is_valid()) {
+                     entity->AddLuaComponent(component_name, datastore);
+                     SetEntityForComponent(L, lua_component, entity, lua::ScriptHost::JsonToLua(L, entry));
+                  }
                }
-            } catch (std::exception &e) {
-               E_LOG(3) << "failed to run init script for " << uri << ": " << e.what();
             }
          }
-      }
-   });
+
+         // Initialize after all components have been added
+         for (auto const& entry : entity->GetComponents()) {
+            entry.second->Initialize();
+         }
+
+         // xxx: refaactor me!!!111!
+         if (L) {
+            json::Node n(node);
+            std::string init_script = n.get<std::string>("init_script", "");
+            if (!init_script.empty()) {
+               try {        
+                  object fn = lua::ScriptHost::RequireScript(L, init_script);
+                  if (!fn.is_valid() || type(fn) != LUA_TFUNCTION) {
+                     E_LOG(3) << "failed to load init script " << init_script << "... skipping.";
+                  } else {
+                     call_function<void>(fn, EntityRef(entity));
+                  }
+               } catch (std::exception &e) {
+                  E_LOG(3) << "failed to run init script for " << uri << ": " << e.what();
+               }
+            }
+         }
+      });
+   }
    TriggerPostCreate(scriptHost, entity);
 }
 

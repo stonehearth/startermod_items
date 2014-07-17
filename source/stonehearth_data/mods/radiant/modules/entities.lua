@@ -17,10 +17,9 @@ function entities.get_root_entity()
 end
 
 function entities.create_entity(ref)
-   if not ref or #ref == 0 then
-      return _radiant.sim.create_empty_entity()
-   end
-   return _radiant.sim.create_entity(ref)
+   local entity = _radiant.sim.create_entity(ref or "")
+   log:debug('created entity %s', entity)
+   return entity
 end
 
 function entities.destroy_entity(entity)
@@ -49,6 +48,7 @@ function entities.create_proxy_entity(use_default_adjacent_region)
 
    local proxy_entity = radiant.entities.create_entity()
    proxy_entity:set_debug_text('proxy entity')
+   log:debug('created proxy entity %s', proxy_entity)
 
    if not use_default_adjacent_region then
       -- cache the origin region since we use this a lot
