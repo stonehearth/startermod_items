@@ -30,7 +30,7 @@ local service_creation_order = {
    'town_patrol',
    'worker_defense',
    'bulletin_board',
-   --'linear_combat',
+   'linear_combat',
    'farming' 
 }
 
