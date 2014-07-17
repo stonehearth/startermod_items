@@ -30,7 +30,6 @@ private:
    M const&                                  _map;
    mutable bool                              _isEnd;
    mutable GenerationId                      _capturedTime;
-   mutable typename M::Key                            _nextKey;
    mutable typename M::Key                            _currentKey;
    mutable typename M::ContainerType::const_iterator  _currentIterator;
 };

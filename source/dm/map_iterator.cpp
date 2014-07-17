@@ -76,9 +76,19 @@ void MapIterator<M>::RefreshIterator() const
 {
    if (IsOutOfDate()) {
       typename M::ContainerType const& container = _map.GetContainer();
-      _currentIterator = container.find(_currentKey);
-      _isEnd = _currentIterator == container.end();
+      auto end = container.end();
+
+      if (_currentKey == _map.GetLastErasedKey()) {
+         _currentIterator = _map.GetLastErasedIterator();
+      } else {
+         _currentIterator = end;
+      }
+
+      _isEnd = _currentIterator == end;
       _capturedTime = _map.GetLastModified();
+      if (!_isEnd) {
+         _currentKey = _currentIterator->first;
+      }
    }
 }
 
@@ -96,9 +106,6 @@ void MapIterator<M>::SetCurrentIterator(typename M::ContainerType::const_iterato
    if (!_isEnd) {
       _currentKey = i->first;
       ++i;
-      if (i != end) {
-         _nextKey = i->first;
-      }
    }
 }
 
