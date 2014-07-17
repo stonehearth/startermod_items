@@ -93,6 +93,7 @@ struct SceneNodeFlags
 		NoRayQuery = 0x4,
 		Inactive = 0x7,  // NoDraw | NoCastShadow | NoRayQuery
 		Selected = 0x8,
+      NoCull = 0x10
 	};
 };
 
@@ -130,7 +131,7 @@ public:
 	void setTransform( const Matrix4f &mat );
 	void getTransMatrices( const float **relMat, const float **absMat ) const;
 
-	int getFlags() { return _flags; }
+	int getFlags() const { return _flags; }
    void setFlags( int flags, bool recursive );
    void twiddleFlags( int flags, bool on, bool recursive );
 
@@ -190,6 +191,8 @@ protected:
 	Matrix4f                    _relTrans, _absTrans;  // Transformation matrices
 	SceneNode                   *_parent;  // Parent node
 	int                         _type;
+   // Because a reverse-lookup is going to be more expensive to maintain.
+   mutable int                 _renderStamp;
 	NodeHandle                  _handle;
 	uint32                      _flags;
    uint32                      _userFlags;
@@ -205,8 +208,6 @@ protected:
 	std::string                 _name;
 	std::string                 _attachment;  // User defined data
 
-   // Because a reverse-lookup is going to be more expensive to maintain.
-   mutable int                 _renderStamp;
 
 private:
 
@@ -331,6 +332,7 @@ protected:
    std::unordered_map<NodeHandle, std::vector<int64> > _nodeGridLookup;
    std::unordered_map<int64, GridElement> _gridElements;
    std::unordered_map<NodeHandle, SceneNode const*> _directionalLights;
+   std::unordered_map<NodeHandle, SceneNode const*> _nocullNodes;
    int _renderStamp;
 };
 

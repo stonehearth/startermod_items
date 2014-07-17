@@ -390,7 +390,9 @@ struct RendQueueItemCompFunc
 // Class GridSpatialGraph
 // =================================================================================================
 
-#pragma optimize( "", off )
+const int GridSize = 50;
+
+//#pragma optimize( "", off )
 GridSpatialGraph::GridSpatialGraph()
 {
    _renderStamp = 0;
@@ -422,16 +424,19 @@ void GridSpatialGraph::removeNode(SceneNode const& sceneNode)
          _gridElements[gridNum]._nodes.erase(&sceneNode);
       }
       _nodeGridLookup.erase(sceneNode.getHandle());
+      if (_nocullNodes.find(sceneNode.getHandle()) != _nocullNodes.end()) {
+         _nocullNodes.erase(sceneNode.getHandle());
+      }
    }
 }
 
 
 void GridSpatialGraph::boundingBoxToGrids(BoundingBox const& aabb, std::vector<int64>& gridElementList) const
 {
-   int minX = (int)(aabb.min().x / 50);
-   int maxX = (int)(aabb.max().x / 50);
-   int minZ = (int)(aabb.min().z / 50);
-   int maxZ = (int)(aabb.max().z / 50);
+   int minX = (int)(aabb.min().x / GridSize);
+   int maxX = (int)(aabb.max().x / GridSize);
+   int minZ = (int)(aabb.min().z / GridSize);
+   int maxZ = (int)(aabb.max().z / GridSize);
 
    if (maxX == minX) {
       maxX++;
@@ -475,18 +480,25 @@ void GridSpatialGraph::updateNode(SceneNode const& sceneNode)
       _gridElements[gridNum]._nodes.erase(&sceneNode);
    }
    _nodeGridLookup[sceneNode.getHandle()].clear();
+   if (_nocullNodes.find(sceneNode.getHandle()) != _nocullNodes.end() && !(sceneNode.getFlags() & SceneNodeFlags::NoCull)) {
+      _nocullNodes.erase(sceneNode.getHandle());
+   }
 
    // Update new references
-   boundingBoxToGrids(sceneNode.getBBox(), _nodeGridLookup[sceneNode.getHandle()]);
-   for (int64 v : _nodeGridLookup[sceneNode.getHandle()]) {
-      if (_gridElements.find(v) == _gridElements.end()) {
-         _gridElements[v] = GridElement();
-         int gX, gY;
-         unhashGridHash(v, &gX, &gY);
-         _gridElements[v].bounds.addPoint(Vec3f(gX * 50.0f, -100.0f, gY * 50.0f));
-         _gridElements[v].bounds.addPoint(Vec3f(gX * 50.0f + 50.0f, 100.0f, gY * 50.0f + 50.0f));
+   if (sceneNode.getFlags() & SceneNodeFlags::NoCull) {
+      _nocullNodes[sceneNode.getHandle()] = &sceneNode;
+   } else {
+      boundingBoxToGrids(sceneNode.getBBox(), _nodeGridLookup[sceneNode.getHandle()]);
+      for (int64 v : _nodeGridLookup[sceneNode.getHandle()]) {
+         if (_gridElements.find(v) == _gridElements.end()) {
+            _gridElements[v] = GridElement();
+            int gX, gY;
+            unhashGridHash(v, &gX, &gY);
+            _gridElements[v].bounds.addPoint(Vec3f(gX * GridSize, -10.0f, gY * GridSize));
+            _gridElements[v].bounds.addPoint(Vec3f(gX * GridSize + GridSize, 100.0f, gY * GridSize + GridSize));
+         }
+         _gridElements[v]._nodes.insert(&sceneNode);
       }
-      _gridElements[v]._nodes.insert(&sceneNode);
    }
 }
 
@@ -563,6 +575,28 @@ void GridSpatialGraph::query(SpatialQuery const& query, RenderableQueues& render
          if (query.useLightQueue && node->_type == SceneNodeTypes::Light) {		 
             lightQueue.push_back(node);
          }      
+      }
+   }
+
+   if (query.useRenderableQueue) {
+      for (auto const& nc : _nocullNodes) {
+         SceneNode const* n = nc.second;
+         n->setRenderStamp(_renderStamp);
+
+         if (n->_accumulatedFlags & query.filterIgnore) {
+            continue;
+         }
+         if ((n->_accumulatedFlags & query.filterRequired) != query.filterRequired) {
+            continue;
+         }
+         if ((n->_userFlags & query.userFlags) != query.userFlags) {
+            continue;
+         }
+         if (renderableQueues.find(n->_type) == renderableQueues.end()) {
+            renderableQueues[n->_type] = RenderableQueue();
+            renderableQueues[n->_type].reserve(1000);
+         }
+         renderableQueues[n->_type].emplace_back( RendQueueItem( n->_type, 0, n ) );
       }
    }
 
