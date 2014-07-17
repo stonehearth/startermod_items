@@ -1026,6 +1026,8 @@ NodeHandle SceneManager::parseNode( SceneNodeTpl &tpl, SceneNode *parent )
 NodeHandle SceneManager::addNode( SceneNode *node, SceneNode &parent )
 {
 	if( node == 0x0 ) return 0;
+
+   _registry[node->_type].nodes[node->getHandle()] = node;
 	
 	// Check if node can be attached to parent
 	if( !node->canAttach( parent ) )
@@ -1067,6 +1069,8 @@ void SceneManager::removeNodeRec( SceneNode &node )
 	
 	// Raise event
 	if( handle != RootNode ) node.onDetach( *node._parent );
+
+   _registry[node.getType()].nodes.erase(node.getHandle());
 
 	// Remove children
 	for( uint32 i = 0; i < node._children.size(); ++i )
@@ -1154,8 +1158,17 @@ int SceneManager::findNodes( SceneNode &startNode, std::string const& name, int 
 {
    _findResults.clear();
 
-   _findNodes(startNode, name, type);
-	
+   if (startNode.getHandle() == RootNode) {
+      // Since we want all nodes of that type, just consult the registry.
+      for (auto& n : _registry[type].nodes) {
+         if (name == "" || n.second->_name == name) {
+            _findResults.push_back(n.second);
+         }
+      }
+   } else {
+      _findNodes(startNode, name, type);
+   }
+
 	return _findResults.size();
 }
 

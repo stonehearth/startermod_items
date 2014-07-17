@@ -338,6 +338,11 @@ protected:
    int64 hashGridPoint(int x, int y) const;
    void unhashGridHash(int64 hash, int* x, int* y) const;
 
+   /*std::unordered_map<NodeHandle, std::vector<int64> > _nodeGridLookup;
+   std::unordered_map<int64, GridElement> _gridElements;
+   std::unordered_map<NodeHandle, SceneNode const*> _directionalLights;
+   std::unordered_map<NodeHandle, SceneNode const*> _nocullNodes;*/
+   
    std::unordered_map<NodeHandle, std::vector<int64> > _nodeGridLookup;
    std::unordered_map<int64, GridElement> _gridElements;
    std::unordered_map<NodeHandle, SceneNode const*> _directionalLights;
@@ -363,6 +368,7 @@ struct NodeRegEntry
 	NodeTypeFactoryFunc  factoryFunc;
 	NodeTypeRenderFunc   renderFunc;
    NodeTypeRenderFunc   instanceRenderFunc;
+   std::unordered_map<NodeHandle, SceneNode*> nodes;
 };
 
 struct CastRayResult
