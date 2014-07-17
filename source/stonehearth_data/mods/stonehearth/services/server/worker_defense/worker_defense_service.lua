@@ -54,11 +54,13 @@ function WorkerDefense:disable_worker_combat(player_id)
    local citizens = population:get_citizens()
 
    for _, citizen in pairs(citizens) do
-      local combat_state = citizen:add_component('stonehearth:combat_state')
-      combat_state:set_stance('passive')
+      if self:_performs_worker_defense(citizen) then
+         local combat_state = citizen:add_component('stonehearth:combat_state')
+         combat_state:set_stance('passive')
 
-      -- remove the ! from above the citizen's head
-      radiant.entities.unthink(citizen, '/stonehearth/data/effects/thoughts/alert',  stonehearth.constants.think_priorities.ALERT)
+         -- remove the ! from above the citizen's head
+         radiant.entities.unthink(citizen, '/stonehearth/data/effects/thoughts/alert',  stonehearth.constants.think_priorities.ALERT)
+      end
    end 
 
    self._sv.worker_combat_enabled[player_id] = false

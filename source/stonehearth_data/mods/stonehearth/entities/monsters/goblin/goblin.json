@@ -115,7 +115,7 @@
          {
             "name" : "combat_1h_dodge",
             "active_frame" : 8,
-            "cooldown" : 10000,
+            "cooldown" : 12000,
             "priority" : 1
          }
       ]

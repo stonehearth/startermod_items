@@ -11,11 +11,8 @@ function client_entities.__init()
 end
 
 function client_entities.create_entity(ref)
-   if not ref then
-      return _radiant.client.create_empty_authoring_entity()
-   end
-   log:info('client', 'creating entity %s', ref)
-   return _radiant.client.create_authoring_entity(ref)
+   log:info('client', 'creating entity %s', tostring(ref))
+   return _radiant.client.create_authoring_entity(ref or "")
 end
 
 function client_entities.destroy_entity(entity)

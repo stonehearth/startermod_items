@@ -108,13 +108,8 @@ function EntitySelector:_on_mouse_event(mouse_pos, event)
       self._cursor_obj = _radiant.client.set_cursor(cursor_uri)
    end
 
-   -- early exit if the ray missed the entire world   
-   if not entity then
-      return
-   end
-
    if event then
-      if event:up(1) then
+      if entity and event:up(1) then
          if self._done_cb then
             self._done_cb(self, entity)
          end
