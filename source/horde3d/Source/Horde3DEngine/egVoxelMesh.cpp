@@ -34,11 +34,10 @@ using namespace std;
 VoxelMeshNode::VoxelMeshNode( const VoxelMeshNodeTpl &meshTpl ) :
 	SceneNode( meshTpl ),
    _materialRes( meshTpl.matRes ),
-	_parentModel( 0x0 ),
-   _noInstancing(false)
+	_parentModel( 0x0 )
 {
 	_renderable = true;
-
+   _noInstancing = false;
 	if( _materialRes != 0x0 )
 		_sortKey = (float)_materialRes->getHandle();
 }
@@ -118,14 +117,6 @@ void VoxelMeshNode::setParamI( int param, int value )
 
 	SceneNode::setParamI( param, value );
 }
-
-const InstanceKey* VoxelMeshNode::getInstanceKey() const {
-   if (_noInstancing) {
-      return nullptr;
-   }
-   return &_instanceKey;
-}
-
 
 bool VoxelMeshNode::checkIntersection( const Vec3f &rayOrig, const Vec3f &rayDir, Vec3f &intsPos, Vec3f &intsNorm ) const
 {

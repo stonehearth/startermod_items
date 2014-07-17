@@ -53,7 +53,7 @@ SceneNode::SceneNode( const SceneNodeTpl &tpl ) :
 	_parent( 0x0 ), _type( tpl.type ), _handle( 0 ), _flags( 0 ), _sortKey( 0 ),
 	_dirty( true ), _transformed( true ), _renderable( false ),
    _name( tpl.name ), _attachment( tpl.attachmentString ), _userFlags(0), _accumulatedFlags(0),
-   _renderStamp(0)
+   _renderStamp(0), _noInstancing(true)
 {
 	_relTrans = Matrix4f::ScaleMat( tpl.scale.x, tpl.scale.y, tpl.scale.z );
 	_relTrans.rotate( degToRad( tpl.rot.x ), degToRad( tpl.rot.y ), degToRad( tpl.rot.z ) );
@@ -507,6 +507,14 @@ void GridSpatialGraph::query(SpatialQuery const& query, RenderableQueues& render
                          InstanceRenderableQueues& instanceQueues, std::vector<SceneNode const*>& lightQueue)
 {
    _renderStamp++;
+   const int curRenderStamp = _renderStamp;
+   const int qFilterIgnore = query.filterIgnore;
+   const int qFilterRequired = query.filterRequired;
+   const int qUserFlags = query.userFlags;
+   const int qUseRenderableQueue = query.useRenderableQueue;
+   const int qOrder = query.order;
+   const int qForceNoInstancing = query.forceNoInstancing;
+
    ASSERT(query.useLightQueue || query.useRenderableQueue);
 
    Modules::sceneMan().updateNodes();
@@ -517,29 +525,33 @@ void GridSpatialGraph::query(SpatialQuery const& query, RenderableQueues& render
       }
 
       for (SceneNode const* node: ge.second._nodes) {
-         if (node->getRenderStamp() == _renderStamp) {
+         if (node->getRenderStamp() == curRenderStamp) {
             continue;
          }
-         node->setRenderStamp(_renderStamp);
+         node->setRenderStamp(curRenderStamp);
 
-         if (node->_accumulatedFlags & query.filterIgnore) {
+         if (node->_accumulatedFlags & qFilterIgnore) {
             continue;
          }
-         if ((node->_accumulatedFlags & query.filterRequired) != query.filterRequired) {
+         if ((node->_accumulatedFlags & qFilterRequired) != qFilterRequired) {
             continue;
          }
-         if ((node->_userFlags & query.userFlags) != query.userFlags) {
+         if ((node->_userFlags & qUserFlags) != qUserFlags) {
             continue;
          }
 
-         if (query.useRenderableQueue) {
+         if (qUseRenderableQueue) {
             if (!node->_renderable) {
                continue;
             }
 
+            /*if (query.frustum.cullBox(node->_bBox) && (query.secondaryFrustum == 0x0 || query.secondaryFrustum->cullBox(node ->_bBox))) {
+               continue;
+            }*/
+
             float sortKey = 0;
 
-            switch( query.order )
+            switch( qOrder )
             {
             case RenderingOrder::StateChanges:
                sortKey = node->_sortKey;
@@ -552,7 +564,7 @@ void GridSpatialGraph::query(SpatialQuery const& query, RenderableQueues& render
                break;
             }
 
-            if (node->getInstanceKey() != 0x0 && !query.forceNoInstancing) {
+            if (node->getInstanceKey() != 0x0 && !qForceNoInstancing) {
                if (instanceQueues.find(node->_type) == instanceQueues.end()) {
                   instanceQueues[node->_type] = InstanceRenderableQueue();
                }
@@ -634,7 +646,7 @@ void GridSpatialGraph::query(SpatialQuery const& query, RenderableQueues& render
       }
    }
 }
-#pragma optimize( "", on )
+//#pragma optimize( "", on )
 // =================================================================================================
 // Class SpatialGraph
 // =================================================================================================

@@ -19,6 +19,8 @@
 #include "egPipeline.h"
 #include <map>
 #include <unordered_map>
+#include <boost\container\flat_map.hpp>
+#include <boost\container\flat_set.hpp>
 
 
 namespace Horde3D {
@@ -151,11 +153,16 @@ public:
 	void update();
 	virtual bool checkIntersection( const Vec3f &rayOrig, const Vec3f &rayDir, Vec3f &intsPos, Vec3f &intsNorm ) const;
 
-   virtual const InstanceKey* getInstanceKey() const { return 0x0; }
+   inline const InstanceKey* getInstanceKey() const { 
+      if (_noInstancing) {
+         return nullptr;
+      }
+      return &_instanceKey; 
+   }
    virtual const long sortKey() { return 0x0; }
 	int getType() const { return _type; }
-   int getRenderStamp() const { return _renderStamp; }
-   void setRenderStamp(int s) const { _renderStamp = s; }
+   inline int getRenderStamp() const { return _renderStamp; }
+   inline void setRenderStamp(int s) const { _renderStamp = s; }
 	NodeHandle getHandle() const { return _handle; }
 	SceneNode *getParent() const { return _parent; }
 	std::string const& getName() const { return _name; }
@@ -198,9 +205,11 @@ protected:
    uint32                      _userFlags;
    uint32                      _accumulatedFlags;
 	float                       _sortKey;
+   InstanceKey                 _instanceKey;
 	bool                        _dirty;  // Does the node need to be updated?
 	bool                        _transformed;
 	bool                        _renderable;
+   bool                        _noInstancing;
 
 	BoundingBox                 _bBox;  // AABB in world space
 
@@ -309,7 +318,7 @@ protected:
 struct GridElement 
 {
    BoundingBox bounds;
-   std::set<SceneNode const*> _nodes;
+   boost::container::flat_set<SceneNode const*> _nodes;
 };
 
 class GridSpatialGraph : public ISpatialGraph
