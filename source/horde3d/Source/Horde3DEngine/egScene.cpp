@@ -526,6 +526,8 @@ void GridSpatialGraph::query(SpatialQuery const& query, RenderableQueues& render
    const int qUseRenderableQueue = query.useRenderableQueue;
    const int qOrder = query.order;
    const int qForceNoInstancing = query.forceNoInstancing;
+   const Frustum& qFrustum = query.frustum;
+   const Frustum* qSecondaryFrustum = query.secondaryFrustum;
 
    ASSERT(query.useLightQueue || query.useRenderableQueue);
 
@@ -557,9 +559,9 @@ void GridSpatialGraph::query(SpatialQuery const& query, RenderableQueues& render
                continue;
             }
 
-            /*if (query.frustum.cullBox(node->_bBox) && (query.secondaryFrustum == 0x0 || query.secondaryFrustum->cullBox(node ->_bBox))) {
+            if (qFrustum.cullBox(node->_bBox) && (qSecondaryFrustum == 0x0 || qSecondaryFrustum->cullBox(node ->_bBox))) {
                continue;
-            }*/
+            }
 
             float sortKey = 0;
 
@@ -569,10 +571,10 @@ void GridSpatialGraph::query(SpatialQuery const& query, RenderableQueues& render
                sortKey = node->_sortKey;
                break;
             case RenderingOrder::FrontToBack:
-               sortKey = nearestDistToAABB( query.frustum.getOrigin(), node->_bBox.min(), node->_bBox.max() );
+               sortKey = nearestDistToAABB( qFrustum.getOrigin(), node->_bBox.min(), node->_bBox.max() );
                break;
             case RenderingOrder::BackToFront:
-               sortKey = -nearestDistToAABB( query.frustum.getOrigin(), node->_bBox.min(), node->_bBox.max() );
+               sortKey = -nearestDistToAABB( qFrustum.getOrigin(), node->_bBox.min(), node->_bBox.max() );
                break;
             }
 
