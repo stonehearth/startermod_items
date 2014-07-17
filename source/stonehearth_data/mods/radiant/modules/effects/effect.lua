@@ -30,12 +30,7 @@ function Effect:_get_end_time()
       return 0
    end
    if self._info.duration then
-      if self._info.start_time then
-         return self._info.start_time + self._info.duration
-      end
-      if self._info.start_frame then
-         return self:_frame_count_to_time(self._info.end_frame)(self._info.start_frame + self._info.duration)
-      end
+      return self:_get_start_time() + self._info.duration
    end
    if self._info.type == 'animation_effect' then
       local animation = _radiant.res.load_animation(self._info.animation)
