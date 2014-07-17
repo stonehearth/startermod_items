@@ -250,19 +250,17 @@ var StonehearthClient;
          });
       },
 
-      growRoof: function(options) {
+      growRoof: function() {
          var self = this;
-         options = options || {};
 
          return this._callTool(function() {
             radiant.call('radiant:play_sound', 'stonehearth:sounds:place_structure' );
-            /*
-            var options = {
-               nine_grid_gradiant : [ "front", "back", "left", "right" ],
-            }
-            */
-            return radiant.call_obj(self._build_editor, 'grow_roof', 'stonehearth:wooden_peaked_roof', options);
+            return radiant.call_obj(self._build_editor, 'grow_roof', 'stonehearth:wooden_peaked_roof');
          });
+      },
+
+      setGrowRoofOptions: function(options) {
+         return radiant.call_obj(this._build_editor, 'set_grow_roof_options', options);
       },
 
       growWalls: function(column, wall) {
