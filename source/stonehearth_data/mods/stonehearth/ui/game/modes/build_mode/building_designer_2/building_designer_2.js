@@ -173,12 +173,11 @@ App.StonehearthBuildingDesignerTools = App.View.extend({
          var tabId = $(this).attr('tab');
          var tab = self.$('#' + tabId);
 
-         // activate the default tool for each tab
+         // restore the last used tool for the tab
          var activeTool = self._state[tabId + "ActiveTool"];
-         if (!activeTool) {
-            activeTool = '.defaultTool';
+         if (activeTool) {
+            tab.find(activeTool).click();   
          }
-         tab.find(activeTool).click();
 
          // show the correct tab page
          self.$('.tabPage').hide();
@@ -190,12 +189,27 @@ App.StonehearthBuildingDesignerTools = App.View.extend({
 
       // tools
       this.$('.toolButton').click(function() {
-         var tabId = $(this).parents('.tabPage').attr('id');
-         self._state[tabId + "ActiveTool"] = '#' + $(this).attr('id');
-         self._saveState();
+         var tool = $(this);
+         var toolActive = tool.hasClass('active');
+         var toolSaveState = null;
 
-         self.$('.toolButton').removeClass('active');
-         $(this).addClass('active');
+         // change display for all the other tool buttons
+         self.$('.toolButton').removeClass('active');         
+         
+         // toggle the tool based on its old state
+         if (toolActive) {
+            // was active, deactivate it
+            toolSaveState = null;
+            App.stonehearthClient.deactivateAllTools();
+         } else {
+            // was not active, activate it
+            tool.addClass('active');
+            toolSaveState = '#' + tool.attr('id');
+         }
+
+         var tabId = tool.parents('.tabPage').attr('id');
+         self._state[tabId + "ActiveTool"] = toolSaveState;
+         self._saveState();
       });
 
       // undo/redoo tool
@@ -216,13 +230,17 @@ App.StonehearthBuildingDesignerTools = App.View.extend({
 
       // draw floor tool
       this.$('#drawFloorTool').click(function() {
-         var brush = self.$('#floorToolTab .floorMaterial.selected').attr('brush');
-         App.stonehearthClient.buildFloor(brush);
-         self._activeTool = $(this);
+         if($(this).hasClass('active')) {
+            var brush = self.$('#floorToolTab .floorMaterial.selected').attr('brush');
+            App.stonehearthClient.buildFloor(brush);
+            self._activeTool = $(this);            
+         }
       });
 
       this.$('#eraseFloorTool').click(function() {
-         App.stonehearthClient.eraseFloor();
+         if($(this).hasClass('active')) {
+            App.stonehearthClient.eraseFloor();
+         }
       });
       
 
@@ -240,20 +258,26 @@ App.StonehearthBuildingDesignerTools = App.View.extend({
 
       // draw wall tool
       this.$('#drawWallTool').click(function() {
-         var wallUri = self.$('#wallToolTab .wallMaterial.selected').attr('brush');
-         App.stonehearthClient.buildWall('stonehearth:wooden_column', wallUri);
+         if($(this).hasClass('active')) {
+            var wallUri = self.$('#wallToolTab .wallMaterial.selected').attr('brush');
+            App.stonehearthClient.buildWall('stonehearth:wooden_column', wallUri);
 
-         self._activeTool = $(this);
+            self._activeTool = $(this);
+         }
       });
 
       // grow walls tool
       this.$('#growWallsTool').click(function() {
-         var wallUri = self.$('#wallToolTab .wallMaterial.selected').attr('brush');
-         App.stonehearthClient.growWalls('stonehearth:wooden_column', wallUri);
+         if($(this).hasClass('active')) {
+            var wallUri = self.$('#wallToolTab .wallMaterial.selected').attr('brush');
+            App.stonehearthClient.growWalls('stonehearth:wooden_column', wallUri);
+         }
       });
 
       this.$('#growRoofTool').click(function() {
-         App.stonehearthClient.growRoof();
+         if($(this).hasClass('active')) {
+            App.stonehearthClient.growRoof();
+         }
       })
 
       this.$('.roofDiagramButton').click(function() {
@@ -280,10 +304,12 @@ App.StonehearthBuildingDesignerTools = App.View.extend({
 
       // draw doodad tool
       this.$('#drawDoodadTool').click(function() {
-         var uri = self.$('#doodadToolTab .doodadMaterial.selected').attr('brush');
-         App.stonehearthClient.addDoodad(uri);
+         if($(this).hasClass('active')) {
+            var uri = self.$('#doodadToolTab .doodadMaterial.selected').attr('brush');
+            App.stonehearthClient.addDoodad(uri);
 
-         self._activeTool = $(this);
+            self._activeTool = $(this);
+         }
       });
 
       // edit tab
