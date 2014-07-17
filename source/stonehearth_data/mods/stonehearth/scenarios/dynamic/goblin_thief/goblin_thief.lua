@@ -95,6 +95,7 @@ end
 
 function GoblinThief:_on_spawn_jerk()
    self._sv._goblin = self._population:create_new_citizen()
+   stonehearth.combat:set_stance(self._sv._goblin, 'defensive')
    local spawn_point = stonehearth.spawn_region_finder:find_point_outside_civ_perimeter_for_entity(self._sv._goblin, 80)
 
    if not spawn_point then

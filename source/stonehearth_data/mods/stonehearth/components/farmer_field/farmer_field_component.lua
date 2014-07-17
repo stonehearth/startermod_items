@@ -59,7 +59,7 @@ end
 function FarmerFieldComponent:_add_crop(region)
    return radiant.create_controller('stonehearth:farmer_crop',
       self._entity:get_component('unit_info'):get_player_id(),
-      self:get_contents(),
+      self,
       self._sv.location, 
       self:_get_next_queued_crop(),
       self._sv.auto_harvest,

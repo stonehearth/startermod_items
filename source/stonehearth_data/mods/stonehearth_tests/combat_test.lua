@@ -9,12 +9,7 @@ function CombatTest:__init()
    self:create_world()
    self:create_enemy_kingdom()
 
-   -- for i = -10, 10 do
-   --    self:place_item('stonehearth:small_boulder', i, 0)
-   --    if math.abs(i) <= 5 and i ~= 0 then
-   --       self:place_item('stonehearth:small_boulder', 0, i)
-   --    end
-   -- end
+   --self:place_obstacles()
 
    self:at(1000,
       function ()
@@ -23,9 +18,18 @@ function CombatTest:__init()
    )
 end
 
+function CombatTest:place_obstacles()
+   for i = -16, 10 do
+      self:place_item('stonehearth:small_boulder', i, 0)
+      -- if math.abs(i) <= 5 and i ~= 0 then
+      --    self:place_item('stonehearth:small_boulder', 0, i)
+      -- end
+   end
+end
+
 function CombatTest:place_units()
    self._citizens = {
-      self:place_citizen(-15, -15, 'stonehearth:professions:footman', 'stonehearth:wooden_sword'),
+      self:place_citizen(-9, -15, 'stonehearth:professions:footman', 'stonehearth:wooden_sword'),
       self:place_citizen( -7, -15, 'stonehearth:professions:footman', 'stonehearth:wooden_sword'),
       self:place_citizen(  1, -15, 'stonehearth:professions:footman', 'stonehearth:wooden_sword'),
       self:place_citizen(  9, -15, 'stonehearth:professions:footman', 'stonehearth:wooden_sword'),
@@ -37,9 +41,6 @@ function CombatTest:place_units()
       self:place_enemy(  7, 15, 'stonehearth:wooden_sword'),
       self:place_enemy( 15, 15, 'stonehearth:wooden_sword'),
    }
-
-   -- local enemy = self._enemy_population:create_new_citizen()
-   -- radiant.terrain.place_entity(enemy, Point3(-9, 1, 15))
 end
 
 function CombatTest:create_enemy_kingdom()
@@ -50,13 +51,13 @@ function CombatTest:create_enemy_kingdom()
    }
 
    stonehearth.inventory:add_inventory(session)
+   stonehearth.town:add_town(session)
    self._enemy_population = stonehearth.population:add_population(session)
 end
 
 function CombatTest:place_enemy(x, z, weapon)
    local enemy = self._enemy_population:create_new_citizen()
    self:equip_weapon(enemy, weapon)
-   self:inject_enemy_observer(enemy)
    radiant.terrain.place_entity(enemy, Point3(x, 1, z))
    return enemy
 end
@@ -70,10 +71,6 @@ function CombatTest:equip_weapon(entity, weapon_uri)
    -- might want to remove other talisman related commands as well
    -- TODO: make the effects and commands specific to the model variant
    weapon:remove_component('effect_list')
-end
-
-function CombatTest:inject_enemy_observer(entity)
-   stonehearth.ai:inject_ai(entity, { observers = { "stonehearth:observers:enemy_observer" }})
 end
 
 function CombatTest:kill(entity)

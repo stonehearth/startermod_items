@@ -12,10 +12,6 @@ WaitForAssault.version = 2
 WaitForAssault.priority = 1
 WaitForAssault.weight = 1
 
-function WaitForAssault:__init(entity)
-   self._defense_types = stonehearth.combat:get_combat_actions(entity, 'stonehearth:combat:melee_defenses')
-end
-
 function WaitForAssault:start_thinking(ai, entity, args)
    self._ai = ai
    self._entity = entity

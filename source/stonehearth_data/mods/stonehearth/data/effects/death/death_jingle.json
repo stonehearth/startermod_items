@@ -1,0 +1,14 @@
+{
+   "type" : "effect",
+   "tracks": {
+      "death_jingle": {  
+         "type": "sound_effect",
+         "duration": 5000,
+         "start_delay": 0,
+         "min_distance": 10000,
+         "max_distance": 20000,
+         "volume": 100,
+         "track" : "stonehearth:sounds:death_jingle"
+      }      
+   }
+}

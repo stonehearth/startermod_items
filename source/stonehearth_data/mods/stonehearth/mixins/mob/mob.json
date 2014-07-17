@@ -8,6 +8,7 @@
          "actions" : [
             "stonehearth:actions:death",
             "stonehearth:actions:die_generic",
+            "stonehearth:actions:run_death_effect",
             "stonehearth:actions:destroy_entity",
             "stonehearth:actions:drop_carrying_action",
             "stonehearth:actions:drop_carrying_now",

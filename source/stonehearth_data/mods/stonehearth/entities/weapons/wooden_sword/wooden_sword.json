@@ -68,7 +68,7 @@
          {
             "name" : "combat_1h_parry",
             "active_frame" : 4,
-            "cooldown" : 6000,
+            "cooldown" : 8000,
             "priority" : 0
          }
       ]

@@ -12,13 +12,13 @@ function TownDefenseWatcher:start_thinking(ai, entity, args)
 
    if not self:_check_stance() then
       self._listening = true
-      radiant.events.listen(self._entity, 'stonehearth:stance', self, self._check_stance)
+      radiant.events.listen(self._entity, 'stonehearth:combat:stance_changed', self, self._check_stance)
    end
 end
 
 function TownDefenseWatcher:stop_thinking(ai, entity, args)
    if self._listening then
-      radiant.events.unlisten(self._entity, 'stonehearth:stance', self, self._check_stance)
+      radiant.events.unlisten(self._entity, 'stonehearth:combat:stance_changed', self, self._check_stance)
       self._listening = false
    end
 end

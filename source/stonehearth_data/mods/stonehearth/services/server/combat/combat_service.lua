@@ -36,8 +36,10 @@ end
 -- Notify target that it is about to be attacked.
 -- If target is not otherwise engaged in another combat action, target should stop
 -- and defend itself, which allows attacker to close to the proper distance.
-function CombatService:engage(target, context)
-   if target == nil or not target:is_valid() then
+function CombatService:engage(context)
+   local target = context.target
+
+   if not target or not target:is_valid() then
       return nil
    end
 
@@ -46,8 +48,11 @@ end
 
 -- Notify target that an attack has begun and will impact soon.
 -- Target has opportunity to defend itself if it can react before the impact time.
-function CombatService:assault(target, context)
-   if target == nil or not target:is_valid() then
+function CombatService:begin_assault(context)
+   local attacker = context.attacker
+   local target = context.target
+
+   if not target or not target:is_valid() then
       return nil
    end
 
@@ -55,11 +60,27 @@ function CombatService:assault(target, context)
    combat_state:add_assault_event(context)
 
    radiant.events.trigger_async(target, 'stonehearth:combat:assault', context)
+   self:_set_assaulting(attacker, true)
+end
+
+function CombatService:end_assault(context)
+   local attacker = context.attacker
+   local target = context.target
+
+   if target and target:is_valid() then
+      local combat_state = self:get_combat_state(target)
+      combat_state:remove_assault_event(context)
+   end
+
+   self:_set_assaulting(attacker, false)
 end
 
 -- Notify target that it has been hit by an attack.
-function CombatService:battery(target, context)
-   if target == nil or not target:is_valid() then
+function CombatService:battery(context)
+   local attacker = context.attacker
+   local target = context.target
+
+   if not target or not target:is_valid() then
       return nil
    end
 
@@ -70,17 +91,17 @@ function CombatService:battery(target, context)
 
    if max_health ~= nil then
       if damage >= max_health * self._hit_stun_damage_threshold then
-         self:hit_stun(target, context)
+         self:hit_stun(context)
       end
    end
 
-   health = health - damage
    if health ~= nil then
+      health = health - damage
       attributes_component:set_attribute('health', health)
    end
 
    local action_details = {
-      attacker = context.attacker,
+      attacker = attacker,
       target = target,
       damage = damage
    }
@@ -89,8 +110,10 @@ function CombatService:battery(target, context)
 end
 
 -- Notify target that it is now stunned an any action in progress will be cancelled.
-function CombatService:hit_stun(target, context)
-   if target == nil or not target:is_valid() then
+function CombatService:hit_stun(context)
+   local target = context.target
+
+   if not target or not target:is_valid() then
       return nil
    end
 
@@ -98,7 +121,7 @@ function CombatService:hit_stun(target, context)
 end
 
 function CombatService:get_assault_events(target)
-   if target == nil or not target:is_valid() then
+   if not target or not target:is_valid() then
       return nil
    end
 
@@ -107,7 +130,7 @@ function CombatService:get_assault_events(target)
 end
 
 function CombatService:start_cooldown(entity, action_info)
-   if entity == nil or not entity:is_valid() then
+   if not entity or not entity:is_valid() then
       return
    end
 
@@ -116,7 +139,7 @@ function CombatService:start_cooldown(entity, action_info)
 end
 
 function CombatService:in_cooldown(entity, action_name)
-   if entity == nil or not entity:is_valid() then
+   if not entity or not entity:is_valid() then
       return false
    end
 
@@ -125,7 +148,7 @@ function CombatService:in_cooldown(entity, action_name)
 end
 
 function CombatService:get_cooldown_end_time(entity, action_name)
-   if entity == nil or not entity:is_valid() then
+   if not entity or not entity:is_valid() then
       return nil
    end
 
@@ -190,9 +213,46 @@ function CombatService:set_timer(duration, fn)
    return stonehearth.calendar:set_timer(game_seconds, fn)
 end
 
-function CombatService:get_stance(entity)
-   if entity == nil or not entity:is_valid() then
+function CombatService:get_primary_target(entity)
+   if not entity or not entity:is_valid() then
+      return nil
+   end
+
+   local combat_state = self:get_combat_state(entity)
+   return combat_state:get_primary_target()
+end
+
+function CombatService:set_primary_target(entity, target)
+   if not entity or not entity:is_valid() then
       return
+   end
+
+   local combat_state = self:get_combat_state(entity)
+   return combat_state:set_primary_target(target)
+end
+
+function CombatService:get_assaulting(entity)
+   if not entity or not entity:is_valid() then
+      return false
+   end
+
+   local combat_state = self:get_combat_state(entity)
+   return combat_state:get_assaulting()
+end
+
+-- external parties should be using the begin_assault and end_assault methods
+function CombatService:_set_assaulting(entity, assaulting)
+   if not entity or not entity:is_valid() then
+      return
+   end
+
+   local combat_state = self:get_combat_state(entity)
+   return combat_state:set_assaulting(assaulting)
+end
+
+function CombatService:get_stance(entity)
+   if not entity or not entity:is_valid() then
+      return nil
    end
 
    local combat_state = self:get_combat_state(entity)
@@ -200,7 +260,7 @@ function CombatService:get_stance(entity)
 end
 
 function CombatService:set_stance(entity, stance)
-   if entity == nil or not entity:is_valid() then
+   if not entity or not entity:is_valid() then
       return
    end
 
@@ -208,33 +268,31 @@ function CombatService:set_stance(entity, stance)
    return combat_state:set_stance(stance)
 end
 
-function CombatService:set_panicking_from(entity, threat)
-   if entity == nil or not entity:is_valid() then
-      return
-   end
-
-   local combat_state = self:get_combat_state(entity)
-   combat_state:set_panicking_from(threat)
-
-   radiant.events.trigger_async(entity, 'stonehearth:combat:panic', { threat = threat })
-end
-
 function CombatService:get_panicking_from(entity)
-   if entity == nil or not entity:is_valid() then
-      return
+   if not entity or not entity:is_valid() then
+      return nil
    end
 
    local combat_state = self:get_combat_state(entity)
    return combat_state:get_panicking_from()
 end
 
-function CombatService:is_panicking(entity)
-   if entity == nil or not entity:is_valid() then
+function CombatService:set_panicking_from(entity, threat)
+   if not entity or not entity:is_valid() then
+      return
+   end
+
+   local combat_state = self:get_combat_state(entity)
+   combat_state:set_panicking_from(threat)
+end
+
+function CombatService:panicking(entity)
+   if not entity or not entity:is_valid() then
       return false
    end
 
    local combat_state = self:get_combat_state(entity)
-   return combat_state:is_panicking()
+   return combat_state:panicking()
 end
 
 function CombatService:get_combat_state(entity)
@@ -246,36 +304,13 @@ function CombatService:get_combat_state(entity)
    return combat_state_component
 end
 
--- combat actions can come from two sources:
---   1) something you are (a dragon has a tail attack)
---   2) something you have (a wand of lightning bolt)
 function CombatService:get_combat_actions(entity, action_type)
-   -- get actions from entity description
-   local actions = radiant.entities.get_entity_data(entity, action_type)
-   actions = actions or {}
-
-   local equipment_component = entity:get_component('stonehearth:equipment')
-
-   -- get actions from all equipment
-   if equipment_component ~= nil then
-      local items = equipment_component:get_all_items()
-      for _, item in pairs(items) do
-         local item_actions = radiant.entities.get_entity_data(item, action_type)
-         if item_actions then
-            for _, action in pairs(item_actions) do
-               table.insert(actions, action)
-            end
-         end
-      end
+   if not entity or not entity:is_valid() then
+      return nil
    end
 
-   -- TODO: just sort once...
-   table.sort(actions,
-      function (a, b)
-         return a.priority > b.priority
-      end
-   )
-   return actions
+   local combat_state = self:get_combat_state(entity)
+   return combat_state:get_combat_actions(action_type)
 end
 
 -- placeholder logic for now

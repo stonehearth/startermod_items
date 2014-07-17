@@ -33,11 +33,16 @@ end
 function TargetTable:remove(target)
    if target ~= nil and target:is_valid() then
       local target_id = target:get_id()
-      self._sv.targets[target_id] = nil
-      self.__saved_variables:mark_changed()
 
-      if target == self._sv.top then
-         self:_mark_top_dirty()
+      if self._sv.targets[target_id] ~= nil then
+         self._sv.targets[target_id] = nil
+
+         if target == self._sv.top then
+            self._sv.top_is_dirty = true
+         end
+
+         self.__saved_variables:mark_changed()
+         self:_signal_changed()
       end
    end
    -- if target is not valid, it will get cleaned up in the combat_service:_clean_target_tables
@@ -46,9 +51,13 @@ end
 function TargetTable:set_score(target, score)
    if target ~= nil and target:is_valid() then
       local target_id = target:get_id()
-      self._sv.targets[target_id] = score
-      self.__saved_variables:mark_changed()
-      self:_check_update_top(target, score)
+
+      if self._sv.targets[target_id] ~= score then
+         self._sv.targets[target_id] = score
+         self:_check_update_top(target, score)
+         self.__saved_variables:mark_changed()
+         self:_signal_changed()
+      end
    end
 end
 
@@ -72,9 +81,7 @@ function TargetTable:modify_score(target, delta)
       local target_id = target:get_id()
       score = self._sv.targets[target_id] or self._starting_score
       score = score + delta
-      self._sv.targets[target_id] = score
-      self.__saved_variables:mark_changed()
-      self:_check_update_top(target, score)
+      self:set_score(target, score)
    end
 
    return score
@@ -82,17 +89,18 @@ end
 
 function TargetTable:remove_invalid_targets()
    local target
-   local changed = false
+   local pruned = false
 
    for target_id in pairs(self._sv.targets) do
       target = self:_get_valid_target_or_prune(target_id)
-      if target then
-         changed = true
+      if not target then
+         pruned = true
       end
    end
 
-   if changed then
+   if pruned then
       self.__saved_variables:mark_changed()
+      self:_signal_changed()
    end
 end
 
@@ -137,9 +145,8 @@ function TargetTable:_check_update_top(target, score)
    end
 end
 
-function TargetTable:_mark_top_dirty()
-   self._sv.top_is_dirty = true
-   self.__saved_variables:mark_changed()
+function TargetTable:_signal_changed()
+   radiant.events.trigger(self, 'stonehearth:target_table_changed')
 end
 
 function TargetTable:_top_is_valid()

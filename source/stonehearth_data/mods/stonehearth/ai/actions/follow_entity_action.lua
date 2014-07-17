@@ -63,7 +63,7 @@ function FollowEntity:start_thinking(ai, entity, args)
                check_distance()
             end)
          :on_destroyed(function()
-               ai:abort('target destination destroyed')
+               log:info('target destination destroyed')
             end)
    end
 end

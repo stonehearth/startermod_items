@@ -44,7 +44,7 @@
             "stonehearth:actions:restock_stockpile",
             "stonehearth:actions:memorialize_death",
             "stonehearth:actions:combat",
-            "stonehearth:actions:combat:attack_dispatcher",
+            "stonehearth:actions:combat:attack_after_cooldown",
             "stonehearth:actions:combat:attack:melee",
             "stonehearth:actions:combat:attack:melee_adjacent",
             "stonehearth:actions:combat:defend_dispatcher",
@@ -57,8 +57,8 @@
             "stonehearth:actions:combat:panic_watcher",
             "stonehearth:actions:combat:stop_panicking",
             "stonehearth:actions:combat:hit_stun",
-            "stonehearth:actions:combat:find_target",
             "stonehearth:actions:combat:create_engage_callback",
+            "stonehearth:actions:combat:get_primary_target",
             "stonehearth:actions:combat:get_melee_range",
             "stonehearth:actions:combat:set_global_attack_cooldown",
             "stonehearth:actions:combat:wait_for_global_attack_cooldown",
@@ -71,7 +71,9 @@
             "stonehearth:actions:get_town_banner", 
             "stonehearth:actions:goto_town_banner"
          ],
-          "observers": [
+         "observers": [
+            "stonehearth:observers:aggro",
+            "stonehearth:observers:find_target",
             "stonehearth:observers:sleepiness",
             "stonehearth:observers:calorie",
             "stonehearth:observers:free_time", 

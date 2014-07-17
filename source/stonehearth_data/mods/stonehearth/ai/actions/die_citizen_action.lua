@@ -10,6 +10,5 @@ DieCitizen.priority = 2
 
 local ai = stonehearth.ai
 return ai:create_compound_action(DieCitizen)
-   :execute('stonehearth:drop_carrying_now')
+   :execute('stonehearth:run_death_effect')
    :execute('stonehearth:memorialize_death')
-   :execute('stonehearth:destroy_entity')

@@ -39,7 +39,8 @@ void LuaMap_Each(lua_State* L, std::shared_ptr<M> map)
 template <typename M>
 void LuaMap_Add(M& map, typename M::Key key, luabind::object value)
 {
-   map.Add(key, value);
+   lua_State* cb_thread = lua::ScriptHost::GetCallbackThread(value.interpreter());
+   map.Add(key, luabind::object(cb_thread, value));
 }
 
 template <typename M>

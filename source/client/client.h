@@ -54,7 +54,6 @@ class Client : public core::Singleton<Client> {
       void SelectEntity(om::EntityPtr entity);
       void HilightEntity(om::EntityPtr entity);
 
-      om::EntityPtr CreateEmptyAuthoringEntity();
       om::EntityPtr CreateAuthoringEntity(std::string const& uri);
       void DestroyAuthoringEntity(dm::ObjectId id);
 

@@ -24,7 +24,8 @@ function RunAwayFromEntity:start_thinking(ai, entity, args)
    local threat = args.threat
 
    if not threat:is_valid() then
-      ai:abort('Invalid entity')
+      local log = ai:get_log()
+      log:info('Invalid entity')
       return
    end
 
@@ -67,7 +68,6 @@ function RunAwayFromEntity:_choose_destination(entity, threat, distance)
 
    destination = self:_calculate_location(entity_location, direction, 0, distance)
    
-
    return destination
 end
 

@@ -13,9 +13,6 @@ function SetGlobalAttackCooldown:__init()
 end
 
 function SetGlobalAttackCooldown:run(ai, entity, args)
-end
-
-function SetGlobalAttackCooldown:stop(ai, entity, args)
    local state = stonehearth.combat:get_combat_state(entity)
 
    state:start_cooldown('global_attack_recovery', self._global_attack_recovery_cooldown)

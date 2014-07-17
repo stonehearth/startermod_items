@@ -10,8 +10,5 @@ CombatIdleDispatcher.priority = constants.priorities.combat.IDLE
 
 local ai = stonehearth.ai
 return ai:create_compound_action(CombatIdleDispatcher)
-         -- find_target will perform duplicate work when attack action is selected
-         -- find an alternative if this gets expensive
-         -- find target is usually O(n) per entity, so combat is O(n^2) on number of participants
-         :execute('stonehearth:combat:find_target')
+         :execute('stonehearth:combat:get_primary_target')
          :execute('stonehearth:combat:idle', { enemy = ai.PREV.target })

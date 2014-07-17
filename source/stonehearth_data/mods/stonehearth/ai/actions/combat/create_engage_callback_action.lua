@@ -22,7 +22,6 @@ function CreateEngageCallback:start_thinking(ai, entity, args)
 
    if weapon == nil or not weapon:is_valid() then
       log:warning('%s has no weapon', entity)
-      ai:abort('No weapon')
       return
    end
 
@@ -41,7 +40,7 @@ function CreateEngageCallback:start_thinking(ai, entity, args)
       if distance < engage_range_max then
          -- consider sending engage message just once?
          local context = EngageContext(entity, target)
-         stonehearth.combat:engage(target, context)
+         stonehearth.combat:engage(context)
       end
    end
 

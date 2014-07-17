@@ -46,6 +46,7 @@ function EquipmentComponent:equip_item(item, slot)
 
       ep:equip(self._entity)
       self.__saved_variables:mark_changed()
+      self:_trigger_equipment_changed()
    end
 
    return unequipped_item
@@ -75,9 +76,15 @@ function EquipmentComponent:unequip_item(uri)
 
          item:get_component('stonehearth:equipment_piece'):unequip();
          self.__saved_variables:mark_changed()
+         self:_trigger_equipment_changed()
+
          return item
       end
    end
+end
+
+function EquipmentComponent:_trigger_equipment_changed()
+   radiant.events.trigger_async(self._entity, 'stonehearth:equipment_changed')
 end
 
 return EquipmentComponent

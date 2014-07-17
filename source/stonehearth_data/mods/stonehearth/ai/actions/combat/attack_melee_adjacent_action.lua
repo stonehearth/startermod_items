@@ -16,7 +16,6 @@ AttackMeleeAdjacent.priority = 1
 AttackMeleeAdjacent.weight = 1
 
 function AttackMeleeAdjacent:__init(entity)
-   self._attack_types = stonehearth.combat:get_combat_actions(entity, 'stonehearth:combat:melee_attacks')
 end
 
 function AttackMeleeAdjacent:start_thinking(ai, entity, args)
@@ -26,6 +25,8 @@ function AttackMeleeAdjacent:start_thinking(ai, entity, args)
       log:warning('%s has nothing to attack with', entity)
       return
    end
+
+   self._attack_types = stonehearth.combat:get_combat_actions(entity, 'stonehearth:combat:melee_attacks')
 
    if next(self._attack_types) == nil then
       log:warning('%s has no melee attacks', entity)
@@ -77,7 +78,7 @@ function AttackMeleeAdjacent:run(ai, entity, args)
    stonehearth.combat:start_cooldown(entity, attack_info)
 
    self._context = AssaultContext('melee', entity, target, impact_time)
-   stonehearth.combat:assault(target, self._context)
+   stonehearth.combat:begin_assault(self._context)
 
    -- can't ai:execute this. it needs to run in parallel with the attack animation
    self._hit_effect = radiant.effects.run_effect(
@@ -95,7 +96,7 @@ function AttackMeleeAdjacent:run(ai, entity, args)
             -- TODO: get damage modifiers from action and attributes
             local base_damage = weapon_data.base_damage
             local battery_context = BatteryContext(entity, target, base_damage)
-            stonehearth.combat:battery(target, battery_context)
+            stonehearth.combat:battery(battery_context)
          end
       end
    )
@@ -114,6 +115,10 @@ function AttackMeleeAdjacent:stop(ai, entity, args)
    if self._timer ~= nil then
       self._timer:destroy()
       self._timer = nil
+   end
+
+   if self._context then
+      stonehearth.combat:end_assault(self._context)
    end
 
    self._context = nil
