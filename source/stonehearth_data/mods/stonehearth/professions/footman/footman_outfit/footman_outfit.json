@@ -28,9 +28,6 @@
                "stonehearth:actions:patrol:idle",
                "stonehearth:actions:get_patrol_route",
                "stonehearth:actions:mark_patrol_completed"
-            ],
-            "observers" : [
-               "stonehearth:observers:enemy_observer"
             ]            
          },
          "injected_commands" : [
@@ -56,7 +53,7 @@
          {
             "name" : "combat_1h_dodge",
             "active_frame" : 8,
-            "cooldown" : 8000,
+            "cooldown" : 10000,
             "priority" : 1
          }
       ]

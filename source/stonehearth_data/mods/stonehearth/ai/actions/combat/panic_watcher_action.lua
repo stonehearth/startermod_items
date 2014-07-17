@@ -18,13 +18,13 @@ function PanicWatcher:start_thinking(ai, entity, args)
 
    if not self:_check_panicking() then
       self._listening = true
-      radiant.events.listen(self._entity, 'stonehearth:panic', self, self._check_panicking)
+      radiant.events.listen(self._entity, 'stonehearth:combat:panic_changed', self, self._check_panicking)
    end
 end
 
 function PanicWatcher:stop_thinking(ai, entity, args)
    if self._listening then
-      radiant.events.unlisten(self._entity, 'stonehearth:panic', self, self._check_panicking)
+      radiant.events.unlisten(self._entity, 'stonehearth:combat:panic_changed', self, self._check_panicking)
       self._listening = false
    end
 end

@@ -13,12 +13,13 @@ DefendMelee.priority = 2
 DefendMelee.weight = 1
 
 function DefendMelee:__init(entity)
-   self._defense_types = stonehearth.combat:get_combat_actions(entity, 'stonehearth:combat:melee_defenses')
 end
 
 function DefendMelee:start_thinking(ai, entity, args)
    self._ai = ai
    self._entity = entity
+
+   self._defense_types = stonehearth.combat:get_combat_actions(entity, 'stonehearth:combat:melee_defenses')
 
    if next(self._defense_types) == nil then
       -- no melee defenses
@@ -26,7 +27,7 @@ function DefendMelee:start_thinking(ai, entity, args)
    end
 
    for _, context in pairs(args.assault_events) do
-      if self:_can_defend(context) then
+      if self:_choose_defense(context) then
          ai:set_think_output()
       end
    end
@@ -37,7 +38,7 @@ function DefendMelee:stop_thinking(ai, entity, args)
    self._entity = nil
 end
 
-function DefendMelee:_can_defend(context)
+function DefendMelee:_choose_defense(context)
    if context.attack_method ~= 'melee' then
       return false
    end

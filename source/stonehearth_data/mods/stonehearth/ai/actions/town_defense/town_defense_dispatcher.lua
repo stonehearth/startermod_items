@@ -5,7 +5,7 @@ TownDefenseDispatcher.name = 'town defense dispatcher'
 TownDefenseDispatcher.does = 'stonehearth:top'
 TownDefenseDispatcher.args = {}
 TownDefenseDispatcher.version = 2
-TownDefenseDispatcher.priority = constants.priorities.top.TOWN_DEFENSE
+TownDefenseDispatcher.priority = constants.priorities.top.EMERGENCIES
 
 local ai = stonehearth.ai
 return ai:create_compound_action(TownDefenseDispatcher)

@@ -8,8 +8,6 @@ function WorkerDefense:__init()
    self._eligible_professions['stonehearth:professions:farmer'] = true
    self._eligible_professions['stonehearth:professions:carpenter'] = true
    self._eligible_professions['stonehearth:professions:weaver'] = true
-
-   self._injected_ai_map = {}
 end
 
 function WorkerDefense:initialize()
@@ -38,20 +36,12 @@ function WorkerDefense:enable_worker_combat(player_id)
    local citizens = population:get_citizens()
    
    for _, citizen in pairs(citizens) do
-      if self:_has_eligible_profession(citizen) then
-         -- inject the combat ai
-         local ai_handles = self:_inject_worker_combat_ai(citizen)
-
-         -- save the ai handles so we can remove them later
-         local injected_ais = self:_get_injected_ais(player_id)
-         injected_ais[citizen:get_id()] = ai_handles
-
-         -- TODO: should we make the ai permenant and just toggle the stance?
+      if self:_performs_worker_defense(citizen) then
          local combat_state = citizen:add_component('stonehearth:combat_state')
          combat_state:set_stance('aggressive')
 
          -- pop a ! over the citizen's head
-         radiant.entities.think(citizen, '/stonehearth/data/effects/thoughts/alert',  stonehearth.constants.think_priorities.ALERT)
+         radiant.entities.think(citizen, '/stonehearth/data/effects/thoughts/alert', stonehearth.constants.think_priorities.ALERT)
       end
    end
 
@@ -62,22 +52,11 @@ end
 function WorkerDefense:disable_worker_combat(player_id)
    local population = stonehearth.population:get_population(player_id)
    local citizens = population:get_citizens()
-   local injected_ais = self:_get_injected_ais(player_id)
-
-   for id, ai_handles in pairs(injected_ais) do
-      local entity = radiant.entities.get_entity(id)
-      if entity then
-         for _, ai in pairs(ai_handles) do
-            ai:destroy()
-         end
-
-         -- might need to save and restore prior state later
-         local combat_state = entity:add_component('stonehearth:combat_state')
-         combat_state:set_stance('passive')
-      end
-   end
 
    for _, citizen in pairs(citizens) do
+      local combat_state = citizen:add_component('stonehearth:combat_state')
+      combat_state:set_stance('passive')
+
       -- remove the ! from above the citizen's head
       radiant.entities.unthink(citizen, '/stonehearth/data/effects/thoughts/alert',  stonehearth.constants.think_priorities.ALERT)
    end 
@@ -86,25 +65,7 @@ function WorkerDefense:disable_worker_combat(player_id)
    self.__saved_variables:mark_changed()
 end
 
-function WorkerDefense:_get_injected_ais(player_id)
-   local injected_ais = self._injected_ai_map[player_id]
-
-   if not injected_ais then
-      injected_ais = {}
-      self._injected_ai_map[player_id] = injected_ais
-   end
-
-   return injected_ais
-end
-
-function WorkerDefense:_inject_worker_combat_ai(entity)
-   return {
-      stonehearth.ai:inject_ai(entity, { observers = { "stonehearth:observers:enemy_observer" }}),
-      stonehearth.ai:inject_ai(entity, { observers = { "stonehearth:observers:ally_defense" }})
-   }
-end
-
-function WorkerDefense:_has_eligible_profession(entity)
+function WorkerDefense:_performs_worker_defense(entity)
    local profession_component = entity:get_component('stonehearth:profession')
    local profession
 

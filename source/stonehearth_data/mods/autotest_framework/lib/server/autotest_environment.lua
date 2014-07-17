@@ -39,6 +39,7 @@ function env.create_enemy_kingdom()
    }
 
    stonehearth.inventory:add_inventory(session)
+   stonehearth.town:add_town(session)
    stonehearth.population:add_population(session)
 end
 
