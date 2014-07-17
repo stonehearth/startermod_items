@@ -78,8 +78,9 @@ void MapIterator<M>::RefreshIterator() const
       typename M::ContainerType const& container = _map.GetContainer();
       auto end = container.end();
 
-      if (_currentKey == _map.GetLastErasedKey()) {
-         _currentIterator = _map.GetLastErasedIterator();
+      typename M::ContainerType::const_iterator const& i = _map.GetLastErasedIterator();
+      if (i != end && i->first == _currentKey) {
+         _currentIterator = i;
       } else {
          _currentIterator = end;
       }
@@ -105,7 +106,6 @@ void MapIterator<M>::SetCurrentIterator(typename M::ContainerType::const_iterato
 
    if (!_isEnd) {
       _currentKey = i->first;
-      ++i;
    }
 }
 

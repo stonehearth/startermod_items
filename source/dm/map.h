@@ -46,7 +46,6 @@ private:
    friend MapIterator<Map>;
 
    ContainerType const& GetContainer() const;
-   Key const& GetLastErasedKey() const;
    typename ContainerType::const_iterator const& GetLastErasedIterator() const;
 
 private:
@@ -54,8 +53,7 @@ private:
 
 private:
    ContainerType                 items_;
-   Key                           lastErased_;
-   typename ContainerType::const_iterator cachedEraseIterator_;
+   typename ContainerType::const_iterator lastErasedIterator_;
 };
 
 END_RADIANT_DM_NAMESPACE
