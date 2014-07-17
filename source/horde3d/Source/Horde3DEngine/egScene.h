@@ -134,7 +134,7 @@ public:
    void setFlags( int flags, bool recursive );
    void twiddleFlags( int flags, bool on, bool recursive );
 
-	virtual int getParamI( int param );
+	virtual int getParamI(int param) const;
 	virtual void setParamI( int param, int value );
 	virtual float getParamF( int param, int compIdx );
 	virtual void setParamF( int param, int compIdx, float value );
@@ -150,11 +150,14 @@ public:
 	void update();
 	virtual bool checkIntersection( const Vec3f &rayOrig, const Vec3f &rayDir, Vec3f &intsPos, Vec3f &intsNorm ) const;
 
-   virtual const InstanceKey* getInstanceKey() { return 0x0; }
-	int getType() { return _type; };
-	NodeHandle getHandle() { return _handle; }
-	SceneNode *getParent() { return _parent; }
-	std::string const& getName() { return _name; }
+   virtual const InstanceKey* getInstanceKey() const { return 0x0; }
+   virtual const long sortKey() { return 0x0; }
+	int getType() const { return _type; }
+   int getRenderStamp() const { return _renderStamp; }
+   void setRenderStamp(int s) const { _renderStamp = s; }
+	NodeHandle getHandle() const { return _handle; }
+	SceneNode *getParent() const { return _parent; }
+	std::string const& getName() const { return _name; }
 	std::vector< SceneNode * > &getChildren() { return _children; }
 	Matrix4f &getRelTrans() { return _relTrans; }
 	Matrix4f &getAbsTrans() { return _absTrans; }
@@ -202,8 +205,14 @@ protected:
 	std::string                 _name;
 	std::string                 _attachment;  // User defined data
 
-	friend class SceneManager;
+   // Because a reverse-lookup is going to be more expensive to maintain.
+   mutable int                 _renderStamp;
+
+private:
+
+   friend class SceneManager;
 	friend class SpatialGraph;
+   friend class GridSpatialGraph;
 	friend class Renderer;
 };
 
@@ -256,12 +265,12 @@ struct SpatialQuery
 
 struct RendQueueItem
 {
-	SceneNode  *node;
+	SceneNode  const*node;
 	int        type;  // Type is stored explicitly for better cache efficiency when iterating over list
 	float      sortKey;
 
 	RendQueueItem() {}
-	RendQueueItem( int type, float sortKey, SceneNode *node ) : node( node ), type( type ), sortKey( sortKey ) {}
+	RendQueueItem( int type, float sortKey, SceneNode const*node ) : node( node ), type( type ), sortKey( sortKey ) {}
 };
 
 typedef std::vector<RendQueueItem> RenderableQueue;
@@ -269,20 +278,60 @@ typedef std::unordered_map<int, RenderableQueue > RenderableQueues;
 typedef std::unordered_map<InstanceKey, RenderableQueue, hash_InstanceKey > InstanceRenderableQueue;
 typedef std::unordered_map<int, InstanceRenderableQueue > InstanceRenderableQueues;
 
-class SpatialGraph
+class ISpatialGraph {
+public:
+	virtual void addNode(SceneNode const& sceneNode) = 0;
+	virtual void removeNode(SceneNode const& sceneNode) = 0;
+	virtual void updateNode(SceneNode const& sceneNode) = 0;
+
+   virtual void query(const SpatialQuery& query, RenderableQueues& renderableQueues, InstanceRenderableQueues& instanceQueues,
+      std::vector<SceneNode const*>& lightQueue) = 0;
+};
+
+class SpatialGraph : public ISpatialGraph
 {
 public:
 	SpatialGraph();
 	
-	void addNode( SceneNode &sceneNode );
-	void removeNode( SceneNode &sceneNode );
-	void updateNode( uint32 sgHandle );
+	void addNode(SceneNode const& sceneNode);
+	void removeNode(SceneNode const& sceneNode);
+	void updateNode(SceneNode const& sceneNode);
 
    void query(const SpatialQuery& query, RenderableQueues& renderableQueues, InstanceRenderableQueues& instanceQueues,
-      std::vector<SceneNode*>& lightQueue);
+      std::vector<SceneNode const*>& lightQueue);
 
 protected:
-	std::unordered_map<NodeHandle, SceneNode *>      _nodes;  // Renderable nodes and lights
+	std::unordered_map<NodeHandle, SceneNode const*>      _nodes;  // Renderable nodes and lights
+};
+
+
+struct GridElement 
+{
+   BoundingBox bounds;
+   std::set<SceneNode const*> _nodes;
+};
+
+class GridSpatialGraph : public ISpatialGraph
+{
+public:
+   GridSpatialGraph();
+
+   void addNode(SceneNode const& sceneNode);
+	void removeNode(SceneNode const& sceneNode);
+	void updateNode(SceneNode const& sceneNode);
+
+   void query(const SpatialQuery& query, RenderableQueues& renderableQueues, InstanceRenderableQueues& instanceQueues,
+      std::vector<SceneNode const*>& lightQueue);
+
+protected:
+   void boundingBoxToGrids(BoundingBox const& aabb, std::vector<int64>& gridElementList) const;
+   int64 hashGridPoint(int x, int y) const;
+   void unhashGridHash(int64 hash, int* x, int* y) const;
+
+   std::unordered_map<NodeHandle, std::vector<int64> > _nodeGridLookup;
+   std::unordered_map<int64, GridElement> _gridElements;
+   std::unordered_map<NodeHandle, SceneNode const*> _directionalLights;
+   int _renderStamp;
 };
 
 
@@ -318,7 +367,7 @@ struct SpatialQueryResult
    SpatialQuery query;
    RenderableQueues renderableQueues;
    InstanceRenderableQueues instanceRenderableQueues;
-   std::vector<SceneNode*> lightQueue;
+   std::vector<SceneNode const*> lightQueue;
 };
 
 // =================================================================================================
@@ -337,7 +386,7 @@ public:
 	NodeRegEntry *findType( std::string const& typeString );
 	
 	void updateNodes();
-	void updateSpatialNode( uint32 sgHandle ) { _spatialGraph->updateNode( sgHandle ); }
+	void updateSpatialNode( SceneNode const& node ) { _spatialGraph->updateNode( node ); }
 	void updateQueues( const char* reason, const Frustum &frustum1, const Frustum *frustum2,
 	                   RenderingOrder::List order, uint32 filterIgnore, uint32 filterRequired, bool lightQueue, bool renderableQueue, bool forceNoInstancing=false, 
                       uint32 userFlags=0 );
@@ -356,7 +405,7 @@ public:
 	int checkNodeVisibility( SceneNode &node, CameraNode &cam, bool checkOcclusion );
 
 	SceneNode &getRootNode() { return *_nodes[RootNode]; }
-	std::vector< SceneNode * > &getLightQueue();
+	std::vector<SceneNode const*> &getLightQueue();
 	RenderableQueue& getRenderableQueue(int itemType);
    InstanceRenderableQueue& getInstanceRenderableQueue(int itemType);
    RenderableQueues& getRenderableQueues();
@@ -379,7 +428,7 @@ protected:
 	std::unordered_map<NodeHandle, SceneNode *>      _nodes;  // _nodes[0] is root node
 	std::vector< SceneNode * >     _findResults;
 	std::vector< CastRayResult >   _castRayResults;
-	SpatialGraph                   *_spatialGraph;
+	ISpatialGraph*              _spatialGraph;
 
 	std::map< int, NodeRegEntry >  _registry;  // Registry of node types
 

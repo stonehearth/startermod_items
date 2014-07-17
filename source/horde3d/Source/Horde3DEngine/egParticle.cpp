@@ -427,7 +427,7 @@ void EmitterNode::setMaxParticleCount( uint32 maxParticleCount )
 }
 
 
-int EmitterNode::getParamI( int param )
+int EmitterNode::getParamI( int param ) const
 {
 	switch( param )
 	{

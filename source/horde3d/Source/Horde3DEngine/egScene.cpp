@@ -52,7 +52,8 @@ static std::string FlagsToString(int flags)
 SceneNode::SceneNode( const SceneNodeTpl &tpl ) :
 	_parent( 0x0 ), _type( tpl.type ), _handle( 0 ), _flags( 0 ), _sortKey( 0 ),
 	_dirty( true ), _transformed( true ), _renderable( false ),
-   _name( tpl.name ), _attachment( tpl.attachmentString ), _userFlags(0), _accumulatedFlags(0)
+   _name( tpl.name ), _attachment( tpl.attachmentString ), _userFlags(0), _accumulatedFlags(0),
+   _renderStamp(0)
 {
 	_relTrans = Matrix4f::ScaleMat( tpl.scale.x, tpl.scale.y, tpl.scale.z );
 	_relTrans.rotate( degToRad( tpl.rot.x ), degToRad( tpl.rot.y ), degToRad( tpl.rot.z ) );
@@ -187,7 +188,7 @@ void SceneNode::updateFlagsRecursive(int flags, SetFlagsMode mode, bool recursiv
    }
 }
 
-int SceneNode::getParamI( int param )
+int SceneNode::getParamI(int param) const
 {
    switch (param) {
    case SceneNodeParams::UserFlags:
@@ -341,7 +342,7 @@ void SceneNode::update()
 
 	onFinishedUpdate();
 
-   Modules::sceneMan().updateSpatialNode(_handle);
+   Modules::sceneMan().updateSpatialNode(*this);
 }
 
 
@@ -378,7 +379,228 @@ SceneNode *GroupNode::factoryFunc( const SceneNodeTpl &nodeTpl )
 	return new GroupNode( *(GroupNodeTpl *)&nodeTpl );
 }
 
+struct RendQueueItemCompFunc
+{
+	bool operator()( const RendQueueItem &a, const RendQueueItem &b ) const
+		{ return a.sortKey < b.sortKey; }
+};
 
+
+// =================================================================================================
+// Class GridSpatialGraph
+// =================================================================================================
+
+#pragma optimize( "", off )
+GridSpatialGraph::GridSpatialGraph()
+{
+   _renderStamp = 0;
+}
+
+
+void GridSpatialGraph::addNode(SceneNode const& sceneNode)
+{	
+   if(!sceneNode._renderable && sceneNode._type != SceneNodeTypes::Light) {
+      return;
+   }
+
+   if (sceneNode.getType() == SceneNodeTypes::Light && sceneNode.getParamI(LightNodeParams::DirectionalI)) {
+      _directionalLights[sceneNode.getHandle()] = &sceneNode;
+   } else {
+      _nodeGridLookup[sceneNode.getHandle()] = std::vector<int64>();
+      updateNode(sceneNode);
+   }
+}
+
+
+void GridSpatialGraph::removeNode(SceneNode const& sceneNode)
+{
+   if (sceneNode.getType() == SceneNodeTypes::Light && sceneNode.getParamI(LightNodeParams::DirectionalI)) {
+      _directionalLights.erase(sceneNode.getHandle());
+   } else {
+      // Find all old references and remove them.
+      for (int64 gridNum : _nodeGridLookup[sceneNode.getHandle()]) {
+         _gridElements[gridNum]._nodes.erase(&sceneNode);
+      }
+      _nodeGridLookup.erase(sceneNode.getHandle());
+   }
+}
+
+
+void GridSpatialGraph::boundingBoxToGrids(BoundingBox const& aabb, std::vector<int64>& gridElementList) const
+{
+   int minX = (int)(aabb.min().x / 50);
+   int maxX = (int)(aabb.max().x / 50);
+   int minZ = (int)(aabb.min().z / 50);
+   int maxZ = (int)(aabb.max().z / 50);
+
+   if (maxX == minX) {
+      maxX++;
+   }
+   if (maxZ == minZ) {
+      maxZ++;
+   }
+   for (int x = minX; x < maxX; x++) {
+      for (int z = minZ; z < maxZ; z++) {
+         gridElementList.push_back(hashGridPoint(x, z));
+      }
+   }
+}
+
+
+int64 GridSpatialGraph::hashGridPoint(int x, int y) const
+{
+   // Convert from [-50000, 49999] to [0, 999999]
+   int64 lx = x + 50000;
+   int64 ly = y + 50000;
+   return lx + (ly * 100000);
+}
+
+
+void GridSpatialGraph::unhashGridHash(int64 hash, int* x, int* y) const
+{
+   int64 lx = (hash % 100000) - 50000;
+   int64 ly = (hash / 100000) - 50000;
+   *x = (int)lx;
+   *y = (int)ly;
+}
+
+
+void GridSpatialGraph::updateNode(SceneNode const& sceneNode)
+{
+   if (!sceneNode.getBBox().isValid()) {
+      return;
+   }
+   // Find all old references and remove them.
+   for (int64 gridNum : _nodeGridLookup[sceneNode.getHandle()]) {
+      _gridElements[gridNum]._nodes.erase(&sceneNode);
+   }
+   _nodeGridLookup[sceneNode.getHandle()].clear();
+
+   // Update new references
+   boundingBoxToGrids(sceneNode.getBBox(), _nodeGridLookup[sceneNode.getHandle()]);
+   for (int64 v : _nodeGridLookup[sceneNode.getHandle()]) {
+      if (_gridElements.find(v) == _gridElements.end()) {
+         _gridElements[v] = GridElement();
+         int gX, gY;
+         unhashGridHash(v, &gX, &gY);
+         _gridElements[v].bounds.addPoint(Vec3f(gX * 50.0f, -100.0f, gY * 50.0f));
+         _gridElements[v].bounds.addPoint(Vec3f(gX * 50.0f + 50.0f, 100.0f, gY * 50.0f + 50.0f));
+      }
+      _gridElements[v]._nodes.insert(&sceneNode);
+   }
+}
+
+
+void GridSpatialGraph::query(SpatialQuery const& query, RenderableQueues& renderableQueues, 
+                         InstanceRenderableQueues& instanceQueues, std::vector<SceneNode const*>& lightQueue)
+{
+   _renderStamp++;
+   ASSERT(query.useLightQueue || query.useRenderableQueue);
+
+   Modules::sceneMan().updateNodes();
+
+   for (const auto &ge : _gridElements) {
+      if (query.frustum.cullBox(ge.second.bounds) && (query.secondaryFrustum == 0x0 || query.secondaryFrustum->cullBox(ge.second.bounds))) {
+         continue;
+      }
+
+      for (SceneNode const* node: ge.second._nodes) {
+         if (node->getRenderStamp() == _renderStamp) {
+            continue;
+         }
+         node->setRenderStamp(_renderStamp);
+
+         if (node->_accumulatedFlags & query.filterIgnore) {
+            continue;
+         }
+         if ((node->_accumulatedFlags & query.filterRequired) != query.filterRequired) {
+            continue;
+         }
+         if ((node->_userFlags & query.userFlags) != query.userFlags) {
+            continue;
+         }
+
+         if (query.useRenderableQueue) {
+            if (!node->_renderable) {
+               continue;
+            }
+
+            float sortKey = 0;
+
+            switch( query.order )
+            {
+            case RenderingOrder::StateChanges:
+               sortKey = node->_sortKey;
+               break;
+            case RenderingOrder::FrontToBack:
+               sortKey = nearestDistToAABB( query.frustum.getOrigin(), node->_bBox.min(), node->_bBox.max() );
+               break;
+            case RenderingOrder::BackToFront:
+               sortKey = -nearestDistToAABB( query.frustum.getOrigin(), node->_bBox.min(), node->_bBox.max() );
+               break;
+            }
+
+            if (node->getInstanceKey() != 0x0 && !query.forceNoInstancing) {
+               if (instanceQueues.find(node->_type) == instanceQueues.end()) {
+                  instanceQueues[node->_type] = InstanceRenderableQueue();
+               }
+               InstanceRenderableQueue& iq = instanceQueues[node->_type];
+
+               const InstanceKey& ik = *(node->getInstanceKey());
+               if (iq.find(ik) == iq.end()) {
+                  iq[ik] = RenderableQueue();
+                  iq[ik].reserve(1000);
+               }
+               iq[ik].emplace_back(RendQueueItem(node->_type, sortKey, node));
+            } else {
+               if (renderableQueues.find(node->_type) == renderableQueues.end()) {
+                  renderableQueues[node->_type] = RenderableQueue();
+                  renderableQueues[node->_type].reserve(1000);
+               }
+               renderableQueues[node->_type].emplace_back( RendQueueItem( node->_type, sortKey, node ) );
+            }
+         }
+         if (query.useLightQueue && node->_type == SceneNodeTypes::Light) {		 
+            lightQueue.push_back(node);
+         }      
+      }
+   }
+
+   if (query.useLightQueue) {
+      for (auto const& d : _directionalLights) {
+         SceneNode const* n = d.second;
+         if (n->getRenderStamp() == _renderStamp) {
+            continue;
+         }
+         n->setRenderStamp(_renderStamp);
+
+         if (n->_accumulatedFlags & query.filterIgnore) {
+            continue;
+         }
+         if ((n->_accumulatedFlags & query.filterRequired) != query.filterRequired) {
+            continue;
+         }
+         if ((n->_userFlags & query.userFlags) != query.userFlags) {
+            continue;
+         }
+         lightQueue.push_back(d.second);
+      }
+   }      
+
+   // Sort
+   if( query.order != RenderingOrder::None ) {
+      for (auto& item : renderableQueues) {
+         std::sort( item.second.begin(), item.second.end(), RendQueueItemCompFunc() );
+      }
+
+      for (auto& item : instanceQueues) {
+         for (auto& queue : item.second) {
+            std::sort(queue.second.begin(), queue.second.end(), RendQueueItemCompFunc());
+         }
+      }
+   }
+}
+#pragma optimize( "", on )
 // =================================================================================================
 // Class SpatialGraph
 // =================================================================================================
@@ -388,7 +610,7 @@ SpatialGraph::SpatialGraph()
 }
 
 
-void SpatialGraph::addNode( SceneNode &sceneNode )
+void SpatialGraph::addNode(SceneNode const& sceneNode)
 {	
 	if( !sceneNode._renderable && sceneNode._type != SceneNodeTypes::Light ) return;
    ASSERT(sceneNode._handle);
@@ -397,7 +619,7 @@ void SpatialGraph::addNode( SceneNode &sceneNode )
 }
 
 
-void SpatialGraph::removeNode( SceneNode &sceneNode )
+void SpatialGraph::removeNode(SceneNode const& sceneNode )
 {
 	if( !sceneNode._renderable && sceneNode._type != SceneNodeTypes::Light ) return;
 
@@ -410,22 +632,15 @@ void SpatialGraph::removeNode( SceneNode &sceneNode )
 }
 
 
-void SpatialGraph::updateNode( uint32 sgHandle )
+void SpatialGraph::updateNode(SceneNode const& sceneNode)
 {
 	// Since the spatial graph is just a flat list of objects,
 	// there is nothing to do at the moment
 }
 
 
-struct RendQueueItemCompFunc
-{
-	bool operator()( const RendQueueItem &a, const RendQueueItem &b ) const
-		{ return a.sortKey < b.sortKey; }
-};
-
-
 void SpatialGraph::query(const SpatialQuery& query, RenderableQueues& renderableQueues, 
-                         InstanceRenderableQueues& instanceQueues, std::vector<SceneNode*>& lightQueue)
+                         InstanceRenderableQueues& instanceQueues, std::vector<SceneNode const*>& lightQueue)
 {
    ASSERT(query.useLightQueue || query.useRenderableQueue);
 
@@ -436,7 +651,7 @@ void SpatialGraph::query(const SpatialQuery& query, RenderableQueues& renderable
    SCENE_LOG(9) << "running spatial graph query:";
    // Culling
    for (auto const& entry : _nodes) {
-      SceneNode *node = entry.second;
+      SceneNode const* node = entry.second;
       QUERY_LOG() "considering...";
 
       if (node->_accumulatedFlags & query.filterIgnore) {
@@ -562,7 +777,7 @@ void SceneManager::initialize()
    rootNode->_handle = RootNode;
    _nodes[RootNode] = rootNode;
 
-   _spatialGraph = new SpatialGraph();  
+   _spatialGraph = new GridSpatialGraph();  
    _queryCacheCount = 0;
    _currentQuery = -1;
 
@@ -691,7 +906,7 @@ void SceneManager::updateQueues( const char* reason, const Frustum &frustum1, co
 }
 
 
-std::vector<SceneNode*>& SceneManager::getLightQueue() 
+std::vector<SceneNode const*>& SceneManager::getLightQueue() 
 { 
    ASSERT(_currentQuery != -1);
    return _queryCache[_currentQuery].lightQueue;

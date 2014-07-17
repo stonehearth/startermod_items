@@ -77,7 +77,7 @@ public:
 	uint32 getVertREnd(int lodLevel) const;
 	VoxelModelNode *getParentModel() const { return _parentModel; }
 
-   const InstanceKey* getInstanceKey();
+   const InstanceKey* getInstanceKey() const;
 
 protected:
 	VoxelMeshNode( const VoxelMeshNodeTpl &meshTpl );

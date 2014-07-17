@@ -293,7 +293,7 @@ void CubemitterNode::setMaxParticleCount( radiant::uint32 maxParticleCount )
 }
 
 
-int CubemitterNode::getParamI( int param )
+int CubemitterNode::getParamI( int param ) const
 {
 	return SceneNode::getParamI( param );
 }
