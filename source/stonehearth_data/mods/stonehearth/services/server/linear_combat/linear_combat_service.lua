@@ -5,7 +5,7 @@ LinearCombatService = class()
    Goblin bandits start to spawn instead of theives if a thief dies on a raid. 
 ]]
 
-local time_till_first_spawn = '6h'
+local time_till_first_spawn = '36h'
 local spawn_interval = '24h'
 
 function LinearCombatService:initialize()
