@@ -334,7 +334,7 @@ public:
       std::vector<SceneNode const*>& lightQueue);
 
 protected:
-   void boundingBoxToGrids(BoundingBox const& aabb, std::vector<int64>& gridElementList) const;
+   void boundingBoxToGrids(BoundingBox const& aabb, boost::container::flat_set<int64>& gridElementList) const;
    int64 hashGridPoint(int x, int y) const;
    void unhashGridHash(int64 hash, int* x, int* y) const;
 
@@ -343,7 +343,7 @@ protected:
    std::unordered_map<NodeHandle, SceneNode const*> _directionalLights;
    std::unordered_map<NodeHandle, SceneNode const*> _nocullNodes;*/
    
-   std::unordered_map<NodeHandle, std::vector<int64> > _nodeGridLookup;
+   std::unordered_map<NodeHandle, boost::container::flat_set<int64> > _nodeGridLookup;
    std::unordered_map<int64, GridElement> _gridElements;
    std::unordered_map<NodeHandle, SceneNode const*> _directionalLights;
    std::unordered_map<NodeHandle, SceneNode const*> _nocullNodes;

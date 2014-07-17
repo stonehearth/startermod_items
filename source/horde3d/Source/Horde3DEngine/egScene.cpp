@@ -408,7 +408,7 @@ void GridSpatialGraph::addNode(SceneNode const& sceneNode)
    if (sceneNode.getType() == SceneNodeTypes::Light && sceneNode.getParamI(LightNodeParams::DirectionalI)) {
       _directionalLights[sceneNode.getHandle()] = &sceneNode;
    } else {
-      _nodeGridLookup[sceneNode.getHandle()] = std::vector<int64>();
+      _nodeGridLookup[sceneNode.getHandle()] = boost::container::flat_set<int64>();
       updateNode(sceneNode);
    }
 }
@@ -431,7 +431,7 @@ void GridSpatialGraph::removeNode(SceneNode const& sceneNode)
 }
 
 
-void GridSpatialGraph::boundingBoxToGrids(BoundingBox const& aabb, std::vector<int64>& gridElementList) const
+void GridSpatialGraph::boundingBoxToGrids(BoundingBox const& aabb, boost::container::flat_set<int64>& gridElementList) const
 {
    int minX = (int)(aabb.min().x / GridSize);
    int maxX = (int)(aabb.max().x / GridSize);
@@ -446,7 +446,7 @@ void GridSpatialGraph::boundingBoxToGrids(BoundingBox const& aabb, std::vector<i
    }
    for (int x = minX; x < maxX; x++) {
       for (int z = minZ; z < maxZ; z++) {
-         gridElementList.push_back(hashGridPoint(x, z));
+         gridElementList.insert(hashGridPoint(x, z));
       }
    }
 }
@@ -472,32 +472,44 @@ void GridSpatialGraph::unhashGridHash(int64 hash, int* x, int* y) const
 
 void GridSpatialGraph::updateNode(SceneNode const& sceneNode)
 {
+   NodeHandle nh = sceneNode.getHandle();
    if (!sceneNode.getBBox().isValid()) {
       return;
    }
-   // Find all old references and remove them.
-   for (int64 gridNum : _nodeGridLookup[sceneNode.getHandle()]) {
-      _gridElements[gridNum]._nodes.erase(&sceneNode);
-   }
-   _nodeGridLookup[sceneNode.getHandle()].clear();
-   if (_nocullNodes.find(sceneNode.getHandle()) != _nocullNodes.end() && !(sceneNode.getFlags() & SceneNodeFlags::NoCull)) {
-      _nocullNodes.erase(sceneNode.getHandle());
-   }
 
-   // Update new references
    if (sceneNode.getFlags() & SceneNodeFlags::NoCull) {
       _nocullNodes[sceneNode.getHandle()] = &sceneNode;
    } else {
-      boundingBoxToGrids(sceneNode.getBBox(), _nodeGridLookup[sceneNode.getHandle()]);
-      for (int64 v : _nodeGridLookup[sceneNode.getHandle()]) {
-         if (_gridElements.find(v) == _gridElements.end()) {
-            _gridElements[v] = GridElement();
-            int gX, gY;
-            unhashGridHash(v, &gX, &gY);
-            _gridElements[v].bounds.addPoint(Vec3f(gX * GridSize, -10.0f, gY * GridSize));
-            _gridElements[v].bounds.addPoint(Vec3f(gX * GridSize + GridSize, 100.0f, gY * GridSize + GridSize));
+      boost::container::flat_set<int64> newGrids;
+      std::vector<int64> toRemove;
+   
+      // Generate new bounds for this node.
+      boundingBoxToGrids(sceneNode.getBBox(), newGrids);
+
+      // Remove obsolete grid references for the new node (if any).
+      for (int64 oldGridE : _nodeGridLookup[nh]) {
+         if (newGrids.find(oldGridE) == newGrids.end()) {
+            toRemove.push_back(oldGridE);
          }
-         _gridElements[v]._nodes.insert(&sceneNode);
+      }
+      for (int64 removeE : toRemove) {
+         _nodeGridLookup[nh].erase(removeE);
+         _gridElements[removeE]._nodes.erase(&sceneNode);
+      }
+
+      // Add new element references.
+      for (int64 newGridE : newGrids) {
+         if (_gridElements.find(newGridE) == _gridElements.end()) {
+            _gridElements[newGridE] = GridElement();
+            int gX, gY;
+            unhashGridHash(newGridE, &gX, &gY);
+            _gridElements[newGridE].bounds.addPoint(Vec3f(gX * GridSize, -10.0f, gY * GridSize));
+            _gridElements[newGridE].bounds.addPoint(Vec3f(gX * GridSize + GridSize, 100.0f, gY * GridSize + GridSize));
+         }
+
+         if (_gridElements[newGridE]._nodes.find(&sceneNode) == _gridElements[newGridE]._nodes.end()) {
+            _gridElements[newGridE]._nodes.insert(&sceneNode);
+         }
       }
    }
 }
@@ -1157,6 +1169,7 @@ bool SceneManager::relocateNode( SceneNode &node, SceneNode &parent )
 int SceneManager::findNodes( SceneNode &startNode, std::string const& name, int type )
 {
    _findResults.clear();
+
 
    if (startNode.getHandle() == RootNode) {
       // Since we want all nodes of that type, just consult the registry.
