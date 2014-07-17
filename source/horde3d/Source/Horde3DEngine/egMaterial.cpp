@@ -181,7 +181,7 @@ bool MaterialResource::load( const char *data, int size )
          char buff[256];
 
          for (int i = 0; i < numFrames; i++) {
-            sprintf(buff, "%s%d.%s", baseName.c_str(), sampler.animatedTextures.size(), extension.c_str());
+            sprintf(buff, "%s%02d.%s", baseName.c_str(), sampler.animatedTextures.size(), extension.c_str());
             sampler.animatedTextures.push_back(Modules::resMan().addResource(ResourceTypes::Texture, buff, flags, false));
          }
 

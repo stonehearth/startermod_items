@@ -1,0 +1,4 @@
+<Material>
+   <Shader source="shaders/billboard.shader" />
+   <Sampler name="albedoMap" map="materials/thoughts/health/2_to_1/2_to_1_.png" numAnimationFrames="20" frameRate="8"/>
+</Material>

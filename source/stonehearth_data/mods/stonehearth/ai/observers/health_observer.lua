@@ -54,20 +54,20 @@ function HealthObserver:_on_health_changed(e)
    if curr_health > self._sv.health then
       --We're gaining health
       if self._sv.health < self._sv._half_health and curr_health >= self._sv._half_health then
-         next_health_toast =  '/stonehearth/data/effects/thoughts/health/half_gain.json' 
+         next_health_toast =  '/stonehearth/data/effects/thoughts/health/1_to_2.json' 
       elseif self._sv.health < self._sv._threequarts_health and curr_health >= self._sv._threequarts_health then
-         next_health_toast = '/stonehearth/data/effects/thoughts/health/threequarts_gain.json' 
+         next_health_toast = '/stonehearth/data/effects/thoughts/health/2_to_3.json' 
       elseif self._sv.health < self._sv._max_health and curr_health == self._sv._max_health then
-         next_health_toast = '/stonehearth/data/effects/thoughts/health/full_gain.json' 
+         next_health_toast = '/stonehearth/data/effects/thoughts/health/3_to_4.json' 
       end
    else
       --We're losing health
       if self._sv.health > self._sv._threequarts_health and curr_health <= self._sv._threequarts_health then
-         next_health_toast = '/stonehearth/data/effects/thoughts/health/threequarts_loss.json' 
+         next_health_toast = '/stonehearth/data/effects/thoughts/health/4_to_3.json' 
       elseif self._sv.health > self._sv._half_health and curr_health <= self._sv._half_health then
-         next_health_toast = '/stonehearth/data/effects/thoughts/health/half_loss.json' 
+         next_health_toast = '/stonehearth/data/effects/thoughts/health/3_to_2.json' 
       elseif self._sv.health > self._sv._quarter_health and curr_health <= self._sv._quarter_health then
-         next_health_toast = '/stonehearth/data/effects/thoughts/health/quarter_loss.json'
+         next_health_toast = '/stonehearth/data/effects/thoughts/health/2_to_1.json'
       end
    end
 
@@ -85,19 +85,23 @@ function HealthObserver:_change_toast(next_toast_uri, time)
       radiant.entities.unthink(self._entity, self._sv.curr_toast_uri)
    end
    --Is there an existing timer? If so, stop it
+   --[[
    if self._timer then
       self:_stop_timer()
    end
+   ]]
 
    --Put up the next toast uri
    if next_toast_uri then
       radiant.entities.think(self._entity, next_toast_uri, stonehearth.constants.think_priorities.HEALTH)
    
+      --[[
       --set the expiration timer
       self._timer = stonehearth.calendar:set_timer(time, function() 
          radiant.entities.unthink(self._entity, next_toast_uri)
       end)
       self._sv._expiration_time = self._timer:get_expire_time()
+      ]]
    end
 end
 
