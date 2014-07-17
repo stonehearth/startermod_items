@@ -94,8 +94,8 @@ function GoblinThief:_schedule_next_spawn(t)
 end
 
 function GoblinThief:_on_spawn_jerk()
-   self._sv._goblin = self._population:create_new_citizen()
-   stonehearth.combat:set_stance(self._sv._goblin, 'defensive')
+   self._sv._goblin = self:_create_goblin_thief()
+
    local spawn_point = stonehearth.spawn_region_finder:find_point_outside_civ_perimeter_for_entity(self._sv._goblin, 80)
 
    if not spawn_point then
@@ -116,6 +116,16 @@ function GoblinThief:_on_spawn_jerk()
    self:_attach_listeners()
    self:_add_restock_task()
    self.__saved_variables:mark_changed()
+end
+
+function GoblinThief:_create_goblin_thief()
+   local thief = self._population:create_new_citizen()
+   local weapon = radiant.entities.create_entity('stonehearth:wooden_sword')
+   radiant.entities.equip_item(thief, weapon, 'melee_weapon')
+   -- HACK: remove the talisman glow effect from the weapon
+   radiant.entities.remove_effects(weapon)
+   stonehearth.combat:set_stance(thief, 'defensive')
+   return thief
 end
 
 function GoblinThief:_goblin_killed(e)
