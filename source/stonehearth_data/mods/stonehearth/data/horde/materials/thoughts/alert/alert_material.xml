@@ -1,4 +1,4 @@
 <Material>
    <Shader source="shaders/billboard.shader" />
-   <Sampler name="albedoMap" map="materials/thoughts/alert/alert.png" numAnimationFrames="8" frameRate="24" />
+   <Sampler name="albedoMap" map="materials/thoughts/alert/alert_.png" numAnimationFrames="8" frameRate="24" />
 </Material>

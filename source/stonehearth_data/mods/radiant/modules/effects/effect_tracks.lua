@@ -54,6 +54,8 @@ function EffectTracks:__init(mgr, entity, effect_path, effect_name, start_time, 
          self._effects[name] = LightEffect(e)
       elseif e.type == "activity_overlay_effect" then
          self._effects[name] = ActivityOverlayEffect(e)
+      elseif e.type == "unit_status_effect" then
+         self._effects[name] = UnitStatusEffect(e, start_time)
       else
          self._log:debug('unknown effect type "%s".  using generic', e.type)
          self._effects[name] = GenericEffect(start_time, trigger_handler, e, self._effect)
