@@ -201,11 +201,11 @@ std::shared_ptr<T> PathFinder_SetSolvedCb(lua_State* L, std::shared_ptr<T> pf, l
       lua_State* cb_thread = lua::ScriptHost::GetCallbackThread(unsafe_solved_cb.interpreter());  
       luabind::object solved_cb = luabind::object(cb_thread, unsafe_solved_cb);
  
-      pf->SetSolvedCb([solved_cb] (PathPtr path) mutable {
+      pf->SetSolvedCb([solved_cb, cb_thread] (PathPtr path) mutable {
          try {
-            solved_cb(luabind::object(solved_cb.interpreter(), path));
+            solved_cb(luabind::object(cb_thread, path));
          } catch (std::exception const& e) {
-            lua::ScriptHost::ReportCStackException(solved_cb.interpreter(), e);
+            lua::ScriptHost::ReportCStackException(cb_thread, e);
          }
       });
    }
@@ -217,9 +217,10 @@ std::shared_ptr<T> PathFinder_SetExhaustedCb(std::shared_ptr<T> pf, luabind::obj
 {
    if (pf) {
       lua_State* cb_thread = lua::ScriptHost::GetCallbackThread(unsafe_exhausted_cb.interpreter());  
-      pf->SetSearchExhaustedCb([unsafe_exhausted_cb, cb_thread]() {
+      luabind::object exhausted_cb = luabind::object(cb_thread, unsafe_exhausted_cb);
+
+      pf->SetSearchExhaustedCb([exhausted_cb, cb_thread]() mutable {
          try {
-            luabind::object exhausted_cb = luabind::object(cb_thread, unsafe_exhausted_cb);
             exhausted_cb();
          } catch (std::exception const& e) {
             lua::ScriptHost::ReportCStackException(cb_thread, e);
@@ -234,9 +235,10 @@ BfsPathFinderPtr BfsPathFinder_SetFilterFn(BfsPathFinderPtr pf, luabind::object 
    if (pf) {
       BfsPathFinderRef p = pf;
       lua_State* cb_thread = lua::ScriptHost::GetCallbackThread(unsafe_filter_fn.interpreter());  
-      pf->SetFilterFn([p, unsafe_filter_fn, cb_thread](om::EntityPtr e) -> bool {
+      luabind::object filter_fn = luabind::object(cb_thread, unsafe_filter_fn);
+
+      pf->SetFilterFn([p, filter_fn, cb_thread](om::EntityPtr e) -> bool {
          try {
-            luabind::object filter_fn = luabind::object(cb_thread, unsafe_filter_fn);
             if (LOG_IS_ENABLED(simulation.pathfinder.bfs, 5)) {
                BfsPathFinderPtr pathfinder = p.lock();
                if (pathfinder) {
