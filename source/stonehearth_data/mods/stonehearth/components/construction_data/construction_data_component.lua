@@ -33,6 +33,21 @@ function ConstructionDataComponent:trace_data(reason)
    return self.__saved_variables:trace_data(reason)
 end
 
+-- called by a remote ui to change properties in the construction data component.
+-- 
+--    @param session - the session for the user at the other end of the connectino
+--    @param response - the response object
+--    @param options - the options to change.  
+--
+function ConstructionDataComponent:apply_options(session, response, options)
+   if options then
+      if options.nine_grid_gradiant then
+         self:set_nine_grid_gradiant(options.nine_grid_gradiant)
+      end
+   end
+   return true
+end
+
 function ConstructionDataComponent:begin_editing(entity)
    if entity then
       local other_cd = entity:get_component('stonehearth:construction_data')

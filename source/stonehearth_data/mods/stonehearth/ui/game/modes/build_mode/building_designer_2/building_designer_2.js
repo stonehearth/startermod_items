@@ -144,9 +144,9 @@ App.StonehearthBuildingDesignerTools = App.View.extend({
       return el;
    },
       // grow roof button
-   _getRoofGradiant : function() {
+   _getRoofGradiant : function(selector) {
       var gradiant = [];
-      self.$('#roofToolTab .roofDiagramButton.active').each(function() {
+      self.$(selector + ' #roofEditor .roofDiagramButton.active').each(function() {
          gradiant.push($(this).attr('gradient'));
       })
       return gradiant;
@@ -280,16 +280,23 @@ App.StonehearthBuildingDesignerTools = App.View.extend({
          }
       })
 
-      this.$('.roofDiagramButton').click(function() {
+      this.$('#roofEditTab .roofDiagramButton').click(function() {
          $(this).toggleClass('active');
-         self._state.growRoofGradiant = self._getRoofGradiant();
+         self._state.growRoofGradiant = self._getRoofGradiant('#roofEditTab');
          self._saveState();
          self._updateGrowRoofOptions();
       })
 
-      // roof tool defaults
-      this.$('.roofDiagramButton.east').addClass('active');
-      this.$('.roofDiagramButton.west').addClass('active');
+      this.$('#editToolTab .roofDiagramButton').click(function() {
+         $(this).toggleClass('active');
+         var constructionData = self.get('blueprint.stonehearth:construction_data');
+         if (constructionData) {
+            var options = {
+               nine_grid_gradiant: self._getRoofGradiant('#editToolTab')
+            };
+            radiant.call_obj(constructionData, 'apply_options', options);
+         }
+      })
 
       // doodad material
       this.$('.doodadMaterial').click(function() {
@@ -344,6 +351,19 @@ App.StonehearthBuildingDesignerTools = App.View.extend({
       this._applyControlState();
    },
 
+   // Make the roof gradiant picker match the specified gradiant.  gradiant is an
+   // array of the 'left', 'right', 'front', and 'back' flags.
+   _applyRoofGradiantControlState : function(selector, gradiant) {
+      self.$(selector + ' #roofEditor .roofDiagramButton').each(function() {
+         $(this).removeClass('active');
+      })
+      $.each(gradiant, function(_, dir) {
+         self.$(selector + ' #roofEditor .roofDiagramButton[gradient="' + dir + '"]').each(function() {
+            $(this).addClass('active');
+         });
+      });
+   },
+
    _applyControlState: function() {
       var self = this;
       if (self._state) {
@@ -353,14 +373,7 @@ App.StonehearthBuildingDesignerTools = App.View.extend({
          $(self.$('#doodadToolTab .doodadMaterial')[self._state.doodadMaterial]).addClass('selected');
 
          // gradiant on the grow roof control
-         self.$('#roofToolTab .roofDiagramButton').each(function() {
-            $(this).removeClass('active');
-         })
-         $.each(self._state.growRoofGradiant, function(_, dir) {
-            self.$('#roofToolTab .roofDiagramButton[gradient="'+dir+'"]').each(function() {
-               $(this).addClass('active');
-            });
-         });
+         self._applyRoofGradiantControlState('#roofToolTab', self._state.growRoofGradiant);
          self._updateGrowRoofOptions()
          // most recently selected tab
          self.$("[tab='" + self._state.activeTabId + "']").click();
@@ -411,6 +424,7 @@ App.StonehearthBuildingDesignerTools = App.View.extend({
    }.observes('context.selection'),
 
    _updateControls: function() {
+      var self = this;
 
       if(!self.$) {
          return;
@@ -426,26 +440,24 @@ App.StonehearthBuildingDesignerTools = App.View.extend({
       }
 
       if (blueprint_entity) {
-         var type = this.get('blueprint.stonehearth:construction_data.type');
+         var materialPicker = self.$('#materialPicker');
+         var constructionData = this.get('blueprint.stonehearth:construction_data')
+         var type = constructionData.type;
 
-         var container = self.$('#editMaterial');
-         var materialEl;
-
-
+         // Reset the current selection
+         materialPicker.empty();
          self.$('#editToolTab #roofEditor').hide();
 
-         if (type == 'wall') {
-            
-            materialEl = this._buildMaterialPalette(this.wallPatterns, 'wallMaterial');
+         // Add the editor for the current type
+         var materials;
+         if (type == 'wall') {           
+            materials = this._buildMaterialPalette(this.wallPatterns, 'wallMaterial');
          } else if (type == 'roof') {
             self.$('#editToolTab #roofEditor').show();
+            var gradiant = constructionData.nine_grid_gradiant || [];
+            self._applyRoofGradiantControlState('#editToolTab', gradiant);
          }
-
-         if (container) {
-            container
-               .empty()
-               .append(materialEl);            
-         }
+         materialPicker.append(materials);            
       }
    }
 });

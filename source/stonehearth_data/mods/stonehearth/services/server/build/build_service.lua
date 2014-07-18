@@ -551,14 +551,15 @@ function BuildService:_grow_roof(building, roof_uri, options)
 
    -- connect everything directly under the roof to it, and make sure it reaches
    -- all the way up to the top.
+   local roof_component = roof:get_component('stonehearth:roof')
    for _, structure in pairs(radiant.terrain.get_entities_in_region(under_roof_region)) do
       if building == self:get_building_for_blueprint(structure) then
          for _, component_name in ipairs({'stonehearth:wall', 'stonehearth:column'}) do
             local component = structure:get_component(component_name)
             if component then
                -- connect the structure to the roof and re-compute its shape
+               roof_component:connect_to_structure(structure, component_name)
                component:connect_to_roof(roof)
-                        :layout()
 
                -- don't build the roof until we've built all the supporting structures
                roof:add_component('stonehearth:construction_progress')
@@ -571,6 +572,9 @@ function BuildService:_grow_roof(building, roof_uri, options)
                   :loan_scaffolding_to(roof)
       end
    end
+
+   -- layout the roof, which will layout all underlying structures
+   roof_component:layout()
    return roof
 end
 
