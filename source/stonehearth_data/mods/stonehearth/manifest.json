@@ -488,6 +488,7 @@
       "sounds:ui:promotion_menu:sub_menu" : "file(data/sounds/ui/promotion_menu/ui_prom_submenu.wav)",
       "sounds:ui:scenarios:caravan" : "file(data/sounds/ui/scenarios/sh_ui_caravan.wav)",
       "sounds:ui:scenarios:alert" : "file(data/sounds/ui/scenarios/sh_ui_alert.wav)",
+      "sounds:ui:scenarios:redalert" : "file(data/sounds/ui/scenarios/sh_ui_redalert.wav)",
 
       "sounds:banner_plant" : "file(data/sounds/effects/sh_banner_plant.wav)",
       "sounds:banner_grab" : "file(data/sounds/effects/sh_banner_grab.wav)",
