@@ -1,0 +1,4 @@
+<Material>
+   <Shader source="shaders/billboard.shader" />
+   <Sampler name="albedoMap" map="materials/thoughts/health/dead/dead_.png" numAnimationFrames="25" frameRate="20"/>
+</Material>

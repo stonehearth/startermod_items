@@ -12,6 +12,7 @@ local log = radiant.log.create_logger('build_editor')
 
 
 function BuildEditorService:initialize()
+   self._grow_roof_options = {}
    self.__saved_variables:set_controller(self)
 
    _radiant.call('stonehearth:get_service', 'build')
@@ -73,11 +74,16 @@ function BuildEditorService:grow_walls(session, response, columns_uri, walls_uri
       :go()
 end
 
-function BuildEditorService:grow_roof(session, response, roof_uri, options)
+function BuildEditorService:set_grow_roof_options(session, response, options)
+   self._grow_roof_options = options
+   return true
+end
+
+function BuildEditorService:grow_roof(session, response, roof_uri)
    local has_roof_fn = function(building)
       for _, child in building:get_component('entity_container'):each_child() do
-        if child:get_component('stonehearth:roof') then
-          return true
+         if child:get_component('stonehearth:roof') then   
+            return true
          end
       end
       return false
@@ -93,7 +99,7 @@ function BuildEditorService:grow_roof(session, response, roof_uri, options)
          end)
       :done(function(selector, entity)
             if building then
-               _radiant.call_obj(self._build_service, 'grow_roof_command', building, roof_uri, options)
+               _radiant.call_obj(self._build_service, 'grow_roof_command', building, roof_uri, self._grow_roof_options)
             end
          end)
       :always(function(selector)

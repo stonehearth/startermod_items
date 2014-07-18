@@ -188,6 +188,11 @@
    };
 
    radiant.call_objv = function(obj, fn, args) {
+      // all callable objects have a __self entry which contains the uri of
+      // the object.  let users pass those in directly.
+      if (typeof obj == 'object' && obj.__self) {
+         obj = obj.__self;
+      }
       return object._docall('/r/call/?obj='+obj + '&fn='+fn, args);
    };
 

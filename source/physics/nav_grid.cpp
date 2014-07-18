@@ -42,6 +42,23 @@ NavGrid::NavGrid(dm::TraceCategories trace_category) :
    resident_tiles_.resize(0);
 }
 
+
+/*
+ * -- NavGrid::~NavGrid
+ *
+ * Get rid of the trackers before the tracking data.  If we let the complier generated 
+ * destructor try to do this, it might get the order wrong (e.g. destroy at tracker may signal
+ * the dirty tile slot, which is a bad idea if the dirty tile slot is already GONE!!).
+ */
+
+NavGrid::~NavGrid()
+{
+   collision_trackers_.clear();
+   collision_tracker_dtors_.clear();
+   collision_type_traces_.clear();
+   terrain_tile_collision_trackers_.clear();
+}
+
 /*
  * -- NavGrid::TrackComponent
  *

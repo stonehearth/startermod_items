@@ -6,12 +6,12 @@ local dm_map_autotests = {}
 local function verify_map(autotest, m, expected)
 	for k, v in m:each() do
 		if expected[k] ~= v then
-			autotes:fail()
+			autotest:fail()
 		end
 	end
 	for k, v in pairs(expected) do
 		if m:get(k) ~= v then
-			autotes:fail()
+			autotest:fail()
 		end
 	end
 end

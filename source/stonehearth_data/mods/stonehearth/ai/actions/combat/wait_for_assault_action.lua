@@ -48,8 +48,14 @@ function WaitForAssault:_unregister_events()
 end
 
 function WaitForAssault:_on_assault(context)
-   local assault_events = { context }
-   self._ai:set_think_output({ assault_events = assault_events })
+   -- if the entity is destroyed in the start_thinking state, unlisten will fail (since
+   -- the invalid entities are specifically not == to anything).   be a little paranoid,
+   -- just in case
+   if self._ai then      
+      local assault_events = { context }
+      self._ai:set_think_output({ assault_events = assault_events })
+   end
+
    self._registered = false
    return radiant.events.UNLISTEN
 end

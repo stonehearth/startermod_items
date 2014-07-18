@@ -1,6 +1,16 @@
 {
    "type" : "effect",
    "tracks": {
+       "unit_status_effect": {
+         "type": "unit_status_effect",
+         "material": "materials/thoughts/health/dead/dead.xml",
+         "width": 2,
+         "height": 3.4,
+         "xOffset": 0,
+         "yOffset": 1.6,
+         "duration" : 990,
+         "bone": "head"
+       },     
        "death_poof": {
          "type": "sound_effect",
          "duration": 1000,

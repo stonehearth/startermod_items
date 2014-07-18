@@ -141,9 +141,25 @@ function BuildService:_add_floor(session, floor_uri, box, brush_shape)
    return floor   
 end
 
+function BuildService:_erase_floor(session, box)
+   local floor
+
+   -- look for floor that we can merge into.
+   local all_overlapping_floor = radiant.terrain.get_entities_in_cube(box, function(entity)
+         return self:is_blueprint(entity) and self:_get_structure_type(entity) == 'floor'
+      end)
+
+   for _, floor in pairs(all_overlapping_floor) do
+      floor:add_component('stonehearth:floor')
+               :remove_box_from_floor(box)
+   end
+end
 
 function BuildService:erase_floor_command(session, response, box)
-   response:reject({ error = 'not yet implemented' })
+   self._undo:begin_transaction('add_wall')
+   self:_erase_floor(session, ToCube3(box))
+   self._undo:end_transaction('add_wall')
+   return true
 end
 
 -- adds a new fabricator to blueprint.  this creates a new 'stonehearth:entities:fabricator'
@@ -535,14 +551,15 @@ function BuildService:_grow_roof(building, roof_uri, options)
 
    -- connect everything directly under the roof to it, and make sure it reaches
    -- all the way up to the top.
+   local roof_component = roof:get_component('stonehearth:roof')
    for _, structure in pairs(radiant.terrain.get_entities_in_region(under_roof_region)) do
       if building == self:get_building_for_blueprint(structure) then
          for _, component_name in ipairs({'stonehearth:wall', 'stonehearth:column'}) do
             local component = structure:get_component(component_name)
             if component then
                -- connect the structure to the roof and re-compute its shape
+               roof_component:connect_to_structure(structure, component_name)
                component:connect_to_roof(roof)
-                        :layout()
 
                -- don't build the roof until we've built all the supporting structures
                roof:add_component('stonehearth:construction_progress')
@@ -555,6 +572,9 @@ function BuildService:_grow_roof(building, roof_uri, options)
                   :loan_scaffolding_to(roof)
       end
    end
+
+   -- layout the roof, which will layout all underlying structures
+   roof_component:layout()
    return roof
 end
 

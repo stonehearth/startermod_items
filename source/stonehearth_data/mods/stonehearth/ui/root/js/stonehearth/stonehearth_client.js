@@ -232,37 +232,40 @@ var StonehearthClient;
          });
       },
 
-      eraseFloor: function(floor) {
+      eraseFloor: function(o) {
          radiant.call('radiant:play_sound', 'stonehearth:sounds:ui:start_menu:popup' );
          var self = this;
 
-         $(top).trigger('radiant_show_tip', { 
-            title : 'Erase Floor Tooltip',
-            description : 'Erase Floor Tooltip'
-         });
+         if (!o || !o.hideTip) {
+            $(top).trigger('radiant_show_tip', { 
+               title : 'Erase Floor Tooltip',
+               description : 'Erase Floor Tooltip'
+            });
+         }
 
          return this._callTool(function() {
             return radiant.call_obj(self._build_editor, 'erase_floor')
-               .always(function(response) {
+               .done(function(response) {                  
                   radiant.call('radiant:play_sound', 'stonehearth:sounds:place_structure' );
+                  self.eraseFloor({ hideTip : true });
+               })
+               .fail(function(response) {
                   $(top).trigger('radiant_hide_tip');
                });
          });
       },
 
-      growRoof: function(options) {
+      growRoof: function() {
          var self = this;
-         options = options || {};
 
          return this._callTool(function() {
             radiant.call('radiant:play_sound', 'stonehearth:sounds:place_structure' );
-            /*
-            var options = {
-               nine_grid_gradiant : [ "front", "back", "left", "right" ],
-            }
-            */
-            return radiant.call_obj(self._build_editor, 'grow_roof', 'stonehearth:wooden_peaked_roof', options);
+            return radiant.call_obj(self._build_editor, 'grow_roof', 'stonehearth:wooden_peaked_roof');
          });
+      },
+
+      setGrowRoofOptions: function(options) {
+         return radiant.call_obj(this._build_editor, 'set_grow_roof_options', options);
       },
 
       growWalls: function(column, wall) {

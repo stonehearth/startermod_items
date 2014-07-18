@@ -111,6 +111,7 @@ void Map<K, V, H>::Add(K const& key, V const& value) {
       GetStore().OnMapChanged(*this, key, value);
    } else {
       items_[key] = value;
+      lastErasedIterator_ = items_.end();
       MAP_LOG(7) << "adding " << key << " (size: " << items_.size() << ")";
       GetStore().OnMapChanged(*this, key, value);
    }
@@ -121,7 +122,7 @@ void Map<K, V, H>::Remove(const K& key) {
    auto i = items_.find(key);
    if (i != items_.end()) {
       MAP_LOG(7) << "removing " << key;
-      items_.erase(i);
+      lastErasedIterator_ = items_.erase(i);
       GetStore().OnMapRemoved(*this, key);
    }
 }
@@ -168,6 +169,12 @@ template <class K, class V, class H>
 typename Map<K, V, H>::Iterator Map<K, V, H>::find(K const& key) const
 {
    return Iterator(*this, items_.find(key));
+}
+
+template <class K, class V, class H>
+typename Map<K, V, H>::ContainerType::const_iterator const& Map<K, V, H>::GetLastErasedIterator() const
+{
+   return lastErasedIterator_;
 }
 
 #define CREATE_MAP(M)    template M;

@@ -4,7 +4,7 @@
       "unit_status_effect": {
          "type": "unit_status_effect",
          "material": "materials/thoughts/alert/alert_material.xml",
-         "duration": 500,
+         "duration": 1500,
          "width": 1,
          "height": 1.7,
          "xOffset": 0,

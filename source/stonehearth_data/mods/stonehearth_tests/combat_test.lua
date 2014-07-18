@@ -9,7 +9,7 @@ function CombatTest:__init()
    self:create_world()
    self:create_enemy_kingdom()
 
-   --self:place_obstacles()
+   -- self:place_obstacles()
 
    self:at(1000,
       function ()
@@ -21,25 +21,29 @@ end
 function CombatTest:place_obstacles()
    for i = -16, 10 do
       self:place_item('stonehearth:small_boulder', i, 0)
-      -- if math.abs(i) <= 5 and i ~= 0 then
-      --    self:place_item('stonehearth:small_boulder', 0, i)
-      -- end
+      if math.abs(i) <= 5 and i ~= 0 then
+         self:place_item('stonehearth:small_boulder', 0, i)
+      end
    end
 end
 
 function CombatTest:place_units()
    self._citizens = {
-      self:place_citizen(-9, -15, 'stonehearth:professions:footman', 'stonehearth:wooden_sword'),
-      self:place_citizen( -7, -15, 'stonehearth:professions:footman', 'stonehearth:wooden_sword'),
-      self:place_citizen(  1, -15, 'stonehearth:professions:footman', 'stonehearth:wooden_sword'),
-      self:place_citizen(  9, -15, 'stonehearth:professions:footman', 'stonehearth:wooden_sword'),
+      self:place_citizen(-9, -15),
+      --self:place_citizen(-7, -15),
+      -- self:place_citizen(-9, -15, 'stonehearth:professions:footman', 'stonehearth:wooden_sword'),
+      -- self:place_citizen( -7, -15, 'stonehearth:professions:footman', 'stonehearth:wooden_sword'),
+      -- self:place_citizen(  1, -15, 'stonehearth:professions:footman', 'stonehearth:wooden_sword'),
+      -- self:place_citizen(  9, -15, 'stonehearth:professions:footman', 'stonehearth:wooden_sword'),
    }
 
+   self:place_item('stonehearth:wooden_sword', -6, -15)
+
    self._enemies = {
-      self:place_enemy( -9, 15, 'stonehearth:wooden_sword'),
-      self:place_enemy( -1, 15, 'stonehearth:wooden_sword'),
-      self:place_enemy(  7, 15, 'stonehearth:wooden_sword'),
-      self:place_enemy( 15, 15, 'stonehearth:wooden_sword'),
+      --self:place_enemy( -9, 15, 'stonehearth:wooden_sword'),
+      -- self:place_enemy( -1, 15, 'stonehearth:wooden_sword'),
+      -- self:place_enemy(  7, 15, 'stonehearth:wooden_sword'),
+      -- self:place_enemy( 15, 15, 'stonehearth:wooden_sword'),
    }
 end
 
@@ -64,13 +68,9 @@ end
 
 function CombatTest:equip_weapon(entity, weapon_uri)
    local weapon = radiant.entities.create_entity(weapon_uri)
-   local equipment = entity:add_component('stonehearth:equipment')
-   equipment:equip_item(weapon, 'melee_weapon')
-
+   radiant.entities.equip_item(entity, weapon, 'melee_weapon')
    -- HACK: remove the talisman glow effect from the weapon
-   -- might want to remove other talisman related commands as well
-   -- TODO: make the effects and commands specific to the model variant
-   weapon:remove_component('effect_list')
+   radiant.entities.remove_effects(weapon)
 end
 
 function CombatTest:kill(entity)
