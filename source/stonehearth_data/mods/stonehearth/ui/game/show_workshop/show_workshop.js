@@ -199,18 +199,15 @@ App.StonehearthCrafterView = App.View.extend({
       var workshop = this.getWorkshop();
       var recipe = this.getCurrentRecipe();
 
-      radiant.call_obj(workshop, 'resolve_order_options', recipe)
-         .done(function(return_data){
-            var portrait = self.$("#portrait");
-            if (portrait) {
-               // we assuming that if the portrait div is there, everything else
-               // is too.  this could go away if the sheet is closed before our
-               // call comes back!
-               self.$("#portrait").attr("src", return_data.portrait);
-               self.$("#usefulText").html(return_data.description);
-               self.$("#flavorText").html(return_data.flavor);
-            }
-         });
+      self.$("#portrait").attr("src", recipe.portrait);
+      self.$("#usefulText").html(recipe.description);
+      self.$("#flavorText").html(recipe.flavor);
+
+      if (recipe.locked) {
+         self.$("#orderOptions").hide()
+      } else {
+         self.$('#orderOptions').show()
+      }
    },
 
    _workshopPausedChange: function() {
