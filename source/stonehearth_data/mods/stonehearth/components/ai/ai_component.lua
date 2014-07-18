@@ -98,6 +98,14 @@ function AIComponent:_add_action_script(uri, injecting_entity)
    self:_add_action(uri, ctor, injecting_entity)
 end
 
+function AIComponent:_action_key_to_name(key)
+   if type(key) == 'table' then
+      return key.name
+   else
+      return key
+   end
+end
+
 function AIComponent:_add_action(key, action_ctor, injecting_entity)
    local does = action_ctor.does
    assert(does)
@@ -109,8 +117,7 @@ function AIComponent:_add_action(key, action_ctor, injecting_entity)
       action_index = {}
       self._action_index[does] = action_index
    end
-   
-   
+      
    if self._action_index[does][key] then
       if self._action_index[does][key].action_ctor == action_ctor then
          log:debug('ignoring duplicate action in index (should we refcount?)')
@@ -119,8 +126,8 @@ function AIComponent:_add_action(key, action_ctor, injecting_entity)
       assert(false, string.format('duplicate action key "%s" for "%s"', tostring(key), tostring(does)))
    end
 
-   --tracelog:spam('ai_component:add_action:%s,%s', tostring(self._entity), tostring(does))
-   
+   --log:spam('%s, ai_component:add_action: %s', self._entity, self:_action_key_to_name(key))
+
    local entry = {
       action_ctor = action_ctor,
       injecting_entity = injecting_entity,
@@ -166,14 +173,14 @@ end
 function AIComponent:remove_action(key)
    if type(key) == 'string' then
       self.__saved_variables:modify_data(function (o)
-            o._actions[key] = false
+            o._actions[key] = nil
          end)
    end
 
    local does = action_key_to_activity[key]
    if does then
       local entry = self._action_index[does][key]
-      --tracelog:spam('ai_component:remove_action:%s,%s', tostring(key), tostring(self._entity))
+      --log:spam('%s, ai_component:remove_action: %s', self._entity, self:_action_key_to_name(key))
       log:detail('triggering stonehearth:action_index_changed:' .. does)
       self._action_index[does][key] = nil
       self:_notify_action_index_changed(does, 'remove', key, entry)
@@ -234,7 +241,6 @@ function AIComponent:remove_observer(key)
    end
 end
 
-
 function AIComponent:_initialize(json)  
    if self._sv._actions then
       for uri, _ in pairs(self._sv._actions) do
@@ -246,7 +252,7 @@ function AIComponent:_initialize(json)
          self:add_action(uri)
       end
    end
-   
+
    if self._sv._observers then
       for uri, _ in pairs(self._sv._observers) do
          self:_add_observer_script(uri)
