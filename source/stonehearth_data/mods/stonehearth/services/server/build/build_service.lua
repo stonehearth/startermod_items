@@ -123,8 +123,11 @@ end
 
 function BuildService:_add_floor(session, floor_uri, box, brush_shape)
    local floor
+   local overlap = Cube3(Point3(box.min.x - 1, box.min.y, box.min.z - 1),
+                         Point3(box.max.x + 1, box.max.y, box.max.z + 1))
+
    -- look for floor that we can merge into.
-   local all_overlapping_floor = radiant.terrain.get_entities_in_cube(box, function(entity)
+   local all_overlapping_floor = radiant.terrain.get_entities_in_cube(overlap, function(entity)
          return self:is_blueprint(entity) and self:_get_structure_type(entity) == 'floor'
       end)
 
