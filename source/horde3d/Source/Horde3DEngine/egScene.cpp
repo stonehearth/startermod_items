@@ -601,27 +601,29 @@ void GridSpatialGraph::query(SpatialQuery const& query, RenderableQueues& render
             }
 
             if (node->getInstanceKey() != 0x0 && !qForceNoInstancing) {
-               if (instanceQueues.find(node->_type) == instanceQueues.end()) {
-                  //instanceQueues.insert(node->_type, InstanceRenderableQueue());
+               auto iqsIt = instanceQueues.find(node->_type);
+               if (iqsIt == instanceQueues.end()) {
                   InstanceRenderableQueue newQ;
-                  instanceQueues[node->_type] = newQ;
+                  iqsIt = instanceQueues.emplace_hint(iqsIt, node->_type, newQ);
                }
-               InstanceRenderableQueue& iq = instanceQueues[node->_type];
+               InstanceRenderableQueue& iq = iqsIt->second;
 
                const InstanceKey& ik = *(node->getInstanceKey());
-               if (iq.find(ik) == iq.end()) {
+               auto iqIt = iq.find(ik);
+               if (iqIt == iq.end()) {
                   RenderableQueue newQ;
                   newQ.reserve(1000);
-                  iq[ik] = newQ;
+                  iqIt = iq.emplace_hint(iqIt, ik, newQ);
                }
-               iq[ik].emplace_back(RendQueueItem(node->_type, sortKey, node));
+               iqIt->second.emplace_back(RendQueueItem(node->_type, sortKey, node));
             } else {
-               if (renderableQueues.find(node->_type) == renderableQueues.end()) {
+               auto rqIt = renderableQueues.find(node->_type);
+               if (rqIt == renderableQueues.end()) {
                   RenderableQueue newQ;
                   newQ.reserve(1000);
-                  renderableQueues[node->_type] = newQ;
+                  rqIt = renderableQueues.emplace_hint(rqIt, node->_type, newQ);
                }
-               renderableQueues[node->_type].emplace_back( RendQueueItem( node->_type, sortKey, node ) );
+               rqIt->second.emplace_back( RendQueueItem( node->_type, sortKey, node ) );
             }
          }
       }

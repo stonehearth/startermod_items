@@ -36,6 +36,11 @@ const int QueryCacheSize = 32;
 struct InstanceKey {
    Resource* geoResource;
    MaterialResource* matResource;
+   size_t hash;
+
+   void updateHash() {
+      hash = (uint32)(geoResource) ^ (uint32)(matResource);
+   }
 
    bool operator==(const InstanceKey& other) const {
       return geoResource == other.geoResource &&
@@ -47,8 +52,8 @@ struct InstanceKey {
 };
 
 struct hash_InstanceKey {
-   size_t operator()(const InstanceKey& x) const {
-      return (uint32)(x.geoResource) ^ (uint32)(x.matResource);
+   inline size_t operator()(InstanceKey const & x) const {
+      return x.hash;
    }
 };
 
