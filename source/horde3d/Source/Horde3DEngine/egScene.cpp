@@ -513,6 +513,16 @@ void GridSpatialGraph::updateNode(SceneNode const& sceneNode)
    }
 }
 
+void GridSpatialGraph::castRay(const Vec3f& rayOrigin, const Vec3f& rayDirection, std::function<void(const boost::container::flat_set<SceneNode const*> &nodes)> cb) {
+   Vec3f rayDirN = rayDirection.normalized();
+   for (auto const& ge : _gridElements) {
+      float t = ge.second.bounds.intersectionOf(rayOrigin, rayDirN);
+      if (t < 0.0) {
+         continue;
+      }
+      cb(ge.second._nodes);
+   }
+}
 
 void GridSpatialGraph::query(SpatialQuery const& query, RenderableQueues& renderableQueues, 
                          InstanceRenderableQueues& instanceQueues, std::vector<SceneNode const*>& lightQueue)
@@ -1205,6 +1215,50 @@ void SceneManager::_findNodes( SceneNode &startNode, std::string const& name, in
 }
 
 
+void SceneManager::fastCastRayInternal(int userFlags)
+{
+   _spatialGraph->castRay(Vec3f(-_rayOrigin.x, -_rayOrigin.y, -_rayOrigin.z), Vec3f(-_rayDirection.x, -_rayDirection.y, -_rayDirection.z), [this, userFlags](const boost::container::flat_set<SceneNode const*> &nodes) {
+      for (SceneNode const* sn : nodes) {
+         if( !(sn->_accumulatedFlags & SceneNodeFlags::NoRayQuery) )
+	      {
+		      Vec3f intsPos, intsNorm;
+            if( (sn->_userFlags & userFlags) == userFlags && sn->checkIntersection( _rayOrigin, _rayDirection, intsPos, intsNorm ) )
+		      {
+			      float dist = (intsPos - _rayOrigin).length();
+
+			      CastRayResult crr;
+			      crr.node = sn;
+			      crr.distance = dist;
+			      crr.intersection = intsPos;
+               crr.normal = intsNorm;
+
+			      bool inserted = false;
+			      for( vector< CastRayResult >::iterator it = _castRayResults.begin(); it != _castRayResults.end(); ++it )
+			      {
+				      if( dist < it->distance )
+				      {
+					      _castRayResults.insert( it, crr );
+					      inserted = true;
+					      break;
+				      }
+			      }
+
+			      if( !inserted )
+			      {
+				      _castRayResults.push_back( crr );
+			      }
+
+			      if( _rayNum > 0 && (int)_castRayResults.size() > _rayNum )
+			      {
+				      _castRayResults.pop_back();
+			      }
+		      }
+         }
+      }
+   });
+}
+
+
 void SceneManager::castRayInternal( SceneNode &node, int userFlags )
 {
    if( !(node._accumulatedFlags & SceneNodeFlags::NoRayQuery) )
@@ -1260,8 +1314,11 @@ int SceneManager::castRay( SceneNode &node, const Vec3f &rayOrig, const Vec3f &r
 	_rayDirection = rayDir;
 	_rayNum = numNearest;
 
-	castRayInternal( node, userFlags );
-
+   if (node.getHandle() == RootNode) {
+      fastCastRayInternal(userFlags);
+   } else {
+   	castRayInternal( node, userFlags );
+   }
 	return (int)_castRayResults.size();
 }
 

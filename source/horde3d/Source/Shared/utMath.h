@@ -158,10 +158,15 @@ public:
 	// ------
 	// Access
 	// ------
-	float &operator[]( unsigned int index )
+	float &operator[] ( unsigned int index )
 	{
 		return *(&x + index);
 	}
+
+   float get(unsigned int index) const
+   {
+      return *(&x + index);
+   }
 	
 	// -----------
 	// Comparisons
@@ -231,7 +236,7 @@ public:
 	// ----------------
 	// Special products
 	// ----------------
-	float dot( const Vec3f &v ) const
+	inline float dot( const Vec3f &v ) const
 	{
 		return x * v.x + y * v.y + z * v.z;
 	}
@@ -925,7 +930,7 @@ public:
 	// ----------------
 	// Other operations
 	// ----------------
-	float distToPoint( const Vec3f &v ) const
+	inline float distToPoint( const Vec3f &v ) const
 	{
 		return normal.dot( v ) + dist;
 	}

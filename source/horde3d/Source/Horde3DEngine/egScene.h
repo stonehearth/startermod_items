@@ -296,6 +296,7 @@ public:
 
    virtual void query(const SpatialQuery& query, RenderableQueues& renderableQueues, InstanceRenderableQueues& instanceQueues,
       std::vector<SceneNode const*>& lightQueue) = 0;
+   virtual void castRay(const Vec3f& rayOrigin, const Vec3f& rayDirection, std::function<void(const boost::container::flat_set<SceneNode const*> &nodes)> cb) = 0;
 };
 
 class SpatialGraph : public ISpatialGraph
@@ -332,6 +333,7 @@ public:
 
    void query(const SpatialQuery& query, RenderableQueues& renderableQueues, InstanceRenderableQueues& instanceQueues,
       std::vector<SceneNode const*>& lightQueue);
+   void castRay(const Vec3f& rayOrigin, const Vec3f& rayDirection, std::function<void(const boost::container::flat_set<SceneNode const*> &nodes)> cb);
 
 protected:
    void boundingBoxToGrids(BoundingBox const& aabb, boost::container::flat_set<int64>& gridElementList) const;
@@ -373,7 +375,7 @@ struct NodeRegEntry
 
 struct CastRayResult
 {
-	SceneNode  *node;
+	SceneNode const* node;
 	float      distance;
 	Vec3f      intersection;
    Vec3f      normal;
@@ -439,6 +441,7 @@ protected:
         void shutdown();
         void initialize();
 	void castRayInternal( SceneNode &node, int userFlags );
+   void fastCastRayInternal(int userFlags);
 
 protected:
         uint32                         _nextNodeHandle;
