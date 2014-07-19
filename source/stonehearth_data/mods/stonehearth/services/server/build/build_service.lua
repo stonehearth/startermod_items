@@ -739,14 +739,27 @@ function BuildService:substitute_blueprint_command(session, response, old, new_u
    self._undo:begin_transaction('subsitute_blueprint')
    local replaced = self:_substitute_blueprint(old, new_uri)
    self._undo:end_transaction('subsitute_blueprint')
+   
+   if not replaced then
+      return false
+   end
+   
+   -- set the fabricator as the new selected entity to preserve the illusion that
+   -- the entity selected in the editor got changed.
+   local replaced_fab = replaced:get_component('stonehearth:construction_progress'):get_fabricator_entity()
    response:resolve({
-      new_selection = replaced
+      new_selection = replaced_fab
    })
 end
 
 function BuildService:_substitute_blueprint(old, new_uri)
-   local building = self:_get_building_for(old)
-
+   -- make sure the old building has a parent.  if it doesn't, it means the structure had
+   -- been unlinked, and the client somehow sent us some state data (perhaps as a race)
+   if not old:add_component('mob'):get_parent() then
+      return
+   end
+   
+   local building = self:_get_building_for(old)   
    local replaced = self:_create_blueprint(building, new_uri, Point3.zero, function(new)
          -- place the new entity in the same position as the old one
          local mob = old:get_component('mob')

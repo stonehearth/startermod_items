@@ -320,7 +320,7 @@ App.StonehearthBuildingDesignerTools = App.View.extend({
       });
 
       // edit tab
-      $('#editMaterial').on( 'click', '.wallMaterial', function() {
+      $('#materialPicker').on( 'click', '.wallMaterial', function() {
          var wallUri = $(this).attr('brush');
          var blueprint = self.get('blueprint.__self');
          App.stonehearthClient.replaceStructure(blueprint, wallUri); 
