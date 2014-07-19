@@ -284,9 +284,9 @@ struct RendQueueItem
 };
 
 typedef std::vector<RendQueueItem> RenderableQueue;
-typedef std::unordered_map<int, RenderableQueue > RenderableQueues;
+typedef boost::container::flat_map<int, RenderableQueue > RenderableQueues;
 typedef std::unordered_map<InstanceKey, RenderableQueue, hash_InstanceKey > InstanceRenderableQueue;
-typedef std::unordered_map<int, InstanceRenderableQueue > InstanceRenderableQueues;
+typedef boost::container::flat_map<int, InstanceRenderableQueue > InstanceRenderableQueues;
 
 class ISpatialGraph {
 public:
@@ -322,7 +322,7 @@ struct GridElement
    boost::container::flat_set<SceneNode const*> _nodes;
 };
 
-class GridSpatialGraph : public ISpatialGraph
+class GridSpatialGraph
 {
 public:
    GridSpatialGraph();
@@ -336,23 +336,18 @@ public:
    void castRay(const Vec3f& rayOrigin, const Vec3f& rayDirection, std::function<void(boost::container::flat_set<SceneNode const*> const& nodes)> cb);
 
 protected:
-   void boundingBoxToGrids(BoundingBox const& aabb, boost::container::flat_set<int64>& gridElementList) const;
-   int64 hashGridPoint(int x, int y) const;
-   void unhashGridHash(int64 hash, int* x, int* y) const;
+   void boundingBoxToGrids(BoundingBox const& aabb, boost::container::flat_set<uint32>& gridElementList) const;
+   inline uint32 hashGridPoint(int x, int y) const;
+   inline void unhashGridHash(uint32 hash, int* x, int* y) const;
 
-   /*std::unordered_map<NodeHandle, std::vector<int64> > _nodeGridLookup;
-   std::unordered_map<int64, GridElement> _gridElements;
-   std::unordered_map<NodeHandle, SceneNode const*> _directionalLights;
-   std::unordered_map<NodeHandle, SceneNode const*> _nocullNodes;*/
-   
-   std::unordered_map<NodeHandle, boost::container::flat_set<int64> > _nodeGridLookup;
-   std::unordered_map<int64, GridElement> _gridElements;
+   boost::container::flat_map<NodeHandle, boost::container::flat_set<uint32> > _nodeGridLookup;
+   std::unordered_map<uint32, GridElement> _gridElements;
    std::unordered_map<NodeHandle, SceneNode const*> _directionalLights;
    std::unordered_map<NodeHandle, SceneNode const*> _nocullNodes;
    int _renderStamp;
 
-   boost::container::flat_set<int64> newGrids;
-   std::vector<int64> toRemove;
+   boost::container::flat_set<uint32> newGrids;
+   std::vector<uint32> toRemove;
 };
 
 
@@ -448,10 +443,10 @@ protected:
 
 protected:
         uint32                         _nextNodeHandle;
-	std::unordered_map<NodeHandle, SceneNode *>      _nodes;  // _nodes[0] is root node
+   boost::container::flat_map<NodeHandle, SceneNode *>      _nodes;  // _nodes[0] is root node
 	std::vector< SceneNode * >     _findResults;
 	std::vector< CastRayResult >   _castRayResults;
-	ISpatialGraph*              _spatialGraph;
+	GridSpatialGraph*              _spatialGraph;
 
 	std::map< int, NodeRegEntry >  _registry;  // Registry of node types
 

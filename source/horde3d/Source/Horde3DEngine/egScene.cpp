@@ -391,7 +391,8 @@ struct RendQueueItemCompFunc
 // Class GridSpatialGraph
 // =================================================================================================
 
-const int GridSize = 150;
+#define GRIDSIZE 150
+#define I_GRIDSIZE (1.0f / GRIDSIZE)
 
 GridSpatialGraph::GridSpatialGraph()
 {
@@ -408,7 +409,7 @@ void GridSpatialGraph::addNode(SceneNode const& sceneNode)
    if (sceneNode.getType() == SceneNodeTypes::Light && sceneNode.getParamI(LightNodeParams::DirectionalI)) {
       _directionalLights[sceneNode.getHandle()] = &sceneNode;
    } else {
-      _nodeGridLookup[sceneNode.getHandle()] = boost::container::flat_set<int64>();
+      _nodeGridLookup[sceneNode.getHandle()] = boost::container::flat_set<uint32>();
       updateNode(sceneNode);
    }
 }
@@ -420,7 +421,7 @@ void GridSpatialGraph::removeNode(SceneNode const& sceneNode)
       _directionalLights.erase(sceneNode.getHandle());
    } else {
       // Find all old references and remove them.
-      for (int64 gridNum : _nodeGridLookup[sceneNode.getHandle()]) {
+      for (uint32 gridNum : _nodeGridLookup[sceneNode.getHandle()]) {
          _gridElements[gridNum]._nodes.erase(&sceneNode);
       }
       _nodeGridLookup.erase(sceneNode.getHandle());
@@ -430,44 +431,50 @@ void GridSpatialGraph::removeNode(SceneNode const& sceneNode)
    }
 }
 
-void GridSpatialGraph::boundingBoxToGrids(BoundingBox const& aabb, boost::container::flat_set<int64>& gridElementList) const
+void GridSpatialGraph::boundingBoxToGrids(BoundingBox const& aabb, boost::container::flat_set<uint32>& gridElementList) const
 {
+   Vec3f const& min = aabb.min();
+   Vec3f const& max = aabb.max();
    
-   int minX = std::floor(aabb.min().x / GridSize);
-   int minZ = std::floor(aabb.min().z / GridSize);
-   int maxX = std::floor(aabb.max().x / GridSize);
-   int maxZ = std::floor(aabb.max().z / GridSize);
+   const float minx = min.x * I_GRIDSIZE;
+   const float minz = min.z * I_GRIDSIZE;
+   const float maxx = max.x * I_GRIDSIZE;
+   const float maxz = max.z * I_GRIDSIZE;
+
+   const int minX = minx < 0 ? (int) minx == minx ? (int) minx : (int) minx - 1 : (int) minx;
+   const int minZ = minz < 0 ? (int) minz == minz ? (int) minz : (int) minz - 1 : (int) minz;
+   const int maxX = maxx < 0 ? (int) maxx == maxx ? (int) maxx : (int) maxx - 1 : (int) maxx;
+   const int maxZ = maxz < 0 ? (int) maxz == maxz ? (int) maxz : (int) maxz - 1 : (int) maxz;
 
    for (int x = minX; x <= maxX; x++) {
       for (int z = minZ; z <= maxZ; z++) {
-         gridElementList.insert(hashGridPoint(x, z));
+         const uint32 v = hashGridPoint(x, z);
+         gridElementList.insert(v);
       }
    }
 }
 
 
-int64 GridSpatialGraph::hashGridPoint(int x, int y) const
+inline uint32 GridSpatialGraph::hashGridPoint(int x, int y) const
 {
-   // Convert from [-50000, 49999] to [0, 999999]
-   int64 lx = x + 50000;
-   int64 ly = y + 50000;
-   return lx + (ly * 100000);
+   uint32 lx = x + 0x8000;
+   uint32 ly = y + 0x8000;
+   return lx | (ly << 16);
 }
 
 
-void GridSpatialGraph::unhashGridHash(int64 hash, int* x, int* y) const
+inline void GridSpatialGraph::unhashGridHash(uint32 hash, int* x, int* y) const
 {
-   int64 lx = (hash % 100000) - 50000;
-   int64 ly = (hash / 100000) - 50000;
-   *x = (int)lx;
-   *y = (int)ly;
+   *x = (hash & 0xFFFF) - 0x8000;
+   *y = (hash >> 16) - 0x8000;
 }
 
 
 void GridSpatialGraph::updateNode(SceneNode const& sceneNode)
 {
    NodeHandle nh = sceneNode.getHandle();
-   if (!sceneNode.getBBox().isValid()) {
+   BoundingBox const& sceneBox = sceneNode.getBBox();
+   if (!sceneBox.isValid()) {
       return;
    }
 
@@ -478,36 +485,39 @@ void GridSpatialGraph::updateNode(SceneNode const& sceneNode)
       toRemove.clear();
    
       // Generate new bounds for this node.
-      boundingBoxToGrids(sceneNode.getBBox(), newGrids);
+      boundingBoxToGrids(sceneBox, newGrids);
 
       // Remove obsolete grid references for the new node (if any).
-      for (int64 oldGridE : _nodeGridLookup[nh]) {
+      for (uint32 oldGridE : _nodeGridLookup[nh]) {
          if (newGrids.find(oldGridE) == newGrids.end()) {
             toRemove.push_back(oldGridE);
          }
       }
-      for (int64 removeE : toRemove) {
+      for (uint32 removeE : toRemove) {
          _nodeGridLookup[nh].erase(removeE);
          _gridElements[removeE]._nodes.erase(&sceneNode);
       }
 
       // Add new element references; update existing refs.
-      for (int64 newGridE : newGrids) {
-         if (_gridElements.find(newGridE) == _gridElements.end()) {
-            _gridElements[newGridE] = GridElement();
+      for (uint32 newGridE : newGrids) {
+         auto const gei = _gridElements.find(newGridE);
+         if (gei == _gridElements.end()) {
+            GridElement newGridElement;
             int gX, gY;
             unhashGridHash(newGridE, &gX, &gY);
-            _gridElements[newGridE].bounds.addPoint(Vec3f(gX * GridSize, sceneNode.getBBox().min().y, gY * GridSize));
-            _gridElements[newGridE].bounds.addPoint(Vec3f(gX * GridSize + GridSize, sceneNode.getBBox().max().y, gY * GridSize + GridSize));
+            newGridElement.bounds.addPoint(Vec3f(gX * GRIDSIZE, sceneBox.min().y, gY * GRIDSIZE));
+            newGridElement.bounds.addPoint(Vec3f(gX * GRIDSIZE + GRIDSIZE, sceneBox.max().y, gY * GRIDSIZE + GRIDSIZE));
+            _gridElements[newGridE] = newGridElement;
          }
+         GridElement &ger = _gridElements[newGridE];
+         
+         // Insert does a check for redundant elements.
+         ger._nodes.insert(&sceneNode);
 
-         if (_gridElements[newGridE]._nodes.find(&sceneNode) == _gridElements[newGridE]._nodes.end()) {
-            _gridElements[newGridE]._nodes.insert(&sceneNode);
-         }
-         const Vec3f& boundsMin = _gridElements[newGridE].bounds.min();
-         const Vec3f& boundsMax = _gridElements[newGridE].bounds.max();
-         _gridElements[newGridE].bounds.addPoint(Vec3f(boundsMin.x, sceneNode.getBBox().min().y, boundsMin.z));
-         _gridElements[newGridE].bounds.addPoint(Vec3f(boundsMax.x, sceneNode.getBBox().max().y, boundsMax.z));
+         const Vec3f& boundsMin = ger.bounds.min();
+         const Vec3f& boundsMax = ger.bounds.max();
+         ger.bounds.addPoint(Vec3f(boundsMin.x, sceneBox.min().y, boundsMin.z));
+         ger.bounds.addPoint(Vec3f(boundsMax.x, sceneBox.max().y, boundsMax.z));
       }
    }
 }
@@ -592,20 +602,24 @@ void GridSpatialGraph::query(SpatialQuery const& query, RenderableQueues& render
 
             if (node->getInstanceKey() != 0x0 && !qForceNoInstancing) {
                if (instanceQueues.find(node->_type) == instanceQueues.end()) {
-                  instanceQueues[node->_type] = InstanceRenderableQueue();
+                  //instanceQueues.insert(node->_type, InstanceRenderableQueue());
+                  InstanceRenderableQueue newQ;
+                  instanceQueues[node->_type] = newQ;
                }
                InstanceRenderableQueue& iq = instanceQueues[node->_type];
 
                const InstanceKey& ik = *(node->getInstanceKey());
                if (iq.find(ik) == iq.end()) {
-                  iq[ik] = RenderableQueue();
-                  iq[ik].reserve(1000);
+                  RenderableQueue newQ;
+                  newQ.reserve(1000);
+                  iq[ik] = newQ;
                }
                iq[ik].emplace_back(RendQueueItem(node->_type, sortKey, node));
             } else {
                if (renderableQueues.find(node->_type) == renderableQueues.end()) {
-                  renderableQueues[node->_type] = RenderableQueue();
-                  renderableQueues[node->_type].reserve(1000);
+                  RenderableQueue newQ;
+                  newQ.reserve(1000);
+                  renderableQueues[node->_type] = newQ;
                }
                renderableQueues[node->_type].emplace_back( RendQueueItem( node->_type, sortKey, node ) );
             }
