@@ -109,6 +109,7 @@ void VoxelMeshNode::setParamI( int param, int value )
 			Modules::setError( "Invalid handle in h3dSetNodeParamI for H3DVoxelMesh::MatResI" );
 		}
       _instanceKey.matResource = _materialRes;
+      _instanceKey.updateHash();
 		return;
    case VoxelMeshNodeParams::NoInstancingI:
       _noInstancing = (value != 0);
@@ -209,6 +210,7 @@ void VoxelMeshNode::onAttach( SceneNode &parentNode )
 	_parentModel->markNodeListDirty();
 
    _instanceKey.geoResource = _parentModel->getVoxelGeometryResource();
+   _instanceKey.updateHash();
 }
 
 
