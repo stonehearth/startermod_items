@@ -15,7 +15,7 @@
          {
             "item" : "stonehearth:simple_wooden_chair_proxy",
             "portrait" : "/stonehearth/entities/furniture/simple_wooden_chair/simple_wooden_chair.png",
-            "required" : 1
+            "required" : 3
          }
       ]
    },

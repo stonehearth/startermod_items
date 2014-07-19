@@ -79,6 +79,8 @@ function CrafterComponent:_initialize_recipe_data(recipe_data)
             prerequisite.made = 0
          end
       end
+   else
+      recipe_data.locked = false
    end
 end
 

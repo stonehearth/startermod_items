@@ -79,10 +79,13 @@ App.StonehearthCrafterView = App.View.extend({
 
       select: function(object, remaining, maintainNumber) {
          this.currentRecipe = object;
-         this.set('context.show_workshop.current', this.currentRecipe);
-         this._setRadioButtons(remaining, maintainNumber);
-         //TODO: make the selected item visually distinct
-         this.preview();
+         if (this.currentRecipe) {
+            //You'd think that when the object updated, the variable would update, but noooooo
+            this.set('context.show_workshop.current', this.currentRecipe);
+            this._setRadioButtons(remaining, maintainNumber);
+            //TODO: make the selected item visually distinct
+            this.preview();
+         }
       },
 
       //Call this function when the user is ready to submit an order
@@ -153,6 +156,31 @@ App.StonehearthCrafterView = App.View.extend({
       Ember.run.scheduleOnce('afterRender', this, '_build_workshop_helper');
     }.observes('context.show_workshop'),
 
+    
+    _orderCompleted:function() {
+      if(this.currentRecipe) {
+
+         //Arrr!! If you try to assign the context at selection, it won't update
+         //when the data updates. So when the data updates, check if we should update the context
+         //If anyone knows how to do this better with Ember's actual data binding, kill this code!
+         var catArr = this.get('context.show_workshop.stonehearth:workshop.crafter.stonehearth:crafter.craftable_recipes');
+         var catLen = catArr.length;
+         for (var i = 0; i < catLen; i++) {
+            var recipeArr = catArr[i].recipes;
+            var recipeLen = recipeArr.length;
+            for (var j=0; j<recipeLen; j++) {
+               if (recipeArr[j].recipe_name == this.currentRecipe.recipe_name) {
+                  this.currentRecipe = recipeArr[j];
+                  break;
+               }
+            }
+         }
+         
+         this.set('context.show_workshop.current', this.currentRecipe);
+         this.preview();
+      }
+    }.observes('context.show_workshop.stonehearth:workshop.order_list'),
+
    //Called once when the model is loaded
    _build_workshop_helper: function() {
       if (this.get('context.show_workshop.stonehearth:workshop') == undefined) {
@@ -199,14 +227,21 @@ App.StonehearthCrafterView = App.View.extend({
       var workshop = this.getWorkshop();
       var recipe = this.getCurrentRecipe();
 
+      if (workshop && recipe) {
       self.$("#portrait").attr("src", recipe.portrait);
       self.$("#usefulText").html(recipe.description);
       self.$("#flavorText").html(recipe.flavor);
 
       if (recipe.locked) {
          self.$("#orderOptions").hide()
+         self.$("#portrait").attr("src", '/stonehearth/ui/common/images/lock.png');
+         self.$('#unlock_description').show()
+         self.$('#description').hide()
       } else {
          self.$('#orderOptions').show()
+         self.$('#unlock_description').hide()
+         self.$('#description').show()
+      }
       }
    },
 
