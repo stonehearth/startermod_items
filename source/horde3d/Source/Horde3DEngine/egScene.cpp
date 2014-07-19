@@ -393,7 +393,6 @@ struct RendQueueItemCompFunc
 
 const int GridSize = 150;
 
-//#pragma optimize( "", off )
 GridSpatialGraph::GridSpatialGraph()
 {
    _renderStamp = 0;
@@ -475,8 +474,8 @@ void GridSpatialGraph::updateNode(SceneNode const& sceneNode)
    if (sceneNode.getFlags() & SceneNodeFlags::NoCull) {
       _nocullNodes[sceneNode.getHandle()] = &sceneNode;
    } else {
-      boost::container::flat_set<int64> newGrids;
-      std::vector<int64> toRemove;
+      newGrids.clear();
+      toRemove.clear();
    
       // Generate new bounds for this node.
       boundingBoxToGrids(sceneNode.getBBox(), newGrids);
@@ -513,7 +512,7 @@ void GridSpatialGraph::updateNode(SceneNode const& sceneNode)
    }
 }
 
-void GridSpatialGraph::castRay(const Vec3f& rayOrigin, const Vec3f& rayDirection, std::function<void(const boost::container::flat_set<SceneNode const*> &nodes)> cb) {
+void GridSpatialGraph::castRay(const Vec3f& rayOrigin, const Vec3f& rayDirection, std::function<void(boost::container::flat_set<SceneNode const*> const&nodes)> cb) {
    Vec3f rayDirN = rayDirection.normalized();
    for (auto const& ge : _gridElements) {
       float t = ge.second.bounds.intersectionOf(rayOrigin, rayDirN);
@@ -1217,7 +1216,7 @@ void SceneManager::_findNodes( SceneNode &startNode, std::string const& name, in
 
 void SceneManager::fastCastRayInternal(int userFlags)
 {
-   _spatialGraph->castRay(Vec3f(-_rayOrigin.x, -_rayOrigin.y, -_rayOrigin.z), Vec3f(-_rayDirection.x, -_rayDirection.y, -_rayDirection.z), [this, userFlags](const boost::container::flat_set<SceneNode const*> &nodes) {
+   _spatialGraph->castRay(-_rayOrigin, -_rayDirection, [this, userFlags](boost::container::flat_set<SceneNode const*> const&nodes) {
       for (SceneNode const* sn : nodes) {
          if( !(sn->_accumulatedFlags & SceneNodeFlags::NoRayQuery) )
 	      {

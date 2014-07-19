@@ -296,7 +296,7 @@ public:
 
    virtual void query(const SpatialQuery& query, RenderableQueues& renderableQueues, InstanceRenderableQueues& instanceQueues,
       std::vector<SceneNode const*>& lightQueue) = 0;
-   virtual void castRay(const Vec3f& rayOrigin, const Vec3f& rayDirection, std::function<void(const boost::container::flat_set<SceneNode const*> &nodes)> cb) = 0;
+   virtual void castRay(const Vec3f& rayOrigin, const Vec3f& rayDirection, std::function<void(boost::container::flat_set<SceneNode const*> const& nodes)> cb) = 0;
 };
 
 class SpatialGraph : public ISpatialGraph
@@ -333,7 +333,7 @@ public:
 
    void query(const SpatialQuery& query, RenderableQueues& renderableQueues, InstanceRenderableQueues& instanceQueues,
       std::vector<SceneNode const*>& lightQueue);
-   void castRay(const Vec3f& rayOrigin, const Vec3f& rayDirection, std::function<void(const boost::container::flat_set<SceneNode const*> &nodes)> cb);
+   void castRay(const Vec3f& rayOrigin, const Vec3f& rayDirection, std::function<void(boost::container::flat_set<SceneNode const*> const& nodes)> cb);
 
 protected:
    void boundingBoxToGrids(BoundingBox const& aabb, boost::container::flat_set<int64>& gridElementList) const;
@@ -350,6 +350,9 @@ protected:
    std::unordered_map<NodeHandle, SceneNode const*> _directionalLights;
    std::unordered_map<NodeHandle, SceneNode const*> _nocullNodes;
    int _renderStamp;
+
+   boost::container::flat_set<int64> newGrids;
+   std::vector<int64> toRemove;
 };
 
 
