@@ -22,6 +22,7 @@
 
 #include "utDebug.h"
 #include "lib/perfmon/perfmon.h"
+#include <boost/math/special_functions/round.hpp>
 
 #define SCENE_LOG(level)      LOG(horde.scene, level)
 
@@ -390,7 +391,7 @@ struct RendQueueItemCompFunc
 // Class GridSpatialGraph
 // =================================================================================================
 
-const int GridSize = 50;
+const int GridSize = 150;
 
 //#pragma optimize( "", off )
 GridSpatialGraph::GridSpatialGraph()
@@ -430,22 +431,16 @@ void GridSpatialGraph::removeNode(SceneNode const& sceneNode)
    }
 }
 
-
 void GridSpatialGraph::boundingBoxToGrids(BoundingBox const& aabb, boost::container::flat_set<int64>& gridElementList) const
 {
-   int minX = (int)(aabb.min().x / GridSize);
-   int maxX = (int)(aabb.max().x / GridSize);
-   int minZ = (int)(aabb.min().z / GridSize);
-   int maxZ = (int)(aabb.max().z / GridSize);
+   
+   int minX = std::floor(aabb.min().x / GridSize);
+   int minZ = std::floor(aabb.min().z / GridSize);
+   int maxX = std::floor(aabb.max().x / GridSize);
+   int maxZ = std::floor(aabb.max().z / GridSize);
 
-   if (maxX == minX) {
-      maxX++;
-   }
-   if (maxZ == minZ) {
-      maxZ++;
-   }
-   for (int x = minX; x < maxX; x++) {
-      for (int z = minZ; z < maxZ; z++) {
+   for (int x = minX; x <= maxX; x++) {
+      for (int z = minZ; z <= maxZ; z++) {
          gridElementList.insert(hashGridPoint(x, z));
       }
    }
@@ -497,19 +492,23 @@ void GridSpatialGraph::updateNode(SceneNode const& sceneNode)
          _gridElements[removeE]._nodes.erase(&sceneNode);
       }
 
-      // Add new element references.
+      // Add new element references; update existing refs.
       for (int64 newGridE : newGrids) {
          if (_gridElements.find(newGridE) == _gridElements.end()) {
             _gridElements[newGridE] = GridElement();
             int gX, gY;
             unhashGridHash(newGridE, &gX, &gY);
-            _gridElements[newGridE].bounds.addPoint(Vec3f(gX * GridSize, -10.0f, gY * GridSize));
-            _gridElements[newGridE].bounds.addPoint(Vec3f(gX * GridSize + GridSize, 100.0f, gY * GridSize + GridSize));
+            _gridElements[newGridE].bounds.addPoint(Vec3f(gX * GridSize, sceneNode.getBBox().min().y, gY * GridSize));
+            _gridElements[newGridE].bounds.addPoint(Vec3f(gX * GridSize + GridSize, sceneNode.getBBox().max().y, gY * GridSize + GridSize));
          }
 
          if (_gridElements[newGridE]._nodes.find(&sceneNode) == _gridElements[newGridE]._nodes.end()) {
             _gridElements[newGridE]._nodes.insert(&sceneNode);
          }
+         const Vec3f& boundsMin = _gridElements[newGridE].bounds.min();
+         const Vec3f& boundsMax = _gridElements[newGridE].bounds.max();
+         _gridElements[newGridE].bounds.addPoint(Vec3f(boundsMin.x, sceneNode.getBBox().min().y, boundsMin.z));
+         _gridElements[newGridE].bounds.addPoint(Vec3f(boundsMax.x, sceneNode.getBBox().max().y, boundsMax.z));
       }
    }
 }
@@ -526,20 +525,22 @@ void GridSpatialGraph::query(SpatialQuery const& query, RenderableQueues& render
    const int qUseRenderableQueue = query.useRenderableQueue;
    const int qOrder = query.order;
    const int qForceNoInstancing = query.forceNoInstancing;
+   const int qUseLightQueue = query.useLightQueue;
    const Frustum& qFrustum = query.frustum;
-   const Frustum* qSecondaryFrustum = query.secondaryFrustum;
+   const Frustum* const qSecondaryFrustum = query.secondaryFrustum;
 
    ASSERT(query.useLightQueue || query.useRenderableQueue);
 
    Modules::sceneMan().updateNodes();
 
-   for (const auto &ge : _gridElements) {
-      if (query.frustum.cullBox(ge.second.bounds) && (query.secondaryFrustum == 0x0 || query.secondaryFrustum->cullBox(ge.second.bounds))) {
+   for (auto const& ge : _gridElements) {
+      if (qFrustum.cullBox(ge.second.bounds) && (qSecondaryFrustum == 0x0 || qSecondaryFrustum->cullBox(ge.second.bounds))) {
          continue;
       }
 
-      for (SceneNode const* node: ge.second._nodes) {
-         if (node->getRenderStamp() == curRenderStamp) {
+      for (SceneNode const* const node: ge.second._nodes) {
+         int nRenderStamp = node->getRenderStamp();
+         if (nRenderStamp == curRenderStamp) {
             continue;
          }
          node->setRenderStamp(curRenderStamp);
@@ -554,12 +555,14 @@ void GridSpatialGraph::query(SpatialQuery const& query, RenderableQueues& render
             continue;
          }
 
-         if (qUseRenderableQueue) {
+         if (qUseLightQueue && node->_type == SceneNodeTypes::Light) {		 
+            lightQueue.push_back(node);
+         } else if (qUseRenderableQueue) {
             if (!node->_renderable) {
                continue;
             }
 
-            if (qFrustum.cullBox(node->_bBox) && (qSecondaryFrustum == 0x0 || qSecondaryFrustum->cullBox(node ->_bBox))) {
+            if (qFrustum.cullBox(node->_bBox) && (qSecondaryFrustum == 0x0 || qSecondaryFrustum->cullBox(node->_bBox))) {
                continue;
             }
 
@@ -598,9 +601,6 @@ void GridSpatialGraph::query(SpatialQuery const& query, RenderableQueues& render
                renderableQueues[node->_type].emplace_back( RendQueueItem( node->_type, sortKey, node ) );
             }
          }
-         if (query.useLightQueue && node->_type == SceneNodeTypes::Light) {		 
-            lightQueue.push_back(node);
-         }      
       }
    }
 
@@ -660,7 +660,6 @@ void GridSpatialGraph::query(SpatialQuery const& query, RenderableQueues& render
       }
    }
 }
-//#pragma optimize( "", on )
 // =================================================================================================
 // Class SpatialGraph
 // =================================================================================================
