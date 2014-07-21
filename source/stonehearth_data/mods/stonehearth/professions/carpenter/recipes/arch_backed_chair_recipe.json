@@ -8,7 +8,7 @@
    "portrait"    : "/stonehearth/entities/furniture/arch_backed_chair/arch_backed_chair.png",
    "category"    : "weapons",
 
-   "locked" : true,
+   "locked" : false,
    "requirement" : {
       "type" : "unlock_on_make",
       "prerequisites" : [
