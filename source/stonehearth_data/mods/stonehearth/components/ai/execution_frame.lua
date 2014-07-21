@@ -102,19 +102,31 @@ function ExecutionFrame:_on_position_changed()
    if self._last_captured_location then
       local distance = radiant.entities.distance_between(self._entity, self._last_captured_location)
       if distance > 3 then
-         self._log:detail('entity moved!  going to restart thinking... (state:%s)', self._state)
-         -- errata note 1 : this is quite bizarre.  if we're running, we ESPECIALLY want to restart
-         -- thinking, right?  unforutnately, this does NOTHING from the RUNNING state.
-         self:_restart_thinking(nil, "entity moved")
+         -- we're currently on the script host callback thread servicing a trace...
+         -- _restart_thinking does all sorts of nasty things to the stack (e.g. if a unit becomes ready
+         -- in the middle of restart_thinking in the running state, it will try to unwind the stack and
+         -- resume the new one).  Make sure we're on the AI thread before attempting that.
+         self._thread:interrupt(function()
+               self._log:detail('entity moved!  going to restart thinking... (state:%s)', self._state)
+               -- errata note 1 : this is quite bizarre.  if we're running, we ESPECIALLY want to restart
+               -- thinking, right?  unforutnately, this does NOTHING from the RUNNING state.
+               self:_restart_thinking(nil, "entity moved")
+            end)
       end
    end
 end
 
 function ExecutionFrame:_on_carrying_changed()
-   self._log:detail('carrying changed!  going to restart thinking... (state:%s)', self._state)
-   -- errata note 1 : this is quite bizarre.  if we're running, we ESPECIALLY want to restart
-   -- thinking, right?  unforutnately, this does NOTHING from the RUNNING state.
-   self:_restart_thinking(nil, "carrying changed")
+   -- we're currently on the main thread in a trigger callback...
+   -- _restart_thinking does all sorts of nasty things to the stack (e.g. if a unit becomes ready
+   -- in the middle of restart_thinking in the running state, it will try to unwind the stack and
+   -- resume the new one).  Make sure we're on the AI thread before attempting that.
+   self._thread:interrupt(function()
+         self._log:detail('carrying changed!  going to restart thinking... (state:%s)', self._state)
+         -- errata note 1 : this is quite bizarre.  if we're running, we ESPECIALLY want to restart
+         -- thinking, right?  unforutnately, this does NOTHING from the RUNNING state.
+         self:_restart_thinking(nil, "carrying changed")
+      end)
 end
 
 
@@ -282,6 +294,9 @@ function ExecutionFrame:_restart_thinking(entity_state, debug_reason)
    self._log:detail('_restart_thinking (reason:%s, state:%s)', debug_reason, self._state)
    self._aitrace:spam('@r@%s@%s', self._state, debug_reason)
 
+   local calling_thread = stonehearth.threads:get_current_thread()
+   assert(calling_thread == self._thread, 'on wrong thread in execution frame restart thinking')
+
    if not self:in_state('thinking', 'starting_thinking', 'ready', 'running') then
       self._log:spam('_restart_thinking returning without doing anything.(state:%s)', self._state)
       return
@@ -314,17 +329,29 @@ function ExecutionFrame:_restart_thinking(entity_state, debug_reason)
    end
 
    local current_state = self._state  
+   local current_active_unit = self._active_unit
+
    for unit, entity_state in pairs(rethinking_units) do
-      self._log:detail('calling start_thinking on unit "%s" (u:%d state:%s ai.CURRENT.location:%s actual_location:%s).',
-                        unit:get_name(), unit:get_id(), unit:get_state(), entity_state.location, entity_location)
-      assert(unit:in_state('stopped', 'thinking', 'ready'))
-      unit:_start_thinking(self._args, entity_state)
+      if self:_is_strictly_better_than_active(unit) then
+         self._log:detail('calling start_thinking on unit "%s" (u:%d state:%s ai.CURRENT.location:%s actual_location:%s).',
+                           unit:get_name(), unit:get_id(), unit:get_state(), entity_state.location, entity_location)
+         assert(unit:in_state('stopped', 'thinking', 'ready'))
+         unit:_start_thinking(self._args, entity_state)
+      end
 
       -- if units bail or abort, the current pcall should have been interrupted.
       -- verify that this is so
       assert(self._state == current_state)
    end
 
+   if self._active_unit ~= current_active_unit then
+      self._log:spam('active unit changed from %s to %s in _restart_thinking.  skipping election...',
+                     current_active_unit and current_active_unit:get_name() or '-none-',
+                     self._active_unit and self._active_unit:get_name() or '-none-')
+      assert(self._state == 'running')
+      return
+   end
+   
    self._log:spam('choosing best execution unit of candidates...')
 
    -- if anything became ready during the think, use it immediately.
@@ -1017,29 +1044,34 @@ function ExecutionFrame:_remove_execution_unit(unit)
 end
 
 function ExecutionFrame:on_action_index_changed(add_remove, key, entry)
-   if self._log:is_enabled(radiant.log.DETAIL) then
-      local key_name
-      if type(key) == 'table' and key.name then
-         key_name = 'dynamic_action:' .. key.name
-      else
-         key_name = tostring(key_name)
-      end
-      self._log:debug('on_action_index_changed %s (key:%s state:%s)', add_remove, key_name, self._state)
-   end
-   if self:get_state() ~= DEAD then
-      local unit = self._execution_units[key]
-      if add_remove == 'add' then
-         if not unit then         
-            self:_add_action(key, entry)
+   -- injecting or remove and action can cause the current execution stack to be
+   -- reevaluated (e.g. injecting the first stonehearth:work action on an idle worker).
+   -- make sure we do this on the ai thread!
+   self._thread:interrupt(function()
+         if self._log:is_enabled(radiant.log.DETAIL) then
+            local key_name
+            if type(key) == 'table' and key.name then
+               key_name = 'dynamic_action:' .. key.name
+            else
+               key_name = tostring(key_name)
+            end
+            self._log:debug('on_action_index_changed %s (key:%s state:%s)', add_remove, key_name, self._state)
          end
-      elseif add_remove == 'remove' then
-         if unit then         
-            self:_remove_action(unit)
+         if self:get_state() ~= DEAD then
+            local unit = self._execution_units[key]
+            if add_remove == 'add' then
+               if not unit then         
+                  self:_add_action(key, entry)
+               end
+            elseif add_remove == 'remove' then
+               if unit then         
+                  self:_remove_action(unit)
+               end
+            else
+               error(string.format('unknown msg "%s" in _on_action_index-changed', add_move))
+            end
          end
-      else
-         error(string.format('unknown msg "%s" in _on_action_index-changed', add_move))
-      end
-   end
+      end)
 end
 
 function ExecutionFrame:_add_execution_unit(key, entry)
