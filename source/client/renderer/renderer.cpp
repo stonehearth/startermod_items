@@ -156,6 +156,8 @@ void Renderer::InitHorde()
    h3dSetOption(H3DOptions::MaxAnisotropy, 1);
    h3dSetOption(H3DOptions::FastAnimation, 1);
    h3dSetOption(H3DOptions::DumpFailedShaders, 1);
+
+   h3dSetGlobalShaderFlag("DRAW_GRIDLINES", false);
 }
 
 void Renderer::InitWindow()
