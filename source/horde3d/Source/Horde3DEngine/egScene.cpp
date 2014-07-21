@@ -417,16 +417,18 @@ void GridSpatialGraph::addNode(SceneNode const& sceneNode)
 
 void GridSpatialGraph::removeNode(SceneNode const& sceneNode)
 {
+   NodeHandle h = sceneNode.getHandle();
    if (sceneNode.getType() == SceneNodeTypes::Light && sceneNode.getParamI(LightNodeParams::DirectionalI)) {
-      _directionalLights.erase(sceneNode.getHandle());
+      _directionalLights.erase(h);
    } else {
       // Find all old references and remove them.
-      for (uint32 gridNum : _nodeGridLookup[sceneNode.getHandle()]) {
-         _gridElements[gridNum]._nodes.erase(&sceneNode);
+      for (uint32 gridNum : _nodeGridLookup[h]) {
+         int numRemoved = _gridElements[gridNum]._nodes.erase(&sceneNode);
+         ASSERT(numRemoved == 1);
       }
-      _nodeGridLookup.erase(sceneNode.getHandle());
-      if (_nocullNodes.find(sceneNode.getHandle()) != _nocullNodes.end()) {
-         _nocullNodes.erase(sceneNode.getHandle());
+      ASSERT(_nodeGridLookup.erase(h) == 1);
+      if (_nocullNodes.find(h) != _nocullNodes.end()) {
+         _nocullNodes.erase(h);
       }
    }
 }
@@ -486,20 +488,23 @@ void GridSpatialGraph::updateNode(SceneNode const& sceneNode)
    
       // Generate new bounds for this node.
       boundingBoxToGrids(sceneBox, newGrids);
+      auto& newGridsEnd = newGrids.end();
+      auto& nodeGridLookup = _nodeGridLookup[nh];
 
       // Remove obsolete grid references for the new node (if any).
-      for (uint32 oldGridE : _nodeGridLookup[nh]) {
-         if (newGrids.find(oldGridE) == newGrids.end()) {
+      for (uint32 oldGridE : nodeGridLookup) {
+         if (newGrids.find(oldGridE) == newGridsEnd) {
             toRemove.push_back(oldGridE);
          }
       }
       for (uint32 removeE : toRemove) {
-         _nodeGridLookup[nh].erase(removeE);
+         nodeGridLookup.erase(removeE);
          _gridElements[removeE]._nodes.erase(&sceneNode);
       }
 
       // Add new element references; update existing refs.
       for (uint32 newGridE : newGrids) {
+         nodeGridLookup.insert(newGridE);
          auto const gei = _gridElements.find(newGridE);
          if (gei == _gridElements.end()) {
             GridElement newGridElement;

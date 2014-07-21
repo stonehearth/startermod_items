@@ -293,18 +293,7 @@ typedef boost::container::flat_map<int, RenderableQueue > RenderableQueues;
 typedef std::unordered_map<InstanceKey, RenderableQueue, hash_InstanceKey > InstanceRenderableQueue;
 typedef boost::container::flat_map<int, InstanceRenderableQueue > InstanceRenderableQueues;
 
-class ISpatialGraph {
-public:
-	virtual void addNode(SceneNode const& sceneNode) = 0;
-	virtual void removeNode(SceneNode const& sceneNode) = 0;
-	virtual void updateNode(SceneNode const& sceneNode) = 0;
-
-   virtual void query(const SpatialQuery& query, RenderableQueues& renderableQueues, InstanceRenderableQueues& instanceQueues,
-      std::vector<SceneNode const*>& lightQueue) = 0;
-   virtual void castRay(const Vec3f& rayOrigin, const Vec3f& rayDirection, std::function<void(boost::container::flat_set<SceneNode const*> const& nodes)> cb) = 0;
-};
-
-class SpatialGraph : public ISpatialGraph
+class SpatialGraph
 {
 public:
 	SpatialGraph();
