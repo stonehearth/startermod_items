@@ -505,16 +505,18 @@ void GridSpatialGraph::updateNode(SceneNode const& sceneNode)
       // Add new element references; update existing refs.
       for (uint32 newGridE : newGrids) {
          nodeGridLookup.insert(newGridE);
-         auto const gei = _gridElements.find(newGridE);
+         auto gei = _gridElements.find(newGridE);
          if (gei == _gridElements.end()) {
             GridElement newGridElement;
             int gX, gY;
             unhashGridHash(newGridE, &gX, &gY);
             newGridElement.bounds.addPoint(Vec3f(gX * GRIDSIZE, sceneBox.min().y, gY * GRIDSIZE));
             newGridElement.bounds.addPoint(Vec3f(gX * GRIDSIZE + GRIDSIZE, sceneBox.max().y, gY * GRIDSIZE + GRIDSIZE));
-            _gridElements[newGridE] = newGridElement;
+            
+            std::pair<uint32, GridElement> p(newGridE, newGridElement);
+            gei = _gridElements.insert(gei, p);
          }
-         GridElement &ger = _gridElements[newGridE];
+         GridElement &ger = gei->second;
          
          // Insert does a check for redundant elements.
          ger._nodes.insert(&sceneNode);
@@ -1237,7 +1239,7 @@ void SceneManager::_findNodes( SceneNode &startNode, std::string const& name, in
 
 void SceneManager::fastCastRayInternal(int userFlags)
 {
-   _spatialGraph->castRay(-_rayOrigin, -_rayDirection, [this, userFlags](boost::container::flat_set<SceneNode const*> const&nodes) {
+   _spatialGraph->castRay(_rayOrigin, _rayDirection, [this, userFlags](boost::container::flat_set<SceneNode const*> const& nodes) {
       for (SceneNode const* sn : nodes) {
          if( !(sn->_accumulatedFlags & SceneNodeFlags::NoRayQuery) )
 	      {
