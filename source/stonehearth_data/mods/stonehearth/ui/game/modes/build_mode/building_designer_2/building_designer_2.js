@@ -55,6 +55,13 @@ App.StonehearthBuildingDesignerTools = App.View.extend({
             if (!self._state.growRoofGradiant) {
                self._state.growRoofGradiant = [ 'left', 'right' ];
             }
+            if (!self._state.growRoofMaxHeight) {
+               self._state.growRoofMaxHeight = 4;
+            }
+            if (!self._state.growRoofSlope) {
+               self._state.growRoofSlope = 1;
+            }
+
             self._applyControlState();
          });
    },   
@@ -280,12 +287,22 @@ App.StonehearthBuildingDesignerTools = App.View.extend({
          }
       })
 
-      this.$('#roofEditTab .roofDiagramButton').click(function() {
+      this.$('.roofDiagramButton').click(function() {
          $(this).toggleClass('active');
          self._state.growRoofGradiant = self._getRoofGradiant('#roofEditTab');
          self._saveState();
          self._updateGrowRoofOptions();
       })
+
+      this.$('.roofNumericInput').change(function() {
+         if ($(this).attr('id') == 'inputMaxRoofHeight') {
+            self._state.growRoofMaxHeight = $(this).val();
+         } else if ($(this).attr('id') == 'inputMaxRoofSlope') {
+            self._state.growRoofSlope = $(this).val();
+         }
+         self._saveState();
+         self._updateGrowRoofOptions();
+      });
 
       this.$('#editToolTab .roofDiagramButton').click(function() {
          $(this).toggleClass('active');
@@ -354,6 +371,7 @@ App.StonehearthBuildingDesignerTools = App.View.extend({
    // Make the roof gradiant picker match the specified gradiant.  gradiant is an
    // array of the 'left', 'right', 'front', and 'back' flags.
    _applyRoofGradiantControlState : function(selector, gradiant) {
+      var self = this;
       self.$(selector + ' #roofEditor .roofDiagramButton').each(function() {
          $(this).removeClass('active');
       })
@@ -362,6 +380,9 @@ App.StonehearthBuildingDesignerTools = App.View.extend({
             $(this).addClass('active');
          });
       });
+
+      $(selector + ' #inputMaxRoofHeight').val(self._state.growRoofMaxHeight);
+      $(selector + ' #inputMaxRoofSlope').val(self._state.growRoofSlope);
    },
 
    _applyControlState: function() {
