@@ -54,7 +54,8 @@ function FollowPathAction:run(ai, entity, args)
       return
    end
 
-   radiant.events.listen(entity, 'stonehearth:posture_changed', self, self._on_posture_change)
+   self._listening = true
+   radiant.events.listen(entity, 'stonehearth:posture_changed', self, self._on_posture_changed)
 
    local speed = radiant.entities.get_world_speed(entity)
 
@@ -80,7 +81,7 @@ function FollowPathAction:run(ai, entity, args)
    self:stop(ai, entity, args)
 end
 
-function FollowPathAction:_on_posture_change()
+function FollowPathAction:_on_posture_changed()
    local new_posture = radiant.entities.get_posture(self._entity)
 
    if new_posture ~= self._posture then
@@ -90,13 +91,17 @@ function FollowPathAction:_on_posture_change()
 end
 
 function FollowPathAction:stop(ai, entity)
-   radiant.events.unlisten(entity, 'stonehearth:posture_changed', self, self._on_posture_change)
+   if self._listening then
+      radiant.events.unlisten(entity, 'stonehearth:posture_changed', self, self._on_posture_changed)
+      self._listening = false
+   end
 
    if self._mover then
       ai:get_log():debug('stopping mover %s in stop...', self._mover:get_name());
       self._mover:stop()
       self._mover = nil
    end
+
    if self._effect then
       self._effect:stop()
       self._effect = nil

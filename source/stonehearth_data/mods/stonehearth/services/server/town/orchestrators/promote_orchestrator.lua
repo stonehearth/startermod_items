@@ -63,6 +63,8 @@ function Promote:_change_profession(person, talisman)
       radiant.events.trigger_async(stonehearth.personality, 'stonehearth:journal_event', 
                              {entity = person, description = activity_name})
    end
+
+   radiant.entities.destroy_entity(talisman)
 end
 
 return Promote

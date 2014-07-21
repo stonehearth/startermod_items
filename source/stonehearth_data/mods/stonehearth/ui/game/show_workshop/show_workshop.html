@@ -30,7 +30,7 @@
          </div>
 
          <div id="details">
-            {{render 'details' show_workshop.current}}
+            {{partial 'details'}}
          </div>
 
          {{partial 'orderOptions'}}
@@ -51,7 +51,11 @@
          <div>
             {{#each recipes}}
                <a {{bind-attr recipe_name = "this.recipe_name"}}href="#" {{action select this target="view"}} class="recipeLink uisounds">
-                  <img {{bind-attr src="this.portrait" title="this.recipe_name"}} />
+                  {{#if locked}}
+                     <img src="/stonehearth/ui/common/images/lock.png" {{bind-attr title="this.recipe_name"}} />
+                  {{else}}
+                     <img {{bind-attr src="this.portrait" title="this.recipe_name"}} />
+                  {{/if}}
                </a>
             {{/each}}
          </div>
@@ -64,7 +68,7 @@
 <script type="text/x-handlebars" data-template-name="details">
    <div>
       <div id="title">
-         <h1>{{model.recipe_name}}</h1>
+         <h1>{{show_workshop.current.recipe_name}}</h1>
       </div>
 
       <div id='portraitContainer'>
@@ -73,13 +77,22 @@
 
       <div id="description">
          <h2>{{i18n stonehearth:craft_ingredients}}</h2>
-         {{#each model.ingredients}}
+         {{#each show_workshop.current.ingredients}}
             {{count}} {{material}}<br>
          {{/each}}
 
          <br><br>
          <div id="usefulText"></div>
          <div id="flavorText"></div>
+      </div>
+      <div id="unlock_description">
+         <h2>{{i18n stonehearth:unlock_text}}</h2> 
+         {{#each show_workshop.current.requirement.prerequisites}}
+            <div class="requirementBlock">
+               <img {{bind-attr src="this.portrait"}}/> <br />
+               <h2>{{made}} / {{required}}</h2>
+            </div>
+         {{/each}}
       </div>
    </div>
 </script>
