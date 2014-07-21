@@ -48,7 +48,7 @@ NineGridBrush& NineGridBrush::SetClipWhitespace(bool clip)
 
 NineGridBrush& NineGridBrush::SetSlope(float slope)
 {
-   slope_ = slope;
+   slope_ = std::max(0.1f, std::min(1.0f, slope));
    return *this;
 }
 
@@ -170,6 +170,7 @@ csg::Region3 NineGridBrush::PaintThroughStencilOpt(csg::Region3 const* modelSten
          // dst offset is where to drop the column.  it's in the coordinate system
          // of the original Region2, offset by the computed height
          int height = static_cast<int>(heightmap.get(src, 0) * slope_);
+         height = std::min(height, maxHeight_);
 
          csg::Point3 dstOffset = csg::Point3(src.x, height, src.y) - 
                                  csg::Point3(sampleOffset.x, 0, sampleOffset.y);
@@ -305,7 +306,7 @@ void NineGridBrush::ComputeHeightMap(csg::Region2 const& ninegrid, GridMap<short
             csg::Point2 next = pt - delta;
             if (!updated.get(next, true)) {
                int height = heightmap.get(pt, 0);
-               height = std::min(height + 1, maxHeight_);
+               height++;
 
                gradiant.set(next, gradiant.get(pt, csg::Point2::zero));
                updated.set(next, true);

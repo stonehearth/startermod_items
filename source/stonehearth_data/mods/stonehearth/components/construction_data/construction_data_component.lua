@@ -8,6 +8,12 @@ local Point3 = _radiant.csg.Point3
 
 local log = radiant.log.create_logger('build')
 
+local OPTIONS = {
+   nine_grid_slope = 'number',
+   nine_grid_gradiant = 'table',
+   nine_grid_max_height = 'number',
+}
+
 function ConstructionDataComponent:initialize(entity, json)
    self._entity = entity
    self._sv = self.__saved_variables:get_data()
@@ -39,13 +45,29 @@ end
 --    @param response - the response object
 --    @param options - the options to change.  
 --
-function ConstructionDataComponent:apply_options(session, response, options)
-   if options then
-      if options.nine_grid_gradiant then
-         self:set_nine_grid_gradiant(options.nine_grid_gradiant)
-      end
-   end
+function ConstructionDataComponent:apply_options_command(session, response, options)
+   self:apply_options(options)
    return true
+end
+
+-- changes properties in the construction data component.
+-- 
+--    @param options - the options to change.  
+--
+function ConstructionDataComponent:apply_options(options)
+   if options then
+      for name, val in pairs(options) do
+         local t = OPTIONS[name]
+         if t then
+            if t == 'number' then
+               self._sv[name] = tonumber(val)
+            else
+               self._sv[name] = val
+            end
+         end
+      end
+      self.__saved_variables:mark_changed()
+   end
 end
 
 function ConstructionDataComponent:begin_editing(entity)
@@ -107,12 +129,6 @@ end
 
 function ConstructionDataComponent:set_nine_grid_region2(region2)
    self._sv.nine_grid_region = region2
-   self.__saved_variables:mark_changed()
-   return self
-end
-
-function ConstructionDataComponent:set_nine_grid_gradiant(gradiant)
-   self._sv.nine_grid_gradiant = gradiant
    self.__saved_variables:mark_changed()
    return self
 end
