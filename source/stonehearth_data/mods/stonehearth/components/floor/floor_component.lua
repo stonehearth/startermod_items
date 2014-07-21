@@ -13,10 +13,10 @@ function Floor:initialize(entity, json)
    self._entity = entity
 end
 
--- adds the `box` in world coordinates to the floor
---    @param box - the box to add to the floor, in world coordinates
+-- adds the `region` in world coordinates to the floor
+--    @param region - the region to add to the floor, in world coordinates
 --
-function Floor:add_box_to_floor(box, brush_shape)
+function Floor:add_region_to_floor(region, brush_shape)
    local building = self._entity:get_component('mob'):get_parent()
    local origin = radiant.entities.get_world_grid_location(building)
    local brush = _radiant.voxel.create_brush(brush_shape)
@@ -25,8 +25,8 @@ function Floor:add_box_to_floor(box, brush_shape)
    self._entity:get_component('destination')
                   :get_region()
                      :modify(function(c)                           
-                           local shape = box:translated(-origin)
-                           local floor = brush:paint_through_stencil(Region3(shape))
+                           local shape = region:translated(-origin)
+                           local floor = brush:paint_through_stencil(shape)
                            c:add_region(floor)
                            c:optimize_by_merge()
                         end)         
@@ -34,15 +34,15 @@ function Floor:add_box_to_floor(box, brush_shape)
    return self
 end
 
-function Floor:remove_box_from_floor(box)
+function Floor:remove_region_from_floor(region)
    local building = self._entity:get_component('mob'):get_parent()
    local origin = radiant.entities.get_world_grid_location(building)
 
    self._entity:get_component('destination')
                   :get_region()
                      :modify(function(c)                           
-                           local shape = box:translated(-origin)
-                           c:subtract_cube(shape)
+                           local shape = region:translated(-origin)
+                           c:subtract_region(shape)
                            c:optimize_by_merge()
                         end)         
 
@@ -71,6 +71,8 @@ function Floor:merge_with(old_floor)
                         end)
 
    stonehearth.build:unlink_entity(old_floor)
+
+   return self
 end
 
 return Floor
