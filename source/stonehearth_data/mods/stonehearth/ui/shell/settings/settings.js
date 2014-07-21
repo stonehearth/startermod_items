@@ -48,8 +48,6 @@ App.StonehearthSettingsView = App.View.extend({
    },
 
    didInsertElement : function() {
-      initIncrementButtons();
-
       var self = this;
 
       this.$('#settings').position({
