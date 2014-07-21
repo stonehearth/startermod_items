@@ -545,10 +545,8 @@ function BuildService:_grow_roof(building, roof_uri, options)
    local height = constants.STOREY_HEIGHT
    local roof_location = Point3(0, height - 1, 0)
    local roof = self:_create_blueprint(building, roof_uri, roof_location, function(roof_entity)
-         local cd = roof_entity:add_component('stonehearth:construction_data')
-         if options.nine_grid_gradiant then
-            cd:set_nine_grid_gradiant(options.nine_grid_gradiant)
-         end
+         roof_entity:add_component('stonehearth:construction_data')
+                        :apply_options(options)
          roof_entity:add_component('stonehearth:roof')
                         :cover_region2(region2)
                         :layout()
