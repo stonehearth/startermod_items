@@ -151,10 +151,13 @@ App.StonehearthBuildingDesignerTools = App.View.extend({
       return el;
    },
       // grow roof button
-   _getRoofGradiant : function(selector) {
+   _getRoofGradiant : function() {
+      var self = this;
       var gradiant = [];
-      self.$(selector + ' #roofEditor .roofDiagramButton.active').each(function() {
-         gradiant.push($(this).attr('gradient'));
+      self.$('.roofDiagramButton.active').each(function() {
+         if($(this).is(':visible')) {
+            gradiant.push($(this).attr('gradient'));   
+         }
       })
       return gradiant;
    },
@@ -287,33 +290,60 @@ App.StonehearthBuildingDesignerTools = App.View.extend({
          }
       })
 
-      this.$('.roofDiagramButton').click(function() {
-         $(this).toggleClass('active');
-         self._state.growRoofGradiant = self._getRoofGradiant('#roofEditTab');
-         self._saveState();
-         self._updateGrowRoofOptions();
-      })
+      // roof numeric inputs like maxheight and slope
 
-      this.$('.roofNumericInput').change(function() {
-         if ($(this).attr('id') == 'inputMaxRoofHeight') {
-            self._state.growRoofMaxHeight = $(this).val();
-         } else if ($(this).attr('id') == 'inputMaxRoofSlope') {
-            self._state.growRoofSlope = $(this).val();
+      // common behavior between options tab and edit tab
+      var roofNumericInputChange = function(el) {
+         var numericInput = el;
+         if (numericInput.attr('id') == 'inputMaxRoofHeight') {
+            self._state.growRoofMaxHeight = numericInput.val();
+         } else if (numericInput.attr('id') == 'inputMaxRoofSlope') {
+            self._state.growRoofSlope = numericInput.val();
          }
          self._saveState();
+         self._updateGrowRoofOptions();
+      };
+
+      // options tab
+      this.$('#roofToolTab .roofNumericInput').change(function() {
+         roofNumericInputChange($(this));
+         //xxx
+      });
+
+      // edit tab
+      this.$('#editToolTab .roofNumericInput').change(function() {
+         roofNumericInputChange($(this));
+         //xxx
+      });
+
+
+      // roof diagram buttons
+
+      // common behavior between options tab and edit tab
+      var roofDiagramButtonClick = function(el) {
+         el.toggleClass('active');
+         self._state.growRoofGradiant = self._getRoofGradiant();
+         self._saveState();
+      }
+
+      // options tab
+      this.$('#roofToolTab .roofDiagramButton').click(function() {
+         roofDiagramButtonClick($(this));
          self._updateGrowRoofOptions();
       });
 
+      // edit tab
       this.$('#editToolTab .roofDiagramButton').click(function() {
-         $(this).toggleClass('active');
+         roofDiagramButtonClick($(this));
+
          var constructionData = self.get('blueprint.stonehearth:construction_data');
          if (constructionData) {
             var options = {
-               nine_grid_gradiant: self._getRoofGradiant('#editToolTab')
+               nine_grid_gradiant: self._getRoofGradiant()
             };
             radiant.call_obj(constructionData, 'apply_options', options);
          }
-      })
+      });
 
       // doodad material
       this.$('.doodadMaterial').click(function() {
@@ -370,19 +400,16 @@ App.StonehearthBuildingDesignerTools = App.View.extend({
 
    // Make the roof gradiant picker match the specified gradiant.  gradiant is an
    // array of the 'left', 'right', 'front', and 'back' flags.
-   _applyRoofGradiantControlState : function(selector, gradiant) {
+   _applyRoofGradiantControlState : function(gradiant) {
       var self = this;
-      self.$(selector + ' #roofEditor .roofDiagramButton').each(function() {
-         $(this).removeClass('active');
-      })
+      self.$('.roofDiagramButton').removeClass('active');
+
       $.each(gradiant, function(_, dir) {
-         self.$(selector + ' #roofEditor .roofDiagramButton[gradient="' + dir + '"]').each(function() {
-            $(this).addClass('active');
-         });
+         self.$('.roofDiagramButton[gradient="' + dir + '"]').addClass('active');
       });
 
-      $(selector + ' #inputMaxRoofHeight').val(self._state.growRoofMaxHeight);
-      $(selector + ' #inputMaxRoofSlope').val(self._state.growRoofSlope);
+      $('#inputMaxRoofHeight').val(self._state.growRoofMaxHeight);
+      $('#inputMaxRoofSlope').val(self._state.growRoofSlope);
    },
 
    _applyControlState: function() {
@@ -394,7 +421,7 @@ App.StonehearthBuildingDesignerTools = App.View.extend({
          $(self.$('#doodadToolTab .doodadMaterial')[self._state.doodadMaterial]).addClass('selected');
 
          // gradiant on the grow roof control
-         self._applyRoofGradiantControlState('#roofToolTab', self._state.growRoofGradiant);
+         self._applyRoofGradiantControlState(self._state.growRoofGradiant);
          self._updateGrowRoofOptions()
          // most recently selected tab
          self.$("[tab='" + self._state.activeTabId + "']").click();
@@ -476,7 +503,7 @@ App.StonehearthBuildingDesignerTools = App.View.extend({
          } else if (type == 'roof') {
             self.$('#editToolTab #roofEditor').show();
             var gradiant = constructionData.nine_grid_gradiant || [];
-            self._applyRoofGradiantControlState('#editToolTab', gradiant);
+            self._applyRoofGradiantControlState(gradiant);
          }
          materialPicker.append(materials);            
       }
