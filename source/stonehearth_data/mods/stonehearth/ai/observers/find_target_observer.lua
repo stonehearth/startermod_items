@@ -49,6 +49,11 @@ function FindTargetObserver:_unsubscribe_from_events()
 end
 
 function FindTargetObserver:_on_target_table_changed()
+   -- TODO: don't check for target on every target table change
+   -- We have O(n) listeners to target_table_changed
+   -- We have O(n) triggers to target_table_changed
+   -- Check_for_target is O(n)
+   -- Combat is O(n^3) - too expensive
    self:_check_for_target()
 end
 
@@ -107,6 +112,7 @@ end
 
 function FindTargetObserver:_unlisten_from_target_pre_destroy()
    if self._listening_target_pre_destroy then
+      -- because events are asynchronous, target may have already been destroyed
       radiant.events.unlisten(self._target, 'radiant:entity:pre_destroy', self, self._on_target_pre_destroy)
       self._listening_target_pre_destroy = false
    end

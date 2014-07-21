@@ -46,17 +46,16 @@ function CrafterComponent:destroy()
 end
 
 --- Build the list sent to the UI from the json
---  TODO: add unlock conditions to the recipes
+--  Load each recipe's data and add it to the table
 function CrafterComponent:_build_craftable_recipe_list(recipe_index_url)
    self._sv.recipe_index = radiant.resources.load_json(recipe_index_url).craftable_recipes
    local craftable_recipes = {}
    for category, category_data in pairs(self._sv.recipe_index) do
       local recipe_array = {}
-      for recipe_name, data in pairs(category_data) do
-         --If there's no unlock condition, then just put in the recipe
-         if not data.unlock_condition then
-            table.insert(recipe_array, 1, data.uri)
-         end
+      for recipe_name, recipe_data in pairs(category_data) do
+         local recipe_data = radiant.resources.load_json(recipe_data.uri)
+         self:_initialize_recipe_data(recipe_data)
+         table.insert(recipe_array, 1, recipe_data)
       end
       if #recipe_array > 0 then
          --Make an entry in the recipe table for the UI
@@ -72,40 +71,88 @@ function CrafterComponent:_build_craftable_recipe_list(recipe_index_url)
    return craftable_recipes
 end
 
+-- Add the made parameter to the recipe data
+function CrafterComponent:_initialize_recipe_data(recipe_data)
+   if recipe_data.locked and recipe_data.requirement then
+      if recipe_data.requirement.type == 'unlock_on_make' then
+         for i, prerequisite in ipairs(recipe_data.requirement.prerequisites) do
+            prerequisite.made = 0
+         end
+      end
+   else
+      recipe_data.locked = false
+   end
+end
+
+-- Check to see if any locked recipes are unlocked yet
+function CrafterComponent:update_locked_recipes(new_crafted_item_uri)
+   for i, category_ui_info in ipairs(self._sv.craftable_recipes) do
+      for j, recipe_data in ipairs(category_ui_info.recipes) do
+         if recipe_data.locked and recipe_data.requirement and recipe_data.requirement.type == 'unlock_on_make' then
+            for i, prerequisite in ipairs(recipe_data.requirement.prerequisites) do
+               if prerequisite.item == new_crafted_item_uri then
+                  prerequisite.made = prerequisite.made + 1
+                  if prerequisite.made == prerequisite.required then
+                     self:_test_for_unlock(recipe_data)
+                  end
+               end
+            end
+         end
+      end
+   end
+   self.__saved_variables:mark_changed()
+end
+
+function CrafterComponent:_test_for_unlock(recipe_data)
+   local unlock = true
+   if recipe_data.locked and recipe_data.requirement then
+      if recipe_data.requirement.type == 'unlock_on_make' then
+         for i, prerequisite in ipairs(recipe_data.requirement.prerequisites) do
+            if prerequisite.made < prerequisite.required then
+               unlock = false
+               break
+            end
+         end
+      end
+   end
+   if unlock then
+      recipe_data.locked = false
+   end
+end
+
+--[[
 --TODO: test this with a scenario
 --- Add a recipe to a category, and add it to the UI.  
 --  If the category doesn't yet exist, create a new one.
 --  @param category - the name of the category
 --  @param recipe_uri - the uri to the recipe
---  @param recipe_data - data about when to activate the recipe
-function CrafterComponent:add_recipe(category, recipe_uri, recipe_data)
+function CrafterComponent:add_recipe(category, recipe_uri)
    --TODO: make new category, if necessary
    local category_data = self._sv._recipe_index[category]
    if not category_data then
       category_data = {
-         recipes = {},
+         recipes = [],
       }
       self._sv._recipe_index[category] = category_data
    end
-   category_data.recipes[recipe_uri] = recipe_data
 
-   --If there is no unlock condition then add the recipe to the UI structure
-   if not recipe_data.unlock_condition then
-      --If there is no UI category for this yeat, make one
-      local ui_info = category_data.category_ui_info
-      if not ui_info then
-         ui_info = {
-            category = category, 
-            recipes = {}
-         }
-         category_data.category_ui_info = ui_info
-         table.insert(self._sv.craftable_recipes, ui_info)
-      end
-      table.insert(ui_info.recipes, recipe_uri)
+   --If there is no UI category for this yet, make one
+   local ui_info = category_data.category_ui_info
+   if not ui_info then
+      ui_info = {
+         category = category, 
+         recipes = {}
+      }
+      category_data.category_ui_info = ui_info
+      table.insert(self._sv.craftable_recipes, ui_info)
    end
+
+   local recipe_data = radiant.resources.load_json(recipe_uri)
+   table.insert(ui_info.recipes, recipe_data)
+
    self.__saved_variables:mark_changed()
 end
-
+--]]
 
 --- Returns the effect to play as the crafter works
 function CrafterComponent:get_work_effect()
