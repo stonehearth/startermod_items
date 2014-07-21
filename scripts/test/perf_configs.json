@@ -120,5 +120,30 @@
       "machines" : [
          "radeon3450-PentiumDual@2.2GHz"
       ]
+   },
+   "cpu_limited" : {
+      "settings" : {
+         "renderer" : {
+            "enable_shadows" : false,
+            "msaa_samples" : 0,
+            "shadow_resolution" : 1024,
+            "enable_vsync" : false,
+            "enable_fullscreen" : false,
+            "screen_width" : 320,
+            "screen_height" : 240,
+            "draw_distance" : 500,
+            "enable_gl_logging" : false,
+            "last_window_x" : 0,
+            "last_window_y" : 0,
+            "last_screen_x" : 0,
+            "last_screen_y" : 0,
+            "use_fast_hilite" : true,
+            "enable_ssao" : false
+         }
+      },
+
+      "machines" : [
+         "radeon3450-PentiumDual@2.2GHz"
+      ]
    }
 }
