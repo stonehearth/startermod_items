@@ -189,7 +189,6 @@ App.StonehearthCrafterView = App.View.extend({
 
       this._buildRecipeList();
       this._buildOrderList();
-      initIncrementButtons();
 
       this.$("#craftWindow")
          .animate({ top: 0 }, {duration: 500, easing: 'easeOutBounce'});
