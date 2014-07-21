@@ -123,23 +123,35 @@ end
 
 function BuildService:_add_floor(session, floor_uri, box, brush_shape)
    local floor
+   local floor_region = Region3(box)
    local overlap = Cube3(Point3(box.min.x - 1, box.min.y, box.min.z - 1),
                          Point3(box.max.x + 1, box.max.y, box.max.z + 1))
 
    -- look for floor that we can merge into.
    local all_overlapping_floor = radiant.terrain.get_entities_in_cube(overlap, function(entity)
-         return self:is_blueprint(entity) and self:_get_structure_type(entity) == 'floor'
+         if not self:is_blueprint(entity) then
+            return false
+         end
+         if self:_get_structure_type(entity) == 'floor' then
+            return true
+         end
+
+         local dst = entity:get_component('destination')
+         if dst then
+            floor_region:subtract_region(dst:get_region():get())
+         end
+         return false
       end)
 
    if not next(all_overlapping_floor) then
       -- there was no existing floor at all. create a new building and add a floor
       -- segment to it. 
       local building = self:_create_new_building(session, box.min)
-      floor = self:_add_new_floor_to_building(building, floor_uri, box, brush_shape)
+      floor = self:_add_new_floor_to_building(building, floor_uri, floor_region, brush_shape)
    else
       -- we overlapped some pre-existing floor.  merge this box into that floor,
       -- potentially merging multiple buildings together!
-      floor = self:_merge_overlapping_floor(all_overlapping_floor, floor_uri, box, brush_shape)
+      floor = self:_merge_overlapping_floor(all_overlapping_floor, floor_uri, floor_region, brush_shape)
    end
    return floor   
 end
@@ -154,7 +166,7 @@ function BuildService:_erase_floor(session, box)
 
    for _, floor in pairs(all_overlapping_floor) do
       floor:add_component('stonehearth:floor')
-               :remove_box_from_floor(box)
+               :remove_region_from_floor(Region3(box))
    end
 end
 
@@ -275,13 +287,13 @@ end
 --    @param floor_uri - the uri to type of floor we'd like to add
 --    @param box - the area of the new floor segment
 --
-function BuildService:_merge_overlapping_floor(existing_floor, floor_uri, box, brush_shape)
+function BuildService:_merge_overlapping_floor(existing_floor, floor_uri, floor_region, brush_shape)
    local id, floor = next(existing_floor)
    local id, next_floor = next(existing_floor, id)
    if not next_floor then
       -- exactly 1 overlapping floor.  just modify the region of that floor.
       -- pretty easy
-      self:_merge_overlapping_floor_trivial(floor, floor_uri, box, brush_shape)
+      self:_merge_overlapping_floor_trivial(floor, floor_uri, floor_region, brush_shape)
       return floor
    end
 
@@ -315,7 +327,7 @@ function BuildService:_merge_overlapping_floor(existing_floor, floor_uri, box, b
    end
 
    -- sweet!  now we can do the trivial merge
-    self:_merge_overlapping_floor_trivial(floor, floor_uri, box, brush_shape)
+    self:_merge_overlapping_floor_trivial(floor, floor_uri, floor_region, brush_shape)
     return floor
 end
 
@@ -327,9 +339,9 @@ end
 --    @param floor_uri - the uri to type of floor we'd like to add
 --    @param box - the area of the new floor segment
 --
-function BuildService:_merge_overlapping_floor_trivial(floor, floor_uri, box, brush_shape)
+function BuildService:_merge_overlapping_floor_trivial(floor, floor_uri, floor_region, brush_shape)
    floor:add_component('stonehearth:floor')
-            :add_box_to_floor(box, brush_shape)
+            :add_region_to_floor(floor_region, brush_shape)
 end
 
 -- create a new floor of size `box` to `building`.  it is up to the caller
@@ -340,9 +352,9 @@ end
 --    @param floor_uri - the uri to type of floor we'd like to add
 --    @param box - the area of the new floor segment
 --
-function BuildService:_add_new_floor_to_building(building, floor_uri, box, brush_shape)
+function BuildService:_add_new_floor_to_building(building, floor_uri, floor_region, brush_shape)
    return self:_create_blueprint(building, floor_uri, Point3.zero, function(floor)
-         self:_merge_overlapping_floor_trivial(floor, floor_uri, box, brush_shape)
+         self:_merge_overlapping_floor_trivial(floor, floor_uri, floor_region, brush_shape)
       end)
 end
 
