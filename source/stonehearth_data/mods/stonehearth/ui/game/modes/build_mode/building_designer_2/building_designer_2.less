@@ -3,7 +3,7 @@
    left: 10px;
    top: 10px;
    
-   width: 420px;
+   width: 424px;
    //height: 420px;
 
    .toolWizard {
@@ -19,6 +19,16 @@
 
    #toolbar {
       margin-bottom: 10px;
+
+      .tabButton.active {
+         background-color: #6e6346;
+         border-color: #000;
+
+         .label {
+            color: #ffc000;
+         }
+      }
+
       .tabButton {
          .control;
          .button;
@@ -30,6 +40,7 @@
          color: #87764f;
          margin-right: 8px;
          margin-top: 12px;
+         border: 2px solid rgba(0,0,0,0);
 
          &:hover {
             color: #ffc000;
@@ -42,6 +53,12 @@
             text-align: center;
             width: 54px;
          }
+
+         .icon {
+            position: absolute;
+            width: 54px;
+            height: 60px;
+         }
       }
 
       .disabled {
@@ -49,22 +66,34 @@
       }
 
       .floorToolButton {
-         background-image: url(images/build_floor.png);
+         .icon {
+            background-image: url(images/build_floor.png);   
+         }
+         
       }
 
       .wallToolButton {
-         background-image: url(images/build_walls.png);
+         .icon {
+            background-image: url(images/build_walls.png);   
+         }
       }
 
       .roofToolButton {
-         background-image: url(images/build_roof.png);
+         .icon {
+            background-image: url(images/build_roof.png);   
+         }
       }
 
       .doodadToolButton {
-         background-image: url(images/build_portal.png);
+         .icon {
+            background-image: url(images/build_portal.png);   
+         }
+         
       }
       .editToolButton {
-         background-image: url(images/edit.png);
+         .icon {
+            background-image: url(images/edit.png);   
+         }
       }
    }
 
