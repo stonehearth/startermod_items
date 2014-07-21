@@ -21,6 +21,7 @@ function ExecutionUnitV2:__init(frame, thread, debug_route, entity, injecting_en
    assert(action.priority)
 
    self._id = stonehearth.ai:get_next_object_id()
+   self._cost = 0
    self._frame = frame
    self._thread = thread
    self._debug_name = string.format("[u:%d %s]", self._id, action.name)
@@ -578,6 +579,7 @@ function ExecutionUnitV2:__get_log()
 end
 
 function ExecutionUnitV2:__set_cost(cost)
+   assert(cost)
    self._cost = cost
 end
 
