@@ -1287,11 +1287,12 @@ bool RenderDevice::applyVertexLayout()
 		{
 			VertexLayoutAttrib &attrib = vl.attribs[i];
 			const RDIVertBufSlot &vbSlot = _vertBufSlots[attrib.vbSlot];
+         const int vbObj = vbSlot.vbObj;
+         const RDIBuffer& rdiBuffer = _buffers.getRef(_vertBufSlots[attrib.vbSlot].vbObj);
 			
-			ASSERT( _buffers.getRef( _vertBufSlots[attrib.vbSlot].vbObj ).glObj != 0 &&
-			        _buffers.getRef( _vertBufSlots[attrib.vbSlot].vbObj ).type == GL_ARRAY_BUFFER );
+			ASSERT( rdiBuffer.glObj != 0 && rdiBuffer.type == GL_ARRAY_BUFFER );
 			
-			glBindBuffer( GL_ARRAY_BUFFER, _buffers.getRef( _vertBufSlots[attrib.vbSlot].vbObj ).glObj );
+			glBindBuffer( GL_ARRAY_BUFFER, rdiBuffer.glObj );
 
          if (_caps.hasInstancing) {
             int numPositions = attrib.size / 4;
