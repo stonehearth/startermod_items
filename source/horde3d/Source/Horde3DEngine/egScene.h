@@ -156,7 +156,9 @@ public:
 	virtual bool canAttach( SceneNode &parent );
 	void markDirty();
 	void update();
-	virtual bool checkIntersection( const Vec3f &rayOrig, const Vec3f &rayDir, Vec3f &intsPos, Vec3f &intsNorm ) const;
+
+   bool checkIntersection(const Vec3f &rayOrig, const Vec3f& rayEnd, const Vec3f &rayDir, Vec3f &intsPos, Vec3f &intsNorm) const;
+   virtual bool checkIntersectionInternal( const Vec3f &rayOrig, const Vec3f &rayDir, Vec3f &intsPos, Vec3f &intsNorm ) const;
 
    inline const InstanceKey* getInstanceKey() const { 
       if (_noInstancing) {

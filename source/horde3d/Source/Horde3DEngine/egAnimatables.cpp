@@ -177,8 +177,6 @@ bool MeshNode::checkIntersection( const Vec3f &rayOrig, const Vec3f &rayDir, Vec
 	// Collision check is only done for base LOD
 	if( _lodLevel != 0 ) return false;
 
-	if( !rayAABBIntersection( rayOrig, rayDir, _bBox.min(), _bBox.max() ) ) return false;
-	
 	GeometryResource *geoRes = _parentModel->getGeometryResource();
 	if( geoRes == 0x0 || geoRes->getIndexData() == 0x0 || geoRes->getVertPosData() == 0x0 ) return false;
 	

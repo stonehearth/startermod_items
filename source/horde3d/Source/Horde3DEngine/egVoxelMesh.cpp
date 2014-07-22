@@ -119,10 +119,8 @@ void VoxelMeshNode::setParamI( int param, int value )
 	SceneNode::setParamI( param, value );
 }
 
-bool VoxelMeshNode::checkIntersection( const Vec3f &rayOrig, const Vec3f &rayDir, Vec3f &intsPos, Vec3f &intsNorm ) const
+bool VoxelMeshNode::checkIntersectionInternal( const Vec3f &rayOrig, const Vec3f &rayDir, Vec3f &intsPos, Vec3f &intsNorm ) const
 {
-	if( !rayAABBIntersection( rayOrig, rayDir, _bBox.min(), _bBox.max() ) ) return false;
-
    if (_parentModel->useCoarseCollisionBox()) {
       float d;
       radiant::csg::Point3f origin(rayOrig.x, rayOrig.y, rayOrig.z);

@@ -347,11 +347,19 @@ void SceneNode::update()
 }
 
 
-bool SceneNode::checkIntersection( const Vec3f &/*rayOrig*/, const Vec3f &/*rayDir*/, Vec3f &/*intsPos*/, Vec3f &/*intsNorm*/ ) const
+bool SceneNode::checkIntersection(const Vec3f &rayOrig, const Vec3f& rayEnd, const Vec3f &rayDir, Vec3f &intsPos, Vec3f &intsNorm) const
 {
-	return false;
+   if (!segmentIntersectsAABB(rayOrig, rayEnd, _bBox.min(), _bBox.max())) {
+      return false;
+   }
+
+   return checkIntersectionInternal(rayOrig, rayDir, intsPos, intsNorm);
 }
 
+bool SceneNode::checkIntersectionInternal( const Vec3f &rayOrig, const Vec3f &rayDir, Vec3f &intsPos, Vec3f &intsNorm ) const
+{
+   return false;
+}
 
 // *************************************************************************************************
 // Class GroupNode
@@ -1239,43 +1247,40 @@ void SceneManager::_findNodes( SceneNode &startNode, std::string const& name, in
 
 void SceneManager::fastCastRayInternal(int userFlags)
 {
-   _spatialGraph->castRay(_rayOrigin, _rayDirection, [this, userFlags](boost::container::flat_set<SceneNode const*> const& nodes) {
+   const Vec3f rayEnd = _rayOrigin + _rayDirection;
+   _spatialGraph->castRay(_rayOrigin, _rayDirection, [this, userFlags, rayEnd](boost::container::flat_set<SceneNode const*> const& nodes) {
       for (SceneNode const* sn : nodes) {
-         if( !(sn->_accumulatedFlags & SceneNodeFlags::NoRayQuery) )
+         if (sn->_accumulatedFlags & SceneNodeFlags::NoRayQuery)
 	      {
-		      Vec3f intsPos, intsNorm;
-            if( (sn->_userFlags & userFlags) == userFlags && sn->checkIntersection( _rayOrigin, _rayDirection, intsPos, intsNorm ) )
-		      {
-			      float dist = (intsPos - _rayOrigin).length();
-
-			      CastRayResult crr;
-			      crr.node = sn;
-			      crr.distance = dist;
-			      crr.intersection = intsPos;
-               crr.normal = intsNorm;
-
-			      bool inserted = false;
-			      for( vector< CastRayResult >::iterator it = _castRayResults.begin(); it != _castRayResults.end(); ++it )
-			      {
-				      if( dist < it->distance )
-				      {
-					      _castRayResults.insert( it, crr );
-					      inserted = true;
-					      break;
-				      }
-			      }
-
-			      if( !inserted )
-			      {
-				      _castRayResults.push_back( crr );
-			      }
-
-			      if( _rayNum > 0 && (int)_castRayResults.size() > _rayNum )
-			      {
-				      _castRayResults.pop_back();
-			      }
-		      }
+            continue;
          }
+		   Vec3f intsPos, intsNorm;
+         if ((sn->_userFlags & userFlags) == userFlags && sn->checkIntersection(_rayOrigin, rayEnd, _rayDirection, intsPos, intsNorm))
+		   {
+			   float dist = (intsPos - _rayOrigin).length();
+
+			   CastRayResult crr;
+			   crr.node = sn;
+			   crr.distance = dist;
+			   crr.intersection = intsPos;
+            crr.normal = intsNorm;
+
+			   bool inserted = false;
+			   for( vector< CastRayResult >::iterator it = _castRayResults.begin(); it != _castRayResults.end(); ++it )
+			   {
+				   if( dist < it->distance )
+				   {
+					   _castRayResults.insert( it, crr );
+					   inserted = true;
+					   break;
+				   }
+			   }
+
+            if( !inserted && _castRayResults.size() < _rayNum)
+			   {
+				   _castRayResults.push_back( crr );
+			   }
+		   }
       }
    });
 }
@@ -1286,7 +1291,7 @@ void SceneManager::castRayInternal( SceneNode &node, int userFlags )
    if( !(node._accumulatedFlags & SceneNodeFlags::NoRayQuery) )
 	{
 		Vec3f intsPos, intsNorm;
-      if( (node._userFlags & userFlags) == userFlags && node.checkIntersection( _rayOrigin, _rayDirection, intsPos, intsNorm ) )
+      if( (node._userFlags & userFlags) == userFlags && node.checkIntersection( _rayOrigin, _rayOrigin + _rayDirection, _rayDirection, intsPos, intsNorm ) )
 		{
 			float dist = (intsPos - _rayOrigin).length();
 
