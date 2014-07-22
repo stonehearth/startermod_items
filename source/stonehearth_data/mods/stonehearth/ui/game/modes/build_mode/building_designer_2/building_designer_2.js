@@ -280,11 +280,11 @@ App.StonehearthBuildingDesignerTools = App.View.extend({
 
       // edit tab
       this.$('#editToolTab .roofNumericInput').change(function() {
-         var constructionData = self.get('blueprint.stonehearth:construction_data');
-         if (constructionData) {
+         var blueprint = self.get('blueprint');
+         if (blueprint) {
             var options = {}
             roofNumericInputChange($(this), options);
-            radiant.call_obj(constructionData, 'apply_options_command', options);
+            App.stonehearthClient.applyConstructionDataOptions(blueprint, options);
          }
       });
 
@@ -308,11 +308,11 @@ App.StonehearthBuildingDesignerTools = App.View.extend({
       this.$('#editToolTab .roofDiagramButton').click(function() {
          roofDiagramButtonClick($(this));
 
-         var constructionData = self.get('blueprint.stonehearth:construction_data');
-         if (constructionData) {
+         var blueprint = self.get('blueprint');
+         if (blueprint) {
             var options = {}
             self._getRoofOptionsFromElement('#editToolTab', options);
-            radiant.call_obj(constructionData, 'apply_options_command', options);
+            App.stonehearthClient.applyConstructionDataOptions(blueprint, options);
          }
       });
 

@@ -34,6 +34,10 @@ function Floor:add_region_to_floor(region, brush_shape)
    return self
 end
 
+function Floor:layout()
+   -- nothing to do...
+end
+
 function Floor:remove_region_from_floor(region)
    local building = self._entity:get_component('mob'):get_parent()
    local origin = radiant.entities.get_world_grid_location(building)
