@@ -15,6 +15,7 @@ class Skeleton {
       ~Skeleton();
 
       void SetSceneNode(H3DNode parent);
+      void SetBoneVisible(std::string const& bone, bool visible);
       H3DNode GetSceneNode(std::string const& bone);
 
       H3DNode AttachEntityToBone(H3DRes entity, std::string const& bone, csg::Point3f const& offset);
@@ -30,6 +31,7 @@ class Skeleton {
       RenderEntity&                          _renderEntity;
       std::map<std::string, H3DNode>         _bones;
       float                                  _scale;
+      std::unordered_map<std::string, int>   _visibleCount;
 };
 
 END_RADIANT_CLIENT_NAMESPACE

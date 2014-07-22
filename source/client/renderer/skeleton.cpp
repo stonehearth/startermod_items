@@ -74,6 +74,32 @@ H3DNode Skeleton::CreateBone(std::string const& bone)
    H3DNode b = h3dAddGroupNode(parent, name.str().c_str());
    h3dSetNodeTransform(b, 0, 0, 0, 0, 0, 0, 1.0f, 1.0f, 1.0f);
    _bones[bone] = b;
-
+   _visibleCount[bone] = 1;
    return b;
 }
+
+/*
+ * Skeleton::SetBoneVisible --
+ *
+ * Many clients at many different times may want to toggle the visibility of the bones,
+ * so keep a counter going.
+ *
+ */
+void Skeleton::SetBoneVisible(std::string const& bone, bool visible)
+{
+   H3DNode node = GetSceneNode(bone);
+   auto i = _visibleCount.find(bone);
+   ASSERT(i != _visibleCount.end());
+
+   if (visible) {
+      i->second++;
+   } else {
+      i->second--;
+   }
+   if (visible > 0) {
+      h3dTwiddleNodeFlags(node, H3DNodeFlags::NoDraw | H3DNodeFlags::NoRayQuery, false, false);
+   } else {
+      h3dTwiddleNodeFlags(node, H3DNodeFlags::NoDraw | H3DNodeFlags::NoRayQuery, true, false);
+   }
+}
+

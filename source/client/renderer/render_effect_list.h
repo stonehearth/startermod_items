@@ -83,8 +83,7 @@ public:
    void Update(FrameStartInfo const& info, bool& done) override;
 
 private:
-   H3DNode                       boneNode_;
-   int                           boneNodeFlags_;
+   std::string                   boneName_;
 };
 
 /* For creating cubemitters from a given JSON file. */

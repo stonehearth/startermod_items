@@ -290,29 +290,24 @@ void RenderAnimationEffect::Update(FrameStartInfo const& info, bool& finished)
 ///////////////////////////////////////////////////////////////////////////////
 
 HideBoneEffect::HideBoneEffect(RenderEntity& e, om::EffectPtr effect, const JSONNode& node) :
-   RenderEffect(e, "hide bone"),
-   boneNode_(0),
-   boneNodeFlags_(0)
+   RenderEffect(e, "hide bone")
 {
    auto i = node.find("bone");
    if (i != node.end()) {
-      boneNode_ = entity_.GetSkeleton().GetSceneNode(i->as_string());
-      boneNodeFlags_ = h3dGetNodeFlags(boneNode_);
+      boneName_ = i->as_string();
+      entity_.GetSkeleton().SetBoneVisible(boneName_, false);
    }
 }
 
 HideBoneEffect::~HideBoneEffect()
 {
-   if (boneNode_ ) {
-      h3dSetNodeFlags(boneNode_, boneNodeFlags_, false);  
+   if (!boneName_.empty()) {
+      entity_.GetSkeleton().SetBoneVisible(boneName_, true);
    }
 }
 
 void HideBoneEffect::Update(FrameStartInfo const& info, bool& finished)
 {
-   if (boneNode_) {      
-      h3dSetNodeFlags(boneNode_, boneNodeFlags_ | H3DNodeFlags::NoDraw | H3DNodeFlags::NoRayQuery, false);
-   }
    finished = true;
 }
 
