@@ -21,9 +21,9 @@ function Renderer:set_ui_mode(ui_mode)
    if self._ui_mode ~= ui_mode then
       self._ui_mode = ui_mode
       if ui_mode == 'normal' then
-         h3dSetGlobalUniform("gridlineAlpha", 0.0)
+         h3dSetGlobalShaderFlag("DRAW_GRIDLINES", false)
       elseif ui_mode == 'hud' then
-         h3dSetGlobalUniform("gridlineAlpha", 0.5)
+         h3dSetGlobalShaderFlag("DRAW_GRIDLINES", true)
       end
       radiant.events.trigger_async(radiant, 'stonehearth:ui_mode_changed')
    end

@@ -121,7 +121,6 @@ attribute vec3 normal;
 attribute vec3 color;
 
 varying vec4 pos;
-varying vec4 vsPos;
 varying vec3 tsbNormal;
 varying vec3 albedo;
 varying vec4 projShadowPos[3];
@@ -131,19 +130,24 @@ varying vec3 gridLineCoords;
 void main( void )
 {
   pos = calcWorldPos(vec4(vertPos, 1.0));
-  vsPos = calcViewPos(pos);
+  vec4 vsPos = calcViewPos(pos);
   tsbNormal = calcWorldVec(normal);
   albedo = color;
 
+#ifndef DISABLE_SHADOWS
   projShadowPos[0] = shadowMats[0] * pos;
   projShadowPos[1] = shadowMats[1] * pos;
   projShadowPos[2] = shadowMats[2] * pos;
+#endif
 
   projFowPos = fowViewMat * pos;
 
-  gridLineCoords = vertPos;
+  gridLineCoords = vertPos + vec3(0.5, 0, 0.5);
 
   gl_Position = viewProjMat * pos;
+
+  // Yuck!  But this saves us an entire vec4, which can kill older cards.
+  pos.w = vsPos.z;
 }
 
 
@@ -175,20 +179,18 @@ void main( void )
 #include "shaders/utilityLib/fragLighting.glsl" 
 #include "shaders/shadows.shader"
 
-uniform vec3 lightAmbientColor;
+uniform sampler3D gridMap;
 uniform sampler2D cloudMap;
 uniform sampler2D fowRT;
-uniform float currentTime;
-uniform vec4 lodLevels;
-uniform sampler3D gridMap;
-uniform float gridlineAlpha;
 uniform vec4 gridlineColor;
+uniform vec4 lodLevels;
+uniform vec3 lightAmbientColor;
+uniform float currentTime;
 
-varying vec4 vsPos;
 varying vec4 pos;
+varying vec4 projFowPos;
 varying vec3 albedo;
 varying vec3 tsbNormal;
-varying vec4 projFowPos;
 varying vec3 gridLineCoords;
 
 void main( void )
@@ -200,7 +202,7 @@ void main( void )
   vec3 lightColor = calcSimpleDirectionalLight(normalize(tsbNormal));
 
   // Mix light and shadow and ambient light.
-  lightColor = (shadowTerm * lightColor * albedo) + (lightAmbientColor * albedo);
+  lightColor = albedo * (shadowTerm * lightColor + lightAmbientColor);
 
   // Mix in cloud color.
   float cloudSpeed = currentTime / 80.0;
@@ -213,20 +215,20 @@ void main( void )
   float fowValue = texture2D(fowRT, projFowPos.xy).a;
   lightColor *= fowValue;
 
-  // Do LOD blending.
+  // Do LOD blending.  Note that pos.w is view-space 'z' coordinate (see VS.)
   if (lodLevels.x == 0.0) {
-    lightColor *= clamp((lodLevels.y - -vsPos.z) / lodLevels.w, 0.0, 1.0);
+    lightColor *= clamp((lodLevels.y + pos.w) / lodLevels.w, 0.0, 1.0);
   } else {
-    lightColor *= clamp((-vsPos.z - lodLevels.z) / lodLevels.w, 0.0, 1.0);
+    lightColor *= clamp((-pos.w - lodLevels.z) / lodLevels.w, 0.0, 1.0);
   }
 
   // gridlineAlpha is a single float containing the global opacity of gridlines for all
   // nodes.  gridlineColor is the per-material color of the gridline to use.  Only draw
   // them if both are > 0.0.
-  if (gridlineAlpha * gridlineColor.a > 0.0) {
-    float gridline = 1.0 - texture3D(gridMap, gridLineCoords + vec3(0.5, 0.0, 0.5)).a;
-    lightColor = lightColor * (1.0 - gridline) + (gridline * gridlineColor.rgb);
-  }
+  #ifdef DRAW_GRIDLINES
+    float gridline = texture3D(gridMap, gridLineCoords).a;
+    lightColor = lightColor * gridline + ((1.0 - gridline) * gridlineColor.rgb);
+  #endif
 
   gl_FragColor = vec4(lightColor, 1.0);
 }
@@ -293,19 +295,19 @@ void main( void )
 #include "shaders/utilityLib/fragLighting.glsl" 
 #include "shaders/shadows.shader"
 
-uniform vec3 lightAmbientColor;
 uniform sampler2D cloudMap;
 uniform sampler2D fowRT;
 uniform sampler2D ssaoImage;
+
+uniform vec4 lodLevels;
+uniform vec4 gridlineColor;
+uniform vec3 lightAmbientColor;
 uniform vec2 viewPortSize;
 uniform vec2 viewPortPos;
 uniform float currentTime;
-uniform vec4 lodLevels;
 uniform sampler3D gridMap;
 uniform float gridlineAlpha;
-uniform vec4 gridlineColor;
 
-varying vec4 vsPos;
 varying vec4 pos;
 varying vec3 albedo;
 varying vec3 tsbNormal;
@@ -334,25 +336,22 @@ void main( void )
   float fowValue = texture2D(fowRT, projFowPos.xy).a;
   lightColor *= fowValue;
 
-  // Do LOD blending.
-
+  // Do LOD blending.  Note that pos.w is view-space 'z' coordinate (see VS.)
   if (lodLevels.x == 0.0) {
-    lightColor *= clamp((lodLevels.y - -vsPos.z) / lodLevels.w, 0.0, 1.0);
+    lightColor *= clamp((lodLevels.y - -pos.w) / lodLevels.w, 0.0, 1.0);
   } else {
-    lightColor *= clamp((-vsPos.z - lodLevels.z) / lodLevels.w, 0.0, 1.0);
+    lightColor *= clamp((-pos.w - lodLevels.z) / lodLevels.w, 0.0, 1.0);
   }
 
   // gridlineAlpha is a single float containing the global opacity of gridlines for all
   // nodes.  gridlineColor is the per-material color of the gridline to use.  Only draw
   // them if both are > 0.0.
-  if (gridlineAlpha * gridlineColor.a > 0.0) {
-    float gridline = 1.0 - texture3D(gridMap, gridLineCoords + vec3(0.5, 0.0, 0.5)).a;
-    lightColor = lightColor * (1.0 - gridline) + (gridline * gridlineColor.rgb);
-  }
+  #ifdef DRAW_GRIDLINES
+    float gridline = texture3D(gridMap, gridLineCoords).a;
+    lightColor = lightColor * gridline + ((1.0 - gridline) * gridlineColor.rgb);
+  #endif
 
   gl_FragColor = vec4(lightColor, 1.0);
-
-
 }
 
 

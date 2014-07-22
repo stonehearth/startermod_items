@@ -107,7 +107,7 @@ SceneNode *CameraNode::factoryFunc( const SceneNodeTpl &nodeTpl )
 }
 
 
-int CameraNode::getParamI( int param )
+int CameraNode::getParamI( int param ) const
 {
 	switch( param )
 	{

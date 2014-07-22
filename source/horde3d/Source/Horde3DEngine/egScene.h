@@ -19,6 +19,8 @@
 #include "egPipeline.h"
 #include <map>
 #include <unordered_map>
+#include <boost\container\flat_map.hpp>
+#include <boost\container\flat_set.hpp>
 
 
 namespace Horde3D {
@@ -31,9 +33,20 @@ class SceneGraphResource;
 const int RootNode = 1;
 const int QueryCacheSize = 32;
 
-struct InstanceKey {
+class InstanceKey {
+public:
    Resource* geoResource;
    MaterialResource* matResource;
+   size_t hash;
+
+   InstanceKey() {
+      geoResource = nullptr;
+      matResource = nullptr;
+   }
+
+   void updateHash() {
+      hash = (uint32)(geoResource) ^ (uint32)(matResource);
+   }
 
    bool operator==(const InstanceKey& other) const {
       return geoResource == other.geoResource &&
@@ -45,8 +58,8 @@ struct InstanceKey {
 };
 
 struct hash_InstanceKey {
-   size_t operator()(const InstanceKey& x) const {
-      return (uint32)(x.geoResource) ^ (uint32)(x.matResource);
+   inline size_t operator()(InstanceKey const & x) const {
+      return x.hash;
    }
 };
 
@@ -93,6 +106,7 @@ struct SceneNodeFlags
 		NoRayQuery = 0x4,
 		Inactive = 0x7,  // NoDraw | NoCastShadow | NoRayQuery
 		Selected = 0x8,
+      NoCull = 0x10
 	};
 };
 
@@ -130,11 +144,11 @@ public:
 	void setTransform( const Matrix4f &mat );
 	void getTransMatrices( const float **relMat, const float **absMat ) const;
 
-	int getFlags() { return _flags; }
+	int getFlags() const { return _flags; }
    void setFlags( int flags, bool recursive );
    void twiddleFlags( int flags, bool on, bool recursive );
 
-	virtual int getParamI( int param );
+	virtual int getParamI(int param) const;
 	virtual void setParamI( int param, int value );
 	virtual float getParamF( int param, int compIdx );
 	virtual void setParamF( int param, int compIdx, float value );
@@ -148,13 +162,23 @@ public:
 	virtual bool canAttach( SceneNode &parent );
 	void markDirty();
 	void update();
-	virtual bool checkIntersection( const Vec3f &rayOrig, const Vec3f &rayDir, Vec3f &intsPos, Vec3f &intsNorm ) const;
 
-   virtual const InstanceKey* getInstanceKey() { return 0x0; }
-	int getType() { return _type; };
-	NodeHandle getHandle() { return _handle; }
-	SceneNode *getParent() { return _parent; }
-	std::string const& getName() { return _name; }
+   bool checkIntersection(const Vec3f &rayOrig, const Vec3f& rayEnd, const Vec3f &rayDir, Vec3f &intsPos, Vec3f &intsNorm) const;
+   virtual bool checkIntersectionInternal( const Vec3f &rayOrig, const Vec3f &rayDir, Vec3f &intsPos, Vec3f &intsNorm ) const;
+
+   inline const InstanceKey* getInstanceKey() const { 
+      if (_noInstancing || _instanceKey.geoResource == nullptr || _instanceKey.matResource == nullptr) {
+         return nullptr;
+      }
+      return &_instanceKey; 
+   }
+   virtual const long sortKey() { return 0x0; }
+	int getType() const { return _type; }
+   inline int getRenderStamp() const { return _renderStamp; }
+   inline void setRenderStamp(int s) const { _renderStamp = s; }
+	NodeHandle getHandle() const { return _handle; }
+	SceneNode *getParent() const { return _parent; }
+	std::string const& getName() const { return _name; }
 	std::vector< SceneNode * > &getChildren() { return _children; }
 	Matrix4f &getRelTrans() { return _relTrans; }
 	Matrix4f &getAbsTrans() { return _absTrans; }
@@ -187,14 +211,18 @@ protected:
 	Matrix4f                    _relTrans, _absTrans;  // Transformation matrices
 	SceneNode                   *_parent;  // Parent node
 	int                         _type;
+   // Because a reverse-lookup is going to be more expensive to maintain.
+   mutable int                 _renderStamp;
 	NodeHandle                  _handle;
 	uint32                      _flags;
    uint32                      _userFlags;
    uint32                      _accumulatedFlags;
 	float                       _sortKey;
+   InstanceKey                 _instanceKey;
 	bool                        _dirty;  // Does the node need to be updated?
 	bool                        _transformed;
 	bool                        _renderable;
+   bool                        _noInstancing;
 
 	BoundingBox                 _bBox;  // AABB in world space
 
@@ -202,8 +230,12 @@ protected:
 	std::string                 _name;
 	std::string                 _attachment;  // User defined data
 
-	friend class SceneManager;
+
+private:
+
+   friend class SceneManager;
 	friend class SpatialGraph;
+   friend class GridSpatialGraph;
 	friend class Renderer;
 };
 
@@ -256,33 +288,68 @@ struct SpatialQuery
 
 struct RendQueueItem
 {
-	SceneNode  *node;
+	SceneNode  const*node;
 	int        type;  // Type is stored explicitly for better cache efficiency when iterating over list
 	float      sortKey;
 
 	RendQueueItem() {}
-	RendQueueItem( int type, float sortKey, SceneNode *node ) : node( node ), type( type ), sortKey( sortKey ) {}
+	RendQueueItem( int type, float sortKey, SceneNode const*node ) : node( node ), type( type ), sortKey( sortKey ) {}
 };
 
 typedef std::vector<RendQueueItem> RenderableQueue;
-typedef std::unordered_map<int, RenderableQueue > RenderableQueues;
+typedef boost::container::flat_map<int, RenderableQueue > RenderableQueues;
 typedef std::unordered_map<InstanceKey, RenderableQueue, hash_InstanceKey > InstanceRenderableQueue;
-typedef std::unordered_map<int, InstanceRenderableQueue > InstanceRenderableQueues;
+typedef boost::container::flat_map<int, InstanceRenderableQueue > InstanceRenderableQueues;
 
 class SpatialGraph
 {
 public:
 	SpatialGraph();
 	
-	void addNode( SceneNode &sceneNode );
-	void removeNode( SceneNode &sceneNode );
-	void updateNode( uint32 sgHandle );
+	void addNode(SceneNode const& sceneNode);
+	void removeNode(SceneNode const& sceneNode);
+	void updateNode(SceneNode const& sceneNode);
 
    void query(const SpatialQuery& query, RenderableQueues& renderableQueues, InstanceRenderableQueues& instanceQueues,
-      std::vector<SceneNode*>& lightQueue);
+      std::vector<SceneNode const*>& lightQueue);
 
 protected:
-	std::unordered_map<NodeHandle, SceneNode *>      _nodes;  // Renderable nodes and lights
+	std::unordered_map<NodeHandle, SceneNode const*>      _nodes;  // Renderable nodes and lights
+};
+
+
+struct GridElement 
+{
+   BoundingBox bounds;
+   boost::container::flat_set<SceneNode const*> _nodes;
+};
+
+class GridSpatialGraph
+{
+public:
+   GridSpatialGraph();
+
+   void addNode(SceneNode const& sceneNode);
+	void removeNode(SceneNode const& sceneNode);
+	void updateNode(SceneNode const& sceneNode);
+
+   void query(const SpatialQuery& query, RenderableQueues& renderableQueues, InstanceRenderableQueues& instanceQueues,
+      std::vector<SceneNode const*>& lightQueue);
+   void castRay(const Vec3f& rayOrigin, const Vec3f& rayDirection, std::function<void(boost::container::flat_set<SceneNode const*> const& nodes)> cb);
+
+protected:
+   void boundingBoxToGrids(BoundingBox const& aabb, boost::container::flat_set<uint32>& gridElementList) const;
+   inline uint32 hashGridPoint(int x, int y) const;
+   inline void unhashGridHash(uint32 hash, int* x, int* y) const;
+
+   boost::container::flat_map<NodeHandle, boost::container::flat_set<uint32> > _nodeGridLookup;
+   std::unordered_map<uint32, GridElement> _gridElements;
+   std::unordered_map<NodeHandle, SceneNode const*> _directionalLights;
+   std::unordered_map<NodeHandle, SceneNode const*> _nocullNodes;
+   int _renderStamp;
+
+   boost::container::flat_set<uint32> newGrids;
+   std::vector<uint32> toRemove;
 };
 
 
@@ -303,11 +370,12 @@ struct NodeRegEntry
 	NodeTypeFactoryFunc  factoryFunc;
 	NodeTypeRenderFunc   renderFunc;
    NodeTypeRenderFunc   instanceRenderFunc;
+   std::unordered_map<NodeHandle, SceneNode*> nodes;
 };
 
 struct CastRayResult
 {
-	SceneNode  *node;
+	SceneNode const* node;
 	float      distance;
 	Vec3f      intersection;
    Vec3f      normal;
@@ -318,7 +386,7 @@ struct SpatialQueryResult
    SpatialQuery query;
    RenderableQueues renderableQueues;
    InstanceRenderableQueues instanceRenderableQueues;
-   std::vector<SceneNode*> lightQueue;
+   std::vector<SceneNode const*> lightQueue;
 };
 
 // =================================================================================================
@@ -337,7 +405,7 @@ public:
 	NodeRegEntry *findType( std::string const& typeString );
 	
 	void updateNodes();
-	void updateSpatialNode( uint32 sgHandle ) { _spatialGraph->updateNode( sgHandle ); }
+	void updateSpatialNode( SceneNode const& node ) { _spatialGraph->updateNode( node ); }
 	void updateQueues( const char* reason, const Frustum &frustum1, const Frustum *frustum2,
 	                   RenderingOrder::List order, uint32 filterIgnore, uint32 filterRequired, bool lightQueue, bool renderableQueue, bool forceNoInstancing=false, 
                       uint32 userFlags=0 );
@@ -356,7 +424,7 @@ public:
 	int checkNodeVisibility( SceneNode &node, CameraNode &cam, bool checkOcclusion );
 
 	SceneNode &getRootNode() { return *_nodes[RootNode]; }
-	std::vector< SceneNode * > &getLightQueue();
+	std::vector<SceneNode const*> &getLightQueue();
 	RenderableQueue& getRenderableQueue(int itemType);
    InstanceRenderableQueue& getInstanceRenderableQueue(int itemType);
    RenderableQueues& getRenderableQueues();
@@ -373,13 +441,14 @@ protected:
         void shutdown();
         void initialize();
 	void castRayInternal( SceneNode &node, int userFlags );
+   void fastCastRayInternal(int userFlags);
 
 protected:
         uint32                         _nextNodeHandle;
-	std::unordered_map<NodeHandle, SceneNode *>      _nodes;  // _nodes[0] is root node
+   boost::container::flat_map<NodeHandle, SceneNode *>      _nodes;  // _nodes[0] is root node
 	std::vector< SceneNode * >     _findResults;
 	std::vector< CastRayResult >   _castRayResults;
-	SpatialGraph                   *_spatialGraph;
+	GridSpatialGraph*              _spatialGraph;
 
 	std::map< int, NodeRegEntry >  _registry;  // Registry of node types
 

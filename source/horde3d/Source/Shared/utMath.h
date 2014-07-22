@@ -158,10 +158,15 @@ public:
 	// ------
 	// Access
 	// ------
-	float &operator[]( unsigned int index )
+	float &operator[] ( unsigned int index )
 	{
 		return *(&x + index);
 	}
+
+   inline float get(unsigned int index) const
+   {
+      return *(&x + index);
+   }
 	
 	// -----------
 	// Comparisons
@@ -231,7 +236,7 @@ public:
 	// ----------------
 	// Special products
 	// ----------------
-	float dot( const Vec3f &v ) const
+	inline float dot( const Vec3f &v ) const
 	{
 		return x * v.x + y * v.y + z * v.z;
 	}
@@ -925,7 +930,7 @@ public:
 	// ----------------
 	// Other operations
 	// ----------------
-	float distToPoint( const Vec3f &v ) const
+	inline float distToPoint( const Vec3f &v ) const
 	{
 		return normal.dot( v ) + dist;
 	}
@@ -1087,8 +1092,46 @@ inline bool rayTriangleIntersection( const Vec3f &rayOrig, const Vec3f &rayDir,
 	return true;
 }
 
+// Courtesy of Christer Ericson's Real Time Collision Detection.
+inline bool segmentIntersectsAABB(const Vec3f& start, const Vec3f& end, const Vec3f& mins, const Vec3f& maxs)
+{
+   const Vec3f c = (mins + maxs) * 0.5f;
+   const Vec3f e = maxs - mins;
+   Vec3f d = end - start;
+   Vec3f m = start + end - mins - maxs;
 
-inline bool rayAABBIntersection( const Vec3f &rayOrig, const Vec3f &rayDir, 
+   float adx = fabs(d.x);
+   if (fabs(m.x) > e.x + adx) {
+      return false;
+   }
+   float ady = fabs(d.y);
+   if (fabs(m.y) > e.y + ady) {
+      return false;
+   }
+   float adz = fabs(d.z);
+   if (fabs(m.z) > e.z + adz) {
+      return false;
+   }
+
+   adx += Math::Epsilon;
+   ady += Math::Epsilon;
+   adz += Math::Epsilon;
+
+   if (fabs(m.y * d.z - m.z * d.y) > e.y * adz + e.z * ady) {
+      return false;
+   }
+   if (fabs(m.z * d.x - m.x * d.z) > e.x * adz + e.z * adx) {
+      return false;
+   }
+   if (fabs(m.x * d.y - m.y * d.x) > e.x * ady + e.y * adx) {
+      return false;
+   }
+   return true;
+
+}
+
+
+inline bool rayAABBIntersection( const Vec3f &rayOrig, const Vec3f &rayDir, const Vec3f& rayInvDir,
                                  const Vec3f &mins, const Vec3f &maxs )
 {
 	// SLAB based optimized ray/AABB intersection routine
@@ -1109,7 +1152,7 @@ inline bool rayAABBIntersection( const Vec3f &rayOrig, const Vec3f &rayDir,
 	lmin = maxf( minf( l1, l2 ), lmin );
 	lmax = minf( maxf( l1, l2 ), lmax );
 
-	if( (lmax >= 0.0f) & (lmax >= lmin) )
+	if( (lmax >= 0.0f) && (lmax >= lmin) )
 	{
 		// Consider length
 		const Vec3f rayDest = rayOrig + rayDir;

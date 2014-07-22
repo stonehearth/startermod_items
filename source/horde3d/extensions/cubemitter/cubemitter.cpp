@@ -266,9 +266,13 @@ CubemitterNode::~CubemitterNode()
 		if( _occQueries[i] != 0 )
 			gRDI->destroyQuery( _occQueries[i] );
 	}
+
+   gRDI->destroyBuffer(_attributeBuf);
 	
    delete[] _cubes;
+   _cubes = nullptr;
    delete[] _attributesBuff;
+   _attributesBuff = nullptr;
 }
 
 
@@ -293,7 +297,7 @@ void CubemitterNode::setMaxParticleCount( radiant::uint32 maxParticleCount )
 }
 
 
-int CubemitterNode::getParamI( int param )
+int CubemitterNode::getParamI( int param ) const
 {
 	return SceneNode::getParamI( param );
 }
