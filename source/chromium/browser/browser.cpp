@@ -36,7 +36,7 @@ Browser::Browser(HWND parentWindow, std::string const& docroot, int width, int h
       _uiWidth = _screenWidth;
       _uiHeight = _screenHeight;
    }
-   _browserFB.reserve(_uiWidth * _uiHeight);
+   _browserFB.resize(_uiWidth * _uiHeight);
    _drawCount = 0;
    _neededToDraw = 0;
 
