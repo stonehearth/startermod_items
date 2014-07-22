@@ -154,15 +154,16 @@ bool Frustum::cullSphere( Vec3f pos, float rad ) const
 
 bool Frustum::cullBox( const BoundingBox &b ) const
 {
+   const Vec3f &max = b.max();
 	// Idea for optimized AABB testing from www.lighthouse3d.com
 	for( uint32 i = 0; i < 6; ++i )
 	{
 		const Vec3f &n = _planes[i].normal;
 		
 		Vec3f positive = b.min();
-		if( n.x <= 0 ) positive.x = b.max().x;
-		if( n.y <= 0 ) positive.y = b.max().y;
-		if( n.z <= 0 ) positive.z = b.max().z;
+		if( n.x <= 0 ) positive.x = max.x;
+		if( n.y <= 0 ) positive.y = max.y;
+		if( n.z <= 0 ) positive.z = max.z;
 
 		if( _planes[i].distToPoint( positive ) > 0 ) return true;
 	}
@@ -261,5 +262,41 @@ bool Frustum::operator!=(const Frustum& other) const
 
    return false;
 }
+
+
+
+// Nice bit of code from Real-Time Collision Detection.
+float BoundingBox::intersectionOf(const Vec3f& rayStart, const Vec3f& rayDir) const {
+   float tmin = 0.0f;
+   float tmax = 999999.0f;
+   for (int i = 0; i < 3; i++) {
+      if (fabs(rayDir.get(i)) < Math::Epsilon) {
+         // If the ray is parallel to the slab, and the origin isn't contained in the slab, then we don't hit it.
+         if (rayStart.get(i) < _min.get(i) || rayStart.get(i) > _max.get(i)) {
+            return -1;
+         }
+      } else {
+         float ood = 1.0f / rayDir.get(i);
+         float t1 = (_min.get(i) - rayStart.get(i)) * ood;
+         float t2 = (_max.get(i) - rayStart.get(i)) * ood;
+
+         if (t1 > t2) {
+            std::swap(t1, t2);
+         }
+
+         if (t1 > tmin) {
+            tmin = t1;
+         }
+         if (t2 > tmax) {
+            tmax = t2;
+         }
+         if (tmin > tmax) {
+            return -1;
+         }
+      }
+   }
+   return tmin;
+}
+
 
 }  // namespace

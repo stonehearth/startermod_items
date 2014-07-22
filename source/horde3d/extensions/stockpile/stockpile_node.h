@@ -37,7 +37,7 @@ public:
 
 public:
    void UpdateShape(const csg::Cube3& bounds);
-   bool checkIntersection( const Horde3D::Vec3f &rayOrig, const Horde3D::Vec3f &rayDir, Horde3D::Vec3f &intsPos, Horde3D::Vec3f &intsNorm ) const override;
+   bool checkIntersectionInternal( const Horde3D::Vec3f &rayOrig, const Horde3D::Vec3f &rayDir, Horde3D::Vec3f &intsPos, Horde3D::Vec3f &intsNorm ) const override;
    void onFinishedUpdate() override;
 
 private:

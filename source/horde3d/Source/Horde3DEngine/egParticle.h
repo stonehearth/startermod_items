@@ -159,7 +159,7 @@ public:
 
 	~EmitterNode();
 
-	int getParamI( int param );
+	int getParamI( int param ) const;
 	void setParamI( int param, int value );
 	float getParamF( int param, int compIdx );
 	void setParamF( int param, int compIdx, float value );

@@ -107,8 +107,8 @@ RenderEntity::~RenderEntity()
    nodeToRenderEntity.erase(node_);
 
    Destroy();
-   h3dRemoveNode(node_);
    h3dRemoveNode(offsetNode_);
+   h3dRemoveNode(node_);
    totalObjectCount_--;
 }
 

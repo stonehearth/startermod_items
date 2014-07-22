@@ -215,6 +215,8 @@ struct BoundingBox
           (_max.x == -FLT_MAX || _max.y == -FLT_MAX || _max.z == -FLT_MAX));
    }
 
+   float intersectionOf(const Vec3f& rayStart, const Vec3f& rayDir) const;
+
 private:
    Vec3f  _min, _max;
 };

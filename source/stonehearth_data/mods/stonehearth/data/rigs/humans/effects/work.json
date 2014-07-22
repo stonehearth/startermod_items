@@ -23,7 +23,7 @@
       },
       "sound": {
          "type": "sound_effect",
-         "duration": 200,
+         "duration": 700,
          "start_delay": 150,
          "min_distance": 50,
          "max_distance": 100,

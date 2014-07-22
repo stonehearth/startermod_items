@@ -64,7 +64,7 @@ public:
 	bool canAttach( SceneNode &parent );
 	int getParamI( int param );
 	void setParamI( int param, int value );
-	bool checkIntersection( const Vec3f &rayOrig, const Vec3f &rayDir, Vec3f &intsPos, Vec3f &intsNorm ) const;
+	bool checkIntersectionInternal( const Vec3f &rayOrig, const Vec3f &rayDir, Vec3f &intsPos, Vec3f &intsNorm ) const;
 
 	void onAttach( SceneNode &parentNode );
 	void onDetach( SceneNode &parentNode );
@@ -77,8 +77,6 @@ public:
 	uint32 getVertREnd(int lodLevel) const;
 	VoxelModelNode *getParentModel() const { return _parentModel; }
 
-   const InstanceKey* getInstanceKey();
-
 protected:
 	VoxelMeshNode( const VoxelMeshNodeTpl &meshTpl );
 	~VoxelMeshNode();
@@ -89,13 +87,11 @@ protected:
 	VoxelModelNode      *_parentModel;
 	BoundingBox         _localBBox;
 	bool                _ignoreAnim;
-   bool                _noInstancing;
 
 	std::vector< uint32 >  _occQueries;
 	std::vector< uint32 >  _lastVisited;
 
 private:
-   InstanceKey         _instanceKey;
 
 	friend class SceneManager;
 	friend class SceneNode;

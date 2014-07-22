@@ -34,11 +34,10 @@ using namespace std;
 VoxelMeshNode::VoxelMeshNode( const VoxelMeshNodeTpl &meshTpl ) :
 	SceneNode( meshTpl ),
    _materialRes( meshTpl.matRes ),
-	_parentModel( 0x0 ),
-   _noInstancing(false)
+	_parentModel( 0x0 )
 {
 	_renderable = true;
-
+   _noInstancing = false;
 	if( _materialRes != 0x0 )
 		_sortKey = (float)_materialRes->getHandle();
 }
@@ -109,6 +108,8 @@ void VoxelMeshNode::setParamI( int param, int value )
 		{
 			Modules::setError( "Invalid handle in h3dSetNodeParamI for H3DVoxelMesh::MatResI" );
 		}
+      _instanceKey.matResource = _materialRes;
+      _instanceKey.updateHash();
 		return;
    case VoxelMeshNodeParams::NoInstancingI:
       _noInstancing = (value != 0);
@@ -118,20 +119,8 @@ void VoxelMeshNode::setParamI( int param, int value )
 	SceneNode::setParamI( param, value );
 }
 
-const InstanceKey* VoxelMeshNode::getInstanceKey() {
-   if (_noInstancing) {
-      return nullptr;
-   }
-   _instanceKey.geoResource = _parentModel->getVoxelGeometryResource();
-   _instanceKey.matResource = _materialRes;
-   return &_instanceKey;
-}
-
-
-bool VoxelMeshNode::checkIntersection( const Vec3f &rayOrig, const Vec3f &rayDir, Vec3f &intsPos, Vec3f &intsNorm ) const
+bool VoxelMeshNode::checkIntersectionInternal( const Vec3f &rayOrig, const Vec3f &rayDir, Vec3f &intsPos, Vec3f &intsNorm ) const
 {
-	if( !rayAABBIntersection( rayOrig, rayDir, _bBox.min(), _bBox.max() ) ) return false;
-
    if (_parentModel->useCoarseCollisionBox()) {
       float d;
       radiant::csg::Point3f origin(rayOrig.x, rayOrig.y, rayOrig.z);
@@ -188,12 +177,6 @@ bool VoxelMeshNode::checkIntersection( const Vec3f &rayOrig, const Vec3f &rayDir
 			vert2 = &geoRes->getVertexData()[((uint32 *)geoRes->_indexData)[i + 2]].pos;
 		}
 
-      Plane p(*vert0, *vert1, *vert2);
-
-      if (p.distToPoint(orig) < 0) {
-         continue;
-      }
-		
 		if( rayTriangleIntersection( orig, dir, *vert0, *vert1, *vert2, intsPos ) )
 		{
 			intersection = true;
@@ -217,6 +200,9 @@ void VoxelMeshNode::onAttach( SceneNode &parentNode )
 	while( node->getType() != SceneNodeTypes::VoxelModel ) node = node->getParent();
 	_parentModel = (VoxelModelNode *)node;
 	_parentModel->markNodeListDirty();
+
+   _instanceKey.geoResource = _parentModel->getVoxelGeometryResource();
+   _instanceKey.updateHash();
 }
 
 

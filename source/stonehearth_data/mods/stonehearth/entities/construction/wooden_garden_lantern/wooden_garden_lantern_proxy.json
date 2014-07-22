@@ -1,0 +1,19 @@
+{
+   "mixins": "stonehearth:mixins:item_properties",
+   "type": "entity",
+   "components": {
+      "model_variants": {
+         "default": {
+            "models": [
+               "file(wooden_garden_lantern.qb)"
+            ]
+         }
+      },
+      "stonehearth:placeable_item_proxy" : {
+         "full_sized_entity" : "stonehearth:wooden_garden_lantern"
+      },
+      "item" : {
+         "category" : "construction"
+      }
+   }
+}
