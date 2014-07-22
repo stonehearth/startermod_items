@@ -1,0 +1,21 @@
+{
+   "type":"recipe",
+
+   "work_units"  : 3,
+   "recipe_name" : "Wooden Garden Lantern",
+   "description" : "A small lantern that's placed on the ground. Suitable for lighting paths or small gardens.",
+   "flavor"      : "",
+   "portrait"    : "/stonehearth/entities/construction/wooden_garden_lantern/wooden_garden_lantern.png",
+
+   "ingredients": [
+      {
+         "material" : "wood resource",
+         "count" : 1
+      }
+   ],
+  "produces": [
+      {
+         "item":"stonehearth:wooden_garden_lantern_proxy"
+      }
+  ]
+}

@@ -10,7 +10,8 @@
          }
       },
       "stonehearth:placeable_item_proxy" : {
-         "full_sized_entity" : "stonehearth:geranium_hanging"
+         "full_sized_entity" : "stonehearth:geranium_hanging",
+         "hide_place_item_command" : true
       },
       "item" : {
          "category" : "decoration"

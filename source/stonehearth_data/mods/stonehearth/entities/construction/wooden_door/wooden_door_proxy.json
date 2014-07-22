@@ -10,7 +10,8 @@
          }
       },
       "stonehearth:placeable_item_proxy" : {
-         "full_sized_entity" : "stonehearth:wooden_door"
+         "full_sized_entity" : "stonehearth:wooden_door",
+         "hide_place_item_command" : true
       },
       "item" : {
          "category" : "construction"

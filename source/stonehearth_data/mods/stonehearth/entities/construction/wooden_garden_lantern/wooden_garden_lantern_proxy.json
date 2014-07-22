@@ -5,19 +5,15 @@
       "model_variants": {
          "default": {
             "models": [
-               "file(wooden_window_frame_proxy.qb)"
+               "file(wooden_garden_lantern.qb)"
             ]
          }
       },
       "stonehearth:placeable_item_proxy" : {
-         "full_sized_entity" : "stonehearth:wooden_window_frame",
-         "hide_place_item_command" : true
+         "full_sized_entity" : "stonehearth:wooden_garden_lantern"
       },
       "item" : {
          "category" : "construction"
-      },
-      "mob" : {
-         "model_origin" : { "x": 0, "y": 0, "z": 0.05 }
       }
    }
 }

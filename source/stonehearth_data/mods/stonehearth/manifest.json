@@ -193,6 +193,12 @@
       "picket_fence_gate" : "file(entities/construction/picket_fence_gate)",
       "picket_fence_gate_proxy" : "file(entities/construction/picket_fence_gate/picket_fence_gate_proxy.json)",
 
+      "wooden_wall_lantern" : "file(entities/construction/wooden_wall_lantern)",
+      "wooden_wall_lantern_proxy" : "file(entities/construction/wooden_wall_lantern/wooden_wall_lantern_proxy.json)",
+
+      "wooden_garden_lantern" : "file(entities/construction/wooden_garden_lantern)",
+      "wooden_garden_lantern_proxy" : "file(entities/construction/wooden_garden_lantern/wooden_garden_lantern_proxy.json)",
+
       "simple_wall_lantern" : "file(entities/construction/simple_wall_lantern)",
       "simple_wall_lantern_proxy" : "file(entities/construction/simple_wall_lantern/simple_wall_lantern_proxy.json)",
 
@@ -967,6 +973,7 @@
       "renewable_resource_node" : "file(components/renewable_resource_node/renewable_resource_node_component.lua)",
       "stockpile" : "file(components/stockpile/stockpile_component.lua)",
       "door" : "file(components/door/door_component.lua)",
+      "lamp" : "file(components/lamp/lamp_component.lua)",
       "workshop" : "file(components/workshop/workshop_component.lua)",
       "crafter"  : "file(components/crafter/crafter_component.lua)",
       "promotion_talisman" : "file(components/promotion_talisman/promotion_talisman_component.lua)",
@@ -1012,7 +1019,6 @@
       "pathfinder" : "file(components/pathfinder/pathfinder_component.lua)"
    },
    "client_components" : {
-      "building" : "file(components/building/building_component.lua)",
       "wall" : "file(components/wall/wall_component.lua)",
       "column" : "file(components/column/column_component.lua)",
       "portal" : "file(components/portal/portal_component.lua)",
