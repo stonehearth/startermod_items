@@ -51,9 +51,16 @@ end
 -- compute the shape of the column.
 --
 function Column:_compute_column_shape()
-   local building = stonehearth.build:get_building_for(self._entity)
    local box = Cube3(Point3(0, 0, 0), Point3(1, constants.STOREY_HEIGHT, 1))
 
+   -- if we're a client side authoring entity, we might not have a construction
+   -- progress component.  that's ok!
+   local cp = self._entity:get_component('stonehearth:construction_progress')
+   if not cp then
+      return Region3(box)
+   end
+   
+   local building = cp:get_building_entity()
    return building:get_component('stonehearth:building')
                      :grow_local_box_to_roof(self._entity, box)
 end
