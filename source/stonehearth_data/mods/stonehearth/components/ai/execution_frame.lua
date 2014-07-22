@@ -294,8 +294,11 @@ function ExecutionFrame:_restart_thinking(entity_state, debug_reason)
    self._log:detail('_restart_thinking (reason:%s, state:%s)', debug_reason, self._state)
    self._aitrace:spam('@r@%s@%s', self._state, debug_reason)
 
-   local calling_thread = stonehearth.threads:get_current_thread()
-   assert(calling_thread == self._thread, 'on wrong thread in execution frame restart thinking')
+   if self._state == 'running' then
+      -- if we're running, we need to thunk over to the ai thread in order to restart thinking
+      local calling_thread = stonehearth.threads:get_current_thread()
+      assert(calling_thread == self._thread, 'on wrong thread in execution frame restart thinking')
+   end
 
    if not self:in_state('thinking', 'starting_thinking', 'ready', 'running') then
       self._log:spam('_restart_thinking returning without doing anything.(state:%s)', self._state)
