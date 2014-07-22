@@ -301,7 +301,7 @@ function TaskGroup:_update(count)
    local finished
    local engagements = {}
    local workers = self:_prioritize_worker_queue()
-   local proposal_count, total_proposals = 0, 0
+   local proposal_count, total_proposals, feed_count = 0, 0, 0
    repeat
       proposal_count, finished = self:_iterate(workers, engagements, count - total_proposals)
       total_proposals = total_proposals + proposal_count
