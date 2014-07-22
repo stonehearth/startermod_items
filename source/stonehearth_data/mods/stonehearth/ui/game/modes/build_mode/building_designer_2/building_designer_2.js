@@ -476,14 +476,19 @@ App.StonehearthBuildingDesignerTools = App.View.extend({
       if(!self.$) {
          return;
       }
+      
+      var selectedBuildingWindow = self.$('#selectedBuildingWindow');
+      if (!selectedBuildingWindow) {
+         return;
+      }
 
       var building_entity = this.get('building');
       var blueprint_entity = this.get('blueprint');
 
       if (building_entity) {
-         self.$('#selectedBuildingWindow').show();
+         selectedBuildingWindow.show();
       } else {
-         self.$('#selectedBuildingWindow').hide();
+         selectedBuildingWindow.hide();
       }
 
       if (blueprint_entity) {
@@ -503,7 +508,7 @@ App.StonehearthBuildingDesignerTools = App.View.extend({
             self.$('#editToolTab #roofEditor').show();
             self._applyRoofGradiantControlState('#roofEditor', constructionData);
          }
-         materialPicker.append(materials);            
+         materialPicker.append(materials);
       }
    }
 });
