@@ -15,8 +15,11 @@
          "wooden_window_frame" : {
             "uri" : "file(wooden_window_frame_recipe.json)"
          }, 
-         "lantern_wooden_box" : {
-            "uri" : "file(lantern_wooden_box_recipe.json)"
+         "wooden_wall_lantern" : {
+            "uri" : "file(wooden_wall_lantern_recipe.json)"
+         },
+         "wooden_garden_lantern" : {
+            "uri" : "file(wooden_garden_lantern_recipe.json)"
          },
          "picket_fence" : {
             "uri" : "file(picket_fence_recipe.json)"

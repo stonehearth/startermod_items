@@ -3,7 +3,7 @@
       "model_variants": {
          "default": {
             "models": [
-               "file(lantern_wooden_box.qb)"
+               "file(wooden_wall_lantern.qb)"
             ]
          }
       },
@@ -13,7 +13,7 @@
       "unit_info": {
          "name": "Wooden Wall-mounted Lantern",
          "description": "Easily attached to walls",
-         "icon" : "file(lantern_wooden_box.png)"
+         "icon" : "file(wooden_wall_lantern.png)"
       },
       "stonehearth:fixture" : {
          "cursor" : "stonehearth:cursors:create_window",

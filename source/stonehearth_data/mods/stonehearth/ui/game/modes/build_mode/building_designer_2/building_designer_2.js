@@ -83,7 +83,7 @@ App.StonehearthBuildingDesignerTools = App.View.extend({
       {
          category: 'Decorations',
          items: [
-            { name: 'Lamp', portrait: '/stonehearth/entities/construction/lantern_wooden_box/lantern_wooden_box.png', brush: 'stonehearth:lantern_wooden_box' },
+            { name: 'Lamp', portrait: '/stonehearth/entities/construction/wooden_wall_lantern/wooden_wall_lantern.png', brush: 'stonehearth:wooden_wall_lantern' },
          ]
       }
    ],

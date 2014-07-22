@@ -1,0 +1,21 @@
+{
+   "mixins": "file(wooden_wall_lantern_ghost.json)",
+
+   "components" : {
+      "stonehearth:lamp" : {
+         "light_effect" : "/stonehearth/data/effects/lamp_effect_wall"
+      }
+   },
+
+   "region_collision_shape" : {
+      "region_from_model": {
+         "model" : "file(wooden_wall_lantern.qb)"
+      }
+   },
+
+   "entity_data" : {
+      "stonehearth:ghost_item" : {
+         "uri" : "file(wooden_wall_lantern_ghost.json)"
+      }
+   }
+}
