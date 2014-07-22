@@ -33,10 +33,16 @@ class SceneGraphResource;
 const int RootNode = 1;
 const int QueryCacheSize = 32;
 
-struct InstanceKey {
+class InstanceKey {
+public:
    Resource* geoResource;
    MaterialResource* matResource;
    size_t hash;
+
+   InstanceKey() {
+      geoResource = nullptr;
+      matResource = nullptr;
+   }
 
    void updateHash() {
       hash = (uint32)(geoResource) ^ (uint32)(matResource);
@@ -161,7 +167,7 @@ public:
    virtual bool checkIntersectionInternal( const Vec3f &rayOrig, const Vec3f &rayDir, Vec3f &intsPos, Vec3f &intsNorm ) const;
 
    inline const InstanceKey* getInstanceKey() const { 
-      if (_noInstancing) {
+      if (_noInstancing || _instanceKey.geoResource == nullptr || _instanceKey.matResource == nullptr) {
          return nullptr;
       }
       return &_instanceKey; 
