@@ -3,12 +3,12 @@
    "tracks": {
       "sound": {
          "type": "sound_effect",
-         "duration": 500,
+         "duration": 1000,
          "start_delay": 0,
          "min_distance": 40,
-         "max_distance": 100,
+         "max_distance": 120,
          "volume": 70,
-         "track" : "stonehearth:sounds:saw_light_01_sound"
+         "track" : "stonehearth:sounds:health_up"
       }
    }
 }
