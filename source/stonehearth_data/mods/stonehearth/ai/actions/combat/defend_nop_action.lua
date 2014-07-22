@@ -17,8 +17,20 @@ function DefendNop:start_thinking(ai, entity, args)
 end
 
 function DefendNop:run(ai, entity, args)
-   -- do nothing, defined only for the debugger breakpoint
-   local breakpoint = 1;
+   -- suspend one frame.  this prevents the ai thread from stalling, which could make
+   -- actions triggered by events fail to run (e.g. hitstun)
+   radiant.events.listen_once(radiant, 'stonehearth:gameloop', function()
+         if self._suspended then
+            ai:resume()
+         end
+      end)
+   self._suspended = true
+   ai:suspend()
+   self._suspended = false
+end
+
+function DefendNop:stop()
+   self._suspended = false
 end
 
 return DefendNop
