@@ -152,6 +152,9 @@ App.StonehearthBuildingDesignerTools = App.View.extend({
          var tabId = $(this).attr('tab');
          var tab = self.$('#' + tabId);
 
+         self.$('.tabButton').removeClass('active');
+         $(this).addClass('active');
+
          // restore the last used tool for the tab
          var activeTool = self._state[tabId + "ActiveTool"];
          if (activeTool) {

@@ -1,0 +1,14 @@
+{
+   "type" : "effect",
+   "tracks": {
+      "health_down": {
+         "type": "sound_effect",
+         "duration": 1000,
+         "start_delay": 0,
+         "min_distance": 40,
+         "max_distance": 120,
+         "volume": 70,
+         "track" : "stonehearth:sounds:health_down"
+      }
+   }
+}

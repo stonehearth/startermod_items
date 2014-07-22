@@ -558,6 +558,10 @@
       "sounds:dodge_02" : "file(data/sounds/effects/sh_dodge_02.wav)",
       "sounds:dodge_03" : "file(data/sounds/effects/sh_dodge_03.wav)",
       "sounds:tombstone" : "file(data/sounds/effects/sh_tombstone.wav)",
+      "sounds:heartbreak_01" : "file(data/sounds/effects/sh_heartbreak_01.wav)",
+      "sounds:heartbreak_02" : "file(data/sounds/effects/sh_heartbreak_02.wav)",
+      "sounds:health_up" : "file(data/sounds/effects/sh_health_up.wav)",
+      "sounds:health_down" : "file(data/sounds/effects/sh_health_down.wav)",
                
       "music:title_screen"    : "file(data/music/startmenumusic.ogg)",
       "music:levelmusic_spring_day_01"     : "file(data/music/levelmusic_spring_day_01.ogg)",

@@ -4,7 +4,7 @@
       "animation": {
             "type": "animation_effect",
             "start_time": 0,
-            "speed" : 1.5,
+            "speed" : 3.0,
             "animation": "work.json",
             "loop": false
       },
@@ -21,9 +21,9 @@
          "item": "stonehearth:worker_hammer",
          "bone": "mainHand"
       },
-       "sound": {
+      "sound": {
          "type": "sound_effect",
-         "duration": 1000,
+         "duration": 200,
          "start_delay": 150,
          "min_distance": 50,
          "max_distance": 100,
@@ -50,6 +50,6 @@
             "ry":0,
             "rz":0
          }
-      }      
+      }            
    }
 }

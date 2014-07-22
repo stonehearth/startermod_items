@@ -20,7 +20,7 @@ public:
    Browser(HWND parentWindow, std::string const& docroot, int width, int height, int debug_port);
    virtual ~Browser();
 
-   typedef std::function<void(const csg::Region2& rgn)> PaintCb;
+   typedef std::function<void(const csg::Region2& rgn, const uint32* buff)> PaintCb;
    typedef std::function<void(const CefCursorHandle cursor)> CursorChangeCb;
    
 public:  // IBrowser Interface
@@ -33,7 +33,6 @@ public:  // IBrowser Interface
    void SetRequestHandler(HandleRequestCb cb) override;
    void OnScreenResize(int w, int h) override;
    void GetBrowserSize(int& w, int& h) override;
-   void UpdateBrowserFrambufferPtrs(uint32* last_written, uint32* next_to_write);
 
 public:
    typedef int CommandId;
@@ -144,10 +143,12 @@ private:
    int32                         _screenHeight;
    int32                         _uiWidth;
    int32                         _uiHeight;
-   uint32                        *_browserFramebuffer, *_lastBrowserFramebuffer;
+   std::vector<uint32>           _browserFB;
    HandleRequestCb               _requestHandler;
    HWND                          _parentWindow;
    int                           _drawCount;
+   int                           _neededToDraw;
+   bool                          _dirty;
 };
 
 END_RADIANT_CHROMIUM_NAMESPACE

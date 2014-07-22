@@ -13,11 +13,11 @@
        },     
        "death_poof": {
          "type": "sound_effect",
-         "duration": 1000,
+         "duration": 2300,
          "start_delay": 0,
          "min_distance": 50,
          "max_distance": 100,
-         "volume": 70,
+         "volume": 80,
          "track" : "stonehearth:sounds:death_poof" 
       },
       "dust": {

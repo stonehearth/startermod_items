@@ -1167,10 +1167,10 @@ csg::Matrix4 Renderer::GetNodeTransform(H3DNode node) const
    return transform;
  }
 
-void Renderer::UpdateUITexture(const csg::Region2& rgn)
+void Renderer::UpdateUITexture(const csg::Region2& rgn, const radiant::uint32* buff)
 {
    if (!rgn.IsEmpty()) {
-      uiBuffer_.update();
+      uiBuffer_.update(rgn, buff);
    }
 }
 
@@ -1300,12 +1300,6 @@ void* Renderer::GetNextUiBuffer()
 {
    return uiBuffer_.getNextUiBuffer();
 }
-
-void* Renderer::GetLastUiBuffer()
-{
-   return uiBuffer_.getLastUiBuffer();
-}
-
 
 std::shared_ptr<RenderEntity> Renderer::CreateRenderEntity(H3DNode parent, om::EntityPtr entity)
 {
