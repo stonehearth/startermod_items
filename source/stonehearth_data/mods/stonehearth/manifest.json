@@ -1012,6 +1012,7 @@
       "pathfinder" : "file(components/pathfinder/pathfinder_component.lua)"
    },
    "client_components" : {
+      "building" : "file(components/building/building_component.lua)",
       "wall" : "file(components/wall/wall_component.lua)",
       "column" : "file(components/column/column_component.lua)",
       "portal" : "file(components/portal/portal_component.lua)",
