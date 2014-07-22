@@ -1,21 +1,6 @@
 {
    "type" : "effect",
    "tracks": {
-      "heartbreak": {
-         "type": "sound_effect",
-         "duration": 1000,
-         "start_delay": 0,
-         "min_distance": 20,
-         "max_distance": 80,
-         "volume": 40,
-         "track" : {
-            "type": "one_of",
-            "items": [
-               "stonehearth:sounds:heartbreak_01",
-               "stonehearth:sounds:heartbreak_02"
-      ]
-   }
-},
       "health_down": {
          "type": "sound_effect",
          "duration": 1000,
