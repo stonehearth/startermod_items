@@ -1,0 +1,21 @@
+{
+   "mixins": "file(lantern_wooden_box_ghost.json)",
+
+   "components" : {
+      "stonehearth:lamp" : {
+         "light_effect" : "/stonehearth/data/effects/lamp_effect"
+      }
+   },
+
+   "region_collision_shape" : {
+      "region_from_model": {
+         "model" : "file(lantern_wooden_box.qb)"
+      }
+   },
+
+   "entity_data" : {
+      "stonehearth:ghost_item" : {
+         "uri" : "file(lantern_wooden_box_ghost.json)"
+      }
+   }
+}

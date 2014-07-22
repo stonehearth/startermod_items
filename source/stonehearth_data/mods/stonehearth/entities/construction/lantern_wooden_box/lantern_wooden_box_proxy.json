@@ -1,0 +1,19 @@
+{
+   "mixins": "stonehearth:mixins:item_properties",
+   "type": "entity",
+   "components": {
+      "model_variants": {
+         "default": {
+            "models": [
+               "file(lantern_wooden_box.qb)"
+            ]
+         }
+      },
+      "stonehearth:placeable_item_proxy" : {
+         "full_sized_entity" : "stonehearth:lantern_wooden_box"
+      },
+      "item" : {
+         "category" : "construction"
+      }
+   }
+}
