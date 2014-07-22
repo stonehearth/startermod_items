@@ -10,7 +10,8 @@
          }
       },
       "stonehearth:placeable_item_proxy" : {
-         "full_sized_entity" : "stonehearth:lantern_wooden_box"
+         "full_sized_entity" : "stonehearth:lantern_wooden_box",
+         "hide_place_item_command" : true
       },
       "item" : {
          "category" : "construction"
