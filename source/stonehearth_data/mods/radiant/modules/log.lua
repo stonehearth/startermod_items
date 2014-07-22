@@ -88,7 +88,7 @@ local function compute_log_prefix(prefix, entity)
          entity_prefix = entity_prefix .. ' ' .. name .. ' '
       end
    end
-   return '[' .. (entity_prefix and (entity_prefix .. ' ') or '') .. prefix .. '] '
+   return '[' .. (entity_prefix and (entity_prefix .. ' ') or '') .. (prefix or '') .. '] '
 end
 
 function Log.create_logger(sub_category)

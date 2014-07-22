@@ -9,6 +9,7 @@ HitStun.priority = stonehearth.constants.priorities.compelled_behavior.HIT_STUN
 function HitStun:start_thinking(ai, entity, args)
    self._ai = ai
    self._entity = entity
+   self._log = ai:get_log()
 
    self._think_output_set = false
    self._posture_set = false
@@ -26,6 +27,7 @@ function HitStun:_register_events(ai, entity)
    if not self._registered then
       self._ai = ai
       self._entity = entity
+      self._log:debug('listening for hit_stun messages')
       radiant.events.listen(entity, 'stonehearth:combat:hit_stun', self, self.on_hit_stun)
       self._registered = true
    end
@@ -33,6 +35,7 @@ end
 
 function HitStun:_unregister_events()
    if self._registered then
+      self._log:debug('unlistening for hit_stun messages')
       radiant.events.unlisten(self._entity, 'stonehearth:combat:hit_stun', self, self.on_hit_stun)
       self._ai = nil
       self._entity = nil
@@ -41,10 +44,14 @@ function HitStun:_unregister_events()
 end
 
 function HitStun:on_hit_stun(args)
+   self._log:spam('got hit stun message!')
    if not self._think_output_set then
+      self._log:spam('calling set think output for hitstun')
       self._ai:set_think_output()
       self._think_output_set = true
    else
+      -- if a hit stun message comes in while we were already doing a previous hitstun, just
+      -- start the effect over.  this can happen when multiple people are ganging up on us!
       if self._running then
          self:_start_new_effect()
       end

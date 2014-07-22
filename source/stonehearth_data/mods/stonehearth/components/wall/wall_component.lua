@@ -5,7 +5,7 @@ local Point2 = _radiant.csg.Point2
 local Region3 = _radiant.csg.Region3
 local Cube3 = _radiant.csg.Cube3
 local Point3 = _radiant.csg.Point3
-local INFINITE = 10000000
+
 local FIXTURE_ROTATIONS = {
    x = { [-1] =  0, [1] = 180 },
    z = { [-1] = 90, [1] = 270 },
@@ -367,54 +367,17 @@ function Wall:connect_to(column_a, column_b, normal)
    return self
 end
 
--- connect the wall to the roof.  the next time you call layout, we'll make
--- sure to grow the wall height all the way up to the roof
---
---    @param roof - the roof to attach to
---
-function Wall:connect_to_roof(roof)
-   self._sv.roof = roof
-   self.__saved_variables:mark_changed()
-   return self
-end
-
 -- computes the shape of the wall.  the wall goes from start_pt to end_pt
 -- in the direction of normal.  it is also constants.STOREY_HEIGHT high,
 -- unless it has a roof attached, in which case it extends all the way to
 -- the bottom of the roof.
 --
 function Wall:_compute_wall_shape()
-   local p0, p1 = self._sv.start_pt, self._sv.end_pt
+   local box = Cube3(self._sv.start_pt, self._sv.end_pt, 0)
+   local building = stonehearth.build:get_building_for(self._entity)
 
-   local shape = Region3(Cube3(p0, p1, 0))
-
-   -- if there's a roof over our heads, make sure the wall extends all
-   -- the way up to it.
-   if self._sv.roof then
-      local roof = self._sv.roof
-      local roof_region = roof:get_component('destination'):get_region():get()
-
-      local stencil = Cube3(Point3(p0.x, p1.y, p0.z),
-                            Point3(p1.x, INFINITE, p1.z))
-      
-      -- translate the stencil into the roof's coordinate system, clip it,
-      -- then transform the result back to our coordinate system
-      local offset = radiant.entities.get_location_aligned(roof) -
-                     radiant.entities.get_location_aligned(self._entity)
-
-      local roof_overhang = roof_region:clipped(stencil:translated(-offset))                                       
-                                       :translated(offset)
-      
-      -- iterate through each "shingle" in the overhang, growing the wall
-      -- upwards toward the base of the shingle.
-      for shingle in roof_overhang:each_cube() do
-         local col = Cube3(Point3(shingle.min.x, p1.y, shingle.min.z),
-                           Point3(shingle.max.x, shingle.min.y, shingle.max.z))
-         shape:add_unique_cube(col)
-      end
-   end
-
-   return shape
+   return building:get_component('stonehearth:building')
+                     :grow_local_box_to_roof(self._entity, box)
 end
 
 return Wall
