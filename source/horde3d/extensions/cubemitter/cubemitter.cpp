@@ -266,9 +266,13 @@ CubemitterNode::~CubemitterNode()
 		if( _occQueries[i] != 0 )
 			gRDI->destroyQuery( _occQueries[i] );
 	}
+
+   gRDI->destroyBuffer(_attributeBuf);
 	
    delete[] _cubes;
+   _cubes = nullptr;
    delete[] _attributesBuff;
+   _attributesBuff = nullptr;
 }
 
 

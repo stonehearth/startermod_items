@@ -1079,8 +1079,6 @@ NodeHandle SceneManager::parseNode( SceneNodeTpl &tpl, SceneNode *parent )
 NodeHandle SceneManager::addNode( SceneNode *node, SceneNode &parent )
 {
 	if( node == 0x0 ) return 0;
-
-   _registry[node->_type].nodes[node->getHandle()] = node;
 	
 	// Check if node can be attached to parent
 	if( !node->canAttach( parent ) )
@@ -1094,7 +1092,9 @@ NodeHandle SceneManager::addNode( SceneNode *node, SceneNode &parent )
 	node->_handle = _nextHandleValue++;
 	_nodes[node->_handle] = node;
 
-	// Attach to parent
+   _registry[node->_type].nodes[node->getHandle()] = node;
+
+   // Attach to parent
 	parent._children.push_back( node );
 
 	// Raise event
