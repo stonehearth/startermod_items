@@ -230,12 +230,13 @@ function TaskGroup:_prioritize_worker_queue()
          return l.all_fed_tasks_count < r.all_fed_tasks_count
       end)
    
+
    if self._log:is_enabled(radiant.log.DETAIL) then
+      self._log:detail("worker queue:")
       for i, entry in ipairs(workers) do
-         self._log:detail('%2d previously fed for %s', i, entry.all_fed_tasks_count, tostring(entry.worker))
-         self._log:detail('%2d tasks ready for feeding:', #entry.task_rankings)
+         self._log:detail('  %2d) %s (previously fed count:%d  ready count:%d)', i, tostring(entry.worker), entry.all_fed_tasks_count, #entry.task_rankings)
          for j, task_entry in ipairs(entry.task_rankings) do
-            self._log:detail('   %d) : %10s (pri:%d d:%4.2f)', j, task_entry.task:get_name(), task_entry.priority, task_entry.distance)
+            self._log:detail('    %d) %10s (pri:%d d:%4.2f)', j, task_entry.task:get_name(), task_entry.priority, task_entry.distance)
          end
       end
    end
@@ -316,9 +317,10 @@ function TaskGroup:_update(count)
       entry.all_fed_tasks[task] = true
       entry.all_fed_tasks_count = entry.all_fed_tasks_count + 1
       task:_feed_worker(entry.worker)
+      feed_count = feed_count + 1
    end
    
-   return total_proposals
+   return feed_count
 end
 
 function TaskGroup:get_counter_name()

@@ -430,16 +430,17 @@ end
 -- this protects races from many actions simultaneously trying to start at
 -- the same time.
 function Task:__action_try_start(action)
-   self:_log_state('entering __action_try_start')
+   local entity = action:get_entity()
+
+   self:_log_state(string.format('entering __action_try_start (entity:%s)', tostring(entity)))
 
    if self._state ~= STARTED then
       self._log:detail('task is not currently running.  cannot start! (state:%s)', self._state)
       return false;
    end
 
-   local entity = action:get_entity()
    if self._workers_pending_unfeed[entity:get_id()] then
-      self._log:detail('task worker %s s pending to be removed.  cannot start!', entity)
+      self._log:detail('task worker %s is pending to be removed.  cannot start!', entity)
       return false;
    end
 
