@@ -243,6 +243,11 @@ function BuildService:_create_blueprint(building, blueprint_uri, offset, init_fn
    -- now.
    local fabricator = self:_add_fabricator(blueprint)
 
+   -- track the structure in the building component.  the building component is
+   -- responsible for cross-structure interactions (e.g. sharing scaffolding)
+   building:get_component('stonehearth:building')
+               :add_structure(blueprint)
+
    return blueprint, fabricator
 end
 
@@ -266,6 +271,10 @@ function BuildService:_create_new_building(session, location)
 
    self._sv.next_building_id = self._sv.next_building_id + 1
    self.__saved_variables:mark_changed()
+
+   -- all buildings have a building component to manage the interaction between
+   -- individual structures
+   building:add_component('stonehearth:building')
 
    -- add a construction progress component.  though the building is just a container
    -- and requires no fabricator, we still need a CP component to activate and track
@@ -309,9 +318,9 @@ function BuildService:_merge_overlapping_floor(existing_floor, floor_uri, floor_
 
    -- now do the merge...
    local buildings_to_merge = {}
-   local floor_building = self:_get_building_for(floor)
+   local floor_building = self:get_building_for(floor)
    for _, old_floor in pairs(existing_floor) do
-      local building = self:_get_building_for(old_floor)
+      local building = self:get_building_for(old_floor)
       if building ~= floor_building then
          buildings_to_merge[building:get_id()] = building
       end
@@ -362,7 +371,7 @@ end
 --
 --    @param blueprint - the blueprint whose building you're interested in
 --
-function BuildService:_get_building_for(blueprint)
+function BuildService:get_building_for(blueprint)
    local cp = blueprint:get_component('stonehearth:construction_progress')
    return cp and cp:get_building_entity()
 end
@@ -443,12 +452,12 @@ function BuildService:_add_wall(session, columns_uri, walls_uri, p0, p1, normal)
    local either_column = c0 or c1
    local building
    if c0 and c1 then
-      local b0 = self:_get_building_for(c0)
-      local b1 = self:_get_building_for(c1)
+      local b0 = self:get_building_for(c0)
+      local b1 = self:get_building_for(c1)
       assert(b0 == b1) -- merge required
       building = b0
    elseif either_column then
-      building = self:_get_building_for(either_column)
+      building = self:get_building_for(either_column)
    else
       building = self:_create_new_building(session, p0)
    end
@@ -476,7 +485,7 @@ end
 
 function BuildService:_grow_walls(building, columns_uri, walls_uri)
    -- accumulate all the floor tiles in the building into a single, opaque region
-   local floor_region, floor = building:add_component('stonehearth:building')
+   local floor_region = building:add_component('stonehearth:building')
                                     :calculate_floor_region()
 
    -- convert a 2d edge point to the proper 3d coordinate.  we want to put columns
@@ -509,10 +518,7 @@ function BuildService:_grow_walls(building, columns_uri, walls_uri)
       local max = edge_point_to_point(edge.max) + origin
       local normal = Point3(edge.normal.x, 0, edge.normal.y)
 
-      local wall = self:_add_wall_span(building, min, max, normal, columns_uri, walls_uri)
-      wall:get_component('stonehearth:construction_progress')
-               :add_dependency(floor)
-   
+      self:_add_wall_span(building, min, max, normal, columns_uri, walls_uri)   
    end
 end
 
@@ -549,45 +555,11 @@ function BuildService:_grow_roof(building, roof_uri, options)
                         :apply_options(options)
          roof_entity:add_component('stonehearth:roof')
                         :cover_region2(region2)
-                        :layout()
       end)
 
-   -- convert the 2d roof region to a 3d region so we can query for all the structures
-   -- underneath the roof
-   local under_roof_region = Region3()
-   local origin = radiant.entities.get_world_grid_location(building)
-   for rect in region2:each_cube() do
-      local cube = Cube3(Point3(roof_location.x + rect.min.x, 0,      roof_location.z + rect.min.y),
-                         Point3(roof_location.x + rect.max.x, height, roof_location.z + rect.max.y))
-      under_roof_region:add_unique_cube(cube:translated(origin))
-   end
+   building:get_component('stonehearth:building')
+               :layout_roof(roof)
 
-   -- connect everything directly under the roof to it, and make sure it reaches
-   -- all the way up to the top.
-   local roof_component = roof:get_component('stonehearth:roof')
-   for _, structure in pairs(radiant.terrain.get_entities_in_region(under_roof_region)) do
-      if building == self:get_building_for_blueprint(structure) then
-         for _, component_name in ipairs({'stonehearth:wall', 'stonehearth:column'}) do
-            local component = structure:get_component(component_name)
-            if component then
-               -- connect the structure to the roof and re-compute its shape
-               roof_component:connect_to_structure(structure, component_name)
-               component:connect_to_roof(roof)
-
-               -- don't build the roof until we've built all the supporting structures
-               roof:add_component('stonehearth:construction_progress')
-                      :add_dependency(structure)
-            end
-         end
-         -- if this thing has scaffolding, let it know that the roof will need it
-         -- too
-         structure:get_component('stonehearth:construction_data')
-                  :loan_scaffolding_to(roof)
-      end
-   end
-
-   -- layout the roof, which will layout all underlying structures
-   roof_component:layout()
    return roof
 end
 
@@ -620,7 +592,7 @@ end
 function BuildService:_fetch_blueprint_at_point(building, point, blueprint_uri, init_fn)
    local blueprint = self:_get_blueprint_at_point(point)
    if blueprint then
-      assert(self:_get_building_for(blueprint) == building)
+      assert(self:get_building_for(blueprint) == building)
    else
       local origin = radiant.entities.get_world_grid_location(building)
       blueprint = self:_create_blueprint(building, blueprint_uri, point - origin, init_fn)
@@ -703,7 +675,7 @@ function BuildService:_add_portal(wall_entity, portal_uri, location)
          portal_blueprint_uri = data.uri
       end
 
-      local building = self:_get_building_for(wall_entity)
+      local building = self:get_building_for(wall_entity)
       local portal_blueprint = radiant.entities.create_entity(portal_blueprint_uri)
 
       portal_blueprint:add_component('unit_info')
@@ -769,7 +741,7 @@ function BuildService:_substitute_blueprint(old, new_uri)
       return
    end
    
-   local building = self:_get_building_for(old)   
+   local building = self:get_building_for(old)   
    local replaced = self:_create_blueprint(building, new_uri, Point3.zero, function(new)
          -- place the new entity in the same position as the old one
          local mob = old:get_component('mob')
@@ -794,7 +766,6 @@ function BuildService:_substitute_blueprint(old, new_uri)
             if old_structure then
                new:add_component(name)
                            :clone_from(old)
-                           :layout()
             end
          end
       end)
@@ -806,8 +777,29 @@ function BuildService:_substitute_blueprint(old, new_uri)
 end
 
 function BuildService:unlink_entity(entity)
+   local building = self:get_building_for(entity)
+   if building then
+      building:get_component('stonehearth:building')
+                  :unlink_entity(entity)
+   end
    self._undo:unlink_entity(entity)
 end
+
+-- called by a remote ui to change properties in the construction data component.
+-- 
+--    @param session - the session for the user at the other end of the connectino
+--    @param response - the response object
+--    @param options - the options to change.  
+--
+function BuildService:apply_options_command(session, response, blueprint, options)
+   local cd = blueprint:get_component('stonehearth:construction_data')
+   if cd then      
+      cd:apply_options(options)
+      return true
+   end
+   return false
+end
+
 
 return BuildService
 

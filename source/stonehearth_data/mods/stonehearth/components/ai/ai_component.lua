@@ -1,7 +1,6 @@
 
 local AIComponent = class()
 local ExecutionFrame = require 'components.ai.execution_frame'
-local log = radiant.log.create_logger('ai.component')
 
 local action_key_to_activity = {}
 
@@ -17,6 +16,9 @@ function AIComponent:initialize(entity, json)
    self._aitrace:set_prefix('e' .. tostring(entity:get_id()) .. '/')
    local s = radiant.entities.get_name(entity) or 'noname'
    self._aitrace:spam('@ce@%s@%s', 'e' .. tostring(entity:get_id()), s)
+
+   self._log = radiant.log.create_logger('ai.component')
+                          :set_entity(self._entity)
 
    if not self._sv._initialized then
       self._sv._initialized = true
@@ -120,13 +122,13 @@ function AIComponent:_add_action(key, action_ctor, injecting_entity)
       
    if self._action_index[does][key] then
       if self._action_index[does][key].action_ctor == action_ctor then
-         log:debug('ignoring duplicate action in index (should we refcount?)')
+         self._log:debug('ignoring duplicate action in index (should we refcount?)')
          return
       end
       assert(false, string.format('duplicate action key "%s" for "%s"', tostring(key), tostring(does)))
    end
 
-   --log:spam('%s, ai_component:add_action: %s', self._entity, self:_action_key_to_name(key))
+   --self._log:spam('%s, ai_component:add_action: %s', self._entity, self:_action_key_to_name(key))
 
    local entry = {
       action_ctor = action_ctor,
@@ -180,22 +182,22 @@ function AIComponent:remove_action(key)
    local does = action_key_to_activity[key]
    if does then
       local entry = self._action_index[does][key]
-      --log:spam('%s, ai_component:remove_action: %s', self._entity, self:_action_key_to_name(key))
-      log:detail('triggering stonehearth:action_index_changed:' .. does)
+      --self._log:spam('%s, ai_component:remove_action: %s', self._entity, self:_action_key_to_name(key))
+      self._log:detail('triggering stonehearth:action_index_changed:' .. does)
       self._action_index[does][key] = nil
       self:_notify_action_index_changed(does, 'remove', key, entry)
    else
-      log:debug('could not find action for key %s in :remove_action', tostring(key))
+      self._log:debug('could not find action for key %s in :remove_action', tostring(key))
    end
 end
 
 function AIComponent:add_custom_action(action_ctor, injecting_entity)
-   log:debug('adding action "%s" (%s) to %s', action_ctor.name, tostring(action_ctor), self._entity)
+   self._log:debug('adding action "%s" (%s) to %s', action_ctor.name, tostring(action_ctor), self._entity)
    self:_add_action(action_ctor, action_ctor, injecting_entity)
 end
 
 function AIComponent:remove_custom_action(action_ctor, injecting_entity)
-   log:debug('removing action "%s" (%s) from %s', action_ctor.name, tostring(action_ctor), self._entity)
+   self._log:debug('removing action "%s" (%s) from %s', action_ctor.name, tostring(action_ctor), self._entity)
    self:remove_action(action_ctor)
 end
 
@@ -281,13 +283,16 @@ function AIComponent:_start()
       while not self._dead do
          local start_tick = radiant.gamestate.now()
          self._aitrace:spam('@loop')
+         self._log:debug('starting new execution frame run in ai loop')
          self._execution_frame:run({})
+         self._log:debug('reached bottom of execution frame run in ai loop')
          radiant.events.trigger(self._entity, 'stonehearth:ai:halt')
+         
          -- Don't go back to running if we thought without ever yielding (i.e. without doing 
          -- any real work).  This also prevents tight ai loops that never yield (possibly 
          -- because some unit keeps aborting).
          while radiant.gamestate.now() - start_tick == 0 do
-            log:info('yielding thread because we thought without yielding.')
+            self._log:info('yielding thread because we thought without yielding.')
             self._thread:sleep_realtime(0)
          end
 
@@ -313,7 +318,7 @@ function AIComponent:_create_top_execution_frame()
 end
 
 function AIComponent:_terminate_thread()
-   log:debug('terminating ai thread')
+   self._log:debug('terminating ai thread')
    if self._execution_frame then
       self._execution_frame:destroy('terminating thread')
       self._execution_frame = nil
