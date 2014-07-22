@@ -831,9 +831,6 @@ void Client::mainloop()
 
    if (!loading_) {
       perfmon::SwitchToCounter("update browser frambuffer");
-      browser_->UpdateBrowserFrambufferPtrs(
-         (unsigned int*)Renderer::GetInstance().GetLastUiBuffer(), 
-         (unsigned int*)Renderer::GetInstance().GetNextUiBuffer());
    }
    perfmon::SwitchToCounter("flush http events");
    http_reactor_->FlushEvents();
@@ -843,8 +840,8 @@ void Client::mainloop()
       browser_->Work();
 
       if (!loading_) {
-         auto cb = [](const csg::Region2 &rgn) {
-            Renderer::GetInstance().UpdateUITexture(rgn);
+         auto cb = [this](const csg::Region2 &rgn, const uint32* buff) {
+            Renderer::GetInstance().UpdateUITexture(rgn, buff);
          };
          perfmon::SwitchToCounter("update browser display");
          browser_->UpdateDisplay(cb);

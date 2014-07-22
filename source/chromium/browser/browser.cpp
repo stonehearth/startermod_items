@@ -27,7 +27,8 @@ IBrowser* ::radiant::chromium::CreateBrowser(HWND parentWindow, std::string cons
 Browser::Browser(HWND parentWindow, std::string const& docroot, int width, int height, int debug_port) :
    _screenWidth(width),
    _screenHeight(height),
-   _parentWindow(parentWindow)
+   _parentWindow(parentWindow),
+   _dirty(false)
 { 
    _uiWidth = 1920;
    _uiHeight = 1080;
@@ -35,9 +36,9 @@ Browser::Browser(HWND parentWindow, std::string const& docroot, int width, int h
       _uiWidth = _screenWidth;
       _uiHeight = _screenHeight;
    }
-   _browserFramebuffer = 0x0;
-   _lastBrowserFramebuffer = 0x0;
+   _browserFB.reserve(_uiWidth * _uiHeight);
    _drawCount = 0;
+   _neededToDraw = 0;
 
    CefMainArgs main_args(GetModuleHandle(NULL));
    if (!CefExecuteProcess(main_args, _app)) {
@@ -184,33 +185,36 @@ void Browser::OnPaint(CefRefPtr<CefBrowser> browser,
       return;
    }
 
-   _drawCount++;
-   if (_browserFramebuffer == nullptr) {
-      return;
+   uint32 *bf = _browserFB.data();
+   int uiWidth = _uiWidth;
+   for (auto& r : dirtyRects) {
+      uint32 *bfLine = bf + (r.y * uiWidth) + r.x;
+      uint32 *srcLine = ((uint32 *)buffer) + (r.y * uiWidth) + r.x;
+      int rWidth = r.width;
+      int rHeight = r.height;
+      for (int i = 0; i < rHeight; i++) {
+         memcpy (bfLine, srcLine, rWidth * sizeof(uint32));
+         bfLine += uiWidth;
+         srcLine += uiWidth;
+      }
    }
-
-   memcpy(_browserFramebuffer, buffer, width * height * 4);
-}
-
-void Browser::UpdateBrowserFrambufferPtrs(unsigned int* last_written, unsigned int* next_to_write)
-{
-   _lastBrowserFramebuffer = last_written;
-   _browserFramebuffer = next_to_write;
+   _dirty = true;
 }
 
 void Browser::UpdateDisplay(PaintCb cb)
 {
+   if (!_dirty) {
+      return;
+   }
+   _dirty = false;
    std::lock_guard<std::mutex> guard(_lock);
  
-   if (_drawCount > 0) {
-      // Always inform clients that our entire view has changed.  This is because it's possible
-      // that our OnPaint method can be called more than once before UpdateDisplay is polled, leading
-      // to outdated bounding rect information being sent to any clients.
-      csg::Region2 r(csg::Rect2(csg::Point2(0, 0), csg::Point2(_uiWidth, _uiHeight)));
+   // Always inform clients that our entire view has changed.  This is because it's possible
+   // that our OnPaint method can be called more than once before UpdateDisplay is polled, leading
+   // to outdated bounding rect information being sent to any clients.
+   csg::Region2 r(csg::Rect2(csg::Point2(0, 0), csg::Point2(_uiWidth, _uiHeight)));
 
-      cb(r);
-      _drawCount = 0;
-   }
+   cb(r, _browserFB.data());
 }
 
 int Browser::GetCefKeyboardModifiers(WPARAM wparam, LPARAM lparam)
@@ -395,15 +399,12 @@ void Browser::OnCursorChange(CefRefPtr<CefBrowser> browser, CefCursorHandle curs
 // xxx - nuke this...
 bool Browser::HasMouseFocus(int x, int y)
 {
-   if (_lastBrowserFramebuffer == nullptr) {
-      return false;
-   }
    WindowToBrowser(x, y);
 
    if (x < 0 || y < 0 || x >= _uiWidth || y >= _uiHeight) {
       return false;
    }
-   uint32 pixel = _lastBrowserFramebuffer[x + (y * _uiWidth)];
+   uint32 pixel = _browserFB[x + (y * _uiWidth)];
    return ((pixel >> 24) & 0xff) != 0;
 }
 
@@ -580,6 +581,8 @@ void Browser::OnScreenResize(int w, int h)
       _uiWidth = 1920;
       _uiHeight = 1080;
    }
+
+   _browserFB.resize(_uiWidth * _uiHeight);
 
    BROWSER_LOG(3) << "Browser (UI) resized to " << _uiWidth << "x" << _uiHeight;
 

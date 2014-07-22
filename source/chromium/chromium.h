@@ -17,7 +17,7 @@ class IBrowser
 public:
    virtual ~IBrowser() {}
 
-   typedef std::function<void(const csg::Region2& rgn)> PaintCb;
+   typedef std::function<void(const csg::Region2& rgn, const uint32* buff)> PaintCb;
    typedef std::function<void(const HCURSOR cursor)> CursorChangeCb; // xxx: merge this into the command system!
 
    typedef std::function<void(std::string const& uri, JSONNode const& query, std::string const& postdata, rpc::HttpDeferredPtr response)> HandleRequestCb;
@@ -31,8 +31,6 @@ public:
    virtual void SetRequestHandler(HandleRequestCb cb) = 0;
    virtual void OnScreenResize(int w, int h) = 0;
    virtual void GetBrowserSize(int& w, int& h) = 0;
-   virtual void UpdateBrowserFrambufferPtrs(uint32* last_written, uint32* next_to_write) = 0;
-
 };
 
 IBrowser* CreateBrowser(HWND parentWindow, std::string const& docroot, int width, int height, int debug_port);

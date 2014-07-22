@@ -58,24 +58,13 @@ void* UiBuffer::getNextUiBuffer() const
    return h3dMapResStream(uiPbo_[curBuff_], 0, 0, 0, false, true);
 }
 
-void* UiBuffer::getLastUiBuffer() const
-{
-   int lastBuff = curBuff_ - 1;
-   if (lastBuff < 0) {
-      lastBuff = MAX_BUFFERS - 1;
-   }
-   if (!uiPbo_[lastBuff]) {
-      return nullptr;
-   }
-
-   return h3dMapResStream(uiPbo_[lastBuff], 0, 0, 0, false, true);
-}
-
-void UiBuffer::update()
+void UiBuffer::update(const csg::Region2& rgn, const radiant::uint32* buff)
 {
    if (!uiPbo_[curBuff_]) {
       return;
    }
+
+   memmove(getNextUiBuffer(), buff, rgn.GetArea() * 4);
 
    perfmon::SwitchToCounter("unmap ui pbo");
    h3dUnmapResStream(uiPbo_[curBuff_]);

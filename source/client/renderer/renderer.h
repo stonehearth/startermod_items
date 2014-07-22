@@ -153,7 +153,7 @@ class Renderer
       bool ShowDebugShapes();
       void SetShowDebugShapes(bool show_debug_shapes);
 
-      void UpdateUITexture(const csg::Region2& rgn);
+      void UpdateUITexture(const csg::Region2& rgn, const uint32* buff);
 
       Camera* GetCamera() { return camera_; }
 
@@ -167,7 +167,6 @@ class Renderer
       void HandleResize();
 
       void* GetNextUiBuffer();
-      void* GetLastUiBuffer();
 
       void SetDrawWorld(bool drawWorld);
       void SetLoading(bool loading);
