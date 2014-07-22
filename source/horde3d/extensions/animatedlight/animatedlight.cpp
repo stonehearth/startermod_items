@@ -175,7 +175,7 @@ SceneNode *AnimatedLightNode::factoryFunc( const SceneNodeTpl &nodeTpl )
 }
 
 
-int AnimatedLightNode::getParamI( int param )
+int AnimatedLightNode::getParamI( int param ) const
 {
 	return SceneNode::getParamI( param );
 }

@@ -27,9 +27,9 @@ class Skeleton {
       H3DNode CreateBone(std::string const& bone);
 
    protected:
-      RenderEntity&                          _renderEntity;
-      std::map<std::string, H3DNode>         _bones;
-      float                                  _scale;
+      RenderEntity&                            _renderEntity;
+      std::unordered_map<std::string, H3DNode> _bones;
+      float                                    _scale;
 };
 
 END_RADIANT_CLIENT_NAMESPACE

@@ -156,6 +156,8 @@ void Renderer::InitHorde()
    h3dSetOption(H3DOptions::MaxAnisotropy, 1);
    h3dSetOption(H3DOptions::FastAnimation, 1);
    h3dSetOption(H3DOptions::DumpFailedShaders, 1);
+
+   h3dSetGlobalShaderFlag("DRAW_GRIDLINES", false);
 }
 
 void Renderer::InitWindow()
@@ -454,7 +456,7 @@ void Renderer::BuildSkySphere()
    H3DRes geoRes = h3dutCreateGeometryRes("skysphere", 2046, 2048 * 3, (float*)spVerts, spInds, nullptr, nullptr, nullptr, texData, nullptr);
    H3DNode modelNode = h3dAddModelNode(H3DRootNode, "skysphere_model", geoRes);
    meshNode = h3dAddMeshNode(modelNode, "skysphere_mesh", skysphereMat, 0, 2048 * 3, 0, 2045);
-   h3dSetNodeFlags(modelNode, H3DNodeFlags::NoCastShadow | H3DNodeFlags::NoRayQuery, true);
+   h3dSetNodeFlags(modelNode, H3DNodeFlags::NoCastShadow | H3DNodeFlags::NoRayQuery | H3DNodeFlags::NoCull, true);
 }
 
 void Renderer::SetStarfieldBrightness(float brightness)
@@ -512,7 +514,7 @@ void Renderer::BuildStarfield()
    
    H3DNode modelNode = h3dAddModelNode(H3DRootNode, "starfield_model", geoRes);
    starfieldMeshNode = h3dAddMeshNode(modelNode, "starfield_mesh", starfieldMat, 0, NumStars * 6, 0, NumStars * 4 - 1);
-   h3dSetNodeFlags(modelNode, H3DNodeFlags::NoCastShadow | H3DNodeFlags::NoRayQuery, true);
+   h3dSetNodeFlags(modelNode, H3DNodeFlags::NoCastShadow | H3DNodeFlags::NoRayQuery | H3DNodeFlags::NoCull, true);
 }
 
 void Renderer::ShowPerfHud(bool value) {
@@ -826,6 +828,7 @@ void Renderer::Initialize()
    fowExploredNode_ = h3dAddInstanceNode(H3DRootNode, "fow_explorednode", 
       h3dAddResource(H3DResTypes::Material, "materials/fow_explored.material.xml", 0), 
       Pipeline::GetInstance().CreateVoxelGeometryFromRegion("littlecube", littleCube), 1000);
+   h3dSetNodeFlags(fowExploredNode_, H3DNodeFlags::NoCastShadow | H3DNodeFlags::NoRayQuery | H3DNodeFlags::NoCull, true);
 
    csg::Region2 r;
    r.Add(csg::Rect2(csg::Region2::Point(-1000, -1000), csg::Region2::Point(1000, 1000)));
@@ -849,7 +852,7 @@ void Renderer::Initialize()
 
 void Renderer::BuildLoadingScreen()
 {
-   _loadingBackgroundMaterial = h3dAddResource(H3DResTypes::Material, "materials/loading_screen.material.xml", 0);
+   _loadingBackgroundMaterial = h3dAddResource(H3DResTypes::Material, "materials/loading_screen.material.xml", H3DResFlags::NoFlush);
    // Can't clone until we load!
    LoadResources();
    _loadingProgressMaterial = h3dCloneResource(_loadingBackgroundMaterial, "progress_material");
@@ -1253,7 +1256,7 @@ void Renderer::SetLoading(bool loading)
 {
    _loading = loading;
    if (loading) {
-      _loadingAmount = 0.0;
+      _loadingAmount = 0.0f;
       currentPipeline_ = "pipelines/loading_screen_only.pipeline.xml";
    } else {
       currentPipeline_ = worldPipeline_;
@@ -1271,19 +1274,19 @@ void Renderer::RenderLoadingMeter()
    // *artisnal* constants.
    // If you look closely, you'll see that the 'x' values don't even make sense--that's
    // because 'y' is [0,1] and 'x' is [0, Aspect_Ratio].  Awesome!
-   float x = 0.62;
-   float y = 0.6;
-   float barHeight = 0.1;
-   float width = 0.5;
+   float x = 0.62f;
+   float y = 0.6f;
+   float barHeight = 0.1f;
+   float width = 0.5f;
    float ovTitleVerts[] = { x, y, 0, 0, x, y + barHeight, 0, 1,
 	                           x + width, y + barHeight, 1, 1, x + width, y, 1, 0 };
    h3dShowOverlays( ovTitleVerts, 4,  1.0f, 1.0f, 1.0f, 1.0f, _loadingBackgroundMaterial, 0 );
 
 
-   x = 0.64;
-   y = 0.613;
-   barHeight = 0.052;
-   width = 0.46;
+   x = 0.64f;
+   y = 0.613f;
+   barHeight = 0.052f;
+   width = 0.46f;
    ovTitleVerts[0] = x;
    ovTitleVerts[1] = y;
    ovTitleVerts[4] = x;

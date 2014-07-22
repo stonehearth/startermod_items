@@ -77,8 +77,6 @@ public:
 	uint32 getVertREnd(int lodLevel) const;
 	VoxelModelNode *getParentModel() const { return _parentModel; }
 
-   const InstanceKey* getInstanceKey();
-
 protected:
 	VoxelMeshNode( const VoxelMeshNodeTpl &meshTpl );
 	~VoxelMeshNode();
@@ -89,13 +87,11 @@ protected:
 	VoxelModelNode      *_parentModel;
 	BoundingBox         _localBBox;
 	bool                _ignoreAnim;
-   bool                _noInstancing;
 
 	std::vector< uint32 >  _occQueries;
 	std::vector< uint32 >  _lastVisited;
 
 private:
-   InstanceKey         _instanceKey;
 
 	friend class SceneManager;
 	friend class SceneNode;

@@ -1564,7 +1564,7 @@ void Renderer::updateShadowMap(const Frustum* lightFrus, float minDist, float ma
 	{
       for (const auto& entry : queue.second) 
       {
-         SceneNode* n = entry.node;
+         SceneNode const* n = entry.node;
          litAabb.makeUnion(n->getBBox());
       }
 	}
@@ -2058,7 +2058,7 @@ void Renderer::computeTightCameraBounds(float* minDist, float* maxDist)
    {
       for (const auto& entry : queue.second)
       {
-         SceneNode* n = entry.node;
+         SceneNode const* n = entry.node;
 	      visibleAabb.makeUnion(n->getBBox());
       }
    }
