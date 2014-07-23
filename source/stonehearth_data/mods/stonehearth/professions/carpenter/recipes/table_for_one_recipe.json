@@ -6,7 +6,6 @@
    "description" : "Better than eating standing up. Unless you're watching your weight.",
    "flavor"      : "Dining furniture for introverts.",
    "portrait"    : "/stonehearth/entities/furniture/table_for_one/table_for_one.png",
-   "category"    : "weapons",
 
    "ingredients": [
       {

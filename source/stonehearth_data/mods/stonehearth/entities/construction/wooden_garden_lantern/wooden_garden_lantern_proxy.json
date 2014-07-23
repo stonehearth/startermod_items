@@ -11,9 +11,6 @@
       },
       "stonehearth:placeable_item_proxy" : {
          "full_sized_entity" : "stonehearth:wooden_garden_lantern"
-      },
-      "item" : {
-         "category" : "construction"
       }
    }
 }

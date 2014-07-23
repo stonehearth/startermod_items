@@ -6,7 +6,6 @@
    "description" : "Lets light into the room.",
    "flavor"      : "So much for privacy...",
    "portrait"    : "/stonehearth/entities/construction/wooden_window_frame/wooden_window_frame.png",
-   "category"    : "weapons",
 
    "ingredients": [
       {

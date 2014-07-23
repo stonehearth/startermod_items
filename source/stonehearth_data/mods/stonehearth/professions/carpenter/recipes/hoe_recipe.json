@@ -6,7 +6,6 @@
    "description" : "Promotes a citizen into a Farmer.",
    "flavor"      : "Hoedown time!!!!",
    "portrait"    : "/stonehearth/professions/farmer/farmer_hoe/farmer_hoe.png",
-   "category"    : "tools",
 
    "ingredients": [
       {

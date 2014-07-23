@@ -6,7 +6,6 @@
    "description" : "Lets people through your picket fence.",
    "flavor"      : "",
    "portrait"    : "/stonehearth/entities/construction/picket_fence_gate/picket_fence_gate.png",
-   "category"    : "weapons",
 
    "ingredients": [
       {

@@ -6,7 +6,6 @@
    "description" : "Doubles as stain-proof tablecloth.",
    "flavor"      : "Spent two weeks trying to get berry stains out of cloth. Time to get creative.",
    "portrait"    : "/stonehearth/entities/generic/default_object/default_object.png",
-   "category"    : "decoration",
 
    "ingredients": [
       {

@@ -6,7 +6,6 @@
    "description" : "Keeps people off your property.",
    "flavor"      : "If it's not white, is our life unfulfilled?",
    "portrait"    : "/stonehearth/entities/construction/picket_fence/picket_fence.png",
-   "category"    : "weapons",
 
    "ingredients": [
       {

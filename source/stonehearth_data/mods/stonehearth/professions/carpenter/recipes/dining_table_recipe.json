@@ -6,7 +6,6 @@
    "description" : "Allows a group of people to all eat together. Like grown ups.",
    "flavor"      : "Sitting down to eat is a sign of civilization.",
    "portrait"    : "/stonehearth/entities/furniture/dining_table/dining_table.png",
-   "category"    : "weapons",
 
    "ingredients": [
       {

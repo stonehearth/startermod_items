@@ -6,7 +6,6 @@
    "description" : "When sitting, food is 20% more satisfying.",
    "flavor"      : "Ten thousand years of reseach culminated in this four-legged design.",
    "portrait"    : "/stonehearth/entities/furniture/simple_wooden_chair/simple_wooden_chair.png",
-   "category"    : "furniture",
 
    "ingredients": [
       {
