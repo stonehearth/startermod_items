@@ -793,8 +793,19 @@ end
 --
 function BuildService:apply_options_command(session, response, blueprint, options)
    local cd = blueprint:get_component('stonehearth:construction_data')
-   if cd then      
+   if cd then
+      -- apply the new options to the blueprint      
       cd:apply_options(options)
+
+      -- copy the options to the project.  this probably shouldn't be necessary. 
+      -- project's don't need a construction data component, do they? (the only
+      -- reason I can think of is to make it easy to find their building, but can't
+      -- we do that with a helper method that assume's its' the mob's parent?)
+      local fab = cd:get_fabricator_entity()
+      local proj = fab:get_component('stonehearth:fabricator')
+                           :get_project()
+      proj:get_component('stonehearth:construction_data')
+               :clone_from(blueprint)
       return true
    end
    return false

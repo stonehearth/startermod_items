@@ -2,6 +2,7 @@ local voxel_brush_util = require 'services.server.build.voxel_brush_util'
 
 local ConstructionDataComponent = class()
 local Point2 = _radiant.csg.Point2
+local Region2 = _radiant.csg.Region2
 local Region3 = _radiant.csg.Region3
 local Cube3 = _radiant.csg.Cube3
 local Point3 = _radiant.csg.Point3
@@ -39,6 +40,29 @@ function ConstructionDataComponent:trace_data(reason)
    return self.__saved_variables:trace_data(reason)
 end
 
+function ConstructionDataComponent:clone_from(entity)
+   if entity then
+      local other_cd = entity:get_component('stonehearth:construction_data')
+
+      self._sv.normal = other_cd._sv.normal and Point3(other_cd._sv.normal) or nil
+      self._sv.nine_grid_region = other_cd._sv.nine_grid_region and Region2(other_cd._sv.nine_grid_region) or nil
+      self._sv.type = other_cd._sv.type
+      self._sv.material = other_cd._sv.material
+      self._sv.use_custom_renderer = other_cd._sv.use_custom_renderer
+      self._sv.needs_scaffolding = other_cd._sv.needs_scaffolding
+      self._sv.max_workers = other_cd._sv.max_workers
+      self._sv.allow_diagonal_adjacency = other_cd._sv.allow_diagonal_adjacency
+      self._sv.project_adjacent_to_base = other_cd._sv.project_adjacent_to_base
+      self._sv.allow_crouching_construction = other_cd._sv.allow_crouching_construction
+      self._sv.paint_through_blueprint = other_cd._sv.paint_through_blueprint
+      self._sv.nine_grid_slope = other_cd._sv.nine_grid_slope
+      self._sv.nine_grid_gradiant = other_cd._sv.nine_grid_gradiant
+      self._sv.nine_grid_max_height = other_cd._sv.nine_grid_max_height
+      self._sv.brush = other_cd._sv.brush
+      self.__saved_variables:mark_changed()
+   end
+end
+
 -- changes properties in the construction data component.
 -- 
 --    @param options - the options to change.  
@@ -60,22 +84,7 @@ function ConstructionDataComponent:apply_options(options)
 end
 
 function ConstructionDataComponent:begin_editing(entity)
-   if entity then
-      local other_cd = entity:get_component('stonehearth:construction_data')
-
-      self._sv.normal = other_cd._sv.normal and Point3(other_cd._sv.normal) or nil
-      self._sv.nine_grid_region = other_cd._sv.nine_grid_region and Region2(other_cd._sv.nine_grid_region) or nil
-      self._sv.type = other_cd._sv.type
-      self._sv.material = other_cd._sv.material
-      self._sv.use_custom_renderer = other_cd._sv.use_custom_renderer
-      self._sv.needs_scaffolding = other_cd._sv.needs_scaffolding
-      self._sv.max_workers = other_cd._sv.max_workers
-      self._sv.allow_diagonal_adjacency = other_cd._sv.allow_diagonal_adjacency
-      self._sv.project_adjacent_to_base = other_cd._sv.project_adjacent_to_base
-      self._sv.allow_crouching_construction = other_cd._sv.allow_crouching_construction
-      self._sv.paint_through_blueprint = other_cd._sv.paint_through_blueprint
-      self._sv.brush = other_cd._sv.brush
-   end
+   self:clone_from(entity)
    self._sv.fabricator_entity = nil
    self._sv.building_entity = nil
 end
