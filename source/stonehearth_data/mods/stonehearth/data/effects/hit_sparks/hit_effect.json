@@ -14,6 +14,22 @@
             "ry":0,
             "rz":0
          }
-     }
+      },
+      "sound": {
+         "type": "sound_effect",
+         "duration": 1000,
+         "start_delay": 0,
+         "min_distance": 30,
+         "max_distance": 90,
+         "volume": 40,
+         "track" : {
+            "type": "one_of",
+            "items": [
+               "stonehearth:sounds:gethit_01",
+               "stonehearth:sounds:gethit_02",
+               "stonehearth:sounds:gethit_03"
+            ]
+         }
+      }
    }
 }
