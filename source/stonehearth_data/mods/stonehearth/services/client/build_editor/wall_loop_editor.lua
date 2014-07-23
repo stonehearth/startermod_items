@@ -1,7 +1,6 @@
 local constants = require('constants').construction
 local StructureEditor = require 'services.client.build_editor.structure_editor'
 local WallLoopEditor = class(StructureEditor)
-local LocationSelector = require 'services.client.selection.location_selector'
 
 local Point3 = _radiant.csg.Point3
 local Cube3 = _radiant.csg.Cube3
@@ -28,23 +27,17 @@ function WallLoopEditor:go(column_uri, wall_uri, response)
       :set_min_locations_count(2)
       :set_filter_fn(function(result)
             if result.entity == current_column_editor:get_proxy_fabricator() then
-               return LocationSelector.FILTER_IGNORE
+               return stonehearth.selection.FILTER_IGNORE
             end
-
-            if result.entity:get_component('terrain') == nil then
-               return LocationSelector.FILTER_FAIL
-            end
-
-            return LocationSelector.FILTER_PASS
+            return result.entity:get_component('terrain') ~= nil
          end)
       :progress(function(selector, location, rotation)
-            if not location then
-               return
+            if location then
+               if last_location then
+                  location = self:_fit_point_to_constraints(last_location, location, current_column_editor:get_proxy_blueprint())
+               end
+               current_column_editor:move_to(location)
             end
-            if last_location then
-               location = self:_fit_point_to_constraints(last_location, location, current_column_editor:get_proxy_blueprint())
-            end
-            current_column_editor:move_to(location)
          end)
       :done(function(selector, location, rotation, finished)
             if last_column_editor then
