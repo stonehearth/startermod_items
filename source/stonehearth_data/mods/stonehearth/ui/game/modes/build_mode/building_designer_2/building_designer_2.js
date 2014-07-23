@@ -241,8 +241,6 @@ App.StonehearthBuildingDesignerTools = App.View.extend({
 
          self._state.floorMaterial = $(this).attr('index');
          self._saveState();
-
-         self._updateTool(self.$('#drawFloorTool'));
       })
 
       // draw floor tool
@@ -345,8 +343,6 @@ App.StonehearthBuildingDesignerTools = App.View.extend({
 
          self._state.doodadMaterial = $(this).attr('index');
          self._saveState();
-
-         self._updateTool(self.$('#drawDoodadTool'));
       })
 
       // draw doodad tool
@@ -406,16 +402,16 @@ App.StonehearthBuildingDesignerTools = App.View.extend({
 
    // Make the roof gradiant picker match the specified gradiant.  gradiant is an
    // array of the 'left', 'right', 'front', and 'back' flags.
-   _applyRoofGradiantControlState : function(selector, options) {
+   _applyRoofGradiantControlState : function(options) {
       var self = this;
 
-      self.$(selector + ' .roofDiagramButton').removeClass('active');
+      self.$('#roofToolTab .roofDiagramButton').removeClass('active');
       $.each(options.nine_grid_gradiant || [], function(_, dir) {
-         self.$(selector + ' .roofDiagramButton[gradient="' + dir + '"]').addClass('active');
+         self.$('#roofToolTab .roofDiagramButton[gradient="' + dir + '"]').addClass('active');
       });
 
-      $(selector + ' #inputMaxRoofHeight').val(options.nine_grid_max_height || 4);
-      $(selector + ' #inputMaxRoofSlope').val(options.nine_grid_slope || 1);
+      $('#roofToolTab #inputMaxRoofHeight').val(options.nine_grid_max_height || 4);
+      $('#roofToolTab #inputMaxRoofSlope').val(options.nine_grid_slope || 1);
    },
 
    _applyControlState: function() {
@@ -430,7 +426,7 @@ App.StonehearthBuildingDesignerTools = App.View.extend({
          self.$("[tab='" + self._state.activeTabId + "']").click();
 
          // gradiant on the grow roof control
-         self._applyRoofGradiantControlState('#roofToolTab', self._state.growRoofOptions);
+         self._applyRoofGradiantControlState(self._state.growRoofOptions);
          self._updateGrowRoofOptions()
       }
    },
@@ -494,13 +490,11 @@ App.StonehearthBuildingDesignerTools = App.View.extend({
          var type = constructionData.type;
 
          if (type == 'floor') {
-            //xxx, update the tab
             self.$('.floorToolButton').click();
          } else if (type == 'wall') {           
-            //xxx, update the tab
             self.$('.wallToolButton').click();
          } else if (type == 'roof') {
-            //xxx, update the tab
+            self._applyRoofGradiantControlState(constructionData);
             self.$('.roofToolButton').click();
          }
       }
