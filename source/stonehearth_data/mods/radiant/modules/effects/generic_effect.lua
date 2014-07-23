@@ -11,7 +11,7 @@ function GenericEffect:__init(start_time, handler, info, effect)
 end
 
 function GenericEffect:update(e)  
-   return not self._loops and e.now < self._end_time
+   return not self._loops and e.now <= self._end_time
 end
 
 return GenericEffect

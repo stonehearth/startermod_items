@@ -2,7 +2,6 @@ local GenericEffect = require 'modules.effects.generic_effect'
 local AnimationEffect = require 'modules.effects.animation_effect'
 local TriggerEffect = require 'modules.effects.trigger_effect'
 local SoundEffect = require 'modules.effects.sound_effect'
-local CubemitterEffect = require 'modules.effects.cubemitter_effect'
 local LightEffect = require 'modules.effects.light_effect'
 local ActivityOverlayEffect = require 'modules.effects.activity_overlay_effect'
 local UnitStatusEffect = require 'modules.effects.unit_status_effect'
@@ -84,7 +83,7 @@ function EffectTracks:set_finished_cb(cb)
 end
 
 function EffectTracks:stop()
-   self._log:debug('manually stopping effect')
+   self._log:debug('stopping effect before it was finished: %s', self._name)
    self:_cleanup()
    return self
 end
