@@ -4,6 +4,10 @@ local XZRegionSelector = require 'services.client.selection.xz_region_selector'
 local LocationSelector = require 'services.client.selection.location_selector'
 local SelectionService = class()
 
+-- enumeration used by the filter functions of the various selection
+-- services.
+SelectionService.FILTER_IGNORE = 'ignore'
+
 function SelectionService:initialize()
    self._all_tools = {}
    self._input_capture = stonehearth.input:capture_input()

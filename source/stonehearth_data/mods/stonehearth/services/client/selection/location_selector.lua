@@ -4,10 +4,6 @@ local Point3 = _radiant.csg.Point3
 
 local OFFSCREEN = Point3(0, -100000, 0)
 
-LocationSelector.FILTER_IGNORE = 0
-LocationSelector.FILTER_PASS = 1
-LocationSelector.FILTER_FAIL = 2
-
 function LocationSelector:done(cb)
    self._done_cb = cb
    return self
@@ -110,16 +106,20 @@ function LocationSelector:_get_selected_brick(x, y)
    local s = _radiant.client.query_scene(x, y)
 
    for result in s:each_result() do
+      -- adjust the brick location to the the one adjacent to the brick
+      -- selected.  this is almost always what you want.
+      local normal = result.normal
+      result.brick = result.brick + normal:to_int()
+
       -- skip the cursor...
       if result.entity ~= self._cursor_entity then
-         local filter_result = (not self._filter_fn and LocationSelector.FILTER_PASS) or self._filter_fn(result)
-         if filter_result == LocationSelector.FILTER_PASS then
-            local brick, normal = result.brick, result.normal
-            if normal.x > 0 or normal.z > 0 or normal.y > 0 then
-               return brick + normal:to_int()
-            end
-            return brick
-         elseif filter_result == LocationSelector.FILTER_FAIL then
+         local filter_result = not self._filter_fn or self._filter_fn(result)
+         if filter_result == stonehearth.selection.FILTER_IGNORE then
+            -- keep going...
+         elseif filter_result == true then
+            return result.brick
+         else
+            -- everything else (including false and nil) indicates failure
             return nil
          end
       end
