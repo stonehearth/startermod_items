@@ -766,10 +766,6 @@ PlaySoundEffect::PlaySoundEffect(RenderEntity& e, om::EffectPtr effect, const JS
    
    sound_ = audio::AudioManager::GetInstance().CreateSound(track);
    AssignFromJSON_(node);
-   if (delay_ == 0) {
-      //TODO: if camera is farther than maxDistance, create sound and play
-	   sound_->play();
-   }
 }
 
 /* PlaySoundEffect::AssignFromJSON
@@ -877,7 +873,7 @@ void PlaySoundEffect::Update(FrameStartInfo const& info, bool& finished)
       sound_->setPosition(loc.x, loc.y, loc.z);
    }
 
-   if (delay_ > 0 && firstPlay_ && (info.now > startTime_+ delay_) ) {
+   if (firstPlay_ && (info.now >= startTime_+ delay_) ) {
       sound_->play();
       firstPlay_ = false;
       finished = false;
@@ -887,6 +883,3 @@ void PlaySoundEffect::Update(FrameStartInfo const& info, bool& finished)
       finished = info.now > startTime_ + delay_ + sound_->getBuffer()->getDuration().asMilliseconds(); 
    }
 }
-
-
-

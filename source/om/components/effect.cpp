@@ -12,10 +12,10 @@ std::ostream& operator<<(std::ostream& os, const Effect& o)
    return os;
 }
 
-void Effect::Init(int effect_id, std::string const& name, int start)
+void Effect::Init(int effect_id, std::string const& name, int start_time)
 {
    name_ = name;
-   start_time_ = start;
+   start_time_ = start_time;
    effect_id_ = effect_id;
 }
 
