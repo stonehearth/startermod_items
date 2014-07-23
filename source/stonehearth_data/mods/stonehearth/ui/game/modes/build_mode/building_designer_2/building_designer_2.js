@@ -99,6 +99,7 @@ App.StonehearthBuildingDesignerTools = App.View.extend({
                      .addClass('brushPalette')
                      .addClass('section');
 
+      
       // for each category
       var index = 0;
       $.each(materials, function(i, category) {
@@ -120,9 +121,30 @@ App.StonehearthBuildingDesignerTools = App.View.extend({
                   .append('<h2>Materials</h2>')
                   .append(palette);
 
+
       return el;
    },
-      // grow roof button
+
+   _selectActiveMaterial: function(el) {
+      var self = this;
+
+      var currentMaterial = self.get('blueprint.uri');
+
+      if (currentMaterial) {
+         var selector = '[brush="' + currentMaterial + '"]';
+         var palette = el.find('.brushPalette');
+
+         var match = palette.find(selector).addClass('selected');
+
+         if (match.length > 0) {
+            palette.children().removeClass('selected');
+            match.addClass('selected');
+         }
+      }
+      
+   },
+
+   // grow roof button
    _getRoofOptionsFromElement : function(selector, options) {
       var self = this;
       options.nine_grid_gradiant = []
@@ -155,11 +177,24 @@ App.StonehearthBuildingDesignerTools = App.View.extend({
          self.$('.tabButton').removeClass('active');
          $(this).addClass('active');
 
+         // if the selected entity is not applicable to this tab, deselect the entity
+         var buildingType = $(this).attr('buildingType');
+         var constructionData = self.get('blueprint.stonehearth:construction_data')
+
+         if (constructionData && buildingType != constructionData.type) {
+            radiant.call('stonehearth:select_entity', null);   
+         }
+         
          // restore the last used tool for the tab
          var activeTool = self._state[tabId + "ActiveTool"];
          if (activeTool) {
-            tab.find(activeTool).click();   
+            // disable this, because it messes with the ability to just click around the parts of the building.
+            // For example, you click a wall, the grow walls tool activates, and you can't click around anymore
+            //tab.find(activeTool).click();   
          }
+
+         // update the material in the tab to reflect the selectio
+         self._selectActiveMaterial(tab);
 
          // show the correct tab page
          self.$('.tabPage').hide();
@@ -215,7 +250,6 @@ App.StonehearthBuildingDesignerTools = App.View.extend({
          if($(this).hasClass('active')) {
             var brush = self.$('#floorToolTab .floorMaterial.selected').attr('brush');
             App.stonehearthClient.buildFloor(brush);
-            self._activeTool = $(this);            
          }
       });
 
@@ -228,14 +262,19 @@ App.StonehearthBuildingDesignerTools = App.View.extend({
 
       // wall tool tab
       this.$('#wallToolTab .wallMaterial').click(function() {
-         // select the tool
+         // select the clicked material
          self.$('#wallToolTab .wallMaterial').removeClass('selected');
          $(this).addClass('selected');
 
          self._state.wallMaterial = $(this).attr('index');
          self._saveState();
 
-         self._updateTool();
+         // update the selected building part, if there is one
+         var wallUri = $(this).attr('brush');
+         var blueprint = self.get('blueprint');
+         if (blueprint) {
+            App.stonehearthClient.replaceStructure(blueprint, wallUri);
+         }
       })
 
       // draw wall tool
@@ -243,8 +282,6 @@ App.StonehearthBuildingDesignerTools = App.View.extend({
          if($(this).hasClass('active')) {
             var wallUri = self.$('#wallToolTab .wallMaterial.selected').attr('brush');
             App.stonehearthClient.buildWall('stonehearth:wooden_column', wallUri);
-
-            self._activeTool = $(this);
          }
       });
 
@@ -262,62 +299,44 @@ App.StonehearthBuildingDesignerTools = App.View.extend({
          }
       })
 
-      // roof numeric inputs like maxheight and slope
-
-      // common behavior between options tab and edit tab
-      var roofNumericInputChange = function(el, options) {
-         var numericInput = el;
-         if (numericInput.attr('id') == 'inputMaxRoofHeight') {
-            options.nine_grid_max_height = numericInput.val();
-         } else if (numericInput.attr('id') == 'inputMaxRoofSlope') {
-            options.nine_grid_slope = numericInput.val();
-         }
-      };
-
-      // options tab
+      // roof tab
       this.$('#roofToolTab .roofNumericInput').change(function() {
-         roofNumericInputChange($(this), self._state.growRoofOptions);
-         self._updateGrowRoofOptions();
-         self._saveState();         
-      });
+         // update the options for future roofs
+         var numericInput = $(this);
+         var options = self._state.growRoofOptions;
+         if (numericInput.attr('id') == 'inputMaxRoofHeight') {
+            options.nine_grid_max_height = parseInt(numericInput.val());
+         } else if (numericInput.attr('id') == 'inputMaxRoofSlope') {
+            options.nine_grid_slope = parseInt(numericInput.val());
+         }
 
-      // edit tab
-      this.$('#editToolTab .roofNumericInput').change(function() {
+         self._updateGrowRoofOptions();
+         self._saveState();
+
+         // if a roof is selected, change it too
          var blueprint = self.get('blueprint');
          if (blueprint) {
-            var options = {}
-            roofNumericInputChange($(this), options);
             App.stonehearthClient.applyConstructionDataOptions(blueprint, options);
          }
+
       });
 
-
-      // roof diagram buttons
-
-      // common behavior between options tab and edit tab
-      var roofDiagramButtonClick = function(el) {
-         el.toggleClass('active');
-      }
-
-      // options tab
+      // roof slope buttons
       this.$('#roofToolTab .roofDiagramButton').click(function() {
-         roofDiagramButtonClick($(this));
+         // update the options for future roofs
+         $(this).toggleClass('active');
          self._getRoofOptionsFromElement('#roofToolTab', self._state.growRoofOptions);
          self._updateGrowRoofOptions();
          self._saveState();
-      });
 
-      // edit tab
-      this.$('#editToolTab .roofDiagramButton').click(function() {
-         roofDiagramButtonClick($(this));
-
+         // if a roof is selected, change it too
          var blueprint = self.get('blueprint');
          if (blueprint) {
-            var options = {}
-            self._getRoofOptionsFromElement('#editToolTab', options);
-            App.stonehearthClient.applyConstructionDataOptions(blueprint, options);
+            App.stonehearthClient.applyConstructionDataOptions(blueprint, self._state.growRoofOptions);
          }
+
       });
+
 
       // doodad material
       this.$('.doodadMaterial').click(function() {
@@ -335,19 +354,8 @@ App.StonehearthBuildingDesignerTools = App.View.extend({
          if($(this).hasClass('active')) {
             var uri = self.$('#doodadToolTab .doodadMaterial.selected').attr('brush');
             App.stonehearthClient.addDoodad(uri);
-
-            self._activeTool = $(this);
          }
       });
-
-      // edit tab
-      $('#materialPicker').on( 'click', '.wallMaterial', function() {
-         var wallUri = $(this).attr('brush');
-         var blueprint = self.get('blueprint.__self');
-         App.stonehearthClient.replaceStructure(blueprint, wallUri); 
-      });
-
-      $('#editToolTab #roofEditor')
 
       // building buttons
       this.$('#startBuilding').click(function() {
@@ -427,21 +435,11 @@ App.StonehearthBuildingDesignerTools = App.View.extend({
       }
    },
 
-   _updateTool: function(toolElement) {
-      var self = this;
-
-      // reactivate the active tool with this new material
-      if (self._activeTool) {
-         self._activeTool.click();
-      } else if (toolElement) {
-         toolElement.click();
-      }
-   },
-
    _updateSelection: function(building) {
       var self = this;
       var building = this.get(this.uriProperty);
-      var building_entity, blueprint_entity;
+      var building_entity = null;
+      var blueprint_entity = null;
 
       if (building) {
          var fabricator_component = building['stonehearth:fabricator'];
@@ -458,14 +456,14 @@ App.StonehearthBuildingDesignerTools = App.View.extend({
          if (blueprint_entity && !building_entity) {
             building_entity = blueprint_entity['stonehearth:construction_progress']['building_entity'];         
          }
-
-         self.set('building', building_entity);
-         self.set('blueprint', blueprint_entity);
-
-         if (building_entity) {
-            self.set('building.active', building_entity['stonehearth:construction_progress'].active);
-         }        
       }
+
+      self.set('building', building_entity);
+      self.set('blueprint', blueprint_entity);
+
+      if (building_entity) {
+         self.set('building.active', building_entity['stonehearth:construction_progress'].active);
+      }        
 
       self._updateControls();
    }.observes('context.selection'),
@@ -476,7 +474,7 @@ App.StonehearthBuildingDesignerTools = App.View.extend({
       if(!self.$) {
          return;
       }
-      
+
       var selectedBuildingWindow = self.$('#selectedBuildingWindow');
       if (!selectedBuildingWindow) {
          return;
@@ -492,23 +490,20 @@ App.StonehearthBuildingDesignerTools = App.View.extend({
       }
 
       if (blueprint_entity) {
-         var materialPicker = self.$('#materialPicker');
          var constructionData = this.get('blueprint.stonehearth:construction_data')
          var type = constructionData.type;
 
-         // Reset the current selection
-         materialPicker.empty();
-         self.$('#editToolTab #roofEditor').hide();
-
-         // Add the editor for the current type
-         var materials;
-         if (type == 'wall') {           
-            materials = this._buildMaterialPalette(this.wallPatterns, 'wallMaterial');
+         if (type == 'floor') {
+            //xxx, update the tab
+            self.$('.floorToolButton').click();
+         } else if (type == 'wall') {           
+            //xxx, update the tab
+            self.$('.wallToolButton').click();
          } else if (type == 'roof') {
-            self.$('#editToolTab #roofEditor').show();
-            self._applyRoofGradiantControlState('#roofEditor', constructionData);
+            //xxx, update the tab
+            self.$('.roofToolButton').click();
          }
-         materialPicker.append(materials);
       }
-   }
+   },
+   
 });

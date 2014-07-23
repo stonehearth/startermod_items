@@ -284,7 +284,7 @@ var StonehearthClient;
          var self = this;
          if (old_structure) {
             radiant.call('radiant:play_sound', 'stonehearth:sounds:place_structure' );
-            radiant.call_obj(self._build_service, 'substitute_blueprint_command', old_structure, new_structure_uri)
+            radiant.call_obj(self._build_service, 'substitute_blueprint_command', old_structure.__self, new_structure_uri)
                .done(function(o) {
                   if (o.new_selection) {
                      radiant.call('stonehearth:select_entity', o.new_selection);
