@@ -80,7 +80,6 @@ std::shared_ptr<sf::Sound> AudioManager::CreateSoundInternal(std::string const& 
    return sounds_.back();
 }
 
-//Every time a sound plays, cleans up any finished sounds.
 void AudioManager::CleanupSounds()
 {
    // No need to do any work until we're at MAX_SOUNDS.

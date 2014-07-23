@@ -1,8 +1,8 @@
-local Effect = require 'modules.effects.effect'
-local ActivityOverlayEffect = class(Effect)
+local EffectTrack = require 'modules.effects.effect_track'
+local ActivityOverlayEffect = class(EffectTrack)
 
 function ActivityOverlayEffect:__init(info)  
-   self[Effect]:__init(info)
+   self[EffectTrack]:__init(info)
 end
 
 function ActivityOverlayEffect:update(now)

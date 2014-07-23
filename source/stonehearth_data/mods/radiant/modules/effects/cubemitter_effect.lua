@@ -1,8 +1,8 @@
-local Effect = require 'modules.effects.effect'
-local CubemitterEffect = class(Effect)
+local EffectTrack = require 'modules.effects.effect_track'
+local CubemitterEffect = class(EffectTrack)
 
 function CubemitterEffect:__init(info)  
-   self[Effect]:__init(info)
+   self[EffectTrack]:__init(info)
 end
 
 function CubemitterEffect:update(now)

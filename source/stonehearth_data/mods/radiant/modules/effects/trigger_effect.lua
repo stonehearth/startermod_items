@@ -1,8 +1,8 @@
-local Effect = require 'modules.effects.effect'
-local TriggerEffect = class(Effect)
+local EffectTrack = require 'modules.effects.effect_track'
+local TriggerEffect = class(EffectTrack)
 
 function TriggerEffect:__init(start_time, handler, track, effect, entity, args)
-   self[Effect]:__init(track)
+   self[EffectTrack]:__init(track)
    --May be redundant with above?
    self._info = track.info
    self._entity = entity

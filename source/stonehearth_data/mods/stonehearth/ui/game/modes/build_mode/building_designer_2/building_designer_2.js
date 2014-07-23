@@ -162,6 +162,7 @@ App.StonehearthBuildingDesignerTools = App.View.extend({
 
    didInsertElement: function() {
       var self = this;
+      self._state = {};
 
       // build material palettes
       this.$('#floorToolTab').append(this._buildMaterialPalette(this.floorPatterns, 'floorMaterial'));
@@ -170,10 +171,21 @@ App.StonehearthBuildingDesignerTools = App.View.extend({
 
       // tab buttons and pages
       this.$('.tabButton').click(function() {
-         App.stonehearthClient.deactivateAllTools();
          var tabId = $(this).attr('tab');
          var tab = self.$('#' + tabId);
 
+         if (!tabId) {
+            return;
+         }
+
+         // If a new tab is being selected, deactivate the old tools
+         var clickedTab = $(this).attr('id');
+         var currentActiveTab = self.$('.tabButton.active').attr('id');
+         if(clickedTab != currentActiveTab) {
+            App.stonehearthClient.deactivateAllTools();   
+         }
+         
+         // style the tabs to reflect the new active tab
          self.$('.tabButton').removeClass('active');
          $(this).addClass('active');
 
@@ -193,7 +205,7 @@ App.StonehearthBuildingDesignerTools = App.View.extend({
             //tab.find(activeTool).click();   
          }
 
-         // update the material in the tab to reflect the selectio
+         // update the material in the tab to reflect the selection
          self._selectActiveMaterial(tab);
 
          // show the correct tab page
