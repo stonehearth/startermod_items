@@ -162,6 +162,7 @@ App.StonehearthBuildingDesignerTools = App.View.extend({
 
    didInsertElement: function() {
       var self = this;
+      self._state = {};
 
       // build material palettes
       this.$('#floorToolTab').append(this._buildMaterialPalette(this.floorPatterns, 'floorMaterial'));
@@ -170,8 +171,13 @@ App.StonehearthBuildingDesignerTools = App.View.extend({
 
       // tab buttons and pages
       this.$('.tabButton').click(function() {
-         App.stonehearthClient.deactivateAllTools();
          var tabId = $(this).attr('tab');
+
+         if (!tabId) {
+            return;
+         }
+
+         App.stonehearthClient.deactivateAllTools();
          var tab = self.$('#' + tabId);
 
          self.$('.tabButton').removeClass('active');
