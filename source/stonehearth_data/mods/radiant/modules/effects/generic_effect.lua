@@ -1,8 +1,8 @@
-local Effect = require 'modules.effects.effect'
-local GenericEffect = class(Effect)
+local EffectTrack = require 'modules.effects.effect_track'
+local GenericEffect = class(EffectTrack)
 
 function GenericEffect:__init(start_time, handler, info, effect)
-   self[Effect]:__init(info)
+   self[EffectTrack]:__init(info)
 
    self._loops = info.loop;
    if not self._loops then

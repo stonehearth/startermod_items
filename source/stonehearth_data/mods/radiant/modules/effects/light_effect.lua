@@ -1,8 +1,8 @@
-local Effect = require 'modules.effects.effect'
-local LightEffect = class(Effect)
+local EffectTrack = require 'modules.effects.effect_track'
+local LightEffect = class(EffectTrack)
 
 function LightEffect:__init(info)  
-   self[Effect]:__init(info)
+   self[EffectTrack]:__init(info)
 end
 
 function LightEffect:update(now)
