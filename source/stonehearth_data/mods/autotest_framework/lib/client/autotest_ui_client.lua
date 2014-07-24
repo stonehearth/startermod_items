@@ -28,6 +28,14 @@ _server.on[commands.CLICK_DOM_ELEMENT] = function(jq_selector)
    _browser:send(commands.CLICK_DOM_ELEMENT, jq_selector)
 end
 
+_server.on[commands.STRESS_UI_PERFORMANCE_EASY] = function()
+   _browser:send(commands.STRESS_UI_PERFORMANCE_EASY)
+end
+
+_server.on[commands.STRESS_UI_PERFORMANCE_HARD] = function()
+   _browser:send(commands.STRESS_UI_PERFORMANCE_HARD)
+end
+
 _server.on[commands.CLICK_WORLD_COORD] = function(x, y, z)
    autotest_framework.log:info('clicking on world coodrinate (%d, %d, %d)', x, y, z)
    _mouse_capture.click(x, y, z)
