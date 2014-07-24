@@ -70,7 +70,7 @@
    },   
    "citizen_manager" : {
       "name" : "Manage Citizen",
-      "description" : "NOT YET IMPLEMENTED. Manage your settlers and promote them to new jobs.",
+      "description" : "Manage your settlers and promote them to new jobs.",
       "class" : "dock",
       "icon" : "/stonehearth/ui/game/start_menu/images/dock_jobs.png",
       "hotkey" : "4",
@@ -80,7 +80,7 @@
    },
    "crafter_manager" : {
       "name" : "Manage Crafters",
-      "description" : "NOT YET IMPLEMENTED. Manager all of your crafters and workshops.",
+      "description" : "Manager all of your crafters and workshops.",
       "class" : "dock",
       "icon" : "/stonehearth/ui/game/start_menu/images/dock_crafters.png",
       "hotkey" : "5",
