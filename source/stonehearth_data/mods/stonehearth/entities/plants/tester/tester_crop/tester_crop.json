@@ -29,7 +29,7 @@
             "tester_2": "stonehearth:tester_basket"
          },
          "harvest_threshhold" : "tester_2",
-         "plant_overlay_effect" : "/stonehearth/data/effects/plant_crop_overlay_effect/plant_corn_overlay_effect.json"
+         "plant_overlay_effect" : "/stonehearth/data/effects/plant_crop_overlay_effect/plant_crop_overlay_effect.json"
       }, 
       "stonehearth:growing" : {
          "growth_period" : "10m",

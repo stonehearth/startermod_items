@@ -25,7 +25,7 @@ function HarvestTest:__init()
 
    self:place_item('stonehearth:berry_bush', -25, 15)
    self:place_item('stonehearth:berry_bush', -15, 15)
-   self:place_item('stonehearth:berry_bush',  -5, 15)
+   self:place_item('stonehearth:silkweed',  -5, 15)
 
    self:place_citizen(12, 12)
    self:place_citizen(14, 14)

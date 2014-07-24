@@ -58,7 +58,7 @@
             "corn_8": ""
          }, 
          "harvest_threshhold" : "corn_4", 
-         "plant_overlay_effect" : "/stonehearth/data/effects/plant_crop_overlay_effect/plant_corn_overlay_effect.json" 
+         "plant_overlay_effect" : "/stonehearth/data/effects/plant_crop_overlay_effect/plant_crop_overlay_effect.json" 
       }, 
       "stonehearth:growing" : {
          "growth_period" : "33h",

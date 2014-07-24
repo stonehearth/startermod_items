@@ -1,0 +1,29 @@
+{
+   "mixins": "stonehearth:mixins:item_properties",
+   "type": "entity",
+   "components": {
+      "item": {
+         "material": "cloth",
+         "stacks": 3, 
+         "max_stacks" : 3
+      },
+      "stonehearth:material" : {
+         "tags" : "fiber resource"
+      },
+      "model_variants": {
+         "default": {
+            "models": [
+               "file(silkweed_bundle.qb)"
+            ]
+         }
+      },
+      "unit_info": {
+         "name": "Silkweed bundle",
+         "description": "Spinnable into thread",
+         "icon" : "file(silkweed_bundle.png)"
+      },
+      "mob" : {
+         "model_origin" : { "x": -0.05, "y": 0, "z": 0.05 }
+      }
+   }
+}

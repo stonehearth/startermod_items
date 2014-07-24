@@ -108,8 +108,11 @@ function GrowingComponent:_apply_current_stage()
                      :set_model_variant(stage_data.model_name)
    end
 
-   if stage_data.name and stage_data.description then
+   if stage_data.name then
       radiant.entities.set_name(self._entity, stage_data.name)
+   end
+
+   if stage_data.description then
       radiant.entities.set_description(self._entity, stage_data.description)
    end
 end
