@@ -63,10 +63,10 @@
 
       // global exception catcher
       window.onerror = function myErrorHandler(errorMsg, url, lineNumber) {
-         //console.error("Error occured: " + errorMsg);
-         //console.error(url);
-         //console.error('line ' + lineNumber);
-         return false;
+         console.error("Error occured: " + errorMsg);
+         console.error(url);
+         console.error('line ' + lineNumber);
+         return true;
       }
 
    </script>

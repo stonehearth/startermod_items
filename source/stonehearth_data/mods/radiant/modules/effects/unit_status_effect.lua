@@ -11,7 +11,7 @@ end
 
 
 function UnitStatusEffect:update(e)  
-   return not self._end_time or e.now < self._end_time
+   return not self._end_time or e.now <= self._end_time
 end
 
 return UnitStatusEffect

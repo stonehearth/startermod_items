@@ -1,0 +1,26 @@
+{
+   "type" : "entity",
+   "components" : {
+      "render_info" : {
+         "scale" : 0.13
+      },
+      "mob" : {
+         "model_origin" : { "x": 0, "y": 0, "z": 0 }
+      },
+      "destination" : {
+         "region" : [
+            {
+               "min" : { "x" : 0, "y" : 0, "z" : 0 },
+               "max" : { "x" : 1, "y" : 1, "z" : 1 }
+            }
+         ]
+      },
+      "stonehearth:renewable_resource_node": {
+         "task_group_name" : "stonehearth:task_group:harvest",
+         "harvest_overlay_effect" : "/stonehearth/data/effects/harvest_plant_overlay_effect",
+         "unripe_description" : "This plant has been harvested and hasn't grown back yet.",
+         "durability": 1
+      }   
+	}
+}
+

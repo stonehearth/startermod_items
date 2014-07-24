@@ -23,7 +23,7 @@ end
 --Update returns true if we should continue, false if we should stop
 --If we're looping, return true. Otherwise, return if we've past the end time
 function SoundEffect:update(e)
-   return self._loop or self._end_time > e.now
+   return self._loop or e.now <= self._end_time
 end
 
 return SoundEffect

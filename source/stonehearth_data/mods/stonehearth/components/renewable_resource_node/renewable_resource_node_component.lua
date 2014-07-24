@@ -5,11 +5,11 @@ function RenewableResourceNodeComponent:initialize(entity, json)
    self._calendar_constants = stonehearth.calendar:get_constants();
    
    self._original_description = self._entity:get_component('unit_info'):get_description()
-   self._wait_text = self._original_description
+   self._unripe_description = self._original_description
    self._render_info = self._entity:add_component('render_info')
 
    self._resource = json.resource
-   self._wait_text = json.wait_text
+   self._unripe_description = json.unripe_description
    self._renew_effect_name = json.renew_effect
    self._harvest_command_name = json.harvest_command --name of the cmd that harvests the resource
    self._harvest_overlay_effect = json.harvest_overlay_effect
@@ -56,7 +56,9 @@ function RenewableResourceNodeComponent:spawn_resource(location)
       radiant.events.listen(stonehearth.calendar, 'stonehearth:hourly', self, self.on_hourly)
 
       --Change the description
-      self._entity:get_component('unit_info'):set_description(self._wait_text)
+      if self._unripe_description then
+         self._entity:get_component('unit_info'):set_description(self._unripe_description)
+      end
    
       --Listen for renewal triggers, if relevant
       if self._renew_effect_name then

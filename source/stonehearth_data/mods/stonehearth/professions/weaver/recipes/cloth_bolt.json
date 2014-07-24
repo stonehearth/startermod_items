@@ -1,0 +1,21 @@
+{
+   "type":"recipe",
+
+   "work_units"  : 3,
+   "recipe_name" : "Bolt of Cloth",
+   "description" : "Used to create more comfortable furniture.",
+   "flavor"      : "To make thicker by the width of one string: add string. Repeat 1,000,000 times.",
+   "portrait"    : "/stonehearth/entities/cloth/cloth_bolt/cloth_bolt.png",
+
+   "ingredients": [
+      {
+         "material" : "thread resource",
+         "count" : 3
+      }
+  ],
+  "produces": [
+      {
+         "item":"stonehearth:cloth_bolt"
+      }
+  ]
+}

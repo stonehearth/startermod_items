@@ -24,6 +24,8 @@ function StockpileRenderer:initialize(render_entity, datastore)
 end
 
 function StockpileRenderer:destroy()
+   self:_update_item_states('default', self._sv.stocked_items)
+
    if self._trace then
       self._trace:destroy()
       self._trace = nil
@@ -40,7 +42,6 @@ function StockpileRenderer:destroy()
    end
    radiant.events.unlisten(radiant, 'stonehearth:ui_mode_changed', self, self._on_ui_mode_changed)
 end
-
 
 function StockpileRenderer:_on_ui_mode_changed(e)
    local mode = stonehearth.renderer:get_ui_mode()
@@ -63,7 +64,8 @@ function StockpileRenderer:_update_item_states(mode, item_map)
             local kind = self:_mode_to_material_kind(mode)
             local material = re:get_material_path(kind)
             re:set_material_override(material)
-            if self:_show_hud() then
+
+            if mode == 'hud' then
                re:add_query_flag(_radiant.renderer.QueryFlags.UNSELECTABLE)
             else
                re:remove_query_flag(_radiant.renderer.QueryFlags.UNSELECTABLE)
@@ -141,4 +143,3 @@ function StockpileRenderer:_show_hud()
 end
 
 return StockpileRenderer
-

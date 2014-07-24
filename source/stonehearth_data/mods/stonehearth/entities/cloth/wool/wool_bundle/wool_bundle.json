@@ -18,11 +18,11 @@
       },
       "unit_info": {
          "name": "Bundle of Wool",
-         "description": "Warm and fluffy",
+         "description": "Spinnable into thread",
          "icon" : "file(wool_bundle.png)"
       },
       "mob" : {
-         "model_origin" : { "x": 0, "y": 0, "z": 0.05 }
+         "model_origin" : { "x": -0.05, "y": 0, "z": 0.05 }
       }
    }
 }

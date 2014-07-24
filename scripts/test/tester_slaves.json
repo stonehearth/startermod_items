@@ -5,6 +5,9 @@
       },
       "radeon3450-PentiumDual@2.2GHz": {
          "ip_address" : "10.1.10.67"
+      },
+      "intelGMA_HD-VAIOLaptop" : {
+         "ip_address" : "10.1.10.62"
       }
    },
    "default_autotest" : "radeon7850-corei5@3.4GHz"

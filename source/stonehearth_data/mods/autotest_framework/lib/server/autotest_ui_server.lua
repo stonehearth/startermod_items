@@ -63,4 +63,12 @@ function ui_server._connect_client_to_server(session, response)
    _client:set_response(response)
 end
 
+function ui_server.stress_ui_performance_easy()
+   _send(commands.STRESS_UI_PERFORMANCE_EASY)
+end
+
+function ui_server.stress_ui_performance_hard()
+   _send(commands.STRESS_UI_PERFORMANCE_HARD)
+end
+
 return ui_server

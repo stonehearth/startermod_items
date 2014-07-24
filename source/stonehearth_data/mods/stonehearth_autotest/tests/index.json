@@ -9,7 +9,8 @@
 
                "scripts" : [
                   "file(performance/perf_camera_orbit.lua)",
-                  "file(performance/mob_of_mobs.lua)"
+                  "file(performance/mob_of_mobs.lua)",
+                  "file(performance/ui_perf.lua)"
                ]
             }
          }

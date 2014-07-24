@@ -78,7 +78,7 @@ function EmbarkTest:__init()
       kingdom = radiant.entities.get_kingdom(worker)
    }
 
-   --stonehearth.farming:add_crop_type(session, 'stonehearth:cotton_crop')
+   --stonehearth.farming:add_crop_type(session, 'stonehearth:silkweed_crop')
 
 
    -- Introduce a new person
