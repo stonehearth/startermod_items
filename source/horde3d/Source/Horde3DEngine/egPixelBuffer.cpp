@@ -124,7 +124,7 @@ void *PixelBufferResource::mapStream( int elem, int elemIdx, int stream, bool re
 }
 
 
-void PixelBufferResource::unmapStream()
+void PixelBufferResource::unmapStream(int bytesMapped)
 {
    if (!_usePinnedMemory)
    {

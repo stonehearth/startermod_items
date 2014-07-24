@@ -155,7 +155,7 @@ bool Modules::init(int glMajor, int glMinor, bool msaaWindowSupported, bool enab
 	void *image = tex2DRes->mapStream( TextureResData::ImageElem, 0, TextureResData::ImgPixelStream, false, true );
 	ASSERT( image != 0x0 );
 	for( uint32 i = 0; i < 32*32; ++i ) ((uint32 *)image)[i] = 0xffffffff;
-	tex2DRes->unmapStream();
+	tex2DRes->unmapStream(0);
 	tex2DRes->addRef();
 	resMan().addNonExistingResource( *tex2DRes, false );
 
@@ -166,7 +166,7 @@ bool Modules::init(int glMajor, int glMinor, bool msaaWindowSupported, bool enab
 		image = texCubeRes->mapStream( TextureResData::ImageElem, i, TextureResData::ImgPixelStream, false, true );
 		ASSERT( image != 0x0 );
 		for( uint32 j = 0; j < 32*32; ++j ) ((uint32 *)image)[j] = 0xff000000;
-		texCubeRes->unmapStream();
+		texCubeRes->unmapStream(0);
 	}
 	texCubeRes->addRef();
 	resMan().addNonExistingResource( *texCubeRes, false );
@@ -176,7 +176,7 @@ bool Modules::init(int glMajor, int glMinor, bool msaaWindowSupported, bool enab
 	image = tex3DRes->mapStream( TextureResData::ImageElem, 0, TextureResData::ImgPixelStream, false, true );
 	ASSERT( image != 0x0 );
 	for( uint32 i = 0; i < 16*16*4; ++i ) ((uint32 *)image)[i] = 0xffffffff;
-	tex3DRes->unmapStream();
+	tex3DRes->unmapStream(0);
 	tex3DRes->addRef();
 	resMan().addNonExistingResource( *tex3DRes, false );
 	

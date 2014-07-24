@@ -566,7 +566,7 @@ void *TextureResource::mapStream( int elem, int elemIdx, int stream, bool read, 
 }
 
 
-void TextureResource::unmapStream()
+void TextureResource::unmapStream(int bytesMapped)
 {
 	if( mappedData != 0x0 )
 	{
@@ -582,7 +582,7 @@ void TextureResource::unmapStream()
 		return;
 	}
 
-	Resource::unmapStream();
+	Resource::unmapStream(bytesMapped);
 }
 
 }  // namespace

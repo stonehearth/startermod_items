@@ -67,7 +67,7 @@ void UiBuffer::update(const csg::Region2& rgn, const radiant::uint32* buff)
    memmove(getNextUiBuffer(), buff, rgn.GetArea() * 4);
 
    perfmon::SwitchToCounter("unmap ui pbo");
-   h3dUnmapResStream(uiPbo_[curBuff_]);
+   h3dUnmapResStream(uiPbo_[curBuff_], rgn.GetBounds().GetArea() * 4);
 
    perfmon::SwitchToCounter("copy ui pbo to ui texture") ;
 
@@ -123,7 +123,7 @@ void UiBuffer::allocateBuffers(int width, int height)
       uiTexture_[i] = h3dCreateTexture(texName.c_str(), width, height, H3DFormats::List::TEX_BGRA8, H3DResFlags::NoTexMipmaps | H3DResFlags::NoFlush);
       unsigned char *data = (unsigned char *)h3dMapResStream(uiTexture_[i], H3DTexRes::ImageElem, 0, H3DTexRes::ImgPixelStream, false, true);
       memset(data, 0, width * height * 4);
-      h3dUnmapResStream(uiTexture_[i]);
+      h3dUnmapResStream(uiTexture_[i], 0);
 
       std::ostringstream material;
       material << "<Material>" << std::endl;

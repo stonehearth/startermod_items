@@ -41,7 +41,7 @@ public:
    bool loadFrom( const Resource* res );
 
    void *mapStream( int elem, int elemIdx, int stream, bool read, bool write );
-   void unmapStream();
+   void unmapStream(int bytesMapped);
 
    int getBufferObject() { return _buffer; }
    uint32 getSize() { return _size; }
